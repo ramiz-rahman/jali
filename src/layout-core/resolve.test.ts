@@ -100,9 +100,48 @@ describe("resolve and fold", () => {
   });
   it("uses 56px edge rails and 40px middle strips", () => {
     const tree = layout(pane("a", "record", { collapsed: true }), pane("b", "record", { collapsed: true }), pane("c", "record", { collapsed: true }));
-    expect(core.resolve(tree, view(), fit(1000)).panes.map(p => p.rect.width)).toEqual([56, 40, 56]);
+    const row = core.resolve(tree, view(), fit(1000));
+    expect(row.panes.map(p => p.rect.width)).toEqual([56, 876, 56]);
+    expect(row.panes.map(p => p.rect.height)).toEqual([900, 40, 900]);
     tree.root.type = "column";
     expect(core.resolve(tree, view(), fit(1000)).panes.map(p => p.rect.height)).toEqual([56, 40, 56]);
+  });
+  it("minimises a middle row pane to its header and restores its full height", () => {
+    const tree = freeze(layout(pane("a", "record"), pane("b", "record"), pane("c", "record")));
+    const collapsed = core.setCollapsed(tree, "b", true);
+    const result = core.resolve(collapsed, view("b"), fit(1600));
+    expect(result.folded).toEqual([]);
+    expect(result.panes.map(p => p.rect.height)).toEqual([900, 40, 900]);
+    expect(result.panes[1]!.rect.width).toBeGreaterThanOrEqual(480);
+    expect(core.resolve(core.setCollapsed(collapsed, "b", false), view("b"), fit(1600))).toEqual(core.resolve(tree, view("b"), fit(1600)));
+  });
+  it("unfolds one pane at each successive minimum-plus-gap threshold", () => {
+    const tree = freeze(layout(...Array.from({ length: 10 }, (_, i) => pane(`p${i}`, "record", i ? { linkedTo: `p${i - 1}` } : {}))));
+    let previous = core.resolve(tree, view("p0"), fit(480));
+    for (let count = 2; count <= 10; count++) {
+      const width = count * 480 + (count - 1) * 6;
+      expect(core.resolve(tree, view("p0"), fit(width - 1)).panes.filter(p => !p.hiddenInStack)).toHaveLength(count - 1);
+      const next = core.resolve(tree, view("p0"), fit(width));
+      expect(next.panes.filter(p => !p.hiddenInStack)).toHaveLength(count);
+      expect(previous.folded.filter(id => !next.folded.includes(id))).toHaveLength(1);
+      expect(next.folded.every(id => previous.folded.includes(id))).toBe(true);
+      previous = next;
+    }
+    expect(previous.folded).toEqual([]);
+  });
+  it("grows an adjacent auto stack before creating another group", () => {
+    const tree = freeze(layout(pane("a", "record"), pane("b", "record", { linkedTo: "a" }), pane("c", "record", { linkedTo: "d" }), pane("d", "record")));
+    const result = core.resolve(tree, view("a"), fit(1024));
+    expect(result.folded).toEqual(["b", "c"]);
+    expect(result.panes.find(p => p.id === "b")!.stackId).toBe(result.panes.find(p => p.id === "c")!.stackId);
+    expect(result.panes.find(p => p.id === "d")!.stackId).toBeUndefined();
+  });
+  it("keeps the receiving deliberate stack's active tab when a neighbour folds into it", () => {
+    const tree = freeze(layout(pane("c", "inspector", { linkedTo: "b" }), { id: "tabs", type: "stack", origin: "user", active: "b", size: { weight: 1 }, children: [pane("a", "record"), pane("b", "record")] }));
+    const result = core.resolve(tree, { focusHistory: [] }, fit(600));
+    expect(result.panes.filter(p => !p.hiddenInStack).map(p => p.id)).toEqual(["b"]);
+    expect(result.folded).toEqual(["c"]);
+    expect(core.resolve(tree, { focusHistory: [] }, fit(1000)).panes.find(p => p.id === "b")!.stackId).toBe("tabs");
   });
   it("returns local neighbour lengths for APG separators including max constraints", () => {
     const tree = layout(pane("a"), pane("b"));

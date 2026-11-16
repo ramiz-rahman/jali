@@ -8,6 +8,7 @@ interface Projected {
   size: Size;
   children: Projected[];
   pane?: PaneNode;
+  collapsedAxis?: Axis;
   active?: string;
   bounds: Bounds;
 }
@@ -65,11 +66,10 @@ function project(node: LayoutNode, fit: FitOptions, axis: Axis = "row", edge = t
     const kind = fit.kinds[node.ref.kind];
     if (!kind) throw new Error(`Unknown pane kind: ${node.ref.kind}`);
     const bounds = { width: kind.minWidth, height: kind.minHeight, maxWidth: kind.maxWidth ?? Infinity };
-    if (node.collapsed) {
-      if (axis === "row") { bounds.width = edge ? 56 : 40; bounds.maxWidth = bounds.width; }
-      else bounds.height = edge ? 56 : 40;
-    }
-    return { id: node.id, type: "pane", size: node.size, children: [], pane: node, bounds };
+    const collapsedAxis = node.collapsed ? axis === "row" && edge ? "row" : "column" : undefined;
+    if (collapsedAxis === "row") { bounds.width = 56; bounds.maxWidth = 56; }
+    if (collapsedAxis === "column") bounds.height = edge ? 56 : 40;
+    return { id: node.id, type: "pane", size: node.size, children: [], pane: node, collapsedAxis, bounds };
   }
   const nextAxis = node.type === "stack" ? axis : node.type;
   const result: Projected = {
@@ -84,9 +84,14 @@ function project(node: LayoutNode, fit: FitOptions, axis: Axis = "row", edge = t
 const allPanes = (n: Projected): Projected[] => n.pane ? [n] : n.children.flatMap(allPanes);
 const contains = (n: Projected, id?: string): boolean => !!id && allPanes(n).some(p => p.id === id);
 function auto(children: Projected[], view: ViewState, fit: FitOptions, fallback?: string): Projected {
+  const size = children.map(c => c.size).reduce(combined);
+  const preferred = children.find(c => c.id === fallback);
+  if (preferred?.type === "auto") fallback = preferred.active;
+  // Keep one tab group when a later fold grows an automatic stack.
+  children = children.flatMap(c => c.type === "auto" ? c.children : [c]);
   const result: Projected = {
     id: `@auto:${children.map(c => `${c.id.length}:${c.id}`).join("")}`,
-    type: "auto", children, size: children.map(c => c.size).reduce(combined),
+    type: "auto", children, size,
     active: children.find(c => contains(c, view.focused))?.id ?? fallback ?? children[0]!.id,
     bounds: { width: 0, height: 0, maxWidth: Infinity },
   };
@@ -96,28 +101,50 @@ function auto(children: Projected[], view: ViewState, fit: FitOptions, fallback?
 function slots(root: Projected): Projected[] {
   return root.type === "row" || root.type === "column" ? root.children.flatMap(slots) : [root];
 }
-function foldContext(root: Projected, view: ViewState, fit: FitOptions): boolean {
-  const candidates: { pane: Projected; parent: Projected; index: number }[] = [];
-  function visit(n: Projected) {
-    if (n.type !== "row" && n.type !== "column") return;
-    n.children.forEach((c, index) => {
-      if (c.pane?.linkedTo && !c.pane.pinned && !c.pane.collapsed && n.children.length > 1) candidates.push({ pane: c, parent: n, index });
-      visit(c);
-    });
+/** Remove one displayed slot, retaining the outer size of pruned singleton splits. */
+function removeSlot(node: Projected, id: string): Projected | undefined {
+  if (node.id === id) return undefined;
+  if (node.type !== "row" && node.type !== "column") return node;
+  node.children = node.children.flatMap(c => { const next = removeSlot(c, id); return next ? [next] : []; });
+  if (!node.children.length) return undefined;
+  return node.children.length === 1 ? { ...node.children[0]!, size: node.size } : node;
+}
+
+function foldOne(root: Projected, view: ViewState, fit: FitOptions): Projected | undefined {
+  const displayed = slots(root);
+  if (displayed.length < 2) return undefined;
+  const source = allPanes(root).find(p => p.id === view.focused)?.pane?.linkedTo;
+  const unfocused = displayed.filter(n => !contains(n, view.focused));
+  const unprotected = unfocused.filter(n => !contains(n, source));
+  const unpinned = (n: Projected) => allPanes(n).every(p => !p.pane!.pinned && !p.pane!.collapsed);
+  const contexts = unprotected.filter(n => n.pane?.linkedTo && unpinned(n));
+  // Exhaust contexts first, then fold remaining slots individually. Keep the focused
+  // pane and its source separate until every other displayed slot has been folded.
+  const candidates = [contexts, unprotected.filter(unpinned), unprotected, unfocused.filter(unpinned), unfocused].find(group => group.length)!;
+  candidates.sort((a, b) => a.bounds.width - b.bounds.width);
+  const choice = candidates[0]!;
+  function owner(n: Projected): Projected | undefined {
+    if (n.type !== "row" && n.type !== "column") return undefined;
+    return n.children.includes(choice) ? n : n.children.map(owner).find(Boolean);
   }
-  visit(root);
-  candidates.sort((a, b) => a.pane.bounds.width - b.pane.bounds.width);
-  const choice = candidates[0];
-  if (!choice) return false;
-  const { pane, parent, index } = choice;
-  const source = parent.children.findIndex(c => c.id === pane.pane!.linkedTo);
-  const neighbour = source >= 0 && Math.abs(source - index) === 1 ? source : index > 0 ? index - 1 : index + 1;
-  const first = Math.min(index, neighbour);
-  const pair = parent.children.slice(first, first + 2);
-  parent.children.splice(first, 2, auto(pair, view, fit, parent.children[neighbour]!.id));
-  const update = (n: Projected) => { n.children.forEach(update); refresh(n, fit); };
-  update(root);
-  return true;
+  const parent = owner(root)!;
+  const index = parent.children.indexOf(choice);
+  const before = parent.children[index - 1], after = parent.children[index + 1];
+  const neighbours = [before && slots(before).at(-1), after && slots(after)[0]].filter((n): n is Projected => !!n);
+  neighbours.sort((a, b) => Number(b.type === "auto") - Number(a.type === "auto") || Number(contains(b, choice.pane?.linkedTo)) - Number(contains(a, choice.pane?.linkedTo)));
+  const neighbour = neighbours[0]!;
+  const pair = displayed.indexOf(choice) < displayed.indexOf(neighbour) ? [choice, neighbour] : [neighbour, choice];
+  const group = auto(pair, view, fit, neighbour.type === "auto" ? neighbour.active : neighbour.id);
+  // Across nested splits, the receiving slot keeps its allocation in its own axis.
+  const sameParent = parent.children.includes(neighbour);
+  root = removeSlot(root, choice.id)!;
+  function replace(n: Projected): Projected {
+    if (n.id === neighbour.id) { if (!sameParent) group.size = n.size; return group; }
+    if (n.type === "row" || n.type === "column") n.children = n.children.map(replace);
+    refresh(n, fit);
+    return n;
+  }
+  return replace(root);
 }
 
 function foldForCap(root: Projected, view: ViewState, fit: FitOptions): boolean {
@@ -143,8 +170,11 @@ function build(layout: Layout, view: ViewState, fit: FitOptions, paneCap: number
   let root = project(unfold(clone(layout.root)), fit);
   const tooSmall = () => root.bounds.width > fit.width + 1e-7 || root.bounds.height > fit.height + 1e-7;
   while (slots(root).length > paneCap && foldForCap(root, view, fit)) { /* enforce live-slot budget */ }
-  while (tooSmall() && foldContext(root, view, fit)) { /* each fold removes a slot */ }
-  if ((tooSmall() || slots(root).length > paneCap) && slots(root).length > 1) root = auto(slots(root), view, fit);
+  while (tooSmall() || slots(root).length > paneCap) {
+    const next = foldOne(root, view, fit);
+    if (!next) break;
+    root = next;
+  }
   return root;
 }
 export function minimum(node: LayoutNode, fit: FitOptions, axis: Axis, edge = true): number {
@@ -160,7 +190,7 @@ export function resolve(layout: Layout, view: ViewState, fit: FitOptions, paneCa
   const root = build(layout, view, fit, paneCap);
   const result: ResolvedLayout = { panes: [], dividers: [], folded: [] };
   function draw(n: Projected, input: Rect, stackId?: string, hidden = false, folded = false): void {
-    const rect = { ...input, width: Math.max(n.bounds.width, Math.min(input.width, n.bounds.maxWidth)), height: Math.max(input.height, n.bounds.height) };
+    const rect = { ...input, width: Math.max(n.bounds.width, Math.min(input.width, n.bounds.maxWidth)), height: n.collapsedAxis === "column" ? n.bounds.height : Math.max(input.height, n.bounds.height) };
     if (n.pane) {
       result.panes.push({ id: n.id, rect, ...(stackId ? { stackId, hiddenInStack: hidden } : {}) });
       if (folded) result.folded.push(n.id);
@@ -175,8 +205,8 @@ export function resolve(layout: Layout, view: ViewState, fit: FitOptions, paneCa
     const horizontal = axis === "row";
     const length = horizontal ? rect.width : rect.height;
     const mins = n.children.map(c => horizontal ? c.bounds.width : c.bounds.height);
-    const maxs = n.children.map(c => c.pane?.collapsed ? mins[n.children.indexOf(c)]! : horizontal ? c.bounds.maxWidth : Infinity);
-    const lengths = shares(n.children.map((c, i) => ({ size: c.pane?.collapsed ? { px: mins[i]! } : c.size, min: mins[i]!, max: maxs[i] })), length - fit.gap * (n.children.length - 1));
+    const maxs = n.children.map((c, i) => c.collapsedAxis === axis ? mins[i]! : horizontal ? c.bounds.maxWidth : Infinity);
+    const lengths = shares(n.children.map((c, i) => ({ size: c.collapsedAxis === axis ? { px: mins[i]! } : c.size, min: mins[i]!, max: maxs[i] })), length - fit.gap * (n.children.length - 1));
     let offset = horizontal ? rect.x : rect.y;
     n.children.forEach((child, index) => {
       const extent = lengths[index]!;
