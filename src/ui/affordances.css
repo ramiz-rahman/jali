@@ -1,0 +1,54 @@
+/* Affordances: close buttons, divider keyboard handle, drop outcome, palette, status line. Tokens only, so dark mode follows. */
+
+/* ---- close buttons: 24x24 hit area, 14px glyph ---- */
+.tab-close, .pane-actions .act-close {
+  display: grid; place-items: center; flex: none; width: 24px; height: 24px; min-width: 24px; min-height: 24px;
+  padding: 0; border: 0; border-radius: 6px; background: none; color: var(--text-3); cursor: pointer;
+}
+.tab-close { margin-left: -2px; } /* tab gap is 6px, so 4px from the label */
+.tab { padding-right: 2px; }
+.tab-close:hover, .pane-actions .act-close:hover { background: var(--hover); color: var(--text); }
+/* A tab's x shows on hover, keyboard focus, or on the active tab. Touch has no hover, so it stays. */
+.tab:not(.is-active) .tab-close { opacity: 0; }
+.tab:hover .tab-close, .tab:focus-within .tab-close, .tab .tab-close:focus-visible, .tab.is-active .tab-close { opacity: 1; }
+@media (hover: none) { .tab:not(.is-active) .tab-close { opacity: 1; } }
+
+/* ---- divider: mouse only darkens the line; keyboard focus gets a capsule and a size label ---- */
+.divider.divider:focus-visible::after { display: none; }
+.divider.divider:focus-visible .divider-line { background: transparent; }
+.divider-handle, .divider-tip { display: none; position: absolute; pointer-events: none; }
+.divider-handle { background: var(--accent); border-radius: 2px; left: 50%; top: 50%; box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 25%, transparent); }
+.divider-row .divider-handle { width: 4px; height: 24px; transform: translate(-50%, -50%); }
+.divider-column .divider-handle { width: 24px; height: 4px; transform: translate(-50%, -50%); }
+.divider:focus-visible .divider-handle, .divider:focus-visible .divider-tip { display: block; }
+.divider-tip {
+  z-index: 8; padding: 3px 8px; border-radius: 6px; background: var(--text); color: var(--island);
+  font-size: 12px; line-height: 16px; white-space: nowrap; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+.divider-tip i { font-style: normal; opacity: 0.6; }
+.divider-row .divider-tip { left: 50%; top: calc(50% + 24px); transform: translateX(-50%); }
+.divider-column .divider-tip { top: 50%; left: calc(50% + 28px); transform: translateY(-50%); }
+.divider:hover .divider-line { background: var(--text-4); }
+
+/* ---- drag outcome: tinted fill, 2px accent outline at a 6px inset, label centred in the zone ---- */
+.drop-indicator { background: color-mix(in srgb, var(--accent) 8%, transparent); border: 0; }
+.drop-indicator::after { content: ""; position: absolute; inset: 6px; border: 2px solid var(--accent); border-radius: calc(var(--radius) - 2px); }
+.drop-label-zone { position: absolute; z-index: 31; display: grid; place-items: center; pointer-events: none; padding: 12px; }
+.drop-label {
+  display: inline-flex; align-items: center; gap: 8px; max-width: 100%; padding: 8px 14px; border-radius: 8px;
+  background: var(--accent); color: #fff; font-size: 14px; font-weight: 500; line-height: 20px; box-shadow: 0 4px 16px rgba(0, 0, 0, 0.18);
+}
+.drop-label svg { flex: none; }
+
+/* ---- command palette: title, group, shortcut ---- */
+.palette-item { grid-template-columns: 1fr auto 72px; }
+.palette-group { font-size: 12px; color: var(--text-3); }
+.palette-item kbd { font-size: 12px; }
+
+/* ---- status line: 12px, readable contrast; one message left, hint and stats right ---- */
+.status { font-size: 12px; color: var(--text-2); }
+.status-main { overflow: hidden; text-overflow: ellipsis; color: var(--text); }
+.status-hint { color: var(--text-2); }
+.status-stats, .status-warn { font-size: 12px; color: var(--text-2); }
+@media (max-width: 640px) { .status-hint:not([data-mode]) { display: none; } .status-main { flex: 1; min-width: 0; } }
+@media (max-width: 480px) { .status-stats { display: none; } }

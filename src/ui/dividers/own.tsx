@@ -1,3 +1,4 @@
+import { DividerHandle } from "./Handle";
 import { splitterAria, type AdapterDividerProps, type DividerAdapter } from "./types";
 
 /** Our own APG window splitter: one absolutely positioned element in the gap. No library, no ghost group. */
@@ -15,7 +16,7 @@ function OwnDivider(p: AdapterDividerProps) {
       onKeyDown={p.onKeyDown}
       {...splitterAria(p)}
     >
-      <span className="divider-line" aria-hidden />
+      <DividerHandle sizeA={p.sizeA} total={p.total} labelA={p.labelA} labelB={p.labelB} />
     </div>
   );
 }

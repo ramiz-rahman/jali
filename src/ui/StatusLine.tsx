@@ -23,16 +23,15 @@ export function StatusLine() {
         : "⇧⌘↵ maximise · F6 next pane · ⌘K commands";
   return (
     <footer className="status" aria-label="Status">
-      <span>
+      <span className="status-main">
         {r.panes.length} {r.panes.length === 1 ? "pane" : "panes"}
         {tabs ? ` · ${tabs} in tabs` : ""}
         {rails ? ` · ${rails} minimised` : ""}
         {r.folded.length ? ` · ${r.folded.length} folded` : ""}
+        {" · "}Focus: {view.focused ? titleOf(view.focused) : "none"}
       </span>
-      <span className="status-sep" />
-      <span>Focus: {view.focused ? titleOf(view.focused) : "none"}</span>
       {busy.length ? <span className="status-busy">{busy.map(([id, a]) => `${titleOf(id)}: ${a}`).join(" · ")}</span> : null}
-      <span className="status-hint">{hint}</span>
+      <span className="status-hint" data-mode={resizeMode || view.zoomed || view.peek ? "" : undefined}>{hint}</span>
       {showStats ? <Stats /> : null}
     </footer>
   );

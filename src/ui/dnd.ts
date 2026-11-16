@@ -4,7 +4,7 @@
  */
 import type { PointerEvent as ReactPointerEvent } from "react";
 import type { Edge, Rect } from "../layout-core/types";
-import { actions, allPanes, getState, resolved, setState, GAP } from "./store";
+import { actions, allPanes, getState, resolved, setState, titleOf, GAP } from "./store";
 
 export const DRAG_THRESHOLD = 4;
 export const EDGE_ZONE = 0.25;
@@ -88,4 +88,12 @@ export function startPaneDrag(e: ReactPointerEvent, paneId: string) {
   window.addEventListener("pointermove", move);
   window.addEventListener("pointerup", up);
   window.addEventListener("keydown", key, true);
+}
+
+/** What releasing will do, in words and with a name for its icon. Used by the in-zone label. */
+export type DropOutcome = { icon: "swap" | "tab" | Edge; text: string };
+export function dropOutcome(zone: Edge | "centre", target: string): DropOutcome {
+  const t = titleOf(target);
+  if (zone === "centre") return getState().settings.centreDrop === "swap" ? { icon: "swap", text: `Swap with ${t}` } : { icon: "tab", text: `Add as tab to ${t}` };
+  return { icon: zone, text: zone === "top" ? `Place above ${t}` : zone === "bottom" ? `Place below ${t}` : `Place ${zone} of ${t}` };
 }

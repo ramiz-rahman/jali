@@ -1,4 +1,5 @@
 import { Splitter } from "@ark-ui/react/splitter";
+import { DividerHandle } from "./Handle";
 import { splitterAria, type AdapterDividerProps, type DividerAdapter } from "./types";
 
 /**
@@ -42,7 +43,7 @@ function ArkDivider(p: AdapterDividerProps) {
         }}
         {...splitterAria(p)}
       >
-        <span className="divider-line" aria-hidden />
+        <DividerHandle sizeA={p.sizeA} total={p.total} labelA={p.labelA} labelB={p.labelB} />
       </Splitter.ResizeTrigger>
       <Splitter.Panel id="b" className="ghost-panel" />
     </Splitter.Root>

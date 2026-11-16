@@ -5,6 +5,8 @@ import { getPaneKind, paneTitle, type PaneActivity, type PaneComponentProps } fr
 import { actions, getState, useUi } from "./store";
 import { startPaneDrag } from "./dnd";
 import { paneDomId, paneTitleId } from "./ids";
+import { DropZoneLabel } from "./dnd-label";
+import "./affordances.css";
 
 const ACTIVITY_LABEL: Record<PaneActivity, string> = {
   idle: "",
@@ -217,7 +219,7 @@ export const PaneFrame = memo(function PaneFrame({ box, node, stack, focused, zo
                   </span>
                   <TabActivity id={t.id} />
                   <button className="tab-close" aria-label={`Close ${paneTitle(t.ref)}`} onClick={(e) => { e.stopPropagation(); actions.close(t.id); }}>
-                    <X size={12} strokeWidth={1.75} aria-hidden />
+                    <X size={14} strokeWidth={1.75} aria-hidden />
                   </button>
                 </div>
               );
@@ -270,6 +272,7 @@ export const PaneFrame = memo(function PaneFrame({ box, node, stack, focused, zo
         </div>
       </header>
       )}
+      {dropTarget ? <DropZoneLabel paneId={node.id} /> : null}
       {/* Same element in rail and full modes, so content (and its state) survives minimise/restore. */}
       <div className="pane-content" hidden={collapsed}>
         <div className="pane-content-inner">

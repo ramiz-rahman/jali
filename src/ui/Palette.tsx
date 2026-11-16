@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { COMMANDS, runCommand } from "./commands";
 import { setState, useUi } from "./store";
 
-/** ⌘K: every pane command by stable ID. */
+/** ⌘K: every pane command. People see title, group and shortcut; the stable ID lives in data-command-id. */
 export function Palette() {
   const open = useUi((s) => s.paletteOpen);
   if (!open) return null;
@@ -37,7 +37,7 @@ function PaletteDialog() {
         <input
           ref={input}
           className="palette-input"
-          placeholder="Type a command or ID…"
+          placeholder="Type a command…"
           role="combobox"
           aria-expanded="true"
           aria-controls="palette-list"
@@ -61,6 +61,7 @@ function PaletteDialog() {
               <li
                 key={c.id}
                 id={`cmd-${c.id}`}
+                data-command-id={c.id}
                 role="option"
                 aria-selected={c === sel}
                 aria-disabled={disabled || undefined}
@@ -69,7 +70,7 @@ function PaletteDialog() {
                 onClick={() => !disabled && run(c.id)}
               >
                 <span className="palette-title">{c.title}</span>
-                <code className="palette-id">{c.id}</code>
+                <span className="palette-group">{c.group}</span>
                 {c.keys ? <kbd>{c.keys}</kbd> : <span />}
               </li>
             );
