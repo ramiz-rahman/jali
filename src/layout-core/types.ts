@@ -40,6 +40,8 @@ export interface StackNode extends NodeBase {
   active: NodeId;
   /** "auto": created by the collapse plan and unfolds when room returns. "user": deliberate (centre drop / tab). */
   origin: "auto" | "user";
+  /** Axis to restore when an automatic stack unfolds. Defaults to its parent's axis, or row. */
+  axis?: Axis;
 }
 
 export interface SplitNode extends NodeBase {
@@ -80,7 +82,11 @@ export type KindRegistry = Record<string, PaneKind>;
 /** Resolved geometry for rendering and hit-testing. */
 export interface Rect { x: number; y: number; width: number; height: number }
 export interface PaneBox { id: NodeId; rect: Rect; stackId?: NodeId; hiddenInStack?: boolean }
-export interface DividerBox { parentId: NodeId; index: number; axis: Axis; rect: Rect; min: number; max: number; value: number }
+export interface DividerBox {
+  parentId: NodeId; index: number; axis: Axis; rect: Rect; min: number; max: number; value: number;
+  /** Pane ids on each side, including tabs. Fit can group several original siblings at one divider. */
+  neighbours?: [NodeId[], NodeId[]];
+}
 export interface ResolvedLayout {
   panes: PaneBox[];
   dividers: DividerBox[];
@@ -134,3 +140,6 @@ export interface LayoutCore extends LayoutOps {
   decode(text: string, kinds: KindRegistry): Layout | null;
   validate(layout: Layout, kinds: KindRegistry): { ok: true } | { ok: false; errors: string[] };
 }
+
+/** Cap on simultaneously displayed pane slots; tabs retain their objects and state. */
+export interface LayoutCoreOptions { paneCap?: number }
