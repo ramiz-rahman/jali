@@ -10,6 +10,8 @@ interface Projected {
   pane?: PaneNode;
   collapsedAxis?: Axis;
   active?: string;
+  /** Pane the automatic stack formed around (the folded panes' related home). */
+  home?: string;
   bounds: Bounds;
 }
 const clamp = (n: number, min: number, max: number) => Math.max(min, Math.min(max, n));
@@ -83,15 +85,18 @@ function project(node: LayoutNode, fit: FitOptions, axis: Axis = "row", edge = t
 }
 const allPanes = (n: Projected): Projected[] => n.pane ? [n] : n.children.flatMap(allPanes);
 const contains = (n: Projected, id?: string): boolean => !!id && allPanes(n).some(p => p.id === id);
-function auto(children: Projected[], view: ViewState, fit: FitOptions, fallback?: string): Projected {
+const homeOf = (n: Projected): string => n.type === "auto" ? n.home ?? allPanes(n)[0]!.id : n.pane ? n.id : n.type === "stack" ? n.active ?? allPanes(n)[0]!.id : allPanes(n)[0]!.id;
+const orderOf = (n: Projected, order: Map<string, number>) => Math.min(...allPanes(n).map(p => order.get(p.id) ?? Infinity));
+function auto(children: Projected[], view: ViewState, fit: FitOptions, order: Map<string, number>, home: Projected, fallback?: string): Projected {
   const size = children.map(c => c.size).reduce(combined);
+  const homeId = homeOf(home);
   const preferred = children.find(c => c.id === fallback);
   if (preferred?.type === "auto") fallback = preferred.active;
-  // Keep one tab group when a later fold grows an automatic stack.
-  children = children.flatMap(c => c.type === "auto" ? c.children : [c]);
+  // Keep one tab group when a later fold grows an automatic stack; tabs stay in reading order.
+  children = children.flatMap(c => c.type === "auto" ? c.children : [c]).sort((a, b) => orderOf(a, order) - orderOf(b, order));
   const result: Projected = {
     id: `@auto:${children.map(c => `${c.id.length}:${c.id}`).join("")}`,
-    type: "auto", children, size,
+    type: "auto", children, size, home: homeId,
     active: children.find(c => contains(c, view.focused))?.id ?? fallback ?? children[0]!.id,
     bounds: { width: 0, height: 0, maxWidth: Infinity },
   };
@@ -110,36 +115,77 @@ function removeSlot(node: Projected, id: string): Projected | undefined {
   return node.children.length === 1 ? { ...node.children[0]!, size: node.size } : node;
 }
 
-function foldOne(root: Projected, view: ViewState, fit: FitOptions): Projected | undefined {
+const cmp = (a: number, b: number) => a === b ? 0 : a < b ? -1 : 1;
+/**
+ * Fold one displayed slot into its related home. Protected: the focused pane, its source and its direct details.
+ * Order: unprotected unpinned, unprotected pinned, protected unpinned, protected pinned, the focused slot.
+ * Within a tier: unlinked panes, then the far end of link chains (deepest from focus), then least recently
+ * focused, then narrowest. The folded slot joins its source's slot, else a direct detail's, else its nearest neighbour.
+ */
+function foldOne(root: Projected, view: ViewState, fit: FitOptions, order: Map<string, number>): Projected | undefined {
   const displayed = slots(root);
   if (displayed.length < 2) return undefined;
-  const source = allPanes(root).find(p => p.id === view.focused)?.pane?.linkedTo;
-  const unfocused = displayed.filter(n => !contains(n, view.focused));
-  const unprotected = unfocused.filter(n => !contains(n, source));
-  const unpinned = (n: Projected) => allPanes(n).every(p => !p.pane!.pinned && !p.pane!.collapsed);
-  const contexts = unprotected.filter(n => n.pane?.linkedTo && unpinned(n));
-  // Exhaust contexts first, then fold remaining slots individually. Keep the focused
-  // pane and its source separate until every other displayed slot has been folded.
-  const candidates = [contexts, unprotected.filter(unpinned), unprotected, unfocused.filter(unpinned), unfocused].find(group => group.length)!;
-  candidates.sort((a, b) => a.bounds.width - b.bounds.width);
-  const choice = candidates[0]!;
+  const panes = allPanes(root);
+  const ids = new Set(panes.map(p => p.id));
+  const linkOf = (p: Projected) => p.pane!.linkedTo && ids.has(p.pane!.linkedTo) ? p.pane!.linkedTo : undefined;
+  const focused = view.focused && ids.has(view.focused) ? view.focused : undefined;
+  const protectedIds = new Set<string>();
+  if (focused) {
+    protectedIds.add(focused);
+    const source = linkOf(panes.find(p => p.id === focused)!);
+    if (source) protectedIds.add(source);
+    for (const p of panes) if (linkOf(p) === focused) protectedIds.add(p.id);
+  }
+  // Undirected link distance from the focused pane; unreachable chains are infinitely far.
+  const distance = new Map<string, number>();
+  if (focused) {
+    distance.set(focused, 0);
+    for (let queue = [focused]; queue.length;) {
+      const id = queue.shift()!;
+      for (const p of panes) {
+        const near = linkOf(p) === id ? p.id : p.id === id ? linkOf(p) : undefined;
+        if (near && !distance.has(near)) { distance.set(near, distance.get(id)! + 1); queue.push(near); }
+      }
+    }
+  }
+  const linkedIds = new Set(panes.flatMap(p => linkOf(p) ? [p.id, linkOf(p)!] : []));
+  const rank = (id: string) => { const i = view.focusHistory.indexOf(id); return i < 0 ? Infinity : i; };
+  const score = (slot: Projected) => {
+    const members = allPanes(slot);
+    const pinned = members.some(p => p.pane!.pinned || p.pane!.collapsed);
+    const tier = members.some(p => p.id === focused) ? 4 : members.some(p => protectedIds.has(p.id)) ? 2 + Number(pinned) : Number(pinned);
+    return {
+      slot, tier, linked: Number(members.some(p => linkedIds.has(p.id))),
+      depth: Math.max(...members.map(p => distance.get(p.id) ?? Infinity)),
+      recent: Math.min(...members.map(p => rank(p.id))), width: slot.bounds.width, order: orderOf(slot, order),
+    };
+  };
+  const ranked = displayed.map(score).sort((a, b) => cmp(a.tier, b.tier) || cmp(a.linked, b.linked) || cmp(b.depth, a.depth) || cmp(b.recent, a.recent) || cmp(a.width, b.width) || cmp(a.order, b.order));
+  const choice = ranked[0]!.slot;
   function owner(n: Projected): Projected | undefined {
     if (n.type !== "row" && n.type !== "column") return undefined;
     return n.children.includes(choice) ? n : n.children.map(owner).find(Boolean);
   }
   const parent = owner(root)!;
-  const index = parent.children.indexOf(choice);
-  const before = parent.children[index - 1], after = parent.children[index + 1];
-  const neighbours = [before && slots(before).at(-1), after && slots(after)[0]].filter((n): n is Projected => !!n);
-  neighbours.sort((a, b) => Number(b.type === "auto") - Number(a.type === "auto") || Number(contains(b, choice.pane?.linkedTo)) - Number(contains(a, choice.pane?.linkedTo)));
-  const neighbour = neighbours[0]!;
-  const pair = displayed.indexOf(choice) < displayed.indexOf(neighbour) ? [choice, neighbour] : [neighbour, choice];
-  const group = auto(pair, view, fit, neighbour.type === "auto" ? neighbour.active : neighbour.id);
+  const members = new Set(allPanes(choice).map(p => p.id));
+  const outside = (id: string | undefined) => id && !members.has(id) ? displayed.find(s => s !== choice && contains(s, id)) : undefined;
+  const sources = allPanes(choice).map(p => outside(linkOf(p))).filter((s): s is Projected => !!s);
+  const details = panes.filter(p => !members.has(p.id) && members.has(linkOf(p) ?? "")).map(p => displayed.find(s => contains(s, p.id))!);
+  let home = sources[0] ?? details[0];
+  if (!home) {
+    // Unlinked (or only linked within itself): nearest neighbour, preferring an existing automatic stack.
+    const at = displayed.indexOf(choice);
+    const near = [displayed[at - 1], displayed[at + 1]].filter((n): n is Projected => !!n);
+    near.sort((a, b) => Number(b.type === "auto") - Number(a.type === "auto"));
+    home = near[0]!;
+  }
+  const pair = displayed.indexOf(choice) < displayed.indexOf(home) ? [choice, home] : [home, choice];
+  const group = auto(pair, view, fit, order, home, home.type === "auto" ? home.active : home.id);
   // Across nested splits, the receiving slot keeps its allocation in its own axis.
-  const sameParent = parent.children.includes(neighbour);
+  const sameParent = parent.children.includes(home);
   root = removeSlot(root, choice.id)!;
   function replace(n: Projected): Projected {
-    if (n.id === neighbour.id) { if (!sameParent) group.size = n.size; return group; }
+    if (n.id === home!.id) { if (!sameParent) group.size = n.size; return group; }
     if (n.type === "row" || n.type === "column") n.children = n.children.map(replace);
     refresh(n, fit);
     return n;
@@ -147,7 +193,7 @@ function foldOne(root: Projected, view: ViewState, fit: FitOptions): Projected |
   return replace(root);
 }
 
-function foldForCap(root: Projected, view: ViewState, fit: FitOptions): boolean {
+function foldForCap(root: Projected, view: ViewState, fit: FitOptions, order: Map<string, number>): boolean {
   if (root.type !== "row" && root.type !== "column") return false;
   // Structural order is the deterministic age fallback for imported/shared layouts.
   for (let i = 0; i < root.children.length; i++) {
@@ -157,11 +203,11 @@ function foldForCap(root: Projected, view: ViewState, fit: FitOptions): boolean 
       const first = Math.min(i, neighbour);
       const pair = root.children.slice(first, first + 2);
       const selected = root.children[neighbour]!.id;
-      root.children.splice(first, 2, auto(pair, view, fit, selected));
+      root.children.splice(first, 2, auto(pair, view, fit, order, root.children[neighbour]!, selected));
       refresh(root, fit);
       return true;
     }
-    if (foldForCap(child, view, fit)) { refresh(root, fit); return true; }
+    if (foldForCap(child, view, fit, order)) { refresh(root, fit); return true; }
   }
   return false;
 }
@@ -169,9 +215,10 @@ function foldForCap(root: Projected, view: ViewState, fit: FitOptions): boolean 
 function build(layout: Layout, view: ViewState, fit: FitOptions, paneCap: number): Projected {
   let root = project(unfold(clone(layout.root)), fit);
   const tooSmall = () => root.bounds.width > fit.width + 1e-7 || root.bounds.height > fit.height + 1e-7;
-  while (slots(root).length > paneCap && foldForCap(root, view, fit)) { /* enforce live-slot budget */ }
+  const order = new Map(allPanes(root).map((p, i) => [p.id, i]));
+  while (slots(root).length > paneCap && foldForCap(root, view, fit, order)) { /* enforce live-slot budget */ }
   while (tooSmall() || slots(root).length > paneCap) {
-    const next = foldOne(root, view, fit);
+    const next = foldOne(root, view, fit, order);
     if (!next) break;
     root = next;
   }
@@ -188,7 +235,7 @@ export function canFit(layout: Layout, fit: FitOptions, unfoldAuto = true): bool
 export function resolve(layout: Layout, view: ViewState, fit: FitOptions, paneCap = Infinity): ResolvedLayout {
   if (![fit.width, fit.height, fit.gap].every(Number.isFinite) || fit.width < 0 || fit.height < 0 || fit.gap < 0) throw new RangeError("Fit dimensions and gap must be finite and non-negative");
   const root = build(layout, view, fit, paneCap);
-  const result: ResolvedLayout = { panes: [], dividers: [], folded: [] };
+  const result: ResolvedLayout = { panes: [], dividers: [], folded: [], stacks: [] };
   function draw(n: Projected, input: Rect, stackId?: string, hidden = false, folded = false): void {
     const rect = { ...input, width: Math.max(n.bounds.width, Math.min(input.width, n.bounds.maxWidth)), height: n.collapsedAxis === "column" ? n.bounds.height : Math.max(input.height, n.bounds.height) };
     if (n.pane) {
@@ -198,6 +245,10 @@ export function resolve(layout: Layout, view: ViewState, fit: FitOptions, paneCa
     }
     if (n.type === "stack" || n.type === "auto") {
       const selected = n.children.find(c => c.id === n.active) ?? n.children[0]!;
+      if (n.type === "auto" && !stackId) {
+        const homeId = n.home ?? allPanes(n)[0]!.id;
+        result.stacks.push({ id: n.id, origin: "auto", homeId, foldedCount: n.children.filter(c => !contains(c, homeId)).reduce((sum, c) => sum + allPanes(c).length, 0), paneIds: allPanes(n).map(p => p.id) });
+      }
       n.children.forEach(c => draw(c, rect, stackId ?? n.id, hidden || c !== selected, folded || (n.type === "auto" && c !== selected)));
       return;
     }

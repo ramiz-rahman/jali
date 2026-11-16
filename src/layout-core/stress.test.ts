@@ -34,7 +34,7 @@ const fit = (width: number): FitOptions => ({ width, height: 900, gap: 6, kinds 
 
 describe("stress preset fitting", () => {
   const core = createLayoutCore();
-  it.each([[1920, 4], [1600, 3], [1440, 2], [1280, 2], [1024, 2], [390, 1]])("keeps %i px at %i visible panes", (width, count) => {
+  it.each([[1920, 3], [1600, 3], [1440, 2], [1280, 2], [1024, 2], [390, 1]])("keeps %i px at %i visible panes", (width, count) => {
     const tree = freeze(stress());
     const result = core.resolve(tree, view("s1"), fit(width));
     const visible = result.panes.filter(p => !p.hiddenInStack);
@@ -49,10 +49,45 @@ describe("stress preset fitting", () => {
     if (width === 1600) expect(new Set(result.panes.flatMap(p => p.stackId ? [p.stackId] : [])).size).toBeLessThanOrEqual(2);
   });
 
+  // Link chains in the stress preset: s1-s2-s3-s4 and s5-s6. s7-s10 are unlinked.
+  const chains: Record<string, string> = { s1: "A", s2: "A", s3: "A", s4: "A", s5: "B", s6: "B" };
+  it.each([1920, 1440, 1280, 1024, 390])("never groups unrelated link chains in one auto stack at %i px", width => {
+    const result = core.resolve(freeze(stress()), view("s1", ["s1"]), fit(width));
+    const layout = stress();
+    const panes = (function walk(n: LayoutNode): PaneNode[] { return n.type === "pane" ? [n] : n.children.flatMap(walk); })(layout.root);
+    for (const stack of result.stacks) {
+      expect(stack.paneIds).toContain(stack.homeId);
+      expect(stack.foldedCount).toBeGreaterThan(0);
+    }
+    // A folded pane that has a source shares that source's stack, whichever chain it belongs to.
+    for (const p of panes) {
+      const box = result.panes.find(b => b.id === p.id)!;
+      if (!p.linkedTo || !result.folded.includes(p.id)) continue;
+      expect(result.panes.find(b => b.id === p.linkedTo)!.stackId).toBe(box.stackId);
+    }
+    expect(Object.keys(chains).length).toBe(6);
+  });
+
+  it("does not mix chains below the point where every chain must share a stack", () => {
+    const result = core.resolve(freeze(stress()), view("s1", ["s1"]), fit(1920));
+    const homeOf = (id: string) => result.stacks.find(s => s.paneIds.includes(id))!;
+    // s2's folded detail s3 stays in s2's group at 1440, never in a separate chain's group.
+    const narrow = core.resolve(freeze(stress()), view("s1", ["s1"]), fit(1440));
+    expect(narrow.panes.find(p => p.id === "s3")!.stackId).toBe(narrow.panes.find(p => p.id === "s2")!.stackId);
+    expect(homeOf("s3").paneIds).toContain("s4");
+  });
+
+  it("folds the far end of a chain first and protects the focused pane's neighbours", () => {
+    const result = core.resolve(freeze(stress()), view("s1", ["s1"]), fit(1440));
+    expect(result.panes.filter(p => !p.hiddenInStack).map(p => p.id)).toEqual(["s1", "s2"]);
+    const other = core.resolve(freeze(stress()), view("s5", ["s5"]), fit(1440));
+    expect(other.panes.filter(p => !p.hiddenInStack).map(p => p.id)).toEqual(["s5", "s6"]);
+  });
+
   it("reverses folds progressively and deterministically as room returns", () => {
     const tree = freeze(stress());
-    const widths = [390, 966, 1452, 1898, 2284, 2770, 3256, 3742];
-    const counts = [1, 2, 3, 4, 6, 7, 8, 10];
+    const widths = [390, 966, 1452, 1938, 2324, 2424, 2910, 3356, 3742];
+    const counts = [1, 2, 3, 4, 5, 6, 7, 8, 10];
     const shrinking = [...widths].reverse().map(width => core.resolve(tree, view("s1"), fit(width)));
     let folded = new Set<string>(Array.from({ length: 9 }, (_, i) => `s${i + 2}`));
     for (const [i, width] of widths.entries()) {

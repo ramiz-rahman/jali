@@ -92,6 +92,18 @@ export interface ResolvedLayout {
   dividers: DividerBox[];
   /** Panes the fit step folded into auto stacks, for announcements ("Opened as a tab: not enough room"). */
   folded: NodeId[];
+  /** Automatic stacks the fit step created, for labels such as "+2 folded". Deliberate (user) stacks are not listed. */
+  stacks: ResolvedStack[];
+}
+export interface ResolvedStack {
+  /** Same as PaneBox.stackId for its panes. */
+  id: NodeId;
+  origin: "auto";
+  /** The pane the group formed around: the source the folded panes are linked from (or the nearest neighbour). */
+  homeId: NodeId;
+  /** Panes folded into the home's group (tabs other than the home). */
+  foldedCount: number;
+  paneIds: NodeId[];
 }
 
 export interface FitOptions {

@@ -129,12 +129,16 @@ describe("resolve and fold", () => {
     }
     expect(previous.folded).toEqual([]);
   });
-  it("grows an adjacent auto stack before creating another group", () => {
+  it("joins a folded pane to the stack of its source, never to an unrelated neighbour", () => {
+    // Old rule: c grew b's adjacent stack. New rule: c is linked from d, so c and d form their own group.
     const tree = freeze(layout(pane("a", "record"), pane("b", "record", { linkedTo: "a" }), pane("c", "record", { linkedTo: "d" }), pane("d", "record")));
     const result = core.resolve(tree, view("a"), fit(1024));
-    expect(result.folded).toEqual(["b", "c"]);
-    expect(result.panes.find(p => p.id === "b")!.stackId).toBe(result.panes.find(p => p.id === "c")!.stackId);
-    expect(result.panes.find(p => p.id === "d")!.stackId).toBeUndefined();
+    expect(result.folded).toEqual(["c", "d"]);
+    expect(result.panes.find(p => p.id === "c")!.stackId).toBe(result.panes.find(p => p.id === "d")!.stackId);
+    // The c-d chain has no related home elsewhere, so the pair travels together to the nearest neighbour (b).
+    expect(result.stacks).toHaveLength(1);
+    expect(result.stacks[0]!.paneIds).toEqual(["b", "c", "d"]);
+    expect(result.panes.find(p => p.id === "a")!.stackId).toBeUndefined();
   });
   it("keeps the receiving deliberate stack's active tab when a neighbour folds into it", () => {
     const tree = freeze(layout(pane("c", "inspector", { linkedTo: "b" }), { id: "tabs", type: "stack", origin: "user", active: "b", size: { weight: 1 }, children: [pane("a", "record"), pane("b", "record")] }));
