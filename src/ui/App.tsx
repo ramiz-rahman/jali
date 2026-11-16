@@ -8,7 +8,7 @@ import { Workspace } from "./Workspace";
 import { StatusLine } from "./StatusLine";
 import { Announcer } from "./Announcer";
 import { Palette } from "./Palette";
-import { SettingsPanel } from "./Settings";
+import { SettingsPanel, useResolvedTheme } from "./Settings";
 import { Chooser } from "./Chooser";
 import { installKeyboard } from "./keyboard";
 import { applyUrl, installUrlSync, writeUrl } from "./url";
@@ -41,6 +41,7 @@ export function bootFromUrl() {
 }
 
 export function App({ data }: { data: DataLayer }) {
+  const theme = useResolvedTheme();
   useMemo(bootFromUrl, []);
   useEffect(() => {
     hooks.toastClosed = (title: string) => {
@@ -74,7 +75,7 @@ export function App({ data }: { data: DataLayer }) {
         <Palette />
         <SettingsPanel />
         <Chooser />
-        <Toaster position="bottom-right" offset={{ bottom: 40, right: 12 }} toastOptions={{ className: "toast" }} />
+        <Toaster theme={theme} position="bottom-right" offset={{ bottom: 40, right: 12 }} toastOptions={{ className: "toast" }} />
       </DataLayerProvider>
     </QueryClientProvider>
   );

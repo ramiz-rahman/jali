@@ -5,7 +5,7 @@ import { PaneFrame, type StackInfo } from "./PaneFrame";
 import { DividerLayer } from "./dividers/DividerLayer";
 import { Peek } from "./Peek";
 import { setWorkspaceEl } from "./dnd";
-import { GAP, SWITCHER_H, allPanes, getState, hooks, resolved, setState, titleOf, useUi, bumpKinds } from "./store";
+import { GAP, SWITCHER_H, allPanes, getState, hooks, resolved, setState, titleOf, useUi, bumpKinds, restoreWide, snapshotWide, type WideSnapshot } from "./store";
 import { usePaneKindsVersion } from "./pane-kinds";
 import { paneDomId } from "./ids";
 
@@ -50,12 +50,20 @@ export function Workspace() {
   const all = allPanes();
   const currentId = (view.focused && all.some((p) => p.id === view.focused) ? view.focused : all[0]?.id) as string | undefined;
   const wasSingle = useRef<boolean | null>(null);
+  // The arrangement seen on the last wide render; frozen when single view starts, restored when it ends.
+  const wide = useRef<WideSnapshot | null>(null);
+  const frozen = useRef<WideSnapshot | null>(null);
   useEffect(() => {
     if (wasSingle.current !== null && wasSingle.current !== single) {
+      if (single) frozen.current = wide.current;
+      else if (frozen.current) { restoreWide(frozen.current); frozen.current = null; }
       hooks.announce(single ? "Single view: one pane at a time. Use the pane switcher at the top." : "Single view ended: full layout restored");
     }
     wasSingle.current = single;
   }, [single]);
+  useEffect(() => {
+    if (!single && area.width > 0) wide.current = snapshotWide(r);
+  });
 
   // Announce folds/unfolds from the collapse plan.
   const prevFolded = useRef<string[] | null>(null);

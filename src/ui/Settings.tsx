@@ -1,7 +1,20 @@
 import { useEffect, useRef } from "react";
 import { X } from "lucide-react";
-import { getState, setState, useUi, type Settings as S } from "./store";
+import { useSyncExternalStore } from "react";
+import { getState, setState, useUi, type Settings as S, type ThemeChoice } from "./store";
 import { ADAPTERS } from "./dividers/DividerLayer";
+
+const mq = () => (typeof window !== "undefined" && window.matchMedia ? window.matchMedia("(prefers-color-scheme: dark)") : null);
+/** The theme actually showing: the choice, or the system preference when the choice is "system". */
+export function useResolvedTheme(): "light" | "dark" {
+  const choice = useUi((s) => s.settings.theme);
+  const systemDark = useSyncExternalStore(
+    (cb) => { const m = mq(); m?.addEventListener("change", cb); return () => m?.removeEventListener("change", cb); },
+    () => !!mq()?.matches,
+  );
+  return choice === "system" ? (systemDark ? "dark" : "light") : choice;
+}
+const THEMES: { id: ThemeChoice; label: string }[] = [{ id: "system", label: "System" }, { id: "light", label: "Light" }, { id: "dark", label: "Dark" }];
 
 export function SettingsPanel() {
   const open = useUi((s) => s.settingsOpen);
@@ -28,6 +41,15 @@ export function SettingsPanel() {
           <h2 id="settings-title">Settings</h2>
           <button className="icon-btn" onClick={close} aria-label="Close settings"><X size={14} strokeWidth={1.5} aria-hidden /></button>
         </header>
+        <fieldset>
+          <legend>Theme</legend>
+          {THEMES.map((t) => (
+            <label key={t.id} className="radio">
+              <input type="radio" name="theme" checked={settings.theme === t.id} onChange={() => set({ theme: t.id })} />
+              <span>{t.label}</span>
+            </label>
+          ))}
+        </fieldset>
         <fieldset>
           <legend>Resize adapter</legend>
           {(["own", "ark"] as const).map((id, n) => (

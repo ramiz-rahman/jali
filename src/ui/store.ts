@@ -19,6 +19,15 @@ export interface Settings {
   centreDrop: "swap" | "tab";
   paneCap: number;
   showStats: boolean;
+  theme: ThemeChoice;
+}
+export type ThemeChoice = "system" | "light" | "dark";
+
+/** Sets or clears data-theme on <html>; CSS follows the system when it is absent. */
+export function applyTheme(theme: ThemeChoice) {
+  if (typeof document === "undefined") return;
+  if (theme === "system") document.documentElement.removeAttribute("data-theme");
+  else document.documentElement.setAttribute("data-theme", theme);
 }
 
 export interface DndState {
@@ -61,11 +70,12 @@ export interface UiState {
 
 const SETTINGS_KEY = "pane-lab:settings";
 function loadSettings(): Settings {
-  const d: Settings = { adapter: "own", centreDrop: "swap", paneCap: 8, showStats: true };
+  const d: Settings = { adapter: "own", centreDrop: "swap", paneCap: 8, showStats: true, theme: "system" };
   try {
     const s: Settings = { ...d, ...JSON.parse(localStorage.getItem(SETTINGS_KEY) ?? "{}") };
     // "rrp" (react-resizable-panels) was dropped from the drag path: saved settings fall back to our own separator.
     if (s.adapter !== "own" && s.adapter !== "ark") s.adapter = "own";
+    if (s.theme !== "light" && s.theme !== "dark") s.theme = "system";
     return s;
   } catch {
     return d;
@@ -92,6 +102,7 @@ let state: UiState = {
 const subs = new Set<() => void>();
 let kindsVersion = 0;
 setPaneCap(state.settings.paneCap);
+applyTheme(state.settings.theme);
 
 export const getState = () => state;
 export function setState(patch: Partial<UiState> | ((s: UiState) => Partial<UiState>)) {
@@ -102,6 +113,7 @@ export function setState(patch: Partial<UiState> | ((s: UiState) => Partial<UiSt
       setPaneCap(state.settings.paneCap);
       kindsVersion++;
     }
+    applyTheme(state.settings.theme);
     try { localStorage.setItem(SETTINGS_KEY, JSON.stringify(state.settings)); } catch { /* private mode */ }
   }
   for (const s of subs) s();
@@ -234,6 +246,53 @@ export function visiblePaneIds(): NodeId[] {
 /** The layout as it is when not zoomed. Focus keys use it, so they can move on from a zoomed pane (resolve() hides the rest). */
 export function resolvedFlat(): ResolvedLayout {
   return state.view.zoomed ? core.resolve(state.layout, unzoomed(state.view), fit()) : resolved();
+}
+
+// ---------- single view: exact restore ----------
+
+/** What the workspace looked like just before it fell into single view. */
+export interface WideSnapshot {
+  /** Tree shape only (ids, types, order): sizes and active tabs may change without invalidating a restore. */
+  shape: string;
+  visible: NodeId[];
+  /** Each deliberate stack's active tab. */
+  active: Record<NodeId, NodeId>;
+  view: ViewState;
+}
+export function layoutShape(node: LayoutNode = state.layout.root): string {
+  return node.type === "pane" ? node.id : `${node.type[0]}:${node.id}(${node.children.map((c) => layoutShape(c as LayoutNode)).join(",")})`;
+}
+export function snapshotWide(r: ResolvedLayout): WideSnapshot {
+  const active: Record<NodeId, NodeId> = {};
+  (function walk(n: LayoutNode) {
+    if (n.type === "pane") return;
+    if (n.type === "stack") active[n.id] = n.active;
+    n.children.forEach((c) => walk(c as LayoutNode));
+  })(state.layout.root);
+  return { shape: layoutShape(), visible: r.panes.filter((b) => !b.hiddenInStack).map((b) => b.id), active, view: state.view };
+}
+/**
+ * Widening out of single view: put back each stack's active tab and the visible pane set from before, provided the
+ * layout kept its shape meanwhile. Focus was moved by the switcher; the earlier view is used only if it reproduces
+ * the earlier visible set (an automatic fold shows its focused tab), otherwise the current view stays.
+ */
+export function restoreWide(snap: WideSnapshot) {
+  if (snap.shape !== layoutShape()) return;
+  let layout = state.layout;
+  for (const [stackId, tab] of Object.entries(snap.active)) {
+    const st = findNode(stackId, layout.root);
+    if (st && st.type === "stack" && st.active !== tab && st.children.some((c) => c.id === tab)) layout = core.setActiveTab(layout, stackId, tab);
+  }
+  const want = [...snap.visible].sort().join("|");
+  const shows = (v: ViewState) => core.resolve(layout, v, fit()).panes.filter((b) => !b.hiddenInStack).map((b) => b.id).sort().join("|") === want;
+  const cur = state.view;
+  const earlier: ViewState = { ...snap.view, ...(cur.peek ? { peek: cur.peek } : {}) };
+  if (!cur.peek) delete earlier.peek;
+  delete earlier.zoomed;
+  const view = shows(cur) ? cur : shows(earlier) ? earlier : cur;
+  if (layout === state.layout && view === state.view) return;
+  setState({ layout, view });
+  hooks.writeUrl("replace");
 }
 
 // ---------- announcer + history hooks (wired by App) ----------

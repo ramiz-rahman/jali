@@ -319,7 +319,7 @@ for (const adapter of ["own", "ark"] as const) {
   test.describe(`Divider (${adapter})`, () => {
     test.beforeEach(async ({ page }) => {
       await start(page);
-      await setSetting(page, adapter === "own" ? /Own APG separator/i : /Ark/i);
+      await setSetting(page, adapter === "own" ? /Own APG separator/i : /Ark UI/i);
       await expect(page.locator(`.divider-layer[data-adapter="${adapter}"]`)).toBeAttached();
     });
 
@@ -901,6 +901,13 @@ test("responsive: single view has a pane switcher that switches panes and restor
   await shot(page, "15-single-view-390");
   await page.setViewportSize({ width: 1440, height: 900 });
   await expect(sw).toHaveCount(0);
-  // Focus moved to the chosen pane, so the same number of panes show, with it selected in its fold.
-  await expect.poll(async () => (await visibleIds(page)).length).toBe(wide.length);
+  // Exact restore: the same panes show as before single view, even though the switcher moved focus to another pane.
+  await expect.poll(async () => (await visibleIds(page)).slice().sort()).toEqual(wide.slice().sort());
+  // And again from a different pane picked in single view (the last tab).
+  await page.setViewportSize({ width: 390, height: 844 });
+  await expect(sw).toBeVisible();
+  await tabs.last().click();
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await expect(sw).toHaveCount(0);
+  await expect.poll(async () => (await visibleIds(page)).slice().sort()).toEqual(wide.slice().sort());
 });
