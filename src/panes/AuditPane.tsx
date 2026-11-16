@@ -30,7 +30,7 @@ export function AuditPane({ paused, focused, openBeside, peek }: PaneProps) {
       <div className="pk-bar"><span className="grow pk-meta"><span className="pk-mono">{formatCount(w.total)}</span> events, newest first</span></div>
       <Grid label="Audit log" columns={columns} total={w.total} rows={w.rows} startOffset={w.offset} onRange={w.onRange}
         selected={sel} onSelect={setSel} focused={focused}
-        onPeek={(i) => { const t = target(i); if (t) peek(t); }} onOpen={(i) => { const t = target(i); if (t) openBeside(t); }} openLabel="Open the record" onLink={openBeside} />
+        onPeek={(i) => { const t = target(i); if (t) peek(t); }} onOpen={(i) => { const t = target(i); if (t) openBeside(t); }} rowOpenLabel={(i) => { const t = target(i); return t ? `Open ${t.params.table} ${t.params.id} beside` : "Open the record"; }} onLink={openBeside} />
     </Shell>
   );
 }

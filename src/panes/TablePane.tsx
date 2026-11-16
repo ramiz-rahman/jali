@@ -2,7 +2,7 @@ import { useMemo, useState } from "react";
 import type { TableName } from "../data/types";
 import { Grid, type GridColumn } from "./Grid";
 import { useCatalog, errorText, isLoading } from "./data";
-import { foreignKeyRef, formatCount, nextSort, orderByString, parseFilter, recordRef, rowId, tableInfoOf, type SortState } from "./format";
+import { foreignKeyRef, formatCount, nextSort, orderByString, parseFilter, recordRef, rowId, singular, tableInfoOf, type SortState } from "./format";
 import { ErrorState, Gone, Loading, Shell } from "./states";
 import { useWindowRows } from "./useWindow";
 import type { PaneProps } from "./props";
@@ -47,6 +47,8 @@ export function TableGrid({ table, fixedWhere, paused, focused, openBeside, peek
       {w.q.isLoading && !w.rows.length ? <Loading /> :
         <Grid label={label} columns={columns} total={w.total} rows={w.rows} startOffset={w.offset} onRange={w.onRange}
           selected={selected} onSelect={pick} focused={focused}
+          rowId={(i) => { const r = w.rows[i - w.offset]; return r ? rowId(info.columns, r) : null; }}
+          rowOpenLabel={(i) => { const r = w.rows[i - w.offset]; return `Open ${singular(table)} ${r ? rowId(info.columns, r) : i + 1} beside`; }}
           onPeek={(i) => { const r = refAt(i); if (r) peek(r); }} onOpen={(i) => { const r = refAt(i); if (r) openBeside(r); }}
           sort={sort} onSort={(c) => setSort((s) => nextSort(s, c))}
           filters={filters} onFilter={(c, t) => setFilters((f) => ({ ...f, [c]: t }))}

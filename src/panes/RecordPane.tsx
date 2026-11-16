@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import type { ColumnInfo, Relation, Row, TableName } from "../data/types";
 import { errorText, isLoading, useCatalog, useRecord, useRelations, useRows, useUpdateRow } from "./data";
-import { foreignKeyRef, formatCell, formatCount, isEditable, relationRef, singular, tableInfoOf, tableRef } from "./format";
+import { cellKind, columnLabel, foreignKeyRef, formatCell, formatCount, formatJson, rawText, isEditable, relationRef, singular, tableInfoOf, tableRef } from "./format";
 import { ErrorState, Gone, Loading, NullChip, Shell } from "./states";
 import type { PaneProps } from "./props";
 
@@ -14,6 +14,7 @@ export function RecordPane({ ref, paused, openBeside, setActivity }: PaneProps) 
   const update = useUpdateRow();
   const [editing, setEditing] = useState<string | null>(null);
   const [draft, setDraft] = useState("");
+  const [open, setOpen] = useState<Set<string>>(() => new Set());
   const [saveError, setSaveError] = useState<string | null>(null);
 
   useEffect(() => { setActivity(update.isPending ? "working" : isLoading(rec) ? "loading" : rec.isError || update.error ? "error" : "idle"); }, [setActivity, update.isPending, rec, update.error]);
@@ -40,17 +41,19 @@ export function RecordPane({ ref, paused, openBeside, setActivity }: PaneProps) 
           <div className="pk-meta"><button className="pk-link" onClick={() => openBeside(tableRef(table))}>{table}</button> · <span className="pk-mono">{id}</span></div></div>
         {update.isPending && <span className="pk-meta">Saving</span>}
       </div>
-      {saveError && <div role="alert" className="pk-meta" style={{ padding: "6px 14px", color: "#B42318" }}>Could not save: {saveError}</div>}
+      {saveError && <div role="alert" className="pk-meta" style={{ padding: "6px 14px", color: "var(--red, #B42318)" }}>Could not save: {saveError}</div>}
       <div className="pk-rec">
         {info.columns.map((c) => {
           const v = row[c.name] ?? null;
           const link = foreignKeyRef(c, v);
           const canEdit = isEditable(c);
           const num = typeof v === "number";
+          const kind = cellKind(v, c);
+          const raw = rawText(v);
           return (
             <div className="pk-field" key={c.name}>
-              <div className="k" title={c.type}>{c.name}{c.primaryKey && <> <span className="pk-chip key">PK</span></>}</div>
-              <div className={num ? "num" : ""}>
+              <div className="k" title={`${c.name} (${c.type})`}>{columnLabel(c.name)}{c.primaryKey && <> <span className="pk-chip key">PK</span></>}</div>
+              <div className={`${num ? "num" : ""}${kind === "money" ? " money" : ""}`} title={v === null || kind === "text" ? undefined : raw} data-raw={v === null ? undefined : raw} onCopy={(e) => { if (v !== null && window.getSelection()?.toString() === formatCell(v, c)) { e.clipboardData.setData("text/plain", raw); e.preventDefault(); } }}>
                 {editing === c.name ? (
                   <input className="pk-edit" autoFocus value={draft} aria-label={c.name} onChange={(e) => setDraft(e.target.value)} onBlur={() => commit(c)}
                     onKeyDown={(e) => { e.stopPropagation(); if (e.key === "Enter") commit(c); if (e.key === "Escape") { e.preventDefault(); setEditing(null); } }} />
@@ -58,6 +61,7 @@ export function RecordPane({ ref, paused, openBeside, setActivity }: PaneProps) 
                   : canEdit ? <span className="pk-val" tabIndex={0} role="button" aria-label={`Edit ${c.name}`} title="Click to edit"
                       onClick={() => { setDraft(String(v ?? "")); setEditing(c.name); }}
                       onKeyDown={(e) => { if (e.key === "Enter" && !e.altKey) { setDraft(String(v ?? "")); setEditing(c.name); e.preventDefault(); } }}>{v === null ? <NullChip /> : formatCell(v, c)}</span>
+                  : kind === "json" ? <JsonValue text={String(v)} open={open.has(c.name)} toggle={() => setOpen((s) => { const n = new Set(s); if (!n.delete(c.name)) n.add(c.name); return n; })} />
                   : <span className="pk-val" style={{ cursor: "default" }}>{v === null ? <NullChip /> : formatCell(v, c)}</span>}
               </div>
             </div>
@@ -66,6 +70,19 @@ export function RecordPane({ ref, paused, openBeside, setActivity }: PaneProps) 
         <Relations table={table} id={id} row={row} paused={paused} openBeside={openBeside} />
       </div>
     </Shell>
+  );
+}
+
+const JSON_CUT = 72;
+/** A JSON value: compact and monospaced, cut short, with an expander that shows it indented. */
+function JsonValue({ text, open, toggle }: { text: string; open: boolean; toggle(): void }) {
+  const compact = formatJson(text);
+  const long = compact.length > JSON_CUT || compact.includes("\n");
+  return (
+    <div className="pk-json">
+      {open ? <pre>{formatJson(text, true)}</pre> : <code>{long ? `${compact.slice(0, JSON_CUT)}…` : compact}</code>}
+      {long && <button className="pk-link" aria-expanded={open} onClick={toggle}>{open ? "Collapse" : "Expand"}</button>}
+    </div>
   );
 }
 

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { ColumnInfo } from "../data/types";
-import { formatCell, formatCompact, formatCount, formatMs, foreignKeyRef, isNumericType, nextSort, orderByString, parseFilter, pickChartColumns, relationRef, rowId, titleFor } from "./format";
+import { cellKind, columnLabel, formatCell, formatJson, formatMoney, formatTimestamp, isJsonColumn, isMoneyColumn, rawText,  formatCompact, formatCount, formatMs, foreignKeyRef, isNumericType, nextSort, orderByString, parseFilter, pickChartColumns, relationRef, rowId, titleFor } from "./format";
 
 const col = (name: string, type = "text", extra: Partial<ColumnInfo> = {}): ColumnInfo => ({ name, type, nullable: false, primaryKey: false, ...extra });
 
@@ -50,5 +50,56 @@ describe("relation links", () => {
   it("titles refs and picks chart columns", () => {
     expect(titleFor({ kind: "record", params: { table: "customers", id: "69" } })).toBe("customer 69");
     expect(pickChartColumns([{ region: "Dhaka", id: 1, amount: 5 }], ["region", "id", "amount"])).toEqual({ x: "region", y: "amount" });
+  });
+});
+
+describe("cell formatters", () => {
+  it("formats ISO timestamps as en-GB, 24-hour", () => {
+    expect(formatTimestamp("2026-01-01T10:30:00Z")).toBe("1 Jan 2026, 10:30");
+    expect(formatTimestamp("2026-11-01T00:00:00Z")).toBe("1 Nov 2026, 00:00");
+    expect(formatTimestamp("2026-09-05T23:05:59.123Z")).toBe("5 Sep 2026, 23:05");
+    expect(formatTimestamp("2026-01-01T10:30:00+02:00")).toBe("1 Jan 2026, 08:30");
+    expect(formatTimestamp("2026-03-04 07:08")).toBe("4 Mar 2026, 07:08");
+  });
+  it("formats plain dates without a time", () => {
+    expect(formatTimestamp("2026-01-01")).toBe("1 Jan 2026");
+  });
+  it("leaves non-dates alone", () => {
+    expect(formatTimestamp("hello")).toBeNull();
+    expect(formatTimestamp("2026-13-45")).toBeNull();
+    expect(formatTimestamp(12)).toBeNull();
+    expect(formatCell("2026-01-01T10:30:00Z", { name: "ordered_at" })).toBe("1 Jan 2026, 10:30");
+    expect(formatCell("paid", { name: "status" })).toBe("paid");
+  });
+  it("formats money from cents", () => {
+    expect(formatMoney(12500)).toBe("125.00");
+    expect(formatMoney(5)).toBe("0.05");
+    expect(formatMoney(123456789)).toBe("1,234,567.89");
+    expect(isMoneyColumn("total_cents")).toBe(true);
+    expect(isMoneyColumn("cents_total")).toBe(false);
+  });
+  it("titles money columns without _cents", () => {
+    expect(columnLabel("total_cents")).toBe("Total");
+    expect(columnLabel("price_cents")).toBe("Price");
+    expect(columnLabel("unit_price_cents")).toBe("Unit price");
+    expect(columnLabel("amount_cents")).toBe("Amount");
+    expect(columnLabel("quantity")).toBe("quantity");
+  });
+  it("compacts JSON columns", () => {
+    expect(isJsonColumn("payload_json")).toBe(true);
+    expect(formatJson('{ "a": 1,\n "b": [1, 2] }')).toBe('{"a":1,"b":[1,2]}');
+    expect(formatJson('{"a":1}', true)).toBe('{\n  "a": 1\n}');
+    expect(formatJson("not json")).toBe("not json");
+    expect(formatCell('{ "source": "trigger" }', { name: "payload_json" })).toBe('{"source":"trigger"}');
+  });
+  it("classifies cells and keeps raw values", () => {
+    expect(cellKind(null)).toBe("null");
+    expect(cellKind(5, { name: "price_cents" })).toBe("money");
+    expect(cellKind(5, { name: "quantity" })).toBe("number");
+    expect(cellKind("2026-01-01", { name: "x" })).toBe("time");
+    expect(cellKind("{}", { name: "metadata_json" })).toBe("json");
+    expect(rawText(12500)).toBe("12500");
+    expect(rawText("2026-01-01T10:30:00Z")).toBe("2026-01-01T10:30:00Z");
+    expect(rawText(null)).toBe("NULL");
   });
 });
