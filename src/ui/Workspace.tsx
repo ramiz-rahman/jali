@@ -1,5 +1,5 @@
 import { useEffect, useLayoutEffect, useRef } from "react";
-import type { LayoutNode, PaneNode, StackNode } from "../layout-core/types";
+import type { Edge, LayoutNode, PaneNode, StackNode } from "../layout-core/types";
 import { PaneFrame, type StackInfo } from "./PaneFrame";
 import { DividerLayer } from "./dividers/DividerLayer";
 import { Peek } from "./Peek";
@@ -7,7 +7,6 @@ import { setWorkspaceEl } from "./dnd";
 import { GAP, getState, hooks, resolved, setState, titleOf, useUi, bumpKinds } from "./store";
 import { usePaneKindsVersion } from "./pane-kinds";
 import { paneDomId } from "./ids";
-import { dirWord } from "./store";
 
 function collect(node: LayoutNode, panes: Map<string, PaneNode>, stacks: Map<string, StackNode>) {
   if (node.type === "pane") panes.set(node.id, node);
@@ -70,7 +69,7 @@ export function Workspace() {
     const inOtherPane = active?.closest?.("[data-pane]") && !inPane;
     const inChrome = active?.closest?.("[role=dialog], .topbar, [data-sonner-toaster], .divider");
     // Land on the pane's grid when it has one, so J/K and Space keep working after Pin beside, close and undo.
-    const target = el.querySelector<HTMLElement>("[role=grid]") ?? el;
+    const target = el.querySelector<HTMLElement>("[data-autofocus]") ?? el.querySelector<HTMLElement>("[role=grid]") ?? el;
     if (!inPane && (inOtherPane || !active || active === document.body) && !inChrome) target.focus({ preventScroll: true });
     else if (inOtherPane && !inChrome) target.focus({ preventScroll: true });
   }, [view.focused, layout]);
@@ -113,7 +112,7 @@ export function Workspace() {
         {dnd ? (
           <div className="drag-chip" style={{ left: dnd.x + 12, top: dnd.y + 12 }} aria-hidden>
             {titleOf(dnd.dragged)}
-            {dnd.zone ? <span> · {dnd.zone === "centre" ? (getState().settings.centreDrop === "swap" ? "swap" : "add as tab") : `place ${dirWord(dnd.zone)}`}</span> : <span> · Esc cancels</span>}
+            <span> · {dropLabel(dnd.zone, dnd.target)}</span>
           </div>
         ) : null}
         {view.zoomed ? null : null}
@@ -121,6 +120,14 @@ export function Workspace() {
       </div>
     </main>
   );
+}
+
+/** What releasing will do, in words, before the person lets go: "Swap with orders", "Add as tab to orders". */
+export function dropLabel(zone: Edge | "centre" | undefined, target: string | undefined, mode = getState().settings.centreDrop): string {
+  if (!zone || !target) return "Esc cancels";
+  const t = titleOf(target);
+  if (zone === "centre") return mode === "swap" ? `Swap with ${t}` : `Add as tab to ${t}`;
+  return zone === "top" ? `Place above ${t}` : zone === "bottom" ? `Place below ${t}` : `Place ${zone} of ${t}`;
 }
 
 function DropIndicator({ rect, zone }: { rect: { x: number; y: number; width: number; height: number }; zone: string }) {

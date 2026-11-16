@@ -94,6 +94,7 @@ export function titleFor(ref: ObjectRef): string {
     case "structure": return `${p.table ?? ""} structure`.trim();
     case "er": return `${p.table ?? ""} relations`.trim();
     case "audit": return "Audit log";
+    case "launcher": return "New pane";
     default: return ref.kind;
   }
 }

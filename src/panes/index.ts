@@ -1,9 +1,10 @@
-import { BarChart3, Database, FileText, GitFork, History, Link2, ListTree, Table2, TerminalSquare } from "lucide-react";
+import { BarChart3, Database, FileText, GitFork, History, Link2, ListTree, Plus, Table2, TerminalSquare } from "lucide-react";
 import { registerPaneKind } from "../ui/pane-kinds";
 import { AuditPane } from "./AuditPane";
 import { CatalogPane } from "./Catalog";
 import { ChartPane } from "./ChartPane";
 import { ErPane } from "./ErPane";
+import { LauncherPane } from "./LauncherPane";
 import { QueryPane } from "./QueryPane";
 import { RecordPane } from "./RecordPane";
 import { RelatedPane } from "./RelatedPane";
@@ -25,5 +26,6 @@ export function registerAllPaneKinds(): void {
   registerPaneKind({ kind: "chart", title: titleFor, minWidth: 380, minHeight: 220, icon: BarChart3, Component: ChartPane });
   registerPaneKind({ kind: "structure", title: titleFor, minWidth: 440, minHeight: 240, icon: ListTree, Component: StructurePane });
   registerPaneKind({ kind: "er", title: titleFor, minWidth: 480, minHeight: 240, icon: GitFork, Component: ErPane });
+  registerPaneKind({ kind: "launcher", title: titleFor, minWidth: 320, minHeight: 200, icon: Plus, Component: LauncherPane });
   registerPaneKind({ kind: "audit", title: titleFor, minWidth: 380, minHeight: 240, icon: History, Component: AuditPane });
 }

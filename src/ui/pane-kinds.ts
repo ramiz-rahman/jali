@@ -47,6 +47,10 @@ export interface PaneComponentProps {
   peek: (ref: ObjectRef | null) => void;
   /** Report the current selection; an open peek from this pane follows it. */
   select: (ref: ObjectRef | null) => void;
+  /** Show `ref` in this same pane (same node, new ref). If it is already open elsewhere, that pane is focused instead. */
+  openHere: (ref: ObjectRef) => void;
+  /** Close this pane quietly (no undo toast): for transient panes such as the launcher. */
+  dismiss: () => void;
   /** Report activity for the header, tab, rail and status line. Optional to call. */
   setActivity: (activity: PaneActivity) => void;
   /** True when rendered inside the peek sheet rather than a pane. */

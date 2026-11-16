@@ -4,7 +4,7 @@
  */
 import { useSyncExternalStore } from "react";
 import type {
-  Edge, FitOptions, Layout, LayoutNode, NodeId, ObjectRef, PaneNode, ResolvedLayout, UndoEntry, ViewState,
+  Edge, FitOptions, Layout, LayoutNode, NodeId, ObjectRef, PaneNode, ResolvedLayout, StackNode, UndoEntry, ViewState,
 } from "../layout-core/types";
 import { core, setPaneCap } from "./core";
 import { kindRegistry, paneTitle, type PaneActivity } from "./pane-kinds";
@@ -27,6 +27,16 @@ export interface DndState {
   zone?: Edge | "centre";
 }
 
+/** A chooser dialog opened by a command (⌘K "Add to tabs of…"). */
+export interface ChooserState {
+  kind: "merge";
+  source: NodeId;
+}
+
+/** What a new split or a stack's "+" shows until the person chooses an object. */
+export const LAUNCHER: ObjectRef = { kind: "launcher", params: {} };
+export const RECENT_MAX = 8;
+
 export interface UiState {
   layout: Layout;
   view: ViewState;
@@ -41,6 +51,9 @@ export interface UiState {
   resizeMode: NodeId | null;
   paletteOpen: boolean;
   settingsOpen: boolean;
+  chooser: ChooserState | null;
+  /** Objects opened this session, most recent first (the launcher's "Recent"). */
+  recent: ObjectRef[];
   area: { width: number; height: number };
   /** Bumped when persisted (URL written), for the status line. */
   savedAt: number;
@@ -68,6 +81,8 @@ let state: UiState = {
   resizeMode: null,
   paletteOpen: false,
   settingsOpen: false,
+  chooser: null,
+  recent: [],
   // First guess before the ResizeObserver measures: window minus bars and insets.
   area: typeof window === "undefined" ? { width: 1200, height: 700 } : { width: window.innerWidth - 12, height: window.innerHeight - 48 - 28 - 12 },
   savedAt: 0,
@@ -135,13 +150,87 @@ export function titleOf(id: NodeId | undefined): string {
   const p = findPane(id);
   return p ? paneTitle(p.ref) : "pane";
 }
+/** The deliberate (tree) stack holding this pane, if any. Automatic stacks exist only in resolve() output. */
+export function stackOf(id: NodeId | undefined, node: LayoutNode = state.layout.root): StackNode | undefined {
+  if (!id || node.type === "pane") return undefined;
+  if (node.type === "stack") return node.children.some((c) => c.id === id) ? node : undefined;
+  for (const c of node.children) {
+    const f = stackOf(id, c as LayoutNode);
+    if (f) return f;
+  }
+  return undefined;
+}
+
+/** Same object: kind plus identifying params (ids compare as text; `autorun` is an instruction, not identity). */
+export function sameRef(a: ObjectRef, b: ObjectRef): boolean {
+  if (a.kind !== b.kind) return false;
+  const keys = (r: ObjectRef) => Object.keys(r.params).filter((k) => k !== "autorun").sort();
+  const ka = keys(a), kb = keys(b);
+  return ka.length === kb.length && ka.every((k, i) => k === kb[i] && String(a.params[k]) === String(b.params[k]));
+}
+
+/** Kinds that are scratch space rather than objects: never deduplicated, never listed as recent. */
+const SCRATCH = new Set(["launcher", "query"]);
+const isObject = (ref: ObjectRef) => !SCRATCH.has(ref.kind);
+
+/** The pane already showing `ref`, other than `except`. Queries are scratch editors and never count. */
+export function openPaneFor(ref: ObjectRef, except?: NodeId): PaneNode | undefined {
+  if (!isObject(ref)) return undefined;
+  return allPanes().find((p) => p.id !== except && sameRef(p.ref, ref));
+}
+
+function withRecent(refs: ObjectRef[], recent = state.recent): ObjectRef[] {
+  let out = recent;
+  for (const ref of refs) {
+    if (ref.kind === "launcher") continue;
+    if (ref.kind === "chart" && !ref.params.runId) continue;
+    out = [ref, ...out.filter((r) => !sameRef(r, ref))];
+  }
+  return out.slice(0, RECENT_MAX);
+}
+
+function nodeIds(node: LayoutNode = state.layout.root): string[] {
+  return node.type === "pane" ? [node.id] : [node.id, ...node.children.flatMap((c) => nodeIds(c as LayoutNode))];
+}
+function uniqueId(prefix: string): NodeId {
+  const ids = new Set(nodeIds());
+  let i = 1;
+  while (ids.has(`${prefix}-${i}`)) i++;
+  return `${prefix}-${i}`;
+}
+/** Immutable map over the tree. A node `fn` replaces is taken as final (not descended into). */
+function mapTree(node: LayoutNode, fn: (n: LayoutNode) => LayoutNode): LayoutNode {
+  const n = fn(node);
+  if (n !== node || n.type === "pane") return n;
+  if (n.type === "stack") return { ...n, children: n.children.map((c) => mapTree(c, fn) as PaneNode) };
+  return { ...n, children: n.children.map((c) => mapTree(c, fn)) };
+}
+
+/** Panes and stacks the focused pane can join as a tab, by title. Excludes itself and its own stack. */
+export interface MergeTarget { id: NodeId; label: string; hint: string }
+export function mergeTargets(source = state.view.focused): MergeTarget[] {
+  if (!source) return [];
+  const own = stackOf(source);
+  const out: MergeTarget[] = [];
+  for (const b of resolvedFlat().panes) {
+    if (b.hiddenInStack || b.id === source || own?.children.some((c) => c.id === b.id)) continue;
+    const st = stackOf(b.id);
+    if (st) out.push({ id: b.id, label: st.children.map((c) => paneTitle(c.ref)).join(" · "), hint: `${st.children.length} tabs` });
+    else {
+      const p = findPane(b.id);
+      if (p) out.push({ id: b.id, label: paneTitle(p.ref), hint: p.ref.kind === "launcher" ? "new pane" : p.ref.kind });
+    }
+  }
+  return out;
+}
+
 /** Visible panes in reading order (resolve order). */
 export function visiblePaneIds(): NodeId[] {
   return resolved().panes.filter((b) => !b.hiddenInStack).map((b) => b.id);
 }
 
 /** The layout as it is when not zoomed. Focus keys use it, so they can move on from a zoomed pane (resolve() hides the rest). */
-function resolvedFlat(): ResolvedLayout {
+export function resolvedFlat(): ResolvedLayout {
   return state.view.zoomed ? core.resolve(state.layout, unzoomed(state.view), fit()) : resolved();
 }
 
@@ -204,19 +293,103 @@ export const actions = {
     // Founder decision 2: focus stays in the source.
     const view = { ...r.view, focused: source, focusHistory: r.view.focusHistory.length ? r.view.focusHistory : [source] };
     const t = paneTitle(ref), s = titleOf(source);
+    const recent = withRecent([ref]);
     const msg =
       r.mode === "replaced" ? `${t} shown beside ${s}` : r.mode === "tab" ? `${t} opened as a tab: not enough room beside ${s}` : `${t} opened beside ${s}`;
-    commit(r.layout, view, { history: "push", announce: msg });
+    commit(r.layout, view, { history: "push", announce: msg, extra: { recent } });
     return r.opened;
   },
+  /** Split opens a launcher beside the pane, not a copy of it; focus moves in, because the person is about to choose. */
   split(dir: "right" | "bottom", target = state.view.focused) {
     const p = findPane(target);
     if (!p) return;
-    const r = core.split(state.layout, unzoomed(state.view), p.id, dir, p.ref, fit());
-    commit(r.layout, r.view, {
+    const r = core.split(state.layout, unzoomed(state.view), p.id, dir, LAUNCHER, fit());
+    const view = core.focus(r.view, r.opened);
+    commit(r.layout, view, {
       history: "push",
-      announce: r.mode === "tab" ? `Split opened as a tab: not enough room` : `${titleOf(p.id)} split ${dir === "right" ? "right" : "down"}`,
+      announce:
+        r.mode === "tab"
+          ? `New pane opened as a tab: not enough room beside ${titleOf(p.id)}. Choose what to show`
+          : `New pane ${dir === "right" ? "right of" : "below"} ${titleOf(p.id)}. Choose what to show`,
     });
+    return r.opened;
+  },
+  /**
+   * Show `ref` in pane `id`, in place (same node, new ref). If the object is already open elsewhere, focus that pane
+   * instead and quietly drop the launcher: one object, one pane.
+   */
+  openHere(id: NodeId, ref: ObjectRef) {
+    const p = findPane(id);
+    if (!p) return;
+    const recent = withRecent([ref]);
+    const dup = openPaneFor(ref, id);
+    if (dup) {
+      let layout = state.layout, view = unzoomed(state.view);
+      if (p.ref.kind === "launcher" && allPanes().length > 1) ({ layout, view } = core.close(layout, view, id));
+      const st = stackOf(dup.id, layout.root);
+      if (st && st.active !== dup.id) layout = core.setActiveTab(layout, st.id, dup.id);
+      if (dup.collapsed) layout = core.setCollapsed(layout, dup.id, false);
+      commit(layout, core.focus(view, dup.id), { history: "push", announce: `Already open: focused ${paneTitle(dup.ref)}`, extra: { recent } });
+      return dup.id;
+    }
+    const layout: Layout = { ...state.layout, root: mapTree(state.layout.root, (n) => (n.id === id && n.type === "pane" ? { ...n, ref } : n)) };
+    commit(layout, core.focus(state.view, id), { history: "push", announce: `${paneTitle(ref)} opened`, extra: { recent } });
+    return id;
+  },
+  /** Esc on an untouched launcher: close it without an undo toast; focus returns to where it came from. */
+  dismiss(id: NodeId) {
+    if (!findPane(id)) return;
+    if (allPanes().length <= 1) {
+      hooks.announce("The last pane stays open");
+      return;
+    }
+    const r = core.close(state.layout, unzoomed(state.view), id);
+    commit(r.layout, r.view, { history: "push", announce: `New pane closed. Focus is on ${titleOf(r.view.focused)}` });
+  },
+  /** "+" on a tab strip and ⌘K "New tab here": a launcher as a new tab of the pane's stack (or a new stack). */
+  newTab(id = state.view.focused) {
+    const p = findPane(id);
+    if (!p) return;
+    const own = stackOf(p.id);
+    const autoGroup = !own && resolved().panes.find((b) => b.id === p.id)?.stackId;
+    if (autoGroup) {
+      // An automatic stack is a fold of panes with no room; a new pane joins the fold and is selected by focus.
+      const r = core.split(state.layout, unzoomed(state.view), p.id, "right", LAUNCHER, fit());
+      commit(r.layout, core.focus(r.view, r.opened), { history: "push", announce: `New tab beside ${titleOf(p.id)}. Choose what to show` });
+      return r.opened;
+    }
+    const nid = uniqueId("launcher"), sid = uniqueId("stack");
+    const launcher: PaneNode = { id: nid, type: "pane", size: { weight: 1 }, ref: LAUNCHER };
+    const root = mapTree(state.layout.root, (n) => {
+      if (own && n.id === own.id && n.type === "stack") return { ...n, children: [...n.children, launcher], active: nid, origin: "user" };
+      if (!own && n.id === p.id && n.type === "pane") {
+        // The pane hands its size to the new stack, as a centre drop in tab mode does.
+        const { size, userSized, ...pane } = n;
+        const first: PaneNode = { ...pane, size: { weight: 1 } };
+        return { id: sid, type: "stack", size, ...(userSized ? { userSized } : {}), children: [first, launcher], active: nid, origin: "user" } satisfies StackNode;
+      }
+      return n;
+    });
+    commit({ ...state.layout, root }, core.focus(unzoomed(state.view), nid), { history: "push", announce: `New tab beside ${titleOf(p.id)}. Choose what to show` });
+    return nid;
+  },
+  /** Merge without dragging (WCAG 2.5.7): the pane joins `target`'s stack as a tab. Same op as a centre drop in tab mode. */
+  mergeInto(source: NodeId, target: NodeId) {
+    if (!findPane(source) || !findPane(target) || source === target) return;
+    const into = stackOf(target) ? `the tabs of ${titleOf(target)}` : `tabs with ${titleOf(target)}`;
+    const r = core.drop(state.layout, unzoomed(state.view), source, target, "centre", "tab");
+    commit(r.layout, core.focus(r.view, source), { history: "push", announce: `${titleOf(source)} added to ${into}` });
+  },
+  /** Move a tab out of its stack, to the right of the stack. Same op as dragging the tab to the right edge. */
+  unmerge(id = state.view.focused) {
+    const st = stackOf(id);
+    if (!id || !st) {
+      hooks.announce(`${titleOf(id)} is not in tabs`);
+      return;
+    }
+    const other = st.children.find((c) => c.id !== id)!;
+    const r = core.drop(state.layout, unzoomed(state.view), id, other.id, "right", "swap");
+    commit(r.layout, core.focus(r.view, id), { history: "push", announce: `${titleOf(id)} moved out of tabs, right of ${titleOf(st.active === id ? other.id : st.active)}` });
   },
   close(id = state.view.focused) {
     if (!id || !findPane(id)) return;
@@ -272,7 +445,7 @@ export const actions = {
     const r = core.drop(state.layout, state.view, dragged, target, zone, mode);
     const msg =
       zone === "centre"
-        ? mode === "swap" ? `${titleOf(dragged)} swapped with ${titleOf(target)}` : `${titleOf(dragged)} added as a tab with ${titleOf(target)}`
+        ? mode === "swap" ? `${titleOf(dragged)} swapped with ${titleOf(target)}` : `${titleOf(dragged)} added to the tabs of ${titleOf(target)}`
         : `${titleOf(dragged)} placed ${dirWord(zone)} of ${titleOf(target)}`;
     commit(r.layout, core.focus(r.view, dragged), { history: "push", announce: msg });
   },
@@ -298,7 +471,8 @@ export const actions = {
     const layout = core.resetLayout(presetById(id).build());
     const first = allPanes(layout.root)[0]?.id;
     const view: ViewState = first ? { focused: first, focusHistory: [first] } : { focusHistory: [] };
-    commit(layout, view, { history: "push", announce: `Layout: ${presetById(id).label}`, extra: { presetId: id, peekSource: undefined, resizeMode: null } });
+    const recent = withRecent(allPanes(layout.root).map((p) => p.ref).reverse());
+    commit(layout, view, { history: "push", announce: `Layout: ${presetById(id).label}`, extra: { presetId: id, peekSource: undefined, resizeMode: null, recent } });
   },
   resetLayout() {
     actions.preset(state.presetId);
@@ -322,7 +496,7 @@ export const actions = {
     const ref = state.view.peek;
     if (!ref) return;
     const layout: Layout = { version: 1, root: { id: "full", type: "pane", size: { weight: 1 }, ref } };
-    commit(layout, { focused: "full", focusHistory: ["full"] }, { history: "push", announce: `${paneTitle(ref)} opened full`, extra: { peekSource: undefined } });
+    commit(layout, { focused: "full", focusHistory: ["full"] }, { history: "push", announce: `${paneTitle(ref)} opened full`, extra: { peekSource: undefined, recent: withRecent([ref]) } });
   },
   /** The pane's selection moved; an open peek from that pane follows it (Linear). */
   select(source: NodeId, ref: ObjectRef | null) {
@@ -330,6 +504,10 @@ export const actions = {
       setState({ view: { ...state.view, peek: ref } });
       hooks.writeUrl("replace");
     }
+  },
+  /** Seed Recent with what is already on screen (boot, link open), reading order first. */
+  noteOpen(refs: ObjectRef[]) {
+    setState({ recent: withRecent([...refs].reverse()) });
   },
   setActivity(id: NodeId, a: PaneActivity) {
     if (state.activity[id] === a) return;

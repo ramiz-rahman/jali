@@ -1,5 +1,5 @@
 import { memo, useLayoutEffect, useMemo, useRef, useState, type CSSProperties } from "react";
-import { ChevronsLeft, ChevronsRight, ChevronsDown, Maximize2, Minimize2, Square, X, GripHorizontal } from "lucide-react";
+import { ChevronsLeft, ChevronsRight, ChevronsDown, Maximize2, Minimize2, Plus, Square, X, GripHorizontal } from "lucide-react";
 import type { ObjectRef, PaneBox, PaneNode } from "../layout-core/types";
 import { getPaneKind, paneTitle, type PaneActivity, type PaneComponentProps } from "./pane-kinds";
 import { actions, getState, useUi } from "./store";
@@ -36,6 +36,12 @@ const PaneBody = memo(
         openBeside: (ref: ObjectRef) => actions.openBeside(src(), ref),
         peek: (ref: ObjectRef | null) => actions.peek(ref, src()),
         select: (ref: ObjectRef | null) => actions.select(src(), ref),
+        openHere: (ref: ObjectRef) => {
+          if (id !== "peek") actions.openHere(id, ref);
+        },
+        dismiss: () => {
+          if (id !== "peek") actions.dismiss(id);
+        },
         setActivity: (a: PaneActivity) => {
           if (id !== "peek") actions.setActivity(id, a);
         },
@@ -172,6 +178,7 @@ export const PaneFrame = memo(function PaneFrame({ box, node, stack, focused, zo
           <GripHorizontal size={14} strokeWidth={1.5} />
         </span>
         {stack ? (
+          <div className="tabbar">
           <div className="tabs" role="tablist" aria-label={`Tabs: ${stack.tabs.length}`}>
             {stack.tabs.map((t) => {
               const active = t.id === stack.active;
@@ -208,6 +215,18 @@ export const PaneFrame = memo(function PaneFrame({ box, node, stack, focused, zo
                 </div>
               );
             })}
+          </div>
+          <button
+            className="tab-add"
+            aria-label="New tab in this stack"
+            title="New tab"
+            onClick={(e) => {
+              e.stopPropagation();
+              actions.newTab(stack.active);
+            }}
+          >
+            <Plus size={14} strokeWidth={1.5} aria-hidden />
+          </button>
           </div>
         ) : (
           <div className="pane-title">

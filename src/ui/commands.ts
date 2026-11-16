@@ -2,7 +2,7 @@
  * One command registry (spec §0.2): every pane action has a stable ID that feeds the palette, keys and menus.
  */
 import type { Edge } from "../layout-core/types";
-import { actions, allPanes, getState, hooks, resolved, setState } from "./store";
+import { actions, allPanes, getState, hooks, mergeTargets, resolved, setState, stackOf } from "./store";
 import { PRESETS } from "./presets";
 import { nearestDivider } from "./dividers/DividerLayer";
 
@@ -11,7 +11,7 @@ export interface Command {
   title: string;
   /** Display shortcut (Mac glyphs). */
   keys?: string;
-  group: "Focus" | "Pane" | "Move" | "Layout" | "Peek" | "Settings";
+  group: "Focus" | "Pane" | "Move" | "Tabs" | "Layout" | "Peek" | "Settings";
   enabled?: () => boolean;
   run: () => void;
 }
@@ -46,11 +46,12 @@ export const COMMANDS: Command[] = [
   { id: "pane.close", title: "Close pane", keys: "⌥⌘W", group: "Pane", enabled: () => hasFocus() && many(), run: () => actions.close() },
   { id: "pane.close_others", title: "Close other panes", group: "Pane", enabled: () => hasFocus() && many(), run: () => actions.closeOthers() },
   { id: "pane.undo_close", title: "Restore last closed pane", keys: "⌘Z", group: "Pane", enabled: () => getState().closedStack.length > 0, run: () => actions.undoClose() },
-  { id: "pane.split.right", title: "Split right", keys: "⌥⌘\\", group: "Pane", enabled: hasFocus, run: () => actions.split("right") },
-  { id: "pane.split.down", title: "Split down", keys: "⌥⇧⌘\\", group: "Pane", enabled: hasFocus, run: () => actions.split("bottom") },
+  // Splits open a launcher (a "New pane" to choose an object in), never a copy of the focused object.
+  { id: "pane.split.right", title: "Split right (new pane)", keys: "⌥⌘\\", group: "Pane", enabled: hasFocus, run: () => actions.split("right") },
+  { id: "pane.split.down", title: "Split down (new pane)", keys: "⌥⇧⌘\\", group: "Pane", enabled: hasFocus, run: () => actions.split("bottom") },
   {
     id: "pane.split.auto",
-    title: "Split auto (by shape)",
+    title: "Split auto (new pane, by shape)",
     group: "Pane",
     enabled: hasFocus,
     run: () => {
@@ -61,6 +62,11 @@ export const COMMANDS: Command[] = [
 
   ...DIRS.map(([d, w, g]): Command => ({ id: `pane.move.${w}`, title: `Move pane ${w}`, keys: `⌥⇧⌘${g}`, group: "Move", enabled: () => hasFocus() && many(), run: () => actions.moveDirection(d) })),
   { id: "pane.swap", title: "Swap with next pane", group: "Move", enabled: () => hasFocus() && many(), run: () => actions.swapWithNext() },
+
+  // Merge and unmerge without dragging (WCAG 2.5.7).
+  { id: "pane.merge", title: "Add to tabs of…", keys: "⌥⌘T", group: "Tabs", enabled: () => mergeTargets().length > 0, run: () => openMergeChooser() },
+  { id: "pane.unmerge", title: "Move out of tabs", keys: "⌥⇧⌘T", group: "Tabs", enabled: () => !!stackOf(getState().view.focused), run: () => actions.unmerge() },
+  { id: "stack.new-tab", title: "New tab here", group: "Tabs", enabled: hasFocus, run: () => void actions.newTab() },
 
   ...PRESETS.map((p): Command => ({ id: `layout.preset.${p.id}`, title: `Layout: ${p.label}`, group: "Layout", run: () => actions.preset(p.id) })),
   { id: "layout.reset", title: "Reset layout", group: "Layout", run: () => actions.resetLayout() },
@@ -100,6 +106,16 @@ export function runCommand(id: string): boolean {
   if (!c || (c.enabled && !c.enabled())) return false;
   c.run();
   return true;
+}
+
+export function openMergeChooser() {
+  const source = getState().view.focused;
+  if (!source) return;
+  if (!mergeTargets(source).length) {
+    hooks.announce("No other pane or stack to add this to");
+    return;
+  }
+  setState({ chooser: { kind: "merge", source } });
 }
 
 export function enterResizeMode() {

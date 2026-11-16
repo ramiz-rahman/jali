@@ -9,6 +9,7 @@ import { StatusLine } from "./StatusLine";
 import { Announcer } from "./Announcer";
 import { Palette } from "./Palette";
 import { SettingsPanel } from "./Settings";
+import { Chooser } from "./Chooser";
 import { installKeyboard } from "./keyboard";
 import { applyUrl, installUrlSync, writeUrl } from "./url";
 import { actions, allPanes, getState, hooks, setState } from "./store";
@@ -31,6 +32,7 @@ export function bootFromUrl() {
   if (booted) return;
   booted = true;
   initialBroken = applyUrl();
+  actions.noteOpen(allPanes().map((p) => p.ref));
   const s = getState();
   if (!s.view.focused) {
     const first = allPanes()[0]?.id;
@@ -71,6 +73,7 @@ export function App({ data }: { data: DataLayer }) {
         <Announcer />
         <Palette />
         <SettingsPanel />
+        <Chooser />
         <Toaster position="bottom-right" offset={{ bottom: 40, right: 12 }} toastOptions={{ className: "toast" }} />
       </DataLayerProvider>
     </QueryClientProvider>

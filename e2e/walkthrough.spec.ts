@@ -160,7 +160,7 @@ test.describe("Move: drag by the grip", () => {
     await start(page);
     await setSetting(page, /Swap the two panes/);
     await dragHeader(page, "customer", "orders", "centre", { release: false });
-    await expect(page.locator(".drag-chip")).toContainText("swap");
+    await expect(page.locator(".drag-chip")).toContainText("Swap with orders");
     await shot(page, "04-drop-centre-swap");
     await page.mouse.up();
     expect(await visibleIds(page)).toEqual(["customer", "order", "orders"]);
@@ -170,7 +170,7 @@ test.describe("Move: drag by the grip", () => {
     await start(page);
     await setSetting(page, /Add as a tab/);
     await dragHeader(page, "customer", "orders", "centre", { release: false });
-    await expect(page.locator(".drag-chip")).toContainText("add as tab");
+    await expect(page.locator(".drag-chip")).toContainText("Add as tab to orders");
     await page.mouse.up();
     const ids = await visibleIds(page);
     expect(ids).toHaveLength(2);
@@ -202,6 +202,115 @@ test.describe("Move: drag by the grip", () => {
     await paneEl(page, "customer").click({ position: { x: 100, y: 200 } });
     await page.keyboard.press("Alt+Shift+Meta+ArrowLeft");
     expect(await visibleIds(page)).toEqual(["orders", "customer", "order"]);
+  });
+});
+
+// ---------- Launcher, merge without dragging, tab "+" ----------
+test.describe("Launcher and tabs", () => {
+  const announcer = (page: Page) => page.getByTestId("announcer");
+  const launcherField = (page: Page) => page.getByRole("combobox", { name: "Open in this pane" });
+
+  test("split opens a launcher with focus in its field; choosing a table fills the same pane", async ({ page }) => {
+    await start(page, { preset: "One table" });
+    await paneEl(page, "orders").locator("h2").click();
+    await page.keyboard.press("Alt+Meta+Backslash");
+    const launcher = page.locator('section[data-kind="launcher"]');
+    await expect(launcher).toHaveCount(1);
+    await expect(launcherField(page)).toBeFocused();
+    await expect(launcher.getByRole("group", { name: "Recent" })).toBeVisible();
+    await expect(launcher.getByRole("group", { name: "Tables" }).getByRole("option", { name: /customers/ })).toContainText("240");
+    await expect(launcher.getByRole("option", { name: "New query" })).toBeVisible();
+    await expect(page.locator('section[data-kind="table"]')).toHaveCount(1); // not a copy of orders
+    await shot(page, "15-launcher");
+    const id = await launcher.getAttribute("data-pane");
+
+    await page.keyboard.type("customers");
+    await page.keyboard.press("Enter");
+    const filled = paneEl(page, id!);
+    await expect(filled).toHaveAttribute("data-kind", "table");
+    await expect(filled.locator("h2")).toHaveText("customers");
+    await expect(filled.locator(".pk-grid")).toBeVisible();
+  });
+
+  test("Esc on an untouched launcher closes it and focus returns", async ({ page }) => {
+    await start(page, { preset: "One table" });
+    await paneEl(page, "orders").locator("h2").click();
+    await page.keyboard.press("Alt+Meta+Backslash");
+    await expect(launcherField(page)).toBeFocused();
+    await page.keyboard.press("Escape");
+    await expect(page.locator('section[data-kind="launcher"]')).toHaveCount(0);
+    await expect(paneEl(page, "orders")).toHaveAttribute("data-focused", "true");
+  });
+
+  test("opening an object that is already open focuses it instead of duplicating it", async ({ page }) => {
+    await start(page, { size: { width: 1920, height: 1000 } });
+    await paneEl(page, "orders").locator("h2").click();
+    await page.keyboard.press("Alt+Meta+Backslash");
+    await expect(launcherField(page)).toBeFocused();
+    await expect(page.locator('section[data-kind="launcher"]').getByRole("option", { name: /customer 1/ }).first()).toContainText("Open");
+    await page.keyboard.type("customer 1");
+    await page.keyboard.press("Enter");
+    await expect(page.locator('section[data-kind="launcher"]')).toHaveCount(0);
+    expect(await visibleIds(page)).toEqual(["orders", "order", "customer"]);
+    await expect(paneEl(page, "customer")).toHaveAttribute("data-focused", "true");
+    await expect(announcer(page)).toHaveText("Already open: focused customer 1");
+  });
+
+  test("merge and unmerge by ⌘K", async ({ page }) => {
+    await start(page);
+    await paneEl(page, "customer").locator("h2").click();
+    await page.keyboard.press("Meta+k");
+    await page.keyboard.type("add to tabs");
+    await page.keyboard.press("Enter");
+    const chooser = page.getByRole("dialog", { name: "Add customer 1 to tabs of" });
+    await expect(chooser).toBeVisible();
+    await expect(chooser.getByRole("option")).toHaveText([/orders/, /order 1/]);
+    await shot(page, "16-merge-chooser");
+    await page.keyboard.type("orders");
+    await page.keyboard.press("Enter");
+    await expect(chooser).toBeHidden();
+    await expect(page.getByRole("tab")).toHaveCount(2);
+    expect(await visibleIds(page)).toHaveLength(2);
+    await expect(announcer(page)).toHaveText("customer 1 added to tabs with orders");
+
+    await page.keyboard.press("Meta+k");
+    await page.keyboard.type("move out of tabs");
+    await page.keyboard.press("Enter");
+    await expect(page.getByRole("tab")).toHaveCount(0);
+    expect(await visibleIds(page)).toEqual(["orders", "customer", "order"]);
+    await expect(announcer(page)).toContainText("customer 1 moved out of tabs");
+  });
+
+  test("merge and unmerge by shortcut (⌥⌘T, ⌥⇧⌘T)", async ({ page }) => {
+    await start(page);
+    await paneEl(page, "customer").locator("h2").click();
+    await page.keyboard.press("Alt+Meta+t");
+    await expect(page.getByRole("dialog", { name: "Add customer 1 to tabs of" })).toBeVisible();
+    await page.keyboard.press("ArrowDown");
+    await page.keyboard.press("Enter");
+    await expect(page.getByRole("tab")).toHaveCount(2);
+    await expect(page.getByRole("tab", { name: /customer 1/ })).toHaveAttribute("aria-selected", "true");
+    await expect(announcer(page)).toHaveText("customer 1 added to tabs with order 1");
+    await page.keyboard.press("Alt+Shift+Meta+t");
+    await expect(page.getByRole("tab")).toHaveCount(0);
+    expect(await visibleIds(page)).toHaveLength(3);
+  });
+
+  test("the tab strip's + adds a launcher tab and focuses it", async ({ page }) => {
+    await start(page);
+    await paneEl(page, "customer").locator("h2").click();
+    await page.keyboard.press("Alt+Meta+t");
+    await page.keyboard.press("Enter");
+    await expect(page.getByRole("tab")).toHaveCount(2);
+    await page.getByRole("button", { name: "New tab in this stack" }).click();
+    await expect(page.getByRole("tab")).toHaveCount(3);
+    await expect(page.getByRole("tab", { name: /New pane/ })).toHaveAttribute("aria-selected", "true");
+    await expect(launcherField(page)).toBeFocused();
+    await shot(page, "17-tab-plus");
+    await page.keyboard.type("products");
+    await page.keyboard.press("Enter");
+    await expect(page.getByRole("tab", { name: /products/ })).toHaveAttribute("aria-selected", "true");
+    await expect(page.getByRole("tab")).toHaveCount(3);
   });
 });
 

@@ -25,10 +25,10 @@ export function handleKey(e: KeyboardEvent): boolean {
 
   // ⌘K palette works everywhere.
   if (mod && !alt && !e.shiftKey && e.code === "KeyK") {
-    setState({ paletteOpen: !s.paletteOpen });
+    setState({ paletteOpen: !s.paletteOpen, chooser: null });
     return true;
   }
-  if (s.paletteOpen || s.settingsOpen) return false; // dialogs own the keyboard
+  if (s.paletteOpen || s.settingsOpen || s.chooser) return false; // dialogs own the keyboard
 
   // Resize mode: arrows resize the nearest divider; Esc or Enter leaves.
   if (s.resizeMode && !mod && !alt) {
@@ -93,6 +93,8 @@ export function handleKey(e: KeyboardEvent): boolean {
     if (e.code === "KeyM" && !e.shiftKey) return runCommand("pane.minimise") || true;
     if (e.code === "KeyR" && !e.shiftKey) return runCommand("pane.resize_mode") || true;
     if (e.code === "KeyW" && !e.shiftKey) return runCommand("pane.close") || true;
+    // ⌥⌘T adds the pane to another pane's tabs (a chooser); ⌥⇧⌘T moves a tab out of its stack.
+    if (e.code === "KeyT") return runCommand(e.shiftKey ? "pane.unmerge" : "pane.merge") || true;
   }
   return false;
 }

@@ -127,7 +127,10 @@ body.is-pane-dragging, body.is-pane-dragging * { cursor: grabbing !important; }
 .activity-error { background: var(--red); }
 
 /* tabs (stacks) */
-.tabs { display: flex; align-items: stretch; gap: 2px; min-width: 0; flex: 1; height: 100%; margin-left: -6px; overflow-x: auto; overflow-y: hidden; scrollbar-width: none; }
+.tabbar { display: flex; align-items: center; gap: 2px; min-width: 0; flex: 1; height: 100%; margin-left: -6px; }
+.tabs { display: flex; align-items: stretch; gap: 2px; min-width: 0; flex: 0 1 auto; height: 100%; overflow-x: auto; overflow-y: hidden; scrollbar-width: none; }
+.tab-add { display: grid; place-items: center; flex: none; width: 24px; height: 24px; border: 0; border-radius: 6px; background: none; color: var(--text-3); padding: 0; cursor: pointer; }
+.tab-add:hover { background: var(--hover); color: var(--text); }
 .tabs::-webkit-scrollbar { display: none; }
 .tab {
   display: flex; align-items: center; gap: 6px; flex: none; min-width: 72px; max-width: 200px; padding: 0 4px 0 8px;
@@ -224,6 +227,11 @@ body.is-pane-dragging, body.is-pane-dragging * { cursor: grabbing !important; }
 .palette-id { font-size: 11px; color: var(--text-3); }
 .palette-item kbd { justify-self: end; font-size: 11px; color: var(--text-2); }
 .palette-empty { padding: 12px 10px; color: var(--text-3); }
+.chooser { width: min(480px, calc(100vw - 32px)); }
+.chooser-head { padding: 12px 16px 0; font-size: 12px; color: var(--text-3); }
+.chooser-head b { font-weight: 500; color: var(--text); }
+.chooser-item { grid-template-columns: 16px 1fr auto; }
+.chooser-icon { display: grid; place-items: center; color: var(--text-3); }
 
 .settings {
   width: min(420px, calc(100vw - 32px)); background: var(--island); border: 1px solid var(--line);
