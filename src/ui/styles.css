@@ -92,7 +92,8 @@ code, kbd, pre, .num { font-family: var(--mono); }
   position: relative; flex: none; height: 40px; display: flex; align-items: center; gap: 8px;
   padding: 0 6px 0 12px; border-bottom: 1px solid var(--line); user-select: none; cursor: default;
 }
-.pane-header.is-strip { height: 30px; border-bottom: 0; }
+.pane-header.is-strip { height: 100%; max-height: 40px; border-bottom: 0; }
+.pane.is-collapsed { justify-content: center; }
 .pane.is-collapsed { min-height: 0; }
 .grip {
   position: absolute; left: 50%; top: 0; transform: translateX(-50%); height: 12px; width: 36px;
@@ -126,9 +127,10 @@ body.is-pane-dragging, body.is-pane-dragging * { cursor: grabbing !important; }
 .activity-error { background: var(--red); }
 
 /* tabs (stacks) */
-.tabs { display: flex; align-items: stretch; gap: 2px; min-width: 0; flex: 1; height: 100%; margin-left: -6px; overflow: hidden; }
+.tabs { display: flex; align-items: stretch; gap: 2px; min-width: 0; flex: 1; height: 100%; margin-left: -6px; overflow-x: auto; overflow-y: hidden; scrollbar-width: none; }
+.tabs::-webkit-scrollbar { display: none; }
 .tab {
-  display: flex; align-items: center; gap: 6px; min-width: 0; max-width: 200px; padding: 0 4px 0 8px;
+  display: flex; align-items: center; gap: 6px; flex: none; min-width: 72px; max-width: 200px; padding: 0 4px 0 8px;
   color: var(--text-3); border-bottom: 1.5px solid transparent; margin-bottom: -1px; cursor: pointer;
 }
 .tab:hover { color: var(--text); }

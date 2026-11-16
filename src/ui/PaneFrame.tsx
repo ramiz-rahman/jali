@@ -178,6 +178,7 @@ export const PaneFrame = memo(function PaneFrame({ box, node, stack, focused, zo
               return (
                 <div
                   key={t.id}
+                  ref={active ? revealTab : undefined}
                   className={`tab${active ? " is-active" : ""}`}
                   role="tab"
                   aria-selected={active}
@@ -252,6 +253,14 @@ export const PaneFrame = memo(function PaneFrame({ box, node, stack, focused, zo
     </section>
   );
 });
+
+/** Keep the active tab visible by scrolling only the tab strip (scrollIntoView would also move the workspace). */
+function revealTab(el: HTMLDivElement | null) {
+  const strip = el?.parentElement;
+  if (!el || !strip) return;
+  if (el.offsetLeft < strip.scrollLeft) strip.scrollLeft = el.offsetLeft;
+  else if (el.offsetLeft + el.offsetWidth > strip.scrollLeft + strip.clientWidth) strip.scrollLeft = el.offsetLeft + el.offsetWidth - strip.clientWidth;
+}
 
 function TabActivity({ id }: { id: string }) {
   const a = useUi((s) => s.activity[id]);
