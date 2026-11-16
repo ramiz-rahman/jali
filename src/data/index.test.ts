@@ -1,5 +1,6 @@
 import { beforeAll, describe, expect, it } from 'vitest';
 import { createDataLayer } from './index';
+import { QueryObserver } from '@tanstack/react-query';
 
 describe('data layer', () => {
   const layer = createDataLayer();
@@ -40,6 +41,53 @@ describe('data layer', () => {
     expect(layer.stats().cacheHits).toBeGreaterThan(before.cacheHits);
     await api.updateRow('customers','61',{name:'Again'});
     expect(api.resultRows(handle.runId,0,1)[0]?.name).toBe('Again');
+  });
+  it('invalidates exactly the dependent queries and refetches mounted lists once each', async () => {
+    const customer = await api.record('customers', '1');
+    const cases = [
+      { key: keys.record('customers', '1'), fn: () => api.record('customers', '1'), affected: true },
+      { key: keys.relations('customers', '1'), fn: () => api.relations('customers', customer!), affected: true },
+      { key: keys.record('customers', '2'), fn: () => api.record('customers', '2'), affected: false },
+      ...(['customers', 'orders', 'products', 'suppliers'] as const).flatMap(table =>
+        [{ limit: 2 }, { limit: 2, offset: 2 }].map(opts => ({ key: keys.rows(table, opts), fn: () => api.rows(table, opts), affected: table === 'customers' || table === 'orders', mounted: true }))),
+    ];
+    const unsubscribers: (() => void)[] = [];
+    for (const item of cases) {
+      await queryClient.fetchQuery<unknown>({ queryKey: item.key, queryFn: item.fn });
+      if ('mounted' in item && item.mounted) {
+        const observer = new QueryObserver<unknown>(queryClient, { queryKey: item.key, queryFn: item.fn });
+        unsubscribers.push(observer.subscribe(() => {}));
+      }
+    }
+    const beforeRows = queryClient.getQueryData<{ rows: Record<string, unknown>[] }>(keys.rows('customers', { limit: 2 }))!.rows;
+    const handle = await api.run('SELECT * FROM customers ORDER BY id LIMIT 2');
+    const beforeResult = api.resultRows(handle.runId, 0, 2);
+    const changed = await api.updateRow('customers', '1', { name: 'Customer one edited' });
+    const afterResult = api.resultRows(handle.runId, 0, 2);
+    expect(afterResult[0]).not.toBe(beforeResult[0]);
+    expect(beforeResult[0]!.name).not.toBe(afterResult[0]!.name);
+    expect(afterResult[1]).toBe(beforeResult[1]);
+    const invalidated = new Set<string>();
+    const unsubscribe = queryClient.getQueryCache().subscribe(event => {
+      if (event.type === 'updated' && event.action.type === 'invalidate') invalidated.add(event.query.queryHash);
+    });
+    const beforeFetches = layer.stats().fetches;
+    await layer.invalidateEntities(changed);
+    expect(layer.stats().fetches - beforeFetches).toBe(cases.filter(c => c.affected && 'mounted' in c && c.mounted).length);
+    for (const item of cases) expect(invalidated.has(queryClient.getQueryCache().find({ queryKey: item.key, exact: true })!.queryHash)).toBe(item.affected);
+    const afterRows = queryClient.getQueryData<{ rows: Record<string, unknown>[] }>(keys.rows('customers', { limit: 2 }))!.rows;
+    expect(afterRows[0]).not.toBe(beforeRows[0]);
+    expect(afterRows[1]).toBe(beforeRows[1]);
+    unsubscribe();
+    unsubscribers.forEach(unsubscribe => unsubscribe());
+  });
+  it('orders by primary key by default and validates explicit ordering', async () => {
+    expect((await api.rows('customers', { limit: 3 })).rows.map(r => r.id)).toEqual([1, 2, 3]);
+    expect((await api.rows('customers', { orderBy: 'id DESC', limit: 3 })).rows.map(r => r.id)).toEqual([240, 239, 238]);
+    const composite = (await api.rows('order_items', { limit: 10 })).rows;
+    expect(composite.map(r => [r.order_id, r.line_number])).toEqual([...composite].sort((a, b) => Number(a.order_id) - Number(b.order_id) || Number(a.line_number) - Number(b.line_number)).map(r => [r.order_id, r.line_number]));
+    await expect(api.rows('customers', { orderBy: 'id DESC; DROP TABLE customers' })).rejects.toThrow('Invalid orderBy');
+    await expect(api.rows('customers', { orderBy: 'nonexistent' })).rejects.toThrow('Invalid orderBy');
   });
   it('reports trigger-written audit entities', async () => {
     const changed = await api.updateRow('products','1',{price_cents:1234});
