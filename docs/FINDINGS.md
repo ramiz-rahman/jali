@@ -82,3 +82,19 @@ Now that the drag label says "Swap with orders" or "Add as tab to orders", eithe
 3. **The pane contract:** kind, minimums and heavy, plus `load(ref)` and `prefetch(ref)`.
 4. **A shared TanStack Query cache** with entity invalidation and immutable rows. Every pane query carries entity IDs.
 5. **Next:** the founder tries swap vs tab and the overall feel. Then decide where the package lives, and start one app and one screen at a time.
+
+## After the design review (17 Nov, later)
+All twelve review findings were fixed by four Sonnet agents. Result: 242 unit tests and 44 walkthrough checks pass, and type checks are clean.
+- **Folding** protects the focused pane, its source and its direct details, and folds from the far end of the chain first.
+  - In the chain preset at 1440, 1280 and 1024, orders and order 1 stay side by side, with customer 1 as a tab behind order 1.
+  - Folded panes join their source's group, and groups report a home pane and a folded count.
+  - Stress: 3/3/2/2/2/1 at 1920/1600/1440/1280/1024/390.
+- **Affordances:** 24px close targets (tab × on hover); a distinct focus handle on dividers with a live size label; an in-zone drop label ("Swap with orders") with an outlined area, while the pointer chip shows only the dragged pane; ⌘K shows titles and shortcuts, not IDs; a readable status line.
+- **Grids:** the row action appears on hover or selection only (24px), plus a row context menu (right-click, Shift+F10). Timestamps read "1 Jan 2026, 10:30" (shown in UTC), `_cents` columns become money with plain headers, and JSON is compact with an expander.
+- **Dark mode** uses Sixface dark tokens, with a System / Light / Dark setting. Dark tertiary text was raised to #8F8F99 for contrast.
+- **Small screens:** below 768px the presets collapse into a Layouts menu, with no clipping at 320, 390 or 430. The layout restores exactly after single view.
+
+**Still open:**
+- **Unlinked panes** (audit log, structure, relations) still group with their nearest neighbour, which can read as a mixed group. The spec should decide whether unlinked panes get their own "Other" group.
+- **Record money values** right-align at the far edge of a two-column record. They should align with the value column.
+- **Timestamps** show in UTC; real products need the viewer's time zone setting (see i18n.md).
