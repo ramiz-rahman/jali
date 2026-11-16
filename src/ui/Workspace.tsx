@@ -46,8 +46,12 @@ export function Workspace() {
   collect(layout.root, panes, stacks);
 
   // Announce folds/unfolds from the collapse plan.
-  const prevFolded = useRef<string[]>([]);
+  const prevFolded = useRef<string[] | null>(null);
   useEffect(() => {
+    if (prevFolded.current === null || area.width === 0) {
+      prevFolded.current = r.folded;
+      return;
+    }
     const before = new Set(prevFolded.current), now = new Set(r.folded);
     const added = r.folded.filter((id) => !before.has(id)), removed = prevFolded.current.filter((id) => !now.has(id) && panes.has(id));
     if (added.length) hooks.announce(`${added.map(titleOf).join(", ")} folded into tabs: not enough room`);

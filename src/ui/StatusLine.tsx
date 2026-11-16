@@ -11,8 +11,7 @@ export function StatusLine() {
   useUi((s) => s.area);
   void layout;
   const r = resolved();
-  const visible = r.panes.filter((b) => !b.hiddenInStack).length;
-  const tabs = r.panes.length - visible;
+  const tabs = r.panes.filter((b) => b.stackId && b.hiddenInStack).length;
   const rails = allPanes().filter((p) => p.collapsed).length;
   const busy = Object.entries(activity).filter(([id, a]) => (a === "needs-you" || a === "working" || a === "error") && allPanes().some((p) => p.id === id && p.collapsed));
   const hint = resizeMode

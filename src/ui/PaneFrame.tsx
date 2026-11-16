@@ -140,32 +140,26 @@ export const PaneFrame = memo(function PaneFrame({ box, node, stack, focused, zo
     },
   };
 
-  if (rail) {
-    return (
-      <section {...regionProps} className={`pane pane-rail${focused ? " is-focused" : ""}`} style={style}>
-        <button className="rail-restore" onClick={() => actions.setCollapsed(node.id, false)} aria-label={`Restore ${title}`} title={`Restore ${title} (⌥⌘M)`}>
-          {onLeft ? <ChevronsRight size={16} strokeWidth={1.5} aria-hidden /> : <ChevronsLeft size={16} strokeWidth={1.5} aria-hidden />}
-        </button>
-        <span className="rail-icon">
-          <KindIcon kind={node.ref.kind} />
-        </span>
-        <span className="rail-title" id={paneTitleId(node.id)}>
-          {title}
-        </span>
-        <ActivityDot a={activity} />
-        <div className="pane-content" hidden>
-          <PaneBody node={node} paused focused={false} holding={false} />
-        </div>
-      </section>
-    );
-  }
-
-  const cls = ["pane", focused && "is-focused", zoomed && "is-zoomed", collapsed && "is-collapsed", isDragged && "is-dragged", dropTarget && "is-drop-target"]
+  const cls = ["pane", rail && "pane-rail", focused && "is-focused", zoomed && "is-zoomed", collapsed && "is-collapsed", isDragged && "is-dragged", dropTarget && "is-drop-target"]
     .filter(Boolean)
     .join(" ");
 
   return (
     <section {...regionProps} className={cls} style={style}>
+      {rail ? (
+        <div className="rail">
+          <button className="rail-restore" onClick={() => actions.setCollapsed(node.id, false)} aria-label={`Restore ${title}`} title={`Restore ${title} (⌥⌘M)`}>
+            {onLeft ? <ChevronsRight size={16} strokeWidth={1.5} aria-hidden /> : <ChevronsLeft size={16} strokeWidth={1.5} aria-hidden />}
+          </button>
+          <span className="rail-icon">
+            <KindIcon kind={node.ref.kind} />
+          </span>
+          <span className="rail-title" id={paneTitleId(node.id)}>
+            {title}
+          </span>
+          <ActivityDot a={activity} />
+        </div>
+      ) : (
       <header
         className={`pane-header${collapsed ? " is-strip" : ""}`}
         onPointerDown={(e) => startPaneDrag(e, node.id)}
@@ -248,6 +242,8 @@ export const PaneFrame = memo(function PaneFrame({ box, node, stack, focused, zo
           </button>
         </div>
       </header>
+      )}
+      {/* Same element in rail and full modes, so content (and its state) survives minimise/restore. */}
       <div className="pane-content" ref={contentRef} hidden={collapsed} data-holding={holding || undefined}>
         <div className="pane-content-inner" style={held ? { width: held.width, height: held.height } : undefined}>
           <PaneBody node={node} paused={paused} focused={focused} holding={holding} />

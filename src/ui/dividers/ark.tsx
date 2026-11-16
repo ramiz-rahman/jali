@@ -48,7 +48,6 @@ function ArkDivider(p: AdapterDividerProps) {
         {...splitterAria(p)}
       >
         <span className="divider-line" aria-hidden />
-        {p.snapped && p.dragging ? <span className="divider-tick" aria-hidden /> : null}
       </Splitter.ResizeTrigger>
       <Splitter.Panel id="b" className="ghost-panel" />
     </Splitter.Root>

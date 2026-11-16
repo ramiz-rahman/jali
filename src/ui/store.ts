@@ -68,7 +68,8 @@ let state: UiState = {
   resizeMode: null,
   paletteOpen: false,
   settingsOpen: false,
-  area: { width: 1200, height: 700 },
+  // First guess before the ResizeObserver measures: window minus bars and insets.
+  area: typeof window === "undefined" ? { width: 1200, height: 700 } : { width: window.innerWidth - 12, height: window.innerHeight - 48 - 28 - 12 },
   savedAt: 0,
 };
 const subs = new Set<() => void>();

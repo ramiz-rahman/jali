@@ -96,7 +96,16 @@ const Divider = memo(function Divider({ d, adapter }: { d: DividerBox; adapter: 
   };
 
   const A = adapter.Divider;
+  const vr = d.rect;
   return (
+    <>
+    {dragging ? (
+      // During a drag the visible line follows the model (clamped, snapped), not the library's pointer position.
+      <div className={`divider-visual divider-${g.axis}${snapped ? " is-snapped" : ""}`} style={{ left: vr.x, top: vr.y, width: vr.width, height: vr.height }} aria-hidden>
+        <span className="divider-line" />
+        {snapped ? <span className="divider-tick" /> : null}
+      </div>
+    ) : null}
     <A
       axis={g.axis}
       pair={g.pair}
@@ -126,6 +135,7 @@ const Divider = memo(function Divider({ d, adapter }: { d: DividerBox; adapter: 
       onReset={() => actions.resetDivider(d.parentId, d.index)}
       onKeyDown={onKeyDown}
     />
+    </>
   );
 });
 
