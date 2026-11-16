@@ -1,10 +1,11 @@
 import { useEffect, useLayoutEffect, useRef } from "react";
-import type { Edge, LayoutNode, PaneNode, StackNode } from "../layout-core/types";
+import { PaneSwitcher } from "./PaneSwitcher";
+import type { Edge, LayoutNode, PaneBox, PaneNode, StackNode } from "../layout-core/types";
 import { PaneFrame, type StackInfo } from "./PaneFrame";
 import { DividerLayer } from "./dividers/DividerLayer";
 import { Peek } from "./Peek";
 import { setWorkspaceEl } from "./dnd";
-import { GAP, getState, hooks, resolved, setState, titleOf, useUi, bumpKinds } from "./store";
+import { GAP, SWITCHER_H, allPanes, getState, hooks, resolved, setState, titleOf, useUi, bumpKinds } from "./store";
 import { usePaneKindsVersion } from "./pane-kinds";
 import { paneDomId } from "./ids";
 
@@ -44,10 +45,22 @@ export function Workspace() {
   const panes = new Map<string, PaneNode>(), stacks = new Map<string, StackNode>();
   collect(layout.root, panes, stacks);
 
+  // Phone rule: when even one pane's minimum overflows the width, show one pane at a time. The layout is untouched.
+  const single = area.width > 0 && r.panes.some((b) => !b.hiddenInStack && b.rect.x + b.rect.width > area.width + 0.5);
+  const all = allPanes();
+  const currentId = (view.focused && all.some((p) => p.id === view.focused) ? view.focused : all[0]?.id) as string | undefined;
+  const wasSingle = useRef<boolean | null>(null);
+  useEffect(() => {
+    if (wasSingle.current !== null && wasSingle.current !== single) {
+      hooks.announce(single ? "Single view: one pane at a time. Use the pane switcher at the top." : "Single view ended: full layout restored");
+    }
+    wasSingle.current = single;
+  }, [single]);
+
   // Announce folds/unfolds from the collapse plan.
   const prevFolded = useRef<string[] | null>(null);
   useEffect(() => {
-    if (prevFolded.current === null || area.width === 0) {
+    if (prevFolded.current === null || area.width === 0 || single) {
       prevFolded.current = r.folded;
       return;
     }
@@ -85,6 +98,32 @@ export function Workspace() {
   };
 
   const dropBox = dnd?.target ? r.panes.find((b) => b.id === dnd.target) : undefined;
+
+  if (single) {
+    const fullW = area.width + GAP * 2, bodyH = Math.max(0, area.height + GAP * 2 - SWITCHER_H);
+    return (
+      <main className="workspace is-single" ref={ref} aria-label="Panes" data-single="">
+        <PaneSwitcher panes={all} current={currentId} />
+        <div className="workspace-inner" style={{ left: 0, top: SWITCHER_H, width: fullW, height: bodyH }}>
+          {all.map((node) => (
+            <PaneFrame
+              key={node.id}
+              box={{ id: node.id, rect: { x: 0, y: 0, width: fullW, height: bodyH }, hiddenInStack: node.id !== currentId } as PaneBox}
+              node={node}
+              focused={node.id === currentId}
+              zoomed={false}
+              covered={false}
+              areaWidth={fullW}
+              areaHeight={bodyH}
+              dropTarget={false}
+              single
+            />
+          ))}
+          <Peek single />
+        </div>
+      </main>
+    );
+  }
 
   return (
     <main className="workspace" ref={ref} aria-label="Panes" data-zoomed={view.zoomed ? "" : undefined}>

@@ -8,7 +8,7 @@ import { actions, useUi } from "./store";
 export const PEEK_WIDTH = 480;
 
 /** A sheet over the right of main. Not part of the tree; the list stays usable. Animates only on pointer open. */
-export function Peek() {
+export function Peek({ single = false }: { single?: boolean }) {
   const ref = useUi((s) => s.view.peek);
   const areaW = useUi((s) => s.area.width);
   const openedBy = useRef<"pointer" | "keyboard">("keyboard");
@@ -25,7 +25,7 @@ export function Peek() {
   if (!ref) return null;
   const node: PaneNode = { id: "peek", type: "pane", size: { weight: 1 }, ref };
   const title = paneTitle(ref);
-  const width = Math.min(PEEK_WIDTH, areaW);
+  const width = single ? "100%" : Math.min(PEEK_WIDTH, areaW);
   return (
     <aside
       className={`peek${openedBy.current === "pointer" ? " is-animated" : ""}`}

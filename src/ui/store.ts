@@ -11,6 +11,8 @@ import { kindRegistry, paneTitle, type PaneActivity } from "./pane-kinds";
 import { DEFAULT_PRESET, presetById, type PresetId } from "./presets";
 
 export const GAP = 6;
+/** Height of the pane switcher in single view. */
+export const SWITCHER_H = 44;
 
 export interface Settings {
   adapter: "own" | "ark";

@@ -94,6 +94,8 @@ interface Props {
   areaWidth: number;
   areaHeight: number;
   dropTarget: boolean;
+  /** Single-view (phone) mode: full-bleed, no island chrome, no drag. */
+  single?: boolean;
 }
 
 /** Same pane as far as the frame renders it. Resolve and layout ops make new objects every time, so compare values. */
@@ -109,17 +111,17 @@ export function sameFrameProps(a: Props, b: Props) {
   return (
     sameBox(a.box, b.box) && sameNode(a.node, b.node) && sameStack(a.stack, b.stack) &&
     a.focused === b.focused && a.zoomed === b.zoomed && a.covered === b.covered && a.dropTarget === b.dropTarget &&
-    a.areaWidth === b.areaWidth && a.areaHeight === b.areaHeight
+    a.areaWidth === b.areaWidth && a.areaHeight === b.areaHeight && !!a.single === !!b.single
   );
 }
 
-export const PaneFrame = memo(function PaneFrame({ box, node, stack, focused, zoomed, covered, areaWidth, areaHeight, dropTarget }: Props) {
+export const PaneFrame = memo(function PaneFrame({ box, node, stack, focused, zoomed, covered, areaWidth, areaHeight, dropTarget, single }: Props) {
   const activity = useUi((s) => s.activity[node.id]);
   const isDragged = useUi((s) => s.dnd?.dragged === node.id);
   const title = paneTitle(node.ref);
   const hidden = !!box.hiddenInStack;
   const rect = zoomed ? { x: 0, y: 0, width: areaWidth, height: areaHeight } : box.rect;
-  const collapsed = !!node.collapsed && !zoomed;
+  const collapsed = !!node.collapsed && !zoomed && !single;
   const rail = collapsed && rect.width <= 72;
   const paused = hidden || collapsed || covered;
   // Heavy panes hold their content during a divider drag (dividers/drag.ts sets data-holding and the inner size).
@@ -149,7 +151,7 @@ export const PaneFrame = memo(function PaneFrame({ box, node, stack, focused, zo
     },
   };
 
-  const cls = ["pane", rail && "pane-rail", focused && "is-focused", zoomed && "is-zoomed", collapsed && "is-collapsed", isDragged && "is-dragged", dropTarget && "is-drop-target"]
+  const cls = ["pane", single && "is-single", rail && "pane-rail", focused && "is-focused", zoomed && "is-zoomed", collapsed && "is-collapsed", isDragged && "is-dragged", dropTarget && "is-drop-target"]
     .filter(Boolean)
     .join(" ");
 
@@ -171,15 +173,17 @@ export const PaneFrame = memo(function PaneFrame({ box, node, stack, focused, zo
       ) : (
       <header
         className={`pane-header${collapsed ? " is-strip" : ""}`}
-        onPointerDown={(e) => startPaneDrag(e, node.id)}
+        onPointerDown={single ? undefined : (e) => startPaneDrag(e, node.id)}
         onDoubleClick={(e) => {
-          if ((e.target as HTMLElement).closest("button")) return;
+          if (single || (e.target as HTMLElement).closest("button")) return;
           actions.toggleZoom(node.id);
         }}
       >
-        <span className="grip" aria-hidden>
-          <GripHorizontal size={14} strokeWidth={1.5} />
-        </span>
+        {single ? null : (
+          <span className="grip" aria-hidden>
+            <GripHorizontal size={14} strokeWidth={1.5} />
+          </span>
+        )}
         {stack ? (
           <div className="tabbar">
           <div className="tabs" role="tablist" aria-label={`Tabs: ${stack.tabs.length}`}>
@@ -240,7 +244,7 @@ export const PaneFrame = memo(function PaneFrame({ box, node, stack, focused, zo
           </div>
         )}
         <div className="pane-actions">
-          <button
+          {single ? null : <button
             className="icon-btn act-zoom"
             onClick={() => actions.toggleZoom(node.id)}
             aria-label={zoomed ? `Restore ${title}` : `Maximise ${title}`}
@@ -248,8 +252,8 @@ export const PaneFrame = memo(function PaneFrame({ box, node, stack, focused, zo
             title={zoomed ? "Restore (Esc)" : "Maximise (⇧⌘↵)"}
           >
             {zoomed ? <Minimize2 size={14} strokeWidth={1.5} aria-hidden /> : <Maximize2 size={14} strokeWidth={1.5} aria-hidden />}
-          </button>
-          {!zoomed ? (
+          </button>}
+          {!zoomed && !single ? (
             <button
               className="icon-btn act-min"
               onClick={() => actions.setCollapsed(node.id)}

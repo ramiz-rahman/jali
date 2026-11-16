@@ -265,3 +265,18 @@ body.is-resizing-column, body.is-resizing-column * { cursor: row-resize !importa
 .placeholder-list li { display: flex; justify-content: space-between; height: 28px; align-items: center; padding: 0 8px; border-radius: 6px; cursor: default; }
 .placeholder-list li.is-sel { background: var(--accent-weak); }
 .placeholder-list li .num { color: var(--text-3); font-size: 12px; }
+
+/* ---------- single view (phone) ---------- */
+.workspace.is-single { background: var(--island); }
+.switcher { position: absolute; left: 0; top: 0; right: 0; height: 44px; border-bottom: 1px solid var(--line); background: var(--island); z-index: 30; }
+.switch-list { display: flex; gap: 4px; height: 100%; align-items: center; padding: 0 8px; overflow-x: auto; scrollbar-width: none; }
+.switch-list::-webkit-scrollbar { display: none; }
+.switch-item {
+  flex: none; display: inline-flex; align-items: center; gap: 6px; height: 30px; max-width: 180px; padding: 0 10px;
+  border: 1px solid transparent; border-radius: 6px; background: transparent; color: var(--text-3); font: inherit; font-size: 13px; cursor: pointer;
+}
+.switch-item.is-active { background: var(--accent-weak); border-color: var(--accent-mid); color: var(--text); }
+.switch-title { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pane.is-single { border: 0; border-radius: 0; box-shadow: none; }
+.pane.is-single.is-focused { box-shadow: none; border: 0; }
+.workspace.is-single .peek { border-radius: 0; border-width: 0; box-shadow: none; }

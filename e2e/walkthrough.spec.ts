@@ -879,3 +879,28 @@ test("responsive: stress preset folds step by step and never scrolls sideways", 
     expect(m.right, `${size.width}: a pane runs past the viewport`).toBeLessThanOrEqual(1);
   }
 });
+
+test("responsive: single view has a pane switcher that switches panes and restores the layout", async ({ page }) => {
+  await start(page, { preset: "Stress: 10 panes", size: { width: 1440, height: 900 } });
+  const urlBefore = new URL(page.url()).search;
+  const wide = await visibleIds(page);
+  await page.setViewportSize({ width: 390, height: 844 });
+  const sw = page.getByRole("navigation", { name: "Panes" });
+  await expect(sw).toBeVisible();
+  await expect(page.locator("main.workspace .divider")).toHaveCount(0);
+  await expect(page.getByTestId("announcer")).toContainText("Single view");
+  const tabs = sw.getByRole("tab");
+  expect(await tabs.count()).toBeGreaterThan(5);
+  await expect(sw.getByRole("tab", { selected: true })).toHaveCount(1);
+  await tabs.nth(3).click();
+  await expect(tabs.nth(3)).toHaveAttribute("aria-selected", "true");
+  expect(await visibleIds(page)).toHaveLength(1);
+  expect(new URL(page.url()).search).toBe(urlBefore);
+  const sideways = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+  expect(sideways).toBeLessThanOrEqual(1);
+  await shot(page, "15-single-view-390");
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await expect(sw).toHaveCount(0);
+  // Focus moved to the chosen pane, so the same number of panes show, with it selected in its fold.
+  await expect.poll(async () => (await visibleIds(page)).length).toBe(wide.length);
+});
