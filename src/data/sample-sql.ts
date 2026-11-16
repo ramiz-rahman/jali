@@ -162,6 +162,15 @@ export function sampleDatabaseSql(engine: "sqlite" | "postgres" | "duckdb" = "sq
     statements.push(
       `CREATE TRIGGER products_price_audit AFTER UPDATE OF price_cents ON products BEGIN INSERT INTO audit_log (id,entity_type,entity_id,action,changed_at,payload_json) VALUES ((SELECT COALESCE(MAX(id),0)+1 FROM audit_log),'product',NEW.id,'price_changed','2026-11-01T00:00:00Z','{"source":"trigger"}'); END;`,
     );
+  if (engine === "postgres")
+    statements.push(`CREATE FUNCTION products_price_audit_fn() RETURNS trigger AS $$ BEGIN
+      IF NEW.price_cents IS DISTINCT FROM OLD.price_cents THEN
+        INSERT INTO audit_log (id, entity_type, entity_id, action, changed_at, payload_json)
+        VALUES ((SELECT COALESCE(MAX(id),0)+1 FROM audit_log), 'product', NEW.id, 'price_changed', '2026-11-01T00:00:00Z', '{"source":"trigger"}');
+      END IF;
+      RETURN NEW;
+    END; $$ LANGUAGE plpgsql;
+    CREATE TRIGGER products_price_audit AFTER UPDATE OF price_cents ON products FOR EACH ROW EXECUTE FUNCTION products_price_audit_fn();`);
   return "BEGIN;\n" + statements.join("\n") + "\nCOMMIT;";
 }
 

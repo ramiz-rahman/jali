@@ -54,3 +54,6 @@ export interface DataLayer {
   /** Count of network-equivalent fetches (PGlite calls), for proving "no extra request" in the demo. */
   stats(): { fetches: number; cacheHits: number };
 }
+
+/** Shared object reference used by pane consumers. */
+export type { ObjectRef } from "../layout-core/types";
