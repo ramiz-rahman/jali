@@ -160,7 +160,7 @@ test.describe("Move: drag by the grip", () => {
     await start(page);
     await setSetting(page, /Swap the two panes/);
     await dragHeader(page, "customer", "orders", "centre", { release: false });
-    await expect(page.locator(".drag-chip")).toContainText("Swap with orders");
+    await expect(page.locator(".drop-label")).toContainText("Swap with orders");
     await shot(page, "04-drop-centre-swap");
     await page.mouse.up();
     expect(await visibleIds(page)).toEqual(["customer", "order", "orders"]);
@@ -170,7 +170,7 @@ test.describe("Move: drag by the grip", () => {
     await start(page);
     await setSetting(page, /Add as a tab/);
     await dragHeader(page, "customer", "orders", "centre", { release: false });
-    await expect(page.locator(".drag-chip")).toContainText("Add as tab to orders");
+    await expect(page.locator(".drop-label")).toContainText("Add as tab to orders");
     await page.mouse.up();
     const ids = await visibleIds(page);
     expect(ids).toHaveLength(2);

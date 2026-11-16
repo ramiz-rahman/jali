@@ -159,7 +159,6 @@ export function Workspace() {
         {dnd ? (
           <div className="drag-chip" style={{ left: dnd.x + 12, top: dnd.y + 12 }} aria-hidden>
             {titleOf(dnd.dragged)}
-            <span> · {dropLabel(dnd.zone, dnd.target)}</span>
           </div>
         ) : null}
         {view.zoomed ? null : null}
