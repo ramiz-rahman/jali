@@ -21,7 +21,7 @@ export function TopBar() {
         ))}
       </nav>
       <div className="topbar-right">
-        <span className="adapter-tag" title="Resize adapter (Settings)">{adapter === "rrp" ? "rrp 4.24" : "Ark Splitter"}</span>
+        <span className="adapter-tag" title="Resize adapter (Settings)">{adapter === "own" ? "Own separator" : "Ark Splitter"}</span>
         <button className="icon-btn" onClick={() => copyLink()} aria-label="Copy link to this layout" title="Copy link">
           <Link2 size={16} strokeWidth={1.5} aria-hidden />
         </button>

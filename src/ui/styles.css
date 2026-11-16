@@ -168,17 +168,24 @@ body.is-pane-dragging, body.is-pane-dragging * { cursor: grabbing !important; }
 .divider-column .divider-line { left: 8px; right: 8px; top: 50%; height: 1px; transform: translateY(-0.5px); }
 .divider:hover .divider-line { background: var(--line-strong); }
 .divider.is-dragging .divider-line, .divider.is-dragging .divider-tick, .divider.is-dragging::after { visibility: hidden; }
+/* The drag line: positioned by dividers/drag.ts each frame, accent while dragging, a tick at the centre snap. */
 .divider-visual { position: absolute; pointer-events: none; z-index: 6; }
-.divider-visual .divider-line { background: var(--text-4); }
-.divider-visual.is-snapped .divider-line { background: var(--accent); }
+.divider-visual[hidden], .divider-tick[hidden] { display: none; }
+.divider-visual .divider-line { background: var(--accent); }
+.divider-row.divider-visual .divider-line { width: 2px; transform: translateX(-1px); }
+.divider-column.divider-visual .divider-line { height: 2px; transform: translateY(-1px); }
+/* During a drag the whole document shows the resize cursor and nothing gets selected. */
+body.is-resizing, body.is-resizing * { user-select: none !important; -webkit-user-select: none !important; }
+body.is-resizing-row, body.is-resizing-row * { cursor: col-resize !important; }
+body.is-resizing-column, body.is-resizing-column * { cursor: row-resize !important; }
 .divider:focus-visible .divider-line { background: var(--accent); }
-.divider:focus-visible { outline: none; }
+/* Transparent outline: invisible normally, drawn in forced-colors mode. The visible ring is ::after. */
+.divider:focus-visible { outline: 2px solid transparent; }
 .divider:focus-visible::after { content: ""; position: absolute; inset: 4px 0; border-radius: 3px; box-shadow: 0 0 0 2px var(--accent); }
 .divider-column:focus-visible::after { inset: 0 4px; }
 .divider-tick { position: absolute; background: var(--accent); pointer-events: none; }
 .divider-row .divider-tick { left: 50%; top: 50%; width: 2px; height: 16px; transform: translate(-1px, -8px); }
 .divider-column .divider-tick { top: 50%; left: 50%; height: 2px; width: 16px; transform: translate(-8px, -1px); }
-.divider.is-snapped .divider-line { background: var(--accent); }
 
 /* ---------- drag and drop ---------- */
 .drop-indicator { position: absolute; z-index: 30; background: var(--accent-weak); border: 1.5px solid var(--accent); border-radius: var(--radius); pointer-events: none; }

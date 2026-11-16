@@ -1,4 +1,4 @@
-import { memo, useLayoutEffect, useMemo, useRef, useState, type CSSProperties } from "react";
+import { memo, useMemo, type CSSProperties } from "react";
 import { ChevronsLeft, ChevronsRight, ChevronsDown, Maximize2, Minimize2, Plus, Square, X, GripHorizontal } from "lucide-react";
 import type { ObjectRef, PaneBox, PaneNode } from "../layout-core/types";
 import { getPaneKind, paneTitle, type PaneActivity, type PaneComponentProps } from "./pane-kinds";
@@ -26,7 +26,7 @@ export function KindIcon({ kind, size = 16 }: { kind: string; size?: number }) {
 
 /** The pane's content. Memoised on what the kind actually sees, so divider drags don't re-render content. */
 const PaneBody = memo(
-  function PaneBody(p: { node: PaneNode; paused: boolean; focused: boolean; holding: boolean; inPeek?: boolean }) {
+  function PaneBody(p: { node: PaneNode; paused: boolean; focused: boolean; inPeek?: boolean }) {
     const def = getPaneKind(p.node.ref.kind);
     const id = p.node.id;
     const props = useMemo(() => {
@@ -62,7 +62,6 @@ const PaneBody = memo(
         ref={p.node.ref}
         paused={p.paused}
         focused={p.focused}
-        holding={p.holding}
         inPeek={!!p.inPeek}
         {...props}
       />
@@ -72,7 +71,6 @@ const PaneBody = memo(
     a.node.id === b.node.id &&
     a.paused === b.paused &&
     a.focused === b.focused &&
-    a.holding === b.holding &&
     a.node.linkedTo === b.node.linkedTo &&
     a.node.pinned === b.node.pinned &&
     a.node.collapsed === b.node.collapsed &&
@@ -98,28 +96,33 @@ interface Props {
   dropTarget: boolean;
 }
 
+/** Same pane as far as the frame renders it. Resolve and layout ops make new objects every time, so compare values. */
+const sameNode = (a: PaneNode, b: PaneNode) =>
+  a === b ||
+  (a.id === b.id && a.linkedTo === b.linkedTo && a.pinned === b.pinned && a.collapsed === b.collapsed && JSON.stringify(a.ref) === JSON.stringify(b.ref));
+const sameStack = (a: StackInfo | undefined, b: StackInfo | undefined) =>
+  a === b || (!!a && !!b && a.id === b.id && a.active === b.active && a.tabs.length === b.tabs.length && a.tabs.every((t, i) => sameNode(t, b.tabs[i]!)));
+const sameBox = (a: PaneBox, b: PaneBox) =>
+  a.id === b.id && !!a.hiddenInStack === !!b.hiddenInStack && a.rect.x === b.rect.x && a.rect.y === b.rect.y && a.rect.width === b.rect.width && a.rect.height === b.rect.height;
+/** Memoised by node and rect: a resize (pointer or keyboard) re-renders only the frames whose rect changed. */
+export function sameFrameProps(a: Props, b: Props) {
+  return (
+    sameBox(a.box, b.box) && sameNode(a.node, b.node) && sameStack(a.stack, b.stack) &&
+    a.focused === b.focused && a.zoomed === b.zoomed && a.covered === b.covered && a.dropTarget === b.dropTarget &&
+    a.areaWidth === b.areaWidth && a.areaHeight === b.areaHeight
+  );
+}
+
 export const PaneFrame = memo(function PaneFrame({ box, node, stack, focused, zoomed, covered, areaWidth, areaHeight, dropTarget }: Props) {
   const activity = useUi((s) => s.activity[node.id]);
-  const dividerDrag = useUi((s) => s.dividerDrag);
   const isDragged = useUi((s) => s.dnd?.dragged === node.id);
-  const def = getPaneKind(node.ref.kind);
   const title = paneTitle(node.ref);
   const hidden = !!box.hiddenInStack;
   const rect = zoomed ? { x: 0, y: 0, width: areaWidth, height: areaHeight } : box.rect;
   const collapsed = !!node.collapsed && !zoomed;
   const rail = collapsed && rect.width <= 72;
   const paused = hidden || collapsed || covered;
-  const holding = dividerDrag && !!def?.heavy;
-
-  // Heavy panes hold their content at the size it had when the drag began, and reflow on release.
-  const contentRef = useRef<HTMLDivElement>(null);
-  const [held, setHeld] = useState<{ width: number; height: number } | null>(null);
-  useLayoutEffect(() => {
-    if (holding && contentRef.current) {
-      const r = contentRef.current.getBoundingClientRect();
-      setHeld({ width: r.width, height: r.height });
-    } else setHeld(null);
-  }, [holding]);
+  // Heavy panes hold their content during a divider drag (dividers/drag.ts sets data-holding and the inner size).
 
   const style: CSSProperties = {
     left: rect.x,
@@ -264,14 +267,14 @@ export const PaneFrame = memo(function PaneFrame({ box, node, stack, focused, zo
       </header>
       )}
       {/* Same element in rail and full modes, so content (and its state) survives minimise/restore. */}
-      <div className="pane-content" ref={contentRef} hidden={collapsed} data-holding={holding || undefined}>
-        <div className="pane-content-inner" style={held ? { width: held.width, height: held.height } : undefined}>
-          <PaneBody node={node} paused={paused} focused={focused} holding={holding} />
+      <div className="pane-content" hidden={collapsed}>
+        <div className="pane-content-inner">
+          <PaneBody node={node} paused={paused} focused={focused} />
         </div>
       </div>
     </section>
   );
-});
+}, sameFrameProps);
 
 /** Keep the active tab visible by scrolling only the tab strip (scrollIntoView would also move the workspace). */
 function revealTab(el: HTMLDivElement | null) {

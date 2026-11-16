@@ -54,7 +54,7 @@ export function Peek() {
       </header>
       <div className="pane-content">
         <div className="pane-content-inner">
-          <PaneBody key={JSON.stringify(ref)} node={node} paused={false} focused={false} holding={false} inPeek />
+          <PaneBody key={JSON.stringify(ref)} node={node} paused={false} focused={false} inPeek />
         </div>
       </div>
     </aside>

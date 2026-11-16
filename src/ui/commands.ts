@@ -79,13 +79,13 @@ export const COMMANDS: Command[] = [
   { id: "settings.open", title: "Open settings", group: "Settings", run: () => setState({ settingsOpen: true }) },
   {
     id: "settings.adapter.toggle",
-    title: "Switch resize adapter (rrp ↔ Ark)",
+    title: "Switch resize adapter (own ↔ Ark)",
     group: "Settings",
     run: () => {
       const s = getState().settings;
-      const adapter = s.adapter === "rrp" ? "ark" : "rrp";
+      const adapter = s.adapter === "own" ? "ark" : "own";
       setState({ settings: { ...s, adapter } });
-      hooks.announce(`Resize adapter: ${adapter === "rrp" ? "react-resizable-panels" : "Ark UI Splitter"}`);
+      hooks.announce(`Resize adapter: ${adapter === "own" ? "own separator" : "Ark UI Splitter"}`);
     },
   },
   {

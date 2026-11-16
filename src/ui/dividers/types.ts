@@ -1,14 +1,16 @@
-import type { ComponentType, KeyboardEvent } from "react";
+import type { ComponentType, KeyboardEvent, PointerEvent } from "react";
 import type { Rect } from "../../layout-core/types";
 
 /**
- * What an adapter renders for ONE divider. The adapter owns pointer capture, the separator element and its ARIA
- * plumbing; the shared controller owns the model (clamp, snap, APG keys, reset, persist, heavy hold).
- * Each adapter renders a "ghost" two-panel group over the divider's two neighbours: the library computes the drag,
- * layout-core owns the sizes, and real panes are positioned from layout-core's resolve (so they never remount).
+ * What an adapter renders for ONE divider: the separator element and its ARIA plumbing. Nothing else.
+ * The pointer drag is ours (`dividers/drag.ts`): the adapter hands the separator's pointerdown to `onPointerDown`
+ * and must keep its own library out of the drag. The shared controller owns the model (clamp, snap, APG keys,
+ * reset, persist, heavy hold). Real panes are positioned from layout-core's resolve, so they never remount.
  */
 export interface AdapterDividerProps {
   axis: "row" | "column";
+  /** The divider's own gap rect (workspace coords). */
+  rect: Rect;
   /** Rect over both neighbours (workspace coords). */
   pair: Rect;
   gap: number;
@@ -19,28 +21,26 @@ export interface AdapterDividerProps {
   total: number;
   labelA: string;
   labelB: string;
-  /** DOM id of the pane region before the divider, for aria-controls. */
+  /** DOM id of the pane region(s) before the divider, for aria-controls. */
   controls: string;
-  snapped: boolean;
-  dragging: boolean;
-  /** Shared class + data attributes for the separator element. */
+  /** `parentId:index`, written as data-divider on the separator (the drag finds neighbours' dividers by it). */
+  dividerKey: string;
+  /** Shared class for the separator element. */
   className: string;
-  onDragStart(): void;
-  /** Requested size of the first neighbour in px (unclamped; the controller clamps and snaps). */
-  onDrag(sizeA: number): void;
-  onDragEnd(): void;
+  /** Starts our drag. Adapters call it in the capture phase and stop the library from seeing the event. */
+  onPointerDown(e: PointerEvent<HTMLElement>): void;
   onReset(): void;
   /** Shared APG keyboard. Calls preventDefault when it handled the key; adapters must not also act on it. */
   onKeyDown(e: KeyboardEvent<HTMLElement>): void;
 }
 
 export interface DividerAdapter {
-  id: "rrp" | "ark";
+  id: "own" | "ark";
   label: string;
   Divider: ComponentType<AdapterDividerProps>;
 }
 
-/** ARIA that both adapters apply on top of the library's own (APG window splitter, values in % of the pair). */
+/** APG window-splitter ARIA (values in % of the pair), applied by both adapters. */
 export function splitterAria(p: AdapterDividerProps) {
   const pct = (v: number) => Math.round((v / Math.max(1, p.total)) * 100);
   return {

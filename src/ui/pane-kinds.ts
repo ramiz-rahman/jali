@@ -55,8 +55,6 @@ export interface PaneComponentProps {
   setActivity: (activity: PaneActivity) => void;
   /** True when rendered inside the peek sheet rather than a pane. */
   inPeek: boolean;
-  /** True while a divider drag is in progress and this kind is heavy: content is held at its old size. */
-  holding: boolean;
 }
 
 export interface PaneKindDef {

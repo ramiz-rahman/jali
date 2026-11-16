@@ -13,7 +13,7 @@ import { DEFAULT_PRESET, presetById, type PresetId } from "./presets";
 export const GAP = 6;
 
 export interface Settings {
-  adapter: "rrp" | "ark";
+  adapter: "own" | "ark";
   centreDrop: "swap" | "tab";
   paneCap: number;
   showStats: boolean;
@@ -45,8 +45,6 @@ export interface UiState {
   closedStack: UndoEntry[];
   activity: Record<NodeId, PaneActivity>;
   peekSource?: NodeId;
-  /** A divider drag is in progress (heavy panes hold their content). */
-  dividerDrag: boolean;
   dnd: DndState | null;
   resizeMode: NodeId | null;
   paletteOpen: boolean;
@@ -61,9 +59,12 @@ export interface UiState {
 
 const SETTINGS_KEY = "pane-lab:settings";
 function loadSettings(): Settings {
-  const d: Settings = { adapter: "rrp", centreDrop: "swap", paneCap: 8, showStats: true };
+  const d: Settings = { adapter: "own", centreDrop: "swap", paneCap: 8, showStats: true };
   try {
-    return { ...d, ...JSON.parse(localStorage.getItem(SETTINGS_KEY) ?? "{}") };
+    const s: Settings = { ...d, ...JSON.parse(localStorage.getItem(SETTINGS_KEY) ?? "{}") };
+    // "rrp" (react-resizable-panels) was dropped from the drag path: saved settings fall back to our own separator.
+    if (s.adapter !== "own" && s.adapter !== "ark") s.adapter = "own";
+    return s;
   } catch {
     return d;
   }
@@ -76,7 +77,6 @@ let state: UiState = {
   settings: loadSettings(),
   closedStack: [],
   activity: {},
-  dividerDrag: false,
   dnd: null,
   resizeMode: null,
   paletteOpen: false,
@@ -463,6 +463,10 @@ export const actions = {
     if (!deltaPx) return;
     const next = core.resizeDivider(state.layout, parentId, index, deltaPx, fit());
     if (next !== state.layout) commit(next, state.view, { history: "debounce" });
+  },
+  /** End of a pointer drag: the layout the drag previewed (from core.resizeDivider), committed once. */
+  commitDividerDrag(layout: Layout) {
+    if (layout !== state.layout) commit(layout, state.view, { history: "debounce" });
   },
   resetDivider(parentId: NodeId, index: number) {
     commit(core.resetDivider(state.layout, parentId, index), state.view, { history: "replace", announce: "Sizes reset" });

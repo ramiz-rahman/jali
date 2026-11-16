@@ -1,143 +1,121 @@
 /**
- * Shared divider controller: clamp at both minimums, centre snap (enter 10px, leave 16px), APG keys
- * (arrows 16px, Shift 64px, Home/End, Enter collapse/restore), double-click reset, persist 120ms after the
- * last move (via history "debounce"), heavy-pane hold (dividerDrag flag). The adapter only renders.
+ * Shared divider controller. The pointer drag is ours (`drag.ts`: pointer capture, one rAF per frame, direct DOM
+ * writes, one commit on release). APG keys (arrows 16px, Shift 64px, Home/End, Enter collapse/restore) commit per
+ * keypress; double-click resets; the URL is written 120ms after the last change (history "debounce").
+ * The adapter only renders the separator element.
  */
-import { memo, useCallback, useRef, useState, type KeyboardEvent } from "react";
-import type { DividerBox, SplitNode } from "../../layout-core/types";
-import { actions, findNode, fit, GAP, hooks, resolved, setState, titleOf, useUi } from "../store";
-import { pairGeometry, type PairGeometry } from "../geometry";
+import { memo, useLayoutEffect, useRef, type KeyboardEvent, type PointerEvent } from "react";
+import type { DividerBox, NodeId, Rect } from "../../layout-core/types";
+import { actions, GAP, resolved, useUi } from "../store";
 import { paneDomId } from "../ids";
 import { arkAdapter } from "./ark";
-import { rrpAdapter } from "./rrp";
+import { ownAdapter } from "./own";
+import { clampSize, dividerKey, geometryFor, isDividerDragging, setDragOverlay, startDividerDrag } from "./drag";
 import type { DividerAdapter } from "./types";
 
-export const ADAPTERS: Record<"rrp" | "ark", DividerAdapter> = { rrp: rrpAdapter, ark: arkAdapter };
+export { clampSize, snap, SNAP_IN, SNAP_OUT } from "./drag";
 
-export const SNAP_IN = 10;
-export const SNAP_OUT = 16;
+export const ADAPTERS: Record<"own" | "ark", DividerAdapter> = { own: ownAdapter, ark: arkAdapter };
+
 export const STEP = 16;
 export const STEP_BIG = 64;
 
-/** Pure snap with hysteresis, exported for tests. */
-export function snap(size: number, centre: number, wasSnapped: boolean): { size: number; snapped: boolean } {
-  const d = Math.abs(size - centre);
-  const snapped = wasSnapped ? d <= SNAP_OUT : d <= SNAP_IN;
-  return { size: snapped ? centre : size, snapped };
+/** Keyboard resize of one divider to an absolute first-neighbour size, from the committed model. */
+function setSizeA(parentId: NodeId, index: number, target: number) {
+  if (isDividerDragging()) return;
+  const d = resolved().dividers.find((x) => x.parentId === parentId && x.index === index);
+  const g = d && geometryFor(d);
+  if (!g) return;
+  const size = clampSize(target, g.a.min, g.divider.max);
+  actions.resizeDivider(parentId, index, Math.round(size - g.a.size));
 }
 
-export function clampSize(size: number, min: number, max: number) {
-  return Math.max(min, Math.min(max, size));
+interface DividerProps {
+  adapter: DividerAdapter;
+  parentId: NodeId;
+  index: number;
+  axis: "row" | "column";
+  rect: Rect;
+  pair: Rect;
+  sizeA: number;
+  minA: number;
+  maxA: number;
+  total: number;
+  labelA: string;
+  labelB: string;
+  controls: string;
+  lastA: NodeId;
 }
 
-function label(ids: string[]) {
-  return ids.length === 1 ? titleOf(ids[0]) : `${titleOf(ids[0])} and ${ids.length - 1} more`;
-}
+const rectEq = (a: Rect, b: Rect) => a.x === b.x && a.y === b.y && a.width === b.width && a.height === b.height;
 
-function geometryFor(d: DividerBox): PairGeometry | null {
-  const parent = findNode(d.parentId);
-  const split = parent && (parent.type === "row" || parent.type === "column") ? (parent as SplitNode) : undefined;
-  return pairGeometry(d, split, resolved().panes, fit().kinds, GAP, label);
-}
-
-const Divider = memo(function Divider({ d, adapter }: { d: DividerBox; adapter: DividerAdapter }) {
-  useUi((s) => s.layout); // re-render with the model
-  const g = geometryFor(d);
-  const [snapped, setSnapped] = useState(false);
-  const [dragging, setDragging] = useState(false);
-  const snappedRef = useRef(false);
-
-  const current = () => geometryFor(d);
-
-  const setA = useCallback(
-    (target: number, opts: { snap: boolean }) => {
-      const cg = current();
-      if (!cg) return;
-      const max = cg.divider.max;
-      let size = clampSize(target, cg.a.min, max);
-      if (opts.snap) {
-        const s = snap(size, cg.total / 2, snappedRef.current);
-        if (s.snapped && cg.total / 2 >= cg.a.min && cg.total / 2 <= max) size = s.size;
-        if (s.snapped !== snappedRef.current) {
-          snappedRef.current = s.snapped;
-          setSnapped(s.snapped);
-        }
+/** Memoised on its geometry and labels: a resize re-renders only the dividers that actually moved. */
+const Divider = memo(
+  function Divider(p: DividerProps) {
+    const row = p.axis === "row";
+    const onKeyDown = (e: KeyboardEvent<HTMLElement>) => {
+      if (e.altKey || e.metaKey || e.ctrlKey) return;
+      const step = e.shiftKey ? STEP_BIG : STEP;
+      const dec = row ? "ArrowLeft" : "ArrowUp";
+      const inc = row ? "ArrowRight" : "ArrowDown";
+      if (e.key === dec || e.key === inc) {
+        e.preventDefault();
+        setSizeA(p.parentId, p.index, p.sizeA + (e.key === inc ? step : -step));
+      } else if (e.key === "Home") {
+        e.preventDefault();
+        setSizeA(p.parentId, p.index, p.minA);
+      } else if (e.key === "End") {
+        e.preventDefault();
+        setSizeA(p.parentId, p.index, p.maxA);
+      } else if (e.key === "Enter") {
+        e.preventDefault();
+        // Enter collapses the pane before the divider, or restores it.
+        actions.setCollapsed(p.lastA);
       }
-      actions.resizeDivider(d.parentId, d.index, Math.round(size - cg.a.size));
-    },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [d.parentId, d.index],
-  );
+    };
+    const A = p.adapter.Divider;
+    return (
+      <A
+        axis={p.axis}
+        rect={p.rect}
+        pair={p.pair}
+        gap={GAP}
+        sizeA={p.sizeA}
+        minA={p.minA}
+        maxA={p.maxA}
+        total={p.total}
+        labelA={p.labelA}
+        labelB={p.labelB}
+        controls={p.controls}
+        dividerKey={dividerKey(p)}
+        className={`divider divider-${p.axis}`}
+        onPointerDown={(e: PointerEvent<HTMLElement>) => startDividerDrag(e, p.parentId, p.index)}
+        onReset={() => actions.resetDivider(p.parentId, p.index)}
+        onKeyDown={onKeyDown}
+      />
+    );
+  },
+  (a, b) =>
+    a.adapter === b.adapter && a.parentId === b.parentId && a.index === b.index && a.axis === b.axis &&
+    rectEq(a.rect, b.rect) && rectEq(a.pair, b.pair) &&
+    a.sizeA === b.sizeA && a.minA === b.minA && a.maxA === b.maxA && a.total === b.total &&
+    a.labelA === b.labelA && a.labelB === b.labelB && a.controls === b.controls && a.lastA === b.lastA,
+);
 
-  if (!g) return null;
-  const maxA = g.divider.max;
-
-  const onKeyDown = (e: KeyboardEvent<HTMLElement>) => {
-    const row = g.axis === "row";
-    const step = e.shiftKey ? STEP_BIG : STEP;
-    const dec = row ? "ArrowLeft" : "ArrowUp";
-    const inc = row ? "ArrowRight" : "ArrowDown";
-    if (e.altKey || e.metaKey || e.ctrlKey) return;
-    if (e.key === dec || e.key === inc) {
-      e.preventDefault();
-      setA(g.a.size + (e.key === inc ? step : -step), { snap: false });
-    } else if (e.key === "Home") {
-      e.preventDefault();
-      setA(g.a.min, { snap: false });
-    } else if (e.key === "End") {
-      e.preventDefault();
-      setA(maxA, { snap: false });
-    } else if (e.key === "Enter") {
-      e.preventDefault();
-      // Enter collapses the pane before the divider, or restores it.
-      const id = g.a.ids[g.a.ids.length - 1]!;
-      actions.setCollapsed(id);
-    }
-  };
-
-  const A = adapter.Divider;
-  const vr = d.rect;
+/** The line shown while dragging: drawn by drag.ts straight onto the DOM, never by React. */
+function DragLine() {
+  const ref = useRef<HTMLDivElement>(null);
+  useLayoutEffect(() => {
+    setDragOverlay(ref.current);
+    return () => setDragOverlay(null);
+  }, []);
   return (
-    <>
-    {dragging ? (
-      // During a drag the visible line follows the model (clamped, snapped), not the library's pointer position.
-      <div className={`divider-visual divider-${g.axis}${snapped ? " is-snapped" : ""}`} style={{ left: vr.x, top: vr.y, width: vr.width, height: vr.height }} aria-hidden>
-        <span className="divider-line" />
-        {snapped ? <span className="divider-tick" /> : null}
-      </div>
-    ) : null}
-    <A
-      axis={g.axis}
-      pair={g.pair}
-      gap={GAP}
-      sizeA={g.a.size}
-      minA={g.a.min}
-      maxA={maxA}
-      total={g.total}
-      labelA={g.a.label}
-      labelB={g.b.label}
-      controls={g.a.ids.map(paneDomId).join(" ")}
-      snapped={snapped}
-      dragging={dragging}
-      className={`divider divider-${g.axis}${dragging ? " is-dragging" : ""}${snapped && dragging ? " is-snapped" : ""}`}
-      onDragStart={() => {
-        snappedRef.current = false;
-        setSnapped(false);
-        setDragging(true);
-        setState({ dividerDrag: true });
-      }}
-      onDrag={(size) => setA(size, { snap: true })}
-      onDragEnd={() => {
-        setDragging(false);
-        setState({ dividerDrag: false });
-        hooks.writeUrl("debounce");
-      }}
-      onReset={() => actions.resetDivider(d.parentId, d.index)}
-      onKeyDown={onKeyDown}
-    />
-    </>
+    <div ref={ref} className="divider-visual" hidden aria-hidden>
+      <span className="divider-line" />
+      <span className="divider-tick" hidden />
+    </div>
   );
-});
+}
 
 export function DividerLayer() {
   const adapterId = useUi((s) => s.settings.adapter);
@@ -146,13 +124,34 @@ export function DividerLayer() {
   useUi((s) => s.area);
   if (zoomed) return null;
   const r = resolved();
-  const adapter = ADAPTERS[adapterId];
+  const adapter = ADAPTERS[adapterId] ?? ownAdapter;
   return (
-    <div className="divider-layer" data-adapter={adapterId}>
-      {r.dividers.map((d) => (
-        // Key by adapter too, so switching remounts cleanly.
-        <Divider key={`${adapterId}:${d.parentId}:${d.index}`} d={d} adapter={adapter} />
-      ))}
+    <div className="divider-layer" data-adapter={adapter.id}>
+      {r.dividers.map((d: DividerBox) => {
+        const g = geometryFor(d, r);
+        if (!g) return null;
+        return (
+          // Key by adapter too, so switching remounts cleanly.
+          <Divider
+            key={`${adapter.id}:${dividerKey(d)}`}
+            adapter={adapter}
+            parentId={d.parentId}
+            index={d.index}
+            axis={g.axis}
+            rect={d.rect}
+            pair={g.pair}
+            sizeA={g.a.size}
+            minA={g.a.min}
+            maxA={g.divider.max}
+            total={g.total}
+            labelA={g.a.label}
+            labelB={g.b.label}
+            controls={g.a.ids.map(paneDomId).join(" ")}
+            lastA={g.a.ids[g.a.ids.length - 1]!}
+          />
+        );
+      })}
+      <DragLine />
     </div>
   );
 }
@@ -173,4 +172,3 @@ export function nearestDivider(paneId: string, horizontal: boolean): { d: Divide
   if (before) return { d: before, sign: -1 };
   return null;
 }
-

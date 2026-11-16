@@ -315,11 +315,11 @@ test.describe("Launcher and tabs", () => {
 });
 
 // ---------- Resize ----------
-for (const adapter of ["rrp", "ark"] as const) {
+for (const adapter of ["own", "ark"] as const) {
   test.describe(`Divider (${adapter})`, () => {
     test.beforeEach(async ({ page }) => {
       await start(page);
-      await setSetting(page, adapter === "rrp" ? /react-resizable-panels/i : /Ark/i);
+      await setSetting(page, adapter === "own" ? /Own APG separator/i : /Ark/i);
       await expect(page.locator(`.divider-layer[data-adapter="${adapter}"]`)).toBeAttached();
     });
 
@@ -412,6 +412,43 @@ for (const adapter of ["rrp", "ark"] as const) {
       await expect.poll(() => width(orders)).toBe(w0 - 16);
       await page.keyboard.press("Escape");
       await expect(page.locator("footer.status")).not.toContainText("Resize mode");
+    });
+
+    test("drag smoothness: a 400px drag in small steps has no long task, follows the pointer 1:1, writes the URL once after release, and does not jump", async ({ page }) => {
+      await page.setViewportSize({ width: 2560, height: 1000 });
+      await expect.poll(() => width(paneEl(page, "orders"))).toBeGreaterThan(1000);
+      await page.evaluate(() => {
+        const w = window as unknown as { __lt: number[]; __on: boolean };
+        w.__lt = [];
+        w.__on = false;
+        new PerformanceObserver((l) => { for (const e of l.getEntries()) if (w.__on) w.__lt.push(Math.round(e.duration)); }).observe({ type: "longtask" });
+      });
+      const orders = paneEl(page, "orders");
+      const w0 = (await orders.boundingBox())!.width;
+      const box = (await sep(page, 0).boundingBox())!;
+      const x = box.x + box.width / 2, y = box.y + 300;
+      const url0 = page.url();
+      await page.mouse.move(x, y);
+      await page.mouse.down();
+      await page.evaluate(() => { (window as unknown as { __on: boolean }).__on = true; });
+      for (let i = 1; i <= 100; i++) await page.mouse.move(x - i * 4, y);
+      await page.waitForTimeout(50);
+      const during = await page.evaluate(() => ({
+        cursor: getComputedStyle(document.body).cursor,
+        selectable: getComputedStyle(document.body).userSelect,
+        line: !!document.querySelector(".divider-visual:not([hidden])"),
+      }));
+      const previewed = (await orders.boundingBox())!.width;
+      expect(page.url(), "no URL write during the drag").toBe(url0);
+      await page.mouse.up();
+      const longtasks = await page.evaluate(() => (window as unknown as { __lt: number[] }).__lt);
+      expect(longtasks, "long tasks during the drag").toEqual([]);
+      expect(during).toEqual({ cursor: "col-resize", selectable: "none", line: true });
+      expect(Math.abs(previewed - (w0 - 400)), "frame follows the pointer 1:1").toBeLessThanOrEqual(1);
+      await page.waitForTimeout(300);
+      expect((await orders.boundingBox())!.width, "committed size equals the previewed size").toBe(previewed);
+      expect(page.url(), "URL written after the drag settles").not.toBe(url0);
+      await expect(page.locator(".divider-visual")).toBeHidden();
     });
   });
 }

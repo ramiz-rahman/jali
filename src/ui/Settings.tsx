@@ -30,7 +30,7 @@ export function SettingsPanel() {
         </header>
         <fieldset>
           <legend>Resize adapter</legend>
-          {(["rrp", "ark"] as const).map((id, n) => (
+          {(["own", "ark"] as const).map((id, n) => (
             <label key={id} className="radio">
               <input ref={n === 0 ? first : undefined} type="radio" name="adapter" checked={settings.adapter === id} onChange={() => set({ adapter: id })} />
               <span>{ADAPTERS[id].label}</span>
