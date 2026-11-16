@@ -37,7 +37,7 @@ export const PRESETS: { id: PresetId; label: string; build: () => Layout }[] = [
     build: () => ({
       version: 1,
       root: row("r", [
-        col("c", [pane("query", { kind: "query", params: { sql: SQL } }), pane("chart", { kind: "chart", params: { runId: "" } }, { linkedTo: "query" })], 1.6),
+        col("c", [pane("query", { kind: "query", params: { sql: SQL, autorun: 1 } }), pane("chart", { kind: "chart", params: { runId: "" } }, { linkedTo: "query" })], 1.6),
         pane("inspector", { kind: "structure", params: { table: "sample_orders" } }),
       ]),
     }),

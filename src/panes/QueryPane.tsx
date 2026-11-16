@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import type { ResultHandle, Row } from "../data/types";
 import { Grid, type GridColumn } from "./Grid";
 import { errorText, useResultRows, useRun } from "./data";
@@ -16,15 +16,30 @@ export function QueryPane({ ref, paused, focused, openBeside, setActivity }: Pan
 
   useEffect(() => { setActivity(run.isPending ? "working" : error ? "error" : "idle"); }, [setActivity, run.isPending, error]);
 
-  const exec = () => {
+  const exec = (andChart = false) => {
     setError(null);
-    run.mutate(sql, { onSuccess: (h) => setHandle(h), onError: (e) => setError(e instanceof Error ? e.message : String(e)) });
+    run.mutate(sql, {
+      onSuccess: (h) => {
+        setHandle(h);
+        if (andChart) openBeside(chartRef(h.runId));
+      },
+      onError: (e) => setError(e instanceof Error ? e.message : String(e)),
+    });
   };
+
+  // Presets can ask the query to run on load and hand its result handle to the linked chart.
+  const autorun = useRef(false);
+  useEffect(() => {
+    if (!ref.params.autorun || autorun.current) return;
+    autorun.current = true;
+    exec(true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <Shell>
       <div className="pk-bar">
-        <button className="pk-btn primary" onClick={exec} disabled={run.isPending || !sql.trim()}>{run.isPending ? "Running" : "Run"} <span className="pk-mono" style={{ opacity: .7 }}>⌘↵</span></button>
+        <button className="pk-btn primary" onClick={() => exec()} disabled={run.isPending || !sql.trim()}>{run.isPending ? "Running" : "Run"} <span className="pk-mono" style={{ opacity: .7 }}>⌘↵</span></button>
         <span className="grow pk-meta">{handle && !error ? <><span className="pk-mono">{formatCount(handle.rowCount)}</span> rows in <span className="pk-mono">{formatMs(handle.ms)}</span></> : "SQL"}</span>
         <button className="pk-btn" disabled={!handle} onClick={() => handle && openBeside(chartRef(handle.runId))}>Chart this result</button>
       </div>

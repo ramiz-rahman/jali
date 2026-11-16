@@ -140,6 +140,11 @@ export function visiblePaneIds(): NodeId[] {
   return resolved().panes.filter((b) => !b.hiddenInStack).map((b) => b.id);
 }
 
+/** The layout as it is when not zoomed. Focus keys use it, so they can move on from a zoomed pane (resolve() hides the rest). */
+function resolvedFlat(): ResolvedLayout {
+  return state.view.zoomed ? core.resolve(state.layout, unzoomed(state.view), fit()) : resolved();
+}
+
 // ---------- announcer + history hooks (wired by App) ----------
 
 type HistoryMode = "push" | "replace" | "debounce" | "none";
@@ -171,15 +176,15 @@ export const actions = {
     setState({ view: core.focus(state.view, id) });
   },
   focusCycle(delta: 1 | -1) {
-    const v = core.focusCycle(state.view, resolved(), delta);
+    const v = core.focusCycle(state.view, resolvedFlat(), delta);
     actions.afterFocusMove(v);
   },
   focusIndex(n: number) {
-    const id = visiblePaneIds()[n - 1];
+    const id = resolvedFlat().panes.filter((b) => !b.hiddenInStack).map((b) => b.id)[n - 1];
     if (id) actions.afterFocusMove(core.focus(state.view, id));
   },
   focusDirection(dir: Edge) {
-    actions.afterFocusMove(core.focusDirection(state.view, resolved(), dir));
+    actions.afterFocusMove(core.focusDirection(state.view, resolvedFlat(), dir));
   },
   /** While zoomed, focus keys switch which pane is zoomed (herdr). */
   afterFocusMove(v: ViewState) {

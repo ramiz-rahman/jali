@@ -3,5 +3,5 @@ import react from "@vitejs/plugin-react";
 export default defineConfig({
   plugins: [react()],
   optimizeDeps: { exclude: ["@electric-sql/pglite"] },
-  test: { globals: true, environment: "jsdom" },
+  test: { globals: true, environment: "jsdom", exclude: ["e2e/**", "node_modules/**"] },
 } as any);

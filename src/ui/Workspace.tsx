@@ -69,8 +69,10 @@ export function Workspace() {
     const inPane = active && el.contains(active);
     const inOtherPane = active?.closest?.("[data-pane]") && !inPane;
     const inChrome = active?.closest?.("[role=dialog], .topbar, [data-sonner-toaster], .divider");
-    if (!inPane && (inOtherPane || !active || active === document.body) && !inChrome) el.focus({ preventScroll: true });
-    else if (inOtherPane && !inChrome) el.focus({ preventScroll: true });
+    // Land on the pane's grid when it has one, so J/K and Space keep working after Pin beside, close and undo.
+    const target = el.querySelector<HTMLElement>("[role=grid]") ?? el;
+    if (!inPane && (inOtherPane || !active || active === document.body) && !inChrome) target.focus({ preventScroll: true });
+    else if (inOtherPane && !inChrome) target.focus({ preventScroll: true });
   }, [view.focused, layout]);
 
   const stackInfo = (stackId: string | undefined): StackInfo | undefined => {

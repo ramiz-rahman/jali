@@ -20,7 +20,10 @@ export function TableGrid({ table, fixedWhere, paused, focused, openBeside, peek
     for (const c of info?.columns ?? []) { const v = parseFilter(c, filters[c.name] ?? ""); if (v !== null) w[c.name] = v; }
     return w;
   }, [fixedWhere, filters, info]);
-  const w = useWindowRows(table, { where, orderBy: orderByString(sort) }, paused);
+  // Unsorted grids order by the primary key: Postgres moves an updated row to the end of an unordered scan, so an edit
+  // would otherwise make the row jump out of its place in every table pane that shows it.
+  const pkColumn = info?.columns.find((c) => c.primaryKey)?.name;
+  const w = useWindowRows(table, { where, orderBy: orderByString(sort) ?? (pkColumn ? `${pkColumn} ASC` : undefined) }, paused);
 
   if (isLoading(cat)) return <Shell><Loading /></Shell>;
   if (cat.isError) return <Shell><ErrorState message={errorText(cat) ?? ""} /></Shell>;
