@@ -12,6 +12,7 @@ import { drop, moveDirection, swapWithNext } from "./move";
 import { mergeInto, setActiveTab, unmerge } from "./tabs";
 import { commitDividerDrag, enterResizeMode, leaveResizeMode, nudgeDivider, resetDivider, resizeDivider, setDividerSize } from "./resize";
 import { openPeekFull, peek, pinPeek, select } from "./peek";
+import { follow, setPinned } from "./follow";
 import { arrive, preset, resetLayout, setActivity } from "./layout";
 import { activate, backToReview, enterReview, hideRole, leaveReview, openTab, openTabBeside, placeTab, resetReview, setCanInvestigate, setMode } from "./review";
 
@@ -23,7 +24,7 @@ export const ACTIONS = {
   moveDirection, drop, swapWithNext,
   mergeInto, unmerge, setActiveTab,
   resizeDivider, setDividerSize, nudgeDivider, commitDividerDrag, resetDivider, enterResizeMode, leaveResizeMode,
-  peek, pinPeek, openPeekFull, select,
+  peek, pinPeek, openPeekFull, select, follow, setPinned,
   preset, resetLayout, arrive, setActivity,
   enterReview, leaveReview, setMode, openTab, openTabBeside, placeTab, resetReview, activate, backToReview, hideRole, setCanInvestigate,
 };

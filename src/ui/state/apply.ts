@@ -9,6 +9,10 @@
  * Actions are pure: `(x: Snapshot, ...args) => Outcome`. One `apply()` commits an outcome: state, then URL, then
  * announcement, toast and DOM focus, as the POLICY table says for its op. Nothing that did not happen is written
  * or announced: an unchanged layout keeps its object, pushes no history and says nothing.
+ *
+ * Timing is declared, not hidden: a change may carry a `defer`red step (keyed; a newer step with the same key replaces
+ * or cancels it). The store runs it after `ms` against the state at that moment. Linked selection uses it: a list's
+ * detail follows the selection once it rests (actions/follow.ts).
  */
 import type { Layout, LayoutContext, NodeId, UndoEntry, ViewState } from "../../layout-core/types";
 import type { WorkspaceModel } from "./model";
@@ -26,13 +30,17 @@ export type HistoryMode = "push" | "replace" | "debounce" | "none";
 
 export interface Toast { title: string; description?: string; undo?: boolean; error?: boolean }
 
+/** A step to run later. The latest step for a key wins; without `run` it cancels the pending one. */
+export interface Deferred { key: string; ms: number; run?: (x: Snapshot) => Outcome }
+
 export type Op =
   | "focus" | "zoom" | "peek" | "select" | "patch"
   | "open" | "split" | "openHere" | "focusExisting" | "dismiss" | "newTab" | "openFull"
   | "close" | "closeOthers" | "undo" | "tuck" | "putBack" | "reveal"
   | "merge" | "unmerge" | "tab" | "move" | "drop" | "swap"
   | "resize" | "resetSizes" | "preset" | "wide" | "arrive"
-  | "hide" | "activate" | "page" | "mode" | "permission";
+  | "hide" | "activate" | "page" | "mode" | "permission"
+  | "follow" | "pin";
 
 export type Geometry = "focus" | "swap" | "reshape" | "direct";
 
@@ -51,6 +59,8 @@ export interface Change {
   result?: NodeId;
   /** Overrides the op's geometry class when this instance does more (another item that also closes opened panes). */
   geometry?: Geometry;
+  /** A step to run later (debounced by key): see the header. */
+  defer?: Deferred;
 }
 
 /** An action that did not happen, and why (silent without `msg`). */
@@ -79,6 +89,10 @@ export const POLICY: Record<Op, Policy> = {
   // swap: content changes in place
   openHere: layout("push", "swap"), focusExisting: layout("push", "swap", "change"), reveal: layout("replace", "swap"), tab: layout("replace", "swap"),
   swap: layout("push", "swap"), activate: layout("push", "swap"), page: layout("push", "swap", "change"),
+  // A list's detail follows its selection in place; history is replaced, so Back skips the rows passed through.
+  follow: layout("replace", "swap"),
+  // Pin or unpin a linked detail: a flag on the pane, nothing moves.
+  pin: layout("replace", "focus"),
   // reshape: deliberate gestures
   open: layout("push", "reshape"), split: layout("push", "reshape"), dismiss: layout("push", "reshape"), newTab: layout("push", "reshape"), openFull: layout("push", "reshape"),
   close: layout("push", "reshape"), closeOthers: layout("push", "reshape"), undo: layout("push", "reshape"), tuck: layout("push", "reshape"), putBack: layout("push", "reshape"),
@@ -101,6 +115,8 @@ export interface ApplyIO {
   announce(text: string): void;
   toast(t: Toast): void;
   focus(id: NodeId): void;
+  /** Schedule (or cancel) a deferred step. Without a scheduler, deferred steps are dropped. */
+  defer?(d: Deferred): void;
   /** A focus or swap op that moved something: development reports it. */
   unstable?(op: Op, before: string, after: string): void;
 }
@@ -137,5 +153,6 @@ export function apply(io: ApplyIO, o: Outcome): NodeId | undefined {
     }
   }
   if (o.focusDom) io.focus(o.focusDom);
+  if (o.defer) io.defer?.(o.defer);
   return o.result;
 }

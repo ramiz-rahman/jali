@@ -2,10 +2,11 @@ import * as core from "../../layout-core";
 import type { NodeId, ObjectRef, PaneNode, ViewState } from "../../layout-core/types";
 import { identityOf, isRecordable, isTransient, paneTitle, sameObject, sameRecent } from "../pane-kinds";
 import { refuse, type Change, type Outcome, type Snapshot } from "../state/apply";
-import { peek } from "./peek";
+import { peekSheet } from "./peek";
 import { goToRole, investigation, placeAfterArrangement, roleLabel, settleRoles } from "./review";
 import type { WorkspaceModel } from "../state/model";
 import { msg } from "../state/messages";
+import { sameRef } from "./follow";
 
 /** What a new split or a stack's "+" shows until the person chooses an object. */
 export const LAUNCHER: ObjectRef = { kind: "launcher", params: {} };
@@ -25,12 +26,16 @@ export function openPaneFor(m: WorkspaceModel, ref: ObjectRef, except?: NodeId):
   return m.panes.find((p) => p.id !== except && sameObject(p.ref, ref));
 }
 
-/** Founder decision 2: focus stays in the source. */
+/**
+ * Founder decision 2: focus stays in the source. Opening the source's selected item (a list's row) links the new pane
+ * to the selection: it follows it, or, when the list already has a following detail, it opens pinned beside it for
+ * comparison (layout-core ops/follow.ts). Any other link opens a plain linked pane.
+ */
 export function openBeside(x: Snapshot, source: NodeId, ref: ObjectRef): Outcome {
   const { s, m, ctx } = x;
   // A curated page: in Single mode, or for a role that may not investigate, a link peeks. Opened panes gather after the layout.
-  if (s.review && !s.review.canInvestigate) return { ...(peek(x, ref, source) as Change), msg: msg.peekOnly(paneTitle(ref)) };
-  if (s.review?.mode === "single") return { ...(peek(x, ref, source) as Change), msg: msg.peekSingle(paneTitle(ref)) };
+  if (s.review && !s.review.canInvestigate) return { ...peekSheet(x, ref, source), msg: msg.peekOnly(paneTitle(ref)) };
+  if (s.review?.mode === "single") return { ...peekSheet(x, ref, source), msg: msg.peekSingle(paneTitle(ref)) };
   if (s.review) {
     // One object, one pane: a link to what is already on the page goes there (a view, whatever kind shows it).
     const dup = openPaneFor(m, ref);
@@ -41,18 +46,20 @@ export function openBeside(x: Snapshot, source: NodeId, ref: ObjectRef): Outcome
   // The first opened pane starts an investigation: remember the layout it started from.
   const review = s.review && !investigation(m.panes).length ? { review: { ...s.review, before: s.layout } } : {};
   // In a curated page nothing the person placed gives way for an opened pane: short of room, it opens as a tab.
-  const r = core.openBeside(s.layout, unzoomed(s.view), source, ref, ctx, place, s.review ? { yields: false } : undefined);
+  const fromSelection = sameRef(s.selection[source]?.ref, ref);
+  const r = core.openBeside(s.layout, unzoomed(s.view), source, ref, ctx, place, { ...(s.review ? { yields: false } : {}), ...(fromSelection ? { fromSelection } : {}) });
   let layout = r.layout, opened = r.opened, sent: NodeId[] = [];
   let view: ViewState = { ...r.view, focused: source, focusHistory: r.view.focusHistory.length ? r.view.focusHistory : [source] };
   if (s.review && r.mode === "tab") {
     // No room beside: a tab of the source, in the source's slot at its size, shown and focused (the source is behind
     // it now). If even that needs more room, views go back to the page tabs; they never fold into a tab group.
     const t = core.addTab(s.layout, unzoomed(s.view), source, ref, ctx);
-    const linked = { ...t.layout, root: core.tree.map(t.layout.root, (n) => (n.id === t.opened && n.type === "pane" ? { ...n, linkedTo: source } : n)) };
+    const linked = { ...t.layout, root: core.tree.map(t.layout.root, (n) => (n.id === t.opened && n.type === "pane" ? { ...n, linkedTo: source, ...(fromSelection ? core.selectionLink(s.layout, source, ref.kind) : {}) } : n)) };
     ({ layout, view, sent } = settleRoles(s.layout, { layout: linked, view: t.view }, [source, t.opened], ctx));
     opened = t.opened;
   }
-  const said = msg.openedBeside(r.mode, paneTitle(ref), m.title(source));
+  const pinned = !!core.tree.panes(layout.root).find((p) => p.id === opened)?.pinned && fromSelection;
+  const said = pinned && r.mode === "beside" ? msg.openedPinned(paneTitle(ref), m.title(source)) : msg.openedBeside(r.mode, paneTitle(ref), m.title(source));
   return { op: "open", layout, view, msg: sent.length ? `${said} · ${msg.sentToTabs(sent.map(roleLabel))}` : said, patch: { recent: withRecent(s.recent, [ref]), ...review }, result: opened };
 }
 

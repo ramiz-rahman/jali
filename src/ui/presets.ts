@@ -29,7 +29,7 @@ export const PRESETS: { id: PresetId; label: string; build: () => Layout }[] = [
       version: 1,
       root: row("r", [
         pane("orders", tbl("orders"), { size: { weight: 1.4 } }),
-        pane("order", rec("orders", 1), { linkedTo: "orders" }),
+        pane("order", rec("orders", 1), { linkedTo: "orders", follows: true }),
         pane("customer", rec("customers", 1), { linkedTo: "order" }),
       ]),
     }),
@@ -52,7 +52,7 @@ export const PRESETS: { id: PresetId; label: string; build: () => Layout }[] = [
       version: 1,
       root: row("r", [
         pane("s1", tbl("orders")),
-        pane("s2", rec("orders", 1), { linkedTo: "s1" }),
+        pane("s2", rec("orders", 1), { linkedTo: "s1", follows: true }),
         pane("s3", rec("customers", 1), { linkedTo: "s2" }),
         col("c1", [
           pane("s4", ref("related", { table: "orders", column: "customer_id", value: 1, label: "Orders by this customer" }), { linkedTo: "s3" }),

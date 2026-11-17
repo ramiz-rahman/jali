@@ -26,6 +26,13 @@ export const msg = {
   launcherClosed: (focus: string) => `New pane closed. Focus is on ${focus}`,
   openedFull: (t: string) => `${t} opened full`,
 
+  // linked selection: a list's detail follows its selection
+  followed: (t: string) => `Showing ${t}`,
+  openedPinned: (t: string, source: string) => `${t} opened beside ${source}, pinned: it stays on this item`,
+  pinned: (t: string) => `${t} pinned: it stays on this item`,
+  unpinned: (t: string, list: string) => `${t} follows the selection in ${list}`,
+  notInResults: (list: string) => `Not in the current results of ${list}`,
+
   // close and undo
   lastPaneStays: "The last pane stays open",
   noOtherPanes: "There are no other panes to close",

@@ -9,7 +9,7 @@ import { kindRegistry, onKindsChange, type PaneActivity } from "../pane-kinds";
 import { DEFAULT_PRESET, presetById, type PresetId } from "../presets";
 import { GAP, initialArea } from "../tokens";
 import { bindActions, type Actions } from "../actions";
-import { apply, type HistoryMode, type Outcome, type Snapshot, type Toast } from "./apply";
+import { apply, type Deferred, type HistoryMode, type Outcome, type Snapshot, type Toast } from "./apply";
 import { modelCache, type WorkspaceModel } from "./model";
 import { loadSettings, systemPrefersDark, type Settings } from "./settings";
 import { loadPrefs, type ReviewPrefs } from "./review-prefs";
@@ -32,6 +32,9 @@ export interface ReviewState {
   canInvestigate: boolean;
 }
 
+/** A list's selected item, as its pane reported it (`select`). `inResults: false`: the list's filter no longer shows it. */
+export interface Selection { ref: ObjectRef; inResults: boolean }
+
 export interface UiState {
   layout: Layout;
   /** Null in Data Studio, where the person builds the layout. */
@@ -47,6 +50,8 @@ export interface UiState {
   undoStack: UndoEntry[];
   activity: Record<NodeId, PaneActivity>;
   peekSource?: NodeId;
+  /** Each list pane's selected item; its following detail shows it (layout-core ops/follow.ts). */
+  selection: Record<NodeId, Selection>;
   dnd: DndState | null;
   resizeMode: NodeId | null;
   paletteOpen: boolean;
@@ -105,6 +110,7 @@ export function createUiStore(deps: UiStoreDeps = {}): UiStore {
     systemDark: systemPrefersDark(),
     undoStack: [],
     activity: {},
+    selection: {},
     dnd: null,
     resizeMode: null,
     paletteOpen: false,
@@ -123,6 +129,14 @@ export function createUiStore(deps: UiStoreDeps = {}): UiStore {
   const toastFns = new Set<(t: Toast) => void>();
   const pendingToasts: Toast[] = [];
   const models = modelCache();
+  const timers = new Map<string, ReturnType<typeof setTimeout>>();
+  const defer = (d: Deferred) => {
+    clearTimeout(timers.get(d.key));
+    timers.delete(d.key);
+    if (!d.run) return;
+    const run = d.run;
+    timers.set(d.key, setTimeout(() => { timers.delete(d.key); store.apply(run(store.snapshot())); }, d.ms));
+  };
 
   const ctx = (): LayoutContext => ({ fit: { ...state.area, gap: GAP, kinds: kindRegistry() }, paneCap: state.settings.paneCap });
 
@@ -167,6 +181,7 @@ export function createUiStore(deps: UiStoreDeps = {}): UiStore {
     announce: store.announce,
     toast: store.toast,
     focus: (id: NodeId) => deps.focusPane?.(id),
+    defer,
     unstable: deps.unstable ?? (DEV ? (op: string) => console.error(`Layout stability: "${op}" is a focus or swap op but moved panes`) : undefined),
   };
   store.actions = bindActions(store);
