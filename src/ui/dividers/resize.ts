@@ -46,7 +46,7 @@ export function geometryFor(m: WorkspaceModel, d: DividerBox, r: ResolvedLayout 
   const byId = new Map(r.panes.filter((b) => !b.hidden).map((b) => [b.id, b.rect]));
   const rects = (ids: NodeId[]) => ids.flatMap((id) => byId.get(id) ?? []);
   if (!union(rects(idsA)) || !union(rects(idsB))) return null;
-  const label = (ids: NodeId[]) => (ids.length === 1 ? m.title(ids[0]) : `${m.title(ids[0])} and ${ids.length - 1} more`);
+  const label = (ids: NodeId[]) => (ids.length <= 3 ? ids.map((i) => m.title(i)).join(", ") : `${ids.slice(0, 2).map((i) => m.title(i)).join(", ")}, +${ids.length - 2} more`);
   const sa = core.extentAlong(r.panes, idsA, d.axis), sb = core.extentAlong(r.panes, idsB, d.axis);
   return {
     divider: d,

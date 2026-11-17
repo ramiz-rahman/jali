@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, type CSSProperties } from "react";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster, toast } from "sonner";
 import type { DataLayer } from "../data/types";
@@ -29,7 +29,11 @@ function Toasts() {
       }),
     [store],
   );
-  return <Toaster theme={theme} position="bottom-right" offset={{ bottom: 40, right: 12 }} toastOptions={{ className: "toast" }} />;
+  // A curated page keeps its toasts over the queue (bottom-left, narrow), never over a view's content.
+  const curated = useUi((s) => !!s.review);
+  return curated
+    ? <Toaster theme={theme} position="bottom-left" offset={{ bottom: 40, left: 10 }} mobileOffset={{ bottom: 40, left: 10 }} style={{ "--width": "250px" } as CSSProperties} toastOptions={{ className: "toast" }} />
+    : <Toaster theme={theme} position="bottom-right" offset={{ bottom: 40, right: 12 }} toastOptions={{ className: "toast" }} />;
 }
 
 /** Data Studio is all panes; a curated page puts its queue, header and tabs around them. */

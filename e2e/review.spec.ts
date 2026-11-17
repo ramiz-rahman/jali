@@ -210,3 +210,38 @@ test.describe("Loan review: roles and what a link carries", () => {
     await expect(page.locator("section[data-origin]")).toHaveCount(0);
   });
 });
+
+test.describe("Loan review: design polish", () => {
+  test("Single offers no pane controls (nothing invisible to tab to); the status bar speaks in views", async ({ lab, page }) => {
+    await lab.open({ path: at("application"), size: { width: 1440, height: 900 } });
+    await expect(page.locator(".pane-actions")).toHaveCount(0);
+    await expect(page.getByTestId("fetch-stats")).toHaveCount(0);
+    await expect(lab.statusMain()).toHaveText("1 view on screen · Focus: Application");
+    await page.getByRole("radio", { name: "Multiplexed" }).click();
+    await expect(page.locator(".pane-actions").first()).toBeVisible();
+    await expect(lab.statusMain()).toContainText("views on screen");
+    await expect(lab.statusMain()).not.toContainText("hidden");
+  });
+
+  test("page tab marks differ without changing a tab's width; dividers read naturally", async ({ lab, page }) => {
+    await lab.open({ path: at("application"), size: { width: 1440, height: 900 } });
+    const widths = async () => page.locator(".page-tab").evaluateAll((els) => els.map((e) => e.getBoundingClientRect().width));
+    const before = await widths();
+    await page.getByRole("radio", { name: "Multiplexed" }).click();
+    expect(await widths()).toEqual(before);
+    const mark = (state: string) => page.locator(`.page-tab[data-state="${state}"]`).first().evaluate((e) => { const c = getComputedStyle(e); return `${c.borderBottomStyle} ${c.borderBottomColor}`; });
+    const marks = [await mark("focused"), await mark("shown"), await mark("off")];
+    expect(new Set(marks).size).toBe(3);
+    for (const l of await page.getByRole("separator").evaluateAll((e) => e.map((x) => x.getAttribute("aria-label")))) expect(l).toMatch(/^Resize between .+ and .+$/);
+  });
+
+  test("at 390px the queue opens from the header, and there is no pane switcher under the tabs", async ({ lab, page }) => {
+    await lab.open({ path: at("application"), size: { width: 390, height: 844 } });
+    await expect(page.locator(".switcher")).toHaveCount(0);
+    await page.getByRole("button", { name: /waiting/ }).click();
+    await page.getByRole("dialog", { name: "Queue" }).getByRole("option").nth(2).click();
+    await expect(page.getByRole("dialog", { name: "Queue" })).toHaveCount(0);
+    await expect(page).toHaveURL(/item=3/);
+  });
+});
+

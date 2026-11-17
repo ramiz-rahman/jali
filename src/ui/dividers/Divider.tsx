@@ -70,7 +70,7 @@ export const Divider = memo(
         aria-valuemax={pct(p.maxA, p.total)}
         aria-valuetext={`${p.labelA} ${Math.round(p.sizeA)} pixels, ${p.labelB} ${restB} pixels`}
         aria-controls={p.controls}
-        aria-label={`Resize ${p.labelA} and ${p.labelB}`}
+        aria-label={`Resize between ${p.labelA} and ${p.labelB}`}
       >
         {/* Keyboard-focus affordance: an accent capsule and a size label, both CSS-gated on :focus-visible. */}
         <span className="divider-line" aria-hidden />
