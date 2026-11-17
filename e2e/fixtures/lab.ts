@@ -195,6 +195,11 @@ export class Lab {
       return same >= 3;
     }, { intervals: [60], timeout: 10_000, message: "layout settles" }).toBe(true);
   }
+  /** Let queued animation frames run. The app moves DOM focus on the next frame after tuck, put back and reveal, so a test that moves focus itself waits for that first. */
+  frames = (n = 2) => this.page.evaluate((count) => new Promise<void>((done) => {
+    const step = (left: number) => (left <= 0 ? done() : requestAnimationFrame(() => step(left - 1)));
+    step(count);
+  }), n);
   fetches = async () => Number(await this.page.getByTestId("fetch-stats").locator("b").first().innerText());
   /** Wait until the fetch counter has not moved for 1.1s (the status line samples it every 500ms); returns the final count. */
   async settle() {

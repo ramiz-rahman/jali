@@ -89,7 +89,7 @@ test.describe("tuck and put back", () => {
     await expect.poll(() => lab.visibleCount()).toBe(1);
     const btn = lab.tuck("orders");
     await expect(btn).toBeDisabled();
-    expect(await btn.getAttribute("title")).toBe("Only open pane");
+    expect(await btn.getAttribute("title")).toBe("orders is the only open pane and can't be tucked");
     await lab.recordAnnouncements();
     await lab.pane("orders").click({ position: { x: 100, y: 300 } });
     await page.keyboard.press("Alt+Meta+m");
@@ -183,6 +183,8 @@ test.describe("the shelf", () => {
     await expect(second, "a visible, tuckable pane remains").toBeVisible();
     await second.click();
     await expect(lab.chips()).toHaveCount(2);
+    // A tuck sends focus into the home on the next frame. Moving focus to the shelf before that lands loses it.
+    await lab.frames();
     await expect(lab.shelfBar()).toBeVisible();
     const mains = lab.chipMains();
     const n = await mains.count();
@@ -203,6 +205,7 @@ test.describe("the shelf", () => {
     const name = (await mains.first().innerText()).trim();
     await page.keyboard.press("Enter");
     await expect.poll(async () => (await lab.homeOf(name))!.active).toBe(name);
+    await lab.frames(); // reveal also sends focus to the pane on the next frame
     await mains.first().focus();
     await page.keyboard.press("Shift+Enter");
     await expect.poll(() => lab.homeOf(name)).toBeNull();
