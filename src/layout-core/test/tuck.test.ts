@@ -1,4 +1,4 @@
-import { context as ctx, chain, chainFit as cfit, context, folded, fit, freeze, kinds, pane, view } from "./fixtures";
+import { context as ctx, stress, stressFit, chain, chainFit as cfit, context, folded, fit, freeze, kinds, pane, view } from "./fixtures";
 import { describe, expect, it } from "vitest";
 import * as core from "../index";
 import { find, panes } from "../tree/tree";
@@ -205,4 +205,38 @@ describe("tuck codec", () => {
     const bad = { ...split("row", pane("a"), pane("b")), overlay: { tucks: [{ pane: "b", home: "a", seq: -1 }], folds: [], shown: {} } };
     expect(core.validate(bad, fit().kinds).ok).toBe(false);
   });
+});
+
+describe("tuck geometry on stress layouts", () => {
+  it.each([1920, 1440, 1024])("only changes the home group at %i px", width => {
+    const ctx = context(stressFit(width));
+    const tree = freeze(core.refit(stress(), view("s1"), ctx));
+    const before = core.resolve(tree, view("s1"), ctx);
+    for (const box of before.panes.filter(b => !b.hidden)) {
+      const t = ok(core.tuck(tree, view(box.id), box.id, ctx));
+      expect(t.layout.root).toBe(tree.root);
+      const group = before.stacks.find(s => s.paneIds.includes(t.home))?.paneIds ?? [t.home];
+      const after = core.resolve(t.layout, t.view, ctx);
+      othersUnchanged(before, after, group, box.id);
+      expect(folded(after)).toEqual(folded(before));
+      const restored = ok(core.putBack(t.layout, t.view, box.id, ctx));
+      expect(restored.layout).toEqual(tree);
+      expect(core.resolve(restored.layout, restored.view, ctx)).toEqual(before);
+    }
+  });
+});
+
+it("tucks into a revealed folded tab without losing the sticky fold or its shown tab", () => {
+  const ctx = context(cfit(1440));
+  const tree = freeze(core.reveal(core.refit(chain(), view("orders"), ctx), "customer", ctx));
+  const before = core.resolve(tree, view("customer"), ctx);
+  const t = ok(core.tuck(tree, view("orders"), "orders", ctx));
+  expect(t.home).toBe("customer");
+  expect(t.layout.overlay?.folds).toEqual(tree.overlay?.folds);
+  const after = core.resolve(t.layout, t.view, ctx);
+  expect(after.panes.filter(b => !b.hidden).map(b => b.id)).toEqual(["customer"]);
+  expect(core.refit(t.layout, t.view, ctx)).toBe(t.layout);
+  const back = ok(core.putBack(t.layout, t.view, "orders", ctx));
+  expect(back.layout).toEqual(tree);
+  expect(core.resolve(back.layout, back.view, ctx)).toEqual(before);
 });
