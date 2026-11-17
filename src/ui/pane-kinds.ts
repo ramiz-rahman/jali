@@ -69,10 +69,14 @@ export interface PaneKindDef {
   transient?: boolean;
   /** Listed in Recent. Default true. */
   recordable?: boolean | ((ref: ObjectRef) => boolean);
+  /** Narrowest the content works at, once it adapts (container queries): the pane folds into a tab below it. */
   minWidth: number;
   minHeight: number;
+  /** Where spare space takes the pane first. Default: minWidth. See PaneKind in layout-core/types for the share rule. */
+  comfortableWidth?: number;
+  /** Widest the content usefully uses (soft: spare space goes to siblings first; the content holds its measure past
+   *  it). Omit for kinds that use any width, such as tables and charts. */
   maxWidth?: number;
-  preferredWidth?: number;
   /** Heavy panes hold their content during a divider drag and reflow on release. */
   heavy?: boolean;
   /** Kind icon for the header, tab and shelf (a lucide-react icon or any 16px component). */
@@ -108,7 +112,7 @@ export function kindRegistry(): KindRegistry {
   for (const d of kinds.values()) {
     const k: PaneKind = { kind: d.kind, title: d.title, minWidth: d.minWidth, minHeight: d.minHeight };
     if (d.maxWidth !== undefined) k.maxWidth = d.maxWidth;
-    if (d.preferredWidth !== undefined) k.preferredWidth = d.preferredWidth;
+    if (d.comfortableWidth !== undefined) k.comfortableWidth = d.comfortableWidth;
     value[d.kind] = k;
   }
   registry = { version, value };
