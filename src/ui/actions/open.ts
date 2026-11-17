@@ -6,7 +6,7 @@ import { peekSheet } from "./peek";
 import { goToRole, investigation, placeAfterArrangement, roleLabel, settleRoles } from "./review";
 import type { WorkspaceModel } from "../state/model";
 import { msg } from "../state/messages";
-import { sameRef } from "./follow";
+import { follow, followLater, sameRef, setPinned } from "./follow";
 
 /** What a new split or a stack's "+" shows until the person chooses an object. */
 export const LAUNCHER: ObjectRef = { kind: "launcher", params: {} };
@@ -47,6 +47,10 @@ export function openBeside(x: Snapshot, source: NodeId, ref: ObjectRef): Outcome
   const review = s.review && !investigation(m.panes).length ? { review: { ...s.review, before: s.layout } } : {};
   // In a curated page nothing the person placed gives way for an opened pane: short of room, it opens as a tab.
   const fromSelection = sameRef(s.selection[source]?.ref, ref);
+  // The list already has a following detail: opening its row pins that detail in place when it shows the row (keep
+  // it, browse on: the next open makes a new follower), or shows the row there now. Never a second copy of a row.
+  const showing = fromSelection ? core.follower(s.layout, source, ref.kind) : undefined;
+  if (showing) return sameRef(showing.ref, ref) ? setPinned(x, showing.id, true) : [{ op: "select", defer: followLater(source, null) }, (y: Snapshot) => follow(y, source, ref)];
   const r = core.openBeside(s.layout, unzoomed(s.view), source, ref, ctx, place, { ...(s.review ? { yields: false } : {}), ...(fromSelection ? { fromSelection } : {}) });
   let layout = r.layout, opened = r.opened, sent: NodeId[] = [];
   let view: ViewState = { ...r.view, focused: source, focusHistory: r.view.focusHistory.length ? r.view.focusHistory : [source] };
@@ -91,6 +95,12 @@ export function openHere({ s, m, ctx }: Snapshot, id: NodeId, ref: ObjectRef): O
     if (isTransient(p.ref) && m.panes.length > 1) ({ layout, view } = core.close(layout, view, id, ctx));
     layout = core.reveal(layout, dup.id, ctx);
     return { op: "focusExisting", layout, view: core.focus(view, dup.id, ctx), msg: msg.alreadyOpen(paneTitle(dup.ref)), patch, result: dup.id };
+  }
+  // Choosing in a launcher fills a placeholder: the chosen object settles to its own measure (a reshape), not the
+  // placeholder's slot. Replacing a real object keeps the slot (a swap).
+  if (isTransient(p.ref)) {
+    const layout = core.setRef(s.layout, s.view, id, ref, ctx, { hold: false });
+    return { op: "openHere", geometry: "reshape", layout, view: core.focus(s.view, id, ctx), msg: msg.opened(paneTitle(ref)), patch, result: id };
   }
   const layout = core.setRef(s.layout, s.view, id, ref, ctx);
   return { op: "openHere", layout, view: core.focus(s.view, id, ctx), msg: msg.opened(paneTitle(ref)), patch, result: id };

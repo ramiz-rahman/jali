@@ -34,7 +34,7 @@ test.describe("A list's detail follows its selection", () => {
     expect(shown.length).toBeLessThan(6);
   });
 
-  test("a pinned detail doesn't follow; ⌥↵ with a follower opens a pinned compare", async ({ lab, page }) => {
+  test("⌥↵ on the row the detail shows pins it there; the next ⌥↵ opens a new follower; a pinned detail stays", async ({ lab, page }) => {
     await lab.open();
     // Room for a fourth pane: close the customer record.
     await lab.pane("customer").getByRole("button", { name: /^Close/ }).click();
@@ -43,23 +43,24 @@ test.describe("A list's detail follows its selection", () => {
     await lab.row("orders", /^2\b/).click();
     await expect(lab.heading("order")).toHaveText("order 2");
 
-    // ⌥↵: a second detail, pinned; the follower keeps following.
+    // ⌥↵ on the row it shows: that detail is pinned in place, no copy opens.
+    const count = await lab.visibleCount();
     await page.keyboard.press("Alt+Enter");
-    await expect.poll(() => lab.visibleCount()).toBe(3);
-    await expect(lab.announcer()).toHaveText(/^order 2 opened beside orders, pinned/);
-    const compare = page.locator('section[data-pane][data-kind="record"]').filter({ has: page.getByRole("button", { name: /^Pin order 2/, pressed: true }) });
-    await expect(compare).toHaveCount(1);
-    await page.keyboard.press("j");
-    await expect(lab.heading("order")).toHaveText("order 3");
-    await expect(compare.getByRole("heading", { level: 2 })).toHaveText("order 2");
+    await expect(pin).toHaveAttribute("aria-pressed", "true");
+    await expect(lab.announcer()).toHaveText(/^order 2 pinned/);
+    expect(await lab.visibleCount()).toBe(count);
 
-    // Pin the follower: it stays.
-    await lab.pane("order").getByRole("button", { name: /^Pin order/ }).click();
-    await expect(lab.pane("order").getByRole("button", { name: /^Pin order/ })).toHaveAttribute("aria-pressed", "true");
-    await lab.grid("orders").focus();
+    // Browse on: the pinned detail stays; ⌥↵ makes a new follower that follows from here.
     await page.keyboard.press("j");
     await page.waitForTimeout(400);
-    await expect(lab.heading("order")).toHaveText("order 3");
+    await expect(lab.heading("order")).toHaveText("order 2");
+    await page.keyboard.press("Alt+Enter");
+    await expect.poll(() => lab.visibleCount()).toBe(count + 1);
+    const follower = page.locator('section[data-pane][data-kind="record"]').filter({ has: page.getByRole("button", { name: /^Pin order/, pressed: false }) });
+    await expect(follower.getByRole("heading", { level: 2 })).toHaveText("order 3");
+    await page.keyboard.press("j");
+    await expect(follower.getByRole("heading", { level: 2 })).toHaveText("order 4");
+    await expect(lab.heading("order")).toHaveText("order 2");
   });
 
   test("Space shows the row in the detail when one follows; without one, the peek sheet", async ({ lab, page }) => {

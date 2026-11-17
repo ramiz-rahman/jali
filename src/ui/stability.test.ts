@@ -82,3 +82,22 @@ describe("layout stability: Data Studio", () => {
     for (const t of group!.tabs) still(() => store.actions.setActiveTab(group!.id, t.id));
   });
 });
+
+describe("filling a placeholder is a reshape", () => {
+  it("a record chosen in a launcher settles by the share rule; the launcher's width is not held", () => {
+    store.set({ area: { width: 1908, height: 644 } });
+    store.actions.preset("one-table");
+    const launcher = store.actions.split("right", "orders")!;
+    const width = (id: string) => store.model().resolved.panes.find((b) => b.id === id)!.rect.width;
+    expect(width(launcher)).toBeGreaterThan(600);
+    store.actions.openHere(launcher, { kind: "record", params: { table: "orders", id: 1 } });
+    expect(breaches).toEqual([]);
+    const weights = (n: { size: { weight?: number }; children?: unknown[] }): number[] =>
+      [n.size.weight ?? 1, ...((n.children ?? []) as (typeof n)[]).flatMap(weights)];
+    // A held swap stores lengths as px-unit weights, as a divider drag does; settling leaves the plain weights.
+    expect(weights(store.get().layout.root as never).every((w) => w <= 2)).toBe(true);
+    expect(store.model().pane(launcher)?.ref.kind).toBe("record");
+    expect(width(launcher)).toBeLessThanOrEqual(600);
+    expect(width("orders")).toBeGreaterThan(width(launcher));
+  });
+});

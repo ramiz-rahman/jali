@@ -62,16 +62,34 @@ describe("a list's detail follows its selection", () => {
     expect(node("order").follows).toBe(true);
   });
 
-  it("opening the selected row beside while a detail follows opens a second, pinned detail", () => {
+  it("opening the row the detail shows pins it in place; browsing on, the next open makes a new follower", () => {
     store.actions.select("orders", order(6));
     vi.advanceTimersByTime(FOLLOW_MS);
-    const opened = store.actions.openBeside("orders", order(6))!;
-    expect(opened).not.toBe("order");
-    expect(node(opened)).toMatchObject({ linkedTo: "orders", pinned: true });
+    const panes = store.model().panes.length;
+    store.actions.openBeside("orders", order(6));
+    expect(store.model().panes).toHaveLength(panes);
+    expect(node("order")).toMatchObject({ ref: order(6), pinned: true });
     store.actions.select("orders", order(7));
     vi.advanceTimersByTime(FOLLOW_MS);
-    expect(node("order").ref).toEqual(order(7));
-    expect(node(opened).ref).toEqual(order(6));
+    expect(node("order").ref).toEqual(order(6));
+    const next = store.actions.openBeside("orders", order(7))!;
+    expect(node(next)).toMatchObject({ linkedTo: "orders", follows: true, ref: order(7) });
+    store.actions.select("orders", order(8));
+    vi.advanceTimersByTime(FOLLOW_MS);
+    expect(node(next).ref).toEqual(order(8));
+    expect(node("order").ref).toEqual(order(6));
+  });
+
+  it("opening a row the detail doesn't show yet (inside the follow delay) shows it there now: never a second copy", () => {
+    store.actions.select("orders", order(6));
+    vi.advanceTimersByTime(FOLLOW_MS);
+    const panes = store.model().panes.length;
+    store.actions.select("orders", order(9));
+    store.actions.openBeside("orders", order(9));
+    expect(store.model().panes).toHaveLength(panes);
+    expect(node("order").ref).toEqual(order(9));
+    vi.advanceTimersByTime(FOLLOW_MS);
+    expect(node("order").ref).toEqual(order(9));
   });
 
   it("a link that is not the selected row (a customer cell) opens a plain pane and never replaces the detail", () => {

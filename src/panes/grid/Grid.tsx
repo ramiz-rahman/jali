@@ -90,7 +90,8 @@ export function Grid(p: Props) {
 
   const refAt = (i: number) => { const row = p.rows[i - p.startOffset]; return row ? p.rowRef?.(row) ?? null : null; };
   const selectAt = (i: number) => { p.onSelect(i); p.select?.(refAt(i)); };
-  const openAt = (i: number) => { const ref = refAt(i); if (ref) p.openBeside?.(ref); };
+  // Opening a row selects it first, so the detail it opens follows the list (or the list's detail shows it).
+  const openAt = (i: number) => { const ref = refAt(i); if (!ref) return; if (i !== cur) selectAt(i); p.openBeside?.(ref); };
   const peekAt = (i: number) => { const ref = refAt(i); if (ref) p.peek?.(ref); };
   const width = p.columns.reduce((s, c) => s + widthOf(c), 0) + (p.openBeside ? ACTION_W : 0);
   const measure = p.columns.reduce((s, c) => s + grownOf(c), 0) + (p.openBeside ? ACTION_W : 0) + 1;
