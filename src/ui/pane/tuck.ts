@@ -1,15 +1,25 @@
 import type { ShelfEntry } from "../../layout-core/types";
-import { actions, shelfEntries, titleOf, tuckHome, useUi } from "../store";
+import { actions, allPanes, findPane, shelfEntries, stackOf, titleOf, tuckHome, useUi } from "../store";
 
 /** One tucked pane as the shelf shows it (ShelfEntry from layout-core, with activity from the store). */
 export type ShelfItem = ShelfEntry;
 
-/** The shelf UI shows tucked panes only; ResolvedLayout.shelf also lists folded panes and inactive tabs (DECISIONS, 17 Nov). */
+/**
+ * The shelf UI lists every tucked pane, including one revealed in its home (revealing is not putting back), grouped
+ * by the pane it was tucked into. ResolvedLayout.shelf also lists folded panes and inactive tabs (DECISIONS, 17 Nov).
+ */
 export function useShelf(): ShelfItem[] {
   useUi((s) => s.layout);
   useUi((s) => s.area);
-  useUi((s) => s.activity);
-  return shelfEntries().filter((e) => e.reason === "tucked");
+  const activity = useUi((s) => s.activity);
+  const off = new Map(shelfEntries().map((e) => [e.paneId, e]));
+  return allPanes().flatMap((p): ShelfItem[] => {
+    if (!p.tuckedFrom) return [];
+    const e = off.get(p.id);
+    const homeId = findPane(p.tuckedFrom.home) ? p.tuckedFrom.home : e?.homeId ?? p.tuckedFrom.home;
+    const a = activity[p.id];
+    return [{ paneId: p.id, homeId, stackId: e?.stackId ?? stackOf(p.id)?.id ?? "", reason: "tucked", ...(a ? { activity: a } : {}) }];
+  });
 }
 
 /** Whether a pane can be tucked now, and the pane it would join. */
