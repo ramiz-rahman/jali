@@ -53,7 +53,7 @@ describe("command registry", () => {
   it("has unique stable ids covering the keyboard map", () => {
     const ids = COMMANDS.map((c) => c.id);
     expect(new Set(ids).size).toBe(ids.length);
-    for (const id of ["pane.focus.next", "pane.focus.previous", "pane.focus.left", "pane.move.up", "pane.zoom", "pane.minimise", "pane.resize_mode", "pane.close", "pane.split.right", "pane.split.down", "pane.undo_close", "layout.reset"])
+    for (const id of ["pane.focus.next", "pane.focus.previous", "pane.focus.left", "pane.move.up", "pane.zoom", "pane.tuck", "pane.putBack", "shelf.reveal", "pane.resize_mode", "pane.close", "pane.split.right", "pane.split.down", "pane.undo_close", "layout.reset"])
       expect(ids).toContain(id);
   });
 });

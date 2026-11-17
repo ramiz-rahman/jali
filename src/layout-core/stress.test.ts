@@ -159,36 +159,31 @@ describe("sticky folding on the stress preset", () => {
     expect(core.resolve(core.refit(freeze(stress()), view("s1"), fit(1024)), view("s1"), fit(1024))).toEqual(seen.get(1024));
   });
 
-  it("minimising gives the space to split neighbours and never unfolds; expanding takes it back", () => {
+  it("tucking frees space to the home only and never unfolds; putting back restores every rect", () => {
     const f = fit(1440);
     const layout = core.refit(freeze(stress()), view("s1"), f);
     const base = core.resolve(layout, view("s1"), f);
-    const [first, second] = visible(base);
-    const minimised = core.setCollapsed(layout, first!, true);
-    const after = core.resolve(minimised, view(second!), f);
-    expect(members(after)).toEqual(members(base));
-    expect(visible(after)).toEqual(visible(base));
-    expect(after.panes.find(p => p.id === first)!.rect.width).toBe(56);
-    expect(after.panes.find(p => p.id === second)!.rect.width).toBeGreaterThan(base.panes.find(p => p.id === second)!.rect.width);
-    // Only the direct neighbour grows; panes further along the split keep their rects.
-    const wide = core.refit(freeze(stress()), view("s1"), fit(1920));
-    const w0 = core.resolve(wide, view("s1"), fit(1920)), w1 = core.resolve(core.setCollapsed(wide, "s2", true), view("s1"), fit(1920));
-    expect(w1.panes.find(p => p.id === "s3")!.rect).toEqual(w0.panes.find(p => p.id === "s3")!.rect);
-    expect(w1.panes.find(p => p.id === "s1")!.rect.width).toBe(w0.panes.find(p => p.id === "s1")!.rect.width + w0.panes.find(p => p.id === "s2")!.rect.width - 56);
-    // Restoring only ever folds (never unfolds) and here needs nothing.
-    const restored = core.refit(core.setCollapsed(minimised, first!, false), view(first!), f, "fold");
-    expect(core.resolve(restored, view(first!), f)).toEqual(base);
+    const first = visible(base)[0]!;
+    const t = core.tuck(layout, view(first), first, f);
+    if (!t.ok) throw new Error("expected a tuck");
+    expect(t.layout.fold).toEqual(layout.fold);
+    const after = core.resolve(t.layout, t.view, f);
+    expect(after.folded).toEqual(base.folded);
+    const back = core.putBack(t.layout, t.view, first, f);
+    if (!back.ok) throw new Error("expected put back");
+    expect(core.resolve(core.refit(back.layout, back.view, f, "fold"), back.view, f)).toEqual(base);
   });
 
-  it("a reloaded or linked layout never unfolds into space a minimise freed", () => {
+  it("a reloaded, linked or resized layout never unfolds into space a tuck freed", () => {
     const f = fit(1440);
     const layout = core.refit(freeze(stress()), view("s1"), f);
-    const minimised = core.setCollapsed(layout, "s1", true);
-    const reloaded = core.decode(core.encode(minimised), kinds)!;
-    expect(core.refit(reloaded, view("s2"), f, "load").fold).toEqual(minimised.fold);
-    // A real size change may use it.
-    expect(core.refit(reloaded, view("s2"), f, "full").fold!.order.length).toBeLessThan(minimised.fold!.order.length);
-    // A bigger screen still unfolds on load.
+    const t = core.tuck(layout, view("s1"), "s1", f);
+    if (!t.ok) throw new Error("expected a tuck");
+    const reloaded = core.decode(core.encode(t.layout), kinds)!;
+    expect(reloaded).toEqual(t.layout);
+    expect(core.refit(reloaded, view("s2"), f, "load").fold).toEqual(t.layout.fold);
+    expect(core.refit(reloaded, view("s2"), f, "full").fold).toEqual(t.layout.fold);
+    // A bigger screen still unfolds.
     expect(core.refit(reloaded, view("s2"), fit(4000), "load").fold).toBeUndefined();
   });
 

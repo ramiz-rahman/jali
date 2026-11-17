@@ -102,23 +102,17 @@ describe("resolve and fold", () => {
     const tree = layout({ id: "column", type: "column", size: { weight: 1 }, children: [pane("a"), pane("b", "record", { linkedTo: "a" })] });
     expect(place(tree, view(), fit(1000, 250)).panes.filter(p => !p.hiddenInStack)).toHaveLength(1);
   });
-  it("uses 56px rails in a row and 40px header strips in a column, for edge and middle panes alike", () => {
-    const tree = layout(pane("a", "record", { collapsed: true }), pane("b", "record", { collapsed: true }), pane("c", "record"));
-    const row = place(tree, view(), fit(1000));
-    expect(row.panes.map(p => p.rect.width)).toEqual([56, 56, 876]);
-    expect(row.panes.map(p => p.rect.height)).toEqual([900, 900, 900]);
-    tree.root.type = "column";
-    expect(place(tree, view(), fit(1000)).panes.map(p => p.rect.height).slice(0, 2)).toEqual([40, 40]);
-  });
-  it("minimises a middle row pane to a rail, lets its siblings fill the space, and restores it", () => {
+  it("tucks a middle row pane: its home takes the space, the far pane keeps its rect, and put back is exact", () => {
     const tree = freeze(layout(pane("a", "record"), pane("b", "record"), pane("c", "record")));
-    const collapsed = core.setCollapsed(tree, "b", true);
-    const result = place(collapsed, view("b"), fit(1600));
-    expect(result.folded).toEqual([]);
-    expect(result.panes.map(p => p.rect.height)).toEqual([900, 900, 900]);
-    expect(result.panes[1]!.rect.width).toBe(56);
-    expect(result.panes[0]!.rect.width + result.panes[2]!.rect.width + 56 + 12).toBeCloseTo(1600, 0);
-    expect(place(core.setCollapsed(collapsed, "b", false), view("b"), fit(1600))).toEqual(place(tree, view("b"), fit(1600)));
+    const before = place(tree, view("b"), fit(1600));
+    const t = core.tuck(tree, view("b"), "b", fit(1600));
+    if (!t.ok) throw new Error("expected a tuck");
+    const after = core.resolve(t.layout, view("a"), fit(1600));
+    expect(after.folded).toEqual([]);
+    for (const k of ["x", "y", "width", "height"] as const) expect(after.panes.find(p => p.id === "c")!.rect[k]).toBeCloseTo(before.panes.find(p => p.id === "c")!.rect[k], 6);
+    expect(after.panes.find(p => p.id === "a")!.rect.width).toBeCloseTo(before.panes[0]!.rect.width + before.panes[1]!.rect.width + 6, 6);
+    const back = core.putBack(t.layout, t.view, "b", fit(1600));
+    expect(back.ok && back.layout).toEqual(tree);
   });
   it("unfolds one pane at each successive minimum-plus-gap threshold", () => {
     const tree = freeze(layout(...Array.from({ length: 10 }, (_, i) => pane(`p${i}`, "record", i ? { linkedTo: `p${i - 1}` } : {}))));

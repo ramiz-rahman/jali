@@ -67,11 +67,8 @@ const Divider = memo(
       } else if (e.key === "End") {
         e.preventDefault();
         setSizeA(p.parentId, p.index, p.maxA);
-      } else if (e.key === "Enter") {
-        e.preventDefault();
-        // Enter collapses the pane before the divider, or restores it.
-        actions.setCollapsed(p.lastA);
       }
+      // Enter does nothing: the rail-era collapse is gone, and a tuck would remove this divider from under focus (DECISIONS, 17 Nov).
     };
     const A = p.adapter.Divider;
     return (

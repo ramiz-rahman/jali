@@ -3,7 +3,8 @@
  * ⌘ on Mac is Ctrl elsewhere. Keyboard actions never animate.
  */
 import type { Edge } from "../layout-core/types";
-import { actions, getState, hooks, setState } from "./store";
+import { actions, getState, hooks, setState, visiblePaneIds } from "./store";
+import { core } from "./core";
 import { runCommand } from "./commands";
 import { cancelActiveDrag } from "./dnd";
 import { nearestDivider, STEP, STEP_BIG } from "./dividers/DividerLayer";
@@ -50,7 +51,22 @@ export function handleKey(e: KeyboardEvent): boolean {
     }
   }
 
+  // F6 visits every pane, then the shelf (when shown), then wraps.
   if (e.key === "F6") {
+    const shelf = typeof document !== "undefined" ? document.querySelector<HTMLElement>("[data-shelf]") : null;
+    const order = visiblePaneIds();
+    const inShelf = !!shelf && !!(document.activeElement && shelf.contains(document.activeElement));
+    if (shelf && inShelf) {
+      const id = e.shiftKey ? order.at(-1) : order[0];
+      if (id) actions.afterFocusMove(core.focus(s.view, id));
+      return true;
+    }
+    const at = order.indexOf(s.view.focused ?? "");
+    if (shelf && at >= 0 && (e.shiftKey ? at === 0 : at === order.length - 1)) {
+      (shelf.querySelector<HTMLElement>('.shelf-chip-main[tabindex="0"]') ?? shelf).focus();
+      hooks.announce("Shelf");
+      return true;
+    }
     actions.focusCycle(e.shiftKey ? -1 : 1);
     return true;
   }
@@ -71,7 +87,7 @@ export function handleKey(e: KeyboardEvent): boolean {
   // ⇧⌘↵ maximise / restore
   if (mod && e.shiftKey && !alt && e.key === "Enter") return runCommand("pane.zoom") || true;
 
-  // ⌘Z restores the last closed pane (text fields keep their own undo).
+  // ⌘Z undoes the last close or tuck (text fields keep their own undo).
   if (mod && !alt && !e.shiftKey && e.code === "KeyZ" && !editable(e.target)) {
     actions.undoClose();
     return true;
@@ -90,9 +106,10 @@ export function handleKey(e: KeyboardEvent): boolean {
       return true;
     }
     if (e.code === "Backslash") return runCommand(e.shiftKey ? "pane.split.down" : "pane.split.right") || true;
-    // ⌥⌘M minimises or expands the focused pane (else the most recently focused one) and keeps focus on its rail.
-    if (e.code === "KeyM" && !e.shiftKey) {
-      actions.minimiseFromKeyboard();
+    // ⌥⌘M tucks the focused pane into its home (focus follows); ⌥⇧⌘M puts back the focused tucked tab, else the latest.
+    if (e.code === "KeyM") {
+      if (e.shiftKey) actions.putBack();
+      else actions.tuck();
       return true;
     }
     if (e.code === "KeyR" && !e.shiftKey) return runCommand("pane.resize_mode") || true;

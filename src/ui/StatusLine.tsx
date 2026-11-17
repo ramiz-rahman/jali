@@ -11,7 +11,8 @@ export function StatusLine() {
   useUi((s) => s.area);
   void layout;
   const r = resolved();
-  const shelf = (r as unknown as { shelf?: { paneId: string }[] }).shelf ?? [];
+  // Only tucked panes count as "tucked"; folded panes are counted separately below.
+  const shelf = r.shelf.filter((e) => e.reason === "tucked");
   const busy = Object.entries(activity).filter(([id, a]) => (a === "needs-you" || a === "working" || a === "error") && shelf.some((s) => s.paneId === id));
   const hint = resizeMode
     ? "Resize mode · arrows, ⇧ for 64px · Esc to leave"

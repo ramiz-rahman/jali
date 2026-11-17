@@ -4,7 +4,7 @@
  */
 import { useSyncExternalStore } from "react";
 import type {
-  Edge, FitOptions, Layout, LayoutNode, NodeId, ObjectRef, PaneNode, ResolvedLayout, StackNode, UndoEntry, ViewState,
+  Edge, FitOptions, Layout, LayoutNode, NodeId, ObjectRef, PaneNode, ResolvedLayout, ShelfEntry, StackNode, TuckRefusal, UndoEntry, ViewState,
 } from "../layout-core/types";
 import { core, setPaneCap } from "./core";
 import { kindRegistry, paneTitle, type PaneActivity } from "./pane-kinds";
@@ -54,6 +54,7 @@ export interface UiState {
   view: ViewState;
   presetId: PresetId;
   settings: Settings;
+  /** ⌘Z: closes and tucks, most recent last. A tuck entry (`tucked`) is undone by putting the pane back. */
   closedStack: UndoEntry[];
   activity: Record<NodeId, PaneActivity>;
   peekSource?: NodeId;
@@ -109,7 +110,7 @@ export const getState = () => state;
 
 /**
  * Sticky folding: folds are decided only here, on a structural or size change, and recorded in the Layout. Focus, tab
- * clicks, zoom and minimise never refit, so they never move a pane. Fails soft (kinds not registered yet).
+ * clicks, zoom, tuck and reveal never refit, so they never move a pane; put back only folds. Fails soft (kinds not registered yet).
  */
 let fitted = false;
 function refitNow(layout: Layout, view: ViewState, mode: "full" | "fold" | "load"): Layout {
@@ -121,7 +122,7 @@ function refitNow(layout: Layout, view: ViewState, mode: "full" | "fold" | "load
     return layout;
   }
 }
-/** Set while an action commits a layout it has already refitted (or deliberately not, as for minimise). */
+/** Set while an action commits a layout it has already refitted (or deliberately not, as for tuck). */
 let committing = false;
 export function setState(patch: Partial<UiState> | ((s: UiState) => Partial<UiState>)) {
   const p = typeof patch === "function" ? patch(state) : patch;
@@ -348,7 +349,7 @@ interface CommitOptions {
   history: HistoryMode;
   announce?: string;
   extra?: Partial<UiState>;
-  /** Structural changes refit "full" (default). Restoring a minimised pane only folds; minimise, tabs and focus never refit. */
+  /** Structural changes refit "full" (default). Put back only folds; tuck, reveal, tabs and focus never refit. */
   refit?: Refit;
   /** Announce when only focus changed (for example "Already open: focused …"). Otherwise only a layout change is announced. */
   announceView?: boolean;
@@ -384,68 +385,51 @@ function reveal(layout: Layout, id: NodeId): Layout {
 }
 
 /** DOM focus after the next paint (the store owns focus moves the Workspace effect cannot infer). */
-function focusLater(id: NodeId, where: "content" | "rail") {
+function focusLater(id: NodeId) {
   if (typeof document === "undefined" || typeof requestAnimationFrame === "undefined") return;
   requestAnimationFrame(() => {
-    // A divider's Enter (collapse / restore) keeps focus on the divider, so a second Enter toggles back.
     if (document.activeElement?.closest?.("[role=separator], .divider, [role=dialog]")) return;
     const el = document.getElementById(paneDomId(id));
     if (!el) return;
-    const target = where === "rail"
-      ? el.querySelector<HTMLElement>(".rail-btn, .rail-restore, .act-min, button")
-      : el.querySelector<HTMLElement>("[data-autofocus]") ?? el.querySelector<HTMLElement>("[role=grid]") ?? el;
+    const target = el.querySelector<HTMLElement>("[data-autofocus]") ?? el.querySelector<HTMLElement>("[role=grid]") ?? el;
     target?.focus({ preventScroll: true });
   });
 }
 
-function parentOf(id: NodeId, node: LayoutNode = state.layout.root): LayoutNode | undefined {
-  if (node.type === "pane") return undefined;
-  for (const c of node.children) {
-    if (c.id === id) return node;
-    const f = parentOf(id, c as LayoutNode);
-    if (f) return f;
-  }
-  return undefined;
-}
-/** Panes on screen and not minimised, other than `except`, in the layout as it is (or would be) resolved. */
-function expandedOnScreen(except: NodeId, layout = state.layout): NodeId[] {
-  const view = unzoomed(state.view);
-  return core.resolve(layout, view, fit()).panes.filter((b) => !b.hiddenInStack && b.id !== except && !findPaneIn(layout, b.id)?.collapsed).map((b) => b.id);
-}
-function findPaneIn(layout: Layout, id: NodeId): PaneNode | undefined {
-  return allPanes(layout.root).find((p) => p.id === id);
-}
-/**
- * The neighbour that takes a minimised pane's space: the nearest sibling in the same split, preferring the one before,
- * then the next split out. Within a sibling, the most recently focused expanded pane on screen.
- */
-function neighbourThatGrows(id: NodeId, layout: Layout): NodeId | undefined {
-  const onScreen = new Set(expandedOnScreen(id, layout));
-  const rank = (p: NodeId) => { const i = state.view.focusHistory.indexOf(p); return i < 0 ? Infinity : i; };
-  let node: LayoutNode | undefined = stackOf(id, layout.root) ?? findPaneIn(layout, id);
-  while (node) {
-    const parent = parentOf(node.id, layout.root);
-    if (!parent || parent.type === "pane") break;
-    if (parent.type !== "stack") {
-      const at = parent.children.findIndex((c) => c.id === node!.id);
-      for (let d = 1; d < parent.children.length; d++) {
-        for (const i of [at - d, at + d]) {
-          const sibling = parent.children[i];
-          if (!sibling) continue;
-          const candidates = allPanes(sibling as LayoutNode).map((p) => p.id).filter((p) => onScreen.has(p));
-          if (candidates.length) return candidates.sort((a, b) => rank(a) - rank(b))[0];
-        }
-      }
-    }
-    node = parent;
-  }
-  return [...onScreen].sort((a, b) => rank(a) - rank(b))[0];
-}
+// ---------- tuck and the shelf ----------
 
-/** Whether this pane can be minimised now: it is expanded and another expanded pane stays on screen. */
-export function canMinimise(id: NodeId | undefined): boolean {
-  const p = findPane(id);
-  return !!p && !p.collapsed && expandedOnScreen(p.id).length > 0;
+/** Whether this pane can be tucked now (false for the last pane on screen, a tab, or a pane off screen). */
+export function canTuck(id: NodeId | undefined): boolean {
+  return !!id && core.canTuck(state.layout, id, fit()).ok;
+}
+/** The pane a tuck would join, for labels such as "Tuck into orders". */
+export function tuckHome(id: NodeId | undefined): NodeId | undefined {
+  if (!id) return undefined;
+  const r = core.canTuck(state.layout, id, fit());
+  return r.ok ? r.home : undefined;
+}
+/** Why a tuck was refused, in words. */
+function tuckRefusal(id: NodeId, reason: TuckRefusal): string {
+  const title = titleOf(id);
+  if (reason === "missing") return "No pane focused";
+  if (reason === "tab") return `${title} is already a tab of ${titleOf(shownWith(id))}`;
+  if (reason === "hidden") return `${title} is not on screen`;
+  return allPanes().length <= 1 ? `${title} is the only open pane and can't be tucked` : `${title} is the only pane on screen and can't be tucked`;
+}
+/** The pane on screen in the same group as `id` (itself when shown). */
+function shownWith(id: NodeId): NodeId {
+  const boxes = resolvedFlat().panes, box = boxes.find((b) => b.id === id);
+  return (box?.hiddenInStack && boxes.find((b) => b.stackId === box.stackId && !b.hiddenInStack)?.id) || id;
+}
+/** Every pane not on screen (tucked, folded, inactive tab), with its activity. The Shelf UI may filter by reason. */
+export function shelfEntries(): ShelfEntry[] {
+  return resolved().shelf.map((e) => (state.activity[e.paneId] ? { ...e, activity: state.activity[e.paneId] } : e));
+}
+/** Tucked panes, most recently tucked first (from the undo stack), then any others in reading order. */
+function tuckedPanes(): NodeId[] {
+  const tucked = allPanes().filter((p) => p.tuckedFrom).map((p) => p.id);
+  const recent = state.closedStack.flatMap((e) => (e.tucked && tucked.includes(e.tucked) ? [e.tucked] : [])).reverse();
+  return [...new Set([...recent, ...tucked])];
 }
 
 /** Split, close and move leave zoom first (herdr). */
@@ -526,7 +510,6 @@ export const actions = {
     if (dup) {
       let layout = state.layout, view = unzoomed(state.view);
       if (p.ref.kind === "launcher" && allPanes().length > 1) ({ layout, view } = core.close(layout, view, id));
-      if (dup.collapsed) layout = core.setCollapsed(layout, dup.id, false);
       layout = reveal(core.refit(layout, view, fit()), dup.id);
       commit(layout, core.focus(view, dup.id), { history: "push", announce: `Already open: focused ${paneTitle(dup.ref)}`, extra: { recent }, announceView: true });
       return dup.id;
@@ -613,12 +596,17 @@ export const actions = {
     if (commit(r.layout, r.view, { history: "push", announce: `Other panes closed · Undo available`, extra: { closedStack: [...state.closedStack, r.undo].slice(-20) } }))
       hooks.toastClosed("Other panes");
   },
+  /** ⌘Z: undo the last close or tuck. A tuck is undone by putting the pane back, so later changes survive. */
   undoClose() {
-    const e = state.closedStack[state.closedStack.length - 1];
+    // Drop tuck entries whose pane is no longer tucked (put back or moved meanwhile).
+    const live = state.closedStack.filter((e) => !e.tucked || !!findPane(e.tucked)?.tuckedFrom);
+    if (live.length !== state.closedStack.length) setState({ closedStack: live });
+    const e = live[live.length - 1];
     if (!e) {
       hooks.announce("Nothing to restore");
       return;
     }
+    if (e.tucked) return actions.putBack(e.tucked);
     commit(e.before.layout, e.before.view, { history: "push", announce: `${e.label === "Pane closed" ? "Pane" : "Panes"} restored`, extra: { closedStack: state.closedStack.slice(0, -1) } });
   },
   toggleZoom(id = state.view.focused) {
@@ -630,43 +618,43 @@ export const actions = {
     hooks.announce(v.zoomed ? `${titleOf(id)} maximised · Escape to restore` : `${titleOf(id)} restored`);
   },
   /**
-   * Minimise or expand. Minimising hands the pane's space to its neighbours in the same split and never unfolds other
-   * panes (no refit); expanding takes the space back and only folds if it must. By pointer or palette, focus moves to
-   * the neighbour that grew; with `keepFocus` (⌥⌘M on the focused pane) it stays on the rail, so Enter or ⌥⌘M expands.
+   * Tuck: the pane becomes a tab of its home (see layout-core tuck). The home keeps its shown tab and absorbs the space;
+   * nothing else moves or unfolds (no refit). Focus moves into the home. ⌘Z puts it back.
    */
-  setCollapsed(id = state.view.focused, collapsed?: boolean, opts: { keepFocus?: boolean } = {}) {
-    const p = findPane(id);
-    if (!p) return;
-    const title = titleOf(p.id);
-    const next = collapsed ?? !p.collapsed;
-    if (next === !!p.collapsed) return;
-    if (!next) {
-      const view = core.focus(state.view, p.id);
-      if (commit(core.setCollapsed(state.layout, p.id, false), view, { history: "replace", refit: "fold", announce: `${title} expanded` })) focusLater(p.id, "content");
-      return;
-    }
-    if (!canMinimise(p.id)) {
-      hooks.announce(allPanes().length <= 1 ? `${title} is the only open pane and can't be minimised` : `${title} is the only expanded pane on screen and can't be minimised`);
-      return;
-    }
-    const layout = core.setCollapsed(state.layout, p.id, true);
-    if (opts.keepFocus) {
-      if (commit(layout, core.focus(state.view, p.id), { history: "replace", refit: "none", announce: `${title} minimised · Enter to expand` })) focusLater(p.id, "rail");
-      return;
-    }
-    const to = neighbourThatGrows(p.id, layout);
-    const view = to ? core.focus(state.view, to) : state.view;
-    if (commit(layout, view, { history: "replace", refit: "none", announce: to ? `${title} minimised; focus on ${titleOf(to)}` : `${title} minimised` }) && to) focusLater(to, "content");
+  tuck(id = state.view.focused) {
+    const target = id && findPane(id) ? id : state.view.focusHistory.find((h) => findPane(h));
+    if (!target) return hooks.announce("No pane focused");
+    const r = core.tuck(state.layout, unzoomed(state.view), target, fit());
+    if (!r.ok) return hooks.announce(tuckRefusal(target, r.reason));
+    if (commit(r.layout, r.view, { history: "push", refit: "none", announce: `${titleOf(target)} tucked into ${titleOf(r.home)}`, extra: { closedStack: [...state.closedStack, r.undo].slice(-20) } }))
+      focusLater(r.home);
   },
-  /** ⌥⌘M: the focused pane, else the most recently focused one. Focus stays on its rail so the same keys expand it. */
-  minimiseFromKeyboard() {
-    const v = state.view;
-    const id = v.focused && findPane(v.focused) ? v.focused : v.focusHistory.find((h) => findPane(h));
-    if (!id) {
-      hooks.announce("No pane focused");
-      return;
+  /**
+   * Put back: the given pane; else the focused pane if it is tucked (a revealed tucked tab, or a tucked tab with DOM
+   * focus); else the most recently tucked pane. Restores its slot and size; only folds if room ran out. Focus moves in.
+   */
+  putBack(id?: NodeId) {
+    let target = id;
+    if (!target && typeof document !== "undefined") {
+      const tab = (document.activeElement as HTMLElement | null)?.closest?.<HTMLElement>("[data-tab]")?.dataset.tab;
+      if (tab && findPane(tab)?.tuckedFrom) target = tab;
     }
-    actions.setCollapsed(id, !findPane(id)!.collapsed, { keepFocus: true });
+    if (!target && findPane(state.view.focused)?.tuckedFrom) target = state.view.focused;
+    target ??= tuckedPanes()[0];
+    if (!target) return hooks.announce("Nothing is tucked");
+    const r = core.putBack(state.layout, unzoomed(state.view), target, fit());
+    if (!r.ok) return hooks.announce(r.reason === "missing" ? "No pane focused" : `${titleOf(target)} is not tucked`);
+    const where = r.restored === "origin" ? "" : ` beside ${titleOf(r.home)}`;
+    const closedStack = state.closedStack.filter((e) => e.tucked !== target);
+    if (commit(r.layout, r.view, { history: "push", refit: "fold", announce: `${titleOf(target)} put back${where}`, extra: { closedStack } })) focusLater(target);
+  },
+  /** Show a pane that is off screen (tucked, folded or a tab) by selecting its tab in its home. Nothing moves. */
+  reveal(id: NodeId) {
+    if (!findPane(id)) return;
+    const shownBefore = shownWith(id);
+    const layout = reveal(state.layout, id);
+    const changed = commit(layout, core.focus(state.view, id), { history: "replace", refit: "none", announce: `${titleOf(id)} shown in place of ${titleOf(shownBefore)}` });
+    if (changed || state.view.focused === id) focusLater(id);
   },
   moveDirection(dir: Edge, id = state.view.focused) {
     if (!id) return;
@@ -679,6 +667,13 @@ export const actions = {
   },
   drop(dragged: NodeId, target: NodeId, zone: Edge | "centre") {
     const mode = state.settings.centreDrop;
+    // Dragging a tucked tab out of its home on the side it came from is a put back (exact slot and size).
+    const from = findPane(dragged)?.tuckedFrom;
+    const home = stackOf(dragged);
+    if (from && zone !== "centre" && home?.children.some((c) => c.id === target)) {
+      const edge = from.axis === "row" ? (from.side === "after" ? "right" : "left") : from.side === "after" ? "bottom" : "top";
+      if (zone === edge) return actions.putBack(dragged);
+    }
     const r = core.drop(state.layout, state.view, dragged, target, zone, mode);
     const msg =
       zone === "centre"

@@ -22,14 +22,25 @@ export function validate(layout: Layout, kinds: KindRegistry): { ok: true } | { 
       if (!record(ref) || typeof ref.kind !== "string" || !Object.hasOwn(kinds, ref.kind)) error(path, "unknown pane kind");
       if (!record(ref) || !record(ref.params) || !Object.values(ref.params).every(p => typeof p === "string" || typeof p === "number" && Number.isFinite(p))) error(path, "invalid object params");
       if (value.linkedTo !== undefined && (typeof value.linkedTo !== "string" || !value.linkedTo.length)) error(path, "invalid linkedTo");
+      // `collapsed` is the rail era's flag: still accepted so old links decode (and migrate to a tuck).
       for (const flag of ["pinned", "collapsed"]) if (value[flag] !== undefined && typeof value[flag] !== "boolean") error(path, `${flag} must be boolean`);
+      if (value.tuckedFrom !== undefined) {
+        const t = value.tuckedFrom;
+        const sizeOk = (s: unknown) => record(s) && Object.keys(s).length === 1 && (positive(s.px) || positive(s.weight));
+        const id = (v: unknown) => typeof v === "string" && v.length > 0 && v.length < 512;
+        if (!record(t) || !id(t.parent) || !id(t.beside) || !id(t.home) || (t.axis !== "row" && t.axis !== "column") || (t.side !== "before" && t.side !== "after")
+          || !Number.isInteger(t.index) || (t.index as number) < 0 || !sizeOk(t.size) || (t.userSized !== undefined && typeof t.userSized !== "boolean")
+          || (t.extent !== undefined && !(typeof t.extent === "number" && Number.isFinite(t.extent) && t.extent >= 0))
+          || (t.resized !== undefined && !(Array.isArray(t.resized) && t.resized.every(r => Array.isArray(r) && r.length === 3 && id(r[0]) && sizeOk(r[1]) && sizeOk(r[2])))))
+          error(path, "invalid tuckedFrom");
+      }
       return;
     }
     if (inStack) { error(path, "stacks may contain only panes"); return; }
     if (!["row", "column", "stack"].includes(value.type as string)) { error(path, "unknown node type"); return; }
     if (!Array.isArray(value.children) || !value.children.length) { error(path, "children must be non-empty"); return; }
     if (value.type === "stack") {
-      if (value.origin !== "auto" && value.origin !== "user") error(path, "invalid stack origin");
+      if (value.origin !== "auto" && value.origin !== "user" && value.origin !== "tuck") error(path, "invalid stack origin");
       if (typeof value.active !== "string" || !value.children.some(c => record(c) && c.id === value.active)) error(path, "active tab is not a child");
       if (value.axis !== undefined && value.axis !== "row" && value.axis !== "column") error(path, "invalid restore axis");
     }

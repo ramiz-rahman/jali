@@ -1,5 +1,6 @@
 import type { Axis, FitOptions, Layout, LayoutNode, PaneNode, Rect, ResolvedLayout, Size, ViewState } from "./types";
 import { clone, combined, unfold } from "./model";
+import { untuckAll } from "./tuck";
 
 interface Bounds { width: number; height: number; maxWidth: number }
 interface Projected {
@@ -8,9 +9,6 @@ interface Projected {
   size: Size;
   children: Projected[];
   pane?: PaneNode;
-  collapsedAxis?: Axis;
-  /** A minimised pane's minimum along its split axis when expanded (its space is allocated as if expanded). */
-  expandedMin?: number;
   active?: string;
   /** Pane the automatic stack formed around (the folded panes' related home). */
   home?: string;
@@ -79,23 +77,18 @@ function refresh(node: Projected, fit: FitOptions): void {
   else if (node.type === "column") node.bounds = { width: Math.max(...widths), height: heights.reduce((a, b) => a + b, 0) + gaps, maxWidth: Math.max(Math.max(...widths), Math.min(...maxima)) };
   else node.bounds = { width: Math.max(...widths), height: Math.max(...heights), maxWidth: Math.max(Math.max(...widths), Math.min(...maxima)) };
 }
-function project(node: LayoutNode, fit: FitOptions, axis: Axis = "row", edge = true): Projected {
+function project(node: LayoutNode, fit: FitOptions): Projected {
   if (node.type === "pane") {
     const kind = fit.kinds[node.ref.kind];
     if (!kind) throw new Error(`Unknown pane kind: ${node.ref.kind}`);
     const bounds = { width: kind.minWidth, height: kind.minHeight, maxWidth: kind.maxWidth ?? Infinity };
-    // Founder review, 17 Nov: in a row every minimised pane becomes a 56px rail (edge or middle); in a column it becomes its 40px header strip.
-    const collapsedAxis = node.collapsed ? axis : undefined;
-    const expandedMin = collapsedAxis === "row" ? bounds.width : collapsedAxis === "column" ? bounds.height : undefined;
-    if (collapsedAxis === "row") { bounds.width = 56; bounds.maxWidth = 56; }
-    if (collapsedAxis === "column") bounds.height = 40;
-    return { id: node.id, type: "pane", size: node.size, children: [], pane: node, collapsedAxis, bounds, ...(expandedMin !== undefined ? { expandedMin } : {}) };
+    return { id: node.id, type: "pane", size: node.size, children: [], pane: node, bounds };
   }
-  const nextAxis = node.type === "stack" ? axis : node.type;
+  // "user" and "tuck" stacks are both tree stacks here; only legacy "auto" stacks were unfolded before projection.
   const result: Projected = {
     id: node.id, type: node.type === "stack" && node.origin === "auto" ? "auto" : node.type, size: node.size,
     active: node.type === "stack" ? node.active : undefined,
-    children: node.children.map((c, i) => project(c, fit, nextAxis, node.type === "stack" ? edge : i === 0 || i === node.children.length - 1)),
+    children: node.children.map(c => project(c, fit)),
     bounds: { width: 0, height: 0, maxWidth: Infinity },
   };
   refresh(result, fit);
@@ -182,7 +175,7 @@ function chooseFold(root: Projected, view: ViewState, order: Map<string, number>
   const rank = (id: string) => { const i = view.focusHistory.indexOf(id); return i < 0 ? Infinity : i; };
   const score = (slot: Projected) => {
     const members = allPanes(slot);
-    const pinned = members.some(p => p.pane!.pinned || p.pane!.collapsed);
+    const pinned = members.some(p => p.pane!.pinned);
     const tier = members.some(p => p.id === focused) ? 4 : members.some(p => protectedIds.has(p.id)) ? 2 + Number(pinned) : Number(pinned);
     return {
       slot, tier, linked: Number(members.some(p => linkedIds.has(p.id))),
@@ -275,16 +268,12 @@ function build(layout: Layout, fit: FitOptions, paneCap: number): Projected {
   return root;
 }
 
-function expanded(node: LayoutNode): LayoutNode {
-  if (node.type === "pane") { if (!node.collapsed) return node; const copy = { ...node }; delete copy.collapsed; return copy; }
-  if (node.type === "stack") return { ...node, children: node.children.map(c => expanded(c) as PaneNode) };
-  return { ...node, children: node.children.map(expanded) };
-}
 export interface RefitOptions {
   /**
    * "full": unfold (most recent first) when room returned, then fold if needed. "fold": only fold, never unfold.
-   * "load": a layout arriving from a link, reload or Back; unfold only what fits with every minimised pane expanded,
-   * so the space a minimise freed never unfolds anything until a real structural or size change.
+   * "load": a layout arriving from a link, reload or Back; same as "full". Either way unfolding is judged as if every
+   * tucked pane were back in its slot, so the space a tuck gave its home never unfolds anything, and the same width
+   * always gives the same arrangement whatever is tucked.
    */
   mode?: "full" | "fold" | "load";
   /** A just-opened pane: when there is no room it becomes the tab ("Opened as a tab: not enough room"). */
@@ -305,7 +294,7 @@ export function refit(layout: Layout, view: ViewState, fit: FitOptions, paneCap 
   let current = replay(layout, stored, fit).applied;
   const mode = options.mode ?? "full";
   if (mode !== "fold") {
-    const probe: Layout = mode === "load" ? { ...layout, root: expanded(layout.root) } : layout;
+    const probe: Layout = untuckAll(layout);
     for (let k = 0; k < current.length; k++) {
       if (!misfit(replay(probe, current.slice(0, k), fit).root, fit, paneCap)) { current = current.slice(0, k); break; }
     }
@@ -356,16 +345,16 @@ export function refit(layout: Layout, view: ViewState, fit: FitOptions, paneCap 
 export function fits(layout: Layout, fit: FitOptions, paneCap = Infinity): boolean {
   return !misfit(replay(layout, layout.fold?.order ?? [], fit).root, fit, paneCap);
 }
-export function minimum(node: LayoutNode, fit: FitOptions, axis: Axis, edge = true): number {
-  const bounds = project(node, fit, axis, edge).bounds;
+export function minimum(node: LayoutNode, fit: FitOptions, axis: Axis): number {
+  const bounds = project(node, fit).bounds;
   return axis === "row" ? bounds.width : bounds.height;
 }
 export function resolve(layout: Layout, view: ViewState, fit: FitOptions, paneCap = Infinity): ResolvedLayout {
   if (![fit.width, fit.height, fit.gap].every(Number.isFinite) || fit.width < 0 || fit.height < 0 || fit.gap < 0) throw new RangeError("Fit dimensions and gap must be finite and non-negative");
   const root = build(layout, fit, paneCap);
-  const result: ResolvedLayout = { panes: [], dividers: [], folded: [], stacks: [] };
+  const result: ResolvedLayout = { panes: [], dividers: [], folded: [], stacks: [], shelf: [] };
   function draw(n: Projected, input: Rect, stackId?: string, hidden = false, folded = false): void {
-    const rect = { ...input, width: Math.max(n.bounds.width, Math.min(input.width, n.bounds.maxWidth)), height: n.collapsedAxis === "column" ? n.bounds.height : Math.max(input.height, n.bounds.height) };
+    const rect = { ...input, width: Math.max(n.bounds.width, Math.min(input.width, n.bounds.maxWidth)), height: Math.max(input.height, n.bounds.height) };
     if (n.pane) {
       result.panes.push({ id: n.id, rect, ...(stackId ? { stackId, hiddenInStack: hidden } : {}) });
       if (folded) result.folded.push(n.id);
@@ -384,24 +373,9 @@ export function resolve(layout: Layout, view: ViewState, fit: FitOptions, paneCa
     const horizontal = axis === "row";
     const length = horizontal ? rect.width : rect.height;
     const mins = n.children.map(c => horizontal ? c.bounds.width : c.bounds.height);
-    const maxs = n.children.map((c, i) => c.collapsedAxis === axis ? mins[i]! : horizontal ? c.bounds.maxWidth : Infinity);
-    // A minimised pane's space goes to its nearest expanded sibling (the one before first), not to the whole split, so
-    // only the direct neighbour grows and expanding takes exactly that space back.
+    const maxs = n.children.map(c => horizontal ? c.bounds.maxWidth : Infinity);
     const available = length - fit.gap * (n.children.length - 1);
-    const asExpanded = n.children.map((c, i) => c.collapsedAxis === axis ? c.expandedMin ?? mins[i]! : mins[i]!);
-    const baseMins = asExpanded.reduce((a, b) => a + b, 0) <= available + 1e-7 ? asExpanded : mins;
-    const lengths = shares(n.children.map((c, i) => ({ size: c.size, min: baseMins[i]!, max: c.collapsedAxis === axis ? Infinity : maxs[i] })), available);
-    n.children.forEach((c, i) => {
-      if (c.collapsedAxis !== axis) return;
-      let freed = lengths[i]! - mins[i]!;
-      lengths[i] = mins[i]!;
-      for (let d = 1; freed > 1e-9 && d < n.children.length; d++) for (const j of [i - d, i + d]) {
-        const sib = n.children[j];
-        if (!sib || sib.collapsedAxis === axis || freed <= 1e-9) continue;
-        const add = Math.min(freed, maxs[j]! - lengths[j]!);
-        lengths[j] = lengths[j]! + add; freed -= add;
-      }
-    });
+    const lengths = shares(n.children.map((c, i) => ({ size: c.size, min: mins[i]!, max: maxs[i] })), available);
     let offset = horizontal ? rect.x : rect.y;
     n.children.forEach((child, index) => {
       const extent = lengths[index]!;
@@ -418,6 +392,14 @@ export function resolve(layout: Layout, view: ViewState, fit: FitOptions, paneCa
     });
   }
   draw(root, { x: 0, y: 0, width: Math.max(fit.width, root.bounds.width), height: Math.max(fit.height, root.bounds.height) });
+  // The shelf: every pane not on screen, before the zoom overlay (zoom is a view, not a hiding place).
+  const folded = new Set(result.folded);
+  for (const box of result.panes) {
+    if (!box.hiddenInStack || !box.stackId) continue;
+    const shown = result.panes.find(b => b.stackId === box.stackId && !b.hiddenInStack);
+    const node = allPanes(root).find(p => p.id === box.id)!.pane!;
+    result.shelf.push({ paneId: box.id, homeId: shown?.id ?? box.stackId, stackId: box.stackId, reason: node.tuckedFrom ? "tucked" : folded.has(box.id) ? "folded" : "tab" });
+  }
   // Zoom overlays geometry; the canonical tree and all split sizes remain intact.
   const zoom = result.panes.find(p => p.id === view.zoomed);
   if (zoom) {

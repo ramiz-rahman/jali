@@ -30,16 +30,44 @@ export interface PaneNode extends NodeBase {
   /** The pane this one follows (linked selection), if any. */
   linkedTo?: NodeId;
   pinned?: boolean;
-  /** Minimised: edge panes fold to a rail, middle panes to their header. Still mounted, still reporting activity. */
-  collapsed?: boolean;
+  /**
+   * Set while the pane is tucked: it left its split and is a tab of its home (17 Nov, replaces minimise/collapse).
+   * Records the slot it came from so `putBack` restores it exactly. Cleared by putBack and by any deliberate move.
+   */
+  tuckedFrom?: TuckOrigin;
+}
+
+/** Where a tucked pane sat, so `putBack` can restore it to the same slot at the same size. */
+export interface TuckOrigin {
+  /** The split it left, and that split's axis. */
+  parent: NodeId;
+  axis: Axis;
+  /** Its index among the split's children before the tuck. */
+  index: number;
+  /** The sibling it sat beside (a pane, stack or split id; matched by containment, so a home turned stack still counts) and which side of it. */
+  beside: NodeId;
+  side: "before" | "after";
+  /** Its own size and userSized in the split. */
+  size: Size;
+  userSized?: boolean;
+  /** The pane it was tucked into (the visible pane of its home at the time). */
+  home: NodeId;
+  /** Its extent in px along the split axis when tucked, if geometry was known. Used when sizes changed since. */
+  extent?: number;
+  /** Siblings whose size the tuck changed, as [id, before, after]. putBack restores `before` where `after` is still in place. */
+  resized?: [NodeId, Size, Size][];
 }
 
 export interface StackNode extends NodeBase {
   type: "stack";
   children: PaneNode[];
   active: NodeId;
-  /** "auto": created by the collapse plan and unfolds when room returns. "user": deliberate (centre drop / tab). */
-  origin: "auto" | "user";
+  /**
+   * "auto": legacy materialised fold (folds now live in `Layout.fold`). "user": deliberate (centre drop / tab).
+   * "tuck": created by a tuck; dissolves back into its single pane when the last tucked pane is put back.
+   * A deliberate tab added to a "tuck" stack makes it "user".
+   */
+  origin: "auto" | "user" | "tuck";
   /** Axis to restore when an automatic stack unfolds. Defaults to its parent's axis, or row. */
   axis?: Axis;
 }
@@ -107,6 +135,22 @@ export interface ResolvedLayout {
   folded: NodeId[];
   /** Automatic stacks the fit step created, for labels such as "+2 folded". Deliberate (user) stacks are not listed. */
   stacks: ResolvedStack[];
+  /** Every pane not currently on screen (zoom aside), in reading order. See ShelfEntry. */
+  shelf: ShelfEntry[];
+}
+/**
+ * A pane that is not on screen. Reason, in precedence order: "tucked" (it has `tuckedFrom`), "folded" (the fit step
+ * hid it in an automatic stack), "tab" (an inactive tab of a deliberate or tuck stack). Zoom does not put panes on the shelf.
+ */
+export interface ShelfEntry {
+  paneId: NodeId;
+  /** The pane on screen in the place this one lives (the visible tab of its group): "behind <home>". */
+  homeId: NodeId;
+  /** The group it is a tab of (PaneBox.stackId): a tree stack id or an `@auto:<home>` id. */
+  stackId: NodeId;
+  reason: "tucked" | "folded" | "tab";
+  /** Filled by the UI store (`shelfEntries()`), never by layout-core. */
+  activity?: string;
 }
 export interface ResolvedStack {
   /** Same as PaneBox.stackId for its panes. */
@@ -142,7 +186,23 @@ export interface LayoutOps {
   /** Divider drag or keyboard. `sizes` are px for the two neighbours; clamps at minimums; marks userSized. */
   resizeDivider(layout: Layout, parentId: NodeId, index: number, deltaPx: number, fit: FitOptions): Layout;
   resetDivider(layout: Layout, parentId: NodeId, index: number): Layout;
-  setCollapsed(layout: Layout, pane: NodeId, collapsed: boolean): Layout;
+  /**
+   * Whether `pane` can be tucked, and the home it would join. Refusals: "missing" (no such pane), "tab" (already a tab
+   * of a stack), "hidden" (not on screen), "last" (the last pane on screen). Without `fit`, visibility is not checked.
+   */
+  canTuck(layout: Layout, pane: NodeId, fit?: FitOptions): TuckCheck;
+  /**
+   * Tuck: the pane leaves its split and becomes a tab of its home (its source if visible beside it, else the nearest
+   * previous sibling, else the next). The home keeps its shown tab; its slot absorbs the vacated space, so every other
+   * rect stays. Records `tuckedFrom`. Never refits. `view` focuses the home pane.
+   */
+  tuck(layout: Layout, view: ViewState, pane: NodeId, fit?: FitOptions): TuckResult;
+  /**
+   * Put back: restores a tucked pane to its origin slot at its original size, or beside its home on the side it came
+   * from when the origin is gone. A "tuck" stack left with one tab dissolves. `view` focuses the pane. The caller
+   * refits "fold" (putting back never unfolds anything).
+   */
+  putBack(layout: Layout, view: ViewState, pane: NodeId, fit?: FitOptions): PutBackResult;
   toggleZoom(view: ViewState, pane: NodeId): ViewState;
   focus(view: ViewState, pane: NodeId): ViewState;
   /** Directional focus: strictly in direction, overlapping on the other axis; most-recently-focused wins, then nearest edge, overlap, centre, order. No wrap. */
@@ -154,9 +214,20 @@ export interface LayoutOps {
 }
 
 export interface UndoEntry {
-  label: string; // "Pane closed"
+  label: string; // "Pane closed" | "Pane tucked"
   before: { layout: Layout; view: ViewState };
+  /** For a tuck: the tucked pane. Undo puts it back (exact when nothing changed since) rather than restoring `before`. */
+  tucked?: NodeId;
 }
+
+export type TuckRefusal = "missing" | "tab" | "hidden" | "last";
+export type TuckCheck = { ok: true; home: NodeId } | { ok: false; reason: TuckRefusal };
+export type TuckResult =
+  | { ok: true; layout: Layout; view: ViewState; home: NodeId; undo: UndoEntry }
+  | { ok: false; reason: TuckRefusal };
+export type PutBackResult =
+  | { ok: true; layout: Layout; view: ViewState; restored: "origin" | "beside"; home: NodeId }
+  | { ok: false; reason: "missing" | "not-tucked" };
 
 export interface LayoutCore extends LayoutOps {
   /**
@@ -168,7 +239,8 @@ export interface LayoutCore extends LayoutOps {
   /**
    * Decide folds for this size and record them in `layout.fold`; returns the same object when nothing changes. Call it on
    * structural and size changes only. "full" also unfolds, most recent fold first, when room returns; "fold" never
-   * unfolds (restoring a minimised pane); "load" (link, reload, Back) unfolds only what fits with minimised panes expanded. The focused pane, its source and direct details are protected when choosing.
+   * unfolds (putting back a tucked pane); "load" (link, reload, Back) behaves like "full". Unfolding is judged as if
+   * every tucked pane were back in its slot, so a tuck never unfolds anything. The focused pane, its source and direct details are protected when choosing.
    */
   refit(layout: Layout, view: ViewState, fit: FitOptions, mode?: "full" | "fold" | "load"): Layout;
   /** Compact, URL-safe, versioned. decode() validates and returns null on anything invalid (caller falls back to preset, keeps a copy). */

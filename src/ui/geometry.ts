@@ -14,7 +14,6 @@ export function union(rects: Rect[]): Rect | null {
 
 export function minAlong(node: LayoutNode, axis: "row" | "column", kinds: KindRegistry, gap: number): number {
   if (node.type === "pane") {
-    if (node.collapsed) return axis === "row" ? 56 : 32;
     const k = kinds[node.ref.kind];
     return axis === "row" ? (k?.minWidth ?? 240) : (k?.minHeight ?? 160);
   }

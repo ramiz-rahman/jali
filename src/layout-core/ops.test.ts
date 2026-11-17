@@ -225,12 +225,12 @@ describe("move and view operations", () => {
     expect(core.drop(tree, view(), "missing", "b", "left", "swap").layout).toEqual(tree);
     expect(core.swap(tree, "a", "missing")).toEqual(tree);
   });
-  it("sets and restores collapsed state immutably", () => {
+  it("tucks and puts back immutably; a missing pane is refused", () => {
     const core = createLayoutCore(), tree = freeze(layout(pane("a"), pane("b")));
-    const collapsed = core.setCollapsed(tree, "a", true);
-    expect(find(collapsed.root, "a")).toMatchObject({ collapsed: true });
-    expect(find(core.setCollapsed(collapsed, "a", false).root, "a")).toMatchObject({ collapsed: false });
-    expect(core.setCollapsed(tree, "missing", true)).toEqual(tree);
+    const tucked = core.tuck(tree, view(), "a", fit());
+    expect(tucked.ok && find(tucked.layout.root, "a")).toMatchObject({ tuckedFrom: { parent: "root", home: "b" } });
+    expect(core.tuck(tree, view(), "missing", fit())).toEqual({ ok: false, reason: "missing" });
+    expect(core.putBack(tree, view(), "a", fit())).toEqual({ ok: false, reason: "not-tucked" });
   });
   it("toggles zoom, keeps it following focus, and resets presets by deep clone", () => {
     const core = createLayoutCore(), state = freeze(view());
@@ -301,10 +301,12 @@ describe("dividers", () => {
     expect(wider[0]! + wider[1]! + 6).toBeCloseTo(1806, 0);
     expect(wider[0]! / wider[1]!).toBeCloseTo(700 / 500, 1);
   });
-  it("never minimises the last expanded pane", () => {
+  it("never tucks the last pane on screen", () => {
     const core = createLayoutCore(), tree = layout(pane("a"), pane("b"));
-    const one = core.setCollapsed(tree, "a", true);
-    expect(core.setCollapsed(one, "b", true)).toEqual(one);
+    const one = core.tuck(tree, view(), "a", fit());
+    if (!one.ok) throw new Error("expected a tuck");
+    expect(core.canTuck(one.layout, "b", fit())).toEqual({ ok: false, reason: "tab" });
+    expect(core.canTuck(layout(pane("a")), "a", fit())).toEqual({ ok: false, reason: "last" });
   });
   it("ignores missing dividers and nonfinite deltas", () => {
     const core = createLayoutCore(), tree = layout(pane("a"), pane("b"));

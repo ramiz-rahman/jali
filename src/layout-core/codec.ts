@@ -1,7 +1,31 @@
-import type { KindRegistry, Layout, LayoutNode } from "./types";
+import type { KindRegistry, Layout, LayoutNode, Size, TuckOrigin } from "./types";
 import { validate } from "./validate";
+import { migrateCollapsed } from "./tuck";
 
 type Packed = Record<string, unknown>;
+const packSize = (size: Size) => "px" in size ? [0, size.px] : [1, size.weight];
+function unpackSize(value: unknown): Size {
+  if (!Array.isArray(value) || value.length !== 2 || (value[0] !== 0 && value[0] !== 1)) throw new Error("Invalid size");
+  return value[0] === 0 ? { px: value[1] } : { weight: value[1] };
+}
+/** tuckedFrom packs as k: [parent, axis 0|1, index, beside, side 0|1, size, home, userSized|null, extent|null, resized?]. */
+function packTuck(t: TuckOrigin): unknown[] {
+  const out: unknown[] = [t.parent, t.axis === "row" ? 0 : 1, t.index, t.beside, t.side === "after" ? 1 : 0, packSize(t.size), t.home, t.userSized ?? null, t.extent ?? null];
+  if (t.resized) out.push(t.resized.map(([id, a, b]) => [id, packSize(a), packSize(b)]));
+  return out;
+}
+function unpackTuck(k: unknown): TuckOrigin {
+  if (!Array.isArray(k) || (k.length !== 9 && k.length !== 10)) throw new Error("Invalid tuck origin");
+  const t: TuckOrigin = { parent: k[0], axis: k[1] === 0 ? "row" : "column", index: k[2], beside: k[3], side: k[4] === 1 ? "after" : "before", size: unpackSize(k[5]), home: k[6] };
+  if (k[1] !== 0 && k[1] !== 1 || k[4] !== 0 && k[4] !== 1) throw new Error("Invalid tuck origin");
+  if (k[7] !== null) t.userSized = k[7];
+  if (k[8] !== null) t.extent = k[8];
+  if (k.length === 10) {
+    if (!Array.isArray(k[9]) || k[9].length > 2048) throw new Error("Invalid tuck sizes");
+    t.resized = k[9].map((r: unknown) => { if (!Array.isArray(r) || r.length !== 3) throw new Error("Invalid tuck sizes"); return [r[0], unpackSize(r[1]), unpackSize(r[2])]; });
+  }
+  return t;
+}
 function pack(node: LayoutNode): Packed {
   const base: Packed = { i: node.id, t: node.type === "pane" ? "p" : node.type === "stack" ? "s" : node.type === "row" ? "r" : "c", s: "px" in node.size ? [0, node.size.px] : [1, node.size.weight] };
   if (node.userSized !== undefined) base.u = node.userSized;
@@ -9,7 +33,7 @@ function pack(node: LayoutNode): Packed {
     base.r = [node.ref.kind, node.ref.params];
     if (node.linkedTo !== undefined) base.l = node.linkedTo;
     if (node.pinned !== undefined) base.p = node.pinned;
-    if (node.collapsed !== undefined) base.c = node.collapsed;
+    if (node.tuckedFrom !== undefined) base.k = packTuck(node.tuckedFrom);
   } else {
     base.n = node.children.map(pack);
     if (node.type === "stack") { base.a = node.active; base.o = node.origin; if (node.axis !== undefined) base.d = node.axis; }
@@ -29,7 +53,9 @@ function unpack(value: unknown, depth = 0): unknown {
     base.ref = { kind: n.r[0], params: n.r[1] };
     if (n.l !== undefined) base.linkedTo = n.l;
     if (n.p !== undefined) base.pinned = n.p;
+    // Rail-era links: `c` (collapsed) is migrated to a tuck after decoding.
     if (n.c !== undefined) base.collapsed = n.c;
+    if (n.k !== undefined) base.tuckedFrom = unpackTuck(n.k);
   } else {
     if (!Array.isArray(n.n) || n.n.length > 2048) throw new Error("Invalid children");
     base.children = n.n.map(c => unpack(c, depth + 1));
@@ -60,6 +86,8 @@ export function decode(text: string, kinds: KindRegistry): Layout | null {
       if (!Array.isArray(fold) || fold.length < 1 || fold.length > 2) return null;
       layout.fold = { order: fold[0], ...(fold.length === 2 ? { active: fold[1] } : {}) };
     }
-    return validate(layout, kinds).ok ? layout : null;
+    if (!validate(layout, kinds).ok) return null;
+    const migrated = migrateCollapsed(layout);
+    return migrated === layout || validate(migrated, kinds).ok ? migrated : null;
   } catch { return null; }
 }

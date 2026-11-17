@@ -2,7 +2,7 @@
  * One command registry (spec §0.2): every pane action has a stable ID that feeds the palette, keys and menus.
  */
 import type { Edge } from "../layout-core/types";
-import { actions, allPanes, getState, hooks, mergeTargets, resolved, setState, stackOf } from "./store";
+import { actions, allPanes, canTuck, findPane, getState, hooks, mergeTargets, resolved, setState, shelfEntries, stackOf } from "./store";
 import { PRESETS } from "./presets";
 import { nearestDivider } from "./dividers/DividerLayer";
 
@@ -41,7 +41,9 @@ export const COMMANDS: Command[] = [
   ...[1, 2, 3, 4, 5, 6, 7, 8, 9].map((n): Command => ({ id: `pane.focus.${n}`, title: `Focus pane ${n}`, keys: `⌥${n}`, group: "Focus", run: () => actions.focusIndex(n) })),
 
   { id: "pane.zoom", title: "Maximise or restore pane", keys: "⇧⌘↵", group: "Pane", enabled: () => hasFocus() && (many() || !!getState().view.zoomed), run: () => actions.toggleZoom() },
-  { id: "pane.minimise", title: "Minimise or restore pane", keys: "⌥⌘M", group: "Pane", enabled: hasFocus, run: () => actions.setCollapsed() },
+  { id: "pane.tuck", title: "Tuck pane into its neighbour", keys: "⌥⌘M", group: "Pane", enabled: () => canTuck(getState().view.focused), run: () => actions.tuck() },
+  { id: "pane.putBack", title: "Put back tucked pane", keys: "⌥⇧⌘M", group: "Pane", enabled: () => allPanes().some((p) => p.tuckedFrom), run: () => actions.putBack() },
+  { id: "shelf.reveal", title: "Show a pane from the shelf", group: "Pane", enabled: () => shelfEntries().length > 0, run: () => revealFromShelf() },
   { id: "pane.resize_mode", title: "Resize mode (arrows, then Esc)", keys: "⌥⌘R", group: "Pane", enabled: hasFocus, run: () => enterResizeMode() },
   { id: "pane.close", title: "Close pane", keys: "⌥⌘W", group: "Pane", enabled: () => hasFocus() && many(), run: () => actions.close() },
   { id: "pane.close_others", title: "Close other panes", group: "Pane", enabled: () => hasFocus() && many(), run: () => actions.closeOthers() },
@@ -106,6 +108,19 @@ export function runCommand(id: string): boolean {
   if (!c || (c.enabled && !c.enabled())) return false;
   c.run();
   return true;
+}
+
+/** One pane off screen: show it. Several: move focus to the shelf toolbar (arrows choose, Enter shows). */
+export function revealFromShelf() {
+  const items = shelfEntries();
+  const chip = typeof document !== "undefined" ? document.querySelector<HTMLElement>('[data-shelf] .shelf-chip-main[tabindex="0"], [data-shelf] .shelf-chip-main') : null;
+  if (items.length > 1 && chip) {
+    chip.focus();
+    hooks.announce(`Shelf: ${items.length} panes. Arrows to choose, Enter to show`);
+    return;
+  }
+  const first = items.find((i) => findPane(i.paneId)?.tuckedFrom) ?? items[0];
+  if (first) actions.reveal(first.paneId);
 }
 
 export function openMergeChooser() {

@@ -12,9 +12,9 @@ const fromJson = (value: unknown) => {
 describe("codec", () => {
   it("round-trips an eight-pane mixed tree with every flag and Unicode", () => {
     const tree = freeze(layout(
-      pane("a", "list", { size: { px: 380 }, userSized: true, collapsed: false, ref: { kind: "list", params: { name: "ঢাকা / café 🚀", id: 99 } } }),
+      pane("a", "list", { size: { px: 380 }, userSized: true, ref: { kind: "list", params: { name: "ঢাকা / café 🚀", id: 99 } } }),
       { id: "col", type: "column", size: { weight: 3 }, children: [
-        pane("b", "record", { linkedTo: "a", pinned: true, collapsed: true }),
+        pane("b", "record", { linkedTo: "a", pinned: true, tuckedFrom: { parent: "root", axis: "row", index: 3, beside: "g", side: "after", size: { weight: 1.5 }, userSized: true, home: "g", extent: 412.5, resized: [["g", { weight: 1 }, { weight: 2.5 }]] } }),
         { id: "user", type: "stack", origin: "user", size: { weight: 2 }, active: "d", children: [pane("c"), pane("d", "inspector", { pinned: false, userSized: false })] },
       ] },
       { id: "auto", type: "stack", origin: "auto", axis: "column", size: { weight: 1 }, active: "e", children: [pane("e"), pane("f")] },

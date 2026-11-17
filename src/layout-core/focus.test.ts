@@ -4,7 +4,7 @@ import { freeze, view } from "./test-utils";
 import type { Edge, PaneBox, ResolvedLayout } from "./types";
 
 const box = (id: string, x: number, y: number, width = 100, height = 100): PaneBox => ({ id, rect: { x, y, width, height } });
-const resolved = (...panes: PaneBox[]): ResolvedLayout => ({ panes, dividers: [], folded: [], stacks: [] });
+const resolved = (...panes: PaneBox[]): ResolvedLayout => ({ panes, dividers: [], folded: [], stacks: [], shelf: [] });
 
 describe("focus", () => {
   const core = createLayoutCore();

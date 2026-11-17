@@ -1,36 +1,28 @@
-import { actions, findPane, resolved, titleOf, useUi } from "../store";
-import * as store from "../store";
-import { paneTitle } from "../pane-kinds";
+import type { ShelfEntry } from "../../layout-core/types";
+import { actions, shelfEntries, titleOf, tuckHome, useUi } from "../store";
 
-/** One tucked pane as the shelf shows it. Mirrors ResolvedLayout.shelf. */
-export interface ShelfItem { paneId: string; homeId: string; reason?: string; activity?: string }
+/** One tucked pane as the shelf shows it (ShelfEntry from layout-core, with activity from the store). */
+export type ShelfItem = ShelfEntry;
 
-type Loose = {
-  canTuck?: (id: string) => boolean | { ok: boolean; home?: string };
-  tuckHome?: (id: string) => string | undefined;
-};
-const api = store as unknown as Loose;
-
-/** The shelf entries from the resolved layout; empty when nothing is tucked. */
+/** The shelf UI shows tucked panes only; ResolvedLayout.shelf also lists folded panes and inactive tabs (DECISIONS, 17 Nov). */
 export function useShelf(): ShelfItem[] {
   useUi((s) => s.layout);
   useUi((s) => s.area);
-  return ((resolved() as unknown as { shelf?: ShelfItem[] }).shelf ?? []).slice();
+  useUi((s) => s.activity);
+  return shelfEntries().filter((e) => e.reason === "tucked");
 }
 
 /** Whether a pane can be tucked now, and the pane it would join. */
 export function useTuck(id: string): { can: boolean; homeTitle: string | undefined } {
   useUi((s) => s.layout);
-  const r = api.canTuck?.(id);
-  const can = typeof r === "object" ? !!r?.ok : !!r;
-  const homeId = typeof r === "object" ? r?.home : api.tuckHome?.(id);
-  const home = homeId ? findPane(homeId) : undefined;
-  return { can, homeTitle: home ? paneTitle(home.ref) : homeId ? titleOf(homeId) : undefined };
+  useUi((s) => s.area);
+  const homeId = tuckHome(id);
+  return { can: !!homeId, homeTitle: homeId ? titleOf(homeId) : undefined };
 }
 
-export const tuck = (id: string) => (actions as unknown as { tuck: (id: string) => void }).tuck(id);
-export const putBack = (id: string) => (actions as unknown as { putBack: (id: string) => void }).putBack(id);
-export const reveal = (id: string) => (actions as unknown as { reveal: (id: string) => void }).reveal(id);
+export const tuck = (id: string) => actions.tuck(id);
+export const putBack = (id: string) => actions.putBack(id);
+export const reveal = (id: string) => actions.reveal(id);
 
 /** A 600ms highlight on a tab, so the eye finds where a revealed pane went. Skipped under reduced motion. */
 export function flashTab(paneId: string) {

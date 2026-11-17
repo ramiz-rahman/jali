@@ -2,6 +2,7 @@ import type { Edge, FitOptions, Layout, LayoutCore, LayoutNode, LayoutOps, Objec
 import { activate, balance, clone, combined, find, isSplit, newId, nodes, panes, parent, remove, replace, unfold } from "./model";
 import { directionalCandidates, focus, focusCycle, focusDirection } from "./focus";
 import { AUTO_PREFIX, refit, resolve } from "./resolve";
+import { canTuck, putBack, tuck } from "./tuck";
 
 const unzoom = (view: ViewState): ViewState => { const result = clone(view); delete result.zoomed; return result; };
 const draft = (layout: Layout): Layout => ({ ...clone(layout), root: unfold(clone(layout.root)) });
@@ -133,6 +134,7 @@ export function createOps(paneCap: number, remember: (layout: Layout, fit: FitOp
     forget(next, [a, b]);
     const leftContent = { ...left, size: right.size, userSized: right.userSized };
     const rightContent = { ...right, size: left.size, userSized: left.userSized };
+    delete leftContent.tuckedFrom; delete rightContent.tuckedFrom;
     // Simultaneous replacement also works when the panes are in the same stack.
     for (const node of nodes(next.root)) if (node.type !== "pane") {
       if (node.type === "stack") {
@@ -152,6 +154,8 @@ export function createOps(paneCap: number, remember: (layout: Layout, fit: FitOp
     }
     const next = clone(layout);
     const pane = clone(find(next.root, dragged) as PaneNode);
+    // A deliberate move ends a tuck: the pane now lives where it was dropped.
+    delete pane.tuckedFrom;
     next.root = remove(next.root, dragged)!;
     forget(next, [dragged]);
     if (zone === "centre") tab(next, target, pane);
@@ -235,13 +239,16 @@ export function createOps(paneCap: number, remember: (layout: Layout, fit: FitOp
       }
       return next;
     },
-    setCollapsed(layout, pane, collapsed) {
-      const next = clone(layout), node = find(next.root, pane);
-      if (node?.type !== "pane") return next;
-      // Founder review, 17 Nov: the last expanded pane can never be minimised (no all-rails screen).
-      if (collapsed && panes(next.root).filter(p => !p.collapsed && p.id !== pane).length === 0) return layout;
-      node.collapsed = collapsed;
-      return next;
+    canTuck: (layout, pane, fit) => canTuck(layout, pane, fit, paneCap),
+    tuck(layout, view, pane, fit) {
+      const r = tuck(layout, unzoom(view), pane, fit, paneCap);
+      if (r.ok && fit) remember(r.layout, fit);
+      return r;
+    },
+    putBack(layout, view, pane, fit) {
+      const r = putBack(layout, unzoom(view), pane, fit ?? lastFit(layout), paneCap);
+      if (r.ok && fit) remember(r.layout, fit);
+      return r;
     },
     toggleZoom(view, pane) { const next = clone(view); if (next.zoomed === pane) delete next.zoomed; else next.zoomed = pane; return next; },
     focus, focusDirection, focusCycle,

@@ -31,7 +31,7 @@ export function combined(a: Size, b: Size): Size {
 export function unfold(node: LayoutNode, axis: Axis = "row"): LayoutNode {
   if (node.type === "pane") return node;
   if (node.type === "stack") {
-    if (node.origin === "user") return node;
+    if (node.origin !== "auto") return node;
     return { id: node.id, type: node.axis ?? axis, size: node.size, userSized: node.userSized, children: node.children };
   }
   return { ...node, children: node.children.map(c => unfold(c, node.type)) };
