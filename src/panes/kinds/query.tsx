@@ -75,6 +75,6 @@ function typeFromRows(rows: Row[], name: string) {
 
 export const queryKind = definePaneKind({
   kind: "query", ref: (params) => ({ kind: "query", params }),
-  title: (_ref) => "Query", minWidth: 480, minHeight: 280, heavy: true, identity: () => undefined,
+  title: (_ref) => "Query", minWidth: 400, comfortableWidth: 560, minHeight: 280, heavy: true, identity: () => undefined,
   icon: TerminalSquare, Component: QueryPane,
 });

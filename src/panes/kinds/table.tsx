@@ -74,6 +74,6 @@ export function TablePane(p: PaneComponentProps) {
 
 export const tableKind = definePaneKind({
   kind: "table", ref: (params) => ({ kind: "table", params }),
-  title: (ref) => String(ref.params.table ?? "Table"), minWidth: 480, minHeight: 240, heavy: true,
+  title: (ref) => String(ref.params.table ?? "Table"), minWidth: 440, comfortableWidth: 560, minHeight: 240, heavy: true,
   icon: Table2, Component: TablePane,
 });

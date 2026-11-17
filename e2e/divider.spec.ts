@@ -23,7 +23,7 @@ test.describe("Divider", () => {
     await lab.stable();
     const clamped = await lab.width(orders);
     expect(clamped).toBeLessThan(initial);
-    expect(clamped).toBeGreaterThanOrEqual(480); // table minimum
+    expect(clamped).toBeGreaterThanOrEqual(440); // table minimum
     await page.mouse.move(x - 1200, y);
     // a second, even longer drag stays at the same width
     const b2 = (await s.boundingBox())!;
@@ -58,11 +58,12 @@ test.describe("Divider", () => {
     await expect.poll(() => lab.width(orders)).toBe(w0 - 64);
 
     await page.keyboard.press("Home");
-    await expect.poll(() => lab.width(orders)).toBe(480);
+    await expect.poll(() => lab.width(orders)).toBe(440); // table minimum
     expect(await lab.attr(s, "aria-valuenow")).toBe(await lab.attr(s, "aria-valuemin"));
     await page.keyboard.press("End");
-    // Orders cannot grow past its start here: the two records sit at their 480px minimums, so End == the start width.
-    await expect.poll(() => lab.width(orders)).toBe(w0);
+    // End takes orders as far as its neighbour's minimum allows. The records start at their comfortable 440, above
+    // their 360 minimum, so orders grows past its start (it could not when records needed 480).
+    await expect.poll(() => lab.width(orders)).toBeGreaterThan(w0);
     expect(await lab.attr(s, "aria-valuenow")).toBe(await lab.attr(s, "aria-valuemax"));
   });
 
