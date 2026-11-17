@@ -47,7 +47,9 @@ export function RecordPane({ ref, paused, openBeside, setActivity }: PaneCompone
         {update.isPending && <span className="pk-meta">Saving</span>}
       </div>
       {saveError && <div role="alert" className="pk-meta" style={{ padding: "6px 14px", color: "var(--red, #B42318)" }}>Could not save: {saveError}</div>}
-      <div className="pk-rec">
+      {/* Content contract: fields sit at the record's measure from the pane's start edge; two columns when wide. */}
+      <div className="pk-rec rec"><div className="rec-body">
+        <div className="rec-fields">
         {info.columns.map((c) => {
           const v = row[c.name] ?? null;
           const link = foreignKeyRef(c, v);
@@ -72,8 +74,9 @@ export function RecordPane({ ref, paused, openBeside, setActivity }: PaneCompone
             </div>
           );
         })}
+        </div>
         <Relations table={table} id={id} row={row} paused={paused} openBeside={openBeside} />
-      </div>
+      </div></div>
     </Shell>
   );
 }
@@ -99,7 +102,7 @@ function Relations({ table, id, row, paused, openBeside }: { table: TableName; i
       <div className="pk-sec">Related records</div>
       {isLoading(rels) ? <Loading /> : rels.isError ? <ErrorState message={errorText(rels) ?? ""} /> :
         list.length === 0 ? <div className="pk-meta" style={{ padding: "4px 14px" }}>Nothing points here.</div> :
-        list.map((r) => <RelationLink key={r.label + r.table} rel={r} openBeside={openBeside} />)}
+        <div className="rec-related">{list.map((r) => <RelationLink key={r.label + r.table} rel={r} openBeside={openBeside} />)}</div>}
     </>
   );
 }
@@ -116,7 +119,7 @@ function RelationLink({ rel, openBeside }: { rel: Relation; openBeside: PaneComp
 
 export const recordKind = definePaneKind({
   kind: "record", object: "record", ref: (params) => ({ kind: "record", params }),
-  title: (ref) => `${singular(String(ref.params.table ?? "record"))} ${ref.params.id ?? ""}`.trim(), minWidth: 480, minHeight: 240, 
+  title: (ref) => `${singular(String(ref.params.table ?? "record"))} ${ref.params.id ?? ""}`.trim(), minWidth: 360, comfortableWidth: 440, maxWidth: 600, minHeight: 240, 
   icon: FileText, Component: RecordPane,
 });
 

@@ -25,6 +25,9 @@
 .pk-grid { flex:1; min-height:0; display:flex; flex-direction:column; outline:none; }
 .pk-gh { display:flex; flex:none; border-bottom:1px solid var(--z200); background:var(--z50); overflow:hidden; }
 .pk-gbody { flex:1; min-height:0; overflow:auto; position:relative; }
+/* The grid's right edge once it reaches its measure (Grid.tsx): header and rows end at one rule. */
+.pk-gh { box-sizing:border-box; border-right:1px solid var(--z200); }
+.pk-grows { position:relative; box-sizing:border-box; border-right:1px solid var(--z100); }
 .pk-row { display:flex; position:absolute; left:0; height:28px; align-items:center; border-bottom:1px solid var(--z100); cursor:default; }
 .pk-row:hover { background:var(--z50); } .pk-row[aria-selected="true"] { background:var(--accent-soft); box-shadow:inset 2px 0 0 var(--accent); }
 .pk-cell { flex:none; padding:0 10px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; box-sizing:border-box; }
@@ -83,7 +86,23 @@
 .pk-json code, .pk-json pre { font:12px/1.5 var(--mono,"IBM Plex Mono",monospace); color:var(--text-2,#52525B); margin:0; overflow-wrap:anywhere; white-space:pre-wrap; }
 .pk-json pre { max-height:240px; overflow:auto; width:100%; padding:6px 8px; box-sizing:border-box; background:var(--hover,#F4F4F5); border-radius:6px; }
 .pk-field .money { font-variant-numeric:tabular-nums; }
-.pk-field .money { text-align:right; }
+
+/* ---------- record: pane content contract (docs/DECISIONS.md, "Pane sizing") ----------
+   The fields sit at a stated measure from the pane's start edge; past it the pane's background continues (a deliberate
+   edge, not a stretched form). Labels and values stay close: a fixed label column, values left-aligned beside it.
+   Money right-aligns in one shared slot right after the label, so amounts line up with each other near their labels.
+   Two columns once the pane is wide enough for two measures (when nothing beside it can use the room). */
+.pk-rec.rec { container:record / inline-size; }
+.rec-body { --rec-k:136px; max-width:600px; }
+.rec-body .pk-field { grid-template-columns:var(--rec-k) minmax(0,1fr); }
+.rec-body .money .pk-val { display:inline-block; min-width:10ch; text-align:right; }
+.rec-related .pk-field { grid-template-columns:minmax(0,max-content) auto; justify-content:start; column-gap:16px; }
+@container record (max-width:419px) { .rec-body { --rec-k:112px; } }
+@container record (min-width:880px) {
+  .rec-body { max-width:1200px; }
+  .rec-fields, .rec-related { columns:2; column-gap:24px; }
+  .rec-fields .pk-field, .rec-related .pk-field { break-inside:avoid; }
+}
 
 :root[data-theme="dark"] .pk { --chart-label:#FAFAFA; --er-label:#FAFAFA; --er-head:#232327; }
 @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .pk { --chart-label:#FAFAFA; --er-label:#FAFAFA; --er-head:#232327; } }
