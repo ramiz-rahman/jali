@@ -2,9 +2,9 @@ import { describe, expect, it } from "vitest";
 import { clampSize, snap, SNAP_IN, SNAP_OUT } from "./dividers/resize";
 import { zoneFor, EDGE_ZONE } from "./workspace/dnd";
 import { decodePeek, encodePeek } from "./url";
-import { handleKey } from "./commands/keyboard";
+import { createKeyHandler } from "./commands/keyboard";
 import { COMMANDS, runCommand, shortcutLabel } from "./commands/registry";
-import { formatChord } from "./commands/format";
+import { formatChord, parseKeys } from "./commands/format";
 import { mergeTargets } from "./actions/tabs";
 import { openPaneFor } from "./actions/open";
 import { dropText } from "./state/messages";
@@ -71,31 +71,46 @@ describe("command registry", () => {
   });
 });
 
+const keys = createKeyHandler(store);
+const mac = () => store.keymap.platform === "mac";
+const modKey = () => (mac() ? { metaKey: true } : { ctrlKey: true });
+/** One keydown through both phases of the pane layer (no content in between). */
+const press = (init: KeyboardEventInit & { code?: string }) => {
+  const e = new KeyboardEvent("keydown", { cancelable: true, ...init });
+  return keys.capture(e) || keys.bubble(e);
+};
+/** "Mod+K Mod+M": each chord as a keydown, as the person would press them. Returns whether the last was taken. */
+const pressKeys = (text: string) => {
+  let taken = false;
+  for (const c of parseKeys(text)) {
+    const named = !/^(Key|Digit)/.test(c.key) && c.key.length > 1 && !["Backslash", "BracketLeft", "BracketRight"].includes(c.key);
+    const key = named ? c.key : ({ Backslash: "\\", BracketLeft: "[", BracketRight: "]" } as Record<string, string>)[c.key] ?? c.key.replace(/^(Key|Digit)/, "").toLowerCase();
+    taken = press({ key, code: named ? undefined : c.key, shiftKey: !!c.shift, altKey: !!c.alt, ...(c.mod ? modKey() : {}) });
+  }
+  return taken;
+};
+
 describe("keyboard layer and close/undo", () => {
-  const key = (init: KeyboardEventInit & { code?: string }) => new KeyboardEvent("keydown", init);
-  it("F6 cycles focus, ⌥⌘W closes, ⌘Z restores", () => {
+  it("F6 cycles focus, ⌘K ⌘⌫ closes, ⌘K ⌘Z restores", () => {
     setState({ area: { width: 1600, height: 900 } });
     actions.preset("order-chain");
     const first = getState().view.focused;
-    expect(handleKey(store, key({ key: "F6" }))).toBe(true);
+    expect(press({ key: "F6" })).toBe(true);
     expect(getState().view.focused).not.toBe(first);
     const before = allPanes().length;
-    const mod = navigator.platform.includes("Mac") ? { metaKey: true } : { ctrlKey: true };
-    expect(handleKey(store, key({ key: "w", code: "KeyW", altKey: true, ...mod }))).toBe(true);
+    expect(pressKeys("Mod+K Mod+Backspace")).toBe(true);
+    expect(getState().paletteOpen).toBe(false); // the chord closed the palette its prefix opened
     expect(allPanes().length).toBe(before - 1);
-    expect(handleKey(store, key({ key: "z", code: "KeyZ", ...mod }))).toBe(true);
+    expect(pressKeys("Mod+K Mod+Z")).toBe(true);
     expect(allPanes().length).toBe(before);
   });
   it("Esc leaves zoom", () => {
     actions.toggleZoom(allPanes()[0]!.id);
     expect(getState().view.zoomed).toBeTruthy();
-    expect(handleKey(store, key({ key: "Escape" }))).toBe(true);
+    expect(press({ key: "Escape" })).toBe(true);
     expect(getState().view.zoomed).toBeUndefined();
   });
 });
-
-const modKey = () => (navigator.platform.includes("Mac") ? { metaKey: true } : { ctrlKey: true });
-const press = (init: KeyboardEventInit & { code?: string }) => handleKey(store, new KeyboardEvent("keydown", init));
 const kinds = () => allPanes().map((p) => p.ref.kind);
 
 describe("split opens a launcher", () => {
@@ -103,7 +118,7 @@ describe("split opens a launcher", () => {
     setState({ area: { width: 1600, height: 900 } });
     actions.preset("one-table");
     actions.focus("orders");
-    expect(press({ key: "\\", code: "Backslash", altKey: true, ...modKey() })).toBe(true);
+    expect(press({ key: "\\", code: "Backslash", ...modKey() })).toBe(true);
     const launcher = allPanes().find((p) => p.ref.kind === "launcher")!;
     expect(launcher).toBeTruthy();
     expect(getState().view.focused).toBe(launcher.id);
@@ -171,10 +186,10 @@ describe("merge and unmerge without dragging", () => {
     actions.focus("customer");
     expect(mergeTargets(store.snapshot()).map((t) => t.id)).toEqual(["orders", "order"]);
   });
-  it("⌥⌘T opens the chooser; mergeInto adds the pane as a tab", () => {
+  it("⌘K ⌘G opens the chooser; mergeInto adds the pane as a tab", () => {
     actions.preset("order-chain");
     actions.focus("customer");
-    expect(press({ key: "t", code: "KeyT", altKey: true, ...modKey() })).toBe(true);
+    expect(pressKeys("Mod+K Mod+G")).toBe(true);
     expect(getState().chooser).toEqual({ kind: "merge", source: "customer" });
     setState({ chooser: null });
     actions.mergeInto("customer", "orders");
@@ -186,11 +201,11 @@ describe("merge and unmerge without dragging", () => {
     actions.focus("order");
     expect(mergeTargets(store.snapshot())[0]!.hint).toBe("2 tabs");
   });
-  it("⌥⇧⌘T moves a tab out, to the right of its stack", () => {
+  it("⌘K ⇧⌘G moves a tab out, to the right of its stack", () => {
     actions.preset("order-chain");
     actions.mergeInto("customer", "orders");
     actions.focus("customer");
-    expect(press({ key: "T", code: "KeyT", altKey: true, shiftKey: true, ...modKey() })).toBe(true);
+    expect(pressKeys("Mod+K Shift+Mod+G")).toBe(true);
     expect(stackOf("customer")).toBeUndefined();
     const ids = allPanes().map((p) => p.id);
     expect(ids.indexOf("customer")).toBe(ids.indexOf("orders") + 1);
@@ -248,11 +263,11 @@ describe("apply and the command registry", () => {
     setState({ area: { width: 1600, height: 900 }, undoStack: [] });
     actions.preset("order-chain");
     setState({ undoStack: [] });
-    expect(press({ key: "z", code: "KeyZ", ...modKey() })).toBe(true);
+    expect(pressKeys("Mod+K Mod+Z")).toBe(true);
     expect(announced()).toBe("Nothing to restore");
     actions.closeOthers("orders");
     const seq = getState().announcement.seq;
-    expect(press({ key: "w", code: "KeyW", altKey: true, ...modKey() })).toBe(true);
+    expect(pressKeys("Mod+K Mod+Backspace")).toBe(true);
     expect(getState().announcement.seq).toBe(seq);
     expect(allPanes()).toHaveLength(1);
   });
@@ -268,11 +283,11 @@ describe("apply and the command registry", () => {
     expect(POLICY.resize.history).toBe("debounce");
     expect(POLICY.focus.history).toBe("none");
   });
-  it("prints shortcuts from the registry for each platform", () => {
-    expect(formatChord({ key: "KeyM", alt: true, shift: true, mod: true }, true)).toBe("⌥⇧⌘M");
-    expect(formatChord({ key: "KeyM", alt: true, shift: true, mod: true }, false)).toBe("Ctrl Alt Shift M");
-    expect(formatChord({ key: "Enter", shift: true, mod: true }, true)).toBe("⇧⌘↵");
-    expect(shortcutLabel("pane.focus.next")).toBe("F6");
-    expect(COMMANDS.find((c) => c.id === "pane.focus.left")?.keys?.[0]).toEqual({ key: "ArrowLeft", alt: true, mod: true });
+  it("prints shortcuts from the keymap for each platform", () => {
+    expect(formatChord({ key: "KeyM", alt: true, shift: true, mod: true }, "mac")).toBe("⌥⇧⌘M");
+    expect(formatChord({ key: "KeyM", alt: true, shift: true, mod: true }, "other")).toBe("Ctrl+Alt+Shift+M");
+    expect(formatChord({ key: "Enter", shift: true, mod: true }, "mac")).toBe("⇧⌘↵");
+    expect(shortcutLabel(store, "pane.focus.next")).toBe("F6");
+    expect(store.keymap.sequences("pane.focus.left")[0]).toEqual([{ key: "KeyK", mod: true }, { key: "ArrowLeft", mod: true }]);
   });
 });

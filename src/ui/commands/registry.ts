@@ -1,7 +1,8 @@
 /**
- * One command registry (spec §0.2): every workspace command has a stable id, a title, its keys, a check and a run.
- * The palette lists it (disabled while the check refuses), the keyboard matches its keys (and says a refusal's
- * reason), and tooltips print its keys with `shortcutLabel`.
+ * One command registry (spec §0.2): every workspace command has a stable id, a title, a check and a run. Keys are
+ * not here: the store's keymap (commands/keymap.ts) binds ids to keys, so a host can rebind or unbind any of them.
+ * The palette lists every command (disabled while the check refuses) with its keys; the keyboard runs the command a
+ * binding names (and says a refusal's reason); tooltips print `store.keymap.label(id)`.
  */
 import type { Edge } from "../../layout-core/types";
 import { checkUndo } from "../actions/close";
@@ -14,13 +15,12 @@ import { PRESETS } from "../presets";
 import { refuse, type Refusal, type Snapshot } from "../state/apply";
 import { msg } from "../state/messages";
 import type { UiStore } from "../state/store";
-import { formatChord, matchChord, type Chord } from "./format";
+import { cycleRegions } from "./regions";
 
 export interface Command {
   id: string;
   title: string;
   group: "Focus" | "Pane" | "Move" | "Tabs" | "Layout" | "Peek" | "Settings";
-  keys?: Chord[];
   /** Why the command can't run now (silent without a message); undefined when it can. */
   check?: (x: Snapshot) => Refusal | undefined;
   run: (store: UiStore) => void;
@@ -28,34 +28,35 @@ export interface Command {
 
 const needFocus = ({ s }: Snapshot) => (s.view.focused ? undefined : refuse());
 const needOthers = (x: Snapshot) => needFocus(x) ?? (x.m.panes.length > 1 ? undefined : refuse());
-const DIRS: [Edge, string, string][] = [["left", "left", "ArrowLeft"], ["right", "right", "ArrowRight"], ["top", "up", "ArrowUp"], ["bottom", "down", "ArrowDown"]];
+const DIRS: [Edge, string][] = [["left", "left"], ["right", "right"], ["top", "up"], ["bottom", "down"]];
 
 export const COMMANDS: Command[] = [
-  { id: "pane.focus.next", title: "Focus next pane", keys: [{ key: "F6" }], group: "Focus", run: (u) => u.actions.focusCycle(1) },
-  { id: "pane.focus.previous", title: "Focus previous pane", keys: [{ key: "F6", shift: true }], group: "Focus", run: (u) => u.actions.focusCycle(-1) },
-  ...DIRS.map(([d, w, key]): Command => ({ id: `pane.focus.${w}`, title: `Focus pane ${w}`, keys: [{ key, alt: true, mod: true }], group: "Focus", check: needFocus, run: (u) => u.actions.focusDirection(d) })),
-  ...[1, 2, 3, 4, 5, 6, 7, 8, 9].map((n): Command => ({ id: `pane.focus.${n}`, title: `Focus pane ${n}`, keys: [{ key: `Digit${n}`, alt: true }], group: "Focus", run: (u) => u.actions.focusIndex(n) })),
+  // F6 visits the panes, then the shelf and the host's regions (commands/regions.ts).
+  { id: "pane.focus.next", title: "Focus next pane", group: "Focus", run: (u) => cycleRegions(u, false) },
+  { id: "pane.focus.previous", title: "Focus previous pane", group: "Focus", run: (u) => cycleRegions(u, true) },
+  ...DIRS.map(([d, w]): Command => ({ id: `pane.focus.${w}`, title: `Focus pane ${w}`, group: "Focus", check: needFocus, run: (u) => u.actions.focusDirection(d) })),
+  ...[1, 2, 3, 4, 5, 6, 7, 8, 9].map((n): Command => ({ id: `pane.focus.${n}`, title: `Focus pane ${n}`, group: "Focus", run: (u) => u.actions.focusIndex(n) })),
 
-  { id: "pane.zoom", title: "Maximise or restore pane", keys: [{ key: "Enter", shift: true, mod: true }], group: "Pane", check: checkZoom, run: (u) => u.actions.toggleZoom() },
-  { id: "pane.tuck", title: "Tuck pane into its neighbour", keys: [{ key: "KeyM", alt: true, mod: true }], group: "Pane", check: (x) => checkTuck(x), run: (u) => u.actions.tuck() },
+  { id: "pane.zoom", title: "Maximise or restore pane", group: "Pane", check: checkZoom, run: (u) => u.actions.toggleZoom() },
+  { id: "pane.tuck", title: "Tuck pane into its neighbour", group: "Pane", check: (x) => checkTuck(x), run: (u) => u.actions.tuck() },
   // A tucked tab with DOM focus is the one put back first.
-  { id: "pane.putBack", title: "Put back tucked pane", keys: [{ key: "KeyM", alt: true, shift: true, mod: true }], group: "Pane", check: checkPutBack, run: (u) => u.actions.putBack(undefined, activeTabId()) },
+  { id: "pane.putBack", title: "Put back tucked pane", group: "Pane", check: checkPutBack, run: (u) => u.actions.putBack(undefined, activeTabId()) },
   { id: "shelf.reveal", title: "Show a pane from the shelf", group: "Pane", check: (x) => (x.m.resolved.shelf.length ? undefined : refuse()), run: revealFromShelf },
-  { id: "pane.resize_mode", title: "Resize mode (arrows, then Esc)", keys: [{ key: "KeyR", alt: true, mod: true }], group: "Pane", check: needFocus, run: (u) => u.actions.enterResizeMode() },
-  { id: "pane.close", title: "Close pane", keys: [{ key: "KeyW", alt: true, mod: true }], group: "Pane", check: needOthers, run: (u) => u.actions.close() },
+  { id: "pane.resize_mode", title: "Resize mode (arrows, then Esc)", group: "Pane", check: needFocus, run: (u) => u.actions.enterResizeMode() },
+  { id: "pane.close", title: "Close pane", group: "Pane", check: needOthers, run: (u) => u.actions.close() },
   { id: "pane.close_others", title: "Close other panes", group: "Pane", check: needOthers, run: (u) => u.actions.closeOthers() },
-  { id: "pane.undo_close", title: "Restore last closed pane", keys: [{ key: "KeyZ", mod: true, notInText: true }], group: "Pane", check: checkUndo, run: (u) => u.actions.undo() },
+  { id: "pane.undo_close", title: "Restore last closed pane", group: "Pane", check: checkUndo, run: (u) => u.actions.undo() },
   // Splits open a launcher (a "New pane" to choose an object in), never a copy of the focused object.
-  { id: "pane.split.right", title: "Split right (new pane)", keys: [{ key: "Backslash", alt: true, mod: true }], group: "Pane", check: needFocus, run: (u) => u.actions.split("right") },
-  { id: "pane.split.down", title: "Split down (new pane)", keys: [{ key: "Backslash", alt: true, shift: true, mod: true }], group: "Pane", check: needFocus, run: (u) => u.actions.split("bottom") },
+  { id: "pane.split.right", title: "Split right (new pane)", group: "Pane", check: needFocus, run: (u) => u.actions.split("right") },
+  { id: "pane.split.down", title: "Split down (new pane)", group: "Pane", check: needFocus, run: (u) => u.actions.split("bottom") },
   { id: "pane.split.auto", title: "Split auto (new pane, by shape)", group: "Pane", check: needFocus, run: (u) => u.actions.splitAuto() },
 
-  ...DIRS.map(([d, w, key]): Command => ({ id: `pane.move.${w}`, title: `Move pane ${w}`, keys: [{ key, alt: true, shift: true, mod: true }], group: "Move", check: needOthers, run: (u) => u.actions.moveDirection(d) })),
+  ...DIRS.map(([d, w]): Command => ({ id: `pane.move.${w}`, title: `Move pane ${w}`, group: "Move", check: needOthers, run: (u) => u.actions.moveDirection(d) })),
   { id: "pane.swap", title: "Swap with next pane", group: "Move", check: needOthers, run: (u) => u.actions.swapWithNext() },
 
   // Merge and unmerge without dragging (WCAG 2.5.7).
-  { id: "pane.merge", title: "Add to tabs of…", keys: [{ key: "KeyT", alt: true, mod: true }], group: "Tabs", check: checkMerge, run: (u) => u.set({ chooser: { kind: "merge", source: u.get().view.focused! } }) },
-  { id: "pane.unmerge", title: "Move out of tabs", keys: [{ key: "KeyT", alt: true, shift: true, mod: true }], group: "Tabs", check: checkUnmerge, run: (u) => u.actions.unmerge() },
+  { id: "pane.merge", title: "Add to tabs of…", group: "Tabs", check: checkMerge, run: (u) => u.set({ chooser: { kind: "merge", source: u.get().view.focused! } }) },
+  { id: "pane.unmerge", title: "Move out of tabs", group: "Tabs", check: checkUnmerge, run: (u) => u.actions.unmerge() },
   { id: "stack.new-tab", title: "New tab here", group: "Tabs", check: needFocus, run: (u) => u.actions.newTab() },
 
   ...PRESETS.map((p): Command => ({ id: `layout.preset.${p.id}`, title: `Layout: ${p.label}`, group: "Layout", run: (u) => u.actions.preset(p.id) })),
@@ -70,7 +71,7 @@ export const COMMANDS: Command[] = [
   { id: "review.as_officer", title: "View as loan officer (Single only, links peek)", group: "Settings", check: ({ s }) => (s.review?.canInvestigate ? undefined : refuse()), run: (u) => u.actions.setCanInvestigate(false) },
   { id: "review.as_reviewer", title: "View as credit reviewer (links open beside)", group: "Settings", check: ({ s }) => (s.review && !s.review.canInvestigate ? undefined : refuse()), run: (u) => u.actions.setCanInvestigate(true) },
 
-  { id: "peek.close", title: "Close peek", keys: [{ key: "Escape" }], group: "Peek", check: checkPeek, run: (u) => u.actions.peek(null) },
+  { id: "peek.close", title: "Close peek", group: "Peek", check: checkPeek, run: (u) => u.actions.peek(null) },
   { id: "peek.pin", title: "Pin peek beside", group: "Peek", check: checkPeek, run: (u) => u.actions.pinPeek() },
   { id: "peek.open_full", title: "Open peek full", group: "Peek", check: checkPeek, run: (u) => u.actions.openPeekFull() },
 
@@ -88,14 +89,10 @@ export function runCommand(store: UiStore, id: string): boolean {
   return true;
 }
 
-/** The command whose keys match a keydown. */
-export const commandForKey = (e: KeyboardEvent) => COMMANDS.find((c) => c.keys?.some((k) => matchChord(k, e)));
+export const commandById = (id: string) => byId.get(id);
 
-/** "⌥⌘M": the command's first chord, for tooltips and the palette. */
-export function shortcutLabel(id: string): string {
-  const k = byId.get(id)?.keys?.[0];
-  return k ? formatChord(k) : "";
-}
+/** "⌘K ⌘M": a command's first binding in this store's keymap, for tooltips and the palette ("" when unbound). */
+export const shortcutLabel = (store: Pick<UiStore, "keymap">, id: string) => store.keymap.label(id);
 
 export function copyLink(store: UiStore) {
   const url = location.href;

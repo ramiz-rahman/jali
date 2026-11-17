@@ -14,6 +14,7 @@ import { modelCache, type WorkspaceModel } from "./model";
 import { loadSettings, systemPrefersDark, type Settings } from "./settings";
 import { loadPrefs, type ReviewPrefs } from "./review-prefs";
 import { getProfile, type ViewMode } from "../profile";
+import { createKeymap, type Keymap, type KeymapOptions, type KeymapOverrides } from "../commands/keymap";
 
 /** A drag in progress. `label` names a view dragged from a page's tabs, which may not be on screen. */
 export interface DndState { dragged: NodeId; x: number; y: number; target?: NodeId; zone?: import("../../layout-core/types").Edge | "centre"; label?: string }
@@ -46,7 +47,7 @@ export interface UiState {
   settings: Settings;
   /** The system's colour preference, for the "system" theme. */
   systemDark: boolean;
-  /** ⌘Z: closes and tucks, most recent last (state/undo.ts). */
+  /** Undo (⌘K ⌘Z, the Undo toast): closes and tucks, most recent last (state/undo.ts). */
   undoStack: UndoEntry[];
   activity: Record<NodeId, PaneActivity>;
   peekSource?: NodeId;
@@ -78,6 +79,10 @@ export interface UiStoreDeps {
   initial?: Partial<UiState>;
   /** A focus or swap op moved something (layout stability, state/apply.ts). Default: reported in development. */
   unstable?: (op: string, before: string, after: string) => void;
+  /** Rebind or unbind commands (commands/keymap.ts): `{ "pane.zoom": "Mod+K Mod+Enter", "pane.close": null }`. */
+  keymap?: KeymapOverrides;
+  /** The keymap's platform and how refused bindings are reported. */
+  keymapOptions?: KeymapOptions;
 }
 
 export interface UiStore {
@@ -95,6 +100,8 @@ export interface UiStore {
   /** Toasts for whoever renders them; toasts sent before anyone listens are kept until someone does. */
   onToast(fn: (t: Toast) => void): () => void;
   actions: Actions;
+  /** Keys → command ids, resolved once from the defaults and `deps.keymap`. */
+  keymap: Keymap;
 }
 
 const DEV = !!(import.meta as unknown as { env?: { DEV?: boolean } }).env?.DEV;
@@ -172,6 +179,7 @@ export function createUiStore(deps: UiStoreDeps = {}): UiStore {
       return () => toastFns.delete(fn);
     },
     actions: undefined as unknown as Actions,
+    keymap: createKeymap(deps.keymap, deps.keymapOptions),
   };
   const io = {
     get: store.get,
