@@ -9,7 +9,7 @@ import { msg } from "../state/messages";
 import type { UiStore } from "../state/store";
 import { isMac, matchChord, PALETTE_CHORD } from "./format";
 import { commandForKey } from "./registry";
-import { STEP, STEP_BIG } from "../dividers/Divider";
+import { STEP, STEP_BIG } from "../dividers/resize";
 
 const ARROWS: Record<string, "left" | "right" | "top" | "bottom"> = { ArrowLeft: "left", ArrowRight: "right", ArrowUp: "top", ArrowDown: "bottom" };
 

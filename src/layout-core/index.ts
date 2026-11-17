@@ -9,7 +9,7 @@ export { canTuck, tuck, putBack, putBackEdge } from "./ops/tuck";
 export { setRef } from "./ops/ref";
 export { addTab, reveal, setActiveTab, resetLayout } from "./ops/tabs";
 export { focus, focusCycle, focusDirection, toggleZoom } from "./ops/focus";
-export { snapToCentre } from "./geometry/snap";
+export { snapToCentre, SNAP_IN, SNAP_OUT } from "./geometry/snap";
 export { extentAlong } from "./geometry/extent";
 export { minSize } from "./geometry/bounds";
 export { resolve } from "./fit/resolve";

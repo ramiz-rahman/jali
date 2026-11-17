@@ -1,8 +1,6 @@
 import { memo, type KeyboardEvent } from "react";
 import type { NodeId, Rect } from "../../layout-core/types";
-
-export const STEP = 16;
-export const STEP_BIG = 64;
+import { STEP, STEP_BIG } from "./resize";
 
 export interface DividerProps {
   parentId: NodeId;

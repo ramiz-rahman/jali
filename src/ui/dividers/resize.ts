@@ -4,14 +4,17 @@ import type { DividerBox, LayoutNode, NodeId, Rect, ResolvedLayout } from "../..
 import type { WorkspaceModel } from "../state/model";
 import { GAP } from "../tokens";
 
-export const SNAP_IN = 10;
-export const SNAP_OUT = 16;
+/** Keyboard resize steps: arrows, and Shift+arrows. */
+export const STEP = 16;
+export const STEP_BIG = 64;
 
-/** Snap to the centre with hysteresis: in within 10px, out beyond 16px. */
+export const SNAP_IN = core.SNAP_IN;
+export const SNAP_OUT = core.SNAP_OUT;
+
+/** Snap to the centre with hysteresis (layout-core owns the rule): in within 10px, out beyond 16px. */
 export function snap(size: number, centre: number, wasSnapped: boolean): { size: number; snapped: boolean } {
-  const d = Math.abs(size - centre);
-  const snapped = wasSnapped ? d <= SNAP_OUT : d <= SNAP_IN;
-  return { size: snapped ? centre : size, snapped };
+  const value = core.snapToCentre(size, centre, wasSnapped);
+  return { size: value, snapped: value === centre };
 }
 
 export const clampSize = (size: number, min: number, max: number) => Math.max(min, Math.min(max, size));
