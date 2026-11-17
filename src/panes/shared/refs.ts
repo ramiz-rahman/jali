@@ -1,5 +1,4 @@
 import type { ColumnInfo, ObjectRef, Relation, Row, TableInfo, TableName } from "../../data/types";
-import { isNumericType } from "../format";
 
 /** Composite primary keys are joined with ":" in column order, e.g. "789:2". */
 export function rowId(columns: ColumnInfo[], row: Row): string {
@@ -23,11 +22,6 @@ export function relationRef(rel: Relation): ObjectRef {
 export function foreignKeyRef(column: ColumnInfo, value: string | number | null | undefined): ObjectRef | null {
   if (!column.references || value === null || value === undefined || value === "") return null;
   return recordRef(column.references.table, String(value));
-}
-
-/** Which text columns can be edited inline: text-like, not keys. */
-export function isEditable(c: ColumnInfo): boolean {
-  return !c.primaryKey && !c.references && !isNumericType(c.type) && c.format !== "json" && !/_at$/.test(c.name) && c.name !== "email_verified";
 }
 
 export { singular } from "../../data/tables";

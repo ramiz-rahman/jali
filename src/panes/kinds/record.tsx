@@ -4,8 +4,8 @@ import { copyRaw } from "../shared/copyRaw";
 import { useEffect, useRef, useState } from "react";
 import type { ColumnInfo, Relation, Row, TableName } from "../../data/types";
 import { errorText, isLoading, useTableInfo, useRecord, useRelations, useUpdateRow } from "../../data/hooks";
-import { cellKind, columnLabel, formatCell, formatCount, formatJson, rawText } from "../format";
-import { foreignKeyRef, isEditable, relationRef, singular, tableRef } from "../shared/refs";
+import { cellKind, columnLabel, formatCell, formatCount, formatJson, rawText, isNumericType } from "../format";
+import { foreignKeyRef, relationRef, singular, tableRef } from "../shared/refs";
 import { ErrorState, Loading, NullChip, Shell } from "../shared/states";
 import { PaneGate } from "../shared/PaneGate";
 import type { PaneComponentProps } from "../../ui/pane-kinds";
@@ -119,3 +119,9 @@ export const recordKind = definePaneKind({
   title: (ref) => `${singular(String(ref.params.table ?? "record"))} ${ref.params.id ?? ""}`.trim(), minWidth: 480, minHeight: 240, 
   icon: FileText, Component: RecordPane,
 });
+
+/** Which text columns can be edited inline: text-like, not keys. */
+export function isEditable(c: ColumnInfo): boolean {
+  return !c.primaryKey && !c.references && !isNumericType(c.type) && c.format !== "json" && !/_at$/.test(c.name) && c.name !== "email_verified";
+}
+
