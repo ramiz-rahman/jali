@@ -11,7 +11,7 @@ const announcer = (page: Page) => page.getByTestId("announcer");
 async function start(page: Page, opts: { preset?: string; size?: { width: number; height: number } } = {}) {
   if (opts.size) await page.setViewportSize(opts.size);
   await page.goto("/");
-  await expect(page.locator("section[data-pane]").first()).toBeVisible();
+  await expect(page.locator("section[data-pane]:visible").first()).toBeVisible();
   if (opts.preset) await page.getByRole("button", { name: opts.preset }).click();
   await expect(page.locator("section[data-pane] .pk-grid, section[data-pane] .pk-rec").first()).toBeVisible({ timeout: 20_000 });
   await page.waitForTimeout(400);
