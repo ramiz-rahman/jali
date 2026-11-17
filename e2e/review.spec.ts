@@ -10,7 +10,7 @@ const pageTab = (page: Page, name: string) => page.getByRole("tablist", { name: 
 const mode = (page: Page, name: "Single" | "Multiplexed") => page.getByRole("radiogroup", { name: "View mode" }).getByRole("radio", { name });
 const investigation = (page: Page) => page.getByRole("group", { name: "Investigation" });
 const opened = (page: Page) => page.locator('section[data-origin="opened"]');
-const groupLink = (lab: Lab, from: string) => lab.pane(from).locator('button[title="Open lending_groups 5 beside"]');
+const groupLink = (lab: Lab, from: string) => lab.pane(from).locator('button[data-ref="lending_groups 5"]');
 /** A link from one view to another view's object (Group is a view on this page). */
 const link = (lab: Lab, from: string, ref: string) => lab.pane(from).locator(`button[data-ref="${ref}"]`);
 /** A link to an object that is no view on this page: following it opens a pane. */
@@ -62,7 +62,7 @@ test.describe("Loan review: Single (default)", () => {
     const queue = page.getByRole("listbox", { name: "Loan applications" });
     await queue.getByRole("option", { name: /#7/ }).click();
     await expect(page).toHaveURL(/item=7&tab=borrower/);
-    await expect(lab.pane("borrower")).toContainText("members · 260");
+    await expect(lab.pane("borrower")).toContainText("Member #260");
     await queue.getByRole("option", { selected: true }).press("j");
     await expect(page).toHaveURL(/item=8/);
   });
@@ -155,8 +155,8 @@ test.describe("Loan review: Multiplexed", () => {
     await openLink(lab).click();
     await expect(investigation(page)).toBeVisible();
     await page.getByRole("listbox", { name: "Loan applications" }).getByRole("option", { name: /#7/ }).click();
-    await expect(lab.pane("application").locator(".pane-sub")).toHaveText("loan_application 7");
-    await expect(lab.pane("borrower").locator(".pane-sub")).toHaveText("member 260");
+    await expect(lab.pane("application").locator(".pane-sub")).toHaveText("Application #7");
+    await expect(lab.pane("borrower").locator(".pane-sub")).toHaveText("Member #260");
     await expect(opened(page)).toHaveCount(0);
   });
 });
@@ -193,7 +193,7 @@ test.describe("Loan review: roles and what a link carries", () => {
     await p2.goto(url);
     await expect(p2.locator('section[data-origin="opened"]')).toHaveCount(1);
     await expect(p2.locator('section[data-pane="group"]')).toBeHidden();
-    await expect(p2.locator('section[data-pane="application"] .pane-sub')).toHaveText("loan_application 4");
+    await expect(p2.locator('section[data-pane="application"] .pane-sub')).toHaveText("Application #4");
     // Without opened panes, a link opens in the reader's own mode (Single by default).
     await p2.goto(at("history"));
     await expect(p2.getByRole("radiogroup", { name: "View mode" }).getByRole("radio", { name: "Single" })).toHaveAttribute("aria-checked", "true");
