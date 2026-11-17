@@ -355,7 +355,7 @@ for (const adapter of ["own", "ark"] as const) {
       expect(Math.abs((await width(orders)) - initial)).toBeLessThanOrEqual(2);
     });
 
-    test("keyboard: arrows 16px, Shift 64px, Home/End, Enter collapses and restores; aria-valuenow follows", async ({ page }) => {
+    test("keyboard: arrows 16px, Shift 64px, Home/End ; aria-valuenow follows", async ({ page }) => {
       const orders = paneEl(page, "orders");
       const s = sep(page, 0);
       const w0 = await width(orders);
@@ -380,12 +380,6 @@ for (const adapter of ["own", "ark"] as const) {
       // Orders cannot grow past its start here: the two records sit at their 480px minimums, so End == the start width.
       await expect.poll(() => width(orders)).toBe(w0);
       expect(await num(s, "aria-valuenow")).toBe(await num(s, "aria-valuemax"));
-
-      await page.keyboard.press("Enter");
-      await expect(orders).toHaveClass(/is-collapsed/);
-      await expect(orders).toHaveClass(/pane-rail/);
-      await page.keyboard.press("Enter");
-      await expect(orders).not.toHaveClass(/is-collapsed/);
     });
 
     test("separator has role, orientation, valuenow within min and max", async ({ page }) => {
@@ -453,8 +447,8 @@ for (const adapter of ["own", "ark"] as const) {
   });
 }
 
-// ---------- Maximise / minimise ----------
-test.describe("Maximise and minimise", () => {
+// ---------- Maximise (tuck and the shelf: panes-stability.spec.ts) ----------
+test.describe("Maximise", () => {
   test("button, double-click header, Shift+Meta+Enter, Esc", async ({ page }) => {
     await start(page);
     const area = (await page.locator("main.workspace").boundingBox())!;
@@ -489,25 +483,6 @@ test.describe("Maximise and minimise", () => {
     await expect(paneEl(page, "order")).toHaveClass(/is-zoomed/);
   });
 
-  test("minimise to a rail and restore", async ({ page }) => {
-    await start(page);
-    const before = await width(paneEl(page, "customer"));
-    await page.getByRole("button", { name: "Minimise customer 1" }).click();
-    const c = paneEl(page, "customer");
-    await expect(c).toHaveClass(/pane-rail/);
-    expect(await width(c)).toBeLessThanOrEqual(72);
-    await expect(page.locator("footer.status")).toContainText("1 minimised");
-    await shot(page, "08-minimised-rail");
-    await c.getByRole("button", { name: /^Expand customer 1/ }).click();
-    await expect(c).not.toHaveClass(/is-collapsed/);
-    expect(Math.abs((await width(c)) - before)).toBeLessThanOrEqual(2);
-    // keyboard: Alt+Meta+M
-    await c.click({ position: { x: 100, y: 300 } });
-    await page.keyboard.press("Alt+Meta+m");
-    await expect(c).toHaveClass(/is-collapsed/);
-    await page.keyboard.press("Alt+Meta+m");
-    await expect(c).not.toHaveClass(/is-collapsed/);
-  });
 });
 
 // ---------- Focus ----------

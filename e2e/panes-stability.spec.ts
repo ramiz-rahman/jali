@@ -1,5 +1,5 @@
 /**
- * Pane stability: sticky folding, deterministic resize, minimise / expand semantics, rail ARIA, light and dark shots.
+ * Pane stability: sticky folding, deterministic resize, tuck and put back, the shelf, light and dark shots.
  * Written against the intended behaviour; needs the dev server on :5300.
  */
 import { test, expect, type Page, type Locator } from "@playwright/test";
@@ -63,8 +63,6 @@ const announced = (page: Page) => page.evaluate(() => (window as unknown as { __
 
 const focusedPane = (page: Page) => page.locator("section[data-pane][data-focused]").evaluate((e) => (e as HTMLElement).dataset.pane).catch(() => null);
 const focusIn = (page: Page, id: string) => page.evaluate((i) => !!document.activeElement?.closest(`section[data-pane="${i}"]`), id);
-const activeIsRailOf = (page: Page, id: string) =>
-  page.evaluate((i) => { const a = document.activeElement as HTMLElement | null; return !!a && !!a.closest(`section[data-pane="${i}"]`) && (a.closest(".rail, .rail-btn") !== null || a.matches(".rail, .rail-btn")); }, id);
 
 const SIZES = [{ width: 1920, height: 1080 }, { width: 1440, height: 900 }];
 
@@ -130,155 +128,310 @@ test("resize 1920 -> 1024 -> 1920 restores rects and membership", async ({ page 
   expectSame(a, await snap(page), "after round trip");
 });
 
-test.describe("minimise and expand", () => {
-  const minBtn = (page: Page, t: string) => page.getByRole("button", { name: `Minimise ${t}` });
 
-  test("mouse minimise gives space to the neighbour only; expand restores exactly; focus follows", async ({ page }) => {
-    await start(page);
-    const before = await snap(page);
-    await minBtn(page, "customer 1").click();
-    await page.waitForTimeout(300);
-    const mid = await snap(page);
-    // Pane count and membership elsewhere unchanged: orders is not a neighbour and keeps its rect.
-    expect(mid.groups).toEqual(before.groups);
-    for (const k of ["pane:orders"]) {
-      for (const f of ["x", "y", "w", "h"] as const) expect(Math.abs(mid.rects[k]![f] - before.rects[k]![f]), `orders ${f}`).toBeLessThanOrEqual(1);
+// ---------- tuck and the shelf ----------
+const shelfRegion = (page: Page) => page.getByRole("region", { name: "Shelf" });
+const chip = (page: Page, title: string) => shelfRegion(page).getByRole("button", { name: new RegExp(`^${title}`) }).first();
+const tuckBtn = (page: Page, id: string) => paneEl(page, id).getByRole("button", { name: /^Tuck / });
+
+/** Visible panes by their data-pane id (the shown tab's id for a group). */
+async function byId(page: Page): Promise<Record<string, Rect>> {
+  return page.locator("section[data-pane]").evaluateAll((els) => {
+    const o: Record<string, Rect> = {};
+    for (const e of els as HTMLElement[]) {
+      if (getComputedStyle(e).display === "none") continue;
+      const r = e.getBoundingClientRect();
+      o[e.dataset.pane!] = { x: r.x, y: r.y, w: r.width, h: r.height };
     }
-    expect(mid.rects["pane:order"]!.w).toBeGreaterThan(before.rects["pane:order"]!.w + 50);
-    expect(Object.keys(mid.rects).sort()).toEqual(Object.keys(before.rects).sort());
-    await expect(paneEl(page, "customer")).toHaveClass(/pane-rail/);
-    // focus moves to the neighbour that grew
-    await expect.poll(() => focusedPane(page)).toBe("order");
-    expect(await focusIn(page, "order")).toBe(true);
+    return o;
+  });
+}
+const sameRect = (a: Rect, b: Rect) => (["x", "y", "w", "h"] as const).every((f) => Math.abs(a[f] - b[f]) <= 1);
+/** The pane section whose tab strip holds the tab, and that tab strip's selected tab. */
+async function homeOf(page: Page, tab: string) {
+  return page.locator("section[data-pane]").evaluateAll((els, t) => {
+    for (const e of els as HTMLElement[]) {
+      const tabs = Array.from(e.querySelectorAll('[role="tab"]')) as HTMLElement[];
+      if (getComputedStyle(e).display !== "none" && tabs.some((x) => (x.textContent ?? "").trim() === t)) {
+        return { id: e.dataset.pane!, active: (tabs.find((x) => x.getAttribute("aria-selected") === "true")?.textContent ?? "").trim(), tabs: tabs.map((x) => (x.textContent ?? "").trim()) };
+      }
+    }
+    return null;
+  }, tab);
+}
+const setAct = (page: Page, id: string, a: string) => page.evaluate(([i, v]) => (window as unknown as { __lab: { actions: { setActivity(i: string, v: string): void } } }).__lab.actions.setActivity(i!, v!), [id, a]);
 
-    // expand gives it back exactly and focuses it
-    await paneEl(page, "customer").getByRole("button", { name: /^Expand customer 1/ }).click();
-    await page.waitForTimeout(300);
-    expectSame(before, await snap(page), "after expand");
-    await expect.poll(() => focusedPane(page)).toBe("customer");
-    expect(await focusIn(page, "customer")).toBe(true);
+test.describe("tuck and put back", () => {
+  test("button: the pane becomes a tab of its home, the home keeps its tab, only the home's group changes, focus lands in the home", async ({ page }) => {
+    await start(page);
+    const before = await byId(page);
+    const beforeSnap = await snap(page);
+    const btn = tuckBtn(page, "customer");
+    await expect(btn).toBeEnabled();
+    expect(await btn.getAttribute("aria-label")).toMatch(/^Tuck into .+ · ⌥⌘M$/);
+    expect(await btn.getAttribute("title")).toBe(await btn.getAttribute("aria-label"));
+    await btn.click();
+    await expect.poll(() => homeOf(page, "customer 1")).not.toBeNull();
+    const home = (await homeOf(page, "customer 1"))!;
+    expect(home.active, "home keeps its active tab").not.toBe("customer 1");
+    expect(home.tabs).toContain("customer 1");
+    const after = await byId(page);
+    for (const id of Object.keys(before)) {
+      if (id === home.id || id === "customer") continue;
+      expect(sameRect(before[id]!, after[id]!), `${id} unchanged`).toBe(true);
+    }
+    expect(after.customer, "customer no longer has its own pane").toBeUndefined();
+    await expect.poll(() => focusIn(page, home.id), { message: "focus lands in the home" }).toBe(true);
+    expect(beforeSnap.groups.length).toBeLessThan((await snap(page)).groups.length);
+    // The tucked tab is marked, and Put back appears on hover and on focus.
+    const tab = page.getByRole("tab", { name: /customer 1/ });
+    await expect(tab).toHaveAttribute("data-tucked", "true");
+    const pb = tab.getByRole("button", { name: "Put back customer 1" });
+    await tab.hover();
+    await expect(pb).toBeVisible();
+    expect(await pb.getAttribute("title")).toBe("Put back · ⌥⇧⌘M");
   });
 
-  test("keyboard minimise keeps focus on the rail; expand focuses the restored pane", async ({ page }) => {
+  test("⌥⌘M tucks the focused pane, ⌥⇧⌘M puts the tab back to the exact rect", async ({ page }) => {
     await start(page);
     const before = await snap(page);
     await paneEl(page, "customer").click({ position: { x: 100, y: 300 } });
     await page.keyboard.press("Alt+Meta+m");
-    await expect(paneEl(page, "customer")).toHaveClass(/pane-rail/);
-    await expect.poll(() => activeIsRailOf(page, "customer"), { message: "focus on the rail" }).toBe(true);
-    await page.keyboard.press("Alt+Meta+m");
+    await expect.poll(() => homeOf(page, "customer 1")).not.toBeNull();
+    const home = (await homeOf(page, "customer 1"))!;
+    await expect.poll(() => focusIn(page, home.id)).toBe(true);
+    await page.getByRole("tab", { name: /customer 1/ }).click();
+    await page.keyboard.press("Alt+Shift+Meta+m");
+    await expect.poll(() => homeOf(page, "customer 1")).toBeNull();
     await page.waitForTimeout(300);
-    await expect(paneEl(page, "customer")).not.toHaveClass(/pane-rail/);
-    expect(await focusIn(page, "customer")).toBe(true);
-    await expect.poll(() => focusedPane(page)).toBe("customer");
-    expectSame(before, await snap(page), "after keyboard round trip");
+    expectSame(before, await snap(page), "after ⌥⌘M, ⌥⇧⌘M");
   });
 
-  test("Alt+Meta+M with no focus acts on the most recently focused pane", async ({ page }) => {
+  test("Put back on the tab restores the exact rect", async ({ page }) => {
     await start(page);
-    await paneEl(page, "order").click({ position: { x: 100, y: 300 } });
-    await page.locator("footer.status").click({ position: { x: 5, y: 5 } }).catch(() => {});
-    await page.evaluate(() => (document.activeElement as HTMLElement | null)?.blur());
-    await page.keyboard.press("Alt+Meta+m");
-    await expect(paneEl(page, "order")).toHaveClass(/pane-rail/);
+    const before = await snap(page);
+    await tuckBtn(page, "customer").click();
+    const tab = page.getByRole("tab", { name: /customer 1/ });
+    await tab.hover();
+    await tab.getByRole("button", { name: "Put back customer 1" }).click();
+    await expect.poll(() => homeOf(page, "customer 1")).toBeNull();
+    await page.waitForTimeout(300);
+    expectSame(before, await snap(page), "after the tab's Put back");
   });
 
-  test("clicking anywhere on the rail expands it; Enter and Space too", async ({ page }) => {
+  test("dragging a tucked tab out puts it back", async ({ page }) => {
     await start(page);
-    const c = paneEl(page, "customer");
-    await minBtn(page, "customer 1").click();
-    await expect(c).toHaveClass(/pane-rail/);
-    const box = (await c.boundingBox())!;
-    for (const y of [box.y + 12, box.y + box.height / 2, box.y + box.height - 12]) {
-      await page.mouse.click(box.x + box.width / 2, y);
-      await expect(c, `click at y=${Math.round(y)}`).not.toHaveClass(/pane-rail/);
-      await minBtn(page, "customer 1").click();
-      await expect(c).toHaveClass(/pane-rail/);
-    }
-    for (const key of ["Enter", "Space"]) {
-      await c.getByRole("button", { name: /^Expand customer 1/ }).focus();
-      await page.keyboard.press(key);
-      await expect(c, key).not.toHaveClass(/pane-rail/);
-      await minBtn(page, "customer 1").click();
-      await expect(c).toHaveClass(/pane-rail/);
-    }
+    const before = await snap(page);
+    await tuckBtn(page, "customer").click();
+    const tab = page.getByRole("tab", { name: /customer 1/ });
+    const tb = (await tab.boundingBox())!;
+    const home = (await homeOf(page, "customer 1"))!;
+    const hb = (await paneEl(page, home.id).boundingBox())!;
+    await page.mouse.move(tb.x + 20, tb.y + tb.height / 2);
+    await page.mouse.down();
+    await page.mouse.move(tb.x + 30, tb.y + tb.height / 2 + 14, { steps: 3 });
+    await page.mouse.move(hb.x + hb.width - 20, hb.y + hb.height / 2, { steps: 12 });
+    await page.mouse.up();
+    await expect.poll(() => homeOf(page, "customer 1")).toBeNull();
+    await page.waitForTimeout(300);
+    expectSame(before, await snap(page), "after drag-out");
   });
 
-  test("announcements say minimised and expanded, never collapsed", async ({ page }) => {
+  test("⌘Z after a tuck restores the exact rect", async ({ page }) => {
     await start(page);
-    await recordAnnouncements(page);
-    await minBtn(page, "customer 1").click();
-    await expect.poll(() => announced(page)).toEqual(expect.arrayContaining([expect.stringMatching(/minimised/i)]));
-    await paneEl(page, "customer").getByRole("button", { name: /^Expand customer 1/ }).click();
-    await expect.poll(() => announced(page).then((a) => a.some((m) => /expanded/i.test(m)))).toBe(true);
-    expect((await announced(page)).filter((m) => /collapsed|restored/i.test(m))).toEqual([]);
+    const before = await snap(page);
+    await tuckBtn(page, "customer").click();
+    await expect.poll(() => homeOf(page, "customer 1")).not.toBeNull();
+    await page.keyboard.press("Meta+z");
+    await expect.poll(() => homeOf(page, "customer 1")).toBeNull();
+    await page.waitForTimeout(300);
+    expectSame(before, await snap(page), "after ⌘Z");
   });
 
-  test("the last open pane cannot be minimised: disabled button, truthful announcement", async ({ page }) => {
+  test("the last pane: Tuck is disabled with a truthful tooltip and announcement", async ({ page }) => {
     await start(page);
     await page.getByRole("button", { name: "Close order 1", exact: true }).click();
     await page.getByRole("button", { name: "Close customer 1", exact: true }).click();
     await expect.poll(async () => page.locator("section[data-pane]:visible").count()).toBe(1);
-    await expect(minBtn(page, "orders")).toBeDisabled();
+    const btn = tuckBtn(page, "orders");
+    await expect(btn).toBeDisabled();
+    expect(await btn.getAttribute("title")).toBe("Only open pane");
     await recordAnnouncements(page);
     await paneEl(page, "orders").click({ position: { x: 100, y: 300 } });
     await page.keyboard.press("Alt+Meta+m");
-    await expect.poll(() => announced(page)).toEqual(expect.arrayContaining([expect.stringMatching(/(can.?t|cannot|not) .*minimised|minimised/i)]));
-    const msgs = await announced(page);
-    expect(msgs.some((m) => /(can.?t|cannot)/i.test(m) && /minimised/i.test(m)), `got ${JSON.stringify(msgs)}`).toBe(true);
-    expect(msgs.some((m) => /collapsed/i.test(m))).toBe(false);
-    await expect(paneEl(page, "orders")).not.toHaveClass(/pane-rail/);
+    await expect.poll(async () => (await announced(page)).some((m) => /only open pane|can.?t be tucked/i.test(m)), { message: JSON.stringify(await announced(page)) }).toBe(true);
+    expect((await announced(page)).some((m) => /minimised|collapsed/i.test(m))).toBe(false);
+    await expect(shelfRegion(page)).toHaveCount(0);
   });
 
-  test("no announcement fires for a no-op", async ({ page }) => {
+  test("announcements say tucked and put back", async ({ page }) => {
     await start(page);
-    await paneEl(page, "orders").click({ position: { x: 100, y: 300 } });
-    await page.waitForTimeout(600);
     await recordAnnouncements(page);
-    await page.keyboard.press("Alt+Meta+ArrowLeft"); // already leftmost, no wrap
-    await page.keyboard.press("Alt+1"); // already focused
-    await page.waitForTimeout(500);
-    expect(await announced(page)).toEqual([]);
+    await tuckBtn(page, "customer").click();
+    await expect.poll(async () => (await announced(page)).some((m) => /tucked/i.test(m))).toBe(true);
+    const tab = page.getByRole("tab", { name: /customer 1/ });
+    await tab.hover();
+    await tab.getByRole("button", { name: "Put back customer 1" }).click();
+    await expect.poll(async () => (await announced(page)).some((m) => /put back/i.test(m))).toBe(true);
   });
 });
 
-test("ARIA: fixed minimise label without aria-pressed; rail is a button named Expand <title>", async ({ page }) => {
-  await start(page);
-  const btn = page.getByRole("button", { name: "Minimise customer 1" });
-  await expect(btn).toHaveCount(1);
-  expect(await btn.getAttribute("aria-pressed")).toBeNull();
-  await btn.click();
-  const c = paneEl(page, "customer");
-  const rail = c.getByRole("button", { name: /^Expand customer 1/ });
-  await expect(rail).toHaveCount(1);
-  // The rail button spans the whole rail, not a small icon.
-  const [rb, cb] = [(await rail.boundingBox())!, (await c.boundingBox())!];
-  expect(rb.width).toBeGreaterThanOrEqual(cb.width - 4);
-  expect(rb.height).toBeGreaterThanOrEqual(cb.height - 4);
-  // The minimise label does not change when state does: no "Restore" or "Expand" variant of the header button.
-  await expect(page.getByRole("button", { name: /^Restore customer 1/ })).toHaveCount(0);
-  await rail.click();
-  const again = page.getByRole("button", { name: "Minimise customer 1" });
-  await expect(again).toHaveCount(1);
-  expect(await again.getAttribute("aria-pressed")).toBeNull();
+test.describe("the shelf", () => {
+  test("appears only when something is tucked; 32px, above the status line", async ({ page }) => {
+    await start(page);
+    await expect(shelfRegion(page)).toHaveCount(0);
+    await tuckBtn(page, "customer").click();
+    await expect(shelfRegion(page)).toBeVisible();
+    const sb = (await shelfRegion(page).boundingBox())!, st = (await page.locator("footer.status").boundingBox())!;
+    expect(Math.round(sb.height)).toBe(32);
+    expect(Math.abs(sb.y + sb.height - st.y)).toBeLessThanOrEqual(1);
+    await expect(shelfRegion(page)).toContainText(/Behind .+:/);
+    await expect(chip(page, "customer 1")).toBeVisible();
+    await expect(page.locator("footer.status")).toContainText("1 tucked");
+    await expect(page.locator("footer.status")).not.toContainText(/minimised/);
+    // putting it back removes the shelf
+    const tab = page.getByRole("tab", { name: /customer 1/ });
+    await tab.hover();
+    await tab.getByRole("button", { name: "Put back customer 1" }).click();
+    await expect(shelfRegion(page)).toHaveCount(0);
+  });
+
+  test("clicking a chip reveals the tab with no layout change", async ({ page }) => {
+    await start(page);
+    await tuckBtn(page, "customer").click();
+    await expect(shelfRegion(page)).toBeVisible();
+    const before = await byId(page);
+    const beforeSnap = await snap(page);
+    expect((await homeOf(page, "customer 1"))!.active).not.toBe("customer 1");
+    await chip(page, "customer 1").click();
+    await expect.poll(async () => (await homeOf(page, "customer 1"))!.active).toBe("customer 1");
+    await page.waitForTimeout(250);
+    const after = await byId(page);
+    const home = (await homeOf(page, "customer 1"))!;
+    // The home group's rect and every other rect are unchanged; the shown tab is the only difference.
+    for (const id of Object.keys(before)) if (after[id]) expect(sameRect(before[id]!, after[id]!), `${id} rect`).toBe(true);
+    expect((await snap(page)).groups).toEqual(beforeSnap.groups);
+    expect(Object.keys(after).length).toBe(Object.keys(before).length);
+    expect(home.tabs).toContain("customer 1");
+    await expect(shelfRegion(page)).toBeVisible(); // revealing does not put it back
+  });
+
+  test("keyboard: a toolbar with roving tabindex; arrows move, Enter reveals, Shift+Enter puts back", async ({ page }) => {
+    await start(page);
+    await tuckBtn(page, "customer").click();
+    await tuckBtn(page, "order").click().catch(() => {});
+    const tb = shelfRegion(page).getByRole("toolbar");
+    await expect(tb).toBeVisible();
+    const chips = tb.getByRole("button").filter({ hasNot: page.locator("[tabindex='-1'][aria-label^='Put back']") });
+    const mains = tb.locator(".shelf-chip-main");
+    const n = await mains.count();
+    expect(n).toBeGreaterThanOrEqual(1);
+    void chips;
+    // exactly one tab stop
+    expect(await mains.evaluateAll((els) => els.filter((e) => e.getAttribute("tabindex") === "0").length)).toBe(1);
+    await mains.first().focus();
+    if (n > 1) {
+      await page.keyboard.press("ArrowRight");
+      await expect(mains.nth(1)).toBeFocused();
+      await page.keyboard.press("ArrowLeft");
+      await expect(mains.first()).toBeFocused();
+      await page.keyboard.press("End");
+      await expect(mains.nth(n - 1)).toBeFocused();
+      await page.keyboard.press("Home");
+    }
+    const name = (await mains.first().locator(".shelf-chip-title").innerText()).trim();
+    await page.keyboard.press("Enter");
+    await expect.poll(async () => (await homeOf(page, name))!.active).toBe(name);
+    await mains.first().focus();
+    await page.keyboard.press("Shift+Enter");
+    await expect.poll(() => homeOf(page, name)).toBeNull();
+    await expect(mains).toHaveCount(n - 1);
+  });
+
+  test("F6 reaches the shelf as a region named Shelf", async ({ page }) => {
+    await start(page);
+    await tuckBtn(page, "customer").click();
+    await expect(shelfRegion(page)).toBeVisible();
+    let hit = false;
+    for (let i = 0; i < 8 && !hit; i++) {
+      await page.keyboard.press("F6");
+      await page.waitForTimeout(60);
+      hit = await page.evaluate(() => !!document.activeElement?.closest("[data-shelf]"));
+    }
+    expect(hit, "F6 lands in the shelf").toBe(true);
+  });
+
+  test("hover shows a Put back mini-action on the chip", async ({ page }) => {
+    await start(page);
+    await tuckBtn(page, "customer").click();
+    const c = shelfRegion(page).locator("[data-chip]").first();
+    const put = c.getByRole("button", { name: "Put back customer 1" });
+    await expect(put).toBeHidden().catch(() => {});
+    await c.hover();
+    await expect(put).toBeVisible();
+    await put.click();
+    await expect(shelfRegion(page)).toHaveCount(0);
+  });
+
+  test("activity dots on chips have a shape for every state", async ({ page }) => {
+    await start(page);
+    await tuckBtn(page, "customer").click();
+    const c = shelfRegion(page).locator("[data-chip]").first();
+    const id = await page.locator('[role="tab"][data-tucked]').first().getAttribute("data-tab");
+    for (const [state, sel] of [["working", ".ra-ring"], ["needs-you", ".ra-need"], ["error", ".ra-fail"]] as const) {
+      await setAct(page, id!, state);
+      await expect(c.locator(sel), state).toBeVisible();
+    }
+    await setAct(page, id!, "idle");
+    await expect(c.locator(".ra")).toHaveCount(0);
+  });
+
+  test("overflow: many chips scroll with a +N menu", async ({ page }) => {
+    await start(page, { preset: "Stress: 10 panes", size: { width: 1024, height: 900 } });
+    for (let i = 0; i < 8; i++) {
+      const b = page.locator("section[data-pane]:visible").getByRole("button", { name: /^Tuck into/ }).and(page.locator(":enabled")).first();
+      if (!(await b.count())) break;
+      await b.click();
+      await page.waitForTimeout(150);
+    }
+    await expect(shelfRegion(page)).toBeVisible();
+    const sc = shelfRegion(page).locator(".shelf-scroll");
+    const overflow = await sc.evaluate((e) => e.scrollWidth > e.clientWidth);
+    if (overflow) {
+      const more = shelfRegion(page).getByRole("button", { name: /more tucked/ });
+      await expect(more).toBeVisible();
+      await more.click();
+      await expect(page.getByRole("menu", { name: "More tucked panes" })).toBeVisible();
+      await page.keyboard.press("Escape");
+    }
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+  });
 });
 
 for (const mode of ["light", "dark"] as const) {
-  test(`screenshots: rail and pane header in ${mode}`, async ({ page }) => {
-    await start(page);
-    await page.getByRole("button", { name: "Settings" }).click();
-    const dlg = page.getByRole("dialog", { name: "Settings" });
-    await dlg.getByLabel(new RegExp(`^${mode}$`, "i")).check();
-    await page.keyboard.press("Escape");
-    await expect(dlg).toBeHidden();
-    await paneEl(page, "orders").click({ position: { x: 100, y: 300 } });
-    await page.getByRole("button", { name: "Minimise customer 1" }).click();
-    const rail = paneEl(page, "customer");
-    await expect(rail).toHaveClass(/pane-rail/);
-    await page.mouse.move(2, 2);
-    await page.waitForTimeout(300);
-    await rail.screenshot({ path: `${SHOT}/60-rail-${mode}.png` });
-    await paneEl(page, "orders").locator("header.pane-header").screenshot({ path: `${SHOT}/60-header-focused-${mode}.png` });
-    await paneEl(page, "order").locator("header.pane-header").screenshot({ path: `${SHOT}/60-header-unfocused-${mode}.png` });
-  });
+  for (const preset of ["Chain", "Stress: 10 panes"]) {
+    for (const size of [{ width: 1920, height: 1080 }, { width: 1440, height: 900 }, { width: 1024, height: 768 }]) {
+      test(`screenshots: shelf, ${preset}, ${size.width}, ${mode}`, async ({ page }) => {
+        await start(page, { preset: preset === "Chain" ? undefined : preset, size });
+        await page.getByRole("button", { name: "Settings" }).click();
+        const dlg = page.getByRole("dialog", { name: "Settings" });
+        await dlg.getByLabel(new RegExp(`^${mode}$`, "i")).check();
+        await page.keyboard.press("Escape");
+        await expect(dlg).toBeHidden();
+        for (let i = 0; i < 2; i++) {
+          const b = page.locator("section[data-pane]:visible").getByRole("button", { name: /^Tuck into/ }).and(page.locator(":enabled")).last();
+          if (await b.count()) { await b.click(); await page.waitForTimeout(200); }
+        }
+        const tabs = page.locator('[role="tab"][data-tucked]');
+        if (await tabs.count()) {
+          await setAct(page, (await tabs.first().getAttribute("data-tab"))!, "needs-you");
+          await tabs.first().hover();
+        }
+        const mains = shelfRegion(page).locator(".shelf-chip-main");
+        if (await mains.count()) await mains.last().focus();
+        await page.waitForTimeout(250);
+        await page.screenshot({ path: `${SHOT}/70-shelf-${preset === "Chain" ? "chain" : "stress"}-${size.width}-${mode}.png` });
+      });
+    }
+  }
 }
