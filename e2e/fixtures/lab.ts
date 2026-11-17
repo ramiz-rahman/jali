@@ -52,8 +52,10 @@ export class Lab {
   dividerPreview = () => this.page.locator(HOOKS.dividerPreview);
   toast = (text: string | RegExp) => this.page.locator("[data-sonner-toast]").filter({ hasText: text });
   shelf = () => this.page.getByRole("region", { name: "Shelf" });
-  shelfBar = () => this.shelf().getByRole("toolbar", { name: "Tucked panes" });
-  chips = () => this.shelf().locator("[data-chip]");
+  shelfBar = () => this.shelf().getByRole("toolbar", { name: "Tucked and folded panes" });
+  /** Tucked chips (made by the person). Folded ones (made by the layout) are foldedChips. */
+  chips = () => this.shelf().locator('[data-chip]:not([data-reason="folded"])');
+  foldedChips = () => this.shelf().locator('[data-chip][data-reason="folded"]');
   /** The main button of each shelf chip (not its put-back mini-action). */
   chipMains = () => this.shelfBar().getByRole("button", { name: /Enter shows it/ });
   chip = (title: string) => this.shelf().getByRole("button", { name: new RegExp(`^${title}`) }).first();

@@ -267,7 +267,7 @@ test.describe("the shelf", () => {
       const more = lab.shelf().getByRole("button", { name: /more tucked/ });
       await expect(more).toBeVisible();
       await more.click();
-      await expect(page.getByRole("menu", { name: "More tucked panes" })).toBeVisible();
+      await expect(page.getByRole("menu", { name: "More tucked or folded panes" })).toBeVisible();
       await page.keyboard.press("Escape");
     }
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);

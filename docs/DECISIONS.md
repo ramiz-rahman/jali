@@ -172,6 +172,18 @@ The public API is standalone exports (`import * as core from "…/layout-core"`)
 - **The ⌥ preview is the commit.** `besidePreview` and `openTabBeside` run one pure placement (`beside()` → `placeRole`). The preview draws the new view's real rect, a fainter outline at each view that moves, and the views that would go back to the tabs.
 - **Fold announcements** ("folded into tabs: not enough room") are only for a change of room (a resize). An action that folds something says so in its own message.
 
+## 18 Nov 2026: tabs: made by you vs made by the layout
+- **One distinction.** A pane can be a tab for three reasons, but a person only needs to know whether it will come back by itself.
+  - **Made by you:** a tab you merged or opened, or one you tucked. It stays until you change it. A tucked tab keeps its "Put back" button (restores its slot).
+  - **Made by the layout:** *folded*, because the window ran out of room. It returns to its own place when there is room. Nothing to do.
+- **Model.** `Tab` in `workspace/frames.ts` carries `tucked` and `folded` (never both; `folded` comes from `resolved.shelf`). Wording lives in `pane/tabState.ts` and is shared by the strip, the overflow menu and the shelf.
+- **How folded shows (shape, not colour alone).** A trailing segment after a hairline; italic title; a fold icon in every folded tab; tooltip "Folded: not enough room · returns when there's space"; `aria-description` "Folded: returns when there's room". Marks use `--text-3` (at least 3:1 against the pane in light and dark, WCAG 1.4.11). Tucked keeps its dashed underline, now `--text-3`, and a visible Put back button.
+- **Stability.** The Put back button and the fold icon reserve their space, so a tab's width does not change on hover or state. Tabs have a 72-200px width, an ellipsis, and the full title as tooltip and accessible name.
+- **Overflow.** When tabs don't fit, a "+N" button ends the strip (N = tabs out of view) and opens a menu of every tab with the same marks. Arrow keys, Home/End, Enter, Esc (focus returns to the button). The chosen tab is shown and scrolled into view; the active tab is always visible. Keys are handled inside the menu only.
+- **Shelf.** Lists tucked panes (by home, with Put back) and folded panes (a "Folded:" segment, dotted chips with the fold icon, no Put back).
+- **Loan review.** Page views never fold into groups, so no folded marks or page-tab repeats appear there; the overflow menu serves opened panes only.
+- **Fix.** The inert wrapper of a bare pane's header no longer sizes the strip (`display: contents`); before, strips grew wider than their pane and were clipped.
+
 ## 18 Nov 2026: linked detail follows the list
 - **Problem (design review).** In a list → detail chain (orders → order 1), J/K moved the list's row but not the detail; only an open peek followed. Updating the detail took ⌥↵ on every row. With a detail open, Space slid a peek sheet over it: two answers to one question.
 - **Model.** Following is a property of the link, on the pane: `linkedTo` (opened from) plus `follows: true` (shows that pane's selection). A pinned detail (`pinned: true`) keeps its object. At most one follower per source and kind. URL key `f`.
