@@ -19,8 +19,15 @@ export function replace(root: LayoutNode, id: NodeId, replacement: LayoutNode): 
   } else root.children = root.children.map(c => replace(c, id, replacement));
   return root;
 }
+/**
+ * Even out the children nobody sized. Beside sized children (whose weights are lengths, as a divider drag or a held
+ * swap stores them), each gets the mean of those weights: a fair share, not a near-zero weight of 1 next to 536.
+ */
 export function balance(node: LayoutNode): void {
-  if (isSplit(node)) for (const child of node.children) if (!child.userSized) child.size = { weight: 1 };
+  if (!isSplit(node)) return;
+  const sized = node.children.flatMap(c => c.userSized && "weight" in c.size ? [c.size.weight] : []);
+  const unit = sized.length ? sized.reduce((a, b) => a + b, 0) / sized.length : 1;
+  for (const child of node.children) if (!child.userSized) child.size = { weight: unit };
 }
 /** Remove from an owned draft, pruning singleton containers and retaining their outer size. */
 export function remove(root: LayoutNode, id: NodeId): LayoutNode | undefined {

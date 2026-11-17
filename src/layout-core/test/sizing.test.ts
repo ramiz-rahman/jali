@@ -91,6 +91,15 @@ describe("pane sizing", () => {
     const same = core.setRef(before, view("p"), "p", { kind: "plain", params: { id: 2 } }, ctx(1440));
     expect(find(same.root, "p")!.userSized).toBeUndefined();
   });
+  it("gives a pane opened into a sized split a fair share, not a weight of 1 beside lengths", () => {
+    const wide = freeze(row(pane("t", "table"), pane("r1", "record", { linkedTo: "t" })));
+    const dragged = core.resizeDivider(wide, "root", 0, -80, ctx(1920));
+    const opened = core.openBeside(dragged, view("r1"), "r1", { kind: "plain", params: { id: "p" } }, ctx(1920));
+    const r = core.resolve(opened.layout, opened.view, ctx(1920));
+    expect(folded(r)).toEqual([]);
+    const w = r.panes.find(b => b.id === opened.opened)!.rect.width;
+    expect(w).toBeGreaterThan(400);
+  });
   it("is a pure function of layout and size", () => {
     const tree = chain();
     expect(place(tree, 1440)).toEqual(place(tree, 1440));
