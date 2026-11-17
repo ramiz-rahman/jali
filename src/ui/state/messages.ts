@@ -89,6 +89,7 @@ export const msg = {
   notInvestigating: "Nothing opened beyond the review",
   backToReview: (n: number) => `Back to review · ${n} opened ${n === 1 ? "pane" : "panes"} closed · Undo available`,
   permission: (can: boolean) => (can ? "Viewing as credit reviewer: Multiplexed available, links open beside" : "Viewing as loan officer: Single only, links open as a peek"),
+  singleNoLayout: "Single shows one view: choose it from the tabs. Switch to Multiplexed to arrange views",
   singleOnly: "Your role works in Single: one view at a time",
   peekOnly: (t: string) => `Peek: ${t} · your role opens links as a peek`,
   peekSingle: (t: string) => `Peek: ${t} · switch to Multiplexed to open links beside`,

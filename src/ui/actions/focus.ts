@@ -30,10 +30,12 @@ export const focusEnd = (x: Snapshot, last: boolean) => {
 };
 
 export function checkZoom({ s, m }: Snapshot) {
+  if (s.review?.mode === "single") return refuse(msg.singleNoLayout);
   return s.view.focused && (m.panes.length > 1 || s.view.zoomed) ? undefined : refuse();
 }
 
 export function toggleZoom({ s, m, ctx }: Snapshot, id = s.view.focused): Outcome {
+  if (s.review?.mode === "single") return refuse(msg.singleNoLayout);
   if (!id) return null;
   if (m.panes.length <= 1 && !s.view.zoomed) return null; // one pane alone: zoom does nothing
   const view = core.toggleZoom(core.focus(s.view, id, ctx), id, ctx);

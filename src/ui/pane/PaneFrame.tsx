@@ -24,6 +24,9 @@ export const PaneFrame = memo(function PaneFrame({ frame, chrome, dropTarget }: 
   const isDragged = useUi((s) => s.dnd?.dragged === node.id);
   const host = useMemo(() => paneHost(actions, node.id), [actions, node.id]);
   const review = useUi((s) => !!s.review);
+  // A curated page in Single: the page tabs name the one view and choose it, so the pane header is visually hidden
+  // and offers nothing (no grip, tuck, maximise or close) that a keyboard user could land on unseen.
+  const bare = useUi((s) => s.review?.mode === "single");
   const boundary = useUi((s) => s.settings.boundary);
   const profile = getProfile();
   const role = review && node.role && profile ? roleOf(profile, node.role) : undefined;
@@ -56,19 +59,19 @@ export const PaneFrame = memo(function PaneFrame({ frame, chrome, dropTarget }: 
     >
       <header
         className="pane-header"
-        onPointerDown={chrome.draggable ? (e) => startPaneDrag(store, e, node.id) : undefined}
+        onPointerDown={chrome.draggable && !bare ? (e) => startPaneDrag(store, e, node.id) : undefined}
         onDoubleClick={(e) => {
-          if (!chrome.zoomable || (e.target as HTMLElement).closest("button")) return;
+          if (bare || !chrome.zoomable || (e.target as HTMLElement).closest("button")) return;
           actions.toggleZoom(node.id);
         }}
       >
-        {chrome.draggable ? (
+        {chrome.draggable && !bare ? (
           <span className="grip" aria-hidden>
             <GripHorizontal size={14} strokeWidth={1.5} />
           </span>
         ) : null}
         {group ? (
-          <TabStrip group={group} owner={node.id} />
+          <div className="bare-inert" inert={bare || undefined}><TabStrip group={group} owner={node.id} /></div>
         ) : (
           <div className="pane-title">
             {role ? <role.icon size={16} strokeWidth={1.5} aria-hidden /> : <KindIcon kind={node.ref.kind} />}
@@ -79,7 +82,7 @@ export const PaneFrame = memo(function PaneFrame({ frame, chrome, dropTarget }: 
             {opened && boundary === "tint" ? <span className="badge badge-opened">Opened</span> : null}
           </div>
         )}
-        <HeaderActions id={node.id} title={title} zoomed={zoomed} chrome={chrome} />
+        {bare ? null : <HeaderActions id={node.id} title={title} zoomed={zoomed} chrome={chrome} />}
       </header>
       {dropTarget ? <DropZoneLabel paneId={node.id} /> : null}
       <div className="pane-content">
