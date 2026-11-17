@@ -1,4 +1,5 @@
 import type { Layout, LayoutNode, ObjectRef, PaneNode } from "../layout-core/types";
+import { getPaneKind } from "./pane-kinds";
 
 export type PresetId = "one-table" | "order-chain" | "query-chart" | "stress-10";
 
@@ -8,8 +9,10 @@ const pane = (id: string, ref: ObjectRef, extra: Partial<PaneNode> = {}): PaneNo
 const row = (id: string, children: LayoutNode[], weight = 1): LayoutNode => ({ id, type: "row", size: { weight }, children });
 const col = (id: string, children: LayoutNode[], weight = 1): LayoutNode => ({ id, type: "column", size: { weight }, children });
 
-const tbl = (table: string): ObjectRef => ({ kind: "table", params: { table } });
-const rec = (table: string, id: number): ObjectRef => ({ kind: "record", params: { table, id } });
+/** Refs come from each kind's own factory (a kind not yet registered gets the plain shape). */
+const ref = (kind: string, params: ObjectRef["params"]): ObjectRef => getPaneKind(kind)?.ref(params) ?? { kind, params };
+const tbl = (table: string) => ref("table", { table });
+const rec = (table: string, id: number) => ref("record", { table, id });
 
 const SQL = "SELECT status, count(*)::int AS orders, sum(total_cents)::int AS total_cents\nFROM orders\nGROUP BY status\nORDER BY orders DESC";
 
@@ -17,7 +20,7 @@ export const PRESETS: { id: PresetId; label: string; build: () => Layout }[] = [
   {
     id: "one-table",
     label: "One table",
-    build: () => ({ version: 1, root: row("r", [pane("catalog", { kind: "catalog", params: {} }, { size: { px: 280 } }), pane("orders", tbl("orders"), { linkedTo: "catalog" })]) }),
+    build: () => ({ version: 1, root: row("r", [pane("catalog", ref("catalog", {}), { size: { px: 280 } }), pane("orders", tbl("orders"), { linkedTo: "catalog" })]) }),
   },
   {
     id: "order-chain",
@@ -37,8 +40,8 @@ export const PRESETS: { id: PresetId; label: string; build: () => Layout }[] = [
     build: () => ({
       version: 1,
       root: row("r", [
-        col("c", [pane("query", { kind: "query", params: { sql: SQL, autorun: 1 } }), pane("chart", { kind: "chart", params: { runId: "" } }, { linkedTo: "query" })], 1.6),
-        pane("inspector", { kind: "structure", params: { table: "sample_orders" } }),
+        col("c", [pane("query", ref("query", { sql: SQL, autorun: 1 })), pane("chart", ref("chart", { runId: "" }), { linkedTo: "query" })], 1.6),
+        pane("inspector", ref("structure", { table: "sample_orders" })),
       ]),
     }),
   },
@@ -52,16 +55,16 @@ export const PRESETS: { id: PresetId; label: string; build: () => Layout }[] = [
         pane("s2", rec("orders", 1), { linkedTo: "s1" }),
         pane("s3", rec("customers", 1), { linkedTo: "s2" }),
         col("c1", [
-          pane("s4", { kind: "related", params: { table: "orders", column: "customer_id", value: 1, label: "Orders by this customer" } }, { linkedTo: "s3" }),
+          pane("s4", ref("related", { table: "orders", column: "customer_id", value: 1, label: "Orders by this customer" }), { linkedTo: "s3" }),
           pane("s5", rec("products", 1)),
         ]),
         pane("s6", rec("suppliers", 1), { linkedTo: "s5" }),
         col("c2", [
-          pane("s7", { kind: "related", params: { table: "reviews", column: "product_id", value: 1, label: "Reviews of this product" } }),
-          pane("s8", { kind: "audit", params: {} }),
+          pane("s7", ref("related", { table: "reviews", column: "product_id", value: 1, label: "Reviews of this product" })),
+          pane("s8", ref("audit", {})),
         ]),
-        pane("s9", { kind: "structure", params: { table: "orders" } }),
-        pane("s10", { kind: "er", params: { table: "orders" } }),
+        pane("s9", ref("structure", { table: "orders" })),
+        pane("s10", ref("er", { table: "orders" })),
       ]),
     }),
   },
