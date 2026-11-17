@@ -5,13 +5,13 @@ import { useEffect, useRef, useState } from "react";
 import type { ColumnInfo, Relation, Row, TableName } from "../../data/types";
 import { errorText, isLoading, useTableInfo, useRecord, useRelations, useUpdateRow } from "../../data/hooks";
 import { cellKind, columnLabel, formatCell, formatCount, formatJson, rawText, isNumericType } from "../format";
-import { foreignKeyRef, relationRef, singular, tableRef } from "../shared/refs";
+import { foreignKeyRef, relationRef, singular, tableOf, tableRef } from "../shared/refs";
 import { ErrorState, Loading, NullChip, Shell } from "../shared/states";
 import { PaneGate } from "../shared/PaneGate";
 import type { PaneComponentProps } from "../../ui/pane-kinds";
 
 export function RecordPane({ ref, paused, openBeside, setActivity }: PaneComponentProps) {
-  const table = String(ref.params.table ?? "") as TableName;
+  const table = tableOf(ref);
   const id = String(ref.params.id ?? "");
   const cat = useTableInfo(table, paused);
   const rec = useRecord(table, id, { paused });

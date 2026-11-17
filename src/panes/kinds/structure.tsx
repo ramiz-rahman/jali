@@ -3,13 +3,13 @@ import { definePaneKind } from "../../ui/pane-kinds";
 import type { TableName } from "../../data/types";
 import { useCatalog } from "../../data/hooks";
 import { formatCount } from "../format";
-import { erRef, tableInfoOf, tableRef } from "../shared/refs";
+import { erRef, tableInfoOf, tableOf, tableRef } from "../shared/refs";
 import { NullChip, Shell } from "../shared/states";
 import { PaneGate } from "../shared/PaneGate";
 import type { PaneComponentProps } from "../../ui/pane-kinds";
 
 export function StructurePane({ ref, paused, openBeside }: PaneComponentProps) {
-  const table = String(ref.params.table ?? "") as TableName;
+  const table = tableOf(ref);
   const cat = useCatalog({ paused });
   const info = tableInfoOf(cat.data, table);
   if (!info || cat.isError) return <PaneGate queries={[cat]} gone={!info ? `Table "${table}"` : undefined} />;

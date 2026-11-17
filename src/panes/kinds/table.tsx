@@ -5,7 +5,7 @@ import type { ObjectRef, Row, TableName, ColumnInfo } from "../../data/types";
 import { Grid, type GridColumn } from "../grid/Grid";
 import { useTableInfo, isLoading } from "../../data/hooks";
 import { formatCount } from "../format";
-import { foreignKeyRef, recordRef, rowId, singular } from "../shared/refs";
+import { foreignKeyRef, recordRef, rowId, singular, tableOf } from "../shared/refs";
 import { Loading, Shell } from "../shared/states";
 import { useWindowRows } from "../grid/useWindow";
 import { nextSort, orderByString, parseFilter, type SortState } from "../grid/grid-state";
@@ -62,7 +62,7 @@ export function TableGrid({ table, fixedWhere, paused, focused, openBeside, peek
 }
 
 export function TablePane(p: PaneComponentProps) {
-  const table = String(p.ref.params.table ?? "") as TableName;
+  const table = tableOf(p.ref);
   return <TableGrid {...p} table={table} label={`${table} rows`} />;
 }
 

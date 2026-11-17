@@ -8,6 +8,8 @@ export function rowId(columns: ColumnInfo[], row: Row): string {
 }
 
 export const recordRef = (table: TableName, id: string | number): ObjectRef => ({ kind: "record", params: { table, id } });
+/** The table a table-shaped ref points at. */
+export const tableOf = (ref: ObjectRef): TableName => String(ref.params.table ?? "") as TableName;
 export const tableRef = (table: TableName): ObjectRef => ({ kind: "table", params: { table } });
 export const erRef = (table: TableName): ObjectRef => ({ kind: "er", params: { table } });
 export const chartRef = (runId: string): ObjectRef => ({ kind: "chart", params: { runId } });
