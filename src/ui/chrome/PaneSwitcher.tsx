@@ -2,7 +2,7 @@ import type { PaneNode } from "../../layout-core/types";
 import { paneDomId } from "../dom/ids";
 import { Activity } from "../pane/Activity";
 import { KindIcon } from "../pane/icons";
-import { paneTitle } from "../pane-kinds";
+import { titleOf } from "../profile";
 import { useActions, useModel, useUi } from "../state/react";
 
 function Item({ node, selected }: { node: PaneNode; selected: boolean }) {
@@ -20,7 +20,7 @@ function Item({ node, selected }: { node: PaneNode; selected: boolean }) {
       ref={selected ? (el) => el?.scrollIntoView?.({ inline: "nearest", block: "nearest" }) : undefined}
     >
       <KindIcon kind={node.ref.kind} size={14} />
-      <span className="switch-title">{paneTitle(node.ref)}</span>
+      <span className="switch-title">{titleOf(node)}</span>
       <Activity a={activity} />
     </button>
   );

@@ -21,13 +21,14 @@ export function StatusLine() {
       : view.peek
         ? "Peek · Esc to close"
         : `${shortcutLabel("pane.zoom")} maximise · ${shortcutLabel("pane.focus.next")} next pane · ${formatChord(PALETTE_CHORD)} commands`;
-  const n = m.panes.length;
+  const n = m.onScreen.length;
   return (
     <footer className="status" aria-label="Status" data-shelf-on={tucked ? "" : undefined}>
       {/* Hidden panes live here, on the left, so the workspace height never changes. The count and focus step right. */}
       <Shelf />
       <span className="status-main" data-testid="status-main">
         {n} {n === 1 ? "pane" : "panes"}
+        {m.off.length ? ` · ${m.off.length} hidden` : ""}
         {tucked ? ` · ${tucked} tucked` : ""}
         {m.folded.length ? ` · ${m.folded.length} folded` : ""}
         {" · "}Focus: {view.focused ? m.title(view.focused) : "none"}

@@ -75,7 +75,7 @@ export function Workspace() {
       data-single={single ? "" : undefined}
       data-zoomed={!single && view.zoomed ? "" : undefined}
     >
-      {single ? <PaneSwitcher panes={m.panes} current={currentPane(m, view)} /> : null}
+      {single ? <PaneSwitcher panes={m.onScreen} current={currentPane(m, view)} /> : null}
       <div className="workspace-inner" style={inner}>
         {frames(m, view, mode, { width: inner.width, height: inner.height }).map((f) => (
           <PaneFrame key={f.node.id} frame={f} chrome={CHROME[mode]} dropTarget={!single && dnd?.target === f.node.id} />

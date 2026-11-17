@@ -3,11 +3,15 @@ import { refuse, type Outcome, type Snapshot } from "../state/apply";
 import { msg, toasts } from "../state/messages";
 import { pushUndo } from "../state/undo";
 import { putBack } from "./tuck";
+import { backToReview, hideRole } from "./review";
 
 const unzoomed = core.tree.unzoom;
 
-export function close({ s, m, ctx }: Snapshot, id = s.view.focused): Outcome {
+export function close(x: Snapshot, id = x.s.view.focused): Outcome {
+  const { s, m, ctx } = x;
   if (!id || !m.pane(id)) return null;
+  // In a curated workspace a role pane is never closed: close hides it (and the primary pane refuses).
+  if (s.review && m.pane(id)!.role) return hideRole(x, id);
   if (m.panes.length <= 1) return refuse(msg.lastPaneStays);
   const title = m.title(id);
   const r = core.close(s.layout, unzoomed(s.view), id, ctx);
@@ -17,7 +21,9 @@ export function close({ s, m, ctx }: Snapshot, id = s.view.focused): Outcome {
   };
 }
 
-export function closeOthers({ s, m, ctx }: Snapshot, id = s.view.focused): Outcome {
+export function closeOthers(x: Snapshot, id = x.s.view.focused): Outcome {
+  const { s, m, ctx } = x;
+  if (s.review) return backToReview(x);
   if (!id) return null;
   if (m.panes.length <= 1) return refuse(msg.noOtherPanes);
   const r = core.closeOthers(s.layout, unzoomed(s.view), id, ctx);

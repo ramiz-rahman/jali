@@ -87,3 +87,17 @@
 
 :root[data-theme="dark"] .pk { --chart-label:#FAFAFA; --er-label:#FAFAFA; --er-head:#232327; }
 @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .pk { --chart-label:#FAFAFA; --er-label:#FAFAFA; --er-head:#232327; } }
+
+/* ---------- review queue (loan review) ---------- */
+.rq-list { flex:1; min-height:0; overflow:auto; outline:none; padding:4px 0; }
+.rq-item { display:grid; gap:2px; padding:8px 12px; border-bottom:1px solid var(--z100); cursor:default; outline:none; }
+.rq-item:hover { background:var(--z50); }
+.rq-item[aria-selected="true"] { background:var(--accent-soft); box-shadow:inset 2px 0 0 var(--accent); }
+.rq-item:focus-visible { box-shadow:inset 0 0 0 1.5px var(--accent); }
+.rq-line { display:flex; align-items:baseline; justify-content:space-between; gap:12px; min-width:0; }
+.rq-name { font-weight:500; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.rq-amount { flex:none; }
+.rq-status { flex:none; }
+.rq-item[data-status="approved"] .rq-name, .rq-item[data-status="returned"] .rq-name { color:var(--z500); font-weight:400; }
+.rq-item[data-status="returned"] .rq-status { color:#B45309; }
+:root[data-theme="dark"] .rq-item[data-status="returned"] .rq-status { color:#fbbf24; }

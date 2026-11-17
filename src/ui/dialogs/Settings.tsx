@@ -9,6 +9,7 @@ export function SettingsPanel() {
   const store = useStore();
   const open = useUi((s) => s.settingsOpen);
   const settings = useUi((s) => s.settings);
+  const review = useUi((s) => s.review);
   const first = useRef<HTMLInputElement>(null);
   useEffect(() => {
     if (open) first.current?.focus();
@@ -52,6 +53,18 @@ export function SettingsPanel() {
             <span>Over the cap, the oldest unpinned, unfocused pane becomes a tab.</span>
           </label>
         </fieldset>
+        <fieldset>
+          <legend>Loan review: opened panes</legend>
+          <label className="radio"><input type="radio" name="boundary" checked={settings.boundary === "tint"} onChange={() => set({ boundary: "tint" })} /><span>Tinted header and “Opened” tag</span></label>
+          <label className="radio"><input type="radio" name="boundary" checked={settings.boundary === "none"} onChange={() => set({ boundary: "none" })} /><span>No marking</span></label>
+        </fieldset>
+        {review ? (
+          <fieldset>
+            <legend>Loan review: viewing as</legend>
+            <label className="radio"><input type="radio" name="viewer" checked={review.canInvestigate} onChange={() => store.actions.setCanInvestigate(true)} /><span>Credit reviewer: links open beside</span></label>
+            <label className="radio"><input type="radio" name="viewer" checked={!review.canInvestigate} onChange={() => store.actions.setCanInvestigate(false)} /><span>Loan officer: links open as a peek</span></label>
+          </fieldset>
+        ) : null}
         <fieldset>
           <legend>Status line</legend>
           <label className="radio"><input type="checkbox" checked={settings.showStats} onChange={(e) => set({ showStats: e.target.checked })} /><span>Show fetch stats</span></label>

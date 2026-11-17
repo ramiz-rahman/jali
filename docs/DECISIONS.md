@@ -110,3 +110,16 @@ The public API is standalone exports (`import * as core from "…/layout-core"`)
 8. **Deleted.** The Ark divider adapter (its setting, palette command, top-bar tag, ghost CSS and adapter types) and `react-resizable-panels`; `dropLabel`, `minAlong`, `allPaneKinds`, `lastA`, `nearestDivider().sign`, `usePaneKindsVersion`, the `useDataLayer` re-export (callers use `src/data/react`), `pane/tuck.ts`, two activity components (one `Activity`, with `data-shape` on the shelf shapes), the duplicate Palette/Chooser combobox (`ListDialog`), and the duplicate direction tables.
 9. **CSS.** `affordances.css` was loaded before `styles.css`, so equal-specificity ties went to `styles.css`; the merge keeps the values that actually rendered. `data-theme` is always the resolved theme, so dark is written once (plus the `.pk` remap, now on shared tokens). Geometry tokens (`--gap`, `--topbar-h`, `--status-h`, `--switcher-h`) come from `tokens.ts`. Dead rules removed: `.placeholder*`, `.status-sep`, `.status-warn`, `.activity-done`, `.ra-done`, `.drag-chip span`, the unreachable divider focus ring.
 10. **Test hooks.** `data-testid` on the drag chip, divider preview and status main; `data-zoomed` on the zoomed pane's section; `data-shape` on shelf activity shapes. Settings focuses the first theme radio on open (the adapter radios it used to focus are gone).
+
+## 17 Nov 2026: curated workspaces (loan review)
+- **Two control models, one engine.** Data Studio keeps full per-pane control. A curated workspace (`ui/profile.ts`, first one `src/review/`) moves layout control to the top bar: arrangement (Review / Focus), a toggle per supporting pane, the investigation with "Back to review", and Reset.
+- **Roles.** Arrangement panes carry `role` and `priority` (primary | supporting) on the `PaneNode`. A supporting pane has a single "hide" button, and close or tuck on it also hides it. The primary pane has no dismiss at all. Panes without a role were opened by following links; they are free (tuck, close, move) and carry a sand tint and an "Opened" tag (Settings: tint or none).
+- **Hide is a third overlay** (`overlay.hidden`), beside tucks and folds. There is no slot and no tab, the tree is untouched, and showing the pane restores its exact rect.
+- **Fold priority.** When room runs out, supporting panes give way first, but only those whose fold actually frees room. If yielding can't make room, nothing yields and the old rule applies. The primary pane folds last. Panes without priority behave exactly as before.
+- **Placement.** Panes opened from a role pane go after the whole arrangement (`openBeside(..., place)`), so the investigation is one region at the right.
+- **Three layers of layout state.**
+  - The arrangement is the product's.
+  - Adjustments (hand-set sizes and hidden roles) belong to the person: they are saved per arrangement in localStorage, and Reset drops them.
+  - The link carries content only: `?app=review&arr=&item=&open=…`, with no `l=`. The same link opens in each reader's own layout.
+- **Permission.** "Viewing as loan officer" makes links peek instead of opening beside (lab setting; in a product it would be set by the user's role).
+- **Known limit:** at 1440, the arrangement plus one opened pane fits. A second opened pane folds into a tab group with a role pane, which mixes the two regions. This is still to be decided.

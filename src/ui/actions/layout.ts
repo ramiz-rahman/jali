@@ -28,7 +28,7 @@ export function arrive({ s, ctx }: Snapshot, layout: Layout, arrived: Partial<Vi
   const focused = s.view.focused && ids.has(s.view.focused) ? s.view.focused : history[0] ?? panes[0]?.id;
   const view: ViewState = { focusHistory: history, ...arrived };
   if (focused) view.focused = focused;
-  return { op: "arrive", layout: core.refit(layout, view, ctx), view };
+  return { op: "arrive", layout: core.refit(layout, view, ctx), view, patch: s.review ? { review: null } : undefined };
 }
 
 export function setActivity({ s }: Snapshot, id: NodeId, a: PaneActivity): Outcome {

@@ -5,7 +5,8 @@
  */
 import * as core from "../../layout-core";
 import type { Layout, LayoutContext, NodeId, PaneNode, ResolvedLayout, ShelfEntry, StackNode, TuckRecord, ViewState } from "../../layout-core/types";
-import { kindsVersion, paneTitle } from "../pane-kinds";
+import { kindsVersion } from "../pane-kinds";
+import { titleOf } from "../profile";
 
 /** A tab group as the frame shows it: a deliberate stack, or a fold or tuck group made by resolve. */
 export interface Group {
@@ -39,6 +40,10 @@ export interface WorkspaceModel {
   /** Tucked panes in tree order, each with the pane it sits behind: what the shelf lists. */
   shelf: ShelfEntry[];
   folded: NodeId[];
+  /** Panes hidden by the overlay: no slot and no tab (a curated workspace's hidden roles). */
+  off: NodeId[];
+  /** Every pane except hidden ones, in tree order: what single view switches between. */
+  onScreen: PaneNode[];
   /** Phone rule: even one pane's minimum overflows the width, so one pane shows at a time. */
   single: boolean;
 }
@@ -61,7 +66,7 @@ export function buildModel({ layout, view, area, ctx }: ModelInput): WorkspaceMo
   const stackOf = (id: NodeId | undefined) => (id ? core.tree.stackOf(layout.root, id) : undefined);
   const title = (id: NodeId | undefined) => {
     const p = id ? byId.get(id) : undefined;
-    return p ? paneTitle(p.ref) : "pane";
+    return p ? titleOf(p) : "pane";
   };
 
   const groups = new Map<NodeId, Group>();
@@ -98,6 +103,8 @@ export function buildModel({ layout, view, area, ctx }: ModelInput): WorkspaceMo
       return (box?.hidden && box.stackId && flat.panes.find((b) => b.stackId === box.stackId && !b.hidden)?.id) || id;
     },
     folded: resolved.shelf.filter((e) => e.reason === "folded").map((e) => e.paneId),
+    off: flat.panes.filter((b) => b.hidden === "off").map((b) => b.id),
+    onScreen: panes.filter((p) => !flat.panes.some((b) => b.id === p.id && b.hidden === "off")),
     single: area.width > 0 && resolved.panes.some((b) => !b.hidden && b.rect.x + b.rect.width > area.width + 0.5),
   };
 }

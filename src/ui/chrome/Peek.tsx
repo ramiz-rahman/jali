@@ -15,6 +15,8 @@ export function Peek({ presentation }: { presentation: Presentation }) {
   const store = useStore();
   const ref = useUi((s) => s.view.peek);
   const areaW = useUi((s) => s.area.width);
+  const review = useUi((s) => s.review);
+  const canPin = !review || review.canInvestigate;
   const host = useMemo(() => peekHost(store), [store]);
   const openedBy = useRef<"pointer" | "keyboard">("keyboard");
   useEffect(() => {
@@ -47,12 +49,13 @@ export function Peek({ presentation }: { presentation: Presentation }) {
           <span className="peek-label">Peek</span>
         </div>
         <div className="pane-actions">
-          <button className="text-btn" onClick={() => actions.pinPeek()} title="Pin beside">
+          {/* A curated workspace never replaces its arrangement; a role that only peeks can't pin either. */}
+          {canPin ? <button className="text-btn" onClick={() => actions.pinPeek()} title="Pin beside">
             <PanelRightOpen size={14} strokeWidth={1.5} aria-hidden /> Pin beside
-          </button>
-          <button className="text-btn" onClick={() => actions.openPeekFull()} title="Open full">
+          </button> : null}
+          {review ? null : <button className="text-btn" onClick={() => actions.openPeekFull()} title="Open full">
             <Maximize size={14} strokeWidth={1.5} aria-hidden /> Open full
-          </button>
+          </button>}
           <button className="icon-btn" onClick={() => actions.peek(null)} aria-label="Close peek" title={`Close (${formatChord({ key: "Escape" })})`}>
             <X size={14} strokeWidth={1.5} aria-hidden />
           </button>

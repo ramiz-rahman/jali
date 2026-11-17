@@ -27,16 +27,34 @@ export function decodePeek(text: string): ObjectRef | null {
   return { kind, params };
 }
 
+const REVIEW_KEYS = ["app", "arr", "item", "open"];
+
+/**
+ * A curated workspace's link carries content only: the arrangement's name, the active item and the panes opened while
+ * investigating. Sizes and hidden panes are the reader's own, so the same link opens in each person's layout.
+ */
+function reviewParams(q: URLSearchParams, s: UiState) {
+  q.delete("l");
+  for (const k of REVIEW_KEYS) q.delete(k);
+  if (!s.review) return;
+  q.set("app", "review");
+  q.set("arr", s.review.arrangement);
+  q.set("item", String(s.review.item));
+  for (const p of core.tree.panes(s.layout.root)) if (!p.role) q.append("open", encodePeek(p.ref));
+}
+
 function buildUrl(s: UiState): string {
   const q = new URLSearchParams(location.search);
-  q.set("l", core.encode(s.layout));
+  reviewParams(q, s);
+  if (!s.review) q.set("l", core.encode(s.layout));
   if (s.view.zoomed) q.set("zoom", s.view.zoomed); else q.delete("zoom");
   if (s.view.peek) q.set("peek", encodePeek(s.view.peek)); else q.delete("peek");
   return `${location.pathname}?${q.toString()}${location.hash}`;
 }
 
 /** What the address bar holds: a layout and view, or a code that could not be read. Null when there is no layout. */
-export type UrlRead = { layout: Layout; view: Partial<ViewState> } | { broken: string; view: Partial<ViewState> };
+export interface ReviewRead { arrangement: string; item: number; investigation: ObjectRef[] }
+export type UrlRead = { layout: Layout; view: Partial<ViewState> } | { broken: string; view: Partial<ViewState> } | { review: ReviewRead; view: Partial<ViewState> };
 
 export function readUrl(kinds: KindRegistry): UrlRead | null {
   const q = new URLSearchParams(location.search);
@@ -45,6 +63,11 @@ export function readUrl(kinds: KindRegistry): UrlRead | null {
   const peek = q.get("peek");
   const ref = peek ? decodePeek(peek) : null;
   if (ref) view.peek = ref;
+  if (q.get("app") === "review") {
+    const item = Number(q.get("item"));
+    const investigation = q.getAll("open").map(decodePeek).filter((r): r is ObjectRef => !!r && Object.hasOwn(kinds, r.kind));
+    return { review: { arrangement: q.get("arr") ?? "", item: Number.isInteger(item) && item > 0 ? item : 0, investigation }, view };
+  }
   if (!code) return null;
   const layout = core.decode(code, kinds);
   if (!layout) return { broken: code, view: {} };

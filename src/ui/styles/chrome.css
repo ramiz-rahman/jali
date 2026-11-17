@@ -85,3 +85,50 @@
 .switch-item.is-tucked { border-style: dashed; border-color: var(--line); }
 .switch-item.is-tucked.is-active { border-color: var(--accent-mid); }
 .switch-title { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* ---------- workspace switch and the curated top bar (loan review) ---------- */
+.app-switch { display: inline-flex; gap: 2px; padding: 2px; border-radius: 8px; background: var(--ground); border: 1px solid var(--line); }
+.app-btn {
+  height: 24px; padding: 0 10px; border: 0; border-radius: 6px; background: none; color: var(--text-2);
+  font: inherit; font-weight: 500; white-space: nowrap; cursor: pointer;
+}
+.app-btn:hover { color: var(--text); }
+.app-btn[aria-checked="true"] { background: var(--island); color: var(--text); box-shadow: 0 0 0 1px var(--line), 0 1px 2px rgba(24, 24, 27, 0.06); }
+
+.review-bar { display: flex; align-items: center; gap: 12px; min-width: 0; flex: 1; }
+.seg { display: inline-flex; gap: 2px; flex: none; }
+.seg-btn {
+  height: 28px; padding: 0 10px; border: 1px solid transparent; border-radius: 6px; background: none;
+  color: var(--text-2); font: inherit; white-space: nowrap; cursor: pointer;
+}
+.seg-btn:hover { background: var(--hover); color: var(--text); }
+.seg-btn[aria-checked="true"] { background: var(--ground); border-color: var(--line); color: var(--text); font-weight: 500; }
+
+/* Pane toggles: shown panes read as pressed; hidden ones as an outline waiting to be shown. */
+.role-toggles { display: flex; align-items: center; gap: 4px; min-width: 0; padding-left: 12px; border-left: 1px solid var(--line); overflow-x: auto; scrollbar-width: none; }
+.role-toggle {
+  display: inline-flex; align-items: center; gap: 6px; flex: none; height: 28px; padding: 0 9px; border-radius: 6px;
+  font: inherit; font-size: 12.5px; white-space: nowrap; cursor: pointer;
+  border: 1px dashed var(--control); background: none; color: var(--text-3);
+}
+.role-toggle:hover { color: var(--text); border-color: var(--text-2); }
+.role-toggle[aria-pressed="true"] { border: 1px solid var(--line); background: var(--ground); color: var(--text); }
+.role-toggle[aria-pressed="true"] svg { color: var(--text-2); }
+
+/* The investigation: panes opened from links. Its colour matches the opened panes' header tint. */
+.inv {
+  display: inline-flex; align-items: center; gap: 8px; flex: none; height: 28px; padding: 0 3px 0 10px; border-radius: 7px;
+  background: var(--opened-bg); border: 1px solid var(--opened-line); color: var(--text-2); font-size: 12.5px; white-space: nowrap;
+}
+.inv b { color: var(--text); font-weight: 600; font-variant-numeric: tabular-nums; }
+.inv-mark { width: 6px; height: 6px; border-radius: 2px; background: var(--opened-mark); }
+.inv-back {
+  display: inline-flex; align-items: center; gap: 5px; height: 22px; padding: 0 8px; border: 1px solid var(--opened-line); border-radius: 5px;
+  background: var(--island); color: var(--text); font: inherit; font-size: 12px; font-weight: 500; cursor: pointer;
+}
+.inv-back:hover { border-color: var(--text-2); }
+.review-reset { margin-left: auto; flex: none; }
+
+@media (max-width: 1360px) { .role-label { display: none; } .role-toggle { padding: 0 7px; } }
+@media (max-width: 1100px) { .inv-text { display: none; } }
+@media (max-width: 767px) { .app-btn { padding: 0 7px; } .seg { display: none; } }

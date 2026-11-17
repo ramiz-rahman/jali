@@ -74,6 +74,18 @@ export const msg = {
   brokenLink: "The layout in this link couldn't be read. Opened the default layout instead.",
   centreDrop: (mode: "swap" | "tab") => `Centre drop: ${mode === "swap" ? "swap" : "add as tab"}`,
 
+  // curated workspaces (loan review)
+  arrangement: (name: string, label: string) => `${name}: ${label}`,
+  arrangementReset: (label: string) => `${label} reset to its designed layout`,
+  activated: (noun: string, id: number, dropped: number) => `Showing ${noun} ${id}${dropped ? ` · ${dropped} opened ${dropped === 1 ? "pane" : "panes"} closed` : ""}`,
+  roleHidden: (t: string) => `${t} hidden · show it again from the top bar`,
+  roleShown: (t: string) => `${t} shown`,
+  primaryStays: (t: string) => `${t} always stays in this layout`,
+  notInvestigating: "Nothing opened beyond the review",
+  backToReview: (n: number) => `Back to review · ${n} opened ${n === 1 ? "pane" : "panes"} closed · Undo available`,
+  permission: (can: boolean) => (can ? "Viewing as credit reviewer: links open beside" : "Viewing as loan officer: links open as a peek"),
+  peekOnly: (t: string) => `Peek: ${t} · your role opens links as a peek`,
+
   // what the workspace did on its own
   singleOn: "Single view: one pane at a time. Use the pane switcher at the top.",
   singleOff: "Single view ended: full layout restored",
@@ -85,6 +97,7 @@ export const msg = {
 export const toasts = {
   closed: (t: string) => ({ title: "Pane closed", description: t, undo: true }),
   othersClosed: () => ({ title: "Other panes closed", undo: true }),
+  backToReview: (n: number) => ({ title: "Back to review", description: `${n} opened ${n === 1 ? "pane" : "panes"} closed`, undo: true }),
   brokenLink: (preset: string) => ({
     title: "This link’s layout couldn’t be read",
     description: `Opened “${preset}” instead. A copy of the link was kept.`,

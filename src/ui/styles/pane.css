@@ -87,3 +87,11 @@
 .tab.is-flash { animation: tab-flash 600ms ease-out; }
 @keyframes tab-flash { 0% { background: color-mix(in srgb, var(--accent) 22%, transparent); } 100% { background: transparent; } }
 @media (prefers-reduced-motion: reduce) { .tab.is-flash { animation: none; } }
+
+/* ---------- curated workspaces: role panes name their role; opened panes carry the investigation's tint ---------- */
+.pane-sub { font-size: 12px; color: var(--text-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+.pane[data-origin="role"] .pane-title h2 { flex: none; max-width: 60%; }
+.pane[data-boundary="tint"] .pane-header { background: var(--opened-bg); border-bottom-color: var(--opened-line); }
+.pane[data-boundary="tint"] { border-color: var(--opened-line); }
+.pane[data-boundary="tint"].is-focused { border-color: var(--accent); }
+.badge-opened { color: var(--opened-ink); border-color: var(--opened-line); background: var(--island); }

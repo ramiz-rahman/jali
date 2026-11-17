@@ -1,7 +1,9 @@
 import * as core from "../../layout-core";
 import type { NodeId, ObjectRef, PaneNode } from "../../layout-core/types";
 import { identityOf, isRecordable, isTransient, paneTitle, sameObject, sameRecent } from "../pane-kinds";
-import { refuse, type Outcome, type Snapshot } from "../state/apply";
+import { refuse, type Change, type Outcome, type Snapshot } from "../state/apply";
+import { peek } from "./peek";
+import { placeAfterArrangement } from "./review";
 import type { WorkspaceModel } from "../state/model";
 import { msg } from "../state/messages";
 
@@ -24,8 +26,12 @@ export function openPaneFor(m: WorkspaceModel, ref: ObjectRef, except?: NodeId):
 }
 
 /** Founder decision 2: focus stays in the source. */
-export function openBeside({ s, m, ctx }: Snapshot, source: NodeId, ref: ObjectRef): Outcome {
-  const r = core.openBeside(s.layout, unzoomed(s.view), source, ref, ctx);
+export function openBeside(x: Snapshot, source: NodeId, ref: ObjectRef): Outcome {
+  const { s, m, ctx } = x;
+  // A curated workspace: a role that may not investigate only peeks; opened panes gather after the arrangement.
+  if (s.review && !s.review.canInvestigate) return { ...(peek(x, ref, source) as Change), msg: msg.peekOnly(paneTitle(ref)) };
+  const place = s.review && m.pane(source)?.role ? placeAfterArrangement(s.layout) : undefined;
+  const r = core.openBeside(s.layout, unzoomed(s.view), source, ref, ctx, place);
   const view = { ...r.view, focused: source, focusHistory: r.view.focusHistory.length ? r.view.focusHistory : [source] };
   return { op: "open", layout: r.layout, view, msg: msg.openedBeside(r.mode, paneTitle(ref), m.title(source)), patch: { recent: withRecent(s.recent, [ref]) }, result: r.opened };
 }

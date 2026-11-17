@@ -1,8 +1,8 @@
 import { Plus, Undo2, X } from "lucide-react";
-import type { NodeId } from "../../layout-core/types";
+import type { NodeId, PaneNode } from "../../layout-core/types";
 import { shortcutLabel } from "../commands/registry";
 import { paneDomId, paneTitleId } from "../dom/ids";
-import { paneTitle } from "../pane-kinds";
+import { getProfile, roleOf, titleOf } from "../profile";
 import { useStore, useUi } from "../state/react";
 import { startPaneDrag } from "../workspace/dnd";
 import type { Frame } from "../workspace/frames";
@@ -25,12 +25,14 @@ function TabActivity({ id }: { id: NodeId }) {
 export function TabStrip({ group, owner }: { group: NonNullable<Frame["group"]>; owner: NodeId }) {
   const store = useStore();
   const { actions } = store;
+  // A curated workspace: role tabs can't be closed (a supporting role hides from the top bar), and no "+".
+  const review = useUi((s) => !!s.review);
   return (
     <div className="tabbar">
       <div className="tabs" role="tablist" aria-label={`Tabs: ${group.tabs.length}`}>
         {group.tabs.map(({ node: t, tucked }) => {
           const active = t.id === group.active;
-          const title = paneTitle(t.ref);
+          const title = titleOf(t);
           return (
             <div
               key={t.id}
@@ -56,7 +58,7 @@ export function TabStrip({ group, owner }: { group: NonNullable<Frame["group"]>;
                 }
               }}
             >
-              <KindIcon kind={t.ref.kind} size={14} />
+              <TabIcon node={t} />
               <span className="tab-title" id={active ? paneTitleId(owner) : undefined}>{title}</span>
               <TabActivity id={t.id} />
               {tucked ? (
@@ -64,14 +66,16 @@ export function TabStrip({ group, owner }: { group: NonNullable<Frame["group"]>;
                   <Undo2 size={14} strokeWidth={1.75} aria-hidden />
                 </button>
               ) : null}
-              <button className="tab-close" aria-label={`Close ${title}`} onClick={(e) => { e.stopPropagation(); actions.close(t.id); }}>
-                <X size={14} strokeWidth={1.75} aria-hidden />
-              </button>
+              {review && t.role ? null : (
+                <button className="tab-close" aria-label={`Close ${title}`} onClick={(e) => { e.stopPropagation(); actions.close(t.id); }}>
+                  <X size={14} strokeWidth={1.75} aria-hidden />
+                </button>
+              )}
             </div>
           );
         })}
       </div>
-      <button
+      {review ? null : <button
         className="tab-add"
         aria-label="New tab in this stack"
         title="New tab"
@@ -81,7 +85,13 @@ export function TabStrip({ group, owner }: { group: NonNullable<Frame["group"]>;
         }}
       >
         <Plus size={14} strokeWidth={1.5} aria-hidden />
-      </button>
+      </button>}
     </div>
   );
+}
+
+/** A role tab shows its role's icon; anything else its kind's. */
+function TabIcon({ node }: { node: PaneNode }) {
+  const role = useUi((s) => !!s.review) && node.role ? roleOf(getProfile()!, node.role) : undefined;
+  return role ? <role.icon size={14} strokeWidth={1.5} aria-hidden /> : <KindIcon kind={node.ref.kind} size={14} />;
 }

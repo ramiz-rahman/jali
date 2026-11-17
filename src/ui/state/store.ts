@@ -12,13 +12,26 @@ import { bindActions, type Actions } from "../actions";
 import { apply, type HistoryMode, type Outcome, type Snapshot, type Toast } from "./apply";
 import { modelCache, type WorkspaceModel } from "./model";
 import { loadSettings, systemPrefersDark, type Settings } from "./settings";
+import { loadAdjustments, type AdjustmentBook } from "./adjustments";
 
 export interface DndState { dragged: NodeId; x: number; y: number; target?: NodeId; zone?: import("../../layout-core/types").Edge | "centre" }
 /** A chooser dialog opened by a command (⌘K "Add to tabs of…"). */
 export interface ChooserState { kind: "merge"; source: NodeId }
 
+/** A curated workspace in use (ui/profile.ts): which arrangement, which item, and what this person may do. */
+export interface ReviewState {
+  arrangement: string;
+  item: number;
+  /** Role permission: following a link opens an investigation pane (true) or only peeks (false). */
+  canInvestigate: boolean;
+}
+
 export interface UiState {
   layout: Layout;
+  /** Null in Data Studio, where the person builds the layout. */
+  review: ReviewState | null;
+  /** Personal adjustments to arrangements not on screen (the one on screen lives in the layout). */
+  adjust: AdjustmentBook;
   view: ViewState;
   presetId: PresetId;
   settings: Settings;
@@ -70,6 +83,8 @@ export interface UiStore {
 export function createUiStore(deps: UiStoreDeps = {}): UiStore {
   let state: UiState = {
     layout: presetById(DEFAULT_PRESET).build(),
+    review: null,
+    adjust: loadAdjustments(),
     view: { focusHistory: [] },
     presetId: DEFAULT_PRESET,
     settings: loadSettings(),

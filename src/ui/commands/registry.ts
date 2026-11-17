@@ -61,6 +61,12 @@ export const COMMANDS: Command[] = [
   ...PRESETS.map((p): Command => ({ id: `layout.preset.${p.id}`, title: `Layout: ${p.label}`, group: "Layout", run: (u) => u.actions.preset(p.id) })),
   { id: "layout.reset", title: "Reset layout", group: "Layout", run: (u) => u.actions.resetLayout() },
   { id: "layout.copy_link", title: "Copy link to this layout", group: "Layout", run: copyLink },
+  { id: "review.back", title: "Back to review (close opened panes)", group: "Layout", check: ({ s, m }) => (s.review && m.panes.some((p) => !p.role) ? undefined : refuse()), run: (u) => u.actions.backToReview() },
+  { id: "review.reset", title: "Reset layout to its design", group: "Layout", check: ({ s }) => (s.review ? undefined : refuse()), run: (u) => u.actions.resetArrangement() },
+  { id: "review.enter", title: "Open Loan review", group: "Layout", check: ({ s }) => (s.review ? refuse() : undefined), run: (u) => u.actions.enterReview() },
+  { id: "review.leave", title: "Open Data Studio", group: "Layout", check: ({ s }) => (s.review ? undefined : refuse()), run: (u) => u.actions.leaveReview() },
+  { id: "review.as_officer", title: "View as loan officer (links peek)", group: "Settings", check: ({ s }) => (s.review?.canInvestigate ? undefined : refuse()), run: (u) => u.actions.setCanInvestigate(false) },
+  { id: "review.as_reviewer", title: "View as credit reviewer (links open beside)", group: "Settings", check: ({ s }) => (s.review && !s.review.canInvestigate ? undefined : refuse()), run: (u) => u.actions.setCanInvestigate(true) },
 
   { id: "peek.close", title: "Close peek", keys: [{ key: "Escape" }], group: "Peek", check: checkPeek, run: (u) => u.actions.peek(null) },
   { id: "peek.pin", title: "Pin peek beside", group: "Peek", check: checkPeek, run: (u) => u.actions.pinPeek() },

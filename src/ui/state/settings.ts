@@ -8,9 +8,11 @@ export interface Settings {
   paneCap: number;
   showStats: boolean;
   theme: ThemeChoice;
+  /** How a curated workspace marks the panes opened while investigating. */
+  boundary: "tint" | "none";
 }
 
-export const DEFAULT_SETTINGS: Settings = { centreDrop: "swap", paneCap: 8, showStats: true, theme: "system" };
+export const DEFAULT_SETTINGS: Settings = { centreDrop: "swap", paneCap: 8, showStats: true, theme: "system", boundary: "tint" };
 const KEY = "pane-lab:settings";
 
 /** Saved settings over the defaults. Keys from older builds (the divider adapter) are dropped. */
@@ -20,6 +22,7 @@ export function loadSettings(): Settings {
     const { adapter: _dropped, ...known } = saved;
     const s: Settings = { ...DEFAULT_SETTINGS, ...known };
     if (s.theme !== "light" && s.theme !== "dark") s.theme = "system";
+    if (s.boundary !== "none") s.boundary = "tint";
     return s;
   } catch {
     return { ...DEFAULT_SETTINGS };

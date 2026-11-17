@@ -2,6 +2,7 @@ import { memo, useMemo, type CSSProperties } from "react";
 import { GripHorizontal } from "lucide-react";
 import { paneDomId, paneTitleId } from "../dom/ids";
 import { paneTitle } from "../pane-kinds";
+import { getProfile, roleOf, titleOf } from "../profile";
 import { useStore, useUi } from "../state/react";
 import { startPaneDrag } from "../workspace/dnd";
 import { DropZoneLabel } from "../workspace/DropIndicator";
@@ -22,7 +23,13 @@ export const PaneFrame = memo(function PaneFrame({ frame, chrome, dropTarget }: 
   const activity = useUi((s) => s.activity[node.id]);
   const isDragged = useUi((s) => s.dnd?.dragged === node.id);
   const host = useMemo(() => paneHost(actions, node.id), [actions, node.id]);
-  const title = paneTitle(node.ref);
+  const review = useUi((s) => !!s.review);
+  const boundary = useUi((s) => s.settings.boundary);
+  const profile = getProfile();
+  const role = review && node.role && profile ? roleOf(profile, node.role) : undefined;
+  // In a curated workspace, a pane without a role was opened by following a link: it belongs to the investigation.
+  const opened = review && !node.role;
+  const title = titleOf(node);
   const style: CSSProperties = { left: rect.x, top: rect.y, width: rect.width, height: rect.height, display: hidden ? "none" : undefined };
   const cls = ["pane", !chrome.island && "is-single", focused && "is-focused", zoomed && "is-zoomed", isDragged && "is-dragged", dropTarget && "is-drop-target"]
     .filter(Boolean)
@@ -38,6 +45,8 @@ export const PaneFrame = memo(function PaneFrame({ frame, chrome, dropTarget }: 
       data-kind={node.ref.kind}
       data-focused={focused || undefined}
       data-zoomed={zoomed || undefined}
+      data-origin={opened ? "opened" : role ? "role" : undefined}
+      data-boundary={opened ? boundary : undefined}
       aria-hidden={covered || undefined}
       inert={covered || undefined}
       onPointerDownCapture={() => actions.focus(node.id)}
@@ -62,10 +71,12 @@ export const PaneFrame = memo(function PaneFrame({ frame, chrome, dropTarget }: 
           <TabStrip group={group} owner={node.id} />
         ) : (
           <div className="pane-title">
-            <KindIcon kind={node.ref.kind} />
+            {role ? <role.icon size={16} strokeWidth={1.5} aria-hidden /> : <KindIcon kind={node.ref.kind} />}
             <h2 id={paneTitleId(node.id)}>{title}</h2>
+            {role ? <span className="pane-sub">{paneTitle(node.ref)}</span> : null}
             <Activity a={activity} />
             {node.pinned ? <span className="badge">Pinned</span> : null}
+            {opened && boundary === "tint" ? <span className="badge badge-opened">Opened</span> : null}
           </div>
         )}
         <HeaderActions id={node.id} title={title} zoomed={zoomed} chrome={chrome} />

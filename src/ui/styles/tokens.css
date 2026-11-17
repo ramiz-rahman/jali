@@ -31,6 +31,11 @@
   --shadow-zoom: 0 12px 32px rgba(24, 24, 27, 0.1);
   --shadow-peek: -8px 0 24px rgba(24, 24, 27, 0.08), 0 1px 2px rgba(24, 24, 27, 0.04);
   --shadow-dialog: 0 16px 48px rgba(24, 24, 27, 0.16);
+  /* Panes opened while investigating in a curated workspace: a warm sand, apart from the violet of focus. */
+  --opened-bg: #fbf8f1;
+  --opened-line: #eadfc8;
+  --opened-mark: #c08a2e;
+  --opened-ink: #8a6420;
   --radius: 10px;
   --sans: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   --mono: "IBM Plex Mono", ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
@@ -64,6 +69,10 @@
   --shadow-zoom: 0 12px 32px rgba(0, 0, 0, 0.5);
   --shadow-peek: -8px 0 24px rgba(0, 0, 0, 0.45), 0 1px 2px rgba(0, 0, 0, 0.3);
   --shadow-dialog: 0 16px 48px rgba(0, 0, 0, 0.6);
+  --opened-bg: #211d15;
+  --opened-line: #3d3424;
+  --opened-mark: #d9a648;
+  --opened-ink: #e2bd78;
   color-scheme: dark;
 }
 

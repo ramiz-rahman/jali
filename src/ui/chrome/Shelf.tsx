@@ -5,14 +5,14 @@ import { shortcutLabel } from "../commands/registry";
 import { flashTab } from "../dom/focus";
 import { Activity, shelfActivity } from "../pane/Activity";
 import { KindIcon } from "../pane/icons";
-import { paneTitle } from "../pane-kinds";
+import { titleOf } from "../profile";
 import type { WorkspaceModel } from "../state/model";
 import { useActions, useModel, useUi } from "../state/react";
 import type { PaneActivity } from "../pane-kinds";
 
 function label(m: WorkspaceModel, it: ShelfEntry, a: PaneActivity | undefined) {
   const node = m.pane(it.paneId);
-  const title = node ? paneTitle(node.ref) : m.title(it.paneId);
+  const title = node ? titleOf(node) : m.title(it.paneId);
   const home = m.title(it.homeId);
   const word = shelfActivity(a)?.word;
   return { node, title, home, state: shelfActivity(a)?.state ?? "idle", full: `${title}${word ? `, ${word}` : ""}, behind ${home}` };

@@ -4,6 +4,7 @@ import { PRESETS } from "../presets";
 import { useStore, useUi } from "../state/react";
 import { copyLink } from "../commands/registry";
 import { formatChord, PALETTE_CHORD } from "../commands/format";
+import { AppSwitch, ReviewBar } from "./ReviewBar";
 
 /** The presets as toggle buttons: in the bar on desktop, in the Layouts menu below 768px. */
 function PresetButtons({ onChoose }: { onChoose?: () => void }) {
@@ -49,18 +50,23 @@ function LayoutsMenu() {
 
 export function TopBar() {
   const store = useStore();
+  const review = useUi((s) => !!s.review);
   return (
     <header className="topbar">
       <div className="brand">
         <span className="mark" aria-hidden />
-        <span className="brand-name">Pane lab</span>
+        <AppSwitch />
       </div>
-      <nav className="presets" aria-label="Layout presets">
-        <PresetButtons />
-      </nav>
-      <LayoutsMenu />
+      {review ? <ReviewBar /> : (
+        <>
+          <nav className="presets" aria-label="Layout presets">
+            <PresetButtons />
+          </nav>
+          <LayoutsMenu />
+        </>
+      )}
       <div className="topbar-right">
-        <button className="icon-btn" onClick={() => copyLink(store)} aria-label="Copy link to this layout" title="Copy link">
+        <button className="icon-btn" onClick={() => copyLink(store)} aria-label={review ? "Copy link to this application" : "Copy link to this layout"} title="Copy link">
           <Link2 size={16} strokeWidth={1.5} aria-hidden />
         </button>
         <button className="icon-btn" onClick={() => store.set({ settingsOpen: true })} aria-label="Settings" title="Settings">

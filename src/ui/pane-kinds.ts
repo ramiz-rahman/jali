@@ -46,6 +46,9 @@ export interface PaneComponentProps {
   isOpen?: (ref: ObjectRef) => boolean;
   KindIcon?: ComponentType<{ kind: string; size?: number }>;
   titleFor?: (ref: ObjectRef) => string;
+  /** The workspace's active item and a way to choose another, given to kinds that declare `item` (a review queue). */
+  activeItem?: number;
+  activate?: (item: number) => void;
   /** True when rendered inside the peek sheet rather than a pane. */
   inPeek: boolean;
 }
@@ -59,6 +62,8 @@ export interface PaneKindDef {
   identity?: (ref: ObjectRef) => unknown;
   /** Stands in until the person chooses an object: closes quietly, and gets the workspace sources. */
   transient?: boolean;
+  /** Drives a curated workspace's active item (gets `activeItem` and `activate`). */
+  item?: boolean;
   /** Listed in Recent. Default true. */
   recordable?: boolean | ((ref: ObjectRef) => boolean);
   minWidth: number;
