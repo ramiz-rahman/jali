@@ -8,6 +8,7 @@ import { startPaneDrag } from "../workspace/dnd";
 import { DropZoneLabel } from "../workspace/DropIndicator";
 import { sameFrame, type Frame } from "../workspace/frames";
 import { Activity } from "./Activity";
+import { FollowControl, NotInResults } from "./FollowControl";
 import type { Chrome } from "./chrome";
 import { HeaderActions } from "./HeaderActions";
 import { KindIcon } from "./icons";
@@ -78,13 +79,14 @@ export const PaneFrame = memo(function PaneFrame({ frame, chrome, dropTarget }: 
             <h2 id={paneTitleId(node.id)}>{title}</h2>
             {role && paneTitle(node.ref) !== title ? <span className="pane-sub">{paneTitle(node.ref)}</span> : null}
             <Activity a={activity} />
-            {node.pinned ? <span className="badge">Pinned</span> : null}
+            {bare ? null : <FollowControl node={node} title={title} />}
             {opened && boundary === "tint" ? <span className="badge badge-opened">Opened</span> : null}
           </div>
         )}
         {bare ? null : <HeaderActions id={node.id} title={title} zoomed={zoomed} chrome={chrome} />}
       </header>
       {dropTarget ? <DropZoneLabel paneId={node.id} /> : null}
+      <NotInResults node={node} />
       <div className="pane-content">
         <div className="pane-content-inner">
           <PaneBody node={node} host={host} paused={hidden || covered} focused={focused} />

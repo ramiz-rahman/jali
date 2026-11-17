@@ -10,7 +10,8 @@
  *   Pause live work while paused (TanStack Query: `subscribed: !paused` or `enabled: !paused`), keep state.
  * - Row keys inside list-like kinds: J/K or ↑/↓ move the selection and call `select(ref)`; Space calls `peek(ref)`
  *   (or `peek(null)` to close); ⌥↵ / ⌥-click call `openBeside(ref)`. The workspace keeps focus in the source pane
- *   after openBeside (founder decision 2) and makes an open peek follow `select`.
+ *   after openBeside (founder decision 2) and makes an open peek, and a detail opened from the selection, follow
+ *   `select` (actions/follow.ts). Report the selection before opening it, so the opened pane is linked to it.
  * - Data: read the shared DataLayer with `useDataLayer()` from `src/data/react`; never fetch outside the cache.
  * - Do not stop propagation of F6, ⌥/⌘ chords or Escape; the workspace keyboard layer listens on window.
  */
@@ -29,12 +30,16 @@ export interface PaneComponentProps {
   paused: boolean;
   /** This pane holds workspace focus (the accent edge). */
   focused: boolean;
-  /** Open `ref` beside this pane; replaces this pane's linked pane of the same kind if there is one. */
+  /** Open `ref` beside this pane. The selected item opens a following detail (pinned if one already follows); another
+   *  link replaces this pane's earlier plain link of the same kind if there is one. */
   openBeside: (ref: ObjectRef) => void;
   /** Open (or move) the peek sheet to `ref`; `null` closes it. */
   peek: (ref: ObjectRef | null) => void;
-  /** Report the current selection; an open peek from this pane follows it. */
-  select: (ref: ObjectRef | null) => void;
+  /**
+   * Report the current selection; an open peek from this pane follows it, and so does this pane's following detail
+   * once the selection rests. `{ inResults: false }`: the filter no longer shows `ref`; the detail keeps it, noted.
+   */
+  select: (ref: ObjectRef | null, opts?: { inResults?: boolean }) => void;
   /** Show `ref` in this same pane (same node, new ref). If it is already open elsewhere, that pane is focused instead. */
   openHere: (ref: ObjectRef) => void;
   /** Close this pane quietly (no undo toast): for transient panes such as the launcher. */

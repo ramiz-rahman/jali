@@ -12,7 +12,7 @@ import { KindIcon } from "./icons";
 export interface PaneHost {
   openBeside(ref: ObjectRef): void;
   peek(ref: ObjectRef | null): void;
-  select(ref: ObjectRef | null): void;
+  select(ref: ObjectRef | null, opts?: { inResults?: boolean }): void;
   openHere(ref: ObjectRef): void;
   dismiss(): void;
   setActivity(a: PaneActivity): void;
@@ -21,7 +21,7 @@ export interface PaneHost {
 export const paneHost = (actions: Actions, id: NodeId): PaneHost => ({
   openBeside: (ref) => actions.openBeside(id, ref),
   peek: (ref) => actions.peek(ref, id),
-  select: (ref) => actions.select(id, ref),
+  select: (ref, opts) => actions.select(id, ref, opts),
   openHere: (ref) => actions.openHere(id, ref),
   dismiss: () => actions.dismiss(id),
   setActivity: (a) => actions.setActivity(id, a),

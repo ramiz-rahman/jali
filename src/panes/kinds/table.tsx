@@ -10,6 +10,7 @@ import { Loading, Shell } from "../shared/states";
 import { useWindowRows } from "../grid/useWindow";
 import { nextSort, orderByString, parseFilter, type SortState } from "../grid/grid-state";
 import { PaneGate } from "../shared/PaneGate";
+import { useSelectionAcrossResults } from "../grid/useSelectionAcrossResults";
 import type { PaneComponentProps } from "../../ui/pane-kinds";
 
 /** A grid over one table, optionally pre-filtered by a relation (used by RelatedPane). */
@@ -28,7 +29,11 @@ export function TableGrid({ table, fixedWhere, paused, focused, openBeside, peek
   // Unsorted grids order by the primary key: Postgres moves an updated row to the end of an unordered scan, so an edit
   // would otherwise make the row jump out of its place in every table pane that shows it.
   const pkColumn = info?.columns.find((c) => c.primaryKey)?.name;
-  const w = useWindowRows(table, { where, orderBy: orderByString(sort) ?? orderBy ?? (pkColumn ? `${pkColumn} ASC` : undefined) }, paused);
+  const order = orderByString(sort) ?? orderBy ?? (pkColumn ? `${pkColumn} ASC` : undefined);
+  const w = useWindowRows(table, { where, orderBy: order }, paused);
+  // A filter or sort keeps the selection on the same row; a row filtered out stays in the following detail, noted.
+  const rowRefFor = info ? (rowRef ?? ((row: Row) => recordRef(table, rowId(info.columns, row)))) : null;
+  const report = useSelectionAcrossResults(JSON.stringify([where, order]), w, rowRefFor, setSelected, select);
 
   if (isLoading(cat) || cat.isError || !info || w.q.isError) {
     return <PaneGate queries={[cat, w.q]} gone={!info ? `Table "${table}"` : undefined} />;
@@ -48,7 +53,7 @@ export function TableGrid({ table, fixedWhere, paused, focused, openBeside, peek
       </div>
       {w.q.isLoading && !w.rows.length ? <Loading /> :
         <Grid label={label} columns={columns} total={w.total} rows={w.rows} startOffset={w.offset} onRange={w.onRange}
-          selected={selected} onSelect={setSelected} focused={focused} rowRef={refFor} select={select} peek={peek} openBeside={openBeside}
+          selected={selected} onSelect={setSelected} focused={focused} rowRef={refFor} select={report} peek={peek} openBeside={openBeside}
           rowLabel={(ref) => audit ? `Open ${ref.params.table} ${ref.params.id} beside` : `Open ${singular(table)} ${ref.params.id} beside`}
           sort={sort} onSort={audit ? undefined : (c) => setSort((s) => nextSort(s, c))}
           filters={filters} onFilter={audit ? undefined : (c, t) => setFilters((f) => ({ ...f, [c]: t }))}
