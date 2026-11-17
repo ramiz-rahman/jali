@@ -1,4 +1,4 @@
-import { useRef, type KeyboardEvent } from "react";
+import { useEffect, useRef, type KeyboardEvent } from "react";
 import { Columns2, RotateCcw, Square, Undo2 } from "lucide-react";
 import { investigation } from "../actions/review";
 import { getProfile } from "../profile";
@@ -60,6 +60,17 @@ function PageTabs() {
   const strip = useRef<HTMLDivElement>(null);
   // The drag a pointer-down started: a click that ends a drag is not a click.
   const drag = useRef<{ dragged(): boolean } | null>(null);
+  // ⌥ over a tab previews where ⌥-click would open it beside (the workspace draws it).
+  const hovered = useRef<string | null>(null);
+  const ghost = (alt: boolean) => { const g = alt ? hovered.current : null; if (store.get().ghost !== g) store.set({ ghost: g }); };
+  useEffect(() => {
+    const key = (e: globalThis.KeyboardEvent) => { if (e.key === "Alt") ghost(e.type === "keydown"); };
+    const blur = () => ghost(false);
+    window.addEventListener("keydown", key);
+    window.addEventListener("keyup", key);
+    window.addEventListener("blur", blur);
+    return () => { window.removeEventListener("keydown", key); window.removeEventListener("keyup", key); window.removeEventListener("blur", blur); };
+  });
   const multi = review.mode === "multi";
   const state = (id: string) => {
     if (!multi) return id === review.tab ? "focused" : "off";
@@ -83,16 +94,17 @@ function PageTabs() {
           <button key={r.id} role="tab" className="page-tab" data-role={r.id} data-state={st}
             aria-selected={r.id === selected} tabIndex={r.id === selected ? 0 : -1}
             aria-description={multi ? (st === "off" ? "Not on screen" : st === "behind" ? "Behind another tab" : "On screen") : undefined}
-            title={multi ? (st === "off" || st === "behind" ? `Show ${r.label} · drag it to place it · ⌥-click: beside` : `Focus ${r.label} · drag to move it`) : `${r.label} · drag or ⌥-click to see it beside`}
+            title={multi ? (st === "off" ? `${r.label} in place of the view you're in · drag to place it · ⌥-click: beside` : `Focus ${r.label} · drag to move it`) : `${r.label} · drag or ⌥-click to see it beside`}
             onPointerDown={(e) => { drag.current = startTabDrag(store, e, r.id, r.label); }}
+            onPointerEnter={(e) => { hovered.current = r.id; ghost(e.altKey); }}
+            onPointerLeave={() => { hovered.current = null; ghost(false); }}
             onClick={(e) => {
               if (drag.current?.dragged()) return;
-              if (e.altKey) actions.openTabBeside(r.id);
+              if (e.altKey) { store.set({ ghost: null }); actions.openTabBeside(r.id); }
               else actions.openTab(r.id);
             }}>
             <Icon size={14} strokeWidth={1.5} aria-hidden />
             <span>{r.label}</span>
-            {multi && st === "shown" ? <span className="page-tab-dot" aria-hidden /> : null}
           </button>
         );
       })}

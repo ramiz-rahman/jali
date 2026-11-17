@@ -23,8 +23,8 @@
 .item-facts dd { margin: 1px 0 0; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .item-facts dd.pk-meta { font-weight: 400; }
 
-/* The page's tabs. Single: one selected. Multiplexed: focused (strong underline), on screen (light underline and a
-   dot), behind another tab (dashed), not on screen (plain). */
+/* The page's tabs. Single: one selected. Multiplexed: focused (accent underline), on screen (light underline), behind
+   another tab (dashed), not on screen (plain, muted). Marks are colour and underline only: a tab never changes width. */
 .page-tabs { display: flex; gap: 4px; padding: 0 16px; background: var(--island); border-bottom: 1px solid var(--line); overflow-x: auto; scrollbar-width: none; }
 .page-tab {
   display: inline-flex; align-items: center; gap: 6px; height: 36px; padding: 0 8px; flex: none;
@@ -35,8 +35,11 @@
 .page-tab[data-state="focused"] { color: var(--text); border-bottom-color: var(--accent); }
 .page-tab[data-state="shown"] { color: var(--text); border-bottom-color: var(--accent-mid); }
 .page-tab[data-state="behind"] { color: var(--text-2); border-bottom: 2px dashed var(--line-strong); }
-.page-tab-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--accent-mid); }
 body.is-pane-dragging .page-tab { cursor: grabbing; }
+
+/* ⌥ held over a tab: where it would open beside. */
+.ghost { position: absolute; z-index: 30; pointer-events: none; border: 1.5px dashed var(--accent); border-radius: var(--radius); background: var(--accent-weak); display: grid; place-items: center; }
+.ghost span { padding: 6px 10px; border-radius: 6px; background: var(--island); color: var(--accent); font-weight: 500; box-shadow: 0 1px 2px rgba(24, 24, 27, 0.08); }
 
 /* Single: the tabs name the one view, so its pane has no header (it stays for assistive tech). */
 .workspace[data-page="single"] .pane-header { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }

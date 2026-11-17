@@ -84,6 +84,8 @@ export const msg = {
   roleHidden: (t: string) => `${t} closed · it's still in the tabs`,
   roleShown: (t: string) => `${t} on screen`,
   lastView: (t: string) => `${t} is the only view on screen`,
+  replaced: (t: string, was: string) => `${t} in place of ${was} · ${was} is in the tabs`,
+  replacedNeedsRoom: (t: string, was: string) => `${t} in place of ${was} · it needed more room, so the layout adjusted`,
   notInvestigating: "Nothing opened beyond the review",
   backToReview: (n: number) => `Back to review · ${n} opened ${n === 1 ? "pane" : "panes"} closed · Undo available`,
   permission: (can: boolean) => (can ? "Viewing as credit reviewer: Multiplexed available, links open beside" : "Viewing as loan officer: Single only, links open as a peek"),

@@ -1,4 +1,6 @@
-import { useEffect, useLayoutEffect, useRef } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { besidePreview } from "../actions/review";
+import { getProfile, roleOf } from "../profile";
 import { PaneSwitcher } from "../chrome/PaneSwitcher";
 import { Peek } from "../chrome/Peek";
 import { DividerLayer } from "../dividers/DividerLayer";
@@ -47,12 +49,40 @@ function useFoldAnnouncements(store: UiStore, m: WorkspaceModel, measured: boole
   });
 }
 
+/** True from the commit that carries a reshape until its slide has played (layout stability, state/apply.ts). The class
+ *  lands in the same commit as the new rects, so panes slide from where they were. */
+function useReshapeMotion(reshapes: number): boolean {
+  const seen = useRef(reshapes);
+  const [playing, setPlaying] = useState(false);
+  const fresh = reshapes !== seen.current;
+  useEffect(() => {
+    if (!fresh) return;
+    seen.current = reshapes;
+    setPlaying(true);
+    const t = setTimeout(() => setPlaying(false), 220);
+    return () => clearTimeout(t);
+  }, [reshapes, fresh]);
+  return fresh || playing;
+}
+
+/** ⌥ over a page tab: a dashed outline where ⌥-click would open that view. */
+function Ghost({ role }: { role: string }) {
+  const store = useStore();
+  const m = useModel();
+  const rect = useMemo(() => besidePreview(store.snapshot(), role), [store, role, m]);
+  const label = roleOf(getProfile()!, role)?.label ?? role;
+  if (!rect) return null;
+  return <div className="ghost" style={{ left: rect.x, top: rect.y, width: rect.width, height: rect.height }} aria-hidden><span>{label} opens here</span></div>;
+}
+
 export function Workspace() {
   const store = useStore();
   const m = useModel();
   const view = useUi((s) => s.view);
   const area = useUi((s) => s.area);
   const dnd = useUi((s) => s.dnd);
+  const ghost = useUi((s) => s.ghost);
+  const sliding = useReshapeMotion(useUi((s) => s.reshapes));
   const ref = useMeasure(store);
   const measured = area.width > 0;
   useSingleView(store, m, view, measured);
@@ -71,7 +101,7 @@ export function Workspace() {
 
   return (
     <main
-      className={single ? "workspace is-single" : "workspace"}
+      className={["workspace", single && "is-single", sliding && !single && "is-reshaping"].filter(Boolean).join(" ")}
       ref={ref}
       aria-label="Panes"
       data-single={single ? "" : undefined}
@@ -90,6 +120,7 @@ export function Workspace() {
             {dnd.label ?? m.title(dnd.dragged)}
           </div>
         ) : null}
+        {ghost && !single && !dnd ? <Ghost role={ghost} /> : null}
         <Peek presentation={mode} />
       </div>
     </main>

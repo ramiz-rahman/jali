@@ -141,3 +141,27 @@ The public API is standalone exports (`import * as core from "…/layout-core"`)
   - Hiding a tab of a group first lifts it out beside the group.
   - A fix: a hidden pane's minimum size no longer counted toward the room needed. Before the fix, any hidden pane could fold panes that had room.
 - **Removed:** arrangements, pane toggles, per-arrangement adjustments (`state/adjustments.ts`), and the queue as a pane.
+
+## 17 Nov 2026: layout stability (one rule for every action)
+- **Problem.** Clicking a tab moved things in three ways:
+  - the tab strip itself shifted, because a dot appeared and disappeared;
+  - a view that wasn't on screen was inserted into the layout, shrinking or folding everything else;
+  - where that view landed couldn't be seen in advance.
+- **Rule.** Every op declares a geometry class in `POLICY` (`state/apply.ts`):
+  - **focus**: nothing moves;
+  - **swap**: what a slot shows changes, and every rect stays the same;
+  - **reshape**: rects change, and only for deliberate gestures (drag, open beside, close, reset, following a link);
+  - **direct**: rects follow the pointer (divider drags).
+
+  A single action can upgrade its class with `geometry` (another application that also closes the opened panes is a reshape).
+- **Enforced.** In development, `apply()` compares the rects on screen before and after every focus or swap op, and reports a breach (`console.error`, or the store's `unstable` callback). `src/ui/stability.test.ts` drives every tab click, choosing another application, and Data Studio tab and focus changes, in both modes. An e2e test checks pane and tab positions around tab clicks.
+- **A tab click is never a reshape.**
+  - Single: the one view is swapped.
+  - Multiplexed:
+    - a view on screen is focused;
+    - a view behind another tab is chosen in its group;
+    - a view not on screen takes the exact slot and size of the view in use (`core.replace`), and that view goes back to the tabs.
+  - Adding a view is always a deliberate gesture: drag, or ⌥-click. Holding ⌥ over a tab previews where it would open.
+- **Reshapes are visible.** Panes slide to their new place in 180ms, and dividers wait until they land. With reduced motion, panes move instantly; the e2e suite runs with reduced motion so it reads end positions.
+- **Tab marks never take space.** Focused, on screen, behind another tab and not on screen are shown by underline and colour only.
+- **Engine.** `replace(current, incoming)` swaps positions and keeps each position's size, tab slot and fold, tuck and hidden records. It reports `reshaped` when the incoming view can't fit the slot (its minimum is too large); the action then counts as a reshape and says why.

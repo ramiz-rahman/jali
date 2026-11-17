@@ -81,6 +81,28 @@ test.describe("Loan review: Multiplexed", () => {
     expect(await lab.snap()).toEqual(rects);
   });
 
+  test("a tab click never moves a pane or a tab: on screen it focuses, off screen it takes the place of the view in use", async ({ lab, page }) => {
+    const breaches: string[] = [];
+    page.on("console", (m) => m.text().startsWith("Layout stability") && breaches.push(m.text()));
+    await lab.open({ path: at("application"), size: { width: 1440, height: 900 } });
+    await mode(page, "Multiplexed").click();
+    const rects = async () => (await page.locator("section[data-pane]:visible").evaluateAll((els) => els.map((e) => { const r = e.getBoundingClientRect(); return `${r.x},${r.y},${r.width},${r.height}`; }))).sort();
+    const tabsAt = () => page.locator(".page-tab").evaluateAll((els) => els.map((e) => e.getBoundingClientRect().x));
+    const before = await rects(), tabs = await tabsAt();
+    const borrower = await lab.pane("borrower").boundingBox();
+    await pageTab(page, "Borrower").click();
+    await expect(pageTab(page, "Borrower")).toHaveAttribute("data-state", "focused");
+    await pageTab(page, "Group").click();
+    await expect(lab.pane("group")).toBeVisible();
+    expect(await lab.pane("group").boundingBox()).toEqual(borrower);
+    await expect(pageTab(page, "Borrower")).toHaveAttribute("data-state", "off");
+    await pageTab(page, "Overview").click();
+    await pageTab(page, "Application").click();
+    expect(await rects()).toEqual(before);
+    expect(await tabsAt()).toEqual(tabs);
+    expect(breaches).toEqual([]);
+  });
+
   test("drag a tab to place that view; close it and it goes back to the tabs; ⌥-click opens beside", async ({ lab, page }) => {
     await lab.open({ path: at("application"), size: { width: 1440, height: 900 } });
     await mode(page, "Multiplexed").click();

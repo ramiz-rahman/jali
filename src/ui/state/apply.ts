@@ -1,4 +1,11 @@
 /**
+ * Layout stability: every op declares what it may do to the geometry on screen.
+ *  - focus:   nothing moves (focus edge, tab marks, peek).
+ *  - swap:    what a slot shows changes; every rect stays the same (a tab chosen, a view put in place of another).
+ *  - reshape: rects change; only deliberate gestures (drag, open beside, close, reset). Panes slide to their new place.
+ *  - direct:  rects follow the pointer (a divider drag); never animated.
+ * In development apply() checks focus and swap ops against the rects before and after, and reports a breach.
+ *
  * Actions are pure: `(x: Snapshot, ...args) => Outcome`. One `apply()` commits an outcome: state, then URL, then
  * announcement, toast and DOM focus, as the POLICY table says for its op. Nothing that did not happen is written
  * or announced: an unchanged layout keeps its object, pushes no history and says nothing.
@@ -27,6 +34,8 @@ export type Op =
   | "resize" | "resetSizes" | "preset" | "wide" | "arrive"
   | "hide" | "activate" | "page" | "mode" | "permission";
 
+export type Geometry = "focus" | "swap" | "reshape" | "direct";
+
 export interface Change {
   op: Op;
   layout?: Layout;
@@ -40,6 +49,8 @@ export interface Change {
   focusDom?: NodeId;
   /** What the action returns to its caller (the pane it opened, for example). */
   result?: NodeId;
+  /** Overrides the op's geometry class when this instance does more (another item that also closes opened panes). */
+  geometry?: Geometry;
 }
 
 /** An action that did not happen, and why (silent without `msg`). */
@@ -57,21 +68,29 @@ interface Policy {
   history: HistoryMode;
   /** "layout": only when the layout changed. "change": when the layout or the focus changed. "always": view ops. */
   announceWhen: "layout" | "change" | "always";
+  geometry: Geometry;
 }
 
-const view = (history: HistoryMode): Policy => ({ writes: "view", history, announceWhen: "always" });
-const layout = (history: HistoryMode, announceWhen: "layout" | "change" = "layout"): Policy => ({ writes: "layout", history, announceWhen });
+const view = (history: HistoryMode, geometry: Geometry = "focus"): Policy => ({ writes: "view", history, announceWhen: "always", geometry });
+const layout = (history: HistoryMode, geometry: Geometry, announceWhen: "layout" | "change" = "layout"): Policy => ({ writes: "layout", history, announceWhen, geometry });
 
 export const POLICY: Record<Op, Policy> = {
-  focus: view("none"), patch: view("none"), zoom: view("replace"), peek: view("replace"), select: view("replace"),
-  open: layout("push"), split: layout("push"), openHere: layout("push"), focusExisting: layout("push", "change"),
-  dismiss: layout("push"), newTab: layout("push"), openFull: layout("push"),
-  close: layout("push"), closeOthers: layout("push"), undo: layout("push"), tuck: layout("push"), putBack: layout("push"),
-  merge: layout("push"), unmerge: layout("push"), move: layout("push"), drop: layout("push"), swap: layout("push"), preset: layout("push"),
-  reveal: layout("replace"), tab: layout("replace"), resetSizes: layout("replace"), wide: layout("replace"),
-  resize: layout("debounce"), arrive: layout("none"),
-  hide: layout("push"), activate: layout("push"), page: layout("push", "change"), mode: layout("push"), permission: view("none"),
+  focus: view("none"), patch: view("none"), zoom: view("replace", "reshape"), peek: view("replace"), select: view("replace"), permission: view("none"),
+  // swap: content changes in place
+  openHere: layout("push", "swap"), focusExisting: layout("push", "swap", "change"), reveal: layout("replace", "swap"), tab: layout("replace", "swap"),
+  swap: layout("push", "swap"), activate: layout("push", "swap"), page: layout("push", "swap", "change"),
+  // reshape: deliberate gestures
+  open: layout("push", "reshape"), split: layout("push", "reshape"), dismiss: layout("push", "reshape"), newTab: layout("push", "reshape"), openFull: layout("push", "reshape"),
+  close: layout("push", "reshape"), closeOthers: layout("push", "reshape"), undo: layout("push", "reshape"), tuck: layout("push", "reshape"), putBack: layout("push", "reshape"),
+  merge: layout("push", "reshape"), unmerge: layout("push", "reshape"), move: layout("push", "reshape"), drop: layout("push", "reshape"), preset: layout("push", "reshape"),
+  resetSizes: layout("replace", "reshape"), wide: layout("replace", "reshape"), arrive: layout("none", "reshape"),
+  hide: layout("push", "reshape"), mode: layout("push", "reshape"),
+  // direct: follows the pointer
+  resize: layout("debounce", "direct"),
 };
+
+/** The geometry on screen: the set of rects, whoever fills them. Equal before and after a focus or swap op. */
+export const geometryOf = (m: WorkspaceModel) => m.resolved.panes.filter((b) => !b.hidden).map((b) => `${b.rect.x},${b.rect.y},${b.rect.width},${b.rect.height}`).sort().join(" ");
 
 /** Where apply() writes: the store's state and its effect sinks. */
 export interface ApplyIO {
@@ -82,6 +101,8 @@ export interface ApplyIO {
   announce(text: string): void;
   toast(t: Toast): void;
   focus(id: NodeId): void;
+  /** A focus or swap op that moved something: development reports it. */
+  unstable?(op: Op, before: string, after: string): void;
 }
 
 const sameView = (a: ViewState, b: ViewState) => a.focused === b.focused && a.zoomed === b.zoomed && a.peek === b.peek;
@@ -103,8 +124,13 @@ export function apply(io: ApplyIO, o: Outcome): NodeId | undefined {
     if (o.msg) io.announce(o.msg);
   } else {
     const layoutChanged = next.layout !== s.layout, viewChanged = !sameView(next.view, s.view);
+    const geometry = o.geometry ?? p.geometry;
+    const check = layoutChanged && io.unstable && (geometry === "focus" || geometry === "swap") ? geometryOf(io.snapshot().m) : null;
     if (layoutChanged || viewChanged || o.patch || o.undo) {
-      io.set({ layout: next.layout, view: layoutChanged || viewChanged ? next.view : s.view, ...o.patch, undoStack: pruneUndo(o.undo ?? s.undoStack, next.layout) });
+      // A reshape is counted, so the workspace can let panes slide to their new place.
+      const motion = layoutChanged && geometry === "reshape" ? { reshapes: s.reshapes + 1 } : {};
+      io.set({ layout: next.layout, view: layoutChanged || viewChanged ? next.view : s.view, ...o.patch, ...motion, undoStack: pruneUndo(o.undo ?? s.undoStack, next.layout) });
+      if (check !== null) { const after = geometryOf(io.snapshot().m); if (after !== check) io.unstable!(o.op, check, after); }
       io.url(layoutChanged ? p.history : viewChanged ? "replace" : "none");
       if (o.msg && (layoutChanged || (p.announceWhen === "change" && viewChanged))) io.announce(o.msg);
       if (o.toast && layoutChanged) io.toast(o.toast);

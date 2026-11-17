@@ -37,6 +37,10 @@ code, kbd, pre, .num { font-family: var(--mono); }
 .workspace { position: relative; min-height: 0; min-width: 0; overflow: hidden; }
 .workspace-inner { position: absolute; }
 .workspace.is-single { background: var(--island); }
+/* A reshape (state/apply.ts): panes slide to their new place; dividers wait until they land. */
+.workspace.is-reshaping .pane { transition: left 180ms, top 180ms, width 180ms, height 180ms; transition-timing-function: cubic-bezier(0.2, 0, 0, 1); }
+.workspace.is-reshaping .divider { opacity: 0; }
+@media (prefers-reduced-motion: reduce) { .workspace.is-reshaping .pane { transition: none; } .workspace.is-reshaping .divider { opacity: 1; } }
 
 /* ---------- drag and drop: tinted fill, 2px accent outline at a 6px inset, label centred in the zone ---------- */
 .drop-indicator { position: absolute; z-index: 30; background: var(--accent-weak); border: 1.5px solid var(--accent); border-radius: var(--radius); pointer-events: none; }

@@ -4,7 +4,7 @@
  * Panes opened by following links form an investigation after the layout that "Back to review" clears.
  */
 import * as core from "../../layout-core";
-import type { Edge, Layout, LayoutContext, NodeId, ObjectRef, PaneNode, ViewState } from "../../layout-core/types";
+import type { Edge, Layout, LayoutContext, NodeId, ObjectRef, PaneNode, Rect, ViewState } from "../../layout-core/types";
 import { getProfile, roleOf, type ViewMode, type WorkspaceProfile } from "../profile";
 import { refuse, type Change, type Outcome, type Snapshot } from "../state/apply";
 import { msg, toasts } from "../state/messages";
@@ -117,7 +117,7 @@ export function enterReview(x: Snapshot, o: EnterReview = {}): Outcome {
   const { layout, view } = reopen(base, opened, base.view.focused ?? review.tab, x.ctx);
   if (opened.length) review.before = base.layout;
   return {
-    op: o.fromUrl ? "arrive" : "page", layout, view: { ...view, ...o.view }, msg: msg.reviewOpened(p.name, review.mode),
+    op: o.fromUrl ? "arrive" : "mode", layout, view: { ...view, ...o.view }, msg: msg.reviewOpened(p.name, review.mode),
     patch: { review, prefs, peekSource: undefined, resizeMode: null }, undo: [],
   };
 }
@@ -142,17 +142,47 @@ export function setMode(x: Snapshot, mode: ViewMode): Outcome {
   return { op: "mode", layout, view, msg: msg.modeMulti, patch: { review: { ...r, mode }, prefs: { ...x.s.prefs, mode } }, undo: [], focusDom: view.focused };
 }
 
-/** A tab. Single: show that view. Multiplexed: put it on screen (in its own place) and focus it. */
+/** The view the person is working in, on screen: where a tab click puts another view. */
+function slotFor({ s, m }: Snapshot): NodeId | undefined {
+  return [s.view.focused, ...s.view.focusHistory, ...m.visible].find((id) => m.pane(id)?.role && m.visible.includes(id!));
+}
+
+/**
+ * A tab click never reshapes the layout (layout stability, state/apply.ts). Single: that view replaces the one shown.
+ * Multiplexed: on screen, it is focused; behind another tab, its tab is chosen; off screen, it takes the place of the
+ * view you're in, at exactly that size, and that view goes back to the tabs. Placing a view beside is a drag or ⌥-click.
+ */
 export function openTab(x: Snapshot, role: string): Outcome {
   const p = getProfile(), r = x.s.review;
   if (!p || !r || !roleOf(p, role)) return null;
+  const patch = { review: { ...r, tab: role } };
   if (r.mode === "single") {
     if (r.tab === role) return null;
     const { layout, view } = single(p, r.item, role, x.ctx);
-    return { op: "page", layout, view, msg: msg.viewing(label(p, role)), patch: { review: { ...r, tab: role }, peekSource: undefined } };
+    return { op: "page", layout, view, msg: msg.viewing(label(p, role)), patch: { ...patch, peekSource: undefined } };
   }
-  const { layout, view } = onScreen(x.s.layout, unzoomed(x.s.view), role, x.ctx);
-  return { op: "page", layout, view, msg: msg.roleShown(label(p, role)), patch: { review: { ...r, tab: role } }, focusDom: role };
+  const view = unzoomed(x.s.view);
+  if (x.m.visible.includes(role)) return { op: "focus", view: core.focus(view, role, x.ctx), patch, focusDom: role };
+  if (!x.m.off.includes(role)) return { op: "reveal", layout: core.reveal(x.s.layout, role, x.ctx), view: core.focus(view, role, x.ctx), msg: msg.viewing(label(p, role)), patch, focusDom: role };
+  const slot = slotFor(x);
+  if (!slot) return null;
+  const rep = core.replace(x.s.layout, view, slot, role, x.ctx);
+  return {
+    op: "page", layout: rep.layout, view: rep.view, patch, focusDom: role,
+    msg: rep.reshaped ? msg.replacedNeedsRoom(label(p, role), label(p, slot)) : msg.replaced(label(p, role), label(p, slot)),
+    ...(rep.reshaped ? { geometry: "reshape" as const } : {}),
+  };
+}
+
+/** Where ⌥-click would put a view: its rect in the layout that results, for the preview. Pure. */
+export function besidePreview(x: Snapshot, role: string): Rect | undefined {
+  const p = getProfile(), r = x.s.review;
+  if (!p || !r || !r.canInvestigate || !roleOf(p, role)) return undefined;
+  const base = r.mode === "single" ? multi(x, p, r.item, r.tab, true) : { layout: x.s.layout, view: unzoomed(x.s.view) };
+  const target = r.mode === "single" ? base.view.focused : x.m.pane(x.s.view.focused) ? x.s.view.focused : r.tab;
+  if (!target || target === role) return undefined;
+  const d = core.drop(base.layout, base.view, role, target, "right", "tab", x.ctx);
+  return core.resolve(d.layout, d.view, x.ctx).panes.find((b) => b.id === role && !b.hidden)?.rect;
 }
 
 /** Drop a view from the tabs onto a pane's edge (or centre: as a tab of its group). From Single, this switches to
@@ -193,7 +223,7 @@ export function activate(x: Snapshot, item: number): Outcome {
   const view = unzoomed(x.s.view);
   const layout = core.refit(rebind(withoutOpened(x.s.layout, x.ctx), p, item), view, x.ctx);
   const focused = x.m.pane(view.focused)?.role ? view : core.focus(view, currentRole(x) ?? r.tab, x.ctx);
-  return { op: "activate", layout, view: focused, msg: msg.activated(p.itemNoun, item, dropped), patch: { review, prefs, peekSource: undefined }, undo: [] };
+  return { op: "activate", layout, view: focused, msg: msg.activated(p.itemNoun, item, dropped), patch: { review, prefs, peekSource: undefined }, undo: [], ...(dropped ? { geometry: "reshape" as const } : {}) };
 }
 
 /** Close every pane opened by following links; the layout comes back as the person left it. ⌘Z reopens them. */
@@ -230,7 +260,7 @@ export function resetReview(x: Snapshot): Outcome {
   const y = { ...x, s: { ...x.s, prefs: { ...x.s.prefs, multi: null } } };
   const base = multi(y, p, r.item, tab, false);
   const { layout, view } = reopen(base, opened, base.view.focused ?? tab, x.ctx);
-  return { op: "page", layout, view, msg: msg.reviewReset, patch: { review: { ...r, before: opened.length ? base.layout : undefined }, prefs: { ...x.s.prefs, multi: null } }, undo: [] };
+  return { op: "preset", layout, view, msg: msg.reviewReset, patch: { review: { ...r, before: opened.length ? base.layout : undefined }, prefs: { ...x.s.prefs, multi: null } }, undo: [] };
 }
 
 /** A role permission. A loan officer works in Single only, and links peek; a credit reviewer may multiplex. */

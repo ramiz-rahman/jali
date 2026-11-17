@@ -55,6 +55,10 @@ export interface UiState {
   /** Objects opened this session, most recent first (the launcher's "Recent"). */
   recent: ObjectRef[];
   area: { width: number; height: number };
+  /** Layout changes of the reshape class so far (state/apply.ts): the workspace animates on a new one. */
+  reshapes: number;
+  /** A page tab hovered with ⌥ held: the workspace previews where it would open beside. */
+  ghost: string | null;
   /** The live region's text; `seq` makes a repeat a new announcement. */
   announcement: { text: string; seq: number };
 }
@@ -67,6 +71,8 @@ export interface UiStoreDeps {
   /** Moves DOM focus into a pane after the next paint (dom/focus.ts). */
   focusPane?: (id: NodeId) => void;
   initial?: Partial<UiState>;
+  /** A focus or swap op moved something (layout stability, state/apply.ts). Default: reported in development. */
+  unstable?: (op: string, before: string, after: string) => void;
 }
 
 export interface UiStore {
@@ -85,6 +91,8 @@ export interface UiStore {
   onToast(fn: (t: Toast) => void): () => void;
   actions: Actions;
 }
+
+const DEV = !!(import.meta as unknown as { env?: { DEV?: boolean } }).env?.DEV;
 
 export function createUiStore(deps: UiStoreDeps = {}): UiStore {
   let state: UiState = {
@@ -105,6 +113,8 @@ export function createUiStore(deps: UiStoreDeps = {}): UiStore {
     recent: [],
     area: initialArea(),
     announcement: { text: "", seq: 0 },
+    reshapes: 0,
+    ghost: null,
     ...deps.initial,
   };
   const subs = new Set<() => void>();
@@ -157,6 +167,7 @@ export function createUiStore(deps: UiStoreDeps = {}): UiStore {
     announce: store.announce,
     toast: store.toast,
     focus: (id: NodeId) => deps.focusPane?.(id),
+    unstable: deps.unstable ?? (DEV ? (op: string) => console.error(`Layout stability: "${op}" is a focus or swap op but moved panes`) : undefined),
   };
   store.actions = bindActions(store);
   return store;

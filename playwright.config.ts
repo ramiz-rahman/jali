@@ -23,6 +23,8 @@ export default defineConfig({
     baseURL: URL,
     viewport: { width: 1600, height: 900 },
     permissions: ["clipboard-read", "clipboard-write"],
+    // Tests read end positions; reshapes slide (180ms) only when motion is allowed.
+    reducedMotion: "reduce",
   },
   projects: SCREENS
     ? [{ name: "screens" }]

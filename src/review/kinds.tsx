@@ -76,7 +76,7 @@ function OverviewPane({ ref, paused }: PaneComponentProps) {
 
 export const overviewKind = definePaneKind({
   kind: "review-overview", ref: (params) => ({ kind: "review-overview", params }), title: (r) => `application ${r.params.item} overview`,
-  recordable: false, minWidth: 420, minHeight: 240, icon: LayoutDashboard, Component: OverviewPane,
+  recordable: false, minWidth: 360, minHeight: 240, icon: LayoutDashboard, Component: OverviewPane,
 });
 
 /** The tabs' views use the same record and related views with narrower minimums, so two fit side by side at 1440. */
