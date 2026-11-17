@@ -1,5 +1,7 @@
 /** The loan-review page around the panes: the queue at the left and the application's header above the tabs. */
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { ListFilter, X } from "lucide-react";
+import { useStore } from "../ui/state/react";
 import { isLoading, useRows } from "../data/hooks";
 import { formatTimestamp } from "../panes/format";
 import type { Row } from "../data/types";
@@ -70,6 +72,29 @@ export function QueueRail({ item, activate }: { item: number; activate: (item: n
   );
 }
 
+/** Phones have no rail: a "N waiting" button in the header opens the queue as a sheet. Hidden from 768px up. */
+function QueueSheet({ item }: { item: number }) {
+  const { actions } = useStore();
+  const apps = useRows("loan_applications", { orderBy: "id ASC", limit: 200 });
+  const [open, setOpen] = useState(false);
+  const btn = useRef<HTMLButtonElement>(null);
+  const waiting = (apps.data?.rows ?? []).filter((r: Row) => r.status === "pending").length;
+  const close = () => { setOpen(false); btn.current?.focus(); };
+  return (
+    <>
+      <button ref={btn} className="item-queue" aria-haspopup="dialog" aria-expanded={open} onClick={() => setOpen(true)}>
+        <ListFilter size={14} strokeWidth={1.5} aria-hidden /> <span className="pk-mono">{waiting}</span> waiting
+      </button>
+      {open ? (
+        <div className="queue-sheet" role="dialog" aria-modal="true" aria-label="Queue" onKeyDown={(e) => { if (e.key === "Escape") { e.stopPropagation(); close(); } }}>
+          <button className="icon-btn queue-sheet-close" aria-label="Close queue" onClick={close} autoFocus><X size={16} strokeWidth={1.5} aria-hidden /></button>
+          <QueueRail item={item} activate={(i) => { actions.activate(i); close(); }} />
+        </div>
+      ) : null}
+    </>
+  );
+}
+
 /** The application's header: who is asking, for what, and the facts a reviewer checks first, in one strip. */
 export function ApplicationHeader({ item }: { item: number }) {
   const { app, member, group, officer } = useApplication(item);
@@ -91,6 +116,7 @@ export function ApplicationHeader({ item }: { item: number }) {
           <div className="item-kicker">Loan application <span className="pk-mono">#{item}</span>{app ? <> · submitted {day(app.submitted_at)}</> : null}</div>
           <h1>{name}</h1>
         </div>
+        <QueueSheet item={item} />
         {status ? <span className="item-status" data-status={status}>{status === "pending" ? "Waiting for review" : status === "returned" ? "Returned" : "Approved"}</span> : null}
       </div>
       <dl className="item-facts">
