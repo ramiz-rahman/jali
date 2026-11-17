@@ -7,6 +7,7 @@ export { swap, drop, moveDirection } from "./ops/move";
 export { resizeDivider, resetDivider } from "./ops/divider";
 export { canTuck, tuck, putBack, putBackEdge } from "./ops/tuck";
 export { hide, show } from "./ops/hide";
+export { replace } from "./ops/replace";
 export { setRef } from "./ops/ref";
 export { addTab, reveal, setActiveTab, resetLayout } from "./ops/tabs";
 export { focus, focusCycle, focusDirection, toggleZoom } from "./ops/focus";
