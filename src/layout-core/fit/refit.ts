@@ -3,8 +3,9 @@ import { allPanes, autos, choose, contains, overlayOf, replay, slots, withOverla
 import { chooseFold } from "./priority";
 import { checkContext, misfit, tooSmall } from "./context";
 
-/** Internal operation policy. External events always use full refit. */
-interface FitPolicy { mode?: "full" | "fold"; fresh?: string; keep?: readonly string[] }
+/** Internal operation policy. External events always use full refit. `yields: false`: no supporting pane gives way to
+ *  make room (a curated page's views stay where the person put them; only the fresh pane folds). */
+interface FitPolicy { mode?: "full" | "fold"; fresh?: string; keep?: readonly string[]; yields?: boolean }
 
 function unfoldPrefix(layout: Layout, current: string[], ctx: LayoutContext): string[] {
   const probe = { ...layout, overlay: { ...overlayOf(layout), tucks: [] } };
@@ -18,7 +19,7 @@ function unfoldPrefix(layout: Layout, current: string[], ctx: LayoutContext): st
 const overflow = (root: ReturnType<typeof replay>["root"], fit: LayoutContext["fit"]) =>
   Math.max(0, root.bounds.width - fit.width) + Math.max(0, root.bounds.height - fit.height);
 
-function foldUntilFit(layout: Layout, view: ViewState, start: string[], ctx: LayoutContext, policy: FitPolicy, yields = true): string[] {
+function foldUntilFit(layout: Layout, view: ViewState, start: string[], ctx: LayoutContext, policy: FitPolicy, yields = policy.yields ?? true): string[] {
   const { fit, paneCap } = ctx;
   const keep = new Set(policy.keep ?? []);
   let current = start, yielded = false;

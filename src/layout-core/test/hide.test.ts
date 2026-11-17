@@ -108,6 +108,17 @@ describe("arrangement priority", () => {
     expect(core.tree.find(r.layout.root, r.opened)).toMatchObject({ linkedTo: "borrower" });
   });
 
+  it("yields: false: no pane gives way; short of room, the opened pane becomes a tab of its source", () => {
+    const ctx = context(fit(1440, 900));
+    const tree = core.refit(review(), view("borrower"), ctx);
+    const r = core.openBeside(tree, view("borrower"), "borrower", { kind: "record", params: { id: 9 } }, ctx, { target: "side", edge: "right" }, { yields: false });
+    expect(r.mode).toBe("tab");
+    expect(r.layout.overlay?.folds).toEqual([r.opened]);
+    const after = core.resolve(r.layout, r.view, ctx);
+    expect(shown(after)).toEqual(["queue", "app", "borrower", "history"]);
+    expect(after.stacks.find(s => s.paneIds.includes(r.opened))?.paneIds).toEqual(["borrower", r.opened]);
+  });
+
   it("when giving way cannot make room, nothing yields and the opened pane becomes a tab as before", () => {
     const ctx = context(fit(1100, 900));
     const tree = core.refit(row(pane("q", "small", { priority: "supporting" }), pane("app", "record", { priority: "primary" }), pane("src", "record")), view("src"), ctx);

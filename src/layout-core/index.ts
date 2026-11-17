@@ -1,7 +1,7 @@
 /** Pure public API. Structural operations own fitting; refit handles external size/cap/link events. */
 export type * from "./types";
 export * as tree from "./tree/tree";
-export { open, openBeside, split, type Placement } from "./ops/open";
+export { open, openBeside, split, type Placement, type OpenOptions } from "./ops/open";
 export { close, closeOthers } from "./ops/close";
 export { swap, drop, moveDirection } from "./ops/move";
 export { resizeDivider, resetDivider } from "./ops/divider";

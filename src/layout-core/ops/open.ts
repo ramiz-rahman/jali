@@ -6,7 +6,9 @@ import { fitLayout } from "../fit/refit";
 import { setRef } from "./ref";
 /** Where a new pane goes when that is not beside its source: a designed arrangement keeps opened panes in one region. */
 export interface Placement { target: string; edge: Edge }
-export function open(layout: Layout, view: ViewState, target: string, edge: Edge, ref: ObjectRef, ctx: LayoutContext, linked: boolean, place?: Placement): OpenResult {
+/** `yields: false`: no pane gives way for the new one; short of room, the new pane becomes a tab of its source. */
+export interface OpenOptions { yields?: boolean }
+export function open(layout: Layout, view: ViewState, target: string, edge: Edge, ref: ObjectRef, ctx: LayoutContext, linked: boolean, place?: Placement, opts: OpenOptions = {}): OpenResult {
   const { fit } = ctx;
   const original = find(layout.root, target);
   if (original?.type !== "pane") throw new Error(`Unknown source pane: ${target}`);
@@ -27,11 +29,11 @@ export function open(layout: Layout, view: ViewState, target: string, edge: Edge
   const nextView = linked ? focus(unzoom(view), target, ctx) : focus(unzoom(view), pane.id, ctx);
   // No room, or over the cap: the fold is decided now, at open, and recorded. With no room the new pane becomes a tab
   // of its source (spec §3 "Opened as a tab: not enough room"); over the cap the oldest unpinned, unfocused pane does.
-  const fitted = fitLayout(next, nextView, ctx, { fresh: pane.id, keep: [pane.id, target] });
+  const fitted = fitLayout(next, nextView, ctx, { fresh: pane.id, keep: [pane.id, target], yields: opts.yields });
   const mode: OpenResult["mode"] = fitted.overlay?.folds.includes(pane.id) ? "tab" : "beside";
   activate(fitted, nextView.focused!);
   return { layout: fitted, view: nextView, opened: pane.id, mode };
 }
 
-export const openBeside = (layout: Layout, view: ViewState, source: string, ref: ObjectRef, ctx: LayoutContext, place?: Placement) => open(layout, view, source, "right", ref, ctx, true, place);
+export const openBeside = (layout: Layout, view: ViewState, source: string, ref: ObjectRef, ctx: LayoutContext, place?: Placement, opts?: OpenOptions) => open(layout, view, source, "right", ref, ctx, true, place, opts);
 export const split = (layout: Layout, view: ViewState, target: string, edge: Edge, ref: ObjectRef, ctx: LayoutContext) => open(layout, view, target, edge, ref, ctx, false);
