@@ -53,7 +53,8 @@ describe("a link to a view already on the page", () => {
     store.actions.openBeside("application", member149);
     expect(m().panes).toHaveLength(before);
     expect(shown()).toEqual(expect.arrayContaining(["application", "borrower"]));
-    expect(rects().borrower.x).toBeGreaterThanOrEqual(rects().application.x + rects().application.width);
+    const r = rects(), app = r.application!, bor = r.borrower!;
+    expect(bor.x).toBeGreaterThanOrEqual(app.x + app.width);
     expect(said()).toMatch(/^Borrower is already a view on this page/);
   });
 
