@@ -11,9 +11,8 @@ export function StatusLine() {
   useUi((s) => s.area);
   void layout;
   const r = resolved();
-  const tabs = r.panes.filter((b) => b.stackId && b.hiddenInStack).length;
-  const rails = allPanes().filter((p) => p.collapsed).length;
-  const busy = Object.entries(activity).filter(([id, a]) => (a === "needs-you" || a === "working" || a === "error") && allPanes().some((p) => p.id === id && p.collapsed));
+  const shelf = (r as unknown as { shelf?: { paneId: string }[] }).shelf ?? [];
+  const busy = Object.entries(activity).filter(([id, a]) => (a === "needs-you" || a === "working" || a === "error") && shelf.some((s) => s.paneId === id));
   const hint = resizeMode
     ? "Resize mode · arrows, ⇧ for 64px · Esc to leave"
     : view.zoomed
@@ -24,9 +23,8 @@ export function StatusLine() {
   return (
     <footer className="status" aria-label="Status">
       <span className="status-main">
-        {r.panes.length} {r.panes.length === 1 ? "pane" : "panes"}
-        {tabs ? ` · ${tabs} in tabs` : ""}
-        {rails ? ` · ${rails} minimised` : ""}
+        {allPanes().length} {allPanes().length === 1 ? "pane" : "panes"}
+        {shelf.length ? ` · ${shelf.length} tucked` : ""}
         {r.folded.length ? ` · ${r.folded.length} folded` : ""}
         {" · "}Focus: {view.focused ? titleOf(view.focused) : "none"}
       </span>
