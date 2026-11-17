@@ -54,7 +54,7 @@ describe("hide and show", () => {
     for (const b of before.panes) expect(rect(after, b.id)).toEqual(b.rect);
   });
 
-  it("refuses the last pane on screen, a tab of a stack, and a pane already hidden; focus leaves a hidden pane", () => {
+  it("refuses the last pane on screen and a pane already hidden; focus leaves a hidden pane", () => {
     const ctx = context(fit(1920, 900));
     const one = row(pane("a", "record"), pane("b", "record"));
     const h = ok(core.hide(one, view("a"), "a", ctx));
@@ -62,7 +62,21 @@ describe("hide and show", () => {
     expect(core.hide(h.layout, h.view, "b", ctx)).toEqual({ ok: false, reason: "last" });
     expect(core.hide(h.layout, h.view, "a", ctx)).toEqual({ ok: false, reason: "hidden" });
     const stacked: Layout = row(pane("x", "record"), { id: "s", type: "stack", size: { weight: 1 }, origin: "user", active: "y", children: [pane("y", "record"), pane("z", "record")] });
-    expect(core.hide(stacked, view("x"), "y", ctx)).toEqual({ ok: false, reason: "tab" });
+    // A tab is lifted out beside its group first, so showing it brings it back next to the group.
+    const lifted = ok(core.hide(stacked, view("y"), "y", ctx));
+    expect(core.tree.stackOf(lifted.layout.root, "y")).toBeUndefined();
+    expect(lifted.layout.overlay?.hidden).toEqual(["y"]);
+    expect(lifted.view.focused).not.toBe("y");
+    const back = ok(core.show(lifted.layout, lifted.view, "y", ctx));
+    expect(core.tree.panes(back.layout.root).map((p) => p.id)).toEqual(["x", "z", "y"]);
+  });
+
+  it("a hidden pane needs no room: its minimum no longer folds the panes still shown", () => {
+    const ctx = context(fit(1100, 700));
+    const l: Layout = { ...row(pane("wide", "record"), pane("a", "record"), col("side", pane("b", "record"), pane("c", "record"))), overlay: { tucks: [], folds: [], shown: {}, hidden: ["wide"] } };
+    const f = core.refit(l, view("a"), ctx);
+    expect(f.overlay?.folds ?? []).toEqual([]);
+    expect(shown(core.resolve(f, view("a"), ctx))).toEqual(["a", "b", "c"]);
   });
 
   it("round-trips through the codec with roles, priority and hidden", () => {

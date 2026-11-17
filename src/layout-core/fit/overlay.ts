@@ -115,19 +115,24 @@ export function foldSlot(root: Projected, choice: Projected, fit: FitOptions, or
 
 interface Replayed { root: Projected; order: Map<string, number>; applied: string[] }
 /** Hidden panes leave the projection first: no slot and no tab, and their neighbours absorb the space. */
-function withoutHidden(root: Projected, hidden: readonly string[]): Projected {
+function withoutHidden(root: Projected, hidden: readonly string[], fit: FitOptions): Projected {
+  let removed = false;
   for (const id of hidden) {
     const displayed = slots(root);
     if (displayed.length < 2 || !displayed.some(s => s.id === id && s.pane)) continue;
     root = removeSlot(root, id)!;
+    removed = true;
   }
+  // The minimums of what is left: a hidden pane needs no room.
+  const remeasure = (n: Projected): void => { if (!n.pane) { n.children.forEach(remeasure); refresh(n, fit); } };
+  if (removed) remeasure(root);
   return root;
 }
 /** Replay hides, then tucks, then sticky folds, without changing the canonical tree. */
 export function replay(layout: Layout, folds: readonly string[], fit: FitOptions): Replayed {
   const projected = project(layout.root, fit);
   const order = new Map(allPanes(projected).map((p, i) => [p.id, i]));
-  let root = withoutHidden(projected, layout.overlay?.hidden ?? []);
+  let root = withoutHidden(projected, layout.overlay?.hidden ?? [], fit);
   const applied: string[] = [];
   const tucks = layout.overlay?.tucks ?? [];
   // A revealed tab names the same stable home as its fold. Resolve this against the canonical fold projection,
