@@ -13,6 +13,7 @@ import { book, instalments, plural, tenure, useGroupStanding, useOfficerBook, us
 import { Ladder, Standing } from "./records";
 import { signals } from "./signals";
 import { Facts, Instalments, StatusMark, Table, ToneIcon, View } from "./ui";
+import { altClick } from "../ui/commands/format";
 
 const n = (v: unknown) => Number(v ?? 0);
 
@@ -23,7 +24,7 @@ function Section({ title, role, lead, warn, children, area }: { title: string; r
     <section className="ov-sec" aria-label={title} style={{ gridArea: area }}>
       <header className="ov-head">
         <h3>{title}</h3>
-        <button className="ov-go" onClick={() => actions.openTab(role)} aria-label={`Open ${title}`} title="Open the full view · ⌥-click a tab to open it beside">
+        <button className="ov-go" onClick={() => actions.openTab(role)} aria-label={`Open ${title}`} title={`Open the full view · ${altClick()} a tab to open it beside`}>
           <span className="ov-go-text">View</span> <ArrowRight size={13} strokeWidth={1.75} aria-hidden />
         </button>
       </header>

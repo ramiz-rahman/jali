@@ -12,6 +12,7 @@ import { nextSort, orderByString, parseFilter, type SortState } from "../grid/gr
 import { PaneGate } from "../shared/PaneGate";
 import { useSelectionAcrossResults } from "../grid/useSelectionAcrossResults";
 import type { PaneComponentProps } from "../../ui/pane-kinds";
+import { keyHint } from "../../ui/commands/format";
 
 /** A grid over one table, optionally pre-filtered by a relation (used by RelatedPane). */
 export function TableGrid({ table, fixedWhere, paused, focused, openBeside, peek, select, label, columns: columnNames, orderBy, rowRef, audit = false }: Pick<PaneComponentProps, "paused" | "focused" | "openBeside" | "peek" | "select"> & { table: TableName; fixedWhere?: Record<string, string | number>; label: string; columns?: string[]; orderBy?: string; rowRef?: (row: Row) => ObjectRef | null; audit?: boolean }) {
@@ -49,7 +50,7 @@ export function TableGrid({ table, fixedWhere, paused, focused, openBeside, peek
       <div className="pk-bar">
         <span className="grow pk-meta"><span className="pk-mono">{formatCount(w.total)}</span> {audit ? "events, newest first" : <>rows{Object.keys(where).length ? " (filtered)" : ""}</>}</span>
         {!audit && (sort || Object.values(filters).some(Boolean)) && <button className="pk-btn" onClick={() => { setSort(null); setFilters({}); }}>Clear</button>}
-        {!audit && <span className="pk-meta">J/K move · Space peek · ⌥↵ open</span>}
+        {!audit && <span className="pk-meta">J/K move · Space peek · {keyHint("Alt+Enter")} open</span>}
       </div>
       {w.q.isLoading && !w.rows.length ? <Loading /> :
         <Grid label={label} columns={columns} total={w.total} rows={w.rows} startOffset={w.offset} onRange={w.onRange}

@@ -10,6 +10,7 @@ import { chartRef } from "../shared/refs";
 import { Empty, ErrorState, Loading, Shell } from "../shared/states";
 import { useResultWindow } from "../grid/useWindow";
 import type { PaneComponentProps } from "../../ui/pane-kinds";
+import { keyHint } from "../../ui/commands/format";
 
 export const DEFAULT_SQL = "SELECT region, SUM(amount_cents) AS amount_cents\nFROM sample_orders\nGROUP BY region\nORDER BY amount_cents DESC";
 
@@ -44,14 +45,14 @@ export function QueryPane({ ref, paused, focused, openBeside, setActivity }: Pan
   return (
     <Shell>
       <div className="pk-bar">
-        <button className="pk-btn primary" onClick={() => exec()} disabled={run.isPending || !sql.trim()}>{run.isPending ? "Running" : "Run"} <span className="pk-mono" style={{ opacity: .7 }}>⌘↵</span></button>
+        <button className="pk-btn primary" onClick={() => exec()} disabled={run.isPending || !sql.trim()}>{run.isPending ? "Running" : "Run"} <span className="pk-mono" style={{ opacity: .7 }}>{keyHint("Mod+Enter")}</span></button>
         <span className="grow pk-meta">{handle && !error ? <><span className="pk-mono">{formatCount(handle.rowCount)}</span> rows in <span className="pk-mono">{formatMs(handle.ms)}</span></> : "SQL"}</span>
         <button className="pk-btn" disabled={!handle} onClick={() => handle && openBeside(chartRef(handle.runId))}>Chart this result</button>
       </div>
       <textarea className="pk-sql" value={sql} spellCheck={false} aria-label="SQL" onChange={(e) => setSql(e.target.value)}
-        onKeyDown={(e) => { e.stopPropagation(); if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) { e.preventDefault(); exec(); } }} />
+        onKeyDown={(e) => { if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) { e.preventDefault(); exec(); } }} />
       <div className="pk-split" />
-      {error ? <ErrorState message={error} /> : run.isPending && !handle ? <Loading /> : handle ? <ResultGrid handle={handle} paused={paused} focused={focused} /> : <Empty title="No results yet" hint="Press ⌘↵ to run the query." />}
+      {error ? <ErrorState message={error} /> : run.isPending && !handle ? <Loading /> : handle ? <ResultGrid handle={handle} paused={paused} focused={focused} /> : <Empty title="No results yet" hint={`Press ${keyHint("Mod+Enter")} to run the query.`} />}
     </Shell>
   );
 }

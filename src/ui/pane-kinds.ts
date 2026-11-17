@@ -13,7 +13,11 @@
  *   after openBeside (founder decision 2) and makes an open peek, and a detail opened from the selection, follow
  *   `select` (actions/follow.ts). Report the selection before opening it, so the opened pane is linked to it.
  * - Data: read the shared DataLayer with `useDataLayer()` from `src/data/react`; never fetch outside the cache.
- * - Do not stop propagation of F6, ⌥/⌘ chords or Escape; the workspace keyboard layer listens on window.
+ * - Keys: content first (commands/keyboard.ts). The pane layer listens on window in the bubble phase and leaves
+ *   alone any key the content claimed with `event.preventDefault()`. Claim the keys you use (J/K, Space, Enter,
+ *   ⌘Z for your own undo, the first Esc); let the rest bubble. Character keys must only act while your content has
+ *   focus (WCAG 2.1.4). Content that needs every key (an editor) marks itself `data-pane-keys="content"`: the pane
+ *   layer then only takes F6 / ⇧F6 there, so focus can always leave.
  */
 import type { ComponentType, ReactNode } from "react";
 import type { KindRegistry, ObjectRef, PaneKind, PaneNode } from "../layout-core/types";

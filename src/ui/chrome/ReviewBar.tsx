@@ -5,6 +5,7 @@ import { getProfile } from "../profile";
 import { useModel, useStore, useUi } from "../state/react";
 import { Workspace } from "../workspace/Workspace";
 import { startTabDrag } from "../workspace/dnd";
+import { altClick } from "../commands/format";
 
 /**
  * A curated page's controls in the top bar: the mode (Single or Multiplexed), the investigation (panes opened from
@@ -64,7 +65,8 @@ function PageTabs() {
   const hovered = useRef<string | null>(null);
   const ghost = (alt: boolean) => { const g = alt ? hovered.current : null; if (store.get().ghost !== g) store.set({ ghost: g }); };
   useEffect(() => {
-    const key = (e: globalThis.KeyboardEvent) => { if (e.key === "Alt") ghost(e.type === "keydown"); };
+    // Alt on its own only previews (it never takes the key); a chord with Alt in it is someone else's.
+    const key = (e: globalThis.KeyboardEvent) => { if (e.key === "Alt" && !e.repeat && !e.metaKey && !e.ctrlKey) ghost(e.type === "keydown"); };
     const blur = () => ghost(false);
     window.addEventListener("keydown", key);
     window.addEventListener("keyup", key);
@@ -94,7 +96,7 @@ function PageTabs() {
           <button key={r.id} role="tab" className="page-tab" data-role={r.id} data-state={st}
             aria-selected={r.id === selected} tabIndex={r.id === selected ? 0 : -1}
             aria-description={multi ? (st === "off" ? "Not on screen" : st === "behind" ? "Behind another tab" : "On screen") : undefined}
-            title={multi ? (st === "off" ? `${r.label} in place of the view you're in · drag to place it · ⌥-click: beside` : `Focus ${r.label} · drag to move it`) : `${r.label} · drag or ⌥-click to see it beside`}
+            title={multi ? (st === "off" ? `${r.label} in place of the view you're in · drag to place it · ${altClick()}: beside` : `Focus ${r.label} · drag to move it`) : `${r.label} · drag or ${altClick()} to see it beside`}
             onPointerDown={(e) => { drag.current = startTabDrag(store, e, r.id, r.label); }}
             onPointerEnter={(e) => { hovered.current = r.id; ghost(e.altKey); }}
             onPointerLeave={() => { hovered.current = null; ghost(false); }}

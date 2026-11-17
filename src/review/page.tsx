@@ -28,7 +28,11 @@ export function useApplication(item: number, paused = false) {
   };
 }
 
-/** The queue: applications waiting first. J/K or the arrows move through it; choosing one makes it the page's item. */
+/**
+ * The queue: applications waiting first. J/K or the arrows move through it while it has focus (character keys are
+ * scoped to focus, WCAG 2.1.4, so a grid's J/K in a view never moves the queue); F6 reaches it (`data-pane-region`).
+ * Choosing one makes it the page's item.
+ */
 export function QueueRail({ item, activate }: { item: number; activate: (item: number) => void }) {
   const apps = useRows("loan_applications", { orderBy: "id ASC", limit: 200 });
   const members = useRows("members", { orderBy: "id ASC", limit: 400 });
@@ -45,9 +49,10 @@ export function QueueRail({ item, activate }: { item: number; activate: (item: n
   const go = (i: number) => { const r = rows[Math.max(0, Math.min(rows.length - 1, i))]; if (r) activate(Number(r.id)); };
   return (
     <aside className="rail" aria-label="Queue">
-      <div className="rail-head"><b>Applications</b><span className="pk-meta"><span className="pk-mono">{pending}</span> waiting · J/K</span></div>
-      <div className="rq-list" role="listbox" aria-label="Loan applications" ref={list}
+      <div className="rail-head"><b>Applications</b><span className="pk-meta"><span className="pk-mono">{pending}</span> waiting · J/K when focused</span></div>
+      <div className="rq-list" role="listbox" aria-label="Loan applications" ref={list} data-pane-region="queue"
         onKeyDown={(e) => {
+          if (e.metaKey || e.ctrlKey || e.altKey) return;
           if (e.key === "j" || e.key === "ArrowDown") { e.preventDefault(); go(at + 1); }
           else if (e.key === "k" || e.key === "ArrowUp") { e.preventDefault(); go(at - 1); }
         }}>

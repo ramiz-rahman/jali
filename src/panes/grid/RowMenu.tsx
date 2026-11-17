@@ -1,11 +1,12 @@
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import type { MenuState } from "./Grid";
+import { keyHint } from "../../ui/commands/format";
 
 export function RowMenu({ menu, onClose, onOpen, onPeek, id }: { menu: MenuState; onClose(): void; onOpen?: () => void; onPeek?: () => void; id: string | null }) {
   const ref = useRef<HTMLDivElement>(null);
   const items: { label: string; hint?: string; run(): void }[] = [];
-  if (onOpen) items.push({ label: "Open beside", hint: "⌥↵", run: onOpen });
+  if (onOpen) items.push({ label: "Open beside", hint: keyHint("Alt+Enter"), run: onOpen });
   if (onPeek) items.push({ label: "Peek", hint: "Space", run: onPeek });
   if (id !== null) items.push({ label: "Copy ID", run: () => { void navigator.clipboard?.writeText(id).catch(() => undefined); } });
   const [active, setActive] = useState(0);

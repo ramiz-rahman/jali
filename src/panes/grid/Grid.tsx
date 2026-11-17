@@ -8,6 +8,7 @@ import type { Row } from "../../data/types";
 import { cellKind, columnLabel, formatCell, isNumericType, rawText } from "../format"
 import type { SortState } from "./grid-state";
 import { NullChip } from "../shared/states";
+import { keyHint } from "../../ui/commands/format";
 
 export const ROW_H = 28;
 const OVERSCAN_ROWS = 6;
@@ -106,7 +107,7 @@ export function Grid(p: Props) {
     else if (e.key === "End") move(p.total - 1);
     else if (e.key === "PageDown") move(cur + page);
     else if (e.key === "PageUp") move(cur - page);
-    else if (e.key === " " && cur >= 0 && p.peek) peekAt(cur);
+    else if (e.key === " " && !e.metaKey && !e.ctrlKey && !e.altKey && cur >= 0 && p.peek) peekAt(cur);
     else if ((e.key === "ContextMenu" || (e.key === "F10" && e.shiftKey)) && cur >= 0) {
       const rowEl = rootRef.current?.querySelector<HTMLElement>(`[aria-rowindex="${cur + 1}"]`);
       const r = (rowEl ?? rootRef.current)!.getBoundingClientRect();
@@ -131,7 +132,7 @@ export function Grid(p: Props) {
                 </button>
                 <span className="type">{c.format === "money" ? "money" : c.type.toLowerCase()}</span>
                 {p.onFilter && <input aria-label={`Filter ${c.name}`} placeholder="Filter" defaultValue={p.filters?.[c.name] ?? ""}
-                  onKeyDown={(e) => { e.stopPropagation(); if (e.key === "Enter") p.onFilter?.(c.name, e.currentTarget.value); }}
+                  onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); p.onFilter?.(c.name, e.currentTarget.value); } }}
                   onBlur={(e) => { if (e.currentTarget.value !== (p.filters?.[c.name] ?? "")) p.onFilter?.(c.name, e.currentTarget.value); }} />}
               </div>
             );
@@ -158,7 +159,7 @@ export function Grid(p: Props) {
                   );
                 })}
                 {p.openBeside && <div className="pk-cell pk-act" style={actionStyle}>
-                  <button className="pk-open" tabIndex={i === p.selected ? 0 : -1} aria-label={(refAt(i) && p.rowLabel?.(refAt(i)!)) ?? "Open beside"} title="Open beside (⌥↵)" onClick={(e) => { e.stopPropagation(); openAt(i); }}>
+                  <button className="pk-open" tabIndex={i === p.selected ? 0 : -1} aria-label={(refAt(i) && p.rowLabel?.(refAt(i)!)) ?? "Open beside"} title={`Open beside (${keyHint("Alt+Enter")})`} onClick={(e) => { e.stopPropagation(); openAt(i); }}>
                     <svg width="12" height="12" viewBox="0 0 12 12" aria-hidden="true"><path d="M3 9 9 3M4.5 3H9v4.5" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" /></svg>
                   </button>
                 </div>}
