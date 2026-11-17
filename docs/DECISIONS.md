@@ -171,3 +171,17 @@ The public API is standalone exports (`import * as core from "…/layout-core"`)
 - **Placing a view (⌥-click, drag).** A view never folds into a tab group, because that would repeat page tabs inside a pane. Only opened panes form in-pane tabs, and an in-pane tab strip lists a page view only while it is the shown tab; the page tabs reach it otherwise. When there is no room, the least recently used views (supporting before primary, never the target or the view placed) go back to the page tabs, and the announcement names them. A view that frees enough room on its own goes first. A resize still folds as before.
 - **The ⌥ preview is the commit.** `besidePreview` and `openTabBeside` run one pure placement (`beside()` → `placeRole`). The preview draws the new view's real rect, a fainter outline at each view that moves, and the views that would go back to the tabs.
 - **Fold announcements** ("folded into tabs: not enough room") are only for a change of room (a resize). An action that folds something says so in its own message.
+
+## 18 Nov 2026: linked detail follows the list
+- **Problem (design review).** In a list → detail chain (orders → order 1), J/K moved the list's row but not the detail; only an open peek followed. Updating the detail took ⌥↵ on every row. With a detail open, Space slid a peek sheet over it: two answers to one question.
+- **Model.** Following is a property of the link, on the pane: `linkedTo` (opened from) plus `follows: true` (shows that pane's selection). A pinned detail (`pinned: true`) keeps its object. At most one follower per source and kind. URL key `f`.
+- **Core.** `follower(layout, source, kind)`, `follow(layout, view, source, ref, ctx)` (replace the follower's object in place: same node, slot and size), `setFollows(layout, id, on)` (unpinning one pins the previous follower), `selectionLink`. `open(..., { fromSelection })`: opening the source's selected item makes a follower, or a pinned detail when one already follows. A plain link (an FK cell) never reuses a follower or a pinned pane. Closing the source drops `linkedTo` and `follows`.
+- **Rules.**
+  - A detail follows when the list's selection rests for 150ms (`FOLLOW_MS`), so holding J doesn't fetch every row. Op `follow`: geometry swap, URL history replaced (Back skips the rows passed through). Focus stays in the list.
+  - ⌥↵ on a row while a detail follows opens a second detail, pinned (compare). The header's Pin toggle ("Following" / "Pinned", `aria-pressed`) switches; unpinning catches up with the selection.
+  - Space with a following detail of that kind on screen shows the row there, at once. No detail, or none on screen (folded, behind a tab, tucked): the peek sheet.
+  - A filter that removes the followed row: the detail keeps it, with "Not in the current results of orders". Only said when the whole result is loaded; tables keep the selection on the same row (not index) across filter and sort.
+  - A failed load shows the detail's own error state; it keeps following.
+  - The loan review is unchanged: its views have roles and no selection links; an opened pane follows only when it was opened from a list's selected row.
+- **Timing is declared.** A change can carry `defer: { key, ms, run }`; the store runs the latest per key later against the state then. No timers inside actions.
+- **Announcements.** One polite "Showing order 5" when the detail settles, not one per row.
