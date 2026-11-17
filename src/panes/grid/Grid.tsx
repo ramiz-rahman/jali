@@ -39,6 +39,20 @@ interface Props {
 
 const widthOf = (c: GridColumn) => (isNum(c) ? 112 : /^(id)$/.test(c.name) ? 72 : /(name|email|comment|sql|payload)/.test(c.name) ? 200 : 150);
 const ACTION_W = 36;
+/**
+ * Pane content contract for the grid: text columns share the width the pane has beyond the grid's natural width, up to
+ * twice their own, so names, dates and statuses truncate less; ids and numbers keep a tight right-aligned column under
+ * their header. Past that the grid holds its measure: header, rows and the open-beside action end at a ruled right
+ * edge and the pane continues as plain background. Stretching further would push values apart (a status 600px from
+ * its total), and rules running to the pane's edge would read as a missing column.
+ */
+const GROW = 2;
+const grownOf = (c: GridColumn) => (isNum(c) || /^(id)$/.test(c.name) ? widthOf(c) : widthOf(c) * GROW);
+const cellStyle = (c: GridColumn): React.CSSProperties => {
+  const w = widthOf(c);
+  return isNum(c) || /^(id)$/.test(c.name) ? { width: w } : { flex: `${w} 0 ${w}px`, maxWidth: w * GROW };
+};
+const actionStyle: React.CSSProperties = { width: ACTION_W, flex: "none", marginLeft: "auto" };
 const isNum = (c: GridColumn) => isNumericType(c.type) || c.format === "money";
 
 export interface MenuState { i: number; x: number; y: number }
@@ -78,6 +92,7 @@ export function Grid(p: Props) {
   const openAt = (i: number) => { const ref = refAt(i); if (ref) p.openBeside?.(ref); };
   const peekAt = (i: number) => { const ref = refAt(i); if (ref) p.peek?.(ref); };
   const width = p.columns.reduce((s, c) => s + widthOf(c), 0) + (p.openBeside ? ACTION_W : 0);
+  const measure = p.columns.reduce((s, c) => s + grownOf(c), 0) + (p.openBeside ? ACTION_W : 0) + 1;
   const move = (to: number) => { if (p.total) selectAt(Math.max(0, Math.min(p.total - 1, to))); };
   const cur = p.selected ?? -1;
 
@@ -105,12 +120,12 @@ export function Grid(p: Props) {
   return (
     <div className="pk-grid" ref={rootRef} tabIndex={0} role="grid" aria-label={p.label} aria-rowcount={p.total} onKeyDown={onKeyDown} onCopy={copyRaw}>
       <div className="pk-gbody" ref={bodyRef} onScroll={(e) => setScrollTop(e.currentTarget.scrollTop)}>
-        <div className="pk-gh" ref={headerRef} role="row" style={{ position: "sticky", top: 0, zIndex: 2, width }}>
+        <div className="pk-gh" ref={headerRef} role="row" style={{ position: "sticky", top: 0, zIndex: 2, minWidth: width, maxWidth: measure }}>
           {p.columns.map((c) => {
             const num = isNum(c);
             const sorted = p.sort?.column === c.name ? p.sort.dir : null;
             return (
-              <div key={c.name} role="columnheader" aria-sort={sorted ? (sorted === "asc" ? "ascending" : "descending") : "none"} className={`pk-hcell${num ? " r" : ""}`} style={{ width: widthOf(c) }}>
+              <div key={c.name} role="columnheader" aria-sort={sorted ? (sorted === "asc" ? "ascending" : "descending") : "none"} className={`pk-hcell${num ? " r" : ""}`} style={cellStyle(c)}>
                 <button className="sort" disabled={!p.onSort} onClick={() => p.onSort?.(c.name)} title={`${c.name} (${c.type})`}>
                   <span>{columnLabel(c.name, c.format)}</span>{c.badge && <span className="pk-chip key">{c.badge}</span>}{sorted && <span aria-hidden>{sorted === "asc" ? "↑" : "↓"}</span>}
                 </button>
@@ -121,14 +136,14 @@ export function Grid(p: Props) {
               </div>
             );
           })}
-          {p.openBeside && <div style={{ width: ACTION_W }} />}
+          {p.openBeside && <div style={actionStyle} />}
         </div>
-        <div style={{ height: p.total * ROW_H, width, position: "relative" }}>
+        <div className="pk-grows" style={{ height: p.total * ROW_H, minWidth: width, maxWidth: measure }}>
           {p.rows.map((row, k) => {
             const i = p.startOffset + k;
             if (i < first || i >= last) return null;
             return (
-              <div key={i} role="row" aria-rowindex={i + 1} aria-selected={i === p.selected} className="pk-row" style={{ top: i * ROW_H, width }}
+              <div key={i} role="row" aria-rowindex={i + 1} aria-selected={i === p.selected} className="pk-row" style={{ top: i * ROW_H, right: 0 }}
                 onClick={() => selectAt(i)} onDoubleClick={() => openAt(i)}
                 onContextMenu={(e) => { e.preventDefault(); selectAt(i); setMenu({ i, x: e.clientX, y: e.clientY }); }}>
                 {p.columns.map((c) => {
@@ -137,12 +152,12 @@ export function Grid(p: Props) {
                   const link = p.link?.(v, row, c) ?? null;
                   const raw = rawText(v);
                   return (
-                    <div key={c.name} role="gridcell" className={`pk-cell${isNum(c) ? " r num" : ""}${kind === "json" ? " json" : ""}${kind === "time" ? " time" : ""}`} style={{ width: widthOf(c) }} title={raw} data-raw={v === null ? undefined : raw}>
+                    <div key={c.name} role="gridcell" className={`pk-cell${isNum(c) ? " r num" : ""}${kind === "json" ? " json" : ""}${kind === "time" ? " time" : ""}`} style={cellStyle(c)} title={raw} data-raw={v === null ? undefined : raw}>
                       {v === null ? <NullChip /> : link ? <button className="pk-link num" onClick={(e) => { e.stopPropagation(); p.onLink?.(link); }}>{formatCell(v, c)}</button> : formatCell(v, c)}
                     </div>
                   );
                 })}
-                {p.openBeside && <div className="pk-cell pk-act" style={{ width: ACTION_W }}>
+                {p.openBeside && <div className="pk-cell pk-act" style={actionStyle}>
                   <button className="pk-open" tabIndex={i === p.selected ? 0 : -1} aria-label={(refAt(i) && p.rowLabel?.(refAt(i)!)) ?? "Open beside"} title="Open beside (⌥↵)" onClick={(e) => { e.stopPropagation(); openAt(i); }}>
                     <svg width="12" height="12" viewBox="0 0 12 12" aria-hidden="true"><path d="M3 9 9 3M4.5 3H9v4.5" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" /></svg>
                   </button>
