@@ -32,7 +32,7 @@ export function closeOthers(x: Snapshot, id = x.s.view.focused): Outcome {
 
 export const checkUndo = ({ s }: Snapshot) => (s.undoStack.length ? undefined : refuse(msg.nothingToRestore));
 
-/** ⌘Z: undo the last close or tuck. A tuck is undone by putting the pane back, so later changes survive. */
+/** Undo (⌘K ⌘Z, the Undo toast): the last close or tuck. A tuck is undone by putting the pane back, so later changes survive. */
 export function undo(x: Snapshot): Outcome {
   const e = x.s.undoStack.at(-1);
   if (!e) return checkUndo(x);

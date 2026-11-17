@@ -1,6 +1,5 @@
 import { Maximize2, Minimize2, Minus, X } from "lucide-react";
 import { checkTuck, tuckHome } from "../actions/tuck";
-import { shortcutLabel } from "../commands/registry";
 import { formatChord } from "../commands/format";
 import { useModel, useStore } from "../state/react";
 import type { Chrome } from "./chrome";
@@ -13,7 +12,8 @@ export function HeaderActions({ id, title, zoomed, chrome }: P) {
   const m = useModel();
   const home = tuckHome(store.snapshot(), id);
   // When tuck is refused, the button says why in the announcer's own words (state/messages.ts).
-  const tuckLabel = home ? `Tuck into ${m.title(home)} · ${shortcutLabel("pane.tuck")}` : (checkTuck(store.snapshot(), id)?.msg ?? `${title} can't be tucked`);
+  const hint = (id: string) => (store.keymap.label(id) ? ` · ${store.keymap.label(id)}` : "");
+  const tuckLabel = home ? `Tuck into ${m.title(home)}${hint("pane.tuck")}` : (checkTuck(store.snapshot(), id)?.msg ?? `${title} can't be tucked`);
   const { actions } = store;
   const node = m.pane(id);
   // A curated page's view closes back into the tabs above.
@@ -26,7 +26,7 @@ export function HeaderActions({ id, title, zoomed, chrome }: P) {
         </button>
       ) : null}
       {chrome.zoomable ? <ZoomButton id={id} title={title} zoomed={zoomed} /> : null}
-      <button className="icon-btn act-close" onClick={() => actions.close(id)} aria-label={`Close ${title}`} title={`${closeHint} · ${shortcutLabel("pane.close")}`}>
+      <button className="icon-btn act-close" onClick={() => actions.close(id)} aria-label={`Close ${title}`} title={`${closeHint}${hint("pane.close")}`}>
         <X size={14} strokeWidth={1.5} aria-hidden />
       </button>
     </div>
@@ -34,13 +34,14 @@ export function HeaderActions({ id, title, zoomed, chrome }: P) {
 }
 
 function ZoomButton({ id, title, zoomed }: { id: string; title: string; zoomed: boolean }) {
-  const { actions } = useStore();
+  const { actions, keymap } = useStore();
+  const zoomKeys = keymap.label("pane.zoom");
   return (
     <button
       className="icon-btn act-zoom"
       onClick={() => actions.toggleZoom(id)}
       aria-label={zoomed ? `Restore ${title}` : `Maximise ${title}`}
-      title={zoomed ? `Restore · ${formatChord({ key: "Escape" })}` : `Maximise · ${shortcutLabel("pane.zoom")}`}
+      title={zoomed ? `Restore · ${formatChord({ key: "Escape" }, keymap.platform)}` : `Maximise${zoomKeys ? ` · ${zoomKeys}` : ""}`}
     >
       {zoomed ? <Minimize2 size={14} strokeWidth={1.5} aria-hidden /> : <Maximize2 size={14} strokeWidth={1.5} aria-hidden />}
     </button>

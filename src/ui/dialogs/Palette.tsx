@@ -1,8 +1,12 @@
-import { COMMANDS, runCommand, shortcutLabel, type Command } from "../commands/registry";
+import { formatChord } from "../commands/format";
+import { COMMANDS, runCommand, type Command } from "../commands/registry";
 import { useStore, useUi } from "../state/react";
 import { ListDialog } from "./ListDialog";
 
-/** ⌘K: every workspace command. People see title, group and shortcut; the stable id lives in data-command-id. */
+/**
+ * ⌘K: every workspace command. People see title, group and shortcut; the stable id lives in data-command-id. While it
+ * has just opened, a second ⌘ chord runs a command straight away (⌘K ⌘M); the listed shortcuts teach those chords.
+ */
 export function Palette() {
   const open = useUi((s) => s.paletteOpen);
   return open ? <PaletteDialog /> : null;
@@ -27,7 +31,8 @@ function PaletteDialog() {
       itemProps={(c) => ({ "data-command-id": c.id })}
       disabled={(c) => !!c.check?.(store.snapshot())}
       render={(c) => {
-        const keys = shortcutLabel(c.id);
+        // Esc closes a peek through the Esc ladder, not the keymap.
+        const keys = store.keymap.label(c.id) || (c.id === "peek.close" ? formatChord({ key: "Escape" }, store.keymap.platform) : "");
         return (
           <>
             <span className="palette-title">{c.title}</span>

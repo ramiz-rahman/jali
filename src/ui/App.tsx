@@ -17,7 +17,12 @@ import type { UiStore } from "./state/store";
 
 export const UNDO_MS = 8000;
 
-/** Shows the store's toasts with Sonner. Undo toasts offer ⌘Z's undo. */
+const undoKeys = (store: UiStore) => {
+  const k = store.keymap.label("pane.undo_close");
+  return k ? `${k} to undo` : "";
+};
+
+/** Shows the store's toasts with Sonner. Undo toasts offer the undo that "Restore last closed pane" (⌘K ⌘Z) runs. */
 function Toasts() {
   const store = useStore();
   const theme = useUi((s) => resolveTheme(s.settings.theme, s.systemDark));
@@ -25,7 +30,7 @@ function Toasts() {
     () =>
       store.onToast((t) => {
         if (t.error) toast.error(t.title, { description: t.description, duration: 8000 });
-        else toast(t.title, { description: t.description, action: t.undo ? { label: "Undo", onClick: () => store.actions.undo() } : undefined, duration: UNDO_MS });
+        else toast(t.title, { description: t.undo ? [t.description, undoKeys(store)].filter(Boolean).join(" · ") : t.description, action: t.undo ? { label: "Undo", onClick: () => store.actions.undo() } : undefined, duration: UNDO_MS });
       }),
     [store],
   );

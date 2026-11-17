@@ -18,7 +18,7 @@ export function focusMoved({ s, m }: Snapshot, view: ViewState): Outcome {
 
 export const focusCycle = (x: Snapshot, delta: 1 | -1) => focusMoved(x, core.focusCycle(x.s.view, x.m.flat, delta, x.ctx));
 export const focusDirection = (x: Snapshot, dir: Edge) => focusMoved(x, core.focusDirection(x.s.view, x.m.flat, dir, x.ctx));
-/** ⌥1–9: the nth pane on screen, reading order. */
+/** "Focus pane 1–9" (palette): the nth pane on screen, reading order. */
 export function focusIndex(x: Snapshot, n: number): Outcome {
   const id = x.m.flatVisible[n - 1];
   return id ? focusMoved(x, core.focus(x.s.view, id, x.ctx)) : null;

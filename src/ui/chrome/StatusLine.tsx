@@ -1,12 +1,13 @@
 import { useEffect, useState } from "react";
 import { useDataLayer } from "../../data/react";
-import { formatChord, PALETTE_CHORD } from "../commands/format";
-import { shortcutLabel } from "../commands/registry";
-import { useModel, useUi } from "../state/react";
+import { PALETTE_ID } from "../commands/keymap";
+import { useModel, useStore, useUi } from "../state/react";
 import { Shelf } from "./Shelf";
 
 export function StatusLine() {
   const m = useModel();
+  const { keymap } = useStore();
+  const keys = (id: string, what: string) => (keymap.label(id) ? `${keymap.label(id)} ${what}` : "");
   const view = useUi((s) => s.view);
   const resizeMode = useUi((s) => s.resizeMode);
   const curated = useUi((s) => !!s.review);
@@ -24,8 +25,8 @@ export function StatusLine() {
       : view.peek
         ? "Peek · Esc to close"
         : curated && single
-          ? `${formatChord(PALETTE_CHORD)} commands`
-          : `${shortcutLabel("pane.zoom")} maximise · ${shortcutLabel("pane.focus.next")} next ${curated ? "view" : "pane"} · ${formatChord(PALETTE_CHORD)} commands`;
+          ? keys(PALETTE_ID, "commands")
+          : [keys("pane.zoom", "maximise"), keys("pane.focus.next", `next ${curated ? "view" : "pane"}`), keys(PALETTE_ID, "commands")].filter(Boolean).join(" · ");
   const n = m.onScreen.length;
   return (
     <footer className="status" aria-label="Status" data-shelf-on={tucked ? "" : undefined}>

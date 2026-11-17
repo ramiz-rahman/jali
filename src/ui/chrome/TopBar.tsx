@@ -3,7 +3,7 @@ import { Command, Settings, Link2, ChevronDown, LayoutGrid } from "lucide-react"
 import { PRESETS } from "../presets";
 import { useStore, useUi } from "../state/react";
 import { copyLink } from "../commands/registry";
-import { formatChord, PALETTE_CHORD } from "../commands/format";
+import { PALETTE_ID } from "../commands/keymap";
 import { AppSwitch, ReviewBar } from "./ReviewBar";
 
 /** The presets as toggle buttons: in the bar on desktop, in the Layouts menu below 768px. */
@@ -73,7 +73,7 @@ export function TopBar() {
           <Settings size={16} strokeWidth={1.5} aria-hidden />
         </button>
         <button className="kbd-btn" onClick={() => store.set({ paletteOpen: true })} aria-label="Command palette">
-          <Command size={14} strokeWidth={1.5} aria-hidden /> <span className="kbd-label">{formatChord(PALETTE_CHORD)}</span>
+          <Command size={14} strokeWidth={1.5} aria-hidden /> <span className="kbd-label">{store.keymap.label(PALETTE_ID)}</span>
         </button>
       </div>
     </header>

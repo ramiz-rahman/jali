@@ -6,7 +6,7 @@ import { useModel, useStore, useUi } from "../state/react";
 import type { ChooserState } from "../state/store";
 import { ListDialog } from "./ListDialog";
 
-/** ⌘K "Add to tabs of…" (⌥⌘T): pick a visible pane or stack by title; the focused pane joins it as a tab. */
+/** ⌘K "Add to tabs of…" (⌘K ⌘G): pick a visible pane or stack by title; the focused pane joins it as a tab. */
 export function Chooser() {
   const chooser = useUi((s) => s.chooser);
   return chooser ? <ChooserDialog chooser={chooser} /> : null;

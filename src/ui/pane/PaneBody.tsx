@@ -6,6 +6,7 @@ import { getPaneKind, paneTitle, type PaneActivity, type PaneComponentProps, typ
 import { useModel, useUi } from "../state/react";
 import type { UiStore } from "../state/store";
 import { KindIcon } from "./icons";
+import { keyHint } from "../commands/format";
 
 /** What a pane's content can ask of the workspace. A pane in the layout acts for itself; the peek sheet acts for the
  *  pane it came from and has no place of its own to fill, close or report on. */
@@ -57,7 +58,7 @@ export const PaneBody = memo(
       return (
         <div className="pane-missing" role="alert">
           <strong>Unknown pane kind “{node.ref.kind}”.</strong>
-          <span>This pane stays in place so the layout keeps its shape. Close it or reset the layout from ⌘K.</span>
+          <span>This pane stays in place so the layout keeps its shape. Close it or reset the layout from the command palette ({keyHint("Mod+K")}).</span>
         </div>
       );
     }

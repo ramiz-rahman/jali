@@ -1,4 +1,4 @@
-/** ⌘Z: closes and tucks, most recent last. A tuck entry is undone by putting the pane back, so later changes survive. */
+/** Undo (⌘K ⌘Z, the Undo toast): closes and tucks, most recent last. A tuck entry is undone by putting the pane back, so later changes survive. */
 import type { Layout, NodeId, UndoEntry } from "../../layout-core/types";
 
 export const UNDO_MAX = 20;

@@ -325,7 +325,7 @@ export function activate(x: Snapshot, item: number): Outcome {
   return { op: "activate", layout, view: focused, msg: msg.activated(p.itemNoun, item, dropped), patch: { review, prefs, peekSource: undefined }, undo: [], ...(dropped ? { geometry: "reshape" as const } : {}) };
 }
 
-/** Close every pane opened by following links; the layout comes back as the person left it. ⌘Z reopens them. */
+/** Close every pane opened by following links; the layout comes back as the person left it. Undo (⌘K ⌘Z) reopens them. */
 export function backToReview(x: Snapshot): Outcome {
   const r = x.s.review;
   if (!r) return null;

@@ -19,6 +19,7 @@ export function Peek({ presentation }: { presentation: Presentation }) {
   const canPin = !review || (review.canInvestigate && review.mode === "multi");
   const host = useMemo(() => peekHost(store), [store]);
   const openedBy = useRef<"pointer" | "keyboard">("keyboard");
+  // Observes (never takes) the last input, so only a pointer-opened peek animates.
   useEffect(() => {
     const onDown = () => (openedBy.current = "pointer");
     const onKey = () => (openedBy.current = "keyboard");
@@ -56,7 +57,7 @@ export function Peek({ presentation }: { presentation: Presentation }) {
           {review ? null : <button className="text-btn" onClick={() => actions.openPeekFull()} title="Open full">
             <Maximize size={14} strokeWidth={1.5} aria-hidden /> Open full
           </button>}
-          <button className="icon-btn" onClick={() => actions.peek(null)} aria-label="Close peek" title={`Close (${formatChord({ key: "Escape" })})`}>
+          <button className="icon-btn" onClick={() => actions.peek(null)} aria-label="Close peek" title={`Close (${formatChord({ key: "Escape" }, store.keymap.platform)})`}>
             <X size={14} strokeWidth={1.5} aria-hidden />
           </button>
         </div>
