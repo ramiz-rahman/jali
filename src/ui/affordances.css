@@ -52,3 +52,35 @@
 .status-stats, .status-warn { font-size: 12px; color: var(--text-2); }
 @media (max-width: 640px) { .status-hint:not([data-mode]) { display: none; } .status-main { flex: 1; min-width: 0; } }
 @media (max-width: 480px) { .status-stats { display: none; } }
+
+/* ---- header actions: minimise, maximise, close; 26px targets, 4px apart ---- */
+.pane .pane-actions { gap: 4px; }
+.pane .pane-actions .icon-btn { width: 26px; height: 26px; min-width: 26px; border-radius: 6px; opacity: 0.55; }
+.pane.is-focused .pane-actions .icon-btn, .pane:hover .pane-actions .icon-btn, .pane:focus-within .pane-actions .icon-btn { opacity: 1; }
+.pane .pane-actions .icon-btn[aria-disabled="true"] { opacity: 0.35; cursor: not-allowed; }
+.pane .pane-actions .icon-btn[aria-disabled="true"]:hover { background: none; color: var(--text-3); }
+
+/* ---- rail: the whole 56px strip is one "Expand" button ---- */
+.pane-rail .rail-btn {
+  all: unset; box-sizing: border-box; width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center;
+  gap: 10px; padding: 10px 0 12px; cursor: pointer; color: var(--text-3); border-radius: calc(var(--radius) - 1px);
+  transition: background-color 80ms;
+}
+.pane-rail .rail-btn:hover { background: var(--hover); color: var(--text); }
+.pane-rail .rail-btn:active { background: color-mix(in srgb, var(--text) 8%, var(--island)); }
+.pane-rail .rail-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: -3px; }
+.rail-expand { display: grid; place-items: center; width: 28px; height: 28px; border-radius: 6px; color: var(--text-3); }
+.rail-btn:hover .rail-expand { color: var(--text); }
+.rail-icon { color: var(--text-3); display: grid; }
+.rail-count { font-family: var(--mono); font-size: 11px; line-height: 14px; font-variant-numeric: tabular-nums; color: var(--text-2); }
+.rail-title { max-height: none; min-height: 0; flex: 0 1 auto; font-size: 13px; line-height: 16px; }
+
+/* rail activity: a different shape for every state, never colour alone */
+.ra { flex: none; display: grid; place-items: center; width: 14px; height: 14px; box-sizing: border-box; border-radius: 50%; font-size: 10px; font-weight: 700; line-height: 1; }
+.ra-ring { border: 2px solid color-mix(in srgb, var(--act-working) 25%, transparent); border-top-color: var(--act-working); animation: ra-spin 0.9s linear infinite; }
+.ra-ring.is-quiet { border-color: var(--text-4); border-top-color: var(--text-2); }
+.ra-need { background: var(--act-blocked); color: #fff; }
+.ra-fail { background: var(--act-failed); color: #fff; }
+.ra-done { width: 8px; height: 8px; background: var(--accent); }
+@keyframes ra-spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .ra-ring { animation: none; border-color: var(--act-working); border-top-color: transparent; } .pane-rail .rail-btn { transition: none; } }

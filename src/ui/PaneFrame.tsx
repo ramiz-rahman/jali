@@ -1,5 +1,7 @@
 import { memo, useMemo, type CSSProperties } from "react";
-import { ChevronsLeft, ChevronsRight, ChevronsDown, Maximize2, Minimize2, Plus, Square, X, GripHorizontal } from "lucide-react";
+import { Plus, Square, X, GripHorizontal } from "lucide-react";
+import { RailButton } from "./pane/RailButton";
+import { HeaderActions } from "./pane/HeaderActions";
 import type { ObjectRef, PaneBox, PaneNode } from "../layout-core/types";
 import { getPaneKind, paneTitle, type PaneActivity, type PaneComponentProps } from "./pane-kinds";
 import { actions, getState, useUi } from "./store";
@@ -160,18 +162,7 @@ export const PaneFrame = memo(function PaneFrame({ box, node, stack, focused, zo
   return (
     <section {...regionProps} className={cls} style={style}>
       {rail ? (
-        <div className="rail">
-          <button className="rail-restore" onClick={() => actions.setCollapsed(node.id, false)} aria-label={`Restore ${title}`} title={`Restore ${title} (⌥⌘M)`}>
-            {onLeft ? <ChevronsRight size={16} strokeWidth={1.5} aria-hidden /> : <ChevronsLeft size={16} strokeWidth={1.5} aria-hidden />}
-          </button>
-          <span className="rail-icon">
-            <KindIcon kind={node.ref.kind} />
-          </span>
-          <span className="rail-title" id={paneTitleId(node.id)}>
-            {title}
-          </span>
-          <ActivityDot a={activity} />
-        </div>
+        <RailButton node={node} title={title} activity={activity} onLeft={onLeft} />
       ) : (
       <header
         className={`pane-header${collapsed ? " is-strip" : ""}`}
@@ -245,31 +236,7 @@ export const PaneFrame = memo(function PaneFrame({ box, node, stack, focused, zo
             {node.pinned ? <span className="badge">Pinned</span> : null}
           </div>
         )}
-        <div className="pane-actions">
-          {single ? null : <button
-            className="icon-btn act-zoom"
-            onClick={() => actions.toggleZoom(node.id)}
-            aria-label={zoomed ? `Restore ${title}` : `Maximise ${title}`}
-            aria-pressed={zoomed}
-            title={zoomed ? "Restore (Esc)" : "Maximise (⇧⌘↵)"}
-          >
-            {zoomed ? <Minimize2 size={14} strokeWidth={1.5} aria-hidden /> : <Maximize2 size={14} strokeWidth={1.5} aria-hidden />}
-          </button>}
-          {!zoomed && !single ? (
-            <button
-              className="icon-btn act-min"
-              onClick={() => actions.setCollapsed(node.id)}
-              aria-label={collapsed ? `Restore ${title}` : `Minimise ${title}`}
-              aria-pressed={collapsed}
-              title={collapsed ? "Restore (⌥⌘M)" : "Minimise (⌥⌘M)"}
-            >
-              {collapsed ? <ChevronsDown size={14} strokeWidth={1.5} aria-hidden /> : onLeft ? <ChevronsLeft size={14} strokeWidth={1.5} aria-hidden /> : <ChevronsRight size={14} strokeWidth={1.5} aria-hidden />}
-            </button>
-          ) : null}
-          <button className="icon-btn act-close" onClick={() => actions.close(node.id)} aria-label={`Close ${title}`} title="Close (⌥⌘W)">
-            <X size={14} strokeWidth={1.5} aria-hidden />
-          </button>
-        </div>
+        <HeaderActions id={node.id} title={title} zoomed={zoomed} collapsed={collapsed} single={single} onLeft={onLeft} />
       </header>
       )}
       {dropTarget ? <DropZoneLabel paneId={node.id} /> : null}
