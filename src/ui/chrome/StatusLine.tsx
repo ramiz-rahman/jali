@@ -9,7 +9,10 @@ export function StatusLine() {
   const m = useModel();
   const view = useUi((s) => s.view);
   const resizeMode = useUi((s) => s.resizeMode);
-  const showStats = useUi((s) => s.settings.showStats);
+  const curated = useUi((s) => !!s.review);
+  const single = useUi((s) => s.review?.mode === "single");
+  // Fetch and cache telemetry is for Data Studio; a curated page speaks in views.
+  const showStats = useUi((s) => s.settings.showStats && !s.review);
   const activity = useUi((s) => s.activity);
   // Every tucked pane, shown or not (the shelf lists them all); folded panes are counted separately.
   const tucked = m.shelf.length;
@@ -20,15 +23,17 @@ export function StatusLine() {
       ? "Zoomed · Esc to restore"
       : view.peek
         ? "Peek · Esc to close"
-        : `${shortcutLabel("pane.zoom")} maximise · ${shortcutLabel("pane.focus.next")} next pane · ${formatChord(PALETTE_CHORD)} commands`;
+        : curated && single
+          ? `${formatChord(PALETTE_CHORD)} commands`
+          : `${shortcutLabel("pane.zoom")} maximise · ${shortcutLabel("pane.focus.next")} next ${curated ? "view" : "pane"} · ${formatChord(PALETTE_CHORD)} commands`;
   const n = m.onScreen.length;
   return (
     <footer className="status" aria-label="Status" data-shelf-on={tucked ? "" : undefined}>
       {/* Hidden panes live here, on the left, so the workspace height never changes. The count and focus step right. */}
       <Shelf />
       <span className="status-main" data-testid="status-main">
-        {n} {n === 1 ? "pane" : "panes"}
-        {m.off.length ? ` · ${m.off.length} hidden` : ""}
+        {curated ? `${n} ${n === 1 ? "view" : "views"} on screen` : `${n} ${n === 1 ? "pane" : "panes"}`}
+        {!curated && m.off.length ? ` · ${m.off.length} hidden` : ""}
         {tucked ? ` · ${tucked} tucked` : ""}
         {m.folded.length ? ` · ${m.folded.length} folded` : ""}
         {" · "}Focus: {view.focused ? m.title(view.focused) : "none"}

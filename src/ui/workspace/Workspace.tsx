@@ -75,6 +75,21 @@ function Ghost({ role }: { role: string }) {
   return <div className="ghost" style={{ left: rect.x, top: rect.y, width: rect.width, height: rect.height }} aria-hidden><span>{label} opens here</span></div>;
 }
 
+/** The chip that follows the pointer: flipped to the pointer's left when it would pass the viewport's right edge. */
+function DragChip({ x, y, label }: { x: number; y: number; label: string }) {
+  const el = useRef<HTMLDivElement>(null);
+  const [left, setLeft] = useState(x + 12);
+  useLayoutEffect(() => {
+    const chip = el.current;
+    const host = chip?.offsetParent as HTMLElement | null;
+    if (!chip || !host) return setLeft(x + 12);
+    const origin = host.getBoundingClientRect().left;
+    const fits = origin + x + 12 + chip.offsetWidth <= document.documentElement.clientWidth - 4;
+    setLeft(fits ? x + 12 : Math.max(-origin + 4, x - 12 - chip.offsetWidth));
+  }, [x, label]);
+  return <div ref={el} className="drag-chip" data-testid="drag-chip" style={{ left, top: y + 12 }} aria-hidden>{label}</div>;
+}
+
 export function Workspace() {
   const store = useStore();
   const m = useModel();
@@ -94,8 +109,10 @@ export function Workspace() {
   // A curated page in Single mode shows one view under its tabs: the tabs name it, so the pane has no header.
   const page = useUi((s) => s.review?.mode);
   const mode = single ? "single" : "tiled";
+  // On a phone the page tabs already choose the view, so a curated page has no pane switcher under them.
+  const switcherH = page ? 0 : SWITCHER_H;
   const inner = single
-    ? { left: 0, top: SWITCHER_H, width: area.width + GAP * 2, height: Math.max(0, area.height + GAP * 2 - SWITCHER_H) }
+    ? { left: 0, top: switcherH, width: area.width + GAP * 2, height: Math.max(0, area.height + GAP * 2 - switcherH) }
     : { left: GAP, top: GAP, width: area.width, height: area.height };
   const dropBox = !single && dnd?.target ? m.resolved.panes.find((b) => b.id === dnd.target) : undefined;
 
@@ -108,7 +125,7 @@ export function Workspace() {
       data-zoomed={!single && view.zoomed ? "" : undefined}
       data-page={page}
     >
-      {single ? <PaneSwitcher panes={m.onScreen} current={currentPane(m, view)} /> : null}
+      {single && !page ? <PaneSwitcher panes={m.onScreen} current={currentPane(m, view)} /> : null}
       <div className="workspace-inner" style={inner}>
         {frames(m, view, mode, { width: inner.width, height: inner.height }).map((f) => (
           <PaneFrame key={f.node.id} frame={f} chrome={CHROME[mode]} dropTarget={!single && dnd?.target === f.node.id} />
@@ -116,9 +133,7 @@ export function Workspace() {
         {single ? null : <DividerLayer />}
         {dropBox && dnd?.zone ? <DropIndicator rect={dropBox.rect} zone={dnd.zone} /> : null}
         {dnd && !single ? (
-          <div className="drag-chip" data-testid="drag-chip" style={{ left: dnd.x + 12, top: dnd.y + 12 }} aria-hidden>
-            {dnd.label ?? m.title(dnd.dragged)}
-          </div>
+          <DragChip x={dnd.x} y={dnd.y} label={dnd.label ?? m.title(dnd.dragged)} />
         ) : null}
         {ghost && !single && !dnd ? <Ghost role={ghost} /> : null}
         <Peek presentation={mode} />
