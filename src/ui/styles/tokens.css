@@ -83,12 +83,5 @@
 :root[data-theme="dark"] .pk-hcell input,
 :root[data-theme="dark"] .pk-edit { color: var(--z900); }
 :root[data-theme="dark"] .pk-chip.key { color: #b4aaff; }
-:root[data-theme="dark"] .pk svg [fill="#fff"] { fill: var(--island); }
-:root[data-theme="dark"] .pk svg [fill="#FAFAFA"] { fill: var(--raised); }
-:root[data-theme="dark"] .pk svg [fill="#F1EDFF"] { fill: var(--accent-soft); }
-:root[data-theme="dark"] .pk svg [fill="#5A2AFA"] { fill: var(--accent); }
-:root[data-theme="dark"] .pk svg [stroke="#5A2AFA"] { stroke: var(--accent); }
-:root[data-theme="dark"] .pk svg [stroke="#D4D4D8"] { stroke: var(--line-strong); }
-:root[data-theme="dark"] .pk svg [stroke="#E4E4E7"] { stroke: var(--line); }
 :root[data-theme="dark"] .pk svg text { fill: var(--text-2); }
 :root[data-theme="dark"] .pk svg text[style*="18181B"], :root[data-theme="dark"] .pk svg text[style*="3F3F46"] { fill: var(--text) !important; }
