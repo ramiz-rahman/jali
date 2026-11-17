@@ -64,7 +64,7 @@ const announced = (page: Page) => page.evaluate(() => (window as unknown as { __
 const focusedPane = (page: Page) => page.locator("section[data-pane][data-focused]").evaluate((e) => (e as HTMLElement).dataset.pane).catch(() => null);
 const focusIn = (page: Page, id: string) => page.evaluate((i) => !!document.activeElement?.closest(`section[data-pane="${i}"]`), id);
 const activeIsRailOf = (page: Page, id: string) =>
-  page.evaluate((i) => { const a = document.activeElement as HTMLElement | null; return !!a && !!a.closest(`section[data-pane="${i}"]`) && (a.closest(".rail") !== null || a.matches(".rail")); }, id);
+  page.evaluate((i) => { const a = document.activeElement as HTMLElement | null; return !!a && !!a.closest(`section[data-pane="${i}"]`) && (a.closest(".rail, .rail-btn") !== null || a.matches(".rail, .rail-btn")); }, id);
 
 const SIZES = [{ width: 1920, height: 1080 }, { width: 1440, height: 900 }];
 
@@ -165,7 +165,7 @@ test.describe("minimise and expand", () => {
     await paneEl(page, "customer").click({ position: { x: 100, y: 300 } });
     await page.keyboard.press("Alt+Meta+m");
     await expect(paneEl(page, "customer")).toHaveClass(/pane-rail/);
-    expect(await activeIsRailOf(page, "customer"), "focus on the rail").toBe(true);
+    await expect.poll(() => activeIsRailOf(page, "customer"), { message: "focus on the rail" }).toBe(true);
     await page.keyboard.press("Alt+Meta+m");
     await page.waitForTimeout(300);
     await expect(paneEl(page, "customer")).not.toHaveClass(/pane-rail/);
