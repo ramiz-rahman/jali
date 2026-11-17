@@ -55,6 +55,19 @@ export type LayoutNode = PaneNode | StackNode | SplitNode;
 export interface Layout {
   version: 1;
   root: LayoutNode;
+  /** Folds the collapse plan has made, recorded so they are sticky (added 17 Nov; see DECISIONS). The tree stays canonical. */
+  fold?: FoldState;
+}
+
+/**
+ * Sticky folding. Folds are decided only on a structural or size change (`LayoutCore.refit`), never on focus, tab
+ * activation or zoom, and recorded here so `resolve()` is a pure function of layout plus size.
+ */
+export interface FoldState {
+  /** Displayed slots folded so far, in fold order: pane ids, deliberate stack ids or `@auto:<home>` group ids. Unfolding pops from the end. */
+  order: NodeId[];
+  /** The shown tab of each automatic stack, keyed by the stack's home pane. Absent: the home is shown. */
+  active?: Record<NodeId, NodeId>;
 }
 
 /** View: personal, per screen. */
@@ -135,6 +148,7 @@ export interface LayoutOps {
   /** Directional focus: strictly in direction, overlapping on the other axis; most-recently-focused wins, then nearest edge, overlap, centre, order. No wrap. */
   focusDirection(view: ViewState, resolved: ResolvedLayout, dir: Edge): ViewState;
   focusCycle(view: ViewState, resolved: ResolvedLayout, delta: 1 | -1): ViewState;
+  /** Selects a tab of a deliberate stack, or of an automatic stack (`@auto:<home>` id from ResolvedStack). Nothing else moves. */
   setActiveTab(layout: Layout, stack: NodeId, pane: NodeId): Layout;
   resetLayout(preset: Layout): Layout;
 }
@@ -145,8 +159,18 @@ export interface UndoEntry {
 }
 
 export interface LayoutCore extends LayoutOps {
-  /** Resolve sizes (herdr-app flex solve with min/max freeze), then apply the collapse plan: fold auto-stacks when minimums + gaps don't fit; unfold auto-stacks when room returns. Never squeezes below a minimum. */
+  /**
+   * Resolve sizes (herdr-app flex solve with min/max freeze) and apply the folds recorded in `layout.fold`. A pure
+   * function of layout plus size: `view` only places the zoom overlay, so focus never moves or folds a pane. If the
+   * recorded folds do not fit (not yet refitted), it folds further by a focus-free rule rather than squeeze.
+   */
   resolve(layout: Layout, view: ViewState, fit: FitOptions): ResolvedLayout;
+  /**
+   * Decide folds for this size and record them in `layout.fold`; returns the same object when nothing changes. Call it on
+   * structural and size changes only. "full" also unfolds, most recent fold first, when room returns; "fold" never
+   * unfolds (restoring a minimised pane); "load" (link, reload, Back) unfolds only what fits with minimised panes expanded. The focused pane, its source and direct details are protected when choosing.
+   */
+  refit(layout: Layout, view: ViewState, fit: FitOptions, mode?: "full" | "fold" | "load"): Layout;
   /** Compact, URL-safe, versioned. decode() validates and returns null on anything invalid (caller falls back to preset, keeps a copy). */
   encode(layout: Layout): string;
   decode(text: string, kinds: KindRegistry): Layout | null;

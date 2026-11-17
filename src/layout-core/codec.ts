@@ -38,7 +38,9 @@ function unpack(value: unknown, depth = 0): unknown {
   return base;
 }
 export function encode(layout: Layout): string {
-  const bytes = new TextEncoder().encode(JSON.stringify([layout.version, pack(layout.root)]));
+  // Recorded folds ride along, so a reload or Back shows the same arrangement before it is refitted for the screen.
+  const fold = layout.fold ? [[layout.fold.order, ...(layout.fold.active ? [layout.fold.active] : [])]] : [];
+  const bytes = new TextEncoder().encode(JSON.stringify([layout.version, pack(layout.root), ...fold]));
   let binary = "";
   for (const byte of bytes) binary += String.fromCharCode(byte);
   return `1.${btoa(binary).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "")}`;
@@ -51,8 +53,13 @@ export function decode(text: string, kinds: KindRegistry): Layout | null {
     // Reject noncanonical base64 trailing bits as well as malformed UTF-8 and JSON.
     if (btoa(binary).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "") !== payload) return null;
     const data: unknown = JSON.parse(new TextDecoder("utf-8", { fatal: true }).decode(Uint8Array.from(binary, c => c.charCodeAt(0))));
-    if (!Array.isArray(data) || data.length !== 2 || data[0] !== 1) return null;
+    if (!Array.isArray(data) || (data.length !== 2 && data.length !== 3) || data[0] !== 1) return null;
     const layout = { version: 1, root: unpack(data[1]) } as Layout;
+    if (data.length === 3) {
+      const fold = data[2];
+      if (!Array.isArray(fold) || fold.length < 1 || fold.length > 2) return null;
+      layout.fold = { order: fold[0], ...(fold.length === 2 ? { active: fold[1] } : {}) };
+    }
     return validate(layout, kinds).ok ? layout : null;
   } catch { return null; }
 }

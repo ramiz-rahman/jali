@@ -9,6 +9,8 @@ interface Projected {
   children: Projected[];
   pane?: PaneNode;
   collapsedAxis?: Axis;
+  /** A minimised pane's minimum along its split axis when expanded (its space is allocated as if expanded). */
+  expandedMin?: number;
   active?: string;
   /** Pane the automatic stack formed around (the folded panes' related home). */
   home?: string;
@@ -84,9 +86,10 @@ function project(node: LayoutNode, fit: FitOptions, axis: Axis = "row", edge = t
     const bounds = { width: kind.minWidth, height: kind.minHeight, maxWidth: kind.maxWidth ?? Infinity };
     // Founder review, 17 Nov: in a row every minimised pane becomes a 56px rail (edge or middle); in a column it becomes its 40px header strip.
     const collapsedAxis = node.collapsed ? axis : undefined;
+    const expandedMin = collapsedAxis === "row" ? bounds.width : collapsedAxis === "column" ? bounds.height : undefined;
     if (collapsedAxis === "row") { bounds.width = 56; bounds.maxWidth = 56; }
     if (collapsedAxis === "column") bounds.height = 40;
-    return { id: node.id, type: "pane", size: node.size, children: [], pane: node, collapsedAxis, bounds };
+    return { id: node.id, type: "pane", size: node.size, children: [], pane: node, collapsedAxis, bounds, ...(expandedMin !== undefined ? { expandedMin } : {}) };
   }
   const nextAxis = node.type === "stack" ? axis : node.type;
   const result: Projected = {
@@ -100,9 +103,15 @@ function project(node: LayoutNode, fit: FitOptions, axis: Axis = "row", edge = t
 }
 const allPanes = (n: Projected): Projected[] => n.pane ? [n] : n.children.flatMap(allPanes);
 const contains = (n: Projected, id?: string): boolean => !!id && allPanes(n).some(p => p.id === id);
-const homeOf = (n: Projected): string => n.type === "auto" ? n.home ?? allPanes(n)[0]!.id : n.pane ? n.id : n.type === "stack" ? n.active ?? allPanes(n)[0]!.id : allPanes(n)[0]!.id;
+/**
+ * Stable home of a slot: a pane is its own home, a deliberate stack's is its first tab (never its active tab, which a
+ * click changes), and an automatic group keeps the home it formed around. Fold records and tab choices key on it.
+ */
+const homeOf = (n: Projected): string => n.type === "auto" ? n.home ?? allPanes(n)[0]!.id : n.pane ? n.id : allPanes(n)[0]!.id;
 const orderOf = (n: Projected, order: Map<string, number>) => Math.min(...allPanes(n).map(p => order.get(p.id) ?? Infinity));
-function auto(children: Projected[], view: ViewState, fit: FitOptions, order: Map<string, number>, home: Projected, fallback?: string): Projected {
+/** Automatic stacks are named after their home pane, so the id survives the group growing or a tab being chosen. */
+export const AUTO_PREFIX = "@auto:";
+function auto(children: Projected[], fit: FitOptions, order: Map<string, number>, home: Projected, fallback?: string): Projected {
   const size = children.map(c => c.size).reduce(combined);
   const homeId = homeOf(home);
   const preferred = children.find(c => c.id === fallback);
@@ -110,9 +119,9 @@ function auto(children: Projected[], view: ViewState, fit: FitOptions, order: Ma
   // Keep one tab group when a later fold grows an automatic stack; tabs stay in reading order.
   children = children.flatMap(c => c.type === "auto" ? c.children : [c]).sort((a, b) => orderOf(a, order) - orderOf(b, order));
   const result: Projected = {
-    id: `@auto:${children.map(c => `${c.id.length}:${c.id}`).join("")}`,
-    type: "auto", children, size, home: homeId,
-    active: children.find(c => contains(c, view.focused))?.id ?? fallback ?? children[0]!.id,
+    id: `${AUTO_PREFIX}${homeId}`, type: "auto", children, size, home: homeId,
+    // The home stays the shown tab: a fold never changes what the receiving slot displays.
+    active: children.find(c => c.id === fallback)?.id ?? children[0]!.id,
     bounds: { width: 0, height: 0, maxWidth: Infinity },
   };
   refresh(result, fit);
@@ -120,6 +129,9 @@ function auto(children: Projected[], view: ViewState, fit: FitOptions, order: Ma
 }
 function slots(root: Projected): Projected[] {
   return root.type === "row" || root.type === "column" ? root.children.flatMap(slots) : [root];
+}
+function autos(root: Projected): Projected[] {
+  return root.type === "auto" ? [root] : root.pane ? [] : root.children.flatMap(autos);
 }
 /** Remove one displayed slot, retaining the outer size of pruned singleton splits. */
 function removeSlot(node: Projected, id: string): Projected | undefined {
@@ -131,19 +143,22 @@ function removeSlot(node: Projected, id: string): Projected | undefined {
 }
 
 const cmp = (a: number, b: number) => a === b ? 0 : a < b ? -1 : 1;
+const NO_FOCUS: ViewState = { focusHistory: [] };
 /**
- * Fold one displayed slot into its related home. Protected: the focused pane, its source and its direct details.
+ * Which displayed slot to fold next. Runs only when a fold is needed (structural or size change), never on focus.
+ * Protected: the focused pane, its source and its direct details.
  * Order: unprotected unpinned, unprotected pinned, protected unpinned, protected pinned, the focused slot.
  * Within a tier: unlinked panes, then the far end of link chains (deepest from focus), then least recently
- * focused, then narrowest. The folded slot joins its source's slot, else a direct detail's, else its nearest neighbour.
+ * focused, then narrowest, then reading order. With no focused pane, the first pane in reading order stands in.
  */
-function foldOne(root: Projected, view: ViewState, fit: FitOptions, order: Map<string, number>): Projected | undefined {
+function chooseFold(root: Projected, view: ViewState, order: Map<string, number>): Projected | undefined {
   const displayed = slots(root);
   if (displayed.length < 2) return undefined;
   const panes = allPanes(root);
   const ids = new Set(panes.map(p => p.id));
   const linkOf = (p: Projected) => p.pane!.linkedTo && ids.has(p.pane!.linkedTo) ? p.pane!.linkedTo : undefined;
-  const focused = view.focused && ids.has(view.focused) ? view.focused : undefined;
+  // With no focus yet (boot, a shared link), the first pane in reading order counts as focused: apps focus it first.
+  const focused = view.focused && ids.has(view.focused) ? view.focused : [...ids].sort((a, b) => (order.get(a) ?? 0) - (order.get(b) ?? 0))[0];
   const protectedIds = new Set<string>();
   if (focused) {
     protectedIds.add(focused);
@@ -176,7 +191,18 @@ function foldOne(root: Projected, view: ViewState, fit: FitOptions, order: Map<s
     };
   };
   const ranked = displayed.map(score).sort((a, b) => cmp(a.tier, b.tier) || cmp(a.linked, b.linked) || cmp(b.depth, a.depth) || cmp(b.recent, a.recent) || cmp(a.width, b.width) || cmp(a.order, b.order));
-  const choice = ranked[0]!.slot;
+  return ranked[0]!.slot;
+}
+/**
+ * Fold one displayed slot into its related home: its source's slot, else a direct detail's, else its nearest
+ * neighbour (preferring an existing automatic stack). Depends only on the tree, never on focus, so a recorded
+ * sequence of folds replays to the same arrangement.
+ */
+function foldSlot(root: Projected, choice: Projected, fit: FitOptions, order: Map<string, number>): Projected {
+  const displayed = slots(root);
+  const panes = allPanes(root);
+  const ids = new Set(panes.map(p => p.id));
+  const linkOf = (p: Projected) => p.pane!.linkedTo && ids.has(p.pane!.linkedTo) ? p.pane!.linkedTo : undefined;
   function owner(n: Projected): Projected | undefined {
     if (n.type !== "row" && n.type !== "column") return undefined;
     return n.children.includes(choice) ? n : n.children.map(owner).find(Boolean);
@@ -195,7 +221,7 @@ function foldOne(root: Projected, view: ViewState, fit: FitOptions, order: Map<s
     home = near[0]!;
   }
   const pair = displayed.indexOf(choice) < displayed.indexOf(home) ? [choice, home] : [home, choice];
-  const group = auto(pair, view, fit, order, home, home.type === "auto" ? home.active : home.id);
+  const group = auto(pair, fit, order, home, home.type === "auto" ? home.active : home.id);
   // Across nested splits, the receiving slot keeps its allocation in its own axis.
   const sameParent = parent.children.includes(home);
   root = removeSlot(root, choice.id)!;
@@ -208,48 +234,135 @@ function foldOne(root: Projected, view: ViewState, fit: FitOptions, order: Map<s
   return replace(root);
 }
 
-function foldForCap(root: Projected, view: ViewState, fit: FitOptions, order: Map<string, number>): boolean {
-  if (root.type !== "row" && root.type !== "column") return false;
-  // Structural order is the deterministic age fallback for imported/shared layouts.
-  for (let i = 0; i < root.children.length; i++) {
-    const child = root.children[i]!;
-    if (child.pane && !child.pane.pinned && child.id !== view.focused && root.children.length > 1) {
-      const neighbour = i > 0 ? i - 1 : i + 1;
-      const first = Math.min(i, neighbour);
-      const pair = root.children.slice(first, first + 2);
-      const selected = root.children[neighbour]!.id;
-      root.children.splice(first, 2, auto(pair, view, fit, order, root.children[neighbour]!, selected));
-      refresh(root, fit);
-      return true;
-    }
-    if (foldForCap(child, view, fit, order)) { refresh(root, fit); return true; }
+interface Replayed { root: Projected; order: Map<string, number>; applied: string[] }
+/** The canonical tree (automatic stacks from older links unfolded) with the recorded folds applied, in order. */
+function replay(layout: Layout, folds: readonly string[], fit: FitOptions): Replayed {
+  let root = project(unfold(clone(layout.root)), fit);
+  const order = new Map(allPanes(root).map((p, i) => [p.id, i]));
+  const applied: string[] = [];
+  for (const id of folds) {
+    const displayed = slots(root);
+    if (displayed.length < 2) break;
+    const choice = displayed.find(s => s.id === id);
+    if (!choice) continue; // stale record (closed or moved pane): skip it
+    root = foldSlot(root, choice, fit, order);
+    applied.push(id);
   }
-  return false;
+  return { root, order, applied };
+}
+const tooSmall = (root: Projected, fit: FitOptions) => root.bounds.width > fit.width + 1e-7 || root.bounds.height > fit.height + 1e-7;
+const misfit = (root: Projected, fit: FitOptions, paneCap: number) => tooSmall(root, fit) || slots(root).length > paneCap;
+/** Show each automatic group's chosen tab (keyed by home), when that pane is still in the group. */
+function choose(root: Projected, active: Record<string, string> | undefined): void {
+  if (!active) return;
+  for (const group of autos(root)) {
+    const want = active[group.home!];
+    const child = want ? group.children.find(c => contains(c, want)) : undefined;
+    if (child) group.active = child.id;
+  }
 }
 
-function build(layout: Layout, view: ViewState, fit: FitOptions, paneCap: number): Projected {
-  let root = project(unfold(clone(layout.root)), fit);
-  const tooSmall = () => root.bounds.width > fit.width + 1e-7 || root.bounds.height > fit.height + 1e-7;
-  const order = new Map(allPanes(root).map((p, i) => [p.id, i]));
-  while (slots(root).length > paneCap && foldForCap(root, view, fit, order)) { /* enforce live-slot budget */ }
-  while (tooSmall() || slots(root).length > paneCap) {
-    const next = foldOne(root, view, fit, order);
-    if (!next) break;
-    root = next;
+function build(layout: Layout, fit: FitOptions, paneCap: number): Projected {
+  let { root, order } = replay(layout, layout.fold?.order ?? [], fit);
+  // Safety net only: a layout not yet refitted for this size still never squeezes. Focus plays no part here
+  // (the first pane in reading order stands in for it).
+  while (misfit(root, fit, paneCap)) {
+    const choice = chooseFold(root, NO_FOCUS, order);
+    if (!choice) break;
+    root = foldSlot(root, choice, fit, order);
   }
+  choose(root, layout.fold?.active);
   return root;
+}
+
+function expanded(node: LayoutNode): LayoutNode {
+  if (node.type === "pane") { if (!node.collapsed) return node; const copy = { ...node }; delete copy.collapsed; return copy; }
+  if (node.type === "stack") return { ...node, children: node.children.map(c => expanded(c) as PaneNode) };
+  return { ...node, children: node.children.map(expanded) };
+}
+export interface RefitOptions {
+  /**
+   * "full": unfold (most recent first) when room returned, then fold if needed. "fold": only fold, never unfold.
+   * "load": a layout arriving from a link, reload or Back; unfold only what fits with every minimised pane expanded,
+   * so the space a minimise freed never unfolds anything until a real structural or size change.
+   */
+  mode?: "full" | "fold" | "load";
+  /** A just-opened pane: when there is no room it becomes the tab ("Opened as a tab: not enough room"). */
+  fresh?: string;
+  /** Panes the cap must not tab (the open's source and the new pane). */
+  keep?: readonly string[];
+  /** Pane age for the cap (lower is older); reading order otherwise. */
+  age?: ReadonlyMap<string, number>;
+}
+/**
+ * Decide folds for the current size and record them on the Layout (`layout.fold`). Called only on a structural change
+ * or a size change. Unfolds pop the most recent folds first, to the shortest recorded prefix that fits, so returning
+ * to an earlier width restores the arrangement it had. New folds use the focus-protecting priority as it stands now.
+ * Returns the same Layout object when nothing changed.
+ */
+export function refit(layout: Layout, view: ViewState, fit: FitOptions, paneCap = Infinity, options: RefitOptions = {}): Layout {
+  const stored = layout.fold?.order ?? [];
+  let current = replay(layout, stored, fit).applied;
+  const mode = options.mode ?? "full";
+  if (mode !== "fold") {
+    const probe: Layout = mode === "load" ? { ...layout, root: expanded(layout.root) } : layout;
+    for (let k = 0; k < current.length; k++) {
+      if (!misfit(replay(probe, current.slice(0, k), fit).root, fit, paneCap)) { current = current.slice(0, k); break; }
+    }
+  }
+  const kept = current.length;
+  const keep = new Set(options.keep ?? []);
+  for (;;) {
+    const { root, order } = replay(layout, current, fit);
+    const small = tooSmall(root, fit), over = slots(root).length > paneCap;
+    if (!small && !over) break;
+    const displayed = slots(root);
+    if (displayed.length < 2) break;
+    const fresh = options.fresh ? displayed.find(s => s.pane && s.id === options.fresh) : undefined;
+    let choice: Projected | undefined;
+    if (small) choice = fresh;
+    else {
+      // Over the cap only: the oldest unpinned, unfocused pane becomes a tab (spec §3).
+      const age = (id: string) => options.age?.get(id) ?? order.get(id) ?? Infinity;
+      choice = displayed.filter(s => s.pane && !keep.has(s.id) && s.id !== view.focused && !s.pane.pinned).sort((a, b) => age(a.id) - age(b.id))[0] ?? fresh;
+    }
+    choice ??= chooseFold(root, view, order);
+    if (!choice) break;
+    current = [...current, choice.id];
+  }
+  // Tab choices are kept while both panes exist, even when their group is absorbed or unfolded, so the group shows
+  // the same tab when a later size change re-forms it.
+  const { root } = replay(layout, current, fit);
+  const present = new Set(allPanes(root).map(p => p.id));
+  const active: Record<string, string> = Object.fromEntries(Object.entries(layout.fold?.active ?? {}).filter(([home, pane]) => present.has(home) && present.has(pane)));
+  const changed = current.length !== stored.length || current.some((id, i) => id !== stored[i]);
+  // Only a new fold may change a shown tab (to keep the focused pane in view); unfolding restores what was there.
+  if (current.length > kept && view.focused) {
+    const group = autos(root).find(g => contains(g, view.focused));
+    if (group) {
+      choose(group, active);
+      if (!contains(group.children.find(c => c.id === group.active)!, view.focused)) active[group.home!] = view.focused;
+    }
+  }
+  const before = layout.fold?.active ?? {};
+  const sameActive = Object.keys(active).length === Object.keys(before).length && Object.entries(active).every(([k, v]) => before[k] === v);
+  if (!changed && sameActive) return layout;
+  const next: Layout = { ...layout };
+  delete next.fold;
+  if (current.length || Object.keys(active).length) next.fold = { order: current, ...(Object.keys(active).length ? { active } : {}) };
+  return next;
+}
+/** Whether the layout, with its recorded folds, fits the size and cap. */
+export function fits(layout: Layout, fit: FitOptions, paneCap = Infinity): boolean {
+  return !misfit(replay(layout, layout.fold?.order ?? [], fit).root, fit, paneCap);
 }
 export function minimum(node: LayoutNode, fit: FitOptions, axis: Axis, edge = true): number {
   const bounds = project(node, fit, axis, edge).bounds;
   return axis === "row" ? bounds.width : bounds.height;
 }
-export function canFit(layout: Layout, fit: FitOptions, unfoldAuto = true): boolean {
-  const root = project(unfoldAuto ? unfold(clone(layout.root)) : layout.root, fit);
-  return root.bounds.width <= fit.width && root.bounds.height <= fit.height;
-}
 export function resolve(layout: Layout, view: ViewState, fit: FitOptions, paneCap = Infinity): ResolvedLayout {
   if (![fit.width, fit.height, fit.gap].every(Number.isFinite) || fit.width < 0 || fit.height < 0 || fit.gap < 0) throw new RangeError("Fit dimensions and gap must be finite and non-negative");
-  const root = build(layout, view, fit, paneCap);
+  const root = build(layout, fit, paneCap);
   const result: ResolvedLayout = { panes: [], dividers: [], folded: [], stacks: [] };
   function draw(n: Projected, input: Rect, stackId?: string, hidden = false, folded = false): void {
     const rect = { ...input, width: Math.max(n.bounds.width, Math.min(input.width, n.bounds.maxWidth)), height: n.collapsedAxis === "column" ? n.bounds.height : Math.max(input.height, n.bounds.height) };
@@ -272,7 +385,23 @@ export function resolve(layout: Layout, view: ViewState, fit: FitOptions, paneCa
     const length = horizontal ? rect.width : rect.height;
     const mins = n.children.map(c => horizontal ? c.bounds.width : c.bounds.height);
     const maxs = n.children.map((c, i) => c.collapsedAxis === axis ? mins[i]! : horizontal ? c.bounds.maxWidth : Infinity);
-    const lengths = shares(n.children.map((c, i) => ({ size: c.collapsedAxis === axis ? { px: mins[i]! } : c.size, min: mins[i]!, max: maxs[i] })), length - fit.gap * (n.children.length - 1));
+    // A minimised pane's space goes to its nearest expanded sibling (the one before first), not to the whole split, so
+    // only the direct neighbour grows and expanding takes exactly that space back.
+    const available = length - fit.gap * (n.children.length - 1);
+    const asExpanded = n.children.map((c, i) => c.collapsedAxis === axis ? c.expandedMin ?? mins[i]! : mins[i]!);
+    const baseMins = asExpanded.reduce((a, b) => a + b, 0) <= available + 1e-7 ? asExpanded : mins;
+    const lengths = shares(n.children.map((c, i) => ({ size: c.size, min: baseMins[i]!, max: c.collapsedAxis === axis ? Infinity : maxs[i] })), available);
+    n.children.forEach((c, i) => {
+      if (c.collapsedAxis !== axis) return;
+      let freed = lengths[i]! - mins[i]!;
+      lengths[i] = mins[i]!;
+      for (let d = 1; freed > 1e-9 && d < n.children.length; d++) for (const j of [i - d, i + d]) {
+        const sib = n.children[j];
+        if (!sib || sib.collapsedAxis === axis || freed <= 1e-9) continue;
+        const add = Math.min(freed, maxs[j]! - lengths[j]!);
+        lengths[j] = lengths[j]! + add; freed -= add;
+      }
+    });
     let offset = horizontal ? rect.x : rect.y;
     n.children.forEach((child, index) => {
       const extent = lengths[index]!;

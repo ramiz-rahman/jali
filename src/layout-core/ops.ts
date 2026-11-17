@@ -1,10 +1,19 @@
-import type { Edge, FitOptions, Layout, LayoutNode, LayoutOps, ObjectRef, OpenResult, PaneNode, Size, SplitNode, ViewState } from "./types";
+import type { Edge, FitOptions, Layout, LayoutCore, LayoutNode, LayoutOps, ObjectRef, OpenResult, PaneNode, Size, SplitNode, ViewState } from "./types";
 import { activate, balance, clone, combined, find, isSplit, newId, nodes, panes, parent, remove, replace, unfold } from "./model";
 import { directionalCandidates, focus, focusCycle, focusDirection } from "./focus";
-import { canFit, resolve } from "./resolve";
+import { AUTO_PREFIX, refit, resolve } from "./resolve";
 
 const unzoom = (view: ViewState): ViewState => { const result = clone(view); delete result.zoomed; return result; };
-const draft = (layout: Layout): Layout => ({ version: 1, root: unfold(clone(layout.root)) });
+const draft = (layout: Layout): Layout => ({ ...clone(layout), root: unfold(clone(layout.root)) });
+/** Drop fold records and tab choices that name these panes: they moved or closed, so their old fold no longer applies. */
+function forget(layout: Layout, ids: readonly string[]): void {
+  if (!layout.fold) return;
+  const gone = new Set(ids.flatMap(id => [id, `${AUTO_PREFIX}${id}`]));
+  const order = layout.fold.order.filter(id => !gone.has(id));
+  const active = Object.fromEntries(Object.entries(layout.fold.active ?? {}).filter(([home, pane]) => !gone.has(home) && !gone.has(pane)));
+  delete layout.fold;
+  if (order.length || Object.keys(active).length) layout.fold = { order, ...(Object.keys(active).length ? { active } : {}) };
+}
 const axisFor = (edge: Edge) => edge === "left" || edge === "right" ? "row" : "column";
 const before = (edge: Edge) => edge === "left" || edge === "top";
 
@@ -24,31 +33,22 @@ function beside(layout: Layout, targetId: string, edge: Edge, pane: PaneNode): v
     balance(split);
   }
 }
-function tab(layout: Layout, targetId: string, pane: PaneNode, origin: "auto" | "user", axis: "row" | "column" = "row", active = pane.id): void {
+function tab(layout: Layout, targetId: string, pane: PaneNode): void {
   const target = find(layout.root, targetId)!;
   const container = parent(layout.root, targetId);
   if (container?.type === "stack") {
     container.children.push(pane);
-    container.active = active;
-    if (origin === "user") container.origin = "user";
+    container.active = pane.id;
+    container.origin = "user";
   } else if (target.type === "pane") {
-    layout.root = replace(layout.root, target.id, { id: newId(layout.root, "stack"), type: "stack", size: target.size, userSized: target.userSized, children: [target, pane], active, origin, ...(origin === "auto" ? { axis } : {}) });
+    layout.root = replace(layout.root, target.id, { id: newId(layout.root, "stack"), type: "stack", size: target.size, userSized: target.userSized, children: [target, pane], active: pane.id, origin: "user" });
   }
 }
 function cleanLinks(layout: Layout): void {
   const ids = new Set(panes(layout.root).map(p => p.id));
   for (const pane of panes(layout.root)) if (pane.linkedTo && !ids.has(pane.linkedTo)) delete pane.linkedTo;
 }
-function nearestTabTarget(layout: Layout, source: string): string {
-  if (parent(layout.root, source)?.type === "stack") return source;
-  const order = panes(layout.root).map(p => p.id);
-  const sourceIndex = order.indexOf(source);
-  const stacks = nodes(layout.root).filter((n): n is import("./types").StackNode => n.type === "stack");
-  stacks.sort((a, b) => Math.min(...a.children.map(c => Math.abs(order.indexOf(c.id) - sourceIndex))) - Math.min(...b.children.map(c => Math.abs(order.indexOf(c.id) - sourceIndex))));
-  return stacks[0]?.children[0]?.id ?? source;
-}
-
-export function createOps(paneCap: number, remember: (layout: Layout, fit: FitOptions) => void, lastFit: (layout: Layout) => FitOptions | undefined): LayoutOps {
+export function createOps(paneCap: number, remember: (layout: Layout, fit: FitOptions) => void, lastFit: (layout: Layout) => FitOptions | undefined): LayoutOps & Pick<LayoutCore, "refit"> {
   // Imported panes are oldest in reading order; subsequently created panes get monotonic birth order.
   const births = new Map<string, number>();
   const defaults = new Map<string, Size>();
@@ -73,48 +73,14 @@ export function createOps(paneCap: number, remember: (layout: Layout, fit: FitOp
     const pane: PaneNode = { id: newId(layout.root), type: "pane", size: { weight: 1 }, ref: clone(ref), ...(linked ? { linkedTo: target } : {}) };
     births.set(pane.id, ++clock);
     beside(next, target, edge, pane);
-    let mode: OpenResult["mode"] = "beside";
     const nextView = linked ? focus(unzoom(view), target) : focus(unzoom(view), pane.id);
-    // The cap limits live slots, not retained pane objects. Fold the oldest eligible slot.
-    const liveSlots = (n: LayoutNode): number => isSplit(n) ? n.children.reduce((sum, c) => sum + liveSlots(c), 0) : 1;
-    if (liveSlots(next.root) > paneCap) {
-      const victim = panes(next.root).filter(p => p.id !== pane.id && p.id !== target && p.id !== view.focused && !p.pinned && parent(next.root, p.id)?.type !== "stack")
-        .sort((a, b) => births.get(a.id)! - births.get(b.id)!)[0];
-      if (victim) {
-        const owner = parent(next.root, victim.id);
-        const siblings = owner && isSplit(owner) ? owner.children : [];
-        const index = siblings.findIndex(c => c.id === victim.id);
-        const neighbour = siblings[index > 0 ? index - 1 : index + 1];
-        const targetPane = neighbour ? panes(neighbour)[0] : undefined;
-        if (targetPane) {
-          const detached = clone(victim);
-          next.root = remove(next.root, victim.id)!;
-          tab(next, targetPane.id, detached, "auto", owner?.type === "column" ? "column" : "row", targetPane.id);
-          const group = parent(next.root, victim.id);
-          if (group?.type === "stack" && index < siblings.findIndex(c => c.id === neighbour?.id)) {
-            group.children = [detached, ...group.children.filter(c => c.id !== detached.id)];
-          }
-        }
-      } else {
-        next.root = remove(next.root, pane.id)!;
-        tab(next, target, pane, "auto", axisFor(edge), nextView.focused);
-        mode = "tab";
-      }
-    }
-    if (!canFit(next, fit, false)) {
-      // Leave already-open panes in place; use the nearest stack or the source's tab group.
-      next.root = remove(next.root, pane.id)!;
-      const tabTarget = nearestTabTarget(next, target);
-      const group = parent(next.root, tabTarget);
-      const active = tabTarget === target || group?.children.some(c => c.id === target) ? nextView.focused : pane.id;
-      tab(next, tabTarget, pane, "auto", axisFor(edge), active);
-      const addedGroup = parent(next.root, pane.id);
-      if (before(edge) && addedGroup?.type === "stack" && addedGroup.origin === "auto") addedGroup.children = [pane, ...addedGroup.children.filter(c => c.id !== pane.id)];
-      mode = "tab";
-    }
-    activate(next, nextView.focused!);
-    remember(next, fit);
-    return { layout: next, view: nextView, opened: pane.id, mode };
+    // No room, or over the cap: the fold is decided now, at open, and recorded. With no room the new pane becomes a tab
+    // of its source (spec §3 "Opened as a tab: not enough room"); over the cap the oldest unpinned, unfocused pane does.
+    const fitted = refit(next, nextView, fit, paneCap, { mode: "fold", fresh: pane.id, keep: [pane.id, target], age: births });
+    const mode: OpenResult["mode"] = fitted.fold?.order.includes(pane.id) ? "tab" : "beside";
+    activate(fitted, nextView.focused!);
+    remember(fitted, fit);
+    return { layout: fitted, view: nextView, opened: pane.id, mode };
   }
   function close(layout: Layout, view: ViewState, target: string) {
     const undo = { label: "Pane closed", before: { layout: clone(layout), view: clone(view) } };
@@ -146,6 +112,7 @@ export function createOps(paneCap: number, remember: (layout: Layout, fit: FitOp
       }
     }
     next.root = remove(next.root, target)!;
+    forget(next, [target]);
     cleanLinks(next);
     const remaining = panes(next.root);
     const ids = new Set(remaining.map(p => p.id));
@@ -163,6 +130,7 @@ export function createOps(paneCap: number, remember: (layout: Layout, fit: FitOp
     const next = clone(layout);
     const left = find(next.root, a), right = find(next.root, b);
     if (a === b || left?.type !== "pane" || right?.type !== "pane") return next;
+    forget(next, [a, b]);
     const leftContent = { ...left, size: right.size, userSized: right.userSized };
     const rightContent = { ...right, size: left.size, userSized: left.userSized };
     // Simultaneous replacement also works when the panes are in the same stack.
@@ -185,7 +153,8 @@ export function createOps(paneCap: number, remember: (layout: Layout, fit: FitOp
     const next = clone(layout);
     const pane = clone(find(next.root, dragged) as PaneNode);
     next.root = remove(next.root, dragged)!;
-    if (zone === "centre") tab(next, target, pane, "user");
+    forget(next, [dragged]);
+    if (zone === "centre") tab(next, target, pane);
     else beside(next, target, zone, pane);
     activate(next, dragged);
     return { layout: next, view: focus(nextView, dragged) };
@@ -277,8 +246,28 @@ export function createOps(paneCap: number, remember: (layout: Layout, fit: FitOp
     toggleZoom(view, pane) { const next = clone(view); if (next.zoomed === pane) delete next.zoomed; else next.zoomed = pane; return next; },
     focus, focusDirection, focusCycle,
     setActiveTab(layout, stack, pane) {
-      const next = clone(layout), group = find(next.root, stack);
+      const next = clone(layout);
+      if (stack.startsWith(AUTO_PREFIX)) {
+        // An automatic stack: record the shown tab against its home. Membership and geometry do not change.
+        const home = stack.slice(AUTO_PREFIX.length), fit = lastFit(layout);
+        if (find(next.root, pane)?.type !== "pane") return next;
+        if (fit && !resolve(layout, { focusHistory: [] }, fit, paneCap).stacks.find(s => s.id === stack)?.paneIds.includes(pane)) return next;
+        const active = { ...next.fold?.active, [home]: pane };
+        if (pane === home) delete active[home];
+        const order = next.fold?.order ?? [];
+        delete next.fold;
+        if (order.length || Object.keys(active).length) next.fold = { order, ...(Object.keys(active).length ? { active } : {}) };
+        activate(next, pane);
+        return next;
+      }
+      const group = find(next.root, stack);
       if (group?.type === "stack" && group.children.some(c => c.id === pane)) group.active = pane;
+      return next;
+    },
+    refit(layout, view, fit, mode = "full") {
+      observe(layout);
+      const next = refit(layout, view, fit, paneCap, { mode, age: births });
+      remember(next, fit);
       return next;
     },
     resetLayout(preset) {

@@ -37,5 +37,12 @@ export function validate(layout: Layout, kinds: KindRegistry): { ok: true } | { 
   }
   if (!record(layout) || layout.version !== 1) error("layout", "unsupported version");
   if (record(layout)) visit(layout.root, "root", 0);
+  if (record(layout) && layout.fold !== undefined) {
+    // Fold records are hints: unknown ids are skipped when replayed, so only their shape is checked.
+    const fold: unknown = layout.fold;
+    const text = (v: unknown) => typeof v === "string" && v.length > 0 && v.length < 512;
+    if (!record(fold) || !Array.isArray(fold.order) || fold.order.length > 2048 || !fold.order.every(text)) error("fold", "order must be a list of ids");
+    else if (fold.active !== undefined && (!record(fold.active) || Object.keys(fold.active).length > 2048 || !Object.entries(fold.active).every(([k, v]) => text(k) && text(v)))) error("fold", "active must map ids to ids");
+  }
   return errors.length ? { ok: false, errors } : { ok: true };
 }

@@ -32,23 +32,35 @@ describe("open", () => {
     const core = createLayoutCore();
     const result = core.openBeside(layout(pane("a", "list")), view(), "a", ref(), fit(600));
     expect(result.mode).toBe("tab");
-    expect(result.layout.root).toMatchObject({ type: "stack", origin: "auto", active: "a" });
-    expect(core.resolve(result.layout, result.view, fit(600)).panes.filter(p => !p.hiddenInStack)).toHaveLength(1);
-    expect(core.resolve(result.layout, result.view, fit(1440)).panes.filter(p => !p.hiddenInStack)).toHaveLength(2);
+    // The tree stays canonical; the fold is recorded and sticky.
+    expect(result.layout.root).toMatchObject({ type: "row" });
+    expect(result.layout.fold).toEqual({ order: [result.opened] });
+    const narrow = core.resolve(result.layout, result.view, fit(600));
+    expect(narrow.panes.filter(p => !p.hiddenInStack).map(p => p.id)).toEqual(["a"]);
+    expect(narrow.stacks[0]).toMatchObject({ id: "@auto:a", homeId: "a" });
+    // resolve() alone never unfolds; a size change refits.
+    expect(core.resolve(result.layout, result.view, fit(1440)).panes.filter(p => !p.hiddenInStack)).toHaveLength(1);
+    const wide = core.refit(result.layout, result.view, fit(1440));
+    expect(wide.fold).toBeUndefined();
+    expect(core.resolve(wide, result.view, fit(1440)).panes.filter(p => !p.hiddenInStack)).toHaveLength(2);
   });
   it.each(["left", "top"] as const)("restores the requested %s position after a fallback tab unfolds", edge => {
     const core = createLayoutCore();
     const result = core.split(layout(pane("a", "record")), view(), "a", edge, ref("record"), fit(600, 350));
     expect(result.mode).toBe("tab");
-    const boxes = core.resolve(result.layout, result.view, fit(1440, 900)).panes;
+    const boxes = core.resolve(core.refit(result.layout, result.view, fit(1440, 900)), result.view, fit(1440, 900)).panes;
     expect(boxes[0]!.id).toBe(result.opened);
     expect(boxes[0]!.rect[edge === "left" ? "x" : "y"]).toBeLessThan(boxes[1]!.rect[edge === "left" ? "x" : "y"]);
   });
-  it("uses the nearest existing stack for a no-room open and keeps the source focused", () => {
+  it("tabs a no-room open with its source, leaves deliberate stacks alone and keeps the source focused", () => {
+    // Superseded rule: the new pane used to join the nearest deliberate stack. A fold now joins its source (DECISIONS).
     const core = createLayoutCore(), tree = layout(pane("a", "list"), { id: "tabs", type: "stack", origin: "user", active: "b", size: { weight: 1 }, children: [pane("b", "record"), pane("c", "record")] });
     const result = core.openBeside(tree, view(), "a", ref("inspector"), fit(900));
     expect(result.mode).toBe("tab");
-    expect((find(result.layout.root, "tabs") as StackNode).children.map(p => p.id)).toEqual(["b", "c", result.opened]);
+    expect((find(result.layout.root, "tabs") as StackNode).children.map(p => p.id)).toEqual(["b", "c"]);
+    const resolved = core.resolve(result.layout, result.view, fit(900));
+    expect(resolved.stacks[0]).toMatchObject({ homeId: "a", paneIds: ["a", result.opened] });
+    expect(resolved.panes.find(p => p.id === "a")!.hiddenInStack).toBe(false);
     expect(result.view.focused).toBe("a");
     expect(core.validate(result.layout, fit().kinds)).toEqual({ ok: true });
   });
@@ -68,18 +80,22 @@ describe("open", () => {
   it("uses the source's existing deliberate stack when space runs out", () => {
     const core = createLayoutCore(), tree = layout({ id: "tabs", type: "stack", origin: "user", active: "a", size: { weight: 1 }, children: [pane("a", "list"), pane("b", "record")] });
     const result = core.openBeside(tree, view(), "a", ref("wide"), fit(700));
-    expect(result.layout.root).toMatchObject({ type: "stack", origin: "user", active: "a" });
+    expect(result.mode).toBe("tab");
+    expect(find(result.layout.root, "tabs")).toMatchObject({ type: "stack", origin: "user", active: "a" });
     expect(panes(result.layout.root)).toHaveLength(3);
+    const resolved = core.resolve(result.layout, result.view, fit(700));
+    expect(resolved.panes.filter(p => !p.hiddenInStack).map(p => p.id)).toEqual(["a"]);
+    expect(new Set(resolved.panes.map(p => p.stackId)).size).toBe(1);
   });
   it("caps visible slots by tabbing the oldest eligible pane", () => {
     const core = createLayoutCore({ paneCap: 3 }), tree = layout(pane("a"), pane("b"), pane("c"));
     const result = core.openBeside(tree, view("c"), "c", ref("small"), fit(1920));
     expect(result.mode).toBe("beside");
-    const stack = (result.layout.root as SplitNode).children.find(n => n.type === "stack") as StackNode;
-    expect(stack.children.map(p => p.id)).toContain("a");
-    expect(stack.children.map(p => p.id)).not.toContain("c");
+    expect(result.layout.fold?.order).toEqual(["a"]);
     expect(panes(result.layout.root)).toHaveLength(4);
     const resolved = core.resolve(result.layout, result.view, fit(1920));
+    expect(resolved.stacks[0]!.paneIds).toContain("a");
+    expect(resolved.stacks[0]!.paneIds).not.toContain("c");
     expect(resolved.panes.filter(p => !p.hiddenInStack)).toHaveLength(3);
     expect(resolved.panes.find(p => p.id === "a")!.hiddenInStack).toBe(true);
   });

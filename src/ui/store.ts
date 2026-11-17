@@ -9,6 +9,7 @@ import type {
 import { core, setPaneCap } from "./core";
 import { kindRegistry, paneTitle, type PaneActivity } from "./pane-kinds";
 import { DEFAULT_PRESET, presetById, type PresetId } from "./presets";
+import { paneDomId } from "./ids";
 
 export const GAP = 6;
 /** Height of the pane switcher in single view. */
@@ -105,8 +106,26 @@ setPaneCap(state.settings.paneCap);
 applyTheme(state.settings.theme);
 
 export const getState = () => state;
+
+/**
+ * Sticky folding: folds are decided only here, on a structural or size change, and recorded in the Layout. Focus, tab
+ * clicks, zoom and minimise never refit, so they never move a pane. Fails soft (kinds not registered yet).
+ */
+let fitted = false;
+function refitNow(layout: Layout, view: ViewState, mode: "full" | "fold" | "load"): Layout {
+  try {
+    const next = core.refit(layout, view, fit(), mode);
+    fitted = true;
+    return next;
+  } catch {
+    return layout;
+  }
+}
+/** Set while an action commits a layout it has already refitted (or deliberately not, as for minimise). */
+let committing = false;
 export function setState(patch: Partial<UiState> | ((s: UiState) => Partial<UiState>)) {
   const p = typeof patch === "function" ? patch(state) : patch;
+  const prev = state;
   state = { ...state, ...p };
   if ("settings" in p) {
     if (state.settings.paneCap !== undefined) {
@@ -115,6 +134,15 @@ export function setState(patch: Partial<UiState> | ((s: UiState) => Partial<UiSt
     }
     applyTheme(state.settings.theme);
     try { localStorage.setItem(SETTINGS_KEY, JSON.stringify(state.settings)); } catch { /* private mode */ }
+  }
+  // Size changes (window or container resize), a new pane cap, and layouts arriving from outside an action (link,
+  // Back/Forward) refit. The first refit happens once the pane kinds are registered.
+  const resized = "area" in p && (prev.area.width !== state.area.width || prev.area.height !== state.area.height);
+  const recapped = "settings" in p && prev.settings.paneCap !== state.settings.paneCap;
+  const external = "layout" in p && !committing;
+  if (resized || recapped || external || !fitted) {
+    const layout = refitNow(state.layout, state.view, resized || recapped ? "full" : "load");
+    if (layout !== state.layout) state = { ...state, layout };
   }
   for (const s of subs) s();
 }
@@ -135,12 +163,13 @@ export function fit(): FitOptions {
   return { width: state.area.width, height: state.area.height, gap: GAP, kinds: kindsCache.reg };
 }
 
-let resolvedCache: { layout: Layout; view: ViewState; w: number; h: number; k: number; r: ResolvedLayout } | null = null;
+// resolve() is a function of layout plus size; the view only places the zoom overlay, so focus is not part of the key.
+let resolvedCache: { layout: Layout; zoomed?: NodeId; w: number; h: number; k: number; r: ResolvedLayout } | null = null;
 export function resolved(): ResolvedLayout {
   const c = resolvedCache;
-  if (c && c.layout === state.layout && c.view === state.view && c.w === state.area.width && c.h === state.area.height && c.k === kindsVersion) return c.r;
+  if (c && c.layout === state.layout && c.zoomed === state.view.zoomed && c.w === state.area.width && c.h === state.area.height && c.k === kindsVersion) return c.r;
   const r = core.resolve(state.layout, state.view, fit());
-  resolvedCache = { layout: state.layout, view: state.view, w: state.area.width, h: state.area.height, k: kindsVersion, r };
+  resolvedCache = { layout: state.layout, zoomed: state.view.zoomed, w: state.area.width, h: state.area.height, k: kindsVersion, r };
   return r;
 }
 
@@ -164,7 +193,7 @@ export function titleOf(id: NodeId | undefined): string {
   const p = findPane(id);
   return p ? paneTitle(p.ref) : "pane";
 }
-/** The deliberate (tree) stack holding this pane, if any. Automatic stacks exist only in resolve() output. */
+/** The deliberate (tree) stack holding this pane, if any. Automatic stacks (folds) exist only in resolve() output. */
 export function stackOf(id: NodeId | undefined, node: LayoutNode = state.layout.root): StackNode | undefined {
   if (!id || node.type === "pane") return undefined;
   if (node.type === "stack") return node.children.some((c) => c.id === id) ? node : undefined;
@@ -283,13 +312,13 @@ export function restoreWide(snap: WideSnapshot) {
     const st = findNode(stackId, layout.root);
     if (st && st.type === "stack" && st.active !== tab && st.children.some((c) => c.id === tab)) layout = core.setActiveTab(layout, stackId, tab);
   }
-  const want = [...snap.visible].sort().join("|");
-  const shows = (v: ViewState) => core.resolve(layout, v, fit()).panes.filter((b) => !b.hiddenInStack).map((b) => b.id).sort().join("|") === want;
+  // Folds were refitted for the width and replay as before; focus moved by the switcher is kept only if it is in view.
+  const shown = new Set(core.resolve(layout, state.view, fit()).panes.filter((b) => !b.hiddenInStack).map((b) => b.id));
   const cur = state.view;
   const earlier: ViewState = { ...snap.view, ...(cur.peek ? { peek: cur.peek } : {}) };
   if (!cur.peek) delete earlier.peek;
   delete earlier.zoomed;
-  const view = shows(cur) ? cur : shows(earlier) ? earlier : cur;
+  const view = !cur.focused || shown.has(cur.focused) || !earlier.focused || !shown.has(earlier.focused) ? cur : earlier;
   if (layout === state.layout && view === state.view) return;
   setState({ layout, view });
   hooks.writeUrl("replace");
@@ -304,10 +333,119 @@ export const hooks = {
   toastClosed: (_label: string) => {},
 };
 
-function commit(layout: Layout, view: ViewState, opts: { history: HistoryMode; announce?: string; extra?: Partial<UiState> }) {
-  setState({ layout, view, ...opts.extra });
-  hooks.writeUrl(opts.history);
-  if (opts.announce) hooks.announce(opts.announce);
+/** Structural equality, ignoring key order and undefined fields. */
+function same(a: unknown, b: unknown): boolean {
+  if (a === b) return true;
+  if (typeof a !== "object" || typeof b !== "object" || !a || !b || Array.isArray(a) !== Array.isArray(b)) return false;
+  const ra = a as Record<string, unknown>, rb = b as Record<string, unknown>;
+  const ka = Object.keys(ra).filter((k) => ra[k] !== undefined), kb = Object.keys(rb).filter((k) => rb[k] !== undefined);
+  return ka.length === kb.length && ka.every((k) => same(ra[k], rb[k]));
+}
+const sameView = (a: ViewState, b: ViewState) => a.focused === b.focused && a.zoomed === b.zoomed && same(a.peek, b.peek);
+
+type Refit = "full" | "fold" | "none";
+interface CommitOptions {
+  history: HistoryMode;
+  announce?: string;
+  extra?: Partial<UiState>;
+  /** Structural changes refit "full" (default). Restoring a minimised pane only folds; minimise, tabs and focus never refit. */
+  refit?: Refit;
+  /** Announce when only focus changed (for example "Already open: focused …"). Otherwise only a layout change is announced. */
+  announceView?: boolean;
+}
+/**
+ * Apply an action's result. Nothing that did not happen is written or announced: an unchanged layout keeps its object,
+ * pushes no history and says nothing. Returns whether the layout changed.
+ */
+function commit(layout: Layout, view: ViewState, opts: CommitOptions): boolean {
+  const next = opts.refit === "none" ? layout : refitNow(layout, view, opts.refit ?? "full");
+  const layoutChanged = !same(next, state.layout);
+  const viewChanged = !sameView(view, state.view);
+  if (!layoutChanged && !viewChanged && !opts.extra) return false;
+  committing = true;
+  try {
+    setState({ layout: layoutChanged ? next : state.layout, view: viewChanged || layoutChanged ? view : state.view, ...opts.extra });
+  } finally {
+    committing = false;
+  }
+  if (layoutChanged) hooks.writeUrl(opts.history);
+  else if (viewChanged) hooks.writeUrl("replace");
+  if (opts.announce && (layoutChanged || (opts.announceView && viewChanged))) hooks.announce(opts.announce);
+  return layoutChanged;
+}
+
+/** Show a pane that sits behind another tab (deliberate or automatic stack). Selecting a tab never moves panes. */
+function reveal(layout: Layout, id: NodeId): Layout {
+  const st = stackOf(id, layout.root);
+  if (st && st.active !== id) layout = core.setActiveTab(layout, st.id, id);
+  const box = core.resolve(layout, { focusHistory: [] }, fit()).panes.find((b) => b.id === id);
+  if (box?.hiddenInStack && box.stackId && !findNode(box.stackId, layout.root)) layout = core.setActiveTab(layout, box.stackId, id);
+  return layout;
+}
+
+/** DOM focus after the next paint (the store owns focus moves the Workspace effect cannot infer). */
+function focusLater(id: NodeId, where: "content" | "rail") {
+  if (typeof document === "undefined" || typeof requestAnimationFrame === "undefined") return;
+  requestAnimationFrame(() => {
+    // A divider's Enter (collapse / restore) keeps focus on the divider, so a second Enter toggles back.
+    if (document.activeElement?.closest?.("[role=separator], .divider, [role=dialog]")) return;
+    const el = document.getElementById(paneDomId(id));
+    if (!el) return;
+    const target = where === "rail"
+      ? el.querySelector<HTMLElement>(".rail-btn, .rail-restore, .act-min, button")
+      : el.querySelector<HTMLElement>("[data-autofocus]") ?? el.querySelector<HTMLElement>("[role=grid]") ?? el;
+    target?.focus({ preventScroll: true });
+  });
+}
+
+function parentOf(id: NodeId, node: LayoutNode = state.layout.root): LayoutNode | undefined {
+  if (node.type === "pane") return undefined;
+  for (const c of node.children) {
+    if (c.id === id) return node;
+    const f = parentOf(id, c as LayoutNode);
+    if (f) return f;
+  }
+  return undefined;
+}
+/** Panes on screen and not minimised, other than `except`, in the layout as it is (or would be) resolved. */
+function expandedOnScreen(except: NodeId, layout = state.layout): NodeId[] {
+  const view = unzoomed(state.view);
+  return core.resolve(layout, view, fit()).panes.filter((b) => !b.hiddenInStack && b.id !== except && !findPaneIn(layout, b.id)?.collapsed).map((b) => b.id);
+}
+function findPaneIn(layout: Layout, id: NodeId): PaneNode | undefined {
+  return allPanes(layout.root).find((p) => p.id === id);
+}
+/**
+ * The neighbour that takes a minimised pane's space: the nearest sibling in the same split, preferring the one before,
+ * then the next split out. Within a sibling, the most recently focused expanded pane on screen.
+ */
+function neighbourThatGrows(id: NodeId, layout: Layout): NodeId | undefined {
+  const onScreen = new Set(expandedOnScreen(id, layout));
+  const rank = (p: NodeId) => { const i = state.view.focusHistory.indexOf(p); return i < 0 ? Infinity : i; };
+  let node: LayoutNode | undefined = stackOf(id, layout.root) ?? findPaneIn(layout, id);
+  while (node) {
+    const parent = parentOf(node.id, layout.root);
+    if (!parent || parent.type === "pane") break;
+    if (parent.type !== "stack") {
+      const at = parent.children.findIndex((c) => c.id === node!.id);
+      for (let d = 1; d < parent.children.length; d++) {
+        for (const i of [at - d, at + d]) {
+          const sibling = parent.children[i];
+          if (!sibling) continue;
+          const candidates = allPanes(sibling as LayoutNode).map((p) => p.id).filter((p) => onScreen.has(p));
+          if (candidates.length) return candidates.sort((a, b) => rank(a) - rank(b))[0];
+        }
+      }
+    }
+    node = parent;
+  }
+  return [...onScreen].sort((a, b) => rank(a) - rank(b))[0];
+}
+
+/** Whether this pane can be minimised now: it is expanded and another expanded pane stays on screen. */
+export function canMinimise(id: NodeId | undefined): boolean {
+  const p = findPane(id);
+  return !!p && !p.collapsed && expandedOnScreen(p.id).length > 0;
 }
 
 /** Split, close and move leave zoom first (herdr). */
@@ -357,7 +495,7 @@ export const actions = {
     const recent = withRecent([ref]);
     const msg =
       r.mode === "replaced" ? `${t} shown beside ${s}` : r.mode === "tab" ? `${t} opened as a tab: not enough room beside ${s}` : `${t} opened beside ${s}`;
-    commit(r.layout, view, { history: "push", announce: msg, extra: { recent } });
+    commit(r.layout, view, { history: "push", announce: msg, extra: { recent }, refit: "none" });
     return r.opened;
   },
   /** Split opens a launcher beside the pane, not a copy of it; focus moves in, because the person is about to choose. */
@@ -368,6 +506,7 @@ export const actions = {
     const view = core.focus(r.view, r.opened);
     commit(r.layout, view, {
       history: "push",
+      refit: "none",
       announce:
         r.mode === "tab"
           ? `New pane opened as a tab: not enough room beside ${titleOf(p.id)}. Choose what to show`
@@ -387,10 +526,9 @@ export const actions = {
     if (dup) {
       let layout = state.layout, view = unzoomed(state.view);
       if (p.ref.kind === "launcher" && allPanes().length > 1) ({ layout, view } = core.close(layout, view, id));
-      const st = stackOf(dup.id, layout.root);
-      if (st && st.active !== dup.id) layout = core.setActiveTab(layout, st.id, dup.id);
       if (dup.collapsed) layout = core.setCollapsed(layout, dup.id, false);
-      commit(layout, core.focus(view, dup.id), { history: "push", announce: `Already open: focused ${paneTitle(dup.ref)}`, extra: { recent } });
+      layout = reveal(core.refit(layout, view, fit()), dup.id);
+      commit(layout, core.focus(view, dup.id), { history: "push", announce: `Already open: focused ${paneTitle(dup.ref)}`, extra: { recent }, announceView: true });
       return dup.id;
     }
     const layout: Layout = { ...state.layout, root: mapTree(state.layout.root, (n) => (n.id === id && n.type === "pane" ? { ...n, ref } : n)) };
@@ -416,7 +554,9 @@ export const actions = {
     if (autoGroup) {
       // An automatic stack is a fold of panes with no room; a new pane joins the fold and is selected by focus.
       const r = core.split(state.layout, unzoomed(state.view), p.id, "right", LAUNCHER, fit());
-      commit(r.layout, core.focus(r.view, r.opened), { history: "push", announce: `New tab beside ${titleOf(p.id)}. Choose what to show` });
+      // Join the fold the person clicked "+" on, shown as its tab.
+      const layout = core.setActiveTab(r.layout, autoGroup, r.opened);
+      commit(layout, core.focus(r.view, r.opened), { history: "push", refit: "none", announce: `New tab beside ${titleOf(p.id)}. Choose what to show` });
       return r.opened;
     }
     const nid = uniqueId("launcher"), sid = uniqueId("stack");
@@ -460,14 +600,18 @@ export const actions = {
     }
     const title = titleOf(id);
     const r = core.close(state.layout, unzoomed(state.view), id);
-    commit(r.layout, r.view, { history: "push", announce: `${title} closed · Undo available`, extra: { closedStack: [...state.closedStack, r.undo].slice(-20), ...(state.peekSource === id ? { peekSource: undefined } : {}) } });
-    hooks.toastClosed(title);
+    if (commit(r.layout, r.view, { history: "push", announce: `${title} closed · Undo available`, extra: { closedStack: [...state.closedStack, r.undo].slice(-20), ...(state.peekSource === id ? { peekSource: undefined } : {}) } }))
+      hooks.toastClosed(title);
   },
   closeOthers(id = state.view.focused) {
     if (!id) return;
+    if (allPanes().length <= 1) {
+      hooks.announce("There are no other panes to close");
+      return;
+    }
     const r = core.closeOthers(state.layout, unzoomed(state.view), id);
-    commit(r.layout, r.view, { history: "push", announce: `Other panes closed · Undo available`, extra: { closedStack: [...state.closedStack, r.undo].slice(-20) } });
-    hooks.toastClosed("Other panes");
+    if (commit(r.layout, r.view, { history: "push", announce: `Other panes closed · Undo available`, extra: { closedStack: [...state.closedStack, r.undo].slice(-20) } }))
+      hooks.toastClosed("Other panes");
   },
   undoClose() {
     const e = state.closedStack[state.closedStack.length - 1];
@@ -485,17 +629,49 @@ export const actions = {
     hooks.writeUrl("replace");
     hooks.announce(v.zoomed ? `${titleOf(id)} maximised · Escape to restore` : `${titleOf(id)} restored`);
   },
-  setCollapsed(id = state.view.focused, collapsed?: boolean) {
+  /**
+   * Minimise or expand. Minimising hands the pane's space to its neighbours in the same split and never unfolds other
+   * panes (no refit); expanding takes the space back and only folds if it must. By pointer or palette, focus moves to
+   * the neighbour that grew; with `keepFocus` (⌥⌘M on the focused pane) it stays on the rail, so Enter or ⌥⌘M expands.
+   */
+  setCollapsed(id = state.view.focused, collapsed?: boolean, opts: { keepFocus?: boolean } = {}) {
     const p = findPane(id);
     if (!p) return;
+    const title = titleOf(p.id);
     const next = collapsed ?? !p.collapsed;
-    commit(core.setCollapsed(state.layout, p.id, next), state.view, { history: "replace", announce: `${titleOf(p.id)} ${next ? "collapsed" : "restored"}` });
+    if (next === !!p.collapsed) return;
+    if (!next) {
+      const view = core.focus(state.view, p.id);
+      if (commit(core.setCollapsed(state.layout, p.id, false), view, { history: "replace", refit: "fold", announce: `${title} expanded` })) focusLater(p.id, "content");
+      return;
+    }
+    if (!canMinimise(p.id)) {
+      hooks.announce(allPanes().length <= 1 ? `${title} is the only open pane and can't be minimised` : `${title} is the only expanded pane on screen and can't be minimised`);
+      return;
+    }
+    const layout = core.setCollapsed(state.layout, p.id, true);
+    if (opts.keepFocus) {
+      if (commit(layout, core.focus(state.view, p.id), { history: "replace", refit: "none", announce: `${title} minimised · Enter to expand` })) focusLater(p.id, "rail");
+      return;
+    }
+    const to = neighbourThatGrows(p.id, layout);
+    const view = to ? core.focus(state.view, to) : state.view;
+    if (commit(layout, view, { history: "replace", refit: "none", announce: to ? `${title} minimised; focus on ${titleOf(to)}` : `${title} minimised` }) && to) focusLater(to, "content");
+  },
+  /** ⌥⌘M: the focused pane, else the most recently focused one. Focus stays on its rail so the same keys expand it. */
+  minimiseFromKeyboard() {
+    const v = state.view;
+    const id = v.focused && findPane(v.focused) ? v.focused : v.focusHistory.find((h) => findPane(h));
+    if (!id) {
+      hooks.announce("No pane focused");
+      return;
+    }
+    actions.setCollapsed(id, !findPane(id)!.collapsed, { keepFocus: true });
   },
   moveDirection(dir: Edge, id = state.view.focused) {
     if (!id) return;
-    const before = state.layout;
     const r = core.moveDirection(state.layout, unzoomed(state.view), id, dir, fit());
-    if (r.layout === before) {
+    if (same(r.layout, state.layout)) {
       hooks.announce(`${titleOf(id)} can't move ${dirWord(dir)}`);
       return;
     }
@@ -517,20 +693,22 @@ export const actions = {
     if (!id || !other) return;
     commit(core.swap(state.layout, id, other), state.view, { history: "push", announce: `${titleOf(id)} swapped with ${titleOf(other)}` });
   },
+  /** Selects the tab (deliberate or automatic stack) and focuses it. Nothing else moves: no refit. */
   setActiveTab(stack: NodeId, pane: NodeId) {
-    commit(core.setActiveTab(state.layout, stack, pane), core.focus(state.view, pane), { history: "replace", announce: `${titleOf(pane)} tab shown` });
+    commit(core.setActiveTab(state.layout, stack, pane), core.focus(state.view, pane), { history: "replace", refit: "none", announce: `${titleOf(pane)} tab shown` });
   },
   resizeDivider(parentId: NodeId, index: number, deltaPx: number) {
     if (!deltaPx) return;
     const next = core.resizeDivider(state.layout, parentId, index, deltaPx, fit());
-    if (next !== state.layout) commit(next, state.view, { history: "debounce" });
+    // Sizes do not change minimums, so a divider never changes what fits: no refit.
+    if (next !== state.layout) commit(next, state.view, { history: "debounce", refit: "none" });
   },
   /** End of a pointer drag: the layout the drag previewed (from core.resizeDivider), committed once. */
   commitDividerDrag(layout: Layout) {
-    if (layout !== state.layout) commit(layout, state.view, { history: "debounce" });
+    if (layout !== state.layout) commit(layout, state.view, { history: "debounce", refit: "none" });
   },
   resetDivider(parentId: NodeId, index: number) {
-    commit(core.resetDivider(state.layout, parentId, index), state.view, { history: "replace", announce: "Sizes reset" });
+    commit(core.resetDivider(state.layout, parentId, index), state.view, { history: "replace", refit: "none", announce: "Sizes reset" });
   },
   preset(id: PresetId) {
     const layout = core.resetLayout(presetById(id).build());

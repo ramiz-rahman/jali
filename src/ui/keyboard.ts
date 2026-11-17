@@ -90,7 +90,11 @@ export function handleKey(e: KeyboardEvent): boolean {
       return true;
     }
     if (e.code === "Backslash") return runCommand(e.shiftKey ? "pane.split.down" : "pane.split.right") || true;
-    if (e.code === "KeyM" && !e.shiftKey) return runCommand("pane.minimise") || true;
+    // ⌥⌘M minimises or expands the focused pane (else the most recently focused one) and keeps focus on its rail.
+    if (e.code === "KeyM" && !e.shiftKey) {
+      actions.minimiseFromKeyboard();
+      return true;
+    }
     if (e.code === "KeyR" && !e.shiftKey) return runCommand("pane.resize_mode") || true;
     if (e.code === "KeyW" && !e.shiftKey) return runCommand("pane.close") || true;
     // ⌥⌘T adds the pane to another pane's tabs (a chooser); ⌥⇧⌘T moves a tab out of its stack.
