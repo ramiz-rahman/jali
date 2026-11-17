@@ -56,6 +56,10 @@ export interface TuckOrigin {
   extent?: number;
   /** Siblings whose size the tuck changed, as [id, before, after]. putBack restores `before` where `after` is still in place. */
   resized?: [NodeId, Size, Size][];
+  /** Tuck sequence: larger means tucked later. Put back uses it with `order` to restore the original relative order of panes tucked from one split. */
+  seq?: number;
+  /** The split's children at the moment of the tuck, itself included, each named by its first pane's id (stable when a child later becomes a stack). */
+  order?: NodeId[];
 }
 
 export interface StackNode extends NodeBase {

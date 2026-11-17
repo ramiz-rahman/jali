@@ -8,21 +8,31 @@ function unpackSize(value: unknown): Size {
   if (!Array.isArray(value) || value.length !== 2 || (value[0] !== 0 && value[0] !== 1)) throw new Error("Invalid size");
   return value[0] === 0 ? { px: value[1] } : { weight: value[1] };
 }
-/** tuckedFrom packs as k: [parent, axis 0|1, index, beside, side 0|1, size, home, userSized|null, extent|null, resized?]. */
+/** tuckedFrom packs as k: [parent, axis 0|1, index, beside, side 0|1, size, home, userSized|null, extent|null, resized|null?, seq?, order?]. */
 function packTuck(t: TuckOrigin): unknown[] {
   const out: unknown[] = [t.parent, t.axis === "row" ? 0 : 1, t.index, t.beside, t.side === "after" ? 1 : 0, packSize(t.size), t.home, t.userSized ?? null, t.extent ?? null];
-  if (t.resized) out.push(t.resized.map(([id, a, b]) => [id, packSize(a), packSize(b)]));
+  const resized = t.resized ? t.resized.map(([id, a, b]) => [id, packSize(a), packSize(b)]) : null;
+  if (t.seq !== undefined) out.push(resized, t.seq, t.order ?? null);
+  else if (resized) out.push(resized);
   return out;
 }
 function unpackTuck(k: unknown): TuckOrigin {
-  if (!Array.isArray(k) || (k.length !== 9 && k.length !== 10)) throw new Error("Invalid tuck origin");
+  if (!Array.isArray(k) || (k.length !== 9 && k.length !== 10 && k.length !== 12)) throw new Error("Invalid tuck origin");
   const t: TuckOrigin = { parent: k[0], axis: k[1] === 0 ? "row" : "column", index: k[2], beside: k[3], side: k[4] === 1 ? "after" : "before", size: unpackSize(k[5]), home: k[6] };
   if (k[1] !== 0 && k[1] !== 1 || k[4] !== 0 && k[4] !== 1) throw new Error("Invalid tuck origin");
   if (k[7] !== null) t.userSized = k[7];
   if (k[8] !== null) t.extent = k[8];
-  if (k.length === 10) {
+  if (k.length >= 10 && k[9] !== null) {
     if (!Array.isArray(k[9]) || k[9].length > 2048) throw new Error("Invalid tuck sizes");
     t.resized = k[9].map((r: unknown) => { if (!Array.isArray(r) || r.length !== 3) throw new Error("Invalid tuck sizes"); return [r[0], unpackSize(r[1]), unpackSize(r[2])]; });
+  }
+  if (k.length === 12) {
+    if (!Number.isInteger(k[10]) || k[10] < 0) throw new Error("Invalid tuck sequence");
+    t.seq = k[10];
+    if (k[11] !== null) {
+      if (!Array.isArray(k[11]) || k[11].length > 2048 || !k[11].every((v: unknown) => typeof v === "string")) throw new Error("Invalid tuck order");
+      t.order = k[11];
+    }
   }
   return t;
 }

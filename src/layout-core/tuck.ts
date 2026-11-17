@@ -135,6 +135,7 @@ export function tuck(layout: Layout, view: ViewState, paneId: string, fit?: FitO
   const origin: TuckOrigin = {
     parent: container.id, axis, index: at, beside: beside.id, side: container.children.indexOf(beside) < at ? "after" : "before",
     size: clone(pane.size), home: home.shown,
+    seq: 1 + Math.max(0, ...panes(layout.root).map(q => q.tuckedFrom?.seq ?? 0)), order: container.children.map(c => panes(c)[0]?.id ?? c.id),
   };
   if (pane.userSized !== undefined) origin.userSized = pane.userSized;
   // The home's slot absorbs the vacated extent (and the gap), so its siblings keep their rects.
@@ -227,13 +228,56 @@ export function putBack(layout: Layout, view: ViewState, paneId: string, fit?: F
       for (const c of container.children) { const e = extentOf(c, from.axis, g); if (e > 0) c.size = { weight: c === besideChild ? room - want - fit.gap : e }; }
       pane.size = { weight: want };
     }
-    container.children.splice(container.children.indexOf(besideChild) + (from.side === "after" ? 1 : 0), 0, pane);
+    container.children.splice(slotIn(next, container, from, paneId) ?? container.children.indexOf(besideChild) + (from.side === "after" ? 1 : 0), 0, pane);
+    handOn(next, from, paneId);
     return { ok: true, layout: next, view: focus(view, paneId), restored: "origin", home: from.home };
+  }
+  if (container && isSplit(container) && container.type === from.axis) {
+    // The recorded neighbour is gone (itself tucked, or a stack that dissolved): the recorded order still says where.
+    const at = slotIn(next, container, from, paneId);
+    if (at !== undefined) {
+      container.children.splice(at, 0, pane);
+      for (const c of container.children) if (!c.userSized) c.size = { weight: 1 };
+      handOn(next, from, paneId);
+      return { ok: true, layout: next, view: focus(view, paneId), restored: "beside", home: from.home };
+    }
   }
   // The origin is gone: beside the home, on the side it came from.
   const anchor = holder ?? (find(next.root, from.home) ? from.home : nodes(next.root).find(n => n.type === "pane")!.id);
   besideNode(next, anchor, edgeFor(from.axis, from.side), pane);
   return { ok: true, layout: next, view: focus(view, paneId), restored: "beside", home: from.home };
+}
+
+/**
+ * Where a put-back pane goes among the split's children. The tuck that happened earliest recorded the split's full
+ * order, including every pane tucked after it, so the earliest record still tucked from this split (or this pane's own)
+ * is the reference: the pane goes before the nearest following sibling now present, else after the nearest preceding one.
+ * That restores the original relative order whichever order the panes come back in. Undefined when the record has no
+ * usable order (older links), and the recorded neighbour is used instead.
+ */
+function slotIn(layout: Layout, container: SplitNode, from: TuckOrigin, paneId: string): number | undefined {
+  let ref: TuckOrigin = from;
+  for (const q of panes(layout.root)) {
+    const o = q.tuckedFrom;
+    if (o && q.id !== paneId && o.parent === from.parent && o.order && (o.seq ?? Infinity) < (ref.seq ?? Infinity) && o.order.includes(paneId)) ref = o;
+  }
+  const order = ref.order;
+  const at = order?.indexOf(paneId) ?? -1;
+  if (!order || at < 0) return undefined;
+  const here = (id: string) => container.children.findIndex(c => panes(c).some(x => x.id === id && !x.tuckedFrom));
+  const next = order.slice(at + 1).map(here).find(i => i >= 0);
+  if (next !== undefined) return next;
+  const prev = order.slice(0, at).reverse().map(here).find(i => i >= 0);
+  return prev === undefined ? undefined : prev + 1;
+}
+
+/** Panes tucked later from the same split inherit this record's fuller order, since its record is about to be dropped. */
+function handOn(layout: Layout, from: TuckOrigin, paneId: string): void {
+  if (!from.order) return;
+  for (const q of panes(layout.root)) {
+    const o = q.tuckedFrom;
+    if (o && q.id !== paneId && o.parent === from.parent && (o.seq ?? 0) > (from.seq ?? 0) && (!o.order || o.order.every(id => from.order!.includes(id)))) q.tuckedFrom = { ...o, order: from.order };
+  }
 }
 
 function besideNode(layout: Layout, targetId: string, edge: Edge, pane: PaneNode): void {

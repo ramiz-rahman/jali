@@ -31,6 +31,8 @@ export function validate(layout: Layout, kinds: KindRegistry): { ok: true } | { 
         if (!record(t) || !id(t.parent) || !id(t.beside) || !id(t.home) || (t.axis !== "row" && t.axis !== "column") || (t.side !== "before" && t.side !== "after")
           || !Number.isInteger(t.index) || (t.index as number) < 0 || !sizeOk(t.size) || (t.userSized !== undefined && typeof t.userSized !== "boolean")
           || (t.extent !== undefined && !(typeof t.extent === "number" && Number.isFinite(t.extent) && t.extent >= 0))
+          || (t.seq !== undefined && !(Number.isInteger(t.seq) && (t.seq as number) >= 0))
+          || (t.order !== undefined && !(Array.isArray(t.order) && t.order.length <= 2048 && t.order.every(id)))
           || (t.resized !== undefined && !(Array.isArray(t.resized) && t.resized.every(r => Array.isArray(r) && r.length === 3 && id(r[0]) && sizeOk(r[1]) && sizeOk(r[2])))))
           error(path, "invalid tuckedFrom");
       }

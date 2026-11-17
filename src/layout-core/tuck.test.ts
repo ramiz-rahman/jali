@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { createLayoutCore } from "./index";
 import { find, panes, parent } from "./model";
-import { fit, freeze, layout, pane, view } from "./test-utils";
+import { fit, freeze, kinds, layout, pane, view } from "./test-utils";
 import type { FitOptions, Layout, LayoutNode, ObjectRef, PaneNode, ResolvedLayout, StackNode } from "./types";
 
 const core = createLayoutCore();
@@ -83,20 +83,47 @@ describe("tuck", () => {
     expect(back.layout).toEqual(tree);
   });
 
-  it("two tucks into one home: the stack stays until the last one is put back, in either order", () => {
-    const f = fit(1900);
-    const tree = freeze(split("row", pane("a", "list"), pane("b", "list"), pane("c", "list")));
-    const one = ok(core.tuck(tree, view("b"), "b", f));
-    const two = ok(core.tuck(one.layout, view("c"), "c", f));
-    expect(two.home).toBe("a");
-    expect((parent(two.layout.root, "c") as StackNode).children.map(c => c.id)).toEqual(["a", "b", "c"]);
-    const lifo = ok(core.putBack(ok(core.putBack(two.layout, two.view, "c", f)).layout, view(), "b", f));
-    expect(lifo.layout).toEqual(tree);
-    const fifo = ok(core.putBack(ok(core.putBack(two.layout, two.view, "b", f)).layout, view(), "c", f));
-    // Out of order, c returns beside its home (the stack it left), so it lands before b: a known limit (DECISIONS).
-    expect(panes(fifo.layout.root).map(x => x.id).sort()).toEqual(["a", "b", "c"]);
-    expect(fifo.layout.root.type).toBe("row");
-    expect(panes(fifo.layout.root).some(x => x.tuckedFrom)).toBe(false);
+  describe.each(["row", "column"] as const)("two tucks into one home in a %s", (type) => {
+    const f = fit(1900, 1900);
+    const tree = freeze(split(type, pane("a", "list"), pane("b", "list"), pane("c", "list")));
+    const order = (l: Layout) => (l.root as { children: LayoutNode[] }).children.flatMap(c => panes(c).map(x => x.id));
+    const two = () => {
+      const one = ok(core.tuck(tree, view("b"), "b", f));
+      return ok(core.tuck(one.layout, view("c"), "c", f));
+    };
+    it("the stack stays until the last one is put back; newest first restores the layout exactly", () => {
+      const t = two();
+      expect(t.home).toBe("a");
+      expect((parent(t.layout.root, "c") as StackNode).children.map(c => c.id)).toEqual(["a", "b", "c"]);
+      const mid = ok(core.putBack(t.layout, t.view, "c", f));
+      expect(parent(mid.layout.root, "b")).toMatchObject({ type: "stack" });
+      expect(ok(core.putBack(mid.layout, view(), "b", f)).layout).toEqual(tree);
+    });
+    it("oldest first keeps the original order", () => {
+      const t = two();
+      const mid = ok(core.putBack(t.layout, t.view, "b", f));
+      const end = ok(core.putBack(mid.layout, view(), "c", f));
+      expect(order(end.layout)).toEqual(["a", "b", "c"]);
+      expect(panes(end.layout.root).some(x => x.tuckedFrom)).toBe(false);
+    });
+    it("survives the link codec between put backs", () => {
+      const t = two();
+      const mid = ok(core.putBack(core.decode(core.encode(t.layout), kinds)!, t.view, "b", f));
+      expect(order(ok(core.putBack(mid.layout, view(), "c", f)).layout)).toEqual(["a", "b", "c"]);
+    });
+  });
+
+  it("three tucks into a home come back in order whatever the sequence", () => {
+    const f = fit(1900, 1900);
+    const tree = freeze(split("row", pane("a", "list"), pane("b", "list"), pane("c", "list"), pane("d", "list")));
+    let t = ok(core.tuck(tree, view("b"), "b", f));
+    t = ok(core.tuck(t.layout, view("c"), "c", f));
+    t = ok(core.tuck(t.layout, view("d"), "d", f));
+    for (const seq of [["b", "c", "d"], ["d", "c", "b"], ["c", "d", "b"], ["d", "b", "c"], ["c", "b", "d"]]) {
+      let l = t.layout;
+      for (const id of seq) l = ok(core.putBack(l, view(), id, f)).layout;
+      expect((l.root as { children: LayoutNode[] }).children.map(c => c.id), seq.join()).toEqual(["a", "b", "c", "d"]);
+    }
   });
 
   it("keeps a split it empties to one child, so the origin survives", () => {
