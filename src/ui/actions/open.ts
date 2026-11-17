@@ -34,7 +34,7 @@ export function openBeside(x: Snapshot, source: NodeId, ref: ObjectRef): Outcome
   if (s.review) {
     // One object, one pane: a link to what is already on the page goes there (a view, whatever kind shows it).
     const dup = openPaneFor(m, ref);
-    if (dup?.role) return goToRole(x, dup.role);
+    if (dup?.role) return goToRole(x, dup.role, source);
     if (dup) return { op: "focusExisting", layout: core.reveal(s.layout, dup.id, ctx), view: core.focus(unzoomed(s.view), dup.id, ctx), msg: msg.alreadyOpen(m.title(dup.id)), result: dup.id };
   }
   const place = s.review && m.pane(source)?.role ? placeAfterArrangement(s.layout) : undefined;

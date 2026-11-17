@@ -27,10 +27,12 @@ export function TabStrip({ group, owner }: { group: NonNullable<Frame["group"]>;
   const { actions } = store;
   // A curated page: no "+" (its views come from the page's tabs).
   const review = useUi((s) => !!s.review);
+  // A curated page's views live in the page tabs: here only the shown one and panes opened from links, never a repeat.
+  const tabs = review ? group.tabs.filter(({ node: t }) => !t.role || t.id === group.active) : group.tabs;
   return (
     <div className="tabbar">
-      <div className="tabs" role="tablist" aria-label={`Tabs: ${group.tabs.length}`}>
-        {group.tabs.map(({ node: t, tucked }) => {
+      <div className="tabs" role="tablist" aria-label={`Tabs: ${tabs.length}`}>
+        {tabs.map(({ node: t, tucked }) => {
           const active = t.id === group.active;
           const title = titleOf(t);
           return (

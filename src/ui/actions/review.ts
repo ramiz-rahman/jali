@@ -287,11 +287,20 @@ export function openTabBeside(x: Snapshot, role: string): Outcome {
 
 /**
  * A link to an object that is already a view on this page goes to that view instead of opening it again: focused if on
- * screen, its tab chosen if behind another, or put in place of the view in use if off screen (openTab's rules).
+ * screen, its tab chosen if behind another. Off screen, it is placed beside the pane the link is in: following a link
+ * never takes away the pane you followed it from.
  */
-export function goToRole(x: Snapshot, role: string): Outcome {
+/** Resolve one step of an outcome that may be a function of the snapshot. */
+const apply1 = (o: Outcome, y: Snapshot): Outcome => (typeof o === "function" ? apply1(o(y), y) : o);
+
+export function goToRole(x: Snapshot, role: string, from?: NodeId): Outcome {
   const p = getProfile();
   if (!p) return null;
+  if (from && x.m.off.includes(role) && x.m.visible.includes(from)) {
+    const t = label(p, role);
+    const prefix = (o: Outcome): Outcome => (o && typeof o === "object" && !Array.isArray(o) && o.op !== "refused" && o.msg ? { ...o, msg: `${msg.alreadyView(t)} · ${o.msg}` } : o);
+    return (y: Snapshot) => prefix(apply1(placeTab(y, role, from, "right"), y));
+  }
   const o = openTab(x, role);
   if (!o || typeof o !== "object" || Array.isArray(o) || o.op === "refused") return o;
   const t = label(p, role);

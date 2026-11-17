@@ -268,8 +268,9 @@ test.describe("Loan review: following links and placing views at 1440", () => {
     await link(lab, "application", "members 149").click();
     await expect(opened(page)).toHaveCount(0);
     await expect(lab.announcer()).toContainText("Borrower is already a view on this page");
-    // It takes the place of the view in use, as a tab click would; nothing folds.
-    expect(await lab.visibleIds()).toEqual(["borrower", "overview", "officer"]);
+    // It opens beside the pane the link is in; that pane stays, nothing folds into a tab group.
+    expect(await lab.visibleIds()).toContain("application");
+    expect(await lab.visibleIds()).toContain("borrower");
     await expect(page.locator('[role="tablist"]:not([aria-label="Loan review views"])')).toHaveCount(0);
   });
 
@@ -288,6 +289,11 @@ test.describe("Loan review: following links and placing views at 1440", () => {
     expect(await keep()).toEqual(before);
     await expect(lab.announcer()).toContainText("opened as a tab: not enough room beside Borrower");
     await expect(pageTab(page, "Borrower")).toHaveAttribute("data-state", "behind");
+    // The pane's own tabs never repeat a page tab: Borrower is reached from the page tabs.
+    const inPane = page.locator('[role="tablist"]:not([aria-label="Loan review views"])');
+    await expect(inPane.getByRole("tab", { name: /Borrower/ })).toHaveCount(0);
+    await pageTab(page, "Borrower").click();
+    await expect(pageTab(page, "Borrower")).toHaveAttribute("data-state", "focused");
   });
 
   test("holding ⌥ over a tab previews exactly what ⌥-click does: the new view and every view that moves", async ({ lab, page }) => {

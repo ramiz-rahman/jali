@@ -45,15 +45,15 @@ describe("a link to a view already on the page", () => {
     expect(said()).toBe("Already open: focused Borrower");
   });
 
-  it("off screen: takes the place of the view in use, as a tab click would", () => {
+  it("off screen: placed beside the pane the link is in, which stays on screen", () => {
     arranged();
     expect(shown()).not.toContain("borrower");
     const before = m().panes.length;
     store.actions.focus("application");
-    const slot = rects().application;
     store.actions.openBeside("application", member149);
     expect(m().panes).toHaveLength(before);
-    expect(rects().borrower).toEqual(slot);
+    expect(shown()).toEqual(expect.arrayContaining(["application", "borrower"]));
+    expect(rects().borrower.x).toBeGreaterThanOrEqual(rects().application.x + rects().application.width);
     expect(said()).toMatch(/^Borrower is already a view on this page/);
   });
 
