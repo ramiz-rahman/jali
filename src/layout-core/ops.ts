@@ -225,12 +225,27 @@ export function createOps(paneCap: number, remember: (layout: Layout, fit: FitOp
       const secondExtent = owner.type === "row" ? Math.max(...rects.map(r => r.x + r.width)) - Math.min(...rects.map(r => r.x)) : Math.max(...rects.map(r => r.y + r.height)) - Math.min(...rects.map(r => r.y));
       const total = divider.value + secondExtent;
       const value = Math.max(divider.min, Math.min(divider.max, divider.value + deltaPx));
+      // Founder review, 17 Nov: dragged sizes are stored as proportions (weights in px units), never fixed px,
+      // so the split still fills its space after a close, a minimise or a window resize. Every sibling is
+      // re-expressed in the same units from its current extent, so untouched siblings keep their share.
+      const extentOf = (child: LayoutNode) => {
+        const ids = panes(child).map(p => p.id);
+        const rs = resolved.panes.filter(p => ids.includes(p.id) && !p.hiddenInStack).map(p => p.rect);
+        if (!rs.length) return 0;
+        return owner.type === "row" ? Math.max(...rs.map(r => r.x + r.width)) - Math.min(...rs.map(r => r.x)) : Math.max(...rs.map(r => r.y + r.height)) - Math.min(...rs.map(r => r.y));
+      };
+      for (const child of owner.children) {
+        if (first.includes(child) || second.includes(child)) continue;
+        if (!defaults.has(child.id)) defaults.set(child.id, clone(child.size));
+        const extent = extentOf(child);
+        if (extent > 0) child.size = { weight: extent };
+      }
       const assign = (group: LayoutNode[], pixels: number) => {
-        const preferences = group.map(c => "px" in c.size ? c.size.px : c.size.weight);
+        const preferences = group.map(c => Math.max(extentOf(c), 1));
         const sum = preferences.reduce((a, b) => a + b, 0);
         group.forEach((node, i) => {
           if (!node.userSized && !defaults.has(node.id)) defaults.set(node.id, clone(node.size));
-          node.size = { px: pixels * preferences[i]! / sum }; node.userSized = true;
+          node.size = { weight: pixels * preferences[i]! / sum }; node.userSized = true;
         });
       };
       assign(first, value); assign(second, total - value);
@@ -245,12 +260,18 @@ export function createOps(paneCap: number, remember: (layout: Layout, fit: FitOp
       if (owner && isSplit(owner)) {
         const children = ids ? owner.children.filter(c => panes(c).some(p => ids.includes(p.id))) : index >= 0 ? owner.children.slice(index, index + 2) : [];
         for (const child of children) { child.size = clone(defaults.get(child.id) ?? { weight: 1 }); delete child.userSized; }
+        // Siblings that a drag only re-expressed as proportions (never sized by the person) return to their defaults too,
+        // so the reset pair and its siblings share space in the same units again.
+        for (const child of owner.children) if (!children.includes(child) && !child.userSized && defaults.has(child.id)) child.size = clone(defaults.get(child.id)!);
       }
       return next;
     },
     setCollapsed(layout, pane, collapsed) {
       const next = clone(layout), node = find(next.root, pane);
-      if (node?.type === "pane") node.collapsed = collapsed;
+      if (node?.type !== "pane") return next;
+      // Founder review, 17 Nov: the last expanded pane can never be minimised (no all-rails screen).
+      if (collapsed && panes(next.root).filter(p => !p.collapsed && p.id !== pane).length === 0) return layout;
+      node.collapsed = collapsed;
       return next;
     },
     toggleZoom(view, pane) { const next = clone(view); if (next.zoomed === pane) delete next.zoomed; else next.zoomed = pane; return next; },

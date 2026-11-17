@@ -19,7 +19,9 @@ describe("flex shares", () => {
   });
   it("bounds fixed sizes and preserves weighted minimums on viewport shrink", () => {
     expect(shares([{ size: { px: 900 }, min: 100 }, { size: { weight: 1 }, min: 300 }], 600)).toEqual([300, 300]);
-    expect(shares([{ size: { px: 50 }, min: 100, max: 200 }, { size: { px: 500 }, min: 100, max: 200 }], 500)).toEqual([100, 200]);
+    expect(shares([{ size: { px: 50 }, min: 100, max: 200 }, { size: { px: 500 }, min: 100, max: 200 }], 500)).toEqual([200, 200]);
+    // Leftover space goes to whatever can still grow, so a row never shows a void.
+    expect(shares([{ size: { px: 56 }, min: 56, max: 56 }, { size: { px: 300 }, min: 240 }], 1000)).toEqual([56, 944]);
   });
   it("never scales down infeasible minimums", () => {
     expect(shares([{ size: { weight: 1 }, min: 320 }, { size: { weight: 1 }, min: 480 }], 390)).toEqual([320, 480]);
@@ -98,21 +100,22 @@ describe("resolve and fold", () => {
     const tree = layout({ id: "column", type: "column", size: { weight: 1 }, children: [pane("a"), pane("b", "record", { linkedTo: "a" })] });
     expect(core.resolve(tree, view(), fit(1000, 250)).panes.filter(p => !p.hiddenInStack)).toHaveLength(1);
   });
-  it("uses 56px edge rails and 40px middle strips", () => {
-    const tree = layout(pane("a", "record", { collapsed: true }), pane("b", "record", { collapsed: true }), pane("c", "record", { collapsed: true }));
+  it("uses 56px rails in a row and 40px header strips in a column, for edge and middle panes alike", () => {
+    const tree = layout(pane("a", "record", { collapsed: true }), pane("b", "record", { collapsed: true }), pane("c", "record"));
     const row = core.resolve(tree, view(), fit(1000));
-    expect(row.panes.map(p => p.rect.width)).toEqual([56, 876, 56]);
-    expect(row.panes.map(p => p.rect.height)).toEqual([900, 40, 900]);
+    expect(row.panes.map(p => p.rect.width)).toEqual([56, 56, 876]);
+    expect(row.panes.map(p => p.rect.height)).toEqual([900, 900, 900]);
     tree.root.type = "column";
-    expect(core.resolve(tree, view(), fit(1000)).panes.map(p => p.rect.height)).toEqual([56, 40, 56]);
+    expect(core.resolve(tree, view(), fit(1000)).panes.map(p => p.rect.height).slice(0, 2)).toEqual([40, 40]);
   });
-  it("minimises a middle row pane to its header and restores its full height", () => {
+  it("minimises a middle row pane to a rail, lets its siblings fill the space, and restores it", () => {
     const tree = freeze(layout(pane("a", "record"), pane("b", "record"), pane("c", "record")));
     const collapsed = core.setCollapsed(tree, "b", true);
     const result = core.resolve(collapsed, view("b"), fit(1600));
     expect(result.folded).toEqual([]);
-    expect(result.panes.map(p => p.rect.height)).toEqual([900, 40, 900]);
-    expect(result.panes[1]!.rect.width).toBeGreaterThanOrEqual(480);
+    expect(result.panes.map(p => p.rect.height)).toEqual([900, 900, 900]);
+    expect(result.panes[1]!.rect.width).toBe(56);
+    expect(result.panes[0]!.rect.width + result.panes[2]!.rect.width + 56 + 12).toBeCloseTo(1600, 0);
     expect(core.resolve(core.setCollapsed(collapsed, "b", false), view("b"), fit(1600))).toEqual(core.resolve(tree, view("b"), fit(1600)));
   });
   it("unfolds one pane at each successive minimum-plus-gap threshold", () => {

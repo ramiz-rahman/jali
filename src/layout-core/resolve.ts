@@ -49,6 +49,20 @@ export function shares(items: Share[], available: number): number[] {
     }
     pending = pending.filter(i => !freeze.includes(i));
   }
+  // Never leave a void: hand leftover space to children that can grow (fixed-px preferences included), in proportion, up to their max.
+  let leftover = budget - values.reduce((sum, v) => sum + v, 0);
+  let growable = items.map((_, i) => i).filter(i => values[i]! < (items[i]!.max ?? Infinity) - 1e-7);
+  while (leftover > 1e-6 && growable.length) {
+    const base = growable.reduce((sum, i) => sum + Math.max(values[i]!, 1), 0);
+    let given = 0;
+    for (const i of growable) {
+      const add = Math.min(leftover * Math.max(values[i]!, 1) / base, (items[i]!.max ?? Infinity) - values[i]!);
+      values[i] = values[i]! + add; given += add;
+    }
+    leftover -= given;
+    growable = growable.filter(i => values[i]! < (items[i]!.max ?? Infinity) - 1e-7);
+    if (given < 1e-9) break;
+  }
   return values;
 }
 
@@ -68,9 +82,10 @@ function project(node: LayoutNode, fit: FitOptions, axis: Axis = "row", edge = t
     const kind = fit.kinds[node.ref.kind];
     if (!kind) throw new Error(`Unknown pane kind: ${node.ref.kind}`);
     const bounds = { width: kind.minWidth, height: kind.minHeight, maxWidth: kind.maxWidth ?? Infinity };
-    const collapsedAxis = node.collapsed ? axis === "row" && edge ? "row" : "column" : undefined;
+    // Founder review, 17 Nov: in a row every minimised pane becomes a 56px rail (edge or middle); in a column it becomes its 40px header strip.
+    const collapsedAxis = node.collapsed ? axis : undefined;
     if (collapsedAxis === "row") { bounds.width = 56; bounds.maxWidth = 56; }
-    if (collapsedAxis === "column") bounds.height = edge ? 56 : 40;
+    if (collapsedAxis === "column") bounds.height = 40;
     return { id: node.id, type: "pane", size: node.size, children: [], pane: node, collapsedAxis, bounds };
   }
   const nextAxis = node.type === "stack" ? axis : node.type;

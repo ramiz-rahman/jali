@@ -258,17 +258,18 @@ describe("dividers", () => {
   it.each([[-10000, 320, 880], [10000, 720, 480], [100, 700, 500]])("clamps delta %s at both neighbours' minima and marks userSized", (delta, left, right) => {
     const core = createLayoutCore(), tree = freeze(layout(pane("a", "list"), pane("b", "record")));
     const resized = core.resizeDivider(tree, "root", 0, delta, fit(1206));
-    expect(find(resized.root, "a")).toMatchObject({ size: { px: left }, userSized: true });
-    expect(find(resized.root, "b")).toMatchObject({ size: { px: right }, userSized: true });
+    // Dragged sizes are proportions (weights in px units), so the split keeps filling its space.
+    expect(find(resized.root, "a")).toMatchObject({ size: { weight: left }, userSized: true });
+    expect(find(resized.root, "b")).toMatchObject({ size: { weight: right }, userSized: true });
     expect(core.resolve(resized, view(), fit(1206)).panes.map(p => p.rect.width)).toEqual([left, right]);
   });
   it("resizes column splits and honours maxWidth on row splits", () => {
     const core = createLayoutCore(), tree = layout({ id: "col", type: "column", size: { weight: 1 }, children: [pane("a"), pane("b")] });
     const resized = core.resizeDivider(tree, "col", 0, 10000, fit(1000, 406));
-    expect(find(resized.root, "a")!.size).toEqual({ px: 320 });
-    expect(find(resized.root, "b")!.size).toEqual({ px: 80 });
+    expect(find(resized.root, "a")!.size).toEqual({ weight: 320 });
+    expect(find(resized.root, "b")!.size).toEqual({ weight: 80 });
     const options = { ...fit(806), kinds: { ...fit().kinds, small: { ...fit().kinds.small!, maxWidth: 600 } } };
-    expect(find(core.resizeDivider(layout(pane("a"), pane("b")), "root", 0, 10000, options).root, "a")!.size).toEqual({ px: 600 });
+    expect(find(core.resizeDivider(layout(pane("a"), pane("b")), "root", 0, 10000, options).root, "a")!.size).toEqual({ weight: 600 });
   });
   it("resets just the two neighbours to equal default weights", () => {
     const core = createLayoutCore(), tree = layout(pane("a", "small", { size: { px: 200 }, userSized: true }), pane("b", "small", { size: { px: 400 }, userSized: true }), pane("c", "small", { size: { px: 500 }, userSized: true }));
@@ -276,6 +277,18 @@ describe("dividers", () => {
     expect(find(reset.root, "a")!.size).toEqual({ weight: 1 });
     expect(find(reset.root, "b")!.userSized).toBeUndefined();
     expect(find(reset.root, "c")).toEqual(find(tree.root, "c"));
+  });
+  it("keeps filling the row after a drag when a sibling closes or the window widens", () => {
+    const core = createLayoutCore(), tree = freeze(layout(pane("a", "list"), pane("b", "record")));
+    const resized = core.resizeDivider(tree, "root", 0, 100, fit(1206));
+    const wider = core.resolve(resized, view(), fit(1806)).panes.map(p => p.rect.width);
+    expect(wider[0]! + wider[1]! + 6).toBeCloseTo(1806, 0);
+    expect(wider[0]! / wider[1]!).toBeCloseTo(700 / 500, 1);
+  });
+  it("never minimises the last expanded pane", () => {
+    const core = createLayoutCore(), tree = layout(pane("a"), pane("b"));
+    const one = core.setCollapsed(tree, "a", true);
+    expect(core.setCollapsed(one, "b", true)).toEqual(one);
   });
   it("ignores missing dividers and nonfinite deltas", () => {
     const core = createLayoutCore(), tree = layout(pane("a"), pane("b"));
