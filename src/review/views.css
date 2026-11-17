@@ -1,0 +1,200 @@
+/* ---------- Loan review views (records.tsx, lists.tsx, overview.tsx) ----------
+   Each view sizes itself to its pane, not the window: `.rv` is an inline-size container, and every breakpoint below is
+   a container query. Narrow (Multiplexed, 360–520px): one column. Wide: main column and a side column of links.
+   Very wide (Single at 1920): the content stops at a readable width instead of stretching. */
+
+.rv {
+  container: rv / size;
+  flex: 1; min-height: 0; overflow: auto;
+  padding: 16px 20px 24px;
+  color: var(--text);
+  --rv-max: 1120px;
+  --ok: var(--act-done);
+  --warn: var(--amber);
+  --risk: var(--red);
+}
+.rv > * { max-width: var(--rv-max); }
+.pk .rv .num, .rv-num { font-family: inherit; font-variant-numeric: tabular-nums; }
+.rv-muted { color: var(--text-3); }
+.rv-warn { color: var(--risk); font-weight: 500; }
+
+/* The view's own head: what this is, then its name. The page header above holds the application's facts. */
+.rv-head { display: flex; align-items: flex-start; gap: 12px; padding-bottom: 14px; margin-bottom: 4px; border-bottom: 1px solid var(--line); }
+.rv-head-text { flex: 1; min-width: 0; }
+.rv-kicker { font-size: 12px; color: var(--text-3); }
+.rv-title { margin: 2px 0 0; font-size: 17px; line-height: 1.3; font-weight: 600; letter-spacing: -0.01em; text-wrap: balance; }
+.rv-sub { margin-top: 2px; color: var(--text-2); }
+.rv-tel { display: inline-flex; align-items: center; gap: 4px; color: var(--text-2); text-decoration: none; font-variant-numeric: tabular-nums; }
+.rv-tel:hover { color: var(--accent); }
+
+/* A short pane (Multiplexed, ~320px tall): the pane header names the view, so the head shrinks to the title. */
+@container rv (max-height: 440px) {
+  .rv-head { padding-bottom: 8px; }
+  .rv-head .rv-kicker { display: none; }
+  .rv-title { font-size: 15px; }
+  .rv-sec { padding-top: 10px; }
+}
+
+/* Body: one column; a side column for people and related records once there is room. */
+.rv-body { display: grid; grid-template-columns: minmax(0, 1fr); column-gap: 32px; }
+.rv-main, .rv-side { min-width: 0; }
+@container rv (min-width: 720px) {
+  .rv-body { grid-template-columns: minmax(0, 1fr) minmax(240px, 300px); }
+  .rv-side { border-left: 1px solid var(--line); padding-left: 24px; }
+}
+
+.rv-sec { padding: 14px 0 6px; }
+.rv-sec + .rv-sec { border-top: 1px solid var(--line); }
+.rv-sec-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 8px; }
+.rv-sec-head h4 { margin: 0; font-size: 11px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: var(--text-3); }
+
+/* Facts: label beside value, close together. Two columns of pairs from 560px, three from 960px. */
+.rv-facts { display: grid; grid-template-columns: minmax(0, 1fr); column-gap: 32px; margin: 0; }
+.rv-fact { display: grid; grid-template-columns: minmax(96px, 9.5em) minmax(0, 1fr); gap: 12px; align-items: baseline; padding: 6px 0; border-bottom: 1px dashed color-mix(in oklab, var(--line) 80%, transparent); }
+.rv-fact dt { color: var(--text-3); }
+.rv-fact dd { margin: 0; min-width: 0; display: flex; flex-wrap: wrap; align-items: baseline; column-gap: 8px; }
+.rv-val { font-weight: 500; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.rv-note, .rv-stats .rv-note { font-size: 12px; color: var(--text-3); font-weight: 400; }
+@container rv (min-width: 560px) { .rv-facts:not([data-cols="1"]) { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+
+/* Related records: a list of things to open, each with a count or a name in words. */
+.rv-rels { list-style: none; margin: 0 -8px; padding: 0; display: grid; gap: 2px; }
+.rv-rel {
+  display: flex; align-items: center; gap: 10px; width: 100%; min-height: 40px; padding: 6px 8px; border: 0; border-radius: 6px;
+  background: none; color: inherit; font: inherit; text-align: left; cursor: pointer;
+}
+button.rv-rel:hover { background: var(--accent-weak); }
+button.rv-rel:hover .rv-rel-label { color: var(--accent); }
+button.rv-rel:focus-visible, .rv-link:focus-visible, .ov-go:focus-visible { outline: 1.5px solid var(--accent); outline-offset: 1px; }
+.rv-rel.is-static { cursor: default; color: var(--text-3); }
+.rv-rel-icon { flex: none; display: grid; place-items: center; width: 28px; height: 28px; border-radius: 6px; background: var(--hover); color: var(--text-2); }
+.rv-rel-text { flex: 1; min-width: 0; display: grid; }
+.rv-rel-label { font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.rv-rel-note { font-size: 12px; color: var(--text-3); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.rv-rel.is-static .rv-rel-label { font-weight: 400; }
+.rv-rel-go { flex: none; color: var(--text-4); }
+button.rv-rel:hover .rv-rel-go { color: var(--accent); }
+.rv-avatar { display: grid; place-items: center; width: 28px; height: 28px; border-radius: 6px; background: var(--accent-soft); color: var(--accent); font-size: 11px; font-weight: 600; }
+.rv-rel-icon:has(.rv-avatar) { background: none; }
+
+.rv-link { color: var(--accent); background: none; border: 0; padding: 0; font: inherit; font-weight: 500; cursor: pointer; text-align: left; border-radius: 3px; }
+.rv-tag { display: inline-block; margin-left: 6px; padding: 0 6px; border-radius: 4px; font-size: 11px; line-height: 18px; font-weight: 500; background: var(--accent-soft); color: var(--accent); vertical-align: 1px; }
+.rv-link:hover { text-decoration: underline; text-underline-offset: 2px; }
+
+/* Status: the word, coloured by what it asks of the reviewer. */
+.rv-status {
+  display: inline-flex; align-items: center; gap: 4px; flex: none; height: 20px; padding: 0 7px; border-radius: 10px;
+  font-size: 12px; font-weight: 500; white-space: nowrap; background: var(--hover); color: var(--text-2);
+}
+.rv-status[data-status="pending"] { background: var(--accent-soft); color: var(--accent); }
+.rv-status[data-status="active"] { background: color-mix(in oklab, var(--act-working) 12%, transparent); color: var(--act-working); }
+.rv-status[data-status="overdue"], .rv-status[data-status="missed"] { background: color-mix(in oklab, var(--risk) 14%, transparent); color: var(--risk); }
+.rv-status[data-status="returned"], .rv-status[data-status="late"] { background: color-mix(in oklab, var(--warn) 16%, transparent); color: var(--warn); }
+.rv-status[data-status="approved"], .rv-status[data-status="on time"] { background: color-mix(in oklab, var(--ok) 14%, transparent); color: var(--ok); }
+.rv-status[data-status="closed"] { background: none; padding: 0; color: var(--text-3); }
+
+/* Instalments as marks: filled on time, amber late, red ring missed. */
+.rv-dots { display: inline-flex; gap: 3px; vertical-align: middle; }
+.rv-dots i { width: 8px; height: 8px; border-radius: 50%; background: var(--ok); }
+.rv-dots i[data-status="late"] { background: var(--warn); }
+.rv-dots i[data-status="missed"] { background: none; box-shadow: inset 0 0 0 1.5px var(--risk); }
+.rv-dots.is-loading { width: 40px; height: 8px; border-radius: 4px; background: var(--hover); }
+
+/* Numbers in a row: a loan book (group standing, caseload) or a list's summary. */
+.rv-stats { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px 20px; margin: 0; }
+@container (min-width: 300px) { .rv-stats:not(:has(> :nth-child(4))) { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+@container (min-width: 440px) { .rv-stats { grid-template-columns: repeat(auto-fit, minmax(96px, 1fr)); } }
+.rv-stats > div { min-width: 0; }
+.rv-stats dt { font-size: 12px; color: var(--text-3); }
+.rv-stats dd { margin: 1px 0 0; font-size: 15px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.rv-stats dd.rv-note { margin-top: 0; }
+.rv-stats .is-warn dd:not(.rv-note) { color: var(--risk); }
+.rv-stats-strip { padding: 14px 0 6px; max-width: 720px; }
+
+.rv-alert {
+  display: flex; align-items: flex-start; gap: 8px; margin: 12px 0 0; padding: 8px 12px; border-radius: 6px;
+  background: color-mix(in oklab, var(--risk) 9%, transparent); color: var(--risk); font-weight: 500;
+}
+.rv-alert svg { flex: none; margin-top: 2px; }
+
+/* A reviewer's table: priority columns. 1 always; 2 from 520px; 3 from 720px. Below, the first cell carries them. */
+.rv-table-wrap { padding-top: 6px; }
+.rv-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.rv-table th { text-align: left; font-size: 12px; font-weight: 500; color: var(--text-3); padding: 8px 12px 6px 0; border-bottom: 1px solid var(--line); white-space: nowrap; }
+.rv-table td { padding: 8px 12px 8px 0; border-bottom: 1px solid var(--line); vertical-align: top; }
+.rv-table th:last-child, .rv-table td:last-child { padding-right: 0; }
+.rv-table .num { text-align: right; }
+.rv-table td.num { font-weight: 500; }
+.rv-table .num + :not(.num) { padding-left: 16px; }
+.rv-table tr[data-status="closed"] td:not(:first-child) { color: var(--text-2); }
+.rv-table tr[data-status="overdue"] td:first-child { box-shadow: inset 2px 0 0 var(--risk); padding-left: 8px; }
+.rv-table tr[data-status="overdue"] th:first-child { padding-left: 8px; }
+.rv-table [data-pri="2"], .rv-table [data-pri="3"] { display: none; }
+.rv-stack { display: flex; flex-wrap: wrap; column-gap: 8px; font-size: 12px; color: var(--text-3); }
+.rv-stack:empty { display: none; }
+.rv-stack > [data-pri] { display: inline; }
+@container rv (min-width: 520px) {
+  .rv-table [data-pri="2"] { display: table-cell; }
+  .rv-stack > [data-pri="2"] { display: none; }
+}
+@container rv (min-width: 720px) {
+  .rv-table [data-pri="3"] { display: table-cell; }
+  .rv-stack > [data-pri="3"] { display: none; }
+}
+/* Overview is its own container: its tables follow its sections' widths, so a section keeps priority 3 hidden. */
+
+/* The ladder: each earlier loan's principal and this request, on one scale. */
+.rv-ladder ol { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.rv-ladder li { display: grid; grid-template-columns: 6.5em minmax(0, 1fr) 6em; align-items: center; gap: 10px; }
+.rv-ladder-label { color: var(--text-3); font-size: 12px; white-space: nowrap; }
+.rv-ladder-track { height: 10px; border-radius: 3px; background: var(--hover); overflow: hidden; }
+.rv-ladder-bar { display: block; height: 100%; border-radius: 3px; background: var(--line-strong); }
+.rv-ladder li[data-status="active"] .rv-ladder-bar { background: color-mix(in oklab, var(--act-working) 45%, var(--line-strong)); }
+.rv-ladder li[data-status="overdue"] .rv-ladder-bar { background: var(--risk); }
+.rv-ladder li[data-status="request"] .rv-ladder-bar { background: var(--accent); }
+.rv-ladder li[data-status="request"] .rv-ladder-label { color: var(--text); font-weight: 500; }
+.rv-ladder-val { text-align: right; font-variant-numeric: tabular-nums; font-weight: 500; }
+.rv-ladder-note { margin: 10px 0 0; color: var(--text-2); }
+.rv-ladder { max-width: 560px; }
+
+/* ---------- Overview ----------
+   What to check first, then one section per question. Wide (≥ 980px): three columns, history beside the request;
+   medium: two; narrow: one. Sections are divided by rules, not boxed. */
+.ov {
+  display: grid; gap: 0 28px; align-content: start;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-areas: "checks" "history" "application" "borrower" "group" "officer";
+}
+@container rv (min-width: 620px) {
+  .ov { grid-template-columns: repeat(2, minmax(0, 1fr)); grid-template-areas: "checks checks" "history history" "application borrower" "group officer"; }
+}
+@container rv (min-width: 980px) {
+  .ov { grid-template-columns: repeat(3, minmax(0, 1fr)); grid-template-areas: "checks checks checks" "history history application" "borrower group officer"; }
+}
+.rv:has(> .ov) { --rv-max: 1480px; }
+
+.ov-checks { padding: 2px 0 14px; }
+.ov-checks-title, .ov-head h3 { margin: 0; font-size: 11px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: var(--text-3); }
+.ov-checks ul { list-style: none; margin: 8px 0 0; padding: 0; display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px 24px; }
+@container rv (min-width: 620px) { .ov-checks ul { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@container rv (min-width: 980px) { .ov-checks ul { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+.ov-checks li { display: flex; gap: 10px; align-items: flex-start; min-width: 0; }
+.ov-checks li b { display: block; font-weight: 500; }
+.ov-checks li[data-tone="risk"] b { color: var(--risk); }
+.ov-detail { display: block; font-size: 12px; color: var(--text-3); }
+.rv-tone { flex: none; display: grid; place-items: center; width: 22px; height: 22px; border-radius: 6px; background: var(--hover); color: var(--text-2); }
+.rv-tone[data-tone="ok"] { background: color-mix(in oklab, var(--ok) 14%, transparent); color: var(--ok); }
+.rv-tone[data-tone="warn"] { background: color-mix(in oklab, var(--warn) 16%, transparent); color: var(--warn); }
+.rv-tone[data-tone="risk"] { background: color-mix(in oklab, var(--risk) 14%, transparent); color: var(--risk); }
+
+.ov-sec { container-type: inline-size; min-width: 0; padding: 14px 0 16px; border-top: 1px solid var(--line); display: grid; gap: 8px; align-content: start; }
+.ov-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.ov-go { display: inline-flex; align-items: center; gap: 4px; border: 0; background: none; padding: 2px 6px; margin-right: -6px; border-radius: 4px; color: var(--accent); font: inherit; font-size: 12px; cursor: pointer; }
+.ov-go:hover { background: var(--accent-weak); }
+.ov-lead { margin: 0; font-size: 14px; font-weight: 500; }
+.ov-lead.is-warn { color: var(--risk); }
+.ov-foot { margin: 0; font-size: 12px; color: var(--text-3); }
+.ov-sec .rv-table td, .ov-sec .rv-table th { padding-top: 6px; padding-bottom: 6px; }
+.ov-sec .rv-facts { margin-top: -4px; }
+.ov-sec .rv-fact:last-child { border-bottom: 0; }
+.ov-sec .rv-ladder-note { font-size: 12px; color: var(--text-3); }

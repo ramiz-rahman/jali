@@ -50,26 +50,7 @@ body.is-pane-dragging .page-tab { cursor: grabbing; }
 .mode-switch .seg-btn { display: inline-flex; align-items: center; gap: 6px; }
 .mode-switch .seg-btn:disabled { opacity: .45; cursor: not-allowed; }
 
-/* ---------- Overview: one section per question, each leading to its tab ---------- */
-.ov { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 12px; padding: 12px; overflow: auto; align-content: start; }
-.ov-sec { border: 1px solid var(--line); border-radius: 8px; padding: 12px 14px; display: grid; gap: 8px; align-content: start; min-width: 0; }
-.ov-sec[aria-label="Loan history"] { grid-column: 1 / -1; }
-.ov-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
-.ov-head h3 { margin: 0; font-size: 13px; font-weight: 600; }
-.ov-go { display: inline-flex; align-items: center; gap: 4px; border: 0; background: none; padding: 2px 4px; border-radius: 4px; color: var(--accent); font-size: 12px; cursor: pointer; }
-.ov-go:hover { background: var(--accent-soft); }
-.ov-lead { margin: 0; font-size: 14px; font-weight: 500; }
-.ov-lead.is-warn { color: var(--red); }
-.ov-facts { display: grid; grid-template-columns: max-content 1fr; gap: 4px 16px; margin: 0; }
-.ov-facts > div { display: contents; }
-.ov-facts dt { color: var(--text-3); }
-.ov-facts dd { margin: 0; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.ov-table { width: 100%; border-collapse: collapse; font-size: 12px; }
-.ov-table th { text-align: left; font-weight: 500; color: var(--text-3); padding: 4px 8px 4px 0; border-bottom: 1px solid var(--line); }
-.ov-table td { padding: 5px 8px 5px 0; border-bottom: 1px solid var(--line); }
-.ov-table .num { text-align: right; font-family: var(--mono); }
-.ov-table tr[data-status="overdue"] td { color: var(--red); }
-.ov-table tr[data-status="closed"] td { color: var(--text-3); }
+/* The views inside the panes (Overview, records, lists) are styled in views.css. */
 
 /* Phones: the queue is a sheet opened from the header. */
 .item-queue, .queue-sheet { display: none; }
