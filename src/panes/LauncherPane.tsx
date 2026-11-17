@@ -4,9 +4,9 @@ import type { ObjectRef, TableInfo } from "../data/types";
 import { KindIcon } from "../ui/PaneFrame";
 import { openPaneFor, useUi } from "../ui/store";
 import { paneTitle } from "../ui/pane-kinds";
-import { useCatalog } from "./data";
+import { useCatalog } from "../data/hooks";
 import { formatCount, recordRef, singular, tableRef } from "./format";
-import type { PaneProps } from "./props";
+import type { PaneComponentProps } from "../ui/pane-kinds";
 
 /** One choosable row. `open` marks an object already on screen: choosing it focuses that pane. */
 interface Item {
@@ -33,7 +33,7 @@ function recordJump(q: string, tables: TableInfo[]): ObjectRef | null {
  * The launcher: what a split or a stack's "+" opens. A search over recent objects and tables, plus "New query".
  * Choosing fills this same pane (openHere); Esc on an untouched launcher closes it and returns focus.
  */
-export function LauncherPane({ node, focused, paused, openHere, dismiss }: PaneProps) {
+export function LauncherPane({ node, focused, paused, openHere, dismiss }: PaneComponentProps) {
   const catalog = useCatalog({ paused });
   const recent = useUi((s) => s.recent);
   useUi((s) => s.layout); // "open" marks follow the layout

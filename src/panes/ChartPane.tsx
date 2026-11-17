@@ -1,13 +1,13 @@
 import { useMemo, useState } from "react";
-import { errorText, isLoading, useResultRows } from "./data";
+import { errorText, isLoading, useResultRows } from "../data/hooks";
 import { formatCompact, formatCount, pickChartColumns } from "./format";
 import { Empty, ErrorState, Gone, Loading, Shell } from "./states";
-import type { PaneProps } from "./props";
+import type { PaneComponentProps } from "../ui/pane-kinds";
 
 const MAX_BARS = 20;
 
 /** A bar chart of the same result handle the grid reads (same cache key, so no second fetch). */
-export function ChartPane({ ref, paused }: PaneProps) {
+export function ChartPane({ ref, paused }: PaneComponentProps) {
   const runId = String(ref.params.runId ?? "");
   // Same offset/limit as the grid's first window so both share one cache entry.
   const q = useResultRows(runId, 0, 200, { paused });

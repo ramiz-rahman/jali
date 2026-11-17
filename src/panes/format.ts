@@ -146,7 +146,8 @@ export function titleFor(ref: ObjectRef): string {
     default: return ref.kind;
   }
 }
-export const singular = (t: string) => t.replace(/ies$/, "y").replace(/s$/, "");
+export { singular } from "../data/tables";
+import { singular } from "../data/tables";
 
 /** Pick a label column (first text) and a value column (first numeric) for charting a result. */
 export function pickChartColumns(rows: Row[], columns: string[]): { x: string | null; y: string | null } {

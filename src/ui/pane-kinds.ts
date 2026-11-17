@@ -24,10 +24,9 @@
  *   `keys.*`; never fetch outside the cache.
  * - Do not stop propagation of F6, ⌥/⌘ chords or Escape; the workspace keyboard layer listens on window.
  */
-import { createContext, createElement, useContext, useSyncExternalStore } from "react";
+import { useSyncExternalStore } from "react";
 import type { ComponentType, ReactNode } from "react";
 import type { KindRegistry, ObjectRef, PaneKind, PaneNode } from "../layout-core/types";
-import type { DataLayer } from "../data/types";
 
 /** What a pane reports about itself; shown in its header, its tab and its rail. */
 export type PaneActivity = "idle" | "loading" | "working" | "needs-you" | "error";
@@ -60,6 +59,10 @@ export interface PaneComponentProps {
 export interface PaneKindDef {
   kind: string;
   title: (ref: ObjectRef) => string;
+  ref: (params: ObjectRef["params"]) => ObjectRef;
+  identity?: (ref: ObjectRef) => unknown;
+  transient?: boolean;
+  recordable?: boolean | ((ref: ObjectRef) => boolean);
   minWidth: number;
   minHeight: number;
   maxWidth?: number;
@@ -70,6 +73,8 @@ export interface PaneKindDef {
   icon?: ComponentType<{ size?: number; strokeWidth?: number; "aria-hidden"?: boolean }>;
   Component: (props: PaneComponentProps) => ReactNode;
 }
+
+export function definePaneKind(def: PaneKindDef): PaneKindDef { return def; }
 
 const kinds = new Map<string, PaneKindDef>();
 const listeners = new Set<() => void>();
@@ -122,17 +127,6 @@ export function paneTitle(ref: ObjectRef): string {
   }
 }
 
-// ---- Shared data for pane kinds ----
 
-const DataLayerContext = createContext<DataLayer | null>(null);
-
-export function DataLayerProvider({ value, children }: { value: DataLayer; children?: ReactNode }) {
-  return createElement(DataLayerContext.Provider, { value }, children);
-}
-
-/** The shared DataLayer (api, keys, queryClient, invalidateEntities, stats). */
-export function useDataLayer(): DataLayer {
-  const d = useContext(DataLayerContext);
-  if (!d) throw new Error("useDataLayer() outside <DataLayerProvider>");
-  return d;
-}
+/** @deprecated: use the kind module; removed in the ui refactor */
+export { useDataLayer } from "../data/react";

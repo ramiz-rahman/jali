@@ -1,10 +1,10 @@
 import type { TableName } from "../data/types";
-import { errorText, isLoading, useCatalog } from "./data";
+import { errorText, isLoading, useCatalog } from "../data/hooks";
 import { erRef, formatCount, tableInfoOf, tableRef } from "./format";
 import { ErrorState, Gone, Loading, NullChip, Shell } from "./states";
-import type { PaneProps } from "./props";
+import type { PaneComponentProps } from "../ui/pane-kinds";
 
-export function StructurePane({ ref, paused, openBeside }: PaneProps) {
+export function StructurePane({ ref, paused, openBeside }: PaneComponentProps) {
   const table = String(ref.params.table ?? "") as TableName;
   const cat = useCatalog({ paused });
   if (isLoading(cat)) return <Shell><Loading /></Shell>;

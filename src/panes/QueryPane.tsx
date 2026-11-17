@@ -1,14 +1,14 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { ResultHandle, Row } from "../data/types";
 import { Grid, type GridColumn } from "./Grid";
-import { errorText, useResultRows, useRun } from "./data";
+import { errorText, useResultRows, useRun } from "../data/hooks";
 import { chartRef, formatCount, formatMs } from "./format";
 import { Empty, ErrorState, Loading, Shell } from "./states";
-import type { PaneProps } from "./props";
+import type { PaneComponentProps } from "../ui/pane-kinds";
 
 export const DEFAULT_SQL = "SELECT region, SUM(amount_cents) AS amount_cents\nFROM sample_orders\nGROUP BY region\nORDER BY amount_cents DESC";
 
-export function QueryPane({ ref, paused, focused, openBeside, setActivity }: PaneProps) {
+export function QueryPane({ ref, paused, focused, openBeside, setActivity }: PaneComponentProps) {
   const [sql, setSql] = useState(typeof ref.params.sql === "string" ? ref.params.sql : DEFAULT_SQL);
   const [handle, setHandle] = useState<ResultHandle | null>(null);
   const [error, setError] = useState<string | null>(null);

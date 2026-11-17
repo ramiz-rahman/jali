@@ -2,7 +2,7 @@ import { useEffect, useMemo } from "react";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster, toast } from "sonner";
 import type { DataLayer } from "../data/types";
-import { DataLayerProvider } from "./pane-kinds";
+import { DataLayerProvider } from "../data/react";
 import { TopBar } from "./TopBar";
 import { Workspace } from "./Workspace";
 import { StatusLine } from "./StatusLine";

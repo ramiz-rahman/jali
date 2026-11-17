@@ -1,19 +1,20 @@
 import { PGlite } from '@electric-sql/pglite';
 import { QueryClient, hashKey } from '@tanstack/react-query';
 import { sampleDatabaseStatements } from './sample-sql';
-import type { ColumnInfo, DataLayer, EntityKey, Relation, Row, TableInfo, TableName } from './types';
+import { TABLES, singular } from './tables';
+import type { ColumnInfo, DataLayer, EntityKey, Relation, Row, RowsQuery, TableInfo, TableName } from './types';
 export type * from './types';
 
-const names: TableName[] = ['customers','orders','order_items','products','suppliers','reviews','addresses','categories','audit_log','sample_orders'];
+const names: readonly TableName[] = TABLES;
 const ident = (s: string) => `"${s.replaceAll('"', '""')}"`;
-const singular = (name: string) => name === 'addresses' ? 'address' : name === 'categories' ? 'category' : name.replace(/s$/, '');
 const key = (e: EntityKey) => `${e.table}:${e.id}`;
 const keys = {
   catalog: () => ['catalog'] as const,
-  rows: (table: TableName, opts: object) => ['rows', table, opts] as const,
+  rows: (table: TableName, opts: RowsQuery) => ['rows', table, opts] as const,
   record: (table: TableName, id: string) => ['record', table, id] as const,
   relations: (table: TableName, id: string) => ['relations', table, id] as const,
   result: (runId: string) => ['result', runId] as const,
+  resultPage: (runId: string, offset: number, limit: number) => ['result', runId, offset, limit] as const,
 };
 
 export function createDataLayer(): DataLayer {

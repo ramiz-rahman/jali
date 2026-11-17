@@ -1,14 +1,14 @@
 import { useMemo, useState } from "react";
 import type { TableName } from "../data/types";
 import { Grid, type GridColumn } from "./Grid";
-import { useCatalog, errorText, isLoading } from "./data";
+import { useCatalog, errorText, isLoading } from "../data/hooks";
 import { foreignKeyRef, formatCount, nextSort, orderByString, parseFilter, recordRef, rowId, singular, tableInfoOf, type SortState } from "./format";
 import { ErrorState, Gone, Loading, Shell } from "./states";
 import { useWindowRows } from "./useWindow";
-import type { PaneProps } from "./props";
+import type { PaneComponentProps } from "../ui/pane-kinds";
 
 /** A grid over one table, optionally pre-filtered by a relation (used by RelatedPane). */
-export function TableGrid({ table, fixedWhere, paused, focused, openBeside, peek, select, label }: Pick<PaneProps, "paused" | "focused" | "openBeside" | "peek" | "select"> & { table: TableName; fixedWhere?: Record<string, string | number>; label: string }) {
+export function TableGrid({ table, fixedWhere, paused, focused, openBeside, peek, select, label }: Pick<PaneComponentProps, "paused" | "focused" | "openBeside" | "peek" | "select"> & { table: TableName; fixedWhere?: Record<string, string | number>; label: string }) {
   const cat = useCatalog({ paused });
   const info = tableInfoOf(cat.data, table);
   const [sort, setSort] = useState<SortState>(null);
@@ -57,7 +57,7 @@ export function TableGrid({ table, fixedWhere, paused, focused, openBeside, peek
   );
 }
 
-export function TablePane(p: PaneProps) {
+export function TablePane(p: PaneComponentProps) {
   const table = String(p.ref.params.table ?? "") as TableName;
   return <TableGrid {...p} table={table} label={`${table} rows`} />;
 }

@@ -6,9 +6,8 @@
  */
 import type { QueryClient } from "@tanstack/react-query";
 
-export type TableName =
-  | "customers" | "orders" | "order_items" | "products" | "suppliers"
-  | "reviews" | "addresses" | "categories" | "audit_log" | "sample_orders";
+import type { TableName } from "./tables";
+export type { TableName } from "./tables";
 
 export type Row = Record<string, string | number | null>;
 
@@ -23,11 +22,13 @@ export interface Relation { label: string; table: TableName; where: Record<strin
 /** A query run's results live in a result store by handle; grid, chart and inspector share the handle, never a copy. */
 export interface ResultHandle { runId: string; sql: string; columns: string[]; rowCount: number; ms: number }
 
+export interface RowsQuery { where?: Record<string, string | number>; orderBy?: string; limit?: number; offset?: number }
+
 export interface DataApi {
   /** Starts PGlite in the browser and loads the sample (sampleDatabaseStatements("postgres")). Idempotent. */
   ready(): Promise<void>;
   catalog(): Promise<TableInfo[]>;
-  rows(table: TableName, opts: { where?: Record<string, string | number>; orderBy?: string; limit?: number; offset?: number }): Promise<{ rows: Row[]; total: number }>;
+  rows(table: TableName, opts: RowsQuery): Promise<{ rows: Row[]; total: number }>;
   record(table: TableName, id: string): Promise<Row | null>;
   relations(table: TableName, row: Row): Promise<Relation[]>;
   run(sql: string): Promise<ResultHandle>;
@@ -39,10 +40,11 @@ export interface DataApi {
 /** Query-key factory: every key that contains an entity can be invalidated by that entity. */
 export interface Keys {
   catalog(): readonly unknown[];
-  rows(table: TableName, opts: object): readonly unknown[];
+  rows(table: TableName, opts: RowsQuery): readonly unknown[];
   record(table: TableName, id: string): readonly unknown[];
   relations(table: TableName, id: string): readonly unknown[];
   result(runId: string): readonly unknown[];
+  resultPage(runId: string, offset: number, limit: number): readonly unknown[];
 }
 
 export interface DataLayer {

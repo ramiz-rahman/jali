@@ -6,7 +6,7 @@ import { cellKind, columnLabel, formatCell, isMoneyColumn, isNumericType, rawTex
 import { NullChip } from "./states";
 
 export const ROW_H = 28;
-export interface GridColumn { name: string; type: string; badge?: "PK" | "FK"; link?: (v: string | number | null) => ObjectRef | null }
+export interface GridColumn { name: string; type: string; badge?: "PK" | "FK"; link?: (v: string | number | null, row: Row) => ObjectRef | null }
 
 interface Props {
   columns: GridColumn[];
@@ -132,7 +132,7 @@ export function Grid(p: Props) {
                 {p.columns.map((c) => {
                   const v = row[c.name] ?? null;
                   const kind = cellKind(v, c);
-                  const link = c.link?.(v) ?? null;
+                  const link = c.link?.(v, row) ?? null;
                   const raw = rawText(v);
                   return (
                     <div key={c.name} role="gridcell" className={`pk-cell${isNum(c) ? " r num" : ""}${kind === "json" ? " json" : ""}${kind === "time" ? " time" : ""}`} style={{ width: widthOf(c) }} title={raw} data-raw={v === null ? undefined : raw}>

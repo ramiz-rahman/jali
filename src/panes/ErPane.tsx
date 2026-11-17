@@ -1,12 +1,12 @@
 import type { TableName } from "../data/types";
-import { errorText, isLoading, useCatalog } from "./data";
+import { errorText, isLoading, useCatalog } from "../data/hooks";
 import { erRef, tableInfoOf } from "./format";
 import { ErrorState, Gone, Loading, Shell } from "./states";
-import type { PaneProps } from "./props";
+import type { PaneComponentProps } from "../ui/pane-kinds";
 
 const BW = 150, GAPY = 12, HEAD = 22, LINE = 15;
 
-export function ErPane({ ref, paused, openBeside }: PaneProps) {
+export function ErPane({ ref, paused, openBeside }: PaneComponentProps) {
   const table = String(ref.params.table ?? "") as TableName;
   const cat = useCatalog({ paused });
   if (isLoading(cat)) return <Shell><Loading /></Shell>;

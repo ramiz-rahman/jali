@@ -1,11 +1,11 @@
 import { useEffect, useRef, useState } from "react";
 import type { ColumnInfo, Relation, Row, TableName } from "../data/types";
-import { errorText, isLoading, useCatalog, useRecord, useRelations, useRows, useUpdateRow } from "./data";
+import { errorText, isLoading, useCatalog, useRecord, useRelations, useRows, useUpdateRow } from "../data/hooks";
 import { cellKind, columnLabel, foreignKeyRef, formatCell, formatCount, formatJson, rawText, isEditable, relationRef, singular, tableInfoOf, tableRef } from "./format";
 import { ErrorState, Gone, Loading, NullChip, Shell } from "./states";
-import type { PaneProps } from "./props";
+import type { PaneComponentProps } from "../ui/pane-kinds";
 
-export function RecordPane({ ref, paused, openBeside, setActivity }: PaneProps) {
+export function RecordPane({ ref, paused, openBeside, setActivity }: PaneComponentProps) {
   const table = String(ref.params.table ?? "") as TableName;
   const id = String(ref.params.id ?? "");
   const cat = useCatalog({ paused });
@@ -86,7 +86,7 @@ function JsonValue({ text, open, toggle }: { text: string; open: boolean; toggle
   );
 }
 
-function Relations({ table, id, row, paused, openBeside }: { table: TableName; id: string; row: Row; paused: boolean; openBeside: PaneProps["openBeside"] }) {
+function Relations({ table, id, row, paused, openBeside }: { table: TableName; id: string; row: Row; paused: boolean; openBeside: PaneComponentProps["openBeside"] }) {
   const rels = useRelations(table, id, row, { paused });
   const list = rels.data ?? [];
   return (
@@ -99,7 +99,7 @@ function Relations({ table, id, row, paused, openBeside }: { table: TableName; i
   );
 }
 
-function RelationLink({ rel, paused, openBeside }: { rel: Relation; paused: boolean; openBeside: PaneProps["openBeside"] }) {
+function RelationLink({ rel, paused, openBeside }: { rel: Relation; paused: boolean; openBeside: PaneComponentProps["openBeside"] }) {
   const count = useRows(rel.table, { where: rel.where, limit: 1 }, { paused });
   return (
     <div className="pk-field" style={{ minHeight: 28 }}>

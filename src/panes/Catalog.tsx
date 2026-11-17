@@ -1,10 +1,10 @@
 import { useEffect, useRef, useState } from "react";
-import { useCatalog, errorText, isLoading } from "./data";
+import { useCatalog, errorText, isLoading } from "../data/hooks";
 import { formatCount, tableRef } from "./format";
 import { ErrorState, Loading, Shell, Empty } from "./states";
-import type { PaneProps } from "./props";
+import type { PaneComponentProps } from "../ui/pane-kinds";
 
-export function CatalogPane({ paused, focused, openBeside, peek }: PaneProps) {
+export function CatalogPane({ paused, focused, openBeside, peek }: PaneComponentProps) {
   const q = useCatalog({ paused });
   const tables = q.data ?? [];
   const [sel, setSel] = useState(0);
