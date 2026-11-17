@@ -45,7 +45,7 @@ export function handleKey(e: KeyboardEvent): boolean {
       if (nd) {
         const step = e.shiftKey ? STEP_BIG : STEP;
         const sign = dir === "right" || dir === "bottom" ? 1 : -1;
-        actions.resizeDivider(nd.d.parentId, nd.d.index, sign * step);
+        actions.resizeDivider(nd.parentId, nd.index, sign * step);
       }
       return true;
     }

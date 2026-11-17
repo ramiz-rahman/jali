@@ -80,17 +80,6 @@ export const COMMANDS: Command[] = [
 
   { id: "settings.open", title: "Open settings", group: "Settings", run: () => setState({ settingsOpen: true }) },
   {
-    id: "settings.adapter.toggle",
-    title: "Switch resize adapter (own ↔ Ark)",
-    group: "Settings",
-    run: () => {
-      const s = getState().settings;
-      const adapter = s.adapter === "own" ? "ark" : "own";
-      setState({ settings: { ...s, adapter } });
-      hooks.announce(`Resize adapter: ${adapter === "own" ? "own separator" : "Ark UI Splitter"}`);
-    },
-  },
-  {
     id: "settings.centre_drop.toggle",
     title: "Switch centre drop (swap ↔ tab)",
     group: "Settings",

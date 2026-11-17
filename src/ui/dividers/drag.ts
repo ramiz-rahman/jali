@@ -13,6 +13,7 @@ import { core } from "../core";
 import { pairGeometry, type PairGeometry } from "../geometry";
 import { paneDomId } from "../ids";
 import { getPaneKind } from "../pane-kinds";
+import { dividerKey } from "./Divider";
 import { actions, findNode, fit, GAP, getState, resolved, titleOf } from "../store";
 
 export const SNAP_IN = 10;
@@ -39,7 +40,6 @@ export function geometryFor(d: DividerBox, r: ResolvedLayout = resolved()): Pair
   return pairGeometry(d, split, r.panes, fit().kinds, GAP, label);
 }
 
-export const dividerKey = (d: { parentId: NodeId; index: number }) => `${d.parentId}:${d.index}`;
 
 /** The one drag line, owned by DividerLayer. */
 let overlay: HTMLElement | null = null;
@@ -89,10 +89,7 @@ export function startDividerDrag(e: { pointerId: number; button: number; clientX
     if (el) frames.set(b.id, el);
   }
   const dividerEls = new Map<string, HTMLElement>();
-  for (const el of document.querySelectorAll<HTMLElement>(".divider-layer [data-divider]")) {
-    // Only our own separator is positioned by its gap rect; Ark's sits inside a ghost group and moves on commit.
-    if (el.style.position === "absolute") dividerEls.set(el.dataset.divider!, el);
-  }
+  for (const el of document.querySelectorAll<HTMLElement>(".divider-layer [data-divider]")) dividerEls.set(el.dataset.divider!, el);
   const neighbours = new Set([...(d0.neighbours?.[0] ?? g0.a.ids), ...(d0.neighbours?.[1] ?? g0.b.ids)]);
 
   // Heavy panes hold their content at its current size; the frame around it still moves with the pointer.

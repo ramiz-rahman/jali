@@ -43,7 +43,6 @@ function LayoutsMenu() {
 
 export function TopBar() {
   const presetId = useUi((s) => s.presetId);
-  const adapter = useUi((s) => s.settings.adapter);
   return (
     <header className="topbar">
       <div className="brand">
@@ -59,7 +58,6 @@ export function TopBar() {
       </nav>
       <LayoutsMenu />
       <div className="topbar-right">
-        <span className="adapter-tag" title="Resize adapter (Settings)">{adapter === "own" ? "Own separator" : "Ark Splitter"}</span>
         <button className="icon-btn" onClick={() => copyLink()} aria-label="Copy link to this layout" title="Copy link">
           <Link2 size={16} strokeWidth={1.5} aria-hidden />
         </button>

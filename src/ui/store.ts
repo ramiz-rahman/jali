@@ -16,7 +16,6 @@ export const GAP = 6;
 export const SWITCHER_H = 44;
 
 export interface Settings {
-  adapter: "own" | "ark";
   centreDrop: "swap" | "tab";
   paneCap: number;
   showStats: boolean;
@@ -72,11 +71,10 @@ export interface UiState {
 
 const SETTINGS_KEY = "pane-lab:settings";
 function loadSettings(): Settings {
-  const d: Settings = { adapter: "own", centreDrop: "swap", paneCap: 8, showStats: true, theme: "system" };
+  const d: Settings = { centreDrop: "swap", paneCap: 8, showStats: true, theme: "system" };
   try {
-    const s: Settings = { ...d, ...JSON.parse(localStorage.getItem(SETTINGS_KEY) ?? "{}") };
-    // "rrp" (react-resizable-panels) was dropped from the drag path: saved settings fall back to our own separator.
-    if (s.adapter !== "own" && s.adapter !== "ark") s.adapter = "own";
+    const { adapter: _dropped, ...saved } = JSON.parse(localStorage.getItem(SETTINGS_KEY) ?? "{}");
+    const s: Settings = { ...d, ...saved };
     if (s.theme !== "light" && s.theme !== "dark") s.theme = "system";
     return s;
   } catch {

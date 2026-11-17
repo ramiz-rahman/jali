@@ -139,7 +139,6 @@ code, kbd, pre, .num { font-family: var(--mono); }
 .preset:hover { background: var(--hover); color: var(--text); }
 .preset.is-active { background: var(--ground); border-color: var(--line); color: var(--text); font-weight: 500; }
 .topbar-right { margin-left: auto; display: flex; align-items: center; gap: 4px; flex: none; }
-.adapter-tag { font-family: var(--mono); font-size: 11px; color: var(--text-3); padding: 0 8px; }
 .kbd-btn {
   display: inline-flex; align-items: center; gap: 6px; height: 28px; padding: 0 10px; margin-left: 4px;
   border: 1px solid var(--control); border-radius: 6px; background: var(--island); color: var(--text-2); cursor: pointer;
@@ -227,8 +226,6 @@ body.is-pane-dragging, body.is-pane-dragging * { cursor: grabbing !important; }
 
 /* ---------- dividers ---------- */
 .divider-layer { position: absolute; inset: 0; pointer-events: none; z-index: 5; }
-.ghost-group { pointer-events: none; }
-.ghost-panel { pointer-events: none; }
 .divider {
   position: relative; pointer-events: auto; flex: none; background: transparent; border: 0; padding: 0;
   outline: none; touch-action: none;
@@ -418,7 +415,7 @@ body.is-resizing-column, body.is-resizing-column * { cursor: row-resize !importa
 .layouts-menu .preset { height: 32px; text-align: left; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
 .kbd-label { display: inline; }
 @media (max-width: 767px) {
-  .presets, .adapter-tag { display: none; }
+  .presets { display: none; }
   .layouts { display: block; }
   .topbar { gap: 10px; padding: 0 8px; }
 }
