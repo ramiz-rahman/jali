@@ -36,7 +36,6 @@ export function TableGrid({ table, fixedWhere, paused, focused, openBeside, peek
 
   const columns: GridColumn[] = info.columns.filter(c => !columnNames || columnNames.includes(c.name)).map((c: ColumnInfo) => ({
     name: c.name, type: c.type, format: c.format, badge: c.primaryKey ? "PK" : c.references ? "FK" : undefined,
-    link: audit && c.name === "entity_id" ? (_v, row) => rowRef?.(row) ?? null : c.references ? (v) => foreignKeyRef(c, v) : undefined,
   }));
   const refFor = rowRef ?? ((row: Row) => recordRef(table, rowId(info.columns, row)));
 
@@ -53,7 +52,11 @@ export function TableGrid({ table, fixedWhere, paused, focused, openBeside, peek
           rowLabel={(ref) => audit ? `Open ${ref.params.table} ${ref.params.id} beside` : `Open ${singular(table)} ${ref.params.id} beside`}
           sort={sort} onSort={audit ? undefined : (c) => setSort((s) => nextSort(s, c))}
           filters={filters} onFilter={audit ? undefined : (c, t) => setFilters((f) => ({ ...f, [c]: t }))}
-          onLink={openBeside} />}
+          link={(value, row, column) => {
+            if (audit && column.name === "entity_id") return rowRef?.(row) ?? null;
+            const infoColumn = info.columns.find(c => c.name === column.name);
+            return infoColumn ? foreignKeyRef(infoColumn, value) : null;
+          }} onLink={openBeside} />}
     </Shell>
   );
 }

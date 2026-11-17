@@ -11,7 +11,7 @@ import { NullChip } from "../shared/states";
 
 export const ROW_H = 28;
 const OVERSCAN_ROWS = 6;
-export interface GridColumn { name: string; type: string; format?: "money" | "json"; badge?: "PK" | "FK"; link?: (v: string | number | null, row: Row) => ObjectRef | null }
+export interface GridColumn { name: string; type: string; format?: "money" | "json"; badge?: "PK" | "FK" }
 
 interface Props {
   columns: GridColumn[];
@@ -23,6 +23,7 @@ interface Props {
   selected: number | null;
   onSelect(i: number): void;
   rowRef?(row: Row): ObjectRef | null;
+  link?(value: string | number | null, row: Row, column: GridColumn): ObjectRef | null;
   select?(ref: ObjectRef | null): void;
   peek?(ref: ObjectRef): void;
   openBeside?(ref: ObjectRef): void;
@@ -133,7 +134,7 @@ export function Grid(p: Props) {
                 {p.columns.map((c) => {
                   const v = row[c.name] ?? null;
                   const kind = cellKind(v, c);
-                  const link = c.link?.(v, row) ?? null;
+                  const link = p.link?.(v, row, c) ?? null;
                   const raw = rawText(v);
                   return (
                     <div key={c.name} role="gridcell" className={`pk-cell${isNum(c) ? " r num" : ""}${kind === "json" ? " json" : ""}${kind === "time" ? " time" : ""}`} style={{ width: widthOf(c) }} title={raw} data-raw={v === null ? undefined : raw}>

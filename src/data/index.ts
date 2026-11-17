@@ -25,6 +25,21 @@ export function createDataLayer(): DataLayer {
   const track = (queryKey: readonly unknown[], entries: EntityKey[]) => index.set(hashKey(queryKey), new Set(entries.map(key)));
   const api = createDataApi({ ready, catalog, info, call, primaryKeys, entity, entities, track, results,
     onCacheHit: () => { cacheHits++; } });
-  queryClient.getQueryCache().subscribe(event => { if (event.type === 'removed') index.delete(event.query.queryHash); if (event.type === 'observerAdded' && event.query.state.data !== undefined) cacheHits++; });
-  return { api, keys, queryClient, async invalidateEntities(changed) { const ids = new Set(changed.map(key)); const tables = new Set(changed.map(e => e.table)); for (const e of changed) for (const ref of (await info(e.table)).referencedBy) tables.add(ref.table); await queryClient.invalidateQueries({ predicate: q => (q.queryKey[0] === 'rows' && tables.has(q.queryKey[1] as TableName)) || [...(index.get(hashKey(keys.trackingKey(q.queryKey))) ?? [])].some(e => ids.has(e)) }); }, stats: () => ({fetches,cacheHits}) };
+  queryClient.getQueryCache().subscribe(event => {
+    if (event.type === 'removed') index.delete(event.query.queryHash);
+    if (event.type === 'observerAdded' && event.query.state.data !== undefined) cacheHits++;
+  });
+  return {
+    api, keys, queryClient,
+    async invalidateEntities(changed) {
+      const ids = new Set(changed.map(key));
+      const tables = new Set(changed.map(e => e.table));
+      for (const e of changed) for (const ref of (await info(e.table)).referencedBy) tables.add(ref.table);
+      await queryClient.invalidateQueries({ predicate: q =>
+        (q.queryKey[0] === 'rows' && tables.has(q.queryKey[1] as TableName)) ||
+        [...(index.get(hashKey(keys.trackingKey(q.queryKey))) ?? [])].some(e => ids.has(e)),
+      });
+    },
+    stats: () => ({ fetches, cacheHits }),
+  };
 }

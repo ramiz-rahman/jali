@@ -15,7 +15,10 @@ export type Row = Record<string, string | number | null>;
 export interface EntityKey { table: TableName; id: string } // composite PKs joined, e.g. "789:2" for order_items
 
 export type ColumnFormat = "money" | "json";
-export interface ColumnInfo { format?: ColumnFormat; name: string; type: string; nullable: boolean; primaryKey: boolean; references?: { table: TableName; column: string } }
+export interface ColumnInfo {
+  format?: ColumnFormat; name: string; type: string; nullable: boolean; primaryKey: boolean;
+  references?: { table: TableName; column: string };
+}
 export interface TableInfo { name: TableName; rowCount: number; columns: ColumnInfo[]; referencedBy: { table: TableName; column: string }[] }
 
 export interface Relation { label: string; table: TableName; where: Record<string, string | number>; count: number } // e.g. "Orders by this customer"

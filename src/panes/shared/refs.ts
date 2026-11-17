@@ -30,25 +30,7 @@ export function isEditable(c: ColumnInfo): boolean {
   return !c.primaryKey && !c.references && !isNumericType(c.type) && c.format !== "json" && !/_at$/.test(c.name) && c.name !== "email_verified";
 }
 
-/** Human title for a ref, used by the registry. */
-export function titleFor(ref: ObjectRef): string {
-  const p = ref.params;
-  switch (ref.kind) {
-    case "catalog": return "Tables";
-    case "table": return String(p.table ?? "Table");
-    case "record": return `${singular(String(p.table ?? "record"))} ${p.id ?? ""}`.trim();
-    case "related": return String(p.label ?? "Related");
-    case "query": return "Query";
-    case "chart": return "Chart";
-    case "structure": return `${p.table ?? ""} structure`.trim();
-    case "er": return `${p.table ?? ""} relations`.trim();
-    case "audit": return "Audit log";
-    case "launcher": return "New pane";
-    default: return ref.kind;
-  }
-}
 export { singular } from "../../data/tables";
-import { singular } from "../../data/tables";
 
 export function tableInfoOf(catalog: TableInfo[] | undefined, name: string): TableInfo | undefined {
   return catalog?.find((t) => t.name === name);

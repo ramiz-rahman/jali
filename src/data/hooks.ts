@@ -27,11 +27,15 @@ export function useRun() {
 }
 export function useResultRows(runId: string, offset: number, limit: number, options?: Pause) {
   const layer = useDataLayer();
-  return useQuery({ queryKey: layer.keys.resultPage(runId, offset, limit), queryFn: () => layer.api.resultRows(runId, offset, limit), ...activity(options) }, layer.queryClient);
+  return useQuery({ queryKey: layer.keys.resultPage(runId, offset, limit),
+    queryFn: () => layer.api.resultRows(runId, offset, limit), ...activity(options) }, layer.queryClient);
 }
 export function useUpdateRow() {
   const layer = useDataLayer();
-  return useMutation({ mutationFn: ({ table, id, patch }: { table: TableName; id: string; patch: Row }) => layer.api.updateRow(table, id, patch), onSuccess: changed => layer.invalidateEntities(changed) }, layer.queryClient);
+  return useMutation({
+    mutationFn: ({ table, id, patch }: { table: TableName; id: string; patch: Row }) => layer.api.updateRow(table, id, patch),
+    onSuccess: changed => layer.invalidateEntities(changed),
+  }, layer.queryClient);
 }
 
 export interface Q<T> { data: T | undefined; isLoading?: boolean; isPending?: boolean; isError?: boolean; error?: unknown; isFetching?: boolean }
