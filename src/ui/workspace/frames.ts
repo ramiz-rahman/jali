@@ -3,7 +3,11 @@ import type { NodeId, PaneNode, Rect, ViewState } from "../../layout-core/types"
 import type { WorkspaceModel } from "../state/model";
 import type { Presentation } from "../pane/chrome";
 
-export interface Tab { node: PaneNode; tucked: boolean }
+/**
+ * Why a pane is a tab. Made by the person: a tab they merged or opened (neither flag), or one they tucked (`tucked`).
+ * Made by the layout: `folded`, which returns by itself when there is room. Never both.
+ */
+export interface Tab { node: PaneNode; tucked: boolean; folded: boolean }
 
 export interface Frame {
   node: PaneNode;
@@ -39,7 +43,7 @@ export function frames(m: WorkspaceModel, view: ViewState, mode: Presentation, s
       focused: view.focused === box.id,
       zoomed,
       covered: !!view.zoomed && !zoomed,
-      ...(g ? { group: { id: g.id, active: g.active, tabs: g.tabs.map((t) => ({ node: t, tucked: !!m.tuckOf(t.id) })) } } : {}),
+      ...(g ? { group: { id: g.id, active: g.active, tabs: g.tabs.map((t) => { const tucked = !!m.tuckOf(t.id); return { node: t, tucked, folded: !tucked && m.folded.includes(t.id) }; }) } } : {}),
     }];
   });
 }
@@ -50,7 +54,7 @@ export const sameNode = (a: PaneNode, b: PaneNode) =>
   a === b || (a.id === b.id && a.linkedTo === b.linkedTo && a.pinned === b.pinned && JSON.stringify(a.ref) === JSON.stringify(b.ref));
 const sameGroup = (a: Frame["group"], b: Frame["group"]) =>
   a === b || (!!a && !!b && a.id === b.id && a.active === b.active && a.tabs.length === b.tabs.length &&
-    a.tabs.every((t, i) => t.tucked === b.tabs[i]!.tucked && sameNode(t.node, b.tabs[i]!.node)));
+    a.tabs.every((t, i) => t.tucked === b.tabs[i]!.tucked && t.folded === b.tabs[i]!.folded && sameNode(t.node, b.tabs[i]!.node)));
 
 /** A resize (pointer or keyboard) re-renders only the frames whose rect changed. */
 export const sameFrame = (a: Frame, b: Frame) =>

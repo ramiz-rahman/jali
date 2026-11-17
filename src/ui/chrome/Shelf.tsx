@@ -1,10 +1,11 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState, type KeyboardEvent } from "react";
-import { Undo2 } from "lucide-react";
+import { FoldHorizontal, Undo2 } from "lucide-react";
 import type { ShelfEntry } from "../../layout-core/types";
-import { shortcutLabel } from "../commands/registry";
+import { useShortcutSuffix } from "../commands/react";
 import { flashTab } from "../dom/focus";
 import { Activity, shelfActivity } from "../pane/Activity";
 import { KindIcon } from "../pane/icons";
+import { FOLDED_DESC, FOLDED_TIP } from "../pane/tabState";
 import { titleOf } from "../profile";
 import type { WorkspaceModel } from "../state/model";
 import { useActions, useModel, useUi } from "../state/react";
@@ -15,15 +16,20 @@ function label(m: WorkspaceModel, it: ShelfEntry, a: PaneActivity | undefined) {
   const title = node ? titleOf(node) : m.title(it.paneId);
   const home = m.title(it.homeId);
   const word = shelfActivity(a)?.word;
-  return { node, title, home, state: shelfActivity(a)?.state ?? "idle", full: `${title}${word ? `, ${word}` : ""}, behind ${home}` };
+  const folded = it.reason === "folded";
+  return { node, title, home, folded, state: shelfActivity(a)?.state ?? "idle", full: `${title}${word ? `, ${word}` : ""}, ${folded ? "folded" : `behind ${home}`}` };
 }
 
 /** The shelf: tucked panes by home, on the left of the status line. Renders nothing unless something is tucked. */
 export function Shelf() {
   const m = useModel();
-  const items = m.shelf;
+  // Every pane that is a tab but not by choice is listed too: tucked (yours, can be put back) and folded (the layout's).
+  const tuckedItems = m.shelf;
+  const foldedItems = useMemo(() => m.resolved.shelf.filter((e) => e.reason === "folded" && !tuckedItems.some((t) => t.paneId === e.paneId)), [m.resolved.shelf, tuckedItems]);
+  const items = useMemo(() => [...tuckedItems, ...foldedItems], [tuckedItems, foldedItems]);
   const activity = useUi((s) => s.activity);
   const actions = useActions();
+  const putBackKeys = useShortcutSuffix("pane.putBack");
   const doReveal = (it: ShelfEntry) => {
     actions.reveal(it.paneId);
     flashTab(it.paneId);
@@ -36,11 +42,11 @@ export function Shelf() {
 
   const groups = useMemo(() => {
     const byHome = new Map<string, ShelfEntry[]>();
-    for (const it of items) byHome.set(it.homeId, [...(byHome.get(it.homeId) ?? []), it]);
+    for (const it of tuckedItems) byHome.set(it.homeId, [...(byHome.get(it.homeId) ?? []), it]);
     return [...byHome.entries()];
-  }, [items]);
+  }, [tuckedItems]);
   // Keyboard order is the order on screen (grouped by home), not the store's order.
-  const ids = groups.flatMap(([, list]) => list.map((i) => i.paneId));
+  const ids = [...groups.flatMap(([, list]) => list.map((i) => i.paneId)), ...foldedItems.map((i) => i.paneId)];
   const tab = focusId && ids.includes(focusId) ? focusId : ids[0];
 
   // Fade edges and the +N list: chips scrolled out of view.
@@ -105,49 +111,58 @@ export function Shelf() {
     }
   };
 
+  const chip = (it: ShelfEntry) => {
+    const L = label(m, it, activity[it.paneId]);
+    return (
+      <div className={`shelf-chip${L.folded ? " is-folded" : ""}`} data-chip={it.paneId} data-reason={it.reason} data-activity={L.state} key={it.paneId}>
+        <button
+          className="shelf-chip-main"
+          tabIndex={it.paneId === tab ? 0 : -1}
+          aria-label={`${L.full}. Enter shows it${it.reason === "tucked" ? ", Shift+Enter puts it back" : ""}`}
+          aria-description={L.folded ? FOLDED_DESC : undefined}
+          title={L.folded ? `${L.title} · ${FOLDED_TIP}` : `${L.title} · behind ${L.home}`}
+          onFocus={() => setFocusId(it.paneId)}
+          onClick={() => doReveal(it)}
+        >
+          {L.folded ? <FoldHorizontal size={13} strokeWidth={1.75} aria-hidden /> : L.node ? <KindIcon kind={L.node.ref.kind} size={13} /> : null}
+          <span className="shelf-chip-title">{L.title}</span>
+          <Activity a={activity[it.paneId]} shape />
+        </button>
+        {it.reason === "tucked" ? <button className="shelf-chip-put" tabIndex={-1} aria-label={`Put back ${L.title}`} title={`Put back${putBackKeys}`} onClick={() => actions.putBack(it.paneId)}>
+          <Undo2 size={13} strokeWidth={1.75} aria-hidden />
+        </button> : null}
+      </div>
+    );
+  };
+
   const hidden = items.filter((i) => hiddenIds.includes(i.paneId));
   return (
     <div className="shelf" role="region" aria-label="Shelf" tabIndex={-1} data-shelf>
       <div className="shelf-bar" ref={bar}>
         <span className="shelf-fade shelf-fade-l" aria-hidden />
-        <div className="shelf-scroll" ref={scroller} role="toolbar" aria-label="Tucked panes" aria-orientation="horizontal" onKeyDown={onKey} onScroll={measure}>
+        <div className="shelf-scroll" ref={scroller} role="toolbar" aria-label="Tucked and folded panes" aria-orientation="horizontal" onKeyDown={onKey} onScroll={measure}>
           {groups.map(([home, list]) => (
             <div className="shelf-group" role="group" aria-label={`Behind ${m.title(home)}`} key={home}>
               <span className="shelf-home">Behind {m.title(home)}:</span>
-              {list.map((it) => {
-                const L = label(m, it, activity[it.paneId]);
-                return (
-                  <div className="shelf-chip" data-chip={it.paneId} data-activity={L.state} key={it.paneId}>
-                    <button
-                      className="shelf-chip-main"
-                      tabIndex={it.paneId === tab ? 0 : -1}
-                      aria-label={`${L.full}. Enter shows it${it.reason === "tucked" ? ", Shift+Enter puts it back" : ""}`}
-                      title={`${L.title} · behind ${L.home}`}
-                      onFocus={() => setFocusId(it.paneId)}
-                      onClick={() => doReveal(it)}
-                    >
-                      {L.node ? <KindIcon kind={L.node.ref.kind} size={13} /> : null}
-                      <span className="shelf-chip-title">{L.title}</span>
-                      <Activity a={activity[it.paneId]} shape />
-                    </button>
-                    {it.reason === "tucked" ? <button className="shelf-chip-put" tabIndex={-1} aria-label={`Put back ${L.title}`} title={`Put back · ${shortcutLabel("pane.putBack")}`} onClick={() => actions.putBack(it.paneId)}>
-                      <Undo2 size={13} strokeWidth={1.75} aria-hidden />
-                    </button> : null}
-                  </div>
-                );
-              })}
+              {list.map(chip)}
             </div>
           ))}
+          {foldedItems.length ? (
+            <div className="shelf-group is-folded" role="group" aria-label="Folded" key="folded">
+              <span className="shelf-home" title={FOLDED_TIP}><FoldHorizontal size={12} strokeWidth={1.75} aria-hidden /> Folded:</span>
+              {foldedItems.map(chip)}
+            </div>
+          ) : null}
         </div>
         <span className="shelf-fade shelf-fade-r" aria-hidden />
       </div>
       {hidden.length ? (
-        <button className="shelf-more" aria-haspopup="menu" aria-expanded={menu} aria-label={`${hidden.length} more tucked panes`} onClick={() => setMenu((m) => !m)}>
+        <button className="shelf-more" aria-haspopup="menu" aria-expanded={menu} aria-label={`${hidden.length} more tucked or folded panes`} onClick={() => setMenu((m) => !m)}>
           +{hidden.length}
         </button>
       ) : null}
       {menu ? (
-        <div className="shelf-menu" role="menu" aria-label="More tucked panes" onKeyDown={(e) => { if (e.key === "Escape") setMenu(false); }}>
+        <div className="shelf-menu" role="menu" aria-label="More tucked or folded panes" onKeyDown={(e) => { if (e.key === "Escape") setMenu(false); }}>
           {hidden.map((it) => {
             const L = label(m, it, activity[it.paneId]);
             return (
@@ -155,7 +170,7 @@ export function Shelf() {
                 {L.node ? <KindIcon kind={L.node.ref.kind} size={14} /> : null}
                 <span className="shelf-chip-title">{L.title}</span>
                 <Activity a={activity[it.paneId]} shape />
-                <small>behind {L.home}</small>
+                <small>{L.folded ? "folded" : `behind ${L.home}`}</small>
               </button>
             );
           })}

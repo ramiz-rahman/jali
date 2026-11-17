@@ -42,3 +42,10 @@
 .ra-fail { background: var(--act-failed); color: #fff; }
 @keyframes ra-spin { to { transform: rotate(360deg); } }
 @media (prefers-reduced-motion: reduce) { .ra-ring { animation: none; border-color: var(--act-working); border-top-color: transparent; } .shelf-fade { transition: none; } }
+
+/* Folded chips (made by the layout): dotted border, italic, fold icon; the same marks the tab strip uses. */
+.shelf-group.is-folded:not(:first-child) { position: relative; padding-left: 14px; }
+.shelf-group.is-folded:not(:first-child)::before { content: ""; position: absolute; left: 0; top: 4px; bottom: 4px; width: 1px; background: var(--text-3); }
+.shelf-home svg { vertical-align: -2px; }
+.shelf-chip.is-folded { border-style: dotted; border-color: var(--text-3); }
+.shelf-chip.is-folded .shelf-chip-title { font-style: italic; }

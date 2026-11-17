@@ -1,13 +1,16 @@
-import { Plus, Undo2, X } from "lucide-react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { FoldHorizontal, Plus, Undo2, X } from "lucide-react";
 import type { NodeId, PaneNode } from "../../layout-core/types";
 import { shortcutLabel } from "../commands/registry";
 import { paneDomId, paneTitleId } from "../dom/ids";
 import { getProfile, roleOf, titleOf } from "../profile";
 import { useStore, useUi } from "../state/react";
 import { startPaneDrag } from "../workspace/dnd";
-import type { Frame } from "../workspace/frames";
+import type { Frame, Tab } from "../workspace/frames";
 import { Activity } from "./Activity";
 import { KindIcon } from "./icons";
+import { TabOverflow } from "./TabOverflow";
+import { FOLDED_DESC, FOLDED_TIP, TUCKED_DESC } from "./tabState";
 
 /** Keep the active tab visible by scrolling only the tab strip (scrollIntoView would also move the workspace). */
 function revealTab(el: HTMLDivElement | null) {
@@ -29,52 +32,88 @@ export function TabStrip({ group, owner }: { group: NonNullable<Frame["group"]>;
   const review = useUi((s) => !!s.review);
   // A curated page's views live in the page tabs: here only the shown one and panes opened from links, never a repeat.
   const tabs = review ? group.tabs.filter(({ node: t }) => !t.role || t.id === group.active) : group.tabs;
+  // Made by you first, made by the layout (folded) after a hairline: the second kind returns by itself.
+  const mine = tabs.filter((t) => !t.folded);
+  const folded = tabs.filter((t) => t.folded);
+
+  const strip = useRef<HTMLDivElement>(null);
+  const [hiddenCount, setHiddenCount] = useState(0);
+  const measure = () => {
+    const el = strip.current;
+    if (!el) return;
+    const box = el.getBoundingClientRect();
+    let n = 0;
+    el.querySelectorAll<HTMLElement>("[data-tab]").forEach((t) => {
+      const r = t.getBoundingClientRect();
+      if (r.left < box.left - 1 || r.right > box.right + 1) n++;
+    });
+    setHiddenCount((p) => (p === n ? p : n));
+  };
+  useLayoutEffect(measure);
+  useEffect(() => {
+    const el = strip.current;
+    if (!el) return;
+    const ro = new ResizeObserver(measure);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+  const overflowing = hiddenCount > 0;
+
+  const renderTab = ({ node: t, tucked, folded: isFolded }: Tab) => {
+    const active = t.id === group.active;
+    const title = titleOf(t);
+    return (
+      <div
+        key={t.id}
+        ref={active ? revealTab : undefined}
+        className={`tab${active ? " is-active" : ""}${tucked ? " is-tucked" : ""}${isFolded ? " is-folded" : ""}`}
+        data-tab={t.id}
+        data-tucked={tucked || undefined}
+        data-folded={isFolded || undefined}
+        aria-label={title}
+        aria-description={isFolded ? FOLDED_DESC : tucked ? TUCKED_DESC : undefined}
+        title={isFolded ? `${title} · ${FOLDED_TIP}` : title}
+        role="tab"
+        aria-selected={active}
+        aria-controls={paneDomId(t.id)}
+        tabIndex={active ? 0 : -1}
+        data-drag-ok
+        onPointerDown={(e) => {
+          e.stopPropagation();
+          startPaneDrag(store, e, t.id);
+        }}
+        onClick={() => actions.setActiveTab(group.id, t.id)}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            actions.setActiveTab(group.id, t.id);
+          }
+        }}
+      >
+        <TabIcon node={t} />
+        <span className="tab-title" id={active ? paneTitleId(owner) : undefined}>{title}</span>
+        <TabActivity id={t.id} />
+        {isFolded ? <span className="tab-fold-mark" aria-hidden><FoldHorizontal size={13} strokeWidth={1.75} /></span> : null}
+        {tucked ? (
+          <button className="tab-putback" aria-label={`Put back ${title}`} title={`Put back${shortcutLabel(store, "pane.putBack") ? ` · ${shortcutLabel(store, "pane.putBack")}` : ""}`} onPointerDown={(e) => e.stopPropagation()} onClick={(e) => { e.stopPropagation(); actions.putBack(t.id); }}>
+            <Undo2 size={14} strokeWidth={1.75} aria-hidden />
+          </button>
+        ) : null}
+        <button className="tab-close" aria-label={`Close ${title}`} onClick={(e) => { e.stopPropagation(); actions.close(t.id); }}>
+          <X size={14} strokeWidth={1.75} aria-hidden />
+        </button>
+      </div>
+    );
+  };
+
   return (
     <div className="tabbar">
-      <div className="tabs" role="tablist" aria-label={`Tabs: ${tabs.length}`}>
-        {tabs.map(({ node: t, tucked }) => {
-          const active = t.id === group.active;
-          const title = titleOf(t);
-          return (
-            <div
-              key={t.id}
-              ref={active ? revealTab : undefined}
-              className={`tab${active ? " is-active" : ""}${tucked ? " is-tucked" : ""}`}
-              data-tab={t.id}
-              data-tucked={tucked || undefined}
-              aria-description={tucked ? "Tucked here. Put back to restore its place." : undefined}
-              role="tab"
-              aria-selected={active}
-              aria-controls={paneDomId(t.id)}
-              tabIndex={active ? 0 : -1}
-              data-drag-ok
-              onPointerDown={(e) => {
-                e.stopPropagation();
-                startPaneDrag(store, e, t.id);
-              }}
-              onClick={() => actions.setActiveTab(group.id, t.id)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" || e.key === " ") {
-                  e.preventDefault();
-                  actions.setActiveTab(group.id, t.id);
-                }
-              }}
-            >
-              <TabIcon node={t} />
-              <span className="tab-title" id={active ? paneTitleId(owner) : undefined}>{title}</span>
-              <TabActivity id={t.id} />
-              {tucked ? (
-                <button className="tab-putback" aria-label={`Put back ${title}`} title={`Put back · ${shortcutLabel("pane.putBack")}`} onPointerDown={(e) => e.stopPropagation()} onClick={(e) => { e.stopPropagation(); actions.putBack(t.id); }}>
-                  <Undo2 size={14} strokeWidth={1.75} aria-hidden />
-                </button>
-              ) : null}
-              <button className="tab-close" aria-label={`Close ${title}`} onClick={(e) => { e.stopPropagation(); actions.close(t.id); }}>
-                <X size={14} strokeWidth={1.75} aria-hidden />
-              </button>
-            </div>
-          );
-        })}
+      <div className="tabs" ref={strip} role="tablist" aria-label={`Tabs: ${tabs.length}`} onScroll={measure}>
+        {mine.map(renderTab)}
+        {folded.length && mine.length ? <span className="tab-sep" aria-hidden /> : null}
+        {folded.map(renderTab)}
       </div>
+      {overflowing ? <TabOverflow tabs={[...mine, ...folded]} active={group.active} hiddenCount={hiddenCount} onChoose={(id) => actions.setActiveTab(group.id, id)} /> : null}
       {review ? null : <button
         className="tab-add"
         aria-label="New tab in this stack"
