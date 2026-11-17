@@ -1,0 +1,71 @@
+/* ---------- a curated page: queue at the left; header, tabs and panes at the right ---------- */
+.app > .review-page { grid-row: 2; }
+.review-page { display: grid; grid-template-columns: 272px minmax(0, 1fr); min-height: 0; min-width: 0; }
+.review-main { display: grid; grid-template-rows: auto auto minmax(0, 1fr); min-height: 0; min-width: 0; }
+
+.rail { display: flex; flex-direction: column; min-height: 0; background: var(--island); border-right: 1px solid var(--line); }
+.rail-head { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; padding: 12px 12px 8px; border-bottom: 1px solid var(--line); }
+.rail-head b { font-weight: 600; }
+
+/* The item's header: who is asking and for what, then the facts a reviewer checks first in one strip. */
+.item-head { display: grid; gap: 12px; padding: 14px 20px 12px; background: var(--island); }
+.item-id { display: flex; align-items: center; gap: 12px; min-width: 0; }
+.item-avatar { display: grid; place-items: center; flex: none; width: 36px; height: 36px; border-radius: 8px; background: var(--accent-soft); color: var(--accent); font-weight: 600; font-size: 13px; }
+.item-name { min-width: 0; flex: 1; }
+.item-kicker { font-size: 12px; color: var(--text-3); }
+.item-name h1 { margin: 1px 0 0; font-size: 20px; line-height: 1.2; font-weight: 600; letter-spacing: -0.01em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.item-status { flex: none; height: 22px; padding: 0 8px; border-radius: 11px; display: inline-flex; align-items: center; font-size: 12px; font-weight: 500; background: var(--accent-soft); color: var(--accent); }
+.item-status[data-status="approved"] { background: var(--hover); color: var(--text-2); }
+.item-status[data-status="returned"] { background: color-mix(in oklab, var(--amber) 16%, transparent); color: var(--amber); }
+.item-facts { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 16px; margin: 0; }
+.item-facts > div { min-width: 0; }
+.item-facts dt { font-size: 11px; color: var(--text-3); }
+.item-facts dd { margin: 1px 0 0; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.item-facts dd.pk-meta { font-weight: 400; }
+
+/* The page's tabs. Single: one selected. Multiplexed: focused (strong underline), on screen (light underline and a
+   dot), behind another tab (dashed), not on screen (plain). */
+.page-tabs { display: flex; gap: 4px; padding: 0 16px; background: var(--island); border-bottom: 1px solid var(--line); overflow-x: auto; scrollbar-width: none; }
+.page-tab {
+  display: inline-flex; align-items: center; gap: 6px; height: 36px; padding: 0 8px; flex: none;
+  border: 0; border-bottom: 2px solid transparent; margin-bottom: -1px; background: none;
+  color: var(--text-3); font-weight: 500; cursor: pointer; touch-action: none; user-select: none;
+}
+.page-tab:hover { color: var(--text); }
+.page-tab[data-state="focused"] { color: var(--text); border-bottom-color: var(--accent); }
+.page-tab[data-state="shown"] { color: var(--text); border-bottom-color: var(--accent-mid); }
+.page-tab[data-state="behind"] { color: var(--text-2); border-bottom: 2px dashed var(--line-strong); }
+.page-tab-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--accent-mid); }
+body.is-pane-dragging .page-tab { cursor: grabbing; }
+
+/* Single: the tabs name the one view, so its pane has no header (it stays for assistive tech). */
+.workspace[data-page="single"] .pane-header { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+.workspace[data-page="single"] .pane.is-focused { border-color: var(--line); box-shadow: none; }
+
+.mode-switch .seg-btn { display: inline-flex; align-items: center; gap: 6px; }
+.mode-switch .seg-btn:disabled { opacity: .45; cursor: not-allowed; }
+
+/* ---------- Overview: one section per question, each leading to its tab ---------- */
+.ov { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 12px; padding: 12px; overflow: auto; align-content: start; }
+.ov-sec { border: 1px solid var(--line); border-radius: 8px; padding: 12px 14px; display: grid; gap: 8px; align-content: start; min-width: 0; }
+.ov-sec[aria-label="Loan history"] { grid-column: 1 / -1; }
+.ov-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.ov-head h3 { margin: 0; font-size: 13px; font-weight: 600; }
+.ov-go { display: inline-flex; align-items: center; gap: 4px; border: 0; background: none; padding: 2px 4px; border-radius: 4px; color: var(--accent); font-size: 12px; cursor: pointer; }
+.ov-go:hover { background: var(--accent-soft); }
+.ov-lead { margin: 0; font-size: 14px; font-weight: 500; }
+.ov-lead.is-warn { color: var(--red); }
+.ov-facts { display: grid; grid-template-columns: max-content 1fr; gap: 4px 16px; margin: 0; }
+.ov-facts > div { display: contents; }
+.ov-facts dt { color: var(--text-3); }
+.ov-facts dd { margin: 0; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ov-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+.ov-table th { text-align: left; font-weight: 500; color: var(--text-3); padding: 4px 8px 4px 0; border-bottom: 1px solid var(--line); }
+.ov-table td { padding: 5px 8px 5px 0; border-bottom: 1px solid var(--line); }
+.ov-table .num { text-align: right; font-family: var(--mono); }
+.ov-table tr[data-status="overdue"] td { color: var(--red); }
+.ov-table tr[data-status="closed"] td { color: var(--text-3); }
+
+@media (max-width: 1280px) { .item-facts { grid-template-columns: repeat(3, minmax(0, 1fr)); } .item-facts > div:nth-child(n+4) { display: none; } }
+@media (max-width: 1100px) { .review-page { grid-template-columns: 220px minmax(0, 1fr); } }
+@media (max-width: 767px) { .review-page { grid-template-columns: minmax(0, 1fr); } .rail { display: none; } .mode-switch { display: none; } }

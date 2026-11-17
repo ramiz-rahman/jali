@@ -25,7 +25,7 @@ function TabActivity({ id }: { id: NodeId }) {
 export function TabStrip({ group, owner }: { group: NonNullable<Frame["group"]>; owner: NodeId }) {
   const store = useStore();
   const { actions } = store;
-  // A curated workspace: role tabs can't be closed (a supporting role hides from the top bar), and no "+".
+  // A curated page: no "+" (its views come from the page's tabs).
   const review = useUi((s) => !!s.review);
   return (
     <div className="tabbar">
@@ -66,11 +66,9 @@ export function TabStrip({ group, owner }: { group: NonNullable<Frame["group"]>;
                   <Undo2 size={14} strokeWidth={1.75} aria-hidden />
                 </button>
               ) : null}
-              {review && t.role ? null : (
-                <button className="tab-close" aria-label={`Close ${title}`} onClick={(e) => { e.stopPropagation(); actions.close(t.id); }}>
-                  <X size={14} strokeWidth={1.75} aria-hidden />
-                </button>
-              )}
+              <button className="tab-close" aria-label={`Close ${title}`} onClick={(e) => { e.stopPropagation(); actions.close(t.id); }}>
+                <X size={14} strokeWidth={1.75} aria-hidden />
+              </button>
             </div>
           );
         })}

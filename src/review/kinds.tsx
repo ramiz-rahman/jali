@@ -1,68 +1,84 @@
-import { useEffect, useMemo, useRef } from "react";
-import { Inbox } from "lucide-react";
+import type { ReactNode } from "react";
+import { ArrowRight, LayoutDashboard } from "lucide-react";
 import { definePaneKind, type PaneComponentProps } from "../ui/pane-kinds";
+import { useStore } from "../ui/state/react";
 import { recordKind } from "../panes/kinds/record";
 import { relatedKind } from "../panes/kinds/related";
-import { isLoading, useRows } from "../data/hooks";
-import { formatMoney, formatTimestamp } from "../panes/format";
-import { PaneGate } from "../panes/shared/PaneGate";
 import { Shell } from "../panes/shared/states";
-import type { Row } from "../data/types";
+import { day, taka, useApplication } from "./page";
 
-const STATUS_ORDER: Record<string, number> = { pending: 0, returned: 1, approved: 2 };
+/** One section of Overview, with a way to the full view. */
+function Section({ title, role, children }: { title: string; role: string; children: ReactNode }) {
+  const { actions } = useStore();
+  return (
+    <section className="ov-sec" aria-label={title}>
+      <header className="ov-head">
+        <h3>{title}</h3>
+        <button className="ov-go" onClick={() => actions.openTab(role)} aria-label={`Open ${title}`} title="Open the full view · ⌥-click a tab to open it beside">
+          {title} <ArrowRight size={13} strokeWidth={1.75} aria-hidden />
+        </button>
+      </header>
+      {children}
+    </section>
+  );
+}
 
-/** The review queue: applications waiting first. Choosing one makes it the workspace's active item. */
-function QueuePane({ paused, focused, activeItem, activate, setActivity }: PaneComponentProps) {
-  const apps = useRows("loan_applications", { orderBy: "id ASC", limit: 200 }, { paused });
-  const members = useRows("members", { orderBy: "id ASC", limit: 400 }, { paused });
-  const list = useRef<HTMLDivElement>(null);
-  useEffect(() => setActivity(isLoading(apps) ? "loading" : apps.isError ? "error" : "idle"), [apps, setActivity]);
-  const rows = useMemo(() => [...(apps.data?.rows ?? [])].sort((a, b) => (STATUS_ORDER[String(a.status)] ?? 9) - (STATUS_ORDER[String(b.status)] ?? 9) || Number(a.id) - Number(b.id)), [apps.data]);
-  const names = useMemo(() => new Map((members.data?.rows ?? []).map((m: Row) => [Number(m.id), String(m.name)])), [members.data]);
-  const at = rows.findIndex((r) => Number(r.id) === activeItem);
-  useEffect(() => {
-    if (focused && document.activeElement?.closest(".pane") === list.current?.closest(".pane")) list.current?.querySelector<HTMLElement>("[aria-selected=true]")?.focus({ preventScroll: true });
-    list.current?.querySelector("[aria-selected=true]")?.scrollIntoView({ block: "nearest" });
-  }, [at, focused]);
+const Facts = ({ rows }: { rows: [string, ReactNode][] }) => (
+  <dl className="ov-facts">{rows.map(([k, v]) => <div key={k}><dt>{k}</dt><dd>{v}</dd></div>)}</dl>
+);
 
-  if (isLoading(apps) || apps.isError) return <PaneGate queries={[apps]} />;
-  const pending = rows.filter((r) => r.status === "pending").length;
-  const go = (i: number) => { const r = rows[Math.max(0, Math.min(rows.length - 1, i))]; if (r) activate?.(Number(r.id)); };
+/** Overview: the designed page. Each question about the application gets a section; each section leads to its tab. */
+function OverviewPane({ ref, paused }: PaneComponentProps) {
+  const item = Number(ref.params.item);
+  const { app, member, group, officer, loans } = useApplication(item, paused);
+  const open = (loans ?? []).filter((l) => l.status !== "closed");
+  const overdue = (loans ?? []).some((l) => l.status === "overdue");
   return (
     <Shell>
-      <div className="pk-bar"><span className="grow pk-meta"><span className="pk-mono">{pending}</span> waiting · <span className="pk-mono">{rows.length}</span> this month</span><span className="pk-meta">J/K</span></div>
-      <div className="rq-list" role="listbox" aria-label="Loan applications" ref={list}
-        onKeyDown={(e) => {
-          if (e.key === "j" || e.key === "ArrowDown") { e.preventDefault(); go(at + 1); }
-          else if (e.key === "k" || e.key === "ArrowUp") { e.preventDefault(); go(at - 1); }
-        }}>
-        {rows.map((r) => {
-          const id = Number(r.id), selected = id === activeItem;
-          return (
-            <div key={id} role="option" aria-selected={selected} tabIndex={selected || (at < 0 && id === Number(rows[0]!.id)) ? 0 : -1}
-              className="rq-item" data-status={String(r.status)} onClick={() => activate?.(id)}>
-              <div className="rq-line">
-                <span className="rq-name">{names.get(Number(r.member_id)) ?? `Member ${r.member_id}`}</span>
-                <span className="rq-amount pk-mono">{formatMoney(Number(r.amount_cents))}</span>
-              </div>
-              <div className="rq-line pk-meta">
-                <span>#{id} · {String(r.product)}</span>
-                <span className="rq-status">{r.status === "pending" ? formatTimestamp(r.submitted_at)?.replace(/, .*/, "") : String(r.status)}</span>
-              </div>
-            </div>
-          );
-        })}
+      <div className="ov">
+        <Section title="Application" role="application">
+          {app ? (
+            <>
+              <p className="ov-lead">{String(app.purpose)}</p>
+              <Facts rows={[["Amount", taka(app.amount_cents)], ["Term", `${app.term_weeks} weeks`], ["Product", String(app.product)], ["Submitted", day(app.submitted_at)]]} />
+            </>
+          ) : null}
+        </Section>
+        <Section title="Borrower" role="borrower">
+          {member ? <Facts rows={[["Name", String(member.name)], ["Occupation", String(member.occupation)], ["Household", `${member.household_size} people`], ["Savings", taka(member.savings_cents)]]} /> : null}
+        </Section>
+        <Section title="Loan history" role="history">
+          {loans ? (
+            <>
+              <p className={overdue ? "ov-lead is-warn" : "ov-lead"}>
+                {loans.length} {loans.length === 1 ? "loan" : "loans"} · {open.length ? `${taka(open.reduce((n, l) => n + Number(l.outstanding_cents), 0))} outstanding` : "nothing outstanding"}
+                {overdue ? " · one overdue" : ""}
+              </p>
+              <table className="ov-table">
+                <thead><tr><th>Cycle</th><th>Product</th><th className="num">Principal</th><th>Status</th></tr></thead>
+                <tbody>{loans.map((l) => (
+                  <tr key={String(l.id)} data-status={String(l.status)}><td className="num">{String(l.cycle)}</td><td>{String(l.product)}</td><td className="num">{taka(l.principal_cents)}</td><td>{String(l.status)}</td></tr>
+                ))}</tbody>
+              </table>
+            </>
+          ) : null}
+        </Section>
+        <Section title="Group" role="group">
+          {group ? <Facts rows={[["Name", String(group.name)], ["Village", String(group.village)], ["Meets", String(group.meeting_day)]]} /> : null}
+        </Section>
+        <Section title="Field officer" role="officer">
+          {officer ? <Facts rows={[["Name", String(officer.name)], ["Branch", String(officer.branch)], ["Phone", String(officer.phone)]]} /> : null}
+        </Section>
       </div>
     </Shell>
   );
 }
 
-export const queueKind = definePaneKind({
-  kind: "review-queue", ref: () => ({ kind: "review-queue", params: {} }), title: () => "Applications",
-  identity: () => "review-queue", recordable: false, item: true,
-  minWidth: 260, minHeight: 200, icon: Inbox, Component: QueuePane,
+export const overviewKind = definePaneKind({
+  kind: "review-overview", ref: (params) => ({ kind: "review-overview", params }), title: (r) => `application ${r.params.item} overview`,
+  recordable: false, minWidth: 420, minHeight: 240, icon: LayoutDashboard, Component: OverviewPane,
 });
 
-/** Arrangement panes use the same record and related views with narrower minimums, so the review fits at 1440. */
+/** The tabs' views use the same record and related views with narrower minimums, so two fit side by side at 1440. */
 export const reviewRecordKind = definePaneKind({ ...recordKind, kind: "review-record", ref: (params) => ({ kind: "review-record", params }), minWidth: 380 });
 export const reviewRelatedKind = definePaneKind({ ...relatedKind, kind: "review-related", ref: (params) => ({ kind: "review-related", params }), minWidth: 360 });

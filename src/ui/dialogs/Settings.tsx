@@ -62,7 +62,7 @@ export function SettingsPanel() {
           <fieldset>
             <legend>Loan review: viewing as</legend>
             <label className="radio"><input type="radio" name="viewer" checked={review.canInvestigate} onChange={() => store.actions.setCanInvestigate(true)} /><span>Credit reviewer: links open beside</span></label>
-            <label className="radio"><input type="radio" name="viewer" checked={!review.canInvestigate} onChange={() => store.actions.setCanInvestigate(false)} /><span>Loan officer: links open as a peek</span></label>
+            <label className="radio"><input type="radio" name="viewer" checked={!review.canInvestigate} onChange={() => store.actions.setCanInvestigate(false)} /><span>Loan officer: Single only, links open as a peek</span></label>
           </fieldset>
         ) : null}
         <fieldset>

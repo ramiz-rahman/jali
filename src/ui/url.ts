@@ -27,19 +27,20 @@ export function decodePeek(text: string): ObjectRef | null {
   return { kind, params };
 }
 
-const REVIEW_KEYS = ["app", "arr", "item", "open"];
+const REVIEW_KEYS = ["app", "arr", "item", "tab", "open"];
 
 /**
- * A curated workspace's link carries content only: the arrangement's name, the active item and the panes opened while
- * investigating. Sizes and hidden panes are the reader's own, so the same link opens in each person's layout.
+ * A curated page's link carries content only: the item, the view in use and the panes opened while investigating.
+ * The mode and the multiplexed layout are the reader's own, so the same link opens in each person's way of working.
  */
 function reviewParams(q: URLSearchParams, s: UiState) {
   q.delete("l");
   for (const k of REVIEW_KEYS) q.delete(k);
   if (!s.review) return;
   q.set("app", "review");
-  q.set("arr", s.review.arrangement);
   q.set("item", String(s.review.item));
+  const focused = core.tree.panes(s.layout.root).find((p) => p.id === s.view.focused)?.role;
+  q.set("tab", s.review.mode === "single" ? s.review.tab : focused ?? s.review.tab);
   for (const p of core.tree.panes(s.layout.root)) if (!p.role) q.append("open", encodePeek(p.ref));
 }
 
@@ -53,7 +54,7 @@ function buildUrl(s: UiState): string {
 }
 
 /** What the address bar holds: a layout and view, or a code that could not be read. Null when there is no layout. */
-export interface ReviewRead { arrangement: string; item: number; investigation: ObjectRef[] }
+export interface ReviewRead { tab: string; item: number; investigation: ObjectRef[] }
 export type UrlRead = { layout: Layout; view: Partial<ViewState> } | { broken: string; view: Partial<ViewState> } | { review: ReviewRead; view: Partial<ViewState> };
 
 export function readUrl(kinds: KindRegistry): UrlRead | null {
@@ -66,7 +67,7 @@ export function readUrl(kinds: KindRegistry): UrlRead | null {
   if (q.get("app") === "review") {
     const item = Number(q.get("item"));
     const investigation = q.getAll("open").map(decodePeek).filter((r): r is ObjectRef => !!r && Object.hasOwn(kinds, r.kind));
-    return { review: { arrangement: q.get("arr") ?? "", item: Number.isInteger(item) && item > 0 ? item : 0, investigation }, view };
+    return { review: { tab: q.get("tab") ?? "", item: Number.isInteger(item) && item > 0 ? item : 0, investigation }, view };
   }
   if (!code) return null;
   const layout = core.decode(code, kinds);

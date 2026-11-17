@@ -61,6 +61,8 @@ export function Workspace() {
   useEffect(() => keepPaneFocus(view.focused), [view.focused, m.layout]);
 
   const single = m.single;
+  // A curated page in Single mode shows one view under its tabs: the tabs name it, so the pane has no header.
+  const page = useUi((s) => s.review?.mode);
   const mode = single ? "single" : "tiled";
   const inner = single
     ? { left: 0, top: SWITCHER_H, width: area.width + GAP * 2, height: Math.max(0, area.height + GAP * 2 - SWITCHER_H) }
@@ -74,6 +76,7 @@ export function Workspace() {
       aria-label="Panes"
       data-single={single ? "" : undefined}
       data-zoomed={!single && view.zoomed ? "" : undefined}
+      data-page={page}
     >
       {single ? <PaneSwitcher panes={m.onScreen} current={currentPane(m, view)} /> : null}
       <div className="workspace-inner" style={inner}>
@@ -84,7 +87,7 @@ export function Workspace() {
         {dropBox && dnd?.zone ? <DropIndicator rect={dropBox.rect} zone={dnd.zone} /> : null}
         {dnd && !single ? (
           <div className="drag-chip" data-testid="drag-chip" style={{ left: dnd.x + 12, top: dnd.y + 12 }} aria-hidden>
-            {m.title(dnd.dragged)}
+            {dnd.label ?? m.title(dnd.dragged)}
           </div>
         ) : null}
         <Peek presentation={mode} />

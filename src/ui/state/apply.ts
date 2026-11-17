@@ -25,7 +25,7 @@ export type Op =
   | "close" | "closeOthers" | "undo" | "tuck" | "putBack" | "reveal"
   | "merge" | "unmerge" | "tab" | "move" | "drop" | "swap"
   | "resize" | "resetSizes" | "preset" | "wide" | "arrive"
-  | "hide" | "show" | "activate" | "arrange" | "permission";
+  | "hide" | "activate" | "page" | "mode" | "permission";
 
 export interface Change {
   op: Op;
@@ -70,7 +70,7 @@ export const POLICY: Record<Op, Policy> = {
   merge: layout("push"), unmerge: layout("push"), move: layout("push"), drop: layout("push"), swap: layout("push"), preset: layout("push"),
   reveal: layout("replace"), tab: layout("replace"), resetSizes: layout("replace"), wide: layout("replace"),
   resize: layout("debounce"), arrive: layout("none"),
-  hide: layout("push"), show: layout("push"), activate: layout("push"), arrange: layout("push"), permission: view("none"),
+  hide: layout("push"), activate: layout("push"), page: layout("push", "change"), mode: layout("push"), permission: view("none"),
 };
 
 /** Where apply() writes: the store's state and its effect sinks. */

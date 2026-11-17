@@ -16,7 +16,6 @@ export interface PaneHost {
   openHere(ref: ObjectRef): void;
   dismiss(): void;
   setActivity(a: PaneActivity): void;
-  activate(item: number): void;
 }
 
 export const paneHost = (actions: Actions, id: NodeId): PaneHost => ({
@@ -26,7 +25,6 @@ export const paneHost = (actions: Actions, id: NodeId): PaneHost => ({
   openHere: (ref) => actions.openHere(id, ref),
   dismiss: () => actions.dismiss(id),
   setActivity: (a) => actions.setActivity(id, a),
-  activate: (item) => actions.activate(item),
 });
 
 export function peekHost(store: UiStore): PaneHost {
@@ -36,7 +34,7 @@ export function peekHost(store: UiStore): PaneHost {
     openBeside: (ref) => store.actions.openBeside(source(), ref),
     peek: (ref) => store.actions.peek(ref, source()),
     select: (ref) => store.actions.select(source(), ref),
-    openHere: none, dismiss: none, setActivity: none, activate: none,
+    openHere: none, dismiss: none, setActivity: none,
   };
 }
 
@@ -49,13 +47,6 @@ function WithSources({ def, props }: { def: PaneKindDef; props: Omit<PaneCompone
   const isOpen = useMemo(() => (ref: ObjectRef) => !!openPaneFor(m, ref, props.node.id), [m, props.node.id]);
   const C = def.Component;
   return <C {...props} recent={recent} isOpen={isOpen} KindIcon={KindIcon} titleFor={paneTitle} />;
-}
-
-/** A kind that drives the active item (the review queue) reads it from the store. */
-function WithItem({ def, props }: { def: PaneKindDef; props: Omit<PaneComponentProps, "activeItem"> }) {
-  const item = useUi((s) => s.review?.item);
-  const C = def.Component;
-  return <C {...props} activeItem={item} />;
 }
 
 /** The pane's content. Memoised on what the kind actually sees, so divider drags don't re-render content. */
@@ -72,7 +63,6 @@ export const PaneBody = memo(
     }
     const props = { node, ref: node.ref, paused, focused, inPeek, ...host };
     if (def.transient) return <WithSources def={def} props={props} />;
-    if (def.item) return <WithItem def={def} props={props} />;
     const C = def.Component;
     return <C {...props} />;
   },

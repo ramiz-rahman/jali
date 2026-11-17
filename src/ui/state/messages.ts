@@ -74,17 +74,22 @@ export const msg = {
   brokenLink: "The layout in this link couldn't be read. Opened the default layout instead.",
   centreDrop: (mode: "swap" | "tab") => `Centre drop: ${mode === "swap" ? "swap" : "add as tab"}`,
 
-  // curated workspaces (loan review)
-  arrangement: (name: string, label: string) => `${name}: ${label}`,
-  arrangementReset: (label: string) => `${label} reset to its designed layout`,
+  // curated pages (loan review)
+  reviewOpened: (name: string, mode: "single" | "multi") => `${name} · ${mode === "single" ? "Single: one view at a time" : "Multiplexed: views side by side"}`,
+  modeSingle: (t: string) => `Single: showing ${t}. Your multiplexed layout is kept.`,
+  modeMulti: "Multiplexed: drag tabs into the layout to see views side by side",
+  viewing: (t: string) => `Showing ${t}`,
+  reviewReset: "Layout reset to its design",
   activated: (noun: string, id: number, dropped: number) => `Showing ${noun} ${id}${dropped ? ` · ${dropped} opened ${dropped === 1 ? "pane" : "panes"} closed` : ""}`,
-  roleHidden: (t: string) => `${t} hidden · show it again from the top bar`,
-  roleShown: (t: string) => `${t} shown`,
-  primaryStays: (t: string) => `${t} always stays in this layout`,
+  roleHidden: (t: string) => `${t} closed · it's still in the tabs`,
+  roleShown: (t: string) => `${t} on screen`,
+  lastView: (t: string) => `${t} is the only view on screen`,
   notInvestigating: "Nothing opened beyond the review",
   backToReview: (n: number) => `Back to review · ${n} opened ${n === 1 ? "pane" : "panes"} closed · Undo available`,
-  permission: (can: boolean) => (can ? "Viewing as credit reviewer: links open beside" : "Viewing as loan officer: links open as a peek"),
+  permission: (can: boolean) => (can ? "Viewing as credit reviewer: Multiplexed available, links open beside" : "Viewing as loan officer: Single only, links open as a peek"),
+  singleOnly: "Your role works in Single: one view at a time",
   peekOnly: (t: string) => `Peek: ${t} · your role opens links as a peek`,
+  peekSingle: (t: string) => `Peek: ${t} · switch to Multiplexed to open links beside`,
 
   // what the workspace did on its own
   singleOn: "Single view: one pane at a time. Use the pane switcher at the top.",

@@ -10,7 +10,7 @@ const unzoomed = core.tree.unzoom;
 export function close(x: Snapshot, id = x.s.view.focused): Outcome {
   const { s, m, ctx } = x;
   if (!id || !m.pane(id)) return null;
-  // In a curated workspace a role pane is never closed: close hides it (and the primary pane refuses).
+  // In a curated page a view is never closed for good: it goes back to the tabs.
   if (s.review && m.pane(id)!.role) return hideRole(x, id);
   if (m.panes.length <= 1) return refuse(msg.lastPaneStays);
   const title = m.title(id);

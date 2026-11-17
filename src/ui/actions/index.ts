@@ -13,7 +13,7 @@ import { mergeInto, setActiveTab, unmerge } from "./tabs";
 import { commitDividerDrag, enterResizeMode, leaveResizeMode, nudgeDivider, resetDivider, resizeDivider, setDividerSize } from "./resize";
 import { openPeekFull, peek, pinPeek, select } from "./peek";
 import { arrive, preset, resetLayout, setActivity } from "./layout";
-import { activate, arrange, backToReview, enterReview, hideRole, leaveReview, resetArrangement, setCanInvestigate, showRole, toggleRole } from "./review";
+import { activate, backToReview, enterReview, hideRole, leaveReview, openTab, openTabBeside, placeTab, resetReview, setCanInvestigate, setMode } from "./review";
 
 export const ACTIONS = {
   focus, focusCycle, focusDirection, focusIndex, focusEnd, toggleZoom,
@@ -25,7 +25,7 @@ export const ACTIONS = {
   resizeDivider, setDividerSize, nudgeDivider, commitDividerDrag, resetDivider, enterResizeMode, leaveResizeMode,
   peek, pinPeek, openPeekFull, select,
   preset, resetLayout, arrive, setActivity,
-  enterReview, leaveReview, arrange, resetArrangement, activate, backToReview, hideRole, showRole, toggleRole, setCanInvestigate,
+  enterReview, leaveReview, setMode, openTab, openTabBeside, placeTab, resetReview, activate, backToReview, hideRole, setCanInvestigate,
 };
 
 type Bound<F> = F extends (x: Snapshot, ...args: infer A) => Outcome ? (...args: A) => NodeId | undefined : never;

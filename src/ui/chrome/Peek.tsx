@@ -16,7 +16,7 @@ export function Peek({ presentation }: { presentation: Presentation }) {
   const ref = useUi((s) => s.view.peek);
   const areaW = useUi((s) => s.area.width);
   const review = useUi((s) => s.review);
-  const canPin = !review || review.canInvestigate;
+  const canPin = !review || (review.canInvestigate && review.mode === "multi");
   const host = useMemo(() => peekHost(store), [store]);
   const openedBy = useRef<"pointer" | "keyboard">("keyboard");
   useEffect(() => {

@@ -7,6 +7,7 @@ import { TopBar } from "./chrome/TopBar";
 import { StatusLine } from "./chrome/StatusLine";
 import { Announcer } from "./chrome/Announcer";
 import { Workspace } from "./workspace/Workspace";
+import { ReviewPage } from "./chrome/ReviewBar";
 import { Palette } from "./dialogs/Palette";
 import { Chooser } from "./dialogs/Chooser";
 import { SettingsPanel } from "./dialogs/Settings";
@@ -31,6 +32,11 @@ function Toasts() {
   return <Toaster theme={theme} position="bottom-right" offset={{ bottom: 40, right: 12 }} toastOptions={{ className: "toast" }} />;
 }
 
+/** Data Studio is all panes; a curated page puts its queue, header and tabs around them. */
+function Main() {
+  return useUi((s) => !!s.review) ? <ReviewPage /> : <Workspace />;
+}
+
 export function App({ store, data }: { store: UiStore; data: DataLayer }) {
   return (
     <StoreProvider store={store}>
@@ -38,7 +44,7 @@ export function App({ store, data }: { store: UiStore; data: DataLayer }) {
         <DataLayerProvider value={data}>
           <div className="app">
             <TopBar />
-            <Workspace />
+            <Main />
             <StatusLine />
           </div>
           <Announcer />

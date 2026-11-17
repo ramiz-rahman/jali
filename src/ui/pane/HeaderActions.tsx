@@ -16,19 +16,8 @@ export function HeaderActions({ id, title, zoomed, chrome }: P) {
   const tuckLabel = home ? `Tuck into ${m.title(home)} · ${shortcutLabel("pane.tuck")}` : (checkTuck(store.snapshot(), id)?.msg ?? `${title} can't be tucked`);
   const { actions } = store;
   const node = m.pane(id);
-  // A curated workspace: a role pane has one way to put it away (hide, back from the top bar); the primary has none.
-  if (store.get().review && node?.role) {
-    return (
-      <div className="pane-actions">
-        {node.priority === "supporting" && chrome.tuckable && !zoomed ? (
-          <button className="icon-btn act-hide" aria-label={`Hide ${title}`} title={`Hide · show it again from the top bar · ${shortcutLabel("pane.tuck")}`} onClick={() => actions.hideRole(id)}>
-            <Minus size={14} strokeWidth={1.5} aria-hidden />
-          </button>
-        ) : null}
-        {chrome.zoomable ? <ZoomButton id={id} title={title} zoomed={zoomed} /> : null}
-      </div>
-    );
-  }
+  // A curated page's view closes back into the tabs above.
+  const closeHint = store.get().review && node?.role ? "Close · it stays in the tabs above" : "Close";
   return (
     <div className="pane-actions">
       {chrome.tuckable && !zoomed ? (
@@ -37,7 +26,7 @@ export function HeaderActions({ id, title, zoomed, chrome }: P) {
         </button>
       ) : null}
       {chrome.zoomable ? <ZoomButton id={id} title={title} zoomed={zoomed} /> : null}
-      <button className="icon-btn act-close" onClick={() => actions.close(id)} aria-label={`Close ${title}`} title={`Close · ${shortcutLabel("pane.close")}`}>
+      <button className="icon-btn act-close" onClick={() => actions.close(id)} aria-label={`Close ${title}`} title={`${closeHint} · ${shortcutLabel("pane.close")}`}>
         <X size={14} strokeWidth={1.5} aria-hidden />
       </button>
     </div>

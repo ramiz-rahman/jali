@@ -12,16 +12,22 @@ import { bindActions, type Actions } from "../actions";
 import { apply, type HistoryMode, type Outcome, type Snapshot, type Toast } from "./apply";
 import { modelCache, type WorkspaceModel } from "./model";
 import { loadSettings, systemPrefersDark, type Settings } from "./settings";
-import { loadAdjustments, type AdjustmentBook } from "./adjustments";
+import { loadPrefs, type ReviewPrefs } from "./review-prefs";
+import { getProfile, type ViewMode } from "../profile";
 
-export interface DndState { dragged: NodeId; x: number; y: number; target?: NodeId; zone?: import("../../layout-core/types").Edge | "centre" }
+/** A drag in progress. `label` names a view dragged from a page's tabs, which may not be on screen. */
+export interface DndState { dragged: NodeId; x: number; y: number; target?: NodeId; zone?: import("../../layout-core/types").Edge | "centre"; label?: string }
 /** A chooser dialog opened by a command (⌘K "Add to tabs of…"). */
 export interface ChooserState { kind: "merge"; source: NodeId }
 
-/** A curated workspace in use (ui/profile.ts): which arrangement, which item, and what this person may do. */
+/** A curated page in use (ui/profile.ts): the item, the mode, the view Single shows, and what this person may do. */
 export interface ReviewState {
-  arrangement: string;
   item: number;
+  mode: ViewMode;
+  /** The view Single mode shows (in Multiplexed, the last role focused). */
+  tab: string;
+  /** The multiplexed layout just before the first opened pane: Back to review returns to it exactly. */
+  before?: Layout;
   /** Role permission: following a link opens an investigation pane (true) or only peeks (false). */
   canInvestigate: boolean;
 }
@@ -30,8 +36,8 @@ export interface UiState {
   layout: Layout;
   /** Null in Data Studio, where the person builds the layout. */
   review: ReviewState | null;
-  /** Personal adjustments to arrangements not on screen (the one on screen lives in the layout). */
-  adjust: AdjustmentBook;
+  /** The person's mode and multiplexed layout (while Multiplexed is on screen, the live layout is the truth). */
+  prefs: ReviewPrefs;
   view: ViewState;
   presetId: PresetId;
   settings: Settings;
@@ -84,7 +90,7 @@ export function createUiStore(deps: UiStoreDeps = {}): UiStore {
   let state: UiState = {
     layout: presetById(DEFAULT_PRESET).build(),
     review: null,
-    adjust: loadAdjustments(),
+    prefs: loadPrefs(getProfile()?.id, kindRegistry()),
     view: { focusHistory: [] },
     presetId: DEFAULT_PRESET,
     settings: loadSettings(),

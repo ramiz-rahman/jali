@@ -123,3 +123,21 @@ The public API is standalone exports (`import * as core from "…/layout-core"`)
   - The link carries content only: `?app=review&arr=&item=&open=…`, with no `l=`. The same link opens in each reader's own layout.
 - **Permission.** "Viewing as loan officer" makes links peek instead of opening beside (lab setting; in a product it would be set by the user's role).
 - **Known limit:** at 1440, the arrangement plus one opened pane fits. A second opened pane folds into a tab group with a role pane, which mixes the two regions. This is still to be decided.
+
+## 17 Nov 2026: curated pages, Single and Multiplexed (supersedes the top-bar toggles above)
+- **Why.** Review and Focus differed only in which panes were hidden, so they duplicated the pane toggles (and maximise). A familiar tab strip already says which view is on screen. Letting it show more than one view gives splitting without a second set of controls.
+- **The page.** Queue at the left, the application's header, then tabs: Overview, Application, Borrower, Loan history, Group, Field officer. Overview is the designed page: one section per question, each leading to its tab.
+- **Two modes, the person's choice** (top bar):
+  - **Single (default)** shows one view, chosen from the tabs; its pane has no visible header, since the tab names it. Links peek.
+  - **Multiplexed** turns the tabs into a palette of views. You can drag a tab into the panes (an edge places it beside, the centre adds it to that tab group), ⌥-click a tab to open it beside the view in use, or click it to bring it on screen. Each view exists once, and closing one sends it back to the tabs. Tab marks: focused (accent underline), on screen (light underline and dot), behind another tab (dashed), not on screen (plain).
+- **Getting between the modes:**
+  - The first switch to Multiplexed starts from Overview's sections as panes (Application, Borrower, Loan history). Overview itself stays in the tabs.
+  - Switching to Single keeps the multiplexed layout exactly, opened panes included, and switching back restores it.
+  - Dragging a tab out of Single switches mode for you.
+- **What is whose.** The mode and the multiplexed layout belong to the person (saved on this device; opened panes are not saved). A link carries the item, the view in use and the opened panes (`?app=review&item=&tab=&open=`). A link with opened panes opens in Multiplexed, in the reader's own layout (or the design).
+- **Investigation.** In Multiplexed, following a link opens a sand-tinted "Opened" pane after the layout. Back to review returns to the layout exactly as it was before the first link, unless the views were rearranged in the meantime. ⌘Z reopens the opened panes.
+- **Role permission.** A loan officer works in Single only, and links peek.
+- **Engine changes:**
+  - Hiding a tab of a group first lifts it out beside the group.
+  - A fix: a hidden pane's minimum size no longer counted toward the room needed. Before the fix, any hidden pane could fold panes that had room.
+- **Removed:** arrangements, pane toggles, per-arrangement adjustments (`state/adjustments.ts`), and the queue as a pane.

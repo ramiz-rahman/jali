@@ -73,7 +73,7 @@ export const PaneFrame = memo(function PaneFrame({ frame, chrome, dropTarget }: 
           <div className="pane-title">
             {role ? <role.icon size={16} strokeWidth={1.5} aria-hidden /> : <KindIcon kind={node.ref.kind} />}
             <h2 id={paneTitleId(node.id)}>{title}</h2>
-            {role ? <span className="pane-sub">{paneTitle(node.ref)}</span> : null}
+            {role && paneTitle(node.ref) !== title ? <span className="pane-sub">{paneTitle(node.ref)}</span> : null}
             <Activity a={activity} />
             {node.pinned ? <span className="badge">Pinned</span> : null}
             {opened && boundary === "tint" ? <span className="badge badge-opened">Opened</span> : null}

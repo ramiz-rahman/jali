@@ -3,7 +3,6 @@ import type { NodeId, TuckRefusal } from "../../layout-core/types";
 import { refuse, type Outcome, type Refusal, type Snapshot } from "../state/apply";
 import { msg } from "../state/messages";
 import { forgetTuck, pushUndo, tuckOrder } from "../state/undo";
-import { hideRole } from "./review";
 
 const unzoomed = core.tree.unzoom;
 
@@ -27,7 +26,6 @@ export function tuckHome({ s, ctx }: Snapshot, id: NodeId | undefined): NodeId |
 export function checkTuck(x: Snapshot, id?: NodeId): Refusal | undefined {
   const target = tuckTarget(x, id);
   if (!target) return refuse(msg.noFocus);
-  if (x.s.review && x.m.pane(target)?.role) return x.m.pane(target)!.priority === "primary" ? refuse() : undefined;
   const r = core.canTuck(x.s.layout, target, x.ctx);
   return r.ok ? undefined : tuckRefusal(x, target, r.reason);
 }
@@ -39,8 +37,6 @@ export function checkTuck(x: Snapshot, id?: NodeId): Refusal | undefined {
 export function tuck(x: Snapshot, id?: NodeId): Outcome {
   const target = tuckTarget(x, id);
   if (!target) return refuse(msg.noFocus);
-  // Tuck and close are one gesture for a role pane: it hides, and comes back from the top bar.
-  if (x.s.review && x.m.pane(target)?.role) return hideRole(x, target);
   const r = core.tuck(x.s.layout, unzoomed(x.s.view), target, x.ctx);
   if (!r.ok) return tuckRefusal(x, target, r.reason);
   return { op: "tuck", layout: r.layout, view: r.view, msg: msg.tucked(x.m.title(target), x.m.title(r.home)), undo: pushUndo(x.s.undoStack, r.undo), focusDom: r.home };

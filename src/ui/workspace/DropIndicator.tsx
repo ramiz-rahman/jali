@@ -16,7 +16,8 @@ const INSET: Record<Edge | "centre", string> = { centre: "0", right: "0 0 0 50%"
 /** Centred inside the part of the target pane that the drop will fill: icon plus the outcome in words. */
 export function DropZoneLabel({ paneId }: { paneId: string }) {
   const zone = useUi((s) => (s.dnd?.target === paneId ? s.dnd.zone : undefined));
-  const centreDrop = useUi((s) => s.settings.centreDrop);
+  // A view dragged from a page's tabs always joins the group in the centre.
+  const centreDrop = useUi((s) => (s.dnd?.label ? "tab" : s.settings.centreDrop));
   const m = useModel();
   if (!zone) return null;
   const Icon = ICONS[zone === "centre" ? centreDrop : zone];

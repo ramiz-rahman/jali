@@ -1,15 +1,16 @@
 /**
- * Loan review: a curated workspace over the sample loan book. A credit reviewer works through a queue of loan
- * applications; each application shows with its borrower and their loan history. Group and field officer are one
- * toggle away. Following any link opens an investigation pane at the right, which is free-form.
+ * Loan review: a credit reviewer works through a queue of loan applications. Each application is one page: a header,
+ * then tabs (Overview, Application, Borrower, Loan history, Group, Field officer). Multiplexed mode starts from
+ * Overview's sections as panes: the application, with the borrower and their loan history beside it.
  */
-import { Briefcase, FileText, History, Inbox, UserRound, UsersRound } from "lucide-react";
+import { Briefcase, FileText, History, LayoutDashboard, UserRound, UsersRound } from "lucide-react";
 import type { Layout, LayoutNode, ObjectRef, PaneNode } from "../layout-core/types";
 import { applicationFacts } from "../data/sample-sql";
 import type { RoleDef, WorkspaceProfile } from "../ui/profile";
+import { ApplicationHeader, QueueRail } from "./page";
 
 const ROLES: RoleDef[] = [
-  { id: "queue", label: "Queue", priority: "supporting", icon: Inbox },
+  { id: "overview", label: "Overview", priority: "supporting", icon: LayoutDashboard },
   { id: "application", label: "Application", priority: "primary", icon: FileText },
   { id: "borrower", label: "Borrower", priority: "supporting", icon: UserRound },
   { id: "history", label: "Loan history", priority: "supporting", icon: History },
@@ -22,7 +23,7 @@ const record = (table: string, id: number): ObjectRef => ({ kind: "review-record
 function bind(item: number): Record<string, ObjectRef> {
   const f = applicationFacts(item);
   return {
-    queue: { kind: "review-queue", params: {} },
+    overview: { kind: "review-overview", params: { item: f.id } },
     application: record("loan_applications", f.id),
     borrower: record("members", f.member),
     history: { kind: "review-related", params: { table: "loans", column: "member_id", value: f.member, label: "Loan history" } },
@@ -42,12 +43,13 @@ function build(item: number): Layout {
     version: 1,
     root: {
       id: "arrangement", type: "row", size: { weight: 1 }, children: [
-        role("queue", { size: { px: 300 } }),
+        role("overview"),
         role("application", { size: { weight: 1.15 } }),
         col("context", [role("borrower"), role("history")]),
         col("network", [role("group"), role("officer")], 0.85),
       ],
     },
+    overlay: { tucks: [], folds: [], shown: {}, hidden: ["overview", "group", "officer"] },
   };
 }
 
@@ -56,12 +58,10 @@ export const loanReview: WorkspaceProfile = {
   name: "Loan review",
   itemNoun: "application",
   roles: ROLES,
-  arrangements: [
-    { id: "review", label: "Review", hidden: ["group", "officer"] },
-    { id: "focus", label: "Focus", hidden: ["queue", "borrower", "history", "group", "officer"] },
-  ],
+  home: "overview",
   build,
   bind,
-  anchor: "application",
   firstItem: 1,
+  Rail: QueueRail,
+  Header: ApplicationHeader,
 };

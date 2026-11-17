@@ -1,5 +1,5 @@
 /**
- * Header-grip drag and drop: starts after 4px; the outer 25% of the target places beside on that edge; the centre
+ * Header-grip drag and drop (and a curated page's tabs dragged into the panes): starts after 4px; the outer 25% of the target places beside on that edge; the centre
  * swaps or adds a tab (Settings). Esc or a drop outside a pane cancels. Zoomed and single-pane layouts don't drag.
  * The drag lives in this closure and in `dnd` state; there is no module state.
  */
@@ -29,12 +29,28 @@ export function zoneRect(r: Rect, zone: Edge | "centre"): Rect {
 }
 
 export function startPaneDrag(store: UiStore, e: ReactPointerEvent, paneId: string) {
-  if (e.button !== 0) return;
   const t = e.target as HTMLElement;
   if (t.closest("button, input, textarea, select, a, [data-no-drag]") && !t.closest("[data-drag-ok]")) return;
-  const workspace = (e.currentTarget as HTMLElement).closest<HTMLElement>(".workspace");
-  const sx = e.clientX, sy = e.clientY;
+  startDrag(store, e, { id: paneId, onDrop: (target, zone) => store.actions.drop(paneId, target, zone) });
+}
+
+/**
+ * A curated page's tab dragged into the panes: places that view where it is dropped (centre: as a tab of that group).
+ * Works from Single mode too, where the one pane on screen is the target; dropping switches to Multiplexed.
+ * Returns whether a drag happened, so the tab's click can be skipped.
+ */
+export function startTabDrag(store: UiStore, e: ReactPointerEvent, role: string, label: string): { dragged(): boolean } {
+  return startDrag(store, e, { id: role, label, fromOutside: true, onDrop: (target, zone) => store.actions.placeTab(role, target, zone) });
+}
+
+interface DragOpts { id: string; label?: string; fromOutside?: boolean; onDrop(target: string, zone: Edge | "centre"): void }
+
+function startDrag(store: UiStore, e: ReactPointerEvent, { id: paneId, label, fromOutside, onDrop }: DragOpts) {
   let started = false;
+  const handle = { dragged: () => started };
+  if (e.button !== 0) return handle;
+  const workspace = (e.currentTarget as HTMLElement).closest<HTMLElement>(".workspace") ?? document.querySelector<HTMLElement>(".workspace");
+  const sx = e.clientX, sy = e.clientY;
 
   const local = (cx: number, cy: number) => {
     const b = workspace?.getBoundingClientRect();
@@ -45,7 +61,7 @@ export function startPaneDrag(store: UiStore, e: ReactPointerEvent, paneId: stri
     const m = store.model();
     if (!started) {
       if (Math.hypot(ev.clientX - sx, ev.clientY - sy) < DRAG_THRESHOLD) return;
-      if (store.get().view.zoomed || m.panes.length < 2) return cleanup();
+      if (store.get().view.zoomed || (!fromOutside && m.panes.length < 2)) return cleanup();
       started = true;
       document.body.classList.add("is-pane-dragging");
     }
@@ -56,12 +72,12 @@ export function startPaneDrag(store: UiStore, e: ReactPointerEvent, paneId: stri
     let zone: Edge | "centre" | undefined = target ? zoneFor(target.rect, p.x, p.y) : undefined;
     // Own group's visible pane: edges split a tab out, the centre does nothing.
     if (target?.stackId && boxes.some((b) => b.id === paneId && b.stackId === target.stackId) && zone === "centre") zone = undefined;
-    store.set({ dnd: { dragged: paneId, x: p.x, y: p.y, ...(target && zone ? { target: target.id, zone } : {}) } });
+    store.set({ dnd: { dragged: paneId, x: p.x, y: p.y, ...(label ? { label } : {}), ...(target && zone ? { target: target.id, zone } : {}) } });
   };
   const up = () => {
     const d = store.get().dnd;
     cleanup();
-    if (started && d?.target && d.zone) store.actions.drop(d.dragged, d.target, d.zone);
+    if (started && d?.target && d.zone) onDrop(d.target, d.zone);
   };
   const key = (ev: KeyboardEvent) => {
     if (ev.key !== "Escape" || !started) return;
@@ -79,4 +95,5 @@ export function startPaneDrag(store: UiStore, e: ReactPointerEvent, paneId: stri
   window.addEventListener("pointermove", move);
   window.addEventListener("pointerup", up);
   window.addEventListener("keydown", key, true);
+  return handle;
 }
