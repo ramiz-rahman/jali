@@ -85,10 +85,13 @@ test.describe("Close", () => {
     await expect(lab.pane("customer")).toBeVisible();
     await expect.poll(() => lab.visibleIds()).toEqual(["orders", "order", "customer"]);
 
-    // the toast's Undo button works too (click waits for the toast stack to stop moving)
+    // The toast's Undo button works too. While two toasts stack, Sonner keeps the front one animating, so
+    // Playwright's stability check never passes; wait for it to mount, then dispatch the click.
     await page.getByRole("button", { name: "Close order 1", exact: true }).click();
     await expect.poll(() => lab.visibleCount()).toBe(2);
-    await page.locator('[data-sonner-toast][data-front="true"]').getByRole("button", { name: "Undo" }).click();
+    const front = page.locator('[data-sonner-toast][data-front="true"][data-mounted="true"]');
+    await expect(front).toContainText("Pane closed");
+    await front.getByRole("button", { name: "Undo" }).dispatchEvent("click");
     await expect.poll(() => lab.visibleCount()).toBe(3);
   });
 
