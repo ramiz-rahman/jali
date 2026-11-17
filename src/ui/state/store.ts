@@ -1,7 +1,7 @@
 /**
  * The UI store: state, one derived model, and apply(). Layout and view come from layout-core ops; actions are pure
  * (actions/) and the store only commits them. Effects leave through sinks given at creation (URL, DOM focus) and
- * through `events` (toasts); announcements are state, so nothing said before the live region mounts is lost.
+ * through `onToast` (toasts); announcements are state, so nothing said before the live region mounts is lost.
  */
 import * as core from "../../layout-core";
 import type { Layout, LayoutContext, NodeId, ObjectRef, UndoEntry, ViewState } from "../../layout-core/types";
