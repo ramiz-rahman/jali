@@ -8,7 +8,7 @@ test.describe("tuck and put back", () => {
     const beforeSnap = await lab.snap();
     const btn = lab.tuck("customer");
     await expect(btn).toBeEnabled();
-    expect(await btn.getAttribute("aria-label")).toMatch(/^Tuck into .+ · ⌥⌘M$/);
+    expect(await btn.getAttribute("aria-label")).toMatch(/^Tuck into .+ · (⌘K ⌘\[|Ctrl\+K Ctrl\+\[)$/);
     expect(await btn.getAttribute("title")).toBe(await btn.getAttribute("aria-label"));
     await btn.click();
     await expect.poll(() => lab.homeOf("customer 1")).not.toBeNull();
@@ -30,21 +30,21 @@ test.describe("tuck and put back", () => {
     const pb = tab.getByRole("button", { name: "Put back customer 1" });
     await tab.hover();
     await expect(pb).toBeVisible();
-    expect(await pb.getAttribute("title")).toBe("Put back · ⌥⇧⌘M");
+    expect(await pb.getAttribute("title")).toMatch(/^Put back · (⌘K ⌘\]|Ctrl\+K Ctrl\+\])$/);
   });
 
-  test("⌥⌘M tucks the focused pane, ⌥⇧⌘M puts the tab back to the exact rect", async ({ lab, page }) => {
+  test("⌘K ⌘[ tucks the focused pane, ⌘K ⌘] puts the tab back to the exact rect", async ({ lab, page }) => {
     await lab.open();
     const before = await lab.snap();
     await lab.pane("customer").click({ position: { x: 100, y: 300 } });
-    await page.keyboard.press("Alt+Meta+m");
+    await page.keyboard.press("ControlOrMeta+k"); await page.keyboard.press("ControlOrMeta+BracketLeft");
     await expect.poll(() => lab.homeOf("customer 1")).not.toBeNull();
     const home = (await lab.homeOf("customer 1"))!;
     await expect.poll(() => lab.focusIn(home.id)).toBe(true);
     await lab.tab(/customer 1/).click();
-    await page.keyboard.press("Alt+Shift+Meta+m");
+    await page.keyboard.press("ControlOrMeta+k"); await page.keyboard.press("ControlOrMeta+BracketRight");
     await expect.poll(() => lab.homeOf("customer 1")).toBeNull();
-    await lab.expectSnap(before, "after ⌥⌘M, ⌥⇧⌘M");
+    await lab.expectSnap(before, "after ⌘K ⌘[, ⌘K ⌘]");
   });
 
   test("Put back on the tab restores the exact rect", async ({ lab }) => {
@@ -72,14 +72,14 @@ test.describe("tuck and put back", () => {
     await lab.expectSnap(before, "after drag-out");
   });
 
-  test("⌘Z after a tuck restores the exact rect", async ({ lab, page }) => {
+  test("⌘K ⌘Z after a tuck restores the exact rect", async ({ lab, page }) => {
     await lab.open();
     const before = await lab.snap();
     await lab.tuck("customer").click();
     await expect.poll(() => lab.homeOf("customer 1")).not.toBeNull();
-    await page.keyboard.press("Meta+z");
+    await page.keyboard.press("ControlOrMeta+k"); await page.keyboard.press("ControlOrMeta+z");
     await expect.poll(() => lab.homeOf("customer 1")).toBeNull();
-    await lab.expectSnap(before, "after ⌘Z");
+    await lab.expectSnap(before, "after ⌘K ⌘Z");
   });
 
   test("the last pane: Tuck is disabled with a truthful tooltip and announcement", async ({ lab, page }) => {
@@ -92,7 +92,7 @@ test.describe("tuck and put back", () => {
     expect(await btn.getAttribute("title")).toBe("orders is the only open pane and can't be tucked");
     await lab.recordAnnouncements();
     await lab.pane("orders").click({ position: { x: 100, y: 300 } });
-    await page.keyboard.press("Alt+Meta+m");
+    await page.keyboard.press("ControlOrMeta+k"); await page.keyboard.press("ControlOrMeta+BracketLeft");
     await lab.expectAnnounced(/only open pane|can.?t be tucked/i);
     expect((await lab.announcements()).some((m) => /minimised|collapsed/i.test(m))).toBe(false);
     await expect(lab.shelf()).toHaveCount(0);

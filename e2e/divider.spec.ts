@@ -81,11 +81,11 @@ test.describe("Divider", () => {
     }
   });
 
-  test("resize mode: Alt+Meta+R then arrows", async ({ lab, page }) => {
+  test("resize mode: ⌘K ⌘R then arrows", async ({ lab, page }) => {
     const orders = lab.pane("orders");
     await lab.header("orders").click({ position: { x: 200, y: 20 } });
     const w0 = await lab.width(orders);
-    await page.keyboard.press("Alt+Meta+r");
+    await page.keyboard.press("ControlOrMeta+k"); await page.keyboard.press("ControlOrMeta+r");
     await expect(lab.status()).toContainText("Resize mode");
     await page.keyboard.press("ArrowLeft");
     await expect.poll(() => lab.width(orders)).toBe(w0 - 16);

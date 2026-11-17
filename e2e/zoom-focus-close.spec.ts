@@ -1,7 +1,7 @@
 import { test, expect } from "./fixtures/lab";
 
 test.describe("Maximise", () => {
-  test("button, double-click header, Shift+Meta+Enter, Esc", async ({ lab, page }) => {
+  test("button, double-click header, ⌘K ⌘M, Esc", async ({ lab, page }) => {
     await lab.open();
     const area = (await lab.main().boundingBox())!;
 
@@ -20,9 +20,9 @@ test.describe("Maximise", () => {
     await expect(lab.isZoomed("order")).toHaveCount(0);
 
     await lab.pane("customer").click({ position: { x: 100, y: 300 } });
-    await page.keyboard.press("Shift+Meta+Enter");
+    await page.keyboard.press("ControlOrMeta+k"); await page.keyboard.press("ControlOrMeta+m");
     await expect(lab.isZoomed("customer")).toHaveCount(1);
-    await page.keyboard.press("Shift+Meta+Enter");
+    await page.keyboard.press("ControlOrMeta+k"); await page.keyboard.press("ControlOrMeta+m");
     await expect(lab.isZoomed("customer")).toHaveCount(0);
     // The tree and sizes were preserved through all of it.
     await expect.poll(() => lab.visibleIds()).toEqual(["orders", "order", "customer"]);
@@ -37,7 +37,7 @@ test.describe("Maximise", () => {
 });
 
 test.describe("Focus", () => {
-  test("F6 cycles, Alt+digit by position, Alt+Meta+arrows by direction with no wrap", async ({ lab, page }) => {
+  test("F6 cycles, the palette focuses by position, ⌘K ⌘arrows by direction with no wrap", async ({ lab, page }) => {
     await lab.open();
     const focused = async (want: string) => expect.poll(() => lab.focusedId()).toBe(want);
     await focused("orders");
@@ -48,25 +48,28 @@ test.describe("Focus", () => {
     await page.keyboard.press("Shift+F6");
     await focused("order");
 
-    await page.keyboard.press("Alt+3");
-    await focused("customer");
-    await page.keyboard.press("Alt+1");
-    await focused("orders");
+    // Focus by position has no default keys (⌥digit is tab switching on Linux, ⌘digit everywhere): the palette has it.
+    for (const [n, want] of [[3, "customer"], [1, "orders"]] as const) {
+      await page.keyboard.press("ControlOrMeta+k");
+      await page.keyboard.type(`Focus pane ${n}`);
+      await page.keyboard.press("Enter");
+      await focused(want);
+    }
 
-    await page.keyboard.press("Alt+Meta+ArrowLeft"); // already leftmost: no wrap
+    await page.keyboard.press("ControlOrMeta+k"); await page.keyboard.press("ControlOrMeta+ArrowLeft"); // already leftmost: no wrap
     await focused("orders");
-    await page.keyboard.press("Alt+Meta+ArrowRight");
+    await page.keyboard.press("ControlOrMeta+k"); await page.keyboard.press("ControlOrMeta+ArrowRight");
     await focused("order");
-    await page.keyboard.press("Alt+Meta+ArrowRight");
+    await page.keyboard.press("ControlOrMeta+k"); await page.keyboard.press("ControlOrMeta+ArrowRight");
     await focused("customer");
-    await page.keyboard.press("Alt+Meta+ArrowRight"); // rightmost: no wrap
+    await page.keyboard.press("ControlOrMeta+k"); await page.keyboard.press("ControlOrMeta+ArrowRight"); // rightmost: no wrap
     await focused("customer");
     await expect(lab.pane("customer")).toHaveCSS("outline-style", /.*/);
   });
 });
 
 test.describe("Close", () => {
-  test("focus returns, Sonner toast, live region, Meta+Z restores", async ({ lab, page }) => {
+  test("focus returns, Sonner toast, live region, ⌘K ⌘Z restores", async ({ lab, page }) => {
     await lab.open();
     await lab.header("orders").click({ position: { x: 200, y: 20 } });
     await page.getByRole("button", { name: "Close customer 1", exact: true }).click();
@@ -81,7 +84,7 @@ test.describe("Close", () => {
     await expect(lab.pane("orders")).toHaveAttribute("data-focused", "true");
     await lab.shot("09-close-toast");
 
-    await page.keyboard.press("Meta+z");
+    await page.keyboard.press("ControlOrMeta+k"); await page.keyboard.press("ControlOrMeta+z");
     await expect(lab.pane("customer")).toBeVisible();
     await expect.poll(() => lab.visibleIds()).toEqual(["orders", "order", "customer"]);
 
@@ -106,9 +109,9 @@ test.describe("Close", () => {
 });
 
 test.describe("Palette", () => {
-  test("Meta+K runs a command", async ({ lab, page }) => {
+  test("⌘K runs a command", async ({ lab, page }) => {
     await lab.open();
-    await page.keyboard.press("Meta+k");
+    await page.keyboard.press("ControlOrMeta+k");
     const dlg = page.getByRole("dialog", { name: "Commands" });
     await expect(dlg).toBeVisible();
     await lab.shot("10-command-palette");
@@ -119,11 +122,11 @@ test.describe("Palette", () => {
     // and a pane command: back to the chain, close other panes, then undo
     await page.getByRole("button", { name: "Order → customer chain" }).click();
     await expect.poll(() => lab.visibleCount()).toBe(3);
-    await page.keyboard.press("Meta+k");
+    await page.keyboard.press("ControlOrMeta+k");
     await page.keyboard.type("close other");
     await page.keyboard.press("Enter");
     await expect.poll(() => lab.visibleCount()).toBe(1);
-    await page.keyboard.press("Meta+z");
+    await page.keyboard.press("ControlOrMeta+k"); await page.keyboard.press("ControlOrMeta+z");
     await expect.poll(() => lab.visibleCount()).toBe(3);
   });
 });

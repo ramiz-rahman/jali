@@ -49,10 +49,10 @@ test.describe("Move: drag by the grip", () => {
     await page.mouse.up();
   });
 
-  test("keyboard move: Alt+Shift+Meta+Arrow", async ({ lab, page }) => {
+  test("keyboard move: ⌘K ⇧⌘Arrow", async ({ lab, page }) => {
     await lab.open();
     await lab.pane("customer").click({ position: { x: 100, y: 200 } });
-    await page.keyboard.press("Alt+Shift+Meta+ArrowLeft");
+    await page.keyboard.press("ControlOrMeta+k"); await page.keyboard.press("ControlOrMeta+Shift+ArrowLeft");
     await expect.poll(() => lab.visibleIds()).toEqual(["orders", "customer", "order"]);
   });
 });

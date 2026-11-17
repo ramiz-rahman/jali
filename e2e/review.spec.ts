@@ -133,7 +133,7 @@ test.describe("Loan review: Multiplexed", () => {
     expect(ids).toContain("history");
   });
 
-  test("a link opens beside the layout, marked as opened; Back to review restores every rect; ⌘Z reopens", async ({ lab, page }) => {
+  test("a link opens beside the layout, marked as opened; Back to review restores every rect; ⌘K ⌘Z reopens", async ({ lab, page }) => {
     await lab.open({ path: at("application"), size: { width: 1920, height: 1000 } });
     await mode(page, "Multiplexed").click();
     const rects = await lab.snap();
@@ -145,7 +145,7 @@ test.describe("Loan review: Multiplexed", () => {
     await investigation(page).getByRole("button", { name: "Back to review" }).click();
     await expect(opened(page)).toHaveCount(0);
     expect(await lab.snap()).toEqual(rects);
-    await page.keyboard.press("Meta+z");
+    await page.keyboard.press("ControlOrMeta+k"); await page.keyboard.press("ControlOrMeta+z");
     await expect(opened(page)).toHaveCount(1);
   });
 
