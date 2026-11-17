@@ -2,7 +2,7 @@
  * One command registry (spec §0.2): every pane action has a stable ID that feeds the palette, keys and menus.
  */
 import type { Edge } from "../layout-core/types";
-import { actions, allPanes, canTuck, findPane, getState, hooks, mergeTargets, resolved, setState, shelfEntries, stackOf } from "./store";
+import { tuckedFrom, actions, allPanes, canTuck, getState, hooks, mergeTargets, resolved, setState, shelfEntries, stackOf } from "./store";
 import { PRESETS } from "./presets";
 import { nearestDivider } from "./dividers/DividerLayer";
 
@@ -42,7 +42,7 @@ export const COMMANDS: Command[] = [
 
   { id: "pane.zoom", title: "Maximise or restore pane", keys: "⇧⌘↵", group: "Pane", enabled: () => hasFocus() && (many() || !!getState().view.zoomed), run: () => actions.toggleZoom() },
   { id: "pane.tuck", title: "Tuck pane into its neighbour", keys: "⌥⌘M", group: "Pane", enabled: () => canTuck(getState().view.focused), run: () => actions.tuck() },
-  { id: "pane.putBack", title: "Put back tucked pane", keys: "⌥⇧⌘M", group: "Pane", enabled: () => allPanes().some((p) => p.tuckedFrom), run: () => actions.putBack() },
+  { id: "pane.putBack", title: "Put back tucked pane", keys: "⌥⇧⌘M", group: "Pane", enabled: () => allPanes().some((p) => tuckedFrom(p.id)), run: () => actions.putBack() },
   { id: "shelf.reveal", title: "Show a pane from the shelf", group: "Pane", enabled: () => shelfEntries().length > 0, run: () => revealFromShelf() },
   { id: "pane.resize_mode", title: "Resize mode (arrows, then Esc)", keys: "⌥⌘R", group: "Pane", enabled: hasFocus, run: () => enterResizeMode() },
   { id: "pane.close", title: "Close pane", keys: "⌥⌘W", group: "Pane", enabled: () => hasFocus() && many(), run: () => actions.close() },
@@ -119,7 +119,7 @@ export function revealFromShelf() {
     hooks.announce(`Shelf: ${items.length} panes. Arrows to choose, Enter to show`);
     return;
   }
-  const first = items.find((i) => findPane(i.paneId)?.tuckedFrom) ?? items[0];
+  const first = items.find((i) => tuckedFrom(i.paneId)) ?? items[0];
   if (first) actions.reveal(first.paneId);
 }
 

@@ -1,20 +1,18 @@
-import type { FitOptions, Layout, LayoutCore, LayoutCoreOptions } from "./types";
-import { createOps } from "./ops";
-import { resolve } from "./resolve";
-import { encode, decode } from "./codec";
-import { validate } from "./validate";
-
+/** Pure public API. Structural operations own fitting; refit handles external size/cap/link events. */
 export type * from "./types";
-export { snapToCentre } from "./focus";
-
-export function createLayoutCore(options: LayoutCoreOptions = {}): LayoutCore {
-  const paneCap = options.paneCap ?? 10;
-  if (!Number.isInteger(paneCap) || paneCap < 1) throw new RangeError("paneCap must be a positive integer");
-  const fits = new WeakMap<Layout, FitOptions>();
-  const remember = (layout: Layout, fit: FitOptions) => { fits.set(layout, { ...fit }); };
-  return {
-    ...createOps(paneCap, remember, layout => fits.get(layout)),
-    resolve(layout, view, fit) { const result = resolve(layout, view, fit, paneCap); remember(layout, fit); return result; },
-    encode, decode, validate,
-  };
-}
+export * as tree from "./tree/tree";
+export { openBeside, split } from "./ops/open";
+export { close, closeOthers } from "./ops/close";
+export { swap, drop, moveDirection } from "./ops/move";
+export { resizeDivider, resetDivider } from "./ops/divider";
+export { canTuck, tuck, putBack, putBackEdge } from "./ops/tuck";
+export { setRef } from "./ops/ref";
+export { addTab, reveal, setActiveTab, resetLayout } from "./ops/tabs";
+export { focus, focusCycle, focusDirection, toggleZoom } from "./ops/focus";
+export { snapToCentre } from "./geometry/snap";
+export { extentAlong } from "./geometry/extent";
+export { minSize } from "./geometry/bounds";
+export { resolve } from "./fit/resolve";
+export { refit } from "./fit/refit";
+export { encode, decode } from "./codec/codec";
+export { validate } from "./codec/validate";

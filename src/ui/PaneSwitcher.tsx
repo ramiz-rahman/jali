@@ -1,7 +1,7 @@
 import type { PaneNode } from "../layout-core/types";
 import { KindIcon, ActivityDot } from "./PaneFrame";
 import { paneTitle } from "./pane-kinds";
-import { actions, useUi } from "./store";
+import { tuckedFrom, actions, useUi } from "./store";
 import { paneDomId } from "./ids";
 
 function Item({ node, selected }: { node: PaneNode; selected: boolean }) {
@@ -10,7 +10,7 @@ function Item({ node, selected }: { node: PaneNode; selected: boolean }) {
   return (
     <button
       role="tab"
-      className={`switch-item${selected ? " is-active" : ""}${(node as PaneNode & { tuckedFrom?: string }).tuckedFrom ? " is-tucked" : ""}`}
+      className={`switch-item${selected ? " is-active" : ""}${tuckedFrom(node.id) ? " is-tucked" : ""}`}
       aria-selected={selected}
       aria-controls={paneDomId(node.id)}
       tabIndex={selected ? 0 : -1}

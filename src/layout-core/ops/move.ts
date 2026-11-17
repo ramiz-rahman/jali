@@ -1,0 +1,61 @@
+import type { Edge, Layout, LayoutContext, PaneNode, ViewState } from "../types";
+import { activate, clone, find, nodes, parent, remove, unzoom, noFocus } from "../tree/tree";
+import { beside, tab } from "../tree/insert";
+import { focus, directionalCandidates } from "./focus";
+import { fitLayout } from "../fit/refit";
+import { resolve } from "../fit/resolve";
+import { forget } from "../fit/overlay";
+
+function swapTree(layout: Layout, a: string, b: string): Layout {
+  const next = clone(layout);
+  const left = find(next.root, a), right = find(next.root, b);
+  if (a === b || left?.type !== "pane" || right?.type !== "pane") return layout;
+  forget(next, [a, b]);
+  const leftContent = { ...left, size: right.size, userSized: right.userSized };
+  const rightContent = { ...right, size: left.size, userSized: left.userSized };
+  // Simultaneous replacement also works when the panes are in the same stack.
+  for (const node of nodes(next.root)) if (node.type !== "pane") {
+    if (node.type === "stack") {
+      node.children = node.children.map(c => c.id === a ? rightContent : c.id === b ? leftContent : c);
+      if (node.active === a) node.active = b; else if (node.active === b) node.active = a;
+    } else node.children = node.children.map(c => c.id === a ? rightContent : c.id === b ? leftContent : c);
+  }
+  return next;
+}
+export function swap(layout: Layout, a: string, b: string, ctx: LayoutContext): Layout {
+  const next = swapTree(layout, a, b);
+  return next === layout ? layout : fitLayout(next, noFocus(), ctx);
+}
+export function drop(layout: Layout, view: ViewState, dragged: string, target: string, zone: Edge | "centre", centreMode: "swap" | "tab", ctx: LayoutContext) {
+  const nextView = unzoom(view);
+  if (dragged === target || find(layout.root, dragged)?.type !== "pane" || find(layout.root, target)?.type !== "pane") return { layout, view };
+  const owner = parent(layout.root, dragged), targetOwner = parent(layout.root, target);
+  if (!layout.overlay && owner && owner === targetOwner) {
+    const at = owner.children.findIndex(c => c.id === dragged), to = owner.children.findIndex(c => c.id === target);
+    if (zone === "centre" && centreMode === "tab" && owner.type === "stack" && owner.active === dragged && at === owner.children.length - 1) return { layout, view };
+    const axis = zone === "left" || zone === "right" ? "row" : "column";
+    const offset = zone === "left" || zone === "top" ? -1 : 1;
+    if (zone !== "centre" && owner.type === axis && at === to + offset && owner.children.every(c => c.userSized || "weight" in c.size && c.size.weight === 1)) return { layout, view };
+  }
+  if (zone === "centre" && centreMode === "swap") {
+    const next = swapTree(layout, dragged, target);
+    activate(next, dragged);
+    return { layout: fitLayout(next, focus(nextView, dragged, ctx), ctx), view: focus(nextView, dragged, ctx) };
+  }
+  const next = clone(layout);
+  const pane = clone(find(next.root, dragged) as PaneNode);
+  // A deliberate move ends a tuck: the pane now lives where it was dropped.
+  next.root = remove(next.root, dragged)!;
+  forget(next, [dragged]);
+  if (zone === "centre") tab(next, target, pane);
+  else beside(next, target, zone, pane);
+  activate(next, dragged);
+  return { layout: fitLayout(next, focus(nextView, dragged, ctx), ctx), view: focus(nextView, dragged, ctx) };
+}
+
+export function moveDirection(layout: Layout, view: ViewState, pane: string, dir: Edge, ctx: LayoutContext) {
+  const nextView = unzoom(view);
+  const resolved = resolve(layout, { ...nextView, focused: pane }, ctx);
+  const target = directionalCandidates({ ...nextView, focused: pane }, resolved, dir)[0];
+  return target ? drop(layout, nextView, pane, target.id, dir, "swap", ctx) : { layout, view };
+}

@@ -1,43 +1,18 @@
+import { context as ctx, folded, fit, freeze, kinds, layout, pane, view } from "./fixtures";
 import { describe, expect, it } from "vitest";
-import { createLayoutCore } from "./index";
-import { shares } from "./resolve";
-import { fit, freeze, kinds, layout, pane, view } from "./test-utils";
-import type { FitOptions, Layout, LayoutNode, ViewState } from "./types";
+import * as core from "../index";
 
-describe("flex shares", () => {
-  it("allocates fixed pixels then proportional weights", () => {
-    expect(shares([{ size: { px: 200 }, min: 100 }, { size: { weight: 1 }, min: 100 }, { size: { weight: 2 }, min: 100 }], 1100)).toEqual([200, 300, 600]);
-  });
-  it("freezes a minimum then re-shares", () => {
-    expect(shares([{ size: { weight: 1 }, min: 400 }, { size: { weight: 3 }, min: 100 }], 800)).toEqual([400, 400]);
-  });
-  it("freezes maxima and re-shares through multiple rounds", () => {
-    expect(shares([{ size: { weight: 1 }, min: 100, max: 150 }, { size: { weight: 1 }, min: 100, max: 250 }, { size: { weight: 1 }, min: 100 }], 1000)).toEqual([150, 250, 600]);
-  });
-  it("handles opposing min and max violations without over-freezing", () => {
-    expect(shares([{ size: { weight: 1 }, min: 400 }, { size: { weight: 1 }, min: 100, max: 280 }], 600)).toEqual([400, 200]);
-  });
-  it("bounds fixed sizes and preserves weighted minimums on viewport shrink", () => {
-    expect(shares([{ size: { px: 900 }, min: 100 }, { size: { weight: 1 }, min: 300 }], 600)).toEqual([300, 300]);
-    expect(shares([{ size: { px: 50 }, min: 100, max: 200 }, { size: { px: 500 }, min: 100, max: 200 }], 500)).toEqual([200, 200]);
-    // Leftover space goes to whatever can still grow, so a row never shows a void.
-    expect(shares([{ size: { px: 56 }, min: 56, max: 56 }, { size: { px: 300 }, min: 240 }], 1000)).toEqual([56, 944]);
-  });
-  it("never scales down infeasible minimums", () => {
-    expect(shares([{ size: { weight: 1 }, min: 320 }, { size: { weight: 1 }, min: 480 }], 390)).toEqual([320, 480]);
-  });
-});
+import type { FitOptions, Layout, LayoutNode, ViewState } from "../types";
 
 describe("resolve and fold", () => {
-  const core = createLayoutCore();
   // What the screen shows: folds are decided by refit (at a structural or size change), then resolved.
-  const place = (tree: Layout, v: ViewState, f: FitOptions) => core.resolve(core.refit(tree, v, f), v, f);
+  const place = (tree: Layout, v: ViewState, f: FitOptions) => core.resolve(core.refit(tree, v, ctx(f)), v, ctx(f));
   for (const width of [1920, 1440, 1280, 1024, 390]) for (const count of [2, 3, 6, 10]) {
     it(`resolves ${count} panes at ${width}px without squeezing, overlap or mutation`, () => {
       const tree = freeze(layout(...Array.from({ length: count }, (_, i) => pane(`p${i}`, i % 2 ? "inspector" : "list", i ? { linkedTo: `p${i - 1}` } : {}))));
       const resolved = place(tree, view("p0"), fit(width));
       expect(resolved.panes).toHaveLength(count);
-      const visible = resolved.panes.filter(p => !p.hiddenInStack);
+      const visible = resolved.panes.filter(p => !p.hidden);
       for (const box of resolved.panes) {
         expect(box.rect.width).toBeGreaterThanOrEqual(kinds[count && Number(box.id.slice(1)) % 2 ? "inspector" : "list"]!.minWidth - 1e-7);
         expect(box.rect.x).toBeGreaterThanOrEqual(0);
@@ -51,46 +26,41 @@ describe("resolve and fold", () => {
   it("folds the narrowest unpinned context first", () => {
     const tree = layout(pane("a", "list"), pane("b", "record", { linkedTo: "a" }), pane("c", "inspector", { linkedTo: "b" }));
     const result = place(tree, view("a"), fit(1000));
-    expect(result.folded).toEqual(["c"]);
+    expect(folded(result)).toEqual(["c"]);
     expect(result.panes.find(p => p.id === "c")!.stackId).toBe(result.panes.find(p => p.id === "b")!.stackId);
-    expect(result.panes.filter(p => !p.hiddenInStack)).toHaveLength(2);
+    expect(result.panes.filter(p => !p.hidden)).toHaveLength(2);
   });
   it("preserves a focused context as the active automatic tab", () => {
     const tree = layout(pane("a", "list"), pane("b", "record", { linkedTo: "a" }));
     const result = place(tree, view("b"), fit(600));
-    expect(result.panes.find(p => p.id === "b")!.hiddenInStack).toBe(false);
-    expect(result.folded).toEqual(["a"]);
+    expect(result.panes.find(p => p.id === "b")!.hidden).toBeUndefined();
+    expect(folded(result)).toEqual(["a"]);
   });
   it("skips pinned contexts and falls back to a single switcher when necessary", () => {
     const result = place(layout(pane("a", "list"), pane("b", "record", { linkedTo: "a", pinned: true }), pane("c", "inspector", { linkedTo: "a" })), view(), fit(500));
-    expect(result.panes.filter(p => !p.hiddenInStack)).toHaveLength(1);
+    expect(result.panes.filter(p => !p.hidden)).toHaveLength(1);
     expect(result.dividers).toHaveLength(0);
-    expect(result.folded).toEqual(["b", "c"]);
+    expect(folded(result)).toEqual(["b", "c"]);
   });
   it("unfolds automatically when room returns and gives deterministic stack IDs", () => {
     const tree = layout(pane("a", "list"), pane("b", "record", { linkedTo: "a" }), pane("c", "inspector", { linkedTo: "b" }));
     const narrow = place(tree, view(), fit(600));
     expect(place(tree, view(), fit(600))).toEqual(narrow);
     const wide = place(tree, view(), fit(1920));
-    expect(wide.folded).toEqual([]);
-    expect(wide.panes.every(p => !p.hiddenInStack && !p.stackId)).toBe(true);
+    expect(folded(wide)).toEqual([]);
+    expect(wide.panes.every(p => !p.hidden && !p.stackId)).toBe(true);
   });
   it("keeps deliberate stacks grouped and their selected child", () => {
     const user: LayoutNode = { id: "tabs", type: "stack", origin: "user", active: "b", size: { weight: 1 }, children: [pane("a", "list"), pane("b", "record")] };
     const tree = freeze(layout(user, pane("c", "inspector")));
     for (const width of [390, 1920]) {
       const result = place(tree, view("b"), fit(width));
-      expect(result.panes.find(p => p.id === "a")!.hiddenInStack).toBe(true);
-      expect(result.panes.find(p => p.id === "b")!.hiddenInStack).toBe(false);
+      expect(result.panes.find(p => p.id === "a")!.hidden).toBe("tab");
+      expect(result.panes.find(p => p.id === "b")!.hidden).toBeUndefined();
     }
     expect(place(tree, view("b"), fit(1920)).panes.find(p => p.id === "b")!.stackId).toBe("tabs");
   });
-  it("unfolds persisted auto stacks on their stored axis", () => {
-    const tree = layout({ id: "auto", type: "stack", origin: "auto", axis: "column", active: "a", size: { weight: 1 }, children: [pane("a"), pane("b")] });
-    const result = place(tree, view(), fit(1000, 800));
-    expect(result.panes[1]!.rect.y).toBe(403);
-    expect(result.dividers[0]!.axis).toBe("column");
-  });
+
   it("derives nested split minima on both axes", () => {
     const tree = layout({ id: "column", type: "column", size: { weight: 1 }, children: [pane("a", "list"), pane("b", "record")] }, pane("c", "inspector"));
     const result = place(tree, view(), fit(1000, 700));
@@ -100,18 +70,18 @@ describe("resolve and fold", () => {
   });
   it("folds vertically when height minimums do not fit", () => {
     const tree = layout({ id: "column", type: "column", size: { weight: 1 }, children: [pane("a"), pane("b", "record", { linkedTo: "a" })] });
-    expect(place(tree, view(), fit(1000, 250)).panes.filter(p => !p.hiddenInStack)).toHaveLength(1);
+    expect(place(tree, view(), fit(1000, 250)).panes.filter(p => !p.hidden)).toHaveLength(1);
   });
   it("tucks a middle row pane: its home takes the space, the far pane keeps its rect, and put back is exact", () => {
     const tree = freeze(layout(pane("a", "record"), pane("b", "record"), pane("c", "record")));
     const before = place(tree, view("b"), fit(1600));
-    const t = core.tuck(tree, view("b"), "b", fit(1600));
+    const t = core.tuck(tree, view("b"), "b", ctx(fit(1600)));
     if (!t.ok) throw new Error("expected a tuck");
-    const after = core.resolve(t.layout, view("a"), fit(1600));
-    expect(after.folded).toEqual([]);
+    const after = core.resolve(t.layout, view("a"), ctx(fit(1600)));
+    expect(folded(after)).toEqual([]);
     for (const k of ["x", "y", "width", "height"] as const) expect(after.panes.find(p => p.id === "c")!.rect[k]).toBeCloseTo(before.panes.find(p => p.id === "c")!.rect[k], 6);
     expect(after.panes.find(p => p.id === "a")!.rect.width).toBeCloseTo(before.panes[0]!.rect.width + before.panes[1]!.rect.width + 6, 6);
-    const back = core.putBack(t.layout, t.view, "b", fit(1600));
+    const back = core.putBack(t.layout, t.view, "b", ctx(fit(1600)));
     expect(back.ok && back.layout).toEqual(tree);
   });
   it("unfolds one pane at each successive minimum-plus-gap threshold", () => {
@@ -119,20 +89,20 @@ describe("resolve and fold", () => {
     let previous = place(tree, view("p0"), fit(480));
     for (let count = 2; count <= 10; count++) {
       const width = count * 480 + (count - 1) * 6;
-      expect(place(tree, view("p0"), fit(width - 1)).panes.filter(p => !p.hiddenInStack)).toHaveLength(count - 1);
+      expect(place(tree, view("p0"), fit(width - 1)).panes.filter(p => !p.hidden)).toHaveLength(count - 1);
       const next = place(tree, view("p0"), fit(width));
-      expect(next.panes.filter(p => !p.hiddenInStack)).toHaveLength(count);
-      expect(previous.folded.filter(id => !next.folded.includes(id))).toHaveLength(1);
-      expect(next.folded.every(id => previous.folded.includes(id))).toBe(true);
+      expect(next.panes.filter(p => !p.hidden)).toHaveLength(count);
+      expect(folded(previous).filter(id => !folded(next).includes(id))).toHaveLength(1);
+      expect(folded(next).every(id => folded(previous).includes(id))).toBe(true);
       previous = next;
     }
-    expect(previous.folded).toEqual([]);
+    expect(folded(previous)).toEqual([]);
   });
   it("joins a folded pane to the stack of its source, never to an unrelated neighbour", () => {
     // Old rule: c grew b's adjacent stack. New rule: c is linked from d, so c and d form their own group.
     const tree = freeze(layout(pane("a", "record"), pane("b", "record", { linkedTo: "a" }), pane("c", "record", { linkedTo: "d" }), pane("d", "record")));
     const result = place(tree, view("a"), fit(1024));
-    expect(result.folded).toEqual(["c", "d"]);
+    expect(folded(result)).toEqual(["c", "d"]);
     expect(result.panes.find(p => p.id === "c")!.stackId).toBe(result.panes.find(p => p.id === "d")!.stackId);
     // The c-d chain has no related home elsewhere, so the pair travels together to the nearest neighbour (b).
     expect(result.stacks).toHaveLength(1);
@@ -143,8 +113,8 @@ describe("resolve and fold", () => {
     const tree = freeze(layout(pane("c", "inspector", { linkedTo: "b" }), { id: "tabs", type: "stack", origin: "user", active: "b", size: { weight: 1 }, children: [pane("a", "record"), pane("b", "record")] }));
     // Focus on b (with no focus, the first pane, c, would stand in and be protected instead).
     const result = place(tree, view("b"), fit(600));
-    expect(result.panes.filter(p => !p.hiddenInStack).map(p => p.id)).toEqual(["b"]);
-    expect(result.folded).toEqual(["c"]);
+    expect(result.panes.filter(p => !p.hidden).map(p => p.id)).toEqual(["b"]);
+    expect(folded(result)).toEqual(["c"]);
     expect(place(tree, { focusHistory: [] }, fit(1000)).panes.find(p => p.id === "b")!.stackId).toBe("tabs");
   });
   it("returns local neighbour lengths for APG separators including max constraints", () => {
@@ -164,13 +134,7 @@ describe("resolve and fold", () => {
     const result = place(layout(pane("a")), view(), { ...fit(1000), kinds: { ...kinds, small: { ...kinds.small!, maxWidth: 200 } } });
     expect(result.panes[0]!.rect.width).toBe(200);
   });
-  it("partially unfolds large auto stacks up to the live pane cap", () => {
-    const limited = createLayoutCore({ paneCap: 3 });
-    const tree = layout({ id: "auto", type: "stack", origin: "auto", active: "d", size: { weight: 1 }, children: [pane("a"), pane("b"), pane("c"), pane("d")] });
-    const result = limited.resolve(tree, view("d"), fit(1920));
-    expect(result.panes.filter(p => !p.hiddenInStack)).toHaveLength(3);
-    expect(result.panes.find(p => p.id === "d")!.hiddenInStack).not.toBe(true);
-  });
+
   it("preserves minimums and disjoint visible geometry across varied nested trees", () => {
     let seed = 719;
     const random = () => { seed = (seed * 16807) % 2147483647; return seed / 2147483647; };
@@ -183,7 +147,7 @@ describe("resolve and fold", () => {
       }
       const source = layout(tree(3));
       const boxes = place(source, { focusHistory: [] }, fit([1920, 1440, 1280, 1024][sample % 4]!, 900)).panes;
-      const visible = boxes.filter(b => !b.hiddenInStack);
+      const visible = boxes.filter(b => !b.hidden);
       for (const b of boxes) {
         expect(b.rect.width).toBeGreaterThanOrEqual(100 - 1e-6);
         expect(b.rect.x + b.rect.width).toBeLessThanOrEqual([1920, 1440, 1280, 1024][sample % 4]! + 1e-6);
@@ -199,8 +163,8 @@ describe("resolve and fold", () => {
     const tree = freeze(layout(pane("a"), pane("b")));
     const result = place(tree, { ...view("b"), zoomed: "b" }, fit(1000));
     expect(result.dividers).toEqual([]);
-    expect(result.panes[1]).toMatchObject({ rect: { x: 0, y: 0, width: 1000, height: 900 }, hiddenInStack: false });
-    expect(result.panes[0]!.hiddenInStack).toBe(true);
+    expect(result.panes[1]).toMatchObject({ rect: { x: 0, y: 0, width: 1000, height: 900 }, hidden: undefined });
+    expect(result.panes[0]!.hidden).toBe("zoom");
   });
   it.each([NaN, Infinity, -1])("rejects invalid fit width %s", width => {
     expect(() => place(layout(pane("a")), view(), fit(width))).toThrow(RangeError);

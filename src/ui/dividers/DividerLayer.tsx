@@ -156,7 +156,7 @@ export function DividerLayer() {
 /** For resize mode: the divider nearest to a pane in a direction, as (parentId, index, sign). */
 export function nearestDivider(paneId: string, horizontal: boolean): { d: DividerBox; sign: 1 | -1 } | null {
   const r = resolved();
-  const box = r.panes.find((b) => b.id === paneId && !b.hiddenInStack);
+  const box = r.panes.find((b) => b.id === paneId && !b.hidden);
   if (!box) return null;
   const pr = box.rect;
   const axis = horizontal ? "row" : "column";

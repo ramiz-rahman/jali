@@ -3,7 +3,7 @@
  * ⌘ on Mac is Ctrl elsewhere. Keyboard actions never animate.
  */
 import type { Edge } from "../layout-core/types";
-import { actions, getState, hooks, setState, visiblePaneIds } from "./store";
+import { context, actions, getState, hooks, setState, visiblePaneIds } from "./store";
 import { core } from "./core";
 import { runCommand } from "./commands";
 import { cancelActiveDrag } from "./dnd";
@@ -59,7 +59,7 @@ export function handleKey(e: KeyboardEvent): boolean {
     const inShelf = shelfShown && !!shelf && !!(document.activeElement && shelf.contains(document.activeElement));
     if (shelf && shelfShown && inShelf) {
       const id = e.shiftKey ? order.at(-1) : order[0];
-      if (id) actions.afterFocusMove(core.focus(s.view, id));
+      if (id) actions.afterFocusMove(core.focus(s.view, id, context()));
       return true;
     }
     const at = order.indexOf(s.view.focused ?? "");

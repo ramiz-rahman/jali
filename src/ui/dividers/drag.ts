@@ -100,7 +100,7 @@ export function startDividerDrag(e: { pointerId: number; button: number; clientX
   for (const id of neighbours) {
     const box = before.get(id), frame = frames.get(id);
     const node = findNode(id);
-    if (!box || box.hiddenInStack || !frame || node?.type !== "pane" || !getPaneKind(node.ref.kind)?.heavy) continue;
+    if (!box || box.hidden || !frame || node?.type !== "pane" || !getPaneKind(node.ref.kind)?.heavy) continue;
     const content = frame.querySelector<HTMLElement>(":scope > .pane-content");
     const inner = content?.querySelector<HTMLElement>(":scope > .pane-content-inner");
     if (!content || !inner || content.hidden) continue;
@@ -142,16 +142,16 @@ export function startDividerDrag(e: { pointerId: number; button: number; clientX
     shownSize = size;
 
     const delta = size - g0.a.size;
-    preview = Math.abs(delta) < 0.01 ? layout0 : core.resizeDivider(layout0, parentId, index, delta, fit0);
-    const r = preview === layout0 ? r0 : core.resolve(preview, view0, fit0);
+    preview = Math.abs(delta) < 0.01 ? layout0 : core.resizeDivider(layout0, parentId, index, delta, { fit: fit0, paneCap: getState().settings.paneCap });
+    const r = preview === layout0 ? r0 : core.resolve(preview, view0, { fit: fit0, paneCap: getState().settings.paneCap });
 
     // Pane frames: only the ones whose box differs from the committed one (plus any written earlier, to restore them).
     for (const b of r.panes) {
       const was = before.get(b.id), el = frames.get(b.id);
       if (!was || !el) continue;
-      if (sameRect(was.rect, b.rect) && !!was.hiddenInStack === !!b.hiddenInStack && !written.has(b.id)) continue;
+      if (sameRect(was.rect, b.rect) && !!was.hidden === !!b.hidden && !written.has(b.id)) continue;
       place(el, b.rect);
-      el.style.display = b.hiddenInStack ? "none" : "";
+      el.style.display = b.hidden ? "none" : "";
       written.add(b.id);
     }
     // Dividers inside the neighbours (and the line we drag) follow the same resolve.

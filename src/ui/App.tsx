@@ -12,7 +12,8 @@ import { SettingsPanel, useResolvedTheme } from "./Settings";
 import { Chooser } from "./Chooser";
 import { installKeyboard } from "./keyboard";
 import { applyUrl, installUrlSync, writeUrl } from "./url";
-import { actions, allPanes, getState, hooks, setState } from "./store";
+import { actions, context, allPanes, getState, hooks, setState } from "./store";
+import { core } from "./core";
 import { presetById } from "./presets";
 
 export const UNDO_MS = 8000;
@@ -34,6 +35,7 @@ export function bootFromUrl() {
   initialBroken = applyUrl();
   actions.noteOpen(allPanes().map((p) => p.ref));
   const s = getState();
+  setState({ layout: core.refit(s.layout, s.view, context()) });
   if (!s.view.focused) {
     const first = allPanes()[0]?.id;
     if (first) setState({ view: { ...s.view, focused: first, focusHistory: [first] } });

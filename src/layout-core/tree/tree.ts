@@ -1,4 +1,4 @@
-import type { Axis, Layout, LayoutNode, NodeId, PaneNode, Size, SplitNode, StackNode } from "./types";
+import type { Layout, LayoutNode, NodeId, PaneNode, SplitNode, StackNode } from "../types";
 
 export const clone = <T>(value: T): T => structuredClone(value);
 export const isSplit = (n: LayoutNode): n is SplitNode => n.type === "row" || n.type === "column";
@@ -22,20 +22,6 @@ export function replace(root: LayoutNode, id: NodeId, replacement: LayoutNode): 
 export function balance(node: LayoutNode): void {
   if (isSplit(node)) for (const child of node.children) if (!child.userSized) child.size = { weight: 1 };
 }
-export function combined(a: Size, b: Size): Size {
-  if ("px" in a && "px" in b) return { px: a.px + b.px };
-  if ("weight" in a && "weight" in b) return { weight: a.weight + b.weight };
-  return "weight" in a ? { ...a } : { ...b };
-}
-/** Expand only automatic groups. Child sizes survive folding, including dragged sizes. */
-export function unfold(node: LayoutNode, axis: Axis = "row"): LayoutNode {
-  if (node.type === "pane") return node;
-  if (node.type === "stack") {
-    if (node.origin !== "auto") return node;
-    return { id: node.id, type: node.axis ?? axis, size: node.size, userSized: node.userSized, children: node.children };
-  }
-  return { ...node, children: node.children.map(c => unfold(c, node.type)) };
-}
 /** Remove from an owned draft, pruning singleton containers and retaining their outer size. */
 export function remove(root: LayoutNode, id: NodeId): LayoutNode | undefined {
   if (root.id === id) return undefined;
@@ -58,3 +44,25 @@ export function newId(root: LayoutNode, prefix = "pane"): NodeId {
   while (ids.has(`${prefix}-${i}`)) i++;
   return `${prefix}-${i}`;
 }
+
+export const parentOf = parent;
+export function stackOf(root: LayoutNode, id: NodeId): StackNode | undefined {
+  const n = parent(root, id); return n?.type === "stack" ? n : undefined;
+}
+/** A replaced node is final; unchanged branches retain identity. */
+export function map(root: LayoutNode, fn: (node: LayoutNode) => LayoutNode): LayoutNode {
+  const next = fn(root);
+  if (next !== root || root.type === "pane") return next;
+  const children = root.children.map(c => map(c, fn));
+  if (children.every((c, i) => c === root.children[i])) return root;
+  return root.type === "stack" ? { ...root, children: children as PaneNode[] } : { ...root, children };
+}
+/** Shape excludes sizes, tab selection and content. */
+export function shape(root: LayoutNode): string {
+  return root.type === "pane" ? root.id : `${root.type[0]}:${root.id}(${root.children.map(shape).join(",")})`;
+}
+export function unzoom(view: import("../types").ViewState): import("../types").ViewState {
+  if (!view.zoomed) return view;
+  const next = { ...view }; delete next.zoomed; return next;
+}
+export const noFocus = (): import("../types").ViewState => ({ focusHistory: [] });

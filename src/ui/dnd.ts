@@ -56,7 +56,7 @@ export function startPaneDrag(e: ReactPointerEvent, paneId: string) {
     }
     const p = local(ev.clientX, ev.clientY);
     const hit = resolved().panes.find(
-      (b) => !b.hiddenInStack && p.x >= b.rect.x && p.x <= b.rect.x + b.rect.width && p.y >= b.rect.y && p.y <= b.rect.y + b.rect.height,
+      (b) => !b.hidden && p.x >= b.rect.x && p.x <= b.rect.x + b.rect.width && p.y >= b.rect.y && p.y <= b.rect.y + b.rect.height,
     );
     const target = hit && hit.id !== paneId ? hit : undefined;
     let zone: Edge | "centre" | undefined = target ? zoneFor(target.rect, p.x, p.y) : undefined;

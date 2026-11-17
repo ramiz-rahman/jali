@@ -1,8 +1,8 @@
 import type { ShelfEntry } from "../../layout-core/types";
-import { actions, allPanes, findPane, shelfEntries, stackOf, titleOf, tuckHome, useUi } from "../store";
+import { actions, tuckedFrom, allPanes, findPane, shelfEntries, stackOf, titleOf, tuckHome, useUi } from "../store";
 
 /** One tucked pane as the shelf shows it (ShelfEntry from layout-core, with activity from the store). */
-export type ShelfItem = ShelfEntry;
+export type ShelfItem = ShelfEntry & { activity?: import("../pane-kinds").PaneActivity };
 
 /**
  * The shelf UI lists every tucked pane, including one revealed in its home (revealing is not putting back), grouped
@@ -14,9 +14,10 @@ export function useShelf(): ShelfItem[] {
   const activity = useUi((s) => s.activity);
   const off = new Map(shelfEntries().map((e) => [e.paneId, e]));
   return allPanes().flatMap((p): ShelfItem[] => {
-    if (!p.tuckedFrom) return [];
+    const t = tuckedFrom(p.id);
+    if (!t) return [];
     const e = off.get(p.id);
-    const homeId = findPane(p.tuckedFrom.home) ? p.tuckedFrom.home : e?.homeId ?? p.tuckedFrom.home;
+    const homeId = findPane(t.home) ? t.home : e?.homeId ?? t.home;
     const a = activity[p.id];
     return [{ paneId: p.id, homeId, stackId: e?.stackId ?? stackOf(p.id)?.id ?? "", reason: "tucked", ...(a ? { activity: a } : {}) }];
   });

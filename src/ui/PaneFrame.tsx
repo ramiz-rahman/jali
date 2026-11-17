@@ -4,7 +4,7 @@ import { putBack } from "./pane/tuck";
 import { HeaderActions } from "./pane/HeaderActions";
 import type { ObjectRef, PaneBox, PaneNode } from "../layout-core/types";
 import { getPaneKind, paneTitle, type PaneActivity, type PaneComponentProps } from "./pane-kinds";
-import { actions, getState, useUi } from "./store";
+import { tuckedFrom, actions, getState, useUi } from "./store";
 import { startPaneDrag } from "./dnd";
 import { paneDomId, paneTitleId } from "./ids";
 import { DropZoneLabel } from "./dnd-label";
@@ -102,14 +102,14 @@ interface Props {
 }
 
 /** Same pane as far as the frame renders it. Resolve and layout ops make new objects every time, so compare values. */
-const tuckedOf = (n: PaneNode) => (n as PaneNode & { tuckedFrom?: string }).tuckedFrom;
+const tuckedOf = (n: PaneNode) => tuckedFrom(n.id);
 const sameNode = (a: PaneNode, b: PaneNode) =>
   a === b ||
   (a.id === b.id && a.linkedTo === b.linkedTo && a.pinned === b.pinned && tuckedOf(a) === tuckedOf(b) && JSON.stringify(a.ref) === JSON.stringify(b.ref));
 const sameStack = (a: StackInfo | undefined, b: StackInfo | undefined) =>
   a === b || (!!a && !!b && a.id === b.id && a.active === b.active && a.tabs.length === b.tabs.length && a.tabs.every((t, i) => sameNode(t, b.tabs[i]!)));
 const sameBox = (a: PaneBox, b: PaneBox) =>
-  a.id === b.id && !!a.hiddenInStack === !!b.hiddenInStack && a.rect.x === b.rect.x && a.rect.y === b.rect.y && a.rect.width === b.rect.width && a.rect.height === b.rect.height;
+  a.id === b.id && !!a.hidden === !!b.hidden && a.rect.x === b.rect.x && a.rect.y === b.rect.y && a.rect.width === b.rect.width && a.rect.height === b.rect.height;
 /** Memoised by node and rect: a resize (pointer or keyboard) re-renders only the frames whose rect changed. */
 export function sameFrameProps(a: Props, b: Props) {
   return (
@@ -123,7 +123,7 @@ export const PaneFrame = memo(function PaneFrame({ box, node, stack, focused, zo
   const activity = useUi((s) => s.activity[node.id]);
   const isDragged = useUi((s) => s.dnd?.dragged === node.id);
   const title = paneTitle(node.ref);
-  const hidden = !!box.hiddenInStack;
+  const hidden = !!box.hidden;
   const rect = zoomed ? { x: 0, y: 0, width: areaWidth, height: areaHeight } : box.rect;
   const paused = hidden || covered;
   // Heavy panes hold their content during a divider drag (dividers/drag.ts sets data-holding and the inner size).

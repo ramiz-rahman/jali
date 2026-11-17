@@ -1,9 +1,10 @@
-import type { Edge, PaneBox, ResolvedLayout, ViewState } from "./types";
+import type { Edge, LayoutContext, PaneBox, ResolvedLayout, ViewState } from "../types";
 
-export function focus(view: ViewState, pane: string): ViewState {
+export function focus(view: ViewState, pane: string, _ctx: LayoutContext): ViewState {
+  if (view.focused === pane && (!view.zoomed || view.zoomed === pane) && view.focusHistory[0] === pane && view.focusHistory.lastIndexOf(pane) === 0) return view;
   return { ...view, focused: pane, ...(view.zoomed ? { zoomed: pane } : {}), focusHistory: [pane, ...view.focusHistory.filter(id => id !== pane)] };
 }
-const visible = (resolved: ResolvedLayout) => resolved.panes.filter(p => !p.hiddenInStack);
+const visible = (resolved: ResolvedLayout) => resolved.panes.filter(p => !p.hidden);
 
 export function directionalCandidates(view: ViewState, resolved: ResolvedLayout, dir: Edge): PaneBox[] {
   const source = resolved.panes.find(p => p.id === view.focused);
@@ -32,17 +33,17 @@ export function directionalCandidates(view: ViewState, resolved: ResolvedLayout,
   candidates.sort((a, b) => Math.abs(a.distance - b.distance) > 1e-7 ? a.distance - b.distance : a.rank - b.rank || b.overlap - a.overlap || a.centre - b.centre || a.order - b.order);
   return candidates.map(c => c.pane);
 }
-export function focusDirection(view: ViewState, resolved: ResolvedLayout, dir: Edge): ViewState {
+export function focusDirection(view: ViewState, resolved: ResolvedLayout, dir: Edge, ctx: LayoutContext): ViewState {
   const next = directionalCandidates(view, resolved, dir)[0];
-  return next ? focus(view, next.id) : { ...view, focusHistory: [...view.focusHistory] };
+  return next ? focus(view, next.id, ctx) : view;
 }
-export function focusCycle(view: ViewState, resolved: ResolvedLayout, delta: 1 | -1): ViewState {
+export function focusCycle(view: ViewState, resolved: ResolvedLayout, delta: 1 | -1, ctx: LayoutContext): ViewState {
   const list = visible(resolved);
-  if (!list.length) return { ...view, focusHistory: [...view.focusHistory] };
+  if (!list.length) return view;
   const index = list.findIndex(p => p.id === view.focused);
-  return focus(view, list[index < 0 ? (delta === 1 ? 0 : list.length - 1) : (index + delta + list.length) % list.length]!.id);
+  return focus(view, list[index < 0 ? (delta === 1 ? 0 : list.length - 1) : (index + delta + list.length) % list.length]!.id, ctx);
 }
-/** Return the snapped value. The caller tracks whether the returned value equals centre. */
-export function snapToCentre(value: number, centre: number, wasSnapped: boolean): number {
-  return Math.abs(value - centre) <= (wasSnapped ? 16 : 10) ? centre : value;
+
+export function toggleZoom(view: ViewState, pane: string, _ctx: LayoutContext): ViewState {
+  const next = { ...view }; if (next.zoomed === pane) delete next.zoomed; else next.zoomed = pane; return next;
 }

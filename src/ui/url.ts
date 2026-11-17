@@ -4,7 +4,7 @@
  */
 import type { Layout, ObjectRef, ViewState } from "../layout-core/types";
 import { core } from "./core";
-import { allPanes, fit, getState, hooks, setState } from "./store";
+import { allPanes, context, fit, getState, hooks, setState } from "./store";
 import { DEFAULT_PRESET, presetById } from "./presets";
 
 export const PERSIST_MS = 120;
@@ -83,7 +83,7 @@ export function applyUrl(): string | undefined {
   const focused = prev.focused && ids.has(prev.focused) ? prev.focused : hist[0] ?? allPanes(r.layout.root)[0]?.id;
   const view: ViewState = { focusHistory: hist, ...r.view };
   if (focused) view.focused = focused;
-  setState({ layout: r.layout, view });
+  setState({ layout: core.refit(r.layout, view, context()), view });
   if (r.broken) {
     try { localStorage.setItem("pane-lab:broken-layout", r.broken); } catch { /* ignore */ }
     history.replaceState(null, "", buildUrl());

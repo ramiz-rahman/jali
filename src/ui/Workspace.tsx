@@ -5,7 +5,7 @@ import { PaneFrame, type StackInfo } from "./PaneFrame";
 import { DividerLayer } from "./dividers/DividerLayer";
 import { Peek } from "./Peek";
 import { setWorkspaceEl } from "./dnd";
-import { GAP, SWITCHER_H, allPanes, getState, hooks, resolved, setState, titleOf, useUi, bumpKinds, restoreWide, snapshotWide, type WideSnapshot } from "./store";
+import { foldedPaneIds, GAP, SWITCHER_H, allPanes, getState, hooks, resolved, setState, titleOf, useUi, bumpKinds, restoreWide, snapshotWide, type WideSnapshot } from "./store";
 import { usePaneKindsVersion } from "./pane-kinds";
 import { paneDomId } from "./ids";
 
@@ -46,7 +46,7 @@ export function Workspace() {
   collect(layout.root, panes, stacks);
 
   // Phone rule: when even one pane's minimum overflows the width, show one pane at a time. The layout is untouched.
-  const single = area.width > 0 && r.panes.some((b) => !b.hiddenInStack && b.rect.x + b.rect.width > area.width + 0.5);
+  const single = area.width > 0 && r.panes.some((b) => !b.hidden && b.rect.x + b.rect.width > area.width + 0.5);
   const all = allPanes();
   const currentId = (view.focused && all.some((p) => p.id === view.focused) ? view.focused : all[0]?.id) as string | undefined;
   const wasSingle = useRef<boolean | null>(null);
@@ -69,14 +69,14 @@ export function Workspace() {
   const prevFolded = useRef<string[] | null>(null);
   useEffect(() => {
     if (prevFolded.current === null || area.width === 0 || single) {
-      prevFolded.current = r.folded;
+      prevFolded.current = foldedPaneIds(r);
       return;
     }
-    const before = new Set(prevFolded.current), now = new Set(r.folded);
-    const added = r.folded.filter((id) => !before.has(id)), removed = prevFolded.current.filter((id) => !now.has(id) && panes.has(id));
+    const before = new Set(prevFolded.current), now = new Set(foldedPaneIds(r));
+    const added = foldedPaneIds(r).filter((id) => !before.has(id)), removed = prevFolded.current.filter((id) => !now.has(id) && panes.has(id));
     if (added.length) hooks.announce(`${added.map(titleOf).join(", ")} folded into tabs: not enough room`);
     else if (removed.length) hooks.announce(`${removed.map(titleOf).join(", ")} unfolded: room returned`);
-    prevFolded.current = r.folded;
+    prevFolded.current = foldedPaneIds(r);
   });
 
   // Keep DOM focus on the focused pane after structural changes (focus is never lost).
@@ -98,10 +98,10 @@ export function Workspace() {
   const stackInfo = (stackId: string | undefined): StackInfo | undefined => {
     if (!stackId) return undefined;
     const s = stacks.get(stackId);
-    if (s) return { id: s.id, tabs: s.children, active: s.active };
+    if (s && !r.stacks.some(group => group.id === stackId)) return { id: s.id, tabs: s.children, active: s.active };
     // Auto stacks made by resolve's collapse plan may not exist in the tree: rebuild from boxes.
     const members = r.panes.filter((b) => b.stackId === stackId);
-    const active = members.find((b) => !b.hiddenInStack)?.id ?? members[0]?.id;
+    const active = members.find((b) => !b.hidden)?.id ?? members[0]?.id;
     return { id: stackId, tabs: members.map((b) => panes.get(b.id)!).filter(Boolean), active: active! };
   };
 
@@ -116,7 +116,7 @@ export function Workspace() {
           {all.map((node) => (
             <PaneFrame
               key={node.id}
-              box={{ id: node.id, rect: { x: 0, y: 0, width: fullW, height: bodyH }, hiddenInStack: node.id !== currentId } as PaneBox}
+              box={{ id: node.id, rect: { x: 0, y: 0, width: fullW, height: bodyH }, hidden: node.id !== currentId ? "tab" : undefined } as PaneBox}
               node={node}
               focused={node.id === currentId}
               zoomed={false}
@@ -144,7 +144,7 @@ export function Workspace() {
               key={box.id}
               box={box}
               node={node}
-              stack={box.hiddenInStack ? undefined : stackInfo(box.stackId)}
+              stack={box.hidden ? undefined : stackInfo(box.stackId)}
               focused={view.focused === box.id}
               zoomed={view.zoomed === box.id}
               covered={!!view.zoomed && view.zoomed !== box.id}

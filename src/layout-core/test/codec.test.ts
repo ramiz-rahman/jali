@@ -1,9 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { createLayoutCore } from "./index";
-import { fit, freeze, kinds, layout, pane } from "./test-utils";
-import type { Layout, LayoutNode } from "./types";
+import * as core from "../index";
+import { fit, kinds, layout, pane } from "./fixtures";
+import type { Layout, LayoutNode } from "../types";
 
-const core = createLayoutCore();
 const fromJson = (value: unknown) => {
   const bytes = new TextEncoder().encode(JSON.stringify(value));
   return `1.${btoa(Array.from(bytes, c => String.fromCharCode(c)).join("")).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "")}`;
@@ -11,15 +10,16 @@ const fromJson = (value: unknown) => {
 
 describe("codec", () => {
   it("round-trips an eight-pane mixed tree with every flag and Unicode", () => {
-    const tree = freeze(layout(
+    const tree = layout(
       pane("a", "list", { size: { px: 380 }, userSized: true, ref: { kind: "list", params: { name: "ঢাকা / café 🚀", id: 99 } } }),
       { id: "col", type: "column", size: { weight: 3 }, children: [
-        pane("b", "record", { linkedTo: "a", pinned: true, tuckedFrom: { parent: "root", axis: "row", index: 3, beside: "g", side: "after", size: { weight: 1.5 }, userSized: true, home: "g", extent: 412.5, resized: [["g", { weight: 1 }, { weight: 2.5 }]] } }),
+        pane("b", "record", { linkedTo: "a", pinned: true, born: 12, base: { weight: 1.5 } }),
         { id: "user", type: "stack", origin: "user", size: { weight: 2 }, active: "d", children: [pane("c"), pane("d", "inspector", { pinned: false, userSized: false })] },
       ] },
-      { id: "auto", type: "stack", origin: "auto", axis: "column", size: { weight: 1 }, active: "e", children: [pane("e"), pane("f")] },
+      { id: "auto", type: "stack", origin: "user", size: { weight: 1 }, active: "e", children: [pane("e"), pane("f")] },
       pane("g"), pane("h"),
-    ));
+    );
+    tree.overlay = { tucks: [{ pane: "h", home: "g", seq: 1 }], folds: ["b"], shown: { g: "h" } };
     const encoded = core.encode(tree);
     expect(encoded).toMatch(/^1\.[A-Za-z0-9_-]+$/);
     expect(encoded.length).toBeLessThan(JSON.stringify(tree).length);
@@ -54,7 +54,7 @@ describe("codec", () => {
 
 describe("validation", () => {
   it("accepts registered kinds, valid stacks, fixed and weighted sizes", () => {
-    const tree = layout({ id: "tabs", type: "stack", size: { px: 600 }, active: "a", origin: "auto", axis: "row", children: [pane("a"), pane("b")] });
+    const tree = layout({ id: "tabs", type: "stack", size: { px: 600 }, active: "a", origin: "user", children: [pane("a"), pane("b")] });
     expect(core.validate(tree, kinds)).toEqual({ ok: true });
   });
   it.each([0, -1, NaN, Infinity, -Infinity])("rejects nonpositive or nonfinite size %s", value => {

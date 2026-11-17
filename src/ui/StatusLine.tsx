@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useDataLayer } from "./pane-kinds";
 import { Shelf } from "./Shelf";
-import { resolved, titleOf, useUi, allPanes } from "./store";
+import { tuckedFrom, foldedPaneIds, resolved, titleOf, useUi, allPanes } from "./store";
 
 export function StatusLine() {
   const layout = useUi((s) => s.layout);
@@ -13,7 +13,7 @@ export function StatusLine() {
   void layout;
   const r = resolved();
   // Every tucked pane, shown or not (the shelf lists them all); folded panes are counted separately below.
-  const shelf = allPanes().filter((p) => p.tuckedFrom).map((p) => ({ paneId: p.id }));
+  const shelf = allPanes().filter((p) => tuckedFrom(p.id)).map((p) => ({ paneId: p.id }));
   const busy = Object.entries(activity).filter(([id, a]) => (a === "needs-you" || a === "working" || a === "error") && shelf.some((s) => s.paneId === id));
   const hint = resizeMode
     ? "Resize mode · arrows, ⇧ for 64px · Esc to leave"
@@ -29,7 +29,7 @@ export function StatusLine() {
       <span className="status-main">
         {allPanes().length} {allPanes().length === 1 ? "pane" : "panes"}
         {shelf.length ? ` · ${shelf.length} tucked` : ""}
-        {r.folded.length ? ` · ${r.folded.length} folded` : ""}
+        {foldedPaneIds(r).length ? ` · ${foldedPaneIds(r).length} folded` : ""}
         {" · "}Focus: {view.focused ? titleOf(view.focused) : "none"}
       </span>
       {busy.length ? <span className="status-busy">{busy.map(([id, a]) => `${titleOf(id)}: ${a}`).join(" · ")}</span> : null}

@@ -116,7 +116,6 @@ export function kindRegistry(): KindRegistry {
     const k: PaneKind = { kind: d.kind, title: d.title, minWidth: d.minWidth, minHeight: d.minHeight };
     if (d.maxWidth !== undefined) k.maxWidth = d.maxWidth;
     if (d.preferredWidth !== undefined) k.preferredWidth = d.preferredWidth;
-    if (d.heavy) k.heavy = true;
     out[d.kind] = k;
   }
   return out;
