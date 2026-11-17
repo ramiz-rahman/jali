@@ -48,6 +48,9 @@ export function TabStrip({ group, owner }: { group: NonNullable<Frame["group"]>;
       if (r.left < box.left - 1 || r.right > box.right + 1) n++;
     });
     setHiddenCount((p) => (p === n ? p : n));
+    // Fade an edge that has tabs past it, so a cut-off tab reads as "more this way" (like the shelf).
+    el.toggleAttribute("data-fade-l", el.scrollLeft > 1);
+    el.toggleAttribute("data-fade-r", el.scrollLeft + el.clientWidth < el.scrollWidth - 1);
   };
   useLayoutEffect(measure);
   useEffect(() => {

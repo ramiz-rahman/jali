@@ -48,4 +48,4 @@
 .shelf-group.is-folded:not(:first-child)::before { content: ""; position: absolute; left: 0; top: 4px; bottom: 4px; width: 1px; background: var(--text-3); }
 .shelf-home svg { vertical-align: -2px; }
 .shelf-chip.is-folded { border-style: dotted; border-color: var(--text-3); }
-.shelf-chip.is-folded .shelf-chip-title { font-style: italic; }
+.shelf-chip.is-folded .shelf-chip-title { font-style: italic; padding-right: 2px; } /* italics lean past the box; room so the last letter is not clipped */

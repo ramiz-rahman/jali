@@ -14,10 +14,15 @@ test.describe("tab overflow and marks", () => {
     // Yours first, the layout's after the separator.
     const order = await page.locator(".tabs").first().evaluate((el) => [...el.children].map((c) => (c.classList.contains("tab-sep") ? "|" : c.classList.contains("is-folded") ? "f" : "m")).join(""));
     expect(order).toMatch(/^m+\|f+$/);
-    // The shelf lists every folded pane with the same wording.
-    const chips = page.locator('[data-chip][data-reason="folded"]');
-    expect(await chips.count()).toBe(await folded.count());
-    await expect(chips.first().getByRole("button").first()).toHaveAttribute("aria-description", "Folded: returns when there's room");
+    // The shelf counts every folded pane (past three, one summary chip that lists them), with the same wording.
+    const n = await folded.count();
+    const summary = page.locator("[data-chip][data-summary]");
+    await expect(summary).toContainText(`${n} folded`);
+    await expect(summary.getByRole("button")).toHaveAttribute("aria-description", "Folded: returns when there's room");
+    await summary.getByRole("button").click();
+    await expect(page.getByRole("menu", { name: "Folded panes" }).getByRole("menuitem")).toHaveCount(n);
+    await page.keyboard.press("Escape");
+    await expect(summary.getByRole("button")).toBeFocused();
   });
 
   test("the overflow button counts hidden tabs; the menu lists all of them, keys work, the chosen tab is shown", async ({ lab, page }) => {

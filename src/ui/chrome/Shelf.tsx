@@ -21,6 +21,9 @@ function label(m: WorkspaceModel, it: ShelfEntry, a: PaneActivity | undefined) {
 }
 
 /** The shelf: tucked panes by home, on the left of the status line. Renders nothing unless something is tucked. */
+const FOLDED_CHIPS = 3;
+const SUMMARY = "folded-summary";
+
 export function Shelf() {
   const m = useModel();
   // Every pane that is a tab but not by choice is listed too: tucked (yours, can be put back) and folded (the layout's).
@@ -35,7 +38,8 @@ export function Shelf() {
     flashTab(it.paneId);
   };
   const [focusId, setFocusId] = useState<string | null>(null);
-  const [menu, setMenu] = useState(false);
+  // The +N list (chips scrolled out of view) or, past FOLDED_CHIPS folded panes, the folded list behind one summary chip.
+  const [menu, setMenu] = useState<false | "more" | "folded">(false);
   const [hiddenIds, setHiddenIds] = useState<string[]>([]);
   const scroller = useRef<HTMLDivElement>(null);
   const bar = useRef<HTMLDivElement>(null);
@@ -46,7 +50,9 @@ export function Shelf() {
     return [...byHome.entries()];
   }, [tuckedItems]);
   // Keyboard order is the order on screen (grouped by home), not the store's order.
-  const ids = [...groups.flatMap(([, list]) => list.map((i) => i.paneId)), ...foldedItems.map((i) => i.paneId)];
+  // Folded panes return on their own: past a few, one summary chip lists them instead of a row of chips.
+  const summarise = foldedItems.length > FOLDED_CHIPS;
+  const ids = [...groups.flatMap(([, list]) => list.map((i) => i.paneId)), ...(summarise ? [SUMMARY] : foldedItems.map((i) => i.paneId))];
   const tab = focusId && ids.includes(focusId) ? focusId : ids[0];
 
   // Fade edges and the +N list: chips scrolled out of view.
@@ -74,7 +80,7 @@ export function Shelf() {
   }, [items.length]);
   useEffect(() => {
     if (!menu) return;
-    const off = (e: MouseEvent) => { if (!(e.target as HTMLElement).closest(".shelf-menu, .shelf-more")) setMenu(false); };
+    const off = (e: MouseEvent) => { if (!(e.target as HTMLElement).closest(".shelf-menu, .shelf-more, .shelf-summary")) setMenu(false); };
     document.addEventListener("pointerdown", off);
     return () => document.removeEventListener("pointerdown", off);
   }, [menu]);
@@ -104,6 +110,9 @@ export function Shelf() {
       const next = ids[i + 1] ?? ids[i - 1];
       actions.putBack(cur);
       if (next) setFocusId(next);
+    } else if ((e.key === "Enter" || e.key === " ") && cur === SUMMARY) {
+      e.preventDefault();
+      setMenu((v) => (v === "folded" ? false : "folded"));
     } else if (e.key === "Enter" || e.key === " ") {
       e.preventDefault();
       const it = items.find((x) => x.paneId === cur);
@@ -136,6 +145,7 @@ export function Shelf() {
   };
 
   const hidden = items.filter((i) => hiddenIds.includes(i.paneId));
+  const listed = menu === "folded" ? foldedItems : hidden;
   return (
     <div className="shelf" role="region" aria-label="Shelf" tabIndex={-1} data-shelf>
       <div className="shelf-bar" ref={bar}>
@@ -147,7 +157,18 @@ export function Shelf() {
               {list.map(chip)}
             </div>
           ))}
-          {foldedItems.length ? (
+          {foldedItems.length && summarise ? (
+            <div className="shelf-group is-folded" role="group" aria-label="Folded" key="folded">
+              <div className="shelf-chip is-folded shelf-summary" data-chip={SUMMARY} data-reason="folded" data-summary>
+                <button className="shelf-chip-main" tabIndex={tab === SUMMARY ? 0 : -1} aria-haspopup="menu" aria-expanded={menu === "folded"}
+                  aria-label={`${foldedItems.length} folded panes. Enter lists them`} aria-description={FOLDED_DESC} title={FOLDED_TIP}
+                  onFocus={() => setFocusId(SUMMARY)} onClick={() => setMenu((v) => (v === "folded" ? false : "folded"))}>
+                  <FoldHorizontal size={13} strokeWidth={1.75} aria-hidden />
+                  <span className="shelf-chip-title">{foldedItems.length} folded</span>
+                </button>
+              </div>
+            </div>
+          ) : foldedItems.length ? (
             <div className="shelf-group is-folded" role="group" aria-label="Folded" key="folded">
               <span className="shelf-home" title={FOLDED_TIP}><FoldHorizontal size={12} strokeWidth={1.75} aria-hidden /> Folded:</span>
               {foldedItems.map(chip)}
@@ -157,13 +178,13 @@ export function Shelf() {
         <span className="shelf-fade shelf-fade-r" aria-hidden />
       </div>
       {hidden.length ? (
-        <button className="shelf-more" aria-haspopup="menu" aria-expanded={menu} aria-label={`${hidden.length} more tucked or folded panes`} onClick={() => setMenu((m) => !m)}>
+        <button className="shelf-more" aria-haspopup="menu" aria-expanded={menu === "more"} aria-label={`${hidden.length} more tucked or folded panes`} onClick={() => setMenu((v) => (v === "more" ? false : "more"))}>
           +{hidden.length}
         </button>
       ) : null}
       {menu ? (
-        <div className="shelf-menu" role="menu" aria-label="More tucked or folded panes" onKeyDown={(e) => { if (e.key === "Escape") setMenu(false); }}>
-          {hidden.map((it) => {
+        <div className="shelf-menu" role="menu" aria-label={menu === "folded" ? "Folded panes" : "More tucked or folded panes"} onKeyDown={(e) => { if (e.key === "Escape") { setMenu(false); if (menu === "folded") focusChip(SUMMARY); } }}>
+          {listed.map((it) => {
             const L = label(m, it, activity[it.paneId]);
             return (
               <button role="menuitem" key={it.paneId} onClick={() => { setMenu(false); doReveal(it); }}>
