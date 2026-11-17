@@ -1,9 +1,8 @@
 import type { ReactNode } from "react";
-import "./panes.css";
+import "../panes.css";
 
-export function Shell({ children, onKeyDown, focused, label, innerRef }: { children: ReactNode; onKeyDown?: (e: React.KeyboardEvent) => void; focused?: boolean; label?: string; innerRef?: React.Ref<HTMLDivElement> }) {
-  void focused;
-  return <div className="pk" ref={innerRef} tabIndex={-1} onKeyDown={onKeyDown} aria-label={label}>{children}</div>;
+export function Shell({ children }: { children: ReactNode }) {
+  return <div className="pk" tabIndex={-1}>{children}</div>;
 }
 export function Loading() {
   return <div role="status" aria-label="Loading" style={{ paddingTop: 8 }}>{[80, 60, 70, 50, 65].map((w, i) => <div key={i} className="pk-skel" style={{ width: `${w}%` }} />)}</div>;

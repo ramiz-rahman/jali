@@ -14,10 +14,11 @@ export type Row = Record<string, string | number | null>;
 /** Entity identity used for cache keys and invalidation: every row is an entity. */
 export interface EntityKey { table: TableName; id: string } // composite PKs joined, e.g. "789:2" for order_items
 
-export interface ColumnInfo { name: string; type: string; nullable: boolean; primaryKey: boolean; references?: { table: TableName; column: string } }
+export type ColumnFormat = "money" | "json";
+export interface ColumnInfo { format?: ColumnFormat; name: string; type: string; nullable: boolean; primaryKey: boolean; references?: { table: TableName; column: string } }
 export interface TableInfo { name: TableName; rowCount: number; columns: ColumnInfo[]; referencedBy: { table: TableName; column: string }[] }
 
-export interface Relation { label: string; table: TableName; where: Record<string, string | number> } // e.g. "Orders by this customer"
+export interface Relation { label: string; table: TableName; where: Record<string, string | number>; count: number } // e.g. "Orders by this customer"
 
 /** A query run's results live in a result store by handle; grid, chart and inspector share the handle, never a copy. */
 export interface ResultHandle { runId: string; sql: string; columns: string[]; rowCount: number; ms: number }

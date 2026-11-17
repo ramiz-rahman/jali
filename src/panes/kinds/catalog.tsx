@@ -1,28 +1,32 @@
-import { useEffect, useRef, useState } from "react";
-import { useCatalog, errorText, isLoading } from "../data/hooks";
-import { formatCount, tableRef } from "./format";
-import { ErrorState, Loading, Shell, Empty } from "./states";
-import type { PaneComponentProps } from "../ui/pane-kinds";
+import { Database } from "lucide-react";
+import { definePaneKind } from "../../ui/pane-kinds";
+import { useState } from "react";
+import { PaneGate } from "../shared/PaneGate";
+import { useFocusWhen } from "../shared/useFocusWhen";
+import { useListKeys } from "../shared/useListKeys";
+import { useCatalog, isLoading } from "../../data/hooks";
+import { formatCount } from "../format";
+import { tableRef } from "../shared/refs";
+import { Shell, Empty } from "../shared/states";
+import type { PaneComponentProps } from "../../ui/pane-kinds";
 
 export function CatalogPane({ paused, focused, openBeside, peek }: PaneComponentProps) {
   const q = useCatalog({ paused });
   const tables = q.data ?? [];
   const [sel, setSel] = useState(0);
-  const ref = useRef<HTMLDivElement>(null);
-  useEffect(() => { if (focused && !ref.current?.contains(document.activeElement)) ref.current?.focus({ preventScroll: true }); }, [focused]);
+  const ref = useFocusWhen<HTMLDivElement>(focused);
+  const listKeys = useListKeys(tables.length, sel, setSel);
 
   const onKeyDown = (e: React.KeyboardEvent) => {
     const t = tables[sel];
-    if (e.key === "j" || e.key === "ArrowDown") setSel((s) => Math.min(tables.length - 1, s + 1));
-    else if (e.key === "k" || e.key === "ArrowUp") setSel((s) => Math.max(0, s - 1));
-    else if (e.key === " " && t) peek(tableRef(t.name));
+    if (listKeys(e)) return;
+    if (e.key === " " && t) peek(tableRef(t.name));
     else if (e.key === "Enter" && e.altKey && t) openBeside(tableRef(t.name));
     else return;
     e.preventDefault();
   };
 
-  if (isLoading(q)) return <Shell><Loading /></Shell>;
-  if (q.isError) return <Shell><ErrorState message={errorText(q) ?? "Unknown error"} /></Shell>;
+  if (isLoading(q) || q.isError) return <PaneGate queries={[q]} />;
   if (!tables.length) return <Shell><Empty title="No tables" /></Shell>;
   return (
     <Shell>
@@ -38,3 +42,10 @@ export function CatalogPane({ paused, focused, openBeside, peek }: PaneComponent
     </Shell>
   );
 }
+
+
+export const catalogKind = definePaneKind({
+  kind: "catalog", ref: (params) => ({ kind: "catalog", params }),
+  title: (_ref) => "Tables", minWidth: 240, minHeight: 200, 
+  icon: Database, Component: CatalogPane,
+});

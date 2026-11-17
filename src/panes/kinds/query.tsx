@@ -1,10 +1,15 @@
-import { useCallback, useEffect, useRef, useState } from "react";
-import type { ResultHandle, Row } from "../data/types";
-import { Grid, type GridColumn } from "./Grid";
-import { errorText, useResultRows, useRun } from "../data/hooks";
-import { chartRef, formatCount, formatMs } from "./format";
-import { Empty, ErrorState, Loading, Shell } from "./states";
-import type { PaneComponentProps } from "../ui/pane-kinds";
+import { TerminalSquare } from "lucide-react";
+import { definePaneKind } from "../../ui/pane-kinds";
+import { useEffect, useRef, useState } from "react";
+import { resultFormat } from "../../data/labels";
+import type { ResultHandle, Row } from "../../data/types";
+import { Grid, type GridColumn } from "../grid/Grid";
+import { errorText, useRun } from "../../data/hooks";
+import { formatCount, formatMs } from "../format";
+import { chartRef } from "../shared/refs";
+import { Empty, ErrorState, Loading, Shell } from "../shared/states";
+import { useResultWindow } from "../grid/useWindow";
+import type { PaneComponentProps } from "../../ui/pane-kinds";
 
 export const DEFAULT_SQL = "SELECT region, SUM(amount_cents) AS amount_cents\nFROM sample_orders\nGROUP BY region\nORDER BY amount_cents DESC";
 
@@ -52,19 +57,24 @@ export function QueryPane({ ref, paused, focused, openBeside, setActivity }: Pan
 }
 
 function ResultGrid({ handle, paused, focused }: { handle: ResultHandle; paused: boolean; focused: boolean }) {
-  const [start, setStart] = useState(0);
   const [sel, setSel] = useState<number | null>(null);
-  const onRange = useCallback((s: number) => setStart(Math.floor(s / 100) * 100), []);
-  const q = useResultRows(handle.runId, start, 200, { paused });
-  useEffect(() => { setStart(0); setSel(null); }, [handle.runId]);
-  const rows: Row[] = q.data ?? [];
-  const columns: GridColumn[] = handle.columns.map((name) => ({ name, type: typeFromRows(rows, name) }));
-  if (q.isError) return <ErrorState message={errorText(q) ?? ""} />;
+  const w = useResultWindow(handle.runId, handle.rowCount, paused);
+  useEffect(() => { setSel(null); }, [handle.runId]);
+  const rows = w.rows;
+  const columns: GridColumn[] = handle.columns.map((name) => ({ name, type: typeFromRows(rows, name), format: resultFormat(name) }));
+  if (w.q.isError) return <ErrorState message={errorText(w.q) ?? ""} />;
   if (!handle.rowCount) return <Empty title="No rows" hint="The query ran and matched nothing." />;
-  return <Grid label="Query results" columns={columns} total={handle.rowCount} rows={rows} startOffset={start} onRange={onRange} selected={sel} onSelect={setSel} focused={focused} />;
+  return <Grid label="Query results" columns={columns} total={handle.rowCount} rows={rows} startOffset={w.offset} onRange={w.onRange} selected={sel} onSelect={setSel} focused={focused} />;
 }
 
 function typeFromRows(rows: Row[], name: string) {
   const v = rows.find((r) => r[name] !== null && r[name] !== undefined)?.[name];
   return typeof v === "number" ? "number" : "text";
 }
+
+
+export const queryKind = definePaneKind({
+  kind: "query", ref: (params) => ({ kind: "query", params }),
+  title: (_ref) => "Query", minWidth: 480, minHeight: 280, heavy: true, identity: () => undefined,
+  icon: TerminalSquare, Component: QueryPane,
+});

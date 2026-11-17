@@ -1,12 +1,16 @@
-import { describe, expect, it } from "vitest";
+import { nextSort, orderByString, parseFilter } from "./grid/grid-state";
+import { pickChartColumns } from "./kinds/chart";
+import { describe, expect, it, vi } from "vitest";
+vi.mock("../ui/pane-kinds", () => ({ definePaneKind: (definition: unknown) => definition }));
 import type { ColumnInfo } from "../data/types";
-import { cellKind, columnLabel, formatCell, formatJson, formatMoney, formatTimestamp, isJsonColumn, isMoneyColumn, rawText,  formatCompact, formatCount, formatMs, foreignKeyRef, isNumericType, nextSort, orderByString, parseFilter, pickChartColumns, relationRef, rowId, titleFor } from "./format";
+import { cellKind, columnLabel, formatCell, formatJson, formatMoney, formatTimestamp, rawText, formatCompact, formatCount, formatMs, isNumericType } from "./format";
+import { foreignKeyRef, relationRef, rowId, titleFor } from "./shared/refs";
 
 const col = (name: string, type = "text", extra: Partial<ColumnInfo> = {}): ColumnInfo => ({ name, type, nullable: false, primaryKey: false, ...extra });
 
 describe("formatting", () => {
   it("formats numbers and money", () => {
-    expect(formatCell(12500, col("total_cents", "integer"))).toBe("125.00");
+    expect(formatCell(12500, col("total_cents", "integer", { format: "money" }))).toBe("125.00");
     expect(formatCell(1234, col("quantity", "integer"))).toBe("1,234");
     expect(formatCell(null)).toBe("");
     expect(formatCount(12345)).toBe("12,345");
@@ -43,7 +47,7 @@ describe("relation links", () => {
     expect(foreignKeyRef(col("status"), "paid")).toBeNull();
   });
   it("turns a relation into a related ref", () => {
-    expect(relationRef({ label: "Orders by Amina Okafor", table: "orders", where: { customer_id: 69 } })).toEqual({
+    expect(relationRef({ label: "Orders by Amina Okafor", table: "orders", count: 1, where: { customer_id: 69 } })).toEqual({
       kind: "related", params: { table: "orders", column: "customer_id", value: 69, label: "Orders by Amina Okafor" },
     });
   });
@@ -75,29 +79,26 @@ describe("cell formatters", () => {
     expect(formatMoney(12500)).toBe("125.00");
     expect(formatMoney(5)).toBe("0.05");
     expect(formatMoney(123456789)).toBe("1,234,567.89");
-    expect(isMoneyColumn("total_cents")).toBe(true);
-    expect(isMoneyColumn("cents_total")).toBe(false);
   });
   it("titles money columns without _cents", () => {
-    expect(columnLabel("total_cents")).toBe("Total");
-    expect(columnLabel("price_cents")).toBe("Price");
-    expect(columnLabel("unit_price_cents")).toBe("Unit price");
-    expect(columnLabel("amount_cents")).toBe("Amount");
+    expect(columnLabel("total_cents", "money")).toBe("Total");
+    expect(columnLabel("price_cents", "money")).toBe("Price");
+    expect(columnLabel("unit_price_cents", "money")).toBe("Unit price");
+    expect(columnLabel("amount_cents", "money")).toBe("Amount");
     expect(columnLabel("quantity")).toBe("quantity");
   });
   it("compacts JSON columns", () => {
-    expect(isJsonColumn("payload_json")).toBe(true);
     expect(formatJson('{ "a": 1,\n "b": [1, 2] }')).toBe('{"a":1,"b":[1,2]}');
     expect(formatJson('{"a":1}', true)).toBe('{\n  "a": 1\n}');
     expect(formatJson("not json")).toBe("not json");
-    expect(formatCell('{ "source": "trigger" }', { name: "payload_json" })).toBe('{"source":"trigger"}');
+    expect(formatCell('{ "source": "trigger" }', { name: "payload_json", format: "json" })).toBe('{"source":"trigger"}');
   });
   it("classifies cells and keeps raw values", () => {
     expect(cellKind(null)).toBe("null");
-    expect(cellKind(5, { name: "price_cents" })).toBe("money");
+    expect(cellKind(5, { name: "price_cents", format: "money" })).toBe("money");
     expect(cellKind(5, { name: "quantity" })).toBe("number");
     expect(cellKind("2026-01-01", { name: "x" })).toBe("time");
-    expect(cellKind("{}", { name: "metadata_json" })).toBe("json");
+    expect(cellKind("{}", { name: "metadata_json", format: "json" })).toBe("json");
     expect(rawText(12500)).toBe("12500");
     expect(rawText("2026-01-01T10:30:00Z")).toBe("2026-01-01T10:30:00Z");
     expect(rawText(null)).toBe("NULL");

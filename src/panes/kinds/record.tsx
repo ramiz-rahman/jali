@@ -1,16 +1,21 @@
+import { FileText } from "lucide-react";
+import { definePaneKind } from "../../ui/pane-kinds";
+import { copyRaw } from "../shared/copyRaw";
 import { useEffect, useRef, useState } from "react";
-import type { ColumnInfo, Relation, Row, TableName } from "../data/types";
-import { errorText, isLoading, useCatalog, useRecord, useRelations, useRows, useUpdateRow } from "../data/hooks";
-import { cellKind, columnLabel, foreignKeyRef, formatCell, formatCount, formatJson, rawText, isEditable, relationRef, singular, tableInfoOf, tableRef } from "./format";
-import { ErrorState, Gone, Loading, NullChip, Shell } from "./states";
-import type { PaneComponentProps } from "../ui/pane-kinds";
+import type { ColumnInfo, Relation, Row, TableName } from "../../data/types";
+import { errorText, isLoading, useTableInfo, useRecord, useRelations, useUpdateRow } from "../../data/hooks";
+import { cellKind, columnLabel, formatCell, formatCount, formatJson, rawText } from "../format";
+import { foreignKeyRef, isEditable, relationRef, singular, tableRef } from "../shared/refs";
+import { ErrorState, Loading, NullChip, Shell } from "../shared/states";
+import { PaneGate } from "../shared/PaneGate";
+import type { PaneComponentProps } from "../../ui/pane-kinds";
 
 export function RecordPane({ ref, paused, openBeside, setActivity }: PaneComponentProps) {
   const table = String(ref.params.table ?? "") as TableName;
   const id = String(ref.params.id ?? "");
-  const cat = useCatalog({ paused });
+  const cat = useTableInfo(table, paused);
   const rec = useRecord(table, id, { paused });
-  const info = tableInfoOf(cat.data, table);
+  const info = cat.data;
   const update = useUpdateRow();
   const [editing, setEditing] = useState<string | null>(null);
   const [draft, setDraft] = useState("");
@@ -19,11 +24,11 @@ export function RecordPane({ ref, paused, openBeside, setActivity }: PaneCompone
 
   useEffect(() => { setActivity(update.isPending ? "working" : isLoading(rec) ? "loading" : rec.isError || update.error ? "error" : "idle"); }, [setActivity, update.isPending, rec, update.error]);
 
-  if (isLoading(cat) || isLoading(rec)) return <Shell><Loading /></Shell>;
-  if (cat.isError || rec.isError) return <Shell><ErrorState message={errorText(cat) ?? errorText(rec) ?? ""} onRetry={() => { void rec.refetch(); }} /></Shell>;
-  if (!info) return <Shell><Gone what={`Table "${table}"`} /></Shell>;
+  if (isLoading(cat) || isLoading(rec) || cat.isError || rec.isError || !info || !rec.data) {
+    const gone = !info ? `Table "${table}"` : !rec.data ? `${singular(table)} ${id}` : undefined;
+    return <PaneGate queries={[cat, rec]} gone={gone} onRetry={() => { void rec.refetch(); }} />;
+  }
   const row = rec.data;
-  if (!row) return <Shell><Gone what={`${singular(table)} ${id}`} /></Shell>;
 
   const heading = String(row.name ?? row.title ?? row.email ?? `${singular(table)} ${id}`);
   const commit = (c: ColumnInfo) => {
@@ -52,8 +57,8 @@ export function RecordPane({ ref, paused, openBeside, setActivity }: PaneCompone
           const raw = rawText(v);
           return (
             <div className="pk-field" key={c.name}>
-              <div className="k" title={`${c.name} (${c.type})`}>{columnLabel(c.name)}{c.primaryKey && <> <span className="pk-chip key">PK</span></>}</div>
-              <div className={`${num ? "num" : ""}${kind === "money" ? " money" : ""}`} title={v === null || kind === "text" ? undefined : raw} data-raw={v === null ? undefined : raw} onCopy={(e) => { if (v !== null && window.getSelection()?.toString() === formatCell(v, c)) { e.clipboardData.setData("text/plain", raw); e.preventDefault(); } }}>
+              <div className="k" title={`${c.name} (${c.type})`}>{columnLabel(c.name, c.format)}{c.primaryKey && <> <span className="pk-chip key">PK</span></>}</div>
+              <div className={`${num ? "num" : ""}${kind === "money" ? " money" : ""}`} title={v === null || kind === "text" ? undefined : raw} data-raw={v === null ? undefined : raw} onCopy={e => copyRaw(e, true)}>
                 {editing === c.name ? (
                   <input className="pk-edit" autoFocus value={draft} aria-label={c.name} onChange={(e) => setDraft(e.target.value)} onBlur={() => commit(c)}
                     onKeyDown={(e) => { e.stopPropagation(); if (e.key === "Enter") commit(c); if (e.key === "Escape") { e.preventDefault(); setEditing(null); } }} />
@@ -94,17 +99,23 @@ function Relations({ table, id, row, paused, openBeside }: { table: TableName; i
       <div className="pk-sec">Related records</div>
       {isLoading(rels) ? <Loading /> : rels.isError ? <ErrorState message={errorText(rels) ?? ""} /> :
         list.length === 0 ? <div className="pk-meta" style={{ padding: "4px 14px" }}>Nothing points here.</div> :
-        list.map((r) => <RelationLink key={r.label + r.table} rel={r} paused={paused} openBeside={openBeside} />)}
+        list.map((r) => <RelationLink key={r.label + r.table} rel={r} openBeside={openBeside} />)}
     </>
   );
 }
 
-function RelationLink({ rel, paused, openBeside }: { rel: Relation; paused: boolean; openBeside: PaneComponentProps["openBeside"] }) {
-  const count = useRows(rel.table, { where: rel.where, limit: 1 }, { paused });
+function RelationLink({ rel, openBeside }: { rel: Relation; openBeside: PaneComponentProps["openBeside"] }) {
   return (
     <div className="pk-field" style={{ minHeight: 28 }}>
       <button className="pk-link" style={{ textAlign: "left" }} onClick={() => openBeside(relationRef(rel))}>{rel.label}</button>
-      <span className="pk-mono pk-meta">{count.data ? formatCount(count.data.total) : ""}</span>
+      <span className="pk-mono pk-meta">{formatCount(rel.count)}</span>
     </div>
   );
 }
+
+
+export const recordKind = definePaneKind({
+  kind: "record", ref: (params) => ({ kind: "record", params }),
+  title: (ref) => `${singular(String(ref.params.table ?? "record"))} ${ref.params.id ?? ""}`.trim(), minWidth: 480, minHeight: 240, 
+  icon: FileText, Component: RecordPane,
+});

@@ -16,10 +16,10 @@ describe('data layer', () => {
   it('describes outgoing and incoming relations', async () => {
     const order = await api.record('orders','61');
     const relations = await api.relations('orders',order!);
-    expect(relations).toContainEqual({ label: 'Customer', table: 'customers', where: {id:61} });
-    expect(relations).toContainEqual({ label: 'Address', table: 'addresses', where: {id:61} });
+    expect(relations).toContainEqual({ label: 'Customer', table: 'customers', where: {id:61}, count: 1 });
+    expect(relations).toContainEqual({ label: 'Address', table: 'addresses', where: {id:61}, count: 1 });
     const customer = await api.record('customers','61');
-    expect(await api.relations('customers',customer!)).toContainEqual({label:'Orders by this customer',table:'orders',where:{customer_id:61}});
+    expect(await api.relations('customers',customer!)).toContainEqual(expect.objectContaining({label:'Orders by this customer',table:'orders',where:{customer_id:61}, count: expect.any(Number)}));
   });
   it('invalidates affected entities and lists without touching products', async () => {
     const opts = {where:{customer_id:61}};

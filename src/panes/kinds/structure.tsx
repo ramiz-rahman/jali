@@ -1,16 +1,18 @@
-import type { TableName } from "../data/types";
-import { errorText, isLoading, useCatalog } from "../data/hooks";
-import { erRef, formatCount, tableInfoOf, tableRef } from "./format";
-import { ErrorState, Gone, Loading, NullChip, Shell } from "./states";
-import type { PaneComponentProps } from "../ui/pane-kinds";
+import { ListTree } from "lucide-react";
+import { definePaneKind } from "../../ui/pane-kinds";
+import type { TableName } from "../../data/types";
+import { useCatalog } from "../../data/hooks";
+import { formatCount } from "../format";
+import { erRef, tableInfoOf, tableRef } from "../shared/refs";
+import { NullChip, Shell } from "../shared/states";
+import { PaneGate } from "../shared/PaneGate";
+import type { PaneComponentProps } from "../../ui/pane-kinds";
 
 export function StructurePane({ ref, paused, openBeside }: PaneComponentProps) {
   const table = String(ref.params.table ?? "") as TableName;
   const cat = useCatalog({ paused });
-  if (isLoading(cat)) return <Shell><Loading /></Shell>;
-  if (cat.isError) return <Shell><ErrorState message={errorText(cat) ?? ""} /></Shell>;
   const info = tableInfoOf(cat.data, table);
-  if (!info) return <Shell><Gone what={`Table "${table}"`} /></Shell>;
+  if (!info || cat.isError) return <PaneGate queries={[cat]} gone={!info ? `Table "${table}"` : undefined} />;
   return (
     <Shell>
       <div className="pk-bar">
@@ -38,3 +40,10 @@ export function StructurePane({ ref, paused, openBeside }: PaneComponentProps) {
     </Shell>
   );
 }
+
+
+export const structureKind = definePaneKind({
+  kind: "structure", ref: (params) => ({ kind: "structure", params }),
+  title: (ref) => `${ref.params.table ?? ""} structure`.trim(), minWidth: 440, minHeight: 240, 
+  icon: ListTree, Component: StructurePane,
+});

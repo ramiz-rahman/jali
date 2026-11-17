@@ -1,12 +1,12 @@
+import { definePaneKind } from "../../ui/pane-kinds";
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { Plus, Search, Table2 } from "lucide-react";
-import type { ObjectRef, TableInfo } from "../data/types";
-import { KindIcon } from "../ui/PaneFrame";
-import { openPaneFor, useUi } from "../ui/store";
-import { paneTitle } from "../ui/pane-kinds";
-import { useCatalog } from "../data/hooks";
-import { formatCount, recordRef, singular, tableRef } from "./format";
-import type { PaneComponentProps } from "../ui/pane-kinds";
+import type { ObjectRef, TableInfo } from "../../data/types";
+import { useFocusWhen } from "../shared/useFocusWhen";
+import { useCatalog } from "../../data/hooks";
+import { formatCount } from "../format";
+import { recordRef, singular, tableRef } from "../shared/refs";
+import type { PaneComponentProps } from "../../ui/pane-kinds";
 
 /** One choosable row. `open` marks an object already on screen: choosing it focuses that pane. */
 interface Item {
@@ -33,18 +33,14 @@ function recordJump(q: string, tables: TableInfo[]): ObjectRef | null {
  * The launcher: what a split or a stack's "+" opens. A search over recent objects and tables, plus "New query".
  * Choosing fills this same pane (openHere); Esc on an untouched launcher closes it and returns focus.
  */
-export function LauncherPane({ node, focused, paused, openHere, dismiss }: PaneComponentProps) {
+export function LauncherPane({ node, focused, paused, openHere, dismiss, recent = [], isOpen = () => false, KindIcon = () => null, titleFor = ref => ref.kind }: PaneComponentProps) {
   const catalog = useCatalog({ paused });
-  const recent = useUi((s) => s.recent);
-  useUi((s) => s.layout); // "open" marks follow the layout
   const [q, setQ] = useState("");
   const [i, setI] = useState(0);
-  const input = useRef<HTMLInputElement>(null);
+  const input = useFocusWhen<HTMLInputElement>(focused);
   const list = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    if (focused && document.activeElement !== input.current) input.current?.focus({ preventScroll: true });
-  }, [focused]);
+
 
   const items = useMemo<Item[]>(() => {
     const t = q.trim().toLowerCase();
@@ -52,10 +48,10 @@ export function LauncherPane({ node, focused, paused, openHere, dismiss }: PaneC
     const tables = catalog.data ?? [];
     const out: Item[] = [];
     const jump = t ? recordJump(t, tables) : null;
-    if (jump) out.push({ key: "jump", section: "Go to", ref: jump, label: paneTitle(jump), icon: <KindIcon kind="record" size={14} /> });
+    if (jump) out.push({ key: "jump", section: "Go to", ref: jump, label: titleFor(jump), icon: <KindIcon kind="record" size={14} /> });
     for (const ref of recent) {
-      const label = paneTitle(ref);
-      if (!hit(label) || (jump && label === paneTitle(jump))) continue;
+      const label = titleFor(ref);
+      if (!hit(label) || (jump && label === titleFor(jump))) continue;
       out.push({ key: `r:${JSON.stringify(ref)}`, section: "Recent", ref, label, icon: <KindIcon kind={ref.kind} size={14} /> });
     }
     for (const tb of tables) {
@@ -64,7 +60,7 @@ export function LauncherPane({ node, focused, paused, openHere, dismiss }: PaneC
     }
     if (hit("new query") || hit("sql")) out.push({ key: "new-query", section: "Create", ref: NEW_QUERY, label: "New query", meta: <span className="pk-mono">SQL</span>, icon: <Plus size={14} strokeWidth={1.5} aria-hidden /> });
     return out;
-  }, [q, recent, catalog.data]);
+  }, [q, recent, catalog.data, KindIcon, titleFor]);
 
   const sel = Math.min(i, items.length - 1);
   const optId = (n: number) => `${node.id}-opt-${n}`;
@@ -130,7 +126,7 @@ export function LauncherPane({ node, focused, paused, openHere, dismiss }: PaneC
           <div key={g.section} role="group" aria-labelledby={`${node.id}-sec-${g.section}`}>
             <div className="launcher-section" id={`${node.id}-sec-${g.section}`}>{g.section}</div>
             {g.rows.map(({ it, n }) => {
-              const open = !!openPaneFor(it.ref, node.id);
+              const open = isOpen(it.ref);
               return (
                 <div
                   key={it.key}
@@ -163,3 +159,10 @@ export function LauncherPane({ node, focused, paused, openHere, dismiss }: PaneC
     </div>
   );
 }
+
+
+export const launcherKind = definePaneKind({
+  kind: "launcher", ref: (params) => ({ kind: "launcher", params }),
+  title: (_ref) => "New pane", minWidth: 320, minHeight: 200, transient: true, recordable: false, identity: () => undefined,
+  icon: Plus, Component: LauncherPane,
+});

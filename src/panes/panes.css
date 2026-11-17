@@ -1,4 +1,4 @@
-.pk { --z50:#FAFAFA; --z100:#F4F4F5; --z200:#E4E4E7; --z300:#D4D4D8; --z400:#A1A1AA; --z500:#71717A; --z700:#3F3F46; --z900:#18181B; --accent:#5A2AFA; --accent-soft:#F1EDFF;
+.pk { --z50:#FAFAFA; --z100:#F4F4F5; --z200:#E4E4E7; --z300:#D4D4D8; --z400:#A1A1AA; --z500:#71717A; --z700:#3F3F46; --z900:#18181B; --accent:#5A2AFA; --accent-soft:#F1EDFF; --chart-label:#3F3F46; --er-label:#18181B; --er-head:#FAFAFA; --er-link:#A1A1AA;
   display:flex; flex-direction:column; height:100%; min-height:0; background:#fff; color:var(--z900);
   font:400 13px/1.4 "IBM Plex Sans",system-ui,sans-serif; outline:none; }
 .pk-mono, .pk .num { font-family:"IBM Plex Mono",ui-monospace,monospace; font-variant-numeric:tabular-nums; }
@@ -84,3 +84,6 @@
 .pk-json pre { max-height:240px; overflow:auto; width:100%; padding:6px 8px; box-sizing:border-box; background:var(--hover,#F4F4F5); border-radius:6px; }
 .pk-field .money { font-variant-numeric:tabular-nums; }
 .pk-field .money { text-align:right; }
+
+:root[data-theme="dark"] .pk { --chart-label:#FAFAFA; --er-label:#FAFAFA; --er-head:#232327; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .pk { --chart-label:#FAFAFA; --er-label:#FAFAFA; --er-head:#232327; } }

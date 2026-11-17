@@ -24,7 +24,9 @@
  *   `keys.*`; never fetch outside the cache.
  * - Do not stop propagation of F6, ⌥/⌘ chords or Escape; the workspace keyboard layer listens on window.
  */
-import { useSyncExternalStore } from "react";
+import { createElement, useSyncExternalStore } from "react";
+import { openPaneFor, useUi } from "./store";
+import { KindIcon } from "./PaneFrame";
 import type { ComponentType, ReactNode } from "react";
 import type { KindRegistry, ObjectRef, PaneKind, PaneNode } from "../layout-core/types";
 
@@ -52,6 +54,11 @@ export interface PaneComponentProps {
   dismiss: () => void;
   /** Report activity for the header, tab, rail and status line. Optional to call. */
   setActivity: (activity: PaneActivity) => void;
+  /** Workspace sources supplied to launcher kinds by the registry. */
+  recent?: ObjectRef[];
+  isOpen?: (ref: ObjectRef) => boolean;
+  KindIcon?: ComponentType<{ kind: string; size?: number }>;
+  titleFor?: (ref: ObjectRef) => string;
   /** True when rendered inside the peek sheet rather than a pane. */
   inPeek: boolean;
 }
@@ -81,6 +88,14 @@ const listeners = new Set<() => void>();
 let version = 0;
 
 export function registerPaneKind(def: PaneKindDef): void {
+  if (def.kind === "launcher") {
+    const Component = def.Component;
+    def = { ...def, Component: (props) => {
+      const recent = useUi(s => s.recent);
+      useUi(s => s.layout);
+      return createElement(Component, { ...props, recent, isOpen: ref => !!openPaneFor(ref, props.node.id), KindIcon, titleFor: paneTitle });
+    } };
+  }
   kinds.set(def.kind, def);
   version++;
   for (const l of listeners) l();
