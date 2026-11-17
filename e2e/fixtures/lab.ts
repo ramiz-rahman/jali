@@ -60,7 +60,8 @@ export class Lab {
   isZoomed = (id: string) => this.page.locator(`section[data-pane="${id}"]${HOOKS.zoomed}`);
 
   // ---------- boot ----------
-  private ready = () => this.page.getByRole("grid").or(this.page.getByRole("button", { name: /^Edit / })).first();
+  // Data Studio shows a grid or a record's Edit button; the loan review's views show links to related records.
+  private ready = () => this.page.getByRole("grid").or(this.page.getByRole("button", { name: /^Edit / })).or(this.page.locator("section[data-pane] button[data-ref]")).first();
 
   /** Load the app (optionally a layout link and viewport), click a preset, wait until real data is on screen. */
   async open(opts: OpenOpts = {}) {

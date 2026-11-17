@@ -11,6 +11,10 @@ const mode = (page: Page, name: "Single" | "Multiplexed") => page.getByRole("rad
 const investigation = (page: Page) => page.getByRole("group", { name: "Investigation" });
 const opened = (page: Page) => page.locator('section[data-origin="opened"]');
 const groupLink = (lab: Lab, from: string) => lab.pane(from).locator('button[title="Open lending_groups 5 beside"]');
+/** A link from one view to another view's object (Group is a view on this page). */
+const link = (lab: Lab, from: string, ref: string) => lab.pane(from).locator(`button[data-ref="${ref}"]`);
+/** A link to an object that is no view on this page: following it opens a pane. */
+const openLink = (lab: Lab) => link(lab, "borrower", "loan_applications member_id=149");
 
 async function dragTab(page: Page, name: string, to: { x: number; y: number }) {
   const b = (await pageTab(page, name).boundingBox())!;
@@ -133,7 +137,7 @@ test.describe("Loan review: Multiplexed", () => {
     await lab.open({ path: at("application"), size: { width: 1920, height: 1000 } });
     await mode(page, "Multiplexed").click();
     const rects = await lab.snap();
-    await groupLink(lab, "borrower").click();
+    await openLink(lab).click();
     await expect(opened(page)).toHaveCount(1);
     await expect(opened(page).locator(".badge-opened")).toHaveText("Opened");
     expect((await lab.visibleIds()).at(-1)).toBe(await opened(page).getAttribute("data-pane"));
@@ -148,7 +152,7 @@ test.describe("Loan review: Multiplexed", () => {
   test("another application swaps every view in place and closes the investigation", async ({ lab, page }) => {
     await lab.open({ path: at("application"), size: { width: 1920, height: 1000 } });
     await mode(page, "Multiplexed").click();
-    await groupLink(lab, "borrower").click();
+    await openLink(lab).click();
     await expect(investigation(page)).toBeVisible();
     await page.getByRole("listbox", { name: "Loan applications" }).getByRole("option", { name: /#7/ }).click();
     await expect(lab.pane("application").locator(".pane-sub")).toHaveText("loan_application 7");
@@ -178,7 +182,7 @@ test.describe("Loan review: roles and what a link carries", () => {
     await expect(mode(page, "Multiplexed")).toHaveAttribute("aria-checked", "true");
     await expect(lab.pane("group")).toBeVisible();
 
-    await groupLink(lab, "borrower").click();
+    await openLink(lab).click();
     const url = page.url();
     expect(url).not.toContain("l=");
     expect(url).toContain("open=");
@@ -245,3 +249,68 @@ test.describe("Loan review: design polish", () => {
   });
 });
 
+test.describe("Loan review: following links and placing views at 1440", () => {
+  test("a link to a view already on the page goes to that view: no copy opens", async ({ lab, page }) => {
+    await lab.open({ path: at("application"), size: { width: 1440, height: 900 } });
+    await mode(page, "Multiplexed").click();
+    const rects = await lab.snap();
+    await link(lab, "application", "members 149").click();
+    await expect(pageTab(page, "Borrower")).toHaveAttribute("data-state", "focused");
+    await expect(lab.announcer()).toContainText("Already open: focused Borrower");
+    await expect(opened(page)).toHaveCount(0);
+    expect(await lab.snap()).toEqual(rects);
+    // The reviewer's path: Overview and Field officer ⌥-clicked in, so Borrower went back to the tabs.
+    await pageTab(page, "Application").click();
+    await pageTab(page, "Overview").click({ modifiers: ["Alt"] });
+    await pageTab(page, "Field officer").click({ modifiers: ["Alt"] });
+    expect(await lab.visibleIds()).toEqual(["application", "overview", "officer"]);
+    await expect(pageTab(page, "Borrower")).toHaveAttribute("data-state", "off");
+    await link(lab, "application", "members 149").click();
+    await expect(opened(page)).toHaveCount(0);
+    await expect(lab.announcer()).toContainText("Borrower is already a view on this page");
+    // It takes the place of the view in use, as a tab click would; nothing folds.
+    expect(await lab.visibleIds()).toEqual(["borrower", "overview", "officer"]);
+    await expect(page.locator('[role="tablist"]:not([aria-label="Loan review views"])')).toHaveCount(0);
+  });
+
+  test("an opened pane never pushes the person's views aside: short of room it opens as the shown tab", async ({ lab, page }) => {
+    await lab.open({ path: at("application"), size: { width: 1440, height: 900 } });
+    await mode(page, "Multiplexed").click();
+    await pageTab(page, "Group").click({ modifiers: ["Alt"] });
+    expect(await lab.visibleIds()).toEqual(["application", "group", "borrower", "history"]);
+    const keep = async () => Promise.all(["application", "group", "history"].map((id) => lab.pane(id).boundingBox()));
+    const before = await keep();
+    await openLink(lab).click();
+    await expect(opened(page)).toHaveCount(1);
+    await expect(opened(page)).toBeVisible();
+    // Every view the person placed stays, at its rect; the opened pane is Borrower's shown tab, in Borrower's slot.
+    expect(await lab.visibleIds()).toEqual(["application", "group", (await opened(page).getAttribute("data-pane"))!, "history"]);
+    expect(await keep()).toEqual(before);
+    await expect(lab.announcer()).toContainText("opened as a tab: not enough room beside Borrower");
+    await expect(pageTab(page, "Borrower")).toHaveAttribute("data-state", "behind");
+  });
+
+  test("holding ⌥ over a tab previews exactly what ⌥-click does: the new view and every view that moves", async ({ lab, page }) => {
+    await lab.open({ path: at("application"), size: { width: 1440, height: 900 } });
+    await mode(page, "Multiplexed").click();
+    await pageTab(page, "Overview").click({ modifiers: ["Alt"] });
+    for (const name of ["Field officer", "Group"]) {
+      const role = (await pageTab(page, name).getAttribute("data-role"))!;
+      await pageTab(page, name).hover();
+      await page.keyboard.down("Alt");
+      const ghost = page.locator(`.ghost[data-ghost="${role}"]`);
+      await expect(ghost).toBeVisible();
+      const preview = (await ghost.boundingBox())!;
+      const moved = await page.locator(".ghost-moved").evaluateAll((els) => els.map((e) => { const r = e.getBoundingClientRect(); return [(e as HTMLElement).dataset.ghost!, [r.x, r.y, r.width, r.height].map(Math.round)] as const; }));
+      await pageTab(page, name).click();
+      await page.keyboard.up("Alt");
+      await expect(ghost).toHaveCount(0);
+      const box = (await lab.pane(role).boundingBox())!;
+      for (const k of ["x", "y", "width", "height"] as const) expect(Math.abs(box[k] - preview[k]), `${name} ${k}`).toBeLessThanOrEqual(1);
+      for (const [id, r] of moved) {
+        const b = (await lab.pane(id).boundingBox())!;
+        expect([b.x, b.y, b.width, b.height].map(Math.round), `${id} moved as previewed`).toEqual(r);
+      }
+    }
+  });
+});
