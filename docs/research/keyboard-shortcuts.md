@@ -1,0 +1,168 @@
+# Keyboard shortcuts for a pane engine that runs in a browser
+
+2026-11-18. Why the pane lab's keys changed, what comparable apps do, which keys a web page can't have, and the scheme we chose. The decision is recorded in `docs/DECISIONS.md` ("Keyboard"). The code is in `src/ui/commands/` (`keymap.ts`, `keyboard.ts`, `format.ts`, `regions.ts`).
+
+## 1. The problems we started with
+
+- **The pane layer took keys before content.** `installKeyboard` listened on `window` in the capture phase. ⌘Z restored the last closed pane, so a pane with its own undo (a form, an editor, or a collection with a mutation ledger) never got ⌘Z. The pane layer also took Esc first.
+- **Many bindings never reach the page.** ⌥⌘←/→ switches Chrome tabs. ⌥⌘↑/↓ cycles Chrome's toolbars. ⌥⌘M is macOS "minimise all", and ⌥⌘I/J/U open DevTools, the console and the page source. ⌥1–9 switches tabs on Linux in both Chrome and Firefox, and on a Mac it types ¡™£ in a text field. On Windows, every ⌥⌘ chord became Ctrl+Alt, which is AltGr on most European layouts, so Ctrl+Alt+letter types characters (AltGr+Q is @ on a German layout).
+- **Single-key shortcuts.** J/K moved the review queue while grids in panes also use J/K/Space. The queue's J/K was already scoped to the queue list, but nothing stated that rule or enforced it.
+
+## 2. Sources
+
+Primary sources, read for this note:
+
+| # | Source | What we took from it |
+|---|---|---|
+| S1 | Chromium `chrome/browser/ui/accelerator_table.cc`, `kReservedCommandIds` — https://chromium.googlesource.com/chromium/src/+/refs/heads/main/chrome/browser/ui/accelerator_table.cc | The commands a page can never override: close tab, close window, new incognito window, new isolated window, new tab, new window, restore tab, next and previous tab, cycle tabs, and exit. On Android, F6 and ⇧F6 are also reserved. |
+| S2 | Chromium `browser_command_controller.cc`, `IsReservedCommandOrKey` — https://chromium.googlesource.com/chromium/src/+/refs/heads/main/chrome/browser/ui/browser_command_controller.cc | In an installed-app window, nothing is reserved. In fullscreen, only exit and fullscreen are reserved. On Linux, keys bound to text editing are never reserved. Every other browser shortcut goes to the page first, and the page can `preventDefault` it. |
+| S3 | Chromium `global_keyboard_shortcuts_mac.mm` — https://chromium.googlesource.com/chromium/src/+/refs/heads/main/chrome/browser/global_keyboard_shortcuts_mac.mm | On a Mac, these map to tab selection: ⌘⇧[ and ⌘⇧], ⌃PgUp and ⌃PgDn, ⌘⌥← and ⌘⌥→, and ⌘1–9. ⌘← and ⌘→ are "delayed" Back and Forward, which the page sees first. |
+| S4 | Chrome keyboard shortcuts — https://support.google.com/chrome/answer/157179 | The full list for Windows, Linux and Mac. On a Mac, ⌘⌥↑/↓ cycles toolbars and ⌘⌥N opens split view. On Windows, Alt+Shift+N opens split view, F6 moves focus to the address bar, and Ctrl+K/Ctrl+E focus search. |
+| S5 | Chromium accelerator table, Linux block (same file as S1) | On Linux, Alt+1 through Alt+9 select a tab. |
+| S6 | VS Code for the Web — https://code.visualstudio.com/docs/setup/vscode-web | Browser conflicts: ⇧⌘P is reserved in Firefox, ⌘N and ⌘W are taken by the browser, and Alt+←/→ triggers history navigation. VS Code suggests alternative keys for each. |
+| S7 | VS Code `keybindingService.ts`, `_assertBrowserConflicts` — https://github.com/microsoft/vscode/blob/main/src/vs/workbench/services/keybinding/browser/keybindingService.ts | In a browser, VS Code drops every default binding that uses ⌘⌥←/→ or ⌘/Ctrl+digit, unless it runs fullscreen with Keyboard Lock. That includes the second step of a chord. |
+| S8 | VS Code `editorActions.ts`, `editorCommands.ts` — https://github.com/microsoft/vscode/blob/main/src/vs/workbench/browser/parts/editor/editorActions.ts | Editor-group keys: ⌘\ splits, ⌘K ⌘\ splits the other way, ⌘K ⌘← ⌘→ ⌘↑ ⌘↓ focus a group, ⌘K ⌘M toggles maximise, ⌘K ⌘W closes all, and ⇧⌘T reopens. |
+| S9 | VS Code key bindings — https://code.visualstudio.com/docs/getstarted/keybindings | How chords work (`ctrl+k ctrl+c`), `when` clauses to scope a key, a `-command` entry to remove one, scan codes against key codes, and a user `keybindings.json` that is appended to the defaults. |
+| S10 | Zed default macOS keymap — https://github.com/zed-industries/zed/blob/main/assets/keymaps/default-macos.json | Zed follows VS Code: ⌘\ SplitRight, `cmd-k cmd-left/right` for pane focus, `cmd-k shift-left` and the other arrows for SwapPane, `cmd-1..9` for ActivatePane, ⇧Esc for ToggleZoom, and ⇧⌘T for ReopenClosedItem. |
+| S11 | tmux(1) — https://man7.org/linux/man-pages/man1/tmux.1.html | The prefix is C-b, followed by `%` or `"` to split, an arrow to select a pane, `z` to zoom, `x` to kill a pane, and `o` for the next pane. |
+| S12 | WezTerm default keys — https://wezterm.org/config/default-keys.html | Ctrl+Shift+Arrow activates a pane, Ctrl+Shift+Z zooms, and Ctrl+Shift+Alt+" or % splits. The terminal owns every key, so it can use these. |
+| S13 | kitty `options/definition.py` — https://github.com/kovidgoyal/kitty/blob/master/kitty/options/definition.py | `kitty_mod` (Ctrl+Shift, or ⌘ on a Mac) with Enter for a new window, W to close, ] and [ for next and previous, and R for resize *mode*. |
+| S14 | GitHub keyboard shortcuts — https://docs.github.com/en/get-started/accessibility/keyboard-shortcuts | G-chords (G C, G I), ? for help, S or / for search. Character-key shortcuts can be turned off in accessibility settings (WCAG 2.1.4). |
+| S15 | Linear, "Navigating Linear" — https://linear.app/enablement/guide/navigating-linear | ⌘K opens the command menu. G-chords (G I, G M) navigate, and ? lists the shortcuts. |
+| S16 | WCAG 2.2, Understanding 2.1.4 Character Key Shortcuts — https://www.w3.org/WAI/WCAG22/Understanding/character-key-shortcuts.html | A single printable-key shortcut must meet one of three conditions: it can be turned off, it can be remapped to use a modifier, or it is active only while its component has focus. A shortcut that relies on Shift or AltGr to produce a character still counts. |
+| S17 | WAI-ARIA APG, Developing a Keyboard Interface — https://www.w3.org/WAI/ARIA/apg/practices/keyboard-interface/ | Roving tabindex. Avoid OS keys: any modifier with Tab, Enter, Space or Esc; Meta+key; Alt+F-key. Avoid assistive-technology keys: Caps Lock, Insert, Scroll Lock, and ⌃⌥ on a Mac (VoiceOver). Conflict on purpose only when the app function is frequent and the browser's is rare. |
+| S18 | WAI-ARIA APG, Window Splitter — https://www.w3.org/WAI/ARIA/apg/patterns/windowsplitter/ | The splitter keys are the arrows, Enter, Home and End. The optional F6 "cycles through window panes". |
+| S19 | Apple, Mac keyboard shortcuts — https://support.apple.com/en-us/102650 | System keys: ⌥⌘M minimises all windows, ⌥⌘H hides others, ⌥⌘W closes all, ⌥⌘D toggles the Dock, ⌥⌘Esc force quits, ⌃↑/↓ Mission Control, ⌃Space and ⌃⌥Space input sources, ⌃⌘Space Character Viewer, ⌃⌘F full screen, ⌃⌘Q lock, ⌘\` and ⇧⌘\` cycle windows, ⌘H hide, ⌘M minimise. |
+| S20 | MDN, Keyboard API — https://developer.mozilla.org/en-US/docs/Web/API/Keyboard_API | `navigator.keyboard.lock()` lets a page capture reserved keys in fullscreen. It is experimental and Chromium-only. `getLayoutMap()` maps a `code` to the character the user's layout prints. |
+| S21 | Mozilla bugs 1074971, 1203059, 1490665 — https://bugzilla.mozilla.org/show_bug.cgi?id=1203059, https://bugzilla.mozilla.org/show_bug.cgi?id=1490665 | Firefox marks some commands `reserved` (Ctrl/⌘ N, T, W and others), so `preventDefault` can't stop them. There is no per-site override. |
+| S22 | Figma community forum, Chrome conflicts — https://forum.figma.com/report-a-problem-6/keyboard-shortcuts-triggering-chrome-instead-of-figma-37941 | ⌘D duplicate becomes Chrome's bookmark whenever focus leaves the canvas. A browser binding is only overridden while your handler has focus, so a key that is free in the browser is worth more than one you override. |
+
+Not fetched for this note (they are cited from the apps' in-product shortcut sheets, as the sheets are not public pages): Notion, Google Docs and Sheets, Excalidraw, tldraw, JetBrains Fleet, and Arc's split view. Their rows in the table below are marked †.
+
+## 3. How comparable apps do it
+
+| App (where it runs) | Split | Focus pane by direction | Next pane / region | Maximise | Close pane | Reopen closed | Palette | Single keys | Notes on browser conflicts |
+|---|---|---|---|---|---|---|---|---|---|
+| VS Code desktop (S8) | ⌘\ ; ⌘K ⌘\ other way | ⌘K ⌘←/→/↑/↓ | F6 (parts) | ⌘K ⌘M | ⌘W | ⇧⌘T | ⇧⌘P, F1 | none outside editors | — |
+| vscode.dev (S6, S7) | same | same | same | same | Ctrl+F4 or the menu | same where free | F1 in Firefox | none | Drops ⌘⌥←/→ and ⌘digits (even as a chord's second step). Documents alternatives for ⌘N, ⌘W and ⇧⌘P. Uses Keyboard Lock in fullscreen. |
+| Zed (S10) | ⌘\ | ⌘K ⌘←/→ | — | ⇧Esc | ⌘W (item) | ⇧⌘T | ⇧⌘P | Vim mode only | Native app |
+| tmux (S11) | prefix % / " | prefix ←→↑↓ | prefix o | prefix z | prefix x | — | prefix : | after the prefix only | One prefix key frees the rest of the keyboard |
+| WezTerm (S12) | Ctrl+Shift+Alt+" / % | Ctrl+Shift+Arrows | — | Ctrl+Shift+Z | — | — | Ctrl+Shift+P | — | Native; an optional leader key |
+| kitty (S13) | kitty_mod+Enter | — | kitty_mod+] / [ | layout toggle | kitty_mod+W | — | — | — | kitty_mod+R enters resize mode (as our ⌘K ⌘R) |
+| GitHub web (S14) | — | — | — | — | — | — | ⌘K | G-chords, ?, S, / | Character keys can be turned off (WCAG 2.1.4) |
+| Linear web (S15) | — | — | — | — | — | — | ⌘K | G-chords, J/K, single letters on the focused list | Single keys act on the focused list |
+| Figma web (S22; keys †) | — | — | — | — | — | — | ⌘/ (quick actions) | many, canvas only | Overrides ⌘D/⌘G and others, but they fall back to Chrome whenever focus leaves the canvas |
+| Google Docs/Sheets† | — | — | Ctrl/⌘+Alt+Shift ... | — | — | — | Alt+/ (menu search) | none | Uses Ctrl+Alt on Windows (AltGr risk); avoids browser tab keys |
+| Notion† | — | — | — | — | — | — | ⌘P / ⌘K | `/` in text only | — |
+| Excalidraw / tldraw† | — | — | — | — | — | — | ⌘/ (tldraw), ⌘K | tool letters, canvas focus only | Single keys scoped to canvas focus |
+| Arc / Chrome split view (S4)† | ⌃⇧= (Arc), ⌘⌥N / Alt+Shift+N (Chrome) | — | — | — | — | — | ⌘T (Arc) | — | These are browser keys: a page must not use them |
+
+The pattern: **apps that live in a browser keep pane commands behind one prefix (VS Code's ⌘K) or behind the palette, and keep single letters for the focused content.** Native apps (Zed, the terminals) can use direct chords because nothing sits above them.
+
+## 4. Keys a web page must not use
+
+**Reserved: the browser acts and the page never gets the key** (S1, S2, S3, S21):
+
+| Key | Chrome | Firefox | Safari | Meaning |
+|---|---|---|---|---|
+| ⌘W / Ctrl+W, Ctrl+F4 | reserved | reserved | reserved | close tab |
+| ⇧⌘W / Ctrl+Shift+W, Alt+F4 | reserved | reserved | reserved | close window |
+| ⌘T / Ctrl+T | reserved | reserved | reserved | new tab |
+| ⌘N / Ctrl+N, ⇧⌘N / Ctrl+Shift+N | reserved | reserved | reserved | new window, incognito window |
+| ⇧⌘T / Ctrl+Shift+T | reserved | reserved | reserved | reopen closed tab |
+| ⌘⌥←/→ (Mac), ⇧⌘[ / ⇧⌘] (Mac) | reserved | next/previous tab | next/previous tab | switch tab |
+| Ctrl+Tab, Ctrl+Shift+Tab, Ctrl+PgUp/PgDn | reserved | reserved | ⌃Tab reserved | switch tab |
+| ⌘Q / Ctrl+Q (Linux), Ctrl+Shift+Q | reserved | reserved | — | quit |
+| ⇧⌘P / Ctrl+Shift+P | print preview | **private window (reserved)** | — | VS Code moved its palette to F1 for Firefox (S6) |
+
+**Overridable but owned by the browser or OS, so avoid them by default.** A page can `preventDefault` these only while its own handler has focus, and the browser feature is one that people use:
+
+- ⌘1–9 / Ctrl+1–9 (tab N); Alt+1–9 on Linux (tab N, S5). VS Code web drops these (S7).
+- ⌘L / Ctrl+L, Alt+D, F6 on Windows (address bar); ⌘D (bookmark); ⌘R / Ctrl+R, F5 (reload: a missed press loses work); ⌘F, ⌘G (find); ⌘P (print); ⌘S (save); ⌘O (open); ⌘Y / Ctrl+H (history); ⇧⌘J / Ctrl+J (downloads); ⌘E (find selection); ⌘+ ⌘- ⌘0 (zoom).
+- ⌥⌘I, ⌥⌘J, ⌥⌘C, ⌥⌘U / Ctrl+Shift+I, J, C, Ctrl+U, F12 (DevTools, console, inspect, source); ⌥⌘B (bookmark manager); ⌥⌘N / Alt+Shift+N (split view); ⌥⌘↑/↓ (cycle toolbars); Alt+F / Alt+E (Chrome menu on Windows); Alt+Shift+I, T, B, A (feedback, toolbar, bookmarks, inactive dialogs); Alt+←/→ (back/forward on Windows); ⌘←/→ (back/forward on a Mac, delayed); Shift+Esc (Chrome task manager); F7 (caret browsing); F10, F11.
+- **macOS system** (S19): ⌘Space, ⌃Space, ⌃⌥Space, ⌃⌘Space, ⌘Tab, ⌘\`, ⌘H, ⌥⌘H, ⌘M, ⌥⌘M, ⌥⌘W, ⌥⌘D, ⌥⌘Esc, ⌃⌘F, ⌃⌘Q, ⇧⌘3/4/5, ⌃↑/↓/←/→ (Mission Control and Spaces). The F-keys are media keys on Mac laptops unless Fn is held.
+- **Assistive technology** (S17): ⌃⌥+anything on a Mac (VoiceOver), Caps Lock, Insert or Scroll Lock + anything.
+- **Layouts:** Ctrl+Alt on Windows is AltGr, which types characters on most non-US layouts. ⌥+letter or digit on a Mac types characters (¡ ™ ∆), so it is a character key in a text field.
+
+## 5. The scheme we chose
+
+### The ladder (who gets a key first)
+
+1. **Modal states**, in the capture phase and only while they are active:
+   - the second step of a chord the person has just started (⌘K, then ⌘M);
+   - resize mode (arrows, Enter, Esc);
+   - a pointer drag in progress, where Esc cancels the drag.
+
+   These are modes the person entered on purpose. Chrome cancels its own tab drag the same way (S4).
+2. **The focused content.** It takes the keys it uses and calls `preventDefault()` (or stops propagation). Single character keys, ⌘Z/Ctrl+Z, Enter, Space and the first Esc belong to content. Content that wants every key (an editor or a terminal) sets `data-pane-keys="content"`. F6 and ⇧F6 still work there, so focus can always leave (WCAG 2.1.2).
+3. **The pane layer**, listening on `window` in the bubble phase. It acts only on keys content left alone: first the keymap, then the Esc ladder (close the peek, then leave maximise, then nothing).
+
+### Why one prefix, and why ⌘K
+
+After we removed the reserved keys, the overridden browser features, ⌥⌘ (AltGr on Windows), ⌃⌥ (VoiceOver), ⌥+digits and ⌘+digits, too few direct chords were left for ~20 pane commands. Even those would have meant different keys on each platform. A prefix fixes that, and the evidence points to ⌘K:
+
+- **VS Code and Zed already teach ⌘K ⌘← for pane focus and ⌘K ⌘M for maximise** (S8, S10). VS Code web ships the same chords in Chrome, Safari and Firefox (S7 drops only ⌘⌥←/→ and ⌘digits), which is good evidence they reach the page.
+- **⌘K already opens our command palette**, as it does in Linear, GitHub, Slack and Notion (S14, S15). We use it for both jobs. ⌘K opens the palette and waits for one more key. A second key with ⌘ still held (⌘M) runs that command and closes the palette. Any other key (typing "m") goes to the palette's search as usual. The palette works as a which-key overlay: while it waits, every command is listed with its chord.
+- The second step keeps Mod held, so it never types into the palette. We checked each second key against §4: ←→↑↓, ⇧+arrows, M, [, ], R, Z, ⌫, G, ⇧G and \ are all free of reserved keys. ⌘W, ⌘T, ⌘N and ⌘digits are not used, because the browser acts on those even mid-chord.
+- **There is no timeout.** A pending chord ends at the next key. A timeout would let a late ⌘R reload the page, so we don't have one.
+
+### The bindings
+
+Mod is ⌘ on a Mac and Ctrl on Windows and Linux. Labels are printed per platform, from the store's keymap (`store.keymap.label(id)`).
+
+| Command | Old (Mac) | New, Mac | New, Windows/Linux | Why |
+|---|---|---|---|---|
+| Command palette | ⌘K | ⌘K | Ctrl+K | Unchanged. Ctrl+K (Chrome "search") is overridable and conventional (S4, S14, S15). |
+| Focus next / previous pane (then shelf, then host regions) | F6 / ⇧F6 | F6 / ⇧F6 | F6 / ⇧F6 | APG window splitter (S18), VS Code parts. On Windows it overrides Chrome's own F6 only while the page has focus. On a Mac laptop it needs Fn, so the arrow chords below cover the same ground. |
+| Focus pane left/right/up/down | ⌥⌘←/→/↑/↓ (Chrome tab switch and toolbar cycle) | ⌘K ⌘←/→/↑/↓ | Ctrl+K Ctrl+Left/Right/Up/Down | VS Code and Zed exact (S8, S10). |
+| Move pane left/right/up/down | ⌥⇧⌘←/→/↑/↓ | ⌘K ⇧⌘←/→/↑/↓ | Ctrl+K Ctrl+Shift+Arrows | Zed's `cmd-k shift-arrow` swaps panes (S10). |
+| Focus pane 1–9 | ⌥1–9 (Linux tab switch; types ¡™£ on a Mac) | palette only | palette only | No safe digit chord exists (S5, S7). A host can bind one. |
+| Maximise / restore | ⇧⌘↵ | ⌘K ⌘M | Ctrl+K Ctrl+M | VS Code exact (S8). APG advises against modifier+Enter (S17). Esc also restores. |
+| Tuck | ⌥⌘M (macOS minimise-all) | ⌘K ⌘[ | Ctrl+K Ctrl+[ | `[` pushes the pane aside and `]` brings it back, so they form a pair. |
+| Put back | ⌥⇧⌘M | ⌘K ⌘] | Ctrl+K Ctrl+] | See tuck. |
+| Resize mode | ⌥⌘R | ⌘K ⌘R | Ctrl+K Ctrl+R | kitty's resize mode is also kitty_mod+R (S13). As a second step, a missed press can't reload the page. |
+| Close pane | ⌥⌘W (⌥⌘W is macOS "close all windows") | ⌘K ⌘⌫ | Ctrl+K Ctrl+Backspace | ⌘W is reserved, even as a second step. ⌫ reads as "delete this pane". |
+| Restore last closed pane | ⌘Z (took content's undo) | ⌘K ⌘Z, and the Undo toast | Ctrl+K Ctrl+Z | ⌘Z belongs to content. ⇧⌘T (VS Code's key) is reserved. |
+| Split right | ⌥⌘\ | ⌘\ | Ctrl+\ | VS Code and Zed exact (S8, S10). No browser binds it. |
+| Split down | ⌥⇧⌘\ | ⌘K ⌘\ | Ctrl+K Ctrl+\ | VS Code's "split the other way" (S8). |
+| Add to tabs of… | ⌥⌘T | ⌘K ⌘G | Ctrl+K Ctrl+G | G for "group". ⌘T is reserved. |
+| Move out of tabs | ⌥⇧⌘T | ⌘K ⇧⌘G | Ctrl+K Ctrl+Shift+G | Pairs with merge. |
+| Close peek, leave maximise | Esc (taken before content) | Esc, after content | Esc, after content | The Esc ladder. |
+| Grid rows, queue | J/K, ↑/↓, Space, ⌥↵ (content) | unchanged; active only while focused | Alt+Enter | WCAG 2.1.4 "active only on focus" (S16). F6 now reaches the queue (`data-pane-region`). |
+
+### The review queue's J/K
+
+We kept J/K **scoped to the queue's focus**. We considered a global chord for next and previous application, and rejected it for these reasons:
+
+- WCAG 2.1.4 allows single character keys that are active only while their component has focus (S16). Linear and GitHub scope their single keys the same way (S14, S15).
+- A grid's J/K and the queue's J/K can't collide when each acts only on its own focus. The pane layer never binds a single character key, and `createKeymap` refuses one (it warns and drops the binding).
+- The collision people actually felt was getting from a grid to the queue. F6 now does that: panes, then the shelf, then host regions marked `data-pane-region`, and the queue's list is one of those regions. The queue's hint reads "J/K when focused". The list also ignores ⌘J and Ctrl+K, so a chord is never taken as a list step.
+
+### Configuration (package API)
+
+- `createUiStore({ keymap, keymapOptions })`. `keymap` is a typed partial override: command id → `"Mod+K Mod+M"`, a list of bindings, or `null` to unbind. Ids missing from the override keep their defaults. `keymapOptions.platform` is injectable for tests and SSR, and `onInvalid` reports refused bindings.
+- `DEFAULT_KEYMAP` is exported and `as const`, so overrides autocomplete. There are no module globals: each store resolves its own keymap, and every hint (tooltips, status line, palette, Settings, toasts) reads `store.keymap`.
+- Bindings are matched on `KeyboardEvent.code` for letters, digits and punctuation, so they follow physical keys whatever the layout. Named keys are matched on `key`. Labels print US key caps. Using `navigator.keyboard.getLayoutMap()` (S20) to print the user's own key caps is a possible follow-up.
+
+## 6. What was verified, and how
+
+- **Unit tests** (`src/ui/keyboard.test.ts`, jsdom, real `dispatchEvent` through `window`):
+  - A key content claims, with `preventDefault` or `stopPropagation`, never reaches the pane layer.
+  - ⌘Z is left to content.
+  - J, K, Space and Enter are never taken by the pane layer.
+  - `data-pane-keys="content"` keeps everything except F6.
+  - The Esc ladder runs in order: content, then peek, then maximise, then pass-through. A drag's capture listener runs before content, and resize mode is modal.
+  - Chords open and close the palette, and a typed key ends the wait.
+  - Overrides and unbinding work, character keys and three-step sequences are refused, and labels print correctly per platform.
+  - No default uses a key from §4.
+- **e2e in real Chrome** (Playwright, channel `chrome`; `e2e/keyboard.spec.ts` plus the updated specs). Playwright sends keys through CDP `Input.dispatchKeyEvent` straight to the renderer, past the browser's own accelerators. These runs show what the page does with a key that reaches it. They can't show whether the browser lets the key through.
+  - Verified this way on macOS Chrome: ⌘K, ⌘\, F6, ⇧F6, Esc, and ⌘K followed by ⌘M, ⌘[, ⌘], ⌘R, ⌘Z, ⌘G, ⇧⌘G, ⌘←/→ and ⇧⌘←. Also J/K/Space/⌥↵ inside grids, J in the queue, and ⌘Z inside the SQL editor (the editor's undo; no pane restored).
+- **From the sources, not from a test.** The defaults avoid every reserved key in Chrome's `kReservedCommandIds` (S1), Chrome's Mac tab keys (S3) and Firefox's reserved commands (S21). VS Code web ships the same ⌘K-prefixed chords in all three browsers (S7), which is the strongest evidence they reach the page. Safari: we found no Safari binding for ⌘K, ⌘\ or the second keys we use. That was not tested on a device.
+- **Not yet checked by hand:** a real keypress (not CDP) in Safari and Firefox on macOS, and in Chrome on Windows and Linux. The quickest check is to open the lab, press each chord in the Settings list, and watch the status line.
+
+## 7. Open questions
+
+1. **Drag cancel before content.** We put the drag's Esc before content (step 1), not after it. A drag is a mode the person is in, and browsers cancel their own drags first. If a pane ever needs Esc during a pane drag, this has to be revisited.
+2. **⌘K inside a host's own ⌘K.** A host app with its own ⌘K (a search, say) should rebind `palette.toggle`. Its chords move with it, because the prefix is whatever the palette's binding is. Or it can unbind the palette and bind another prefix to the chords.
+3. **Labels for non-US layouts.** We print US key caps (`[`, `\`). On German layouts, for example, those physical keys print Ü and #. Using `getLayoutMap()` for labels (Chromium only) would be the fix.
+4. **A direct chord for close and maximise.** Both are now two-step. If they turn out to be used constantly, ⇧⌘↵ (maximise) is free and could come back as a second binding.
