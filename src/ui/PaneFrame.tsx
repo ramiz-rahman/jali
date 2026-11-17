@@ -1,6 +1,6 @@
 import { memo, useMemo, type CSSProperties } from "react";
-import { Plus, Square, X, GripHorizontal } from "lucide-react";
-import { RailButton } from "./pane/RailButton";
+import { Plus, Square, X, GripHorizontal, Undo2 } from "lucide-react";
+import { putBack } from "./pane/tuck";
 import { HeaderActions } from "./pane/HeaderActions";
 import type { ObjectRef, PaneBox, PaneNode } from "../layout-core/types";
 import { getPaneKind, paneTitle, type PaneActivity, type PaneComponentProps } from "./pane-kinds";
@@ -77,7 +77,6 @@ const PaneBody = memo(
     a.focused === b.focused &&
     a.node.linkedTo === b.node.linkedTo &&
     a.node.pinned === b.node.pinned &&
-    a.node.collapsed === b.node.collapsed &&
     JSON.stringify(a.node.ref) === JSON.stringify(b.node.ref),
 );
 export { PaneBody };
@@ -103,9 +102,10 @@ interface Props {
 }
 
 /** Same pane as far as the frame renders it. Resolve and layout ops make new objects every time, so compare values. */
+const tuckedOf = (n: PaneNode) => (n as PaneNode & { tuckedFrom?: string }).tuckedFrom;
 const sameNode = (a: PaneNode, b: PaneNode) =>
   a === b ||
-  (a.id === b.id && a.linkedTo === b.linkedTo && a.pinned === b.pinned && a.collapsed === b.collapsed && JSON.stringify(a.ref) === JSON.stringify(b.ref));
+  (a.id === b.id && a.linkedTo === b.linkedTo && a.pinned === b.pinned && tuckedOf(a) === tuckedOf(b) && JSON.stringify(a.ref) === JSON.stringify(b.ref));
 const sameStack = (a: StackInfo | undefined, b: StackInfo | undefined) =>
   a === b || (!!a && !!b && a.id === b.id && a.active === b.active && a.tabs.length === b.tabs.length && a.tabs.every((t, i) => sameNode(t, b.tabs[i]!)));
 const sameBox = (a: PaneBox, b: PaneBox) =>
@@ -125,9 +125,7 @@ export const PaneFrame = memo(function PaneFrame({ box, node, stack, focused, zo
   const title = paneTitle(node.ref);
   const hidden = !!box.hiddenInStack;
   const rect = zoomed ? { x: 0, y: 0, width: areaWidth, height: areaHeight } : box.rect;
-  const collapsed = !!node.collapsed && !zoomed && !single;
-  const rail = collapsed && rect.width <= 72;
-  const paused = hidden || collapsed || covered;
+  const paused = hidden || covered;
   // Heavy panes hold their content during a divider drag (dividers/drag.ts sets data-holding and the inner size).
 
   const style: CSSProperties = {
@@ -137,8 +135,7 @@ export const PaneFrame = memo(function PaneFrame({ box, node, stack, focused, zo
     height: rect.height,
     display: hidden ? "none" : undefined,
   };
-  const onLeft = rect.x + rect.width / 2 < areaWidth / 2;
-
+  
   const regionProps = {
     id: paneDomId(node.id),
     role: "region" as const,
@@ -155,17 +152,14 @@ export const PaneFrame = memo(function PaneFrame({ box, node, stack, focused, zo
     },
   };
 
-  const cls = ["pane", single && "is-single", rail && "pane-rail", focused && "is-focused", zoomed && "is-zoomed", collapsed && "is-collapsed", isDragged && "is-dragged", dropTarget && "is-drop-target"]
+  const cls = ["pane", single && "is-single", focused && "is-focused", zoomed && "is-zoomed", isDragged && "is-dragged", dropTarget && "is-drop-target"]
     .filter(Boolean)
     .join(" ");
 
   return (
     <section {...regionProps} className={cls} style={style}>
-      {rail ? (
-        <RailButton node={node} title={title} activity={activity} onLeft={onLeft} />
-      ) : (
       <header
-        className={`pane-header${collapsed ? " is-strip" : ""}`}
+        className="pane-header"
         onPointerDown={single ? undefined : (e) => startPaneDrag(e, node.id)}
         onDoubleClick={(e) => {
           if (single || (e.target as HTMLElement).closest("button")) return;
@@ -182,11 +176,16 @@ export const PaneFrame = memo(function PaneFrame({ box, node, stack, focused, zo
           <div className="tabs" role="tablist" aria-label={`Tabs: ${stack.tabs.length}`}>
             {stack.tabs.map((t) => {
               const active = t.id === stack.active;
+              const tucked = !!tuckedOf(t);
+              const tt = paneTitle(t.ref);
               return (
                 <div
                   key={t.id}
                   ref={active ? revealTab : undefined}
-                  className={`tab${active ? " is-active" : ""}`}
+                  className={`tab${active ? " is-active" : ""}${tucked ? " is-tucked" : ""}`}
+                  data-tab={t.id}
+                  data-tucked={tucked || undefined}
+                  aria-description={tucked ? "Tucked here. Put back to restore its place." : undefined}
                   role="tab"
                   aria-selected={active}
                   aria-controls={paneDomId(t.id)}
@@ -209,6 +208,11 @@ export const PaneFrame = memo(function PaneFrame({ box, node, stack, focused, zo
                     {paneTitle(t.ref)}
                   </span>
                   <TabActivity id={t.id} />
+                  {tucked ? (
+                    <button className="tab-putback" aria-label={`Put back ${tt}`} title="Put back · ⌥⇧⌘M" onPointerDown={(e) => e.stopPropagation()} onClick={(e) => { e.stopPropagation(); putBack(t.id); }}>
+                      <Undo2 size={14} strokeWidth={1.75} aria-hidden />
+                    </button>
+                  ) : null}
                   <button className="tab-close" aria-label={`Close ${paneTitle(t.ref)}`} onClick={(e) => { e.stopPropagation(); actions.close(t.id); }}>
                     <X size={14} strokeWidth={1.75} aria-hidden />
                   </button>
@@ -236,12 +240,10 @@ export const PaneFrame = memo(function PaneFrame({ box, node, stack, focused, zo
             {node.pinned ? <span className="badge">Pinned</span> : null}
           </div>
         )}
-        <HeaderActions id={node.id} title={title} zoomed={zoomed} collapsed={collapsed} single={single} onLeft={onLeft} />
+        <HeaderActions id={node.id} title={title} zoomed={zoomed} single={single} />
       </header>
-      )}
       {dropTarget ? <DropZoneLabel paneId={node.id} /> : null}
-      {/* Same element in rail and full modes, so content (and its state) survives minimise/restore. */}
-      <div className="pane-content" hidden={collapsed}>
+      <div className="pane-content">
         <div className="pane-content-inner">
           <PaneBody node={node} paused={paused} focused={focused} />
         </div>

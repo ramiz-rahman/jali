@@ -10,7 +10,7 @@ function Item({ node, selected }: { node: PaneNode; selected: boolean }) {
   return (
     <button
       role="tab"
-      className={`switch-item${selected ? " is-active" : ""}`}
+      className={`switch-item${selected ? " is-active" : ""}${(node as PaneNode & { tuckedFrom?: string }).tuckedFrom ? " is-tucked" : ""}`}
       aria-selected={selected}
       aria-controls={paneDomId(node.id)}
       tabIndex={selected ? 0 : -1}

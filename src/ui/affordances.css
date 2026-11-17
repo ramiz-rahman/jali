@@ -53,34 +53,71 @@
 @media (max-width: 640px) { .status-hint:not([data-mode]) { display: none; } .status-main { flex: 1; min-width: 0; } }
 @media (max-width: 480px) { .status-stats { display: none; } }
 
-/* ---- header actions: minimise, maximise, close; 26px targets, 4px apart ---- */
+/* ---- header actions: tuck, maximise, close; 26px targets, 4px apart ---- */
 .pane .pane-actions { gap: 4px; }
 .pane .pane-actions .icon-btn { width: 26px; height: 26px; min-width: 26px; border-radius: 6px; opacity: 0.55; }
 .pane.is-focused .pane-actions .icon-btn, .pane:hover .pane-actions .icon-btn, .pane:focus-within .pane-actions .icon-btn { opacity: 1; }
-.pane .pane-actions .icon-btn[aria-disabled="true"] { opacity: 0.35; cursor: not-allowed; }
-.pane .pane-actions .icon-btn[aria-disabled="true"]:hover { background: none; color: var(--text-3); }
+.pane .pane-actions .icon-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+.pane .pane-actions .icon-btn:disabled:hover { background: none; color: var(--text-3); }
 
-/* ---- rail: the whole 56px strip is one "Expand" button ---- */
-.pane-rail .rail-btn {
-  all: unset; box-sizing: border-box; width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center;
-  gap: 10px; padding: 10px 0 12px; cursor: pointer; color: var(--text-3); border-radius: calc(var(--radius) - 1px);
-  transition: background-color 80ms;
+/* ---- tucked tabs: dashed underline marks "this one lives behind its home"; Put back shows on hover and focus ---- */
+.tab.is-tucked:not(.is-active) { border-bottom-style: dashed; border-bottom-color: var(--text-4); }
+.tab.is-tucked.is-active { border-bottom-style: dashed; }
+.tab-putback {
+  display: grid; place-items: center; flex: none; width: 24px; height: 24px; margin-left: -2px; padding: 0; border: 0; border-radius: 6px;
+  background: none; color: var(--text-3); cursor: pointer; opacity: 0; width: 0; margin-right: 0; overflow: hidden; pointer-events: none;
 }
-.pane-rail .rail-btn:hover { background: var(--hover); color: var(--text); }
-.pane-rail .rail-btn:active { background: color-mix(in srgb, var(--text) 8%, var(--island)); }
-.pane-rail .rail-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: -3px; }
-.rail-expand { display: grid; place-items: center; width: 28px; height: 28px; border-radius: 6px; color: var(--text-3); }
-.rail-btn:hover .rail-expand { color: var(--text); }
-.rail-icon { color: var(--text-3); display: grid; }
-.rail-count { font-family: var(--mono); font-size: 11px; line-height: 14px; font-variant-numeric: tabular-nums; color: var(--text-2); }
-.rail-title { max-height: none; min-height: 0; flex: 0 1 auto; font-size: 13px; line-height: 16px; }
+.tab:hover .tab-putback, .tab:focus-within .tab-putback, .tab .tab-putback:focus-visible { opacity: 1; width: 24px; pointer-events: auto; }
+.tab-putback:hover { background: var(--hover); color: var(--text); }
+@media (hover: none) { .tab-putback { opacity: 1; width: 24px; pointer-events: auto; } }
+.tab.is-flash { animation: tab-flash 600ms ease-out; }
+@keyframes tab-flash { 0% { background: color-mix(in srgb, var(--accent) 22%, transparent); } 100% { background: transparent; } }
 
-/* rail activity: a different shape for every state, never colour alone */
-.ra { flex: none; display: grid; place-items: center; width: 14px; height: 14px; box-sizing: border-box; border-radius: 50%; font-size: 10px; font-weight: 700; line-height: 1; }
+/* ---- shelf: 32px strip above the status line, only when something is tucked ---- */
+.shelf { grid-row: 3; position: relative; display: flex; align-items: center; gap: 8px; height: 32px; padding: 0 8px 0 12px; background: var(--island); border-top: 1px solid var(--line); font-size: 12px; min-width: 0; }
+.shelf-label { flex: none; color: var(--text-3); font-weight: 500; }
+.shelf-bar { position: relative; flex: 1; min-width: 0; height: 100%; }
+.shelf-scroll { display: flex; align-items: center; gap: 14px; height: 100%; overflow-x: auto; scrollbar-width: none; padding: 0 2px; }
+.shelf-scroll::-webkit-scrollbar { display: none; }
+.shelf-fade { position: absolute; top: 0; bottom: 0; width: 20px; pointer-events: none; opacity: 0; transition: opacity 120ms; z-index: 1; }
+.shelf-fade-l { left: 0; background: linear-gradient(to right, var(--island), transparent); }
+.shelf-fade-r { right: 0; background: linear-gradient(to left, var(--island), transparent); }
+.shelf-bar[data-fade-l] .shelf-fade-l, .shelf-bar[data-fade-r] .shelf-fade-r { opacity: 1; }
+.shelf-group { flex: none; display: inline-flex; align-items: center; gap: 4px; }
+.shelf-home { flex: none; color: var(--text-3); margin-right: 2px; white-space: nowrap; }
+.shelf-chip { position: relative; display: inline-flex; align-items: center; flex: none; height: 24px; border-radius: 6px; border: 1px solid var(--line); background: var(--bg, transparent); color: var(--text-2); }
+.shelf-chip:hover { background: var(--hover); color: var(--text); }
+.shelf-chip-main {
+  all: unset; box-sizing: border-box; display: inline-flex; align-items: center; gap: 6px; height: 100%; max-width: 168px; padding: 0 8px; cursor: pointer; border-radius: 5px;
+}
+.shelf-chip-main:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.shelf-chip-title { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.shelf-chip-put {
+  display: grid; place-items: center; width: 0; height: 22px; padding: 0; border: 0; background: none; color: var(--text-3);
+  border-radius: 5px; cursor: pointer; overflow: hidden; opacity: 0; pointer-events: none;
+}
+.shelf-chip:hover .shelf-chip-put, .shelf-chip:focus-within .shelf-chip-put { width: 22px; opacity: 1; pointer-events: auto; margin-right: 1px; }
+.shelf-chip-put:hover { background: color-mix(in srgb, var(--text) 10%, transparent); color: var(--text); }
+.shelf-more { flex: none; height: 24px; padding: 0 8px; border: 1px solid var(--line); border-radius: 6px; background: none; color: var(--text-2); font: inherit; font-variant-numeric: tabular-nums; cursor: pointer; }
+.shelf-more:hover, .shelf-more[aria-expanded="true"] { background: var(--hover); color: var(--text); }
+.shelf-menu {
+  position: absolute; right: 8px; bottom: calc(100% + 4px); z-index: 40; min-width: 220px; max-width: 320px; max-height: 260px; overflow: auto; padding: 4px;
+  background: var(--island); border: 1px solid var(--line); border-radius: 8px; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.16);
+}
+.shelf-menu button { all: unset; box-sizing: border-box; display: flex; align-items: center; gap: 8px; width: 100%; height: 28px; padding: 0 8px; border-radius: 5px; cursor: pointer; color: var(--text); }
+.shelf-menu button:hover, .shelf-menu button:focus-visible { background: var(--hover); }
+.shelf-menu small { margin-left: auto; color: var(--text-3); white-space: nowrap; font-size: 11px; }
+.shelf-menu .shelf-chip-title { flex: 1; }
+/* Phone: the shelf lives inside the pane switcher (tucked panes are tabs there, marked), so the strip steps aside. */
+.app:has(.workspace.is-single) .shelf { display: none; }
+.switch-item.is-tucked { border-style: dashed; border-color: var(--line); }
+.switch-item.is-tucked.is-active { border-color: var(--accent-mid); }
+
+/* shelf activity: a different shape for every state, never colour alone */
+.ra { flex: none; display: grid; place-items: center; width: 12px; height: 12px; box-sizing: border-box; border-radius: 50%; font-size: 9px; font-weight: 700; line-height: 1; }
 .ra-ring { border: 2px solid color-mix(in srgb, var(--act-working) 25%, transparent); border-top-color: var(--act-working); animation: ra-spin 0.9s linear infinite; }
-.ra-ring.is-quiet { border-color: var(--text-4); border-top-color: var(--text-2); }
 .ra-need { background: var(--act-blocked); color: #fff; }
 .ra-fail { background: var(--act-failed); color: #fff; }
 .ra-done { width: 8px; height: 8px; background: var(--accent); }
 @keyframes ra-spin { to { transform: rotate(360deg); } }
-@media (prefers-reduced-motion: reduce) { .ra-ring { animation: none; border-color: var(--act-working); border-top-color: transparent; } .pane-rail .rail-btn { transition: none; } }
+@media (prefers-reduced-motion: reduce) { .ra-ring { animation: none; border-color: var(--act-working); border-top-color: transparent; } .tab.is-flash { animation: none; } .shelf-fade { transition: none; } }
