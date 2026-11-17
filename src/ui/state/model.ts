@@ -95,7 +95,7 @@ export function buildModel({ layout, view, area, ctx }: ModelInput): WorkspaceMo
     flatVisible: shown(flat),
     shownWith(id) {
       const box = flat.panes.find((b) => b.id === id);
-      return (box?.hidden && flat.panes.find((b) => b.stackId === box.stackId && !b.hidden)?.id) || id;
+      return (box?.hidden && box.stackId && flat.panes.find((b) => b.stackId === box.stackId && !b.hidden)?.id) || id;
     },
     folded: resolved.shelf.filter((e) => e.reason === "folded").map((e) => e.paneId),
     single: area.width > 0 && resolved.panes.some((b) => !b.hidden && b.rect.x + b.rect.width > area.width + 0.5),

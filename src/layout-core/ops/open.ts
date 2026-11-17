@@ -4,7 +4,9 @@ import { beside } from "../tree/insert";
 import { focus } from "./focus";
 import { fitLayout } from "../fit/refit";
 import { setRef } from "./ref";
-export function open(layout: Layout, view: ViewState, target: string, edge: Edge, ref: ObjectRef, ctx: LayoutContext, linked: boolean): OpenResult {
+/** Where a new pane goes when that is not beside its source: a designed arrangement keeps opened panes in one region. */
+export interface Placement { target: string; edge: Edge }
+export function open(layout: Layout, view: ViewState, target: string, edge: Edge, ref: ObjectRef, ctx: LayoutContext, linked: boolean, place?: Placement): OpenResult {
   const { fit } = ctx;
   const original = find(layout.root, target);
   if (original?.type !== "pane") throw new Error(`Unknown source pane: ${target}`);
@@ -21,7 +23,7 @@ export function open(layout: Layout, view: ViewState, target: string, edge: Edge
   const next = clone(layout);
   const pane: PaneNode = { id: newId(layout.root), type: "pane", size: { weight: 1 }, ref: clone(ref), ...(linked ? { linkedTo: target } : {}) };
   pane.born = 1 + Math.max(panes(layout.root).length, ...panes(layout.root).map(p => p.born ?? 0));
-  beside(next, target, edge, pane);
+  beside(next, place && find(next.root, place.target) ? place.target : target, place?.edge ?? edge, pane);
   const nextView = linked ? focus(unzoom(view), target, ctx) : focus(unzoom(view), pane.id, ctx);
   // No room, or over the cap: the fold is decided now, at open, and recorded. With no room the new pane becomes a tab
   // of its source (spec §3 "Opened as a tab: not enough room"); over the cap the oldest unpinned, unfocused pane does.
@@ -31,5 +33,5 @@ export function open(layout: Layout, view: ViewState, target: string, edge: Edge
   return { layout: fitted, view: nextView, opened: pane.id, mode };
 }
 
-export const openBeside = (layout: Layout, view: ViewState, source: string, ref: ObjectRef, ctx: LayoutContext) => open(layout, view, source, "right", ref, ctx, true);
+export const openBeside = (layout: Layout, view: ViewState, source: string, ref: ObjectRef, ctx: LayoutContext, place?: Placement) => open(layout, view, source, "right", ref, ctx, true, place);
 export const split = (layout: Layout, view: ViewState, target: string, edge: Edge, ref: ObjectRef, ctx: LayoutContext) => open(layout, view, target, edge, ref, ctx, false);

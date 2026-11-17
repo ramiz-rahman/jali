@@ -16,6 +16,8 @@ function pack(node: LayoutNode): Packed {
     if (node.linkedTo !== undefined) n.l = node.linkedTo;
     if (node.pinned !== undefined) n.p = node.pinned;
     if (node.born !== undefined) n.g = node.born;
+    if (node.role !== undefined) n.e = node.role;
+    if (node.priority !== undefined) n.y = node.priority;
   } else {
     n.n = node.children.map(pack);
     if (node.type === "stack") { n.a = node.active; n.o = node.origin; }
@@ -37,6 +39,8 @@ function unpack(value: unknown, depth = 0): unknown {
     if (n.l !== undefined) out.linkedTo = n.l;
     if (n.p !== undefined) out.pinned = n.p;
     if (n.g !== undefined) out.born = n.g;
+    if (n.e !== undefined) out.role = n.e;
+    if (n.y !== undefined) out.priority = n.y;
   } else {
     if (Array.isArray(n.n) && n.n.length > 2048) throw new Error("Tree too large");
     out.children = Array.isArray(n.n) ? n.n.map(c => unpack(c, depth + 1)) : n.n;

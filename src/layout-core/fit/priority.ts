@@ -4,7 +4,8 @@ const cmp = (a: number, b: number) => a === b ? 0 : a < b ? -1 : 1;
 /**
  * Which displayed slot to fold next. Runs only when a fold is needed (structural or size change), never on focus.
  * Protected: the focused pane, its source and its direct details.
- * Order: unprotected unpinned, unprotected pinned, protected unpinned, protected pinned, the focused slot.
+ * Order: supporting slots, unprotected unpinned, unprotected pinned, protected unpinned, protected pinned, primary
+ * slots, the focused slot. Priority comes from the pane (a designed arrangement says which panes give way first).
  * Within a tier: unlinked panes, then the far end of link chains (deepest from focus), then least recently
  * focused, then narrowest, then reading order. With no focused pane, the first pane in reading order stands in.
  */
@@ -40,7 +41,9 @@ export function chooseFold(root: Projected, view: ViewState, order: Map<string, 
   const score = (slot: Projected) => {
     const members = allPanes(slot);
     const pinned = members.some(p => p.pane!.pinned);
-    const tier = members.some(p => p.id === focused) ? 4 : members.some(p => protectedIds.has(p.id)) ? 2 + Number(pinned) : Number(pinned);
+    const supporting = members.every(p => p.pane!.priority === "supporting");
+    const primary = members.some(p => p.pane!.priority === "primary");
+    const tier = members.some(p => p.id === focused) ? 4 : supporting ? -1 : primary ? 3.5 : members.some(p => protectedIds.has(p.id)) ? 2 + Number(pinned) : Number(pinned);
     return {
       slot, tier, linked: Number(members.some(p => linkedIds.has(p.id))),
       depth: Math.max(...members.map(p => distance.get(p.id) ?? Infinity)),

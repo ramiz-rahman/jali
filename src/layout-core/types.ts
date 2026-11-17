@@ -18,6 +18,10 @@ export interface PaneNode extends NodeBase {
   pinned?: boolean;
   /** Monotonic age; imported panes without an age precede newly opened panes in reading order. */
   born?: number;
+  /** The place this pane fills in a designed arrangement ("borrower"). Panes without a role were opened by the person. */
+  role?: string;
+  /** Fold priority. Supporting panes give way first when room runs out; a primary pane never folds while another can. */
+  priority?: "primary" | "supporting";
 }
 export interface StackNode extends NodeBase {
   type: "stack";
@@ -34,6 +38,8 @@ export interface Overlay {
   folds: NodeId[];
   /** Chosen tab, keyed by the stable home pane of the projected group. */
   shown: Record<NodeId, NodeId>;
+  /** Panes taken off screen entirely (no tab, no slot); their neighbours absorb the space. Showing drops the id. */
+  hidden?: NodeId[];
 }
 export interface Layout { version: 1; root: LayoutNode; overlay?: Overlay }
 export interface ViewState {
@@ -52,7 +58,8 @@ export interface PaneKind {
 }
 export type KindRegistry = Record<string, PaneKind>;
 export interface Rect { x: number; y: number; width: number; height: number }
-export interface PaneBox { id: NodeId; rect: Rect; stackId?: NodeId; hidden?: "tab" | "zoom" }
+/** `hidden`: behind another tab, behind a zoomed pane, or "off" (hidden by the overlay: no slot, no tab). */
+export interface PaneBox { id: NodeId; rect: Rect; stackId?: NodeId; hidden?: "tab" | "zoom" | "off" }
 export interface DividerBox {
   parentId: NodeId; index: number; axis: Axis; rect: Rect; min: number; max: number; value: number;
   neighbours?: [NodeId[], NodeId[]];
@@ -79,6 +86,8 @@ export interface ResolvedLayout {
 export interface FitOptions { width: number; height: number; gap: number; kinds: KindRegistry }
 export interface LayoutContext { fit: FitOptions; paneCap: number }
 export type OpenResult = { layout: Layout; view: ViewState; opened: NodeId; mode: "beside" | "replaced" | "tab" };
+export type HideRefusal = "missing" | "tab" | "hidden" | "last";
+export type HideResult = { ok: true; layout: Layout; view: ViewState } | { ok: false; reason: HideRefusal };
 export interface UndoEntry {
   kind: "close" | "closeOthers" | "tuck";
   before: { layout: Layout; view: ViewState };

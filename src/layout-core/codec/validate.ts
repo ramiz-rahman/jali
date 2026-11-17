@@ -26,6 +26,8 @@ export function validate(layout: Layout, kinds: KindRegistry): { ok: true } | { 
       if (value.linkedTo !== undefined && (typeof value.linkedTo !== "string" || !value.linkedTo.length)) error(path, "invalid linkedTo");
       if (value.pinned !== undefined && typeof value.pinned !== "boolean") error(path, "pinned must be boolean");
       if (value.born !== undefined && !(Number.isInteger(value.born) && (value.born as number) >= 0)) error(path, "born must be a nonnegative integer");
+      if (value.role !== undefined && !(typeof value.role === "string" && value.role.length > 0 && value.role.length <= 64)) error(path, "role must be a short id");
+      if (value.priority !== undefined && value.priority !== "primary" && value.priority !== "supporting") error(path, "unknown priority");
       return;
     }
     if (inStack) { error(path, "stacks may contain only panes"); return; }
@@ -47,6 +49,7 @@ export function validate(layout: Layout, kinds: KindRegistry): { ok: true } | { 
     else {
       if (!Array.isArray(o.folds) || o.folds.length > 2048 || !o.folds.every(text)) error("overlay", "folds must be ids");
       if (!record(o.shown) || Object.keys(o.shown).length > 2048 || !Object.entries(o.shown).every(([k, v]) => text(k) && text(v))) error("overlay", "shown must map ids to ids");
+      if (o.hidden !== undefined && (!Array.isArray(o.hidden) || o.hidden.length > 2048 || !o.hidden.every(text) || new Set(o.hidden).size !== o.hidden.length)) error("overlay", "hidden must be distinct ids");
       const tucked = new Set<string>();
       if (!Array.isArray(o.tucks) || o.tucks.length > 2048) error("overlay", "tucks must be records");
       else for (const t of o.tucks) {

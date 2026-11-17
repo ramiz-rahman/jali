@@ -17,6 +17,7 @@ function shownFor(id: string, g: Geometry): string | undefined {
   const box = g.boxes.get(id);
   if (!box) return undefined;
   if (!box.hidden) return id;
+  if (!box.stackId) return undefined;
   return [...g.boxes.values()].find(b => b.stackId === box.stackId && !b.hidden)?.id;
 }
 const centre = (b: PaneBox) => [b.rect.x + b.rect.width / 2, b.rect.y + b.rect.height / 2] as const;

@@ -2,7 +2,7 @@ import type { Axis, Layout, LayoutContext, Rect, ResolvedLayout } from "../types
 import type { ViewState } from "../types";
 import { shares } from "../geometry/shares";
 import { extentAlong } from "../geometry/extent";
-import { noFocus } from "../tree/tree";
+import { noFocus, panes } from "../tree/tree";
 import { allPanes, choose, foldSlot, overlayOf, replay, type Projected } from "./overlay";
 import { chooseFold } from "./priority";
 import { checkContext, misfit } from "./context";
@@ -75,6 +75,9 @@ export function resolve(layout: Layout, view: ViewState, ctx: LayoutContext): Re
     });
   }
   draw(root, { x: 0, y: 0, width: Math.max(fit.width, root.bounds.width), height: Math.max(fit.height, root.bounds.height) });
+  // Hidden panes keep a box (so their content can stay mounted and paused) with no size and no group.
+  const drawn = new Set(result.panes.map(b => b.id)), inTree = new Set(panes(layout.root).map(p => p.id));
+  for (const id of layout.overlay?.hidden ?? []) if (!drawn.has(id) && inTree.has(id)) result.panes.push({ id, rect: { x: 0, y: 0, width: 0, height: 0 }, hidden: "off" });
   const tucked = new Set(layout.overlay?.tucks.map(t => t.pane));
   for (const box of result.panes) {
     if (!box.hidden || !box.stackId) continue;
@@ -85,7 +88,7 @@ export function resolve(layout: Layout, view: ViewState, ctx: LayoutContext): Re
   const zoom = result.panes.find(p => p.id === view.zoomed);
   if (zoom) {
     const selected = allPanes(root).find(p => p.id === zoom.id)!;
-    for (const p of result.panes) p.hidden = p === zoom ? undefined : "zoom";
+    for (const p of result.panes) p.hidden = p === zoom ? undefined : p.hidden === "off" ? "off" : "zoom";
     zoom.rect = { x: 0, y: 0, width: Math.max(fit.width, selected.bounds.width), height: Math.max(fit.height, selected.bounds.height) };
     result.dividers = [];
   }

@@ -114,10 +114,20 @@ export function foldSlot(root: Projected, choice: Projected, fit: FitOptions, or
 }
 
 interface Replayed { root: Projected; order: Map<string, number>; applied: string[] }
-/** Replay tucks first, then sticky folds, without changing the canonical tree. */
+/** Hidden panes leave the projection first: no slot and no tab, and their neighbours absorb the space. */
+function withoutHidden(root: Projected, hidden: readonly string[]): Projected {
+  for (const id of hidden) {
+    const displayed = slots(root);
+    if (displayed.length < 2 || !displayed.some(s => s.id === id && s.pane)) continue;
+    root = removeSlot(root, id)!;
+  }
+  return root;
+}
+/** Replay hides, then tucks, then sticky folds, without changing the canonical tree. */
 export function replay(layout: Layout, folds: readonly string[], fit: FitOptions): Replayed {
-  let root = project(layout.root, fit);
-  const order = new Map(allPanes(root).map((p, i) => [p.id, i]));
+  const projected = project(layout.root, fit);
+  const order = new Map(allPanes(projected).map((p, i) => [p.id, i]));
+  let root = withoutHidden(projected, layout.overlay?.hidden ?? []);
   const applied: string[] = [];
   const tucks = layout.overlay?.tucks ?? [];
   // A revealed tab names the same stable home as its fold. Resolve this against the canonical fold projection,
@@ -153,10 +163,14 @@ export function choose(root: Projected, active: Record<string, string> | undefin
 export function withOverlay(layout: Layout, overlay: import("../types").Overlay): Layout {
   const next = { ...layout };
   delete next.overlay;
-  if (overlay.tucks.length || overlay.folds.length || Object.keys(overlay.shown).length) next.overlay = overlay;
+  const o = { ...overlay };
+  if (!o.hidden?.length) delete o.hidden;
+  if (o.tucks.length || o.folds.length || Object.keys(o.shown).length || o.hidden) next.overlay = o;
   return next;
 }
 export const overlayOf = (layout: Layout): import("../types").Overlay => layout.overlay ?? { tucks: [], folds: [], shown: {} };
+/** Panes the overlay has taken off screen. */
+export const hiddenOf = (layout: Layout): readonly string[] => layout.overlay?.hidden ?? [];
 /** Deliberately moved or closed panes no longer belong to their former overlay. Owned draft only. */
 export function forget(layout: Layout, ids: readonly string[]): void {
   if (!layout.overlay) return;
@@ -166,6 +180,7 @@ export function forget(layout: Layout, ids: readonly string[]): void {
     tucks: o.tucks.filter(t => !gone.has(t.pane) && !gone.has(t.home)),
     folds: o.folds.filter(id => !gone.has(id)),
     shown: Object.fromEntries(Object.entries(o.shown).filter(([home, pane]) => !gone.has(home) && !gone.has(pane))),
+    hidden: o.hidden?.filter(id => !gone.has(id)),
   });
   delete layout.overlay;
   if (next.overlay) layout.overlay = next.overlay;
