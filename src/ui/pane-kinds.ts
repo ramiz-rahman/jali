@@ -57,6 +57,9 @@ export interface PaneKindDef {
   /** What makes two refs the same object. Default: every param, compared as text. `undefined` means scratch space:
    *  never deduplicated against open panes. */
   identity?: (ref: ObjectRef) => unknown;
+  /** The type of object shown, shared by kinds that show the same objects differently (a loan review's record view
+   *  shows a record). Two refs are the same object when their object types and identities match. Default: the kind. */
+  object?: string;
   /** Stands in until the person chooses an object: closes quietly, and gets the workspace sources. */
   transient?: boolean;
   /** Listed in Recent. Default true. */
@@ -128,9 +131,12 @@ export function identityOf(ref: ObjectRef): string | undefined {
   return id === undefined ? undefined : JSON.stringify(id);
 }
 
-/** Same object: same kind and identity. Scratch refs are never the same object as anything. */
+const objectType = (ref: ObjectRef) => kinds.get(ref.kind)?.object ?? ref.kind;
+
+/** Same object: same object type (kind, unless the kind says otherwise) and identity. Scratch refs are never the same
+ *  object as anything. */
 export function sameObject(a: ObjectRef, b: ObjectRef): boolean {
-  if (a.kind !== b.kind) return false;
+  if (objectType(a) !== objectType(b)) return false;
   const ia = identityOf(a);
   return ia !== undefined && ia === identityOf(b);
 }

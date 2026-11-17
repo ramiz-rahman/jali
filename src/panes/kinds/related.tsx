@@ -13,7 +13,7 @@ export function RelatedPane(p: PaneComponentProps) {
 
 
 export const relatedKind = definePaneKind({
-  kind: "related", ref: (params) => ({ kind: "related", params }),
+  kind: "related", object: "related", ref: (params) => ({ kind: "related", params }),
   title: (ref) => String(ref.params.label ?? "Related"), minWidth: 380, minHeight: 240, 
   icon: Link2, Component: RelatedPane,
 });

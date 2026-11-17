@@ -115,7 +115,7 @@ function RelationLink({ rel, openBeside }: { rel: Relation; openBeside: PaneComp
 
 
 export const recordKind = definePaneKind({
-  kind: "record", ref: (params) => ({ kind: "record", params }),
+  kind: "record", object: "record", ref: (params) => ({ kind: "record", params }),
   title: (ref) => `${singular(String(ref.params.table ?? "record"))} ${ref.params.id ?? ""}`.trim(), minWidth: 480, minHeight: 240, 
   icon: FileText, Component: RecordPane,
 });
