@@ -13,6 +13,19 @@ describe('data layer', () => {
     expect(orders.columns.find(c => c.name === 'customer_id')).toMatchObject({ nullable: false, references: { table: 'customers', column: 'id' } });
     expect(catalog.find(t => t.name === 'customers')!.referencedBy).toContainEqual({ table: 'orders', column: 'customer_id' });
   });
+  it('loads the loan book; application facts match the rows', async () => {
+    const { applicationFacts, LOAN_BOOK } = await import('./sample-sql');
+    const catalog = await api.catalog();
+    expect(catalog.find(t => t.name === 'loan_applications')!.rowCount).toBe(LOAN_BOOK.applications);
+    for (const id of [1, 7, 36]) {
+      const app = await api.record('loan_applications', String(id));
+      const f = applicationFacts(id);
+      expect(app).toMatchObject({ member_id: f.member, group_id: f.group, field_officer_id: f.officer });
+      expect(await api.record('members', String(f.member))).toMatchObject({ group_id: f.group });
+    }
+    const member = await api.record('members', '9');
+    expect(await api.relations('members', member!)).toContainEqual(expect.objectContaining({ table: 'loans', where: { member_id: 9 } }));
+  });
   it('describes outgoing and incoming relations', async () => {
     const order = await api.record('orders','61');
     const relations = await api.relations('orders',order!);
