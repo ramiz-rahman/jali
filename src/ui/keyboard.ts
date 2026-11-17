@@ -54,15 +54,16 @@ export function handleKey(e: KeyboardEvent): boolean {
   // F6 visits every pane, then the shelf (when shown), then wraps.
   if (e.key === "F6") {
     const shelf = typeof document !== "undefined" ? document.querySelector<HTMLElement>("[data-shelf]") : null;
+    const shelfShown = !!shelf && shelf.getClientRects().length > 0; // folded away on a phone
     const order = visiblePaneIds();
-    const inShelf = !!shelf && !!(document.activeElement && shelf.contains(document.activeElement));
-    if (shelf && inShelf) {
+    const inShelf = shelfShown && !!shelf && !!(document.activeElement && shelf.contains(document.activeElement));
+    if (shelf && shelfShown && inShelf) {
       const id = e.shiftKey ? order.at(-1) : order[0];
       if (id) actions.afterFocusMove(core.focus(s.view, id));
       return true;
     }
     const at = order.indexOf(s.view.focused ?? "");
-    if (shelf && at >= 0 && (e.shiftKey ? at === 0 : at === order.length - 1)) {
+    if (shelf && shelfShown && at >= 0 && (e.shiftKey ? at === 0 : at === order.length - 1)) {
       (shelf.querySelector<HTMLElement>('.shelf-chip-main[tabindex="0"]') ?? shelf).focus();
       hooks.announce("Shelf");
       return true;

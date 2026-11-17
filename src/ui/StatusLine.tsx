@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useDataLayer } from "./pane-kinds";
+import { Shelf } from "./Shelf";
 import { resolved, titleOf, useUi, allPanes } from "./store";
 
 export function StatusLine() {
@@ -22,7 +23,9 @@ export function StatusLine() {
         ? "Peek · Esc to close"
         : "⇧⌘↵ maximise · F6 next pane · ⌘K commands";
   return (
-    <footer className="status" aria-label="Status">
+    <footer className="status" aria-label="Status" data-shelf-on={shelf.length ? "" : undefined}>
+      {/* Hidden panes live here, on the left, so the workspace height never changes. The count and focus step right. */}
+      <Shelf />
       <span className="status-main">
         {allPanes().length} {allPanes().length === 1 ? "pane" : "panes"}
         {shelf.length ? ` · ${shelf.length} tucked` : ""}

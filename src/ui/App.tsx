@@ -5,7 +5,6 @@ import type { DataLayer } from "../data/types";
 import { DataLayerProvider } from "./pane-kinds";
 import { TopBar } from "./TopBar";
 import { Workspace } from "./Workspace";
-import { Shelf } from "./Shelf";
 import { StatusLine } from "./StatusLine";
 import { Announcer } from "./Announcer";
 import { Palette } from "./Palette";
@@ -70,7 +69,6 @@ export function App({ data }: { data: DataLayer }) {
         <div className="app">
           <TopBar />
           <Workspace />
-          <Shelf />
           <StatusLine />
         </div>
         <Announcer />

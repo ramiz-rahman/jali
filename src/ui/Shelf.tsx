@@ -38,7 +38,7 @@ function doReveal(it: ShelfItem) {
   flashTab(it.paneId);
 }
 
-/** The shelf: tucked panes by home. Hidden unless something is tucked. */
+/** The shelf: tucked panes by home, on the left of the status line. Renders nothing unless something is tucked. */
 export function Shelf() {
   const items = useShelf();
   useUi((s) => s.layout);
@@ -53,7 +53,8 @@ export function Shelf() {
     for (const it of items) m.set(it.homeId, [...(m.get(it.homeId) ?? []), it]);
     return [...m.entries()];
   }, [items]);
-  const ids = items.map((i) => i.paneId);
+  // Keyboard order is the order on screen (grouped by home), not the store's order.
+  const ids = groups.flatMap(([, list]) => list.map((i) => i.paneId));
   const tab = focusId && ids.includes(focusId) ? focusId : ids[0];
 
   // Fade edges and the +N list: chips scrolled out of view.
@@ -107,6 +108,7 @@ export function Shelf() {
     else if (e.key === "End") go(ids.length - 1);
     else if (e.key === "Enter" && e.shiftKey) {
       e.preventDefault();
+      if (items.find((x) => x.paneId === cur)?.reason !== "tucked") return;
       const next = ids[i + 1] ?? ids[i - 1];
       putBack(cur);
       if (next) setFocusId(next);
@@ -120,7 +122,6 @@ export function Shelf() {
   const hidden = items.filter((i) => hiddenIds.includes(i.paneId));
   return (
     <div className="shelf" role="region" aria-label="Shelf" tabIndex={-1} data-shelf>
-      <span className="shelf-label" aria-hidden>Tucked</span>
       <div className="shelf-bar" ref={bar}>
         <span className="shelf-fade shelf-fade-l" aria-hidden />
         <div className="shelf-scroll" ref={scroller} role="toolbar" aria-label="Tucked panes" aria-orientation="horizontal" onKeyDown={onKey} onScroll={measure}>
@@ -134,18 +135,18 @@ export function Shelf() {
                     <button
                       className="shelf-chip-main"
                       tabIndex={it.paneId === tab ? 0 : -1}
-                      aria-label={`${L.full}. Enter shows it, Shift+Enter puts it back`}
+                      aria-label={`${L.full}. Enter shows it${it.reason === "tucked" ? ", Shift+Enter puts it back" : ""}`}
                       title={`${L.title} · behind ${L.home}`}
                       onFocus={() => setFocusId(it.paneId)}
                       onClick={() => doReveal(it)}
                     >
-                      {L.node ? <KindIcon kind={L.node.ref.kind} size={14} /> : null}
+                      {L.node ? <KindIcon kind={L.node.ref.kind} size={13} /> : null}
                       <span className="shelf-chip-title">{L.title}</span>
                       <ShelfDot a={L.a} />
                     </button>
-                    <button className="shelf-chip-put" tabIndex={-1} aria-label={`Put back ${L.title}`} title="Put back · ⌥⇧⌘M" onClick={() => putBack(it.paneId)}>
+                    {it.reason === "tucked" ? <button className="shelf-chip-put" tabIndex={-1} aria-label={`Put back ${L.title}`} title="Put back · ⌥⇧⌘M" onClick={() => putBack(it.paneId)}>
                       <Undo2 size={13} strokeWidth={1.75} aria-hidden />
-                    </button>
+                    </button> : null}
                   </div>
                 );
               })}
