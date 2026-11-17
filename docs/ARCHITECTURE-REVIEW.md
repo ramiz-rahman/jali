@@ -347,3 +347,103 @@ e2e/        fixtures/{lab.ts,layouts.ts} + one spec per area + screens.spec.ts (
 - behaviour, visuals, copy, keys and URL parameters stay as they are;
 - commit small, with plain messages, no co-author line and no push;
 - record every structural decision in DECISIONS.md.
+
+---
+
+## Status after the refactor (17 Nov)
+
+> Audited against the code as it stands (HEAD after the three waves plus the closing fixes), not against commit messages. **Done** = the problem is gone and the shape matches. **Partly** = the main fix landed but a named piece remains. **Not done** = still there. **Dropped** = deliberately not carried out.
+>
+> **Tally: 56 Done, 6 Partly, 0 Not done, 0 Dropped** (62 rows). Rows the closing pass touched say so. Checks: typecheck clean, 285 unit tests, 58 browser tests (70 with the screens project).
+
+### Part 1: layout-core
+| Item | Status | Evidence |
+|---|---|---|
+| L1 Tuck as an overlay | Done | `Layout.overlay = { tucks, folds, shown }` in `types.ts`; `fit/overlay.ts` replays tucks then folds; `TuckOrigin`, `tuckedFrom`, `origin:"tuck"`, `slotIn`, `handOn`, `leaveStack`, `besideNode`, `untuckAll`, `packTuck` are gone; no import cycle. |
+| L2 Pure core with explicit context | Done | Every op ends in `ctx: LayoutContext` (`types.ts`); `NodeBase.base` and `PaneNode.born` hold what `births`/`defaults` held; no `createLayoutCore`, no `lastFit`, no `ui/core.ts` Proxy; `purity.test.ts` guards it. |
+| L3 Ops own their refit | Done | `ops/*.ts` return fitted layouts; public `refit(layout, view, ctx)` has no mode (`fit/refit.ts`); `"load"`, `"none"`, `committing`, `fitted` and the swallow are gone. |
+| L4 Core owns tree operations | Done | `index.ts` exports `tree`, `addTab`, `setRef`, `reveal`; no-op ops return the input object and the store compares by identity; `same()` and the store's tree helpers are gone. |
+| Legacy `origin:"auto"` / `axis` / `unfold()` | Done | No match in `layout-core` (only `StackNode.origin: "user"` remains, see new smells). |
+| `collapsed` migration | Done | `validate.ts:17` rejects it; nothing migrates it. |
+| Dead `fits` / `minimum` | Done | Gone from `fit/`. |
+| Axis extent computed five ways | Done | One `geometry/extent.ts`, used by `fit/resolve.ts`, `ops/divider.ts` and `ui/dividers/resize.ts`. |
+| beside / addTab / sizeSum / NO_FOCUS copies | Done | `tree/insert.ts`, `tree/size.ts`; no second copy. |
+| `ui/geometry.ts minAlong` vs `resolve` | Done | `core.minSize` in `geometry/bounds.ts`; `minAlong` deleted. |
+| Repeated work (resolve twice, canTuck twice) | Partly | `canTuck` still runs once for the check and again inside `tuck()` (`ui/actions/tuck.ts`), and `HeaderActions` calls it per pane per render. Cheap, but not single-pass. |
+| Duplicated validation (codec vs validate) | Done | `codec.ts` only reshapes ("Reshaping only" comment); `validate.ts` is the schema. |
+| `@auto:` id prefix | Partly | Parsing outside `resolve` is gone (`ResolvedStack.kind`, `core.reveal`), but the prefix is still built inside `fit/overlay.ts:42,51,163` and asserted in `open.test.ts:39`. |
+| `hiddenInStack` naming | Done | `PaneBox.hidden?: "tab" \| "zoom"`. |
+| Redundant projections | Done | `shelf` is the single source (`ResolvedLayout.shelf`); `model.folded` is derived from it; `ResolvedStack.kind` replaces the constant `origin:"auto"`. |
+| UI concerns in core (`activity`, `heavy`, label discriminator) | Done | Gone from `types.ts`; `UndoEntry.kind` is `"close" \| "closeOthers" \| "tuck"`. |
+| Long functions (`refit`, `tuck`, ops 185-227) | Partly | `refit` and `tuck` are split. `resolve` (74 lines), `chooseFold` (42), `shares` (47) and `validate` (55) still pass 40, and several lines run past 200 characters (`resolve.ts:72`, `insert.ts:30`, `tabs.ts:40`). |
+| Misc (`linkOf`, `snapToCentre`, stale docs, middle man, fixtures, collapse test) | Done | `links()` is built once; stale docs gone; `collapse.test` gone; one `test/fixtures.ts`. `snapToCentre` was exported but unused and duplicated in the UI; fixed in the closing pass (the UI now calls it). |
+
+### Part 2: src/ui
+| Item | Status | Evidence |
+|---|---|---|
+| U1 Typed `Change` and one `apply()` | Done | `state/apply.ts`: `Change`, `Refusal`, `POLICY` table, one `apply()`; `check()` is shared by `Command.check` and the action; `CommitOptions`, `announceView`, the copied undo slices are gone. |
+| U2 One `WorkspaceModel` | Done | `state/model.ts` `buildModel` + `modelCache`; `useModel()` in `state/react.tsx`; `StatusLine`, `Shelf`, `Workspace` read it. Components no longer subscribe to the layout and read globals. |
+| U3 One command registry owning its keys | Done | `commands/registry.ts` (`keys`, `check`, `run`, `shortcutLabel`); `keyboard.ts` is three modal handlers plus `commandForKey`; one direction table (`DIRS`) and one `dirWord`. |
+| U4 Explicit boot and effect sinks | Done | `main.tsx` → `boot()` / `startUi()`; `hooks`, `bumpKinds`, `lastKv`, `fitted`, `booted`, `initialBroken` gone; announcements are state; cache keys on `kindsVersion()`. |
+| U5 Pane host and presentation policy | Done | `PaneHost` in `pane/PaneBody.tsx` (peek has `peekHost`); `Presentation` → `Chrome` in `pane/chrome.ts`; `frames()` feeds one loop; `useSingleView` + pure `single-view.ts`. One sentinel left: `chrome/Peek.tsx:32` builds a node with `id:"peek"`, but nothing branches on it. |
+| Divergent change in `store.ts` | Done | `store.ts` is 142 lines; actions, model, apply, messages, settings and undo are separate modules. |
+| DOM focus shotgun surgery | Done | `dom/focus.ts` holds `focusPane`, `focusShelf`, `activeTabId`, `keepPaneFocus`, `flashTab`. |
+| Announcement English in logic | Done | `state/messages.ts` (99 lines) holds every sentence; actions pass titles in. |
+| Dead code (`dropLabel`, `minAlong`, `allPaneKinds`, `lastA`, `.sign`, `paneCap`) | Done | None found. |
+| Dead remnants (`react-resizable-panels`, rail/collapsed docs) | Done | No source or doc reference outside the append-only `DECISIONS.md`; package removed. |
+| Speculative generality (Ark adapter) | Done | `dividers/ark.tsx`, adapter types, setting, palette command, ghost CSS are gone. The closing pass also removed the unused `@ark-ui/react` dependency from `package.json`. |
+| Middle man (`pane/tuck.ts`, re-exports, `__lab` in tuck.ts) | Done | Files gone; the dev hook now sits in `boot.ts` behind `import.meta.env.DEV`. |
+| Type lie (`tuckedFrom?: string` casts) | Done | Field and casts gone with L1. |
+| Vocabulary drift (activity states, two dots) | Done | One `PaneActivity` and one `pane/Activity.tsx`. |
+| Palette / Chooser duplication | Done | Both use `dialogs/ListDialog.tsx`. |
+| Logic importing component modules | Done | `keyboard.ts` imported `STEP` from `Divider.tsx`; moved to `dividers/resize.ts` in the closing pass. |
+| Magic constants in TS and CSS | Done | `tokens.ts` `applyTokens()` writes `--gap`, `--topbar-h`, `--status-h`, `--switcher-h` at boot. |
+| `closedStack` / `undoClose` naming | Done | `undoStack`, `undo` (`state/undo.ts`). |
+| Zone half-rect and preset buttons duplicated | Done | `zoneRect` in `workspace/dnd.ts`; `PresetButtons` in `chrome/TopBar.tsx`. |
+| Wrong copy: "Only open pane" for every refusal | Done | Fixed in the closing pass: `HeaderActions` shows the refusal text from `messages.ts` as its title; the accessible name stays "Tuck <title>". |
+| CSS: `affordances.css` override layer | Done | File gone; `styles/` is eight files with one `index.css`. |
+| CSS: dark theme written four times | Partly | `applyTheme` always sets the resolved `data-theme`, and there is one dark token block. `panes.css` still carries its own light `--z*` tokens on `.pk`, remapped for dark in `tokens.css:71-90` (about 20 selectors). The dead hex-attribute SVG selectors were removed in the closing pass. |
+| CSS: dead rules | Done | `.placeholder*`, `.status-sep`, `.status-warn`, `.activity-done`, `.drag-chip span` are gone; a scan found no CSS class without a user. |
+
+### Part 3: panes, data and e2e
+| Item | Status | Evidence |
+|---|---|---|
+| P1 One module per pane kind | Done | `definePaneKind({ kind, ref, title, identity, transient, recordable, minWidth, icon, Component })` in `ui/pane-kinds.ts`, one file per kind in `panes/kinds/`; `titleFor` switch, `SCRATCH`, kind-name checks and the `autorun` exception are gone. |
+| P2 Data hooks own their context; one gate | Done | `data/react.tsx` (`DataLayerProvider`, `useDataLayer`); `panes/data.ts` and `props.ts` gone; `useTableInfo` exists; `panes/shared/PaneGate.tsx`; `Q<T>` is typed, no cast. |
+| P3 One table: Grid plus `useWindow(source)` | Done | `panes/grid/useWindow.ts` (one `PAGE`), `Grid` takes `rowRef`/`onLink`; `AuditPane` is 14 lines on `TableGrid`; `entityTable(type)` is in `data/tables.ts` and the lookup uses type plus id. |
+| P3 bug: audit `entity_type` cast to `TableName` | Done | `audit.tsx` maps through `entityTable`. |
+| P4 Split the data layer; key factory owns the key | Done | `data/` has `catalog`, `entities`, `sql`, `result-store`, `labels`, `keys`, `react`, `tables`; `TABLES as const` and derived `TableName`; `keys.resultPage`; typed `RowsQuery`. |
+| Launcher layering leak | Done | `launcher.tsx` imports only the pane contract; `recent`, `isOpen`, `KindIcon`, `titleFor` arrive as props. |
+| `format.ts` divergent change | Done | 77 lines; refs in `shared/refs.ts`, labels in `data/labels.ts`; the edit policy lives with the record kind (`record.tsx:125`). |
+| Dead code (`isNumericValue`, `entityKey`, `structureRef`, `Shell` props) | Done | No matches. |
+| Duplicated effects (`useFocusWhen`, `useListKeys`, `copyRaw`) | Done | `panes/shared/` has all three; Catalog, Grid, Launcher, Record use them. |
+| Magic numbers in `Grid.tsx` | Partly | `ROW_H` and `OVERSCAN_ROWS` are named; column widths (`widthOf`: 72/112/150/200) are still guessed from the column name. |
+| Theming leak (hex fills, dark patches) | Done | Chart and ER use `var(--accent)`, `var(--island)` and so on; the only literal left is the `#B42318` fallback in `record.tsx:49`. |
+| N+1 relation counts | Done | Counts come back with `api.relations` (one query). |
+| Money and JSON by name suffix | Done | `ColumnInfo.format` is set in `data/labels.ts` and read by the panes. |
+| Stale docs (`holding` prop) | Done | Only history entries in the append-only `DECISIONS.md` mention it, and they say it is gone. |
+| E1 Fixture layer | Done | `e2e/fixtures/lab.ts` (`test.extend({ lab })`) and `layouts.ts`; `SHOT`, `paneEl`, `announcer`, the two `start()`s are gone. |
+| E1 Bogus assertion | Done | Replaced with a real cell check. |
+| E1 Dead test code | Done | Gone with the split. |
+| E1 Sleeps | Done | 0 `waitForTimeout` (22 before); `stable()`, `settle()`, `expect.poll`, and the new `frames()`. |
+| E1 Magic selectors | Partly | Tuck, shelf and zoom use roles and `data-*`; a few class selectors remain, named in one `HOOKS` table in `lab.ts`, plus 4 in `responsive.spec.ts`. |
+| E1 Side effects (screens, webServer) | Done | `screens` project behind `SCREENS=1`; `webServer` in `playwright.config.ts`. |
+| E1 File size (walkthrough 888 lines) | Done | 12 specs, largest 276 lines. |
+
+### What the closing pass changed
+- The `tableOf` helper (four casts into one), the refusal copy on the Tuck button, the unused `@ark-ui/react` dependency, the `STEP` import, the `snapToCentre` duplicate and the dead SVG dark selectors (above).
+- `lab.setting()` was **kept**: `move.spec.ts` uses it twice.
+- The flaky test (`tuck-shelf.spec.ts`, "keyboard: a toolbar with roving tabindex"): the test moved focus into the shelf in the same frame in which the tuck (or reveal) queues `focusPane` for the next frame. When the frame ran late, the app moved focus back into the pane and the arrow key went to the pane. The app is right (a person cannot act inside one frame); the test now waits for the queued focus with `lab.frames()` first.
+
+### New smells found
+| Smell | Where | Note |
+|---|---|---|
+| Functions over 40 lines (non-component) | `data/entities.ts createDataApi` (129), `ui/dividers/drag.ts startDividerDrag` (159, one closure on purpose, see DECISIONS), `layout-core/fit/resolve.ts resolve` (74), `codec/validate.ts validate` (55), `geometry/shares.ts` (47), `fit/priority.ts chooseFold` (42) | `createDataApi` is the worst offender. |
+| Components over 40 lines | `chrome/Shelf.tsx Shelf` (145), `panes/kinds/launcher.tsx LauncherPane` (126), `panes/grid/Grid.tsx Grid` (114), `pane/TabStrip.tsx` (63), `Peek` (55) | `Shelf` mixes roving focus, overflow measuring and the menu in one component. |
+| Files over 300 lines | none | Largest is `ui/ui.test.ts` (278); largest source file is `data/sample-sql.ts` (181 lines of SQL strings). |
+| Module-level mutable state | `ui/pane-kinds.ts` (kind map, listeners, version, registry cache), `panes/index.ts` (`done` flag) | The kind registry is a deliberate process-wide registry; the rest of `src/` has none. Tests that register kinds share it. |
+| Layering | `panes/kinds/*` import `definePaneKind` and the props type from `ui/pane-kinds.ts` | That is the pane contract, not UI internals, but it lives under `ui/`. A package split would move it to a neutral module. No panes import `ui` components; core imports nothing from `ui`, `panes` or `data`. |
+| Duplicated helper | `String(ref.params.table ?? "") as TableName` was in four pane kinds | Fixed in the closing pass: one `tableOf(ref)` in `panes/shared/refs.ts`. `related.tsx` still casts its own differently shaped param. |
+| Constant field | `StackNode.origin: "user"` is written and validated everywhere but can only be one value | Could be dropped from the type and the URL format. |
+| Long lines | `layout-core/fit/resolve.ts:72` (327 chars), `ui/commands/registry.ts` (five lines over 200) | Formatting only. |
+| Visible change | Tucked tab and shelf order follows reading order, not the order of tucking | See `FINDINGS.md`. |

@@ -98,3 +98,41 @@ All twelve review findings were fixed by four Sonnet agents. Result: 242 unit te
 - **Unlinked panes** (audit log, structure, relations) still group with their nearest neighbour, which can read as a mixed group. The spec should decide whether unlinked panes get their own "Other" group.
 - **Record money values** right-align at the far edge of a two-column record. They should align with the value column.
 - **Timestamps** show in UTC; real products need the viewer's time zone setting (see i18n.md).
+
+## After the architecture refactor (17 Nov)
+We restructured the code behind the approved UI, following `ARCHITECTURE-REVIEW.md`. Nothing you approved should look or behave differently. The review's own audit, item by item, is at the end of that file: 56 done, 6 partly, none left undone.
+
+**What changed in how it is built**
+- **Hiding a pane is one idea now.** Tucking a pane and folding it for lack of room were two systems; both are now notes kept beside the layout, and the layout itself never changes. That is why put back restores the exact original, in any order.
+- **The layout engine has no hidden memory.** It used to remember things between calls, and a settings change silently wiped that memory. Now everything it needs is passed in or stored in the layout.
+- **The 758-line store is gone.** Its jobs are separate: actions that only decide what should happen, one place that applies a decision (state, address bar, announcement, toast, focus), one description of what is on screen, one list of commands that owns its shortcuts, and one file holding every sentence the app speaks.
+- **Each pane kind is defined in one place**, and the data layer is split into small files with its own provider.
+- **The tests share one toolkit**, and the one 888-line browser spec became twelve small ones. The unused alternative divider (Ark) and its library are deleted.
+
+**Size**
+| | Before | After |
+|---|---|---|
+| `src/` total (all files) | 8,749 lines in 77 files | 8,969 lines in 142 files |
+| Largest file | 758 lines (`ui/store.ts`) | 278 (a test); 189 for the largest code file |
+| Files over 300 lines | 5 | 0 |
+
+The total did not shrink: we removed duplicated code, but the new seams (types, small modules, tests) cost about the same. The gain is that no file does twelve jobs.
+
+**Tests:** 285 unit tests (was 275) and 58 browser tests (plus 12 screenshot runs; the old 75 counted five tests that exercised the deleted Ark divider). All pass, typecheck is clean.
+
+**Fixed along the way**
+- The Tuck button said "Only open pane" for every refusal; it now says the real reason, the same words the screen reader hears.
+- A flaky browser test (it failed about one run in six): the test pressed an arrow key while the app was still moving focus after a tuck. The app was right; the test now waits for that.
+- The Ark dependency, an unused sizing duplicate and some dead styles are removed.
+
+**Two visible differences, for you to judge**
+1. **Tab and shelf order after tucking.** Tucked panes now sit in reading order (left to right as the layout was), not in the order you tucked them. It is steadier and makes put back predictable, but at 1920 on the chain layout the order differs from before. Say if you want tuck order back.
+2. **The "Own separator" label in the top bar is gone** with the alternative divider it described.
+
+**What's left (bigger, for you to decide)**
+- A few long functions: the data API builder (129 lines), the divider drag (159, kept as one closure on purpose), and the layout resolver (74).
+- The Shelf, Launcher and Grid components are each over 110 lines and could be split.
+- Pane kinds still import their contract from `ui/`; a shared package would move it to a neutral place.
+- Pane colours still run through a small private token set (`.pk`) with a dark remap, rather than the shared tokens.
+- Stack groups carry a one-value `origin` field that could be dropped from the URL format.
+- Grid column widths are still guessed from column names.
