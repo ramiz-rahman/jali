@@ -2,11 +2,20 @@ import { createRoot } from "react-dom/client";
 import { createDataLayer } from "./data";
 import { registerAllPaneKinds } from "./panes";
 import { App } from "./ui/App";
-import "./ui/styles.css";
+import { boot, startUi } from "./ui/boot";
+import { focusPane } from "./ui/dom/focus";
+import { createUiStore } from "./ui/state/store";
+import { createUrlSync } from "./ui/url";
+import "./ui/styles/index.css";
 
 registerAllPaneKinds();
 
 const data = createDataLayer();
 void data.api.ready();
 
-createRoot(document.getElementById("root")!).render(<App data={data} />);
+const url = createUrlSync();
+const store = createUiStore({ url, focusPane });
+boot(store, url);
+startUi(store, url);
+
+createRoot(document.getElementById("root")!).render(<App store={store} data={data} />);

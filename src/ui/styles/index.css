@@ -1,0 +1,8 @@
+/* The UI's styles, one module per area. Tokens first; nothing below overrides an earlier file. */
+@import "./tokens.css";
+@import "./base.css";
+@import "./pane.css";
+@import "./dividers.css";
+@import "./shelf.css";
+@import "./chrome.css";
+@import "./dialogs.css";

@@ -1,14 +1,27 @@
 import { describe, expect, it } from "vitest";
-import { clampSize, snap, SNAP_IN, SNAP_OUT } from "./dividers/DividerLayer";
-import { zoneFor, EDGE_ZONE } from "./dnd";
+import { clampSize, snap, SNAP_IN, SNAP_OUT } from "./dividers/resize";
+import { zoneFor, EDGE_ZONE } from "./workspace/dnd";
 import { decodePeek, encodePeek } from "./url";
-import { handleKey } from "./keyboard";
-import { actions, allPanes, findPane, getState, mergeTargets, sameRef, setState, stackOf } from "./store";
-import { COMMANDS, runCommand } from "./commands";
-import { dropLabel } from "./Workspace";
+import { handleKey } from "./commands/keyboard";
+import { COMMANDS, runCommand, shortcutLabel } from "./commands/registry";
+import { formatChord } from "./commands/format";
+import { mergeTargets } from "./actions/tabs";
+import { openPaneFor } from "./actions/open";
+import { dropText } from "./state/messages";
+import { POLICY } from "./state/apply";
+import { createUiStore } from "./state/store";
+import { sameObject } from "./pane-kinds";
 import { registerAllPaneKinds } from "../panes";
 
 registerAllPaneKinds();
+
+const store = createUiStore();
+const { actions } = store;
+const getState = store.get;
+const setState = store.set;
+const allPanes = () => store.model().panes;
+const findPane = (id: string) => store.model().pane(id);
+const stackOf = (id: string) => store.model().stackOf(id);
 
 describe("divider snap", () => {
   it("enters within 10px of centre and leaves beyond 16px", () => {
@@ -64,25 +77,25 @@ describe("keyboard layer and close/undo", () => {
     setState({ area: { width: 1600, height: 900 } });
     actions.preset("order-chain");
     const first = getState().view.focused;
-    expect(handleKey(key({ key: "F6" }))).toBe(true);
+    expect(handleKey(store, key({ key: "F6" }))).toBe(true);
     expect(getState().view.focused).not.toBe(first);
     const before = allPanes().length;
     const mod = navigator.platform.includes("Mac") ? { metaKey: true } : { ctrlKey: true };
-    expect(handleKey(key({ key: "w", code: "KeyW", altKey: true, ...mod }))).toBe(true);
+    expect(handleKey(store, key({ key: "w", code: "KeyW", altKey: true, ...mod }))).toBe(true);
     expect(allPanes().length).toBe(before - 1);
-    expect(handleKey(key({ key: "z", code: "KeyZ", ...mod }))).toBe(true);
+    expect(handleKey(store, key({ key: "z", code: "KeyZ", ...mod }))).toBe(true);
     expect(allPanes().length).toBe(before);
   });
   it("Esc leaves zoom", () => {
     actions.toggleZoom(allPanes()[0]!.id);
     expect(getState().view.zoomed).toBeTruthy();
-    expect(handleKey(key({ key: "Escape" }))).toBe(true);
+    expect(handleKey(store, key({ key: "Escape" }))).toBe(true);
     expect(getState().view.zoomed).toBeUndefined();
   });
 });
 
 const modKey = () => (navigator.platform.includes("Mac") ? { metaKey: true } : { ctrlKey: true });
-const press = (init: KeyboardEventInit & { code?: string }) => handleKey(new KeyboardEvent("keydown", init));
+const press = (init: KeyboardEventInit & { code?: string }) => handleKey(store, new KeyboardEvent("keydown", init));
 const kinds = () => allPanes().map((p) => p.ref.kind);
 
 describe("split opens a launcher", () => {
@@ -99,8 +112,8 @@ describe("split opens a launcher", () => {
   it("split down and split auto open launchers too", () => {
     actions.preset("one-table");
     actions.focus("orders");
-    expect(runCommand("pane.split.down")).toBe(true);
-    expect(runCommand("pane.split.auto")).toBe(true);
+    expect(runCommand(store, "pane.split.down")).toBe(true);
+    expect(runCommand(store, "pane.split.auto")).toBe(true);
     expect(kinds().filter((k) => k === "launcher")).toHaveLength(2);
   });
   it("choosing fills the same node in place", () => {
@@ -125,9 +138,10 @@ describe("split opens a launcher", () => {
     expect(getState().view.focused).toBe("orders");
   });
   it("record ids compare as text; queries never count as duplicates", () => {
-    expect(sameRef({ kind: "record", params: { table: "customers", id: 1 } }, { kind: "record", params: { table: "customers", id: "1" } })).toBe(true);
-    expect(sameRef({ kind: "query", params: { sql: "x", autorun: 1 } }, { kind: "query", params: { sql: "x" } })).toBe(true);
+    expect(sameObject({ kind: "record", params: { table: "customers", id: 1 } }, { kind: "record", params: { table: "customers", id: "1" } })).toBe(true);
+    expect(sameObject({ kind: "query", params: { sql: "x" } }, { kind: "query", params: { sql: "x" } })).toBe(false);
     actions.preset("query-chart");
+    expect(openPaneFor(store.model(), { kind: "query", params: { sql: "x", autorun: 1 } })).toBeUndefined();
     const id = actions.split("right", "query")!;
     actions.openHere(id, { kind: "query", params: {} });
     expect(findPane(id)?.ref.kind).toBe("query");
@@ -139,7 +153,7 @@ describe("split opens a launcher", () => {
     actions.dismiss(id);
     expect(findPane(id)).toBeUndefined();
     expect(getState().view.focused).toBe("orders");
-    expect(getState().closedStack).toHaveLength(0); // no undo toast for a launcher
+    expect(getState().undoStack).toHaveLength(0); // no undo toast for a launcher
   });
   it("Recent keeps the last 8 objects, newest first, without launchers or repeats", () => {
     actions.preset("order-chain");
@@ -155,7 +169,7 @@ describe("merge and unmerge without dragging", () => {
   it("lists other visible panes and stacks, not itself", () => {
     actions.preset("order-chain");
     actions.focus("customer");
-    expect(mergeTargets().map((t) => t.id)).toEqual(["orders", "order"]);
+    expect(mergeTargets(store.snapshot()).map((t) => t.id)).toEqual(["orders", "order"]);
   });
   it("⌥⌘T opens the chooser; mergeInto adds the pane as a tab", () => {
     actions.preset("order-chain");
@@ -170,7 +184,7 @@ describe("merge and unmerge without dragging", () => {
     expect(getState().view.focused).toBe("customer");
     // the stack is listed by its tab titles from the remaining pane
     actions.focus("order");
-    expect(mergeTargets()[0]!.hint).toBe("2 tabs");
+    expect(mergeTargets(store.snapshot())[0]!.hint).toBe("2 tabs");
   });
   it("⌥⇧⌘T moves a tab out, to the right of its stack", () => {
     actions.preset("order-chain");
@@ -184,9 +198,9 @@ describe("merge and unmerge without dragging", () => {
   it("unmerge is disabled outside a stack; merge is disabled with one pane", () => {
     actions.preset("order-chain");
     actions.focus("orders");
-    expect(runCommand("pane.unmerge")).toBe(false);
+    expect(runCommand(store, "pane.unmerge")).toBe(false);
     actions.closeOthers("orders");
-    expect(runCommand("pane.merge")).toBe(false);
+    expect(runCommand(store, "pane.merge")).toBe(false);
   });
 });
 
@@ -205,7 +219,7 @@ describe("new tab here", () => {
   it("on a lone pane it makes a deliberate stack of two", () => {
     actions.preset("order-chain");
     actions.focus("order");
-    expect(runCommand("stack.new-tab")).toBe(true);
+    expect(runCommand(store, "stack.new-tab")).toBe(true);
     const st = stackOf("order")!;
     expect(st.origin).toBe("user");
     expect(st.children.map((c) => c.ref.kind)).toEqual(["record", "launcher"]);
@@ -214,12 +228,10 @@ describe("new tab here", () => {
 
 describe("drag preview label", () => {
   it("names the target and what the centre will do", () => {
-    actions.preset("order-chain");
-    expect(dropLabel("centre", "orders", "swap")).toBe("Swap with orders");
-    expect(dropLabel("centre", "orders", "tab")).toBe("Add as tab to orders");
-    expect(dropLabel("left", "orders", "tab")).toBe("Place left of orders");
-    expect(dropLabel("top", "orders", "tab")).toBe("Place above orders");
-    expect(dropLabel(undefined, undefined)).toBe("Esc cancels");
+    expect(dropText("centre", "orders", "swap")).toBe("Swap with orders");
+    expect(dropText("centre", "orders", "tab")).toBe("Add as tab to orders");
+    expect(dropText("left", "orders", "tab")).toBe("Place left of orders");
+    expect(dropText("top", "orders", "tab")).toBe("Place above orders");
   });
 });
 
@@ -227,5 +239,40 @@ describe("new commands", () => {
   it("have stable ids", () => {
     const ids = COMMANDS.map((c) => c.id);
     for (const id of ["pane.merge", "pane.unmerge", "stack.new-tab", "pane.split.auto"]) expect(ids).toContain(id);
+  });
+});
+
+describe("apply and the command registry", () => {
+  const announced = () => getState().announcement.text;
+  it("a refused key says why; a silent refusal still takes the key", () => {
+    setState({ area: { width: 1600, height: 900 }, undoStack: [] });
+    actions.preset("order-chain");
+    setState({ undoStack: [] });
+    expect(press({ key: "z", code: "KeyZ", ...modKey() })).toBe(true);
+    expect(announced()).toBe("Nothing to restore");
+    actions.closeOthers("orders");
+    const seq = getState().announcement.seq;
+    expect(press({ key: "w", code: "KeyW", altKey: true, ...modKey() })).toBe(true);
+    expect(getState().announcement.seq).toBe(seq);
+    expect(allPanes()).toHaveLength(1);
+  });
+  it("announces only what happened: an unchanged layout says nothing", () => {
+    actions.preset("order-chain");
+    const seq = getState().announcement.seq;
+    actions.resetDivider("r", 0);
+    actions.resetDivider("r", 0);
+    expect(getState().announcement.seq - seq).toBeLessThanOrEqual(1);
+  });
+  it("every op has a policy, and closes push history", () => {
+    expect(POLICY.close.history).toBe("push");
+    expect(POLICY.resize.history).toBe("debounce");
+    expect(POLICY.focus.history).toBe("none");
+  });
+  it("prints shortcuts from the registry for each platform", () => {
+    expect(formatChord({ key: "KeyM", alt: true, shift: true, mod: true }, true)).toBe("⌥⇧⌘M");
+    expect(formatChord({ key: "KeyM", alt: true, shift: true, mod: true }, false)).toBe("Ctrl Alt Shift M");
+    expect(formatChord({ key: "Enter", shift: true, mod: true }, true)).toBe("⇧⌘↵");
+    expect(shortcutLabel("pane.focus.next")).toBe("F6");
+    expect(COMMANDS.find((c) => c.id === "pane.focus.left")?.keys?.[0]).toEqual({ key: "ArrowLeft", alt: true, mod: true });
   });
 });

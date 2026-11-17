@@ -1,13 +1,14 @@
 /**
- * URL sync. Structure goes in ?l= (layout-core codec); zoom and peek ride along. Deliberate structural changes
- * push a history entry; resizes replace it 120ms after the last move; view changes replace immediately.
+ * URL sync. Structure goes in ?l= (layout-core codec); zoom and peek ride along. Deliberate structural changes push a
+ * history entry; resizes replace it 120ms after the last move; view changes replace immediately.
  */
-import type { Layout, ObjectRef, ViewState } from "../layout-core/types";
-import { core } from "./core";
-import { allPanes, context, fit, getState, hooks, setState } from "./store";
-import { DEFAULT_PRESET, presetById } from "./presets";
+import * as core from "../layout-core";
+import type { KindRegistry, Layout, ObjectRef, ViewState } from "../layout-core/types";
+import type { HistoryMode } from "./state/apply";
+import type { UiState, UrlWriter } from "./state/store";
 
 export const PERSIST_MS = 120;
+const BROKEN_KEY = "pane-lab:broken-layout";
 
 export function encodePeek(ref: ObjectRef): string {
   const params = Object.entries(ref.params).map(([k, v]) => `${k}=${typeof v === "number" ? `#${v}` : v}`);
@@ -26,8 +27,7 @@ export function decodePeek(text: string): ObjectRef | null {
   return { kind, params };
 }
 
-function buildUrl(): string {
-  const s = getState();
+function buildUrl(s: UiState): string {
   const q = new URLSearchParams(location.search);
   q.set("l", core.encode(s.layout));
   if (s.view.zoomed) q.set("zoom", s.view.zoomed); else q.delete("zoom");
@@ -35,69 +35,54 @@ function buildUrl(): string {
   return `${location.pathname}?${q.toString()}${location.hash}`;
 }
 
-let timer: ReturnType<typeof setTimeout> | undefined;
-export function writeUrl(mode: "push" | "replace" | "debounce" | "none") {
-  if (mode === "none") return;
-  clearTimeout(timer);
-  const write = (push: boolean) => {
-    const url = buildUrl();
-    if (url === location.pathname + location.search + location.hash) return;
-    if (push) history.pushState(null, "", url);
-    else history.replaceState(null, "", url);
-    setState({ savedAt: Date.now() });
-  };
-  if (mode === "debounce") timer = setTimeout(() => write(false), PERSIST_MS);
-  else write(mode === "push");
-}
+/** What the address bar holds: a layout and view, or a code that could not be read. Null when there is no layout. */
+export type UrlRead = { layout: Layout; view: Partial<ViewState> } | { broken: string; view: Partial<ViewState> };
 
-export interface UrlRead {
-  layout: Layout;
-  view: Partial<ViewState>;
-  broken?: string;
-}
-
-export function readUrl(): UrlRead | null {
+export function readUrl(kinds: KindRegistry): UrlRead | null {
   const q = new URLSearchParams(location.search);
   const code = q.get("l");
   const view: Partial<ViewState> = {};
   const peek = q.get("peek");
-  if (peek) {
-    const r = decodePeek(peek);
-    if (r) view.peek = r;
-  }
+  const ref = peek ? decodePeek(peek) : null;
+  if (ref) view.peek = ref;
   if (!code) return null;
-  const layout = core.decode(code, fit().kinds);
-  if (!layout) return { layout: presetById(getState().presetId ?? DEFAULT_PRESET).build(), view: {}, broken: code };
+  const layout = core.decode(code, kinds);
+  if (!layout) return { broken: code, view: {} };
   const zoom = q.get("zoom");
-  if (zoom && allPanes(layout.root).some((p) => p.id === zoom)) view.zoomed = zoom;
+  if (zoom && core.tree.panes(layout.root).some((p) => p.id === zoom)) view.zoomed = zoom;
   return { layout, view };
 }
 
-/** Apply the URL to state (initial load and Back/Forward). Returns the broken code, if any. */
-export function applyUrl(): string | undefined {
-  const r = readUrl();
-  if (!r) return;
-  const ids = new Set(allPanes(r.layout.root).map((p) => p.id));
-  const prev = getState().view;
-  const hist = prev.focusHistory.filter((id) => ids.has(id));
-  const focused = prev.focused && ids.has(prev.focused) ? prev.focused : hist[0] ?? allPanes(r.layout.root)[0]?.id;
-  const view: ViewState = { focusHistory: hist, ...r.view };
-  if (focused) view.focused = focused;
-  setState({ layout: core.refit(r.layout, view, context()), view });
-  if (r.broken) {
-    try { localStorage.setItem("pane-lab:broken-layout", r.broken); } catch { /* ignore */ }
-    history.replaceState(null, "", buildUrl());
-  }
-  return r.broken;
+export interface UrlSync extends UrlWriter {
+  read(kinds: KindRegistry): UrlRead | null;
+  /** Keep a copy of a link that could not be read. */
+  keepBroken(code: string): void;
+  onPop(fn: () => void): () => void;
 }
 
-export function installUrlSync(onBroken: (code: string) => void) {
-  hooks.writeUrl = writeUrl;
-  const onPop = () => {
-    const broken = applyUrl();
-    if (broken) onBroken(broken);
-    hooks.announce("Layout changed by browser history");
+export function createUrlSync(): UrlSync {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const write = (s: UiState, push: boolean) => {
+    const url = buildUrl(s);
+    if (url === location.pathname + location.search + location.hash) return;
+    if (push) history.pushState(null, "", url);
+    else history.replaceState(null, "", url);
   };
-  window.addEventListener("popstate", onPop);
-  return () => window.removeEventListener("popstate", onPop);
+  return {
+    // A debounced write reads the state when it fires, so it writes the latest sizes.
+    write(state: () => UiState, mode: HistoryMode) {
+      if (mode === "none") return;
+      clearTimeout(timer);
+      if (mode === "debounce") timer = setTimeout(() => write(state(), false), PERSIST_MS);
+      else write(state(), mode === "push");
+    },
+    read: readUrl,
+    keepBroken(code) {
+      try { localStorage.setItem(BROKEN_KEY, code); } catch { /* ignore */ }
+    },
+    onPop(fn) {
+      window.addEventListener("popstate", fn);
+      return () => window.removeEventListener("popstate", fn);
+    },
+  };
 }

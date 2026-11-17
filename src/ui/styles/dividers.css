@@ -1,0 +1,46 @@
+/* ---------- dividers: the pointer darkens the line; keyboard focus gets a capsule and a size label ---------- */
+.divider-layer { position: absolute; inset: 0; pointer-events: none; z-index: 5; }
+.divider {
+  position: relative; pointer-events: auto; flex: none; background: transparent; border: 0; padding: 0;
+  outline: none; touch-action: none;
+}
+.divider-row { cursor: col-resize; }
+.divider-column { cursor: row-resize; }
+/* 12px hit area over the 6px gap */
+.divider::before { content: ""; position: absolute; }
+.divider-row::before { top: 0; bottom: 0; left: -3px; right: -3px; }
+.divider-column::before { left: 0; right: 0; top: -3px; bottom: -3px; }
+.divider-line { position: absolute; background: transparent; pointer-events: none; }
+.divider-row .divider-line { top: 8px; bottom: 8px; left: 50%; width: 1px; transform: translateX(-0.5px); }
+.divider-column .divider-line { left: 8px; right: 8px; top: 50%; height: 1px; transform: translateY(-0.5px); }
+.divider:hover .divider-line { background: var(--line-strong); }
+.divider.is-dragging .divider-line, .divider.is-dragging .divider-tick { visibility: hidden; }
+/* Transparent outline: invisible normally, drawn in forced-colors mode. The visible affordance is the handle. */
+.divider:focus-visible { outline: 2px solid transparent; }
+.divider:focus-visible .divider-line { background: transparent; }
+.divider-handle, .divider-tip { display: none; position: absolute; pointer-events: none; }
+.divider-handle { background: var(--accent); border-radius: 2px; left: 50%; top: 50%; box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 25%, transparent); }
+.divider-row .divider-handle { width: 4px; height: 24px; transform: translate(-50%, -50%); }
+.divider-column .divider-handle { width: 24px; height: 4px; transform: translate(-50%, -50%); }
+.divider:focus-visible .divider-handle, .divider:focus-visible .divider-tip { display: block; }
+.divider-tip {
+  z-index: 8; padding: 3px 8px; border-radius: 6px; background: var(--text); color: var(--island);
+  font-size: 12px; line-height: 16px; white-space: nowrap; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+.divider-tip i { font-style: normal; opacity: 0.6; }
+.divider-row .divider-tip { left: 50%; top: calc(50% + 24px); transform: translateX(-50%); }
+.divider-column .divider-tip { top: 50%; left: calc(50% + 28px); transform: translateY(-50%); }
+
+/* The drag line: positioned by dividers/drag.ts each frame, accent while dragging, a tick at the centre snap. */
+.divider-visual { position: absolute; pointer-events: none; z-index: 6; }
+.divider-visual[hidden], .divider-tick[hidden] { display: none; }
+.divider-visual .divider-line { background: var(--accent); }
+.divider-row.divider-visual .divider-line { width: 2px; transform: translateX(-1px); }
+.divider-column.divider-visual .divider-line { height: 2px; transform: translateY(-1px); }
+.divider-tick { position: absolute; background: var(--accent); pointer-events: none; }
+.divider-row .divider-tick { left: 50%; top: 50%; width: 2px; height: 16px; transform: translate(-1px, -8px); }
+.divider-column .divider-tick { top: 50%; left: 50%; height: 2px; width: 16px; transform: translate(-8px, -1px); }
+/* During a drag the whole document shows the resize cursor and nothing gets selected. */
+body.is-resizing, body.is-resizing * { user-select: none !important; -webkit-user-select: none !important; }
+body.is-resizing-row, body.is-resizing-row * { cursor: col-resize !important; }
+body.is-resizing-column, body.is-resizing-column * { cursor: row-resize !important; }

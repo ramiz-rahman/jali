@@ -1,0 +1,94 @@
+/* Theme tokens. Light is the default; boot sets data-theme on <html> to the resolved theme (settings.ts), so dark is
+   written once. Geometry (--gap, --topbar-h, --status-h, --switcher-h) is set from tokens.ts at boot. */
+:root {
+  --ground: #f4f4f5;
+  --island: #ffffff;
+  --raised: #ffffff;
+  --line: #e4e4e7;
+  --line-strong: #d4d4d8;
+  /* Boundaries of controls (buttons, inputs): 3:1 against the surface, unlike decorative --line. */
+  --control: #8e8e97;
+  --text: #18181b;
+  --text-2: #52525b;
+  --text-3: #71717a;
+  --text-4: #a1a1aa;
+  --hover: #f4f4f5;
+  --accent: #5a2afa;
+  --accent-soft: #f1edff;
+  --accent-weak: rgba(90, 42, 250, 0.08);
+  --accent-mid: rgba(90, 42, 250, 0.16);
+  --on-accent: #ffffff;
+  --act-working: #2563eb;
+  --act-blocked: #d97706;
+  --act-done: #059669;
+  --act-failed: #dc2626;
+  --amber: var(--act-blocked);
+  --red: var(--act-failed);
+  --chip-bg: #18181b;
+  --chip-fg: #ffffff;
+  --scrim: rgba(24, 24, 27, 0.16);
+  --scrim-light: rgba(24, 24, 27, 0.08);
+  --shadow-zoom: 0 12px 32px rgba(24, 24, 27, 0.1);
+  --shadow-peek: -8px 0 24px rgba(24, 24, 27, 0.08), 0 1px 2px rgba(24, 24, 27, 0.04);
+  --shadow-dialog: 0 16px 48px rgba(24, 24, 27, 0.16);
+  --radius: 10px;
+  --sans: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+  color-scheme: light;
+}
+:root[data-theme="dark"] {
+  --ground: #09090b;
+  --island: #18181b;
+  --raised: #232327;
+  --line: #27272a;
+  --line-strong: #3f3f46;
+  --control: #71717a;
+  --text: #fafafa;
+  --text-2: #a1a1aa;
+  --text-3: #8f8f99; /* #71717A is 3.6:1 on the island; text needs 4.5:1, so tertiary text is lifted a step */
+  --text-4: #71717a;
+  --hover: #232327;
+  --accent: #8b7bff;
+  --accent-soft: #2a2457;
+  --accent-weak: rgba(139, 123, 255, 0.14);
+  --accent-mid: rgba(139, 123, 255, 0.26);
+  --on-accent: #09090b;
+  --act-working: #60a5fa;
+  --act-blocked: #fbbf24;
+  --act-done: #34d399;
+  --act-failed: #f87171;
+  --chip-bg: #fafafa;
+  --chip-fg: #09090b;
+  --scrim: rgba(0, 0, 0, 0.55);
+  --scrim-light: rgba(0, 0, 0, 0.4);
+  --shadow-zoom: 0 12px 32px rgba(0, 0, 0, 0.5);
+  --shadow-peek: -8px 0 24px rgba(0, 0, 0, 0.45), 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-dialog: 0 16px 48px rgba(0, 0, 0, 0.6);
+  color-scheme: dark;
+}
+
+/* Pane kinds (src/panes/panes.css) keep light values on .pk; in dark they are remapped here onto the shared tokens. */
+:root[data-theme="dark"] .pk {
+  --z50: #1d1d20; --z100: #232327; --z200: #27272a; --z300: #3f3f46; --z400: #8f8f99; --z500: #a1a1aa; --z700: #d4d4d8; --z900: #fafafa;
+  --accent: #8b7bff; --accent-soft: #2a2457;
+}
+:root[data-theme="dark"] .pk,
+:root[data-theme="dark"] .pk-btn,
+:root[data-theme="dark"] .pk-hcell input,
+:root[data-theme="dark"] .pk-sql,
+:root[data-theme="dark"] .launcher-section { background: var(--island); }
+:root[data-theme="dark"] .pk-btn.primary { background: var(--z900); color: var(--ground); border-color: var(--z900); }
+:root[data-theme="dark"] .pk-state.err b,
+:root[data-theme="dark"] .pk [role="alert"] { color: var(--act-failed) !important; }
+:root[data-theme="dark"] .pk-hcell input,
+:root[data-theme="dark"] .pk-edit { color: var(--z900); }
+:root[data-theme="dark"] .pk-chip.key { color: #b4aaff; }
+:root[data-theme="dark"] .pk svg [fill="#fff"] { fill: var(--island); }
+:root[data-theme="dark"] .pk svg [fill="#FAFAFA"] { fill: var(--raised); }
+:root[data-theme="dark"] .pk svg [fill="#F1EDFF"] { fill: var(--accent-soft); }
+:root[data-theme="dark"] .pk svg [fill="#5A2AFA"] { fill: var(--accent); }
+:root[data-theme="dark"] .pk svg [stroke="#5A2AFA"] { stroke: var(--accent); }
+:root[data-theme="dark"] .pk svg [stroke="#D4D4D8"] { stroke: var(--line-strong); }
+:root[data-theme="dark"] .pk svg [stroke="#E4E4E7"] { stroke: var(--line); }
+:root[data-theme="dark"] .pk svg text { fill: var(--text-2); }
+:root[data-theme="dark"] .pk svg text[style*="18181B"], :root[data-theme="dark"] .pk svg text[style*="3F3F46"] { fill: var(--text) !important; }

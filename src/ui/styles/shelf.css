@@ -1,0 +1,44 @@
+/* ---------- shelf: lives in the 28px status line (left), so the workspace never changes height ---------- */
+.shelf { position: relative; flex: 1 1 0; display: flex; align-items: center; height: 100%; min-width: 120px; font-size: 12px; }
+.shelf-bar { position: relative; flex: 0 1 auto; min-width: 0; height: 100%; }
+.shelf-scroll { display: flex; align-items: center; gap: 14px; height: 100%; overflow-x: auto; scrollbar-width: none; padding: 0 2px; }
+.shelf-scroll::-webkit-scrollbar { display: none; }
+.shelf-fade { position: absolute; top: 0; bottom: 0; width: 20px; pointer-events: none; opacity: 0; transition: opacity 120ms; z-index: 1; }
+.shelf-fade-l { left: 0; background: linear-gradient(to right, var(--island), transparent); }
+.shelf-fade-r { right: 0; background: linear-gradient(to left, var(--island), transparent); }
+.shelf-bar[data-fade-l] .shelf-fade-l, .shelf-bar[data-fade-r] .shelf-fade-r { opacity: 1; }
+.shelf-group { flex: none; display: inline-flex; align-items: center; gap: 4px; }
+.shelf-home { flex: none; color: var(--text-3); margin-right: 2px; white-space: nowrap; }
+.shelf-chip { position: relative; display: inline-flex; align-items: center; flex: none; height: 20px; border-radius: 5px; border: 1px solid var(--line); background: var(--bg, transparent); color: var(--text-2); }
+.shelf-chip:hover { background: var(--hover); color: var(--text); }
+.shelf-chip-main {
+  all: unset; box-sizing: border-box; display: inline-flex; align-items: center; gap: 6px; height: 100%; max-width: 168px; padding: 0 8px; cursor: pointer; border-radius: 5px;
+}
+.shelf-chip-main:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.shelf-chip-title { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.shelf-chip-put {
+  display: grid; place-items: center; width: 0; height: 18px; padding: 0; border: 0; background: none; color: var(--text-3);
+  border-radius: 5px; cursor: pointer; overflow: hidden; opacity: 0; pointer-events: none;
+}
+.shelf-chip:hover .shelf-chip-put, .shelf-chip:focus-within .shelf-chip-put { width: 20px; opacity: 1; pointer-events: auto; margin-right: 1px; }
+.shelf-chip-put:hover { background: color-mix(in srgb, var(--text) 10%, transparent); color: var(--text); }
+.shelf-more { flex: none; height: 20px; margin-left: 8px; padding: 0 7px; border: 1px solid var(--line); border-radius: 5px; line-height: 1; background: none; color: var(--text-2); font: inherit; font-variant-numeric: tabular-nums; cursor: pointer; }
+.shelf-more:hover, .shelf-more[aria-expanded="true"] { background: var(--hover); color: var(--text); }
+.shelf-menu {
+  position: absolute; left: 0; bottom: calc(100% + 4px); z-index: 40; min-width: 220px; max-width: 320px; max-height: 260px; overflow: auto; padding: 4px;
+  background: var(--island); border: 1px solid var(--line); border-radius: 8px; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.16);
+}
+.shelf-menu button { all: unset; box-sizing: border-box; display: flex; align-items: center; gap: 8px; width: 100%; height: 28px; padding: 0 8px; border-radius: 5px; cursor: pointer; color: var(--text); }
+.shelf-menu button:hover, .shelf-menu button:focus-visible { background: var(--hover); }
+.shelf-menu small { margin-left: auto; color: var(--text-3); white-space: nowrap; font-size: 11px; }
+.shelf-menu .shelf-chip-title { flex: 1; }
+/* Phone: the shelf lives inside the pane switcher (tucked panes are tabs there, marked), so it steps aside. */
+.app:has(.workspace.is-single) .shelf { display: none; }
+
+/* Shelf activity: a different shape for every state, never colour alone. */
+.ra { flex: none; display: grid; place-items: center; width: 12px; height: 12px; box-sizing: border-box; border-radius: 50%; font-size: 9px; font-weight: 700; line-height: 1; }
+.ra-ring { border: 2px solid color-mix(in srgb, var(--act-working) 25%, transparent); border-top-color: var(--act-working); animation: ra-spin 0.9s linear infinite; }
+.ra-need { background: var(--act-blocked); color: #fff; }
+.ra-fail { background: var(--act-failed); color: #fff; }
+@keyframes ra-spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .ra-ring { animation: none; border-color: var(--act-working); border-top-color: transparent; } .shelf-fade { transition: none; } }

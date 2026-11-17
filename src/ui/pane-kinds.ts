@@ -1,46 +1,33 @@
 /**
- * Pane lab: the React registration interface for pane kinds (WP3 owns it, WP4 plugs into it).
+ * Pane lab: the registration interface for pane kinds, and the policy the workspace reads from each definition.
  *
- * A pane kind module calls `registerPaneKind({...})` once at import time. `src/panes/index.ts` should import
- * every kind module; the app loads that file before first render.
- *
- *   registerPaneKind({
- *     kind: "record",
- *     title: (ref) => `${ref.params.table} #${ref.params.id}`,
- *     minWidth: 480, minHeight: 240,
- *     icon: FileText,
- *     Component: RecordPane,
- *   });
+ * A kind module exports `definePaneKind({...})`; `src/panes/index.ts` registers every kind before first render.
  *
  * Component rules:
  * - `ref` is the ObjectRef the pane shows (same as `node.ref`). React 19 passes `ref` to function components as a
  *   plain prop, so read it from props; do not use forwardRef.
- * - `paused` is true when the pane is hidden: tabbed away, collapsed to a rail/header, or covered by a zoomed pane.
+ * - `paused` is true when the pane is hidden: tabbed away, tucked, folded, or covered by a zoomed pane.
  *   Pause live work while paused (TanStack Query: `subscribed: !paused` or `enabled: !paused`), keep state.
  * - Row keys inside list-like kinds: J/K or ↑/↓ move the selection and call `select(ref)`; Space calls `peek(ref)`
  *   (or `peek(null)` to close); ⌥↵ / ⌥-click call `openBeside(ref)`. The workspace keeps focus in the source pane
  *   after openBeside (founder decision 2) and makes an open peek follow `select`.
- * - Data: `useDataLayer()` gives the shared DataLayer (api, keys, queryClient). Use TanStack Query hooks with
- *   `keys.*`; never fetch outside the cache.
+ * - Data: read the shared DataLayer with `useDataLayer()` from `src/data/react`; never fetch outside the cache.
  * - Do not stop propagation of F6, ⌥/⌘ chords or Escape; the workspace keyboard layer listens on window.
  */
-import { createElement, useSyncExternalStore } from "react";
-import { openPaneFor, useUi } from "./store";
-import { KindIcon } from "./PaneFrame";
 import type { ComponentType, ReactNode } from "react";
 import type { KindRegistry, ObjectRef, PaneKind, PaneNode } from "../layout-core/types";
 
-/** What a pane reports about itself; shown in its header, its tab and its rail. */
+/** What a pane reports about itself; shown in its header, its tab, the shelf and the status line. */
 export type PaneActivity = "idle" | "loading" | "working" | "needs-you" | "error";
 
 export interface PaneComponentProps {
-  /** The layout node. In a peek sheet this is a synthetic node (id "peek"). */
+  /** The layout node. In the peek sheet this is a node that is not in the layout. */
   node: PaneNode;
   /** The object shown; equals node.ref. */
   ref: ObjectRef;
-  /** Hidden (tab, rail, header-only, behind zoom): pause subscriptions and timers. */
+  /** Hidden (tab, tuck, fold, behind zoom): pause subscriptions and timers. */
   paused: boolean;
-  /** This pane holds workspace focus (the 1.5px accent edge). */
+  /** This pane holds workspace focus (the accent edge). */
   focused: boolean;
   /** Open `ref` beside this pane; replaces this pane's linked pane of the same kind if there is one. */
   openBeside: (ref: ObjectRef) => void;
@@ -52,9 +39,9 @@ export interface PaneComponentProps {
   openHere: (ref: ObjectRef) => void;
   /** Close this pane quietly (no undo toast): for transient panes such as the launcher. */
   dismiss: () => void;
-  /** Report activity for the header, tab, rail and status line. Optional to call. */
+  /** Report activity for the header, tab, shelf and status line. Optional to call. */
   setActivity: (activity: PaneActivity) => void;
-  /** Workspace sources supplied to launcher kinds by the registry. */
+  /** Workspace sources, given to transient kinds (the chooser a split opens). */
   recent?: ObjectRef[];
   isOpen?: (ref: ObjectRef) => boolean;
   KindIcon?: ComponentType<{ kind: string; size?: number }>;
@@ -67,8 +54,12 @@ export interface PaneKindDef {
   kind: string;
   title: (ref: ObjectRef) => string;
   ref: (params: ObjectRef["params"]) => ObjectRef;
+  /** What makes two refs the same object. Default: every param, compared as text. `undefined` means scratch space:
+   *  never deduplicated against open panes. */
   identity?: (ref: ObjectRef) => unknown;
+  /** Stands in until the person chooses an object: closes quietly, and gets the workspace sources. */
   transient?: boolean;
+  /** Listed in Recent. Default true. */
   recordable?: boolean | ((ref: ObjectRef) => boolean);
   minWidth: number;
   minHeight: number;
@@ -76,7 +67,7 @@ export interface PaneKindDef {
   preferredWidth?: number;
   /** Heavy panes hold their content during a divider drag and reflow on release. */
   heavy?: boolean;
-  /** Kind icon for the header, tab and rail (a lucide-react icon or any 16px component). */
+  /** Kind icon for the header, tab and shelf (a lucide-react icon or any 16px component). */
   icon?: ComponentType<{ size?: number; strokeWidth?: number; "aria-hidden"?: boolean }>;
   Component: (props: PaneComponentProps) => ReactNode;
 }
@@ -86,49 +77,34 @@ export function definePaneKind(def: PaneKindDef): PaneKindDef { return def; }
 const kinds = new Map<string, PaneKindDef>();
 const listeners = new Set<() => void>();
 let version = 0;
+let registry: { version: number; value: KindRegistry } | null = null;
 
 export function registerPaneKind(def: PaneKindDef): void {
-  if (def.kind === "launcher") {
-    const Component = def.Component;
-    def = { ...def, Component: (props) => {
-      const recent = useUi(s => s.recent);
-      useUi(s => s.layout);
-      return createElement(Component, { ...props, recent, isOpen: ref => !!openPaneFor(ref, props.node.id), KindIcon, titleFor: paneTitle });
-    } };
-  }
   kinds.set(def.kind, def);
   version++;
   for (const l of listeners) l();
 }
 
-export function getPaneKind(kind: string): PaneKindDef | undefined {
-  return kinds.get(kind);
-}
-
-export function allPaneKinds(): PaneKindDef[] {
-  return [...kinds.values()];
-}
-
-/** The framework-free view of the registry, for layout-core (resolve, validate, decode). */
-export function kindRegistry(): KindRegistry {
-  const out: KindRegistry = {};
-  for (const d of kinds.values()) {
-    const k: PaneKind = { kind: d.kind, title: d.title, minWidth: d.minWidth, minHeight: d.minHeight };
-    if (d.maxWidth !== undefined) k.maxWidth = d.maxWidth;
-    if (d.preferredWidth !== undefined) k.preferredWidth = d.preferredWidth;
-    out[d.kind] = k;
-  }
-  return out;
-}
-
-function subscribe(l: () => void) {
+export const getPaneKind = (kind: string): PaneKindDef | undefined => kinds.get(kind);
+/** Bumped by every registration (HMR, late imports); caches of kind-derived values key on it. */
+export const kindsVersion = () => version;
+export function onKindsChange(l: () => void): () => void {
   listeners.add(l);
   return () => listeners.delete(l);
 }
 
-/** Re-renders when a kind registers (HMR, late imports). Returns a version number. */
-export function usePaneKindsVersion(): number {
-  return useSyncExternalStore(subscribe, () => version);
+/** The framework-free view of the registry, for layout-core (resolve, validate, decode). Same object per version. */
+export function kindRegistry(): KindRegistry {
+  if (registry?.version === version) return registry.value;
+  const value: KindRegistry = {};
+  for (const d of kinds.values()) {
+    const k: PaneKind = { kind: d.kind, title: d.title, minWidth: d.minWidth, minHeight: d.minHeight };
+    if (d.maxWidth !== undefined) k.maxWidth = d.maxWidth;
+    if (d.preferredWidth !== undefined) k.preferredWidth = d.preferredWidth;
+    value[d.kind] = k;
+  }
+  registry = { version, value };
+  return value;
 }
 
 /** Title for a ref, falling back to the kind name when the kind is unknown. */
@@ -141,6 +117,30 @@ export function paneTitle(ref: ObjectRef): string {
   }
 }
 
+/** Params as order-free text, so ids compare as text (`1` equals `"1"`). */
+const asText = (params: ObjectRef["params"]) => JSON.stringify(Object.keys(params).sort().map((k) => [k, String(params[k])]));
 
-/** @deprecated: use the kind module; removed in the ui refactor */
-export { useDataLayer } from "../data/react";
+/** The ref's identity as text, or undefined for scratch kinds. */
+export function identityOf(ref: ObjectRef): string | undefined {
+  const def = kinds.get(ref.kind);
+  if (!def?.identity) return asText(ref.params);
+  const id = def.identity(ref);
+  return id === undefined ? undefined : JSON.stringify(id);
+}
+
+/** Same object: same kind and identity. Scratch refs are never the same object as anything. */
+export function sameObject(a: ObjectRef, b: ObjectRef): boolean {
+  if (a.kind !== b.kind) return false;
+  const ia = identityOf(a);
+  return ia !== undefined && ia === identityOf(b);
+}
+
+/** Same entry in Recent: the same object, or (scratch kinds) the same params. */
+export const sameRecent = (a: ObjectRef, b: ObjectRef) => a.kind === b.kind && (identityOf(a) ?? asText(a.params)) === (identityOf(b) ?? asText(b.params));
+
+export function isRecordable(ref: ObjectRef): boolean {
+  const r = kinds.get(ref.kind)?.recordable;
+  return typeof r === "function" ? r(ref) : r !== false;
+}
+
+export const isTransient = (ref: ObjectRef) => !!kinds.get(ref.kind)?.transient;

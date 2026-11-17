@@ -8,48 +8,16 @@
  * Pointer up commits that same layout object once, so the committed rects equal the last preview exactly; the URL is
  * written 120ms later (history "debounce"). Heavy panes hold their content at its pre-drag size and reflow on release.
  */
-import type { DividerBox, Layout, NodeId, PaneBox, Rect, ResolvedLayout, SplitNode } from "../../layout-core/types";
-import { core } from "../core";
-import { pairGeometry, type PairGeometry } from "../geometry";
-import { paneDomId } from "../ids";
+import * as core from "../../layout-core";
+import type { Layout, NodeId, PaneBox, Rect } from "../../layout-core/types";
+import { paneDomId } from "../dom/ids";
 import { getPaneKind } from "../pane-kinds";
+import type { UiStore } from "../state/store";
 import { dividerKey } from "./Divider";
-import { actions, findNode, fit, GAP, getState, resolved, titleOf } from "../store";
+import { clampSize, geometryFor, snap } from "./resize";
 
-export const SNAP_IN = 10;
-export const SNAP_OUT = 16;
-
-/** Pure snap with hysteresis, exported for tests. */
-export function snap(size: number, centre: number, wasSnapped: boolean): { size: number; snapped: boolean } {
-  const d = Math.abs(size - centre);
-  const snapped = wasSnapped ? d <= SNAP_OUT : d <= SNAP_IN;
-  return { size: snapped ? centre : size, snapped };
-}
-
-export function clampSize(size: number, min: number, max: number) {
-  return Math.max(min, Math.min(max, size));
-}
-
-function label(ids: string[]) {
-  return ids.length === 1 ? titleOf(ids[0]) : `${titleOf(ids[0])} and ${ids.length - 1} more`;
-}
-
-export function geometryFor(d: DividerBox, r: ResolvedLayout = resolved()): PairGeometry | null {
-  const parent = findNode(d.parentId);
-  const split = parent && (parent.type === "row" || parent.type === "column") ? (parent as SplitNode) : undefined;
-  return pairGeometry(d, split, r.panes, fit().kinds, GAP, label);
-}
-
-
-/** The one drag line, owned by DividerLayer. */
-let overlay: HTMLElement | null = null;
-export function setDragOverlay(el: HTMLElement | null) {
-  overlay = el;
-}
-
-let active: { cancel(): void } | null = null;
-/** True while a pointer drag is in progress (keyboard resizes wait). */
-export const isDividerDragging = () => !!active;
+/** True while a pointer drag is in progress (keyboard resizes wait). The body class is the drag's only state. */
+export const isDividerDragging = () => typeof document !== "undefined" && document.body.classList.contains("is-resizing");
 
 const sameRect = (a: Rect, b: Rect) => a.x === b.x && a.y === b.y && a.width === b.width && a.height === b.height;
 function place(el: HTMLElement, r: Rect) {
@@ -59,17 +27,18 @@ function place(el: HTMLElement, r: Rect) {
   el.style.height = `${r.height}px`;
 }
 
-export function startDividerDrag(e: { pointerId: number; button: number; clientX: number; clientY: number; currentTarget: EventTarget | null }, parentId: NodeId, index: number) {
-  if (e.button !== 0 || active) return;
+/** `overlay` is the drag line DividerLayer renders (hidden until a drag). */
+export function startDividerDrag(store: UiStore, overlay: HTMLElement | null, e: { pointerId: number; button: number; clientX: number; clientY: number; currentTarget: EventTarget | null }, parentId: NodeId, index: number) {
+  if (e.button !== 0 || isDividerDragging()) return;
   const sepEl = e.currentTarget as HTMLElement | null;
-  const s0 = getState();
+  const s0 = store.get();
   if (!sepEl || s0.view.zoomed) return;
-  const r0 = resolved();
+  const m0 = store.model(), r0 = m0.resolved, ctx0 = store.ctx();
   const d0 = r0.dividers.find((d) => d.parentId === parentId && d.index === index);
-  const g0 = d0 && geometryFor(d0, r0);
+  const g0 = d0 && geometryFor(m0, d0, r0);
   if (!d0 || !g0) return;
 
-  const layout0 = s0.layout, view0 = s0.view, fit0 = fit();
+  const layout0 = s0.layout, view0 = s0.view;
   const row = g0.axis === "row";
   const start = row ? e.clientX : e.clientY;
   const min = g0.a.min, max = g0.divider.max, centre = g0.total / 2;
@@ -96,8 +65,8 @@ export function startDividerDrag(e: { pointerId: number; button: number; clientX
   const held: { content: HTMLElement; inner: HTMLElement }[] = [];
   for (const id of neighbours) {
     const box = before.get(id), frame = frames.get(id);
-    const node = findNode(id);
-    if (!box || box.hidden || !frame || node?.type !== "pane" || !getPaneKind(node.ref.kind)?.heavy) continue;
+    const node = m0.pane(id);
+    if (!box || box.hidden || !frame || !node || !getPaneKind(node.ref.kind)?.heavy) continue;
     const content = frame.querySelector<HTMLElement>(":scope > .pane-content");
     const inner = content?.querySelector<HTMLElement>(":scope > .pane-content-inner");
     if (!content || !inner || content.hidden) continue;
@@ -139,8 +108,8 @@ export function startDividerDrag(e: { pointerId: number; button: number; clientX
     shownSize = size;
 
     const delta = size - g0.a.size;
-    preview = Math.abs(delta) < 0.01 ? layout0 : core.resizeDivider(layout0, parentId, index, delta, { fit: fit0, paneCap: getState().settings.paneCap });
-    const r = preview === layout0 ? r0 : core.resolve(preview, view0, { fit: fit0, paneCap: getState().settings.paneCap });
+    preview = Math.abs(delta) < 0.01 ? layout0 : core.resizeDivider(layout0, parentId, index, delta, ctx0);
+    const r = preview === layout0 ? r0 : core.resolve(preview, view0, ctx0);
 
     // Pane frames: only the ones whose box differs from the committed one (plus any written earlier, to restore them).
     for (const b of r.panes) {
@@ -199,10 +168,9 @@ export function startDividerDrag(e: { pointerId: number; button: number; clientX
       h.inner.style.height = "";
       delete h.content.dataset.holding;
     }
-    active = null;
     // One commit, one URL write (120ms after the drag settles). React re-renders only the frames whose rect changed,
     // with the values already on screen.
-    if (commitIt && preview !== layout0 && getState().layout === layout0) actions.commitDividerDrag(preview);
+    if (commitIt && preview !== layout0 && store.get().layout === layout0) store.actions.commitDividerDrag(preview);
   };
   const onUp = () => finish(true);
   const onCancel = () => finish(false);
@@ -218,5 +186,4 @@ export function startDividerDrag(e: { pointerId: number; button: number; clientX
   sepEl.addEventListener("pointercancel", onCancel);
   sepEl.addEventListener("lostpointercapture", onUp);
   window.addEventListener("keydown", onKey, true);
-  active = { cancel: onCancel };
 }

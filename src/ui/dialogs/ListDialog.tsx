@@ -1,0 +1,95 @@
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+
+interface Props<T> {
+  /** The dialog's class (with `palette`) and accessible name. */
+  className: string;
+  label: string;
+  head?: ReactNode;
+  placeholder: string;
+  inputLabel?: string;
+  /** Prefix of each option's DOM id, and the listbox's id and name. */
+  idPrefix: string;
+  listId: string;
+  listLabel: string;
+  items: T[];
+  keyOf(item: T): string;
+  matches(item: T, query: string): boolean;
+  /** The option's class and content. */
+  itemClass: string;
+  render(item: T): ReactNode;
+  itemProps?(item: T): Record<string, unknown>;
+  disabled?(item: T): boolean;
+  /** Enter chooses the selected item even when disabled (the command refuses itself); a click needs it enabled. */
+  onChoose(item: T): void;
+  onClose(): void;
+  empty(query: string): ReactNode;
+}
+
+/** A modal combobox over a filtered list: type to filter, arrows to move, Enter to choose, Escape to close. Focus
+ *  goes to the field on open and back to where it was on close. */
+export function ListDialog<T>(p: Props<T>) {
+  const [q, setQ] = useState("");
+  const [i, setI] = useState(0);
+  const input = useRef<HTMLInputElement>(null);
+  const restore = useRef<Element | null>(document.activeElement);
+  useEffect(() => {
+    input.current?.focus();
+    const back = restore.current;
+    return () => (back as HTMLElement | null)?.focus?.({ preventScroll: true });
+  }, []);
+  const items = useMemo(() => {
+    const t = q.trim().toLowerCase();
+    return p.items.filter((it) => !t || p.matches(it, t));
+  }, [p.items, q]); // eslint-disable-line react-hooks/exhaustive-deps
+  const sel = items[Math.min(i, items.length - 1)];
+  return (
+    <div className="scrim" onPointerDown={(e) => e.target === e.currentTarget && p.onClose()}>
+      <div className={`palette${p.className ? ` ${p.className}` : ""}`} role="dialog" aria-modal="true" aria-label={p.label}>
+        {p.head}
+        <input
+          ref={input}
+          className="palette-input"
+          placeholder={p.placeholder}
+          role="combobox"
+          aria-label={p.inputLabel}
+          aria-expanded="true"
+          aria-controls={p.listId}
+          aria-activedescendant={sel ? `${p.idPrefix}${p.keyOf(sel)}` : undefined}
+          value={q}
+          onChange={(e) => {
+            setQ(e.target.value);
+            setI(0);
+          }}
+          onKeyDown={(e) => {
+            if (e.key === "ArrowDown") { e.preventDefault(); setI((n) => Math.min(n + 1, items.length - 1)); }
+            else if (e.key === "ArrowUp") { e.preventDefault(); setI((n) => Math.max(n - 1, 0)); }
+            else if (e.key === "Enter" && sel) { e.preventDefault(); p.onChoose(sel); }
+            else if (e.key === "Escape") { e.preventDefault(); e.stopPropagation(); p.onClose(); }
+          }}
+        />
+        <ul className="palette-list" id={p.listId} role="listbox" aria-label={p.listLabel}>
+          {items.map((it, n) => {
+            const disabled = p.disabled?.(it) ?? false;
+            const k = p.keyOf(it);
+            return (
+              <li
+                key={k}
+                id={`${p.idPrefix}${k}`}
+                {...p.itemProps?.(it)}
+                role="option"
+                aria-selected={it === sel}
+                aria-disabled={disabled || undefined}
+                className={`${p.itemClass}${it === sel ? " is-selected" : ""}${disabled ? " is-disabled" : ""}`}
+                onPointerMove={() => setI(n)}
+                onClick={() => !disabled && p.onChoose(it)}
+              >
+                {p.render(it)}
+              </li>
+            );
+          })}
+          {!items.length ? <li className="palette-empty">{p.empty(q)}</li> : null}
+        </ul>
+      </div>
+    </div>
+  );
+}
