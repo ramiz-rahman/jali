@@ -57,7 +57,7 @@ test.describe("Keyboard ladder", () => {
     await page.keyboard.press("Enter");
     const list = page.getByRole("dialog", { name: "Settings" }).getByLabel("Keyboard shortcuts");
     const mac = await page.evaluate(() => /Mac/.test(navigator.platform));
-    await expect(list.locator('[data-command-id="pane.zoom"] kbd')).toHaveText(mac ? "⌘K ⌘M" : "Ctrl+K Ctrl+M");
+    await expect(list.locator('[data-command-id="pane.zoom"] kbd')).toHaveText(mac ? "⇧⌘↵ or ⌘K ⌘M" : "Ctrl+Shift+Enter or Ctrl+K Ctrl+M");
     await expect(list.locator('[data-command-id="pane.split.right"] kbd')).toHaveText(mac ? "⌘\\" : "Ctrl+\\");
   });
 

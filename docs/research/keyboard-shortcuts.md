@@ -117,7 +117,7 @@ Mod is ⌘ on a Mac and Ctrl on Windows and Linux. Labels are printed per platfo
 | Focus pane left/right/up/down | ⌥⌘←/→/↑/↓ (Chrome tab switch and toolbar cycle) | ⌘K ⌘←/→/↑/↓ | Ctrl+K Ctrl+Left/Right/Up/Down | VS Code and Zed exact (S8, S10). |
 | Move pane left/right/up/down | ⌥⇧⌘←/→/↑/↓ | ⌘K ⇧⌘←/→/↑/↓ | Ctrl+K Ctrl+Shift+Arrows | Zed's `cmd-k shift-arrow` swaps panes (S10). |
 | Focus pane 1–9 | ⌥1–9 (Linux tab switch; types ¡™£ on a Mac) | palette only | palette only | No safe digit chord exists (S5, S7). A host can bind one. |
-| Maximise / restore | ⇧⌘↵ | ⌘K ⌘M | Ctrl+K Ctrl+M | VS Code exact (S8). APG advises against modifier+Enter (S17). Esc also restores. |
+| Maximise / restore | ⇧⌘↵ | ⇧⌘↵, also ⌘K ⌘M | Ctrl+Shift+Enter, also Ctrl+K Ctrl+M | VS Code exact (S8). APG advises against modifier+Enter (S17). Esc also restores. |
 | Tuck | ⌥⌘M (macOS minimise-all) | ⌘K ⌘[ | Ctrl+K Ctrl+[ | `[` pushes the pane aside and `]` brings it back, so they form a pair. |
 | Put back | ⌥⇧⌘M | ⌘K ⌘] | Ctrl+K Ctrl+] | See tuck. |
 | Resize mode | ⌥⌘R | ⌘K ⌘R | Ctrl+K Ctrl+R | kitty's resize mode is also kitty_mod+R (S13). As a second step, a missed press can't reload the page. |
@@ -165,4 +165,4 @@ We kept J/K **scoped to the queue's focus**. We considered a global chord for ne
 1. **Drag cancel before content.** We put the drag's Esc before content (step 1), not after it. A drag is a mode the person is in, and browsers cancel their own drags first. If a pane ever needs Esc during a pane drag, this has to be revisited.
 2. **⌘K inside a host's own ⌘K.** A host app with its own ⌘K (a search, say) should rebind `palette.toggle`. Its chords move with it, because the prefix is whatever the palette's binding is. Or it can unbind the palette and bind another prefix to the chords.
 3. **Labels for non-US layouts.** We print US key caps (`[`, `\`). On German layouts, for example, those physical keys print Ü and #. Using `getLayoutMap()` for labels (Chromium only) would be the fix.
-4. **A direct chord for close and maximise.** Both are now two-step. If they turn out to be used constantly, ⇧⌘↵ (maximise) is free and could come back as a second binding.
+4. **A direct chord for maximise (decided 18 Nov).** Maximise is the most used pane command from the keyboard, so it has a direct chord: ⇧⌘↵ / Ctrl+Shift+Enter, as in iTerm2 and Warp; ⌘K ⌘M stays as a second binding. No browser or OS reserves it at page level. APG's caution about modifier+Enter is about links and buttons opening new tabs: the pane layer claims the chord (preventDefault) so a focused link doesn't open a tab, unless the content handles it first. Close stays two-step.

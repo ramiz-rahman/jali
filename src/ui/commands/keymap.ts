@@ -33,7 +33,8 @@ export const DEFAULT_KEYMAP = {
   "pane.move.right": ["Mod+K Shift+Mod+ArrowRight"],
   "pane.move.up": ["Mod+K Shift+Mod+ArrowUp"],
   "pane.move.down": ["Mod+K Shift+Mod+ArrowDown"],
-  "pane.zoom": ["Mod+K Mod+M"],
+  // Maximise is the most used pane command: one direct chord (iTerm2, Warp), with the ⌘K form as a second binding.
+  "pane.zoom": ["Mod+Shift+Enter", "Mod+K Mod+M"],
   "pane.tuck": ["Mod+K Mod+["],
   "pane.putBack": ["Mod+K Mod+]"],
   "pane.resize_mode": ["Mod+K Mod+R"],

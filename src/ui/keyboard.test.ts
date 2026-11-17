@@ -196,8 +196,8 @@ describe("the keymap", () => {
   it("prints ⌘/⌥ on a Mac and Ctrl/Alt elsewhere", () => {
     const mac = createKeymap({}, { platform: "mac" });
     const win = createKeymap({}, { platform: "other" });
-    expect(mac.label("pane.zoom")).toBe("⌘K ⌘M");
-    expect(win.label("pane.zoom")).toBe("Ctrl+K Ctrl+M");
+    expect(mac.label("pane.zoom")).toBe("⇧⌘↵");
+    expect(win.label("pane.zoom")).toBe("Ctrl+Shift+Enter");
     expect(mac.label("pane.move.left")).toBe("⌘K ⇧⌘←");
     expect(win.label("pane.move.left")).toBe("Ctrl+K Ctrl+Shift+Left");
     expect(formatKeys(parseKeys("Alt+Enter"), "other")).toBe("Alt+Enter");

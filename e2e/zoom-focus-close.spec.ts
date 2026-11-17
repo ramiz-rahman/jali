@@ -1,7 +1,7 @@
 import { test, expect } from "./fixtures/lab";
 
 test.describe("Maximise", () => {
-  test("button, double-click header, ⌘K ⌘M, Esc", async ({ lab, page }) => {
+  test("button, double-click header, ⇧⌘↵ (and ⌘K ⌘M), Esc", async ({ lab, page }) => {
     await lab.open();
     const area = (await lab.main().boundingBox())!;
 
@@ -20,6 +20,21 @@ test.describe("Maximise", () => {
     await expect(lab.isZoomed("order")).toHaveCount(0);
 
     await lab.pane("customer").click({ position: { x: 100, y: 300 } });
+    await page.keyboard.press("ControlOrMeta+Shift+Enter");
+    await expect(lab.isZoomed("customer")).toHaveCount(1);
+    await page.keyboard.press("ControlOrMeta+Shift+Enter");
+    await expect(lab.isZoomed("customer")).toHaveCount(0);
+    // A link inside the pane has focus: still maximise, and no new browser tab.
+    const link = lab.pane("customer").getByRole("link").or(lab.pane("customer").locator("button[data-ref], a")).first();
+    if (await link.count()) {
+      await link.focus();
+      const pages = page.context().pages().length;
+      await page.keyboard.press("ControlOrMeta+Shift+Enter");
+      await expect(lab.isZoomed("customer")).toHaveCount(1);
+      expect(page.context().pages().length).toBe(pages);
+      await page.keyboard.press("Escape");
+    }
+    // The ⌘K form still works.
     await page.keyboard.press("ControlOrMeta+k"); await page.keyboard.press("ControlOrMeta+m");
     await expect(lab.isZoomed("customer")).toHaveCount(1);
     await page.keyboard.press("ControlOrMeta+k"); await page.keyboard.press("ControlOrMeta+m");
