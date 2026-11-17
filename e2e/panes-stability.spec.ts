@@ -277,23 +277,51 @@ test.describe("tuck and put back", () => {
 });
 
 test.describe("the shelf", () => {
-  test("appears only when something is tucked; 32px, above the status line", async ({ page }) => {
+  test("appears only when something is tucked, inside the 28px status line", async ({ page }) => {
     await start(page);
     await expect(shelfRegion(page)).toHaveCount(0);
+    const status = page.locator("footer.status");
+    expect(Math.round((await status.boundingBox())!.height)).toBe(28);
+    await expect(status).toContainText(/\d+ panes/);
     await tuckBtn(page, "customer").click();
     await expect(shelfRegion(page)).toBeVisible();
-    const sb = (await shelfRegion(page).boundingBox())!, st = (await page.locator("footer.status").boundingBox())!;
-    expect(Math.round(sb.height)).toBe(32);
-    expect(Math.abs(sb.y + sb.height - st.y)).toBeLessThanOrEqual(1);
+    const sb = (await shelfRegion(page).boundingBox())!, st = (await status.boundingBox())!;
+    expect(Math.round(st.height)).toBe(28);
+    expect(sb.y, "inside the status line").toBeGreaterThanOrEqual(st.y);
+    expect(sb.y + sb.height, "inside the status line").toBeLessThanOrEqual(st.y + st.height + 0.5);
+    expect(sb.x, "left side").toBeLessThan(st.x + st.width / 2);
     await expect(shelfRegion(page)).toContainText(/Behind .+:/);
     await expect(chip(page, "customer 1")).toBeVisible();
-    await expect(page.locator("footer.status")).toContainText("1 tucked");
-    await expect(page.locator("footer.status")).not.toContainText(/minimised/);
+    await expect(status).toContainText("1 tucked");
+    await expect(status).not.toContainText(/minimised/);
+    // the count and focus text moved to the right of the shelf
+    const main = (await page.locator(".status-main").boundingBox())!;
+    expect(main.x).toBeGreaterThan(sb.x + 40);
     // putting it back removes the shelf
     const tab = page.getByRole("tab", { name: /customer 1/ });
     await tab.hover();
     await tab.getByRole("button", { name: "Put back customer 1" }).click();
     await expect(shelfRegion(page)).toHaveCount(0);
+    expect(Math.round((await status.boundingBox())!.height)).toBe(28);
+  });
+
+  test("the shelf never resizes the workspace: same height with and without hidden panes", async ({ page }) => {
+    await start(page);
+    const ws = () => page.locator(".workspace").evaluate((e) => { const r = e.getBoundingClientRect(); return { y: r.y, h: r.height }; });
+    const base = await ws();
+    await tuckBtn(page, "customer").click();
+    await expect(shelfRegion(page)).toBeVisible();
+    expect(await ws(), "one tucked").toEqual(base);
+    const next = page.locator("section[data-pane]:visible").getByRole("button", { name: /^Tuck into/ }).and(page.locator(":enabled")).first();
+    await next.click();
+    await expect(shelfRegion(page).locator("[data-chip]")).toHaveCount(2);
+    expect(await ws(), "two tucked").toEqual(base);
+    // every pane that is still shown keeps the base top and bottom edges
+    for (const r of Object.values(await byId(page))) expect(r.y + r.h).toBeLessThanOrEqual(base.y + base.h + 1);
+    await page.locator(".shelf-chip-put").first().evaluate((e) => (e as HTMLElement).click());
+    await page.locator(".shelf-chip-put").first().evaluate((e) => (e as HTMLElement).click());
+    await expect(shelfRegion(page)).toHaveCount(0);
+    expect(await ws(), "none tucked").toEqual(base);
   });
 
   test("clicking a chip reveals the tab with no layout change", async ({ page }) => {
@@ -319,7 +347,10 @@ test.describe("the shelf", () => {
   test("keyboard: a toolbar with roving tabindex; arrows move, Enter reveals, Shift+Enter puts back", async ({ page }) => {
     await start(page);
     await tuckBtn(page, "customer").click();
-    await tuckBtn(page, "order").click().catch(() => {});
+    const second = page.locator("section[data-pane]:visible").getByRole("button", { name: /^Tuck into/ }).and(page.locator(":enabled")).first();
+    await expect(second, "a visible, tuckable pane remains").toBeVisible();
+    await second.click();
+    await expect(shelfRegion(page).locator("[data-chip]")).toHaveCount(2);
     const tb = shelfRegion(page).getByRole("toolbar");
     await expect(tb).toBeVisible();
     const chips = tb.getByRole("button").filter({ hasNot: page.locator("[tabindex='-1'][aria-label^='Put back']") });
@@ -338,6 +369,7 @@ test.describe("the shelf", () => {
       await page.keyboard.press("End");
       await expect(mains.nth(n - 1)).toBeFocused();
       await page.keyboard.press("Home");
+      await expect(mains.first()).toBeFocused();
     }
     const name = (await mains.first().locator(".shelf-chip-title").innerText()).trim();
     await page.keyboard.press("Enter");
@@ -366,7 +398,7 @@ test.describe("the shelf", () => {
     await tuckBtn(page, "customer").click();
     const c = shelfRegion(page).locator("[data-chip]").first();
     const put = c.getByRole("button", { name: "Put back customer 1" });
-    await expect(put).toBeHidden().catch(() => {});
+    await expect(put).toBeHidden();
     await c.hover();
     await expect(put).toBeVisible();
     await put.click();
@@ -430,7 +462,7 @@ for (const mode of ["light", "dark"] as const) {
         const mains = shelfRegion(page).locator(".shelf-chip-main");
         if (await mains.count()) await mains.last().focus();
         await page.waitForTimeout(250);
-        await page.screenshot({ path: `${SHOT}/70-shelf-${preset === "Chain" ? "chain" : "stress"}-${size.width}-${mode}.png` });
+        await page.screenshot({ path: `${SHOT}/75-shelf-${preset === "Chain" ? "chain" : "stress"}-${size.width}-${mode}.png` });
       });
     }
   }
