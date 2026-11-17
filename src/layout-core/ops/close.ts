@@ -8,7 +8,7 @@ import { forget } from "../fit/overlay";
 import { extentAlong } from "../geometry/extent";
 function cleanLinks(layout: Layout): void {
   const ids = new Set(panes(layout.root).map(p => p.id));
-  for (const pane of panes(layout.root)) if (pane.linkedTo && !ids.has(pane.linkedTo)) delete pane.linkedTo;
+  for (const pane of panes(layout.root)) if (pane.linkedTo && !ids.has(pane.linkedTo)) { delete pane.linkedTo; delete pane.follows; }
 }
 export function close(layout: Layout, view: ViewState, target: string, ctx: LayoutContext) {
   const undo: UndoEntry = { kind: "close", before: { layout: clone(layout), view: clone(view) } };
@@ -52,7 +52,7 @@ export function closeOthers(layout: Layout, view: ViewState, keep: string, ctx: 
   const pane = find(layout.root, keep);
   const undo: UndoEntry = { kind: "closeOthers", before: { layout: clone(layout), view: clone(view) } };
   if (pane?.type !== "pane" || panes(layout.root).length === 1) return { layout, view, undo };
-  const root = clone(pane); delete root.linkedTo;
+  const root = clone(pane); delete root.linkedTo; delete root.follows;
   root.size = { weight: 1 }; delete root.userSized;
   const nextView = focus({ ...unzoom(view), focusHistory: [] }, keep, ctx);
   return { layout: fitLayout({ version: 1, root }, nextView, ctx), view: nextView, undo };

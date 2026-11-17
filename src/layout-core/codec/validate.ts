@@ -25,6 +25,7 @@ export function validate(layout: Layout, kinds: KindRegistry): { ok: true } | { 
       if (!record(ref) || !record(ref.params) || !Object.values(ref.params).every(p => typeof p === "string" || typeof p === "number" && Number.isFinite(p))) error(path, "invalid object params");
       if (value.linkedTo !== undefined && (typeof value.linkedTo !== "string" || !value.linkedTo.length)) error(path, "invalid linkedTo");
       if (value.pinned !== undefined && typeof value.pinned !== "boolean") error(path, "pinned must be boolean");
+      if (value.follows !== undefined && typeof value.follows !== "boolean") error(path, "follows must be boolean");
       if (value.born !== undefined && !(Number.isInteger(value.born) && (value.born as number) >= 0)) error(path, "born must be a nonnegative integer");
       if (value.role !== undefined && !(typeof value.role === "string" && value.role.length > 0 && value.role.length <= 64)) error(path, "role must be a short id");
       if (value.priority !== undefined && value.priority !== "primary" && value.priority !== "supporting") error(path, "unknown priority");

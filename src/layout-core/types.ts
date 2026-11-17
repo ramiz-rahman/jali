@@ -14,7 +14,14 @@ interface NodeBase {
 export interface PaneNode extends NodeBase {
   type: "pane";
   ref: ObjectRef;
+  /** The pane this one was opened from. Closing that pane drops the link. */
   linkedTo?: NodeId;
+  /**
+   * Linked selection: this pane shows the object selected in `linkedTo` (a detail opened from a list's row). When the
+   * list's selection moves, the object is replaced in place (`follow`). At most one follower per source and kind.
+   */
+  follows?: boolean;
+  /** Kept by the person: never reused for another object, never following, and the last to fold. */
   pinned?: boolean;
   /** Monotonic age; imported panes without an age precede newly opened panes in reading order. */
   born?: number;
