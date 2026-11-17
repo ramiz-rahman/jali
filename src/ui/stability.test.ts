@@ -79,6 +79,6 @@ describe("layout stability: Data Studio", () => {
     const group = [...m.groups.values()][0];
     for (const id of m.visible) still(() => store.actions.focus(id));
     expect(group).toBeDefined();
-    for (const t of group!.tabs) still(() => store.actions.setActiveTab(group.id, t.id));
+    for (const t of group!.tabs) still(() => store.actions.setActiveTab(group!.id, t.id));
   });
 });

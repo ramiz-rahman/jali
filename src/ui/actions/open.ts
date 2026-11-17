@@ -1,9 +1,9 @@
 import * as core from "../../layout-core";
-import type { NodeId, ObjectRef, PaneNode } from "../../layout-core/types";
+import type { NodeId, ObjectRef, PaneNode, ViewState } from "../../layout-core/types";
 import { identityOf, isRecordable, isTransient, paneTitle, sameObject, sameRecent } from "../pane-kinds";
 import { refuse, type Change, type Outcome, type Snapshot } from "../state/apply";
 import { peek } from "./peek";
-import { investigation, placeAfterArrangement } from "./review";
+import { goToRole, investigation, placeAfterArrangement, roleLabel, settleRoles } from "./review";
 import type { WorkspaceModel } from "../state/model";
 import { msg } from "../state/messages";
 
@@ -31,12 +31,29 @@ export function openBeside(x: Snapshot, source: NodeId, ref: ObjectRef): Outcome
   // A curated page: in Single mode, or for a role that may not investigate, a link peeks. Opened panes gather after the layout.
   if (s.review && !s.review.canInvestigate) return { ...(peek(x, ref, source) as Change), msg: msg.peekOnly(paneTitle(ref)) };
   if (s.review?.mode === "single") return { ...(peek(x, ref, source) as Change), msg: msg.peekSingle(paneTitle(ref)) };
+  if (s.review) {
+    // One object, one pane: a link to what is already on the page goes there (a view, whatever kind shows it).
+    const dup = openPaneFor(m, ref);
+    if (dup?.role) return goToRole(x, dup.role);
+    if (dup) return { op: "focusExisting", layout: core.reveal(s.layout, dup.id, ctx), view: core.focus(unzoomed(s.view), dup.id, ctx), msg: msg.alreadyOpen(m.title(dup.id)), result: dup.id };
+  }
   const place = s.review && m.pane(source)?.role ? placeAfterArrangement(s.layout) : undefined;
   // The first opened pane starts an investigation: remember the layout it started from.
   const review = s.review && !investigation(m.panes).length ? { review: { ...s.review, before: s.layout } } : {};
-  const r = core.openBeside(s.layout, unzoomed(s.view), source, ref, ctx, place);
-  const view = { ...r.view, focused: source, focusHistory: r.view.focusHistory.length ? r.view.focusHistory : [source] };
-  return { op: "open", layout: r.layout, view, msg: msg.openedBeside(r.mode, paneTitle(ref), m.title(source)), patch: { recent: withRecent(s.recent, [ref]), ...review }, result: r.opened };
+  // In a curated page nothing the person placed gives way for an opened pane: short of room, it opens as a tab.
+  const r = core.openBeside(s.layout, unzoomed(s.view), source, ref, ctx, place, s.review ? { yields: false } : undefined);
+  let layout = r.layout, opened = r.opened, sent: NodeId[] = [];
+  let view: ViewState = { ...r.view, focused: source, focusHistory: r.view.focusHistory.length ? r.view.focusHistory : [source] };
+  if (s.review && r.mode === "tab") {
+    // No room beside: a tab of the source, in the source's slot at its size, shown and focused (the source is behind
+    // it now). If even that needs more room, views go back to the page tabs; they never fold into a tab group.
+    const t = core.addTab(s.layout, unzoomed(s.view), source, ref, ctx);
+    const linked = { ...t.layout, root: core.tree.map(t.layout.root, (n) => (n.id === t.opened && n.type === "pane" ? { ...n, linkedTo: source } : n)) };
+    ({ layout, view, sent } = settleRoles(s.layout, { layout: linked, view: t.view }, [source, t.opened], ctx));
+    opened = t.opened;
+  }
+  const said = msg.openedBeside(r.mode, paneTitle(ref), m.title(source));
+  return { op: "open", layout, view, msg: sent.length ? `${said} · ${msg.sentToTabs(sent.map(roleLabel))}` : said, patch: { recent: withRecent(s.recent, [ref]), ...review }, result: opened };
 }
 
 /** Split opens a launcher beside the pane, not a copy of it; focus moves in, because the person is about to choose. */

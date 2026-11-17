@@ -35,17 +35,19 @@ function useMeasure(store: UiStore) {
   return ref;
 }
 
-/** Says which panes folded into tabs, or unfolded, when the room changed (not in single view, where nothing tiles). */
-function useFoldAnnouncements(store: UiStore, m: WorkspaceModel, measured: boolean) {
-  const prev = useRef<string[] | null>(null);
+/** Says which panes folded into tabs, or unfolded, when the room changed (not in single view, where nothing tiles).
+ *  Only a change of room: an action that folds says so itself, in its own words. */
+function useFoldAnnouncements(store: UiStore, m: WorkspaceModel, area: { width: number; height: number }) {
+  const prev = useRef<{ folded: string[]; room: string } | null>(null);
   useEffect(() => {
-    if (prev.current !== null && measured && !m.single) {
-      const before = new Set(prev.current), now = new Set(m.folded);
-      const added = m.folded.filter((id) => !before.has(id)), removed = prev.current.filter((id) => !now.has(id) && m.pane(id));
+    const room = `${area.width}x${area.height}`;
+    if (prev.current !== null && area.width > 0 && !m.single && prev.current.room !== room) {
+      const was = prev.current.folded, before = new Set(was), now = new Set(m.folded);
+      const added = m.folded.filter((id) => !before.has(id)), removed = was.filter((id) => !now.has(id) && m.pane(id));
       if (added.length) store.announce(msg.folded(added.map(m.title)));
       else if (removed.length) store.announce(msg.unfolded(removed.map(m.title)));
     }
-    prev.current = m.folded;
+    prev.current = { folded: m.folded, room };
   });
 }
 
@@ -65,14 +67,23 @@ function useReshapeMotion(reshapes: number): boolean {
   return fresh || playing;
 }
 
-/** ⌥ over a page tab: a dashed outline where ⌥-click would open that view. */
+/** ⌥ over a page tab: a dashed outline where ⌥-click would open that view, and a fainter one for each view it moves.
+ *  The preview runs the very placement the click commits (besidePreview), so the two cannot differ. */
 function Ghost({ role }: { role: string }) {
   const store = useStore();
   const m = useModel();
-  const rect = useMemo(() => besidePreview(store.snapshot(), role), [store, role, m]);
-  const label = roleOf(getProfile()!, role)?.label ?? role;
-  if (!rect) return null;
-  return <div className="ghost" style={{ left: rect.x, top: rect.y, width: rect.width, height: rect.height }} aria-hidden><span>{label} opens here</span></div>;
+  const preview = useMemo(() => besidePreview(store.snapshot(), role), [store, role, m]);
+  if (!preview) return null;
+  const p = getProfile()!;
+  const name = (id: string) => roleOf(p, id)?.label ?? m.title(id);
+  const box = (r: { x: number; y: number; width: number; height: number }) => ({ left: r.x, top: r.y, width: r.width, height: r.height });
+  const leaving = preview.leaving.length ? ` · ${preview.leaving.map(name).join(", ")} back to the tabs` : "";
+  return (
+    <>
+      {preview.moved.map((v) => <div key={v.id} className="ghost ghost-moved" data-ghost={v.id} style={box(v.rect)} aria-hidden />)}
+      <div className="ghost" data-ghost={role} style={box(preview.incoming)} aria-hidden><span>{name(role)} opens here{leaving}</span></div>
+    </>
+  );
 }
 
 /** The chip that follows the pointer: flipped to the pointer's left when it would pass the viewport's right edge. */
@@ -101,7 +112,7 @@ export function Workspace() {
   const ref = useMeasure(store);
   const measured = area.width > 0;
   useSingleView(store, m, view, measured);
-  useFoldAnnouncements(store, m, measured);
+  useFoldAnnouncements(store, m, area);
   // Keep DOM focus on the focused pane after structural changes (focus is never lost).
   useEffect(() => keepPaneFocus(view.focused), [view.focused, m.layout]);
 

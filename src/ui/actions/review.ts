@@ -95,6 +95,8 @@ function keep(x: Snapshot, mode?: ViewMode): ReviewPrefs {
 }
 
 const label = (p: WorkspaceProfile, id: string | undefined) => roleOf(p, id)?.label ?? id ?? "";
+/** A role's name in the page's tabs. */
+export const roleLabel = (id: string) => { const p = getProfile(); return p ? label(p, id) : id; };
 
 export interface EnterReview { item?: number; tab?: string; investigation?: ObjectRef[]; fromUrl?: boolean; view?: Partial<ViewState> }
 
@@ -174,38 +176,126 @@ export function openTab(x: Snapshot, role: string): Outcome {
   };
 }
 
-/** Where ⌥-click would put a view: its rect in the layout that results, for the preview. Pure. */
-export function besidePreview(x: Snapshot, role: string): Rect | undefined {
+/**
+ * Curated pages: a role view never folds into a tab group because of something placed (that would repeat page tabs
+ * inside a pane). When placing a view leaves roles folded that were not before, the least recently used role views
+ * (never `keep` or the focused one; supporting before primary) go back to the page tabs until none is folded. A view
+ * that frees enough room on its own goes first. Pure.
+ */
+export function settleRoles(before: Layout, placed: Placed, keep: readonly NodeId[], ctx: LayoutContext): Placed & { sent: NodeId[] } {
+  const role = (l: Layout, id: NodeId) => (core.tree.find(l.root, id) as PaneNode | undefined)?.role;
+  const stacked = (l: Layout, v: ViewState) => new Set(core.resolve(l, v, ctx).stacks.filter((g) => g.kind === "fold").flatMap((g) => g.paneIds.filter((id) => id !== g.homeId)));
+  const was = stacked(before, placed.view);
+  const fresh = (l: Layout, v: ViewState) => [...stacked(l, v)].filter((id) => !was.has(id) && role(l, id));
+  let { layout, view } = placed;
+  const sent: NodeId[] = [];
+  while (fresh(layout, view).length) {
+    const boxes = core.resolve(layout, view, ctx).panes;
+    const recency = (id: NodeId) => { const i = view.focusHistory.indexOf(id); return i < 0 ? Infinity : i; };
+    const at = (id: NodeId) => boxes.findIndex((b) => b.id === id);
+    const candidates = boxes
+      .filter((b) => b.hidden !== "off" && role(layout, b.id) && !keep.includes(b.id) && b.id !== view.focused)
+      .map((b) => core.tree.find(layout.root, b.id) as PaneNode)
+      .sort((a, b) => Number(a.priority === "primary") - Number(b.priority === "primary") || recency(b.id) - recency(a.id) || at(b.id) - at(a.id));
+    const hidden = candidates.map((c) => ({ c, r: core.hide(layout, view, c.id, ctx) })).filter((h) => h.r.ok);
+    const tier = hidden.filter((h) => h.c.priority === hidden[0]?.c.priority);
+    const pick = tier.find((h) => h.r.ok && !fresh(h.r.layout, h.r.view).length) ?? tier[0];
+    if (!pick || !pick.r.ok) break;
+    ({ layout, view } = pick.r);
+    sent.push(pick.c.id);
+  }
+  return { layout, view, sent };
+}
+
+/** Put `role` at `zone` of `target`, then settle the roles. Pure: the ⌥ preview and the commit both run it. */
+function placeRole(layout: Layout, view: ViewState, role: string, target: NodeId, zone: Edge | "centre", ctx: LayoutContext) {
+  const d = core.drop(layout, view, role, target, zone, "tab", ctx);
+  if (d.layout === layout) return null;
+  const settled = settleRoles(layout, { layout: d.layout, view: core.focus(d.view, role, ctx) }, [role, target], ctx);
+  return { ...settled, view: core.focus(settled.view, role, ctx) };
+}
+
+/** The view ⌥-click puts another beside: the focused pane if it is on screen, else the role in use on screen. */
+function besideTarget(layout: Layout, view: ViewState, ctx: LayoutContext): NodeId | undefined {
+  const boxes = core.resolve(layout, view, ctx).panes;
+  const shown = (id?: NodeId) => !!id && boxes.some((b) => b.id === id && !b.hidden);
+  return [view.focused, ...view.focusHistory].find(shown) ?? boxes.find((b) => !b.hidden && (core.tree.find(layout.root, b.id) as PaneNode).role)?.id;
+}
+
+/** What ⌥-click on a tab does, as layouts: where it starts (from Single, the multiplexed layout setMode shows), the
+ *  view it goes beside, and the result. One function for the preview and the commit, so they cannot drift. */
+function beside(x: Snapshot, role: string) {
   const p = getProfile(), r = x.s.review;
   if (!p || !r || !r.canInvestigate || !roleOf(p, role)) return undefined;
   const base = r.mode === "single" ? multi(x, p, r.item, r.tab, true) : { layout: x.s.layout, view: unzoomed(x.s.view) };
-  const target = r.mode === "single" ? base.view.focused : x.m.pane(x.s.view.focused) ? x.s.view.focused : r.tab;
+  const target = besideTarget(base.layout, base.view, x.ctx);
   if (!target || target === role) return undefined;
-  const d = core.drop(base.layout, base.view, role, target, "right", "tab", x.ctx);
-  return core.resolve(d.layout, d.view, x.ctx).panes.find((b) => b.id === role && !b.hidden)?.rect;
+  const placed = placeRole(base.layout, base.view, role, target, "right", x.ctx);
+  return placed ? { base, target, placed } : undefined;
+}
+
+export interface BesidePreview {
+  /** Where the view opens. */
+  incoming: Rect;
+  /** Other views whose rect changes, at their new rect. */
+  moved: { id: NodeId; rect: Rect }[];
+  /** Views that leave the screen (back to the tabs, or behind a tab). */
+  leaving: NodeId[];
+}
+
+/** Where ⌥-click would put a view, and what else moves: the very placement the commit runs. Pure. */
+export function besidePreview(x: Snapshot, role: string): BesidePreview | undefined {
+  const b = beside(x, role);
+  if (!b) return undefined;
+  const shown = (l: Layout, v: ViewState) => new Map(core.resolve(l, v, x.ctx).panes.filter((p) => !p.hidden).map((p) => [p.id, p.rect]));
+  const now = shown(x.s.layout, unzoomed(x.s.view)), next = shown(b.placed.layout, b.placed.view);
+  const incoming = next.get(role);
+  if (!incoming) return undefined;
+  const same = (a: Rect, c: Rect) => [a.x - c.x, a.y - c.y, a.width - c.width, a.height - c.height].every((d) => Math.abs(d) < 0.5);
+  const moved = [...next].filter(([id, rect]) => id !== role && !(now.has(id) && same(now.get(id)!, rect))).map(([id, rect]) => ({ id, rect }));
+  return { incoming, moved, leaving: [...now.keys()].filter((id) => !next.has(id)) };
 }
 
 /** Drop a view from the tabs onto a pane's edge (or centre: as a tab of its group). From Single, this switches to
- *  Multiplexed first: dragging a tab out is asking for two views at once. */
+ *  Multiplexed first: dragging a tab out is asking for two views at once. Room is made by sending the least recently
+ *  used views back to the tabs (settleRoles), never by folding views into tab groups. */
 export function placeTab(x: Snapshot, role: string, target: NodeId, zone: Edge | "centre"): Outcome {
   const p = getProfile(), r = x.s.review;
   if (!p || !r || !roleOf(p, role)) return null;
   const place = (y: Snapshot): Outcome => {
     if (role === target || !y.m.pane(target)) return openTab(y, role);
-    const d = core.drop(y.s.layout, y.s.view, role, target, zone, "tab", y.ctx);
-    if (d.layout === y.s.layout) return openTab(y, role);
-    return { op: "drop", layout: d.layout, view: core.focus(d.view, role, y.ctx), msg: zone === "centre" ? msg.addedToTabsOf(label(p, role), y.m.title(target)) : msg.placed(label(p, role), zone, y.m.title(target)), patch: { review: { ...y.s.review!, tab: role } }, focusDom: role };
+    const d = placeRole(y.s.layout, y.s.view, role, target, zone, y.ctx);
+    if (!d) return openTab(y, role);
+    const said = zone === "centre" ? msg.addedToTabsOf(label(p, role), y.m.title(target)) : msg.placed(label(p, role), zone, y.m.title(target));
+    return {
+      op: "drop", layout: d.layout, view: d.view, patch: { review: { ...y.s.review!, tab: role } }, focusDom: role,
+      msg: d.sent.length ? `${said} · ${msg.sentToTabs(d.sent.map((id) => label(p, id)))}` : said,
+    };
   };
   if (r.mode === "single") return r.canInvestigate ? [setMode(x, "multi"), place] : refuse(msg.singleOnly);
   return place(x);
 }
 
-/** ⌥-click a tab: that view beside the one you're in. */
+/** ⌥-click a tab: that view beside the one you're in (the same placement besidePreview shows). */
 export function openTabBeside(x: Snapshot, role: string): Outcome {
   const r = x.s.review;
   if (!r) return null;
-  const target = r.mode === "single" ? r.tab : x.m.pane(x.s.view.focused) ? x.s.view.focused! : r.tab;
-  return placeTab(x, role, target, "right");
+  const target = (y: Snapshot) => besideTarget(y.s.layout, unzoomed(y.s.view), y.ctx) ?? y.s.review!.tab;
+  if (r.mode === "single") return r.canInvestigate ? [setMode(x, "multi"), (y: Snapshot) => placeTab(y, role, target(y), "right")] : refuse(msg.singleOnly);
+  return placeTab(x, role, target(x), "right");
+}
+
+/**
+ * A link to an object that is already a view on this page goes to that view instead of opening it again: focused if on
+ * screen, its tab chosen if behind another, or put in place of the view in use if off screen (openTab's rules).
+ */
+export function goToRole(x: Snapshot, role: string): Outcome {
+  const p = getProfile();
+  if (!p) return null;
+  const o = openTab(x, role);
+  if (!o || typeof o !== "object" || Array.isArray(o) || o.op === "refused") return o;
+  const t = label(p, role);
+  return { ...o, msg: o.op === "page" ? `${msg.alreadyView(t)} · ${o.msg}` : msg.alreadyOpen(t) };
 }
 
 /** Another item: every role shows it, in place, and the previous item's investigation closes. */
