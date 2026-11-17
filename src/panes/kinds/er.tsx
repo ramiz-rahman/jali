@@ -61,6 +61,6 @@ export function ErPane({ ref, paused, openBeside }: PaneComponentProps) {
 
 export const erKind = definePaneKind({
   kind: "er", ref: (params) => ({ kind: "er", params }),
-  title: (ref) => `${ref.params.table ?? ""} relations`.trim(), minWidth: 480, minHeight: 240, 
+  title: (ref) => `${ref.params.table ?? ""} relations`.trim(), minWidth: 400, comfortableWidth: 560, minHeight: 240, 
   icon: GitFork, Component: ErPane,
 });

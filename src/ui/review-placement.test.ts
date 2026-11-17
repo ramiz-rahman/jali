@@ -87,16 +87,17 @@ describe("an opened pane never pushes the person's views aside", () => {
   it("if even the tab needs more room, a view goes back to the page tabs; none folds", () => {
     arranged();
     store.actions.focus("application");
-    const id = store.actions.openBeside("application", { kind: "record", params: { table: "loans", id: "30" } })!; // min 480
+    // A Data Studio table (min 440): wider than the review views. (Was a record at min 480; records now need 360.)
+    const id = store.actions.openBeside("application", { kind: "table", params: { table: "loans" } })!;
     expect(shown()).toEqual([id, "officer"]);
     expect(m().off).toContain("overview");
     expect(m().folded).toEqual([]);
     expect(m().resolved.panes.find((b) => b.id === "application")).toMatchObject({ hidden: "tab", stackId: m().resolved.panes.find((b) => b.id === id)!.stackId });
-    expect(said()).toBe("loan 30 opened as a tab: not enough room beside Application · Overview went back to the tabs: not enough room");
+    expect(said()).toBe("loans opened as a tab: not enough room beside Application · Overview went back to the tabs: not enough room");
   });
 
   it("from the designed layout at 1440 too: Borrower and Loan history stay", () => {
-    const id = store.actions.openBeside("application", { kind: "record", params: { table: "loans", id: "30" } })!;
+    const id = store.actions.openBeside("application", { kind: "table", params: { table: "loans" } })!;
     expect(shown()).toEqual([id, "borrower", "history"]);
   });
 

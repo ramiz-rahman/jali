@@ -44,6 +44,6 @@ export function StructurePane({ ref, paused, openBeside }: PaneComponentProps) {
 
 export const structureKind = definePaneKind({
   kind: "structure", ref: (params) => ({ kind: "structure", params }),
-  title: (ref) => `${ref.params.table ?? ""} structure`.trim(), minWidth: 440, minHeight: 240, 
+  title: (ref) => `${ref.params.table ?? ""} structure`.trim(), minWidth: 380, comfortableWidth: 440, maxWidth: 720, minHeight: 240, 
   icon: ListTree, Component: StructurePane,
 });

@@ -18,6 +18,6 @@ export function AuditPane(props: PaneComponentProps) {
 
 export const auditKind = definePaneKind({
   kind: "audit", ref: (params) => ({ kind: "audit", params }),
-  title: (_ref) => "Audit log", minWidth: 380, minHeight: 240, 
+  title: (_ref) => "Audit log", minWidth: 360, comfortableWidth: 480, minHeight: 240, 
   icon: History, Component: AuditPane,
 });

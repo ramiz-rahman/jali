@@ -46,6 +46,6 @@ export function CatalogPane({ paused, focused, openBeside, peek }: PaneComponent
 
 export const catalogKind = definePaneKind({
   kind: "catalog", ref: (params) => ({ kind: "catalog", params }),
-  title: (_ref) => "Tables", minWidth: 240, minHeight: 200, 
+  title: (_ref) => "Tables", minWidth: 240, maxWidth: 320, minHeight: 200, 
   icon: Database, Component: CatalogPane,
 });
