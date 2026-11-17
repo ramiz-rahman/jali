@@ -498,7 +498,7 @@ test.describe("Maximise and minimise", () => {
     expect(await width(c)).toBeLessThanOrEqual(72);
     await expect(page.locator("footer.status")).toContainText("1 minimised");
     await shot(page, "08-minimised-rail");
-    await c.getByRole("button", { name: /^Restore customer 1/ }).click();
+    await c.getByRole("button", { name: /^Expand customer 1/ }).click();
     await expect(c).not.toHaveClass(/is-collapsed/);
     expect(Math.abs((await width(c)) - before)).toBeLessThanOrEqual(2);
     // keyboard: Alt+Meta+M
