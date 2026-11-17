@@ -34,13 +34,14 @@ describe("dividers", () => {
     expect(find(resized.root, "b")).toMatchObject({ size: { weight: right }, userSized: true });
     expect(core.resolve(resized, view(), ctx(fit(1206))).panes.map(p => p.rect.width)).toEqual([left, right]);
   });
-  it("resizes column splits and honours maxWidth on row splits", () => {
+  it("resizes column splits; a drag on a row split may pass a soft maxWidth", () => {
     const tree = layout({ id: "col", type: "column", size: { weight: 1 }, children: [pane("a"), pane("b")] });
     const resized = core.resizeDivider(tree, "col", 0, 10000, ctx(fit(1000, 406)));
     expect(find(resized.root, "a")!.size).toEqual({ weight: 320 });
     expect(find(resized.root, "b")!.size).toEqual({ weight: 80 });
     const options = { ...fit(806), kinds: { ...fit().kinds, small: { ...fit().kinds.small!, maxWidth: 600 } } };
-    expect(find(core.resizeDivider(layout(pane("a"), pane("b")), "root", 0, 10000, ctx(options)).root, "a")!.size).toEqual({ weight: 600 });
+    // Was 600 (a hard max). The person's size wins over the kind's preference; only b's minimum (100) stops the drag.
+    expect(find(core.resizeDivider(layout(pane("a"), pane("b")), "root", 0, 10000, ctx(options)).root, "a")!.size).toEqual({ weight: 700 });
   });
   it("resets just the two neighbours to equal default weights", () => {
     const tree = layout(pane("a", "small", { size: { px: 200 }, userSized: true }), pane("b", "small", { size: { px: 400 }, userSized: true }), pane("c", "small", { size: { px: 500 }, userSized: true }));

@@ -5,6 +5,7 @@ import { focus, directionalCandidates } from "./focus";
 import { fitLayout } from "../fit/refit";
 import { resolve } from "../fit/resolve";
 import { forget } from "../fit/overlay";
+import { holdGeometry } from "../fit/hold";
 
 function swapTree(layout: Layout, a: string, b: string): Layout {
   const next = clone(layout);
@@ -24,7 +25,8 @@ function swapTree(layout: Layout, a: string, b: string): Layout {
 }
 export function swap(layout: Layout, a: string, b: string, ctx: LayoutContext): Layout {
   const next = swapTree(layout, a, b);
-  return next === layout ? layout : fitLayout(next, noFocus(), ctx);
+  // Slots keep their rects; the panes trade places in them.
+  return next === layout ? layout : holdGeometry(layout, fitLayout(next, noFocus(), ctx), ctx);
 }
 export function drop(layout: Layout, view: ViewState, dragged: string, target: string, zone: Edge | "centre", centreMode: "swap" | "tab", ctx: LayoutContext) {
   const nextView = unzoom(view);
@@ -40,7 +42,7 @@ export function drop(layout: Layout, view: ViewState, dragged: string, target: s
   if (zone === "centre" && centreMode === "swap") {
     const next = swapTree(layout, dragged, target);
     activate(next, dragged);
-    return { layout: fitLayout(next, focus(nextView, dragged, ctx), ctx), view: focus(nextView, dragged, ctx) };
+    return { layout: holdGeometry(layout, fitLayout(next, focus(nextView, dragged, ctx), ctx), ctx), view: focus(nextView, dragged, ctx) };
   }
   const next = clone(layout);
   const pane = clone(find(next.root, dragged) as PaneNode);

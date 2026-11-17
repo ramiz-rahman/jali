@@ -11,21 +11,24 @@ export interface Projected {
   /** Pane the automatic stack formed around (the folded panes' related home). */
   home?: string;
   kind?: "fold" | "tuck";
+  /** Sized by the person (or allocated exactly, as under a tuck): its split shares by exact weights, not the share rule. */
+  userSized?: boolean;
   bounds: Bounds;
 }
 export function refresh(node: Projected, fit: FitOptions): void {
   if (node.pane) return;
-  node.bounds = combineBounds(node.type, node.children.map(c => c.bounds), fit.gap);
+  const home = node.type === "auto" ? node.children.findIndex(c => contains(c, node.home)) : 0;
+  node.bounds = combineBounds(node.type, node.children.map(c => c.bounds), fit.gap, Math.max(0, home));
 }
 export function project(node: LayoutNode, fit: FitOptions): Projected {
   if (node.type === "pane") {
-    return { id: node.id, type: "pane", size: node.size, children: [], pane: node, bounds: bounds(node, fit.kinds, fit.gap) };
+    return { id: node.id, type: "pane", size: node.size, userSized: node.userSized, children: [], pane: node, bounds: bounds(node, fit.kinds, fit.gap) };
   }
   const result: Projected = {
-    id: node.id, type: node.type, size: node.size,
+    id: node.id, type: node.type, size: node.size, userSized: node.userSized,
     active: node.type === "stack" ? node.active : undefined,
     children: node.children.map(c => project(c, fit)),
-    bounds: { width: 0, height: 0, maxWidth: Infinity },
+    bounds: { width: 0, height: 0, comfortable: 0, maxWidth: Infinity },
   };
   refresh(result, fit);
   return result;
@@ -48,10 +51,10 @@ export function auto(children: Projected[], fit: FitOptions, order: Map<string, 
   // Keep one tab group when a later fold grows an automatic stack; tabs stay in reading order.
   children = children.flatMap(c => c.type === "auto" ? c.children : [c]).sort((a, b) => orderOf(a, order) - orderOf(b, order));
   const result: Projected = {
-    id: `${AUTO_PREFIX}${homeId}`, type: "auto", children, size, home: homeId, kind: "fold",
+    id: `${AUTO_PREFIX}${homeId}`, type: "auto", children, size, home: homeId, kind: "fold", userSized: children.some(c => c.userSized) || undefined,
     // The home stays the shown tab: a fold never changes what the receiving slot displays.
     active: children.find(c => c.id === fallback)?.id ?? children[0]!.id,
-    bounds: { width: 0, height: 0, maxWidth: Infinity },
+    bounds: { width: 0, height: 0, comfortable: 0, maxWidth: Infinity },
   };
   refresh(result, fit);
   return result;
@@ -68,7 +71,7 @@ export function removeSlot(node: Projected, id: string): Projected | undefined {
   if (node.type !== "row" && node.type !== "column") return node;
   node.children = node.children.flatMap(c => { const next = removeSlot(c, id); return next ? [next] : []; });
   if (!node.children.length) return undefined;
-  return node.children.length === 1 ? { ...node.children[0]!, size: node.size } : node;
+  return node.children.length === 1 ? { ...node.children[0]!, size: node.size, userSized: node.userSized } : node;
 }
 
 
@@ -105,7 +108,7 @@ export function foldSlot(root: Projected, choice: Projected, fit: FitOptions, or
   const sameParent = parent.children.includes(home);
   root = removeSlot(root, choice.id)!;
   function replace(n: Projected): Projected {
-    if (n.id === home!.id) { if (!sameParent) group.size = n.size; return group; }
+    if (n.id === home!.id) { if (!sameParent) { group.size = n.size; group.userSized = n.userSized; } return group; }
     if (n.type === "row" || n.type === "column") n.children = n.children.map(replace);
     refresh(n, fit);
     return n;

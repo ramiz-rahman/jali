@@ -117,10 +117,11 @@ describe("resolve and fold", () => {
     expect(folded(result)).toEqual(["c"]);
     expect(place(tree, { focusHistory: [] }, fit(1000)).panes.find(p => p.id === "b")!.stackId).toBe("tabs");
   });
-  it("returns local neighbour lengths for APG separators including max constraints", () => {
+  it("returns local neighbour lengths for APG separators; a soft max never limits a drag", () => {
+    // maxWidth is the kind's preference, not a wall: the person may drag past it, so only minimums bound the separator.
     const tree = layout(pane("a"), pane("b"));
     const result = place(tree, view(), { ...fit(806), kinds: { ...kinds, small: { ...kinds.small!, maxWidth: 600 } } });
-    expect(result.dividers[0]).toMatchObject({ parentId: "root", index: 0, axis: "row", min: 200, max: 600, value: 400, rect: { x: 400, width: 6 } });
+    expect(result.dividers[0]).toMatchObject({ parentId: "root", index: 0, axis: "row", min: 100, max: 700, value: 400, rect: { x: 400, width: 6 } });
   });
   it("honours maxWidth during flex allocation", () => {
     const result = place(layout(pane("a"), pane("b", "record")), view(), { ...fit(1206), kinds: { ...kinds, small: { ...kinds.small!, maxWidth: 200 } } });
@@ -130,9 +131,10 @@ describe("resolve and fold", () => {
     const result = place(layout(pane("a", "record")), view(), fit(390));
     expect(result.panes[0]!.rect.width).toBe(480);
   });
-  it("honours a lone pane's maximum instead of stretching past it", () => {
+  it("fills the room with a lone pane past its maximum: maxWidth is soft and the content holds its measure", () => {
+    // Was 200 (a hard cap leaving an 800px void). Founder review, 17 Nov: a layout never shows a void.
     const result = place(layout(pane("a")), view(), { ...fit(1000), kinds: { ...kinds, small: { ...kinds.small!, maxWidth: 200 } } });
-    expect(result.panes[0]!.rect.width).toBe(200);
+    expect(result.panes[0]!.rect.width).toBe(1000);
   });
 
   it("preserves minimums and disjoint visible geometry across varied nested trees", () => {

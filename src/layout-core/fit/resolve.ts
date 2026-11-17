@@ -28,7 +28,8 @@ export function resolve(layout: Layout, view: ViewState, ctx: LayoutContext): Re
       if (n.type !== "row" && n.type !== "column") return;
       for (const child of n.children) {
         const extent = extentAlong(reference.panes, allPanes(child).map(p => p.id), n.type);
-        if (extent > 0) child.size = { weight: extent };
+        // Exact extents: the split keeps them as weights rather than re-sharing by the share rule.
+        if (extent > 0) { child.size = { weight: extent }; child.userSized = true; }
         allocate(child);
       }
     }
@@ -37,7 +38,8 @@ export function resolve(layout: Layout, view: ViewState, ctx: LayoutContext): Re
   const result: ResolvedLayout = { panes: [], dividers: [], stacks: [], shelf: [] };
   const folded = new Set<string>();
   function draw(n: Projected, input: Rect, stackId?: string, hidden = false, isFolded = false): void {
-    const rect = { ...input, width: Math.max(n.bounds.width, Math.min(input.width, n.bounds.maxWidth)), height: Math.max(input.height, n.bounds.height) };
+    // maxWidth is soft: a slot fills what it is given, so no void opens beside it.
+    const rect = { ...input, width: Math.max(n.bounds.width, input.width), height: Math.max(input.height, n.bounds.height) };
     if (n.pane) {
       if (isFolded) folded.add(n.id);
       result.panes.push({ id: n.id, rect, ...(stackId ? { stackId, hidden: hidden ? "tab" : undefined } : {}) });
@@ -56,9 +58,12 @@ export function resolve(layout: Layout, view: ViewState, ctx: LayoutContext): Re
     const horizontal = axis === "row";
     const length = horizontal ? rect.width : rect.height;
     const mins = n.children.map(c => horizontal ? c.bounds.width : c.bounds.height);
-    const maxs = n.children.map(c => horizontal ? c.bounds.maxWidth : Infinity);
     const available = length - fit.gap * (n.children.length - 1);
-    const lengths = shares(n.children.map((c, i) => ({ size: c.size, min: mins[i]!, max: maxs[i] })), available);
+    // The share rule for splits nobody has sized; exact proportions once the person sized one of its children.
+    const mode = n.children.some(c => c.userSized) ? "weights" : "flex";
+    const lengths = shares(n.children.map((c, i) => horizontal
+      ? { size: c.size, min: mins[i]!, comfortable: c.bounds.comfortable, max: c.bounds.maxWidth }
+      : { size: c.size, min: mins[i]! }), available, mode);
     let offset = horizontal ? rect.x : rect.y;
     n.children.forEach((child, index) => {
       const extent = lengths[index]!;
@@ -66,9 +71,10 @@ export function resolve(layout: Layout, view: ViewState, ctx: LayoutContext): Re
       draw(child, childRect, stackId, hidden, isFolded);
       offset += extent;
       if (index < n.children.length - 1) {
+        // A drag may take a pane past its max: the person's size wins over the kind's preference.
         const total = extent + lengths[index + 1]!;
-        const min = Math.max(mins[index]!, total - maxs[index + 1]!);
-        const max = Math.min(maxs[index]!, total - mins[index + 1]!);
+        const min = mins[index]!;
+        const max = total - mins[index + 1]!;
         result.dividers.push({ parentId: n.id, index, axis, min, max, value: extent, neighbours: [allPanes(child).map(p => p.id), allPanes(n.children[index + 1]!).map(p => p.id)], rect: horizontal ? { x: offset, y: rect.y, width: fit.gap, height: rect.height } : { x: rect.x, y: offset, width: rect.width, height: fit.gap } });
         offset += fit.gap;
       }

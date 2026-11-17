@@ -2,6 +2,7 @@ import type { Layout, LayoutContext, LayoutNode, PaneNode, ViewState } from "../
 import { clone, find, map, unzoom } from "../tree/tree";
 import { overlayOf, withOverlay } from "../fit/overlay";
 import { fitLayout } from "../fit/refit";
+import { holdGeometry } from "../fit/hold";
 import { focus } from "./focus";
 
 /**
@@ -31,5 +32,6 @@ export function replace(layout: Layout, view: ViewState, current: string, incomi
   });
   const nextView = focus(unzoom(view), incoming, ctx);
   const fitted = fitLayout(next, nextView, ctx, { keep: [incoming] });
-  return { layout: fitted, view: nextView, reshaped: fitted !== next };
+  // The positions keep their rects even when the panes would size differently (the share rule follows the content).
+  return { layout: fitted === next ? holdGeometry(layout, fitted, ctx) : fitted, view: nextView, reshaped: fitted !== next };
 }
