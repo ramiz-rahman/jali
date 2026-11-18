@@ -86,11 +86,14 @@ export function App() {
   return (
     <MDXProvider components={mdxComponents}>
       <a className="skip-link" href="#content">Skip to content</a>
-      <TopBar onSearch={openSearch} onMenu={() => setMenuOpen(true)} />
+      <TopBar onSearch={openSearch} onMenu={() => setMenuOpen(true)} path={shown} landing={isHome} />
       <div className="layout" data-home={isHome || undefined} data-wide={isWide || undefined} data-toc={entries.length && !isHome ? "" : undefined}>
-        <div className="sidebar">
-          <div className="sidebar-inner"><Nav path={path} /></div>
-        </div>
+        {/* The landing page is its own place: no docs nav beside it. */}
+        {!isHome ? (
+          <div className="sidebar">
+            <div className="sidebar-inner"><Nav path={path} /></div>
+          </div>
+        ) : null}
         <main id="content" className="main" tabIndex={-1}>
           {loaded && !Page ? <NotFound path={path} /> : null}
           {Page && fm ? (

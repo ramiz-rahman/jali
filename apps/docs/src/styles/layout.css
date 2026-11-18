@@ -82,7 +82,7 @@
     max-width: 1520px; margin: 0 auto;
     min-height: calc(100vh - var(--d-topbar));
   }
-  .layout[data-home] { grid-template-columns: var(--d-nav-w) minmax(0, 1fr); }
+  .layout[data-home] { grid-template-columns: minmax(0, 1fr); max-width: none; }
 
   .sidebar { border-right: 1px solid var(--jali-border); }
   .sidebar-inner {
@@ -228,4 +228,15 @@
   @media (max-width: 400px) {
     .brand-divider, .brand-docs { display: none; }
   }
+
+  /* ---------- the site's sections in the top bar ---------- */
+  .topbar-sections { display: flex; align-items: center; gap: 4px; margin-left: 28px; }
+  .topbar-section {
+    padding: 6px 10px; border-radius: 8px; color: var(--jali-text-muted); text-decoration: none;
+    font: 500 0.9375rem/1.25rem var(--d-font);
+  }
+  .topbar-section:hover { color: var(--jali-text); background: var(--jali-hover); }
+  .topbar-section[aria-current="page"] { color: var(--jali-text); }
+  .topbar-section:focus-visible { outline: 2px solid var(--jali-focus-ring); outline-offset: 2px; }
+  @media (max-width: 767px) { .topbar-sections { display: none; } }
 }

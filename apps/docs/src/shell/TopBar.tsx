@@ -35,18 +35,28 @@ function ThemeToggle() {
   );
 }
 
-export function TopBar({ onSearch, onMenu }: { onSearch: () => void; onMenu: () => void }) {
+/** The site's sections, in the top bar on every page: the landing and the docs are separate places. */
+const SECTIONS = [
+  { title: "Docs", href: "/get-started/introduction", match: (p: string) => /^\/(get-started|learn|guides)(\/|$)/.test(p) },
+  { title: "Reference", href: "/reference/core", match: (p: string) => p.startsWith("/reference") },
+  { title: "Examples", href: "/examples", match: (p: string) => p.startsWith("/examples") },
+];
+
+export function TopBar({ onSearch, onMenu, path, landing }: { onSearch: () => void; onMenu: () => void; path: string; landing?: boolean }) {
   return (
     <header className="topbar">
       <div className="topbar-inner">
         <button type="button" className="icon-button menu-button" aria-label="Open the docs menu" aria-haspopup="dialog" onClick={onMenu}>
           <Menu aria-hidden size={20} strokeWidth={1.75} />
         </button>
-        <a className="brand" href="/" aria-label="Jali docs, home">
+        <a className="brand" href="/" aria-label="Jali, home">
           <Lockup className="brand-lockup" />
-          <span className="brand-divider" aria-hidden />
-          <span className="brand-docs" aria-hidden>Docs</span>
         </a>
+        <nav className="topbar-sections" aria-label="Site">
+          {SECTIONS.map((s) => (
+            <a key={s.href} className="topbar-section" href={s.href} aria-current={!landing && s.match(path) ? "page" : undefined}>{s.title}</a>
+          ))}
+        </nav>
         <div className="topbar-actions">
           <button type="button" className="search-button" onClick={onSearch} aria-label="Search the docs" aria-keyshortcuts="Meta+K Control+K /">
             <SearchIcon aria-hidden size={16} strokeWidth={1.75} />
