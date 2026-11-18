@@ -103,7 +103,7 @@ export interface ResolvedLayout {
 export interface FitOptions { width: number; height: number; gap: number; kinds: KindRegistry }
 export interface LayoutContext { fit: FitOptions; paneCap: number }
 export type OpenResult = { layout: Layout; view: ViewState; opened: NodeId; mode: "beside" | "replaced" | "tab" };
-export type HideRefusal = "missing" | "tab" | "hidden" | "last";
+export type HideRefusal = "missing" | "hidden" | "last";
 export type HideResult = { ok: true; layout: Layout; view: ViewState } | { ok: false; reason: HideRefusal };
 export interface UndoEntry {
   kind: "close" | "closeOthers" | "tuck";
