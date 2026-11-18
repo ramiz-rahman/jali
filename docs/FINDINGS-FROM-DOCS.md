@@ -36,7 +36,7 @@
 
 ## From the live parts and the reference
 25. **Mounting a workspace pulls page focus into it** when focus is on the body (`core/src/dom/focus.ts:35`, `keepPaneFocus` from `Workspace.tsx`). A docs page with three workspaces, or a host with a workspace below the fold, loses its place. Only move focus for a change the person made.
-26. **`refit` throws a RangeError on a negative width** (`core/src/layout/fit/context.ts:9`); clamp instead.
+26. Done 19 Nov: a negative width or height is clamped to zero in `resolve` and `refit`. ~~**`refit` throws a RangeError on a negative width** (`core/src/layout/fit/context.ts:9`); clamp instead.~~
 27. **The shelf's phone rule needs the host's root to have the class `.app`** (`react/src/styles/shelf.css:37`), and the single view reads `--switcher-h`, which only `applyTokens` sets (see 11).
 28. **`GAP` isn't exported**, so an outside measure (the docs' Frame) hard-codes 6.
 29. **`FollowControl` crowds out the pane title** near 200px ("O…" for Orders); hide its word below ~250px (a container query on `.jali-pane`).

@@ -315,3 +315,4 @@ Research, sources and the full table: `docs/research/keyboard-shortcuts.md`. Cod
 - **`StackNode.origin` is optional** (15): hand-written stacks leave it out; validation and links accept both.
 - **Unsaved work clears itself** (17): the pane host calls `setUnsaved(null)` when a pane's content unmounts or its kind changes. A kind only reports and clears it while mounted. (`setCommands(null)` on unmount is still the kind's; the same treatment would suit it.)
 - **`Settings.showStats` is the lab's** (36): it left `Settings` and `DEFAULT_SETTINGS`; a saved value is dropped on load. `<Jali settingsExtra>` (and `<SettingsPanel>` children) adds a host's own fieldsets to the Settings panel; the lab's "Show fetch stats" lives there, saved under `lab:show-stats`.
+- **A negative fit size clamps** (26): `resolve` and `refit` treat a negative width or height as zero instead of throwing; non-finite sizes and a negative gap still throw.
