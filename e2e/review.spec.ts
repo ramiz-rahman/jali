@@ -124,6 +124,18 @@ test.describe("Loan review: Multiplexed", () => {
     expect(ids.indexOf("officer")).toBe(ids.indexOf("application") + 1);
   });
 
+  test("a view dropped in a pane's centre joins it as a tab: both views are listed, neither replaced", async ({ lab, page }) => {
+    await lab.open({ path: at("application"), size: { width: 1440, height: 900 } });
+    await mode(page, "Multiplexed").click();
+    const to = (await lab.pane("application").boundingBox())!;
+    await dragTab(page, "Field officer", { x: to.x + to.width / 2, y: to.y + to.height / 2 });
+    const strip = lab.pane("officer").getByRole("tablist");
+    await expect(strip.getByRole("tab")).toHaveText(["Application", "Field officer"]);
+    await strip.getByRole("tab", { name: "Application" }).click();
+    await expect(lab.pane("application")).toBeVisible();
+    await expect(pageTab(page, "Field officer")).toHaveAttribute("data-state", "behind");
+  });
+
   test("dragging a tab across the panes selects no text in them", async ({ lab, page }) => {
     await lab.open({ path: at("application"), size: { width: 1440, height: 900 } });
     await mode(page, "Multiplexed").click();

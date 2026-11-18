@@ -30,8 +30,12 @@ export function TabStrip({ group, owner }: { group: NonNullable<Frame["group"]>;
   const { actions } = store;
   // A curated page: no "+" (its views come from the page's tabs).
   const review = useUi((s) => !!s.review);
-  // A curated page's views live in the page tabs: here only the shown one and panes opened from links, never a repeat.
-  const tabs = review ? group.tabs.filter(({ node: t }) => !t.role || t.id === group.active) : group.tabs;
+  // A curated page's views live in the page tabs, so a pane's strip lists a page view only while it is shown: never a
+  // repeat. The exception is a group of page views, which only a centre drop ("Add as tab") makes: you asked for
+  // those tabs, so it lists each view you put there (not ones the layout folded in).
+  const placed = group.tabs.filter((t) => t.node.role && !t.folded);
+  const tabs = !review ? group.tabs
+    : group.tabs.filter((t) => !t.node.role || t.node.id === group.active || (placed.length > 1 && !t.folded));
   // Made by you first, made by the layout (folded) after a hairline: the second kind returns by itself.
   const mine = tabs.filter((t) => !t.folded);
   const folded = tabs.filter((t) => t.folded);
