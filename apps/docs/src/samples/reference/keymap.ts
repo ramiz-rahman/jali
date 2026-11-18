@@ -2,7 +2,7 @@ import { DEFAULT_KEYMAP, formatKeys } from "@jali/core";
 import { store } from "./store";
 
 // The workspace's keymap: the defaults, with the workspace's `keymap` overrides applied.
-store.keymap.label("pane.close");          // "⌘K ⌘W" (rebound in store.ts)
-store.keymap.label("pane.split.down");     // "" (unbound)
+store.keymap.label("pane.close"); // "⌘K ⌘W" (rebound in store.ts)
+store.keymap.label("pane.split.down"); // "" (unbound)
 store.keymap.sequences("pane.zoom").map((s) => formatKeys(s, "other")); // ["Ctrl+Shift+Enter"]
-DEFAULT_KEYMAP["pane.split.right"];        // ["Mod+\\"]
+DEFAULT_KEYMAP["pane.split.right"]; // ["Mod+\\"]

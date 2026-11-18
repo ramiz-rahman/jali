@@ -12,7 +12,15 @@ import { auditKind } from "./kinds/audit";
 
 /** Data Studio's pane kinds. */
 export const dataStudioKinds: readonly Pane[] = [
-  catalogKind, tableKind, recordKind, relatedKind, queryKind, chartKind, structureKind, erKind, auditKind,
+  catalogKind,
+  tableKind,
+  recordKind,
+  relatedKind,
+  queryKind,
+  chartKind,
+  structureKind,
+  erKind,
+  auditKind,
 ];
 /** What Split and "New tab here" open in Data Studio. */
 export { launcherKind as dataStudioLauncher };

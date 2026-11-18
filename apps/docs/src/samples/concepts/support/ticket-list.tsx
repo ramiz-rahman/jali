@@ -32,7 +32,13 @@ function TicketList({ select, peek, openBeside }: PaneProps) {
   return (
     <ul role="listbox" aria-label="Tickets" tabIndex={0} onKeyDown={onKeyDown}>
       {tickets.map((t, i) => (
-        <li key={t.id} role="option" aria-selected={i === index} onClick={() => selectAt(i)} onDoubleClick={() => openAt(i)}>
+        <li
+          key={t.id}
+          role="option"
+          aria-selected={i === index}
+          onClick={() => selectAt(i)}
+          onDoubleClick={() => openAt(i)}
+        >
           #{t.id} {t.subject}
         </li>
       ))}

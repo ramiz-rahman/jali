@@ -1,144 +1,515 @@
 @layer jali {
-/* ---------- pane frame ---------- */
-.jali-pane {
-  position: absolute; display: flex; flex-direction: column; overflow: hidden;
-  background: var(--jali-surface); border: 1px solid var(--jali-border); border-radius: var(--jali-radius);
-  outline: none;
-}
-.jali-pane.is-focused { box-shadow: 0 0 0 0.5px var(--jali-accent); border-color: var(--jali-accent); }
-.jali-pane.is-zoomed { z-index: 20; box-shadow: 0 0 0 0.5px var(--jali-accent), var(--jali-shadow-zoom); }
-.jali-pane.is-dragged { opacity: 0.55; }
-/* During a drag the only accent ring is the drop's: the pane in hand is dimmed, and the focused pane (often the
+  /* ---------- pane frame ---------- */
+  .jali-pane {
+    position: absolute;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    background: var(--jali-surface);
+    border: 1px solid var(--jali-border);
+    border-radius: var(--jali-radius);
+    outline: none;
+  }
+  .jali-pane.is-focused {
+    box-shadow: 0 0 0 0.5px var(--jali-accent);
+    border-color: var(--jali-accent);
+  }
+  .jali-pane.is-zoomed {
+    z-index: 20;
+    box-shadow:
+      0 0 0 0.5px var(--jali-accent),
+      var(--jali-shadow-zoom);
+  }
+  .jali-pane.is-dragged {
+    opacity: 0.55;
+  }
+  /* During a drag the only accent ring is the drop's: the pane in hand is dimmed, and the focused pane (often the
    target of a page tab) drops its focus ring until the drag ends. */
-body.jali-pane-dragging .jali-pane.is-focused { border-color: var(--jali-border); box-shadow: none; }
-.jali-pane[aria-hidden="true"] { visibility: hidden; }
-/* Single view (phone): full-bleed, no island. */
-.jali-pane.is-single { border: 0; border-radius: 0; box-shadow: none; }
-.jali-pane.is-single.is-focused { box-shadow: none; border: 0; }
+  body.jali-pane-dragging .jali-pane.is-focused {
+    border-color: var(--jali-border);
+    box-shadow: none;
+  }
+  .jali-pane[aria-hidden="true"] {
+    visibility: hidden;
+  }
+  /* Single view (phone): full-bleed, no island. */
+  .jali-pane.is-single {
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+  }
+  .jali-pane.is-single.is-focused {
+    box-shadow: none;
+    border: 0;
+  }
 
-.jali-pane-header {
-  position: relative; flex: none; height: 2.5rem; display: flex; align-items: center; gap: 0.5rem;
-  padding: 0 0.375rem 0 0.75rem; border-bottom: 1px solid var(--jali-border); user-select: none; cursor: default;
-  /* Narrow panes give the title room (below): the header is the container, so nothing inside it is a containing
+  .jali-pane-header {
+    position: relative;
+    flex: none;
+    height: 2.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0 0.375rem 0 0.75rem;
+    border-bottom: 1px solid var(--jali-border);
+    user-select: none;
+    cursor: default;
+    /* Narrow panes give the title room (below): the header is the container, so nothing inside it is a containing
      block for fixed menus (they are portalled anyway). */
-  container: jali-header / inline-size;
-}
-.jali-grip {
-  position: absolute; left: 50%; top: 0; transform: translateX(-50%); height: 0.75rem; width: 2.25rem;
-  display: grid; place-items: center; color: var(--jali-text-faint); opacity: 0; cursor: grab;
-}
-.jali-pane-header:hover .jali-grip { opacity: 1; }
-.jali-pane-title { display: flex; align-items: center; gap: 0.5rem; min-width: 0; flex: 1; color: var(--jali-text-subtle); }
-.jali-pane-title h2 {
-  margin: 0; font-size: 0.8125rem; font-weight: 500; color: var(--jali-text);
-  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-}
-.jali-badge { font-size: 0.6875rem; color: var(--jali-text-subtle); border: 1px solid var(--jali-border); border-radius: 4px; padding: 0 0.25rem; }
+    container: jali-header / inline-size;
+  }
+  .jali-grip {
+    position: absolute;
+    left: 50%;
+    top: 0;
+    transform: translateX(-50%);
+    height: 0.75rem;
+    width: 2.25rem;
+    display: grid;
+    place-items: center;
+    color: var(--jali-text-faint);
+    opacity: 0;
+    cursor: grab;
+  }
+  .jali-pane-header:hover .jali-grip {
+    opacity: 1;
+  }
+  .jali-pane-title {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    min-width: 0;
+    flex: 1;
+    color: var(--jali-text-subtle);
+  }
+  .jali-pane-title h2 {
+    margin: 0;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    color: var(--jali-text);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .jali-badge {
+    font-size: 0.6875rem;
+    color: var(--jali-text-subtle);
+    border: 1px solid var(--jali-border);
+    border-radius: 4px;
+    padding: 0 0.25rem;
+  }
 
-/* Header actions: tuck, maximise, close; 26px targets, 4px apart. Tuck and maximise show on the focused or hovered pane. */
-.jali-pane-actions { display: flex; align-items: center; gap: 2px; flex: none; }
-.jali-pane .jali-pane-actions { gap: 0.25rem; }
-.jali-pane-actions .jali-icon-btn { width: 1.625rem; height: 1.625rem; }
-.jali-pane .jali-pane-actions .jali-icon-btn { min-width: 1.625rem; border-radius: var(--jali-radius-control); opacity: 0.55; }
-.jali-pane.is-focused .jali-pane-actions .jali-icon-btn, .jali-pane:hover .jali-pane-actions .jali-icon-btn, .jali-pane:focus-within .jali-pane-actions .jali-icon-btn { opacity: 1; }
-.jali-pane .jali-pane-actions .jali-icon-btn:disabled { opacity: 0.35; cursor: not-allowed; }
-.jali-pane .jali-pane-actions .jali-icon-btn:disabled:hover { background: none; color: var(--jali-text-subtle); }
-.jali-pane:not(.is-focused):not(:hover) .jali-act-zoom,
-.jali-pane:not(.is-focused):not(:hover) .jali-act-tuck { opacity: 0; }
-/* A narrow pane's idle tuck and maximise take no room at all, so the title keeps it ("Order 12", not "Order 1…").
+  /* Header actions: tuck, maximise, close; 26px targets, 4px apart. Tuck and maximise show on the focused or hovered pane. */
+  .jali-pane-actions {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    flex: none;
+  }
+  .jali-pane .jali-pane-actions {
+    gap: 0.25rem;
+  }
+  .jali-pane-actions .jali-icon-btn {
+    width: 1.625rem;
+    height: 1.625rem;
+  }
+  .jali-pane .jali-pane-actions .jali-icon-btn {
+    min-width: 1.625rem;
+    border-radius: var(--jali-radius-control);
+    opacity: 0.55;
+  }
+  .jali-pane.is-focused .jali-pane-actions .jali-icon-btn,
+  .jali-pane:hover .jali-pane-actions .jali-icon-btn,
+  .jali-pane:focus-within .jali-pane-actions .jali-icon-btn {
+    opacity: 1;
+  }
+  .jali-pane .jali-pane-actions .jali-icon-btn:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+  }
+  .jali-pane .jali-pane-actions .jali-icon-btn:disabled:hover {
+    background: none;
+    color: var(--jali-text-subtle);
+  }
+  .jali-pane:not(.is-focused):not(:hover) .jali-act-zoom,
+  .jali-pane:not(.is-focused):not(:hover) .jali-act-tuck {
+    opacity: 0;
+  }
+  /* A narrow pane's idle tuck and maximise take no room at all, so the title keeps it ("Order 12", not "Order 1…").
    Wider panes keep the room, so hovering never shifts the title. */
-@container jali-header (max-width: 20rem) {
-  .jali-pane:not(.is-focused):not(:hover):not(:focus-within) .jali-act-zoom,
-  .jali-pane:not(.is-focused):not(:hover):not(:focus-within) .jali-act-tuck { display: none; }
-}
+  @container jali-header (max-width: 20rem) {
+    .jali-pane:not(.is-focused):not(:hover):not(:focus-within) .jali-act-zoom,
+    .jali-pane:not(.is-focused):not(:hover):not(:focus-within) .jali-act-tuck {
+      display: none;
+    }
+  }
 
-.jali-pane-content { position: relative; flex: 1; min-height: 0; overflow: hidden; }
-.jali-pane-content-inner { position: absolute; inset: 0; overflow: auto; }
-.jali-pane-content[data-holding] .jali-pane-content-inner { right: auto; bottom: auto; }
-.jali-pane-missing { padding: 1rem; display: grid; gap: 0.25rem; color: var(--jali-text-muted); }
+  .jali-pane-content {
+    position: relative;
+    flex: 1;
+    min-height: 0;
+    overflow: hidden;
+  }
+  .jali-pane-content-inner {
+    position: absolute;
+    inset: 0;
+    overflow: auto;
+  }
+  .jali-pane-content[data-holding] .jali-pane-content-inner {
+    right: auto;
+    bottom: auto;
+  }
+  .jali-pane-missing {
+    padding: 1rem;
+    display: grid;
+    gap: 0.25rem;
+    color: var(--jali-text-muted);
+  }
 
-/* Activity dot (header, tab, switcher). The shelf's shapes are in shelf.css. */
-.jali-activity { width: 0.375rem; height: 0.375rem; border-radius: 50%; flex: none; display: inline-block; }
-.jali-activity-loading { background: var(--jali-text-faint); }
-.jali-activity-working { background: var(--jali-working); }
-.jali-activity-needs-you { background: var(--jali-blocked); }
-.jali-activity-error { background: var(--jali-failed); }
+  /* Activity dot (header, tab, switcher). The shelf's shapes are in shelf.css. */
+  .jali-activity {
+    width: 0.375rem;
+    height: 0.375rem;
+    border-radius: 50%;
+    flex: none;
+    display: inline-block;
+  }
+  .jali-activity-loading {
+    background: var(--jali-text-faint);
+  }
+  .jali-activity-working {
+    background: var(--jali-working);
+  }
+  .jali-activity-needs-you {
+    background: var(--jali-blocked);
+  }
+  .jali-activity-error {
+    background: var(--jali-failed);
+  }
 
-/* ---------- tabs ---------- */
-/* The wrapper that makes a bare pane inert must not size the strip: the strip shrinks to the header so it can overflow into its menu. */
-.jali-bare-inert { display: contents; }
-.jali-tabbar { display: flex; align-items: center; gap: 2px; min-width: 0; flex: 1; height: 100%; margin-left: -0.375rem; }
-.jali-tabs { display: flex; align-items: stretch; gap: 2px; min-width: 0; flex: 0 1 auto; height: 100%; overflow-x: auto; overflow-y: hidden; scrollbar-width: none; }
-.jali-tabs::-webkit-scrollbar { display: none; }
-/* Edge fades: a mask, so it works on any header background. */
-.jali-tabs[data-fade-r] { --fade-r: 24px; }
-.jali-tabs[data-fade-l] { --fade-l: 24px; }
-.jali-tabs[data-fade-l], .jali-tabs[data-fade-r] {
-  -webkit-mask-image: linear-gradient(to right, transparent 0, #000 var(--fade-l, 0px), #000 calc(100% - var(--fade-r, 0px)), transparent 100%);
-  mask-image: linear-gradient(to right, transparent 0, #000 var(--fade-l, 0px), #000 calc(100% - var(--fade-r, 0px)), transparent 100%);
-}
-.jali-tab-add { display: grid; place-items: center; flex: none; width: 1.5rem; height: 1.5rem; border: 0; border-radius: var(--jali-radius-control); background: none; color: var(--jali-text-subtle); padding: 0; cursor: pointer; }
-.jali-tab-add:hover { background: var(--jali-hover); color: var(--jali-text); }
-.jali-tab {
-  display: flex; align-items: center; gap: 0.375rem; flex: none; min-width: 4.5rem; max-width: 12.5rem; padding: 0 0.25rem 0 0.5rem;
-  color: var(--jali-text-subtle); border-bottom: 1.5px solid transparent; margin-bottom: -1px; cursor: pointer;
-}
-.jali-tab:hover { color: var(--jali-text); }
-.jali-tab.is-active { color: var(--jali-text); border-bottom-color: var(--jali-text); }
-.jali-tab-title { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: 500; }
-/* Close: a 24px hit area 4px from the label. It shows on hover, keyboard focus, or the active tab; touch has no hover. */
-.jali-tab-close {
-  display: grid; place-items: center; flex: none; width: 1.5rem; height: 1.5rem; margin-left: -2px;
-  padding: 0; border: 0; border-radius: 4px; background: none; color: var(--jali-text-faint); cursor: pointer;
-}
-.jali-tab-close:hover { background: var(--jali-hover); color: var(--jali-text); }
-.jali-tab:not(.is-active) .jali-tab-close { opacity: 0; }
-.jali-tab:hover .jali-tab-close, .jali-tab:focus-within .jali-tab-close, .jali-tab .jali-tab-close:focus-visible, .jali-tab.is-active .jali-tab-close { opacity: 1; }
-@media (hover: none) { .jali-tab:not(.is-active) .jali-tab-close { opacity: 1; } }
+  /* ---------- tabs ---------- */
+  /* The wrapper that makes a bare pane inert must not size the strip: the strip shrinks to the header so it can overflow into its menu. */
+  .jali-bare-inert {
+    display: contents;
+  }
+  .jali-tabbar {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    min-width: 0;
+    flex: 1;
+    height: 100%;
+    margin-left: -0.375rem;
+  }
+  .jali-tabs {
+    display: flex;
+    align-items: stretch;
+    gap: 2px;
+    min-width: 0;
+    flex: 0 1 auto;
+    height: 100%;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scrollbar-width: none;
+  }
+  .jali-tabs::-webkit-scrollbar {
+    display: none;
+  }
+  /* Edge fades: a mask, so it works on any header background. */
+  .jali-tabs[data-fade-r] {
+    --fade-r: 24px;
+  }
+  .jali-tabs[data-fade-l] {
+    --fade-l: 24px;
+  }
+  .jali-tabs[data-fade-l],
+  .jali-tabs[data-fade-r] {
+    -webkit-mask-image: linear-gradient(
+      to right,
+      transparent 0,
+      #000 var(--fade-l, 0px),
+      #000 calc(100% - var(--fade-r, 0px)),
+      transparent 100%
+    );
+    mask-image: linear-gradient(
+      to right,
+      transparent 0,
+      #000 var(--fade-l, 0px),
+      #000 calc(100% - var(--fade-r, 0px)),
+      transparent 100%
+    );
+  }
+  .jali-tab-add {
+    display: grid;
+    place-items: center;
+    flex: none;
+    width: 1.5rem;
+    height: 1.5rem;
+    border: 0;
+    border-radius: var(--jali-radius-control);
+    background: none;
+    color: var(--jali-text-subtle);
+    padding: 0;
+    cursor: pointer;
+  }
+  .jali-tab-add:hover {
+    background: var(--jali-hover);
+    color: var(--jali-text);
+  }
+  .jali-tab {
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+    flex: none;
+    min-width: 4.5rem;
+    max-width: 12.5rem;
+    padding: 0 0.25rem 0 0.5rem;
+    color: var(--jali-text-subtle);
+    border-bottom: 1.5px solid transparent;
+    margin-bottom: -1px;
+    cursor: pointer;
+  }
+  .jali-tab:hover {
+    color: var(--jali-text);
+  }
+  .jali-tab.is-active {
+    color: var(--jali-text);
+    border-bottom-color: var(--jali-text);
+  }
+  .jali-tab-title {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-weight: 500;
+  }
+  /* Close: a 24px hit area 4px from the label. It shows on hover, keyboard focus, or the active tab; touch has no hover. */
+  .jali-tab-close {
+    display: grid;
+    place-items: center;
+    flex: none;
+    width: 1.5rem;
+    height: 1.5rem;
+    margin-left: -2px;
+    padding: 0;
+    border: 0;
+    border-radius: 4px;
+    background: none;
+    color: var(--jali-text-faint);
+    cursor: pointer;
+  }
+  .jali-tab-close:hover {
+    background: var(--jali-hover);
+    color: var(--jali-text);
+  }
+  .jali-tab:not(.is-active) .jali-tab-close {
+    opacity: 0;
+  }
+  .jali-tab:hover .jali-tab-close,
+  .jali-tab:focus-within .jali-tab-close,
+  .jali-tab .jali-tab-close:focus-visible,
+  .jali-tab.is-active .jali-tab-close {
+    opacity: 1;
+  }
+  @media (hover: none) {
+    .jali-tab:not(.is-active) .jali-tab-close {
+      opacity: 1;
+    }
+  }
 
-/* Tabs made by you vs made by the layout. Yours: plain, or tucked (dashed underline, Put back). The layout's: folded, in a
+  /* Tabs made by you vs made by the layout. Yours: plain, or tucked (dashed underline, Put back). The layout's: folded, in a
    trailing segment after a hairline, italic, with a fold icon (shape, not colour). Both marks reserve their slot, so a tab's
    width does not change with its state or with hover. */
-.jali-tab.is-tucked:not(.is-active) { border-bottom-style: dashed; border-bottom-color: var(--jali-text-subtle); }
-.jali-tab.is-tucked.is-active { border-bottom-style: dashed; }
-.jali-tab-putback {
-  display: grid; place-items: center; flex: none; width: 1.5rem; height: 1.5rem; margin-left: -2px; padding: 0; border: 0; border-radius: var(--jali-radius-control);
-  background: none; color: var(--jali-text-subtle); cursor: pointer; opacity: 0.7;
-}
-.jali-tab:hover .jali-tab-putback, .jali-tab:focus-within .jali-tab-putback, .jali-tab .jali-tab-putback:focus-visible { opacity: 1; }
-.jali-tab-putback:hover { background: var(--jali-hover); color: var(--jali-text); }
-.jali-tab-sep { flex: none; align-self: center; width: 1px; height: 1rem; margin: 0 0.25rem; background: var(--jali-text-subtle); }
-.jali-tab.is-folded .jali-tab-title { font-style: italic; font-weight: 400; padding-right: 2px; }
-.jali-tab.is-folded:not(.is-active) { border-bottom-style: dotted; border-bottom-color: var(--jali-text-subtle); }
-.jali-tab.is-folded.is-active { border-bottom-style: dotted; }
-.jali-tab-fold-mark { display: grid; place-items: center; flex: none; width: 1rem; height: 1.5rem; margin-left: -2px; color: var(--jali-text-subtle); }
-/* Overflow: the count of tabs out of view, then a menu of all of them. */
-.jali-tab-more {
-  display: inline-flex; align-items: center; gap: 2px; flex: none; height: 1.5rem; padding: 0 0.3125rem 0 0.375rem; border: 1px solid var(--jali-border-strong);
-  border-radius: var(--jali-radius-control); background: none; color: var(--jali-text-muted); font: inherit; font-size: 0.6875rem; font-variant-numeric: tabular-nums; line-height: 1; cursor: pointer;
-}
-.jali-tab-more:hover, .jali-tab-more[aria-expanded="true"] { background: var(--jali-hover); color: var(--jali-text); }
-.jali-tab-more:focus-visible, .jali-tab-menu-item:focus-visible { outline: 2px solid var(--jali-focus-ring); outline-offset: 1px; }
-.jali-tab-menu {
-  position: fixed; z-index: 60; width: 17.5rem; max-height: min(22.5rem, 60vh); overflow: auto; padding: 0.25rem; background: var(--jali-surface-raised);
-  border: 1px solid var(--jali-border-strong); border-radius: var(--jali-radius-menu); box-shadow: var(--jali-shadow-menu); font-size: 0.75rem;
-}
-.jali-tab-menu-item { all: unset; box-sizing: border-box; display: flex; align-items: center; gap: 0.5rem; width: 100%; height: 1.875rem; padding: 0 0.5rem 0 0.25rem; border-radius: 5px; cursor: pointer; color: var(--jali-text); }
-.jali-tab-menu-item:hover, .jali-tab-menu-item:focus-visible { background: var(--jali-hover); }
-.jali-tab-menu-item:focus-visible { outline: 2px solid var(--jali-focus-ring); outline-offset: -2px; }
-.jali-tab-menu-check { display: grid; place-items: center; flex: none; width: 1rem; color: var(--jali-text-muted); }
-.jali-tab-menu-title { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.jali-tab-menu-item[data-folded] .jali-tab-menu-title { font-style: italic; padding-right: 2px; }
-.jali-tab-menu-mark { display: inline-flex; align-items: center; gap: 0.1875rem; flex: none; color: var(--jali-text-muted); font-size: 0.6875rem; }
-.jali-tab.is-flash { animation: tab-flash 600ms ease-out; }
-@keyframes tab-flash { 0% { background: color-mix(in srgb, var(--jali-accent) 22%, transparent); } 100% { background: transparent; } }
-@media (prefers-reduced-motion: reduce) { .jali-tab.is-flash { animation: none; } }
+  .jali-tab.is-tucked:not(.is-active) {
+    border-bottom-style: dashed;
+    border-bottom-color: var(--jali-text-subtle);
+  }
+  .jali-tab.is-tucked.is-active {
+    border-bottom-style: dashed;
+  }
+  .jali-tab-putback {
+    display: grid;
+    place-items: center;
+    flex: none;
+    width: 1.5rem;
+    height: 1.5rem;
+    margin-left: -2px;
+    padding: 0;
+    border: 0;
+    border-radius: var(--jali-radius-control);
+    background: none;
+    color: var(--jali-text-subtle);
+    cursor: pointer;
+    opacity: 0.7;
+  }
+  .jali-tab:hover .jali-tab-putback,
+  .jali-tab:focus-within .jali-tab-putback,
+  .jali-tab .jali-tab-putback:focus-visible {
+    opacity: 1;
+  }
+  .jali-tab-putback:hover {
+    background: var(--jali-hover);
+    color: var(--jali-text);
+  }
+  .jali-tab-sep {
+    flex: none;
+    align-self: center;
+    width: 1px;
+    height: 1rem;
+    margin: 0 0.25rem;
+    background: var(--jali-text-subtle);
+  }
+  .jali-tab.is-folded .jali-tab-title {
+    font-style: italic;
+    font-weight: 400;
+    padding-right: 2px;
+  }
+  .jali-tab.is-folded:not(.is-active) {
+    border-bottom-style: dotted;
+    border-bottom-color: var(--jali-text-subtle);
+  }
+  .jali-tab.is-folded.is-active {
+    border-bottom-style: dotted;
+  }
+  .jali-tab-fold-mark {
+    display: grid;
+    place-items: center;
+    flex: none;
+    width: 1rem;
+    height: 1.5rem;
+    margin-left: -2px;
+    color: var(--jali-text-subtle);
+  }
+  /* Overflow: the count of tabs out of view, then a menu of all of them. */
+  .jali-tab-more {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    flex: none;
+    height: 1.5rem;
+    padding: 0 0.3125rem 0 0.375rem;
+    border: 1px solid var(--jali-border-strong);
+    border-radius: var(--jali-radius-control);
+    background: none;
+    color: var(--jali-text-muted);
+    font: inherit;
+    font-size: 0.6875rem;
+    font-variant-numeric: tabular-nums;
+    line-height: 1;
+    cursor: pointer;
+  }
+  .jali-tab-more:hover,
+  .jali-tab-more[aria-expanded="true"] {
+    background: var(--jali-hover);
+    color: var(--jali-text);
+  }
+  .jali-tab-more:focus-visible,
+  .jali-tab-menu-item:focus-visible {
+    outline: 2px solid var(--jali-focus-ring);
+    outline-offset: 1px;
+  }
+  .jali-tab-menu {
+    position: fixed;
+    z-index: 60;
+    width: 17.5rem;
+    max-height: min(22.5rem, 60vh);
+    overflow: auto;
+    padding: 0.25rem;
+    background: var(--jali-surface-raised);
+    border: 1px solid var(--jali-border-strong);
+    border-radius: var(--jali-radius-menu);
+    box-shadow: var(--jali-shadow-menu);
+    font-size: 0.75rem;
+  }
+  .jali-tab-menu-item {
+    all: unset;
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    width: 100%;
+    height: 1.875rem;
+    padding: 0 0.5rem 0 0.25rem;
+    border-radius: 5px;
+    cursor: pointer;
+    color: var(--jali-text);
+  }
+  .jali-tab-menu-item:hover,
+  .jali-tab-menu-item:focus-visible {
+    background: var(--jali-hover);
+  }
+  .jali-tab-menu-item:focus-visible {
+    outline: 2px solid var(--jali-focus-ring);
+    outline-offset: -2px;
+  }
+  .jali-tab-menu-check {
+    display: grid;
+    place-items: center;
+    flex: none;
+    width: 1rem;
+    color: var(--jali-text-muted);
+  }
+  .jali-tab-menu-title {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .jali-tab-menu-item[data-folded] .jali-tab-menu-title {
+    font-style: italic;
+    padding-right: 2px;
+  }
+  .jali-tab-menu-mark {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.1875rem;
+    flex: none;
+    color: var(--jali-text-muted);
+    font-size: 0.6875rem;
+  }
+  .jali-tab.is-flash {
+    animation: tab-flash 600ms ease-out;
+  }
+  @keyframes tab-flash {
+    0% {
+      background: color-mix(in srgb, var(--jali-accent) 22%, transparent);
+    }
+    100% {
+      background: transparent;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .jali-tab.is-flash {
+      animation: none;
+    }
+  }
 
-/* ---------- curated workspaces: role panes name their role; opened panes carry the investigation's tint ---------- */
-.jali-pane-sub { font-size: 0.75rem; color: var(--jali-text-subtle); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
-.jali-pane[data-origin="role"] .jali-pane-title h2 { flex: none; max-width: 60%; }
-.jali-pane[data-boundary="tint"] .jali-pane-header { background: var(--jali-opened-bg); border-bottom-color: var(--jali-opened-line); }
-.jali-pane[data-boundary="tint"] { border-color: var(--jali-opened-line); }
-.jali-pane[data-boundary="tint"].is-focused { border-color: var(--jali-accent); }
-.jali-badge-opened { color: var(--jali-opened-ink); border-color: var(--jali-opened-line); background: var(--jali-surface); }
+  /* ---------- curated workspaces: role panes name their role; opened panes carry the investigation's tint ---------- */
+  .jali-pane-sub {
+    font-size: 0.75rem;
+    color: var(--jali-text-subtle);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    min-width: 0;
+  }
+  .jali-pane[data-origin="role"] .jali-pane-title h2 {
+    flex: none;
+    max-width: 60%;
+  }
+  .jali-pane[data-boundary="tint"] .jali-pane-header {
+    background: var(--jali-opened-bg);
+    border-bottom-color: var(--jali-opened-line);
+  }
+  .jali-pane[data-boundary="tint"] {
+    border-color: var(--jali-opened-line);
+  }
+  .jali-pane[data-boundary="tint"].is-focused {
+    border-color: var(--jali-accent);
+  }
+  .jali-badge-opened {
+    color: var(--jali-opened-ink);
+    border-color: var(--jali-opened-line);
+    background: var(--jali-surface);
+  }
 }

@@ -21,10 +21,7 @@ export const presets: PresetOptions[] = [
     label: "Customer desk",
     layout: row(
       pane(orderList(), { id: "orders", px: 480 }),
-      column(
-        customerKind({ id: 7 }),
-        tabs(orderKind({ id: 12 }), orderKind({ id: 15 })),
-      ),
+      column(customerKind({ id: 7 }), tabs(orderKind({ id: 12 }), orderKind({ id: 15 }))),
     ),
   },
 ];

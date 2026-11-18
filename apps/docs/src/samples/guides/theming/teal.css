@@ -3,9 +3,9 @@
 /* Light. Set tokens on the same scopes Jali declares them on (:root and .light), so your value wins there. */
 :root,
 .light {
-  --jali-accent: #0f766e;      /* focus edge, selected tab, primary buttons, drop preview */
+  --jali-accent: #0f766e; /* focus edge, selected tab, primary buttons, drop preview */
   --jali-accent-soft: #e6f4f1; /* soft fills behind accented things */
-  --jali-on-accent: #ffffff;   /* text on the accent */
+  --jali-on-accent: #ffffff; /* text on the accent */
   --jali-brand: #115e59;
 }
 

@@ -16,36 +16,62 @@ export interface SpotlightProps {
 }
 
 const NAMED: Record<string, { selector: string; all?: boolean; label: string }> = {
-  shelf: { selector: "[data-shelf]", label: "The shelf: panes folded or tucked away, one click from coming back" },
-  follow: { selector: ".jali-follow-toggle", label: "Following: this pane shows whatever is selected in the list" },
-  "drop-zones": { selector: ".jali-drop-indicator", label: "Drop zone: where the pane lands when you let go" },
+  shelf: {
+    selector: "[data-shelf]",
+    label: "The shelf: panes folded or tucked away, one click from coming back",
+  },
+  follow: {
+    selector: ".jali-follow-toggle",
+    label: "Following: this pane shows whatever is selected in the list",
+  },
+  "drop-zones": {
+    selector: ".jali-drop-indicator",
+    label: "Drop zone: where the pane lands when you let go",
+  },
   tabs: { selector: ".jali-tabbar", label: "Tabs: panes that share one place" },
   divider: { selector: ".jali-divider", label: "A divider: drag it to share the room differently" },
 };
 
-interface Box { x: number; y: number; w: number; h: number }
-interface Place { left: number; top: number; side: "below" | "above" | "right" | "left" | "inside" }
+interface Box {
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+}
+interface Place {
+  left: number;
+  top: number;
+  side: "below" | "above" | "right" | "left" | "inside";
+}
 
 /** Where the label goes: under the part, else over it, else beside it, else inside its lower edge. */
 function place(b: Box, lw: number, lh: number, W: number, H: number): Place {
-  const gap = 8, edge = 6;
+  const gap = 8,
+    edge = 6;
   const left = Math.max(edge, Math.min(b.x, W - lw - edge));
   if (b.y + b.h + gap + lh <= H - edge) return { left, top: b.y + b.h + gap, side: "below" };
   if (b.y - gap - lh >= edge) return { left, top: b.y - gap - lh, side: "above" };
   const top = Math.max(edge, Math.min(b.y + b.h / 2 - lh / 2, H - lh - edge));
   if (b.x + b.w + gap + lw <= W - edge) return { left: b.x + b.w + gap + 2, top, side: "right" };
   if (b.x - gap - lw >= edge) return { left: b.x - gap - lw - 2, top, side: "left" };
-  return { left: Math.max(edge, b.x + gap), top: Math.max(edge, b.y + b.h - lh - gap), side: "inside" };
+  return {
+    left: Math.max(edge, b.x + gap),
+    top: Math.max(edge, b.y + b.h - lh - gap),
+    side: "inside",
+  };
 }
 const PAD = 4;
 
-const reducedMotion = () => typeof matchMedia !== "undefined" && matchMedia("(prefers-reduced-motion: reduce)").matches;
+const reducedMotion = () =>
+  typeof matchMedia !== "undefined" && matchMedia("(prefers-reduced-motion: reduce)").matches;
 
 /** The part, measured against the stage: the first match for a named part, every match for a selector. */
 function measure(stage: HTMLElement, selector: string, all: boolean): Box | null {
   let els: Element[] = [];
   try {
-    els = [...stage.querySelectorAll(selector)].filter((el) => el.getClientRects().length && el.getBoundingClientRect().width > 0);
+    els = [...stage.querySelectorAll(selector)].filter(
+      (el) => el.getClientRects().length && el.getBoundingClientRect().width > 0,
+    );
   } catch {
     return null;
   }
@@ -53,10 +79,18 @@ function measure(stage: HTMLElement, selector: string, all: boolean): Box | null
   if (!els.length) return null;
   const o = stage.getBoundingClientRect();
   const rs = els.map((el) => el.getBoundingClientRect());
-  const l = Math.min(...rs.map((r) => r.left)), t = Math.min(...rs.map((r) => r.top));
-  const r = Math.max(...rs.map((b) => b.right)), b = Math.max(...rs.map((x) => x.bottom));
-  const x = Math.max(0, l - o.left - PAD), y = Math.max(0, t - o.top - PAD);
-  return { x, y, w: Math.min(o.width - x, r - l + PAD * 2), h: Math.min(o.height - y, b - t + PAD * 2) };
+  const l = Math.min(...rs.map((r) => r.left)),
+    t = Math.min(...rs.map((r) => r.top));
+  const r = Math.max(...rs.map((b) => b.right)),
+    b = Math.max(...rs.map((x) => x.bottom));
+  const x = Math.max(0, l - o.left - PAD),
+    y = Math.max(0, t - o.top - PAD);
+  return {
+    x,
+    y,
+    w: Math.min(o.width - x, r - l + PAD * 2),
+    h: Math.min(o.height - y, b - t + PAD * 2),
+  };
 }
 
 /** Puts something on the shelf when nothing is there yet: the last pane is tucked behind its neighbour. */
@@ -75,12 +109,23 @@ const ZONES: Edge[] = ["right", "bottom", "left"];
 function stageDrop(store: UiStore, step: number) {
   const m = store.model();
   const boxes = m.resolved.panes.filter((b) => !b.hidden);
-  const from = boxes[0], to = boxes[1];
+  const from = boxes[0],
+    to = boxes[1];
   if (!from || !to) return;
   const zone = ZONES[step % ZONES.length]!;
   const r = to.rect;
-  const at = { right: [0.86, 0.55], left: [0.14, 0.55], bottom: [0.5, 0.86], top: [0.5, 0.14] }[zone];
-  store.set({ dnd: { dragged: from.id, target: to.id, zone, x: r.x + r.width * at[0]!, y: r.y + r.height * at[1]! } });
+  const at = { right: [0.86, 0.55], left: [0.14, 0.55], bottom: [0.5, 0.86], top: [0.5, 0.14] }[
+    zone
+  ];
+  store.set({
+    dnd: {
+      dragged: from.id,
+      target: to.id,
+      zone,
+      x: r.x + r.width * at[0]!,
+      y: r.y + r.height * at[1]!,
+    },
+  });
 }
 
 export function Spotlight({ layout, target, height = 320, caption, label }: SpotlightProps) {
@@ -97,13 +142,23 @@ export function Spotlight({ layout, target, height = 320, caption, label }: Spot
   // Set the scene once the workspace has its size: something on the shelf, a drag held over a pane.
   useEffect(() => {
     if (target === "shelf") {
-      const off = store.subscribe(() => { if (store.get().area.width > 0) { off(); stageShelf(store); } });
-      if (store.get().area.width > 0) { off(); stageShelf(store); }
+      const off = store.subscribe(() => {
+        if (store.get().area.width > 0) {
+          off();
+          stageShelf(store);
+        }
+      });
+      if (store.get().area.width > 0) {
+        off();
+        stageShelf(store);
+      }
       return off;
     }
     if (target !== "drop-zones" || inside) return;
     let step = 0;
-    const run = () => { if (store.get().area.width > 0) stageDrop(store, step++); };
+    const run = () => {
+      if (store.get().area.width > 0) stageDrop(store, step++);
+    };
     const first = setTimeout(run, 50);
     const loop = reducedMotion() ? undefined : setInterval(run, 2200);
     return () => {
@@ -117,8 +172,12 @@ export function Spotlight({ layout, target, height = 320, caption, label }: Spot
   useEffect(() => {
     const el = stage.current;
     if (!el) return;
-    let raf = 0, visible = true;
-    const io = new IntersectionObserver(([e]) => { visible = !!e?.isIntersecting; if (visible) tick(); });
+    let raf = 0,
+      visible = true;
+    const io = new IntersectionObserver(([e]) => {
+      visible = !!e?.isIntersecting;
+      if (visible) tick();
+    });
     io.observe(el);
     let last = "";
     const tick = () => {
@@ -126,8 +185,11 @@ export function Spotlight({ layout, target, height = 320, caption, label }: Spot
       if (!visible) return;
       const b = measure(el, selector, !named);
       const lab = labelEl.current;
-      const lw = lab?.offsetWidth ?? 0, lh = lab?.offsetHeight ?? 0;
-      const key = b ? `${Math.round(b.x)},${Math.round(b.y)},${Math.round(b.w)},${Math.round(b.h)},${lw},${lh}` : "";
+      const lw = lab?.offsetWidth ?? 0,
+        lh = lab?.offsetHeight ?? 0;
+      const key = b
+        ? `${Math.round(b.x)},${Math.round(b.y)},${Math.round(b.w)},${Math.round(b.h)},${lw},${lh}`
+        : "";
       if (key !== last) {
         last = key;
         setBox(b);
@@ -136,19 +198,45 @@ export function Spotlight({ layout, target, height = 320, caption, label }: Spot
       raf = requestAnimationFrame(tick);
     };
     tick();
-    return () => { cancelAnimationFrame(raf); io.disconnect(); };
+    return () => {
+      cancelAnimationFrame(raf);
+      io.disconnect();
+    };
   }, [selector, named]);
 
-
   return (
-    <figure className="live-figure live-spot" data-live="spotlight" data-target={target} aria-label={caption ?? demoLayouts[layout]}>
-      <div className="live-stage live-spot-stage" ref={stage} data-inside={inside || undefined}
-        onPointerEnter={() => setInside(true)} onPointerLeave={() => setInside(false)}>
+    <figure
+      className="live-figure live-spot"
+      data-live="spotlight"
+      data-target={target}
+      aria-label={caption ?? demoLayouts[layout]}
+    >
+      <div
+        className="live-stage live-spot-stage"
+        ref={stage}
+        data-inside={inside || undefined}
+        onPointerEnter={() => setInside(true)}
+        onPointerLeave={() => setInside(false)}
+      >
         <LiveWorkspace store={store} height={height} />
         <div className="live-spot-layer" aria-hidden data-on={box ? "" : undefined}>
-          {box ? <div className="live-spot-hole" style={{ left: box.x, top: box.y, width: box.w, height: box.h }} /> : null}
+          {box ? (
+            <div
+              className="live-spot-hole"
+              style={{ left: box.x, top: box.y, width: box.w, height: box.h }}
+            />
+          ) : null}
           {box && text ? (
-            <div className="live-spot-label" ref={labelEl} data-side={at?.side} style={at ? { left: at.left, top: at.top } : { left: 0, top: 0, visibility: "hidden" }}>{text}</div>
+            <div
+              className="live-spot-label"
+              ref={labelEl}
+              data-side={at?.side}
+              style={
+                at ? { left: at.left, top: at.top } : { left: 0, top: 0, visibility: "hidden" }
+              }
+            >
+              {text}
+            </div>
           ) : null}
         </div>
       </div>

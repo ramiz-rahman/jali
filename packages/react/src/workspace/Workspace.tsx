@@ -1,5 +1,15 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
-import { besidePreview, roleOf, keepPaneFocus, CHROME, msg, GAP, SWITCHER_H, currentPane, frames } from "@jali/core/adapter";
+import {
+  besidePreview,
+  roleOf,
+  keepPaneFocus,
+  CHROME,
+  msg,
+  GAP,
+  SWITCHER_H,
+  currentPane,
+  frames,
+} from "@jali/core/adapter";
 import { PaneSwitcher } from "../chrome/PaneSwitcher";
 import { Peek } from "../chrome/Peek";
 import { DividerLayer } from "../dividers/DividerLayer";
@@ -16,7 +26,8 @@ function useMeasure(store: UiStore) {
     const el = ref.current;
     if (!el) return;
     const measure = () => {
-      const width = Math.max(0, Math.floor(el.clientWidth - GAP * 2)), height = Math.max(0, Math.floor(el.clientHeight - GAP * 2));
+      const width = Math.max(0, Math.floor(el.clientWidth - GAP * 2)),
+        height = Math.max(0, Math.floor(el.clientHeight - GAP * 2));
       const a = store.get().area;
       if (a.width !== width || a.height !== height) store.set({ area: { width, height } });
     };
@@ -36,7 +47,8 @@ function useEngaged(store: UiStore) {
     const on = (e: Event) => {
       const t = e.target as Node | null;
       const root = store.dom.root();
-      engaged.current = !!t && ((root !== document && root.contains(t)) || !!store.dom.layer()?.contains(t));
+      engaged.current =
+        !!t && ((root !== document && root.contains(t)) || !!store.dom.layer()?.contains(t));
     };
     document.addEventListener("focusin", on, true);
     document.addEventListener("pointerdown", on, true);
@@ -50,13 +62,20 @@ function useEngaged(store: UiStore) {
 
 /** Says which panes folded into tabs, or unfolded, when the room changed (not in single view, where nothing tiles).
  *  Only a change of room: an action that folds says so itself, in its own words. */
-function useFoldAnnouncements(store: UiStore, m: WorkspaceModel, area: { width: number; height: number }) {
+function useFoldAnnouncements(
+  store: UiStore,
+  m: WorkspaceModel,
+  area: { width: number; height: number },
+) {
   const prev = useRef<{ folded: string[]; room: string } | null>(null);
   useEffect(() => {
     const room = `${area.width}x${area.height}`;
     if (prev.current !== null && area.width > 0 && !m.single && prev.current.room !== room) {
-      const was = prev.current.folded, before = new Set(was), now = new Set(m.folded);
-      const added = m.folded.filter((id) => !before.has(id)), removed = was.filter((id) => !now.has(id) && m.pane(id));
+      const was = prev.current.folded,
+        before = new Set(was),
+        now = new Set(m.folded);
+      const added = m.folded.filter((id) => !before.has(id)),
+        removed = was.filter((id) => !now.has(id) && m.pane(id));
       if (added.length) store.announce(msg.folded(added.map(m.title)));
       else if (removed.length) store.announce(msg.unfolded(removed.map(m.title)));
     }
@@ -89,12 +108,31 @@ function Ghost({ role }: { role: string }) {
   if (!preview) return null;
   const p = store.env.profile!;
   const name = (id: string) => roleOf(p, id)?.label ?? m.title(id);
-  const box = (r: { x: number; y: number; width: number; height: number }) => ({ left: r.x, top: r.y, width: r.width, height: r.height });
-  const leaving = preview.leaving.length ? ` · ${preview.leaving.map(name).join(", ")} back to the tabs` : "";
+  const box = (r: { x: number; y: number; width: number; height: number }) => ({
+    left: r.x,
+    top: r.y,
+    width: r.width,
+    height: r.height,
+  });
+  const leaving = preview.leaving.length
+    ? ` · ${preview.leaving.map(name).join(", ")} back to the tabs`
+    : "";
   return (
     <>
-      {preview.moved.map((v) => <div key={v.id} className="jali-ghost jali-ghost-moved" data-ghost={v.id} style={box(v.rect)} aria-hidden />)}
-      <div className="jali-ghost" data-ghost={role} style={box(preview.incoming)} aria-hidden><span>{name(role)} opens here{leaving}</span></div>
+      {preview.moved.map((v) => (
+        <div
+          key={v.id}
+          className="jali-ghost jali-ghost-moved"
+          data-ghost={v.id}
+          style={box(v.rect)}
+          aria-hidden
+        />
+      ))}
+      <div className="jali-ghost" data-ghost={role} style={box(preview.incoming)} aria-hidden>
+        <span>
+          {name(role)} opens here{leaving}
+        </span>
+      </div>
     </>
   );
 }
@@ -116,12 +154,22 @@ function DragChip({ x, y, label }: { x: number; y: number; label: string }) {
     let top = y + 12;
     const lab = host.querySelector(".jali-drop-label")?.getBoundingClientRect();
     if (lab) {
-      const c = { l: o.left + left, t: o.top + top, r: o.left + left + chip.offsetWidth, b: o.top + top + chip.offsetHeight };
-      if (c.l < lab.right && c.r > lab.left && c.t < lab.bottom && c.b > lab.top) top = lab.bottom - o.top + 8;
+      const c = {
+        l: o.left + left,
+        t: o.top + top,
+        r: o.left + left + chip.offsetWidth,
+        b: o.top + top + chip.offsetHeight,
+      };
+      if (c.l < lab.right && c.r > lab.left && c.t < lab.bottom && c.b > lab.top)
+        top = lab.bottom - o.top + 8;
     }
     setPos({ left, top });
   }, [x, y, label]);
-  return <div ref={el} className="jali-drag-chip" data-testid="drag-chip" style={pos} aria-hidden>{label}</div>;
+  return (
+    <div ref={el} className="jali-drag-chip" data-testid="drag-chip" style={pos} aria-hidden>
+      {label}
+    </div>
+  );
 }
 
 /** The panes: the layout, its dividers, tabs, the shelf, the peek sheet and drop previews. */
@@ -140,7 +188,10 @@ export function Panes() {
   // Keep DOM focus on the focused pane after structural changes (focus is never lost), but only once the person has
   // been in this workspace: mounting one, or a change while they are elsewhere on the page, leaves their place alone.
   const engaged = useEngaged(store);
-  useEffect(() => keepPaneFocus(store.dom, view.focused, { fromBody: engaged.current }), [view.focused, m.layout]);
+  useEffect(
+    () => keepPaneFocus(store.dom, view.focused, { fromBody: engaged.current }),
+    [view.focused, m.layout],
+  );
 
   const single = m.single;
   // A curated page in Single mode shows one view under its tabs: the tabs name it, so the pane has no header.
@@ -149,13 +200,21 @@ export function Panes() {
   // On a phone the page tabs already choose the view, so a curated page has no pane switcher under them.
   const switcherH = page ? 0 : SWITCHER_H;
   const inner = single
-    ? { left: 0, top: switcherH, width: area.width + GAP * 2, height: Math.max(0, area.height + GAP * 2 - switcherH) }
+    ? {
+        left: 0,
+        top: switcherH,
+        width: area.width + GAP * 2,
+        height: Math.max(0, area.height + GAP * 2 - switcherH),
+      }
     : { left: GAP, top: GAP, width: area.width, height: area.height };
-  const dropBox = !single && dnd?.target ? m.resolved.panes.find((b) => b.id === dnd.target) : undefined;
+  const dropBox =
+    !single && dnd?.target ? m.resolved.panes.find((b) => b.id === dnd.target) : undefined;
 
   return (
     <main
-      className={["jali-workspace", single && "is-single", sliding && !single && "is-reshaping"].filter(Boolean).join(" ")}
+      className={["jali-workspace", single && "is-single", sliding && !single && "is-reshaping"]
+        .filter(Boolean)
+        .join(" ")}
       ref={ref}
       aria-label="Panes"
       data-single={single ? "" : undefined}
@@ -165,7 +224,12 @@ export function Panes() {
       {single && !page ? <PaneSwitcher panes={m.onScreen} current={currentPane(m, view)} /> : null}
       <div className="jali-workspace-inner" style={inner}>
         {frames(m, view, mode, { width: inner.width, height: inner.height }).map((f) => (
-          <PaneFrame key={f.node.id} frame={f} chrome={CHROME[mode]} dropTarget={!single && dnd?.target === f.node.id} />
+          <PaneFrame
+            key={f.node.id}
+            frame={f}
+            chrome={CHROME[mode]}
+            dropTarget={!single && dnd?.target === f.node.id}
+          />
         ))}
         {single ? null : <DividerLayer />}
         {dropBox && dnd?.zone ? <DropIndicator rect={dropBox.rect} zone={dnd.zone} /> : null}

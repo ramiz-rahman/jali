@@ -40,11 +40,13 @@ export const customerOrders = definePane("orders", {
 
   Component: ({ params, openBeside }) => (
     <ul>
-      {orders.filter((o) => o.customer === params.customer).map((o) => (
-        <li key={o.id}>
-          <button onClick={() => openBeside(order({ id: o.id }))}>Order {o.id}</button>
-        </li>
-      ))}
+      {orders
+        .filter((o) => o.customer === params.customer)
+        .map((o) => (
+          <li key={o.id}>
+            <button onClick={() => openBeside(order({ id: o.id }))}>Order {o.id}</button>
+          </li>
+        ))}
     </ul>
   ),
 });
@@ -57,9 +59,13 @@ export const customerTickets = definePane("customer-tickets", {
 
   Component: ({ params }) => (
     <ul>
-      {tickets.filter((t) => t.customer === params.customer).map((t) => (
-        <li key={t.id}>#{t.id} {t.subject}</li>
-      ))}
+      {tickets
+        .filter((t) => t.customer === params.customer)
+        .map((t) => (
+          <li key={t.id}>
+            #{t.id} {t.subject}
+          </li>
+        ))}
     </ul>
   ),
 });

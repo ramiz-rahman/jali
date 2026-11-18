@@ -55,7 +55,10 @@ export interface ProfileBase<R extends RoleBase = RoleBase, I extends ItemId = I
   firstItem: I;
 }
 
-export const roleOf = <R extends RoleBase>(p: ProfileBase<R, any>, id: string | undefined): R | undefined => p.roles.find((r) => r.id === id);
+export const roleOf = <R extends RoleBase>(
+  p: ProfileBase<R, any>,
+  id: string | undefined,
+): R | undefined => p.roles.find((r) => r.id === id);
 
 /** A pane's name: its role in a curated page ("Borrower"), else what it shows ("member 12"). */
 export function titleOf(env: Env, node: PaneNode): string {

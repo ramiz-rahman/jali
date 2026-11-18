@@ -12,8 +12,14 @@ export const EDGE_ZONE = 0.25;
 
 /** Pure zone rule, exported for tests. */
 export function zoneFor(r: Rect, x: number, y: number): Edge | "centre" {
-  const rx = (x - r.x) / r.width, ry = (y - r.y) / r.height;
-  const dists: [Edge, number][] = [["left", rx], ["right", 1 - rx], ["top", ry], ["bottom", 1 - ry]];
+  const rx = (x - r.x) / r.width,
+    ry = (y - r.y) / r.height;
+  const dists: [Edge, number][] = [
+    ["left", rx],
+    ["right", 1 - rx],
+    ["top", ry],
+    ["bottom", 1 - ry],
+  ];
   const inZone = dists.filter(([, d]) => d < EDGE_ZONE).sort((a, b) => a[1] - b[1]);
   return inZone[0]?.[0] ?? "centre";
 }
@@ -39,8 +45,15 @@ export interface PointerStart {
 
 export function startPaneDrag(store: UiStore, e: PointerStart, paneId: string) {
   const t = e.target as HTMLElement;
-  if (t.closest("button, input, textarea, select, a, [data-no-drag]") && !t.closest("[data-drag-ok]")) return;
-  startDrag(store, e, { id: paneId, onDrop: (target, zone) => store.actions.drop(paneId, target, zone) });
+  if (
+    t.closest("button, input, textarea, select, a, [data-no-drag]") &&
+    !t.closest("[data-drag-ok]")
+  )
+    return;
+  startDrag(store, e, {
+    id: paneId,
+    onDrop: (target, zone) => store.actions.drop(paneId, target, zone),
+  });
 }
 
 /**
@@ -48,18 +61,40 @@ export function startPaneDrag(store: UiStore, e: PointerStart, paneId: string) {
  * Works from Single mode too, where the one pane on screen is the target; dropping switches to Split view.
  * Returns whether a drag happened, so the tab's click can be skipped.
  */
-export function startTabDrag(store: UiStore, e: PointerStart, role: string, label: string): { dragged(): boolean } {
-  return startDrag(store, e, { id: role, label, fromOutside: true, onDrop: (target, zone) => store.actions.placeTab(role, target, zone) });
+export function startTabDrag(
+  store: UiStore,
+  e: PointerStart,
+  role: string,
+  label: string,
+): { dragged(): boolean } {
+  return startDrag(store, e, {
+    id: role,
+    label,
+    fromOutside: true,
+    onDrop: (target, zone) => store.actions.placeTab(role, target, zone),
+  });
 }
 
-interface DragOpts { id: string; label?: string; fromOutside?: boolean; onDrop(target: string, zone: Edge | "centre"): void }
+interface DragOpts {
+  id: string;
+  label?: string;
+  fromOutside?: boolean;
+  onDrop(target: string, zone: Edge | "centre"): void;
+}
 
-function startDrag(store: UiStore, e: PointerStart, { id: paneId, label, fromOutside, onDrop }: DragOpts) {
+function startDrag(
+  store: UiStore,
+  e: PointerStart,
+  { id: paneId, label, fromOutside, onDrop }: DragOpts,
+) {
   let started = false;
   const handle = { dragged: () => started };
   if (e.button !== 0) return handle;
-  const workspace = (e.currentTarget as HTMLElement).closest<HTMLElement>(".jali-workspace") ?? store.dom.root().querySelector<HTMLElement>(".jali-workspace");
-  const sx = e.clientX, sy = e.clientY;
+  const workspace =
+    (e.currentTarget as HTMLElement).closest<HTMLElement>(".jali-workspace") ??
+    store.dom.root().querySelector<HTMLElement>(".jali-workspace");
+  const sx = e.clientX,
+    sy = e.clientY;
 
   const local = (cx: number, cy: number) => {
     const b = workspace?.getBoundingClientRect();
@@ -77,12 +112,32 @@ function startDrag(store: UiStore, e: PointerStart, { id: paneId, label, fromOut
     }
     const p = local(ev.clientX, ev.clientY);
     const boxes = m.resolved.panes;
-    const hit = boxes.find((b) => !b.hidden && p.x >= b.rect.x && p.x <= b.rect.x + b.rect.width && p.y >= b.rect.y && p.y <= b.rect.y + b.rect.height);
+    const hit = boxes.find(
+      (b) =>
+        !b.hidden &&
+        p.x >= b.rect.x &&
+        p.x <= b.rect.x + b.rect.width &&
+        p.y >= b.rect.y &&
+        p.y <= b.rect.y + b.rect.height,
+    );
     const target = hit && hit.id !== paneId ? hit : undefined;
     let zone: Edge | "centre" | undefined = target ? zoneFor(target.rect, p.x, p.y) : undefined;
     // Own group's visible pane: edges split a tab out, the centre does nothing.
-    if (target?.stackId && boxes.some((b) => b.id === paneId && b.stackId === target.stackId) && zone === "centre") zone = undefined;
-    store.set({ dnd: { dragged: paneId, x: p.x, y: p.y, ...(label ? { label } : {}), ...(target && zone ? { target: target.id, zone } : {}) } });
+    if (
+      target?.stackId &&
+      boxes.some((b) => b.id === paneId && b.stackId === target.stackId) &&
+      zone === "centre"
+    )
+      zone = undefined;
+    store.set({
+      dnd: {
+        dragged: paneId,
+        x: p.x,
+        y: p.y,
+        ...(label ? { label } : {}),
+        ...(target && zone ? { target: target.id, zone } : {}),
+      },
+    });
   };
   const up = () => {
     const d = store.get().dnd;

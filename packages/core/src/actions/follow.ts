@@ -14,7 +14,11 @@ export const FOLLOW_MS = 150;
 
 /** Exactly the same object reference (kind and every param). */
 export const sameRef = (a: ObjectRef | undefined, b: ObjectRef | undefined) =>
-  !!a && !!b && a.kind === b.kind && Object.keys(a.params).length === Object.keys(b.params).length && Object.entries(a.params).every(([k, v]) => b.params[k] === v);
+  !!a &&
+  !!b &&
+  a.kind === b.kind &&
+  Object.keys(a.params).length === Object.keys(b.params).length &&
+  Object.entries(a.params).every(([k, v]) => b.params[k] === v);
 
 const key = (source: NodeId) => `follow:${source}`;
 
@@ -28,7 +32,9 @@ export function follow({ s, ctx, env }: Snapshot, source: NodeId, ref: ObjectRef
 
 /** The deferred step that makes `source`'s detail follow `ref`, or a cancellation (`ref` null). */
 export const followLater = (source: NodeId, ref: ObjectRef | null): Deferred =>
-  ref ? { key: key(source), ms: FOLLOW_MS, run: (y) => follow(y, source, ref) } : { key: key(source), ms: 0 };
+  ref
+    ? { key: key(source), ms: FOLLOW_MS, run: (y) => follow(y, source, ref) }
+    : { key: key(source), ms: 0 };
 
 /** `source`'s following detail of `kind`, when it is on screen (not behind a tab, folded, tucked or zoomed past). */
 export function followerOnScreen({ s, m }: Snapshot, source: NodeId, kind: string) {
@@ -42,7 +48,11 @@ export function setPinned({ s, m }: Snapshot, id: NodeId, pinned: boolean): Outc
   if (!p?.linkedTo) return null;
   const layout = core.setFollows(s.layout, id, !pinned);
   if (layout === s.layout) return null;
-  const change: Change = { op: "pin", layout, msg: pinned ? msg.pinned(m.title(id)) : msg.unpinned(m.title(id), m.title(p.linkedTo)) };
+  const change: Change = {
+    op: "pin",
+    layout,
+    msg: pinned ? msg.pinned(m.title(id)) : msg.unpinned(m.title(id), m.title(p.linkedTo)),
+  };
   // Unpinned: catch up with the list's selection now.
   const sel = s.selection[p.linkedTo];
   return pinned || !sel ? change : [change, (y: Snapshot) => follow(y, p.linkedTo!, sel.ref)];

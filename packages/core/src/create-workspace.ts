@@ -91,15 +91,21 @@ export function createWorkspace<D extends PaneKindBase>(options: WorkspaceOption
   const kinds: PaneKinds<D> = "register" in panes ? panes : createPaneKinds<D>([...panes]);
   if (launcher) kinds.register({ ...launcher, transient: true });
 
-  const storage = typeof options.storage === "object"
-    ? options.storage
-    : inBrowser ? browserStorage(options.storage ?? options.id ?? "jali") : memoryStorage();
+  const storage =
+    typeof options.storage === "object"
+      ? options.storage
+      : inBrowser
+        ? browserStorage(options.storage ?? options.id ?? "jali")
+        : memoryStorage();
 
   const writer: UrlWriter | undefined =
-    url === false ? undefined
-    : url === true ? createUrlSync({ storage })
-    : "write" in url ? url
-    : createUrlSync({ storage, ...url });
+    url === false
+      ? undefined
+      : url === true
+        ? createUrlSync({ storage })
+        : "write" in url
+          ? url
+          : createUrlSync({ storage, ...url });
 
   const deps: UiStoreDeps = {
     kinds: kinds as unknown as PaneKinds,

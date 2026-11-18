@@ -5,6 +5,7 @@
 Where each was resolved: "packages pass" is branch jali-packages-pass, "API simplify" is branch api-simplify; both are merged on jali-merge, where the simplified API's shape won. "Kept as is" means the fix merged unchanged; "re-expressed" means it was carried into the simplified API's names and options (see DECISIONS.md, "Merge: the simplified API and the packages pass").
 
 ## Bugs
+
 1. Done 19 Nov [resolved in: packages pass; kept: `createWorkspace({ keys: "workspace" })` counts the dialog layer as the workspace's]: the dialogs render in `store.dom.layer()`, which a scoped keyboard counts as the workspace's. Was: **⌘K chords never finish when keys are scoped to a root.** The palette renders outside the root (`packages/react/src/Jali.tsx:36-38`), so the scoped handler rejects the second key (`packages/core/src/commands/keyboard.ts:152-157`). Reproduced in Chrome with two workspaces.
 2. Done 19 Nov [resolved in: packages pass; kept as is]: dialog ids and radio names carry `store.dom.id`. Was: **Two workspaces share dialog ids:** `ConfirmDiscard` uses fixed `confirm-title` / `confirm-body` (`packages/react/src/dialogs/ConfirmDiscard.tsx:26-32`). Check the palette, chooser and settings too.
 3. Done 19 Nov [resolved in: packages pass; kept, and `createWorkspace` defaults its storage to its `id` too]: a store's default storage is `browserStorage(id)`; a URL sync's broken-link key carries its prefix. Was: **Both defaults save under `browserStorage("jali")`** (`state/store.ts:190`, `url.ts:186`): two stores overwrite each other's settings and pane state unless the host passes storage.
@@ -15,12 +16,14 @@ Where each was resolved: "packages pass" is branch jali-packages-pass, "API simp
 8. Done 19 Nov [resolved in: packages pass; kept as is]: the derived tints are also declared on `.jali-scrim`, so dialogs pick up an accent set around `<Jali>`. ~~**Per-workspace accent misses the dialogs:** derived tints are on `:root, [data-jali]` only, the comment says "and dialog", and dialogs render outside `[data-jali]` (`jali-theme.css`).~~
 
 ## The start-up story for more than one workspace
+
 9. Done 19 Nov [resolved in: packages pass, re-expressed: `startUi(store, url?, { keys, pageTheme })` (adapter) from the simplified API; the pass's `{ root, url, theme }` options were dropped, apps say `createWorkspace({ keys: "workspace" })`]: `startUi(store, { root, url, theme })`; a UrlSync as the second argument still works. Was: **`startUi` can't be scoped** (`core/src/boot.ts:81` calls `installKeyboard(store)` with no root), so a second workspace loses settings and pane-state saving, theme, the leave-page prompt and `applyTokens`. `savePaneState`'s key isn't public.
 10. Done 19 Nov [resolved in: packages pass, re-expressed as API simplify's `pageTheme: false`]: `startUi(store, { theme: false })` never writes `data-theme`. Was: **`startUi` writes `data-theme` on `<html>`** and overrides a host's own `.light` / theme toggle (`state/settings.ts` `applyTheme`, `boot.ts:61`). Theme should be opt-in for a host with its own.
 11. Done 19 Nov [resolved in: packages pass; kept: with `keys.root`, `startUi` writes no tokens]: `applyTokens` writes `--jali-gap` and `--jali-switcher-h` only (and not with a `root`); the CSS carries them as fallbacks; the lab sets its own bar heights. Was: **`applyTokens` sets unprefixed variables on `<html>`** (`--gap`, `--topbar-h`, `--status-h`, `--switcher-h`; `core/src/tokens.ts:10-15`), and two of them are the lab's bars. Prefix them, scope to the root, drop the lab's.
 12. Done 19 Nov [resolved in: packages pass; kept as is]: `KeyboardScope.root` is `() => ParentNode | null`, so `store.dom.root` fits. Was: **`KeyboardScope.root` is `() => Element | null` but `store.dom.root()` is `ParentNode`** (`keyboard.ts:141`, `state/store.ts:150`).
 
 ## API shape
+
 13. Done 19 Nov [resolved in: packages pass, re-expressed: `Page<I>` and `definePage` overloads for number and string ids]: item ids are `ItemId` (`string | number`); `ProfileBase` and `WorkspaceProfile` take the id type; a link's item comes back in the type of `firstItem`, so numeric profiles are unchanged. ~~**Items are numbers:** `ProfileBase.firstItem`, `build(item: number)`, `bind(item: number)`, `Rail`/`Header` props. UUIDs and slugs don't fit.~~
 14. Done 19 Nov [resolved in: packages pass, re-expressed: `createWorkspace({ panes, page })` with no layout or presets]: a store with a `profile` and no presets or layout starts on its page; leaving it is refused. ~~**A page-only app still needs a preset or `initial.layout`** (`state/store.ts:180`) and has to open its page by hand after `boot`.~~
 15. Done 19 Nov [resolved in: packages pass; kept as is]: `StackNode.origin` is optional; validate and the codec accept a stack without it. ~~**`StackNode.origin: "user"` is required** for hand-written stacks (`layout/types.ts:46`).~~
@@ -31,12 +34,14 @@ Where each was resolved: "packages pass" is branch jali-packages-pass, "API simp
 20. Done 19 Nov [resolved in: packages pass; kept in `<Jali>`'s comment and reference]: documented in `<Jali>` (its comment and reference page): the shelf and a toaster are the host's. A minimal built-in toaster is deferred. ~~**The shelf and toasts are the host's job:** `<JaliView>` renders no shelf and no toaster, and Undo lives only in a toast. A minimal app gets neither. Consider shipping both (a minimal toaster) or saying it in `<Jali>`.~~
 
 ## Text
+
 21. Done 19 Nov [resolved in: packages pass and API simplify (both fixed it; the simplified text kept)]: `define.ts` no longer names lab paths. ~~`react/src/define.ts:15,25` points at lab paths (`src/data/react`, `ui/pane/usePaneState`).~~
 22. Done 19 Nov [resolved in: packages pass; kept]: the comment imports `@jali/react/…`. ~~`react/src/styles/jali-tailwind.css:4-6` imports `"jali/react/…"`; should be `"@jali/react/…"`.~~
 23. [resolved in: founder] ~~`jali-theme.css` defaults are cool zinc~~ Done 19 Nov: stone is the default (founder).
 24. Done 19 Nov [resolved in: packages pass, re-expressed: `examples/minimal` on `definePane` with a `launcher` option]: the layer order is a `<style>` in `index.html`, before any stylesheet; the example registers a launcher kind, so Split works (checked in Chrome). ~~`examples/minimal` declares its layer order after Jali's CSS loads (`app.css:1`), so it teaches the wrong order.~~
 
 ## From the live parts and the reference
+
 25. Done 19 Nov [resolved in: packages pass; kept as is]: `keepPaneFocus` pulls focus from the body only once the person has been in the workspace (`{ fromBody }`). Was: **Mounting a workspace pulls page focus into it** when focus is on the body (`core/src/dom/focus.ts:35`, `keepPaneFocus` from `Workspace.tsx`). A docs page with three workspaces, or a host with a workspace below the fold, loses its place. Only move focus for a change the person made.
 26. Done 19 Nov [resolved in: packages pass; kept as is]: a negative width or height is clamped to zero in `resolve` and `refit`. ~~**`refit` throws a RangeError on a negative width** (`core/src/layout/fit/context.ts:9`); clamp instead.~~
 27. Done 19 Nov [resolved in: packages pass; kept as is]: the rule keys off `[data-jali]`; the switcher reads `var(--jali-switcher-h, 44px)`. Was: **The shelf's phone rule needs the host's root to have the class `.app`** (`react/src/styles/shelf.css:37`), and the single view reads `--switcher-h`, which only `applyTokens` sets (see 11).

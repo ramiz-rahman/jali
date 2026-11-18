@@ -38,9 +38,18 @@ export function useTheme(): ThemeChoice {
   useEffect(() => {
     apply();
     const q = query();
-    const onChange = () => { if (choice === "system") apply(); };
+    const onChange = () => {
+      if (choice === "system") apply();
+    };
     q.addEventListener("change", onChange);
     return () => q.removeEventListener("change", onChange);
   }, []);
-  return useSyncExternalStore((l) => { listeners.add(l); return () => listeners.delete(l); }, () => choice, () => "system");
+  return useSyncExternalStore(
+    (l) => {
+      listeners.add(l);
+      return () => listeners.delete(l);
+    },
+    () => choice,
+    () => "system",
+  );
 }

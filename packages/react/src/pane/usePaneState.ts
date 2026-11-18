@@ -10,7 +10,10 @@ import { useCallback, useContext, useState } from "react";
 import { useStore, useUi } from "../state/react";
 import { PaneContext } from "./context";
 
-export function usePaneState<T>(key: string, initial: T): [T, (next: T | ((prev: T) => T)) => void] {
+export function usePaneState<T>(
+  key: string,
+  initial: T,
+): [T, (next: T | ((prev: T) => T)) => void] {
   // The peek sheet (and anything outside a pane) has no pane id: its state is local.
   const id = useContext(PaneContext)?.id ?? null;
   const store = useStore();
@@ -18,12 +21,19 @@ export function usePaneState<T>(key: string, initial: T): [T, (next: T | ((prev:
   // In the peek sheet (no pane), state is local and goes when the sheet does.
   const [local, setLocal] = useState(initial);
   const value = id ? (kept === undefined ? initial : kept) : local;
-  const set = useCallback((next: T | ((prev: T) => T)) => {
-    if (!id) return setLocal(next);
-    const prev = (store.get().paneState[id]?.[key] as T | undefined) ?? initial;
-    store.actions.setPaneState(id, key, typeof next === "function" ? (next as (p: T) => T)(prev) : next);
-    // `initial` is the first value only, as with useState.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [id, key, store]);
+  const set = useCallback(
+    (next: T | ((prev: T) => T)) => {
+      if (!id) return setLocal(next);
+      const prev = (store.get().paneState[id]?.[key] as T | undefined) ?? initial;
+      store.actions.setPaneState(
+        id,
+        key,
+        typeof next === "function" ? (next as (p: T) => T)(prev) : next,
+      );
+      // `initial` is the first value only, as with useState.
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    },
+    [id, key, store],
+  );
   return [value, set];
 }

@@ -12,13 +12,21 @@ export interface Settings {
   boundary: "tint" | "none";
 }
 
-export const DEFAULT_SETTINGS: Settings = { centreDrop: "swap", paneCap: 8, theme: "system", boundary: "tint" };
+export const DEFAULT_SETTINGS: Settings = {
+  centreDrop: "swap",
+  paneCap: 8,
+  theme: "system",
+  boundary: "tint",
+};
 const KEY = "settings";
 
 /** Saved settings over the defaults. Keys from older builds (the divider adapter, the lab's showStats) are dropped. */
 export function loadSettings(storage: StoragePort): Settings {
   try {
-    const saved = JSON.parse(storage.get(KEY) ?? "{}") as Partial<Settings> & { adapter?: unknown; showStats?: unknown };
+    const saved = JSON.parse(storage.get(KEY) ?? "{}") as Partial<Settings> & {
+      adapter?: unknown;
+      showStats?: unknown;
+    };
     const { adapter: _dropped, showStats: _lab, ...known } = saved;
     const s: Settings = { ...DEFAULT_SETTINGS, ...known };
     if (s.theme !== "light" && s.theme !== "dark") s.theme = "system";
@@ -33,13 +41,17 @@ export function saveSettings(storage: StoragePort, s: Settings) {
   storage.set(KEY, JSON.stringify(s));
 }
 
-export const resolveTheme = (choice: ThemeChoice, systemDark: boolean): Theme => (choice === "system" ? (systemDark ? "dark" : "light") : choice);
+export const resolveTheme = (choice: ThemeChoice, systemDark: boolean): Theme =>
+  choice === "system" ? (systemDark ? "dark" : "light") : choice;
 
 export function applyTheme(theme: Theme) {
   if (typeof document !== "undefined") document.documentElement.setAttribute("data-theme", theme);
 }
 
-const darkQuery = () => (typeof window !== "undefined" && window.matchMedia ? window.matchMedia("(prefers-color-scheme: dark)") : null);
+const darkQuery = () =>
+  typeof window !== "undefined" && window.matchMedia
+    ? window.matchMedia("(prefers-color-scheme: dark)")
+    : null;
 export const systemPrefersDark = () => !!darkQuery()?.matches;
 
 /** Calls back with the system preference whenever it changes. */

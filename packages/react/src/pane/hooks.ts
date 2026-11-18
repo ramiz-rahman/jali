@@ -47,7 +47,10 @@ export function useCommands(commands: readonly PaneCommand[]): void {
   latest.current = commands;
   const shape = JSON.stringify(commands.map(({ run: _run, ...rest }) => rest));
   useEffect(() => {
-    const listed = latest.current.map((c) => ({ ...c, run: () => latest.current.find((l) => l.id === c.id)?.run() }));
+    const listed = latest.current.map((c) => ({
+      ...c,
+      run: () => latest.current.find((l) => l.id === c.id)?.run(),
+    }));
     host.setCommands(listed.length ? listed : null);
   }, [host, shape]);
   useEffect(() => () => host.setCommands(null), [host]);
@@ -66,7 +69,11 @@ export function useLauncher(): LauncherSources {
   const recent = useUi((s) => s.recent);
   const m = useModel();
   return useMemo(
-    () => ({ recent, isOpen: (ref: ObjectRef) => !!openPaneFor(m, ref, id ?? undefined), titleOf: m.env.kinds.title }),
+    () => ({
+      recent,
+      isOpen: (ref: ObjectRef) => !!openPaneFor(m, ref, id ?? undefined),
+      titleOf: m.env.kinds.title,
+    }),
     [recent, m, id],
   );
 }

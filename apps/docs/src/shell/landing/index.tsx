@@ -21,19 +21,37 @@ export { SiteFooter } from "./SiteFooter";
 
 // ---------- the opening ----------
 
-export function Opening({ title, lead, children }: { title: string; lead: string; children?: ReactNode }) {
+export function Opening({
+  title,
+  lead,
+  children,
+}: {
+  title: string;
+  lead: string;
+  children?: ReactNode;
+}) {
   return (
     <header className="landing-opening" data-toc-skip="" data-enter="">
-      <div className="landing-backdrop" aria-hidden><Lattice className="landing-backdrop-mark" /></div>
+      <div className="landing-backdrop" aria-hidden>
+        <Lattice className="landing-backdrop-mark" />
+      </div>
       <div className="landing-opening-text">
-        <h1 className="landing-title" id="landing-title" tabIndex={-1} data-page-focus="">{title}</h1>
+        <h1 className="landing-title" id="landing-title" tabIndex={-1} data-page-focus="">
+          {title}
+        </h1>
         <p className="landing-sub">{lead}</p>
       </div>
       <div className="landing-opening-actions">
         <Install packages="@jali/core @jali/react" />
         <div className="landing-buttons landing-buttons-hero">
-          <a className="button button-primary" href="/get-started/quickstart">Start the quickstart<ArrowRight aria-hidden size={16} strokeWidth={2} /></a>
-          <a className="button button-quiet" href={REPO_URL} target="_blank" rel="noreferrer"><GitHubIcon size={16} />View the source</a>
+          <a className="button button-primary" href="/get-started/quickstart">
+            Start the quickstart
+            <ArrowRight aria-hidden size={16} strokeWidth={2} />
+          </a>
+          <a className="button button-quiet" href={REPO_URL} target="_blank" rel="noreferrer">
+            <GitHubIcon size={16} />
+            View the source
+          </a>
         </div>
       </div>
       {children}
@@ -48,12 +66,26 @@ export function Stage({ children }: { children?: ReactNode }) {
 
 // ---------- sections ----------
 
-export function Section({ id, label, title, lead, children }: { id: string; label: string; title: string; lead?: string; children?: ReactNode }) {
+export function Section({
+  id,
+  label,
+  title,
+  lead,
+  children,
+}: {
+  id: string;
+  label: string;
+  title: string;
+  lead?: string;
+  children?: ReactNode;
+}) {
   return (
     <section className="landing-section" id={id} aria-labelledby={`${id}-title`} data-toc-skip="">
       <header className="landing-section-head">
         <p className="landing-label">{label}</p>
-        <h2 className="landing-section-title" id={`${id}-title`}>{title}</h2>
+        <h2 className="landing-section-title" id={`${id}-title`}>
+          {title}
+        </h2>
         {lead ? <p className="landing-lead">{lead}</p> : null}
       </header>
       {children}
@@ -69,9 +101,15 @@ export function MinimalApp() {
     <div className="landing-split">
       <div className="landing-code">
         <Tabs>
-          <Tab label="note.tsx"><Code code={noteCode} lang="tsx" /></Tab>
-          <Tab label="workspace.ts"><Code code={workspaceCode} lang="ts" /></Tab>
-          <Tab label="main.tsx"><Code code={mainCode} lang="tsx" /></Tab>
+          <Tab label="note.tsx">
+            <Code code={noteCode} lang="tsx" />
+          </Tab>
+          <Tab label="workspace.ts">
+            <Code code={workspaceCode} lang="ts" />
+          </Tab>
+          <Tab label="main.tsx">
+            <Code code={mainCode} lang="tsx" />
+          </Tab>
         </Tabs>
       </div>
       <div className="landing-result">
@@ -88,13 +126,30 @@ export function Path({ children }: { children?: ReactNode }) {
   return <ol className="landing-path">{steps}</ol>;
 }
 
-export function Proof({ id, title, href, more, demo, children }: { id: string; title: string; href: string; more: string; demo: ReactNode; children?: ReactNode }) {
+export function Proof({
+  id,
+  title,
+  href,
+  more,
+  demo,
+  children,
+}: {
+  id: string;
+  title: string;
+  href: string;
+  more: string;
+  demo: ReactNode;
+  children?: ReactNode;
+}) {
   return (
     <li className="landing-proof" id={id}>
       <div className="landing-proof-text">
         <h3 className="landing-proof-title">{title}</h3>
         <div className="landing-proof-body">{children}</div>
-        <a className="landing-more" href={href}>{more}<ArrowRight aria-hidden size={15} strokeWidth={1.75} /></a>
+        <a className="landing-more" href={href}>
+          {more}
+          <ArrowRight aria-hidden size={15} strokeWidth={1.75} />
+        </a>
       </div>
       <div className="landing-proof-demo">{demo}</div>
     </li>
@@ -109,11 +164,22 @@ export function LinkDemo() {
   return (
     <div className="landing-link-demo">
       <div className="landing-address" role="group" aria-label="The address this workspace writes">
-        <span className="landing-address-dots" aria-hidden><i /><i /><i /></span>
-        <code className="landing-address-url" aria-live="polite"><span>localhost:5173/customers</span>{query || "?"}</code>
+        <span className="landing-address-dots" aria-hidden>
+          <i />
+          <i />
+          <i />
+        </span>
+        <code className="landing-address-url" aria-live="polite">
+          <span>localhost:5173/customers</span>
+          {query || "?"}
+        </code>
         <span className="landing-address-count">{entries} in history</span>
       </div>
-      <LandingWorkspace app={app} height={340} label="A customer and their notes, writing the layout into the address" />
+      <LandingWorkspace
+        app={app}
+        height={340}
+        label="A customer and their notes, writing the layout into the address"
+      />
     </div>
   );
 }
@@ -136,8 +202,15 @@ export function KeysDemo() {
   };
   return (
     <div className="landing-keys-demo">
-      <LandingWorkspace app={app} height={340} label="A customer beside a stack of tabs, to try the keys in" />
-      <ul className="landing-keys" aria-label="Keys from this workspace's keymap; each can be clicked">
+      <LandingWorkspace
+        app={app}
+        height={340}
+        label="A customer beside a stack of tabs, to try the keys in"
+      />
+      <ul
+        className="landing-keys"
+        aria-label="Keys from this workspace's keymap; each can be clicked"
+      >
         {KEYS.map((k) => (
           <li key={k.id}>
             <button type="button" className="landing-key" onClick={() => run(k.id)}>
@@ -153,16 +226,36 @@ export function KeysDemo() {
 
 // ---------- the close ----------
 
-export function Close({ title, lead, children }: { title: string; lead: string; children?: ReactNode }) {
+export function Close({
+  title,
+  lead,
+  children,
+}: {
+  title: string;
+  lead: string;
+  children?: ReactNode;
+}) {
   return (
-    <section className="landing-close" id="install" aria-labelledby="install-title" data-toc-skip="">
+    <section
+      className="landing-close"
+      id="install"
+      aria-labelledby="install-title"
+      data-toc-skip=""
+    >
       <div className="landing-close-head">
-        <h2 className="landing-close-title" id="install-title">{title}</h2>
+        <h2 className="landing-close-title" id="install-title">
+          {title}
+        </h2>
         <p className="landing-lead">{lead}</p>
         <Install packages="@jali/core @jali/react" />
         <div className="landing-buttons">
-          <a className="button button-primary" href="/get-started/quickstart">Start the quickstart<ArrowRight aria-hidden size={16} strokeWidth={2} /></a>
-          <a className="button button-quiet" href="/get-started/key-concepts">Read the key concepts</a>
+          <a className="button button-primary" href="/get-started/quickstart">
+            Start the quickstart
+            <ArrowRight aria-hidden size={16} strokeWidth={2} />
+          </a>
+          <a className="button button-quiet" href="/get-started/key-concepts">
+            Read the key concepts
+          </a>
         </div>
       </div>
       <div className="landing-close-body">{children}</div>
@@ -170,12 +263,30 @@ export function Close({ title, lead, children }: { title: string; lead: string; 
   );
 }
 
-export function Package({ name, href, exports, children }: { name: string; href: string; exports: string; children?: ReactNode }) {
+export function Package({
+  name,
+  href,
+  exports,
+  children,
+}: {
+  name: string;
+  href: string;
+  exports: string;
+  children?: ReactNode;
+}) {
   return (
     <div className="landing-package">
-      <h3 className="landing-package-name"><a className="landing-package-link" href={href}>{name}</a></h3>
+      <h3 className="landing-package-name">
+        <a className="landing-package-link" href={href}>
+          {name}
+        </a>
+      </h3>
       <div className="landing-package-text">{children}</div>
-      <p className="landing-package-exports">{exports.split(",").map((e) => <code key={e}>{e.trim()}</code>)}</p>
+      <p className="landing-package-exports">
+        {exports.split(",").map((e) => (
+          <code key={e}>{e.trim()}</code>
+        ))}
+      </p>
     </div>
   );
 }
@@ -183,7 +294,10 @@ export function Theming({ href, children }: { href: string; children?: ReactNode
   return (
     <div className="landing-theming">
       <div className="landing-theming-text">{children}</div>
-      <a className="landing-more" href={href}>Theming<ArrowRight aria-hidden size={15} strokeWidth={1.75} /></a>
+      <a className="landing-more" href={href}>
+        Theming
+        <ArrowRight aria-hidden size={15} strokeWidth={1.75} />
+      </a>
     </div>
   );
 }

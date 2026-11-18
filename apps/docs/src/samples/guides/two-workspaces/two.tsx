@@ -10,7 +10,7 @@ import { ticketNote } from "../unsaved/note-editor";
 // and its localStorage keys ("orders:…").
 const orders = createWorkspace({
   id: "orders",
-  keys: "workspace",  // only keys pressed inside it and its dialogs, or on the page body after it was used last
+  keys: "workspace", // only keys pressed inside it and its dialogs, or on the page body after it was used last
   panes: orderKinds,
   presets,
 });

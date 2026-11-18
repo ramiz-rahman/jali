@@ -11,15 +11,23 @@ function Draft() {
 const draft = definePane("draft", { title: "Draft", Component: Draft });
 
 beforeAll(() => {
-  globalThis.ResizeObserver ??= class { observe() {} unobserve() {} disconnect() {} } as unknown as typeof ResizeObserver;
+  globalThis.ResizeObserver ??= class {
+    observe() {}
+    unobserve() {}
+    disconnect() {}
+  } as unknown as typeof ResizeObserver;
 });
 afterEach(cleanup);
 
 describe("useUnsaved", () => {
   it("clears the pane's unsaved work when the content unmounts", () => {
     const workspace = createWorkspace({
-      panes: [draft], layout: pane(draft(), { id: "a" }), url: { location: memoryLocation() }, storage: memoryStorage(),
-      size: { width: 800, height: 600 }, moveFocus: false,
+      panes: [draft],
+      layout: pane(draft(), { id: "a" }),
+      url: { location: memoryLocation() },
+      storage: memoryStorage(),
+      size: { width: 800, height: 600 },
+      moveFocus: false,
     });
     const { unmount } = render(<Jali workspace={workspace} />);
     expect(workspace.get().unsaved).toEqual({ a: "a draft" });

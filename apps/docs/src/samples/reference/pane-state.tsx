@@ -6,5 +6,9 @@ type Sort = { column: "id" | "total"; dir: "asc" | "desc" };
 export function OrdersTable() {
   const [sort, setSort] = usePaneState<Sort>("sort", { column: "id", dir: "asc" });
   const flip = () => setSort((s) => ({ ...s, dir: s.dir === "asc" ? "desc" : "asc" }));
-  return <button onClick={flip}>Sorted by {sort.column}, {sort.dir}</button>;
+  return (
+    <button onClick={flip}>
+      Sorted by {sort.column}, {sort.dir}
+    </button>
+  );
 }

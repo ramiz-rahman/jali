@@ -2,15 +2,15 @@ import { createWorkspace, memoryLocation, memoryStorage } from "@jali/core";
 import { launcherKind, orderKind, ordersKind } from "./kinds";
 
 export const workspace = createWorkspace({
-  panes: [ordersKind, orderKind],     // the kinds of pane it can show
-  layout: ordersKind(),               // the layout it opens on (or `presets`)
-  launcher: launcherKind,             // what Split opens: without one there is no Split
-  name: "Sales desk",                 // in commands such as "Open Sales desk"
+  panes: [ordersKind, orderKind], // the kinds of pane it can show
+  layout: ordersKind(), // the layout it opens on (or `presets`)
+  launcher: launcherKind, // what Split opens: without one there is no Split
+  name: "Sales desk", // in commands such as "Open Sales desk"
   url: { prefix: "a.", sizes: "link" }, // or true (the default in a browser), or false
-  storage: "sales",                   // localStorage keys "sales:…", or a StoragePort
-  id: "sales",                        // DOM ids "sales-pane-…"
-  keys: "workspace",                  // only keys pressed inside it
-  pageTheme: false,                   // leave data-theme on <html> to the page
+  storage: "sales", // localStorage keys "sales:…", or a StoragePort
+  id: "sales", // DOM ids "sales-pane-…"
+  keys: "workspace", // only keys pressed inside it
+  pageTheme: false, // leave data-theme on <html> to the page
   keymap: { "pane.close": "Mod+K Mod+W" },
 });
 
@@ -25,5 +25,5 @@ export const inMemory = createWorkspace({
   moveFocus: false,
 });
 
-location.entries;          // every address the workspace pushed or replaced
-location.visit("?tab=2");  // navigation from outside: the workspace hears it, as it hears Back and Forward
+location.entries; // every address the workspace pushed or replaced
+location.visit("?tab=2"); // navigation from outside: the workspace hears it, as it hears Back and Forward

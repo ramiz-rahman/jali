@@ -1,13 +1,28 @@
 /** A workspace made with the public API alone and few options: what the docs' smallest app does must not throw. */
 import { describe, expect, it } from "vite-plus/test";
-import { createWorkspace, memoryLocation, memoryStorage, pane, row, type WorkspaceOptions } from "@jali/core";
+import {
+  createWorkspace,
+  memoryLocation,
+  memoryStorage,
+  pane,
+  row,
+  type WorkspaceOptions,
+} from "@jali/core";
 import { definePane } from "@jali/react";
 import { runCommand } from "../../packages/core/src/commands/registry";
 import { readSearch } from "../../packages/core/src/url";
 
-const note = definePane("note", { params: { id: Number }, title: ({ id }) => `Note ${id}`, Component: () => null });
+const note = definePane("note", {
+  params: { id: Number },
+  title: ({ id }) => `Note ${id}`,
+  Component: () => null,
+});
 const chooser = definePane("chooser", { title: "New pane", scratch: true, Component: () => null });
-const ticket = definePane("ticket", { params: { id: String }, title: ({ id }) => `Ticket ${id}`, Component: () => null });
+const ticket = definePane("ticket", {
+  params: { id: String },
+  title: ({ id }) => `Ticket ${id}`,
+  Component: () => null,
+});
 
 const make = (options: Partial<WorkspaceOptions> = {}) => {
   const store = createWorkspace({
@@ -46,7 +61,10 @@ describe("a workspace without a launcher (finding 4)", () => {
 
 describe("a curated page whose items are string ids (finding 13)", () => {
   const profile = {
-    id: "desk", name: "Desk", itemNoun: "ticket", home: "main",
+    id: "desk",
+    name: "Desk",
+    itemNoun: "ticket",
+    home: "main",
     roles: [{ id: "main", label: "Ticket", priority: "primary" as const }],
     firstItem: "t-abc",
     bind: (item: string) => ({ main: ticket({ id: item }) }),
@@ -59,17 +77,30 @@ describe("a curated page whose items are string ids (finding 13)", () => {
     store.actions.activate("t-def");
     expect(store.get().page?.item).toBe("t-def");
     expect(store.model().pane("main")?.ref.params.id).toBe("t-def");
-    expect(readSearch(`?page=desk&item=t-xyz`, store.env.kinds.registry())).toMatchObject({ page: { item: "t-xyz" } });
+    expect(readSearch(`?page=desk&item=t-xyz`, store.env.kinds.registry())).toMatchObject({
+      page: { item: "t-xyz" },
+    });
   });
   it("a page with number items still gets numbers from a link", () => {
-    const store = make({ page: { ...profile, firstItem: 1, bind: (i: number) => profile.bind(String(i)), build: (i: number) => profile.build(String(i)) } });
+    const store = make({
+      page: {
+        ...profile,
+        firstItem: 1,
+        bind: (i: number) => profile.bind(String(i)),
+        build: (i: number) => profile.build(String(i)),
+      },
+    });
     store.actions.openPage({ item: "4" });
     expect(store.get().page?.item).toBe(4);
   });
   it("a page-only app needs no preset or layout: the workspace starts on its page (finding 14)", () => {
     const store = createWorkspace({
-      panes: [ticket], page: profile, url: { location: memoryLocation() }, storage: memoryStorage(),
-      size: { width: 1200, height: 800 }, moveFocus: false,
+      panes: [ticket],
+      page: profile,
+      url: { location: memoryLocation() },
+      storage: memoryStorage(),
+      size: { width: 1200, height: 800 },
+      moveFocus: false,
     });
     expect(store.get().page).toMatchObject({ profile: "desk", item: "t-abc" });
     expect(store.model().pane("main")?.ref.params.id).toBe("t-abc");

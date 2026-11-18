@@ -4,7 +4,7 @@ import { presets } from "./layouts";
 
 export const workspace = createWorkspace({
   panes: orderKinds,
-  presets,          // in menu order: ⌘K lists each one as "Layout: <label>"
+  presets, // in menu order: ⌘K lists each one as "Layout: <label>"
   preset: "triage", // the one to open on when the address has no layout. Default: the first
 });
 

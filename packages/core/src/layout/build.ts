@@ -16,7 +16,8 @@ export interface SizeOptions {
   px?: number;
 }
 
-export interface PaneNodeOptions extends SizeOptions, Pick<PaneNode, "linkedTo" | "follows" | "pinned" | "role" | "priority"> {
+export interface PaneNodeOptions
+  extends SizeOptions, Pick<PaneNode, "linkedTo" | "follows" | "pinned" | "role" | "priority"> {
   /** Off screen at the start (no slot, no tab): its neighbours take the space, and showing it brings it back. */
   hidden?: boolean;
 }
@@ -35,15 +36,20 @@ export type Draft = PaneDraft | SplitDraft | TabsDraft;
 export type LayoutInput = Layout | Draft | ObjectRef;
 type Child = Draft | ObjectRef;
 
-const isRef = (v: unknown): v is ObjectRef => typeof v === "object" && v !== null && "kind" in v && "params" in v;
-const isDraft = (v: unknown): v is Draft => typeof v === "object" && v !== null && "options" in v && "type" in v;
-const isLayout = (v: unknown): v is Layout => typeof v === "object" && v !== null && "root" in v && "version" in v;
+const isRef = (v: unknown): v is ObjectRef =>
+  typeof v === "object" && v !== null && "kind" in v && "params" in v;
+const isDraft = (v: unknown): v is Draft =>
+  typeof v === "object" && v !== null && "options" in v && "type" in v;
+const isLayout = (v: unknown): v is Layout =>
+  typeof v === "object" && v !== null && "root" in v && "version" in v;
 const asDraft = (child: Child): Draft => (isRef(child) ? pane(child) : child);
 
 /** Splits the optional leading options from the children. */
 function parts<O>(args: unknown[]): [O, Child[]] {
   const [first, ...rest] = args;
-  return first !== undefined && !isRef(first) && !isDraft(first) ? [first as O, rest as Child[]] : [{} as O, args as Child[]];
+  return first !== undefined && !isRef(first) && !isDraft(first)
+    ? [first as O, rest as Child[]]
+    : [{} as O, args as Child[]];
 }
 
 export function pane(ref: ObjectRef, options: PaneNodeOptions = {}): PaneDraft {
@@ -71,10 +77,15 @@ export function tabs(...children: (PaneDraft | ObjectRef)[]): TabsDraft;
 export function tabs(options: TabsOptions, ...children: (PaneDraft | ObjectRef)[]): TabsDraft;
 export function tabs(...args: unknown[]): TabsDraft {
   const [options, children] = parts<TabsOptions>(args);
-  return { type: "stack", options, children: children.map((c) => (isRef(c) ? pane(c) : (c as PaneDraft))) };
+  return {
+    type: "stack",
+    options,
+    children: children.map((c) => (isRef(c) ? pane(c) : (c as PaneDraft))),
+  };
 }
 
-const sizeOf = ({ px, weight }: SizeOptions): Size => (px !== undefined ? { px } : { weight: weight ?? 1 });
+const sizeOf = ({ px, weight }: SizeOptions): Size =>
+  px !== undefined ? { px } : { weight: weight ?? 1 };
 
 /** The layout `input` stands for, with an id on every node. */
 export function toLayout(input: LayoutInput): Layout {
@@ -104,7 +115,12 @@ export function toLayout(input: LayoutInput): Layout {
     if (d.type === "pane") {
       const { hidden: off, linkedTo, follows, pinned, role, priority } = d.options;
       if (off) hidden.push(id);
-      const node: PaneNode = { id, type: "pane", size, ref: { kind: d.ref.kind, params: { ...d.ref.params } } };
+      const node: PaneNode = {
+        id,
+        type: "pane",
+        size,
+        ref: { kind: d.ref.kind, params: { ...d.ref.params } },
+      };
       if (linkedTo !== undefined) node.linkedTo = linkedTo;
       if (follows !== undefined) node.follows = follows;
       if (pinned !== undefined) node.pinned = pinned;
@@ -114,7 +130,14 @@ export function toLayout(input: LayoutInput): Layout {
     }
     if (d.type === "stack") {
       const children = d.children.map((c) => build(c) as PaneNode);
-      return { id, type: "stack", size, children, active: d.options.active ?? children[0]?.id ?? "", origin: "user" };
+      return {
+        id,
+        type: "stack",
+        size,
+        children,
+        active: d.options.active ?? children[0]?.id ?? "",
+        origin: "user",
+      };
     }
     return { id, type: d.type, size, children: d.children.map(build) };
   };

@@ -13,8 +13,19 @@
  */
 import type { ComponentType } from "react";
 import type {
-  ObjectRef, PaneDefinition, PaneKindBase, PaneKinds, PaneNode, PaneOptions, Params, ParamsOf, ParamTypes, Env,
-  ProfileBase, RoleBase, ItemId,
+  ObjectRef,
+  PaneDefinition,
+  PaneKindBase,
+  PaneKinds,
+  PaneNode,
+  PaneOptions,
+  Params,
+  ParamsOf,
+  ParamTypes,
+  Env,
+  ProfileBase,
+  RoleBase,
+  ItemId,
 } from "@jali/core/adapter";
 import { defineKind } from "@jali/core/adapter";
 
@@ -44,7 +55,11 @@ export interface PaneProps<P = Params> {
   dismiss: () => void;
 }
 
-type IconComponent = ComponentType<{ size?: number; strokeWidth?: number; "aria-hidden"?: boolean }>;
+type IconComponent = ComponentType<{
+  size?: number;
+  strokeWidth?: number;
+  "aria-hidden"?: boolean;
+}>;
 
 /** A pane kind for React: the options of any kind, plus its icon and component. */
 export interface PaneOptionsReact<P = Params> extends PaneOptions<P> {

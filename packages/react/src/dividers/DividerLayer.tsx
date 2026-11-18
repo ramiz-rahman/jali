@@ -3,7 +3,13 @@
  * commit on release); keys commit per keypress; double-click resets; the URL is written 120ms after the last change.
  */
 import { useRef } from "react";
-import { paneDomId, dividerKey, isDividerDragging, startDividerDrag, geometryFor } from "@jali/core/adapter";
+import {
+  paneDomId,
+  dividerKey,
+  isDividerDragging,
+  startDividerDrag,
+  geometryFor,
+} from "@jali/core/adapter";
 import { useModel, useStore, useUi } from "../state/react";
 import { Divider } from "./Divider";
 
@@ -35,12 +41,20 @@ export function DividerLayer() {
             labelB={g.b.label}
             controls={g.a.ids.map((id) => paneDomId(store.dom.id, id)).join(" ")}
             onDragStart={(e) => startDividerDrag(store, line.current, e, d.parentId, d.index)}
-            setSizeA={(size) => isDividerDragging() || actions.setDividerSize(d.parentId, d.index, size)}
+            setSizeA={(size) =>
+              isDividerDragging() || actions.setDividerSize(d.parentId, d.index, size)
+            }
             onReset={() => actions.resetDivider(d.parentId, d.index)}
           />
         );
       })}
-      <div ref={line} className="jali-divider-visual" data-testid="divider-preview" hidden aria-hidden>
+      <div
+        ref={line}
+        className="jali-divider-visual"
+        data-testid="divider-preview"
+        hidden
+        aria-hidden
+      >
         <span className="jali-divider-line" />
         <span className="jali-divider-tick" hidden />
       </div>

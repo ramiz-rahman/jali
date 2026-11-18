@@ -17,7 +17,10 @@ export interface PageModule {
 const modules = import.meta.glob<PageModule>("../pages/**/*.mdx");
 
 export const pathOf = (file: string) =>
-  file.replace(/^\.\.\/pages/, "").replace(/\.mdx$/, "").replace(/\/index$/, "") || "/";
+  file
+    .replace(/^\.\.\/pages/, "")
+    .replace(/\.mdx$/, "")
+    .replace(/\/index$/, "") || "/";
 
 export const pages: Record<string, () => Promise<PageModule>> = Object.fromEntries(
   Object.entries(modules).map(([file, load]) => [pathOf(file), load]),

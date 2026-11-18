@@ -21,7 +21,12 @@ import { PALETTE_ID } from "./keymap";
 import { commandById } from "./registry";
 import { STEP, STEP_BIG } from "../dividers/resize";
 
-const ARROWS: Record<string, "left" | "right" | "top" | "bottom"> = { ArrowLeft: "left", ArrowRight: "right", ArrowUp: "top", ArrowDown: "bottom" };
+const ARROWS: Record<string, "left" | "right" | "top" | "bottom"> = {
+  ArrowLeft: "left",
+  ArrowRight: "right",
+  ArrowUp: "top",
+  ArrowDown: "bottom",
+};
 
 /** Resize mode: arrows resize the nearest divider (Shift for bigger steps); Esc or Enter leaves. */
 function resizeMode(store: UiStore, pane: string, e: KeyboardEvent): boolean {
@@ -52,7 +57,8 @@ const dialogOpen = (store: UiStore) => {
   return s.paletteOpen || s.settingsOpen || !!s.chooser;
 };
 
-const contentOwnsKeys = (t: EventTarget | null) => !!(t as Element | null)?.closest?.('[data-pane-keys="content"]');
+const contentOwnsKeys = (t: EventTarget | null) =>
+  !!(t as Element | null)?.closest?.('[data-pane-keys="content"]');
 
 function run(store: UiStore, id: string): boolean {
   if (id === PALETTE_ID) {
@@ -115,11 +121,12 @@ export function createKeyHandler(store: UiStore): KeyHandler {
       if (id === PALETTE_ID) {
         run(store, id);
         // Closing the palette with ⌘K ends the chord too.
-        pending = store.get().paletteOpen ? km().isPrefix(m) ?? null : null;
+        pending = store.get().paletteOpen ? (km().isPrefix(m) ?? null) : null;
         return true;
       }
       if (dialogOpen(store)) return false;
-      if (e.key === "Escape" && !e.shiftKey && !e.metaKey && !e.ctrlKey && !e.altKey) return escape(store);
+      if (e.key === "Escape" && !e.shiftKey && !e.metaKey && !e.ctrlKey && !e.altKey)
+        return escape(store);
       if (id) {
         run(store, id);
         pending = km().isPrefix(m) ?? null;
@@ -147,12 +154,16 @@ export interface KeyboardScope {
   root?: () => ParentNode | null;
 }
 
-export function installKeyboard(store: UiStore, { target = window, root }: KeyboardScope = {}): () => void {
+export function installKeyboard(
+  store: UiStore,
+  { target = window, root }: KeyboardScope = {},
+): () => void {
   const keys = createKeyHandler(store);
   let active = false;
   const mine = (e: KeyboardEvent) => {
     if (!root) return true;
-    const el = root(), t = e.target as Node | null;
+    const el = root(),
+      t = e.target as Node | null;
     if (!el) return false;
     if (t && (el.contains(t) || store.dom.layer()?.contains(t))) return true;
     return active && (!t || t === target.document.body || t === target.document.documentElement);

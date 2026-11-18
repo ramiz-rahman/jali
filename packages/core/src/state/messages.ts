@@ -5,7 +5,8 @@
 import type { Edge } from "../layout/types";
 
 /** Direction as a word: "up", "down", "left", "right", "into the centre". */
-export const dirWord = (d: Edge | "centre") => (d === "top" ? "up" : d === "bottom" ? "down" : d === "centre" ? "into the centre" : d);
+export const dirWord = (d: Edge | "centre") =>
+  d === "top" ? "up" : d === "bottom" ? "down" : d === "centre" ? "into the centre" : d;
 
 export const msg = {
   // focus and zoom
@@ -15,7 +16,11 @@ export const msg = {
 
   // open
   openedBeside: (mode: "beside" | "replaced" | "tab", t: string, source: string) =>
-    mode === "replaced" ? `${t} shown beside ${source}` : mode === "tab" ? `${t} opened as a tab: not enough room beside ${source}` : `${t} opened beside ${source}`,
+    mode === "replaced"
+      ? `${t} shown beside ${source}`
+      : mode === "tab"
+        ? `${t} opened as a tab: not enough room beside ${source}`
+        : `${t} opened beside ${source}`,
   split: (mode: "beside" | "replaced" | "tab", dir: "right" | "bottom", source: string) =>
     mode === "tab"
       ? `New pane opened as a tab: not enough room beside ${source}. Choose what to show`
@@ -34,7 +39,8 @@ export const msg = {
   // unsaved work
   discarded: (n: number) => (n === 1 ? "Changes discarded" : `Changes in ${n} panes discarded`),
   keptEditing: "Nothing changed. Keep editing",
-  openedPinned: (t: string, source: string) => `${t} opened beside ${source}, pinned: it stays on this item`,
+  openedPinned: (t: string, source: string) =>
+    `${t} opened beside ${source}, pinned: it stays on this item`,
   pinned: (t: string) => `${t} pinned: it stays on this item`,
   unpinned: (t: string, list: string) => `${t} follows the selection in ${list}`,
   notInResults: (list: string) => `Not in the current results of ${list}`,
@@ -88,23 +94,31 @@ export const msg = {
   centreDrop: (mode: "swap" | "tab") => `Centre drop: ${mode === "swap" ? "swap" : "add as tab"}`,
 
   // curated pages (loan review)
-  pageOpened: (name: string, mode: "single" | "split") => `${name} · ${mode === "single" ? "Single view: one view at a time" : "Split view: views side by side"}`,
+  pageOpened: (name: string, mode: "single" | "split") =>
+    `${name} · ${mode === "single" ? "Single view: one view at a time" : "Split view: views side by side"}`,
   modeSingle: (t: string) => `Single: showing ${t}. Your split layout is kept.`,
   modeSplit: "Split view: drag tabs into the layout to see views side by side",
   viewing: (t: string) => `Showing ${t}`,
   pageReset: "Layout reset to its design",
-  activated: (noun: string, id: string | number, dropped: number) => `Showing ${noun} ${id}${dropped ? ` · ${dropped} opened ${dropped === 1 ? "pane" : "panes"} closed` : ""}`,
+  activated: (noun: string, id: string | number, dropped: number) =>
+    `Showing ${noun} ${id}${dropped ? ` · ${dropped} opened ${dropped === 1 ? "pane" : "panes"} closed` : ""}`,
   roleHidden: (t: string) => `${t} closed · it's still in the tabs`,
   roleShown: (t: string) => `${t} on screen`,
   lastView: (t: string) => `${t} is the only view on screen`,
   replaced: (t: string, was: string) => `${t} in place of ${was} · ${was} is in the tabs`,
-  replacedNeedsRoom: (t: string, was: string) => `${t} in place of ${was} · it needed more room, so the layout adjusted`,
+  replacedNeedsRoom: (t: string, was: string) =>
+    `${t} in place of ${was} · it needed more room, so the layout adjusted`,
   sentToTabs: (titles: string[]) => `${titles.join(", ")} went back to the tabs: not enough room`,
   alreadyView: (t: string) => `${t} is already a view on this page`,
   notInvestigating: "Nothing opened beyond the page",
-  backToPage: (name: string, n: number) => `Back to ${name} · ${n} opened ${n === 1 ? "pane" : "panes"} closed · Undo available`,
-  permission: (who: string, can: boolean) => (can ? `Viewing as ${who}: Split view available, links open beside` : `Viewing as ${who}: Single only, links open as a peek`),
-  singleNoLayout: "Single shows one view: choose it from the tabs. Switch to Split view to arrange views",
+  backToPage: (name: string, n: number) =>
+    `Back to ${name} · ${n} opened ${n === 1 ? "pane" : "panes"} closed · Undo available`,
+  permission: (who: string, can: boolean) =>
+    can
+      ? `Viewing as ${who}: Split view available, links open beside`
+      : `Viewing as ${who}: Single only, links open as a peek`,
+  singleNoLayout:
+    "Single shows one view: choose it from the tabs. Switch to Split view to arrange views",
   singleOnly: "Your role works in Single: one view at a time",
   peekOnly: (t: string) => `Peek: ${t} · your role opens links as a peek`,
   peekSingle: (t: string) => `Peek: ${t} · switch to Split view to open links beside`,
@@ -120,16 +134,31 @@ export const msg = {
 export const toasts = {
   closed: (t: string) => ({ title: "Pane closed", description: t, undo: true }),
   othersClosed: () => ({ title: "Other panes closed", undo: true }),
-  backToPage: (name: string, n: number) => ({ title: `Back to ${name}`, description: `${n} opened ${n === 1 ? "pane" : "panes"} closed`, undo: true }),
+  backToPage: (name: string, n: number) => ({
+    title: `Back to ${name}`,
+    description: `${n} opened ${n === 1 ? "pane" : "panes"} closed`,
+    undo: true,
+  }),
   brokenLink: (preset: string | undefined) => ({
     title: "This link’s layout couldn’t be read",
-    description: preset ? `Opened “${preset}” instead. A copy of the link was kept.` : "The layout stayed as it was. A copy of the link was kept.",
+    description: preset
+      ? `Opened “${preset}” instead. A copy of the link was kept.`
+      : "The layout stayed as it was. A copy of the link was kept.",
     error: true,
   }),
 };
 
 /** What releasing a drag will do, in words: "Swap with orders", "Place above orders". */
-export function dropText(zone: Edge | "centre", target: string, centreDrop: "swap" | "tab"): string {
-  if (zone === "centre") return centreDrop === "swap" ? `Swap with ${target}` : `Add as tab to ${target}`;
-  return zone === "top" ? `Place above ${target}` : zone === "bottom" ? `Place below ${target}` : `Place ${zone} of ${target}`;
+export function dropText(
+  zone: Edge | "centre",
+  target: string,
+  centreDrop: "swap" | "tab",
+): string {
+  if (zone === "centre")
+    return centreDrop === "swap" ? `Swap with ${target}` : `Add as tab to ${target}`;
+  return zone === "top"
+    ? `Place above ${target}`
+    : zone === "bottom"
+      ? `Place below ${target}`
+      : `Place ${zone} of ${target}`;
 }

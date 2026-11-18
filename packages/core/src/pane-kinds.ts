@@ -20,7 +20,9 @@ export type ParamTypes = Record<string, ParamType>;
  * The params a kind's code sees: the ones it declares, typed (`{ id: Number }` gives `id: number`), and any others as
  * plain values. Declare the params every ref of the kind has; read optional ones as plain values.
  */
-export type ParamsOf<T> = [T] extends [ParamTypes] ? { [K in keyof T]: ReturnType<T[K]> } & Params : Params;
+export type ParamsOf<T> = [T] extends [ParamTypes]
+  ? { [K in keyof T]: ReturnType<T[K]> } & Params
+  : Params;
 
 /** `params` read with `types`. Params the kind does not declare pass through as they are. */
 export function readParams(types: ParamTypes | undefined, params: Params): Params {
@@ -138,12 +140,19 @@ export interface PaneKinds<D extends PaneKindBase = PaneKindBase> {
 }
 
 /** Params as order-free text, so ids compare as text (`1` equals `"1"`). */
-const asText = (params: Params) => JSON.stringify(Object.keys(params).sort().map((k) => [k, String(params[k])]));
+const asText = (params: Params) =>
+  JSON.stringify(
+    Object.keys(params)
+      .sort()
+      .map((k) => [k, String(params[k])]),
+  );
 
 /** A kind's own functions take its typed params; the registry calls them with the params it read. */
 type Fn<R> = ((params: Params) => R) | undefined;
 
-export function createPaneKinds<D extends PaneKindBase = PaneKindBase>(defs: readonly D[] = []): PaneKinds<D> {
+export function createPaneKinds<D extends PaneKindBase = PaneKindBase>(
+  defs: readonly D[] = [],
+): PaneKinds<D> {
   // Copies, so the registry holds plain data rather than each definition's call.
   const kinds = new Map<string, D>(defs.map((d) => [d.kind, { ...d }]));
   const listeners = new Set<() => void>();
@@ -211,7 +220,9 @@ export function createPaneKinds<D extends PaneKindBase = PaneKindBase>(defs: rea
       const ia = identityOf(a);
       return ia !== undefined && ia === identityOf(b);
     },
-    sameRecent: (a, b) => a.kind === b.kind && (identityOf(a) ?? asText(a.params)) === (identityOf(b) ?? asText(b.params)),
+    sameRecent: (a, b) =>
+      a.kind === b.kind &&
+      (identityOf(a) ?? asText(a.params)) === (identityOf(b) ?? asText(b.params)),
     isRecordable(ref) {
       const def = kinds.get(ref.kind);
       const inRecent = def?.inRecent as boolean | Fn<boolean>;

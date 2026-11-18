@@ -173,7 +173,7 @@ The address as the browser's history: `navigate` calls `pushState` or `replaceSt
 
 </Entry>
 
-<Entry name="memoryLocation" kind="function" from="@jali/core" signature={`memoryLocation(initial?: string): LocationPort & { entries: string[]; visit(search: string): void }`} example={createCode} exampleFile="workspace.ts" exampleHighlight="21-31">
+<Entry name="memoryLocation" kind="function" from="@jali/core" signature={`memoryLocation(initial?: string): LocationPort & { entries: string[]; visit(search: string): void }`} example={createCode} exampleFile="workspace.ts" exampleHighlight="18,22,28-29">
 
 An address that lives in memory: for tests, server rendering, and a workspace in a dialog that must not touch the page's address.
 

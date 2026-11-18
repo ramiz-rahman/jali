@@ -11,8 +11,8 @@ A workspace of panes that fits the space it has. No framework.
 import { createWorkspace, row } from "@jali/core";
 
 const workspace = createWorkspace({
-  panes: [orders, order],                         // your kinds: definePane from @jali/react
-  layout: row(orders(), order({ id: 1 })),        // two panes side by side, kept in the address
+  panes: [orders, order], // your kinds: definePane from @jali/react
+  layout: row(orders(), order({ id: 1 })), // two panes side by side, kept in the address
 });
 
 workspace.actions.openBeside("orders", order({ id: 2 }));

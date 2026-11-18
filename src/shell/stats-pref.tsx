@@ -19,7 +19,12 @@ const write = (on: boolean) => {
   subs.forEach((fn) => fn());
 };
 
-export const useShowStats = () => useSyncExternalStore((fn) => (subs.add(fn), () => subs.delete(fn)), read, () => true);
+export const useShowStats = () =>
+  useSyncExternalStore(
+    (fn) => (subs.add(fn), () => subs.delete(fn)),
+    read,
+    () => true,
+  );
 
 /** The fieldset the lab adds to Jali's settings panel. */
 export function StatsSetting() {
@@ -27,7 +32,10 @@ export function StatsSetting() {
   return (
     <fieldset>
       <legend>Status line</legend>
-      <label className="jali-radio"><input type="checkbox" checked={on} onChange={(e) => write(e.target.checked)} /><span>Show fetch stats</span></label>
+      <label className="jali-radio">
+        <input type="checkbox" checked={on} onChange={(e) => write(e.target.checked)} />
+        <span>Show fetch stats</span>
+      </label>
     </fieldset>
   );
 }

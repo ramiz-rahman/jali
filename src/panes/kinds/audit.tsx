@@ -12,9 +12,18 @@ function target(row: Row) {
   return table && row.entity_id != null ? recordRef(table, String(row.entity_id)) : null;
 }
 export function AuditPane(props: PaneProps) {
-  return <TableGrid {...props} table="audit_log" label="Audit log" columns={COLUMNS} orderBy="id DESC" rowRef={target} audit />;
+  return (
+    <TableGrid
+      {...props}
+      table="audit_log"
+      label="Audit log"
+      columns={COLUMNS}
+      orderBy="id DESC"
+      rowRef={target}
+      audit
+    />
+  );
 }
-
 
 export const auditKind = definePane("audit", {
   title: "Audit log",

@@ -14,7 +14,11 @@ export const checkPeek = ({ s }: Snapshot) => (s.view.peek ? undefined : refuse(
  */
 export function peek(x: Snapshot, ref: ObjectRef | null, source?: NodeId): Outcome {
   const { s } = x;
-  if (ref && source && followerOnScreen(x, source, ref.kind)) return [{ op: "select", defer: followLater(source, null) }, (y: Snapshot) => follow(y, source, ref)];
+  if (ref && source && followerOnScreen(x, source, ref.kind))
+    return [
+      { op: "select", defer: followLater(source, null) },
+      (y: Snapshot) => follow(y, source, ref),
+    ];
   return peekSheet(x, ref, source);
 }
 
@@ -23,12 +27,18 @@ export function peekSheet({ s, env }: Snapshot, ref: ObjectRef | null, source?: 
   const view = { ...s.view };
   if (ref) view.peek = ref;
   else delete view.peek;
-  return { op: "peek", view, patch: { peekSource: ref ? (source ?? s.peekSource ?? s.view.focused) : undefined }, msg: ref ? msg.peek(env.kinds.title(ref)) : msg.peekClosed };
+  return {
+    op: "peek",
+    view,
+    patch: { peekSource: ref ? (source ?? s.peekSource ?? s.view.focused) : undefined },
+    msg: ref ? msg.peek(env.kinds.title(ref)) : msg.peekClosed,
+  };
 }
 
 /** Pin: close the peek, then open its object beside the pane it came from. */
 export function pinPeek(x: Snapshot): Outcome {
-  const ref = x.s.view.peek, source = x.s.peekSource ?? x.s.view.focused;
+  const ref = x.s.view.peek,
+    source = x.s.peekSource ?? x.s.view.focused;
   if (!ref || !source) return null;
   return [peek(x, null), (y: Snapshot) => openBeside(y, source, ref)];
 }
@@ -36,9 +46,18 @@ export function pinPeek(x: Snapshot): Outcome {
 export function openPeekFull({ s, ctx, env }: Snapshot): Outcome {
   const ref = s.view.peek;
   if (!ref) return null;
-  const layout: Layout = { version: 1, root: { id: "full", type: "pane", size: { weight: 1 }, ref } };
+  const layout: Layout = {
+    version: 1,
+    root: { id: "full", type: "pane", size: { weight: 1 }, ref },
+  };
   const view: ViewState = { focused: "full", focusHistory: ["full"] };
-  return { op: "openFull", layout: core.refit(layout, view, ctx), view, msg: msg.openedFull(env.kinds.title(ref)), patch: { peekSource: undefined, recent: withRecent(env.kinds, s.recent, [ref]) } };
+  return {
+    op: "openFull",
+    layout: core.refit(layout, view, ctx),
+    view,
+    msg: msg.openedFull(env.kinds.title(ref)),
+    patch: { peekSource: undefined, recent: withRecent(env.kinds, s.recent, [ref]) },
+  };
 }
 
 /**
@@ -46,21 +65,32 @@ export function openPeekFull({ s, ctx, env }: Snapshot): Outcome {
  * once the selection rests (actions/follow.ts). `inResults: false`: the list's filter no longer shows `ref`, and the
  * detail keeps showing it with a note. `null`: no item is selected; the detail keeps what it shows.
  */
-export function select({ s }: Snapshot, source: NodeId, ref: ObjectRef | null, opts: { inResults?: boolean } = {}): Outcome {
+export function select(
+  { s }: Snapshot,
+  source: NodeId,
+  ref: ObjectRef | null,
+  opts: { inResults?: boolean } = {},
+): Outcome {
   if (!ref) {
     if (!s.selection[source]) return null;
     const { [source]: _gone, ...selection } = s.selection;
     return { op: "select", patch: { selection }, defer: followLater(source, null) };
   }
-  const inResults = opts.inResults ?? true, prev = s.selection[source];
+  const inResults = opts.inResults ?? true,
+    prev = s.selection[source];
   const moved = !prev || !sameRef(prev.ref, ref);
-  const patch = moved || prev.inResults !== inResults ? { selection: { ...s.selection, [source]: { ref, inResults } } } : undefined;
+  const patch =
+    moved || prev.inResults !== inResults
+      ? { selection: { ...s.selection, [source]: { ref, inResults } } }
+      : undefined;
   const peekFollows = s.view.peek && s.peekSource === source && !sameRef(s.view.peek, ref);
   if (!patch && !peekFollows) return null;
   return {
     op: "select",
     ...(peekFollows ? { view: { ...s.view, peek: ref } } : {}),
     ...(patch ? { patch } : {}),
-    ...(moved && core.follower(s.layout, source, ref.kind) ? { defer: followLater(source, ref) } : {}),
+    ...(moved && core.follower(s.layout, source, ref.kind)
+      ? { defer: followLater(source, ref) }
+      : {}),
   };
 }

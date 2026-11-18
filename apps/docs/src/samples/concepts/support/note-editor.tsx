@@ -18,7 +18,13 @@ function NoteEditor({ params }: PaneProps<{ id: number }>) {
 
   // What this pane adds to ⌘K while it is focused. `keys` is a label: the content handles the key itself.
   useCommands([
-    { id: "save", title: "Save note", keys: keyHint("Mod+Enter"), disabled: dirty ? false : "Nothing to save", run: save },
+    {
+      id: "save",
+      title: "Save note",
+      keys: keyHint("Mod+Enter"),
+      disabled: dirty ? false : "Nothing to save",
+      run: save,
+    },
   ]);
 
   return (

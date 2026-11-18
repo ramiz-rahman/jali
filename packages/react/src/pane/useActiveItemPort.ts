@@ -15,7 +15,13 @@ export function useActiveItemPort(mapping: ActiveItemMapping): ActiveItemPort | 
   latest.current = mapping;
   useUi((s) => (pane ? s.selection[pane]?.ref : undefined));
   return useMemo(
-    () => (pane ? activeItemPort(store, pane, { toRef: (id) => latest.current.toRef(id), idOf: (ref) => latest.current.idOf(ref) }) : null),
+    () =>
+      pane
+        ? activeItemPort(store, pane, {
+            toRef: (id) => latest.current.toRef(id),
+            idOf: (ref) => latest.current.idOf(ref),
+          })
+        : null,
     [store, pane],
   );
 }

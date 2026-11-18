@@ -9,7 +9,9 @@ const out = join(root, "dist");
 mkdirSync(out, { recursive: true });
 
 const inline = (file) =>
-  readFileSync(join(src, file), "utf8").replace(/^@import "\.\/([\w.-]+\.css)";\s*$/gm, (_, f) => inline(f).trim());
+  readFileSync(join(src, file), "utf8").replace(/^@import "\.\/([\w.-]+\.css)";\s*$/gm, (_, f) =>
+    inline(f).trim(),
+  );
 
 writeFileSync(join(out, "styles.css"), inline("index.css"));
 writeFileSync(join(out, "theme.css"), readFileSync(join(src, "jali-theme.css"), "utf8"));

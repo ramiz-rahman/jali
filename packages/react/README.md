@@ -10,7 +10,7 @@ import "@jali/react/styles.css";
 const note = definePane("note", {
   params: { id: Number },
   title: ({ id }) => `Note ${id}`,
-  width: { min: 240 },             // narrower than this, the pane folds into a tab
+  width: { min: 240 }, // narrower than this, the pane folds into a tab
 
   Component: ({ params, openBeside }) => (
     <button onClick={() => openBeside(note({ id: params.id + 1 }))}>Note {params.id}</button>

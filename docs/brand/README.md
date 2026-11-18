@@ -14,12 +14,12 @@ Two sibling libraries, one bar system. `final/preview.png` shows every piece in 
 
 ## Signature colours
 
-| | Chakni: Cha (brewed tea) | Jali: Nil (Bengal indigo) |
-|---|---|---|
-| Mark, fills | `#C2621A` | `#2B3990` |
-| Text and controls on white | `#9C4A12` (6.2:1) | `#4456C7` (6.2:1) |
-| On dark | `#E89A4E` | `#8C9BEA` |
-| Ground | milk `#F6EBDD` | stone `#EFEAE2` |
+|                            | Chakni: Cha (brewed tea) | Jali: Nil (Bengal indigo) |
+| -------------------------- | ------------------------ | ------------------------- |
+| Mark, fills                | `#C2621A`                | `#2B3990`                 |
+| Text and controls on white | `#9C4A12` (6.2:1)        | `#4456C7` (6.2:1)         |
+| On dark                    | `#E89A4E`                | `#8C9BEA`                 |
+| Ground                     | milk `#F6EBDD`           | stone `#EFEAE2`           |
 
 - Keep Nil deep, never bright: it is ink-dyed cloth, not a tech purple.
 - Cha is fainter at 16px than Nil; Chakni's favicon uses the deeper `#9C4A12`.
@@ -27,17 +27,17 @@ Two sibling libraries, one bar system. `final/preview.png` shows every piece in 
 
 ## Files (per library, in `final/<name>/`)
 
-| File | Use |
-|---|---|
-| `<name>-mark.svg`, `-white.svg` | The mark, 48px and up |
-| `<name>-mark-small.svg`, `-white.svg` | The mark, 16–48px |
-| `<name>-lockup.svg`, `-white.svg` | Mark and wordmark side by side: README headers, 48px and up |
-| `<name>-lockup-small.svg`, `-white.svg` | The small mark and wordmark: nav bars, 16–32px |
-| `<name>-stacked.svg`, `-white.svg` | Mark above wordmark: docs home, posters |
-| `favicon.svg` | Browser tab; follows the system's light or dark mode |
-| `favicon-32.png`, `favicon-32-dark.png` | Fallback favicons |
-| `apple-touch-icon.png` (180), `icon-512.png`, `<name>-app-icon.svg` | Home-screen and PWA icons |
-| `<name>-social.svg`, `.png` (1280 × 640) | GitHub social preview, link cards |
+| File                                                                | Use                                                         |
+| ------------------------------------------------------------------- | ----------------------------------------------------------- |
+| `<name>-mark.svg`, `-white.svg`                                     | The mark, 48px and up                                       |
+| `<name>-mark-small.svg`, `-white.svg`                               | The mark, 16–48px                                           |
+| `<name>-lockup.svg`, `-white.svg`                                   | Mark and wordmark side by side: README headers, 48px and up |
+| `<name>-lockup-small.svg`, `-white.svg`                             | The small mark and wordmark: nav bars, 16–32px              |
+| `<name>-stacked.svg`, `-white.svg`                                  | Mark above wordmark: docs home, posters                     |
+| `favicon.svg`                                                       | Browser tab; follows the system's light or dark mode        |
+| `favicon-32.png`, `favicon-32-dark.png`                             | Fallback favicons                                           |
+| `apple-touch-icon.png` (180), `icon-512.png`, `<name>-app-icon.svg` | Home-screen and PWA icons                                   |
+| `<name>-social.svg`, `.png` (1280 × 640)                            | GitHub social preview, link cards                           |
 
 ## Rebuilding
 

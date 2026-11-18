@@ -6,7 +6,8 @@ import { useShowStats } from "./stats-pref";
 export function StatusLine() {
   const m = useWorkspaceModel();
   const { keymap } = useWorkspace();
-  const keys = (id: string, what: string) => (keymap.label(id) ? `${keymap.label(id)} ${what}` : "");
+  const keys = (id: string, what: string) =>
+    keymap.label(id) ? `${keymap.label(id)} ${what}` : "";
   const view = useWorkspaceState((s) => s.view);
   const resizeMode = useWorkspaceState((s) => s.resizeMode);
   const curated = useWorkspaceState((s) => !!s.page);
@@ -16,7 +17,9 @@ export function StatusLine() {
   const activity = useWorkspaceState((s) => s.activity);
   // Every tucked pane, shown or not (the shelf lists them all); folded panes are counted separately.
   const tucked = m.shelf.length;
-  const busy = Object.entries(activity).filter(([id, a]) => (a === "needs-you" || a === "working" || a === "error") && m.tuckOf(id));
+  const busy = Object.entries(activity).filter(
+    ([id, a]) => (a === "needs-you" || a === "working" || a === "error") && m.tuckOf(id),
+  );
   const hint = resizeMode
     ? "Resize mode · arrows, ⇧ for 64px · Esc to leave"
     : view.zoomed
@@ -25,21 +28,38 @@ export function StatusLine() {
         ? "Peek · Esc to close"
         : curated && single
           ? keys("palette.toggle", "commands")
-          : [keys("pane.zoom", "maximise"), keys("pane.focus.next", `next ${curated ? "view" : "pane"}`), keys("palette.toggle", "commands")].filter(Boolean).join(" · ");
+          : [
+              keys("pane.zoom", "maximise"),
+              keys("pane.focus.next", `next ${curated ? "view" : "pane"}`),
+              keys("palette.toggle", "commands"),
+            ]
+              .filter(Boolean)
+              .join(" · ");
   const n = m.onScreen.length;
   return (
     <footer className="status" aria-label="Status" data-shelf-on={tucked ? "" : undefined}>
       {/* Hidden panes live here, on the left, so the workspace height never changes. The count and focus step right. */}
       <Shelf />
       <span className="status-main" data-testid="status-main">
-        {curated ? `${n} ${n === 1 ? "view" : "views"} on screen` : `${n} ${n === 1 ? "pane" : "panes"}`}
+        {curated
+          ? `${n} ${n === 1 ? "view" : "views"} on screen`
+          : `${n} ${n === 1 ? "pane" : "panes"}`}
         {!curated && m.off.length ? ` · ${m.off.length} hidden` : ""}
         {tucked ? ` · ${tucked} tucked` : ""}
         {m.folded.length ? ` · ${m.folded.length} folded` : ""}
         {" · "}Focus: {view.focused ? m.title(view.focused) : "none"}
       </span>
-      {busy.length ? <span className="status-busy">{busy.map(([id, a]) => `${m.title(id)}: ${a}`).join(" · ")}</span> : null}
-      <span className="status-hint" data-mode={resizeMode || view.zoomed || view.peek ? "" : undefined}>{hint}</span>
+      {busy.length ? (
+        <span className="status-busy">
+          {busy.map(([id, a]) => `${m.title(id)}: ${a}`).join(" · ")}
+        </span>
+      ) : null}
+      <span
+        className="status-hint"
+        data-mode={resizeMode || view.zoomed || view.peek ? "" : undefined}
+      >
+        {hint}
+      </span>
       {showStats ? <Stats /> : null}
     </footer>
   );

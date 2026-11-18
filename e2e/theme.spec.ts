@@ -5,41 +5,71 @@ import { expect, test } from "./fixtures/lab";
  * host's theme (Chakni's token names), and a dark scope gets dark values.
  */
 const bridge = { path: "packages/react/src/styles/jali-tailwind.css" };
-const focusedBorder = (lab: import("./fixtures/lab").Lab) => lab.page.locator("section[data-pane][data-focused]").first().evaluate((e) => getComputedStyle(e).borderTopColor);
+const focusedBorder = (lab: import("./fixtures/lab").Lab) =>
+  lab.page
+    .locator("section[data-pane][data-focused]")
+    .first()
+    .evaluate((e) => getComputedStyle(e).borderTopColor);
 
 test.describe("Theme", () => {
-  test("a host's --jali-accent wins with no specificity, and the tints follow it", async ({ lab, page }) => {
+  test("a host's --jali-accent wins with no specificity, and the tints follow it", async ({
+    lab,
+    page,
+  }) => {
     await lab.open();
     await page.addStyleTag({ content: ":root { --jali-accent: rgb(194, 98, 26); }" });
     expect(await focusedBorder(lab)).toBe("rgb(194, 98, 26)");
-    const weak = await page.evaluate(() => getComputedStyle(document.querySelector("[data-jali]")!).getPropertyValue("--jali-accent-weak").trim());
+    const weak = await page.evaluate(() =>
+      getComputedStyle(document.querySelector("[data-jali]")!)
+        .getPropertyValue("--jali-accent-weak")
+        .trim(),
+    );
     expect(weak).toContain("rgb(194, 98, 26)");
   });
 
-  test("a host token set in a layer above jali wins (the theme is in the jali layer)", async ({ lab, page }) => {
+  test("a host token set in a layer above jali wins (the theme is in the jali layer)", async ({
+    lab,
+    page,
+  }) => {
     await lab.open();
-    await page.addStyleTag({ content: "@layer components { :root { --jali-accent: rgb(194, 98, 26); } }" });
+    await page.addStyleTag({
+      content: "@layer components { :root { --jali-accent: rgb(194, 98, 26); } }",
+    });
     expect(await focusedBorder(lab)).toBe("rgb(194, 98, 26)");
   });
 
-  test("an accent set around a workspace tints its dialogs too, not only the panes", async ({ lab, page }) => {
+  test("an accent set around a workspace tints its dialogs too, not only the panes", async ({
+    lab,
+    page,
+  }) => {
     await lab.open();
     await page.addStyleTag({ content: "body { --jali-accent: rgb(194, 98, 26); }" });
     await page.getByRole("button", { name: "Settings" }).click();
-    const weak = await page.locator(".jali-scrim").first().evaluate((e) => getComputedStyle(e).getPropertyValue("--jali-accent-weak").trim());
+    const weak = await page
+      .locator(".jali-scrim")
+      .first()
+      .evaluate((e) => getComputedStyle(e).getPropertyValue("--jali-accent-weak").trim());
     expect(weak).toContain("rgb(194, 98, 26)");
   });
 
   test("the Tailwind bridge takes the host's semantic tokens", async ({ lab, page }) => {
     await lab.open();
     await page.addStyleTag(bridge);
-    await page.addStyleTag({ content: ":root { --color-primary: rgb(194, 98, 26); --color-card: rgb(250, 245, 238); }" });
+    await page.addStyleTag({
+      content: ":root { --color-primary: rgb(194, 98, 26); --color-card: rgb(250, 245, 238); }",
+    });
     expect(await focusedBorder(lab)).toBe("rgb(194, 98, 26)");
-    const bg = await lab.page.locator("section[data-pane]").first().evaluate((e) => getComputedStyle(e).backgroundColor);
+    const bg = await lab.page
+      .locator("section[data-pane]")
+      .first()
+      .evaluate((e) => getComputedStyle(e).backgroundColor);
     expect(bg).toBe("rgb(250, 245, 238)");
   });
 
-  test("with the bridge but no host token, Jali keeps its own default for the theme in use", async ({ lab, page }) => {
+  test("with the bridge but no host token, Jali keeps its own default for the theme in use", async ({
+    lab,
+    page,
+  }) => {
     await lab.open();
     await lab.setting(/^Dark$/);
     await page.addStyleTag(bridge);
@@ -47,9 +77,14 @@ test.describe("Theme", () => {
     expect(await focusedBorder(lab)).toBe("rgb(140, 155, 234)");
   });
 
-  test("a utility on a part wins over Jali's rule without !important (Jali is in a lower layer)", async ({ lab, page }) => {
+  test("a utility on a part wins over Jali's rule without !important (Jali is in a lower layer)", async ({
+    lab,
+    page,
+  }) => {
     await lab.open();
-    await page.addStyleTag({ content: "section[data-pane][data-focused] { border-color: rgb(0, 128, 0); }" });
+    await page.addStyleTag({
+      content: "section[data-pane][data-focused] { border-color: rgb(0, 128, 0); }",
+    });
     expect(await focusedBorder(lab)).toBe("rgb(0, 128, 0)");
   });
 });

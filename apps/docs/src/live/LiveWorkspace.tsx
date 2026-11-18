@@ -4,7 +4,13 @@
  * on one page never all answer ⌘K or F6.
  */
 import { useId, useRef, useState, type ReactNode, type Ref } from "react";
-import { createPaneKinds, createUiStore, layout as jl, memoryStorage, type UiStore } from "@jali/core/adapter";
+import {
+  createPaneKinds,
+  createUiStore,
+  layout as jl,
+  memoryStorage,
+  type UiStore,
+} from "@jali/core/adapter";
 import { Jali, JaliView, Shelf, useWorkspaceModel } from "@jali/react";
 import { buildDemoLayout, type DemoLayoutId } from "./demo";
 import { demoKinds } from "./kinds";
@@ -33,19 +39,29 @@ export function resetLive(store: UiStore, layoutId: DemoLayoutId) {
   const view = { focusHistory: [] };
   store.set({
     layout: jl.refit(buildDemoLayout(layoutId), view, store.ctx()),
-    view, selection: {}, undoStack: [], dnd: null, paneState: {}, resizeMode: null, paletteOpen: false, chooser: null,
+    view,
+    selection: {},
+    undoStack: [],
+    dnd: null,
+    paneState: {},
+    resizeMode: null,
+    paletteOpen: false,
+    chooser: null,
   });
 }
 
 /** The status line under the panes: the shelf (folded and tucked panes) and a count. */
 function LiveStatus() {
   const m = useWorkspaceModel();
-  const tucked = m.shelf.length, folded = m.folded.length, n = m.visible.length;
+  const tucked = m.shelf.length,
+    folded = m.folded.length,
+    n = m.visible.length;
   return (
     <footer className="live-statusbar" data-single={m.single || undefined}>
       <Shelf />
       <span className="live-statusbar-count">
-        {n} on screen{folded ? ` · ${folded} folded` : ""}{tucked ? ` · ${tucked} tucked` : ""}
+        {n} on screen{folded ? ` · ${folded} folded` : ""}
+        {tucked ? ` · ${tucked} tucked` : ""}
       </span>
     </footer>
   );
@@ -67,7 +83,14 @@ export interface LiveWorkspaceProps {
  * The workspace in a box of a fixed height. The wrapper holds the Jali root and its dialogs, and is the keyboard's
  * scope: keys count for this workspace only when pressed inside it (or on the page body right after using it).
  */
-export function LiveWorkspace({ store, height, overlay, wrapRef, className, status = true }: LiveWorkspaceProps) {
+export function LiveWorkspace({
+  store,
+  height,
+  overlay,
+  wrapRef,
+  className,
+  status = true,
+}: LiveWorkspaceProps) {
   const wrap = useRef<HTMLDivElement | null>(null);
   const setRef = (el: HTMLDivElement | null) => {
     wrap.current = el;
@@ -75,7 +98,11 @@ export function LiveWorkspace({ store, height, overlay, wrapRef, className, stat
     else if (wrapRef) (wrapRef as { current: HTMLDivElement | null }).current = el;
   };
   return (
-    <div className={["live-ws", className].filter(Boolean).join(" ")} ref={setRef} style={{ height }}>
+    <div
+      className={["live-ws", className].filter(Boolean).join(" ")}
+      ref={setRef}
+      style={{ height }}
+    >
       <Jali workspace={store} className="live-jali" settings={false}>
         <JaliView />
         {status ? <LiveStatus /> : null}

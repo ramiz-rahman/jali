@@ -4,8 +4,18 @@ import { presets } from "../presets/layouts";
 
 // Your app's own commands: listed in ⌘K after Jali's, under a group of your own.
 const commands: Command[] = [
-  { id: "orders.refresh", title: "Refresh orders", group: "Orders", run: () => void fetch("/api/orders/refresh", { method: "POST" }) },
-  { id: "orders.export", title: "Export orders as CSV", group: "Orders", run: () => window.open("/api/orders.csv") },
+  {
+    id: "orders.refresh",
+    title: "Refresh orders",
+    group: "Orders",
+    run: () => void fetch("/api/orders/refresh", { method: "POST" }),
+  },
+  {
+    id: "orders.export",
+    title: "Export orders as CSV",
+    group: "Orders",
+    run: () => window.open("/api/orders.csv"),
+  },
 ];
 
 export const workspace = createWorkspace({

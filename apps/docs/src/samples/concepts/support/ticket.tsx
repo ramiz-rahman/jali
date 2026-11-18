@@ -6,9 +6,9 @@ export const ticket = definePane("ticket", {
   params: { id: Number },
   title: ({ id }) => `Ticket ${id}`,
   width: {
-    min: 320,         // narrower than this, the pane folds into a tab
+    min: 320, // narrower than this, the pane folds into a tab
     comfortable: 420, // spare room brings it here first
-    max: 640,         // past this, spare room goes to its neighbours first
+    max: 640, // past this, spare room goes to its neighbours first
   },
   height: { min: 200 },
 
@@ -19,7 +19,9 @@ export const ticket = definePane("ticket", {
       <article>
         <h3>{t.subject}</h3>
         <p>Status: {t.status}</p>
-        <button onClick={() => openBeside(customer({ id: t.customer }))}>Customer {t.customer}</button>
+        <button onClick={() => openBeside(customer({ id: t.customer }))}>
+          Customer {t.customer}
+        </button>
       </article>
     );
   },

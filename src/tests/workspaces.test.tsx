@@ -8,7 +8,13 @@ import { act, cleanup, render } from "@testing-library/react";
 import shelfCss from "../../packages/react/src/styles/shelf.css?raw";
 import chromeCss from "../../packages/react/src/styles/chrome.css?raw";
 import * as core from "@jali/core/adapter";
-import { createUrlSync, installKeyboard, memoryLocation, startUi, type UiStore } from "@jali/core/adapter";
+import {
+  createUrlSync,
+  installKeyboard,
+  memoryLocation,
+  startUi,
+  type UiStore,
+} from "@jali/core/adapter";
 import { createWorkspace, row } from "@jali/core";
 import { Jali, definePane } from "@jali/react";
 import { parseKeys } from "../../packages/core/src/commands/format";
@@ -30,12 +36,22 @@ const chordAt = (store: UiStore, target: () => EventTarget, text: string) => {
   const mod = store.keymap.platform === "mac" ? { metaKey: true } : { ctrlKey: true };
   for (const c of parseKeys(text)) {
     const code = /^(Key|Digit)|^Backslash$|^Bracket/.test(c.key) ? c.key : undefined;
-    const key = code ? (code === "Backslash" ? "\\" : code.replace(/^(Key|Digit)/, "").toLowerCase()) : c.key;
-    act(() => { keydown(target(), { key, code, shiftKey: !!c.shift, altKey: !!c.alt, ...(c.mod ? mod : {}) }); });
+    const key = code
+      ? code === "Backslash"
+        ? "\\"
+        : code.replace(/^(Key|Digit)/, "").toLowerCase()
+      : c.key;
+    act(() => {
+      keydown(target(), { key, code, shiftKey: !!c.shift, altKey: !!c.alt, ...(c.mod ? mod : {}) });
+    });
   }
 };
 
-class RO { observe() {} unobserve() {} disconnect() {} }
+class RO {
+  observe() {}
+  unobserve() {}
+  disconnect() {}
+}
 vi.stubGlobal("ResizeObserver", (globalThis as { ResizeObserver?: unknown }).ResizeObserver ?? RO);
 
 afterEach(() => {
@@ -48,8 +64,18 @@ afterEach(() => {
 describe("keys scoped to a root (1, 12)", () => {
   it("a ⌘K chord finishes in the palette, which renders outside the root", () => {
     // keys: "workspace" scopes each workspace's keys to its root while <Jali> has it started.
-    const a = make({ id: "a", keys: "workspace" }), b = make({ id: "b", keys: "workspace" });
-    const r = render(<><Jali workspace={a}><button>in a</button></Jali><Jali workspace={b}><button>in b</button></Jali></>);
+    const a = make({ id: "a", keys: "workspace" }),
+      b = make({ id: "b", keys: "workspace" });
+    const r = render(
+      <>
+        <Jali workspace={a}>
+          <button>in a</button>
+        </Jali>
+        <Jali workspace={b}>
+          <button>in b</button>
+        </Jali>
+      </>,
+    );
     {
       const inA = r.getByText("in a");
       inA.focus();
@@ -65,15 +91,29 @@ describe("keys scoped to a root (1, 12)", () => {
 
 describe("dialog ids (2)", () => {
   it("two workspaces' dialogs never share an element id", () => {
-    const a = make({ id: "a" }), b = make({ id: "b" });
+    const a = make({ id: "a" }),
+      b = make({ id: "b" });
     // No panes: only the dialogs are under test (the lab's panes need its data layer).
-    render(<><Jali workspace={a}><div /></Jali><Jali workspace={b}><div /></Jali></>);
+    render(
+      <>
+        <Jali workspace={a}>
+          <div />
+        </Jali>
+        <Jali workspace={b}>
+          <div />
+        </Jali>
+      </>,
+    );
     for (const s of [a, b]) act(() => s.set({ settingsOpen: true }));
-    for (const s of [a, b]) act(() => s.set({ confirm: { panes: [s.get().view.focused!], change: { kind: "close" } as never } }));
+    for (const s of [a, b])
+      act(() =>
+        s.set({ confirm: { panes: [s.get().view.focused!], change: { kind: "close" } as never } }),
+      );
     let ids = [...document.querySelectorAll("[id]")].map((e) => e.id);
     expect(ids.length).toBeGreaterThan(0);
     expect(new Set(ids).size).toBe(ids.length);
-    for (const s of [a, b]) act(() => s.set({ settingsOpen: false, confirm: null, paletteOpen: true }));
+    for (const s of [a, b])
+      act(() => s.set({ settingsOpen: false, confirm: null, paletteOpen: true }));
     ids = [...document.querySelectorAll("[id]")].map((e) => e.id);
     expect(ids.filter((i) => i.includes("palette")).length).toBe(2);
     expect(new Set(ids).size).toBe(ids.length);
@@ -82,8 +122,18 @@ describe("dialog ids (2)", () => {
 
 describe("default storage (3)", () => {
   it("two stores with their own ids save under their own prefixes", () => {
-    const a = core.createUiStore({ kinds: core.createPaneKinds([]), initial: { layout: make().get().layout }, id: "orders", focusPane: null });
-    const b = core.createUiStore({ kinds: core.createPaneKinds([]), initial: { layout: make().get().layout }, id: "notes", focusPane: null });
+    const a = core.createUiStore({
+      kinds: core.createPaneKinds([]),
+      initial: { layout: make().get().layout },
+      id: "orders",
+      focusPane: null,
+    });
+    const b = core.createUiStore({
+      kinds: core.createPaneKinds([]),
+      initial: { layout: make().get().layout },
+      id: "notes",
+      focusPane: null,
+    });
     a.storage.set("k", "A");
     b.storage.set("k", "B");
     expect(a.storage.get("k")).toBe("A");
@@ -91,12 +141,23 @@ describe("default storage (3)", () => {
   });
   it("createWorkspace saves under its id when no storage is given", () => {
     const note = definePane("note", { title: "Note", Component: () => null });
-    const s = createWorkspace({ panes: [note], layout: note(), id: "orders", url: false, size: area, moveFocus: false });
+    const s = createWorkspace({
+      panes: [note],
+      layout: note(),
+      id: "orders",
+      url: false,
+      size: area,
+      moveFocus: false,
+    });
     s.storage.set("k", "v");
     expect(localStorage.getItem("orders:k")).toBe("v");
   });
   it("the default store keeps its old prefix", () => {
-    const s = core.createUiStore({ kinds: core.createPaneKinds([]), initial: { layout: make().get().layout }, focusPane: null });
+    const s = core.createUiStore({
+      kinds: core.createPaneKinds([]),
+      initial: { layout: make().get().layout },
+      focusPane: null,
+    });
     s.storage.set("k", "v");
     expect(localStorage.getItem("jali:k")).toBe("v");
   });
@@ -125,28 +186,38 @@ describe("startUi for one of several workspaces (9, 10, 11): StartOptions { keys
     off();
   });
   it("root scopes its keys, and settings still save", () => {
-    const a = make({ id: "a" }), b = make({ id: "b" });
-    const rootA = document.createElement("div"), rootB = document.createElement("div");
-    const inA = document.createElement("button"), inB = document.createElement("button");
-    rootA.append(inA); rootB.append(inB); document.body.append(rootA, rootB);
+    const a = make({ id: "a" }),
+      b = make({ id: "b" });
+    const rootA = document.createElement("div"),
+      rootB = document.createElement("div");
+    const inA = document.createElement("button"),
+      inB = document.createElement("button");
+    rootA.append(inA);
+    rootB.append(inB);
+    document.body.append(rootA, rootB);
     const offA = startUi(a, undefined, { keys: { root: () => rootA }, pageTheme: false });
     const offB = startUi(b, undefined, { keys: { root: () => rootB }, pageTheme: false });
     try {
-      const fa = a.get().view.focused, fb = b.get().view.focused;
+      const fa = a.get().view.focused,
+        fb = b.get().view.focused;
       keydown(inB, { key: "F6" });
       expect(a.get().view.focused).toBe(fa);
       expect(b.get().view.focused).not.toBe(fb);
       a.set({ settings: { ...a.get().settings, paneCap: 5 } });
       expect(JSON.parse(a.storage.get("settings") ?? "{}").paneCap).toBe(5);
     } finally {
-      offA(); offB(); rootA.remove(); rootB.remove();
+      offA();
+      offB();
+      rootA.remove();
+      rootB.remove();
     }
   });
   it("writes no unprefixed or lab variables on <html>", () => {
     const s = make();
     const off = startUi(s);
     const style = document.documentElement.getAttribute("style") ?? "";
-    for (const v of ["--gap", "--topbar-h", "--status-h", "--switcher-h"]) expect(style).not.toMatch(new RegExp(`(^|[ ;])${v}:`));
+    for (const v of ["--gap", "--topbar-h", "--status-h", "--switcher-h"])
+      expect(style).not.toMatch(new RegExp(`(^|[ ;])${v}:`));
     off();
   });
 });
@@ -154,7 +225,10 @@ describe("startUi for one of several workspaces (9, 10, 11): StartOptions { keys
 describe("host commands (18)", () => {
   it("a host's own command can be bound and runs from its keys", () => {
     const run = vi.fn();
-    const s = make({ commands: [{ id: "host.hello", title: "Say hello", group: "Host", run }], keymap: { "host.hello": "Mod+K Mod+H" } });
+    const s = make({
+      commands: [{ id: "host.hello", title: "Say hello", group: "Host", run }],
+      keymap: { "host.hello": "Mod+K Mod+H" },
+    });
     expect(core.commandsOf(s).some((c) => c.id === "host.hello")).toBe(true);
     const off = installKeyboard(s);
     chordAt(s, () => document.body, "Mod+K Mod+H");
@@ -166,10 +240,16 @@ describe("host commands (18)", () => {
 describe("mounting (25)", () => {
   it("a workspace mounting leaves page focus where it was", async () => {
     const note = definePane("note", {
-      params: { id: Number }, title: ({ id }) => `Note ${id}`,
+      params: { id: Number },
+      title: ({ id }) => `Note ${id}`,
       Component: ({ params }) => <button>note {params.id}</button>,
     });
-    const s = createWorkspace({ panes: [note], layout: row(note({ id: 1 }), note({ id: 2 })), url: false, size: area });
+    const s = createWorkspace({
+      panes: [note],
+      layout: row(note({ id: 1 }), note({ id: 2 })),
+      url: false,
+      size: area,
+    });
     document.body.focus();
     render(<Jali workspace={s} />);
     await act(() => new Promise((r) => setTimeout(r, 30)));

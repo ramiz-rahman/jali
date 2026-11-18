@@ -34,14 +34,23 @@ export function restoreWide({ s, ctx }: Snapshot, snap: WideSnapshot): Outcome {
   let layout = s.layout;
   for (const [stackId, tab] of Object.entries(snap.active)) {
     const st = core.tree.find(layout.root, stackId);
-    if (st?.type === "stack" && st.active !== tab && st.children.some((c) => c.id === tab)) layout = core.setActiveTab(layout, stackId, tab, ctx);
+    if (st?.type === "stack" && st.active !== tab && st.children.some((c) => c.id === tab))
+      layout = core.setActiveTab(layout, stackId, tab, ctx);
   }
-  const shown = new Set(core.resolve(layout, s.view, ctx).panes.filter((b) => !b.hidden).map((b) => b.id));
+  const shown = new Set(
+    core
+      .resolve(layout, s.view, ctx)
+      .panes.filter((b) => !b.hidden)
+      .map((b) => b.id),
+  );
   const cur = s.view;
   const earlier: ViewState = { ...snap.view, ...(cur.peek ? { peek: cur.peek } : {}) };
   if (!cur.peek) delete earlier.peek;
   delete earlier.zoomed;
-  const view = !cur.focused || shown.has(cur.focused) || !earlier.focused || !shown.has(earlier.focused) ? cur : earlier;
+  const view =
+    !cur.focused || shown.has(cur.focused) || !earlier.focused || !shown.has(earlier.focused)
+      ? cur
+      : earlier;
   if (layout === s.layout && view === s.view) return null;
   return { op: "wide", layout, view };
 }

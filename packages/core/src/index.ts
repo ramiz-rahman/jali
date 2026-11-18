@@ -5,23 +5,66 @@
  */
 
 // ---------- start here ----------
-export { createWorkspace, type Workspace, type WorkspaceOptions, type PresetOptions } from "./create-workspace";
 export {
-  row, column, tabs, pane, toLayout,
-  type LayoutInput, type SizeOptions, type PaneNodeOptions, type TabsOptions,
+  createWorkspace,
+  type Workspace,
+  type WorkspaceOptions,
+  type PresetOptions,
+} from "./create-workspace";
+export {
+  row,
+  column,
+  tabs,
+  pane,
+  toLayout,
+  type LayoutInput,
+  type SizeOptions,
+  type PaneNodeOptions,
+  type TabsOptions,
 } from "./layout/build";
 
 // ---------- pane kinds ----------
 export type {
-  PaneOptions, PaneWidth, PaneHeight, PaneDefinition, PaneKindBase, PaneKinds, PaneCommand, PaneActivity, Params,
-  ParamValue, ParamType, ParamTypes, ParamsOf,
+  PaneOptions,
+  PaneWidth,
+  PaneHeight,
+  PaneDefinition,
+  PaneKindBase,
+  PaneKinds,
+  PaneCommand,
+  PaneActivity,
+  Params,
+  ParamValue,
+  ParamType,
+  ParamTypes,
+  ParamsOf,
 } from "./pane-kinds";
 export type { RoleBase, ProfileBase, ViewMode, Preset, Env, ItemId } from "./profile";
 
 // ---------- the layout tree (pure: every operation returns a new layout) ----------
 export type {
-  Axis, Edge, Size, NodeId, ObjectRef, Layout, LayoutNode, PaneNode, SplitNode, StackNode, Overlay, ViewState, Rect,
-  ResolvedLayout, ResolvedStack, PaneBox, DividerBox, PaneKind, KindRegistry, LayoutContext, FitOptions, ShelfEntry,
+  Axis,
+  Edge,
+  Size,
+  NodeId,
+  ObjectRef,
+  Layout,
+  LayoutNode,
+  PaneNode,
+  SplitNode,
+  StackNode,
+  Overlay,
+  ViewState,
+  Rect,
+  ResolvedLayout,
+  ResolvedStack,
+  PaneBox,
+  DividerBox,
+  PaneKind,
+  KindRegistry,
+  LayoutContext,
+  FitOptions,
+  ShelfEntry,
   UndoEntry,
 } from "./layout/types";
 export * as layout from "./layout";
@@ -29,7 +72,14 @@ export { sameRef } from "./actions/follow";
 
 // ---------- the workspace's state ----------
 export type {
-  UiState as WorkspaceState, PageState, Selection, WorkspaceDom, UrlWriter, DndState, ConfirmState, ChooserState,
+  UiState as WorkspaceState,
+  PageState,
+  Selection,
+  WorkspaceDom,
+  UrlWriter,
+  DndState,
+  ConfirmState,
+  ChooserState,
 } from "./state/store";
 export type { Actions } from "./actions";
 export type { OpenPage } from "./actions/page";
@@ -41,19 +91,41 @@ export type { Settings, ThemeChoice, Theme } from "./state/settings";
 // ---------- the address and what a person keeps ----------
 export type { UrlSyncOptions, LinkSizes } from "./url";
 export {
-  browserLocation, memoryLocation, browserStorage, memoryStorage,
-  type LocationPort, type StoragePort, type NavigateMode,
+  browserLocation,
+  memoryLocation,
+  browserStorage,
+  memoryStorage,
+  type LocationPort,
+  type StoragePort,
+  type NavigateMode,
 } from "./ports";
 
 // ---------- commands and keys ----------
 export { commandsOf, runCommand, copyLink, type Command } from "./commands/registry";
-export { DEFAULT_KEYMAP, type Keymap, type KeymapOverrides, type KeymapOptions, type DefaultKeymapId, type KeyString } from "./commands/keymap";
-export { keyHint, formatKeys, type Platform, type Chord, type KeySequence } from "./commands/format";
+export {
+  DEFAULT_KEYMAP,
+  type Keymap,
+  type KeymapOverrides,
+  type KeymapOptions,
+  type DefaultKeymapId,
+  type KeyString,
+} from "./commands/keymap";
+export {
+  keyHint,
+  formatKeys,
+  type Platform,
+  type Chord,
+  type KeySequence,
+} from "./commands/format";
 
 // ---------- geometry ----------
 /** The gap between panes and the workspace's inset, in px: for a host that measures around a workspace. */
 export { GAP } from "./tokens";
 
 // ---------- contracts with other libraries ----------
-export type { ActiveItemPort, ActiveItemAction, ActiveItemWriteResult } from "./contracts/active-item";
+export type {
+  ActiveItemPort,
+  ActiveItemAction,
+  ActiveItemWriteResult,
+} from "./contracts/active-item";
 export { activeItemPort, type ActiveItemMapping } from "./pane/activeItem";

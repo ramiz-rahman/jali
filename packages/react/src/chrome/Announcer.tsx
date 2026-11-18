@@ -12,7 +12,13 @@ export function Announcer() {
     return () => clearTimeout(t);
   }, [text, seq]);
   return (
-    <div className="jali-sr-only" role="status" aria-live="polite" aria-atomic="true" data-testid="announcer">
+    <div
+      className="jali-sr-only"
+      role="status"
+      aria-live="polite"
+      aria-atomic="true"
+      data-testid="announcer"
+    >
       {shown}
     </div>
   );

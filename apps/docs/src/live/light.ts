@@ -7,7 +7,12 @@ const ATTRS = ["data-live-lit", "data-live-dim"] as const;
  * Marks the panes `ids` as lit (their tab and shelf chip too, when they are behind one), and with `dim` the other
  * panes as dimmed. Runs after every render it is given `stamp` for, since Jali may re-create a tab or chip.
  */
-export function useLitPanes(wrap: RefObject<HTMLElement | null>, ids: string[] | null, dim: boolean, stamp: unknown) {
+export function useLitPanes(
+  wrap: RefObject<HTMLElement | null>,
+  ids: string[] | null,
+  dim: boolean,
+  stamp: unknown,
+) {
   useLayoutEffect(() => {
     const root = wrap.current;
     if (!root) return;
@@ -26,7 +31,11 @@ export function useLitPanes(wrap: RefObject<HTMLElement | null>, ids: string[] |
 }
 
 /** Gives each pane, tab and shelf chip in the workspace its identity colour (`--live-id`), the same as its map box. */
-export function usePaneColours(wrap: RefObject<HTMLElement | null>, colourOf: (id: string) => string, stamp: unknown) {
+export function usePaneColours(
+  wrap: RefObject<HTMLElement | null>,
+  colourOf: (id: string) => string,
+  stamp: unknown,
+) {
   useLayoutEffect(() => {
     const root = wrap.current;
     if (!root) return;

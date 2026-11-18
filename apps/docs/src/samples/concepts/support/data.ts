@@ -1,7 +1,20 @@
 /** Stand-in for your app's data layer, so the samples run on their own. In an app, read through your shared cache. */
-export interface Ticket { id: number; subject: string; status: "open" | "waiting" | "closed"; customer: number }
-export interface Customer { id: number; name: string; plan: string }
-export interface Order { id: number; customer: number; total: number }
+export interface Ticket {
+  id: number;
+  subject: string;
+  status: "open" | "waiting" | "closed";
+  customer: number;
+}
+export interface Customer {
+  id: number;
+  name: string;
+  plan: string;
+}
+export interface Order {
+  id: number;
+  customer: number;
+  total: number;
+}
 
 export const tickets: Ticket[] = [
   { id: 101, subject: "Refund not received", status: "open", customer: 7 },

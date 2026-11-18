@@ -4,7 +4,17 @@
  * the kind registry and the pane cap (focus is not part of it; the view only places the zoom overlay).
  */
 import * as core from "../layout";
-import type { Layout, LayoutContext, NodeId, PaneNode, ResolvedLayout, ShelfEntry, StackNode, TuckRecord, ViewState } from "../layout/types";
+import type {
+  Layout,
+  LayoutContext,
+  NodeId,
+  PaneNode,
+  ResolvedLayout,
+  ShelfEntry,
+  StackNode,
+  TuckRecord,
+  ViewState,
+} from "../layout/types";
 import { titleOf, type Env } from "../profile";
 
 /** A tab group as the frame shows it: a deliberate stack, or a fold or tuck group made by resolve. */
@@ -83,7 +93,12 @@ export function buildModel({ layout, view, area, ctx, env }: ModelInput): Worksp
     }
     const members = resolved.panes.filter((b) => b.stackId === id);
     const active = members.find((b) => !b.hidden)?.id ?? members[0]!.id;
-    groups.set(id, { id, kind: projected?.kind ?? "fold", tabs: members.flatMap((b) => byId.get(b.id) ?? []), active });
+    groups.set(id, {
+      id,
+      kind: projected?.kind ?? "fold",
+      tabs: members.flatMap((b) => byId.get(b.id) ?? []),
+      active,
+    });
   }
 
   const offscreen = new Map(resolved.shelf.map((e) => [e.paneId, e]));
@@ -91,23 +106,41 @@ export function buildModel({ layout, view, area, ctx, env }: ModelInput): Worksp
     const t = tuckOf(p.id);
     if (!t) return [];
     const e = offscreen.get(p.id);
-    const homeId = byId.has(t.home) ? t.home : e?.homeId ?? t.home;
-    return [{ paneId: p.id, homeId, stackId: e?.stackId ?? stackOf(p.id)?.id ?? "", reason: "tucked" }];
+    const homeId = byId.has(t.home) ? t.home : (e?.homeId ?? t.home);
+    return [
+      { paneId: p.id, homeId, stackId: e?.stackId ?? stackOf(p.id)?.id ?? "", reason: "tucked" },
+    ];
   });
 
   return {
-    layout, env, resolved, flat, panes, title, tuckOf, stackOf, shelf, groups,
+    layout,
+    env,
+    resolved,
+    flat,
+    panes,
+    title,
+    tuckOf,
+    stackOf,
+    shelf,
+    groups,
     pane: (id) => (id ? byId.get(id) : undefined),
     visible: shown(resolved),
     flatVisible: shown(flat),
     shownWith(id) {
       const box = flat.panes.find((b) => b.id === id);
-      return (box?.hidden && box.stackId && flat.panes.find((b) => b.stackId === box.stackId && !b.hidden)?.id) || id;
+      return (
+        (box?.hidden &&
+          box.stackId &&
+          flat.panes.find((b) => b.stackId === box.stackId && !b.hidden)?.id) ||
+        id
+      );
     },
     folded: resolved.shelf.filter((e) => e.reason === "folded").map((e) => e.paneId),
     off: flat.panes.filter((b) => b.hidden === "off").map((b) => b.id),
     onScreen: panes.filter((p) => !flat.panes.some((b) => b.id === p.id && b.hidden === "off")),
-    single: area.width > 0 && resolved.panes.some((b) => !b.hidden && b.rect.x + b.rect.width > area.width + 0.5),
+    single:
+      area.width > 0 &&
+      resolved.panes.some((b) => !b.hidden && b.rect.x + b.rect.width > area.width + 0.5),
   };
 }
 
@@ -115,7 +148,15 @@ export function buildModel({ layout, view, area, ctx, env }: ModelInput): Worksp
 export function modelCache() {
   let last: { key: unknown[]; model: WorkspaceModel } | null = null;
   return (input: ModelInput): WorkspaceModel => {
-    const key = [input.layout, input.view.zoomed, input.area.width, input.area.height, input.env.kinds.version(), input.env.profile, input.ctx.paneCap];
+    const key = [
+      input.layout,
+      input.view.zoomed,
+      input.area.width,
+      input.area.height,
+      input.env.kinds.version(),
+      input.env.profile,
+      input.ctx.paneCap,
+    ];
     if (last && key.every((k, i) => k === last!.key[i])) return last.model;
     last = { key, model: buildModel(input) };
     return last.model;

@@ -53,7 +53,9 @@ export function browserLocation(win: Window = window): LocationPort {
 }
 
 /** An address that lives in memory: tests, server rendering, a workspace in a dialog that must not touch the page's. */
-export function memoryLocation(initial = ""): LocationPort & { entries: string[]; visit(search: string): void } {
+export function memoryLocation(
+  initial = "",
+): LocationPort & { entries: string[]; visit(search: string): void } {
   const entries = [initial];
   const fns = new Set<() => void>();
   return {
@@ -85,10 +87,18 @@ export interface StoragePort {
 export function browserStorage(prefix: string): StoragePort {
   return {
     get(key) {
-      try { return localStorage.getItem(`${prefix}:${key}`); } catch { return null; }
+      try {
+        return localStorage.getItem(`${prefix}:${key}`);
+      } catch {
+        return null;
+      }
     },
     set(key, value) {
-      try { localStorage.setItem(`${prefix}:${key}`, value); } catch { /* nothing saved */ }
+      try {
+        localStorage.setItem(`${prefix}:${key}`, value);
+      } catch {
+        /* nothing saved */
+      }
     },
   };
 }

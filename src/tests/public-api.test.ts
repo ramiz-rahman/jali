@@ -9,9 +9,26 @@ import * as react from "@jali/react";
 describe("public API", () => {
   it("@jali/core exports exactly these values", () => {
     expect(Object.keys(core).sort()).toEqual([
-      "DEFAULT_KEYMAP", "GAP", "activeItemPort", "browserLocation", "browserStorage", "column", "commandsOf", "copyLink",
-      "createWorkspace", "formatKeys", "keyHint", "layout", "memoryLocation", "memoryStorage", "pane", "row",
-      "runCommand", "sameRef", "tabs", "toLayout",
+      "DEFAULT_KEYMAP",
+      "GAP",
+      "activeItemPort",
+      "browserLocation",
+      "browserStorage",
+      "column",
+      "commandsOf",
+      "copyLink",
+      "createWorkspace",
+      "formatKeys",
+      "keyHint",
+      "layout",
+      "memoryLocation",
+      "memoryStorage",
+      "pane",
+      "row",
+      "runCommand",
+      "sameRef",
+      "tabs",
+      "toLayout",
     ]);
   });
 

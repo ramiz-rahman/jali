@@ -53,7 +53,7 @@ Don't build your own "are you sure" for these. Moving, tabbing, folding and tuck
 
 A draft, a sort, a scroll position: keep these with `usePaneState(key, initial)` instead of `useState`. The workspace keeps the value through folds, tabs, tucks and reloads, and drops it when the pane closes for good or shows another object. Values must be JSON. Use React state for everything else.
 
-<Code code={editor} filename="note-editor.tsx" highlight="9,17,20-22" />
+<Code code={editor} filename="note-editor.tsx" highlight="9,17,20-28" />
 
 ### 7. Add commands with `useCommands`
 

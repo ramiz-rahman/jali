@@ -46,7 +46,8 @@
 
     --d-font: "Atkinson Hyperlegible Next", system-ui, -apple-system, "Segoe UI", sans-serif;
     --d-font-display: var(--d-font);
-    --d-font-mono: "Atkinson Hyperlegible Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    --d-font-mono:
+      "Atkinson Hyperlegible Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
     --jali-font: var(--d-font);
     --jali-font-mono: var(--d-font-mono);
 
@@ -99,12 +100,27 @@
 
   @media (prefers-color-scheme: dark) {
     :root:not([data-theme]) {
-      --jali-canvas: #0e0d0b; --jali-surface: #1a1815; --jali-surface-raised: #221f1b; --jali-border: #2d2a25;
-      --jali-border-strong: #3f3a33; --jali-control: #7b7468; --jali-text: #f1ece4; --jali-text-muted: #bfb7aa;
-      --jali-text-subtle: #a1998c; --jali-text-faint: #6c655b; --jali-hover: #24211d; --jali-brand: #8c9bea;
-      --jali-accent: #8c9bea; --jali-accent-soft: #20244a; --jali-on-accent: #0e0d0b;
-      --d-ground: #13120f; --d-ground-veil: rgb(19 18 15 / 0.84); --d-code-bg: #181613; --d-code-head: #1d1b17;
-      --d-inline-code: #24211c; --d-lattice-opacity: 0.11;
+      --jali-canvas: #0e0d0b;
+      --jali-surface: #1a1815;
+      --jali-surface-raised: #221f1b;
+      --jali-border: #2d2a25;
+      --jali-border-strong: #3f3a33;
+      --jali-control: #7b7468;
+      --jali-text: #f1ece4;
+      --jali-text-muted: #bfb7aa;
+      --jali-text-subtle: #a1998c;
+      --jali-text-faint: #6c655b;
+      --jali-hover: #24211d;
+      --jali-brand: #8c9bea;
+      --jali-accent: #8c9bea;
+      --jali-accent-soft: #20244a;
+      --jali-on-accent: #0e0d0b;
+      --d-ground: #13120f;
+      --d-ground-veil: rgb(19 18 15 / 0.84);
+      --d-code-bg: #181613;
+      --d-code-head: #1d1b17;
+      --d-inline-code: #24211c;
+      --d-lattice-opacity: 0.11;
       color-scheme: dark;
     }
   }

@@ -39,11 +39,20 @@ export interface JaliProps extends HTMLAttributes<HTMLDivElement> {
   settingsExtra?: ReactNode;
 }
 
-export function Jali({ workspace, children = <JaliView />, overlays, settings = true, settingsExtra, ...rest }: JaliProps) {
+export function Jali({
+  workspace,
+  children = <JaliView />,
+  overlays,
+  settings = true,
+  settingsExtra,
+  ...rest
+}: JaliProps) {
   useEffect(() => workspace.start(), [workspace]);
   return (
     <StoreProvider store={workspace}>
-      <div {...rest} data-jali="" ref={workspace.dom.attach}>{children}</div>
+      <div {...rest} data-jali="" ref={workspace.dom.attach}>
+        {children}
+      </div>
       {/* The dialogs render outside the root but are this workspace's: keys pressed in them count as its own. */}
       <div data-jali-layer="" ref={workspace.dom.attachLayer} style={{ display: "contents" }}>
         <Announcer />

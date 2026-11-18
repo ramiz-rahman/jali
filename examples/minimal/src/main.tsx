@@ -18,7 +18,9 @@ const note = definePane("note", {
   Component: ({ params, openBeside }) => (
     <article className="note">
       <h3>Note {params.id}</h3>
-      <button onClick={() => openBeside(note({ id: params.id + 1 }))}>Open the next note beside</button>
+      <button onClick={() => openBeside(note({ id: params.id + 1 }))}>
+        Open the next note beside
+      </button>
     </article>
   ),
 });
@@ -32,7 +34,9 @@ const launcher = definePane("launcher", {
     <nav className="note" aria-label="Open a note">
       <h3>Open a note</h3>
       {[1, 2, 3, 4, 5].map((id) => (
-        <button key={id} onClick={() => openHere(note({ id }))}>Note {id}</button>
+        <button key={id} onClick={() => openHere(note({ id }))}>
+          Note {id}
+        </button>
       ))}
     </nav>
   ),

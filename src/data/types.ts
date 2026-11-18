@@ -12,21 +12,49 @@ export type { TableName } from "./tables";
 export type Row = Record<string, string | number | null>;
 
 /** Entity identity used for cache keys and invalidation: every row is an entity. */
-export interface EntityKey { table: TableName; id: string } // composite PKs joined, e.g. "789:2" for order_items
+export interface EntityKey {
+  table: TableName;
+  id: string;
+} // composite PKs joined, e.g. "789:2" for order_items
 
 export type ColumnFormat = "money" | "json";
 export interface ColumnInfo {
-  format?: ColumnFormat; name: string; type: string; nullable: boolean; primaryKey: boolean;
+  format?: ColumnFormat;
+  name: string;
+  type: string;
+  nullable: boolean;
+  primaryKey: boolean;
   references?: { table: TableName; column: string };
 }
-export interface TableInfo { name: TableName; rowCount: number; columns: ColumnInfo[]; referencedBy: { table: TableName; column: string }[] }
+export interface TableInfo {
+  name: TableName;
+  rowCount: number;
+  columns: ColumnInfo[];
+  referencedBy: { table: TableName; column: string }[];
+}
 
-export interface Relation { label: string; table: TableName; where: Record<string, string | number>; count: number } // e.g. "Orders by this customer"
+export interface Relation {
+  label: string;
+  table: TableName;
+  where: Record<string, string | number>;
+  count: number;
+} // e.g. "Orders by this customer"
 
 /** A query run's results live in a result store by handle; grid, chart and inspector share the handle, never a copy. */
-export interface ResultHandle { runId: string; sql: string; columns: string[]; rowCount: number; ms: number }
+export interface ResultHandle {
+  runId: string;
+  sql: string;
+  columns: string[];
+  rowCount: number;
+  ms: number;
+}
 
-export interface RowsQuery { where?: Record<string, string | number>; orderBy?: string; limit?: number; offset?: number }
+export interface RowsQuery {
+  where?: Record<string, string | number>;
+  orderBy?: string;
+  limit?: number;
+  offset?: number;
+}
 
 export interface DataApi {
   /** Starts PGlite in the browser and loads the sample (sampleDatabaseStatements("postgres")). Idempotent. */

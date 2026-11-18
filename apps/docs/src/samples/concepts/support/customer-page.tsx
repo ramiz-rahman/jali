@@ -23,8 +23,16 @@ const bind = (id: number) => ({
 // Split view's designed layout: every view is in it, and Overview starts hidden.
 const build = (id: number) => {
   const refs = bind(id);
-  return row({ id: "page" },
-    ...roles.map((r) => pane(refs[r.id as keyof typeof refs], { id: r.id, role: r.id, priority: r.priority, hidden: r.id === "overview" })),
+  return row(
+    { id: "page" },
+    ...roles.map((r) =>
+      pane(refs[r.id as keyof typeof refs], {
+        id: r.id,
+        role: r.id,
+        priority: r.priority,
+        hidden: r.id === "overview",
+      }),
+    ),
   );
 };
 
@@ -33,13 +41,19 @@ function Rail({ item, activate }: { item: number; activate: (item: number) => vo
   return (
     <nav aria-label="Customers">
       {customers.map((c) => (
-        <button key={c.id} aria-current={c.id === item} onClick={() => activate(c.id)}>{c.name}</button>
+        <button key={c.id} aria-current={c.id === item} onClick={() => activate(c.id)}>
+          {c.name}
+        </button>
       ))}
     </nav>
   );
 }
 function Header({ item }: { item: number }) {
-  return <header><h1>{customers.find((c) => c.id === item)?.name}</h1></header>;
+  return (
+    <header>
+      <h1>{customers.find((c) => c.id === item)?.name}</h1>
+    </header>
+  );
 }
 
 export const customerPage = definePage({

@@ -299,7 +299,7 @@ describe("resolve and fold", () => {
     });
     expect(result.panes[0]!.hidden).toBe("zoom");
   });
-  it.each([NaN, Infinity])("rejects invalid fit width %s", width => {
+  it.each([NaN, Infinity])("rejects invalid fit width %s", (width) => {
     expect(() => place(layout(pane("a")), view(), fit(width))).toThrow(RangeError);
   });
   it("clamps a negative width or height to zero (a container measured mid-collapse)", () => {

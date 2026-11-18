@@ -6,13 +6,17 @@ import type { Page } from "@playwright/test";
  * lets the tabs be dragged into split layouts. Links peek in Single and open beside in Split view.
  */
 const at = (tab: string, item = 4) => `/?app=review&item=${item}&tab=${tab}`;
-const pageTab = (page: Page, name: string) => page.getByRole("tablist", { name: "Loan review views" }).getByRole("tab", { name, exact: true });
-const mode = (page: Page, name: "Single" | "Split view") => page.getByRole("radiogroup", { name: "View mode" }).getByRole("radio", { name });
+const pageTab = (page: Page, name: string) =>
+  page.getByRole("tablist", { name: "Loan review views" }).getByRole("tab", { name, exact: true });
+const mode = (page: Page, name: "Single" | "Split view") =>
+  page.getByRole("radiogroup", { name: "View mode" }).getByRole("radio", { name });
 const investigation = (page: Page) => page.getByRole("group", { name: "Investigation" });
 const opened = (page: Page) => page.locator('section[data-origin="opened"]');
-const groupLink = (lab: Lab, from: string) => lab.pane(from).locator('button[data-ref="lending_groups 5"]');
+const groupLink = (lab: Lab, from: string) =>
+  lab.pane(from).locator('button[data-ref="lending_groups 5"]');
 /** A link from one view to another view's object (Group is a view on this page). */
-const link = (lab: Lab, from: string, ref: string) => lab.pane(from).locator(`button[data-ref="${ref}"]`);
+const link = (lab: Lab, from: string, ref: string) =>
+  lab.pane(from).locator(`button[data-ref="${ref}"]`);
 /** A link to an object that is no view on this page: following it opens a pane. */
 const openLink = (lab: Lab) => link(lab, "borrower", "loan_applications member_id=149");
 
@@ -24,10 +28,16 @@ async function dragTab(page: Page, name: string, to: { x: number; y: number }) {
   await page.mouse.move(to.x, to.y, { steps: 12 });
   await page.mouse.up();
 }
-const rightEdge = async (lab: Lab, id: string) => { const r = (await lab.pane(id).boundingBox())!; return { x: r.x + r.width - 20, y: r.y + r.height / 2 }; };
+const rightEdge = async (lab: Lab, id: string) => {
+  const r = (await lab.pane(id).boundingBox())!;
+  return { x: r.x + r.width - 20, y: r.y + r.height / 2 };
+};
 
 test.describe("Loan review: Single (default)", () => {
-  test("one view at a time, chosen from the tabs; the tabs name it, so the pane has no visible header", async ({ lab, page }) => {
+  test("one view at a time, chosen from the tabs; the tabs name it, so the pane has no visible header", async ({
+    lab,
+    page,
+  }) => {
     await lab.open({ path: at("application"), size: { width: 1440, height: 900 } });
     await expect(mode(page, "Single")).toHaveAttribute("aria-checked", "true");
     expect(await lab.visibleIds()).toEqual(["application"]);
@@ -49,7 +59,10 @@ test.describe("Loan review: Single (default)", () => {
     await expect(pageTab(page, "Loan history")).toHaveAttribute("aria-selected", "true");
   });
 
-  test("a link peeks instead of opening beside, and the peek offers no Pin beside", async ({ lab, page }) => {
+  test("a link peeks instead of opening beside, and the peek offers no Pin beside", async ({
+    lab,
+    page,
+  }) => {
     await lab.open({ path: at("borrower"), size: { width: 1440, height: 900 } });
     await groupLink(lab, "borrower").click();
     await expect(lab.peek()).toBeVisible();
@@ -57,7 +70,10 @@ test.describe("Loan review: Single (default)", () => {
     await expect(lab.peek().getByRole("button", { name: "Pin beside" })).toHaveCount(0);
   });
 
-  test("another application from the queue keeps the view; J/K move through the queue", async ({ lab, page }) => {
+  test("another application from the queue keeps the view; J/K move through the queue", async ({
+    lab,
+    page,
+  }) => {
     await lab.open({ path: at("borrower"), size: { width: 1440, height: 900 } });
     const queue = page.getByRole("listbox", { name: "Loan applications" });
     await queue.getByRole("option", { name: /#7/ }).click();
@@ -69,7 +85,10 @@ test.describe("Loan review: Single (default)", () => {
 });
 
 test.describe("Loan review: Split view", () => {
-  test("starts from Overview's sections as panes; Single and back restores the exact layout", async ({ lab, page }) => {
+  test("starts from Overview's sections as panes; Single and back restores the exact layout", async ({
+    lab,
+    page,
+  }) => {
     await lab.open({ path: at("application"), size: { width: 1440, height: 900 } });
     await pageTab(page, "Overview").click();
     await mode(page, "Split view").click();
@@ -85,14 +104,29 @@ test.describe("Loan review: Split view", () => {
     expect(await lab.snap()).toEqual(rects);
   });
 
-  test("a tab click never moves a pane or a tab: on screen it focuses, off screen it takes the place of the view in use", async ({ lab, page }) => {
+  test("a tab click never moves a pane or a tab: on screen it focuses, off screen it takes the place of the view in use", async ({
+    lab,
+    page,
+  }) => {
     const breaches: string[] = [];
     page.on("console", (m) => m.text().startsWith("Layout stability") && breaches.push(m.text()));
     await lab.open({ path: at("application"), size: { width: 1440, height: 900 } });
     await mode(page, "Split view").click();
-    const rects = async () => (await page.locator("section[data-pane]:visible").evaluateAll((els) => els.map((e) => { const r = e.getBoundingClientRect(); return `${r.x},${r.y},${r.width},${r.height}`; }))).sort();
-    const tabsAt = () => page.locator(".jali-page-tab").evaluateAll((els) => els.map((e) => e.getBoundingClientRect().x));
-    const before = await rects(), tabs = await tabsAt();
+    const rects = async () =>
+      (
+        await page.locator("section[data-pane]:visible").evaluateAll((els) =>
+          els.map((e) => {
+            const r = e.getBoundingClientRect();
+            return `${r.x},${r.y},${r.width},${r.height}`;
+          }),
+        )
+      ).sort();
+    const tabsAt = () =>
+      page
+        .locator(".jali-page-tab")
+        .evaluateAll((els) => els.map((e) => e.getBoundingClientRect().x));
+    const before = await rects(),
+      tabs = await tabsAt();
     const borrower = await lab.pane("borrower").boundingBox();
     await pageTab(page, "Borrower").click();
     await expect(pageTab(page, "Borrower")).toHaveAttribute("data-state", "focused");
@@ -107,7 +141,10 @@ test.describe("Loan review: Split view", () => {
     expect(breaches).toEqual([]);
   });
 
-  test("drag a tab to place that view; close it and it goes back to the tabs; ⌥-click opens beside", async ({ lab, page }) => {
+  test("drag a tab to place that view; close it and it goes back to the tabs; ⌥-click opens beside", async ({
+    lab,
+    page,
+  }) => {
     await lab.open({ path: at("application"), size: { width: 1440, height: 900 } });
     await mode(page, "Split view").click();
     await dragTab(page, "Group", await rightEdge(lab, "application"));
@@ -124,7 +161,10 @@ test.describe("Loan review: Split view", () => {
     expect(ids.indexOf("officer")).toBe(ids.indexOf("application") + 1);
   });
 
-  test("a view dropped in a pane's centre joins it as a tab: both views are listed, neither replaced", async ({ lab, page }) => {
+  test("a view dropped in a pane's centre joins it as a tab: both views are listed, neither replaced", async ({
+    lab,
+    page,
+  }) => {
     await lab.open({ path: at("application"), size: { width: 1440, height: 900 } });
     await mode(page, "Split view").click();
     const to = (await lab.pane("application").boundingBox())!;
@@ -151,7 +191,10 @@ test.describe("Loan review: Split view", () => {
     expect(await selected()).toBe("");
   });
 
-  test("a tab dragged onto the focused view rings only the drop, not the view's focus too", async ({ lab, page }) => {
+  test("a tab dragged onto the focused view rings only the drop, not the view's focus too", async ({
+    lab,
+    page,
+  }) => {
     await lab.open({ path: at("application"), size: { width: 1440, height: 900 } });
     await mode(page, "Split view").click();
     await lab.pane("application").click();
@@ -169,7 +212,10 @@ test.describe("Loan review: Split view", () => {
     await page.mouse.up();
   });
 
-  test("dragging a tab out of Single switches to Split view with both views", async ({ lab, page }) => {
+  test("dragging a tab out of Single switches to Split view with both views", async ({
+    lab,
+    page,
+  }) => {
     await lab.open({ path: at("application"), size: { width: 1440, height: 900 } });
     await dragTab(page, "Loan history", await rightEdge(lab, "application"));
     await expect(mode(page, "Split view")).toHaveAttribute("aria-checked", "true");
@@ -178,7 +224,10 @@ test.describe("Loan review: Split view", () => {
     expect(ids).toContain("history");
   });
 
-  test("a link opens beside the layout, marked as opened; Back to review restores every rect; ⌘K ⌘Z reopens", async ({ lab, page }) => {
+  test("a link opens beside the layout, marked as opened; Back to review restores every rect; ⌘K ⌘Z reopens", async ({
+    lab,
+    page,
+  }) => {
     await lab.open({ path: at("application"), size: { width: 1920, height: 1000 } });
     await mode(page, "Split view").click();
     const rects = await lab.snap();
@@ -190,16 +239,23 @@ test.describe("Loan review: Split view", () => {
     await investigation(page).getByRole("button", { name: "Back to Loan review" }).click();
     await expect(opened(page)).toHaveCount(0);
     expect(await lab.snap()).toEqual(rects);
-    await page.keyboard.press("ControlOrMeta+k"); await page.keyboard.press("ControlOrMeta+z");
+    await page.keyboard.press("ControlOrMeta+k");
+    await page.keyboard.press("ControlOrMeta+z");
     await expect(opened(page)).toHaveCount(1);
   });
 
-  test("another application swaps every view in place and closes the investigation", async ({ lab, page }) => {
+  test("another application swaps every view in place and closes the investigation", async ({
+    lab,
+    page,
+  }) => {
     await lab.open({ path: at("application"), size: { width: 1920, height: 1000 } });
     await mode(page, "Split view").click();
     await openLink(lab).click();
     await expect(investigation(page)).toBeVisible();
-    await page.getByRole("listbox", { name: "Loan applications" }).getByRole("option", { name: /#7/ }).click();
+    await page
+      .getByRole("listbox", { name: "Loan applications" })
+      .getByRole("option", { name: /#7/ })
+      .click();
     await expect(lab.pane("application").locator(".jali-pane-sub")).toHaveText("Application #7");
     await expect(lab.pane("borrower").locator(".jali-pane-sub")).toHaveText("Member #260");
     await expect(opened(page)).toHaveCount(0);
@@ -219,7 +275,11 @@ test.describe("Loan review: roles and what a link carries", () => {
     await expect(opened(page)).toHaveCount(0);
   });
 
-  test("the mode and layout stay with the person; a link carries the item, the view and opened panes", async ({ lab, page, browser }) => {
+  test("the mode and layout stay with the person; a link carries the item, the view and opened panes", async ({
+    lab,
+    page,
+    browser,
+  }) => {
     await lab.open({ path: at("application"), size: { width: 1920, height: 1000 } });
     await mode(page, "Split view").click();
     await dragTab(page, "Group", await rightEdge(lab, "application"));
@@ -238,10 +298,14 @@ test.describe("Loan review: roles and what a link carries", () => {
     await p2.goto(url);
     await expect(p2.locator('section[data-origin="opened"]')).toHaveCount(1);
     await expect(p2.locator('section[data-pane="group"]')).toBeHidden();
-    await expect(p2.locator('section[data-pane="application"] .jali-pane-sub')).toHaveText("Application #4");
+    await expect(p2.locator('section[data-pane="application"] .jali-pane-sub')).toHaveText(
+      "Application #4",
+    );
     // Without opened panes, a link opens in the reader's own mode (Single by default).
     await p2.goto(at("history"));
-    await expect(p2.getByRole("radiogroup", { name: "View mode" }).getByRole("radio", { name: "Single" })).toHaveAttribute("aria-checked", "true");
+    await expect(
+      p2.getByRole("radiogroup", { name: "View mode" }).getByRole("radio", { name: "Single" }),
+    ).toHaveAttribute("aria-checked", "true");
     await expect(p2.locator('section[data-pane="history"]')).toBeVisible();
     await other.close();
 
@@ -251,7 +315,10 @@ test.describe("Loan review: roles and what a link carries", () => {
     await expect(opened(page)).toHaveCount(1);
   });
 
-  test("Data Studio is untouched: switching back shows its presets and its own layout", async ({ lab, page }) => {
+  test("Data Studio is untouched: switching back shows its presets and its own layout", async ({
+    lab,
+    page,
+  }) => {
     await lab.open({ path: at("application"), size: { width: 1440, height: 900 } });
     await page.getByRole("radio", { name: "Data Studio" }).click();
     await expect(page.getByRole("navigation", { name: "Layout presets" })).toBeVisible();
@@ -261,7 +328,10 @@ test.describe("Loan review: roles and what a link carries", () => {
 });
 
 test.describe("Loan review: design polish", () => {
-  test("Single offers no pane controls (nothing invisible to tab to); the status bar speaks in views", async ({ lab, page }) => {
+  test("Single offers no pane controls (nothing invisible to tab to); the status bar speaks in views", async ({
+    lab,
+    page,
+  }) => {
     await lab.open({ path: at("application"), size: { width: 1440, height: 900 } });
     await expect(page.locator(".jali-pane-actions")).toHaveCount(0);
     await expect(page.getByTestId("fetch-stats")).toHaveCount(0);
@@ -272,19 +342,38 @@ test.describe("Loan review: design polish", () => {
     await expect(lab.statusMain()).not.toContainText("hidden");
   });
 
-  test("page tab marks differ without changing a tab's width; dividers read naturally", async ({ lab, page }) => {
+  test("page tab marks differ without changing a tab's width; dividers read naturally", async ({
+    lab,
+    page,
+  }) => {
     await lab.open({ path: at("application"), size: { width: 1440, height: 900 } });
-    const widths = async () => page.locator(".jali-page-tab").evaluateAll((els) => els.map((e) => e.getBoundingClientRect().width));
+    const widths = async () =>
+      page
+        .locator(".jali-page-tab")
+        .evaluateAll((els) => els.map((e) => e.getBoundingClientRect().width));
     const before = await widths();
     await page.getByRole("radio", { name: "Split view" }).click();
     expect(await widths()).toEqual(before);
-    const mark = (state: string) => page.locator(`.jali-page-tab[data-state="${state}"]`).first().evaluate((e) => { const c = getComputedStyle(e); return `${c.borderBottomStyle} ${c.borderBottomColor}`; });
+    const mark = (state: string) =>
+      page
+        .locator(`.jali-page-tab[data-state="${state}"]`)
+        .first()
+        .evaluate((e) => {
+          const c = getComputedStyle(e);
+          return `${c.borderBottomStyle} ${c.borderBottomColor}`;
+        });
     const marks = [await mark("focused"), await mark("shown"), await mark("off")];
     expect(new Set(marks).size).toBe(3);
-    for (const l of await page.getByRole("separator").evaluateAll((e) => e.map((x) => x.getAttribute("aria-label")))) expect(l).toMatch(/^Resize between .+ and .+$/);
+    for (const l of await page
+      .getByRole("separator")
+      .evaluateAll((e) => e.map((x) => x.getAttribute("aria-label"))))
+      expect(l).toMatch(/^Resize between .+ and .+$/);
   });
 
-  test("at 390px the queue opens from the header, and there is no pane switcher under the tabs", async ({ lab, page }) => {
+  test("at 390px the queue opens from the header, and there is no pane switcher under the tabs", async ({
+    lab,
+    page,
+  }) => {
     await lab.open({ path: at("application"), size: { width: 390, height: 844 } });
     await expect(page.locator(".jali-switcher")).toHaveCount(0);
     await page.getByRole("button", { name: /waiting/ }).click();
@@ -295,7 +384,10 @@ test.describe("Loan review: design polish", () => {
 });
 
 test.describe("Loan review: following links and placing views at 1440", () => {
-  test("a link to a view already on the page goes to that view: no copy opens", async ({ lab, page }) => {
+  test("a link to a view already on the page goes to that view: no copy opens", async ({
+    lab,
+    page,
+  }) => {
     await lab.open({ path: at("application"), size: { width: 1440, height: 900 } });
     await mode(page, "Split view").click();
     const rects = await lab.snap();
@@ -316,21 +408,32 @@ test.describe("Loan review: following links and placing views at 1440", () => {
     // It opens beside the pane the link is in; that pane stays, nothing folds into a tab group.
     expect(await lab.visibleIds()).toContain("application");
     expect(await lab.visibleIds()).toContain("borrower");
-    await expect(page.locator('[role="tablist"]:not([aria-label="Loan review views"])')).toHaveCount(0);
+    await expect(
+      page.locator('[role="tablist"]:not([aria-label="Loan review views"])'),
+    ).toHaveCount(0);
   });
 
-  test("an opened pane never pushes the person's views aside: short of room it opens as the shown tab", async ({ lab, page }) => {
+  test("an opened pane never pushes the person's views aside: short of room it opens as the shown tab", async ({
+    lab,
+    page,
+  }) => {
     await lab.open({ path: at("application"), size: { width: 1440, height: 900 } });
     await mode(page, "Split view").click();
     await pageTab(page, "Group").click({ modifiers: ["Alt"] });
     expect(await lab.visibleIds()).toEqual(["application", "group", "borrower", "history"]);
-    const keep = async () => Promise.all(["application", "group", "history"].map((id) => lab.pane(id).boundingBox()));
+    const keep = async () =>
+      Promise.all(["application", "group", "history"].map((id) => lab.pane(id).boundingBox()));
     const before = await keep();
     await openLink(lab).click();
     await expect(opened(page)).toHaveCount(1);
     await expect(opened(page)).toBeVisible();
     // Every view the person placed stays, at its rect; the opened pane is Borrower's shown tab, in Borrower's slot.
-    expect(await lab.visibleIds()).toEqual(["application", "group", (await opened(page).getAttribute("data-pane"))!, "history"]);
+    expect(await lab.visibleIds()).toEqual([
+      "application",
+      "group",
+      (await opened(page).getAttribute("data-pane"))!,
+      "history",
+    ]);
     expect(await keep()).toEqual(before);
     await expect(lab.announcer()).toContainText("opened as a tab: not enough room beside Borrower");
     await expect(pageTab(page, "Borrower")).toHaveAttribute("data-state", "behind");
@@ -341,7 +444,10 @@ test.describe("Loan review: following links and placing views at 1440", () => {
     await expect(pageTab(page, "Borrower")).toHaveAttribute("data-state", "focused");
   });
 
-  test("holding ⌥ over a tab previews exactly what ⌥-click does: the new view and every view that moves", async ({ lab, page }) => {
+  test("holding ⌥ over a tab previews exactly what ⌥-click does: the new view and every view that moves", async ({
+    lab,
+    page,
+  }) => {
     await lab.open({ path: at("application"), size: { width: 1440, height: 900 } });
     await mode(page, "Split view").click();
     await pageTab(page, "Overview").click({ modifiers: ["Alt"] });
@@ -352,15 +458,26 @@ test.describe("Loan review: following links and placing views at 1440", () => {
       const ghost = page.locator(`.jali-ghost[data-ghost="${role}"]`);
       await expect(ghost).toBeVisible();
       const preview = (await ghost.boundingBox())!;
-      const moved = await page.locator(".jali-ghost-moved").evaluateAll((els) => els.map((e) => { const r = e.getBoundingClientRect(); return [(e as HTMLElement).dataset.ghost!, [r.x, r.y, r.width, r.height].map(Math.round)] as const; }));
+      const moved = await page.locator(".jali-ghost-moved").evaluateAll((els) =>
+        els.map((e) => {
+          const r = e.getBoundingClientRect();
+          return [
+            (e as HTMLElement).dataset.ghost!,
+            [r.x, r.y, r.width, r.height].map(Math.round),
+          ] as const;
+        }),
+      );
       await pageTab(page, name).click();
       await page.keyboard.up("Alt");
       await expect(ghost).toHaveCount(0);
       const box = (await lab.pane(role).boundingBox())!;
-      for (const k of ["x", "y", "width", "height"] as const) expect(Math.abs(box[k] - preview[k]), `${name} ${k}`).toBeLessThanOrEqual(1);
+      for (const k of ["x", "y", "width", "height"] as const)
+        expect(Math.abs(box[k] - preview[k]), `${name} ${k}`).toBeLessThanOrEqual(1);
       for (const [id, r] of moved) {
         const b = (await lab.pane(id).boundingBox())!;
-        expect([b.x, b.y, b.width, b.height].map(Math.round), `${id} moved as previewed`).toEqual(r);
+        expect([b.x, b.y, b.width, b.height].map(Math.round), `${id} moved as previewed`).toEqual(
+          r,
+        );
       }
     }
   });

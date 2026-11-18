@@ -18,7 +18,7 @@ The Loan review app in the [lab](/examples) is a curated page: a queue of applic
 
 `definePage` makes the page's definition (its [profile](/get-started/key-concepts#curated-page)). You pass it to the workspace as `page`, beside your kinds.
 
-<Code code={profile} filename="customer-page.tsx" highlight="7-12,15-20,23-31" />
+<Code code={profile} filename="customer-page.tsx" highlight="7-13,15-21,23-37" />
 
 - **`roles`** are the page's views, in tab order. Each is a [role](/get-started/key-concepts#role): an id, a label, an icon, and a priority. A role's pane in the layout has the role's id as its node id.
 - **`bind(item)`** says what each view shows for one item. Choosing another item from the list swaps every view's object in place.

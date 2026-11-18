@@ -51,14 +51,16 @@ describe("dividers", () => {
     expect(find(resized.root, "b")!.userSized).toBe(true);
     expect(w("a")).toBeCloseTo((2 * left) / (left + right), 9);
     expect(w("b")).toBeCloseTo((2 * right) / (left + right), 9);
-    const widths = core.resolve(resized, view(), ctx(fit(1206))).panes.map(p => p.rect.width);
+    const widths = core.resolve(resized, view(), ctx(fit(1206))).panes.map((p) => p.rect.width);
     expect(widths[0]).toBeCloseTo(left, 6);
     expect(widths[1]).toBeCloseTo(right, 6);
   });
   it("stores a dragged split as weights around 1, not pixels (finding 31)", () => {
     const tree = freeze(layout(pane("a", "list"), pane("b", "record"), pane("c", "small")));
     const resized = core.resizeDivider(tree, "root", 0, 40, ctx(fit(1500)));
-    const weights = ["a", "b", "c"].map((id) => (find(resized.root, id)!.size as { weight: number }).weight);
+    const weights = ["a", "b", "c"].map(
+      (id) => (find(resized.root, id)!.size as { weight: number }).weight,
+    );
     expect(weights.reduce((x, y) => x + y, 0)).toBeCloseTo(3, 9);
     for (const w of weights) expect(w).toBeLessThan(3);
   });
@@ -72,9 +74,17 @@ describe("dividers", () => {
     const resized = core.resizeDivider(tree, "col", 0, 10000, ctx(fit(1000, 406)));
     expect(find(resized.root, "a")!.size).toEqual({ weight: 1.6 });
     expect(find(resized.root, "b")!.size).toEqual({ weight: 0.4 });
-    const options = { ...fit(806), kinds: { ...fit().kinds, small: { ...fit().kinds.small!, maxWidth: 600 } } };
+    const options = {
+      ...fit(806),
+      kinds: { ...fit().kinds, small: { ...fit().kinds.small!, maxWidth: 600 } },
+    };
     // Was 600 (a hard max). The person's size wins over the kind's preference; only b's minimum (100) stops the drag.
-    expect(find(core.resizeDivider(layout(pane("a"), pane("b")), "root", 0, 10000, ctx(options)).root, "a")!.size).toEqual({ weight: 1.75 });
+    expect(
+      find(
+        core.resizeDivider(layout(pane("a"), pane("b")), "root", 0, 10000, ctx(options)).root,
+        "a",
+      )!.size,
+    ).toEqual({ weight: 1.75 });
   });
   it("resets just the two neighbours to equal default weights", () => {
     const tree = layout(

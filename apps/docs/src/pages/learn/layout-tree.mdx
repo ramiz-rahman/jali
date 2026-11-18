@@ -45,7 +45,7 @@ A node's size is its length along its parent's direction: its width in a row, it
 - `{ weight: n }` takes a share of the room in proportion to its siblings' weights. Two panes of weight 1 split the room evenly; weights 2 and 1 split it two to one.
 - `{ px: n }` asks for a fixed length. A fixed pane keeps its length and shrinks toward its kind's minimum only when room runs out.
 
-<Code code={layouts} filename="layouts.ts" highlight="9,11" />
+<Code code={layouts} filename="layouts.ts" highlight="8,10" />
 
 When nobody has dragged a divider, spare room is shared by each kind's sizes: every pane starts at its minimum, then grows toward its comfortable width, then toward its maximum. [How a layout fits](/learn/fitting) has the whole rule.
 

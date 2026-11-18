@@ -4,7 +4,10 @@
  * Selectors start with :root so they outrank the page's prose rules (.prose h3, .prose p) in the same layer.
  */
 @layer docs {
-  :root .ref-entry { container-type: inline-size; border-top: 1px solid var(--jali-border); }
+  :root .ref-entry {
+    container-type: inline-size;
+    border-top: 1px solid var(--jali-border);
+  }
   :root .ref-entry-grid {
     display: grid;
     grid-template-columns: minmax(0, 1fr);
@@ -12,17 +15,45 @@
     gap: 0.875rem 2.5rem;
     padding: 2rem 0 2.25rem;
   }
-  :root .ref-entry[data-compact] .ref-entry-grid { grid-template-areas: "head" "body"; padding: 1.5rem 0 1.75rem; }
-  :root .ref-entry-head { grid-area: head; min-width: 0; }
-  :root .ref-entry-aside { grid-area: aside; min-width: 0; display: grid; gap: 0.75rem; align-content: start; }
-  :root .ref-entry-body { grid-area: body; min-width: 0; }
-  :root .ref-entry-body > :first-child { margin-top: 0; }
-  :root .ref-entry-lead { margin-top: 0.75rem; color: var(--jali-text); }
-  :root .ref-entry-lead > p { margin: 0; }
+  :root .ref-entry[data-compact] .ref-entry-grid {
+    grid-template-areas: "head" "body";
+    padding: 1.5rem 0 1.75rem;
+  }
+  :root .ref-entry-head {
+    grid-area: head;
+    min-width: 0;
+  }
+  :root .ref-entry-aside {
+    grid-area: aside;
+    min-width: 0;
+    display: grid;
+    gap: 0.75rem;
+    align-content: start;
+  }
+  :root .ref-entry-body {
+    grid-area: body;
+    min-width: 0;
+  }
+  :root .ref-entry-body > :first-child {
+    margin-top: 0;
+  }
+  :root .ref-entry-lead {
+    margin-top: 0.75rem;
+    color: var(--jali-text);
+  }
+  :root .ref-entry-lead > p {
+    margin: 0;
+  }
 
   /* A section heading already draws a rule: the first entry under it doesn't repeat it. */
-  :root h2 + .ref-entry, :root .heading + .ref-entry { border-top: 0; }
-  :root h2 + .ref-entry .ref-entry-grid, :root .heading + .ref-entry .ref-entry-grid { padding-top: 0.75rem; }
+  :root h2 + .ref-entry,
+  :root .heading + .ref-entry {
+    border-top: 0;
+  }
+  :root h2 + .ref-entry .ref-entry-grid,
+  :root .heading + .ref-entry .ref-entry-grid {
+    padding-top: 0.75rem;
+  }
 
   /* Two columns (Stripe) once the entry itself is wide enough: prose left, signature and example right, sticky. */
   @container (min-width: 52rem) {
@@ -30,154 +61,564 @@
       grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
       grid-template-areas: "head head" "body aside";
     }
-    :root .ref-entry:not([data-compact]) .ref-entry-aside { position: sticky; top: 1.5rem; align-self: start; max-height: calc(100vh - 3rem); overflow: auto; }
+    :root .ref-entry:not([data-compact]) .ref-entry-aside {
+      position: sticky;
+      top: 1.5rem;
+      align-self: start;
+      max-height: calc(100vh - 3rem);
+      overflow: auto;
+    }
   }
 
-  :root .ref-entry-title { margin: 0; font-size: 1.375rem; line-height: 1.75rem; font-weight: 500; scroll-margin-top: 5rem; }
-  :root .ref-entry-title a { color: inherit; text-decoration: none; }
-  :root .ref-entry-title a:hover code { text-decoration: underline; text-decoration-color: var(--jali-border-strong); text-underline-offset: 0.2em; }
-  :root .ref-entry-title code { font-family: var(--jali-font-mono); font-size: 1em; background: none; padding: 0; overflow-wrap: anywhere; }
-  :root .ref-entry-meta { display: flex; flex-wrap: wrap; gap: 0.25rem 0.875rem; margin: 0.375rem 0 0; font-size: 0.8125rem; color: var(--jali-text-subtle); }
-  :root .ref-entry-meta code { font-family: var(--jali-font-mono); font-size: 0.75rem; color: var(--jali-text-muted); }
-  :root .ref-kind { text-transform: uppercase; letter-spacing: 0.06em; font-size: 0.6875rem; font-weight: 600; color: var(--jali-text-muted); }
-  :root .ref-note { color: var(--jali-text-muted); }
+  :root .ref-entry-title {
+    margin: 0;
+    font-size: 1.375rem;
+    line-height: 1.75rem;
+    font-weight: 500;
+    scroll-margin-top: 5rem;
+  }
+  :root .ref-entry-title a {
+    color: inherit;
+    text-decoration: none;
+  }
+  :root .ref-entry-title a:hover code {
+    text-decoration: underline;
+    text-decoration-color: var(--jali-border-strong);
+    text-underline-offset: 0.2em;
+  }
+  :root .ref-entry-title code {
+    font-family: var(--jali-font-mono);
+    font-size: 1em;
+    background: none;
+    padding: 0;
+    overflow-wrap: anywhere;
+  }
+  :root .ref-entry-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem 0.875rem;
+    margin: 0.375rem 0 0;
+    font-size: 0.8125rem;
+    color: var(--jali-text-subtle);
+  }
+  :root .ref-entry-meta code {
+    font-family: var(--jali-font-mono);
+    font-size: 0.75rem;
+    color: var(--jali-text-muted);
+  }
+  :root .ref-kind {
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    font-size: 0.6875rem;
+    font-weight: 600;
+    color: var(--jali-text-muted);
+  }
+  :root .ref-note {
+    color: var(--jali-text-muted);
+  }
 
   :root .ref-signature {
-    margin: 0; padding: 0.75rem 0.875rem; overflow-x: auto;
-    background: var(--jali-surface); border: 1px solid var(--jali-border); border-radius: var(--jali-radius-control);
-    font-family: var(--jali-font-mono); font-size: 0.8125rem; line-height: 1.35rem; color: var(--jali-text);
+    margin: 0;
+    padding: 0.75rem 0.875rem;
+    overflow-x: auto;
+    background: var(--jali-surface);
+    border: 1px solid var(--jali-border);
+    border-radius: var(--jali-radius-control);
+    font-family: var(--jali-font-mono);
+    font-size: 0.8125rem;
+    line-height: 1.35rem;
+    color: var(--jali-text);
     white-space: pre;
   }
-  :root .ref-entry-aside > figure, :root .ref-entry-aside > pre { margin: 0; min-width: 0; }
+  :root .ref-entry-aside > figure,
+  :root .ref-entry-aside > pre {
+    margin: 0;
+    min-width: 0;
+  }
 
   /* Parameters, fields, props */
-  :root .ref-params, :root .ref-returns { margin-top: 1.5rem; }
+  :root .ref-params,
+  :root .ref-returns {
+    margin-top: 1.5rem;
+  }
   :root .ref-params-title {
-    margin: 0 0 0.25rem; padding-bottom: 0.5rem; border-bottom: 1px solid var(--jali-border);
-    font-size: 0.8125rem; font-weight: 600; letter-spacing: 0.02em; color: var(--jali-text-muted);
+    margin: 0 0 0.25rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid var(--jali-border);
+    font-size: 0.8125rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    color: var(--jali-text-muted);
   }
-  :root .ref-param { padding: 0.875rem 0; border-bottom: 1px solid var(--jali-border); }
-  :root .ref-param:last-child { border-bottom: 0; }
-  :root .ref-param-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.25rem 0.625rem; }
-  :root .ref-param-name { font-family: var(--jali-font-mono); font-size: 0.875rem; font-weight: 600; color: var(--jali-text); background: none; padding: 0; }
-  :root .ref-param-type { font-family: var(--jali-font-mono); font-size: 0.75rem; color: var(--jali-text-subtle); background: none; padding: 0; overflow-wrap: anywhere; }
-  :root .ref-flag { font-size: 0.75rem; color: var(--jali-text-subtle); }
-  :root .ref-flag.is-required { color: var(--jali-accent); font-weight: 500; }
-  :root .ref-param-default { margin: 0.25rem 0 0; font-size: 0.8125rem; color: var(--jali-text-subtle); }
-  :root .ref-param-default code { font-family: var(--jali-font-mono); font-size: 0.75rem; color: var(--jali-text-muted); }
-  :root .ref-param-body { margin-top: 0.375rem; font-size: 0.9375rem; line-height: 1.5rem; color: var(--jali-text-muted); }
-  :root .ref-param-body > p { margin: 0.375rem 0 0; }
-  :root .ref-param-body > p:first-child { margin-top: 0; }
-  :root .ref-returns-type { margin: 0.625rem 0 0; }
-  :root .ref-returns-type code { font-family: var(--jali-font-mono); font-size: 0.875rem; color: var(--jali-text); }
+  :root .ref-param {
+    padding: 0.875rem 0;
+    border-bottom: 1px solid var(--jali-border);
+  }
+  :root .ref-param:last-child {
+    border-bottom: 0;
+  }
+  :root .ref-param-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.25rem 0.625rem;
+  }
+  :root .ref-param-name {
+    font-family: var(--jali-font-mono);
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--jali-text);
+    background: none;
+    padding: 0;
+  }
+  :root .ref-param-type {
+    font-family: var(--jali-font-mono);
+    font-size: 0.75rem;
+    color: var(--jali-text-subtle);
+    background: none;
+    padding: 0;
+    overflow-wrap: anywhere;
+  }
+  :root .ref-flag {
+    font-size: 0.75rem;
+    color: var(--jali-text-subtle);
+  }
+  :root .ref-flag.is-required {
+    color: var(--jali-accent);
+    font-weight: 500;
+  }
+  :root .ref-param-default {
+    margin: 0.25rem 0 0;
+    font-size: 0.8125rem;
+    color: var(--jali-text-subtle);
+  }
+  :root .ref-param-default code {
+    font-family: var(--jali-font-mono);
+    font-size: 0.75rem;
+    color: var(--jali-text-muted);
+  }
+  :root .ref-param-body {
+    margin-top: 0.375rem;
+    font-size: 0.9375rem;
+    line-height: 1.5rem;
+    color: var(--jali-text-muted);
+  }
+  :root .ref-param-body > p {
+    margin: 0.375rem 0 0;
+  }
+  :root .ref-param-body > p:first-child {
+    margin-top: 0;
+  }
+  :root .ref-returns-type {
+    margin: 0.625rem 0 0;
+  }
+  :root .ref-returns-type code {
+    font-family: var(--jali-font-mono);
+    font-size: 0.875rem;
+    color: var(--jali-text);
+  }
 
-  :root .ref-children { margin-top: 0.625rem; }
-  :root .ref-children > summary {
-    display: inline-flex; align-items: center; gap: 0.375rem; cursor: pointer; list-style: none;
-    padding: 0.25rem 0.625rem; border: 1px solid var(--jali-border); border-radius: 999px;
-    font-size: 0.8125rem; color: var(--jali-text-muted);
+  :root .ref-children {
+    margin-top: 0.625rem;
   }
-  :root .ref-children > summary::-webkit-details-marker { display: none; }
-  :root .ref-children > summary::before { content: "+"; font-family: var(--jali-font-mono); }
-  :root .ref-children[open] > summary::before { content: "\2212"; }
-  :root .ref-children > summary:hover { color: var(--jali-text); border-color: var(--jali-border-strong); }
-  :root .ref-children > summary:focus-visible { outline: 2px solid var(--jali-focus-ring); outline-offset: 2px; }
-  :root .ref-children > .ref-params-list { margin-top: 0.5rem; padding: 0 0.875rem; border: 1px solid var(--jali-border); border-radius: var(--jali-radius-control); }
+  :root .ref-children > summary {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    cursor: pointer;
+    list-style: none;
+    padding: 0.25rem 0.625rem;
+    border: 1px solid var(--jali-border);
+    border-radius: 999px;
+    font-size: 0.8125rem;
+    color: var(--jali-text-muted);
+  }
+  :root .ref-children > summary::-webkit-details-marker {
+    display: none;
+  }
+  :root .ref-children > summary::before {
+    content: "+";
+    font-family: var(--jali-font-mono);
+  }
+  :root .ref-children[open] > summary::before {
+    content: "\2212";
+  }
+  :root .ref-children > summary:hover {
+    color: var(--jali-text);
+    border-color: var(--jali-border-strong);
+  }
+  :root .ref-children > summary:focus-visible {
+    outline: 2px solid var(--jali-focus-ring);
+    outline-offset: 2px;
+  }
+  :root .ref-children > .ref-params-list {
+    margin-top: 0.5rem;
+    padding: 0 0.875rem;
+    border: 1px solid var(--jali-border);
+    border-radius: var(--jali-radius-control);
+  }
 
   /* Values of a union */
-  :root .ref-values { margin: 0.75rem 0 0; border: 1px solid var(--jali-border); border-radius: var(--jali-radius-control); }
-  :root .ref-values-title { margin: 0; padding: 0.5rem 0.875rem; border-bottom: 1px solid var(--jali-border); font-size: 0.8125rem; font-weight: 600; color: var(--jali-text-muted); }
-  :root .ref-values dl { margin: 0; }
-  :root .ref-value { padding: 0.625rem 0.875rem; border-bottom: 1px solid var(--jali-border); }
-  :root .ref-value:last-child { border-bottom: 0; }
-  :root .ref-value dt code { font-family: var(--jali-font-mono); font-size: 0.8125rem; color: var(--jali-text); }
-  :root .ref-value dd { margin: 0.25rem 0 0; font-size: 0.875rem; line-height: 1.375rem; color: var(--jali-text-muted); }
+  :root .ref-values {
+    margin: 0.75rem 0 0;
+    border: 1px solid var(--jali-border);
+    border-radius: var(--jali-radius-control);
+  }
+  :root .ref-values-title {
+    margin: 0;
+    padding: 0.5rem 0.875rem;
+    border-bottom: 1px solid var(--jali-border);
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: var(--jali-text-muted);
+  }
+  :root .ref-values dl {
+    margin: 0;
+  }
+  :root .ref-value {
+    padding: 0.625rem 0.875rem;
+    border-bottom: 1px solid var(--jali-border);
+  }
+  :root .ref-value:last-child {
+    border-bottom: 0;
+  }
+  :root .ref-value dt code {
+    font-family: var(--jali-font-mono);
+    font-size: 0.8125rem;
+    color: var(--jali-text);
+  }
+  :root .ref-value dd {
+    margin: 0.25rem 0 0;
+    font-size: 0.875rem;
+    line-height: 1.375rem;
+    color: var(--jali-text-muted);
+  }
 
   /* Member tables */
-  :root .ref-members { margin-top: 1.25rem; }
-  :root .ref-members-list { margin: 0; }
-  :root .ref-member { padding: 0.75rem 0; border-bottom: 1px solid var(--jali-border); scroll-margin-top: 5rem; }
-  :root .ref-member:last-child { border-bottom: 0; }
-  :root .ref-member dt { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.25rem 0.625rem; }
-  :root .ref-member dt a { text-decoration: none; }
-  :root .ref-member-sig { font-family: var(--jali-font-mono); font-size: 0.75rem; color: var(--jali-text-subtle); background: none; padding: 0; overflow-wrap: anywhere; }
-  :root .ref-member dd { margin: 0.25rem 0 0; font-size: 0.9375rem; line-height: 1.5rem; color: var(--jali-text-muted); }
-  :root .ref-member dd > p { margin: 0; }
+  :root .ref-members {
+    margin-top: 1.25rem;
+  }
+  :root .ref-members-list {
+    margin: 0;
+  }
+  :root .ref-member {
+    padding: 0.75rem 0;
+    border-bottom: 1px solid var(--jali-border);
+    scroll-margin-top: 5rem;
+  }
+  :root .ref-member:last-child {
+    border-bottom: 0;
+  }
+  :root .ref-member dt {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.25rem 0.625rem;
+  }
+  :root .ref-member dt a {
+    text-decoration: none;
+  }
+  :root .ref-member-sig {
+    font-family: var(--jali-font-mono);
+    font-size: 0.75rem;
+    color: var(--jali-text-subtle);
+    background: none;
+    padding: 0;
+    overflow-wrap: anywhere;
+  }
+  :root .ref-member dd {
+    margin: 0.25rem 0 0;
+    font-size: 0.9375rem;
+    line-height: 1.5rem;
+    color: var(--jali-text-muted);
+  }
+  :root .ref-member dd > p {
+    margin: 0;
+  }
 
-  :root .ref-link code { color: var(--jali-accent); }
-  :root .ref-link { text-decoration: none; }
-  :root .ref-link:hover code { text-decoration: underline; text-underline-offset: 0.2em; }
+  :root .ref-link code {
+    color: var(--jali-accent);
+  }
+  :root .ref-link {
+    text-decoration: none;
+  }
+  :root .ref-link:hover code {
+    text-decoration: underline;
+    text-underline-offset: 0.2em;
+  }
 
   /* ---------- tokens ---------- */
-  :root .ref-tokens { margin: 1rem 0 2rem; }
-  :root .ref-token { display: grid; grid-template-columns: minmax(0, 1fr); gap: 0.5rem 1.5rem; padding: 1rem 0; border-top: 1px solid var(--jali-border); scroll-margin-top: 5rem; }
-  :root .ref-token-name { margin: 0; font-size: 0.9375rem; font-weight: 600; }
-  :root .ref-token-name a { text-decoration: none; color: var(--jali-text); }
-  :root .ref-token-name code { font-family: var(--jali-font-mono); }
-  :root .ref-token-purpose { margin: 0.25rem 0 0; font-size: 0.9375rem; line-height: 1.5rem; color: var(--jali-text-muted); }
-  :root .ref-token-parts { margin: 0.5rem 0 0; display: flex; flex-wrap: wrap; gap: 0.25rem; }
+  :root .ref-tokens {
+    margin: 1rem 0 2rem;
+  }
+  :root .ref-token {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0.5rem 1.5rem;
+    padding: 1rem 0;
+    border-top: 1px solid var(--jali-border);
+    scroll-margin-top: 5rem;
+  }
+  :root .ref-token-name {
+    margin: 0;
+    font-size: 0.9375rem;
+    font-weight: 600;
+  }
+  :root .ref-token-name a {
+    text-decoration: none;
+    color: var(--jali-text);
+  }
+  :root .ref-token-name code {
+    font-family: var(--jali-font-mono);
+  }
+  :root .ref-token-purpose {
+    margin: 0.25rem 0 0;
+    font-size: 0.9375rem;
+    line-height: 1.5rem;
+    color: var(--jali-text-muted);
+  }
+  :root .ref-token-parts {
+    margin: 0.5rem 0 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem;
+  }
   :root .ref-token-parts code {
-    font-family: var(--jali-font-mono); font-size: 0.6875rem; color: var(--jali-text-subtle);
-    border: 1px solid var(--jali-border); border-radius: 4px; padding: 0 0.3125rem; background: none;
+    font-family: var(--jali-font-mono);
+    font-size: 0.6875rem;
+    color: var(--jali-text-subtle);
+    border: 1px solid var(--jali-border);
+    border-radius: 4px;
+    padding: 0 0.3125rem;
+    background: none;
   }
-  :root .ref-token-parts .ref-token-none { font-size: 0.8125rem; color: var(--jali-text-subtle); }
-  :root .ref-swatches { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; align-content: start; }
-  :root .ref-swatch { display: grid; gap: 0.375rem; }
+  :root .ref-token-parts .ref-token-none {
+    font-size: 0.8125rem;
+    color: var(--jali-text-subtle);
+  }
+  :root .ref-swatches {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.5rem;
+    align-content: start;
+  }
+  :root .ref-swatch {
+    display: grid;
+    gap: 0.375rem;
+  }
   :root .ref-swatch-scope {
-    position: relative; height: 3rem; border-radius: var(--jali-radius-control); overflow: hidden;
-    border: 1px solid var(--jali-border-strong); background: var(--jali-surface);
+    position: relative;
+    height: 3rem;
+    border-radius: var(--jali-radius-control);
+    overflow: hidden;
+    border: 1px solid var(--jali-border-strong);
+    background: var(--jali-surface);
   }
-  :root .ref-swatch-scope.dark { border-color: #3f3f46; }
-  :root .ref-swatch-scope.light { border-color: #d4d4d8; }
-  :root .ref-swatch-fill { position: absolute; inset: 0; }
-  :root .ref-swatch-shadow { position: absolute; inset: 0.75rem 1.25rem; border-radius: 0.375rem; background: var(--jali-surface); }
-  :root .ref-swatch-radius { position: absolute; inset: 0.5rem 0.75rem; border: 2px solid var(--jali-text-muted); border-right: 0; border-bottom: 0; }
-  :root .ref-swatch-font { position: absolute; inset: 0; display: grid; place-items: center; font-size: 1.25rem; color: var(--jali-text); }
-  :root .ref-swatch-scrim { position: absolute; inset: 0; }
-  :root .ref-swatch-text { position: absolute; inset: 0; display: grid; place-items: center; font-size: 1rem; font-weight: 600; }
-  :root .ref-swatch-label { display: flex; justify-content: space-between; gap: 0.5rem; font-size: 0.6875rem; color: var(--jali-text-subtle); }
-  :root .ref-swatch-label code { font-family: var(--jali-font-mono); font-size: 0.6875rem; color: var(--jali-text-muted); overflow-wrap: anywhere; text-align: right; }
+  :root .ref-swatch-scope.dark {
+    border-color: #3f3f46;
+  }
+  :root .ref-swatch-scope.light {
+    border-color: #d4d4d8;
+  }
+  :root .ref-swatch-fill {
+    position: absolute;
+    inset: 0;
+  }
+  :root .ref-swatch-shadow {
+    position: absolute;
+    inset: 0.75rem 1.25rem;
+    border-radius: 0.375rem;
+    background: var(--jali-surface);
+  }
+  :root .ref-swatch-radius {
+    position: absolute;
+    inset: 0.5rem 0.75rem;
+    border: 2px solid var(--jali-text-muted);
+    border-right: 0;
+    border-bottom: 0;
+  }
+  :root .ref-swatch-font {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    font-size: 1.25rem;
+    color: var(--jali-text);
+  }
+  :root .ref-swatch-scrim {
+    position: absolute;
+    inset: 0;
+  }
+  :root .ref-swatch-text {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    font-size: 1rem;
+    font-weight: 600;
+  }
+  :root .ref-swatch-label {
+    display: flex;
+    justify-content: space-between;
+    gap: 0.5rem;
+    font-size: 0.6875rem;
+    color: var(--jali-text-subtle);
+  }
+  :root .ref-swatch-label code {
+    font-family: var(--jali-font-mono);
+    font-size: 0.6875rem;
+    color: var(--jali-text-muted);
+    overflow-wrap: anywhere;
+    text-align: right;
+  }
   @container (min-width: 40rem) {
-    :root .ref-token { grid-template-columns: minmax(0, 1fr) 15rem; }
+    :root .ref-token {
+      grid-template-columns: minmax(0, 1fr) 15rem;
+    }
   }
-  :root .ref-tokens-wrap { container-type: inline-size; }
+  :root .ref-tokens-wrap {
+    container-type: inline-size;
+  }
 
   /* ---------- tables (bridge, commands) ---------- */
-  :root .ref-table-wrap { margin: 1rem 0 2rem; overflow-x: auto; border: 1px solid var(--jali-border); border-radius: var(--jali-radius-control); }
-  :root .ref-table { width: 100%; border-collapse: collapse; font-size: 0.875rem; line-height: 1.375rem; }
+  :root .ref-table-wrap {
+    margin: 1rem 0 2rem;
+    overflow-x: auto;
+    border: 1px solid var(--jali-border);
+    border-radius: var(--jali-radius-control);
+  }
+  :root .ref-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.875rem;
+    line-height: 1.375rem;
+  }
   :root .ref-table th {
-    text-align: left; font-weight: 600; font-size: 0.75rem; color: var(--jali-text-muted);
-    padding: 0.5rem 0.75rem; border-bottom: 1px solid var(--jali-border); white-space: nowrap;
+    text-align: left;
+    font-weight: 600;
+    font-size: 0.75rem;
+    color: var(--jali-text-muted);
+    padding: 0.5rem 0.75rem;
+    border-bottom: 1px solid var(--jali-border);
+    white-space: nowrap;
   }
-  :root .ref-table td { padding: 0.625rem 0.75rem; border-bottom: 1px solid var(--jali-border); vertical-align: top; color: var(--jali-text-muted); }
-  :root .ref-table tr:last-child td { border-bottom: 0; }
-  :root .ref-table code { font-family: var(--jali-font-mono); font-size: 0.75rem; color: var(--jali-text); background: none; padding: 0; }
-  :root .ref-table td.ref-nowrap { white-space: nowrap; }
-  :root .ref-table .ref-chain { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.125rem 0.375rem; }
-  :root .ref-table .ref-chain span { color: var(--jali-text-subtle); font-size: 0.75rem; }
+  :root .ref-table td {
+    padding: 0.625rem 0.75rem;
+    border-bottom: 1px solid var(--jali-border);
+    vertical-align: top;
+    color: var(--jali-text-muted);
+  }
+  :root .ref-table tr:last-child td {
+    border-bottom: 0;
+  }
+  :root .ref-table code {
+    font-family: var(--jali-font-mono);
+    font-size: 0.75rem;
+    color: var(--jali-text);
+    background: none;
+    padding: 0;
+  }
+  :root .ref-table td.ref-nowrap {
+    white-space: nowrap;
+  }
+  :root .ref-table .ref-chain {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.125rem 0.375rem;
+  }
+  :root .ref-table .ref-chain span {
+    color: var(--jali-text-subtle);
+    font-size: 0.75rem;
+  }
   :root .ref-table kbd {
-    display: inline-block; font-family: var(--jali-font-mono); font-size: 0.75rem; line-height: 1.25rem; color: var(--jali-text);
-    padding: 0 0.375rem; border: 1px solid var(--jali-border-strong); border-bottom-width: 2px; border-radius: 4px; white-space: nowrap;
+    display: inline-block;
+    font-family: var(--jali-font-mono);
+    font-size: 0.75rem;
+    line-height: 1.25rem;
+    color: var(--jali-text);
+    padding: 0 0.375rem;
+    border: 1px solid var(--jali-border-strong);
+    border-bottom-width: 2px;
+    border-radius: 4px;
+    white-space: nowrap;
   }
-  :root .ref-table .ref-keys { display: flex; flex-wrap: wrap; gap: 0.25rem 0.375rem; align-items: baseline; }
-  :root .ref-table .ref-keys span { font-size: 0.75rem; color: var(--jali-text-subtle); }
-  :root .ref-table .ref-dash { color: var(--jali-text-faint); }
-  :root .ref-table tr[id] { scroll-margin-top: 5rem; }
-  :root .ref-group-row td { background: none; padding-top: 1rem; font-weight: 600; font-size: 0.75rem; letter-spacing: 0.04em; text-transform: uppercase; color: var(--jali-text-subtle); }
+  :root .ref-table .ref-keys {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem 0.375rem;
+    align-items: baseline;
+  }
+  :root .ref-table .ref-keys span {
+    font-size: 0.75rem;
+    color: var(--jali-text-subtle);
+  }
+  :root .ref-table .ref-dash {
+    color: var(--jali-text-faint);
+  }
+  :root .ref-table tr[id] {
+    scroll-margin-top: 5rem;
+  }
+  :root .ref-group-row td {
+    background: none;
+    padding-top: 1rem;
+    font-weight: 600;
+    font-size: 0.75rem;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--jali-text-subtle);
+  }
 
-  :root .ref-cmd-title { margin-top: 0.125rem; color: var(--jali-text); }
-  :root .ref-cmds .ref-table td:first-child { min-width: 10rem; }
-  :root .ref-keycell { min-width: 9rem; }
-  :root .ref-keycell > div { display: grid; gap: 0.125rem; margin-bottom: 0.375rem; }
-  :root .ref-keys-os { font-size: 0.6875rem; color: var(--jali-text-subtle); }
+  :root .ref-cmd-title {
+    margin-top: 0.125rem;
+    color: var(--jali-text);
+  }
+  :root .ref-cmds .ref-table td:first-child {
+    min-width: 10rem;
+  }
+  :root .ref-keycell {
+    min-width: 9rem;
+  }
+  :root .ref-keycell > div {
+    display: grid;
+    gap: 0.125rem;
+    margin-bottom: 0.375rem;
+  }
+  :root .ref-keys-os {
+    font-size: 0.6875rem;
+    color: var(--jali-text-subtle);
+  }
   /* Commands as stacked cards on a phone, a table from tablet up. */
-  :root .ref-cmds { container-type: inline-size; }
+  :root .ref-cmds {
+    container-type: inline-size;
+  }
   @container (max-width: 32rem) {
-    :root .ref-cmds .ref-table thead { display: none; }
-    :root .ref-cmds .ref-table, :root .ref-cmds .ref-table tbody, :root .ref-cmds .ref-table tr, :root .ref-cmds .ref-table td { display: block; width: auto; }
-    :root .ref-cmds .ref-table tr { padding: 0.625rem 0.75rem; border-bottom: 1px solid var(--jali-border); }
-    :root .ref-cmds .ref-table td { border: 0; padding: 0.125rem 0; }
-    :root .ref-cmds .ref-table td[data-label]::before { content: attr(data-label) " "; font-size: 0.6875rem; color: var(--jali-text-subtle); margin-right: 0.375rem; }
-    :root .ref-cmds .ref-group-row td { padding-top: 0.5rem; }
+    :root .ref-cmds .ref-table thead {
+      display: none;
+    }
+    :root .ref-cmds .ref-table,
+    :root .ref-cmds .ref-table tbody,
+    :root .ref-cmds .ref-table tr,
+    :root .ref-cmds .ref-table td {
+      display: block;
+      width: auto;
+    }
+    :root .ref-cmds .ref-table tr {
+      padding: 0.625rem 0.75rem;
+      border-bottom: 1px solid var(--jali-border);
+    }
+    :root .ref-cmds .ref-table td {
+      border: 0;
+      padding: 0.125rem 0;
+    }
+    :root .ref-cmds .ref-table td[data-label]::before {
+      content: attr(data-label) " ";
+      font-size: 0.6875rem;
+      color: var(--jali-text-subtle);
+      margin-right: 0.375rem;
+    }
+    :root .ref-cmds .ref-group-row td {
+      padding-top: 0.5rem;
+    }
   }
 }

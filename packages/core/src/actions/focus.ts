@@ -11,13 +11,19 @@ export function focus({ s, ctx }: Snapshot, id: NodeId): Outcome {
 /** A focus key moved focus. While zoomed, focus keys switch which pane is zoomed (herdr). */
 export function focusMoved({ s, m }: Snapshot, view: ViewState): Outcome {
   if (s.view.zoomed && view.focused && view.focused !== s.view.zoomed) {
-    return { op: "zoom", view: { ...view, zoomed: view.focused }, msg: msg.maximised(m.title(view.focused)) };
+    return {
+      op: "zoom",
+      view: { ...view, zoomed: view.focused },
+      msg: msg.maximised(m.title(view.focused)),
+    };
   }
   return { op: "focus", view };
 }
 
-export const focusCycle = (x: Snapshot, delta: 1 | -1) => focusMoved(x, core.focusCycle(x.s.view, x.m.flat, delta, x.ctx));
-export const focusDirection = (x: Snapshot, dir: Edge) => focusMoved(x, core.focusDirection(x.s.view, x.m.flat, dir, x.ctx));
+export const focusCycle = (x: Snapshot, delta: 1 | -1) =>
+  focusMoved(x, core.focusCycle(x.s.view, x.m.flat, delta, x.ctx));
+export const focusDirection = (x: Snapshot, dir: Edge) =>
+  focusMoved(x, core.focusDirection(x.s.view, x.m.flat, dir, x.ctx));
 /** "Focus pane 1–9" (palette): the nth pane on screen, reading order. */
 export function focusIndex(x: Snapshot, n: number): Outcome {
   const id = x.m.flatVisible[n - 1];
@@ -39,5 +45,9 @@ export function toggleZoom({ s, m, ctx }: Snapshot, id = s.view.focused): Outcom
   if (!id) return null;
   if (m.panes.length <= 1 && !s.view.zoomed) return null; // one pane alone: zoom does nothing
   const view = core.toggleZoom(core.focus(s.view, id, ctx), id, ctx);
-  return { op: "zoom", view, msg: view.zoomed ? msg.maximised(m.title(id)) : msg.restored(m.title(id)) };
+  return {
+    op: "zoom",
+    view,
+    msg: view.zoomed ? msg.maximised(m.title(id)) : msg.restored(m.title(id)),
+  };
 }

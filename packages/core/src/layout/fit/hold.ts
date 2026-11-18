@@ -4,7 +4,12 @@ import { extentAlong } from "../geometry/extent";
 import { resolve } from "./resolve";
 
 /** The rects on screen, whoever fills them (the same measure as the UI's stability check). */
-const rects = (r: ResolvedLayout) => r.panes.filter(b => !b.hidden).map(b => `${b.rect.x},${b.rect.y},${b.rect.width},${b.rect.height}`).sort().join(" ");
+const rects = (r: ResolvedLayout) =>
+  r.panes
+    .filter((b) => !b.hidden)
+    .map((b) => `${b.rect.x},${b.rect.y},${b.rect.width},${b.rect.height}`)
+    .sort()
+    .join(" ");
 
 /**
  * Swap ops (another object shown in a slot, two panes trading places) promise that nothing on screen moves. Under the
@@ -16,18 +21,37 @@ const rects = (r: ResolvedLayout) => r.panes.filter(b => !b.hidden).map(b => `${
  */
 export function holdGeometry(before: Layout, after: Layout, ctx: LayoutContext): Layout {
   if (after === before) return after;
-  const was = resolve(before, noFocus(), ctx), now = resolve(after, noFocus(), ctx);
+  const was = resolve(before, noFocus(), ctx),
+    now = resolve(after, noFocus(), ctx);
   if (rects(was) === rects(now)) return after;
   const next = clone(after);
   let held = false;
   for (const node of nodes(next.root)) {
     const old = find(before.root, node.id);
-    if (!isSplit(node) || !old || old.type !== node.type || !isSplit(old) || old.children.length !== node.children.length) continue;
-    const extent = (r: ResolvedLayout, c: LayoutNode) => extentAlong(r.panes, panes(c).map(p => p.id), node.type);
+    if (
+      !isSplit(node) ||
+      !old ||
+      old.type !== node.type ||
+      !isSplit(old) ||
+      old.children.length !== node.children.length
+    )
+      continue;
+    const extent = (r: ResolvedLayout, c: LayoutNode) =>
+      extentAlong(
+        r.panes,
+        panes(c).map((p) => p.id),
+        node.type,
+      );
     // Slots keep their place in the split, so the child now at index i takes the length index i had.
-    const target = old.children.map(c => extent(was, c)), current = node.children.map(c => extent(now, c));
-    const weighted = node.children.flatMap((c, i) => "weight" in c.size ? [i] : []);
-    if (!weighted.length || weighted.some(i => target[i]! <= 0) || weighted.every(i => Math.abs(target[i]! - current[i]!) < 0.5)) continue;
+    const target = old.children.map((c) => extent(was, c)),
+      current = node.children.map((c) => extent(now, c));
+    const weighted = node.children.flatMap((c, i) => ("weight" in c.size ? [i] : []));
+    if (
+      !weighted.length ||
+      weighted.some((i) => target[i]! <= 0) ||
+      weighted.every((i) => Math.abs(target[i]! - current[i]!) < 0.5)
+    )
+      continue;
     // Weights in px units, as a divider drag stores them: the split reproduces these lengths exactly. As with a drag,
     // the children that would have moved count as sized; the others are only re-expressed, so a divider reset
     // returns the whole split to the share rule.

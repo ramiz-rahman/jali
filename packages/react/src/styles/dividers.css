@@ -1,48 +1,182 @@
 @layer jali {
-/* ---------- dividers: the pointer darkens the line; keyboard focus gets a capsule and a size label ---------- */
-.jali-divider-layer { position: absolute; inset: 0; pointer-events: none; z-index: 5; }
-.jali-divider {
-  position: relative; pointer-events: auto; flex: none; background: transparent; border: 0; padding: 0;
-  outline: none; touch-action: none;
-}
-.jali-divider-row { cursor: col-resize; }
-.jali-divider-column { cursor: row-resize; }
-/* 12px hit area over the 6px gap */
-.jali-divider::before { content: ""; position: absolute; }
-.jali-divider-row::before { top: 0; bottom: 0; left: -0.1875rem; right: -0.1875rem; }
-.jali-divider-column::before { left: 0; right: 0; top: -0.1875rem; bottom: -0.1875rem; }
-.jali-divider-line { position: absolute; background: transparent; pointer-events: none; }
-.jali-divider-row .jali-divider-line { top: 0.5rem; bottom: 0.5rem; left: 50%; width: 1px; transform: translateX(-0.5px); }
-.jali-divider-column .jali-divider-line { left: 0.5rem; right: 0.5rem; top: 50%; height: 1px; transform: translateY(-0.5px); }
-.jali-divider:hover .jali-divider-line { background: var(--jali-border-strong); }
-.jali-divider.is-dragging .jali-divider-line, .jali-divider.is-dragging .jali-divider-tick { visibility: hidden; }
-/* Transparent outline: invisible normally, drawn in forced-colors mode. The visible affordance is the handle. */
-.jali-divider:focus-visible { outline: 2px solid transparent; }
-.jali-divider:focus-visible .jali-divider-line { background: transparent; }
-.jali-divider-handle, .jali-divider-tip { display: none; position: absolute; pointer-events: none; }
-.jali-divider-handle { background: var(--jali-accent); border-radius: 2px; left: 50%; top: 50%; box-shadow: 0 0 0 3px color-mix(in srgb, var(--jali-accent) 25%, transparent); }
-.jali-divider-row .jali-divider-handle { width: 0.25rem; height: 1.5rem; transform: translate(-50%, -50%); }
-.jali-divider-column .jali-divider-handle { width: 1.5rem; height: 0.25rem; transform: translate(-50%, -50%); }
-.jali-divider:focus-visible .jali-divider-handle, .jali-divider:focus-visible .jali-divider-tip { display: block; }
-.jali-divider-tip {
-  z-index: 8; padding: 0.1875rem 0.5rem; border-radius: var(--jali-radius-control); background: var(--jali-text); color: var(--jali-surface);
-  font-size: 0.75rem; line-height: 1rem; white-space: nowrap; box-shadow: var(--jali-shadow-chip);
-}
-.jali-divider-tip i { font-style: normal; opacity: 0.6; }
-.jali-divider-row .jali-divider-tip { left: 50%; top: calc(50% + 1.5rem); transform: translateX(-50%); }
-.jali-divider-column .jali-divider-tip { top: 50%; left: calc(50% + 1.75rem); transform: translateY(-50%); }
+  /* ---------- dividers: the pointer darkens the line; keyboard focus gets a capsule and a size label ---------- */
+  .jali-divider-layer {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 5;
+  }
+  .jali-divider {
+    position: relative;
+    pointer-events: auto;
+    flex: none;
+    background: transparent;
+    border: 0;
+    padding: 0;
+    outline: none;
+    touch-action: none;
+  }
+  .jali-divider-row {
+    cursor: col-resize;
+  }
+  .jali-divider-column {
+    cursor: row-resize;
+  }
+  /* 12px hit area over the 6px gap */
+  .jali-divider::before {
+    content: "";
+    position: absolute;
+  }
+  .jali-divider-row::before {
+    top: 0;
+    bottom: 0;
+    left: -0.1875rem;
+    right: -0.1875rem;
+  }
+  .jali-divider-column::before {
+    left: 0;
+    right: 0;
+    top: -0.1875rem;
+    bottom: -0.1875rem;
+  }
+  .jali-divider-line {
+    position: absolute;
+    background: transparent;
+    pointer-events: none;
+  }
+  .jali-divider-row .jali-divider-line {
+    top: 0.5rem;
+    bottom: 0.5rem;
+    left: 50%;
+    width: 1px;
+    transform: translateX(-0.5px);
+  }
+  .jali-divider-column .jali-divider-line {
+    left: 0.5rem;
+    right: 0.5rem;
+    top: 50%;
+    height: 1px;
+    transform: translateY(-0.5px);
+  }
+  .jali-divider:hover .jali-divider-line {
+    background: var(--jali-border-strong);
+  }
+  .jali-divider.is-dragging .jali-divider-line,
+  .jali-divider.is-dragging .jali-divider-tick {
+    visibility: hidden;
+  }
+  /* Transparent outline: invisible normally, drawn in forced-colors mode. The visible affordance is the handle. */
+  .jali-divider:focus-visible {
+    outline: 2px solid transparent;
+  }
+  .jali-divider:focus-visible .jali-divider-line {
+    background: transparent;
+  }
+  .jali-divider-handle,
+  .jali-divider-tip {
+    display: none;
+    position: absolute;
+    pointer-events: none;
+  }
+  .jali-divider-handle {
+    background: var(--jali-accent);
+    border-radius: 2px;
+    left: 50%;
+    top: 50%;
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--jali-accent) 25%, transparent);
+  }
+  .jali-divider-row .jali-divider-handle {
+    width: 0.25rem;
+    height: 1.5rem;
+    transform: translate(-50%, -50%);
+  }
+  .jali-divider-column .jali-divider-handle {
+    width: 1.5rem;
+    height: 0.25rem;
+    transform: translate(-50%, -50%);
+  }
+  .jali-divider:focus-visible .jali-divider-handle,
+  .jali-divider:focus-visible .jali-divider-tip {
+    display: block;
+  }
+  .jali-divider-tip {
+    z-index: 8;
+    padding: 0.1875rem 0.5rem;
+    border-radius: var(--jali-radius-control);
+    background: var(--jali-text);
+    color: var(--jali-surface);
+    font-size: 0.75rem;
+    line-height: 1rem;
+    white-space: nowrap;
+    box-shadow: var(--jali-shadow-chip);
+  }
+  .jali-divider-tip i {
+    font-style: normal;
+    opacity: 0.6;
+  }
+  .jali-divider-row .jali-divider-tip {
+    left: 50%;
+    top: calc(50% + 1.5rem);
+    transform: translateX(-50%);
+  }
+  .jali-divider-column .jali-divider-tip {
+    top: 50%;
+    left: calc(50% + 1.75rem);
+    transform: translateY(-50%);
+  }
 
-/* The drag line: positioned by dividers/drag.ts each frame, accent while dragging, a tick at the centre snap. */
-.jali-divider-visual { position: absolute; pointer-events: none; z-index: 6; }
-.jali-divider-visual[hidden], .jali-divider-tick[hidden] { display: none; }
-.jali-divider-visual .jali-divider-line { background: var(--jali-accent); }
-.jali-divider-row.jali-divider-visual .jali-divider-line { width: 2px; transform: translateX(-1px); }
-.jali-divider-column.jali-divider-visual .jali-divider-line { height: 2px; transform: translateY(-1px); }
-.jali-divider-tick { position: absolute; background: var(--jali-accent); pointer-events: none; }
-.jali-divider-row .jali-divider-tick { left: 50%; top: 50%; width: 2px; height: 1rem; transform: translate(-1px, -8px); }
-.jali-divider-column .jali-divider-tick { top: 50%; left: 50%; height: 2px; width: 1rem; transform: translate(-8px, -1px); }
-/* During a drag the whole document shows the resize cursor and nothing gets selected. */
-body.jali-resizing, body.jali-resizing * { user-select: none !important; -webkit-user-select: none !important; }
-body.jali-resizing-row, body.jali-resizing-row * { cursor: col-resize !important; }
-body.jali-resizing-column, body.jali-resizing-column * { cursor: row-resize !important; }
+  /* The drag line: positioned by dividers/drag.ts each frame, accent while dragging, a tick at the centre snap. */
+  .jali-divider-visual {
+    position: absolute;
+    pointer-events: none;
+    z-index: 6;
+  }
+  .jali-divider-visual[hidden],
+  .jali-divider-tick[hidden] {
+    display: none;
+  }
+  .jali-divider-visual .jali-divider-line {
+    background: var(--jali-accent);
+  }
+  .jali-divider-row.jali-divider-visual .jali-divider-line {
+    width: 2px;
+    transform: translateX(-1px);
+  }
+  .jali-divider-column.jali-divider-visual .jali-divider-line {
+    height: 2px;
+    transform: translateY(-1px);
+  }
+  .jali-divider-tick {
+    position: absolute;
+    background: var(--jali-accent);
+    pointer-events: none;
+  }
+  .jali-divider-row .jali-divider-tick {
+    left: 50%;
+    top: 50%;
+    width: 2px;
+    height: 1rem;
+    transform: translate(-1px, -8px);
+  }
+  .jali-divider-column .jali-divider-tick {
+    top: 50%;
+    left: 50%;
+    height: 2px;
+    width: 1rem;
+    transform: translate(-8px, -1px);
+  }
+  /* During a drag the whole document shows the resize cursor and nothing gets selected. */
+  body.jali-resizing,
+  body.jali-resizing * {
+    user-select: none !important;
+    -webkit-user-select: none !important;
+  }
+  body.jali-resizing-row,
+  body.jali-resizing-row * {
+    cursor: col-resize !important;
+  }
+  body.jali-resizing-column,
+  body.jali-resizing-column * {
+    cursor: row-resize !important;
+  }
 }

@@ -15,7 +15,8 @@ function tuckRefusal({ m }: Snapshot, id: NodeId, reason: TuckRefusal): Refusal 
 }
 
 /** The pane a tuck acts on: the given or focused pane, else the most recently focused one still open. */
-const tuckTarget = ({ s, m }: Snapshot, id = s.view.focused) => (id && m.pane(id) ? id : s.view.focusHistory.find((h) => m.pane(h)));
+const tuckTarget = ({ s, m }: Snapshot, id = s.view.focused) =>
+  id && m.pane(id) ? id : s.view.focusHistory.find((h) => m.pane(h));
 
 /** The pane a tuck would join, for labels such as "Tuck into orders". */
 export function tuckHome({ s, ctx }: Snapshot, id: NodeId | undefined): NodeId | undefined {
@@ -41,7 +42,14 @@ export function tuck(x: Snapshot, id?: NodeId): Outcome {
   if (!target) return refuse(msg.noFocus);
   const r = core.tuck(x.s.layout, unzoomed(x.s.view), target, x.ctx);
   if (!r.ok) return tuckRefusal(x, target, r.reason);
-  return { op: "tuck", layout: r.layout, view: r.view, msg: msg.tucked(x.m.title(target), x.m.title(r.home)), undo: pushUndo(x.s.undoStack, r.undo), focusDom: r.home };
+  return {
+    op: "tuck",
+    layout: r.layout,
+    view: r.view,
+    msg: msg.tucked(x.m.title(target), x.m.title(r.home)),
+    undo: pushUndo(x.s.undoStack, r.undo),
+    focusDom: r.home,
+  };
 }
 
 /** The pane a put back acts on: the given pane; else `preferred` (a tucked tab with DOM focus) or the focused pane if
@@ -53,7 +61,8 @@ function putBackTarget({ s, m }: Snapshot, id?: NodeId, preferred?: NodeId): Nod
   return tuckOrder(s.undoStack, s.layout)[0];
 }
 
-export const checkPutBack = (x: Snapshot) => (putBackTarget(x) ? undefined : refuse(msg.nothingTucked));
+export const checkPutBack = (x: Snapshot) =>
+  putBackTarget(x) ? undefined : refuse(msg.nothingTucked);
 
 /** Put back: restores the pane's slot and size; only folds if room ran out. Focus moves in. */
 export function putBack(x: Snapshot, id?: NodeId, preferred?: NodeId): Outcome {
@@ -61,12 +70,25 @@ export function putBack(x: Snapshot, id?: NodeId, preferred?: NodeId): Outcome {
   if (!target) return refuse(msg.nothingTucked);
   const r = core.putBack(x.s.layout, unzoomed(x.s.view), target, x.ctx);
   if (!r.ok) return refuse(r.reason === "missing" ? msg.noFocus : msg.notTucked(x.m.title(target)));
-  return { op: "putBack", layout: r.layout, view: r.view, msg: msg.putBack(x.m.title(target)), undo: forgetTuck(x.s.undoStack, target), focusDom: target };
+  return {
+    op: "putBack",
+    layout: r.layout,
+    view: r.view,
+    msg: msg.putBack(x.m.title(target)),
+    undo: forgetTuck(x.s.undoStack, target),
+    focusDom: target,
+  };
 }
 
 /** Show a pane that is off screen (tucked, folded or a tab) by selecting its tab in its home. Nothing moves. */
 export function reveal({ s, m, ctx }: Snapshot, id: NodeId): Outcome {
   if (!m.pane(id)) return null;
   const layout = core.reveal(s.layout, id, ctx);
-  return { op: "reveal", layout, view: core.focus(s.view, id, ctx), msg: msg.revealed(m.title(id), m.title(m.shownWith(id))), focusDom: id };
+  return {
+    op: "reveal",
+    layout,
+    view: core.focus(s.view, id, ctx),
+    msg: msg.revealed(m.title(id), m.title(m.shownWith(id))),
+    focusDom: id,
+  };
 }

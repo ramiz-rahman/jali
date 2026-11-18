@@ -17,7 +17,14 @@ const LANGS: Record<string, () => Promise<unknown>> = {
   md: () => import("shiki/langs/markdown.mjs"),
 };
 const ALIASES: Record<string, string> = {
-  typescript: "ts", javascript: "js", bash: "sh", shell: "sh", shellscript: "sh", zsh: "sh", console: "sh", markdown: "md",
+  typescript: "ts",
+  javascript: "js",
+  bash: "sh",
+  shell: "sh",
+  shellscript: "sh",
+  zsh: "sh",
+  console: "sh",
+  markdown: "md",
 };
 export const langOf = (lang: string) => {
   const l = lang.toLowerCase();
@@ -28,12 +35,18 @@ let highlighter: Promise<HighlighterCore> | null = null;
 
 function load(): Promise<HighlighterCore> {
   highlighter ??= (async () => {
-    const [{ createHighlighterCore, createCssVariablesTheme }, { createJavaScriptRegexEngine }] = await Promise.all([
-      import("shiki/core"),
-      import("shiki/engine/javascript"),
-    ]);
-    const theme = createCssVariablesTheme({ name: "jali", variablePrefix: "--shiki-", fontStyle: true });
-    return createHighlighterCore({ themes: [theme], langs: [], engine: createJavaScriptRegexEngine() });
+    const [{ createHighlighterCore, createCssVariablesTheme }, { createJavaScriptRegexEngine }] =
+      await Promise.all([import("shiki/core"), import("shiki/engine/javascript")]);
+    const theme = createCssVariablesTheme({
+      name: "jali",
+      variablePrefix: "--shiki-",
+      fontStyle: true,
+    });
+    return createHighlighterCore({
+      themes: [theme],
+      langs: [],
+      engine: createJavaScriptRegexEngine(),
+    });
   })();
   return highlighter;
 }
@@ -45,9 +58,22 @@ export async function tokenize(code: string, lang: string): Promise<ThemedToken[
   const id = langOf(lang);
   if (id === "text") return null;
   const h = await load();
-  if (!loaded.has(id)) loaded.set(id, LANGS[id]!().then((m) => h.loadLanguage((m as { default: never }).default)));
+  if (!loaded.has(id))
+    loaded.set(
+      id,
+      LANGS[id]!().then((m) => h.loadLanguage((m as { default: never }).default)),
+    );
   await loaded.get(id);
-  const name = h.getLoadedLanguages().find((l) => l === id || (id === "ts" && l === "typescript") || (id === "js" && l === "javascript") || (id === "sh" && (l === "shellscript" || l === "bash")) || (id === "md" && l === "markdown"));
+  const name = h
+    .getLoadedLanguages()
+    .find(
+      (l) =>
+        l === id ||
+        (id === "ts" && l === "typescript") ||
+        (id === "js" && l === "javascript") ||
+        (id === "sh" && (l === "shellscript" || l === "bash")) ||
+        (id === "md" && l === "markdown"),
+    );
   if (!name) return null;
   return h.codeToTokensBase(code, { lang: name, theme: "jali" });
 }
@@ -57,7 +83,10 @@ export function parseRanges(spec: string | undefined): Set<number> {
   const out = new Set<number>();
   if (!spec) return out;
   for (const part of spec.split(",")) {
-    const [a, b] = part.trim().split("-").map((n) => Number.parseInt(n, 10));
+    const [a, b] = part
+      .trim()
+      .split("-")
+      .map((n) => Number.parseInt(n, 10));
     if (a === undefined || Number.isNaN(a)) continue;
     const end = b === undefined || Number.isNaN(b) ? a : b;
     for (let i = a; i <= end; i++) out.add(i);

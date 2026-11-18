@@ -4,29 +4,69 @@
  * through `onToast` (toasts); announcements are state, so nothing said before the live region mounts is lost.
  */
 import * as core from "../layout";
-import type { Layout, LayoutContext, NodeId, ObjectRef, UndoEntry, ViewState } from "../layout/types";
+import type {
+  Layout,
+  LayoutContext,
+  NodeId,
+  ObjectRef,
+  UndoEntry,
+  ViewState,
+} from "../layout/types";
 import type { PaneActivity, PaneCommand, PaneKinds } from "../pane-kinds";
 import { GAP, initialArea } from "../tokens";
 import { toLayout } from "../layout/build";
 import { bindActions, type Actions } from "../actions";
-import { apply, type Change, type Deferred, type HistoryMode, type Outcome, type Snapshot, type Toast } from "./apply";
+import {
+  apply,
+  type Change,
+  type Deferred,
+  type HistoryMode,
+  type Outcome,
+  type Snapshot,
+  type Toast,
+} from "./apply";
 import { modelCache, type WorkspaceModel } from "./model";
 import { loadSettings, systemPrefersDark, type Settings } from "./settings";
 import { loadPrefs, type PagePrefs } from "./page-prefs";
-import { presetById, type Env, type ItemId, type Preset, type ViewMode, type ProfileBase } from "../profile";
+import {
+  presetById,
+  type Env,
+  type ItemId,
+  type Preset,
+  type ViewMode,
+  type ProfileBase,
+} from "../profile";
 import { browserStorage, type StoragePort } from "../ports";
 import { focusPane } from "../dom/focus";
 import { loadPaneState } from "./pane-state";
 import { startUi } from "../boot";
-import { createKeymap, type Keymap, type KeymapOptions, type KeymapOverrides } from "../commands/keymap";
+import {
+  createKeymap,
+  type Keymap,
+  type KeymapOptions,
+  type KeymapOverrides,
+} from "../commands/keymap";
 import type { Command } from "../commands/registry";
 
 /** A drag in progress. `label` names a view dragged from a page's tabs, which may not be on screen. */
-export interface DndState { dragged: NodeId; x: number; y: number; target?: NodeId; zone?: import("../layout/types").Edge | "centre"; label?: string }
+export interface DndState {
+  dragged: NodeId;
+  x: number;
+  y: number;
+  target?: NodeId;
+  zone?: import("../layout/types").Edge | "centre";
+  label?: string;
+}
 /** "Discard unsaved changes?": the panes that would lose work and the change, applied as is on Discard. */
-export interface ConfirmState { panes: NodeId[]; change: Change }
+export interface ConfirmState {
+  panes: NodeId[];
+  change: Change;
+}
 /** A chooser dialog opened by a command (⌘K "Add to tabs of…"). */
-export interface ChooserState { kind: "merge"; source: NodeId }
+export interface ChooserState {
+  kind: "merge";
+  source: NodeId;
+}
 
 /** A curated page in use (profile.ts): the item, the mode, the view Single shows, and what this person may do. */
 export interface PageState {
@@ -43,7 +83,10 @@ export interface PageState {
 }
 
 /** A list's selected item, as its pane reported it (`select`). `inResults: false`: the list's filter no longer shows it. */
-export interface Selection { ref: ObjectRef; inResults: boolean }
+export interface Selection {
+  ref: ObjectRef;
+  inResults: boolean;
+}
 
 export interface UiState {
   layout: Layout;
@@ -185,32 +228,55 @@ export interface WorkspaceDom {
 }
 
 function createDom(id: string): WorkspaceDom {
-  let el: Element | null = null, layer: Element | null = null;
+  let el: Element | null = null,
+    layer: Element | null = null;
   const root = (): ParentNode => el ?? document;
   return {
     id,
     root,
-    attach: (next) => { el = next; },
+    attach: (next) => {
+      el = next;
+    },
     layer: () => layer,
-    attachLayer: (next) => { layer = next; },
-    pane: (pane) => (typeof document === "undefined" ? null : root().querySelector<HTMLElement>(`[id="${id}-pane-${pane}"]`)),
+    attachLayer: (next) => {
+      layer = next;
+    },
+    pane: (pane) =>
+      typeof document === "undefined"
+        ? null
+        : root().querySelector<HTMLElement>(`[id="${id}-pane-${pane}"]`),
   };
 }
 
 const DEV = !!(import.meta as unknown as { env?: { DEV?: boolean } }).env?.DEV;
 
 export function createUiStore(deps: UiStoreDeps): UiStore {
-  const env: Env = { kinds: deps.kinds, profile: deps.profile ?? null, presets: deps.presets ?? [], commands: deps.commands ?? [], name: deps.name ?? "Workspace" };
+  const env: Env = {
+    kinds: deps.kinds,
+    profile: deps.profile ?? null,
+    presets: deps.presets ?? [],
+    commands: deps.commands ?? [],
+    name: deps.name ?? "Workspace",
+  };
   if (deps.launcher) env.launcher = deps.launcher;
-  const focusOf = deps.focusPane === undefined ? (typeof document === "undefined" ? null : focusPane) : deps.focusPane;
+  const focusOf =
+    deps.focusPane === undefined
+      ? typeof document === "undefined"
+        ? null
+        : focusPane
+      : deps.focusPane;
   const dom = createDom(deps.id ?? "jali");
   // The id is the prefix: two workspaces with their own ids never overwrite each other ("jali" stays "jali").
   const storage = deps.storage ?? browserStorage(deps.id ?? "jali");
   const start = presetById(env, deps.preset);
   // A page-only app (a page, no presets or layout) starts on its page.
   const pageOnly = !deps.initial?.layout && !start && !!env.profile;
-  const layout = deps.initial?.layout ?? start?.build() ?? (env.profile ? toLayout(env.profile.build(env.profile.firstItem)) : undefined);
-  if (!layout) throw new Error("Jali: give the workspace a `layout`, `presets` or a `page` to start from");
+  const layout =
+    deps.initial?.layout ??
+    start?.build() ??
+    (env.profile ? toLayout(env.profile.build(env.profile.firstItem)) : undefined);
+  if (!layout)
+    throw new Error("Jali: give the workspace a `layout`, `presets` or a `page` to start from");
   let state: UiState = {
     layout,
     page: null,
@@ -239,7 +305,9 @@ export function createUiStore(deps: UiStoreDeps): UiStore {
     ...deps.initial,
   };
   const subs = new Set<() => void>();
-  const notify = () => { for (const fn of subs) fn(); };
+  const notify = () => {
+    for (const fn of subs) fn();
+  };
   env.kinds.onChange(notify);
   const toastFns = new Set<(t: Toast) => void>();
   const pendingToasts: Toast[] = [];
@@ -250,11 +318,23 @@ export function createUiStore(deps: UiStoreDeps): UiStore {
     timers.delete(d.key);
     if (!d.run) return;
     const run = d.run;
-    timers.set(d.key, setTimeout(() => { timers.delete(d.key); store.apply(run(store.snapshot())); }, d.ms));
+    timers.set(
+      d.key,
+      setTimeout(() => {
+        timers.delete(d.key);
+        store.apply(run(store.snapshot()));
+      }, d.ms),
+    );
   };
 
-  const rootElement = () => { const el = dom.root(); return el instanceof Element ? el : null; };
-  const ctx = (): LayoutContext => ({ fit: { ...state.area, gap: GAP, kinds: env.kinds.registry() }, paneCap: state.settings.paneCap });
+  const rootElement = () => {
+    const el = dom.root();
+    return el instanceof Element ? el : null;
+  };
+  const ctx = (): LayoutContext => ({
+    fit: { ...state.area, gap: GAP, kinds: env.kinds.registry() },
+    paneCap: state.settings.paneCap,
+  });
 
   const store: UiStore = {
     get: () => state,
@@ -262,10 +342,14 @@ export function createUiStore(deps: UiStoreDeps): UiStore {
       const prev = state;
       state = { ...state, ...patch };
       // Size and cap changes come from outside the layout, so they refit it. Link arrivals refit where they land.
-      const resized = prev.area.width !== state.area.width || prev.area.height !== state.area.height;
+      const resized =
+        prev.area.width !== state.area.width || prev.area.height !== state.area.height;
       const recapped = prev.settings.paneCap !== state.settings.paneCap;
       const known = env.kinds.registry();
-      if ((resized || recapped) && core.tree.panes(state.layout.root).every((p) => known[p.ref.kind])) {
+      if (
+        (resized || recapped) &&
+        core.tree.panes(state.layout.root).every((p) => known[p.ref.kind])
+      ) {
         const layout = core.refit(state.layout, state.view, ctx());
         if (layout !== state.layout) state = { ...state, layout };
       }
@@ -275,7 +359,8 @@ export function createUiStore(deps: UiStoreDeps): UiStore {
       subs.add(fn);
       return () => subs.delete(fn);
     },
-    model: () => models({ layout: state.layout, view: state.view, area: state.area, ctx: ctx(), env }),
+    model: () =>
+      models({ layout: state.layout, view: state.view, area: state.area, ctx: ctx(), env }),
     ctx,
     snapshot: () => ({ s: state, m: store.model(), ctx: ctx(), env }),
     apply: (o) => apply(io, o),
@@ -296,8 +381,14 @@ export function createUiStore(deps: UiStoreDeps): UiStore {
     url: deps.url,
     start() {
       if (stop) return () => {};
-      const off = startUi(store, undefined, { keys: deps.keys === "workspace" ? { root: rootElement } : {}, pageTheme: deps.pageTheme });
-      stop = () => { off(); stop = null; };
+      const off = startUi(store, undefined, {
+        keys: deps.keys === "workspace" ? { root: rootElement } : {},
+        pageTheme: deps.pageTheme,
+      });
+      stop = () => {
+        off();
+        stop = null;
+      };
       return stop;
     },
   };
@@ -311,7 +402,12 @@ export function createUiStore(deps: UiStoreDeps): UiStore {
     toast: store.toast,
     focus: (id: NodeId) => focusOf?.(dom, id),
     defer,
-    unstable: deps.unstable ?? (DEV ? (op: string) => console.error(`Layout stability: "${op}" is a focus or swap op but moved panes`) : undefined),
+    unstable:
+      deps.unstable ??
+      (DEV
+        ? (op: string) =>
+            console.error(`Layout stability: "${op}" is a focus or swap op but moved panes`)
+        : undefined),
   };
   store.actions = bindActions(store);
   if (pageOnly && !deps.initial?.page) store.actions.openPage();

@@ -1,75 +1,266 @@
 /* The lab's own top bar and status line (Jali ships neither: a host app has its own). */
 @layer lab {
-/* ---------- top bar ---------- */
-.topbar {
-  display: flex; align-items: center; gap: 1rem; padding: 0 0.75rem;
-  background: var(--jali-surface); border-bottom: 1px solid var(--jali-border); min-width: 0;
-}
-.brand { display: flex; align-items: center; gap: 0.875rem; flex: none; }
-.brand-lockup { display: block; height: 1.375rem; width: auto; color: var(--jali-brand); flex: none; }
-.brand-name { font-weight: 600; letter-spacing: -0.005em; }
-.presets { display: flex; gap: 2px; min-width: 0; overflow-x: auto; scrollbar-width: none; }
-.preset {
-  height: 1.75rem; padding: 0 0.625rem; border: 1px solid transparent; border-radius: var(--jali-radius-control); background: none;
-  color: var(--jali-text-muted); white-space: nowrap; cursor: pointer;
-}
-.preset:hover { background: var(--jali-hover); color: var(--jali-text); }
-.preset.is-active { background: var(--jali-canvas); border-color: var(--jali-border); color: var(--jali-text); font-weight: 500; }
-.topbar-right { margin-left: auto; display: flex; align-items: center; gap: 0.25rem; flex: none; }
-.kbd-btn {
-  display: inline-flex; align-items: center; gap: 0.375rem; height: 1.75rem; padding: 0 0.625rem; margin-left: 0.25rem;
-  border: 1px solid var(--jali-control); border-radius: var(--jali-radius-control); background: var(--jali-surface); color: var(--jali-text-muted); cursor: pointer;
-}
-.kbd-btn:hover { border-color: var(--jali-text-muted); color: var(--jali-text); }
-.kbd-btn span { font-family: var(--jali-font-mono); font-size: 0.75rem; }
-.kbd-label { display: inline; }
+  /* ---------- top bar ---------- */
+  .topbar {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 0 0.75rem;
+    background: var(--jali-surface);
+    border-bottom: 1px solid var(--jali-border);
+    min-width: 0;
+  }
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 0.875rem;
+    flex: none;
+  }
+  .brand-lockup {
+    display: block;
+    height: 1.375rem;
+    width: auto;
+    color: var(--jali-brand);
+    flex: none;
+  }
+  .brand-name {
+    font-weight: 600;
+    letter-spacing: -0.005em;
+  }
+  .presets {
+    display: flex;
+    gap: 2px;
+    min-width: 0;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .preset {
+    height: 1.75rem;
+    padding: 0 0.625rem;
+    border: 1px solid transparent;
+    border-radius: var(--jali-radius-control);
+    background: none;
+    color: var(--jali-text-muted);
+    white-space: nowrap;
+    cursor: pointer;
+  }
+  .preset:hover {
+    background: var(--jali-hover);
+    color: var(--jali-text);
+  }
+  .preset.is-active {
+    background: var(--jali-canvas);
+    border-color: var(--jali-border);
+    color: var(--jali-text);
+    font-weight: 500;
+  }
+  .topbar-right {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    flex: none;
+  }
+  .kbd-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    height: 1.75rem;
+    padding: 0 0.625rem;
+    margin-left: 0.25rem;
+    border: 1px solid var(--jali-control);
+    border-radius: var(--jali-radius-control);
+    background: var(--jali-surface);
+    color: var(--jali-text-muted);
+    cursor: pointer;
+  }
+  .kbd-btn:hover {
+    border-color: var(--jali-text-muted);
+    color: var(--jali-text);
+  }
+  .kbd-btn span {
+    font-family: var(--jali-font-mono);
+    font-size: 0.75rem;
+  }
+  .kbd-label {
+    display: inline;
+  }
 
-/* Below 768px the presets live behind one "Layouts" button. */
-.layouts { display: none; position: relative; min-width: 0; }
-.layouts-btn { display: inline-flex; align-items: center; gap: 0.375rem; height: 1.75rem; padding: 0 0.5rem; border: 1px solid var(--jali-control); border-radius: var(--jali-radius-control); background: var(--jali-surface); color: var(--jali-text-muted); cursor: pointer; white-space: nowrap; }
-.layouts-btn:hover, .layouts-btn[aria-expanded="true"] { border-color: var(--jali-text-muted); color: var(--jali-text); }
-.layouts-menu {
-  position: absolute; left: 0; top: calc(100% + 0.375rem); z-index: 60; min-width: 12.5rem; padding: 0.25rem; display: grid; gap: 2px;
-  background: var(--jali-surface-raised); border: 1px solid var(--jali-border-strong); border-radius: var(--jali-radius-menu); box-shadow: var(--jali-shadow-dialog);
-}
-.layouts-menu .preset { height: 2rem; text-align: left; display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; }
-@media (max-width: 47.9375rem) {
-  .presets { display: none; }
-  .layouts { display: block; }
-  .topbar { gap: 0.625rem; padding: 0 0.5rem; }
-}
-@media (max-width: 26.875rem) {
-  .topbar { gap: 0.5rem; }
-  .topbar-right { gap: 0; }
-  .kbd-btn { padding: 0 0.375rem; margin-left: 2px; }
-  .kbd-label { display: none; }
-}
+  /* Below 768px the presets live behind one "Layouts" button. */
+  .layouts {
+    display: none;
+    position: relative;
+    min-width: 0;
+  }
+  .layouts-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    height: 1.75rem;
+    padding: 0 0.5rem;
+    border: 1px solid var(--jali-control);
+    border-radius: var(--jali-radius-control);
+    background: var(--jali-surface);
+    color: var(--jali-text-muted);
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  .layouts-btn:hover,
+  .layouts-btn[aria-expanded="true"] {
+    border-color: var(--jali-text-muted);
+    color: var(--jali-text);
+  }
+  .layouts-menu {
+    position: absolute;
+    left: 0;
+    top: calc(100% + 0.375rem);
+    z-index: 60;
+    min-width: 12.5rem;
+    padding: 0.25rem;
+    display: grid;
+    gap: 2px;
+    background: var(--jali-surface-raised);
+    border: 1px solid var(--jali-border-strong);
+    border-radius: var(--jali-radius-menu);
+    box-shadow: var(--jali-shadow-dialog);
+  }
+  .layouts-menu .preset {
+    height: 2rem;
+    text-align: left;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+  }
+  @media (max-width: 47.9375rem) {
+    .presets {
+      display: none;
+    }
+    .layouts {
+      display: block;
+    }
+    .topbar {
+      gap: 0.625rem;
+      padding: 0 0.5rem;
+    }
+  }
+  @media (max-width: 26.875rem) {
+    .topbar {
+      gap: 0.5rem;
+    }
+    .topbar-right {
+      gap: 0;
+    }
+    .kbd-btn {
+      padding: 0 0.375rem;
+      margin-left: 2px;
+    }
+    .kbd-label {
+      display: none;
+    }
+  }
 
-/* ---------- status line: 12px; one message left, hint and stats right ---------- */
-.status {
-  display: flex; align-items: center; gap: 0.75rem; padding: 0 0.75rem; height: var(--status-h); min-width: 0;
-  font-size: 0.75rem; color: var(--jali-text-subtle); background: var(--jali-surface); border-top: 1px solid var(--jali-border); white-space: nowrap; position: relative;
-}
-.status-main { overflow: hidden; text-overflow: ellipsis; color: var(--jali-text); }
-.status[data-shelf-on] .status-main { flex: none; color: var(--jali-text-muted); }
-.status-hint { margin-left: auto; overflow: hidden; text-overflow: ellipsis; color: var(--jali-text-muted); }
-.status[data-shelf-on] .status-hint { margin-left: 0; }
-.status-stats { font-family: var(--jali-font-mono); font-size: 0.6875rem; color: var(--jali-text-muted); }
-.status-stats b { font-weight: 500; color: var(--jali-text); }
-.status-busy { color: var(--jali-blocked); }
-/* Narrow desktop: the hint makes room for the shelf. */
-@media (max-width: 73.75rem) { .status[data-shelf-on] .status-hint:not([data-mode]) { display: none; } }
-@media (max-width: 40rem) { .status-hint:not([data-mode]) { display: none; } .status-main { flex: 1; min-width: 0; } }
-@media (max-width: 30rem) { .status-stats { display: none; } }
+  /* ---------- status line: 12px; one message left, hint and stats right ---------- */
+  .status {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0 0.75rem;
+    height: var(--status-h);
+    min-width: 0;
+    font-size: 0.75rem;
+    color: var(--jali-text-subtle);
+    background: var(--jali-surface);
+    border-top: 1px solid var(--jali-border);
+    white-space: nowrap;
+    position: relative;
+  }
+  .status-main {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    color: var(--jali-text);
+  }
+  .status[data-shelf-on] .status-main {
+    flex: none;
+    color: var(--jali-text-muted);
+  }
+  .status-hint {
+    margin-left: auto;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    color: var(--jali-text-muted);
+  }
+  .status[data-shelf-on] .status-hint {
+    margin-left: 0;
+  }
+  .status-stats {
+    font-family: var(--jali-font-mono);
+    font-size: 0.6875rem;
+    color: var(--jali-text-muted);
+  }
+  .status-stats b {
+    font-weight: 500;
+    color: var(--jali-text);
+  }
+  .status-busy {
+    color: var(--jali-blocked);
+  }
+  /* Narrow desktop: the hint makes room for the shelf. */
+  @media (max-width: 73.75rem) {
+    .status[data-shelf-on] .status-hint:not([data-mode]) {
+      display: none;
+    }
+  }
+  @media (max-width: 40rem) {
+    .status-hint:not([data-mode]) {
+      display: none;
+    }
+    .status-main {
+      flex: 1;
+      min-width: 0;
+    }
+  }
+  @media (max-width: 30rem) {
+    .status-stats {
+      display: none;
+    }
+  }
 
-/* ---------- workspace switch ---------- */
-.app-switch { display: inline-flex; gap: 2px; padding: 2px; border-radius: var(--jali-radius-menu); background: var(--jali-canvas); border: 1px solid var(--jali-border); }
-.app-btn {
-  height: 1.5rem; padding: 0 0.625rem; border: 0; border-radius: var(--jali-radius-control); background: none; color: var(--jali-text-muted);
-  font: inherit; font-weight: 500; white-space: nowrap; cursor: pointer;
-}
-.app-btn:hover { color: var(--jali-text); }
-.app-btn[aria-checked="true"] { background: var(--jali-surface); color: var(--jali-text); box-shadow: 0 0 0 1px var(--jali-border), var(--jali-shadow-raised); }
+  /* ---------- workspace switch ---------- */
+  .app-switch {
+    display: inline-flex;
+    gap: 2px;
+    padding: 2px;
+    border-radius: var(--jali-radius-menu);
+    background: var(--jali-canvas);
+    border: 1px solid var(--jali-border);
+  }
+  .app-btn {
+    height: 1.5rem;
+    padding: 0 0.625rem;
+    border: 0;
+    border-radius: var(--jali-radius-control);
+    background: none;
+    color: var(--jali-text-muted);
+    font: inherit;
+    font-weight: 500;
+    white-space: nowrap;
+    cursor: pointer;
+  }
+  .app-btn:hover {
+    color: var(--jali-text);
+  }
+  .app-btn[aria-checked="true"] {
+    background: var(--jali-surface);
+    color: var(--jali-text);
+    box-shadow:
+      0 0 0 1px var(--jali-border),
+      var(--jali-shadow-raised);
+  }
 
-@media (max-width: 47.9375rem) { .app-btn { padding: 0 0.4375rem; } }
+  @media (max-width: 47.9375rem) {
+    .app-btn {
+      padding: 0 0.4375rem;
+    }
+  }
 }
