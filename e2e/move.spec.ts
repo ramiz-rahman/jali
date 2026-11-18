@@ -19,6 +19,15 @@ test.describe("Move: drag by the grip", () => {
     await expect.poll(() => lab.visibleIds()).toEqual(["customer", "order", "orders"]);
   });
 
+  test("a drag selects no text in the panes it crosses", async ({ lab, page }) => {
+    await lab.open();
+    await lab.drag("customer", "orders", "centre", { release: false });
+    await expect(lab.dragChip()).toBeVisible();
+    expect(await page.evaluate(() => window.getSelection()?.toString() ?? "")).toBe("");
+    await page.mouse.up();
+    expect(await page.evaluate(() => window.getSelection()?.toString() ?? "")).toBe("");
+  });
+
   test("centre drop adds a tab (tab mode)", async ({ lab, page }) => {
     await lab.open();
     await lab.setting(/Add as a tab/);

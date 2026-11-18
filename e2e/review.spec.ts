@@ -124,6 +124,21 @@ test.describe("Loan review: Multiplexed", () => {
     expect(ids.indexOf("officer")).toBe(ids.indexOf("application") + 1);
   });
 
+  test("dragging a tab across the panes selects no text in them", async ({ lab, page }) => {
+    await lab.open({ path: at("application"), size: { width: 1440, height: 900 } });
+    await mode(page, "Multiplexed").click();
+    const selected = () => page.evaluate(() => window.getSelection()?.toString() ?? "");
+    const b = (await pageTab(page, "Field officer").boundingBox())!;
+    const to = (await lab.pane("application").boundingBox())!;
+    await page.mouse.move(b.x + b.width / 2, b.y + b.height / 2);
+    await page.mouse.down();
+    await page.mouse.move(to.x + 40, to.y + 40, { steps: 8 });
+    await page.mouse.move(to.x + to.width / 2, to.y + 60, { steps: 12 });
+    expect(await selected()).toBe("");
+    await page.mouse.up();
+    expect(await selected()).toBe("");
+  });
+
   test("dragging a tab out of Single switches to Multiplexed with both views", async ({ lab, page }) => {
     await lab.open({ path: at("application"), size: { width: 1440, height: 900 } });
     await dragTab(page, "Loan history", await rightEdge(lab, "application"));

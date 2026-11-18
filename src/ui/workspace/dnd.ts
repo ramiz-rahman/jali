@@ -64,6 +64,7 @@ function startDrag(store: UiStore, e: ReactPointerEvent, { id: paneId, label, fr
       if (store.get().view.zoomed || (!fromOutside && m.panes.length < 2)) return cleanup();
       started = true;
       document.body.classList.add("is-pane-dragging");
+      window.getSelection()?.removeAllRanges();
     }
     const p = local(ev.clientX, ev.clientY);
     const boxes = m.resolved.panes;
@@ -85,13 +86,17 @@ function startDrag(store: UiStore, e: ReactPointerEvent, { id: paneId, label, fr
     ev.stopPropagation();
     cleanup();
   };
+  // A grip or tab held down never starts a text selection: crossing a pane would otherwise select its text.
+  const noSelect = (ev: Event) => ev.preventDefault();
   function cleanup() {
+    document.removeEventListener("selectstart", noSelect, true);
     window.removeEventListener("pointermove", move);
     window.removeEventListener("pointerup", up);
     window.removeEventListener("keydown", key, true);
     document.body.classList.remove("is-pane-dragging");
     if (store.get().dnd) store.set({ dnd: null });
   }
+  document.addEventListener("selectstart", noSelect, true);
   window.addEventListener("pointermove", move);
   window.addEventListener("pointerup", up);
   window.addEventListener("keydown", key, true);
