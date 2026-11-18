@@ -7,7 +7,7 @@ import { zoneRect } from "@jali/core";
 /** The tinted part of the target pane that the drop will fill. */
 export function DropIndicator({ rect, zone }: { rect: Rect; zone: Edge | "centre" }) {
   const r = zoneRect(rect, zone);
-  return <div className={`drop-indicator zone-${zone}`} data-drop-zone={zone} style={{ left: r.x, top: r.y, width: r.width, height: r.height }} aria-hidden />;
+  return <div className={`jali-drop-indicator jali-zone-${zone}`} data-drop-zone={zone} style={{ left: r.x, top: r.y, width: r.width, height: r.height }} aria-hidden />;
 }
 
 const ICONS = { swap: ArrowLeftRight, tab: SquarePlus, left: ArrowLeft, right: ArrowRight, top: ArrowUp, bottom: ArrowDown };
@@ -22,8 +22,8 @@ export function DropZoneLabel({ paneId }: { paneId: string }) {
   if (!zone) return null;
   const Icon = ICONS[zone === "centre" ? centreDrop : zone];
   return (
-    <div className="drop-label-zone" style={{ inset: INSET[zone] }} aria-hidden>
-      <span className="drop-label">
+    <div className="jali-drop-label-zone" style={{ inset: INSET[zone] }} aria-hidden>
+      <span className="jali-drop-label">
         <Icon size={16} strokeWidth={1.75} aria-hidden />
         {dropText(zone, m.title(paneId), centreDrop)}
       </span>

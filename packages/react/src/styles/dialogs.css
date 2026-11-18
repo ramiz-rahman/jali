@@ -1,55 +1,55 @@
 @layer jali {
 /* ---------- dialogs: palette, chooser (ListDialog), settings ---------- */
-.scrim { position: fixed; inset: 0; z-index: 100; background: var(--jali-scrim); display: grid; justify-items: center; align-items: start; padding-top: 12vh; }
-.scrim-light { background: var(--jali-scrim-light); }
-.palette {
+.jali-scrim { position: fixed; inset: 0; z-index: 100; background: var(--jali-scrim); display: grid; justify-items: center; align-items: start; padding-top: 12vh; }
+.jali-scrim-light { background: var(--jali-scrim-light); }
+.jali-palette {
   width: min(40rem, calc(100vw - 2rem)); background: var(--jali-surface); border: 1px solid var(--jali-border);
   border-radius: 12px; box-shadow: var(--jali-shadow-dialog); overflow: hidden;
 }
-.palette-input { width: 100%; background: transparent; color: var(--jali-text); height: 3rem; padding: 0 1rem; border: 0; border-bottom: 1px solid var(--jali-border); font: inherit; font-size: 0.875rem; outline: none; }
-.palette-list { list-style: none; margin: 0; padding: 0.375rem; max-height: 26.25rem; overflow: auto; }
-.palette-item { display: grid; grid-template-columns: 1fr auto 72px; align-items: center; gap: 0.75rem; height: 2rem; padding: 0 0.625rem; border-radius: var(--jali-radius-control); cursor: pointer; }
-.palette-item.is-selected { background: var(--jali-accent-weak); }
-.palette-item.is-disabled { color: var(--jali-text-faint); cursor: default; }
-.palette-group { font-size: 0.75rem; color: var(--jali-text-subtle); }
-.palette-id { font-size: 0.6875rem; color: var(--jali-text-subtle); }
-.palette-item kbd { justify-self: end; font-size: 0.6875rem; color: var(--jali-text-muted); }
-.palette-empty { padding: 0.75rem 0.625rem; color: var(--jali-text-subtle); }
-.chooser { width: min(30rem, calc(100vw - 2rem)); }
-.chooser-head { padding: 0.75rem 1rem 0; font-size: 0.75rem; color: var(--jali-text-subtle); }
-.chooser-head b { font-weight: 500; color: var(--jali-text); }
-.chooser-item { grid-template-columns: 16px 1fr auto; }
-.chooser-icon { display: grid; place-items: center; color: var(--jali-text-subtle); }
+.jali-palette-input { width: 100%; background: transparent; color: var(--jali-text); height: 3rem; padding: 0 1rem; border: 0; border-bottom: 1px solid var(--jali-border); font: inherit; font-size: 0.875rem; outline: none; }
+.jali-palette-list { list-style: none; margin: 0; padding: 0.375rem; max-height: 26.25rem; overflow: auto; }
+.jali-palette-item { display: grid; grid-template-columns: 1fr auto 72px; align-items: center; gap: 0.75rem; height: 2rem; padding: 0 0.625rem; border-radius: var(--jali-radius-control); cursor: pointer; }
+.jali-palette-item.is-selected { background: var(--jali-accent-weak); }
+.jali-palette-item.is-disabled { color: var(--jali-text-faint); cursor: default; }
+.jali-palette-group { font-size: 0.75rem; color: var(--jali-text-subtle); }
+.jali-palette-id { font-size: 0.6875rem; color: var(--jali-text-subtle); }
+.jali-palette-item kbd { justify-self: end; font-size: 0.6875rem; color: var(--jali-text-muted); }
+.jali-palette-empty { padding: 0.75rem 0.625rem; color: var(--jali-text-subtle); }
+.jali-chooser { width: min(30rem, calc(100vw - 2rem)); }
+.jali-chooser-head { padding: 0.75rem 1rem 0; font-size: 0.75rem; color: var(--jali-text-subtle); }
+.jali-chooser-head b { font-weight: 500; color: var(--jali-text); }
+.jali-chooser-item { grid-template-columns: 16px 1fr auto; }
+.jali-chooser-icon { display: grid; place-items: center; color: var(--jali-text-subtle); }
 
-.settings {
+.jali-settings {
   width: min(26.25rem, calc(100vw - 2rem)); background: var(--jali-surface); border: 1px solid var(--jali-border);
   border-radius: 12px; box-shadow: var(--jali-shadow-dialog); padding: 0.25rem 1rem 1rem;
 }
-.settings header { display: flex; align-items: center; justify-content: space-between; height: 2.75rem; }
-.settings h2 { font-size: 0.875rem; font-weight: 600; margin: 0; }
-.settings fieldset { border: 0; border-top: 1px solid var(--jali-border); margin: 0; padding: 0.75rem 0 0.5rem; display: grid; gap: 0.375rem; }
-.settings legend { padding: 0; font-size: 0.6875rem; font-weight: 600; color: var(--jali-text-subtle); text-transform: uppercase; letter-spacing: 0.04em; float: left; width: 100%; margin-bottom: 0.375rem; }
-.settings { max-height: calc(100dvh - 4rem); overflow-y: auto; }
-.keys-list { margin: 0; display: grid; gap: 0.25rem; }
-.keys-row { display: flex; align-items: baseline; justify-content: space-between; gap: 0.75rem; }
-.keys-row dt { color: var(--jali-text-muted); min-width: 0; }
-.keys-row dd { margin: 0; flex: none; }
-.keys-row kbd { font-size: 0.6875rem; color: var(--jali-text); white-space: nowrap; }
-.keys-note { margin: 0.25rem 0 0; font-size: 0.75rem; color: var(--jali-text-subtle); }
-.radio { display: flex; align-items: center; gap: 0.5rem; cursor: pointer; }
-.radio input { accent-color: var(--jali-accent); margin: 0; }
-.row-field { display: flex; align-items: center; gap: 0.625rem; color: var(--jali-text-muted); }
-.row-field input { width: 3.5rem; height: 1.75rem; background: var(--jali-surface); color: var(--jali-text); border: 1px solid var(--jali-control); border-radius: var(--jali-radius-control); padding: 0 0.375rem; font-family: var(--jali-font-mono); text-align: right; }
+.jali-settings header { display: flex; align-items: center; justify-content: space-between; height: 2.75rem; }
+.jali-settings h2 { font-size: 0.875rem; font-weight: 600; margin: 0; }
+.jali-settings fieldset { border: 0; border-top: 1px solid var(--jali-border); margin: 0; padding: 0.75rem 0 0.5rem; display: grid; gap: 0.375rem; }
+.jali-settings legend { padding: 0; font-size: 0.6875rem; font-weight: 600; color: var(--jali-text-subtle); text-transform: uppercase; letter-spacing: 0.04em; float: left; width: 100%; margin-bottom: 0.375rem; }
+.jali-settings { max-height: calc(100dvh - 4rem); overflow-y: auto; }
+.jali-keys-list { margin: 0; display: grid; gap: 0.25rem; }
+.jali-keys-row { display: flex; align-items: baseline; justify-content: space-between; gap: 0.75rem; }
+.jali-keys-row dt { color: var(--jali-text-muted); min-width: 0; }
+.jali-keys-row dd { margin: 0; flex: none; }
+.jali-keys-row kbd { font-size: 0.6875rem; color: var(--jali-text); white-space: nowrap; }
+.jali-keys-note { margin: 0.25rem 0 0; font-size: 0.75rem; color: var(--jali-text-subtle); }
+.jali-radio { display: flex; align-items: center; gap: 0.5rem; cursor: pointer; }
+.jali-radio input { accent-color: var(--jali-accent); margin: 0; }
+.jali-row-field { display: flex; align-items: center; gap: 0.625rem; color: var(--jali-text-muted); }
+.jali-row-field input { width: 3.5rem; height: 1.75rem; background: var(--jali-surface); color: var(--jali-text); border: 1px solid var(--jali-control); border-radius: var(--jali-radius-control); padding: 0 0.375rem; font-family: var(--jali-font-mono); text-align: right; }
 
 /* "Discard unsaved changes?" */
-.confirm {
+.jali-confirm {
   width: min(26.25rem, calc(100vw - 2rem)); background: var(--jali-surface); border: 1px solid var(--jali-border);
   border-radius: 12px; box-shadow: var(--jali-shadow-dialog); padding: 1rem;
 }
-.confirm h2 { font-size: 0.875rem; font-weight: 600; margin: 0 0 0.5rem; }
-.confirm p { margin: 0 0 0.5rem; color: var(--jali-text-muted); }
-.confirm ul { margin: 0 0 1rem; padding-left: 1.125rem; color: var(--jali-text-muted); }
-.confirm footer { display: flex; justify-content: flex-end; gap: 0.5rem; }
-.text-btn.is-primary { background: var(--jali-accent); border-color: var(--jali-accent); color: var(--jali-on-accent); }
-.text-btn.is-primary:hover { color: var(--jali-on-accent); filter: brightness(1.08); }
+.jali-confirm h2 { font-size: 0.875rem; font-weight: 600; margin: 0 0 0.5rem; }
+.jali-confirm p { margin: 0 0 0.5rem; color: var(--jali-text-muted); }
+.jali-confirm ul { margin: 0 0 1rem; padding-left: 1.125rem; color: var(--jali-text-muted); }
+.jali-confirm footer { display: flex; justify-content: flex-end; gap: 0.5rem; }
+.jali-text-btn.is-primary { background: var(--jali-accent); border-color: var(--jali-accent); color: var(--jali-on-accent); }
+.jali-text-btn.is-primary:hover { color: var(--jali-on-accent); filter: brightness(1.08); }
 }

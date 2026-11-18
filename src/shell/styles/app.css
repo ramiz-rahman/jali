@@ -18,7 +18,7 @@ code, kbd, pre, .num { font-family: var(--jali-font-mono); }
 .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
 
 .app { display: grid; grid-template-rows: var(--topbar-h) minmax(0, 1fr) var(--status-h); height: 100%; }
-.app > .workspace { grid-row: 2; }
+.app > .jali-workspace { grid-row: 2; }
 .app > .status { grid-row: 3; }
 
 /* toasts */

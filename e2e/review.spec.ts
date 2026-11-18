@@ -91,7 +91,7 @@ test.describe("Loan review: Multiplexed", () => {
     await lab.open({ path: at("application"), size: { width: 1440, height: 900 } });
     await mode(page, "Multiplexed").click();
     const rects = async () => (await page.locator("section[data-pane]:visible").evaluateAll((els) => els.map((e) => { const r = e.getBoundingClientRect(); return `${r.x},${r.y},${r.width},${r.height}`; }))).sort();
-    const tabsAt = () => page.locator(".page-tab").evaluateAll((els) => els.map((e) => e.getBoundingClientRect().x));
+    const tabsAt = () => page.locator(".jali-page-tab").evaluateAll((els) => els.map((e) => e.getBoundingClientRect().x));
     const before = await rects(), tabs = await tabsAt();
     const borrower = await lab.pane("borrower").boundingBox();
     await pageTab(page, "Borrower").click();
@@ -161,7 +161,7 @@ test.describe("Loan review: Multiplexed", () => {
     await page.mouse.move(b.x + b.width / 2, b.y + b.height / 2);
     await page.mouse.down();
     await page.mouse.move(to.x + to.width / 2, to.y + to.height / 2, { steps: 12 });
-    await expect(page.locator(".drop-indicator")).toBeVisible();
+    await expect(page.locator(".jali-drop-indicator")).toBeVisible();
     const target = lab.pane("application");
     expect(await target.evaluate((e) => getComputedStyle(e).boxShadow)).toBe("none");
     await page.keyboard.press("Escape");
@@ -184,7 +184,7 @@ test.describe("Loan review: Multiplexed", () => {
     const rects = await lab.snap();
     await openLink(lab).click();
     await expect(opened(page)).toHaveCount(1);
-    await expect(opened(page).locator(".badge-opened")).toHaveText("Opened");
+    await expect(opened(page).locator(".jali-badge-opened")).toHaveText("Opened");
     expect((await lab.visibleIds()).at(-1)).toBe(await opened(page).getAttribute("data-pane"));
     await expect(investigation(page)).toContainText("1 opened");
     await investigation(page).getByRole("button", { name: "Back to review" }).click();
@@ -200,8 +200,8 @@ test.describe("Loan review: Multiplexed", () => {
     await openLink(lab).click();
     await expect(investigation(page)).toBeVisible();
     await page.getByRole("listbox", { name: "Loan applications" }).getByRole("option", { name: /#7/ }).click();
-    await expect(lab.pane("application").locator(".pane-sub")).toHaveText("Application #7");
-    await expect(lab.pane("borrower").locator(".pane-sub")).toHaveText("Member #260");
+    await expect(lab.pane("application").locator(".jali-pane-sub")).toHaveText("Application #7");
+    await expect(lab.pane("borrower").locator(".jali-pane-sub")).toHaveText("Member #260");
     await expect(opened(page)).toHaveCount(0);
   });
 });
@@ -238,7 +238,7 @@ test.describe("Loan review: roles and what a link carries", () => {
     await p2.goto(url);
     await expect(p2.locator('section[data-origin="opened"]')).toHaveCount(1);
     await expect(p2.locator('section[data-pane="group"]')).toBeHidden();
-    await expect(p2.locator('section[data-pane="application"] .pane-sub')).toHaveText("Application #4");
+    await expect(p2.locator('section[data-pane="application"] .jali-pane-sub')).toHaveText("Application #4");
     // Without opened panes, a link opens in the reader's own mode (Single by default).
     await p2.goto(at("history"));
     await expect(p2.getByRole("radiogroup", { name: "View mode" }).getByRole("radio", { name: "Single" })).toHaveAttribute("aria-checked", "true");
@@ -263,22 +263,22 @@ test.describe("Loan review: roles and what a link carries", () => {
 test.describe("Loan review: design polish", () => {
   test("Single offers no pane controls (nothing invisible to tab to); the status bar speaks in views", async ({ lab, page }) => {
     await lab.open({ path: at("application"), size: { width: 1440, height: 900 } });
-    await expect(page.locator(".pane-actions")).toHaveCount(0);
+    await expect(page.locator(".jali-pane-actions")).toHaveCount(0);
     await expect(page.getByTestId("fetch-stats")).toHaveCount(0);
     await expect(lab.statusMain()).toHaveText("1 view on screen · Focus: Application");
     await page.getByRole("radio", { name: "Multiplexed" }).click();
-    await expect(page.locator(".pane-actions").first()).toBeVisible();
+    await expect(page.locator(".jali-pane-actions").first()).toBeVisible();
     await expect(lab.statusMain()).toContainText("views on screen");
     await expect(lab.statusMain()).not.toContainText("hidden");
   });
 
   test("page tab marks differ without changing a tab's width; dividers read naturally", async ({ lab, page }) => {
     await lab.open({ path: at("application"), size: { width: 1440, height: 900 } });
-    const widths = async () => page.locator(".page-tab").evaluateAll((els) => els.map((e) => e.getBoundingClientRect().width));
+    const widths = async () => page.locator(".jali-page-tab").evaluateAll((els) => els.map((e) => e.getBoundingClientRect().width));
     const before = await widths();
     await page.getByRole("radio", { name: "Multiplexed" }).click();
     expect(await widths()).toEqual(before);
-    const mark = (state: string) => page.locator(`.page-tab[data-state="${state}"]`).first().evaluate((e) => { const c = getComputedStyle(e); return `${c.borderBottomStyle} ${c.borderBottomColor}`; });
+    const mark = (state: string) => page.locator(`.jali-page-tab[data-state="${state}"]`).first().evaluate((e) => { const c = getComputedStyle(e); return `${c.borderBottomStyle} ${c.borderBottomColor}`; });
     const marks = [await mark("focused"), await mark("shown"), await mark("off")];
     expect(new Set(marks).size).toBe(3);
     for (const l of await page.getByRole("separator").evaluateAll((e) => e.map((x) => x.getAttribute("aria-label")))) expect(l).toMatch(/^Resize between .+ and .+$/);
@@ -286,7 +286,7 @@ test.describe("Loan review: design polish", () => {
 
   test("at 390px the queue opens from the header, and there is no pane switcher under the tabs", async ({ lab, page }) => {
     await lab.open({ path: at("application"), size: { width: 390, height: 844 } });
-    await expect(page.locator(".switcher")).toHaveCount(0);
+    await expect(page.locator(".jali-switcher")).toHaveCount(0);
     await page.getByRole("button", { name: /waiting/ }).click();
     await page.getByRole("dialog", { name: "Queue" }).getByRole("option").nth(2).click();
     await expect(page.getByRole("dialog", { name: "Queue" })).toHaveCount(0);
@@ -349,10 +349,10 @@ test.describe("Loan review: following links and placing views at 1440", () => {
       const role = (await pageTab(page, name).getAttribute("data-role"))!;
       await pageTab(page, name).hover();
       await page.keyboard.down("Alt");
-      const ghost = page.locator(`.ghost[data-ghost="${role}"]`);
+      const ghost = page.locator(`.jali-ghost[data-ghost="${role}"]`);
       await expect(ghost).toBeVisible();
       const preview = (await ghost.boundingBox())!;
-      const moved = await page.locator(".ghost-moved").evaluateAll((els) => els.map((e) => { const r = e.getBoundingClientRect(); return [(e as HTMLElement).dataset.ghost!, [r.x, r.y, r.width, r.height].map(Math.round)] as const; }));
+      const moved = await page.locator(".jali-ghost-moved").evaluateAll((els) => els.map((e) => { const r = e.getBoundingClientRect(); return [(e as HTMLElement).dataset.ghost!, [r.x, r.y, r.width, r.height].map(Math.round)] as const; }));
       await pageTab(page, name).click();
       await page.keyboard.up("Alt");
       await expect(ghost).toHaveCount(0);

@@ -73,7 +73,7 @@ export function TabOverflow({ tabs, active, hiddenCount, onChoose }: { tabs: Tab
     <>
       <button
         ref={btn}
-        className="tab-more"
+        className="jali-tab-more"
         aria-haspopup="menu"
         aria-expanded={open}
         aria-label={`All ${tabs.length} tabs${hiddenCount ? `, ${hiddenCount} out of view` : ""}`}
@@ -87,14 +87,14 @@ export function TabOverflow({ tabs, active, hiddenCount, onChoose }: { tabs: Tab
         <ChevronDown size={12} strokeWidth={1.75} aria-hidden />
       </button>
       {open ? createPortal(
-        <div ref={menu} className="tab-menu" role="menu" aria-label="Tabs in this group" style={pos ? { left: pos.left, top: pos.top } : { visibility: "hidden" }} onKeyDown={onKey}>
+        <div ref={menu} className="jali-tab-menu" role="menu" aria-label="Tabs in this group" style={pos ? { left: pos.left, top: pos.top } : { visibility: "hidden" }} onKeyDown={onKey}>
           {tabs.map(({ node: t, tucked, folded }) => {
             const role = review && t.role ? roleOf(env.profile!, t.role) : undefined;
             return (
               <button
                 key={t.id}
                 role="menuitem"
-                className={`tab-menu-item${t.id === active ? " is-active" : ""}`}
+                className={`jali-tab-menu-item${t.id === active ? " is-active" : ""}`}
                 data-item={t.id}
                 data-folded={folded || undefined}
                 data-tucked={tucked || undefined}
@@ -103,11 +103,11 @@ export function TabOverflow({ tabs, active, hiddenCount, onChoose }: { tabs: Tab
                 tabIndex={-1}
                 onClick={() => choose(t.id)}
               >
-                <span className="tab-menu-check" aria-hidden>{t.id === active ? <Check size={13} strokeWidth={2} /> : null}</span>
+                <span className="jali-tab-menu-check" aria-hidden>{t.id === active ? <Check size={13} strokeWidth={2} /> : null}</span>
                 {role ? <role.icon size={14} strokeWidth={1.5} aria-hidden /> : <KindIcon kind={t.ref.kind} size={14} />}
-                <span className="tab-menu-title">{titleOf(env, t)}</span>
-                {folded ? <small className="tab-menu-mark"><FoldHorizontal size={12} strokeWidth={1.75} aria-hidden />{FOLDED_WORD}</small> : null}
-                {tucked ? <small className="tab-menu-mark"><Undo2 size={12} strokeWidth={1.75} aria-hidden />Tucked</small> : null}
+                <span className="jali-tab-menu-title">{titleOf(env, t)}</span>
+                {folded ? <small className="jali-tab-menu-mark"><FoldHorizontal size={12} strokeWidth={1.75} aria-hidden />{FOLDED_WORD}</small> : null}
+                {tucked ? <small className="jali-tab-menu-mark"><Undo2 size={12} strokeWidth={1.75} aria-hidden />Tucked</small> : null}
               </button>
             );
           })}

@@ -19,14 +19,14 @@ export function HeaderActions({ id, title, zoomed, chrome }: P) {
   // A curated page's view closes back into the tabs above.
   const closeHint = store.get().review && node?.role ? "Close · it stays in the tabs above" : "Close";
   return (
-    <div className="pane-actions">
+    <div className="jali-pane-actions">
       {chrome.tuckable && !zoomed ? (
-        <button className="icon-btn act-tuck" aria-label={home ? tuckLabel : `Tuck ${title}`} title={tuckLabel} disabled={!home} onClick={() => actions.tuck(id)}>
+        <button className="jali-icon-btn jali-act-tuck" aria-label={home ? tuckLabel : `Tuck ${title}`} title={tuckLabel} disabled={!home} onClick={() => actions.tuck(id)}>
           <Minus size={14} strokeWidth={1.5} aria-hidden />
         </button>
       ) : null}
       {chrome.zoomable ? <ZoomButton id={id} title={title} zoomed={zoomed} /> : null}
-      <button className="icon-btn act-close" onClick={() => actions.close(id)} aria-label={`Close ${title}`} title={`${closeHint}${hint("pane.close")}`}>
+      <button className="jali-icon-btn jali-act-close" onClick={() => actions.close(id)} aria-label={`Close ${title}`} title={`${closeHint}${hint("pane.close")}`}>
         <X size={14} strokeWidth={1.5} aria-hidden />
       </button>
     </div>
@@ -38,7 +38,7 @@ function ZoomButton({ id, title, zoomed }: { id: string; title: string; zoomed: 
   const zoomKeys = keymap.label("pane.zoom");
   return (
     <button
-      className="icon-btn act-zoom"
+      className="jali-icon-btn jali-act-zoom"
       onClick={() => actions.toggleZoom(id)}
       aria-label={zoomed ? `Restore ${title}` : `Maximise ${title}`}
       title={zoomed ? `Restore · ${formatChord({ key: "Escape" }, keymap.platform)}` : `Maximise${zoomKeys ? ` · ${zoomKeys}` : ""}`}

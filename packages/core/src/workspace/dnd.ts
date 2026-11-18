@@ -58,7 +58,7 @@ function startDrag(store: UiStore, e: PointerStart, { id: paneId, label, fromOut
   let started = false;
   const handle = { dragged: () => started };
   if (e.button !== 0) return handle;
-  const workspace = (e.currentTarget as HTMLElement).closest<HTMLElement>(".workspace") ?? store.dom.root().querySelector<HTMLElement>(".workspace");
+  const workspace = (e.currentTarget as HTMLElement).closest<HTMLElement>(".jali-workspace") ?? store.dom.root().querySelector<HTMLElement>(".jali-workspace");
   const sx = e.clientX, sy = e.clientY;
 
   const local = (cx: number, cy: number) => {
@@ -72,7 +72,7 @@ function startDrag(store: UiStore, e: PointerStart, { id: paneId, label, fromOut
       if (Math.hypot(ev.clientX - sx, ev.clientY - sy) < DRAG_THRESHOLD) return;
       if (store.get().view.zoomed || (!fromOutside && m.panes.length < 2)) return cleanup();
       started = true;
-      document.body.classList.add("is-pane-dragging");
+      document.body.classList.add("jali-pane-dragging");
       window.getSelection()?.removeAllRanges();
     }
     const p = local(ev.clientX, ev.clientY);
@@ -102,7 +102,7 @@ function startDrag(store: UiStore, e: PointerStart, { id: paneId, label, fromOut
     window.removeEventListener("pointermove", move);
     window.removeEventListener("pointerup", up);
     window.removeEventListener("keydown", key, true);
-    document.body.classList.remove("is-pane-dragging");
+    document.body.classList.remove("jali-pane-dragging");
     if (store.get().dnd) store.set({ dnd: null });
   }
   document.addEventListener("selectstart", noSelect, true);

@@ -73,7 +73,7 @@ export function TabStrip({ group, owner }: { group: NonNullable<Frame["group"]>;
       <div
         key={t.id}
         ref={active ? revealTab : undefined}
-        className={`tab${active ? " is-active" : ""}${tucked ? " is-tucked" : ""}${isFolded ? " is-folded" : ""}`}
+        className={`jali-tab${active ? " is-active" : ""}${tucked ? " is-tucked" : ""}${isFolded ? " is-folded" : ""}`}
         data-tab={t.id}
         data-tucked={tucked || undefined}
         data-folded={isFolded || undefined}
@@ -98,15 +98,15 @@ export function TabStrip({ group, owner }: { group: NonNullable<Frame["group"]>;
         }}
       >
         <TabIcon node={t} />
-        <span className="tab-title" id={active ? paneTitleId(store.dom.id, owner) : undefined}>{title}</span>
+        <span className="jali-tab-title" id={active ? paneTitleId(store.dom.id, owner) : undefined}>{title}</span>
         <TabActivity id={t.id} />
-        {isFolded ? <span className="tab-fold-mark" aria-hidden><FoldHorizontal size={13} strokeWidth={1.75} /></span> : null}
+        {isFolded ? <span className="jali-tab-fold-mark" aria-hidden><FoldHorizontal size={13} strokeWidth={1.75} /></span> : null}
         {tucked ? (
-          <button className="tab-putback" aria-label={`Put back ${title}`} title={`Put back${shortcutLabel(store, "pane.putBack") ? ` · ${shortcutLabel(store, "pane.putBack")}` : ""}`} onPointerDown={(e) => e.stopPropagation()} onClick={(e) => { e.stopPropagation(); actions.putBack(t.id); }}>
+          <button className="jali-tab-putback" aria-label={`Put back ${title}`} title={`Put back${shortcutLabel(store, "pane.putBack") ? ` · ${shortcutLabel(store, "pane.putBack")}` : ""}`} onPointerDown={(e) => e.stopPropagation()} onClick={(e) => { e.stopPropagation(); actions.putBack(t.id); }}>
             <Undo2 size={14} strokeWidth={1.75} aria-hidden />
           </button>
         ) : null}
-        <button className="tab-close" aria-label={`Close ${title}`} onClick={(e) => { e.stopPropagation(); actions.close(t.id); }}>
+        <button className="jali-tab-close" aria-label={`Close ${title}`} onClick={(e) => { e.stopPropagation(); actions.close(t.id); }}>
           <X size={14} strokeWidth={1.75} aria-hidden />
         </button>
       </div>
@@ -114,15 +114,15 @@ export function TabStrip({ group, owner }: { group: NonNullable<Frame["group"]>;
   };
 
   return (
-    <div className="tabbar">
-      <div className="tabs" ref={strip} role="tablist" aria-label={`Tabs: ${tabs.length}`} onScroll={measure}>
+    <div className="jali-tabbar">
+      <div className="jali-tabs" ref={strip} role="tablist" aria-label={`Tabs: ${tabs.length}`} onScroll={measure}>
         {mine.map(renderTab)}
-        {folded.length && mine.length ? <span className="tab-sep" aria-hidden /> : null}
+        {folded.length && mine.length ? <span className="jali-tab-sep" aria-hidden /> : null}
         {folded.map(renderTab)}
       </div>
       {overflowing ? <TabOverflow tabs={[...mine, ...folded]} active={group.active} hiddenCount={hiddenCount} onChoose={(id) => actions.setActiveTab(group.id, id)} /> : null}
       {review ? null : <button
-        className="tab-add"
+        className="jali-tab-add"
         aria-label="New tab in this stack"
         title="New tab"
         onClick={(e) => {

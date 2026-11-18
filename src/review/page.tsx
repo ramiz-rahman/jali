@@ -92,7 +92,7 @@ function QueueSheet({ item }: { item: number }) {
       </button>
       {open ? (
         <div className="queue-sheet" role="dialog" aria-modal="true" aria-label="Queue" onKeyDown={(e) => { if (e.key === "Escape") { e.stopPropagation(); close(); } }}>
-          <button className="icon-btn queue-sheet-close" aria-label="Close queue" onClick={close} autoFocus><X size={16} strokeWidth={1.5} aria-hidden /></button>
+          <button className="jali-icon-btn queue-sheet-close" aria-label="Close queue" onClick={close} autoFocus><X size={16} strokeWidth={1.5} aria-hidden /></button>
           <QueueRail item={item} activate={(i) => { actions.activate(i); close(); }} />
         </div>
       ) : null}

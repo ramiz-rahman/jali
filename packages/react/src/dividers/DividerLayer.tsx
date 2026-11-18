@@ -19,7 +19,7 @@ export function DividerLayer() {
   if (zoomed) return null;
   const { actions } = store;
   return (
-    <div className="divider-layer">
+    <div className="jali-divider-layer">
       {m.resolved.dividers.map((d) => {
         const g = geometryFor(m, d);
         if (!g) return null;
@@ -43,9 +43,9 @@ export function DividerLayer() {
           />
         );
       })}
-      <div ref={line} className="divider-visual" data-testid="divider-preview" hidden aria-hidden>
-        <span className="divider-line" />
-        <span className="divider-tick" hidden />
+      <div ref={line} className="jali-divider-visual" data-testid="divider-preview" hidden aria-hidden>
+        <span className="jali-divider-line" />
+        <span className="jali-divider-tick" hidden />
       </div>
     </div>
   );

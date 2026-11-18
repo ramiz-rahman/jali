@@ -53,7 +53,7 @@ export function TopBar() {
   const store = useStore();
   const review = useUi((s) => !!s.review);
   return (
-    <header className="topbar">
+    <header className="topbar" data-jali-chrome="">
       <div className="brand">
         <JaliLockup />
         <AppSwitch />
@@ -67,10 +67,10 @@ export function TopBar() {
         </>
       )}
       <div className="topbar-right">
-        <button className="icon-btn" onClick={() => copyLink(store)} aria-label={review ? `Copy link to this ${store.env.profile?.itemNoun ?? "item"}` : "Copy link to this layout"} title="Copy link">
+        <button className="jali-icon-btn" onClick={() => copyLink(store)} aria-label={review ? `Copy link to this ${store.env.profile?.itemNoun ?? "item"}` : "Copy link to this layout"} title="Copy link">
           <Link2 size={16} strokeWidth={1.5} aria-hidden />
         </button>
-        <button className="icon-btn" onClick={() => store.set({ settingsOpen: true })} aria-label="Settings" title="Settings">
+        <button className="jali-icon-btn" onClick={() => store.set({ settingsOpen: true })} aria-label="Settings" title="Settings">
           <Settings size={16} strokeWidth={1.5} aria-hidden />
         </button>
         <button className="kbd-btn" onClick={() => store.set({ paletteOpen: true })} aria-label="Command palette">

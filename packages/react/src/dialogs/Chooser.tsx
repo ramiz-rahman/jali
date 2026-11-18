@@ -21,9 +21,9 @@ function ChooserDialog({ chooser }: { chooser: ChooserState }) {
   const title = m.title(chooser.source);
   return (
     <ListDialog<MergeTarget>
-      className="chooser"
+      className="jali-chooser"
       label={`Add ${title} to tabs of`}
-      head={<div className="chooser-head">Add <b>{title}</b> to the tabs of…</div>}
+      head={<div className="jali-chooser-head">Add <b>{title}</b> to the tabs of…</div>}
       placeholder="Pane or stack"
       inputLabel="Pane or stack"
       idPrefix="merge-"
@@ -32,14 +32,14 @@ function ChooserDialog({ chooser }: { chooser: ChooserState }) {
       items={all}
       keyOf={(t) => t.id}
       matches={(t, q) => t.label.toLowerCase().includes(q)}
-      itemClass="palette-item chooser-item"
+      itemClass="jali-palette-item jali-chooser-item"
       render={(t) => (
         <>
-          <span className="chooser-icon" aria-hidden>
+          <span className="jali-chooser-icon" aria-hidden>
             {m.stackOf(t.id) ? <Layers size={14} strokeWidth={1.5} /> : <KindIcon kind={m.pane(t.id)?.ref.kind ?? ""} size={14} />}
           </span>
           <span className="palette-title">{t.label}</span>
-          <span className="palette-id">{t.hint}</span>
+          <span className="jali-palette-id">{t.hint}</span>
         </>
       )}
       onChoose={(t) => {

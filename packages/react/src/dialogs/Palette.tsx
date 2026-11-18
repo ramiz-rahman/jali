@@ -43,13 +43,13 @@ function PaletteDialog() {
       items={items}
       keyOf={(c) => c.key}
       matches={(c, t) => c.title.toLowerCase().includes(t) || c.key.includes(t) || c.group.toLowerCase().includes(t)}
-      itemClass="palette-item"
+      itemClass="jali-palette-item"
       itemProps={(c) => ({ "data-command-id": c.id ?? c.key })}
       disabled={(c) => c.disabled}
       render={(c) => (
         <>
           <span className="palette-title">{c.title}</span>
-          <span className="palette-group">{c.group}</span>
+          <span className="jali-palette-group">{c.group}</span>
           {c.keys ? <kbd>{c.keys}</kbd> : <span />}
         </>
       )}

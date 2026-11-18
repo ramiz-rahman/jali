@@ -34,7 +34,7 @@ export const PaneFrame = memo(function PaneFrame({ frame, chrome, dropTarget }: 
   const opened = review && !node.role;
   const title = titleOf(env, node);
   const style: CSSProperties = { left: rect.x, top: rect.y, width: rect.width, height: rect.height, display: hidden ? "none" : undefined };
-  const cls = ["pane", !chrome.island && "is-single", focused && "is-focused", zoomed && "is-zoomed", isDragged && "is-dragged", dropTarget && "is-drop-target"]
+  const cls = ["jali-pane", !chrome.island && "is-single", focused && "is-focused", zoomed && "is-zoomed", isDragged && "is-dragged", dropTarget && "is-drop-target"]
     .filter(Boolean)
     .join(" ");
 
@@ -58,7 +58,7 @@ export const PaneFrame = memo(function PaneFrame({ frame, chrome, dropTarget }: 
       style={style}
     >
       <header
-        className="pane-header"
+        className="jali-pane-header"
         onPointerDown={chrome.draggable && !bare ? (e) => startPaneDrag(store, e, node.id) : undefined}
         onDoubleClick={(e) => {
           if (bare || !chrome.zoomable || (e.target as HTMLElement).closest("button")) return;
@@ -66,28 +66,28 @@ export const PaneFrame = memo(function PaneFrame({ frame, chrome, dropTarget }: 
         }}
       >
         {chrome.draggable && !bare ? (
-          <span className="grip" aria-hidden>
+          <span className="jali-grip" aria-hidden>
             <GripHorizontal size={14} strokeWidth={1.5} />
           </span>
         ) : null}
         {group ? (
-          <div className="bare-inert" inert={bare || undefined}><TabStrip group={group} owner={node.id} /></div>
+          <div className="jali-bare-inert" inert={bare || undefined}><TabStrip group={group} owner={node.id} /></div>
         ) : (
-          <div className="pane-title">
+          <div className="jali-pane-title">
             {role ? <role.icon size={16} strokeWidth={1.5} aria-hidden /> : <KindIcon kind={node.ref.kind} />}
             <h2 id={paneTitleId(store.dom.id, node.id)}>{title}</h2>
-            {role && env.kinds.title(node.ref) !== title ? <span className="pane-sub">{env.kinds.title(node.ref)}</span> : null}
+            {role && env.kinds.title(node.ref) !== title ? <span className="jali-pane-sub">{env.kinds.title(node.ref)}</span> : null}
             <Activity a={activity} />
             {bare ? null : <FollowControl node={node} title={title} />}
-            {opened && boundary === "tint" ? <span className="badge badge-opened">Opened</span> : null}
+            {opened && boundary === "tint" ? <span className="jali-badge jali-badge-opened">Opened</span> : null}
           </div>
         )}
         {bare ? null : <HeaderActions id={node.id} title={title} zoomed={zoomed} chrome={chrome} />}
       </header>
       {dropTarget ? <DropZoneLabel paneId={node.id} /> : null}
       <NotInResults node={node} />
-      <div className="pane-content">
-        <div className="pane-content-inner">
+      <div className="jali-pane-content">
+        <div className="jali-pane-content-inner">
           <PaneBody node={node} host={host} paused={hidden || covered} focused={focused} />
         </div>
       </div>

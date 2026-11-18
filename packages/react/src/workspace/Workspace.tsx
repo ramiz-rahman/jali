@@ -80,8 +80,8 @@ function Ghost({ role }: { role: string }) {
   const leaving = preview.leaving.length ? ` · ${preview.leaving.map(name).join(", ")} back to the tabs` : "";
   return (
     <>
-      {preview.moved.map((v) => <div key={v.id} className="ghost ghost-moved" data-ghost={v.id} style={box(v.rect)} aria-hidden />)}
-      <div className="ghost" data-ghost={role} style={box(preview.incoming)} aria-hidden><span>{name(role)} opens here{leaving}</span></div>
+      {preview.moved.map((v) => <div key={v.id} className="jali-ghost jali-ghost-moved" data-ghost={v.id} style={box(v.rect)} aria-hidden />)}
+      <div className="jali-ghost" data-ghost={role} style={box(preview.incoming)} aria-hidden><span>{name(role)} opens here{leaving}</span></div>
     </>
   );
 }
@@ -101,14 +101,14 @@ function DragChip({ x, y, label }: { x: number; y: number; label: string }) {
     const fits = o.left + x + 12 + chip.offsetWidth <= document.documentElement.clientWidth - 4;
     const left = fits ? x + 12 : Math.max(-o.left + 4, x - 12 - chip.offsetWidth);
     let top = y + 12;
-    const lab = host.querySelector(".drop-label")?.getBoundingClientRect();
+    const lab = host.querySelector(".jali-drop-label")?.getBoundingClientRect();
     if (lab) {
       const c = { l: o.left + left, t: o.top + top, r: o.left + left + chip.offsetWidth, b: o.top + top + chip.offsetHeight };
       if (c.l < lab.right && c.r > lab.left && c.t < lab.bottom && c.b > lab.top) top = lab.bottom - o.top + 8;
     }
     setPos({ left, top });
   }, [x, y, label]);
-  return <div ref={el} className="drag-chip" data-testid="drag-chip" style={pos} aria-hidden>{label}</div>;
+  return <div ref={el} className="jali-drag-chip" data-testid="drag-chip" style={pos} aria-hidden>{label}</div>;
 }
 
 export function Workspace() {
@@ -139,7 +139,7 @@ export function Workspace() {
 
   return (
     <main
-      className={["workspace", single && "is-single", sliding && !single && "is-reshaping"].filter(Boolean).join(" ")}
+      className={["jali-workspace", single && "is-single", sliding && !single && "is-reshaping"].filter(Boolean).join(" ")}
       ref={ref}
       aria-label="Panes"
       data-single={single ? "" : undefined}
@@ -147,7 +147,7 @@ export function Workspace() {
       data-page={page}
     >
       {single && !page ? <PaneSwitcher panes={m.onScreen} current={currentPane(m, view)} /> : null}
-      <div className="workspace-inner" style={inner}>
+      <div className="jali-workspace-inner" style={inner}>
         {frames(m, view, mode, { width: inner.width, height: inner.height }).map((f) => (
           <PaneFrame key={f.node.id} frame={f} chrome={CHROME[mode]} dropTarget={!single && dnd?.target === f.node.id} />
         ))}

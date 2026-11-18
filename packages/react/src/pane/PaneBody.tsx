@@ -62,7 +62,7 @@ export const PaneBody = memo(
     const def = useEnv().kinds.get(node.ref.kind);
     if (!def) {
       return (
-        <div className="pane-missing" role="alert">
+        <div className="jali-pane-missing" role="alert">
           <strong>Unknown pane kind “{node.ref.kind}”.</strong>
           <span>This pane stays in place so the layout keeps its shape. Close it or reset the layout from the command palette ({keyHint("Mod+K")}).</span>
         </div>

@@ -1,7 +1,7 @@
 /** Tabs: made by you vs made by the layout; the overflow menu when a strip cannot show every tab. */
 import { test, expect } from "./fixtures/lab";
 
-const strip = (page: import("@playwright/test").Page) => page.locator(".tabbar").filter({ has: page.locator(".tab-more") }).first();
+const strip = (page: import("@playwright/test").Page) => page.locator(".jali-tabbar").filter({ has: page.locator(".jali-tab-more") }).first();
 
 test.describe("tab overflow and marks", () => {
   test("folded tabs follow a hairline, carry a fold mark and a description; yours do not", async ({ lab, page }) => {
@@ -9,10 +9,10 @@ test.describe("tab overflow and marks", () => {
     const folded = page.locator('[role="tab"][data-folded]');
     expect(await folded.count()).toBeGreaterThan(3);
     await expect(folded.first()).toHaveAttribute("aria-description", "Folded: returns when there's room");
-    await expect(folded.first().locator(".tab-fold-mark")).toBeVisible();
+    await expect(folded.first().locator(".jali-tab-fold-mark")).toBeVisible();
     await expect(page.locator('[role="tab"]:not([data-folded])').first()).not.toHaveAttribute("aria-description", /Folded/);
     // Yours first, the layout's after the separator.
-    const order = await page.locator(".tabs").first().evaluate((el) => [...el.children].map((c) => (c.classList.contains("tab-sep") ? "|" : c.classList.contains("is-folded") ? "f" : "m")).join(""));
+    const order = await page.locator(".jali-tabs").first().evaluate((el) => [...el.children].map((c) => (c.classList.contains("jali-tab-sep") ? "|" : c.classList.contains("is-folded") ? "f" : "m")).join(""));
     expect(order).toMatch(/^m+\|f+$/);
     // The shelf counts every folded pane (past three, one summary chip that lists them), with the same wording.
     const n = await folded.count();
@@ -28,7 +28,7 @@ test.describe("tab overflow and marks", () => {
   test("the overflow button counts hidden tabs; the menu lists all of them, keys work, the chosen tab is shown", async ({ lab, page }) => {
     await lab.open({ preset: "Stress: 10 panes", size: { width: 1280, height: 900 } });
     const bar = strip(page);
-    const more = bar.locator(".tab-more");
+    const more = bar.locator(".jali-tab-more");
     await expect(more).toBeVisible();
     const total = await bar.getByRole("tab").count();
     const n = Number(await more.getAttribute("data-hidden-count"));
@@ -55,7 +55,7 @@ test.describe("tab overflow and marks", () => {
     await expect(menu).toBeHidden();
     const tab = page.locator(`[role="tab"][data-tab="${target}"]`);
     await expect(tab).toHaveAttribute("aria-selected", "true");
-    const [t, s] = await Promise.all([tab.boundingBox(), page.locator(".tabs").first().boundingBox()]);
+    const [t, s] = await Promise.all([tab.boundingBox(), page.locator(".jali-tabs").first().boundingBox()]);
     expect(t!.x).toBeGreaterThanOrEqual(s!.x - 1);
     expect(t!.x + t!.width).toBeLessThanOrEqual(s!.x + s!.width + 1);
   });
@@ -70,7 +70,7 @@ test.describe("tab overflow and marks", () => {
 
   test("the loan review shows no overflow button and no folded marks for its page views", async ({ lab, page }) => {
     await lab.open({ path: "/?app=review&item=4&tab=application", size: { width: 1280, height: 900 } });
-    await expect(page.locator(".tab-more")).toHaveCount(0);
+    await expect(page.locator(".jali-tab-more")).toHaveCount(0);
     await expect(page.locator('[data-folded]')).toHaveCount(0);
   });
 });

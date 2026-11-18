@@ -19,12 +19,12 @@ export type OpenOpts = { preset?: string; path?: string; size?: Size };
  *   activity dots .ra-ring/-need/-fail wanted: data-shape on the dot          (shape per activity state)
  */
 const HOOKS = {
-  dragChip: ".drag-chip",
-  dividerPreview: ".divider-visual",
+  dragChip: ".jali-drag-chip",
+  dividerPreview: ".jali-divider-visual",
   statusMain: ".status-main",
   zoomed: ".is-zoomed",
 };
-const SHAPES = { working: ".ra-ring", "needs-you": ".ra-need", error: ".ra-fail" } as const;
+const SHAPES = { working: ".jali-ra-ring", "needs-you": ".jali-ra-need", error: ".jali-ra-fail" } as const;
 
 const SAME = 1; // px tolerance when comparing rects
 

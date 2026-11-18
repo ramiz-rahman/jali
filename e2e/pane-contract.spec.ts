@@ -49,7 +49,7 @@ test.describe("Pane contract", () => {
     await expect(lab.grid("query")).toBeVisible({ timeout: 20_000 });
     await sql(lab).click();
     await page.keyboard.press("ControlOrMeta+k");
-    const first = page.locator(".palette-item").first();
+    const first = page.locator(".jali-palette-item").first();
     await expect(first).toContainText("Run query");
     await expect(first).toContainText("Query");
     await page.keyboard.press("Escape");

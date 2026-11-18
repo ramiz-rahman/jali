@@ -14,7 +14,7 @@ import type { UiStore } from "../state/store";
 import { clampSize, dividerKey, geometryFor, snap } from "./resize";
 
 /** True while a pointer drag is in progress (keyboard resizes wait). The body class is the drag's only state. */
-export const isDividerDragging = () => typeof document !== "undefined" && document.body.classList.contains("is-resizing");
+export const isDividerDragging = () => typeof document !== "undefined" && document.body.classList.contains("jali-resizing");
 
 const sameRect = (a: Rect, b: Rect) => a.x === b.x && a.y === b.y && a.width === b.width && a.height === b.height;
 function place(el: HTMLElement, r: Rect) {
@@ -55,7 +55,7 @@ export function startDividerDrag(store: UiStore, overlay: HTMLElement | null, e:
     if (el) frames.set(b.id, el);
   }
   const dividerEls = new Map<string, HTMLElement>();
-  for (const el of store.dom.root().querySelectorAll<HTMLElement>(".divider-layer [data-divider]")) dividerEls.set(el.dataset.divider!, el);
+  for (const el of store.dom.root().querySelectorAll<HTMLElement>(".jali-divider-layer [data-divider]")) dividerEls.set(el.dataset.divider!, el);
   const neighbours = new Set([...(d0.neighbours?.[0] ?? g0.a.ids), ...(d0.neighbours?.[1] ?? g0.b.ids)]);
 
   // Heavy panes hold their content at its current size; the frame around it still moves with the pointer.
@@ -64,8 +64,8 @@ export function startDividerDrag(store: UiStore, overlay: HTMLElement | null, e:
     const box = before.get(id), frame = frames.get(id);
     const node = m0.pane(id);
     if (!box || box.hidden || !frame || !node || !store.env.kinds.get(node.ref.kind)?.heavy) continue;
-    const content = frame.querySelector<HTMLElement>(":scope > .pane-content");
-    const inner = content?.querySelector<HTMLElement>(":scope > .pane-content-inner");
+    const content = frame.querySelector<HTMLElement>(":scope > .jali-pane-content");
+    const inner = content?.querySelector<HTMLElement>(":scope > .jali-pane-content-inner");
     if (!content || !inner || content.hidden) continue;
     const r = content.getBoundingClientRect();
     inner.style.width = `${r.width}px`;
@@ -74,12 +74,12 @@ export function startDividerDrag(store: UiStore, overlay: HTMLElement | null, e:
     held.push({ content, inner });
   }
 
-  const axisCls = row ? "is-resizing-row" : "is-resizing-column";
-  document.body.classList.add("is-resizing", axisCls);
+  const axisCls = row ? "jali-resizing-row" : "jali-resizing-column";
+  document.body.classList.add("jali-resizing", axisCls);
   sepEl.classList.add("is-dragging");
-  const tick = overlay?.querySelector<HTMLElement>(".divider-tick") ?? null;
+  const tick = overlay?.querySelector<HTMLElement>(".jali-divider-tick") ?? null;
   if (overlay) {
-    overlay.className = `divider-visual divider-${g0.axis}`;
+    overlay.className = `jali-divider-visual jali-divider-${g0.axis}`;
     place(overlay, d0.rect);
     overlay.hidden = false;
   }
@@ -157,7 +157,7 @@ export function startDividerDrag(store: UiStore, overlay: HTMLElement | null, e:
     } catch {
       /* already released */
     }
-    document.body.classList.remove("is-resizing", axisCls);
+    document.body.classList.remove("jali-resizing", axisCls);
     sepEl.classList.remove("is-dragging");
     if (overlay) overlay.hidden = true;
     for (const h of held) {

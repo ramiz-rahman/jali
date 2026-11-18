@@ -11,7 +11,7 @@ function paneTarget(el: HTMLElement) {
 export function focusPane(dom: WorkspaceDom, id: NodeId) {
   if (typeof document === "undefined" || typeof requestAnimationFrame === "undefined") return;
   requestAnimationFrame(() => {
-    if (document.activeElement?.closest?.("[role=separator], .divider, [role=dialog]")) return;
+    if (document.activeElement?.closest?.("[role=separator], .jali-divider, [role=dialog]")) return;
     const el = dom.pane(id);
     if (el) paneTarget(el).focus({ preventScroll: true });
   });
@@ -19,7 +19,8 @@ export function focusPane(dom: WorkspaceDom, id: NodeId) {
 
 /**
  * Keep DOM focus on the focused pane after structural changes (focus is never lost): move it there when it is on the
- * body or in another pane, but never out of a dialog, the top bar, a toast or a divider.
+ * body or in another pane, but never out of a dialog, a divider, the host's own chrome (anything marked
+ * `data-jali-chrome`, such as an app's top bar) or anything outside the workspace's root (a toast, say).
  */
 export function keepPaneFocus(dom: WorkspaceDom, id: NodeId | undefined) {
   if (!id) return;
@@ -28,7 +29,9 @@ export function keepPaneFocus(dom: WorkspaceDom, id: NodeId | undefined) {
   if (!el) return;
   const inPane = !!active && el.contains(active);
   const inOtherPane = !!active?.closest?.("[data-pane]") && !inPane;
-  const inChrome = !!active?.closest?.("[role=dialog], .topbar, [data-sonner-toaster], .divider");
+  const root = dom.root();
+  const outside = !!active && active !== document.body && root !== document && !root.contains(active);
+  const inChrome = outside || !!active?.closest?.("[role=dialog], [data-jali-chrome], .jali-divider");
   if (!inPane && !inChrome && (inOtherPane || !active || active === document.body)) paneTarget(el).focus({ preventScroll: true });
 }
 
@@ -48,12 +51,12 @@ export const focusInShelf = (shelf: HTMLElement) => !!document.activeElement && 
 
 /** F6 into the shelf: its roving chip, else the region. */
 export function focusShelf(shelf: HTMLElement) {
-  (shelf.querySelector<HTMLElement>('.shelf-chip-main[tabindex="0"]') ?? shelf).focus();
+  (shelf.querySelector<HTMLElement>('.jali-shelf-chip-main[tabindex="0"]') ?? shelf).focus();
 }
 
 /** ⌘K "Show a pane from the shelf" with several panes: focus the first chip (the shelf need not be on screen). */
 export function focusShelfChip(dom: WorkspaceDom): boolean {
-  const chip = typeof document !== "undefined" ? dom.root().querySelector<HTMLElement>('[data-shelf] .shelf-chip-main[tabindex="0"], [data-shelf] .shelf-chip-main') : null;
+  const chip = typeof document !== "undefined" ? dom.root().querySelector<HTMLElement>('[data-shelf] .jali-shelf-chip-main[tabindex="0"], [data-shelf] .jali-shelf-chip-main') : null;
   chip?.focus();
   return !!chip;
 }

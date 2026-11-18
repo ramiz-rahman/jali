@@ -81,7 +81,7 @@ export function Shelf() {
   }, [items.length]);
   useEffect(() => {
     if (!menu) return;
-    const off = (e: MouseEvent) => { if (!(e.target as HTMLElement).closest(".shelf-menu, .shelf-more, .shelf-summary")) setMenu(false); };
+    const off = (e: MouseEvent) => { if (!(e.target as HTMLElement).closest(".jali-shelf-menu, .jali-shelf-more, .jali-shelf-summary")) setMenu(false); };
     document.addEventListener("pointerdown", off);
     return () => document.removeEventListener("pointerdown", off);
   }, [menu]);
@@ -91,7 +91,7 @@ export function Shelf() {
   const focusChip = (id: string) => {
     setFocusId(id);
     requestAnimationFrame(() => {
-      const el = scroller.current?.querySelector<HTMLElement>(`[data-chip="${id}"] .shelf-chip-main`);
+      const el = scroller.current?.querySelector<HTMLElement>(`[data-chip="${id}"] .jali-shelf-chip-main`);
       el?.focus();
       el?.scrollIntoView({ inline: "nearest", block: "nearest" });
     });
@@ -124,9 +124,9 @@ export function Shelf() {
   const chip = (it: ShelfEntry) => {
     const L = label(m, it, activity[it.paneId]);
     return (
-      <div className={`shelf-chip${L.folded ? " is-folded" : ""}`} data-chip={it.paneId} data-reason={it.reason} data-activity={L.state} key={it.paneId}>
+      <div className={`jali-shelf-chip${L.folded ? " is-folded" : ""}`} data-chip={it.paneId} data-reason={it.reason} data-activity={L.state} key={it.paneId}>
         <button
-          className="shelf-chip-main"
+          className="jali-shelf-chip-main"
           tabIndex={it.paneId === tab ? 0 : -1}
           aria-label={`${L.full}. Enter shows it${it.reason === "tucked" ? ", Shift+Enter puts it back" : ""}`}
           aria-description={L.folded ? FOLDED_DESC : undefined}
@@ -135,10 +135,10 @@ export function Shelf() {
           onClick={() => doReveal(it)}
         >
           {L.folded ? <FoldHorizontal size={13} strokeWidth={1.75} aria-hidden /> : L.node ? <KindIcon kind={L.node.ref.kind} size={13} /> : null}
-          <span className="shelf-chip-title">{L.title}</span>
+          <span className="jali-shelf-chip-title">{L.title}</span>
           <Activity a={activity[it.paneId]} shape />
         </button>
-        {it.reason === "tucked" ? <button className="shelf-chip-put" tabIndex={-1} aria-label={`Put back ${L.title}`} title={`Put back${putBackKeys}`} onClick={() => actions.putBack(it.paneId)}>
+        {it.reason === "tucked" ? <button className="jali-shelf-chip-put" tabIndex={-1} aria-label={`Put back ${L.title}`} title={`Put back${putBackKeys}`} onClick={() => actions.putBack(it.paneId)}>
           <Undo2 size={13} strokeWidth={1.75} aria-hidden />
         </button> : null}
       </div>
@@ -148,49 +148,49 @@ export function Shelf() {
   const hidden = items.filter((i) => hiddenIds.includes(i.paneId));
   const listed = menu === "folded" ? foldedItems : hidden;
   return (
-    <div className="shelf" role="region" aria-label="Shelf" tabIndex={-1} data-shelf>
-      <div className="shelf-bar" ref={bar}>
-        <span className="shelf-fade shelf-fade-l" aria-hidden />
-        <div className="shelf-scroll" ref={scroller} role="toolbar" aria-label="Tucked and folded panes" aria-orientation="horizontal" onKeyDown={onKey} onScroll={measure}>
+    <div className="jali-shelf" role="region" aria-label="Shelf" tabIndex={-1} data-shelf>
+      <div className="jali-shelf-bar" ref={bar}>
+        <span className="jali-shelf-fade jali-shelf-fade-l" aria-hidden />
+        <div className="jali-shelf-scroll" ref={scroller} role="toolbar" aria-label="Tucked and folded panes" aria-orientation="horizontal" onKeyDown={onKey} onScroll={measure}>
           {groups.map(([home, list]) => (
-            <div className="shelf-group" role="group" aria-label={`Behind ${m.title(home)}`} key={home}>
-              <span className="shelf-home">Behind {m.title(home)}:</span>
+            <div className="jali-shelf-group" role="group" aria-label={`Behind ${m.title(home)}`} key={home}>
+              <span className="jali-shelf-home">Behind {m.title(home)}:</span>
               {list.map(chip)}
             </div>
           ))}
           {foldedItems.length && summarise ? (
-            <div className="shelf-group is-folded" role="group" aria-label="Folded" key="folded">
-              <div className="shelf-chip is-folded shelf-summary" data-chip={SUMMARY} data-reason="folded" data-summary>
-                <button className="shelf-chip-main" tabIndex={tab === SUMMARY ? 0 : -1} aria-haspopup="menu" aria-expanded={menu === "folded"}
+            <div className="jali-shelf-group is-folded" role="group" aria-label="Folded" key="folded">
+              <div className="jali-shelf-chip is-folded jali-shelf-summary" data-chip={SUMMARY} data-reason="folded" data-summary>
+                <button className="jali-shelf-chip-main" tabIndex={tab === SUMMARY ? 0 : -1} aria-haspopup="menu" aria-expanded={menu === "folded"}
                   aria-label={`${foldedItems.length} folded panes. Enter lists them`} aria-description={FOLDED_DESC} title={FOLDED_TIP}
                   onFocus={() => setFocusId(SUMMARY)} onClick={() => setMenu((v) => (v === "folded" ? false : "folded"))}>
                   <FoldHorizontal size={13} strokeWidth={1.75} aria-hidden />
-                  <span className="shelf-chip-title">{foldedItems.length} folded</span>
+                  <span className="jali-shelf-chip-title">{foldedItems.length} folded</span>
                 </button>
               </div>
             </div>
           ) : foldedItems.length ? (
-            <div className="shelf-group is-folded" role="group" aria-label="Folded" key="folded">
-              <span className="shelf-home" title={FOLDED_TIP}><FoldHorizontal size={12} strokeWidth={1.75} aria-hidden /> Folded:</span>
+            <div className="jali-shelf-group is-folded" role="group" aria-label="Folded" key="folded">
+              <span className="jali-shelf-home" title={FOLDED_TIP}><FoldHorizontal size={12} strokeWidth={1.75} aria-hidden /> Folded:</span>
               {foldedItems.map(chip)}
             </div>
           ) : null}
         </div>
-        <span className="shelf-fade shelf-fade-r" aria-hidden />
+        <span className="jali-shelf-fade jali-shelf-fade-r" aria-hidden />
       </div>
       {hidden.length ? (
-        <button className="shelf-more" aria-haspopup="menu" aria-expanded={menu === "more"} aria-label={`${hidden.length} more tucked or folded panes`} onClick={() => setMenu((v) => (v === "more" ? false : "more"))}>
+        <button className="jali-shelf-more" aria-haspopup="menu" aria-expanded={menu === "more"} aria-label={`${hidden.length} more tucked or folded panes`} onClick={() => setMenu((v) => (v === "more" ? false : "more"))}>
           +{hidden.length}
         </button>
       ) : null}
       {menu ? (
-        <div className="shelf-menu" role="menu" aria-label={menu === "folded" ? "Folded panes" : "More tucked or folded panes"} onKeyDown={(e) => { if (e.key === "Escape") { setMenu(false); if (menu === "folded") focusChip(SUMMARY); } }}>
+        <div className="jali-shelf-menu" role="menu" aria-label={menu === "folded" ? "Folded panes" : "More tucked or folded panes"} onKeyDown={(e) => { if (e.key === "Escape") { setMenu(false); if (menu === "folded") focusChip(SUMMARY); } }}>
           {listed.map((it) => {
             const L = label(m, it, activity[it.paneId]);
             return (
               <button role="menuitem" key={it.paneId} onClick={() => { setMenu(false); doReveal(it); }}>
                 {L.node ? <KindIcon kind={L.node.ref.kind} size={14} /> : null}
-                <span className="shelf-chip-title">{L.title}</span>
+                <span className="jali-shelf-chip-title">{L.title}</span>
                 <Activity a={activity[it.paneId]} shape />
                 <small>{L.folded ? "folded" : `behind ${L.home}`}</small>
               </button>

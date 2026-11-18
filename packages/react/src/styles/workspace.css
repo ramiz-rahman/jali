@@ -1,38 +1,40 @@
 @layer jali {
 /* Workspace controls, the workspace itself, and drag and drop. */
-.icon-btn {
+.jali-icon-btn {
   display: inline-grid; place-items: center; width: 1.75rem; height: 1.75rem; padding: 0;
   border: 0; border-radius: var(--jali-radius-control); background: none; color: var(--jali-text-subtle); cursor: pointer;
 }
-.icon-btn:hover { background: var(--jali-hover); color: var(--jali-text); }
-.text-btn {
+.jali-icon-btn:hover { background: var(--jali-hover); color: var(--jali-text); }
+.jali-text-btn {
   display: inline-flex; align-items: center; gap: 0.375rem; height: 1.75rem; padding: 0 0.5rem;
   border: 1px solid var(--jali-control); border-radius: var(--jali-radius-control); background: var(--jali-surface); color: var(--jali-text-muted); cursor: pointer; white-space: nowrap;
 }
-.text-btn:hover { border-color: var(--jali-text-muted); color: var(--jali-text); }
+.jali-text-btn:hover { border-color: var(--jali-text-muted); color: var(--jali-text); }
 
 /* ---------- workspace ---------- */
-.workspace { position: relative; min-height: 0; min-width: 0; overflow: hidden; }
-.workspace-inner { position: absolute; }
-.workspace.is-single { background: var(--jali-surface); }
+.jali-workspace { position: relative; min-height: 0; min-width: 0; overflow: hidden; }
+.jali-workspace-inner { position: absolute; }
+.jali-workspace.is-single { background: var(--jali-surface); }
 /* A reshape (state/apply.ts): panes slide to their new place; dividers wait until they land. */
-.workspace.is-reshaping .pane { transition: left 180ms, top 180ms, width 180ms, height 180ms; transition-timing-function: cubic-bezier(0.2, 0, 0, 1); }
-.workspace.is-reshaping .divider { opacity: 0; }
-@media (prefers-reduced-motion: reduce) { .workspace.is-reshaping .pane { transition: none; } .workspace.is-reshaping .divider { opacity: 1; } }
+.jali-workspace.is-reshaping .jali-pane { transition: left 180ms, top 180ms, width 180ms, height 180ms; transition-timing-function: cubic-bezier(0.2, 0, 0, 1); }
+.jali-workspace.is-reshaping .jali-divider { opacity: 0; }
+@media (prefers-reduced-motion: reduce) { .jali-workspace.is-reshaping .jali-pane { transition: none; } .jali-workspace.is-reshaping .jali-divider { opacity: 1; } }
 
 /* ---------- drag and drop: the area the drop fills, as a tint and one 2px ring at a 6px inset (clear of the pane's own
    border and the divider, so it never doubles a line), label centred in the area ---------- */
-.drop-indicator { position: absolute; z-index: 30; pointer-events: none; }
-.drop-indicator::after { content: ""; position: absolute; inset: 0.375rem; background: var(--jali-drop); border: 2px solid var(--jali-accent); border-radius: calc(var(--jali-radius) - 2px); }
-.drop-label-zone { position: absolute; z-index: 31; display: grid; place-items: center; pointer-events: none; padding: 0.75rem; }
-.drop-label {
+.jali-drop-indicator { position: absolute; z-index: 30; pointer-events: none; }
+.jali-drop-indicator::after { content: ""; position: absolute; inset: 0.375rem; background: var(--jali-drop); border: 2px solid var(--jali-accent); border-radius: calc(var(--jali-radius) - 2px); }
+.jali-drop-label-zone { position: absolute; z-index: 31; display: grid; place-items: center; pointer-events: none; padding: 0.75rem; }
+.jali-drop-label {
   display: inline-flex; align-items: center; gap: 0.5rem; max-width: 100%; padding: 0.5rem 0.875rem; border-radius: var(--jali-radius-menu);
   background: var(--jali-accent); color: var(--jali-on-accent); font-size: 0.875rem; font-weight: 500; line-height: 1.25rem; box-shadow: var(--jali-shadow-chip);
 }
-.drop-label svg { flex: none; }
-.drag-chip {
+.jali-drop-label svg { flex: none; }
+.jali-drag-chip {
   position: absolute; z-index: 31; pointer-events: none; padding: 0.25rem 0.5rem; border-radius: var(--jali-radius-control);
   background: var(--jali-chip); color: var(--jali-on-chip); font-size: 0.75rem; white-space: nowrap;
 }
-body.is-pane-dragging, body.is-pane-dragging * { cursor: grabbing !important; user-select: none !important; -webkit-user-select: none !important; }
+body.jali-pane-dragging, body.jali-pane-dragging * { cursor: grabbing !important; user-select: none !important; -webkit-user-select: none !important; }
+/* Read by screen readers, not shown (the announcer). */
+.jali-sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
 }

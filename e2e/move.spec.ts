@@ -31,7 +31,7 @@ test.describe("Move: drag by the grip", () => {
   test("the drag chip never covers the drop label, and only the drop is ringed", async ({ lab, page }) => {
     await lab.open();
     await lab.drag("customer", "orders", "centre", { release: false });
-    const label = (await page.locator(".drop-label").boundingBox())!;
+    const label = (await page.locator(".jali-drop-label").boundingBox())!;
     const chip = (await lab.dragChip().boundingBox())!;
     const overlaps = chip.x < label.x + label.width && chip.x + chip.width > label.x && chip.y < label.y + label.height && chip.y + chip.height > label.y;
     expect(overlaps).toBe(false);

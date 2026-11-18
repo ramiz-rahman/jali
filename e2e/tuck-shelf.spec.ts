@@ -249,7 +249,7 @@ test.describe("the shelf", () => {
       await expect(c.getByRole("button", { name: named[state] }), `${state} is in the chip's name`).toBeVisible();
     }
     await lab.setActivity(id!, "idle");
-    await expect(c.locator(".ra")).toHaveCount(0);
+    await expect(c.locator(".jali-ra")).toHaveCount(0);
   });
 
   test("overflow: many chips scroll with a +N menu", async ({ lab, page }) => {

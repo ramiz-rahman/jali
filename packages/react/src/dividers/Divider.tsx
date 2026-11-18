@@ -52,7 +52,7 @@ export const Divider = memo(
     const restB = Math.round(p.total - p.sizeA);
     return (
       <div
-        className={`divider divider-${p.axis}`}
+        className={`jali-divider jali-divider-${p.axis}`}
         data-divider={dividerKey(p)}
         style={{ position: "absolute", left: p.rect.x, top: p.rect.y, width: p.rect.width, height: p.rect.height }}
         onPointerDown={p.onDragStart}
@@ -72,9 +72,9 @@ export const Divider = memo(
         aria-label={`Resize between ${p.labelA} and ${p.labelB}`}
       >
         {/* Keyboard-focus affordance: an accent capsule and a size label, both CSS-gated on :focus-visible. */}
-        <span className="divider-line" aria-hidden />
-        <span className="divider-handle" aria-hidden />
-        <span className="divider-tip" aria-hidden>
+        <span className="jali-divider-line" aria-hidden />
+        <span className="jali-divider-handle" aria-hidden />
+        <span className="jali-divider-tip" aria-hidden>
           {p.labelA} · {Math.round(p.sizeA)}px<i> | </i>{p.labelB} · {restB}px
         </span>
       </div>

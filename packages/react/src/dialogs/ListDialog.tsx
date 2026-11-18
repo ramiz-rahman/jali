@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 
 interface Props<T> {
-  /** The dialog's class (with `palette`) and accessible name. */
+  /** The dialog's class (with `jali-palette`) and accessible name. */
   className: string;
   label: string;
   head?: ReactNode;
@@ -43,12 +43,12 @@ export function ListDialog<T>(p: Props<T>) {
   }, [p.items, q]); // eslint-disable-line react-hooks/exhaustive-deps
   const sel = items[Math.min(i, items.length - 1)];
   return (
-    <div className="scrim" onPointerDown={(e) => e.target === e.currentTarget && p.onClose()}>
-      <div className={`palette${p.className ? ` ${p.className}` : ""}`} role="dialog" aria-modal="true" aria-label={p.label}>
+    <div className="jali-scrim" onPointerDown={(e) => e.target === e.currentTarget && p.onClose()}>
+      <div className={`jali-palette${p.className ? ` ${p.className}` : ""}`} role="dialog" aria-modal="true" aria-label={p.label}>
         {p.head}
         <input
           ref={input}
-          className="palette-input"
+          className="jali-palette-input"
           placeholder={p.placeholder}
           role="combobox"
           aria-label={p.inputLabel}
@@ -67,7 +67,7 @@ export function ListDialog<T>(p: Props<T>) {
             else if (e.key === "Escape") { e.preventDefault(); e.stopPropagation(); p.onClose(); }
           }}
         />
-        <ul className="palette-list" id={p.listId} role="listbox" aria-label={p.listLabel}>
+        <ul className="jali-palette-list" id={p.listId} role="listbox" aria-label={p.listLabel}>
           {items.map((it, n) => {
             const disabled = p.disabled?.(it) ?? false;
             const k = p.keyOf(it);
@@ -87,7 +87,7 @@ export function ListDialog<T>(p: Props<T>) {
               </li>
             );
           })}
-          {!items.length ? <li className="palette-empty">{p.empty(q)}</li> : null}
+          {!items.length ? <li className="jali-palette-empty">{p.empty(q)}</li> : null}
         </ul>
       </div>
     </div>

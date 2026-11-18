@@ -19,27 +19,27 @@ export function ReviewBar() {
   const opened = investigation(m.panes).length;
   const multi = review.mode === "multi";
   return (
-    <div className="review-bar">
-      <div className="seg mode-switch" role="radiogroup" aria-label="View mode">
-        <button role="radio" aria-checked={!multi} className="seg-btn" onClick={() => actions.setMode("single")} title="One view at a time">
+    <div className="jali-review-bar">
+      <div className="jali-seg jali-mode-switch" role="radiogroup" aria-label="View mode">
+        <button role="radio" aria-checked={!multi} className="jali-seg-btn" onClick={() => actions.setMode("single")} title="One view at a time">
           <Square size={14} strokeWidth={1.5} aria-hidden /> Single
         </button>
-        <button role="radio" aria-checked={multi} className="seg-btn" onClick={() => actions.setMode("multi")} disabled={!review.canInvestigate}
+        <button role="radio" aria-checked={multi} className="jali-seg-btn" onClick={() => actions.setMode("multi")} disabled={!review.canInvestigate}
           title={review.canInvestigate ? "Views side by side: drag tabs into the layout" : "Your role works in Single"}>
           <Columns2 size={14} strokeWidth={1.5} aria-hidden /> Multiplexed
         </button>
       </div>
       {multi && opened ? (
-        <div className="inv" role="group" aria-label="Investigation">
-          <span className="inv-mark" aria-hidden />
-          <span className="inv-text">Investigating · <b>{opened}</b> opened</span>
-          <button className="inv-back" onClick={() => actions.backToReview()}>
+        <div className="jali-inv" role="group" aria-label="Investigation">
+          <span className="jali-inv-mark" aria-hidden />
+          <span className="jali-inv-text">Investigating · <b>{opened}</b> opened</span>
+          <button className="jali-inv-back" onClick={() => actions.backToReview()}>
             <Undo2 size={13} strokeWidth={1.75} aria-hidden /> Back to review
           </button>
         </div>
       ) : null}
       {multi ? (
-        <button className="icon-btn review-reset" onClick={() => actions.resetReview()} aria-label="Reset layout to its design" title="Reset layout · drops your multiplexed layout">
+        <button className="jali-icon-btn jali-review-reset" onClick={() => actions.resetReview()} aria-label="Reset layout to its design" title="Reset layout · drops your multiplexed layout">
           <RotateCcw size={15} strokeWidth={1.5} aria-hidden />
         </button>
       ) : null}
@@ -88,12 +88,12 @@ function PageTabs() {
     e.preventDefault();
   };
   return (
-    <div className="page-tabs" role="tablist" aria-label={`${p.name} views`} ref={strip} onKeyDown={keys}>
+    <div className="jali-page-tabs" role="tablist" aria-label={`${p.name} views`} ref={strip} onKeyDown={keys}>
       {p.roles.map((r) => {
         const st = state(r.id);
         const Icon = r.icon;
         return (
-          <button key={r.id} role="tab" className="page-tab" data-role={r.id} data-state={st}
+          <button key={r.id} role="tab" className="jali-page-tab" data-role={r.id} data-state={st}
             aria-selected={r.id === selected} tabIndex={r.id === selected ? 0 : -1}
             aria-description={multi ? (st === "off" ? "Not on screen" : st === "behind" ? "Behind another tab" : "On screen") : undefined}
             title={multi ? (st === "off" ? `${r.label} in place of the view you're in · drag to place it · ${altClick()}: beside` : `Focus ${r.label} · drag to move it`) : `${r.label} · drag or ${altClick()} to see it beside`}
@@ -120,9 +120,9 @@ export function ReviewPage() {
   const item = useUi((s) => s.review!.item);
   const { actions } = useStore();
   return (
-    <div className="review-page">
+    <div className="jali-page">
       <p.Rail item={item} activate={actions.activate} />
-      <div className="review-main">
+      <div className="jali-page-main">
         <p.Header item={item} />
         <PageTabs />
         <Workspace />

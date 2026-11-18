@@ -13,7 +13,7 @@ function Item({ node, selected }: { node: PaneNode; selected: boolean }) {
   return (
     <button
       role="tab"
-      className={`switch-item${selected ? " is-active" : ""}${tucked ? " is-tucked" : ""}`}
+      className={`jali-switch-item${selected ? " is-active" : ""}${tucked ? " is-tucked" : ""}`}
       aria-selected={selected}
       aria-controls={paneDomId(store.dom.id, node.id)}
       tabIndex={selected ? 0 : -1}
@@ -21,7 +21,7 @@ function Item({ node, selected }: { node: PaneNode; selected: boolean }) {
       ref={selected ? (el) => el?.scrollIntoView?.({ inline: "nearest", block: "nearest" }) : undefined}
     >
       <KindIcon kind={node.ref.kind} size={14} />
-      <span className="switch-title">{titleOf(store.env, node)}</span>
+      <span className="jali-switch-title">{titleOf(store.env, node)}</span>
       <Activity a={activity} />
     </button>
   );
@@ -32,8 +32,8 @@ export function PaneSwitcher({ panes, current }: { panes: PaneNode[]; current: s
   const actions = useActions();
   const store = useStore();
   return (
-    <nav className="switcher" aria-label="Panes">
-      <div className="switch-list" role="tablist" aria-label={`Panes: ${panes.length}`}
+    <nav className="jali-switcher" aria-label="Panes">
+      <div className="jali-switch-list" role="tablist" aria-label={`Panes: ${panes.length}`}
         onKeyDown={(e) => {
           const i = panes.findIndex((p) => p.id === current);
           const n = e.key === "ArrowRight" ? i + 1 : e.key === "ArrowLeft" ? i - 1 : e.key === "Home" ? 0 : e.key === "End" ? panes.length - 1 : -1;
