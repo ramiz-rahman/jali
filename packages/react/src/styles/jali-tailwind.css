@@ -3,8 +3,8 @@
  *
  *   @layer theme, base, jali, components, utilities;
  *   @import "tailwindcss";
- *   @import "jali/react/styles.css";
- *   @import "jali/react/tailwind.css";
+ *   @import "@jali/react/styles.css";
+ *   @import "@jali/react/tailwind.css";
  *
  * The layer line puts Jali above Tailwind's preflight and below your utilities, so a class on a Jali part
  * (data-[focused]:ring-2, say) wins without !important.

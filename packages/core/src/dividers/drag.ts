@@ -3,7 +3,7 @@
  *
  * Pointer down captures the pointer and snapshots the committed layout. Each animation frame (at most one per frame)
  * turns the pointer into the first neighbour's size (clamped at both minimums, centre snap in at 10px, out at 16px),
- * asks layout-core for the layout that size gives, resolves it, and writes the result straight onto the DOM:
+ * asks the layout model for the layout that size gives, resolves it, and writes the result straight onto the DOM:
  * the affected pane frames' left/top/width/height, and the accent drag line. No React state changes during the drag.
  * Pointer up commits that same layout object once, so the committed rects equal the last preview exactly; the URL is
  * written 120ms later (history "debounce"). Heavy panes hold their content at its pre-drag size and reflow on release.

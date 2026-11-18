@@ -1,5 +1,5 @@
 /**
- * The UI store: state, one derived model, and apply(). Layout and view come from layout-core ops; actions are pure
+ * The UI store: state, one derived model, and apply(). Layout and view come from the layout ops (layout/); actions are pure
  * (actions/) and the store only commits them. Effects leave through sinks given at creation (URL, DOM focus) and
  * through `onToast` (toasts); announcements are state, so nothing said before the live region mounts is lost.
  */
@@ -24,7 +24,7 @@ export interface ConfirmState { panes: NodeId[]; change: Change }
 /** A chooser dialog opened by a command (⌘K "Add to tabs of…"). */
 export interface ChooserState { kind: "merge"; source: NodeId }
 
-/** A curated page in use (ui/profile.ts): the item, the mode, the view Single shows, and what this person may do. */
+/** A curated page in use (profile.ts): the item, the mode, the view Single shows, and what this person may do. */
 export interface PageState {
   /** The profile's id: what a link names (`?page=loan-review`). */
   profile: string;
@@ -57,7 +57,7 @@ export interface UiState {
   undoStack: UndoEntry[];
   activity: Record<NodeId, PaneActivity>;
   peekSource?: NodeId;
-  /** Each list pane's selected item; its following detail shows it (layout-core ops/follow.ts). */
+  /** Each list pane's selected item; its following detail shows it (layout/ops/follow.ts). */
   selection: Record<NodeId, Selection>;
   dnd: DndState | null;
   resizeMode: NodeId | null;
@@ -93,7 +93,7 @@ export interface UrlWriter {
 export interface UiStoreDeps {
   /** This workspace's pane kinds (createPaneKinds). */
   kinds: PaneKinds;
-  /** The curated page this workspace can show (ui/profile.ts). Default: none. */
+  /** The curated page this workspace can show (profile.ts). Default: none. */
   profile?: ProfileBase | null;
   /** Layouts to start from, in menu order (the bar and ⌘K "Layout: …"). Default: none. */
   presets?: readonly Preset[];

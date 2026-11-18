@@ -28,7 +28,7 @@ export function openPaneFor(m: WorkspaceModel, ref: ObjectRef, except?: NodeId):
 /**
  * Founder decision 2: focus stays in the source. Opening the source's selected item (a list's row) links the new pane
  * to the selection: it follows it, or, when the list already has a following detail, it opens pinned beside it for
- * comparison (layout-core ops/follow.ts). Any other link opens a plain linked pane.
+ * comparison (layout/ops/follow.ts). Any other link opens a plain linked pane.
  */
 export function openBeside(x: Snapshot, source: NodeId, ref: ObjectRef): Outcome {
   const { s, m, ctx } = x;

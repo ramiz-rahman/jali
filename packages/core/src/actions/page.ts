@@ -1,5 +1,5 @@
 /**
- * Curated pages (ui/profile.ts). Single mode shows one view, chosen from the tabs. Multiplexed mode lays the views out
+ * Curated pages (profile.ts). Single mode shows one view, chosen from the tabs. Multiplexed mode lays the views out
  * freely, starting from the profile's design; each view exists once, and closing one sends it back to the tabs.
  * Panes opened by following links form an investigation after the layout that "Back to <page>" clears.
  */

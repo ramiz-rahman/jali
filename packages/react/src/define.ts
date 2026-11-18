@@ -12,7 +12,7 @@
  *   (or `peek(null)` to close); ⌥↵ / ⌥-click call `openBeside(ref)`. The workspace keeps focus in the source pane
  *   after openBeside (founder decision 2) and makes an open peek, and a detail opened from the selection, follow
  *   `select` (actions/follow.ts). Report the selection before opening it, so the opened pane is linked to it.
- * - Data: read the shared DataLayer with `useDataLayer()` from `src/data/react`; never fetch outside the cache.
+ * - Data: your own. Jali never fetches: the component reads `ref.params` and loads the object itself.
  * - Keys: content first (commands/keyboard.ts). The pane layer listens on window in the bubble phase and leaves
  *   alone any key the content claimed with `event.preventDefault()`. Claim the keys you use (J/K, Space, Enter,
  *   ⌘Z for your own undo, the first Esc); let the rest bubble. Character keys must only act while your content has
@@ -22,7 +22,7 @@
  *   saved. Closing the pane, closing others, a preset or showing another object in it then asks the person first;
  *   a following detail keeps its object. Moving, tabbing, folding and tucking never ask: the content stays mounted.
  * - State the person expects back (a draft, a sort, a scroll position): `usePaneState(key, initial)` from
- *   ui/pane/usePaneState. The workspace keeps it through folds and reloads and drops it when the pane closes or
+ *   @jali/react. The workspace keeps it through folds and reloads and drops it when the pane closes or
  *   shows another object. JSON values only.
  * - Commands: `setCommands([...])` in an effect lists them in ⌘K, first, while the pane is focused. Call it again
  *   when they change and with `null` on unmount.

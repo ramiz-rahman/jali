@@ -51,7 +51,7 @@ function buildCommands(env: Env): Command[] {
   { id: "pane.resize_mode", title: "Resize mode (arrows, then Esc)", group: "Pane", check: needFocus, run: (u) => u.actions.enterResizeMode() },
   { id: "pane.close", title: "Close pane", group: "Pane", check: needOthers, run: (u) => u.actions.close() },
   { id: "pane.close_others", title: "Close other panes", group: "Pane", check: needOthers, run: (u) => u.actions.closeOthers() },
-  { id: "pane.undo_close", title: "Restore last closed pane", group: "Pane", check: checkUndo, run: (u) => u.actions.undo() },
+  { id: "pane.undo_close", title: "Undo last close or tuck", group: "Pane", check: checkUndo, run: (u) => u.actions.undo() },
   // Splits open a launcher (a "New pane" to choose an object in), never a copy of the focused object.
   { id: "pane.split.right", title: "Split right (new pane)", group: "Pane", check: needLauncher, run: (u) => u.actions.split("right") },
   { id: "pane.split.down", title: "Split down (new pane)", group: "Pane", check: needLauncher, run: (u) => u.actions.split("bottom") },

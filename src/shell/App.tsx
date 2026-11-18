@@ -16,7 +16,7 @@ const undoKeys = (store: UiStore) => {
   return k ? `${k} to undo` : "";
 };
 
-/** Shows the store's toasts with Sonner. Undo toasts offer the undo that "Restore last closed pane" (⌘K ⌘Z) runs. */
+/** Shows the store's toasts with Sonner. Undo toasts offer the undo that "Undo last close or tuck" (⌘K ⌘Z) runs. */
 function Toasts() {
   const store = useStore();
   const theme = useUi((s) => resolveTheme(s.settings.theme, s.systemDark));

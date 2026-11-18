@@ -1,6 +1,6 @@
 /**
  * Every sentence the workspace says: live-region announcements, refusals, toasts and drop outcomes. Logic passes
- * titles in; nothing else in src/ui writes announcement English.
+ * titles in; nothing else in @jali/core writes announcement English.
  */
 import type { Edge } from "../layout/types";
 

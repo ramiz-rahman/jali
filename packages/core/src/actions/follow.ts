@@ -1,5 +1,5 @@
 /**
- * Linked selection: a detail opened from a list's selected row follows that list (layout-core ops/follow.ts).
+ * Linked selection: a detail opened from a list's selected row follows that list (layout/ops/follow.ts).
  *  - The list reports its selection with `select` (actions/peek.ts); the following detail shows it once the selection
  *    rests for FOLLOW_MS, so holding J doesn't fetch every row it passes.
  *  - Following is a swap: same slot, same size; the URL is replaced, so Back skips the rows passed through.

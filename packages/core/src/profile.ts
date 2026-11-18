@@ -71,7 +71,7 @@ export interface Preset {
 /** What a workspace is made of, beyond its state: its pane kinds, presets and (a curated page) its profile. One per store. */
 export interface Env {
   kinds: PaneKinds;
-  /** The curated page this workspace can show (`?app=review`); null for a workspace with none. */
+  /** The curated page this workspace can show (`?page=<id>`); null for a workspace with none. */
   profile: ProfileBase | null;
   /** Layouts to start from, in menu order. May be empty. */
   presets: readonly Preset[];

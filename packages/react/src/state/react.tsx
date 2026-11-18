@@ -10,7 +10,7 @@ export function StoreProvider({ store, children }: { store: UiStore; children?: 
   return <StoreContext.Provider value={store}>{children}</StoreContext.Provider>;
 }
 
-/** A store as React code sees it: its kinds have components, its profile a rail and header (ui/define.ts). */
+/** A store as React code sees it: its kinds have components, its profile a rail and header (define.ts). */
 export type ReactUiStore = UiStore & { env: ReactEnv };
 
 export function useStore(): ReactUiStore {
