@@ -7,8 +7,9 @@
 .pane.is-focused { box-shadow: 0 0 0 0.5px var(--accent); border-color: var(--accent); }
 .pane.is-zoomed { z-index: 20; box-shadow: 0 0 0 0.5px var(--accent), var(--shadow-zoom); }
 .pane.is-dragged { opacity: 0.55; }
-/* The pane in hand is dimmed, not outlined: the only accent ring during a drag is the drop's. */
-.pane.is-dragged.is-focused { border-color: var(--line); box-shadow: none; }
+/* During a drag the only accent ring is the drop's: the pane in hand is dimmed, and the focused pane (often the
+   target of a page tab) drops its focus ring until the drag ends. */
+body.is-pane-dragging .pane.is-focused { border-color: var(--line); box-shadow: none; }
 .pane[aria-hidden="true"] { visibility: hidden; }
 /* Single view (phone): full-bleed, no island. */
 .pane.is-single { border: 0; border-radius: 0; box-shadow: none; }

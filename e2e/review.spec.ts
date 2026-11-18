@@ -151,6 +151,24 @@ test.describe("Loan review: Multiplexed", () => {
     expect(await selected()).toBe("");
   });
 
+  test("a tab dragged onto the focused view rings only the drop, not the view's focus too", async ({ lab, page }) => {
+    await lab.open({ path: at("application"), size: { width: 1440, height: 900 } });
+    await mode(page, "Multiplexed").click();
+    await lab.pane("application").click();
+    await expect(lab.pane("application")).toHaveClass(/is-focused/);
+    const b = (await pageTab(page, "Group").boundingBox())!;
+    const to = (await lab.pane("application").boundingBox())!;
+    await page.mouse.move(b.x + b.width / 2, b.y + b.height / 2);
+    await page.mouse.down();
+    await page.mouse.move(to.x + to.width / 2, to.y + to.height / 2, { steps: 12 });
+    await expect(page.locator(".drop-indicator")).toBeVisible();
+    const target = lab.pane("application");
+    expect(await target.evaluate((e) => getComputedStyle(e).boxShadow)).toBe("none");
+    await page.keyboard.press("Escape");
+    expect(await target.evaluate((e) => getComputedStyle(e).boxShadow)).not.toBe("none");
+    await page.mouse.up();
+  });
+
   test("dragging a tab out of Single switches to Multiplexed with both views", async ({ lab, page }) => {
     await lab.open({ path: at("application"), size: { width: 1440, height: 900 } });
     await dragTab(page, "Loan history", await rightEdge(lab, "application"));
