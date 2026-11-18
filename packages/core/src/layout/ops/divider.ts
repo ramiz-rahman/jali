@@ -38,6 +38,11 @@ export function resizeDivider(layout: Layout, parentId: string, index: number, d
     });
   };
   assign(first, value); assign(second, total - value);
+  // Re-expressed in pixels, the weights read oddly beside a preset's `weight: 1.3`: scale the ones this drag set so
+  // they average 1. Proportions are unchanged (to 1e-4).
+  const set = owner.children.filter(c => "weight" in c.size && (first.includes(c) || second.includes(c) || extentOf(c) > 0));
+  const sum = set.reduce((a, c) => a + (c.size as { weight: number }).weight, 0);
+  if (sum > 0) for (const c of set) c.size = { weight: (c.size as { weight: number }).weight * set.length / sum };
   return next;
 }
 export function resetDivider(layout: Layout, parentId: string, index: number, ctx: LayoutContext) {
