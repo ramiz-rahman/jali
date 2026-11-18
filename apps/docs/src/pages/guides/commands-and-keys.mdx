@@ -1,0 +1,95 @@
+---
+title: Commands and keys
+summary: Rebind or unbind the workspace's keys, let your content keep the keys it needs, and show the right shortcut in your own buttons.
+---
+
+import keymap from "../../samples/guides/keys/keymap.ts?raw";
+import label from "../../samples/guides/keys/shortcut-label.tsx?raw";
+import editor from "../../samples/guides/keys/editor-pane.tsx?raw";
+import orders from "../../samples/guides/pane-kinds/orders.tsx?raw";
+
+Every workspace action is a command with an id, such as `pane.close` or `pane.zoom`. ⌘K opens the palette, which lists them all. A keymap binds ids to keys, and each store has its own.
+
+## The default keys
+
+⌘K (Ctrl+K on Windows and Linux) opens the palette and starts a two-step chord: hold ⌘, press K, then the second key. Most pane commands are ⌘K then a second key with ⌘ still held, so the second key never types into the palette's search.
+
+| Command | Keys on a Mac | Elsewhere |
+|---|---|---|
+| Open the palette | ⌘K | Ctrl+K |
+| Focus next / previous pane | F6 / ⇧F6 | F6 / Shift+F6 |
+| Focus the pane left, right, up, down | ⌘K ⌘←, ⌘→, ⌘↑, ⌘↓ | Ctrl+K Ctrl+Left, … |
+| Move the pane | ⌘K ⇧⌘← and so on | Ctrl+K Ctrl+Shift+Left, … |
+| Maximise or restore | ⇧⌘↵, or ⌘K ⌘M | Ctrl+Shift+Enter, or Ctrl+K Ctrl+M |
+| Close pane | ⌘K ⌘⌫ | Ctrl+K Ctrl+Backspace |
+| Restore last closed pane | ⌘K ⌘Z | Ctrl+K Ctrl+Z |
+| Split right / down | ⌘\\ / ⌘K ⌘\\ | Ctrl+\\ / Ctrl+K Ctrl+\\ |
+| Tuck / put back | ⌘K ⌘[ / ⌘K ⌘] | Ctrl+K Ctrl+[ / Ctrl+K Ctrl+] |
+| Resize mode (arrows, then Esc) | ⌘K ⌘R | Ctrl+K Ctrl+R |
+| Add to tabs of… / Move out of tabs | ⌘K ⌘G / ⌘K ⇧⌘G | Ctrl+K Ctrl+G / Ctrl+K Ctrl+Shift+G |
+
+Every command and its id is in the [Commands reference](/reference/commands). Esc closes the peek sheet, then restores a maximised pane, once the content has had its turn.
+
+## Rebind and unbind
+
+Pass `keymap` to the store. Each entry is a command id and its new bindings:
+
+<Code code={keymap} filename="src/workspace.ts" />
+
+- A string or a list of strings replaces the defaults for that id. The first binding is the one tooltips and the palette show.
+- `null` unbinds it. The command stays in the palette.
+- Ids you don't list keep their defaults.
+- A command with no default key, such as `pane.close_others`, can be bound too.
+- The palette itself is in the keymap under `PALETTE_ID` (`"palette.toggle"`).
+
+Write keys the way people read them. `Mod` is ⌘ on a Mac and Ctrl elsewhere; `Ctrl` is the Control key everywhere. A space separates the two steps of a chord: `"Mod+K Mod+X"`. Letters, digits and punctuation match the physical key, so a binding means the same key on any keyboard layout.
+
+Some bindings are refused, and reported through `keymapOptions.onInvalid` (by default, a console warning):
+
+- a single printable key with no ⌘, Ctrl or Alt, such as `"J"`: those belong to the focused content;
+- a sequence of more than two steps;
+- a key or modifier Jali doesn't know.
+
+Avoid keys the browser keeps for itself, such as ⌘W, ⌘T and ⌘N: the browser acts before the page sees them.
+
+`keymapOptions.platform` (`"mac"` or `"other"`) fixes how keys are matched and printed. Pass it in tests and on the server.
+
+## Content first
+
+A key goes to the focused content before the workspace. That way a list can use J and K, and an editor can use Enter and ⌘Z.
+
+1. **Your content sees the key first.** To keep it, call `event.preventDefault()` (or stop it bubbling). The workspace then leaves it alone.
+2. **The workspace acts on what's left:** the keymap's bindings, then Esc.
+
+So claim the keys you use and let the rest through. The orders list in [Define a pane kind](/guides/pane-kinds) does this:
+
+<Code code={orders} filename="src/panes/orders.tsx" highlight="36-46" />
+
+Single character keys (J, K, Space) must act only while your content has focus. Put the handler on the focused element, as above, not on `window`.
+
+## Content that needs every key
+
+An editor or a terminal needs every key, ⌘K included. Mark it `data-pane-keys="content"`. Inside it, the workspace takes only F6 and ⇧F6, so a keyboard user can always move focus out.
+
+<Code code={editor} filename="src/panes/reply.tsx" />
+
+## Show the right shortcut
+
+Your keymap may differ from the defaults, and the keys print differently on each platform. Read the label from the store instead of writing it by hand:
+
+<Code code={label} filename="src/CloseButton.tsx" />
+
+- `useShortcut(id)` gives "⌘K ⌘⌫" on a Mac and "Ctrl+K Ctrl+Backspace" elsewhere, or `""` when the command is unbound.
+- `useShortcutSuffix(id)` gives " · ⌘K ⌘⌫", ready to append to a tooltip.
+- Outside React, `store.keymap.label(id)` does the same.
+
+For keys your content handles itself, `keyHint("Mod+Enter")` prints them the same way ("⌘↵" or "Ctrl+Enter").
+
+## A pane's own commands
+
+A pane can add its own commands to ⌘K while it is focused, such as "Save note" or "Run query", with `setCommands`. Their keys are labels only: the content handles the key. See [Unsaved work and pane state](/guides/unsaved-work-and-pane-state#add-the-panes-commands-to-k).
+
+## Next
+
+- [Two workspaces on one page](/guides/two-workspaces): keep each workspace's keys inside it.
+- [Commands reference](/reference/commands)

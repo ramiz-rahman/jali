@@ -1,0 +1,9 @@
+/* Rules in a layer after "jali" beat Jali's own, at any specificity, without !important. */
+@layer components {
+  /* Each part says its state in attributes. */
+  .jali-pane[data-focused] { box-shadow: 0 0 0 2px var(--jali-accent); }
+  .jali-pane[data-kind="ticket-note"] { background: var(--jali-accent-soft); }
+  .jali-tab[aria-selected="true"] { font-weight: 600; }
+  .jali-tab[data-folded] { font-style: italic; }
+  [data-drop-zone]::after { border-style: dashed; }
+}

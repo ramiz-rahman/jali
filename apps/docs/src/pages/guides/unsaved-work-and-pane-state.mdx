@@ -1,0 +1,74 @@
+---
+title: Unsaved work and pane state
+summary: Ask before a pane's unsaved work is lost, keep what a person expects back, and add a pane's commands to ⌘K.
+---
+
+import note from "../../samples/guides/unsaved/note-editor.tsx?raw";
+
+A pane that holds work needs three things from the workspace. Don't lose the work without asking. Keep the draft, the sort and the scroll position when the pane folds, moves or the page reloads. And list what the pane can do in ⌘K. This guide does all three for a note on a support ticket.
+
+<Code code={note} filename="src/panes/ticket-note.tsx" highlight="13-19,27-40" />
+
+## Report unsaved work
+
+Call `setUnsaved(what)` with a few words about the work, and `setUnsaved(null)` once it is saved or gone.
+
+```tsx
+useEffect(() => { setUnsaved(edited ? "an unsaved note" : null); }, [setUnsaved, edited]);
+useEffect(() => () => setUnsaved(null), [setUnsaved]);
+```
+
+While a pane has unsaved work, any change that would remove it or show another object in it is held, and the person is asked: "Discard unsaved changes?". The dialog names each pane and the words you gave. **Keep editing** is focused, and Esc or a click outside keeps the work. **Discard** makes the held change exactly as it was asked for.
+
+That covers every way a pane can go: closing it, closing the others, choosing a preset, Back and Forward, and showing another object in it. You don't handle any of them yourself.
+
+Some changes never ask, because the pane stays mounted and its work with it: moving it, putting it in tabs, folding it, tucking it and maximising another pane.
+
+Two more cases:
+
+- **A following detail with unsaved work keeps its object.** When the list's cursor moves on, the detail stays put and the workspace says why. Asking on every row would be worse.
+- **Leaving the page** with unsaved work anywhere brings up the browser's own prompt before the page goes. `startUi` sets this up.
+
+## Keep the pane's own state
+
+`usePaneState(key, initial)` works like `useState`, but the workspace keeps the value for this pane:
+
+```tsx
+const [draft, setDraft] = usePaneState("draft", "");
+```
+
+- It survives the pane being folded, tucked, tabbed or moved, and a reload. `startUi` saves it through the store's storage 400ms after the last change.
+- It is dropped when the pane closes for good, or shows another object. While an undo could bring a closed pane back, its state is kept too.
+- Values must be JSON: strings, numbers, booleans, arrays and plain objects.
+
+Use it for what a person expects back: a draft, a sort, a filter, a scroll position. Use React state for the rest.
+
+In the peek sheet there is no pane, so `usePaneState` is plain React state there, gone when the sheet closes. `setUnsaved` and `setCommands` do nothing in the sheet.
+
+## Add the pane's commands to ⌘K
+
+`setCommands(list)` adds commands to the palette while this pane is focused. They come first, under the pane's title. Call it again whenever they change, and with `null` when the pane unmounts.
+
+```tsx
+setCommands([
+  { id: "save", title: "Save note", keys: keyHint("Mod+S"), disabled: edited ? false : "Nothing to save", run: save },
+]);
+```
+
+- `id` and `title` name the command. `run` runs it.
+- `disabled` greys it out. Give a reason as text, and screen readers read it.
+- `keys` is a label only. The key itself is yours to handle in the content, as the textarea does above with `preventDefault()`. See [Commands and keys](/guides/commands-and-keys).
+
+`run` is called whenever the person picks it, maybe long after the render that listed it. The sample keeps the latest `save` in a ref, so `run` never calls a stale one.
+
+## Test it
+
+The store's actions do what the component's props do, so the rules can be tested without rendering:
+
+```ts
+store.actions.setUnsaved("note", "an unsaved note");
+store.actions.close("note");
+expect(store.get().confirm?.panes).toEqual(["note"]);
+```
+
+See [Test a workspace](/guides/testing).

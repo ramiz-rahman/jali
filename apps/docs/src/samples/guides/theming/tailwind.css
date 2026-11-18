@@ -1,0 +1,14 @@
+/* app.css: the stylesheet Tailwind builds. */
+@layer theme, base, jali, components, utilities;
+@import "tailwindcss";
+@import "@jali/react/styles.css";
+@import "@jali/react/tailwind.css";
+
+/* Your theme. Jali reads these names (the same ones Chakni reads), each with a fallback to its own default. */
+@theme {
+  --color-primary: #0f766e;
+  --color-primary-foreground: #ffffff;
+  --color-card: #ffffff;
+  --color-border: #e4e4e7;
+  --radius-card: 0.75rem;
+}

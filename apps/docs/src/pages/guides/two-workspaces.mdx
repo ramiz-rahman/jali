@@ -1,0 +1,61 @@
+---
+title: Two workspaces on one page
+summary: Put two workspaces side by side, or one in a dialog, without their links, saved settings or keys getting mixed up.
+---
+
+import two from "../../samples/guides/two-workspaces/two.tsx?raw";
+
+One store is one workspace. Two stores on a page share nothing by default except three things that are the page's: the address, the browser's storage and the keyboard. Give each workspace its own share of those, and they work side by side.
+
+This page puts an orders workspace beside a notes workspace.
+
+<Code code={two} filename="src/main.tsx" />
+
+## Its own name in the DOM
+
+`id` prefixes the workspace's element ids: `orders-pane-…` and `notes-pane-…`. The default is `"jali"`, so give each workspace its own. Focus, dragging and F6 already look only inside their own workspace's root.
+
+## Its own params in the address
+
+`createUrlSync({ prefix: "n." })` writes the notes workspace's params as `n.l`, `n.zoom` and `n.peek`. The orders workspace keeps the plain names. Each reads and writes only its own, and every other param is left alone, so one link reopens both.
+
+A workspace that must not touch the address at all, such as one in a dialog, can use `createUrlSync({ location: memoryLocation() })`, or no `url` at all.
+
+## Its own storage
+
+Both the store and its URL sync save to `localStorage` under `"jali"` by default. Two workspaces with the defaults would overwrite each other's settings and pane state. Give each its own prefix with `browserStorage("orders")`, and pass it to both the store and its URL sync.
+
+## Its own keys
+
+`installKeyboard(store, { root })` makes a store take only keys from inside its root element, plus keys pressed with nothing focused, when that workspace was the last one used. So F6 in the notes moves between notes panes, and ⌘K opens the notes palette.
+
+`root` is a function that returns the element, or `null` before it exists. `<Jali>` renders the root and tells the store, so `store.dom.root()` returns it once rendered (and the document before that).
+
+<Callout type="warning" title="Two-step chords don't finish yet">
+With a root, ⌘K opens the palette, but the second step of a chord (⌘K then ⌘M, ⌘K then ⌘←) doesn't run: the palette renders outside the workspace's root, so the key pressed in it isn't taken as the workspace's. Direct keys work: F6, ⇧F6, ⌘\\ and ⇧⌘↵. Commands chosen in the palette work too.
+</Callout>
+
+`installKeyboard` also takes a `target` window, for a workspace rendered into another window or a same-origin iframe. Each call returns a function that removes its listeners.
+
+## Why not `startUi`
+
+`startUi` is for one workspace per page. It installs the keyboard for the whole page, with no root, so two workspaces with `startUi` would both act on every key. Call `boot` for each, then set up what you need yourself:
+
+- **Keys:** `installKeyboard` with a root, as above.
+- **Back and Forward:** `url.onPop` tells you the address changed. Read the workspace's part with `url.read` and pass it to `store.actions.arrive`, as the sample does. That covers layouts; a curated page in the second workspace would need more.
+
+`startUi` does a few more things that have no separate call yet:
+
+- saving settings and pane state through the storage, so `usePaneState` values last for the session but not across a reload;
+- writing the theme setting to `data-theme` on `<html>`. Without it, Jali follows the system's dark mode, or your `.dark` and `[data-theme]` scopes;
+- the browser's prompt when the page closes with unsaved work. Closing a pane with unsaved work still asks;
+- the height of the one-pane switcher shown on narrow screens (the `--switcher-h` variable on `<html>`).
+
+## Its own look
+
+To give one workspace its own accent, set `--jali-accent` on an element around its `<Jali>`. See [Theming](/guides/theming).
+
+## Next
+
+- [Keep the layout in the URL](/guides/url-and-routers)
+- [Test a workspace](/guides/testing): each test is a workspace of its own.

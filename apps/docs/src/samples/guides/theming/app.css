@@ -1,0 +1,9 @@
+/* app.css, the one stylesheet your app imports. The layer line comes first, before Jali's CSS is loaded. */
+@layer base, jali, components;
+@import "@jali/react/styles.css";
+@import "./teal.css";
+
+@layer base {
+  html, body, #root { height: 100%; margin: 0; }
+  body { background: var(--jali-canvas); color: var(--jali-text); font-family: var(--jali-font); }
+}

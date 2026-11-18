@@ -1,0 +1,29 @@
+/* Teal for Jali, in light and dark. Plain CSS in your app's stylesheet. */
+
+/* Light. Set tokens on the same scopes Jali declares them on (:root and .light), so your value wins there. */
+:root,
+.light {
+  --jali-accent: #0f766e;      /* focus edge, selected tab, primary buttons, drop preview */
+  --jali-accent-soft: #e6f4f1; /* soft fills behind accented things */
+  --jali-on-accent: #ffffff;   /* text on the accent */
+  --jali-brand: #115e59;
+}
+
+/* Dark, when the system asks for it, unless the page says light. */
+@media (prefers-color-scheme: dark) {
+  :root:not(.light, [data-theme="light"]) {
+    --jali-accent: #2dd4bf;
+    --jali-accent-soft: #123b37;
+    --jali-on-accent: #042f2e;
+    --jali-brand: #5eead4;
+  }
+}
+
+/* Dark, when the page says so: a .dark class or data-theme="dark", on <html> or any element. */
+.dark,
+[data-theme="dark"] {
+  --jali-accent: #2dd4bf;
+  --jali-accent-soft: #123b37;
+  --jali-on-accent: #042f2e;
+  --jali-brand: #5eead4;
+}

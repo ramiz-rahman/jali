@@ -1,0 +1,66 @@
+---
+title: Test a workspace
+summary: Test your layouts and pane rules without a browser, by running the store's actions and reading its state.
+---
+
+import test from "../../samples/guides/testing/workspace.test.ts?raw";
+
+A workspace's behaviour lives in its store, not in its components. So most of it can be tested without rendering anything: make a store, run actions on it, and read its state. This guide uses Vitest with jsdom; any test runner works the same way.
+
+## A store for tests
+
+<Code code={test} filename="src/workspace.test.ts" highlight="9-21" />
+
+Each option keeps the test apart from the page and from other tests:
+
+- **`memoryLocation(search)`** is an address in memory. The workspace writes its layout there instead of the browser's address. Start it with a search string to test opening a link.
+- **`memoryStorage()`** stores in memory. The store's saved settings and pane state, and the URL sync's sizes, never touch `localStorage`. Give both the store and the URL sync their own.
+- **`focusPane: null`** stops the store moving DOM focus into panes after changes. There are no panes in the DOM in a store test.
+- **`initial.area`** gives the workspace a size. Folding depends on it, and with no rendered workspace nothing measures the window. Change it later with `store.set({ area })`.
+
+Kinds belong to the store, so every test gets its own: registering a kind in one store never affects another.
+
+## Run actions, read state
+
+`store.actions` holds every workspace action: `openBeside`, `close`, `preset`, `select`, `setUnsaved` and the rest. Components call the same actions, so a test that runs them tests what a person does.
+
+- `store.get()` is the state: `layout`, `view.focused`, `confirm` (a held change waiting for "Discard unsaved changes?"), `unsaved`, `paneState`, `selection`.
+- `store.model()` is what is derived from it: `panes` in tree order, `pane(id)`, `folded`, `visible`, `resolved` (every pane's box on screen).
+
+An action that opens a pane returns its id.
+
+## Test a link
+
+To check that a link opens what it should, give a second store a `memoryLocation` that starts at the first one's address, then call `boot`. That is what a page load does:
+
+```ts
+const { store: reader } = testStore(link);
+boot(reader);
+expect(ids(reader)).toEqual(ids(store));
+```
+
+`memoryLocation` also records history. `location.entries` lists every entry, so you can check which changes push a new one. `location.visit(search)` acts like Back, Forward or a router link: the address changes and the workspace hears it.
+
+## Timing
+
+Some changes wait. A following detail shows the list's item once the cursor rests (150ms), and divider sizes reach the address 120ms after the drag. Use fake timers and move them on:
+
+```ts
+vi.useFakeTimers();
+store.actions.select("orders", { kind: "order", params: { id: 5 } });
+vi.advanceTimersByTime(200);
+expect(store.model().pane("order")?.ref.params.id).toBe(5);
+```
+
+## Keys
+
+`installKeyboard(store)` listens on the window, so a test can fire `keydown` events at an element and check what the store did. Pass `keymapOptions: { platform: "mac" }` (or `"other"`) so the test means the same keys on every machine. Call the function `installKeyboard` returns to remove the listeners after the test.
+
+## What to test in the browser
+
+Store tests cover rules: what opens where, what folds, what asks first. Test the rest in a real browser, with Playwright or similar: that your components render, that dragging works, and how things look.
+
+## Next
+
+- [Unsaved work and pane state](/guides/unsaved-work-and-pane-state)
+- [Two workspaces on one page](/guides/two-workspaces)

@@ -1,0 +1,138 @@
+---
+title: Define a pane kind
+summary: Describe one kind of pane, what it shows, how narrow it can go, and the component that draws it.
+---
+
+import orders from "../../samples/guides/pane-kinds/orders.tsx?raw";
+
+A [pane kind](/get-started/key-concepts) is one sort of pane in your app: an orders list, one order, a customer. You define it once with `definePaneKind`, and every pane of that kind in the workspace uses it.
+
+This guide builds the kinds for a small orders app. The whole file is at the end.
+
+## What a pane shows
+
+Each pane shows one object, named by a **ref**: a kind and some params.
+
+```ts
+{ kind: "order", params: { id: 12 } }
+```
+
+A ref is plain data, so it fits in a link. Params are strings or numbers. Your component reads them and loads the object itself: Jali never fetches anything.
+
+## The fields
+
+<Steps>
+<Step title="Name it and title it">
+
+`kind` is the name refs use. `title` turns a ref into the pane's name, shown in its header, its tab and the shelf.
+
+```tsx
+kind: "order",
+title: (ref) => `Order ${ref.params.id}`,
+ref: (params) => ({ kind: "order", params }),
+```
+
+`ref` builds a ref of this kind from params. It is required.
+
+</Step>
+<Step title="Say how narrow it can go">
+
+`minWidth` is the narrowest the content still works at. When the panes on screen need more room than there is, a pane folds into a tab of its neighbour instead of being squeezed. It comes back when there is room again. `minHeight` is the same for height, in a column.
+
+Two optional widths say where spare room goes:
+
+- `comfortableWidth`: spare room brings the pane up to this first. Default: `minWidth`.
+- `maxWidth`: the widest the content usefully uses. Past it, spare room goes to the neighbours first. It is soft: when every pane is at its max, they all grow on, so a split never leaves an empty gap. A person dragging a divider can pass it too.
+
+Leave `maxWidth` out for content that uses any width, such as tables and charts. Set it for forms and records, so a field does not stretch across a wide screen.
+
+</Step>
+<Step title="Say when two refs are the same object">
+
+Jali needs to know when two refs name the same object. Showing an object in a pane (`openHere`, or a choice in the launcher) when it is already open elsewhere focuses the open one instead. Recent lists each object once. On a curated page, a link to an object already on the page goes to it.
+
+By default two refs are the same when all their params match as text, so `{ id: 1 }` and `{ id: "1" }` match.
+
+- `identity` returns what makes an object itself: `(ref) => Number(ref.params.id)`. Return `undefined` for scratch space (a new query, a draft): such a pane is never matched against another.
+- `object` names the type of object shown, when two kinds show the same objects in different ways. Refs of two kinds with the same `object` and identity are the same object.
+
+</Step>
+<Step title="Draw it">
+
+`Component` renders the pane's content. `icon` is a 16px component shown in the header, the tab and the shelf, such as a `lucide-react` icon. Without one, Jali draws a plain square.
+
+</Step>
+</Steps>
+
+Three more flags:
+
+- `heavy: true` holds the content at its size while a divider is dragged, and reflows it once on release. Use it for long lists and grids.
+- `recordable: false` keeps the kind out of Recent. It can also be a function of the ref.
+- `transient: true` marks a placeholder that stands in until the person chooses an object. See [The launcher](#the-launcher).
+
+## The component's props
+
+Jali passes these to `Component`:
+
+| Prop | What it is for |
+|---|---|
+| `ref` | The object to show. React 19 passes `ref` as a plain prop, so read it from props; don't use `forwardRef`. |
+| `node` | The pane in the layout. In the peek sheet it is a node that is not in the layout. |
+| `paused` | True while the pane is hidden: behind a tab, tucked, folded, or behind a maximised pane. |
+| `focused` | True while this pane has the workspace's focus. |
+| `openBeside(ref)` | Open an object beside this pane. Focus stays here. A pane this one opened earlier for the same kind shows the new object instead. |
+| `openHere(ref)` | Show another object in this same pane. If it is open elsewhere, that pane is focused instead. |
+| `select(ref)` | Report the item a list is on. A detail that follows this list shows it once the cursor rests. |
+| `peek(ref)` | Show an object in the peek sheet; `peek(null)` closes it. |
+| `dismiss()` | Close this pane quietly, with no undo toast. For placeholders. |
+| `setActivity(a)` | Show `"loading"`, `"working"`, `"needs-you"`, `"error"` or `"idle"` in the header, tab and shelf. |
+| `setUnsaved(what)` | Report unsaved work. See [Unsaved work and pane state](/guides/unsaved-work-and-pane-state). |
+| `setCommands(list)` | Add commands to ⌘K while this pane is focused. See the same guide. |
+| `inPeek` | True when rendered in the peek sheet rather than a pane. |
+
+## Pause hidden panes
+
+Every pane in the layout stays mounted, even when it is folded or behind a tab, so its state survives. That also means its timers and subscriptions keep running. Stop live work while `paused` is true, and keep the state:
+
+```tsx
+useEffect(() => {
+  if (paused) return;
+  const timer = setInterval(refresh, 30_000);
+  return () => clearInterval(timer);
+}, [paused]);
+```
+
+With TanStack Query, pass `enabled: !paused` or `subscribed: !paused`.
+
+## Lists: select, peek and open beside
+
+A list pane tells the workspace where its cursor is with `select(ref)`. Call it as the cursor moves. Then:
+
+- a detail pane that follows this list shows the item once the cursor rests;
+- Space can call `peek(ref)` to show it in a sheet;
+- Alt+Enter can call `openBeside(ref)` to open it in a pane of its own.
+
+Report the selection before opening it, so the opened pane is linked to the list. Keys are covered in [Commands and keys](/guides/commands-and-keys).
+
+## The launcher
+
+Split (⌘\\) and "New tab here" open a pane with the ref `{ kind: "launcher", params: {} }`, for the person to choose what goes in it. If your workspace has no kind called `launcher`, those panes show "Unknown pane kind".
+
+Define one, and mark it `transient`. A transient pane closes quietly, and its component also gets `recent` (objects opened this session), `isOpen(ref)`, `titleFor(ref)` and `KindIcon`. Choosing calls `openHere(ref)`, which fills the pane.
+
+## Register the kinds
+
+Pass every kind to `createPaneKinds`, and that to the store. Each store has its own kinds: nothing is shared between workspaces or tests.
+
+```ts
+const store = createUiStore({ kinds: createPaneKinds(orderKinds), presets });
+```
+
+## The whole file
+
+<Code code={orders} filename="src/panes/orders.tsx" />
+
+## Next
+
+- [Start from presets](/guides/presets): lay these kinds out.
+- [Unsaved work and pane state](/guides/unsaved-work-and-pane-state): keep a draft and ask before losing it.

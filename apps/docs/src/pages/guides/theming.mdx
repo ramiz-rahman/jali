@@ -1,0 +1,121 @@
+---
+title: Theming
+summary: Make the workspace match your app, by setting a few tokens, from your Tailwind theme, or by styling its parts.
+---
+
+import teal from "../../samples/guides/theming/teal.css?raw";
+import app from "../../samples/guides/theming/app.css?raw";
+import parts from "../../samples/guides/theming/parts.css?raw";
+import tailwind from "../../samples/guides/theming/tailwind.css?raw";
+import dark from "../../samples/guides/theming/dark-mode.ts?raw";
+
+Everything Jali draws reads `--jali-*` CSS variables, called tokens. Change a token and every part that uses it follows, in light and in dark. Jali's own rules sit in a cascade layer called `jali`, so your rules can win without `!important`.
+
+## Load the styles
+
+```ts
+import "@jali/react/styles.css";
+```
+
+This brings Jali's default theme and the workspace's styles. It is plain CSS: no Tailwind or build step needed.
+
+## The layer line
+
+Cascade layers are ordered by where each name first appears. Declare yours, with `jali` among them, before Jali's CSS loads. The surest way is one stylesheet that starts with the layer line and then imports Jali:
+
+<Code code={app} filename="src/app.css" />
+
+Import only `app.css` from your code. Rules in a layer after `jali` (here `components`) beat Jali's at any specificity. Rules in a layer before it (`base`, for page resets) lose to Jali's, so a reset like `button { font: inherit }` can't undo Jali's type sizes.
+
+<Callout type="warning" title="Order matters">
+If Jali's CSS loads first, `jali` becomes the first layer, and every layer you name after it beats Jali, resets included.
+</Callout>
+
+## Set tokens by hand
+
+Set any public token on `:root`, or on any element to theme just that part of the page. Jali declares its tokens with zero specificity, so your declaration wins in any order.
+
+The tokens you are most likely to change:
+
+| Token | Used for |
+|---|---|
+| `--jali-accent` | The focused pane's edge, the selected tab, primary buttons, drop previews |
+| `--jali-accent-soft`, `--jali-on-accent` | Soft fills behind accented things; text on the accent |
+| `--jali-canvas` | Behind the panes |
+| `--jali-surface`, `--jali-surface-raised` | Panes; menus and dialogs |
+| `--jali-border`, `--jali-border-strong`, `--jali-control` | Lines between things; the edges of buttons and inputs |
+| `--jali-text`, `--jali-text-muted`, `--jali-text-subtle`, `--jali-text-faint` | Text, from strongest to faintest |
+| `--jali-working`, `--jali-blocked`, `--jali-done`, `--jali-failed` | A pane's activity marks |
+| `--jali-radius`, `--jali-radius-control`, `--jali-radius-menu` | Corners of panes, controls and menus |
+| `--jali-font`, `--jali-font-mono` | Type |
+
+Every token, with its light and dark values, is in the [Tokens reference](/reference/tokens).
+
+The accent's tints (`--jali-accent-weak`, `--jali-accent-mid`, `--jali-drop` and the focus ring) are mixed from `--jali-accent` on each workspace. Change the accent and they follow, on the whole page or on one workspace. For one workspace, set it on an element around `<Jali>`: the palette and other dialogs render beside the workspace's root, not inside it.
+
+## Example: retheme to teal
+
+Jali's default accent is indigo. Here it is teal, with a lighter teal in dark mode:
+
+<Code code={teal} filename="src/teal.css" />
+
+Set each token on the same scopes Jali uses for light and dark (`:root` and `.light`; `.dark` and `[data-theme="dark"]`; and the system's dark preference). A token set only on `:root` is replaced inside a `.dark` element by Jali's dark value.
+
+## Dark mode
+
+Jali's tokens switch to dark:
+
+- when the system prefers dark, unless the page or a parent says light (`.light` or `data-theme="light"`);
+- inside a `.dark` element or a `data-theme="dark"` one, whatever the system says.
+
+Jali also has its own theme setting (System, Light or Dark, in its settings panel), and `startUi` writes the result to `data-theme` on `<html>`. If your app has its own light and dark switch, pass the choice to Jali as well, so the two never disagree:
+
+<Code code={dark} filename="src/theme.ts" />
+
+## From your Tailwind theme
+
+If your app uses Tailwind, import the bridge after Jali's styles. It points Jali's tokens at your theme's variables:
+
+<Code code={tailwind} filename="src/app.css" />
+
+The bridge reads these names, each falling back to Jali's own value when your theme doesn't define it. They are the names Chakni reads too, so an app themed for Chakni gets Jali in the same theme.
+
+| Your theme | Jali token |
+|---|---|
+| `--color-background` | `--jali-canvas` |
+| `--color-card`, `--color-popover` | `--jali-surface`, `--jali-surface-raised` |
+| `--color-border`, `--color-input` | `--jali-border`, `--jali-border-strong`, `--jali-control` |
+| `--color-foreground`, `--color-muted-foreground` | `--jali-text`, `--jali-text-subtle`, `--jali-text-faint` |
+| `--color-muted` | `--jali-hover` |
+| `--color-primary`, `--color-primary-subtle`, `--color-primary-foreground` | `--jali-accent`, `--jali-accent-soft`, `--jali-on-accent` |
+| `--color-destructive` | `--jali-failed` |
+| `--color-ring`, `--color-focus-ring` | the focus ring |
+| `--radius-card`, `--radius-control`, `--radius-md`, `--radius-lg` | the radii |
+| `--font-sans`, `--font-mono` | `--jali-font`, `--jali-font-mono` |
+
+Your theme's variables switch with your dark mode, so Jali follows. Tailwind drops theme variables that nothing uses; the bridge uses these, so keep it in the stylesheet Tailwind builds, or mark the theme `@theme static`.
+
+## Style the parts
+
+Every class Jali renders starts with `jali-`, so none collide with yours. Parts carry their state as attributes, which you can select on:
+
+| Part | Attributes |
+|---|---|
+| A pane (`.jali-pane`) | `data-pane` (its id), `data-kind`, `data-focused`, `data-zoomed` |
+| A tab (`.jali-tab`) | `aria-selected`, `data-folded`, `data-tucked` |
+| A divider | `data-divider` |
+| The drop preview | `data-drop-zone` (`left`, `right`, `top`, `bottom` or `centre`) |
+| The workspace root | `data-jali` |
+
+<Code code={parts} filename="src/parts.css" />
+
+With Tailwind, put rules like these in your stylesheet, in a layer after `jali`. Jali's parts don't take class names from your code.
+
+## Your chrome inside the workspace
+
+A top bar or status line you render inside `<Jali>` is yours to style. Mark it `data-jali-chrome`. After a layout change Jali moves keyboard focus back to the focused pane, but not out of an element marked this way, so a person using your top bar stays there.
+
+## Next
+
+- [Tokens reference](/reference/tokens)
+- [Use Jali with Chakni](/guides/chakni)
