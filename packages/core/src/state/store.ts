@@ -16,6 +16,7 @@ import { presetById, type Env, type Preset, type ViewMode, type ProfileBase } fr
 import { browserStorage, type StoragePort } from "../ports";
 import { focusPane } from "../dom/focus";
 import { createKeymap, type Keymap, type KeymapOptions, type KeymapOverrides } from "../commands/keymap";
+import type { Command } from "../commands/registry";
 
 /** A drag in progress. `label` names a view dragged from a page's tabs, which may not be on screen. */
 export interface DndState { dragged: NodeId; x: number; y: number; target?: NodeId; zone?: import("../layout/types").Edge | "centre"; label?: string }
@@ -116,6 +117,9 @@ export interface UiStoreDeps {
   initial?: Partial<UiState>;
   /** A focus or swap op moved something (layout stability, state/apply.ts). Default: reported in development. */
   unstable?: (op: string, before: string, after: string) => void;
+  /** The host's own commands: listed in the palette after Jali's, and bindable in `keymap` like any other. Their ids
+   *  should not start with a Jali prefix (`pane.`, `layout.`, `page.`, `peek.`, `settings.`, `stack.`). */
+  commands?: readonly Command[];
   /** Rebind or unbind commands (commands/keymap.ts): `{ "pane.zoom": "Mod+K Mod+Enter", "pane.close": null }`. */
   keymap?: KeymapOverrides;
   /** The keymap's platform and how refused bindings are reported. */
@@ -194,7 +198,7 @@ export const savePaneState = (storage: StoragePort, state: UiState["paneState"])
 const DEV = !!(import.meta as unknown as { env?: { DEV?: boolean } }).env?.DEV;
 
 export function createUiStore(deps: UiStoreDeps): UiStore {
-  const env: Env = { kinds: deps.kinds, profile: deps.profile ?? null, presets: deps.presets ?? [], name: deps.name ?? "Workspace" };
+  const env: Env = { kinds: deps.kinds, profile: deps.profile ?? null, presets: deps.presets ?? [], commands: deps.commands ?? [], name: deps.name ?? "Workspace" };
   const focusOf = deps.focusPane === undefined ? (typeof document === "undefined" ? null : focusPane) : deps.focusPane;
   const dom = createDom(deps.id ?? "jali");
   // The id is the prefix: two workspaces with their own ids never overwrite each other ("jali" stays "jali").

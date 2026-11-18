@@ -11,6 +11,7 @@
  */
 import type { Layout, ObjectRef, PaneNode } from "./layout/types";
 import type { PaneKinds } from "./pane-kinds";
+import type { Command } from "./commands/registry";
 
 /** One of a curated page's views. Adapters add its icon (@jali/react: RoleDef). */
 export interface RoleBase {
@@ -63,6 +64,8 @@ export interface Env {
   profile: ProfileBase | null;
   /** Layouts to start from, in menu order. May be empty. */
   presets: readonly Preset[];
+  /** The host's own commands, after Jali's in the palette; the keymap can bind them (`createUiStore({ commands })`). */
+  commands?: readonly Command[];
   /** The free workspace's name, where the person builds the layout ("Data Studio"). Default "Workspace". */
   name: string;
 }

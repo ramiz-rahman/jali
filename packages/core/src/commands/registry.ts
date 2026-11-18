@@ -20,7 +20,8 @@ import { cycleRegions } from "./regions";
 export interface Command {
   id: string;
   title: string;
-  group: "Focus" | "Pane" | "Move" | "Tabs" | "Layout" | "Peek" | "Settings";
+  /** Jali's groups, or a host command's own. */
+  group: "Focus" | "Pane" | "Move" | "Tabs" | "Layout" | "Peek" | "Settings" | (string & {});
   /** Why the command can't run now (silent without a message); undefined when it can. */
   check?: (x: Snapshot) => Refusal | undefined;
   run: (store: UiStore) => void;
@@ -82,6 +83,9 @@ function buildCommands(env: Env): Command[] {
 
   { id: "settings.open", title: "Open settings", group: "Settings", run: (u) => u.set({ settingsOpen: true }) },
   { id: "settings.centre_drop.toggle", title: "Switch centre drop (swap ↔ tab)", group: "Settings", run: toggleCentreDrop },
+
+  // The host's own, last (a Jali id wins if a host repeats one).
+  ...(env.commands ?? []),
   ];
 }
 
@@ -90,7 +94,9 @@ const forEnv = (env: Env) => {
   let b = built.get(env);
   if (!b) {
     const commands = buildCommands(env);
-    b = { commands, byId: new Map(commands.map((c) => [c.id, c])) };
+    const byId = new Map<string, Command>();
+    for (const c of commands) if (!byId.has(c.id)) byId.set(c.id, c);
+    b = { commands: commands.filter((c) => byId.get(c.id) === c), byId };
     built.set(env, b);
   }
   return b;
