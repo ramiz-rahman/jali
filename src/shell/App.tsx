@@ -7,7 +7,7 @@ import { TopBar } from "./TopBar";
 import { StatusLine } from "./StatusLine";
 import { Announcer } from "@jali/react";
 import { Workspace } from "@jali/react";
-import { ReviewPage } from "@jali/react";
+import { CuratedPage } from "@jali/react";
 import { Palette } from "@jali/react";
 import { Chooser } from "@jali/react";
 import { ConfirmDiscard } from "@jali/react";
@@ -36,7 +36,7 @@ function Toasts() {
     [store],
   );
   // A curated page keeps its toasts over the queue (bottom-left, narrow), never over a view's content.
-  const curated = useUi((s) => !!s.review);
+  const curated = useUi((s) => !!s.page);
   return curated
     ? <Toaster theme={theme} position="bottom-left" offset={{ bottom: 40, left: 10 }} mobileOffset={{ bottom: 40, left: 10 }} style={{ "--width": "250px" } as CSSProperties} toastOptions={{ className: "toast" }} />
     : <Toaster theme={theme} position="bottom-right" offset={{ bottom: 40, right: 12 }} toastOptions={{ className: "toast" }} />;
@@ -44,7 +44,7 @@ function Toasts() {
 
 /** Data Studio is all panes; a curated page puts its queue, header and tabs around them. */
 function Main() {
-  return useUi((s) => !!s.review) ? <ReviewPage /> : <Workspace />;
+  return useUi((s) => !!s.page) ? <CuratedPage /> : <Workspace />;
 }
 
 export function App({ store, data }: { store: UiStore; data: DataLayer }) {

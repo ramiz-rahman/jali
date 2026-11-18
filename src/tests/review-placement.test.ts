@@ -3,7 +3,7 @@
  * pane never pushes the person's views aside; a view never folds into a tab group; the ⌥ preview is the commit.
  */
 import { beforeEach, describe, expect, it } from "vitest";
-import { besidePreview } from "../../packages/core/src/actions/review";
+import { besidePreview } from "../../packages/core/src/actions/page";
 import { createLabStore } from "../lab";
 import type { UiStore } from "../../packages/core/src/state/store";
 
@@ -12,7 +12,7 @@ let store: UiStore;
 beforeEach(() => {
   localStorage.clear();
   store = createLabStore({ initial: { area: { width: 1156, height: 644 } } }); // the workspace at 1440×900
-  store.actions.enterReview({ item: 4, tab: "application" });
+  store.actions.openPage({ item: 4, tab: "application" });
   store.actions.setMode("multi");
 });
 const m = () => store.model();
@@ -136,7 +136,7 @@ describe("placing a view (⌥-click, drag)", () => {
     store.actions.openTab("borrower");
     const p = besidePreview(store.snapshot(), "group")!;
     store.actions.openTabBeside("group");
-    expect(store.get().review?.mode).toBe("multi");
+    expect(store.get().page?.mode).toBe("multi");
     expect(rects().group).toEqual(p.incoming);
   });
 });

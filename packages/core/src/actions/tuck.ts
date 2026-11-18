@@ -24,7 +24,7 @@ export function tuckHome({ s, ctx }: Snapshot, id: NodeId | undefined): NodeId |
 }
 
 export function checkTuck(x: Snapshot, id?: NodeId): Refusal | undefined {
-  if (x.s.review?.mode === "single") return refuse(msg.singleNoLayout);
+  if (x.s.page?.mode === "single") return refuse(msg.singleNoLayout);
   const target = tuckTarget(x, id);
   if (!target) return refuse(msg.noFocus);
   const r = core.canTuck(x.s.layout, target, x.ctx);
@@ -36,7 +36,7 @@ export function checkTuck(x: Snapshot, id?: NodeId): Refusal | undefined {
  * nothing else moves or unfolds. Focus moves into the home. Undo (⌘K ⌘Z) puts it back.
  */
 export function tuck(x: Snapshot, id?: NodeId): Outcome {
-  if (x.s.review?.mode === "single") return refuse(msg.singleNoLayout);
+  if (x.s.page?.mode === "single") return refuse(msg.singleNoLayout);
   const target = tuckTarget(x, id);
   if (!target) return refuse(msg.noFocus);
   const r = core.tuck(x.s.layout, unzoomed(x.s.view), target, x.ctx);

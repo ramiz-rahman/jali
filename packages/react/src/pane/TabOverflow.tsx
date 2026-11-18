@@ -16,7 +16,7 @@ export function TabOverflow({ tabs, active, hiddenCount, onChoose }: { tabs: Tab
   const [pos, setPos] = useState<{ left: number; top: number } | null>(null);
   const btn = useRef<HTMLButtonElement>(null);
   const menu = useRef<HTMLDivElement>(null);
-  const review = useUi((s) => !!s.review);
+  const page = useUi((s) => !!s.page);
 
   const close = (refocus: boolean) => {
     setOpen(false);
@@ -89,7 +89,7 @@ export function TabOverflow({ tabs, active, hiddenCount, onChoose }: { tabs: Tab
       {open ? createPortal(
         <div ref={menu} className="jali-tab-menu" role="menu" aria-label="Tabs in this group" style={pos ? { left: pos.left, top: pos.top } : { visibility: "hidden" }} onKeyDown={onKey}>
           {tabs.map(({ node: t, tucked, folded }) => {
-            const role = review && t.role ? roleOf(env.profile!, t.role) : undefined;
+            const role = page && t.role ? roleOf(env.profile!, t.role) : undefined;
             return (
               <button
                 key={t.id}

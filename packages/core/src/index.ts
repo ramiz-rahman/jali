@@ -3,7 +3,7 @@ export type * from "./layout/types";
 export * as layout from "./layout";
 export * from "./actions";
 // Queries the React adapter reads (what a merge, tuck or link would do); the actions themselves run through store.actions.
-export { besidePreview, investigation } from "./actions/review";
+export { besidePreview, investigation } from "./actions/page";
 export { mergeTargets, type MergeTarget } from "./actions/tabs";
 export { sameRef } from "./actions/follow";
 export { checkTuck, tuckHome } from "./actions/tuck";
@@ -28,7 +28,7 @@ export * from "./profile";
 export * from "./state/apply";
 export * from "./state/messages";
 export * from "./state/model";
-export * from "./state/review-prefs";
+export * from "./state/page-prefs";
 export * from "./state/settings";
 export * from "./state/store";
 export * from "./state/undo";

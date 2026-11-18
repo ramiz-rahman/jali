@@ -87,11 +87,11 @@ export const msg = {
   centreDrop: (mode: "swap" | "tab") => `Centre drop: ${mode === "swap" ? "swap" : "add as tab"}`,
 
   // curated pages (loan review)
-  reviewOpened: (name: string, mode: "single" | "multi") => `${name} · ${mode === "single" ? "Single: one view at a time" : "Multiplexed: views side by side"}`,
+  pageOpened: (name: string, mode: "single" | "multi") => `${name} · ${mode === "single" ? "Single: one view at a time" : "Multiplexed: views side by side"}`,
   modeSingle: (t: string) => `Single: showing ${t}. Your multiplexed layout is kept.`,
   modeMulti: "Multiplexed: drag tabs into the layout to see views side by side",
   viewing: (t: string) => `Showing ${t}`,
-  reviewReset: "Layout reset to its design",
+  pageReset: "Layout reset to its design",
   activated: (noun: string, id: number, dropped: number) => `Showing ${noun} ${id}${dropped ? ` · ${dropped} opened ${dropped === 1 ? "pane" : "panes"} closed` : ""}`,
   roleHidden: (t: string) => `${t} closed · it's still in the tabs`,
   roleShown: (t: string) => `${t} on screen`,
@@ -100,8 +100,8 @@ export const msg = {
   replacedNeedsRoom: (t: string, was: string) => `${t} in place of ${was} · it needed more room, so the layout adjusted`,
   sentToTabs: (titles: string[]) => `${titles.join(", ")} went back to the tabs: not enough room`,
   alreadyView: (t: string) => `${t} is already a view on this page`,
-  notInvestigating: "Nothing opened beyond the review",
-  backToReview: (n: number) => `Back to review · ${n} opened ${n === 1 ? "pane" : "panes"} closed · Undo available`,
+  notInvestigating: "Nothing opened beyond the page",
+  backToPage: (name: string, n: number) => `Back to ${name} · ${n} opened ${n === 1 ? "pane" : "panes"} closed · Undo available`,
   permission: (who: string, can: boolean) => (can ? `Viewing as ${who}: Multiplexed available, links open beside` : `Viewing as ${who}: Single only, links open as a peek`),
   singleNoLayout: "Single shows one view: choose it from the tabs. Switch to Multiplexed to arrange views",
   singleOnly: "Your role works in Single: one view at a time",
@@ -119,7 +119,7 @@ export const msg = {
 export const toasts = {
   closed: (t: string) => ({ title: "Pane closed", description: t, undo: true }),
   othersClosed: () => ({ title: "Other panes closed", undo: true }),
-  backToReview: (n: number) => ({ title: "Back to review", description: `${n} opened ${n === 1 ? "pane" : "panes"} closed`, undo: true }),
+  backToPage: (name: string, n: number) => ({ title: `Back to ${name}`, description: `${n} opened ${n === 1 ? "pane" : "panes"} closed`, undo: true }),
   brokenLink: (preset: string | undefined) => ({
     title: "This link’s layout couldn’t be read",
     description: preset ? `Opened “${preset}” instead. A copy of the link was kept.` : "The layout stayed as it was. A copy of the link was kept.",

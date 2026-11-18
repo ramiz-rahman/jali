@@ -15,10 +15,10 @@ export function SettingsPanel() {
   const store = useStore();
   const open = useUi((s) => s.settingsOpen);
   const settings = useUi((s) => s.settings);
-  const review = useUi((s) => s.review);
-  const page = store.env.profile;
-  const full = viewerLabel(page, true);
-  const limited = viewerLabel(page, false);
+  const page = useUi((s) => s.page);
+  const profile = store.env.profile;
+  const full = viewerLabel(profile, true);
+  const limited = viewerLabel(profile, false);
   const first = useRef<HTMLInputElement>(null);
   useEffect(() => {
     if (open) first.current?.focus();
@@ -62,16 +62,16 @@ export function SettingsPanel() {
             <span>Over the cap, the oldest unpinned, unfocused pane becomes a tab.</span>
           </label>
         </fieldset>
-        {page ? <fieldset>
-          <legend>{page.name}: opened panes</legend>
+        {profile ? <fieldset>
+          <legend>{profile.name}: opened panes</legend>
           <label className="jali-radio"><input type="radio" name="boundary" checked={settings.boundary === "tint"} onChange={() => set({ boundary: "tint" })} /><span>Tinted header and “Opened” tag</span></label>
           <label className="jali-radio"><input type="radio" name="boundary" checked={settings.boundary === "none"} onChange={() => set({ boundary: "none" })} /><span>No marking</span></label>
         </fieldset> : null}
-        {review ? (
+        {page ? (
           <fieldset>
-            <legend>{page?.name}: viewing as</legend>
-            <label className="jali-radio"><input type="radio" name="viewer" checked={review.canInvestigate} onChange={() => store.actions.setCanInvestigate(true)} /><span>{cap(full)}: links open beside</span></label>
-            <label className="jali-radio"><input type="radio" name="viewer" checked={!review.canInvestigate} onChange={() => store.actions.setCanInvestigate(false)} /><span>{cap(limited)}: Single only, links open as a peek</span></label>
+            <legend>{profile?.name}: viewing as</legend>
+            <label className="jali-radio"><input type="radio" name="viewer" checked={page.canInvestigate} onChange={() => store.actions.setCanInvestigate(true)} /><span>{cap(full)}: links open beside</span></label>
+            <label className="jali-radio"><input type="radio" name="viewer" checked={!page.canInvestigate} onChange={() => store.actions.setCanInvestigate(false)} /><span>{cap(limited)}: Single only, links open as a peek</span></label>
           </fieldset>
         ) : null}
         <KeyboardList />

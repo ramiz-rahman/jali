@@ -1,15 +1,15 @@
 /**
  * Curated pages (ui/profile.ts). Single mode shows one view, chosen from the tabs. Multiplexed mode lays the views out
  * freely, starting from the profile's design; each view exists once, and closing one sends it back to the tabs.
- * Panes opened by following links form an investigation after the layout that "Back to review" clears.
+ * Panes opened by following links form an investigation after the layout that "Back to <page>" clears.
  */
 import * as core from "../layout";
 import type { Edge, Layout, LayoutContext, NodeId, ObjectRef, PaneNode, Rect, ViewState } from "../layout/types";
 import { roleOf, viewerLabel, type ViewMode, type ProfileBase } from "../profile";
 import { refuse, type Change, type Outcome, type Snapshot } from "../state/apply";
 import { msg, toasts } from "../state/messages";
-import type { ReviewPrefs } from "../state/review-prefs";
-import type { ReviewState } from "../state/store";
+import type { PagePrefs } from "../state/page-prefs";
+import type { PageState } from "../state/store";
 import { pushUndo } from "../state/undo";
 import { preset } from "./layout";
 
@@ -89,8 +89,8 @@ function currentRole({ s, m }: Snapshot): string | undefined {
 }
 
 /** What the person keeps when the multiplexed layout leaves the screen. */
-function keep(x: Snapshot, mode?: ViewMode): ReviewPrefs {
-  const r = x.s.review;
+function keep(x: Snapshot, mode?: ViewMode): PagePrefs {
+  const r = x.s.page;
   return { mode: mode ?? r?.mode ?? x.s.prefs.mode, multi: r?.mode === "multi" ? x.s.layout : x.s.prefs.multi };
 }
 
@@ -98,50 +98,51 @@ const label = (p: ProfileBase, id: string | undefined) => roleOf(p, id)?.label ?
 /** A role's name in the page's tabs. */
 export const roleLabel = (p: ProfileBase | null, id: string) => (p ? label(p, id) : id);
 
-export interface EnterReview { item?: number; tab?: string; investigation?: ObjectRef[]; fromUrl?: boolean; view?: Partial<ViewState> }
+export interface OpenPage { item?: number; tab?: string; investigation?: ObjectRef[]; fromUrl?: boolean; view?: Partial<ViewState> }
 
 /** Open the curated page (or arrive at it from a link). A link with opened panes needs Multiplexed to show them. */
-export function enterReview(x: Snapshot, o: EnterReview = {}): Outcome {
+export function openPage(x: Snapshot, o: OpenPage = {}): Outcome {
   const p = x.env.profile;
   if (!p) return null;
-  const prev = x.s.review;
+  const prev = x.s.page;
   const opened = o.investigation ?? [];
-  const review: ReviewState = {
+  const page: PageState = {
+    profile: p.id,
     before: undefined,
     item: o.item ?? prev?.item ?? p.firstItem,
     tab: roleOf(p, o.tab)?.id ?? prev?.tab ?? p.home,
     mode: opened.length ? "multi" : prev?.mode ?? x.s.prefs.mode,
     canInvestigate: prev?.canInvestigate ?? true,
   };
-  const prefs = keep(x, review.mode);
+  const prefs = keep(x, page.mode);
   const y = { ...x, s: { ...x.s, prefs } };
-  const base = review.mode === "single" ? single(p, review.item, review.tab, x.ctx) : multi(y, p, review.item, review.tab, false);
-  const { layout, view } = reopen(base, opened, base.view.focused ?? review.tab, x.ctx);
-  if (opened.length) review.before = base.layout;
+  const base = page.mode === "single" ? single(p, page.item, page.tab, x.ctx) : multi(y, p, page.item, page.tab, false);
+  const { layout, view } = reopen(base, opened, base.view.focused ?? page.tab, x.ctx);
+  if (opened.length) page.before = base.layout;
   return {
-    op: o.fromUrl ? "arrive" : "mode", layout, view: { ...view, ...o.view }, msg: msg.reviewOpened(p.name, review.mode),
-    patch: { review, prefs, peekSource: undefined, resizeMode: null }, undo: [],
+    op: o.fromUrl ? "arrive" : "mode", layout, view: { ...view, ...o.view }, msg: msg.pageOpened(p.name, page.mode),
+    patch: { page, prefs, peekSource: undefined, resizeMode: null }, undo: [],
   };
 }
 
 /** Back to Data Studio: the person's own layout again. The page's mode and layout are kept for next time. */
-export function leaveReview(x: Snapshot): Outcome {
+export function leavePage(x: Snapshot): Outcome {
   const studio = preset(x, x.s.presetId) as Change;
-  return { ...studio, patch: { ...studio.patch, review: null, prefs: keep(x) }, undo: [] };
+  return { ...studio, patch: { ...studio.patch, page: null, prefs: keep(x) }, undo: [] };
 }
 
 /** Single or Multiplexed. Leaving Multiplexed keeps its layout exactly, opened panes included, for coming back. */
 export function setMode(x: Snapshot, mode: ViewMode): Outcome {
-  const p = x.env.profile, r = x.s.review;
+  const p = x.env.profile, r = x.s.page;
   if (!p || !r || r.mode === mode) return null;
   if (mode === "single") {
     const tab = currentRole(x) ?? r.tab;
     const { layout, view } = single(p, r.item, tab, x.ctx);
-    return { op: "mode", layout, view, msg: msg.modeSingle(label(p, tab)), patch: { review: { ...r, mode, tab }, prefs: keep(x, mode), peekSource: undefined }, undo: [] };
+    return { op: "mode", layout, view, msg: msg.modeSingle(label(p, tab)), patch: { page: { ...r, mode, tab }, prefs: keep(x, mode), peekSource: undefined }, undo: [] };
   }
   if (!r.canInvestigate) return refuse(msg.singleOnly);
   const { layout, view } = multi(x, p, r.item, r.tab, true);
-  return { op: "mode", layout, view, msg: msg.modeMulti, patch: { review: { ...r, mode }, prefs: { ...x.s.prefs, mode } }, undo: [], focusDom: view.focused };
+  return { op: "mode", layout, view, msg: msg.modeMulti, patch: { page: { ...r, mode }, prefs: { ...x.s.prefs, mode } }, undo: [], focusDom: view.focused };
 }
 
 /** The view the person is working in, on screen: where a tab click puts another view. */
@@ -155,9 +156,9 @@ function slotFor({ s, m }: Snapshot): NodeId | undefined {
  * view you're in, at exactly that size, and that view goes back to the tabs. Placing a view beside is a drag or ⌥-click.
  */
 export function openTab(x: Snapshot, role: string): Outcome {
-  const p = x.env.profile, r = x.s.review;
+  const p = x.env.profile, r = x.s.page;
   if (!p || !r || !roleOf(p, role)) return null;
-  const patch = { review: { ...r, tab: role } };
+  const patch = { page: { ...r, tab: role } };
   if (r.mode === "single") {
     if (r.tab === role) return null;
     const { layout, view } = single(p, r.item, role, x.ctx);
@@ -225,7 +226,7 @@ function besideTarget(layout: Layout, view: ViewState, ctx: LayoutContext): Node
 /** What ⌥-click on a tab does, as layouts: where it starts (from Single, the multiplexed layout setMode shows), the
  *  view it goes beside, and the result. One function for the preview and the commit, so they cannot drift. */
 function beside(x: Snapshot, role: string) {
-  const p = x.env.profile, r = x.s.review;
+  const p = x.env.profile, r = x.s.page;
   if (!p || !r || !r.canInvestigate || !roleOf(p, role)) return undefined;
   const base = r.mode === "single" ? multi(x, p, r.item, r.tab, true) : { layout: x.s.layout, view: unzoomed(x.s.view) };
   const target = besideTarget(base.layout, base.view, x.ctx);
@@ -260,7 +261,7 @@ export function besidePreview(x: Snapshot, role: string): BesidePreview | undefi
  *  Multiplexed first: dragging a tab out is asking for two views at once. Room is made by sending the least recently
  *  used views back to the tabs (settleRoles), never by folding views into tab groups. */
 export function placeTab(x: Snapshot, role: string, target: NodeId, zone: Edge | "centre"): Outcome {
-  const p = x.env.profile, r = x.s.review;
+  const p = x.env.profile, r = x.s.page;
   if (!p || !r || !roleOf(p, role)) return null;
   const place = (y: Snapshot): Outcome => {
     if (role === target || !y.m.pane(target)) return openTab(y, role);
@@ -268,7 +269,7 @@ export function placeTab(x: Snapshot, role: string, target: NodeId, zone: Edge |
     if (!d) return openTab(y, role);
     const said = zone === "centre" ? msg.addedToTabsOf(label(p, role), y.m.title(target)) : msg.placed(label(p, role), zone, y.m.title(target));
     return {
-      op: "drop", layout: d.layout, view: d.view, patch: { review: { ...y.s.review!, tab: role } }, focusDom: role,
+      op: "drop", layout: d.layout, view: d.view, patch: { page: { ...y.s.page!, tab: role } }, focusDom: role,
       msg: d.sent.length ? `${said} · ${msg.sentToTabs(d.sent.map((id) => label(p, id)))}` : said,
     };
   };
@@ -278,9 +279,9 @@ export function placeTab(x: Snapshot, role: string, target: NodeId, zone: Edge |
 
 /** ⌥-click a tab: that view beside the one you're in (the same placement besidePreview shows). */
 export function openTabBeside(x: Snapshot, role: string): Outcome {
-  const r = x.s.review;
+  const r = x.s.page;
   if (!r) return null;
-  const target = (y: Snapshot) => besideTarget(y.s.layout, unzoomed(y.s.view), y.ctx) ?? y.s.review!.tab;
+  const target = (y: Snapshot) => besideTarget(y.s.layout, unzoomed(y.s.view), y.ctx) ?? y.s.page!.tab;
   if (r.mode === "single") return r.canInvestigate ? [setMode(x, "multi"), (y: Snapshot) => placeTab(y, role, target(y), "right")] : refuse(msg.singleOnly);
   return placeTab(x, role, target(x), "right");
 }
@@ -309,26 +310,27 @@ export function goToRole(x: Snapshot, role: string, from?: NodeId): Outcome {
 
 /** Another item: every role shows it, in place, and the previous item's investigation closes. */
 export function activate(x: Snapshot, item: number): Outcome {
-  const p = x.env.profile, r = x.s.review;
+  const p = x.env.profile, r = x.s.page;
   if (!p || !r || r.item === item) return null;
-  const review = { ...r, item, before: undefined };
+  const page = { ...r, item, before: undefined };
   const saved = x.s.prefs.multi;
   const prefs = { ...x.s.prefs, multi: saved && r.mode === "single" ? withoutOpened(saved, x.ctx) : saved };
   if (r.mode === "single") {
     const { layout, view } = single(p, item, r.tab, x.ctx);
-    return { op: "activate", layout, view, msg: msg.activated(p.itemNoun, item, 0), patch: { review, prefs, peekSource: undefined }, undo: [] };
+    return { op: "activate", layout, view, msg: msg.activated(p.itemNoun, item, 0), patch: { page, prefs, peekSource: undefined }, undo: [] };
   }
   const dropped = investigation(x.m.panes).length;
   const view = unzoomed(x.s.view);
   const layout = core.refit(rebind(withoutOpened(x.s.layout, x.ctx), p, item), view, x.ctx);
   const focused = x.m.pane(view.focused)?.role ? view : core.focus(view, currentRole(x) ?? r.tab, x.ctx);
-  return { op: "activate", layout, view: focused, msg: msg.activated(p.itemNoun, item, dropped), patch: { review, prefs, peekSource: undefined }, undo: [], ...(dropped ? { geometry: "reshape" as const } : {}) };
+  return { op: "activate", layout, view: focused, msg: msg.activated(p.itemNoun, item, dropped), patch: { page, prefs, peekSource: undefined }, undo: [], ...(dropped ? { geometry: "reshape" as const } : {}) };
 }
 
 /** Close every pane opened by following links; the layout comes back as the person left it. Undo (⌘K ⌘Z) reopens them. */
-export function backToReview(x: Snapshot): Outcome {
-  const r = x.s.review;
+export function backToPage(x: Snapshot): Outcome {
+  const r = x.s.page;
   if (!r) return null;
+  const name = x.env.profile?.name ?? "page";
   const opened = investigation(x.m.panes);
   if (!opened.length) return refuse(msg.notInvestigating);
   const view = unzoomed(x.s.view);
@@ -338,35 +340,35 @@ export function backToReview(x: Snapshot): Outcome {
   const layout = same ? core.refit(r.before!, view, x.ctx) : plain;
   const focused = x.m.pane(view.focused)?.role ? view : core.focus(view, currentRole(x) ?? r.tab, x.ctx);
   const undo = { kind: "closeOthers" as const, before: { layout: x.s.layout, view: x.s.view } };
-  return { op: "close", layout, view: focused, patch: { review: { ...r, before: undefined } }, msg: msg.backToReview(opened.length), toast: toasts.backToReview(opened.length), undo: pushUndo(x.s.undoStack, undo) };
+  return { op: "close", layout, view: focused, patch: { page: { ...r, before: undefined } }, msg: msg.backToPage(name, opened.length), toast: toasts.backToPage(name, opened.length), undo: pushUndo(x.s.undoStack, undo) };
 }
 
 /** Close a view in Multiplexed: it leaves the screen and waits in the tabs. Never the last one on screen. */
 export function hideRole(x: Snapshot, id: NodeId): Outcome {
   const p = x.env.profile, node = x.m.pane(id);
-  if (!p || x.s.review?.mode !== "multi" || !node?.role) return null;
+  if (!p || x.s.page?.mode !== "multi" || !node?.role) return null;
   const r = core.hide(x.s.layout, unzoomed(x.s.view), id, x.ctx);
   if (!r.ok) return refuse(r.reason === "last" ? msg.lastView(label(p, node.role)) : undefined);
   return { op: "hide", layout: r.layout, view: r.view, msg: msg.roleHidden(label(p, node.role)), focusDom: r.view.focused };
 }
 
 /** Reset Multiplexed to the design, dropping this person's layout. The investigation stays. */
-export function resetReview(x: Snapshot): Outcome {
-  const p = x.env.profile, r = x.s.review;
+export function resetPage(x: Snapshot): Outcome {
+  const p = x.env.profile, r = x.s.page;
   if (!p || r?.mode !== "multi") return null;
   const tab = currentRole(x) ?? r.tab;
   const opened = investigation(x.m.panes).map((o) => o.ref);
   const y = { ...x, s: { ...x.s, prefs: { ...x.s.prefs, multi: null } } };
   const base = multi(y, p, r.item, tab, false);
   const { layout, view } = reopen(base, opened, base.view.focused ?? tab, x.ctx);
-  return { op: "preset", layout, view, msg: msg.reviewReset, patch: { review: { ...r, before: opened.length ? base.layout : undefined }, prefs: { ...x.s.prefs, multi: null } }, undo: [] };
+  return { op: "preset", layout, view, msg: msg.pageReset, patch: { page: { ...r, before: opened.length ? base.layout : undefined }, prefs: { ...x.s.prefs, multi: null } }, undo: [] };
 }
 
 /** A role permission. The limited viewer (a loan officer) works in Single only, and links peek; the full one (a
  *  credit reviewer) may multiplex. The profile names both (`viewers`). */
 export function setCanInvestigate(x: Snapshot, canInvestigate: boolean): Outcome {
   const { s } = x;
-  if (!s.review || s.review.canInvestigate === canInvestigate) return null;
-  const toSingle = !canInvestigate && s.review.mode === "multi" ? setMode(x, "single") : null;
-  return [toSingle, (y: Snapshot) => ({ op: "permission", msg: msg.permission(viewerLabel(x.env.profile, canInvestigate), canInvestigate), patch: { review: { ...y.s.review!, canInvestigate } } })];
+  if (!s.page || s.page.canInvestigate === canInvestigate) return null;
+  const toSingle = !canInvestigate && s.page.mode === "multi" ? setMode(x, "single") : null;
+  return [toSingle, (y: Snapshot) => ({ op: "permission", msg: msg.permission(viewerLabel(x.env.profile, canInvestigate), canInvestigate), patch: { page: { ...y.s.page!, canInvestigate } } })];
 }

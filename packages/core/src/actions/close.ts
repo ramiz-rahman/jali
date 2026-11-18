@@ -3,7 +3,7 @@ import { refuse, type Outcome, type Snapshot } from "../state/apply";
 import { msg, toasts } from "../state/messages";
 import { pushUndo } from "../state/undo";
 import { putBack } from "./tuck";
-import { backToReview, hideRole } from "./review";
+import { backToPage, hideRole } from "./page";
 
 const unzoomed = core.tree.unzoom;
 
@@ -11,7 +11,7 @@ export function close(x: Snapshot, id = x.s.view.focused): Outcome {
   const { s, m, ctx } = x;
   if (!id || !m.pane(id)) return null;
   // In a curated page a view is never closed for good: it goes back to the tabs.
-  if (s.review && m.pane(id)!.role) return s.review.mode === "single" ? refuse(msg.singleNoLayout) : hideRole(x, id);
+  if (s.page && m.pane(id)!.role) return s.page.mode === "single" ? refuse(msg.singleNoLayout) : hideRole(x, id);
   if (m.panes.length <= 1) return refuse(msg.lastPaneStays);
   const title = m.title(id);
   const r = core.close(s.layout, unzoomed(s.view), id, ctx);
@@ -23,7 +23,7 @@ export function close(x: Snapshot, id = x.s.view.focused): Outcome {
 
 export function closeOthers(x: Snapshot, id = x.s.view.focused): Outcome {
   const { s, m, ctx } = x;
-  if (s.review) return backToReview(x);
+  if (s.page) return backToPage(x);
   if (!id) return null;
   if (m.panes.length <= 1) return refuse(msg.noOtherPanes);
   const r = core.closeOthers(s.layout, unzoomed(s.view), id, ctx);

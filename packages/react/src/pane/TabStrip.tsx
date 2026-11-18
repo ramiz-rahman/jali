@@ -29,12 +29,12 @@ export function TabStrip({ group, owner }: { group: NonNullable<Frame["group"]>;
   const store = useStore();
   const { actions } = store;
   // A curated page: no "+" (its views come from the page's tabs).
-  const review = useUi((s) => !!s.review);
+  const page = useUi((s) => !!s.page);
   // A curated page's views live in the page tabs, so a pane's strip lists a page view only while it is shown: never a
   // repeat. The exception is a group of page views, which only a centre drop ("Add as tab") makes: you asked for
   // those tabs, so it lists each view you put there (not ones the layout folded in).
   const placed = group.tabs.filter((t) => t.node.role && !t.folded);
-  const tabs = !review ? group.tabs
+  const tabs = !page ? group.tabs
     : group.tabs.filter((t) => !t.node.role || t.node.id === group.active || (placed.length > 1 && !t.folded));
   // Made by you first, made by the layout (folded) after a hairline: the second kind returns by itself.
   const mine = tabs.filter((t) => !t.folded);
@@ -121,7 +121,7 @@ export function TabStrip({ group, owner }: { group: NonNullable<Frame["group"]>;
         {folded.map(renderTab)}
       </div>
       {overflowing ? <TabOverflow tabs={[...mine, ...folded]} active={group.active} hiddenCount={hiddenCount} onChoose={(id) => actions.setActiveTab(group.id, id)} /> : null}
-      {review ? null : <button
+      {page ? null : <button
         className="jali-tab-add"
         aria-label="New tab in this stack"
         title="New tab"
@@ -139,6 +139,6 @@ export function TabStrip({ group, owner }: { group: NonNullable<Frame["group"]>;
 /** A role tab shows its role's icon; anything else its kind's. */
 function TabIcon({ node }: { node: PaneNode }) {
   const { kinds, profile } = useEnv();
-  const role = useUi((s) => !!s.review) && node.role && profile ? roleOf(profile, node.role) : undefined;
+  const role = useUi((s) => !!s.page) && node.role && profile ? roleOf(profile, node.role) : undefined;
   return role ? <role.icon size={14} strokeWidth={1.5} aria-hidden /> : <KindIcon kind={node.ref.kind} size={14} />;
 }

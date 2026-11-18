@@ -32,31 +32,31 @@ export function decodePeek(text: string): ObjectRef | null {
  * The search params a workspace owns. Every other param in the address is the host's and is kept as it is. `prefix`
  * names them apart when two workspaces share one address (`{ prefix: "w2." }` writes `w2.l`, `w2.zoom`, ...).
  */
-export interface UrlKeys { layout: string; zoom: string; peek: string; app: string; item: string; tab: string; open: string }
+export interface UrlKeys { layout: string; zoom: string; peek: string; page: string; item: string; tab: string; open: string }
 export function urlKeys(prefix = ""): UrlKeys {
-  return { layout: `${prefix}l`, zoom: `${prefix}zoom`, peek: `${prefix}peek`, app: `${prefix}app`, item: `${prefix}item`, tab: `${prefix}tab`, open: `${prefix}open` };
+  return { layout: `${prefix}l`, zoom: `${prefix}zoom`, peek: `${prefix}peek`, page: `${prefix}page`, item: `${prefix}item`, tab: `${prefix}tab`, open: `${prefix}open` };
 }
 
 /**
  * A curated page's link carries content only: the item, the view in use and the panes opened while investigating.
  * The mode and the multiplexed layout are the reader's own, so the same link opens in each person's way of working.
  */
-function reviewParams(q: URLSearchParams, s: UiState, k: UrlKeys) {
+function pageParams(q: URLSearchParams, s: UiState, k: UrlKeys) {
   q.delete(k.layout);
-  for (const key of [k.app, k.item, k.tab, k.open, "arr"]) q.delete(key);
-  if (!s.review) return;
-  q.set(k.app, "review");
-  q.set(k.item, String(s.review.item));
+  for (const key of [k.page, k.item, k.tab, k.open, "app", "arr"]) q.delete(key);
+  if (!s.page) return;
+  q.set(k.page, s.page.profile);
+  q.set(k.item, String(s.page.item));
   const focused = core.tree.panes(s.layout.root).find((p) => p.id === s.view.focused)?.role;
-  q.set(k.tab, s.review.mode === "single" ? s.review.tab : focused ?? s.review.tab);
+  q.set(k.tab, s.page.mode === "single" ? s.page.tab : focused ?? s.page.tab);
   for (const p of core.tree.panes(s.layout.root)) if (!p.role) q.append(k.open, encodePeek(p.ref));
 }
 
 /** The search string for `s`, keeping every param of `search` that is not the workspace's. */
 export function buildSearch(search: string, s: UiState, k: UrlKeys = urlKeys()): string {
   const q = new URLSearchParams(search);
-  reviewParams(q, s, k);
-  if (!s.review) q.set(k.layout, core.encode(s.layout));
+  pageParams(q, s, k);
+  if (!s.page) q.set(k.layout, core.encode(s.layout));
   if (s.view.zoomed) q.set(k.zoom, s.view.zoomed); else q.delete(k.zoom);
   if (s.view.peek) q.set(k.peek, encodePeek(s.view.peek)); else q.delete(k.peek);
   const text = q.toString();
@@ -64,8 +64,8 @@ export function buildSearch(search: string, s: UiState, k: UrlKeys = urlKeys()):
 }
 
 /** What the address holds: a layout and view, or a code that could not be read. Null when there is no layout. */
-export interface ReviewRead { tab: string; item: number; investigation: ObjectRef[] }
-export type UrlRead = { layout: Layout; view: Partial<ViewState> } | { broken: string; view: Partial<ViewState> } | { review: ReviewRead; view: Partial<ViewState> };
+export interface PageRead { tab: string; item: number; investigation: ObjectRef[] }
+export type UrlRead = { layout: Layout; view: Partial<ViewState> } | { broken: string; view: Partial<ViewState> } | { page: PageRead; view: Partial<ViewState> };
 
 export function readSearch(search: string, kinds: KindRegistry, k: UrlKeys = urlKeys()): UrlRead | null {
   const q = new URLSearchParams(search);
@@ -74,10 +74,11 @@ export function readSearch(search: string, kinds: KindRegistry, k: UrlKeys = url
   const peek = q.get(k.peek);
   const ref = peek ? decodePeek(peek) : null;
   if (ref) view.peek = ref;
-  if (q.get(k.app) === "review") {
+  // `?app=review` is the lab's form from before pages had ids (19 Nov 2026).
+  if (q.get(k.page) || q.get("app") === "review") {
     const item = Number(q.get(k.item));
     const investigation = q.getAll(k.open).map(decodePeek).filter((r): r is ObjectRef => !!r && Object.hasOwn(kinds, r.kind));
-    return { review: { tab: q.get(k.tab) ?? "", item: Number.isInteger(item) && item > 0 ? item : 0, investigation }, view };
+    return { page: { tab: q.get(k.tab) ?? "", item: Number.isInteger(item) && item > 0 ? item : 0, investigation }, view };
   }
   if (!code) return null;
   const layout = core.decode(code, kinds);
@@ -174,7 +175,7 @@ export function createUrlSync({ location = browserLocation(), storage = browserS
   };
   const write = (s0: UiState, push: boolean) => {
     let s = s0;
-    if (sizes === "local" && !s.review) {
+    if (sizes === "local" && !s.page) {
       const split = splitPersonalSizes(s.layout);
       keepSizes(split.layout, split.sizes);
       s = { ...s, layout: split.layout };

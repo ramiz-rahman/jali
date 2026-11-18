@@ -32,9 +32,9 @@ const DIRS: [Edge, string][] = [["left", "left"], ["right", "right"], ["top", "u
 
 /** Every command a workspace has: the fixed set, its presets', and titles in its own words (its name, its viewers). */
 function buildCommands(env: Env): Command[] {
-  const page = env.profile;
-  const full = viewerLabel(page, true);
-  const limited = viewerLabel(page, false);
+  const profile = env.profile;
+  const full = viewerLabel(profile, true);
+  const limited = viewerLabel(profile, false);
   return [
   // F6 visits the panes, then the shelf and the host's regions (commands/regions.ts).
   { id: "pane.focus.next", title: "Focus next pane", group: "Focus", run: (u) => cycleRegions(u, false) },
@@ -67,14 +67,14 @@ function buildCommands(env: Env): Command[] {
   ...env.presets.map((p): Command => ({ id: `layout.preset.${p.id}`, title: `Layout: ${p.label}`, group: "Layout", run: (u) => u.actions.preset(p.id) })),
   { id: "layout.reset", title: "Reset layout", group: "Layout", check: () => (env.presets.length ? undefined : refuse()), run: (u) => u.actions.resetLayout() },
   { id: "layout.copy_link", title: "Copy link to this layout", group: "Layout", run: copyLink },
-  { id: "review.back", title: "Back to review (close opened panes)", group: "Layout", check: ({ s, m }) => (s.review && m.panes.some((p) => !p.role) ? undefined : refuse()), run: (u) => u.actions.backToReview() },
-  { id: "review.reset", title: "Reset layout to its design", group: "Layout", check: ({ s }) => (s.review?.mode === "multi" ? undefined : refuse()), run: (u) => u.actions.resetReview() },
-  { id: "review.single", title: "Single: one view at a time", group: "Layout", check: ({ s }) => (s.review?.mode === "multi" ? undefined : refuse()), run: (u) => u.actions.setMode("single") },
-  { id: "review.multi", title: "Multiplexed: views side by side", group: "Layout", check: ({ s }) => (s.review?.mode === "single" && s.review.canInvestigate ? undefined : refuse()), run: (u) => u.actions.setMode("multi") },
-  { id: "review.enter", title: `Open ${page?.name ?? "page"}`, group: "Layout", check: ({ s }) => (s.review || !page ? refuse() : undefined), run: (u) => u.actions.enterReview() },
-  { id: "review.leave", title: `Open ${env.name}`, group: "Layout", check: ({ s }) => (s.review ? undefined : refuse()), run: (u) => u.actions.leaveReview() },
-  { id: "review.as_officer", title: `View as ${limited} (Single only, links peek)`, group: "Settings", check: ({ s }) => (s.review?.canInvestigate ? undefined : refuse()), run: (u) => u.actions.setCanInvestigate(false) },
-  { id: "review.as_reviewer", title: `View as ${full} (links open beside)`, group: "Settings", check: ({ s }) => (s.review && !s.review.canInvestigate ? undefined : refuse()), run: (u) => u.actions.setCanInvestigate(true) },
+  { id: "page.back", title: `Back to ${profile?.name ?? "page"} (close opened panes)`, group: "Layout", check: ({ s, m }) => (s.page && m.panes.some((p) => !p.role) ? undefined : refuse()), run: (u) => u.actions.backToPage() },
+  { id: "page.reset", title: "Reset layout to its design", group: "Layout", check: ({ s }) => (s.page?.mode === "multi" ? undefined : refuse()), run: (u) => u.actions.resetPage() },
+  { id: "page.single", title: "Single: one view at a time", group: "Layout", check: ({ s }) => (s.page?.mode === "multi" ? undefined : refuse()), run: (u) => u.actions.setMode("single") },
+  { id: "page.multi", title: "Multiplexed: views side by side", group: "Layout", check: ({ s }) => (s.page?.mode === "single" && s.page.canInvestigate ? undefined : refuse()), run: (u) => u.actions.setMode("multi") },
+  { id: "page.open", title: `Open ${profile?.name ?? "page"}`, group: "Layout", check: ({ s }) => (s.page || !profile ? refuse() : undefined), run: (u) => u.actions.openPage() },
+  { id: "page.leave", title: `Open ${env.name}`, group: "Layout", check: ({ s }) => (s.page ? undefined : refuse()), run: (u) => u.actions.leavePage() },
+  { id: "page.as_limited", title: `View as ${limited} (Single only, links peek)`, group: "Settings", check: ({ s }) => (s.page?.canInvestigate ? undefined : refuse()), run: (u) => u.actions.setCanInvestigate(false) },
+  { id: "page.as_full", title: `View as ${full} (links open beside)`, group: "Settings", check: ({ s }) => (s.page && !s.page.canInvestigate ? undefined : refuse()), run: (u) => u.actions.setCanInvestigate(true) },
 
   { id: "peek.close", title: "Close peek", group: "Peek", check: checkPeek, run: (u) => u.actions.peek(null) },
   { id: "peek.pin", title: "Pin peek beside", group: "Peek", check: checkPeek, run: (u) => u.actions.pinPeek() },

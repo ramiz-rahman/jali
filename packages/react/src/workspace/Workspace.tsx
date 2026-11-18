@@ -128,7 +128,7 @@ export function Workspace() {
 
   const single = m.single;
   // A curated page in Single mode shows one view under its tabs: the tabs name it, so the pane has no header.
-  const page = useUi((s) => s.review?.mode);
+  const page = useUi((s) => s.page?.mode);
   const mode = single ? "single" : "tiled";
   // On a phone the page tabs already choose the view, so a curated page has no pane switcher under them.
   const switcherH = page ? 0 : SWITCHER_H;

@@ -187,7 +187,7 @@ test.describe("Loan review: Multiplexed", () => {
     await expect(opened(page).locator(".jali-badge-opened")).toHaveText("Opened");
     expect((await lab.visibleIds()).at(-1)).toBe(await opened(page).getAttribute("data-pane"));
     await expect(investigation(page)).toContainText("1 opened");
-    await investigation(page).getByRole("button", { name: "Back to review" }).click();
+    await investigation(page).getByRole("button", { name: "Back to Loan review" }).click();
     await expect(opened(page)).toHaveCount(0);
     expect(await lab.snap()).toEqual(rects);
     await page.keyboard.press("ControlOrMeta+k"); await page.keyboard.press("ControlOrMeta+z");

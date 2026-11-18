@@ -10,22 +10,22 @@ import { altClick } from "@jali/core";
  * A curated page's controls in the top bar: the mode (Single or Multiplexed), the investigation (panes opened from
  * links) with its way back, and Reset for the multiplexed layout. Which views are on screen is the tabs' job.
  */
-export function ReviewBar() {
-  const review = useUi((s) => s.review);
+export function PageBar() {
+  const page = useUi((s) => s.page);
   const m = useModel();
   const { actions } = useStore();
   const profile = useProfile();
-  if (!profile || !review) return null;
+  if (!profile || !page) return null;
   const opened = investigation(m.panes).length;
-  const multi = review.mode === "multi";
+  const multi = page.mode === "multi";
   return (
-    <div className="jali-review-bar">
+    <div className="jali-page-bar">
       <div className="jali-seg jali-mode-switch" role="radiogroup" aria-label="View mode">
         <button role="radio" aria-checked={!multi} className="jali-seg-btn" onClick={() => actions.setMode("single")} title="One view at a time">
           <Square size={14} strokeWidth={1.5} aria-hidden /> Single
         </button>
-        <button role="radio" aria-checked={multi} className="jali-seg-btn" onClick={() => actions.setMode("multi")} disabled={!review.canInvestigate}
-          title={review.canInvestigate ? "Views side by side: drag tabs into the layout" : "Your role works in Single"}>
+        <button role="radio" aria-checked={multi} className="jali-seg-btn" onClick={() => actions.setMode("multi")} disabled={!page.canInvestigate}
+          title={page.canInvestigate ? "Views side by side: drag tabs into the layout" : "Your role works in Single"}>
           <Columns2 size={14} strokeWidth={1.5} aria-hidden /> Multiplexed
         </button>
       </div>
@@ -33,13 +33,13 @@ export function ReviewBar() {
         <div className="jali-inv" role="group" aria-label="Investigation">
           <span className="jali-inv-mark" aria-hidden />
           <span className="jali-inv-text">Investigating · <b>{opened}</b> opened</span>
-          <button className="jali-inv-back" onClick={() => actions.backToReview()}>
-            <Undo2 size={13} strokeWidth={1.75} aria-hidden /> Back to review
+          <button className="jali-inv-back" onClick={() => actions.backToPage()}>
+            <Undo2 size={13} strokeWidth={1.75} aria-hidden /> Back to {profile.name}
           </button>
         </div>
       ) : null}
       {multi ? (
-        <button className="jali-icon-btn jali-review-reset" onClick={() => actions.resetReview()} aria-label="Reset layout to its design" title="Reset layout · drops your multiplexed layout">
+        <button className="jali-icon-btn jali-page-reset" onClick={() => actions.resetPage()} aria-label="Reset layout to its design" title="Reset layout · drops your multiplexed layout">
           <RotateCcw size={15} strokeWidth={1.5} aria-hidden />
         </button>
       ) : null}
@@ -55,7 +55,7 @@ function PageTabs() {
   const p = useProfile()!;
   const store = useStore();
   const { actions } = store;
-  const review = useUi((s) => s.review)!;
+  const page = useUi((s) => s.page)!;
   const focused = useUi((s) => s.view.focused);
   const m = useModel();
   const strip = useRef<HTMLDivElement>(null);
@@ -73,13 +73,13 @@ function PageTabs() {
     window.addEventListener("blur", blur);
     return () => { window.removeEventListener("keydown", key); window.removeEventListener("keyup", key); window.removeEventListener("blur", blur); };
   });
-  const multi = review.mode === "multi";
+  const multi = page.mode === "multi";
   const state = (id: string) => {
-    if (!multi) return id === review.tab ? "focused" : "off";
+    if (!multi) return id === page.tab ? "focused" : "off";
     if (m.pane(focused)?.role === id) return "focused";
     return m.visible.includes(id) ? "shown" : m.off.includes(id) ? "off" : "behind";
   };
-  const selected = multi ? (m.pane(focused)?.role ?? review.tab) : review.tab;
+  const selected = multi ? (m.pane(focused)?.role ?? page.tab) : page.tab;
   const keys = (e: KeyboardEvent) => {
     if (e.key !== "ArrowRight" && e.key !== "ArrowLeft") return;
     const tabs = [...(strip.current?.querySelectorAll<HTMLElement>("[role=tab]") ?? [])];
@@ -115,9 +115,9 @@ function PageTabs() {
 }
 
 /** The curated page: the queue at the left; the item's header, its tabs and the panes at the right. */
-export function ReviewPage() {
+export function CuratedPage() {
   const p = useProfile()!;
-  const item = useUi((s) => s.review!.item);
+  const item = useUi((s) => s.page!.item);
   const { actions } = useStore();
   return (
     <div className="jali-page">

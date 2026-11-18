@@ -110,7 +110,7 @@ function MemberList({ rows, label, open }: ListProps) {
 function ApplicationList({ rows, column, label, open, paused }: ListProps) {
   const names = useMemberNames(paused);
   const byMember = column === "member_id";
-  const current = useUi((x) => x.review?.item);
+  const current = useUi((x) => x.page?.item);
   return (
     <View label={label}>
       <ViewHead kicker="Applications" title={label} />

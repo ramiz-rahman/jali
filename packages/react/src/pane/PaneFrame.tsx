@@ -23,15 +23,15 @@ export const PaneFrame = memo(function PaneFrame({ frame, chrome, dropTarget }: 
   const activity = useUi((s) => s.activity[node.id]);
   const isDragged = useUi((s) => s.dnd?.dragged === node.id);
   const host = useMemo(() => paneHost(actions, node.id), [actions, node.id]);
-  const review = useUi((s) => !!s.review);
+  const page = useUi((s) => !!s.page);
   // A curated page in Single: the page tabs name the one view and choose it, so the pane header is visually hidden
   // and offers nothing (no grip, tuck, maximise or close) that a keyboard user could land on unseen.
-  const bare = useUi((s) => s.review?.mode === "single");
+  const bare = useUi((s) => s.page?.mode === "single");
   const boundary = useUi((s) => s.settings.boundary);
   const env = store.env, profile = env.profile;
-  const role = review && node.role && profile ? roleOf(profile, node.role) : undefined;
+  const role = page && node.role && profile ? roleOf(profile, node.role) : undefined;
   // In a curated workspace, a pane without a role was opened by following a link: it belongs to the investigation.
-  const opened = review && !node.role;
+  const opened = page && !node.role;
   const title = titleOf(env, node);
   const style: CSSProperties = { left: rect.x, top: rect.y, width: rect.width, height: rect.height, display: hidden ? "none" : undefined };
   const cls = ["jali-pane", !chrome.island && "is-single", focused && "is-focused", zoomed && "is-zoomed", isDragged && "is-dragged", dropTarget && "is-drop-target"]

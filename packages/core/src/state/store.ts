@@ -11,7 +11,7 @@ import { bindActions, type Actions } from "../actions";
 import { apply, type Change, type Deferred, type HistoryMode, type Outcome, type Snapshot, type Toast } from "./apply";
 import { modelCache, type WorkspaceModel } from "./model";
 import { loadSettings, systemPrefersDark, type Settings } from "./settings";
-import { loadPrefs, type ReviewPrefs } from "./review-prefs";
+import { loadPrefs, type PagePrefs } from "./page-prefs";
 import { presetById, type Env, type Preset, type ViewMode, type ProfileBase } from "../profile";
 import { browserStorage, type StoragePort } from "../ports";
 import { createKeymap, type Keymap, type KeymapOptions, type KeymapOverrides } from "../commands/keymap";
@@ -24,12 +24,14 @@ export interface ConfirmState { panes: NodeId[]; change: Change }
 export interface ChooserState { kind: "merge"; source: NodeId }
 
 /** A curated page in use (ui/profile.ts): the item, the mode, the view Single shows, and what this person may do. */
-export interface ReviewState {
+export interface PageState {
+  /** The profile's id: what a link names (`?page=loan-review`). */
+  profile: string;
   item: number;
   mode: ViewMode;
   /** The view Single mode shows (in Multiplexed, the last role focused). */
   tab: string;
-  /** The multiplexed layout just before the first opened pane: Back to review returns to it exactly. */
+  /** The multiplexed layout just before the first opened pane: "Back to …" returns to it exactly. */
   before?: Layout;
   /** Role permission: following a link opens an investigation pane (true) or only peeks (false). */
   canInvestigate: boolean;
@@ -41,9 +43,9 @@ export interface Selection { ref: ObjectRef; inResults: boolean }
 export interface UiState {
   layout: Layout;
   /** Null in Data Studio, where the person builds the layout. */
-  review: ReviewState | null;
+  page: PageState | null;
   /** The person's mode and multiplexed layout (while Multiplexed is on screen, the live layout is the truth). */
-  prefs: ReviewPrefs;
+  prefs: PagePrefs;
   view: ViewState;
   /** The preset last chosen ("Reset layout" rebuilds it); undefined in a workspace without presets. */
   presetId: string | undefined;
@@ -188,7 +190,7 @@ export function createUiStore(deps: UiStoreDeps): UiStore {
   if (!layout) throw new Error("createUiStore: give `presets` or an `initial.layout` to start from");
   let state: UiState = {
     layout,
-    review: null,
+    page: null,
     prefs: loadPrefs(storage, env.profile?.id, env.kinds.registry()),
     view: { focusHistory: [] },
     presetId: start?.id,

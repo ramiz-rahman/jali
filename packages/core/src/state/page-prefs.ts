@@ -7,12 +7,13 @@ import * as core from "../layout";
 import type { KindRegistry, Layout } from "../layout/types";
 import type { ViewMode } from "../profile";
 
-export interface ReviewPrefs { mode: ViewMode; multi: Layout | null }
+export interface PagePrefs { mode: ViewMode; multi: Layout | null }
 
+// "review:" is the key from before pages were called pages (19 Nov 2026), kept so saved layouts are not lost.
 const key = (profile: string) => `review:${profile}`;
 
-export function loadPrefs(storage: StoragePort, profile: string | undefined, kinds: KindRegistry): ReviewPrefs {
-  const none: ReviewPrefs = { mode: "single", multi: null };
+export function loadPrefs(storage: StoragePort, profile: string | undefined, kinds: KindRegistry): PagePrefs {
+  const none: PagePrefs = { mode: "single", multi: null };
   if (!profile) return none;
   try {
     const v = JSON.parse(storage.get(key(profile)) ?? "null") as { mode?: string; multi?: string } | null;
@@ -23,6 +24,6 @@ export function loadPrefs(storage: StoragePort, profile: string | undefined, kin
   }
 }
 
-export function savePrefs(storage: StoragePort, profile: string, prefs: ReviewPrefs): void {
+export function savePrefs(storage: StoragePort, profile: string, prefs: PagePrefs): void {
   storage.set(key(profile), JSON.stringify({ mode: prefs.mode, multi: prefs.multi ? core.encode(prefs.multi) : undefined }));
 }

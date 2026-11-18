@@ -15,7 +15,7 @@ import { openPeekFull, peek, pinPeek, select } from "./peek";
 import { follow, setPinned } from "./follow";
 import { arrive, preset, resetLayout, setActivity } from "./layout";
 import { discardAndContinue, keepEditing, setPaneCommands, setPaneState, setUnsaved } from "./content";
-import { activate, backToReview, enterReview, hideRole, leaveReview, openTab, openTabBeside, placeTab, resetReview, setCanInvestigate, setMode } from "./review";
+import { activate, backToPage, openPage, hideRole, leavePage, openTab, openTabBeside, placeTab, resetPage, setCanInvestigate, setMode } from "./page";
 
 export const ACTIONS = {
   focus, focusCycle, focusDirection, focusIndex, focusEnd, toggleZoom,
@@ -28,7 +28,7 @@ export const ACTIONS = {
   peek, pinPeek, openPeekFull, select, follow, setPinned,
   preset, resetLayout, arrive, setActivity,
   setUnsaved, setPaneCommands, setPaneState, discardAndContinue, keepEditing,
-  enterReview, leaveReview, setMode, openTab, openTabBeside, placeTab, resetReview, activate, backToReview, hideRole, setCanInvestigate,
+  openPage, leavePage, setMode, openTab, openTabBeside, placeTab, resetPage, activate, backToPage, hideRole, setCanInvestigate,
 };
 
 type Bound<F> = F extends (x: Snapshot, ...args: infer A) => Outcome ? (...args: A) => NodeId | undefined : never;

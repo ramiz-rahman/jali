@@ -10,10 +10,10 @@ export function StatusLine() {
   const keys = (id: string, what: string) => (keymap.label(id) ? `${keymap.label(id)} ${what}` : "");
   const view = useUi((s) => s.view);
   const resizeMode = useUi((s) => s.resizeMode);
-  const curated = useUi((s) => !!s.review);
-  const single = useUi((s) => s.review?.mode === "single");
+  const curated = useUi((s) => !!s.page);
+  const single = useUi((s) => s.page?.mode === "single");
   // Fetch and cache telemetry is for Data Studio; a curated page speaks in views.
-  const showStats = useUi((s) => s.settings.showStats && !s.review);
+  const showStats = useUi((s) => s.settings.showStats && !s.page);
   const activity = useUi((s) => s.activity);
   // Every tucked pane, shown or not (the shelf lists them all); folded panes are counted separately.
   const tucked = m.shelf.length;

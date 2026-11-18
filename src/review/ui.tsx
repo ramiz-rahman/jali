@@ -56,7 +56,7 @@ export function Facts({ rows, cols }: { rows: (Fact | null | false)[]; cols?: 1 
 
 /** How a link is followed here: a peek in Single (and for roles that only peek), beside in Multiplexed. */
 function useLinkVerb() {
-  return useUi((s) => (s.review && (s.review.mode === "single" || !s.review.canInvestigate) ? "peek" : "beside"));
+  return useUi((s) => (s.page && (s.page.mode === "single" || !s.page.canInvestigate) ? "peek" : "beside"));
 }
 
 /** A related record or list, opened with the pane's own link action. `data-ref` names the object for tests and tools. */

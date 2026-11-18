@@ -17,7 +17,7 @@ export function HeaderActions({ id, title, zoomed, chrome }: P) {
   const { actions } = store;
   const node = m.pane(id);
   // A curated page's view closes back into the tabs above.
-  const closeHint = store.get().review && node?.role ? "Close · it stays in the tabs above" : "Close";
+  const closeHint = store.get().page && node?.role ? "Close · it stays in the tabs above" : "Close";
   return (
     <div className="jali-pane-actions">
       {chrome.tuckable && !zoomed ? (

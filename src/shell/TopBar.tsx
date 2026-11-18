@@ -3,7 +3,7 @@ import { Command, Settings, Link2, ChevronDown, LayoutGrid } from "lucide-react"
 import { useStore, useUi } from "@jali/react";
 import { copyLink } from "@jali/core";
 import { PALETTE_ID } from "@jali/core";
-import { ReviewBar } from "@jali/react";
+import { PageBar } from "@jali/react";
 import { AppSwitch } from "./AppSwitch";
 import { JaliLockup } from "./JaliLockup";
 
@@ -51,14 +51,14 @@ function LayoutsMenu() {
 
 export function TopBar() {
   const store = useStore();
-  const review = useUi((s) => !!s.review);
+  const page = useUi((s) => !!s.page);
   return (
     <header className="topbar" data-jali-chrome="">
       <div className="brand">
         <JaliLockup />
         <AppSwitch />
       </div>
-      {review ? <ReviewBar /> : !store.env.presets.length ? null : (
+      {page ? <PageBar /> : !store.env.presets.length ? null : (
         <>
           <nav className="presets" aria-label="Layout presets">
             <PresetButtons />
@@ -67,7 +67,7 @@ export function TopBar() {
         </>
       )}
       <div className="topbar-right">
-        <button className="jali-icon-btn" onClick={() => copyLink(store)} aria-label={review ? `Copy link to this ${store.env.profile?.itemNoun ?? "item"}` : "Copy link to this layout"} title="Copy link">
+        <button className="jali-icon-btn" onClick={() => copyLink(store)} aria-label={page ? `Copy link to this ${store.env.profile?.itemNoun ?? "item"}` : "Copy link to this layout"} title="Copy link">
           <Link2 size={16} strokeWidth={1.5} aria-hidden />
         </button>
         <button className="jali-icon-btn" onClick={() => store.set({ settingsOpen: true })} aria-label="Settings" title="Settings">

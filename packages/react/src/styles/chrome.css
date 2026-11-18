@@ -26,7 +26,7 @@
 .jali-switch-title { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
 /* ---------- the curated page's top bar ---------- */
-.jali-review-bar { display: flex; align-items: center; gap: 0.75rem; min-width: 0; flex: 1; }
+.jali-page-bar { display: flex; align-items: center; gap: 0.75rem; min-width: 0; flex: 1; }
 .jali-seg { display: inline-flex; gap: 2px; flex: none; }
 .jali-seg-btn {
   height: 1.75rem; padding: 0 0.625rem; border: 1px solid transparent; border-radius: var(--jali-radius-control); background: none;
@@ -47,7 +47,7 @@
   background: var(--jali-surface); color: var(--jali-text); font: inherit; font-size: 0.75rem; font-weight: 500; cursor: pointer;
 }
 .jali-inv-back:hover { border-color: var(--jali-text-muted); }
-.jali-review-reset { margin-left: auto; flex: none; }
+.jali-page-reset { margin-left: auto; flex: none; }
 
 @media (max-width: 68.75rem) { .jali-inv-text { display: none; } }
 @media (max-width: 47.9375rem) { .jali-seg { display: none; } }

@@ -10,7 +10,7 @@ const row = (...children: LayoutNode[]): Layout => ({ version: 1, root: { id: "r
 const col = (id: string, ...children: LayoutNode[]): LayoutNode => ({ id, type: "column", size: { weight: 1 }, children });
 
 /** A designed review arrangement: queue, application (primary), and a supporting column. */
-const review = (): Layout => row(
+const page = (): Layout => row(
   pane("queue", "list", { size: { px: 320 }, role: "queue", priority: "supporting" }),
   pane("app", "record", { role: "application", priority: "primary" }),
   col("side", pane("borrower", "inspector", { role: "borrower", priority: "supporting" }), pane("history", "inspector", { role: "history", priority: "supporting" })),
@@ -18,7 +18,7 @@ const review = (): Layout => row(
 
 describe("hide and show", () => {
   it("hide takes a pane off screen with no tab; the tree is untouched; neighbours absorb the space", () => {
-    const ctx = context(fit(1920, 900)), tree = freeze(core.refit(review(), view("app"), ctx));
+    const ctx = context(fit(1920, 900)), tree = freeze(core.refit(page(), view("app"), ctx));
     const before = core.resolve(tree, view("app"), ctx);
     const h = ok(core.hide(tree, view("app"), "queue", ctx));
     expect(h.layout.root).toBe(tree.root);
@@ -34,7 +34,7 @@ describe("hide and show", () => {
 
   it("hiding both panes of a column removes the column; showing one brings back only that one", () => {
     const ctx = context(fit(1920, 900));
-    let l = core.refit(review(), view("app"), ctx);
+    let l = core.refit(page(), view("app"), ctx);
     l = ok(core.hide(l, view("app"), "borrower", ctx)).layout;
     l = ok(core.hide(l, view("app"), "history", ctx)).layout;
     expect(shown(core.resolve(l, view("app"), ctx))).toEqual(["queue", "app"]);
@@ -45,7 +45,7 @@ describe("hide and show", () => {
   });
 
   it("show after hide restores the exact geometry", () => {
-    const ctx = context(fit(1920, 900)), tree = core.refit(review(), view("app"), ctx);
+    const ctx = context(fit(1920, 900)), tree = core.refit(page(), view("app"), ctx);
     const before = core.resolve(tree, view("app"), ctx);
     const h = ok(core.hide(tree, view("app"), "borrower", ctx));
     const s = ok(core.show(h.layout, h.view, "borrower", ctx));
@@ -81,7 +81,7 @@ describe("hide and show", () => {
 
   it("round-trips through the codec with roles, priority and hidden", () => {
     const ctx = context(fit(1920, 900));
-    const l = ok(core.hide(core.refit(review(), view("app"), ctx), view("app"), "history", ctx)).layout;
+    const l = ok(core.hide(core.refit(page(), view("app"), ctx), view("app"), "history", ctx)).layout;
     const decoded = core.decode(core.encode(l), fit().kinds);
     expect(decoded).toEqual(l);
     const bad = structuredClone(l); bad.overlay!.hidden = ["history", "history"];
@@ -94,7 +94,7 @@ describe("hide and show", () => {
 describe("arrangement priority", () => {
   it("with no room for an opened pane, supporting panes fold first and the opened pane stays on screen", () => {
     const ctx = context(fit(1440, 900));
-    const tree = core.refit(review(), view("borrower"), ctx);
+    const tree = core.refit(page(), view("borrower"), ctx);
     expect(shown(core.resolve(tree, view("borrower"), ctx))).toEqual(["queue", "app", "borrower", "history"]);
     const r = core.openBeside(tree, view("borrower"), "borrower", { kind: "record", params: { id: 9 } }, ctx, { target: "side", edge: "right" });
     expect(r.mode).toBe("beside");
@@ -110,7 +110,7 @@ describe("arrangement priority", () => {
 
   it("yields: false: no pane gives way; short of room, the opened pane becomes a tab of its source", () => {
     const ctx = context(fit(1440, 900));
-    const tree = core.refit(review(), view("borrower"), ctx);
+    const tree = core.refit(page(), view("borrower"), ctx);
     const r = core.openBeside(tree, view("borrower"), "borrower", { kind: "record", params: { id: 9 } }, ctx, { target: "side", edge: "right" }, { yields: false });
     expect(r.mode).toBe("tab");
     expect(r.layout.overlay?.folds).toEqual([r.opened]);
