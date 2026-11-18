@@ -5,3 +5,6 @@ playwright-report
 .DS_Store
 .design-review
 *.tsbuildinfo
+
+# Logo exploration rounds (large images), kept locally
+docs/brand/archive/

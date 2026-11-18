@@ -1,0 +1,32 @@
+# Chakni and Jali: logos
+
+Two sibling libraries, one bar system. `final/preview.png` shows every piece in light and dark.
+
+- **Chakni** (ছাঁকনি, the tea strainer): a disc of bars; below a cut, finer bars drip through. Pour in everything, keep what you came for.
+- **Jali** (জালি, the lattice screen): an arch of bars in three panels: five tall bars; on the right, four bars above a stack of flat bars. The mullion and transom are gutters three times the bar gap, so the panels read apart.
+
+## The system
+
+- Bars 5.54 wide on an 8.03 pitch, a 72-unit-wide silhouette; both marks share one 76 × 92 box, so they size alike.
+- Small versions (`*-mark-small`) for 16–32px: fewer, heavier bars on the same plan. Use them below 48px. The small Chakni keeps only the cut and one drip; the full mark's side steps read as a face when tiny.
+- Wordmark: Atkinson Hyperlegible Next SemiBold (OFL), outlined, tracked −2.5%; the j's descender is shortened to 82% so "jali" sits level. SemiBold, not Bold: the bars carry the weight, the type carries the voice.
+- Colour: ink `#111111` or white. No other colours yet.
+
+## Files (per library, in `final/<name>/`)
+
+| File | Use |
+|---|---|
+| `<name>-mark.svg`, `-white.svg` | The mark, 48px and up |
+| `<name>-mark-small.svg`, `-white.svg` | The mark, 16–48px |
+| `<name>-lockup.svg`, `-white.svg` | Mark and wordmark side by side: nav bars, README headers |
+| `<name>-stacked.svg`, `-white.svg` | Mark above wordmark: docs home, posters |
+| `favicon.svg` | Browser tab; follows the system's light or dark mode |
+| `favicon-32.png`, `favicon-32-dark.png` | Fallback favicons |
+| `apple-touch-icon.png` (180), `icon-512.png`, `<name>-app-icon.svg` | Home-screen and PWA icons |
+| `<name>-social.svg`, `.png` (1280 × 640) | GitHub social preview, link cards |
+
+## Rebuilding
+
+`build_final.py <out_dir> <atkinson-hyperlegible-next-latin-600-normal.woff>` regenerates every SVG (needs `fonttools`; the font is in `@fontsource/atkinson-hyperlegible-next`). PNGs are rendered from the SVGs in Chrome.
+
+`archive/` holds the earlier rounds and concepts (not committed: about 50MB of images).
