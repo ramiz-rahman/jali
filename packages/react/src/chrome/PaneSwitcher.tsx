@@ -37,7 +37,6 @@ export function PaneSwitcher({
   current: string | undefined;
 }) {
   const actions = useActions();
-  const store = useStore();
   return (
     <nav className="jali-switcher" aria-label="Panes">
       <div

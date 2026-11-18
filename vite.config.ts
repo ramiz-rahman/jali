@@ -7,6 +7,10 @@ export default defineConfig({
   optimizeDeps: { exclude: ["@electric-sql/pglite"] },
   // MDX is left as written: the formatter reflows JSX children and breaks fenced code inside components.
   fmt: { ignorePatterns: ["**/*.mdx"] },
+  // Docs samples show a value on its own line ("keymap.label(id); // \"⌘K ⌘↵\""), on purpose.
+  lint: {
+    overrides: [{ files: ["apps/docs/src/samples/**"], rules: { "no-unused-expressions": "off" } }],
+  },
   test: {
     globals: true,
     include: ["src/**/*.test.{ts,tsx}", "packages/*/src/**/*.test.{ts,tsx}"],

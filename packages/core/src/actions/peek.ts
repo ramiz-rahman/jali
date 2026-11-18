@@ -13,7 +13,6 @@ export const checkPeek = ({ s }: Snapshot) => (s.view.peek ? undefined : refuse(
  * question twice. With no detail, or none with room on screen, the sheet opens.
  */
 export function peek(x: Snapshot, ref: ObjectRef | null, source?: NodeId): Outcome {
-  const { s } = x;
   if (ref && source && followerOnScreen(x, source, ref.kind))
     return [
       { op: "select", defer: followLater(source, null) },

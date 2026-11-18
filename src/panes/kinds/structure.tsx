@@ -3,7 +3,7 @@ import { definePane } from "@jali/react";
 import type { TableName } from "../../data/types";
 import { useCatalog } from "../../data/hooks";
 import { formatCount } from "../format";
-import { erRef, tableInfoOf, tableOf, tableRef } from "../shared/refs";
+import { erRef, tableInfoOf, tableRef } from "../shared/refs";
 import { NullChip, Shell } from "../shared/states";
 import { PaneGate } from "../shared/PaneGate";
 import type { PaneProps } from "@jali/react";
