@@ -28,6 +28,11 @@ export const msg = {
 
   // linked selection: a list's detail follows its selection
   followed: (t: string) => `Showing ${t}`,
+  keptUnsaved: (what: string) => `The detail stays put: it has ${what}`,
+
+  // unsaved work
+  discarded: (n: number) => (n === 1 ? "Changes discarded" : `Changes in ${n} panes discarded`),
+  keptEditing: "Nothing changed. Keep editing",
   openedPinned: (t: string, source: string) => `${t} opened beside ${source}, pinned: it stays on this item`,
   pinned: (t: string) => `${t} pinned: it stays on this item`,
   unpinned: (t: string, list: string) => `${t} follows the selection in ${list}`,

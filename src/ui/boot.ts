@@ -10,6 +10,7 @@ import { applyTheme, resolveTheme, saveSettings, watchSystemTheme } from "./stat
 import type { UiStore } from "./state/store";
 import { applyTokens } from "./tokens";
 import { savePrefs } from "./state/review-prefs";
+import { savePaneState } from "./state/store";
 import { withoutOpened } from "./actions/review";
 import type { UrlSync } from "./url";
 
@@ -45,10 +46,14 @@ export function boot(store: UiStore, url: UrlSync) {
 export function startUi(store: UiStore, url: UrlSync): () => void {
   applyTokens();
   let prev = store.get();
+  // Pane state changes with typing and scrolling: saved once things settle.
+  let saveTimer: ReturnType<typeof setTimeout> | undefined;
+  const saveSoon = () => { clearTimeout(saveTimer); saveTimer = setTimeout(() => savePaneState(store.storage, store.get().paneState), 400); };
   applyTheme(resolveTheme(prev.settings.theme, prev.systemDark));
   const offStore = store.subscribe(() => {
     const s = store.get();
     if (s.settings !== prev.settings) saveSettings(store.storage, s.settings);
+    if (s.paneState !== prev.paneState) saveSoon();
     // A curated page's mode and multiplexed layout are the person's: saved on this device, opened panes left out.
     const p = store.env.profile;
     const live = s.review?.mode === "multi" && s.layout !== prev.layout;
@@ -59,6 +64,11 @@ export function startUi(store: UiStore, url: UrlSync): () => void {
     if (s.settings.theme !== prev.settings.theme || s.systemDark !== prev.systemDark) applyTheme(resolveTheme(s.settings.theme, s.systemDark));
     prev = s;
   });
+  // Leaving the page with unsaved work: the browser asks first.
+  const onUnload = (e: BeforeUnloadEvent) => {
+    if (Object.keys(store.get().unsaved).length) e.preventDefault();
+  };
+  window.addEventListener("beforeunload", onUnload);
   const offTheme = watchSystemTheme((systemDark) => store.set({ systemDark }));
   const offKeys = installKeyboard(store);
   const offPop = url.onPop(() => {
@@ -67,5 +77,5 @@ export function startUi(store: UiStore, url: UrlSync): () => void {
   });
   // Dev-only handle so e2e can drive activity states (the sample panes rarely report them).
   if ((import.meta as unknown as { env?: { DEV?: boolean } }).env?.DEV) (window as unknown as { __lab?: unknown }).__lab = { actions: store.actions };
-  return () => { offStore(); offTheme(); offKeys(); offPop(); };
+  return () => { offStore(); offTheme(); offKeys(); offPop(); clearTimeout(saveTimer); window.removeEventListener("beforeunload", onUnload); };
 }

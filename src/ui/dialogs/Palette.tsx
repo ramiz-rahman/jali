@@ -1,6 +1,6 @@
 import { formatChord } from "../commands/format";
-import { COMMANDS, runCommand, type Command } from "../commands/registry";
-import { useStore, useUi } from "../state/react";
+import { COMMANDS, runCommand } from "../commands/registry";
+import { useModel, useStore, useUi } from "../state/react";
 import { ListDialog } from "./ListDialog";
 
 /**
@@ -12,39 +12,51 @@ export function Palette() {
   return open ? <PaletteDialog /> : null;
 }
 
+/** One row: a workspace command, or a command the focused pane added (PaneComponentProps.setCommands). */
+interface Item { key: string; title: string; group: string; keys: string; disabled: boolean; run: () => void; id?: string }
+
 function PaletteDialog() {
   const store = useStore();
   useUi((s) => s.view);
+  const focused = useUi((s) => s.view.focused);
+  const own = useUi((s) => (focused ? s.paneCommands[focused] : undefined));
+  const m = useModel();
   const close = () => store.set({ paletteOpen: false });
+  const x = store.snapshot();
+  // The focused pane's commands come first: they are about what the person is looking at.
+  const items: Item[] = [
+    ...(own ?? []).map((c): Item => ({ key: `pane:${c.id}`, title: c.title, group: m.title(focused), keys: c.keys ?? "", disabled: !!c.disabled, run: c.run })),
+    ...COMMANDS.map((c): Item => ({
+      key: c.id, id: c.id, title: c.title, group: c.group, disabled: !!c.check?.(x), run: () => runCommand(store, c.id),
+      // Esc closes a peek through the Esc ladder, not the keymap.
+      keys: store.keymap.label(c.id) || (c.id === "peek.close" ? formatChord({ key: "Escape" }, store.keymap.platform) : ""),
+    })),
+  ];
   return (
-    <ListDialog<Command>
+    <ListDialog<Item>
       className=""
       label="Commands"
       placeholder="Type a command…"
       idPrefix="cmd-"
       listId="palette-list"
       listLabel="Commands"
-      items={COMMANDS}
-      keyOf={(c) => c.id}
-      matches={(c, t) => c.title.toLowerCase().includes(t) || c.id.includes(t) || c.group.toLowerCase().includes(t)}
+      items={items}
+      keyOf={(c) => c.key}
+      matches={(c, t) => c.title.toLowerCase().includes(t) || c.key.includes(t) || c.group.toLowerCase().includes(t)}
       itemClass="palette-item"
-      itemProps={(c) => ({ "data-command-id": c.id })}
-      disabled={(c) => !!c.check?.(store.snapshot())}
-      render={(c) => {
-        // Esc closes a peek through the Esc ladder, not the keymap.
-        const keys = store.keymap.label(c.id) || (c.id === "peek.close" ? formatChord({ key: "Escape" }, store.keymap.platform) : "");
-        return (
-          <>
-            <span className="palette-title">{c.title}</span>
-            <span className="palette-group">{c.group}</span>
-            {keys ? <kbd>{keys}</kbd> : <span />}
-          </>
-        );
-      }}
+      itemProps={(c) => ({ "data-command-id": c.id ?? c.key })}
+      disabled={(c) => c.disabled}
+      render={(c) => (
+        <>
+          <span className="palette-title">{c.title}</span>
+          <span className="palette-group">{c.group}</span>
+          {c.keys ? <kbd>{c.keys}</kbd> : <span />}
+        </>
+      )}
       onChoose={(c) => {
         close();
         // After the dialog unmounts and focus is back, so focus-dependent commands act on the pane.
-        setTimeout(() => runCommand(store, c.id), 0);
+        setTimeout(c.run, 0);
       }}
       onClose={close}
       empty={(q) => <>No command matches “{q}”.</>}

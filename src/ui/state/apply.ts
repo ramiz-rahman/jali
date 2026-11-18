@@ -14,7 +14,9 @@
  * or cancels it). The store runs it after `ms` against the state at that moment. Linked selection uses it: a list's
  * detail follows the selection once it rests (actions/follow.ts).
  */
+import * as core from "../../layout-core";
 import type { Env } from "../profile";
+import { msg } from "./messages";
 import type { Layout, LayoutContext, NodeId, UndoEntry, ViewState } from "../../layout-core/types";
 import type { WorkspaceModel } from "./model";
 import type { UiState } from "./store";
@@ -124,6 +126,38 @@ export interface ApplyIO {
   unstable?(op: Op, before: string, after: string): void;
 }
 
+/**
+ * Panes with unsaved work that `next` would remove or point at another object: their content would unmount and the
+ * work would be lost. A pane moved, tabbed, folded, tucked or hidden stays mounted, so it keeps its work.
+ */
+export function wouldLoseWork(s: UiState, next: Layout): NodeId[] {
+  const dirty = Object.keys(s.unsaved);
+  if (!dirty.length || next === s.layout) return [];
+  const before = new Map(core.tree.panes(s.layout.root).map((p) => [p.id, p]));
+  const after = new Map(core.tree.panes(next.root).map((p) => [p.id, p]));
+  return dirty.filter((id) => {
+    const a = before.get(id), b = after.get(id);
+    return !!a && (!b || JSON.stringify(a.ref) !== JSON.stringify(b.ref));
+  });
+}
+
+/**
+ * Per-pane records for panes still in the layout or in an undo entry (an undo brings the pane back). A pane that now
+ * shows another object starts afresh: its state was about the object it showed.
+ */
+function prunePanes(s: UiState, layout: Layout, undo: UndoEntry[]): Partial<UiState> {
+  const was = new Map(core.tree.panes(s.layout.root).map((p) => [p.id, JSON.stringify(p.ref)]));
+  const moved = new Set(core.tree.panes(layout.root).filter((p) => was.has(p.id) && was.get(p.id) !== JSON.stringify(p.ref)).map((p) => p.id));
+  const ids = new Set(core.tree.panes(layout.root).filter((p) => !moved.has(p.id)).map((p) => p.id));
+  for (const e of undo) for (const p of core.tree.panes(e.before.layout.root)) ids.add(p.id);
+  const keep = <T,>(r: Record<NodeId, T>) => (Object.keys(r).every((id) => ids.has(id)) ? r : Object.fromEntries(Object.entries(r).filter(([id]) => ids.has(id))));
+  // Unsaved work, commands and activity belong to mounted content; state also survives in the undo stack.
+  // The same content stays mounted when its object changes, so these go only with the pane.
+  const live = new Set(core.tree.panes(layout.root).map((p) => p.id));
+  const mounted = <T,>(r: Record<NodeId, T>) => (Object.keys(r).every((id) => live.has(id)) ? r : Object.fromEntries(Object.entries(r).filter(([id]) => live.has(id))));
+  return { paneState: keep(s.paneState), unsaved: mounted(s.unsaved), paneCommands: mounted(s.paneCommands), activity: mounted(s.activity) };
+}
+
 const sameView = (a: ViewState, b: ViewState) => a.focused === b.focused && a.zoomed === b.zoomed && a.peek === b.peek;
 
 /** Commit an outcome. Returns the last step's `result`. */
@@ -143,12 +177,22 @@ export function apply(io: ApplyIO, o: Outcome): NodeId | undefined {
     if (o.msg) io.announce(o.msg);
   } else {
     const layoutChanged = next.layout !== s.layout, viewChanged = !sameView(next.view, s.view);
+    // Unsaved work is never lost without asking. A following detail keeps its object instead (it moves on its own
+    // while the person browses the list: a question each time would be worse).
+    const losing = layoutChanged ? wouldLoseWork(s, next.layout) : [];
+    if (losing.length) {
+      if (o.op === "follow") return apply(io, refuse(msg.keptUnsaved(s.unsaved[losing[0]!]!)));
+      io.set({ confirm: { panes: losing, change: o } });
+      return undefined;
+    }
     const geometry = o.geometry ?? p.geometry;
     const check = layoutChanged && io.unstable && (geometry === "focus" || geometry === "swap") ? geometryOf(io.snapshot().m) : null;
     if (layoutChanged || viewChanged || o.patch || o.undo) {
       // A reshape is counted, so the workspace can let panes slide to their new place.
       const motion = layoutChanged && geometry === "reshape" ? { reshapes: s.reshapes + 1 } : {};
-      io.set({ layout: next.layout, view: layoutChanged || viewChanged ? next.view : s.view, ...o.patch, ...motion, undoStack: pruneUndo(o.undo ?? s.undoStack, next.layout) });
+      const undoStack = pruneUndo(o.undo ?? s.undoStack, next.layout);
+      const pruned = layoutChanged ? prunePanes({ ...s, ...o.patch }, next.layout, undoStack) : {};
+      io.set({ layout: next.layout, view: layoutChanged || viewChanged ? next.view : s.view, ...o.patch, ...motion, ...pruned, undoStack });
       if (check !== null) { const after = geometryOf(io.snapshot().m); if (after !== check) io.unstable!(o.op, check, after); }
       io.url(layoutChanged ? p.history : viewChanged ? "replace" : "none");
       if (o.msg && (layoutChanged || (p.announceWhen === "change" && viewChanged))) io.announce(o.msg);

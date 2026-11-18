@@ -11,11 +11,15 @@ import { Empty, ErrorState, Loading, Shell } from "../shared/states";
 import { useResultWindow } from "../grid/useWindow";
 import type { PaneComponentProps } from "../../ui/pane-kinds";
 import { keyHint } from "../../ui/commands/format";
+import { usePaneState } from "../../ui/pane/usePaneState";
 
 export const DEFAULT_SQL = "SELECT region, SUM(amount_cents) AS amount_cents\nFROM sample_orders\nGROUP BY region\nORDER BY amount_cents DESC";
 
-export function QueryPane({ ref, paused, focused, openBeside, setActivity }: PaneComponentProps) {
-  const [sql, setSql] = useState(typeof ref.params.sql === "string" ? ref.params.sql : DEFAULT_SQL);
+export function QueryPane({ ref, paused, focused, openBeside, setActivity, setUnsaved, setCommands }: PaneComponentProps) {
+  const start = typeof ref.params.sql === "string" ? ref.params.sql : DEFAULT_SQL;
+  // The draft is the pane's own state: it outlives a fold, a tab switch and a reload.
+  const [sql, setSql] = usePaneState("sql", start);
+  const [ran, setRan] = usePaneState("ran", start);
   const [handle, setHandle] = useState<ResultHandle | null>(null);
   const [error, setError] = useState<string | null>(null);
   const run = useRun();
@@ -24,6 +28,7 @@ export function QueryPane({ ref, paused, focused, openBeside, setActivity }: Pan
 
   const exec = (andChart = false) => {
     setError(null);
+    setRan(sql);
     run.mutate(sql, {
       onSuccess: (h) => {
         setHandle(h);
@@ -32,6 +37,23 @@ export function QueryPane({ ref, paused, focused, openBeside, setActivity }: Pan
       onError: (e) => setError(e instanceof Error ? e.message : String(e)),
     });
   };
+
+  // An edit that has not run is work the person would lose by closing the pane.
+  const edited = sql.trim() !== ran.trim();
+  useEffect(() => { setUnsaved(edited ? "an edited query that has not run" : null); }, [setUnsaved, edited]);
+  useEffect(() => () => setUnsaved(null), [setUnsaved]);
+
+  // ⌘K lists what this pane can do while it is focused.
+  const latest = useRef({ exec, handle });
+  latest.current = { exec, handle };
+  const busy = run.isPending, empty = !sql.trim(), hasResult = !!handle;
+  useEffect(() => {
+    setCommands([
+      { id: "run", title: "Run query", keys: keyHint("Mod+Enter"), disabled: busy ? "Already running" : empty ? "The query is empty" : false, run: () => latest.current.exec() },
+      { id: "chart", title: "Chart this result", disabled: hasResult ? false : "Run the query first", run: () => { const h = latest.current.handle; if (h) openBeside(chartRef(h.runId)); } },
+    ]);
+  }, [setCommands, openBeside, busy, empty, hasResult]);
+  useEffect(() => () => setCommands(null), [setCommands]);
 
   // Presets can ask the query to run on load and hand its result handle to the linked chart.
   const autorun = useRef(false);

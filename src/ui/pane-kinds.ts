@@ -18,9 +18,29 @@
  *   ⌘Z for your own undo, the first Esc); let the rest bubble. Character keys must only act while your content has
  *   focus (WCAG 2.1.4). Content that needs every key (an editor) marks itself `data-pane-keys="content"`: the pane
  *   layer then only takes F6 / ⇧F6 there, so focus can always leave.
+ * - Unsaved work: report it with `setUnsaved("an edited query that has not run")` and clear it with `null` once it is
+ *   saved. Closing the pane, closing others, a preset or showing another object in it then asks the person first;
+ *   a following detail keeps its object. Moving, tabbing, folding and tucking never ask: the content stays mounted.
+ * - State the person expects back (a draft, a sort, a scroll position): `usePaneState(key, initial)` from
+ *   ui/pane/usePaneState. The workspace keeps it through folds and reloads and drops it when the pane closes or
+ *   shows another object. JSON values only.
+ * - Commands: `setCommands([...])` in an effect lists them in ⌘K, first, while the pane is focused. Call it again
+ *   when they change and with `null` on unmount.
  */
 import type { ComponentType, ReactNode } from "react";
 import type { KindRegistry, ObjectRef, PaneKind, PaneNode } from "../layout-core/types";
+
+/**
+ * A command a pane adds to ⌘K while it is focused ("Run query", "Save"). `keys` is the label only: the content
+ * handles its own keys (content first). `disabled` greys it out, with the reason read to screen readers.
+ */
+export interface PaneCommand {
+  id: string;
+  title: string;
+  run: () => void;
+  keys?: string;
+  disabled?: string | false;
+}
 
 /** What a pane reports about itself; shown in its header, its tab, the shelf and the status line. */
 export type PaneActivity = "idle" | "loading" | "working" | "needs-you" | "error";
@@ -50,6 +70,13 @@ export interface PaneComponentProps {
   dismiss: () => void;
   /** Report activity for the header, tab, shelf and status line. Optional to call. */
   setActivity: (activity: PaneActivity) => void;
+  /**
+   * Report unsaved work ("an unsaved query"), or `null` once it is saved or gone. While a pane has some, nothing
+   * closes it, replaces its object or swaps it out without asking the person first; a following detail stays put.
+   */
+  setUnsaved: (what: string | null) => void;
+  /** The commands this pane adds to ⌘K while focused; `null` removes them. Call again whenever they change. */
+  setCommands: (commands: PaneCommand[] | null) => void;
   /** Workspace sources, given to transient kinds (the chooser a split opens). */
   recent?: ObjectRef[];
   isOpen?: (ref: ObjectRef) => boolean;

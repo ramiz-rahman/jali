@@ -10,6 +10,7 @@ import { Workspace } from "./workspace/Workspace";
 import { ReviewPage } from "./chrome/ReviewBar";
 import { Palette } from "./dialogs/Palette";
 import { Chooser } from "./dialogs/Chooser";
+import { ConfirmDiscard } from "./dialogs/ConfirmDiscard";
 import { SettingsPanel } from "./dialogs/Settings";
 import { resolveTheme } from "./state/settings";
 import { StoreProvider, useStore, useUi } from "./state/react";
@@ -60,6 +61,7 @@ export function App({ store, data }: { store: UiStore; data: DataLayer }) {
           <Palette />
           <SettingsPanel />
           <Chooser />
+          <ConfirmDiscard />
           <Toasts />
         </DataLayerProvider>
       </QueryClientProvider>

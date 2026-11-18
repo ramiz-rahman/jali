@@ -39,3 +39,15 @@
 .radio input { accent-color: var(--accent); margin: 0; }
 .row-field { display: flex; align-items: center; gap: 10px; color: var(--text-2); }
 .row-field input { width: 56px; height: 28px; background: var(--island); color: var(--text); border: 1px solid var(--control); border-radius: 6px; padding: 0 6px; font-family: var(--mono); text-align: right; }
+
+/* "Discard unsaved changes?" */
+.confirm {
+  width: min(420px, calc(100vw - 32px)); background: var(--island); border: 1px solid var(--line);
+  border-radius: 12px; box-shadow: var(--shadow-dialog); padding: 16px;
+}
+.confirm h2 { font-size: 14px; font-weight: 600; margin: 0 0 8px; }
+.confirm p { margin: 0 0 8px; color: var(--text-2); }
+.confirm ul { margin: 0 0 16px; padding-left: 18px; color: var(--text-2); }
+.confirm footer { display: flex; justify-content: flex-end; gap: 8px; }
+.text-btn.is-primary { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+.text-btn.is-primary:hover { color: var(--on-accent); filter: brightness(1.08); }

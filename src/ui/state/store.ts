@@ -5,11 +5,11 @@
  */
 import * as core from "../../layout-core";
 import type { Layout, LayoutContext, NodeId, ObjectRef, UndoEntry, ViewState } from "../../layout-core/types";
-import type { PaneActivity, PaneKinds } from "../pane-kinds";
+import type { PaneActivity, PaneCommand, PaneKinds } from "../pane-kinds";
 import { DEFAULT_PRESET, presetById, type PresetId } from "../presets";
 import { GAP, initialArea } from "../tokens";
 import { bindActions, type Actions } from "../actions";
-import { apply, type Deferred, type HistoryMode, type Outcome, type Snapshot, type Toast } from "./apply";
+import { apply, type Change, type Deferred, type HistoryMode, type Outcome, type Snapshot, type Toast } from "./apply";
 import { modelCache, type WorkspaceModel } from "./model";
 import { loadSettings, systemPrefersDark, type Settings } from "./settings";
 import { loadPrefs, type ReviewPrefs } from "./review-prefs";
@@ -19,6 +19,8 @@ import { createKeymap, type Keymap, type KeymapOptions, type KeymapOverrides } f
 
 /** A drag in progress. `label` names a view dragged from a page's tabs, which may not be on screen. */
 export interface DndState { dragged: NodeId; x: number; y: number; target?: NodeId; zone?: import("../../layout-core/types").Edge | "centre"; label?: string }
+/** "Discard unsaved changes?": the panes that would lose work and the change, applied as is on Discard. */
+export interface ConfirmState { panes: NodeId[]; change: Change }
 /** A chooser dialog opened by a command (⌘K "Add to tabs of…"). */
 export interface ChooserState { kind: "merge"; source: NodeId }
 
@@ -66,6 +68,14 @@ export interface UiState {
   reshapes: number;
   /** A page tab hovered with ⌥ held: the workspace previews where it would open beside. */
   ghost: string | null;
+  /** Panes with unsaved work, and what it is (PaneComponentProps.setUnsaved). */
+  unsaved: Record<NodeId, string>;
+  /** A change that would lose unsaved work, held until the person discards it or keeps editing. */
+  confirm: ConfirmState | null;
+  /** Each pane's commands for ⌘K (PaneComponentProps.setCommands). */
+  paneCommands: Record<NodeId, PaneCommand[]>;
+  /** Each pane's own state (usePaneState): JSON values, kept through folds, tabs and reloads, dropped on close. */
+  paneState: Record<NodeId, Record<string, unknown>>;
   /** The live region's text; `seq` makes a repeat a new announcement. */
   announcement: { text: string; seq: number };
 }
@@ -149,6 +159,17 @@ function createDom(id: string): WorkspaceDom {
   };
 }
 
+const PANE_STATE_KEY = "pane-state";
+function loadPaneState(storage: StoragePort): Record<NodeId, Record<string, unknown>> {
+  try {
+    const v = JSON.parse(storage.get(PANE_STATE_KEY) ?? "{}") as unknown;
+    return v && typeof v === "object" && !Array.isArray(v) ? (v as Record<NodeId, Record<string, unknown>>) : {};
+  } catch {
+    return {};
+  }
+}
+export const savePaneState = (storage: StoragePort, state: UiState["paneState"]) => storage.set(PANE_STATE_KEY, JSON.stringify(state));
+
 const DEV = !!(import.meta as unknown as { env?: { DEV?: boolean } }).env?.DEV;
 
 export function createUiStore(deps: UiStoreDeps): UiStore {
@@ -176,6 +197,10 @@ export function createUiStore(deps: UiStoreDeps): UiStore {
     announcement: { text: "", seq: 0 },
     reshapes: 0,
     ghost: null,
+    unsaved: {},
+    confirm: null,
+    paneCommands: {},
+    paneState: loadPaneState(storage),
     ...deps.initial,
   };
   const subs = new Set<() => void>();

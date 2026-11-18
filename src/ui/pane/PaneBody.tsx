@@ -2,7 +2,8 @@ import { memo, useMemo } from "react";
 import type { NodeId, ObjectRef, PaneNode } from "../../layout-core/types";
 import type { Actions } from "../actions";
 import { openPaneFor } from "../actions/open";
-import { type PaneActivity, type PaneComponentProps, type PaneKindDef } from "../pane-kinds";
+import { type PaneActivity, type PaneCommand, type PaneComponentProps, type PaneKindDef } from "../pane-kinds";
+import { PaneIdContext } from "./usePaneState";
 import { useModel, useUi, useEnv } from "../state/react";
 import type { UiStore } from "../state/store";
 import { KindIcon } from "./icons";
@@ -17,6 +18,8 @@ export interface PaneHost {
   openHere(ref: ObjectRef): void;
   dismiss(): void;
   setActivity(a: PaneActivity): void;
+  setUnsaved(what: string | null): void;
+  setCommands(commands: PaneCommand[] | null): void;
 }
 
 export const paneHost = (actions: Actions, id: NodeId): PaneHost => ({
@@ -26,6 +29,8 @@ export const paneHost = (actions: Actions, id: NodeId): PaneHost => ({
   openHere: (ref) => actions.openHere(id, ref),
   dismiss: () => actions.dismiss(id),
   setActivity: (a) => actions.setActivity(id, a),
+  setUnsaved: (what) => actions.setUnsaved(id, what),
+  setCommands: (commands) => actions.setPaneCommands(id, commands),
 });
 
 export function peekHost(store: UiStore): PaneHost {
@@ -35,7 +40,7 @@ export function peekHost(store: UiStore): PaneHost {
     openBeside: (ref) => store.actions.openBeside(source(), ref),
     peek: (ref) => store.actions.peek(ref, source()),
     select: (ref) => store.actions.select(source(), ref),
-    openHere: none, dismiss: none, setActivity: none,
+    openHere: none, dismiss: none, setActivity: none, setUnsaved: none, setCommands: none,
   };
 }
 
@@ -63,9 +68,13 @@ export const PaneBody = memo(
       );
     }
     const props = { node, ref: node.ref, paused, focused, inPeek, ...host };
-    if (def.transient) return <WithSources def={def} props={props} />;
     const C = def.Component;
-    return <C {...props} />;
+    // The peek sheet shows a node that is not in the layout: it has no state of its own to keep.
+    return (
+      <PaneIdContext.Provider value={inPeek ? null : node.id}>
+        {def.transient ? <WithSources def={def} props={props} /> : <C {...props} />}
+      </PaneIdContext.Provider>
+    );
   },
   (a, b) =>
     a.host === b.host && a.node.id === b.node.id && a.paused === b.paused && a.focused === b.focused &&

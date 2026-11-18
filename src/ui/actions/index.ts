@@ -14,6 +14,7 @@ import { commitDividerDrag, enterResizeMode, leaveResizeMode, nudgeDivider, rese
 import { openPeekFull, peek, pinPeek, select } from "./peek";
 import { follow, setPinned } from "./follow";
 import { arrive, preset, resetLayout, setActivity } from "./layout";
+import { discardAndContinue, keepEditing, setPaneCommands, setPaneState, setUnsaved } from "./content";
 import { activate, backToReview, enterReview, hideRole, leaveReview, openTab, openTabBeside, placeTab, resetReview, setCanInvestigate, setMode } from "./review";
 
 export const ACTIONS = {
@@ -26,6 +27,7 @@ export const ACTIONS = {
   resizeDivider, setDividerSize, nudgeDivider, commitDividerDrag, resetDivider, enterResizeMode, leaveResizeMode,
   peek, pinPeek, openPeekFull, select, follow, setPinned,
   preset, resetLayout, arrive, setActivity,
+  setUnsaved, setPaneCommands, setPaneState, discardAndContinue, keepEditing,
   enterReview, leaveReview, setMode, openTab, openTabBeside, placeTab, resetReview, activate, backToReview, hideRole, setCanInvestigate,
 };
 
