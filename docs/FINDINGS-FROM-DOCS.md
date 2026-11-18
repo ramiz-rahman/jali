@@ -32,7 +32,7 @@
 21. Done 19 Nov: `define.ts` no longer names lab paths. ~~`react/src/define.ts:15,25` points at lab paths (`src/data/react`, `ui/pane/usePaneState`).~~
 22. Done 19 Nov: the comment imports `@jali/react/…`. ~~`react/src/styles/jali-tailwind.css:4-6` imports `"jali/react/…"`; should be `"@jali/react/…"`.~~
 23. ~~`jali-theme.css` defaults are cool zinc~~ Done 19 Nov: stone is the default (founder).
-24. `examples/minimal` declares its layer order after Jali's CSS loads (`app.css:1`), so it teaches the wrong order.
+24. Done 19 Nov: the layer order is a `<style>` in `index.html`, before any stylesheet; the example registers a launcher kind, so Split works (checked in Chrome). ~~`examples/minimal` declares its layer order after Jali's CSS loads (`app.css:1`), so it teaches the wrong order.~~
 
 ## From the live parts and the reference
 25. **Mounting a workspace pulls page focus into it** when focus is on the body (`core/src/dom/focus.ts:35`, `keepPaneFocus` from `Workspace.tsx`). A docs page with three workspaces, or a host with a workspace below the fold, loses its place. Only move focus for a change the person made.
