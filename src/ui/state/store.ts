@@ -14,6 +14,7 @@ import { modelCache, type WorkspaceModel } from "./model";
 import { loadSettings, systemPrefersDark, type Settings } from "./settings";
 import { loadPrefs, type ReviewPrefs } from "./review-prefs";
 import type { Env, ViewMode, WorkspaceProfile } from "../profile";
+import { browserStorage, type StoragePort } from "../ports";
 import { createKeymap, type Keymap, type KeymapOptions, type KeymapOverrides } from "../commands/keymap";
 
 /** A drag in progress. `label` names a view dragged from a page's tabs, which may not be on screen. */
@@ -70,7 +71,11 @@ export interface UiState {
 }
 
 /** The URL sink: writes the state (read when the write happens) to the address bar in a history mode. */
-export interface UrlWriter { write(state: () => UiState, mode: HistoryMode): void }
+export interface UrlWriter {
+  write(state: () => UiState, mode: HistoryMode): void;
+  /** The address to share ("Copy link"). */
+  href?(): string;
+}
 
 export interface UiStoreDeps {
   /** This workspace's pane kinds (createPaneKinds). */
@@ -80,6 +85,9 @@ export interface UiStoreDeps {
   url?: UrlWriter;
   /** Moves DOM focus into a pane after the next paint (dom/focus.ts), looking inside the workspace's root. */
   focusPane?: (scope: WorkspaceDom, id: NodeId) => void;
+  /** What this person keeps on this device: settings, a curated page's mode and layout. Default: localStorage
+   *  under "pane-lab". */
+  storage?: StoragePort;
   /** Prefix for this workspace's DOM ids. Give each workspace on one page its own. Default "jali". */
   id?: string;
   initial?: Partial<UiState>;
@@ -112,6 +120,9 @@ export interface UiStore {
   env: Env;
   /** Where this workspace lives in the DOM. */
   dom: WorkspaceDom;
+  storage: StoragePort;
+  /** The address to share, from the URL port. */
+  href(): string;
 }
 
 /**
@@ -143,13 +154,14 @@ const DEV = !!(import.meta as unknown as { env?: { DEV?: boolean } }).env?.DEV;
 export function createUiStore(deps: UiStoreDeps): UiStore {
   const env: Env = { kinds: deps.kinds, profile: deps.profile ?? null };
   const dom = createDom(deps.id ?? "jali");
+  const storage = deps.storage ?? browserStorage("pane-lab");
   let state: UiState = {
     layout: presetById(DEFAULT_PRESET).build(),
     review: null,
-    prefs: loadPrefs(env.profile?.id, env.kinds.registry()),
+    prefs: loadPrefs(storage, env.profile?.id, env.kinds.registry()),
     view: { focusHistory: [] },
     presetId: DEFAULT_PRESET,
-    settings: loadSettings(),
+    settings: loadSettings(storage),
     systemDark: systemPrefersDark(),
     undoStack: [],
     activity: {},
@@ -218,6 +230,8 @@ export function createUiStore(deps: UiStoreDeps): UiStore {
     keymap: createKeymap(deps.keymap, deps.keymapOptions),
     env,
     dom,
+    storage,
+    href: () => deps.url?.href?.() ?? (typeof location === "undefined" ? "" : location.href),
   };
   const io = {
     get: store.get,

@@ -1,3 +1,4 @@
+import type { StoragePort } from "../ports";
 /** Settings: defaults, persistence, and the theme (one mechanism: `data-theme` on <html> is always the resolved theme). */
 
 export type ThemeChoice = "system" | "light" | "dark";
@@ -13,12 +14,12 @@ export interface Settings {
 }
 
 export const DEFAULT_SETTINGS: Settings = { centreDrop: "swap", paneCap: 8, showStats: true, theme: "system", boundary: "tint" };
-const KEY = "pane-lab:settings";
+const KEY = "settings";
 
 /** Saved settings over the defaults. Keys from older builds (the divider adapter) are dropped. */
-export function loadSettings(): Settings {
+export function loadSettings(storage: StoragePort): Settings {
   try {
-    const saved = JSON.parse(localStorage.getItem(KEY) ?? "{}") as Partial<Settings> & { adapter?: unknown };
+    const saved = JSON.parse(storage.get(KEY) ?? "{}") as Partial<Settings> & { adapter?: unknown };
     const { adapter: _dropped, ...known } = saved;
     const s: Settings = { ...DEFAULT_SETTINGS, ...known };
     if (s.theme !== "light" && s.theme !== "dark") s.theme = "system";
@@ -29,8 +30,8 @@ export function loadSettings(): Settings {
   }
 }
 
-export function saveSettings(s: Settings) {
-  try { localStorage.setItem(KEY, JSON.stringify(s)); } catch { /* private mode */ }
+export function saveSettings(storage: StoragePort, s: Settings) {
+  storage.set(KEY, JSON.stringify(s));
 }
 
 export const resolveTheme = (choice: ThemeChoice, systemDark: boolean): Theme => (choice === "system" ? (systemDark ? "dark" : "light") : choice);

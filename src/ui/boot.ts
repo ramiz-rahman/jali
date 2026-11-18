@@ -48,13 +48,13 @@ export function startUi(store: UiStore, url: UrlSync): () => void {
   applyTheme(resolveTheme(prev.settings.theme, prev.systemDark));
   const offStore = store.subscribe(() => {
     const s = store.get();
-    if (s.settings !== prev.settings) saveSettings(s.settings);
+    if (s.settings !== prev.settings) saveSettings(store.storage, s.settings);
     // A curated page's mode and multiplexed layout are the person's: saved on this device, opened panes left out.
     const p = store.env.profile;
     const live = s.review?.mode === "multi" && s.layout !== prev.layout;
     if (p && (live || s.prefs !== prev.prefs)) {
       const layout = s.review?.mode === "multi" ? s.layout : s.prefs.multi;
-      savePrefs(p.id, { mode: s.prefs.mode, multi: layout ? withoutOpened(layout, store.ctx()) : null });
+      savePrefs(store.storage, p.id, { mode: s.prefs.mode, multi: layout ? withoutOpened(layout, store.ctx()) : null });
     }
     if (s.settings.theme !== prev.settings.theme || s.systemDark !== prev.systemDark) applyTheme(resolveTheme(s.settings.theme, s.systemDark));
     prev = s;

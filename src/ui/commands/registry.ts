@@ -95,7 +95,7 @@ export const commandById = (id: string) => byId.get(id);
 export const shortcutLabel = (store: Pick<UiStore, "keymap">, id: string) => store.keymap.label(id);
 
 export function copyLink(store: UiStore) {
-  const url = location.href;
+  const url = store.href();
   navigator.clipboard?.writeText(url).then(() => store.announce(msg.linkCopied), () => store.announce(msg.linkNotCopied));
 }
 
