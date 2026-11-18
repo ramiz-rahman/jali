@@ -1,8 +1,9 @@
 /** The location and storage ports: a router owns the address, and Jali keeps to its own params. */
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { createLabStore } from "../lab";
 import { memoryLocation, memoryStorage } from "../../packages/core/src/ports";
 import { createUrlSync } from "../../packages/core/src/url";
+import { decode } from "../../packages/core/src/layout";
 
 const area = { width: 1600, height: 900 };
 
@@ -63,5 +64,40 @@ describe("the storage port", () => {
     // A store starts from what its own storage holds, and never reads the browser's.
     const saved = memoryStorage({ settings: JSON.stringify({ paneCap: 2 }) });
     expect(createLabStore({ storage: saved, initial: { area } }).get().settings.paneCap).toBe(2);
+  });
+});
+
+describe("what a link carries about sizes", () => {
+  const userSized = (search: string, kinds: Parameters<typeof decode>[1]) => {
+    const layout = decode(new URLSearchParams(search).get("l")!, kinds)!;
+    return JSON.stringify(layout.root).includes("userSized");
+  };
+  const dragged = (sizes: "link" | "local") => {
+    vi.useFakeTimers();
+    const location = memoryLocation();
+    const storage = memoryStorage();
+    const url = createUrlSync({ location, storage, sizes });
+    const store = createLabStore({ url, storage: memoryStorage(), initial: { area } });
+    store.actions.preset("order-chain");
+    store.actions.resizeDivider("r", 0, 160);
+    vi.advanceTimersByTime(500);
+    vi.useRealTimers();
+    return { location, storage, store, kinds: store.env.kinds.registry() };
+  };
+
+  it("local (the default): the link has the designed sizes, and the person's own reload keeps theirs", () => {
+    const { location, storage, store, kinds } = dragged("local");
+    expect(userSized(location.search(), kinds)).toBe(false);
+    const mine = createUrlSync({ location: memoryLocation(location.search()), storage, sizes: "local" }).read(kinds);
+    expect(mine && "layout" in mine && mine.layout.root).toEqual(store.get().layout.root);
+    const theirs = createUrlSync({ location: memoryLocation(location.search()), storage: memoryStorage(), sizes: "local" }).read(kinds);
+    expect(theirs && "layout" in theirs && JSON.stringify(theirs.layout.root).includes("userSized")).toBe(false);
+  });
+
+  it("link: the link reopens exactly, sizes included", () => {
+    const { location, store, kinds } = dragged("link");
+    expect(userSized(location.search(), kinds)).toBe(true);
+    const read = createUrlSync({ location: memoryLocation(location.search()), storage: memoryStorage(), sizes: "link" }).read(kinds);
+    expect(read && "layout" in read && read.layout.root).toEqual(store.get().layout.root);
   });
 });

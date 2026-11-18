@@ -3,7 +3,7 @@
  * history entry; resizes replace it 120ms after the last move; view changes replace immediately.
  */
 import * as core from "./layout";
-import type { KindRegistry, Layout, ObjectRef, ViewState } from "./layout/types";
+import type { KindRegistry, Layout, LayoutNode, NodeId, ObjectRef, ViewState } from "./layout/types";
 import type { HistoryMode } from "./state/apply";
 import type { UiState, UrlWriter } from "./state/store";
 import { browserLocation, browserStorage, type LocationPort, type StoragePort } from "./ports";
@@ -87,6 +87,53 @@ export function readSearch(search: string, kinds: KindRegistry, k: UrlKeys = url
   return { layout, view };
 }
 
+/**
+ * What a layout link carries about sizes. "link": everything, so the link reopens exactly as it was (Data Studio).
+ * "local": the layout as designed; sizes the person dragged stay on their device, keyed by the layout's structure,
+ * so their own reloads keep them and a colleague opens the link at the designed proportions.
+ */
+export type LinkSizes = "link" | "local";
+
+/** A node's sizes, as the person left them. */
+export type PersonalSizes = Record<NodeId, Pick<LayoutNode, "size" | "base" | "userSized">>;
+
+/** The layout with every divider the person moved put back (each node's `base`, else an equal share), and those sizes. */
+export function splitPersonalSizes(layout: Layout): { layout: Layout; sizes: PersonalSizes } {
+  const sizes: PersonalSizes = {};
+  const strip = (n: LayoutNode): LayoutNode => {
+    const out = { ...n } as LayoutNode;
+    if (n.base !== undefined || n.userSized) {
+      sizes[n.id] = { size: n.size, ...(n.base ? { base: n.base } : {}), ...(n.userSized ? { userSized: true } : {}) };
+      out.size = n.base ?? { weight: 1 };
+      delete out.base;
+      delete out.userSized;
+    }
+    if (out.type !== "pane") (out as Exclude<LayoutNode, { type: "pane" }>).children = (out as Exclude<LayoutNode, { type: "pane" }>).children.map(strip);
+    return out;
+  };
+  return { layout: { ...layout, root: strip(layout.root) }, sizes };
+}
+
+/** `layout` with the person's sizes put back on the nodes that still exist. */
+export function joinPersonalSizes(layout: Layout, sizes: PersonalSizes): Layout {
+  const put = (n: LayoutNode): LayoutNode => {
+    const own = sizes[n.id];
+    const out = (own ? { ...n, ...own } : { ...n }) as LayoutNode;
+    if (out.type !== "pane") (out as Exclude<LayoutNode, { type: "pane" }>).children = (out as Exclude<LayoutNode, { type: "pane" }>).children.map(put);
+    return out;
+  };
+  return { ...layout, root: put(layout.root) };
+}
+
+/** The layout's shape (ids, types and what each pane shows), so sizes kept for one layout never land on another. */
+export function structureKey(layout: Layout): string {
+  const sig = (n: LayoutNode): unknown => (n.type === "pane" ? [n.id, n.ref.kind, n.ref.params] : [n.id, n.type, n.children.map(sig)]);
+  const text = JSON.stringify(sig(layout.root));
+  let h = 5381;
+  for (let i = 0; i < text.length; i++) h = ((h << 5) + h + text.charCodeAt(i)) | 0;
+  return (h >>> 0).toString(36);
+}
+
 export interface UrlSync extends UrlWriter {
   read(kinds: KindRegistry): UrlRead | null;
   /** Keep a copy of a link that could not be read. */
@@ -102,12 +149,36 @@ export interface UrlSyncOptions {
   storage?: StoragePort;
   /** Prefix for the workspace's search params, when two workspaces share an address. */
   prefix?: string;
+  /** What a layout link carries about sizes (LinkSizes). Default "local": the layout as designed. */
+  sizes?: LinkSizes;
 }
 
-export function createUrlSync({ location = browserLocation(), storage = browserStorage("jali"), prefix }: UrlSyncOptions = {}): UrlSync {
+export function createUrlSync({ location = browserLocation(), storage = browserStorage("jali"), prefix, sizes = "local" }: UrlSyncOptions = {}): UrlSync {
   const keys = urlKeys(prefix);
+  const sizesKey = `${prefix ?? ""}sizes`;
   let timer: ReturnType<typeof setTimeout> | undefined;
-  const write = (s: UiState, push: boolean) => {
+  // "local": the sizes the person dragged, per layout structure (a few layouts, most recent first).
+  const loadSizes = (): [string, PersonalSizes][] => {
+    try {
+      const v = JSON.parse(storage.get(sizesKey) ?? "[]");
+      return Array.isArray(v) ? v : [];
+    } catch {
+      return [];
+    }
+  };
+  const keepSizes = (layout: Layout, own: PersonalSizes) => {
+    const key = structureKey(layout);
+    const rest = loadSizes().filter(([k]) => k !== key);
+    const next = Object.keys(own).length ? [[key, own] as [string, PersonalSizes], ...rest] : rest;
+    storage.set(sizesKey, JSON.stringify(next.slice(0, 12)));
+  };
+  const write = (s0: UiState, push: boolean) => {
+    let s = s0;
+    if (sizes === "local" && !s.review) {
+      const split = splitPersonalSizes(s.layout);
+      keepSizes(split.layout, split.sizes);
+      s = { ...s, layout: split.layout };
+    }
     const next = buildSearch(location.search(), s, keys);
     if (next === location.search()) return;
     location.navigate(next, push ? "push" : "replace");
@@ -120,7 +191,12 @@ export function createUrlSync({ location = browserLocation(), storage = browserS
       if (mode === "debounce") timer = setTimeout(() => write(state(), false), PERSIST_MS);
       else write(state(), mode === "push");
     },
-    read: (kinds) => readSearch(location.search(), kinds, keys),
+    read(kinds) {
+      const r = readSearch(location.search(), kinds, keys);
+      if (sizes !== "local" || !r || !("layout" in r)) return r;
+      const own = loadSizes().find(([k]) => k === structureKey(r.layout))?.[1];
+      return own ? { ...r, layout: joinPersonalSizes(r.layout, own) } : r;
+    },
     keepBroken: (code) => storage.set(BROKEN_KEY, code),
     onPop: (fn) => location.subscribe(fn),
     href: () => location.href(),

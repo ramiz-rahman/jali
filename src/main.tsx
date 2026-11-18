@@ -12,7 +12,8 @@ import "@jali/react/styles.css";
 const data = createDataLayer();
 void data.api.ready();
 
-const url = createUrlSync({ storage: browserStorage("pane-lab") });
+// Data Studio links reopen exactly, sizes included (the founder's round-trip rule, 17 Nov).
+const url = createUrlSync({ storage: browserStorage("pane-lab"), sizes: "link" });
 const store = createLabStore({ url, focusPane });
 boot(store, url);
 startUi(store, url);
