@@ -12,7 +12,9 @@
 .jali-text-btn:hover { border-color: var(--jali-text-muted); color: var(--jali-text); }
 
 /* ---------- workspace ---------- */
-.jali-workspace { position: relative; min-height: 0; min-width: 0; overflow: hidden; }
+/* `isolation`: the workspace's own layers (peek, drop preview, menus) stack inside it, never over the host's sticky
+   headers or other chrome. */
+.jali-workspace { position: relative; min-height: 0; min-width: 0; overflow: hidden; isolation: isolate; }
 /* What Jali draws is set in Jali's face: the workspace, and its dialogs (which render outside it). */
 .jali-workspace, .jali-scrim { font-family: var(--jali-font); }
 .jali-workspace-inner { position: absolute; }

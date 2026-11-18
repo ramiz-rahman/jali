@@ -5,6 +5,8 @@
  */
 @layer live {
 .live-figure {
+  /* A figure's layers (the spotlight's ring and label, the workspace) stack inside it, under the site's top bar. */
+  isolation: isolate;
   --live-radius: 0.875rem;
   --live-guide: var(--jali-border-strong);
   --live-scrim: color-mix(in srgb, var(--jali-canvas) 70%, transparent);
