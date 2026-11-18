@@ -56,13 +56,15 @@ export interface LiveWorkspaceProps {
   overlay?: ReactNode;
   wrapRef?: Ref<HTMLDivElement>;
   className?: string;
+  /** The status line under the panes (the shelf and a count). Default true. */
+  status?: boolean;
 }
 
 /**
  * The workspace in a box of a fixed height. The wrapper holds the Jali root and its dialogs, and is the keyboard's
  * scope: keys count for this workspace only when pressed inside it (or on the page body right after using it).
  */
-export function LiveWorkspace({ store, height, overlay, wrapRef, className }: LiveWorkspaceProps) {
+export function LiveWorkspace({ store, height, overlay, wrapRef, className, status = true }: LiveWorkspaceProps) {
   const wrap = useRef<HTMLDivElement | null>(null);
   useEffect(() => installKeyboard(store, { root: () => wrap.current }), [store]);
   const setRef = (el: HTMLDivElement | null) => {
@@ -74,7 +76,7 @@ export function LiveWorkspace({ store, height, overlay, wrapRef, className }: Li
     <div className={["live-ws", className].filter(Boolean).join(" ")} ref={setRef} style={{ height }}>
       <Jali store={store} className="live-jali" settings={false}>
         <JaliView />
-        <LiveStatus />
+        {status ? <LiveStatus /> : null}
       </Jali>
       {overlay}
     </div>
