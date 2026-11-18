@@ -302,3 +302,6 @@ Research, sources and the full table: `docs/research/keyboard-shortcuts.md`. Cod
 
 ## 19 Nov 2026 · Icons are Phosphor (founder)
 - Jali switches from Lucide to Phosphor (`@phosphor-icons/react`), the set Chakni uses, so an app with both shows one icon style. Done in the packages pass, with the docs.
+
+## 19 Nov 2026 · ⇧⌘↵ stays (founder)
+- `pane.zoom` keeps ⇧⌘↵ beside ⌘K ⌘M. This supersedes the 18 Nov keyboard entry that removed it; the code already binds it.

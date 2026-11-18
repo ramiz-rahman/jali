@@ -8,7 +8,7 @@
 3. **Both defaults save under `browserStorage("jali")`** (`state/store.ts:190`, `url.ts:186`): two stores overwrite each other's settings and pane state unless the host passes storage.
 4. **Split and "+" need a kind named "launcher".** `LAUNCHER` is hard-coded (`core/src/actions/open.ts:12`, used at :74, :121; `layout/ops/tabs.ts:40`); without it ⌘\ throws "Unknown pane kind" (examples/minimal does this). The launcher should be an option (or the commands refuse when there is none).
 5. **"Never a second copy of a row" doesn't hold:** with a pinned detail showing row X, opening X again from the list makes a new follower showing X (`follower()` is undefined). Contradicts DECISIONS (18 Nov).
-6. **⇧⌘↵ is still bound** (`commands/keymap.ts:39`) though DECISIONS (Keyboard, 18 Nov) says it was removed. Decide, then make code and decision agree.
+6. Resolved 19 Nov: ⇧⌘↵ stays (founder); DECISIONS updated.
 7. **`useActiveItemPort` keeps the first mapping:** `useMemo` deps leave out `mapping` (`react/src/pane/useActiveItemPort.ts:14`).
 8. **Per-workspace accent misses the dialogs:** derived tints are on `:root, [data-jali]` only, the comment says "and dialog", and dialogs render outside `[data-jali]` (`jali-theme.css`).
 
