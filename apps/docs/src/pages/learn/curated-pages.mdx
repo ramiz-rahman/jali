@@ -35,7 +35,7 @@ While a page is open, `<JaliView>` renders it: your rail, your header, the tabs,
 
 <Code code={pageStore} filename="store.ts" highlight="9,17" />
 
-A link opens a page with `?page=customer&item=7&tab=orders`. Without one, open it with `store.actions.openPage()`, or from ⌘K ("Open Customer"). `store.actions.leavePage()` goes back to the free workspace.
+A link opens a page with `?page=customer&item=7&tab=orders`. Without one, open it with `store.actions.openPage()`, or from ⌘K ("Open Customer"). `store.actions.leavePage()` goes back to the free workspace. A page-only app (a profile and no presets or layout) needs neither: the store starts on its page.
 
 ## Single: one view at a time
 

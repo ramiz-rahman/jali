@@ -127,6 +127,8 @@ export function openPage(x: Snapshot, o: OpenPage = {}): Outcome {
 
 /** Back to Data Studio: the person's own layout again. The page's mode and layout are kept for next time. */
 export function leavePage(x: Snapshot): Outcome {
+  // A page-only app has no free workspace to go back to.
+  if (!x.env.presets.length) return refuse();
   const studio = preset(x, x.s.presetId) as Change;
   return { ...studio, patch: { ...studio.patch, page: null, prefs: keep(x) }, undo: [] };
 }

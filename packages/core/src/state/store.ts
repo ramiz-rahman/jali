@@ -98,7 +98,7 @@ export interface UiStoreDeps {
   /** Layouts to start from, in menu order (the bar and ⌘K "Layout: …"). Default: none. */
   presets?: readonly Preset[];
   /** The preset the workspace opens on, when no link or saved state says otherwise. Default: the first. A workspace
-   *  without presets passes `initial.layout` instead. */
+   *  without presets passes `initial.layout` instead, or a `profile` alone: it then starts on its page. */
   preset?: string;
   /** The free workspace's name ("Data Studio"), in commands such as "Open Data Studio". Default "Workspace". */
   name?: string;
@@ -196,8 +196,10 @@ export function createUiStore(deps: UiStoreDeps): UiStore {
   const dom = createDom(deps.id ?? "jali");
   const storage = deps.storage ?? browserStorage("jali");
   const start = presetById(env, deps.preset);
-  const layout = deps.initial?.layout ?? start?.build();
-  if (!layout) throw new Error("createUiStore: give `presets` or an `initial.layout` to start from");
+  // A page-only app (a profile, no presets or layout) starts on its page.
+  const pageOnly = !deps.initial?.layout && !start && !!env.profile;
+  const layout = deps.initial?.layout ?? start?.build() ?? env.profile?.build(env.profile.firstItem);
+  if (!layout) throw new Error("createUiStore: give `presets`, an `initial.layout` or a `profile` to start from");
   let state: UiState = {
     layout,
     page: null,
@@ -293,5 +295,6 @@ export function createUiStore(deps: UiStoreDeps): UiStore {
     unstable: deps.unstable ?? (DEV ? (op: string) => console.error(`Layout stability: "${op}" is a focus or swap op but moved panes`) : undefined),
   };
   store.actions = bindActions(store);
+  if (pageOnly && !deps.initial?.page) store.actions.openPage();
   return store;
 }

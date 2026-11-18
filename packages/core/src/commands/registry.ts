@@ -73,7 +73,7 @@ function buildCommands(env: Env): Command[] {
   { id: "page.single", title: "Single: one view at a time", group: "Layout", check: ({ s }) => (s.page?.mode === "multi" ? undefined : refuse()), run: (u) => u.actions.setMode("single") },
   { id: "page.multi", title: "Multiplexed: views side by side", group: "Layout", check: ({ s }) => (s.page?.mode === "single" && s.page.canInvestigate ? undefined : refuse()), run: (u) => u.actions.setMode("multi") },
   { id: "page.open", title: `Open ${profile?.name ?? "page"}`, group: "Layout", check: ({ s }) => (s.page || !profile ? refuse() : undefined), run: (u) => u.actions.openPage() },
-  { id: "page.leave", title: `Open ${env.name}`, group: "Layout", check: ({ s }) => (s.page ? undefined : refuse()), run: (u) => u.actions.leavePage() },
+  { id: "page.leave", title: `Open ${env.name}`, group: "Layout", check: ({ s }) => (s.page && env.presets.length ? undefined : refuse()), run: (u) => u.actions.leavePage() },
   { id: "page.as_limited", title: `View as ${limited} (Single only, links peek)`, group: "Settings", check: ({ s }) => (s.page?.canInvestigate ? undefined : refuse()), run: (u) => u.actions.setCanInvestigate(false) },
   { id: "page.as_full", title: `View as ${full} (links open beside)`, group: "Settings", check: ({ s }) => (s.page && !s.page.canInvestigate ? undefined : refuse()), run: (u) => u.actions.setCanInvestigate(true) },
 

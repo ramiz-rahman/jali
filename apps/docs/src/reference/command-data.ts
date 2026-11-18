@@ -68,7 +68,7 @@ export const REFUSED: Record<string, string> = {
   "page.single": "Silent unless a curated page is open in Multiplexed.",
   "page.multi": "Silent unless a curated page is open in Single and the viewer may investigate.",
   "page.open": "Silent while the page is open, or when the workspace has no profile.",
-  "page.leave": "Silent unless a curated page is open.",
+  "page.leave": "Silent unless a curated page is open, and in a page-only app (no presets).",
   "page.as_limited": "Silent unless a curated page is open and the viewer may investigate.",
   "page.as_full": "Silent unless a curated page is open and the viewer may not investigate.",
   "peek.close": "Silent when no peek is open.",

@@ -63,4 +63,10 @@ describe("a curated page whose items are string ids (finding 13)", () => {
     store.actions.openPage({ item: "4" });
     expect(store.get().page?.item).toBe(4);
   });
+  it("a page-only app needs no preset: the store starts on its page (finding 14)", () => {
+    const store = createUiStore({ kinds: createPaneKinds([ticket]), profile, storage: memoryStorage(), focusPane: null, initial: { area: { width: 1200, height: 800 } } });
+    expect(store.get().page).toMatchObject({ profile: "desk", item: "t-abc" });
+    expect(store.model().pane("main")?.ref.params.id).toBe("t-abc");
+    expect(runCommand(store, "page.leave")).toBe(false);
+  });
 });
