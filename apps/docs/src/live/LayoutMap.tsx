@@ -43,7 +43,7 @@ function roleWords(p: PaneNode, m: WorkspaceModel): string | null {
 function Guest({ node, how, c }: { node: PaneNode; how: string; c: Ctx }) {
   const title = c.m.title(node.id);
   return (
-    <div className="live-map-guest" style={{ "--c": colourOf(node.id) } as CSSProperties} {...hoverProps(node.id, c, `${title}, ${how}`)}>
+    <div className="live-map-guest" style={{ "--c": colourOf(node.id), "--live-id": colourOf(node.id) } as CSSProperties} {...hoverProps(node.id, c, `${title}, ${how}`)}>
       <KindIcon kind={node.ref.kind} size={14} />
       <span className="live-map-guest-name">{title}</span>
       <span className="live-map-guest-how">{how}</span>
@@ -60,7 +60,7 @@ function PaneBox({ node, c, inStack }: { node: PaneNode; c: Ctx; inStack?: boole
   const lit = c.hover?.id === node.id;
   const size = ext ? `${px(ext.width)} wide` : "";
   return (
-    <div className="live-map-pane" data-in-stack={inStack || undefined} style={{ "--c": colourOf(node.id) } as CSSProperties}
+    <div className="live-map-pane" data-in-stack={inStack || undefined} style={{ "--c": colourOf(node.id), "--live-id": colourOf(node.id) } as CSSProperties}
       {...hoverProps(node.id, c, `Pane: ${title}${role ? `, ${role}` : ""}${size ? `, ${size}` : ""}`)}>
       <div className="live-map-pane-head">
         <KindIcon kind={node.ref.kind} size={15} />

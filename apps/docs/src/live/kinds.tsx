@@ -11,6 +11,23 @@ export const orderRef = (id: number) => ({ kind: "order", params: { id } });
 export const customerRef = (id: number) => ({ kind: "customer", params: { id } });
 export const notesRef = (customer: number) => ({ kind: "notes", params: { customer } });
 
+type IconProps = { size?: number; strokeWidth?: number; "aria-hidden"?: boolean };
+
+/**
+ * A kind's icon in a small circle tinted with its pane's colour (`--live-id`, set on the pane, its tab, its shelf chip
+ * and its map box), so the workspace and the map mark a pane the same way. Outside the live parts it falls back to
+ * a neutral circle.
+ */
+function circled(Icon: (p: IconProps) => React.ReactNode) {
+  return function CircledIcon({ size = 16, strokeWidth = 1.5 }: IconProps) {
+    return (
+      <span className="live-kind" style={{ width: size + 8, height: size + 8 }} aria-hidden>
+        <Icon size={size - 2} strokeWidth={Math.max(strokeWidth, 1.75)} aria-hidden />
+      </span>
+    );
+  };
+}
+
 const first = (name: string | undefined) => name?.split(" ")[0] ?? "customer";
 
 function Status({ s }: { s: OrderStatus }) {
@@ -138,22 +155,22 @@ function ActivityPane() {
 export const demoKinds = [
   definePaneKind({
     kind: "orders", title: () => "Orders", ref: (params) => ({ kind: "orders", params }),
-    minWidth: 200, comfortableWidth: 300, minHeight: 160, icon: ListOrdered, Component: OrdersPane,
+    minWidth: 200, comfortableWidth: 300, minHeight: 160, icon: circled(ListOrdered), Component: OrdersPane,
   }),
   definePaneKind({
     kind: "order", title: (r) => `Order ${r.params.id}`, ref: (params) => ({ kind: "order", params }),
-    minWidth: 190, comfortableWidth: 260, maxWidth: 420, minHeight: 160, icon: Receipt, Component: OrderPane,
+    minWidth: 190, comfortableWidth: 260, maxWidth: 420, minHeight: 160, icon: circled(Receipt), Component: OrderPane,
   }),
   definePaneKind({
     kind: "customer", title: (r) => customerById(r.params.id ?? 0)?.name ?? `Customer ${r.params.id}`, ref: (params) => ({ kind: "customer", params }),
-    minWidth: 170, comfortableWidth: 240, maxWidth: 380, minHeight: 160, icon: UserRound, Component: CustomerPane,
+    minWidth: 170, comfortableWidth: 240, maxWidth: 380, minHeight: 160, icon: circled(UserRound), Component: CustomerPane,
   }),
   definePaneKind({
     kind: "notes", title: (r) => `Notes on ${first(customerById(r.params.customer ?? 0)?.name)}`, ref: (params) => ({ kind: "notes", params }),
-    minWidth: 180, comfortableWidth: 240, maxWidth: 400, minHeight: 140, icon: StickyNote, Component: NotesPane,
+    minWidth: 180, comfortableWidth: 240, maxWidth: 400, minHeight: 140, icon: circled(StickyNote), Component: NotesPane,
   }),
   definePaneKind({
     kind: "activity", title: () => "Activity", ref: (params) => ({ kind: "activity", params }),
-    minWidth: 170, comfortableWidth: 220, maxWidth: 360, minHeight: 140, icon: ActivityIcon, Component: ActivityPane,
+    minWidth: 170, comfortableWidth: 220, maxWidth: 360, minHeight: 140, icon: circled(ActivityIcon), Component: ActivityPane,
   }),
 ];
