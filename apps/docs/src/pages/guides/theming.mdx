@@ -68,7 +68,7 @@ Jali's tokens switch to dark:
 - when the system prefers dark, unless the page or a parent says light (`.light` or `data-theme="light"`);
 - inside a `.dark` element or a `data-theme="dark"` one, whatever the system says.
 
-Jali also has its own theme setting (System, Light or Dark, in its settings panel), and `startUi` writes the result to `data-theme` on `<html>`. If your app has its own light and dark switch, pass the choice to Jali as well, so the two never disagree:
+Jali also has its own theme setting (System, Light or Dark, in its settings panel), and `startUi` writes the result to `data-theme` on `<html>`. If your app has its own light and dark switch, either pass the choice to Jali as well, so the two never disagree, or start it with `startUi(store, { theme: false })` so it never writes `data-theme` and follows your scopes:
 
 <Code code={dark} filename="src/theme.ts" />
 
