@@ -34,11 +34,14 @@ export function Jali({ store, children, overlays, settings = true, ...rest }: Ja
   return (
     <StoreProvider store={store}>
       <div {...rest} data-jali="" ref={store.dom.attach}>{children}</div>
-      <Announcer />
-      <Palette />
-      {settings ? <SettingsPanel /> : null}
-      <Chooser />
-      <ConfirmDiscard />
+      {/* The dialogs render outside the root but are this workspace's: keys pressed in them count as its own. */}
+      <div data-jali-layer="" ref={store.dom.attachLayer} style={{ display: "contents" }}>
+        <Announcer />
+        <Palette />
+        {settings ? <SettingsPanel /> : null}
+        <Chooser />
+        <ConfirmDiscard />
+      </div>
       {overlays}
     </StoreProvider>
   );

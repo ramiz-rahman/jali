@@ -159,17 +159,23 @@ export interface WorkspaceDom {
   /** The workspace's root element; the document until one is attached. */
   root(): ParentNode;
   attach(el: Element | null): void;
+  /** The element that holds this workspace's dialogs (palette, settings, confirmations), which render outside the
+   *  root; null until one is attached. Keys pressed there count as the workspace's. */
+  layer(): Element | null;
+  attachLayer(el: Element | null): void;
   /** The element with this workspace's pane id `id`, if rendered. */
   pane(id: NodeId): HTMLElement | null;
 }
 
 function createDom(id: string): WorkspaceDom {
-  let el: Element | null = null;
+  let el: Element | null = null, layer: Element | null = null;
   const root = (): ParentNode => el ?? document;
   return {
     id,
     root,
     attach: (next) => { el = next; },
+    layer: () => layer,
+    attachLayer: (next) => { layer = next; },
     pane: (pane) => (typeof document === "undefined" ? null : root().querySelector<HTMLElement>(`[id="${id}-pane-${pane}"]`)),
   };
 }
