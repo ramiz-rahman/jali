@@ -1,0 +1,44 @@
+---
+title: Live parts
+summary: Every live part with every demo layout, for building and checking them. Not in the nav.
+---
+
+import { TreeView, Frame, Spotlight } from "../live";
+
+## Tree view
+
+<TreeView layout="chain" caption="Hover a node to light its pane. Drag a divider, close or move a pane, and the tree follows." />
+
+<TreeView layout="two" height={300} caption="Two panes side by side: a row with two children." />
+
+<TreeView layout="nested" caption="A row with a column inside it." />
+
+<TreeView layout="stack" caption="A stack: three panes sharing one place as tabs." />
+
+<TreeView layout="crowded" showJson caption="More panes than fit: the overlay says which folded. Shown as JSON." />
+
+## Frame
+
+<Frame layout="crowded" caption="Drag the right edge. Panes fold into tabs as the frame narrows, and come back as it widens." />
+
+<Frame layout="chain" width={520} height={300} caption="The chain, starting at 520px." />
+
+<Frame layout="nested" height={300} />
+
+<Frame layout="stack" height={300} />
+
+<Frame layout="two" height={260} />
+
+## Spotlight
+
+<Spotlight layout="crowded" target="shelf" caption="The shelf lists panes that are folded or tucked." />
+
+<Spotlight layout="chain" target="follow" caption="The order follows the list: select another order to see it change." />
+
+<Spotlight layout="chain" target="drop-zones" caption="Drag a pane by its header: the drop zone shows where it lands." />
+
+<Spotlight layout="stack" target="tabs" caption="Tabs: panes that share one place." />
+
+<Spotlight layout="two" target="divider" caption="Drag the divider to share the room differently." />
+
+<Spotlight layout="nested" target=".jali-pane-header" label="Every pane has a header: its title, and a grip to drag it by" caption="Any selector inside the workspace works too." />

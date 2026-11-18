@@ -1,0 +1,340 @@
+/*
+ * The live parts: real Jali workspaces in docs figures, the layout tree beside them, the resizable frame and the
+ * spotlight. Everything reads Jali's --jali-* tokens, so light and dark follow the site; Nil indigo is the only accent.
+ * In the `live` layer, after `jali`, so these rules win over Jali's own without !important.
+ */
+@layer live {
+.live-figure {
+  --live-radius: 0.875rem;
+  --live-guide: var(--jali-border-strong);
+  --live-scrim: color-mix(in srgb, var(--jali-canvas) 70%, transparent);
+  container-type: inline-size;
+  margin: 2rem 0;
+  padding: 0;
+  font-family: var(--jali-font);
+  color: var(--jali-text);
+  -webkit-font-smoothing: antialiased;
+}
+.live-figure *, .live-figure *::before, .live-figure *::after { box-sizing: border-box; }
+/* The page's prose styles (headings, lists, paragraphs, tables) are for the text around a figure, not the
+   workspace inside it: undone here, then Jali's own values restored where prose would have beaten them. */
+.live-figure :is(h1, h2, h3, h4) { margin: 0; letter-spacing: normal; scroll-margin-top: 0; }
+.live-figure :is(p, blockquote) { margin: 0; padding: 0; border: 0; text-wrap: wrap; }
+.live-figure :is(ul, ol) { margin: 0; padding: 0; }
+.live-figure li { margin: 0; padding: 0; }
+.live-figure :is(td, th) { padding: 0; border-bottom: 0; vertical-align: middle; font: inherit; }
+.live-figure table { font-size: inherit; line-height: inherit; }
+.live-figure .jali-pane-title h2 { font: 500 0.8125rem/normal var(--jali-font); color: var(--jali-text); }
+.live-figure .jali-confirm h2 { font: 600 0.875rem/normal var(--jali-font); margin: 0 0 0.5rem; }
+.live-figure .jali-confirm p { margin: 0 0 0.5rem; }
+.live-figure .jali-confirm ul { margin: 0 0 1rem; padding-left: 1.125rem; }
+.live-figure .jali-confirm li { margin: 0; }
+.live-figure .jali-palette-list { padding: 0.375rem; }
+/* The site's reset makes every svg a block; Jali's icons sit in lines of text and expect the default. */
+.live-figure svg { display: inline; max-width: none; }
+.live-figure .jali-shelf-home { display: inline-flex; align-items: center; gap: 0.25rem; }
+.live-caption { margin: 0.625rem 0.125rem 0; font-size: 0.8125rem; line-height: 1.5; color: var(--jali-text-subtle); }
+.live-sr { position: absolute; width: 1px; height: 1px; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+/* ---------- the workspace in its box ---------- */
+.live-ws { position: relative; overflow: hidden; background: var(--jali-canvas); --switcher-h: 44px; }
+.live-jali { display: flex; flex-direction: column; height: 100%; min-height: 0; font-family: var(--jali-font); font-size: 0.875rem; line-height: 1.4; }
+.live-jali > .jali-workspace { flex: 1 1 0; }
+.live-statusbar {
+  flex: none; display: flex; align-items: center; gap: 0.75rem; height: 1.75rem; padding: 0 0.625rem;
+  border-top: 1px solid var(--jali-border); background: var(--jali-surface); font-size: 0.75rem; color: var(--jali-text-subtle);
+}
+.live-statusbar .jali-shelf { min-width: 0; }
+.live-statusbar[data-single] .jali-shelf { display: none; }
+.live-statusbar-count { margin-left: auto; flex: none; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.live-jali .jali-shelf-fade-l { background: linear-gradient(to right, var(--jali-surface), transparent); }
+
+/* Lit from the tree: the pane rings in indigo, the rest step back. */
+.live-ws .jali-pane { transition: opacity 160ms ease, box-shadow 160ms ease, border-color 160ms ease; }
+.live-ws .jali-pane[data-live-lit] { border-color: var(--jali-accent); box-shadow: 0 0 0 1px var(--jali-accent), 0 0 0 5px var(--jali-accent-mid); z-index: 6; }
+.live-ws .jali-pane[data-live-dim] { opacity: 0.38; }
+.live-ws [data-tab][data-live-lit] { background: var(--jali-accent-mid); color: var(--jali-text); box-shadow: inset 0 -2px 0 var(--jali-accent); }
+.live-ws [data-chip][data-live-lit] { border-color: var(--jali-accent); background: var(--jali-accent-weak); color: var(--jali-text); }
+@media (prefers-reduced-motion: reduce) { .live-ws .jali-pane { transition: none; } }
+
+/* ---------- small controls ---------- */
+.live-icon-btn {
+  display: inline-grid; place-items: center; width: 1.75rem; height: 1.75rem; padding: 0; flex: none;
+  border: 0; border-radius: var(--jali-radius-control); background: none; color: var(--jali-text-subtle); cursor: pointer;
+}
+.live-icon-btn:hover { background: var(--jali-hover); color: var(--jali-text); }
+.live-icon-btn:focus-visible, .live-seg button:focus-visible { outline: 2px solid var(--jali-focus-ring); outline-offset: 1px; }
+.live-seg { display: inline-flex; padding: 2px; gap: 2px; border-radius: 0.4375rem; background: var(--jali-canvas); border: 1px solid var(--jali-border); }
+.live-seg button {
+  height: 1.375rem; padding: 0 0.5625rem; border: 0; border-radius: 0.3125rem; background: none; cursor: pointer;
+  font: 500 0.6875rem/1 var(--jali-font); letter-spacing: 0.01em; color: var(--jali-text-subtle);
+}
+.live-seg button:hover { color: var(--jali-text); }
+.live-seg button[aria-pressed="true"] { background: var(--jali-surface); color: var(--jali-text); box-shadow: var(--jali-shadow-raised), 0 0 0 1px var(--jali-border); }
+
+/* ---------- Tree view: the workspace and its tree ---------- */
+.live-tv-grid {
+  display: grid; grid-template-columns: minmax(0, 1fr);
+  border: 1px solid var(--jali-border); border-radius: var(--live-radius); background: var(--jali-surface); overflow: hidden;
+}
+.live-tv .live-stage { position: relative; min-width: 0; }
+.live-panel { display: flex; flex-direction: column; min-width: 0; min-height: 0; border-top: 1px solid var(--jali-border); background: var(--jali-surface); }
+.live-panel-head {
+  flex: none; display: flex; align-items: center; justify-content: space-between; gap: 0.5rem;
+  height: 2.5rem; padding: 0 0.375rem 0 0.875rem; border-bottom: 1px solid var(--jali-border);
+}
+.live-panel-title { font-size: 0.75rem; font-weight: 500; color: var(--jali-text-muted); letter-spacing: 0.01em; }
+.live-panel-tools { display: inline-flex; align-items: center; gap: 0.25rem; }
+.live-panel-body { flex: 1; min-height: 0; overflow: auto; }
+.live-panel-body .live-json { max-height: 22rem; }
+@container (min-width: 56rem) {
+  .live-tv-grid { grid-template-columns: minmax(0, 1fr) 21rem; }
+  .live-panel { border-top: 0; border-left: 1px solid var(--jali-border); }
+  .live-panel-body { max-height: calc(var(--live-ws-h) - 2.5rem); }
+  .live-panel-body .live-json { max-height: none; }
+  .live-tree { display: block; }
+}
+
+/* The tree: one row per node, guides from parent to child, sizes at the right. */
+.live-tree { display: grid; grid-template-columns: minmax(0, 1fr); gap: 0.75rem; padding: 0.625rem 0.5rem 0.75rem; font-size: 0.8125rem; }
+@container (min-width: 40rem) and (max-width: 55.99rem) {
+  .live-tree { grid-template-columns: minmax(0, 1fr) 15rem; align-items: start; }
+  .live-tree .live-ov { margin-top: 0; }
+}
+.live-tree-ul { list-style: none; margin: 0; padding: 0; }
+.live-tree-ul .live-tree-ul { margin-left: 1.25rem; padding-left: 0.75rem; }
+.live-tree-li { position: relative; margin: 0; padding: 0; }
+.live-tree-ul .live-tree-ul > .live-tree-li::before {
+  content: ""; position: absolute; left: -0.75rem; top: 0; bottom: 0; border-left: 1px solid var(--live-guide);
+}
+.live-tree-ul .live-tree-ul > .live-tree-li:last-child::before { bottom: auto; height: 1.3125rem; }
+.live-tree-ul .live-tree-ul > .live-tree-li::after {
+  content: ""; position: absolute; left: -0.75rem; top: 1.3125rem; width: 0.625rem; border-top: 1px solid var(--live-guide);
+}
+.live-tree-row {
+  display: grid; grid-template-columns: 1.625rem minmax(0, 1fr) auto; align-items: center; column-gap: 0.5rem;
+  min-height: 2.625rem; padding: 0.3125rem 0.5rem 0.3125rem 0.25rem; border-radius: 0.5rem; cursor: default; outline: none;
+  transition: background-color 120ms ease, box-shadow 120ms ease;
+}
+.live-tree-row:hover, .live-tree-row[data-lit] { background: var(--jali-accent-weak); box-shadow: inset 0 0 0 1px var(--jali-accent-mid); }
+.live-tree-row:focus-visible { box-shadow: inset 0 0 0 2px var(--jali-focus-ring); }
+.live-tree-glyph {
+  display: grid; place-items: center; width: 1.625rem; height: 1.625rem; border-radius: 0.4375rem;
+  border: 1px solid var(--jali-border-strong); background: var(--jali-canvas); color: var(--jali-text-muted);
+  transition: background-color 120ms ease, color 120ms ease, border-color 120ms ease;
+}
+.live-tree-glyph.is-pane { background: var(--jali-surface); color: var(--jali-text); }
+.live-tree-row[data-lit] .live-tree-glyph { background: var(--jali-accent); border-color: var(--jali-accent); color: var(--jali-on-accent); }
+.live-tree-row[data-under] .live-tree-glyph { border-color: var(--jali-accent); color: var(--jali-accent); }
+.live-tree-main { display: flex; flex-direction: column; gap: 0.0625rem; min-width: 0; }
+.live-tree-name { font-weight: 500; line-height: 1.25rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.live-tree-type { font: 500 0.75rem/1.25rem var(--jali-font-mono); color: var(--jali-text); }
+.live-tree-sub { display: flex; flex-wrap: wrap; align-items: center; gap: 0.25rem 0.375rem; font-size: 0.6875rem; line-height: 1rem; color: var(--jali-text-subtle); }
+.live-tree-sub code { font: 0.6875rem/1rem var(--jali-font-mono); color: var(--jali-text-subtle); }
+.live-tree-flag {
+  display: inline-flex; align-items: center; gap: 0.1875rem; height: 1rem; padding: 0 0.3125rem; border-radius: 0.25rem;
+  border: 1px solid var(--jali-border); font-size: 0.625rem; line-height: 1; color: var(--jali-text-subtle); white-space: nowrap;
+}
+.live-tree-flag.is-focus { border-color: var(--jali-accent-mid); color: var(--jali-accent); }
+.live-tree-flag.is-link { border-color: transparent; background: var(--jali-accent-weak); color: var(--jali-accent); }
+.live-tree-size { display: flex; flex-direction: column; align-items: flex-end; gap: 0.0625rem; text-align: right; white-space: nowrap; }
+.live-tree-size b { font: 500 0.6875rem/1.25rem var(--jali-font-mono); color: var(--jali-text-muted); }
+.live-tree-size b[data-user] { color: var(--jali-accent); }
+.live-tree-size > span { font: 0.6875rem/1rem var(--jali-font-mono); color: var(--jali-text-faint); font-variant-numeric: tabular-nums; }
+.live-tree-size > .live-tree-state {
+  display: inline-flex; align-items: center; gap: 0.25rem; height: 1rem; padding: 0 0.375rem; border-radius: 999px;
+  font: 500 0.625rem/1 var(--jali-font); letter-spacing: 0.01em; color: var(--jali-text-muted); background: var(--jali-hover);
+}
+.live-tree-state[data-tone="folded"] { background: var(--jali-accent-weak); color: var(--jali-accent); }
+.live-tree-state[data-tone="tucked"] { background: none; box-shadow: inset 0 0 0 1px var(--jali-border-strong); }
+.live-tree-state[data-tone="off"] { background: none; color: var(--jali-text-faint); text-decoration: line-through; }
+.live-tree-li[data-state]:not([data-state="on"]) > .live-tree-row .live-tree-name { color: var(--jali-text-muted); }
+.live-tree-li[data-state]:not([data-state="on"]) > .live-tree-row .live-tree-glyph { border-style: dashed; color: var(--jali-text-subtle); }
+
+/* A split's share bar: each child's length on screen now; a folded child is a hatched sliver. */
+.live-tree-bar { display: flex; gap: 2px; height: 1.125rem; margin: 0.125rem 0.5rem 0.375rem 2.375rem; }
+.live-tree-seg {
+  position: relative; display: grid; place-items: center; min-width: 0; overflow: hidden;
+  border-radius: 0.25rem; background: var(--jali-canvas); box-shadow: inset 0 0 0 1px var(--jali-border-strong);
+  transition: flex-grow 180ms cubic-bezier(0.2, 0, 0, 1), background-color 120ms ease;
+}
+.live-tree-seg i { font: normal 0.625rem/1 var(--jali-font-mono); color: var(--jali-text-subtle); font-variant-numeric: tabular-nums; }
+.live-tree-seg[data-lit] { background: var(--jali-accent-mid); box-shadow: inset 0 0 0 1px var(--jali-accent); }
+.live-tree-seg[data-lit] i { color: var(--jali-text); }
+.live-tree-seg[data-empty] {
+  flex: 0 0 0.375rem !important;
+  background: repeating-linear-gradient(135deg, var(--jali-border-strong) 0 1px, transparent 1px 3px);
+  box-shadow: none;
+}
+.live-tree-bar[data-axis="column"] .live-tree-seg { border-radius: 0.25rem; }
+@media (prefers-reduced-motion: reduce) { .live-tree-seg, .live-tree-row, .live-tree-glyph { transition: none; } }
+
+/* The overlay: beside the tree, in a dashed card, since it is kept apart from it. */
+.live-ov { margin: 0.25rem 0.25rem 0; padding: 0.5rem 0.625rem 0.625rem; border: 1px dashed var(--jali-border-strong); border-radius: 0.625rem; }
+.live-ov-head { display: flex; align-items: baseline; gap: 0.5rem; margin-bottom: 0.375rem; }
+.live-ov-head span { font: 500 0.75rem/1.25rem var(--jali-font-mono); color: var(--jali-text); }
+.live-ov-head small { font-size: 0.6875rem; color: var(--jali-text-subtle); }
+.live-ov dl { display: grid; gap: 0.3125rem; margin: 0; }
+.live-ov dl > div { display: grid; grid-template-columns: 5.25rem minmax(0, 1fr); align-items: start; gap: 0.5rem; }
+.live-ov dt { display: inline-flex; align-items: center; gap: 0.3125rem; height: 1.25rem; font-size: 0.6875rem; color: var(--jali-text-subtle); }
+.live-ov dd { display: flex; flex-wrap: wrap; gap: 0.25rem; margin: 0; min-height: 1.25rem; align-items: center; line-height: 1.25rem; }
+.live-ov-chip {
+  display: inline-flex; align-items: center; gap: 0.3125rem; height: 1.25rem; padding: 0 0.4375rem; border-radius: 999px;
+  font-size: 0.6875rem; background: var(--jali-accent-weak); color: var(--jali-accent); white-space: nowrap;
+}
+.live-ov-chip small { font-size: 0.625rem; color: var(--jali-text-subtle); }
+.live-ov-none { font-size: 0.6875rem; color: var(--jali-text-faint); }
+
+/* JSON: the same layout as stored; a node under the pointer is marked, as in the tree. */
+.live-json {
+  margin: 0; padding: 0.75rem 0.875rem 0.875rem; overflow: auto; outline: none; background: none; border: 0;
+  font: 0.75rem/1.6 var(--jali-font-mono); color: var(--jali-text-subtle); white-space: pre; tab-size: 2;
+}
+.live-json:focus-visible { box-shadow: inset 0 0 0 2px var(--jali-focus-ring); }
+.live-json code { font: inherit; background: none; padding: 0; color: inherit; }
+.live-json .j-key { color: var(--jali-text); }
+.live-json .j-str { color: var(--jali-accent); }
+.live-json .j-num { color: var(--jali-text); font-weight: 500; }
+.live-json .j-bool { color: var(--jali-text-muted); font-style: italic; }
+.live-json .j-node[data-lit] { background: var(--jali-accent-weak); box-shadow: -2px 0 0 var(--jali-accent); border-radius: 2px; }
+
+/* ---------- Frame: a workspace the reader narrows by its edge ---------- */
+.live-frame-bar { display: flex; align-items: center; gap: 0.875rem; min-height: 2rem; margin-bottom: 0.5rem; }
+.live-frame-width { display: inline-flex; align-items: baseline; gap: 0.3125rem; flex: none; min-width: 6.5rem; }
+.live-frame-width b { font: 500 1.125rem/1 var(--jali-font-mono); font-variant-numeric: tabular-nums; color: var(--jali-text); }
+.live-frame-width span { font-size: 0.75rem; color: var(--jali-text-subtle); }
+.live-frame-folds { display: flex; flex-wrap: wrap; align-items: center; gap: 0.3125rem; flex: 1; min-width: 0; font-size: 0.75rem; }
+.live-frame-label { display: inline-flex; align-items: center; gap: 0.3125rem; color: var(--jali-text-muted); margin-right: 0.125rem; }
+.live-frame-chip { display: inline-flex; align-items: center; height: 1.375rem; padding: 0 0.5rem; border-radius: 999px; background: var(--jali-accent-weak); color: var(--jali-accent); white-space: nowrap; animation: live-pop 200ms cubic-bezier(0.2, 0, 0, 1); }
+.live-frame-note { color: var(--jali-text-subtle); }
+.live-frame-track { position: relative; }
+.live-ruler { position: relative; height: 1.375rem; margin: 0 0 0.375rem; border-bottom: 1px solid var(--jali-border); }
+.live-ruler-tick { position: absolute; bottom: 0; height: 0.3125rem; border-left: 1px solid var(--jali-border-strong); }
+.live-ruler-tick i { position: absolute; bottom: 0.4375rem; left: 0; transform: translateX(-50%); font: normal 0.625rem/1 var(--jali-font-mono); color: var(--jali-text-faint); }
+.live-ruler-mark {
+  position: absolute; bottom: -0.3125rem; width: 0.5625rem; height: 0.5625rem; margin-left: -0.28125rem; transform: rotate(45deg);
+  border: 1.5px solid var(--jali-accent); background: var(--jali-surface); border-radius: 1px;
+}
+.live-ruler-mark[data-passed] { background: var(--jali-accent); }
+.live-ruler-mark[data-single] { border-radius: 50%; transform: none; }
+.live-ruler-cursor { position: absolute; top: 0.25rem; bottom: -1px; margin-left: -1px; border-left: 2px solid var(--jali-accent); }
+.live-frame-room {
+  position: relative; border-radius: var(--live-radius);
+  background: repeating-linear-gradient(135deg, transparent 0 7px, color-mix(in srgb, var(--jali-border-strong) 70%, transparent) 7px 8px);
+}
+.live-frame-box {
+  position: relative; max-width: 100%; border: 1px solid var(--jali-border-strong); border-radius: var(--live-radius);
+  background: var(--jali-canvas); box-shadow: var(--jali-shadow-raised);
+}
+.live-frame-box > .live-ws { border-radius: calc(var(--live-radius) - 1px); }
+.live-frame-handle {
+  position: absolute; top: 0; bottom: 0; right: -0.6875rem; width: 1.375rem; display: grid; place-items: center;
+  cursor: ew-resize; touch-action: none; outline: none; z-index: 8;
+}
+.live-frame-handle span {
+  width: 0.3125rem; height: 3rem; border-radius: 999px; background: var(--jali-surface);
+  box-shadow: 0 0 0 1px var(--jali-border-strong), var(--jali-shadow-raised); transition: background-color 120ms ease, height 160ms ease;
+}
+.live-frame-handle:hover span, .live-frame[data-dragging] .live-frame-handle span { background: var(--jali-accent); box-shadow: 0 0 0 1px var(--jali-accent); height: 4rem; }
+.live-frame-handle:focus-visible span { background: var(--jali-accent); box-shadow: 0 0 0 2px var(--jali-surface), 0 0 0 4px var(--jali-focus-ring); }
+.live-frame-hint { margin: 0.5rem 0.125rem 0; font-size: 0.75rem; line-height: 1.5; color: var(--jali-text-subtle); }
+body.live-frame-resizing, body.live-frame-resizing * { cursor: ew-resize !important; user-select: none !important; -webkit-user-select: none !important; }
+@media (prefers-reduced-motion: reduce) { .live-frame-chip { animation: none; } .live-frame-handle span { transition: none; } }
+
+/* ---------- Spotlight: everything dimmed but one part ---------- */
+.live-spot-stage { position: relative; border: 1px solid var(--jali-border); border-radius: var(--live-radius); overflow: hidden; background: var(--jali-canvas); }
+.live-spot-layer { position: absolute; inset: 0; pointer-events: none; overflow: hidden; z-index: 40; }
+.live-spot-hole {
+  position: absolute; border-radius: 0.625rem;
+  box-shadow: 0 0 0 1.5px var(--jali-accent), 0 0 0 6px var(--jali-accent-mid), 0 0 0 200vmax var(--live-scrim);
+  transition: left 360ms cubic-bezier(0.2, 0, 0, 1), top 360ms cubic-bezier(0.2, 0, 0, 1), width 360ms cubic-bezier(0.2, 0, 0, 1), height 360ms cubic-bezier(0.2, 0, 0, 1), box-shadow 240ms ease;
+  animation: live-fade 420ms ease both;
+}
+.live-spot-stage[data-inside] .live-spot-hole { box-shadow: 0 0 0 1.5px var(--jali-accent), 0 0 0 6px var(--jali-accent-weak), 0 0 0 200vmax color-mix(in srgb, var(--jali-canvas) 30%, transparent); }
+.live-spot-label {
+  position: absolute; max-width: min(19rem, calc(100% - 1rem)); padding: 0.375rem 0.625rem; border-radius: 0.5rem;
+  background: var(--jali-accent); color: var(--jali-on-accent); font-size: 0.75rem; line-height: 1.35; font-weight: 500;
+  box-shadow: var(--jali-shadow-chip); transition: left 360ms cubic-bezier(0.2, 0, 0, 1), top 360ms cubic-bezier(0.2, 0, 0, 1), opacity 200ms;
+  animation: live-fade 420ms 120ms ease both;
+}
+.live-spot-stage[data-inside] .live-spot-label { opacity: 0.25; }
+@keyframes live-fade { from { opacity: 0; } to { opacity: 1; } }
+@keyframes live-pop { from { opacity: 0; transform: scale(0.92); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) {
+  .live-spot-hole, .live-spot-label { transition: none; animation: none; }
+}
+
+/* ---------- the demo panes' content ---------- */
+.live-k { font-size: 0.8125rem; line-height: 1.4; color: var(--jali-text); }
+.live-k-empty { padding: 1rem; color: var(--jali-text-subtle); }
+.live-k-toolbar { position: sticky; top: 0; z-index: 1; display: flex; justify-content: space-between; padding: 0.4375rem 0.75rem; font-size: 0.6875rem; color: var(--jali-text-subtle); background: var(--jali-surface); border-bottom: 1px solid var(--jali-border); }
+.live-orders ul { list-style: none; margin: 0; padding: 0.25rem; outline: none; }
+.live-orders ul:focus-visible { box-shadow: inset 0 0 0 2px var(--jali-focus-ring); border-radius: 0.375rem; }
+.live-orders li {
+  position: relative; display: grid; grid-template-columns: 2.375rem minmax(0, 1fr) auto; gap: 0.375rem; align-items: center;
+  height: 2rem; padding: 0 0.5rem; border-radius: 0.375rem; cursor: pointer;
+}
+.live-orders li:hover { background: var(--jali-hover); }
+.live-orders li[aria-selected="true"] { background: var(--jali-accent-weak); }
+.live-orders li[aria-selected="true"]::before { content: ""; position: absolute; left: 0; top: 0.4375rem; bottom: 0.4375rem; width: 2px; border-radius: 2px; background: var(--jali-accent); }
+.live-orders-id { font: 0.75rem var(--jali-font-mono); color: var(--jali-text-subtle); }
+.live-orders li[aria-selected="true"] .live-orders-id { color: var(--jali-accent); }
+.live-orders-name { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.live-orders-total { font-variant-numeric: tabular-nums; color: var(--jali-text-muted); }
+.live-order, .live-customer { display: flex; flex-direction: column; gap: 0.75rem; padding: 0.875rem; }
+.live-k-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 0.5rem; }
+.live-k-eyebrow { font-size: 0.6875rem; color: var(--jali-text-subtle); }
+.live-k-big { font: 500 1.25rem/1.2 var(--jali-font-mono); letter-spacing: -0.01em; }
+.live-k-title { font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.live-k-meta { font-size: 0.75rem; color: var(--jali-text-subtle); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.live-status-pill { display: inline-flex; align-items: center; gap: 0.3125rem; height: 1.25rem; padding: 0 0.5rem; border-radius: 999px; font-size: 0.6875rem; color: var(--jali-text-muted); box-shadow: inset 0 0 0 1px var(--jali-border-strong); }
+.live-status-pill::before { content: ""; width: 0.375rem; height: 0.375rem; border-radius: 50%; background: var(--jali-text-faint); }
+.live-status-pill[data-status="paid"]::before { background: var(--jali-accent); }
+.live-status-pill[data-status="shipped"]::before { background: var(--jali-done); }
+.live-status-pill[data-status="packed"]::before { background: var(--jali-blocked); }
+.live-k-link {
+  align-self: flex-start; display: inline-flex; align-items: center; gap: 0.375rem; max-width: 100%; height: 1.625rem; padding: 0 0.5rem;
+  border: 1px solid var(--jali-border); border-radius: var(--jali-radius-control); background: var(--jali-surface); color: var(--jali-accent);
+  font: 500 0.75rem var(--jali-font); cursor: pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.live-k-link:hover { border-color: var(--jali-accent-mid); background: var(--jali-accent-weak); }
+.live-k-link:focus-visible { outline: 2px solid var(--jali-focus-ring); outline-offset: 1px; }
+.live-k-table { width: 100%; border-collapse: collapse; font-size: 0.75rem; }
+.live-k-table td { padding: 0.3125rem 0; border-bottom: 1px solid var(--jali-border); }
+.live-k-table td.n { text-align: right; font-variant-numeric: tabular-nums; color: var(--jali-text-muted); padding-left: 0.5rem; white-space: nowrap; }
+.live-k-table tfoot td { border-bottom: 0; font-weight: 500; color: var(--jali-text); }
+.live-k-table tfoot td.n { color: var(--jali-text); }
+.live-customer-head { justify-content: flex-start; align-items: center; gap: 0.625rem; min-width: 0; }
+.live-customer-head > div { min-width: 0; }
+.live-avatar { flex: none; display: grid; place-items: center; width: 2.25rem; height: 2.25rem; border-radius: 50%; background: var(--jali-accent-weak); color: var(--jali-accent); font-size: 0.75rem; font-weight: 600; letter-spacing: 0.02em; }
+.live-k-dl { display: grid; grid-template-columns: repeat(auto-fill, minmax(5.5rem, 1fr)); gap: 0.625rem 0.75rem; margin: 0; }
+.live-k-dl dt { font-size: 0.6875rem; color: var(--jali-text-subtle); }
+.live-k-dl dd { margin: 0; font-size: 0.8125rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.live-notes { display: flex; flex-direction: column; gap: 0.5rem; padding: 0.625rem; }
+.live-notes article { padding: 0.5rem 0.625rem; border-radius: 0.5rem; background: var(--jali-canvas); }
+.live-notes header { display: flex; justify-content: space-between; font-size: 0.6875rem; color: var(--jali-text-subtle); margin-bottom: 0.125rem; }
+.live-notes header b { font-weight: 500; color: var(--jali-text-muted); }
+.live-notes p { margin: 0; font-size: 0.8125rem; line-height: 1.45; }
+.live-activity { list-style: none; margin: 0; padding: 0.625rem 0.75rem; display: flex; flex-direction: column; }
+.live-activity li { position: relative; display: grid; grid-template-columns: 0.875rem minmax(0, 1fr) auto; gap: 0.375rem; align-items: baseline; padding: 0.3125rem 0; font-size: 0.75rem; }
+.live-activity li:not(:last-child)::after { content: ""; position: absolute; left: 0.21875rem; top: 1.1rem; bottom: -0.35rem; border-left: 1px solid var(--jali-border); }
+.live-activity-dot { width: 0.4375rem; height: 0.4375rem; border-radius: 50%; background: var(--jali-text-faint); transform: translateY(-0.0625rem); }
+.live-activity li[data-tone="accent"] .live-activity-dot { background: var(--jali-accent); }
+.live-activity li[data-tone="done"] .live-activity-dot { background: var(--jali-done); }
+.live-activity li[data-tone="warn"] .live-activity-dot { background: var(--jali-blocked); }
+.live-activity time { font-size: 0.6875rem; color: var(--jali-text-faint); white-space: nowrap; }
+}
+@layer live {
+/* A narrow pane keeps its title: the follow control drops its word and keeps its icon. */
+.live-ws .jali-pane { container-type: inline-size; }
+@container (max-width: 250px) {
+  .live-ws .jali-follow-toggle > span { display: none; }
+}
+}
+@layer live {
+@container (max-width: 32rem) {
+  .live-frame-bar { flex-wrap: wrap; row-gap: 0.375rem; }
+  .live-frame-bar > .live-icon-btn { margin-left: auto; }
+  .live-frame-folds { order: 3; flex-basis: 100%; }
+}
+}
