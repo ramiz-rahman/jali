@@ -1,7 +1,7 @@
 """Chakni and Jali: final logo sets.
 
-Marks share one bar system (bars 5.54 wide on an 8.03 pitch, a 72-unit-wide silhouette). Chakni: a disc whose bars
-are cut and drip below in finer bars. Jali: an arch of three panels: five tall bars, and on the right four bars above
+Marks share one bar system (bars 5.54 wide on an 8.03 pitch, a 72-unit-wide silhouette). Chakni: a round strainer whose
+finer lower bars taper into one stream and a single drop. Jali: an arch of three panels: five tall bars, and on the right four bars above
 a stack of flat bars; mullion and transom are gutters three times the bar gap. Small versions (16-32px) use fewer,
 heavier bars on the same plan. Wordmarks: Atkinson Hyperlegible Next SemiBold, outlined, tracked -2.5%; the j's
 descender is shortened so "jali" sits level beside the arch.
@@ -15,42 +15,37 @@ from fontTools.pens.recordingPen import DecomposingRecordingPen
 OUT, FONT_PATH = sys.argv[1], sys.argv[2]
 INK, PAPER = "#111111", "#FFFFFF"
 CX, CY, R = 50, 40, 36
-VB = (12, 2, 76, 92)            # one box for both marks, so they size alike
+VB = (12, 2, 76, 96)            # one box for both marks, so they size alike (room for Chakni's drop)
 FONT = TTFont(FONT_PATH)
 
 def rect(x, y, w, h): return f'<rect x="{x:.2f}" y="{y:.2f}" width="{w:.2f}" height="{max(h, 0):.2f}"/>'
 
 def chakni(c, uid, small=False):
+    """A round strainer. Upper bars cut flat across the disc; below the cut, finer bars fill the lower disc, and the
+    middle ones taper down into one stream that lets go of a single drop: pour in everything, keep what you came for.
+    (The outline stays round: an earlier V-shaped lower edge read as a swimsuit.)"""
+    cut = CY + (8.0 if small else 4.0)
     if small:
-        # Five bars cut flat, three drips from the centre, nothing at the sides: at 16px the side steps of the full
-        # mark read as eye sockets (a skull), so the small one keeps only the pour.
-        W, P = 9.0, 14.0
-        xs = [CX + (i - 2) * P for i in range(5)]
-        edge = xs[0] + W / 2
-        sides = rect(0, 0, edge, CY + 8) + rect(100 - edge, 0, edge, CY + 8)
-        upper = "".join(rect(x - W / 2, 0, W, CY + 8) for x in xs[1:-1])
-        # Below the cut: the disc's lower edges and two inner bars (inside the disc), and one drip from the centre.
-        dt = CY + 13.0
-        lower = rect(0, dt, edge, 60) + rect(100 - edge, dt, edge, 60) + "".join(rect(CX + s * P - W / 2, dt, W, 60) for s in (-1, 1))
-        drip = rect(CX - W / 2, dt, W, CY + 50.6 - dt)
-        return (f'<defs><clipPath id="{uid}d"><circle cx="{CX}" cy="{CY}" r="{R}"/></clipPath></defs>'
-                f'<g fill="{c}"><g clip-path="url(#{uid}d)">{sides}{upper}{lower}</g>{drip}</g>')
+        W, P, fw, fp, n = 9.0, 14.0, 9.0, 14.0, 5
+        # No stream when small: a thick bar over a dot reads as "!". The disc lets go of one drop instead.
+        streams, dot_at, dot_r = {}, 10.0, 4.6
     else:
-        W, P = 5.54, 8.03
-        xs = [CX + (i - 4) * P for i in range(9)]
-        upper_bottom = {1: 1.7, 2: 4.9, 3: 7.4, 4: 7.4}
-        rows = [(24.6, 4.6, 5.2, 21.4), (18.2, 3.4, 8.4, 26.0), (12.9, 3.2, 11.5, 28.5), (7.8, 3.2, 15.2, 41.6), (2.6, 3.2, 20.5, 50.6)]
-        side_bottom = 13.4
-    n = len(xs)
+        W, P, fw, fp, n = 5.54, 8.03, 3.3, 8.03 * 0.66, 15
+        streams, dot_at, dot_r = {0: 13.0, 1: 7.0, 2: 2.0}, 19.5, 2.1
+    xs = [CX + (i - (9 if not small else 5) // 2) * P for i in range(9 if not small else 5)]
     edge = xs[0] + W / 2
-    sides = rect(0, 0, edge, CY + side_bottom) + rect(100 - edge, 0, edge, CY + side_bottom)
-    upper = "".join(rect(x - W / 2, 0, W, CY + upper_bottom[min(i, n - 1 - i)]) for i, x in enumerate(xs) if 0 < i < n - 1)
-    bars = lambda rs: "".join(rect(CX + s * dx - w / 2, CY + t, w, b - t) for dx, w, t, b in rs for s in (-1, 1))
-    k = 1 if small else 3
-    short, drips = [(dx, w, t, 60) for dx, w, t, b in rows[:k]], rows[k:]
-    return (f'<defs><clipPath id="{uid}d"><circle cx="{CX}" cy="{CY}" r="{R}"/></clipPath>'
-            f'<clipPath id="{uid}i"><circle cx="{CX}" cy="{CY}" r="{0.9 * R}"/></clipPath></defs>'
-            f'<g fill="{c}"><g clip-path="url(#{uid}d)">{sides}{upper}</g><g clip-path="url(#{uid}i)">{bars(short)}</g>{bars(drips)}</g>')
+    upper = rect(0, 0, edge, cut) + rect(100 - edge, 0, edge, cut) + "".join(rect(x - W / 2, 0, W, cut) for x in xs[1:-1])
+    top = cut + (4.6 if small else 2.5)
+    fx = [CX + (k - (n - 1) / 2) * fp for k in range(n)]
+    rank = lambda x: round(abs(x - CX) / fp)
+    lower = "".join(rect(x - fw / 2, top, fw, 60) for x in fx if rank(x) not in streams)
+    if small:  # the disc's lower edges, so it stays round at 16px
+        lower += rect(0, top, edge, 60) + rect(100 - edge, top, edge, 60)
+    bottom = lambda x: CY + (R * R - (x - CX) ** 2) ** 0.5
+    out = "".join(rect(x - fw / 2, top, fw, bottom(x) + streams[rank(x)] - top) for x in fx if rank(x) in streams)
+    out += f'<circle cx="{CX}" cy="{CY + R + dot_at:.2f}" r="{dot_r}"/>'
+    return (f'<defs><clipPath id="{uid}d"><circle cx="{CX}" cy="{CY}" r="{R}"/></clipPath></defs>'
+            f'<g fill="{c}"><g clip-path="url(#{uid}d)">{upper}{lower}</g>{out}</g>')
 
 def jali(c, uid, small=False):
     sill = 92.3
@@ -117,7 +112,8 @@ for name, mark in MARKS.items():
     fav = svg((4, 2, 92, 92), f'<style>g{{fill:{INK}}}@media (prefers-color-scheme:dark){{g{{fill:{PAPER}}}}}</style>' + mark("currentColor", "f", small=True).replace('fill="currentColor"', ""))
     save(f"{d}/favicon.svg", fav)
     # App icon tile (for PNG export: apple-touch, 512).
-    tile = svg((0, 0, 100, 100), f'<rect width="100" height="100" rx="22" fill="{INK}"/><g transform="translate(20 15) scale(0.92)">'
+    k = 70 / VB[3]                                       # the mark box, 70 tall, centred on the tile
+    tile = svg((0, 0, 100, 100), f'<rect width="100" height="100" rx="22" fill="{INK}"/><g transform="translate({(100 - VB[2] * k) / 2:.2f} 15) scale({k:.4f})">'
                f'<g transform="translate({-VB[0]} {-VB[1]})">{mark(PAPER, "a", small=True)}</g></g>')
     save(f"{d}/{name}-app-icon.svg", tile)
     # Social preview (GitHub 1280x640): the lockup, centred on ink.

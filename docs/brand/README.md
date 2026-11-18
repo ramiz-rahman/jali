@@ -1,13 +1,13 @@
 # Chakni and Jali: logos
 
-Two sibling libraries, one bar system. `final/preview.png` shows every piece in light and dark.
+Two sibling libraries, one bar system. `final/preview.png` shows every piece in light and dark; `final/preview-small.png` the small marks and app icons.
 
-- **Chakni** (ছাঁকনি, the tea strainer): a disc of bars; below a cut, finer bars drip through. Pour in everything, keep what you came for.
+- **Chakni** (ছাঁকনি, the tea strainer): a round disc of bars cut flat across; below the cut, finer bars taper into one stream that lets go of a single drop. Pour in everything, keep what you came for. The outline stays round: an earlier V-shaped lower edge read as a swimsuit.
 - **Jali** (জালি, the lattice screen): an arch of bars in three panels: five tall bars; on the right, four bars above a stack of flat bars. The mullion and transom are gutters three times the bar gap, so the panels read apart.
 
 ## The system
 
-- Bars 5.54 wide on an 8.03 pitch, a 72-unit-wide silhouette; both marks share one 76 × 92 box, so they size alike.
+- Bars 5.54 wide on an 8.03 pitch, a 72-unit-wide silhouette; both marks share one 76 × 96 box, so they size alike.
 - Small versions (`*-mark-small`) for 16–32px: fewer, heavier bars on the same plan. Use them below 48px. The small Chakni keeps only the cut and one drip; the full mark's side steps read as a face when tiny.
 - Wordmark: Atkinson Hyperlegible Next SemiBold (OFL), outlined, tracked −2.5%; the j's descender is shortened to 82% so "jali" sits level. SemiBold, not Bold: the bars carry the weight, the type carries the voice.
 - Colour: ink `#111111` or white. No other colours yet.
