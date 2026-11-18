@@ -1,0 +1,50 @@
+/*
+ * Jali in the host's Tailwind theme. Import it after Jali's theme (jali-theme.css) in the stylesheet Tailwind builds:
+ *
+ *   @layer theme, base, jali, components, utilities;
+ *   @import "tailwindcss";
+ *   @import "jali/react/styles.css";
+ *   @import "jali/react/tailwind.css";
+ *
+ * The layer line puts Jali above Tailwind's preflight and below your utilities, so a class on a Jali part
+ * (data-[focused]:ring-2, say) wins without !important.
+ *
+ * It reads the semantic tokens of the host's @theme, with the same names as Chakni's token contract
+ * (CHAKNI-INSTALLATION.md, "Token contract"), so an app themed for Chakni gets Jali in the same theme. Each one falls
+ * back to Jali's own default for the current theme when the host does not define it. The host's tokens switch with its dark mode, so Jali
+ * follows that switch. Tailwind drops theme variables nothing uses: this file uses them, so keep it in the build
+ * Tailwind processes (or mark the theme `@theme static`).
+ *
+ * No Tailwind build is needed for this file itself: it is plain CSS that reads Tailwind's variables.
+ */
+:where(:root, .light, .dark, [data-theme]) {
+  --jali-canvas: var(--color-background, var(--jali-default-canvas));
+  --jali-surface: var(--color-card, var(--jali-default-surface));
+  --jali-surface-raised: var(--color-popover, var(--color-card, var(--jali-default-surface-raised)));
+  --jali-border: var(--color-border, var(--jali-default-border));
+  --jali-border-strong: var(--color-input, var(--color-border, var(--jali-default-border-strong)));
+  --jali-control: var(--color-input, var(--jali-default-control));
+  --jali-text: var(--color-foreground, var(--jali-default-text));
+  --jali-text-muted: var(--color-muted-foreground-strong, var(--color-muted-foreground, var(--jali-default-text-muted)));
+  --jali-text-subtle: var(--color-muted-foreground, var(--jali-default-text-subtle));
+  --jali-text-faint: var(--color-muted-foreground, var(--jali-default-text-faint));
+  --jali-hover: var(--color-muted, var(--jali-default-hover));
+  --jali-accent: var(--color-primary, var(--jali-default-accent));
+  --jali-accent-soft: var(--color-primary-subtle, var(--jali-default-accent-soft));
+  --jali-on-accent: var(--color-primary-foreground, var(--jali-default-on-accent));
+  --jali-failed: var(--color-destructive, var(--jali-default-failed));
+  --jali-chip: var(--color-tooltip, var(--jali-default-chip));
+  --jali-on-chip: var(--color-tooltip-foreground, var(--jali-default-on-chip));
+  --jali-scrim: var(--color-scrim, var(--jali-default-scrim));
+  --jali-shadow-dialog: var(--shadow-overlay, var(--jali-default-shadow-dialog));
+  --jali-shadow-menu: var(--shadow-overlay, var(--jali-default-shadow-menu));
+  --jali-radius: var(--radius-card, var(--radius-lg, 0.625rem));
+  --jali-radius-control: var(--radius-control, var(--radius-md, 0.375rem));
+  --jali-radius-menu: var(--radius-md, 0.5rem);
+  --jali-font: var(--font-sans, system-ui, sans-serif);
+  --jali-font-mono: var(--font-mono, ui-monospace, monospace);
+}
+/* Derived where Jali renders, so it follows an accent set on a subtree. */
+:where(:root, [data-jali]) {
+  --jali-focus-ring: var(--color-focus-ring, var(--color-ring, var(--jali-accent)));
+}

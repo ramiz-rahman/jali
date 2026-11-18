@@ -1,53 +1,55 @@
+@layer jali {
 /* ---------- dialogs: palette, chooser (ListDialog), settings ---------- */
-.scrim { position: fixed; inset: 0; z-index: 100; background: var(--scrim); display: grid; justify-items: center; align-items: start; padding-top: 12vh; }
-.scrim-light { background: var(--scrim-light); }
+.scrim { position: fixed; inset: 0; z-index: 100; background: var(--jali-scrim); display: grid; justify-items: center; align-items: start; padding-top: 12vh; }
+.scrim-light { background: var(--jali-scrim-light); }
 .palette {
-  width: min(640px, calc(100vw - 32px)); background: var(--island); border: 1px solid var(--line);
-  border-radius: 12px; box-shadow: var(--shadow-dialog); overflow: hidden;
+  width: min(40rem, calc(100vw - 2rem)); background: var(--jali-surface); border: 1px solid var(--jali-border);
+  border-radius: 12px; box-shadow: var(--jali-shadow-dialog); overflow: hidden;
 }
-.palette-input { width: 100%; background: transparent; color: var(--text); height: 48px; padding: 0 16px; border: 0; border-bottom: 1px solid var(--line); font: inherit; font-size: 14px; outline: none; }
-.palette-list { list-style: none; margin: 0; padding: 6px; max-height: 420px; overflow: auto; }
-.palette-item { display: grid; grid-template-columns: 1fr auto 72px; align-items: center; gap: 12px; height: 32px; padding: 0 10px; border-radius: 6px; cursor: pointer; }
-.palette-item.is-selected { background: var(--accent-weak); }
-.palette-item.is-disabled { color: var(--text-4); cursor: default; }
-.palette-group { font-size: 12px; color: var(--text-3); }
-.palette-id { font-size: 11px; color: var(--text-3); }
-.palette-item kbd { justify-self: end; font-size: 11px; color: var(--text-2); }
-.palette-empty { padding: 12px 10px; color: var(--text-3); }
-.chooser { width: min(480px, calc(100vw - 32px)); }
-.chooser-head { padding: 12px 16px 0; font-size: 12px; color: var(--text-3); }
-.chooser-head b { font-weight: 500; color: var(--text); }
+.palette-input { width: 100%; background: transparent; color: var(--jali-text); height: 3rem; padding: 0 1rem; border: 0; border-bottom: 1px solid var(--jali-border); font: inherit; font-size: 0.875rem; outline: none; }
+.palette-list { list-style: none; margin: 0; padding: 0.375rem; max-height: 26.25rem; overflow: auto; }
+.palette-item { display: grid; grid-template-columns: 1fr auto 72px; align-items: center; gap: 0.75rem; height: 2rem; padding: 0 0.625rem; border-radius: var(--jali-radius-control); cursor: pointer; }
+.palette-item.is-selected { background: var(--jali-accent-weak); }
+.palette-item.is-disabled { color: var(--jali-text-faint); cursor: default; }
+.palette-group { font-size: 0.75rem; color: var(--jali-text-subtle); }
+.palette-id { font-size: 0.6875rem; color: var(--jali-text-subtle); }
+.palette-item kbd { justify-self: end; font-size: 0.6875rem; color: var(--jali-text-muted); }
+.palette-empty { padding: 0.75rem 0.625rem; color: var(--jali-text-subtle); }
+.chooser { width: min(30rem, calc(100vw - 2rem)); }
+.chooser-head { padding: 0.75rem 1rem 0; font-size: 0.75rem; color: var(--jali-text-subtle); }
+.chooser-head b { font-weight: 500; color: var(--jali-text); }
 .chooser-item { grid-template-columns: 16px 1fr auto; }
-.chooser-icon { display: grid; place-items: center; color: var(--text-3); }
+.chooser-icon { display: grid; place-items: center; color: var(--jali-text-subtle); }
 
 .settings {
-  width: min(420px, calc(100vw - 32px)); background: var(--island); border: 1px solid var(--line);
-  border-radius: 12px; box-shadow: var(--shadow-dialog); padding: 4px 16px 16px;
+  width: min(26.25rem, calc(100vw - 2rem)); background: var(--jali-surface); border: 1px solid var(--jali-border);
+  border-radius: 12px; box-shadow: var(--jali-shadow-dialog); padding: 0.25rem 1rem 1rem;
 }
-.settings header { display: flex; align-items: center; justify-content: space-between; height: 44px; }
-.settings h2 { font-size: 14px; font-weight: 600; margin: 0; }
-.settings fieldset { border: 0; border-top: 1px solid var(--line); margin: 0; padding: 12px 0 8px; display: grid; gap: 6px; }
-.settings legend { padding: 0; font-size: 11px; font-weight: 600; color: var(--text-3); text-transform: uppercase; letter-spacing: 0.04em; float: left; width: 100%; margin-bottom: 6px; }
-.settings { max-height: calc(100dvh - 64px); overflow-y: auto; }
-.keys-list { margin: 0; display: grid; gap: 4px; }
-.keys-row { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
-.keys-row dt { color: var(--text-2); min-width: 0; }
+.settings header { display: flex; align-items: center; justify-content: space-between; height: 2.75rem; }
+.settings h2 { font-size: 0.875rem; font-weight: 600; margin: 0; }
+.settings fieldset { border: 0; border-top: 1px solid var(--jali-border); margin: 0; padding: 0.75rem 0 0.5rem; display: grid; gap: 0.375rem; }
+.settings legend { padding: 0; font-size: 0.6875rem; font-weight: 600; color: var(--jali-text-subtle); text-transform: uppercase; letter-spacing: 0.04em; float: left; width: 100%; margin-bottom: 0.375rem; }
+.settings { max-height: calc(100dvh - 4rem); overflow-y: auto; }
+.keys-list { margin: 0; display: grid; gap: 0.25rem; }
+.keys-row { display: flex; align-items: baseline; justify-content: space-between; gap: 0.75rem; }
+.keys-row dt { color: var(--jali-text-muted); min-width: 0; }
 .keys-row dd { margin: 0; flex: none; }
-.keys-row kbd { font-size: 11px; color: var(--text); white-space: nowrap; }
-.keys-note { margin: 4px 0 0; font-size: 12px; color: var(--text-3); }
-.radio { display: flex; align-items: center; gap: 8px; cursor: pointer; }
-.radio input { accent-color: var(--accent); margin: 0; }
-.row-field { display: flex; align-items: center; gap: 10px; color: var(--text-2); }
-.row-field input { width: 56px; height: 28px; background: var(--island); color: var(--text); border: 1px solid var(--control); border-radius: 6px; padding: 0 6px; font-family: var(--mono); text-align: right; }
+.keys-row kbd { font-size: 0.6875rem; color: var(--jali-text); white-space: nowrap; }
+.keys-note { margin: 0.25rem 0 0; font-size: 0.75rem; color: var(--jali-text-subtle); }
+.radio { display: flex; align-items: center; gap: 0.5rem; cursor: pointer; }
+.radio input { accent-color: var(--jali-accent); margin: 0; }
+.row-field { display: flex; align-items: center; gap: 0.625rem; color: var(--jali-text-muted); }
+.row-field input { width: 3.5rem; height: 1.75rem; background: var(--jali-surface); color: var(--jali-text); border: 1px solid var(--jali-control); border-radius: var(--jali-radius-control); padding: 0 0.375rem; font-family: var(--jali-font-mono); text-align: right; }
 
 /* "Discard unsaved changes?" */
 .confirm {
-  width: min(420px, calc(100vw - 32px)); background: var(--island); border: 1px solid var(--line);
-  border-radius: 12px; box-shadow: var(--shadow-dialog); padding: 16px;
+  width: min(26.25rem, calc(100vw - 2rem)); background: var(--jali-surface); border: 1px solid var(--jali-border);
+  border-radius: 12px; box-shadow: var(--jali-shadow-dialog); padding: 1rem;
 }
-.confirm h2 { font-size: 14px; font-weight: 600; margin: 0 0 8px; }
-.confirm p { margin: 0 0 8px; color: var(--text-2); }
-.confirm ul { margin: 0 0 16px; padding-left: 18px; color: var(--text-2); }
-.confirm footer { display: flex; justify-content: flex-end; gap: 8px; }
-.text-btn.is-primary { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
-.text-btn.is-primary:hover { color: var(--on-accent); filter: brightness(1.08); }
+.confirm h2 { font-size: 0.875rem; font-weight: 600; margin: 0 0 0.5rem; }
+.confirm p { margin: 0 0 0.5rem; color: var(--jali-text-muted); }
+.confirm ul { margin: 0 0 1rem; padding-left: 1.125rem; color: var(--jali-text-muted); }
+.confirm footer { display: flex; justify-content: flex-end; gap: 0.5rem; }
+.text-btn.is-primary { background: var(--jali-accent); border-color: var(--jali-accent); color: var(--jali-on-accent); }
+.text-btn.is-primary:hover { color: var(--jali-on-accent); filter: brightness(1.08); }
+}

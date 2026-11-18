@@ -7,7 +7,7 @@ import { zoneRect } from "./dnd";
 /** The tinted part of the target pane that the drop will fill. */
 export function DropIndicator({ rect, zone }: { rect: Rect; zone: Edge | "centre" }) {
   const r = zoneRect(rect, zone);
-  return <div className={`drop-indicator zone-${zone}`} style={{ left: r.x, top: r.y, width: r.width, height: r.height }} aria-hidden />;
+  return <div className={`drop-indicator zone-${zone}`} data-drop-zone={zone} style={{ left: r.x, top: r.y, width: r.width, height: r.height }} aria-hidden />;
 }
 
 const ICONS = { swap: ArrowLeftRight, tab: SquarePlus, left: ArrowLeft, right: ArrowRight, top: ArrowUp, bottom: ArrowDown };

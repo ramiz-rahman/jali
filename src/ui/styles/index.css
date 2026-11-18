@@ -1,6 +1,13 @@
-/* The UI's styles, one module per area. Tokens first; nothing below overrides an earlier file. */
+/*
+ * The UI's styles. Jali's theme first (the --jali-* tokens), then the lab's own names for them and its page globals,
+ * then Jali's workspace styles, all in the "jali" cascade layer. Page resets sit in a layer below it (lab-base), so a
+ * bare `button { font: inherit }` never beats a Jali rule; any unlayered style (an app's own) wins without !important.
+ */
+@layer lab-base, jali;
+@import "./jali-theme.css";
 @import "./tokens.css";
-@import "./base.css";
+@import "./app.css";
+@import "./workspace.css";
 @import "./pane.css";
 @import "./dividers.css";
 @import "./shelf.css";

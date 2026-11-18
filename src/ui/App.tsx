@@ -52,7 +52,7 @@ export function App({ store, data }: { store: UiStore; data: DataLayer }) {
     <StoreProvider store={store}>
       <QueryClientProvider client={data.queryClient}>
         <DataLayerProvider value={data}>
-          <div className="app" ref={store.dom.attach}>
+          <div className="app" data-jali="" ref={store.dom.attach}>
             <TopBar />
             <Main />
             <StatusLine />
