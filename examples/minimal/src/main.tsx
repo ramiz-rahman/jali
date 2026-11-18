@@ -2,8 +2,12 @@
 import { createRoot } from "react-dom/client";
 import { boot, createPaneKinds, createUiStore, createUrlSync, startUi, type Layout } from "@jali/core";
 import { Jali, JaliView, definePaneKind } from "@jali/react";
-import "@jali/react/styles.css";
+// The layer order comes first (app.css), then Jali's styles, then its faces: Atkinson Hyperlegible Next and Mono.
 import "./app.css";
+import "@jali/react/styles.css";
+import "@fontsource/atkinson-hyperlegible-next/latin-400.css";
+import "@fontsource/atkinson-hyperlegible-next/latin-600.css";
+import "@fontsource/atkinson-hyperlegible-mono/latin-400.css";
 
 // A pane kind: what it shows (a ref), its title, the smallest size it works at, and the component that renders it.
 const note = definePaneKind({
