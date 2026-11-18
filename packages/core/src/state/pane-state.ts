@@ -15,4 +15,5 @@ export function loadPaneState(storage: StoragePort): PaneStates {
   }
 }
 
-export const savePaneState = (storage: StoragePort, state: PaneStates) => storage.set(PANE_STATE_KEY, JSON.stringify(state));
+export const savePaneState = (storage: StoragePort, state: PaneStates) =>
+  storage.set(PANE_STATE_KEY, JSON.stringify(state));

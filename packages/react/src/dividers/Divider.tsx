@@ -23,9 +23,9 @@ export interface DividerProps {
   onReset(): void;
 }
 
-
 const pct = (v: number, total: number) => Math.round((v / Math.max(1, total)) * 100);
-const rectEq = (a: Rect, b: Rect) => a.x === b.x && a.y === b.y && a.width === b.width && a.height === b.height;
+const rectEq = (a: Rect, b: Rect) =>
+  a.x === b.x && a.y === b.y && a.width === b.width && a.height === b.height;
 
 /**
  * One APG window splitter, absolutely positioned in the gap. APG keys: arrows 16px, Shift 64px, Home/End; they commit
@@ -39,11 +39,15 @@ export const Divider = memo(
       if (e.altKey || e.metaKey || e.ctrlKey) return;
       const step = e.shiftKey ? STEP_BIG : STEP;
       const target =
-        e.key === (row ? "ArrowLeft" : "ArrowUp") ? p.sizeA - step
-        : e.key === (row ? "ArrowRight" : "ArrowDown") ? p.sizeA + step
-        : e.key === "Home" ? p.minA
-        : e.key === "End" ? p.maxA
-        : undefined;
+        e.key === (row ? "ArrowLeft" : "ArrowUp")
+          ? p.sizeA - step
+          : e.key === (row ? "ArrowRight" : "ArrowDown")
+            ? p.sizeA + step
+            : e.key === "Home"
+              ? p.minA
+              : e.key === "End"
+                ? p.maxA
+                : undefined;
       if (target === undefined) return;
       e.preventDefault();
       p.setSizeA(target);
@@ -53,7 +57,13 @@ export const Divider = memo(
       <div
         className={`jali-divider jali-divider-${p.axis}`}
         data-divider={dividerKey(p)}
-        style={{ position: "absolute", left: p.rect.x, top: p.rect.y, width: p.rect.width, height: p.rect.height }}
+        style={{
+          position: "absolute",
+          left: p.rect.x,
+          top: p.rect.y,
+          width: p.rect.width,
+          height: p.rect.height,
+        }}
         onPointerDown={p.onDragStart}
         onDoubleClick={(e) => {
           e.preventDefault();
@@ -74,13 +84,22 @@ export const Divider = memo(
         <span className="jali-divider-line" aria-hidden />
         <span className="jali-divider-handle" aria-hidden />
         <span className="jali-divider-tip" aria-hidden>
-          {p.labelA} · {Math.round(p.sizeA)}px<i> | </i>{p.labelB} · {restB}px
+          {p.labelA} · {Math.round(p.sizeA)}px<i> | </i>
+          {p.labelB} · {restB}px
         </span>
       </div>
     );
   },
   (a, b) =>
-    a.parentId === b.parentId && a.index === b.index && a.axis === b.axis && rectEq(a.rect, b.rect) &&
-    a.sizeA === b.sizeA && a.minA === b.minA && a.maxA === b.maxA && a.total === b.total &&
-    a.labelA === b.labelA && a.labelB === b.labelB && a.controls === b.controls,
+    a.parentId === b.parentId &&
+    a.index === b.index &&
+    a.axis === b.axis &&
+    rectEq(a.rect, b.rect) &&
+    a.sizeA === b.sizeA &&
+    a.minA === b.minA &&
+    a.maxA === b.maxA &&
+    a.total === b.total &&
+    a.labelA === b.labelA &&
+    a.labelB === b.labelB &&
+    a.controls === b.controls,
 );

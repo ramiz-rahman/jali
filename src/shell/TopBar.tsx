@@ -10,7 +10,15 @@ function PresetButtons({ onChoose }: { onChoose?: () => void }) {
   const presetId = useWorkspaceState((s) => s.presetId);
   const { actions, env } = useWorkspace();
   return env.presets.map((p) => (
-    <button key={p.id} className={`preset${presetId === p.id ? " is-active" : ""}`} aria-pressed={presetId === p.id} onClick={() => { actions.preset(p.id); onChoose?.(); }}>
+    <button
+      key={p.id}
+      className={`preset${presetId === p.id ? " is-active" : ""}`}
+      aria-pressed={presetId === p.id}
+      onClick={() => {
+        actions.preset(p.id);
+        onChoose?.();
+      }}
+    >
       {p.label}
     </button>
   ));
@@ -23,7 +31,9 @@ function LayoutsMenu() {
   const btn = useRef<HTMLButtonElement>(null);
   useEffect(() => {
     if (!open) return;
-    const down = (e: PointerEvent) => { if (!root.current?.contains(e.target as Node)) setOpen(false); };
+    const down = (e: PointerEvent) => {
+      if (!root.current?.contains(e.target as Node)) setOpen(false);
+    };
     document.addEventListener("pointerdown", down);
     return () => document.removeEventListener("pointerdown", down);
   }, [open]);
@@ -32,15 +42,31 @@ function LayoutsMenu() {
       className="layouts"
       ref={root}
       onKeyDown={(e) => {
-        if (e.key === "Escape" && open) { e.stopPropagation(); setOpen(false); btn.current?.focus(); }
+        if (e.key === "Escape" && open) {
+          e.stopPropagation();
+          setOpen(false);
+          btn.current?.focus();
+        }
       }}
     >
-      <button ref={btn} className="layouts-btn" aria-expanded={open} aria-controls="layouts-menu" onClick={() => setOpen((o) => !o)}>
-        <LayoutGrid size={14} strokeWidth={1.5} aria-hidden /> Layouts <ChevronDown size={14} strokeWidth={1.5} aria-hidden />
+      <button
+        ref={btn}
+        className="layouts-btn"
+        aria-expanded={open}
+        aria-controls="layouts-menu"
+        onClick={() => setOpen((o) => !o)}
+      >
+        <LayoutGrid size={14} strokeWidth={1.5} aria-hidden /> Layouts{" "}
+        <ChevronDown size={14} strokeWidth={1.5} aria-hidden />
       </button>
       {open ? (
         <div id="layouts-menu" className="layouts-menu" role="group" aria-label="Layout presets">
-          <PresetButtons onChoose={() => { setOpen(false); btn.current?.focus(); }} />
+          <PresetButtons
+            onChoose={() => {
+              setOpen(false);
+              btn.current?.focus();
+            }}
+          />
         </div>
       ) : null}
     </div>
@@ -57,7 +83,9 @@ export function TopBar() {
         <JaliLockup />
         <AppSwitch />
       </div>
-      {page ? <PageBar /> : !store.env.presets.length ? null : (
+      {page ? (
+        <PageBar />
+      ) : !store.env.presets.length ? null : (
         <>
           <nav className="presets" aria-label="Layout presets">
             <PresetButtons />
@@ -66,14 +94,33 @@ export function TopBar() {
         </>
       )}
       <div className="topbar-right">
-        <button className="jali-icon-btn" onClick={() => copyLink(store)} aria-label={page ? `Copy link to this ${store.env.profile?.itemNoun ?? "item"}` : "Copy link to this layout"} title="Copy link">
+        <button
+          className="jali-icon-btn"
+          onClick={() => copyLink(store)}
+          aria-label={
+            page
+              ? `Copy link to this ${store.env.profile?.itemNoun ?? "item"}`
+              : "Copy link to this layout"
+          }
+          title="Copy link"
+        >
           <Link2 size={16} strokeWidth={1.5} aria-hidden />
         </button>
-        <button className="jali-icon-btn" onClick={() => store.actions.openSettings()} aria-label="Settings" title="Settings">
+        <button
+          className="jali-icon-btn"
+          onClick={() => store.actions.openSettings()}
+          aria-label="Settings"
+          title="Settings"
+        >
           <Settings size={16} strokeWidth={1.5} aria-hidden />
         </button>
-        <button className="kbd-btn" onClick={() => store.actions.openPalette()} aria-label="Command palette">
-          <Command size={14} strokeWidth={1.5} aria-hidden /> <span className="kbd-label">{paletteKeys}</span>
+        <button
+          className="kbd-btn"
+          onClick={() => store.actions.openPalette()}
+          aria-label="Command palette"
+        >
+          <Command size={14} strokeWidth={1.5} aria-hidden />{" "}
+          <span className="kbd-label">{paletteKeys}</span>
         </button>
       </div>
     </header>

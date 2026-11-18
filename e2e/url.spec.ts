@@ -2,7 +2,10 @@ import { test, expect } from "./fixtures/lab";
 import { goneRecord, linkTo } from "./fixtures/layouts";
 
 test.describe("URL round-trip", () => {
-  test("copy the layout link of the stress preset, open it elsewhere, get the same structure", async ({ lab, page }) => {
+  test("copy the layout link of the stress preset, open it elsewhere, get the same structure", async ({
+    lab,
+    page,
+  }) => {
     await lab.open();
     await lab.preset("Stress: 10 panes");
     await page.getByRole("button", { name: "Copy link to this layout" }).click();
@@ -10,10 +13,20 @@ test.describe("URL round-trip", () => {
     expect(link).toContain("?l=");
     const snapshot = (l: typeof lab) =>
       l.page.locator("section[data-pane]").evaluateAll((els) =>
-        (els as HTMLElement[]).map((e) => {
-          const r = e.getBoundingClientRect();
-          return [e.dataset.pane, e.dataset.kind, getComputedStyle(e).display === "none", Math.round(r.x), Math.round(r.y), Math.round(r.width), Math.round(r.height)].join("|");
-        }).sort(),
+        (els as HTMLElement[])
+          .map((e) => {
+            const r = e.getBoundingClientRect();
+            return [
+              e.dataset.pane,
+              e.dataset.kind,
+              getComputedStyle(e).display === "none",
+              Math.round(r.x),
+              Math.round(r.y),
+              Math.round(r.width),
+              Math.round(r.height),
+            ].join("|");
+          })
+          .sort(),
       );
     const a = await snapshot(lab);
     const other = await lab.fork(link, { width: 1600, height: 900 });

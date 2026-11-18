@@ -207,20 +207,81 @@ const memberGroup = (member: number) => ((member - 1) % LOAN_BOOK.groups) + 1;
 const groupOfficer = (group: number) => ((group - 1) % LOAN_BOOK.officers) + 1;
 
 function loanBook(insert: (table: string, rows: (string | number | null)[][]) => void) {
-  const day = (n: number, year = 2026) => `${year}-${String(1 + (n % 10)).padStart(2, "0")}-${String(1 + (n % 28)).padStart(2, "0")}`;
-  insert("field_officers", ["Farhana Akter", "Mizanur Rahman", "Sumaiya Islam", "Tanvir Hasan", "Rumana Begum", "Shafiqul Alam"]
-    .map((name, i) => [i + 1, name, ["Gazipur", "Tangail", "Bogura", "Gazipur", "Tangail", "Bogura"][i]!, `01700-0000${i + 1}0`]));
-  const villages = ["Kaliakair", "Sreepur", "Mirzapur", "Basail", "Sherpur", "Dhunat", "Kapasia", "Gopalpur"];
+  const day = (n: number, year = 2026) =>
+    `${year}-${String(1 + (n % 10)).padStart(2, "0")}-${String(1 + (n % 28)).padStart(2, "0")}`;
+  insert(
+    "field_officers",
+    [
+      "Farhana Akter",
+      "Mizanur Rahman",
+      "Sumaiya Islam",
+      "Tanvir Hasan",
+      "Rumana Begum",
+      "Shafiqul Alam",
+    ].map((name, i) => [
+      i + 1,
+      name,
+      ["Gazipur", "Tangail", "Bogura", "Gazipur", "Tangail", "Bogura"][i]!,
+      `01700-0000${i + 1}0`,
+    ]),
+  );
+  const villages = [
+    "Kaliakair",
+    "Sreepur",
+    "Mirzapur",
+    "Basail",
+    "Sherpur",
+    "Dhunat",
+    "Kapasia",
+    "Gopalpur",
+  ];
   const groupNames = ["Shapla", "Padma", "Jamuna", "Kamini", "Bokul", "Shimul"];
-  insert("lending_groups", Array.from({ length: LOAN_BOOK.groups }, (_, i) => [
-    i + 1, `${groupNames[i % 6]} Samity ${Math.floor(i / 6) + 1}`, villages[i % 8]!, ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday"][i % 5]!, groupOfficer(i + 1),
-  ]));
-  const first = ["Nasrin", "Rahima", "Shirin", "Ayesha", "Fatema", "Rokeya", "Salma", "Morium", "Jahanara", "Kulsum", "Hosne Ara", "Parvin"];
+  insert(
+    "lending_groups",
+    Array.from({ length: LOAN_BOOK.groups }, (_, i) => [
+      i + 1,
+      `${groupNames[i % 6]} Samity ${Math.floor(i / 6) + 1}`,
+      villages[i % 8]!,
+      ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday"][i % 5]!,
+      groupOfficer(i + 1),
+    ]),
+  );
+  const first = [
+    "Nasrin",
+    "Rahima",
+    "Shirin",
+    "Ayesha",
+    "Fatema",
+    "Rokeya",
+    "Salma",
+    "Morium",
+    "Jahanara",
+    "Kulsum",
+    "Hosne Ara",
+    "Parvin",
+  ];
   const last = ["Akter", "Begum", "Khatun", "Siddika", "Islam", "Sultana"];
-  const jobs = ["Tailoring", "Poultry", "Grocery stall", "Cow rearing", "Vegetable farming", "Handicrafts", "Tea stall"];
-  insert("members", Array.from({ length: LOAN_BOOK.members }, (_, i) => [
-    i + 1, `${first[i % 12]} ${last[(i * 5) % 6]}`, memberGroup(i + 1), day(i, 2019 + (i % 6)), jobs[i % 7]!, 3 + (i % 5), 120000 + ((i * 7919) % 900000),
-  ]));
+  const jobs = [
+    "Tailoring",
+    "Poultry",
+    "Grocery stall",
+    "Cow rearing",
+    "Vegetable farming",
+    "Handicrafts",
+    "Tea stall",
+  ];
+  insert(
+    "members",
+    Array.from({ length: LOAN_BOOK.members }, (_, i) => [
+      i + 1,
+      `${first[i % 12]} ${last[(i * 5) % 6]}`,
+      memberGroup(i + 1),
+      day(i, 2019 + (i % 6)),
+      jobs[i % 7]!,
+      3 + (i % 5),
+      120000 + ((i * 7919) % 900000),
+    ]),
+  );
   const loans: (string | number | null)[][] = [];
   const repayments: (string | number | null)[][] = [];
   for (let m = 1; m <= LOAN_BOOK.members; m++) {
@@ -230,23 +291,57 @@ function loanBook(insert: (table: string, rows: (string | number | null)[][]) =>
       const principal = (20000 + ((m * 13 + c * 7) % 9) * 5000) * 100;
       const active = c === cycles && m % 4 !== 0;
       const overdue = active && m % 9 === 0;
-      const outstanding = active ? Math.round(principal * (0.25 + ((m % 5) / 10))) : 0;
-      loans.push([id, m, PRODUCTS[(m + c) % 4]!, c, principal, day(m + c, 2023 + c), overdue ? "overdue" : active ? "active" : "closed", outstanding, groupOfficer(memberGroup(m))]);
+      const outstanding = active ? Math.round(principal * (0.25 + (m % 5) / 10)) : 0;
+      loans.push([
+        id,
+        m,
+        PRODUCTS[(m + c) % 4]!,
+        c,
+        principal,
+        day(m + c, 2023 + c),
+        overdue ? "overdue" : active ? "active" : "closed",
+        outstanding,
+        groupOfficer(memberGroup(m)),
+      ]);
       for (let k = 1; k <= 4; k++) {
         const missed = overdue && k >= 3;
-        repayments.push([repayments.length + 1, id, day(m + c + k, 2023 + c), missed ? null : day(m + c + k + 1, 2023 + c), Math.round(principal / 46), missed ? "missed" : k === 2 && m % 7 === 0 ? "late" : "on time"]);
+        repayments.push([
+          repayments.length + 1,
+          id,
+          day(m + c + k, 2023 + c),
+          missed ? null : day(m + c + k + 1, 2023 + c),
+          Math.round(principal / 46),
+          missed ? "missed" : k === 2 && m % 7 === 0 ? "late" : "on time",
+        ]);
       }
     }
   }
   insert("loans", loans);
   insert("repayments", repayments);
-  const purposes = ["Buy a second sewing machine", "Restock the shop before Eid", "Two dairy calves", "Seed and fertiliser for boro rice", "Expand the poultry shed", "Tin roof for the workshop"];
-  insert("loan_applications", Array.from({ length: LOAN_BOOK.applications }, (_, i) => {
-    const f = applicationFacts(i + 1);
-    return [
-      f.id, f.member, f.group, f.officer, PRODUCTS[i % 4]!, (30000 + (i % 8) * 10000) * 100, [26, 46, 52][i % 3]!, purposes[i % 6]!,
-      `2026-11-${String(1 + (i % 16)).padStart(2, "0")}T0${8 + (i % 2)}:${String((i * 7) % 60).padStart(2, "0")}:00Z`,
-      i % 6 === 5 ? "returned" : i % 5 === 4 ? "approved" : "pending",
-    ];
-  }));
+  const purposes = [
+    "Buy a second sewing machine",
+    "Restock the shop before Eid",
+    "Two dairy calves",
+    "Seed and fertiliser for boro rice",
+    "Expand the poultry shed",
+    "Tin roof for the workshop",
+  ];
+  insert(
+    "loan_applications",
+    Array.from({ length: LOAN_BOOK.applications }, (_, i) => {
+      const f = applicationFacts(i + 1);
+      return [
+        f.id,
+        f.member,
+        f.group,
+        f.officer,
+        PRODUCTS[i % 4]!,
+        (30000 + (i % 8) * 10000) * 100,
+        [26, 46, 52][i % 3]!,
+        purposes[i % 6]!,
+        `2026-11-${String(1 + (i % 16)).padStart(2, "0")}T0${8 + (i % 2)}:${String((i * 7) % 60).padStart(2, "0")}:00Z`,
+        i % 6 === 5 ? "returned" : i % 5 === 4 ? "approved" : "pending",
+      ];
+    }),
+  );
 }

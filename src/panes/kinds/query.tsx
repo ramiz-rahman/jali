@@ -12,7 +12,8 @@ import { useResultWindow } from "../grid/useWindow";
 import type { PaneProps } from "@jali/react";
 import { keyHint } from "@jali/core";
 
-export const DEFAULT_SQL = "SELECT region, SUM(amount_cents) AS amount_cents\nFROM sample_orders\nGROUP BY region\nORDER BY amount_cents DESC";
+export const DEFAULT_SQL =
+  "SELECT region, SUM(amount_cents) AS amount_cents\nFROM sample_orders\nGROUP BY region\nORDER BY amount_cents DESC";
 
 export function QueryPane({ params, paused, focused, openBeside }: PaneProps) {
   const start = typeof params.sql === "string" ? params.sql : DEFAULT_SQL;
@@ -69,34 +70,102 @@ export function QueryPane({ params, paused, focused, openBeside }: PaneProps) {
   return (
     <Shell>
       <div className="pk-bar">
-        <button className="pk-btn primary" onClick={() => exec()} disabled={run.isPending || !sql.trim()}>{run.isPending ? "Running" : "Run"} <span className="pk-mono" style={{ opacity: .7 }}>{keyHint("Mod+Enter")}</span></button>
-        <span className="grow pk-meta">{handle && !error ? <><span className="pk-mono">{formatCount(handle.rowCount)}</span> rows in <span className="pk-mono">{formatMs(handle.ms)}</span></> : "SQL"}</span>
-        <button className="pk-btn" disabled={!handle} onClick={() => handle && openBeside(chartRef(handle.runId))}>Chart this result</button>
+        <button
+          className="pk-btn primary"
+          onClick={() => exec()}
+          disabled={run.isPending || !sql.trim()}
+        >
+          {run.isPending ? "Running" : "Run"}{" "}
+          <span className="pk-mono" style={{ opacity: 0.7 }}>
+            {keyHint("Mod+Enter")}
+          </span>
+        </button>
+        <span className="grow pk-meta">
+          {handle && !error ? (
+            <>
+              <span className="pk-mono">{formatCount(handle.rowCount)}</span> rows in{" "}
+              <span className="pk-mono">{formatMs(handle.ms)}</span>
+            </>
+          ) : (
+            "SQL"
+          )}
+        </span>
+        <button
+          className="pk-btn"
+          disabled={!handle}
+          onClick={() => handle && openBeside(chartRef(handle.runId))}
+        >
+          Chart this result
+        </button>
       </div>
-      <textarea className="pk-sql" value={sql} spellCheck={false} aria-label="SQL" onChange={(e) => setSql(e.target.value)}
-        onKeyDown={(e) => { if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) { e.preventDefault(); exec(); } }} />
+      <textarea
+        className="pk-sql"
+        value={sql}
+        spellCheck={false}
+        aria-label="SQL"
+        onChange={(e) => setSql(e.target.value)}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
+            e.preventDefault();
+            exec();
+          }
+        }}
+      />
       <div className="pk-split" />
-      {error ? <ErrorState message={error} /> : run.isPending && !handle ? <Loading /> : handle ? <ResultGrid handle={handle} paused={paused} focused={focused} /> : <Empty title="No results yet" hint={`Press ${keyHint("Mod+Enter")} to run the query.`} />}
+      {error ? (
+        <ErrorState message={error} />
+      ) : run.isPending && !handle ? (
+        <Loading />
+      ) : handle ? (
+        <ResultGrid handle={handle} paused={paused} focused={focused} />
+      ) : (
+        <Empty title="No results yet" hint={`Press ${keyHint("Mod+Enter")} to run the query.`} />
+      )}
     </Shell>
   );
 }
 
-function ResultGrid({ handle, paused, focused }: { handle: ResultHandle; paused: boolean; focused: boolean }) {
+function ResultGrid({
+  handle,
+  paused,
+  focused,
+}: {
+  handle: ResultHandle;
+  paused: boolean;
+  focused: boolean;
+}) {
   const [sel, setSel] = useState<number | null>(null);
   const w = useResultWindow(handle.runId, handle.rowCount, paused);
-  useEffect(() => { setSel(null); }, [handle.runId]);
+  useEffect(() => {
+    setSel(null);
+  }, [handle.runId]);
   const rows = w.rows;
-  const columns: GridColumn[] = handle.columns.map((name) => ({ name, type: typeFromRows(rows, name), format: resultFormat(name) }));
+  const columns: GridColumn[] = handle.columns.map((name) => ({
+    name,
+    type: typeFromRows(rows, name),
+    format: resultFormat(name),
+  }));
   if (w.q.isError) return <ErrorState message={errorText(w.q) ?? ""} />;
   if (!handle.rowCount) return <Empty title="No rows" hint="The query ran and matched nothing." />;
-  return <Grid label="Query results" columns={columns} total={handle.rowCount} rows={rows} startOffset={w.offset} onRange={w.onRange} selected={sel} onSelect={setSel} focused={focused} />;
+  return (
+    <Grid
+      label="Query results"
+      columns={columns}
+      total={handle.rowCount}
+      rows={rows}
+      startOffset={w.offset}
+      onRange={w.onRange}
+      selected={sel}
+      onSelect={setSel}
+      focused={focused}
+    />
+  );
 }
 
 function typeFromRows(rows: Row[], name: string) {
   const v = rows.find((r) => r[name] !== null && r[name] !== undefined)?.[name];
   return typeof v === "number" ? "number" : "text";
 }
-
 
 // Every query is new: never matched against an open one, but listed in Recent.
 export const queryKind = definePane("query", {

@@ -25,7 +25,11 @@ test.describe("Maximise", () => {
     await page.keyboard.press("ControlOrMeta+Shift+Enter");
     await expect(lab.isZoomed("customer")).toHaveCount(0);
     // A link inside the pane has focus: still maximise, and no new browser tab.
-    const link = lab.pane("customer").getByRole("link").or(lab.pane("customer").locator("button[data-ref], a")).first();
+    const link = lab
+      .pane("customer")
+      .getByRole("link")
+      .or(lab.pane("customer").locator("button[data-ref], a"))
+      .first();
     if (await link.count()) {
       await link.focus();
       const pages = page.context().pages().length;
@@ -35,9 +39,11 @@ test.describe("Maximise", () => {
       await page.keyboard.press("Escape");
     }
     // The ⌘K form still works.
-    await page.keyboard.press("ControlOrMeta+k"); await page.keyboard.press("ControlOrMeta+m");
+    await page.keyboard.press("ControlOrMeta+k");
+    await page.keyboard.press("ControlOrMeta+m");
     await expect(lab.isZoomed("customer")).toHaveCount(1);
-    await page.keyboard.press("ControlOrMeta+k"); await page.keyboard.press("ControlOrMeta+m");
+    await page.keyboard.press("ControlOrMeta+k");
+    await page.keyboard.press("ControlOrMeta+m");
     await expect(lab.isZoomed("customer")).toHaveCount(0);
     // The tree and sizes were preserved through all of it.
     await expect.poll(() => lab.visibleIds()).toEqual(["orders", "order", "customer"]);
@@ -52,7 +58,10 @@ test.describe("Maximise", () => {
 });
 
 test.describe("Focus", () => {
-  test("F6 cycles, the palette focuses by position, ⌘K ⌘arrows by direction with no wrap", async ({ lab, page }) => {
+  test("F6 cycles, the palette focuses by position, ⌘K ⌘arrows by direction with no wrap", async ({
+    lab,
+    page,
+  }) => {
     await lab.open();
     const focused = async (want: string) => expect.poll(() => lab.focusedId()).toBe(want);
     await focused("orders");
@@ -64,20 +73,27 @@ test.describe("Focus", () => {
     await focused("order");
 
     // Focus by position has no default keys (⌥digit is tab switching on Linux, ⌘digit everywhere): the palette has it.
-    for (const [n, want] of [[3, "customer"], [1, "orders"]] as const) {
+    for (const [n, want] of [
+      [3, "customer"],
+      [1, "orders"],
+    ] as const) {
       await page.keyboard.press("ControlOrMeta+k");
       await page.keyboard.type(`Focus pane ${n}`);
       await page.keyboard.press("Enter");
       await focused(want);
     }
 
-    await page.keyboard.press("ControlOrMeta+k"); await page.keyboard.press("ControlOrMeta+ArrowLeft"); // already leftmost: no wrap
+    await page.keyboard.press("ControlOrMeta+k");
+    await page.keyboard.press("ControlOrMeta+ArrowLeft"); // already leftmost: no wrap
     await focused("orders");
-    await page.keyboard.press("ControlOrMeta+k"); await page.keyboard.press("ControlOrMeta+ArrowRight");
+    await page.keyboard.press("ControlOrMeta+k");
+    await page.keyboard.press("ControlOrMeta+ArrowRight");
     await focused("order");
-    await page.keyboard.press("ControlOrMeta+k"); await page.keyboard.press("ControlOrMeta+ArrowRight");
+    await page.keyboard.press("ControlOrMeta+k");
+    await page.keyboard.press("ControlOrMeta+ArrowRight");
     await focused("customer");
-    await page.keyboard.press("ControlOrMeta+k"); await page.keyboard.press("ControlOrMeta+ArrowRight"); // rightmost: no wrap
+    await page.keyboard.press("ControlOrMeta+k");
+    await page.keyboard.press("ControlOrMeta+ArrowRight"); // rightmost: no wrap
     await focused("customer");
     await expect(lab.pane("customer")).toHaveCSS("outline-style", /.*/);
   });
@@ -99,7 +115,8 @@ test.describe("Close", () => {
     await expect(lab.pane("orders")).toHaveAttribute("data-focused", "true");
     await lab.shot("09-close-toast");
 
-    await page.keyboard.press("ControlOrMeta+k"); await page.keyboard.press("ControlOrMeta+z");
+    await page.keyboard.press("ControlOrMeta+k");
+    await page.keyboard.press("ControlOrMeta+z");
     await expect(lab.pane("customer")).toBeVisible();
     await expect.poll(() => lab.visibleIds()).toEqual(["orders", "order", "customer"]);
 
@@ -133,7 +150,10 @@ test.describe("Palette", () => {
     await page.keyboard.type("stress");
     await page.keyboard.press("Enter");
     await expect(dlg).toBeHidden();
-    await expect(page.getByRole("button", { name: "Stress: 10 panes" })).toHaveAttribute("aria-pressed", "true");
+    await expect(page.getByRole("button", { name: "Stress: 10 panes" })).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    );
     // and a pane command: back to the chain, close other panes, then undo
     await page.getByRole("button", { name: "Order → customer chain" }).click();
     await expect.poll(() => lab.visibleCount()).toBe(3);
@@ -141,7 +161,8 @@ test.describe("Palette", () => {
     await page.keyboard.type("close other");
     await page.keyboard.press("Enter");
     await expect.poll(() => lab.visibleCount()).toBe(1);
-    await page.keyboard.press("ControlOrMeta+k"); await page.keyboard.press("ControlOrMeta+z");
+    await page.keyboard.press("ControlOrMeta+k");
+    await page.keyboard.press("ControlOrMeta+z");
     await expect.poll(() => lab.visibleCount()).toBe(3);
   });
 });

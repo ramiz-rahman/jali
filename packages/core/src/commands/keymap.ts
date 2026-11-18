@@ -13,7 +13,15 @@
  * - One prefix, ⌘K / Ctrl+K: it opens the command palette and starts a two-step chord. The second step keeps Mod
  *   held (as VS Code's ⌘K ⌘←), so it never types into the palette's search.
  */
-import { detectPlatform, formatKeys, isCharacterKey, parseKeys, type Chord, type KeySequence, type Platform } from "./format";
+import {
+  detectPlatform,
+  formatKeys,
+  isCharacterKey,
+  parseKeys,
+  type Chord,
+  type KeySequence,
+  type Platform,
+} from "./format";
 
 /** Binding text: "Mod+\\", "F6", "Mod+K Mod+ArrowLeft". */
 export type KeyString = string;
@@ -52,7 +60,9 @@ export type DefaultKeymapId = keyof typeof DEFAULT_KEYMAP;
  * A host's changes: a command id → its bindings (a string or several), or `null` to unbind it. Ids not listed keep
  * their defaults; ids not in the defaults (any registry command, or the host's own) may be bound too.
  */
-export type KeymapOverrides = Partial<Record<DefaultKeymapId | (string & {}), KeyString | readonly KeyString[] | null>>;
+export type KeymapOverrides = Partial<
+  Record<DefaultKeymapId | (string & {}), KeyString | readonly KeyString[] | null>
+>;
 
 export interface KeymapOptions {
   /** Defaults to the running platform. */
@@ -74,11 +84,18 @@ export interface Keymap {
   isPrefix(match: (c: Chord) => boolean): Chord | undefined;
 }
 
-const sameChord = (a: Chord, b: Chord) => a.key === b.key && !!a.mod === !!b.mod && !!a.ctrl === !!b.ctrl && !!a.alt === !!b.alt && !!a.shift === !!b.shift;
+const sameChord = (a: Chord, b: Chord) =>
+  a.key === b.key &&
+  !!a.mod === !!b.mod &&
+  !!a.ctrl === !!b.ctrl &&
+  !!a.alt === !!b.alt &&
+  !!a.shift === !!b.shift;
 
 export function createKeymap(overrides: KeymapOverrides = {}, opts: KeymapOptions = {}): Keymap {
   const platform = opts.platform ?? detectPlatform();
-  const warn = opts.onInvalid ?? ((id, b, why) => console.warn(`[pane keymap] ${id}: "${b}" ignored (${why})`));
+  const warn =
+    opts.onInvalid ??
+    ((id, b, why) => console.warn(`[pane keymap] ${id}: "${b}" ignored (${why})`));
   const merged = new Map<string, readonly KeyString[]>(Object.entries(DEFAULT_KEYMAP));
   for (const [id, v] of Object.entries(overrides)) {
     if (v === undefined) continue;
@@ -97,7 +114,8 @@ export function createKeymap(overrides: KeymapOverrides = {}, opts: KeymapOption
         continue;
       }
       if (seq.length > 2) warn(id, b, "a binding has at most two steps");
-      else if (seq.length === 1 && isCharacterKey(seq[0]!)) warn(id, b, "a single character key belongs to the focused content (WCAG 2.1.4)");
+      else if (seq.length === 1 && isCharacterKey(seq[0]!))
+        warn(id, b, "a single character key belongs to the focused content (WCAG 2.1.4)");
       else seqs.push(seq);
     }
     if (seqs.length) entries.push([id, seqs]);
@@ -114,12 +132,18 @@ export function createKeymap(overrides: KeymapOverrides = {}, opts: KeymapOption
     find(match, prefix) {
       for (const [id, seqs] of entries)
         for (const s of seqs) {
-          if (prefix ? s.length === 2 && sameChord(s[0]!, prefix) && match(s[1]!) : s.length === 1 && match(s[0]!)) return id;
+          if (
+            prefix
+              ? s.length === 2 && sameChord(s[0]!, prefix) && match(s[1]!)
+              : s.length === 1 && match(s[0]!)
+          )
+            return id;
         }
       return undefined;
     },
     isPrefix(match) {
-      for (const [, seqs] of entries) for (const s of seqs) if (s.length === 2 && match(s[0]!)) return s[0];
+      for (const [, seqs] of entries)
+        for (const s of seqs) if (s.length === 2 && match(s[0]!)) return s[0];
       return undefined;
     },
   };

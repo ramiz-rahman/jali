@@ -1,4 +1,13 @@
-import { useEffect, useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore, type KeyboardEvent, type PointerEvent } from "react";
+import {
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+  useSyncExternalStore,
+  type KeyboardEvent,
+  type PointerEvent,
+} from "react";
 import { FoldHorizontal, RotateCcw } from "lucide-react";
 import { layout as jl, type Layout, type UiStore } from "@jali/core/adapter";
 import type { DemoLayoutId } from "./demo";
@@ -15,12 +24,17 @@ export interface FrameProps {
   caption?: string;
 }
 
-const STEP = 16, STEP_BIG = 64;
+const STEP = 16,
+  STEP_BIG = 64;
 /** The workspace inset: GAP in @jali/core (src/tokens.ts), which the package does not export. */
 const JALI_GAP = 6;
 
 /** A mark on the ruler: below this frame width, `folds` panes are folded (or one pane shows at a time). */
-interface Mark { width: number; folded: string[]; single: boolean }
+interface Mark {
+  width: number;
+  folded: string[];
+  single: boolean;
+}
 
 /**
  * Where folding changes, found by fitting the same layout at each width from widest to narrowest, as a reader
@@ -30,7 +44,8 @@ function foldMarks(store: UiStore, base: Layout, inset: number, min: number, max
   const view = { focusHistory: [] };
   const ctx0 = store.ctx();
   const marks: Mark[] = [];
-  let l = base, prev: string | null = null;
+  let l = base,
+    prev: string | null = null;
   for (let w = max; w >= min; w -= 2) {
     const width = w - inset;
     if (!(width > 0)) break;
@@ -71,7 +86,8 @@ export function Frame({ layout, width, minWidth = 260, height = 320, caption }: 
   // The workspace's inset (its padding and border) between the frame's width and the room panes get.
   // Jali's inset around the panes plus the frame's own border.
   const main = box.current?.querySelector<HTMLElement>(".jali-workspace");
-  const inset = (box.current && main ? box.current.offsetWidth - main.clientWidth : 2) + JALI_GAP * 2;
+  const inset =
+    (box.current && main ? box.current.offsetWidth - main.clientWidth : 2) + JALI_GAP * 2;
   const shape = JSON.stringify(m.layout.root);
   const marks = useMemo(() => {
     if (!max) return [];
@@ -95,7 +111,8 @@ export function Frame({ layout, width, minWidth = 260, height = 320, caption }: 
   const onDown = (e: PointerEvent<HTMLDivElement>) => {
     if (e.button !== 0) return;
     e.preventDefault();
-    const start = e.clientX, from = cur;
+    const start = e.clientX,
+      from = cur;
     const el = e.currentTarget;
     el.setPointerCapture(e.pointerId);
     el.focus({ preventScroll: true });
@@ -123,34 +140,71 @@ export function Frame({ layout, width, minWidth = 260, height = 320, caption }: 
   const nextBack = [...marks].reverse().find((k) => k.width > cur);
 
   return (
-    <figure className="live-figure live-frame" data-live="frame" data-dragging={dragging || undefined} aria-label={caption ?? demoLayouts[layout]}>
+    <figure
+      className="live-figure live-frame"
+      data-live="frame"
+      data-dragging={dragging || undefined}
+      aria-label={caption ?? demoLayouts[layout]}
+    >
       <div className="live-frame-bar">
         <div className="live-frame-width" aria-live="off">
-          <b>{Math.round(cur)}</b><span>px wide</span>
+          <b>{Math.round(cur)}</b>
+          <span>px wide</span>
         </div>
         <div className="live-frame-folds" aria-live="polite">
           {m.single ? (
-            <span className="live-frame-note">One pane at a time: even one pane no longer fits beside another</span>
+            <span className="live-frame-note">
+              One pane at a time: even one pane no longer fits beside another
+            </span>
           ) : folded.length ? (
             <>
-              <span className="live-frame-label"><FoldHorizontal size={13} strokeWidth={1.75} aria-hidden /> Folded</span>
-              {folded.map((id) => <span className="live-frame-chip" key={id}>{m.title(id)}</span>)}
+              <span className="live-frame-label">
+                <FoldHorizontal size={13} strokeWidth={1.75} aria-hidden /> Folded
+              </span>
+              {folded.map((id) => (
+                <span className="live-frame-chip" key={id}>
+                  {m.title(id)}
+                </span>
+              ))}
             </>
           ) : (
             <span className="live-frame-note">Everything fits</span>
           )}
         </div>
-        <button type="button" className="live-icon-btn" aria-label="Reset the layout and width" title="Reset" onClick={() => { setW(width ?? null); resetLive(store, layout); }}>
+        <button
+          type="button"
+          className="live-icon-btn"
+          aria-label="Reset the layout and width"
+          title="Reset"
+          onClick={() => {
+            setW(width ?? null);
+            resetLive(store, layout);
+          }}
+        >
           <RotateCcw size={13} strokeWidth={1.75} aria-hidden />
         </button>
       </div>
 
       <div className="live-frame-track" ref={track}>
         <div className="live-ruler" aria-hidden>
-          {ticks.map((t) => <span key={t} className="live-ruler-tick" style={{ left: t }}><i>{t}</i></span>)}
+          {ticks.map((t) => (
+            <span key={t} className="live-ruler-tick" style={{ left: t }}>
+              <i>{t}</i>
+            </span>
+          ))}
           {marks.map((k) => (
-            <span key={k.width} className="live-ruler-mark" data-single={k.single || undefined} data-passed={k.width > cur || undefined} style={{ left: k.width }}
-              title={k.single ? `Below ${k.width}px: one pane at a time` : `Below ${k.width}px: ${k.folded.length} folded`} />
+            <span
+              key={k.width}
+              className="live-ruler-mark"
+              data-single={k.single || undefined}
+              data-passed={k.width > cur || undefined}
+              style={{ left: k.width }}
+              title={
+                k.single
+                  ? `Below ${k.width}px: one pane at a time`
+                  : `Below ${k.width}px: ${k.folded.length} folded`
+              }
+            />
           ))}
           <span className="live-ruler-cursor" style={{ left: cur }} />
         </div>
@@ -176,8 +230,14 @@ export function Frame({ layout, width, minWidth = 260, height = 320, caption }: 
         </div>
       </div>
       <p className="live-frame-hint">
-        Drag the frame's edge{nextFold && !m.single ? `. Narrower than ${nextFold.width}px, ${nextFold.single ? "one pane shows at a time" : "another pane folds"}` : ""}
-        {nextBack ? `${nextFold && !m.single ? "; wider" : ". Wider"} than ${nextBack.width}px, ${folded.length || m.single ? "a pane returns" : "it all fits"}` : ""}.
+        Drag the frame's edge
+        {nextFold && !m.single
+          ? `. Narrower than ${nextFold.width}px, ${nextFold.single ? "one pane shows at a time" : "another pane folds"}`
+          : ""}
+        {nextBack
+          ? `${nextFold && !m.single ? "; wider" : ". Wider"} than ${nextBack.width}px, ${folded.length || m.single ? "a pane returns" : "it all fits"}`
+          : ""}
+        .
       </p>
       {caption ? <figcaption className="live-caption">{caption}</figcaption> : null}
     </figure>

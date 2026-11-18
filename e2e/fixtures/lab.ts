@@ -3,7 +3,13 @@
  * an accessible name or a data-* hook will do. Anything still reached by class or structure is listed in
  * HOOKS below, so the ui engineer can see exactly what to turn into a data-testid.
  */
-import { test as base, expect, type BrowserContext, type Locator, type Page } from "@playwright/test";
+import {
+  test as base,
+  expect,
+  type BrowserContext,
+  type Locator,
+  type Page,
+} from "@playwright/test";
 
 export type Rect = { x: number; y: number; w: number; h: number };
 export type Snap = { rects: Record<string, Rect>; groups: string[] };
@@ -24,12 +30,20 @@ const HOOKS = {
   statusMain: ".status-main",
   zoomed: ".is-zoomed",
 };
-const SHAPES = { working: ".jali-ra-ring", "needs-you": ".jali-ra-need", error: ".jali-ra-fail" } as const;
+const SHAPES = {
+  working: ".jali-ra-ring",
+  "needs-you": ".jali-ra-need",
+  error: ".jali-ra-fail",
+} as const;
 
 const SAME = 1; // px tolerance when comparing rects
 
 export class Lab {
-  constructor(readonly page: Page, readonly context: BrowserContext, private readonly writeShots: boolean) {}
+  constructor(
+    readonly page: Page,
+    readonly context: BrowserContext,
+    private readonly writeShots: boolean,
+  ) {}
 
   // ---------- locators ----------
   /** The pane section with this id (the shown tab's id for a tab group). */
@@ -50,7 +64,8 @@ export class Lab {
   launcherField = () => this.page.getByRole("combobox", { name: "Open in this pane" });
   dragChip = () => this.page.locator(HOOKS.dragChip);
   dividerPreview = () => this.page.locator(HOOKS.dividerPreview);
-  toast = (text: string | RegExp) => this.page.locator("[data-sonner-toast]").filter({ hasText: text });
+  toast = (text: string | RegExp) =>
+    this.page.locator("[data-sonner-toast]").filter({ hasText: text });
   shelf = () => this.page.getByRole("region", { name: "Shelf" });
   shelfBar = () => this.shelf().getByRole("toolbar", { name: "Tucked and folded panes" });
   /** Tucked chips (made by the person). Folded ones (made by the layout) are foldedChips. */
@@ -58,12 +73,20 @@ export class Lab {
   foldedChips = () => this.shelf().locator('[data-chip][data-reason="folded"]');
   /** The main button of each shelf chip (not its put-back mini-action). */
   chipMains = () => this.shelfBar().getByRole("button", { name: /Enter shows it/ });
-  chip = (title: string) => this.shelf().getByRole("button", { name: new RegExp(`^${title}`) }).first();
+  chip = (title: string) =>
+    this.shelf()
+      .getByRole("button", { name: new RegExp(`^${title}`) })
+      .first();
   isZoomed = (id: string) => this.page.locator(`section[data-pane="${id}"]${HOOKS.zoomed}`);
 
   // ---------- boot ----------
   // Data Studio shows a grid or a record's Edit button; the loan review's views show links to related records.
-  private ready = () => this.page.getByRole("grid").or(this.page.getByRole("button", { name: /^Edit / })).or(this.page.locator("section[data-pane] button[data-ref]")).first();
+  private ready = () =>
+    this.page
+      .getByRole("grid")
+      .or(this.page.getByRole("button", { name: /^Edit / }))
+      .or(this.page.locator("section[data-pane] button[data-ref]"))
+      .first();
 
   /** Load the app (optionally a layout link and viewport), click a preset, wait until real data is on screen. */
   async open(opts: OpenOpts = {}) {
@@ -104,13 +127,22 @@ export class Lab {
     return this.page.locator("section[data-pane]").evaluateAll((els) =>
       (els as HTMLElement[])
         .filter((e) => getComputedStyle(e).display !== "none")
-        .sort((a, b) => a.getBoundingClientRect().x - b.getBoundingClientRect().x || a.getBoundingClientRect().y - b.getBoundingClientRect().y)
+        .sort(
+          (a, b) =>
+            a.getBoundingClientRect().x - b.getBoundingClientRect().x ||
+            a.getBoundingClientRect().y - b.getBoundingClientRect().y,
+        )
         .map((e) => e.dataset.pane!),
     );
   }
   visibleCount = async () => (await this.visibleIds()).length;
-  focusedId = () => this.page.locator("section[data-pane][data-focused]").evaluate((e) => (e as HTMLElement).dataset.pane).catch(() => null);
-  focusIn = (id: string) => this.page.evaluate((i) => !!document.activeElement?.closest(`section[data-pane="${i}"]`), id);
+  focusedId = () =>
+    this.page
+      .locator("section[data-pane][data-focused]")
+      .evaluate((e) => (e as HTMLElement).dataset.pane)
+      .catch(() => null);
+  focusIn = (id: string) =>
+    this.page.evaluate((i) => !!document.activeElement?.closest(`section[data-pane="${i}"]`), id);
   width = async (loc: Locator) => Math.round((await loc.boundingBox())!.width);
   attr = async (loc: Locator, name: string) => Number(await loc.getAttribute(name));
 
@@ -121,7 +153,9 @@ export class Lab {
       const groups: string[] = [];
       for (const e of els as HTMLElement[]) {
         if (getComputedStyle(e).display === "none") continue;
-        const tabs = Array.from(e.querySelectorAll('[role="tab"]')).map((t) => (t.textContent ?? "").trim()).sort();
+        const tabs = Array.from(e.querySelectorAll('[role="tab"]'))
+          .map((t) => (t.textContent ?? "").trim())
+          .sort();
         const key = tabs.length ? `tabs:${tabs.join("|")}` : `pane:${e.dataset.pane}`;
         if (tabs.length) groups.push(key);
         const r = e.getBoundingClientRect();
@@ -147,8 +181,17 @@ export class Lab {
     return this.page.locator("section[data-pane]").evaluateAll((els, t) => {
       for (const e of els as HTMLElement[]) {
         const tabs = Array.from(e.querySelectorAll('[role="tab"]')) as HTMLElement[];
-        if (getComputedStyle(e).display !== "none" && tabs.some((x) => (x.textContent ?? "").trim() === t)) {
-          return { id: e.dataset.pane!, active: (tabs.find((x) => x.getAttribute("aria-selected") === "true")?.textContent ?? "").trim(), tabs: tabs.map((x) => (x.textContent ?? "").trim()) };
+        if (
+          getComputedStyle(e).display !== "none" &&
+          tabs.some((x) => (x.textContent ?? "").trim() === t)
+        ) {
+          return {
+            id: e.dataset.pane!,
+            active: (
+              tabs.find((x) => x.getAttribute("aria-selected") === "true")?.textContent ?? ""
+            ).trim(),
+            tabs: tabs.map((x) => (x.textContent ?? "").trim()),
+          };
         }
       }
       return null;
@@ -156,12 +199,17 @@ export class Lab {
   }
   /** The tab group on screen with exactly these tab titles. */
   async group(names: string[]): Promise<Locator> {
-    const idx = await this.page.locator("section[data-pane]").evaluateAll((els, want) =>
-      (els as HTMLElement[]).findIndex((e) => {
-        if (getComputedStyle(e).display === "none") return false;
-        const tabs = Array.from(e.querySelectorAll('[role="tab"]')).map((t) => (t.textContent ?? "").trim()).sort();
-        return tabs.join("|") === (want as string[]).join("|");
-      }), names);
+    const idx = await this.page.locator("section[data-pane]").evaluateAll(
+      (els, want) =>
+        (els as HTMLElement[]).findIndex((e) => {
+          if (getComputedStyle(e).display === "none") return false;
+          const tabs = Array.from(e.querySelectorAll('[role="tab"]'))
+            .map((t) => (t.textContent ?? "").trim())
+            .sort();
+          return tabs.join("|") === (want as string[]).join("|");
+        }),
+      names,
+    );
     expect(idx, `group ${names.join("|")} exists`).toBeGreaterThanOrEqual(0);
     return this.page.locator("section[data-pane]").nth(idx);
   }
@@ -169,49 +217,84 @@ export class Lab {
   /** Differences between two snaps as readable lines; empty when they match within 1px. */
   static diff(a: Snap, b: Snap, skip: string[] = []): string[] {
     const out: string[] = [];
-    if (JSON.stringify(a.groups) !== JSON.stringify(b.groups)) out.push(`tab membership ${JSON.stringify(a.groups)} -> ${JSON.stringify(b.groups)}`);
-    const ka = Object.keys(a.rects).filter((k) => !skip.includes(k)).sort();
-    const kb = Object.keys(b.rects).filter((k) => !skip.includes(k)).sort();
-    if (JSON.stringify(ka) !== JSON.stringify(kb)) out.push(`visible panes ${JSON.stringify(ka)} -> ${JSON.stringify(kb)}`);
+    if (JSON.stringify(a.groups) !== JSON.stringify(b.groups))
+      out.push(`tab membership ${JSON.stringify(a.groups)} -> ${JSON.stringify(b.groups)}`);
+    const ka = Object.keys(a.rects)
+      .filter((k) => !skip.includes(k))
+      .sort();
+    const kb = Object.keys(b.rects)
+      .filter((k) => !skip.includes(k))
+      .sort();
+    if (JSON.stringify(ka) !== JSON.stringify(kb))
+      out.push(`visible panes ${JSON.stringify(ka)} -> ${JSON.stringify(kb)}`);
     for (const k of ka) {
       const [p, q] = [a.rects[k], b.rects[k]];
       if (!p || !q) continue;
-      for (const f of ["x", "y", "w", "h"] as const) if (Math.abs(p[f] - q[f]) > SAME) out.push(`${k} ${f} ${p[f]} -> ${q[f]}`);
+      for (const f of ["x", "y", "w", "h"] as const)
+        if (Math.abs(p[f] - q[f]) > SAME) out.push(`${k} ${f} ${p[f]} -> ${q[f]}`);
     }
     return out;
   }
-  static sameRect = (a: Rect, b: Rect) => (["x", "y", "w", "h"] as const).every((f) => Math.abs(a[f] - b[f]) <= SAME);
+  static sameRect = (a: Rect, b: Rect) =>
+    (["x", "y", "w", "h"] as const).every((f) => Math.abs(a[f] - b[f]) <= SAME);
 
   /** Retry until the layout matches `before`, or fail with the differences. */
   async expectSnap(before: Snap, label: string, skip: string[] = []) {
-    await expect.poll(async () => Lab.diff(before, await this.snap(), skip), { message: label, timeout: 8_000 }).toEqual([]);
+    await expect
+      .poll(async () => Lab.diff(before, await this.snap(), skip), {
+        message: label,
+        timeout: 8_000,
+      })
+      .toEqual([]);
   }
 
   // ---------- waiting ----------
   /** Wait until the layout stops moving: the same rects on three reads in a row. Replaces fixed sleeps after resize, click and key. */
   async stable() {
-    let last = "", same = 0;
-    await expect.poll(async () => {
-      const s = JSON.stringify(await this.snap());
-      same = s === last ? same + 1 : 0;
-      last = s;
-      return same >= 3;
-    }, { intervals: [60], timeout: 10_000, message: "layout settles" }).toBe(true);
+    let last = "",
+      same = 0;
+    await expect
+      .poll(
+        async () => {
+          const s = JSON.stringify(await this.snap());
+          same = s === last ? same + 1 : 0;
+          last = s;
+          return same >= 3;
+        },
+        { intervals: [60], timeout: 10_000, message: "layout settles" },
+      )
+      .toBe(true);
   }
   /** Let queued animation frames run. The app moves DOM focus on the next frame after tuck, put back and reveal, so a test that moves focus itself waits for that first. */
-  frames = (n = 2) => this.page.evaluate((count) => new Promise<void>((done) => {
-    const step = (left: number) => (left <= 0 ? done() : requestAnimationFrame(() => step(left - 1)));
-    step(count);
-  }), n);
-  fetches = async () => Number(await this.page.getByTestId("fetch-stats").locator("b").first().innerText());
+  frames = (n = 2) =>
+    this.page.evaluate(
+      (count) =>
+        new Promise<void>((done) => {
+          const step = (left: number) =>
+            left <= 0 ? done() : requestAnimationFrame(() => step(left - 1));
+          step(count);
+        }),
+      n,
+    );
+  fetches = async () =>
+    Number(await this.page.getByTestId("fetch-stats").locator("b").first().innerText());
   /** Wait until the fetch counter has not moved for 1.1s (the status line samples it every 500ms); returns the final count. */
   async settle() {
-    let last = -1, since = Date.now();
-    await expect.poll(async () => {
-      const n = await this.fetches();
-      if (n !== last) { last = n; since = Date.now(); }
-      return Date.now() - since >= 1_100;
-    }, { intervals: [250], timeout: 25_000, message: "fetch counter settles" }).toBe(true);
+    let last = -1,
+      since = Date.now();
+    await expect
+      .poll(
+        async () => {
+          const n = await this.fetches();
+          if (n !== last) {
+            last = n;
+            since = Date.now();
+          }
+          return Date.now() - since >= 1_100;
+        },
+        { intervals: [250], timeout: 25_000, message: "fetch counter settles" },
+      )
+      .toBe(true);
     return last;
   }
 
@@ -222,20 +305,30 @@ export class Lab {
       const el = document.querySelector('[data-testid="announcer"]')!;
       const w = window as unknown as { __ann: string[] };
       w.__ann = [];
-      new MutationObserver(() => { const t = (el.textContent ?? "").trim(); if (t) w.__ann.push(t); }).observe(el, { childList: true, characterData: true, subtree: true });
+      new MutationObserver(() => {
+        const t = (el.textContent ?? "").trim();
+        if (t) w.__ann.push(t);
+      }).observe(el, { childList: true, characterData: true, subtree: true });
     });
   }
   announcements = () => this.page.evaluate(() => (window as unknown as { __ann: string[] }).__ann);
   /** Retry until some announcement matches. */
   async expectAnnounced(re: RegExp) {
-    await expect.poll(async () => (await this.announcements()).some((m) => re.test(m)), { message: `announced ${re}` }).toBe(true);
+    await expect
+      .poll(async () => (await this.announcements()).some((m) => re.test(m)), {
+        message: `announced ${re}`,
+      })
+      .toBe(true);
   }
 
   // ---------- tuck ----------
   tuck = (id: string) => this.pane(id).getByRole("button", { name: /^Tuck / });
   /** An enabled Tuck button on a visible pane. `which` picks the first or last one in DOM order. */
   firstTuckable = (which: "first" | "last" = "first") => {
-    const l = this.page.locator("section[data-pane]:visible").getByRole("button", { name: /^Tuck into/ }).and(this.page.locator(":enabled"));
+    const l = this.page
+      .locator("section[data-pane]:visible")
+      .getByRole("button", { name: /^Tuck into/ })
+      .and(this.page.locator(":enabled"));
     return which === "first" ? l.first() : l.last();
   };
   putBackTab = async (title: RegExp) => {
@@ -244,19 +337,38 @@ export class Lab {
     await tab.getByRole("button", { name: /^Put back / }).click();
   };
   /** Set a pane's activity through the dev hook the app exposes (window.__lab). */
-  setActivity = (id: string, a: string) => this.page.evaluate(([i, v]) => (window as unknown as { __lab: { actions: { setActivity(i: string, v: string): void } } }).__lab.actions.setActivity(i!, v!), [id, a]);
+  setActivity = (id: string, a: string) =>
+    this.page.evaluate(
+      ([i, v]) =>
+        (
+          window as unknown as { __lab: { actions: { setActivity(i: string, v: string): void } } }
+        ).__lab.actions.setActivity(i!, v!),
+      [id, a],
+    );
   static shape = (state: keyof typeof SHAPES) => SHAPES[state];
 
   // ---------- pointer ----------
   /** Drag a pane by its header grip towards another pane's left edge, right edge or centre. Pass release:false to inspect the drop hint. */
-  async drag(fromId: string, toId: string, where: "centre" | "left" | "right", opts: { release?: boolean } = {}) {
+  async drag(
+    fromId: string,
+    toId: string,
+    where: "centre" | "left" | "right",
+    opts: { release?: boolean } = {},
+  ) {
     const from = (await this.header(fromId).boundingBox())!;
     const to = (await this.pane(toId).boundingBox())!;
-    const tx = where === "centre" ? to.x + to.width / 2 : where === "left" ? to.x + 20 : to.x + to.width - 20;
+    const tx =
+      where === "centre"
+        ? to.x + to.width / 2
+        : where === "left"
+          ? to.x + 20
+          : to.x + to.width - 20;
     const ty = to.y + to.height / 2;
     await this.page.mouse.move(from.x + from.width / 2 - 60, from.y + from.height / 2);
     await this.page.mouse.down();
-    await this.page.mouse.move(from.x + from.width / 2 - 40, from.y + from.height / 2 + 10, { steps: 3 }); // past the 4px threshold
+    await this.page.mouse.move(from.x + from.width / 2 - 40, from.y + from.height / 2 + 10, {
+      steps: 3,
+    }); // past the 4px threshold
     await this.page.mouse.move(tx, ty, { steps: 12 });
     if (opts.release !== false) await this.page.mouse.up();
   }

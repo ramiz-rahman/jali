@@ -26,7 +26,5 @@ export default defineConfig({
     // Tests read end positions; reshapes slide (180ms) only when motion is allowed.
     reducedMotion: "reduce",
   },
-  projects: SCREENS
-    ? [{ name: "screens" }]
-    : [{ name: "e2e", testIgnore: /screens\.spec\.ts/ }],
+  projects: SCREENS ? [{ name: "screens" }] : [{ name: "e2e", testIgnore: /screens\.spec\.ts/ }],
 });

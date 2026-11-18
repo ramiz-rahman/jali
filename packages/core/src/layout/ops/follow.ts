@@ -11,18 +11,28 @@ import { setRef } from "./ref";
  *  - closing the source drops the link and the following (ops/close.ts).
  */
 export function follower(layout: Layout, source: NodeId, kind: string): PaneNode | undefined {
-  return panes(layout.root).find(p => p.linkedTo === source && p.follows && p.ref.kind === kind);
+  return panes(layout.root).find((p) => p.linkedTo === source && p.follows && p.ref.kind === kind);
 }
 
 /** Show `ref` in `source`'s follower of that kind. The same layout when there is none or it already shows `ref`. */
-export function follow(layout: Layout, view: ViewState, source: NodeId, ref: ObjectRef, ctx: LayoutContext): { layout: Layout; pane?: NodeId } {
+export function follow(
+  layout: Layout,
+  view: ViewState,
+  source: NodeId,
+  ref: ObjectRef,
+  ctx: LayoutContext,
+): { layout: Layout; pane?: NodeId } {
   const f = follower(layout, source, ref.kind);
   if (!f) return { layout };
   return { layout: setRef(layout, view, f.id, ref, ctx), pane: f.id };
 }
 
 /** The link flags of a pane newly opened from `source`'s selection: it follows unless the source already has a follower. */
-export const selectionLink = (layout: Layout, source: NodeId, kind: string): Pick<PaneNode, "follows" | "pinned"> =>
+export const selectionLink = (
+  layout: Layout,
+  source: NodeId,
+  kind: string,
+): Pick<PaneNode, "follows" | "pinned"> =>
   follower(layout, source, kind) ? { pinned: true } : { follows: true };
 
 /**
@@ -30,11 +40,27 @@ export const selectionLink = (layout: Layout, source: NodeId, kind: string): Pic
  * other follower of that source and kind is pinned in its place. Unlinked panes and unchanged states return `layout`.
  */
 export function setFollows(layout: Layout, id: NodeId, follows: boolean): Layout {
-  const target = panes(layout.root).find(p => p.id === id);
+  const target = panes(layout.root).find((p) => p.id === id);
   if (!target?.linkedTo || !!target.follows === follows) return layout;
-  const pin = (p: PaneNode): PaneNode => { const { follows: _f, ...rest } = p; return { ...rest, pinned: true }; };
-  const unpin = (p: PaneNode): PaneNode => { const { pinned: _p, ...rest } = p; return { ...rest, follows: true }; };
+  const pin = (p: PaneNode): PaneNode => {
+    const { follows: _f, ...rest } = p;
+    return { ...rest, pinned: true };
+  };
+  const unpin = (p: PaneNode): PaneNode => {
+    const { pinned: _p, ...rest } = p;
+    return { ...rest, follows: true };
+  };
   const rival = follows ? follower(layout, target.linkedTo, target.ref.kind) : undefined;
-  const root = map(layout.root, n => n.type !== "pane" ? n : n.id === id ? (follows ? unpin(n) : pin(n)) : n.id === rival?.id ? pin(n) : n);
+  const root = map(layout.root, (n) =>
+    n.type !== "pane"
+      ? n
+      : n.id === id
+        ? follows
+          ? unpin(n)
+          : pin(n)
+        : n.id === rival?.id
+          ? pin(n)
+          : n,
+  );
   return { ...layout, root };
 }

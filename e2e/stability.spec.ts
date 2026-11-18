@@ -4,7 +4,10 @@
  */
 import { test, expect, Lab } from "./fixtures/lab";
 
-const SIZES = [{ width: 1920, height: 1080 }, { width: 1440, height: 900 }];
+const SIZES = [
+  { width: 1920, height: 1080 },
+  { width: 1440, height: 900 },
+];
 
 for (const size of SIZES) {
   test.describe(`stress ${size.width}x${size.height}`, () => {
@@ -13,7 +16,10 @@ for (const size of SIZES) {
       await lab.preset("Stress: 10 panes");
       const base = await lab.snap();
       const groupKeys = Object.keys(base.rects).filter((k) => k.startsWith("tabs:"));
-      expect(base.groups.length, "stress preset should have tab groups at this size").toBeGreaterThan(0);
+      expect(
+        base.groups.length,
+        "stress preset should have tab groups at this size",
+      ).toBeGreaterThan(0);
       for (const key of groupKeys) {
         const names = key.slice(5).split("|");
         for (const name of names) {
@@ -24,8 +30,12 @@ for (const size of SIZES) {
           const now = await lab.snap();
           expect(Lab.diff(base, now, [key]), `click tab "${name}"`).toEqual([]); // the group's own rect is checked below
           expect(now.groups).toEqual(base.groups);
-          const own = now.rects[key]!, was = base.rects[key]!;
-          expect(Math.abs(own.w - was.w) + Math.abs(own.h - was.h), `${key} own rect`).toBeLessThanOrEqual(2);
+          const own = now.rects[key]!,
+            was = base.rects[key]!;
+          expect(
+            Math.abs(own.w - was.w) + Math.abs(own.h - was.h),
+            `${key} own rect`,
+          ).toBeLessThanOrEqual(2);
         }
       }
     });
@@ -49,7 +59,9 @@ test("resize 1920 -> 1024 -> 1920 restores rects and membership", async ({ lab, 
   const a = await lab.snap();
   const wide = await lab.visibleCount();
   await page.setViewportSize({ width: 1024, height: 1080 });
-  await expect.poll(() => lab.visibleCount(), { message: "the layout folds at 1024" }).toBeLessThan(wide);
+  await expect
+    .poll(() => lab.visibleCount(), { message: "the layout folds at 1024" })
+    .toBeLessThan(wide);
   await lab.stable();
   await page.setViewportSize({ width: 1920, height: 1080 });
   await lab.expectSnap(a, "after round trip");

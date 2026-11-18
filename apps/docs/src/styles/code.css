@@ -9,26 +9,42 @@
     overflow: hidden;
   }
   .code-header {
-    display: flex; align-items: center; justify-content: space-between; gap: 12px;
-    min-height: 40px; padding: 0 6px 0 14px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    min-height: 40px;
+    padding: 0 6px 0 14px;
     border-bottom: 1px solid var(--jali-border);
     background: var(--d-code-head);
   }
   .code-filename {
-    display: inline-flex; align-items: center; gap: 8px; min-width: 0;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
     font: 500 12.5px/18px var(--d-font-mono);
     color: var(--jali-text-muted);
-    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
-  .code-filename svg { flex: none; color: var(--jali-text-faint); }
+  .code-filename svg {
+    flex: none;
+    color: var(--jali-text-faint);
+  }
 
   .code {
     --code-lit: color-mix(in srgb, var(--jali-accent) 8%, transparent);
     --code-pad: 20px;
   }
-  :root[data-theme="dark"] .code { --code-lit: color-mix(in srgb, var(--jali-accent) 12%, transparent); }
+  :root[data-theme="dark"] .code {
+    --code-lit: color-mix(in srgb, var(--jali-accent) 12%, transparent);
+  }
   @media (prefers-color-scheme: dark) {
-    :root:not([data-theme="light"]) .code { --code-lit: color-mix(in srgb, var(--jali-accent) 12%, transparent); }
+    :root:not([data-theme="light"]) .code {
+      --code-lit: color-mix(in srgb, var(--jali-accent) 12%, transparent);
+    }
   }
 
   .code-pre {
@@ -40,21 +56,39 @@
     scrollbar-width: thin;
     scrollbar-color: var(--jali-border-strong) transparent;
   }
-  .code-pre:focus-visible { outline-offset: -2px; border-radius: 0 0 var(--d-radius) var(--d-radius); }
-  .code-pre > code { display: inline-block; min-width: 100%; font: inherit; }
-  .code-line { display: block; padding: 0 var(--code-pad); white-space: pre; }
-  .code-line[data-lit] { background: var(--code-lit); box-shadow: inset 2px 0 0 var(--jali-accent); }
+  .code-pre:focus-visible {
+    outline-offset: -2px;
+    border-radius: 0 0 var(--d-radius) var(--d-radius);
+  }
+  .code-pre > code {
+    display: inline-block;
+    min-width: 100%;
+    font: inherit;
+  }
+  .code-line {
+    display: block;
+    padding: 0 var(--code-pad);
+    white-space: pre;
+  }
+  .code-line[data-lit] {
+    background: var(--code-lit);
+    box-shadow: inset 2px 0 0 var(--jali-accent);
+  }
 
   /* Line numbers: a gutter that stays put while the code scrolls sideways. The number is generated content, so
      it can't be selected or copied, and the alt text after the slash keeps screen readers from reading it. */
   .code-pre[data-numbers] .code-line {
-    display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: start;
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: start;
     padding-left: 0;
   }
   .code-pre[data-numbers] .code-line::before {
     content: attr(data-n);
     content: attr(data-n) / "";
-    position: sticky; left: 0; z-index: 1;
+    position: sticky;
+    left: 0;
+    z-index: 1;
     box-sizing: content-box;
     width: var(--code-digits, 2ch);
     padding: 0 16px 0 14px;
@@ -62,11 +96,14 @@
     font-variant-numeric: tabular-nums;
     color: color-mix(in srgb, var(--jali-text-faint) 85%, transparent);
     background: var(--d-code-bg);
-    user-select: none; -webkit-user-select: none;
+    user-select: none;
+    -webkit-user-select: none;
     pointer-events: none;
   }
   /* A lit line: the band and its edge run through the gutter, and the number joins in. */
-  .code-pre[data-numbers] .code-line[data-lit] { box-shadow: none; }
+  .code-pre[data-numbers] .code-line[data-lit] {
+    box-shadow: none;
+  }
   .code-pre[data-numbers] .code-line[data-lit]::before {
     color: var(--jali-accent);
     background: linear-gradient(var(--code-lit), var(--code-lit)), var(--d-code-bg);
@@ -74,62 +111,130 @@
   }
 
   /* Wrapped: long lines break, and their rest hangs two columns in from the line's own indent. */
-  .code[data-wrap] .code-pre > code { display: block; }
-  .code[data-wrap] .code-line { white-space: normal; }
+  .code[data-wrap] .code-pre > code {
+    display: block;
+  }
+  .code[data-wrap] .code-line {
+    white-space: normal;
+  }
   .code[data-wrap] .code-text {
     --code-hang: min(calc(var(--code-indent, 0ch) + 2ch), 24ch);
     display: block;
-    white-space: pre-wrap; overflow-wrap: anywhere;
-    padding-left: var(--code-hang); text-indent: calc(-1 * var(--code-hang));
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+    padding-left: var(--code-hang);
+    text-indent: calc(-1 * var(--code-hang));
   }
   /* Without a header the tools sit over the first line; keep its end out from under them. */
-  .code:not([data-has-header]) .code-line:first-child .code-text { padding-right: 60px; }
+  .code:not([data-has-header]) .code-line:first-child .code-text {
+    padding-right: 60px;
+  }
 
   /* ---------- the tools: wrap and copy ---------- */
-  .code-tools { display: inline-flex; align-items: center; gap: 2px; flex: none; }
-  .code-tool {
-    display: inline-flex; align-items: center; justify-content: center; flex: none;
-    width: 30px; height: 30px; border-radius: 7px;
-    color: var(--jali-text-subtle);
-    transition: background-color 0.15s, color 0.15s, opacity 0.15s;
+  .code-tools {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    flex: none;
   }
-  .code-tool:hover { background: var(--jali-hover); color: var(--jali-text); }
-  .code-copy[data-copied] { color: var(--jali-accent); }
-  .code-wrap[aria-pressed="true"] { color: var(--jali-accent); background: color-mix(in srgb, var(--jali-accent) 10%, transparent); }
-  .code-wrap[aria-pressed="true"]:hover { background: color-mix(in srgb, var(--jali-accent) 16%, transparent); }
+  .code-tool {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: none;
+    width: 30px;
+    height: 30px;
+    border-radius: 7px;
+    color: var(--jali-text-subtle);
+    transition:
+      background-color 0.15s,
+      color 0.15s,
+      opacity 0.15s;
+  }
+  .code-tool:hover {
+    background: var(--jali-hover);
+    color: var(--jali-text);
+  }
+  .code-copy[data-copied] {
+    color: var(--jali-accent);
+  }
+  .code-wrap[aria-pressed="true"] {
+    color: var(--jali-accent);
+    background: color-mix(in srgb, var(--jali-accent) 10%, transparent);
+  }
+  .code-wrap[aria-pressed="true"]:hover {
+    background: color-mix(in srgb, var(--jali-accent) 16%, transparent);
+  }
   .code > .code-tools-float {
-    position: absolute; top: 7px; right: 7px; z-index: 2;
-    padding: 2px; border-radius: 9px;
+    position: absolute;
+    top: 7px;
+    right: 7px;
+    z-index: 2;
+    padding: 2px;
+    border-radius: 9px;
     background: var(--d-code-bg);
     box-shadow: 0 0 0 1px var(--jali-border);
     opacity: 0;
     transition: opacity 0.15s;
   }
-  .code:hover > .code-tools-float, .code > .code-tools-float:focus-within, .code > .code-tools-float:has([data-copied]) { opacity: 1; }
-  @media (hover: none) { .code > .code-tools-float { opacity: 1; } }
+  .code:hover > .code-tools-float,
+  .code > .code-tools-float:focus-within,
+  .code > .code-tools-float:has([data-copied]) {
+    opacity: 1;
+  }
+  @media (hover: none) {
+    .code > .code-tools-float {
+      opacity: 1;
+    }
+  }
 
   /* ---------- tabs ---------- */
-  .tab-strip { display: flex; align-items: stretch; gap: 2px; min-width: 0; overflow-x: auto; scrollbar-width: none; }
+  .tab-strip {
+    display: flex;
+    align-items: stretch;
+    gap: 2px;
+    min-width: 0;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
   .tab {
     position: relative;
-    display: inline-flex; align-items: center;
-    height: 40px; padding: 0 10px;
+    display: inline-flex;
+    align-items: center;
+    height: 40px;
+    padding: 0 10px;
     font: 500 13.5px/1 var(--d-font);
     color: var(--jali-text-subtle);
     white-space: nowrap;
     transition: color 0.15s;
   }
-  .tab:hover { color: var(--jali-text); }
-  .tab[aria-selected="true"] { color: var(--jali-text); }
+  .tab:hover {
+    color: var(--jali-text);
+  }
+  .tab[aria-selected="true"] {
+    color: var(--jali-text);
+  }
   .tab[aria-selected="true"]::after {
-    content: ""; position: absolute; left: 10px; right: 10px; bottom: -1px;
-    height: 2px; border-radius: 2px 2px 0 0;
+    content: "";
+    position: absolute;
+    left: 10px;
+    right: 10px;
+    bottom: -1px;
+    height: 2px;
+    border-radius: 2px 2px 0 0;
     background: var(--jali-accent);
   }
-  .tab:focus-visible { outline-offset: -6px; border-radius: 8px; }
+  .tab:focus-visible {
+    outline-offset: -6px;
+    border-radius: 8px;
+  }
 
-  .install .code-header { padding-left: 4px; }
-  .install .code-pre { padding: 13px 0; }
+  .install .code-header {
+    padding-left: 4px;
+  }
+  .install .code-pre {
+    padding: 13px 0;
+  }
 
   .tabs {
     margin: 24px 0 28px;
@@ -143,15 +248,34 @@
     border-bottom: 1px solid var(--jali-border);
     background: var(--d-code-head);
   }
-  .tab-panel { padding: 18px 20px 2px; }
-  .tab-panel > :last-child { margin-bottom: 16px; }
-  .tab-panel:has(> .code:only-child) { padding: 0; background: var(--d-code-bg); }
-  .tab-panel > .code:only-child { margin: 0; border: 0; border-radius: 0; }
-  .tab-panel > .code:only-child > .code-header { background: var(--d-code-bg); }
+  .tab-panel {
+    padding: 18px 20px 2px;
+  }
+  .tab-panel > :last-child {
+    margin-bottom: 16px;
+  }
+  .tab-panel:has(> .code:only-child) {
+    padding: 0;
+    background: var(--d-code-bg);
+  }
+  .tab-panel > .code:only-child {
+    margin: 0;
+    border: 0;
+    border-radius: 0;
+  }
+  .tab-panel > .code:only-child > .code-header {
+    background: var(--d-code-bg);
+  }
 
   /* Controls in code blocks: a visible ring on keyboard focus, and 44px targets on touch screens. */
-  :is(.code, .tabs) :is(button, [role="tab"]):focus-visible { outline: 2px solid var(--jali-focus-ring); outline-offset: 2px; }
+  :is(.code, .tabs) :is(button, [role="tab"]):focus-visible {
+    outline: 2px solid var(--jali-focus-ring);
+    outline-offset: 2px;
+  }
   @media (pointer: coarse) {
-    :is(.code, .tabs) :is(button, [role="tab"]) { min-height: 44px; min-width: 44px; }
+    :is(.code, .tabs) :is(button, [role="tab"]) {
+      min-height: 44px;
+      min-width: 44px;
+    }
   }
 }

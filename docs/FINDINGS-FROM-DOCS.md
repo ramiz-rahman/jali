@@ -3,6 +3,7 @@
 19 Nov 2026. The docs agents checked every claim against the code; these are the places the code was wrong, awkward or unclear. To fix in a packages pass after the docs land. File and line are as of commit 99ba5cb.
 
 ## Bugs
+
 1. **⌘K chords never finish when keys are scoped to a root.** The palette renders outside the root (`packages/react/src/Jali.tsx:36-38`), so the scoped handler rejects the second key (`packages/core/src/commands/keyboard.ts:152-157`). Reproduced in Chrome with two workspaces.
 2. **Two workspaces share dialog ids:** `ConfirmDiscard` uses fixed `confirm-title` / `confirm-body` (`packages/react/src/dialogs/ConfirmDiscard.tsx:26-32`). Check the palette, chooser and settings too.
 3. **Both defaults save under `browserStorage("jali")`** (`state/store.ts:190`, `url.ts:186`): two stores overwrite each other's settings and pane state unless the host passes storage.
@@ -13,12 +14,14 @@
 8. **Per-workspace accent misses the dialogs:** derived tints are on `:root, [data-jali]` only, the comment says "and dialog", and dialogs render outside `[data-jali]` (`jali-theme.css`).
 
 ## The start-up story for more than one workspace
+
 9. **`startUi` can't be scoped** (`core/src/boot.ts:81` calls `installKeyboard(store)` with no root), so a second workspace loses settings and pane-state saving, theme, the leave-page prompt and `applyTokens`. `savePaneState`'s key isn't public.
 10. **`startUi` writes `data-theme` on `<html>`** and overrides a host's own `.light` / theme toggle (`state/settings.ts` `applyTheme`, `boot.ts:61`). Theme should be opt-in for a host with its own.
 11. **`applyTokens` sets unprefixed variables on `<html>`** (`--gap`, `--topbar-h`, `--status-h`, `--switcher-h`; `core/src/tokens.ts:10-15`), and two of them are the lab's bars. Prefix them, scope to the root, drop the lab's.
 12. **`KeyboardScope.root` is `() => Element | null` but `store.dom.root()` is `ParentNode`** (`keyboard.ts:141`, `state/store.ts:150`).
 
 ## API shape
+
 13. **Items are numbers:** `ProfileBase.firstItem`, `build(item: number)`, `bind(item: number)`, `Rail`/`Header` props. UUIDs and slugs don't fit.
 14. **A page-only app still needs a preset or `initial.layout`** (`state/store.ts:180`) and has to open its page by hand after `boot`.
 15. **`StackNode.origin: "user"` is required** for hand-written stacks (`layout/types.ts:46`).
@@ -29,12 +32,14 @@
 20. **The shelf and toasts are the host's job:** `<JaliView>` renders no shelf and no toaster, and Undo lives only in a toast. A minimal app gets neither. Consider shipping both (a minimal toaster) or saying it in `<Jali>`.
 
 ## Text
+
 21. `react/src/define.ts:15,25` points at lab paths (`src/data/react`, `ui/pane/usePaneState`).
 22. `react/src/styles/jali-tailwind.css:4-6` imports `"jali/react/…"`; should be `"@jali/react/…"`.
 23. ~~`jali-theme.css` defaults are cool zinc~~ Done 19 Nov: stone is the default (founder).
 24. `examples/minimal` declares its layer order after Jali's CSS loads (`app.css:1`), so it teaches the wrong order.
 
 ## From the live parts and the reference
+
 25. **Mounting a workspace pulls page focus into it** when focus is on the body (`core/src/dom/focus.ts:35`, `keepPaneFocus` from `Workspace.tsx`). A docs page with three workspaces, or a host with a workspace below the fold, loses its place. Only move focus for a change the person made.
 26. **`refit` throws a RangeError on a negative width** (`core/src/layout/fit/context.ts:9`); clamp instead.
 27. **The shelf's phone rule needs the host's root to have the class `.app`** (`react/src/styles/shelf.css:37`), and the single view reads `--switcher-h`, which only `applyTokens` sets (see 11).

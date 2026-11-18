@@ -17,7 +17,9 @@ function CustomerTickets({ params, openBeside, openHere, peek }: PaneProps<{ cus
     <ul>
       {mine.map((t) => (
         <li key={t.id}>
-          <a href={`/tickets/${t.id}`} onClick={(e) => open(e, t.id)}>#{t.id} {t.subject}</a>
+          <a href={`/tickets/${t.id}`} onClick={(e) => open(e, t.id)}>
+            #{t.id} {t.subject}
+          </a>
           <button onClick={() => peek(ticket({ id: t.id }))}>Peek</button>
           <button onClick={() => openHere(ticket({ id: t.id }))}>Show here</button>
         </li>

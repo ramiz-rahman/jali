@@ -6,7 +6,11 @@ import { test, expect } from "./fixtures/lab";
 
 for (const mode of ["light", "dark"] as const) {
   for (const preset of ["Chain", "Stress: 10 panes"]) {
-    for (const size of [{ width: 1920, height: 1080 }, { width: 1440, height: 900 }, { width: 1024, height: 768 }]) {
+    for (const size of [
+      { width: 1920, height: 1080 },
+      { width: 1440, height: 900 },
+      { width: 1024, height: 768 },
+    ]) {
       test(`screenshots: shelf, ${preset}, ${size.width}, ${mode}`, async ({ lab, page }) => {
         await lab.open({ size });
         if (preset !== "Chain") await lab.preset(preset);

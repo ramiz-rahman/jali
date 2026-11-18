@@ -2,10 +2,13 @@
 import { useEffect, useSyncExternalStore } from "react";
 
 const listeners = new Set<() => void>();
-const notify = () => { for (const l of listeners) l(); };
+const notify = () => {
+  for (const l of listeners) l();
+};
 if (typeof window !== "undefined") window.addEventListener("popstate", notify);
 
-export const currentPath = () => (typeof window === "undefined" ? "/" : window.location.pathname.replace(/\/$/, "") || "/");
+export const currentPath = () =>
+  typeof window === "undefined" ? "/" : window.location.pathname.replace(/\/$/, "") || "/";
 
 export function navigate(to: string) {
   if (to === window.location.pathname + window.location.hash) return;
@@ -15,18 +18,30 @@ export function navigate(to: string) {
 }
 
 export function usePath(): string {
-  return useSyncExternalStore((l) => { listeners.add(l); return () => listeners.delete(l); }, currentPath, () => "/");
+  return useSyncExternalStore(
+    (l) => {
+      listeners.add(l);
+      return () => listeners.delete(l);
+    },
+    currentPath,
+    () => "/",
+  );
 }
 
 /** Same-origin links navigate without a reload. */
 export function useLinkInterception() {
   useEffect(() => {
     const onClick = (e: MouseEvent) => {
-      if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+      if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey)
+        return;
       const a = (e.target as Element).closest?.("a");
       if (!a || a.target || a.hasAttribute("download")) return;
       const url = new URL(a.href, window.location.href);
-      if (url.origin !== window.location.origin || url.pathname === window.location.pathname && url.hash) return;
+      if (
+        url.origin !== window.location.origin ||
+        (url.pathname === window.location.pathname && url.hash)
+      )
+        return;
       e.preventDefault();
       navigate(url.pathname + url.hash);
     };

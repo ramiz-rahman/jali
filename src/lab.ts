@@ -1,6 +1,13 @@
 /** The lab's two apps in one workspace: Data Studio's kinds, plus the loan review's kinds and page. */
 import { DEFAULT_PRESET, dataStudioKinds, dataStudioLauncher, dataStudioPresets } from "./panes";
-import { browserStorage, createPaneKinds, createUiStore, toLayout, type UiStore, type UiStoreDeps } from "@jali/core/adapter";
+import {
+  browserStorage,
+  createPaneKinds,
+  createUiStore,
+  toLayout,
+  type UiStore,
+  type UiStoreDeps,
+} from "@jali/core/adapter";
 import { createWorkspace, type Workspace, type WorkspaceOptions } from "@jali/core";
 import { loanReview, loanReviewKinds } from "./review";
 
@@ -17,9 +24,11 @@ export const labOptions = {
 } satisfies WorkspaceOptions;
 
 /** The lab app's workspace. Data Studio links reopen exactly, sizes included (the founder's round-trip rule, 17 Nov). */
-export const createLabWorkspace = (): Workspace => createWorkspace({ ...labOptions, url: { sizes: "link" } });
+export const createLabWorkspace = (): Workspace =>
+  createWorkspace({ ...labOptions, url: { sizes: "link" } });
 
-export const labKinds = () => createPaneKinds([...labOptions.panes, { ...dataStudioLauncher, transient: true }]);
+export const labKinds = () =>
+  createPaneKinds([...labOptions.panes, { ...dataStudioLauncher, transient: true }]);
 
 /**
  * For the engine tests: the lab's store before it boots, with nothing outside it (no address, no DOM focus unless
@@ -30,7 +39,11 @@ export function createLabStore(deps: Partial<UiStoreDeps> = {}): UiStore {
     kinds: labKinds(),
     launcher: dataStudioLauncher.kind,
     profile: loanReview,
-    presets: dataStudioPresets.map((p) => ({ id: p.id, label: p.label, build: () => toLayout(typeof p.layout === "function" ? p.layout() : p.layout) })),
+    presets: dataStudioPresets.map((p) => ({
+      id: p.id,
+      label: p.label,
+      build: () => toLayout(typeof p.layout === "function" ? p.layout() : p.layout),
+    })),
     preset: DEFAULT_PRESET,
     name: "Data Studio",
     storage: browserStorage("pane-lab"),

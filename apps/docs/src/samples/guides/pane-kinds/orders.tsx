@@ -3,7 +3,12 @@ import { definePane, useLauncher, type PaneProps } from "@jali/react";
 import { ClipboardList, FileText, Plus, StickyNote } from "lucide-react";
 
 // Your data. Jali never fetches anything: a pane is told which object to show, and shows it.
-interface Order { id: number; customer: string; total: string; status: string }
+interface Order {
+  id: number;
+  customer: string;
+  total: string;
+  status: string;
+}
 const ORDERS: Order[] = [
   { id: 1, customer: "Ada Okafor", total: "$120.00", status: "Paid" },
   { id: 2, customer: "Lin Park", total: "$48.50", status: "Shipped" },
@@ -60,9 +65,12 @@ function OrderDetail({ params }: PaneProps<{ id: number }>) {
   if (!order) return <p>Order {params.id} was not found.</p>;
   return (
     <dl>
-      <dt>Customer</dt><dd>{order.customer}</dd>
-      <dt>Total</dt><dd>{order.total}</dd>
-      <dt>Status</dt><dd>{order.status}</dd>
+      <dt>Customer</dt>
+      <dd>{order.customer}</dd>
+      <dt>Total</dt>
+      <dd>{order.total}</dd>
+      <dt>Status</dt>
+      <dd>{order.status}</dd>
     </dl>
   );
 }
@@ -71,7 +79,7 @@ export const orderList = definePane("orders", {
   title: "Orders",
   icon: ClipboardList,
   width: {
-    min: 440,         // narrower than this, the pane folds into a tab
+    min: 440, // narrower than this, the pane folds into a tab
     comfortable: 560, // spare room brings it up to here first
   },
   height: { min: 240 },
@@ -119,7 +127,9 @@ export const launcher = definePane("launcher", {
       <nav aria-label="Open in this pane">
         <button onClick={() => openHere(orderList())}>All orders</button>
         {recent.map((ref) => (
-          <button key={JSON.stringify(ref)} onClick={() => openHere(ref)}>{titleOf(ref)}</button>
+          <button key={JSON.stringify(ref)} onClick={() => openHere(ref)}>
+            {titleOf(ref)}
+          </button>
         ))}
         <button onClick={dismiss}>Cancel</button>
       </nav>

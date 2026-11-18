@@ -9,28 +9,41 @@ import { resolvedNav } from "../../site/sources";
 import { Lattice, Lockup } from "../brand";
 
 const titleOf = (path: string, fallback: string) =>
-  resolvedNav().flatMap((s) => s.items).find((i) => i.path === path)?.title ?? fallback;
+  resolvedNav()
+    .flatMap((s) => s.items)
+    .find((i) => i.path === path)?.title ?? fallback;
 
-interface Link { href: string; title: string; external?: boolean }
+interface Link {
+  href: string;
+  title: string;
+  external?: boolean;
+}
 
 function columns(): { title: string; links: Link[] }[] {
   const nav = resolvedNav();
-  const section = (name: string) => nav.find((s) => s.title === name)?.items.map((i) => ({ href: i.path, title: i.title })) ?? [];
+  const section = (name: string) =>
+    nav.find((s) => s.title === name)?.items.map((i) => ({ href: i.path, title: i.title })) ?? [];
   return [
     { title: "Docs", links: section("Get started") },
     { title: "Learn", links: section("Learn") },
-    { title: "Reference", links: [
-      { href: "/reference/core", title: "@jali/core" },
-      { href: "/reference/react", title: "@jali/react" },
-      { href: "/reference/tokens", title: titleOf("/reference/tokens", "Tokens") },
-      { href: "/reference/commands", title: titleOf("/reference/commands", "Commands") },
-    ] },
-    { title: "Project", links: [
-      { href: REPO_URL, title: "GitHub", external: true },
-      { href: "/examples", title: "Examples" },
-      { href: "/llms.txt", title: "llms.txt" },
-      { href: `${REPO_URL}/blob/main/LICENSE`, title: "Licence", external: true },
-    ] },
+    {
+      title: "Reference",
+      links: [
+        { href: "/reference/core", title: "@jali/core" },
+        { href: "/reference/react", title: "@jali/react" },
+        { href: "/reference/tokens", title: titleOf("/reference/tokens", "Tokens") },
+        { href: "/reference/commands", title: titleOf("/reference/commands", "Commands") },
+      ],
+    },
+    {
+      title: "Project",
+      links: [
+        { href: REPO_URL, title: "GitHub", external: true },
+        { href: "/examples", title: "Examples" },
+        { href: "/llms.txt", title: "llms.txt" },
+        { href: `${REPO_URL}/blob/main/LICENSE`, title: "Licence", external: true },
+      ],
+    },
   ];
 }
 
@@ -38,22 +51,38 @@ export function SiteFooter() {
   return (
     <footer className="site-footer" data-toc-skip="">
       <div className="site-footer-screen" aria-hidden>
-        {Array.from({ length: 24 }, (_, i) => <Lattice key={i} className="site-footer-arch" />)}
+        {Array.from({ length: 24 }, (_, i) => (
+          <Lattice key={i} className="site-footer-arch" />
+        ))}
       </div>
       <div className="site-footer-inner">
         <div className="site-footer-brand">
-          <a href="/" className="site-footer-home" aria-label="Jali, home"><Lockup className="site-footer-lockup" /></a>
-          <p className="site-footer-line">Workspaces of panes for React. Panes fold into tabs when the window is too small, and come back when there is room.</p>
+          <a href="/" className="site-footer-home" aria-label="Jali, home">
+            <Lockup className="site-footer-lockup" />
+          </a>
+          <p className="site-footer-line">
+            Workspaces of panes for React. Panes fold into tabs when the window is too small, and
+            come back when there is room.
+          </p>
         </div>
         <nav className="site-footer-nav" aria-label="Site">
           {columns().map((c) => (
             <div key={c.title} className="site-footer-col">
-              <p className="site-footer-heading" id={`footer-${c.title.toLowerCase()}`}>{c.title}</p>
+              <p className="site-footer-heading" id={`footer-${c.title.toLowerCase()}`}>
+                {c.title}
+              </p>
               <ul aria-labelledby={`footer-${c.title.toLowerCase()}`}>
                 {c.links.map((l) => (
                   <li key={l.href}>
-                    <a className="site-footer-link" href={l.href} {...(l.external ? { target: "_blank", rel: "noreferrer" } : {})}>
-                      {l.title}{l.external ? <ArrowUpRight aria-hidden size={13} strokeWidth={1.75} /> : null}
+                    <a
+                      className="site-footer-link"
+                      href={l.href}
+                      {...(l.external ? { target: "_blank", rel: "noreferrer" } : {})}
+                    >
+                      {l.title}
+                      {l.external ? (
+                        <ArrowUpRight aria-hidden size={13} strokeWidth={1.75} />
+                      ) : null}
                     </a>
                   </li>
                 ))}

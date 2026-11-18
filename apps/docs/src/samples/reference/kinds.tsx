@@ -9,7 +9,13 @@ export const ordersKind = definePane("orders", {
   Component: ({ select, openBeside }) => (
     <ul role="listbox" aria-label="Orders">
       {[1041, 1042, 1043].map((id) => (
-        <li key={id} role="option" aria-selected={false} onClick={() => select(orderKind({ id }))} onDoubleClick={() => openBeside(orderKind({ id }))}>
+        <li
+          key={id}
+          role="option"
+          aria-selected={false}
+          onClick={() => select(orderKind({ id }))}
+          onDoubleClick={() => openBeside(orderKind({ id }))}
+        >
           Order {id}
         </li>
       ))}
@@ -36,7 +42,9 @@ export const launcherKind = definePane("launcher", {
     return (
       <ul aria-label="Recent">
         {recent.map((ref, i) => (
-          <li key={i}><button onClick={() => openHere(ref)}>{titleOf(ref)}</button></li>
+          <li key={i}>
+            <button onClick={() => openHere(ref)}>{titleOf(ref)}</button>
+          </li>
         ))}
       </ul>
     );

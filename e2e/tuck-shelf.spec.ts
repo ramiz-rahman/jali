@@ -2,13 +2,17 @@
 import { test, expect, Lab } from "./fixtures/lab";
 
 test.describe("tuck and put back", () => {
-  test("button: the pane becomes a tab of its home, the home keeps its tab, only the home's group changes, focus lands in the home", async ({ lab }) => {
+  test("button: the pane becomes a tab of its home, the home keeps its tab, only the home's group changes, focus lands in the home", async ({
+    lab,
+  }) => {
     await lab.open();
     const before = await lab.byId();
     const beforeSnap = await lab.snap();
     const btn = lab.tuck("customer");
     await expect(btn).toBeEnabled();
-    expect(await btn.getAttribute("aria-label")).toMatch(/^Tuck into .+ · (⌘K ⌘\[|Ctrl\+K Ctrl\+\[)$/);
+    expect(await btn.getAttribute("aria-label")).toMatch(
+      /^Tuck into .+ · (⌘K ⌘\[|Ctrl\+K Ctrl\+\[)$/,
+    );
     expect(await btn.getAttribute("title")).toBe(await btn.getAttribute("aria-label"));
     await btn.click();
     await expect.poll(() => lab.homeOf("customer 1")).not.toBeNull();
@@ -22,7 +26,9 @@ test.describe("tuck and put back", () => {
       expect(Lab.sameRect(before[id]!, after[id]!), `${id} unchanged`).toBe(true);
     }
     expect(after.customer, "customer no longer has its own pane").toBeUndefined();
-    await expect.poll(() => lab.focusIn(home.id), { message: "focus lands in the home" }).toBe(true);
+    await expect
+      .poll(() => lab.focusIn(home.id), { message: "focus lands in the home" })
+      .toBe(true);
     expect(beforeSnap.groups.length).toBeLessThan((await lab.snap()).groups.length);
     // The tucked tab is marked, and Put back appears on hover and on focus.
     const tab = lab.tab(/customer 1/);
@@ -33,16 +39,21 @@ test.describe("tuck and put back", () => {
     expect(await pb.getAttribute("title")).toMatch(/^Put back · (⌘K ⌘\]|Ctrl\+K Ctrl\+\])$/);
   });
 
-  test("⌘K ⌘[ tucks the focused pane, ⌘K ⌘] puts the tab back to the exact rect", async ({ lab, page }) => {
+  test("⌘K ⌘[ tucks the focused pane, ⌘K ⌘] puts the tab back to the exact rect", async ({
+    lab,
+    page,
+  }) => {
     await lab.open();
     const before = await lab.snap();
     await lab.pane("customer").click({ position: { x: 100, y: 300 } });
-    await page.keyboard.press("ControlOrMeta+k"); await page.keyboard.press("ControlOrMeta+BracketLeft");
+    await page.keyboard.press("ControlOrMeta+k");
+    await page.keyboard.press("ControlOrMeta+BracketLeft");
     await expect.poll(() => lab.homeOf("customer 1")).not.toBeNull();
     const home = (await lab.homeOf("customer 1"))!;
     await expect.poll(() => lab.focusIn(home.id)).toBe(true);
     await lab.tab(/customer 1/).click();
-    await page.keyboard.press("ControlOrMeta+k"); await page.keyboard.press("ControlOrMeta+BracketRight");
+    await page.keyboard.press("ControlOrMeta+k");
+    await page.keyboard.press("ControlOrMeta+BracketRight");
     await expect.poll(() => lab.homeOf("customer 1")).toBeNull();
     await lab.expectSnap(before, "after ⌘K ⌘[, ⌘K ⌘]");
   });
@@ -77,22 +88,29 @@ test.describe("tuck and put back", () => {
     const before = await lab.snap();
     await lab.tuck("customer").click();
     await expect.poll(() => lab.homeOf("customer 1")).not.toBeNull();
-    await page.keyboard.press("ControlOrMeta+k"); await page.keyboard.press("ControlOrMeta+z");
+    await page.keyboard.press("ControlOrMeta+k");
+    await page.keyboard.press("ControlOrMeta+z");
     await expect.poll(() => lab.homeOf("customer 1")).toBeNull();
     await lab.expectSnap(before, "after ⌘K ⌘Z");
   });
 
-  test("the last pane: Tuck is disabled with a truthful tooltip and announcement", async ({ lab, page }) => {
+  test("the last pane: Tuck is disabled with a truthful tooltip and announcement", async ({
+    lab,
+    page,
+  }) => {
     await lab.open();
     await page.getByRole("button", { name: "Close order 1", exact: true }).click();
     await page.getByRole("button", { name: "Close customer 1", exact: true }).click();
     await expect.poll(() => lab.visibleCount()).toBe(1);
     const btn = lab.tuck("orders");
     await expect(btn).toBeDisabled();
-    expect(await btn.getAttribute("title")).toBe("orders is the only open pane and can't be tucked");
+    expect(await btn.getAttribute("title")).toBe(
+      "orders is the only open pane and can't be tucked",
+    );
     await lab.recordAnnouncements();
     await lab.pane("orders").click({ position: { x: 100, y: 300 } });
-    await page.keyboard.press("ControlOrMeta+k"); await page.keyboard.press("ControlOrMeta+BracketLeft");
+    await page.keyboard.press("ControlOrMeta+k");
+    await page.keyboard.press("ControlOrMeta+BracketLeft");
     await lab.expectAnnounced(/only open pane|can.?t be tucked/i);
     expect((await lab.announcements()).some((m) => /minimised|collapsed/i.test(m))).toBe(false);
     await expect(lab.shelf()).toHaveCount(0);
@@ -117,7 +135,8 @@ test.describe("the shelf", () => {
     await expect(status).toContainText(/\d+ panes/);
     await lab.tuck("customer").click();
     await expect(lab.shelf()).toBeVisible();
-    const sb = (await lab.shelf().boundingBox())!, st = (await status.boundingBox())!;
+    const sb = (await lab.shelf().boundingBox())!,
+      st = (await status.boundingBox())!;
     expect(Math.round(st.height)).toBe(28);
     expect(sb.y, "inside the status line").toBeGreaterThanOrEqual(st.y);
     expect(sb.y + sb.height, "inside the status line").toBeLessThanOrEqual(st.y + st.height + 0.5);
@@ -135,9 +154,15 @@ test.describe("the shelf", () => {
     expect(Math.round((await status.boundingBox())!.height)).toBe(28);
   });
 
-  test("the shelf never resizes the workspace: same height with and without hidden panes", async ({ lab }) => {
+  test("the shelf never resizes the workspace: same height with and without hidden panes", async ({
+    lab,
+  }) => {
     await lab.open();
-    const ws = () => lab.main().evaluate((e) => { const r = e.getBoundingClientRect(); return { y: r.y, h: r.height }; });
+    const ws = () =>
+      lab.main().evaluate((e) => {
+        const r = e.getBoundingClientRect();
+        return { y: r.y, h: r.height };
+      });
     const base = await ws();
     await lab.tuck("customer").click();
     await expect(lab.shelf()).toBeVisible();
@@ -146,9 +171,14 @@ test.describe("the shelf", () => {
     await expect(lab.chips()).toHaveCount(2);
     expect(await ws(), "two tucked").toEqual(base);
     // every pane that is still shown keeps the base top and bottom edges
-    for (const r of Object.values(await lab.byId())) expect(r.y + r.h).toBeLessThanOrEqual(base.y + base.h + 1);
+    for (const r of Object.values(await lab.byId()))
+      expect(r.y + r.h).toBeLessThanOrEqual(base.y + base.h + 1);
     // The mini-action is hover-only, so click it in the DOM.
-    const put = () => lab.shelf().getByRole("button", { name: /^Put back /, includeHidden: true }).first();
+    const put = () =>
+      lab
+        .shelf()
+        .getByRole("button", { name: /^Put back /, includeHidden: true })
+        .first();
     await put().dispatchEvent("click");
     await put().dispatchEvent("click");
     await expect(lab.shelf()).toHaveCount(0);
@@ -169,14 +199,18 @@ test.describe("the shelf", () => {
     const after = await lab.byId();
     const home = (await lab.homeOf("customer 1"))!;
     // The home group's rect and every other rect are unchanged; the shown tab is the only difference.
-    for (const id of Object.keys(before)) if (after[id]) expect(Lab.sameRect(before[id]!, after[id]!), `${id} rect`).toBe(true);
+    for (const id of Object.keys(before))
+      if (after[id]) expect(Lab.sameRect(before[id]!, after[id]!), `${id} rect`).toBe(true);
     expect((await lab.snap()).groups).toEqual(beforeSnap.groups);
     expect(Object.keys(after).length).toBe(Object.keys(before).length);
     expect(home.tabs).toContain("customer 1");
     await expect(lab.shelf()).toBeVisible(); // revealing does not put it back
   });
 
-  test("keyboard: a toolbar with roving tabindex; arrows move, Enter reveals, Shift+Enter puts back", async ({ lab, page }) => {
+  test("keyboard: a toolbar with roving tabindex; arrows move, Enter reveals, Shift+Enter puts back", async ({
+    lab,
+    page,
+  }) => {
     await lab.open();
     await lab.tuck("customer").click();
     const second = lab.firstTuckable();
@@ -190,7 +224,11 @@ test.describe("the shelf", () => {
     const n = await mains.count();
     expect(n).toBeGreaterThanOrEqual(1);
     // exactly one tab stop
-    expect(await mains.evaluateAll((els) => els.filter((e) => e.getAttribute("tabindex") === "0").length)).toBe(1);
+    expect(
+      await mains.evaluateAll(
+        (els) => els.filter((e) => e.getAttribute("tabindex") === "0").length,
+      ),
+    ).toBe(1);
     await mains.first().focus();
     if (n > 1) {
       await page.keyboard.press("ArrowRight");
@@ -220,7 +258,15 @@ test.describe("the shelf", () => {
     for (let i = 0; i < 8 && !hit; i++) {
       await page.keyboard.press("F6");
       // Focus moves synchronously with the key; allow a few frames before deciding this stop is not the shelf.
-      hit = await expect.poll(() => page.evaluate(() => !!document.activeElement?.closest("[data-shelf]")), { timeout: 300 }).toBe(true).then(() => true, () => false);
+      hit = await expect
+        .poll(() => page.evaluate(() => !!document.activeElement?.closest("[data-shelf]")), {
+          timeout: 300,
+        })
+        .toBe(true)
+        .then(
+          () => true,
+          () => false,
+        );
     }
     expect(hit, "F6 lands in the shelf").toBe(true);
   });
@@ -246,7 +292,10 @@ test.describe("the shelf", () => {
     for (const state of ["working", "needs-you", "error"] as const) {
       await lab.setActivity(id!, state);
       await expect(c.locator(Lab.shape(state)), state).toBeVisible();
-      await expect(c.getByRole("button", { name: named[state] }), `${state} is in the chip's name`).toBeVisible();
+      await expect(
+        c.getByRole("button", { name: named[state] }),
+        `${state} is in the chip's name`,
+      ).toBeVisible();
     }
     await lab.setActivity(id!, "idle");
     await expect(c.locator(".jali-ra")).toHaveCount(0);
@@ -270,6 +319,8 @@ test.describe("the shelf", () => {
       await expect(page.getByRole("menu", { name: "More tucked or folded panes" })).toBeVisible();
       await page.keyboard.press("Escape");
     }
-    expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+    expect(
+      await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth),
+    ).toBe(true);
   });
 });

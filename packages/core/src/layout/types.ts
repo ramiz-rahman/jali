@@ -3,7 +3,10 @@ export type NodeId = string;
 export type Axis = "row" | "column";
 export type Edge = "left" | "right" | "top" | "bottom";
 export type Size = { px: number } | { weight: number };
-export interface ObjectRef { kind: string; params: Record<string, string | number> }
+export interface ObjectRef {
+  kind: string;
+  params: Record<string, string | number>;
+}
 interface NodeBase {
   id: NodeId;
   size: Size;
@@ -36,9 +39,16 @@ export interface StackNode extends NodeBase {
   active: NodeId;
   origin: "user";
 }
-export interface SplitNode extends NodeBase { type: Axis; children: LayoutNode[] }
+export interface SplitNode extends NodeBase {
+  type: Axis;
+  children: LayoutNode[];
+}
 export type LayoutNode = PaneNode | StackNode | SplitNode;
-export interface TuckRecord { pane: NodeId; home: NodeId; seq: number }
+export interface TuckRecord {
+  pane: NodeId;
+  home: NodeId;
+  seq: number;
+}
 export interface Overlay {
   tucks: TuckRecord[];
   /** Slots folded in order. Group ids are opaque to consumers. */
@@ -48,7 +58,11 @@ export interface Overlay {
   /** Panes taken off screen entirely (no tab, no slot); their neighbours absorb the space. Showing drops the id. */
   hidden?: NodeId[];
 }
-export interface Layout { version: 1; root: LayoutNode; overlay?: Overlay }
+export interface Layout {
+  version: 1;
+  root: LayoutNode;
+  overlay?: Overlay;
+}
 export interface ViewState {
   focused?: NodeId;
   zoomed?: NodeId;
@@ -73,11 +87,27 @@ export interface PaneKind {
   maxWidth?: number;
 }
 export type KindRegistry = Record<string, PaneKind>;
-export interface Rect { x: number; y: number; width: number; height: number }
+export interface Rect {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+}
 /** `hidden`: behind another tab, behind a zoomed pane, or "off" (hidden by the overlay: no slot, no tab). */
-export interface PaneBox { id: NodeId; rect: Rect; stackId?: NodeId; hidden?: "tab" | "zoom" | "off" }
+export interface PaneBox {
+  id: NodeId;
+  rect: Rect;
+  stackId?: NodeId;
+  hidden?: "tab" | "zoom" | "off";
+}
 export interface DividerBox {
-  parentId: NodeId; index: number; axis: Axis; rect: Rect; min: number; max: number; value: number;
+  parentId: NodeId;
+  index: number;
+  axis: Axis;
+  rect: Rect;
+  min: number;
+  max: number;
+  value: number;
   neighbours?: [NodeId[], NodeId[]];
 }
 export interface ShelfEntry {
@@ -99,11 +129,26 @@ export interface ResolvedLayout {
   /** Single source for hidden-pane reasons; zoom does not change the shelf. */
   shelf: ShelfEntry[];
 }
-export interface FitOptions { width: number; height: number; gap: number; kinds: KindRegistry }
-export interface LayoutContext { fit: FitOptions; paneCap: number }
-export type OpenResult = { layout: Layout; view: ViewState; opened: NodeId; mode: "beside" | "replaced" | "tab" };
+export interface FitOptions {
+  width: number;
+  height: number;
+  gap: number;
+  kinds: KindRegistry;
+}
+export interface LayoutContext {
+  fit: FitOptions;
+  paneCap: number;
+}
+export type OpenResult = {
+  layout: Layout;
+  view: ViewState;
+  opened: NodeId;
+  mode: "beside" | "replaced" | "tab";
+};
 export type HideRefusal = "missing" | "tab" | "hidden" | "last";
-export type HideResult = { ok: true; layout: Layout; view: ViewState } | { ok: false; reason: HideRefusal };
+export type HideResult =
+  | { ok: true; layout: Layout; view: ViewState }
+  | { ok: false; reason: HideRefusal };
 export interface UndoEntry {
   kind: "close" | "closeOthers" | "tuck";
   before: { layout: Layout; view: ViewState };

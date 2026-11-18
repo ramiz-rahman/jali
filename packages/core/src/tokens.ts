@@ -18,4 +18,7 @@ export function applyTokens(root: HTMLElement = document.documentElement) {
 export const initialArea = () =>
   typeof window === "undefined"
     ? { width: 1200, height: 700 }
-    : { width: window.innerWidth - GAP * 2, height: window.innerHeight - TOPBAR_H - STATUS_H - GAP * 2 };
+    : {
+        width: window.innerWidth - GAP * 2,
+        height: window.innerHeight - TOPBAR_H - STATUS_H - GAP * 2,
+      };

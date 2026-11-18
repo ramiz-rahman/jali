@@ -1,5 +1,13 @@
 import { memo, useMemo } from "react";
-import type { NodeId, ObjectRef, PaneNode, Actions, PaneActivity, PaneCommand, UiStore } from "@jali/core/adapter";
+import type {
+  NodeId,
+  ObjectRef,
+  PaneNode,
+  Actions,
+  PaneActivity,
+  PaneCommand,
+  UiStore,
+} from "@jali/core/adapter";
 import { keyHint } from "@jali/core/adapter";
 import type { PaneProps } from "../define";
 import { PaneContext, type PaneHost } from "./context";
@@ -26,11 +34,21 @@ export function peekHost(store: UiStore): PaneHost {
     openBeside: (ref: ObjectRef) => store.actions.openBeside(source(), ref),
     peek: (ref: ObjectRef | null) => store.actions.peek(ref, source()),
     select: (ref: ObjectRef | null) => store.actions.select(source(), ref),
-    openHere: none, dismiss: none, setActivity: none, setUnsaved: none, setCommands: none,
+    openHere: none,
+    dismiss: none,
+    setActivity: none,
+    setUnsaved: none,
+    setCommands: none,
   };
 }
 
-interface BodyProps { node: PaneNode; host: PaneHost; paused: boolean; focused: boolean; inPeek?: boolean }
+interface BodyProps {
+  node: PaneNode;
+  host: PaneHost;
+  paused: boolean;
+  focused: boolean;
+  inPeek?: boolean;
+}
 
 /** The pane's content. Memoised on what the kind actually sees, so divider drags don't re-render content. */
 export const PaneBody = memo(
@@ -38,17 +56,34 @@ export const PaneBody = memo(
     const { kinds } = useEnv();
     const def = kinds.get(node.ref.kind);
     const params = useMemo(() => kinds.params(node.ref), [kinds, node.ref]);
-    const props = useMemo((): PaneProps => ({
-      params, node, paused, focused, inPeek,
-      openBeside: host.openBeside, openHere: host.openHere, peek: host.peek, select: host.select, dismiss: host.dismiss,
-    }), [params, node, paused, focused, inPeek, host]);
+    const props = useMemo(
+      (): PaneProps => ({
+        params,
+        node,
+        paused,
+        focused,
+        inPeek,
+        openBeside: host.openBeside,
+        openHere: host.openHere,
+        peek: host.peek,
+        select: host.select,
+        dismiss: host.dismiss,
+      }),
+      [params, node, paused, focused, inPeek, host],
+    );
     // The peek sheet shows a node that is not in the layout: it has no state of its own to keep.
-    const context = useMemo(() => ({ id: inPeek ? null : node.id, host, props }), [inPeek, node.id, host, props]);
+    const context = useMemo(
+      () => ({ id: inPeek ? null : node.id, host, props }),
+      [inPeek, node.id, host, props],
+    );
     if (!def) {
       return (
         <div className="jali-pane-missing" role="alert">
           <strong>Unknown pane kind “{node.ref.kind}”.</strong>
-          <span>This pane stays in place so the layout keeps its shape. Close it or reset the layout from the command palette ({keyHint("Mod+K")}).</span>
+          <span>
+            This pane stays in place so the layout keeps its shape. Close it or reset the layout
+            from the command palette ({keyHint("Mod+K")}).
+          </span>
         </div>
       );
     }
@@ -60,6 +95,11 @@ export const PaneBody = memo(
     );
   },
   (a, b) =>
-    a.host === b.host && a.node.id === b.node.id && a.paused === b.paused && a.focused === b.focused &&
-    a.node.linkedTo === b.node.linkedTo && a.node.pinned === b.node.pinned && JSON.stringify(a.node.ref) === JSON.stringify(b.node.ref),
+    a.host === b.host &&
+    a.node.id === b.node.id &&
+    a.paused === b.paused &&
+    a.focused === b.focused &&
+    a.node.linkedTo === b.node.linkedTo &&
+    a.node.pinned === b.node.pinned &&
+    JSON.stringify(a.node.ref) === JSON.stringify(b.node.ref),
 );

@@ -17,43 +17,77 @@ export interface Projected {
 }
 export function refresh(node: Projected, fit: FitOptions): void {
   if (node.pane) return;
-  const home = node.type === "auto" ? node.children.findIndex(c => contains(c, node.home)) : 0;
-  node.bounds = combineBounds(node.type, node.children.map(c => c.bounds), fit.gap, Math.max(0, home));
+  const home = node.type === "auto" ? node.children.findIndex((c) => contains(c, node.home)) : 0;
+  node.bounds = combineBounds(
+    node.type,
+    node.children.map((c) => c.bounds),
+    fit.gap,
+    Math.max(0, home),
+  );
 }
 export function project(node: LayoutNode, fit: FitOptions): Projected {
   if (node.type === "pane") {
-    return { id: node.id, type: "pane", size: node.size, userSized: node.userSized, children: [], pane: node, bounds: bounds(node, fit.kinds, fit.gap) };
+    return {
+      id: node.id,
+      type: "pane",
+      size: node.size,
+      userSized: node.userSized,
+      children: [],
+      pane: node,
+      bounds: bounds(node, fit.kinds, fit.gap),
+    };
   }
   const result: Projected = {
-    id: node.id, type: node.type, size: node.size, userSized: node.userSized,
+    id: node.id,
+    type: node.type,
+    size: node.size,
+    userSized: node.userSized,
     active: node.type === "stack" ? node.active : undefined,
-    children: node.children.map(c => project(c, fit)),
+    children: node.children.map((c) => project(c, fit)),
     bounds: { width: 0, height: 0, comfortable: 0, maxWidth: Infinity },
   };
   refresh(result, fit);
   return result;
 }
-export const allPanes = (n: Projected): Projected[] => n.pane ? [n] : n.children.flatMap(allPanes);
-export const contains = (n: Projected, id?: string): boolean => !!id && allPanes(n).some(p => p.id === id);
+export const allPanes = (n: Projected): Projected[] =>
+  n.pane ? [n] : n.children.flatMap(allPanes);
+export const contains = (n: Projected, id?: string): boolean =>
+  !!id && allPanes(n).some((p) => p.id === id);
 /**
  * Stable home of a slot: a pane is its own home, a deliberate stack's is its first tab (never its active tab, which a
  * click changes), and an automatic group keeps the home it formed around. Fold records and tab choices key on it.
  */
-export const homeOf = (n: Projected): string => n.type === "auto" ? n.home ?? allPanes(n)[0]!.id : n.pane ? n.id : allPanes(n)[0]!.id;
-export const orderOf = (n: Projected, order: Map<string, number>) => Math.min(...allPanes(n).map(p => order.get(p.id) ?? Infinity));
+export const homeOf = (n: Projected): string =>
+  n.type === "auto" ? (n.home ?? allPanes(n)[0]!.id) : n.pane ? n.id : allPanes(n)[0]!.id;
+export const orderOf = (n: Projected, order: Map<string, number>) =>
+  Math.min(...allPanes(n).map((p) => order.get(p.id) ?? Infinity));
 /** Automatic stacks are named after their home pane, so the id survives the group growing or a tab being chosen. */
 export const AUTO_PREFIX = "@auto:";
-export function auto(children: Projected[], fit: FitOptions, order: Map<string, number>, home: Projected, fallback?: string): Projected {
-  const size = children.map(c => c.size).reduce(combined);
+export function auto(
+  children: Projected[],
+  fit: FitOptions,
+  order: Map<string, number>,
+  home: Projected,
+  fallback?: string,
+): Projected {
+  const size = children.map((c) => c.size).reduce(combined);
   const homeId = homeOf(home);
-  const preferred = children.find(c => c.id === fallback);
+  const preferred = children.find((c) => c.id === fallback);
   if (preferred?.type === "auto") fallback = preferred.active;
   // Keep one tab group when a later fold grows an automatic stack; tabs stay in reading order.
-  children = children.flatMap(c => c.type === "auto" ? c.children : [c]).sort((a, b) => orderOf(a, order) - orderOf(b, order));
+  children = children
+    .flatMap((c) => (c.type === "auto" ? c.children : [c]))
+    .sort((a, b) => orderOf(a, order) - orderOf(b, order));
   const result: Projected = {
-    id: `${AUTO_PREFIX}${homeId}`, type: "auto", children, size, home: homeId, kind: "fold", userSized: children.some(c => c.userSized) || undefined,
+    id: `${AUTO_PREFIX}${homeId}`,
+    type: "auto",
+    children,
+    size,
+    home: homeId,
+    kind: "fold",
+    userSized: children.some((c) => c.userSized) || undefined,
     // The home stays the shown tab: a fold never changes what the receiving slot displays.
-    active: children.find(c => c.id === fallback)?.id ?? children[0]!.id,
+    active: children.find((c) => c.id === fallback)?.id ?? children[0]!.id,
     bounds: { width: 0, height: 0, comfortable: 0, maxWidth: Infinity },
   };
   refresh(result, fit);
@@ -69,17 +103,27 @@ export function autos(root: Projected): Projected[] {
 export function removeSlot(node: Projected, id: string): Projected | undefined {
   if (node.id === id) return undefined;
   if (node.type !== "row" && node.type !== "column") return node;
-  node.children = node.children.flatMap(c => { const next = removeSlot(c, id); return next ? [next] : []; });
+  node.children = node.children.flatMap((c) => {
+    const next = removeSlot(c, id);
+    return next ? [next] : [];
+  });
   if (!node.children.length) return undefined;
-  return node.children.length === 1 ? { ...node.children[0]!, size: node.size, userSized: node.userSized } : node;
+  return node.children.length === 1
+    ? { ...node.children[0]!, size: node.size, userSized: node.userSized }
+    : node;
 }
-
 
 export function links(root: Projected): (pane: Projected) => string | undefined {
-  const ids = new Set(allPanes(root).map(p => p.id));
-  return p => p.pane!.linkedTo && ids.has(p.pane!.linkedTo) ? p.pane!.linkedTo : undefined;
+  const ids = new Set(allPanes(root).map((p) => p.id));
+  return (p) => (p.pane!.linkedTo && ids.has(p.pane!.linkedTo) ? p.pane!.linkedTo : undefined);
 }
-export function foldSlot(root: Projected, choice: Projected, fit: FitOptions, order: Map<string, number>, explicitHome?: string): Projected {
+export function foldSlot(
+  root: Projected,
+  choice: Projected,
+  fit: FitOptions,
+  order: Map<string, number>,
+  explicitHome?: string,
+): Projected {
   const displayed = slots(root);
   const panes = allPanes(root);
   const linkOf = links(root);
@@ -88,11 +132,16 @@ export function foldSlot(root: Projected, choice: Projected, fit: FitOptions, or
     return n.children.includes(choice) ? n : n.children.map(owner).find(Boolean);
   }
   const parent = owner(root)!;
-  const members = new Set(allPanes(choice).map(p => p.id));
-  const outside = (id: string | undefined) => id && !members.has(id) ? displayed.find(s => s !== choice && contains(s, id)) : undefined;
-  const sources = allPanes(choice).map(p => outside(linkOf(p))).filter((s): s is Projected => !!s);
-  const details = panes.filter(p => !members.has(p.id) && members.has(linkOf(p) ?? "")).map(p => displayed.find(s => contains(s, p.id))!);
-  let home = explicitHome ? outside(explicitHome) : sources[0] ?? details[0];
+  const members = new Set(allPanes(choice).map((p) => p.id));
+  const outside = (id: string | undefined) =>
+    id && !members.has(id) ? displayed.find((s) => s !== choice && contains(s, id)) : undefined;
+  const sources = allPanes(choice)
+    .map((p) => outside(linkOf(p)))
+    .filter((s): s is Projected => !!s);
+  const details = panes
+    .filter((p) => !members.has(p.id) && members.has(linkOf(p) ?? ""))
+    .map((p) => displayed.find((s) => contains(s, p.id))!);
+  let home = explicitHome ? outside(explicitHome) : (sources[0] ?? details[0]);
   if (!home) {
     // Unlinked (or only linked within itself): nearest neighbour, preferring an existing automatic stack.
     const at = displayed.indexOf(choice);
@@ -100,7 +149,8 @@ export function foldSlot(root: Projected, choice: Projected, fit: FitOptions, or
     near.sort((a, b) => Number(b.type === "auto") - Number(a.type === "auto"));
     home = near[0]!;
   }
-  const pair = displayed.indexOf(choice) < displayed.indexOf(home) ? [choice, home] : [home, choice];
+  const pair =
+    displayed.indexOf(choice) < displayed.indexOf(home) ? [choice, home] : [home, choice];
   const group = auto(pair, fit, order, home, home.type === "auto" ? home.active : home.id);
   if (explicitHome && home.type === "stack") group.id = home.id;
   group.kind = explicitHome && home.kind !== "fold" && choice.kind !== "fold" ? "tuck" : "fold";
@@ -108,7 +158,13 @@ export function foldSlot(root: Projected, choice: Projected, fit: FitOptions, or
   const sameParent = parent.children.includes(home);
   root = removeSlot(root, choice.id)!;
   function replace(n: Projected): Projected {
-    if (n.id === home!.id) { if (!sameParent) { group.size = n.size; group.userSized = n.userSized; } return group; }
+    if (n.id === home!.id) {
+      if (!sameParent) {
+        group.size = n.size;
+        group.userSized = n.userSized;
+      }
+      return group;
+    }
     if (n.type === "row" || n.type === "column") n.children = n.children.map(replace);
     refresh(n, fit);
     return n;
@@ -116,18 +172,27 @@ export function foldSlot(root: Projected, choice: Projected, fit: FitOptions, or
   return replace(root);
 }
 
-interface Replayed { root: Projected; order: Map<string, number>; applied: string[] }
+interface Replayed {
+  root: Projected;
+  order: Map<string, number>;
+  applied: string[];
+}
 /** Hidden panes leave the projection first: no slot and no tab, and their neighbours absorb the space. */
 function withoutHidden(root: Projected, hidden: readonly string[], fit: FitOptions): Projected {
   let removed = false;
   for (const id of hidden) {
     const displayed = slots(root);
-    if (displayed.length < 2 || !displayed.some(s => s.id === id && s.pane)) continue;
+    if (displayed.length < 2 || !displayed.some((s) => s.id === id && s.pane)) continue;
     root = removeSlot(root, id)!;
     removed = true;
   }
   // The minimums of what is left: a hidden pane needs no room.
-  const remeasure = (n: Projected): void => { if (!n.pane) { n.children.forEach(remeasure); refresh(n, fit); } };
+  const remeasure = (n: Projected): void => {
+    if (!n.pane) {
+      n.children.forEach(remeasure);
+      refresh(n, fit);
+    }
+  };
   if (removed) remeasure(root);
   return root;
 }
@@ -140,19 +205,21 @@ export function replay(layout: Layout, folds: readonly string[], fit: FitOptions
   const tucks = layout.overlay?.tucks ?? [];
   // A revealed tab names the same stable home as its fold. Resolve this against the canonical fold projection,
   // then replay the tuck before those folds, so no fold record disappears when its shown tab receives a tuck.
-  const homes = tucks.length ? slots(replay({ ...layout, overlay: { ...overlayOf(layout), tucks: [] } }, folds, fit).root) : [];
+  const homes = tucks.length
+    ? slots(replay({ ...layout, overlay: { ...overlayOf(layout), tucks: [] } }, folds, fit).root)
+    : [];
   for (const tuck of [...tucks].sort((a, b) => a.seq - b.seq)) {
     const displayed = slots(root);
-    const choice = displayed.find(s => s.id === tuck.pane);
-    const reference = homes.find(s => contains(s, tuck.home));
+    const choice = displayed.find((s) => s.id === tuck.pane);
+    const reference = homes.find((s) => contains(s, tuck.home));
     const home = reference ? homeOf(reference) : tuck.home;
-    if (!choice || !displayed.some(s => s !== choice && contains(s, home))) continue;
+    if (!choice || !displayed.some((s) => s !== choice && contains(s, home))) continue;
     root = foldSlot(root, choice, fit, order, home);
   }
   for (const id of folds) {
     const displayed = slots(root);
     if (displayed.length < 2) break;
-    const choice = displayed.find(s => s.id === id);
+    const choice = displayed.find((s) => s.id === id);
     if (!choice) continue; // stale record (closed or moved pane): skip it
     root = foldSlot(root, choice, fit, order);
     applied.push(id);
@@ -164,7 +231,7 @@ export function choose(root: Projected, active: Record<string, string> | undefin
   if (!active) return;
   for (const group of autos(root)) {
     const want = active[group.home!];
-    const child = want ? group.children.find(c => contains(c, want)) : undefined;
+    const child = want ? group.children.find((c) => contains(c, want)) : undefined;
     if (child) group.active = child.id;
   }
 }
@@ -176,19 +243,22 @@ export function withOverlay(layout: Layout, overlay: import("../types").Overlay)
   if (o.tucks.length || o.folds.length || Object.keys(o.shown).length || o.hidden) next.overlay = o;
   return next;
 }
-export const overlayOf = (layout: Layout): import("../types").Overlay => layout.overlay ?? { tucks: [], folds: [], shown: {} };
+export const overlayOf = (layout: Layout): import("../types").Overlay =>
+  layout.overlay ?? { tucks: [], folds: [], shown: {} };
 /** Panes the overlay has taken off screen. */
 export const hiddenOf = (layout: Layout): readonly string[] => layout.overlay?.hidden ?? [];
 /** Deliberately moved or closed panes no longer belong to their former overlay. Owned draft only. */
 export function forget(layout: Layout, ids: readonly string[]): void {
   if (!layout.overlay) return;
-  const gone = new Set(ids.flatMap(id => [id, `${AUTO_PREFIX}${id}`]));
+  const gone = new Set(ids.flatMap((id) => [id, `${AUTO_PREFIX}${id}`]));
   const o = layout.overlay;
   const next = withOverlay(layout, {
-    tucks: o.tucks.filter(t => !gone.has(t.pane) && !gone.has(t.home)),
-    folds: o.folds.filter(id => !gone.has(id)),
-    shown: Object.fromEntries(Object.entries(o.shown).filter(([home, pane]) => !gone.has(home) && !gone.has(pane))),
-    hidden: o.hidden?.filter(id => !gone.has(id)),
+    tucks: o.tucks.filter((t) => !gone.has(t.pane) && !gone.has(t.home)),
+    folds: o.folds.filter((id) => !gone.has(id)),
+    shown: Object.fromEntries(
+      Object.entries(o.shown).filter(([home, pane]) => !gone.has(home) && !gone.has(pane)),
+    ),
+    hidden: o.hidden?.filter((id) => !gone.has(id)),
   });
   delete layout.overlay;
   if (next.overlay) layout.overlay = next.overlay;

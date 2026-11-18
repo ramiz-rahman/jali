@@ -7,7 +7,10 @@ export function rowId(columns: ColumnInfo[], row: Row): string {
   return cols.map((c) => String(row[c.name] ?? "")).join(":");
 }
 
-export const recordRef = (table: TableName, id: string | number): ObjectRef => ({ kind: "record", params: { table, id } });
+export const recordRef = (table: TableName, id: string | number): ObjectRef => ({
+  kind: "record",
+  params: { table, id },
+});
 /** The table a table-shaped ref points at. */
 export const tableOf = (ref: ObjectRef): TableName => String(ref.params.table ?? "") as TableName;
 export const tableRef = (table: TableName): ObjectRef => ({ kind: "table", params: { table } });
@@ -21,7 +24,10 @@ export function relationRef(rel: Relation): ObjectRef {
 }
 
 /** The foreign key value of a cell, as a link to the record it points at. Null cells and plain columns have no link. */
-export function foreignKeyRef(column: ColumnInfo, value: string | number | null | undefined): ObjectRef | null {
+export function foreignKeyRef(
+  column: ColumnInfo,
+  value: string | number | null | undefined,
+): ObjectRef | null {
   if (!column.references || value === null || value === undefined || value === "") return null;
   return recordRef(column.references.table, String(value));
 }

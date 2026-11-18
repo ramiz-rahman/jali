@@ -5,7 +5,11 @@
 import { NAV, type NavSection } from "./nav";
 import { pathOf } from "./pages";
 
-const rawModules = import.meta.glob<unknown>("../pages/**/*.mdx", { query: "?raw", import: "default", eager: true });
+const rawModules = import.meta.glob<unknown>("../pages/**/*.mdx", {
+  query: "?raw",
+  import: "default",
+  eager: true,
+});
 
 /**
  * The text of a `?raw` import of an .mdx file. Today @mdx-js/rollup also compiles `?raw` ids (it drops the query
@@ -19,13 +23,21 @@ function rawText(value: unknown): string {
     try {
       const el = (value as (p: object) => { type?: unknown } | null)({});
       if (el && typeof el.type === "string") return el.type;
-    } catch { /* not a layout-wrapped module */ }
+    } catch {
+      /* not a layout-wrapped module */
+    }
   }
   return "";
 }
-const raw: Record<string, string> = Object.fromEntries(Object.entries(rawModules).map(([k, v]) => [k, rawText(v)]));
+const raw: Record<string, string> = Object.fromEntries(
+  Object.entries(rawModules).map(([k, v]) => [k, rawText(v)]),
+);
 /** Code samples pages import with `?raw`, so the Markdown can include them. */
-const samples = import.meta.glob<string>("../samples/**/*", { query: "?raw", import: "default", eager: true });
+const samples = import.meta.glob<string>("../samples/**/*", {
+  query: "?raw",
+  import: "default",
+  eager: true,
+});
 
 export interface PageSource {
   path: string;
@@ -62,26 +74,53 @@ export const sources: Record<string, PageSource> = Object.fromEntries(
     const path = pathOf(file);
     const { data, body } = frontmatterOf(source);
     const headings = [...body.matchAll(/^#{2,3}\s+(.+)$/gm)].map((h) => h[1]!.trim());
-    return [path, { path, file: file.replace(/^\.\.\/pages\//, ""), title: data.title ?? titleFromPath(path), summary: data.summary ?? "", headings, source }];
+    return [
+      path,
+      {
+        path,
+        file: file.replace(/^\.\.\/pages\//, ""),
+        title: data.title ?? titleFromPath(path),
+        summary: data.summary ?? "",
+        headings,
+        source,
+      },
+    ];
   }),
 );
 
 /** Pages a reader can find: written ones, not drafts like `_lab`. */
-export const publicPages = () => Object.values(sources).filter((p) => !p.file.split("/").some((s) => s.startsWith("_")));
+export const publicPages = () =>
+  Object.values(sources).filter((p) => !p.file.split("/").some((s) => s.startsWith("_")));
 
 // ---------- the nav, resolved ----------
 
-export interface ResolvedItem { path: string; title: string; exists: boolean; section: string }
-export interface ResolvedSection { title: string; items: ResolvedItem[] }
+export interface ResolvedItem {
+  path: string;
+  title: string;
+  exists: boolean;
+  section: string;
+}
+export interface ResolvedSection {
+  title: string;
+  items: ResolvedItem[];
+}
 
 export const resolvedNav = (nav: NavSection[] = NAV): ResolvedSection[] =>
   nav.map((s) => ({
     title: s.title,
-    items: s.items.map((i) => ({ path: i.path, title: i.title ?? sources[i.path]?.title ?? titleFromPath(i.path), exists: !!sources[i.path], section: s.title })),
+    items: s.items.map((i) => ({
+      path: i.path,
+      title: i.title ?? sources[i.path]?.title ?? titleFromPath(i.path),
+      exists: !!sources[i.path],
+      section: s.title,
+    })),
   }));
 
 /** The written pages in reading order. */
-export const readingOrder = (): ResolvedItem[] => resolvedNav().flatMap((s) => s.items).filter((i) => i.exists);
+export const readingOrder = (): ResolvedItem[] =>
+  resolvedNav()
+    .flatMap((s) => s.items)
+    .filter((i) => i.exists);
 
 export function neighbours(path: string): { prev?: ResolvedItem; next?: ResolvedItem } {
   const order = readingOrder();
@@ -90,7 +129,8 @@ export function neighbours(path: string): { prev?: ResolvedItem; next?: Resolved
   return { prev: i > 0 ? order[i - 1] : undefined, next: order[i + 1] };
 }
 
-export const sectionOf = (path: string) => resolvedNav().find((s) => s.items.some((i) => i.path === path))?.title;
+export const sectionOf = (path: string) =>
+  resolvedNav().find((s) => s.items.some((i) => i.path === path))?.title;
 
 // ---------- the page as Markdown ----------
 
@@ -104,7 +144,10 @@ function resolveImport(pageFile: string, spec: string): string | undefined {
   return samples[parts.join("/")];
 }
 
-const attr = (attrs: string, name: string) => new RegExp(`\\b${name}=(?:"([^"]*)"|\\{\`([\\s\\S]*?)\`\\}|\\{"([^"]*)"\\}|\\{([A-Za-z_$][\\w$]*)\\})`).exec(attrs);
+const attr = (attrs: string, name: string) =>
+  new RegExp(
+    `\\b${name}=(?:"([^"]*)"|\\{\`([\\s\\S]*?)\`\\}|\\{"([^"]*)"\\}|\\{([A-Za-z_$][\\w$]*)\\})`,
+  ).exec(attrs);
 
 /**
  * The page as plain Markdown: a title and summary instead of frontmatter, no imports, and the docs components that
@@ -113,11 +156,14 @@ const attr = (attrs: string, name: string) => new RegExp(`\\b${name}=(?:"([^"]*)
 export function toMarkdown(page: PageSource): string {
   const { body } = frontmatterOf(page.source);
   const vars: Record<string, string> = {};
-  let text = body.replace(/^import\s+(\w+)\s+from\s+["']([^"']+)["'];?\s*$/gm, (_, name: string, spec: string) => {
-    const content = spec.endsWith("?raw") ? resolveImport(page.file, spec) : undefined;
-    if (content !== undefined) vars[name] = content;
-    return "";
-  });
+  let text = body.replace(
+    /^import\s+(\w+)\s+from\s+["']([^"']+)["'];?\s*$/gm,
+    (_, name: string, spec: string) => {
+      const content = spec.endsWith("?raw") ? resolveImport(page.file, spec) : undefined;
+      if (content !== undefined) vars[name] = content;
+      return "";
+    },
+  );
   text = text.replace(/^import\s+[\s\S]*?from\s+["'][^"']+["'];?\s*$/gm, "");
 
   text = text.replace(/<Code\b([\s\S]*?)\/>/g, (whole, attrs: string) => {
@@ -132,12 +178,19 @@ export function toMarkdown(page: PageSource): string {
     const pkgs = attr(attrs, "packages")?.[1];
     return pkgs ? `\`\`\`sh\nnpm install ${pkgs}\n\`\`\`` : whole;
   });
-  text = text.replace(/<Callout\b([^>]*)>([\s\S]*?)<\/Callout>/g, (_, attrs: string, inner: string) => {
-    const type = attr(attrs, "type")?.[1] ?? "note";
-    const title = attr(attrs, "title")?.[1];
-    const label = `**${type.charAt(0).toUpperCase() + type.slice(1)}${title ? `: ${title}` : ""}.**`;
-    return inner.trim().split("\n").map((l, i) => `> ${i === 0 ? `${label} ` : ""}${l.trim()}`).join("\n");
-  });
+  text = text.replace(
+    /<Callout\b([^>]*)>([\s\S]*?)<\/Callout>/g,
+    (_, attrs: string, inner: string) => {
+      const type = attr(attrs, "type")?.[1] ?? "note";
+      const title = attr(attrs, "title")?.[1];
+      const label = `**${type.charAt(0).toUpperCase() + type.slice(1)}${title ? `: ${title}` : ""}.**`;
+      return inner
+        .trim()
+        .split("\n")
+        .map((l, i) => `> ${i === 0 ? `${label} ` : ""}${l.trim()}`)
+        .join("\n");
+    },
+  );
   text = text.replace(/\n{3,}/g, "\n\n").trim();
   return `# ${page.title}\n\n${page.summary}\n\n${text}\n`;
 }

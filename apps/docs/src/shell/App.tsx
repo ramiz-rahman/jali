@@ -2,7 +2,14 @@
  * The site: top bar, nav, the page for the current path, and "On this page". The page stays on screen until the
  * next one has loaded, so moving between pages never flashes empty.
  */
-import { useCallback, useEffect, useLayoutEffect, useRef, useState, type ComponentType } from "react";
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+  type ComponentType,
+} from "react";
 import { MDXProvider } from "@mdx-js/react";
 import { pages, type Frontmatter } from "../site/pages";
 import { usePath, useLinkInterception } from "../site/router";
@@ -17,7 +24,11 @@ import { PageFooter, PageHeader } from "./Page";
 import { SiteFooter } from "./landing";
 import { NotFound } from "./NotFound";
 
-interface Loaded { path: string; Component: ComponentType | null; frontmatter?: Frontmatter }
+interface Loaded {
+  path: string;
+  Component: ComponentType | null;
+  frontmatter?: Frontmatter;
+}
 
 const cache = new Map<string, Loaded>();
 
@@ -26,15 +37,28 @@ function useLoadedPage(path: string): Loaded | null {
   useEffect(() => {
     let live = true;
     const hit = cache.get(path);
-    if (hit) { setLoaded(hit); return; }
+    if (hit) {
+      setLoaded(hit);
+      return;
+    }
     const load = pages[path];
-    if (!load) { setLoaded({ path, Component: null }); return; }
-    load().then((m) => {
-      const value = { path, Component: m.default, frontmatter: m.frontmatter };
-      cache.set(path, value);
-      if (live) setLoaded(value);
-    }, () => { if (live) setLoaded({ path, Component: null }); });
-    return () => { live = false; };
+    if (!load) {
+      setLoaded({ path, Component: null });
+      return;
+    }
+    load().then(
+      (m) => {
+        const value = { path, Component: m.default, frontmatter: m.frontmatter };
+        cache.set(path, value);
+        if (live) setLoaded(value);
+      },
+      () => {
+        if (live) setLoaded({ path, Component: null });
+      },
+    );
+    return () => {
+      live = false;
+    };
   }, [path]);
   return loaded;
 }
@@ -42,7 +66,9 @@ function useLoadedPage(path: string): Loaded | null {
 /** "/get-started/introduction.md": the page's Markdown, as plain text. */
 function MarkdownView({ path }: { path: string }) {
   const page = sources[path];
-  useEffect(() => { document.title = `${page?.title ?? "Not found"}.md · ${SITE_NAME}`; }, [page]);
+  useEffect(() => {
+    document.title = `${page?.title ?? "Not found"}.md · ${SITE_NAME}`;
+  }, [page]);
   if (!page) return <NotFound path={`${path}.md`} />;
   return <pre className="markdown-view">{toMarkdown(page)}</pre>;
 }
@@ -68,11 +94,17 @@ export function App() {
   useLayoutEffect(() => {
     if (!loaded) return;
     const fm = loaded.frontmatter;
-    document.title = loaded.Component && fm ? (loaded.path === "/" ? `${SITE_NAME}: ${fm.summary}` : `${fm.title} · ${SITE_NAME}`) : `Not found · ${SITE_NAME}`;
+    document.title =
+      loaded.Component && fm
+        ? loaded.path === "/"
+          ? `${SITE_NAME}: ${fm.summary}`
+          : `${fm.title} · ${SITE_NAME}`
+        : `Not found · ${SITE_NAME}`;
     document.querySelector('meta[name="description"]')?.setAttribute("content", fm?.summary ?? "");
     const hash = decodeURIComponent(window.location.hash.slice(1));
     if (hash) document.getElementById(hash)?.scrollIntoView();
-    if (!first.current && !hash) document.querySelector<HTMLElement>("[data-page-focus]")?.focus({ preventScroll: true });
+    if (!first.current && !hash)
+      document.querySelector<HTMLElement>("[data-page-focus]")?.focus({ preventScroll: true });
     first.current = false;
   }, [loaded]);
 
@@ -86,13 +118,28 @@ export function App() {
 
   return (
     <MDXProvider components={mdxComponents}>
-      <a className="skip-link" href="#content">Skip to content</a>
-      <TopBar onSearch={openSearch} onMenu={() => setMenuOpen(true)} menuOpen={menuOpen} path={shown} landing={isHome} />
-      <div className="layout" data-home={isHome || undefined} data-wide={isWide || undefined} data-toc={entries.length && !isHome ? "" : undefined}>
+      <a className="skip-link" href="#content">
+        Skip to content
+      </a>
+      <TopBar
+        onSearch={openSearch}
+        onMenu={() => setMenuOpen(true)}
+        menuOpen={menuOpen}
+        path={shown}
+        landing={isHome}
+      />
+      <div
+        className="layout"
+        data-home={isHome || undefined}
+        data-wide={isWide || undefined}
+        data-toc={entries.length && !isHome ? "" : undefined}
+      >
         {/* The landing page is its own place: no docs nav beside it. */}
         {!isHome ? (
           <div className="sidebar">
-            <div className="sidebar-inner"><Nav path={path} /></div>
+            <div className="sidebar-inner">
+              <Nav path={path} />
+            </div>
           </div>
         ) : null}
         <main id="content" className="main" tabIndex={-1}>
@@ -100,23 +147,33 @@ export function App() {
           {Page && fm ? (
             <article className="article" ref={setArticle} data-path={shown}>
               {isHome ? null : (
-                <div tabIndex={-1} data-page-focus="" className="focus-target"><PageHeader path={shown} title={fm.title} summary={fm.summary} /></div>
+                <div tabIndex={-1} data-page-focus="" className="focus-target">
+                  <PageHeader path={shown} title={fm.title} summary={fm.summary} />
+                </div>
               )}
               {!isHome ? <TocDisclosure entries={entries} active={active} /> : null}
-              <div className="prose" data-home={isHome || undefined}><Page /></div>
+              <div className="prose" data-home={isHome || undefined}>
+                <Page />
+              </div>
               {!isHome ? <PageFooter path={shown} /> : null}
             </article>
           ) : null}
         </main>
         {!isHome && !isWide ? (
           <div className="toc-column">
-            <div className="toc-inner"><Toc entries={entries} active={active} /></div>
+            <div className="toc-inner">
+              <Toc entries={entries} active={active} />
+            </div>
           </div>
         ) : null}
       </div>
       <SearchDialog open={searchOpen} onClose={() => setSearchOpen(false)} />
       {/* The landing renders its own footer; every docs page ends with the same one. */}
-      {!isHome && Page ? <div className="docs-footer"><SiteFooter /></div> : null}
+      {!isHome && Page ? (
+        <div className="docs-footer">
+          <SiteFooter />
+        </div>
+      ) : null}
       <NavDrawer open={menuOpen} path={path} onClose={closeMenu} />
     </MDXProvider>
   );

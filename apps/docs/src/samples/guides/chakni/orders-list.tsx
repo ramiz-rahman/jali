@@ -28,7 +28,9 @@ function CursorList({ ids, port }: { ids: string[]; port: ActiveItemPort | null 
   return (
     <ul role="listbox" aria-label="Orders" tabIndex={0} onKeyDown={onKeyDown}>
       {ids.map((id, i) => (
-        <li key={id} role="option" aria-selected={i === at} onClick={() => port?.write(id, "step")}>Order {id}</li>
+        <li key={id} role="option" aria-selected={i === at} onClick={() => port?.write(id, "step")}>
+          Order {id}
+        </li>
       ))}
     </ul>
   );

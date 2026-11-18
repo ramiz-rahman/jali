@@ -34,11 +34,19 @@ export interface JaliProps extends HTMLAttributes<HTMLDivElement> {
   settings?: boolean;
 }
 
-export function Jali({ workspace, children = <JaliView />, overlays, settings = true, ...rest }: JaliProps) {
+export function Jali({
+  workspace,
+  children = <JaliView />,
+  overlays,
+  settings = true,
+  ...rest
+}: JaliProps) {
   useEffect(() => workspace.start(), [workspace]);
   return (
     <StoreProvider store={workspace}>
-      <div {...rest} data-jali="" ref={workspace.dom.attach}>{children}</div>
+      <div {...rest} data-jali="" ref={workspace.dom.attach}>
+        {children}
+      </div>
       <Announcer />
       <Palette />
       {settings ? <SettingsPanel /> : null}

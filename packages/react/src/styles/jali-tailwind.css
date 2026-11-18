@@ -20,12 +20,18 @@
 :where(:root, .light, .dark, [data-theme]) {
   --jali-canvas: var(--color-background, var(--jali-default-canvas));
   --jali-surface: var(--color-card, var(--jali-default-surface));
-  --jali-surface-raised: var(--color-popover, var(--color-card, var(--jali-default-surface-raised)));
+  --jali-surface-raised: var(
+    --color-popover,
+    var(--color-card, var(--jali-default-surface-raised))
+  );
   --jali-border: var(--color-border, var(--jali-default-border));
   --jali-border-strong: var(--color-input, var(--color-border, var(--jali-default-border-strong)));
   --jali-control: var(--color-input, var(--jali-default-control));
   --jali-text: var(--color-foreground, var(--jali-default-text));
-  --jali-text-muted: var(--color-muted-foreground-strong, var(--color-muted-foreground, var(--jali-default-text-muted)));
+  --jali-text-muted: var(
+    --color-muted-foreground-strong,
+    var(--color-muted-foreground, var(--jali-default-text-muted))
+  );
   --jali-text-subtle: var(--color-muted-foreground, var(--jali-default-text-subtle));
   --jali-text-faint: var(--color-muted-foreground, var(--jali-default-text-faint));
   --jali-hover: var(--color-muted, var(--jali-default-hover));

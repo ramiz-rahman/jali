@@ -12,7 +12,15 @@ export function Palette() {
 }
 
 /** One row: a workspace command, or a command the focused pane added (useCommands). */
-interface Item { key: string; title: string; group: string; keys: string; disabled: boolean; run: () => void; id?: string }
+interface Item {
+  key: string;
+  title: string;
+  group: string;
+  keys: string;
+  disabled: boolean;
+  run: () => void;
+  id?: string;
+}
 
 function PaletteDialog() {
   const store = useStore();
@@ -24,11 +32,25 @@ function PaletteDialog() {
   const x = store.snapshot();
   // The focused pane's commands come first: they are about what the person is looking at.
   const items: Item[] = [
-    ...(own ?? []).map((c): Item => ({ key: `pane:${c.id}`, title: c.title, group: m.title(focused), keys: c.keys ?? "", disabled: !!c.disabled, run: c.run })),
+    ...(own ?? []).map((c): Item => ({
+      key: `pane:${c.id}`,
+      title: c.title,
+      group: m.title(focused),
+      keys: c.keys ?? "",
+      disabled: !!c.disabled,
+      run: c.run,
+    })),
     ...commandsOf(store).map((c): Item => ({
-      key: c.id, id: c.id, title: c.title, group: c.group, disabled: !!c.check?.(x), run: () => runCommand(store, c.id),
+      key: c.id,
+      id: c.id,
+      title: c.title,
+      group: c.group,
+      disabled: !!c.check?.(x),
+      run: () => runCommand(store, c.id),
       // Esc closes a peek through the Esc ladder, not the keymap.
-      keys: store.keymap.label(c.id) || (c.id === "peek.close" ? formatChord({ key: "Escape" }, store.keymap.platform) : ""),
+      keys:
+        store.keymap.label(c.id) ||
+        (c.id === "peek.close" ? formatChord({ key: "Escape" }, store.keymap.platform) : ""),
     })),
   ];
   return (
@@ -41,7 +63,9 @@ function PaletteDialog() {
       listLabel="Commands"
       items={items}
       keyOf={(c) => c.key}
-      matches={(c, t) => c.title.toLowerCase().includes(t) || c.key.includes(t) || c.group.toLowerCase().includes(t)}
+      matches={(c, t) =>
+        c.title.toLowerCase().includes(t) || c.key.includes(t) || c.group.toLowerCase().includes(t)
+      }
       itemClass="jali-palette-item"
       itemProps={(c) => ({ "data-command-id": c.id ?? c.key })}
       disabled={(c) => c.disabled}

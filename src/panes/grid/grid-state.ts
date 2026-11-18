@@ -5,7 +5,10 @@ import { isNumericType } from "../format";
 export function parseFilter(column: ColumnInfo, text: string): string | number | null {
   const t = text.trim();
   if (!t) return null;
-  if (isNumericType(column.type)) { const n = Number(t); return Number.isFinite(n) ? n : null; }
+  if (isNumericType(column.type)) {
+    const n = Number(t);
+    return Number.isFinite(n) ? n : null;
+  }
   return t;
 }
 
@@ -15,5 +18,5 @@ export function nextSort(cur: SortState, column: string): SortState {
   if (!cur || cur.column !== column) return { column, dir: "asc" };
   return cur.dir === "asc" ? { column, dir: "desc" } : null;
 }
-export const orderByString = (s: SortState) => (s ? `${s.column} ${s.dir.toUpperCase()}` : undefined);
-
+export const orderByString = (s: SortState) =>
+  s ? `${s.column} ${s.dir.toUpperCase()}` : undefined;

@@ -1,4 +1,11 @@
-import { ArrowDown, ArrowLeft, ArrowLeftRight, ArrowRight, ArrowUp, SquarePlus } from "lucide-react";
+import {
+  ArrowDown,
+  ArrowLeft,
+  ArrowLeftRight,
+  ArrowRight,
+  ArrowUp,
+  SquarePlus,
+} from "lucide-react";
 import type { Edge, Rect } from "@jali/core/adapter";
 import { dropText, zoneRect } from "@jali/core/adapter";
 import { useModel, useUi } from "../state/react";
@@ -6,11 +13,31 @@ import { useModel, useUi } from "../state/react";
 /** The tinted part of the target pane that the drop will fill. */
 export function DropIndicator({ rect, zone }: { rect: Rect; zone: Edge | "centre" }) {
   const r = zoneRect(rect, zone);
-  return <div className={`jali-drop-indicator jali-zone-${zone}`} data-drop-zone={zone} style={{ left: r.x, top: r.y, width: r.width, height: r.height }} aria-hidden />;
+  return (
+    <div
+      className={`jali-drop-indicator jali-zone-${zone}`}
+      data-drop-zone={zone}
+      style={{ left: r.x, top: r.y, width: r.width, height: r.height }}
+      aria-hidden
+    />
+  );
 }
 
-const ICONS = { swap: ArrowLeftRight, tab: SquarePlus, left: ArrowLeft, right: ArrowRight, top: ArrowUp, bottom: ArrowDown };
-const INSET: Record<Edge | "centre", string> = { centre: "0", right: "0 0 0 50%", bottom: "50% 0 0 0", left: "0 50% 0 0", top: "0 0 50% 0" };
+const ICONS = {
+  swap: ArrowLeftRight,
+  tab: SquarePlus,
+  left: ArrowLeft,
+  right: ArrowRight,
+  top: ArrowUp,
+  bottom: ArrowDown,
+};
+const INSET: Record<Edge | "centre", string> = {
+  centre: "0",
+  right: "0 0 0 50%",
+  bottom: "50% 0 0 0",
+  left: "0 50% 0 0",
+  top: "0 0 50% 0",
+};
 
 /** Centred inside the part of the target pane that the drop will fill: icon plus the outcome in words. */
 export function DropZoneLabel({ paneId }: { paneId: string }) {

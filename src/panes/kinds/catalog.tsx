@@ -27,13 +27,36 @@ export function CatalogPane({ paused, focused, openBeside, peek }: PaneProps) {
   };
 
   if (isLoading(q) || q.isError) return <PaneGate queries={[q]} />;
-  if (!tables.length) return <Shell><Empty title="No tables" /></Shell>;
+  if (!tables.length)
+    return (
+      <Shell>
+        <Empty title="No tables" />
+      </Shell>
+    );
   return (
     <Shell>
-      <div className="pk-bar"><span className="pk-meta">{tables.length} tables</span></div>
-      <div className="pk-list" ref={ref} tabIndex={0} role="listbox" aria-label="Tables" onKeyDown={onKeyDown} aria-activedescendant={tables[sel] ? `cat-${tables[sel].name}` : undefined}>
+      <div className="pk-bar">
+        <span className="pk-meta">{tables.length} tables</span>
+      </div>
+      <div
+        className="pk-list"
+        ref={ref}
+        tabIndex={0}
+        role="listbox"
+        aria-label="Tables"
+        onKeyDown={onKeyDown}
+        aria-activedescendant={tables[sel] ? `cat-${tables[sel].name}` : undefined}
+      >
         {tables.map((t, i) => (
-          <div key={t.name} id={`cat-${t.name}`} role="option" aria-selected={i === sel} className="pk-item" onClick={() => setSel(i)} onDoubleClick={() => openBeside(tableRef(t.name))}>
+          <div
+            key={t.name}
+            id={`cat-${t.name}`}
+            role="option"
+            aria-selected={i === sel}
+            className="pk-item"
+            onClick={() => setSel(i)}
+            onDoubleClick={() => openBeside(tableRef(t.name))}
+          >
             <span className="grow">{t.name}</span>
             <span className="pk-mono pk-meta">{formatCount(t.rowCount)}</span>
           </div>
@@ -42,7 +65,6 @@ export function CatalogPane({ paused, focused, openBeside, peek }: PaneProps) {
     </Shell>
   );
 }
-
 
 export const catalogKind = definePane("catalog", {
   title: "Tables",

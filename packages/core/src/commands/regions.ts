@@ -11,7 +11,9 @@ import type { UiStore } from "../state/store";
 /** Host regions in document order, on screen only. */
 function hostRegions(root: ParentNode): HTMLElement[] {
   if (typeof document === "undefined") return [];
-  return [...root.querySelectorAll<HTMLElement>("[data-pane-region]")].filter((el) => el.getClientRects().length > 0);
+  return [...root.querySelectorAll<HTMLElement>("[data-pane-region]")].filter(
+    (el) => el.getClientRects().length > 0,
+  );
 }
 
 function focusRegion(el: HTMLElement) {
@@ -22,11 +24,23 @@ export function cycleRegions(store: UiStore, back: boolean): void {
   const shelf = shownShelf(store.dom);
   const extra = hostRegions(store.dom.root());
   const stops: { el: HTMLElement; enter(): void }[] = [
-    ...(shelf ? [{ el: shelf, enter: () => { focusShelf(shelf); store.announce(msg.shelf); } }] : []),
+    ...(shelf
+      ? [
+          {
+            el: shelf,
+            enter: () => {
+              focusShelf(shelf);
+              store.announce(msg.shelf);
+            },
+          },
+        ]
+      : []),
     ...extra.map((el) => ({ el, enter: () => focusRegion(el) })),
   ];
   const active = typeof document !== "undefined" ? document.activeElement : null;
-  const inStop = stops.findIndex((r) => (r.el === shelf ? focusInShelf(r.el) : !!active && r.el.contains(active)));
+  const inStop = stops.findIndex((r) =>
+    r.el === shelf ? focusInShelf(r.el) : !!active && r.el.contains(active),
+  );
   if (inStop >= 0) {
     const next = inStop + (back ? -1 : 1);
     if (next >= 0 && next < stops.length) stops[next]!.enter();

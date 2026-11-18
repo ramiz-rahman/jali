@@ -17,7 +17,9 @@ const note = definePane("note", {
   Component: ({ params, openBeside }) => (
     <article className="note">
       <h3>Note {params.id}</h3>
-      <button onClick={() => openBeside(note({ id: params.id + 1 }))}>Open the next note beside</button>
+      <button onClick={() => openBeside(note({ id: params.id + 1 }))}>
+        Open the next note beside
+      </button>
     </article>
   ),
 });

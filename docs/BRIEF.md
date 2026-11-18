@@ -3,6 +3,7 @@
 **What this is:** a throwaway spike that proves the shared Sixface pane system before any shared package is built. The founder agreed it on 17 Nov 2026.
 
 **The specification:**
+
 - `/Users/ramizrahman/Projects/Sixface-Initiate/workspaces/2026-11-16-sixface-design-system/pane-interaction-spec.md`: the interactions, plus §16 (decisions) and §18 (data).
 - `pane-system-research.md`: library research.
 - `multiplex-guidelines.md`, §9: minimum widths.
@@ -12,6 +13,7 @@ All three are in the same folder.
 **Data:** Data Studio's fictional sample database, from `src/data/sample-sql.ts`, a copy of `packages/contracts/src/sample.ts`. It runs in the browser on PGlite, with no backend.
 
 ## What the lab must prove
+
 1. **Many arbitrary panes fit or fold, and are never squeezed.** Chains of 6–10 panes built by following relations, for example order → customer → their orders → product → supplier → reviews. Required behaviours:
    - pixel minimums per pane kind;
    - the collapse plan: rail, then auto-tabs, then a single pane with a switcher;
@@ -31,7 +33,9 @@ All three are in the same folder.
 6. **Accessibility.** Each pane is `role="region"` with a name. Dividers follow the WAI-ARIA window splitter pattern. Changes are announced in a live region. The collapse plan works at 200% zoom.
 
 ## Architecture
+
 The engine is two packages in a pnpm workspace (since 19 Nov 2026); the lab is an app built on them.
+
 ```
 packages/core/     @jali/core, no framework: layout/ (model, ops, fit, codec, validation), the workspace store,
                    actions, commands and keymap, URL and storage ports, the pane and active-item contracts
@@ -47,10 +51,13 @@ src/tests/         engine tests that run against the lab's kinds
 e2e/               Playwright demo script that walks every interaction and asserts the key behaviours
 docs/              BRIEF.md, DECISIONS.md (every deviation, with reason), FINDINGS.md (what we learned, for the founder)
 ```
+
 **Contracts:** `packages/core/src/layout/types.ts` and `src/data/types.ts`. The coordinator wrote them. Implement them; any signature change goes in `docs/DECISIONS.md`.
 
 ## Visual language
+
 Sixface tokens, zinc neutrals and IBM Plex Sans, matching the design-system boards:
+
 - ground `#F4F4F5`; islands white, 10px radius, 1px `#E4E4E7`, 6px gaps;
 - focused pane: 1.5px `#5A2AFA` edge;
 - pane header 40px;
@@ -59,6 +66,7 @@ Sixface tokens, zinc neutrals and IBM Plex Sans, matching the design-system boar
 There is **no app shell beyond a slim 48px top bar** (title, layout presets, settings, ⌘K) and a 28px status line (pane count, focus, zoom hint, fetch stats). The point is the pane system, not the shell.
 
 ## Rules
+
 - Run `pnpm test` and `pnpm typecheck` before handing back. Keep `pnpm dev` working on port 5300.
 - **No network installs:** dependencies are already installed. Ask the coordinator if something is missing.
 - Commit small and often on `main`, with plain messages. The git identity is the machine's. Do not add a co-author line, and do not push (there is no remote).

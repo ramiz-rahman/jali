@@ -1,7 +1,10 @@
 import { test, expect } from "./fixtures/lab";
 
 test.describe("Open and peek", () => {
-  test("open beside from a list with no detail opens one that follows; focus stays in the list; J/K still move", async ({ lab, page }) => {
+  test("open beside from a list with no detail opens one that follows; focus stays in the list; J/K still move", async ({
+    lab,
+    page,
+  }) => {
     await lab.open();
     expect(await lab.visibleIds()).toEqual(["orders", "order", "customer"]);
     await expect(lab.heading("order")).toHaveText("order 1");
@@ -11,11 +14,17 @@ test.describe("Open and peek", () => {
     expect(await lab.visibleIds()).toEqual(["orders", "order", "customer"]);
 
     // With no detail, ⌥↵ opens one beside, and it follows.
-    await lab.pane("order").getByRole("button", { name: /^Close/ }).click();
+    await lab
+      .pane("order")
+      .getByRole("button", { name: /^Close/ })
+      .click();
     await lab.row("orders", /^5\b/).click();
     await page.keyboard.press("Alt+Enter");
     await expect.poll(() => lab.visibleCount()).toBe(3);
-    await expect(lab.page.getByRole("button", { name: /^Pin order 5/ })).toHaveAttribute("aria-pressed", "false");
+    await expect(lab.page.getByRole("button", { name: /^Pin order 5/ })).toHaveAttribute(
+      "aria-pressed",
+      "false",
+    );
     // Focus is still in the list.
     await expect(lab.pane("orders")).toHaveAttribute("data-focused", "true");
     await expect.poll(() => lab.focusIn("orders")).toBe(true);
@@ -52,10 +61,15 @@ test.describe("Open and peek", () => {
     await expect(peek).toBeVisible();
     await peek.getByRole("button", { name: /Pin beside/ }).click();
     await expect(peek).toBeHidden();
-    await expect(page.locator('section[data-kind="record"]').getByRole("heading", { level: 2 })).toHaveText("order 4");
+    await expect(
+      page.locator('section[data-kind="record"]').getByRole("heading", { level: 2 }),
+    ).toHaveText("order 4");
 
     // Now a detail follows the list: Space shows the row there instead of the sheet. Close it to peek again.
-    await page.locator('section[data-kind="record"]').getByRole("button", { name: /^Close/ }).click();
+    await page
+      .locator('section[data-kind="record"]')
+      .getByRole("button", { name: /^Close/ })
+      .click();
     await lab.grid("orders").focus();
 
     // Open full: the peek becomes the whole page (one pane).

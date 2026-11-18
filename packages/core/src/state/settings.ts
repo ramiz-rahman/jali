@@ -13,7 +13,13 @@ export interface Settings {
   boundary: "tint" | "none";
 }
 
-export const DEFAULT_SETTINGS: Settings = { centreDrop: "swap", paneCap: 8, showStats: true, theme: "system", boundary: "tint" };
+export const DEFAULT_SETTINGS: Settings = {
+  centreDrop: "swap",
+  paneCap: 8,
+  showStats: true,
+  theme: "system",
+  boundary: "tint",
+};
 const KEY = "settings";
 
 /** Saved settings over the defaults. Keys from older builds (the divider adapter) are dropped. */
@@ -34,13 +40,17 @@ export function saveSettings(storage: StoragePort, s: Settings) {
   storage.set(KEY, JSON.stringify(s));
 }
 
-export const resolveTheme = (choice: ThemeChoice, systemDark: boolean): Theme => (choice === "system" ? (systemDark ? "dark" : "light") : choice);
+export const resolveTheme = (choice: ThemeChoice, systemDark: boolean): Theme =>
+  choice === "system" ? (systemDark ? "dark" : "light") : choice;
 
 export function applyTheme(theme: Theme) {
   if (typeof document !== "undefined") document.documentElement.setAttribute("data-theme", theme);
 }
 
-const darkQuery = () => (typeof window !== "undefined" && window.matchMedia ? window.matchMedia("(prefers-color-scheme: dark)") : null);
+const darkQuery = () =>
+  typeof window !== "undefined" && window.matchMedia
+    ? window.matchMedia("(prefers-color-scheme: dark)")
+    : null;
 export const systemPrefersDark = () => !!darkQuery()?.matches;
 
 /** Calls back with the system preference whenever it changes. */

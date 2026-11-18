@@ -4,6 +4,15 @@
 @import "./teal.css";
 
 @layer base {
-  html, body, #root { height: 100%; margin: 0; }
-  body { background: var(--jali-canvas); color: var(--jali-text); font-family: var(--jali-font); }
+  html,
+  body,
+  #root {
+    height: 100%;
+    margin: 0;
+  }
+  body {
+    background: var(--jali-canvas);
+    color: var(--jali-text);
+    font-family: var(--jali-font);
+  }
 }

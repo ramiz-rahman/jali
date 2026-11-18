@@ -8,8 +8,8 @@ import { ticketNote } from "../unsaved/note-editor";
 
 // The orders workspace: the address's plain params (l, zoom, peek), localStorage keys "orders:…".
 const orders = createWorkspace({
-  id: "orders",       // DOM ids "orders-pane-…"
-  keys: "workspace",  // only keys pressed inside it, or on the page body after it was used last
+  id: "orders", // DOM ids "orders-pane-…"
+  keys: "workspace", // only keys pressed inside it, or on the page body after it was used last
   panes: orderKinds,
   presets,
   storage: "orders",

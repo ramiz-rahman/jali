@@ -26,20 +26,39 @@ function makeApp(source: Source, id: string): LandingApp {
   const storage = memoryStorage();
   // On the landing page: its own keys only, and the site keeps its theme.
   const embedded = { url: { location }, storage, id, keys: "workspace", pageTheme: false } as const;
-  const store = source.app === "quickstart"
-    ? createWorkspace({ ...embedded, panes: [note], layout: row(note({ id: 1 }), note({ id: 2 })), name: "Notes" })
-    : createWorkspace({ ...embedded, panes: demoKinds, layout: buildDemoLayout(source.layout), name: "Shop" });
+  const store =
+    source.app === "quickstart"
+      ? createWorkspace({
+          ...embedded,
+          panes: [note],
+          layout: row(note({ id: 1 }), note({ id: 2 })),
+          name: "Notes",
+        })
+      : createWorkspace({
+          ...embedded,
+          panes: demoKinds,
+          layout: buildDemoLayout(source.layout),
+          name: "Shop",
+        });
   let last = { search: location.search(), entries: location.entries.length };
   const address = () => {
-    const search = location.search(), entries = location.entries.length;
+    const search = location.search(),
+      entries = location.entries.length;
     if (search !== last.search || entries !== last.entries) last = { search, entries };
     return last;
   };
   // Resizes are written on a short timer, so read again a moment after the store settles.
   const subscribeAddress = (fn: () => void) => {
     let t: ReturnType<typeof setTimeout> | undefined;
-    const off = store.subscribe(() => { fn(); clearTimeout(t); t = setTimeout(fn, 200); });
-    return () => { off(); clearTimeout(t); };
+    const off = store.subscribe(() => {
+      fn();
+      clearTimeout(t);
+      t = setTimeout(fn, 200);
+    });
+    return () => {
+      off();
+      clearTimeout(t);
+    };
   };
   return { store, address, subscribeAddress };
 }
@@ -55,9 +74,22 @@ export function useAddress(app: LandingApp) {
 }
 
 /** The workspace in a box. Keys count for it only when pressed inside it. */
-export function LandingWorkspace({ app, height, label }: { app: LandingApp; height: number | string; label: string }) {
+export function LandingWorkspace({
+  app,
+  height,
+  label,
+}: {
+  app: LandingApp;
+  height: number | string;
+  label: string;
+}) {
   return (
-    <div className="live-figure landing-ws" role="group" aria-label={label} style={{ margin: 0, height: height === "100%" ? "100%" : undefined }}>
+    <div
+      className="live-figure landing-ws"
+      role="group"
+      aria-label={label}
+      style={{ margin: 0, height: height === "100%" ? "100%" : undefined }}
+    >
       <div className="live-ws landing-ws-box" style={{ height }}>
         <Jali workspace={app.store} className="live-jali" settings={false} />
       </div>

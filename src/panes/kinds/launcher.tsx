@@ -25,7 +25,9 @@ function recordJump(q: string, tables: TableInfo[]): ObjectRef | null {
   const m = /^([a-z_]+)\s*#?\s*(\d+)$/i.exec(q.trim());
   if (!m) return null;
   const word = m[1]!.toLowerCase();
-  const t = tables.find((t) => t.name === word || singular(t.name) === word) ?? tables.find((t) => t.name.startsWith(word));
+  const t =
+    tables.find((t) => t.name === word || singular(t.name) === word) ??
+    tables.find((t) => t.name.startsWith(word));
   return t ? recordRef(t.name, Number(m[2])) : null;
 }
 
@@ -41,25 +43,51 @@ export function LauncherPane({ node, focused, paused, openHere, dismiss }: PaneP
   const input = useFocusWhen<HTMLInputElement>(focused);
   const list = useRef<HTMLDivElement>(null);
 
-
-
   const items = useMemo<Item[]>(() => {
     const t = q.trim().toLowerCase();
     const hit = (s: string) => !t || s.toLowerCase().includes(t);
     const tables = catalog.data ?? [];
     const out: Item[] = [];
     const jump = t ? recordJump(t, tables) : null;
-    if (jump) out.push({ key: "jump", section: "Go to", ref: jump, label: titleFor(jump), icon: <KindIcon kind="record" size={14} /> });
+    if (jump)
+      out.push({
+        key: "jump",
+        section: "Go to",
+        ref: jump,
+        label: titleFor(jump),
+        icon: <KindIcon kind="record" size={14} />,
+      });
     for (const ref of recent) {
       const label = titleFor(ref);
       if (!hit(label) || (jump && label === titleFor(jump))) continue;
-      out.push({ key: `r:${JSON.stringify(ref)}`, section: "Recent", ref, label, icon: <KindIcon kind={ref.kind} size={14} /> });
+      out.push({
+        key: `r:${JSON.stringify(ref)}`,
+        section: "Recent",
+        ref,
+        label,
+        icon: <KindIcon kind={ref.kind} size={14} />,
+      });
     }
     for (const tb of tables) {
       if (!hit(tb.name)) continue;
-      out.push({ key: `t:${tb.name}`, section: "Tables", ref: tableRef(tb.name), label: tb.name, meta: <span className="pk-mono">{formatCount(tb.rowCount)}</span>, icon: <Table2 size={14} strokeWidth={1.5} aria-hidden /> });
+      out.push({
+        key: `t:${tb.name}`,
+        section: "Tables",
+        ref: tableRef(tb.name),
+        label: tb.name,
+        meta: <span className="pk-mono">{formatCount(tb.rowCount)}</span>,
+        icon: <Table2 size={14} strokeWidth={1.5} aria-hidden />,
+      });
     }
-    if (hit("new query") || hit("sql")) out.push({ key: "new-query", section: "Create", ref: NEW_QUERY, label: "New query", meta: <span className="pk-mono">SQL</span>, icon: <Plus size={14} strokeWidth={1.5} aria-hidden /> });
+    if (hit("new query") || hit("sql"))
+      out.push({
+        key: "new-query",
+        section: "Create",
+        ref: NEW_QUERY,
+        label: "New query",
+        meta: <span className="pk-mono">SQL</span>,
+        icon: <Plus size={14} strokeWidth={1.5} aria-hidden />,
+      });
     return out;
   }, [q, recent, catalog.data, titleFor]);
 
@@ -72,7 +100,8 @@ export function LauncherPane({ node, focused, paused, openHere, dismiss }: PaneP
     const box = list.current;
     if (!el || !box) return;
     if (el.offsetTop < box.scrollTop + 28) box.scrollTop = Math.max(0, el.offsetTop - 28);
-    else if (el.offsetTop + el.offsetHeight > box.scrollTop + box.clientHeight) box.scrollTop = el.offsetTop + el.offsetHeight - box.clientHeight;
+    else if (el.offsetTop + el.offsetHeight > box.scrollTop + box.clientHeight)
+      box.scrollTop = el.offsetTop + el.offsetHeight - box.clientHeight;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sel]);
 
@@ -89,8 +118,10 @@ export function LauncherPane({ node, focused, paused, openHere, dismiss }: PaneP
     else if (e.key === "End" && !q) setI(items.length - 1);
     else if (e.key === "Enter") choose(sel);
     else if (e.key === "Escape") {
-      if (q) { setQ(""); setI(0); }
-      else dismiss();
+      if (q) {
+        setQ("");
+        setI(0);
+      } else dismiss();
     } else return;
     e.preventDefault();
   };
@@ -118,14 +149,25 @@ export function LauncherPane({ node, focused, paused, openHere, dismiss }: PaneP
           spellCheck={false}
           autoComplete="off"
           value={q}
-          onChange={(e) => { setQ(e.target.value); setI(0); }}
+          onChange={(e) => {
+            setQ(e.target.value);
+            setI(0);
+          }}
           onKeyDown={onKeyDown}
         />
       </label>
-      <div className="launcher-list" ref={list} id={`${node.id}-options`} role="listbox" aria-label="Objects">
+      <div
+        className="launcher-list"
+        ref={list}
+        id={`${node.id}-options`}
+        role="listbox"
+        aria-label="Objects"
+      >
         {groups.map((g) => (
           <div key={g.section} role="group" aria-labelledby={`${node.id}-sec-${g.section}`}>
-            <div className="launcher-section" id={`${node.id}-sec-${g.section}`}>{g.section}</div>
+            <div className="launcher-section" id={`${node.id}-sec-${g.section}`}>
+              {g.section}
+            </div>
             {g.rows.map(({ it, n }) => {
               const open = isOpen(it.ref);
               return (
@@ -142,25 +184,45 @@ export function LauncherPane({ node, focused, paused, openHere, dismiss }: PaneP
                 >
                   <span className="launcher-icon">{it.icon}</span>
                   <span className="launcher-label">{it.label}</span>
-                  {open ? <span className="launcher-open">Open</span> : it.meta ? <span className="launcher-meta">{it.meta}</span> : null}
+                  {open ? (
+                    <span className="launcher-open">Open</span>
+                  ) : it.meta ? (
+                    <span className="launcher-meta">{it.meta}</span>
+                  ) : null}
                 </div>
               );
             })}
           </div>
         ))}
-        {catalog.isError ? <div className="launcher-note" role="alert">Tables could not be loaded.</div> : null}
-        {!items.length && !catalog.isLoading ? <div className="launcher-note">Nothing matches “{q}”. Try a table name, or a table and an id such as “customer 3”.</div> : null}
-        {!catalog.data && catalog.isLoading ? <div className="launcher-note">Loading tables…</div> : null}
+        {catalog.isError ? (
+          <div className="launcher-note" role="alert">
+            Tables could not be loaded.
+          </div>
+        ) : null}
+        {!items.length && !catalog.isLoading ? (
+          <div className="launcher-note">
+            Nothing matches “{q}”. Try a table name, or a table and an id such as “customer 3”.
+          </div>
+        ) : null}
+        {!catalog.data && catalog.isLoading ? (
+          <div className="launcher-note">Loading tables…</div>
+        ) : null}
       </div>
       <div className="launcher-foot" aria-hidden>
-        <span><kbd>↑</kbd><kbd>↓</kbd> choose</span>
-        <span><kbd>↵</kbd> open here</span>
-        <span><kbd>esc</kbd> {q ? "clear" : "close"}</span>
+        <span>
+          <kbd>↑</kbd>
+          <kbd>↓</kbd> choose
+        </span>
+        <span>
+          <kbd>↵</kbd> open here
+        </span>
+        <span>
+          <kbd>esc</kbd> {q ? "clear" : "close"}
+        </span>
       </div>
     </div>
   );
 }
-
 
 export const launcherKind = definePane("launcher", {
   title: "New pane",

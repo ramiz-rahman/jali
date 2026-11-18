@@ -22,7 +22,11 @@ export interface ActiveItemMapping {
 
 const ACCEPTED = { status: "accepted" } as const;
 
-export function activeItemPort(store: UiStore, pane: NodeId, { toRef, idOf }: ActiveItemMapping): ActiveItemPort {
+export function activeItemPort(
+  store: UiStore,
+  pane: NodeId,
+  { toRef, idOf }: ActiveItemMapping,
+): ActiveItemPort {
   return {
     get itemId() {
       const ref = store.get().selection[pane]?.ref;

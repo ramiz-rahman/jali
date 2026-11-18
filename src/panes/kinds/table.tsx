@@ -15,7 +15,28 @@ import type { PaneProps } from "@jali/react";
 import { keyHint } from "@jali/core";
 
 /** A grid over one table, optionally pre-filtered by a relation (used by RelatedPane). */
-export function TableGrid({ table, fixedWhere, paused, focused, openBeside, peek, select, label, columns: columnNames, orderBy, rowRef, audit = false }: Pick<PaneProps, "paused" | "focused" | "openBeside" | "peek" | "select"> & { table: TableName; fixedWhere?: Record<string, string | number>; label: string; columns?: string[]; orderBy?: string; rowRef?: (row: Row) => ObjectRef | null; audit?: boolean }) {
+export function TableGrid({
+  table,
+  fixedWhere,
+  paused,
+  focused,
+  openBeside,
+  peek,
+  select,
+  label,
+  columns: columnNames,
+  orderBy,
+  rowRef,
+  audit = false,
+}: Pick<PaneProps, "paused" | "focused" | "openBeside" | "peek" | "select"> & {
+  table: TableName;
+  fixedWhere?: Record<string, string | number>;
+  label: string;
+  columns?: string[];
+  orderBy?: string;
+  rowRef?: (row: Row) => ObjectRef | null;
+  audit?: boolean;
+}) {
   const cat = useTableInfo(table, paused);
   const info = cat.data;
   const [sort, setSort] = useState<SortState>(null);
@@ -24,7 +45,10 @@ export function TableGrid({ table, fixedWhere, paused, focused, openBeside, peek
 
   const where = useMemo(() => {
     const w: Record<string, string | number> = { ...fixedWhere };
-    for (const c of info?.columns ?? []) { const v = parseFilter(c, filters[c.name] ?? ""); if (v !== null) w[c.name] = v; }
+    for (const c of info?.columns ?? []) {
+      const v = parseFilter(c, filters[c.name] ?? "");
+      if (v !== null) w[c.name] = v;
+    }
     return w;
   }, [fixedWhere, filters, info]);
   // Unsorted grids order by the primary key: Postgres moves an updated row to the end of an unordered scan, so an edit
@@ -33,36 +57,91 @@ export function TableGrid({ table, fixedWhere, paused, focused, openBeside, peek
   const order = orderByString(sort) ?? orderBy ?? (pkColumn ? `${pkColumn} ASC` : undefined);
   const w = useWindowRows(table, { where, orderBy: order }, paused);
   // A filter or sort keeps the selection on the same row; a row filtered out stays in the following detail, noted.
-  const rowRefFor = info ? (rowRef ?? ((row: Row) => recordRef(table, rowId(info.columns, row)))) : null;
-  const report = useSelectionAcrossResults(JSON.stringify([where, order]), w, rowRefFor, setSelected, select);
+  const rowRefFor = info
+    ? (rowRef ?? ((row: Row) => recordRef(table, rowId(info.columns, row))))
+    : null;
+  const report = useSelectionAcrossResults(
+    JSON.stringify([where, order]),
+    w,
+    rowRefFor,
+    setSelected,
+    select,
+  );
 
   if (isLoading(cat) || cat.isError || !info || w.q.isError) {
     return <PaneGate queries={[cat, w.q]} gone={!info ? `Table "${table}"` : undefined} />;
   }
 
-  const columns: GridColumn[] = info.columns.filter(c => !columnNames || columnNames.includes(c.name)).map((c: ColumnInfo) => ({
-    name: c.name, type: c.type, format: c.format, badge: c.primaryKey ? "PK" : c.references ? "FK" : undefined,
-  }));
+  const columns: GridColumn[] = info.columns
+    .filter((c) => !columnNames || columnNames.includes(c.name))
+    .map((c: ColumnInfo) => ({
+      name: c.name,
+      type: c.type,
+      format: c.format,
+      badge: c.primaryKey ? "PK" : c.references ? "FK" : undefined,
+    }));
   const refFor = rowRef ?? ((row: Row) => recordRef(table, rowId(info.columns, row)));
 
   return (
     <Shell>
       <div className="pk-bar">
-        <span className="grow pk-meta"><span className="pk-mono">{formatCount(w.total)}</span> {audit ? "events, newest first" : <>rows{Object.keys(where).length ? " (filtered)" : ""}</>}</span>
-        {!audit && (sort || Object.values(filters).some(Boolean)) && <button className="pk-btn" onClick={() => { setSort(null); setFilters({}); }}>Clear</button>}
-        {!audit && <span className="pk-meta">J/K move · Space peek · {keyHint("Alt+Enter")} open</span>}
+        <span className="grow pk-meta">
+          <span className="pk-mono">{formatCount(w.total)}</span>{" "}
+          {audit ? (
+            "events, newest first"
+          ) : (
+            <>rows{Object.keys(where).length ? " (filtered)" : ""}</>
+          )}
+        </span>
+        {!audit && (sort || Object.values(filters).some(Boolean)) && (
+          <button
+            className="pk-btn"
+            onClick={() => {
+              setSort(null);
+              setFilters({});
+            }}
+          >
+            Clear
+          </button>
+        )}
+        {!audit && (
+          <span className="pk-meta">J/K move · Space peek · {keyHint("Alt+Enter")} open</span>
+        )}
       </div>
-      {w.q.isLoading && !w.rows.length ? <Loading /> :
-        <Grid label={label} columns={columns} total={w.total} rows={w.rows} startOffset={w.offset} onRange={w.onRange}
-          selected={selected} onSelect={setSelected} focused={focused} rowRef={refFor} select={report} peek={peek} openBeside={openBeside}
-          rowLabel={(ref) => audit ? `Open ${ref.params.table} ${ref.params.id} beside` : `Open ${singular(table)} ${ref.params.id} beside`}
-          sort={sort} onSort={audit ? undefined : (c) => setSort((s) => nextSort(s, c))}
-          filters={filters} onFilter={audit ? undefined : (c, t) => setFilters((f) => ({ ...f, [c]: t }))}
+      {w.q.isLoading && !w.rows.length ? (
+        <Loading />
+      ) : (
+        <Grid
+          label={label}
+          columns={columns}
+          total={w.total}
+          rows={w.rows}
+          startOffset={w.offset}
+          onRange={w.onRange}
+          selected={selected}
+          onSelect={setSelected}
+          focused={focused}
+          rowRef={refFor}
+          select={report}
+          peek={peek}
+          openBeside={openBeside}
+          rowLabel={(ref) =>
+            audit
+              ? `Open ${ref.params.table} ${ref.params.id} beside`
+              : `Open ${singular(table)} ${ref.params.id} beside`
+          }
+          sort={sort}
+          onSort={audit ? undefined : (c) => setSort((s) => nextSort(s, c))}
+          filters={filters}
+          onFilter={audit ? undefined : (c, t) => setFilters((f) => ({ ...f, [c]: t }))}
           link={(value, row, column) => {
             if (audit && column.name === "entity_id") return rowRef?.(row) ?? null;
-            const infoColumn = info.columns.find(c => c.name === column.name);
+            const infoColumn = info.columns.find((c) => c.name === column.name);
             return infoColumn ? foreignKeyRef(infoColumn, value) : null;
-          }} onLink={openBeside} />}
+          }}
+          onLink={openBeside}
+        />
+      )}
     </Shell>
   );
 }
@@ -71,7 +150,6 @@ export function TablePane(p: PaneProps<{ table: string }>) {
   const table = p.params.table as TableName;
   return <TableGrid {...p} table={table} label={`${table} rows`} />;
 }
-
 
 export const tableKind = definePane("table", {
   params: { table: String },

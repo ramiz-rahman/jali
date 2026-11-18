@@ -45,7 +45,7 @@ Params are strings and numbers only. Two refs show the same object when their ki
 
 A layout is a tree. Its leaves are panes. Its other nodes are a **row** (children side by side), a **column** (children one above the other) or a **stack** (panes as tabs, one shown at a time).
 
-<Code code={layouts} filename="layouts.ts" highlight="8,10,12" />
+<Code code={layouts} filename="layouts.ts" highlight="7,9,11" />
 
 Every node has a size along its parent: `weight: 2` takes a share of the room in proportion to its siblings, and `px: 360` asks for a fixed length. `row`, `column` and `tabs` build a plain JSON tree, and that tree is what goes in the address.
 

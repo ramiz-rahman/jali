@@ -28,12 +28,19 @@ test.describe("Move: drag by the grip", () => {
     expect(await page.evaluate(() => window.getSelection()?.toString() ?? "")).toBe("");
   });
 
-  test("the drag chip never covers the drop label, and only the drop is ringed", async ({ lab, page }) => {
+  test("the drag chip never covers the drop label, and only the drop is ringed", async ({
+    lab,
+    page,
+  }) => {
     await lab.open();
     await lab.drag("customer", "orders", "centre", { release: false });
     const label = (await page.locator(".jali-drop-label").boundingBox())!;
     const chip = (await lab.dragChip().boundingBox())!;
-    const overlaps = chip.x < label.x + label.width && chip.x + chip.width > label.x && chip.y < label.y + label.height && chip.y + chip.height > label.y;
+    const overlaps =
+      chip.x < label.x + label.width &&
+      chip.x + chip.width > label.x &&
+      chip.y < label.y + label.height &&
+      chip.y + chip.height > label.y;
     expect(overlaps).toBe(false);
     const dragged = lab.pane("customer");
     expect(await dragged.evaluate((e) => getComputedStyle(e).boxShadow)).toBe("none");
@@ -73,7 +80,8 @@ test.describe("Move: drag by the grip", () => {
   test("keyboard move: ⌘K ⇧⌘Arrow", async ({ lab, page }) => {
     await lab.open();
     await lab.pane("customer").click({ position: { x: 100, y: 200 } });
-    await page.keyboard.press("ControlOrMeta+k"); await page.keyboard.press("ControlOrMeta+Shift+ArrowLeft");
+    await page.keyboard.press("ControlOrMeta+k");
+    await page.keyboard.press("ControlOrMeta+Shift+ArrowLeft");
     await expect.poll(() => lab.visibleIds()).toEqual(["orders", "customer", "order"]);
   });
 });

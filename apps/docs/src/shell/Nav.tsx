@@ -12,9 +12,17 @@ export function Nav({ path, id }: { path: string; id?: string }) {
             {s.items.map((i) => (
               <li key={i.path}>
                 {i.exists ? (
-                  <a className="nav-link" href={i.path} aria-current={i.path === path ? "page" : undefined}>{i.title}</a>
+                  <a
+                    className="nav-link"
+                    href={i.path}
+                    aria-current={i.path === path ? "page" : undefined}
+                  >
+                    {i.title}
+                  </a>
                 ) : (
-                  <span className="nav-link" data-pending="" title="Not written yet">{i.title}</span>
+                  <span className="nav-link" data-pending="" title="Not written yet">
+                    {i.title}
+                  </span>
                 )}
               </li>
             ))}

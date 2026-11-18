@@ -13,7 +13,9 @@
  */
 export type ActiveItemAction = "open" | "close" | "step";
 
-export interface ActiveItemWriteResult { readonly status: "accepted" }
+export interface ActiveItemWriteResult {
+  readonly status: "accepted";
+}
 
 export interface ActiveItemPort {
   /** The item the list is on, or null. */

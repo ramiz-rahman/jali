@@ -20,7 +20,13 @@ function arriveFromUrl(store: UiStore, url: UrlSync): boolean {
   if (!r) return false;
   if ("page" in r) {
     const { tab, item, investigation } = r.page;
-    store.actions.openPage({ tab: tab || undefined, item: item || undefined, investigation, fromUrl: true, view: r.view });
+    store.actions.openPage({
+      tab: tab || undefined,
+      item: item || undefined,
+      investigation,
+      fromUrl: true,
+      view: r.view,
+    });
   } else if ("broken" in r) {
     const p = presetById(store.env, store.get().presetId);
     if (p) store.actions.arrive(p.build(), r.view);
@@ -45,7 +51,12 @@ export function boot(store: UiStore, url?: UrlSync) {
   const s = store.get();
   const layout = core.refit(s.layout, s.view, store.ctx());
   const first = panes()[0]?.id;
-  store.set({ layout, ...(!s.view.focused && first ? { view: { ...s.view, focused: first, focusHistory: [first] } } : {}) });
+  store.set({
+    layout,
+    ...(!s.view.focused && first
+      ? { view: { ...s.view, focused: first, focusHistory: [first] } }
+      : {}),
+  });
   store.writeUrl("replace");
 }
 
@@ -57,13 +68,20 @@ export interface StartOptions {
   pageTheme?: boolean;
 }
 
-export function startUi(store: UiStore, url?: UrlSync, { keys = {}, pageTheme = true }: StartOptions = {}): () => void {
+export function startUi(
+  store: UiStore,
+  url?: UrlSync,
+  { keys = {}, pageTheme = true }: StartOptions = {},
+): () => void {
   const sync = syncOf(store, url);
   applyTokens();
   let prev = store.get();
   // Pane state changes with typing and scrolling: saved once things settle.
   let saveTimer: ReturnType<typeof setTimeout> | undefined;
-  const saveSoon = () => { clearTimeout(saveTimer); saveTimer = setTimeout(() => savePaneState(store.storage, store.get().paneState), 400); };
+  const saveSoon = () => {
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(() => savePaneState(store.storage, store.get().paneState), 400);
+  };
   if (pageTheme) applyTheme(resolveTheme(prev.settings.theme, prev.systemDark));
   const offStore = store.subscribe(() => {
     const s = store.get();
@@ -74,9 +92,13 @@ export function startUi(store: UiStore, url?: UrlSync, { keys = {}, pageTheme = 
     const live = s.page?.mode === "multi" && s.layout !== prev.layout;
     if (p && (live || s.prefs !== prev.prefs)) {
       const layout = s.page?.mode === "multi" ? s.layout : s.prefs.multi;
-      savePrefs(store.storage, p.id, { mode: s.prefs.mode, multi: layout ? withoutOpened(layout, store.ctx()) : null });
+      savePrefs(store.storage, p.id, {
+        mode: s.prefs.mode,
+        multi: layout ? withoutOpened(layout, store.ctx()) : null,
+      });
     }
-    if (pageTheme && (s.settings.theme !== prev.settings.theme || s.systemDark !== prev.systemDark)) applyTheme(resolveTheme(s.settings.theme, s.systemDark));
+    if (pageTheme && (s.settings.theme !== prev.settings.theme || s.systemDark !== prev.systemDark))
+      applyTheme(resolveTheme(s.settings.theme, s.systemDark));
     prev = s;
   });
   // Leaving the page with unsaved work: the browser asks first.
@@ -92,5 +114,12 @@ export function startUi(store: UiStore, url?: UrlSync, { keys = {}, pageTheme = 
         store.announce(msg.historyChanged);
       })
     : () => {};
-  return () => { offStore(); offTheme(); offKeys(); offPop(); clearTimeout(saveTimer); window.removeEventListener("beforeunload", onUnload); };
+  return () => {
+    offStore();
+    offTheme();
+    offKeys();
+    offPop();
+    clearTimeout(saveTimer);
+    window.removeEventListener("beforeunload", onUnload);
+  };
 }

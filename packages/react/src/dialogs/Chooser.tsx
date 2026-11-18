@@ -16,14 +16,21 @@ function ChooserDialog({ chooser }: { chooser: ChooserState }) {
   const store = useStore();
   const m = useModel();
   // The targets as they were when the chooser opened.
-  const all = useMemo(() => mergeTargets(store.snapshot(), chooser.source), [store, chooser.source]);
+  const all = useMemo(
+    () => mergeTargets(store.snapshot(), chooser.source),
+    [store, chooser.source],
+  );
   const close = () => store.set({ chooser: null });
   const title = m.title(chooser.source);
   return (
     <ListDialog<MergeTarget>
       className="jali-chooser"
       label={`Add ${title} to tabs of`}
-      head={<div className="jali-chooser-head">Add <b>{title}</b> to the tabs of…</div>}
+      head={
+        <div className="jali-chooser-head">
+          Add <b>{title}</b> to the tabs of…
+        </div>
+      }
       placeholder="Pane or stack"
       inputLabel="Pane or stack"
       idPrefix="merge-"
@@ -36,7 +43,11 @@ function ChooserDialog({ chooser }: { chooser: ChooserState }) {
       render={(t) => (
         <>
           <span className="jali-chooser-icon" aria-hidden>
-            {m.stackOf(t.id) ? <Layers size={14} strokeWidth={1.5} /> : <KindIcon kind={m.pane(t.id)?.ref.kind ?? ""} size={14} />}
+            {m.stackOf(t.id) ? (
+              <Layers size={14} strokeWidth={1.5} />
+            ) : (
+              <KindIcon kind={m.pane(t.id)?.ref.kind ?? ""} size={14} />
+            )}
           </span>
           <span className="palette-title">{t.label}</span>
           <span className="jali-palette-id">{t.hint}</span>

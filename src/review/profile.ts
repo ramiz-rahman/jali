@@ -28,7 +28,12 @@ function bind(item: number): Record<string, ObjectRef> {
     overview: overviewKind({ item: f.id }),
     application: record("loan_applications", f.id),
     borrower: record("members", f.member),
-    history: reviewRelatedKind({ table: "loans", column: "member_id", value: f.member, label: "Loan history" }),
+    history: reviewRelatedKind({
+      table: "loans",
+      column: "member_id",
+      value: f.member,
+      label: "Loan history",
+    }),
     group: record("lending_groups", f.group),
     officer: record("field_officers", f.officer),
   };
@@ -38,12 +43,22 @@ function bind(item: number): Record<string, ObjectRef> {
 function build(item: number) {
   const refs = bind(item);
   const view = (id: string, options: { weight?: number; hidden?: boolean } = {}) =>
-    pane(refs[id]!, { id, role: id, priority: ROLES.find((r) => r.id === id)!.priority, ...options });
-  return row({ id: "arrangement" },
+    pane(refs[id]!, {
+      id,
+      role: id,
+      priority: ROLES.find((r) => r.id === id)!.priority,
+      ...options,
+    });
+  return row(
+    { id: "arrangement" },
     view("overview", { hidden: true }),
     view("application", { weight: 1.15 }),
     column({ id: "context" }, view("borrower"), view("history")),
-    column({ id: "network", weight: 0.85 }, view("group", { hidden: true }), view("officer", { hidden: true })),
+    column(
+      { id: "network", weight: 0.85 },
+      view("group", { hidden: true }),
+      view("officer", { hidden: true }),
+    ),
   );
 }
 

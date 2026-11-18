@@ -1,7 +1,17 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { FoldHorizontal, Plus, Undo2, X } from "lucide-react";
 import type { NodeId, PaneNode, Frame, Tab } from "@jali/core/adapter";
-import { shortcutLabel, paneDomId, paneTitleId, roleOf, titleOf, startPaneDrag, FOLDED_DESC, FOLDED_TIP, TUCKED_DESC } from "@jali/core/adapter";
+import {
+  shortcutLabel,
+  paneDomId,
+  paneTitleId,
+  roleOf,
+  titleOf,
+  startPaneDrag,
+  FOLDED_DESC,
+  FOLDED_TIP,
+  TUCKED_DESC,
+} from "@jali/core/adapter";
 import { useEnv, useStore, useUi } from "../state/react";
 import { Activity } from "./Activity";
 import { KindIcon } from "./icons";
@@ -12,7 +22,8 @@ function revealTab(el: HTMLDivElement | null) {
   const strip = el?.parentElement;
   if (!el || !strip) return;
   if (el.offsetLeft < strip.scrollLeft) strip.scrollLeft = el.offsetLeft;
-  else if (el.offsetLeft + el.offsetWidth > strip.scrollLeft + strip.clientWidth) strip.scrollLeft = el.offsetLeft + el.offsetWidth - strip.clientWidth;
+  else if (el.offsetLeft + el.offsetWidth > strip.scrollLeft + strip.clientWidth)
+    strip.scrollLeft = el.offsetLeft + el.offsetWidth - strip.clientWidth;
 }
 
 function TabActivity({ id }: { id: NodeId }) {
@@ -29,8 +40,11 @@ export function TabStrip({ group, owner }: { group: NonNullable<Frame["group"]>;
   // repeat. The exception is a group of page views, which only a centre drop ("Add as tab") makes: you asked for
   // those tabs, so it lists each view you put there (not ones the layout folded in).
   const placed = group.tabs.filter((t) => t.node.role && !t.folded);
-  const tabs = !page ? group.tabs
-    : group.tabs.filter((t) => !t.node.role || t.node.id === group.active || (placed.length > 1 && !t.folded));
+  const tabs = !page
+    ? group.tabs
+    : group.tabs.filter(
+        (t) => !t.node.role || t.node.id === group.active || (placed.length > 1 && !t.folded),
+      );
   // Made by you first, made by the layout (folded) after a hairline: the second kind returns by itself.
   const mine = tabs.filter((t) => !t.folded);
   const folded = tabs.filter((t) => t.folded);
@@ -93,15 +107,37 @@ export function TabStrip({ group, owner }: { group: NonNullable<Frame["group"]>;
         }}
       >
         <TabIcon node={t} />
-        <span className="jali-tab-title" id={active ? paneTitleId(store.dom.id, owner) : undefined}>{title}</span>
+        <span className="jali-tab-title" id={active ? paneTitleId(store.dom.id, owner) : undefined}>
+          {title}
+        </span>
         <TabActivity id={t.id} />
-        {isFolded ? <span className="jali-tab-fold-mark" aria-hidden><FoldHorizontal size={13} strokeWidth={1.75} /></span> : null}
+        {isFolded ? (
+          <span className="jali-tab-fold-mark" aria-hidden>
+            <FoldHorizontal size={13} strokeWidth={1.75} />
+          </span>
+        ) : null}
         {tucked ? (
-          <button className="jali-tab-putback" aria-label={`Put back ${title}`} title={`Put back${shortcutLabel(store, "pane.putBack") ? ` · ${shortcutLabel(store, "pane.putBack")}` : ""}`} onPointerDown={(e) => e.stopPropagation()} onClick={(e) => { e.stopPropagation(); actions.putBack(t.id); }}>
+          <button
+            className="jali-tab-putback"
+            aria-label={`Put back ${title}`}
+            title={`Put back${shortcutLabel(store, "pane.putBack") ? ` · ${shortcutLabel(store, "pane.putBack")}` : ""}`}
+            onPointerDown={(e) => e.stopPropagation()}
+            onClick={(e) => {
+              e.stopPropagation();
+              actions.putBack(t.id);
+            }}
+          >
             <Undo2 size={14} strokeWidth={1.75} aria-hidden />
           </button>
         ) : null}
-        <button className="jali-tab-close" aria-label={`Close ${title}`} onClick={(e) => { e.stopPropagation(); actions.close(t.id); }}>
+        <button
+          className="jali-tab-close"
+          aria-label={`Close ${title}`}
+          onClick={(e) => {
+            e.stopPropagation();
+            actions.close(t.id);
+          }}
+        >
           <X size={14} strokeWidth={1.75} aria-hidden />
         </button>
       </div>
@@ -110,23 +146,38 @@ export function TabStrip({ group, owner }: { group: NonNullable<Frame["group"]>;
 
   return (
     <div className="jali-tabbar">
-      <div className="jali-tabs" ref={strip} role="tablist" aria-label={`Tabs: ${tabs.length}`} onScroll={measure}>
+      <div
+        className="jali-tabs"
+        ref={strip}
+        role="tablist"
+        aria-label={`Tabs: ${tabs.length}`}
+        onScroll={measure}
+      >
         {mine.map(renderTab)}
         {folded.length && mine.length ? <span className="jali-tab-sep" aria-hidden /> : null}
         {folded.map(renderTab)}
       </div>
-      {overflowing ? <TabOverflow tabs={[...mine, ...folded]} active={group.active} hiddenCount={hiddenCount} onChoose={(id) => actions.setActiveTab(group.id, id)} /> : null}
-      {page || !env.launcher ? null : <button
-        className="jali-tab-add"
-        aria-label="New tab in this stack"
-        title="New tab"
-        onClick={(e) => {
-          e.stopPropagation();
-          actions.newTab(group.active);
-        }}
-      >
-        <Plus size={14} strokeWidth={1.5} aria-hidden />
-      </button>}
+      {overflowing ? (
+        <TabOverflow
+          tabs={[...mine, ...folded]}
+          active={group.active}
+          hiddenCount={hiddenCount}
+          onChoose={(id) => actions.setActiveTab(group.id, id)}
+        />
+      ) : null}
+      {page || !env.launcher ? null : (
+        <button
+          className="jali-tab-add"
+          aria-label="New tab in this stack"
+          title="New tab"
+          onClick={(e) => {
+            e.stopPropagation();
+            actions.newTab(group.active);
+          }}
+        >
+          <Plus size={14} strokeWidth={1.5} aria-hidden />
+        </button>
+      )}
     </div>
   );
 }
@@ -134,6 +185,11 @@ export function TabStrip({ group, owner }: { group: NonNullable<Frame["group"]>;
 /** A role tab shows its role's icon; anything else its kind's. */
 function TabIcon({ node }: { node: PaneNode }) {
   const { kinds, profile } = useEnv();
-  const role = useUi((s) => !!s.page) && node.role && profile ? roleOf(profile, node.role) : undefined;
-  return role ? <role.icon size={14} strokeWidth={1.5} aria-hidden /> : <KindIcon kind={node.ref.kind} size={14} />;
+  const role =
+    useUi((s) => !!s.page) && node.role && profile ? roleOf(profile, node.role) : undefined;
+  return role ? (
+    <role.icon size={14} strokeWidth={1.5} aria-hidden />
+  ) : (
+    <KindIcon kind={node.ref.kind} size={14} />
+  );
 }

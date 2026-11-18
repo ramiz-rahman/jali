@@ -44,7 +44,12 @@ export function ListDialog<T>(p: Props<T>) {
   const sel = items[Math.min(i, items.length - 1)];
   return (
     <div className="jali-scrim" onPointerDown={(e) => e.target === e.currentTarget && p.onClose()}>
-      <div className={`jali-palette${p.className ? ` ${p.className}` : ""}`} role="dialog" aria-modal="true" aria-label={p.label}>
+      <div
+        className={`jali-palette${p.className ? ` ${p.className}` : ""}`}
+        role="dialog"
+        aria-modal="true"
+        aria-label={p.label}
+      >
         {p.head}
         <input
           ref={input}
@@ -61,10 +66,20 @@ export function ListDialog<T>(p: Props<T>) {
             setI(0);
           }}
           onKeyDown={(e) => {
-            if (e.key === "ArrowDown") { e.preventDefault(); setI((n) => Math.min(n + 1, items.length - 1)); }
-            else if (e.key === "ArrowUp") { e.preventDefault(); setI((n) => Math.max(n - 1, 0)); }
-            else if (e.key === "Enter" && sel) { e.preventDefault(); p.onChoose(sel); }
-            else if (e.key === "Escape") { e.preventDefault(); e.stopPropagation(); p.onClose(); }
+            if (e.key === "ArrowDown") {
+              e.preventDefault();
+              setI((n) => Math.min(n + 1, items.length - 1));
+            } else if (e.key === "ArrowUp") {
+              e.preventDefault();
+              setI((n) => Math.max(n - 1, 0));
+            } else if (e.key === "Enter" && sel) {
+              e.preventDefault();
+              p.onChoose(sel);
+            } else if (e.key === "Escape") {
+              e.preventDefault();
+              e.stopPropagation();
+              p.onClose();
+            }
           }}
         />
         <ul className="jali-palette-list" id={p.listId} role="listbox" aria-label={p.listLabel}>

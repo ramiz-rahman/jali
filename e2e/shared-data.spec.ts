@@ -1,14 +1,28 @@
 import { test, expect } from "./fixtures/lab";
-import { audit, customerWith, linkTo, pane, queryResults, rec, tabLayout } from "./fixtures/layouts";
+import {
+  audit,
+  customerWith,
+  linkTo,
+  pane,
+  queryResults,
+  rec,
+  tabLayout,
+} from "./fixtures/layouts";
 
 test.describe("Shared data", () => {
-  test("editing customer 1 updates every pane showing it with only the invalidated queries refetched", async ({ lab, page }, info) => {
+  test("editing customer 1 updates every pane showing it with only the invalidated queries refetched", async ({
+    lab,
+    page,
+  }, info) => {
     await lab.open({ size: { width: 2100, height: 900 } }); // wide enough for four panes beside each other
     const before = await lab.settle();
     // Add a customers table beside the customer record so two panes show customer 1.
     await lab.pane("customer").getByRole("button", { name: "customers", exact: true }).click();
     await expect.poll(() => lab.visibleCount()).toBe(4);
-    const customersGrid = page.locator('section[data-kind="table"]:not([data-pane="orders"])').getByRole("grid").first();
+    const customersGrid = page
+      .locator('section[data-kind="table"]:not([data-pane="orders"])')
+      .getByRole("grid")
+      .first();
     await expect(customersGrid.getByRole("row").nth(1)).toBeVisible();
     const afterOpen = await lab.settle();
 
@@ -39,7 +53,10 @@ test.describe("Shared data", () => {
     await lab.shot("11-shared-data-edit");
   });
 
-  test("an unrelated pane adds nothing to the cost of an edit (control run)", async ({ lab, page }, info) => {
+  test("an unrelated pane adds nothing to the cost of an edit (control run)", async ({
+    lab,
+    page,
+  }, info) => {
     const editCost = async (extra: ReturnType<typeof pane>[]) => {
       await lab.open({ path: linkTo(customerWith(...extra)), size: { width: 1700, height: 900 } });
       const before = await lab.settle();
@@ -57,7 +74,10 @@ test.describe("Shared data", () => {
     expect(withSupplier).toBe(alone);
   });
 
-  test("query results with a primary key refresh; results without one cannot be refreshed by entity", async ({ lab, page }) => {
+  test("query results with a primary key refresh; results without one cannot be refreshed by entity", async ({
+    lab,
+    page,
+  }) => {
     await lab.open({ path: linkTo(queryResults()), size: { width: 1700, height: 900 } });
     for (const id of ["q1", "q2"]) {
       await lab.pane(id).getByRole("button", { name: /^Run/ }).click();
@@ -88,7 +108,9 @@ test.describe("Shared data", () => {
     await lab.open();
     await lab.preset("Query + chart + inspector");
     await expect(lab.grid("query")).toBeVisible({ timeout: 20_000 });
-    await expect(lab.pane("chart").getByRole("img", { name: /Bar chart/ })).toBeVisible({ timeout: 20_000 });
+    await expect(lab.pane("chart").getByRole("img", { name: /Bar chart/ })).toBeVisible({
+      timeout: 20_000,
+    });
     expect(await lab.visibleCount()).toBe(3);
     await lab.shot("13-query-chart-preset");
   });
@@ -99,7 +121,9 @@ test.describe("Shared data", () => {
     await lab.open({ path: linkTo(tabLayout(true)) });
     const withHidden = await lab.settle();
     // Same data layer cold start in each page load, so the counts are comparable.
-    console.log(`hidden tab: fetches with the pane alone ${alone}, with a second pane in a background tab ${withHidden}`);
+    console.log(
+      `hidden tab: fetches with the pane alone ${alone}, with a second pane in a background tab ${withHidden}`,
+    );
     expect(withHidden).toBeLessThanOrEqual(alone);
     await expect(lab.pane("t2")).toBeHidden();
     // Switching to the tab wakes it: now it fetches.

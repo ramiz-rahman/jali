@@ -9,7 +9,9 @@ export function StatusLine() {
   return (
     <footer>
       {m.visible.length} panes on screen · {m.title(focused)}
-      <button title={keys ? `Maximise · ${keys}` : "Maximise"} onClick={() => actions.toggleZoom()}>Maximise</button>
+      <button title={keys ? `Maximise · ${keys}` : "Maximise"} onClick={() => actions.toggleZoom()}>
+        Maximise
+      </button>
     </footer>
   );
 }

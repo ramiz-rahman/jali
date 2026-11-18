@@ -1,5 +1,22 @@
-import { useEffect, useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore, type PointerEvent, type ReactNode } from "react";
-import { Braces, Hand, MousePointerClick, MoveHorizontal, Network, RotateCcw, X } from "lucide-react";
+import {
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+  useSyncExternalStore,
+  type PointerEvent,
+  type ReactNode,
+} from "react";
+import {
+  Braces,
+  Hand,
+  MousePointerClick,
+  MoveHorizontal,
+  Network,
+  RotateCcw,
+  X,
+} from "lucide-react";
 import { layout as jl, type Rect, type WorkspaceModel } from "@jali/core/adapter";
 import { WorkspaceProvider } from "@jali/react";
 import type { DemoLayoutId } from "./demo";
@@ -39,20 +56,58 @@ export interface TreeViewProps {
 const THREE_UP = 1200;
 
 /** What a reader can do in the workspace as it is now (a phone shows one pane, so there is no gap to drag). */
-function triesFor(m: WorkspaceModel, json: boolean, tree = true): { icon: ReactNode; text: string }[] {
+function triesFor(
+  m: WorkspaceModel,
+  json: boolean,
+  tree = true,
+): { icon: ReactNode; text: string }[] {
   const list = m.panes.find((p) => p.ref.kind === "orders" && m.visible.includes(p.id));
-  const follows = !!list && m.panes.some((p) => p.linkedTo === list.id && p.follows && m.visible.includes(p.id));
+  const follows =
+    !!list && m.panes.some((p) => p.linkedTo === list.id && p.follows && m.visible.includes(p.id));
   return [
-    ...(follows ? [{ icon: <MousePointerClick size={15} strokeWidth={1.75} aria-hidden />, text: "Click an order, and the detail follows" }] : []),
-    ...(m.resolved.dividers.length ? [{ icon: <MoveHorizontal size={15} strokeWidth={1.75} aria-hidden />, text: "Drag the divider between panes" }] : []),
-    ...(m.panes.length > 1 ? [{ icon: <X size={15} strokeWidth={1.75} aria-hidden />, text: "Close a pane" }] : []),
+    ...(follows
+      ? [
+          {
+            icon: <MousePointerClick size={15} strokeWidth={1.75} aria-hidden />,
+            text: "Click an order, and the detail follows",
+          },
+        ]
+      : []),
+    ...(m.resolved.dividers.length
+      ? [
+          {
+            icon: <MoveHorizontal size={15} strokeWidth={1.75} aria-hidden />,
+            text: "Drag the divider between panes",
+          },
+        ]
+      : []),
+    ...(m.panes.length > 1
+      ? [{ icon: <X size={15} strokeWidth={1.75} aria-hidden />, text: "Close a pane" }]
+      : []),
     tree
-      ? { icon: <Hand size={15} strokeWidth={1.75} aria-hidden />, text: json ? "Point at a box or a JSON block to find its pane" : "Point at a box to find its pane" }
-      : { icon: <Network size={15} strokeWidth={1.75} aria-hidden />, text: "Show the layout tree to see how it is built" },
+      ? {
+          icon: <Hand size={15} strokeWidth={1.75} aria-hidden />,
+          text: json
+            ? "Point at a box or a JSON block to find its pane"
+            : "Point at a box to find its pane",
+        }
+      : {
+          icon: <Network size={15} strokeWidth={1.75} aria-hidden />,
+          text: "Show the layout tree to see how it is built",
+        },
   ];
 }
 
-export function TreeView({ layout, json = true, height = 360, caption, showJson = false, detail = false, tries = true, panels }: TreeViewProps) {
+export function TreeView({
+  layout,
+  json = true,
+  height = 360,
+  caption,
+  showJson = false,
+  detail = false,
+  tries = true,
+  panels,
+}: TreeViewProps) {
   const store = useLiveStore(layout);
   const m = useSyncExternalStore(store.subscribe, store.model, store.model);
   const [hover, setHover] = useState<Hover | null>(null);
@@ -83,29 +138,56 @@ export function TreeView({ layout, json = true, height = 360, caption, showJson 
 
   const fromWs = (e: PointerEvent) => {
     const t = e.target as Element;
-    const id = t.closest<HTMLElement>("[data-tab]")?.dataset.tab ?? t.closest<HTMLElement>("[data-pane]")?.dataset.pane;
+    const id =
+      t.closest<HTMLElement>("[data-tab]")?.dataset.tab ??
+      t.closest<HTMLElement>("[data-pane]")?.dataset.pane;
     if (id && (hover?.id !== id || hover.from !== "ws")) setHover({ id, from: "ws" });
     else if (!id && hover?.from === "ws") setHover(null);
   };
   const reset = (
-    <button type="button" className="live-icon-btn" aria-label="Reset the layout" title="Reset the layout" onClick={() => { setHover(null); resetLive(store, layout); }}>
+    <button
+      type="button"
+      className="live-icon-btn"
+      aria-label="Reset the layout"
+      title="Reset the layout"
+      onClick={() => {
+        setHover(null);
+        resetLive(store, layout);
+      }}
+    >
       <RotateCcw size={14} strokeWidth={1.75} aria-hidden />
     </button>
   );
   const switcher = toggle ? (
     <span className="live-seg" role="group" aria-label="Show the layout as">
-      <button type="button" aria-pressed={mode === "map"} onClick={() => setMode("map")}>Map</button>
-      <button type="button" aria-pressed={mode === "json"} onClick={() => setMode("json")}>JSON</button>
+      <button type="button" aria-pressed={mode === "map"} onClick={() => setMode("map")}>
+        Map
+      </button>
+      <button type="button" aria-pressed={mode === "json"} onClick={() => setMode("json")}>
+        JSON
+      </button>
     </span>
   ) : null;
   const h = typeof height === "number" ? `${height}px` : height;
   const drawerId = `${store.dom.id}-drawer`;
   const show = (which: "map" | "json") => {
     if (open && mode === which) setOpen(false);
-    else { setMode(which); setOpen(true); }
+    else {
+      setMode(which);
+      setOpen(true);
+    }
   };
   const close = collapsed ? (
-    <button type="button" className="live-icon-btn" aria-label="Close the layout tree" title="Close" onClick={() => { setOpen(false); setHover(null); }}>
+    <button
+      type="button"
+      className="live-icon-btn"
+      aria-label="Close the layout tree"
+      title="Close"
+      onClick={() => {
+        setOpen(false);
+        setHover(null);
+      }}
+    >
       <X size={15} strokeWidth={1.75} aria-hidden />
     </button>
   ) : null;
@@ -113,9 +195,19 @@ export function TreeView({ layout, json = true, height = 360, caption, showJson 
   const mapPanel = (
     <section className="live-panel" data-panel="map" aria-label="Layout tree, drawn as a map">
       <header className="live-panel-head">
-        <span className="live-panel-title"><b>Layout tree</b><span>drawn as a map of the panes</span></span>
+        <span className="live-panel-title">
+          <b>Layout tree</b>
+          <span>drawn as a map of the panes</span>
+        </span>
         <span className="live-panel-tools">
-          <button type="button" className="live-toggle" aria-pressed={sizes} onClick={() => setSizes((v) => !v)}>Sizes</button>
+          <button
+            type="button"
+            className="live-toggle"
+            aria-pressed={sizes}
+            onClick={() => setSizes((v) => !v)}
+          >
+            Sizes
+          </button>
           {switcher}
           {collapsed ? null : reset}
           {close}
@@ -130,7 +222,10 @@ export function TreeView({ layout, json = true, height = 360, caption, showJson 
   const jsonPanel = (
     <section className="live-panel" data-panel="json" aria-label="Layout tree, as JSON">
       <header className="live-panel-head">
-        <span className="live-panel-title"><b>{both ? "JSON" : "Layout tree"}</b><span>{both ? "the same tree, as data" : "as JSON, the same tree as data"}</span></span>
+        <span className="live-panel-title">
+          <b>{both ? "JSON" : "Layout tree"}</b>
+          <span>{both ? "the same tree, as data" : "as JSON, the same tree as data"}</span>
+        </span>
         <span className="live-panel-tools">
           {switcher}
           {showMap || collapsed ? null : reset}
@@ -138,39 +233,88 @@ export function TreeView({ layout, json = true, height = 360, caption, showJson 
         </span>
       </header>
       <div className="live-panel-body is-json">
-        <JsonView value={m.layout} hover={hover} setHover={setHover} label="The layout as JSON" compact={three && width < 1560} />
+        <JsonView
+          value={m.layout}
+          hover={hover}
+          setHover={setHover}
+          label="The layout as JSON"
+          compact={three && width < 1560}
+        />
       </div>
     </section>
   );
 
   if (collapsed) {
     return (
-      <figure className="live-figure live-tv" ref={fig} data-live="tree-view" data-parts="1" data-open={open || undefined}
-        aria-label={caption ?? demoLayouts[layout]} style={{ ["--live-ws-h" as string]: h }}>
+      <figure
+        className="live-figure live-tv"
+        ref={fig}
+        data-live="tree-view"
+        data-parts="1"
+        data-open={open || undefined}
+        aria-label={caption ?? demoLayouts[layout]}
+        style={{ ["--live-ws-h" as string]: h }}
+      >
         {tries ? (
           <ul className="live-tries" aria-label="Things to try">
-            {triesFor(m, open && mode === "json", open).map((t) => <li key={t.text}>{t.icon}<span>{t.text}</span></li>)}
+            {triesFor(m, open && mode === "json", open).map((t) => (
+              <li key={t.text}>
+                {t.icon}
+                <span>{t.text}</span>
+              </li>
+            ))}
           </ul>
         ) : null}
         <div className="live-tv-grid">
           <div className="live-tv-bar">
-            <span className="live-tv-bar-label"><span className="live-tv-live" aria-hidden />Live workspace</span>
+            <span className="live-tv-bar-label">
+              <span className="live-tv-live" aria-hidden />
+              Live workspace
+            </span>
             <span className="live-tv-bar-tools">
-              <button type="button" className="live-reveal" aria-expanded={open && mode === "map"} aria-controls={drawerId} onClick={() => show("map")}>
-                <Network size={15} strokeWidth={1.75} aria-hidden />{open && mode === "map" ? "Hide the layout tree" : "Show the layout tree"}
+              <button
+                type="button"
+                className="live-reveal"
+                aria-expanded={open && mode === "map"}
+                aria-controls={drawerId}
+                onClick={() => show("map")}
+              >
+                <Network size={15} strokeWidth={1.75} aria-hidden />
+                {open && mode === "map" ? "Hide the layout tree" : "Show the layout tree"}
               </button>
-              <button type="button" className="live-reveal" aria-expanded={open && mode === "json"} aria-controls={drawerId} onClick={() => show("json")}>
-                <Braces size={15} strokeWidth={1.75} aria-hidden />JSON
+              <button
+                type="button"
+                className="live-reveal"
+                aria-expanded={open && mode === "json"}
+                aria-controls={drawerId}
+                onClick={() => show("json")}
+              >
+                <Braces size={15} strokeWidth={1.75} aria-hidden />
+                JSON
               </button>
               {reset}
             </span>
           </div>
-          <div className="live-stage" onPointerOver={fromWs} onPointerLeave={() => hover?.from === "ws" && setHover(null)}>
+          <div
+            className="live-stage"
+            onPointerOver={fromWs}
+            onPointerLeave={() => hover?.from === "ws" && setHover(null)}
+          >
             <LiveWorkspace store={store} height={h} wrapRef={wrap} />
             <WorkspaceProvider workspace={store}>
               <PreviewRects.Provider value={preview}>
-                <div className="live-drawer" id={drawerId} data-open={open || undefined} inert={!open || undefined}
-                  onKeyDown={(e) => { if (e.key === "Escape") { e.stopPropagation(); setOpen(false); } }}>
+                <div
+                  className="live-drawer"
+                  id={drawerId}
+                  data-open={open || undefined}
+                  inert={!open || undefined}
+                  onKeyDown={(e) => {
+                    if (e.key === "Escape") {
+                      e.stopPropagation();
+                      setOpen(false);
+                    }
+                  }}
+                >
                   {mode === "map" ? mapPanel : jsonPanel}
                 </div>
               </PreviewRects.Provider>
@@ -183,22 +327,52 @@ export function TreeView({ layout, json = true, height = 360, caption, showJson 
   }
 
   return (
-    <figure className="live-figure live-tv" ref={fig} data-live="tree-view" data-detail={detail || undefined} data-parts={three ? "3" : both ? "2+" : "2"}
-      aria-label={caption ?? demoLayouts[layout]} style={{ ["--live-ws-h" as string]: h }}>
+    <figure
+      className="live-figure live-tv"
+      ref={fig}
+      data-live="tree-view"
+      data-detail={detail || undefined}
+      data-parts={three ? "3" : both ? "2+" : "2"}
+      aria-label={caption ?? demoLayouts[layout]}
+      style={{ ["--live-ws-h" as string]: h }}
+    >
       {tries ? (
         <ul className="live-tries" aria-label="Things to try">
-          {triesFor(m, showJsonPanel).map((t) => <li key={t.text}>{t.icon}<span>{t.text}</span></li>)}
+          {triesFor(m, showJsonPanel).map((t) => (
+            <li key={t.text}>
+              {t.icon}
+              <span>{t.text}</span>
+            </li>
+          ))}
         </ul>
-        ) : null}
-        <div className="live-tv-grid">
-        <div className="live-stage" onPointerOver={fromWs} onPointerLeave={() => hover?.from === "ws" && setHover(null)}>
+      ) : null}
+      <div className="live-tv-grid">
+        <div
+          className="live-stage"
+          onPointerOver={fromWs}
+          onPointerLeave={() => hover?.from === "ws" && setHover(null)}
+        >
           <LiveWorkspace store={store} height={h} wrapRef={wrap} />
         </div>
         <WorkspaceProvider workspace={store}>
           <PreviewRects.Provider value={preview}>
             {both ? (
-              three ? <>{mapPanel}{jsonPanel}</> : <div className="live-panels">{mapPanel}{jsonPanel}</div>
-            ) : showMap ? mapPanel : showJsonPanel ? jsonPanel : null}
+              three ? (
+                <>
+                  {mapPanel}
+                  {jsonPanel}
+                </>
+              ) : (
+                <div className="live-panels">
+                  {mapPanel}
+                  {jsonPanel}
+                </div>
+              )
+            ) : showMap ? (
+              mapPanel
+            ) : showJsonPanel ? (
+              jsonPanel
+            ) : null}
           </PreviewRects.Provider>
         </WorkspaceProvider>
       </div>
@@ -241,7 +415,12 @@ function useDragPreview(wrap: { current: HTMLElement | null }): Record<string, R
       const next: Record<string, Rect> = {};
       el.querySelectorAll<HTMLElement>("[data-pane]").forEach((p) => {
         if (p.style.display === "none") return;
-        next[p.dataset.pane!] = { x: parseFloat(p.style.left), y: parseFloat(p.style.top), width: parseFloat(p.style.width), height: parseFloat(p.style.height) };
+        next[p.dataset.pane!] = {
+          x: parseFloat(p.style.left),
+          y: parseFloat(p.style.top),
+          width: parseFloat(p.style.width),
+          height: parseFloat(p.style.height),
+        };
       });
       setRects((prev) => (prev && JSON.stringify(prev) === JSON.stringify(next) ? prev : next));
       raf = requestAnimationFrame(read);
@@ -252,7 +431,10 @@ function useDragPreview(wrap: { current: HTMLElement | null }): Record<string, R
       raf = requestAnimationFrame(read);
     };
     el.addEventListener("pointerdown", onDown);
-    return () => { el.removeEventListener("pointerdown", onDown); cancelAnimationFrame(raf); };
+    return () => {
+      el.removeEventListener("pointerdown", onDown);
+      cancelAnimationFrame(raf);
+    };
   }, [wrap]);
   return rects;
 }

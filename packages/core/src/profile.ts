@@ -42,7 +42,10 @@ export interface ProfileBase<R extends RoleBase = RoleBase> {
   firstItem: number;
 }
 
-export const roleOf = <R extends RoleBase>(p: ProfileBase<R>, id: string | undefined): R | undefined => p.roles.find((r) => r.id === id);
+export const roleOf = <R extends RoleBase>(
+  p: ProfileBase<R>,
+  id: string | undefined,
+): R | undefined => p.roles.find((r) => r.id === id);
 
 /** A pane's name: its role in a curated page ("Borrower"), else what it shows ("member 12"). */
 export function titleOf(env: Env, node: PaneNode): string {

@@ -15,17 +15,24 @@ export const SNAP_IN = core.SNAP_IN;
 export const SNAP_OUT = core.SNAP_OUT;
 
 /** Snap to the centre with hysteresis (the layout owns the rule): in within 10px, out beyond 16px. */
-export function snap(size: number, centre: number, wasSnapped: boolean): { size: number; snapped: boolean } {
+export function snap(
+  size: number,
+  centre: number,
+  wasSnapped: boolean,
+): { size: number; snapped: boolean } {
   const value = core.snapToCentre(size, centre, wasSnapped);
   return { size: value, snapped: value === centre };
 }
 
-export const clampSize = (size: number, min: number, max: number) => Math.max(min, Math.min(max, size));
+export const clampSize = (size: number, min: number, max: number) =>
+  Math.max(min, Math.min(max, size));
 
 function union(rects: Rect[]): Rect | null {
   if (!rects.length) return null;
-  const x = Math.min(...rects.map((r) => r.x)), y = Math.min(...rects.map((r) => r.y));
-  const x2 = Math.max(...rects.map((r) => r.x + r.width)), y2 = Math.max(...rects.map((r) => r.y + r.height));
+  const x = Math.min(...rects.map((r) => r.x)),
+    y = Math.min(...rects.map((r) => r.y));
+  const x2 = Math.max(...rects.map((r) => r.x + r.width)),
+    y2 = Math.max(...rects.map((r) => r.y + r.height));
   return { x, y, width: x2 - x, height: y2 - y };
 }
 
@@ -39,7 +46,11 @@ export interface PairGeometry {
 }
 
 /** The two neighbours of a divider, measured from resolved pane boxes. */
-export function geometryFor(m: WorkspaceModel, d: DividerBox, r: ResolvedLayout = m.resolved): PairGeometry | null {
+export function geometryFor(
+  m: WorkspaceModel,
+  d: DividerBox,
+  r: ResolvedLayout = m.resolved,
+): PairGeometry | null {
   const parent = core.tree.find(m.layout.root, d.parentId);
   const split = parent && core.tree.isSplit(parent) ? parent : undefined;
   const under = (n: LayoutNode | undefined) => (n ? core.tree.panes(n).map((p) => p.id) : []);
@@ -49,8 +60,15 @@ export function geometryFor(m: WorkspaceModel, d: DividerBox, r: ResolvedLayout 
   const byId = new Map(r.panes.filter((b) => !b.hidden).map((b) => [b.id, b.rect]));
   const rects = (ids: NodeId[]) => ids.flatMap((id) => byId.get(id) ?? []);
   if (!union(rects(idsA)) || !union(rects(idsB))) return null;
-  const label = (ids: NodeId[]) => (ids.length <= 3 ? ids.map((i) => m.title(i)).join(", ") : `${ids.slice(0, 2).map((i) => m.title(i)).join(", ")}, +${ids.length - 2} more`);
-  const sa = core.extentAlong(r.panes, idsA, d.axis), sb = core.extentAlong(r.panes, idsB, d.axis);
+  const label = (ids: NodeId[]) =>
+    ids.length <= 3
+      ? ids.map((i) => m.title(i)).join(", ")
+      : `${ids
+          .slice(0, 2)
+          .map((i) => m.title(i))
+          .join(", ")}, +${ids.length - 2} more`;
+  const sa = core.extentAlong(r.panes, idsA, d.axis),
+    sb = core.extentAlong(r.panes, idsB, d.axis);
   return {
     divider: d,
     axis: d.axis,
@@ -62,14 +80,26 @@ export function geometryFor(m: WorkspaceModel, d: DividerBox, r: ResolvedLayout 
 }
 
 /** For resize mode: the divider beside a pane on its far side, else its near side, along one axis. */
-export function nearestDivider(m: WorkspaceModel, paneId: NodeId, horizontal: boolean): DividerBox | null {
+export function nearestDivider(
+  m: WorkspaceModel,
+  paneId: NodeId,
+  horizontal: boolean,
+): DividerBox | null {
   const box = m.resolved.panes.find((b) => b.id === paneId && !b.hidden);
   if (!box) return null;
   const p = box.rect;
-  const [start, end, crossStart, crossLen] = horizontal ? ["x", "width", "y", "height"] as const : ["y", "height", "x", "width"] as const;
-  const overlaps = (d: DividerBox) => d.rect[crossStart] < p[crossStart] + p[crossLen] && d.rect[crossStart] + d.rect[crossLen] > p[crossStart];
-  const cands = m.resolved.dividers.filter((d) => d.axis === (horizontal ? "row" : "column") && overlaps(d));
-  return cands.find((d) => Math.abs(d.rect[start] - (p[start] + p[end])) <= GAP)
-    ?? cands.find((d) => Math.abs(d.rect[start] + d.rect[end] - p[start]) <= GAP)
-    ?? null;
+  const [start, end, crossStart, crossLen] = horizontal
+    ? (["x", "width", "y", "height"] as const)
+    : (["y", "height", "x", "width"] as const);
+  const overlaps = (d: DividerBox) =>
+    d.rect[crossStart] < p[crossStart] + p[crossLen] &&
+    d.rect[crossStart] + d.rect[crossLen] > p[crossStart];
+  const cands = m.resolved.dividers.filter(
+    (d) => d.axis === (horizontal ? "row" : "column") && overlaps(d),
+  );
+  return (
+    cands.find((d) => Math.abs(d.rect[start] - (p[start] + p[end])) <= GAP) ??
+    cands.find((d) => Math.abs(d.rect[start] + d.rect[end] - p[start]) <= GAP) ??
+    null
+  );
 }

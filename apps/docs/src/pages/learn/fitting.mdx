@@ -14,7 +14,7 @@ A workspace has to work in a 1920px window, a 1280px laptop and a phone, with wh
 
 Each [kind](/get-started/key-concepts#kind) can give three widths. Each has one job.
 
-<Code code={ticket} filename="ticket.tsx" highlight="8-10" />
+<Code code={ticket} filename="ticket.tsx" highlight="8-12" />
 
 - **`width.min`** is the narrowest the content still works at, once it adapts to a narrow box (with container queries, for example). It is the only width that decides folding: a pane folds when the minimums of what is shown don't fit, never because it would be below its comfortable width.
 - **`width.comfortable`** is where spare room takes the pane first. It defaults to the minimum.

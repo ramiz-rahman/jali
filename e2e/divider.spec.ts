@@ -6,15 +6,23 @@ test.describe("Divider", () => {
     await lab.open();
   });
 
-  test("pointer drag clamps at the minimum; double-click resets; hit area wider than the line", async ({ lab, page }) => {
+  test("pointer drag clamps at the minimum; double-click resets; hit area wider than the line", async ({
+    lab,
+    page,
+  }) => {
     const orders = lab.pane("orders");
     const initial = await lab.width(orders);
     const s = lab.separator(0);
     const box = (await s.boundingBox())!;
     // The hit area is wider than the 6px gap line: a point 5px either side still lands on the separator.
-    const hit = await page.evaluate(([cx, cy]) => [-5, 5].map((d) => !!document.elementFromPoint(cx! + d, cy!)?.closest("[role=separator]")), [box.x + box.width / 2, box.y + 300]);
+    const hit = await page.evaluate(
+      ([cx, cy]) =>
+        [-5, 5].map((d) => !!document.elementFromPoint(cx! + d, cy!)?.closest("[role=separator]")),
+      [box.x + box.width / 2, box.y + 300],
+    );
     expect(hit).toEqual([true, true]);
-    const x = box.x + box.width / 2, y = box.y + 300;
+    const x = box.x + box.width / 2,
+      y = box.y + 300;
     await page.mouse.move(x, y);
     await page.mouse.down();
     await page.mouse.move(x - 120, y, { steps: 8 });
@@ -40,7 +48,10 @@ test.describe("Divider", () => {
     expect(Math.abs((await lab.width(orders)) - initial)).toBeLessThanOrEqual(2);
   });
 
-  test("keyboard: arrows 16px, Shift 64px, Home/End ; aria-valuenow follows", async ({ lab, page }) => {
+  test("keyboard: arrows 16px, Shift 64px, Home/End ; aria-valuenow follows", async ({
+    lab,
+    page,
+  }) => {
     const orders = lab.pane("orders");
     const s = lab.separator(0);
     const w0 = await lab.width(orders);
@@ -72,7 +83,11 @@ test.describe("Divider", () => {
     expect(await seps.count()).toBe(2);
     for (let i = 0; i < 2; i++) {
       const s = seps.nth(i);
-      const [now, min, max] = [await lab.attr(s, "aria-valuenow"), await lab.attr(s, "aria-valuemin"), await lab.attr(s, "aria-valuemax")];
+      const [now, min, max] = [
+        await lab.attr(s, "aria-valuenow"),
+        await lab.attr(s, "aria-valuemin"),
+        await lab.attr(s, "aria-valuemax"),
+      ];
       expect(min).toBeLessThanOrEqual(now);
       expect(now).toBeLessThanOrEqual(max);
       await expect(s).toHaveAttribute("aria-orientation", "vertical");
@@ -85,7 +100,8 @@ test.describe("Divider", () => {
     const orders = lab.pane("orders");
     await lab.header("orders").click({ position: { x: 200, y: 20 } });
     const w0 = await lab.width(orders);
-    await page.keyboard.press("ControlOrMeta+k"); await page.keyboard.press("ControlOrMeta+r");
+    await page.keyboard.press("ControlOrMeta+k");
+    await page.keyboard.press("ControlOrMeta+r");
     await expect(lab.status()).toContainText("Resize mode");
     await page.keyboard.press("ArrowLeft");
     await expect.poll(() => lab.width(orders)).toBe(w0 - 16);
@@ -93,26 +109,38 @@ test.describe("Divider", () => {
     await expect(lab.status()).not.toContainText("Resize mode");
   });
 
-  test("drag smoothness: a 400px drag in small steps has no long task, follows the pointer 1:1, writes the URL once after release, and does not jump", async ({ lab, page }) => {
+  test("drag smoothness: a 400px drag in small steps has no long task, follows the pointer 1:1, writes the URL once after release, and does not jump", async ({
+    lab,
+    page,
+  }) => {
     await page.setViewportSize({ width: 2560, height: 1000 });
     await expect.poll(() => lab.width(lab.pane("orders"))).toBeGreaterThan(1000);
     await page.evaluate(() => {
       const w = window as unknown as { __lt: number[]; __on: boolean };
       w.__lt = [];
       w.__on = false;
-      new PerformanceObserver((l) => { for (const e of l.getEntries()) if (w.__on) w.__lt.push(Math.round(e.duration)); }).observe({ type: "longtask" });
+      new PerformanceObserver((l) => {
+        for (const e of l.getEntries()) if (w.__on) w.__lt.push(Math.round(e.duration));
+      }).observe({ type: "longtask" });
     });
     const orders = lab.pane("orders");
     const w0 = (await orders.boundingBox())!.width;
     const box = (await lab.separator(0).boundingBox())!;
-    const x = box.x + box.width / 2, y = box.y + 300;
+    const x = box.x + box.width / 2,
+      y = box.y + 300;
     const url0 = page.url();
     await page.mouse.move(x, y);
     await page.mouse.down();
-    await page.evaluate(() => { (window as unknown as { __on: boolean }).__on = true; });
+    await page.evaluate(() => {
+      (window as unknown as { __on: boolean }).__on = true;
+    });
     for (let i = 1; i <= 100; i++) await page.mouse.move(x - i * 4, y);
     // The preview catches up with the pointer on the next frame.
-    await expect.poll(async () => Math.abs((await orders.boundingBox())!.width - (w0 - 400)), { message: "frame follows the pointer 1:1" }).toBeLessThanOrEqual(1);
+    await expect
+      .poll(async () => Math.abs((await orders.boundingBox())!.width - (w0 - 400)), {
+        message: "frame follows the pointer 1:1",
+      })
+      .toBeLessThanOrEqual(1);
     const during = await page.evaluate(() => ({
       cursor: getComputedStyle(document.body).cursor,
       selectable: getComputedStyle(document.body).userSelect,
@@ -124,8 +152,12 @@ test.describe("Divider", () => {
     const longtasks = await page.evaluate(() => (window as unknown as { __lt: number[] }).__lt);
     expect(longtasks, "long tasks during the drag").toEqual([]);
     expect({ ...during, line }).toEqual({ cursor: "col-resize", selectable: "none", line: true });
-    await expect.poll(() => page.url(), { message: "URL written after the drag settles" }).not.toBe(url0);
-    expect((await orders.boundingBox())!.width, "committed size equals the previewed size").toBe(previewed);
+    await expect
+      .poll(() => page.url(), { message: "URL written after the drag settles" })
+      .not.toBe(url0);
+    expect((await orders.boundingBox())!.width, "committed size equals the previewed size").toBe(
+      previewed,
+    );
     await expect(lab.dividerPreview()).toBeHidden();
   });
 });

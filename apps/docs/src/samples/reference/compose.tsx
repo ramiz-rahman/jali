@@ -1,5 +1,13 @@
 import {
-  Announcer, Chooser, ConfirmDiscard, Palette, Panes, SettingsPanel, Shelf, WorkspaceProvider, useWorkspace,
+  Announcer,
+  Chooser,
+  ConfirmDiscard,
+  Palette,
+  Panes,
+  SettingsPanel,
+  Shelf,
+  WorkspaceProvider,
+  useWorkspace,
 } from "@jali/react";
 import { useEffect } from "react";
 import { store } from "./store";
@@ -8,7 +16,11 @@ import { store } from "./store";
 function Root({ children }: { children: React.ReactNode }) {
   const { dom, start } = useWorkspace();
   useEffect(start, [start]); // keys, Back and Forward, theme and saving, while mounted
-  return <div data-jali="" ref={dom.attach} className="app">{children}</div>;
+  return (
+    <div data-jali="" ref={dom.attach} className="app">
+      {children}
+    </div>
+  );
 }
 
 export function App() {
@@ -16,7 +28,9 @@ export function App() {
     <WorkspaceProvider workspace={store}>
       <Root>
         <Panes />
-        <footer className="status"><Shelf /></footer>
+        <footer className="status">
+          <Shelf />
+        </footer>
       </Root>
       <Announcer />
       <Palette />
