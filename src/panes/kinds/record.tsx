@@ -1,7 +1,7 @@
 import { FileText } from "lucide-react";
 import { definePane, useActivity } from "@jali/react";
 import { copyRaw } from "../shared/copyRaw";
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import type { ColumnInfo, Relation, Row, TableName } from "../../data/types";
 import {
   errorText,
@@ -20,7 +20,7 @@ import {
   rawText,
   isNumericType,
 } from "../format";
-import { foreignKeyRef, relationRef, singular, tableOf, tableRef } from "../shared/refs";
+import { foreignKeyRef, relationRef, singular, tableRef } from "../shared/refs";
 import { ErrorState, Loading, NullChip, Shell } from "../shared/states";
 import { PaneGate } from "../shared/PaneGate";
 import type { PaneProps } from "@jali/react";
@@ -302,7 +302,7 @@ export function isEditable(c: ColumnInfo): boolean {
     !c.references &&
     !isNumericType(c.type) &&
     c.format !== "json" &&
-    !/_at$/.test(c.name) &&
+    !c.name.endsWith("_at") &&
     c.name !== "email_verified"
   );
 }

@@ -55,7 +55,7 @@ test.describe("A list's detail follows its selection", () => {
     await lab.recordAnnouncements();
     for (let i = 0; i < 6; i++) await page.keyboard.press("j");
     await expect(lab.heading("order")).toHaveText("order 7");
-    const shown = (await lab.announcements()).filter((m) => /^Showing order/.test(m));
+    const shown = (await lab.announcements()).filter((m) => m.startsWith("Showing order"));
     expect(shown.length).toBeLessThan(6);
   });
 
@@ -118,7 +118,6 @@ test.describe("A list's detail follows its selection", () => {
 
   test("a row filtered out of the list stays in the detail, with a note; clearing the filter selects it again", async ({
     lab,
-    page,
   }) => {
     await lab.open();
     await lab.row("orders", /^3\b/).click();

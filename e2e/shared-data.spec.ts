@@ -104,7 +104,7 @@ test.describe("Shared data", () => {
     await lab.shot("12-data-limit");
   });
 
-  test("the query preset runs on load and charts its own result handle", async ({ lab, page }) => {
+  test("the query preset runs on load and charts its own result handle", async ({ lab }) => {
     await lab.open();
     await lab.preset("Query + chart + inspector");
     await expect(lab.grid("query")).toBeVisible({ timeout: 20_000 });

@@ -2,7 +2,7 @@ import { GitFork } from "lucide-react";
 import { definePane } from "@jali/react";
 import type { TableName } from "../../data/types";
 import { useCatalog } from "../../data/hooks";
-import { erRef, tableInfoOf, tableOf } from "../shared/refs";
+import { erRef, tableInfoOf } from "../shared/refs";
 import { Shell } from "../shared/states";
 import { PaneGate } from "../shared/PaneGate";
 import type { PaneProps } from "@jali/react";

@@ -64,7 +64,7 @@ test.describe("Accessibility", () => {
     await expect(live).toContainText(/closed/i);
   });
 
-  test("focus is visible on the focused pane and on a focused divider", async ({ lab, page }) => {
+  test("focus is visible on the focused pane and on a focused divider", async ({ lab }) => {
     await lab.open();
     await expect(lab.pane("orders")).toHaveCSS("border-top-color", /.+/);
     await lab.separator(0).focus();

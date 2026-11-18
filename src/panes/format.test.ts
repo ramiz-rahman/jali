@@ -2,7 +2,7 @@ import { createPaneKinds } from "@jali/core/adapter";
 import { nextSort, orderByString, parseFilter } from "./grid/grid-state";
 import { recordKind } from "./kinds/record";
 import { pickChartColumns } from "./kinds/chart";
-import { describe, expect, it, vi } from "vite-plus/test";
+import { describe, expect, it } from "vite-plus/test";
 import type { ColumnInfo } from "../data/types";
 import {
   cellKind,

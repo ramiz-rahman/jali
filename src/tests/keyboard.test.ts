@@ -271,7 +271,7 @@ describe("the keymap", () => {
             `${id}: Ctrl+Alt is AltGr on Windows, ⌃⌥ is VoiceOver`,
           ).toBe(false);
           expect(
-            /^Digit/.test(c.key) && c.mod,
+            c.key.startsWith("Digit") && c.mod,
             `${id}: ⌘/Ctrl+digit switches browser tabs`,
           ).toBeFalsy();
         }

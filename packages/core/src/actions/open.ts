@@ -1,7 +1,7 @@
 import * as core from "../layout";
 import type { NodeId, ObjectRef, PaneNode, ViewState } from "../layout/types";
 import type { PaneKinds } from "../pane-kinds";
-import { refuse, type Change, type Outcome, type Snapshot } from "../state/apply";
+import { refuse, type Outcome, type Snapshot } from "../state/apply";
 import { peekSheet } from "./peek";
 import { goToRole, investigation, placeAfterArrangement, roleLabel, settleRoles } from "./page";
 import type { WorkspaceModel } from "../state/model";

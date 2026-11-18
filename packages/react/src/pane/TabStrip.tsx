@@ -197,7 +197,7 @@ export function TabStrip({ group, owner }: { group: NonNullable<Frame["group"]>;
 
 /** A role tab shows its role's icon; anything else its kind's. */
 function TabIcon({ node }: { node: PaneNode }) {
-  const { kinds, profile } = useEnv();
+  const { profile } = useEnv();
   const role =
     useUi((s) => !!s.page) && node.role && profile ? roleOf(profile, node.role) : undefined;
   return role ? (
