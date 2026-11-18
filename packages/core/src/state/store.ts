@@ -31,9 +31,9 @@ export interface PageState {
   profile: string;
   item: ItemId;
   mode: ViewMode;
-  /** The view Single mode shows (in Multiplexed, the last role focused). */
+  /** The view Single mode shows (in Split view, the last role focused). */
   tab: string;
-  /** The multiplexed layout just before the first opened pane: "Back to …" returns to it exactly. */
+  /** The split layout just before the first opened pane: "Back to …" returns to it exactly. */
   before?: Layout;
   /** Role permission: following a link opens an investigation pane (true) or only peeks (false). */
   canInvestigate: boolean;
@@ -46,7 +46,7 @@ export interface UiState {
   layout: Layout;
   /** Null in Data Studio, where the person builds the layout. */
   page: PageState | null;
-  /** The person's mode and multiplexed layout (while Multiplexed is on screen, the live layout is the truth). */
+  /** The person's mode and split layout (while Split view is on screen, the live layout is the truth). */
   prefs: PagePrefs;
   view: ViewState;
   /** The preset last chosen ("Reset layout" rebuilds it); undefined in a workspace without presets. */

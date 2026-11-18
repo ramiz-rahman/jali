@@ -14,7 +14,7 @@ export function Peek({ presentation }: { presentation: Presentation }) {
   const ref = useUi((s) => s.view.peek);
   const areaW = useUi((s) => s.area.width);
   const page = useUi((s) => s.page);
-  const canPin = !page || (page.canInvestigate && page.mode === "multi");
+  const canPin = !page || (page.canInvestigate && page.mode === "split");
   const host = useMemo(() => peekHost(store), [store]);
   const openedBy = useRef<"pointer" | "keyboard">("keyboard");
   // Observes (never takes) the last input, so only a pointer-opened peek animates.

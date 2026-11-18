@@ -3,7 +3,7 @@
 .jali-page { display: grid; grid-template-columns: 17rem minmax(0, 1fr); min-height: 0; min-width: 0; }
 .jali-page-main { display: grid; grid-template-rows: auto auto minmax(0, 1fr); min-height: 0; min-width: 0; }
 
-/* The page's tabs. Single: one selected. Multiplexed: focused (accent underline), on screen (grey underline, 3:1 or more), behind
+/* The page's tabs. Single: one selected. Split view: focused (accent underline), on screen (grey underline, 3:1 or more), behind
    another tab (dotted), not on screen (plain, muted). Marks are colour and underline only: a tab never changes width. */
 .jali-page-tabs { display: flex; gap: 0.25rem; padding: 0 1rem; background: var(--jali-surface); border-bottom: 1px solid var(--jali-border); overflow-x: auto; scrollbar-width: none; }
 .jali-page-tab {

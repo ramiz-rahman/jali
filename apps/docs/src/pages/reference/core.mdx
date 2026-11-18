@@ -91,7 +91,7 @@ Installs the listeners a workspace needs for the life of the page, and returns a
 
 - Writes `--jali-gap` and `--jali-switcher-h` on `<html>`, unless `root` is given (Jali's styles carry the same values as fallbacks, so nothing depends on them).
 - Sets `data-theme` on `<html>` to the resolved theme, and again when the setting or the system preference changes, unless `theme: false`.
-- Saves settings when they change, pane state 400 ms after it last changed, and a curated page's mode and Multiplexed layout (without opened panes).
+- Saves settings when they change, pane state 400 ms after it last changed, and a curated page's mode and Split view layout (without opened panes).
 - Asks the browser to confirm leaving the page while any pane has unsaved work (`beforeunload`).
 - Installs the keyboard with <Ref to="installKeyboard" /> on `window`: with `root`, it takes only keys from inside that workspace and its dialogs; without, keys from the whole page.
 - Applies Back and Forward from `url` and announces "Layout changed by browser history".

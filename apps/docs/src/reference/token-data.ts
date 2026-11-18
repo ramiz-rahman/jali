@@ -21,7 +21,7 @@ export interface TokenInfo { group: TokenGroup; swatch: SwatchKind; purpose: str
 
 /** What each token is for, in the order the page lists them. */
 export const TOKEN_PURPOSE: Record<string, TokenInfo> = {
-  "--jali-canvas": { group: "Surfaces", swatch: "color", purpose: "The ground behind the panes. Jali paints nothing with it except the selected button of the Single / Multiplexed switch; give your page this background to match." },
+  "--jali-canvas": { group: "Surfaces", swatch: "color", purpose: "The ground behind the panes. Jali paints nothing with it except the selected button of the Single / Split view switch; give your page this background to match." },
   "--jali-surface": { group: "Surfaces", swatch: "color", purpose: "Panes, the peek sheet, dialogs, menus, the page tabs and the phone's pane switcher." },
   "--jali-surface-raised": { group: "Surfaces", swatch: "color", purpose: "Dialogs and menus: the palette, the chooser, Settings, the discard dialog, the tab overflow menu and the shelf's menu." },
   "--jali-border": { group: "Surfaces", swatch: "color", purpose: "Hairlines: pane edges, pane headers, shelf chips, dialog and palette borders." },

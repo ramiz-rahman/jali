@@ -79,12 +79,12 @@ export function startUi(store: UiStore, options: StartUiOptions | UrlSync = {}):
     const s = store.get();
     if (s.settings !== prev.settings) saveSettings(store.storage, s.settings);
     if (s.paneState !== prev.paneState) saveSoon();
-    // A curated page's mode and multiplexed layout are the person's: saved on this device, opened panes left out.
+    // A curated page's mode and split layout are the person's: saved on this device, opened panes left out.
     const p = store.env.profile;
-    const live = s.page?.mode === "multi" && s.layout !== prev.layout;
+    const live = s.page?.mode === "split" && s.layout !== prev.layout;
     if (p && (live || s.prefs !== prev.prefs)) {
-      const layout = s.page?.mode === "multi" ? s.layout : s.prefs.multi;
-      savePrefs(store.storage, p.id, { mode: s.prefs.mode, multi: layout ? withoutOpened(layout, store.ctx()) : null });
+      const layout = s.page?.mode === "split" ? s.layout : s.prefs.split;
+      savePrefs(store.storage, p.id, { mode: s.prefs.mode, split: layout ? withoutOpened(layout, store.ctx()) : null });
     }
     if (theme && (s.settings.theme !== prev.settings.theme || s.systemDark !== prev.systemDark)) applyTheme(resolveTheme(s.settings.theme, s.systemDark));
     prev = s;

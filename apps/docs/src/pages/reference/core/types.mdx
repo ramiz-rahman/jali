@@ -251,10 +251,10 @@ A curated page about one item (a loan application), framework-free. In React, `W
 <Param name="id" type="string" required>What a link names: `?page=loan-review`.</Param>
 <Param name="name" type="string" required>The page's name, in titles and commands ("Back to Loan review").</Param>
 <Param name="itemNoun" type="string" required>The singular noun for an item ("application").</Param>
-<Param name="viewers" type="{ full: string; limited: string }">Who works with full access (links open beside, Multiplexed available) and who works in Single with links as a peek, in the person's words.</Param>
+<Param name="viewers" type="{ full: string; limited: string }">Who works with full access (links open beside, Split view available) and who works in Single with links as a peek, in the person's words.</Param>
 <Param name="roles" type="R[]" required>The views, in tab order.</Param>
 <Param name="home" type="string" required>The view Single opens on.</Param>
-<Param name="build" type="(item: I) => Layout" required>Multiplexed's designed layout. Every role is in the tree; those not shown are hidden.</Param>
+<Param name="build" type="(item: I) => Layout" required>Split view's designed layout. Every role is in the tree; those not shown are hidden.</Param>
 <Param name="bind" type="(item: I) => Record<string, ObjectRef>" required>What each role shows for an item. Another item swaps these in place.</Param>
 <Param name="firstItem" type="I" required>The item the page opens on. Its type is the type of every item id: a link's `?item=4` arrives as the number `4` when `firstItem` is a number, and as text otherwise.</Param>
 </Params>
@@ -269,7 +269,7 @@ One view of a curated page. In React, `RoleDef` adds its icon.
 
 <Entry name="ViewMode" kind="type" from="@jali/core" signature={`type ViewMode = "single" | "multi"`} compact>
 
-How a curated page is shown: one view at a time (Single) or side by side (Multiplexed). The person's choice, kept on their device and never in a link.
+How a curated page is shown: one view at a time (Single) or side by side (Split view). The person's choice, kept on their device and never in a link.
 
 </Entry>
 
@@ -328,7 +328,7 @@ Everything a workspace holds. Read it with `store.get()` or `useUi(select)`. Cha
 <Param name="layout" type="Layout" required>The arrangement.</Param>
 <Param name="view" type="ViewState" required>Focus, maximise, peek.</Param>
 <Param name="page" type="PageState | null" required>The curated page in use, or `null` for the free workspace.</Param>
-<Param name="prefs" type="{ mode: ViewMode; multi: Layout | null }" required>The person's curated page mode and Multiplexed layout, kept on their device.</Param>
+<Param name="prefs" type="{ mode: ViewMode; multi: Layout | null }" required>The person's curated page mode and Split view layout, kept on their device.</Param>
 <Param name="presetId" type="string | undefined" required>The preset last chosen; "Reset layout" rebuilds it.</Param>
 <Param name="settings" type="Settings" required>The person's settings.</Param>
 <Param name="systemDark" type="boolean" required>The system's colour preference, for the `"system"` theme.</Param>
@@ -361,9 +361,9 @@ A curated page in use.
 <Params title="Fields">
 <Param name="profile" type="string" required>The profile's id.</Param>
 <Param name="item" type="ItemId" required>The item shown.</Param>
-<Param name="mode" type="ViewMode" required>Single or Multiplexed.</Param>
-<Param name="tab" type="string" required>The view Single shows (in Multiplexed, the last role focused).</Param>
-<Param name="before" type="Layout">The Multiplexed layout just before the first opened pane; "Back to …" returns to it.</Param>
+<Param name="mode" type="ViewMode" required>Single or Split view.</Param>
+<Param name="tab" type="string" required>The view Single shows (in Split view, the last role focused).</Param>
+<Param name="before" type="Layout">The Split view layout just before the first opened pane; "Back to …" returns to it.</Param>
 <Param name="canInvestigate" type="boolean" required>Links open beside (true) or only peek (false).</Param>
 </Params>
 
@@ -485,13 +485,13 @@ A chooser opened by a command (`state.chooser`): today only ⌘K "Add to tabs of
 
 <Entry name="PagePrefs" kind="type" from="@jali/core" signature={`interface PagePrefs { mode: ViewMode; multi: Layout | null }`} compact>
 
-What a person keeps about a curated page on their device (`state.prefs`): the mode they use, and their Multiplexed layout.
+What a person keeps about a curated page on their device (`state.prefs`): the mode they use, and their Split view layout.
 
 </Entry>
 
 <Entry name="OpenPage" kind="type" from="@jali/core" signature={`interface OpenPage { item?: ItemId; tab?: string; investigation?: ObjectRef[]; fromUrl?: boolean; view?: Partial<ViewState> }`} compact>
 
-The options of `actions.openPage`: the item, the view, the panes opened while investigating (they need Multiplexed), whether it comes from a link, and a view to arrive with.
+The options of `actions.openPage`: the item, the view, the panes opened while investigating (they need Split view), whether it comes from a link, and a view to arrive with.
 
 </Entry>
 
@@ -703,16 +703,16 @@ How a list's item ids map to refs; see <Ref to="activeItemPort" page="/reference
 </Members>
 
 <Members title="Curated pages">
-<Member name="actions.openPage" signature="openPage(o?: { item?: ItemId; tab?: string; investigation?: ObjectRef[]; fromUrl?: boolean; view?: Partial<ViewState> })">Open the profile's page. Opened panes need Multiplexed, so a link with them opens there.</Member>
+<Member name="actions.openPage" signature="openPage(o?: { item?: ItemId; tab?: string; investigation?: ObjectRef[]; fromUrl?: boolean; view?: Partial<ViewState> })">Open the profile's page. Opened panes need Split view, so a link with them opens there.</Member>
 <Member name="actions.leavePage" signature="leavePage()">Back to the free workspace's preset. The page's mode and layout are kept.</Member>
-<Member name="actions.setMode" signature="setMode(mode: ViewMode)">Single or Multiplexed. Multiplexed is refused for a limited viewer.</Member>
-<Member name="actions.openTab" signature="openTab(role: string)">A page tab click. Never reshapes: Single swaps the view; Multiplexed focuses it, chooses its tab, or puts it in place of the view you're in.</Member>
-<Member name="actions.openTabBeside" signature="openTabBeside(role: string)">Alt-click a tab: that view beside the one you're in (from Single, switches to Multiplexed first).</Member>
+<Member name="actions.setMode" signature="setMode(mode: ViewMode)">Single or Split view. Split view is refused for a limited viewer.</Member>
+<Member name="actions.openTab" signature="openTab(role: string)">A page tab click. Never reshapes: Single swaps the view; Split view focuses it, chooses its tab, or puts it in place of the view you're in.</Member>
+<Member name="actions.openTabBeside" signature="openTabBeside(role: string)">Alt-click a tab: that view beside the one you're in (from Single, switches to Split view first).</Member>
 <Member name="actions.placeTab" signature={`placeTab(role: string, target: NodeId, zone: Edge | "centre")`}>Drop a page tab on a pane. Room is made by sending the least recently used views back to the tabs.</Member>
-<Member name="actions.resetPage" signature="resetPage()">Multiplexed back to the design; opened panes stay.</Member>
+<Member name="actions.resetPage" signature="resetPage()">Split view back to the design; opened panes stay.</Member>
 <Member name="actions.activate" signature="activate(item: ItemId)">Show another item; the previous item's opened panes close.</Member>
 <Member name="actions.backToPage" signature="backToPage()">Close every opened pane, with Undo.</Member>
-<Member name="actions.hideRole" signature="hideRole(id: NodeId)">A view leaves the screen and waits in the tabs (Multiplexed only).</Member>
+<Member name="actions.hideRole" signature="hideRole(id: NodeId)">A view leaves the screen and waits in the tabs (Split view only).</Member>
 <Member name="actions.setCanInvestigate" signature="setCanInvestigate(canInvestigate: boolean)">The viewer's permission. Taking it away switches to Single.</Member>
 </Members>
 

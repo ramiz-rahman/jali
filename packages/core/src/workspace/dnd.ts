@@ -45,7 +45,7 @@ export function startPaneDrag(store: UiStore, e: PointerStart, paneId: string) {
 
 /**
  * A curated page's tab dragged into the panes: places that view where it is dropped (centre: as a tab of that group).
- * Works from Single mode too, where the one pane on screen is the target; dropping switches to Multiplexed.
+ * Works from Single mode too, where the one pane on screen is the target; dropping switches to Split view.
  * Returns whether a drag happened, so the tab's click can be skipped.
  */
 export function startTabDrag(store: UiStore, e: PointerStart, role: string, label: string): { dragged(): boolean } {

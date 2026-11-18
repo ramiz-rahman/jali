@@ -1,6 +1,6 @@
 /**
  * The loan-review record views: one designed view per table (application, member, group, field officer, loan), each in
- * plain words. Related records are links that open with the pane's own action: a peek in Single, beside in Multiplexed.
+ * plain words. Related records are links that open with the pane's own action: a peek in Single, beside in Split view.
  */
 import { useEffect } from "react";
 import { Briefcase, FileText, History, Phone, UserRound, UsersRound } from "lucide-react";

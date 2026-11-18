@@ -19,7 +19,7 @@ const bind = (customer: number): Record<string, ObjectRef> => ({
   tickets: { kind: "customer-tickets", params: { customer } },
 });
 
-// Multiplexed mode's designed layout: every role is in the tree, and those not shown at first are hidden.
+// Split view's designed layout: every role is in the tree, and those not shown at first are hidden.
 const build = (customer: number): Layout => {
   const refs = bind(customer);
   const view = (r: RoleDef): PaneNode => ({ id: r.id, type: "pane", size: { weight: 1 }, ref: refs[r.id]!, role: r.id, priority: r.priority });

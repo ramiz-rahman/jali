@@ -5,8 +5,8 @@ import { useModel, useStore, useUi, useProfile } from "../state/react";
 import { Workspace } from "../workspace/Workspace";
 
 /**
- * A curated page's controls in the top bar: the mode (Single or Multiplexed), the investigation (panes opened from
- * links) with its way back, and Reset for the multiplexed layout. Which views are on screen is the tabs' job.
+ * A curated page's controls in the top bar: the mode (Single or Split view), the investigation (panes opened from
+ * links) with its way back, and Reset for the split layout. Which views are on screen is the tabs' job.
  */
 export function PageBar() {
   const page = useUi((s) => s.page);
@@ -15,16 +15,16 @@ export function PageBar() {
   const profile = useProfile();
   if (!profile || !page) return null;
   const opened = investigation(m.panes).length;
-  const multi = page.mode === "multi";
+  const multi = page.mode === "split";
   return (
     <div className="jali-page-bar">
       <div className="jali-seg jali-mode-switch" role="radiogroup" aria-label="View mode">
         <button role="radio" aria-checked={!multi} className="jali-seg-btn" onClick={() => actions.setMode("single")} title="One view at a time">
-          <Square size={14} strokeWidth={1.5} aria-hidden /> Single
+          <Square size={14} strokeWidth={1.5} aria-hidden /> Single view
         </button>
-        <button role="radio" aria-checked={multi} className="jali-seg-btn" onClick={() => actions.setMode("multi")} disabled={!page.canInvestigate}
+        <button role="radio" aria-checked={multi} className="jali-seg-btn" onClick={() => actions.setMode("split")} disabled={!page.canInvestigate}
           title={page.canInvestigate ? "Views side by side: drag tabs into the layout" : "Your role works in Single"}>
-          <Columns2 size={14} strokeWidth={1.5} aria-hidden /> Multiplexed
+          <Columns2 size={14} strokeWidth={1.5} aria-hidden /> Split view
         </button>
       </div>
       {multi && opened ? (
@@ -37,7 +37,7 @@ export function PageBar() {
         </div>
       ) : null}
       {multi ? (
-        <button className="jali-icon-btn jali-page-reset" onClick={() => actions.resetPage()} aria-label="Reset layout to its design" title="Reset layout · drops your multiplexed layout">
+        <button className="jali-icon-btn jali-page-reset" onClick={() => actions.resetPage()} aria-label="Reset layout to its design" title="Reset layout · drops your split layout">
           <RotateCcw size={15} strokeWidth={1.5} aria-hidden />
         </button>
       ) : null}
@@ -46,7 +46,7 @@ export function PageBar() {
 }
 
 /**
- * The page's tabs. Single: one is selected, the view on screen. Multiplexed: the tabs are a palette of views; each is
+ * The page's tabs. Single: one is selected, the view on screen. Split view: the tabs are a palette of views; each is
  * marked focused, on screen or not, and dragging one into the panes places it there. ⌥-click opens a view beside.
  */
 function PageTabs() {
@@ -71,7 +71,7 @@ function PageTabs() {
     window.addEventListener("blur", blur);
     return () => { window.removeEventListener("keydown", key); window.removeEventListener("keyup", key); window.removeEventListener("blur", blur); };
   });
-  const multi = page.mode === "multi";
+  const multi = page.mode === "split";
   const state = (id: string) => {
     if (!multi) return id === page.tab ? "focused" : "off";
     if (m.pane(focused)?.role === id) return "focused";

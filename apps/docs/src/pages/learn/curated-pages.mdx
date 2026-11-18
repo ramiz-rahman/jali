@@ -22,7 +22,7 @@ A [profile](/get-started/key-concepts#curated-page) is the page's definition. Yo
 
 - **`roles`** are the page's views, in tab order. Each is a [role](/get-started/key-concepts#role): an id, a label, an icon, and a priority. A role's pane in the layout has the role's id as its node id.
 - **`bind(item)`** says what each view shows for one item. Choosing another item from the list swaps every view's object in place.
-- **`build(item)`** is the designed layout for Multiplexed mode. Every role is in it; the ones that should not show at first are listed in `overlay.hidden`.
+- **`build(item)`** is the designed layout for Split view. Every role is in it; the ones that should not show at first are listed in `overlay.hidden`.
 - **`home`** is the view Single mode opens on.
 - **`Rail`** is the list of items at the left, and **`Header`** sits above the tabs. Both are your components. `Rail` gets `activate(item)` to switch items.
 - **`viewers`** names the two kinds of person who use the page (below).
@@ -43,9 +43,9 @@ Single is the default. It shows one view, chosen from the tabs, like any web app
 
 Clicking a tab swaps the view in place; nothing moves. A link inside a view opens as a [peek](/get-started/key-concepts#peek), since there is no second pane for it to open into, and the announcement says how to open links beside.
 
-## Multiplexed: views side by side
+## Split view: views side by side
 
-In Multiplexed, the tabs become a palette of views that the person lays out with full freedom.
+In Split view, the tabs become a palette of views that the person lays out with full freedom.
 
 - **Drag a tab** into the panes. An edge places the view beside that pane; the centre adds it to that pane's tabs.
 - **⌥-click a tab** (Alt-click) to open it beside the view in use. Holding ⌥ over a tab draws where it would go, and that preview is exactly what the click does.
@@ -54,7 +54,7 @@ In Multiplexed, the tabs become a palette of views that the person lays out with
 
 **Why a click never reshapes:** a click is the lightest thing a person does. If it added a pane and pushed the others aside, every click would rearrange the screen. Adding a view is always a deliberate gesture: a drag or ⌥-click.
 
-The first switch to Multiplexed starts from the profile's design. Switching back to Single keeps the multiplexed layout exactly, and switching again restores it. Dragging a tab out of Single switches to Multiplexed for you.
+The first switch to Split view starts from the profile's design. Switching back to Single keeps the split layout exactly, and switching again restores it. Dragging a tab out of Single switches to Split view for you.
 
 ## Views never fold into each other's tabs
 
@@ -62,7 +62,7 @@ When there is no room for a view the person places, the least recently used view
 
 ## Investigating
 
-In Multiplexed, following a link opens an **opened** pane after the page's views, marked with a tint and an "Opened" tag. The opened panes together are the investigation. They stay in one region at the right, so the designed layout stays readable.
+In Split view, following a link opens an **opened** pane after the page's views, marked with a tint and an "Opened" tag. The opened panes together are the investigation. They stay in one region at the right, so the designed layout stays readable.
 
 Nothing the person placed gives way to an opened pane. If there is no room beside, the opened pane becomes the shown tab of the pane the link was in, at that pane's size. If even that needs more room, views go back to the page's tabs; none folds.
 
@@ -72,11 +72,11 @@ Choosing another item swaps every view in place and closes the investigation, be
 
 ## What is whose
 
-- The **mode** and the **multiplexed layout** belong to the person. They are kept on their device, through the [storage port](/get-started/key-concepts#ports), without the opened panes. Reset puts the layout back to the design.
-- A **link** carries content only: the item, the view in use and the opened panes. The same link opens in each reader's own layout. A link with opened panes opens in Multiplexed, since Single cannot show them.
+- The **mode** and the **split layout** belong to the person. They are kept on their device, through the [storage port](/get-started/key-concepts#ports), without the opened panes. Reset puts the layout back to the design.
+- A **link** carries content only: the item, the view in use and the opened panes. The same link opens in each reader's own layout. A link with opened panes opens in Split view, since Single cannot show them.
 
 ## Viewers
 
-A page can be used by two kinds of person, named by `viewers`. The `full` viewer may switch to Multiplexed and open links beside. The `limited` viewer works in Single only and opens links as a peek. The sample names them "account manager" and "support agent".
+A page can be used by two kinds of person, named by `viewers`. The `full` viewer may switch to Split view and open links beside. The `limited` viewer works in Single only and opens links as a peek. The sample names them "account manager" and "support agent".
 
 `store.actions.setCanInvestigate(false)` sets the limited one. In a product, your app sets it from the person's role.

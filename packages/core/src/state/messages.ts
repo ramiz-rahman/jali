@@ -89,9 +89,9 @@ export const msg = {
   centreDrop: (mode: "swap" | "tab") => `Centre drop: ${mode === "swap" ? "swap" : "add as tab"}`,
 
   // curated pages (loan review)
-  pageOpened: (name: string, mode: "single" | "multi") => `${name} · ${mode === "single" ? "Single: one view at a time" : "Multiplexed: views side by side"}`,
-  modeSingle: (t: string) => `Single: showing ${t}. Your multiplexed layout is kept.`,
-  modeMulti: "Multiplexed: drag tabs into the layout to see views side by side",
+  pageOpened: (name: string, mode: "single" | "split") => `${name} · ${mode === "single" ? "Single view: one view at a time" : "Split view: views side by side"}`,
+  modeSingle: (t: string) => `Single: showing ${t}. Your split layout is kept.`,
+  modeSplit: "Split view: drag tabs into the layout to see views side by side",
   viewing: (t: string) => `Showing ${t}`,
   pageReset: "Layout reset to its design",
   activated: (noun: string, id: string | number, dropped: number) => `Showing ${noun} ${id}${dropped ? ` · ${dropped} opened ${dropped === 1 ? "pane" : "panes"} closed` : ""}`,
@@ -104,11 +104,11 @@ export const msg = {
   alreadyView: (t: string) => `${t} is already a view on this page`,
   notInvestigating: "Nothing opened beyond the page",
   backToPage: (name: string, n: number) => `Back to ${name} · ${n} opened ${n === 1 ? "pane" : "panes"} closed · Undo available`,
-  permission: (who: string, can: boolean) => (can ? `Viewing as ${who}: Multiplexed available, links open beside` : `Viewing as ${who}: Single only, links open as a peek`),
-  singleNoLayout: "Single shows one view: choose it from the tabs. Switch to Multiplexed to arrange views",
+  permission: (who: string, can: boolean) => (can ? `Viewing as ${who}: Split view available, links open beside` : `Viewing as ${who}: Single only, links open as a peek`),
+  singleNoLayout: "Single shows one view: choose it from the tabs. Switch to Split view to arrange views",
   singleOnly: "Your role works in Single: one view at a time",
   peekOnly: (t: string) => `Peek: ${t} · your role opens links as a peek`,
-  peekSingle: (t: string) => `Peek: ${t} · switch to Multiplexed to open links beside`,
+  peekSingle: (t: string) => `Peek: ${t} · switch to Split view to open links beside`,
 
   // what the workspace did on its own
   singleOn: "Single view: one pane at a time. Use the pane switcher at the top.",

@@ -39,7 +39,7 @@ export function urlKeys(prefix = ""): UrlKeys {
 
 /**
  * A curated page's link carries content only: the item, the view in use and the panes opened while investigating.
- * The mode and the multiplexed layout are the reader's own, so the same link opens in each person's way of working.
+ * The mode and the split layout are the reader's own, so the same link opens in each person's way of working.
  */
 function pageParams(q: URLSearchParams, s: UiState, k: UrlKeys) {
   q.delete(k.layout);

@@ -3,11 +3,11 @@
  * header, and a tab strip of views. Data Studio has no profile: the person builds the layout.
  *
  * Two modes, the person's choice. Single (default): one view at a time, chosen from the tabs, like any web app; links
- * open as a peek. Multiplexed: the tabs become a palette of views that can be dragged into split layouts with full
+ * open as a peek. Split view: the tabs become a palette of views that can be dragged into split layouts with full
  * freedom; it starts from the profile's designed layout (Overview's sections as panes). Each view exists once: a view
  * that is closed goes back to the tabs. Following a link opens an "opened" pane after the layout.
  *
- * A link carries content only (item, focused view, opened panes); the mode and the multiplexed layout are personal.
+ * A link carries content only (item, focused view, opened panes); the mode and the split layout are personal.
  */
 import type { Layout, ObjectRef, PaneNode } from "./layout/types";
 import type { PaneKinds } from "./pane-kinds";
@@ -20,7 +20,7 @@ export interface RoleBase {
   priority: "primary" | "supporting";
 }
 
-export type ViewMode = "single" | "multi";
+export type ViewMode = "single" | "split";
 
 /** A curated page's item id: a number (`4`) or a string (a UUID, a slug). A link carries it as text; a profile whose
  *  `firstItem` is a number gets numbers back. */
@@ -39,14 +39,14 @@ export interface ProfileBase<R extends RoleBase = RoleBase, I extends ItemId = I
   name: string;
   /** Singular noun for the active item ("application"). */
   itemNoun: string;
-  /** Who works with full access (links open beside, Multiplexed available) and who works in Single with links as a
+  /** Who works with full access (links open beside, Split view available) and who works in Single with links as a
    *  peek, in the person's words: `{ full: "credit reviewer", limited: "loan officer" }`. */
   viewers?: { full: string; limited: string };
   /** The views, in tab order. A role's node id equals its role id. */
   roles: R[];
   /** The view Single mode opens on. */
   home: string;
-  /** Multiplexed mode's designed starting layout: every role is in the tree; those not shown are hidden. */
+  /** Split view's designed starting layout: every role is in the tree; those not shown are hidden. */
   build(item: I): Layout;
   /** What each role shows for an item; another item swaps these in place. */
   bind(item: I): Record<string, ObjectRef>;
