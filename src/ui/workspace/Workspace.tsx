@@ -86,19 +86,29 @@ function Ghost({ role }: { role: string }) {
   );
 }
 
-/** The chip that follows the pointer: flipped to the pointer's left when it would pass the viewport's right edge. */
+/**
+ * The chip that follows the pointer: flipped to the pointer's left when it would pass the viewport's right edge, and
+ * moved below the drop label when it would cover it (a centre drop puts the pointer where the label is).
+ */
 function DragChip({ x, y, label }: { x: number; y: number; label: string }) {
   const el = useRef<HTMLDivElement>(null);
-  const [left, setLeft] = useState(x + 12);
+  const [pos, setPos] = useState({ left: x + 12, top: y + 12 });
   useLayoutEffect(() => {
     const chip = el.current;
     const host = chip?.offsetParent as HTMLElement | null;
-    if (!chip || !host) return setLeft(x + 12);
-    const origin = host.getBoundingClientRect().left;
-    const fits = origin + x + 12 + chip.offsetWidth <= document.documentElement.clientWidth - 4;
-    setLeft(fits ? x + 12 : Math.max(-origin + 4, x - 12 - chip.offsetWidth));
-  }, [x, label]);
-  return <div ref={el} className="drag-chip" data-testid="drag-chip" style={{ left, top: y + 12 }} aria-hidden>{label}</div>;
+    if (!chip || !host) return setPos({ left: x + 12, top: y + 12 });
+    const o = host.getBoundingClientRect();
+    const fits = o.left + x + 12 + chip.offsetWidth <= document.documentElement.clientWidth - 4;
+    const left = fits ? x + 12 : Math.max(-o.left + 4, x - 12 - chip.offsetWidth);
+    let top = y + 12;
+    const lab = document.querySelector(".drop-label")?.getBoundingClientRect();
+    if (lab) {
+      const c = { l: o.left + left, t: o.top + top, r: o.left + left + chip.offsetWidth, b: o.top + top + chip.offsetHeight };
+      if (c.l < lab.right && c.r > lab.left && c.t < lab.bottom && c.b > lab.top) top = lab.bottom - o.top + 8;
+    }
+    setPos({ left, top });
+  }, [x, y, label]);
+  return <div ref={el} className="drag-chip" data-testid="drag-chip" style={pos} aria-hidden>{label}</div>;
 }
 
 export function Workspace() {

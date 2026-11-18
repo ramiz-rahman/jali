@@ -20,6 +20,7 @@
   --accent-weak: rgba(68, 86, 199, 0.08);
   --accent-mid: rgba(68, 86, 199, 0.16);
   --on-accent: #ffffff;
+  --drop-fill: rgba(68, 86, 199, 0.12);
   --act-working: #0e7490; /* teal, apart from the indigo of focus */
   --act-blocked: #d97706;
   --act-done: #059669;
@@ -61,6 +62,7 @@
   --accent-weak: rgba(140, 155, 234, 0.14);
   --accent-mid: rgba(140, 155, 234, 0.26);
   --on-accent: #09090b;
+  --drop-fill: rgba(140, 155, 234, 0.16);
   --act-working: #22d3ee;
   --act-blocked: #fbbf24;
   --act-done: #34d399;

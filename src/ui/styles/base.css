@@ -42,13 +42,14 @@ code, kbd, pre, .num { font-family: var(--mono); }
 .workspace.is-reshaping .divider { opacity: 0; }
 @media (prefers-reduced-motion: reduce) { .workspace.is-reshaping .pane { transition: none; } .workspace.is-reshaping .divider { opacity: 1; } }
 
-/* ---------- drag and drop: tinted fill, 2px accent outline at a 6px inset, label centred in the zone ---------- */
-.drop-indicator { position: absolute; z-index: 30; background: var(--accent-weak); border: 1.5px solid var(--accent); border-radius: var(--radius); pointer-events: none; }
-.drop-indicator::after { content: ""; position: absolute; inset: 6px; border: 2px solid var(--accent); border-radius: calc(var(--radius) - 2px); }
+/* ---------- drag and drop: the area the drop fills, as a tint and one 2px ring at a 6px inset (clear of the pane's own
+   border and the divider, so it never doubles a line), label centred in the area ---------- */
+.drop-indicator { position: absolute; z-index: 30; pointer-events: none; }
+.drop-indicator::after { content: ""; position: absolute; inset: 6px; background: var(--drop-fill); border: 2px solid var(--accent); border-radius: calc(var(--radius) - 2px); }
 .drop-label-zone { position: absolute; z-index: 31; display: grid; place-items: center; pointer-events: none; padding: 12px; }
 .drop-label {
   display: inline-flex; align-items: center; gap: 8px; max-width: 100%; padding: 8px 14px; border-radius: 8px;
-  background: var(--accent); color: #fff; font-size: 14px; font-weight: 500; line-height: 20px; box-shadow: 0 4px 16px rgba(0, 0, 0, 0.18);
+  background: var(--accent); color: var(--on-accent); font-size: 14px; font-weight: 500; line-height: 20px; box-shadow: 0 4px 16px rgba(0, 0, 0, 0.18);
 }
 .drop-label svg { flex: none; }
 .drag-chip {
