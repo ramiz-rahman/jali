@@ -33,7 +33,7 @@ npm install @jali/core
 
 Makes one workspace: its state, the model derived from it, its actions and its keymap. Each workspace has its own store; nothing is shared between two stores on one page.
 
-It throws ``createUiStore: give `presets` or an `initial.layout` to start from`` when it has neither. The first state is the start preset's layout (or `initial.layout`), the settings and pane state saved in `storage`, and no focus. Call <Ref to="boot" /> before the first render to bring in the address and fit the layout.
+It throws ``createUiStore: give `presets`, an `initial.layout` or a `profile` to start from`` when it has none of them. The first state is the start preset's layout (or `initial.layout`), the settings and pane state saved in `storage`, and no focus. A page-only app (a `profile` with no presets and no `initial.layout`) starts with its page open on `firstItem`, and "Open Workspace" is refused. Call <Ref to="boot" /> before the first render to bring in the address and fit the layout.
 
 <Params title="Parameters">
 <Param name="deps" type="UiStoreDeps" required>
@@ -44,9 +44,10 @@ What the workspace is made of, and where its effects go.
 <Param name="kinds" type="PaneKinds" required>This workspace's pane kinds, from <Ref to="createPaneKinds" />. A layout can only show refs of these kinds.</Param>
 <Param name="presets" type="readonly Preset[]" default="[]">Layouts to start from, in menu order. Each gets a `layout.preset.<id>` command, titled "Layout: label".</Param>
 <Param name="preset" type="string" default="the first preset">The preset the workspace opens on when no link or saved state says otherwise. An id that is not in `presets` also gives the first.</Param>
-<Param name="initial" type="Partial<UiState>">State laid over the defaults, last, so it wins over saved settings and pane state too. A workspace without presets passes `initial.layout`.</Param>
+<Param name="initial" type="Partial<UiState>">State laid over the defaults, last, so it wins over saved settings and pane state too. A workspace without presets passes `initial.layout`, or only a `profile`.</Param>
 <Param name="profile" type="ProfileBase | null" default="null">The curated page this workspace can show. In React, a `WorkspaceProfile`.</Param>
 <Param name="name" type="string" default={`"Workspace"`}>The free workspace's name, used in command titles such as "Open Workspace".</Param>
+<Param name="launcher" type="string | null" default={`"launcher"`}>The transient kind a split or a stack's "+" opens until the person chooses an object. When it is `null` or not registered, the split and "New tab here" commands are refused and tab strips show no "+".</Param>
 <Param name="url" type="UrlWriter">Where the workspace writes its address: usually <Ref to="createUrlSync" />, which `boot` and `startUi` then also read from. Without it the address is left alone.</Param>
 <Param name="storage" type="StoragePort" default={`browserStorage(id)`}>What this person keeps on this device: settings, pane state, a curated page's mode and layout. The default is prefixed with the store's `id`, so two workspaces with their own ids keep their own.</Param>
 <Param name="id" type="string" default={`"jali"`}>Prefix for this workspace's DOM ids (`jali-pane-orders`). Give each workspace on one page its own.</Param>
@@ -464,7 +465,7 @@ The words for a click with Alt held: "⌥-click" on a Mac, "Alt-click" elsewhere
 
 ## Settings and theme
 
-<Entry name="DEFAULT_SETTINGS" kind="constant" from="@jali/core" signature={`const DEFAULT_SETTINGS: Settings = {\n  centreDrop: "swap", paneCap: 8, showStats: true,\n  theme: "system", boundary: "tint",\n}`} example={settingsCode} exampleFile="settings.ts">
+<Entry name="DEFAULT_SETTINGS" kind="constant" from="@jali/core" signature={`const DEFAULT_SETTINGS: Settings = {\n  centreDrop: "swap", paneCap: 8,\n  theme: "system", boundary: "tint",\n}`} example={settingsCode} exampleFile="settings.ts">
 
 The settings a person starts with. Saved settings (`settings` in the store's storage) are laid over them at creation; an unknown `theme` becomes `"system"` and any `boundary` but `"none"` becomes `"tint"`. The fields are under <Ref to="Settings" page="/reference/core/types" />.
 

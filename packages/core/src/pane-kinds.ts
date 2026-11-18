@@ -1,6 +1,6 @@
 /**
  * Pane kinds: the framework-free part of a kind (title, identity, sizes) and the registry a workspace keeps of them.
- * A framework adapter adds the view: @jali/react's `definePaneKind` (ui/define.ts) adds `Component` and `icon`.
+ * A framework adapter adds the view: @jali/react's `definePaneKind` (react/src/define.ts) adds `Component` and `icon`.
  */
 import type { KindRegistry, ObjectRef, PaneKind, PaneNode } from "./layout/types";
 
@@ -26,7 +26,9 @@ export type PaneActivity = "idle" | "loading" | "working" | "needs-you" | "error
 export interface PaneKindBase {
   kind: string;
   title: (ref: ObjectRef) => string;
-  ref: (params: ObjectRef["params"]) => ObjectRef;
+  /** Builds a ref of this kind from params. Optional and not called by Jali: a convenience for the app's own links
+   *  (`orders.ref({ id: 4 })`). */
+  ref?: (params: ObjectRef["params"]) => ObjectRef;
   /** What makes two refs the same object. Default: every param, compared as text. `undefined` means scratch space:
    *  never deduplicated against open panes. */
   identity?: (ref: ObjectRef) => unknown;
@@ -40,7 +42,7 @@ export interface PaneKindBase {
   /** Narrowest the content works at, once it adapts (container queries): the pane folds into a tab below it. */
   minWidth: number;
   minHeight: number;
-  /** Where spare space takes the pane first. Default: minWidth. See PaneKind in layout-core/types for the share rule. */
+  /** Where spare space takes the pane first. Default: minWidth. See PaneKind in layout/types.ts for the share rule. */
   comfortableWidth?: number;
   /** Widest the content usefully uses (soft: spare space goes to siblings first; the content holds its measure past
    *  it). Omit for kinds that use any width, such as tables and charts. */
@@ -62,7 +64,7 @@ export interface PaneKinds<D extends PaneKindBase = PaneKindBase> {
   /** Bumped by every registration. */
   version(): number;
   onChange(l: () => void): () => void;
-  /** The framework-free view, for layout-core (resolve, validate, decode). Same object per version. */
+  /** The framework-free view, for the layout model (resolve, validate, decode). Same object per version. */
   registry(): KindRegistry;
   /** Title for a ref, falling back to the kind name when the kind is unknown. */
   title(ref: ObjectRef): string;

@@ -32,7 +32,7 @@ title: (ref) => `Order ${ref.params.id}`,
 ref: (params) => ({ kind: "order", params }),
 ```
 
-`ref` builds a ref of this kind from params. It is required.
+`ref` builds a ref of this kind from params. It is optional and Jali never calls it: keep it if your own code builds links with it.
 
 </Step>
 <Step title="Say how narrow it can go">
@@ -116,7 +116,7 @@ Report the selection before opening it, so the opened pane is linked to the list
 
 ## The launcher
 
-Split (⌘\\) and "New tab here" open a pane with the ref `{ kind: "launcher", params: {} }`, for the person to choose what goes in it. If your workspace has no kind called `launcher`, those panes show "Unknown pane kind".
+Split (⌘\\) and "New tab here" open a pane with the ref `{ kind: "launcher", params: {} }`, for the person to choose what goes in it. Name another kind with the store's `launcher` option. If your workspace has no launcher kind, those commands are refused and tab strips show no "+".
 
 Define one, and mark it `transient`. A transient pane closes quietly, and its component also gets `recent` (objects opened this session), `isOpen(ref)`, `titleFor(ref)` and `KindIcon`. Choosing calls `openHere(ref)`, which fills the pane.
 

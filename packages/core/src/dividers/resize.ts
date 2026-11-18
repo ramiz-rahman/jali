@@ -14,7 +14,7 @@ export const STEP_BIG = 64;
 export const SNAP_IN = core.SNAP_IN;
 export const SNAP_OUT = core.SNAP_OUT;
 
-/** Snap to the centre with hysteresis (layout-core owns the rule): in within 10px, out beyond 16px. */
+/** Snap to the centre with hysteresis (the layout model owns the rule): in within 10px, out beyond 16px. */
 export function snap(size: number, centre: number, wasSnapped: boolean): { size: number; snapped: boolean } {
   const value = core.snapToCentre(size, centre, wasSnapped);
   return { size: value, snapped: value === centre };
@@ -54,7 +54,7 @@ export function geometryFor(m: WorkspaceModel, d: DividerBox, r: ResolvedLayout 
   return {
     divider: d,
     axis: d.axis,
-    // DividerBox.min/max bound the first neighbour's extent (layout-core clamps with them too).
+    // DividerBox.min/max bound the first neighbour's extent (the layout model clamps with them too).
     a: { ids: idsA, size: sa, min: d.min, label: label(idsA) },
     b: { ids: idsB, size: sb, min: Math.max(0, sa + sb - d.max), label: label(idsB) },
     total: sa + sb,

@@ -1,5 +1,5 @@
 /**
- * URL sync, through a location port (ui/ports.ts). Structure goes in ?l= (layout-core codec); zoom and peek ride along. Deliberate structural changes push a
+ * URL sync, through a location port (ports.ts). Structure goes in ?l= (layout/codec); zoom and peek ride along. Deliberate structural changes push a
  * history entry; resizes replace it 120ms after the last move; view changes replace immediately.
  */
 import * as core from "./layout";
@@ -64,7 +64,9 @@ export function buildSearch(search: string, s: UiState, k: UrlKeys = urlKeys()):
 }
 
 /** What the address holds: a layout and view, or a code that could not be read. Null when there is no layout. */
-export interface PageRead { tab: string; item: number; investigation: ObjectRef[] }
+/** A page link: its view, its item as the link wrote it (text; the page converts it to its profile's type), and the
+ *  panes opened while investigating. `item` is undefined when the link names none. */
+export interface PageRead { tab: string; item: string | undefined; investigation: ObjectRef[] }
 export type UrlRead = { layout: Layout; view: Partial<ViewState> } | { broken: string; view: Partial<ViewState> } | { page: PageRead; view: Partial<ViewState> };
 
 export function readSearch(search: string, kinds: KindRegistry, k: UrlKeys = urlKeys()): UrlRead | null {
@@ -76,9 +78,9 @@ export function readSearch(search: string, kinds: KindRegistry, k: UrlKeys = url
   if (ref) view.peek = ref;
   // `?app=review` is the lab's form from before pages had ids (19 Nov 2026).
   if (q.get(k.page) || q.get("app") === "review") {
-    const item = Number(q.get(k.item));
+    const item = q.get(k.item) || undefined;
     const investigation = q.getAll(k.open).map(decodePeek).filter((r): r is ObjectRef => !!r && Object.hasOwn(kinds, r.kind));
-    return { page: { tab: q.get(k.tab) ?? "", item: Number.isInteger(item) && item > 0 ? item : 0, investigation }, view };
+    return { page: { tab: q.get(k.tab) ?? "", item, investigation }, view };
   }
   if (!code) return null;
   const layout = core.decode(code, kinds);
@@ -144,7 +146,7 @@ export interface UrlSync extends UrlWriter {
 }
 
 export interface UrlSyncOptions {
-  /** The address: the browser's history by default, or a router adapter (ui/ports.ts). */
+  /** The address: the browser's history by default, or a router adapter (ports.ts). */
   location?: LocationPort;
   /** Where a link that could not be read is kept (and, in "local" mode, the sizes dragged), under keys that start
    *  with `prefix`. Default: localStorage under "jali". */

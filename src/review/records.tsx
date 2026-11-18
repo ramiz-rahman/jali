@@ -185,7 +185,7 @@ function GroupView({ row: g, open, paused }: ViewProps) {
   const officer = useRecord("field_officers", String(g.field_officer_id), { paused }).data;
   const { members, loans, standing: s } = useGroupStanding(g, paused);
   const latest = loans ? latestLoans(loans) : undefined;
-  const applicant = useUi((x) => (x.page ? applicationFacts(x.page.item).member : undefined));
+  const applicant = useUi((x) => (x.page ? applicationFacts(Number(x.page.item)).member : undefined));
   const apps = useCount("loan_applications", { group_id: n(g.id) }, paused);
   return (
     <View label="Group">

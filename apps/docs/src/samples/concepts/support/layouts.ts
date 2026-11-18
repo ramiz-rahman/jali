@@ -10,7 +10,7 @@ export const triage = (): Layout => ({
         id: "work", type: "column", size: { weight: 1 }, children: [
           { id: "detail", type: "pane", size: { weight: 2 }, ref: { kind: "ticket", params: { id: 101 } }, linkedTo: "list", follows: true },
           {
-            id: "context", type: "stack", size: { weight: 1 }, active: "who", origin: "user", children: [
+            id: "context", type: "stack", size: { weight: 1 }, active: "who", children: [
               { id: "who", type: "pane", size: { weight: 1 }, ref: { kind: "customer", params: { id: 7 } } },
               { id: "bought", type: "pane", size: { weight: 1 }, ref: { kind: "orders", params: { customer: 7 } } },
             ],

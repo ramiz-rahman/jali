@@ -6,10 +6,9 @@ import { peekSheet } from "./peek";
 import { goToRole, investigation, placeAfterArrangement, roleLabel, settleRoles } from "./page";
 import type { WorkspaceModel } from "../state/model";
 import { msg } from "../state/messages";
+import { launcherRef } from "../profile";
 import { follow, followLater, sameRef, setPinned } from "./follow";
 
-/** What a new split or a stack's "+" shows until the person chooses an object. */
-export const LAUNCHER: ObjectRef = { kind: "launcher", params: {} };
 export const RECENT_MAX = 8;
 const unzoomed = core.tree.unzoom;
 
@@ -29,7 +28,7 @@ export function openPaneFor(m: WorkspaceModel, ref: ObjectRef, except?: NodeId):
 /**
  * Founder decision 2: focus stays in the source. Opening the source's selected item (a list's row) links the new pane
  * to the selection: it follows it, or, when the list already has a following detail, it opens pinned beside it for
- * comparison (layout-core ops/follow.ts). Any other link opens a plain linked pane.
+ * comparison (layout/ops/follow.ts). Any other link opens a plain linked pane.
  */
 export function openBeside(x: Snapshot, source: NodeId, ref: ObjectRef): Outcome {
   const { s, m, ctx } = x;
@@ -51,6 +50,9 @@ export function openBeside(x: Snapshot, source: NodeId, ref: ObjectRef): Outcome
   // it, browse on: the next open makes a new follower), or shows the row there now. Never a second copy of a row.
   const showing = fromSelection ? core.follower(s.layout, source, ref.kind) : undefined;
   if (showing) return sameRef(showing.ref, ref) ? setPinned(x, showing.id, true) : [{ op: "select", defer: followLater(source, null) }, (y: Snapshot) => follow(y, source, ref)];
+  // A detail of this list already shows the row (one pinned earlier, with no follower now): show that one, focus stays.
+  const kept = fromSelection ? m.panes.find((p) => p.linkedTo === source && sameRef(p.ref, ref)) : undefined;
+  if (kept) return { op: "focusExisting", layout: core.reveal(s.layout, kept.id, ctx), view: s.view, msg: msg.alreadyOpenBeside(m.title(kept.id)), result: kept.id };
   const r = core.openBeside(s.layout, unzoomed(s.view), source, ref, ctx, place, { ...(s.page ? { yields: false } : {}), ...(fromSelection ? { fromSelection } : {}) });
   let layout = r.layout, opened = r.opened, sent: NodeId[] = [];
   let view: ViewState = { ...r.view, focused: source, focusHistory: r.view.focusHistory.length ? r.view.focusHistory : [source] };
@@ -71,7 +73,9 @@ export function openBeside(x: Snapshot, source: NodeId, ref: ObjectRef): Outcome
 export function split({ s, m, ctx }: Snapshot, dir: "right" | "bottom", target = s.view.focused): Outcome {
   const p = m.pane(target);
   if (!p) return null;
-  const r = core.split(s.layout, unzoomed(s.view), p.id, dir, LAUNCHER, ctx);
+  const launcher = launcherRef(m.env);
+  if (!launcher) return refuse(msg.noLauncher);
+  const r = core.split(s.layout, unzoomed(s.view), p.id, dir, launcher, ctx);
   return { op: "split", layout: r.layout, view: core.focus(r.view, r.opened, ctx), msg: msg.split(r.mode, dir, m.title(p.id)), result: r.opened };
 }
 
@@ -118,7 +122,9 @@ export function dismiss({ s, m, ctx }: Snapshot, id: NodeId): Outcome {
 export function newTab({ s, m, ctx }: Snapshot, id = s.view.focused): Outcome {
   const p = m.pane(id);
   if (!p) return null;
-  const r = core.addTab(s.layout, unzoomed(s.view), p.id, LAUNCHER, ctx);
+  const launcher = launcherRef(m.env);
+  if (!launcher) return refuse(msg.noLauncher);
+  const r = core.addTab(s.layout, unzoomed(s.view), p.id, launcher, ctx);
   return { op: "newTab", layout: r.layout, view: r.view, msg: msg.newTab(m.title(p.id)), result: r.opened };
 }
 

@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, type ReactNode } from "react";
 import { X } from "lucide-react";
 import type { Settings as S, ThemeChoice } from "@jali/core/adapter";
 import { useStore, useUi } from "../state/react";
@@ -8,7 +8,8 @@ const THEMES: { id: ThemeChoice; label: string }[] = [{ id: "system", label: "Sy
 
 const cap = (t: string) => t.charAt(0).toUpperCase() + t.slice(1);
 
-export function SettingsPanel() {
+/** Jali's settings. `children` are the host's own fieldsets, shown last. */
+export function SettingsPanel({ children }: { children?: ReactNode } = {}) {
   const store = useStore();
   const id = store.dom.id;
   const open = useUi((s) => s.settingsOpen);
@@ -73,10 +74,7 @@ export function SettingsPanel() {
           </fieldset>
         ) : null}
         <KeyboardList />
-        <fieldset>
-          <legend>Status line</legend>
-          <label className="jali-radio"><input type="checkbox" checked={settings.showStats} onChange={(e) => set({ showStats: e.target.checked })} /><span>Show fetch stats</span></label>
-        </fieldset>
+        {children}
       </div>
     </div>
   );

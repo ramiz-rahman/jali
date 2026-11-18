@@ -1,4 +1,4 @@
-import { memo, useMemo } from "react";
+import { memo, useEffect, useMemo } from "react";
 import type { NodeId, ObjectRef, PaneNode, Actions, PaneActivity, PaneCommand, UiStore } from "@jali/core/adapter";
 import { openPaneFor, keyHint } from "@jali/core/adapter";
 import type { PaneComponentProps, PaneKindDef } from "../define";
@@ -56,6 +56,9 @@ function WithSources({ def, props }: { def: PaneKindDef; props: Omit<PaneCompone
 export const PaneBody = memo(
   function PaneBody({ node, host, paused, focused, inPeek = false }: BodyProps) {
     const def = useEnv().kinds.get(node.ref.kind);
+    // Unsaved work belongs to the content: when it unmounts (the pane closes, or shows another kind), it is gone.
+    const kind = node.ref.kind;
+    useEffect(() => () => host.setUnsaved(null), [host, kind]);
     if (!def) {
       return (
         <div className="jali-pane-missing" role="alert">

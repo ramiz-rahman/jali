@@ -1,5 +1,5 @@
 /**
- * The UI store: state, one derived model, and apply(). Layout and view come from layout-core ops; actions are pure
+ * The UI store: state, one derived model, and apply(). Layout and view come from the layout ops (layout/); actions are pure
  * (actions/) and the store only commits them. Effects leave through sinks given at creation (URL, DOM focus) and
  * through `onToast` (toasts); announcements are state, so nothing said before the live region mounts is lost.
  */
@@ -12,7 +12,7 @@ import { apply, type Change, type Deferred, type HistoryMode, type Outcome, type
 import { modelCache, type WorkspaceModel } from "./model";
 import { loadSettings, systemPrefersDark, type Settings } from "./settings";
 import { loadPrefs, type PagePrefs } from "./page-prefs";
-import { presetById, type Env, type Preset, type ViewMode, type ProfileBase } from "../profile";
+import { presetById, type Env, type ItemId, type Preset, type ViewMode, type ProfileBase } from "../profile";
 import { browserStorage, type StoragePort } from "../ports";
 import { focusPane } from "../dom/focus";
 import { createKeymap, type Keymap, type KeymapOptions, type KeymapOverrides } from "../commands/keymap";
@@ -25,11 +25,11 @@ export interface ConfirmState { panes: NodeId[]; change: Change }
 /** A chooser dialog opened by a command (⌘K "Add to tabs of…"). */
 export interface ChooserState { kind: "merge"; source: NodeId }
 
-/** A curated page in use (ui/profile.ts): the item, the mode, the view Single shows, and what this person may do. */
+/** A curated page in use (profile.ts): the item, the mode, the view Single shows, and what this person may do. */
 export interface PageState {
   /** The profile's id: what a link names (`?page=loan-review`). */
   profile: string;
-  item: number;
+  item: ItemId;
   mode: ViewMode;
   /** The view Single mode shows (in Multiplexed, the last role focused). */
   tab: string;
@@ -58,7 +58,7 @@ export interface UiState {
   undoStack: UndoEntry[];
   activity: Record<NodeId, PaneActivity>;
   peekSource?: NodeId;
-  /** Each list pane's selected item; its following detail shows it (layout-core ops/follow.ts). */
+  /** Each list pane's selected item; its following detail shows it (layout/ops/follow.ts). */
   selection: Record<NodeId, Selection>;
   dnd: DndState | null;
   resizeMode: NodeId | null;
@@ -94,15 +94,18 @@ export interface UrlWriter {
 export interface UiStoreDeps {
   /** This workspace's pane kinds (createPaneKinds). */
   kinds: PaneKinds;
-  /** The curated page this workspace can show (ui/profile.ts). Default: none. */
+  /** The curated page this workspace can show (profile.ts). Default: none. */
   profile?: ProfileBase | null;
   /** Layouts to start from, in menu order (the bar and ⌘K "Layout: …"). Default: none. */
   presets?: readonly Preset[];
   /** The preset the workspace opens on, when no link or saved state says otherwise. Default: the first. A workspace
-   *  without presets passes `initial.layout` instead. */
+   *  without presets passes `initial.layout` instead, or a `profile` alone: it then starts on its page. */
   preset?: string;
   /** The free workspace's name ("Data Studio"), in commands such as "Open Data Studio". Default "Workspace". */
   name?: string;
+  /** The transient kind a split or a stack's "+" opens until the person chooses an object. Default "launcher". With
+   *  none registered (or `null`), split and "New tab" are refused rather than opening an unknown kind. */
+  launcher?: string | null;
   /** Where the workspace writes its address: usually `createUrlSync()`, which `boot` and `startUi` then also read
    *  from. Default: none (the address is left alone). */
   url?: UrlWriter;
@@ -198,14 +201,16 @@ export const savePaneState = (storage: StoragePort, state: UiState["paneState"])
 const DEV = !!(import.meta as unknown as { env?: { DEV?: boolean } }).env?.DEV;
 
 export function createUiStore(deps: UiStoreDeps): UiStore {
-  const env: Env = { kinds: deps.kinds, profile: deps.profile ?? null, presets: deps.presets ?? [], commands: deps.commands ?? [], name: deps.name ?? "Workspace" };
+  const env: Env = { kinds: deps.kinds, profile: deps.profile ?? null, presets: deps.presets ?? [], commands: deps.commands ?? [], name: deps.name ?? "Workspace", launcher: deps.launcher === undefined ? "launcher" : deps.launcher };
   const focusOf = deps.focusPane === undefined ? (typeof document === "undefined" ? null : focusPane) : deps.focusPane;
   const dom = createDom(deps.id ?? "jali");
   // The id is the prefix: two workspaces with their own ids never overwrite each other ("jali" stays "jali").
   const storage = deps.storage ?? browserStorage(deps.id ?? "jali");
   const start = presetById(env, deps.preset);
-  const layout = deps.initial?.layout ?? start?.build();
-  if (!layout) throw new Error("createUiStore: give `presets` or an `initial.layout` to start from");
+  // A page-only app (a profile, no presets or layout) starts on its page.
+  const pageOnly = !deps.initial?.layout && !start && !!env.profile;
+  const layout = deps.initial?.layout ?? start?.build() ?? env.profile?.build(env.profile.firstItem);
+  if (!layout) throw new Error("createUiStore: give `presets`, an `initial.layout` or a `profile` to start from");
   let state: UiState = {
     layout,
     page: null,
@@ -301,5 +306,6 @@ export function createUiStore(deps: UiStoreDeps): UiStore {
     unstable: deps.unstable ?? (DEV ? (op: string) => console.error(`Layout stability: "${op}" is a focus or swap op but moved panes`) : undefined),
   };
   store.actions = bindActions(store);
+  if (pageOnly && !deps.initial?.page) store.actions.openPage();
   return store;
 }

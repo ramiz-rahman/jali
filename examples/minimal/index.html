@@ -4,6 +4,9 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Jali: minimal</title>
+    <!-- The layer order, before any stylesheet: your resets (base) below Jali's styles, so Jali wins over them; your
+         own unlayered styles win over Jali. -->
+    <style>@layer base, jali;</style>
   </head>
   <body>
     <div id="root"></div>

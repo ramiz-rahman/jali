@@ -32,7 +32,7 @@ export function checkTuck(x: Snapshot, id?: NodeId): Refusal | undefined {
 }
 
 /**
- * Tuck: the pane becomes a tab of its home (see layout-core tuck). The home keeps its shown tab and absorbs the space;
+ * Tuck: the pane becomes a tab of its home (see layout/ops tuck). The home keeps its shown tab and absorbs the space;
  * nothing else moves or unfolds. Focus moves into the home. Undo (⌘K ⌘Z) puts it back.
  */
 export function tuck(x: Snapshot, id?: NodeId): Outcome {

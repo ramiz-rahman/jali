@@ -57,6 +57,11 @@ describe("validation", () => {
     const tree = layout({ id: "tabs", type: "stack", size: { px: 600 }, active: "a", origin: "user", children: [pane("a"), pane("b")] });
     expect(core.validate(tree, kinds)).toEqual({ ok: true });
   });
+  it("accepts a hand-written stack without `origin`, and round-trips it", () => {
+    const tree = layout({ id: "tabs", type: "stack", size: { weight: 1 }, active: "a", children: [pane("a"), pane("b")] });
+    expect(core.validate(tree, kinds)).toEqual({ ok: true });
+    expect(core.decode(core.encode(tree), kinds)).toEqual(tree);
+  });
   it.each([0, -1, NaN, Infinity, -Infinity])("rejects nonpositive or nonfinite size %s", value => {
     for (const size of [{ px: value }, { weight: value }]) {
       const tree = layout(pane("a", "small", { size }));

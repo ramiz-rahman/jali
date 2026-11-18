@@ -12,7 +12,7 @@
  *   (or `peek(null)` to close); ⌥↵ / ⌥-click call `openBeside(ref)`. The workspace keeps focus in the source pane
  *   after openBeside (founder decision 2) and makes an open peek, and a detail opened from the selection, follow
  *   `select` (actions/follow.ts). Report the selection before opening it, so the opened pane is linked to it.
- * - Data: read the shared DataLayer with `useDataLayer()` from `src/data/react`; never fetch outside the cache.
+ * - Data: your own. Jali never fetches: the component reads `ref.params` and loads the object itself.
  * - Keys: content first (commands/keyboard.ts). The pane layer listens on window in the bubble phase and leaves
  *   alone any key the content claimed with `event.preventDefault()`. Claim the keys you use (J/K, Space, Enter,
  *   ⌘Z for your own undo, the first Esc); let the rest bubble. Character keys must only act while your content has
@@ -22,13 +22,13 @@
  *   saved. Closing the pane, closing others, a preset or showing another object in it then asks the person first;
  *   a following detail keeps its object. Moving, tabbing, folding and tucking never ask: the content stays mounted.
  * - State the person expects back (a draft, a sort, a scroll position): `usePaneState(key, initial)` from
- *   ui/pane/usePaneState. The workspace keeps it through folds and reloads and drops it when the pane closes or
+ *   @jali/react. The workspace keeps it through folds and reloads and drops it when the pane closes or
  *   shows another object. JSON values only.
  * - Commands: `setCommands([...])` in an effect lists them in ⌘K, first, while the pane is focused. Call it again
  *   when they change and with `null` on unmount.
  */
 import type { ComponentType, ReactNode } from "react";
-import type { ObjectRef, PaneNode, PaneActivity, PaneCommand, PaneKindBase, PaneKinds, Env, ProfileBase, RoleBase } from "@jali/core/adapter";
+import type { ObjectRef, PaneNode, PaneActivity, PaneCommand, PaneKindBase, PaneKinds, Env, ItemId, ProfileBase, RoleBase } from "@jali/core/adapter";
 
 export interface PaneComponentProps {
   /** The layout node. In the peek sheet this is a node that is not in the layout. */
@@ -87,10 +87,11 @@ export interface RoleDef extends RoleBase {
 }
 
 /** A curated page (profile.ts), with the list beside it and the header above its tabs. */
-export interface WorkspaceProfile extends ProfileBase<RoleDef> {
-  /** The list of items at the left (the queue) and the item's header above the tabs. */
-  Rail: ComponentType<{ item: number; activate: (item: number) => void }>;
-  Header: ComponentType<{ item: number }>;
+export interface WorkspaceProfile<I extends ItemId = any> extends ProfileBase<RoleDef, I> {
+  /** The list of items at the left (the queue) and the item's header above the tabs. `I` is the item id's type
+   *  (`number` or `string`), as in `firstItem`. */
+  Rail: ComponentType<{ item: I; activate: (item: I) => void }>;
+  Header: ComponentType<{ item: I }>;
 }
 
 /** The env as a React workspace sees it: its kinds have components, its profile has a rail and header. */

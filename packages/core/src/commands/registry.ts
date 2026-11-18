@@ -11,7 +11,7 @@ import { checkPeek } from "../actions/peek";
 import { checkPutBack, checkTuck } from "../actions/tuck";
 import { checkMerge, checkUnmerge } from "../actions/tabs";
 import { activeTabId, focusShelfChip } from "../dom/focus";
-import { viewerLabel, type Env } from "../profile";
+import { launcherRef, viewerLabel, type Env } from "../profile";
 import { refuse, type Refusal, type Snapshot } from "../state/apply";
 import { msg } from "../state/messages";
 import type { UiStore } from "../state/store";
@@ -28,6 +28,7 @@ export interface Command {
 }
 
 const needFocus = ({ s }: Snapshot) => (s.view.focused ? undefined : refuse());
+const needLauncher = (x: Snapshot) => needFocus(x) ?? (launcherRef(x.m.env) ? undefined : refuse());
 const needOthers = (x: Snapshot) => needFocus(x) ?? (x.m.panes.length > 1 ? undefined : refuse());
 const DIRS: [Edge, string][] = [["left", "left"], ["right", "right"], ["top", "up"], ["bottom", "down"]];
 
@@ -51,11 +52,11 @@ function buildCommands(env: Env): Command[] {
   { id: "pane.resize_mode", title: "Resize mode (arrows, then Esc)", group: "Pane", check: needFocus, run: (u) => u.actions.enterResizeMode() },
   { id: "pane.close", title: "Close pane", group: "Pane", check: needOthers, run: (u) => u.actions.close() },
   { id: "pane.close_others", title: "Close other panes", group: "Pane", check: needOthers, run: (u) => u.actions.closeOthers() },
-  { id: "pane.undo_close", title: "Restore last closed pane", group: "Pane", check: checkUndo, run: (u) => u.actions.undo() },
+  { id: "pane.undo_close", title: "Undo last close or tuck", group: "Pane", check: checkUndo, run: (u) => u.actions.undo() },
   // Splits open a launcher (a "New pane" to choose an object in), never a copy of the focused object.
-  { id: "pane.split.right", title: "Split right (new pane)", group: "Pane", check: needFocus, run: (u) => u.actions.split("right") },
-  { id: "pane.split.down", title: "Split down (new pane)", group: "Pane", check: needFocus, run: (u) => u.actions.split("bottom") },
-  { id: "pane.split.auto", title: "Split auto (new pane, by shape)", group: "Pane", check: needFocus, run: (u) => u.actions.splitAuto() },
+  { id: "pane.split.right", title: "Split right (new pane)", group: "Pane", check: needLauncher, run: (u) => u.actions.split("right") },
+  { id: "pane.split.down", title: "Split down (new pane)", group: "Pane", check: needLauncher, run: (u) => u.actions.split("bottom") },
+  { id: "pane.split.auto", title: "Split auto (new pane, by shape)", group: "Pane", check: needLauncher, run: (u) => u.actions.splitAuto() },
 
   ...DIRS.map(([d, w]): Command => ({ id: `pane.move.${w}`, title: `Move pane ${w}`, group: "Move", check: needOthers, run: (u) => u.actions.moveDirection(d) })),
   { id: "pane.swap", title: "Swap with next pane", group: "Move", check: needOthers, run: (u) => u.actions.swapWithNext() },
@@ -63,7 +64,7 @@ function buildCommands(env: Env): Command[] {
   // Merge and unmerge without dragging (WCAG 2.5.7).
   { id: "pane.merge", title: "Add to tabs of…", group: "Tabs", check: checkMerge, run: (u) => u.set({ chooser: { kind: "merge", source: u.get().view.focused! } }) },
   { id: "pane.unmerge", title: "Move out of tabs", group: "Tabs", check: checkUnmerge, run: (u) => u.actions.unmerge() },
-  { id: "stack.new-tab", title: "New tab here", group: "Tabs", check: needFocus, run: (u) => u.actions.newTab() },
+  { id: "stack.new-tab", title: "New tab here", group: "Tabs", check: needLauncher, run: (u) => u.actions.newTab() },
 
   ...env.presets.map((p): Command => ({ id: `layout.preset.${p.id}`, title: `Layout: ${p.label}`, group: "Layout", run: (u) => u.actions.preset(p.id) })),
   { id: "layout.reset", title: "Reset layout", group: "Layout", check: () => (env.presets.length ? undefined : refuse()), run: (u) => u.actions.resetLayout() },
@@ -73,7 +74,7 @@ function buildCommands(env: Env): Command[] {
   { id: "page.single", title: "Single: one view at a time", group: "Layout", check: ({ s }) => (s.page?.mode === "multi" ? undefined : refuse()), run: (u) => u.actions.setMode("single") },
   { id: "page.multi", title: "Multiplexed: views side by side", group: "Layout", check: ({ s }) => (s.page?.mode === "single" && s.page.canInvestigate ? undefined : refuse()), run: (u) => u.actions.setMode("multi") },
   { id: "page.open", title: `Open ${profile?.name ?? "page"}`, group: "Layout", check: ({ s }) => (s.page || !profile ? refuse() : undefined), run: (u) => u.actions.openPage() },
-  { id: "page.leave", title: `Open ${env.name}`, group: "Layout", check: ({ s }) => (s.page ? undefined : refuse()), run: (u) => u.actions.leavePage() },
+  { id: "page.leave", title: `Open ${env.name}`, group: "Layout", check: ({ s }) => (s.page && env.presets.length ? undefined : refuse()), run: (u) => u.actions.leavePage() },
   { id: "page.as_limited", title: `View as ${limited} (Single only, links peek)`, group: "Settings", check: ({ s }) => (s.page?.canInvestigate ? undefined : refuse()), run: (u) => u.actions.setCanInvestigate(false) },
   { id: "page.as_full", title: `View as ${full} (links open beside)`, group: "Settings", check: ({ s }) => (s.page && !s.page.canInvestigate ? undefined : refuse()), run: (u) => u.actions.setCanInvestigate(true) },
 

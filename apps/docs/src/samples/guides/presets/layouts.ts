@@ -11,7 +11,7 @@ const column = (id: string, children: LayoutNode[], size: Size = { weight: 1 }):
   id, type: "column", size, children,
 });
 const tabs = (id: string, children: PaneNode[], active = children[0]!.id): StackNode => ({
-  id, type: "stack", size: { weight: 1 }, children, active, origin: "user",
+  id, type: "stack", size: { weight: 1 }, children, active,
 });
 
 const orders: ObjectRef = { kind: "orders", params: {} };

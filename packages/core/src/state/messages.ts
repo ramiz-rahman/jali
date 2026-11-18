@@ -1,6 +1,6 @@
 /**
  * Every sentence the workspace says: live-region announcements, refusals, toasts and drop outcomes. Logic passes
- * titles in; nothing else in src/ui writes announcement English.
+ * titles in; nothing else in @jali/core writes announcement English.
  */
 import type { Edge } from "../layout/types";
 
@@ -21,7 +21,9 @@ export const msg = {
       ? `New pane opened as a tab: not enough room beside ${source}. Choose what to show`
       : `New pane ${dir === "right" ? "right of" : "below"} ${source}. Choose what to show`,
   alreadyOpen: (t: string) => `Already open: focused ${t}`,
+  alreadyOpenBeside: (t: string) => `Already open: ${t}`,
   opened: (t: string) => `${t} opened`,
+  noLauncher: "This workspace has no launcher kind to open a new pane with",
   newTab: (source: string) => `New tab beside ${source}. Choose what to show`,
   launcherClosed: (focus: string) => `New pane closed. Focus is on ${focus}`,
   openedFull: (t: string) => `${t} opened full`,
@@ -92,7 +94,7 @@ export const msg = {
   modeMulti: "Multiplexed: drag tabs into the layout to see views side by side",
   viewing: (t: string) => `Showing ${t}`,
   pageReset: "Layout reset to its design",
-  activated: (noun: string, id: number, dropped: number) => `Showing ${noun} ${id}${dropped ? ` · ${dropped} opened ${dropped === 1 ? "pane" : "panes"} closed` : ""}`,
+  activated: (noun: string, id: string | number, dropped: number) => `Showing ${noun} ${id}${dropped ? ` · ${dropped} opened ${dropped === 1 ? "pane" : "panes"} closed` : ""}`,
   roleHidden: (t: string) => `${t} closed · it's still in the tabs`,
   roleShown: (t: string) => `${t} on screen`,
   lastView: (t: string) => `${t} is the only view on screen`,

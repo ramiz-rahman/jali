@@ -8,6 +8,7 @@
 export type {
   Axis, Edge, Size, NodeId, ObjectRef, Layout, LayoutNode, PaneNode, SplitNode, StackNode, Overlay, ViewState,
   PaneKind, KindRegistry, LayoutContext, FitOptions, Rect, ResolvedLayout, PaneBox, DividerBox,
+  ResolvedStack, ShelfEntry, UndoEntry,
 } from "./layout/types";
 export * as layout from "./layout";
 export { sameRef } from "./actions/follow";
@@ -16,17 +17,20 @@ export { sameRef } from "./actions/follow";
 export { createPaneKinds, type PaneKindBase, type PaneKinds, type PaneCommand, type PaneActivity } from "./pane-kinds";
 export {
   titleOf, roleOf, presetById, viewerLabel,
-  type ProfileBase, type RoleBase, type ViewMode, type Preset, type Env,
+  type ProfileBase, type RoleBase, type ViewMode, type Preset, type Env, type ItemId,
 } from "./profile";
 
 // ---------- the workspace store ----------
 export {
   createUiStore,
   type UiStore, type UiStoreDeps, type UiState, type PageState, type Selection, type WorkspaceDom, type UrlWriter,
+  type DndState, type ConfirmState, type ChooserState,
 } from "./state/store";
 export type { Actions } from "./actions";
-export type { WorkspaceModel } from "./state/model";
-export type { Snapshot, Outcome, Toast, HistoryMode, Refusal } from "./state/apply";
+export type { OpenPage } from "./actions/page";
+export type { PagePrefs } from "./state/page-prefs";
+export type { WorkspaceModel, Group } from "./state/model";
+export type { Snapshot, Outcome, Change, Toast, HistoryMode, Refusal } from "./state/apply";
 export { DEFAULT_SETTINGS, resolveTheme, type Settings, type ThemeChoice, type Theme } from "./state/settings";
 export { boot, startUi, type StartUiOptions } from "./boot";
 
@@ -44,7 +48,7 @@ export {
   type Keymap, type KeymapOverrides, type KeymapOptions, type DefaultKeymapId, type KeyString,
 } from "./commands/keymap";
 export { installKeyboard, type KeyboardScope } from "./commands/keyboard";
-export { formatKeys, formatChord, keyHint, altClick, detectPlatform, type Platform } from "./commands/format";
+export { formatKeys, formatChord, keyHint, altClick, detectPlatform, type Platform, type Chord, type KeySequence } from "./commands/format";
 
 // ---------- DOM ----------
 export { focusPane } from "./dom/focus";

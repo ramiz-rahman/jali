@@ -40,7 +40,6 @@ export function QueryPane({ ref, paused, focused, openBeside, setActivity, setUn
   // An edit that has not run is work the person would lose by closing the pane.
   const edited = sql.trim() !== ran.trim();
   useEffect(() => { setUnsaved(edited ? "an edited query that has not run" : null); }, [setUnsaved, edited]);
-  useEffect(() => () => setUnsaved(null), [setUnsaved]);
 
   // ⌘K lists what this pane can do while it is focused.
   const latest = useRef({ exec, handle });

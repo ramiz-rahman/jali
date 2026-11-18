@@ -7,15 +7,14 @@ import note from "../../samples/guides/unsaved/note-editor.tsx?raw";
 
 A pane that holds work needs three things from the workspace. It should ask before the work is lost. It should keep the draft, the sort and the scroll position when the pane folds or moves, or the page reloads. And it should list what the pane can do in ⌘K. This guide does all three for a note on a support ticket.
 
-<Code code={note} filename="src/panes/ticket-note.tsx" highlight="13-19,27-40" />
+<Code code={note} filename="src/panes/ticket-note.tsx" highlight="13-18,26-39" />
 
 ## Report unsaved work
 
-Call `setUnsaved(what)` with a few words about the work, and `setUnsaved(null)` once it is saved or gone.
+Call `setUnsaved(what)` with a few words about the work, and `setUnsaved(null)` once it is saved. When the pane's content unmounts (the pane closes, or shows another kind), Jali clears it for you.
 
 ```tsx
 useEffect(() => { setUnsaved(edited ? "an unsaved note" : null); }, [setUnsaved, edited]);
-useEffect(() => () => setUnsaved(null), [setUnsaved]);
 ```
 
 While a pane has unsaved work, any change that would remove it or show another object in it is held, and the person is asked: "Discard unsaved changes?". The dialog names each pane and the words you gave. **Keep editing** is focused, and Esc or a click outside keeps the work. **Discard** makes the held change exactly as it was asked for.

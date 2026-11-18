@@ -45,7 +45,7 @@ The usual row keys are J/K or the arrows to select, Space to `peek(ref)`, and ‚å
 
 ### 5. Report unsaved work
 
-If closing the pane would lose something the person typed, report it with `setUnsaved("a short description")`, and `setUnsaved(null)` once it is saved or gone. While it is set, closing the pane, closing others, a preset, Back and Forward, or showing another object in the pane asks the person first. Leaving the page triggers the browser's own prompt.
+If closing the pane would lose something the person typed, report it with `setUnsaved("a short description")`, and `setUnsaved(null)` once it is saved. Jali clears it when the pane closes. While it is set, closing the pane, closing others, a preset, Back and Forward, or showing another object in the pane asks the person first. Leaving the page triggers the browser's own prompt.
 
 Don't build your own "are you sure" for these. Moving, tabbing, folding and tucking never ask, because the content stays mounted.
 
@@ -53,7 +53,7 @@ Don't build your own "are you sure" for these. Moving, tabbing, folding and tuck
 
 A draft, a sort, a scroll position: keep these with `usePaneState(key, initial)` instead of `useState`. The workspace keeps the value through folds, tabs, tucks and reloads, and drops it when the pane closes for good or shows another object. Values must be JSON. Use React state for everything else.
 
-<Code code={editor} filename="note-editor.tsx" highlight="10,15-16,21-24" />
+<Code code={editor} filename="note-editor.tsx" highlight="10,15,20-23" />
 
 ### 7. Add commands with `setCommands`
 

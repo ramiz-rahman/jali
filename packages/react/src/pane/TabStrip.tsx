@@ -1,18 +1,27 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { FoldHorizontal, Plus, Undo2, X } from "lucide-react";
 import type { NodeId, PaneNode, Frame, Tab } from "@jali/core/adapter";
-import { shortcutLabel, paneDomId, paneTitleId, roleOf, titleOf, startPaneDrag, FOLDED_DESC, FOLDED_TIP, TUCKED_DESC } from "@jali/core/adapter";
+import { launcherRef, shortcutLabel, paneDomId, paneTitleId, roleOf, titleOf, startPaneDrag, FOLDED_DESC, FOLDED_TIP, TUCKED_DESC } from "@jali/core/adapter";
 import { useEnv, useStore, useUi } from "../state/react";
 import { Activity } from "./Activity";
 import { KindIcon } from "./icons";
 import { TabOverflow } from "./TabOverflow";
 
-/** Keep the active tab visible by scrolling only the tab strip (scrollIntoView would also move the workspace). */
+/** The edge fade's width (pane.css): a revealed tab clears it, unless it is at the strip's end. */
+const FADE = 24;
+
+/**
+ * Keep the active tab visible by scrolling only the tab strip (scrollIntoView would also move the workspace). Measured
+ * against the strip itself (a tab's offsetLeft is from the header). A tab wider than the strip shows its start.
+ */
 function revealTab(el: HTMLDivElement | null) {
   const strip = el?.parentElement;
   if (!el || !strip) return;
-  if (el.offsetLeft < strip.scrollLeft) strip.scrollLeft = el.offsetLeft;
-  else if (el.offsetLeft + el.offsetWidth > strip.scrollLeft + strip.clientWidth) strip.scrollLeft = el.offsetLeft + el.offsetWidth - strip.clientWidth;
+  const left = el.getBoundingClientRect().left - strip.getBoundingClientRect().left + strip.scrollLeft;
+  const right = left + el.offsetWidth;
+  const view = strip.clientWidth;
+  if (left < strip.scrollLeft + (strip.scrollLeft > 0 ? FADE : 0) || right - left > view) strip.scrollLeft = Math.max(0, left - FADE);
+  else if (right > strip.scrollLeft + view) strip.scrollLeft = right - view + FADE;
 }
 
 function TabActivity({ id }: { id: NodeId }) {
@@ -25,6 +34,8 @@ export function TabStrip({ group, owner }: { group: NonNullable<Frame["group"]>;
   const { actions } = store;
   // A curated page: no "+" (its views come from the page's tabs).
   const page = useUi((s) => !!s.page);
+  // No launcher kind, no "+": there is nothing to open in the new tab.
+  const canAdd = !!launcherRef(useEnv()) && !page;
   // A curated page's views live in the page tabs, so a pane's strip lists a page view only while it is shown: never a
   // repeat. The exception is a group of page views, which only a centre drop ("Add as tab") makes: you asked for
   // those tabs, so it lists each view you put there (not ones the layout folded in).
@@ -85,6 +96,8 @@ export function TabStrip({ group, owner }: { group: NonNullable<Frame["group"]>;
           startPaneDrag(store, e, t.id);
         }}
         onClick={() => actions.setActiveTab(group.id, t.id)}
+        // Focus scrolls the strip by the browser's rule (a tab wider than the strip shows its end); put it right.
+        onFocus={(e) => revealTab(e.currentTarget)}
         onKeyDown={(e) => {
           if (e.key === "Enter" || e.key === " ") {
             e.preventDefault();
@@ -116,7 +129,7 @@ export function TabStrip({ group, owner }: { group: NonNullable<Frame["group"]>;
         {folded.map(renderTab)}
       </div>
       {overflowing ? <TabOverflow tabs={[...mine, ...folded]} active={group.active} hiddenCount={hiddenCount} onChoose={(id) => actions.setActiveTab(group.id, id)} /> : null}
-      {page ? null : <button
+      {canAdd ? <button
         className="jali-tab-add"
         aria-label="New tab in this stack"
         title="New tab"
@@ -126,7 +139,7 @@ export function TabStrip({ group, owner }: { group: NonNullable<Frame["group"]>;
         }}
       >
         <Plus size={14} strokeWidth={1.5} aria-hidden />
-      </button>}
+      </button> : null}
     </div>
   );
 }

@@ -35,7 +35,7 @@ export function validate(layout: Layout, kinds: KindRegistry): { ok: true } | { 
     if (!["row", "column", "stack"].includes(value.type as string)) { error(path, "unknown node type"); return; }
     if (!Array.isArray(value.children) || !value.children.length) { error(path, "children must be non-empty"); return; }
     if (value.type === "stack") {
-      if (value.origin !== "user") error(path, "invalid stack origin");
+      if (value.origin !== undefined && value.origin !== "user") error(path, "invalid stack origin");
       if (typeof value.active !== "string" || !value.children.some(c => record(c) && c.id === value.active)) error(path, "active tab is not a child");
       if (value.axis !== undefined) error(path, "unsupported restore axis");
     }

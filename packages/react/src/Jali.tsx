@@ -8,6 +8,9 @@
  *     <MyTopBar />
  *     <JaliView />
  *   </Jali>
+ *
+ * Two things are the host's to render: the shelf (`<Shelf />`, tucked and folded panes as chips, usually in a status
+ * line) and toasts (`store.onToast`; closes and tucks offer Undo). Put a toaster in `overlays`.
  */
 import type { HTMLAttributes, ReactNode } from "react";
 import type { UiStore } from "@jali/core/adapter";
@@ -28,9 +31,11 @@ export interface JaliProps extends HTMLAttributes<HTMLDivElement> {
   overlays?: ReactNode;
   /** Leave out the settings panel (open it with `store.set({ settingsOpen: true })` otherwise). Default true. */
   settings?: boolean;
+  /** Your own fieldsets, shown at the end of the settings panel (`<fieldset><legend>…</legend>…</fieldset>`). */
+  settingsExtra?: ReactNode;
 }
 
-export function Jali({ store, children, overlays, settings = true, ...rest }: JaliProps) {
+export function Jali({ store, children, overlays, settings = true, settingsExtra, ...rest }: JaliProps) {
   return (
     <StoreProvider store={store}>
       <div {...rest} data-jali="" ref={store.dom.attach}>{children}</div>
@@ -38,7 +43,7 @@ export function Jali({ store, children, overlays, settings = true, ...rest }: Ja
       <div data-jali-layer="" ref={store.dom.attachLayer} style={{ display: "contents" }}>
         <Announcer />
         <Palette />
-        {settings ? <SettingsPanel /> : null}
+        {settings ? <SettingsPanel>{settingsExtra}</SettingsPanel> : null}
         <Chooser />
         <ConfirmDiscard />
       </div>

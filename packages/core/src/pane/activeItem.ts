@@ -3,7 +3,7 @@
  * current item through this port, and the workspace does what it does for `select` and `peek`, so the list's
  * following detail follows it, Space shows it, and an open sheet steps with it.
  *
- * In React, `useActiveItemPort` (ui/pane/useActiveItemPort.ts) makes one for the pane it renders in:
+ * In React, `useActiveItemPort` (@jali/react, pane/useActiveItemPort.ts) makes one for the pane it renders in:
  *
  *   const port = useActiveItemPort({ toRef: (id) => ({ kind: "record", params: { table: "orders", id: Number(id) } }),
  *                                    idOf: (ref) => String(ref.params.id) });

@@ -22,8 +22,19 @@ export interface RoleBase {
 
 export type ViewMode = "single" | "multi";
 
+/** A curated page's item id: a number (`4`) or a string (a UUID, a slug). A link carries it as text; a profile whose
+ *  `firstItem` is a number gets numbers back. */
+export type ItemId = string | number;
+
+/** An item id from a link or a caller, in the type the profile uses (`"4"` becomes `4` when `firstItem` is a number). */
+export function asItem(id: ItemId, first: ItemId): ItemId {
+  if (typeof first !== "number" || typeof id === "number") return id;
+  const n = Number(id);
+  return id.trim() !== "" && Number.isFinite(n) ? n : id;
+}
+
 /** A curated page, framework-free. Adapters add its rail and header (@jali/react: WorkspaceProfile). */
-export interface ProfileBase<R extends RoleBase = RoleBase> {
+export interface ProfileBase<R extends RoleBase = RoleBase, I extends ItemId = ItemId> {
   id: string;
   name: string;
   /** Singular noun for the active item ("application"). */
@@ -36,13 +47,14 @@ export interface ProfileBase<R extends RoleBase = RoleBase> {
   /** The view Single mode opens on. */
   home: string;
   /** Multiplexed mode's designed starting layout: every role is in the tree; those not shown are hidden. */
-  build(item: number): Layout;
+  build(item: I): Layout;
   /** What each role shows for an item; another item swaps these in place. */
-  bind(item: number): Record<string, ObjectRef>;
-  firstItem: number;
+  bind(item: I): Record<string, ObjectRef>;
+  /** The item the page opens on. Its type (number or string) is the type of every item id the page is given. */
+  firstItem: I;
 }
 
-export const roleOf = <R extends RoleBase>(p: ProfileBase<R>, id: string | undefined): R | undefined => p.roles.find((r) => r.id === id);
+export const roleOf = <R extends RoleBase>(p: ProfileBase<R, any>, id: string | undefined): R | undefined => p.roles.find((r) => r.id === id);
 
 /** A pane's name: its role in a curated page ("Borrower"), else what it shows ("member 12"). */
 export function titleOf(env: Env, node: PaneNode): string {
@@ -60,7 +72,7 @@ export interface Preset {
 /** What a workspace is made of, beyond its state: its pane kinds, presets and (a curated page) its profile. One per store. */
 export interface Env {
   kinds: PaneKinds;
-  /** The curated page this workspace can show (`?app=review`); null for a workspace with none. */
+  /** The curated page this workspace can show (`?page=<id>`); null for a workspace with none. */
   profile: ProfileBase | null;
   /** Layouts to start from, in menu order. May be empty. */
   presets: readonly Preset[];
@@ -68,6 +80,15 @@ export interface Env {
   commands?: readonly Command[];
   /** The free workspace's name, where the person builds the layout ("Data Studio"). Default "Workspace". */
   name: string;
+  /** The kind a split or a stack's "+" opens until the person chooses (a transient kind). Default "launcher"; null,
+   *  or a kind that is not registered, and split and "New tab" are refused. */
+  launcher?: string | null;
+}
+
+/** The launcher ref this workspace's splits open, or undefined when it has no launcher kind. */
+export function launcherRef(env: Pick<Env, "kinds" | "launcher">): import("./layout/types").ObjectRef | undefined {
+  const kind = env.launcher === undefined ? "launcher" : env.launcher;
+  return kind && env.kinds.get(kind) ? { kind, params: {} } : undefined;
 }
 
 export const presetById = (env: Pick<Env, "presets">, id: string | undefined): Preset | undefined =>

@@ -67,7 +67,7 @@ function shownTabs(layout: Layout, view: ViewState, current: string[], newlyFold
 }
 
 export function fitLayout(layout: Layout, view: ViewState, ctx: LayoutContext, policy: FitPolicy = {}): Layout {
-  checkContext(ctx);
+  ctx = checkContext(ctx);
   const o = overlayOf(layout);
   const replayed = replay(layout, o.folds, ctx.fit).applied;
   const prefix = policy.mode === "fold" ? replayed : unfoldPrefix(layout, replayed, ctx);
