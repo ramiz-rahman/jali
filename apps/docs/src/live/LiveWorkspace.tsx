@@ -50,8 +50,8 @@ function LiveStatus() {
 
 export interface LiveWorkspaceProps {
   store: UiStore;
-  /** Height of the whole workspace (panes and status line), px. */
-  height: number;
+  /** Height of the whole workspace (panes and status line): px, or a CSS length. */
+  height: number | string;
   /** Drawn over the workspace, inside its box (hover rings, the spotlight). */
   overlay?: ReactNode;
   wrapRef?: Ref<HTMLDivElement>;

@@ -93,7 +93,9 @@
   border: 1px solid var(--jali-border); border-radius: var(--live-radius); background: var(--jali-surface); overflow: hidden;
 }
 .live-tv .live-stage { position: relative; min-width: 0; }
-.live-panel { display: flex; flex-direction: column; min-width: 0; border-top: 1px solid var(--jali-border); background: var(--jali-surface); }
+.live-panel { display: flex; flex-direction: column; min-width: 0; min-height: 0; border-top: 1px solid var(--jali-border); background: var(--jali-surface); }
+.live-panels { display: flex; flex-direction: column; min-width: 0; min-height: 0; }
+.live-panels > .live-panel { flex: 1 1 0; }
 .live-panel-head {
   flex: none; display: flex; align-items: center; justify-content: space-between; gap: 0.75rem;
   min-height: 3rem; padding: 0.375rem 0.5rem 0.375rem 1rem; border-bottom: 1px solid var(--jali-border);
@@ -110,15 +112,20 @@
 .live-toggle[aria-pressed="true"] { background: var(--jali-accent-weak); border-color: var(--jali-accent-mid); color: var(--jali-accent); }
 .live-toggle:focus-visible { outline: 2px solid var(--jali-focus-ring); outline-offset: 1px; }
 .live-panel-body { flex: 1; display: flex; flex-direction: column; gap: 0.875rem; min-height: 0; padding: 1rem; overflow: auto; }
-.live-panel-body .live-json { margin: -1rem; max-height: 26rem; }
+.live-panel-body.is-json { padding: 0; overflow: hidden; }
+.live-panel-body.is-json .live-json { flex: 1; min-height: 0; max-height: 28rem; }
+/* Beside the workspace: the panels are as tall as it, and grow with the figure. */
 @container live-fig (min-width: 56rem) {
-  .live-tv-grid { grid-template-columns: minmax(0, 1fr) minmax(18.5rem, 33%); }
-  .live-panel { border-top: 0; border-left: 1px solid var(--jali-border); max-height: var(--live-ws-h); }
-  .live-panel-body .live-json { max-height: none; }
+  .live-tv-grid { grid-template-columns: minmax(0, 2fr) minmax(18.5rem, 1fr); grid-template-rows: var(--live-ws-h); }
+  .live-tv[data-parts="3"] .live-tv-grid { grid-template-columns: minmax(0, 2.2fr) minmax(18rem, 1fr) minmax(20rem, 1.05fr); }
+  .live-tv-grid > .live-panel, .live-panels { border-top: 0; border-left: 1px solid var(--jali-border); }
+  .live-panels > .live-panel + .live-panel { border-top: 1px solid var(--jali-border); }
+  .live-panels > .live-panel { border-top: 0; }
+  .live-panel-body.is-json .live-json { max-height: none; }
 }
 
 /* The map. Every box is a node of the tree; nesting is the tree's nesting. */
-.live-map { flex: 1; display: flex; min-height: min(18rem, var(--live-ws-h)); font-size: 0.875rem; }
+.live-map { flex: 1; display: flex; min-height: min(18rem, 60vh); font-size: 0.875rem; }
 .live-map > * { flex: 1; }
 .live-map [data-node] { outline: none; }
 .live-map-split {
@@ -182,7 +189,7 @@
 /* A faint sketch of what the pane shows, so a box reads as a pane: rows for a list, a heading and lines for a record. */
 .live-map-sketch {
   --ink: color-mix(in srgb, var(--jali-text) 9%, transparent);
-  flex: 1; min-height: 1.5rem; margin-top: 0.5rem; border-radius: 0.25rem;
+  flex: 1; min-height: 1.5rem; max-height: 13rem; margin-top: 0.5rem; border-radius: 0.25rem;
   background:
     linear-gradient(var(--ink), var(--ink)) 0 0 / 70% 0.375rem no-repeat,
     repeating-linear-gradient(to bottom, var(--ink) 0 0.375rem, transparent 0.375rem 1rem) 0 1.125rem / 100% calc(100% - 1.125rem) no-repeat;
@@ -223,7 +230,7 @@
 /* JSON: the same layout as stored; a node under the pointer is marked, as in the tree. */
 .live-json {
   margin: 0; padding: 0.75rem 0.875rem 0.875rem; overflow: auto; outline: none; background: none; border: 0;
-  font: 0.75rem/1.6 var(--jali-font-mono); color: var(--jali-text-subtle); white-space: pre; tab-size: 2;
+  font: 0.8125rem/1.6 var(--jali-font-mono); color: var(--jali-text-subtle); white-space: pre; tab-size: 2;
 }
 .live-json:focus-visible { box-shadow: inset 0 0 0 2px var(--jali-focus-ring); }
 .live-json code { font: inherit; background: none; padding: 0; color: inherit; }
@@ -231,7 +238,11 @@
 .live-json .j-str { color: var(--jali-accent); }
 .live-json .j-num { color: var(--jali-text); font-weight: 500; }
 .live-json .j-bool { color: var(--jali-text-muted); font-style: italic; }
-.live-json .j-node[data-lit] { background: var(--jali-accent-weak); box-shadow: -2px 0 0 var(--jali-accent); border-radius: 2px; }
+.live-json { position: relative; scrollbar-width: thin; }
+.live-json .j-line[data-changed] { animation: live-json-flash 1.8s cubic-bezier(0.2, 0, 0, 1); border-radius: 3px; -webkit-box-decoration-break: clone; box-decoration-break: clone; }
+@keyframes live-json-flash { 0%, 25% { background: var(--jali-accent-mid); } 100% { background: transparent; } }
+@media (prefers-reduced-motion: reduce) { .live-json .j-line[data-changed] { animation: none; } }
+.live-json .j-node[data-lit] { background: color-mix(in srgb, var(--c) 10%, transparent); box-shadow: -3px 0 0 var(--c); border-radius: 2px; -webkit-box-decoration-break: clone; box-decoration-break: clone; }
 
 /* ---------- Frame: a workspace the reader narrows by its edge ---------- */
 .live-frame-bar { display: flex; align-items: center; gap: 0.875rem; min-height: 2rem; margin-bottom: 0.5rem; }
@@ -395,4 +406,10 @@ body.live-frame-resizing, body.live-frame-resizing * { cursor: ew-resize !import
 @layer live {
 /* Lit from the map: the pane rings in its own colour, the same as its box. */
 .live-ws .jali-pane[data-live-lit][data-live-id] { border-color: var(--live-id); box-shadow: 0 0 0 1px var(--live-id), 0 0 0 5px color-mix(in srgb, var(--live-id) 24%, transparent); }
+}
+@layer live {
+@container live-panel (max-width: 24rem) {
+  .live-panel-head { flex-wrap: wrap; row-gap: 0.25rem; padding-top: 0.5rem; padding-bottom: 0.5rem; }
+  .live-panel-tools { margin-left: auto; }
+}
 }
