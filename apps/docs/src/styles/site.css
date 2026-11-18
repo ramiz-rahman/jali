@@ -1,8 +1,24 @@
-/* The docs' own styles. STUB: the shell agent owns this file (and adds more under src/styles). */
-@layer docs-base {
-  html, body { margin: 0; }
-  body { font-family: system-ui, sans-serif; background: var(--jali-canvas); color: var(--jali-text); }
-}
-@layer docs {
-  .docs-page { max-width: 44rem; margin: 0 auto; padding: 2rem 1rem; }
-}
+/*
+ * The docs' styles. The layer order (docs-base, jali, docs) is declared in index.html: resets first, then Jali's
+ * own styles, then the site's. Every rule here sits in one of those layers.
+ *
+ * The palette is Jali's: the site sets the public --jali-* tokens to Jali's stone and Nil (docs/brand/README.md),
+ * so the pages and the live workspaces inside them read one set of colours, light and dark.
+ */
+@import "@fontsource/atkinson-hyperlegible-next/latin-400.css";
+@import "@fontsource/atkinson-hyperlegible-next/latin-500.css";
+@import "@fontsource/atkinson-hyperlegible-next/latin-600.css";
+@import "@fontsource/ibm-plex-sans/latin-400.css";
+@import "@fontsource/ibm-plex-sans/latin-400-italic.css";
+@import "@fontsource/ibm-plex-sans/latin-500.css";
+@import "@fontsource/ibm-plex-sans/latin-600.css";
+@import "@fontsource/ibm-plex-mono/latin-400.css";
+@import "@fontsource/ibm-plex-mono/latin-500.css";
+
+@import "./tokens.css";
+@import "./base.css";
+@import "./layout.css";
+@import "./prose.css";
+@import "./code.css";
+@import "./components.css";
+@import "./home.css";

@@ -1,0 +1,120 @@
+/* The home page: the opening with the lattice behind it, then bands with a label each. */
+@layer docs {
+  .prose[data-home] > .install { max-width: 30rem; margin: 0 0 8px; }
+
+  .hero { position: relative; padding: 36px 0 4px; isolation: isolate; }
+  .hero-lattice {
+    position: absolute; z-index: -1;
+    top: -52px; right: -56px;
+    width: 400px; height: 484px;
+    color: var(--d-lattice);
+    opacity: var(--d-lattice-opacity);
+    -webkit-mask-image: linear-gradient(to bottom, #000 30%, transparent 96%);
+    mask-image: linear-gradient(to bottom, #000 30%, transparent 96%);
+    pointer-events: none;
+  }
+  .hero-lattice-mark { width: 100%; height: 100%; fill: currentColor; }
+  .hero-text { max-width: 38rem; }
+  .hero-eyebrow {
+    margin-bottom: 18px;
+    font: 500 14px/20px var(--d-font);
+    color: var(--jali-accent);
+  }
+  .prose .hero-title {
+    margin: 0;
+    font: 600 3.25rem/3.75rem var(--d-font-display);
+    letter-spacing: -0.03em;
+    color: var(--jali-text);
+    text-wrap: balance;
+  }
+  .hero-lead {
+    margin-top: 22px; max-width: 34rem;
+    font-size: 1.1875rem; line-height: 1.875rem;
+    color: var(--jali-text-muted);
+    text-wrap: pretty;
+  }
+
+  .hero-links { display: flex; flex-wrap: wrap; gap: 10px; margin: 32px 0 20px; }
+  .button {
+    display: inline-flex; align-items: center; gap: 8px;
+    height: 42px; padding: 0 18px; border-radius: 9px;
+    font-size: 15px; font-weight: 500;
+    transition: background-color 0.15s, border-color 0.15s, color 0.15s;
+  }
+  .button svg { transition: transform 0.2s var(--d-ease); }
+  .button:hover svg { transform: translateX(2px); }
+  .button-primary { background: var(--jali-accent); color: var(--jali-on-accent); }
+  .button-primary:hover { background: var(--jali-brand); }
+  :root[data-theme="dark"] .button-primary:hover { background: #a3aff2; }
+  .button-quiet { border: 1px solid var(--jali-border-strong); background: var(--jali-surface); color: var(--jali-text); }
+  .button-quiet:hover { border-color: var(--jali-control); }
+
+  /* ---------- bands ---------- */
+  .band { margin-top: 96px; }
+  .band-head {
+    display: grid; grid-template-columns: 10rem minmax(0, 1fr); align-items: baseline; gap: 24px;
+    padding-top: 20px;
+    border-top: 1px solid var(--jali-border);
+  }
+  .band-label { margin: 0 !important; font-size: 13.5px; line-height: 20px; font-weight: 500; color: var(--jali-text-subtle); }
+  .prose .band-title { margin: 0; font: 400 1.75rem/2.25rem var(--d-font-display); letter-spacing: -0.015em; }
+  .band-body { margin-top: 32px; }
+  .band-body > [data-live] { margin: 0; }
+
+  /* ---------- the two packages ---------- */
+  .packages { display: grid; grid-template-columns: 1fr 1fr; margin-left: calc(10rem + 24px); }
+  .package { padding: 0 32px 4px 0; }
+  .package + .package { padding: 0 0 4px 32px; border-left: 1px solid var(--jali-border); }
+  .prose .package-note { margin: 0 0 6px; font-size: 13px; line-height: 18px; color: var(--jali-text-subtle); }
+  .prose .package-name { margin: 0 0 10px; font: 500 1.25rem/1.75rem var(--d-font-mono); letter-spacing: -0.01em; }
+  .package-name a { color: var(--jali-text); border-radius: 4px; transition: color 0.15s; }
+  .package-name a:hover { color: var(--jali-accent); }
+  .package-text { font-size: 15.5px; line-height: 25px; color: var(--jali-text-muted); }
+  .package-text .inline-code { font-size: 0.85em; }
+  .prose .package-exports { list-style: none; display: flex; flex-wrap: wrap; gap: 6px; margin: 18px 0 0; padding: 0; }
+  .prose .package-exports li { margin: 0; padding: 0; }
+  .package-exports code {
+    display: inline-block; padding: 1px 7px;
+    border: 1px solid var(--jali-border); border-radius: 6px;
+    font-size: 12.5px; line-height: 20px; color: var(--jali-text-muted);
+    background: var(--d-code-bg);
+  }
+
+  /* ---------- three ways in ---------- */
+  .prose ol.ways { list-style: none; margin: 0 0 0 calc(10rem + 24px); padding: 0; }
+  .prose .way { margin: 0; padding: 0; }
+  .way-link {
+    display: grid; grid-template-columns: 8.5rem minmax(0, 1fr) 24px; align-items: center; gap: 20px;
+    padding: 22px 4px 22px 0;
+    border-bottom: 1px solid var(--jali-border);
+    color: var(--jali-text);
+  }
+  .way:first-child .way-link { padding-top: 4px; }
+  .way-kind { font-size: 13.5px; line-height: 20px; color: var(--jali-text-subtle); }
+  .way-main { display: flex; flex-direction: column; gap: 3px; }
+  .way-title { font: 400 1.5rem/2rem var(--d-font-display); letter-spacing: -0.01em; transition: color 0.15s; }
+  .way-text { font-size: 15px; line-height: 23px; color: var(--jali-text-muted); }
+  .way-arrow { color: var(--jali-text-faint); transition: transform 0.2s var(--d-ease), color 0.15s; }
+  .way-link:hover .way-title { color: var(--jali-accent); }
+  .way-link:hover .way-arrow { transform: translateX(4px); color: var(--jali-accent); }
+  .way-link:focus-visible { outline-offset: 4px; }
+
+  @media (max-width: 1279px) {
+    .band-head { grid-template-columns: 1fr; gap: 6px; }
+    .packages, .prose ol.ways { margin-left: 0; }
+  }
+  @media (max-width: 767px) {
+    .hero { padding-top: 12px; }
+    .hero-lattice { width: 220px; height: 266px; top: -36px; right: -40px; }
+    .prose .hero-title { font-size: 2.375rem; line-height: 2.875rem; letter-spacing: -0.025em; }
+    .hero-lead { font-size: 1.0625rem; line-height: 1.75rem; }
+    .band { margin-top: 72px; }
+    .prose .band-title { font-size: 1.5rem; line-height: 2rem; }
+    .packages { grid-template-columns: 1fr; }
+    .package { padding: 0 0 28px; }
+    .package + .package { padding: 28px 0 0; border-left: 0; border-top: 1px solid var(--jali-border); }
+    .way-link { grid-template-columns: minmax(0, 1fr) 20px; gap: 4px 16px; }
+    .way-kind { grid-column: 1 / -1; }
+    .way-arrow { grid-row: 2; grid-column: 2; }
+  }
+}

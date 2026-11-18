@@ -1,0 +1,111 @@
+/*
+ * Colour and type. Jali's public tokens, set to the brand (stone ground, warm neutrals, Nil), and the few the site
+ * adds (--d-*), all derived from them where they can be. `data-theme` on <html> is the resolved theme; before the
+ * script runs, prefers-color-scheme stands in.
+ */
+@layer docs {
+  :root {
+    /* Jali, light: stone and Nil. */
+    --jali-canvas: #efeae2;
+    --jali-surface: #fdfcfa;
+    --jali-surface-raised: #ffffff;
+    --jali-border: #e4ded4;
+    --jali-border-strong: #d3cbbd;
+    --jali-control: #8a8274;
+    --jali-text: #1c1915;
+    --jali-text-muted: #4f4941;
+    --jali-text-subtle: #685f54;
+    --jali-text-faint: #a1998c;
+    --jali-hover: #eee9e1;
+    --jali-brand: #2b3990;
+    --jali-accent: #4456c7;
+    --jali-accent-soft: #e8eaf6;
+    --jali-on-accent: #ffffff;
+
+    /* The site's own. */
+    --d-ground: #f7f5f1;
+    --d-ground-veil: rgb(247 245 241 / 0.86);
+    --d-code-bg: #fcfbf8;
+    --d-code-head: #f3f0ea;
+    --d-inline-code: #efebe3;
+    --d-lattice: var(--jali-brand);
+    --d-lattice-opacity: 0.075;
+
+    /* Code: one Shiki theme of CSS variables (shell/highlight.ts). Nil for keywords, Cha for constants. */
+    --shiki-foreground: #2b2721;
+    --shiki-background: transparent;
+    --shiki-token-keyword: #3a4bb5;
+    --shiki-token-function: #1b5d76;
+    --shiki-token-string: #7f5410;
+    --shiki-token-string-expression: #7f5410;
+    --shiki-token-constant: #9c4a12;
+    --shiki-token-parameter: #2b2721;
+    --shiki-token-comment: #776f62;
+    --shiki-token-punctuation: #6a6257;
+    --shiki-token-link: #4456c7;
+
+    --d-font: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+    --d-font-display: "Atkinson Hyperlegible Next", "IBM Plex Sans", system-ui, sans-serif;
+    --d-font-mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    --jali-font: var(--d-font);
+    --jali-font-mono: var(--d-font-mono);
+
+    --d-topbar: 60px;
+    --d-nav-w: 272px;
+    --d-toc-w: 232px;
+    --d-measure: 39rem;
+    --d-radius: 10px;
+    --d-ease: cubic-bezier(0.2, 0.7, 0.2, 1);
+    color-scheme: light;
+  }
+
+  /* Dark: warm charcoal, Nil lifted for dark grounds. */
+  :root[data-theme="dark"] {
+    --jali-canvas: #0e0d0b;
+    --jali-surface: #1a1815;
+    --jali-surface-raised: #221f1b;
+    --jali-border: #2d2a25;
+    --jali-border-strong: #3f3a33;
+    --jali-control: #7b7468;
+    --jali-text: #f1ece4;
+    --jali-text-muted: #bfb7aa;
+    --jali-text-subtle: #a1998c;
+    --jali-text-faint: #6c655b;
+    --jali-hover: #24211d;
+    --jali-brand: #8c9bea;
+    --jali-accent: #8c9bea;
+    --jali-accent-soft: #20244a;
+    --jali-on-accent: #0e0d0b;
+
+    --d-ground: #13120f;
+    --d-ground-veil: rgb(19 18 15 / 0.84);
+    --d-code-bg: #181613;
+    --d-code-head: #1d1b17;
+    --d-inline-code: #24211c;
+    --d-lattice-opacity: 0.11;
+
+    --shiki-foreground: #e8e2d8;
+    --shiki-token-keyword: #a3aff2;
+    --shiki-token-function: #7ec3d6;
+    --shiki-token-string: #ddb877;
+    --shiki-token-string-expression: #ddb877;
+    --shiki-token-constant: #e89a4e;
+    --shiki-token-parameter: #e8e2d8;
+    --shiki-token-comment: #8d8579;
+    --shiki-token-punctuation: #a39b8e;
+    --shiki-token-link: #8c9bea;
+    color-scheme: dark;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme]) {
+      --jali-canvas: #0e0d0b; --jali-surface: #1a1815; --jali-surface-raised: #221f1b; --jali-border: #2d2a25;
+      --jali-border-strong: #3f3a33; --jali-control: #7b7468; --jali-text: #f1ece4; --jali-text-muted: #bfb7aa;
+      --jali-text-subtle: #a1998c; --jali-text-faint: #6c655b; --jali-hover: #24211d; --jali-brand: #8c9bea;
+      --jali-accent: #8c9bea; --jali-accent-soft: #20244a; --jali-on-accent: #0e0d0b;
+      --d-ground: #13120f; --d-ground-veil: rgb(19 18 15 / 0.84); --d-code-bg: #181613; --d-code-head: #1d1b17;
+      --d-inline-code: #24211c; --d-lattice-opacity: 0.11;
+      color-scheme: dark;
+    }
+  }
+}

@@ -1,0 +1,100 @@
+/* Code blocks (<Code>, fenced blocks, <Install>) and tabs. One look for all of them. */
+@layer docs {
+  .code {
+    position: relative;
+    margin: 24px 0 28px;
+    border: 1px solid var(--jali-border);
+    border-radius: var(--d-radius);
+    background: var(--d-code-bg);
+    overflow: hidden;
+  }
+  .code-header {
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    min-height: 40px; padding: 0 6px 0 14px;
+    border-bottom: 1px solid var(--jali-border);
+    background: var(--d-code-head);
+  }
+  .code-filename {
+    display: inline-flex; align-items: center; gap: 8px; min-width: 0;
+    font: 500 12.5px/18px var(--d-font-mono);
+    color: var(--jali-text-muted);
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+  .code-filename svg { flex: none; color: var(--jali-text-faint); }
+
+  .code-pre {
+    padding: 15px 0;
+    overflow-x: auto;
+    font: 400 13.5px/22px var(--d-font-mono);
+    color: var(--shiki-foreground);
+    tab-size: 2;
+    scrollbar-width: thin;
+    scrollbar-color: var(--jali-border-strong) transparent;
+  }
+  .code-pre:focus-visible { outline-offset: -2px; border-radius: 0 0 var(--d-radius) var(--d-radius); }
+  .code-pre > code { display: inline-block; min-width: 100%; font: inherit; }
+  .code-line { display: block; padding: 0 20px; white-space: pre; }
+  .code-line[data-lit] {
+    background: color-mix(in srgb, var(--jali-accent) 8%, transparent);
+    box-shadow: inset 2px 0 0 var(--jali-accent);
+  }
+  :root[data-theme="dark"] .code-line[data-lit] { background: color-mix(in srgb, var(--jali-accent) 12%, transparent); }
+
+  .code-copy {
+    display: inline-flex; align-items: center; justify-content: center; flex: none;
+    width: 30px; height: 30px; border-radius: 7px;
+    color: var(--jali-text-subtle);
+    transition: background-color 0.15s, color 0.15s, opacity 0.15s;
+  }
+  .code-copy:hover { background: var(--jali-hover); color: var(--jali-text); }
+  .code-copy[data-copied] { color: var(--jali-accent); }
+  .code > .code-copy {
+    position: absolute; top: 8px; right: 8px; z-index: 1;
+    background: var(--d-code-bg);
+    box-shadow: 0 0 0 1px var(--jali-border);
+    opacity: 0;
+  }
+  .code:hover > .code-copy, .code > .code-copy:focus-visible, .code > .code-copy[data-copied] { opacity: 1; }
+  @media (hover: none) { .code > .code-copy { opacity: 1; } }
+
+  /* ---------- tabs ---------- */
+  .tab-strip { display: flex; align-items: stretch; gap: 2px; min-width: 0; overflow-x: auto; scrollbar-width: none; }
+  .tab {
+    position: relative;
+    display: inline-flex; align-items: center;
+    height: 40px; padding: 0 10px;
+    font: 500 13.5px/1 var(--d-font);
+    color: var(--jali-text-subtle);
+    white-space: nowrap;
+    transition: color 0.15s;
+  }
+  .tab:hover { color: var(--jali-text); }
+  .tab[aria-selected="true"] { color: var(--jali-text); }
+  .tab[aria-selected="true"]::after {
+    content: ""; position: absolute; left: 10px; right: 10px; bottom: -1px;
+    height: 2px; border-radius: 2px 2px 0 0;
+    background: var(--jali-accent);
+  }
+  .tab:focus-visible { outline-offset: -6px; border-radius: 8px; }
+
+  .install .code-header { padding-left: 4px; }
+  .install .code-pre { padding: 13px 0; }
+
+  .tabs {
+    margin: 24px 0 28px;
+    border: 1px solid var(--jali-border);
+    border-radius: var(--d-radius);
+    background: var(--jali-surface);
+    overflow: hidden;
+  }
+  .tabs > .tab-strip {
+    padding: 0 4px;
+    border-bottom: 1px solid var(--jali-border);
+    background: var(--d-code-head);
+  }
+  .tab-panel { padding: 18px 20px 2px; }
+  .tab-panel > :last-child { margin-bottom: 16px; }
+  .tab-panel:has(> .code:only-child) { padding: 0; background: var(--d-code-bg); }
+  .tab-panel > .code:only-child { margin: 0; border: 0; border-radius: 0; }
+  .tab-panel > .code:only-child > .code-header { background: var(--d-code-bg); }
+}

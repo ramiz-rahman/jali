@@ -3,6 +3,39 @@ title: Jali
 summary: Workspaces of panes for React, that fit the space they have.
 ---
 
-# Jali
+import { TreeView } from "../live";
+import { Hero, HeroLinks, PrimaryLink, SecondaryLink, Band, Packages, Package, Ways, Way } from "../shell/home";
 
-STUB: the shell agent writes the home page.
+<Hero title="Workspaces of panes that fit the space they have.">
+  Jali lays out panes in rows, columns and tabs, so people can keep a list, a record and the next record open side by side. When the window narrows, panes fold into tabs instead of being squeezed, and come back when there is room.
+</Hero>
+
+<HeroLinks>
+  <PrimaryLink href="/get-started/quickstart">Start the quickstart</PrimaryLink>
+  <SecondaryLink href="/get-started/introduction">What problem it solves</SecondaryLink>
+</HeroLinks>
+
+<Install packages="@jali/core @jali/react" />
+
+<Band label="Try it" title="A list, its detail, and a related record">
+  <TreeView layout="chain" caption="A live workspace beside the layout tree that describes it. Change one and the other follows." />
+</Band>
+
+<Band label="Two packages" title="The model, and React on top of it">
+  <Packages>
+    <Package name="@jali/core" href="/reference/core" note="No framework" exports="createUiStore, createPaneKinds, createUrlSync, boot, startUi, layout">
+      The layout tree and every change to it, fitting, and a store with focus, undo, follow and unsaved work. Keyboard commands you can rebind, and ports for the address and storage.
+    </Package>
+    <Package name="@jali/react" href="/reference/react" note="Components and hooks" exports="Jali, JaliView, definePaneKind, usePaneState, useActiveItemPort">
+      Renders the workspace: panes, dividers, tabs, the shelf and the command palette. Ships a default theme built from `--jali-*` tokens.
+    </Package>
+  </Packages>
+</Band>
+
+<Band label="Where to start" title="Three ways in">
+  <Ways>
+    <Way kind="To build" title="Quickstart" href="/get-started/quickstart">A minimal app, step by step, with the live workspace above its code.</Way>
+    <Way kind="To understand" title="Key concepts" href="/get-started/key-concepts">The words Jali uses: pane, kind, ref, layout tree, fold, tuck, follow.</Way>
+    <Way kind="To look up" title="Reference" href="/reference/core">Every export of both packages, with its options and defaults.</Way>
+  </Ways>
+</Band>
