@@ -1,11 +1,12 @@
+/// <reference types="vite/client" />
 /**
  * More than one workspace on a page, and start-up (docs/FINDINGS-FROM-DOCS.md 1, 2, 3, 9–12, 18, 25, 27, 28):
  * each store's keys, dialogs, storage, theme and tokens stay its own, and mounting never takes the page's focus.
  */
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { act, cleanup, render } from "@testing-library/react";
-import { readFileSync } from "node:fs";
-import { resolve } from "node:path";
+import shelfCss from "../../packages/react/src/styles/shelf.css?raw";
+import chromeCss from "../../packages/react/src/styles/chrome.css?raw";
 import * as core from "@jali/core";
 import { createUrlSync, installKeyboard, memoryLocation, startUi, type UiStore } from "@jali/core";
 import { Jali, JaliView, definePaneKind } from "@jali/react";
@@ -188,9 +189,9 @@ describe("tokens and the shelf (27, 28)", () => {
     expect(core.GAP).toBe(6);
   });
   it("the shelf's phone rule needs no host class", () => {
-    const css = readFileSync(resolve(__dirname, "../../packages/react/src/styles/shelf.css"), "utf8");
+    const css = shelfCss;
     expect(css).not.toMatch(/\.app\b/);
-    const chrome = readFileSync(resolve(__dirname, "../../packages/react/src/styles/chrome.css"), "utf8");
+    const chrome = chromeCss;
     expect(chrome).not.toMatch(/var\(--switcher-h\)/);
   });
 });
