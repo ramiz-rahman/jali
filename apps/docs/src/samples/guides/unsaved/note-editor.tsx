@@ -13,10 +13,9 @@ function TicketNote({ ref, setUnsaved, setCommands }: PaneComponentProps) {
   const [draft, setDraft] = usePaneState("draft", "");
   const [saved, setSaved] = usePaneState("saved", "");
 
-  // Report unsaved work while the draft differs from what was saved, and clear it when the pane goes.
+  // Report unsaved work while the draft differs from what was saved. Jali clears it when the pane goes.
   const edited = draft !== saved;
   useEffect(() => { setUnsaved(edited ? "an unsaved note" : null); }, [setUnsaved, edited]);
-  useEffect(() => () => setUnsaved(null), [setUnsaved]);
 
   const save = async () => {
     await saveNote(ticketId, draft);

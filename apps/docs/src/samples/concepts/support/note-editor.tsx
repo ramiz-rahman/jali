@@ -13,7 +13,6 @@ function NoteEditor({ ref, setUnsaved, setCommands }: PaneComponentProps) {
   // Work the person would lose: closing the pane, or showing another note in it, asks first.
   const dirty = draft !== saved;
   useEffect(() => { setUnsaved(dirty ? "an unsaved edit to this note" : null); }, [dirty, setUnsaved]);
-  useEffect(() => () => setUnsaved(null), [setUnsaved]);
 
   // What this pane adds to ⌘K while it is focused. `keys` is a label: the content handles the key itself.
   const latest = useRef(save);

@@ -89,7 +89,7 @@ Keys: content first. Claim the keys you use with `event.preventDefault()` (J and
 <Param name="openHere" type="(ref: ObjectRef) => void" required>Show `ref` in this pane. If it is open elsewhere, that pane is focused instead.</Param>
 <Param name="dismiss" type="() => void" required>Close this pane quietly, with no undo toast: for transient panes such as a launcher.</Param>
 <Param name="setActivity" type="(activity: PaneActivity) => void" required>Report activity for the header, tab, shelf and status line.</Param>
-<Param name="setUnsaved" type="(what: string | null) => void" required>Report unsaved work in words ("an unsaved query"), or `null` once it is saved. While set, closing the pane, closing others, a preset or showing another object in it asks first; a following detail keeps its object. Moving, tabbing, folding and tucking never ask.</Param>
+<Param name="setUnsaved" type="(what: string | null) => void" required>Report unsaved work in words ("an unsaved query"), or `null` once it is saved. While set, closing the pane, closing others, a preset or showing another object in it asks first; a following detail keeps its object. Moving, tabbing, folding and tucking never ask. It is cleared when the content unmounts.</Param>
 <Param name="setCommands" type="(commands: PaneCommand[] | null) => void" required>Commands listed first in the palette while this pane is focused. Call it again when they change, and with `null` on unmount.</Param>
 <Param name="recent" type="ObjectRef[]">Given to transient kinds only: Recent.</Param>
 <Param name="isOpen" type="(ref: ObjectRef) => boolean">Transient kinds only: whether an object is already open in another pane.</Param>
