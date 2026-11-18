@@ -48,3 +48,5 @@
 35. **`HideRefusal` includes `"tab"`, which `hide`/`show` never return** (`layout/types.ts:100`).
 36. **`Settings.showStats` is the lab's** (`state/settings.ts:9`, `dialogs/Settings.tsx`).
 37. **Stale or wrong comments:** `Shelf.tsx:20` (also renders for folded panes), `usePaneState.ts:3` (also dropped when the pane shows another object), `profile.ts:44` (`?app=review` is the old form), `registry.ts:63` ("Restore last closed pane" also undoes close-others and tucks), and old `ui/…` / `layout-core/…` paths in `pane-kinds.ts:3,44`, `store.ts:24,76`, `url.ts:2,160`, `contracts/active-item.ts:6`, `pane/activeItem.ts:6`, `react/src/state/react.tsx:13`.
+
+38. **Jali's default font is the lab's:** `jali-theme.css` sets `--jali-font: "IBM Plex Sans", …` and `--jali-font-mono: "IBM Plex Mono", …`. Jali is its own identity: its defaults should be the Atkinson Hyperlegible family (Next and Mono), with system fallbacks, and the lab sets Plex for itself.

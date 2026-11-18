@@ -44,8 +44,8 @@
     --shiki-token-punctuation: #6a6257;
     --shiki-token-link: #4456c7;
 
-    --d-font: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
-    --d-font-display: "Atkinson Hyperlegible Next", "IBM Plex Sans", system-ui, sans-serif;
+    --d-font: "Atkinson Hyperlegible Next", system-ui, -apple-system, "Segoe UI", sans-serif;
+    --d-font-display: var(--d-font);
     --d-font-mono: "Atkinson Hyperlegible Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
     --jali-font: var(--d-font);
     --jali-font-mono: var(--d-font-mono);

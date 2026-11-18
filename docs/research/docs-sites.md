@@ -53,6 +53,6 @@ Jali is a visual, spatial library. A reader should not have to imagine the layou
 
 ## Look and feel
 - **Jali's own brand, quietly:** stone ground (`#EFEAE2`) and warm neutrals, Nil indigo (`#4456C7` on light, `#8C9BEA` on dark) as the only accent, used for links, focus and the live diagrams. Keep Nil deep, never bright.
-- **Type:** Atkinson Hyperlegible Next for headings (the wordmark's face), IBM Plex Sans for reading (the workspace's face, so the docs and the live panes match), IBM Plex Mono for code. Body 16/26 at about 70 characters; h2 in regular weight, like Stripe, so headings guide without shouting.
+- **Type:** the Atkinson Hyperlegible family throughout, the wordmark's face: Atkinson Hyperlegible Next for headings and text, Atkinson Hyperlegible Mono for code. Jali is its own identity, not a Sixface product, so nothing from Sixface's type (IBM Plex) carries over. Body 16/26 at about 70 characters; h2 in regular weight, like Stripe, so headings guide without shouting.
 - **The lattice as the only ornament:** the jali bars from the logo, faint, behind the home page's opening and section breaks (as Stripe uses its dot grid and Better Auth its square grid). Nothing else decorative.
 - **Restraint like Better Auth, warmth like WorkOS:** thin rules, no shadows on cards, generous space, one accent.
