@@ -54,9 +54,9 @@ Children side by side (`"row"`) or one above another (`"column"`), sharing the s
 
 </Entry>
 
-<Entry name="StackNode" kind="type" from="@jali/core" signature={`interface StackNode { type: "stack"; id; size; children: PaneNode[]; active: NodeId; origin: "user" }`} compact>
+<Entry name="StackNode" kind="type" from="@jali/core" signature={`interface StackNode { type: "stack"; id; size; children: PaneNode[]; active: NodeId; origin?: "user" }`} compact>
 
-A tab group the person made (by merging, a centre drop or a new tab). Groups made by folding are not in the tree; they exist in `overlay`. `active` is the shown tab; `origin` is always `"user"`.
+A tab group the person made (by merging, a centre drop or a new tab). Groups made by folding are not in the tree; they exist in `overlay`. `active` is the shown tab; `origin` is optional (`"user"` when set); leave it out in hand-written layouts.
 
 </Entry>
 

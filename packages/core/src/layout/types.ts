@@ -34,7 +34,8 @@ export interface StackNode extends NodeBase {
   type: "stack";
   children: PaneNode[];
   active: NodeId;
-  origin: "user";
+  /** Optional; "user" is the only value (a stack the person or the app made). */
+  origin?: "user";
 }
 export interface SplitNode extends NodeBase { type: Axis; children: LayoutNode[] }
 export type LayoutNode = PaneNode | StackNode | SplitNode;

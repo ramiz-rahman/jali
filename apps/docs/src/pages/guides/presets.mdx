@@ -16,7 +16,7 @@ A [layout](/get-started/key-concepts#layout-tree) is plain data: a tree of rows,
 
 - A **pane** shows one ref. Its `id` is its name in the tree and in links; keep ids unique within a layout.
 - A **row** puts its children side by side; a **column** stacks them top to bottom.
-- A **stack** is a group of tabs. `active` names the tab shown; `origin` is `"user"`.
+- A **stack** is a group of tabs. `active` names the tab shown. `origin` is optional; leave it out.
 - Every node has a `size`. `{ weight: 1 }` shares the room with its siblings by weight. `{ px: 480 }` asks for a fixed length.
 
 A pane opened from a list can follow it. Give it `linkedTo` (the list's pane id) and `follows: true`, and it shows whatever the list's cursor is on.

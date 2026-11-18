@@ -21,7 +21,7 @@ function pack(node: LayoutNode): Packed {
     if (node.priority !== undefined) n.y = node.priority;
   } else {
     n.n = node.children.map(pack);
-    if (node.type === "stack") { n.a = node.active; n.o = node.origin; }
+    if (node.type === "stack") { n.a = node.active; if (node.origin) n.o = node.origin; }
   }
   return n;
 }
@@ -46,7 +46,7 @@ function unpack(value: unknown, depth = 0): unknown {
   } else {
     if (Array.isArray(n.n) && n.n.length > 2048) throw new Error("Tree too large");
     out.children = Array.isArray(n.n) ? n.n.map(c => unpack(c, depth + 1)) : n.n;
-    if (type === "stack") { out.active = n.a; out.origin = n.o; }
+    if (type === "stack") { out.active = n.a; if (n.o) out.origin = n.o; }
   }
   return out;
 }

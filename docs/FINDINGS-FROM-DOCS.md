@@ -21,7 +21,7 @@
 ## API shape
 13. Done 19 Nov: item ids are `ItemId` (`string | number`); `ProfileBase` and `WorkspaceProfile` take the id type; a link's item comes back in the type of `firstItem`, so numeric profiles are unchanged. ~~**Items are numbers:** `ProfileBase.firstItem`, `build(item: number)`, `bind(item: number)`, `Rail`/`Header` props. UUIDs and slugs don't fit.~~
 14. Done 19 Nov: a store with a `profile` and no presets or layout starts on its page; leaving it is refused. ~~**A page-only app still needs a preset or `initial.layout`** (`state/store.ts:180`) and has to open its page by hand after `boot`.~~
-15. **`StackNode.origin: "user"` is required** for hand-written stacks (`layout/types.ts:46`).
+15. Done 19 Nov: `StackNode.origin` is optional; validate and the codec accept a stack without it. ~~**`StackNode.origin: "user"` is required** for hand-written stacks (`layout/types.ts:46`).~~
 16. Done 19 Nov: `PaneKindBase.ref` is optional (docs say Jali never calls it). ~~**A kind's `ref` builder is required and never called.**~~
 17. **Unsaved-work cleanup is boilerplate:** every pane calls `setUnsaved(null)` on unmount; the pane host could clear it.
 18. **Hosts can't bind keys to their own commands** though `KeymapOverrides` says they "may be bound too" (`keymap.ts:47`; `run()` only finds registry commands).
