@@ -10,7 +10,7 @@
 5. Done 19 Nov: opening a row that a detail of the same list already shows (pinned, no follower) reveals that detail and keeps focus in the list. ~~**"Never a second copy of a row" doesn't hold:** with a pinned detail showing row X, opening X again from the list makes a new follower showing X (`follower()` is undefined). Contradicts DECISIONS (18 Nov).~~
 6. Resolved 19 Nov: ⇧⌘↵ stays (founder); DECISIONS updated.
 7. Done 19 Nov: the port reads the latest mapping through a ref and stays one object per pane. ~~**`useActiveItemPort` keeps the first mapping:** `useMemo` deps leave out `mapping` (`react/src/pane/useActiveItemPort.ts:14`).~~
-8. **Per-workspace accent misses the dialogs:** derived tints are on `:root, [data-jali]` only, the comment says "and dialog", and dialogs render outside `[data-jali]` (`jali-theme.css`).
+8. Done 19 Nov: the derived tints are also declared on `.jali-scrim`, so dialogs pick up an accent set around `<Jali>`. ~~**Per-workspace accent misses the dialogs:** derived tints are on `:root, [data-jali]` only, the comment says "and dialog", and dialogs render outside `[data-jali]` (`jali-theme.css`).~~
 
 ## The start-up story for more than one workspace
 9. **`startUi` can't be scoped** (`core/src/boot.ts:81` calls `installKeyboard(store)` with no root), so a second workspace loses settings and pane-state saving, theme, the leave-page prompt and `applyTokens`. `savePaneState`'s key isn't public.

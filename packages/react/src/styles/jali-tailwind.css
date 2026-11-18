@@ -45,6 +45,6 @@
   --jali-font-mono: var(--font-mono, ui-monospace, monospace);
 }
 /* Derived where Jali renders, so it follows an accent set on a subtree. */
-:where(:root, [data-jali]) {
+:where(:root, [data-jali], .jali-scrim) {
   --jali-focus-ring: var(--color-focus-ring, var(--color-ring, var(--jali-accent)));
 }

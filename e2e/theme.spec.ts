@@ -16,6 +16,14 @@ test.describe("Theme", () => {
     expect(weak).toContain("rgb(194, 98, 26)");
   });
 
+  test("an accent set around a workspace tints its dialogs too, not only the panes", async ({ lab, page }) => {
+    await lab.open();
+    await page.addStyleTag({ content: "body { --jali-accent: rgb(194, 98, 26); }" });
+    await page.getByRole("button", { name: "Settings" }).click();
+    const weak = await page.locator(".jali-scrim").first().evaluate((e) => getComputedStyle(e).getPropertyValue("--jali-accent-weak").trim());
+    expect(weak).toContain("rgb(194, 98, 26)");
+  });
+
   test("the Tailwind bridge takes the host's semantic tokens", async ({ lab, page }) => {
     await lab.open();
     await page.addStyleTag(bridge);

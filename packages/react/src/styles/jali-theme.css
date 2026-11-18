@@ -186,16 +186,17 @@
 
 /*
  * ---------- derived from the accent ----------
- * Declared on the root and again on each Jali root ([data-jali]) and dialog, so a host that sets --jali-accent on a
- * subtree gets matching tints there, not the root's.
+ * Declared on the root and again on each Jali root ([data-jali]) and dialog (.jali-scrim, which renders beside the
+ * root), so a host that sets --jali-accent on a subtree gets matching tints there, not the root's. Dialogs inherit
+ * from the element around <Jali>: set a per-workspace accent there, not on the Jali root itself.
  */
-:where(:root, [data-jali]) {
+:where(:root, [data-jali], .jali-scrim) {
   --jali-accent-weak: color-mix(in srgb, var(--jali-accent) 8%, transparent);
   --jali-accent-mid: color-mix(in srgb, var(--jali-accent) 16%, transparent);
   --jali-drop: color-mix(in srgb, var(--jali-accent) 12%, transparent);
   --jali-focus-ring: var(--jali-accent);
 }
-:where(.dark, [data-theme="dark"]) :where([data-jali]),
+:where(.dark, [data-theme="dark"]) :where([data-jali], .jali-scrim),
 :where(.dark, [data-theme="dark"]) {
   --jali-accent-weak: color-mix(in srgb, var(--jali-accent) 14%, transparent);
   --jali-accent-mid: color-mix(in srgb, var(--jali-accent) 26%, transparent);
@@ -203,7 +204,7 @@
 }
 @media (prefers-color-scheme: dark) {
   :where(:root:not(.light, [data-theme="light"])),
-  :where(:root:not(.light, [data-theme="light"])) :where([data-jali]) {
+  :where(:root:not(.light, [data-theme="light"])) :where([data-jali], .jali-scrim) {
     --jali-accent-weak: color-mix(in srgb, var(--jali-accent) 14%, transparent);
     --jali-accent-mid: color-mix(in srgb, var(--jali-accent) 26%, transparent);
     --jali-drop: color-mix(in srgb, var(--jali-accent) 16%, transparent);
