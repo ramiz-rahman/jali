@@ -164,6 +164,24 @@ A divider between child `index` and `index + 1` of split `parentId`. `value` is 
 
 </Entry>
 
+<Entry name="ResolvedStack" kind="type" from="@jali/core" signature={`interface ResolvedStack { id: NodeId; kind: "fold" | "tuck"; homeId: NodeId; paneIds: NodeId[] }`} compact>
+
+A tab group the fit made, not one in the tree: panes folded into a neighbour (`"fold"`) or tucked into their home (`"tuck"`). `homeId` is the pane whose slot holds them.
+
+</Entry>
+
+<Entry name="ShelfEntry" kind="type" from="@jali/core" signature={`interface ShelfEntry { paneId: NodeId; homeId: NodeId; stackId: NodeId; reason: "tucked" | "folded" | "tab" }`} compact>
+
+A pane that is not on screen, listed on the shelf: tucked, folded by the fit, or a background tab of a tucked or folded group. `homeId` is where it shows when put back.
+
+</Entry>
+
+<Entry name="UndoEntry" kind="type" from="@jali/core" signature={`interface UndoEntry {\n  kind: "close" | "closeOthers" | "tuck";\n  before: { layout: Layout; view: ViewState };\n  tucked?: NodeId;\n}`} compact>
+
+One step of undo (`state.undoStack`): what was done and the layout and view before it. `tucked` names the pane a tuck moved.
+
+</Entry>
+
 ## Kinds and pages
 
 <Entry name="PaneKindBase" kind="type" from="@jali/core" signature={`interface PaneKindBase { kind; title; ref; minWidth; minHeight; … }`} compact>
@@ -441,6 +459,48 @@ How a change reaches the address: a new entry, in place, in place 120 ms after t
 
 <Entry name="Theme" kind="type" from="@jali/core" signature={`type Theme = "light" | "dark"`} compact>The theme shown.</Entry>
 
+<Entry name="Change" kind="type" from="@jali/core" signature={`interface Change {\n  op: string; layout?: Layout; view?: ViewState; msg?: string; undo?: UndoEntry[];\n  patch?: Partial<UiState>; toast?: Toast; focusDom?: NodeId; result?: NodeId;\n}`} compact>
+
+What an action changes, as the store commits it: the op's name (`"close"`, `"open"`, …), the new layout and view, what is announced, the new undo stack, other state, a toast, the pane to move DOM focus into, and what the action returns. A <Ref to="ConfirmState" /> holds one until the person discards their work.
+
+</Entry>
+
+<Entry name="DndState" kind="type" from="@jali/core" signature={`interface DndState { dragged: NodeId; x: number; y: number; target?: NodeId; zone?: Edge | "centre"; label?: string }`} compact>
+
+A drag in progress (`state.dnd`): the pane dragged, the pointer, and the pane and zone it would drop on. `label` names a view dragged from a page's tabs, which may not be on screen.
+
+</Entry>
+
+<Entry name="ConfirmState" kind="type" from="@jali/core" signature={`interface ConfirmState { panes: NodeId[]; change: Change }`} compact>
+
+"Discard unsaved changes?" (`state.confirm`): the panes that would lose work, and the change, made as it is on Discard.
+
+</Entry>
+
+<Entry name="ChooserState" kind="type" from="@jali/core" signature={`interface ChooserState { kind: "merge"; source: NodeId }`} compact>
+
+A chooser opened by a command (`state.chooser`): today only ⌘K "Add to tabs of…" for the pane `source`.
+
+</Entry>
+
+<Entry name="PagePrefs" kind="type" from="@jali/core" signature={`interface PagePrefs { mode: ViewMode; multi: Layout | null }`} compact>
+
+What a person keeps about a curated page on their device (`state.prefs`): the mode they use, and their Multiplexed layout.
+
+</Entry>
+
+<Entry name="OpenPage" kind="type" from="@jali/core" signature={`interface OpenPage { item?: ItemId; tab?: string; investigation?: ObjectRef[]; fromUrl?: boolean; view?: Partial<ViewState> }`} compact>
+
+The options of `actions.openPage`: the item, the view, the panes opened while investigating (they need Multiplexed), whether it comes from a link, and a view to arrive with.
+
+</Entry>
+
+<Entry name="Group" kind="type" from="@jali/core" signature={`interface Group { id: NodeId; kind: "stack" | "fold" | "tuck"; tabs: PaneNode[]; active: NodeId }`} compact>
+
+A tab group as the model sees it (`model().groups`): a stack in the tree, or one the fit made by folding or tucking, with its tabs and the shown one.
+
+</Entry>
+
 ## The address and storage
 
 <Entry name="UrlSync" kind="type" from="@jali/core" signature={`interface UrlSync extends UrlWriter`} compact>
@@ -525,6 +585,14 @@ A binding as text: chords separated by a space, keys in a chord by `+` (`Mod+K M
 See <Ref to="installKeyboard" page="/reference/core" />.
 
 </Entry>
+
+<Entry name="Chord" kind="type" from="@jali/core" signature={`interface Chord { key: string; mod?: boolean; ctrl?: boolean; alt?: boolean; shift?: boolean }`} compact>
+
+One key press. `key` is `KeyboardEvent.code` (`"KeyM"`, `"Backslash"`) or, for named keys, `KeyboardEvent.key` (`"ArrowLeft"`, `"F6"`). `mod` is ⌘ on a Mac and Ctrl elsewhere; `ctrl` is the Control key itself.
+
+</Entry>
+
+<Entry name="KeySequence" kind="type" from="@jali/core" signature={`type KeySequence = readonly Chord[]`} compact>One binding: a chord, or a prefix chord then a second chord (⌘K ⌘M).</Entry>
 
 <Entry name="Platform" kind="type" from="@jali/core" signature={`type Platform = "mac" | "other"`} compact>The platform keys are matched and printed for.</Entry>
 
