@@ -65,6 +65,15 @@ export interface Env {
   presets: readonly Preset[];
   /** The free workspace's name, where the person builds the layout ("Data Studio"). Default "Workspace". */
   name: string;
+  /** The kind a split or a stack's "+" opens until the person chooses (a transient kind). Default "launcher"; null,
+   *  or a kind that is not registered, and split and "New tab" are refused. */
+  launcher?: string | null;
+}
+
+/** The launcher ref this workspace's splits open, or undefined when it has no launcher kind. */
+export function launcherRef(env: Pick<Env, "kinds" | "launcher">): import("./layout/types").ObjectRef | undefined {
+  const kind = env.launcher === undefined ? "launcher" : env.launcher;
+  return kind && env.kinds.get(kind) ? { kind, params: {} } : undefined;
 }
 
 export const presetById = (env: Pick<Env, "presets">, id: string | undefined): Preset | undefined =>

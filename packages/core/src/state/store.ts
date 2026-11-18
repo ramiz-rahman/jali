@@ -102,6 +102,9 @@ export interface UiStoreDeps {
   preset?: string;
   /** The free workspace's name ("Data Studio"), in commands such as "Open Data Studio". Default "Workspace". */
   name?: string;
+  /** The transient kind a split or a stack's "+" opens until the person chooses an object. Default "launcher". With
+   *  none registered (or `null`), split and "New tab" are refused rather than opening an unknown kind. */
+  launcher?: string | null;
   /** Where the workspace writes its address: usually `createUrlSync()`, which `boot` and `startUi` then also read
    *  from. Default: none (the address is left alone). */
   url?: UrlWriter;
@@ -188,7 +191,7 @@ export const savePaneState = (storage: StoragePort, state: UiState["paneState"])
 const DEV = !!(import.meta as unknown as { env?: { DEV?: boolean } }).env?.DEV;
 
 export function createUiStore(deps: UiStoreDeps): UiStore {
-  const env: Env = { kinds: deps.kinds, profile: deps.profile ?? null, presets: deps.presets ?? [], name: deps.name ?? "Workspace" };
+  const env: Env = { kinds: deps.kinds, profile: deps.profile ?? null, presets: deps.presets ?? [], name: deps.name ?? "Workspace", launcher: deps.launcher === undefined ? "launcher" : deps.launcher };
   const focusOf = deps.focusPane === undefined ? (typeof document === "undefined" ? null : focusPane) : deps.focusPane;
   const dom = createDom(deps.id ?? "jali");
   const storage = deps.storage ?? browserStorage("jali");

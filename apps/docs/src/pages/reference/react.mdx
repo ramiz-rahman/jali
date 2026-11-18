@@ -52,7 +52,7 @@ The workspace itself: `<Workspace>` (the panes), or `<CuratedPage>` while a cura
 
 Defines a kind of pane: what it shows, its sizes and the component that renders it. It returns `def` as it is; it is there for the types. Pass your kinds to `createPaneKinds`.
 
-`split` and "New tab here" open a pane of kind `"launcher"` until the person chooses an object, so a workspace that offers them needs a kind with that name (usually `transient: true`).
+`split` and "New tab here" open a pane of the store's `launcher` kind (default `"launcher"`) until the person chooses an object, so a workspace that offers them needs that kind (usually `transient: true`). Without it, both are refused.
 
 <Params>
 <Param name="def" type="PaneKindDef" required>

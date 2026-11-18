@@ -22,6 +22,7 @@ export const msg = {
       : `New pane ${dir === "right" ? "right of" : "below"} ${source}. Choose what to show`,
   alreadyOpen: (t: string) => `Already open: focused ${t}`,
   opened: (t: string) => `${t} opened`,
+  noLauncher: "This workspace has no launcher kind to open a new pane with",
   newTab: (source: string) => `New tab beside ${source}. Choose what to show`,
   launcherClosed: (focus: string) => `New pane closed. Focus is on ${focus}`,
   openedFull: (t: string) => `${t} opened full`,

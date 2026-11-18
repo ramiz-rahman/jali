@@ -1,7 +1,7 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { FoldHorizontal, Plus, Undo2, X } from "lucide-react";
 import type { NodeId, PaneNode, Frame, Tab } from "@jali/core/adapter";
-import { shortcutLabel, paneDomId, paneTitleId, roleOf, titleOf, startPaneDrag, FOLDED_DESC, FOLDED_TIP, TUCKED_DESC } from "@jali/core/adapter";
+import { launcherRef, shortcutLabel, paneDomId, paneTitleId, roleOf, titleOf, startPaneDrag, FOLDED_DESC, FOLDED_TIP, TUCKED_DESC } from "@jali/core/adapter";
 import { useEnv, useStore, useUi } from "../state/react";
 import { Activity } from "./Activity";
 import { KindIcon } from "./icons";
@@ -25,6 +25,8 @@ export function TabStrip({ group, owner }: { group: NonNullable<Frame["group"]>;
   const { actions } = store;
   // A curated page: no "+" (its views come from the page's tabs).
   const page = useUi((s) => !!s.page);
+  // No launcher kind, no "+": there is nothing to open in the new tab.
+  const canAdd = !!launcherRef(useEnv()) && !page;
   // A curated page's views live in the page tabs, so a pane's strip lists a page view only while it is shown: never a
   // repeat. The exception is a group of page views, which only a centre drop ("Add as tab") makes: you asked for
   // those tabs, so it lists each view you put there (not ones the layout folded in).
@@ -116,7 +118,7 @@ export function TabStrip({ group, owner }: { group: NonNullable<Frame["group"]>;
         {folded.map(renderTab)}
       </div>
       {overflowing ? <TabOverflow tabs={[...mine, ...folded]} active={group.active} hiddenCount={hiddenCount} onChoose={(id) => actions.setActiveTab(group.id, id)} /> : null}
-      {page ? null : <button
+      {canAdd ? <button
         className="jali-tab-add"
         aria-label="New tab in this stack"
         title="New tab"
@@ -126,7 +128,7 @@ export function TabStrip({ group, owner }: { group: NonNullable<Frame["group"]>;
         }}
       >
         <Plus size={14} strokeWidth={1.5} aria-hidden />
-      </button>}
+      </button> : null}
     </div>
   );
 }

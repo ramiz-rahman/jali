@@ -32,7 +32,7 @@ A [pane kind](/get-started/key-concepts#kind) says what one kind of pane shows a
 <Code code={note} filename="note.tsx" />
 
 - `kind` is the kind's name. Every pane of this kind carries it.
-- `ref` builds a [ref](/get-started/key-concepts#ref) from params. A ref names the object a pane shows, as a kind and some params. Here, `{ kind: "note", params: { id: 1 } }`.
+- `ref` (optional) builds a [ref](/get-started/key-concepts#ref) from params, for your own code. A ref names the object a pane shows, as a kind and some params. Here, `{ kind: "note", params: { id: 1 } }`.
 - `title` names the pane in its header, its tab and ⌘K.
 - `minWidth` and `minHeight` are the smallest size the content still works at. When the window is too narrow for every pane at its minimum, panes [fold](/get-started/key-concepts#fitting) into tabs instead of shrinking past it.
 - `Component` renders the pane. It gets the ref as a plain prop, `ref`, along with the functions a pane uses to open other panes.

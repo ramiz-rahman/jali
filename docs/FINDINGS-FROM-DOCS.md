@@ -6,7 +6,7 @@
 1. **⌘K chords never finish when keys are scoped to a root.** The palette renders outside the root (`packages/react/src/Jali.tsx:36-38`), so the scoped handler rejects the second key (`packages/core/src/commands/keyboard.ts:152-157`). Reproduced in Chrome with two workspaces.
 2. **Two workspaces share dialog ids:** `ConfirmDiscard` uses fixed `confirm-title` / `confirm-body` (`packages/react/src/dialogs/ConfirmDiscard.tsx:26-32`). Check the palette, chooser and settings too.
 3. **Both defaults save under `browserStorage("jali")`** (`state/store.ts:190`, `url.ts:186`): two stores overwrite each other's settings and pane state unless the host passes storage.
-4. **Split and "+" need a kind named "launcher".** `LAUNCHER` is hard-coded (`core/src/actions/open.ts:12`, used at :74, :121; `layout/ops/tabs.ts:40`); without it ⌘\ throws "Unknown pane kind" (examples/minimal does this). The launcher should be an option (or the commands refuse when there is none).
+4. Done 19 Nov: the store option `launcher` (default "launcher") names the kind; without it split and "New tab here" are refused and tab strips hide "+". ~~**Split and "+" need a kind named "launcher".** `LAUNCHER` is hard-coded (`core/src/actions/open.ts:12`, used at :74, :121; `layout/ops/tabs.ts:40`); without it ⌘\ throws "Unknown pane kind" (examples/minimal does this). The launcher should be an option (or the commands refuse when there is none).~~
 5. **"Never a second copy of a row" doesn't hold:** with a pinned detail showing row X, opening X again from the list makes a new follower showing X (`follower()` is undefined). Contradicts DECISIONS (18 Nov).
 6. Resolved 19 Nov: ⇧⌘↵ stays (founder); DECISIONS updated.
 7. **`useActiveItemPort` keeps the first mapping:** `useMemo` deps leave out `mapping` (`react/src/pane/useActiveItemPort.ts:14`).
@@ -22,7 +22,7 @@
 13. **Items are numbers:** `ProfileBase.firstItem`, `build(item: number)`, `bind(item: number)`, `Rail`/`Header` props. UUIDs and slugs don't fit.
 14. **A page-only app still needs a preset or `initial.layout`** (`state/store.ts:180`) and has to open its page by hand after `boot`.
 15. **`StackNode.origin: "user"` is required** for hand-written stacks (`layout/types.ts:46`).
-16. **A kind's `ref` builder is required and never called.**
+16. Done 19 Nov: `PaneKindBase.ref` is optional (docs say Jali never calls it). ~~**A kind's `ref` builder is required and never called.**~~
 17. **Unsaved-work cleanup is boilerplate:** every pane calls `setUnsaved(null)` on unmount; the pane host could clear it.
 18. **Hosts can't bind keys to their own commands** though `KeymapOverrides` says they "may be bound too" (`keymap.ts:47`; `run()` only finds registry commands).
 19. **Parts take no `className`**, so the README's "a utility class on a part is enough" is not true; layered CSS rules on the jali-* classes are the way. Fix the README (or let parts take classes).

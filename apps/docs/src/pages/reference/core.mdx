@@ -47,6 +47,7 @@ What the workspace is made of, and where its effects go.
 <Param name="initial" type="Partial<UiState>">State laid over the defaults, last, so it wins over saved settings and pane state too. A workspace without presets passes `initial.layout`.</Param>
 <Param name="profile" type="ProfileBase | null" default="null">The curated page this workspace can show. In React, a `WorkspaceProfile`.</Param>
 <Param name="name" type="string" default={`"Workspace"`}>The free workspace's name, used in command titles such as "Open Workspace".</Param>
+<Param name="launcher" type="string | null" default={`"launcher"`}>The transient kind a split or a stack's "+" opens until the person chooses an object. When it is `null` or not registered, the split and "New tab here" commands are refused and tab strips show no "+".</Param>
 <Param name="url" type="UrlWriter">Where the workspace writes its address: usually <Ref to="createUrlSync" />, which `boot` and `startUi` then also read from. Without it the address is left alone.</Param>
 <Param name="storage" type="StoragePort" default={`browserStorage("jali")`}>What this person keeps on this device: settings, pane state, a curated page's mode and layout.</Param>
 <Param name="id" type="string" default={`"jali"`}>Prefix for this workspace's DOM ids (`jali-pane-orders`). Give each workspace on one page its own.</Param>

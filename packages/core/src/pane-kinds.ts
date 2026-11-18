@@ -26,7 +26,9 @@ export type PaneActivity = "idle" | "loading" | "working" | "needs-you" | "error
 export interface PaneKindBase {
   kind: string;
   title: (ref: ObjectRef) => string;
-  ref: (params: ObjectRef["params"]) => ObjectRef;
+  /** Builds a ref of this kind from params. Optional and not called by Jali: a convenience for the app's own links
+   *  (`orders.ref({ id: 4 })`). */
+  ref?: (params: ObjectRef["params"]) => ObjectRef;
   /** What makes two refs the same object. Default: every param, compared as text. `undefined` means scratch space:
    *  never deduplicated against open panes. */
   identity?: (ref: ObjectRef) => unknown;

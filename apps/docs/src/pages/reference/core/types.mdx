@@ -173,7 +173,7 @@ A kind without its view. In React, `PaneKindDef` adds `Component` and `icon`.
 <Params title="Fields">
 <Param name="kind" type="string" required>The kind's name, as in `ref.kind`.</Param>
 <Param name="title" type="(ref: ObjectRef) => string" required>The pane's title for an object.</Param>
-<Param name="ref" type={`(params: ObjectRef["params"]) => ObjectRef`} required>Makes a ref of this kind.</Param>
+<Param name="ref" type={`(params: ObjectRef["params"]) => ObjectRef`}>Makes a ref of this kind, for your own code. Optional; Jali never calls it.</Param>
 <Param name="minWidth" type="number" required>The narrowest the content works at, once it adapts. Below it the pane folds into a tab; it is never squeezed past it.</Param>
 <Param name="minHeight" type="number" required>The same, for height.</Param>
 <Param name="comfortableWidth" type="number" default="minWidth">Where spare space takes the pane first, before any sibling grows past its own.</Param>
@@ -566,11 +566,11 @@ How a list's item ids map to refs; see <Ref to="activeItemPort" page="/reference
 
 <Members title="Open and close">
 <Member name="actions.openBeside" signature="openBeside(source: NodeId, ref: ObjectRef)">Open `ref` beside `source`; focus stays in `source`. The source's selected item opens a following detail (pinned if one already follows). In a curated page: a peek in Single or for a limited viewer, and an object already on the page is focused instead.</Member>
-<Member name="actions.split" signature={`split(dir: "right" | "bottom", target?: NodeId)`}>Open a launcher (kind `"launcher"`) beside the pane and focus it.</Member>
+<Member name="actions.split" signature={`split(dir: "right" | "bottom", target?: NodeId)`}>Open a launcher (the store's `launcher` kind, default `"launcher"`) beside the pane and focus it. Refused when the workspace has no launcher kind.</Member>
 <Member name="actions.splitAuto" signature="splitAuto()">Split right for a wide pane, down for a tall one.</Member>
 <Member name="actions.openHere" signature="openHere(id: NodeId, ref: ObjectRef)">Show `ref` in pane `id`. If it is open elsewhere, focus that pane (and close `id` when it is a launcher).</Member>
 <Member name="actions.dismiss" signature="dismiss(id: NodeId)">Close a launcher quietly, with no undo.</Member>
-<Member name="actions.newTab" signature="newTab(id?: NodeId)">A launcher as a new tab of the pane's group.</Member>
+<Member name="actions.newTab" signature="newTab(id?: NodeId)">A launcher as a new tab of the pane's group. Refused when the workspace has no launcher kind.</Member>
 <Member name="actions.noteOpen" signature="noteOpen(refs: ObjectRef[])">Add refs to Recent.</Member>
 <Member name="actions.close" signature="close(id?: NodeId)">Close a pane, with an Undo toast. The last pane stays. A curated page's view goes back to the tabs.</Member>
 <Member name="actions.closeOthers" signature="closeOthers(id?: NodeId)">Close every other pane. In a curated page, `backToPage`.</Member>
