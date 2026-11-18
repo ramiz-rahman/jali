@@ -1,0 +1,101 @@
+---
+title: Quickstart
+summary: Build the smallest Jali app, two notes side by side, then open a third from a button.
+---
+
+import { TreeView } from "../../live";
+import note from "../../samples/concepts/quickstart/note.tsx?raw";
+import start from "../../samples/concepts/quickstart/start.ts?raw";
+import store from "../../samples/concepts/quickstart/store.ts?raw";
+import main from "../../samples/concepts/quickstart/main.tsx?raw";
+import css from "../../samples/concepts/quickstart/app.css?raw";
+import openBeside from "../../samples/concepts/quickstart/note-open-beside.tsx?raw";
+
+This page builds the app in `examples/minimal`, one file at a time. At the end you have a workspace with two notes in it. A button in each note opens the next note beside it.
+
+You need a React 19 app. Any bundler that handles CSS imports works; the example uses Vite.
+
+<TreeView layout="two" height={280} caption="What you are building: two panes in a row. Drag the divider, or narrow the frame, and watch the tree." />
+
+<Steps>
+<Step title="Install the packages">
+
+`@jali/core` holds the model: the layout, the store and the commands. It has no framework in it. `@jali/react` renders it, with a default theme.
+
+<Install packages="@jali/core @jali/react" />
+
+</Step>
+<Step title="Define a pane kind">
+
+A [pane kind](/get-started/key-concepts#kind) says what one kind of pane shows and how. This one shows a note.
+
+<Code code={note} filename="note.tsx" />
+
+- `kind` is the kind's name. Every pane of this kind carries it.
+- `ref` builds the [ref](/get-started/key-concepts#ref): the object a pane shows, as a kind and some params. Here, `{ kind: "note", params: { id: 1 } }`.
+- `title` names the pane in its header, its tab and ⌘K.
+- `minWidth` and `minHeight` are the smallest size the content still works at. When the window is too narrow for every pane at its minimum, panes [fold](/get-started/key-concepts#fitting) into tabs instead of shrinking past it.
+- `Component` renders the pane. It gets the ref as a plain prop, `ref`, along with the functions a pane uses to open other panes.
+
+</Step>
+<Step title="Describe the starting layout">
+
+A [layout](/get-started/key-concepts#layout-tree) is a tree. This one is a row with two panes, each showing a note. Both have a weight of 1, so they share the width equally.
+
+<Code code={start} filename="start.ts" />
+
+Every node needs an `id` that is unique in the layout. Actions and the address use it.
+
+</Step>
+<Step title="Create the store">
+
+The [store](/get-started/key-concepts#store) holds the workspace: its layout, focus, history and settings. It takes the kinds it can show and at least one layout to start from.
+
+<Code code={store} filename="store.ts" />
+
+- `presets` are layouts the person can switch to. The first one opens when nothing else says what to show.
+- `createUrlSync()` keeps the layout in the address bar. Reload the page and the layout comes back; Back and Forward step through changes.
+- `boot` puts the first layout in place before the first render. If the address holds a layout, that one is used.
+- `startUi` installs the keyboard, Back and Forward, the theme and saving. Call it once, for the life of the page.
+
+</Step>
+<Step title="Render it">
+
+`<Jali>` provides the store and draws the dialogs every workspace has, such as the ⌘K palette. `<JaliView>` is the workspace itself.
+
+<Code code={main} filename="main.tsx" />
+
+Put your own top bar, status line or sidebar inside `<Jali>`, around `<JaliView>`. The workspace fills the box you give it, so `<Jali>` needs a height.
+
+</Step>
+<Step title="Add the styles and the layer line">
+
+`@jali/react/styles.css` is Jali's default theme and the workspace's layout. Every rule in it sits in a CSS cascade layer named `jali`.
+
+<Code code={css} lang="css" filename="app.css" highlight="2" />
+
+The `@layer` line names the order of the layers once. Your resets go in a layer before `jali`; your own styles go after it, or outside any layer, and win without `!important`. With Tailwind, the line is `@layer theme, base, jali, components, utilities;`.
+
+Run the app. You see two notes side by side. Drag the line between them to resize. Press ⌘K (Ctrl+K on Windows and Linux) to see every command.
+
+</Step>
+<Step title="Open a pane beside">
+
+A pane opens another with `openBeside`. Pass it a ref.
+
+<Code code={openBeside} filename="note.tsx" highlight="9,12-14" />
+
+Click the button in note 1. Note 2 opens to its right, and focus stays in note 1, so you can keep working where you were.
+
+Keep clicking the button in the newest note. Each click opens the next note beside the one you clicked in. When the panes no longer fit at their minimum width, some fold into tabs, and the note you are working in stays on screen. Widen the window and they come back. [How a layout fits](/learn/fitting) explains the order, and [Opening and linking](/learn/opening-and-linking) explains what `openBeside` does when a pane opens several links.
+
+</Step>
+</Steps>
+
+## Next
+
+<Cards>
+<Card title="Key concepts" href="/get-started/key-concepts">Every Jali word in one place, with a picture or an example.</Card>
+<Card title="The layout tree" href="/learn/layout-tree">Rows, columns, stacks and sizes, live.</Card>
+<Card title="How a layout fits" href="/learn/fitting">What folds when the window is too small, and what comes back first.</Card>
+</Cards>

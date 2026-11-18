@@ -1,0 +1,108 @@
+---
+title: Using Jali with coding agents
+summary: The rules a coding agent, or a person, should follow when adding Jali to an app.
+---
+
+import list from "../../samples/concepts/support/ticket-list.tsx?raw";
+import editor from "../../samples/concepts/support/note-editor.tsx?raw";
+import paused from "../../samples/concepts/support/paused.tsx?raw";
+
+Jali does a lot for a pane: it places it, folds it, keeps its state and asks before it loses work. It can only do that if the pane's content keeps a few rules. This page lists them, with the reason for each. Give it to your agent along with the task.
+
+<Callout type="tip" title="Every page is Markdown too">
+Each page of these docs is also available as Markdown, from the buttons under its title. Paste this page, [Key concepts](/get-started/key-concepts) and the [Quickstart](/get-started/quickstart) into an agent's context before it writes Jali code.
+</Callout>
+
+## The rules
+
+### 1. A kind is data plus a component
+
+Define each kind of pane with `definePaneKind({ kind, title, ref, minWidth, minHeight, Component })` in its own module, and pass the app's kinds to `createPaneKinds` and `createUiStore({ kinds })`. Nothing about a kind is global, so two workspaces on one page never share kinds.
+
+Set `minWidth` to the narrowest the content truly works at once it adapts, not the width it looks best at. Jali folds a pane into a tab below its minimum and never squeezes it past it, so a minimum that is too large folds panes early. Use `comfortableWidth` and `maxWidth` for the rest ([How a layout fits](/learn/fitting)).
+
+### 2. Read the ref from props
+
+The object a pane shows arrives as `ref`, a plain prop. React 19 passes `ref` to function components like any other prop, so read it from props and don't use `forwardRef`. Keep refs small: a kind and ids, never the data itself, because refs go in the address.
+
+### 3. Claim your keys, let the rest bubble
+
+Keys reach the pane's content first. Handle the keys your content uses and call `event.preventDefault()` on each one you handle; the workspace leaves a claimed key alone. Let every other key bubble, so ⌘K, F6 and the workspace's commands keep working inside your pane.
+
+- Never stop propagation of every key in a container. It cuts off ⌘K and F6.
+- Letter keys (J, K) must only act while your content has focus.
+- Content that needs every key, such as a code editor, marks its element `data-pane-keys="content"`. The workspace then takes only F6 and Shift+F6 there, so focus can always leave.
+
+<Code code={list} filename="ticket-list.tsx" highlight="24-31" />
+
+### 4. Select before you open
+
+A list reports its selected item with `select(ref)` as the cursor moves (J/K, arrows, a click). To open a row, select it first, then call `openBeside(ref)`. The workspace then knows the pane came from the selection, so it becomes a [following detail](/get-started/key-concepts#selection) that follows the list.
+
+If the list's filter no longer shows the selected item, say so with `select(ref, { inResults: false })`. A following detail keeps the item, with a note.
+
+The usual row keys are J/K or the arrows to select, Space to `peek(ref)`, and ⌥↵ (Alt+Enter) to `openBeside(ref)`.
+
+### 5. Report unsaved work
+
+If closing the pane would lose something the person typed, report it with `setUnsaved("a short description")`, and `setUnsaved(null)` once it is saved or gone. While it is set, closing the pane, closing others, a preset, Back and Forward, or showing another object in the pane asks the person first. Leaving the page triggers the browser's own prompt.
+
+Don't build your own "are you sure" for these. Moving, tabbing, folding and tucking never ask, because the content stays mounted.
+
+### 6. Use `usePaneState` for what the person expects back
+
+A draft, a sort, a scroll position: keep these with `usePaneState(key, initial)` instead of `useState`. The workspace keeps the value through folds, tabs, tucks and reloads, and drops it when the pane closes for good or shows another object. Values must be JSON. Use React state for everything else.
+
+<Code code={editor} filename="note-editor.tsx" highlight="10,15-16,21-24" />
+
+### 7. Add commands with `setCommands`
+
+List what the pane can do in ⌘K with `setCommands([...])` in an effect, and `setCommands(null)` on unmount. Call it again when the commands change. `keys` on a command is a label only; the content still handles the key itself.
+
+### 8. Pause while hidden
+
+A pane gets `paused: true` while it is out of sight: behind a tab, tucked, folded or behind a maximised pane. Stop polling, timers and live subscriptions while paused, and keep the pane's state. The pane stays mounted, so nothing needs to reload when it comes back.
+
+<Code code={paused} filename="clock.tsx" highlight="7-11" />
+
+### 9. Read data through the app's shared cache
+
+Many panes can show the same object at once: a ticket in a list, in a detail and in a peek. Read data through the app's one shared cache (TanStack Query, SWR, your own store), keyed by the object's id, so every pane showing it updates together after an edit. Never fetch inside a pane outside that cache.
+
+With TanStack Query, pass `enabled: !paused` (or `subscribed: !paused`) so hidden panes stop fetching.
+
+### 10. Theme Jali with its tokens, not with Tailwind inside it
+
+Jali has no Tailwind in it. Its styles are plain CSS on `--jali-*` tokens, in the `jali` cascade layer, so it works the same in apps with and without Tailwind. Don't add Tailwind classes to Jali's own code or copy its parts to restyle them, and don't reach for `!important`. To change how Jali looks, set its tokens, or import the Tailwind bridge (below). The content inside your panes is yours: style it the way your app styles everything else.
+
+## Retheming
+
+Declare the layer order once, at the top of your CSS, so your styles win over Jali's:
+
+```css
+@layer theme, base, jali, components, utilities;
+```
+
+Then pick one way in:
+
+- **From a Tailwind theme:** also import `@jali/react/tailwind.css`. It points Jali's tokens at your theme's (`--color-primary`, `--color-card`, `--color-border`, `--radius-card` and others).
+- **By hand:** set `--jali-*` tokens on `:root` or on any subtree. Setting `--jali-accent` is enough to change the accent; its tints follow.
+
+```css
+:root { --jali-accent: #0f766e; }
+```
+
+Dark mode follows `prefers-color-scheme`, a `.dark` class or `[data-theme="dark"]`. Jali's parts carry their state as attributes (`data-pane`, `data-focused`, `aria-selected`, `data-drop-zone`) and every class starts with `jali-`, so a host rule can target them without fighting specificity.
+
+## A checklist for a review
+
+- Every kind is defined with `definePaneKind` and listed in `createPaneKinds`.
+- Every `minWidth` is the narrowest the content works at.
+- Refs hold ids, not data.
+- Content calls `preventDefault()` on the keys it handles and nothing else.
+- Lists call `select` before `openBeside`.
+- Editable panes call `setUnsaved`, and clear it on save and on unmount.
+- State the person expects back uses `usePaneState`.
+- Live work stops while `paused`.
+- Data comes from the app's shared cache.
+- Jali is themed through `--jali-*` tokens, with the layer line in place.

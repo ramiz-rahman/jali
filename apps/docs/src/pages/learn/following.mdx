@@ -1,0 +1,67 @@
+---
+title: Following a list
+summary: A list reports its selection, and a detail opened from it follows that selection, in place, until the person pins it.
+---
+
+import { Frame, Spotlight } from "../../live";
+import list from "../../samples/concepts/support/ticket-list.tsx?raw";
+
+The most common shape in a workspace is a list and its detail: tickets on the left, the selected ticket on the right. The person moves down the list and expects the detail to keep up. Jali does this for you, as long as the list says what is selected.
+
+<Frame layout="chain" width={1100} height={320} caption="Select rows in the list with J and K: the detail beside it follows, in place." />
+
+## The list reports its selection
+
+The selection is the one item the list's cursor is on: what J and K, or the arrow keys, move. It is not focus, and it is not a set of checked rows. A list reports it with `select(ref)` every time it moves, and `select(null)` when nothing is selected.
+
+<Code code={list} filename="ticket-list.tsx" highlight="13-17,19-22" />
+
+Opening a row selects it first. That order matters: when `openBeside` is called with the list's selected item, the workspace knows the new pane came from the selection.
+
+## The following detail
+
+A detail opened from the list's selected row **follows** the list. Move the selection, and the detail shows the new row in the same pane, at the same place and size. Nothing else on screen moves.
+
+A list has at most one following detail of each kind. The detail's header shows a **Following** toggle, so the person can see that it moves with the list.
+
+<Spotlight layout="chain" target="follow" height={300} caption="The Following toggle in the detail's header. Press it to pin the detail." />
+
+Focus stays in the list the whole time, so the person keeps moving with J and K. A following step replaces the address rather than adding to the history, so Back skips the rows they passed through.
+
+## It waits for the selection to rest
+
+The detail changes once the selection has rested for 150ms. Holding J to run down the list moves the cursor through every row but loads only the one it stops on, and the screen reader hears one "Showing Ticket 104", not one per row.
+
+Opening a row (⌥↵, or a row's open button) while that wait is running shows the row in the detail at once.
+
+## Pinning
+
+To keep a ticket on screen and go on browsing, the person pins the detail: press **Following** in its header (it becomes **Pinned**), or open the row the detail already shows.
+
+A pinned detail keeps its object. The next row opened from the list makes a new following detail beside it, so comparing two tickets is "pin this one, keep going".
+
+Unpinning a detail makes it follow again, and it catches up with the list's selection at once. If another detail was following that list, that one is pinned in its place, so there is still only one follower.
+
+## Space shows the row in the detail
+
+With a following detail on screen, Space on a row shows that row in the detail, at once, instead of opening a [peek](/get-started/key-concepts#peek). The peek sheet would answer the same question a second time, on top of the answer.
+
+With no following detail, or one that is out of sight (folded, behind a tab, tucked), Space opens the peek sheet as usual.
+
+## Not in the current results
+
+If the person filters the list and the followed row is no longer in it, the detail keeps showing it, with a note: "Not in the current results of Tickets". The detail doesn't go blank under them because of a filter.
+
+The list says so with `select(ref, { inResults: false })`. Only say it when you know: when the whole result is loaded and the row is not in it. If the row could be further down, past what is loaded, report nothing.
+
+A list should keep its selection on the same item, not the same position, when it is sorted or filtered.
+
+## Unsaved work in the detail
+
+If the following detail has [unsaved work](/get-started/key-concepts#unsaved-work), it stays on its object while the list moves on, and the workspace says why: "The detail stays put: it has an unsaved reply". Asking on every row would be worse than a detail that waits.
+
+## Links that are not the selection
+
+A link that is not the list's selected row, such as a customer name in a ticket, opens a plain linked pane. It never replaces the following detail or a pinned one.
+
+Closing the list unlinks its detail: the detail stays, showing what it showed, and stops following. Undo brings the list back with the link.
