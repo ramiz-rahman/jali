@@ -8,3 +8,5 @@ playwright-report
 
 # Logo exploration rounds (large images), kept locally
 docs/brand/archive/
+# Review screenshots, kept locally
+docs/review-shots/
