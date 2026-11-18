@@ -115,7 +115,8 @@ export function openPage(x: Snapshot, o: OpenPage = {}): Outcome {
     mode: opened.length ? "multi" : prev?.mode ?? x.s.prefs.mode,
     canInvestigate: prev?.canInvestigate ?? true,
   };
-  const prefs = keep(x, page.mode);
+  // Opened panes need Multiplexed, but that is the link's need, not the person's choice: their mode stays theirs.
+  const prefs = { ...keep(x, page.mode), mode: opened.length ? x.s.prefs.mode : page.mode };
   const y = { ...x, s: { ...x.s, prefs } };
   const base = page.mode === "single" ? single(p, page.item, page.tab, x.ctx) : multi(y, p, page.item, page.tab, false);
   const { layout, view } = reopen(base, opened, base.view.focused ?? page.tab, x.ctx);

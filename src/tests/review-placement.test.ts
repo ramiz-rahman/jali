@@ -140,3 +140,12 @@ describe("placing a view (⌥-click, drag)", () => {
     expect(rects().group).toEqual(p.incoming);
   });
 });
+
+describe("a link with opened panes", () => {
+  it("opens in Multiplexed, and leaves the person's own mode as it was", () => {
+    const reader = createLabStore({ initial: { area: { width: 1156, height: 644 } } });
+    reader.actions.openPage({ item: 4, tab: "application", investigation: [member149], fromUrl: true });
+    expect(reader.get().page?.mode).toBe("multi");
+    expect(reader.get().prefs.mode).toBe("single");
+  });
+});
