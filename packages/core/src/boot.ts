@@ -32,8 +32,14 @@ function arriveFromUrl(store: UiStore, url: UrlSync): boolean {
   return true;
 }
 
-export function boot(store: UiStore, url: UrlSync) {
-  arriveFromUrl(store, url);
+/** The store's URL sync, when it was made with one that can also read (createUrlSync). */
+const syncOf = (store: UiStore, url?: UrlSync): UrlSync | undefined =>
+  url ?? (store.url && "read" in store.url ? (store.url as UrlSync) : undefined);
+
+/** Put the first state in place before the first render: the address's layout if it has one, fitted to the window. */
+export function boot(store: UiStore, url?: UrlSync) {
+  const sync = syncOf(store, url);
+  if (sync) arriveFromUrl(store, sync);
   const panes = () => core.tree.panes(store.get().layout.root);
   store.actions.noteOpen(panes().map((p) => p.ref));
   const s = store.get();
@@ -44,7 +50,8 @@ export function boot(store: UiStore, url: UrlSync) {
 }
 
 /** Listeners for the life of the page. Returns a function that removes them (tests, HMR). */
-export function startUi(store: UiStore, url: UrlSync): () => void {
+export function startUi(store: UiStore, url?: UrlSync): () => void {
+  const sync = syncOf(store, url);
   applyTokens();
   let prev = store.get();
   // Pane state changes with typing and scrolling: saved once things settle.
@@ -72,9 +79,11 @@ export function startUi(store: UiStore, url: UrlSync): () => void {
   window.addEventListener("beforeunload", onUnload);
   const offTheme = watchSystemTheme((systemDark) => store.set({ systemDark }));
   const offKeys = installKeyboard(store);
-  const offPop = url.onPop(() => {
-    arriveFromUrl(store, url);
-    store.announce(msg.historyChanged);
-  });
+  const offPop = sync
+    ? sync.onPop(() => {
+        arriveFromUrl(store, sync);
+        store.announce(msg.historyChanged);
+      })
+    : () => {};
   return () => { offStore(); offTheme(); offKeys(); offPop(); clearTimeout(saveTimer); window.removeEventListener("beforeunload", onUnload); };
 }

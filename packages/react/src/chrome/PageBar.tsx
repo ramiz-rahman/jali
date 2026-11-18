@@ -1,10 +1,8 @@
 import { useEffect, useRef, type KeyboardEvent } from "react";
 import { Columns2, RotateCcw, Square, Undo2 } from "lucide-react";
-import { investigation } from "@jali/core/adapter";
+import { investigation, startTabDrag, altClick } from "@jali/core/adapter";
 import { useModel, useStore, useUi, useProfile } from "../state/react";
 import { Workspace } from "../workspace/Workspace";
-import { startTabDrag } from "@jali/core/adapter";
-import { altClick } from "@jali/core/adapter";
 
 /**
  * A curated page's controls in the top bar: the mode (Single or Multiplexed), the investigation (panes opened from

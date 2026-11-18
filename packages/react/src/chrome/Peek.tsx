@@ -1,8 +1,7 @@
 import { useEffect, useMemo, useRef } from "react";
 import { Maximize, PanelRightOpen, X } from "lucide-react";
-import type { PaneNode } from "@jali/core/adapter";
+import type { PaneNode, Presentation } from "@jali/core/adapter";
 import { formatChord } from "@jali/core/adapter";
-import type { Presentation } from "@jali/core/adapter";
 import { KindIcon } from "../pane/icons";
 import { PaneBody, peekHost } from "../pane/PaneBody";
 import { useStore, useUi } from "../state/react";

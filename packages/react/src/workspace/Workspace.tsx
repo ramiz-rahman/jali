@@ -1,19 +1,12 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
-import { besidePreview } from "@jali/core/adapter";
-import { roleOf } from "@jali/core/adapter";
+import { besidePreview, roleOf, keepPaneFocus, CHROME, msg, GAP, SWITCHER_H, currentPane, frames } from "@jali/core/adapter";
 import { PaneSwitcher } from "../chrome/PaneSwitcher";
 import { Peek } from "../chrome/Peek";
 import { DividerLayer } from "../dividers/DividerLayer";
-import { keepPaneFocus } from "@jali/core/adapter";
-import { CHROME } from "@jali/core/adapter";
 import { PaneFrame } from "../pane/PaneFrame";
-import { msg } from "@jali/core/adapter";
-import type { WorkspaceModel } from "@jali/core/adapter";
+import type { WorkspaceModel, UiStore } from "@jali/core/adapter";
 import { useModel, useStore, useUi } from "../state/react";
-import type { UiStore } from "@jali/core/adapter";
-import { GAP, SWITCHER_H } from "@jali/core/adapter";
 import { DropIndicator } from "./DropIndicator";
-import { currentPane, frames } from "@jali/core/adapter";
 import { useSingleView } from "./useSingleView";
 
 /** The workspace's usable size follows the element (minus the inset). */

@@ -14,6 +14,7 @@ import { loadSettings, systemPrefersDark, type Settings } from "./settings";
 import { loadPrefs, type PagePrefs } from "./page-prefs";
 import { presetById, type Env, type Preset, type ViewMode, type ProfileBase } from "../profile";
 import { browserStorage, type StoragePort } from "../ports";
+import { focusPane } from "../dom/focus";
 import { createKeymap, type Keymap, type KeymapOptions, type KeymapOverrides } from "../commands/keymap";
 
 /** A drag in progress. `label` names a view dragged from a page's tabs, which may not be on screen. */
@@ -101,9 +102,12 @@ export interface UiStoreDeps {
   preset?: string;
   /** The free workspace's name ("Data Studio"), in commands such as "Open Data Studio". Default "Workspace". */
   name?: string;
+  /** Where the workspace writes its address: usually `createUrlSync()`, which `boot` and `startUi` then also read
+   *  from. Default: none (the address is left alone). */
   url?: UrlWriter;
-  /** Moves DOM focus into a pane after the next paint (dom/focus.ts), looking inside the workspace's root. */
-  focusPane?: (scope: WorkspaceDom, id: NodeId) => void;
+  /** Moves DOM focus into a pane after the next paint. Default: Jali's (dom/focus.ts), looking inside the workspace's
+   *  root; `null` leaves DOM focus alone (a test, a workspace that is never shown). */
+  focusPane?: ((scope: WorkspaceDom, id: NodeId) => void) | null;
   /** What this person keeps on this device: settings, a curated page's mode and layout. Default: localStorage
    *  under "jali". */
   storage?: StoragePort;
@@ -142,6 +146,8 @@ export interface UiStore {
   storage: StoragePort;
   /** The address to share, from the URL port. */
   href(): string;
+  /** The URL writer this store was made with (`deps.url`). */
+  url: UrlWriter | undefined;
 }
 
 /**
@@ -183,6 +189,7 @@ const DEV = !!(import.meta as unknown as { env?: { DEV?: boolean } }).env?.DEV;
 
 export function createUiStore(deps: UiStoreDeps): UiStore {
   const env: Env = { kinds: deps.kinds, profile: deps.profile ?? null, presets: deps.presets ?? [], name: deps.name ?? "Workspace" };
+  const focusOf = deps.focusPane === undefined ? (typeof document === "undefined" ? null : focusPane) : deps.focusPane;
   const dom = createDom(deps.id ?? "jali");
   const storage = deps.storage ?? browserStorage("jali");
   const start = presetById(env, deps.preset);
@@ -269,6 +276,7 @@ export function createUiStore(deps: UiStoreDeps): UiStore {
     dom,
     storage,
     href: () => deps.url?.href?.() ?? (typeof location === "undefined" ? "" : location.href),
+    url: deps.url,
   };
   const io = {
     get: store.get,
@@ -277,7 +285,7 @@ export function createUiStore(deps: UiStoreDeps): UiStore {
     url: store.writeUrl,
     announce: store.announce,
     toast: store.toast,
-    focus: (id: NodeId) => deps.focusPane?.(dom, id),
+    focus: (id: NodeId) => focusOf?.(dom, id),
     defer,
     unstable: deps.unstable ?? (DEV ? (op: string) => console.error(`Layout stability: "${op}" is a focus or swap op but moved panes`) : undefined),
   };

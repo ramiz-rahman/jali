@@ -1,6 +1,5 @@
 /** Data Studio's layouts to start from (the bar's presets and ⌘K "Layout: …"). */
-import type { LayoutNode, ObjectRef, PaneNode } from "@jali/core";
-import type { Preset } from "@jali/core";
+import type { LayoutNode, ObjectRef, PaneNode, Preset } from "@jali/core";
 
 const pane = (id: string, ref: ObjectRef, extra: Partial<PaneNode> = {}): PaneNode => ({
   id, type: "pane", size: { weight: 1 }, ref, ...extra,

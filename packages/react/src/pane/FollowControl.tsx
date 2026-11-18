@@ -4,8 +4,7 @@
  */
 import { Link2, Pin } from "lucide-react";
 import type { PaneNode } from "@jali/core/adapter";
-import { sameRef } from "@jali/core/adapter";
-import { msg } from "@jali/core/adapter";
+import { sameRef, msg } from "@jali/core/adapter";
 import { useStore, useUi } from "../state/react";
 
 /** Shown on a linked detail that follows its list, or was pinned beside it. Pressed = pinned. */

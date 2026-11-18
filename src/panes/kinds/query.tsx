@@ -1,5 +1,5 @@
 import { TerminalSquare } from "lucide-react";
-import { definePaneKind } from "@jali/react";
+import { definePaneKind, usePaneState } from "@jali/react";
 import { useEffect, useRef, useState } from "react";
 import { resultFormat } from "../../data/labels";
 import type { ResultHandle, Row } from "../../data/types";
@@ -11,7 +11,6 @@ import { Empty, ErrorState, Loading, Shell } from "../shared/states";
 import { useResultWindow } from "../grid/useWindow";
 import type { PaneComponentProps } from "@jali/react";
 import { keyHint } from "@jali/core";
-import { usePaneState } from "@jali/react";
 
 export const DEFAULT_SQL = "SELECT region, SUM(amount_cents) AS amount_cents\nFROM sample_orders\nGROUP BY region\nORDER BY amount_cents DESC";
 

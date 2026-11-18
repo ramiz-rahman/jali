@@ -1,11 +1,8 @@
 import { memo, useMemo, type CSSProperties } from "react";
 import { GripHorizontal } from "lucide-react";
-import { paneDomId, paneTitleId } from "@jali/core/adapter";
-import { roleOf, titleOf } from "@jali/core/adapter";
+import { paneDomId, paneTitleId, roleOf, titleOf, startPaneDrag, sameFrame, type Frame } from "@jali/core/adapter";
 import { useStore, useUi } from "../state/react";
-import { startPaneDrag } from "@jali/core/adapter";
 import { DropZoneLabel } from "../workspace/DropIndicator";
-import { sameFrame, type Frame } from "@jali/core/adapter";
 import { Activity } from "./Activity";
 import { FollowControl, NotInResults } from "./FollowControl";
 import type { Chrome } from "@jali/core/adapter";

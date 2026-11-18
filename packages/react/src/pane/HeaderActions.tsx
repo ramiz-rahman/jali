@@ -1,6 +1,5 @@
 import { Maximize2, Minimize2, Minus, X } from "lucide-react";
-import { checkTuck, tuckHome } from "@jali/core/adapter";
-import { formatChord } from "@jali/core/adapter";
+import { checkTuck, tuckHome, formatChord } from "@jali/core/adapter";
 import { useModel, useStore } from "../state/react";
 import type { Chrome } from "@jali/core/adapter";
 

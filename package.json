@@ -12,7 +12,8 @@
     "e2e": "playwright test",
     "test:e2e": "playwright test",
     "screens": "SCREENS=1 playwright test",
-    "build:packages": "pnpm -r --filter \"./packages/*\" build"
+    "build:packages": "pnpm -r --filter \"./packages/*\" build",
+    "example:minimal": "vite --config examples/minimal/vite.config.ts --port 5310"
   },
   "dependencies": {
     "@electric-sql/pglite": "^0.5.16",

@@ -1,8 +1,7 @@
 import { useEffect, useState } from "react";
 import { useDataLayer } from "../data/react";
 import { PALETTE_ID } from "@jali/core";
-import { useModel, useStore, useUi } from "@jali/react";
-import { Shelf } from "@jali/react";
+import { useModel, useStore, useUi, Shelf } from "@jali/react";
 
 export function StatusLine() {
   const m = useModel();

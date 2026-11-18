@@ -1,5 +1,4 @@
-import { formatChord } from "@jali/core/adapter";
-import { commandsOf, runCommand } from "@jali/core/adapter";
+import { formatChord, commandsOf, runCommand } from "@jali/core/adapter";
 import { useModel, useStore, useUi } from "../state/react";
 import { ListDialog } from "./ListDialog";
 

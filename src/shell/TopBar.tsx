@@ -1,9 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Command, Settings, Link2, ChevronDown, LayoutGrid } from "lucide-react";
-import { useStore, useUi } from "@jali/react";
-import { copyLink } from "@jali/core";
-import { PALETTE_ID } from "@jali/core";
-import { PageBar } from "@jali/react";
+import { useStore, useUi, PageBar } from "@jali/react";
+import { copyLink, PALETTE_ID } from "@jali/core";
 import { AppSwitch } from "./AppSwitch";
 import { JaliLockup } from "./JaliLockup";
 
