@@ -9,7 +9,7 @@ import * as react from "@jali/react";
 describe("public API", () => {
   it("@jali/core exports exactly these values", () => {
     expect(Object.keys(core).sort()).toEqual([
-      "DEFAULT_KEYMAP", "DEFAULT_SETTINGS", "PALETTE_ID", "activeItemPort", "altClick", "boot", "browserLocation",
+      "DEFAULT_KEYMAP", "DEFAULT_SETTINGS", "GAP", "PALETTE_ID", "activeItemPort", "altClick", "boot", "browserLocation",
       "browserStorage", "commandsOf", "copyLink", "createKeymap", "createPaneKinds", "createUiStore", "createUrlSync",
       "detectPlatform", "focusPane", "formatChord", "formatKeys", "installKeyboard", "keyHint", "layout",
       "memoryLocation", "memoryStorage", "paneDomId", "paneTitleId", "presetById", "resolveTheme", "roleOf",

@@ -49,6 +49,7 @@ export { formatKeys, formatChord, keyHint, altClick, detectPlatform, type Platfo
 // ---------- DOM ----------
 export { focusPane } from "./dom/focus";
 export { paneDomId, paneTitleId } from "./dom/ids";
+export { GAP } from "./tokens";
 
 // ---------- contracts with other libraries ----------
 export type { ActiveItemPort, ActiveItemAction, ActiveItemWriteResult } from "./contracts/active-item";
