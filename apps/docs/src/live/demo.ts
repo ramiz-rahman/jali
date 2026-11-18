@@ -24,14 +24,15 @@ const notes = (extra?: Partial<PaneNode>) => pane("notes", ref("notes", { custom
 const activity = (extra?: Partial<PaneNode>) => pane("activity", ref("activity"), extra);
 
 const builders: Record<DemoLayoutId, () => LayoutNode> = {
-  two: () => split("row", "root", [customer(), notes({ linkedTo: "customer" })]),
-  chain: () => split("row", "root", [orders(), order(), customer({ linkedTo: "order" })]),
+  two: () => split("row", "root", [customer(), notes({ linkedTo: "customer", follows: true })]),
+  // Each pane follows the one before it: pick an order, and its detail and its customer both move.
+  chain: () => split("row", "root", [orders(), order(), customer({ linkedTo: "order", follows: true })]),
   nested: () => split("row", "root", [orders(), split("column", "side", [order(), activity()])]),
   stack: () => split("row", "root", [
     customer(),
     { id: "tabs", type: "stack", size: { weight: 1.4 }, origin: "user", active: "order", children: [pane("order", ref("order", { id: 1048 })), notes(), activity()] },
   ]),
-  crowded: () => split("row", "root", [orders(), order(), customer({ linkedTo: "order" }), notes({ linkedTo: "customer" }), activity()]),
+  crowded: () => split("row", "root", [orders(), order(), customer({ linkedTo: "order", follows: true }), notes({ linkedTo: "customer", follows: true }), activity()]),
 };
 
 export function buildDemoLayout(id: DemoLayoutId): Layout {

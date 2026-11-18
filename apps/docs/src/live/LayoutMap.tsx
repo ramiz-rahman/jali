@@ -33,9 +33,10 @@ function hoverProps(id: string, c: Ctx, label: string) {
 
 /** What a pane is doing, in a few plain words. */
 function roleWords(p: PaneNode, m: WorkspaceModel): string | null {
+  const leads = m.panes.find((q) => q.linkedTo === p.id && q.follows);
   if (p.linkedTo && p.follows) return `follows ${m.title(p.linkedTo)}`;
   if (p.linkedTo) return `opened from ${m.title(p.linkedTo)}`;
-  if (m.panes.some((q) => q.linkedTo === p.id && q.follows)) return "picks what the detail shows";
+  if (leads) return `picks what ${m.title(leads.id)} shows`;
   return null;
 }
 

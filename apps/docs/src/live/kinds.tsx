@@ -2,7 +2,7 @@
  * The demo's pane kinds: a shop's orders, one order, a customer, notes and an activity feed. Widths are set so panes
  * fold where real content would stop working: an order list needs room for its number, name and total.
  */
-import type { KeyboardEvent } from "react";
+import { useEffect, type KeyboardEvent } from "react";
 import { Activity as ActivityIcon, ListOrdered, Receipt, StickyNote, UserRound } from "lucide-react";
 import { definePaneKind, useModel, useUi, type PaneComponentProps } from "@jali/react";
 import { activity, customerById, money, notes, orderById, orders, ordersOf, totalOf, type OrderStatus } from "./data";
@@ -57,8 +57,10 @@ function OrdersPane({ node, select, openBeside }: PaneComponentProps) {
   );
 }
 
-function OrderPane({ ref, openBeside }: PaneComponentProps) {
+function OrderPane({ ref, openBeside, select }: PaneComponentProps) {
   const o = orderById(ref.params.id ?? 0);
+  // The order's customer is this pane's selection, so a customer pane following it moves with the order.
+  useEffect(() => { if (o) select(customerRef(o.customer)); }, [o?.customer]);
   if (!o) return <p className="live-k-empty">No order {ref.params.id}</p>;
   const c = customerById(o.customer);
   return (
@@ -83,8 +85,10 @@ function OrderPane({ ref, openBeside }: PaneComponentProps) {
   );
 }
 
-function CustomerPane({ ref, openBeside }: PaneComponentProps) {
+function CustomerPane({ ref, openBeside, select }: PaneComponentProps) {
   const c = customerById(ref.params.id ?? 0);
+  // The customer's notes are this pane's selection: notes following it move with the customer.
+  useEffect(() => { if (c) select(notesRef(c.id)); }, [c?.id]);
   if (!c) return <p className="live-k-empty">No customer {ref.params.id}</p>;
   const mine = ordersOf(c.id);
   const initials = c.name.split(" ").map((w) => w[0]).join("");
