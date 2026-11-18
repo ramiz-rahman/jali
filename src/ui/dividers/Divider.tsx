@@ -1,3 +1,4 @@
+import { dividerKey } from "./resize";
 import { memo, type KeyboardEvent } from "react";
 import type { NodeId, Rect } from "../../layout-core/types";
 import { STEP, STEP_BIG } from "./resize";
@@ -23,8 +24,6 @@ export interface DividerProps {
   onReset(): void;
 }
 
-/** `parentId:index`, written as data-divider on the separator (the drag finds neighbours' dividers by it). */
-export const dividerKey = (d: { parentId: NodeId; index: number }) => `${d.parentId}:${d.index}`;
 
 const pct = (v: number, total: number) => Math.round((v / Math.max(1, total)) * 100);
 const rectEq = (a: Rect, b: Rect) => a.x === b.x && a.y === b.y && a.width === b.width && a.height === b.height;

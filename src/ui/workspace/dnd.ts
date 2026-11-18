@@ -3,7 +3,6 @@
  * swaps or adds a tab (Settings). Esc or a drop outside a pane cancels. Zoomed and single-pane layouts don't drag.
  * The drag lives in this closure and in `dnd` state; there is no module state.
  */
-import type { PointerEvent as ReactPointerEvent } from "react";
 import type { Edge, Rect } from "../../layout-core/types";
 import type { UiStore } from "../state/store";
 import { GAP } from "../tokens";
@@ -28,7 +27,17 @@ export function zoneRect(r: Rect, zone: Edge | "centre"): Rect {
   return r;
 }
 
-export function startPaneDrag(store: UiStore, e: ReactPointerEvent, paneId: string) {
+/** The pointer-down a drag starts from: a DOM PointerEvent or any framework's wrapper of one. */
+export interface PointerStart {
+  button: number;
+  clientX: number;
+  clientY: number;
+  pointerId: number;
+  currentTarget: EventTarget | null;
+  target: EventTarget | null;
+}
+
+export function startPaneDrag(store: UiStore, e: PointerStart, paneId: string) {
   const t = e.target as HTMLElement;
   if (t.closest("button, input, textarea, select, a, [data-no-drag]") && !t.closest("[data-drag-ok]")) return;
   startDrag(store, e, { id: paneId, onDrop: (target, zone) => store.actions.drop(paneId, target, zone) });
@@ -39,13 +48,13 @@ export function startPaneDrag(store: UiStore, e: ReactPointerEvent, paneId: stri
  * Works from Single mode too, where the one pane on screen is the target; dropping switches to Multiplexed.
  * Returns whether a drag happened, so the tab's click can be skipped.
  */
-export function startTabDrag(store: UiStore, e: ReactPointerEvent, role: string, label: string): { dragged(): boolean } {
+export function startTabDrag(store: UiStore, e: PointerStart, role: string, label: string): { dragged(): boolean } {
   return startDrag(store, e, { id: role, label, fromOutside: true, onDrop: (target, zone) => store.actions.placeTab(role, target, zone) });
 }
 
 interface DragOpts { id: string; label?: string; fromOutside?: boolean; onDrop(target: string, zone: Edge | "centre"): void }
 
-function startDrag(store: UiStore, e: ReactPointerEvent, { id: paneId, label, fromOutside, onDrop }: DragOpts) {
+function startDrag(store: UiStore, e: PointerStart, { id: paneId, label, fromOutside, onDrop }: DragOpts) {
   let started = false;
   const handle = { dragged: () => started };
   if (e.button !== 0) return handle;

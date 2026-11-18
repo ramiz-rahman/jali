@@ -3,7 +3,7 @@ import type { ReactNode } from "react";
 import { AlertTriangle, ArrowUpRight, Check, Info, OctagonAlert } from "lucide-react";
 import type { ObjectRef } from "../layout-core/types";
 import type { Row } from "../data/types";
-import type { PaneComponentProps } from "../ui/pane-kinds";
+import type { PaneComponentProps } from "../ui/define";
 import { useUi } from "../ui/state/react";
 import { Shell } from "../panes/shared/states";
 import { statusLabel } from "./data";

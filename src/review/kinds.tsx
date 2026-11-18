@@ -1,5 +1,5 @@
 import { FileText, LayoutDashboard, Link2 } from "lucide-react";
-import { definePaneKind } from "../ui/pane-kinds";
+import { definePaneKind } from "../ui/define";
 import { singular } from "../panes/shared/refs";
 import { OverviewPane } from "./overview";
 import { ReviewRecordPane } from "./records";

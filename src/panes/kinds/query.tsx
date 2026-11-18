@@ -1,5 +1,5 @@
 import { TerminalSquare } from "lucide-react";
-import { definePaneKind } from "../../ui/pane-kinds";
+import { definePaneKind } from "../../ui/define";
 import { useEffect, useRef, useState } from "react";
 import { resultFormat } from "../../data/labels";
 import type { ResultHandle, Row } from "../../data/types";
@@ -9,7 +9,7 @@ import { formatCount, formatMs } from "../format";
 import { chartRef } from "../shared/refs";
 import { Empty, ErrorState, Loading, Shell } from "../shared/states";
 import { useResultWindow } from "../grid/useWindow";
-import type { PaneComponentProps } from "../../ui/pane-kinds";
+import type { PaneComponentProps } from "../../ui/define";
 import { keyHint } from "../../ui/commands/format";
 import { usePaneState } from "../../ui/pane/usePaneState";
 

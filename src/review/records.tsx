@@ -4,7 +4,7 @@
  */
 import { useEffect } from "react";
 import { Briefcase, FileText, History, Phone, UserRound, UsersRound } from "lucide-react";
-import type { PaneComponentProps } from "../ui/pane-kinds";
+import type { PaneComponentProps } from "../ui/define";
 import { isLoading, useRecord, useRows } from "../data/hooks";
 import type { TableName } from "../data/types";
 import { applicationFacts } from "../data/sample-sql";

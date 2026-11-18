@@ -1,4 +1,4 @@
-import { definePaneKind } from "../../ui/pane-kinds";
+import { definePaneKind } from "../../ui/define";
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { Plus, Search, Table2 } from "lucide-react";
 import type { ObjectRef, TableInfo } from "../../data/types";
@@ -6,7 +6,7 @@ import { useFocusWhen } from "../shared/useFocusWhen";
 import { useCatalog } from "../../data/hooks";
 import { formatCount } from "../format";
 import { recordRef, singular, tableRef } from "../shared/refs";
-import type { PaneComponentProps } from "../../ui/pane-kinds";
+import type { PaneComponentProps } from "../../ui/define";
 
 /** One choosable row. `open` marks an object already on screen: choosing it focuses that pane. */
 interface Item {

@@ -1,5 +1,5 @@
 import { BarChart3 } from "lucide-react";
-import { definePaneKind } from "../../ui/pane-kinds";
+import { definePaneKind } from "../../ui/define";
 import type { Row } from "../../data/types";
 import { useMemo, useState } from "react";
 import { isLoading } from "../../data/hooks";
@@ -7,7 +7,7 @@ import { formatCompact, formatCount } from "../format";
 import { Empty, Shell } from "../shared/states";
 import { PaneGate } from "../shared/PaneGate";
 import { useResultWindow } from "../grid/useWindow";
-import type { PaneComponentProps } from "../../ui/pane-kinds";
+import type { PaneComponentProps } from "../../ui/define";
 
 const MAX_BARS = 20;
 

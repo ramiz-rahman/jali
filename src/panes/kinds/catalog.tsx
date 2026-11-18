@@ -1,5 +1,5 @@
 import { Database } from "lucide-react";
-import { definePaneKind } from "../../ui/pane-kinds";
+import { definePaneKind } from "../../ui/define";
 import { useState } from "react";
 import { PaneGate } from "../shared/PaneGate";
 import { useFocusWhen } from "../shared/useFocusWhen";
@@ -8,7 +8,7 @@ import { useCatalog, isLoading } from "../../data/hooks";
 import { formatCount } from "../format";
 import { tableRef } from "../shared/refs";
 import { Shell, Empty } from "../shared/states";
-import type { PaneComponentProps } from "../../ui/pane-kinds";
+import type { PaneComponentProps } from "../../ui/define";
 
 export function CatalogPane({ paused, focused, openBeside, peek }: PaneComponentProps) {
   const q = useCatalog({ paused });

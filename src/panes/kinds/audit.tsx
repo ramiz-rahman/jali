@@ -1,8 +1,8 @@
 import { History } from "lucide-react";
-import { definePaneKind } from "../../ui/pane-kinds";
+import { definePaneKind } from "../../ui/define";
 import type { Row } from "../../data/types";
 import { entityTable } from "../../data/tables";
-import type { PaneComponentProps } from "../../ui/pane-kinds";
+import type { PaneComponentProps } from "../../ui/define";
 import { recordRef } from "../shared/refs";
 import { TableGrid } from "./table";
 

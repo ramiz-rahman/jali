@@ -3,16 +3,15 @@
  * current item through this port, and the workspace does what it does for `select` and `peek`, so the list's
  * following detail follows it, Space shows it, and an open sheet steps with it.
  *
+ * In React, `useActiveItemPort` (ui/pane/useActiveItemPort.ts) makes one for the pane it renders in:
+ *
  *   const port = useActiveItemPort({ toRef: (id) => ({ kind: "record", params: { table: "orders", id: Number(id) } }),
  *                                    idOf: (ref) => String(ref.params.id) });
  *   <ChakniCollection quickLook={port} … />
  */
-import { useContext, useMemo } from "react";
 import type { NodeId, ObjectRef } from "../../layout-core/types";
 import type { ActiveItemPort } from "../../contracts/active-item";
-import { useStore, useUi } from "../state/react";
 import type { UiStore } from "../state/store";
-import { PaneIdContext } from "./usePaneState";
 
 export interface ActiveItemMapping {
   /** The object an item id shows. */
@@ -42,13 +41,4 @@ export function activeItemPort(store: UiStore, pane: NodeId, { toRef, idOf }: Ac
       return ACCEPTED;
     },
   };
-}
-
-/** The port for the pane this content is in. Re-renders when the list's item changes, so `itemId` reads fresh. */
-export function useActiveItemPort(mapping: ActiveItemMapping): ActiveItemPort | null {
-  const pane = useContext(PaneIdContext);
-  const store = useStore();
-  useUi((s) => (pane ? s.selection[pane]?.ref : undefined));
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  return useMemo(() => (pane ? activeItemPort(store, pane, mapping) : null), [store, pane]);
 }

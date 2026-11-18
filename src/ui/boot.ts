@@ -76,7 +76,5 @@ export function startUi(store: UiStore, url: UrlSync): () => void {
     arriveFromUrl(store, url);
     store.announce(msg.historyChanged);
   });
-  // Dev-only handle so e2e can drive activity states (the sample panes rarely report them).
-  if ((import.meta as unknown as { env?: { DEV?: boolean } }).env?.DEV) (window as unknown as { __lab?: unknown }).__lab = { actions: store.actions };
   return () => { offStore(); offTheme(); offKeys(); offPop(); clearTimeout(saveTimer); window.removeEventListener("beforeunload", onUnload); };
 }

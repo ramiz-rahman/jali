@@ -9,20 +9,20 @@
  *
  * A link carries content only (item, focused view, opened panes); the mode and the multiplexed layout are personal.
  */
-import type { ComponentType } from "react";
 import type { Layout, ObjectRef, PaneNode } from "../layout-core/types";
 import type { PaneKinds } from "./pane-kinds";
 
-export interface RoleDef {
+/** One of a curated page's views. Adapters add its icon (@jali/react: RoleDef). */
+export interface RoleBase {
   id: string;
   label: string;
   priority: "primary" | "supporting";
-  icon: ComponentType<{ size?: number; strokeWidth?: number; "aria-hidden"?: boolean }>;
 }
 
 export type ViewMode = "single" | "multi";
 
-export interface WorkspaceProfile {
+/** A curated page, framework-free. Adapters add its rail and header (@jali/react: WorkspaceProfile). */
+export interface ProfileBase<R extends RoleBase = RoleBase> {
   id: string;
   name: string;
   /** Singular noun for the active item ("application"). */
@@ -31,7 +31,7 @@ export interface WorkspaceProfile {
    *  peek, in the person's words: `{ full: "credit reviewer", limited: "loan officer" }`. */
   viewers?: { full: string; limited: string };
   /** The views, in tab order. A role's node id equals its role id. */
-  roles: RoleDef[];
+  roles: R[];
   /** The view Single mode opens on. */
   home: string;
   /** Multiplexed mode's designed starting layout: every role is in the tree; those not shown are hidden. */
@@ -39,12 +39,9 @@ export interface WorkspaceProfile {
   /** What each role shows for an item; another item swaps these in place. */
   bind(item: number): Record<string, ObjectRef>;
   firstItem: number;
-  /** The list of items at the left (the queue) and the item's header above the tabs. */
-  Rail: ComponentType<{ item: number; activate: (item: number) => void }>;
-  Header: ComponentType<{ item: number }>;
 }
 
-export const roleOf = (p: WorkspaceProfile, id: string | undefined) => p.roles.find((r) => r.id === id);
+export const roleOf = <R extends RoleBase>(p: ProfileBase<R>, id: string | undefined): R | undefined => p.roles.find((r) => r.id === id);
 
 /** A pane's name: its role in a curated page ("Borrower"), else what it shows ("member 12"). */
 export function titleOf(env: Env, node: PaneNode): string {
@@ -63,7 +60,7 @@ export interface Preset {
 export interface Env {
   kinds: PaneKinds;
   /** The curated page this workspace can show (`?app=review`); null for a workspace with none. */
-  profile: WorkspaceProfile | null;
+  profile: ProfileBase | null;
   /** Layouts to start from, in menu order. May be empty. */
   presets: readonly Preset[];
   /** The free workspace's name, where the person builds the layout ("Data Studio"). Default "Workspace". */
@@ -73,5 +70,5 @@ export interface Env {
 export const presetById = (env: Pick<Env, "presets">, id: string | undefined): Preset | undefined =>
   env.presets.find((p) => p.id === id) ?? env.presets[0];
 
-export const viewerLabel = (profile: WorkspaceProfile | null, full: boolean) =>
+export const viewerLabel = (profile: ProfileBase | null, full: boolean) =>
   (full ? profile?.viewers?.full : profile?.viewers?.limited) ?? (full ? "investigator" : "viewer");

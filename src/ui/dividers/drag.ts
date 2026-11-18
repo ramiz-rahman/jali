@@ -11,8 +11,7 @@
 import * as core from "../../layout-core";
 import type { Layout, NodeId, PaneBox, Rect } from "../../layout-core/types";
 import type { UiStore } from "../state/store";
-import { dividerKey } from "./Divider";
-import { clampSize, geometryFor, snap } from "./resize";
+import { clampSize, dividerKey, geometryFor, snap } from "./resize";
 
 /** True while a pointer drag is in progress (keyboard resizes wait). The body class is the drag's only state. */
 export const isDividerDragging = () => typeof document !== "undefined" && document.body.classList.contains("is-resizing");

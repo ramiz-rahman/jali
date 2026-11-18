@@ -5,7 +5,7 @@
  */
 import type { ReactNode } from "react";
 import { ArrowRight } from "lucide-react";
-import type { PaneComponentProps } from "../ui/pane-kinds";
+import type { PaneComponentProps } from "../ui/define";
 import { useStore } from "../ui/state/react";
 import { Loading } from "../panes/shared/states";
 import { day, taka, useApplication } from "./page";

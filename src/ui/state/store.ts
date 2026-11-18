@@ -12,7 +12,7 @@ import { apply, type Change, type Deferred, type HistoryMode, type Outcome, type
 import { modelCache, type WorkspaceModel } from "./model";
 import { loadSettings, systemPrefersDark, type Settings } from "./settings";
 import { loadPrefs, type ReviewPrefs } from "./review-prefs";
-import { presetById, type Env, type Preset, type ViewMode, type WorkspaceProfile } from "../profile";
+import { presetById, type Env, type Preset, type ViewMode, type ProfileBase } from "../profile";
 import { browserStorage, type StoragePort } from "../ports";
 import { createKeymap, type Keymap, type KeymapOptions, type KeymapOverrides } from "../commands/keymap";
 
@@ -91,7 +91,7 @@ export interface UiStoreDeps {
   /** This workspace's pane kinds (createPaneKinds). */
   kinds: PaneKinds;
   /** The curated page this workspace can show (ui/profile.ts). Default: none. */
-  profile?: WorkspaceProfile | null;
+  profile?: ProfileBase | null;
   /** Layouts to start from, in menu order (the bar and ⌘K "Layout: …"). Default: none. */
   presets?: readonly Preset[];
   /** The preset the workspace opens on, when no link or saved state says otherwise. Default: the first. A workspace

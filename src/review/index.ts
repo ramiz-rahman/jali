@@ -1,4 +1,4 @@
-import type { PaneKindDef } from "../ui/pane-kinds";
+import type { PaneKindDef } from "../ui/define";
 import { overviewKind, reviewRecordKind, reviewRelatedKind } from "./kinds";
 import { loanReview } from "./profile";
 

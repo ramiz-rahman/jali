@@ -5,7 +5,7 @@
  */
 import * as core from "../../layout-core";
 import type { Edge, Layout, LayoutContext, NodeId, ObjectRef, PaneNode, Rect, ViewState } from "../../layout-core/types";
-import { roleOf, viewerLabel, type ViewMode, type WorkspaceProfile } from "../profile";
+import { roleOf, viewerLabel, type ViewMode, type ProfileBase } from "../profile";
 import { refuse, type Change, type Outcome, type Snapshot } from "../state/apply";
 import { msg, toasts } from "../state/messages";
 import type { ReviewPrefs } from "../state/review-prefs";
@@ -27,7 +27,7 @@ export function placeAfterArrangement(layout: Layout): core.Placement {
 interface Placed { layout: Layout; view: ViewState }
 
 /** Every role shows `item`; opened panes keep what they show. */
-function rebind(layout: Layout, p: WorkspaceProfile, item: number): Layout {
+function rebind(layout: Layout, p: ProfileBase, item: number): Layout {
   const refs = p.bind(item);
   const root = core.tree.map(layout.root, (n) => (n.type === "pane" && n.role && refs[n.role] ? { ...n, ref: refs[n.role]! } : n));
   return root === layout.root ? layout : { ...layout, root };
@@ -41,14 +41,14 @@ export function withoutOpened(layout: Layout, ctx: LayoutContext): Layout {
 }
 
 /** A saved layout is usable if it still holds every role exactly once. */
-function usable(layout: Layout | null, p: WorkspaceProfile): layout is Layout {
+function usable(layout: Layout | null, p: ProfileBase): layout is Layout {
   if (!layout) return false;
   const roles = core.tree.panes(layout.root).flatMap((n) => (n.role ? [n.role] : []));
   return roles.length === p.roles.length && p.roles.every((r) => roles.includes(r.id));
 }
 
 /** Single mode: one pane, the chosen view. */
-function single(p: WorkspaceProfile, item: number, tab: string, ctx: LayoutContext): Placed {
+function single(p: ProfileBase, item: number, tab: string, ctx: LayoutContext): Placed {
   const r = roleOf(p, tab) ?? roleOf(p, p.home)!;
   const view: ViewState = { focused: r.id, focusHistory: [r.id] };
   const node: PaneNode = { id: r.id, type: "pane", size: { weight: 1 }, ref: p.bind(item)[r.id]!, role: r.id, priority: r.priority };
@@ -65,7 +65,7 @@ function onScreen(layout: Layout, view: ViewState, role: NodeId, ctx: LayoutCont
 }
 
 /** Multiplexed mode: the person's own layout (with or without the investigation it had), else the design. */
-function multi(x: Snapshot, p: WorkspaceProfile, item: number, tab: string, keepOpened: boolean): Placed {
+function multi(x: Snapshot, p: ProfileBase, item: number, tab: string, keepOpened: boolean): Placed {
   const { ctx } = x;
   const saved = x.s.prefs.multi;
   let layout = usable(saved, p) ? rebind(keepOpened ? saved : withoutOpened(saved, ctx), p, item) : p.build(item);
@@ -94,9 +94,9 @@ function keep(x: Snapshot, mode?: ViewMode): ReviewPrefs {
   return { mode: mode ?? r?.mode ?? x.s.prefs.mode, multi: r?.mode === "multi" ? x.s.layout : x.s.prefs.multi };
 }
 
-const label = (p: WorkspaceProfile, id: string | undefined) => roleOf(p, id)?.label ?? id ?? "";
+const label = (p: ProfileBase, id: string | undefined) => roleOf(p, id)?.label ?? id ?? "";
 /** A role's name in the page's tabs. */
-export const roleLabel = (p: WorkspaceProfile | null, id: string) => (p ? label(p, id) : id);
+export const roleLabel = (p: ProfileBase | null, id: string) => (p ? label(p, id) : id);
 
 export interface EnterReview { item?: number; tab?: string; investigation?: ObjectRef[]; fromUrl?: boolean; view?: Partial<ViewState> }
 

@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef } from "react";
 import type { ObjectRef, Row } from "../../data/types";
-import type { PaneComponentProps } from "../../ui/pane-kinds";
+import type { PaneComponentProps } from "../../ui/define";
 import { sameRef } from "../../ui/actions/follow";
 
 interface Results { q: { data?: unknown }; rows: Row[]; offset: number; total: number }

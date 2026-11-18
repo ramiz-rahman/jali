@@ -5,7 +5,8 @@
 import { useRef } from "react";
 import { paneDomId } from "../dom/ids";
 import { useModel, useStore, useUi } from "../state/react";
-import { Divider, dividerKey } from "./Divider";
+import { Divider } from "./Divider";
+import { dividerKey } from "./resize";
 import { isDividerDragging, startDividerDrag } from "./drag";
 import { geometryFor } from "./resize";
 

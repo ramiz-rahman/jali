@@ -5,6 +5,9 @@ import type { WorkspaceModel } from "../state/model";
 import { GAP } from "../tokens";
 
 /** Keyboard resize steps: arrows, and Shift+arrows. */
+/** `parentId:index`, written as data-divider on the separator (the drag finds neighbours' dividers by it). */
+export const dividerKey = (d: { parentId: NodeId; index: number }) => `${d.parentId}:${d.index}`;
+
 export const STEP = 16;
 export const STEP_BIG = 64;
 

@@ -6,7 +6,7 @@
 import { Briefcase, FileText, History, LayoutDashboard, UserRound, UsersRound } from "lucide-react";
 import type { Layout, LayoutNode, ObjectRef, PaneNode } from "../layout-core/types";
 import { applicationFacts } from "../data/sample-sql";
-import type { RoleDef, WorkspaceProfile } from "../ui/profile";
+import type { RoleDef, WorkspaceProfile } from "../ui/define";
 import { ApplicationHeader, QueueRail } from "./page";
 
 const ROLES: RoleDef[] = [
