@@ -1,6 +1,6 @@
 ---
 title: Key concepts
-summary: Every word Jali uses, each in one sentence with a small example or a picture.
+summary: Every word Jali uses, defined in a sentence or two, most with an example or a picture.
 ---
 
 import { TreeView, Frame, Spotlight } from "../../live";
@@ -9,7 +9,7 @@ import ticket from "../../samples/concepts/support/ticket.tsx?raw";
 import storeCode from "../../samples/concepts/support/store.ts?raw";
 import actions from "../../samples/concepts/support/actions.ts?raw";
 
-Jali gives an app a workspace of panes: lists, records and editors side by side, that the person can open, move, resize and close. This page names the parts. Each term has its own link, so other pages point here the first time they use a word.
+Jali gives an app a workspace of panes: lists, records and editors side by side, which the person can open, move, resize and close. This page names the parts. Each term has its own link, and other pages link here the first time they use a word.
 
 The examples use a support desk: a list of tickets, a ticket, the customer who sent it, and their orders.
 
@@ -27,7 +27,7 @@ A kind is one sort of pane: its name, its title, the smallest size it works at, 
 
 <Code code={ticket} filename="ticket.tsx" highlight="5-11" />
 
-A kind is data plus a component. Each workspace gets its own list of kinds (`createPaneKinds([...])`), so two workspaces on one page never share them.
+A kind is data plus a component. Each workspace has its own list of kinds (`createPaneKinds([...])`), so two workspaces on one page never share them.
 
 <h3 id="ref">Ref</h3>
 
@@ -53,7 +53,7 @@ Every node has a size along its parent: `{ weight: 2 }` takes a share of the roo
 
 <h3 id="overlay">Overlay</h3>
 
-The overlay is a set of notes kept beside the tree about panes that are not shown in their own place: **folded** (no room), **tucked** (the person put it away) and **hidden** (a curated page's view that is not on screen).
+The overlay is a set of notes, kept beside the tree, about panes that are not shown in their own place. A pane can be **folded** (no room), **tucked** (the person put it away) or **hidden** (a curated page's view that is not on screen).
 
 The tree itself never changes when a pane folds, tucks or hides. That is why a pane can always go back exactly where it was.
 
@@ -129,7 +129,7 @@ In Multiplexed, following a link opens an **opened** pane after the page's views
 
 <h3 id="viewers">Viewers</h3>
 
-A profile can name two kinds of viewer: one with full access, who may work in Multiplexed and open links beside, and one who works in Single and opens links as a peek.
+A profile can name two kinds of viewer. One has full access: they may work in Multiplexed and open links beside. The other works in Single and opens links as a peek.
 
 ## The store and its ports
 
@@ -192,4 +192,4 @@ Each store has its own keymap. Rebind or unbind a command with `createUiStore({ 
 
 <h3 id="content-first">Content first</h3>
 
-Keys go to the pane's content first. Content claims a key with `event.preventDefault()`, and the workspace leaves it alone; every key the content does not claim bubbles to the workspace. Single letter keys, Enter, Space and the first Esc are the content's.
+Keys go to the pane's content first. Content claims a key with `event.preventDefault()`, and the workspace leaves it alone; every key the content does not claim bubbles to the workspace. Single letter keys, Enter, Space and the first Esc belong to the content.

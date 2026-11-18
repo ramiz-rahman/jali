@@ -6,7 +6,7 @@ summary: A layout is a tree of rows, columns, stacks and panes, with a size on e
 import { TreeView, Spotlight } from "../../live";
 import layouts from "../../samples/concepts/support/layouts.ts?raw";
 
-Every workspace has one layout. It is a plain JSON tree, so you can write it by hand, keep it in the address and compare two of them. Each live diagram on this page is a real workspace beside its own tree. Hover a node to see its pane, drag a divider to see the sizes change, and switch to JSON to see what goes in the link.
+Every workspace has one layout. It is a plain JSON tree, so you can write it by hand, put it in the address and compare two of them. Each live diagram on this page is a real workspace beside its own tree. Hover a node to see its pane, drag a divider to see the sizes change, and switch to JSON to see what goes in the link.
 
 ## Panes are the leaves
 
@@ -65,7 +65,7 @@ Some panes are not shown in their own place. The layout keeps a note about each,
 overlay: { tucks: [], folds: [], shown: {}, hidden: ["overview"] }
 ```
 
-The tree stays as it was. A fold, a tuck or a hide only adds a note, and undoing it removes the note. That is why a tucked pane goes back to its exact slot, and why widening the window brings folded panes back to where they were. It is also why `shown` exists: it records which tab is showing in a fold group, keyed by the group's home pane.
+The tree stays as it was. A fold, a tuck or a hide only adds a note, and undoing it removes the note. That is why a tucked pane goes back to its exact slot, and why widening the window brings folded panes back to where they were. `shown` records which tab is showing in each fold group, keyed by the group's home pane.
 
 You rarely write the overlay by hand. A curated page's designed layout is the one place you do, to say which views start hidden.
 

@@ -8,10 +8,10 @@ import pageStore from "../../samples/concepts/support/page-store.ts?raw";
 
 A free workspace starts empty, or from a preset, and the person builds it. That suits work where the layout is the work: exploring data, comparing records.
 
-Much work is about one item at a time: a customer, a case, a loan application. For that, a page someone designed is better. It shows the right views in the right order, and the person can still lay them out their own way. Jali calls this a curated page. The same engine runs both; a curated page only moves the layout's control from the panes to a tab strip.
+Much work is about one item at a time: a customer, a case, a loan application. For that, a page someone designed is better. It shows the right views in the right order, and the person can still lay them out their own way. Jali calls this a curated page. Both run on the same store. The difference is where the person controls the layout: from the panes in a free workspace, from a tab strip on a curated page.
 
 <Callout title="See one working">
-The lab's Loan review is a curated page: a queue of applications at the left, then Overview, Application, Borrower, Loan history, Group and Field officer as tabs.
+The Loan review app in the [lab](/examples) is a curated page: a queue of applications at the left, then Overview, Application, Borrower, Loan history, Group and Field officer as tabs.
 </Callout>
 
 ## A profile describes the page
@@ -58,7 +58,7 @@ The first switch to Multiplexed starts from the profile's design. Switching back
 
 ## Views never fold into each other's tabs
 
-When there is no room for a view the person places, the least recently used views go back to the page's tabs, supporting views before the primary one, and the announcement names them. A view never folds into a tab group inside a pane, because that would repeat the page's tabs inside a pane.
+When there is no room for a view the person places, the least recently used views go back to the page's tabs, supporting views before the primary one. The announcement names them. A view never folds into a tab group inside a pane, because that would repeat the page's tabs inside a pane.
 
 ## Investigating
 
@@ -77,6 +77,6 @@ Choosing another item swaps every view in place and closes the investigation, be
 
 ## Viewers
 
-A page can be used by two kinds of person, named by `viewers`: one with full access (`full`), who may switch to Multiplexed and open links beside, and one who works in Single only and opens links as a peek (`limited`). The sample names them "account manager" and "support agent".
+A page can be used by two kinds of person, named by `viewers`. The `full` viewer may switch to Multiplexed and open links beside. The `limited` viewer works in Single only and opens links as a peek. The sample names them "account manager" and "support agent".
 
 `store.actions.setCanInvestigate(false)` sets the limited one. In a product, your app sets it from the person's role.

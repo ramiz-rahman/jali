@@ -42,7 +42,7 @@ function triesFor(m: WorkspaceModel, json: boolean): { icon: ReactNode; text: st
   const follows = !!list && m.panes.some((p) => p.linkedTo === list.id && p.follows && m.visible.includes(p.id));
   return [
     ...(follows ? [{ icon: <MousePointerClick size={15} strokeWidth={1.75} aria-hidden />, text: "Click an order, and the detail follows" }] : []),
-    ...(m.resolved.dividers.length ? [{ icon: <MoveHorizontal size={15} strokeWidth={1.75} aria-hidden />, text: "Drag the gap between panes" }] : []),
+    ...(m.resolved.dividers.length ? [{ icon: <MoveHorizontal size={15} strokeWidth={1.75} aria-hidden />, text: "Drag the divider between panes" }] : []),
     ...(m.panes.length > 1 ? [{ icon: <X size={15} strokeWidth={1.75} aria-hidden />, text: "Close a pane" }] : []),
     { icon: <Hand size={15} strokeWidth={1.75} aria-hidden />, text: json ? "Point at a box or a JSON block to find its pane" : "Point at a box to find its pane" },
   ];

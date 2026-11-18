@@ -5,7 +5,7 @@ summary: Put two workspaces side by side, or one in a dialog, without their link
 
 import two from "../../samples/guides/two-workspaces/two.tsx?raw";
 
-One store is one workspace. Two stores on a page share nothing by default except three things that are the page's: the address, the browser's storage and the keyboard. Give each workspace its own share of those, and they work side by side.
+One store is one workspace. Two stores on one page share nothing, except three things that belong to the page: the address, the browser's storage and the keyboard. Give each workspace its own share of those, and they work side by side.
 
 This page puts an orders workspace beside a notes workspace.
 
@@ -32,7 +32,7 @@ Both the store and its URL sync save to `localStorage` under `"jali"` by default
 `root` is a function that returns the element, or `null` before it exists. `<Jali>` renders the root and tells the store, so `store.dom.root()` returns it once rendered (and the document before that).
 
 <Callout type="warning" title="Two-step chords don't finish yet">
-With a root, ⌘K opens the palette, but the second step of a chord (⌘K then ⌘M, ⌘K then ⌘←) doesn't run: the palette renders outside the workspace's root, so the key pressed in it isn't taken as the workspace's. Direct keys work: F6, ⇧F6, ⌘\\ and ⇧⌘↵. Commands chosen in the palette work too.
+With a root, ⌘K opens the palette, but the second step of a chord (⌘K then ⌘M, ⌘K then ⌘←) doesn't run. The palette renders outside the workspace's root, so a key pressed in it doesn't count as the workspace's. Direct keys work: F6, ⇧F6, ⌘\\ and ⇧⌘↵. Commands chosen in the palette work too.
 </Callout>
 
 `installKeyboard` also takes a `target` window, for a workspace rendered into another window or a same-origin iframe. Each call returns a function that removes its listeners.
@@ -46,7 +46,7 @@ With a root, ⌘K opens the palette, but the second step of a chord (⌘K then �
 
 `startUi` does a few more things that have no separate call yet:
 
-- saving settings and pane state through the storage, so `usePaneState` values last for the session but not across a reload;
+- saving settings and pane state to storage. Without it, `usePaneState` values last for the session but not across a reload;
 - writing the theme setting to `data-theme` on `<html>`. Without it, Jali follows the system's dark mode, or your `.dark` and `[data-theme]` scopes;
 - the browser's prompt when the page closes with unsaved work. Closing a pane with unsaved work still asks;
 - the height of the one-pane switcher shown on narrow screens (the `--switcher-h` variable on `<html>`).

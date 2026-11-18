@@ -66,7 +66,13 @@ What the workspace is made of, and where its effects go.
 
 Puts the first state in place before the first render, so the first paint is the layout the address holds.
 
-In order: reads the address (a layout link arrives as it is; a curated page link opens the page; a link that can't be read opens the current preset, keeps a copy of the code in storage, replaces the address, shows an error toast and announces it), adds what is on screen to Recent, fits the layout to the current area, focuses the first pane when nothing is focused, and replaces the address with the result.
+In order, it:
+
+1. reads the address. A layout link arrives as it is, and a curated page link opens the page. A link that can't be read opens the current preset, keeps a copy of the code in storage, replaces the address, shows an error toast and announces it;
+2. adds what is on screen to Recent;
+3. fits the layout to the current area;
+4. focuses the first pane when nothing is focused;
+5. replaces the address with the result.
 
 <Params>
 <Param name="store" type="UiStore" required>The workspace to start.</Param>
@@ -328,7 +334,11 @@ Writes `store.href()` to the clipboard and announces "Link copied", or "Couldn't
 
 The default bindings: command id to one or more binding strings. `Mod` is ⌘ on a Mac and Ctrl elsewhere. Each id and its keys, printed for both platforms, are on the [Commands](/reference/commands) page.
 
-The defaults keep to three rules: single character keys belong to the focused content; no keys the browser keeps for itself (⌘W, ⌘T, Ctrl+Tab and the like), no Ctrl+Alt and no ⌘ or Ctrl with a digit; one prefix, ⌘K or Ctrl+K, which opens the palette and starts a two-step chord whose second step keeps Mod held.
+The defaults keep to three rules:
+
+- single character keys belong to the focused content;
+- no keys the browser keeps for itself (⌘W, ⌘T, Ctrl+Tab and the like), no Ctrl+Alt, and no ⌘ or Ctrl with a digit;
+- one prefix, ⌘K or Ctrl+K, which opens the palette and starts a two-step chord whose second step keeps Mod held.
 
 </Entry>
 

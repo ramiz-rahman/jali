@@ -20,7 +20,7 @@ You need a React 19 app. Any bundler that handles CSS imports works; the example
 <Steps>
 <Step title="Install the packages">
 
-`@jali/core` holds the model: the layout, the store and the commands. It has no framework in it. `@jali/react` renders it, with a default theme.
+`@jali/core` holds the model: the layout, the store and the commands. It doesn't depend on React. `@jali/react` renders it, with a default theme.
 
 <Install packages="@jali/core @jali/react" />
 
@@ -32,7 +32,7 @@ A [pane kind](/get-started/key-concepts#kind) says what one kind of pane shows a
 <Code code={note} filename="note.tsx" />
 
 - `kind` is the kind's name. Every pane of this kind carries it.
-- `ref` builds the [ref](/get-started/key-concepts#ref): the object a pane shows, as a kind and some params. Here, `{ kind: "note", params: { id: 1 } }`.
+- `ref` builds a [ref](/get-started/key-concepts#ref) from params. A ref names the object a pane shows, as a kind and some params. Here, `{ kind: "note", params: { id: 1 } }`.
 - `title` names the pane in its header, its tab and ⌘K.
 - `minWidth` and `minHeight` are the smallest size the content still works at. When the window is too narrow for every pane at its minimum, panes [fold](/get-started/key-concepts#fitting) into tabs instead of shrinking past it.
 - `Component` renders the pane. It gets the ref as a plain prop, `ref`, along with the functions a pane uses to open other panes.
@@ -44,7 +44,7 @@ A [layout](/get-started/key-concepts#layout-tree) is a tree. This one is a row w
 
 <Code code={start} filename="start.ts" />
 
-Every node needs an `id` that is unique in the layout. Actions and the address use it.
+Give every node an `id` that is unique in the layout. Actions and the address refer to nodes by it.
 
 </Step>
 <Step title="Create the store">
@@ -56,7 +56,7 @@ The [store](/get-started/key-concepts#store) holds the workspace: its layout, fo
 - `presets` are layouts the person can switch to. The first one opens when nothing else says what to show.
 - `createUrlSync()` keeps the layout in the address bar. Reload the page and the layout comes back; Back and Forward step through changes.
 - `boot` puts the first layout in place before the first render. If the address holds a layout, that one is used.
-- `startUi` installs the keyboard, Back and Forward, the theme and saving. Call it once, for the life of the page.
+- `startUi` turns on the keyboard, Back and Forward, the theme and saving. Call it once per page.
 
 </Step>
 <Step title="Render it">

@@ -104,7 +104,7 @@ function SplitBox({ node, c }: { node: Extract<LayoutNode, { type: "row" | "colu
   const lit = c.hover?.id === node.id;
   const under = !!c.hover && !lit && panesUnder(node).includes(c.hover.id);
   const Glyph = row ? Columns2 : Rows2;
-  const words = row ? "side by side" : "one above another";
+  const words = row ? "side by side" : "one above the other";
   return (
     <div className="live-map-split" data-axis={node.type} data-under={under || undefined}
       {...hoverProps(node.id, c, `${row ? "Row" : "Column"}: ${kids.length} ${words}`)}>

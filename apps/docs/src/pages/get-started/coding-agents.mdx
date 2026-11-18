@@ -7,7 +7,7 @@ import list from "../../samples/concepts/support/ticket-list.tsx?raw";
 import editor from "../../samples/concepts/support/note-editor.tsx?raw";
 import paused from "../../samples/concepts/support/paused.tsx?raw";
 
-Jali does a lot for a pane: it places it, folds it, keeps its state and asks before it loses work. It can only do that if the pane's content keeps a few rules. This page lists them, with the reason for each. Give it to your agent along with the task.
+Jali does a lot for a pane: it places it, folds it, keeps its state and asks before it loses work. It can only do that if the pane's content follows a few rules. This page lists them, with the reason for each. Give it to your agent along with the task.
 
 <Callout type="tip" title="Every page is Markdown too">
 Each page of these docs is also available as Markdown, from the buttons under its title. Paste this page, [Key concepts](/get-started/key-concepts) and the [Quickstart](/get-started/quickstart) into an agent's context before it writes Jali code.
@@ -19,7 +19,7 @@ Each page of these docs is also available as Markdown, from the buttons under it
 
 Define each kind of pane with `definePaneKind({ kind, title, ref, minWidth, minHeight, Component })` in its own module, and pass the app's kinds to `createPaneKinds` and `createUiStore({ kinds })`. Nothing about a kind is global, so two workspaces on one page never share kinds.
 
-Set `minWidth` to the narrowest the content truly works at once it adapts, not the width it looks best at. Jali folds a pane into a tab below its minimum and never squeezes it past it, so a minimum that is too large folds panes early. Use `comfortableWidth` and `maxWidth` for the rest ([How a layout fits](/learn/fitting)).
+Set `minWidth` to the narrowest width the content still works at once it adapts, not the width it looks best at. Jali folds a pane into a tab rather than squeeze it below its minimum, so a minimum that is too large folds panes early. Use `comfortableWidth` and `maxWidth` for the rest ([How a layout fits](/learn/fitting)).
 
 ### 2. Read the ref from props
 
@@ -27,7 +27,7 @@ The object a pane shows arrives as `ref`, a plain prop. React 19 passes `ref` to
 
 ### 3. Claim your keys, let the rest bubble
 
-Keys reach the pane's content first. Handle the keys your content uses and call `event.preventDefault()` on each one you handle; the workspace leaves a claimed key alone. Let every other key bubble, so ⌘K, F6 and the workspace's commands keep working inside your pane.
+Keys reach the pane's content first. Handle the keys your content uses and call `event.preventDefault()` on each one. The workspace leaves a claimed key alone. Let every other key bubble, so ⌘K, F6 and the workspace's commands keep working inside your pane.
 
 - Never stop propagation of every key in a container. It cuts off ⌘K and F6.
 - Letter keys (J, K) must only act while your content has focus.
@@ -67,13 +67,13 @@ A pane gets `paused: true` while it is out of sight: behind a tab, tucked, folde
 
 ### 9. Read data through the app's shared cache
 
-Many panes can show the same object at once: a ticket in a list, in a detail and in a peek. Read data through the app's one shared cache (TanStack Query, SWR, your own store), keyed by the object's id, so every pane showing it updates together after an edit. Never fetch inside a pane outside that cache.
+Many panes can show the same object at once: a ticket in a list, in a detail and in a peek. Read data through the app's one shared cache (TanStack Query, SWR, your own store), keyed by the object's id, so every pane showing it updates together after an edit. Don't fetch in a pane around that cache.
 
 With TanStack Query, pass `enabled: !paused` (or `subscribed: !paused`) so hidden panes stop fetching.
 
 ### 10. Theme Jali with its tokens, not with Tailwind inside it
 
-Jali has no Tailwind in it. Its styles are plain CSS on `--jali-*` tokens, in the `jali` cascade layer, so it works the same in apps with and without Tailwind. Don't add Tailwind classes to Jali's own code or copy its parts to restyle them, and don't reach for `!important`. To change how Jali looks, set its tokens, or import the Tailwind bridge (below). The content inside your panes is yours: style it the way your app styles everything else.
+Jali has no Tailwind in it. Its styles are plain CSS on `--jali-*` tokens, in the `jali` cascade layer, so it works the same in apps with and without Tailwind. Don't add Tailwind classes to Jali's parts, don't copy its parts to restyle them, and don't use `!important`. To change how Jali looks, set its tokens, or import the Tailwind bridge (below). The content inside your panes is yours: style it the way your app styles everything else.
 
 ## Retheming
 

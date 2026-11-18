@@ -16,7 +16,7 @@ import layoutCode from "../../../samples/reference/layout-ops.ts?raw";
 
 Opens `ref` in a new pane at `edge` of `target`, then fits the layout. `openBeside` and `split` are the two common forms.
 
-When there is no room, or the pane cap is passed, what folds is decided now and recorded in the overlay: with no room the new pane becomes a tab of its source; over the cap the oldest pane that is not pinned, focused or primary folds. A linked open (not from a selection) reuses the source's earlier plain link of the same kind instead of opening another pane; followers and pinned panes are never reused. A linked open keeps focus on `target`; an unlinked one focuses the new pane.
+When there is no room, or the pane cap is passed, what folds is decided now and recorded in the overlay. With no room, the new pane becomes a tab of its source. Over the cap, the oldest pane that is not pinned, focused or primary folds. A linked open (not from a selection) reuses the source's earlier plain link of the same kind instead of opening another pane; followers and pinned panes are never reused. A linked open keeps focus on `target`; an unlinked one focuses the new pane.
 
 <Params>
 <Param name="layout" type="Layout" required>The layout now.</Param>

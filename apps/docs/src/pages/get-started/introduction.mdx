@@ -9,7 +9,7 @@ Jali is a React library for apps where people work on several things at once. Ea
 
 Some work doesn't happen one screen at a time. A support agent reads a ticket while checking the customer's last order. A credit reviewer keeps an application open beside the borrower's file. Someone in operations compares two shipments side by side.
 
-Most web apps show one view at a time, so people open browser tabs, lose their place and copy details between windows. Building a real workspace of panes by hand is a lot of work: splitting and resizing, deciding what happens when the window gets narrow, keeping focus in the right place, and remembering the layout.
+Most web apps show one view at a time, so people open browser tabs, lose their place and copy details between windows. Building a workspace of panes by hand is a lot of work. You have to split and resize, decide what happens when the window gets narrow, keep focus in the right place, and remember the layout.
 
 Jali is that work, done once, for any screen size.
 
@@ -23,7 +23,7 @@ The pane you are working in, the pane it was opened from, and the details it ope
 
 ### Focus, undo and the keyboard
 
-One pane has focus, and commands act on it. Closing or tucking a pane away can be undone. <kbd className="kbd">F6</kbd> moves focus to the next pane, and <kbd className="kbd">⌘K</kbd> (<kbd className="kbd">Ctrl K</kbd> on Windows and Linux) opens a command palette. You can change or turn off every key.
+One pane has focus, and commands act on it. Closing or tucking a pane away can be undone. <kbd className="kbd">F6</kbd> moves focus to the next pane, and <kbd className="kbd">⌘K</kbd> (<kbd className="kbd">Ctrl+K</kbd> on Windows and Linux) opens a command palette. You can change or turn off every key.
 
 A pane can report unsaved work, such as an edited query that hasn't run. Jali asks before any change would lose it.
 
@@ -46,7 +46,7 @@ Records opened by following links go after the designed layout, and **Back to th
 
 ## Two packages
 
-[`@jali/core`](/reference/core) holds the model: the layout tree, fitting, and a store with focus, undo and follow. It has no framework. [`@jali/react`](/reference/react) renders it, with components, hooks and a default theme.
+[`@jali/core`](/reference/core) holds the model: the layout tree, fitting, and a store with focus, undo and following. It doesn't depend on React or any other framework. [`@jali/react`](/reference/react) renders it, with components, hooks and a default theme.
 
 <Install packages="@jali/core @jali/react" />
 
