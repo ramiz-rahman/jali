@@ -213,13 +213,19 @@ A command a pane adds to the palette while it is focused (`setCommands`). `keys`
 
 </Entry>
 
+<Entry name="ItemId" kind="type" from="@jali/core" signature={`type ItemId = string | number`} compact>
+
+A curated page's item id: a number, or a string such as a UUID or a slug. See `firstItem` under <Ref to="ProfileBase" />.
+
+</Entry>
+
 <Entry name="PaneActivity" kind="type" from="@jali/core" signature={`type PaneActivity = "idle" | "loading" | "working" | "needs-you" | "error"`} compact>
 
 What a pane reports about itself (`setActivity`), shown in its header, its tab, the shelf and the status line. On the shelf, loading reads as working.
 
 </Entry>
 
-<Entry name="ProfileBase" kind="type" from="@jali/core" signature={`interface ProfileBase<R extends RoleBase = RoleBase>`} compact>
+<Entry name="ProfileBase" kind="type" from="@jali/core" signature={`interface ProfileBase<R extends RoleBase = RoleBase, I extends ItemId = ItemId>`} compact>
 
 A curated page about one item (a loan application), framework-free. In React, `WorkspaceProfile` adds the rail and header.
 
@@ -230,9 +236,9 @@ A curated page about one item (a loan application), framework-free. In React, `W
 <Param name="viewers" type="{ full: string; limited: string }">Who works with full access (links open beside, Multiplexed available) and who works in Single with links as a peek, in the person's words.</Param>
 <Param name="roles" type="R[]" required>The views, in tab order.</Param>
 <Param name="home" type="string" required>The view Single opens on.</Param>
-<Param name="build" type="(item: number) => Layout" required>Multiplexed's designed layout. Every role is in the tree; those not shown are hidden.</Param>
-<Param name="bind" type="(item: number) => Record<string, ObjectRef>" required>What each role shows for an item. Another item swaps these in place.</Param>
-<Param name="firstItem" type="number" required>The item the page opens on.</Param>
+<Param name="build" type="(item: I) => Layout" required>Multiplexed's designed layout. Every role is in the tree; those not shown are hidden.</Param>
+<Param name="bind" type="(item: I) => Record<string, ObjectRef>" required>What each role shows for an item. Another item swaps these in place.</Param>
+<Param name="firstItem" type="I" required>The item the page opens on. Its type is the type of every item id: a link's `?item=4` arrives as the number `4` when `firstItem` is a number, and as text otherwise.</Param>
 </Params>
 
 </Entry>
@@ -336,7 +342,7 @@ A curated page in use.
 
 <Params title="Fields">
 <Param name="profile" type="string" required>The profile's id.</Param>
-<Param name="item" type="number" required>The item shown.</Param>
+<Param name="item" type="ItemId" required>The item shown.</Param>
 <Param name="mode" type="ViewMode" required>Single or Multiplexed.</Param>
 <Param name="tab" type="string" required>The view Single shows (in Multiplexed, the last role focused).</Param>
 <Param name="before" type="Layout">The Multiplexed layout just before the first opened pane; "Back to …" returns to it.</Param>
@@ -455,7 +461,7 @@ The options of `createUrlSync`, explained under <Ref to="createUrlSync" page="/r
 
 </Entry>
 
-<Entry name="UrlRead" kind="type" from="@jali/core" signature={`type UrlRead =\n  | { layout: Layout; view: Partial<ViewState> }\n  | { broken: string; view: Partial<ViewState> }\n  | { page: { tab: string; item: number; investigation: ObjectRef[] }; view: Partial<ViewState> }`} compact>
+<Entry name="UrlRead" kind="type" from="@jali/core" signature={`type UrlRead =\n  | { layout: Layout; view: Partial<ViewState> }\n  | { broken: string; view: Partial<ViewState> }\n  | { page: { tab: string; item: string | undefined; investigation: ObjectRef[] }; view: Partial<ViewState> }`} compact>
 
 A layout link, a layout code that couldn't be read, or a curated page link. `read` returns `null` when the address holds no layout.
 
@@ -624,14 +630,14 @@ How a list's item ids map to refs; see <Ref to="activeItemPort" page="/reference
 </Members>
 
 <Members title="Curated pages">
-<Member name="actions.openPage" signature="openPage(o?: { item?: number; tab?: string; investigation?: ObjectRef[]; fromUrl?: boolean; view?: Partial<ViewState> })">Open the profile's page. Opened panes need Multiplexed, so a link with them opens there.</Member>
+<Member name="actions.openPage" signature="openPage(o?: { item?: ItemId; tab?: string; investigation?: ObjectRef[]; fromUrl?: boolean; view?: Partial<ViewState> })">Open the profile's page. Opened panes need Multiplexed, so a link with them opens there.</Member>
 <Member name="actions.leavePage" signature="leavePage()">Back to the free workspace's preset. The page's mode and layout are kept.</Member>
 <Member name="actions.setMode" signature="setMode(mode: ViewMode)">Single or Multiplexed. Multiplexed is refused for a limited viewer.</Member>
 <Member name="actions.openTab" signature="openTab(role: string)">A page tab click. Never reshapes: Single swaps the view; Multiplexed focuses it, chooses its tab, or puts it in place of the view you're in.</Member>
 <Member name="actions.openTabBeside" signature="openTabBeside(role: string)">Alt-click a tab: that view beside the one you're in (from Single, switches to Multiplexed first).</Member>
 <Member name="actions.placeTab" signature={`placeTab(role: string, target: NodeId, zone: Edge | "centre")`}>Drop a page tab on a pane. Room is made by sending the least recently used views back to the tabs.</Member>
 <Member name="actions.resetPage" signature="resetPage()">Multiplexed back to the design; opened panes stay.</Member>
-<Member name="actions.activate" signature="activate(item: number)">Show another item; the previous item's opened panes close.</Member>
+<Member name="actions.activate" signature="activate(item: ItemId)">Show another item; the previous item's opened panes close.</Member>
 <Member name="actions.backToPage" signature="backToPage()">Close every opened pane, with Undo.</Member>
 <Member name="actions.hideRole" signature="hideRole(id: NodeId)">A view leaves the screen and waits in the tabs (Multiplexed only).</Member>
 <Member name="actions.setCanInvestigate" signature="setCanInvestigate(canInvestigate: boolean)">The viewer's permission. Taking it away switches to Single.</Member>

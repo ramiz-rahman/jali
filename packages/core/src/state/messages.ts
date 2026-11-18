@@ -94,7 +94,7 @@ export const msg = {
   modeMulti: "Multiplexed: drag tabs into the layout to see views side by side",
   viewing: (t: string) => `Showing ${t}`,
   pageReset: "Layout reset to its design",
-  activated: (noun: string, id: number, dropped: number) => `Showing ${noun} ${id}${dropped ? ` · ${dropped} opened ${dropped === 1 ? "pane" : "panes"} closed` : ""}`,
+  activated: (noun: string, id: string | number, dropped: number) => `Showing ${noun} ${id}${dropped ? ` · ${dropped} opened ${dropped === 1 ? "pane" : "panes"} closed` : ""}`,
   roleHidden: (t: string) => `${t} closed · it's still in the tabs`,
   roleShown: (t: string) => `${t} on screen`,
   lastView: (t: string) => `${t} is the only view on screen`,

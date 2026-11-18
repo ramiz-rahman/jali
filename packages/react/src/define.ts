@@ -28,7 +28,7 @@
  *   when they change and with `null` on unmount.
  */
 import type { ComponentType, ReactNode } from "react";
-import type { ObjectRef, PaneNode, PaneActivity, PaneCommand, PaneKindBase, PaneKinds, Env, ProfileBase, RoleBase } from "@jali/core/adapter";
+import type { ObjectRef, PaneNode, PaneActivity, PaneCommand, PaneKindBase, PaneKinds, Env, ItemId, ProfileBase, RoleBase } from "@jali/core/adapter";
 
 export interface PaneComponentProps {
   /** The layout node. In the peek sheet this is a node that is not in the layout. */
@@ -87,10 +87,11 @@ export interface RoleDef extends RoleBase {
 }
 
 /** A curated page (profile.ts), with the list beside it and the header above its tabs. */
-export interface WorkspaceProfile extends ProfileBase<RoleDef> {
-  /** The list of items at the left (the queue) and the item's header above the tabs. */
-  Rail: ComponentType<{ item: number; activate: (item: number) => void }>;
-  Header: ComponentType<{ item: number }>;
+export interface WorkspaceProfile<I extends ItemId = any> extends ProfileBase<RoleDef, I> {
+  /** The list of items at the left (the queue) and the item's header above the tabs. `I` is the item id's type
+   *  (`number` or `string`), as in `firstItem`. */
+  Rail: ComponentType<{ item: I; activate: (item: I) => void }>;
+  Header: ComponentType<{ item: I }>;
 }
 
 /** The env as a React workspace sees it: its kinds have components, its profile has a rail and header. */

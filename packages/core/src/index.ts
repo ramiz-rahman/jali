@@ -16,7 +16,7 @@ export { sameRef } from "./actions/follow";
 export { createPaneKinds, type PaneKindBase, type PaneKinds, type PaneCommand, type PaneActivity } from "./pane-kinds";
 export {
   titleOf, roleOf, presetById, viewerLabel,
-  type ProfileBase, type RoleBase, type ViewMode, type Preset, type Env,
+  type ProfileBase, type RoleBase, type ViewMode, type Preset, type Env, type ItemId,
 } from "./profile";
 
 // ---------- the workspace store ----------

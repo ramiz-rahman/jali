@@ -21,8 +21,19 @@ export interface RoleBase {
 
 export type ViewMode = "single" | "multi";
 
+/** A curated page's item id: a number (`4`) or a string (a UUID, a slug). A link carries it as text; a profile whose
+ *  `firstItem` is a number gets numbers back. */
+export type ItemId = string | number;
+
+/** An item id from a link or a caller, in the type the profile uses (`"4"` becomes `4` when `firstItem` is a number). */
+export function asItem(id: ItemId, first: ItemId): ItemId {
+  if (typeof first !== "number" || typeof id === "number") return id;
+  const n = Number(id);
+  return id.trim() !== "" && Number.isFinite(n) ? n : id;
+}
+
 /** A curated page, framework-free. Adapters add its rail and header (@jali/react: WorkspaceProfile). */
-export interface ProfileBase<R extends RoleBase = RoleBase> {
+export interface ProfileBase<R extends RoleBase = RoleBase, I extends ItemId = ItemId> {
   id: string;
   name: string;
   /** Singular noun for the active item ("application"). */
@@ -35,13 +46,14 @@ export interface ProfileBase<R extends RoleBase = RoleBase> {
   /** The view Single mode opens on. */
   home: string;
   /** Multiplexed mode's designed starting layout: every role is in the tree; those not shown are hidden. */
-  build(item: number): Layout;
+  build(item: I): Layout;
   /** What each role shows for an item; another item swaps these in place. */
-  bind(item: number): Record<string, ObjectRef>;
-  firstItem: number;
+  bind(item: I): Record<string, ObjectRef>;
+  /** The item the page opens on. Its type (number or string) is the type of every item id the page is given. */
+  firstItem: I;
 }
 
-export const roleOf = <R extends RoleBase>(p: ProfileBase<R>, id: string | undefined): R | undefined => p.roles.find((r) => r.id === id);
+export const roleOf = <R extends RoleBase>(p: ProfileBase<R, any>, id: string | undefined): R | undefined => p.roles.find((r) => r.id === id);
 
 /** A pane's name: its role in a curated page ("Borrower"), else what it shows ("member 12"). */
 export function titleOf(env: Env, node: PaneNode): string {

@@ -12,7 +12,7 @@ import { apply, type Change, type Deferred, type HistoryMode, type Outcome, type
 import { modelCache, type WorkspaceModel } from "./model";
 import { loadSettings, systemPrefersDark, type Settings } from "./settings";
 import { loadPrefs, type PagePrefs } from "./page-prefs";
-import { presetById, type Env, type Preset, type ViewMode, type ProfileBase } from "../profile";
+import { presetById, type Env, type ItemId, type Preset, type ViewMode, type ProfileBase } from "../profile";
 import { browserStorage, type StoragePort } from "../ports";
 import { focusPane } from "../dom/focus";
 import { createKeymap, type Keymap, type KeymapOptions, type KeymapOverrides } from "../commands/keymap";
@@ -28,7 +28,7 @@ export interface ChooserState { kind: "merge"; source: NodeId }
 export interface PageState {
   /** The profile's id: what a link names (`?page=loan-review`). */
   profile: string;
-  item: number;
+  item: ItemId;
   mode: ViewMode;
   /** The view Single mode shows (in Multiplexed, the last role focused). */
   tab: string;

@@ -5,7 +5,7 @@
  */
 import * as core from "../layout";
 import type { Edge, Layout, LayoutContext, NodeId, ObjectRef, PaneNode, Rect, ViewState } from "../layout/types";
-import { roleOf, viewerLabel, type ViewMode, type ProfileBase } from "../profile";
+import { asItem, roleOf, viewerLabel, type ItemId, type ViewMode, type ProfileBase } from "../profile";
 import { refuse, type Change, type Outcome, type Snapshot } from "../state/apply";
 import { msg, toasts } from "../state/messages";
 import type { PagePrefs } from "../state/page-prefs";
@@ -27,7 +27,7 @@ export function placeAfterArrangement(layout: Layout): core.Placement {
 interface Placed { layout: Layout; view: ViewState }
 
 /** Every role shows `item`; opened panes keep what they show. */
-function rebind(layout: Layout, p: ProfileBase, item: number): Layout {
+function rebind(layout: Layout, p: ProfileBase, item: ItemId): Layout {
   const refs = p.bind(item);
   const root = core.tree.map(layout.root, (n) => (n.type === "pane" && n.role && refs[n.role] ? { ...n, ref: refs[n.role]! } : n));
   return root === layout.root ? layout : { ...layout, root };
@@ -48,7 +48,7 @@ function usable(layout: Layout | null, p: ProfileBase): layout is Layout {
 }
 
 /** Single mode: one pane, the chosen view. */
-function single(p: ProfileBase, item: number, tab: string, ctx: LayoutContext): Placed {
+function single(p: ProfileBase, item: ItemId, tab: string, ctx: LayoutContext): Placed {
   const r = roleOf(p, tab) ?? roleOf(p, p.home)!;
   const view: ViewState = { focused: r.id, focusHistory: [r.id] };
   const node: PaneNode = { id: r.id, type: "pane", size: { weight: 1 }, ref: p.bind(item)[r.id]!, role: r.id, priority: r.priority };
@@ -65,7 +65,7 @@ function onScreen(layout: Layout, view: ViewState, role: NodeId, ctx: LayoutCont
 }
 
 /** Multiplexed mode: the person's own layout (with or without the investigation it had), else the design. */
-function multi(x: Snapshot, p: ProfileBase, item: number, tab: string, keepOpened: boolean): Placed {
+function multi(x: Snapshot, p: ProfileBase, item: ItemId, tab: string, keepOpened: boolean): Placed {
   const { ctx } = x;
   const saved = x.s.prefs.multi;
   let layout = usable(saved, p) ? rebind(keepOpened ? saved : withoutOpened(saved, ctx), p, item) : p.build(item);
@@ -98,7 +98,7 @@ const label = (p: ProfileBase, id: string | undefined) => roleOf(p, id)?.label ?
 /** A role's name in the page's tabs. */
 export const roleLabel = (p: ProfileBase | null, id: string) => (p ? label(p, id) : id);
 
-export interface OpenPage { item?: number; tab?: string; investigation?: ObjectRef[]; fromUrl?: boolean; view?: Partial<ViewState> }
+export interface OpenPage { item?: ItemId; tab?: string; investigation?: ObjectRef[]; fromUrl?: boolean; view?: Partial<ViewState> }
 
 /** Open the curated page (or arrive at it from a link). A link with opened panes needs Multiplexed to show them. */
 export function openPage(x: Snapshot, o: OpenPage = {}): Outcome {
@@ -109,7 +109,7 @@ export function openPage(x: Snapshot, o: OpenPage = {}): Outcome {
   const page: PageState = {
     profile: p.id,
     before: undefined,
-    item: o.item ?? prev?.item ?? p.firstItem,
+    item: o.item !== undefined ? asItem(o.item, p.firstItem) : prev?.item ?? p.firstItem,
     tab: roleOf(p, o.tab)?.id ?? prev?.tab ?? p.home,
     mode: opened.length ? "multi" : prev?.mode ?? x.s.prefs.mode,
     canInvestigate: prev?.canInvestigate ?? true,
@@ -309,7 +309,7 @@ export function goToRole(x: Snapshot, role: string, from?: NodeId): Outcome {
 }
 
 /** Another item: every role shows it, in place, and the previous item's investigation closes. */
-export function activate(x: Snapshot, item: number): Outcome {
+export function activate(x: Snapshot, item: ItemId): Outcome {
   const p = x.env.profile, r = x.s.page;
   if (!p || !r || r.item === item) return null;
   const page = { ...r, item, before: undefined };

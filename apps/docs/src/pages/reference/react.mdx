@@ -105,9 +105,9 @@ A kind for React; see <Ref to="definePaneKind" />.
 
 </Entry>
 
-<Entry name="WorkspaceProfile" kind="type" from="@jali/react" signature={`interface WorkspaceProfile extends ProfileBase<RoleDef> {\n  Rail: ComponentType<{ item: number; activate: (item: number) => void }>;\n  Header: ComponentType<{ item: number }>;\n}`} example={profileCode} exampleFile="loan-review.tsx">
+<Entry name="WorkspaceProfile" kind="type" from="@jali/react" signature={`interface WorkspaceProfile<I extends ItemId = any> extends ProfileBase<RoleDef, I> {\n  Rail: ComponentType<{ item: I; activate: (item: I) => void }>;\n  Header: ComponentType<{ item: I }>;\n}`} example={profileCode} exampleFile="loan-review.tsx">
 
-A curated page for React: <Ref to="ProfileBase" page="/reference/core/types" /> with the list of items at the left (`Rail`, which calls `activate(item)` to show another) and the item's header above the tabs (`Header`). Pass it as the store's `profile`.
+A curated page for React: <Ref to="ProfileBase" page="/reference/core/types" /> with the list of items at the left (`Rail`, which calls `activate(item)` to show another) and the item's header above the tabs (`Header`). `I` is the item id's type, `number` or `string`. Pass it as the store's `profile`.
 
 </Entry>
 
