@@ -5,6 +5,7 @@ import type { DataLayer } from "../data/types";
 import { DataLayerProvider } from "../data/react";
 import { TopBar } from "./TopBar";
 import { StatusLine } from "./StatusLine";
+import { StatsSetting } from "./stats-pref";
 import { Jali, JaliView, useStore, useUi } from "@jali/react";
 import { resolveTheme } from "@jali/core";
 import type { UiStore } from "@jali/core";
@@ -39,7 +40,7 @@ export function App({ store, data }: { store: UiStore; data: DataLayer }) {
   return (
     <QueryClientProvider client={data.queryClient}>
       <DataLayerProvider value={data}>
-        <Jali store={store} className="app" overlays={<Toasts />}>
+        <Jali store={store} className="app" overlays={<Toasts />} settingsExtra={<StatsSetting />}>
           <TopBar />
           <JaliView />
           <StatusLine />

@@ -26,7 +26,7 @@
 17. Done 19 Nov: the pane host clears unsaved work when the content unmounts (or the kind changes); the lab and the docs samples drop their cleanup effect. ~~**Unsaved-work cleanup is boilerplate:** every pane calls `setUnsaved(null)` on unmount; the pane host could clear it.~~
 18. **Hosts can't bind keys to their own commands** though `KeymapOverrides` says they "may be bound too" (`keymap.ts:47`; `run()` only finds registry commands).
 19. **Parts take no `className`**, so the README's "a utility class on a part is enough" is not true; layered CSS rules on the jali-* classes are the way. Fix the README (or let parts take classes).
-20. **The shelf and toasts are the host's job:** `<JaliView>` renders no shelf and no toaster, and Undo lives only in a toast. A minimal app gets neither. Consider shipping both (a minimal toaster) or saying it in `<Jali>`.
+20. Done 19 Nov: documented in `<Jali>` (its comment and reference page): the shelf and a toaster are the host's. A minimal built-in toaster is deferred. ~~**The shelf and toasts are the host's job:** `<JaliView>` renders no shelf and no toaster, and Undo lives only in a toast. A minimal app gets neither. Consider shipping both (a minimal toaster) or saying it in `<Jali>`.~~
 
 ## Text
 21. Done 19 Nov: `define.ts` no longer names lab paths. ~~`react/src/define.ts:15,25` points at lab paths (`src/data/react`, `ui/pane/usePaneState`).~~
@@ -46,7 +46,7 @@
 33. **Six public tokens nothing reads:** `--jali-brand`, `--jali-done`, `--jali-surface-raised`, `--jali-shadow-raised`, `--jali-accent-soft`, `--jali-font` (the workspace never sets `font-family`). Use them or drop them.
 34. **Public signatures use unexported types:** `DndState`, `ConfirmState`, `ChooserState`, `PagePrefs`, `UndoEntry`, `Change`, `OpenPage`, `Group`, `ShelfEntry`, `Chord`, `KeySequence`, `ResolvedStack`.
 35. **`HideRefusal` includes `"tab"`, which `hide`/`show` never return** (`layout/types.ts:100`).
-36. **`Settings.showStats` is the lab's** (`state/settings.ts:9`, `dialogs/Settings.tsx`).
+36. Done 19 Nov: `Settings.showStats` is gone; `<Jali settingsExtra>` adds a host's own fieldsets to the panel, and the lab keeps "Show fetch stats" there in its own storage. ~~**`Settings.showStats` is the lab's** (`state/settings.ts:9`, `dialogs/Settings.tsx`).~~
 37. Done 19 Nov: comments fixed and old paths replaced; the `pane.undo_close` title is now "Undo last close or tuck". ~~**Stale or wrong comments:** `Shelf.tsx:20` (also renders for folded panes), `usePaneState.ts:3` (also dropped when the pane shows another object), `profile.ts:44` (`?app=review` is the old form), `registry.ts:63` ("Restore last closed pane" also undoes close-others and tucks), and old `ui/…` / `layout-core/…` paths in `pane-kinds.ts:3,44`, `store.ts:24,76`, `url.ts:2,160`, `contracts/active-item.ts:6`, `pane/activeItem.ts:6`, `react/src/state/react.tsx:13`.~~
 
 38. Done 19 Nov: **Jali's default font is the lab's:** `jali-theme.css` sets `--jali-font: "IBM Plex Sans", …` and `--jali-font-mono: "IBM Plex Mono", …`. Jali is its own identity: its defaults should be the Atkinson Hyperlegible family (Next and Mono), with system fallbacks, and the lab sets Plex for itself.

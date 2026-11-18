@@ -454,7 +454,7 @@ The words for a click with Alt held: "⌥-click" on a Mac, "Alt-click" elsewhere
 
 ## Settings and theme
 
-<Entry name="DEFAULT_SETTINGS" kind="constant" from="@jali/core" signature={`const DEFAULT_SETTINGS: Settings = {\n  centreDrop: "swap", paneCap: 8, showStats: true,\n  theme: "system", boundary: "tint",\n}`} example={settingsCode} exampleFile="settings.ts">
+<Entry name="DEFAULT_SETTINGS" kind="constant" from="@jali/core" signature={`const DEFAULT_SETTINGS: Settings = {\n  centreDrop: "swap", paneCap: 8,\n  theme: "system", boundary: "tint",\n}`} example={settingsCode} exampleFile="settings.ts">
 
 The settings a person starts with. Saved settings (`settings` in the store's storage) are laid over them at creation; an unknown `theme` becomes `"system"` and any `boundary` but `"none"` becomes `"tint"`. The fields are under <Ref to="Settings" page="/reference/core/types" />.
 

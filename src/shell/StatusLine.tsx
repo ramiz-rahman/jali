@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useDataLayer } from "../data/react";
 import { PALETTE_ID } from "@jali/core";
 import { useModel, useStore, useUi, Shelf } from "@jali/react";
+import { useShowStats } from "./stats-pref";
 
 export function StatusLine() {
   const m = useModel();
@@ -12,7 +13,7 @@ export function StatusLine() {
   const curated = useUi((s) => !!s.page);
   const single = useUi((s) => s.page?.mode === "single");
   // Fetch and cache telemetry is for Data Studio; a curated page speaks in views.
-  const showStats = useUi((s) => s.settings.showStats && !s.page);
+  const showStats = useShowStats() && !curated;
   const activity = useUi((s) => s.activity);
   // Every tucked pane, shown or not (the shelf lists them all); folded panes are counted separately.
   const tucked = m.shelf.length;
