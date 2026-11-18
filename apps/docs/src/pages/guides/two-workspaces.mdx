@@ -5,7 +5,7 @@ summary: Put two workspaces side by side, or one in a dialog, without their link
 
 import two from "../../samples/guides/two-workspaces/two.tsx?raw";
 
-One store is one workspace. Two stores on one page share nothing, except three things that belong to the page: the address, the browser's storage and the keyboard. Give each workspace its own share of those, and they work side by side.
+Two workspaces on one page share nothing, except three things that belong to the page: the address, the browser's storage and the keyboard. Give each workspace its own share of those, and they work side by side.
 
 This page puts an orders workspace beside a notes workspace.
 
@@ -17,39 +17,27 @@ This page puts an orders workspace beside a notes workspace.
 
 ## Its own params in the address
 
-`createUrlSync({ prefix: "n." })` writes the notes workspace's params as `n.l`, `n.zoom` and `n.peek`. The orders workspace keeps the plain names. Each reads and writes only its own, and every other param is left alone, so one link reopens both.
+`url: { prefix: "n." }` writes the notes workspace's params as `n.l`, `n.zoom` and `n.peek`. The orders workspace keeps the plain names. Each reads and writes only its own, and every other param is left alone, so one link reopens both, and Back and Forward step each one through its own changes.
 
-A workspace that must not touch the address at all, such as one in a dialog, can use `createUrlSync({ location: memoryLocation() })`, or no `url` at all.
+A workspace that must not touch the address at all, such as one in a dialog, passes `url: false`.
 
 ## Its own storage
 
-Both the store and its URL sync save to `localStorage` under `"jali"` by default. Two workspaces with the defaults would overwrite each other's settings and pane state. Give each its own prefix with `browserStorage("orders")`, and pass it to both the store and its URL sync.
+Each workspace saves to `localStorage` under `"jali"` by default, so two with the defaults would overwrite each other's settings and pane state. Give each its own prefix: `storage: "orders"`.
 
 ## Its own keys
 
-`installKeyboard(store, { root })` makes a store take only keys from inside its root element, plus keys pressed with nothing focused, when that workspace was the last one used. So F6 in the notes moves between notes panes, and ⌘K opens the notes palette.
-
-`root` is a function that returns the element, or `null` before it exists. `<Jali>` renders the root and tells the store, so `store.dom.root()` returns it once rendered (and the document before that).
+`keys: "workspace"` makes a workspace take only keys from inside its own root, plus keys pressed with nothing focused, when it was the last one used. So F6 in the notes moves between notes panes, and ⌘K opens the notes palette. The default, `"page"`, takes every key on the page: right for one workspace, wrong for two.
 
 <Callout type="warning" title="Two-step chords don't finish yet">
-With a root, ⌘K opens the palette, but the second step of a chord (⌘K then ⌘M, ⌘K then ⌘←) doesn't run. The palette renders outside the workspace's root, so a key pressed in it doesn't count as the workspace's. Direct keys work: F6, ⇧F6, ⌘\\ and ⇧⌘↵. Commands chosen in the palette work too.
+With `keys: "workspace"`, ⌘K opens the palette, but the second step of a chord (⌘K then ⌘M, ⌘K then ⌘←) doesn't run. The palette renders outside the workspace's root, so a key pressed in it doesn't count as the workspace's. Direct keys work: F6, ⇧F6, ⌘\\ and ⇧⌘↵. Commands chosen in the palette work too.
 </Callout>
 
-`installKeyboard` also takes a `target` window, for a workspace rendered into another window or a same-origin iframe. Each call returns a function that removes its listeners.
+Everything else a workspace starts while its `<Jali>` is mounted works for each one: saving settings and pane state, Back and Forward, and the browser's prompt when the page closes with unsaved work.
 
-## Why not `startUi`
+## Inside a page with its own theme
 
-`startUi` is for one workspace per page. It installs the keyboard for the whole page, with no root, so two workspaces with `startUi` would both act on every key. Call `boot` for each, then set up what you need yourself:
-
-- **Keys:** `installKeyboard` with a root, as above.
-- **Back and Forward:** `url.onPop` tells you the address changed. Read the workspace's part with `url.read` and pass it to `store.actions.arrive`, as the sample does. That covers layouts; a curated page in the second workspace would need more.
-
-`startUi` does a few more things that have no separate call yet:
-
-- saving settings and pane state to storage. Without it, `usePaneState` values last for the session but not across a reload;
-- writing the theme setting to `data-theme` on `<html>`. Without it, Jali follows the system's dark mode, or your `.dark` and `[data-theme]` scopes;
-- the browser's prompt when the page closes with unsaved work. Closing a pane with unsaved work still asks;
-- the height of the one-pane switcher shown on narrow screens (the `--switcher-h` variable on `<html>`).
+A workspace sets `data-theme` on `<html>` from its theme setting. Inside a page that has its own light and dark (a docs site, an app with its own switch), pass `pageTheme: false`, and the workspace follows the page's `.dark` and `[data-theme]` scopes instead.
 
 ## Its own look
 

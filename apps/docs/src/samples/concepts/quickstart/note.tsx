@@ -1,15 +1,13 @@
-import { definePaneKind } from "@jali/react";
+import { definePane } from "@jali/react";
 
-// A pane kind: what it shows (a ref), its title, the smallest size it works at, and the component that renders it.
-export const note = definePaneKind({
-  kind: "note",
-  title: (ref) => `Note ${ref.params.id}`,
-  ref: (params) => ({ kind: "note", params }),
-  minWidth: 240,
-  minHeight: 160,
-  Component: ({ ref }) => (
+// A kind of pane: what it shows (its params), its title, and the component that renders it.
+export const note = definePane("note", {
+  params: { id: Number },
+  title: ({ id }) => `Note ${id}`,
+
+  Component: ({ params }) => (
     <article className="note">
-      <h3>Note {ref.params.id}</h3>
+      <h3>Note {params.id}</h3>
     </article>
   ),
 });

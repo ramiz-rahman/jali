@@ -5,8 +5,8 @@
  */
 import { useContext, type CSSProperties, type ReactNode } from "react";
 import { Columns2, Layers, Rows2 } from "lucide-react";
-import type { LayoutNode, PaneNode, StackNode, WorkspaceModel } from "@jali/core";
-import { KindIcon, useModel } from "@jali/react";
+import type { LayoutNode, PaneNode, StackNode, WorkspaceModel } from "@jali/core/adapter";
+import { KindIcon, useWorkspaceModel } from "@jali/react";
 import { PreviewRects, extentOf, panesUnder, sizeText, type Hover } from "./LayoutTree";
 import { colourOf } from "./colours";
 
@@ -130,7 +130,7 @@ function MapNode({ node, c }: { node: LayoutNode; c: Ctx }): ReactNode {
 }
 
 export function LayoutMap({ hover, setHover, sizes }: { hover: Hover | null; setHover(h: Hover | null): void; sizes: boolean }) {
-  const m = useModel();
+  const m = useWorkspaceModel();
   const pick = (e: { target: EventTarget }) => {
     const id = (e.target as Element).closest<HTMLElement>("[data-node]")?.dataset.node;
     if (id && id !== hover?.id) setHover({ id, from: "tree" });

@@ -1,12 +1,8 @@
-import { createKeymap, formatKeys, DEFAULT_KEYMAP } from "@jali/core";
+import { DEFAULT_KEYMAP, formatKeys } from "@jali/core";
+import { store } from "./store";
 
-// The same overrides createUiStore takes as `keymap`: rebind, add a second binding, or unbind with null.
-const keymap = createKeymap(
-  { "pane.zoom": "Mod+K Mod+Enter", "pane.close": ["Mod+K Mod+Backspace", "Mod+K Mod+W"], "pane.tuck": null },
-  { platform: "mac", onInvalid: (id, binding, reason) => console.warn(id, binding, reason) },
-);
-
-keymap.label("pane.zoom");                 // "⌘K ⌘↵"
-keymap.label("pane.tuck");                 // "" (unbound)
-keymap.sequences("pane.close").map((s) => formatKeys(s, "other")); // ["Ctrl+K Ctrl+Backspace", "Ctrl+K Ctrl+W"]
+// The workspace's keymap: the defaults, with the workspace's `keymap` overrides applied.
+store.keymap.label("pane.close");          // "⌘K ⌘W" (rebound in store.ts)
+store.keymap.label("pane.split.down");     // "" (unbound)
+store.keymap.sequences("pane.zoom").map((s) => formatKeys(s, "other")); // ["Ctrl+Shift+Enter"]
 DEFAULT_KEYMAP["pane.split.right"];        // ["Mod+\\"]

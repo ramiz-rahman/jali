@@ -5,46 +5,50 @@ summary: Describe one kind of pane, what it shows, how narrow it can go, and the
 
 import orders from "../../samples/guides/pane-kinds/orders.tsx?raw";
 
-A [pane kind](/get-started/key-concepts#kind) is one sort of pane in your app: an orders list, one order, a customer. You define it once with `definePaneKind`, and every pane of that kind in the workspace uses it.
+A [pane kind](/get-started/key-concepts#kind) is one sort of pane in your app: an orders list, one order, a customer. You define it once with `definePane`, and every pane of that kind in the workspace uses it.
 
 This guide builds the kinds for a small orders app. The whole file is at the end.
 
 ## What a pane shows
 
-Each pane shows one object, named by a **ref**: a kind and some params.
+Each pane shows one object, named by a **ref**: a kind and some params. The kind you define makes its refs:
 
 ```ts
-{ kind: "order", params: { id: 12 } }
+orderKind({ id: 12 }) // { kind: "order", params: { id: 12 } }
 ```
 
 A ref is plain data, so it fits in a link. Params are strings or numbers. Your component reads them and loads the object itself: Jali never fetches anything.
 
-## The fields
+## The options
 
 <Steps>
-<Step title="Name it and title it">
+<Step title="Name it, and say what it shows">
 
-`kind` is the name refs use. `title` turns a ref into the pane's name, shown in its header, its tab and the shelf.
+The first argument is the kind's name; refs and links carry it. `params` says what each pane of the kind needs, and how to read it back from a link, which turns every value into text:
 
 ```tsx
-kind: "order",
-title: (ref) => `Order ${ref.params.id}`,
-ref: (params) => ({ kind: "order", params }),
+export const orderKind = definePane("order", {
+  params: { id: Number },
+  title: ({ id }) => `Order ${id}`,
+  // ...
+});
 ```
 
-`ref` builds a ref of this kind from params. It is required.
+With `params`, the component and `title` get `id` as a number, and `orderKind({ id: "12" })` is a type error. Declare the params every pane of the kind has. Others still work as plain `string | number` values.
+
+`title` names the pane in its header, its tab and the shelf. A kind whose panes all have the same name can pass a string: `title: "Orders"`.
 
 </Step>
 <Step title="Say how narrow it can go">
 
-`minWidth` is the narrowest the content still works at. When the panes on screen need more room than there is, a pane folds into a tab of its neighbour instead of being squeezed. It comes back when there is room again. `minHeight` is the same for height, in a column.
+`width.min` is the narrowest the content still works at. When the panes on screen need more room than there is, a pane folds into a tab of its neighbour instead of being squeezed. It comes back when there is room again. `height.min` is the same for height, in a column. The defaults are 240 and 160.
 
-Two optional widths say where spare room goes:
+Two more widths say where spare room goes:
 
-- `comfortableWidth`: spare room brings the pane up to this first. Default: `minWidth`.
-- `maxWidth`: the widest the content usefully uses. Past it, spare room goes to the neighbours first. It is soft: when every pane is at its max, they all grow on, so a split never leaves an empty gap. A person dragging a divider can pass it too.
+- `width.comfortable`: spare room brings the pane up to this first. Default: `width.min`.
+- `width.max`: the widest the content usefully uses. Past it, spare room goes to the neighbours first. It is soft: when every pane is at its max, they all grow on, so a split never leaves an empty gap. A person dragging a divider can pass it too.
 
-Leave `maxWidth` out for content that uses any width, such as tables and charts. Set it for forms and records, so a field does not stretch across a wide screen.
+Leave `width.max` out for content that uses any width, such as tables and charts. Set it for forms and records, so a field does not stretch across a wide screen.
 
 </Step>
 <Step title="Say when two refs are the same object">
@@ -53,8 +57,9 @@ Jali needs to know when two refs name the same object. Showing an object in a pa
 
 By default two refs are the same when all their params match as text, so `{ id: 1 }` and `{ id: "1" }` match.
 
-- `identity` returns what makes an object itself: `(ref) => Number(ref.params.id)`. Return `undefined` for scratch space (a new query, a draft): such a pane is never matched against another.
-- `object` names the type of object shown, when two kinds show the same objects in different ways. Refs of two kinds with the same `object` and identity are the same object.
+- `identity` returns what makes an object itself, from its params: `({ id }) => id`.
+- `scratch: true` is for kinds where every pane is new (a new query, a draft): such a pane is never matched against another, and stays out of Recent.
+- `shows` names the type of object shown, when two kinds show the same objects in different ways. Two kinds with the same `shows` and identity show the same object.
 
 </Step>
 <Step title="Draw it">
@@ -64,11 +69,10 @@ By default two refs are the same when all their params match as text, so `{ id: 
 </Step>
 </Steps>
 
-Three more flags:
+Two more options:
 
-- `heavy: true` holds the content at its size while a divider is dragged, and reflows it once on release. Use it for long lists and grids.
-- `recordable: false` keeps the kind out of Recent. It can also be a function of the ref.
-- `transient: true` marks a placeholder that stands in until the person chooses an object. See [The launcher](#the-launcher).
+- `holdWhileResizing: true` keeps the content as it is while a divider is dragged, and reflows it once on release. Use it for long lists and grids.
+- `inRecent: false` keeps the kind out of Recent. It can also be a function of the params.
 
 ## The component's props
 
@@ -76,19 +80,28 @@ Jali passes these to `Component`:
 
 | Prop | What it is for |
 |---|---|
-| `ref` | The object to show. React 19 passes `ref` as a plain prop, so read it from props; don't use `forwardRef`. |
-| `node` | The pane in the layout. In the peek sheet it is a node that is not in the layout. |
+| `params` | What to show, typed by the kind's `params`. |
+| `node` | The pane in the layout, with the full ref as `node.ref`. In the peek sheet it is a node that is not in the layout. |
 | `paused` | True while the pane is hidden: behind a tab, tucked, folded, or behind a maximised pane. |
 | `focused` | True while this pane has the workspace's focus. |
+| `inPeek` | True when rendered in the peek sheet rather than a pane. |
 | `openBeside(ref)` | Open an object beside this pane. Focus stays here. A pane this one opened earlier for the same kind shows the new object instead. |
 | `openHere(ref)` | Show another object in this same pane. If it is open elsewhere, that pane is focused instead. |
 | `select(ref)` | Report the item a list is on. A detail that follows this list shows it once the cursor rests. |
 | `peek(ref)` | Show an object in the peek sheet; `peek(null)` closes it. |
-| `dismiss()` | Close this pane quietly, with no undo toast. For placeholders. |
-| `setActivity(a)` | Show `"loading"`, `"working"`, `"needs-you"`, `"error"` or `"idle"` in the header, tab and shelf. |
-| `setUnsaved(what)` | Report unsaved work. See [Unsaved work and pane state](/guides/unsaved-work-and-pane-state). |
-| `setCommands(list)` | Add commands to ⌘K while this pane is focused. See the same guide. |
-| `inPeek` | True when rendered in the peek sheet rather than a pane. |
+| `dismiss()` | Close this pane quietly, with no undo toast. For the launcher. |
+
+A component deeper inside the pane reads the same props with `usePane()`, so you don't have to pass them down.
+
+## What a pane reports
+
+Three hooks tell the workspace about the pane they are called in:
+
+- `useActivity("loading")` shows `"loading"`, `"working"`, `"needs-you"`, `"error"` or `"idle"` in the header, tab and shelf.
+- `useUnsaved(dirty && "an unsaved note")` reports work the person would lose.
+- `useCommands([...])` adds commands to ⌘K while the pane is focused.
+
+The last two are covered in [Unsaved work and pane state](/guides/unsaved-work-and-pane-state).
 
 ## Pause hidden panes
 
@@ -116,16 +129,16 @@ Report the selection before opening it, so the opened pane is linked to the list
 
 ## The launcher
 
-Split (⌘\\) and "New tab here" open a pane with the ref `{ kind: "launcher", params: {} }`, for the person to choose what goes in it. If your workspace has no kind called `launcher`, those panes show "Unknown pane kind".
+Split (⌘\\) and "New tab here" open a pane for the person to choose what goes in it: the workspace's launcher. Without one, the workspace offers neither.
 
-Define one, and mark it `transient`. A transient pane closes quietly, and its component also gets `recent` (objects opened this session), `isOpen(ref)`, `titleFor(ref)` and `KindIcon`. Choosing calls `openHere(ref)`, which fills the pane.
+Define it like any kind, usually with `scratch: true`, and pass it as `launcher`. It closes quietly, and its component reads what to offer with `useLauncher()`: `recent` (objects opened this session), `isOpen(ref)` and `titleOf(ref)`. Choosing calls `openHere(ref)`, which fills the pane.
 
-## Register the kinds
+## Give the kinds to the workspace
 
-Pass every kind to `createPaneKinds`, and that to the store. Each store has its own kinds: nothing is shared between workspaces or tests.
+Pass every kind to `createWorkspace`, and the launcher on its own. Each workspace has its own kinds: nothing is shared between workspaces or tests.
 
 ```ts
-const store = createUiStore({ kinds: createPaneKinds(orderKinds), presets });
+const workspace = createWorkspace({ panes: orderKinds, launcher, presets });
 ```
 
 ## The whole file

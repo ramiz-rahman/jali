@@ -1,18 +1,15 @@
-import { boot, browserStorage, createPaneKinds, createUiStore, createUrlSync, startUi } from "@jali/core";
+import { createWorkspace } from "@jali/core";
 import { orderKinds } from "../pane-kinds/orders";
 import { presets } from "../presets/layouts";
 
-const storage = browserStorage("orders-app"); // localStorage keys start "orders-app:"
-
-const url = createUrlSync({
-  // "local" (the default): a link carries the layout as designed; sizes the person dragged stay on their device.
-  // "link": a link carries every size too, so it reopens exactly as it was sent.
-  sizes: "local",
-  // Where "local" keeps those sizes, and where a link that could not be read is kept.
-  storage,
+export const workspace = createWorkspace({
+  panes: orderKinds,
+  presets,
+  url: {
+    // "local" (the default): a link carries the layout as designed; sizes the person dragged stay on their device.
+    // "link": a link carries every size too, so it reopens exactly as it was sent.
+    sizes: "local",
+  },
+  // localStorage keys start "orders-app:". The address keeps dragged sizes, and any link it could not read, here too.
+  storage: "orders-app",
 });
-
-export const store = createUiStore({ kinds: createPaneKinds(orderKinds), presets, url, storage });
-
-boot(store);    // reads the address: a link with a layout opens it, fitted to the window
-startUi(store); // Back and Forward step through layouts from here on

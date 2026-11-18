@@ -16,11 +16,11 @@ Each [kind](/get-started/key-concepts#kind) can give three widths. Each has one 
 
 <Code code={ticket} filename="ticket.tsx" highlight="8-10" />
 
-- **`minWidth`** is the narrowest the content still works at, once it adapts to a narrow box (with container queries, for example). It is the only width that decides folding: a pane folds when the minimums of what is shown don't fit, never because it would be below its comfortable width.
-- **`comfortableWidth`** is where spare room takes the pane first. It defaults to the minimum.
-- **`maxWidth`** is the widest the content usefully uses. It is soft: spare room past it goes to neighbours that can still use it, and only when every neighbour is at its maximum does the pane grow on. A split never leaves an empty gap. Leave it out for content that can use any width, such as tables and charts.
+- **`width.min`** is the narrowest the content still works at, once it adapts to a narrow box (with container queries, for example). It is the only width that decides folding: a pane folds when the minimums of what is shown don't fit, never because it would be below its comfortable width.
+- **`width.comfortable`** is where spare room takes the pane first. It defaults to the minimum.
+- **`width.max`** is the widest the content usefully uses. It is soft: spare room past it goes to neighbours that can still use it, and only when every neighbour is at its maximum does the pane grow on. A split never leaves an empty gap. Leave it out for content that can use any width, such as tables and charts.
 
-`minHeight` works like `minWidth`, for columns. Jali checks both after every fold.
+`height.min` works like `width.min`, for columns. Jali checks both after every fold.
 
 **Why a minimum, not a percentage:** a ticket at 200px is broken whatever the window. A width the content needs is a fact about the content, so the kind says it once, and every layout respects it.
 

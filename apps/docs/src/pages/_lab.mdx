@@ -3,15 +3,15 @@ title: Lab
 summary: Every docs component on one page, for building and checking them. Not in the nav.
 ---
 
-A paragraph with a [link to the introduction](/get-started/introduction), some **strong words**, *a little emphasis* and `inline code` such as `createUiStore`. Prose runs at sixteen on twenty-six, about seventy characters a line, so a paragraph reads without the eye losing its place at the end of each line.
+A paragraph with a [link to the introduction](/get-started/introduction), some **strong words**, *a little emphasis* and `inline code` such as `createWorkspace`. Prose runs at sixteen on twenty-six, about seventy characters a line, so a paragraph reads without the eye losing its place at the end of each line.
 
 ## Callouts
 
 <Callout title="A note">Folding never closes a pane. A folded pane is a tab of its neighbour until there is room again.</Callout>
 
-<Callout type="tip">Give a list kind a smaller `minWidth` than its detail, so the list stays when the window narrows.</Callout>
+<Callout type="tip">Give a list kind a smaller `width.min` than its detail, so the list stays when the window narrows.</Callout>
 
-<Callout type="warning" title="Unsaved work">Report it with `setUnsaved("an edited query that has not run")`, and clear it with `null` once it is saved.</Callout>
+<Callout type="warning" title="Unsaved work">Report it with `useUnsaved("an edited query that has not run")`, and clear it with `null` once it is saved.</Callout>
 
 ## Install
 
@@ -20,15 +20,13 @@ A paragraph with a [link to the introduction](/get-started/introduction), some *
 ## Code
 
 ```tsx filename="src/kinds.tsx" highlight="3-6"
-import { definePaneKind } from "@jali/react";
+import { definePane } from "@jali/react";
 
-export const order = definePaneKind({
-  kind: "order",
-  title: (ref) => `Order ${ref.params.id}`,
-  ref: (params) => ({ kind: "order", params }),
-  minWidth: 280, // narrower than this, the pane folds into a tab
-  minHeight: 160,
-  Component: ({ ref }) => <article>Order {ref.params.id}</article>,
+export const order = definePane("order", {
+  params: { id: Number },
+  title: ({ id }) => `Order ${id}`,
+  width: { min: 280 }, // narrower than this, the pane folds into a tab
+  Component: ({ params }) => <article>Order {params.id}</article>,
 });
 ```
 
@@ -43,14 +41,12 @@ export const order = definePaneKind({
 A fenced block:
 
 ```ts
-import { boot, createPaneKinds, createUiStore, createUrlSync, startUi } from "@jali/core";
+import { createWorkspace, row } from "@jali/core";
 
-const store = createUiStore({
-  kinds: createPaneKinds([order, customer]),
-  url: createUrlSync(), // the layout lives in the address
+const workspace = createWorkspace({
+  panes: [order, customer],
+  layout: row(order({ id: 1 }), customer({ id: 7 })), // kept in the address
 });
-boot(store);
-startUi(store);
 ```
 
 ## Tabs
@@ -78,7 +74,7 @@ startUi(store);
     A kind says what a pane shows and the narrowest it works at.
   </Step>
   <Step title="Render the workspace">
-    Wrap your app in `<Jali>` and put `<JaliView />` where the panes go.
+    Render `<Jali workspace={workspace} />`.
   </Step>
 </Steps>
 
@@ -86,8 +82,8 @@ startUi(store);
 
 | Option | Type | What it does |
 |---|---|---|
-| `minWidth` | `number` | Narrower than this, the pane folds into a tab. |
-| `minHeight` | `number` | Shorter than this, the pane folds. |
+| `width.min` | `number` | Narrower than this, the pane folds into a tab. |
+| `height.min` | `number` | Shorter than this, the pane folds. |
 | `paneCap` | `number` | The most panes on screen at once. Default `8`. |
 
 - A list kind reports its selection.

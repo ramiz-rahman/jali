@@ -1,27 +1,25 @@
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import { keyHint } from "@jali/core";
-import { definePaneKind, usePaneState, type PaneComponentProps } from "@jali/react";
+import { definePane, useCommands, usePaneState, useUnsaved, type PaneProps } from "@jali/react";
 import { noteBody, saveNote } from "./data";
 
-function NoteEditor({ ref, setUnsaved, setCommands }: PaneComponentProps) {
-  const id = Number(ref.params.id);
-  const [saved, setSaved] = useState(() => noteBody(id));
+function NoteEditor({ params }: PaneProps<{ id: number }>) {
+  const [saved, setSaved] = useState(() => noteBody(params.id));
   // The draft is pane state: it survives a fold, a tab switch, a tuck and a reload, and goes when the pane closes.
   const [draft, setDraft] = usePaneState("draft", saved);
-  const save = () => { saveNote(id, draft); setSaved(draft); };
+  const save = () => {
+    saveNote(params.id, draft);
+    setSaved(draft);
+  };
+  const dirty = draft !== saved;
 
   // Work the person would lose: closing the pane, or showing another note in it, asks first.
-  const dirty = draft !== saved;
-  useEffect(() => { setUnsaved(dirty ? "an unsaved edit to this note" : null); }, [dirty, setUnsaved]);
-  useEffect(() => () => setUnsaved(null), [setUnsaved]);
+  useUnsaved(dirty && "an unsaved edit to this note");
 
   // What this pane adds to ⌘K while it is focused. `keys` is a label: the content handles the key itself.
-  const latest = useRef(save);
-  latest.current = save;
-  useEffect(() => {
-    setCommands([{ id: "save", title: "Save note", keys: keyHint("Mod+Enter"), disabled: dirty ? false : "Nothing to save", run: () => latest.current() }]);
-  }, [setCommands, dirty]);
-  useEffect(() => () => setCommands(null), [setCommands]);
+  useCommands([
+    { id: "save", title: "Save note", keys: keyHint("Mod+Enter"), disabled: dirty ? false : "Nothing to save", run: save },
+  ]);
 
   return (
     <textarea
@@ -29,17 +27,18 @@ function NoteEditor({ ref, setUnsaved, setCommands }: PaneComponentProps) {
       value={draft}
       onChange={(e) => setDraft(e.target.value)}
       onKeyDown={(e) => {
-        if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) { e.preventDefault(); save(); } // claimed
+        if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
+          e.preventDefault(); // claimed
+          save();
+        }
       }}
     />
   );
 }
 
-export const noteEditor = definePaneKind({
-  kind: "note",
-  title: (ref) => `Note ${ref.params.id}`,
-  ref: (params) => ({ kind: "note", params }),
-  minWidth: 280,
-  minHeight: 160,
+export const noteEditor = definePane("note", {
+  params: { id: Number },
+  title: ({ id }) => `Note ${id}`,
+  width: { min: 280 },
   Component: NoteEditor,
 });

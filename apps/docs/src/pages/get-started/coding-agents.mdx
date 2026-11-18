@@ -17,13 +17,13 @@ Each page of these docs is also available as Markdown, from the buttons under it
 
 ### 1. A kind is data plus a component
 
-Define each kind of pane with `definePaneKind({ kind, title, ref, minWidth, minHeight, Component })` in its own module, and pass the app's kinds to `createPaneKinds` and `createUiStore({ kinds })`. Nothing about a kind is global, so two workspaces on one page never share kinds.
+Define each kind of pane with `definePane("kind", { params, title, width, height, Component })` in its own module, and pass the app's kinds to `createWorkspace({ panes })`. Nothing about a kind is global, so two workspaces on one page never share kinds. Name objects with the kind itself, `ticket({ id: 101 })`, never with a hand-written `{ kind, params }`.
 
-Set `minWidth` to the narrowest width the content still works at once it adapts, not the width it looks best at. Jali folds a pane into a tab rather than squeeze it below its minimum, so a minimum that is too large folds panes early. Use `comfortableWidth` and `maxWidth` for the rest ([How a layout fits](/learn/fitting)).
+Set `width.min` to the narrowest width the content still works at once it adapts, not the width it looks best at. Jali folds a pane into a tab rather than squeeze it below its minimum, so a minimum that is too large folds panes early. Use `width.comfortable` and `width.max` for the rest ([How a layout fits](/learn/fitting)).
 
-### 2. Read the ref from props
+### 2. Declare params, and read them typed
 
-The object a pane shows arrives as `ref`, a plain prop. React 19 passes `ref` to function components like any other prop, so read it from props and don't use `forwardRef`. Keep refs small: a kind and ids, never the data itself, because refs go in the address.
+What a pane shows arrives as `params`, read with the kind's `params` types: `params: { id: Number }` gives `params.id` as a number, so never cast it. Declare the params every pane of the kind has. Keep params small: ids, never the data itself, because they go in the address.
 
 ### 3. Claim your keys, let the rest bubble
 
@@ -33,7 +33,7 @@ Keys reach the pane's content first. Handle the keys your content uses and call 
 - Letter keys (J, K) must only act while your content has focus.
 - Content that needs every key, such as a code editor, marks its element `data-pane-keys="content"`. The workspace then takes only F6 and Shift+F6 there, so focus can always leave.
 
-<Code code={list} filename="ticket-list.tsx" highlight="24-31" />
+<Code code={list} filename="ticket-list.tsx" highlight="22-30" />
 
 ### 4. Select before you open
 
@@ -45,7 +45,7 @@ The usual row keys are J/K or the arrows to select, Space to `peek(ref)`, and �
 
 ### 5. Report unsaved work
 
-If closing the pane would lose something the person typed, report it with `setUnsaved("a short description")`, and `setUnsaved(null)` once it is saved or gone. While it is set, closing the pane, closing others, a preset, Back and Forward, or showing another object in the pane asks the person first. Leaving the page triggers the browser's own prompt.
+If closing the pane would lose something the person typed, report it with `useUnsaved(dirty && "a short description")`; it clears when the work is saved or the pane goes. While it is set, closing the pane, closing others, a preset, Back and Forward, or showing another object in the pane asks the person first. Leaving the page triggers the browser's own prompt.
 
 Don't build your own "are you sure" for these. Moving, tabbing, folding and tucking never ask, because the content stays mounted.
 
@@ -53,11 +53,11 @@ Don't build your own "are you sure" for these. Moving, tabbing, folding and tuck
 
 A draft, a sort, a scroll position: keep these with `usePaneState(key, initial)` instead of `useState`. The workspace keeps the value through folds, tabs, tucks and reloads, and drops it when the pane closes for good or shows another object. Values must be JSON. Use React state for everything else.
 
-<Code code={editor} filename="note-editor.tsx" highlight="10,15-16,21-24" />
+<Code code={editor} filename="note-editor.tsx" highlight="9,17,20-22" />
 
-### 7. Add commands with `setCommands`
+### 7. Add commands with `useCommands`
 
-List what the pane can do in ⌘K with `setCommands([...])` in an effect, and `setCommands(null)` on unmount. Call it again when the commands change. `keys` on a command is a label only; the content still handles the key itself.
+List what the pane can do in ⌘K with `useCommands([...])`, on every render. It updates the palette only when a command's id, title, label or reason changes, runs the latest `run`, and removes the commands on unmount. `keys` on a command is a label only; the content still handles the key itself.
 
 ### 8. Pause while hidden
 
@@ -96,12 +96,13 @@ Dark mode follows `prefers-color-scheme`, a `.dark` class or `[data-theme="dark"
 
 ## A checklist for a review
 
-- Every kind is defined with `definePaneKind` and listed in `createPaneKinds`.
-- Every `minWidth` is the narrowest the content works at.
+- Every kind is defined with `definePane` and listed in `createWorkspace({ panes })`.
+- Every `width.min` is the narrowest the content works at.
+- Refs are made with the kind (`ticket({ id })`), and params are declared, not cast.
 - Refs hold ids, not data.
 - Content calls `preventDefault()` on the keys it handles and nothing else.
 - Lists call `select` before `openBeside`.
-- Editable panes call `setUnsaved`, and clear it on save and on unmount.
+- Editable panes call `useUnsaved`.
 - State the person expects back uses `usePaneState`.
 - Live work stops while `paused`.
 - Data comes from the app's shared cache.

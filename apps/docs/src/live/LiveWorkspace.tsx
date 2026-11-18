@@ -3,9 +3,9 @@
  * never touching the page address or localStorage) and takes only the keys pressed inside it, so three workspaces
  * on one page never all answer ⌘K or F6.
  */
-import { useEffect, useId, useRef, useState, type ReactNode, type Ref } from "react";
-import { createPaneKinds, createUiStore, installKeyboard, layout as jl, memoryStorage, type UiStore } from "@jali/core";
-import { Jali, JaliView, Shelf, useModel } from "@jali/react";
+import { useId, useRef, useState, type ReactNode, type Ref } from "react";
+import { createPaneKinds, createUiStore, layout as jl, memoryStorage, type UiStore } from "@jali/core/adapter";
+import { Jali, JaliView, Shelf, useWorkspaceModel } from "@jali/react";
 import { buildDemoLayout, type DemoLayoutId } from "./demo";
 import { demoKinds } from "./kinds";
 import "./live.css";
@@ -20,6 +20,9 @@ export function useLiveStore(layoutId: DemoLayoutId): UiStore {
       storage: memoryStorage(),
       id: `live-${layoutId}-${raw.replace(/[^a-zA-Z0-9]/g, "")}`,
       name: "Shop",
+      // A figure on a docs page: only its own keys, and the site keeps its theme.
+      keys: "workspace",
+      pageTheme: false,
     }),
   );
   return store;
@@ -36,7 +39,7 @@ export function resetLive(store: UiStore, layoutId: DemoLayoutId) {
 
 /** The status line under the panes: the shelf (folded and tucked panes) and a count. */
 function LiveStatus() {
-  const m = useModel();
+  const m = useWorkspaceModel();
   const tucked = m.shelf.length, folded = m.folded.length, n = m.visible.length;
   return (
     <footer className="live-statusbar" data-single={m.single || undefined}>
@@ -64,7 +67,6 @@ export interface LiveWorkspaceProps {
  */
 export function LiveWorkspace({ store, height, overlay, wrapRef, className }: LiveWorkspaceProps) {
   const wrap = useRef<HTMLDivElement | null>(null);
-  useEffect(() => installKeyboard(store, { root: () => wrap.current }), [store]);
   const setRef = (el: HTMLDivElement | null) => {
     wrap.current = el;
     if (typeof wrapRef === "function") wrapRef(el);
@@ -72,7 +74,7 @@ export function LiveWorkspace({ store, height, overlay, wrapRef, className }: Li
   };
   return (
     <div className={["live-ws", className].filter(Boolean).join(" ")} ref={setRef} style={{ height }}>
-      <Jali store={store} className="live-jali" settings={false}>
+      <Jali workspace={store} className="live-jali" settings={false}>
         <JaliView />
         <LiveStatus />
       </Jali>

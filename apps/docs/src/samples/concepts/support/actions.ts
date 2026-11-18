@@ -1,11 +1,11 @@
-import { store } from "./store";
+import { ticket } from "./ticket";
+import { workspace } from "./store";
 
-// Everything the workspace can do is an action on the store. The pane id comes from the layout.
-store.actions.openBeside("list", { kind: "ticket", params: { id: 103 } });
-store.actions.focus("detail");
-store.actions.tuck("who");
-store.actions.preset("list");
+// Everything the workspace can do is an action. The pane id comes from the layout.
+workspace.actions.openBeside("list", ticket({ id: 103 }));
+workspace.actions.focus("detail");
+workspace.actions.preset("list");
 
 // Read state, or subscribe to it.
-const unsubscribe = store.subscribe(() => console.log(store.get().view.focused));
+const unsubscribe = workspace.subscribe(() => console.log(workspace.get().view.focused));
 unsubscribe();

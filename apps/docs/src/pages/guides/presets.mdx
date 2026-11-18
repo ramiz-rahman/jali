@@ -10,45 +10,47 @@ import menu from "../../samples/guides/presets/preset-menu.tsx?raw";
 
 A preset is a named layout: "Orders", "Orders and detail", "Customer desk". The workspace opens on one, ⌘K lists them all, and the person can switch at any time. Your app can switch too.
 
-## A layout is a tree
+## Write a layout
 
-A [layout](/get-started/key-concepts#layout-tree) is plain data: a tree of rows, columns, tab stacks and panes.
+A [layout](/get-started/key-concepts#layout-tree) is a tree of rows, columns, tabs and panes. Write it the way it looks:
 
-- A **pane** shows one ref. Its `id` is its name in the tree and in links; keep ids unique within a layout.
-- A **row** puts its children side by side; a **column** stacks them top to bottom.
-- A **stack** is a group of tabs. `active` names the tab shown; `origin` is `"user"`.
-- Every node has a `size`. `{ weight: 1 }` shares the room with its siblings by weight. `{ px: 480 }` asks for a fixed length.
+- `row(a, b)` puts its children side by side; `column(a, b)` stacks them top to bottom.
+- `tabs(a, b)` puts panes as tabs in one place, the first shown.
+- A child is a ref (`orderKind({ id: 12 })`), or `pane(ref, options)` when the pane needs options, or another row, column or tabs.
+- Options go first: `column({ weight: 2 }, a, b)`. `weight` shares the room with siblings (default 1); `px: 480` asks for a fixed length.
+
+Every node gets an id, named after what it holds (`"orders"`, `"row"`, `"order-2"`). Give one yourself with `id` when something refers to it: a pane that another one links to, or one your code focuses.
 
 A pane opened from a list can follow it. Give it `linkedTo` (the list's pane id) and `follows: true`, and it shows whatever the list's cursor is on.
 
-## Build presets
-
-Small builder functions keep presets readable. A preset's `build` must return a fresh layout every time.
+## Write the presets
 
 <Code code={layouts} filename="src/layouts.ts" />
 
-Sizes are a starting point. With weights, each pane first gets its kind's `minWidth`, then spare room brings it up to `comfortableWidth`, then it is shared by weight. Panes that don't fit fold into tabs. See [Define a pane kind](/guides/pane-kinds) for the widths.
+A preset's `layout` can also be a function, to build a fresh layout each time it is chosen.
 
-## Give them to the store
+Sizes are a starting point. With weights, each pane first gets its kind's `width.min`, then spare room brings it up to `width.comfortable`, then it is shared by weight. Panes that don't fit fold into tabs. See [Define a pane kind](/guides/pane-kinds) for the widths.
+
+## Give them to the workspace
 
 <Code code={storeCode} filename="src/workspace.ts" />
 
 - `presets` is the list, in menu order. ⌘K shows each as "Layout: *label*".
 - `preset` is the one to open on. Without it, the first. A link with a layout in it wins over both: see [Keep the layout in the URL](/guides/url-and-routers).
-- `store.actions.preset(id)` switches. If a pane that would go has unsaved work, the person is asked first.
-- `store.actions.resetLayout()` rebuilds the preset in use. ⌘K "Reset layout" does the same.
+- `workspace.actions.preset(id)` switches. If a pane that would go has unsaved work, the person is asked first.
+- `workspace.actions.resetLayout()` rebuilds the preset in use. ⌘K "Reset layout" does the same.
 
 Switching to a preset is a new step in the browser's history, so Back returns to the layout before it.
 
 ## Your own preset menu
 
-Jali lists presets in ⌘K. If you want them in your top bar too, read them from the store. Render this inside `<Jali>`:
+Jali lists presets in ⌘K. If you want them in your top bar too, read them from the workspace. Render this inside `<Jali>`:
 
 <Code code={menu} filename="src/PresetMenu.tsx" />
 
 ## No presets: one starting layout
 
-A workspace that doesn't need presets passes one layout as `initial.layout`. The store needs one or the other: with neither, `createUiStore` throws.
+A workspace that doesn't need presets passes one `layout`. It needs one or the other: with neither, `createWorkspace` throws.
 
 <Code code={initial} filename="src/workspace.ts" />
 

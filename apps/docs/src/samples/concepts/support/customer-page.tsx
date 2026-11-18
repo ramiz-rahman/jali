@@ -1,10 +1,11 @@
 import { LayoutDashboard, LifeBuoy, ShoppingCart, UserRound } from "lucide-react";
-import type { Layout, ObjectRef, PaneNode } from "@jali/core";
-import type { RoleDef, WorkspaceProfile } from "@jali/react";
+import { pane, row } from "@jali/core";
+import { definePage, type PageView } from "@jali/react";
+import { customer, customerOrders, customerOverview, customerTickets } from "./customer";
 import { customers } from "./data";
 
-// The page's views, in tab order. A role says whether its pane gives way first when room runs out.
-const roles: RoleDef[] = [
+// The page's views, in tab order. A view says whether its pane gives way first when room runs out.
+const roles: PageView[] = [
   { id: "overview", label: "Overview", priority: "supporting", icon: LayoutDashboard },
   { id: "profile", label: "Customer", priority: "primary", icon: UserRound },
   { id: "orders", label: "Orders", priority: "supporting", icon: ShoppingCart },
@@ -12,22 +13,19 @@ const roles: RoleDef[] = [
 ];
 
 // What each view shows for one customer. Another customer swaps these in place.
-const bind = (customer: number): Record<string, ObjectRef> => ({
-  overview: { kind: "customer-overview", params: { customer } },
-  profile: { kind: "customer", params: { id: customer } },
-  orders: { kind: "orders", params: { customer } },
-  tickets: { kind: "customer-tickets", params: { customer } },
+const bind = (id: number) => ({
+  overview: customerOverview({ customer: id }),
+  profile: customer({ id }),
+  orders: customerOrders({ customer: id }),
+  tickets: customerTickets({ customer: id }),
 });
 
-// Multiplexed mode's designed layout: every role is in the tree, and those not shown at first are hidden.
-const build = (customer: number): Layout => {
-  const refs = bind(customer);
-  const view = (r: RoleDef): PaneNode => ({ id: r.id, type: "pane", size: { weight: 1 }, ref: refs[r.id]!, role: r.id, priority: r.priority });
-  return {
-    version: 1,
-    root: { id: "page", type: "row", size: { weight: 1 }, children: roles.map(view) },
-    overlay: { tucks: [], folds: [], shown: {}, hidden: ["overview"] },
-  };
+// Multiplexed mode's designed layout: every view is in it, and Overview starts hidden.
+const build = (id: number) => {
+  const refs = bind(id);
+  return row({ id: "page" },
+    ...roles.map((r) => pane(refs[r.id as keyof typeof refs], { id: r.id, role: r.id, priority: r.priority, hidden: r.id === "overview" })),
+  );
 };
 
 // The list beside the page, and the header above its tabs.
@@ -44,7 +42,7 @@ function Header({ item }: { item: number }) {
   return <header><h1>{customers.find((c) => c.id === item)?.name}</h1></header>;
 }
 
-export const customerPage: WorkspaceProfile = {
+export const customerPage = definePage({
   id: "customer",
   name: "Customer",
   itemNoun: "customer",
@@ -56,4 +54,4 @@ export const customerPage: WorkspaceProfile = {
   firstItem: 7,
   Rail,
   Header,
-};
+});

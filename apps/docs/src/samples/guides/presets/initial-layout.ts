@@ -1,13 +1,8 @@
-import { createPaneKinds, createUiStore, type Layout } from "@jali/core";
-import { orderKinds } from "../pane-kinds/orders";
+import { createWorkspace } from "@jali/core";
+import { orderKinds, orderList } from "../pane-kinds/orders";
 
-// A workspace with no presets starts from one layout instead.
-const start: Layout = {
-  version: 1,
-  root: { id: "orders", type: "pane", size: { weight: 1 }, ref: { kind: "orders", params: {} } },
-};
-
-export const store = createUiStore({
-  kinds: createPaneKinds(orderKinds),
-  initial: { layout: start },
+// A workspace with no presets opens on one layout: here, the order list alone.
+export const workspace = createWorkspace({
+  panes: orderKinds,
+  layout: orderList(),
 });

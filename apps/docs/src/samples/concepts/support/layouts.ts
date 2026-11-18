@@ -1,28 +1,16 @@
-import type { Layout } from "@jali/core";
+import { column, pane, row, tabs } from "@jali/core";
+import { customer, customerOrders } from "./customer";
+import { ticket } from "./ticket";
+import { ticketList } from "./ticket-list";
 
-// A row with a fixed-width list, and a column beside it: the ticket above, a stack of two tabs below.
-export const triage = (): Layout => ({
-  version: 1,
-  root: {
-    id: "root", type: "row", size: { weight: 1 }, children: [
-      { id: "list", type: "pane", size: { px: 360 }, ref: { kind: "tickets", params: { queue: "open" } } },
-      {
-        id: "work", type: "column", size: { weight: 1 }, children: [
-          { id: "detail", type: "pane", size: { weight: 2 }, ref: { kind: "ticket", params: { id: 101 } }, linkedTo: "list", follows: true },
-          {
-            id: "context", type: "stack", size: { weight: 1 }, active: "who", origin: "user", children: [
-              { id: "who", type: "pane", size: { weight: 1 }, ref: { kind: "customer", params: { id: 7 } } },
-              { id: "bought", type: "pane", size: { weight: 1 }, ref: { kind: "orders", params: { customer: 7 } } },
-            ],
-          },
-        ],
-      },
-    ],
-  },
-});
+// A fixed-width list, and a column beside it: the ticket above, two tabs below.
+export const triage = row(
+  pane(ticketList({ queue: "open" }), { id: "list", px: 360 }),
+  column(
+    pane(ticket({ id: 101 }), { id: "detail", weight: 2, linkedTo: "list", follows: true }),
+    tabs(customer({ id: 7 }), customerOrders({ customer: 7 })),
+  ),
+);
 
 // One pane: the list alone.
-export const listOnly = (): Layout => ({
-  version: 1,
-  root: { id: "list", type: "pane", size: { weight: 1 }, ref: { kind: "tickets", params: { queue: "open" } } },
-});
+export const listOnly = pane(ticketList({ queue: "open" }), { id: "list" });

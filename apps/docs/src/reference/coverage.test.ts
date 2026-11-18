@@ -71,11 +71,12 @@ describe("the reference covers the public API", () => {
   });
 
   it("every workspace action has an entry", () => {
-    const store = core.createUiStore({
-      kinds: core.createPaneKinds([{ kind: "note", title: () => "Note", ref: (params) => ({ kind: "note", params }), minWidth: 100, minHeight: 100 }]),
-      initial: { layout: { version: 1, root: { id: "a", type: "pane", size: { weight: 1 }, ref: { kind: "note", params: {} } } } },
+    const store = core.createWorkspace({
+      panes: [{ kind: "note", title: "Note" }],
+      layout: { kind: "note", params: {} },
+      url: false,
       storage: core.memoryStorage(),
-      focusPane: null,
+      moveFocus: false,
     });
     expect(missing(Object.keys(store.actions).map((k) => `actions.${k}`))).toEqual([]);
   });
@@ -93,7 +94,7 @@ describe("the commands page covers every command", () => {
   });
 
   it("every default binding names a command or the palette", () => {
-    const ids = new Set([core.PALETTE_ID, ...COMMANDS.map((c) => c.id)]);
+    const ids = new Set(["palette.toggle", ...COMMANDS.map((c) => c.id)]);
     expect(Object.keys(core.DEFAULT_KEYMAP).filter((id) => !ids.has(id))).toEqual([]);
   });
 });

@@ -1,6 +1,6 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore, type KeyboardEvent, type PointerEvent } from "react";
 import { FoldHorizontal, RotateCcw } from "lucide-react";
-import { layout as jl, type Layout, type UiStore } from "@jali/core";
+import { layout as jl, type Layout, type UiStore } from "@jali/core/adapter";
 import type { DemoLayoutId } from "./demo";
 import { demoLayouts } from "./demo";
 import { LiveWorkspace, resetLive, useLiveStore } from "./LiveWorkspace";

@@ -1,7 +1,7 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore, type PointerEvent, type ReactNode } from "react";
 import { Braces, Hand, MousePointerClick, MoveHorizontal, Network, RotateCcw, X } from "lucide-react";
-import { layout as jl, type Rect, type WorkspaceModel } from "@jali/core";
-import { StoreProvider } from "@jali/react";
+import { layout as jl, type Rect, type WorkspaceModel } from "@jali/core/adapter";
+import { WorkspaceProvider } from "@jali/react";
 import type { DemoLayoutId } from "./demo";
 import { demoLayouts } from "./demo";
 import { colourOf } from "./colours";
@@ -167,14 +167,14 @@ export function TreeView({ layout, json = true, height = 360, caption, showJson 
           </div>
           <div className="live-stage" onPointerOver={fromWs} onPointerLeave={() => hover?.from === "ws" && setHover(null)}>
             <LiveWorkspace store={store} height={h} wrapRef={wrap} />
-            <StoreProvider store={store}>
+            <WorkspaceProvider workspace={store}>
               <PreviewRects.Provider value={preview}>
                 <div className="live-drawer" id={drawerId} data-open={open || undefined} inert={!open || undefined}
                   onKeyDown={(e) => { if (e.key === "Escape") { e.stopPropagation(); setOpen(false); } }}>
                   {mode === "map" ? mapPanel : jsonPanel}
                 </div>
               </PreviewRects.Provider>
-            </StoreProvider>
+            </WorkspaceProvider>
           </div>
         </div>
         {caption ? <figcaption className="live-caption">{caption}</figcaption> : null}
@@ -194,13 +194,13 @@ export function TreeView({ layout, json = true, height = 360, caption, showJson 
         <div className="live-stage" onPointerOver={fromWs} onPointerLeave={() => hover?.from === "ws" && setHover(null)}>
           <LiveWorkspace store={store} height={h} wrapRef={wrap} />
         </div>
-        <StoreProvider store={store}>
+        <WorkspaceProvider workspace={store}>
           <PreviewRects.Provider value={preview}>
             {both ? (
               three ? <>{mapPanel}{jsonPanel}</> : <div className="live-panels">{mapPanel}{jsonPanel}</div>
             ) : showMap ? mapPanel : showJsonPanel ? jsonPanel : null}
           </PreviewRects.Provider>
-        </StoreProvider>
+        </WorkspaceProvider>
       </div>
       {caption ? <figcaption className="live-caption">{caption}</figcaption> : null}
     </figure>

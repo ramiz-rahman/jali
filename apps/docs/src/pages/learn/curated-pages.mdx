@@ -8,7 +8,7 @@ import pageStore from "../../samples/concepts/support/page-store.ts?raw";
 
 A free workspace starts empty, or from a preset, and the person builds it. That suits work where the layout is the work: exploring data, comparing records.
 
-Much work is about one item at a time: a customer, a case, a loan application. For that, a page someone designed is better. It shows the right views in the right order, and the person can still lay them out their own way. Jali calls this a curated page. Both run on the same store. The difference is where the person controls the layout: from the panes in a free workspace, from a tab strip on a curated page.
+Much work is about one item at a time: a customer, a case, a loan application. For that, a page someone designed is better. It shows the right views in the right order, and the person can still lay them out their own way. Jali calls this a curated page. Both run on the same workspace. The difference is where the person controls the layout: from the panes in a free workspace, from a tab strip on a curated page.
 
 <Callout title="See one working">
 The Loan review app in the [lab](/examples) is a curated page: a queue of applications at the left, then Overview, Application, Borrower, Loan history, Group and Field officer as tabs.
@@ -16,7 +16,7 @@ The Loan review app in the [lab](/examples) is a curated page: a queue of applic
 
 ## A profile describes the page
 
-A [profile](/get-started/key-concepts#curated-page) is the page's definition. You pass it to the store, beside your kinds.
+`definePage` makes the page's definition (its [profile](/get-started/key-concepts#curated-page)). You pass it to the workspace as `page`, beside your kinds.
 
 <Code code={profile} filename="customer-page.tsx" highlight="7-12,15-20,23-31" />
 
@@ -33,9 +33,9 @@ Items are numbers: `item` is the id a link carries.
 
 While a page is open, `<JaliView>` renders it: your rail, your header, the tabs, and the panes. `<PageBar>` holds the mode switch, the investigation and Reset; put it in your own top bar.
 
-<Code code={pageStore} filename="store.ts" highlight="9,17" />
+<Code code={pageStore} filename="workspace.ts" highlight="9,14" />
 
-A link opens a page with `?page=customer&item=7&tab=orders`. Without one, open it with `store.actions.openPage()`, or from ⌘K ("Open Customer"). `store.actions.leavePage()` goes back to the free workspace.
+A link opens a page with `?page=customer&item=7&tab=orders`. Without one, open it with `workspace.actions.openPage()`, or from ⌘K ("Open Customer"). `workspace.actions.leavePage()` goes back to the free workspace.
 
 ## Single: one view at a time
 
@@ -79,4 +79,4 @@ Choosing another item swaps every view in place and closes the investigation, be
 
 A page can be used by two kinds of person, named by `viewers`. The `full` viewer may switch to Multiplexed and open links beside. The `limited` viewer works in Single only and opens links as a peek. The sample names them "account manager" and "support agent".
 
-`store.actions.setCanInvestigate(false)` sets the limited one. In a product, your app sets it from the person's role.
+`workspace.actions.setCanInvestigate(false)` sets the limited one. In a product, your app sets it from the person's role.

@@ -8,7 +8,7 @@ import label from "../../samples/guides/keys/shortcut-label.tsx?raw";
 import editor from "../../samples/guides/keys/editor-pane.tsx?raw";
 import orders from "../../samples/guides/pane-kinds/orders.tsx?raw";
 
-Every workspace action is a command with an id, such as `pane.close` or `pane.zoom`. ⌘K opens the palette, which lists them all. A keymap binds ids to keys, and each store has its own.
+Every workspace action is a command with an id, such as `pane.close` or `pane.zoom`. ⌘K opens the palette, which lists them all. A keymap binds ids to keys, and each workspace has its own.
 
 ## The default keys
 
@@ -32,7 +32,7 @@ Every command and its id is in the [Commands reference](/reference/commands). Es
 
 ## Rebind and unbind
 
-Pass `keymap` to the store. Each entry is a command id and its new bindings:
+Pass `keymap` to `createWorkspace`. Each entry is a command id and its new bindings:
 
 <Code code={keymap} filename="src/workspace.ts" />
 
@@ -40,7 +40,7 @@ Pass `keymap` to the store. Each entry is a command id and its new bindings:
 - `null` unbinds it. The command stays in the palette.
 - Ids you don't list keep their defaults.
 - A command with no default key, such as `pane.close_others`, can be bound too.
-- The palette itself is in the keymap under `PALETTE_ID` (`"palette.toggle"`).
+- The palette itself is in the keymap as `"palette.toggle"`.
 
 Write keys the way people read them. `Mod` is ⌘ on a Mac and Ctrl elsewhere; `Ctrl` is the Control key everywhere. A space separates the two steps of a chord: `"Mod+K Mod+X"`. Letters, digits and punctuation match the physical key, so a binding means the same key on any keyboard layout.
 
@@ -75,19 +75,18 @@ An editor or a terminal needs every key, ⌘K included. Mark it `data-pane-keys=
 
 ## Show the right shortcut
 
-Your keymap may differ from the defaults, and the keys print differently on each platform. Read the label from the store instead of writing it by hand:
+Your keymap may differ from the defaults, and the keys print differently on each platform. Read the label from the workspace instead of writing it by hand:
 
 <Code code={label} filename="src/CloseButton.tsx" />
 
 - `useShortcut(id)` gives "⌘K ⌘⌫" on a Mac and "Ctrl+K Ctrl+Backspace" elsewhere, or `""` when the command is unbound.
-- `useShortcutSuffix(id)` gives " · ⌘K ⌘⌫", ready to append to a tooltip.
-- Outside React, `store.keymap.label(id)` does the same.
+- Outside React, `workspace.keymap.label(id)` does the same.
 
 For keys your content handles itself, `keyHint("Mod+Enter")` prints them the same way ("⌘↵" or "Ctrl+Enter").
 
 ## A pane's own commands
 
-A pane can add its own commands to ⌘K while it is focused, such as "Save note" or "Run query", with `setCommands`. Their keys are labels only: the content handles the key. See [Unsaved work and pane state](/guides/unsaved-work-and-pane-state#add-the-panes-commands-to-k).
+A pane can add its own commands to ⌘K while it is focused, such as "Save note" or "Run query", with `useCommands`. Their keys are labels only: the content handles the key. See [Unsaved work and pane state](/guides/unsaved-work-and-pane-state#add-the-panes-commands-to-k).
 
 ## Next
 

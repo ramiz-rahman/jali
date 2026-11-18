@@ -4,12 +4,9 @@
  */
 import { useEffect, type KeyboardEvent } from "react";
 import { Activity as ActivityIcon, ListOrdered, Receipt, StickyNote, UserRound } from "lucide-react";
-import { definePaneKind, useModel, useUi, type PaneComponentProps } from "@jali/react";
+import { definePane, useWorkspaceModel, useWorkspaceState, type PaneProps } from "@jali/react";
 import { activity, customerById, money, notes, orderById, orders, ordersOf, totalOf, type OrderStatus } from "./data";
 
-export const orderRef = (id: number) => ({ kind: "order", params: { id } });
-export const customerRef = (id: number) => ({ kind: "customer", params: { id } });
-export const notesRef = (customer: number) => ({ kind: "notes", params: { customer } });
 
 type IconProps = { size?: number; strokeWidth?: number; "aria-hidden"?: boolean };
 
@@ -35,10 +32,10 @@ function Status({ s }: { s: OrderStatus }) {
 }
 
 /** The order list. Its selection is what the order detail beside it follows. */
-function OrdersPane({ node, select, openBeside }: PaneComponentProps) {
-  const m = useModel();
+function OrdersPane({ node, select, openBeside }: PaneProps) {
+  const m = useWorkspaceModel();
   const follower = m.panes.find((p) => p.linkedTo === node.id && p.follows);
-  const picked = useUi((s) => s.selection[node.id]?.ref.params.id);
+  const picked = useWorkspaceState((s) => s.selection[node.id]?.ref.params.id);
   const current = Number(picked ?? follower?.ref.params.id ?? NaN);
   const index = orders.findIndex((o) => o.id === current);
   const choose = (i: number) => {
@@ -74,11 +71,11 @@ function OrdersPane({ node, select, openBeside }: PaneComponentProps) {
   );
 }
 
-function OrderPane({ ref, openBeside, select }: PaneComponentProps) {
-  const o = orderById(ref.params.id ?? 0);
+function OrderPane({ params, openBeside, select }: PaneProps<{ id: number }>) {
+  const o = orderById(params.id);
   // The order's customer is this pane's selection, so a customer pane following it moves with the order.
   useEffect(() => { if (o) select(customerRef(o.customer)); }, [o?.customer]);
-  if (!o) return <p className="live-k-empty">No order {ref.params.id}</p>;
+  if (!o) return <p className="live-k-empty">No order {params.id}</p>;
   const c = customerById(o.customer);
   return (
     <div className="live-k live-order">
@@ -102,11 +99,11 @@ function OrderPane({ ref, openBeside, select }: PaneComponentProps) {
   );
 }
 
-function CustomerPane({ ref, openBeside, select }: PaneComponentProps) {
-  const c = customerById(ref.params.id ?? 0);
+function CustomerPane({ params, openBeside, select }: PaneProps<{ id: number }>) {
+  const c = customerById(params.id);
   // The customer's notes are this pane's selection: notes following it move with the customer.
   useEffect(() => { if (c) select(notesRef(c.id)); }, [c?.id]);
-  if (!c) return <p className="live-k-empty">No customer {ref.params.id}</p>;
+  if (!c) return <p className="live-k-empty">No customer {params.id}</p>;
   const mine = ordersOf(c.id);
   const initials = c.name.split(" ").map((w) => w[0]).join("");
   return (
@@ -128,8 +125,8 @@ function CustomerPane({ ref, openBeside, select }: PaneComponentProps) {
   );
 }
 
-function NotesPane({ ref }: PaneComponentProps) {
-  const list = notes[Number(ref.params.customer)] ?? [];
+function NotesPane({ params }: PaneProps<{ customer: number }>) {
+  const list = notes[params.customer] ?? [];
   return (
     <div className="live-k live-notes">
       {list.map((n, i) => (
@@ -152,25 +149,48 @@ function ActivityPane() {
   );
 }
 
-export const demoKinds = [
-  definePaneKind({
-    kind: "orders", title: () => "Orders", ref: (params) => ({ kind: "orders", params }),
-    minWidth: 200, comfortableWidth: 300, minHeight: 160, icon: circled(ListOrdered), Component: OrdersPane,
-  }),
-  definePaneKind({
-    kind: "order", title: (r) => `Order ${r.params.id}`, ref: (params) => ({ kind: "order", params }),
-    minWidth: 190, comfortableWidth: 260, maxWidth: 420, minHeight: 160, icon: circled(Receipt), Component: OrderPane,
-  }),
-  definePaneKind({
-    kind: "customer", title: (r) => customerById(r.params.id ?? 0)?.name ?? `Customer ${r.params.id}`, ref: (params) => ({ kind: "customer", params }),
-    minWidth: 170, comfortableWidth: 240, maxWidth: 380, minHeight: 160, icon: circled(UserRound), Component: CustomerPane,
-  }),
-  definePaneKind({
-    kind: "notes", title: (r) => `Notes on ${first(customerById(r.params.customer ?? 0)?.name)}`, ref: (params) => ({ kind: "notes", params }),
-    minWidth: 180, comfortableWidth: 240, maxWidth: 400, minHeight: 140, icon: circled(StickyNote), Component: NotesPane,
-  }),
-  definePaneKind({
-    kind: "activity", title: () => "Activity", ref: (params) => ({ kind: "activity", params }),
-    minWidth: 170, comfortableWidth: 220, maxWidth: 360, minHeight: 140, icon: circled(ActivityIcon), Component: ActivityPane,
-  }),
-];
+export const ordersKind = definePane("orders", {
+  title: "Orders",
+  icon: circled(ListOrdered),
+  width: { min: 200, comfortable: 300 },
+  Component: OrdersPane,
+});
+
+export const orderKind = definePane("order", {
+  params: { id: Number },
+  title: ({ id }) => `Order ${id}`,
+  icon: circled(Receipt),
+  width: { min: 190, comfortable: 260, max: 420 },
+  Component: OrderPane,
+});
+
+export const customerKind = definePane("customer", {
+  params: { id: Number },
+  title: ({ id }) => customerById(id)?.name ?? `Customer ${id}`,
+  icon: circled(UserRound),
+  width: { min: 170, comfortable: 240, max: 380 },
+  Component: CustomerPane,
+});
+
+export const notesKind = definePane("notes", {
+  params: { customer: Number },
+  title: ({ customer }) => `Notes on ${first(customerById(customer)?.name)}`,
+  icon: circled(StickyNote),
+  width: { min: 180, comfortable: 240, max: 400 },
+  height: { min: 140 },
+  Component: NotesPane,
+});
+
+export const activityKind = definePane("activity", {
+  title: "Activity",
+  icon: circled(ActivityIcon),
+  width: { min: 170, comfortable: 220, max: 360 },
+  height: { min: 140 },
+  Component: ActivityPane,
+});
+
+export const demoKinds = [ordersKind, orderKind, customerKind, notesKind, activityKind];
+
+const orderRef = (id: number) => orderKind({ id });
+const customerRef = (id: number) => customerKind({ id });
+const notesRef = (customer: number) => notesKind({ customer });

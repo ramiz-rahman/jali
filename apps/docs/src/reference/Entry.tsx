@@ -30,7 +30,7 @@ function useCode() {
 }
 
 export interface EntryProps {
-  /** The exported name, exactly as imported (`createUiStore`, `layout.open`, `Jali`). */
+  /** The exported name, exactly as imported (`createWorkspace`, `layout.open`, `Jali`). */
   name: string;
   kind: EntryKind;
   /** "@jali/core" or "@jali/react". */
@@ -184,7 +184,7 @@ export function Member({ name, signature, children }: { name: string; signature?
   );
 }
 
-/** An inline link to another entry: <Ref to="createUiStore" /> or <Ref to="UiState" page="/reference/core/types" />. */
+/** An inline link to another entry: <Ref to="createWorkspace" /> or <Ref to="WorkspaceState" page="/reference/core/types" />. */
 export function Ref({ to, page, children }: { to: string; page?: string; children?: ReactNode }) {
   return <a className="ref-link" href={`${page ?? ""}#${anchorOf(to)}`}><code>{children ?? to}</code></a>;
 }

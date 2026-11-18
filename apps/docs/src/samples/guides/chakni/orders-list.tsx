@@ -1,6 +1,6 @@
 import type { KeyboardEvent } from "react";
 import type { ActiveItemMapping, ActiveItemPort } from "@jali/core";
-import { definePaneKind, useActiveItemPort } from "@jali/react";
+import { definePane, useActiveItemPort } from "@jali/react";
 
 const ORDER_IDS = ["1", "2", "3", "4"];
 
@@ -34,12 +34,10 @@ function CursorList({ ids, port }: { ids: string[]; port: ActiveItemPort | null 
   );
 }
 
-export const orderQueue = definePaneKind({
-  kind: "order-queue",
-  title: () => "Order queue",
-  ref: (params) => ({ kind: "order-queue", params }),
-  minWidth: 320,
-  minHeight: 240,
+export const orderQueue = definePane("order-queue", {
+  title: "Order queue",
+  width: { min: 320 },
+  height: { min: 240 },
   Component: function OrderQueue() {
     // The port for the pane this renders in; null in the peek sheet, which has no list of its own.
     const port = useActiveItemPort(orders);

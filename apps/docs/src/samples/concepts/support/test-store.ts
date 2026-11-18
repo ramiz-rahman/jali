@@ -1,14 +1,15 @@
-import { createPaneKinds, createUiStore, createUrlSync, memoryLocation, memoryStorage } from "@jali/core";
-import { ticketList } from "./ticket-list";
-import { ticket } from "./ticket";
+import { createWorkspace, memoryLocation, memoryStorage } from "@jali/core";
 import { triage } from "./layouts";
+import { ticket } from "./ticket";
+import { ticketList } from "./ticket-list";
 
-// The same workspace with both ports in memory: it never touches the page's address or localStorage.
-export const testStore = () =>
-  createUiStore({
-    kinds: createPaneKinds([ticketList, ticket]),
-    presets: [{ id: "triage", label: "Triage", build: triage }],
-    url: createUrlSync({ location: memoryLocation(), storage: memoryStorage() }),
+// The same workspace with nothing shared: its address and storage in memory, a fixed size, DOM focus left alone.
+export const testWorkspace = () =>
+  createWorkspace({
+    panes: [ticketList, ticket],
+    layout: triage,
+    url: { location: memoryLocation() },
     storage: memoryStorage(),
-    focusPane: null, // leave DOM focus alone
+    size: { width: 1440, height: 900 },
+    moveFocus: false,
   });

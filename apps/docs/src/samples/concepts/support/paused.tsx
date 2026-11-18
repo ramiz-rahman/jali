@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
-import { definePaneKind, type PaneComponentProps } from "@jali/react";
+import { definePane, type PaneProps } from "@jali/react";
 
 // A live clock that stops while its pane is out of sight (behind a tab, tucked, folded or covered by a maximised pane).
-function Clock({ paused }: PaneComponentProps) {
+function Clock({ paused }: PaneProps) {
   const [now, setNow] = useState(() => new Date());
   useEffect(() => {
     if (paused) return;
@@ -12,11 +12,9 @@ function Clock({ paused }: PaneComponentProps) {
   return <time>{now.toLocaleTimeString()}</time>;
 }
 
-export const clock = definePaneKind({
-  kind: "clock",
-  title: () => "Clock",
-  ref: (params) => ({ kind: "clock", params }),
-  minWidth: 200,
-  minHeight: 120,
+export const clock = definePane("clock", {
+  title: "Clock",
+  width: { min: 200 },
+  height: { min: 120 },
   Component: Clock,
 });

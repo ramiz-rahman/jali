@@ -8,14 +8,13 @@
  */
 import { Children, isValidElement, type ReactNode } from "react";
 import { ArrowRight } from "lucide-react";
-import { PALETTE_ID, runCommand } from "@jali/core";
+import { PALETTE_ID, runCommand } from "@jali/core/adapter";
 import { REPO_URL } from "../../site/config";
 import { GitHubIcon, Lattice } from "../brand";
 import { Code, Install, Tab, Tabs } from "../mdx";
 import { LandingWorkspace, useAddress, useLandingApp } from "./NotesWorkspace";
 import noteCode from "../../samples/concepts/quickstart/note-open-beside.tsx?raw";
-import startCode from "../../samples/concepts/quickstart/start.ts?raw";
-import storeCode from "../../samples/concepts/quickstart/store.ts?raw";
+import workspaceCode from "../../samples/concepts/quickstart/workspace.ts?raw";
 import mainCode from "../../samples/concepts/quickstart/main.tsx?raw";
 
 export { SiteFooter } from "./SiteFooter";
@@ -71,8 +70,7 @@ export function MinimalApp() {
       <div className="landing-code">
         <Tabs>
           <Tab label="note.tsx"><Code code={noteCode} lang="tsx" /></Tab>
-          <Tab label="start.ts"><Code code={startCode} lang="ts" /></Tab>
-          <Tab label="store.ts"><Code code={storeCode} lang="ts" /></Tab>
+          <Tab label="workspace.ts"><Code code={workspaceCode} lang="ts" /></Tab>
           <Tab label="main.tsx"><Code code={mainCode} lang="tsx" /></Tab>
         </Tabs>
       </div>
@@ -133,7 +131,7 @@ const KEYS: { id: string; text: string }[] = [
 export function KeysDemo() {
   const app = useLandingApp({ app: "demo", layout: "stack" });
   const run = (id: string) => {
-    if (id === PALETTE_ID) app.store.set({ paletteOpen: true });
+    if (id === PALETTE_ID) app.store.actions.openPalette();
     else runCommand(app.store, id);
   };
   return (

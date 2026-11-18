@@ -47,7 +47,7 @@ Keep the mapping outside the component. The port is made once per pane and keeps
 
 The hook returns `null` in the peek sheet, which has no list of its own. The component re-renders when the list's item changes, so `itemId` is always fresh.
 
-Outside React, `activeItemPort(store, paneId, mapping)` from `@jali/core` makes the same port.
+Outside React, `activeItemPort(workspace, paneId, mapping)` from `@jali/core` makes the same port.
 
 ## When Chakni accepts the port
 

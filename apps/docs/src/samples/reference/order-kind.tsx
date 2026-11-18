@@ -1,27 +1,22 @@
-import { useEffect, useState } from "react";
-import { definePaneKind, type PaneComponentProps } from "@jali/react";
+import { useState } from "react";
+import { definePane, useActivity, useCommands, useUnsaved, type PaneProps } from "@jali/react";
 import { FileText } from "lucide-react";
 
-function OrderNote({ ref, paused, setUnsaved, setCommands, setActivity }: PaneComponentProps) {
+function OrderNote({ params, paused }: PaneProps<{ id: number }>) {
   const [draft, setDraft] = useState("");
   // Unsaved work: closing or replacing this pane asks first while it is set.
-  useEffect(() => setUnsaved(draft ? "a note that is not saved" : null), [draft, setUnsaved]);
+  useUnsaved(draft && "a note that is not saved");
   // Commands in ⌘K while the pane is focused.
-  useEffect(() => {
-    setCommands([{ id: "save", title: "Save note", keys: "Mod+S", disabled: draft ? false : "Nothing to save", run: () => setDraft("") }]);
-    return () => setCommands(null);
-  }, [draft, setCommands]);
-  useEffect(() => setActivity(paused ? "idle" : "working"), [paused, setActivity]);
-  return <textarea aria-label={`Note on order ${ref.params.id}`} value={draft} onChange={(e) => setDraft(e.target.value)} />;
+  useCommands([{ id: "save", title: "Save note", keys: "Mod+S", disabled: draft ? false : "Nothing to save", run: () => setDraft("") }]);
+  // What the pane is doing, for its header, tab and the shelf.
+  useActivity(paused ? "idle" : "working");
+  return <textarea aria-label={`Note on order ${params.id}`} value={draft} onChange={(e) => setDraft(e.target.value)} />;
 }
 
-export const orderNoteKind = definePaneKind({
-  kind: "order-note",
-  title: (ref) => `Note on order ${ref.params.id}`,
-  ref: (params) => ({ kind: "order-note", params }),
+export const orderNoteKind = definePane("order-note", {
+  params: { id: Number },
+  title: ({ id }) => `Note on order ${id}`,
   icon: FileText,
-  minWidth: 280,
-  maxWidth: 640,
-  minHeight: 160,
+  width: { min: 280, max: 640 },
   Component: OrderNote,
 });

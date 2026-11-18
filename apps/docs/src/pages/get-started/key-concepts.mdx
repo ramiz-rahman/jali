@@ -6,7 +6,7 @@ summary: Every word Jali uses, defined in a sentence or two, most with an exampl
 import { TreeView, Frame, Spotlight } from "../../live";
 import layouts from "../../samples/concepts/support/layouts.ts?raw";
 import ticket from "../../samples/concepts/support/ticket.tsx?raw";
-import storeCode from "../../samples/concepts/support/store.ts?raw";
+import workspaceCode from "../../samples/concepts/support/store.ts?raw";
 import actions from "../../samples/concepts/support/actions.ts?raw";
 
 Jali gives an app a workspace of panes: lists, records and editors side by side, which the person can open, move, resize and close. This page names the parts. Each term has its own link, and other pages link here the first time they use a word.
@@ -23,21 +23,21 @@ It has a header with its title, and it can be focused, moved, resized, put in ta
 
 <h3 id="kind">Kind</h3>
 
-A kind is one sort of pane: its name, its title, the smallest size it works at, and the component that draws it. You define one with `definePaneKind`.
+A kind is one sort of pane: its name, what it shows, its title, the smallest size it works at, and the component that draws it. You define one with `definePane`.
 
-<Code code={ticket} filename="ticket.tsx" highlight="5-11" />
+<Code code={ticket} filename="ticket.tsx" highlight="5-13" />
 
-A kind is data plus a component. Each workspace has its own list of kinds (`createPaneKinds([...])`), so two workspaces on one page never share them.
+A kind is data plus a component. Each workspace has its own list of kinds (`createWorkspace({ panes })`), so two workspaces on one page never share them.
 
 <h3 id="ref">Ref</h3>
 
-A ref is what a pane shows: a kind and a few params, small enough to put in a link.
+A ref is what a pane shows: a kind and a few params, small enough to put in a link. The kind makes its refs:
 
 ```ts
-{ kind: "ticket", params: { id: 101 } }
+ticket({ id: 101 }) // { kind: "ticket", params: { id: 101 } }
 ```
 
-Params are strings and numbers only. Two refs show the same object when their kind and params match, with ids compared as text, so `101` and `"101"` are the same ticket. A kind can change that rule with `identity`, or say that two kinds show the same objects with `object`.
+Params are strings and numbers only. Two refs show the same object when their kind and params match, with ids compared as text, so `101` and `"101"` are the same ticket. A kind can change that rule with `identity`, or say that two kinds show the same objects with `shows`.
 
 ## The layout
 
@@ -45,9 +45,9 @@ Params are strings and numbers only. Two refs show the same object when their ki
 
 A layout is a tree. Its leaves are panes. Its other nodes are a **row** (children side by side), a **column** (children one above the other) or a **stack** (panes as tabs, one shown at a time).
 
-<Code code={layouts} filename="layouts.ts" highlight="7-8,10,13" />
+<Code code={layouts} filename="layouts.ts" highlight="8,10,12" />
 
-Every node has a size along its parent: `{ weight: 2 }` takes a share of the room in proportion to its siblings, and `{ px: 360 }` asks for a fixed length. The tree is plain JSON, and it is what goes in the address.
+Every node has a size along its parent: `weight: 2` takes a share of the room in proportion to its siblings, and `px: 360` asks for a fixed length. `row`, `column` and `tabs` build a plain JSON tree, and that tree is what goes in the address.
 
 <TreeView layout="nested" height={300} caption="A row with a column inside it. Hover a node to light its pane." />
 
@@ -59,7 +59,7 @@ The tree itself never changes when a pane folds, tucks or hides. That is why a p
 
 <h3 id="fitting">Fitting and folding</h3>
 
-Each kind says the narrowest it works at (`minWidth`). When the window is too narrow for every pane at its minimum, Jali folds panes into tabs of their neighbours, one at a time, instead of squeezing them. When room returns, they unfold.
+Each kind says the narrowest it works at (`width.min`). When the window is too narrow for every pane at its minimum, Jali folds panes into tabs of their neighbours, one at a time, instead of squeezing them. When room returns, they unfold.
 
 <Frame layout="crowded" width={900} height={300} caption="Narrow the frame: panes fold into tabs one at a time, and come back as it widens." />
 
@@ -131,22 +131,22 @@ In Multiplexed, following a link opens an **opened** pane after the page's views
 
 A profile can name two kinds of viewer. One has full access: they may work in Multiplexed and open links beside. The other works in Single and opens links as a peek.
 
-## The store and its ports
+## The workspace and its ports
 
-<h3 id="store">Store and actions</h3>
+<h3 id="store">Workspace and actions</h3>
 
-The store holds one workspace: its layout, focus, selection, settings and history. You make it with `createUiStore`, and everything the workspace does is an action on it.
+A workspace holds its layout, focus, selection, settings and history. You make it with `createWorkspace`, and everything it does is an action on it.
 
 <Code code={actions} filename="actions.ts" />
 
-Every action is a pure function from one state to the next; the store commits the result, writes the address and announces the change to screen readers.
+Every action is a pure function from one state to the next; the workspace commits the result, writes the address and announces the change to screen readers.
 
 <h3 id="presets">Presets</h3>
 
 A preset is a layout the person can switch to, by id and label. The first opens by default, ⌘K lists them as "Layout: …", and Reset layout rebuilds the last one chosen.
 
 ```ts
-presets: [{ id: "triage", label: "Triage", build: triage }]
+presets: [{ id: "triage", label: "Triage", layout: triage }]
 ```
 
 <h3 id="ports">Ports: the address and storage</h3>
@@ -156,19 +156,19 @@ A port is a small interface for something outside the workspace, so your app or 
 - The **location** port is the address. Jali reads and writes only its own search params and keeps every other param as it is. The default is the browser's history; an app with a router passes a small adapter.
 - The **storage** port is what one person keeps on one device: settings, pane state, a curated page's mode. The default is `localStorage` under a prefix.
 
-<Code code={storeCode} filename="store.ts" highlight="15-18" />
+<Code code={workspaceCode} filename="workspace.ts" highlight="15-16" />
 
-`memoryLocation()` and `memoryStorage()` keep both in memory, for tests and for a workspace that must not touch the page's address.
+`url: { location: memoryLocation() }` and `storage: memoryStorage()` keep both in memory, for tests and for a workspace that must not touch the page's address.
 
 <h3 id="sizes-in-links">Sizes in links</h3>
 
-`createUrlSync({ sizes })` chooses what a link says about sizes. `"local"`, the default, writes the layout as designed and keeps the sizes the person dragged on their device. `"link"` writes every size, so a link reopens exactly as the sender saw it.
+`url: { sizes }` chooses what a link says about sizes. `"local"`, the default, writes the layout as designed and keeps the sizes the person dragged on their device. `"link"` writes every size, so a link reopens exactly as the sender saw it.
 
 ## The pane contract
 
 <h3 id="unsaved-work">Unsaved work</h3>
 
-A pane reports work the person would lose with `setUnsaved("an unsaved reply")`, and clears it with `null`. While it is set, closing the pane, a preset, Back, or showing another object in it asks "Discard unsaved changes?" first.
+A pane reports work the person would lose with `useUnsaved("an unsaved reply")`, and clears it with `null`. While it is set, closing the pane, a preset, Back, or showing another object in it asks "Discard unsaved changes?" first.
 
 Moving, tabbing, folding and tucking never ask: the pane's content stays mounted, so the work stays too.
 
@@ -188,7 +188,7 @@ A pane gets `paused: true` while it is out of sight: behind a tab, tucked, folde
 
 A command is something the workspace can do, with an id such as `pane.close`. The keymap binds keys to commands; ⌘K (Ctrl+K) opens the command palette and starts a two-key chord, such as ⌘K ⌘Z to restore a closed pane.
 
-Each store has its own keymap. Rebind or unbind a command with `createUiStore({ keymap: { "pane.zoom": null } })`. A pane adds its own commands to ⌘K with `setCommands`.
+Each workspace has its own keymap. Rebind or unbind a command with `createWorkspace({ keymap: { "pane.zoom": null } })`. A pane adds its own commands to ⌘K with `useCommands`.
 
 <h3 id="content-first">Content first</h3>
 

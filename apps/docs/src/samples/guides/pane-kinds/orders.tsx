@@ -1,6 +1,5 @@
 import { useEffect, useState, type KeyboardEvent } from "react";
-import { definePaneKind, type PaneComponentProps } from "@jali/react";
-import type { ObjectRef } from "@jali/core";
+import { definePane, useLauncher, type PaneProps } from "@jali/react";
 import { ClipboardList, FileText, Plus, StickyNote } from "lucide-react";
 
 // Your data. Jali never fetches anything: a pane is told which object to show, and shows it.
@@ -11,12 +10,8 @@ const ORDERS: Order[] = [
   { id: 3, customer: "Sam Reyes", total: "$310.00", status: "Refunded" },
 ];
 
-// Refs: the one place your app says "this object". Plain data, so they fit in a link.
-export const orderRef = (id: number): ObjectRef => ({ kind: "order", params: { id } });
-export const ordersRef = (): ObjectRef => ({ kind: "orders", params: {} });
-
 /** The list. J/K move the cursor, Space peeks, Alt+Enter opens the order beside the list. */
-function OrderList({ select, peek, openBeside, paused }: PaneComponentProps) {
+function OrderList({ select, peek, openBeside, paused }: PaneProps) {
   const [at, setAt] = useState(0);
   const [checkedAt, setCheckedAt] = useState(() => new Date());
 
@@ -30,17 +25,17 @@ function OrderList({ select, peek, openBeside, paused }: PaneComponentProps) {
   const move = (to: number) => {
     const next = Math.max(0, Math.min(ORDERS.length - 1, to));
     setAt(next);
-    select(orderRef(ORDERS[next]!.id)); // a following detail shows it once the cursor rests
+    select(orderKind({ id: ORDERS[next]!.id })); // a following detail shows it once the cursor rests
   };
 
   // Content first: claim the keys you use with preventDefault, and let the rest reach the workspace.
   const onKeyDown = (e: KeyboardEvent) => {
-    const order = ORDERS[at]!;
+    const order = orderKind({ id: ORDERS[at]!.id });
     if (e.metaKey || e.ctrlKey) return;
     if (e.key === "j" || e.key === "ArrowDown") move(at + 1);
     else if (e.key === "k" || e.key === "ArrowUp") move(at - 1);
-    else if (e.key === " ") peek(orderRef(order.id));
-    else if (e.key === "Enter" && e.altKey) openBeside(orderRef(order.id));
+    else if (e.key === " ") peek(order);
+    else if (e.key === "Enter" && e.altKey) openBeside(order);
     else return;
     e.preventDefault();
   };
@@ -59,10 +54,10 @@ function OrderList({ select, peek, openBeside, paused }: PaneComponentProps) {
   );
 }
 
-/** One order. `ref` is a plain prop (React 19): read the id from it. */
-function OrderDetail({ ref }: PaneComponentProps) {
-  const order = ORDERS.find((o) => o.id === Number(ref.params.id));
-  if (!order) return <p>Order {String(ref.params.id)} was not found.</p>;
+/** One order, read from its typed params. */
+function OrderDetail({ params }: PaneProps<{ id: number }>) {
+  const order = ORDERS.find((o) => o.id === params.id);
+  if (!order) return <p>Order {params.id} was not found.</p>;
   return (
     <dl>
       <dt>Customer</dt><dd>{order.customer}</dd>
@@ -72,78 +67,64 @@ function OrderDetail({ ref }: PaneComponentProps) {
   );
 }
 
-export const orderList = definePaneKind({
-  kind: "orders",
-  title: () => "Orders",
-  ref: (params) => ({ kind: "orders", params }),
-  minWidth: 440,          // narrower than this, the pane folds into a tab
-  comfortableWidth: 560,  // spare room brings it up to here first
-  minHeight: 240,
-  heavy: true,            // a long list: hold its content during a divider drag, reflow on release
+export const orderList = definePane("orders", {
+  title: "Orders",
   icon: ClipboardList,
+  width: {
+    min: 440,         // narrower than this, the pane folds into a tab
+    comfortable: 560, // spare room brings it up to here first
+  },
+  height: { min: 240 },
+  holdWhileResizing: true, // a long list: keep it as it is during a divider drag, reflow on release
   Component: OrderList,
 });
 
-export const orderKind = definePaneKind({
-  kind: "order",
-  title: (ref) => `Order ${ref.params.id}`,
-  ref: (params) => ({ kind: "order", params }),
-  identity: (ref) => Number(ref.params.id), // "1" and 1 are the same order
-  object: "order",                           // another kind that shows orders counts as the same object
-  minWidth: 360,
-  comfortableWidth: 440,
-  maxWidth: 600,                             // past this, spare room goes to the neighbours first
-  minHeight: 200,
+export const orderKind = definePane("order", {
+  params: { id: Number }, // read back as a number, so "1" in a link and 1 in code are the same order
+  title: ({ id }) => `Order ${id}`,
   icon: FileText,
+  width: { min: 360, comfortable: 440, max: 600 }, // past max, spare room goes to the neighbours first
+  height: { min: 200 },
+  shows: "order", // another kind that shows orders counts as the same object
   Component: OrderDetail,
 });
 
-export const customerKind = definePaneKind({
-  kind: "customer",
-  title: (ref) => `Customer ${ref.params.id}`,
-  ref: (params) => ({ kind: "customer", params }),
-  minWidth: 360,
-  maxWidth: 600,
-  minHeight: 200,
-  Component: ({ ref }) => <h3>Customer {String(ref.params.id)}</h3>, // no icon: Jali draws a plain square
+export const customerKind = definePane("customer", {
+  params: { id: Number },
+  title: ({ id }) => `Customer ${id}`,
+  width: { min: 360, max: 600 },
+  height: { min: 200 },
+  Component: ({ params }) => <h3>Customer {params.id}</h3>, // no icon: Jali draws a plain square
 });
 
-/** A scratch pad: every one is new, so it is never matched against an open pane. */
-export const scratchNote = definePaneKind({
-  kind: "scratch",
-  title: () => "Scratch note",
-  ref: (params) => ({ kind: "scratch", params }),
-  identity: () => undefined,
-  recordable: false, // not listed in Recent
-  minWidth: 280,
-  minHeight: 160,
+/** A scratch pad: every one is new, so it is never matched against an open pane, and stays out of Recent. */
+export const scratchNote = definePane("scratch", {
+  title: "Scratch note",
   icon: StickyNote,
+  width: { min: 280 },
+  scratch: true,
   Component: () => <textarea aria-label="Scratch note" />,
 });
 
-/**
- * What Split and New tab open. Jali opens `{ kind: "launcher" }` there, so a workspace that splits needs a kind with
- * this name. It is transient: it stands in until the person chooses, and it gets Recent and what is open.
- */
-export const launcher = definePaneKind({
-  kind: "launcher",
-  title: () => "New pane",
-  ref: (params) => ({ kind: "launcher", params }),
-  transient: true,
-  recordable: false,
-  identity: () => undefined,
-  minWidth: 320,
-  minHeight: 200,
+/** What Split and "New tab here" open until the person chooses: the workspace's `launcher`. */
+export const launcher = definePane("launcher", {
+  title: "New pane",
   icon: Plus,
-  Component: ({ openHere, dismiss, recent = [], titleFor }) => (
-    <nav aria-label="Open in this pane">
-      <button onClick={() => openHere(ordersRef())}>All orders</button>
-      {recent.map((r) => (
-        <button key={JSON.stringify(r)} onClick={() => openHere(r)}>{titleFor?.(r) ?? r.kind}</button>
-      ))}
-      <button onClick={dismiss}>Cancel</button>
-    </nav>
-  ),
+  width: { min: 320 },
+  height: { min: 200 },
+  scratch: true,
+  Component: function Launcher({ openHere, dismiss }) {
+    const { recent, titleOf } = useLauncher();
+    return (
+      <nav aria-label="Open in this pane">
+        <button onClick={() => openHere(orderList())}>All orders</button>
+        {recent.map((ref) => (
+          <button key={JSON.stringify(ref)} onClick={() => openHere(ref)}>{titleOf(ref)}</button>
+        ))}
+        <button onClick={dismiss}>Cancel</button>
+      </nav>
+    );
+  },
 });
 
-export const orderKinds = [orderList, orderKind, customerKind, scratchNote, launcher];
+export const orderKinds = [orderList, orderKind, customerKind, scratchNote];

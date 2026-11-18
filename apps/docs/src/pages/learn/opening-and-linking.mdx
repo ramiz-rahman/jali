@@ -48,7 +48,7 @@ Content often has ordinary links in it: a ticket number in a note, a customer na
 
 ## One object, one pane, on curated pages
 
-On a [curated page](/get-started/key-concepts#curated-page), each object appears once. A link to something that is already one of the page's views goes to that view instead of opening a copy. Two kinds count as showing the same object when they declare the same `object` type in `definePaneKind` and the same identity:
+On a [curated page](/get-started/key-concepts#curated-page), each object appears once. A link to something that is already one of the page's views goes to that view instead of opening a copy. Two kinds count as showing the same object when they declare the same `shows` type in `definePane` and the same identity:
 
 - if the view is on screen, it is focused;
 - if it is behind another tab, its tab is chosen;

@@ -1,15 +1,13 @@
-import { definePaneKind } from "@jali/react";
+import { definePane } from "@jali/react";
 
-export const note = definePaneKind({
-  kind: "note",
-  title: (ref) => `Note ${ref.params.id}`,
-  ref: (params) => ({ kind: "note", params }),
-  minWidth: 240,
-  minHeight: 160,
-  Component: ({ ref, openBeside }) => (
+export const note = definePane("note", {
+  params: { id: Number },
+  title: ({ id }) => `Note ${id}`,
+
+  Component: ({ params, openBeside }) => (
     <article className="note">
-      <h3>Note {ref.params.id}</h3>
-      <button onClick={() => openBeside({ kind: "note", params: { id: Number(ref.params.id) + 1 } })}>
+      <h3>Note {params.id}</h3>
+      <button onClick={() => openBeside(note({ id: params.id + 1 }))}>
         Open the next note beside
       </button>
     </article>

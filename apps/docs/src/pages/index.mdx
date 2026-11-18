@@ -13,7 +13,7 @@ import { Opening, Stage, Section, MinimalApp, Path, Proof, LinkDemo, KeysDemo, C
   <TreeView layout="chain" panels="collapsed" height="min(70vh, 720px)" />
 </Stage>
 
-<Section id="quickstart" label="Quickstart" title="The quickstart app, in four files" lead="One kind of pane, a layout of two notes, a store and the view. The workspace beside the code is that code, running.">
+<Section id="quickstart" label="Quickstart" title="The quickstart app, in three files" lead="One kind of pane, a workspace of two notes, and the view. The workspace beside the code is that code, running.">
   <MinimalApp />
 </Section>
 
@@ -35,10 +35,10 @@ import { Opening, Stage, Section, MinimalApp, Path, Proof, LinkDemo, KeysDemo, C
 </Section>
 
 <Close title="Two packages: @jali/core and @jali/react" lead="Install both. The core has no framework; the React package renders it.">
-  <Package name="@jali/core" href="/reference/core" exports="createUiStore, createPaneKinds, createUrlSync, boot, startUi, layout">
-    The layout tree and every change to it, fitting, and a store with focus, undo, follow and unsaved work.
+  <Package name="@jali/core" href="/reference/core" exports="createWorkspace, row, column, tabs, pane, layout">
+    The layout tree and every change to it, fitting, and a workspace with focus, undo, follow and unsaved work.
   </Package>
-  <Package name="@jali/react" href="/reference/react" exports="Jali, JaliView, definePaneKind, usePaneState, useActiveItemPort">
+  <Package name="@jali/react" href="/reference/react" exports="Jali, definePane, usePane, useUnsaved, useCommands, usePaneState">
     Panes, dividers, tabs, the shelf and the command palette, with a default theme.
   </Package>
   <Theming href="/guides/theming">
