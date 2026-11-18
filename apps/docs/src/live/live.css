@@ -117,7 +117,7 @@
 /* Beside the workspace: the panels are as tall as it, and grow with the figure. */
 @container live-fig (min-width: 56rem) {
   .live-tv-grid { grid-template-columns: minmax(0, 2fr) minmax(18.5rem, 1fr); grid-template-rows: var(--live-ws-h); }
-  .live-tv[data-parts="3"] .live-tv-grid { grid-template-columns: minmax(0, 2.2fr) minmax(18rem, 1fr) minmax(20rem, 1.05fr); }
+  .live-tv[data-parts="3"] .live-tv-grid { grid-template-columns: minmax(38rem, 2fr) minmax(16rem, 1fr) minmax(17rem, 1fr); }
   .live-tv-grid > .live-panel, .live-panels { border-top: 0; border-left: 1px solid var(--jali-border); }
   .live-panels > .live-panel + .live-panel { border-top: 1px solid var(--jali-border); }
   .live-panels > .live-panel { border-top: 0; }

@@ -27,14 +27,14 @@ export interface TreeViewProps {
   tries?: boolean;
   /**
    * What sits beside the workspace. "auto" (default): the map and the JSON side by side when the figure is about
-   * 1500px wide or more, else one of them with a Map | JSON toggle. "map" or "json": only that one.
+   * 1200px wide or more, else one of them with a Map | JSON toggle. "map" or "json": only that one.
    * "map+json": both, side by side when there is room, else one above the other.
    */
   panels?: "auto" | "map" | "json" | "map+json";
 }
 
 /** Wide enough (px) for the workspace, the map and the JSON side by side. */
-const THREE_UP = 1460;
+const THREE_UP = 1200;
 
 /** What a reader can do in the workspace as it is now (a phone shows one pane, so there is no gap to drag). */
 function triesFor(m: WorkspaceModel, json: boolean): { icon: ReactNode; text: string }[] {
@@ -120,7 +120,7 @@ export function TreeView({ layout, json = true, height = 360, caption, showJson 
         </span>
       </header>
       <div className="live-panel-body is-json">
-        <JsonView value={m.layout} hover={hover} setHover={setHover} label="The layout as JSON" />
+        <JsonView value={m.layout} hover={hover} setHover={setHover} label="The layout as JSON" compact={three && width < 1560} />
       </div>
     </section>
   );

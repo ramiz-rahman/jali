@@ -13,7 +13,7 @@ const isObj = (v: Json | undefined): v is Obj => !!v && typeof v === "object" &&
 const isNode = (v: Json | undefined): v is Obj => isObj(v) && typeof v.id === "string" && typeof v.type === "string";
 const text = (v: Json | undefined) => (v === undefined ? "" : JSON.stringify(v));
 /** Small leaves (a size, a ref) stay on one line. */
-const inline = (v: Json) => !isNode(v) && text(v).length <= 34 && !text(v).includes('"type"');
+const inline = (v: Json, limit: number) => !isNode(v) && text(v).length <= limit && !text(v).includes('"type"');
 
 /** The value a part of the new layout is compared with: by key in objects, by node id in lists of nodes. */
 function before(prev: Json | undefined, v: Json, key: string | number): Json | undefined {
@@ -23,7 +23,7 @@ function before(prev: Json | undefined, v: Json, key: string | number): Json | u
   return isObj(prev) && typeof key === "string" ? prev[key] : undefined;
 }
 
-interface R { hover: Hover | null; stamp: number; live: boolean }
+interface R { hover: Hover | null; stamp: number; live: boolean; limit: number }
 
 function Scalar({ v }: { v: Json }) {
   if (typeof v === "string") return <span className="j-str">{JSON.stringify(v)}</span>;
@@ -48,7 +48,7 @@ function Inline({ v }: { v: Json }): ReactNode {
  */
 function Line({ pad, label, v, prev, last, depth, r }: { pad: string; label: ReactNode; v: Json; prev: Json | undefined; last: boolean; depth: number; r: R }) {
   const differs = r.live && text(v) !== text(prev);
-  const whole = differs && (prev === undefined || inline(v) || typeof v !== "object" || v === null);
+  const whole = differs && (prev === undefined || inline(v, r.limit) || typeof v !== "object" || v === null);
   return (
     <span className="j-line" data-changed={whole || undefined} key={whole ? r.stamp : undefined}>
       {pad}{label}<Value v={v} prev={whole ? v : prev} depth={depth} r={r} />{last ? "" : ","}{"\n"}
@@ -57,7 +57,7 @@ function Line({ pad, label, v, prev, last, depth, r }: { pad: string; label: Rea
 }
 
 function Value({ v, prev, depth, r }: { v: Json; prev: Json | undefined; depth: number; r: R }): ReactNode {
-  if (inline(v) || typeof v !== "object" || v === null) return <Inline v={v} />;
+  if (inline(v, r.limit) || typeof v !== "object" || v === null) return <Inline v={v} />;
   const pad = "  ".repeat(depth + 1), end = "  ".repeat(depth);
   if (Array.isArray(v)) {
     return <>[{"\n"}{v.map((x, i) => (
@@ -73,7 +73,7 @@ function Value({ v, prev, depth, r }: { v: Json; prev: Json | undefined; depth: 
   return <span className="j-node" data-node={id} data-lit={r.hover?.id === id || undefined} style={{ "--c": colourOf(id) } as CSSProperties}>{body}</span>;
 }
 
-export function JsonView({ value, hover, setHover, label }: { value: unknown; hover: Hover | null; setHover(h: Hover | null): void; label: string }) {
+export function JsonView({ value, hover, setHover, label, compact = false }: { value: unknown; hover: Hover | null; setHover(h: Hover | null): void; label: string; /** A narrow column: only the smallest values stay on one line. */ compact?: boolean }) {
   // The layout before the last change, so the lines that changed can be marked; a new stamp restarts the tint.
   const track = useRef<{ value: unknown; prev: Json | undefined; stamp: number }>({ value: undefined, prev: undefined, stamp: 0 });
   const t = track.current;
@@ -92,7 +92,7 @@ export function JsonView({ value, hover, setHover, label }: { value: unknown; ho
     const top = line.offsetTop, bottom = top + line.offsetHeight;
     if (top < el.scrollTop + 8 || bottom > el.scrollTop + el.clientHeight - 8) el.scrollTo({ top: Math.max(0, top - el.clientHeight / 3), behavior: "smooth" });
   }, [t.stamp]);
-  const r: R = { hover, stamp: t.stamp, live: t.stamp > 0 };
+  const r: R = { hover, stamp: t.stamp, live: t.stamp > 0, limit: compact ? 18 : 34 };
   return (
     <pre className="live-json" ref={pre} tabIndex={0} aria-label={label}
       onPointerOver={(e) => {
