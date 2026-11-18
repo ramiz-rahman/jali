@@ -109,7 +109,7 @@ export interface UiStoreDeps {
    *  root; `null` leaves DOM focus alone (a test, a workspace that is never shown). */
   focusPane?: ((scope: WorkspaceDom, id: NodeId) => void) | null;
   /** What this person keeps on this device: settings, a curated page's mode and layout. Default: localStorage
-   *  under "jali". */
+   *  under the store's `id` ("jali" by default), so each workspace keeps its own. */
   storage?: StoragePort;
   /** Prefix for this workspace's DOM ids. Give each workspace on one page its own. Default "jali". */
   id?: string;
@@ -197,7 +197,8 @@ export function createUiStore(deps: UiStoreDeps): UiStore {
   const env: Env = { kinds: deps.kinds, profile: deps.profile ?? null, presets: deps.presets ?? [], name: deps.name ?? "Workspace" };
   const focusOf = deps.focusPane === undefined ? (typeof document === "undefined" ? null : focusPane) : deps.focusPane;
   const dom = createDom(deps.id ?? "jali");
-  const storage = deps.storage ?? browserStorage("jali");
+  // The id is the prefix: two workspaces with their own ids never overwrite each other ("jali" stays "jali").
+  const storage = deps.storage ?? browserStorage(deps.id ?? "jali");
   const start = presetById(env, deps.preset);
   const layout = deps.initial?.layout ?? start?.build();
   if (!layout) throw new Error("createUiStore: give `presets` or an `initial.layout` to start from");
