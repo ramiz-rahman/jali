@@ -1,5 +1,5 @@
 /** A workspace made with the public API alone and few options: what the docs' smallest app does must not throw. */
-import { describe, expect, it } from "vitest";
+import { describe, expect, it } from "vite-plus/test";
 import { createWorkspace, memoryLocation, memoryStorage, pane, row, type WorkspaceOptions } from "@jali/core";
 import { definePane } from "@jali/react";
 import { runCommand } from "../../packages/core/src/commands/registry";

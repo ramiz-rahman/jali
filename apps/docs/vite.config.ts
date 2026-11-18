@@ -1,4 +1,4 @@
-import { defineConfig, defaultClientConditions } from "vite";
+import { defineConfig, defaultClientConditions, lazyPlugins } from "vite-plus";
 import react from "@vitejs/plugin-react";
 import mdx from "@mdx-js/rollup";
 import remarkGfm from "remark-gfm";
@@ -11,15 +11,23 @@ import rehypeShiki from "@shikijs/rehype";
 const mdxPlugin = mdx({
   providerImportSource: "@mdx-js/react",
   remarkPlugins: [remarkGfm, remarkFrontmatter, [remarkMdxFrontmatter, { name: "frontmatter" }]],
-  rehypePlugins: [[rehypeShiki, {
-    themes: { light: "github-light", dark: "github-dark" }, defaultColor: false, addLanguageClass: true,
-    // ```tsx filename="src/kinds.tsx" highlight="3-5" → data-filename and data-highlight on the <pre>.
-    parseMetaString: (meta: string) => {
-      const out: Record<string, string> = {};
-      for (const [, k, v] of meta.matchAll(/(\w+)="([^"]*)"/g)) if (k === "filename" || k === "highlight") out[`data-${k}`] = v!;
-      return out;
-    },
-  }]],
+  rehypePlugins: [
+    [
+      rehypeShiki,
+      {
+        themes: { light: "github-light", dark: "github-dark" },
+        defaultColor: false,
+        addLanguageClass: true,
+        // ```tsx filename="src/kinds.tsx" highlight="3-5" → data-filename and data-highlight on the <pre>.
+        parseMetaString: (meta: string) => {
+          const out: Record<string, string> = {};
+          for (const [, k, v] of meta.matchAll(/(\w+)="([^"]*)"/g))
+            if (k === "filename" || k === "highlight") out[`data-${k}`] = v!;
+          return out;
+        },
+      },
+    ],
+  ],
 });
 const transform = mdxPlugin.transform as (this: unknown, code: string, id: string) => unknown;
 mdxPlugin.transform = function (this: unknown, code: string, id: string) {
@@ -29,10 +37,10 @@ mdxPlugin.transform = function (this: unknown, code: string, id: string) {
 export default defineConfig({
   // Each dev server gets its own dependency cache (JALI_DOCS_CACHE), so several can run at once.
   cacheDir: process.env.JALI_DOCS_CACHE ?? "node_modules/.vite",
-  plugins: [
+  plugins: lazyPlugins(() => [
     { enforce: "pre", ...mdxPlugin },
     react({ include: /\.(mdx|tsx|ts)$/ }),
-  ],
+  ]),
   // @jali/* resolve to the packages' source, so the docs always show the code as it is.
   resolve: { conditions: ["source", ...defaultClientConditions] },
 });

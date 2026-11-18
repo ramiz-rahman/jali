@@ -3,6 +3,11 @@
   "version": "0.0.0",
   "description": "Jali's framework-free core: a layout tree of panes that fits the space it has, a workspace store with undo, focus and follow, keyboard commands, and ports for the URL and storage.",
   "license": "Apache-2.0",
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
   "type": "module",
   "sideEffects": false,
   "exports": {
@@ -20,13 +25,8 @@
     },
     "./package.json": "./package.json"
   },
-  "files": [
-    "dist",
-    "README.md",
-    "LICENSE"
-  ],
   "scripts": {
-    "build": "tsdown",
-    "prepack": "tsdown"
+    "build": "vp pack",
+    "prepack": "vp pack"
   }
 }

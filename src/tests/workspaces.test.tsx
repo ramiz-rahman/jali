@@ -3,7 +3,7 @@
  * More than one workspace on a page, and start-up (docs/FINDINGS-FROM-DOCS.md 1, 2, 3, 9–12, 18, 25, 27, 28):
  * each store's keys, dialogs, storage, theme and tokens stay its own, and mounting never takes the page's focus.
  */
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vite-plus/test";
 import { act, cleanup, render } from "@testing-library/react";
 import shelfCss from "../../packages/react/src/styles/shelf.css?raw";
 import chromeCss from "../../packages/react/src/styles/chrome.css?raw";

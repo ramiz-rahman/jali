@@ -1,5 +1,5 @@
 /** A pane's unsaved work is the content's: it is cleared when the content unmounts, so a kind need not (finding 17). */
-import { afterEach, beforeAll, describe, expect, it } from "vitest";
+import { afterEach, beforeAll, describe, expect, it } from "vite-plus/test";
 import { cleanup, render } from "@testing-library/react";
 import { createWorkspace, memoryLocation, memoryStorage, pane } from "@jali/core";
 import { Jali, definePane, useUnsaved } from "@jali/react";

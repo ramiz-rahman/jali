@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it } from "vite-plus/test";
 import { clampSize, snap, SNAP_IN, SNAP_OUT } from "../../packages/core/src/dividers/resize";
 import { zoneFor, EDGE_ZONE } from "../../packages/core/src/workspace/dnd";
 import { decodePeek, encodePeek } from "../../packages/core/src/url";
@@ -10,7 +10,6 @@ import { openPaneFor } from "../../packages/core/src/actions/open";
 import { dropText } from "../../packages/core/src/state/messages";
 import { POLICY } from "../../packages/core/src/state/apply";
 import { createLabStore } from "../lab";
-
 
 const store = createLabStore();
 const { actions } = store;
@@ -63,7 +62,22 @@ describe("command registry", () => {
   it("has unique stable ids covering the keyboard map", () => {
     const ids = commandsOf(store).map((c) => c.id);
     expect(new Set(ids).size).toBe(ids.length);
-    for (const id of ["pane.focus.next", "pane.focus.previous", "pane.focus.left", "pane.move.up", "pane.zoom", "pane.tuck", "pane.putBack", "shelf.reveal", "pane.resize_mode", "pane.close", "pane.split.right", "pane.split.down", "pane.undo_close", "layout.reset"])
+    for (const id of [
+      "pane.focus.next",
+      "pane.focus.previous",
+      "pane.focus.left",
+      "pane.move.up",
+      "pane.zoom",
+      "pane.tuck",
+      "pane.putBack",
+      "shelf.reveal",
+      "pane.resize_mode",
+      "pane.close",
+      "pane.split.right",
+      "pane.split.down",
+      "pane.undo_close",
+      "layout.reset",
+    ])
       expect(ids).toContain(id);
   });
 });
@@ -80,9 +94,22 @@ const press = (init: KeyboardEventInit & { code?: string }) => {
 const pressKeys = (text: string) => {
   let taken = false;
   for (const c of parseKeys(text)) {
-    const named = !/^(Key|Digit)/.test(c.key) && c.key.length > 1 && !["Backslash", "BracketLeft", "BracketRight"].includes(c.key);
-    const key = named ? c.key : ({ Backslash: "\\", BracketLeft: "[", BracketRight: "]" } as Record<string, string>)[c.key] ?? c.key.replace(/^(Key|Digit)/, "").toLowerCase();
-    taken = press({ key, code: named ? undefined : c.key, shiftKey: !!c.shift, altKey: !!c.alt, ...(c.mod ? modKey() : {}) });
+    const named =
+      !/^(Key|Digit)/.test(c.key) &&
+      c.key.length > 1 &&
+      !["Backslash", "BracketLeft", "BracketRight"].includes(c.key);
+    const key = named
+      ? c.key
+      : (({ Backslash: "\\", BracketLeft: "[", BracketRight: "]" } as Record<string, string>)[
+          c.key
+        ] ?? c.key.replace(/^(Key|Digit)/, "").toLowerCase());
+    taken = press({
+      key,
+      code: named ? undefined : c.key,
+      shiftKey: !!c.shift,
+      altKey: !!c.alt,
+      ...(c.mod ? modKey() : {}),
+    });
   }
   return taken;
 };
@@ -150,10 +177,22 @@ describe("split opens a launcher", () => {
     expect(getState().view.focused).toBe("orders");
   });
   it("record ids compare as text; queries never count as duplicates", () => {
-    expect(store.env.kinds.sameObject({ kind: "record", params: { table: "customers", id: 1 } }, { kind: "record", params: { table: "customers", id: "1" } })).toBe(true);
-    expect(store.env.kinds.sameObject({ kind: "query", params: { sql: "x" } }, { kind: "query", params: { sql: "x" } })).toBe(false);
+    expect(
+      store.env.kinds.sameObject(
+        { kind: "record", params: { table: "customers", id: 1 } },
+        { kind: "record", params: { table: "customers", id: "1" } },
+      ),
+    ).toBe(true);
+    expect(
+      store.env.kinds.sameObject(
+        { kind: "query", params: { sql: "x" } },
+        { kind: "query", params: { sql: "x" } },
+      ),
+    ).toBe(false);
     actions.preset("query-chart");
-    expect(openPaneFor(store.model(), { kind: "query", params: { sql: "x", autorun: 1 } })).toBeUndefined();
+    expect(
+      openPaneFor(store.model(), { kind: "query", params: { sql: "x", autorun: 1 } }),
+    ).toBeUndefined();
     const id = actions.split("right", "query")!;
     actions.openHere(id, { kind: "query", params: {} });
     expect(findPane(id)?.ref.kind).toBe("query");
@@ -169,7 +208,8 @@ describe("split opens a launcher", () => {
   });
   it("Recent keeps the last 8 objects, newest first, without launchers or repeats", () => {
     actions.preset("order-chain");
-    for (let i = 1; i <= 10; i++) actions.openBeside("orders", { kind: "record", params: { table: "orders", id: i } });
+    for (let i = 1; i <= 10; i++)
+      actions.openBeside("orders", { kind: "record", params: { table: "orders", id: i } });
     const r = getState().recent;
     expect(r).toHaveLength(8);
     expect(r[0]).toEqual({ kind: "record", params: { table: "orders", id: 10 } });
@@ -250,7 +290,8 @@ describe("drag preview label", () => {
 describe("new commands", () => {
   it("have stable ids", () => {
     const ids = commandsOf(store).map((c) => c.id);
-    for (const id of ["pane.merge", "pane.unmerge", "stack.new-tab", "pane.split.auto"]) expect(ids).toContain(id);
+    for (const id of ["pane.merge", "pane.unmerge", "stack.new-tab", "pane.split.auto"])
+      expect(ids).toContain(id);
   });
 });
 
@@ -282,9 +323,14 @@ describe("apply and the command registry", () => {
   });
   it("prints shortcuts from the keymap for each platform", () => {
     expect(formatChord({ key: "KeyM", alt: true, shift: true, mod: true }, "mac")).toBe("⌥⇧⌘M");
-    expect(formatChord({ key: "KeyM", alt: true, shift: true, mod: true }, "other")).toBe("Ctrl+Alt+Shift+M");
+    expect(formatChord({ key: "KeyM", alt: true, shift: true, mod: true }, "other")).toBe(
+      "Ctrl+Alt+Shift+M",
+    );
     expect(formatChord({ key: "Enter", shift: true, mod: true }, "mac")).toBe("⇧⌘↵");
     expect(shortcutLabel(store, "pane.focus.next")).toBe("F6");
-    expect(store.keymap.sequences("pane.focus.left")[0]).toEqual([{ key: "KeyK", mod: true }, { key: "ArrowLeft", mod: true }]);
+    expect(store.keymap.sequences("pane.focus.left")[0]).toEqual([
+      { key: "KeyK", mod: true },
+      { key: "ArrowLeft", mod: true },
+    ]);
   });
 });

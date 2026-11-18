@@ -2,13 +2,12 @@
  * The keyboard ladder (commands/keyboard.ts): content first, then the pane layer; ⌘Z is the content's; the Esc
  * ladder runs content → drag → peek → maximise; the keymap is per store, overridable, and refuses bare character keys.
  */
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vite-plus/test";
 import { installKeyboard } from "../../packages/core/src/commands/keyboard";
 import { createKeymap } from "../../packages/core/src/commands/keymap";
 import { formatKeys, parseKeys, type Chord } from "../../packages/core/src/commands/format";
 import { createLabStore } from "../lab";
 import type { UiStore } from "../../packages/core/src/state/store";
-
 
 let store: UiStore;
 let off: () => void;
@@ -25,14 +24,27 @@ const chord = (target: EventTarget, text: string) => {
   let last!: KeyboardEvent;
   for (const c of parseKeys(text)) {
     const code = /^(Key|Digit)|^Backslash$|^Bracket/.test(c.key) ? c.key : undefined;
-    const key = code ? (code === "Backslash" ? "\\" : code.replace(/^(Key|Digit)/, "").toLowerCase()) : c.key;
-    last = keydown(target, { key, code, shiftKey: !!c.shift, altKey: !!c.alt, ...(c.mod ? mod() : {}) });
+    const key = code
+      ? code === "Backslash"
+        ? "\\"
+        : code.replace(/^(Key|Digit)/, "").toLowerCase()
+      : c.key;
+    last = keydown(target, {
+      key,
+      code,
+      shiftKey: !!c.shift,
+      altKey: !!c.alt,
+      ...(c.mod ? mod() : {}),
+    });
   }
   return last;
 };
 
 function setup(deps: Parameters<typeof createLabStore>[0] = {}) {
-  store = createLabStore({ ...deps, initial: { area: { width: 1600, height: 900 }, ...deps.initial } });
+  store = createLabStore({
+    ...deps,
+    initial: { area: { width: 1600, height: 900 }, ...deps.initial },
+  });
   store.actions.preset("order-chain");
   off = installKeyboard(store);
   content = document.createElement("div");
@@ -78,7 +90,12 @@ describe("content first", () => {
   });
 
   it("single character keys, Enter and Space are never taken by the pane layer", () => {
-    for (const init of [{ key: "j", code: "KeyJ" }, { key: "k", code: "KeyK" }, { key: " ", code: "Space" }, { key: "Enter" }])
+    for (const init of [
+      { key: "j", code: "KeyJ" },
+      { key: "k", code: "KeyK" },
+      { key: " ", code: "Space" },
+      { key: "Enter" },
+    ])
       expect(keydown(content, init).defaultPrevented).toBe(false);
   });
 
@@ -100,7 +117,10 @@ describe("the Esc ladder", () => {
     store.actions.peek(peekRef);
     expect(store.get().view.peek).toBeTruthy();
     // 1. Content uses its Esc (clears a search, cancels an edit): nothing else moves.
-    const once = (e: KeyboardEvent) => { e.preventDefault(); content.removeEventListener("keydown", once); };
+    const once = (e: KeyboardEvent) => {
+      e.preventDefault();
+      content.removeEventListener("keydown", once);
+    };
     content.addEventListener("keydown", once);
     keydown(content, { key: "Escape" });
     expect(store.get().view.peek).toBeTruthy();
@@ -118,7 +138,10 @@ describe("the Esc ladder", () => {
 
   it("a drag in progress takes Esc before content and before the peek", () => {
     store.actions.peek(peekRef);
-    const cancel = vi.fn((e: KeyboardEvent) => { e.preventDefault(); e.stopPropagation(); });
+    const cancel = vi.fn((e: KeyboardEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+    });
     window.addEventListener("keydown", cancel, true); // what workspace/dnd.ts installs for a drag's lifetime
     const contentEsc = vi.fn();
     content.addEventListener("keydown", contentEsc);
@@ -173,7 +196,10 @@ describe("chords", () => {
 describe("the keymap", () => {
   it("a host rebinds and unbinds per command, and labels follow", () => {
     off();
-    setup({ keymap: { "pane.zoom": "Mod+K Mod+Enter", "pane.split.right": null }, keymapOptions: { platform: "mac" } });
+    setup({
+      keymap: { "pane.zoom": "Mod+K Mod+Enter", "pane.split.right": null },
+      keymapOptions: { platform: "mac" },
+    });
     expect(store.keymap.label("pane.zoom")).toBe("⌘K ⌘↵");
     expect(store.keymap.label("pane.split.right")).toBe("");
     chord(content, "Mod+\\");
@@ -185,7 +211,14 @@ describe("the keymap", () => {
 
   it("refuses a bare character key (WCAG 2.1.4) and longer sequences", () => {
     const onInvalid = vi.fn();
-    const km = createKeymap({ "pane.zoom": "Z", "pane.close": "Mod+K Mod+X Mod+Y", "pane.tuck": ["Shift+T", "Mod+K Mod+["] }, { onInvalid });
+    const km = createKeymap(
+      {
+        "pane.zoom": "Z",
+        "pane.close": "Mod+K Mod+X Mod+Y",
+        "pane.tuck": ["Shift+T", "Mod+K Mod+["],
+      },
+      { onInvalid },
+    );
     expect(km.sequences("pane.zoom")).toEqual([]);
     expect(km.sequences("pane.close")).toEqual([]);
     expect(km.sequences("pane.tuck")).toHaveLength(1);
@@ -206,16 +239,41 @@ describe("the keymap", () => {
   const norm = (c: Chord) => [c.key, !!c.mod, !!c.ctrl, !!c.alt, !!c.shift].join();
   it("no default uses a browser-reserved or OS-taken key", () => {
     // Browser-reserved (the browser acts before the page) or claimed by the OS / assistive tech: see the research doc.
-    const banned = ["Mod+W", "Mod+T", "Mod+N", "Shift+Mod+T", "Shift+Mod+N", "Shift+Mod+W", "Mod+Q", "Alt+Mod+ArrowLeft", "Alt+Mod+ArrowRight",
-      "Shift+Mod+[", "Shift+Mod+]", "Ctrl+Tab", "Ctrl+PageUp", "Ctrl+PageDown", "Alt+Mod+M", "Alt+Mod+I", "Alt+Mod+J", "Alt+Mod+U", "Mod+L", "Mod+D"]
-      .map((t) => norm(parseKeys(t)[0]!));
+    const banned = [
+      "Mod+W",
+      "Mod+T",
+      "Mod+N",
+      "Shift+Mod+T",
+      "Shift+Mod+N",
+      "Shift+Mod+W",
+      "Mod+Q",
+      "Alt+Mod+ArrowLeft",
+      "Alt+Mod+ArrowRight",
+      "Shift+Mod+[",
+      "Shift+Mod+]",
+      "Ctrl+Tab",
+      "Ctrl+PageUp",
+      "Ctrl+PageDown",
+      "Alt+Mod+M",
+      "Alt+Mod+I",
+      "Alt+Mod+J",
+      "Alt+Mod+U",
+      "Mod+L",
+      "Mod+D",
+    ].map((t) => norm(parseKeys(t)[0]!));
     const km = createKeymap({}, { platform: "mac" });
     for (const [id, seqs] of km.entries)
       for (const seq of seqs)
         for (const c of seq) {
           expect(banned, `${id}`).not.toContain(norm(c));
-          expect(!!(c.mod && c.alt) || !!(c.ctrl && c.alt), `${id}: Ctrl+Alt is AltGr on Windows, ⌃⌥ is VoiceOver`).toBe(false);
-          expect(/^Digit/.test(c.key) && c.mod, `${id}: ⌘/Ctrl+digit switches browser tabs`).toBeFalsy();
+          expect(
+            !!(c.mod && c.alt) || !!(c.ctrl && c.alt),
+            `${id}: Ctrl+Alt is AltGr on Windows, ⌃⌥ is VoiceOver`,
+          ).toBe(false);
+          expect(
+            /^Digit/.test(c.key) && c.mod,
+            `${id}: ⌘/Ctrl+digit switches browser tabs`,
+          ).toBeFalsy();
         }
   });
 });
@@ -227,15 +285,18 @@ describe("two workspaces on one page", () => {
     const b = createLabStore({ initial: { area: { width: 1600, height: 900 } } });
     a.actions.preset("order-chain");
     b.actions.preset("order-chain");
-    const rootA = document.createElement("div"), rootB = document.createElement("div");
-    const inA = document.createElement("button"), inB = document.createElement("button");
+    const rootA = document.createElement("div"),
+      rootB = document.createElement("div");
+    const inA = document.createElement("button"),
+      inB = document.createElement("button");
     rootA.append(inA);
     rootB.append(inB);
     document.body.append(rootA, rootB);
     const offA = installKeyboard(a, { root: () => rootA });
     const offB = installKeyboard(b, { root: () => rootB });
     try {
-      const fa = a.get().view.focused, fb = b.get().view.focused;
+      const fa = a.get().view.focused,
+        fb = b.get().view.focused;
       keydown(inA, { key: "F6" });
       expect(a.get().view.focused).not.toBe(fa);
       expect(b.get().view.focused).toBe(fb);
@@ -254,4 +315,3 @@ describe("two workspaces on one page", () => {
     }
   });
 });
-

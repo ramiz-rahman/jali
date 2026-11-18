@@ -1,4 +1,4 @@
-import { defineConfig, defaultClientConditions } from "vite";
+import { defineConfig, defaultClientConditions } from "vite-plus";
 import react from "@vitejs/plugin-react";
 
 // Resolves @jali/* to the packages' source ("source" condition), as the lab does.

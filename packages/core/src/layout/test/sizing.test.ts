@@ -2,25 +2,66 @@
  * Pane sizing: minimum (fold threshold), comfortable (spare space goes here first), max (soft: past it, siblings that
  * can use the room get it). docs/DECISIONS.md, "Pane sizing: minimum, comfortable, max".
  */
-import { describe, expect, it } from "vitest";
+import { describe, expect, it } from "vite-plus/test";
 import * as core from "..";
 import { find } from "../tree/tree";
-import type { FitOptions, KindRegistry, Layout, LayoutNode, PaneNode, ResolvedLayout } from "../types";
+import type {
+  FitOptions,
+  KindRegistry,
+  Layout,
+  LayoutNode,
+  PaneNode,
+  ResolvedLayout,
+} from "../types";
 import { context, folded, freeze, view } from "./fixtures";
 
 const kinds: KindRegistry = {
-  table: { kind: "table", title: () => "table", minWidth: 400, minHeight: 240, comfortableWidth: 560 },
-  record: { kind: "record", title: () => "record", minWidth: 360, minHeight: 240, comfortableWidth: 440, maxWidth: 600 },
+  table: {
+    kind: "table",
+    title: () => "table",
+    minWidth: 400,
+    minHeight: 240,
+    comfortableWidth: 560,
+  },
+  record: {
+    kind: "record",
+    title: () => "record",
+    minWidth: 360,
+    minHeight: 240,
+    comfortableWidth: 440,
+    maxWidth: 600,
+  },
   plain: { kind: "plain", title: () => "plain", minWidth: 320, minHeight: 200 },
 };
 const fit = (width: number): FitOptions => ({ width, height: 900, gap: 6, kinds });
 const ctx = (width: number) => context(fit(width));
-const pane = (id: string, kind: string, extra: Partial<PaneNode> = {}): PaneNode => ({ id, type: "pane", size: { weight: 1 }, ref: { kind, params: { id } }, ...extra });
-const row = (...children: LayoutNode[]): Layout => ({ version: 1, root: { id: "root", type: "row", size: { weight: 1 }, children } });
-const widths = (r: ResolvedLayout) => r.panes.filter(b => !b.hidden).map(b => b.rect.width);
-const rects = (r: ResolvedLayout) => r.panes.filter(b => !b.hidden).map(b => `${b.rect.x},${b.rect.width}`).sort().join(" ");
+const pane = (id: string, kind: string, extra: Partial<PaneNode> = {}): PaneNode => ({
+  id,
+  type: "pane",
+  size: { weight: 1 },
+  ref: { kind, params: { id } },
+  ...extra,
+});
+const row = (...children: LayoutNode[]): Layout => ({
+  version: 1,
+  root: { id: "root", type: "row", size: { weight: 1 }, children },
+});
+const widths = (r: ResolvedLayout) => r.panes.filter((b) => !b.hidden).map((b) => b.rect.width);
+const rects = (r: ResolvedLayout) =>
+  r.panes
+    .filter((b) => !b.hidden)
+    .map((b) => `${b.rect.x},${b.rect.width}`)
+    .sort()
+    .join(" ");
 const place = (l: Layout, width: number) => core.resolve(l, view("t"), ctx(width));
-const chain = () => freeze(row(pane("t", "table"), pane("r1", "record", { linkedTo: "t" }), pane("r2", "record", { linkedTo: "r1" })));
+const chain = () =>
+  freeze(
+    row(
+      pane("t", "table"),
+      pane("r1", "record", { linkedTo: "t" }),
+      pane("r2", "record", { linkedTo: "r1" }),
+    ),
+  );
 
 describe("pane sizing", () => {
   it("fits table + record + record at 1440 with the records at comfortable and the table taking the rest", () => {
@@ -41,7 +82,12 @@ describe("pane sizing", () => {
     expect(widths(place(row(pane("a", "record"), pane("b", "record")), 1606))).toEqual([800, 800]);
   });
   it("treats a column as able to use what any of its panes can", () => {
-    const tree = row(pane("r", "record"), { id: "col", type: "column", size: { weight: 1 }, children: [pane("q", "record"), pane("t", "table")] });
+    const tree = row(pane("r", "record"), {
+      id: "col",
+      type: "column",
+      size: { weight: 1 },
+      children: [pane("q", "record"), pane("t", "table")],
+    });
     // The column holds a table, so it is not capped: the lone record stops at 600 and the column takes the rest.
     expect(widths(place(tree, 1806))).toEqual([600, 1200, 1200]);
   });
@@ -57,17 +103,31 @@ describe("pane sizing", () => {
   });
   it("hands a split back to the share rule when its divider is reset", () => {
     const dragged = core.resizeDivider(chain(), "root", 0, -100, ctx(1440));
-    expect(widths(place(core.resetDivider(dragged, "root", 0, ctx(1440)), 1440))).toEqual([548, 440, 440]);
+    expect(widths(place(core.resetDivider(dragged, "root", 0, ctx(1440)), 1440))).toEqual([
+      548, 440, 440,
+    ]);
   });
   it("never moves a slot when a tab is chosen: a tab group is measured as its home (a stack's first tab)", () => {
-    const stack = (active: string): Layout => row(pane("t", "table"), { id: "tabs", type: "stack", origin: "user", active, size: { weight: 1 }, children: [pane("a", "record"), pane("b", "plain")] });
+    const stack = (active: string): Layout =>
+      row(pane("t", "table"), {
+        id: "tabs",
+        type: "stack",
+        origin: "user",
+        active,
+        size: { weight: 1 },
+        children: [pane("a", "record"), pane("b", "plain")],
+      });
     expect(rects(place(stack("a"), 1440))).toBe(rects(place(stack("b"), 1440)));
     // The home is a record, so the slot stops at the record's max even while the plain tab (no max) is shown.
-    expect(place(stack("b"), 1920).panes.find(p => p.id === "b")!.rect.width).toBe(600);
+    expect(place(stack("b"), 1920).panes.find((p) => p.id === "b")!.rect.width).toBe(600);
   });
   it("measures a fold as the slot it folded into, so folded tables do not turn a record's slot into a table's", () => {
     // 1000px: the table, its record and a second table cannot all fit; the second table folds into the record's slot.
-    const tree = row(pane("t", "table"), pane("r", "record", { linkedTo: "t" }), pane("u", "table", { linkedTo: "r" }));
+    const tree = row(
+      pane("t", "table"),
+      pane("r", "record", { linkedTo: "t" }),
+      pane("u", "table", { linkedTo: "r" }),
+    );
     const r = place(tree, 1000);
     expect(folded(r)).toEqual(["u"]);
     expect(widths(r)).toEqual([554, 440]);
@@ -81,23 +141,41 @@ describe("pane sizing", () => {
     // A divider reset returns it to the share rule: the table again takes the room the records do not use.
     const reset = core.resetDivider(swapped, "root", 0, ctx(1440));
     const r = place(reset, 1440);
-    expect(r.panes.find(b => b.id === "t")!.rect.width).toBe(548);
+    expect(r.panes.find((b) => b.id === "t")!.rect.width).toBe(548);
   });
   it("holds the slot when a pane shows an object of another kind in place (setRef is a swap)", () => {
     const before = freeze(row(pane("t", "table"), pane("p", "plain")));
-    const after = core.setRef(before, view("p"), "p", { kind: "record", params: { id: 1 } }, ctx(1440));
+    const after = core.setRef(
+      before,
+      view("p"),
+      "p",
+      { kind: "record", params: { id: 1 } },
+      ctx(1440),
+    );
     expect(rects(place(after, 1440))).toBe(rects(place(before, 1440)));
     // Same needs, nothing to hold: the layout carries no sizing marks.
-    const same = core.setRef(before, view("p"), "p", { kind: "plain", params: { id: 2 } }, ctx(1440));
+    const same = core.setRef(
+      before,
+      view("p"),
+      "p",
+      { kind: "plain", params: { id: 2 } },
+      ctx(1440),
+    );
     expect(find(same.root, "p")!.userSized).toBeUndefined();
   });
   it("gives a pane opened into a sized split a fair share, not a weight of 1 beside lengths", () => {
     const wide = freeze(row(pane("t", "table"), pane("r1", "record", { linkedTo: "t" })));
     const dragged = core.resizeDivider(wide, "root", 0, -80, ctx(1920));
-    const opened = core.openBeside(dragged, view("r1"), "r1", { kind: "plain", params: { id: "p" } }, ctx(1920));
+    const opened = core.openBeside(
+      dragged,
+      view("r1"),
+      "r1",
+      { kind: "plain", params: { id: "p" } },
+      ctx(1920),
+    );
     const r = core.resolve(opened.layout, opened.view, ctx(1920));
     expect(folded(r)).toEqual([]);
-    const w = r.panes.find(b => b.id === opened.opened)!.rect.width;
+    const w = r.panes.find((b) => b.id === opened.opened)!.rect.width;
     expect(w).toBeGreaterThan(400);
   });
   it("is a pure function of layout and size", () => {

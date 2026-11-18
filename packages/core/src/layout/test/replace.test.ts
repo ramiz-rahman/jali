@@ -1,18 +1,41 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it } from "vite-plus/test";
 import * as core from "..";
 import { context, fit, pane, view } from "./fixtures";
 import type { Layout, LayoutNode, ResolvedLayout } from "../types";
 
-const row = (...children: LayoutNode[]): Layout => ({ version: 1, root: { id: "root", type: "row", size: { weight: 1 }, children } });
-const col = (id: string, ...children: LayoutNode[]): LayoutNode => ({ id, type: "column", size: { weight: 1 }, children });
+const row = (...children: LayoutNode[]): Layout => ({
+  version: 1,
+  root: { id: "root", type: "row", size: { weight: 1 }, children },
+});
+const col = (id: string, ...children: LayoutNode[]): LayoutNode => ({
+  id,
+  type: "column",
+  size: { weight: 1 },
+  children,
+});
 /** What is on screen, by position: the set of rects, whoever fills them. */
-const geometry = (r: ResolvedLayout) => r.panes.filter(b => !b.hidden).map(b => `${b.rect.x},${b.rect.y},${b.rect.width},${b.rect.height}`).sort();
-const at = (r: ResolvedLayout, id: string) => r.panes.find(b => b.id === id && !b.hidden)?.rect;
+const geometry = (r: ResolvedLayout) =>
+  r.panes
+    .filter((b) => !b.hidden)
+    .map((b) => `${b.rect.x},${b.rect.y},${b.rect.width},${b.rect.height}`)
+    .sort();
+const at = (r: ResolvedLayout, id: string) => r.panes.find((b) => b.id === id && !b.hidden)?.rect;
 
 describe("replace", () => {
   it("a hidden pane takes the current pane's exact slot and size; the current pane goes off screen; nothing else moves", () => {
     const ctx = context(fit(1600, 900));
-    const l = core.refit({ ...row(pane("a", "record", { size: { weight: 2 } }), col("side", pane("b", "inspector"), pane("c", "inspector")), pane("x", "inspector")), overlay: { tucks: [], folds: [], shown: {}, hidden: ["x"] } }, view("b"), ctx);
+    const l = core.refit(
+      {
+        ...row(
+          pane("a", "record", { size: { weight: 2 } }),
+          col("side", pane("b", "inspector"), pane("c", "inspector")),
+          pane("x", "inspector"),
+        ),
+        overlay: { tucks: [], folds: [], shown: {}, hidden: ["x"] },
+      },
+      view("b"),
+      ctx,
+    );
     const before = core.resolve(l, view("b"), ctx);
     const r = core.replace(l, view("b"), "b", "x", ctx);
     const after = core.resolve(r.layout, r.view, ctx);
@@ -29,7 +52,21 @@ describe("replace", () => {
 
   it("works for a tab of a stack: the incoming pane becomes that tab, shown", () => {
     const ctx = context(fit(1600, 900));
-    const stacked: Layout = { ...row(pane("a", "record"), { id: "s", type: "stack", size: { weight: 1 }, origin: "user", active: "y", children: [pane("y", "record"), pane("z", "record")] }, pane("x", "record")), overlay: { tucks: [], folds: [], shown: {}, hidden: ["x"] } };
+    const stacked: Layout = {
+      ...row(
+        pane("a", "record"),
+        {
+          id: "s",
+          type: "stack",
+          size: { weight: 1 },
+          origin: "user",
+          active: "y",
+          children: [pane("y", "record"), pane("z", "record")],
+        },
+        pane("x", "record"),
+      ),
+      overlay: { tucks: [], folds: [], shown: {}, hidden: ["x"] },
+    };
     const l = core.refit(stacked, view("y"), ctx);
     const before = core.resolve(l, view("y"), ctx);
     const r = core.replace(l, view("y"), "y", "x", ctx);
@@ -41,9 +78,16 @@ describe("replace", () => {
 
   it("works inside an automatic fold group: the fold record follows the position", () => {
     const ctx = context(fit(1100, 900));
-    const l = core.refit({ ...row(pane("a", "record"), pane("b", "record"), pane("c", "record"), pane("x", "record")), overlay: { tucks: [], folds: [], shown: {}, hidden: ["x"] } }, view("a"), ctx);
+    const l = core.refit(
+      {
+        ...row(pane("a", "record"), pane("b", "record"), pane("c", "record"), pane("x", "record")),
+        overlay: { tucks: [], folds: [], shown: {}, hidden: ["x"] },
+      },
+      view("a"),
+      ctx,
+    );
     const before = core.resolve(l, view("a"), ctx);
-    const folded = before.shelf.filter(e => e.reason === "folded").map(e => e.paneId);
+    const folded = before.shelf.filter((e) => e.reason === "folded").map((e) => e.paneId);
     expect(folded.length).toBeGreaterThan(0);
     const r = core.replace(l, view("a"), folded[0]!, "x", ctx);
     expect(geometry(core.resolve(r.layout, r.view, ctx))).toEqual(geometry(before));
@@ -51,7 +95,14 @@ describe("replace", () => {
 
   it("says when the incoming pane could not fit the slot and the layout had to refit", () => {
     const ctx = context(fit(1100, 900));
-    const l = core.refit({ ...row(pane("a", "record"), pane("b", "inspector"), pane("w", "wide")), overlay: { tucks: [], folds: [], shown: {}, hidden: ["w"] } }, view("b"), ctx);
+    const l = core.refit(
+      {
+        ...row(pane("a", "record"), pane("b", "inspector"), pane("w", "wide")),
+        overlay: { tucks: [], folds: [], shown: {}, hidden: ["w"] },
+      },
+      view("b"),
+      ctx,
+    );
     const r = core.replace(l, view("b"), "b", "w", ctx);
     expect(r.reshaped).toBe(true);
   });

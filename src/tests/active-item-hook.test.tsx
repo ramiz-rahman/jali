@@ -1,5 +1,5 @@
 /** useActiveItemPort: the port is stable for a pane, and always uses the mapping of the latest render (finding 7). */
-import { describe, expect, it } from "vitest";
+import { describe, expect, it } from "vite-plus/test";
 import { renderHook } from "@testing-library/react";
 import type { ReactNode } from "react";
 import type { ObjectRef } from "../../packages/core/src/layout/types";

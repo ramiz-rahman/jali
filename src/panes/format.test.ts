@@ -2,12 +2,30 @@ import { createPaneKinds } from "@jali/core/adapter";
 import { nextSort, orderByString, parseFilter } from "./grid/grid-state";
 import { recordKind } from "./kinds/record";
 import { pickChartColumns } from "./kinds/chart";
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it, vi } from "vite-plus/test";
 import type { ColumnInfo } from "../data/types";
-import { cellKind, columnLabel, formatCell, formatJson, formatMoney, formatTimestamp, rawText, formatCompact, formatCount, formatMs, isNumericType } from "./format";
+import {
+  cellKind,
+  columnLabel,
+  formatCell,
+  formatJson,
+  formatMoney,
+  formatTimestamp,
+  rawText,
+  formatCompact,
+  formatCount,
+  formatMs,
+  isNumericType,
+} from "./format";
 import { foreignKeyRef, relationRef, rowId } from "./shared/refs";
 
-const col = (name: string, type = "text", extra: Partial<ColumnInfo> = {}): ColumnInfo => ({ name, type, nullable: false, primaryKey: false, ...extra });
+const col = (name: string, type = "text", extra: Partial<ColumnInfo> = {}): ColumnInfo => ({
+  name,
+  type,
+  nullable: false,
+  primaryKey: false,
+  ...extra,
+});
 
 describe("formatting", () => {
   it("formats numbers and money", () => {
@@ -22,7 +40,8 @@ describe("formatting", () => {
     expect(isNumericType("text")).toBe(false);
   });
   it("cycles sort", () => {
-    const a = nextSort(null, "name"); const b = nextSort(a, "name");
+    const a = nextSort(null, "name");
+    const b = nextSort(a, "name");
     expect(a).toEqual({ column: "name", dir: "asc" });
     expect(b).toEqual({ column: "name", dir: "desc" });
     expect(nextSort(b, "name")).toBeNull();
@@ -38,23 +57,47 @@ describe("formatting", () => {
 
 describe("relation links", () => {
   it("joins composite keys in column order", () => {
-    const cols = [col("order_id", "integer", { primaryKey: true }), col("line_number", "integer", { primaryKey: true }), col("quantity", "integer")];
+    const cols = [
+      col("order_id", "integer", { primaryKey: true }),
+      col("line_number", "integer", { primaryKey: true }),
+      col("quantity", "integer"),
+    ];
     expect(rowId(cols, { order_id: 789, line_number: 2, quantity: 1 })).toBe("789:2");
   });
   it("links foreign keys to records, never nulls", () => {
     const fk = col("customer_id", "integer", { references: { table: "customers", column: "id" } });
-    expect(foreignKeyRef(fk, 69)).toEqual({ kind: "record", params: { table: "customers", id: "69" } });
+    expect(foreignKeyRef(fk, 69)).toEqual({
+      kind: "record",
+      params: { table: "customers", id: "69" },
+    });
     expect(foreignKeyRef(fk, null)).toBeNull();
     expect(foreignKeyRef(col("status"), "paid")).toBeNull();
   });
   it("turns a relation into a related ref", () => {
-    expect(relationRef({ label: "Orders by Amina Okafor", table: "orders", count: 1, where: { customer_id: 69 } })).toEqual({
-      kind: "related", params: { table: "orders", column: "customer_id", value: 69, label: "Orders by Amina Okafor" },
+    expect(
+      relationRef({
+        label: "Orders by Amina Okafor",
+        table: "orders",
+        count: 1,
+        where: { customer_id: 69 },
+      }),
+    ).toEqual({
+      kind: "related",
+      params: {
+        table: "orders",
+        column: "customer_id",
+        value: 69,
+        label: "Orders by Amina Okafor",
+      },
     });
   });
   it("titles refs and picks chart columns", () => {
-    expect(createPaneKinds([recordKind]).title(recordKind({ table: "customers", id: "69" }))).toBe("customer 69");
-    expect(pickChartColumns([{ region: "Dhaka", id: 1, amount: 5 }], ["region", "id", "amount"])).toEqual({ x: "region", y: "amount" });
+    expect(createPaneKinds([recordKind]).title(recordKind({ table: "customers", id: "69" }))).toBe(
+      "customer 69",
+    );
+    expect(
+      pickChartColumns([{ region: "Dhaka", id: 1, amount: 5 }], ["region", "id", "amount"]),
+    ).toEqual({ x: "region", y: "amount" });
   });
 });
 
@@ -92,7 +135,9 @@ describe("cell formatters", () => {
     expect(formatJson('{ "a": 1,\n "b": [1, 2] }')).toBe('{"a":1,"b":[1,2]}');
     expect(formatJson('{"a":1}', true)).toBe('{\n  "a": 1\n}');
     expect(formatJson("not json")).toBe("not json");
-    expect(formatCell('{ "source": "trigger" }', { name: "payload_json", format: "json" })).toBe('{"source":"trigger"}');
+    expect(formatCell('{ "source": "trigger" }', { name: "payload_json", format: "json" })).toBe(
+      '{"source":"trigger"}',
+    );
   });
   it("classifies cells and keeps raw values", () => {
     expect(cellKind(null)).toBe("null");
