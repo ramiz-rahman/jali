@@ -9,7 +9,7 @@
 4. Done 19 Nov: the store option `launcher` (default "launcher") names the kind; without it split and "New tab here" are refused and tab strips hide "+". ~~**Split and "+" need a kind named "launcher".** `LAUNCHER` is hard-coded (`core/src/actions/open.ts:12`, used at :74, :121; `layout/ops/tabs.ts:40`); without it ⌘\ throws "Unknown pane kind" (examples/minimal does this). The launcher should be an option (or the commands refuse when there is none).~~
 5. Done 19 Nov: opening a row that a detail of the same list already shows (pinned, no follower) reveals that detail and keeps focus in the list. ~~**"Never a second copy of a row" doesn't hold:** with a pinned detail showing row X, opening X again from the list makes a new follower showing X (`follower()` is undefined). Contradicts DECISIONS (18 Nov).~~
 6. Resolved 19 Nov: ⇧⌘↵ stays (founder); DECISIONS updated.
-7. **`useActiveItemPort` keeps the first mapping:** `useMemo` deps leave out `mapping` (`react/src/pane/useActiveItemPort.ts:14`).
+7. Done 19 Nov: the port reads the latest mapping through a ref and stays one object per pane. ~~**`useActiveItemPort` keeps the first mapping:** `useMemo` deps leave out `mapping` (`react/src/pane/useActiveItemPort.ts:14`).~~
 8. **Per-workspace accent misses the dialogs:** derived tints are on `:root, [data-jali]` only, the comment says "and dialog", and dialogs render outside `[data-jali]` (`jali-theme.css`).
 
 ## The start-up story for more than one workspace

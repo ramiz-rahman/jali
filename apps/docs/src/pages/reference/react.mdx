@@ -151,7 +151,7 @@ The id of the pane the content renders in; `null` in the peek sheet. The pane fr
 The active-item port for the pane this content is in (see <Ref to="activeItemPort" page="/reference/core" />). Re-renders when the pane's selection changes, so `itemId` reads fresh.
 
 <Params>
-<Param name="mapping" type="ActiveItemMapping" required>`toRef(itemId)` and `idOf(ref)`. Read on the first render only: a new mapping later is not picked up.</Param>
+<Param name="mapping" type="ActiveItemMapping" required>`toRef(itemId)` and `idOf(ref)`. The port always uses the latest render's mapping and stays the same object, so an inline object is fine.</Param>
 </Params>
 
 <Returns type="ActiveItemPort | null">`null` in the peek sheet.</Returns>
