@@ -5,15 +5,8 @@ import type { DataLayer } from "../data/types";
 import { DataLayerProvider } from "../data/react";
 import { TopBar } from "./TopBar";
 import { StatusLine } from "./StatusLine";
-import { Announcer } from "@jali/react";
-import { Workspace } from "@jali/react";
-import { CuratedPage } from "@jali/react";
-import { Palette } from "@jali/react";
-import { Chooser } from "@jali/react";
-import { ConfirmDiscard } from "@jali/react";
-import { SettingsPanel } from "@jali/react";
+import { Jali, JaliView, useStore, useUi } from "@jali/react";
 import { resolveTheme } from "@jali/core";
-import { StoreProvider, useStore, useUi } from "@jali/react";
 import type { UiStore } from "@jali/core";
 
 export const UNDO_MS = 8000;
@@ -42,29 +35,16 @@ function Toasts() {
     : <Toaster theme={theme} position="bottom-right" offset={{ bottom: 40, right: 12 }} toastOptions={{ className: "toast" }} />;
 }
 
-/** Data Studio is all panes; a curated page puts its queue, header and tabs around them. */
-function Main() {
-  return useUi((s) => !!s.page) ? <CuratedPage /> : <Workspace />;
-}
-
 export function App({ store, data }: { store: UiStore; data: DataLayer }) {
   return (
-    <StoreProvider store={store}>
-      <QueryClientProvider client={data.queryClient}>
-        <DataLayerProvider value={data}>
-          <div className="app" data-jali="" ref={store.dom.attach}>
-            <TopBar />
-            <Main />
-            <StatusLine />
-          </div>
-          <Announcer />
-          <Palette />
-          <SettingsPanel />
-          <Chooser />
-          <ConfirmDiscard />
-          <Toasts />
-        </DataLayerProvider>
-      </QueryClientProvider>
-    </StoreProvider>
+    <QueryClientProvider client={data.queryClient}>
+      <DataLayerProvider value={data}>
+        <Jali store={store} className="app" overlays={<Toasts />}>
+          <TopBar />
+          <JaliView />
+          <StatusLine />
+        </Jali>
+      </DataLayerProvider>
+    </QueryClientProvider>
   );
 }

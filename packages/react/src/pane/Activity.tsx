@@ -1,5 +1,5 @@
 import { X } from "lucide-react";
-import type { PaneActivity } from "@jali/core";
+import type { PaneActivity } from "@jali/core/adapter";
 
 /**
  * One activity model. Headers, tabs and the switcher show a dot with a label; the shelf shows a shape as well as a

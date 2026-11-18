@@ -28,9 +28,9 @@
  *   when they change and with `null` on unmount.
  */
 import type { ComponentType, ReactNode } from "react";
-import type { ObjectRef, PaneNode } from "@jali/core";
-import type { PaneActivity, PaneCommand, PaneKindBase, PaneKinds } from "@jali/core";
-import type { Env, ProfileBase, RoleBase } from "@jali/core";
+import type { ObjectRef, PaneNode } from "@jali/core/adapter";
+import type { PaneActivity, PaneCommand, PaneKindBase, PaneKinds } from "@jali/core/adapter";
+import type { Env, ProfileBase, RoleBase } from "@jali/core/adapter";
 
 export interface PaneComponentProps {
   /** The layout node. In the peek sheet this is a node that is not in the layout. */

@@ -1,9 +1,9 @@
 import { useMemo } from "react";
 import { Layers } from "lucide-react";
-import { mergeTargets, type MergeTarget } from "@jali/core";
+import { mergeTargets, type MergeTarget } from "@jali/core/adapter";
 import { KindIcon } from "../pane/icons";
 import { useModel, useStore, useUi } from "../state/react";
-import type { ChooserState } from "@jali/core";
+import type { ChooserState } from "@jali/core/adapter";
 import { ListDialog } from "./ListDialog";
 
 /** ⌘K "Add to tabs of…" (⌘K ⌘G): pick a visible pane or stack by title; the focused pane joins it as a tab. */

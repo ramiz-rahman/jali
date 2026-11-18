@@ -1,8 +1,8 @@
 import { ArrowDown, ArrowLeft, ArrowLeftRight, ArrowRight, ArrowUp, SquarePlus } from "lucide-react";
-import type { Edge, Rect } from "@jali/core";
-import { dropText } from "@jali/core";
+import type { Edge, Rect } from "@jali/core/adapter";
+import { dropText } from "@jali/core/adapter";
 import { useModel, useUi } from "../state/react";
-import { zoneRect } from "@jali/core";
+import { zoneRect } from "@jali/core/adapter";
 
 /** The tinted part of the target pane that the drop will fill. */
 export function DropIndicator({ rect, zone }: { rect: Rect; zone: Edge | "centre" }) {

@@ -1,8 +1,8 @@
-import type { PaneNode } from "@jali/core";
-import { paneDomId } from "@jali/core";
+import type { PaneNode } from "@jali/core/adapter";
+import { paneDomId } from "@jali/core/adapter";
 import { Activity } from "../pane/Activity";
 import { KindIcon } from "../pane/icons";
-import { titleOf } from "@jali/core";
+import { titleOf } from "@jali/core/adapter";
 import { useActions, useModel, useStore, useUi } from "../state/react";
 
 function Item({ node, selected }: { node: PaneNode; selected: boolean }) {

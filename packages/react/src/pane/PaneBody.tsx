@@ -1,14 +1,14 @@
 import { memo, useMemo } from "react";
-import type { NodeId, ObjectRef, PaneNode } from "@jali/core";
-import type { Actions } from "@jali/core";
-import { openPaneFor } from "@jali/core";
-import type { PaneActivity, PaneCommand } from "@jali/core";
+import type { NodeId, ObjectRef, PaneNode } from "@jali/core/adapter";
+import type { Actions } from "@jali/core/adapter";
+import { openPaneFor } from "@jali/core/adapter";
+import type { PaneActivity, PaneCommand } from "@jali/core/adapter";
 import type { PaneComponentProps, PaneKindDef } from "../define";
 import { PaneIdContext } from "./usePaneState";
 import { useModel, useUi, useEnv } from "../state/react";
-import type { UiStore } from "@jali/core";
+import type { UiStore } from "@jali/core/adapter";
 import { KindIcon } from "./icons";
-import { keyHint } from "@jali/core";
+import { keyHint } from "@jali/core/adapter";
 
 /** What a pane's content can ask of the workspace. A pane in the layout acts for itself; the peek sheet acts for the
  *  pane it came from and has no place of its own to fill, close or report on. */

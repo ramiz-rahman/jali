@@ -1,13 +1,13 @@
 import { useEffect, useLayoutEffect, useRef, useState, type KeyboardEvent } from "react";
 import { createPortal } from "react-dom";
 import { Check, ChevronDown, FoldHorizontal, Undo2 } from "lucide-react";
-import type { NodeId } from "@jali/core";
-import { roleOf, titleOf } from "@jali/core";
+import type { NodeId } from "@jali/core/adapter";
+import { roleOf, titleOf } from "@jali/core/adapter";
 import { useStore } from "../state/react";
 import { useUi } from "../state/react";
-import type { Tab } from "@jali/core";
+import type { Tab } from "@jali/core/adapter";
 import { KindIcon } from "./icons";
-import { FOLDED_DESC, FOLDED_WORD, TUCKED_DESC } from "@jali/core";
+import { FOLDED_DESC, FOLDED_WORD, TUCKED_DESC } from "@jali/core/adapter";
 
 /** The "+N" at the end of a tab strip that overflows: opens a menu of every tab in the group, marks included. */
 export function TabOverflow({ tabs, active, hiddenCount, onChoose }: { tabs: Tab[]; active: NodeId; hiddenCount: number; onChoose: (id: NodeId) => void }) {

@@ -4,13 +4,15 @@
   "description": "React components and hooks for Jali workspaces, with Jali's default theme and a bridge to a Tailwind theme.",
   "license": "Apache-2.0",
   "type": "module",
-  "sideEffects": ["**/*.css"],
+  "sideEffects": [
+    "**/*.css"
+  ],
   "exports": {
     ".": {
       "source": "./src/index.ts",
-      "types": "./dist/index.d.mts",
-      "import": "./dist/index.mjs",
-      "default": "./dist/index.mjs"
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
     },
     "./styles.css": {
       "source": "./src/styles/index.css",
@@ -26,7 +28,11 @@
     },
     "./package.json": "./package.json"
   },
-  "files": ["dist", "README.md", "LICENSE"],
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
   "dependencies": {
     "@jali/core": "workspace:*",
     "lucide-react": "^1.73.0"
@@ -34,5 +40,9 @@
   "peerDependencies": {
     "react": ">=19 <20",
     "react-dom": ">=19 <20"
+  },
+  "scripts": {
+    "build": "tsdown",
+    "prepack": "tsdown"
   }
 }

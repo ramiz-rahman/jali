@@ -1,11 +1,11 @@
 import { useEffect, useRef } from "react";
 import { X } from "lucide-react";
-import type { Settings as S, ThemeChoice } from "@jali/core";
+import type { Settings as S, ThemeChoice } from "@jali/core/adapter";
 import { useStore, useUi } from "../state/react";
-import { formatChord, formatKeys } from "@jali/core";
-import { PALETTE_ID } from "@jali/core";
-import { commandById } from "@jali/core";
-import { viewerLabel } from "@jali/core";
+import { formatChord, formatKeys } from "@jali/core/adapter";
+import { PALETTE_ID } from "@jali/core/adapter";
+import { commandById } from "@jali/core/adapter";
+import { viewerLabel } from "@jali/core/adapter";
 
 const THEMES: { id: ThemeChoice; label: string }[] = [{ id: "system", label: "System" }, { id: "light", label: "Light" }, { id: "dark", label: "Dark" }];
 

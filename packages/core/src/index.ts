@@ -1,39 +1,55 @@
-/** @jali/core: the layout tree, the workspace store and its actions, commands, ports and contracts. No framework. */
-export type * from "./layout/types";
+/**
+ * @jali/core: a workspace of panes that fits the space it has. No framework: the layout tree and its operations, a
+ * store with focus, undo and follow, keyboard commands, and ports for the address and for what a person keeps.
+ * A framework adapter renders it (@jali/react).
+ */
+
+// ---------- the layout tree (pure: every operation returns a new layout) ----------
+export type {
+  Axis, Edge, Size, NodeId, ObjectRef, Layout, LayoutNode, PaneNode, SplitNode, StackNode, Overlay, ViewState,
+  PaneKind, KindRegistry, LayoutContext, FitOptions, Rect, ResolvedLayout, PaneBox, DividerBox,
+} from "./layout/types";
 export * as layout from "./layout";
-export * from "./actions";
-// Queries the React adapter reads (what a merge, tuck or link would do); the actions themselves run through store.actions.
-export { besidePreview, investigation } from "./actions/page";
-export { mergeTargets, type MergeTarget } from "./actions/tabs";
 export { sameRef } from "./actions/follow";
-export { checkTuck, tuckHome } from "./actions/tuck";
-export { openPaneFor } from "./actions/open";
-export * from "./boot";
-export * from "./commands/format";
-export * from "./commands/keyboard";
-export * from "./commands/keymap";
-export * from "./commands/regions";
-export * from "./commands/registry";
-export * from "./contracts/active-item";
-export * from "./dividers/drag";
-export * from "./dividers/resize";
-export * from "./dom/focus";
-export * from "./dom/ids";
-export * from "./pane-kinds";
-export * from "./pane/activeItem";
-export * from "./pane/chrome";
-export * from "./pane/tabState";
-export * from "./ports";
-export * from "./profile";
-export * from "./state/apply";
-export * from "./state/messages";
-export * from "./state/model";
-export * from "./state/page-prefs";
-export * from "./state/settings";
-export * from "./state/store";
-export * from "./state/undo";
-export * from "./tokens";
-export * from "./url";
-export * from "./workspace/dnd";
-export * from "./workspace/frames";
-export * from "./workspace/single-view";
+
+// ---------- pane kinds and pages ----------
+export { createPaneKinds, type PaneKindBase, type PaneKinds, type PaneCommand, type PaneActivity } from "./pane-kinds";
+export {
+  titleOf, roleOf, presetById, viewerLabel,
+  type ProfileBase, type RoleBase, type ViewMode, type Preset, type Env,
+} from "./profile";
+
+// ---------- the workspace store ----------
+export {
+  createUiStore,
+  type UiStore, type UiStoreDeps, type UiState, type PageState, type Selection, type WorkspaceDom, type UrlWriter,
+} from "./state/store";
+export type { Actions } from "./actions";
+export type { WorkspaceModel } from "./state/model";
+export type { Snapshot, Outcome, Toast, HistoryMode, Refusal } from "./state/apply";
+export { DEFAULT_SETTINGS, resolveTheme, type Settings, type ThemeChoice, type Theme } from "./state/settings";
+export { boot, startUi } from "./boot";
+
+// ---------- the address and what a person keeps ----------
+export { createUrlSync, type UrlSync, type UrlSyncOptions, type UrlRead, type LinkSizes } from "./url";
+export {
+  browserLocation, memoryLocation, browserStorage, memoryStorage,
+  type LocationPort, type StoragePort, type NavigateMode,
+} from "./ports";
+
+// ---------- commands and keys ----------
+export { commandsOf, runCommand, shortcutLabel, copyLink, type Command } from "./commands/registry";
+export {
+  DEFAULT_KEYMAP, PALETTE_ID, createKeymap,
+  type Keymap, type KeymapOverrides, type KeymapOptions, type DefaultKeymapId, type KeyString,
+} from "./commands/keymap";
+export { installKeyboard, type KeyboardScope } from "./commands/keyboard";
+export { formatKeys, formatChord, keyHint, altClick, detectPlatform, type Platform } from "./commands/format";
+
+// ---------- DOM ----------
+export { focusPane } from "./dom/focus";
+export { paneDomId, paneTitleId } from "./dom/ids";
+
+// ---------- contracts with other libraries ----------
+export type { ActiveItemPort, ActiveItemAction, ActiveItemWriteResult } from "./contracts/active-item";
+export { activeItemPort, type ActiveItemMapping } from "./pane/activeItem";

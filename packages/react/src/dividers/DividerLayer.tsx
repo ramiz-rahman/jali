@@ -3,12 +3,12 @@
  * commit on release); keys commit per keypress; double-click resets; the URL is written 120ms after the last change.
  */
 import { useRef } from "react";
-import { paneDomId } from "@jali/core";
+import { paneDomId } from "@jali/core/adapter";
 import { useModel, useStore, useUi } from "../state/react";
 import { Divider } from "./Divider";
-import { dividerKey } from "@jali/core";
-import { isDividerDragging, startDividerDrag } from "@jali/core";
-import { geometryFor } from "@jali/core";
+import { dividerKey } from "@jali/core/adapter";
+import { isDividerDragging, startDividerDrag } from "@jali/core/adapter";
+import { geometryFor } from "@jali/core/adapter";
 
 export function DividerLayer() {
   const store = useStore();

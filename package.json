@@ -11,7 +11,8 @@
     "test": "vitest run",
     "e2e": "playwright test",
     "test:e2e": "playwright test",
-    "screens": "SCREENS=1 playwright test"
+    "screens": "SCREENS=1 playwright test",
+    "build:packages": "pnpm -r --filter \"./packages/*\" build"
   },
   "dependencies": {
     "@electric-sql/pglite": "^0.5.16",
@@ -30,6 +31,7 @@
     "@types/react-dom": "^19.3.0",
     "@vitejs/plugin-react": "^6.3.0",
     "jsdom": "^31.0.1",
+    "tsdown": "^0.23.7",
     "typescript": "^7.0.2",
     "vite": "^8.3.8",
     "vitest": "^5.1.0"

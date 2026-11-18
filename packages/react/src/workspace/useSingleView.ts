@@ -1,9 +1,9 @@
 import { useEffect, useRef } from "react";
-import type { ViewState } from "@jali/core";
-import { msg } from "@jali/core";
-import type { WorkspaceModel } from "@jali/core";
-import type { UiStore } from "@jali/core";
-import { restoreWide, snapshotWide, type WideSnapshot } from "@jali/core";
+import type { ViewState } from "@jali/core/adapter";
+import { msg } from "@jali/core/adapter";
+import type { WorkspaceModel } from "@jali/core/adapter";
+import type { UiStore } from "@jali/core/adapter";
+import { restoreWide, snapshotWide, type WideSnapshot } from "@jali/core/adapter";
 
 /**
  * Says when single view starts and ends, and restores the wide arrangement when it ends. The arrangement seen on the

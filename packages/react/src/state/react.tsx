@@ -1,11 +1,11 @@
 /** React access to the store: one provider, and hooks that subscribe to exactly what a component reads. */
 import { createContext, useContext, useSyncExternalStore, type ReactNode } from "react";
-import type { Actions } from "@jali/core";
+import type { Actions } from "@jali/core/adapter";
 import type { ReactEnv, WorkspaceProfile } from "../define";
-import type { PaneNode } from "@jali/core";
-import { titleOf } from "@jali/core";
-import type { WorkspaceModel } from "@jali/core";
-import type { UiState, UiStore } from "@jali/core";
+import type { PaneNode } from "@jali/core/adapter";
+import { titleOf } from "@jali/core/adapter";
+import type { WorkspaceModel } from "@jali/core/adapter";
+import type { UiState, UiStore } from "@jali/core/adapter";
 
 const StoreContext = createContext<UiStore | null>(null);
 

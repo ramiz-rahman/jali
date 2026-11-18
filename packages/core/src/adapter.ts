@@ -1,0 +1,43 @@
+/**
+ * @jali/core/adapter: everything inside the core, for framework adapters (@jali/react is one). Apps import
+ * "@jali/core". Names here that are not in "@jali/core" can change in any minor version.
+ */
+export type * from "./layout/types";
+export * as layout from "./layout";
+export * from "./actions";
+export * from "./index";
+// Queries the React adapter reads (what a merge, tuck or link would do); the actions themselves run through store.actions.
+export { besidePreview, investigation } from "./actions/page";
+export { mergeTargets, type MergeTarget } from "./actions/tabs";
+export { sameRef } from "./actions/follow";
+export { checkTuck, tuckHome } from "./actions/tuck";
+export { openPaneFor } from "./actions/open";
+export * from "./boot";
+export * from "./commands/format";
+export * from "./commands/keyboard";
+export * from "./commands/keymap";
+export * from "./commands/regions";
+export * from "./commands/registry";
+export * from "./contracts/active-item";
+export * from "./dividers/drag";
+export * from "./dividers/resize";
+export * from "./dom/focus";
+export * from "./dom/ids";
+export * from "./pane-kinds";
+export * from "./pane/activeItem";
+export * from "./pane/chrome";
+export * from "./pane/tabState";
+export * from "./ports";
+export * from "./profile";
+export * from "./state/apply";
+export * from "./state/messages";
+export * from "./state/model";
+export * from "./state/page-prefs";
+export * from "./state/settings";
+export * from "./state/store";
+export * from "./state/undo";
+export * from "./tokens";
+export * from "./url";
+export * from "./workspace/dnd";
+export * from "./workspace/frames";
+export * from "./workspace/single-view";

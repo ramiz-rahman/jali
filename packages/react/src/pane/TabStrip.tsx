@@ -1,16 +1,16 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { FoldHorizontal, Plus, Undo2, X } from "lucide-react";
-import type { NodeId, PaneNode } from "@jali/core";
-import { shortcutLabel } from "@jali/core";
-import { paneDomId, paneTitleId } from "@jali/core";
-import { roleOf, titleOf } from "@jali/core";
+import type { NodeId, PaneNode } from "@jali/core/adapter";
+import { shortcutLabel } from "@jali/core/adapter";
+import { paneDomId, paneTitleId } from "@jali/core/adapter";
+import { roleOf, titleOf } from "@jali/core/adapter";
 import { useEnv, useStore, useUi } from "../state/react";
-import { startPaneDrag } from "@jali/core";
-import type { Frame, Tab } from "@jali/core";
+import { startPaneDrag } from "@jali/core/adapter";
+import type { Frame, Tab } from "@jali/core/adapter";
 import { Activity } from "./Activity";
 import { KindIcon } from "./icons";
 import { TabOverflow } from "./TabOverflow";
-import { FOLDED_DESC, FOLDED_TIP, TUCKED_DESC } from "@jali/core";
+import { FOLDED_DESC, FOLDED_TIP, TUCKED_DESC } from "@jali/core/adapter";
 
 /** Keep the active tab visible by scrolling only the tab strip (scrollIntoView would also move the workspace). */
 function revealTab(el: HTMLDivElement | null) {
