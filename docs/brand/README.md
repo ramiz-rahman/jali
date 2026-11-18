@@ -8,7 +8,7 @@ Two sibling libraries, one bar system. `final/preview.png` shows every piece in 
 ## The system
 
 - Bars 5.54 wide on an 8.03 pitch, a 72-unit-wide silhouette; both marks share one 76 × 96 box, so they size alike.
-- Small versions (`*-mark-small`) for 16–32px: fewer, heavier bars on the same plan. Use them below 48px. The small Chakni keeps only the cut and one drip; the full mark's side steps read as a face when tiny.
+- Small versions (`*-mark-small`) for 16–48px: fewer, heavier bars on the same plan. The small Chakni is the disc and one drop, with no stream: at icon sizes a thick bar over a dot reads as "!".
 - Wordmark: Atkinson Hyperlegible Next SemiBold (OFL), outlined, tracked −2.5%; the j's descender is shortened to 82% so "jali" sits level. SemiBold, not Bold: the bars carry the weight, the type carries the voice.
 - Colour: ink `#111111` or white. No other colours yet.
 
