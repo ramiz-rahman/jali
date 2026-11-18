@@ -7,15 +7,23 @@ import { TreeView, Frame, Spotlight } from "../live";
 
 ## Tree view
 
-<TreeView layout="chain" caption="Hover a node to light its pane. Drag a divider, close or move a pane, and the tree follows." />
+The simple form, as on the home page:
+
+<TreeView layout="chain" height={420} json={false} caption="A real Jali workspace and its layout tree, drawn as a map." />
+
+With `detail`, for pages that teach the model: sizes shown, and the overlay card.
+
+<TreeView layout="chain" detail caption="Sizes and the overlay, shown from the start." />
 
 <TreeView layout="two" height={300} caption="Two panes side by side: a row with two children." />
 
-<TreeView layout="nested" caption="A row with a column inside it." />
+<TreeView layout="nested" detail caption="A row with a column inside it." />
 
-<TreeView layout="stack" caption="A stack: three panes sharing one place as tabs." />
+<TreeView layout="stack" caption="Tabs: three panes sharing one place." />
 
-<TreeView layout="crowded" showJson caption="More panes than fit: the overlay says which folded. Shown as JSON." />
+<TreeView layout="crowded" detail caption="More panes than fit: the folded ones are drawn inside the pane they folded into." />
+
+<TreeView layout="crowded" showJson caption="The same layout as JSON." />
 
 ## Frame
 

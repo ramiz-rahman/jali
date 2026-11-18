@@ -8,7 +8,7 @@
   --live-radius: 0.875rem;
   --live-guide: var(--jali-border-strong);
   --live-scrim: color-mix(in srgb, var(--jali-canvas) 70%, transparent);
-  container-type: inline-size;
+  container: live-fig / inline-size;
   margin: 2rem 0;
   padding: 0;
   font-family: var(--jali-font);
@@ -72,119 +72,154 @@
 .live-seg button:hover { color: var(--jali-text); }
 .live-seg button[aria-pressed="true"] { background: var(--jali-surface); color: var(--jali-text); box-shadow: var(--jali-shadow-raised), 0 0 0 1px var(--jali-border); }
 
-/* ---------- Tree view: the workspace and its tree ---------- */
+/* ---------- Tree view: the workspace, and its layout tree drawn as a map ---------- */
+/* Identity colours: one per pane, on its map box and its header in the workspace. Nil indigo in three depths,
+   a warm sand and a stone; never a rainbow. */
+.live-figure {
+  --live-id-1: #4456c7; --live-id-2: #c08a2e; --live-id-3: #8c9bea; --live-id-4: #8a8178; --live-id-5: #2b3990;
+}
+:root[data-theme="dark"] .live-figure, .dark .live-figure {
+  --live-id-1: #8c9bea; --live-id-2: #d9a648; --live-id-3: #5d6fd6; --live-id-4: #a8a29e; --live-id-5: #c3cbf5;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .live-figure { --live-id-1: #8c9bea; --live-id-2: #d9a648; --live-id-3: #5d6fd6; --live-id-4: #a8a29e; --live-id-5: #c3cbf5; }
+}
+.live-ws [data-pane][data-live-id] > .jali-pane-header { box-shadow: inset 0 3px 0 var(--live-id); }
+.live-ws [data-tab][data-live-id] { box-shadow: inset 0 2px 0 color-mix(in srgb, var(--live-id) 70%, transparent); }
+.live-ws [data-chip][data-live-id] { box-shadow: inset 2px 0 0 var(--live-id); }
+
 .live-tv-grid {
   display: grid; grid-template-columns: minmax(0, 1fr);
   border: 1px solid var(--jali-border); border-radius: var(--live-radius); background: var(--jali-surface); overflow: hidden;
 }
 .live-tv .live-stage { position: relative; min-width: 0; }
-.live-panel { display: flex; flex-direction: column; min-width: 0; min-height: 0; border-top: 1px solid var(--jali-border); background: var(--jali-surface); }
+.live-panel { display: flex; flex-direction: column; min-width: 0; border-top: 1px solid var(--jali-border); background: var(--jali-surface); }
 .live-panel-head {
-  flex: none; display: flex; align-items: center; justify-content: space-between; gap: 0.5rem;
-  height: 2.5rem; padding: 0 0.375rem 0 0.875rem; border-bottom: 1px solid var(--jali-border);
+  flex: none; display: flex; align-items: center; justify-content: space-between; gap: 0.75rem;
+  min-height: 3rem; padding: 0.375rem 0.5rem 0.375rem 1rem; border-bottom: 1px solid var(--jali-border);
 }
-.live-panel-title { font-size: 0.75rem; font-weight: 500; color: var(--jali-text-muted); letter-spacing: 0.01em; }
-.live-panel-tools { display: inline-flex; align-items: center; gap: 0.25rem; }
-.live-panel-body { flex: 1; min-height: 0; overflow: auto; }
-.live-panel-body .live-json { max-height: 22rem; }
-@container (min-width: 56rem) {
-  .live-tv-grid { grid-template-columns: minmax(0, 1fr) 21rem; }
-  .live-panel { border-top: 0; border-left: 1px solid var(--jali-border); }
-  .live-panel-body { max-height: calc(var(--live-ws-h) - 2.5rem); }
+.live-panel-title { display: flex; flex-wrap: wrap; align-items: baseline; column-gap: 0.5rem; min-width: 0; }
+.live-panel-title b { font-size: 0.9375rem; font-weight: 600; color: var(--jali-text); }
+.live-panel-title span { font-size: 0.8125rem; color: var(--jali-text-subtle); }
+.live-panel-tools { display: inline-flex; align-items: center; gap: 0.375rem; flex: none; }
+.live-toggle {
+  height: 1.75rem; padding: 0 0.625rem; border-radius: 0.4375rem; border: 1px solid var(--jali-border-strong); background: var(--jali-surface);
+  font: 500 0.8125rem/1 var(--jali-font); color: var(--jali-text-muted); cursor: pointer;
+}
+.live-toggle:hover { color: var(--jali-text); border-color: var(--jali-control); }
+.live-toggle[aria-pressed="true"] { background: var(--jali-accent-weak); border-color: var(--jali-accent-mid); color: var(--jali-accent); }
+.live-toggle:focus-visible { outline: 2px solid var(--jali-focus-ring); outline-offset: 1px; }
+.live-panel-body { flex: 1; display: flex; flex-direction: column; gap: 0.875rem; min-height: 0; padding: 1rem; overflow: auto; }
+.live-panel-body .live-json { margin: -1rem; max-height: 26rem; }
+@container live-fig (min-width: 56rem) {
+  .live-tv-grid { grid-template-columns: minmax(0, 1fr) minmax(18.5rem, 33%); }
+  .live-panel { border-top: 0; border-left: 1px solid var(--jali-border); max-height: var(--live-ws-h); }
   .live-panel-body .live-json { max-height: none; }
-  .live-tree { display: block; }
 }
 
-/* The tree: one row per node, guides from parent to child, sizes at the right. */
-.live-tree { display: grid; grid-template-columns: minmax(0, 1fr); gap: 0.75rem; padding: 0.625rem 0.5rem 0.75rem; font-size: 0.8125rem; }
-@container (min-width: 40rem) and (max-width: 55.99rem) {
-  .live-tree { grid-template-columns: minmax(0, 1fr) 15rem; align-items: start; }
-  .live-tree .live-ov { margin-top: 0; }
+/* The map. Every box is a node of the tree; nesting is the tree's nesting. */
+.live-map { flex: 1; display: flex; min-height: min(18rem, var(--live-ws-h)); font-size: 0.875rem; }
+.live-map > * { flex: 1; }
+.live-map [data-node] { outline: none; }
+.live-map-split {
+  display: flex; flex-direction: column; min-width: 0; min-height: 0; gap: 0.5rem; padding: 0.5rem;
+  border-radius: 0.75rem; background: color-mix(in srgb, var(--jali-canvas) 70%, transparent); box-shadow: inset 0 0 0 1px var(--jali-border-strong);
+  transition: box-shadow 140ms ease, background-color 140ms ease;
 }
-.live-tree-ul { list-style: none; margin: 0; padding: 0; }
-.live-tree-ul .live-tree-ul { margin-left: 1.25rem; padding-left: 0.75rem; }
-.live-tree-li { position: relative; margin: 0; padding: 0; }
-.live-tree-ul .live-tree-ul > .live-tree-li::before {
-  content: ""; position: absolute; left: -0.75rem; top: 0; bottom: 0; border-left: 1px solid var(--live-guide);
-}
-.live-tree-ul .live-tree-ul > .live-tree-li:last-child::before { bottom: auto; height: 1.3125rem; }
-.live-tree-ul .live-tree-ul > .live-tree-li::after {
-  content: ""; position: absolute; left: -0.75rem; top: 1.3125rem; width: 0.625rem; border-top: 1px solid var(--live-guide);
-}
-.live-tree-row {
-  display: grid; grid-template-columns: 1.625rem minmax(0, 1fr) auto; align-items: center; column-gap: 0.5rem;
-  min-height: 2.625rem; padding: 0.3125rem 0.5rem 0.3125rem 0.25rem; border-radius: 0.5rem; cursor: default; outline: none;
-  transition: background-color 120ms ease, box-shadow 120ms ease;
-}
-.live-tree-row:hover, .live-tree-row[data-lit] { background: var(--jali-accent-weak); box-shadow: inset 0 0 0 1px var(--jali-accent-mid); }
-.live-tree-row:focus-visible { box-shadow: inset 0 0 0 2px var(--jali-focus-ring); }
-.live-tree-glyph {
-  display: grid; place-items: center; width: 1.625rem; height: 1.625rem; border-radius: 0.4375rem;
-  border: 1px solid var(--jali-border-strong); background: var(--jali-canvas); color: var(--jali-text-muted);
-  transition: background-color 120ms ease, color 120ms ease, border-color 120ms ease;
-}
-.live-tree-glyph.is-pane { background: var(--jali-surface); color: var(--jali-text); }
-.live-tree-row[data-lit] .live-tree-glyph { background: var(--jali-accent); border-color: var(--jali-accent); color: var(--jali-on-accent); }
-.live-tree-row[data-under] .live-tree-glyph { border-color: var(--jali-accent); color: var(--jali-accent); }
-.live-tree-main { display: flex; flex-direction: column; gap: 0.0625rem; min-width: 0; }
-.live-tree-name { font-weight: 500; line-height: 1.25rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.live-tree-type { font: 500 0.75rem/1.25rem var(--jali-font-mono); color: var(--jali-text); }
-.live-tree-sub { display: flex; flex-wrap: wrap; align-items: center; gap: 0.25rem 0.375rem; font-size: 0.6875rem; line-height: 1rem; color: var(--jali-text-subtle); }
-.live-tree-sub code { font: 0.6875rem/1rem var(--jali-font-mono); color: var(--jali-text-subtle); }
-.live-tree-flag {
-  display: inline-flex; align-items: center; gap: 0.1875rem; height: 1rem; padding: 0 0.3125rem; border-radius: 0.25rem;
-  border: 1px solid var(--jali-border); font-size: 0.625rem; line-height: 1; color: var(--jali-text-subtle); white-space: nowrap;
-}
-.live-tree-flag.is-focus { border-color: var(--jali-accent-mid); color: var(--jali-accent); }
-.live-tree-flag.is-link { border-color: transparent; background: var(--jali-accent-weak); color: var(--jali-accent); }
-.live-tree-size { display: flex; flex-direction: column; align-items: flex-end; gap: 0.0625rem; text-align: right; white-space: nowrap; }
-.live-tree-size b { font: 500 0.6875rem/1.25rem var(--jali-font-mono); color: var(--jali-text-muted); }
-.live-tree-size b[data-user] { color: var(--jali-accent); }
-.live-tree-size > span { font: 0.6875rem/1rem var(--jali-font-mono); color: var(--jali-text-faint); font-variant-numeric: tabular-nums; }
-.live-tree-size > .live-tree-state {
-  display: inline-flex; align-items: center; gap: 0.25rem; height: 1rem; padding: 0 0.375rem; border-radius: 999px;
-  font: 500 0.625rem/1 var(--jali-font); letter-spacing: 0.01em; color: var(--jali-text-muted); background: var(--jali-hover);
-}
-.live-tree-state[data-tone="folded"] { background: var(--jali-accent-weak); color: var(--jali-accent); }
-.live-tree-state[data-tone="tucked"] { background: none; box-shadow: inset 0 0 0 1px var(--jali-border-strong); }
-.live-tree-state[data-tone="off"] { background: none; color: var(--jali-text-faint); text-decoration: line-through; }
-.live-tree-li[data-state]:not([data-state="on"]) > .live-tree-row .live-tree-name { color: var(--jali-text-muted); }
-.live-tree-li[data-state]:not([data-state="on"]) > .live-tree-row .live-tree-glyph { border-style: dashed; color: var(--jali-text-subtle); }
+.live-map-split .live-map-split { background: var(--jali-surface); }
+.live-map-split[data-lit] { box-shadow: inset 0 0 0 2px var(--jali-accent); background: var(--jali-accent-weak); }
+.live-map-split:focus-visible { box-shadow: inset 0 0 0 2px var(--jali-focus-ring); }
+.live-map-label { display: flex; align-items: center; flex-wrap: wrap; gap: 0.25rem 0.4375rem; padding: 0.125rem 0.25rem 0; min-width: 0; color: var(--jali-text-muted); }
+.live-map-label svg { flex: none; color: var(--jali-text-subtle); }
+.live-map-label b { font-weight: 600; color: var(--jali-text); }
+.live-map-label span { color: var(--jali-text-subtle); }
+.live-map-label i { margin-left: auto; font: normal 0.75rem var(--jali-font-mono); color: var(--jali-text-subtle); font-variant-numeric: tabular-nums; }
+.live-map-split[data-lit] > .live-map-label svg, .live-map-split[data-under] > .live-map-label svg { color: var(--jali-accent); }
+.live-map-kids { flex: 1; display: flex; gap: 0.5rem; min-height: 0; }
+.live-map-kids[data-axis="column"] { flex-direction: column; }
+.live-map-cell { display: flex; min-width: 0; min-height: 0; transition: flex-grow 220ms cubic-bezier(0.2, 0, 0, 1); }
+.live-map-cell > * { flex: 1; }
 
-/* A split's share bar: each child's length on screen now; a folded child is a hatched sliver. */
-.live-tree-bar { display: flex; gap: 2px; height: 1.125rem; margin: 0.125rem 0.5rem 0.375rem 2.375rem; }
-.live-tree-seg {
-  position: relative; display: grid; place-items: center; min-width: 0; overflow: hidden;
-  border-radius: 0.25rem; background: var(--jali-canvas); box-shadow: inset 0 0 0 1px var(--jali-border-strong);
-  transition: flex-grow 180ms cubic-bezier(0.2, 0, 0, 1), background-color 120ms ease;
+.live-map-pane {
+  position: relative; display: flex; flex-direction: column; gap: 0.25rem; min-width: 0; min-height: 4.5rem; overflow-x: clip; overflow-y: visible;
+  padding: 0.875rem 0.75rem 0.75rem; border-radius: 0.625rem; background: var(--jali-surface);
+  box-shadow: inset 0 0 0 1px var(--jali-border-strong), var(--jali-shadow-raised); cursor: default;
+  transition: box-shadow 140ms ease, background-color 140ms ease, opacity 140ms ease;
 }
-.live-tree-seg i { font: normal 0.625rem/1 var(--jali-font-mono); color: var(--jali-text-subtle); font-variant-numeric: tabular-nums; }
-.live-tree-seg[data-lit] { background: var(--jali-accent-mid); box-shadow: inset 0 0 0 1px var(--jali-accent); }
-.live-tree-seg[data-lit] i { color: var(--jali-text); }
-.live-tree-seg[data-empty] {
-  flex: 0 0 0.375rem !important;
-  background: repeating-linear-gradient(135deg, var(--jali-border-strong) 0 1px, transparent 1px 3px);
-  box-shadow: none;
+.live-map-pane::before { content: ""; position: absolute; left: 0; right: 0; top: 0; height: 4px; background: var(--c); border-radius: 0.625rem 0.625rem 0 0; }
+.live-map-pane[data-lit] { background: color-mix(in srgb, var(--c) 9%, var(--jali-surface)); box-shadow: inset 0 0 0 2px var(--c), 0 0 0 4px color-mix(in srgb, var(--c) 22%, transparent); }
+.live-map-pane:focus-visible { box-shadow: inset 0 0 0 2px var(--jali-focus-ring); }
+.live-map-pane-head { display: flex; align-items: flex-start; gap: 0.4375rem; min-width: 0; color: var(--c); }
+.live-map-pane-head svg { margin-top: 0.125rem; }
+.live-map-pane-head svg { flex: none; }
+.live-map-pane-name { font-weight: 600; font-size: 0.9375rem; line-height: 1.3; color: var(--jali-text); overflow-wrap: break-word; min-width: 0; }
+.live-map-pane-role { font-size: 0.8125rem; line-height: 1.35; color: var(--jali-text-subtle); }
+.live-map-size { display: flex; flex-wrap: wrap; gap: 0.125rem 0.5rem; margin-top: auto; padding-top: 0.25rem; font: 0.75rem/1.3 var(--jali-font-mono); color: var(--jali-text-muted); font-variant-numeric: tabular-nums; }
+.live-map-size span { color: var(--jali-text-subtle); }
+.live-map-guests { display: flex; flex-direction: column; gap: 0.375rem; margin-top: 0.375rem; }
+.live-map-guest {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 0.125rem 0.375rem; min-width: 0; padding: 0.375rem 0.5rem;
+  border: 1.5px dashed color-mix(in srgb, var(--c) 70%, var(--jali-border-strong)); border-radius: 0.5rem;
+  background: color-mix(in srgb, var(--c) 5%, transparent); color: var(--c);
 }
-.live-tree-bar[data-axis="column"] .live-tree-seg { border-radius: 0.25rem; }
-@media (prefers-reduced-motion: reduce) { .live-tree-seg, .live-tree-row, .live-tree-glyph { transition: none; } }
+.live-map-guest svg { flex: none; }
+.live-map-guest-name { font-weight: 500; color: var(--jali-text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+.live-map-guest-how { font-size: 0.75rem; color: var(--jali-text-subtle); }
+.live-map-guest[data-lit] { border-style: solid; background: color-mix(in srgb, var(--c) 14%, transparent); }
+.live-map-tabs { display: flex; flex-wrap: wrap; gap: 0.25rem; padding: 0 0.125rem; }
+.live-map-tab {
+  display: inline-flex; align-items: center; gap: 0.375rem; height: 1.75rem; padding: 0 0.625rem; border-radius: 0.4375rem;
+  font-size: 0.8125rem; color: var(--jali-text-subtle); box-shadow: inset 0 0 0 1px var(--jali-border-strong); cursor: default; max-width: 100%;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.live-map-tab::before { content: ""; flex: none; width: 0.5rem; height: 0.5rem; border-radius: 50%; background: var(--c); opacity: 0.55; }
+.live-map-tab[data-active] { background: var(--jali-surface); color: var(--jali-text); font-weight: 500; box-shadow: inset 0 0 0 1px var(--jali-border-strong), var(--jali-shadow-raised); }
+.live-map-tab[data-active]::before { opacity: 1; }
+.live-map-tab[data-lit] { box-shadow: inset 0 0 0 2px var(--c); color: var(--jali-text); }
+.live-map-stack > .live-map-pane { flex: 1; }
+@media (prefers-reduced-motion: reduce) { .live-map-cell, .live-map-pane, .live-map-split { transition: none; } }
 
-/* The overlay: beside the tree, in a dashed card, since it is kept apart from it. */
-.live-ov { margin: 0.25rem 0.25rem 0; padding: 0.5rem 0.625rem 0.625rem; border: 1px dashed var(--jali-border-strong); border-radius: 0.625rem; }
-.live-ov-head { display: flex; align-items: baseline; gap: 0.5rem; margin-bottom: 0.375rem; }
-.live-ov-head span { font: 500 0.75rem/1.25rem var(--jali-font-mono); color: var(--jali-text); }
-.live-ov-head small { font-size: 0.6875rem; color: var(--jali-text-subtle); }
-.live-ov dl { display: grid; gap: 0.3125rem; margin: 0; }
-.live-ov dl > div { display: grid; grid-template-columns: 5.25rem minmax(0, 1fr); align-items: start; gap: 0.5rem; }
-.live-ov dt { display: inline-flex; align-items: center; gap: 0.3125rem; height: 1.25rem; font-size: 0.6875rem; color: var(--jali-text-subtle); }
-.live-ov dd { display: flex; flex-wrap: wrap; gap: 0.25rem; margin: 0; min-height: 1.25rem; align-items: center; line-height: 1.25rem; }
+/* A faint sketch of what the pane shows, so a box reads as a pane: rows for a list, a heading and lines for a record. */
+.live-map-sketch {
+  --ink: color-mix(in srgb, var(--jali-text) 9%, transparent);
+  flex: 1; min-height: 1.5rem; margin-top: 0.5rem; border-radius: 0.25rem;
+  background:
+    linear-gradient(var(--ink), var(--ink)) 0 0 / 70% 0.375rem no-repeat,
+    repeating-linear-gradient(to bottom, var(--ink) 0 0.375rem, transparent 0.375rem 1rem) 0 1.125rem / 100% calc(100% - 1.125rem) no-repeat;
+  -webkit-mask-image: linear-gradient(to bottom, #000 40%, transparent);
+  mask-image: linear-gradient(to bottom, #000 40%, transparent);
+}
+.live-map-sketch[data-kind="orders"] { background: repeating-linear-gradient(to bottom, var(--ink) 0 0.375rem, transparent 0.375rem 0.875rem); }
+.live-map-sketch[data-kind="customer"] {
+  background:
+    radial-gradient(circle at 0.75rem 0.75rem, var(--ink) 0 0.75rem, transparent 0.8rem) 0 0 / 1.6rem 1.6rem no-repeat,
+    linear-gradient(var(--ink), var(--ink)) 2.1rem 0.25rem / 50% 0.375rem no-repeat,
+    linear-gradient(var(--ink), var(--ink)) 2.1rem 0.95rem / 35% 0.375rem no-repeat,
+    repeating-linear-gradient(to bottom, var(--ink) 0 0.375rem, transparent 0.375rem 1rem) 0 2.4rem / 100% calc(100% - 2.4rem) no-repeat;
+}
+.live-map-pane[data-lit] .live-map-sketch { --ink: color-mix(in srgb, var(--c) 22%, transparent); }
+
+/* The prompt row: what to try, in a line under the figure. */
+.live-tries { display: flex; flex-wrap: wrap; gap: 0.5rem 1.25rem; list-style: none; margin: 0.875rem 0 0 !important; padding: 0 0.25rem !important; }
+.live-tries li { display: inline-flex; align-items: center; gap: 0.4375rem; margin: 0 !important; padding: 0 !important; font-size: 0.875rem; line-height: 1.4; color: var(--jali-text-muted); }
+.live-tries svg { flex: none; color: var(--jali-accent); }
+.live-tv .live-caption { font-size: 0.875rem; }
+
+/* The overlay card (detail): kept apart from the tree, so drawn dashed. */
+.live-ov { padding: 0.625rem 0.75rem 0.75rem; border: 1px dashed var(--jali-border-strong); border-radius: 0.625rem; font-size: 0.875rem; }
+.live-ov-head { display: flex; align-items: baseline; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 0.5rem; }
+.live-ov-head span { font-weight: 600; color: var(--jali-text); }
+.live-ov-head small { font-size: 0.8125rem; color: var(--jali-text-subtle); }
+.live-ov dl { display: grid; gap: 0.375rem; margin: 0; }
+.live-ov dl > div { display: grid; grid-template-columns: 6.5rem minmax(0, 1fr); align-items: start; gap: 0.5rem; }
+.live-ov dt { display: inline-flex; align-items: center; gap: 0.375rem; height: 1.5rem; font-size: 0.8125rem; color: var(--jali-text-subtle); }
+.live-ov dd { display: flex; flex-wrap: wrap; gap: 0.25rem; margin: 0; min-height: 1.5rem; align-items: center; line-height: 1.5rem; }
 .live-ov-chip {
-  display: inline-flex; align-items: center; gap: 0.3125rem; height: 1.25rem; padding: 0 0.4375rem; border-radius: 999px;
-  font-size: 0.6875rem; background: var(--jali-accent-weak); color: var(--jali-accent); white-space: nowrap;
+  display: inline-flex; align-items: center; gap: 0.375rem; height: 1.5rem; padding: 0 0.5rem; border-radius: 999px;
+  font-size: 0.8125rem; background: color-mix(in srgb, var(--c, var(--jali-accent)) 12%, transparent); color: var(--jali-text); white-space: nowrap;
 }
-.live-ov-chip small { font-size: 0.625rem; color: var(--jali-text-subtle); }
-.live-ov-none { font-size: 0.6875rem; color: var(--jali-text-faint); }
-
+.live-ov-chip small { font-size: 0.75rem; color: var(--jali-text-subtle); }
+.live-ov-none { font-size: 0.8125rem; color: var(--jali-text-faint); }
 /* JSON: the same layout as stored; a node under the pointer is marked, as in the tree. */
 .live-json {
   margin: 0; padding: 0.75rem 0.875rem 0.875rem; overflow: auto; outline: none; background: none; border: 0;
@@ -332,9 +367,32 @@ body.live-frame-resizing, body.live-frame-resizing * { cursor: ew-resize !import
 }
 }
 @layer live {
-@container (max-width: 32rem) {
+@container live-fig (max-width: 32rem) {
   .live-frame-bar { flex-wrap: wrap; row-gap: 0.375rem; }
   .live-frame-bar > .live-icon-btn { margin-left: auto; }
   .live-frame-folds { order: 3; flex-basis: 100%; }
 }
+}
+@layer live {
+/* In a column the boxes share height: each keeps at least its words, and the sketch gives way first. */
+.live-map-kids[data-axis="column"] > .live-map-cell { min-height: auto; }
+.live-map-kids[data-axis="column"] .live-map-sketch { min-height: 0; }
+}
+@layer live {
+/* A narrow map (the panel beside a workspace at laptop widths): tighter boxes, the icon above the name. */
+.live-panel { container: live-panel / inline-size; }
+@container live-panel (max-width: 24rem) {
+  .live-panel-body { padding: 0.75rem; }
+  .live-map-split { padding: 0.375rem; gap: 0.375rem; }
+  .live-map-kids { gap: 0.375rem; }
+  .live-map-pane { padding: 0.75rem 0.5rem 0.5rem; }
+  .live-map-pane-head { flex-direction: column; gap: 0.25rem; }
+  .live-map-pane-head svg { margin-top: 0; }
+  .live-map-pane-name { font-size: 0.875rem; }
+  .live-map-pane-role { font-size: 0.75rem; }
+}
+}
+@layer live {
+/* Lit from the map: the pane rings in its own colour, the same as its box. */
+.live-ws .jali-pane[data-live-lit][data-live-id] { border-color: var(--live-id); box-shadow: 0 0 0 1px var(--live-id), 0 0 0 5px color-mix(in srgb, var(--live-id) 24%, transparent); }
 }

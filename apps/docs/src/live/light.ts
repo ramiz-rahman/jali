@@ -24,3 +24,18 @@ export function useLitPanes(wrap: RefObject<HTMLElement | null>, ids: string[] |
     });
   }, [wrap, ids?.join(), dim, stamp]);
 }
+
+/** Gives each pane, tab and shelf chip in the workspace its identity colour (`--live-id`), the same as its map box. */
+export function usePaneColours(wrap: RefObject<HTMLElement | null>, colourOf: (id: string) => string, stamp: unknown) {
+  useLayoutEffect(() => {
+    const root = wrap.current;
+    if (!root) return;
+    root.querySelectorAll<HTMLElement>("[data-pane], [data-tab], [data-chip]").forEach((el) => {
+      const id = el.dataset.pane ?? el.dataset.tab ?? el.dataset.chip;
+      if (!id) return;
+      el.style.setProperty("--live-id", colourOf(id));
+      el.setAttribute("data-live-id", "");
+    });
+  });
+  void stamp;
+}

@@ -60,6 +60,10 @@
   .prose .band-title { margin: 0; font: 400 1.75rem/2.25rem var(--d-font-display); letter-spacing: -0.015em; }
   .band-body { margin-top: 32px; }
   .band-body > [data-live] { margin: 0; }
+  /* The live demo breaks out of the text column to the main area's width. */
+  .main:has(.prose[data-home]) { container: d-main / inline-size; }
+  .home-demo { --w: min(72rem, 100cqw); width: var(--w); margin-left: calc((100% - var(--w)) / 2); }
+  .home-demo > [data-live] { margin: 0; }
 
   /* ---------- the two packages ---------- */
   .packages { display: grid; grid-template-columns: 1fr 1fr; margin-left: calc(10rem + 24px); }

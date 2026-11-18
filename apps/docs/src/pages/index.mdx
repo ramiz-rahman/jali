@@ -4,7 +4,7 @@ summary: Workspaces of panes for React, that fit the space they have.
 ---
 
 import { TreeView } from "../live";
-import { Hero, HeroLinks, PrimaryLink, SecondaryLink, Band, Packages, Package, Ways, Way } from "../shell/home";
+import { Hero, HeroLinks, PrimaryLink, SecondaryLink, Band, HomeDemo, Packages, Package, Ways, Way } from "../shell/home";
 
 <Hero title="Workspaces of panes that fit the space they have.">
   Jali lays out panes in rows, columns and tabs, so people can keep a list, a record and the next record open side by side. When the window narrows, panes fold into tabs instead of being squeezed, and come back when there is room.
@@ -18,7 +18,9 @@ import { Hero, HeroLinks, PrimaryLink, SecondaryLink, Band, Packages, Package, W
 <Install packages="@jali/core @jali/react" />
 
 <Band label="Try it" title="A list, its detail, and a related record">
-  <TreeView layout="chain" caption="A live workspace beside the layout tree that describes it. Change one and the other follows." />
+  <HomeDemo>
+    <TreeView layout="chain" height={460} json={false} caption="A real Jali workspace and its layout tree, drawn as a map. A row puts its panes side by side, and each box is as wide as its pane. A pane and its box share a colour, so you can find one from the other." />
+  </HomeDemo>
 </Band>
 
 <Band label="Two packages" title="The model, and React on top of it">

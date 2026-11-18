@@ -42,6 +42,11 @@ export function Band({ label, title, children }: { label: string; title: string;
   );
 }
 
+/** The live demo, wider than the text column: it takes the main area's full width (up to 72rem). */
+export function HomeDemo({ children }: { children?: ReactNode }) {
+  return <div className="home-demo">{children}</div>;
+}
+
 export function Packages({ children }: { children?: ReactNode }) {
   return <div className="packages">{children}</div>;
 }
