@@ -32,7 +32,7 @@ export function Opening({ title, lead, children }: { title: string; lead: string
       </div>
       <div className="landing-opening-actions">
         <Install packages="@jali/core @jali/react" />
-        <div className="landing-buttons">
+        <div className="landing-buttons landing-buttons-hero">
           <a className="button button-primary" href="/get-started/quickstart">Start the quickstart<ArrowRight aria-hidden size={16} strokeWidth={2} /></a>
           <a className="button button-quiet" href={REPO_URL} target="_blank" rel="noreferrer"><GitHubIcon size={16} />View the source</a>
         </div>

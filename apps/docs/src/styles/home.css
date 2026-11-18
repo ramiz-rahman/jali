@@ -325,3 +325,22 @@
     .site-footer-arch { width: 53px; height: 64px; }
   }
 }
+
+/* v3: the opening, centred: headline, subline, install, buttons, then the demo. */
+@layer docs {
+  .landing-opening, .landing-opening[class] {
+    display: flex; flex-direction: column; align-items: center; text-align: center;
+    padding: 56px 0 40px;
+  }
+  .prose .landing-title { font-size: 3.25rem; line-height: 3.75rem; text-wrap: balance; }
+  .prose .landing-sub { margin: 16px auto 0; max-width: 36rem; }
+  .landing-opening-actions { flex-direction: column; align-items: center; gap: 16px; margin-top: 28px; padding: 0; }
+  .landing-buttons-hero { justify-content: center; }
+  .landing-backdrop { left: 50%; transform: translateX(-50%); top: -40px; }
+  @media (max-width: 767px) {
+    .landing-opening, .landing-opening[class] { padding: 32px 0 28px; }
+    .prose .landing-title { font-size: 2.25rem; line-height: 2.75rem; }
+    .landing-opening-actions { align-items: stretch; width: 100%; }
+    .landing-backdrop { left: 50%; right: auto; transform: translateX(-50%); }
+  }
+}
