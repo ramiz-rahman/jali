@@ -1,10 +1,10 @@
 /** The loan-review views' parts: a view with its own head, fact lists, links to related records, status marks, tables. */
 import type { ReactNode } from "react";
 import { AlertTriangle, ArrowUpRight, Check, Info, OctagonAlert } from "lucide-react";
-import type { ObjectRef } from "../layout-core/types";
+import type { ObjectRef } from "@jali/core";
 import type { Row } from "../data/types";
-import type { PaneComponentProps } from "../ui/define";
-import { useUi } from "../ui/state/react";
+import type { PaneComponentProps } from "@jali/react";
+import { useUi } from "@jali/react";
 import { Shell } from "../panes/shared/states";
 import { statusLabel } from "./data";
 import type { Tone } from "./signals";

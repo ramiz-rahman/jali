@@ -1,12 +1,13 @@
 import { createRoot } from "react-dom/client";
 import { createDataLayer } from "./data";
 import { createLabStore } from "./lab";
-import { App } from "./ui/App";
-import { boot, startUi } from "./ui/boot";
-import { focusPane } from "./ui/dom/focus";
-import { browserStorage } from "./ui/ports";
-import { createUrlSync } from "./ui/url";
-import "./ui/styles/index.css";
+import { App } from "./shell/App";
+import { boot, startUi } from "@jali/core";
+import { focusPane } from "@jali/core";
+import { browserStorage } from "@jali/core";
+import { createUrlSync } from "@jali/core";
+import "./shell/styles/index.css";
+import "@jali/react/styles.css";
 
 const data = createDataLayer();
 void data.api.ready();

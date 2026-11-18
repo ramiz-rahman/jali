@@ -1,0 +1,87 @@
+import { dividerKey } from "@jali/core";
+import { memo, type KeyboardEvent } from "react";
+import type { NodeId, Rect } from "@jali/core";
+import { STEP, STEP_BIG } from "@jali/core";
+
+export interface DividerProps {
+  parentId: NodeId;
+  index: number;
+  axis: "row" | "column";
+  /** The divider's own gap rect (workspace coords). */
+  rect: Rect;
+  /** First neighbour's size in px, its clamp range, and the usable length of the pair (gap excluded). */
+  sizeA: number;
+  minA: number;
+  maxA: number;
+  total: number;
+  labelA: string;
+  labelB: string;
+  /** DOM ids of the pane regions before the divider, for aria-controls. */
+  controls: string;
+  /** Pointer down starts the drag (drag.ts); `setSizeA` resizes from the keyboard; `onReset` restores sizes. */
+  onDragStart(e: React.PointerEvent<HTMLElement>): void;
+  setSizeA(size: number): void;
+  onReset(): void;
+}
+
+
+const pct = (v: number, total: number) => Math.round((v / Math.max(1, total)) * 100);
+const rectEq = (a: Rect, b: Rect) => a.x === b.x && a.y === b.y && a.width === b.width && a.height === b.height;
+
+/**
+ * One APG window splitter, absolutely positioned in the gap. APG keys: arrows 16px, Shift 64px, Home/End; they commit
+ * per keypress. Enter does nothing: a tuck would remove this divider from under focus (DECISIONS, 17 Nov).
+ * Memoised on geometry and labels, so a resize re-renders only the dividers that moved.
+ */
+export const Divider = memo(
+  function Divider(p: DividerProps) {
+    const row = p.axis === "row";
+    const onKeyDown = (e: KeyboardEvent<HTMLElement>) => {
+      if (e.altKey || e.metaKey || e.ctrlKey) return;
+      const step = e.shiftKey ? STEP_BIG : STEP;
+      const target =
+        e.key === (row ? "ArrowLeft" : "ArrowUp") ? p.sizeA - step
+        : e.key === (row ? "ArrowRight" : "ArrowDown") ? p.sizeA + step
+        : e.key === "Home" ? p.minA
+        : e.key === "End" ? p.maxA
+        : undefined;
+      if (target === undefined) return;
+      e.preventDefault();
+      p.setSizeA(target);
+    };
+    const restB = Math.round(p.total - p.sizeA);
+    return (
+      <div
+        className={`divider divider-${p.axis}`}
+        data-divider={dividerKey(p)}
+        style={{ position: "absolute", left: p.rect.x, top: p.rect.y, width: p.rect.width, height: p.rect.height }}
+        onPointerDown={p.onDragStart}
+        onDoubleClick={(e) => {
+          e.preventDefault();
+          p.onReset();
+        }}
+        onKeyDown={onKeyDown}
+        role="separator"
+        tabIndex={0}
+        aria-orientation={row ? "vertical" : "horizontal"}
+        aria-valuenow={pct(p.sizeA, p.total)}
+        aria-valuemin={pct(p.minA, p.total)}
+        aria-valuemax={pct(p.maxA, p.total)}
+        aria-valuetext={`${p.labelA} ${Math.round(p.sizeA)} pixels, ${p.labelB} ${restB} pixels`}
+        aria-controls={p.controls}
+        aria-label={`Resize between ${p.labelA} and ${p.labelB}`}
+      >
+        {/* Keyboard-focus affordance: an accent capsule and a size label, both CSS-gated on :focus-visible. */}
+        <span className="divider-line" aria-hidden />
+        <span className="divider-handle" aria-hidden />
+        <span className="divider-tip" aria-hidden>
+          {p.labelA} · {Math.round(p.sizeA)}px<i> | </i>{p.labelB} · {restB}px
+        </span>
+      </div>
+    );
+  },
+  (a, b) =>
+    a.parentId === b.parentId && a.index === b.index && a.axis === b.axis && rectEq(a.rect, b.rect) &&
+    a.sizeA === b.sizeA && a.minA === b.minA && a.maxA === b.maxA && a.total === b.total &&
+    a.labelA === b.labelA && a.labelB === b.labelB && a.controls === b.controls,
+);

@@ -1,0 +1,13 @@
+/*
+ * Jali's styles: the default theme (the --jali-* tokens), then the workspace, all in the "jali" cascade layer. Declare
+ * the layer order in your app so your own styles win, e.g. `@layer base, jali, components, utilities;`.
+ * To retheme from a Tailwind theme, also import "@jali/react/tailwind.css".
+ */
+@import "./jali-theme.css";
+@import "./workspace.css";
+@import "./pane.css";
+@import "./dividers.css";
+@import "./shelf.css";
+@import "./chrome.css";
+@import "./dialogs.css";
+@import "./follow.css";

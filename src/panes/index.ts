@@ -1,4 +1,4 @@
-import type { PaneKindDef } from "../ui/define";
+import type { PaneKindDef } from "@jali/react";
 import { catalogKind } from "./kinds/catalog";
 import { tableKind } from "./kinds/table";
 import { recordKind } from "./kinds/record";

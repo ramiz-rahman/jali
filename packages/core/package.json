@@ -1,0 +1,18 @@
+{
+  "name": "@jali/core",
+  "version": "0.0.0",
+  "description": "Jali's framework-free core: a layout tree of panes that fits the space it has, a workspace store with undo, focus and follow, keyboard commands, and ports for the URL and storage.",
+  "license": "Apache-2.0",
+  "type": "module",
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "source": "./src/index.ts",
+      "types": "./dist/index.d.mts",
+      "import": "./dist/index.mjs",
+      "default": "./dist/index.mjs"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": ["dist", "README.md", "LICENSE"]
+}

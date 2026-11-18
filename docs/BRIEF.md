@@ -31,18 +31,23 @@ All three are in the same folder.
 6. **Accessibility.** Each pane is `role="region"` with a name. Dividers follow the WAI-ARIA window splitter pattern. Changes are announced in a live region. The collapse plan works at 200% zoom.
 
 ## Architecture
+The engine is two packages in a pnpm workspace (since 19 Nov 2026); the lab is an app built on them.
 ```
-src/layout-core/   framework-free model + ops + resolve (fit/collapse) + URL codec + validation   (no React)
+packages/core/     @jali/core, no framework: layout/ (model, ops, fit, codec, validation), the workspace store,
+                   actions, commands and keymap, URL and storage ports, the pane and active-item contracts
+packages/react/    @jali/react: workspace renderer, pane frame and tabs, dividers, peek, drag/drop zones, shelf,
+                   curated page, palette, settings, chooser, announcer; styles.css (theme + workspace, @layer jali)
+                   and tailwind.css (the bridge to a host's Tailwind theme)
 src/data/          PGlite + sample + TanStack Query keys + entity invalidation + result store       (no layout knowledge)
-src/ui/            React: workspace renderer over layout-core, pane frame/header, dividers via an
-                   adapter interface (rrp | ark), peek, drag/drop zones, keyboard layer, announcer,
-                   Sonner undo, URL sync, settings panel, ⌘K palette
-src/panes/         pane kinds: table-list (catalog), table (grid), record, related, query (editor+results),
-                   chart (of a result handle), structure, er (relations diagram), audit (audit_log)
+src/panes/         Data Studio's pane kinds and presets: table-list (catalog), table (grid), record, related,
+                   query (editor+results), chart (of a result handle), structure, er, audit, launcher
+src/review/        the loan review: its profile (a curated page), kinds and views
+src/shell/         the lab's own top bar, status line, toasts (Sonner) and app switch
+src/tests/         engine tests that run against the lab's kinds
 e2e/               Playwright demo script that walks every interaction and asserts the key behaviours
 docs/              BRIEF.md, DECISIONS.md (every deviation, with reason), FINDINGS.md (what we learned, for the founder)
 ```
-**Contracts:** `src/layout-core/types.ts` and `src/data/types.ts`. The coordinator wrote them. Implement them; any signature change goes in `docs/DECISIONS.md`.
+**Contracts:** `packages/core/src/layout/types.ts` and `src/data/types.ts`. The coordinator wrote them. Implement them; any signature change goes in `docs/DECISIONS.md`.
 
 ## Visual language
 Sixface tokens, zinc neutrals and IBM Plex Sans, matching the design-system boards:

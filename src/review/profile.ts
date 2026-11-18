@@ -4,9 +4,9 @@
  * Overview's sections as panes: the application, with the borrower and their loan history beside it.
  */
 import { Briefcase, FileText, History, LayoutDashboard, UserRound, UsersRound } from "lucide-react";
-import type { Layout, LayoutNode, ObjectRef, PaneNode } from "../layout-core/types";
+import type { Layout, LayoutNode, ObjectRef, PaneNode } from "@jali/core";
 import { applicationFacts } from "../data/sample-sql";
-import type { RoleDef, WorkspaceProfile } from "../ui/define";
+import type { RoleDef, WorkspaceProfile } from "@jali/react";
 import { ApplicationHeader, QueueRail } from "./page";
 
 const ROLES: RoleDef[] = [

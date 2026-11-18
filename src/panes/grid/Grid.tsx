@@ -3,12 +3,12 @@ import { copyRaw } from "../shared/copyRaw";
 import { useFocusWhen } from "../shared/useFocusWhen";
 import { useListKeys } from "../shared/useListKeys";
 import { RowMenu } from "./RowMenu";
-import type { ObjectRef } from "../../layout-core/types";
+import type { ObjectRef } from "@jali/core";
 import type { Row } from "../../data/types";
 import { cellKind, columnLabel, formatCell, isNumericType, rawText } from "../format"
 import type { SortState } from "./grid-state";
 import { NullChip } from "../shared/states";
-import { keyHint } from "../../ui/commands/format";
+import { keyHint } from "@jali/core";
 
 export const ROW_H = 28;
 const OVERSCAN_ROWS = 6;

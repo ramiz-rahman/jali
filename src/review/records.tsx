@@ -4,11 +4,11 @@
  */
 import { useEffect } from "react";
 import { Briefcase, FileText, History, Phone, UserRound, UsersRound } from "lucide-react";
-import type { PaneComponentProps } from "../ui/define";
+import type { PaneComponentProps } from "@jali/react";
 import { isLoading, useRecord, useRows } from "../data/hooks";
 import type { TableName } from "../data/types";
 import { applicationFacts } from "../data/sample-sql";
-import { useUi } from "../ui/state/react";
+import { useUi } from "@jali/react";
 import { PaneGate } from "../panes/shared/PaneGate";
 import { RecordPane } from "../panes/kinds/record";
 import { day, taka } from "./page";

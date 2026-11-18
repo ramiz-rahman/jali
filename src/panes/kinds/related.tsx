@@ -1,9 +1,9 @@
 import { Link2 } from "lucide-react";
-import { definePaneKind } from "../../ui/define";
+import { definePaneKind } from "@jali/react";
 import { useMemo } from "react";
 import type { TableName } from "../../data/types";
 import { TableGrid } from "./table";
-import type { PaneComponentProps } from "../../ui/define";
+import type { PaneComponentProps } from "@jali/react";
 
 export function RelatedPane(p: PaneComponentProps) {
   const { table, column, value, label } = p.ref.params;

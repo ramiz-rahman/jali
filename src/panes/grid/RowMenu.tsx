@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import type { MenuState } from "./Grid";
-import { keyHint } from "../../ui/commands/format";
+import { keyHint } from "@jali/core";
 
 export function RowMenu({ menu, onClose, onOpen, onPeek, id }: { menu: MenuState; onClose(): void; onOpen?: () => void; onPeek?: () => void; id: string | null }) {
   const ref = useRef<HTMLDivElement>(null);

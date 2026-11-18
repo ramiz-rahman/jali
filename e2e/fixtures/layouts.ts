@@ -1,6 +1,6 @@
 /** Layout builders shared by the specs. Layouts travel in the URL (`/?l=`), so a test can start from any tree. */
-import * as core from "../../src/layout-core";
-import type { Layout, LayoutNode, ObjectRef, PaneNode } from "../../src/layout-core/types";
+import * as core from "../../packages/core/src/layout";
+import type { Layout, LayoutNode, ObjectRef, PaneNode } from "../../packages/core/src/layout/types";
 
 export type { Layout, LayoutNode, ObjectRef, PaneNode };
 

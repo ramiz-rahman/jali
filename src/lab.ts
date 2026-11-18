@@ -1,9 +1,9 @@
 /** The lab's two apps in one workspace: Data Studio's kinds, plus the loan review's kinds and profile. */
 import { DEFAULT_PRESET, dataStudioKinds, dataStudioPresets } from "./panes";
-import { browserStorage } from "./ui/ports";
+import { browserStorage } from "@jali/core";
 import { loanReview, loanReviewKinds } from "./review";
-import { createPaneKinds } from "./ui/pane-kinds";
-import { createUiStore, type UiStore, type UiStoreDeps } from "./ui/state/store";
+import { createPaneKinds } from "@jali/core";
+import { createUiStore, type UiStore, type UiStoreDeps } from "@jali/core";
 
 export const labKinds = () => createPaneKinds([...dataStudioKinds, ...loanReviewKinds]);
 

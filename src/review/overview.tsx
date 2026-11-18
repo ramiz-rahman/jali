@@ -5,15 +5,15 @@
  */
 import type { ReactNode } from "react";
 import { ArrowRight } from "lucide-react";
-import type { PaneComponentProps } from "../ui/define";
-import { useStore } from "../ui/state/react";
+import type { PaneComponentProps } from "@jali/react";
+import { useStore } from "@jali/react";
 import { Loading } from "../panes/shared/states";
 import { day, taka, useApplication } from "./page";
 import { book, instalments, plural, tenure, useGroupStanding, useOfficerBook, useRepayments, type Row } from "./data";
 import { Ladder, Standing } from "./records";
 import { signals } from "./signals";
 import { Facts, Instalments, StatusMark, Table, ToneIcon, View } from "./ui";
-import { altClick } from "../ui/commands/format";
+import { altClick } from "@jali/core";
 
 const n = (v: unknown) => Number(v ?? 0);
 

@@ -1,5 +1,5 @@
 import { Table2 } from "lucide-react";
-import { definePaneKind } from "../../ui/define";
+import { definePaneKind } from "@jali/react";
 import { useMemo, useState } from "react";
 import type { ObjectRef, Row, TableName, ColumnInfo } from "../../data/types";
 import { Grid, type GridColumn } from "../grid/Grid";
@@ -11,8 +11,8 @@ import { useWindowRows } from "../grid/useWindow";
 import { nextSort, orderByString, parseFilter, type SortState } from "../grid/grid-state";
 import { PaneGate } from "../shared/PaneGate";
 import { useSelectionAcrossResults } from "../grid/useSelectionAcrossResults";
-import type { PaneComponentProps } from "../../ui/define";
-import { keyHint } from "../../ui/commands/format";
+import type { PaneComponentProps } from "@jali/react";
+import { keyHint } from "@jali/core";
 
 /** A grid over one table, optionally pre-filtered by a relation (used by RelatedPane). */
 export function TableGrid({ table, fixedWhere, paused, focused, openBeside, peek, select, label, columns: columnNames, orderBy, rowRef, audit = false }: Pick<PaneComponentProps, "paused" | "focused" | "openBeside" | "peek" | "select"> & { table: TableName; fixedWhere?: Record<string, string | number>; label: string; columns?: string[]; orderBy?: string; rowRef?: (row: Row) => ObjectRef | null; audit?: boolean }) {

@@ -1,5 +1,5 @@
 import { FileText } from "lucide-react";
-import { definePaneKind } from "../../ui/define";
+import { definePaneKind } from "@jali/react";
 import { copyRaw } from "../shared/copyRaw";
 import { useEffect, useRef, useState } from "react";
 import type { ColumnInfo, Relation, Row, TableName } from "../../data/types";
@@ -8,7 +8,7 @@ import { cellKind, columnLabel, formatCell, formatCount, formatJson, rawText, is
 import { foreignKeyRef, relationRef, singular, tableOf, tableRef } from "../shared/refs";
 import { ErrorState, Loading, NullChip, Shell } from "../shared/states";
 import { PaneGate } from "../shared/PaneGate";
-import type { PaneComponentProps } from "../../ui/define";
+import type { PaneComponentProps } from "@jali/react";
 
 export function RecordPane({ ref, paused, openBeside, setActivity }: PaneComponentProps) {
   const table = tableOf(ref);

@@ -2,7 +2,7 @@ import { nextSort, orderByString, parseFilter } from "./grid/grid-state";
 import { recordKind } from "./kinds/record";
 import { pickChartColumns } from "./kinds/chart";
 import { describe, expect, it, vi } from "vitest";
-vi.mock("../ui/define", () => ({ definePaneKind: (definition: unknown) => definition }));
+vi.mock("../../packages/react/src/define", () => ({ definePaneKind: (definition: unknown) => definition }));
 import type { ColumnInfo } from "../data/types";
 import { cellKind, columnLabel, formatCell, formatJson, formatMoney, formatTimestamp, rawText, formatCompact, formatCount, formatMs, isNumericType } from "./format";
 import { foreignKeyRef, relationRef, rowId } from "./shared/refs";

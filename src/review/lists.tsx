@@ -4,8 +4,8 @@
  */
 import { useEffect } from "react";
 import { AlertTriangle } from "lucide-react";
-import type { PaneComponentProps } from "../ui/define";
-import { useUi } from "../ui/state/react";
+import type { PaneComponentProps } from "@jali/react";
+import { useUi } from "@jali/react";
 import { isLoading, useRows } from "../data/hooks";
 import type { TableName } from "../data/types";
 import { PaneGate } from "../panes/shared/PaneGate";

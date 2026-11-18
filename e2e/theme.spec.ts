@@ -4,7 +4,7 @@ import { expect, test } from "./fixtures/lab";
  * Theming: Jali reads only --jali-* tokens, a host's value wins at any specificity, the Tailwind bridge takes the
  * host's theme (Chakni's token names), and a dark scope gets dark values.
  */
-const bridge = { path: "src/ui/styles/jali-tailwind.css" };
+const bridge = { path: "packages/react/src/styles/jali-tailwind.css" };
 const focusedBorder = (lab: import("./fixtures/lab").Lab) => lab.page.locator("section[data-pane][data-focused]").first().evaluate((e) => getComputedStyle(e).borderTopColor);
 
 test.describe("Theme", () => {

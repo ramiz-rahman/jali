@@ -1,7 +1,7 @@
 /** The loan-review page around the panes: the queue at the left and the application's header above the tabs. */
 import { useEffect, useMemo, useRef, useState } from "react";
 import { ListFilter, X } from "lucide-react";
-import { useStore } from "../ui/state/react";
+import { useStore } from "@jali/react";
 import { isLoading, useRows } from "../data/hooks";
 import { formatTimestamp } from "../panes/format";
 import type { Row } from "../data/types";

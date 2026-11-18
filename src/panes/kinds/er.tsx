@@ -1,11 +1,11 @@
 import { GitFork } from "lucide-react";
-import { definePaneKind } from "../../ui/define";
+import { definePaneKind } from "@jali/react";
 import type { TableName } from "../../data/types";
 import { useCatalog } from "../../data/hooks";
 import { erRef, tableInfoOf, tableOf } from "../shared/refs";
 import { Shell } from "../shared/states";
 import { PaneGate } from "../shared/PaneGate";
-import type { PaneComponentProps } from "../../ui/define";
+import type { PaneComponentProps } from "@jali/react";
 
 const BW = 150, GAPY = 12, HEAD = 22, LINE = 15;
 

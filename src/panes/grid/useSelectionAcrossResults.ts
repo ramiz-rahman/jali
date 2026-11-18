@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef } from "react";
 import type { ObjectRef, Row } from "../../data/types";
-import type { PaneComponentProps } from "../../ui/define";
-import { sameRef } from "../../ui/actions/follow";
+import type { PaneComponentProps } from "@jali/react";
+import { sameRef } from "@jali/core";
 
 interface Results { q: { data?: unknown }; rows: Row[]; offset: number; total: number }
 
