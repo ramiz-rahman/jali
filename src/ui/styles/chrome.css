@@ -3,8 +3,8 @@
   display: flex; align-items: center; gap: 16px; padding: 0 12px;
   background: var(--island); border-bottom: 1px solid var(--line); min-width: 0;
 }
-.brand { display: flex; align-items: center; gap: 8px; flex: none; }
-.mark { width: 14px; height: 14px; border-radius: 3px; background: var(--accent); }
+.brand { display: flex; align-items: center; gap: 14px; flex: none; }
+.brand-lockup { display: block; height: 22px; width: auto; color: var(--brand); flex: none; }
 .brand-name { font-weight: 600; letter-spacing: -0.005em; }
 .presets { display: flex; gap: 2px; min-width: 0; overflow-x: auto; scrollbar-width: none; }
 .preset {

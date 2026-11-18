@@ -5,6 +5,7 @@ import { useStore, useUi } from "../state/react";
 import { copyLink } from "../commands/registry";
 import { PALETTE_ID } from "../commands/keymap";
 import { AppSwitch, ReviewBar } from "./ReviewBar";
+import { JaliLockup } from "./JaliLockup";
 
 /** The presets as toggle buttons: in the bar on desktop, in the Layouts menu below 768px. */
 function PresetButtons({ onChoose }: { onChoose?: () => void }) {
@@ -54,7 +55,7 @@ export function TopBar() {
   return (
     <header className="topbar">
       <div className="brand">
-        <span className="mark" aria-hidden />
+        <JaliLockup />
         <AppSwitch />
       </div>
       {review ? <ReviewBar /> : (

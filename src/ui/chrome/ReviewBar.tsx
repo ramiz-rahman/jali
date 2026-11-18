@@ -136,7 +136,7 @@ export function AppSwitch() {
   const p = getProfile();
   const inReview = useUi((s) => !!s.review);
   const { actions } = useStore();
-  if (!p) return <span className="brand-name">Pane lab</span>;
+  if (!p) return <span className="brand-name">lab</span>;
   return (
     <div className="app-switch" role="radiogroup" aria-label="Workspace">
       <button role="radio" aria-checked={!inReview} className="app-btn" onClick={() => inReview && actions.leaveReview()}>Data Studio</button>

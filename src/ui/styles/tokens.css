@@ -13,12 +13,14 @@
   --text-3: #71717a;
   --text-4: #a1a1aa;
   --hover: #f4f4f5;
-  --accent: #5a2afa;
-  --accent-soft: #f1edff;
-  --accent-weak: rgba(90, 42, 250, 0.08);
-  --accent-mid: rgba(90, 42, 250, 0.16);
+  /* Jali's Nil (Bengal indigo): #2B3990 for the mark, #4456C7 for controls (6.2:1 on white). See docs/brand/README.md. */
+  --brand: #2b3990;
+  --accent: #4456c7;
+  --accent-soft: #eceefb;
+  --accent-weak: rgba(68, 86, 199, 0.08);
+  --accent-mid: rgba(68, 86, 199, 0.16);
   --on-accent: #ffffff;
-  --act-working: #2563eb;
+  --act-working: #0e7490; /* teal, apart from the indigo of focus */
   --act-blocked: #d97706;
   --act-done: #059669;
   --act-failed: #dc2626;
@@ -31,7 +33,7 @@
   --shadow-zoom: 0 12px 32px rgba(24, 24, 27, 0.1);
   --shadow-peek: -8px 0 24px rgba(24, 24, 27, 0.08), 0 1px 2px rgba(24, 24, 27, 0.04);
   --shadow-dialog: 0 16px 48px rgba(24, 24, 27, 0.16);
-  /* Panes opened while investigating in a curated workspace: a warm sand, apart from the violet of focus. */
+  /* Panes opened while investigating in a curated workspace: a warm sand, apart from the indigo of focus. */
   --opened-bg: #fbf8f1;
   --opened-line: #eadfc8;
   --opened-mark: #c08a2e;
@@ -53,12 +55,13 @@
   --text-3: #8f8f99; /* #71717A is 3.6:1 on the island; text needs 4.5:1, so tertiary text is lifted a step */
   --text-4: #71717a;
   --hover: #232327;
-  --accent: #8b7bff;
-  --accent-soft: #2a2457;
-  --accent-weak: rgba(139, 123, 255, 0.14);
-  --accent-mid: rgba(139, 123, 255, 0.26);
+  --brand: #8c9bea;
+  --accent: #8c9bea;
+  --accent-soft: #1e2350;
+  --accent-weak: rgba(140, 155, 234, 0.14);
+  --accent-mid: rgba(140, 155, 234, 0.26);
   --on-accent: #09090b;
-  --act-working: #60a5fa;
+  --act-working: #22d3ee;
   --act-blocked: #fbbf24;
   --act-done: #34d399;
   --act-failed: #f87171;
@@ -79,7 +82,7 @@
 /* Pane kinds (src/panes/panes.css) keep light values on .pk; in dark they are remapped here onto the shared tokens. */
 :root[data-theme="dark"] .pk {
   --z50: #1d1d20; --z100: #232327; --z200: #27272a; --z300: #3f3f46; --z400: #8f8f99; --z500: #a1a1aa; --z700: #d4d4d8; --z900: #fafafa;
-  --accent: #8b7bff; --accent-soft: #2a2457;
+  --accent: #8c9bea; --accent-soft: #1e2350;
 }
 :root[data-theme="dark"] .pk,
 :root[data-theme="dark"] .pk-btn,
@@ -91,6 +94,6 @@
 :root[data-theme="dark"] .pk [role="alert"] { color: var(--act-failed) !important; }
 :root[data-theme="dark"] .pk-hcell input,
 :root[data-theme="dark"] .pk-edit { color: var(--z900); }
-:root[data-theme="dark"] .pk-chip.key { color: #b4aaff; }
+:root[data-theme="dark"] .pk-chip.key { color: #b3bef2; }
 :root[data-theme="dark"] .pk svg text { fill: var(--text-2); }
 :root[data-theme="dark"] .pk svg text[style*="18181B"], :root[data-theme="dark"] .pk svg text[style*="3F3F46"] { fill: var(--text) !important; }
