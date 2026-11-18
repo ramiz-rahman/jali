@@ -19,22 +19,26 @@ A paragraph with a [link to the introduction](/get-started/introduction), some *
 
 ## Code
 
-<Code filename="src/kinds.tsx" highlight="3-6" code={`import { definePaneKind } from "@jali/react";
+```tsx filename="src/kinds.tsx" highlight="3-6"
+import { definePaneKind } from "@jali/react";
 
 export const order = definePaneKind({
   kind: "order",
-  title: (ref) => \`Order \${ref.params.id}\`,
+  title: (ref) => `Order ${ref.params.id}`,
   ref: (params) => ({ kind: "order", params }),
   minWidth: 280, // narrower than this, the pane folds into a tab
   minHeight: 160,
   Component: ({ ref }) => <article>Order {ref.params.id}</article>,
-});`} />
+});
+```
 
-<Code lang="css" code={`@layer theme, base, jali, components, utilities;
+```css
+@layer theme, base, jali, components, utilities;
 
 :root {
   --jali-accent: #4456c7;
-}`} />
+}
+```
 
 A fenced block:
 
