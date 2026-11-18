@@ -1,5 +1,4 @@
 import type { Layout, LayoutNode, ObjectRef, PaneNode } from "../layout-core/types";
-import { getPaneKind } from "./pane-kinds";
 
 export type PresetId = "one-table" | "order-chain" | "query-chart" | "stress-10";
 
@@ -9,8 +8,7 @@ const pane = (id: string, ref: ObjectRef, extra: Partial<PaneNode> = {}): PaneNo
 const row = (id: string, children: LayoutNode[], weight = 1): LayoutNode => ({ id, type: "row", size: { weight }, children });
 const col = (id: string, children: LayoutNode[], weight = 1): LayoutNode => ({ id, type: "column", size: { weight }, children });
 
-/** Refs come from each kind's own factory (a kind not yet registered gets the plain shape). */
-const ref = (kind: string, params: ObjectRef["params"]): ObjectRef => getPaneKind(kind)?.ref(params) ?? { kind, params };
+const ref = (kind: string, params: ObjectRef["params"]): ObjectRef => ({ kind, params });
 const tbl = (table: string) => ref("table", { table });
 const rec = (table: string, id: number) => ref("record", { table, id });
 

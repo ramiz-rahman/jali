@@ -10,8 +10,6 @@
  */
 import * as core from "../../layout-core";
 import type { Layout, NodeId, PaneBox, Rect } from "../../layout-core/types";
-import { paneDomId } from "../dom/ids";
-import { getPaneKind } from "../pane-kinds";
 import type { UiStore } from "../state/store";
 import { dividerKey } from "./Divider";
 import { clampSize, geometryFor, snap } from "./resize";
@@ -54,11 +52,11 @@ export function startDividerDrag(store: UiStore, overlay: HTMLElement | null, e:
   const before = new Map<string, PaneBox>(r0.panes.map((b) => [b.id, b]));
   const frames = new Map<string, HTMLElement>();
   for (const b of r0.panes) {
-    const el = document.getElementById(paneDomId(b.id));
+    const el = store.dom.pane(b.id);
     if (el) frames.set(b.id, el);
   }
   const dividerEls = new Map<string, HTMLElement>();
-  for (const el of document.querySelectorAll<HTMLElement>(".divider-layer [data-divider]")) dividerEls.set(el.dataset.divider!, el);
+  for (const el of store.dom.root().querySelectorAll<HTMLElement>(".divider-layer [data-divider]")) dividerEls.set(el.dataset.divider!, el);
   const neighbours = new Set([...(d0.neighbours?.[0] ?? g0.a.ids), ...(d0.neighbours?.[1] ?? g0.b.ids)]);
 
   // Heavy panes hold their content at its current size; the frame around it still moves with the pointer.
@@ -66,7 +64,7 @@ export function startDividerDrag(store: UiStore, overlay: HTMLElement | null, e:
   for (const id of neighbours) {
     const box = before.get(id), frame = frames.get(id);
     const node = m0.pane(id);
-    if (!box || box.hidden || !frame || !node || !getPaneKind(node.ref.kind)?.heavy) continue;
+    if (!box || box.hidden || !frame || !node || !store.env.kinds.get(node.ref.kind)?.heavy) continue;
     const content = frame.querySelector<HTMLElement>(":scope > .pane-content");
     const inner = content?.querySelector<HTMLElement>(":scope > .pane-content-inner");
     if (!content || !inner || content.hidden) continue;

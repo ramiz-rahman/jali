@@ -1,6 +1,5 @@
 import * as core from "../../layout-core";
 import type { NodeId } from "../../layout-core/types";
-import { isTransient, paneTitle } from "../pane-kinds";
 import { refuse, type Outcome, type Snapshot } from "../state/apply";
 import { msg } from "../state/messages";
 
@@ -16,9 +15,9 @@ export function mergeTargets({ s, m }: Snapshot, source = s.view.focused): Merge
   return m.flat.panes.flatMap((b): MergeTarget[] => {
     if (b.hidden || b.id === source || own?.children.some((c) => c.id === b.id)) return [];
     const st = m.stackOf(b.id);
-    if (st) return [{ id: b.id, label: st.children.map((c) => paneTitle(c.ref)).join(" · "), hint: `${st.children.length} tabs` }];
+    if (st) return [{ id: b.id, label: st.children.map((c) => m.env.kinds.title(c.ref)).join(" · "), hint: `${st.children.length} tabs` }];
     const p = m.pane(b.id);
-    return p ? [{ id: b.id, label: paneTitle(p.ref), hint: isTransient(p.ref) ? "new pane" : p.ref.kind }] : [];
+    return p ? [{ id: b.id, label: m.env.kinds.title(p.ref), hint: m.env.kinds.isTransient(p.ref) ? "new pane" : p.ref.kind }] : [];
   });
 }
 

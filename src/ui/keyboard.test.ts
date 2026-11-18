@@ -6,10 +6,9 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { installKeyboard } from "./commands/keyboard";
 import { createKeymap } from "./commands/keymap";
 import { formatKeys, parseKeys, type Chord } from "./commands/format";
-import { createUiStore, type UiStore } from "./state/store";
-import { registerAllPaneKinds } from "../panes";
+import { createLabStore } from "../lab";
+import type { UiStore } from "./state/store";
 
-registerAllPaneKinds();
 
 let store: UiStore;
 let off: () => void;
@@ -32,8 +31,8 @@ const chord = (target: EventTarget, text: string) => {
   return last;
 };
 
-function setup(deps: Parameters<typeof createUiStore>[0] = {}) {
-  store = createUiStore({ ...deps, initial: { area: { width: 1600, height: 900 }, ...deps.initial } });
+function setup(deps: Parameters<typeof createLabStore>[0] = {}) {
+  store = createLabStore({ ...deps, initial: { area: { width: 1600, height: 900 }, ...deps.initial } });
   store.actions.preset("order-chain");
   off = installKeyboard(store);
   content = document.createElement("div");
@@ -220,3 +219,39 @@ describe("the keymap", () => {
         }
   });
 });
+
+describe("two workspaces on one page", () => {
+  it("each takes only the keys from inside its own root, and nothing is shared between them", () => {
+    off();
+    const a = createLabStore({ initial: { area: { width: 1600, height: 900 } } });
+    const b = createLabStore({ initial: { area: { width: 1600, height: 900 } } });
+    a.actions.preset("order-chain");
+    b.actions.preset("order-chain");
+    const rootA = document.createElement("div"), rootB = document.createElement("div");
+    const inA = document.createElement("button"), inB = document.createElement("button");
+    rootA.append(inA);
+    rootB.append(inB);
+    document.body.append(rootA, rootB);
+    const offA = installKeyboard(a, { root: () => rootA });
+    const offB = installKeyboard(b, { root: () => rootB });
+    try {
+      const fa = a.get().view.focused, fb = b.get().view.focused;
+      keydown(inA, { key: "F6" });
+      expect(a.get().view.focused).not.toBe(fa);
+      expect(b.get().view.focused).toBe(fb);
+      keydown(inB, { key: "F6" });
+      expect(b.get().view.focused).not.toBe(fb);
+      // Each store has its own kinds: registering one in A leaves B untouched.
+      a.env.kinds.register({ ...a.env.kinds.get("table")!, kind: "only-in-a" });
+      expect(a.env.kinds.get("only-in-a")).toBeDefined();
+      expect(b.env.kinds.get("only-in-a")).toBeUndefined();
+    } finally {
+      offA();
+      offB();
+      rootA.remove();
+      rootB.remove();
+      setup();
+    }
+  });
+});
+

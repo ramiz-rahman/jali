@@ -3,19 +3,15 @@
  * pane never pushes the person's views aside; a view never folds into a tab group; the ⌥ preview is the commit.
  */
 import { beforeEach, describe, expect, it } from "vitest";
-import { registerAllPaneKinds } from "../panes";
-import { registerLoanReview } from "../review";
 import { besidePreview } from "./actions/review";
-import { sameObject } from "./pane-kinds";
-import { createUiStore, type UiStore } from "./state/store";
+import { createLabStore } from "../lab";
+import type { UiStore } from "./state/store";
 
-registerAllPaneKinds();
-registerLoanReview();
 
 let store: UiStore;
 beforeEach(() => {
   localStorage.clear();
-  store = createUiStore({ initial: { area: { width: 1156, height: 644 } } }); // the workspace at 1440×900
+  store = createLabStore({ initial: { area: { width: 1156, height: 644 } } }); // the workspace at 1440×900
   store.actions.enterReview({ item: 4, tab: "application" });
   store.actions.setMode("multi");
 });
@@ -32,8 +28,8 @@ function arranged() {
 
 describe("a link to a view already on the page", () => {
   it("the same record is the same object, whichever kind shows it", () => {
-    expect(sameObject(member149, { kind: "review-record", params: { table: "members", id: 149 } })).toBe(true);
-    expect(sameObject(member149, { kind: "review-record", params: { table: "members", id: 150 } })).toBe(false);
+    expect(store.env.kinds.sameObject(member149, { kind: "review-record", params: { table: "members", id: 149 } })).toBe(true);
+    expect(store.env.kinds.sameObject(member149, { kind: "review-record", params: { table: "members", id: 150 } })).toBe(false);
   });
 
   it("on screen: focuses that view and opens nothing", () => {

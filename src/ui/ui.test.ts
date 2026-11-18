@@ -9,13 +9,10 @@ import { mergeTargets } from "./actions/tabs";
 import { openPaneFor } from "./actions/open";
 import { dropText } from "./state/messages";
 import { POLICY } from "./state/apply";
-import { createUiStore } from "./state/store";
-import { sameObject } from "./pane-kinds";
-import { registerAllPaneKinds } from "../panes";
+import { createLabStore } from "../lab";
 
-registerAllPaneKinds();
 
-const store = createUiStore();
+const store = createLabStore();
 const { actions } = store;
 const getState = store.get;
 const setState = store.set;
@@ -153,8 +150,8 @@ describe("split opens a launcher", () => {
     expect(getState().view.focused).toBe("orders");
   });
   it("record ids compare as text; queries never count as duplicates", () => {
-    expect(sameObject({ kind: "record", params: { table: "customers", id: 1 } }, { kind: "record", params: { table: "customers", id: "1" } })).toBe(true);
-    expect(sameObject({ kind: "query", params: { sql: "x" } }, { kind: "query", params: { sql: "x" } })).toBe(false);
+    expect(store.env.kinds.sameObject({ kind: "record", params: { table: "customers", id: 1 } }, { kind: "record", params: { table: "customers", id: "1" } })).toBe(true);
+    expect(store.env.kinds.sameObject({ kind: "query", params: { sql: "x" } }, { kind: "query", params: { sql: "x" } })).toBe(false);
     actions.preset("query-chart");
     expect(openPaneFor(store.model(), { kind: "query", params: { sql: "x", autorun: 1 } })).toBeUndefined();
     const id = actions.split("right", "query")!;

@@ -2,7 +2,8 @@ import { useEffect, useLayoutEffect, useRef, useState, type KeyboardEvent } from
 import { createPortal } from "react-dom";
 import { Check, ChevronDown, FoldHorizontal, Undo2 } from "lucide-react";
 import type { NodeId } from "../../layout-core/types";
-import { getProfile, roleOf, titleOf } from "../profile";
+import { roleOf, titleOf } from "../profile";
+import { useStore } from "../state/react";
 import { useUi } from "../state/react";
 import type { Tab } from "../workspace/frames";
 import { KindIcon } from "./icons";
@@ -10,6 +11,7 @@ import { FOLDED_DESC, FOLDED_WORD, TUCKED_DESC } from "./tabState";
 
 /** The "+N" at the end of a tab strip that overflows: opens a menu of every tab in the group, marks included. */
 export function TabOverflow({ tabs, active, hiddenCount, onChoose }: { tabs: Tab[]; active: NodeId; hiddenCount: number; onChoose: (id: NodeId) => void }) {
+  const store = useStore(), env = store.env;
   const [open, setOpen] = useState(false);
   const [pos, setPos] = useState<{ left: number; top: number } | null>(null);
   const btn = useRef<HTMLButtonElement>(null);
@@ -64,7 +66,7 @@ export function TabOverflow({ tabs, active, hiddenCount, onChoose }: { tabs: Tab
   const choose = (id: NodeId) => {
     setOpen(false);
     onChoose(id);
-    requestAnimationFrame(() => document.querySelector<HTMLElement>(`[role="tab"][data-tab="${id}"]`)?.focus({ preventScroll: true }));
+    requestAnimationFrame(() => store.dom.root().querySelector<HTMLElement>(`[role="tab"][data-tab="${id}"]`)?.focus({ preventScroll: true }));
   };
 
   return (
@@ -87,7 +89,7 @@ export function TabOverflow({ tabs, active, hiddenCount, onChoose }: { tabs: Tab
       {open ? createPortal(
         <div ref={menu} className="tab-menu" role="menu" aria-label="Tabs in this group" style={pos ? { left: pos.left, top: pos.top } : { visibility: "hidden" }} onKeyDown={onKey}>
           {tabs.map(({ node: t, tucked, folded }) => {
-            const role = review && t.role ? roleOf(getProfile()!, t.role) : undefined;
+            const role = review && t.role ? roleOf(env.profile!, t.role) : undefined;
             return (
               <button
                 key={t.id}
@@ -103,7 +105,7 @@ export function TabOverflow({ tabs, active, hiddenCount, onChoose }: { tabs: Tab
               >
                 <span className="tab-menu-check" aria-hidden>{t.id === active ? <Check size={13} strokeWidth={2} /> : null}</span>
                 {role ? <role.icon size={14} strokeWidth={1.5} aria-hidden /> : <KindIcon kind={t.ref.kind} size={14} />}
-                <span className="tab-menu-title">{titleOf(t)}</span>
+                <span className="tab-menu-title">{titleOf(env, t)}</span>
                 {folded ? <small className="tab-menu-mark"><FoldHorizontal size={12} strokeWidth={1.75} aria-hidden />{FOLDED_WORD}</small> : null}
                 {tucked ? <small className="tab-menu-mark"><Undo2 size={12} strokeWidth={1.75} aria-hidden />Tucked</small> : null}
               </button>

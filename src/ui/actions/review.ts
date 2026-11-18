@@ -5,7 +5,7 @@
  */
 import * as core from "../../layout-core";
 import type { Edge, Layout, LayoutContext, NodeId, ObjectRef, PaneNode, Rect, ViewState } from "../../layout-core/types";
-import { getProfile, roleOf, type ViewMode, type WorkspaceProfile } from "../profile";
+import { roleOf, type ViewMode, type WorkspaceProfile } from "../profile";
 import { refuse, type Change, type Outcome, type Snapshot } from "../state/apply";
 import { msg, toasts } from "../state/messages";
 import type { ReviewPrefs } from "../state/review-prefs";
@@ -96,13 +96,13 @@ function keep(x: Snapshot, mode?: ViewMode): ReviewPrefs {
 
 const label = (p: WorkspaceProfile, id: string | undefined) => roleOf(p, id)?.label ?? id ?? "";
 /** A role's name in the page's tabs. */
-export const roleLabel = (id: string) => { const p = getProfile(); return p ? label(p, id) : id; };
+export const roleLabel = (p: WorkspaceProfile | null, id: string) => (p ? label(p, id) : id);
 
 export interface EnterReview { item?: number; tab?: string; investigation?: ObjectRef[]; fromUrl?: boolean; view?: Partial<ViewState> }
 
 /** Open the curated page (or arrive at it from a link). A link with opened panes needs Multiplexed to show them. */
 export function enterReview(x: Snapshot, o: EnterReview = {}): Outcome {
-  const p = getProfile();
+  const p = x.env.profile;
   if (!p) return null;
   const prev = x.s.review;
   const opened = o.investigation ?? [];
@@ -132,7 +132,7 @@ export function leaveReview(x: Snapshot): Outcome {
 
 /** Single or Multiplexed. Leaving Multiplexed keeps its layout exactly, opened panes included, for coming back. */
 export function setMode(x: Snapshot, mode: ViewMode): Outcome {
-  const p = getProfile(), r = x.s.review;
+  const p = x.env.profile, r = x.s.review;
   if (!p || !r || r.mode === mode) return null;
   if (mode === "single") {
     const tab = currentRole(x) ?? r.tab;
@@ -155,7 +155,7 @@ function slotFor({ s, m }: Snapshot): NodeId | undefined {
  * view you're in, at exactly that size, and that view goes back to the tabs. Placing a view beside is a drag or ⌥-click.
  */
 export function openTab(x: Snapshot, role: string): Outcome {
-  const p = getProfile(), r = x.s.review;
+  const p = x.env.profile, r = x.s.review;
   if (!p || !r || !roleOf(p, role)) return null;
   const patch = { review: { ...r, tab: role } };
   if (r.mode === "single") {
@@ -225,7 +225,7 @@ function besideTarget(layout: Layout, view: ViewState, ctx: LayoutContext): Node
 /** What ⌥-click on a tab does, as layouts: where it starts (from Single, the multiplexed layout setMode shows), the
  *  view it goes beside, and the result. One function for the preview and the commit, so they cannot drift. */
 function beside(x: Snapshot, role: string) {
-  const p = getProfile(), r = x.s.review;
+  const p = x.env.profile, r = x.s.review;
   if (!p || !r || !r.canInvestigate || !roleOf(p, role)) return undefined;
   const base = r.mode === "single" ? multi(x, p, r.item, r.tab, true) : { layout: x.s.layout, view: unzoomed(x.s.view) };
   const target = besideTarget(base.layout, base.view, x.ctx);
@@ -260,7 +260,7 @@ export function besidePreview(x: Snapshot, role: string): BesidePreview | undefi
  *  Multiplexed first: dragging a tab out is asking for two views at once. Room is made by sending the least recently
  *  used views back to the tabs (settleRoles), never by folding views into tab groups. */
 export function placeTab(x: Snapshot, role: string, target: NodeId, zone: Edge | "centre"): Outcome {
-  const p = getProfile(), r = x.s.review;
+  const p = x.env.profile, r = x.s.review;
   if (!p || !r || !roleOf(p, role)) return null;
   const place = (y: Snapshot): Outcome => {
     if (role === target || !y.m.pane(target)) return openTab(y, role);
@@ -294,7 +294,7 @@ export function openTabBeside(x: Snapshot, role: string): Outcome {
 const apply1 = (o: Outcome, y: Snapshot): Outcome => (typeof o === "function" ? apply1(o(y), y) : o);
 
 export function goToRole(x: Snapshot, role: string, from?: NodeId): Outcome {
-  const p = getProfile();
+  const p = x.env.profile;
   if (!p) return null;
   if (from && x.m.off.includes(role) && x.m.visible.includes(from)) {
     const t = label(p, role);
@@ -309,7 +309,7 @@ export function goToRole(x: Snapshot, role: string, from?: NodeId): Outcome {
 
 /** Another item: every role shows it, in place, and the previous item's investigation closes. */
 export function activate(x: Snapshot, item: number): Outcome {
-  const p = getProfile(), r = x.s.review;
+  const p = x.env.profile, r = x.s.review;
   if (!p || !r || r.item === item) return null;
   const review = { ...r, item, before: undefined };
   const saved = x.s.prefs.multi;
@@ -343,7 +343,7 @@ export function backToReview(x: Snapshot): Outcome {
 
 /** Close a view in Multiplexed: it leaves the screen and waits in the tabs. Never the last one on screen. */
 export function hideRole(x: Snapshot, id: NodeId): Outcome {
-  const p = getProfile(), node = x.m.pane(id);
+  const p = x.env.profile, node = x.m.pane(id);
   if (!p || x.s.review?.mode !== "multi" || !node?.role) return null;
   const r = core.hide(x.s.layout, unzoomed(x.s.view), id, x.ctx);
   if (!r.ok) return refuse(r.reason === "last" ? msg.lastView(label(p, node.role)) : undefined);
@@ -352,7 +352,7 @@ export function hideRole(x: Snapshot, id: NodeId): Outcome {
 
 /** Reset Multiplexed to the design, dropping this person's layout. The investigation stays. */
 export function resetReview(x: Snapshot): Outcome {
-  const p = getProfile(), r = x.s.review;
+  const p = x.env.profile, r = x.s.review;
   if (!p || r?.mode !== "multi") return null;
   const tab = currentRole(x) ?? r.tab;
   const opened = investigation(x.m.panes).map((o) => o.ref);

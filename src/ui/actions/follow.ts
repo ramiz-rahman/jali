@@ -7,7 +7,6 @@
  */
 import * as core from "../../layout-core";
 import type { NodeId, ObjectRef } from "../../layout-core/types";
-import { paneTitle } from "../pane-kinds";
 import type { Change, Deferred, Outcome, Snapshot } from "../state/apply";
 import { msg } from "../state/messages";
 
@@ -20,11 +19,11 @@ export const sameRef = (a: ObjectRef | undefined, b: ObjectRef | undefined) =>
 const key = (source: NodeId) => `follow:${source}`;
 
 /** Show `ref` in `source`'s following detail now. Nothing when there is none or it already shows `ref`. */
-export function follow({ s, ctx }: Snapshot, source: NodeId, ref: ObjectRef): Outcome {
+export function follow({ s, ctx, env }: Snapshot, source: NodeId, ref: ObjectRef): Outcome {
   const r = core.follow(s.layout, s.view, source, ref, ctx);
   if (!r.pane || r.layout === s.layout) return null;
   // Polite and short: the detail's new title, nothing about the mechanism.
-  return { op: "follow", layout: r.layout, msg: msg.followed(paneTitle(ref)) };
+  return { op: "follow", layout: r.layout, msg: msg.followed(env.kinds.title(ref)) };
 }
 
 /** The deferred step that makes `source`'s detail follow `ref`, or a cancellation (`ref` null). */

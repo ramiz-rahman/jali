@@ -3,8 +3,8 @@ import { FoldHorizontal, Plus, Undo2, X } from "lucide-react";
 import type { NodeId, PaneNode } from "../../layout-core/types";
 import { shortcutLabel } from "../commands/registry";
 import { paneDomId, paneTitleId } from "../dom/ids";
-import { getProfile, roleOf, titleOf } from "../profile";
-import { useStore, useUi } from "../state/react";
+import { roleOf, titleOf } from "../profile";
+import { useEnv, useStore, useUi } from "../state/react";
 import { startPaneDrag } from "../workspace/dnd";
 import type { Frame, Tab } from "../workspace/frames";
 import { Activity } from "./Activity";
@@ -68,7 +68,7 @@ export function TabStrip({ group, owner }: { group: NonNullable<Frame["group"]>;
 
   const renderTab = ({ node: t, tucked, folded: isFolded }: Tab) => {
     const active = t.id === group.active;
-    const title = titleOf(t);
+    const title = titleOf(store.env, t);
     return (
       <div
         key={t.id}
@@ -82,7 +82,7 @@ export function TabStrip({ group, owner }: { group: NonNullable<Frame["group"]>;
         title={isFolded ? `${title} · ${FOLDED_TIP}` : title}
         role="tab"
         aria-selected={active}
-        aria-controls={paneDomId(t.id)}
+        aria-controls={paneDomId(store.dom.id, t.id)}
         tabIndex={active ? 0 : -1}
         data-drag-ok
         onPointerDown={(e) => {
@@ -98,7 +98,7 @@ export function TabStrip({ group, owner }: { group: NonNullable<Frame["group"]>;
         }}
       >
         <TabIcon node={t} />
-        <span className="tab-title" id={active ? paneTitleId(owner) : undefined}>{title}</span>
+        <span className="tab-title" id={active ? paneTitleId(store.dom.id, owner) : undefined}>{title}</span>
         <TabActivity id={t.id} />
         {isFolded ? <span className="tab-fold-mark" aria-hidden><FoldHorizontal size={13} strokeWidth={1.75} /></span> : null}
         {tucked ? (
@@ -138,6 +138,7 @@ export function TabStrip({ group, owner }: { group: NonNullable<Frame["group"]>;
 
 /** A role tab shows its role's icon; anything else its kind's. */
 function TabIcon({ node }: { node: PaneNode }) {
-  const role = useUi((s) => !!s.review) && node.role ? roleOf(getProfile()!, node.role) : undefined;
+  const { kinds, profile } = useEnv();
+  const role = useUi((s) => !!s.review) && node.role && profile ? roleOf(profile, node.role) : undefined;
   return role ? <role.icon size={14} strokeWidth={1.5} aria-hidden /> : <KindIcon kind={node.ref.kind} size={14} />;
 }

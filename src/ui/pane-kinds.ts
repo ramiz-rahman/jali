@@ -1,7 +1,7 @@
 /**
  * Pane lab: the registration interface for pane kinds, and the policy the workspace reads from each definition.
  *
- * A kind module exports `definePaneKind({...})`; `src/panes/index.ts` registers every kind before first render.
+ * A kind module exports `definePaneKind({...})`; the app passes its kinds to `createPaneKinds` and the store (`createUiStore({ kinds })`).
  *
  * Component rules:
  * - `ref` is the ObjectRef the pane shows (same as `node.ref`). React 19 passes `ref` to function components as a
@@ -90,76 +90,92 @@ export interface PaneKindDef {
 
 export function definePaneKind(def: PaneKindDef): PaneKindDef { return def; }
 
-const kinds = new Map<string, PaneKindDef>();
-const listeners = new Set<() => void>();
-let version = 0;
-let registry: { version: number; value: KindRegistry } | null = null;
-
-export function registerPaneKind(def: PaneKindDef): void {
-  kinds.set(def.kind, def);
-  version++;
-  for (const l of listeners) l();
-}
-
-export const getPaneKind = (kind: string): PaneKindDef | undefined => kinds.get(kind);
-/** Bumped by every registration (HMR, late imports); caches of kind-derived values key on it. */
-export const kindsVersion = () => version;
-export function onKindsChange(l: () => void): () => void {
-  listeners.add(l);
-  return () => listeners.delete(l);
-}
-
-/** The framework-free view of the registry, for layout-core (resolve, validate, decode). Same object per version. */
-export function kindRegistry(): KindRegistry {
-  if (registry?.version === version) return registry.value;
-  const value: KindRegistry = {};
-  for (const d of kinds.values()) {
-    const k: PaneKind = { kind: d.kind, title: d.title, minWidth: d.minWidth, minHeight: d.minHeight };
-    if (d.maxWidth !== undefined) k.maxWidth = d.maxWidth;
-    if (d.comfortableWidth !== undefined) k.comfortableWidth = d.comfortableWidth;
-    value[d.kind] = k;
-  }
-  registry = { version, value };
-  return value;
-}
-
-/** Title for a ref, falling back to the kind name when the kind is unknown. */
-export function paneTitle(ref: ObjectRef): string {
-  const def = kinds.get(ref.kind);
-  try {
-    return def ? def.title(ref) : ref.kind;
-  } catch {
-    return ref.kind;
-  }
+/**
+ * A workspace's pane kinds. Each workspace (store) has its own, so two workspaces on one page, a workspace in a dialog
+ * and every test are independent: nothing about kinds is process-wide. `register` after creation is for late imports
+ * and HMR; caches of kind-derived values key on `version()`.
+ */
+export interface PaneKinds {
+  register(def: PaneKindDef): void;
+  get(kind: string): PaneKindDef | undefined;
+  /** Bumped by every registration. */
+  version(): number;
+  onChange(l: () => void): () => void;
+  /** The framework-free view, for layout-core (resolve, validate, decode). Same object per version. */
+  registry(): KindRegistry;
+  /** Title for a ref, falling back to the kind name when the kind is unknown. */
+  title(ref: ObjectRef): string;
+  /** The ref's identity as text, or undefined for scratch kinds. */
+  identityOf(ref: ObjectRef): string | undefined;
+  /** Same object: same object type (kind, unless the kind says otherwise) and identity. Scratch refs are never the
+   *  same object as anything. */
+  sameObject(a: ObjectRef, b: ObjectRef): boolean;
+  /** Same entry in Recent: the same object, or (scratch kinds) the same params. */
+  sameRecent(a: ObjectRef, b: ObjectRef): boolean;
+  isRecordable(ref: ObjectRef): boolean;
+  isTransient(ref: ObjectRef): boolean;
 }
 
 /** Params as order-free text, so ids compare as text (`1` equals `"1"`). */
 const asText = (params: ObjectRef["params"]) => JSON.stringify(Object.keys(params).sort().map((k) => [k, String(params[k])]));
 
-/** The ref's identity as text, or undefined for scratch kinds. */
-export function identityOf(ref: ObjectRef): string | undefined {
-  const def = kinds.get(ref.kind);
-  if (!def?.identity) return asText(ref.params);
-  const id = def.identity(ref);
-  return id === undefined ? undefined : JSON.stringify(id);
+export function createPaneKinds(defs: readonly PaneKindDef[] = []): PaneKinds {
+  const kinds = new Map<string, PaneKindDef>(defs.map((d) => [d.kind, d]));
+  const listeners = new Set<() => void>();
+  let version = 0;
+  let cached: { version: number; value: KindRegistry } | null = null;
+
+  const identityOf = (ref: ObjectRef): string | undefined => {
+    const def = kinds.get(ref.kind);
+    if (!def?.identity) return asText(ref.params);
+    const id = def.identity(ref);
+    return id === undefined ? undefined : JSON.stringify(id);
+  };
+  const objectType = (ref: ObjectRef) => kinds.get(ref.kind)?.object ?? ref.kind;
+
+  return {
+    register(def) {
+      kinds.set(def.kind, def);
+      version++;
+      for (const l of listeners) l();
+    },
+    get: (kind) => kinds.get(kind),
+    version: () => version,
+    onChange(l) {
+      listeners.add(l);
+      return () => listeners.delete(l);
+    },
+    registry() {
+      if (cached?.version === version) return cached.value;
+      const value: KindRegistry = {};
+      for (const d of kinds.values()) {
+        const k: PaneKind = { kind: d.kind, title: d.title, minWidth: d.minWidth, minHeight: d.minHeight };
+        if (d.maxWidth !== undefined) k.maxWidth = d.maxWidth;
+        if (d.comfortableWidth !== undefined) k.comfortableWidth = d.comfortableWidth;
+        value[d.kind] = k;
+      }
+      cached = { version, value };
+      return value;
+    },
+    title(ref) {
+      const def = kinds.get(ref.kind);
+      try {
+        return def ? def.title(ref) : ref.kind;
+      } catch {
+        return ref.kind;
+      }
+    },
+    identityOf,
+    sameObject(a, b) {
+      if (objectType(a) !== objectType(b)) return false;
+      const ia = identityOf(a);
+      return ia !== undefined && ia === identityOf(b);
+    },
+    sameRecent: (a, b) => a.kind === b.kind && (identityOf(a) ?? asText(a.params)) === (identityOf(b) ?? asText(b.params)),
+    isRecordable(ref) {
+      const r = kinds.get(ref.kind)?.recordable;
+      return typeof r === "function" ? r(ref) : r !== false;
+    },
+    isTransient: (ref) => !!kinds.get(ref.kind)?.transient,
+  };
 }
-
-const objectType = (ref: ObjectRef) => kinds.get(ref.kind)?.object ?? ref.kind;
-
-/** Same object: same object type (kind, unless the kind says otherwise) and identity. Scratch refs are never the same
- *  object as anything. */
-export function sameObject(a: ObjectRef, b: ObjectRef): boolean {
-  if (objectType(a) !== objectType(b)) return false;
-  const ia = identityOf(a);
-  return ia !== undefined && ia === identityOf(b);
-}
-
-/** Same entry in Recent: the same object, or (scratch kinds) the same params. */
-export const sameRecent = (a: ObjectRef, b: ObjectRef) => a.kind === b.kind && (identityOf(a) ?? asText(a.params)) === (identityOf(b) ?? asText(b.params));
-
-export function isRecordable(ref: ObjectRef): boolean {
-  const r = kinds.get(ref.kind)?.recordable;
-  return typeof r === "function" ? r(ref) : r !== false;
-}
-
-export const isTransient = (ref: ObjectRef) => !!kinds.get(ref.kind)?.transient;

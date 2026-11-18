@@ -1,6 +1,5 @@
 import * as core from "../../layout-core";
 import type { Layout, NodeId, ObjectRef, ViewState } from "../../layout-core/types";
-import { paneTitle } from "../pane-kinds";
 import { refuse, type Change, type Outcome, type Snapshot } from "../state/apply";
 import { msg } from "../state/messages";
 import { openBeside, withRecent } from "./open";
@@ -20,11 +19,11 @@ export function peek(x: Snapshot, ref: ObjectRef | null, source?: NodeId): Outco
 }
 
 /** The peek sheet itself: open (or move) it to `ref`, or close it (`null`). */
-export function peekSheet({ s }: Snapshot, ref: ObjectRef | null, source?: NodeId): Change {
+export function peekSheet({ s, env }: Snapshot, ref: ObjectRef | null, source?: NodeId): Change {
   const view = { ...s.view };
   if (ref) view.peek = ref;
   else delete view.peek;
-  return { op: "peek", view, patch: { peekSource: ref ? (source ?? s.peekSource ?? s.view.focused) : undefined }, msg: ref ? msg.peek(paneTitle(ref)) : msg.peekClosed };
+  return { op: "peek", view, patch: { peekSource: ref ? (source ?? s.peekSource ?? s.view.focused) : undefined }, msg: ref ? msg.peek(env.kinds.title(ref)) : msg.peekClosed };
 }
 
 /** Pin: close the peek, then open its object beside the pane it came from. */
@@ -34,12 +33,12 @@ export function pinPeek(x: Snapshot): Outcome {
   return [peek(x, null), (y: Snapshot) => openBeside(y, source, ref)];
 }
 
-export function openPeekFull({ s, ctx }: Snapshot): Outcome {
+export function openPeekFull({ s, ctx, env }: Snapshot): Outcome {
   const ref = s.view.peek;
   if (!ref) return null;
   const layout: Layout = { version: 1, root: { id: "full", type: "pane", size: { weight: 1 }, ref } };
   const view: ViewState = { focused: "full", focusHistory: ["full"] };
-  return { op: "openFull", layout: core.refit(layout, view, ctx), view, msg: msg.openedFull(paneTitle(ref)), patch: { peekSource: undefined, recent: withRecent(s.recent, [ref]) } };
+  return { op: "openFull", layout: core.refit(layout, view, ctx), view, msg: msg.openedFull(env.kinds.title(ref)), patch: { peekSource: undefined, recent: withRecent(env.kinds, s.recent, [ref]) } };
 }
 
 /**

@@ -4,20 +4,18 @@
  */
 import * as core from "../layout-core";
 import { installKeyboard } from "./commands/keyboard";
-import { kindRegistry } from "./pane-kinds";
 import { presetById } from "./presets";
 import { msg, toasts } from "./state/messages";
 import { applyTheme, resolveTheme, saveSettings, watchSystemTheme } from "./state/settings";
 import type { UiStore } from "./state/store";
 import { applyTokens } from "./tokens";
-import { getProfile } from "./profile";
 import { savePrefs } from "./state/review-prefs";
 import { withoutOpened } from "./actions/review";
 import type { UrlSync } from "./url";
 
 /** Apply the URL to the store (first load, Back/Forward). A link that can't be read opens the current preset. */
 function arriveFromUrl(store: UiStore, url: UrlSync): boolean {
-  const r = url.read(kindRegistry());
+  const r = url.read(store.env.kinds.registry());
   if (!r) return false;
   if ("review" in r) {
     const { tab, item, investigation } = r.review;
@@ -52,7 +50,7 @@ export function startUi(store: UiStore, url: UrlSync): () => void {
     const s = store.get();
     if (s.settings !== prev.settings) saveSettings(s.settings);
     // A curated page's mode and multiplexed layout are the person's: saved on this device, opened panes left out.
-    const p = getProfile();
+    const p = store.env.profile;
     const live = s.review?.mode === "multi" && s.layout !== prev.layout;
     if (p && (live || s.prefs !== prev.prefs)) {
       const layout = s.review?.mode === "multi" ? s.layout : s.prefs.multi;

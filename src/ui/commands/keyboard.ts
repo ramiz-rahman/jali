@@ -135,22 +135,52 @@ export function createKeyHandler(store: UiStore): KeyHandler {
   };
 }
 
-export function installKeyboard(store: UiStore, target: Window = window): () => void {
+export interface KeyboardScope {
+  /** Where the listeners go. Default: window. */
+  target?: Window;
+  /**
+   * The workspace's root element. Given, this workspace takes only keys from inside it, and keys with nothing focused
+   * (the page body) while it was the last place focus was: two workspaces on one page never both act on a key.
+   * Omitted, it takes every key on the page (one workspace per page).
+   */
+  root?: () => Element | null;
+}
+
+export function installKeyboard(store: UiStore, { target = window, root }: KeyboardScope = {}): () => void {
   const keys = createKeyHandler(store);
+  let active = false;
+  const mine = (e: KeyboardEvent) => {
+    if (!root) return true;
+    const el = root(), t = e.target as Node | null;
+    if (!el) return false;
+    if (t && el.contains(t)) return true;
+    return active && (!t || t === target.document.body || t === target.document.documentElement);
+  };
+  // A click on something unfocusable inside the workspace counts as being there, as focus moving in does.
+  const onFocus = (e: Event) => {
+    const el = root?.();
+    if (el) active = el.contains(e.target as Node);
+  };
   const take = (e: KeyboardEvent) => {
     e.preventDefault();
     e.stopPropagation();
   };
   const onCapture = (e: KeyboardEvent) => {
-    if (keys.capture(e)) take(e);
+    if (mine(e) && keys.capture(e)) take(e);
   };
   const onBubble = (e: KeyboardEvent) => {
-    if (keys.bubble(e)) take(e);
+    if (mine(e) && keys.bubble(e)) take(e);
   };
   target.addEventListener("keydown", onCapture, true);
   target.addEventListener("keydown", onBubble);
+  if (root) {
+    target.addEventListener("focusin", onFocus, true);
+    target.addEventListener("pointerdown", onFocus, true);
+  }
   return () => {
     target.removeEventListener("keydown", onCapture, true);
     target.removeEventListener("keydown", onBubble);
+    target.removeEventListener("focusin", onFocus, true);
+    target.removeEventListener("pointerdown", onFocus, true);
   };
 }

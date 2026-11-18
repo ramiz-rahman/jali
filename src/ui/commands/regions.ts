@@ -9,9 +9,9 @@ import { msg } from "../state/messages";
 import type { UiStore } from "../state/store";
 
 /** Host regions in document order, on screen only. */
-function hostRegions(): HTMLElement[] {
+function hostRegions(root: ParentNode): HTMLElement[] {
   if (typeof document === "undefined") return [];
-  return [...document.querySelectorAll<HTMLElement>("[data-pane-region]")].filter((el) => el.getClientRects().length > 0);
+  return [...root.querySelectorAll<HTMLElement>("[data-pane-region]")].filter((el) => el.getClientRects().length > 0);
 }
 
 function focusRegion(el: HTMLElement) {
@@ -19,8 +19,8 @@ function focusRegion(el: HTMLElement) {
 }
 
 export function cycleRegions(store: UiStore, back: boolean): void {
-  const shelf = shownShelf();
-  const extra = hostRegions();
+  const shelf = shownShelf(store.dom);
+  const extra = hostRegions(store.dom.root());
   const stops: { el: HTMLElement; enter(): void }[] = [
     ...(shelf ? [{ el: shelf, enter: () => { focusShelf(shelf); store.announce(msg.shelf); } }] : []),
     ...extra.map((el) => ({ el, enter: () => focusRegion(el) })),

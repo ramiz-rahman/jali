@@ -5,7 +5,7 @@
  */
 import * as core from "../../layout-core";
 import type { Layout, LayoutContext, NodeId, ObjectRef, UndoEntry, ViewState } from "../../layout-core/types";
-import { kindRegistry, onKindsChange, type PaneActivity } from "../pane-kinds";
+import type { PaneActivity, PaneKinds } from "../pane-kinds";
 import { DEFAULT_PRESET, presetById, type PresetId } from "../presets";
 import { GAP, initialArea } from "../tokens";
 import { bindActions, type Actions } from "../actions";
@@ -13,7 +13,7 @@ import { apply, type Deferred, type HistoryMode, type Outcome, type Snapshot, ty
 import { modelCache, type WorkspaceModel } from "./model";
 import { loadSettings, systemPrefersDark, type Settings } from "./settings";
 import { loadPrefs, type ReviewPrefs } from "./review-prefs";
-import { getProfile, type ViewMode } from "../profile";
+import type { Env, ViewMode, WorkspaceProfile } from "../profile";
 import { createKeymap, type Keymap, type KeymapOptions, type KeymapOverrides } from "../commands/keymap";
 
 /** A drag in progress. `label` names a view dragged from a page's tabs, which may not be on screen. */
@@ -73,9 +73,15 @@ export interface UiState {
 export interface UrlWriter { write(state: () => UiState, mode: HistoryMode): void }
 
 export interface UiStoreDeps {
+  /** This workspace's pane kinds (createPaneKinds). */
+  kinds: PaneKinds;
+  /** The curated page this workspace can show (ui/profile.ts). Default: none. */
+  profile?: WorkspaceProfile | null;
   url?: UrlWriter;
-  /** Moves DOM focus into a pane after the next paint (dom/focus.ts). */
-  focusPane?: (id: NodeId) => void;
+  /** Moves DOM focus into a pane after the next paint (dom/focus.ts), looking inside the workspace's root. */
+  focusPane?: (scope: WorkspaceDom, id: NodeId) => void;
+  /** Prefix for this workspace's DOM ids. Give each workspace on one page its own. Default "jali". */
+  id?: string;
   initial?: Partial<UiState>;
   /** A focus or swap op moved something (layout stability, state/apply.ts). Default: reported in development. */
   unstable?: (op: string, before: string, after: string) => void;
@@ -102,15 +108,45 @@ export interface UiStore {
   actions: Actions;
   /** Keys → command ids, resolved once from the defaults and `deps.keymap`. */
   keymap: Keymap;
+  /** The pane kinds and profile this store was made with. */
+  env: Env;
+  /** Where this workspace lives in the DOM. */
+  dom: WorkspaceDom;
+}
+
+/**
+ * A workspace's place in the DOM: the id prefix of its elements, and the element that holds it (its app shell), set
+ * by the component that renders it. DOM lookups (focus, drag, F6 regions) search inside `root()` only.
+ */
+export interface WorkspaceDom {
+  id: string;
+  /** The workspace's root element; the document until one is attached. */
+  root(): ParentNode;
+  attach(el: Element | null): void;
+  /** The element with this workspace's pane id `id`, if rendered. */
+  pane(id: NodeId): HTMLElement | null;
+}
+
+function createDom(id: string): WorkspaceDom {
+  let el: Element | null = null;
+  const root = (): ParentNode => el ?? document;
+  return {
+    id,
+    root,
+    attach: (next) => { el = next; },
+    pane: (pane) => (typeof document === "undefined" ? null : root().querySelector<HTMLElement>(`[id="${id}-pane-${pane}"]`)),
+  };
 }
 
 const DEV = !!(import.meta as unknown as { env?: { DEV?: boolean } }).env?.DEV;
 
-export function createUiStore(deps: UiStoreDeps = {}): UiStore {
+export function createUiStore(deps: UiStoreDeps): UiStore {
+  const env: Env = { kinds: deps.kinds, profile: deps.profile ?? null };
+  const dom = createDom(deps.id ?? "jali");
   let state: UiState = {
     layout: presetById(DEFAULT_PRESET).build(),
     review: null,
-    prefs: loadPrefs(getProfile()?.id, kindRegistry()),
+    prefs: loadPrefs(env.profile?.id, env.kinds.registry()),
     view: { focusHistory: [] },
     presetId: DEFAULT_PRESET,
     settings: loadSettings(),
@@ -132,7 +168,7 @@ export function createUiStore(deps: UiStoreDeps = {}): UiStore {
   };
   const subs = new Set<() => void>();
   const notify = () => { for (const fn of subs) fn(); };
-  onKindsChange(notify);
+  env.kinds.onChange(notify);
   const toastFns = new Set<(t: Toast) => void>();
   const pendingToasts: Toast[] = [];
   const models = modelCache();
@@ -145,7 +181,7 @@ export function createUiStore(deps: UiStoreDeps = {}): UiStore {
     timers.set(d.key, setTimeout(() => { timers.delete(d.key); store.apply(run(store.snapshot())); }, d.ms));
   };
 
-  const ctx = (): LayoutContext => ({ fit: { ...state.area, gap: GAP, kinds: kindRegistry() }, paneCap: state.settings.paneCap });
+  const ctx = (): LayoutContext => ({ fit: { ...state.area, gap: GAP, kinds: env.kinds.registry() }, paneCap: state.settings.paneCap });
 
   const store: UiStore = {
     get: () => state,
@@ -155,7 +191,7 @@ export function createUiStore(deps: UiStoreDeps = {}): UiStore {
       // Size and cap changes come from outside the layout, so they refit it. Link arrivals refit where they land.
       const resized = prev.area.width !== state.area.width || prev.area.height !== state.area.height;
       const recapped = prev.settings.paneCap !== state.settings.paneCap;
-      const known = kindRegistry();
+      const known = env.kinds.registry();
       if ((resized || recapped) && core.tree.panes(state.layout.root).every((p) => known[p.ref.kind])) {
         const layout = core.refit(state.layout, state.view, ctx());
         if (layout !== state.layout) state = { ...state, layout };
@@ -166,9 +202,9 @@ export function createUiStore(deps: UiStoreDeps = {}): UiStore {
       subs.add(fn);
       return () => subs.delete(fn);
     },
-    model: () => models({ layout: state.layout, view: state.view, area: state.area, ctx: ctx() }),
+    model: () => models({ layout: state.layout, view: state.view, area: state.area, ctx: ctx(), env }),
     ctx,
-    snapshot: () => ({ s: state, m: store.model(), ctx: ctx() }),
+    snapshot: () => ({ s: state, m: store.model(), ctx: ctx(), env }),
     apply: (o) => apply(io, o),
     announce: (text) => store.set({ announcement: { text, seq: state.announcement.seq + 1 } }),
     writeUrl: (mode) => deps.url?.write(store.get, mode),
@@ -180,6 +216,8 @@ export function createUiStore(deps: UiStoreDeps = {}): UiStore {
     },
     actions: undefined as unknown as Actions,
     keymap: createKeymap(deps.keymap, deps.keymapOptions),
+    env,
+    dom,
   };
   const io = {
     get: store.get,
@@ -188,7 +226,7 @@ export function createUiStore(deps: UiStoreDeps = {}): UiStore {
     url: store.writeUrl,
     announce: store.announce,
     toast: store.toast,
-    focus: (id: NodeId) => deps.focusPane?.(id),
+    focus: (id: NodeId) => deps.focusPane?.(dom, id),
     defer,
     unstable: deps.unstable ?? (DEV ? (op: string) => console.error(`Layout stability: "${op}" is a focus or swap op but moved panes`) : undefined),
   };

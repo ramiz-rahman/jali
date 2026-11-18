@@ -35,7 +35,7 @@ export function DividerLayer() {
             total={g.total}
             labelA={g.a.label}
             labelB={g.b.label}
-            controls={g.a.ids.map(paneDomId).join(" ")}
+            controls={g.a.ids.map((id) => paneDomId(store.dom.id, id)).join(" ")}
             onDragStart={(e) => startDividerDrag(store, line.current, e, d.parentId, d.index)}
             setSizeA={(size) => isDividerDragging() || actions.setDividerSize(d.parentId, d.index, size)}
             onReset={() => actions.resetDivider(d.parentId, d.index)}

@@ -3,15 +3,12 @@
  * (a swap: no rect changes), with the URL replaced; a pinned detail stays; Space shows the row in the detail.
  */
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { registerAllPaneKinds } from "../panes";
-import { registerLoanReview } from "../review";
 import type { ObjectRef, PaneNode } from "../layout-core/types";
 import { FOLLOW_MS } from "./actions/follow";
 import { geometryOf, type HistoryMode } from "./state/apply";
-import { createUiStore, type UiStore } from "./state/store";
+import { createLabStore } from "../lab";
+import type { UiStore } from "./state/store";
 
-registerAllPaneKinds();
-registerLoanReview();
 
 let store: UiStore;
 let breaches: string[];
@@ -25,7 +22,7 @@ beforeEach(() => {
   localStorage.clear();
   breaches = [];
   urls = [];
-  store = createUiStore({ unstable: (op) => breaches.push(op), url: { write: (_s, mode) => urls.push(mode) }, initial: { area: { width: 1600, height: 800 } } });
+  store = createLabStore({ unstable: (op) => breaches.push(op), url: { write: (_s, mode) => urls.push(mode) }, initial: { area: { width: 1600, height: 800 } } });
   store.actions.preset("order-chain");
   store.actions.focus("orders");
   urls = [];

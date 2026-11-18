@@ -1,8 +1,7 @@
 import { memo, useMemo, type CSSProperties } from "react";
 import { GripHorizontal } from "lucide-react";
 import { paneDomId, paneTitleId } from "../dom/ids";
-import { paneTitle } from "../pane-kinds";
-import { getProfile, roleOf, titleOf } from "../profile";
+import { roleOf, titleOf } from "../profile";
 import { useStore, useUi } from "../state/react";
 import { startPaneDrag } from "../workspace/dnd";
 import { DropZoneLabel } from "../workspace/DropIndicator";
@@ -29,11 +28,11 @@ export const PaneFrame = memo(function PaneFrame({ frame, chrome, dropTarget }: 
   // and offers nothing (no grip, tuck, maximise or close) that a keyboard user could land on unseen.
   const bare = useUi((s) => s.review?.mode === "single");
   const boundary = useUi((s) => s.settings.boundary);
-  const profile = getProfile();
+  const env = store.env, profile = env.profile;
   const role = review && node.role && profile ? roleOf(profile, node.role) : undefined;
   // In a curated workspace, a pane without a role was opened by following a link: it belongs to the investigation.
   const opened = review && !node.role;
-  const title = titleOf(node);
+  const title = titleOf(env, node);
   const style: CSSProperties = { left: rect.x, top: rect.y, width: rect.width, height: rect.height, display: hidden ? "none" : undefined };
   const cls = ["pane", !chrome.island && "is-single", focused && "is-focused", zoomed && "is-zoomed", isDragged && "is-dragged", dropTarget && "is-drop-target"]
     .filter(Boolean)
@@ -41,9 +40,9 @@ export const PaneFrame = memo(function PaneFrame({ frame, chrome, dropTarget }: 
 
   return (
     <section
-      id={paneDomId(node.id)}
+      id={paneDomId(store.dom.id, node.id)}
       role="region"
-      aria-labelledby={paneTitleId(node.id)}
+      aria-labelledby={paneTitleId(store.dom.id, node.id)}
       tabIndex={-1}
       data-pane={node.id}
       data-kind={node.ref.kind}
@@ -76,8 +75,8 @@ export const PaneFrame = memo(function PaneFrame({ frame, chrome, dropTarget }: 
         ) : (
           <div className="pane-title">
             {role ? <role.icon size={16} strokeWidth={1.5} aria-hidden /> : <KindIcon kind={node.ref.kind} />}
-            <h2 id={paneTitleId(node.id)}>{title}</h2>
-            {role && paneTitle(node.ref) !== title ? <span className="pane-sub">{paneTitle(node.ref)}</span> : null}
+            <h2 id={paneTitleId(store.dom.id, node.id)}>{title}</h2>
+            {role && env.kinds.title(node.ref) !== title ? <span className="pane-sub">{env.kinds.title(node.ref)}</span> : null}
             <Activity a={activity} />
             {bare ? null : <FollowControl node={node} title={title} />}
             {opened && boundary === "tint" ? <span className="badge badge-opened">Opened</span> : null}

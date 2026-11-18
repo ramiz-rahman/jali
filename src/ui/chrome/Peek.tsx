@@ -5,7 +5,6 @@ import { formatChord } from "../commands/format";
 import type { Presentation } from "../pane/chrome";
 import { KindIcon } from "../pane/icons";
 import { PaneBody, peekHost } from "../pane/PaneBody";
-import { paneTitle } from "../pane-kinds";
 import { useStore, useUi } from "../state/react";
 
 export const PEEK_WIDTH = 480;
@@ -33,7 +32,7 @@ export function Peek({ presentation }: { presentation: Presentation }) {
   if (!ref) return null;
   // The sheet's content is not a pane in the layout: it has a node of its own, outside the tree.
   const node: PaneNode = { id: "peek", type: "pane", size: { weight: 1 }, ref };
-  const title = paneTitle(ref);
+  const title = store.env.kinds.title(ref);
   const { actions } = store;
   return (
     <aside

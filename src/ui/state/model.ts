@@ -5,8 +5,7 @@
  */
 import * as core from "../../layout-core";
 import type { Layout, LayoutContext, NodeId, PaneNode, ResolvedLayout, ShelfEntry, StackNode, TuckRecord, ViewState } from "../../layout-core/types";
-import { kindsVersion } from "../pane-kinds";
-import { titleOf } from "../profile";
+import { titleOf, type Env } from "../profile";
 
 /** A tab group as the frame shows it: a deliberate stack, or a fold or tuck group made by resolve. */
 export interface Group {
@@ -17,6 +16,8 @@ export interface Group {
 }
 
 export interface WorkspaceModel {
+  /** The pane kinds and profile it was built with. */
+  env: Env;
   layout: Layout;
   /** Boxes, dividers, groups and shelf, zoom-aware. */
   resolved: ResolvedLayout;
@@ -53,9 +54,10 @@ export interface ModelInput {
   view: ViewState;
   area: { width: number; height: number };
   ctx: LayoutContext;
+  env: Env;
 }
 
-export function buildModel({ layout, view, area, ctx }: ModelInput): WorkspaceModel {
+export function buildModel({ layout, view, area, ctx, env }: ModelInput): WorkspaceModel {
   const resolved = core.resolve(layout, view, ctx);
   const flat = view.zoomed ? core.resolve(layout, core.tree.unzoom(view), ctx) : resolved;
   const panes = core.tree.panes(layout.root);
@@ -66,7 +68,7 @@ export function buildModel({ layout, view, area, ctx }: ModelInput): WorkspaceMo
   const stackOf = (id: NodeId | undefined) => (id ? core.tree.stackOf(layout.root, id) : undefined);
   const title = (id: NodeId | undefined) => {
     const p = id ? byId.get(id) : undefined;
-    return p ? titleOf(p) : "pane";
+    return p ? titleOf(env, p) : "pane";
   };
 
   const groups = new Map<NodeId, Group>();
@@ -94,7 +96,7 @@ export function buildModel({ layout, view, area, ctx }: ModelInput): WorkspaceMo
   });
 
   return {
-    layout, resolved, flat, panes, title, tuckOf, stackOf, shelf, groups,
+    layout, env, resolved, flat, panes, title, tuckOf, stackOf, shelf, groups,
     pane: (id) => (id ? byId.get(id) : undefined),
     visible: shown(resolved),
     flatVisible: shown(flat),
@@ -113,7 +115,7 @@ export function buildModel({ layout, view, area, ctx }: ModelInput): WorkspaceMo
 export function modelCache() {
   let last: { key: unknown[]; model: WorkspaceModel } | null = null;
   return (input: ModelInput): WorkspaceModel => {
-    const key = [input.layout, input.view.zoomed, input.area.width, input.area.height, kindsVersion(), input.ctx.paneCap];
+    const key = [input.layout, input.view.zoomed, input.area.width, input.area.height, input.env.kinds.version(), input.env.profile, input.ctx.paneCap];
     if (last && key.every((k, i) => k === last!.key[i])) return last.model;
     last = { key, model: buildModel(input) };
     return last.model;

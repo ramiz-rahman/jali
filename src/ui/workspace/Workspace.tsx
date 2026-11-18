@@ -1,6 +1,6 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { besidePreview } from "../actions/review";
-import { getProfile, roleOf } from "../profile";
+import { roleOf } from "../profile";
 import { PaneSwitcher } from "../chrome/PaneSwitcher";
 import { Peek } from "../chrome/Peek";
 import { DividerLayer } from "../dividers/DividerLayer";
@@ -74,7 +74,7 @@ function Ghost({ role }: { role: string }) {
   const m = useModel();
   const preview = useMemo(() => besidePreview(store.snapshot(), role), [store, role, m]);
   if (!preview) return null;
-  const p = getProfile()!;
+  const p = store.env.profile!;
   const name = (id: string) => roleOf(p, id)?.label ?? m.title(id);
   const box = (r: { x: number; y: number; width: number; height: number }) => ({ left: r.x, top: r.y, width: r.width, height: r.height });
   const leaving = preview.leaving.length ? ` · ${preview.leaving.map(name).join(", ")} back to the tabs` : "";
@@ -101,7 +101,7 @@ function DragChip({ x, y, label }: { x: number; y: number; label: string }) {
     const fits = o.left + x + 12 + chip.offsetWidth <= document.documentElement.clientWidth - 4;
     const left = fits ? x + 12 : Math.max(-o.left + 4, x - 12 - chip.offsetWidth);
     let top = y + 12;
-    const lab = document.querySelector(".drop-label")?.getBoundingClientRect();
+    const lab = host.querySelector(".drop-label")?.getBoundingClientRect();
     if (lab) {
       const c = { l: o.left + left, t: o.top + top, r: o.left + left + chip.offsetWidth, b: o.top + top + chip.offsetHeight };
       if (c.l < lab.right && c.r > lab.left && c.t < lab.bottom && c.b > lab.top) top = lab.bottom - o.top + 8;
@@ -124,7 +124,7 @@ export function Workspace() {
   useSingleView(store, m, view, measured);
   useFoldAnnouncements(store, m, area);
   // Keep DOM focus on the focused pane after structural changes (focus is never lost).
-  useEffect(() => keepPaneFocus(view.focused), [view.focused, m.layout]);
+  useEffect(() => keepPaneFocus(store.dom, view.focused), [view.focused, m.layout]);
 
   const single = m.single;
   // A curated page in Single mode shows one view under its tabs: the tabs name it, so the pane has no header.

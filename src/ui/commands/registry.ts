@@ -103,7 +103,7 @@ export function copyLink(store: UiStore) {
 export function revealFromShelf(store: UiStore) {
   const { m } = store.snapshot();
   const items = m.resolved.shelf;
-  if (items.length > 1 && focusShelfChip()) return store.announce(msg.shelfChoose(items.length));
+  if (items.length > 1 && focusShelfChip(store.dom)) return store.announce(msg.shelfChoose(items.length));
   const first = items.find((i) => m.tuckOf(i.paneId)) ?? items[0];
   if (first) store.actions.reveal(first.paneId);
 }

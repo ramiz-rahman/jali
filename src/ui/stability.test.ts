@@ -3,20 +3,17 @@
  * reports any focus or swap op whose rects changed; the test also compares the geometry itself.
  */
 import { beforeEach, describe, expect, it } from "vitest";
-import { registerAllPaneKinds } from "../panes";
-import { registerLoanReview } from "../review";
 import { geometryOf } from "./state/apply";
-import { createUiStore, type UiStore } from "./state/store";
+import { createLabStore } from "../lab";
+import type { UiStore } from "./state/store";
 
-registerAllPaneKinds();
-registerLoanReview();
 
 let store: UiStore;
 let breaches: string[];
 beforeEach(() => {
   localStorage.clear();
   breaches = [];
-  store = createUiStore({ unstable: (op) => breaches.push(op), initial: { area: { width: 1156, height: 644 } } });
+  store = createLabStore({ unstable: (op) => breaches.push(op), initial: { area: { width: 1156, height: 644 } } });
 });
 const geometry = () => geometryOf(store.model());
 /** Run `step` and expect nothing on screen to move. */

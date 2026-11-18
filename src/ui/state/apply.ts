@@ -14,6 +14,7 @@
  * or cancels it). The store runs it after `ms` against the state at that moment. Linked selection uses it: a list's
  * detail follows the selection once it rests (actions/follow.ts).
  */
+import type { Env } from "../profile";
 import type { Layout, LayoutContext, NodeId, UndoEntry, ViewState } from "../../layout-core/types";
 import type { WorkspaceModel } from "./model";
 import type { UiState } from "./store";
@@ -24,6 +25,8 @@ export interface Snapshot {
   s: UiState;
   m: WorkspaceModel;
   ctx: LayoutContext;
+  /** The workspace's pane kinds and profile. */
+  env: Env;
 }
 
 export type HistoryMode = "push" | "replace" | "debounce" | "none";

@@ -6,7 +6,7 @@ import type { Outcome, Snapshot } from "../state/apply";
 import { msg } from "../state/messages";
 import { withRecent } from "./open";
 
-export function preset({ s, ctx }: Snapshot, id: PresetId): Outcome {
+export function preset({ s, ctx, env }: Snapshot, id: PresetId): Outcome {
   const p = presetById(id);
   const built = p.build();
   const initial = core.tree.panes(built.root)[0]?.id;
@@ -14,7 +14,7 @@ export function preset({ s, ctx }: Snapshot, id: PresetId): Outcome {
   const panes = core.tree.panes(layout.root);
   const first = panes[0]?.id;
   const view: ViewState = first ? { focused: first, focusHistory: [first] } : { focusHistory: [] };
-  const recent = withRecent(s.recent, panes.map((p) => p.ref).reverse());
+  const recent = withRecent(env.kinds, s.recent, panes.map((p) => p.ref).reverse());
   return { op: "preset", layout, view, msg: msg.preset(p.label), patch: { presetId: id, peekSource: undefined, resizeMode: null, recent } };
 }
 

@@ -1,6 +1,9 @@
 /** React access to the store: one provider, and hooks that subscribe to exactly what a component reads. */
 import { createContext, useContext, useSyncExternalStore, type ReactNode } from "react";
 import type { Actions } from "../actions";
+import type { Env, WorkspaceProfile } from "../profile";
+import type { PaneNode } from "../../layout-core/types";
+import { titleOf } from "../profile";
 import type { WorkspaceModel } from "./model";
 import type { UiState, UiStore } from "./store";
 
@@ -28,3 +31,13 @@ export function useModel(): WorkspaceModel {
 }
 
 export const useActions = (): Actions => useStore().actions;
+
+/** This workspace's pane kinds and profile. */
+export const useEnv = (): Env => useStore().env;
+/** The curated page profile, when the workspace has one. */
+export const useProfile = (): WorkspaceProfile | null => useStore().env.profile;
+/** A pane's name: its role's label in a curated page, else its kind's title for what it shows. */
+export function useTitleOf(): (node: PaneNode) => string {
+  const env = useEnv();
+  return (node) => titleOf(env, node);
+}

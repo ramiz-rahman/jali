@@ -49,7 +49,7 @@ function startDrag(store: UiStore, e: ReactPointerEvent, { id: paneId, label, fr
   let started = false;
   const handle = { dragged: () => started };
   if (e.button !== 0) return handle;
-  const workspace = (e.currentTarget as HTMLElement).closest<HTMLElement>(".workspace") ?? document.querySelector<HTMLElement>(".workspace");
+  const workspace = (e.currentTarget as HTMLElement).closest<HTMLElement>(".workspace") ?? store.dom.root().querySelector<HTMLElement>(".workspace");
   const sx = e.clientX, sy = e.clientY;
 
   const local = (cx: number, cy: number) => {

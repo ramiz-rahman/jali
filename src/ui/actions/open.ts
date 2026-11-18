@@ -1,6 +1,6 @@
 import * as core from "../../layout-core";
 import type { NodeId, ObjectRef, PaneNode, ViewState } from "../../layout-core/types";
-import { identityOf, isRecordable, isTransient, paneTitle, sameObject, sameRecent } from "../pane-kinds";
+import type { PaneKinds } from "../pane-kinds";
 import { refuse, type Change, type Outcome, type Snapshot } from "../state/apply";
 import { peekSheet } from "./peek";
 import { goToRole, investigation, placeAfterArrangement, roleLabel, settleRoles } from "./review";
@@ -14,16 +14,16 @@ export const RECENT_MAX = 8;
 const unzoomed = core.tree.unzoom;
 
 /** Recent with `refs` added, newest first, without repeats or kinds that are not recordable. */
-export function withRecent(recent: ObjectRef[], refs: ObjectRef[]): ObjectRef[] {
+export function withRecent(kinds: PaneKinds, recent: ObjectRef[], refs: ObjectRef[]): ObjectRef[] {
   let out = recent;
-  for (const ref of refs) if (isRecordable(ref)) out = [ref, ...out.filter((r) => !sameRecent(r, ref))];
+  for (const ref of refs) if (kinds.isRecordable(ref)) out = [ref, ...out.filter((r) => !kinds.sameRecent(r, ref))];
   return out.slice(0, RECENT_MAX);
 }
 
 /** The pane already showing `ref`, other than `except`. Scratch kinds (no identity) never count. */
 export function openPaneFor(m: WorkspaceModel, ref: ObjectRef, except?: NodeId): PaneNode | undefined {
-  if (identityOf(ref) === undefined) return undefined;
-  return m.panes.find((p) => p.id !== except && sameObject(p.ref, ref));
+  if (m.env.kinds.identityOf(ref) === undefined) return undefined;
+  return m.panes.find((p) => p.id !== except && m.env.kinds.sameObject(p.ref, ref));
 }
 
 /**
@@ -34,8 +34,8 @@ export function openPaneFor(m: WorkspaceModel, ref: ObjectRef, except?: NodeId):
 export function openBeside(x: Snapshot, source: NodeId, ref: ObjectRef): Outcome {
   const { s, m, ctx } = x;
   // A curated page: in Single mode, or for a role that may not investigate, a link peeks. Opened panes gather after the layout.
-  if (s.review && !s.review.canInvestigate) return { ...peekSheet(x, ref, source), msg: msg.peekOnly(paneTitle(ref)) };
-  if (s.review?.mode === "single") return { ...peekSheet(x, ref, source), msg: msg.peekSingle(paneTitle(ref)) };
+  if (s.review && !s.review.canInvestigate) return { ...peekSheet(x, ref, source), msg: msg.peekOnly(m.env.kinds.title(ref)) };
+  if (s.review?.mode === "single") return { ...peekSheet(x, ref, source), msg: msg.peekSingle(m.env.kinds.title(ref)) };
   if (s.review) {
     // One object, one pane: a link to what is already on the page goes there (a view, whatever kind shows it).
     const dup = openPaneFor(m, ref);
@@ -63,8 +63,8 @@ export function openBeside(x: Snapshot, source: NodeId, ref: ObjectRef): Outcome
     opened = t.opened;
   }
   const pinned = !!core.tree.panes(layout.root).find((p) => p.id === opened)?.pinned && fromSelection;
-  const said = pinned && r.mode === "beside" ? msg.openedPinned(paneTitle(ref), m.title(source)) : msg.openedBeside(r.mode, paneTitle(ref), m.title(source));
-  return { op: "open", layout, view, msg: sent.length ? `${said} · ${msg.sentToTabs(sent.map(roleLabel))}` : said, patch: { recent: withRecent(s.recent, [ref]), ...review }, result: opened };
+  const said = pinned && r.mode === "beside" ? msg.openedPinned(m.env.kinds.title(ref), m.title(source)) : msg.openedBeside(r.mode, m.env.kinds.title(ref), m.title(source));
+  return { op: "open", layout, view, msg: sent.length ? `${said} · ${msg.sentToTabs(sent.map((id) => roleLabel(x.env.profile, id)))}` : said, patch: { recent: withRecent(m.env.kinds, s.recent, [ref]), ...review }, result: opened };
 }
 
 /** Split opens a launcher beside the pane, not a copy of it; focus moves in, because the person is about to choose. */
@@ -88,22 +88,22 @@ export function splitAuto(x: Snapshot): Outcome {
 export function openHere({ s, m, ctx }: Snapshot, id: NodeId, ref: ObjectRef): Outcome {
   const p = m.pane(id);
   if (!p) return null;
-  const patch = { recent: withRecent(s.recent, [ref]) };
+  const patch = { recent: withRecent(m.env.kinds, s.recent, [ref]) };
   const dup = openPaneFor(m, ref, id);
   if (dup) {
     let layout = s.layout, view = unzoomed(s.view);
-    if (isTransient(p.ref) && m.panes.length > 1) ({ layout, view } = core.close(layout, view, id, ctx));
+    if (m.env.kinds.isTransient(p.ref) && m.panes.length > 1) ({ layout, view } = core.close(layout, view, id, ctx));
     layout = core.reveal(layout, dup.id, ctx);
-    return { op: "focusExisting", layout, view: core.focus(view, dup.id, ctx), msg: msg.alreadyOpen(paneTitle(dup.ref)), patch, result: dup.id };
+    return { op: "focusExisting", layout, view: core.focus(view, dup.id, ctx), msg: msg.alreadyOpen(m.env.kinds.title(dup.ref)), patch, result: dup.id };
   }
   // Choosing in a launcher fills a placeholder: the chosen object settles to its own measure (a reshape), not the
   // placeholder's slot. Replacing a real object keeps the slot (a swap).
-  if (isTransient(p.ref)) {
+  if (m.env.kinds.isTransient(p.ref)) {
     const layout = core.setRef(s.layout, s.view, id, ref, ctx, { hold: false });
-    return { op: "openHere", geometry: "reshape", layout, view: core.focus(s.view, id, ctx), msg: msg.opened(paneTitle(ref)), patch, result: id };
+    return { op: "openHere", geometry: "reshape", layout, view: core.focus(s.view, id, ctx), msg: msg.opened(m.env.kinds.title(ref)), patch, result: id };
   }
   const layout = core.setRef(s.layout, s.view, id, ref, ctx);
-  return { op: "openHere", layout, view: core.focus(s.view, id, ctx), msg: msg.opened(paneTitle(ref)), patch, result: id };
+  return { op: "openHere", layout, view: core.focus(s.view, id, ctx), msg: msg.opened(m.env.kinds.title(ref)), patch, result: id };
 }
 
 /** Esc on an untouched launcher: close it without an undo toast; focus returns to where it came from. */
@@ -123,4 +123,4 @@ export function newTab({ s, m, ctx }: Snapshot, id = s.view.focused): Outcome {
 }
 
 /** Seed Recent with what is already on screen (boot, link open), reading order first. */
-export const noteOpen = ({ s }: Snapshot, refs: ObjectRef[]): Outcome => ({ op: "patch", patch: { recent: withRecent(s.recent, [...refs].reverse()) } });
+export const noteOpen = ({ s, env }: Snapshot, refs: ObjectRef[]): Outcome => ({ op: "patch", patch: { recent: withRecent(env.kinds, s.recent, [...refs].reverse()) } });

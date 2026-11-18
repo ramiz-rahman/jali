@@ -8,12 +8,12 @@ import { KindIcon } from "../pane/icons";
 import { FOLDED_DESC, FOLDED_TIP } from "../pane/tabState";
 import { titleOf } from "../profile";
 import type { WorkspaceModel } from "../state/model";
-import { useActions, useModel, useUi } from "../state/react";
+import { useActions, useModel, useStore, useUi } from "../state/react";
 import type { PaneActivity } from "../pane-kinds";
 
 function label(m: WorkspaceModel, it: ShelfEntry, a: PaneActivity | undefined) {
   const node = m.pane(it.paneId);
-  const title = node ? titleOf(node) : m.title(it.paneId);
+  const title = node ? titleOf(m.env, node) : m.title(it.paneId);
   const home = m.title(it.homeId);
   const word = shelfActivity(a)?.word;
   const folded = it.reason === "folded";
@@ -32,10 +32,11 @@ export function Shelf() {
   const items = useMemo(() => [...tuckedItems, ...foldedItems], [tuckedItems, foldedItems]);
   const activity = useUi((s) => s.activity);
   const actions = useActions();
+  const store = useStore();
   const putBackKeys = useShortcutSuffix("pane.putBack");
   const doReveal = (it: ShelfEntry) => {
     actions.reveal(it.paneId);
-    flashTab(it.paneId);
+    flashTab(store.dom, it.paneId);
   };
   const [focusId, setFocusId] = useState<string | null>(null);
   // The +N list (chips scrolled out of view) or, past FOLDED_CHIPS folded panes, the folded list behind one summary chip.

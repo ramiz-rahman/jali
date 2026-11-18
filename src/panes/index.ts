@@ -1,4 +1,4 @@
-import { registerPaneKind } from "../ui/pane-kinds";
+import type { PaneKindDef } from "../ui/pane-kinds";
 import { catalogKind } from "./kinds/catalog";
 import { tableKind } from "./kinds/table";
 import { recordKind } from "./kinds/record";
@@ -10,18 +10,7 @@ import { erKind } from "./kinds/er";
 import { launcherKind } from "./kinds/launcher";
 import { auditKind } from "./kinds/audit";
 
-let done = false;
-export function registerAllPaneKinds(): void {
-  if (done) return;
-  done = true;
-  registerPaneKind(catalogKind);
-  registerPaneKind(tableKind);
-  registerPaneKind(recordKind);
-  registerPaneKind(relatedKind);
-  registerPaneKind(queryKind);
-  registerPaneKind(chartKind);
-  registerPaneKind(structureKind);
-  registerPaneKind(erKind);
-  registerPaneKind(launcherKind);
-  registerPaneKind(auditKind);
-}
+/** Data Studio's pane kinds. */
+export const dataStudioKinds: readonly PaneKindDef[] = [
+  catalogKind, tableKind, recordKind, relatedKind, queryKind, chartKind, structureKind, erKind, launcherKind, auditKind,
+];

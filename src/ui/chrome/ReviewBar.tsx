@@ -1,8 +1,7 @@
 import { useEffect, useRef, type KeyboardEvent } from "react";
 import { Columns2, RotateCcw, Square, Undo2 } from "lucide-react";
 import { investigation } from "../actions/review";
-import { getProfile } from "../profile";
-import { useModel, useStore, useUi } from "../state/react";
+import { useModel, useStore, useUi, useProfile } from "../state/react";
 import { Workspace } from "../workspace/Workspace";
 import { startTabDrag } from "../workspace/dnd";
 import { altClick } from "../commands/format";
@@ -15,7 +14,8 @@ export function ReviewBar() {
   const review = useUi((s) => s.review);
   const m = useModel();
   const { actions } = useStore();
-  if (!getProfile() || !review) return null;
+  const profile = useProfile();
+  if (!profile || !review) return null;
   const opened = investigation(m.panes).length;
   const multi = review.mode === "multi";
   return (
@@ -52,7 +52,7 @@ export function ReviewBar() {
  * marked focused, on screen or not, and dragging one into the panes places it there. ⌥-click opens a view beside.
  */
 function PageTabs() {
-  const p = getProfile()!;
+  const p = useProfile()!;
   const store = useStore();
   const { actions } = store;
   const review = useUi((s) => s.review)!;
@@ -116,7 +116,7 @@ function PageTabs() {
 
 /** The curated page: the queue at the left; the item's header, its tabs and the panes at the right. */
 export function ReviewPage() {
-  const p = getProfile()!;
+  const p = useProfile()!;
   const item = useUi((s) => s.review!.item);
   const { actions } = useStore();
   return (
@@ -133,7 +133,7 @@ export function ReviewPage() {
 
 /** Data Studio or a curated page: the lab shows both so the two control models can be compared. */
 export function AppSwitch() {
-  const p = getProfile();
+  const p = useProfile();
   const inReview = useUi((s) => !!s.review);
   const { actions } = useStore();
   if (!p) return <span className="brand-name">lab</span>;

@@ -2,8 +2,8 @@ import { memo, useMemo } from "react";
 import type { NodeId, ObjectRef, PaneNode } from "../../layout-core/types";
 import type { Actions } from "../actions";
 import { openPaneFor } from "../actions/open";
-import { getPaneKind, paneTitle, type PaneActivity, type PaneComponentProps, type PaneKindDef } from "../pane-kinds";
-import { useModel, useUi } from "../state/react";
+import { type PaneActivity, type PaneComponentProps, type PaneKindDef } from "../pane-kinds";
+import { useModel, useUi, useEnv } from "../state/react";
 import type { UiStore } from "../state/store";
 import { KindIcon } from "./icons";
 import { keyHint } from "../commands/format";
@@ -47,13 +47,13 @@ function WithSources({ def, props }: { def: PaneKindDef; props: Omit<PaneCompone
   const m = useModel();
   const isOpen = useMemo(() => (ref: ObjectRef) => !!openPaneFor(m, ref, props.node.id), [m, props.node.id]);
   const C = def.Component;
-  return <C {...props} recent={recent} isOpen={isOpen} KindIcon={KindIcon} titleFor={paneTitle} />;
+  return <C {...props} recent={recent} isOpen={isOpen} KindIcon={KindIcon} titleFor={m.env.kinds.title} />;
 }
 
 /** The pane's content. Memoised on what the kind actually sees, so divider drags don't re-render content. */
 export const PaneBody = memo(
   function PaneBody({ node, host, paused, focused, inPeek = false }: BodyProps) {
-    const def = getPaneKind(node.ref.kind);
+    const def = useEnv().kinds.get(node.ref.kind);
     if (!def) {
       return (
         <div className="pane-missing" role="alert">

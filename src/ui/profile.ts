@@ -11,7 +11,7 @@
  */
 import type { ComponentType } from "react";
 import type { Layout, ObjectRef, PaneNode } from "../layout-core/types";
-import { paneTitle } from "./pane-kinds";
+import type { PaneKinds } from "./pane-kinds";
 
 export interface RoleDef {
   id: string;
@@ -41,13 +41,17 @@ export interface WorkspaceProfile {
   Header: ComponentType<{ item: number }>;
 }
 
-let current: WorkspaceProfile | null = null;
-export function registerProfile(p: WorkspaceProfile): void { current = p; }
-export function getProfile(): WorkspaceProfile | null { return current; }
 export const roleOf = (p: WorkspaceProfile, id: string | undefined) => p.roles.find((r) => r.id === id);
 
 /** A pane's name: its role in a curated page ("Borrower"), else what it shows ("member 12"). */
-export function titleOf(node: PaneNode): string {
-  const role = node.role && current ? roleOf(current, node.role) : undefined;
-  return role?.label ?? paneTitle(node.ref);
+export function titleOf(env: Env, node: PaneNode): string {
+  const role = node.role && env.profile ? roleOf(env.profile, node.role) : undefined;
+  return role?.label ?? env.kinds.title(node.ref);
+}
+
+/** What a workspace is made of, beyond its state: its pane kinds and (a curated page) its profile. One per store. */
+export interface Env {
+  kinds: PaneKinds;
+  /** The curated page this workspace can show (`?app=review`); null for a workspace with none. */
+  profile: WorkspaceProfile | null;
 }
