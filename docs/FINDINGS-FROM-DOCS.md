@@ -25,7 +25,7 @@
 16. Done 19 Nov: `PaneKindBase.ref` is optional (docs say Jali never calls it). ~~**A kind's `ref` builder is required and never called.**~~
 17. Done 19 Nov: the pane host clears unsaved work when the content unmounts (or the kind changes); the lab and the docs samples drop their cleanup effect. ~~**Unsaved-work cleanup is boilerplate:** every pane calls `setUnsaved(null)` on unmount; the pane host could clear it.~~
 18. **Hosts can't bind keys to their own commands** though `KeymapOverrides` says they "may be bound too" (`keymap.ts:47`; `run()` only finds registry commands).
-19. **Parts take no `className`**, so the README's "a utility class on a part is enough" is not true; layered CSS rules on the jali-* classes are the way. Fix the README (or let parts take classes).
+19. Done 19 Nov: README fixed: parts take no `className`; style them with rules on the `jali-*` classes and state attributes (they win from a later layer). Recommended over a `className` on every part: the parts are internal and many, and attribute rules already cover state. ~~**Parts take no `className`**, so the README's "a utility class on a part is enough" is not true; layered CSS rules on the jali-* classes are the way. Fix the README (or let parts take classes).~~
 20. Done 19 Nov: documented in `<Jali>` (its comment and reference page): the shelf and a toaster are the host's. A minimal built-in toaster is deferred. ~~**The shelf and toasts are the host's job:** `<JaliView>` renders no shelf and no toaster, and Undo lives only in a toast. A minimal app gets neither. Consider shipping both (a minimal toaster) or saying it in `<Jali>`.~~
 
 ## Text
