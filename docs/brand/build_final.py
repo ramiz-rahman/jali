@@ -102,6 +102,8 @@ for name, mark in MARKS.items():
         word, end = wordmark(name, 64, VB[0] + VB[2] + 20, VB[1] + 78, c)
         w = end + 4 - VB[0]
         save(f"{d}/{name}-lockup{theme}.svg", svg((VB[0], VB[1], round(w, 1), VB[3]), mark(c, f"l{theme}") + word))
+        # Small lockup, for nav bars 16-32px tall: the small mark beside the same wordmark.
+        save(f"{d}/{name}-lockup-small{theme}.svg", svg((VB[0], VB[1], round(w, 1), VB[3]), mark(c, f"k{theme}", small=True) + word))
         # Stacked lockup: mark above, wordmark centred below.
         word2, end2 = wordmark(name, 46, 0, 0, c)
         cw = max(VB[2], end2) + 16

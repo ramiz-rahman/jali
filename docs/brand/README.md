@@ -10,7 +10,20 @@ Two sibling libraries, one bar system. `final/preview.png` shows every piece in 
 - Bars 5.54 wide on an 8.03 pitch, a 72-unit-wide silhouette; both marks share one 76 × 96 box, so they size alike.
 - Small versions (`*-mark-small`) for 16–48px: fewer, heavier bars on the same plan. The small Chakni is the disc and one drop, with no stream: at icon sizes a thick bar over a dot reads as "!".
 - Wordmark: Atkinson Hyperlegible Next SemiBold (OFL), outlined, tracked −2.5%; the j's descender is shortened to 82% so "jali" sits level. SemiBold, not Bold: the bars carry the weight, the type carries the voice.
-- Colour: ink `#111111` or white. No other colours yet.
+- Colour: the marks ship in ink `#111111` or white; each library also has a signature colour, used on its own ground. The two are near-complementary, and both are Bengali stories: tea and indigo.
+
+## Signature colours
+
+| | Chakni: Cha (brewed tea) | Jali: Nil (Bengal indigo) |
+|---|---|---|
+| Mark, fills | `#C2621A` | `#2B3990` |
+| Text and controls on white | `#9C4A12` (6.2:1) | `#4456C7` (6.2:1) |
+| On dark | `#E89A4E` | `#8C9BEA` |
+| Ground | milk `#F6EBDD` | stone `#EFEAE2` |
+
+- Keep Nil deep, never bright: it is ink-dyed cloth, not a tech purple.
+- Cha is fainter at 16px than Nil; Chakni's favicon uses the deeper `#9C4A12`.
+- The pane lab uses Nil as its accent (`--brand`, `--accent` in `src/ui/styles/tokens.css`) and Jali's favicon in Nil.
 
 ## Files (per library, in `final/<name>/`)
 
@@ -18,7 +31,8 @@ Two sibling libraries, one bar system. `final/preview.png` shows every piece in 
 |---|---|
 | `<name>-mark.svg`, `-white.svg` | The mark, 48px and up |
 | `<name>-mark-small.svg`, `-white.svg` | The mark, 16–48px |
-| `<name>-lockup.svg`, `-white.svg` | Mark and wordmark side by side: nav bars, README headers |
+| `<name>-lockup.svg`, `-white.svg` | Mark and wordmark side by side: README headers, 48px and up |
+| `<name>-lockup-small.svg`, `-white.svg` | The small mark and wordmark: nav bars, 16–32px |
 | `<name>-stacked.svg`, `-white.svg` | Mark above wordmark: docs home, posters |
 | `favicon.svg` | Browser tab; follows the system's light or dark mode |
 | `favicon-32.png`, `favicon-32-dark.png` | Fallback favicons |
