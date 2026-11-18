@@ -1,0 +1,640 @@
+---
+title: "@jali/core types"
+summary: Every type @jali/core exports, with its fields, and every workspace action.
+---
+
+import { Entry, Params, Param, Returns, Values, Value, Members, Member, Ref } from "../../../reference";
+
+Import any of these with `import type { … } from "@jali/core"`. Functions that use them are on [@jali/core](/reference/core) and [The layout namespace](/reference/core/layout).
+
+## The layout tree
+
+<Entry name="Layout" kind="type" from="@jali/core" signature={`interface Layout { version: 1; root: LayoutNode; overlay?: Overlay }`} compact>
+
+A workspace's arrangement: a tree of rows, columns and tab stacks of panes. The tree is the arrangement the person made; folds, tucks, tab choices and hidden panes are recorded in `overlay`, so they can be undone without losing a slot. This is what `?l=` holds.
+
+<Params title="Fields">
+<Param name="version" type="1" required>Always `1`.</Param>
+<Param name="root" type="LayoutNode" required>The top node. A single pane is a valid root.</Param>
+<Param name="overlay" type="Overlay">What the layout and the person did on top of the tree. Written by the operations; leave it out when you build a layout.</Param>
+</Params>
+
+</Entry>
+
+<Entry name="LayoutNode" kind="type" from="@jali/core" signature={`type LayoutNode = PaneNode | StackNode | SplitNode`} compact>
+
+One node of the tree. Every node has an `id` (unique in the layout), a `size`, and optionally `userSized` (the person dragged it) and `base` (the size a divider reset returns to).
+
+</Entry>
+
+<Entry name="PaneNode" kind="type" from="@jali/core" signature={`interface PaneNode { type: "pane"; id; size; ref: ObjectRef; … }`} compact>
+
+A pane: one object, shown by its kind's component.
+
+<Params title="Fields">
+<Param name="type" type={`"pane"`} required />
+<Param name="id" type="NodeId" required>Unique in the layout. In a curated page a role's pane id equals its role id.</Param>
+<Param name="size" type="Size" required>Its share of its split.</Param>
+<Param name="ref" type="ObjectRef" required>What it shows.</Param>
+<Param name="userSized" type="boolean">The person sized it with a divider.</Param>
+<Param name="base" type="Size">The size a divider reset returns to. Carried in the layout and the URL.</Param>
+<Param name="linkedTo" type="NodeId">The pane it was opened from. Closing that pane drops the link.</Param>
+<Param name="follows" type="boolean">It shows the object selected in `linkedTo` and changes in place when the selection moves. At most one per source and kind.</Param>
+<Param name="pinned" type="boolean">Kept by the person: never reused for another object, never following, the last to fold.</Param>
+<Param name="born" type="number">Its age, rising with each open; older panes fold first when over the cap. Panes without one come before new ones.</Param>
+<Param name="role" type="string">The view of a curated page it fills ("borrower"). Panes without a role were opened by the person.</Param>
+<Param name="priority" type={`"primary" | "supporting"`}>Supporting panes give way first when room runs out; a primary pane never folds while another can.</Param>
+</Params>
+
+</Entry>
+
+<Entry name="SplitNode" kind="type" from="@jali/core" signature={`interface SplitNode { type: "row" | "column"; id; size; children: LayoutNode[] }`} compact>
+
+Children side by side (`"row"`) or one above another (`"column"`), sharing the space by their sizes. Splits nobody sized share by the panes' comfortable and maximum widths; once the person sizes a child, the split keeps its proportions exactly.
+
+</Entry>
+
+<Entry name="StackNode" kind="type" from="@jali/core" signature={`interface StackNode { type: "stack"; id; size; children: PaneNode[]; active: NodeId; origin: "user" }`} compact>
+
+A tab group the person made (by merging, a centre drop or a new tab). Groups made by folding are not in the tree; they exist in `overlay`. `active` is the shown tab; `origin` is always `"user"`.
+
+</Entry>
+
+<Entry name="Size" kind="type" from="@jali/core" signature={`type Size = { px: number } | { weight: number }`} compact>
+
+A share of a split (`weight`, relative to the siblings) or a fixed length in pixels. Divider drags store weights.
+
+</Entry>
+
+<Entry name="NodeId" kind="type" from="@jali/core" signature={`type NodeId = string`} compact>
+
+A node's id.
+
+</Entry>
+
+<Entry name="ObjectRef" kind="type" from="@jali/core" signature={`interface ObjectRef { kind: string; params: Record<string, string | number> }`} compact>
+
+What a pane shows: a kind and the params that name the object (`{ kind: "order", params: { id: 1041 } }`). Params must be strings or finite numbers.
+
+</Entry>
+
+<Entry name="Axis" kind="type" from="@jali/core" signature={`type Axis = "row" | "column"`} compact>
+
+The direction of a split.
+
+</Entry>
+
+<Entry name="Edge" kind="type" from="@jali/core" signature={`type Edge = "left" | "right" | "top" | "bottom"`} compact>
+
+A side of a pane: where to open or drop.
+
+</Entry>
+
+<Entry name="Overlay" kind="type" from="@jali/core" signature={`interface Overlay { tucks; folds; shown; hidden? }`} compact>
+
+What sits on top of the tree. Written by the operations; read it, don't write it.
+
+<Params title="Fields">
+<Param name="tucks" type="{ pane: NodeId; home: NodeId; seq: number }[]" required>Panes tucked into another pane (their home), in order.</Param>
+<Param name="folds" type="NodeId[]" required>Slots folded for room, in order. The ids are opaque.</Param>
+<Param name="shown" type="Record<NodeId, NodeId>" required>The chosen tab of each folded or tucked group, keyed by the group's home pane.</Param>
+<Param name="hidden" type="NodeId[]">Panes taken off screen with no tab and no slot (a curated page's views in the tabs).</Param>
+</Params>
+
+</Entry>
+
+<Entry name="ViewState" kind="type" from="@jali/core" signature={`interface ViewState { focused?: NodeId; zoomed?: NodeId; peek?: ObjectRef; focusHistory: NodeId[] }`} compact>
+
+What the person is looking at, apart from the layout.
+
+<Params title="Fields">
+<Param name="focused" type="NodeId">The pane with workspace focus (the accent edge).</Param>
+<Param name="zoomed" type="NodeId">The maximised pane. In the URL as `zoom`.</Param>
+<Param name="peek" type="ObjectRef">What the peek sheet shows. In the URL as `peek`.</Param>
+<Param name="focusHistory" type="NodeId[]" required>Panes most recently focused first.</Param>
+</Params>
+
+</Entry>
+
+<Entry name="PaneKind" kind="type" from="@jali/core" signature={`interface PaneKind { kind; title(ref); minWidth; minHeight; comfortableWidth?; maxWidth? }`} compact>
+
+The part of a kind the layout operations read, from `kinds.registry()`. The sizes are explained under <Ref to="PaneKindBase" />.
+
+</Entry>
+
+<Entry name="KindRegistry" kind="type" from="@jali/core" signature={`type KindRegistry = Record<string, PaneKind>`} compact>
+
+Kinds by name, as the layout operations take them (`kinds.registry()`).
+
+</Entry>
+
+<Entry name="LayoutContext" kind="type" from="@jali/core" signature={`interface LayoutContext { fit: FitOptions; paneCap: number }`} compact>
+
+Everything a layout operation needs besides the layout: `store.ctx()`. `paneCap` is the most panes on screen before the oldest folds (the `paneCap` setting).
+
+</Entry>
+
+<Entry name="FitOptions" kind="type" from="@jali/core" signature={`interface FitOptions { width: number; height: number; gap: number; kinds: KindRegistry }`} compact>
+
+The room: the workspace's inner size in pixels, the gap between panes (6 in a store), and the kinds.
+
+</Entry>
+
+<Entry name="Rect" kind="type" from="@jali/core" signature={`interface Rect { x: number; y: number; width: number; height: number }`} compact>
+
+A box in pixels, relative to the workspace's inner area.
+
+</Entry>
+
+<Entry name="ResolvedLayout" kind="type" from="@jali/core" signature={`interface ResolvedLayout { panes: PaneBox[]; dividers: DividerBox[]; stacks; shelf }`} compact>
+
+What `layout.resolve` returns: `panes` and `dividers` with their rects; `stacks`, the groups made by folding and tucking (`{ id, kind: "fold" | "tuck", homeId, paneIds }`); and `shelf`, every pane behind a tab with why (`{ paneId, homeId, stackId, reason: "tucked" | "folded" | "tab" }`).
+
+</Entry>
+
+<Entry name="PaneBox" kind="type" from="@jali/core" signature={`interface PaneBox { id: NodeId; rect: Rect; stackId?: NodeId; hidden?: "tab" | "zoom" | "off" }`} compact>
+
+A pane's place. `hidden`: behind another tab, behind a maximised pane, or `"off"` (hidden by the overlay, with an empty rect).
+
+</Entry>
+
+<Entry name="DividerBox" kind="type" from="@jali/core" signature={`interface DividerBox {\n  parentId: NodeId; index: number; axis: Axis; rect: Rect;\n  min: number; max: number; value: number;\n  neighbours?: [NodeId[], NodeId[]];\n}`} compact>
+
+A divider between child `index` and `index + 1` of split `parentId`. `value` is the first side's length now; `min` and `max` are how far a drag can take it; `neighbours` are the panes on each side.
+
+</Entry>
+
+## Kinds and pages
+
+<Entry name="PaneKindBase" kind="type" from="@jali/core" signature={`interface PaneKindBase { kind; title; ref; minWidth; minHeight; … }`} compact>
+
+A kind without its view. In React, `PaneKindDef` adds `Component` and `icon`.
+
+<Params title="Fields">
+<Param name="kind" type="string" required>The kind's name, as in `ref.kind`.</Param>
+<Param name="title" type="(ref: ObjectRef) => string" required>The pane's title for an object.</Param>
+<Param name="ref" type={`(params: ObjectRef["params"]) => ObjectRef`} required>Makes a ref of this kind.</Param>
+<Param name="minWidth" type="number" required>The narrowest the content works at, once it adapts. Below it the pane folds into a tab; it is never squeezed past it.</Param>
+<Param name="minHeight" type="number" required>The same, for height.</Param>
+<Param name="comfortableWidth" type="number" default="minWidth">Where spare space takes the pane first, before any sibling grows past its own.</Param>
+<Param name="maxWidth" type="number" default="unbounded">The widest the content usefully uses. Spare space past it goes to siblings that can use it; only when every sibling is at its maximum does the pane grow on, and the content keeps its measure. Leave it out for tables and charts.</Param>
+<Param name="identity" type="(ref: ObjectRef) => unknown" default="every param, compared as text">What makes two refs the same object (one object, one pane). Return `undefined` for scratch space that is never matched against open panes.</Param>
+<Param name="object" type="string" default="the kind">The type of object shown, shared by kinds that show the same objects differently. Two refs are the same object when their object types and identities match.</Param>
+<Param name="transient" type="boolean">Stands in until the person chooses an object (the launcher): closes quietly, and gets Recent and the workspace's titles and icons.</Param>
+<Param name="recordable" type="boolean | ((ref: ObjectRef) => boolean)" default="true">Whether opened objects of this kind go in Recent.</Param>
+<Param name="heavy" type="boolean">Keeps its content still during a divider drag and reflows on release.</Param>
+</Params>
+
+</Entry>
+
+<Entry name="PaneKinds" kind="type" from="@jali/core" signature={`interface PaneKinds<D extends PaneKindBase = PaneKindBase>`} compact>
+
+A workspace's kinds, from <Ref to="createPaneKinds" page="/reference/core" />.
+
+<Members>
+<Member name="PaneKinds.register" signature="register(def: D): void">Adds or replaces a kind and bumps `version()`.</Member>
+<Member name="PaneKinds.get" signature="get(kind: string): D | undefined">The kind's definition.</Member>
+<Member name="PaneKinds.version" signature="version(): number">Bumped by every registration; caches of kind-derived values key on it.</Member>
+<Member name="PaneKinds.onChange" signature="onChange(l: () => void): () => void">Hear registrations. Returns the unsubscribe.</Member>
+<Member name="PaneKinds.registry" signature="registry(): KindRegistry">The framework-free view for the layout operations; the same object until the next registration.</Member>
+<Member name="PaneKinds.title" signature="title(ref: ObjectRef): string">The title, or the kind name for an unknown kind or a title that throws.</Member>
+<Member name="PaneKinds.identityOf" signature="identityOf(ref: ObjectRef): string | undefined">The ref's identity as text, `undefined` for scratch kinds.</Member>
+<Member name="PaneKinds.sameObject" signature="sameObject(a: ObjectRef, b: ObjectRef): boolean">Same object type and identity. Scratch refs are never the same object.</Member>
+<Member name="PaneKinds.sameRecent" signature="sameRecent(a: ObjectRef, b: ObjectRef): boolean">The same entry in Recent: same kind and identity (scratch kinds: same params).</Member>
+<Member name="PaneKinds.isRecordable" signature="isRecordable(ref: ObjectRef): boolean">The kind's `recordable`.</Member>
+<Member name="PaneKinds.isTransient" signature="isTransient(ref: ObjectRef): boolean">The kind's `transient`.</Member>
+</Members>
+
+</Entry>
+
+<Entry name="PaneCommand" kind="type" from="@jali/core" signature={`interface PaneCommand { id: string; title: string; run: () => void; keys?: string; disabled?: string | false }`} compact>
+
+A command a pane adds to the palette while it is focused (`setCommands`). `keys` is only a label: the content handles its own keys. `disabled` greys it out; its text is the reason.
+
+</Entry>
+
+<Entry name="PaneActivity" kind="type" from="@jali/core" signature={`type PaneActivity = "idle" | "loading" | "working" | "needs-you" | "error"`} compact>
+
+What a pane reports about itself (`setActivity`), shown in its header, its tab, the shelf and the status line. On the shelf, loading reads as working.
+
+</Entry>
+
+<Entry name="ProfileBase" kind="type" from="@jali/core" signature={`interface ProfileBase<R extends RoleBase = RoleBase>`} compact>
+
+A curated page about one item (a loan application), framework-free. In React, `WorkspaceProfile` adds the rail and header.
+
+<Params title="Fields">
+<Param name="id" type="string" required>What a link names: `?page=loan-review`.</Param>
+<Param name="name" type="string" required>The page's name, in titles and commands ("Back to Loan review").</Param>
+<Param name="itemNoun" type="string" required>The singular noun for an item ("application").</Param>
+<Param name="viewers" type="{ full: string; limited: string }">Who works with full access (links open beside, Multiplexed available) and who works in Single with links as a peek, in the person's words.</Param>
+<Param name="roles" type="R[]" required>The views, in tab order.</Param>
+<Param name="home" type="string" required>The view Single opens on.</Param>
+<Param name="build" type="(item: number) => Layout" required>Multiplexed's designed layout. Every role is in the tree; those not shown are hidden.</Param>
+<Param name="bind" type="(item: number) => Record<string, ObjectRef>" required>What each role shows for an item. Another item swaps these in place.</Param>
+<Param name="firstItem" type="number" required>The item the page opens on.</Param>
+</Params>
+
+</Entry>
+
+<Entry name="RoleBase" kind="type" from="@jali/core" signature={`interface RoleBase { id: string; label: string; priority: "primary" | "supporting" }`} compact>
+
+One view of a curated page. In React, `RoleDef` adds its icon.
+
+</Entry>
+
+<Entry name="ViewMode" kind="type" from="@jali/core" signature={`type ViewMode = "single" | "multi"`} compact>
+
+How a curated page is shown: one view at a time (Single) or side by side (Multiplexed). The person's choice, kept on their device and never in a link.
+
+</Entry>
+
+<Entry name="Preset" kind="type" from="@jali/core" signature={`interface Preset { id: string; label: string; build: () => Layout }`} compact>
+
+A layout to start from or switch to ("Layout: Orders"). `build` returns a fresh layout each time.
+
+</Entry>
+
+<Entry name="Env" kind="type" from="@jali/core" signature={`interface Env { kinds: PaneKinds; profile: ProfileBase | null; presets: readonly Preset[]; name: string }`} compact>
+
+What a workspace is made of besides its state: `store.env`.
+
+</Entry>
+
+## The store
+
+<Entry name="UiStore" kind="type" from="@jali/core" signature={`interface UiStore`} compact>
+
+A workspace, from <Ref to="createUiStore" page="/reference/core" />.
+
+<Members>
+<Member name="UiStore.get" signature="get(): UiState">The state now.</Member>
+<Member name="UiStore.set" signature="set(patch: Partial<UiState>): void">A raw write, for interaction state (dialogs, drag, area, settings). A change of `area` or `settings.paneCap` refits the layout.</Member>
+<Member name="UiStore.subscribe" signature="subscribe(fn: () => void): () => void">Hear every change. Returns the unsubscribe.</Member>
+<Member name="UiStore.model" signature="model(): WorkspaceModel">The derived model; the same object while nothing it depends on changed.</Member>
+<Member name="UiStore.ctx" signature="ctx(): LayoutContext">The context for layout operations: area, gap 6, kinds, pane cap.</Member>
+<Member name="UiStore.snapshot" signature="snapshot(): Snapshot">State, model, context and env together.</Member>
+<Member name="UiStore.apply" signature="apply(o: Outcome): NodeId | undefined">Commits an outcome. The bound `actions` call this.</Member>
+<Member name="UiStore.announce" signature="announce(text: string): void">Says something in the live region (a repeat is announced again).</Member>
+<Member name="UiStore.writeUrl" signature="writeUrl(mode: HistoryMode): void">Writes the address through `url`.</Member>
+<Member name="UiStore.toast" signature="toast(t: Toast): void">Sends a toast to whoever listens; kept until someone does.</Member>
+<Member name="UiStore.onToast" signature="onToast(fn: (t: Toast) => void): () => void">Render toasts. Toasts sent earlier arrive at once.</Member>
+<Member name="UiStore.actions" signature="actions: Actions">Every workspace action, bound.</Member>
+<Member name="UiStore.keymap" signature="keymap: Keymap">This store's keys.</Member>
+<Member name="UiStore.env" signature="env: Env">Its kinds, presets, profile and name.</Member>
+<Member name="UiStore.dom" signature="dom: WorkspaceDom">Where it lives in the DOM.</Member>
+<Member name="UiStore.storage" signature="storage: StoragePort">The storage it was made with.</Member>
+<Member name="UiStore.href" signature="href(): string">The address to share: `url.href()`, else `location.href`, else `""`.</Member>
+<Member name="UiStore.url" signature="url: UrlWriter | undefined">The `url` it was made with.</Member>
+</Members>
+
+</Entry>
+
+<Entry name="UiStoreDeps" kind="type" from="@jali/core" signature={`interface UiStoreDeps`} compact>
+
+The options of `createUiStore`. Each one, with its default, is under <Ref to="createUiStore" page="/reference/core" />.
+
+</Entry>
+
+<Entry name="UiState" kind="type" from="@jali/core" signature={`interface UiState`} compact>
+
+Everything a workspace holds. Read it with `store.get()` or `useUi(select)`. Change layout and focus through `actions`; write interaction fields with `store.set`.
+
+<Params title="Fields">
+<Param name="layout" type="Layout" required>The arrangement.</Param>
+<Param name="view" type="ViewState" required>Focus, maximise, peek.</Param>
+<Param name="page" type="PageState | null" required>The curated page in use, or `null` for the free workspace.</Param>
+<Param name="prefs" type="{ mode: ViewMode; multi: Layout | null }" required>The person's curated page mode and Multiplexed layout, kept on their device.</Param>
+<Param name="presetId" type="string | undefined" required>The preset last chosen; "Reset layout" rebuilds it.</Param>
+<Param name="settings" type="Settings" required>The person's settings.</Param>
+<Param name="systemDark" type="boolean" required>The system's colour preference, for the `"system"` theme.</Param>
+<Param name="undoStack" type="UndoEntry[]" required>Closes and tucks to undo, most recent last.</Param>
+<Param name="activity" type="Record<NodeId, PaneActivity>" required>What each pane reported.</Param>
+<Param name="peekSource" type="NodeId">The pane the peek acts for.</Param>
+<Param name="selection" type="Record<NodeId, Selection>" required>Each list pane's selected item.</Param>
+<Param name="dnd" type="{ dragged; x; y; target?; zone?; label? } | null" required>A drag in progress.</Param>
+<Param name="resizeMode" type="NodeId | null" required>The pane in keyboard resize mode.</Param>
+<Param name="paletteOpen" type="boolean" required>The command palette is open.</Param>
+<Param name="settingsOpen" type="boolean" required>Settings is open.</Param>
+<Param name="chooser" type={`{ kind: "merge"; source: NodeId } | null`} required>The "Add to tabs of…" chooser.</Param>
+<Param name="recent" type="ObjectRef[]" required>Objects opened this session, newest first, at most 8.</Param>
+<Param name="area" type="{ width: number; height: number }" required>The workspace's inner size; `<Workspace>` measures it.</Param>
+<Param name="reshapes" type="number" required>A count of layout changes that move panes; the workspace animates on a new one.</Param>
+<Param name="ghost" type="string | null" required>A page tab hovered with Alt held: the role whose placement is previewed.</Param>
+<Param name="unsaved" type="Record<NodeId, string>" required>Panes with unsaved work, and what it is.</Param>
+<Param name="confirm" type="{ panes: NodeId[]; change } | null" required>A change held until the person discards their work or keeps editing.</Param>
+<Param name="paneCommands" type="Record<NodeId, PaneCommand[]>" required>Each pane's palette commands.</Param>
+<Param name="paneState" type="Record<NodeId, Record<string, unknown>>" required>Each pane's own state (`usePaneState`), saved in storage.</Param>
+<Param name="announcement" type="{ text: string; seq: number }" required>The live region's text; `seq` makes a repeat new.</Param>
+</Params>
+
+</Entry>
+
+<Entry name="PageState" kind="type" from="@jali/core" signature={`interface PageState`} compact>
+
+A curated page in use.
+
+<Params title="Fields">
+<Param name="profile" type="string" required>The profile's id.</Param>
+<Param name="item" type="number" required>The item shown.</Param>
+<Param name="mode" type="ViewMode" required>Single or Multiplexed.</Param>
+<Param name="tab" type="string" required>The view Single shows (in Multiplexed, the last role focused).</Param>
+<Param name="before" type="Layout">The Multiplexed layout just before the first opened pane; "Back to …" returns to it.</Param>
+<Param name="canInvestigate" type="boolean" required>Links open beside (true) or only peek (false).</Param>
+</Params>
+
+</Entry>
+
+<Entry name="Selection" kind="type" from="@jali/core" signature={`interface Selection { ref: ObjectRef; inResults: boolean }`} compact>
+
+A list's selected item. `inResults: false`: the list's filter no longer shows it; the following detail keeps it.
+
+</Entry>
+
+<Entry name="WorkspaceDom" kind="type" from="@jali/core" signature={`interface WorkspaceDom { id: string; root(): ParentNode; attach(el: Element | null): void; pane(id: NodeId): HTMLElement | null }`} compact>
+
+A workspace's place in the DOM. `<Jali>` attaches its root element; until then `root()` is the document. DOM lookups (focus, drag, F6) search inside `root()` only.
+
+</Entry>
+
+<Entry name="UrlWriter" kind="type" from="@jali/core" signature={`interface UrlWriter { write(state: () => UiState, mode: HistoryMode): void; href?(): string }`} compact>
+
+Where a store writes its address. `write` gets a function, so a debounced write reads the latest state.
+
+</Entry>
+
+<Entry name="WorkspaceModel" kind="type" from="@jali/core" signature={`interface WorkspaceModel`} compact>
+
+What is on screen, derived once per change (`store.model()`, `useModel()`).
+
+<Params title="Fields">
+<Param name="resolved" type="ResolvedLayout" required>Boxes, dividers, groups and shelf, with the maximise applied.</Param>
+<Param name="flat" type="ResolvedLayout" required>The same as if nothing were maximised.</Param>
+<Param name="panes" type="PaneNode[]" required>Every pane in tree order.</Param>
+<Param name="pane" type="(id: NodeId | undefined) => PaneNode | undefined" required>A pane by id.</Param>
+<Param name="title" type="(id: NodeId | undefined) => string" required>A pane's name, or `"pane"` when there is none.</Param>
+<Param name="visible" type="NodeId[]" required>Panes on screen, reading order.</Param>
+<Param name="flatVisible" type="NodeId[]" required>The same as if nothing were maximised.</Param>
+<Param name="groups" type="Map<NodeId, Group>" required>Every tab group: `{ id, kind: "stack" | "fold" | "tuck", tabs, active }`.</Param>
+<Param name="stackOf" type="(id) => StackNode | undefined" required>The person's tab group holding a pane.</Param>
+<Param name="tuckOf" type="(id) => { pane; home; seq } | undefined" required>A pane's tuck.</Param>
+<Param name="shownWith" type="(id: NodeId) => NodeId" required>The pane on screen in the same group (itself when shown).</Param>
+<Param name="shelf" type="ShelfEntry[]" required>Tucked panes in tree order, with the pane each sits behind.</Param>
+<Param name="folded" type="NodeId[]" required>Panes folded for room.</Param>
+<Param name="off" type="NodeId[]" required>Panes hidden by the overlay.</Param>
+<Param name="onScreen" type="PaneNode[]" required>Every pane except hidden ones: what the phone's switcher lists.</Param>
+<Param name="single" type="boolean" required>Even one pane's minimum is wider than the room, so one pane shows at a time.</Param>
+<Param name="env" type="Env" required />
+<Param name="layout" type="Layout" required />
+</Params>
+
+</Entry>
+
+<Entry name="Snapshot" kind="type" from="@jali/core" signature={`interface Snapshot { s: UiState; m: WorkspaceModel; ctx: LayoutContext; env: Env }`} compact>
+
+What an action reads: `store.snapshot()`.
+
+</Entry>
+
+<Entry name="Outcome" kind="type" from="@jali/core" signature={`type Outcome = Change | Refusal | null | undefined | ((x: Snapshot) => Outcome) | Outcome[]`} compact>
+
+What an action decides, for `store.apply`: a change, a refusal, nothing, a step computed from the state the previous step left, or several in order.
+
+</Entry>
+
+<Entry name="Refusal" kind="type" from="@jali/core" signature={`interface Refusal { op: "refused"; msg?: string }`} compact>
+
+An action or command that did not happen; `msg` is announced when there is one.
+
+</Entry>
+
+<Entry name="Toast" kind="type" from="@jali/core" signature={`interface Toast { title: string; description?: string; undo?: boolean; error?: boolean }`} compact>
+
+A toast for the host to render (`store.onToast`). `undo`: offer Undo (run `store.actions.undo()`).
+
+</Entry>
+
+<Entry name="HistoryMode" kind="type" from="@jali/core" signature={`type HistoryMode = "push" | "replace" | "debounce" | "none"`} compact>
+
+How a change reaches the address: a new entry, in place, in place 120 ms after the last call, or not at all.
+
+</Entry>
+
+<Entry name="Settings" kind="type" from="@jali/core" signature={`interface Settings`} compact>
+
+<Params title="Fields">
+<Param name="centreDrop" type={`"swap" | "tab"`} default={`"swap"`} required>What a drop on a pane's centre does.</Param>
+<Param name="paneCap" type="number" default="8" required>The most panes on screen; past it the oldest pane that is not pinned or focused folds. Settings allows 2 to 16.</Param>
+<Param name="showStats" type="boolean" default="true" required>Show fetch stats in the status line. Jali only stores it; the host's status line reads it.</Param>
+<Param name="theme" type={`"system" | "light" | "dark"`} default={`"system"`} required>The theme choice.</Param>
+<Param name="boundary" type={`"tint" | "none"`} default={`"tint"`} required>How a curated page marks panes opened while investigating.</Param>
+</Params>
+
+</Entry>
+
+<Entry name="ThemeChoice" kind="type" from="@jali/core" signature={`type ThemeChoice = "system" | "light" | "dark"`} compact>The theme setting.</Entry>
+
+<Entry name="Theme" kind="type" from="@jali/core" signature={`type Theme = "light" | "dark"`} compact>The theme shown.</Entry>
+
+## The address and storage
+
+<Entry name="UrlSync" kind="type" from="@jali/core" signature={`interface UrlSync extends UrlWriter`} compact>
+
+<Members>
+<Member name="UrlSync.read" signature="read(kinds: KindRegistry): UrlRead | null">What the address holds now.</Member>
+<Member name="UrlSync.keepBroken" signature="keepBroken(code: string): void">Keep a copy of a layout code that couldn't be read.</Member>
+<Member name="UrlSync.onPop" signature="onPop(fn: () => void): () => void">Hear the address change from outside (Back, Forward, a router link).</Member>
+<Member name="UrlSync.href" signature="href(): string">The whole address.</Member>
+</Members>
+
+</Entry>
+
+<Entry name="UrlSyncOptions" kind="type" from="@jali/core" signature={`interface UrlSyncOptions { location?; storage?; prefix?; sizes? }`} compact>
+
+The options of `createUrlSync`, explained under <Ref to="createUrlSync" page="/reference/core" />.
+
+</Entry>
+
+<Entry name="UrlRead" kind="type" from="@jali/core" signature={`type UrlRead =\n  | { layout: Layout; view: Partial<ViewState> }\n  | { broken: string; view: Partial<ViewState> }\n  | { page: { tab: string; item: number; investigation: ObjectRef[] }; view: Partial<ViewState> }`} compact>
+
+A layout link, a layout code that couldn't be read, or a curated page link. `read` returns `null` when the address holds no layout.
+
+</Entry>
+
+<Entry name="LinkSizes" kind="type" from="@jali/core" signature={`type LinkSizes = "link" | "local"`} compact>
+
+What a layout link carries about sizes; see `sizes` under <Ref to="createUrlSync" page="/reference/core" />.
+
+</Entry>
+
+<Entry name="LocationPort" kind="type" from="@jali/core" signature={`interface LocationPort {\n  search(): string;\n  href(): string;\n  navigate(search: string, mode: NavigateMode): void;\n  subscribe(fn: () => void): () => void;\n}`} compact>
+
+The address, as a port a router can implement. Jali reads and writes only its own search params. `navigate` goes to the same address with a new search string; `subscribe` hears changes made any other way. An adapter for React Router calls `navigate({ search }, { replace: mode === "replace" })`; for TanStack Router, `router.navigate` and `router.subscribe("onResolved", fn)`.
+
+</Entry>
+
+<Entry name="NavigateMode" kind="type" from="@jali/core" signature={`type NavigateMode = "push" | "replace"`} compact>A new history entry, or in place.</Entry>
+
+<Entry name="StoragePort" kind="type" from="@jali/core" signature={`interface StoragePort { get(key: string): string | null; set(key: string, value: string): void }`} compact>
+
+What one person keeps on one device. Keys Jali uses: `settings`, `pane-state`, a curated page's preferences, `broken-layout`, and (from `createUrlSync`) `sizes`.
+
+</Entry>
+
+## Commands and keys
+
+<Entry name="Command" kind="type" from="@jali/core" signature={`interface Command {\n  id: string; title: string;\n  group: "Focus" | "Pane" | "Move" | "Tabs" | "Layout" | "Peek" | "Settings";\n  check?: (x: Snapshot) => Refusal | undefined;\n  run: (store: UiStore) => void;\n}`} compact>
+
+A workspace command. `check` returns a refusal when it can't run now (silent without `msg`).
+
+</Entry>
+
+<Entry name="Keymap" kind="type" from="@jali/core" signature={`interface Keymap`} compact>
+
+A store's resolved keys (`store.keymap`), from <Ref to="createKeymap" page="/reference/core" />: `platform`, `entries`, `sequences(id)`, `label(id)`, `find(match, prefix?)` and `isPrefix(match)`.
+
+</Entry>
+
+<Entry name="KeymapOverrides" kind="type" from="@jali/core" signature={`type KeymapOverrides = Partial<Record<DefaultKeymapId | (string & {}), KeyString | readonly KeyString[] | null>>`} compact>
+
+A host's key changes: a binding, several, or `null` to unbind.
+
+</Entry>
+
+<Entry name="KeymapOptions" kind="type" from="@jali/core" signature={`interface KeymapOptions { platform?: Platform; onInvalid?: (id: string, binding: KeyString, reason: string) => void }`} compact>
+
+See <Ref to="createKeymap" page="/reference/core" />.
+
+</Entry>
+
+<Entry name="DefaultKeymapId" kind="type" from="@jali/core" signature={`type DefaultKeymapId = keyof typeof DEFAULT_KEYMAP`} compact>The ids bound by default.</Entry>
+
+<Entry name="KeyString" kind="type" from="@jali/core" signature={`type KeyString = string`} compact>
+
+A binding as text: chords separated by a space, keys in a chord by `+` (`Mod+K Mod+ArrowLeft`, `F6`, `Mod+\`). Modifiers: `Mod` (⌘ on a Mac, Ctrl elsewhere; `Cmd` and `Meta` mean the same), `Ctrl`, `Alt` (`Option`), `Shift`. Keys: a letter, a digit, punctuation, `F1` to `F24`, or a name (`Enter`, `Esc`, `Space`, `Tab`, `Backspace`, `Delete`, `Home`, `End`, `PageUp`, `PageDown`, the arrows). Letters, digits and punctuation match the physical key.
+
+</Entry>
+
+<Entry name="KeyboardScope" kind="type" from="@jali/core" signature={`interface KeyboardScope { target?: Window; root?: () => Element | null }`} compact>
+
+See <Ref to="installKeyboard" page="/reference/core" />.
+
+</Entry>
+
+<Entry name="Platform" kind="type" from="@jali/core" signature={`type Platform = "mac" | "other"`} compact>The platform keys are matched and printed for.</Entry>
+
+## Lists and their detail
+
+<Entry name="ActiveItemPort" kind="type" from="@jali/core" signature={`interface ActiveItemPort {\n  readonly itemId: string | null;\n  readonly write: (itemId: string | null, action: ActiveItemAction) => ActiveItemWriteResult;\n}`} compact>
+
+The item a list is on, as a list and a workspace both understand it. Not the multi-select set and not DOM focus.
+
+</Entry>
+
+<Entry name="ActiveItemAction" kind="type" from="@jali/core" signature={`type ActiveItemAction = "open" | "close" | "step"`} compact>
+
+<Values>
+<Value name="step">The cursor moved. A following detail follows once it rests.</Value>
+<Value name="open">Show the item (Space).</Value>
+<Value name="close">Stop showing it (Esc). The cursor stays.</Value>
+</Values>
+
+</Entry>
+
+<Entry name="ActiveItemWriteResult" kind="type" from="@jali/core" signature={`interface ActiveItemWriteResult { readonly status: "accepted" }`} compact>Always accepted.</Entry>
+
+<Entry name="ActiveItemMapping" kind="type" from="@jali/core" signature={`interface ActiveItemMapping { toRef(itemId: string): ObjectRef; idOf(ref: ObjectRef): string | null }`} compact>
+
+How a list's item ids map to refs; see <Ref to="activeItemPort" page="/reference/core" />.
+
+</Entry>
+
+## Actions
+
+<Entry name="Actions" kind="type" from="@jali/core" signature={`type Actions = { [name]: (...args) => NodeId | undefined }`} compact>
+
+`store.actions` (in React, `useActions()`). Every action reads the state now, commits what it decides and returns the pane it opened or acted on, when there is one. `id` arguments default to the focused pane where the signature shows `?`.
+
+<Members title="Focus">
+<Member name="actions.focus" signature="focus(id: NodeId)">Focus a pane.</Member>
+<Member name="actions.focusCycle" signature="focusCycle(delta: 1 | -1)">The next or previous pane on screen. While maximised, the maximise moves with focus.</Member>
+<Member name="actions.focusDirection" signature="focusDirection(dir: Edge)">The nearest pane in a direction.</Member>
+<Member name="actions.focusIndex" signature="focusIndex(n: number)">The nth pane on screen, from 1.</Member>
+<Member name="actions.focusEnd" signature="focusEnd(last: boolean)">The first or last pane on screen.</Member>
+<Member name="actions.toggleZoom" signature="toggleZoom(id?: NodeId)">Maximise or restore. Refused in a curated page's Single; nothing with one pane.</Member>
+</Members>
+
+<Members title="Open and close">
+<Member name="actions.openBeside" signature="openBeside(source: NodeId, ref: ObjectRef)">Open `ref` beside `source`; focus stays in `source`. The source's selected item opens a following detail (pinned if one already follows). In a curated page: a peek in Single or for a limited viewer, and an object already on the page is focused instead.</Member>
+<Member name="actions.split" signature={`split(dir: "right" | "bottom", target?: NodeId)`}>Open a launcher (kind `"launcher"`) beside the pane and focus it.</Member>
+<Member name="actions.splitAuto" signature="splitAuto()">Split right for a wide pane, down for a tall one.</Member>
+<Member name="actions.openHere" signature="openHere(id: NodeId, ref: ObjectRef)">Show `ref` in pane `id`. If it is open elsewhere, focus that pane (and close `id` when it is a launcher).</Member>
+<Member name="actions.dismiss" signature="dismiss(id: NodeId)">Close a launcher quietly, with no undo.</Member>
+<Member name="actions.newTab" signature="newTab(id?: NodeId)">A launcher as a new tab of the pane's group.</Member>
+<Member name="actions.noteOpen" signature="noteOpen(refs: ObjectRef[])">Add refs to Recent.</Member>
+<Member name="actions.close" signature="close(id?: NodeId)">Close a pane, with an Undo toast. The last pane stays. A curated page's view goes back to the tabs.</Member>
+<Member name="actions.closeOthers" signature="closeOthers(id?: NodeId)">Close every other pane. In a curated page, `backToPage`.</Member>
+<Member name="actions.undo" signature="undo()">Undo the last close, close others or tuck.</Member>
+</Members>
+
+<Members title="Tuck, move and tabs">
+<Member name="actions.tuck" signature="tuck(id?: NodeId)">Tuck a pane into its neighbour.</Member>
+<Member name="actions.putBack" signature="putBack(id?: NodeId, preferred?: NodeId)">Put a tucked pane back: `id`, else `preferred` or the focused pane if tucked, else the most recently tucked.</Member>
+<Member name="actions.reveal" signature="reveal(id: NodeId)">Show a pane behind a tab by choosing its tab.</Member>
+<Member name="actions.moveDirection" signature="moveDirection(dir: Edge, id?: NodeId)">Move a pane past its neighbour.</Member>
+<Member name="actions.drop" signature={`drop(dragged: NodeId, target: NodeId, zone: Edge | "centre")`}>A drop. A tucked tab dragged out on the side it came from is put back.</Member>
+<Member name="actions.swapWithNext" signature="swapWithNext(id?: NodeId)">Swap with the next pane on screen (or the previous, for the last).</Member>
+<Member name="actions.mergeInto" signature="mergeInto(source: NodeId, target: NodeId)">`source` joins `target`'s tab group.</Member>
+<Member name="actions.unmerge" signature="unmerge(id?: NodeId)">Move a tab out of its group, to the right of it.</Member>
+<Member name="actions.setActiveTab" signature="setActiveTab(stack: NodeId, pane: NodeId)">Choose a tab and focus it.</Member>
+</Members>
+
+<Members title="Sizes">
+<Member name="actions.resizeDivider" signature="resizeDivider(parentId: NodeId, index: number, deltaPx: number)">Move a divider.</Member>
+<Member name="actions.setDividerSize" signature="setDividerSize(parentId: NodeId, index: number, target: number)">Set the first side of a divider to a length.</Member>
+<Member name="actions.nudgeDivider" signature="nudgeDivider(pane: NodeId, horizontal: boolean, deltaPx: number)">Move the divider nearest a pane.</Member>
+<Member name="actions.commitDividerDrag" signature="commitDividerDrag(layout: Layout)">Commit a pointer drag's layout.</Member>
+<Member name="actions.resetDivider" signature="resetDivider(parentId: NodeId, index: number)">Reset a divider's sizes.</Member>
+<Member name="actions.enterResizeMode" signature="enterResizeMode()">Arrows resize until Esc or Enter. Refused when the pane has no divider.</Member>
+<Member name="actions.leaveResizeMode" signature="leaveResizeMode()">Leave resize mode.</Member>
+</Members>
+
+<Members title="Peek, selection and following">
+<Member name="actions.peek" signature="peek(ref: ObjectRef | null, source?: NodeId)">Open or move the peek sheet; `null` closes it. When `source`'s following detail of that kind is on screen, the detail shows `ref` instead.</Member>
+<Member name="actions.pinPeek" signature="pinPeek()">Close the peek and open its object beside the pane it came from.</Member>
+<Member name="actions.openPeekFull" signature="openPeekFull()">Replace the layout with the peek's object alone.</Member>
+<Member name="actions.select" signature="select(source: NodeId, ref: ObjectRef | null, opts?: { inResults?: boolean })">Report a list's selection. An open peek from it follows at once; its following detail after 150 ms of rest.</Member>
+<Member name="actions.follow" signature="follow(source: NodeId, ref: ObjectRef)">Show `ref` in `source`'s following detail now.</Member>
+<Member name="actions.setPinned" signature="setPinned(id: NodeId, pinned: boolean)">Pin a linked detail, or unpin it so it follows again.</Member>
+</Members>
+
+<Members title="Layouts">
+<Member name="actions.preset" signature="preset(id: string | undefined)">Switch to a preset (an unknown id gives the first).</Member>
+<Member name="actions.resetLayout" signature="resetLayout()">Rebuild the preset last chosen.</Member>
+<Member name="actions.arrive" signature="arrive(layout: Layout, view: Partial<ViewState>)">A layout from outside (a link, Back): keeps focus where it still exists and fits it. Leaves a curated page.</Member>
+<Member name="actions.setActivity" signature="setActivity(id: NodeId, a: PaneActivity)">What a pane reports.</Member>
+</Members>
+
+<Members title="Pane content">
+<Member name="actions.setUnsaved" signature="setUnsaved(id: NodeId, what: string | null)">Report unsaved work, or `null` when it is saved.</Member>
+<Member name="actions.setPaneCommands" signature="setPaneCommands(id: NodeId, commands: PaneCommand[] | null)">A pane's palette commands.</Member>
+<Member name="actions.setPaneState" signature="setPaneState(id: NodeId, key: string, value: unknown)">One value of a pane's own state. JSON only.</Member>
+<Member name="actions.discardAndContinue" signature="discardAndContinue()">Forget the held panes' unsaved work and make the held change.</Member>
+<Member name="actions.keepEditing" signature="keepEditing()">Drop the held change.</Member>
+</Members>
+
+<Members title="Curated pages">
+<Member name="actions.openPage" signature="openPage(o?: { item?: number; tab?: string; investigation?: ObjectRef[]; fromUrl?: boolean; view?: Partial<ViewState> })">Open the profile's page. Opened panes need Multiplexed, so a link with them opens there.</Member>
+<Member name="actions.leavePage" signature="leavePage()">Back to the free workspace's preset. The page's mode and layout are kept.</Member>
+<Member name="actions.setMode" signature="setMode(mode: ViewMode)">Single or Multiplexed. Multiplexed is refused for a limited viewer.</Member>
+<Member name="actions.openTab" signature="openTab(role: string)">A page tab click. Never reshapes: Single swaps the view; Multiplexed focuses it, chooses its tab, or puts it in place of the view you're in.</Member>
+<Member name="actions.openTabBeside" signature="openTabBeside(role: string)">Alt-click a tab: that view beside the one you're in (from Single, switches to Multiplexed first).</Member>
+<Member name="actions.placeTab" signature={`placeTab(role: string, target: NodeId, zone: Edge | "centre")`}>Drop a page tab on a pane. Room is made by sending the least recently used views back to the tabs.</Member>
+<Member name="actions.resetPage" signature="resetPage()">Multiplexed back to the design; opened panes stay.</Member>
+<Member name="actions.activate" signature="activate(item: number)">Show another item; the previous item's opened panes close.</Member>
+<Member name="actions.backToPage" signature="backToPage()">Close every opened pane, with Undo.</Member>
+<Member name="actions.hideRole" signature="hideRole(id: NodeId)">A view leaves the screen and waits in the tabs (Multiplexed only).</Member>
+<Member name="actions.setCanInvestigate" signature="setCanInvestigate(canInvestigate: boolean)">The viewer's permission. Taking it away switches to Single.</Member>
+</Members>
+
+</Entry>

@@ -1,0 +1,385 @@
+---
+title: The layout namespace
+summary: The pure layout operations of @jali/core, each taking a layout and returning a new one.
+---
+
+import { Entry, Params, Param, Returns, Values, Value, Members, Member, Ref } from "../../../reference";
+import layoutCode from "../../../samples/reference/layout-ops.ts?raw";
+
+`layout` is a namespace export of `@jali/core`. Every member is pure: the layout you pass is never changed, an operation that does nothing returns the same object, and the store's actions are built from these. Types such as `layout.OpenResult` and `layout.UndoEntry` are reachable through it as well.
+
+<Entry name="layout.open" kind="function" from="@jali/core" signature={`layout.open(
+  layout: Layout, view: ViewState, target: string, edge: Edge,
+  ref: ObjectRef, ctx: LayoutContext, linked: boolean,
+  place?: Placement, opts?: OpenOptions,
+): OpenResult`} example={layoutCode} exampleFile="layout.ts" exampleHighlight="9-10">
+
+Opens `ref` in a new pane at `edge` of `target`, then fits the layout. `openBeside` and `split` are the two common forms.
+
+When there is no room, or the pane cap is passed, what folds is decided now and recorded in the overlay: with no room the new pane becomes a tab of its source; over the cap the oldest pane that is not pinned, focused or primary folds. A linked open (not from a selection) reuses the source's earlier plain link of the same kind instead of opening another pane; followers and pinned panes are never reused. A linked open keeps focus on `target`; an unlinked one focuses the new pane.
+
+<Params>
+<Param name="layout" type="Layout" required>The layout now.</Param>
+<Param name="view" type="ViewState" required>Focus, maximise and peek.</Param>
+<Param name="target" type="string" required>The source pane's id. Throws `Unknown source pane` when it is not a pane.</Param>
+<Param name="edge" type={`"left" | "right" | "top" | "bottom"`} required>Which side of `target`.</Param>
+<Param name="ref" type="ObjectRef" required>What the new pane shows. Throws `Unknown pane kind` when its kind is not in `ctx.fit.kinds`.</Param>
+<Param name="ctx" type="LayoutContext" required>The room, the gap, the kinds and the pane cap: `store.ctx()`. Throws a `RangeError` for a negative or non-finite size or gap, or a cap that is not a positive integer.</Param>
+<Param name="linked" type="boolean" required>Whether the new pane is linked to `target` (`linkedTo`). Closing the source drops the link.</Param>
+<Param name="place" type="{ target: string; edge: Edge }">Somewhere else to put it: a curated page keeps opened panes after its arrangement. Ignored when `place.target` is not in the layout.</Param>
+<Param name="opts" type="{ yields?: boolean; fromSelection?: boolean }" default="{}">`yields: false`: no supporting pane gives way for the new one; short of room, the new pane becomes a tab of its source. `fromSelection`: `ref` is the source's selected row, so the new pane follows the selection, or opens pinned when the source already has a follower of that kind.</Param>
+</Params>
+
+<Returns type={`{ layout: Layout; view: ViewState; opened: NodeId; mode: "beside" | "replaced" | "tab" }`}>
+
+<Values title="mode">
+<Value name="beside">A new pane, on screen.</Value>
+<Value name="replaced">An earlier plain link of the same kind now shows `ref` (`opened` is that pane).</Value>
+<Value name="tab">A new pane, folded into a tab because there was no room.</Value>
+</Values>
+
+</Returns>
+
+</Entry>
+
+<Entry name="layout.openBeside" kind="function" from="@jali/core" signature={`layout.openBeside(layout, view, source, ref, ctx, place?, opts?): OpenResult`} compact>
+
+`open` to the right of `source`, linked to it. What a pane's `openBeside(ref)` runs.
+
+<Returns type="OpenResult" />
+
+</Entry>
+
+<Entry name="layout.split" kind="function" from="@jali/core" signature={`layout.split(layout, view, target, edge, ref, ctx): OpenResult`} compact>
+
+`open` at `edge` of `target`, not linked. Focus moves into the new pane.
+
+<Returns type="OpenResult" />
+
+</Entry>
+
+<Entry name="layout.addTab" kind="function" from="@jali/core" signature={`layout.addTab(layout, view, target, ref, ctx): OpenResult`} compact>
+
+Opens `ref` as a new tab of `target`'s tab group (a new group when `target` has none) and focuses it. When `target` is in a group the layout folded, it opens beside instead and selects the new tab. Throws like `open` for an unknown pane or kind. `mode` is `"tab"`.
+
+<Returns type="OpenResult" />
+
+</Entry>
+
+<Entry name="layout.close" kind="function" from="@jali/core" signature={`layout.close(layout, view, target, ctx): { layout: Layout; view: ViewState; undo: UndoEntry }`} compact>
+
+Removes a pane. Its space goes to the pane it was opened from when that is a sibling, else the next sibling, else the previous. Links to it are dropped. When it had focus, focus goes to the most recently focused pane still open. The last pane is never closed: the same layout comes back.
+
+<Returns type="{ layout; view; undo }">`undo` holds the layout and view before, for `UiState.undoStack`.</Returns>
+
+</Entry>
+
+<Entry name="layout.closeOthers" kind="function" from="@jali/core" signature={`layout.closeOthers(layout, view, keep, ctx): { layout; view; undo }`} compact>
+
+Leaves only `keep`, unlinked and at full size, focused, with an empty focus history.
+
+<Returns type="{ layout; view; undo }" />
+
+</Entry>
+
+<Entry name="layout.swap" kind="function" from="@jali/core" signature={`layout.swap(layout: Layout, a: string, b: string, ctx: LayoutContext): Layout`} compact>
+
+Two panes trade places; every slot keeps its rect. Works inside one tab group too.
+
+<Returns type="Layout" />
+
+</Entry>
+
+<Entry name="layout.drop" kind="function" from="@jali/core" signature={`layout.drop(
+  layout, view, dragged: string, target: string,
+  zone: Edge | "centre", centreMode: "swap" | "tab", ctx,
+): { layout: Layout; view: ViewState }`} compact>
+
+What a drag and drop does: an edge zone places `dragged` beside `target` on that side; the centre swaps them (`"swap"`) or makes `dragged` a tab of `target` (`"tab"`, the `centreDrop` setting). Moving a tucked pane ends its tuck. Drops that would change nothing return the same layout. Focus moves to `dragged`.
+
+<Returns type="{ layout; view }" />
+
+</Entry>
+
+<Entry name="layout.moveDirection" kind="function" from="@jali/core" signature={`layout.moveDirection(layout, view, pane, dir: Edge, ctx): { layout; view }`} compact>
+
+Moves `pane` past its nearest neighbour on screen in `dir` (a drop on that neighbour's edge). The same layout when there is none.
+
+<Returns type="{ layout; view }" />
+
+</Entry>
+
+<Entry name="layout.resizeDivider" kind="function" from="@jali/core" signature={`layout.resizeDivider(layout, parentId: string, index: number, deltaPx: number, ctx): Layout`} compact>
+
+Moves the divider after child `index` of split `parentId` by `deltaPx`, clamped to the neighbours' minimums. Sizes are stored as proportions, never fixed pixels, so the split still fills its space after a close or a window resize; each child keeps its earlier size as `base` for a reset. A zero or non-finite delta returns the same layout.
+
+<Returns type="Layout" />
+
+</Entry>
+
+<Entry name="layout.resetDivider" kind="function" from="@jali/core" signature={`layout.resetDivider(layout, parentId, index, ctx): Layout`} compact>
+
+Puts the two sides of a divider back to their `base` sizes (else an equal share), and siblings that a drag only re-expressed back to theirs.
+
+<Returns type="Layout" />
+
+</Entry>
+
+<Entry name="layout.canTuck" kind="function" from="@jali/core" signature={`layout.canTuck(layout, pane, ctx): { ok: true; home: NodeId } | { ok: false; reason: "missing" | "tab" | "hidden" | "last" }`} compact>
+
+Whether `pane` can be tucked, and into which pane (its home): the pane it was opened from when that is on screen next to it, else the nearest pane on screen in a sibling slot before it, else after it, moving out one split level at a time.
+
+<Values title="reason">
+<Value name="missing">Not a pane in this layout.</Value>
+<Value name="tab">In a tab group, already tucked, or another tuck's home.</Value>
+<Value name="hidden">Not on screen.</Value>
+<Value name="last">The root pane, the only pane on screen, or no home found.</Value>
+</Values>
+
+</Entry>
+
+<Entry name="layout.tuck" kind="function" from="@jali/core" signature={`layout.tuck(layout, view, pane, ctx): TuckResult`} compact>
+
+Makes `pane` a tab of its home (see `canTuck`). The home keeps its shown tab and takes the space; nothing else moves or unfolds. Recorded in the overlay, so the tree keeps the pane's slot. Focus moves to the home.
+
+<Returns type={`{ ok: true; layout; view; home: NodeId; undo: UndoEntry } | { ok: false; reason }`} />
+
+</Entry>
+
+<Entry name="layout.putBack" kind="function" from="@jali/core" signature={`layout.putBack(layout, view, pane, ctx): PutBackResult`} compact>
+
+Ends a tuck: the pane returns to its slot and size and is focused. Something folds only if room ran out.
+
+<Returns type={`{ ok: true; layout; view; home: NodeId } | { ok: false; reason: "missing" | "not-tucked" }`} />
+
+</Entry>
+
+<Entry name="layout.putBackEdge" kind="function" from="@jali/core" signature={`layout.putBackEdge(layout: Layout, pane: string): Edge | undefined`} compact>
+
+The side of its home a tucked pane came from, read from the tree. Dragging the tab out on that side puts it back. `undefined` when the pane is not tucked or not in a split.
+
+<Returns type="Edge | undefined" />
+
+</Entry>
+
+<Entry name="layout.hide" kind="function" from="@jali/core" signature={`layout.hide(layout, view, pane, ctx): HideResult`} compact>
+
+Takes a pane off screen with no tab and no slot; its neighbours take the space. The tree keeps it, so `show` brings it back in its place and size. A tab is first lifted out beside its group. Tucks behind it, or its own, are dropped. Never the last pane on screen.
+
+<Returns type={`{ ok: true; layout; view } | { ok: false; reason: "missing" | "tab" | "hidden" | "last" }`}>`"hidden"`: it is hidden already. `"tab"` is in the type but not returned today.</Returns>
+
+</Entry>
+
+<Entry name="layout.show" kind="function" from="@jali/core" signature={`layout.show(layout, view, pane, ctx): HideResult`} compact>
+
+Shows a hidden pane in its own place and focuses it. Room is made by folding others, never the pane being shown. `reason: "hidden"` here means it was not hidden.
+
+<Returns type="HideResult" />
+
+</Entry>
+
+<Entry name="layout.replace" kind="function" from="@jali/core" signature={`layout.replace(layout, view, current, incoming, ctx): { layout; view; reshaped: boolean }`} compact>
+
+`incoming` takes `current`'s place exactly (slot, size, tab position, fold and tuck records) and `current` takes `incoming`'s old place, off screen when that was hidden. Every rect stays the same unless `incoming` can't fit the slot; then the layout refits and `reshaped` is true. Focus moves to `incoming`.
+
+<Returns type="{ layout; view; reshaped }" />
+
+</Entry>
+
+<Entry name="layout.setRef" kind="function" from="@jali/core" signature={`layout.setRef(layout, view, id, ref, ctx, opts?: { hold?: boolean }): Layout`} compact>
+
+Shows `ref` in pane `id`: same node, new object. By default the slot keeps its rect even when the new object would size differently; `hold: false` lets the layout settle to the new object's measure (filling a launcher). The same layout when `ref` is exactly what it shows. Throws for an unknown kind.
+
+<Returns type="Layout" />
+
+</Entry>
+
+<Entry name="layout.follower" kind="function" from="@jali/core" signature={`layout.follower(layout, source: NodeId, kind: string): PaneNode | undefined`} compact>
+
+The pane following `source`'s selection for `kind`: linked to it, with `follows: true`. There is at most one per source and kind.
+
+<Returns type="PaneNode | undefined" />
+
+</Entry>
+
+<Entry name="layout.follow" kind="function" from="@jali/core" signature={`layout.follow(layout, view, source, ref, ctx): { layout: Layout; pane?: NodeId }`} compact>
+
+Shows `ref` in `source`'s follower of that kind, in place (a swap: same node, slot and size). The same layout, and no `pane`, when there is no follower.
+
+<Returns type="{ layout; pane? }" />
+
+</Entry>
+
+<Entry name="layout.selectionLink" kind="function" from="@jali/core" signature={`layout.selectionLink(layout, source, kind): { follows: true } | { pinned: true }`} compact>
+
+The link flags for a pane newly opened from `source`'s selection: it follows, unless the source already has a follower of that kind, then it opens pinned.
+
+<Returns type={`Pick<PaneNode, "follows" | "pinned">`} />
+
+</Entry>
+
+<Entry name="layout.setFollows" kind="function" from="@jali/core" signature={`layout.setFollows(layout: Layout, id: NodeId, follows: boolean): Layout`} compact>
+
+Pins (`false`) or unpins (`true`) a linked pane. Unpinned, it follows its source, and any other follower of that source and kind is pinned in its place. Unlinked panes, and a pane already in that state, return the same layout.
+
+<Returns type="Layout" />
+
+</Entry>
+
+<Entry name="layout.setActiveTab" kind="function" from="@jali/core" signature={`layout.setActiveTab(layout, stack: string, pane: string, ctx): Layout`} compact>
+
+Shows `pane` in its tab group, deliberate or made by the layout. Nothing else moves and nothing refits.
+
+<Returns type="Layout" />
+
+</Entry>
+
+<Entry name="layout.reveal" kind="function" from="@jali/core" signature={`layout.reveal(layout, pane, ctx): Layout`} compact>
+
+Shows a pane that is behind a tab (tucked, folded or an ordinary tab) by choosing its tab. The same layout when it is on screen.
+
+<Returns type="Layout" />
+
+</Entry>
+
+<Entry name="layout.resetLayout" kind="function" from="@jali/core" signature={`layout.resetLayout(preset: Layout, view, ctx): Layout`} compact>
+
+A preset's layout, fitted, with every node's size recorded as its `base`, so a divider reset returns to the preset's proportions.
+
+<Returns type="Layout" />
+
+</Entry>
+
+<Entry name="layout.focus" kind="function" from="@jali/core" signature={`layout.focus(view: ViewState, pane: string, ctx): ViewState`} compact>
+
+Focuses `pane` and moves it to the front of the focus history. While a pane is maximised, the maximise moves to `pane`. The same view when nothing changes.
+
+<Returns type="ViewState" />
+
+</Entry>
+
+<Entry name="layout.focusCycle" kind="function" from="@jali/core" signature={`layout.focusCycle(view, resolved: ResolvedLayout, delta: 1 | -1, ctx): ViewState`} compact>
+
+Focuses the next (`1`) or previous (`-1`) pane on screen in reading order, wrapping.
+
+<Returns type="ViewState" />
+
+</Entry>
+
+<Entry name="layout.focusDirection" kind="function" from="@jali/core" signature={`layout.focusDirection(view, resolved, dir: Edge, ctx): ViewState`} compact>
+
+Focuses the nearest pane on screen in `dir` that overlaps the focused one across that axis. Ties at the same distance go to the most recently focused. The same view when there is none.
+
+<Returns type="ViewState" />
+
+</Entry>
+
+<Entry name="layout.toggleZoom" kind="function" from="@jali/core" signature={`layout.toggleZoom(view, pane, ctx): ViewState`} compact>
+
+Maximises `pane`, or restores it when it is the maximised one. Maximise is a view overlay: the tree and its sizes don't change.
+
+<Returns type="ViewState" />
+
+</Entry>
+
+<Entry name="layout.resolve" kind="function" from="@jali/core" signature={`layout.resolve(layout: Layout, view: ViewState, ctx: LayoutContext): ResolvedLayout`} compact>
+
+Where everything goes: a rect for every pane (marked hidden behind a tab, behind a maximised pane, or off), every divider with its range, the tab groups and the shelf. Folds the layout further if it still doesn't fit. Hidden panes get an empty rect so their content can stay mounted and paused.
+
+<Returns type="ResolvedLayout" />
+
+</Entry>
+
+<Entry name="layout.refit" kind="function" from="@jali/core" signature={`layout.refit(layout, view, ctx): Layout`} compact>
+
+Fits a layout to a new room or pane cap, or one that arrived from a link: unfolds what now fits and folds what doesn't. Operations fit as they go; call this only for changes from outside. The same layout when nothing changes.
+
+<Returns type="Layout" />
+
+</Entry>
+
+<Entry name="layout.encode" kind="function" from="@jali/core" signature={`layout.encode(layout: Layout): string`} compact>
+
+The layout as URL-safe text: `1.` and base64url JSON (what `?l=` holds).
+
+<Returns type="string" />
+
+</Entry>
+
+<Entry name="layout.decode" kind="function" from="@jali/core" signature={`layout.decode(text: string, kinds: KindRegistry): Layout | null`} compact>
+
+Reads `encode`'s text back. `null` for anything malformed, over 1,000,000 characters, or that fails `validate` against `kinds` (an unknown kind included). Never throws.
+
+<Returns type="Layout | null" />
+
+</Entry>
+
+<Entry name="layout.validate" kind="function" from="@jali/core" signature={`layout.validate(layout: Layout, kinds: KindRegistry): { ok: true } | { ok: false; errors: string[] }`} compact>
+
+Checks a layout from outside: version 1; unique non-empty ids; exactly one positive `px` or `weight` per size; known kinds and string or finite number params; stacks of panes only, with an `active` child; at most 2,048 nodes and 128 levels; a well-formed overlay. Each error is `path: message`.
+
+<Returns type="{ ok: true } | { ok: false; errors: string[] }" />
+
+</Entry>
+
+<Entry name="layout.minSize" kind="function" from="@jali/core" signature={`layout.minSize(node: LayoutNode, kinds: KindRegistry, gap: number, axis: Axis): number`} compact>
+
+The least a node needs along `axis`: side by side, minimums add up (plus gaps); stacked, the largest; tabbed, every tab must fit. Throws for an unknown kind.
+
+<Returns type="number" />
+
+</Entry>
+
+<Entry name="layout.extentAlong" kind="function" from="@jali/core" signature={`layout.extentAlong(boxes: readonly PaneBox[], ids: readonly string[], axis: Axis): number`} compact>
+
+How far the shown boxes among `ids` reach along `axis`, gaps included. `0` when none is shown.
+
+<Returns type="number" />
+
+</Entry>
+
+<Entry name="layout.snapToCentre" kind="function" from="@jali/core" signature={`layout.snapToCentre(value: number, centre: number, wasSnapped: boolean): number`} compact>
+
+A divider's centre snap with hysteresis: `centre` when `value` is within `SNAP_IN` px of it (within `SNAP_OUT` px if it was already snapped), else `value`.
+
+<Returns type="number" />
+
+</Entry>
+
+<Entry name="layout.SNAP_IN" kind="constant" from="@jali/core" signature={`const SNAP_IN = 10`} compact>
+
+Pixels from the centre at which a divider snaps to it.
+
+</Entry>
+
+<Entry name="layout.SNAP_OUT" kind="constant" from="@jali/core" signature={`const SNAP_OUT = 16`} compact>
+
+Pixels from the centre at which a snapped divider lets go.
+
+</Entry>
+
+<Entry name="layout.tree" kind="namespace" from="@jali/core" signature={`layout.tree.panes(layout.root)`} compact>
+
+Helpers for walking and editing the tree. The ones that edit (`replace`, `balance`, `remove`, `activate`) change the node they are given: use them on a copy (`clone`).
+
+<Members>
+<Member name="layout.tree.clone" signature="clone<T>(value: T): T">A deep copy (`structuredClone`).</Member>
+<Member name="layout.tree.isSplit" signature="isSplit(n: LayoutNode): n is SplitNode">Whether a node is a row or a column.</Member>
+<Member name="layout.tree.nodes" signature="nodes(root: LayoutNode): LayoutNode[]">Every node, depth first, root first.</Member>
+<Member name="layout.tree.panes" signature="panes(root: LayoutNode): PaneNode[]">Every pane, in tree order.</Member>
+<Member name="layout.tree.find" signature="find(root: LayoutNode, id: NodeId): LayoutNode | undefined">The node with this id.</Member>
+<Member name="layout.tree.parent" signature="parent(root, id): SplitNode | StackNode | undefined">The node that holds `id`.</Member>
+<Member name="layout.tree.parentOf" signature="parentOf(root, id)">Another name for `parent`.</Member>
+<Member name="layout.tree.stackOf" signature="stackOf(root, id): StackNode | undefined">The tab group (stack in the tree) that holds `id`.</Member>
+<Member name="layout.tree.replace" signature="replace(root, id, replacement): LayoutNode">Puts `replacement` in place of node `id`, in place. Inside a stack only a pane can replace a pane.</Member>
+<Member name="layout.tree.balance" signature="balance(node: LayoutNode): void">Gives the children of a split that nobody sized an equal share, in place.</Member>
+<Member name="layout.tree.remove" signature="remove(root, id): LayoutNode | undefined">Removes node `id` in place; a container left with one child is replaced by it, keeping the outer size. `undefined` when nothing is left.</Member>
+<Member name="layout.tree.activate" signature="activate(layout: Layout, id: NodeId): void">Makes `id` the active tab of its stack, in place.</Member>
+<Member name="layout.tree.newId" signature={`newId(root, prefix = "pane"): NodeId`}>The first free id of the form `prefix-1`, `prefix-2`, …</Member>
+<Member name="layout.tree.map" signature="map(root, fn: (node) => LayoutNode): LayoutNode">A new tree with `fn` applied top down; a node `fn` replaces is not descended into, and unchanged branches keep their identity.</Member>
+<Member name="layout.tree.shape" signature="shape(root): string">The tree's structure as text, without sizes, tab choice or content.</Member>
+<Member name="layout.tree.unzoom" signature="unzoom(view: ViewState): ViewState">The view with no pane maximised.</Member>
+<Member name="layout.tree.noFocus" signature="noFocus(): ViewState">An empty view: `{ focusHistory: [] }`.</Member>
+</Members>
+
+</Entry>

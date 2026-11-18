@@ -1,0 +1,70 @@
+---
+title: Tokens
+summary: Every public --jali-* token, what reads it, its light and dark values, and how the Tailwind bridge maps it.
+---
+
+import { TokenTable, BridgeTable } from "../../reference";
+
+Jali's styles read only `--jali-*` custom properties. Set any of them on `:root` or on a subtree to retheme; the derived tokens follow the accent. Names starting `--jali-default-` are the theme's internal palette: don't set or read them.
+
+Every token is declared inside `:where()`, so your own declaration wins at any specificity and in any import order. Dark values apply under `prefers-color-scheme: dark`, inside a `.dark` or `[data-theme="dark"]` scope, and are kept light inside `.light` or `[data-theme="light"]`. `startUi` sets `data-theme` on `<html>` from the theme setting.
+
+```css
+:root { --jali-accent: #0f766e; }                  /* the whole page */
+.orders-workspace { --jali-radius: 0.25rem; }      /* one workspace */
+```
+
+Each row below names the token, what it is for, the `jali-*` classes whose rules read it (taken from the package's styles), and a swatch rendered from the variable itself in a light and a dark scope.
+
+## Surfaces
+
+<TokenTable group="Surfaces" />
+
+## Text
+
+<TokenTable group="Text" />
+
+## Accent
+
+<TokenTable group="Accent" />
+
+## Status
+
+<TokenTable group="Status" />
+
+## Opened panes
+
+Panes opened by following links in a curated page.
+
+<TokenTable group="Opened panes" />
+
+## Overlays and shadows
+
+<TokenTable group="Overlays and shadows" />
+
+## Shape and type
+
+One set for both themes.
+
+<TokenTable group="Shape and type" />
+
+## Derived
+
+Mixed from `--jali-accent` on `:root` and again on every Jali root (`[data-jali]`), so an accent set on a subtree gets matching tints there. Set one yourself to override the mix.
+
+<TokenTable group="Derived" />
+
+## The Tailwind bridge
+
+`@jali/react/tailwind.css` points Jali's tokens at your Tailwind theme's variables, the same names Chakni reads. Import it after Jali's styles, in the stylesheet Tailwind builds, and declare the layer order so your utilities win:
+
+```css
+@layer theme, base, jali, components, utilities;
+@import "tailwindcss";
+@import "@jali/react/styles.css";
+@import "@jali/react/tailwind.css";
+```
+
+Each token reads the first of your variables that is defined, else Jali's own default for the current theme. Your variables switch with your dark mode, so Jali follows. Tailwind drops theme variables that nothing uses; this file uses them, so keep it in the build Tailwind processes (or mark the theme `@theme static`). Tokens not listed keep Jali's values.
+
+<BridgeTable />

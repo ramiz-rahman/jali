@@ -1,0 +1,344 @@
+---
+title: "@jali/react"
+summary: Every component, hook and type @jali/react exports, with its props, defaults and what it returns.
+---
+
+import { Entry, Params, Param, ChildParams, Returns, Values, Value, Members, Member, Ref } from "../../reference";
+import appCode from "../../samples/reference/app.tsx?raw";
+import kindsCode from "../../samples/reference/kinds.tsx?raw";
+import noteCode from "../../samples/reference/order-kind.tsx?raw";
+import paneStateCode from "../../samples/reference/pane-state.tsx?raw";
+import portCode from "../../samples/reference/active-item-port.tsx?raw";
+import hooksCode from "../../samples/reference/hooks.tsx?raw";
+import composeCode from "../../samples/reference/compose.tsx?raw";
+import profileCode from "../../samples/reference/profile.tsx?raw";
+import iconCode from "../../samples/reference/kind-icon.tsx?raw";
+
+React components and hooks for a workspace made with [@jali/core](/reference/core). React 19 is a peer dependency.
+
+```sh
+npm install @jali/core @jali/react
+```
+
+Styles: `@jali/react/styles.css` is Jali's default theme and the workspace's styles; `@jali/react/theme.css` is the theme alone; `@jali/react/tailwind.css` points the tokens at your Tailwind theme. See [Tokens](/reference/tokens).
+
+## Start here
+
+<Entry name="Jali" kind="component" from="@jali/react" signature={`<Jali store={store} overlays? settings?>{children}</Jali>`} example={appCode} exampleFile="App.tsx">
+
+Provides the store, renders the workspace's root element, and renders the dialogs every workspace has: the command palette, Settings, the "Add to tabs of…" chooser, "Discard unsaved changes?" and the live region. Put `<JaliView>` and your own chrome inside it.
+
+The root is a `<div data-jali>` that the store attaches to (`store.dom`), so focus, drag and F6 stay inside it. Mark your own chrome inside it with `data-jali-chrome` and Jali never pulls focus out of it.
+
+<Params title="Props">
+<Param name="store" type="UiStore" required>The workspace, from `createUiStore`.</Param>
+<Param name="children" type="ReactNode">Rendered inside the root: `<JaliView>` and your chrome.</Param>
+<Param name="overlays" type="ReactNode">Rendered after the root, inside the provider: things that must sit outside the workspace, such as a toaster. Focus is never pulled back from outside the root.</Param>
+<Param name="settings" type="boolean" default="true">`false` leaves the Settings panel out. The `settings.open` command then sets `settingsOpen` with nothing to show it.</Param>
+<Param name="...rest" type="HTMLAttributes<HTMLDivElement>">Passed to the root `<div>` (`className`, `style`, `id`). `ref` and `data-jali` are Jali's.</Param>
+</Params>
+
+</Entry>
+
+<Entry name="JaliView" kind="component" from="@jali/react" signature={`<JaliView />`} compact>
+
+The workspace itself: `<Workspace>` (the panes), or `<CuratedPage>` while a curated page is open. Takes no props. Must be inside `<Jali>` or a `<StoreProvider>`.
+
+</Entry>
+
+## Defining panes and pages
+
+<Entry name="definePaneKind" kind="function" from="@jali/react" signature={`definePaneKind(def: PaneKindDef): PaneKindDef`} example={kindsCode} exampleFile="kinds.tsx">
+
+Defines a kind of pane: what it shows, its sizes and the component that renders it. It returns `def` as it is; it is there for the types. Pass your kinds to `createPaneKinds`.
+
+`split` and "New tab here" open a pane of kind `"launcher"` until the person chooses an object, so a workspace that offers them needs a kind with that name (usually `transient: true`).
+
+<Params>
+<Param name="def" type="PaneKindDef" required>
+
+Everything in <Ref to="PaneKindBase" page="/reference/core/types" /> (`kind`, `title`, `ref`, `minWidth`, `minHeight`, `comfortableWidth`, `maxWidth`, `identity`, `object`, `transient`, `recordable`, `heavy`), and:
+
+<ChildParams label="view fields">
+<Param name="Component" type="(props: PaneComponentProps) => ReactNode" required>Renders the pane's content. It stays mounted while the pane is folded, tabbed, tucked or moved.</Param>
+<Param name="icon" type="ComponentType<{ size?: number; strokeWidth?: number; 'aria-hidden'?: boolean }>">The kind's icon in the header, tab and shelf: a lucide-react icon or any 16px component. Without one, a square.</Param>
+</ChildParams>
+
+</Param>
+</Params>
+
+<Returns type="PaneKindDef">The same object.</Returns>
+
+</Entry>
+
+<Entry name="PaneComponentProps" kind="type" from="@jali/react" signature={`interface PaneComponentProps`} example={noteCode} exampleFile="order-note.tsx">
+
+What a kind's `Component` gets.
+
+Keys: content first. Claim the keys you use with `event.preventDefault()` (J and K, Space, Enter, ⌘Z for your own undo, the first Esc) and let the rest bubble; single character keys must act only while your content has focus. Content that needs every key (an editor) marks itself `data-pane-keys="content"`; the workspace then takes only F6 and Shift+F6 there.
+
+<Params title="Props">
+<Param name="ref" type="ObjectRef" required>The object shown; the same as `node.ref`. React 19 passes it as a plain prop: read it from props, without `forwardRef`.</Param>
+<Param name="node" type="PaneNode" required>The layout node. In the peek sheet, a node that is not in the layout.</Param>
+<Param name="paused" type="boolean" required>The pane is hidden: tabbed away, tucked, folded, or behind a maximised pane. Pause subscriptions and timers; keep state.</Param>
+<Param name="focused" type="boolean" required>The pane has workspace focus.</Param>
+<Param name="inPeek" type="boolean" required>Rendered in the peek sheet rather than a pane.</Param>
+<Param name="select" type="(ref: ObjectRef | null, opts?: { inResults?: boolean }) => void" required>Report the list's selection. An open peek from this pane follows it at once; this pane's following detail once it rests. `{ inResults: false }`: the filter no longer shows `ref`. Report the selection before opening it, so the opened pane is linked to it.</Param>
+<Param name="openBeside" type="(ref: ObjectRef) => void" required>Open `ref` beside this pane; focus stays here. The selected item opens a following detail (pinned if one already follows); another link replaces this pane's earlier plain link of the same kind.</Param>
+<Param name="peek" type="(ref: ObjectRef | null) => void" required>Open or move the peek sheet; `null` closes it.</Param>
+<Param name="openHere" type="(ref: ObjectRef) => void" required>Show `ref` in this pane. If it is open elsewhere, that pane is focused instead.</Param>
+<Param name="dismiss" type="() => void" required>Close this pane quietly, with no undo toast: for transient panes such as a launcher.</Param>
+<Param name="setActivity" type="(activity: PaneActivity) => void" required>Report activity for the header, tab, shelf and status line.</Param>
+<Param name="setUnsaved" type="(what: string | null) => void" required>Report unsaved work in words ("an unsaved query"), or `null` once it is saved. While set, closing the pane, closing others, a preset or showing another object in it asks first; a following detail keeps its object. Moving, tabbing, folding and tucking never ask.</Param>
+<Param name="setCommands" type="(commands: PaneCommand[] | null) => void" required>Commands listed first in the palette while this pane is focused. Call it again when they change, and with `null` on unmount.</Param>
+<Param name="recent" type="ObjectRef[]">Given to transient kinds only: Recent.</Param>
+<Param name="isOpen" type="(ref: ObjectRef) => boolean">Transient kinds only: whether an object is already open in another pane.</Param>
+<Param name="titleFor" type="(ref: ObjectRef) => string">Transient kinds only: an object's title.</Param>
+<Param name="KindIcon" type="ComponentType<{ kind: string; size?: number }>">Transient kinds only: <Ref to="KindIcon" />.</Param>
+</Params>
+
+</Entry>
+
+<Entry name="PaneKindDef" kind="type" from="@jali/react" signature={`interface PaneKindDef extends PaneKindBase {\n  icon?: IconComponent;\n  Component: (props: PaneComponentProps) => ReactNode;\n}`} compact>
+
+A kind for React; see <Ref to="definePaneKind" />.
+
+</Entry>
+
+<Entry name="WorkspaceProfile" kind="type" from="@jali/react" signature={`interface WorkspaceProfile extends ProfileBase<RoleDef> {\n  Rail: ComponentType<{ item: number; activate: (item: number) => void }>;\n  Header: ComponentType<{ item: number }>;\n}`} example={profileCode} exampleFile="loan-review.tsx">
+
+A curated page for React: <Ref to="ProfileBase" page="/reference/core/types" /> with the list of items at the left (`Rail`, which calls `activate(item)` to show another) and the item's header above the tabs (`Header`). Pass it as the store's `profile`.
+
+</Entry>
+
+<Entry name="RoleDef" kind="type" from="@jali/react" signature={`interface RoleDef extends RoleBase { icon: IconComponent }`} compact>
+
+A curated page's view, with the icon for its tab.
+
+</Entry>
+
+<Entry name="ReactEnv" kind="type" from="@jali/react" signature={`interface ReactEnv extends Env {\n  kinds: PaneKinds<PaneKindDef>;\n  profile: WorkspaceProfile | null;\n}`} compact>
+
+The env as React code sees it: kinds with components, a profile with a rail and header. What `useEnv()` returns.
+
+</Entry>
+
+## Inside a pane
+
+<Entry name="usePaneState" kind="hook" from="@jali/react" signature={`usePaneState<T>(key: string, initial: T): [T, (next: T | ((prev: T) => T)) => void]`} example={paneStateCode} exampleFile="OrdersTable.tsx">
+
+State the workspace keeps for a pane: it survives the pane being tabbed, folded, tucked or moved, and a reload (saved through the store's storage 400 ms after it changes, by `startUi`). It is dropped when the pane closes for good or shows another object. Use it for what a person expects back (a sort, a draft, a scroll position) and React state for the rest.
+
+In the peek sheet there is no pane, so the state is local and goes with the sheet.
+
+<Params>
+<Param name="key" type="string" required>The value's name within the pane.</Param>
+<Param name="initial" type="T" required>Used until a value is set. Read once, as with `useState`. Must be JSON.</Param>
+</Params>
+
+<Returns type="[T, (next: T | ((prev: T) => T)) => void]">The value, and a setter that takes a value or an updater. Values must be JSON.</Returns>
+
+</Entry>
+
+<Entry name="PaneIdContext" kind="context" from="@jali/react" signature={`const PaneIdContext: React.Context<string | null>`} compact>
+
+The id of the pane the content renders in; `null` in the peek sheet. The pane frame provides it; read it with `useContext(PaneIdContext)` to call actions for your own pane.
+
+</Entry>
+
+<Entry name="useActiveItemPort" kind="hook" from="@jali/react" signature={`useActiveItemPort(mapping: ActiveItemMapping): ActiveItemPort | null`} example={portCode} exampleFile="OrdersPane.tsx">
+
+The active-item port for the pane this content is in (see <Ref to="activeItemPort" page="/reference/core" />). Re-renders when the pane's selection changes, so `itemId` reads fresh.
+
+<Params>
+<Param name="mapping" type="ActiveItemMapping" required>`toRef(itemId)` and `idOf(ref)`. Read on the first render only: a new mapping later is not picked up.</Param>
+</Params>
+
+<Returns type="ActiveItemPort | null">`null` in the peek sheet.</Returns>
+
+</Entry>
+
+## The store in React
+
+<Entry name="StoreProvider" kind="component" from="@jali/react" signature={`<StoreProvider store={store}>{children}</StoreProvider>`} compact>
+
+Makes a store available to the hooks and parts below it. `<Jali>` renders one; use it alone when you compose the parts yourself.
+
+<Params title="Props">
+<Param name="store" type="UiStore" required />
+<Param name="children" type="ReactNode" />
+</Params>
+
+</Entry>
+
+<Entry name="useStore" kind="hook" from="@jali/react" signature={`useStore(): ReactUiStore`} compact>
+
+The store from the nearest provider. Throws `useStore() outside <StoreProvider>` without one. Reading it does not subscribe; use `useUi` or `useModel` for values that change.
+
+<Returns type="ReactUiStore" />
+
+</Entry>
+
+<Entry name="ReactUiStore" kind="type" from="@jali/react" signature={`type ReactUiStore = UiStore & { env: ReactEnv }`} compact>
+
+A store as React code sees it.
+
+</Entry>
+
+<Entry name="useUi" kind="hook" from="@jali/react" signature={`useUi<T>(select: (s: UiState) => T): T`} example={hooksCode} exampleFile="StatusLine.tsx">
+
+Subscribes to one value of the state. The component re-renders when that value changes (compared with `Object.is`), so return a field or a primitive, not a new object each time.
+
+<Params>
+<Param name="select" type="(s: UiState) => T" required>Picks the value.</Param>
+</Params>
+
+<Returns type="T" />
+
+</Entry>
+
+<Entry name="useModel" kind="hook" from="@jali/react" signature={`useModel(): WorkspaceModel`} compact>
+
+The derived model, subscribed: what is on screen, the groups, the shelf. A new object only when something it depends on changed (the layout, the maximised pane, the area, the kinds, the profile or the pane cap); focus alone does not change it.
+
+<Returns type="WorkspaceModel" />
+
+</Entry>
+
+<Entry name="useActions" kind="hook" from="@jali/react" signature={`useActions(): Actions`} compact>
+
+`store.actions`. Does not subscribe.
+
+<Returns type="Actions" />
+
+</Entry>
+
+<Entry name="useEnv" kind="hook" from="@jali/react" signature={`useEnv(): ReactEnv`} compact>
+
+The workspace's kinds, presets, profile and name.
+
+<Returns type="ReactEnv" />
+
+</Entry>
+
+<Entry name="useProfile" kind="hook" from="@jali/react" signature={`useProfile(): WorkspaceProfile | null`} compact>
+
+The curated page profile, when the workspace has one.
+
+<Returns type="WorkspaceProfile | null" />
+
+</Entry>
+
+<Entry name="useTitleOf" kind="hook" from="@jali/react" signature={`useTitleOf(): (node: PaneNode) => string`} compact>
+
+`titleOf` bound to the store's env: a role's label in a curated page, else the kind's title.
+
+<Returns type="(node: PaneNode) => string" />
+
+</Entry>
+
+<Entry name="useShortcut" kind="hook" from="@jali/react" signature={`useShortcut(id: string): string`} compact>
+
+A command's keys in this store's keymap, for a tooltip ("⌘K ⌘[" or "Ctrl+K Ctrl+["); `""` when unbound.
+
+<Params>
+<Param name="id" type="string" required>A command id.</Param>
+</Params>
+
+<Returns type="string" />
+
+</Entry>
+
+<Entry name="useShortcutSuffix" kind="hook" from="@jali/react" signature={`useShortcutSuffix(id: string): string`} compact>
+
+The same keys with a separator in front (" · ⌘K ⌘["), for appending to a tooltip, or `""` when unbound.
+
+<Returns type="string" />
+
+</Entry>
+
+## Parts
+
+`<Jali>` and `<JaliView>` render these. Use them to compose your own: each must be inside a `<StoreProvider>`, and none takes props unless shown.
+
+<Entry name="Workspace" kind="component" from="@jali/react" signature={`<Workspace />`} example={composeCode} exampleFile="App.tsx">
+
+The panes: frames, dividers, drop zones, the drag chip, the peek sheet and (on a phone) the pane switcher. It is a `<main aria-label="Panes">`, measures itself to set the store's `area`, keeps DOM focus on the focused pane, and announces panes folding or unfolding when the room changes. When even one pane's minimum doesn't fit, it shows one pane at a time. It is `position: relative` with `overflow: hidden` and no size of its own: give it one (a grid or flex cell in your layout).
+
+</Entry>
+
+<Entry name="CuratedPage" kind="component" from="@jali/react" signature={`<CuratedPage />`} compact>
+
+A curated page: the profile's `Rail` at the left; its `Header`, the page tabs and a `<Workspace>` at the right. Renders only while `page` is set and a profile exists (it reads them without checking).
+
+</Entry>
+
+<Entry name="PageBar" kind="component" from="@jali/react" signature={`<PageBar />`} compact>
+
+A curated page's controls, for your top bar: the Single / Multiplexed switch (Multiplexed disabled for a limited viewer), in Multiplexed the "Investigating · N opened" group with Back to the page, and Reset. Renders nothing while no page is open.
+
+</Entry>
+
+<Entry name="Shelf" kind="component" from="@jali/react" signature={`<Shelf />`} compact>
+
+The panes that are tabs but not by the person's choice: tucked ones (with Put back) and folded ones, as chips grouped by home, for a status line. More than three folded panes collapse into one summary chip. Arrow keys move between chips, Enter shows one, Shift+Enter puts a tucked one back. Renders nothing when no pane is tucked or folded.
+
+</Entry>
+
+<Entry name="Announcer" kind="component" from="@jali/react" signature={`<Announcer />`} compact>
+
+The one polite live region (`role="status"`) every layout change is announced in. It clears and then sets the text, so a repeat is announced again.
+
+</Entry>
+
+<Entry name="Palette" kind="component" from="@jali/react" signature={`<Palette />`} compact>
+
+The command palette (⌘K or Ctrl+K), while `paletteOpen` is set. The focused pane's own commands come first, then every workspace command with its group and keys; refused ones are greyed. Choosing one closes the palette and runs it once focus is back.
+
+</Entry>
+
+<Entry name="SettingsPanel" kind="component" from="@jali/react" signature={`<SettingsPanel />`} compact>
+
+The Settings dialog, while `settingsOpen` is set: theme, centre drop, pane cap (2 to 16), a curated page's opened-pane marking and viewer, every key binding from the store's keymap, and "Show fetch stats". Changes write `settings`; `startUi` saves them.
+
+</Entry>
+
+<Entry name="Chooser" kind="component" from="@jali/react" signature={`<Chooser />`} compact>
+
+"Add to tabs of…" (the `pane.merge` command): pick a pane or tab group on screen by title, and the focused pane joins it. Renders while `chooser` is set.
+
+</Entry>
+
+<Entry name="ConfirmDiscard" kind="component" from="@jali/react" signature={`<ConfirmDiscard />`} compact>
+
+"Discard unsaved changes?", while a change that would lose unsaved work is held (`confirm`). Lists each pane and its work. Keep editing is the default (focused, Esc and a click outside); Discard makes the held change as it was asked for.
+
+</Entry>
+
+<Entry name="KindIcon" kind="component" from="@jali/react" signature={`<KindIcon kind={kind} size={16} />`} example={iconCode} exampleFile="OpenPanes.tsx">
+
+A kind's icon with a 1.5px stroke, `aria-hidden`; a square for an unknown kind or one without an icon.
+
+<Params title="Props">
+<Param name="kind" type="string" required>The kind's name.</Param>
+<Param name="size" type="number" default="16">Pixels.</Param>
+</Params>
+
+</Entry>
+
+<Entry name="Activity" kind="component" from="@jali/react" signature={`<Activity a={activity} shape? />`} compact>
+
+A pane's activity mark. Renders nothing for `idle` or `undefined`.
+
+<Params title="Props">
+<Param name="a" type="PaneActivity | undefined" required>What the pane reported.</Param>
+<Param name="shape" type="boolean" default="false">`false`: a coloured dot labelled for screen readers ("Loading", "Working", "Needs you", "Error"). `true`: the shelf's mark, a shape as well as a colour (a ring for loading and working, "!" for needs-you, a cross for error), hidden from screen readers.</Param>
+</Params>
+
+</Entry>
+
+<Entry name="JaliProps" kind="type" from="@jali/react" signature={`interface JaliProps extends HTMLAttributes<HTMLDivElement> {\n  store: UiStore; children?: ReactNode;\n  overlays?: ReactNode; settings?: boolean;\n}`} compact>
+
+The props of <Ref to="Jali" />.
+
+</Entry>

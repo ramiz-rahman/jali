@@ -1,0 +1,527 @@
+---
+title: "@jali/core"
+summary: Every function and constant @jali/core exports, with its options, defaults and what it returns.
+---
+
+import { Entry, Params, Param, ChildParams, Returns, Values, Value, Ref } from "../../reference";
+import storeCode from "../../samples/reference/store.ts?raw";
+import bootCode from "../../samples/reference/boot.tsx?raw";
+import kindsCode from "../../samples/reference/pane-kinds.ts?raw";
+import urlCode from "../../samples/reference/url-sync.ts?raw";
+import portsCode from "../../samples/reference/ports.ts?raw";
+import keymapCode from "../../samples/reference/keymap.ts?raw";
+import formatCode from "../../samples/reference/format.ts?raw";
+import commandsCode from "../../samples/reference/commands.ts?raw";
+import keyboardCode from "../../samples/reference/keyboard.ts?raw";
+import activeCode from "../../samples/reference/active-item.ts?raw";
+import layoutCode from "../../samples/reference/layout-ops.ts?raw";
+import profileCode from "../../samples/reference/profile-helpers.ts?raw";
+import settingsCode from "../../samples/reference/settings.ts?raw";
+import domCode from "../../samples/reference/dom.ts?raw";
+import sameRefCode from "../../samples/reference/same-ref.ts?raw";
+import readCode from "../../samples/reference/read-store.ts?raw";
+
+The framework-free part of Jali: the layout tree and its operations, the workspace store, start-up, the address and storage ports, commands and keys. Render it with [@jali/react](/reference/react). Types have their own page, [@jali/core types](/reference/core/types); the pure layout operations are on [The layout namespace](/reference/core/layout).
+
+```sh
+npm install @jali/core
+```
+
+## The store
+
+<Entry name="createUiStore" kind="function" from="@jali/core" signature={`createUiStore(deps: UiStoreDeps): UiStore`} example={storeCode} exampleFile="store.ts">
+
+Makes one workspace: its state, the model derived from it, its actions and its keymap. Each workspace has its own store; nothing is shared between two stores on one page.
+
+It throws ``createUiStore: give `presets` or an `initial.layout` to start from`` when it has neither. The first state is the start preset's layout (or `initial.layout`), the settings and pane state saved in `storage`, and no focus. Call <Ref to="boot" /> before the first render to bring in the address and fit the layout.
+
+<Params title="Parameters">
+<Param name="deps" type="UiStoreDeps" required>
+
+What the workspace is made of, and where its effects go.
+
+<ChildParams>
+<Param name="kinds" type="PaneKinds" required>This workspace's pane kinds, from <Ref to="createPaneKinds" />. A layout can only show refs of these kinds.</Param>
+<Param name="presets" type="readonly Preset[]" default="[]">Layouts to start from, in menu order. Each gets a `layout.preset.<id>` command, titled "Layout: label".</Param>
+<Param name="preset" type="string" default="the first preset">The preset the workspace opens on when no link or saved state says otherwise. An id that is not in `presets` also gives the first.</Param>
+<Param name="initial" type="Partial<UiState>">State laid over the defaults, last, so it wins over saved settings and pane state too. A workspace without presets passes `initial.layout`.</Param>
+<Param name="profile" type="ProfileBase | null" default="null">The curated page this workspace can show. In React, a `WorkspaceProfile`.</Param>
+<Param name="name" type="string" default={`"Workspace"`}>The free workspace's name, used in command titles such as "Open Workspace".</Param>
+<Param name="url" type="UrlWriter">Where the workspace writes its address: usually <Ref to="createUrlSync" />, which `boot` and `startUi` then also read from. Without it the address is left alone.</Param>
+<Param name="storage" type="StoragePort" default={`browserStorage("jali")`}>What this person keeps on this device: settings, pane state, a curated page's mode and layout.</Param>
+<Param name="id" type="string" default={`"jali"`}>Prefix for this workspace's DOM ids (`jali-pane-orders`). Give each workspace on one page its own.</Param>
+<Param name="focusPane" type="((scope: WorkspaceDom, id: NodeId) => void) | null" default="focusPane, or null without a document">Moves DOM focus into a pane after the next paint. `null` leaves DOM focus alone, for tests and workspaces that are never shown.</Param>
+<Param name="keymap" type="KeymapOverrides">Rebind or unbind commands: `{ "pane.zoom": "Mod+K Mod+Enter", "pane.close": null }`. See <Ref to="createKeymap" />.</Param>
+<Param name="keymapOptions" type="KeymapOptions">The keymap's platform, and how refused bindings are reported.</Param>
+<Param name="unstable" type="(op: string, before: string, after: string) => void" default="console.error in development">Called when a focus or swap action moved a pane on screen, which it never should. Outside development nothing is checked.</Param>
+</ChildParams>
+</Param>
+</Params>
+
+<Returns type="UiStore">The store. Its members are listed under <Ref to="UiStore" page="/reference/core/types" />; the ones you use most are `get()`, `set()`, `subscribe()`, `model()` and `actions`.</Returns>
+
+</Entry>
+
+<Entry name="boot" kind="function" from="@jali/core" signature={`boot(store: UiStore, url?: UrlSync): void`} example={bootCode} exampleFile="main.tsx" exampleHighlight="7">
+
+Puts the first state in place before the first render, so the first paint is the layout the address holds.
+
+In order: reads the address (a layout link arrives as it is; a curated page link opens the page; a link that can't be read opens the current preset, keeps a copy of the code in storage, replaces the address, shows an error toast and announces it), adds what is on screen to Recent, fits the layout to the current area, focuses the first pane when nothing is focused, and replaces the address with the result.
+
+<Params>
+<Param name="store" type="UiStore" required>The workspace to start.</Param>
+<Param name="url" type="UrlSync" default="store.url, when it can read">The address to read. Defaults to the store's own `url` when it is a <Ref to="createUrlSync" /> (it has `read`); with neither, `boot` only fits and focuses.</Param>
+</Params>
+
+<Returns type="void" />
+
+</Entry>
+
+<Entry name="startUi" kind="function" from="@jali/core" signature={`startUi(store: UiStore, url?: UrlSync): () => void`} example={bootCode} exampleFile="main.tsx" exampleHighlight="8">
+
+Installs the listeners a workspace needs for the life of the page, and returns a function that removes them.
+
+- Writes `--gap`, `--topbar-h`, `--status-h` and `--switcher-h` on `<html>` (the pane switcher on a phone reads `--switcher-h`).
+- Sets `data-theme` on `<html>` to the resolved theme, and again when the setting or the system preference changes.
+- Saves settings when they change, pane state 400 ms after it last changed, and a curated page's mode and Multiplexed layout (without opened panes).
+- Asks the browser to confirm leaving the page while any pane has unsaved work (`beforeunload`).
+- Installs the keyboard with <Ref to="installKeyboard" /> on `window`, with no root: it takes keys from the whole page.
+- Applies Back and Forward from `url` and announces "Layout changed by browser history".
+
+<Params>
+<Param name="store" type="UiStore" required>The workspace.</Param>
+<Param name="url" type="UrlSync" default="store.url, when it can read">The address whose Back and Forward to follow.</Param>
+</Params>
+
+<Returns type="() => void">Removes every listener and cancels a pending pane state save. For tests and hot reload.</Returns>
+
+</Entry>
+
+<Entry name="createPaneKinds" kind="function" from="@jali/core" signature={`createPaneKinds<D extends PaneKindBase = PaneKindBase>(defs?: readonly D[]): PaneKinds<D>`} example={kindsCode} exampleFile="kinds.ts">
+
+Makes a workspace's registry of pane kinds. Each store has its own, so two workspaces, a workspace in a dialog and every test stay independent.
+
+In React, pass kinds made with `definePaneKind`; the registry then also holds their components and icons.
+
+<Params>
+<Param name="defs" type="readonly D[]" default="[]">The kinds to start with. A later kind with the same `kind` name replaces an earlier one.</Param>
+</Params>
+
+<Returns type="PaneKinds<D>">
+
+The registry. `register(def)` adds or replaces a kind later (late imports, hot reload) and bumps `version()`; `onChange` hears it. `registry()` is the framework-free view the layout operations read (`minWidth`, `minHeight`, `comfortableWidth`, `maxWidth`), the same object until the next registration. `title(ref)` falls back to the kind name for an unknown kind or a title that throws. `sameObject` compares object types (`object`, else the kind) and identities; a kind whose `identity` returns `undefined` is scratch space and is never the same object as anything. All members: <Ref to="PaneKinds" page="/reference/core/types" />.
+
+</Returns>
+
+</Entry>
+
+<Entry name="actions" kind="namespace" from="@jali/core (store.actions)" note="A member of the store, not an import" signature={`store.actions.openBeside(source: NodeId, ref: ObjectRef): NodeId | undefined`} example={readCode} exampleFile="actions.ts">
+
+Every workspace action, bound to the store: each reads the current state, commits what it decides (layout, focus, address, announcement, toast) and returns the pane it opened or acted on, when there is one.
+
+An action that would remove or replace a pane with unsaved work is held instead, and "Discard unsaved changes?" opens (`UiState.confirm`). A following detail with unsaved work keeps its object and says so. Every action is listed under <Ref to="Actions" page="/reference/core/types" />.
+
+</Entry>
+
+## Starting points and pages
+
+<Entry name="presetById" kind="function" from="@jali/core" signature={`presetById(env: Pick<Env, "presets">, id: string | undefined): Preset | undefined`} example={profileCode} exampleFile="helpers.ts" exampleHighlight="5-6">
+
+The preset with this id. An id that is missing or unknown gives the first preset, and a workspace with no presets gives `undefined`.
+
+<Params>
+<Param name="env" type={`Pick<Env, "presets">`} required>Usually `store.env`.</Param>
+<Param name="id" type="string | undefined" required>The preset's id.</Param>
+</Params>
+
+<Returns type="Preset | undefined" />
+
+</Entry>
+
+<Entry name="titleOf" kind="function" from="@jali/core" signature={`titleOf(env: Env, node: PaneNode): string`} compact>
+
+A pane's name: its role's label in a curated page ("Borrower"), else its kind's title for what it shows ("Order 1041"). In React, `useTitleOf` returns this bound to the store's env.
+
+<Params>
+<Param name="env" type="Env" required>The workspace's env (`store.env`).</Param>
+<Param name="node" type="PaneNode" required>The pane.</Param>
+</Params>
+
+<Returns type="string" />
+
+</Entry>
+
+<Entry name="roleOf" kind="function" from="@jali/core" signature={`roleOf<R extends RoleBase>(p: ProfileBase<R>, id: string | undefined): R | undefined`} compact>
+
+The role (view) of a curated page with this id, or `undefined`.
+
+<Params>
+<Param name="p" type="ProfileBase<R>" required>The profile.</Param>
+<Param name="id" type="string | undefined" required>The role's id, which is also its pane's node id.</Param>
+</Params>
+
+<Returns type="R | undefined" />
+
+</Entry>
+
+<Entry name="viewerLabel" kind="function" from="@jali/core" signature={`viewerLabel(profile: ProfileBase | null, full: boolean): string`} compact>
+
+The word for a viewer of a curated page: the profile's `viewers.full` or `viewers.limited`, else "investigator" (full) or "viewer" (limited). Used in command titles such as "View as loan officer".
+
+<Params>
+<Param name="profile" type="ProfileBase | null" required>The profile, or `null`.</Param>
+<Param name="full" type="boolean" required>The full viewer (true) or the limited one (false).</Param>
+</Params>
+
+<Returns type="string" />
+
+</Entry>
+
+<Entry name="sameRef" kind="function" from="@jali/core" signature={`sameRef(a: ObjectRef | undefined, b: ObjectRef | undefined): boolean`} example={sameRefCode} exampleFile="same-ref.ts">
+
+Whether two refs are exactly the same: the same kind and the same params, compared with `===`. `1` and `"1"` differ here; to ask whether two refs show the same object, use `kinds.sameObject`.
+
+<Params>
+<Param name="a" type="ObjectRef | undefined" required />
+<Param name="b" type="ObjectRef | undefined" required />
+</Params>
+
+<Returns type="boolean">`false` when either is `undefined`.</Returns>
+
+</Entry>
+
+## The address and storage
+
+<Entry name="createUrlSync" kind="function" from="@jali/core" signature={`createUrlSync(options?: UrlSyncOptions): UrlSync`} example={urlCode} exampleFile="url.ts">
+
+Keeps the layout in the address. Pass it as the store's `url`; `boot` and `startUi` read from it too.
+
+The layout goes in `?l=` (encoded with `layout.encode`), the maximised pane in `zoom`, the peek in `peek`. A curated page writes `page`, `item`, `tab` and one `open` per opened pane instead, and never its mode or layout: those are the reader's own. Every other search param is the host's and is kept as it is. Deliberate changes push a history entry; divider drags replace it 120 ms after the last move; maximise, peek and selection changes replace it at once. Moving focus alone writes nothing.
+
+<Params>
+<Param name="options" type="UrlSyncOptions" default="{}">
+
+<ChildParams label="options">
+<Param name="location" type="LocationPort" default="browserLocation()">The address: the browser's history, or a router adapter so the router stays its one owner.</Param>
+<Param name="storage" type="StoragePort" default={`browserStorage("jali")`}>Where a link that couldn't be read is kept (`broken-layout`), and, with `sizes: "local"`, the person's dragged sizes.</Param>
+<Param name="prefix" type="string" default={`""`}>Prefix for the workspace's search params when two workspaces share an address: `"b."` writes `b.l`, `b.zoom`, `b.peek`. It also prefixes the stored sizes key.</Param>
+<Param name="sizes" type={`"link" | "local"`} default={`"local"`}>
+
+What a layout link carries about sizes.
+
+<Values>
+<Value name="local">The layout as designed. Sizes the person dragged stay on this device, kept for up to 12 layouts by their structure, so their own reloads keep them and a colleague opens the link at the designed proportions.</Value>
+<Value name="link">Everything: the link reopens exactly as it was.</Value>
+</Values>
+
+</Param>
+</ChildParams>
+
+</Param>
+</Params>
+
+<Returns type="UrlSync">A `UrlWriter` that can also `read(kinds)`, `keepBroken(code)`, `onPop(fn)` and give `href()`. See <Ref to="UrlSync" page="/reference/core/types" />.</Returns>
+
+</Entry>
+
+<Entry name="browserLocation" kind="function" from="@jali/core" signature={`browserLocation(win?: Window): LocationPort`} compact>
+
+The address as the browser's history: `navigate` calls `pushState` or `replaceState` with the same path and hash (and does nothing when the address would not change), and `subscribe` listens to `popstate`.
+
+<Params>
+<Param name="win" type="Window" default="window">The window whose history to use.</Param>
+</Params>
+
+<Returns type="LocationPort" />
+
+</Entry>
+
+<Entry name="memoryLocation" kind="function" from="@jali/core" signature={`memoryLocation(initial?: string): LocationPort & { entries: string[]; visit(search: string): void }`} example={portsCode} exampleFile="test-setup.ts">
+
+An address that lives in memory: for tests, server rendering, and a workspace in a dialog that must not touch the page's address.
+
+<Params>
+<Param name="initial" type="string" default={`""`}>The first search string.</Param>
+</Params>
+
+<Returns type="LocationPort & { entries: string[]; visit(search: string): void }">`entries` is the history, newest last; `href()` is `memory:` plus the search. `visit(search)` is navigation the workspace did not make (Back, a router link): it adds an entry and calls every subscriber. `navigate` does not call subscribers.</Returns>
+
+</Entry>
+
+<Entry name="browserStorage" kind="function" from="@jali/core" signature={`browserStorage(prefix: string): StoragePort`} compact>
+
+`localStorage` under `prefix` (keys are `prefix:key`). Reads and writes never throw: in private mode or with storage blocked, nothing is saved and reads give `null`.
+
+<Params>
+<Param name="prefix" type="string" required>The key prefix. The store's default is `"jali"`.</Param>
+</Params>
+
+<Returns type="StoragePort" />
+
+</Entry>
+
+<Entry name="memoryStorage" kind="function" from="@jali/core" signature={`memoryStorage(initial?: Record<string, string>): StoragePort`} compact>
+
+Storage in a `Map`, for tests, server rendering and embedded workspaces.
+
+<Params>
+<Param name="initial" type="Record<string, string>" default="{}">Keys to start with (`settings`, `pane-state`, …).</Param>
+</Params>
+
+<Returns type="StoragePort" />
+
+</Entry>
+
+## Commands and keys
+
+<Entry name="commandsOf" kind="function" from="@jali/core" signature={`commandsOf(store: Pick<UiStore, "env">): readonly Command[]`} example={commandsCode} exampleFile="toolbar.ts">
+
+Every command the workspace has, in palette order: the fixed set, one per preset, and titles in the workspace's own words (its name, its profile's name and viewers). The same array for the same store. Every id is on the [Commands](/reference/commands) page.
+
+<Params>
+<Param name="store" type={`Pick<UiStore, "env">`} required>The store (only its `env` is read).</Param>
+</Params>
+
+<Returns type="readonly Command[]">Each with `id`, `title`, `group`, an optional `check` that returns a refusal when it can't run now, and `run`.</Returns>
+
+</Entry>
+
+<Entry name="runCommand" kind="function" from="@jali/core" signature={`runCommand(store: UiStore, id: string): boolean`} compact>
+
+Runs a command by id if its check passes. A refusal is not announced here (the keyboard and the palette do that).
+
+<Params>
+<Param name="store" type="UiStore" required />
+<Param name="id" type="string" required>A command id, such as `"pane.zoom"`.</Param>
+</Params>
+
+<Returns type="boolean">Whether it ran: `false` for an unknown id or a refused check.</Returns>
+
+</Entry>
+
+<Entry name="shortcutLabel" kind="function" from="@jali/core" signature={`shortcutLabel(store: Pick<UiStore, "keymap">, id: string): string`} compact>
+
+A command's first binding in this store's keymap, formatted for its platform ("⌘K ⌘M" or "Ctrl+K Ctrl+M"), or `""` when it is unbound. The same as `store.keymap.label(id)`; in React, `useShortcut(id)`.
+
+<Params>
+<Param name="store" type={`Pick<UiStore, "keymap">`} required />
+<Param name="id" type="string" required />
+</Params>
+
+<Returns type="string" />
+
+</Entry>
+
+<Entry name="copyLink" kind="function" from="@jali/core" signature={`copyLink(store: UiStore): void`} compact>
+
+Writes `store.href()` to the clipboard and announces "Link copied", or "Couldn't copy the link" when the browser refuses. Where `navigator.clipboard` is missing it does nothing. The `layout.copy_link` command runs it.
+
+<Params>
+<Param name="store" type="UiStore" required />
+</Params>
+
+<Returns type="void" />
+
+</Entry>
+
+<Entry name="DEFAULT_KEYMAP" kind="constant" from="@jali/core" signature={`const DEFAULT_KEYMAP: { readonly "palette.toggle": readonly ["Mod+K"]; … }`} example={keymapCode} exampleFile="keymap.ts" exampleHighlight="12">
+
+The default bindings: command id to one or more binding strings. `Mod` is ⌘ on a Mac and Ctrl elsewhere. Each id and its keys, printed for both platforms, are on the [Commands](/reference/commands) page.
+
+The defaults keep to three rules: single character keys belong to the focused content; no keys the browser keeps for itself (⌘W, ⌘T, Ctrl+Tab and the like), no Ctrl+Alt and no ⌘ or Ctrl with a digit; one prefix, ⌘K or Ctrl+K, which opens the palette and starts a two-step chord whose second step keeps Mod held.
+
+</Entry>
+
+<Entry name="PALETTE_ID" kind="constant" from="@jali/core" signature={`const PALETTE_ID = "palette.toggle"`} compact>
+
+The keymap's id for opening and closing the command palette. It is a key binding, not a command: the palette does not list itself, and `commandsOf` does not include it. Rebind it like any command: `keymap: { [PALETTE_ID]: "F1" }`.
+
+</Entry>
+
+<Entry name="createKeymap" kind="function" from="@jali/core" signature={`createKeymap(overrides?: KeymapOverrides, opts?: KeymapOptions): Keymap`} example={keymapCode} exampleFile="keymap.ts">
+
+Resolves the defaults and a host's changes into one keymap. A store makes its own from `deps.keymap`; call this for a keymap outside a store, or in a test.
+
+A binding is refused (and reported to `onInvalid`) when it can't be parsed, is a single character key with no Mod, Ctrl or Alt (WCAG 2.1.4: those belong to the content), or has more than two steps. A command whose bindings are all refused is unbound.
+
+<Params>
+<Param name="overrides" type="KeymapOverrides" default="{}">Command id to a binding string, several, or `null` to unbind. Ids not listed keep their defaults; any other id (a registry command without a default, or your own) can be bound too.</Param>
+<Param name="opts" type="KeymapOptions" default="{}">
+
+<ChildParams label="options">
+<Param name="platform" type={`"mac" | "other"`} default="detectPlatform()">The platform keys are matched and printed for. Pass it in tests and on the server.</Param>
+<Param name="onInvalid" type="(id: string, binding: KeyString, reason: string) => void" default="console.warn">Called for each refused binding.</Param>
+</ChildParams>
+
+</Param>
+</Params>
+
+<Returns type="Keymap">`platform`; `entries` (every bound id and its sequences, in order); `sequences(id)`; `label(id)` (the first binding, formatted, or `""`); and `find` and `isPrefix`, which the keyboard layer uses to match a keydown.</Returns>
+
+</Entry>
+
+<Entry name="installKeyboard" kind="function" from="@jali/core" signature={`installKeyboard(store: UiStore, scope?: KeyboardScope): () => void`} example={keyboardCode} exampleFile="keyboard.ts">
+
+Listens for the workspace's keys. `startUi` calls it with no scope; call it yourself for a workspace that should take only keys from inside its own element.
+
+Keys go in this order. First, while active, the second step of a chord the person started and resize mode's arrows, Enter and Esc. Then the focused content: a key it claims with `preventDefault()` is left alone, and content marked `data-pane-keys="content"` keeps every key except F6 and Shift+F6. Then the keymap, then Esc (closes the peek, then leaves maximise). While the palette, Settings or the chooser is open, only the palette chord is taken. A bound command whose check refuses still takes the key, and announces the reason if it has one.
+
+<Params>
+<Param name="store" type="UiStore" required />
+<Param name="scope" type="KeyboardScope" default="{}">
+
+<ChildParams label="scope">
+<Param name="target" type="Window" default="window">Where the listeners go.</Param>
+<Param name="root" type="() => Element | null">The workspace's root element. Given, the workspace takes keys from inside it, and keys with nothing focused while it was the last place focus or a pointer went. Omitted, it takes every key on the page.</Param>
+</ChildParams>
+
+</Param>
+</Params>
+
+<Returns type="() => void">Removes the listeners.</Returns>
+
+</Entry>
+
+<Entry name="formatKeys" kind="function" from="@jali/core" signature={`formatKeys(seq: KeySequence, platform?: Platform): string`} example={formatCode} exampleFile="format.ts">
+
+A key sequence as people read it: "⌘K ⌘M" on a Mac, "Ctrl+K Ctrl+M" elsewhere. Sequences come from `keymap.sequences(id)`.
+
+<Params>
+<Param name="seq" type="readonly Chord[]" required>One binding: a chord, or a prefix chord and a second chord.</Param>
+<Param name="platform" type="Platform" default="detectPlatform()" />
+</Params>
+
+<Returns type="string" />
+
+</Entry>
+
+<Entry name="formatChord" kind="function" from="@jali/core" signature={`formatChord(c: Chord, platform?: Platform): string`} compact>
+
+One chord as text. On a Mac the modifiers are glyphs in Apple's order (⌃⌥⇧⌘) and named keys are glyphs (← ↵ ⌫ Esc); elsewhere they are words joined by `+` ("Ctrl+Alt+Shift+M", "Left", "Esc"), and both Mod and Ctrl print as Ctrl.
+
+<Params>
+<Param name="c" type="{ key: string; mod?: boolean; ctrl?: boolean; alt?: boolean; shift?: boolean }" required>`key` is a `KeyboardEvent.code` ("KeyM", "Backslash") or, for named keys, a `KeyboardEvent.key` ("ArrowLeft", "F6").</Param>
+<Param name="platform" type="Platform" default="detectPlatform()" />
+</Params>
+
+<Returns type="string" />
+
+</Entry>
+
+<Entry name="keyHint" kind="function" from="@jali/core" signature={`keyHint(text: string, platform?: Platform): string`} compact>
+
+A binding string printed for the platform: `keyHint("Alt+Enter")` is "⌥↵" on a Mac and "Alt+Enter" elsewhere. For keys a pane handles itself, which are not in the keymap. Throws on a key or modifier it doesn't know.
+
+<Params>
+<Param name="text" type="string" required>A binding such as `"Mod+K Mod+M"`.</Param>
+<Param name="platform" type="Platform" default="detectPlatform()" />
+</Params>
+
+<Returns type="string" />
+
+</Entry>
+
+<Entry name="altClick" kind="function" from="@jali/core" signature={`altClick(platform?: Platform): string`} compact>
+
+The words for a click with Alt held: "⌥-click" on a Mac, "Alt-click" elsewhere.
+
+<Params>
+<Param name="platform" type="Platform" default="detectPlatform()" />
+</Params>
+
+<Returns type="string" />
+
+</Entry>
+
+<Entry name="detectPlatform" kind="function" from="@jali/core" signature={`detectPlatform(): "mac" | "other"`} compact>
+
+`"mac"` when `navigator.platform` (or the user agent) names a Mac, iPhone or iPad, else `"other"`, including where there is no `navigator`.
+
+<Returns type={`"mac" | "other"`} />
+
+</Entry>
+
+## Settings and theme
+
+<Entry name="DEFAULT_SETTINGS" kind="constant" from="@jali/core" signature={`const DEFAULT_SETTINGS: Settings = {\n  centreDrop: "swap", paneCap: 8, showStats: true,\n  theme: "system", boundary: "tint",\n}`} example={settingsCode} exampleFile="settings.ts">
+
+The settings a person starts with. Saved settings (`settings` in the store's storage) are laid over them at creation; an unknown `theme` becomes `"system"` and any `boundary` but `"none"` becomes `"tint"`. The fields are under <Ref to="Settings" page="/reference/core/types" />.
+
+</Entry>
+
+<Entry name="resolveTheme" kind="function" from="@jali/core" signature={`resolveTheme(choice: ThemeChoice, systemDark: boolean): Theme`} compact>
+
+The theme to show: `choice` itself, or for `"system"`, dark when `systemDark` is true. `startUi` puts the result on `<html data-theme>`.
+
+<Params>
+<Param name="choice" type={`"system" | "light" | "dark"`} required>Usually `store.get().settings.theme`.</Param>
+<Param name="systemDark" type="boolean" required>Usually `store.get().systemDark`.</Param>
+</Params>
+
+<Returns type={`"light" | "dark"`} />
+
+</Entry>
+
+## The DOM
+
+<Entry name="focusPane" kind="function" from="@jali/core" signature={`focusPane(dom: WorkspaceDom, id: NodeId): void`} example={domCode} exampleFile="dom.ts">
+
+Moves DOM focus into a pane after the next paint: to its `[data-autofocus]` element, else its `[role=grid]`, else the pane itself, without scrolling. Skipped when focus is on a divider or in a dialog, and where there is no document. The store's default `focusPane`.
+
+<Params>
+<Param name="dom" type="WorkspaceDom" required>`store.dom`.</Param>
+<Param name="id" type="NodeId" required>The pane's node id.</Param>
+</Params>
+
+<Returns type="void" />
+
+</Entry>
+
+<Entry name="paneDomId" kind="function" from="@jali/core" signature={`paneDomId(scope: string, id: string): string`} compact>
+
+A pane element's DOM id: `` `${scope}-pane-${id}` ``. `scope` is the store's `id` (`store.dom.id`).
+
+<Returns type="string" />
+
+</Entry>
+
+<Entry name="paneTitleId" kind="function" from="@jali/core" signature={`paneTitleId(scope: string, id: string): string`} compact>
+
+The DOM id of a pane's title: `` `${scope}-pane-${id}-title` ``, for `aria-labelledby`.
+
+<Returns type="string" />
+
+</Entry>
+
+## Lists and their detail
+
+<Entry name="activeItemPort" kind="function" from="@jali/core" signature={`activeItemPort(store: UiStore, pane: NodeId, mapping: ActiveItemMapping): ActiveItemPort`} example={activeCode} exampleFile="active-item.ts">
+
+Lets a list inside a pane keep its current item through the workspace, so the pane's following detail follows it, Space shows it and an open peek steps with it. The shape matches Chakni's Quick Look port, so a Chakni collection plugs in with no dependency either way. In React, `useActiveItemPort`.
+
+`write(id, "step")` reports the selection (the detail follows once it rests, 150 ms). `"open"` also shows the item: in the following detail when it is on screen, else the peek sheet. `"close"` closes the peek only if this pane opened it; the selection stays. `itemId` reads the pane's selection through `idOf`.
+
+<Params>
+<Param name="store" type="UiStore" required />
+<Param name="pane" type="NodeId" required>The pane the list is in.</Param>
+<Param name="mapping" type="ActiveItemMapping" required>
+
+<ChildParams label="mapping">
+<Param name="toRef" type="(itemId: string) => ObjectRef" required>The object an item id shows.</Param>
+<Param name="idOf" type="(ref: ObjectRef) => string | null" required>The item id of an object, or `null` when it is not one of this list's items.</Param>
+</ChildParams>
+
+</Param>
+</Params>
+
+<Returns type="ActiveItemPort">`{ itemId, write(itemId, action) }`; `write` always returns `{ status: "accepted" }`.</Returns>
+
+</Entry>
+
+## The layout namespace
+
+<Entry name="layout" kind="namespace" from="@jali/core" signature={`import { layout } from "@jali/core";`} example={layoutCode} exampleFile="layout.ts">
+
+The pure layout tree API: every operation takes a layout (and usually the view and a `LayoutContext`) and returns a new one; nothing is changed in place. The store's actions are built on it. Use it to build or test layouts, or to work out what an action would do. Each member is on [The layout namespace](/reference/core/layout).
+
+</Entry>
