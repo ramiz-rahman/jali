@@ -299,3 +299,6 @@ Research, sources and the full table: `docs/research/keyboard-shortcuts.md`. Cod
 ## 19 Nov 2026 · Jali's default neutrals are stone (founder)
 - The default theme's neutrals move from cool zinc to the brand's stone: canvas `#EFEAE2`, warm surfaces, borders and text, and warm-tinted shadows and scrims; dark mode a warm near-black (`#0E0D0B`). Nil stays the only accent. Values are the ones the docs site was already using, so the docs and a default Jali app now match.
 - Contrast: subtle text `#685F54` on the surface is above 4.5:1; control borders `#8A8274` above 3:1. Theme and accessibility specs pass.
+
+## 19 Nov 2026 · Icons are Phosphor (founder)
+- Jali switches from Lucide to Phosphor (`@phosphor-icons/react`), the set Chakni uses, so an app with both shows one icon style. Done in the packages pass, with the docs.

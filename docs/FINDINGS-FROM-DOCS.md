@@ -51,3 +51,4 @@
 
 38. Done 19 Nov: **Jali's default font is the lab's:** `jali-theme.css` sets `--jali-font: "IBM Plex Sans", …` and `--jali-font-mono: "IBM Plex Mono", …`. Jali is its own identity: its defaults should be the Atkinson Hyperlegible family (Next and Mono), with system fallbacks, and the lab sets Plex for itself.
 39. **Hidden header buttons still take room:** maximise and tuck are `opacity: 0` on unfocused panes (`react/src/styles/pane.css`), so a 230px pane cuts its title to "Order 1…". Collapse them instead.
+40. **Icons: switch from Lucide to Phosphor** (founder, 19 Nov), to match Chakni (`@phosphor-icons/react`, a peer dependency there). Covers `@jali/react` (about 13 files, `lucide-react` dependency), the docs site and the live parts, and the default kind icon.
