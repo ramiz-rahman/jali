@@ -1,0 +1,8 @@
+/* The docs' own styles. STUB: the shell agent owns this file (and adds more under src/styles). */
+@layer docs-base {
+  html, body { margin: 0; }
+  body { font-family: system-ui, sans-serif; background: var(--jali-canvas); color: var(--jali-text); }
+}
+@layer docs {
+  .docs-page { max-width: 44rem; margin: 0 auto; padding: 2rem 1rem; }
+}
