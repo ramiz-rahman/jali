@@ -104,7 +104,8 @@ function DragChip({ x, y, label }: { x: number; y: number; label: string }) {
   return <div ref={el} className="jali-drag-chip" data-testid="drag-chip" style={pos} aria-hidden>{label}</div>;
 }
 
-export function Workspace() {
+/** The panes: the layout, its dividers, tabs, the shelf, the peek sheet and drop previews. */
+export function Panes() {
   const store = useStore();
   const m = useModel();
   const view = useUi((s) => s.view);

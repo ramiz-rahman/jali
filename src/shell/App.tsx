@@ -5,21 +5,20 @@ import type { DataLayer } from "../data/types";
 import { DataLayerProvider } from "../data/react";
 import { TopBar } from "./TopBar";
 import { StatusLine } from "./StatusLine";
-import { Jali, JaliView, useStore, useUi } from "@jali/react";
-import { resolveTheme } from "@jali/core";
-import type { UiStore } from "@jali/core";
+import { Jali, JaliView, useTheme, useWorkspace, useWorkspaceState } from "@jali/react";
+import type { Workspace } from "@jali/core";
 
 export const UNDO_MS = 8000;
 
-const undoKeys = (store: UiStore) => {
+const undoKeys = (store: Workspace) => {
   const k = store.keymap.label("pane.undo_close");
   return k ? `${k} to undo` : "";
 };
 
 /** Shows the store's toasts with Sonner. Undo toasts offer the undo that "Restore last closed pane" (⌘K ⌘Z) runs. */
 function Toasts() {
-  const store = useStore();
-  const theme = useUi((s) => resolveTheme(s.settings.theme, s.systemDark));
+  const store = useWorkspace();
+  const theme = useTheme();
   useEffect(
     () =>
       store.onToast((t) => {
@@ -29,17 +28,17 @@ function Toasts() {
     [store],
   );
   // A curated page keeps its toasts over the queue (bottom-left, narrow), never over a view's content.
-  const curated = useUi((s) => !!s.page);
+  const curated = useWorkspaceState((s) => !!s.page);
   return curated
     ? <Toaster theme={theme} position="bottom-left" offset={{ bottom: 40, left: 10 }} mobileOffset={{ bottom: 40, left: 10 }} style={{ "--width": "250px" } as CSSProperties} toastOptions={{ className: "toast" }} />
     : <Toaster theme={theme} position="bottom-right" offset={{ bottom: 40, right: 12 }} toastOptions={{ className: "toast" }} />;
 }
 
-export function App({ store, data }: { store: UiStore; data: DataLayer }) {
+export function App({ workspace, data }: { workspace: Workspace; data: DataLayer }) {
   return (
     <QueryClientProvider client={data.queryClient}>
       <DataLayerProvider value={data}>
-        <Jali store={store} className="app" overlays={<Toasts />}>
+        <Jali workspace={workspace} className="app" overlays={<Toasts />}>
           <TopBar />
           <JaliView />
           <StatusLine />

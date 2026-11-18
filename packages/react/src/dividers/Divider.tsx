@@ -29,7 +29,7 @@ const rectEq = (a: Rect, b: Rect) => a.x === b.x && a.y === b.y && a.width === b
 
 /**
  * One APG window splitter, absolutely positioned in the gap. APG keys: arrows 16px, Shift 64px, Home/End; they commit
- * per keypress. Enter does nothing: a tuck would remove this divider from under focus (DECISIONS, 17 Nov).
+ * per keypress. Enter does nothing: a tuck would remove this divider from under focus.
  * Memoised on geometry and labels, so a resize re-renders only the dividers that moved.
  */
 export const Divider = memo(

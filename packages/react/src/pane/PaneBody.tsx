@@ -1,23 +1,11 @@
 import { memo, useMemo } from "react";
 import type { NodeId, ObjectRef, PaneNode, Actions, PaneActivity, PaneCommand, UiStore } from "@jali/core/adapter";
-import { openPaneFor, keyHint } from "@jali/core/adapter";
-import type { PaneComponentProps, PaneKindDef } from "../define";
-import { PaneIdContext } from "./usePaneState";
-import { useModel, useUi, useEnv } from "../state/react";
-import { KindIcon } from "./icons";
+import { keyHint } from "@jali/core/adapter";
+import type { PaneProps } from "../define";
+import { PaneContext, type PaneHost } from "./context";
+import { useEnv } from "../state/react";
 
-/** What a pane's content can ask of the workspace. A pane in the layout acts for itself; the peek sheet acts for the
- *  pane it came from and has no place of its own to fill, close or report on. */
-export interface PaneHost {
-  openBeside(ref: ObjectRef): void;
-  peek(ref: ObjectRef | null): void;
-  select(ref: ObjectRef | null, opts?: { inResults?: boolean }): void;
-  openHere(ref: ObjectRef): void;
-  dismiss(): void;
-  setActivity(a: PaneActivity): void;
-  setUnsaved(what: string | null): void;
-  setCommands(commands: PaneCommand[] | null): void;
-}
+export type { PaneHost };
 
 export const paneHost = (actions: Actions, id: NodeId): PaneHost => ({
   openBeside: (ref) => actions.openBeside(id, ref),
@@ -25,37 +13,37 @@ export const paneHost = (actions: Actions, id: NodeId): PaneHost => ({
   select: (ref, opts) => actions.select(id, ref, opts),
   openHere: (ref) => actions.openHere(id, ref),
   dismiss: () => actions.dismiss(id),
-  setActivity: (a) => actions.setActivity(id, a),
-  setUnsaved: (what) => actions.setUnsaved(id, what),
-  setCommands: (commands) => actions.setPaneCommands(id, commands),
+  setActivity: (a: PaneActivity) => actions.setActivity(id, a),
+  setUnsaved: (what: string | null) => actions.setUnsaved(id, what),
+  setCommands: (commands: PaneCommand[] | null) => actions.setPaneCommands(id, commands),
 });
 
+/** The peek sheet acts for the pane it came from, and has no place of its own to fill, close or report on. */
 export function peekHost(store: UiStore): PaneHost {
   const source = () => store.get().peekSource ?? store.get().view.focused ?? "";
   const none = () => {};
   return {
-    openBeside: (ref) => store.actions.openBeside(source(), ref),
-    peek: (ref) => store.actions.peek(ref, source()),
-    select: (ref) => store.actions.select(source(), ref),
+    openBeside: (ref: ObjectRef) => store.actions.openBeside(source(), ref),
+    peek: (ref: ObjectRef | null) => store.actions.peek(ref, source()),
+    select: (ref: ObjectRef | null) => store.actions.select(source(), ref),
     openHere: none, dismiss: none, setActivity: none, setUnsaved: none, setCommands: none,
   };
 }
 
 interface BodyProps { node: PaneNode; host: PaneHost; paused: boolean; focused: boolean; inPeek?: boolean }
 
-/** A transient kind (the launcher) chooses from the workspace: it gets Recent, what is open, icons and titles. */
-function WithSources({ def, props }: { def: PaneKindDef; props: Omit<PaneComponentProps, "recent" | "isOpen" | "KindIcon" | "titleFor"> }) {
-  const recent = useUi((s) => s.recent);
-  const m = useModel();
-  const isOpen = useMemo(() => (ref: ObjectRef) => !!openPaneFor(m, ref, props.node.id), [m, props.node.id]);
-  const C = def.Component;
-  return <C {...props} recent={recent} isOpen={isOpen} KindIcon={KindIcon} titleFor={m.env.kinds.title} />;
-}
-
 /** The pane's content. Memoised on what the kind actually sees, so divider drags don't re-render content. */
 export const PaneBody = memo(
   function PaneBody({ node, host, paused, focused, inPeek = false }: BodyProps) {
-    const def = useEnv().kinds.get(node.ref.kind);
+    const { kinds } = useEnv();
+    const def = kinds.get(node.ref.kind);
+    const params = useMemo(() => kinds.params(node.ref), [kinds, node.ref]);
+    const props = useMemo((): PaneProps => ({
+      params, node, paused, focused, inPeek,
+      openBeside: host.openBeside, openHere: host.openHere, peek: host.peek, select: host.select, dismiss: host.dismiss,
+    }), [params, node, paused, focused, inPeek, host]);
+    // The peek sheet shows a node that is not in the layout: it has no state of its own to keep.
+    const context = useMemo(() => ({ id: inPeek ? null : node.id, host, props }), [inPeek, node.id, host, props]);
     if (!def) {
       return (
         <div className="jali-pane-missing" role="alert">
@@ -64,13 +52,11 @@ export const PaneBody = memo(
         </div>
       );
     }
-    const props = { node, ref: node.ref, paused, focused, inPeek, ...host };
     const C = def.Component;
-    // The peek sheet shows a node that is not in the layout: it has no state of its own to keep.
     return (
-      <PaneIdContext.Provider value={inPeek ? null : node.id}>
-        {def.transient ? <WithSources def={def} props={props} /> : <C {...props} />}
-      </PaneIdContext.Provider>
+      <PaneContext.Provider value={context}>
+        <C {...props} />
+      </PaneContext.Provider>
     );
   },
   (a, b) =>

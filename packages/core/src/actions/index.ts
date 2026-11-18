@@ -13,7 +13,7 @@ import { mergeInto, setActiveTab, unmerge } from "./tabs";
 import { commitDividerDrag, enterResizeMode, leaveResizeMode, nudgeDivider, resetDivider, resizeDivider, setDividerSize } from "./resize";
 import { openPeekFull, peek, pinPeek, select } from "./peek";
 import { follow, setPinned } from "./follow";
-import { arrive, preset, resetLayout, setActivity } from "./layout";
+import { arrive, changeSettings, closePalette, closeSettings, openPalette, openSettings, preset, resetLayout, setActivity } from "./layout";
 import { discardAndContinue, keepEditing, setPaneCommands, setPaneState, setUnsaved } from "./content";
 import { activate, backToPage, openPage, hideRole, leavePage, openTab, openTabBeside, placeTab, resetPage, setCanInvestigate, setMode } from "./page";
 
@@ -26,7 +26,7 @@ export const ACTIONS = {
   mergeInto, unmerge, setActiveTab,
   resizeDivider, setDividerSize, nudgeDivider, commitDividerDrag, resetDivider, enterResizeMode, leaveResizeMode,
   peek, pinPeek, openPeekFull, select, follow, setPinned,
-  preset, resetLayout, arrive, setActivity,
+  preset, resetLayout, arrive, setActivity, openPalette, closePalette, openSettings, closeSettings, changeSettings,
   setUnsaved, setPaneCommands, setPaneState, discardAndContinue, keepEditing,
   openPage, leavePage, setMode, openTab, openTabBeside, placeTab, resetPage, activate, backToPage, hideRole, setCanInvestigate,
 };

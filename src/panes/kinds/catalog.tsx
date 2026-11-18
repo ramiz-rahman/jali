@@ -1,5 +1,5 @@
 import { Database } from "lucide-react";
-import { definePaneKind } from "@jali/react";
+import { definePane } from "@jali/react";
 import { useState } from "react";
 import { PaneGate } from "../shared/PaneGate";
 import { useFocusWhen } from "../shared/useFocusWhen";
@@ -8,9 +8,9 @@ import { useCatalog, isLoading } from "../../data/hooks";
 import { formatCount } from "../format";
 import { tableRef } from "../shared/refs";
 import { Shell, Empty } from "../shared/states";
-import type { PaneComponentProps } from "@jali/react";
+import type { PaneProps } from "@jali/react";
 
-export function CatalogPane({ paused, focused, openBeside, peek }: PaneComponentProps) {
+export function CatalogPane({ paused, focused, openBeside, peek }: PaneProps) {
   const q = useCatalog({ paused });
   const tables = q.data ?? [];
   const [sel, setSel] = useState(0);
@@ -44,8 +44,10 @@ export function CatalogPane({ paused, focused, openBeside, peek }: PaneComponent
 }
 
 
-export const catalogKind = definePaneKind({
-  kind: "catalog", ref: (params) => ({ kind: "catalog", params }),
-  title: (_ref) => "Tables", minWidth: 240, maxWidth: 320, minHeight: 200, 
-  icon: Database, Component: CatalogPane,
+export const catalogKind = definePane("catalog", {
+  title: "Tables",
+  icon: Database,
+  width: { min: 240, max: 320 },
+  height: { min: 200 },
+  Component: CatalogPane,
 });

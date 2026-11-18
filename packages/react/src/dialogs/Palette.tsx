@@ -11,7 +11,7 @@ export function Palette() {
   return open ? <PaletteDialog /> : null;
 }
 
-/** One row: a workspace command, or a command the focused pane added (PaneComponentProps.setCommands). */
+/** One row: a workspace command, or a command the focused pane added (useCommands). */
 interface Item { key: string; title: string; group: string; keys: string; disabled: boolean; run: () => void; id?: string }
 
 function PaletteDialog() {
@@ -20,7 +20,7 @@ function PaletteDialog() {
   const focused = useUi((s) => s.view.focused);
   const own = useUi((s) => (focused ? s.paneCommands[focused] : undefined));
   const m = useModel();
-  const close = () => store.set({ paletteOpen: false });
+  const close = () => store.actions.closePalette();
   const x = store.snapshot();
   // The focused pane's commands come first: they are about what the person is looking at.
   const items: Item[] = [

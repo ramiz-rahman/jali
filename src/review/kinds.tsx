@@ -1,30 +1,54 @@
 import { FileText, LayoutDashboard, Link2 } from "lucide-react";
-import { definePaneKind } from "@jali/react";
+import { definePane } from "@jali/react";
 import { singular } from "../panes/shared/refs";
 import { OverviewPane } from "./overview";
 import { ReviewRecordPane } from "./records";
 import { ReviewRelatedPane } from "./lists";
 
-export const overviewKind = definePaneKind({
-  kind: "review-overview", ref: (params) => ({ kind: "review-overview", params }), title: (r) => `Application #${r.params.item} overview`,
-  recordable: false, minWidth: 360, minHeight: 240, icon: LayoutDashboard, Component: OverviewPane,
+export const overviewKind = definePane("review-overview", {
+  params: { item: Number },
+  title: ({ item }) => `Application #${item} overview`,
+  icon: LayoutDashboard,
+  width: { min: 360 },
+  height: { min: 240 },
+  inRecent: false,
+  Component: OverviewPane,
 });
 
 /** A record's name in a pane title or a tab: the reviewer's word for it, with its number. */
-const NOUN: Record<string, string> = { loan_applications: "Application", members: "Member", lending_groups: "Group", field_officers: "Field officer", loans: "Loan", repayments: "Instalment" };
-const recordTitle = (table: string, id: unknown) => id === undefined ? (NOUN[table] ?? singular(table)) : `${NOUN[table] ?? singular(table)} #${id}`;
+const NOUN: Record<string, string> = {
+  loan_applications: "Application",
+  members: "Member",
+  lending_groups: "Group",
+  field_officers: "Field officer",
+  loans: "Loan",
+  repayments: "Instalment",
+};
+const recordTitle = (table: string, id: unknown) => {
+  const noun = NOUN[table] ?? singular(table);
+  return id === undefined ? noun : `${noun} #${id}`;
+};
 
 /**
  * The tabs' views, designed for the reviewer (records.tsx, lists.tsx): plain words, ৳ amounts, related records as
- * links. Minimums stay narrow so two views fit side by side at 1440.
+ * links. Minimums stay narrow so two views fit side by side at 1440. They show the same objects as Data Studio's
+ * record and related kinds, so a link to one already on the page goes to it, whichever kind the link names.
  */
-export const reviewRecordKind = definePaneKind({
-  kind: "review-record", ref: (params) => ({ kind: "review-record", params }),
-  title: (r) => recordTitle(String(r.params.table ?? ""), r.params.id),
-  minWidth: 380, minHeight: 240, icon: FileText, Component: ReviewRecordPane,
+export const reviewRecordKind = definePane("review-record", {
+  params: { table: String },
+  title: ({ table, id }) => recordTitle(table ?? "", id),
+  icon: FileText,
+  width: { min: 380 },
+  height: { min: 240 },
+  shows: "record",
+  Component: ReviewRecordPane,
 });
-export const reviewRelatedKind = definePaneKind({
-  kind: "review-related", ref: (params) => ({ kind: "review-related", params }),
-  title: (r) => String(r.params.label ?? "Related"),
-  minWidth: 360, minHeight: 240, icon: Link2, Component: ReviewRelatedPane,
+
+export const reviewRelatedKind = definePane("review-related", {
+  title: ({ label }) => String(label ?? "Related"),
+  icon: Link2,
+  width: { min: 360 },
+  height: { min: 240 },
+  shows: "related",
+  Component: ReviewRelatedPane,
 });

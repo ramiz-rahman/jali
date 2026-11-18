@@ -1,5 +1,5 @@
 /**
- * URL sync, through a location port (ui/ports.ts). Structure goes in ?l= (layout-core codec); zoom and peek ride along. Deliberate structural changes push a
+ * URL sync, through a location port (ports.ts). Structure goes in ?l= (the layout codec); zoom and peek ride along. Deliberate structural changes push a
  * history entry; resizes replace it 120ms after the last move; view changes replace immediately.
  */
 import * as core from "./layout";
@@ -89,7 +89,7 @@ export function readSearch(search: string, kinds: KindRegistry, k: UrlKeys = url
 }
 
 /**
- * What a layout link carries about sizes. "link": everything, so the link reopens exactly as it was (Data Studio).
+ * What a layout link carries about sizes. "link": everything, so the link reopens exactly as it was.
  * "local": the layout as designed; sizes the person dragged stay on their device, keyed by the layout's structure,
  * so their own reloads keep them and a colleague opens the link at the designed proportions.
  */
@@ -144,7 +144,7 @@ export interface UrlSync extends UrlWriter {
 }
 
 export interface UrlSyncOptions {
-  /** The address: the browser's history by default, or a router adapter (ui/ports.ts). */
+  /** The address: the browser's history by default, or a router adapter (ports.ts). */
   location?: LocationPort;
   /** Where a link that could not be read is kept. Default: localStorage under "jali". */
   storage?: StoragePort;

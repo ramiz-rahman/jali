@@ -3,7 +3,7 @@
  *
  * Pointer down captures the pointer and snapshots the committed layout. Each animation frame (at most one per frame)
  * turns the pointer into the first neighbour's size (clamped at both minimums, centre snap in at 10px, out at 16px),
- * asks layout-core for the layout that size gives, resolves it, and writes the result straight onto the DOM:
+ * asks the layout for the layout that size gives, resolves it, and writes the result straight onto the DOM:
  * the affected pane frames' left/top/width/height, and the accent drag line. No React state changes during the drag.
  * Pointer up commits that same layout object once, so the committed rects equal the last preview exactly; the URL is
  * written 120ms later (history "debounce"). Heavy panes hold their content at its pre-drag size and reflow on release.
@@ -63,7 +63,7 @@ export function startDividerDrag(store: UiStore, overlay: HTMLElement | null, e:
   for (const id of neighbours) {
     const box = before.get(id), frame = frames.get(id);
     const node = m0.pane(id);
-    if (!box || box.hidden || !frame || !node || !store.env.kinds.get(node.ref.kind)?.heavy) continue;
+    if (!box || box.hidden || !frame || !node || !store.env.kinds.get(node.ref.kind)?.holdWhileResizing) continue;
     const content = frame.querySelector<HTMLElement>(":scope > .jali-pane-content");
     const inner = content?.querySelector<HTMLElement>(":scope > .jali-pane-content-inner");
     if (!content || !inner || content.hidden) continue;

@@ -1,9 +1,10 @@
 /**
- * Curated pages (ui/profile.ts). Single mode shows one view, chosen from the tabs. Multiplexed mode lays the views out
+ * Curated pages (profile.ts). Single mode shows one view, chosen from the tabs. Multiplexed mode lays the views out
  * freely, starting from the profile's design; each view exists once, and closing one sends it back to the tabs.
  * Panes opened by following links form an investigation after the layout that "Back to <page>" clears.
  */
 import * as core from "../layout";
+import { toLayout } from "../layout/build";
 import type { Edge, Layout, LayoutContext, NodeId, ObjectRef, PaneNode, Rect, ViewState } from "../layout/types";
 import { roleOf, viewerLabel, type ViewMode, type ProfileBase } from "../profile";
 import { refuse, type Change, type Outcome, type Snapshot } from "../state/apply";
@@ -68,7 +69,7 @@ function onScreen(layout: Layout, view: ViewState, role: NodeId, ctx: LayoutCont
 function multi(x: Snapshot, p: ProfileBase, item: number, tab: string, keepOpened: boolean): Placed {
   const { ctx } = x;
   const saved = x.s.prefs.multi;
-  let layout = usable(saved, p) ? rebind(keepOpened ? saved : withoutOpened(saved, ctx), p, item) : p.build(item);
+  let layout = usable(saved, p) ? rebind(keepOpened ? saved : withoutOpened(saved, ctx), p, item) : toLayout(p.build(item));
   // Coming from the home view (Overview), its sections are the panes now: focus the first one rather than adding it.
   const hidden = layout.overlay?.hidden ?? [];
   const focus = tab === p.home && hidden.includes(tab) ? p.roles.find((r) => !hidden.includes(r.id))?.id ?? tab : tab;
@@ -125,7 +126,7 @@ export function openPage(x: Snapshot, o: OpenPage = {}): Outcome {
   };
 }
 
-/** Back to Data Studio: the person's own layout again. The page's mode and layout are kept for next time. */
+/** Back to the free workspace: the person's own layout again. The page's mode and layout are kept for next time. */
 export function leavePage(x: Snapshot): Outcome {
   const studio = preset(x, x.s.presetId) as Change;
   return { ...studio, patch: { ...studio.patch, page: null, prefs: keep(x) }, undo: [] };

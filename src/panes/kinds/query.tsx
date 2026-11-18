@@ -1,5 +1,5 @@
 import { TerminalSquare } from "lucide-react";
-import { definePaneKind, usePaneState } from "@jali/react";
+import { definePane, useActivity, useCommands, usePaneState, useUnsaved } from "@jali/react";
 import { useEffect, useRef, useState } from "react";
 import { resultFormat } from "../../data/labels";
 import type { ResultHandle, Row } from "../../data/types";
@@ -9,13 +9,13 @@ import { formatCount, formatMs } from "../format";
 import { chartRef } from "../shared/refs";
 import { Empty, ErrorState, Loading, Shell } from "../shared/states";
 import { useResultWindow } from "../grid/useWindow";
-import type { PaneComponentProps } from "@jali/react";
+import type { PaneProps } from "@jali/react";
 import { keyHint } from "@jali/core";
 
 export const DEFAULT_SQL = "SELECT region, SUM(amount_cents) AS amount_cents\nFROM sample_orders\nGROUP BY region\nORDER BY amount_cents DESC";
 
-export function QueryPane({ ref, paused, focused, openBeside, setActivity, setUnsaved, setCommands }: PaneComponentProps) {
-  const start = typeof ref.params.sql === "string" ? ref.params.sql : DEFAULT_SQL;
+export function QueryPane({ params, paused, focused, openBeside }: PaneProps) {
+  const start = typeof params.sql === "string" ? params.sql : DEFAULT_SQL;
   // The draft is the pane's own state: it outlives a fold, a tab switch and a reload.
   const [sql, setSql] = usePaneState("sql", start);
   const [ran, setRan] = usePaneState("ran", start);
@@ -23,7 +23,7 @@ export function QueryPane({ ref, paused, focused, openBeside, setActivity, setUn
   const [error, setError] = useState<string | null>(null);
   const run = useRun();
 
-  useEffect(() => { setActivity(run.isPending ? "working" : error ? "error" : "idle"); }, [setActivity, run.isPending, error]);
+  useActivity(run.isPending ? "working" : error ? "error" : "idle");
 
   const exec = (andChart = false) => {
     setError(null);
@@ -38,26 +38,29 @@ export function QueryPane({ ref, paused, focused, openBeside, setActivity, setUn
   };
 
   // An edit that has not run is work the person would lose by closing the pane.
-  const edited = sql.trim() !== ran.trim();
-  useEffect(() => { setUnsaved(edited ? "an edited query that has not run" : null); }, [setUnsaved, edited]);
-  useEffect(() => () => setUnsaved(null), [setUnsaved]);
+  useUnsaved(sql.trim() !== ran.trim() && "an edited query that has not run");
 
   // ⌘K lists what this pane can do while it is focused.
-  const latest = useRef({ exec, handle });
-  latest.current = { exec, handle };
-  const busy = run.isPending, empty = !sql.trim(), hasResult = !!handle;
-  useEffect(() => {
-    setCommands([
-      { id: "run", title: "Run query", keys: keyHint("Mod+Enter"), disabled: busy ? "Already running" : empty ? "The query is empty" : false, run: () => latest.current.exec() },
-      { id: "chart", title: "Chart this result", disabled: hasResult ? false : "Run the query first", run: () => { const h = latest.current.handle; if (h) openBeside(chartRef(h.runId)); } },
-    ]);
-  }, [setCommands, openBeside, busy, empty, hasResult]);
-  useEffect(() => () => setCommands(null), [setCommands]);
+  useCommands([
+    {
+      id: "run",
+      title: "Run query",
+      keys: keyHint("Mod+Enter"),
+      disabled: run.isPending ? "Already running" : !sql.trim() ? "The query is empty" : false,
+      run: () => exec(),
+    },
+    {
+      id: "chart",
+      title: "Chart this result",
+      disabled: handle ? false : "Run the query first",
+      run: () => handle && openBeside(chartRef(handle.runId)),
+    },
+  ]);
 
   // Presets can ask the query to run on load and hand its result handle to the linked chart.
   const autorun = useRef(false);
   useEffect(() => {
-    if (!ref.params.autorun || autorun.current) return;
+    if (!params.autorun || autorun.current) return;
     autorun.current = true;
     exec(true);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -95,8 +98,14 @@ function typeFromRows(rows: Row[], name: string) {
 }
 
 
-export const queryKind = definePaneKind({
-  kind: "query", ref: (params) => ({ kind: "query", params }),
-  title: (_ref) => "Query", minWidth: 400, comfortableWidth: 560, minHeight: 280, heavy: true, identity: () => undefined,
-  icon: TerminalSquare, Component: QueryPane,
+// Every query is new: never matched against an open one, but listed in Recent.
+export const queryKind = definePane("query", {
+  title: "Query",
+  icon: TerminalSquare,
+  width: { min: 400, comfortable: 560 },
+  height: { min: 280 },
+  scratch: true,
+  inRecent: true,
+  holdWhileResizing: true,
+  Component: QueryPane,
 });

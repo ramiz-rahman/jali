@@ -1,7 +1,7 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState, type KeyboardEvent } from "react";
 import { FoldHorizontal, Undo2 } from "lucide-react";
 import type { ShelfEntry, WorkspaceModel, PaneActivity } from "@jali/core/adapter";
-import { useShortcutSuffix } from "../commands/react";
+import { useShortcut } from "../commands/react";
 import { flashTab, FOLDED_DESC, FOLDED_TIP, titleOf } from "@jali/core/adapter";
 import { Activity, shelfActivity } from "../pane/Activity";
 import { KindIcon } from "../pane/icons";
@@ -29,7 +29,8 @@ export function Shelf() {
   const activity = useUi((s) => s.activity);
   const actions = useActions();
   const store = useStore();
-  const putBackKeys = useShortcutSuffix("pane.putBack");
+  const putBackShortcut = useShortcut("pane.putBack");
+  const putBackKeys = putBackShortcut ? ` · ${putBackShortcut}` : "";
   const doReveal = (it: ShelfEntry) => {
     actions.reveal(it.paneId);
     flashTab(store.dom, it.paneId);

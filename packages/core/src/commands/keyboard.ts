@@ -1,5 +1,5 @@
 /**
- * Keyboard layer (spec §14; docs/DECISIONS.md "Keyboard"). Content first:
+ * Keyboard layer. Content first:
  *
  * 1. Modal states claim keys before anyone (capture phase, only while active): the second step of a chord the
  *    person started (⌘K, then ⌘M); resize mode takes the arrows, Enter and Esc; a pointer drag in progress

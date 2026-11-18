@@ -2,13 +2,12 @@
  * The loan-review record views: one designed view per table (application, member, group, field officer, loan), each in
  * plain words. Related records are links that open with the pane's own action: a peek in Single, beside in Multiplexed.
  */
-import { useEffect } from "react";
 import { Briefcase, FileText, History, Phone, UserRound, UsersRound } from "lucide-react";
-import type { PaneComponentProps } from "@jali/react";
+import type { PaneProps } from "@jali/react";
 import { isLoading, useRecord, useRows } from "../data/hooks";
 import type { TableName } from "../data/types";
 import { applicationFacts } from "../data/sample-sql";
-import { useUi } from "@jali/react";
+import { useActivity, useWorkspaceState } from "@jali/react";
 import { PaneGate } from "../panes/shared/PaneGate";
 import { RecordPane } from "../panes/kinds/record";
 import { day, taka } from "./page";
@@ -16,7 +15,7 @@ import { book, counted, instalments, latestLoans, plural, tenure, useAllMembers,
 import { Avatar, Facts, Instalments, listRef, recordRef, RefLink, Related, RelatedList, Sec, StatusMark, Table, View, ViewHead } from "./ui";
 
 const n = (v: unknown) => Number(v ?? 0);
-type Open = PaneComponentProps["openBeside"];
+type Open = PaneProps["openBeside"];
 const when = (v: unknown) => {
   const s = String(v ?? "");
   const time = /T(\d{2}:\d{2})/.exec(s)?.[1];
@@ -24,13 +23,12 @@ const when = (v: unknown) => {
 };
 
 /** One record of any loan-book table; tables without a designed view fall back to the Data Studio record. */
-export function ReviewRecordPane(p: PaneComponentProps) {
-  const table = String(p.ref.params.table ?? "") as TableName;
-  const id = String(p.ref.params.id ?? "");
+export function ReviewRecordPane(p: PaneProps<{ table: string; id?: string | number }>) {
+  const table = (p.params.table ?? "") as TableName;
+  const id = String(p.params.id ?? "");
   const designed = table in VIEWS;
   const rec = useRecord(table, id, { paused: p.paused || !designed });
-  const { setActivity } = p;
-  useEffect(() => { if (designed) setActivity(isLoading(rec) ? "loading" : rec.isError ? "error" : "idle"); }, [designed, setActivity, rec]);
+  useActivity(designed ? (isLoading(rec) ? "loading" : rec.isError ? "error" : "idle") : undefined);
   if (!designed) return <RecordPane {...p} />;
   if (isLoading(rec) || rec.isError || !rec.data) return <PaneGate queries={[rec]} gone={`${NOUN[table] ?? "Record"} ${id}`} onRetry={() => { void rec.refetch(); }} />;
   const V = VIEWS[table]!;
@@ -185,7 +183,7 @@ function GroupView({ row: g, open, paused }: ViewProps) {
   const officer = useRecord("field_officers", String(g.field_officer_id), { paused }).data;
   const { members, loans, standing: s } = useGroupStanding(g, paused);
   const latest = loans ? latestLoans(loans) : undefined;
-  const applicant = useUi((x) => (x.page ? applicationFacts(x.page.item).member : undefined));
+  const applicant = useWorkspaceState((x) => (x.page ? applicationFacts(x.page.item).member : undefined));
   const apps = useCount("loan_applications", { group_id: n(g.id) }, paused);
   return (
     <View label="Group">

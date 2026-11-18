@@ -1,5 +1,5 @@
 /**
- * The UI store: state, one derived model, and apply(). Layout and view come from layout-core ops; actions are pure
+ * The workspace: state, one derived model, and apply(). Layout and view come from the layout ops; actions are pure
  * (actions/) and the store only commits them. Effects leave through sinks given at creation (URL, DOM focus) and
  * through `onToast` (toasts); announcements are state, so nothing said before the live region mounts is lost.
  */
@@ -15,6 +15,8 @@ import { loadPrefs, type PagePrefs } from "./page-prefs";
 import { presetById, type Env, type Preset, type ViewMode, type ProfileBase } from "../profile";
 import { browserStorage, type StoragePort } from "../ports";
 import { focusPane } from "../dom/focus";
+import { loadPaneState } from "./pane-state";
+import { startUi } from "../boot";
 import { createKeymap, type Keymap, type KeymapOptions, type KeymapOverrides } from "../commands/keymap";
 
 /** A drag in progress. `label` names a view dragged from a page's tabs, which may not be on screen. */
@@ -24,7 +26,7 @@ export interface ConfirmState { panes: NodeId[]; change: Change }
 /** A chooser dialog opened by a command (⌘K "Add to tabs of…"). */
 export interface ChooserState { kind: "merge"; source: NodeId }
 
-/** A curated page in use (ui/profile.ts): the item, the mode, the view Single shows, and what this person may do. */
+/** A curated page in use (profile.ts): the item, the mode, the view Single shows, and what this person may do. */
 export interface PageState {
   /** The profile's id: what a link names (`?page=loan-review`). */
   profile: string;
@@ -43,7 +45,7 @@ export interface Selection { ref: ObjectRef; inResults: boolean }
 
 export interface UiState {
   layout: Layout;
-  /** Null in Data Studio, where the person builds the layout. */
+  /** Null in the free workspace, where the person builds the layout. */
   page: PageState | null;
   /** The person's mode and multiplexed layout (while Multiplexed is on screen, the live layout is the truth). */
   prefs: PagePrefs;
@@ -57,7 +59,7 @@ export interface UiState {
   undoStack: UndoEntry[];
   activity: Record<NodeId, PaneActivity>;
   peekSource?: NodeId;
-  /** Each list pane's selected item; its following detail shows it (layout-core ops/follow.ts). */
+  /** Each list pane's selected item; its following detail shows it (layout/ops/follow.ts). */
   selection: Record<NodeId, Selection>;
   dnd: DndState | null;
   resizeMode: NodeId | null;
@@ -71,11 +73,11 @@ export interface UiState {
   reshapes: number;
   /** A page tab hovered with ⌥ held: the workspace previews where it would open beside. */
   ghost: string | null;
-  /** Panes with unsaved work, and what it is (PaneComponentProps.setUnsaved). */
+  /** Panes with unsaved work, and what it is (useUnsaved). */
   unsaved: Record<NodeId, string>;
   /** A change that would lose unsaved work, held until the person discards it or keeps editing. */
   confirm: ConfirmState | null;
-  /** Each pane's commands for ⌘K (PaneComponentProps.setCommands). */
+  /** Each pane's commands for ⌘K (useCommands). */
   paneCommands: Record<NodeId, PaneCommand[]>;
   /** Each pane's own state (usePaneState): JSON values, kept through folds, tabs and reloads, dropped on close. */
   paneState: Record<NodeId, Record<string, unknown>>;
@@ -93,7 +95,7 @@ export interface UrlWriter {
 export interface UiStoreDeps {
   /** This workspace's pane kinds (createPaneKinds). */
   kinds: PaneKinds;
-  /** The curated page this workspace can show (ui/profile.ts). Default: none. */
+  /** The curated page this workspace can show (profile.ts). Default: none. */
   profile?: ProfileBase | null;
   /** Layouts to start from, in menu order (the bar and ⌘K "Layout: …"). Default: none. */
   presets?: readonly Preset[];
@@ -102,6 +104,13 @@ export interface UiStoreDeps {
   preset?: string;
   /** The free workspace's name ("Data Studio"), in commands such as "Open Data Studio". Default "Workspace". */
   name?: string;
+  /** The kind a split or a new tab opens until the person chooses (it must be in `kinds`). Default: none, so no Split. */
+  launcher?: string;
+  /** Which keys the workspace takes: every key on the page ("page", the default), or only keys from inside its root
+   *  and keys on the page body while it was the last one used ("workspace": two workspaces on one page). */
+  keys?: "page" | "workspace";
+  /** Set `data-theme` on `<html>` from the person's setting while started. Default true. */
+  pageTheme?: boolean;
   /** Where the workspace writes its address: usually `createUrlSync()`, which `boot` and `startUi` then also read
    *  from. Default: none (the address is left alone). */
   url?: UrlWriter;
@@ -148,6 +157,9 @@ export interface UiStore {
   href(): string;
   /** The URL writer this store was made with (`deps.url`). */
   url: UrlWriter | undefined;
+  /** Start the page-lifetime listeners: keys, Back and Forward, theme and saving. Returns their stop. `<Jali>` calls
+   *  it on mount; calling it while started does nothing. */
+  start(): () => void;
 }
 
 /**
@@ -174,27 +186,17 @@ function createDom(id: string): WorkspaceDom {
   };
 }
 
-const PANE_STATE_KEY = "pane-state";
-function loadPaneState(storage: StoragePort): Record<NodeId, Record<string, unknown>> {
-  try {
-    const v = JSON.parse(storage.get(PANE_STATE_KEY) ?? "{}") as unknown;
-    return v && typeof v === "object" && !Array.isArray(v) ? (v as Record<NodeId, Record<string, unknown>>) : {};
-  } catch {
-    return {};
-  }
-}
-export const savePaneState = (storage: StoragePort, state: UiState["paneState"]) => storage.set(PANE_STATE_KEY, JSON.stringify(state));
-
 const DEV = !!(import.meta as unknown as { env?: { DEV?: boolean } }).env?.DEV;
 
 export function createUiStore(deps: UiStoreDeps): UiStore {
   const env: Env = { kinds: deps.kinds, profile: deps.profile ?? null, presets: deps.presets ?? [], name: deps.name ?? "Workspace" };
+  if (deps.launcher) env.launcher = deps.launcher;
   const focusOf = deps.focusPane === undefined ? (typeof document === "undefined" ? null : focusPane) : deps.focusPane;
   const dom = createDom(deps.id ?? "jali");
   const storage = deps.storage ?? browserStorage("jali");
   const start = presetById(env, deps.preset);
   const layout = deps.initial?.layout ?? start?.build();
-  if (!layout) throw new Error("createUiStore: give `presets` or an `initial.layout` to start from");
+  if (!layout) throw new Error("Jali: give the workspace a `layout` or `presets` to start from");
   let state: UiState = {
     layout,
     page: null,
@@ -237,6 +239,7 @@ export function createUiStore(deps: UiStoreDeps): UiStore {
     timers.set(d.key, setTimeout(() => { timers.delete(d.key); store.apply(run(store.snapshot())); }, d.ms));
   };
 
+  const rootElement = () => { const el = dom.root(); return el instanceof Element ? el : null; };
   const ctx = (): LayoutContext => ({ fit: { ...state.area, gap: GAP, kinds: env.kinds.registry() }, paneCap: state.settings.paneCap });
 
   const store: UiStore = {
@@ -277,7 +280,14 @@ export function createUiStore(deps: UiStoreDeps): UiStore {
     storage,
     href: () => deps.url?.href?.() ?? (typeof location === "undefined" ? "" : location.href),
     url: deps.url,
+    start() {
+      if (stop) return () => {};
+      const off = startUi(store, undefined, { keys: deps.keys === "workspace" ? { root: rootElement } : {}, pageTheme: deps.pageTheme });
+      stop = () => { off(); stop = null; };
+      return stop;
+    },
   };
+  let stop: (() => void) | null = null;
   const io = {
     get: store.get,
     set: store.set,

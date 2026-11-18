@@ -59,7 +59,7 @@ export interface PaneKind {
   kind: string;
   title(ref: ObjectRef): string;
   /**
-   * Pane sizing (docs/DECISIONS.md, "Pane sizing: minimum, comfortable, max"). Widths are px along a row.
+   * Pane sizing: minimum, comfortable, max. Widths are px along a row.
    * - `minWidth`: the narrowest the content still works at. Below it the pane folds into a tab; never shrunk past it.
    * - `comfortableWidth`: where spare space takes the pane first, before any sibling grows past its own. Default: min.
    * - `maxWidth`: the widest the content usefully uses. Spare space past it goes to siblings that can still use it;

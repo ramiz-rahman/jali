@@ -9,20 +9,18 @@ import * as react from "@jali/react";
 describe("public API", () => {
   it("@jali/core exports exactly these values", () => {
     expect(Object.keys(core).sort()).toEqual([
-      "DEFAULT_KEYMAP", "DEFAULT_SETTINGS", "PALETTE_ID", "activeItemPort", "altClick", "boot", "browserLocation",
-      "browserStorage", "commandsOf", "copyLink", "createKeymap", "createPaneKinds", "createUiStore", "createUrlSync",
-      "detectPlatform", "focusPane", "formatChord", "formatKeys", "installKeyboard", "keyHint", "layout",
-      "memoryLocation", "memoryStorage", "paneDomId", "paneTitleId", "presetById", "resolveTheme", "roleOf",
-      "runCommand", "sameRef", "shortcutLabel", "startUi", "titleOf", "viewerLabel",
+      "DEFAULT_KEYMAP", "activeItemPort", "browserLocation", "browserStorage", "column", "commandsOf", "copyLink",
+      "createWorkspace", "formatKeys", "keyHint", "layout", "memoryLocation", "memoryStorage", "pane", "row",
+      "runCommand", "sameRef", "tabs", "toLayout",
     ]);
   });
 
   it("@jali/react exports exactly these values", () => {
     expect(Object.keys(react).sort()).toEqual([
       "Activity", "Announcer", "Chooser", "ConfirmDiscard", "CuratedPage", "Jali", "JaliView", "KindIcon", "PageBar",
-      "Palette", "PaneIdContext", "SettingsPanel", "Shelf", "StoreProvider", "Workspace", "definePaneKind",
-      "useActions", "useActiveItemPort", "useEnv", "useModel", "usePaneState", "useProfile", "useShortcut",
-      "useShortcutSuffix", "useStore", "useTitleOf", "useUi",
+      "Palette", "Panes", "SettingsPanel", "Shelf", "WorkspaceProvider", "definePage", "definePane", "useActiveItemPort",
+      "useActivity", "useCommands", "useLauncher", "usePane", "usePaneState", "useShortcut", "useTheme", "useUnsaved",
+      "useWorkspace", "useWorkspaceModel", "useWorkspaceState",
     ]);
   });
 

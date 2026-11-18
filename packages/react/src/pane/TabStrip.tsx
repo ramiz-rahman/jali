@@ -22,8 +22,8 @@ function TabActivity({ id }: { id: NodeId }) {
 /** A group's tabs. `owner` is the frame showing the group: the active tab's title labels its region. */
 export function TabStrip({ group, owner }: { group: NonNullable<Frame["group"]>; owner: NodeId }) {
   const store = useStore();
-  const { actions } = store;
-  // A curated page: no "+" (its views come from the page's tabs).
+  const { actions, env } = store;
+  // A curated page, or a workspace without a launcher: no "+" (its views come from the page's tabs).
   const page = useUi((s) => !!s.page);
   // A curated page's views live in the page tabs, so a pane's strip lists a page view only while it is shown: never a
   // repeat. The exception is a group of page views, which only a centre drop ("Add as tab") makes: you asked for
@@ -116,7 +116,7 @@ export function TabStrip({ group, owner }: { group: NonNullable<Frame["group"]>;
         {folded.map(renderTab)}
       </div>
       {overflowing ? <TabOverflow tabs={[...mine, ...folded]} active={group.active} hiddenCount={hiddenCount} onChoose={(id) => actions.setActiveTab(group.id, id)} /> : null}
-      {page ? null : <button
+      {page || !env.launcher ? null : <button
         className="jali-tab-add"
         aria-label="New tab in this stack"
         title="New tab"

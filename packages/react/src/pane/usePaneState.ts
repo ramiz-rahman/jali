@@ -6,14 +6,13 @@
  *
  * Use it for what a person would expect back: a scroll position, a sort, a draft. Use React state for the rest.
  */
-import { createContext, useCallback, useContext, useState } from "react";
+import { useCallback, useContext, useState } from "react";
 import { useStore, useUi } from "../state/react";
-
-/** The pane the content is in; null in the peek sheet, which keeps nothing. */
-export const PaneIdContext = createContext<string | null>(null);
+import { PaneContext } from "./context";
 
 export function usePaneState<T>(key: string, initial: T): [T, (next: T | ((prev: T) => T)) => void] {
-  const id = useContext(PaneIdContext);
+  // The peek sheet (and anything outside a pane) has no pane id: its state is local.
+  const id = useContext(PaneContext)?.id ?? null;
   const store = useStore();
   const kept = useUi((s) => (id ? s.paneState[id]?.[key] : undefined)) as T | undefined;
   // In the peek sheet (no pane), state is local and goes when the sheet does.

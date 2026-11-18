@@ -1,19 +1,18 @@
 import { useEffect, useState } from "react";
 import { useDataLayer } from "../data/react";
-import { PALETTE_ID } from "@jali/core";
-import { useModel, useStore, useUi, Shelf } from "@jali/react";
+import { useWorkspace, useWorkspaceModel, useWorkspaceState, Shelf } from "@jali/react";
 
 export function StatusLine() {
-  const m = useModel();
-  const { keymap } = useStore();
+  const m = useWorkspaceModel();
+  const { keymap } = useWorkspace();
   const keys = (id: string, what: string) => (keymap.label(id) ? `${keymap.label(id)} ${what}` : "");
-  const view = useUi((s) => s.view);
-  const resizeMode = useUi((s) => s.resizeMode);
-  const curated = useUi((s) => !!s.page);
-  const single = useUi((s) => s.page?.mode === "single");
+  const view = useWorkspaceState((s) => s.view);
+  const resizeMode = useWorkspaceState((s) => s.resizeMode);
+  const curated = useWorkspaceState((s) => !!s.page);
+  const single = useWorkspaceState((s) => s.page?.mode === "single");
   // Fetch and cache telemetry is for Data Studio; a curated page speaks in views.
-  const showStats = useUi((s) => s.settings.showStats && !s.page);
-  const activity = useUi((s) => s.activity);
+  const showStats = useWorkspaceState((s) => s.settings.showStats && !s.page);
+  const activity = useWorkspaceState((s) => s.activity);
   // Every tucked pane, shown or not (the shelf lists them all); folded panes are counted separately.
   const tucked = m.shelf.length;
   const busy = Object.entries(activity).filter(([id, a]) => (a === "needs-you" || a === "working" || a === "error") && m.tuckOf(id));
@@ -24,8 +23,8 @@ export function StatusLine() {
       : view.peek
         ? "Peek · Esc to close"
         : curated && single
-          ? keys(PALETTE_ID, "commands")
-          : [keys("pane.zoom", "maximise"), keys("pane.focus.next", `next ${curated ? "view" : "pane"}`), keys(PALETTE_ID, "commands")].filter(Boolean).join(" · ");
+          ? keys("palette.toggle", "commands")
+          : [keys("pane.zoom", "maximise"), keys("pane.focus.next", `next ${curated ? "view" : "pane"}`), keys("palette.toggle", "commands")].filter(Boolean).join(" · ");
   const n = m.onScreen.length;
   return (
     <footer className="status" aria-label="Status" data-shelf-on={tucked ? "" : undefined}>

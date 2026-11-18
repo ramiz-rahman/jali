@@ -1,4 +1,4 @@
-import type { PaneKindDef } from "@jali/react";
+import type { Pane } from "@jali/react";
 import { catalogKind } from "./kinds/catalog";
 import { tableKind } from "./kinds/table";
 import { recordKind } from "./kinds/record";
@@ -11,7 +11,9 @@ import { launcherKind } from "./kinds/launcher";
 import { auditKind } from "./kinds/audit";
 
 /** Data Studio's pane kinds. */
-export const dataStudioKinds: readonly PaneKindDef[] = [
-  catalogKind, tableKind, recordKind, relatedKind, queryKind, chartKind, structureKind, erKind, launcherKind, auditKind,
+export const dataStudioKinds: readonly Pane[] = [
+  catalogKind, tableKind, recordKind, relatedKind, queryKind, chartKind, structureKind, erKind, auditKind,
 ];
+/** What Split and "New tab here" open in Data Studio. */
+export { launcherKind as dataStudioLauncher };
 export { dataStudioPresets, DEFAULT_PRESET } from "./presets";

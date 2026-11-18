@@ -1,16 +1,16 @@
 import { GitFork } from "lucide-react";
-import { definePaneKind } from "@jali/react";
+import { definePane } from "@jali/react";
 import type { TableName } from "../../data/types";
 import { useCatalog } from "../../data/hooks";
 import { erRef, tableInfoOf, tableOf } from "../shared/refs";
 import { Shell } from "../shared/states";
 import { PaneGate } from "../shared/PaneGate";
-import type { PaneComponentProps } from "@jali/react";
+import type { PaneProps } from "@jali/react";
 
 const BW = 150, GAPY = 12, HEAD = 22, LINE = 15;
 
-export function ErPane({ ref, paused, openBeside }: PaneComponentProps) {
-  const table = tableOf(ref);
+export function ErPane({ params, paused, openBeside }: PaneProps<{ table: string }>) {
+  const table = params.table as TableName;
   const cat = useCatalog({ paused });
   const info = tableInfoOf(cat.data, table);
   if (!info || cat.isError) return <PaneGate queries={[cat]} gone={!info ? `Table "${table}"` : undefined} />;
@@ -59,8 +59,11 @@ export function ErPane({ ref, paused, openBeside }: PaneComponentProps) {
 }
 
 
-export const erKind = definePaneKind({
-  kind: "er", ref: (params) => ({ kind: "er", params }),
-  title: (ref) => `${ref.params.table ?? ""} relations`.trim(), minWidth: 400, comfortableWidth: 560, minHeight: 240, 
-  icon: GitFork, Component: ErPane,
+export const erKind = definePane("er", {
+  params: { table: String },
+  title: ({ table }) => `${table ?? ""} relations`.trim(),
+  icon: GitFork,
+  width: { min: 400, comfortable: 560 },
+  height: { min: 240 },
+  Component: ErPane,
 });

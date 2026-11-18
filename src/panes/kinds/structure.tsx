@@ -1,15 +1,15 @@
 import { ListTree } from "lucide-react";
-import { definePaneKind } from "@jali/react";
+import { definePane } from "@jali/react";
 import type { TableName } from "../../data/types";
 import { useCatalog } from "../../data/hooks";
 import { formatCount } from "../format";
 import { erRef, tableInfoOf, tableOf, tableRef } from "../shared/refs";
 import { NullChip, Shell } from "../shared/states";
 import { PaneGate } from "../shared/PaneGate";
-import type { PaneComponentProps } from "@jali/react";
+import type { PaneProps } from "@jali/react";
 
-export function StructurePane({ ref, paused, openBeside }: PaneComponentProps) {
-  const table = tableOf(ref);
+export function StructurePane({ params, paused, openBeside }: PaneProps<{ table: string }>) {
+  const table = params.table as TableName;
   const cat = useCatalog({ paused });
   const info = tableInfoOf(cat.data, table);
   if (!info || cat.isError) return <PaneGate queries={[cat]} gone={!info ? `Table "${table}"` : undefined} />;
@@ -42,8 +42,11 @@ export function StructurePane({ ref, paused, openBeside }: PaneComponentProps) {
 }
 
 
-export const structureKind = definePaneKind({
-  kind: "structure", ref: (params) => ({ kind: "structure", params }),
-  title: (ref) => `${ref.params.table ?? ""} structure`.trim(), minWidth: 380, comfortableWidth: 440, maxWidth: 720, minHeight: 240, 
-  icon: ListTree, Component: StructurePane,
+export const structureKind = definePane("structure", {
+  params: { table: String },
+  title: ({ table }) => `${table ?? ""} structure`.trim(),
+  icon: ListTree,
+  width: { min: 380, comfortable: 440, max: 720 },
+  height: { min: 240 },
+  Component: StructurePane,
 });

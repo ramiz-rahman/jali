@@ -5,21 +5,21 @@
  */
 import type { ReactNode } from "react";
 import { ArrowRight } from "lucide-react";
-import type { PaneComponentProps } from "@jali/react";
-import { useStore } from "@jali/react";
+import type { PaneProps } from "@jali/react";
+import { useWorkspace } from "@jali/react";
 import { Loading } from "../panes/shared/states";
 import { day, taka, useApplication } from "./page";
 import { book, instalments, plural, tenure, useGroupStanding, useOfficerBook, useRepayments, type Row } from "./data";
 import { Ladder, Standing } from "./records";
 import { signals } from "./signals";
 import { Facts, Instalments, StatusMark, Table, ToneIcon, View } from "./ui";
-import { altClick } from "@jali/core";
+import { altClick } from "@jali/core/adapter";
 
 const n = (v: unknown) => Number(v ?? 0);
 
 /** One section of Overview, with a way to the full view. */
 function Section({ title, role, lead, warn, children, area }: { title: string; role: string; lead?: ReactNode; warn?: boolean; children: ReactNode; area: string }) {
-  const { actions } = useStore();
+  const { actions } = useWorkspace();
   return (
     <section className="ov-sec" aria-label={title} style={{ gridArea: area }}>
       <header className="ov-head">
@@ -34,8 +34,8 @@ function Section({ title, role, lead, warn, children, area }: { title: string; r
   );
 }
 
-export function OverviewPane({ ref, paused }: PaneComponentProps) {
-  const item = Number(ref.params.item);
+export function OverviewPane({ params, paused }: PaneProps<{ item: number }>) {
+  const { item } = params;
   const { app, member, group, officer, loans } = useApplication(item, paused);
   const pay = useRepayments((loans ?? []).map((l) => n(l.id)), paused);
   const repayments = pay.ready && loans ? [...pay.byLoan.values()].flat() : undefined;

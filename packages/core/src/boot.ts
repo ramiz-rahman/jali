@@ -3,14 +3,14 @@
  * layout); `startUi` installs the page-lifetime listeners: keyboard, Back/Forward, theme, settings persistence.
  */
 import * as core from "./layout";
-import { installKeyboard } from "./commands/keyboard";
+import { installKeyboard, type KeyboardScope } from "./commands/keyboard";
 import { presetById } from "./profile";
 import { msg, toasts } from "./state/messages";
 import { applyTheme, resolveTheme, saveSettings, watchSystemTheme } from "./state/settings";
 import type { UiStore } from "./state/store";
 import { applyTokens } from "./tokens";
 import { savePrefs } from "./state/page-prefs";
-import { savePaneState } from "./state/store";
+import { savePaneState } from "./state/pane-state";
 import { withoutOpened } from "./actions/page";
 import type { UrlSync } from "./url";
 
@@ -50,14 +50,21 @@ export function boot(store: UiStore, url?: UrlSync) {
 }
 
 /** Listeners for the life of the page. Returns a function that removes them (tests, HMR). */
-export function startUi(store: UiStore, url?: UrlSync): () => void {
+/** What `startUi` takes over: keys (all of the page's, or only the workspace's), and the page's theme. */
+export interface StartOptions {
+  keys?: KeyboardScope;
+  /** Set `data-theme` on `<html>` from the person's setting. Default true; false inside a page with its own theme. */
+  pageTheme?: boolean;
+}
+
+export function startUi(store: UiStore, url?: UrlSync, { keys = {}, pageTheme = true }: StartOptions = {}): () => void {
   const sync = syncOf(store, url);
   applyTokens();
   let prev = store.get();
   // Pane state changes with typing and scrolling: saved once things settle.
   let saveTimer: ReturnType<typeof setTimeout> | undefined;
   const saveSoon = () => { clearTimeout(saveTimer); saveTimer = setTimeout(() => savePaneState(store.storage, store.get().paneState), 400); };
-  applyTheme(resolveTheme(prev.settings.theme, prev.systemDark));
+  if (pageTheme) applyTheme(resolveTheme(prev.settings.theme, prev.systemDark));
   const offStore = store.subscribe(() => {
     const s = store.get();
     if (s.settings !== prev.settings) saveSettings(store.storage, s.settings);
@@ -69,7 +76,7 @@ export function startUi(store: UiStore, url?: UrlSync): () => void {
       const layout = s.page?.mode === "multi" ? s.layout : s.prefs.multi;
       savePrefs(store.storage, p.id, { mode: s.prefs.mode, multi: layout ? withoutOpened(layout, store.ctx()) : null });
     }
-    if (s.settings.theme !== prev.settings.theme || s.systemDark !== prev.systemDark) applyTheme(resolveTheme(s.settings.theme, s.systemDark));
+    if (pageTheme && (s.settings.theme !== prev.settings.theme || s.systemDark !== prev.systemDark)) applyTheme(resolveTheme(s.settings.theme, s.systemDark));
     prev = s;
   });
   // Leaving the page with unsaved work: the browser asks first.
@@ -78,7 +85,7 @@ export function startUi(store: UiStore, url?: UrlSync): () => void {
   };
   window.addEventListener("beforeunload", onUnload);
   const offTheme = watchSystemTheme((systemDark) => store.set({ systemDark }));
-  const offKeys = installKeyboard(store);
+  const offKeys = installKeyboard(store, keys);
   const offPop = sync
     ? sync.onPop(() => {
         arriveFromUrl(store, sync);

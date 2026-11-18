@@ -1,8 +1,8 @@
+import { createPaneKinds } from "@jali/core/adapter";
 import { nextSort, orderByString, parseFilter } from "./grid/grid-state";
 import { recordKind } from "./kinds/record";
 import { pickChartColumns } from "./kinds/chart";
 import { describe, expect, it, vi } from "vitest";
-vi.mock("../../packages/react/src/define", () => ({ definePaneKind: (definition: unknown) => definition }));
 import type { ColumnInfo } from "../data/types";
 import { cellKind, columnLabel, formatCell, formatJson, formatMoney, formatTimestamp, rawText, formatCompact, formatCount, formatMs, isNumericType } from "./format";
 import { foreignKeyRef, relationRef, rowId } from "./shared/refs";
@@ -53,7 +53,7 @@ describe("relation links", () => {
     });
   });
   it("titles refs and picks chart columns", () => {
-    expect(recordKind.title({ kind: "record", params: { table: "customers", id: "69" } })).toBe("customer 69");
+    expect(createPaneKinds([recordKind]).title(recordKind({ table: "customers", id: "69" }))).toBe("customer 69");
     expect(pickChartColumns([{ region: "Dhaka", id: 1, amount: 5 }], ["region", "id", "amount"])).toEqual({ x: "region", y: "amount" });
   });
 });

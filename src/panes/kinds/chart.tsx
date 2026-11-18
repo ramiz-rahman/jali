@@ -1,5 +1,5 @@
 import { BarChart3 } from "lucide-react";
-import { definePaneKind } from "@jali/react";
+import { definePane } from "@jali/react";
 import type { Row } from "../../data/types";
 import { useMemo, useState } from "react";
 import { isLoading } from "../../data/hooks";
@@ -7,13 +7,13 @@ import { formatCompact, formatCount } from "../format";
 import { Empty, Shell } from "../shared/states";
 import { PaneGate } from "../shared/PaneGate";
 import { useResultWindow } from "../grid/useWindow";
-import type { PaneComponentProps } from "@jali/react";
+import type { PaneProps } from "@jali/react";
 
 const MAX_BARS = 20;
 
 /** A bar chart of the same result handle the grid reads (same cache key, so no second fetch). */
-export function ChartPane({ ref, paused }: PaneComponentProps) {
-  const runId = String(ref.params.runId ?? "");
+export function ChartPane({ params, paused }: PaneProps<{ runId: string }>) {
+  const runId = params.runId ?? "";
   const w = useResultWindow(runId, 0, paused);
   const q = w.q;
   const rows = w.rows;
@@ -69,10 +69,14 @@ export function ChartPane({ ref, paused }: PaneComponentProps) {
 }
 
 
-export const chartKind = definePaneKind({
-  kind: "chart", ref: (params) => ({ kind: "chart", params }),
-  title: (_ref) => "Chart", minWidth: 360, comfortableWidth: 480, minHeight: 220, recordable: (ref) => !!ref.params.runId,
-  icon: BarChart3, Component: ChartPane,
+export const chartKind = definePane("chart", {
+  params: { runId: String },
+  title: "Chart",
+  icon: BarChart3,
+  width: { min: 360, comfortable: 480 },
+  height: { min: 220 },
+  inRecent: ({ runId }) => !!runId,
+  Component: ChartPane,
 });
 
 /** Pick a label column (first text) and a value column (first numeric) for charting a result. */

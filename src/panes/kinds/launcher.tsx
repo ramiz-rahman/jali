@@ -1,4 +1,4 @@
-import { definePaneKind } from "@jali/react";
+import { KindIcon, definePane, useLauncher } from "@jali/react";
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { Plus, Search, Table2 } from "lucide-react";
 import type { ObjectRef, TableInfo } from "../../data/types";
@@ -6,7 +6,7 @@ import { useFocusWhen } from "../shared/useFocusWhen";
 import { useCatalog } from "../../data/hooks";
 import { formatCount } from "../format";
 import { recordRef, singular, tableRef } from "../shared/refs";
-import type { PaneComponentProps } from "@jali/react";
+import type { PaneProps } from "@jali/react";
 
 /** One choosable row. `open` marks an object already on screen: choosing it focuses that pane. */
 interface Item {
@@ -33,7 +33,8 @@ function recordJump(q: string, tables: TableInfo[]): ObjectRef | null {
  * The launcher: what a split or a stack's "+" opens. A search over recent objects and tables, plus "New query".
  * Choosing fills this same pane (openHere); Esc on an untouched launcher closes it and returns focus.
  */
-export function LauncherPane({ node, focused, paused, openHere, dismiss, recent = [], isOpen = () => false, KindIcon = () => null, titleFor = ref => ref.kind }: PaneComponentProps) {
+export function LauncherPane({ node, focused, paused, openHere, dismiss }: PaneProps) {
+  const { recent, isOpen, titleOf: titleFor } = useLauncher();
   const catalog = useCatalog({ paused });
   const [q, setQ] = useState("");
   const [i, setI] = useState(0);
@@ -60,7 +61,7 @@ export function LauncherPane({ node, focused, paused, openHere, dismiss, recent 
     }
     if (hit("new query") || hit("sql")) out.push({ key: "new-query", section: "Create", ref: NEW_QUERY, label: "New query", meta: <span className="pk-mono">SQL</span>, icon: <Plus size={14} strokeWidth={1.5} aria-hidden /> });
     return out;
-  }, [q, recent, catalog.data, KindIcon, titleFor]);
+  }, [q, recent, catalog.data, titleFor]);
 
   const sel = Math.min(i, items.length - 1);
   const optId = (n: number) => `${node.id}-opt-${n}`;
@@ -161,8 +162,11 @@ export function LauncherPane({ node, focused, paused, openHere, dismiss, recent 
 }
 
 
-export const launcherKind = definePaneKind({
-  kind: "launcher", ref: (params) => ({ kind: "launcher", params }),
-  title: (_ref) => "New pane", minWidth: 320, minHeight: 200, transient: true, recordable: false, identity: () => undefined,
-  icon: Plus, Component: LauncherPane,
+export const launcherKind = definePane("launcher", {
+  title: "New pane",
+  icon: Plus,
+  width: { min: 320 },
+  height: { min: 200 },
+  scratch: true,
+  Component: LauncherPane,
 });

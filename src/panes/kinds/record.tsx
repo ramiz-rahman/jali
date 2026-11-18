@@ -1,5 +1,5 @@
 import { FileText } from "lucide-react";
-import { definePaneKind } from "@jali/react";
+import { definePane, useActivity } from "@jali/react";
 import { copyRaw } from "../shared/copyRaw";
 import { useEffect, useRef, useState } from "react";
 import type { ColumnInfo, Relation, Row, TableName } from "../../data/types";
@@ -8,11 +8,11 @@ import { cellKind, columnLabel, formatCell, formatCount, formatJson, rawText, is
 import { foreignKeyRef, relationRef, singular, tableOf, tableRef } from "../shared/refs";
 import { ErrorState, Loading, NullChip, Shell } from "../shared/states";
 import { PaneGate } from "../shared/PaneGate";
-import type { PaneComponentProps } from "@jali/react";
+import type { PaneProps } from "@jali/react";
 
-export function RecordPane({ ref, paused, openBeside, setActivity }: PaneComponentProps) {
-  const table = tableOf(ref);
-  const id = String(ref.params.id ?? "");
+export function RecordPane({ params, paused, openBeside }: PaneProps<{ table: string; id?: string | number }>) {
+  const table = params.table as TableName;
+  const id = String(params.id ?? "");
   const cat = useTableInfo(table, paused);
   const rec = useRecord(table, id, { paused });
   const info = cat.data;
@@ -22,7 +22,7 @@ export function RecordPane({ ref, paused, openBeside, setActivity }: PaneCompone
   const [open, setOpen] = useState<Set<string>>(() => new Set());
   const [saveError, setSaveError] = useState<string | null>(null);
 
-  useEffect(() => { setActivity(update.isPending ? "working" : isLoading(rec) ? "loading" : rec.isError || update.error ? "error" : "idle"); }, [setActivity, update.isPending, rec, update.error]);
+  useActivity(update.isPending ? "working" : isLoading(rec) ? "loading" : rec.isError || update.error ? "error" : "idle");
 
   if (isLoading(cat) || isLoading(rec) || cat.isError || rec.isError || !info || !rec.data) {
     const gone = !info ? `Table "${table}"` : !rec.data ? `${singular(table)} ${id}` : undefined;
@@ -94,7 +94,7 @@ function JsonValue({ text, open, toggle }: { text: string; open: boolean; toggle
   );
 }
 
-function Relations({ table, id, row, paused, openBeside }: { table: TableName; id: string; row: Row; paused: boolean; openBeside: PaneComponentProps["openBeside"] }) {
+function Relations({ table, id, row, paused, openBeside }: { table: TableName; id: string; row: Row; paused: boolean; openBeside: PaneProps["openBeside"] }) {
   const rels = useRelations(table, id, row, { paused });
   const list = rels.data ?? [];
   return (
@@ -107,7 +107,7 @@ function Relations({ table, id, row, paused, openBeside }: { table: TableName; i
   );
 }
 
-function RelationLink({ rel, openBeside }: { rel: Relation; openBeside: PaneComponentProps["openBeside"] }) {
+function RelationLink({ rel, openBeside }: { rel: Relation; openBeside: PaneProps["openBeside"] }) {
   return (
     <div className="pk-field" style={{ minHeight: 28 }}>
       <button className="pk-link" style={{ textAlign: "left" }} onClick={() => openBeside(relationRef(rel))}>{rel.label}</button>
@@ -117,10 +117,13 @@ function RelationLink({ rel, openBeside }: { rel: Relation; openBeside: PaneComp
 }
 
 
-export const recordKind = definePaneKind({
-  kind: "record", object: "record", ref: (params) => ({ kind: "record", params }),
-  title: (ref) => `${singular(String(ref.params.table ?? "record"))} ${ref.params.id ?? ""}`.trim(), minWidth: 360, comfortableWidth: 440, maxWidth: 600, minHeight: 240, 
-  icon: FileText, Component: RecordPane,
+export const recordKind = definePane("record", {
+  params: { table: String },
+  title: ({ table, id }) => `${singular(table ?? "record")} ${id ?? ""}`.trim(),
+  icon: FileText,
+  width: { min: 360, comfortable: 440, max: 600 },
+  height: { min: 240 },
+  Component: RecordPane,
 });
 
 /** Which text columns can be edited inline: text-like, not keys. */

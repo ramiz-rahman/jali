@@ -1,5 +1,5 @@
 import { Table2 } from "lucide-react";
-import { definePaneKind } from "@jali/react";
+import { definePane } from "@jali/react";
 import { useMemo, useState } from "react";
 import type { ObjectRef, Row, TableName, ColumnInfo } from "../../data/types";
 import { Grid, type GridColumn } from "../grid/Grid";
@@ -11,11 +11,11 @@ import { useWindowRows } from "../grid/useWindow";
 import { nextSort, orderByString, parseFilter, type SortState } from "../grid/grid-state";
 import { PaneGate } from "../shared/PaneGate";
 import { useSelectionAcrossResults } from "../grid/useSelectionAcrossResults";
-import type { PaneComponentProps } from "@jali/react";
+import type { PaneProps } from "@jali/react";
 import { keyHint } from "@jali/core";
 
 /** A grid over one table, optionally pre-filtered by a relation (used by RelatedPane). */
-export function TableGrid({ table, fixedWhere, paused, focused, openBeside, peek, select, label, columns: columnNames, orderBy, rowRef, audit = false }: Pick<PaneComponentProps, "paused" | "focused" | "openBeside" | "peek" | "select"> & { table: TableName; fixedWhere?: Record<string, string | number>; label: string; columns?: string[]; orderBy?: string; rowRef?: (row: Row) => ObjectRef | null; audit?: boolean }) {
+export function TableGrid({ table, fixedWhere, paused, focused, openBeside, peek, select, label, columns: columnNames, orderBy, rowRef, audit = false }: Pick<PaneProps, "paused" | "focused" | "openBeside" | "peek" | "select"> & { table: TableName; fixedWhere?: Record<string, string | number>; label: string; columns?: string[]; orderBy?: string; rowRef?: (row: Row) => ObjectRef | null; audit?: boolean }) {
   const cat = useTableInfo(table, paused);
   const info = cat.data;
   const [sort, setSort] = useState<SortState>(null);
@@ -67,14 +67,18 @@ export function TableGrid({ table, fixedWhere, paused, focused, openBeside, peek
   );
 }
 
-export function TablePane(p: PaneComponentProps) {
-  const table = tableOf(p.ref);
+export function TablePane(p: PaneProps<{ table: string }>) {
+  const table = p.params.table as TableName;
   return <TableGrid {...p} table={table} label={`${table} rows`} />;
 }
 
 
-export const tableKind = definePaneKind({
-  kind: "table", ref: (params) => ({ kind: "table", params }),
-  title: (ref) => String(ref.params.table ?? "Table"), minWidth: 440, comfortableWidth: 560, minHeight: 240, heavy: true,
-  icon: Table2, Component: TablePane,
+export const tableKind = definePane("table", {
+  params: { table: String },
+  title: ({ table }) => table ?? "Table",
+  icon: Table2,
+  width: { min: 440, comfortable: 560 },
+  height: { min: 240 },
+  holdWhileResizing: true,
+  Component: TablePane,
 });

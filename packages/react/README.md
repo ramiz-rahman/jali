@@ -3,24 +3,26 @@
 React for [Jali](../core) workspaces, with Jali's default theme.
 
 ```tsx
-import { Jali, JaliView, definePaneKind } from "@jali/react";
+import { createWorkspace, row } from "@jali/core";
+import { Jali, definePane } from "@jali/react";
 import "@jali/react/styles.css";
 
-const note = definePaneKind({
-  kind: "note",
-  title: (ref) => `Note ${ref.params.id}`,
-  ref: (params) => ({ kind: "note", params }),
-  minWidth: 240,                 // narrower than this, the pane folds into a tab
-  minHeight: 160,
-  Component: ({ ref, openBeside }) => <article>Note {ref.params.id}</article>,
+const note = definePane("note", {
+  params: { id: Number },
+  title: ({ id }) => `Note ${id}`,
+  width: { min: 240 },             // narrower than this, the pane folds into a tab
+
+  Component: ({ params, openBeside }) => (
+    <button onClick={() => openBeside(note({ id: params.id + 1 }))}>Note {params.id}</button>
+  ),
 });
 
-// store: createUiStore({ kinds: createPaneKinds([note]), ... }) from @jali/core
-<Jali store={store} className="app">
-  <MyTopBar />
-  <JaliView />
-</Jali>;
+const workspace = createWorkspace({ panes: [note], layout: row(note({ id: 1 }), note({ id: 2 })) });
+
+<Jali workspace={workspace} className="app" />;
 ```
+
+Inside a pane, `usePane()` reads its props from any depth, and `useActivity`, `useUnsaved`, `useCommands` and `usePaneState` report to the workspace.
 
 ## Theming
 

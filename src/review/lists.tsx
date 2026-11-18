@@ -2,10 +2,9 @@
  * The loan-review list views: a borrower's loan history (or an officer's loans), and the members, applications and
  * groups that records link to. Reviewer tables, not grids: the columns a decision needs first, the rest as the view widens.
  */
-import { useEffect } from "react";
 import { AlertTriangle } from "lucide-react";
-import type { PaneComponentProps } from "@jali/react";
-import { useUi } from "@jali/react";
+import type { PaneProps } from "@jali/react";
+import { useActivity, useWorkspaceState } from "@jali/react";
 import { isLoading, useRows } from "../data/hooks";
 import type { TableName } from "../data/types";
 import { PaneGate } from "../panes/shared/PaneGate";
@@ -16,19 +15,18 @@ import { book, instalments, plural, useMemberNames, useRepayments, type Row } fr
 import { Instalments, recordRef, RefLink, StatusMark, Table, View, ViewHead, type Col } from "./ui";
 
 const n = (v: unknown) => Number(v ?? 0);
-type Open = PaneComponentProps["openBeside"];
+type Open = PaneProps["openBeside"];
 interface ListProps { rows: Row[]; column: string; label: string; open: Open; paused: boolean }
 
 const ORDER: Partial<Record<TableName, string>> = { loans: "cycle DESC", members: "name ASC", loan_applications: "submitted_at DESC", lending_groups: "name ASC" };
 
 /** Rows of a loan-book table where one column has one value; tables without a designed list use the Data Studio grid. */
-export function ReviewRelatedPane(p: PaneComponentProps) {
-  const { table, column, value, label } = p.ref.params;
+export function ReviewRelatedPane(p: PaneProps) {
+  const { table, column, value, label } = p.params;
   const t = String(table) as TableName;
   const L = LISTS[t];
   const q = useRows(t, { where: { [String(column)]: value as number }, orderBy: ORDER[t], limit: 500 }, { paused: p.paused || !L });
-  const { setActivity } = p;
-  useEffect(() => { if (L) setActivity(isLoading(q) ? "loading" : q.isError ? "error" : "idle"); }, [L, setActivity, q]);
+  useActivity(L ? (isLoading(q) ? "loading" : q.isError ? "error" : "idle") : undefined);
   if (!L) return <RelatedPane {...p} />;
   if (isLoading(q) || q.isError || !q.data) return <PaneGate queries={[q]} onRetry={() => { void q.refetch(); }} />;
   return <L rows={q.data.rows} column={String(column)} label={String(label ?? "")} open={p.openBeside} paused={p.paused} />;
@@ -110,7 +108,7 @@ function MemberList({ rows, label, open }: ListProps) {
 function ApplicationList({ rows, column, label, open, paused }: ListProps) {
   const names = useMemberNames(paused);
   const byMember = column === "member_id";
-  const current = useUi((x) => x.page?.item);
+  const current = useWorkspaceState((x) => x.page?.item);
   return (
     <View label={label}>
       <ViewHead kicker="Applications" title={label} />

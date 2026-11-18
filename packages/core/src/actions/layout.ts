@@ -4,6 +4,7 @@ import type { PaneActivity } from "../pane-kinds";
 import { presetById } from "../profile";
 import type { Outcome, Snapshot } from "../state/apply";
 import { msg } from "../state/messages";
+import type { Settings } from "../state/settings";
 import { withRecent } from "./open";
 
 export function preset({ s, ctx, env }: Snapshot, id: string | undefined): Outcome {
@@ -35,3 +36,12 @@ export function arrive({ s, ctx }: Snapshot, layout: Layout, arrived: Partial<Vi
 export function setActivity({ s }: Snapshot, id: NodeId, a: PaneActivity): Outcome {
   return s.activity[id] === a ? null : { op: "patch", patch: { activity: { ...s.activity, [id]: a } } };
 }
+
+/** The command palette (⌘K) and the settings panel. */
+export const openPalette = (): Outcome => ({ op: "patch", patch: { paletteOpen: true, chooser: null } });
+export const closePalette = (): Outcome => ({ op: "patch", patch: { paletteOpen: false } });
+export const openSettings = (): Outcome => ({ op: "patch", patch: { settingsOpen: true } });
+export const closeSettings = (): Outcome => ({ op: "patch", patch: { settingsOpen: false } });
+
+/** Change the person's settings (theme, pane cap, ...): saved on this device, and the layout refits to a new cap. */
+export const changeSettings = ({ s }: Snapshot, patch: Partial<Settings>): Outcome => ({ op: "patch", patch: { settings: { ...s.settings, ...patch } } });

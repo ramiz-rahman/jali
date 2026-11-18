@@ -3,8 +3,8 @@ import type { ReactNode } from "react";
 import { AlertTriangle, ArrowUpRight, Check, Info, OctagonAlert } from "lucide-react";
 import type { ObjectRef } from "@jali/core";
 import type { Row } from "../data/types";
-import type { PaneComponentProps } from "@jali/react";
-import { useUi } from "@jali/react";
+import type { PaneProps } from "@jali/react";
+import { useWorkspaceState } from "@jali/react";
 import { Shell } from "../panes/shared/states";
 import { statusLabel } from "./data";
 import type { Tone } from "./signals";
@@ -56,11 +56,11 @@ export function Facts({ rows, cols }: { rows: (Fact | null | false)[]; cols?: 1 
 
 /** How a link is followed here: a peek in Single (and for roles that only peek), beside in Multiplexed. */
 function useLinkVerb() {
-  return useUi((s) => (s.page && (s.page.mode === "single" || !s.page.canInvestigate) ? "peek" : "beside"));
+  return useWorkspaceState((s) => (s.page && (s.page.mode === "single" || !s.page.canInvestigate) ? "peek" : "beside"));
 }
 
 /** A related record or list, opened with the pane's own link action. `data-ref` names the object for tests and tools. */
-export function RefLink({ to, open, children, className = "rv-link", name }: { to: ObjectRef; open: PaneComponentProps["openBeside"]; children: ReactNode; className?: string; name: string }) {
+export function RefLink({ to, open, children, className = "rv-link", name }: { to: ObjectRef; open: PaneProps["openBeside"]; children: ReactNode; className?: string; name: string }) {
   const verb = useLinkVerb();
   const key = to.kind === "review-record" ? `${to.params.table} ${to.params.id}` : `${to.params.table} ${to.params.column}=${to.params.value}`;
   return (
@@ -72,7 +72,7 @@ export function RefLink({ to, open, children, className = "rv-link", name }: { t
 }
 
 /** One line in a list of related things: what it is, a note, and the way to open it. A zero count is plain text. */
-export function Related({ to, open, label, note, icon, name }: { to?: ObjectRef; open: PaneComponentProps["openBeside"]; label: ReactNode; note?: ReactNode; icon?: ReactNode; name: string }) {
+export function Related({ to, open, label, note, icon, name }: { to?: ObjectRef; open: PaneProps["openBeside"]; label: ReactNode; note?: ReactNode; icon?: ReactNode; name: string }) {
   const body = (
     <>
       {icon ? <span className="rv-rel-icon" aria-hidden>{icon}</span> : null}

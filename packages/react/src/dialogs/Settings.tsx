@@ -21,8 +21,8 @@ export function SettingsPanel() {
     if (open) first.current?.focus();
   }, [open]);
   if (!open) return null;
-  const set = (patch: Partial<S>) => store.set({ settings: { ...store.get().settings, ...patch } });
-  const close = () => store.set({ settingsOpen: false });
+  const set = (patch: Partial<S>) => store.actions.changeSettings(patch);
+  const close = () => store.actions.closeSettings();
   return (
     <div className="jali-scrim jali-scrim-light" onPointerDown={(e) => e.target === e.currentTarget && close()}>
       <div

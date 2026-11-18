@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef } from "react";
 import type { ObjectRef, Row } from "../../data/types";
-import type { PaneComponentProps } from "@jali/react";
+import type { PaneProps } from "@jali/react";
 import { sameRef } from "@jali/core";
 
 interface Results { q: { data?: unknown }; rows: Row[]; offset: number; total: number }
@@ -14,7 +14,7 @@ interface Results { q: { data?: unknown }; rows: Row[]; offset: number; total: n
  * Returns the `select` to hand the grid: it remembers the item reported.
  */
 export function useSelectionAcrossResults(key: string, w: Results, refFor: ((row: Row) => ObjectRef | null) | null,
-  setSelected: (i: number | null) => void, select: PaneComponentProps["select"]) {
+  setSelected: (i: number | null) => void, select: PaneProps["select"]) {
   const last = useRef<ObjectRef | null>(null);
   const seen = useRef(key);
   const report = useCallback((ref: ObjectRef | null) => { last.current = ref; select(ref); }, [select]);

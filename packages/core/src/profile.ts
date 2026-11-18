@@ -1,6 +1,6 @@
 /**
  * A workspace profile: a curated page about one item (a loan application), with a list beside it (the queue), a
- * header, and a tab strip of views. Data Studio has no profile: the person builds the layout.
+ * header, and a tab strip of views. A free workspace has none: the person builds the layout.
  *
  * Two modes, the person's choice. Single (default): one view at a time, chosen from the tabs, like any web app; links
  * open as a peek. Multiplexed: the tabs become a palette of views that can be dragged into split layouts with full
@@ -10,6 +10,7 @@
  * A link carries content only (item, focused view, opened panes); the mode and the multiplexed layout are personal.
  */
 import type { Layout, ObjectRef, PaneNode } from "./layout/types";
+import type { LayoutInput } from "./layout/build";
 import type { PaneKinds } from "./pane-kinds";
 
 /** One of a curated page's views. Adapters add its icon (@jali/react: RoleDef). */
@@ -35,7 +36,7 @@ export interface ProfileBase<R extends RoleBase = RoleBase> {
   /** The view Single mode opens on. */
   home: string;
   /** Multiplexed mode's designed starting layout: every role is in the tree; those not shown are hidden. */
-  build(item: number): Layout;
+  build(item: number): LayoutInput;
   /** What each role shows for an item; another item swaps these in place. */
   bind(item: number): Record<string, ObjectRef>;
   firstItem: number;
@@ -65,6 +66,8 @@ export interface Env {
   presets: readonly Preset[];
   /** The free workspace's name, where the person builds the layout ("Data Studio"). Default "Workspace". */
   name: string;
+  /** The kind a split or a new tab opens until the person chooses what to show. Without one, there is no Split. */
+  launcher?: string;
 }
 
 export const presetById = (env: Pick<Env, "presets">, id: string | undefined): Preset | undefined =>

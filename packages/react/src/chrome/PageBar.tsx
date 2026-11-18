@@ -2,7 +2,7 @@ import { useEffect, useRef, type KeyboardEvent } from "react";
 import { Columns2, RotateCcw, Square, Undo2 } from "lucide-react";
 import { investigation, startTabDrag, altClick } from "@jali/core/adapter";
 import { useModel, useStore, useUi, useProfile } from "../state/react";
-import { Workspace } from "../workspace/Workspace";
+import { Panes } from "../workspace/Workspace";
 
 /**
  * A curated page's controls in the top bar: the mode (Single or Multiplexed), the investigation (panes opened from
@@ -123,7 +123,7 @@ export function CuratedPage() {
       <div className="jali-page-main">
         <p.Header item={item} />
         <PageTabs />
-        <Workspace />
+        <Panes />
       </div>
     </div>
   );

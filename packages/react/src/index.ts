@@ -5,22 +5,19 @@
 
 // ---------- start here ----------
 export { Jali, JaliView, type JaliProps } from "./Jali";
-
-// ---------- defining panes and pages ----------
-export { definePaneKind, type PaneKindDef, type PaneComponentProps, type RoleDef, type WorkspaceProfile, type ReactEnv } from "./define";
+export { definePane, definePage, type Pane, type PaneProps, type PaneOptionsReact, type Page, type PageView } from "./define";
 
 // ---------- inside a pane ----------
-export { usePaneState, PaneIdContext } from "./pane/usePaneState";
+export { usePane, useActivity, useUnsaved, useCommands, useLauncher, type LauncherSources } from "./pane/hooks";
+export { usePaneState } from "./pane/usePaneState";
 export { useActiveItemPort } from "./pane/useActiveItemPort";
 
-// ---------- the store in React ----------
-export {
-  StoreProvider, useStore, useUi, useModel, useActions, useEnv, useProfile, useTitleOf, type ReactUiStore,
-} from "./state/react";
-export { useShortcut, useShortcutSuffix } from "./commands/react";
+// ---------- the workspace in React ----------
+export { WorkspaceProvider, useWorkspace, useWorkspaceState, useWorkspaceModel, useTheme } from "./state/react";
+export { useShortcut } from "./commands/react";
 
 // ---------- parts, to compose your own (<Jali> and <JaliView> render these) ----------
-export { Workspace } from "./workspace/Workspace";
+export { Panes } from "./workspace/Workspace";
 export { CuratedPage, PageBar } from "./chrome/PageBar";
 export { Shelf } from "./chrome/Shelf";
 export { Announcer } from "./chrome/Announcer";

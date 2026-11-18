@@ -1,14 +1,14 @@
 import { useEffect, useRef, useState } from "react";
 import { Command, Settings, Link2, ChevronDown, LayoutGrid } from "lucide-react";
-import { useStore, useUi, PageBar } from "@jali/react";
-import { copyLink, PALETTE_ID } from "@jali/core";
+import { useShortcut, useWorkspace, useWorkspaceState, PageBar } from "@jali/react";
+import { copyLink } from "@jali/core";
 import { AppSwitch } from "./AppSwitch";
 import { JaliLockup } from "./JaliLockup";
 
 /** The presets as toggle buttons: in the bar on desktop, in the Layouts menu below 768px. */
 function PresetButtons({ onChoose }: { onChoose?: () => void }) {
-  const presetId = useUi((s) => s.presetId);
-  const { actions, env } = useStore();
+  const presetId = useWorkspaceState((s) => s.presetId);
+  const { actions, env } = useWorkspace();
   return env.presets.map((p) => (
     <button key={p.id} className={`preset${presetId === p.id ? " is-active" : ""}`} aria-pressed={presetId === p.id} onClick={() => { actions.preset(p.id); onChoose?.(); }}>
       {p.label}
@@ -48,8 +48,9 @@ function LayoutsMenu() {
 }
 
 export function TopBar() {
-  const store = useStore();
-  const page = useUi((s) => !!s.page);
+  const store = useWorkspace();
+  const paletteKeys = useShortcut("palette.toggle");
+  const page = useWorkspaceState((s) => !!s.page);
   return (
     <header className="topbar" data-jali-chrome="">
       <div className="brand">
@@ -68,11 +69,11 @@ export function TopBar() {
         <button className="jali-icon-btn" onClick={() => copyLink(store)} aria-label={page ? `Copy link to this ${store.env.profile?.itemNoun ?? "item"}` : "Copy link to this layout"} title="Copy link">
           <Link2 size={16} strokeWidth={1.5} aria-hidden />
         </button>
-        <button className="jali-icon-btn" onClick={() => store.set({ settingsOpen: true })} aria-label="Settings" title="Settings">
+        <button className="jali-icon-btn" onClick={() => store.actions.openSettings()} aria-label="Settings" title="Settings">
           <Settings size={16} strokeWidth={1.5} aria-hidden />
         </button>
-        <button className="kbd-btn" onClick={() => store.set({ paletteOpen: true })} aria-label="Command palette">
-          <Command size={14} strokeWidth={1.5} aria-hidden /> <span className="kbd-label">{store.keymap.label(PALETTE_ID)}</span>
+        <button className="kbd-btn" onClick={() => store.actions.openPalette()} aria-label="Command palette">
+          <Command size={14} strokeWidth={1.5} aria-hidden /> <span className="kbd-label">{paletteKeys}</span>
         </button>
       </div>
     </header>

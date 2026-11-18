@@ -19,7 +19,7 @@ export function resizeDivider(layout: Layout, parentId: string, index: number, d
   const total = divider.value + secondExtent;
   const value = Math.max(divider.min, Math.min(divider.max, divider.value + deltaPx));
   if (Math.abs(value - divider.value) < 1e-9) return layout;
-  // Founder review, 17 Nov: dragged sizes are stored as proportions (weights in px units), never fixed px,
+  // Dragged sizes are stored as proportions (weights in px units), never fixed px,
   // so the split still fills its space after a close, a minimise or a window resize. Every sibling is
   // re-expressed in the same units from its current extent, so untouched siblings keep their share.
   const extentOf = (child: LayoutNode) => extentAlong(resolved.panes, panes(child).map(p => p.id), owner.type);

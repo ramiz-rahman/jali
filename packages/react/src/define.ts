@@ -1,100 +1,93 @@
 /**
- * A pane kind for React: the framework-free definition (pane-kinds.ts) plus the component that renders it.
+ * Defining a pane for React: what it shows (its params), its title and sizes, and the component that renders it.
  *
- * A kind module exports `definePaneKind({...})`; the app passes its kinds to `createPaneKinds` and the store (`createUiStore({ kinds })`).
+ *   export const note = definePane("note", {
+ *     params: { id: Number },
+ *     title: ({ id }) => `Note ${id}`,
+ *     Component: ({ params }) => <h3>Note {params.id}</h3>,
+ *   });
  *
- * Component rules:
- * - `ref` is the ObjectRef the pane shows (same as `node.ref`). React 19 passes `ref` to function components as a
- *   plain prop, so read it from props; do not use forwardRef.
- * - `paused` is true when the pane is hidden: tabbed away, tucked, folded, or covered by a zoomed pane.
- *   Pause live work while paused (TanStack Query: `subscribed: !paused` or `enabled: !paused`), keep state.
- * - Row keys inside list-like kinds: J/K or ↑/↓ move the selection and call `select(ref)`; Space calls `peek(ref)`
- *   (or `peek(null)` to close); ⌥↵ / ⌥-click call `openBeside(ref)`. The workspace keeps focus in the source pane
- *   after openBeside (founder decision 2) and makes an open peek, and a detail opened from the selection, follow
- *   `select` (actions/follow.ts). Report the selection before opening it, so the opened pane is linked to it.
- * - Data: read the shared DataLayer with `useDataLayer()` from `src/data/react`; never fetch outside the cache.
- * - Keys: content first (commands/keyboard.ts). The pane layer listens on window in the bubble phase and leaves
- *   alone any key the content claimed with `event.preventDefault()`. Claim the keys you use (J/K, Space, Enter,
- *   ⌘Z for your own undo, the first Esc); let the rest bubble. Character keys must only act while your content has
- *   focus (WCAG 2.1.4). Content that needs every key (an editor) marks itself `data-pane-keys="content"`: the pane
- *   layer then only takes F6 / ⇧F6 there, so focus can always leave.
- * - Unsaved work: report it with `setUnsaved("an edited query that has not run")` and clear it with `null` once it is
- *   saved. Closing the pane, closing others, a preset or showing another object in it then asks the person first;
- *   a following detail keeps its object. Moving, tabbing, folding and tucking never ask: the content stays mounted.
- * - State the person expects back (a draft, a sort, a scroll position): `usePaneState(key, initial)` from
- *   ui/pane/usePaneState. The workspace keeps it through folds and reloads and drops it when the pane closes or
- *   shows another object. JSON values only.
- * - Commands: `setCommands([...])` in an effect lists them in ⌘K, first, while the pane is focused. Call it again
- *   when they change and with `null` on unmount.
+ *   note({ id: 2 }) // the ref of note 2, to open, peek or put in a layout
+ *
+ * The pane contract (keys, pausing, unsaved work, commands) is in the docs: Guides, "Pane kinds".
  */
-import type { ComponentType, ReactNode } from "react";
-import type { ObjectRef, PaneNode, PaneActivity, PaneCommand, PaneKindBase, PaneKinds, Env, ProfileBase, RoleBase } from "@jali/core/adapter";
+import type { ComponentType } from "react";
+import type {
+  ObjectRef, PaneDefinition, PaneKindBase, PaneKinds, PaneNode, PaneOptions, Params, ParamsOf, ParamTypes, Env,
+  ProfileBase, RoleBase,
+} from "@jali/core/adapter";
+import { defineKind } from "@jali/core/adapter";
 
-export interface PaneComponentProps {
-  /** The layout node. In the peek sheet this is a node that is not in the layout. */
+/** What a pane's component gets. `P` is the type of its params. */
+export interface PaneProps<P = Params> {
+  /** What the pane shows, typed by the kind's `params`. */
+  params: P;
+  /** The pane's node in the layout. In the peek sheet this is a node that is not in the layout. */
   node: PaneNode;
-  /** The object shown; equals node.ref. */
-  ref: ObjectRef;
-  /** Hidden (tab, tuck, fold, behind zoom): pause subscriptions and timers. */
+  /** Hidden (behind a tab, tucked, folded, behind a maximised pane): pause live work, keep state. */
   paused: boolean;
-  /** This pane holds workspace focus (the accent edge). */
+  /** This pane holds the workspace's focus. */
   focused: boolean;
-  /** Open `ref` beside this pane. The selected item opens a following detail (pinned if one already follows); another
-   *  link replaces this pane's earlier plain link of the same kind if there is one. */
-  openBeside: (ref: ObjectRef) => void;
-  /** Open (or move) the peek sheet to `ref`; `null` closes it. */
-  peek: (ref: ObjectRef | null) => void;
-  /**
-   * Report the current selection; an open peek from this pane follows it, and so does this pane's following detail
-   * once the selection rests. `{ inResults: false }`: the filter no longer shows `ref`; the detail keeps it, noted.
-   */
-  select: (ref: ObjectRef | null, opts?: { inResults?: boolean }) => void;
-  /** Show `ref` in this same pane (same node, new ref). If it is already open elsewhere, that pane is focused instead. */
-  openHere: (ref: ObjectRef) => void;
-  /** Close this pane quietly (no undo toast): for transient panes such as the launcher. */
-  dismiss: () => void;
-  /** Report activity for the header, tab, shelf and status line. Optional to call. */
-  setActivity: (activity: PaneActivity) => void;
-  /**
-   * Report unsaved work ("an unsaved query"), or `null` once it is saved or gone. While a pane has some, nothing
-   * closes it, replaces its object or swaps it out without asking the person first; a following detail stays put.
-   */
-  setUnsaved: (what: string | null) => void;
-  /** The commands this pane adds to ⌘K while focused; `null` removes them. Call again whenever they change. */
-  setCommands: (commands: PaneCommand[] | null) => void;
-  /** Workspace sources, given to transient kinds (the chooser a split opens). */
-  recent?: ObjectRef[];
-  isOpen?: (ref: ObjectRef) => boolean;
-  KindIcon?: ComponentType<{ kind: string; size?: number }>;
-  titleFor?: (ref: ObjectRef) => string;
-  /** True when rendered inside the peek sheet rather than a pane. */
+  /** Rendered in the peek sheet rather than a pane. */
   inPeek: boolean;
+  /** Open `ref` beside this pane. The selected item opens a following detail; another link replaces this pane's
+   *  earlier link of the same kind. Focus stays here. */
+  openBeside: (ref: ObjectRef) => void;
+  /** Show `ref` in this pane instead. If it is open elsewhere, that pane is focused. */
+  openHere: (ref: ObjectRef) => void;
+  /** Open the peek sheet on `ref`, or close it with `null`. */
+  peek: (ref: ObjectRef | null) => void;
+  /** Report the item a list is on: an open peek and this pane's following detail follow it. `{ inResults: false }`:
+   *  the filter no longer shows it, and the detail keeps it, noted. */
+  select: (ref: ObjectRef | null, options?: { inResults?: boolean }) => void;
+  /** Close this pane quietly, with no undo: for the launcher. */
+  dismiss: () => void;
 }
 
 type IconComponent = ComponentType<{ size?: number; strokeWidth?: number; "aria-hidden"?: boolean }>;
 
-export interface PaneKindDef extends PaneKindBase {
-  /** Kind icon for the header, tab and shelf (a lucide-react icon or any 16px component). */
+/** A pane kind for React: the options of any kind, plus its icon and component. */
+export interface PaneOptionsReact<P = Params> extends PaneOptions<P> {
+  /** For the header, tab and shelf: any 16px icon component. Default: a plain square. */
   icon?: IconComponent;
-  Component: (props: PaneComponentProps) => ReactNode;
+  Component: ComponentType<PaneProps<P>>;
 }
 
-export function definePaneKind(def: PaneKindDef): PaneKindDef { return def; }
+/** A kind as a React workspace keeps it. */
+export interface PaneKindDef extends PaneKindBase {
+  icon?: IconComponent;
+  // Each kind's component takes its own params; the workspace passes the ones it read for it.
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  Component: ComponentType<PaneProps<any>>;
+}
 
-/** A curated page's view, with its tab icon. */
-export interface RoleDef extends RoleBase {
+/** A pane kind, defined. Call it with params to name one of its objects. `Pane` alone is any kind, for lists. */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export type Pane<P = any> = PaneDefinition<P, PaneKindDef>;
+
+export function definePane<const T extends ParamTypes | undefined = undefined>(
+  kind: string,
+  options: PaneOptionsReact<ParamsOf<T>> & { params?: T },
+): Pane<ParamsOf<T>> {
+  return defineKind<ParamsOf<T>, PaneKindDef>({ ...options, kind } as unknown as PaneKindDef);
+}
+
+/** One of a curated page's views, with its tab icon. */
+export interface PageView extends RoleBase {
   icon: IconComponent;
 }
 
-/** A curated page (profile.ts), with the list beside it and the header above its tabs. */
-export interface WorkspaceProfile extends ProfileBase<RoleDef> {
-  /** The list of items at the left (the queue) and the item's header above the tabs. */
+/** A curated page: one item at a time, with a list beside it (the rail) and the item's header above its tabs. */
+export interface Page extends ProfileBase<PageView> {
   Rail: ComponentType<{ item: number; activate: (item: number) => void }>;
   Header: ComponentType<{ item: number }>;
 }
 
-/** The env as a React workspace sees it: its kinds have components, its profile has a rail and header. */
+/** Gives a curated page its type: `definePage({ id, name, roles, ... })`. */
+export const definePage = (page: Page): Page => page;
+
+/** The env as a React workspace sees it: its kinds have components, its page a rail and header. */
 export interface ReactEnv extends Env {
   kinds: PaneKinds<PaneKindDef>;
-  profile: WorkspaceProfile | null;
+  profile: Page | null;
 }
