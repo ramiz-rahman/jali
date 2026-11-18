@@ -16,6 +16,12 @@ test.describe("Theme", () => {
     expect(weak).toContain("rgb(194, 98, 26)");
   });
 
+  test("a host token set in a layer above jali wins (the theme is in the jali layer)", async ({ lab, page }) => {
+    await lab.open();
+    await page.addStyleTag({ content: "@layer components { :root { --jali-accent: rgb(194, 98, 26); } }" });
+    expect(await focusedBorder(lab)).toBe("rgb(194, 98, 26)");
+  });
+
   test("an accent set around a workspace tints its dialogs too, not only the panes", async ({ lab, page }) => {
     await lab.open();
     await page.addStyleTag({ content: "body { --jali-accent: rgb(194, 98, 26); }" });

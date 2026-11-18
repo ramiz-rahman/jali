@@ -42,7 +42,7 @@
 29. **`FollowControl` crowds out the pane title** near 200px ("O…" for Orders); hide its word below ~250px (a container query on `.jali-pane`).
 30. **The tab strip cuts off the first tab** in narrow tabbed panes ("ders"; `TabStrip.tsx` `revealTab` and the edge fade).
 31. Done 19 Nov: a drag scales the weights it sets to average 1 (exact proportions, no rounding, so geometry is unchanged). ~~**A divider drag leaves sizes as weights equal to pixels** (`{ weight: 209 }`). Correct, but odd beside `weight 1.3`; consider normalising on commit.~~
-32. **`jali-theme.css` and `jali-tailwind.css` are not in the `jali` layer**, though the README says all styles are; a host setting `--jali-*` inside its own layer loses to them.
+32. Done 19 Nov: both files are in `@layer jali`; a host token in a later layer wins (e2e). ~~**`jali-theme.css` and `jali-tailwind.css` are not in the `jali` layer**, though the README says all styles are; a host setting `--jali-*` inside its own layer loses to them.~~
 33. **Six public tokens nothing reads:** `--jali-brand`, `--jali-done`, `--jali-surface-raised`, `--jali-shadow-raised`, `--jali-accent-soft`, `--jali-font` (the workspace never sets `font-family`). Use them or drop them.
 34. **Public signatures use unexported types:** `DndState`, `ConfirmState`, `ChooserState`, `PagePrefs`, `UndoEntry`, `Change`, `OpenPage`, `Group`, `ShelfEntry`, `Chord`, `KeySequence`, `ResolvedStack`.
 35. Done 19 Nov: `HideRefusal` is `"missing" | "hidden" | "last"`. ~~**`HideRefusal` includes `"tab"`, which `hide`/`show` never return** (`layout/types.ts:100`).~~

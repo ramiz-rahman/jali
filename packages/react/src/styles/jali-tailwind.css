@@ -16,35 +16,39 @@
  * Tailwind processes (or mark the theme `@theme static`).
  *
  * No Tailwind build is needed for this file itself: it is plain CSS that reads Tailwind's variables.
+ * In the "jali" layer, after jali-theme.css, so it wins over Jali's defaults and a host's own --jali-* (unlayered,
+ * or in a later layer) still wins over it.
  */
-:where(:root, .light, .dark, [data-theme]) {
-  --jali-canvas: var(--color-background, var(--jali-default-canvas));
-  --jali-surface: var(--color-card, var(--jali-default-surface));
-  --jali-surface-raised: var(--color-popover, var(--color-card, var(--jali-default-surface-raised)));
-  --jali-border: var(--color-border, var(--jali-default-border));
-  --jali-border-strong: var(--color-input, var(--color-border, var(--jali-default-border-strong)));
-  --jali-control: var(--color-input, var(--jali-default-control));
-  --jali-text: var(--color-foreground, var(--jali-default-text));
-  --jali-text-muted: var(--color-muted-foreground-strong, var(--color-muted-foreground, var(--jali-default-text-muted)));
-  --jali-text-subtle: var(--color-muted-foreground, var(--jali-default-text-subtle));
-  --jali-text-faint: var(--color-muted-foreground, var(--jali-default-text-faint));
-  --jali-hover: var(--color-muted, var(--jali-default-hover));
-  --jali-accent: var(--color-primary, var(--jali-default-accent));
-  --jali-accent-soft: var(--color-primary-subtle, var(--jali-default-accent-soft));
-  --jali-on-accent: var(--color-primary-foreground, var(--jali-default-on-accent));
-  --jali-failed: var(--color-destructive, var(--jali-default-failed));
-  --jali-chip: var(--color-tooltip, var(--jali-default-chip));
-  --jali-on-chip: var(--color-tooltip-foreground, var(--jali-default-on-chip));
-  --jali-scrim: var(--color-scrim, var(--jali-default-scrim));
-  --jali-shadow-dialog: var(--shadow-overlay, var(--jali-default-shadow-dialog));
-  --jali-shadow-menu: var(--shadow-overlay, var(--jali-default-shadow-menu));
-  --jali-radius: var(--radius-card, var(--radius-lg, 0.625rem));
-  --jali-radius-control: var(--radius-control, var(--radius-md, 0.375rem));
-  --jali-radius-menu: var(--radius-md, 0.5rem);
-  --jali-font: var(--font-sans, system-ui, sans-serif);
-  --jali-font-mono: var(--font-mono, ui-monospace, monospace);
-}
-/* Derived where Jali renders, so it follows an accent set on a subtree. */
-:where(:root, [data-jali], .jali-scrim) {
-  --jali-focus-ring: var(--color-focus-ring, var(--color-ring, var(--jali-accent)));
+@layer jali {
+  :where(:root, .light, .dark, [data-theme]) {
+    --jali-canvas: var(--color-background, var(--jali-default-canvas));
+    --jali-surface: var(--color-card, var(--jali-default-surface));
+    --jali-surface-raised: var(--color-popover, var(--color-card, var(--jali-default-surface-raised)));
+    --jali-border: var(--color-border, var(--jali-default-border));
+    --jali-border-strong: var(--color-input, var(--color-border, var(--jali-default-border-strong)));
+    --jali-control: var(--color-input, var(--jali-default-control));
+    --jali-text: var(--color-foreground, var(--jali-default-text));
+    --jali-text-muted: var(--color-muted-foreground-strong, var(--color-muted-foreground, var(--jali-default-text-muted)));
+    --jali-text-subtle: var(--color-muted-foreground, var(--jali-default-text-subtle));
+    --jali-text-faint: var(--color-muted-foreground, var(--jali-default-text-faint));
+    --jali-hover: var(--color-muted, var(--jali-default-hover));
+    --jali-accent: var(--color-primary, var(--jali-default-accent));
+    --jali-accent-soft: var(--color-primary-subtle, var(--jali-default-accent-soft));
+    --jali-on-accent: var(--color-primary-foreground, var(--jali-default-on-accent));
+    --jali-failed: var(--color-destructive, var(--jali-default-failed));
+    --jali-chip: var(--color-tooltip, var(--jali-default-chip));
+    --jali-on-chip: var(--color-tooltip-foreground, var(--jali-default-on-chip));
+    --jali-scrim: var(--color-scrim, var(--jali-default-scrim));
+    --jali-shadow-dialog: var(--shadow-overlay, var(--jali-default-shadow-dialog));
+    --jali-shadow-menu: var(--shadow-overlay, var(--jali-default-shadow-menu));
+    --jali-radius: var(--radius-card, var(--radius-lg, 0.625rem));
+    --jali-radius-control: var(--radius-control, var(--radius-md, 0.375rem));
+    --jali-radius-menu: var(--radius-md, 0.5rem);
+    --jali-font: var(--font-sans, system-ui, sans-serif);
+    --jali-font-mono: var(--font-mono, ui-monospace, monospace);
+  }
+  /* Derived where Jali renders, so it follows an accent set on a subtree. */
+  :where(:root, [data-jali], .jali-scrim) {
+    --jali-focus-ring: var(--color-focus-ring, var(--color-ring, var(--jali-accent)));
+  }
 }

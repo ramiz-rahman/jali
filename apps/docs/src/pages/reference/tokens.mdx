@@ -5,7 +5,7 @@ summary: Every public --jali-* token, what reads it, its light and dark values, 
 
 import { TokenTable, BridgeTable } from "../../reference";
 
-Jali's styles read only `--jali-*` custom properties. Set any of them on `:root` or on a subtree to retheme; the derived tokens follow the accent. Names starting `--jali-default-` are the theme's internal palette: don't set or read them.
+Jali's styles read only `--jali-*` custom properties. Set any of them on `:root` or on a subtree to retheme; the derived tokens follow the accent. Names starting `--jali-default-` are the theme's internal palette: don't set or read them. The theme is in the `jali` layer, so set tokens outside any layer or in a layer after `jali`.
 
 Every token is declared inside `:where()`, so your own declaration wins at any specificity and in any import order. Dark values apply under `prefers-color-scheme: dark`, inside a `.dark` or `[data-theme="dark"]` scope, and are kept light inside `.light` or `[data-theme="light"]`. `startUi` sets `data-theme` on `<html>` from the theme setting.
 
