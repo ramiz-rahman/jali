@@ -31,7 +31,7 @@
 ## Text
 21. `react/src/define.ts:15,25` points at lab paths (`src/data/react`, `ui/pane/usePaneState`).
 22. `react/src/styles/jali-tailwind.css:4-6` imports `"jali/react/…"`; should be `"@jali/react/…"`.
-23. `jali-theme.css` defaults are cool zinc (`#f4f4f5`), not the brand's stone (`#EFEAE2`); the docs override them. Decide which is Jali's default.
+23. ~~`jali-theme.css` defaults are cool zinc~~ Done 19 Nov: stone is the default (founder).
 24. `examples/minimal` declares its layer order after Jali's CSS loads (`app.css:1`), so it teaches the wrong order.
 
 ## From the live parts and the reference

@@ -1,5 +1,5 @@
 /*
- * Jali's default theme: Nil (Bengal indigo) on stone-neutral surfaces. See docs/brand/README.md.
+ * Jali's default theme: Nil (Bengal indigo) on stone, the brand's warm ground (#EFEAE2). See docs/brand/README.md.
  *
  * The --jali-* tokens are the only variables Jali's styles read. Every block uses :where(), so a host's own
  * declaration of a token wins at any specificity and in any import order (the same contract as Chakni's
@@ -12,22 +12,22 @@
 
 /* ---------- palette: light ---------- */
 :where(:root, .light, [data-theme="light"]) {
-  --jali-default-canvas: #f4f4f5;
-  --jali-default-surface: #ffffff;
+  --jali-default-canvas: #efeae2;
+  --jali-default-surface: #fdfcfa;
   --jali-default-surface-raised: #ffffff;
-  --jali-default-border: #e4e4e7;
-  --jali-default-border-strong: #d4d4d8;
+  --jali-default-border: #e4ded4;
+  --jali-default-border-strong: #d3cbbd;
   /* Boundaries of controls (buttons, inputs): 3:1 against the surface, unlike the decorative border. */
-  --jali-default-control: #8e8e97;
-  --jali-default-text: #18181b;
-  --jali-default-text-muted: #52525b;
-  --jali-default-text-subtle: #71717a;
-  --jali-default-text-faint: #a1a1aa;
-  --jali-default-hover: #f4f4f5;
+  --jali-default-control: #8a8274;
+  --jali-default-text: #1c1915;
+  --jali-default-text-muted: #4f4941;
+  --jali-default-text-subtle: #685f54;
+  --jali-default-text-faint: #a1998c;
+  --jali-default-hover: #eee9e1;
   /* Nil: #2B3990 for the mark, #4456C7 for controls and focus (6.2:1 on white). */
   --jali-default-brand: #2b3990;
   --jali-default-accent: #4456c7;
-  --jali-default-accent-soft: #eceefb;
+  --jali-default-accent-soft: #e8eaf6;
   --jali-default-on-accent: #ffffff;
   /* Pane activity: teal for working, apart from the indigo of focus. */
   --jali-default-working: #0e7490;
@@ -35,16 +35,16 @@
   --jali-default-done: #059669;
   --jali-default-failed: #dc2626;
   --jali-default-on-status: #ffffff;
-  --jali-default-chip: #18181b;
+  --jali-default-chip: #1c1915;
   --jali-default-on-chip: #ffffff;
-  --jali-default-scrim: rgba(24, 24, 27, 0.16);
-  --jali-default-scrim-light: rgba(24, 24, 27, 0.08);
-  --jali-default-shadow-zoom: 0 12px 32px rgba(24, 24, 27, 0.1);
-  --jali-default-shadow-peek: -8px 0 24px rgba(24, 24, 27, 0.08), 0 1px 2px rgba(24, 24, 27, 0.04);
-  --jali-default-shadow-dialog: 0 16px 48px rgba(24, 24, 27, 0.16);
+  --jali-default-scrim: rgba(28, 25, 21, 0.16);
+  --jali-default-scrim-light: rgba(28, 25, 21, 0.08);
+  --jali-default-shadow-zoom: 0 12px 32px rgba(28, 25, 21, 0.1);
+  --jali-default-shadow-peek: -8px 0 24px rgba(28, 25, 21, 0.08), 0 1px 2px rgba(28, 25, 21, 0.04);
+  --jali-default-shadow-dialog: 0 16px 48px rgba(28, 25, 21, 0.16);
   --jali-default-shadow-menu: 0 8px 24px rgba(0, 0, 0, 0.16);
   --jali-default-shadow-chip: 0 4px 16px rgba(0, 0, 0, 0.18);
-  --jali-default-shadow-raised: 0 1px 2px rgba(24, 24, 27, 0.06);
+  --jali-default-shadow-raised: 0 1px 2px rgba(28, 25, 21, 0.06);
   /* Panes opened while investigating in a curated page: a warm sand, apart from the indigo of focus. */
   --jali-default-opened-bg: #fbf8f1;
   --jali-default-opened-line: #eadfc8;
@@ -56,28 +56,28 @@
 /* ---------- palette: dark ---------- */
 @media (prefers-color-scheme: dark) {
   :where(:root:not(.light, [data-theme="light"])) {
-    --jali-default-canvas: #09090b;
-    --jali-default-surface: #18181b;
-    --jali-default-surface-raised: #232327;
-    --jali-default-border: #27272a;
-    --jali-default-border-strong: #3f3f46;
-    --jali-default-control: #71717a;
-    --jali-default-text: #fafafa;
-    --jali-default-text-muted: #a1a1aa;
-    --jali-default-text-subtle: #8f8f99;
-    --jali-default-text-faint: #71717a;
-    --jali-default-hover: #232327;
+    --jali-default-canvas: #0e0d0b;
+    --jali-default-surface: #1a1815;
+    --jali-default-surface-raised: #221f1b;
+    --jali-default-border: #2d2a25;
+    --jali-default-border-strong: #3f3a33;
+    --jali-default-control: #7b7468;
+    --jali-default-text: #f1ece4;
+    --jali-default-text-muted: #bfb7aa;
+    --jali-default-text-subtle: #a1998c;
+    --jali-default-text-faint: #6c655b;
+    --jali-default-hover: #24211d;
     --jali-default-brand: #8c9bea;
     --jali-default-accent: #8c9bea;
-    --jali-default-accent-soft: #1e2350;
-    --jali-default-on-accent: #09090b;
+    --jali-default-accent-soft: #20244a;
+    --jali-default-on-accent: #0e0d0b;
     --jali-default-working: #22d3ee;
     --jali-default-blocked: #fbbf24;
     --jali-default-done: #34d399;
     --jali-default-failed: #f87171;
-    --jali-default-on-status: #09090b;
-    --jali-default-chip: #fafafa;
-    --jali-default-on-chip: #09090b;
+    --jali-default-on-status: #0e0d0b;
+    --jali-default-chip: #f1ece4;
+    --jali-default-on-chip: #0e0d0b;
     --jali-default-scrim: rgba(0, 0, 0, 0.55);
     --jali-default-scrim-light: rgba(0, 0, 0, 0.4);
     --jali-default-shadow-zoom: 0 12px 32px rgba(0, 0, 0, 0.5);
@@ -94,29 +94,28 @@
   }
 }
 :where(.dark, [data-theme="dark"]) {
-  --jali-default-canvas: #09090b;
-  --jali-default-surface: #18181b;
-  --jali-default-surface-raised: #232327;
-  --jali-default-border: #27272a;
-  --jali-default-border-strong: #3f3f46;
-  --jali-default-control: #71717a;
-  --jali-default-text: #fafafa;
-  --jali-default-text-muted: #a1a1aa;
-  /* #71717A is 3.6:1 on the surface; text needs 4.5:1, so subtle text is lifted a step. */
-  --jali-default-text-subtle: #8f8f99;
-  --jali-default-text-faint: #71717a;
-  --jali-default-hover: #232327;
+  --jali-default-canvas: #0e0d0b;
+  --jali-default-surface: #1a1815;
+  --jali-default-surface-raised: #221f1b;
+  --jali-default-border: #2d2a25;
+  --jali-default-border-strong: #3f3a33;
+  --jali-default-control: #7b7468;
+  --jali-default-text: #f1ece4;
+  --jali-default-text-muted: #bfb7aa;
+  --jali-default-text-subtle: #a1998c;
+  --jali-default-text-faint: #6c655b;
+  --jali-default-hover: #24211d;
   --jali-default-brand: #8c9bea;
   --jali-default-accent: #8c9bea;
-  --jali-default-accent-soft: #1e2350;
-  --jali-default-on-accent: #09090b;
+  --jali-default-accent-soft: #20244a;
+  --jali-default-on-accent: #0e0d0b;
   --jali-default-working: #22d3ee;
   --jali-default-blocked: #fbbf24;
   --jali-default-done: #34d399;
   --jali-default-failed: #f87171;
-  --jali-default-on-status: #09090b;
-  --jali-default-chip: #fafafa;
-  --jali-default-on-chip: #09090b;
+  --jali-default-on-status: #0e0d0b;
+  --jali-default-chip: #f1ece4;
+  --jali-default-on-chip: #0e0d0b;
   --jali-default-scrim: rgba(0, 0, 0, 0.55);
   --jali-default-scrim-light: rgba(0, 0, 0, 0.4);
   --jali-default-shadow-zoom: 0 12px 32px rgba(0, 0, 0, 0.5);

@@ -295,3 +295,7 @@ Research, sources and the full table: `docs/research/keyboard-shortcuts.md`. Cod
 - **Shorter start-up.** DOM focus defaults to Jali's own helper (`focusPane: null` turns it off), and the store keeps its URL sync, so `boot(store)` and `startUi(store)` need nothing else. Passing the sync to both still works.
 - **Build:** tsdown per package (ESM, `.d.ts`, source maps). `@jali/react`'s `dist/styles.css` inlines its imports; `theme.css` and `tailwind.css` ship beside it. Core is 55 kB gzipped unminified, React 21 kB. `pnpm build:packages`.
 - **`examples/minimal`**: the smallest app on the public API alone (one kind, two panes, the default theme). `pnpm example:minimal` serves it on :5310.
+
+## 19 Nov 2026 · Jali's default neutrals are stone (founder)
+- The default theme's neutrals move from cool zinc to the brand's stone: canvas `#EFEAE2`, warm surfaces, borders and text, and warm-tinted shadows and scrims; dark mode a warm near-black (`#0E0D0B`). Nil stays the only accent. Values are the ones the docs site was already using, so the docs and a default Jali app now match.
+- Contrast: subtle text `#685F54` on the surface is above 4.5:1; control borders `#8A8274` above 3:1. Theme and accessibility specs pass.
