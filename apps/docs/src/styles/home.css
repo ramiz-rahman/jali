@@ -39,7 +39,7 @@
   .landing-opening {
     position: relative; isolation: isolate;
     display: grid; grid-template-columns: minmax(0, 1fr) auto;
-    grid-template-areas: "title title" "sub actions" "reasons reasons";
+    grid-template-areas: "title title" "sub actions";
     align-items: end; gap: 0 48px;
     padding: 32px 0 12px;
   }
@@ -67,29 +67,6 @@
   .landing-opening-actions .install .code-pre { padding: 0; font-size: 13px; }
   .landing-opening-actions .install .code-line { padding: 0 12px; }
 
-  /* The four reasons: an index of the page, each a link to its live proof. */
-  .prose ol.landing-reasons {
-    grid-area: reasons; list-style: none; counter-reset: reason;
-    display: grid; grid-template-columns: repeat(4, minmax(0, 1fr));
-    margin: 20px 0 0; padding: 0;
-    border-top: 1px solid var(--jali-border);
-  }
-  .prose .landing-reasons li { margin: 0; padding: 0; counter-increment: reason; }
-  .landing-reason {
-    display: flex; align-items: center; gap: 10px; height: 100%;
-    padding: 12px 16px 2px 0;
-    font-size: 15px; line-height: 22px; font-weight: 500; color: var(--jali-text);
-    transition: color 0.15s;
-  }
-  .landing-reason::before {
-    content: counter(reason, decimal-leading-zero);
-    font: 500 12px/1 var(--d-font-mono); color: var(--jali-accent);
-  }
-  .landing-reason-text { flex: 0 1 auto; }
-  .landing-reason svg { flex: none; color: var(--jali-text-faint); transition: transform 0.2s var(--d-ease), color 0.15s; }
-  .landing-reason:hover { color: var(--jali-accent); }
-  .landing-reason:hover svg { transform: translateY(2px); color: var(--jali-accent); }
-
   /* The lattice, faint and large: behind the headline and the top of the workspace. */
   .landing-backdrop {
     position: absolute; z-index: 0; pointer-events: none;
@@ -105,10 +82,8 @@
   @keyframes landing-enter { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
   .landing-opening[data-enter] .landing-title,
   .landing-opening[data-enter] .landing-sub,
-  .landing-opening[data-enter] .landing-opening-actions,
-  .landing-opening[data-enter] .landing-reasons { animation: landing-enter 0.5s var(--d-ease) both; }
+  .landing-opening[data-enter] .landing-opening-actions { animation: landing-enter 0.5s var(--d-ease) both; }
   .landing-opening[data-enter] .landing-opening-actions { animation-delay: 0.06s; }
-  .landing-opening[data-enter] .landing-reasons { animation-delay: 0.12s; }
 
   /* ---------- the hero demo ---------- */
   .landing-stage { position: relative; z-index: 1; }
@@ -283,11 +258,10 @@
 
   /* ---------- narrower ---------- */
   @media (max-width: 1399px) {
-    .landing-opening { grid-template-columns: minmax(0, 1fr); grid-template-areas: "title" "sub" "actions" "reasons"; align-items: start; }
+    .landing-opening { grid-template-columns: minmax(0, 1fr); grid-template-areas: "title" "sub" "actions"; align-items: start; }
     .landing-opening-actions { margin-top: 18px; flex-wrap: wrap; }
   }
   @media (max-width: 1279px) {
-    .prose ol.landing-reasons { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     .landing-close { row-gap: 40px; }
     .landing-close > :first-child, .landing-close > :last-child { grid-column: 1 / -1; }
     .prose ul.landing-keys { grid-template-columns: repeat(3, minmax(0, 1fr)); }
@@ -309,8 +283,6 @@
     .landing-opening-actions { flex-direction: column; align-items: stretch; }
     .landing-opening-actions .install { width: 100%; }
     .landing-buttons > .button { flex: 1 1 auto; }
-    .prose ol.landing-reasons { grid-template-columns: minmax(0, 1fr); }
-    .landing-reason { padding-top: 10px; }
     .landing-section, .landing-close, .site-footer { margin-top: 112px; }
     .prose .landing-section-title, .prose .landing-close-title { font-size: 1.75rem; line-height: 2.25rem; }
     .prose .landing-proof { padding-bottom: 64px; }

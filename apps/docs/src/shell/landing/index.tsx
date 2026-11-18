@@ -1,6 +1,6 @@
 /**
  * The landing page at "/": its own place, apart from the docs. One story, top to bottom:
- *   the opening (what Jali is, four reasons that link to their proofs) over the live workspace;
+ *   the opening (what Jali is, install, the two actions) over the live workspace;
  *   the whole quickstart app beside what it renders;
  *   the four reasons, each live, on one numbered path;
  *   the close (the two packages, install, next steps); the site footer.
@@ -40,14 +40,6 @@ export function Opening({ title, lead, children }: { title: string; lead: string
       {children}
     </header>
   );
-}
-
-/** The four reasons, as an index: each links to its live proof further down. */
-export function Reasons({ children }: { children?: ReactNode }) {
-  return <ol className="landing-reasons" aria-label="What Jali does">{children}</ol>;
-}
-export function Reason({ href, children }: { href: string; children?: ReactNode }) {
-  return <li><a className="landing-reason" href={href}><span className="landing-reason-text">{children}</span><ArrowRight aria-hidden size={14} strokeWidth={1.75} /></a></li>;
 }
 
 /** The hero demo: nearly the full width of the window, with a small gutter. */
