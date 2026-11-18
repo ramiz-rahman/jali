@@ -1,16 +1,25 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it } from "vite-plus/test";
 import * as core from "..";
 import { chain, chainFit, context, freeze, view } from "./fixtures";
 import type { Layout, PaneNode, ResolvedLayout } from "../types";
 
 const ctx = context(chainFit(1600));
-const geometry = (r: ResolvedLayout) => r.panes.filter(b => !b.hidden).map(b => `${b.id}:${b.rect.x},${b.rect.y},${b.rect.width},${b.rect.height}`).sort();
+const geometry = (r: ResolvedLayout) =>
+  r.panes
+    .filter((b) => !b.hidden)
+    .map((b) => `${b.id}:${b.rect.x},${b.rect.y},${b.rect.width},${b.rect.height}`)
+    .sort();
 const order = (id: number) => ({ kind: "record", params: { table: "orders", id } });
 const node = (l: Layout, id: string) => core.tree.find(l.root, id) as PaneNode;
 /** orders (table) → order 1 (follows) → customer 1 (a plain link from the record). */
 const following = (): Layout => {
   const l = chain();
-  return { ...l, root: core.tree.map(l.root, n => n.id === "order" && n.type === "pane" ? { ...n, follows: true } : n) };
+  return {
+    ...l,
+    root: core.tree.map(l.root, (n) =>
+      n.id === "order" && n.type === "pane" ? { ...n, follows: true } : n,
+    ),
+  };
 };
 
 describe("follow: a linked detail shows its list's selection", () => {
@@ -54,8 +63,21 @@ describe("setFollows: the Pin control", () => {
 
   it("one follower per source and kind: unpinning one pins the other", () => {
     const l = following();
-    const second: PaneNode = { id: "compare", type: "pane", size: { weight: 1 }, ref: order(4), linkedTo: "orders", pinned: true };
-    const withCompare: Layout = { ...l, root: { ...l.root, children: [...(l.root as { children: PaneNode[] }).children, second] } as Layout["root"] };
+    const second: PaneNode = {
+      id: "compare",
+      type: "pane",
+      size: { weight: 1 },
+      ref: order(4),
+      linkedTo: "orders",
+      pinned: true,
+    };
+    const withCompare: Layout = {
+      ...l,
+      root: {
+        ...l.root,
+        children: [...(l.root as { children: PaneNode[] }).children, second],
+      } as Layout["root"],
+    };
     const r = core.setFollows(withCompare, "compare", true);
     expect(core.follower(r, "orders", "record")?.id).toBe("compare");
     expect(node(r, "order")).toMatchObject({ pinned: true });
@@ -72,15 +94,24 @@ describe("setFollows: the Pin control", () => {
 describe("open from a selection", () => {
   it("opens a follower when the source has none", () => {
     const l = core.refit(chain(), view("orders"), ctx);
-    const unlinked = { ...l, root: core.tree.map(l.root, n => n.id === "order" && n.type === "pane" ? { ...n, linkedTo: undefined } : n) };
-    const r = core.openBeside(unlinked, view("orders"), "orders", order(5), ctx, undefined, { fromSelection: true });
+    const unlinked = {
+      ...l,
+      root: core.tree.map(l.root, (n) =>
+        n.id === "order" && n.type === "pane" ? { ...n, linkedTo: undefined } : n,
+      ),
+    };
+    const r = core.openBeside(unlinked, view("orders"), "orders", order(5), ctx, undefined, {
+      fromSelection: true,
+    });
     expect(r.mode).not.toBe("replaced");
     expect(node(r.layout, r.opened)).toMatchObject({ linkedTo: "orders", follows: true });
   });
 
   it("with a follower on screen, opens a second, pinned detail (compare) and leaves the follower alone", () => {
     const l = core.refit(following(), view("orders"), ctx);
-    const r = core.openBeside(l, view("orders"), "orders", order(5), ctx, undefined, { fromSelection: true });
+    const r = core.openBeside(l, view("orders"), "orders", order(5), ctx, undefined, {
+      fromSelection: true,
+    });
     expect(r.opened).not.toBe("order");
     expect(node(r.layout, r.opened)).toMatchObject({ linkedTo: "orders", pinned: true });
     expect(node(r.layout, r.opened).follows).toBeUndefined();

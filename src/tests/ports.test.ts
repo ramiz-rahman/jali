@@ -1,5 +1,5 @@
 /** The location and storage ports: a router owns the address, and Jali keeps to its own params. */
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it, vi } from "vite-plus/test";
 import { createLabStore } from "../lab";
 import { memoryLocation, memoryStorage } from "../../packages/core/src/ports";
 import { createUrlSync } from "../../packages/core/src/url";
@@ -34,8 +34,16 @@ describe("the location port", () => {
 
   it("two workspaces share one address under their own prefixes", () => {
     const location = memoryLocation("?keep=1");
-    const a = createLabStore({ url: createUrlSync({ location, storage: memoryStorage() }), storage: memoryStorage(), initial: { area } });
-    const b = createLabStore({ url: createUrlSync({ location, storage: memoryStorage(), prefix: "b." }), storage: memoryStorage(), initial: { area } });
+    const a = createLabStore({
+      url: createUrlSync({ location, storage: memoryStorage() }),
+      storage: memoryStorage(),
+      initial: { area },
+    });
+    const b = createLabStore({
+      url: createUrlSync({ location, storage: memoryStorage(), prefix: "b." }),
+      storage: memoryStorage(),
+      initial: { area },
+    });
     a.actions.preset("order-chain");
     b.actions.preset("query-chart");
     const q = new URLSearchParams(location.search());
@@ -88,16 +96,30 @@ describe("what a link carries about sizes", () => {
   it("local (the default): the link has the designed sizes, and the person's own reload keeps theirs", () => {
     const { location, storage, store, kinds } = dragged("local");
     expect(userSized(location.search(), kinds)).toBe(false);
-    const mine = createUrlSync({ location: memoryLocation(location.search()), storage, sizes: "local" }).read(kinds);
+    const mine = createUrlSync({
+      location: memoryLocation(location.search()),
+      storage,
+      sizes: "local",
+    }).read(kinds);
     expect(mine && "layout" in mine && mine.layout.root).toEqual(store.get().layout.root);
-    const theirs = createUrlSync({ location: memoryLocation(location.search()), storage: memoryStorage(), sizes: "local" }).read(kinds);
-    expect(theirs && "layout" in theirs && JSON.stringify(theirs.layout.root).includes("userSized")).toBe(false);
+    const theirs = createUrlSync({
+      location: memoryLocation(location.search()),
+      storage: memoryStorage(),
+      sizes: "local",
+    }).read(kinds);
+    expect(
+      theirs && "layout" in theirs && JSON.stringify(theirs.layout.root).includes("userSized"),
+    ).toBe(false);
   });
 
   it("link: the link reopens exactly, sizes included", () => {
     const { location, store, kinds } = dragged("link");
     expect(userSized(location.search(), kinds)).toBe(true);
-    const read = createUrlSync({ location: memoryLocation(location.search()), storage: memoryStorage(), sizes: "link" }).read(kinds);
+    const read = createUrlSync({
+      location: memoryLocation(location.search()),
+      storage: memoryStorage(),
+      sizes: "link",
+    }).read(kinds);
     expect(read && "layout" in read && read.layout.root).toEqual(store.get().layout.root);
   });
 });

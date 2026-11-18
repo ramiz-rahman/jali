@@ -14,3 +14,6 @@ docs/review-shots/
 docs/research/docs-sites/*.png
 # Agents' review screenshots of the docs
 apps/docs/.shots/
+.vitest/
+# Agent worktrees: other checkouts of this repo, never checked or committed from here
+.claude/worktrees/

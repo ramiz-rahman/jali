@@ -1,19 +1,19 @@
 {
   "name": "pane-lab",
-  "private": true,
   "version": "0.0.0",
-  "type": "module",
+  "private": true,
   "description": "Jali's lab: Data Studio and a loan review built on @jali/core and @jali/react (packages/). See docs/BRIEF.md.",
+  "type": "module",
   "scripts": {
-    "dev": "vite --port 5300 --strictPort",
-    "build": "tsc -b && vite build",
+    "dev": "vp dev --port 5300 --strictPort",
+    "build": "tsc -b && vp build",
     "typecheck": "tsc -b --noEmit",
-    "test": "vitest run && vitest run --config apps/docs/src/reference/vitest.config.ts",
+    "test": "vp test run && vp test run --config apps/docs/src/reference/vitest.config.ts",
     "e2e": "playwright test",
     "test:e2e": "playwright test",
     "screens": "SCREENS=1 playwright test",
     "build:packages": "pnpm -r --filter \"./packages/*\" build",
-    "example:minimal": "vite --config examples/minimal/vite.config.ts --port 5310"
+    "example:minimal": "vp dev --config examples/minimal/vite.config.ts --port 5310"
   },
   "dependencies": {
     "@electric-sql/pglite": "^0.5.16",
@@ -34,9 +34,9 @@
     "@types/react-dom": "^19.3.0",
     "@vitejs/plugin-react": "^6.3.0",
     "jsdom": "^31.0.1",
-    "tsdown": "^0.23.7",
     "typescript": "^7.0.2",
-    "vite": "^8.3.8",
-    "vitest": "^5.1.0"
+    "vite": "catalog:",
+    "vite-plus": "catalog:",
+    "vitest": "catalog:"
   }
 }

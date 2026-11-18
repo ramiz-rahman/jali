@@ -1,8 +1,15 @@
 /** The app-facing API: definePane, createWorkspace with the layout builders, <Jali> and the pane hooks. */
 import { act, cleanup, render } from "@testing-library/react";
-import { afterEach, beforeAll, describe, expect, it } from "vitest";
+import { afterEach, beforeAll, describe, expect, it } from "vite-plus/test";
 import { useState } from "react";
-import { createWorkspace, memoryLocation, memoryStorage, pane, row, type WorkspaceOptions } from "@jali/core";
+import {
+  createWorkspace,
+  memoryLocation,
+  memoryStorage,
+  pane,
+  row,
+  type WorkspaceOptions,
+} from "@jali/core";
 import { Jali, definePane, useActivity, useCommands, usePane, useUnsaved } from "@jali/react";
 
 const note = definePane("note", {
@@ -17,11 +24,23 @@ function NoteBody({ id }: { id: number }) {
   const [draft, setDraft] = useState("");
   useActivity(draft ? "working" : "idle");
   useUnsaved(draft && "an unsaved note");
-  useCommands([{ id: "next", title: `Open note ${id + 1}`, run: () => openBeside(note({ id: id + 1 })) }]);
-  return <textarea aria-label={`Draft of note ${id}`} value={draft} onChange={(e) => setDraft(e.target.value)} />;
+  useCommands([
+    { id: "next", title: `Open note ${id + 1}`, run: () => openBeside(note({ id: id + 1 })) },
+  ]);
+  return (
+    <textarea
+      aria-label={`Draft of note ${id}`}
+      value={draft}
+      onChange={(e) => setDraft(e.target.value)}
+    />
+  );
 }
 
-const launcher = definePane("launcher", { title: "New pane", scratch: true, Component: () => <p>Choose</p> });
+const launcher = definePane("launcher", {
+  title: "New pane",
+  scratch: true,
+  Component: () => <p>Choose</p>,
+});
 
 /** A workspace with nothing shared: its own address and storage, a fixed size, DOM focus left alone. */
 const make = (options: Partial<WorkspaceOptions> = {}) =>
@@ -36,7 +55,11 @@ const make = (options: Partial<WorkspaceOptions> = {}) =>
   });
 
 beforeAll(() => {
-  globalThis.ResizeObserver ??= class { observe() {} unobserve() {} disconnect() {} } as unknown as typeof ResizeObserver;
+  globalThis.ResizeObserver ??= class {
+    observe() {}
+    unobserve() {}
+    disconnect() {}
+  } as unknown as typeof ResizeObserver;
 });
 afterEach(cleanup);
 
@@ -51,7 +74,9 @@ describe("definePane", () => {
   });
 
   it("reads params back with their types, for the title and the component", () => {
-    const workspace = make({ layout: row(pane({ kind: "note", params: { id: "7" } }, { id: "seven" })) });
+    const workspace = make({
+      layout: row(pane({ kind: "note", params: { id: "7" } }, { id: "seven" })),
+    });
     expect(workspace.env.kinds.params(workspace.model().pane("seven")!.ref)).toEqual({ id: 7 });
     expect(workspace.model().title("seven")).toBe("Note 7");
   });
@@ -92,7 +117,10 @@ describe("createWorkspace", () => {
   });
 
   it("builds a preset each time it is chosen", () => {
-    const workspace = make({ layout: undefined, presets: [{ id: "one", label: "One", layout: () => row(note({ id: 5 })) }] });
+    const workspace = make({
+      layout: undefined,
+      presets: [{ id: "one", label: "One", layout: () => row(note({ id: 5 })) }],
+    });
     workspace.actions.close("note");
     workspace.actions.preset("one");
     expect(workspace.model().panes.map((p) => p.ref.params.id)).toEqual([5]);

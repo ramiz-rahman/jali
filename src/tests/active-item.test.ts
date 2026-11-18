@@ -1,5 +1,5 @@
 /** The active-item contract: a collection's cursor, through Jali's port, drives the list's following detail. */
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vite-plus/test";
 import type { ActiveItemPort } from "../../packages/core/src/contracts/active-item";
 import type { ObjectRef } from "../../packages/core/src/layout/types";
 import { createLabStore } from "../lab";
@@ -11,11 +11,17 @@ import type { UiStore } from "../../packages/core/src/state/store";
 let store: UiStore;
 let port: ActiveItemPort;
 const order = (id: number): ObjectRef => ({ kind: "record", params: { table: "orders", id } });
-const mapping = { toRef: (id: string) => order(Number(id)), idOf: (r: ObjectRef) => (r.params.table === "orders" ? String(r.params.id) : null) };
+const mapping = {
+  toRef: (id: string) => order(Number(id)),
+  idOf: (r: ObjectRef) => (r.params.table === "orders" ? String(r.params.id) : null),
+};
 
 beforeEach(() => {
   vi.useFakeTimers();
-  store = createLabStore({ storage: memoryStorage(), initial: { area: { width: 1600, height: 800 } } });
+  store = createLabStore({
+    storage: memoryStorage(),
+    initial: { area: { width: 1600, height: 800 } },
+  });
   store.actions.preset("order-chain");
   port = activeItemPort(store, "orders", mapping);
 });

@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vite-plus/test";
 import { createWorkspace, memoryLocation, memoryStorage, type Workspace } from "@jali/core";
 import { orderKind, orderKinds } from "../pane-kinds/orders";
 import { presets } from "../presets/layouts";

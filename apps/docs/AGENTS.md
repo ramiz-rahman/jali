@@ -3,7 +3,7 @@
 Read first: `docs/DOCS-PLAN.md` (what the site holds), `docs/research/docs-sites.md` (the direction, and what Stripe, Better Auth, WorkOS and General Translation do), and the packages' READMEs (`packages/core`, `packages/react`).
 
 ## Run it
-- `cd apps/docs && JALI_DOCS_CACHE=node_modules/.vite-<you> npx vite --port <your port> --strictPort`. Your own cache directory and port, always: two dev servers sharing a cache break each other.
+- `cd apps/docs && JALI_DOCS_CACHE=node_modules/.vite-<you> pnpm exec vp dev --port <your port> --strictPort`. Your own cache directory and port, always: two dev servers sharing a cache break each other.
 - Ports: 5400 lead, 5401 shell, 5402 live, 5403 concepts, 5404 reference, 5405 guides. The lab's own server is 5300; leave it alone.
 - `npx tsc --noEmit -p apps/docs` must pass. Check your pages in a real browser (Playwright, `channel: "chrome"`), at 1440 and 390 wide, light and dark.
 

@@ -2,18 +2,20 @@
  * Layout stability (state/apply.ts): focus and swap ops never move a pane. Each step runs through the store, which
  * reports any focus or swap op whose rects changed; the test also compares the geometry itself.
  */
-import { beforeEach, describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it } from "vite-plus/test";
 import { geometryOf } from "../../packages/core/src/state/apply";
 import { createLabStore } from "../lab";
 import type { UiStore } from "../../packages/core/src/state/store";
-
 
 let store: UiStore;
 let breaches: string[];
 beforeEach(() => {
   localStorage.clear();
   breaches = [];
-  store = createLabStore({ unstable: (op) => breaches.push(op), initial: { area: { width: 1156, height: 644 } } });
+  store = createLabStore({
+    unstable: (op) => breaches.push(op),
+    initial: { area: { width: 1156, height: 644 } },
+  });
 });
 const geometry = () => geometryOf(store.model());
 /** Run `step` and expect nothing on screen to move. */
@@ -28,7 +30,8 @@ const shown = () => store.model().visible;
 describe("layout stability: a tab click never reshapes", () => {
   it("Single: every tab and another application swap the one view in place", () => {
     store.actions.openPage({ item: 4, tab: "application" });
-    for (const tab of ["borrower", "overview", "history", "group", "officer", "application"]) still(() => store.actions.openTab(tab));
+    for (const tab of ["borrower", "overview", "history", "group", "officer", "application"])
+      still(() => store.actions.openTab(tab));
     still(() => store.actions.activate(9));
     expect(shown()).toEqual(["application"]);
   });
@@ -89,8 +92,10 @@ describe("filling a placeholder is a reshape", () => {
     expect(width(launcher)).toBeGreaterThan(600);
     store.actions.openHere(launcher, { kind: "record", params: { table: "orders", id: 1 } });
     expect(breaches).toEqual([]);
-    const weights = (n: { size: { weight?: number }; children?: unknown[] }): number[] =>
-      [n.size.weight ?? 1, ...((n.children ?? []) as (typeof n)[]).flatMap(weights)];
+    const weights = (n: { size: { weight?: number }; children?: unknown[] }): number[] => [
+      n.size.weight ?? 1,
+      ...((n.children ?? []) as (typeof n)[]).flatMap(weights),
+    ];
     // A held swap stores lengths as px-unit weights, as a divider drag does; settling leaves the plain weights.
     expect(weights(store.get().layout.root as never).every((w) => w <= 2)).toBe(true);
     expect(store.model().pane(launcher)?.ref.kind).toBe("record");

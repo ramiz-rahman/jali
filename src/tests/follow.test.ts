@@ -2,13 +2,12 @@
  * Linked selection (actions/follow.ts): a list's following detail shows its selection once it rests, in place
  * (a swap: no rect changes), with the URL replaced; a pinned detail stays; Space shows the row in the detail.
  */
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vite-plus/test";
 import type { ObjectRef, PaneNode } from "../../packages/core/src/layout/types";
 import { FOLLOW_MS } from "../../packages/core/src/actions/follow";
 import { geometryOf, type HistoryMode } from "../../packages/core/src/state/apply";
 import { createLabStore } from "../lab";
 import type { UiStore } from "../../packages/core/src/state/store";
-
 
 let store: UiStore;
 let breaches: string[];
@@ -22,7 +21,11 @@ beforeEach(() => {
   localStorage.clear();
   breaches = [];
   urls = [];
-  store = createLabStore({ unstable: (op) => breaches.push(op), url: { write: (_s, mode) => urls.push(mode) }, initial: { area: { width: 1600, height: 800 } } });
+  store = createLabStore({
+    unstable: (op) => breaches.push(op),
+    url: { write: (_s, mode) => urls.push(mode) },
+    initial: { area: { width: 1600, height: 800 } },
+  });
   store.actions.preset("order-chain");
   store.actions.focus("orders");
   urls = [];
@@ -92,7 +95,10 @@ describe("a list's detail follows its selection", () => {
   it("a link that is not the selected row (a customer cell) opens a plain pane and never replaces the detail", () => {
     store.actions.select("orders", order(2));
     vi.advanceTimersByTime(FOLLOW_MS);
-    const opened = store.actions.openBeside("orders", { kind: "record", params: { table: "customers", id: 3 } })!;
+    const opened = store.actions.openBeside("orders", {
+      kind: "record",
+      params: { table: "customers", id: 3 },
+    })!;
     expect(node(opened).follows).toBeUndefined();
     expect(node(opened).pinned).toBeUndefined();
     expect(node("order").ref).toEqual(order(2));

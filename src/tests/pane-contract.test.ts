@@ -2,7 +2,7 @@
  * The pane contract beyond showing an object: unsaved work is never lost without asking, a pane's own state is kept
  * by the workspace, and a pane's commands live and die with it.
  */
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vite-plus/test";
 import type { ObjectRef } from "../../packages/core/src/layout/types";
 import { createLabStore } from "../lab";
 import { FOLLOW_MS } from "../../packages/core/src/actions/follow";
@@ -16,7 +16,10 @@ const said = () => store.get().announcement.text;
 
 beforeEach(() => {
   vi.useFakeTimers();
-  store = createLabStore({ storage: memoryStorage(), initial: { area: { width: 1600, height: 800 } } });
+  store = createLabStore({
+    storage: memoryStorage(),
+    initial: { area: { width: 1600, height: 800 } },
+  });
   store.actions.preset("order-chain");
 });
 afterEach(() => vi.useRealTimers());
