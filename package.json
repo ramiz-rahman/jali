@@ -8,7 +8,7 @@
     "dev": "vite --port 5300 --strictPort",
     "build": "tsc -b && vite build",
     "typecheck": "tsc -b --noEmit",
-    "test": "vitest run",
+    "test": "vitest run && vitest run --config apps/docs/src/reference/vitest.config.ts",
     "e2e": "playwright test",
     "test:e2e": "playwright test",
     "screens": "SCREENS=1 playwright test",

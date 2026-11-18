@@ -98,6 +98,9 @@
   .main:focus { outline: none; }
   .article { max-width: var(--d-measure); margin: 0 auto; }
   .layout[data-home] .article { max-width: 58rem; }
+  .layout[data-wide] { grid-template-columns: var(--d-nav-w) minmax(0, 1fr); }
+  .layout[data-wide] .article { max-width: 66rem; }
+  .layout[data-wide] .toc-disclosure { display: block; }
   .focus-target:focus { outline: none; }
 
   .toc-column { min-width: 0; }

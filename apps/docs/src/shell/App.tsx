@@ -78,6 +78,8 @@ export function App() {
   if (mdMatch) return <MarkdownView path={mdMatch[1] || "/"} />;
 
   const isHome = shown === "/";
+  // API reference entries use two columns (prose and options, then signature and example), so they take the TOC's room.
+  const isWide = /^\/reference\/(core|react)(\/|$)/.test(shown);
   const Page = loaded?.Component;
   const fm = loaded?.frontmatter;
 
@@ -85,7 +87,7 @@ export function App() {
     <MDXProvider components={mdxComponents}>
       <a className="skip-link" href="#content">Skip to content</a>
       <TopBar onSearch={openSearch} onMenu={() => setMenuOpen(true)} />
-      <div className="layout" data-home={isHome || undefined} data-toc={entries.length && !isHome ? "" : undefined}>
+      <div className="layout" data-home={isHome || undefined} data-wide={isWide || undefined} data-toc={entries.length && !isHome ? "" : undefined}>
         <div className="sidebar">
           <div className="sidebar-inner"><Nav path={path} /></div>
         </div>
@@ -102,7 +104,7 @@ export function App() {
             </article>
           ) : null}
         </main>
-        {!isHome ? (
+        {!isHome && !isWide ? (
           <div className="toc-column">
             <div className="toc-inner"><Toc entries={entries} active={active} /></div>
           </div>

@@ -32,6 +32,8 @@ export const NAV: NavSection[] = [
   ] },
   { title: "Reference", items: [
     { path: "/reference/core" },
+    { path: "/reference/core/types", title: "@jali/core types" },
+    { path: "/reference/core/layout", title: "The layout namespace" },
     { path: "/reference/react" },
     { path: "/reference/tokens" },
     { path: "/reference/commands" },
