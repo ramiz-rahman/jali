@@ -1,9 +1,11 @@
 /*
  * The lab's own names for Jali's tokens (jali-theme.css), for the app styles in src/panes and src/review. Jali's
  * workspace styles read --jali-* directly; nothing here is part of the package. Boot sets data-theme on <html> to the
- * resolved theme (settings.ts). Geometry (--gap, --topbar-h, --status-h, --switcher-h) is set from tokens.ts at boot.
+ * resolved theme (settings.ts). The bar heights are the lab's own chrome, so they live here, not in the package.
  */
 :root {
+  --topbar-h: 48px;
+  --status-h: 28px;
   /* The lab is Sixface's app, so it keeps Sixface's faces; Jali's own default is Atkinson Hyperlegible. */
   --jali-font: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   --jali-font-mono: "IBM Plex Mono", ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
