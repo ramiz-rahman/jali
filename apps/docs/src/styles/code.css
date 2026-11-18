@@ -148,4 +148,10 @@
   .tab-panel:has(> .code:only-child) { padding: 0; background: var(--d-code-bg); }
   .tab-panel > .code:only-child { margin: 0; border: 0; border-radius: 0; }
   .tab-panel > .code:only-child > .code-header { background: var(--d-code-bg); }
+
+  /* Controls in code blocks: a visible ring on keyboard focus, and 44px targets on touch screens. */
+  :is(.code, .tabs) :is(button, [role="tab"]):focus-visible { outline: 2px solid var(--jali-focus-ring); outline-offset: 2px; }
+  @media (pointer: coarse) {
+    :is(.code, .tabs) :is(button, [role="tab"]) { min-height: 44px; min-width: 44px; }
+  }
 }

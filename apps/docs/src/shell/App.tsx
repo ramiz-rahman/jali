@@ -14,6 +14,7 @@ import { NavDrawer, TopBar } from "./TopBar";
 import { SearchDialog, useSearchShortcut } from "./Search";
 import { Toc, TocDisclosure, useActiveHeading, useHeadings } from "./Toc";
 import { PageFooter, PageHeader } from "./Page";
+import { SiteFooter } from "./landing";
 import { NotFound } from "./NotFound";
 
 interface Loaded { path: string; Component: ComponentType | null; frontmatter?: Frontmatter }
@@ -86,7 +87,7 @@ export function App() {
   return (
     <MDXProvider components={mdxComponents}>
       <a className="skip-link" href="#content">Skip to content</a>
-      <TopBar onSearch={openSearch} onMenu={() => setMenuOpen(true)} path={shown} landing={isHome} />
+      <TopBar onSearch={openSearch} onMenu={() => setMenuOpen(true)} menuOpen={menuOpen} path={shown} landing={isHome} />
       <div className="layout" data-home={isHome || undefined} data-wide={isWide || undefined} data-toc={entries.length && !isHome ? "" : undefined}>
         {/* The landing page is its own place: no docs nav beside it. */}
         {!isHome ? (
@@ -98,7 +99,7 @@ export function App() {
           {loaded && !Page ? <NotFound path={path} /> : null}
           {Page && fm ? (
             <article className="article" ref={setArticle} data-path={shown}>
-              {isHome ? <h1 className="visually-hidden" tabIndex={-1} data-page-focus="">{fm.title}</h1> : (
+              {isHome ? null : (
                 <div tabIndex={-1} data-page-focus="" className="focus-target"><PageHeader path={shown} title={fm.title} summary={fm.summary} /></div>
               )}
               {!isHome ? <TocDisclosure entries={entries} active={active} /> : null}
@@ -114,6 +115,8 @@ export function App() {
         ) : null}
       </div>
       <SearchDialog open={searchOpen} onClose={() => setSearchOpen(false)} />
+      {/* The landing renders its own footer; every docs page ends with the same one. */}
+      {!isHome && Page ? <div className="docs-footer"><SiteFooter /></div> : null}
       <NavDrawer open={menuOpen} path={path} onClose={closeMenu} />
     </MDXProvider>
   );

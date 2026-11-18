@@ -42,11 +42,11 @@ const SECTIONS = [
   { title: "Examples", href: "/examples", match: (p: string) => p.startsWith("/examples") },
 ];
 
-export function TopBar({ onSearch, onMenu, path, landing }: { onSearch: () => void; onMenu: () => void; path: string; landing?: boolean }) {
+export function TopBar({ onSearch, onMenu, menuOpen, path, landing }: { onSearch: () => void; onMenu: () => void; menuOpen?: boolean; path: string; landing?: boolean }) {
   return (
     <header className="topbar">
       <div className="topbar-inner">
-        <button type="button" className="icon-button menu-button" aria-label="Open the docs menu" aria-haspopup="dialog" onClick={onMenu}>
+        <button type="button" className="icon-button menu-button" aria-label="Open the docs menu" aria-haspopup="dialog" aria-expanded={!!menuOpen} onClick={onMenu}>
           <Menu aria-hidden size={20} strokeWidth={1.75} />
         </button>
         <a className="brand" href="/" aria-label="Jali, home">

@@ -27,7 +27,7 @@ export function Opening({ title, lead, children }: { title: string; lead: string
     <header className="landing-opening" data-toc-skip="" data-enter="">
       <div className="landing-backdrop" aria-hidden><Lattice className="landing-backdrop-mark" /></div>
       <div className="landing-opening-text">
-        <h1 className="landing-title" id="landing-title">{title}</h1>
+        <h1 className="landing-title" id="landing-title" tabIndex={-1} data-page-focus="">{title}</h1>
         <p className="landing-sub">{lead}</p>
       </div>
       <div className="landing-opening-actions">

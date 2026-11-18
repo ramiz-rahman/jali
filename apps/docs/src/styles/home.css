@@ -261,18 +261,21 @@
   }
   .site-footer-lockup { height: 28px; width: auto; }
   .site-footer-home { display: inline-flex; border-radius: 6px; }
-  .prose .site-footer-line { margin: 16px 0 0; max-width: 22rem; font-size: 15px; line-height: 24px; color: var(--jali-text-muted); }
+  .site-footer-line { margin: 16px 0 0; max-width: 22rem; font-size: 15px; line-height: 24px; color: var(--jali-text-muted); }
   .site-footer-nav { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 32px; }
   .site-footer-heading { margin: 0 0 14px; font: 600 14px/20px var(--d-font-display); color: var(--jali-text); letter-spacing: 0; }
-  .prose .site-footer-col ul { list-style: none; margin: 0; padding: 0; }
-  .prose .site-footer-col li { margin: 0; padding: 0; }
+  .site-footer-col ul { list-style: none; margin: 0; padding: 0; }
+  .site-footer-col li { margin: 0; padding: 0; }
   .site-footer-col a {
     display: inline-flex; align-items: center; gap: 4px; padding: 5px 0;
     font-size: 14.5px; line-height: 22px; color: var(--jali-text-muted);
     transition: color 0.15s;
   }
   .site-footer-col a:hover { color: var(--jali-accent); }
-  .prose .site-footer-legal {
+  /* Under docs pages the footer is outside the landing's frame: it takes the layout's width and gutters. */
+  .docs-footer .site-footer { margin-top: 96px; }
+  .docs-footer .site-footer-inner { max-width: 1520px; margin-inline: auto; padding-inline: 28px; }
+  .site-footer-legal {
     grid-column: 1 / -1; margin: 8px 0 0; padding-top: 20px;
     border-top: 1px solid var(--jali-border);
     font-size: 13px; color: var(--jali-text-subtle);
