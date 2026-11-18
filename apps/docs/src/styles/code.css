@@ -22,6 +22,15 @@
   }
   .code-filename svg { flex: none; color: var(--jali-text-faint); }
 
+  .code {
+    --code-lit: color-mix(in srgb, var(--jali-accent) 8%, transparent);
+    --code-pad: 20px;
+  }
+  :root[data-theme="dark"] .code { --code-lit: color-mix(in srgb, var(--jali-accent) 12%, transparent); }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) .code { --code-lit: color-mix(in srgb, var(--jali-accent) 12%, transparent); }
+  }
+
   .code-pre {
     padding: 15px 0;
     overflow-x: auto;
@@ -33,29 +42,71 @@
   }
   .code-pre:focus-visible { outline-offset: -2px; border-radius: 0 0 var(--d-radius) var(--d-radius); }
   .code-pre > code { display: inline-block; min-width: 100%; font: inherit; }
-  .code-line { display: block; padding: 0 20px; white-space: pre; }
-  .code-line[data-lit] {
-    background: color-mix(in srgb, var(--jali-accent) 8%, transparent);
+  .code-line { display: block; padding: 0 var(--code-pad); white-space: pre; }
+  .code-line[data-lit] { background: var(--code-lit); box-shadow: inset 2px 0 0 var(--jali-accent); }
+
+  /* Line numbers: a gutter that stays put while the code scrolls sideways. The number is generated content, so
+     it can't be selected or copied, and the alt text after the slash keeps screen readers from reading it. */
+  .code-pre[data-numbers] .code-line {
+    display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: start;
+    padding-left: 0;
+  }
+  .code-pre[data-numbers] .code-line::before {
+    content: attr(data-n);
+    content: attr(data-n) / "";
+    position: sticky; left: 0; z-index: 1;
+    box-sizing: content-box;
+    width: var(--code-digits, 2ch);
+    padding: 0 16px 0 14px;
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+    color: color-mix(in srgb, var(--jali-text-faint) 85%, transparent);
+    background: var(--d-code-bg);
+    user-select: none; -webkit-user-select: none;
+    pointer-events: none;
+  }
+  /* A lit line: the band and its edge run through the gutter, and the number joins in. */
+  .code-pre[data-numbers] .code-line[data-lit] { box-shadow: none; }
+  .code-pre[data-numbers] .code-line[data-lit]::before {
+    color: var(--jali-accent);
+    background: linear-gradient(var(--code-lit), var(--code-lit)), var(--d-code-bg);
     box-shadow: inset 2px 0 0 var(--jali-accent);
   }
-  :root[data-theme="dark"] .code-line[data-lit] { background: color-mix(in srgb, var(--jali-accent) 12%, transparent); }
 
-  .code-copy {
+  /* Wrapped: long lines break, and their rest hangs two columns in from the line's own indent. */
+  .code[data-wrap] .code-pre > code { display: block; }
+  .code[data-wrap] .code-line { white-space: normal; }
+  .code[data-wrap] .code-text {
+    --code-hang: min(calc(var(--code-indent, 0ch) + 2ch), 24ch);
+    display: block;
+    white-space: pre-wrap; overflow-wrap: anywhere;
+    padding-left: var(--code-hang); text-indent: calc(-1 * var(--code-hang));
+  }
+  /* Without a header the tools sit over the first line; keep its end out from under them. */
+  .code:not([data-has-header]) .code-line:first-child .code-text { padding-right: 60px; }
+
+  /* ---------- the tools: wrap and copy ---------- */
+  .code-tools { display: inline-flex; align-items: center; gap: 2px; flex: none; }
+  .code-tool {
     display: inline-flex; align-items: center; justify-content: center; flex: none;
     width: 30px; height: 30px; border-radius: 7px;
     color: var(--jali-text-subtle);
     transition: background-color 0.15s, color 0.15s, opacity 0.15s;
   }
-  .code-copy:hover { background: var(--jali-hover); color: var(--jali-text); }
+  .code-tool:hover { background: var(--jali-hover); color: var(--jali-text); }
   .code-copy[data-copied] { color: var(--jali-accent); }
-  .code > .code-copy {
-    position: absolute; top: 8px; right: 8px; z-index: 1;
+  .code-wrap[aria-pressed="true"] { color: var(--jali-accent); background: color-mix(in srgb, var(--jali-accent) 10%, transparent); }
+  .code-wrap[aria-pressed="true"]:hover { background: color-mix(in srgb, var(--jali-accent) 16%, transparent); }
+  .code > .code-tools-float {
+    position: absolute; top: 7px; right: 7px; z-index: 2;
+    padding: 2px; border-radius: 9px;
     background: var(--d-code-bg);
     box-shadow: 0 0 0 1px var(--jali-border);
     opacity: 0;
+    transition: opacity 0.15s;
   }
-  .code:hover > .code-copy, .code > .code-copy:focus-visible, .code > .code-copy[data-copied] { opacity: 1; }
-  @media (hover: none) { .code > .code-copy { opacity: 1; } }
+  .code:hover > .code-tools-float, .code > .code-tools-float:focus-within, .code > .code-tools-float:has([data-copied]) { opacity: 1; }
+  @media (hover: none) { .code > .code-tools-float { opacity: 1; } }
 
   /* ---------- tabs ---------- */
   .tab-strip { display: flex; align-items: stretch; gap: 2px; min-width: 0; overflow-x: auto; scrollbar-width: none; }

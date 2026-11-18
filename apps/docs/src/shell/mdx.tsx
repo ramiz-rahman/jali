@@ -2,11 +2,12 @@
  * Components MDX pages use without importing them. The names and props are the contract with every page
  * (apps/docs/AGENTS.md); the shell agent owns the implementations and may restyle freely, never rename.
  */
-import { Children, isValidElement, useEffect, useId, useRef, useState, useSyncExternalStore, type ComponentPropsWithoutRef, type KeyboardEvent, type ReactElement, type ReactNode } from "react";
+import { Children, isValidElement, useEffect, useId, useRef, useState, useSyncExternalStore, type ComponentPropsWithoutRef, type CSSProperties, type KeyboardEvent, type ReactElement, type ReactNode } from "react";
+import { flushSync } from "react-dom";
 import type { MDXComponents } from "mdx/types";
 import type { ThemedToken } from "shiki/core";
-import { ArrowRight, Check, Copy, File, Info, Lightbulb, Link as LinkIcon, TriangleExclamationPoint } from "lucide-react";
-import { parseRanges, tokenize } from "./highlight";
+import { ArrowRight, Check, Copy, File, Info, Lightbulb, Link as LinkIcon, TriangleExclamationPoint, WrapText } from "lucide-react";
+import { langOf, parseRanges, tokenize } from "./highlight";
 import { readStored, writeStored } from "../site/storage";
 
 // ---------- text helpers ----------
@@ -55,10 +56,48 @@ function CopyButton({ text, label = "Copy code" }: { text: string; label?: strin
     return () => clearTimeout(t);
   }, [copied]);
   return (
-    <button type="button" className="code-copy" aria-label={copied ? "Copied" : label} title={copied ? "Copied" : label}
+    <button type="button" className="code-tool code-copy" aria-label={copied ? "Copied" : label} title={copied ? "Copied" : label}
       data-copied={copied || undefined} onClick={async () => setCopied(await copyText(text))}>
       {copied ? <Check aria-hidden size={15} strokeWidth={2} /> : <Copy aria-hidden size={15} strokeWidth={1.75} />}
       <span className="visually-hidden" aria-live="polite">{copied ? "Copied" : ""}</span>
+    </button>
+  );
+}
+
+// ---------- wrap ----------
+
+/** Wrapping long lines is one choice for the whole site: remembered, and shared by every block on the page. */
+const WRAP_KEY = "jali-docs-code-wrap";
+const wrapListeners = new Set<() => void>();
+let wrapValue: boolean | null = null;
+
+const readWrap = () => (wrapValue ??= readStored(WRAP_KEY) === "1");
+function setWrap(on: boolean) {
+  wrapValue = on;
+  writeStored(WRAP_KEY, on ? "1" : "0");
+  for (const l of wrapListeners) l();
+}
+function subscribeWrap(l: () => void) {
+  wrapListeners.add(l);
+  // Another tab changed it: follow along.
+  const onStorage = (e: StorageEvent) => { if (e.key === WRAP_KEY) { wrapValue = e.newValue === "1"; l(); } };
+  window.addEventListener("storage", onStorage);
+  return () => { wrapListeners.delete(l); window.removeEventListener("storage", onStorage); };
+}
+const useWrap = () => useSyncExternalStore(subscribeWrap, readWrap, () => false);
+
+function WrapButton() {
+  const wrap = useWrap();
+  return (
+    <button type="button" className="code-tool code-wrap" aria-label="Wrap lines" title="Wrap lines" aria-pressed={wrap}
+      onClick={(e) => {
+        // Blocks above change height; keep the button where the reader's pointer is.
+        const el = e.currentTarget, top = el.getBoundingClientRect().top;
+        flushSync(() => setWrap(!wrap));
+        const moved = el.getBoundingClientRect().top - top;
+        if (Math.abs(moved) > 1) window.scrollBy({ top: moved, behavior: "instant" });
+      }}>
+      <WrapText aria-hidden size={15} strokeWidth={1.75} />
     </button>
   );
 }
@@ -80,35 +119,60 @@ const fontStyleOf = (t: ThemedToken) => {
   return f > 0 ? { fontStyle: f & 1 ? "italic" : undefined, fontWeight: f & 2 ? 600 : undefined } : undefined;
 };
 
-function CodeBody({ code, lang, highlight }: { code: string; lang: string; highlight?: string }) {
-  const text = code.replace(/\n+$/, "");
+/** The columns a line's leading whitespace takes (a tab is two, as tab-size is): a wrapped line hangs below it. */
+function indentOf(line: ThemedToken[]): number {
+  const lead = /^[ \t]*/.exec(line.map((t) => t.content).join(""))?.[0] ?? "";
+  let n = 0;
+  for (const c of lead) n += c === "\t" ? 2 : 1;
+  return n;
+}
+
+const trimCode = (code: string) => code.replace(/\n+$/, "");
+/** A one-line shell command reads as a command, not a listing: it has no line number. */
+const isOneLineShell = (code: string, lang: string) => langOf(lang) === "sh" && !trimCode(code).includes("\n");
+
+function CodeBody({ code, lang, highlight, numbers }: { code: string; lang: string; highlight?: string; numbers: boolean }) {
+  const text = trimCode(code);
   const tokens = useTokens(text, lang);
   const lit = parseRanges(highlight);
   const lines = tokens ?? text.split("\n").map((l) => [{ content: l, offset: 0 } as ThemedToken]);
+  const digits = String(lines.length).length;
   return (
-    <pre className="code-pre" tabIndex={0} data-lang={lang} data-lit={lit.size ? "" : undefined}>
+    <pre className="code-pre" tabIndex={0} data-lang={lang} data-lit={lit.size ? "" : undefined} data-numbers={numbers ? "" : undefined}
+      style={numbers ? ({ "--code-digits": `${digits}ch` } as CSSProperties) : undefined}>
       <code>
-        {lines.map((line, i) => (
-          <span key={i} className="code-line" data-lit={lit.has(i + 1) || undefined}>
-            {line.length && line.some((t) => t.content) ? line.map((t, j) => <span key={j} style={{ color: tokens ? t.color : undefined, ...fontStyleOf(t) }}>{t.content}</span>) : "​"}
-          </span>
-        ))}
+        {lines.map((line, i) => {
+          const indent = indentOf(line);
+          return (
+            <span key={i} className="code-line" data-n={numbers ? i + 1 : undefined} data-lit={lit.has(i + 1) || undefined}
+              style={indent ? ({ "--code-indent": `${indent}ch` } as CSSProperties) : undefined}>
+              <span className="code-text">
+                {line.length && line.some((t) => t.content) ? line.map((t, j) => <span key={j} style={{ color: tokens ? t.color : undefined, ...fontStyleOf(t) }}>{t.content}</span>) : "\u200b"}
+              </span>
+            </span>
+          );
+        })}
       </code>
     </pre>
   );
 }
 
-/** A code sample: `code` is the text (often `import x from "./sample.tsx?raw"`), `highlight` is "3-5,9". */
-export function Code({ code, lang = "tsx", filename, highlight }: { code: string; lang?: string; filename?: string; highlight?: string }) {
+/**
+ * A code sample: `code` is the text (often `import x from "./sample.tsx?raw"`), `highlight` is "3-5,9".
+ * `numbers` shows line numbers; on by default, off by default for a one-line shell command.
+ */
+export function Code({ code, lang = "tsx", filename, highlight, numbers }: { code: string; lang?: string; filename?: string; highlight?: string; numbers?: boolean }) {
+  const wrap = useWrap();
+  const tools = <><WrapButton /><CopyButton text={code} /></>;
   return (
-    <figure className="code" data-code="" data-lang={lang} data-has-header={filename ? "" : undefined}>
+    <figure className="code" data-code="" data-lang={lang} data-has-header={filename ? "" : undefined} data-wrap={wrap || undefined}>
       {filename ? (
         <figcaption className="code-header">
           <span className="code-filename"><File aria-hidden size={14} strokeWidth={1.75} />{filename}</span>
-          <CopyButton text={code} />
+          <span className="code-tools">{tools}</span>
         </figcaption>
-      ) : <CopyButton text={code} />}
-      <CodeBody code={code} lang={lang} highlight={highlight} />
+      ) : <div className="code-tools code-tools-float">{tools}</div>}
+      <CodeBody code={code} lang={lang} highlight={highlight} numbers={numbers ?? !isOneLineShell(code, lang)} />
     </figure>
   );
 }
@@ -274,14 +338,15 @@ export function Install({ packages }: { packages: string }) {
   const idBase = useId().replace(/:/g, "");
   const i = Math.max(0, labels.indexOf(value));
   const command = `${MANAGERS[i]!.cmd} ${packages}`;
+  const wrap = useWrap();
   return (
-    <figure className="code install" data-install="" data-has-header="">
+    <figure className="code install" data-install="" data-has-header="" data-wrap={wrap || undefined}>
       <div className="code-header">
         <TabStrip labels={labels} value={value} onChoose={choose} idBase={idBase} label="Package manager" />
         <CopyButton text={command} label="Copy command" />
       </div>
       <div role="tabpanel" id={`${idBase}-panel-${i}`} aria-labelledby={`${idBase}-tab-${i}`}>
-        <CodeBody code={command} lang="sh" />
+        <CodeBody code={command} lang="sh" numbers={false} />
       </div>
     </figure>
   );

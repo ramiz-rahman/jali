@@ -2,7 +2,7 @@
  * The layout as JSON: pretty, highlighted, and live. Each node's object is marked, so hovering it lights its pane
  * and its box. The lines that changed with the last change (a click, a drag, a close, a fold) take a brief Nil tint.
  */
-import { useLayoutEffect, useMemo, useRef, type CSSProperties, type ReactNode } from "react";
+import { useLayoutEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import { colourOf } from "./colours";
 import type { Hover } from "./LayoutTree";
 
@@ -92,6 +92,10 @@ export function JsonView({ value, hover, setHover, label, compact = false }: { v
     const top = line.offsetTop, bottom = top + line.offsetHeight;
     if (top < el.scrollTop + 8 || bottom > el.scrollTop + el.clientHeight - 8) el.scrollTo({ top: Math.max(0, top - el.clientHeight / 3), behavior: "smooth" });
   }, [t.stamp]);
+  // Line numbers, in a gutter beside the code: as many as the rendered text has lines.
+  const code = useRef<HTMLElement>(null);
+  const [lines, setLines] = useState(1);
+  useLayoutEffect(() => { setLines((code.current?.textContent ?? "").split("\n").length); });
   const r: R = { hover, stamp: t.stamp, live: t.stamp > 0, limit: compact ? 18 : 34 };
   return (
     <pre className="live-json" ref={pre} tabIndex={0} aria-label={label}
@@ -100,7 +104,8 @@ export function JsonView({ value, hover, setHover, label, compact = false }: { v
         if (id && id !== hover?.id) setHover({ id, from: "tree" });
       }}
       onPointerLeave={() => setHover(null)}>
-      <code><Value v={v} prev={t.prev ?? v} depth={0} r={r} /></code>
+      <span className="live-json-ln" aria-hidden>{Array.from({ length: lines }, (_, i) => i + 1).join("\n")}</span>
+      <code ref={code}><Value v={v} prev={t.prev ?? v} depth={0} r={r} /></code>
     </pre>
   );
 }
