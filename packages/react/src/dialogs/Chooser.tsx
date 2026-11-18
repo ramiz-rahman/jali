@@ -26,8 +26,8 @@ function ChooserDialog({ chooser }: { chooser: ChooserState }) {
       head={<div className="jali-chooser-head">Add <b>{title}</b> to the tabs of…</div>}
       placeholder="Pane or stack"
       inputLabel="Pane or stack"
-      idPrefix="merge-"
-      listId="chooser-list"
+      idPrefix={`${store.dom.id}-merge-`}
+      listId={`${store.dom.id}-chooser-list`}
       listLabel="Panes and stacks"
       items={all}
       keyOf={(t) => t.id}

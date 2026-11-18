@@ -28,7 +28,7 @@ export type { Actions } from "./actions";
 export type { WorkspaceModel } from "./state/model";
 export type { Snapshot, Outcome, Toast, HistoryMode, Refusal } from "./state/apply";
 export { DEFAULT_SETTINGS, resolveTheme, type Settings, type ThemeChoice, type Theme } from "./state/settings";
-export { boot, startUi } from "./boot";
+export { boot, startUi, type StartUiOptions } from "./boot";
 
 // ---------- the address and what a person keeps ----------
 export { createUrlSync, type UrlSync, type UrlSyncOptions, type UrlRead, type LinkSizes } from "./url";
@@ -49,6 +49,7 @@ export { formatKeys, formatChord, keyHint, altClick, detectPlatform, type Platfo
 // ---------- DOM ----------
 export { focusPane } from "./dom/focus";
 export { paneDomId, paneTitleId } from "./dom/ids";
+export { GAP } from "./tokens";
 
 // ---------- contracts with other libraries ----------
 export type { ActiveItemPort, ActiveItemAction, ActiveItemWriteResult } from "./contracts/active-item";

@@ -34,7 +34,7 @@
 .jali-shelf-menu small { margin-left: auto; color: var(--jali-text-subtle); white-space: nowrap; font-size: 0.6875rem; }
 .jali-shelf-menu .jali-shelf-chip-title { flex: 1; }
 /* Phone: the shelf lives inside the pane switcher (tucked panes are tabs there, marked), so it steps aside. */
-.app:has(.jali-workspace.is-single) .jali-shelf { display: none; }
+[data-jali]:has(.jali-workspace.is-single) .jali-shelf { display: none; }
 
 /* Shelf activity: a different shape for every state, never colour alone. */
 .jali-ra { flex: none; display: grid; place-items: center; width: 0.75rem; height: 0.75rem; box-sizing: border-box; border-radius: 50%; font-size: 0.5625rem; font-weight: 700; line-height: 1; }

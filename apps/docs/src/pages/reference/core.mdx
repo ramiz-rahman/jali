@@ -48,9 +48,10 @@ What the workspace is made of, and where its effects go.
 <Param name="profile" type="ProfileBase | null" default="null">The curated page this workspace can show. In React, a `WorkspaceProfile`.</Param>
 <Param name="name" type="string" default={`"Workspace"`}>The free workspace's name, used in command titles such as "Open Workspace".</Param>
 <Param name="url" type="UrlWriter">Where the workspace writes its address: usually <Ref to="createUrlSync" />, which `boot` and `startUi` then also read from. Without it the address is left alone.</Param>
-<Param name="storage" type="StoragePort" default={`browserStorage("jali")`}>What this person keeps on this device: settings, pane state, a curated page's mode and layout.</Param>
+<Param name="storage" type="StoragePort" default={`browserStorage(id)`}>What this person keeps on this device: settings, pane state, a curated page's mode and layout. The default is prefixed with the store's `id`, so two workspaces with their own ids keep their own.</Param>
 <Param name="id" type="string" default={`"jali"`}>Prefix for this workspace's DOM ids (`jali-pane-orders`). Give each workspace on one page its own.</Param>
 <Param name="focusPane" type="((scope: WorkspaceDom, id: NodeId) => void) | null" default="focusPane, or null without a document">Moves DOM focus into a pane after the next paint. `null` leaves DOM focus alone, for tests and workspaces that are never shown.</Param>
+<Param name="commands" type="readonly Command[]">Your own commands. They are listed in ⌘K after Jali's, and `keymap` can bind them like any other (`{ "orders.refresh": "Mod+K Mod+U" }`). If an id repeats one of Jali's, Jali's wins.</Param>
 <Param name="keymap" type="KeymapOverrides">Rebind or unbind commands: `{ "pane.zoom": "Mod+K Mod+Enter", "pane.close": null }`. See <Ref to="createKeymap" />.</Param>
 <Param name="keymapOptions" type="KeymapOptions">The keymap's platform, and how refused bindings are reported.</Param>
 <Param name="unstable" type="(op: string, before: string, after: string) => void" default="console.error in development">Called when a focus or swap action moved a pane on screen, which it never should. Outside development nothing is checked.</Param>
@@ -83,20 +84,30 @@ In order, it:
 
 </Entry>
 
-<Entry name="startUi" kind="function" from="@jali/core" signature={`startUi(store: UiStore, url?: UrlSync): () => void`} example={bootCode} exampleFile="main.tsx" exampleHighlight="8">
+<Entry name="startUi" kind="function" from="@jali/core" signature={`startUi(store: UiStore, options?: StartUiOptions | UrlSync): () => void`} example={bootCode} exampleFile="main.tsx" exampleHighlight="8">
 
 Installs the listeners a workspace needs for the life of the page, and returns a function that removes them.
 
-- Writes `--gap`, `--topbar-h`, `--status-h` and `--switcher-h` on `<html>` (the pane switcher on a phone reads `--switcher-h`).
-- Sets `data-theme` on `<html>` to the resolved theme, and again when the setting or the system preference changes.
+- Writes `--jali-gap` and `--jali-switcher-h` on `<html>`, unless `root` is given (Jali's styles carry the same values as fallbacks, so nothing depends on them).
+- Sets `data-theme` on `<html>` to the resolved theme, and again when the setting or the system preference changes, unless `theme: false`.
 - Saves settings when they change, pane state 400 ms after it last changed, and a curated page's mode and Multiplexed layout (without opened panes).
 - Asks the browser to confirm leaving the page while any pane has unsaved work (`beforeunload`).
-- Installs the keyboard with <Ref to="installKeyboard" /> on `window`, with no root: it takes keys from the whole page.
+- Installs the keyboard with <Ref to="installKeyboard" /> on `window`: with `root`, it takes only keys from inside that workspace and its dialogs; without, keys from the whole page.
 - Applies Back and Forward from `url` and announces "Layout changed by browser history".
 
 <Params>
 <Param name="store" type="UiStore" required>The workspace.</Param>
+<Param name="options" type="StartUiOptions | UrlSync" default="{}">
+
+A URL sync on its own still works, as `{ url }`.
+
+<ChildParams label="options">
 <Param name="url" type="UrlSync" default="store.url, when it can read">The address whose Back and Forward to follow.</Param>
+<Param name="root" type="() => ParentNode | null">The workspace's root, for a page with more than one workspace: pass `store.dom.root`. See <Ref to="installKeyboard" />.</Param>
+<Param name="theme" type="boolean" default="true">Write the theme setting on `<html>`. Pass `false` when your app runs its own theme; Jali then follows the system, or your `.dark` and `[data-theme]` scopes.</Param>
+</ChildParams>
+
+</Param>
 </Params>
 
 <Returns type="() => void">Removes every listener and cancels a pending pane state save. For tests and hot reload.</Returns>
@@ -382,7 +393,7 @@ Keys go in this order. First, while active, the second step of a chord the perso
 
 <ChildParams label="scope">
 <Param name="target" type="Window" default="window">Where the listeners go.</Param>
-<Param name="root" type="() => Element | null">The workspace's root element. Given, the workspace takes keys from inside it, and keys with nothing focused while it was the last place focus or a pointer went. Omitted, it takes every key on the page.</Param>
+<Param name="root" type="() => ParentNode | null">The workspace's root element; `store.dom.root` fits as it is. Given, the workspace takes keys from inside it and from its dialogs (the palette, settings and the chooser render outside the root, in `store.dom.layer()`), and keys with nothing focused while it was the last place focus or a pointer went. Omitted, it takes every key on the page.</Param>
 </ChildParams>
 
 </Param>
@@ -484,6 +495,12 @@ Moves DOM focus into a pane after the next paint: to its `[data-autofocus]` elem
 </Params>
 
 <Returns type="void" />
+
+</Entry>
+
+<Entry name="GAP" kind="constant" from="@jali/core" signature={`const GAP: number`} compact>
+
+The gap between panes and the workspace's inset, in pixels (6). For measuring a workspace from outside: its usable area is its element's size minus `GAP * 2`.
 
 </Entry>
 

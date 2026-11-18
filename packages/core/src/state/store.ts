@@ -16,6 +16,7 @@ import { presetById, type Env, type Preset, type ViewMode, type ProfileBase } fr
 import { browserStorage, type StoragePort } from "../ports";
 import { focusPane } from "../dom/focus";
 import { createKeymap, type Keymap, type KeymapOptions, type KeymapOverrides } from "../commands/keymap";
+import type { Command } from "../commands/registry";
 
 /** A drag in progress. `label` names a view dragged from a page's tabs, which may not be on screen. */
 export interface DndState { dragged: NodeId; x: number; y: number; target?: NodeId; zone?: import("../layout/types").Edge | "centre"; label?: string }
@@ -109,13 +110,16 @@ export interface UiStoreDeps {
    *  root; `null` leaves DOM focus alone (a test, a workspace that is never shown). */
   focusPane?: ((scope: WorkspaceDom, id: NodeId) => void) | null;
   /** What this person keeps on this device: settings, a curated page's mode and layout. Default: localStorage
-   *  under "jali". */
+   *  under the store's `id` ("jali" by default), so each workspace keeps its own. */
   storage?: StoragePort;
   /** Prefix for this workspace's DOM ids. Give each workspace on one page its own. Default "jali". */
   id?: string;
   initial?: Partial<UiState>;
   /** A focus or swap op moved something (layout stability, state/apply.ts). Default: reported in development. */
   unstable?: (op: string, before: string, after: string) => void;
+  /** The host's own commands: listed in the palette after Jali's, and bindable in `keymap` like any other. Their ids
+   *  should not start with a Jali prefix (`pane.`, `layout.`, `page.`, `peek.`, `settings.`, `stack.`). */
+  commands?: readonly Command[];
   /** Rebind or unbind commands (commands/keymap.ts): `{ "pane.zoom": "Mod+K Mod+Enter", "pane.close": null }`. */
   keymap?: KeymapOverrides;
   /** The keymap's platform and how refused bindings are reported. */
@@ -159,17 +163,23 @@ export interface WorkspaceDom {
   /** The workspace's root element; the document until one is attached. */
   root(): ParentNode;
   attach(el: Element | null): void;
+  /** The element that holds this workspace's dialogs (palette, settings, confirmations), which render outside the
+   *  root; null until one is attached. Keys pressed there count as the workspace's. */
+  layer(): Element | null;
+  attachLayer(el: Element | null): void;
   /** The element with this workspace's pane id `id`, if rendered. */
   pane(id: NodeId): HTMLElement | null;
 }
 
 function createDom(id: string): WorkspaceDom {
-  let el: Element | null = null;
+  let el: Element | null = null, layer: Element | null = null;
   const root = (): ParentNode => el ?? document;
   return {
     id,
     root,
     attach: (next) => { el = next; },
+    layer: () => layer,
+    attachLayer: (next) => { layer = next; },
     pane: (pane) => (typeof document === "undefined" ? null : root().querySelector<HTMLElement>(`[id="${id}-pane-${pane}"]`)),
   };
 }
@@ -188,10 +198,11 @@ export const savePaneState = (storage: StoragePort, state: UiState["paneState"])
 const DEV = !!(import.meta as unknown as { env?: { DEV?: boolean } }).env?.DEV;
 
 export function createUiStore(deps: UiStoreDeps): UiStore {
-  const env: Env = { kinds: deps.kinds, profile: deps.profile ?? null, presets: deps.presets ?? [], name: deps.name ?? "Workspace" };
+  const env: Env = { kinds: deps.kinds, profile: deps.profile ?? null, presets: deps.presets ?? [], commands: deps.commands ?? [], name: deps.name ?? "Workspace" };
   const focusOf = deps.focusPane === undefined ? (typeof document === "undefined" ? null : focusPane) : deps.focusPane;
   const dom = createDom(deps.id ?? "jali");
-  const storage = deps.storage ?? browserStorage("jali");
+  // The id is the prefix: two workspaces with their own ids never overwrite each other ("jali" stays "jali").
+  const storage = deps.storage ?? browserStorage(deps.id ?? "jali");
   const start = presetById(env, deps.preset);
   const layout = deps.initial?.layout ?? start?.build();
   if (!layout) throw new Error("createUiStore: give `presets` or an `initial.layout` to start from");

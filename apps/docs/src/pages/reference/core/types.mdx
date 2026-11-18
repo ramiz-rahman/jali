@@ -483,9 +483,9 @@ What one person keeps on one device. Keys Jali uses: `settings`, `pane-state`, a
 
 ## Commands and keys
 
-<Entry name="Command" kind="type" from="@jali/core" signature={`interface Command {\n  id: string; title: string;\n  group: "Focus" | "Pane" | "Move" | "Tabs" | "Layout" | "Peek" | "Settings";\n  check?: (x: Snapshot) => Refusal | undefined;\n  run: (store: UiStore) => void;\n}`} compact>
+<Entry name="Command" kind="type" from="@jali/core" signature={`interface Command {\n  id: string; title: string;\n  group: "Focus" | "Pane" | "Move" | "Tabs" | "Layout" | "Peek" | "Settings" | (string & {});\n  check?: (x: Snapshot) => Refusal | undefined;\n  run: (store: UiStore) => void;\n}`} compact>
 
-A workspace command. `check` returns a refusal when it can't run now (silent without `msg`).
+A workspace command. `check` returns a refusal when it can't run now (silent without `msg`). Your own commands go in `createUiStore({ commands })`, with a group of your own if you like.
 
 </Entry>
 
@@ -515,9 +515,15 @@ A binding as text: chords separated by a space, keys in a chord by `+` (`Mod+K M
 
 </Entry>
 
-<Entry name="KeyboardScope" kind="type" from="@jali/core" signature={`interface KeyboardScope { target?: Window; root?: () => Element | null }`} compact>
+<Entry name="KeyboardScope" kind="type" from="@jali/core" signature={`interface KeyboardScope { target?: Window; root?: () => ParentNode | null }`} compact>
 
 See <Ref to="installKeyboard" page="/reference/core" />.
+
+</Entry>
+
+<Entry name="StartUiOptions" kind="type" from="@jali/core" signature={`interface StartUiOptions { url?: UrlSync; root?: () => ParentNode | null; theme?: boolean }`} compact>
+
+See <Ref to="startUi" page="/reference/core" />.
 
 </Entry>
 

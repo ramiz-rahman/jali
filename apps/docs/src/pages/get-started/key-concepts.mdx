@@ -188,7 +188,7 @@ A pane gets `paused: true` while it is out of sight: behind a tab, tucked, folde
 
 A command is something the workspace can do, with an id such as `pane.close`. The keymap binds keys to commands; ⌘K (Ctrl+K) opens the command palette and starts a two-key chord, such as ⌘K ⌘Z to restore a closed pane.
 
-Each store has its own keymap. Rebind or unbind a command with `createUiStore({ keymap: { "pane.zoom": null } })`. A pane adds its own commands to ⌘K with `setCommands`.
+Each store has its own keymap. Rebind or unbind a command with `createUiStore({ keymap: { "pane.zoom": null } })`. Your app adds its own commands with `createUiStore({ commands })`, and a pane adds its own to ⌘K with `setCommands`.
 
 <h3 id="content-first">Content first</h3>
 

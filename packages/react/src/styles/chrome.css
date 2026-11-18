@@ -13,7 +13,7 @@
 .jali-workspace.is-single .jali-peek { border-radius: 0; border-width: 0; box-shadow: none; }
 
 /* ---------- pane switcher (single view) ---------- */
-.jali-switcher { position: absolute; left: 0; top: 0; right: 0; height: var(--switcher-h); border-bottom: 1px solid var(--jali-border); background: var(--jali-surface); z-index: 30; }
+.jali-switcher { position: absolute; left: 0; top: 0; right: 0; height: var(--jali-switcher-h, 44px); border-bottom: 1px solid var(--jali-border); background: var(--jali-surface); z-index: 30; }
 .jali-switch-list { display: flex; gap: 0.25rem; height: 100%; align-items: center; padding: 0 0.5rem; overflow-x: auto; scrollbar-width: none; }
 .jali-switch-list::-webkit-scrollbar { display: none; }
 .jali-switch-item {

@@ -3,7 +3,7 @@
  * layout); `startUi` installs the page-lifetime listeners: keyboard, Back/Forward, theme, settings persistence.
  */
 import * as core from "./layout";
-import { installKeyboard } from "./commands/keyboard";
+import { installKeyboard, type KeyboardScope } from "./commands/keyboard";
 import { presetById } from "./profile";
 import { msg, toasts } from "./state/messages";
 import { applyTheme, resolveTheme, saveSettings, watchSystemTheme } from "./state/settings";
@@ -49,15 +49,32 @@ export function boot(store: UiStore, url?: UrlSync) {
   store.writeUrl("replace");
 }
 
-/** Listeners for the life of the page. Returns a function that removes them (tests, HMR). */
-export function startUi(store: UiStore, url?: UrlSync): () => void {
-  const sync = syncOf(store, url);
-  applyTokens();
+/** What `startUi` sets up, for a page with more than one workspace or a host with its own theme. */
+export interface StartUiOptions {
+  /** The URL sync to read on Back/Forward. Default: the store's own (`createUiStore({ url })`). */
+  url?: UrlSync;
+  /** The workspace's root: keys are taken only from inside it and its dialogs (KeyboardScope.root), and no tokens
+   *  are written on `<html>`. Pass `store.dom.root`. Omitted, the workspace takes every key on the page. */
+  root?: KeyboardScope["root"];
+  /** Write the theme setting as `data-theme` on `<html>`. Default true; `false` for a host that runs its own theme
+   *  (Jali then follows the system, or the host's `.dark` / `[data-theme]` scopes). */
+  theme?: boolean;
+}
+
+/**
+ * Listeners for the life of the page: keyboard, Back/Forward, theme, saving settings and pane state, the leave-page
+ * prompt. Returns a function that removes them (tests, HMR). Takes options, or (as before) a URL sync.
+ */
+export function startUi(store: UiStore, options: StartUiOptions | UrlSync = {}): () => void {
+  const opts: StartUiOptions = "onPop" in options ? { url: options } : options;
+  const sync = syncOf(store, opts.url);
+  const theme = opts.theme !== false;
+  if (!opts.root && typeof document !== "undefined") applyTokens();
   let prev = store.get();
   // Pane state changes with typing and scrolling: saved once things settle.
   let saveTimer: ReturnType<typeof setTimeout> | undefined;
   const saveSoon = () => { clearTimeout(saveTimer); saveTimer = setTimeout(() => savePaneState(store.storage, store.get().paneState), 400); };
-  applyTheme(resolveTheme(prev.settings.theme, prev.systemDark));
+  if (theme) applyTheme(resolveTheme(prev.settings.theme, prev.systemDark));
   const offStore = store.subscribe(() => {
     const s = store.get();
     if (s.settings !== prev.settings) saveSettings(store.storage, s.settings);
@@ -69,7 +86,7 @@ export function startUi(store: UiStore, url?: UrlSync): () => void {
       const layout = s.page?.mode === "multi" ? s.layout : s.prefs.multi;
       savePrefs(store.storage, p.id, { mode: s.prefs.mode, multi: layout ? withoutOpened(layout, store.ctx()) : null });
     }
-    if (s.settings.theme !== prev.settings.theme || s.systemDark !== prev.systemDark) applyTheme(resolveTheme(s.settings.theme, s.systemDark));
+    if (theme && (s.settings.theme !== prev.settings.theme || s.systemDark !== prev.systemDark)) applyTheme(resolveTheme(s.settings.theme, s.systemDark));
     prev = s;
   });
   // Leaving the page with unsaved work: the browser asks first.
@@ -78,7 +95,7 @@ export function startUi(store: UiStore, url?: UrlSync): () => void {
   };
   window.addEventListener("beforeunload", onUnload);
   const offTheme = watchSystemTheme((systemDark) => store.set({ systemDark }));
-  const offKeys = installKeyboard(store);
+  const offKeys = installKeyboard(store, { root: opts.root });
   const offPop = sync
     ? sync.onPop(() => {
         arriveFromUrl(store, sync);

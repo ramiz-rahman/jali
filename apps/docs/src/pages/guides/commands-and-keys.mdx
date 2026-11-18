@@ -6,6 +6,7 @@ summary: Rebind or unbind the workspace's keys, let your content keep the keys i
 import keymap from "../../samples/guides/keys/keymap.ts?raw";
 import label from "../../samples/guides/keys/shortcut-label.tsx?raw";
 import editor from "../../samples/guides/keys/editor-pane.tsx?raw";
+import hostCommands from "../../samples/guides/keys/host-commands.ts?raw";
 import orders from "../../samples/guides/pane-kinds/orders.tsx?raw";
 
 Every workspace action is a command with an id, such as `pane.close` or `pane.zoom`. ⌘K opens the palette, which lists them all. A keymap binds ids to keys, and each store has its own.
@@ -84,6 +85,14 @@ Your keymap may differ from the defaults, and the keys print differently on each
 - Outside React, `store.keymap.label(id)` does the same.
 
 For keys your content handles itself, `keyHint("Mod+Enter")` prints them the same way ("⌘↵" or "Ctrl+Enter").
+
+## Your app's own commands
+
+Commands that belong to your app rather than to one pane, such as "Refresh orders", go in `createUiStore({ commands })`. They are listed in ⌘K after the workspace's, and `keymap` binds them like any other:
+
+<Code code={hostCommands} filename="src/workspace.ts" />
+
+Give them ids of your own (`orders.refresh`), not one of Jali's prefixes. If an id repeats one of Jali's, Jali's wins.
 
 ## A pane's own commands
 

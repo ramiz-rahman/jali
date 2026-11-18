@@ -13,7 +13,7 @@ This page puts an orders workspace beside a notes workspace.
 
 ## Its own name in the DOM
 
-`id` prefixes the workspace's element ids: `orders-pane-…` and `notes-pane-…`. The default is `"jali"`, so give each workspace its own. Focus, dragging and F6 already look only inside their own workspace's root.
+`id` prefixes the workspace's element ids (`orders-pane-…` and `notes-pane-…`, and its dialogs' ids) and its saved keys. The default is `"jali"`, so give each workspace its own. Focus, dragging and F6 already look only inside their own workspace's root.
 
 ## Its own params in the address
 
@@ -23,33 +23,25 @@ A workspace that must not touch the address at all, such as one in a dialog, can
 
 ## Its own storage
 
-Both the store and its URL sync save to `localStorage` under `"jali"` by default. Two workspaces with the defaults would overwrite each other's settings and pane state. Give each its own prefix with `browserStorage("orders")`, and pass it to both the store and its URL sync.
+A store saves its settings and pane state to `localStorage` under its `id`: `orders:settings`, `notes:pane-state`. Each URL sync keeps its own keys under its `prefix`. So two workspaces with their own ids and prefixes never overwrite each other. Pass `storage` to either for somewhere else, such as `browserStorage("my-app")` or `memoryStorage()`.
 
-## Its own keys
+## Its own keys and start-up
 
-`installKeyboard(store, { root })` makes a store take only keys from inside its root element, plus keys pressed with nothing focused, when that workspace was the last one used. So F6 in the notes moves between notes panes, and ⌘K opens the notes palette.
+`startUi(store, { root: store.dom.root })` sets a workspace up for the life of the page, scoped to it:
 
-`root` is a function that returns the element, or `null` before it exists. `<Jali>` renders the root and tells the store, so `store.dom.root()` returns it once rendered (and the document before that).
+- **Keys:** it takes only keys from inside its root element and its dialogs, plus keys pressed with nothing focused, when that workspace was the last one used. So F6 in the notes moves between notes panes, and ⌘K then ⌘M maximises a notes pane. The palette renders outside the root, but it is the workspace's own, so the chord finishes there.
+- **Back and Forward:** each workspace reads its own params again.
+- **Saving** settings and pane state, and the browser's prompt when the page closes with unsaved work.
 
-<Callout type="warning" title="Two-step chords don't finish yet">
-With a root, ⌘K opens the palette, but the second step of a chord (⌘K then ⌘M, ⌘K then ⌘←) doesn't run. The palette renders outside the workspace's root, so a key pressed in it doesn't count as the workspace's. Direct keys work: F6, ⇧F6, ⌘\\ and ⇧⌘↵. Commands chosen in the palette work too.
-</Callout>
+`store.dom.root` returns the element `<Jali>` renders, or the document before that.
 
-`installKeyboard` also takes a `target` window, for a workspace rendered into another window or a same-origin iframe. Each call returns a function that removes its listeners.
+**Theme:** `startUi` writes the theme setting to `data-theme` on `<html>`. With two workspaces, let one do it and pass `theme: false` to the other, as the sample does. Pass `theme: false` to both when your app runs its own theme; Jali then follows the system's dark mode, or your `.dark` and `[data-theme]` scopes.
 
-## Why not `startUi`
+For a workspace in another window or a same-origin iframe, call `installKeyboard(store, { root, target })` yourself. It returns a function that removes its listeners, as `startUi` does.
 
-`startUi` is for one workspace per page. It installs the keyboard for the whole page, with no root, so two workspaces with `startUi` would both act on every key. Call `boot` for each, then set up what you need yourself:
+## Focus
 
-- **Keys:** `installKeyboard` with a root, as above.
-- **Back and Forward:** `url.onPop` tells you the address changed. Read the workspace's part with `url.read` and pass it to `store.actions.arrive`, as the sample does. That covers layouts; a curated page in the second workspace would need more.
-
-`startUi` does a few more things that have no separate call yet:
-
-- saving settings and pane state to storage. Without it, `usePaneState` values last for the session but not across a reload;
-- writing the theme setting to `data-theme` on `<html>`. Without it, Jali follows the system's dark mode, or your `.dark` and `[data-theme]` scopes;
-- the browser's prompt when the page closes with unsaved work. Closing a pane with unsaved work still asks;
-- the height of the one-pane switcher shown on narrow screens (the `--switcher-h` variable on `<html>`).
+Mounting a workspace never takes the page's focus. A page with three workspaces, or one below the fold, keeps its place. A workspace moves focus into its panes once the person is in it: when they click or tab into it, or run one of its commands.
 
 ## Its own look
 

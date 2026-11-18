@@ -146,7 +146,8 @@ export interface UrlSync extends UrlWriter {
 export interface UrlSyncOptions {
   /** The address: the browser's history by default, or a router adapter (ui/ports.ts). */
   location?: LocationPort;
-  /** Where a link that could not be read is kept. Default: localStorage under "jali". */
+  /** Where a link that could not be read is kept (and, in "local" mode, the sizes dragged), under keys that start
+   *  with `prefix`. Default: localStorage under "jali". */
   storage?: StoragePort;
   /** Prefix for the workspace's search params, when two workspaces share an address. */
   prefix?: string;
@@ -198,7 +199,7 @@ export function createUrlSync({ location = browserLocation(), storage = browserS
       const own = loadSizes().find(([k]) => k === structureKey(r.layout))?.[1];
       return own ? { ...r, layout: joinPersonalSizes(r.layout, own) } : r;
     },
-    keepBroken: (code) => storage.set(BROKEN_KEY, code),
+    keepBroken: (code) => storage.set(`${prefix ?? ""}${BROKEN_KEY}`, code),
     onPop: (fn) => location.subscribe(fn),
     href: () => location.href(),
   };

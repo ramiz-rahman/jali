@@ -305,3 +305,12 @@ Research, sources and the full table: `docs/research/keyboard-shortcuts.md`. Cod
 
 ## 19 Nov 2026 · ⇧⌘↵ stays (founder)
 - `pane.zoom` keeps ⇧⌘↵ beside ⌘K ⌘M. This supersedes the 18 Nov keyboard entry that removed it; the code already binds it.
+
+## 19 Nov 2026 · More than one workspace on a page, and start-up that leaves the host alone
+- **A workspace's dialogs are part of it.** `<Jali>` renders the palette, settings, chooser, confirmation and live region in a `<div data-jali-layer>` (`display: contents`) that the store knows as `store.dom.layer()`. A keyboard scoped to a root takes keys from there too, so ⌘K then ⌘M finishes when keys are scoped. Dialog ids and radio names carry the store's `id`.
+- **`startUi(store, { root, url, theme })`.** `root` scopes the keyboard (pass `store.dom.root`) and skips writing tokens on `<html>`; `theme: false` never writes `data-theme`, for a host with its own theme. A UrlSync as the second argument still works. `KeyboardScope.root` is `() => ParentNode | null`, so `store.dom.root` fits without a wrapper.
+- **Storage defaults follow the id.** `createUiStore` saves under `browserStorage(id)` (still `"jali"` by default, so nothing saved is lost); a URL sync's broken-link key carries its `prefix`, as its sizes key already did.
+- **Tokens are Jali's.** `applyTokens` writes `--jali-gap` and `--jali-switcher-h`; the CSS carries the same values as fallbacks. The top bar and status heights were the lab's and live in the lab's CSS; `initialArea` no longer subtracts them (the first measure corrects the guess). `GAP` is public, for measuring a workspace from outside.
+- **Host commands:** `createUiStore({ commands })` adds an app's own commands after Jali's in ⌘K; `keymap` binds them like any other. A repeated Jali id keeps Jali's. `Command.group` takes a host's own group name.
+- **Mounting never takes focus.** The workspace pulls focus off the body into its focused pane only after the person has been in it (focus or a press in its root or dialogs); a docs page with three workspaces, or a workspace below the fold, keeps its place. `keepPaneFocus(dom, id, { fromBody })` for adapters.
+- **The shelf's phone rule** reads `[data-jali]`, not a host `.app` class.

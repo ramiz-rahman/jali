@@ -28,7 +28,7 @@ Styles: `@jali/react/styles.css` is Jali's default theme and the workspace's sty
 
 Provides the store, renders the workspace's root element, and renders the dialogs every workspace has: the command palette, Settings, the "Add to tabs of…" chooser, "Discard unsaved changes?" and the live region. Put `<JaliView>` and your own chrome inside it.
 
-The root is a `<div data-jali>` that the store attaches to (`store.dom`), so focus, drag and F6 stay inside it. Mark your own chrome inside it with `data-jali-chrome` and Jali never pulls focus out of it.
+The root is a `<div data-jali>` that the store attaches to (`store.dom`), so focus, drag and F6 stay inside it. The dialogs render after it, in a `<div data-jali-layer>` (`store.dom.layer()`, styled `display: contents`), which counts as the workspace's for its keys. Mark your own chrome inside it with `data-jali-chrome` and Jali never pulls focus out of it.
 
 <Params title="Props">
 <Param name="store" type="UiStore" required>The workspace, from `createUiStore`.</Param>

@@ -3,9 +3,9 @@
 19 Nov 2026. The docs agents checked every claim against the code; these are the places the code was wrong, awkward or unclear. To fix in a packages pass after the docs land. File and line are as of commit 99ba5cb.
 
 ## Bugs
-1. **⌘K chords never finish when keys are scoped to a root.** The palette renders outside the root (`packages/react/src/Jali.tsx:36-38`), so the scoped handler rejects the second key (`packages/core/src/commands/keyboard.ts:152-157`). Reproduced in Chrome with two workspaces.
-2. **Two workspaces share dialog ids:** `ConfirmDiscard` uses fixed `confirm-title` / `confirm-body` (`packages/react/src/dialogs/ConfirmDiscard.tsx:26-32`). Check the palette, chooser and settings too.
-3. **Both defaults save under `browserStorage("jali")`** (`state/store.ts:190`, `url.ts:186`): two stores overwrite each other's settings and pane state unless the host passes storage.
+1. Done 19 Nov: the dialogs render in `store.dom.layer()`, which a scoped keyboard counts as the workspace's. Was: **⌘K chords never finish when keys are scoped to a root.** The palette renders outside the root (`packages/react/src/Jali.tsx:36-38`), so the scoped handler rejects the second key (`packages/core/src/commands/keyboard.ts:152-157`). Reproduced in Chrome with two workspaces.
+2. Done 19 Nov: dialog ids and radio names carry `store.dom.id`. Was: **Two workspaces share dialog ids:** `ConfirmDiscard` uses fixed `confirm-title` / `confirm-body` (`packages/react/src/dialogs/ConfirmDiscard.tsx:26-32`). Check the palette, chooser and settings too.
+3. Done 19 Nov: a store's default storage is `browserStorage(id)`; a URL sync's broken-link key carries its prefix. Was: **Both defaults save under `browserStorage("jali")`** (`state/store.ts:190`, `url.ts:186`): two stores overwrite each other's settings and pane state unless the host passes storage.
 4. **Split and "+" need a kind named "launcher".** `LAUNCHER` is hard-coded (`core/src/actions/open.ts:12`, used at :74, :121; `layout/ops/tabs.ts:40`); without it ⌘\ throws "Unknown pane kind" (examples/minimal does this). The launcher should be an option (or the commands refuse when there is none).
 5. **"Never a second copy of a row" doesn't hold:** with a pinned detail showing row X, opening X again from the list makes a new follower showing X (`follower()` is undefined). Contradicts DECISIONS (18 Nov).
 6. Resolved 19 Nov: ⇧⌘↵ stays (founder); DECISIONS updated.
@@ -13,10 +13,10 @@
 8. **Per-workspace accent misses the dialogs:** derived tints are on `:root, [data-jali]` only, the comment says "and dialog", and dialogs render outside `[data-jali]` (`jali-theme.css`).
 
 ## The start-up story for more than one workspace
-9. **`startUi` can't be scoped** (`core/src/boot.ts:81` calls `installKeyboard(store)` with no root), so a second workspace loses settings and pane-state saving, theme, the leave-page prompt and `applyTokens`. `savePaneState`'s key isn't public.
-10. **`startUi` writes `data-theme` on `<html>`** and overrides a host's own `.light` / theme toggle (`state/settings.ts` `applyTheme`, `boot.ts:61`). Theme should be opt-in for a host with its own.
-11. **`applyTokens` sets unprefixed variables on `<html>`** (`--gap`, `--topbar-h`, `--status-h`, `--switcher-h`; `core/src/tokens.ts:10-15`), and two of them are the lab's bars. Prefix them, scope to the root, drop the lab's.
-12. **`KeyboardScope.root` is `() => Element | null` but `store.dom.root()` is `ParentNode`** (`keyboard.ts:141`, `state/store.ts:150`).
+9. Done 19 Nov: `startUi(store, { root, url, theme })`; a UrlSync as the second argument still works. Was: **`startUi` can't be scoped** (`core/src/boot.ts:81` calls `installKeyboard(store)` with no root), so a second workspace loses settings and pane-state saving, theme, the leave-page prompt and `applyTokens`. `savePaneState`'s key isn't public.
+10. Done 19 Nov: `startUi(store, { theme: false })` never writes `data-theme`. Was: **`startUi` writes `data-theme` on `<html>`** and overrides a host's own `.light` / theme toggle (`state/settings.ts` `applyTheme`, `boot.ts:61`). Theme should be opt-in for a host with its own.
+11. Done 19 Nov: `applyTokens` writes `--jali-gap` and `--jali-switcher-h` only (and not with a `root`); the CSS carries them as fallbacks; the lab sets its own bar heights. Was: **`applyTokens` sets unprefixed variables on `<html>`** (`--gap`, `--topbar-h`, `--status-h`, `--switcher-h`; `core/src/tokens.ts:10-15`), and two of them are the lab's bars. Prefix them, scope to the root, drop the lab's.
+12. Done 19 Nov: `KeyboardScope.root` is `() => ParentNode | null`, so `store.dom.root` fits. Was: **`KeyboardScope.root` is `() => Element | null` but `store.dom.root()` is `ParentNode`** (`keyboard.ts:141`, `state/store.ts:150`).
 
 ## API shape
 13. **Items are numbers:** `ProfileBase.firstItem`, `build(item: number)`, `bind(item: number)`, `Rail`/`Header` props. UUIDs and slugs don't fit.
@@ -24,7 +24,7 @@
 15. **`StackNode.origin: "user"` is required** for hand-written stacks (`layout/types.ts:46`).
 16. **A kind's `ref` builder is required and never called.**
 17. **Unsaved-work cleanup is boilerplate:** every pane calls `setUnsaved(null)` on unmount; the pane host could clear it.
-18. **Hosts can't bind keys to their own commands** though `KeymapOverrides` says they "may be bound too" (`keymap.ts:47`; `run()` only finds registry commands).
+18. Done 19 Nov: `createUiStore({ commands })`: in ⌘K after Jali's, bindable in `keymap`. Was: **Hosts can't bind keys to their own commands** though `KeymapOverrides` says they "may be bound too" (`keymap.ts:47`; `run()` only finds registry commands).
 19. **Parts take no `className`**, so the README's "a utility class on a part is enough" is not true; layered CSS rules on the jali-* classes are the way. Fix the README (or let parts take classes).
 20. **The shelf and toasts are the host's job:** `<JaliView>` renders no shelf and no toaster, and Undo lives only in a toast. A minimal app gets neither. Consider shipping both (a minimal toaster) or saying it in `<Jali>`.
 
@@ -35,10 +35,10 @@
 24. `examples/minimal` declares its layer order after Jali's CSS loads (`app.css:1`), so it teaches the wrong order.
 
 ## From the live parts and the reference
-25. **Mounting a workspace pulls page focus into it** when focus is on the body (`core/src/dom/focus.ts:35`, `keepPaneFocus` from `Workspace.tsx`). A docs page with three workspaces, or a host with a workspace below the fold, loses its place. Only move focus for a change the person made.
+25. Done 19 Nov: `keepPaneFocus` pulls focus from the body only once the person has been in the workspace (`{ fromBody }`). Was: **Mounting a workspace pulls page focus into it** when focus is on the body (`core/src/dom/focus.ts:35`, `keepPaneFocus` from `Workspace.tsx`). A docs page with three workspaces, or a host with a workspace below the fold, loses its place. Only move focus for a change the person made.
 26. **`refit` throws a RangeError on a negative width** (`core/src/layout/fit/context.ts:9`); clamp instead.
-27. **The shelf's phone rule needs the host's root to have the class `.app`** (`react/src/styles/shelf.css:37`), and the single view reads `--switcher-h`, which only `applyTokens` sets (see 11).
-28. **`GAP` isn't exported**, so an outside measure (the docs' Frame) hard-codes 6.
+27. Done 19 Nov: the rule keys off `[data-jali]`; the switcher reads `var(--jali-switcher-h, 44px)`. Was: **The shelf's phone rule needs the host's root to have the class `.app`** (`react/src/styles/shelf.css:37`), and the single view reads `--switcher-h`, which only `applyTokens` sets (see 11).
+28. Done 19 Nov: `GAP` is exported from `@jali/core`; the docs' Frame imports it. Was: **`GAP` isn't exported**, so an outside measure (the docs' Frame) hard-codes 6.
 29. **`FollowControl` crowds out the pane title** near 200px ("O…" for Orders); hide its word below ~250px (a container query on `.jali-pane`).
 30. **The tab strip cuts off the first tab** in narrow tabbed panes ("ders"; `TabStrip.tsx` `revealTab` and the edge fade).
 31. **A divider drag leaves sizes as weights equal to pixels** (`{ weight: 209 }`). Correct, but odd beside `weight 1.3`; consider normalising on commit.
