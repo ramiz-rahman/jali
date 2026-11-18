@@ -3,41 +3,50 @@ title: Jali
 summary: Workspaces of panes for React, that fit the space they have.
 ---
 
-import { TreeView } from "../live";
-import { Hero, HeroLinks, PrimaryLink, SecondaryLink, Band, HomeDemo, Packages, Package, Ways, Way } from "../shell/home";
+import { TreeView, Frame, Spotlight } from "../live";
+import { Opening, Stage, Section, MinimalApp, Features, Feature, LinkDemo, KeysDemo, Packages, Package, Theming, LandingFooter } from "../shell/landing";
 
-<Hero title="Workspaces of panes that fit the space they have.">
-  Jali lays out panes in rows, columns and tabs, so people can keep a list, a record and the next record open side by side. When the window narrows, panes fold into tabs instead of being squeezed, and come back when there is room.
-</Hero>
+<Opening title="Workspaces of panes, for React.">
+  A list, its record and the next record, side by side at any screen size. When room runs out, panes fold into tabs instead of being squeezed.
+</Opening>
 
-<HeroLinks>
-  <PrimaryLink href="/get-started/quickstart">Start the quickstart</PrimaryLink>
-  <SecondaryLink href="/get-started/introduction">What problem it solves</SecondaryLink>
-</HeroLinks>
+<Stage>
+  <TreeView layout="chain" panels="auto" height="min(76vh, 760px)" />
+</Stage>
 
-<Install packages="@jali/core @jali/react" />
+<Section id="app" label="The minimal app" title="The code, and what it renders" lead="One kind of pane, a starting layout of two notes, a store, and the view.">
+  <MinimalApp />
+</Section>
 
-<Band label="Try it" title="A list, its detail, and a related record">
-  <HomeDemo>
-    <TreeView layout="chain" height={460} json={false} caption="A real Jali workspace and its layout tree, drawn as a map. A row puts its panes side by side, and each box is as wide as its pane. A pane and its box share a colour, so you can find one from the other." />
-  </HomeDemo>
-</Band>
+<Section id="does" label="What it does" title="Four things, live">
+  <Features>
+    <Feature title="Panes fold when room runs out" href="/learn/fitting" more="How a layout fits" demo={<Frame layout="crowded" height={300} />}>
+      Each kind of pane says the narrowest it works at. Drag the frame narrower and panes fold into tabs; widen it and they come back.
+    </Feature>
+    <Feature title="A detail follows its list" href="/learn/following" more="Following a list" demo={<Spotlight layout="chain" target="follow" height={300} />}>
+      Open an order from the list, and its pane shows whichever row you select, once the selection rests.
+    </Feature>
+    <Feature title="The layout lives in the link" href="/guides/url-and-routers" more="Keep the layout in the URL" demo={<LinkDemo />}>
+      Every change is written into the address, so a link opens the same panes in the same places, and Back steps through what you did.
+    </Feature>
+    <Feature title="Keyboard first" href="/guides/commands-and-keys" more="Commands and keys" demo={<KeysDemo />}>
+      Every command has a key, and you can change or turn off any of them. Click inside the workspace, then try these.
+    </Feature>
+  </Features>
+</Section>
 
-<Band label="Two packages" title="The model, and React on top of it">
+<Section id="packages" label="Two packages" title="The model, and React on top of it">
   <Packages>
-    <Package name="@jali/core" href="/reference/core" note="No framework" exports="createUiStore, createPaneKinds, createUrlSync, boot, startUi, layout">
-      The layout tree and every change to it, fitting, and a store with focus, undo, follow and unsaved work. Keyboard commands you can rebind, and ports for the address and storage.
+    <Package name="@jali/core" href="/reference/core" exports="createUiStore, createPaneKinds, createUrlSync, boot, startUi, layout">
+      The layout tree and every change to it, fitting, and a store with focus, undo, follow and unsaved work. No framework.
     </Package>
-    <Package name="@jali/react" href="/reference/react" note="Components and hooks" exports="Jali, JaliView, definePaneKind, usePaneState, useActiveItemPort">
-      Renders the workspace: panes, dividers, tabs, the shelf and the command palette. Ships a default theme built from `--jali-*` tokens.
+    <Package name="@jali/react" href="/reference/react" exports="Jali, JaliView, definePaneKind, usePaneState, useActiveItemPort">
+      Renders the workspace: panes, dividers, tabs, the shelf and the command palette, with a default theme.
     </Package>
   </Packages>
-</Band>
+  <Theming href="/guides/theming">
+    Jali reads `--jali-*` tokens and sits in its own cascade layer, so your Tailwind theme or your own CSS wins without `!important`.
+  </Theming>
+</Section>
 
-<Band label="Where to start" title="Three ways in">
-  <Ways>
-    <Way kind="To build" title="Quickstart" href="/get-started/quickstart">A minimal app, step by step, with the live workspace above its code.</Way>
-    <Way kind="To understand" title="Key concepts" href="/get-started/key-concepts">The words Jali uses: pane, kind, ref, layout tree, fold, tuck, follow.</Way>
-    <Way kind="To look up" title="Reference" href="/reference/core">Every export of both packages, with its options and defaults.</Way>
-  </Ways>
-</Band>
+<LandingFooter />

@@ -1,124 +1,226 @@
-/* The home page: the opening with the lattice behind it, then bands with a label each. */
+/*
+ * The landing page at "/": its own place, full width. The live workspace is the opening, nearly as wide as the
+ * window; the sections below use the width too, at a measure that keeps text readable beside the live parts.
+ */
 @layer docs {
-  .prose[data-home] > .install { max-width: 30rem; margin: 0 0 8px; }
+  /* ---------- the page frame ---------- */
+  .layout[data-home] .main { padding: 0; overflow-x: clip; }
+  .layout[data-home] .article { max-width: none; }
+  .prose[data-home] {
+    --l-gutter: clamp(16px, 2.5vw, 40px);
+    --l-width: min(1360px, calc(100% - 2 * var(--l-gutter)));
+  }
+  .prose[data-home] > :not(.landing-stage) { width: var(--l-width); margin-left: auto; margin-right: auto; }
 
-  .hero { position: relative; padding: 36px 0 4px; isolation: isolate; }
-  .hero-lattice {
-    position: absolute; z-index: -1;
-    top: -52px; right: -56px;
-    width: 400px; height: 484px;
-    color: var(--d-lattice);
-    opacity: var(--d-lattice-opacity);
-    -webkit-mask-image: linear-gradient(to bottom, #000 30%, transparent 96%);
-    mask-image: linear-gradient(to bottom, #000 30%, transparent 96%);
-    pointer-events: none;
-  }
-  .hero-lattice-mark { width: 100%; height: 100%; fill: currentColor; }
-  .hero-text { max-width: 38rem; }
-  .hero-eyebrow {
-    margin-bottom: 18px;
-    font: 500 14px/20px var(--d-font);
-    color: var(--jali-accent);
-  }
-  .prose .hero-title {
-    margin: 0;
-    font: 600 3.25rem/3.75rem var(--d-font-display);
-    letter-spacing: -0.03em;
-    color: var(--jali-text);
-    text-wrap: balance;
-  }
-  .hero-lead {
-    margin-top: 22px; max-width: 34rem;
-    font-size: 1.1875rem; line-height: 1.875rem;
-    color: var(--jali-text-muted);
-    text-wrap: pretty;
-  }
-
-  .hero-links { display: flex; flex-wrap: wrap; gap: 10px; margin: 32px 0 20px; }
+  /* ---------- buttons ---------- */
   .button {
-    display: inline-flex; align-items: center; gap: 8px;
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
     height: 42px; padding: 0 18px; border-radius: 9px;
-    font-size: 15px; font-weight: 500;
+    font-size: 15px; font-weight: 500; white-space: nowrap;
     transition: background-color 0.15s, border-color 0.15s, color 0.15s;
   }
-  .button svg { transition: transform 0.2s var(--d-ease); }
-  .button:hover svg { transform: translateX(2px); }
+  .button svg { flex: none; transition: transform 0.2s var(--d-ease); }
+  .button-primary:hover svg { transform: translateX(2px); }
   .button-primary { background: var(--jali-accent); color: var(--jali-on-accent); }
   .button-primary:hover { background: var(--jali-brand); }
   :root[data-theme="dark"] .button-primary:hover { background: #a3aff2; }
   .button-quiet { border: 1px solid var(--jali-border-strong); background: var(--jali-surface); color: var(--jali-text); }
   .button-quiet:hover { border-color: var(--jali-control); }
 
-  /* ---------- bands ---------- */
-  .band { margin-top: 96px; }
-  .band-head {
-    display: grid; grid-template-columns: 10rem minmax(0, 1fr); align-items: baseline; gap: 24px;
-    padding-top: 20px;
-    border-top: 1px solid var(--jali-border);
+  /* ---------- the opening ---------- */
+  .landing-opening {
+    display: grid; grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "title title" "sub actions";
+    align-items: end; gap: 10px 48px;
+    padding: 36px 0 24px;
   }
-  .band-label { margin: 0 !important; font-size: 13.5px; line-height: 20px; font-weight: 500; color: var(--jali-text-subtle); }
-  .prose .band-title { margin: 0; font: 400 1.75rem/2.25rem var(--d-font-display); letter-spacing: -0.015em; }
-  .band-body { margin-top: 32px; }
-  .band-body > [data-live] { margin: 0; }
-  /* The live demo breaks out of the text column to the main area's width. */
-  .main:has(.prose[data-home]) { container: d-main / inline-size; }
-  .home-demo { --w: min(72rem, 100cqw); width: var(--w); margin-left: calc((100% - var(--w)) / 2); }
-  .home-demo > [data-live] { margin: 0; }
-
-  /* ---------- the two packages ---------- */
-  .packages { display: grid; grid-template-columns: 1fr 1fr; margin-left: calc(10rem + 24px); }
-  .package { padding: 0 32px 4px 0; }
-  .package + .package { padding: 0 0 4px 32px; border-left: 1px solid var(--jali-border); }
-  .prose .package-note { margin: 0 0 6px; font-size: 13px; line-height: 18px; color: var(--jali-text-subtle); }
-  .prose .package-name { margin: 0 0 10px; font: 500 1.25rem/1.75rem var(--d-font-mono); letter-spacing: -0.01em; }
-  .package-name a { color: var(--jali-text); border-radius: 4px; transition: color 0.15s; }
-  .package-name a:hover { color: var(--jali-accent); }
-  .package-text { font-size: 15.5px; line-height: 25px; color: var(--jali-text-muted); }
-  .package-text .inline-code { font-size: 0.85em; }
-  .prose .package-exports { list-style: none; display: flex; flex-wrap: wrap; gap: 6px; margin: 18px 0 0; padding: 0; }
-  .prose .package-exports li { margin: 0; padding: 0; }
-  .package-exports code {
-    display: inline-block; padding: 1px 7px;
-    border: 1px solid var(--jali-border); border-radius: 6px;
-    font-size: 12.5px; line-height: 20px; color: var(--jali-text-muted);
-    background: var(--d-code-bg);
-  }
-
-  /* ---------- three ways in ---------- */
-  .prose ol.ways { list-style: none; margin: 0 0 0 calc(10rem + 24px); padding: 0; }
-  .prose .way { margin: 0; padding: 0; }
-  .way-link {
-    display: grid; grid-template-columns: 8.5rem minmax(0, 1fr) 24px; align-items: center; gap: 20px;
-    padding: 22px 4px 22px 0;
-    border-bottom: 1px solid var(--jali-border);
+  .prose .landing-title {
+    margin: 0;
+    font: 600 2.75rem/3.25rem var(--d-font-display);
+    letter-spacing: -0.03em;
     color: var(--jali-text);
   }
-  .way:first-child .way-link { padding-top: 4px; }
-  .way-kind { font-size: 13.5px; line-height: 20px; color: var(--jali-text-subtle); }
-  .way-main { display: flex; flex-direction: column; gap: 3px; }
-  .way-title { font: 400 1.5rem/2rem var(--d-font-display); letter-spacing: -0.01em; transition: color 0.15s; }
-  .way-text { font-size: 15px; line-height: 23px; color: var(--jali-text-muted); }
-  .way-arrow { color: var(--jali-text-faint); transition: transform 0.2s var(--d-ease), color 0.15s; }
-  .way-link:hover .way-title { color: var(--jali-accent); }
-  .way-link:hover .way-arrow { transform: translateX(4px); color: var(--jali-accent); }
-  .way-link:focus-visible { outline-offset: 4px; }
+  .landing-opening-text { display: contents; }
+  .landing-title { grid-area: title; }
+  .landing-sub { grid-area: sub; max-width: 40rem; font-size: 1.0625rem; line-height: 1.75rem; color: var(--jali-text-muted); text-wrap: pretty; }
+  .prose .landing-sub p { margin: 0; }
+  .landing-opening-actions { grid-area: actions; display: flex; align-items: center; gap: 10px; }
+  .prose .landing-opening-actions .install { width: max-content; max-width: 100%; margin: 0; }
+  .landing-opening-actions .install .code-header { min-height: 0; border-bottom: 0; border-right: 1px solid var(--jali-border); padding: 0 2px; background: transparent; }
+  .landing-opening-actions .install { display: flex; align-items: center; height: 42px; }
+  .landing-opening-actions .install .tab { height: 40px; font-size: 13px; padding: 0 8px; }
+  .landing-opening-actions .install .tab[aria-selected="true"]::after { left: 8px; right: 8px; }
+  .landing-opening-actions .install .code-copy { display: none; }
+  .landing-opening-actions .install [role="tabpanel"] { flex: 1; min-width: 0; overflow-x: auto; }
+  .landing-opening-actions .install .code-header { flex: none; }
+  .landing-opening-actions .install .code-pre { padding: 0; font-size: 13px; }
+  .landing-opening-actions .install .code-line { padding: 0 12px; }
+  .landing-buttons { display: flex; gap: 10px; }
 
-  @media (max-width: 1279px) {
-    .band-head { grid-template-columns: 1fr; gap: 6px; }
-    .packages, .prose ol.ways { margin-left: 0; }
+  /* The lattice, faint and large: behind the headline, and partly behind the top of the workspace. */
+  .landing-opening { position: relative; isolation: isolate; }
+  .landing-opening > :not(.landing-backdrop) { position: relative; z-index: 1; }
+  .landing-backdrop {
+    position: absolute; z-index: 0; pointer-events: none;
+    top: -56px; left: 50%; transform: translateX(-12%);
+    width: 560px; height: 680px;
+    color: var(--d-lattice); opacity: var(--d-lattice-opacity);
+    -webkit-mask-image: linear-gradient(to bottom, #000 25%, transparent 92%);
+    mask-image: linear-gradient(to bottom, #000 25%, transparent 92%);
+  }
+  .landing-backdrop-mark { width: 100%; height: 100%; fill: currentColor; }
+
+  /* ---------- the hero demo: the workspace is the page ---------- */
+  .landing-stage { position: relative; z-index: 1; width: calc(100% - 2 * var(--l-gutter)); margin: 0 auto; }
+  .landing-stage > [data-live] { margin: 0; }
+
+  /* ---------- sections ---------- */
+  .landing-section { margin-top: 128px; }
+  .landing-section-head { max-width: 46rem; margin-bottom: 36px; }
+  .prose .landing-label { margin: 0 0 10px; font-size: 14px; line-height: 20px; font-weight: 500; color: var(--jali-accent); }
+  .prose .landing-section-title { margin: 0; font: 400 2.125rem/2.625rem var(--d-font-display); letter-spacing: -0.02em; }
+  .prose .landing-lead { margin: 12px 0 0; font-size: 1.0625rem; line-height: 1.75rem; color: var(--jali-text-muted); }
+
+  /* ---------- the minimal app beside what it renders ---------- */
+  .landing-split { display: grid; grid-template-columns: minmax(0, 6fr) minmax(0, 5fr); gap: 20px; height: 540px; }
+  .landing-code { min-height: 0; }
+  .prose .landing-code .tabs { display: flex; flex-direction: column; height: 100%; margin: 0; background: var(--d-code-bg); }
+  .landing-code .tab-panel { flex: 1; min-height: 0; overflow: auto; }
+  .landing-code .tab-panel > .code { min-height: 100%; }
+  .landing-result { display: grid; grid-template-rows: minmax(0, 1fr) auto; gap: 12px; min-height: 0; margin: 0; }
+  .landing-caption { font-size: 14px; line-height: 22px; color: var(--jali-text-subtle); }
+  .prose .landing-ws { height: 100%; margin: 0; }
+  .landing-ws-box { height: 100%; border: 1px solid var(--jali-border); border-radius: var(--d-radius); }
+  .landing-ws .note { padding: 16px 18px; }
+  .landing-ws .note h3 { font: 600 17px/24px var(--d-font-display); margin: 0 0 12px; color: var(--jali-text); }
+  .landing-ws .note button {
+    height: 32px; padding: 0 12px; border-radius: 7px;
+    border: 1px solid var(--jali-border-strong); background: var(--jali-surface-raised);
+    font-size: 13.5px; font-weight: 500; color: var(--jali-text);
+  }
+  .landing-ws .note button:hover { border-color: var(--jali-accent); color: var(--jali-accent); }
+
+  /* ---------- things Jali does ---------- */
+  .prose ol.landing-features { list-style: none; margin: 0; padding: 0; counter-reset: feature; }
+  .prose .landing-feature {
+    display: grid; grid-template-columns: minmax(16rem, 23rem) minmax(0, 1fr); gap: 56px; align-items: start;
+    margin: 0; padding: 44px 0; border-top: 1px solid var(--jali-border);
+    counter-increment: feature;
+  }
+  .landing-feature-text { position: sticky; top: calc(var(--d-topbar) + 32px); }
+  .landing-feature-text::before {
+    content: counter(feature, decimal-leading-zero);
+    display: block; margin-bottom: 14px;
+    font: 500 13px/1 var(--d-font-mono); color: var(--jali-text-faint);
+  }
+  .prose .landing-feature-title { margin: 0 0 10px; font: 500 1.375rem/1.875rem var(--d-font-display); letter-spacing: -0.01em; }
+  .landing-feature-body { font-size: 16px; line-height: 26px; color: var(--jali-text-muted); }
+  .prose .landing-feature-body p { margin: 0; }
+  .landing-more {
+    display: inline-flex; align-items: center; gap: 6px; margin-top: 16px;
+    font-size: 15px; font-weight: 500; color: var(--jali-accent);
+  }
+  .landing-more svg { transition: transform 0.2s var(--d-ease); }
+  .landing-more:hover svg { transform: translateX(3px); }
+  .landing-feature-demo { min-width: 0; }
+  .landing-feature-demo > [data-live] { margin: 0; }
+
+  .prose .landing-link-demo, .prose .landing-keys-demo { margin: 0; }
+  .landing-address {
+    display: flex; align-items: center; gap: 12px;
+    min-height: 40px; padding: 8px 14px;
+    border: 1px solid var(--jali-border); border-bottom: 0;
+    border-radius: var(--d-radius) var(--d-radius) 0 0;
+    background: var(--d-code-head);
+  }
+  .landing-address-dots { display: inline-flex; gap: 5px; flex: none; }
+  .landing-address-dots i { width: 8px; height: 8px; border-radius: 999px; background: var(--jali-border-strong); }
+  .landing-address-url {
+    flex: 1; min-width: 0; padding: 4px 10px; border-radius: 6px;
+    background: var(--jali-surface); box-shadow: inset 0 0 0 1px var(--jali-border);
+    font-size: 12.5px; line-height: 19px; color: var(--jali-accent);
+    overflow-wrap: anywhere;
+  }
+  .landing-address-url span { color: var(--jali-text-subtle); }
+  .landing-address-count { flex: none; font-size: 12.5px; color: var(--jali-text-subtle); font-variant-numeric: tabular-nums; }
+  .landing-link-demo .landing-ws-box { border-radius: 0 0 var(--d-radius) var(--d-radius); }
+
+  .prose ul.landing-keys { list-style: none; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin: 12px 0 0; padding: 0; }
+  .prose .landing-keys li { margin: 0; padding: 0; }
+  .landing-key {
+    display: flex; align-items: center; gap: 10px; width: 100%;
+    padding: 8px 10px; border-radius: 8px;
+    border: 1px solid var(--jali-border); background: var(--jali-surface);
+    font-size: 14px; color: var(--jali-text-muted); text-align: left;
+    transition: border-color 0.15s, color 0.15s;
+  }
+  .landing-key:hover { border-color: var(--jali-border-strong); color: var(--jali-text); }
+  .landing-key .kbd { flex: none; height: 22px; padding: 0 6px; font-size: 12px; }
+
+  /* ---------- packages ---------- */
+  .landing-packages { display: grid; grid-template-columns: 1fr 1fr; border-top: 1px solid var(--jali-border); }
+  .landing-package { padding: 28px 40px 28px 0; }
+  .landing-package + .landing-package { padding-left: 40px; border-left: 1px solid var(--jali-border); }
+  .prose .landing-package-name { margin: 0 0 10px; font: 500 1.25rem/1.75rem var(--d-font-mono); }
+  .landing-package-link { color: var(--jali-text); transition: color 0.15s; }
+  .landing-package-link:hover { color: var(--jali-accent); }
+  .landing-package-text { max-width: 34rem; font-size: 16px; line-height: 26px; color: var(--jali-text-muted); }
+  .prose .landing-package-text p { margin: 0; }
+  .prose .landing-package-exports { display: flex; flex-wrap: wrap; gap: 6px; margin: 16px 0 0; }
+  .landing-package-exports code {
+    padding: 1px 7px; border: 1px solid var(--jali-border); border-radius: 6px;
+    background: var(--d-code-bg); font-size: 12.5px; line-height: 20px; color: var(--jali-text-muted);
+  }
+  .landing-theming {
+    display: flex; align-items: baseline; justify-content: space-between; gap: 12px 32px; flex-wrap: wrap;
+    padding: 20px 0 0; border-top: 1px solid var(--jali-border);
+    font-size: 15px; line-height: 24px; color: var(--jali-text-muted);
+  }
+  .prose .landing-theming p { margin: 0; }
+  .landing-theming .landing-more { margin: 0; }
+
+  /* ---------- footer ---------- */
+  .landing-footer {
+    position: relative; overflow: hidden;
+    display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 24px 48px; align-items: end;
+    margin-top: 144px; padding: 40px 0 48px;
+    border-top: 1px solid var(--jali-border);
+  }
+  .landing-footer-lattice {
+    position: absolute; right: 18%; bottom: -40px; width: 150px; height: auto;
+    fill: var(--d-lattice); opacity: var(--d-lattice-opacity); pointer-events: none;
+  }
+  .landing-footer-lockup { height: 26px; width: auto; }
+  .prose .landing-footer-brand p { margin: 12px 0 0; font-size: 14.5px; color: var(--jali-text-subtle); }
+  .landing-footer-nav { display: flex; flex-wrap: wrap; gap: 8px 28px; font-size: 15px; font-weight: 500; }
+  .landing-footer-nav a { display: inline-flex; align-items: center; gap: 4px; color: var(--jali-text-muted); transition: color 0.15s; }
+  .landing-footer-nav a:hover { color: var(--jali-accent); }
+  .prose .landing-footer-legal { grid-column: 1 / -1; margin: 0; font-size: 13px; color: var(--jali-text-subtle); }
+
+  /* ---------- narrower ---------- */
+  @media (max-width: 1100px) {
+    .landing-opening { grid-template-columns: minmax(0, 1fr); grid-template-areas: "title" "sub" "actions"; align-items: start; }
+    .landing-opening-actions { margin-top: 14px; flex-wrap: wrap; }
+    .prose .landing-feature { grid-template-columns: minmax(0, 1fr); gap: 24px; }
+    .landing-feature-text { position: static; max-width: 40rem; }
+    .landing-split { grid-template-columns: minmax(0, 1fr); height: auto; }
+    .landing-code { height: 420px; }
+    .landing-result { grid-template-rows: 380px auto; }
   }
   @media (max-width: 767px) {
-    .hero { padding-top: 12px; }
-    .hero-lattice { width: 220px; height: 266px; top: -36px; right: -40px; }
-    .prose .hero-title { font-size: 2.375rem; line-height: 2.875rem; letter-spacing: -0.025em; }
-    .hero-lead { font-size: 1.0625rem; line-height: 1.75rem; }
-    .band { margin-top: 72px; }
-    .prose .band-title { font-size: 1.5rem; line-height: 2rem; }
-    .packages { grid-template-columns: 1fr; }
-    .package { padding: 0 0 28px; }
-    .package + .package { padding: 28px 0 0; border-left: 0; border-top: 1px solid var(--jali-border); }
-    .way-link { grid-template-columns: minmax(0, 1fr) 20px; gap: 4px 16px; }
-    .way-kind { grid-column: 1 / -1; }
-    .way-arrow { grid-row: 2; grid-column: 2; }
+    .landing-opening { padding-top: 24px; }
+    .landing-backdrop { left: auto; right: -60px; transform: none; width: 260px; height: 316px; top: -24px; }
+    .prose .landing-title { font-size: 2.125rem; line-height: 2.625rem; letter-spacing: -0.025em; }
+    .landing-opening-actions { flex-direction: column; align-items: stretch; }
+    .prose .landing-opening-actions .install { width: 100%; }
+    .landing-buttons > .button { flex: 1; }
+    .landing-section { margin-top: 88px; }
+    .prose .landing-section-title { font-size: 1.625rem; line-height: 2.125rem; }
+    .landing-packages { grid-template-columns: minmax(0, 1fr); }
+    .landing-package { padding: 24px 0; }
+    .landing-package + .landing-package { padding-left: 0; border-left: 0; border-top: 1px solid var(--jali-border); }
+    .prose ul.landing-keys { grid-template-columns: 1fr 1fr; }
+    .landing-address-count { display: none; }
+    .landing-footer { grid-template-columns: minmax(0, 1fr); }
+    .landing-footer-lattice { right: -20px; width: 110px; }
   }
 }
