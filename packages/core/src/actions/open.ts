@@ -50,6 +50,9 @@ export function openBeside(x: Snapshot, source: NodeId, ref: ObjectRef): Outcome
   // it, browse on: the next open makes a new follower), or shows the row there now. Never a second copy of a row.
   const showing = fromSelection ? core.follower(s.layout, source, ref.kind) : undefined;
   if (showing) return sameRef(showing.ref, ref) ? setPinned(x, showing.id, true) : [{ op: "select", defer: followLater(source, null) }, (y: Snapshot) => follow(y, source, ref)];
+  // A detail of this list already shows the row (one pinned earlier, with no follower now): show that one, focus stays.
+  const kept = fromSelection ? m.panes.find((p) => p.linkedTo === source && sameRef(p.ref, ref)) : undefined;
+  if (kept) return { op: "focusExisting", layout: core.reveal(s.layout, kept.id, ctx), view: s.view, msg: msg.alreadyOpenBeside(m.title(kept.id)), result: kept.id };
   const r = core.openBeside(s.layout, unzoomed(s.view), source, ref, ctx, place, { ...(s.page ? { yields: false } : {}), ...(fromSelection ? { fromSelection } : {}) });
   let layout = r.layout, opened = r.opened, sent: NodeId[] = [];
   let view: ViewState = { ...r.view, focused: source, focusHistory: r.view.focusHistory.length ? r.view.focusHistory : [source] };

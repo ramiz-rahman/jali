@@ -309,3 +309,4 @@ Research, sources and the full table: `docs/research/keyboard-shortcuts.md`. Cod
 ## 19 Nov 2026 · Packages pass: layout behaviour, CSS, types and text (FINDINGS-FROM-DOCS)
 - **The launcher is a store option** (finding 4): `createUiStore({ launcher })`, default `"launcher"`. With `null` or an unregistered kind, split and "New tab here" are refused (their commands are greyed out in ⌘K) and tab strips show no "+", so the smallest app never opens an unknown kind.
 - **`PaneKindBase.ref` is optional** (16): Jali never called it; it stays for an app's own link building.
+- **Never a second copy of a row** (5): opening the selected row when a detail of the same list already shows it (a pinned one, with no follower) reveals that detail; focus stays in the list.

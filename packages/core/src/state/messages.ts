@@ -21,6 +21,7 @@ export const msg = {
       ? `New pane opened as a tab: not enough room beside ${source}. Choose what to show`
       : `New pane ${dir === "right" ? "right of" : "below"} ${source}. Choose what to show`,
   alreadyOpen: (t: string) => `Already open: focused ${t}`,
+  alreadyOpenBeside: (t: string) => `Already open: ${t}`,
   opened: (t: string) => `${t} opened`,
   noLauncher: "This workspace has no launcher kind to open a new pane with",
   newTab: (source: string) => `New tab beside ${source}. Choose what to show`,
