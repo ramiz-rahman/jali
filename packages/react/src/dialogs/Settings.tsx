@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, type ReactNode } from "react";
 import { X } from "lucide-react";
 import type { Settings as S, ThemeChoice } from "@jali/core/adapter";
 import { useStore, useUi } from "../state/react";
@@ -8,8 +8,10 @@ const THEMES: { id: ThemeChoice; label: string }[] = [{ id: "system", label: "Sy
 
 const cap = (t: string) => t.charAt(0).toUpperCase() + t.slice(1);
 
-export function SettingsPanel() {
+/** Jali's settings. `children` are the host's own fieldsets, shown last. */
+export function SettingsPanel({ children }: { children?: ReactNode } = {}) {
   const store = useStore();
+  const id = store.dom.id;
   const open = useUi((s) => s.settingsOpen);
   const settings = useUi((s) => s.settings);
   const page = useUi((s) => s.page);
@@ -29,28 +31,28 @@ export function SettingsPanel() {
         className="jali-settings"
         role="dialog"
         aria-modal="true"
-        aria-labelledby="settings-title"
+        aria-labelledby={`${id}-settings-title`}
         onKeyDown={(e) => {
           if (e.key === "Escape") { e.stopPropagation(); close(); }
         }}
       >
         <header>
-          <h2 id="settings-title">Settings</h2>
+          <h2 id={`${id}-settings-title`}>Settings</h2>
           <button className="jali-icon-btn" onClick={close} aria-label="Close settings"><X size={14} strokeWidth={1.5} aria-hidden /></button>
         </header>
         <fieldset>
           <legend>Theme</legend>
           {THEMES.map((t, n) => (
             <label key={t.id} className="jali-radio">
-              <input ref={n === 0 ? first : undefined} type="radio" name="theme" checked={settings.theme === t.id} onChange={() => set({ theme: t.id })} />
+              <input ref={n === 0 ? first : undefined} type="radio" name={`${id}-theme`} checked={settings.theme === t.id} onChange={() => set({ theme: t.id })} />
               <span>{t.label}</span>
             </label>
           ))}
         </fieldset>
         <fieldset>
           <legend>Centre drop</legend>
-          <label className="jali-radio"><input type="radio" name="centre" checked={settings.centreDrop === "swap"} onChange={() => set({ centreDrop: "swap" })} /><span>Swap the two panes</span></label>
-          <label className="jali-radio"><input type="radio" name="centre" checked={settings.centreDrop === "tab"} onChange={() => set({ centreDrop: "tab" })} /><span>Add as a tab</span></label>
+          <label className="jali-radio"><input type="radio" name={`${id}-centre`} checked={settings.centreDrop === "swap"} onChange={() => set({ centreDrop: "swap" })} /><span>Swap the two panes</span></label>
+          <label className="jali-radio"><input type="radio" name={`${id}-centre`} checked={settings.centreDrop === "tab"} onChange={() => set({ centreDrop: "tab" })} /><span>Add as a tab</span></label>
         </fieldset>
         <fieldset>
           <legend>Pane cap</legend>
@@ -61,21 +63,18 @@ export function SettingsPanel() {
         </fieldset>
         {profile ? <fieldset>
           <legend>{profile.name}: opened panes</legend>
-          <label className="jali-radio"><input type="radio" name="boundary" checked={settings.boundary === "tint"} onChange={() => set({ boundary: "tint" })} /><span>Tinted header and “Opened” tag</span></label>
-          <label className="jali-radio"><input type="radio" name="boundary" checked={settings.boundary === "none"} onChange={() => set({ boundary: "none" })} /><span>No marking</span></label>
+          <label className="jali-radio"><input type="radio" name={`${id}-boundary`} checked={settings.boundary === "tint"} onChange={() => set({ boundary: "tint" })} /><span>Tinted header and “Opened” tag</span></label>
+          <label className="jali-radio"><input type="radio" name={`${id}-boundary`} checked={settings.boundary === "none"} onChange={() => set({ boundary: "none" })} /><span>No marking</span></label>
         </fieldset> : null}
         {page ? (
           <fieldset>
             <legend>{profile?.name}: viewing as</legend>
-            <label className="jali-radio"><input type="radio" name="viewer" checked={page.canInvestigate} onChange={() => store.actions.setCanInvestigate(true)} /><span>{cap(full)}: links open beside</span></label>
-            <label className="jali-radio"><input type="radio" name="viewer" checked={!page.canInvestigate} onChange={() => store.actions.setCanInvestigate(false)} /><span>{cap(limited)}: Single only, links open as a peek</span></label>
+            <label className="jali-radio"><input type="radio" name={`${id}-viewer`} checked={page.canInvestigate} onChange={() => store.actions.setCanInvestigate(true)} /><span>{cap(full)}: links open beside</span></label>
+            <label className="jali-radio"><input type="radio" name={`${id}-viewer`} checked={!page.canInvestigate} onChange={() => store.actions.setCanInvestigate(false)} /><span>{cap(limited)}: Single only, links open as a peek</span></label>
           </fieldset>
         ) : null}
         <KeyboardList />
-        <fieldset>
-          <legend>Status line</legend>
-          <label className="jali-radio"><input type="checkbox" checked={settings.showStats} onChange={(e) => set({ showStats: e.target.checked })} /><span>Show fetch stats</span></label>
-        </fieldset>
+        {children}
       </div>
     </div>
   );

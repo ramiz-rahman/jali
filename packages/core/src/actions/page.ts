@@ -1,12 +1,12 @@
 /**
- * Curated pages (profile.ts). Single mode shows one view, chosen from the tabs. Multiplexed mode lays the views out
+ * Curated pages (profile.ts). Single mode shows one view, chosen from the tabs. Split view lays the views out
  * freely, starting from the profile's design; each view exists once, and closing one sends it back to the tabs.
  * Panes opened by following links form an investigation after the layout that "Back to <page>" clears.
  */
 import * as core from "../layout";
 import { toLayout } from "../layout/build";
 import type { Edge, Layout, LayoutContext, NodeId, ObjectRef, PaneNode, Rect, ViewState } from "../layout/types";
-import { roleOf, viewerLabel, type ViewMode, type ProfileBase } from "../profile";
+import { asItem, roleOf, viewerLabel, type ItemId, type ViewMode, type ProfileBase } from "../profile";
 import { refuse, type Change, type Outcome, type Snapshot } from "../state/apply";
 import { msg, toasts } from "../state/messages";
 import type { PagePrefs } from "../state/page-prefs";
@@ -28,7 +28,7 @@ export function placeAfterArrangement(layout: Layout): core.Placement {
 interface Placed { layout: Layout; view: ViewState }
 
 /** Every role shows `item`; opened panes keep what they show. */
-function rebind(layout: Layout, p: ProfileBase, item: number): Layout {
+function rebind(layout: Layout, p: ProfileBase, item: ItemId): Layout {
   const refs = p.bind(item);
   const root = core.tree.map(layout.root, (n) => (n.type === "pane" && n.role && refs[n.role] ? { ...n, ref: refs[n.role]! } : n));
   return root === layout.root ? layout : { ...layout, root };
@@ -49,7 +49,7 @@ function usable(layout: Layout | null, p: ProfileBase): layout is Layout {
 }
 
 /** Single mode: one pane, the chosen view. */
-function single(p: ProfileBase, item: number, tab: string, ctx: LayoutContext): Placed {
+function single(p: ProfileBase, item: ItemId, tab: string, ctx: LayoutContext): Placed {
   const r = roleOf(p, tab) ?? roleOf(p, p.home)!;
   const view: ViewState = { focused: r.id, focusHistory: [r.id] };
   const node: PaneNode = { id: r.id, type: "pane", size: { weight: 1 }, ref: p.bind(item)[r.id]!, role: r.id, priority: r.priority };
@@ -65,10 +65,10 @@ function onScreen(layout: Layout, view: ViewState, role: NodeId, ctx: LayoutCont
   return { layout: core.reveal(layout, role, ctx), view: core.focus(view, role, ctx) };
 }
 
-/** Multiplexed mode: the person's own layout (with or without the investigation it had), else the design. */
-function multi(x: Snapshot, p: ProfileBase, item: number, tab: string, keepOpened: boolean): Placed {
+/** Split view: the person's own layout (with or without the investigation it had), else the design. */
+function split(x: Snapshot, p: ProfileBase, item: ItemId, tab: string, keepOpened: boolean): Placed {
   const { ctx } = x;
-  const saved = x.s.prefs.multi;
+  const saved = x.s.prefs.split;
   let layout = usable(saved, p) ? rebind(keepOpened ? saved : withoutOpened(saved, ctx), p, item) : toLayout(p.build(item));
   // Coming from the home view (Overview), its sections are the panes now: focus the first one rather than adding it.
   const hidden = layout.overlay?.hidden ?? [];
@@ -89,19 +89,19 @@ function currentRole({ s, m }: Snapshot): string | undefined {
   return [s.view.focused, ...s.view.focusHistory].map((id) => m.pane(id)?.role).find(Boolean);
 }
 
-/** What the person keeps when the multiplexed layout leaves the screen. */
+/** What the person keeps when the split layout leaves the screen. */
 function keep(x: Snapshot, mode?: ViewMode): PagePrefs {
   const r = x.s.page;
-  return { mode: mode ?? r?.mode ?? x.s.prefs.mode, multi: r?.mode === "multi" ? x.s.layout : x.s.prefs.multi };
+  return { mode: mode ?? r?.mode ?? x.s.prefs.mode, split: r?.mode === "split" ? x.s.layout : x.s.prefs.split };
 }
 
 const label = (p: ProfileBase, id: string | undefined) => roleOf(p, id)?.label ?? id ?? "";
 /** A role's name in the page's tabs. */
 export const roleLabel = (p: ProfileBase | null, id: string) => (p ? label(p, id) : id);
 
-export interface OpenPage { item?: number; tab?: string; investigation?: ObjectRef[]; fromUrl?: boolean; view?: Partial<ViewState> }
+export interface OpenPage { item?: ItemId; tab?: string; investigation?: ObjectRef[]; fromUrl?: boolean; view?: Partial<ViewState> }
 
-/** Open the curated page (or arrive at it from a link). A link with opened panes needs Multiplexed to show them. */
+/** Open the curated page (or arrive at it from a link). A link with opened panes needs Split view to show them. */
 export function openPage(x: Snapshot, o: OpenPage = {}): Outcome {
   const p = x.env.profile;
   if (!p) return null;
@@ -110,15 +110,15 @@ export function openPage(x: Snapshot, o: OpenPage = {}): Outcome {
   const page: PageState = {
     profile: p.id,
     before: undefined,
-    item: o.item ?? prev?.item ?? p.firstItem,
+    item: o.item !== undefined ? asItem(o.item, p.firstItem) : prev?.item ?? p.firstItem,
     tab: roleOf(p, o.tab)?.id ?? prev?.tab ?? p.home,
-    mode: opened.length ? "multi" : prev?.mode ?? x.s.prefs.mode,
+    mode: opened.length ? "split" : prev?.mode ?? x.s.prefs.mode,
     canInvestigate: prev?.canInvestigate ?? true,
   };
-  // Opened panes need Multiplexed, but that is the link's need, not the person's choice: their mode stays theirs.
+  // Opened panes need Split view, but that is the link's need, not the person's choice: their mode stays theirs.
   const prefs = { ...keep(x, page.mode), mode: opened.length ? x.s.prefs.mode : page.mode };
   const y = { ...x, s: { ...x.s, prefs } };
-  const base = page.mode === "single" ? single(p, page.item, page.tab, x.ctx) : multi(y, p, page.item, page.tab, false);
+  const base = page.mode === "single" ? single(p, page.item, page.tab, x.ctx) : split(y, p, page.item, page.tab, false);
   const { layout, view } = reopen(base, opened, base.view.focused ?? page.tab, x.ctx);
   if (opened.length) page.before = base.layout;
   return {
@@ -129,11 +129,13 @@ export function openPage(x: Snapshot, o: OpenPage = {}): Outcome {
 
 /** Back to the free workspace: the person's own layout again. The page's mode and layout are kept for next time. */
 export function leavePage(x: Snapshot): Outcome {
+  // A page-only app has no free workspace to go back to.
+  if (!x.env.presets.length) return refuse();
   const studio = preset(x, x.s.presetId) as Change;
   return { ...studio, patch: { ...studio.patch, page: null, prefs: keep(x) }, undo: [] };
 }
 
-/** Single or Multiplexed. Leaving Multiplexed keeps its layout exactly, opened panes included, for coming back. */
+/** Single or Split view. Leaving Split view keeps its layout exactly, opened panes included, for coming back. */
 export function setMode(x: Snapshot, mode: ViewMode): Outcome {
   const p = x.env.profile, r = x.s.page;
   if (!p || !r || r.mode === mode) return null;
@@ -143,8 +145,8 @@ export function setMode(x: Snapshot, mode: ViewMode): Outcome {
     return { op: "mode", layout, view, msg: msg.modeSingle(label(p, tab)), patch: { page: { ...r, mode, tab }, prefs: keep(x, mode), peekSource: undefined }, undo: [] };
   }
   if (!r.canInvestigate) return refuse(msg.singleOnly);
-  const { layout, view } = multi(x, p, r.item, r.tab, true);
-  return { op: "mode", layout, view, msg: msg.modeMulti, patch: { page: { ...r, mode }, prefs: { ...x.s.prefs, mode } }, undo: [], focusDom: view.focused };
+  const { layout, view } = split(x, p, r.item, r.tab, true);
+  return { op: "mode", layout, view, msg: msg.modeSplit, patch: { page: { ...r, mode }, prefs: { ...x.s.prefs, mode } }, undo: [], focusDom: view.focused };
 }
 
 /** The view the person is working in, on screen: where a tab click puts another view. */
@@ -154,7 +156,7 @@ function slotFor({ s, m }: Snapshot): NodeId | undefined {
 
 /**
  * A tab click never reshapes the layout (layout stability, state/apply.ts). Single: that view replaces the one shown.
- * Multiplexed: on screen, it is focused; behind another tab, its tab is chosen; off screen, it takes the place of the
+ * Split view: on screen, it is focused; behind another tab, its tab is chosen; off screen, it takes the place of the
  * view you're in, at exactly that size, and that view goes back to the tabs. Placing a view beside is a drag or ⌥-click.
  */
 export function openTab(x: Snapshot, role: string): Outcome {
@@ -225,12 +227,12 @@ function besideTarget(layout: Layout, view: ViewState, ctx: LayoutContext): Node
   return [view.focused, ...view.focusHistory].find(shown) ?? boxes.find((b) => !b.hidden && (core.tree.find(layout.root, b.id) as PaneNode).role)?.id;
 }
 
-/** What ⌥-click on a tab does, as layouts: where it starts (from Single, the multiplexed layout setMode shows), the
+/** What ⌥-click on a tab does, as layouts: where it starts (from Single, the split layout setMode shows), the
  *  view it goes beside, and the result. One function for the preview and the commit, so they cannot drift. */
 function beside(x: Snapshot, role: string) {
   const p = x.env.profile, r = x.s.page;
   if (!p || !r || !r.canInvestigate || !roleOf(p, role)) return undefined;
-  const base = r.mode === "single" ? multi(x, p, r.item, r.tab, true) : { layout: x.s.layout, view: unzoomed(x.s.view) };
+  const base = r.mode === "single" ? split(x, p, r.item, r.tab, true) : { layout: x.s.layout, view: unzoomed(x.s.view) };
   const target = besideTarget(base.layout, base.view, x.ctx);
   if (!target || target === role) return undefined;
   const placed = placeRole(base.layout, base.view, role, target, "right", x.ctx);
@@ -260,7 +262,7 @@ export function besidePreview(x: Snapshot, role: string): BesidePreview | undefi
 }
 
 /** Drop a view from the tabs onto a pane's edge (or centre: as a tab of its group). From Single, this switches to
- *  Multiplexed first: dragging a tab out is asking for two views at once. Room is made by sending the least recently
+ *  Split view first: dragging a tab out is asking for two views at once. Room is made by sending the least recently
  *  used views back to the tabs (settleRoles), never by folding views into tab groups. */
 export function placeTab(x: Snapshot, role: string, target: NodeId, zone: Edge | "centre"): Outcome {
   const p = x.env.profile, r = x.s.page;
@@ -275,7 +277,7 @@ export function placeTab(x: Snapshot, role: string, target: NodeId, zone: Edge |
       msg: d.sent.length ? `${said} · ${msg.sentToTabs(d.sent.map((id) => label(p, id)))}` : said,
     };
   };
-  if (r.mode === "single") return r.canInvestigate ? [setMode(x, "multi"), place] : refuse(msg.singleOnly);
+  if (r.mode === "single") return r.canInvestigate ? [setMode(x, "split"), place] : refuse(msg.singleOnly);
   return place(x);
 }
 
@@ -284,7 +286,7 @@ export function openTabBeside(x: Snapshot, role: string): Outcome {
   const r = x.s.page;
   if (!r) return null;
   const target = (y: Snapshot) => besideTarget(y.s.layout, unzoomed(y.s.view), y.ctx) ?? y.s.page!.tab;
-  if (r.mode === "single") return r.canInvestigate ? [setMode(x, "multi"), (y: Snapshot) => placeTab(y, role, target(y), "right")] : refuse(msg.singleOnly);
+  if (r.mode === "single") return r.canInvestigate ? [setMode(x, "split"), (y: Snapshot) => placeTab(y, role, target(y), "right")] : refuse(msg.singleOnly);
   return placeTab(x, role, target(x), "right");
 }
 
@@ -311,12 +313,12 @@ export function goToRole(x: Snapshot, role: string, from?: NodeId): Outcome {
 }
 
 /** Another item: every role shows it, in place, and the previous item's investigation closes. */
-export function activate(x: Snapshot, item: number): Outcome {
+export function activate(x: Snapshot, item: ItemId): Outcome {
   const p = x.env.profile, r = x.s.page;
   if (!p || !r || r.item === item) return null;
   const page = { ...r, item, before: undefined };
-  const saved = x.s.prefs.multi;
-  const prefs = { ...x.s.prefs, multi: saved && r.mode === "single" ? withoutOpened(saved, x.ctx) : saved };
+  const saved = x.s.prefs.split;
+  const prefs = { ...x.s.prefs, split: saved && r.mode === "single" ? withoutOpened(saved, x.ctx) : saved };
   if (r.mode === "single") {
     const { layout, view } = single(p, item, r.tab, x.ctx);
     return { op: "activate", layout, view, msg: msg.activated(p.itemNoun, item, 0), patch: { page, prefs, peekSource: undefined }, undo: [] };
@@ -345,25 +347,25 @@ export function backToPage(x: Snapshot): Outcome {
   return { op: "close", layout, view: focused, patch: { page: { ...r, before: undefined } }, msg: msg.backToPage(name, opened.length), toast: toasts.backToPage(name, opened.length), undo: pushUndo(x.s.undoStack, undo) };
 }
 
-/** Close a view in Multiplexed: it leaves the screen and waits in the tabs. Never the last one on screen. */
+/** Close a view in Split view: it leaves the screen and waits in the tabs. Never the last one on screen. */
 export function hideRole(x: Snapshot, id: NodeId): Outcome {
   const p = x.env.profile, node = x.m.pane(id);
-  if (!p || x.s.page?.mode !== "multi" || !node?.role) return null;
+  if (!p || x.s.page?.mode !== "split" || !node?.role) return null;
   const r = core.hide(x.s.layout, unzoomed(x.s.view), id, x.ctx);
   if (!r.ok) return refuse(r.reason === "last" ? msg.lastView(label(p, node.role)) : undefined);
   return { op: "hide", layout: r.layout, view: r.view, msg: msg.roleHidden(label(p, node.role)), focusDom: r.view.focused };
 }
 
-/** Reset Multiplexed to the design, dropping this person's layout. The investigation stays. */
+/** Reset Split view to the design, dropping this person's layout. The investigation stays. */
 export function resetPage(x: Snapshot): Outcome {
   const p = x.env.profile, r = x.s.page;
-  if (!p || r?.mode !== "multi") return null;
+  if (!p || r?.mode !== "split") return null;
   const tab = currentRole(x) ?? r.tab;
   const opened = investigation(x.m.panes).map((o) => o.ref);
-  const y = { ...x, s: { ...x.s, prefs: { ...x.s.prefs, multi: null } } };
-  const base = multi(y, p, r.item, tab, false);
+  const y = { ...x, s: { ...x.s, prefs: { ...x.s.prefs, split: null } } };
+  const base = split(y, p, r.item, tab, false);
   const { layout, view } = reopen(base, opened, base.view.focused ?? tab, x.ctx);
-  return { op: "preset", layout, view, msg: msg.pageReset, patch: { page: { ...r, before: opened.length ? base.layout : undefined }, prefs: { ...x.s.prefs, multi: null } }, undo: [] };
+  return { op: "preset", layout, view, msg: msg.pageReset, patch: { page: { ...r, before: opened.length ? base.layout : undefined }, prefs: { ...x.s.prefs, split: null } }, undo: [] };
 }
 
 /** A role permission. The limited viewer (a loan officer) works in Single only, and links peek; the full one (a
@@ -371,6 +373,6 @@ export function resetPage(x: Snapshot): Outcome {
 export function setCanInvestigate(x: Snapshot, canInvestigate: boolean): Outcome {
   const { s } = x;
   if (!s.page || s.page.canInvestigate === canInvestigate) return null;
-  const toSingle = !canInvestigate && s.page.mode === "multi" ? setMode(x, "single") : null;
+  const toSingle = !canInvestigate && s.page.mode === "split" ? setMode(x, "single") : null;
   return [toSingle, (y: Snapshot) => ({ op: "permission", msg: msg.permission(viewerLabel(x.env.profile, canInvestigate), canInvestigate), patch: { page: { ...y.s.page!, canInvestigate } } })];
 }

@@ -13,7 +13,7 @@ This page puts an orders workspace beside a notes workspace.
 
 ## Its own name in the DOM
 
-`id` prefixes the workspace's element ids: `orders-pane-…` and `notes-pane-…`. The default is `"jali"`, so give each workspace its own. Focus, dragging and F6 already look only inside their own workspace's root.
+`id` prefixes the workspace's element ids (`orders-pane-…` and `notes-pane-…`, and its dialogs' ids) and its saved keys. The default is `"jali"`, so give each workspace its own. Focus, dragging and F6 already look only inside their own workspace's root.
 
 ## Its own params in the address
 
@@ -23,21 +23,21 @@ A workspace that must not touch the address at all, such as one in a dialog, pas
 
 ## Its own storage
 
-Each workspace saves to `localStorage` under `"jali"` by default, so two with the defaults would overwrite each other's settings and pane state. Give each its own prefix: `storage: "orders"`.
+A workspace saves its settings and pane state to `localStorage` under its `id` by default: `orders:settings`, `notes:pane-state`. Each URL sync keeps its own keys under its `prefix`. So two workspaces with their own ids and prefixes never overwrite each other. Pass `storage` for somewhere else: another prefix (`storage: "my-app"`) or a port such as `memoryStorage()`.
 
-## Its own keys
+## Its own keys and start-up
 
-`keys: "workspace"` makes a workspace take only keys from inside its own root, plus keys pressed with nothing focused, when it was the last one used. So F6 in the notes moves between notes panes, and ⌘K opens the notes palette. The default, `"page"`, takes every key on the page: right for one workspace, wrong for two.
-
-<Callout type="warning" title="Two-step chords don't finish yet">
-With `keys: "workspace"`, ⌘K opens the palette, but the second step of a chord (⌘K then ⌘M, ⌘K then ⌘←) doesn't run. The palette renders outside the workspace's root, so a key pressed in it doesn't count as the workspace's. Direct keys work: F6, ⇧F6, ⌘\\ and ⇧⌘↵. Commands chosen in the palette work too.
-</Callout>
+`keys: "workspace"` makes a workspace take only keys from inside its own root and its dialogs, plus keys pressed with nothing focused, when it was the last one used. So F6 in the notes moves between notes panes, and ⌘K then ⌘M maximises a notes pane. The palette renders outside the root, but it is the workspace's own, so the chord finishes there. The default, `"page"`, takes every key on the page: right for one workspace, wrong for two.
 
 Everything else a workspace starts while its `<Jali>` is mounted works for each one: saving settings and pane state, Back and Forward, and the browser's prompt when the page closes with unsaved work.
 
 ## Inside a page with its own theme
 
 A workspace sets `data-theme` on `<html>` from its theme setting. Inside a page that has its own light and dark (a docs site, an app with its own switch), pass `pageTheme: false`, and the workspace follows the page's `.dark` and `[data-theme]` scopes instead.
+
+## Focus
+
+Mounting a workspace never takes the page's focus. A page with three workspaces, or one below the fold, keeps its place. A workspace moves focus into its panes once the person is in it: when they click or tab into it, or run one of its commands.
 
 ## Its own look
 

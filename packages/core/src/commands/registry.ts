@@ -20,7 +20,8 @@ import { cycleRegions } from "./regions";
 export interface Command {
   id: string;
   title: string;
-  group: "Focus" | "Pane" | "Move" | "Tabs" | "Layout" | "Peek" | "Settings";
+  /** Jali's groups, or a host command's own. */
+  group: "Focus" | "Pane" | "Move" | "Tabs" | "Layout" | "Peek" | "Settings" | (string & {});
   /** Why the command can't run now (silent without a message); undefined when it can. */
   check?: (x: Snapshot) => Refusal | undefined;
   run: (store: UiStore) => void;
@@ -51,7 +52,7 @@ function buildCommands(env: Env): Command[] {
   { id: "pane.resize_mode", title: "Resize mode (arrows, then Esc)", group: "Pane", check: needFocus, run: (u) => u.actions.enterResizeMode() },
   { id: "pane.close", title: "Close pane", group: "Pane", check: needOthers, run: (u) => u.actions.close() },
   { id: "pane.close_others", title: "Close other panes", group: "Pane", check: needOthers, run: (u) => u.actions.closeOthers() },
-  { id: "pane.undo_close", title: "Restore last closed pane", group: "Pane", check: checkUndo, run: (u) => u.actions.undo() },
+  { id: "pane.undo_close", title: "Undo last close or tuck", group: "Pane", check: checkUndo, run: (u) => u.actions.undo() },
   // Splits open a launcher (a "New pane" to choose an object in), never a copy of the focused object.
   { id: "pane.split.right", title: "Split right (new pane)", group: "Pane", check: needLauncher, run: (u) => u.actions.split("right") },
   { id: "pane.split.down", title: "Split down (new pane)", group: "Pane", check: needLauncher, run: (u) => u.actions.split("bottom") },
@@ -69,11 +70,11 @@ function buildCommands(env: Env): Command[] {
   { id: "layout.reset", title: "Reset layout", group: "Layout", check: () => (env.presets.length ? undefined : refuse()), run: (u) => u.actions.resetLayout() },
   { id: "layout.copy_link", title: "Copy link to this layout", group: "Layout", run: copyLink },
   { id: "page.back", title: `Back to ${profile?.name ?? "page"} (close opened panes)`, group: "Layout", check: ({ s, m }) => (s.page && m.panes.some((p) => !p.role) ? undefined : refuse()), run: (u) => u.actions.backToPage() },
-  { id: "page.reset", title: "Reset layout to its design", group: "Layout", check: ({ s }) => (s.page?.mode === "multi" ? undefined : refuse()), run: (u) => u.actions.resetPage() },
-  { id: "page.single", title: "Single: one view at a time", group: "Layout", check: ({ s }) => (s.page?.mode === "multi" ? undefined : refuse()), run: (u) => u.actions.setMode("single") },
-  { id: "page.multi", title: "Multiplexed: views side by side", group: "Layout", check: ({ s }) => (s.page?.mode === "single" && s.page.canInvestigate ? undefined : refuse()), run: (u) => u.actions.setMode("multi") },
+  { id: "page.reset", title: "Reset layout to its design", group: "Layout", check: ({ s }) => (s.page?.mode === "split" ? undefined : refuse()), run: (u) => u.actions.resetPage() },
+  { id: "page.single", title: "Single view: one view at a time", group: "Layout", check: ({ s }) => (s.page?.mode === "split" ? undefined : refuse()), run: (u) => u.actions.setMode("single") },
+  { id: "page.split", title: "Split view: views side by side", group: "Layout", check: ({ s }) => (s.page?.mode === "single" && s.page.canInvestigate ? undefined : refuse()), run: (u) => u.actions.setMode("split") },
   { id: "page.open", title: `Open ${profile?.name ?? "page"}`, group: "Layout", check: ({ s }) => (s.page || !profile ? refuse() : undefined), run: (u) => u.actions.openPage() },
-  { id: "page.leave", title: `Open ${env.name}`, group: "Layout", check: ({ s }) => (s.page ? undefined : refuse()), run: (u) => u.actions.leavePage() },
+  { id: "page.leave", title: `Open ${env.name}`, group: "Layout", check: ({ s }) => (s.page && env.presets.length ? undefined : refuse()), run: (u) => u.actions.leavePage() },
   { id: "page.as_limited", title: `View as ${limited} (Single only, links peek)`, group: "Settings", check: ({ s }) => (s.page?.canInvestigate ? undefined : refuse()), run: (u) => u.actions.setCanInvestigate(false) },
   { id: "page.as_full", title: `View as ${full} (links open beside)`, group: "Settings", check: ({ s }) => (s.page && !s.page.canInvestigate ? undefined : refuse()), run: (u) => u.actions.setCanInvestigate(true) },
 
@@ -83,6 +84,9 @@ function buildCommands(env: Env): Command[] {
 
   { id: "settings.open", title: "Open settings", group: "Settings", run: (u) => u.actions.openSettings() },
   { id: "settings.centre_drop.toggle", title: "Switch centre drop (swap ↔ tab)", group: "Settings", run: toggleCentreDrop },
+
+  // The host's own, last (a Jali id wins if a host repeats one).
+  ...(env.commands ?? []),
   ];
 }
 
@@ -91,7 +95,9 @@ const forEnv = (env: Env) => {
   let b = built.get(env);
   if (!b) {
     const commands = buildCommands(env);
-    b = { commands, byId: new Map(commands.map((c) => [c.id, c])) };
+    const byId = new Map<string, Command>();
+    for (const c of commands) if (!byId.has(c.id)) byId.set(c.id, c);
+    b = { commands: commands.filter((c) => byId.get(c.id) === c), byId };
     built.set(env, b);
   }
   return b;

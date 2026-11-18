@@ -89,6 +89,18 @@ describe("a list's detail follows its selection", () => {
     expect(node("order").ref).toEqual(order(9));
   });
 
+  it("opening the row a pinned detail shows, with no follower, goes to the pinned one: never a second copy", () => {
+    store.actions.select("orders", order(6));
+    vi.advanceTimersByTime(FOLLOW_MS);
+    store.actions.openBeside("orders", order(6));
+    expect(node("order")).toMatchObject({ ref: order(6), pinned: true });
+    const panes = store.model().panes.length;
+    const got = store.actions.openBeside("orders", order(6));
+    expect(store.model().panes).toHaveLength(panes);
+    expect(got).toBe("order");
+    expect(store.get().view.focused).toBe("orders");
+  });
+
   it("a link that is not the selected row (a customer cell) opens a plain pane and never replaces the detail", () => {
     store.actions.select("orders", order(2));
     vi.advanceTimersByTime(FOLLOW_MS);

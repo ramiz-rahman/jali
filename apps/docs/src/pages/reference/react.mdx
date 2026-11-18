@@ -24,19 +24,22 @@ Styles: `@jali/react/styles.css` is Jali's default theme and the workspace's sty
 
 ## Start here
 
-<Entry name="Jali" kind="component" from="@jali/react" signature={`<Jali workspace={workspace} overlays? settings?>{children?}</Jali>`} example={appCode} exampleFile="App.tsx">
+<Entry name="Jali" kind="component" from="@jali/react" signature={`<Jali workspace={workspace} overlays? settings? settingsExtra?>{children?}</Jali>`} example={appCode} exampleFile="App.tsx">
 
 Draws a workspace: its panes, and the dialogs every workspace has (the command palette, Settings, the "Add to tabs of…" chooser, "Discard unsaved changes?" and the live region). While it is mounted, it starts the workspace's keys, Back and Forward, theme and saving (<Ref to="Workspace" page="/reference/core" />'s `start`), and stops them when it unmounts.
 
 `<Jali workspace={workspace} />` is a whole app. To add your own chrome, pass children and put `<JaliView />` where the panes go.
 
-The root is a `<div data-jali>` that the workspace attaches to (`workspace.dom`), so focus, drag and F6 stay inside it. Mark your own chrome inside it with `data-jali-chrome` and Jali never pulls focus out of it.
+The root is a `<div data-jali>` that the workspace attaches to (`workspace.dom`), so focus, drag and F6 stay inside it. The dialogs render after it, in a `<div data-jali-layer>` (`workspace.dom.layer()`, styled `display: contents`), which counts as the workspace's for its keys. Mark your own chrome inside it with `data-jali-chrome` and Jali never pulls focus out of it.
+
+Two things are yours to render. **The shelf** (tucked and folded panes as chips): put <Ref to="Shelf" /> in your status line or footer, or tucked panes have nowhere to come back from but ⌘K "Show a pane from the shelf". **Toasts**: Jali sends them through `workspace.onToast` (closes and tucks come with Undo, which ⌘K ⌘Z also runs) and shows none itself; render them with your toaster in `overlays`.
 
 <Params title="Props">
 <Param name="workspace" type="Workspace" required>From `createWorkspace`.</Param>
 <Param name="children" type="ReactNode" default="<JaliView />">Rendered inside the root: `<JaliView>` and your chrome.</Param>
 <Param name="overlays" type="ReactNode">Rendered after the root: things that must sit outside the workspace, such as a toaster. Focus is never pulled back from outside the root.</Param>
 <Param name="settings" type="boolean" default="true">`false` leaves the Settings panel out.</Param>
+<Param name="settingsExtra" type="ReactNode">Your own settings, as `<fieldset>`s with a `<legend>`, shown at the end of the Settings panel. Store their values yourself.</Param>
 <Param name="...rest" type="HTMLAttributes<HTMLDivElement>">Passed to the root `<div>` (`className`, `style`, `id`). `ref` and `data-jali` are Jali's.</Param>
 </Params>
 
@@ -115,9 +118,9 @@ Defines a curated page: one item at a time (a loan application, a customer), its
 
 </Entry>
 
-<Entry name="Page" kind="type" from="@jali/react" signature={`interface Page extends ProfileBase<PageView> {\n  Rail: ComponentType<{ item: number; activate: (item: number) => void }>;\n  Header: ComponentType<{ item: number }>;\n}`} compact>
+<Entry name="Page" kind="type" from="@jali/react" signature={`interface Page<I extends ItemId = any> extends ProfileBase<PageView, I> {\n  Rail: ComponentType<{ item: I; activate: (item: I) => void }>;\n  Header: ComponentType<{ item: I }>;\n}`} compact>
 
-A curated page for React: <Ref to="ProfileBase" page="/reference/core/types" /> with its rail and header.
+A curated page for React: <Ref to="ProfileBase" page="/reference/core/types" /> with its rail and header. `I` is the item id's type, `number` or `string`, as in `firstItem`.
 
 </Entry>
 
@@ -191,7 +194,7 @@ In the peek sheet there is no pane, so the state is local and goes with the shee
 The active-item port for the pane this content is in (see <Ref to="activeItemPort" page="/reference/core" />). Re-renders when the pane's selection changes, so `itemId` reads fresh.
 
 <Params>
-<Param name="mapping" type="ActiveItemMapping" required>`toRef(itemId)` and `idOf(ref)`. Read on the first render only: a new mapping later is not picked up.</Param>
+<Param name="mapping" type="ActiveItemMapping" required>`toRef(itemId)` and `idOf(ref)`. The port always uses the latest render's mapping and stays the same object, so an inline object is fine.</Param>
 </Params>
 
 <Returns type="ActiveItemPort | null">`null` in the peek sheet.</Returns>
@@ -275,7 +278,7 @@ A curated page: the page's `Rail` at the left; its `Header`, the page tabs and `
 
 <Entry name="PageBar" kind="component" from="@jali/react" signature={`<PageBar />`} compact>
 
-A curated page's controls, for your top bar: the Single / Multiplexed switch (Multiplexed disabled for a limited viewer), in Multiplexed the "Investigating · N opened" group with Back to the page, and Reset. Renders nothing while no page is open.
+A curated page's controls, for your top bar: the Single / Split view switch (Split view disabled for a limited viewer), in Split view the "Investigating · N opened" group with Back to the page, and Reset. Renders nothing while no page is open.
 
 </Entry>
 
@@ -297,9 +300,9 @@ The command palette (⌘K or Ctrl+K), while `paletteOpen` is set. The focused pa
 
 </Entry>
 
-<Entry name="SettingsPanel" kind="component" from="@jali/react" signature={`<SettingsPanel />`} compact>
+<Entry name="SettingsPanel" kind="component" from="@jali/react" signature={`<SettingsPanel>{extra?}</SettingsPanel>`} compact>
 
-The Settings dialog, while `settingsOpen` is set: theme, centre drop, pane cap (2 to 16), a curated page's opened-pane marking and viewer, every key binding from the workspace's keymap, and "Show fetch stats". Changes go through `actions.changeSettings` and are saved on this device.
+The Settings dialog, while `settingsOpen` is set: theme, centre drop, pane cap (2 to 16), a curated page's opened-pane marking and viewer, every key binding from the workspace's keymap, then its children (your own fieldsets; `<Jali settingsExtra>`). Changes go through `actions.changeSettings` and are saved on this device.
 
 </Entry>
 

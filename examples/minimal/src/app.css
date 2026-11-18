@@ -1,4 +1,4 @@
-@layer base, jali;
+/* The layer order (base, jali) is declared in index.html, before any stylesheet loads. */
 @layer base {
   html, body, #root { height: 100%; margin: 0; }
   body { font-family: var(--jali-font); background: var(--jali-canvas); color: var(--jali-text); }

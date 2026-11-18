@@ -20,7 +20,7 @@ const bind = (id: number) => ({
   tickets: customerTickets({ customer: id }),
 });
 
-// Multiplexed mode's designed layout: every view is in it, and Overview starts hidden.
+// Split view's designed layout: every view is in it, and Overview starts hidden.
 const build = (id: number) => {
   const refs = bind(id);
   return row({ id: "page" },

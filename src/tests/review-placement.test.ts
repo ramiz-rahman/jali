@@ -1,5 +1,5 @@
 /**
- * Loan review, Multiplexed: following a link and placing a view. A link to what is already a view goes there; an opened
+ * Loan review, Split view: following a link and placing a view. A link to what is already a view goes there; an opened
  * pane never pushes the person's views aside; a view never folds into a tab group; the ⌥ preview is the commit.
  */
 import { beforeEach, describe, expect, it } from "vitest";
@@ -13,7 +13,7 @@ beforeEach(() => {
   localStorage.clear();
   store = createLabStore({ initial: { area: { width: 1156, height: 644 } } }); // the workspace at 1440×900
   store.actions.openPage({ item: 4, tab: "application" });
-  store.actions.setMode("multi");
+  store.actions.setMode("split");
 });
 const m = () => store.model();
 const shown = () => m().visible;
@@ -131,21 +131,21 @@ describe("placing a view (⌥-click, drag)", () => {
     check("group");
   });
 
-  it("from Single, the preview is the multiplexed layout the click switches to", () => {
+  it("from Single, the preview is the split layout the click switches to", () => {
     store.actions.setMode("single");
     store.actions.openTab("borrower");
     const p = besidePreview(store.snapshot(), "group")!;
     store.actions.openTabBeside("group");
-    expect(store.get().page?.mode).toBe("multi");
+    expect(store.get().page?.mode).toBe("split");
     expect(rects().group).toEqual(p.incoming);
   });
 });
 
 describe("a link with opened panes", () => {
-  it("opens in Multiplexed, and leaves the person's own mode as it was", () => {
+  it("opens in Split view, and leaves the person's own mode as it was", () => {
     const reader = createLabStore({ initial: { area: { width: 1156, height: 644 } } });
     reader.actions.openPage({ item: 4, tab: "application", investigation: [member149], fromUrl: true });
-    expect(reader.get().page?.mode).toBe("multi");
+    expect(reader.get().page?.mode).toBe("split");
     expect(reader.get().prefs.mode).toBe("single");
   });
 });

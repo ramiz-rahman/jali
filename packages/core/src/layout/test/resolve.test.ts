@@ -168,7 +168,11 @@ describe("resolve and fold", () => {
     expect(result.panes[1]).toMatchObject({ rect: { x: 0, y: 0, width: 1000, height: 900 }, hidden: undefined });
     expect(result.panes[0]!.hidden).toBe("zoom");
   });
-  it.each([NaN, Infinity, -1])("rejects invalid fit width %s", width => {
+  it.each([NaN, Infinity])("rejects invalid fit width %s", width => {
     expect(() => place(layout(pane("a")), view(), fit(width))).toThrow(RangeError);
+  });
+  it("clamps a negative width or height to zero (a container measured mid-collapse)", () => {
+    expect(() => place(layout(pane("a")), view(), fit(-40))).not.toThrow();
+    expect(() => core.refit(layout(pane("a"), pane("b")), view("a"), ctx(fit(-1)))).not.toThrow();
   });
 });

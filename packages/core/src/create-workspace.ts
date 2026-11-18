@@ -11,6 +11,7 @@
  */
 import { boot } from "./boot";
 import type { KeymapOptions, KeymapOverrides } from "./commands/keymap";
+import type { Command } from "./commands/registry";
 import { toLayout, type LayoutInput } from "./layout/build";
 import { createPaneKinds, type PaneKindBase, type PaneKinds } from "./pane-kinds";
 import { browserStorage, memoryStorage, type StoragePort } from "./ports";
@@ -48,7 +49,8 @@ export interface WorkspaceOptions<D extends PaneKindBase = PaneKindBase> {
    */
   url?: boolean | UrlSyncOptions | UrlWriter;
   /** What a person keeps on this device (settings, pane state, sizes): localStorage under this prefix, or a port.
-   *  Default "jali" in a browser, memory elsewhere. */
+   *  Default: the workspace's `id` ("jali") in a browser, so two workspaces never overwrite each other; memory
+   *  elsewhere. */
   storage?: string | StoragePort;
   /** Prefix for DOM ids. Give each workspace on one page its own. Default "jali". */
   id?: string;
@@ -57,6 +59,9 @@ export interface WorkspaceOptions<D extends PaneKindBase = PaneKindBase> {
   /** Set the page's theme (`data-theme` on `<html>`) from the person's setting. Default true; false when the
    *  workspace sits inside a page that has its own theme. */
   pageTheme?: boolean;
+  /** Your own commands: listed in ⌘K after Jali's, and bindable in `keymap` like Jali's
+   *  (`{ id: "app.refresh", title: "Refresh data", group: "App", run: () => refetch() }`). A Jali id wins. */
+  commands?: readonly Command[];
   /** Rebind or unbind commands: `{ "pane.zoom": "Mod+K Mod+Enter", "pane.close": null }`. */
   keymap?: KeymapOverrides;
   /** The keymap's platform, and how refused bindings are reported. */
@@ -88,7 +93,7 @@ export function createWorkspace<D extends PaneKindBase>(options: WorkspaceOption
 
   const storage = typeof options.storage === "object"
     ? options.storage
-    : inBrowser ? browserStorage(options.storage ?? "jali") : memoryStorage();
+    : inBrowser ? browserStorage(options.storage ?? options.id ?? "jali") : memoryStorage();
 
   const writer: UrlWriter | undefined =
     url === false ? undefined
@@ -108,6 +113,7 @@ export function createWorkspace<D extends PaneKindBase>(options: WorkspaceOption
     id: options.id,
     keys: options.keys,
     pageTheme: options.pageTheme,
+    commands: options.commands,
     keymap: options.keymap,
     keymapOptions: options.keymapOptions,
     unstable: options.onUnstable,

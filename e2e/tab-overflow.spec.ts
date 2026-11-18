@@ -73,4 +73,27 @@ test.describe("tab overflow and marks", () => {
     await expect(page.locator(".jali-tab-more")).toHaveCount(0);
     await expect(page.locator('[data-folded]')).toHaveCount(0);
   });
+
+  test("a narrow strip shows its active tab whole, the first one included (finding 30)", async ({ lab, page }) => {
+    await lab.open({ preset: "Stress: 10 panes", size: { width: 1280, height: 900 } });
+    for (const width of [1280, 1100, 900, 800]) {
+      await page.setViewportSize({ width, height: 900 });
+      await lab.stable();
+      const cut = await page.locator(".jali-tabs").evaluateAll((strips) => strips.flatMap((s) => {
+        const tab = s.querySelector<HTMLElement>('[role="tab"][aria-selected="true"]');
+        if (!tab || !s.checkVisibility()) return [];
+        const a = tab.getBoundingClientRect(), b = s.getBoundingClientRect();
+        return a.left < b.left - 1 || a.right > b.right + 1 ? [`${tab.textContent} ${Math.round(a.left - b.left)}..${Math.round(a.right - b.right)}`] : [];
+      }));
+      expect(cut, `width ${width}`).toEqual([]);
+    }
+    // A strip narrower than its active tab shows the tab's start ("Ord…"), never its end ("ders").
+    await page.setViewportSize({ width: 1280, height: 900 });
+    await page.addStyleTag({ content: ".jali-tabs { max-width: 3rem; }" });
+    const first = page.locator(".jali-tabs").first().locator('[role="tab"]').first();
+    await first.click();
+    await expect(first).toHaveAttribute("aria-selected", "true");
+    const [t, s] = await Promise.all([first.boundingBox(), page.locator(".jali-tabs").first().boundingBox()]);
+    expect(Math.round(t!.x)).toBeGreaterThanOrEqual(Math.round(s!.x) - 1);
+  });
 });

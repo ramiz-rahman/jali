@@ -21,9 +21,9 @@ export interface TokenInfo { group: TokenGroup; swatch: SwatchKind; purpose: str
 
 /** What each token is for, in the order the page lists them. */
 export const TOKEN_PURPOSE: Record<string, TokenInfo> = {
-  "--jali-canvas": { group: "Surfaces", swatch: "color", purpose: "The ground behind the panes. Jali paints nothing with it except the selected button of the Single / Multiplexed switch; give your page this background to match." },
+  "--jali-canvas": { group: "Surfaces", swatch: "color", purpose: "The ground behind the panes. Jali paints nothing with it except the selected button of the Single / Split view switch; give your page this background to match." },
   "--jali-surface": { group: "Surfaces", swatch: "color", purpose: "Panes, the peek sheet, dialogs, menus, the page tabs and the phone's pane switcher." },
-  "--jali-surface-raised": { group: "Surfaces", swatch: "color", purpose: "A raised surface. Declared, and mapped by the Tailwind bridge, but no Jali style reads it yet." },
+  "--jali-surface-raised": { group: "Surfaces", swatch: "color", purpose: "Dialogs and menus: the palette, the chooser, Settings, the discard dialog, the tab overflow menu and the shelf's menu." },
   "--jali-border": { group: "Surfaces", swatch: "color", purpose: "Hairlines: pane edges, pane headers, shelf chips, dialog and palette borders." },
   "--jali-border-strong": { group: "Surfaces", swatch: "color", purpose: "Stronger lines: the tab overflow button and menu, and a divider under the pointer." },
   "--jali-control": { group: "Surfaces", swatch: "color", purpose: "Boundaries of controls (text buttons, the pane cap input). At least 3:1 against the surface, unlike the decorative border." },
@@ -36,13 +36,13 @@ export const TOKEN_PURPOSE: Record<string, TokenInfo> = {
 
   "--jali-accent": { group: "Accent", swatch: "color", purpose: "Focus and action: the focused pane's edge, a zoomed pane, divider handles, the drop indicator, the focused page tab, primary buttons." },
   "--jali-on-accent": { group: "Accent", swatch: "color", purpose: "Text on the accent: the drop label and primary buttons." },
-  "--jali-accent-soft": { group: "Accent", swatch: "color", purpose: "A soft accent tint. Declared, and mapped by the Tailwind bridge, but no Jali style reads it yet." },
-  "--jali-brand": { group: "Accent", swatch: "color", purpose: "Nil for the mark (#2B3990 in light). Declared for hosts that draw the logo; no Jali style reads it." },
+  "--jali-accent-soft": { group: "Accent", swatch: "color", purpose: "A soft accent fill, for the host (the lab and the docs use it). Part of the palette and mapped by the Tailwind bridge; Jali's own styles mix their tints from the accent instead." },
+  "--jali-brand": { group: "Accent", swatch: "color", purpose: "Nil for the mark (#2B3990 in light), for a host that draws a logo. Part of the palette; Jali draws no mark." },
 
   "--jali-working": { group: "Status", swatch: "color", purpose: "A pane reporting \"working\": its activity dot and the shelf's spinning ring." },
   "--jali-blocked": { group: "Status", swatch: "color", purpose: "A pane reporting \"needs-you\": its activity dot and the shelf's \"!\" mark." },
   "--jali-failed": { group: "Status", swatch: "color", purpose: "A pane reporting \"error\": its activity dot and the shelf's cross." },
-  "--jali-done": { group: "Status", swatch: "color", purpose: "A finished state. Declared, but no Jali style reads it yet." },
+  "--jali-done": { group: "Status", swatch: "color", purpose: "A finished state, for the host's own status marks. Part of the palette; a pane's activity has no \"done\"." },
   "--jali-on-status": { group: "Status", swatch: "color", purpose: "The \"!\" and cross drawn on the shelf's status marks." },
 
   "--jali-opened-bg": { group: "Opened panes", swatch: "color", purpose: "In a curated page, the header of a pane opened while investigating (with the \"tint\" boundary setting), and the Investigating group in the page bar." },
@@ -59,12 +59,12 @@ export const TOKEN_PURPOSE: Record<string, TokenInfo> = {
   "--jali-shadow-dialog": { group: "Overlays and shadows", swatch: "shadow", purpose: "The palette, Settings and the discard dialog." },
   "--jali-shadow-menu": { group: "Overlays and shadows", swatch: "shadow", purpose: "The tab overflow menu and the shelf's menu." },
   "--jali-shadow-chip": { group: "Overlays and shadows", swatch: "shadow", purpose: "The drop label and a divider's size tip." },
-  "--jali-shadow-raised": { group: "Overlays and shadows", swatch: "shadow", purpose: "A slight lift. Declared, but no Jali style reads it yet." },
+  "--jali-shadow-raised": { group: "Overlays and shadows", swatch: "shadow", purpose: "A slight lift, for the host's raised controls (a pressed segment). Part of the palette; Jali's own surfaces use the stronger shadows." },
 
   "--jali-radius": { group: "Shape and type", swatch: "radius", purpose: "Corners of panes, the peek sheet, the drop indicator and the tab-preview outline." },
   "--jali-radius-control": { group: "Shape and type", swatch: "radius", purpose: "Corners of buttons, inputs, palette rows and the drag chip." },
   "--jali-radius-menu": { group: "Shape and type", swatch: "radius", purpose: "Corners of menus and the drop label." },
-  "--jali-font": { group: "Shape and type", swatch: "font", purpose: "The workspace's typeface. Declared and bridged, but Jali's styles don't set font-family from it: the workspace inherits the host's font." },
+  "--jali-font": { group: "Shape and type", swatch: "font", purpose: "The workspace's typeface: the workspace and its dialogs set font-family from it." },
   "--jali-font-mono": { group: "Shape and type", swatch: "font", purpose: "Monospace: the pane cap input in Settings." },
 
   "--jali-accent-weak": { group: "Derived", swatch: "color", purpose: "8% of the accent (14% in dark): the selected palette row, the active item in the phone's pane switcher, the tab-preview fill." },
@@ -91,12 +91,12 @@ const LIGHT = block(theme, ':where(:root, .light, [data-theme="light"])');
 const DARK = block(theme, ':where(.dark, [data-theme="dark"])');
 const PUBLIC = block(theme, ":where(:root, .light, .dark, [data-theme])");
 const SHAPE = block(theme, ":where(:root)");
-const DERIVED_LIGHT = block(theme, ":where(:root, [data-jali])");
-const DERIVED_DARK = block(theme, ':where(.dark, [data-theme="dark"]) :where([data-jali]),\n:where(.dark, [data-theme="dark"])');
+const DERIVED_LIGHT = block(theme, ":where(:root, [data-jali], .jali-scrim)");
+const DERIVED_DARK = block(theme, ':where(.dark, [data-theme="dark"]) :where([data-jali], .jali-scrim),\n:where(.dark, [data-theme="dark"])');
 
 /** Every public token a theme file declares (the --jali-default-* palette is internal). */
 export function publicTokensOf(css: string): string[] {
-  const all = [":where(:root, .light, .dark, [data-theme])", ":where(:root)", ":where(:root, [data-jali])"].flatMap((sel) => Object.keys(block(css, sel)));
+  const all = [":where(:root, .light, .dark, [data-theme])", ":where(:root)", ":where(:root, [data-jali], .jali-scrim)"].flatMap((sel) => Object.keys(block(css, sel)));
   return [...new Set(all)].filter((t) => t.startsWith("--jali-") && !t.startsWith("--jali-default-"));
 }
 export const PUBLIC_TOKENS: string[] = publicTokensOf(theme);

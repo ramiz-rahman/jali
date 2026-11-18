@@ -28,7 +28,7 @@ Framework adapters import `@jali/core/adapter`, which exports everything inside 
 
 Makes one workspace, ready to render: its state, the model derived from it, its actions and its keymap. Each workspace has its own; nothing is shared between two on one page.
 
-Before it returns, it reads the address (a layout link opens as it is, a curated page link opens the page, a link that can't be read opens the starting layout with an error toast), adds what is on screen to Recent, fits the layout to the room and focuses the first pane. It throws ``Jali: give the workspace a `layout` or `presets` to start from`` when it has neither.
+Before it returns, it reads the address (a layout link opens as it is, a curated page link opens the page, a link that can't be read opens the starting layout with an error toast), adds what is on screen to Recent, fits the layout to the room and focuses the first pane. A page-only app (a `page` with no `layout` and no `presets`) starts with its page open on `firstItem`, and "Open Workspace" is refused. It throws ``Jali: give the workspace a `layout`, `presets` or a `page` to start from`` when it has none of them.
 
 Its listeners (keys, Back and Forward, theme and saving) start with `workspace.start()`, which `<Jali>` calls while it is mounted.
 
@@ -54,10 +54,11 @@ The address.
 </Values>
 
 </Param>
-<Param name="storage" type="string | StoragePort" default={`"jali" in a browser, memory elsewhere`}>What this person keeps on this device: settings, pane state, a curated page's mode and layout, dragged sizes. A string is a `localStorage` prefix; or pass a port, such as `memoryStorage()`.</Param>
+<Param name="storage" type="string | StoragePort" default={`its id in a browser, memory elsewhere`}>What this person keeps on this device: settings, pane state, a curated page's mode and layout, dragged sizes. A string is a `localStorage` prefix; or pass a port, such as `memoryStorage()`. The default prefix is the workspace's `id` (`"jali"`), so two workspaces with their own ids keep their own.</Param>
 <Param name="id" type="string" default={`"jali"`}>Prefix for DOM ids (`jali-pane-orders`). Give each workspace on one page its own.</Param>
-<Param name="keys" type={`"page" | "workspace"`} default={`"page"`}>`"page"`: every key on the page. `"workspace"`: only keys pressed inside it, and keys with nothing focused while it was the last one used. Use `"workspace"` for two on one page.</Param>
+<Param name="keys" type={`"page" | "workspace"`} default={`"page"`}>`"page"`: every key on the page. `"workspace"`: only keys pressed inside it or in its dialogs (the palette, settings and the chooser render outside its root, so a ⌘K chord finishes there), and keys with nothing focused while it was the last one used. Use `"workspace"` for two on one page.</Param>
 <Param name="pageTheme" type="boolean" default="true">Set `data-theme` on `<html>` from the person's theme setting. `false` when the workspace sits in a page that has its own theme.</Param>
+<Param name="commands" type="readonly Command[]">Your own commands. They are listed in ⌘K after Jali's, and `keymap` can bind them like any other (`{ "orders.refresh": "Mod+K Mod+U" }`). If an id repeats one of Jali's, Jali's wins.</Param>
 <Param name="keymap" type="KeymapOverrides">Rebind or unbind commands: `{ "pane.zoom": "Mod+K Mod+Enter", "pane.close": null }`. A binding is refused (and reported) when it can't be parsed, is a single character key with no Mod, Ctrl or Alt (those belong to the content), or has more than two steps.</Param>
 <Param name="keymapOptions" type="KeymapOptions">`platform` (`"mac"` or `"other"`, for tests and the server) and `onInvalid(id, binding, reason)` (default `console.warn`).</Param>
 <Param name="size" type="{ width: number; height: number }">A fixed size instead of the window's, for tests and server rendering. `<Jali>` measures the real one once it renders.</Param>
@@ -307,6 +308,14 @@ Lets a list inside a pane keep its current item through the workspace, so the pa
 </Params>
 
 <Returns type="ActiveItemPort">`{ itemId, write(itemId, action) }`; `write` always returns `{ status: "accepted" }`.</Returns>
+
+</Entry>
+
+## Geometry
+
+<Entry name="GAP" kind="constant" from="@jali/core" signature={`const GAP: number`} compact>
+
+The gap between panes and the workspace's inset, in pixels (6). For measuring a workspace from outside: its usable area is its element's size minus `GAP * 2`.
 
 </Entry>
 

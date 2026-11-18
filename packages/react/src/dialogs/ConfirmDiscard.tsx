@@ -10,6 +10,7 @@ export function ConfirmDiscard() {
   const unsaved = useUi((s) => s.unsaved);
   const m = useModel();
   const store = useStore();
+  const id = store.dom.id;
   const keep = useRef<HTMLButtonElement>(null);
   useEffect(() => {
     if (confirm) keep.current?.focus();
@@ -23,14 +24,14 @@ export function ConfirmDiscard() {
         className="jali-confirm"
         role="alertdialog"
         aria-modal="true"
-        aria-labelledby="confirm-title"
-        aria-describedby="confirm-body"
+        aria-labelledby={`${id}-confirm-title`}
+        aria-describedby={`${id}-confirm-body`}
         onKeyDown={(e) => {
           if (e.key === "Escape") { e.stopPropagation(); stay(); }
         }}
       >
-        <h2 id="confirm-title">Discard unsaved changes?</h2>
-        <div id="confirm-body">
+        <h2 id={`${id}-confirm-title`}>Discard unsaved changes?</h2>
+        <div id={`${id}-confirm-body`}>
           <p>{one ? "This pane has work that is not saved. It will be lost." : "These panes have work that is not saved. It will be lost."}</p>
           <ul>
             {confirm.panes.map((id) => (

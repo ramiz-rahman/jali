@@ -11,6 +11,9 @@
  *     <MyTopBar />
  *     <JaliView />
  *   </Jali>
+ *
+ * Two things are the host's to render: the shelf (`<Shelf />`, tucked and folded panes as chips, usually in a status
+ * line) and toasts (`store.onToast`; closes and tucks offer Undo). Put a toaster in `overlays`.
  */
 import { useEffect, type HTMLAttributes, type ReactNode } from "react";
 import type { UiStore } from "@jali/core/adapter";
@@ -32,18 +35,23 @@ export interface JaliProps extends HTMLAttributes<HTMLDivElement> {
   overlays?: ReactNode;
   /** Include the settings panel (opened from ⌘K). Default true. */
   settings?: boolean;
+  /** Your own fieldsets, shown at the end of the settings panel (`<fieldset><legend>…</legend>…</fieldset>`). */
+  settingsExtra?: ReactNode;
 }
 
-export function Jali({ workspace, children = <JaliView />, overlays, settings = true, ...rest }: JaliProps) {
+export function Jali({ workspace, children = <JaliView />, overlays, settings = true, settingsExtra, ...rest }: JaliProps) {
   useEffect(() => workspace.start(), [workspace]);
   return (
     <StoreProvider store={workspace}>
       <div {...rest} data-jali="" ref={workspace.dom.attach}>{children}</div>
-      <Announcer />
-      <Palette />
-      {settings ? <SettingsPanel /> : null}
-      <Chooser />
-      <ConfirmDiscard />
+      {/* The dialogs render outside the root but are this workspace's: keys pressed in them count as its own. */}
+      <div data-jali-layer="" ref={workspace.dom.attachLayer} style={{ display: "contents" }}>
+        <Announcer />
+        <Palette />
+        {settings ? <SettingsPanel>{settingsExtra}</SettingsPanel> : null}
+        <Chooser />
+        <ConfirmDiscard />
+      </div>
       {overlays}
     </StoreProvider>
   );

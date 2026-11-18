@@ -1,6 +1,6 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore, type KeyboardEvent, type PointerEvent } from "react";
 import { FoldHorizontal, RotateCcw } from "lucide-react";
-import { layout as jl, type Layout, type UiStore } from "@jali/core/adapter";
+import { GAP as JALI_GAP, layout as jl, type Layout, type UiStore } from "@jali/core/adapter";
 import type { DemoLayoutId } from "./demo";
 import { demoLayouts } from "./demo";
 import { LiveWorkspace, resetLive, useLiveStore } from "./LiveWorkspace";
@@ -16,8 +16,6 @@ export interface FrameProps {
 }
 
 const STEP = 16, STEP_BIG = 64;
-/** The workspace inset: GAP in @jali/core (src/tokens.ts), which the package does not export. */
-const JALI_GAP = 6;
 
 /** A mark on the ruler: below this frame width, `folds` panes are folded (or one pane shows at a time). */
 interface Mark { width: number; folded: string[]; single: boolean }

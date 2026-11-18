@@ -7,20 +7,19 @@ export type Theme = "light" | "dark";
 export interface Settings {
   centreDrop: "swap" | "tab";
   paneCap: number;
-  showStats: boolean;
   theme: ThemeChoice;
   /** How a curated workspace marks the panes opened while investigating. */
   boundary: "tint" | "none";
 }
 
-export const DEFAULT_SETTINGS: Settings = { centreDrop: "swap", paneCap: 8, showStats: true, theme: "system", boundary: "tint" };
+export const DEFAULT_SETTINGS: Settings = { centreDrop: "swap", paneCap: 8, theme: "system", boundary: "tint" };
 const KEY = "settings";
 
-/** Saved settings over the defaults. Keys from older builds (the divider adapter) are dropped. */
+/** Saved settings over the defaults. Keys from older builds (the divider adapter, the lab's showStats) are dropped. */
 export function loadSettings(storage: StoragePort): Settings {
   try {
-    const saved = JSON.parse(storage.get(KEY) ?? "{}") as Partial<Settings> & { adapter?: unknown };
-    const { adapter: _dropped, ...known } = saved;
+    const saved = JSON.parse(storage.get(KEY) ?? "{}") as Partial<Settings> & { adapter?: unknown; showStats?: unknown };
+    const { adapter: _dropped, showStats: _lab, ...known } = saved;
     const s: Settings = { ...DEFAULT_SETTINGS, ...known };
     if (s.theme !== "light" && s.theme !== "dark") s.theme = "system";
     if (s.boundary !== "none") s.boundary = "tint";

@@ -18,7 +18,7 @@ function build(layout: Layout, ctx: LayoutContext): Projected {
   return root;
 }
 export function resolve(layout: Layout, view: ViewState, ctx: LayoutContext): ResolvedLayout {
-  checkContext(ctx);
+  ctx = checkContext(ctx);
   const { fit } = ctx;
   const root = build(layout, ctx);
   if (layout.overlay?.tucks.length) {

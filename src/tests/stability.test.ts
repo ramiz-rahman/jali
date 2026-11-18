@@ -33,9 +33,9 @@ describe("layout stability: a tab click never reshapes", () => {
     expect(shown()).toEqual(["application"]);
   });
 
-  it("Multiplexed: on screen focuses, off screen takes the place of the view in use, behind a tab is chosen there", () => {
+  it("Split view: on screen focuses, off screen takes the place of the view in use, behind a tab is chosen there", () => {
     store.actions.openPage({ item: 4, tab: "application" });
-    store.actions.setMode("multi");
+    store.actions.setMode("split");
     expect(shown()).toEqual(["application", "borrower", "history"]);
     still(() => store.actions.openTab("borrower"));
     expect(store.get().view.focused).toBe("borrower");
@@ -53,7 +53,7 @@ describe("layout stability: a tab click never reshapes", () => {
   it("a view behind another tab is chosen in its group, in place", () => {
     store.set({ area: { width: 1156, height: 400 } }); // too short for two stacked: history folds behind borrower
     store.actions.openPage({ item: 4, tab: "application" });
-    store.actions.setMode("multi");
+    store.actions.setMode("split");
     expect(store.model().folded).toContain("history");
     still(() => store.actions.openTab("history"));
     expect(shown()).toContain("history");
@@ -61,7 +61,7 @@ describe("layout stability: a tab click never reshapes", () => {
 
   it("deliberate gestures reshape, and are counted so panes can slide", () => {
     store.actions.openPage({ item: 4, tab: "application" });
-    store.actions.setMode("multi");
+    store.actions.setMode("split");
     const n = store.get().reshapes;
     store.actions.openTabBeside("group");
     expect(store.get().reshapes).toBe(n + 1);

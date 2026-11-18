@@ -24,7 +24,7 @@ When there is no room, or the pane cap is passed, what folds is decided now and 
 <Param name="target" type="string" required>The source pane's id. Throws `Unknown source pane` when it is not a pane.</Param>
 <Param name="edge" type={`"left" | "right" | "top" | "bottom"`} required>Which side of `target`.</Param>
 <Param name="ref" type="ObjectRef" required>What the new pane shows. Throws `Unknown pane kind` when its kind is not in `ctx.fit.kinds`.</Param>
-<Param name="ctx" type="LayoutContext" required>The room, the gap, the kinds and the pane cap: `workspace.ctx()`. Throws a `RangeError` for a negative or non-finite size or gap, or a cap that is not a positive integer.</Param>
+<Param name="ctx" type="LayoutContext" required>The room, the gap, the kinds and the pane cap: `workspace.ctx()`. A negative width or height counts as zero. Throws a `RangeError` for a non-finite size or gap, a negative gap, or a cap that is not a positive integer.</Param>
 <Param name="linked" type="boolean" required>Whether the new pane is linked to `target` (`linkedTo`). Closing the source drops the link.</Param>
 <Param name="place" type="{ target: string; edge: Edge }">Somewhere else to put it: a curated page keeps opened panes after its arrangement. Ignored when `place.target` is not in the layout.</Param>
 <Param name="opts" type="{ yields?: boolean; fromSelection?: boolean }" default="{}">`yields: false`: no supporting pane gives way for the new one; short of room, the new pane becomes a tab of its source. `fromSelection`: `ref` is the source's selected row, so the new pane follows the selection, or opens pinned when the source already has a follower of that kind.</Param>
@@ -166,7 +166,7 @@ The side of its home a tucked pane came from, read from the tree. Dragging the t
 
 Takes a pane off screen with no tab and no slot; its neighbours take the space. The tree keeps it, so `show` brings it back in its place and size. A tab is first lifted out beside its group. Tucks behind it, or its own, are dropped. Never the last pane on screen.
 
-<Returns type={`{ ok: true; layout; view } | { ok: false; reason: "missing" | "tab" | "hidden" | "last" }`}>`"hidden"`: it is hidden already. `"tab"` is in the type but not returned today.</Returns>
+<Returns type={`{ ok: true; layout; view } | { ok: false; reason: "missing" | "hidden" | "last" }`}>`"hidden"`: it is hidden already.</Returns>
 
 </Entry>
 

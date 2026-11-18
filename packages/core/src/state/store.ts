@@ -7,17 +7,19 @@ import * as core from "../layout";
 import type { Layout, LayoutContext, NodeId, ObjectRef, UndoEntry, ViewState } from "../layout/types";
 import type { PaneActivity, PaneCommand, PaneKinds } from "../pane-kinds";
 import { GAP, initialArea } from "../tokens";
+import { toLayout } from "../layout/build";
 import { bindActions, type Actions } from "../actions";
 import { apply, type Change, type Deferred, type HistoryMode, type Outcome, type Snapshot, type Toast } from "./apply";
 import { modelCache, type WorkspaceModel } from "./model";
 import { loadSettings, systemPrefersDark, type Settings } from "./settings";
 import { loadPrefs, type PagePrefs } from "./page-prefs";
-import { presetById, type Env, type Preset, type ViewMode, type ProfileBase } from "../profile";
+import { presetById, type Env, type ItemId, type Preset, type ViewMode, type ProfileBase } from "../profile";
 import { browserStorage, type StoragePort } from "../ports";
 import { focusPane } from "../dom/focus";
 import { loadPaneState } from "./pane-state";
 import { startUi } from "../boot";
 import { createKeymap, type Keymap, type KeymapOptions, type KeymapOverrides } from "../commands/keymap";
+import type { Command } from "../commands/registry";
 
 /** A drag in progress. `label` names a view dragged from a page's tabs, which may not be on screen. */
 export interface DndState { dragged: NodeId; x: number; y: number; target?: NodeId; zone?: import("../layout/types").Edge | "centre"; label?: string }
@@ -30,11 +32,11 @@ export interface ChooserState { kind: "merge"; source: NodeId }
 export interface PageState {
   /** The profile's id: what a link names (`?page=loan-review`). */
   profile: string;
-  item: number;
+  item: ItemId;
   mode: ViewMode;
-  /** The view Single mode shows (in Multiplexed, the last role focused). */
+  /** The view Single mode shows (in Split view, the last role focused). */
   tab: string;
-  /** The multiplexed layout just before the first opened pane: "Back to …" returns to it exactly. */
+  /** The split layout just before the first opened pane: "Back to …" returns to it exactly. */
   before?: Layout;
   /** Role permission: following a link opens an investigation pane (true) or only peeks (false). */
   canInvestigate: boolean;
@@ -47,7 +49,7 @@ export interface UiState {
   layout: Layout;
   /** Null in the free workspace, where the person builds the layout. */
   page: PageState | null;
-  /** The person's mode and multiplexed layout (while Multiplexed is on screen, the live layout is the truth). */
+  /** The person's mode and split layout (while Split view is on screen, the live layout is the truth). */
   prefs: PagePrefs;
   view: ViewState;
   /** The preset last chosen ("Reset layout" rebuilds it); undefined in a workspace without presets. */
@@ -100,7 +102,7 @@ export interface UiStoreDeps {
   /** Layouts to start from, in menu order (the bar and ⌘K "Layout: …"). Default: none. */
   presets?: readonly Preset[];
   /** The preset the workspace opens on, when no link or saved state says otherwise. Default: the first. A workspace
-   *  without presets passes `initial.layout` instead. */
+   *  without presets passes `initial.layout` instead, or a `profile` alone: it then starts on its page. */
   preset?: string;
   /** The free workspace's name ("Data Studio"), in commands such as "Open Data Studio". Default "Workspace". */
   name?: string;
@@ -118,13 +120,16 @@ export interface UiStoreDeps {
    *  root; `null` leaves DOM focus alone (a test, a workspace that is never shown). */
   focusPane?: ((scope: WorkspaceDom, id: NodeId) => void) | null;
   /** What this person keeps on this device: settings, a curated page's mode and layout. Default: localStorage
-   *  under "jali". */
+   *  under the store's `id` ("jali" by default), so each workspace keeps its own. */
   storage?: StoragePort;
   /** Prefix for this workspace's DOM ids. Give each workspace on one page its own. Default "jali". */
   id?: string;
   initial?: Partial<UiState>;
   /** A focus or swap op moved something (layout stability, state/apply.ts). Default: reported in development. */
   unstable?: (op: string, before: string, after: string) => void;
+  /** The host's own commands: listed in the palette after Jali's, and bindable in `keymap` like any other. Their ids
+   *  should not start with a Jali prefix (`pane.`, `layout.`, `page.`, `peek.`, `settings.`, `stack.`). */
+  commands?: readonly Command[];
   /** Rebind or unbind commands (commands/keymap.ts): `{ "pane.zoom": "Mod+K Mod+Enter", "pane.close": null }`. */
   keymap?: KeymapOverrides;
   /** The keymap's platform and how refused bindings are reported. */
@@ -171,17 +176,23 @@ export interface WorkspaceDom {
   /** The workspace's root element; the document until one is attached. */
   root(): ParentNode;
   attach(el: Element | null): void;
+  /** The element that holds this workspace's dialogs (palette, settings, confirmations), which render outside the
+   *  root; null until one is attached. Keys pressed there count as the workspace's. */
+  layer(): Element | null;
+  attachLayer(el: Element | null): void;
   /** The element with this workspace's pane id `id`, if rendered. */
   pane(id: NodeId): HTMLElement | null;
 }
 
 function createDom(id: string): WorkspaceDom {
-  let el: Element | null = null;
+  let el: Element | null = null, layer: Element | null = null;
   const root = (): ParentNode => el ?? document;
   return {
     id,
     root,
     attach: (next) => { el = next; },
+    layer: () => layer,
+    attachLayer: (next) => { layer = next; },
     pane: (pane) => (typeof document === "undefined" ? null : root().querySelector<HTMLElement>(`[id="${id}-pane-${pane}"]`)),
   };
 }
@@ -189,14 +200,17 @@ function createDom(id: string): WorkspaceDom {
 const DEV = !!(import.meta as unknown as { env?: { DEV?: boolean } }).env?.DEV;
 
 export function createUiStore(deps: UiStoreDeps): UiStore {
-  const env: Env = { kinds: deps.kinds, profile: deps.profile ?? null, presets: deps.presets ?? [], name: deps.name ?? "Workspace" };
+  const env: Env = { kinds: deps.kinds, profile: deps.profile ?? null, presets: deps.presets ?? [], commands: deps.commands ?? [], name: deps.name ?? "Workspace" };
   if (deps.launcher) env.launcher = deps.launcher;
   const focusOf = deps.focusPane === undefined ? (typeof document === "undefined" ? null : focusPane) : deps.focusPane;
   const dom = createDom(deps.id ?? "jali");
-  const storage = deps.storage ?? browserStorage("jali");
+  // The id is the prefix: two workspaces with their own ids never overwrite each other ("jali" stays "jali").
+  const storage = deps.storage ?? browserStorage(deps.id ?? "jali");
   const start = presetById(env, deps.preset);
-  const layout = deps.initial?.layout ?? start?.build();
-  if (!layout) throw new Error("Jali: give the workspace a `layout` or `presets` to start from");
+  // A page-only app (a page, no presets or layout) starts on its page.
+  const pageOnly = !deps.initial?.layout && !start && !!env.profile;
+  const layout = deps.initial?.layout ?? start?.build() ?? (env.profile ? toLayout(env.profile.build(env.profile.firstItem)) : undefined);
+  if (!layout) throw new Error("Jali: give the workspace a `layout`, `presets` or a `page` to start from");
   let state: UiState = {
     layout,
     page: null,
@@ -300,5 +314,6 @@ export function createUiStore(deps: UiStoreDeps): UiStore {
     unstable: deps.unstable ?? (DEV ? (op: string) => console.error(`Layout stability: "${op}" is a focus or swap op but moved panes`) : undefined),
   };
   store.actions = bindActions(store);
+  if (pageOnly && !deps.initial?.page) store.actions.openPage();
   return store;
 }

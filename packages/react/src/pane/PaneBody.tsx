@@ -1,4 +1,4 @@
-import { memo, useMemo } from "react";
+import { memo, useEffect, useMemo } from "react";
 import type { NodeId, ObjectRef, PaneNode, Actions, PaneActivity, PaneCommand, UiStore } from "@jali/core/adapter";
 import { keyHint } from "@jali/core/adapter";
 import type { PaneProps } from "../define";

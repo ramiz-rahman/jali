@@ -19,6 +19,9 @@ body.jali-pane-dragging .jali-pane.is-focused { border-color: var(--jali-border)
 .jali-pane-header {
   position: relative; flex: none; height: 2.5rem; display: flex; align-items: center; gap: 0.5rem;
   padding: 0 0.375rem 0 0.75rem; border-bottom: 1px solid var(--jali-border); user-select: none; cursor: default;
+  /* Narrow panes give the title room (below): the header is the container, so nothing inside it is a containing
+     block for fixed menus (they are portalled anyway). */
+  container: jali-header / inline-size;
 }
 .jali-grip {
   position: absolute; left: 50%; top: 0; transform: translateX(-50%); height: 0.75rem; width: 2.25rem;
@@ -42,6 +45,12 @@ body.jali-pane-dragging .jali-pane.is-focused { border-color: var(--jali-border)
 .jali-pane .jali-pane-actions .jali-icon-btn:disabled:hover { background: none; color: var(--jali-text-subtle); }
 .jali-pane:not(.is-focused):not(:hover) .jali-act-zoom,
 .jali-pane:not(.is-focused):not(:hover) .jali-act-tuck { opacity: 0; }
+/* A narrow pane's idle tuck and maximise take no room at all, so the title keeps it ("Order 12", not "Order 1…").
+   Wider panes keep the room, so hovering never shifts the title. */
+@container jali-header (max-width: 20rem) {
+  .jali-pane:not(.is-focused):not(:hover):not(:focus-within) .jali-act-zoom,
+  .jali-pane:not(.is-focused):not(:hover):not(:focus-within) .jali-act-tuck { display: none; }
+}
 
 .jali-pane-content { position: relative; flex: 1; min-height: 0; overflow: hidden; }
 .jali-pane-content-inner { position: absolute; inset: 0; overflow: auto; }
@@ -111,7 +120,7 @@ body.jali-pane-dragging .jali-pane.is-focused { border-color: var(--jali-border)
 .jali-tab-more:hover, .jali-tab-more[aria-expanded="true"] { background: var(--jali-hover); color: var(--jali-text); }
 .jali-tab-more:focus-visible, .jali-tab-menu-item:focus-visible { outline: 2px solid var(--jali-focus-ring); outline-offset: 1px; }
 .jali-tab-menu {
-  position: fixed; z-index: 60; width: 17.5rem; max-height: min(22.5rem, 60vh); overflow: auto; padding: 0.25rem; background: var(--jali-surface);
+  position: fixed; z-index: 60; width: 17.5rem; max-height: min(22.5rem, 60vh); overflow: auto; padding: 0.25rem; background: var(--jali-surface-raised);
   border: 1px solid var(--jali-border-strong); border-radius: var(--jali-radius-menu); box-shadow: var(--jali-shadow-menu); font-size: 0.75rem;
 }
 .jali-tab-menu-item { all: unset; box-sizing: border-box; display: flex; align-items: center; gap: 0.5rem; width: 100%; height: 1.875rem; padding: 0 0.5rem 0 0.25rem; border-radius: 5px; cursor: pointer; color: var(--jali-text); }

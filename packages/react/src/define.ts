@@ -14,7 +14,7 @@
 import type { ComponentType } from "react";
 import type {
   ObjectRef, PaneDefinition, PaneKindBase, PaneKinds, PaneNode, PaneOptions, Params, ParamsOf, ParamTypes, Env,
-  ProfileBase, RoleBase,
+  ProfileBase, RoleBase, ItemId,
 } from "@jali/core/adapter";
 import { defineKind } from "@jali/core/adapter";
 
@@ -77,14 +77,19 @@ export interface PageView extends RoleBase {
   icon: IconComponent;
 }
 
-/** A curated page: one item at a time, with a list beside it (the rail) and the item's header above its tabs. */
-export interface Page extends ProfileBase<PageView> {
-  Rail: ComponentType<{ item: number; activate: (item: number) => void }>;
-  Header: ComponentType<{ item: number }>;
+/** A curated page: one item at a time, with a list beside it (the rail) and the item's header above its tabs. `I` is
+ *  the item id's type (`number` or `string`), as in `firstItem`. */
+export interface Page<I extends ItemId = any> extends ProfileBase<PageView, I> {
+  Rail: ComponentType<{ item: I; activate: (item: I) => void }>;
+  Header: ComponentType<{ item: I }>;
 }
 
 /** Gives a curated page its type: `definePage({ id, name, roles, ... })`. */
-export const definePage = (page: Page): Page => page;
+export function definePage(page: Page<number>): Page<number>;
+export function definePage(page: Page<string>): Page<string>;
+export function definePage(page: Page): Page {
+  return page;
+}
 
 /** The env as a React workspace sees it: its kinds have components, its page a rail and header. */
 export interface ReactEnv extends Env {

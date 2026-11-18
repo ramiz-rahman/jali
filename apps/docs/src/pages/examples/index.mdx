@@ -16,12 +16,13 @@ pnpm example:minimal
 It serves on [localhost:5310](http://localhost:5310). It shows:
 
 - one pane kind, a note, defined with `definePane`, with typed params, a title and a component;
-- a starting layout of two notes side by side, given as a preset;
+- a starting layout of two notes side by side, built with `row`;
 - a button in each note that opens the next note beside it, with `openBeside`;
+- a launcher, so Split (⌘\\) and a stack's "+" open a pane to choose a note in;
 - the layout kept in the address, the default, so reloading and Back and Forward work;
-- the default theme from `@jali/react/styles.css`, and the workspace filling the window.
+- the default theme from `@jali/react/styles.css`, with the layer order declared in `index.html` before any stylesheet, and the workspace filling the window.
 
-The whole app is one file, `examples/minimal/src/main.tsx`. Start here, then read [Define a pane kind](/guides/pane-kinds) to add your own.
+The app is one file, `examples/minimal/src/main.tsx`, with a few lines of CSS. Start here, then read [Define a pane kind](/guides/pane-kinds) to add your own.
 
 ## The lab: Data Studio and Loan review
 
@@ -50,7 +51,7 @@ A database browser where the person builds the layout. It shows:
 A curated page: a credit reviewer works through a queue of loan applications, one page per application. It shows:
 
 - a profile: the queue at the left, the application's header, and tabs for its views (Overview, Application, Borrower, Loan history, Group, Field officer);
-- Single mode, one view at a time with links opening as a peek, and Multiplexed mode, the views side by side in a designed layout the person can rearrange;
+- Single mode, one view at a time with links opening as a peek, and Split view, the views side by side in a designed layout the person can rearrange;
 - following a link from a view, which opens a pane after the layout, and "Back to Loan review" to return;
 - two kinds of viewer, a credit reviewer with full access and a loan officer who stays in Single;
 - a link that carries only the content (`?page=loan-review&item=4&tab=application`), while the mode and arrangement stay the person's own.

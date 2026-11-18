@@ -119,7 +119,7 @@ function CustomerPane({ params, openBeside, select }: PaneProps<{ id: number }>)
         <div><dt>Spent</dt><dd>{money(mine.reduce((t, o) => t + totalOf(o), 0))}</dd></div>
       </dl>
       <button type="button" className="live-k-link" onClick={() => openBeside(notesRef(c.id))}>
-        <StickyNote size={13} strokeWidth={1.75} aria-hidden /> {(notes[c.id] ?? []).length} notes
+        <StickyNote size={13} strokeWidth={1.75} aria-hidden /> {(notes[c.id] ?? []).length} {(notes[c.id] ?? []).length === 1 ? "note" : "notes"}
       </button>
     </div>
   );

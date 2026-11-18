@@ -54,7 +54,7 @@ export function Facts({ rows, cols }: { rows: (Fact | null | false)[]; cols?: 1 
   );
 }
 
-/** How a link is followed here: a peek in Single (and for roles that only peek), beside in Multiplexed. */
+/** How a link is followed here: a peek in Single (and for roles that only peek), beside in Split view. */
 function useLinkVerb() {
   return useWorkspaceState((s) => (s.page && (s.page.mode === "single" || !s.page.canInvestigate) ? "peek" : "beside"));
 }

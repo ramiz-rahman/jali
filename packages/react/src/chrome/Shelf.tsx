@@ -16,7 +16,7 @@ function label(m: WorkspaceModel, it: ShelfEntry, a: PaneActivity | undefined) {
   return { node, title, home, folded, state: shelfActivity(a)?.state ?? "idle", full: `${title}${word ? `, ${word}` : ""}, ${folded ? "folded" : `behind ${home}`}` };
 }
 
-/** The shelf: tucked panes by home, on the left of the status line. Renders nothing unless something is tucked. */
+/** The shelf: tucked and folded panes, as chips by home. Renders nothing unless something is tucked or folded. */
 const FOLDED_CHIPS = 3;
 const SUMMARY = "folded-summary";
 

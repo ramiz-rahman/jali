@@ -1,6 +1,6 @@
 /**
  * Every sentence the workspace says: live-region announcements, refusals, toasts and drop outcomes. Logic passes
- * titles in; nothing else in src/ui writes announcement English.
+ * titles in; nothing else in @jali/core writes announcement English.
  */
 import type { Edge } from "../layout/types";
 
@@ -21,6 +21,7 @@ export const msg = {
       ? `New pane opened as a tab: not enough room beside ${source}. Choose what to show`
       : `New pane ${dir === "right" ? "right of" : "below"} ${source}. Choose what to show`,
   alreadyOpen: (t: string) => `Already open: focused ${t}`,
+  alreadyOpenBeside: (t: string) => `Already open: ${t}`,
   opened: (t: string) => `${t} opened`,
   newTab: (source: string) => `New tab beside ${source}. Choose what to show`,
   launcherClosed: (focus: string) => `New pane closed. Focus is on ${focus}`,
@@ -87,12 +88,12 @@ export const msg = {
   centreDrop: (mode: "swap" | "tab") => `Centre drop: ${mode === "swap" ? "swap" : "add as tab"}`,
 
   // curated pages (loan review)
-  pageOpened: (name: string, mode: "single" | "multi") => `${name} · ${mode === "single" ? "Single: one view at a time" : "Multiplexed: views side by side"}`,
-  modeSingle: (t: string) => `Single: showing ${t}. Your multiplexed layout is kept.`,
-  modeMulti: "Multiplexed: drag tabs into the layout to see views side by side",
+  pageOpened: (name: string, mode: "single" | "split") => `${name} · ${mode === "single" ? "Single view: one view at a time" : "Split view: views side by side"}`,
+  modeSingle: (t: string) => `Single: showing ${t}. Your split layout is kept.`,
+  modeSplit: "Split view: drag tabs into the layout to see views side by side",
   viewing: (t: string) => `Showing ${t}`,
   pageReset: "Layout reset to its design",
-  activated: (noun: string, id: number, dropped: number) => `Showing ${noun} ${id}${dropped ? ` · ${dropped} opened ${dropped === 1 ? "pane" : "panes"} closed` : ""}`,
+  activated: (noun: string, id: string | number, dropped: number) => `Showing ${noun} ${id}${dropped ? ` · ${dropped} opened ${dropped === 1 ? "pane" : "panes"} closed` : ""}`,
   roleHidden: (t: string) => `${t} closed · it's still in the tabs`,
   roleShown: (t: string) => `${t} on screen`,
   lastView: (t: string) => `${t} is the only view on screen`,
@@ -102,11 +103,11 @@ export const msg = {
   alreadyView: (t: string) => `${t} is already a view on this page`,
   notInvestigating: "Nothing opened beyond the page",
   backToPage: (name: string, n: number) => `Back to ${name} · ${n} opened ${n === 1 ? "pane" : "panes"} closed · Undo available`,
-  permission: (who: string, can: boolean) => (can ? `Viewing as ${who}: Multiplexed available, links open beside` : `Viewing as ${who}: Single only, links open as a peek`),
-  singleNoLayout: "Single shows one view: choose it from the tabs. Switch to Multiplexed to arrange views",
+  permission: (who: string, can: boolean) => (can ? `Viewing as ${who}: Split view available, links open beside` : `Viewing as ${who}: Single only, links open as a peek`),
+  singleNoLayout: "Single shows one view: choose it from the tabs. Switch to Split view to arrange views",
   singleOnly: "Your role works in Single: one view at a time",
   peekOnly: (t: string) => `Peek: ${t} · your role opens links as a peek`,
-  peekSingle: (t: string) => `Peek: ${t} · switch to Multiplexed to open links beside`,
+  peekSingle: (t: string) => `Peek: ${t} · switch to Split view to open links beside`,
 
   // what the workspace did on its own
   singleOn: "Single view: one pane at a time. Use the pane switcher at the top.",

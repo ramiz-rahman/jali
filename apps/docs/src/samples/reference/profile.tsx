@@ -22,7 +22,7 @@ export const loanReview = definePage({
     borrower: borrower({ application: item }),
     documents: documents({ application: item }),
   }),
-  // Multiplexed mode's designed layout. A view's pane has the view's id as its id and its role.
+  // Split view's designed layout. A view's pane has the view's id as its id and its role.
   build: (item) => row(
     pane(borrower({ application: item }), { id: "borrower", role: "borrower", priority: "primary" }),
     pane(documents({ application: item }), { id: "documents", role: "documents", priority: "supporting" }),

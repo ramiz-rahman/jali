@@ -1,6 +1,6 @@
 /**
  * The loan-review record views: one designed view per table (application, member, group, field officer, loan), each in
- * plain words. Related records are links that open with the pane's own action: a peek in Single, beside in Multiplexed.
+ * plain words. Related records are links that open with the pane's own action: a peek in Single, beside in Split view.
  */
 import { Briefcase, FileText, History, Phone, UserRound, UsersRound } from "lucide-react";
 import type { PaneProps } from "@jali/react";
@@ -183,7 +183,7 @@ function GroupView({ row: g, open, paused }: ViewProps) {
   const officer = useRecord("field_officers", String(g.field_officer_id), { paused }).data;
   const { members, loans, standing: s } = useGroupStanding(g, paused);
   const latest = loans ? latestLoans(loans) : undefined;
-  const applicant = useWorkspaceState((x) => (x.page ? applicationFacts(x.page.item).member : undefined));
+  const applicant = useWorkspaceState((x) => (x.page ? applicationFacts(Number(x.page.item)).member : undefined));
   const apps = useCount("loan_applications", { group_id: n(g.id) }, paused);
   return (
     <View label="Group">

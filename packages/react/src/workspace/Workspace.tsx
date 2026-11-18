@@ -28,6 +28,26 @@ function useMeasure(store: UiStore) {
   return ref;
 }
 
+/** Whether the person was last in this workspace (focus or a press inside its root or its dialogs), not elsewhere on
+ *  the page. Starts false: mounting a workspace is not the person going there. */
+function useEngaged(store: UiStore) {
+  const engaged = useRef(false);
+  useEffect(() => {
+    const on = (e: Event) => {
+      const t = e.target as Node | null;
+      const root = store.dom.root();
+      engaged.current = !!t && ((root !== document && root.contains(t)) || !!store.dom.layer()?.contains(t));
+    };
+    document.addEventListener("focusin", on, true);
+    document.addEventListener("pointerdown", on, true);
+    return () => {
+      document.removeEventListener("focusin", on, true);
+      document.removeEventListener("pointerdown", on, true);
+    };
+  }, [store]);
+  return engaged;
+}
+
 /** Says which panes folded into tabs, or unfolded, when the room changed (not in single view, where nothing tiles).
  *  Only a change of room: an action that folds says so itself, in its own words. */
 function useFoldAnnouncements(store: UiStore, m: WorkspaceModel, area: { width: number; height: number }) {
@@ -117,8 +137,10 @@ export function Panes() {
   const measured = area.width > 0;
   useSingleView(store, m, view, measured);
   useFoldAnnouncements(store, m, area);
-  // Keep DOM focus on the focused pane after structural changes (focus is never lost).
-  useEffect(() => keepPaneFocus(store.dom, view.focused), [view.focused, m.layout]);
+  // Keep DOM focus on the focused pane after structural changes (focus is never lost), but only once the person has
+  // been in this workspace: mounting one, or a change while they are elsewhere on the page, leaves their place alone.
+  const engaged = useEngaged(store);
+  useEffect(() => keepPaneFocus(store.dom, view.focused, { fromBody: engaged.current }), [view.focused, m.layout]);
 
   const single = m.single;
   // A curated page in Single mode shows one view under its tabs: the tabs name it, so the pane has no header.

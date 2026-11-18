@@ -16,21 +16,26 @@ export type {
   PaneOptions, PaneWidth, PaneHeight, PaneDefinition, PaneKindBase, PaneKinds, PaneCommand, PaneActivity, Params,
   ParamValue, ParamType, ParamTypes, ParamsOf,
 } from "./pane-kinds";
-export type { RoleBase, ProfileBase, ViewMode, Preset, Env } from "./profile";
+export type { RoleBase, ProfileBase, ViewMode, Preset, Env, ItemId } from "./profile";
 
 // ---------- the layout tree (pure: every operation returns a new layout) ----------
 export type {
   Axis, Edge, Size, NodeId, ObjectRef, Layout, LayoutNode, PaneNode, SplitNode, StackNode, Overlay, ViewState, Rect,
-  ResolvedLayout, PaneBox, DividerBox, PaneKind, KindRegistry, LayoutContext, FitOptions,
+  ResolvedLayout, ResolvedStack, PaneBox, DividerBox, PaneKind, KindRegistry, LayoutContext, FitOptions, ShelfEntry,
+  UndoEntry,
 } from "./layout/types";
 export * as layout from "./layout";
 export { sameRef } from "./actions/follow";
 
 // ---------- the workspace's state ----------
-export type { UiState as WorkspaceState, PageState, Selection, WorkspaceDom, UrlWriter } from "./state/store";
+export type {
+  UiState as WorkspaceState, PageState, Selection, WorkspaceDom, UrlWriter, DndState, ConfirmState, ChooserState,
+} from "./state/store";
 export type { Actions } from "./actions";
-export type { WorkspaceModel } from "./state/model";
-export type { Snapshot, Outcome, Refusal, Toast, HistoryMode } from "./state/apply";
+export type { OpenPage } from "./actions/page";
+export type { PagePrefs } from "./state/page-prefs";
+export type { WorkspaceModel, Group } from "./state/model";
+export type { Snapshot, Outcome, Change, Refusal, Toast, HistoryMode } from "./state/apply";
 export type { Settings, ThemeChoice, Theme } from "./state/settings";
 
 // ---------- the address and what a person keeps ----------
@@ -43,7 +48,11 @@ export {
 // ---------- commands and keys ----------
 export { commandsOf, runCommand, copyLink, type Command } from "./commands/registry";
 export { DEFAULT_KEYMAP, type Keymap, type KeymapOverrides, type KeymapOptions, type DefaultKeymapId, type KeyString } from "./commands/keymap";
-export { keyHint, formatKeys, type Platform } from "./commands/format";
+export { keyHint, formatKeys, type Platform, type Chord, type KeySequence } from "./commands/format";
+
+// ---------- geometry ----------
+/** The gap between panes and the workspace's inset, in px: for a host that measures around a workspace. */
+export { GAP } from "./tokens";
 
 // ---------- contracts with other libraries ----------
 export type { ActiveItemPort, ActiveItemAction, ActiveItemWriteResult } from "./contracts/active-item";

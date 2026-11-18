@@ -39,7 +39,7 @@
 .live-sr { position: absolute; width: 1px; height: 1px; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 
 /* ---------- the workspace in its box ---------- */
-.live-ws { position: relative; overflow: hidden; background: var(--jali-canvas); --switcher-h: 44px; }
+.live-ws { position: relative; overflow: hidden; background: var(--jali-canvas); }
 .live-jali { display: flex; flex-direction: column; height: 100%; min-height: 0; font-family: var(--jali-font); font-size: 0.875rem; line-height: 1.4; }
 .live-jali > .jali-workspace { flex: 1 1 0; }
 .live-statusbar {
@@ -436,33 +436,33 @@ body.live-frame-resizing, body.live-frame-resizing * { cursor: ew-resize !import
 }
 }
 @layer live {
-/* ---------- Collapsed (a hero): the workspace takes the figure; the tree slides in over it ---------- */
-.live-tv[data-parts="1"] .live-tv-grid { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto; }
-.live-tv-bar {
-  display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; min-height: 3rem; padding: 0.375rem 0.5rem 0.375rem 1rem;
-  border-bottom: 1px solid var(--jali-border); background: var(--jali-surface);
+/* ---------- Side (a hero): the workspace, and one panel beside it with the map, the JSON or both ---------- */
+.live-tv[data-parts="side"] .live-tv-grid { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto; }
+.live-tv[data-parts="side"] .live-stage { position: relative; }
+.live-side { min-height: 0; }
+.live-side .live-panel-head { min-height: 2.75rem; }
+.live-side-body { flex: 1; min-height: 0; display: flex; flex-direction: column; max-height: 34rem; }
+.live-side-body > .live-panel-body { flex: 1 1 0; min-height: 12rem; }
+.live-side-body[data-view="both"] > .live-panel-body + .live-panel-body { border-top: 1px solid var(--jali-border); }
+@container live-fig (min-width: 56rem) {
+  .live-tv[data-parts="side"]:not([data-side="closed"]) .live-tv-grid { grid-template-columns: minmax(38rem, 2.1fr) minmax(17rem, 1fr); grid-template-rows: var(--live-ws-h); }
+  .live-tv[data-parts="side"] .live-tv-grid { grid-template-rows: var(--live-ws-h); }
+  .live-side { border-top: 0; border-left: 1px solid var(--jali-border); }
+  .live-side-body { max-height: none; }
 }
-.live-tv-bar-label { display: inline-flex; align-items: center; gap: 0.5rem; font-size: 0.875rem; font-weight: 600; color: var(--jali-text); }
-.live-tv-live { width: 0.5rem; height: 0.5rem; border-radius: 50%; background: var(--jali-done); box-shadow: 0 0 0 3px color-mix(in srgb, var(--jali-done) 22%, transparent); }
-.live-tv-bar-tools { display: inline-flex; align-items: center; gap: 0.375rem; }
-.live-reveal {
-  display: inline-flex; align-items: center; gap: 0.4375rem; height: 2rem; padding: 0 0.75rem; border-radius: 0.5rem;
-  border: 1px solid var(--jali-border-strong); background: var(--jali-surface); color: var(--jali-text);
-  font: 500 0.875rem/1 var(--jali-font); cursor: pointer; white-space: nowrap;
+@container live-panel (min-width: 40rem) {
+  .live-side-body[data-view="both"] { flex-direction: row; }
+  .live-side-body[data-view="both"] > .live-panel-body + .live-panel-body { border-top: 0; border-left: 1px solid var(--jali-border); }
 }
-.live-reveal svg { color: var(--jali-accent); }
-.live-reveal:hover { border-color: var(--jali-control); }
-.live-reveal[aria-expanded="true"] { background: var(--jali-accent-weak); border-color: var(--jali-accent-mid); color: var(--jali-accent); }
-.live-reveal:focus-visible { outline: 2px solid var(--jali-focus-ring); outline-offset: 1px; }
-.live-tv[data-parts="1"] .live-stage { overflow: hidden; }
-.live-drawer {
-  position: absolute; top: 0; right: 0; bottom: 0; z-index: 45; display: flex; width: min(30rem, 44%);
-  background: var(--jali-surface); border-left: 1px solid var(--jali-border); box-shadow: -16px 0 40px -12px rgba(24, 24, 27, 0.18);
-  transform: translateX(calc(100% + 48px)); visibility: hidden;
-  transition: transform 280ms cubic-bezier(0.2, 0, 0, 1), visibility 0s linear 280ms;
+/* Brings the closed panel back: a tab on the workspace's right edge. */
+.live-edge-tab {
+  position: absolute; right: 0; top: 50%; z-index: 40; transform: translateY(-50%);
+  display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.875rem 0.4375rem; writing-mode: vertical-rl;
+  border: 1px solid var(--jali-border-strong); border-right: 0; border-radius: 0.625rem 0 0 0.625rem;
+  background: var(--jali-surface); color: var(--jali-text); box-shadow: var(--jali-shadow-menu);
+  font: 500 0.8125rem/1 var(--jali-font); cursor: pointer;
 }
-.live-drawer[data-open] { transform: none; visibility: visible; transition: transform 280ms cubic-bezier(0.2, 0, 0, 1), visibility 0s; }
-.live-drawer > .live-panel { flex: 1; border: 0; min-width: 0; }
-@container live-fig (max-width: 40rem) { .live-drawer { width: 100%; } .live-tv-bar-label { display: none; } .live-tv-bar { justify-content: flex-end; } }
-@media (prefers-reduced-motion: reduce) { .live-drawer, .live-drawer[data-open] { transition: none; } }
+.live-edge-tab svg { color: var(--jali-accent); transform: rotate(90deg); }
+.live-edge-tab:hover { color: var(--jali-accent); }
+.live-edge-tab:focus-visible { outline: 2px solid var(--jali-focus-ring); outline-offset: 2px; }
 }

@@ -3,7 +3,7 @@
 .jali-scrim { position: fixed; inset: 0; z-index: 100; background: var(--jali-scrim); display: grid; justify-items: center; align-items: start; padding-top: 12vh; }
 .jali-scrim-light { background: var(--jali-scrim-light); }
 .jali-palette {
-  width: min(40rem, calc(100vw - 2rem)); background: var(--jali-surface); border: 1px solid var(--jali-border);
+  width: min(40rem, calc(100vw - 2rem)); background: var(--jali-surface-raised); border: 1px solid var(--jali-border);
   border-radius: 12px; box-shadow: var(--jali-shadow-dialog); overflow: hidden;
 }
 .jali-palette-input { width: 100%; background: transparent; color: var(--jali-text); height: 3rem; padding: 0 1rem; border: 0; border-bottom: 1px solid var(--jali-border); font: inherit; font-size: 0.875rem; outline: none; }
@@ -22,7 +22,7 @@
 .jali-chooser-icon { display: grid; place-items: center; color: var(--jali-text-subtle); }
 
 .jali-settings {
-  width: min(26.25rem, calc(100vw - 2rem)); background: var(--jali-surface); border: 1px solid var(--jali-border);
+  width: min(26.25rem, calc(100vw - 2rem)); background: var(--jali-surface-raised); border: 1px solid var(--jali-border);
   border-radius: 12px; box-shadow: var(--jali-shadow-dialog); padding: 0.25rem 1rem 1rem;
 }
 .jali-settings header { display: flex; align-items: center; justify-content: space-between; height: 2.75rem; }
@@ -43,7 +43,7 @@
 
 /* "Discard unsaved changes?" */
 .jali-confirm {
-  width: min(26.25rem, calc(100vw - 2rem)); background: var(--jali-surface); border: 1px solid var(--jali-border);
+  width: min(26.25rem, calc(100vw - 2rem)); background: var(--jali-surface-raised); border: 1px solid var(--jali-border);
   border-radius: 12px; box-shadow: var(--jali-shadow-dialog); padding: 1rem;
 }
 .jali-confirm h2 { font-size: 0.875rem; font-weight: 600; margin: 0 0 0.5rem; }

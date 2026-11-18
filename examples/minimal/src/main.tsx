@@ -2,7 +2,8 @@
 import { createRoot } from "react-dom/client";
 import { createWorkspace, row } from "@jali/core";
 import { Jali, definePane } from "@jali/react";
-// The layer order comes first (app.css), then Jali's styles, then its faces: Atkinson Hyperlegible Next and Mono.
+// The layer order is declared in index.html. Then the app's styles, Jali's, and its faces: Atkinson Hyperlegible
+// Next and Mono.
 import "./app.css";
 import "@jali/react/styles.css";
 import "@fontsource/atkinson-hyperlegible-next/latin-400.css";
@@ -22,9 +23,25 @@ const note = definePane("note", {
   ),
 });
 
-// A workspace: its kinds of pane, and the layout it opens on (two notes side by side).
+// What Split (⌘\) and a stack's "+" open until the person chooses what to show. Without a launcher, those
+// commands are simply not offered.
+const launcher = definePane("launcher", {
+  title: "New pane",
+  scratch: true,
+  Component: ({ openHere }) => (
+    <nav className="note" aria-label="Open a note">
+      <h3>Open a note</h3>
+      {[1, 2, 3, 4, 5].map((id) => (
+        <button key={id} onClick={() => openHere(note({ id }))}>Note {id}</button>
+      ))}
+    </nav>
+  ),
+});
+
+// A workspace: its kinds of pane, the launcher, and the layout it opens on (two notes side by side).
 const workspace = createWorkspace({
   panes: [note],
+  launcher,
   layout: row(note({ id: 1 }), note({ id: 2 })),
 });
 

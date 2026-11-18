@@ -2,12 +2,12 @@ import { test, expect, type Lab } from "./fixtures/lab";
 import type { Page } from "@playwright/test";
 
 /**
- * The curated loan review: a queue, the application's header and its tabs. Single (default) shows one view; Multiplexed
- * lets the tabs be dragged into split layouts. Links peek in Single and open beside in Multiplexed.
+ * The curated loan review: a queue, the application's header and its tabs. Single (default) shows one view; Split view
+ * lets the tabs be dragged into split layouts. Links peek in Single and open beside in Split view.
  */
 const at = (tab: string, item = 4) => `/?app=review&item=${item}&tab=${tab}`;
 const pageTab = (page: Page, name: string) => page.getByRole("tablist", { name: "Loan review views" }).getByRole("tab", { name, exact: true });
-const mode = (page: Page, name: "Single" | "Multiplexed") => page.getByRole("radiogroup", { name: "View mode" }).getByRole("radio", { name });
+const mode = (page: Page, name: "Single" | "Split view") => page.getByRole("radiogroup", { name: "View mode" }).getByRole("radio", { name });
 const investigation = (page: Page) => page.getByRole("group", { name: "Investigation" });
 const opened = (page: Page) => page.locator('section[data-origin="opened"]');
 const groupLink = (lab: Lab, from: string) => lab.pane(from).locator('button[data-ref="lending_groups 5"]');
@@ -68,11 +68,11 @@ test.describe("Loan review: Single (default)", () => {
   });
 });
 
-test.describe("Loan review: Multiplexed", () => {
+test.describe("Loan review: Split view", () => {
   test("starts from Overview's sections as panes; Single and back restores the exact layout", async ({ lab, page }) => {
     await lab.open({ path: at("application"), size: { width: 1440, height: 900 } });
     await pageTab(page, "Overview").click();
-    await mode(page, "Multiplexed").click();
+    await mode(page, "Split view").click();
     expect(await lab.visibleIds()).toEqual(["application", "borrower", "history"]);
     await expect(pageTab(page, "Application")).toHaveAttribute("data-state", "focused");
     await expect(pageTab(page, "Borrower")).toHaveAttribute("data-state", "shown");
@@ -81,7 +81,7 @@ test.describe("Loan review: Multiplexed", () => {
     const rects = await lab.snap();
     await mode(page, "Single").click();
     expect(await lab.visibleIds()).toEqual(["application"]);
-    await mode(page, "Multiplexed").click();
+    await mode(page, "Split view").click();
     expect(await lab.snap()).toEqual(rects);
   });
 
@@ -89,7 +89,7 @@ test.describe("Loan review: Multiplexed", () => {
     const breaches: string[] = [];
     page.on("console", (m) => m.text().startsWith("Layout stability") && breaches.push(m.text()));
     await lab.open({ path: at("application"), size: { width: 1440, height: 900 } });
-    await mode(page, "Multiplexed").click();
+    await mode(page, "Split view").click();
     const rects = async () => (await page.locator("section[data-pane]:visible").evaluateAll((els) => els.map((e) => { const r = e.getBoundingClientRect(); return `${r.x},${r.y},${r.width},${r.height}`; }))).sort();
     const tabsAt = () => page.locator(".jali-page-tab").evaluateAll((els) => els.map((e) => e.getBoundingClientRect().x));
     const before = await rects(), tabs = await tabsAt();
@@ -109,7 +109,7 @@ test.describe("Loan review: Multiplexed", () => {
 
   test("drag a tab to place that view; close it and it goes back to the tabs; ⌥-click opens beside", async ({ lab, page }) => {
     await lab.open({ path: at("application"), size: { width: 1440, height: 900 } });
-    await mode(page, "Multiplexed").click();
+    await mode(page, "Split view").click();
     await dragTab(page, "Group", await rightEdge(lab, "application"));
     expect(await lab.visibleIds()).toEqual(["application", "group", "borrower", "history"]);
     await expect(pageTab(page, "Group")).toHaveAttribute("data-state", "focused");
@@ -126,7 +126,7 @@ test.describe("Loan review: Multiplexed", () => {
 
   test("a view dropped in a pane's centre joins it as a tab: both views are listed, neither replaced", async ({ lab, page }) => {
     await lab.open({ path: at("application"), size: { width: 1440, height: 900 } });
-    await mode(page, "Multiplexed").click();
+    await mode(page, "Split view").click();
     const to = (await lab.pane("application").boundingBox())!;
     await dragTab(page, "Field officer", { x: to.x + to.width / 2, y: to.y + to.height / 2 });
     const strip = lab.pane("officer").getByRole("tablist");
@@ -138,7 +138,7 @@ test.describe("Loan review: Multiplexed", () => {
 
   test("dragging a tab across the panes selects no text in them", async ({ lab, page }) => {
     await lab.open({ path: at("application"), size: { width: 1440, height: 900 } });
-    await mode(page, "Multiplexed").click();
+    await mode(page, "Split view").click();
     const selected = () => page.evaluate(() => window.getSelection()?.toString() ?? "");
     const b = (await pageTab(page, "Field officer").boundingBox())!;
     const to = (await lab.pane("application").boundingBox())!;
@@ -153,7 +153,7 @@ test.describe("Loan review: Multiplexed", () => {
 
   test("a tab dragged onto the focused view rings only the drop, not the view's focus too", async ({ lab, page }) => {
     await lab.open({ path: at("application"), size: { width: 1440, height: 900 } });
-    await mode(page, "Multiplexed").click();
+    await mode(page, "Split view").click();
     await lab.pane("application").click();
     await expect(lab.pane("application")).toHaveClass(/is-focused/);
     const b = (await pageTab(page, "Group").boundingBox())!;
@@ -169,10 +169,10 @@ test.describe("Loan review: Multiplexed", () => {
     await page.mouse.up();
   });
 
-  test("dragging a tab out of Single switches to Multiplexed with both views", async ({ lab, page }) => {
+  test("dragging a tab out of Single switches to Split view with both views", async ({ lab, page }) => {
     await lab.open({ path: at("application"), size: { width: 1440, height: 900 } });
     await dragTab(page, "Loan history", await rightEdge(lab, "application"));
-    await expect(mode(page, "Multiplexed")).toHaveAttribute("aria-checked", "true");
+    await expect(mode(page, "Split view")).toHaveAttribute("aria-checked", "true");
     const ids = await lab.visibleIds();
     expect(ids).toContain("application");
     expect(ids).toContain("history");
@@ -180,7 +180,7 @@ test.describe("Loan review: Multiplexed", () => {
 
   test("a link opens beside the layout, marked as opened; Back to review restores every rect; ⌘K ⌘Z reopens", async ({ lab, page }) => {
     await lab.open({ path: at("application"), size: { width: 1920, height: 1000 } });
-    await mode(page, "Multiplexed").click();
+    await mode(page, "Split view").click();
     const rects = await lab.snap();
     await openLink(lab).click();
     await expect(opened(page)).toHaveCount(1);
@@ -196,7 +196,7 @@ test.describe("Loan review: Multiplexed", () => {
 
   test("another application swaps every view in place and closes the investigation", async ({ lab, page }) => {
     await lab.open({ path: at("application"), size: { width: 1920, height: 1000 } });
-    await mode(page, "Multiplexed").click();
+    await mode(page, "Split view").click();
     await openLink(lab).click();
     await expect(investigation(page)).toBeVisible();
     await page.getByRole("listbox", { name: "Loan applications" }).getByRole("option", { name: /#7/ }).click();
@@ -209,10 +209,10 @@ test.describe("Loan review: Multiplexed", () => {
 test.describe("Loan review: roles and what a link carries", () => {
   test("a loan officer works in Single only, and links peek", async ({ lab, page }) => {
     await lab.open({ path: at("application"), size: { width: 1440, height: 900 } });
-    await mode(page, "Multiplexed").click();
+    await mode(page, "Split view").click();
     await lab.setting(/Loan officer/);
     await expect(mode(page, "Single")).toHaveAttribute("aria-checked", "true");
-    await expect(mode(page, "Multiplexed")).toBeDisabled();
+    await expect(mode(page, "Split view")).toBeDisabled();
     await pageTab(page, "Borrower").click();
     await groupLink(lab, "borrower").click();
     await expect(lab.peek()).toBeVisible();
@@ -221,10 +221,10 @@ test.describe("Loan review: roles and what a link carries", () => {
 
   test("the mode and layout stay with the person; a link carries the item, the view and opened panes", async ({ lab, page, browser }) => {
     await lab.open({ path: at("application"), size: { width: 1920, height: 1000 } });
-    await mode(page, "Multiplexed").click();
+    await mode(page, "Split view").click();
     await dragTab(page, "Group", await rightEdge(lab, "application"));
     await page.reload();
-    await expect(mode(page, "Multiplexed")).toHaveAttribute("aria-checked", "true");
+    await expect(mode(page, "Split view")).toHaveAttribute("aria-checked", "true");
     await expect(lab.pane("group")).toBeVisible();
 
     await openLink(lab).click();
@@ -266,7 +266,7 @@ test.describe("Loan review: design polish", () => {
     await expect(page.locator(".jali-pane-actions")).toHaveCount(0);
     await expect(page.getByTestId("fetch-stats")).toHaveCount(0);
     await expect(lab.statusMain()).toHaveText("1 view on screen · Focus: Application");
-    await page.getByRole("radio", { name: "Multiplexed" }).click();
+    await page.getByRole("radio", { name: "Split view" }).click();
     await expect(page.locator(".jali-pane-actions").first()).toBeVisible();
     await expect(lab.statusMain()).toContainText("views on screen");
     await expect(lab.statusMain()).not.toContainText("hidden");
@@ -276,7 +276,7 @@ test.describe("Loan review: design polish", () => {
     await lab.open({ path: at("application"), size: { width: 1440, height: 900 } });
     const widths = async () => page.locator(".jali-page-tab").evaluateAll((els) => els.map((e) => e.getBoundingClientRect().width));
     const before = await widths();
-    await page.getByRole("radio", { name: "Multiplexed" }).click();
+    await page.getByRole("radio", { name: "Split view" }).click();
     expect(await widths()).toEqual(before);
     const mark = (state: string) => page.locator(`.jali-page-tab[data-state="${state}"]`).first().evaluate((e) => { const c = getComputedStyle(e); return `${c.borderBottomStyle} ${c.borderBottomColor}`; });
     const marks = [await mark("focused"), await mark("shown"), await mark("off")];
@@ -297,7 +297,7 @@ test.describe("Loan review: design polish", () => {
 test.describe("Loan review: following links and placing views at 1440", () => {
   test("a link to a view already on the page goes to that view: no copy opens", async ({ lab, page }) => {
     await lab.open({ path: at("application"), size: { width: 1440, height: 900 } });
-    await mode(page, "Multiplexed").click();
+    await mode(page, "Split view").click();
     const rects = await lab.snap();
     await link(lab, "application", "members 149").click();
     await expect(pageTab(page, "Borrower")).toHaveAttribute("data-state", "focused");
@@ -321,7 +321,7 @@ test.describe("Loan review: following links and placing views at 1440", () => {
 
   test("an opened pane never pushes the person's views aside: short of room it opens as the shown tab", async ({ lab, page }) => {
     await lab.open({ path: at("application"), size: { width: 1440, height: 900 } });
-    await mode(page, "Multiplexed").click();
+    await mode(page, "Split view").click();
     await pageTab(page, "Group").click({ modifiers: ["Alt"] });
     expect(await lab.visibleIds()).toEqual(["application", "group", "borrower", "history"]);
     const keep = async () => Promise.all(["application", "group", "history"].map((id) => lab.pane(id).boundingBox()));
@@ -343,7 +343,7 @@ test.describe("Loan review: following links and placing views at 1440", () => {
 
   test("holding ⌥ over a tab previews exactly what ⌥-click does: the new view and every view that moves", async ({ lab, page }) => {
     await lab.open({ path: at("application"), size: { width: 1440, height: 900 } });
-    await mode(page, "Multiplexed").click();
+    await mode(page, "Split view").click();
     await pageTab(page, "Overview").click({ modifiers: ["Alt"] });
     for (const name of ["Field officer", "Group"]) {
       const role = (await pageTab(page, name).getAttribute("data-role"))!;

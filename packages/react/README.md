@@ -35,6 +35,6 @@ Everything Jali draws reads `--jali-*` tokens and sits in the `jali` cascade lay
 - **Your Tailwind theme:** also import `@jali/react/tailwind.css`. It points Jali's tokens at your theme's (`--color-primary`, `--color-card`, `--color-border`, `--radius-card`, …), the same names Chakni reads.
 - **By hand:** set any `--jali-*` token on `:root` or a subtree (`--jali-accent: #0f766e;`). Dark mode follows `prefers-color-scheme`, `.dark` or `[data-theme="dark"]`.
 - **Type:** Jali's face is Atkinson Hyperlegible: Next for text, Mono for code (`--jali-font`, `--jali-font-mono`). Jali doesn't bundle font files; load them (for example `@fontsource/atkinson-hyperlegible-next` and `-mono`) or set the tokens to your own faces.
-- **Parts** carry their state as attributes (`data-pane`, `data-focused`, `aria-selected`, `data-drop-zone`) and every class is `jali-*`, so a utility class on a part is enough.
+- **Parts** carry their state as attributes (`data-pane`, `data-kind`, `data-focused`, `aria-selected`, `data-drop-zone`) and every class is `jali-*`. Parts take no `className`: style them with your own rule on those classes and attributes (`.jali-pane[data-focused] { … }`, or in Tailwind `@apply` inside such a rule). Since Jali's rules are in the `jali` layer, yours win without `!important`. `<Jali className>` styles the root.
 
 See `examples/minimal` for the smallest working app.

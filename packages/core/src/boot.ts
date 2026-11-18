@@ -49,17 +49,23 @@ export function boot(store: UiStore, url?: UrlSync) {
   store.writeUrl("replace");
 }
 
-/** Listeners for the life of the page. Returns a function that removes them (tests, HMR). */
 /** What `startUi` takes over: keys (all of the page's, or only the workspace's), and the page's theme. */
 export interface StartOptions {
+  /** Keys: omitted, every key on the page; `{ root }`, only keys from inside the workspace and its dialogs. With a
+   *  root, no tokens are written on `<html>` (the CSS carries them as fallbacks). */
   keys?: KeyboardScope;
-  /** Set `data-theme` on `<html>` from the person's setting. Default true; false inside a page with its own theme. */
+  /** Set `data-theme` on `<html>` from the person's setting. Default true; false inside a page with its own theme
+   *  (Jali then follows the system, or the host's `.dark` / `[data-theme]` scopes). */
   pageTheme?: boolean;
 }
 
+/**
+ * Listeners for the life of the page: keyboard, Back/Forward, theme, saving settings and pane state, the leave-page
+ * prompt. Returns a function that removes them (tests, HMR).
+ */
 export function startUi(store: UiStore, url?: UrlSync, { keys = {}, pageTheme = true }: StartOptions = {}): () => void {
   const sync = syncOf(store, url);
-  applyTokens();
+  if (!keys.root && typeof document !== "undefined") applyTokens();
   let prev = store.get();
   // Pane state changes with typing and scrolling: saved once things settle.
   let saveTimer: ReturnType<typeof setTimeout> | undefined;
@@ -69,12 +75,12 @@ export function startUi(store: UiStore, url?: UrlSync, { keys = {}, pageTheme = 
     const s = store.get();
     if (s.settings !== prev.settings) saveSettings(store.storage, s.settings);
     if (s.paneState !== prev.paneState) saveSoon();
-    // A curated page's mode and multiplexed layout are the person's: saved on this device, opened panes left out.
+    // A curated page's mode and split layout are the person's: saved on this device, opened panes left out.
     const p = store.env.profile;
-    const live = s.page?.mode === "multi" && s.layout !== prev.layout;
+    const live = s.page?.mode === "split" && s.layout !== prev.layout;
     if (p && (live || s.prefs !== prev.prefs)) {
-      const layout = s.page?.mode === "multi" ? s.layout : s.prefs.multi;
-      savePrefs(store.storage, p.id, { mode: s.prefs.mode, multi: layout ? withoutOpened(layout, store.ctx()) : null });
+      const layout = s.page?.mode === "split" ? s.layout : s.prefs.split;
+      savePrefs(store.storage, p.id, { mode: s.prefs.mode, split: layout ? withoutOpened(layout, store.ctx()) : null });
     }
     if (pageTheme && (s.settings.theme !== prev.settings.theme || s.systemDark !== prev.systemDark)) applyTheme(resolveTheme(s.settings.theme, s.systemDark));
     prev = s;

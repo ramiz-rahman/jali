@@ -36,8 +36,8 @@ function PaletteDialog() {
       className=""
       label="Commands"
       placeholder="Type a command…"
-      idPrefix="cmd-"
-      listId="palette-list"
+      idPrefix={`${store.dom.id}-cmd-`}
+      listId={`${store.dom.id}-palette-list`}
       listLabel="Commands"
       items={items}
       keyOf={(c) => c.key}

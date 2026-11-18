@@ -1,6 +1,6 @@
 /**
  * Loan review: a credit reviewer works through a queue of loan applications. Each application is one page: a header,
- * then tabs (Overview, Application, Borrower, Loan history, Group, Field officer). Multiplexed mode starts from
+ * then tabs (Overview, Application, Borrower, Loan history, Group, Field officer). Split view starts from
  * Overview's sections as panes: the application, with the borrower and their loan history beside it.
  */
 import { Briefcase, FileText, History, LayoutDashboard, UserRound, UsersRound } from "lucide-react";
@@ -34,7 +34,7 @@ function bind(item: number): Record<string, ObjectRef> {
   };
 }
 
-/** Multiplexed mode's starting layout: every view is in it; Overview, Group and Field officer start hidden. */
+/** Split view's starting layout: every view is in it; Overview, Group and Field officer start hidden. */
 function build(item: number) {
   const refs = bind(item);
   const view = (id: string, options: { weight?: number; hidden?: boolean } = {}) =>

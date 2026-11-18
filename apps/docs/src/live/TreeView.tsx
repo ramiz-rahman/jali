@@ -1,5 +1,5 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore, type PointerEvent, type ReactNode } from "react";
-import { Braces, Hand, MousePointerClick, MoveHorizontal, Network, RotateCcw, X } from "lucide-react";
+import { Hand, MousePointerClick, MoveHorizontal, Network, RotateCcw, X } from "lucide-react";
 import { layout as jl, type Rect, type WorkspaceModel } from "@jali/core/adapter";
 import { WorkspaceProvider } from "@jali/react";
 import type { DemoLayoutId } from "./demo";
@@ -29,10 +29,11 @@ export interface TreeViewProps {
    * What sits beside the workspace. "auto" (default): the map and the JSON side by side when the figure is about
    * 1200px wide or more, else one of them with a Map | JSON toggle. "map" or "json": only that one.
    * "map+json": both, side by side when there is room, else one above the other.
-   * "collapsed": the workspace takes the whole figure; the map and the JSON slide in over it from a toggle, closed
-   * at first (for a hero, where the workspace is the showcase).
+   * "side" (a hero): the workspace takes most of the width with no bars above or below it; one panel beside it shows
+   * the map, the JSON or both (a switch in its header), and can be closed and brought back. The choice is remembered.
+   * "collapsed" is an older name for "side".
    */
-  panels?: "auto" | "map" | "json" | "map+json" | "collapsed";
+  panels?: "auto" | "map" | "json" | "map+json" | "side" | "collapsed";
 }
 
 /** Wide enough (px) for the workspace, the map and the JSON side by side. */
@@ -63,11 +64,11 @@ export function TreeView({ layout, json = true, height = 360, caption, showJson 
   const width = useWidth(fig);
 
   const want = panels ?? (json ? "auto" : "map");
-  const collapsed = want === "collapsed";
-  const [open, setOpen] = useState(false);
+  const collapsed = want === "collapsed" || want === "side";
+  const [side, setSide] = useSidePanel();
   const three = (want === "auto" && width >= THREE_UP) || (want === "map+json" && width >= 56 * 16);
   const both = want === "map+json" || three;
-  const toggle = !both && (want === "auto" || collapsed);
+  const toggle = !both && want === "auto";
   const showMap = both || want === "map" || (toggle && mode === "map");
   const showJsonPanel = both || want === "json" || (toggle && mode === "json");
 
@@ -99,17 +100,6 @@ export function TreeView({ layout, json = true, height = 360, caption, showJson 
     </span>
   ) : null;
   const h = typeof height === "number" ? `${height}px` : height;
-  const drawerId = `${store.dom.id}-drawer`;
-  const show = (which: "map" | "json") => {
-    if (open && mode === which) setOpen(false);
-    else { setMode(which); setOpen(true); }
-  };
-  const close = collapsed ? (
-    <button type="button" className="live-icon-btn" aria-label="Close the layout tree" title="Close" onClick={() => { setOpen(false); setHover(null); }}>
-      <X size={15} strokeWidth={1.75} aria-hidden />
-    </button>
-  ) : null;
-
   const mapPanel = (
     <section className="live-panel" data-panel="map" aria-label="Layout tree, drawn as a map">
       <header className="live-panel-head">
@@ -118,7 +108,6 @@ export function TreeView({ layout, json = true, height = 360, caption, showJson 
           <button type="button" className="live-toggle" aria-pressed={sizes} onClick={() => setSizes((v) => !v)}>Sizes</button>
           {switcher}
           {collapsed ? null : reset}
-          {close}
         </span>
       </header>
       <div className="live-panel-body">
@@ -134,7 +123,6 @@ export function TreeView({ layout, json = true, height = 360, caption, showJson 
         <span className="live-panel-tools">
           {switcher}
           {showMap || collapsed ? null : reset}
-          {close}
         </span>
       </header>
       <div className="live-panel-body is-json">
@@ -144,38 +132,58 @@ export function TreeView({ layout, json = true, height = 360, caption, showJson 
   );
 
   if (collapsed) {
+    const open = side !== "closed";
+    const seg = (
+      <span className="live-seg" role="group" aria-label="Show the layout tree as">
+        {(["map", "json", "both"] as const).map((v) => (
+          <button key={v} type="button" aria-pressed={side === v} onClick={() => setSide(v)}>{v === "map" ? "Map" : v === "json" ? "JSON" : "Both"}</button>
+        ))}
+      </span>
+    );
     return (
-      <figure className="live-figure live-tv" ref={fig} data-live="tree-view" data-parts="1" data-open={open || undefined}
+      <figure className="live-figure live-tv" ref={fig} data-live="tree-view" data-parts="side" data-side={side}
         aria-label={caption ?? demoLayouts[layout]} style={{ ["--live-ws-h" as string]: h }}>
         {tries ? (
           <ul className="live-tries" aria-label="Things to try">
-            {triesFor(m, open && mode === "json", open).map((t) => <li key={t.text}>{t.icon}<span>{t.text}</span></li>)}
+            {triesFor(m, side === "json" || side === "both", open).map((t) => <li key={t.text}>{t.icon}<span>{t.text}</span></li>)}
           </ul>
         ) : null}
         <div className="live-tv-grid">
-          <div className="live-tv-bar">
-            <span className="live-tv-bar-label"><span className="live-tv-live" aria-hidden />Live workspace</span>
-            <span className="live-tv-bar-tools">
-              <button type="button" className="live-reveal" aria-expanded={open && mode === "map"} aria-controls={drawerId} onClick={() => show("map")}>
-                <Network size={15} strokeWidth={1.75} aria-hidden />{open && mode === "map" ? "Hide the layout tree" : "Show the layout tree"}
-              </button>
-              <button type="button" className="live-reveal" aria-expanded={open && mode === "json"} aria-controls={drawerId} onClick={() => show("json")}>
-                <Braces size={15} strokeWidth={1.75} aria-hidden />JSON
-              </button>
-              {reset}
-            </span>
-          </div>
           <div className="live-stage" onPointerOver={fromWs} onPointerLeave={() => hover?.from === "ws" && setHover(null)}>
-            <LiveWorkspace store={store} height={h} wrapRef={wrap} />
+            <LiveWorkspace store={store} height={h} wrapRef={wrap} status={false} />
+            {open ? null : (
+              <button type="button" className="live-edge-tab" onClick={() => setSide("map")}>
+                <Network size={15} strokeWidth={1.75} aria-hidden /><span>Show the layout tree</span>
+              </button>
+            )}
+          </div>
+          {open ? (
             <WorkspaceProvider workspace={store}>
               <PreviewRects.Provider value={preview}>
-                <div className="live-drawer" id={drawerId} data-open={open || undefined} inert={!open || undefined}
-                  onKeyDown={(e) => { if (e.key === "Escape") { e.stopPropagation(); setOpen(false); } }}>
-                  {mode === "map" ? mapPanel : jsonPanel}
-                </div>
+                <section className="live-panel live-side" aria-label="The layout tree">
+                  <header className="live-panel-head">
+                    <span className="live-panel-title"><b>Layout tree</b></span>
+                    <span className="live-panel-tools">
+                      {side !== "json" ? <button type="button" className="live-toggle" aria-pressed={sizes} onClick={() => setSizes((v) => !v)}>Sizes</button> : null}
+                      {seg}
+                      {reset}
+                      <button type="button" className="live-icon-btn" aria-label="Close the layout tree" title="Close" onClick={() => { setSide("closed"); setHover(null); }}>
+                        <X size={15} strokeWidth={1.75} aria-hidden />
+                      </button>
+                    </span>
+                  </header>
+                  <div className="live-side-body" data-view={side}>
+                    {side !== "json" ? (
+                      <div className="live-panel-body"><LayoutMap hover={hover} setHover={setHover} sizes={sizes} /></div>
+                    ) : null}
+                    {side !== "map" ? (
+                      <div className="live-panel-body is-json"><JsonView value={m.layout} hover={hover} setHover={setHover} label="The layout as JSON" compact /></div>
+                    ) : null}
+                  </div>
+                </section>
               </PreviewRects.Provider>
             </WorkspaceProvider>
-          </div>
+          ) : null}
         </div>
         {caption ? <figcaption className="live-caption">{caption}</figcaption> : null}
       </figure>
@@ -205,6 +213,25 @@ export function TreeView({ layout, json = true, height = 360, caption, showJson 
       {caption ? <figcaption className="live-caption">{caption}</figcaption> : null}
     </figure>
   );
+}
+
+type Side = "map" | "json" | "both" | "closed";
+const SIDE_KEY = "jali-docs:tree-panel";
+
+/** The side panel's view, remembered on this device (the page works the same when storage is blocked). */
+function useSidePanel(): [Side, (s: Side) => void] {
+  const [side, setSide] = useState<Side>("map");
+  useEffect(() => {
+    try {
+      const v = localStorage.getItem(SIDE_KEY);
+      if (v === "map" || v === "json" || v === "both" || v === "closed") setSide(v);
+    } catch { /* storage blocked: keep the default */ }
+  }, []);
+  const set = (v: Side) => {
+    setSide(v);
+    try { localStorage.setItem(SIDE_KEY, v); } catch { /* storage blocked */ }
+  };
+  return [side, set];
 }
 
 /** The figure's width, measured (0 before the first measure, as on the server). */

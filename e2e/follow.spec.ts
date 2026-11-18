@@ -24,6 +24,22 @@ test.describe("A list's detail follows its selection", () => {
     await expect(lab.announcer()).toHaveText("Showing order 4");
   });
 
+  test("a narrow detail keeps its title: the follow control drops its word, idle header buttons take no room (findings 29, 39)", async ({ lab, page }) => {
+    await lab.open();
+    await lab.row("orders", /^3\b/).click();
+    await expect(lab.heading("order")).toHaveText("order 3");
+    await page.addStyleTag({ content: 'section[data-pane="order"] { width: 230px !important; }' });
+    const pane = lab.pane("order");
+    await expect(pane.locator(".jali-follow-toggle span")).toBeHidden();
+    await expect(pane.locator(".jali-follow-toggle")).toBeVisible();
+    await expect(pane.locator(".jali-act-zoom")).toBeHidden();
+    const h2 = pane.locator("h2");
+    expect(await h2.evaluate((e) => e.scrollWidth <= e.clientWidth)).toBe(true);
+    // Focused, the buttons are back.
+    await pane.click({ position: { x: 100, y: 120 } });
+    await expect(pane.locator(".jali-act-zoom")).toBeVisible();
+  });
+
   test("holding J doesn't follow every row: only where the selection rests", async ({ lab, page }) => {
     await lab.open();
     await lab.row("orders", /^1\b/).click();

@@ -1,6 +1,6 @@
 /**
  * A pane's own state, kept by the workspace: it survives the pane being tabbed, folded, tucked or moved, and a reload
- * (saved through the store's storage port). It is dropped when the pane closes for good. Values must be JSON.
+ * (saved through the store's storage port). It is dropped when the pane closes for good or shows another object. Values must be JSON.
  *
  *   const [sort, setSort] = usePaneState("sort", { column: "id", dir: "asc" });
  *

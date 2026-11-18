@@ -1,6 +1,6 @@
 /* ---------- Loan review views (records.tsx, lists.tsx, overview.tsx) ----------
    Each view sizes itself to its pane, not the window: `.rv` is an inline-size container, and every breakpoint below is
-   a container query. Narrow (Multiplexed, 360–520px): one column. Wide: main column and a side column of links.
+   a container query. Narrow (Split view, 360–520px): one column. Wide: main column and a side column of links.
    Very wide (Single at 1920): the content stops at a readable width instead of stretching. */
 
 .rv {
@@ -27,7 +27,7 @@
 .rv-tel { display: inline-flex; align-items: center; gap: 4px; color: var(--text-2); text-decoration: none; font-variant-numeric: tabular-nums; }
 .rv-tel:hover { color: var(--accent); }
 
-/* A short pane (Multiplexed, ~320px tall): the pane header names the view, so the head shrinks to the title. */
+/* A short pane (Split view, ~320px tall): the pane header names the view, so the head shrinks to the title. */
 @container rv (max-height: 440px) {
   .rv-head { padding-bottom: 8px; }
   .rv-head .rv-kicker { display: none; }

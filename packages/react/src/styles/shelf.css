@@ -27,14 +27,14 @@
 .jali-shelf-more:hover, .jali-shelf-more[aria-expanded="true"] { background: var(--jali-hover); color: var(--jali-text); }
 .jali-shelf-menu {
   position: absolute; left: 0; bottom: calc(100% + 0.25rem); z-index: 40; min-width: 13.75rem; max-width: 20rem; max-height: 16.25rem; overflow: auto; padding: 0.25rem;
-  background: var(--jali-surface); border: 1px solid var(--jali-border); border-radius: var(--jali-radius-menu); box-shadow: var(--jali-shadow-menu);
+  background: var(--jali-surface-raised); border: 1px solid var(--jali-border); border-radius: var(--jali-radius-menu); box-shadow: var(--jali-shadow-menu);
 }
 .jali-shelf-menu button { all: unset; box-sizing: border-box; display: flex; align-items: center; gap: 0.5rem; width: 100%; height: 1.75rem; padding: 0 0.5rem; border-radius: 5px; cursor: pointer; color: var(--jali-text); }
 .jali-shelf-menu button:hover, .jali-shelf-menu button:focus-visible { background: var(--jali-hover); }
 .jali-shelf-menu small { margin-left: auto; color: var(--jali-text-subtle); white-space: nowrap; font-size: 0.6875rem; }
 .jali-shelf-menu .jali-shelf-chip-title { flex: 1; }
 /* Phone: the shelf lives inside the pane switcher (tucked panes are tabs there, marked), so it steps aside. */
-.app:has(.jali-workspace.is-single) .jali-shelf { display: none; }
+[data-jali]:has(.jali-workspace.is-single) .jali-shelf { display: none; }
 
 /* Shelf activity: a different shape for every state, never colour alone. */
 .jali-ra { flex: none; display: grid; place-items: center; width: 0.75rem; height: 0.75rem; box-sizing: border-box; border-radius: 50%; font-size: 0.5625rem; font-weight: 700; line-height: 1; }
