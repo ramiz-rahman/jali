@@ -91,12 +91,12 @@ const LIGHT = block(theme, ':where(:root, .light, [data-theme="light"])');
 const DARK = block(theme, ':where(.dark, [data-theme="dark"])');
 const PUBLIC = block(theme, ":where(:root, .light, .dark, [data-theme])");
 const SHAPE = block(theme, ":where(:root)");
-const DERIVED_LIGHT = block(theme, ":where(:root, [data-jali])");
-const DERIVED_DARK = block(theme, ':where(.dark, [data-theme="dark"]) :where([data-jali]),\n:where(.dark, [data-theme="dark"])');
+const DERIVED_LIGHT = block(theme, ":where(:root, [data-jali], .jali-scrim)");
+const DERIVED_DARK = block(theme, ':where(.dark, [data-theme="dark"]) :where([data-jali], .jali-scrim),\n:where(.dark, [data-theme="dark"])');
 
 /** Every public token a theme file declares (the --jali-default-* palette is internal). */
 export function publicTokensOf(css: string): string[] {
-  const all = [":where(:root, .light, .dark, [data-theme])", ":where(:root)", ":where(:root, [data-jali])"].flatMap((sel) => Object.keys(block(css, sel)));
+  const all = [":where(:root, .light, .dark, [data-theme])", ":where(:root)", ":where(:root, [data-jali], .jali-scrim)"].flatMap((sel) => Object.keys(block(css, sel)));
   return [...new Set(all)].filter((t) => t.startsWith("--jali-") && !t.startsWith("--jali-default-"));
 }
 export const PUBLIC_TOKENS: string[] = publicTokensOf(theme);
