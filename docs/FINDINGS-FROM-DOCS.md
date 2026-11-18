@@ -33,3 +33,18 @@
 22. `react/src/styles/jali-tailwind.css:4-6` imports `"jali/react/…"`; should be `"@jali/react/…"`.
 23. `jali-theme.css` defaults are cool zinc (`#f4f4f5`), not the brand's stone (`#EFEAE2`); the docs override them. Decide which is Jali's default.
 24. `examples/minimal` declares its layer order after Jali's CSS loads (`app.css:1`), so it teaches the wrong order.
+
+## From the live parts and the reference
+25. **Mounting a workspace pulls page focus into it** when focus is on the body (`core/src/dom/focus.ts:35`, `keepPaneFocus` from `Workspace.tsx`). A docs page with three workspaces, or a host with a workspace below the fold, loses its place. Only move focus for a change the person made.
+26. **`refit` throws a RangeError on a negative width** (`core/src/layout/fit/context.ts:9`); clamp instead.
+27. **The shelf's phone rule needs the host's root to have the class `.app`** (`react/src/styles/shelf.css:37`), and the single view reads `--switcher-h`, which only `applyTokens` sets (see 11).
+28. **`GAP` isn't exported**, so an outside measure (the docs' Frame) hard-codes 6.
+29. **`FollowControl` crowds out the pane title** near 200px ("O…" for Orders); hide its word below ~250px (a container query on `.jali-pane`).
+30. **The tab strip cuts off the first tab** in narrow tabbed panes ("ders"; `TabStrip.tsx` `revealTab` and the edge fade).
+31. **A divider drag leaves sizes as weights equal to pixels** (`{ weight: 209 }`). Correct, but odd beside `weight 1.3`; consider normalising on commit.
+32. **`jali-theme.css` and `jali-tailwind.css` are not in the `jali` layer**, though the README says all styles are; a host setting `--jali-*` inside its own layer loses to them.
+33. **Six public tokens nothing reads:** `--jali-brand`, `--jali-done`, `--jali-surface-raised`, `--jali-shadow-raised`, `--jali-accent-soft`, `--jali-font` (the workspace never sets `font-family`). Use them or drop them.
+34. **Public signatures use unexported types:** `DndState`, `ConfirmState`, `ChooserState`, `PagePrefs`, `UndoEntry`, `Change`, `OpenPage`, `Group`, `ShelfEntry`, `Chord`, `KeySequence`, `ResolvedStack`.
+35. **`HideRefusal` includes `"tab"`, which `hide`/`show` never return** (`layout/types.ts:100`).
+36. **`Settings.showStats` is the lab's** (`state/settings.ts:9`, `dialogs/Settings.tsx`).
+37. **Stale or wrong comments:** `Shelf.tsx:20` (also renders for folded panes), `usePaneState.ts:3` (also dropped when the pane shows another object), `profile.ts:44` (`?app=review` is the old form), `registry.ts:63` ("Restore last closed pane" also undoes close-others and tucks), and old `ui/…` / `layout-core/…` paths in `pane-kinds.ts:3,44`, `store.ts:24,76`, `url.ts:2,160`, `contracts/active-item.ts:6`, `pane/activeItem.ts:6`, `react/src/state/react.tsx:13`.

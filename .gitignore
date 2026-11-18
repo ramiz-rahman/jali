@@ -12,3 +12,5 @@ docs/brand/archive/
 docs/review-shots/
 # Screenshots of other docs sites, kept locally
 docs/research/docs-sites/*.png
+# Agents' review screenshots of the docs
+apps/docs/.shots/
