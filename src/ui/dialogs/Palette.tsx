@@ -1,5 +1,5 @@
 import { formatChord } from "../commands/format";
-import { COMMANDS, runCommand } from "../commands/registry";
+import { commandsOf, runCommand } from "../commands/registry";
 import { useModel, useStore, useUi } from "../state/react";
 import { ListDialog } from "./ListDialog";
 
@@ -26,7 +26,7 @@ function PaletteDialog() {
   // The focused pane's commands come first: they are about what the person is looking at.
   const items: Item[] = [
     ...(own ?? []).map((c): Item => ({ key: `pane:${c.id}`, title: c.title, group: m.title(focused), keys: c.keys ?? "", disabled: !!c.disabled, run: c.run })),
-    ...COMMANDS.map((c): Item => ({
+    ...commandsOf(store).map((c): Item => ({
       key: c.id, id: c.id, title: c.title, group: c.group, disabled: !!c.check?.(x), run: () => runCommand(store, c.id),
       // Esc closes a peek through the Esc ladder, not the keymap.
       keys: store.keymap.label(c.id) || (c.id === "peek.close" ? formatChord({ key: "Escape" }, store.keymap.platform) : ""),

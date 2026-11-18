@@ -6,14 +6,13 @@
 import * as core from "../../layout-core";
 import type { Layout, LayoutContext, NodeId, ObjectRef, UndoEntry, ViewState } from "../../layout-core/types";
 import type { PaneActivity, PaneCommand, PaneKinds } from "../pane-kinds";
-import { DEFAULT_PRESET, presetById, type PresetId } from "../presets";
 import { GAP, initialArea } from "../tokens";
 import { bindActions, type Actions } from "../actions";
 import { apply, type Change, type Deferred, type HistoryMode, type Outcome, type Snapshot, type Toast } from "./apply";
 import { modelCache, type WorkspaceModel } from "./model";
 import { loadSettings, systemPrefersDark, type Settings } from "./settings";
 import { loadPrefs, type ReviewPrefs } from "./review-prefs";
-import type { Env, ViewMode, WorkspaceProfile } from "../profile";
+import { presetById, type Env, type Preset, type ViewMode, type WorkspaceProfile } from "../profile";
 import { browserStorage, type StoragePort } from "../ports";
 import { createKeymap, type Keymap, type KeymapOptions, type KeymapOverrides } from "../commands/keymap";
 
@@ -46,7 +45,8 @@ export interface UiState {
   /** The person's mode and multiplexed layout (while Multiplexed is on screen, the live layout is the truth). */
   prefs: ReviewPrefs;
   view: ViewState;
-  presetId: PresetId;
+  /** The preset last chosen ("Reset layout" rebuilds it); undefined in a workspace without presets. */
+  presetId: string | undefined;
   settings: Settings;
   /** The system's colour preference, for the "system" theme. */
   systemDark: boolean;
@@ -92,11 +92,18 @@ export interface UiStoreDeps {
   kinds: PaneKinds;
   /** The curated page this workspace can show (ui/profile.ts). Default: none. */
   profile?: WorkspaceProfile | null;
+  /** Layouts to start from, in menu order (the bar and ⌘K "Layout: …"). Default: none. */
+  presets?: readonly Preset[];
+  /** The preset the workspace opens on, when no link or saved state says otherwise. Default: the first. A workspace
+   *  without presets passes `initial.layout` instead. */
+  preset?: string;
+  /** The free workspace's name ("Data Studio"), in commands such as "Open Data Studio". Default "Workspace". */
+  name?: string;
   url?: UrlWriter;
   /** Moves DOM focus into a pane after the next paint (dom/focus.ts), looking inside the workspace's root. */
   focusPane?: (scope: WorkspaceDom, id: NodeId) => void;
   /** What this person keeps on this device: settings, a curated page's mode and layout. Default: localStorage
-   *  under "pane-lab". */
+   *  under "jali". */
   storage?: StoragePort;
   /** Prefix for this workspace's DOM ids. Give each workspace on one page its own. Default "jali". */
   id?: string;
@@ -173,15 +180,18 @@ export const savePaneState = (storage: StoragePort, state: UiState["paneState"])
 const DEV = !!(import.meta as unknown as { env?: { DEV?: boolean } }).env?.DEV;
 
 export function createUiStore(deps: UiStoreDeps): UiStore {
-  const env: Env = { kinds: deps.kinds, profile: deps.profile ?? null };
+  const env: Env = { kinds: deps.kinds, profile: deps.profile ?? null, presets: deps.presets ?? [], name: deps.name ?? "Workspace" };
   const dom = createDom(deps.id ?? "jali");
-  const storage = deps.storage ?? browserStorage("pane-lab");
+  const storage = deps.storage ?? browserStorage("jali");
+  const start = presetById(env, deps.preset);
+  const layout = deps.initial?.layout ?? start?.build();
+  if (!layout) throw new Error("createUiStore: give `presets` or an `initial.layout` to start from");
   let state: UiState = {
-    layout: presetById(DEFAULT_PRESET).build(),
+    layout,
     review: null,
     prefs: loadPrefs(storage, env.profile?.id, env.kinds.registry()),
     view: { focusHistory: [] },
-    presetId: DEFAULT_PRESET,
+    presetId: start?.id,
     settings: loadSettings(storage),
     systemDark: systemPrefersDark(),
     undoStack: [],

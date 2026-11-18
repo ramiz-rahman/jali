@@ -60,7 +60,7 @@ function run(store: UiStore, id: string): boolean {
     store.set({ paletteOpen: !s.paletteOpen, chooser: null });
     return true;
   }
-  const command = commandById(id);
+  const command = commandById(store, id);
   if (!command) return false;
   const refusal = command.check?.(store.snapshot());
   if (refusal?.msg) store.announce(refusal.msg);

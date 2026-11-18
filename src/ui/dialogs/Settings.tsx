@@ -5,14 +5,20 @@ import { useStore, useUi } from "../state/react";
 import { formatChord, formatKeys } from "../commands/format";
 import { PALETTE_ID } from "../commands/keymap";
 import { commandById } from "../commands/registry";
+import { viewerLabel } from "../profile";
 
 const THEMES: { id: ThemeChoice; label: string }[] = [{ id: "system", label: "System" }, { id: "light", label: "Light" }, { id: "dark", label: "Dark" }];
+
+const cap = (t: string) => t.charAt(0).toUpperCase() + t.slice(1);
 
 export function SettingsPanel() {
   const store = useStore();
   const open = useUi((s) => s.settingsOpen);
   const settings = useUi((s) => s.settings);
   const review = useUi((s) => s.review);
+  const page = store.env.profile;
+  const full = viewerLabel(page, true);
+  const limited = viewerLabel(page, false);
   const first = useRef<HTMLInputElement>(null);
   useEffect(() => {
     if (open) first.current?.focus();
@@ -56,16 +62,16 @@ export function SettingsPanel() {
             <span>Over the cap, the oldest unpinned, unfocused pane becomes a tab.</span>
           </label>
         </fieldset>
-        <fieldset>
-          <legend>Loan review: opened panes</legend>
+        {page ? <fieldset>
+          <legend>{page.name}: opened panes</legend>
           <label className="radio"><input type="radio" name="boundary" checked={settings.boundary === "tint"} onChange={() => set({ boundary: "tint" })} /><span>Tinted header and “Opened” tag</span></label>
           <label className="radio"><input type="radio" name="boundary" checked={settings.boundary === "none"} onChange={() => set({ boundary: "none" })} /><span>No marking</span></label>
-        </fieldset>
+        </fieldset> : null}
         {review ? (
           <fieldset>
-            <legend>Loan review: viewing as</legend>
-            <label className="radio"><input type="radio" name="viewer" checked={review.canInvestigate} onChange={() => store.actions.setCanInvestigate(true)} /><span>Credit reviewer: links open beside</span></label>
-            <label className="radio"><input type="radio" name="viewer" checked={!review.canInvestigate} onChange={() => store.actions.setCanInvestigate(false)} /><span>Loan officer: Single only, links open as a peek</span></label>
+            <legend>{page?.name}: viewing as</legend>
+            <label className="radio"><input type="radio" name="viewer" checked={review.canInvestigate} onChange={() => store.actions.setCanInvestigate(true)} /><span>{cap(full)}: links open beside</span></label>
+            <label className="radio"><input type="radio" name="viewer" checked={!review.canInvestigate} onChange={() => store.actions.setCanInvestigate(false)} /><span>{cap(limited)}: Single only, links open as a peek</span></label>
           </fieldset>
         ) : null}
         <KeyboardList />
@@ -83,10 +89,11 @@ export function SettingsPanel() {
  * words. Keys inside a pane (J/K, Space, Enter) belong to that pane and only work while it has focus.
  */
 function KeyboardList() {
-  const { keymap } = useStore();
+  const store = useStore();
+  const { keymap } = store;
   const rows = keymap.entries.map(([id, seqs]) => ({
     id,
-    title: id === PALETTE_ID ? "Command palette (then a second key for a chord)" : commandById(id)?.title ?? id,
+    title: id === PALETTE_ID ? "Command palette (then a second key for a chord)" : commandById(store, id)?.title ?? id,
     keys: seqs.map((q) => formatKeys(q, keymap.platform)).join(" or "),
   }));
   rows.push({ id: "escape", title: "Close the peek, then leave maximise (after the pane's own use of it)", keys: formatChord({ key: "Escape" }, keymap.platform) });

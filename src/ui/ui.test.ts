@@ -3,7 +3,7 @@ import { clampSize, snap, SNAP_IN, SNAP_OUT } from "./dividers/resize";
 import { zoneFor, EDGE_ZONE } from "./workspace/dnd";
 import { decodePeek, encodePeek } from "./url";
 import { createKeyHandler } from "./commands/keyboard";
-import { COMMANDS, runCommand, shortcutLabel } from "./commands/registry";
+import { commandsOf, runCommand, shortcutLabel } from "./commands/registry";
 import { formatChord, parseKeys } from "./commands/format";
 import { mergeTargets } from "./actions/tabs";
 import { openPaneFor } from "./actions/open";
@@ -61,7 +61,7 @@ describe("peek param", () => {
 
 describe("command registry", () => {
   it("has unique stable ids covering the keyboard map", () => {
-    const ids = COMMANDS.map((c) => c.id);
+    const ids = commandsOf(store).map((c) => c.id);
     expect(new Set(ids).size).toBe(ids.length);
     for (const id of ["pane.focus.next", "pane.focus.previous", "pane.focus.left", "pane.move.up", "pane.zoom", "pane.tuck", "pane.putBack", "shelf.reveal", "pane.resize_mode", "pane.close", "pane.split.right", "pane.split.down", "pane.undo_close", "layout.reset"])
       expect(ids).toContain(id);
@@ -249,7 +249,7 @@ describe("drag preview label", () => {
 
 describe("new commands", () => {
   it("have stable ids", () => {
-    const ids = COMMANDS.map((c) => c.id);
+    const ids = commandsOf(store).map((c) => c.id);
     for (const id of ["pane.merge", "pane.unmerge", "stack.new-tab", "pane.split.auto"]) expect(ids).toContain(id);
   });
 });

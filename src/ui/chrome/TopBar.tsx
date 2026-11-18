@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState } from "react";
 import { Command, Settings, Link2, ChevronDown, LayoutGrid } from "lucide-react";
-import { PRESETS } from "../presets";
 import { useStore, useUi } from "../state/react";
 import { copyLink } from "../commands/registry";
 import { PALETTE_ID } from "../commands/keymap";
@@ -10,8 +9,8 @@ import { JaliLockup } from "./JaliLockup";
 /** The presets as toggle buttons: in the bar on desktop, in the Layouts menu below 768px. */
 function PresetButtons({ onChoose }: { onChoose?: () => void }) {
   const presetId = useUi((s) => s.presetId);
-  const { actions } = useStore();
-  return PRESETS.map((p) => (
+  const { actions, env } = useStore();
+  return env.presets.map((p) => (
     <button key={p.id} className={`preset${presetId === p.id ? " is-active" : ""}`} aria-pressed={presetId === p.id} onClick={() => { actions.preset(p.id); onChoose?.(); }}>
       {p.label}
     </button>
@@ -58,7 +57,7 @@ export function TopBar() {
         <JaliLockup />
         <AppSwitch />
       </div>
-      {review ? <ReviewBar /> : (
+      {review ? <ReviewBar /> : !store.env.presets.length ? null : (
         <>
           <nav className="presets" aria-label="Layout presets">
             <PresetButtons />
@@ -67,7 +66,7 @@ export function TopBar() {
         </>
       )}
       <div className="topbar-right">
-        <button className="icon-btn" onClick={() => copyLink(store)} aria-label={review ? "Copy link to this application" : "Copy link to this layout"} title="Copy link">
+        <button className="icon-btn" onClick={() => copyLink(store)} aria-label={review ? `Copy link to this ${store.env.profile?.itemNoun ?? "item"}` : "Copy link to this layout"} title="Copy link">
           <Link2 size={16} strokeWidth={1.5} aria-hidden />
         </button>
         <button className="icon-btn" onClick={() => store.set({ settingsOpen: true })} aria-label="Settings" title="Settings">

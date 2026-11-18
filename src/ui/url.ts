@@ -98,13 +98,13 @@ export interface UrlSync extends UrlWriter {
 export interface UrlSyncOptions {
   /** The address: the browser's history by default, or a router adapter (ui/ports.ts). */
   location?: LocationPort;
-  /** Where a link that could not be read is kept. Default: localStorage under "pane-lab". */
+  /** Where a link that could not be read is kept. Default: localStorage under "jali". */
   storage?: StoragePort;
   /** Prefix for the workspace's search params, when two workspaces share an address. */
   prefix?: string;
 }
 
-export function createUrlSync({ location = browserLocation(), storage = browserStorage("pane-lab"), prefix }: UrlSyncOptions = {}): UrlSync {
+export function createUrlSync({ location = browserLocation(), storage = browserStorage("jali"), prefix }: UrlSyncOptions = {}): UrlSync {
   const keys = urlKeys(prefix);
   let timer: ReturnType<typeof setTimeout> | undefined;
   const write = (s: UiState, push: boolean) => {

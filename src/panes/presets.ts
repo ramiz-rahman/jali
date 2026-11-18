@@ -1,6 +1,6 @@
-import type { Layout, LayoutNode, ObjectRef, PaneNode } from "../layout-core/types";
-
-export type PresetId = "one-table" | "order-chain" | "query-chart" | "stress-10";
+/** Data Studio's layouts to start from (the bar's presets and ⌘K "Layout: …"). */
+import type { LayoutNode, ObjectRef, PaneNode } from "../layout-core/types";
+import type { Preset } from "../ui/profile";
 
 const pane = (id: string, ref: ObjectRef, extra: Partial<PaneNode> = {}): PaneNode => ({
   id, type: "pane", size: { weight: 1 }, ref, ...extra,
@@ -14,7 +14,7 @@ const rec = (table: string, id: number) => ref("record", { table, id });
 
 const SQL = "SELECT status, count(*)::int AS orders, sum(total_cents)::int AS total_cents\nFROM orders\nGROUP BY status\nORDER BY orders DESC";
 
-export const PRESETS: { id: PresetId; label: string; build: () => Layout }[] = [
+export const dataStudioPresets: Preset[] = [
   {
     id: "one-table",
     label: "One table",
@@ -68,5 +68,5 @@ export const PRESETS: { id: PresetId; label: string; build: () => Layout }[] = [
   },
 ];
 
-export const DEFAULT_PRESET: PresetId = "order-chain";
-export const presetById = (id: PresetId) => PRESETS.find((p) => p.id === id)!;
+/** The layout Data Studio opens on. */
+export const DEFAULT_PRESET = "order-chain";

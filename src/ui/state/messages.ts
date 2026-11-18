@@ -102,7 +102,7 @@ export const msg = {
   alreadyView: (t: string) => `${t} is already a view on this page`,
   notInvestigating: "Nothing opened beyond the review",
   backToReview: (n: number) => `Back to review · ${n} opened ${n === 1 ? "pane" : "panes"} closed · Undo available`,
-  permission: (can: boolean) => (can ? "Viewing as credit reviewer: Multiplexed available, links open beside" : "Viewing as loan officer: Single only, links open as a peek"),
+  permission: (who: string, can: boolean) => (can ? `Viewing as ${who}: Multiplexed available, links open beside` : `Viewing as ${who}: Single only, links open as a peek`),
   singleNoLayout: "Single shows one view: choose it from the tabs. Switch to Multiplexed to arrange views",
   singleOnly: "Your role works in Single: one view at a time",
   peekOnly: (t: string) => `Peek: ${t} · your role opens links as a peek`,
@@ -120,9 +120,9 @@ export const toasts = {
   closed: (t: string) => ({ title: "Pane closed", description: t, undo: true }),
   othersClosed: () => ({ title: "Other panes closed", undo: true }),
   backToReview: (n: number) => ({ title: "Back to review", description: `${n} opened ${n === 1 ? "pane" : "panes"} closed`, undo: true }),
-  brokenLink: (preset: string) => ({
+  brokenLink: (preset: string | undefined) => ({
     title: "This link’s layout couldn’t be read",
-    description: `Opened “${preset}” instead. A copy of the link was kept.`,
+    description: preset ? `Opened “${preset}” instead. A copy of the link was kept.` : "The layout stayed as it was. A copy of the link was kept.",
     error: true,
   }),
 };

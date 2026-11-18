@@ -11,7 +11,7 @@ import { checkPeek } from "../actions/peek";
 import { checkPutBack, checkTuck } from "../actions/tuck";
 import { checkMerge, checkUnmerge } from "../actions/tabs";
 import { activeTabId, focusShelfChip } from "../dom/focus";
-import { PRESETS } from "../presets";
+import { viewerLabel, type Env } from "../profile";
 import { refuse, type Refusal, type Snapshot } from "../state/apply";
 import { msg } from "../state/messages";
 import type { UiStore } from "../state/store";
@@ -30,7 +30,12 @@ const needFocus = ({ s }: Snapshot) => (s.view.focused ? undefined : refuse());
 const needOthers = (x: Snapshot) => needFocus(x) ?? (x.m.panes.length > 1 ? undefined : refuse());
 const DIRS: [Edge, string][] = [["left", "left"], ["right", "right"], ["top", "up"], ["bottom", "down"]];
 
-export const COMMANDS: Command[] = [
+/** Every command a workspace has: the fixed set, its presets', and titles in its own words (its name, its viewers). */
+function buildCommands(env: Env): Command[] {
+  const page = env.profile;
+  const full = viewerLabel(page, true);
+  const limited = viewerLabel(page, false);
+  return [
   // F6 visits the panes, then the shelf and the host's regions (commands/regions.ts).
   { id: "pane.focus.next", title: "Focus next pane", group: "Focus", run: (u) => cycleRegions(u, false) },
   { id: "pane.focus.previous", title: "Focus previous pane", group: "Focus", run: (u) => cycleRegions(u, true) },
@@ -59,17 +64,17 @@ export const COMMANDS: Command[] = [
   { id: "pane.unmerge", title: "Move out of tabs", group: "Tabs", check: checkUnmerge, run: (u) => u.actions.unmerge() },
   { id: "stack.new-tab", title: "New tab here", group: "Tabs", check: needFocus, run: (u) => u.actions.newTab() },
 
-  ...PRESETS.map((p): Command => ({ id: `layout.preset.${p.id}`, title: `Layout: ${p.label}`, group: "Layout", run: (u) => u.actions.preset(p.id) })),
-  { id: "layout.reset", title: "Reset layout", group: "Layout", run: (u) => u.actions.resetLayout() },
+  ...env.presets.map((p): Command => ({ id: `layout.preset.${p.id}`, title: `Layout: ${p.label}`, group: "Layout", run: (u) => u.actions.preset(p.id) })),
+  { id: "layout.reset", title: "Reset layout", group: "Layout", check: () => (env.presets.length ? undefined : refuse()), run: (u) => u.actions.resetLayout() },
   { id: "layout.copy_link", title: "Copy link to this layout", group: "Layout", run: copyLink },
   { id: "review.back", title: "Back to review (close opened panes)", group: "Layout", check: ({ s, m }) => (s.review && m.panes.some((p) => !p.role) ? undefined : refuse()), run: (u) => u.actions.backToReview() },
   { id: "review.reset", title: "Reset layout to its design", group: "Layout", check: ({ s }) => (s.review?.mode === "multi" ? undefined : refuse()), run: (u) => u.actions.resetReview() },
   { id: "review.single", title: "Single: one view at a time", group: "Layout", check: ({ s }) => (s.review?.mode === "multi" ? undefined : refuse()), run: (u) => u.actions.setMode("single") },
   { id: "review.multi", title: "Multiplexed: views side by side", group: "Layout", check: ({ s }) => (s.review?.mode === "single" && s.review.canInvestigate ? undefined : refuse()), run: (u) => u.actions.setMode("multi") },
-  { id: "review.enter", title: "Open Loan review", group: "Layout", check: ({ s }) => (s.review ? refuse() : undefined), run: (u) => u.actions.enterReview() },
-  { id: "review.leave", title: "Open Data Studio", group: "Layout", check: ({ s }) => (s.review ? undefined : refuse()), run: (u) => u.actions.leaveReview() },
-  { id: "review.as_officer", title: "View as loan officer (Single only, links peek)", group: "Settings", check: ({ s }) => (s.review?.canInvestigate ? undefined : refuse()), run: (u) => u.actions.setCanInvestigate(false) },
-  { id: "review.as_reviewer", title: "View as credit reviewer (links open beside)", group: "Settings", check: ({ s }) => (s.review && !s.review.canInvestigate ? undefined : refuse()), run: (u) => u.actions.setCanInvestigate(true) },
+  { id: "review.enter", title: `Open ${page?.name ?? "page"}`, group: "Layout", check: ({ s }) => (s.review || !page ? refuse() : undefined), run: (u) => u.actions.enterReview() },
+  { id: "review.leave", title: `Open ${env.name}`, group: "Layout", check: ({ s }) => (s.review ? undefined : refuse()), run: (u) => u.actions.leaveReview() },
+  { id: "review.as_officer", title: `View as ${limited} (Single only, links peek)`, group: "Settings", check: ({ s }) => (s.review?.canInvestigate ? undefined : refuse()), run: (u) => u.actions.setCanInvestigate(false) },
+  { id: "review.as_reviewer", title: `View as ${full} (links open beside)`, group: "Settings", check: ({ s }) => (s.review && !s.review.canInvestigate ? undefined : refuse()), run: (u) => u.actions.setCanInvestigate(true) },
 
   { id: "peek.close", title: "Close peek", group: "Peek", check: checkPeek, run: (u) => u.actions.peek(null) },
   { id: "peek.pin", title: "Pin peek beside", group: "Peek", check: checkPeek, run: (u) => u.actions.pinPeek() },
@@ -77,19 +82,32 @@ export const COMMANDS: Command[] = [
 
   { id: "settings.open", title: "Open settings", group: "Settings", run: (u) => u.set({ settingsOpen: true }) },
   { id: "settings.centre_drop.toggle", title: "Switch centre drop (swap ↔ tab)", group: "Settings", run: toggleCentreDrop },
-];
+  ];
+}
 
-const byId = new Map(COMMANDS.map((c) => [c.id, c]));
+const built = new WeakMap<Env, { commands: Command[]; byId: Map<string, Command> }>();
+const forEnv = (env: Env) => {
+  let b = built.get(env);
+  if (!b) {
+    const commands = buildCommands(env);
+    b = { commands, byId: new Map(commands.map((c) => [c.id, c])) };
+    built.set(env, b);
+  }
+  return b;
+};
+
+/** The workspace's commands, in palette order. Same array per store. */
+export const commandsOf = (store: Pick<UiStore, "env">): readonly Command[] => forEnv(store.env).commands;
 
 /** Runs a command if its check passes. Returns whether it ran (the palette and tests use this). */
 export function runCommand(store: UiStore, id: string): boolean {
-  const c = byId.get(id);
+  const c = forEnv(store.env).byId.get(id);
   if (!c || c.check?.(store.snapshot())) return false;
   c.run(store);
   return true;
 }
 
-export const commandById = (id: string) => byId.get(id);
+export const commandById = (store: Pick<UiStore, "env">, id: string) => forEnv(store.env).byId.get(id);
 
 /** "⌘K ⌘M": a command's first binding in this store's keymap, for tooltips and the palette ("" when unbound). */
 export const shortcutLabel = (store: Pick<UiStore, "keymap">, id: string) => store.keymap.label(id);

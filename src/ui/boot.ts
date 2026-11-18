@@ -4,7 +4,7 @@
  */
 import * as core from "../layout-core";
 import { installKeyboard } from "./commands/keyboard";
-import { presetById } from "./presets";
+import { presetById } from "./profile";
 import { msg, toasts } from "./state/messages";
 import { applyTheme, resolveTheme, saveSettings, watchSystemTheme } from "./state/settings";
 import type { UiStore } from "./state/store";
@@ -22,10 +22,11 @@ function arriveFromUrl(store: UiStore, url: UrlSync): boolean {
     const { tab, item, investigation } = r.review;
     store.actions.enterReview({ tab: tab || undefined, item: item || undefined, investigation, fromUrl: true, view: r.view });
   } else if ("broken" in r) {
-    store.actions.arrive(presetById(store.get().presetId).build(), r.view);
+    const p = presetById(store.env, store.get().presetId);
+    if (p) store.actions.arrive(p.build(), r.view);
     url.keepBroken(r.broken);
     store.writeUrl("replace");
-    store.toast(toasts.brokenLink(presetById(store.get().presetId).label));
+    store.toast(toasts.brokenLink(p?.label));
     store.announce(msg.brokenLink);
   } else store.actions.arrive(r.layout, r.view);
   return true;

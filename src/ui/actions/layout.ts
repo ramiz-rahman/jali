@@ -1,13 +1,14 @@
 import * as core from "../../layout-core";
 import type { Layout, NodeId, ViewState } from "../../layout-core/types";
 import type { PaneActivity } from "../pane-kinds";
-import { presetById, type PresetId } from "../presets";
+import { presetById } from "../profile";
 import type { Outcome, Snapshot } from "../state/apply";
 import { msg } from "../state/messages";
 import { withRecent } from "./open";
 
-export function preset({ s, ctx, env }: Snapshot, id: PresetId): Outcome {
-  const p = presetById(id);
+export function preset({ s, ctx, env }: Snapshot, id: string | undefined): Outcome {
+  const p = presetById(env, id);
+  if (!p) return null;
   const built = p.build();
   const initial = core.tree.panes(built.root)[0]?.id;
   const layout = core.resetLayout(built, { focused: initial, focusHistory: initial ? [initial] : [] }, ctx);

@@ -5,7 +5,7 @@
  */
 import * as core from "../../layout-core";
 import type { Edge, Layout, LayoutContext, NodeId, ObjectRef, PaneNode, Rect, ViewState } from "../../layout-core/types";
-import { roleOf, type ViewMode, type WorkspaceProfile } from "../profile";
+import { roleOf, viewerLabel, type ViewMode, type WorkspaceProfile } from "../profile";
 import { refuse, type Change, type Outcome, type Snapshot } from "../state/apply";
 import { msg, toasts } from "../state/messages";
 import type { ReviewPrefs } from "../state/review-prefs";
@@ -362,10 +362,11 @@ export function resetReview(x: Snapshot): Outcome {
   return { op: "preset", layout, view, msg: msg.reviewReset, patch: { review: { ...r, before: opened.length ? base.layout : undefined }, prefs: { ...x.s.prefs, multi: null } }, undo: [] };
 }
 
-/** A role permission. A loan officer works in Single only, and links peek; a credit reviewer may multiplex. */
+/** A role permission. The limited viewer (a loan officer) works in Single only, and links peek; the full one (a
+ *  credit reviewer) may multiplex. The profile names both (`viewers`). */
 export function setCanInvestigate(x: Snapshot, canInvestigate: boolean): Outcome {
   const { s } = x;
   if (!s.review || s.review.canInvestigate === canInvestigate) return null;
   const toSingle = !canInvestigate && s.review.mode === "multi" ? setMode(x, "single") : null;
-  return [toSingle, (y: Snapshot) => ({ op: "permission", msg: msg.permission(canInvestigate), patch: { review: { ...y.s.review!, canInvestigate } } })];
+  return [toSingle, (y: Snapshot) => ({ op: "permission", msg: msg.permission(viewerLabel(x.env.profile, canInvestigate), canInvestigate), patch: { review: { ...y.s.review!, canInvestigate } } })];
 }

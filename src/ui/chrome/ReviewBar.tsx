@@ -135,11 +135,11 @@ export function ReviewPage() {
 export function AppSwitch() {
   const p = useProfile();
   const inReview = useUi((s) => !!s.review);
-  const { actions } = useStore();
-  if (!p) return <span className="brand-name">lab</span>;
+  const { actions, env } = useStore();
+  if (!p) return <span className="brand-name">{env.name}</span>;
   return (
     <div className="app-switch" role="radiogroup" aria-label="Workspace">
-      <button role="radio" aria-checked={!inReview} className="app-btn" onClick={() => inReview && actions.leaveReview()}>Data Studio</button>
+      <button role="radio" aria-checked={!inReview} className="app-btn" onClick={() => inReview && actions.leaveReview()}>{env.name}</button>
       <button role="radio" aria-checked={inReview} className="app-btn" onClick={() => !inReview && actions.enterReview()}>{p.name}</button>
     </div>
   );

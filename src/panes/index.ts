@@ -14,3 +14,4 @@ import { auditKind } from "./kinds/audit";
 export const dataStudioKinds: readonly PaneKindDef[] = [
   catalogKind, tableKind, recordKind, relatedKind, queryKind, chartKind, structureKind, erKind, launcherKind, auditKind,
 ];
+export { dataStudioPresets, DEFAULT_PRESET } from "./presets";

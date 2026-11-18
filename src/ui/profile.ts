@@ -27,6 +27,9 @@ export interface WorkspaceProfile {
   name: string;
   /** Singular noun for the active item ("application"). */
   itemNoun: string;
+  /** Who works with full access (links open beside, Multiplexed available) and who works in Single with links as a
+   *  peek, in the person's words: `{ full: "credit reviewer", limited: "loan officer" }`. */
+  viewers?: { full: string; limited: string };
   /** The views, in tab order. A role's node id equals its role id. */
   roles: RoleDef[];
   /** The view Single mode opens on. */
@@ -49,9 +52,26 @@ export function titleOf(env: Env, node: PaneNode): string {
   return role?.label ?? env.kinds.title(node.ref);
 }
 
-/** What a workspace is made of, beyond its state: its pane kinds and (a curated page) its profile. One per store. */
+/** A layout the person can switch to from the bar or ⌘K ("Layout: One table"). `build` returns a fresh layout. */
+export interface Preset {
+  id: string;
+  label: string;
+  build: () => Layout;
+}
+
+/** What a workspace is made of, beyond its state: its pane kinds, presets and (a curated page) its profile. One per store. */
 export interface Env {
   kinds: PaneKinds;
   /** The curated page this workspace can show (`?app=review`); null for a workspace with none. */
   profile: WorkspaceProfile | null;
+  /** Layouts to start from, in menu order. May be empty. */
+  presets: readonly Preset[];
+  /** The free workspace's name, where the person builds the layout ("Data Studio"). Default "Workspace". */
+  name: string;
 }
+
+export const presetById = (env: Pick<Env, "presets">, id: string | undefined): Preset | undefined =>
+  env.presets.find((p) => p.id === id) ?? env.presets[0];
+
+export const viewerLabel = (profile: WorkspaceProfile | null, full: boolean) =>
+  (full ? profile?.viewers?.full : profile?.viewers?.limited) ?? (full ? "investigator" : "viewer");

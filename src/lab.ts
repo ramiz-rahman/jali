@@ -1,5 +1,6 @@
 /** The lab's two apps in one workspace: Data Studio's kinds, plus the loan review's kinds and profile. */
-import { dataStudioKinds } from "./panes";
+import { DEFAULT_PRESET, dataStudioKinds, dataStudioPresets } from "./panes";
+import { browserStorage } from "./ui/ports";
 import { loanReview, loanReviewKinds } from "./review";
 import { createPaneKinds } from "./ui/pane-kinds";
 import { createUiStore, type UiStore, type UiStoreDeps } from "./ui/state/store";
@@ -8,5 +9,10 @@ export const labKinds = () => createPaneKinds([...dataStudioKinds, ...loanReview
 
 /** A store with the lab's kinds and profile; `deps` adds or overrides the rest (tests pass `initial`, `url`, ...). */
 export function createLabStore(deps: Partial<UiStoreDeps> = {}): UiStore {
-  return createUiStore({ kinds: labKinds(), profile: loanReview, ...deps });
+  return createUiStore({
+    kinds: labKinds(), profile: loanReview, presets: dataStudioPresets, preset: DEFAULT_PRESET, name: "Data Studio",
+    // The lab's saved settings and pages predate the "jali" default.
+    storage: browserStorage("pane-lab"),
+    ...deps,
+  });
 }
