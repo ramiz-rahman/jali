@@ -316,3 +316,17 @@
     .landing-backdrop { left: 50%; right: auto; transform: translateX(-50%); }
   }
 }
+
+/* v3: the install line in two rows, as the docs' <Install>: package managers on top, the command below. */
+@layer docs {
+  .landing-opening-actions .install, .landing-opening-actions .install[class] {
+    display: block; height: auto; width: min(30rem, 100%); text-align: left;
+  }
+  .landing-opening-actions .install .code-header {
+    border-right: 0; border-bottom: 1px solid var(--jali-border); padding: 0 6px 0 4px; background: var(--d-code-head);
+  }
+  .landing-opening-actions .install .tab { height: 38px; }
+  .landing-opening-actions .install .code-copy { display: inline-flex; }
+  .landing-opening-actions .install .code-pre { padding: 12px 0; font-size: 13.5px; }
+  .landing-opening-actions .install .code-line { padding: 0 16px; }
+}
