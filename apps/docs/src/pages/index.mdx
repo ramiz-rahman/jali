@@ -4,49 +4,52 @@ summary: Workspaces of panes for React, that fit the space they have.
 ---
 
 import { TreeView, Frame, Spotlight } from "../live";
-import { Opening, Stage, Section, MinimalApp, Features, Feature, LinkDemo, KeysDemo, Packages, Package, Theming, LandingFooter } from "../shell/landing";
+import { Opening, Reasons, Reason, Stage, Section, MinimalApp, Path, Proof, LinkDemo, KeysDemo, Close, Package, Theming, SiteFooter } from "../shell/landing";
 
-<Opening title="Workspaces of panes, for React.">
-  A list, its record and the next record, side by side at any screen size. When room runs out, panes fold into tabs instead of being squeezed.
+<Opening title="Workspaces of panes for React" lead="Put a list, the record you picked and the next record side by side. When the window narrows, panes fold into tabs instead of being squeezed, and come back when there is room.">
+  <Reasons>
+    <Reason href="#fold">Panes fold when room runs out</Reason>
+    <Reason href="#follow">The detail follows the list</Reason>
+    <Reason href="#link">The link reopens the layout</Reason>
+    <Reason href="#keys">Every command has a key</Reason>
+  </Reasons>
 </Opening>
 
 <Stage>
-  <TreeView layout="chain" panels="auto" height="min(76vh, 760px)" />
+  <TreeView layout="chain" panels="auto" height="min(70vh, 720px)" />
 </Stage>
 
-<Section id="app" label="The minimal app" title="The code, and what it renders" lead="One kind of pane, a starting layout of two notes, a store, and the view.">
+<Section id="quickstart" label="Quickstart" title="The quickstart app, in four files" lead="One kind of pane, a layout of two notes, a store and the view. The workspace beside the code is that code, running.">
   <MinimalApp />
 </Section>
 
-<Section id="does" label="What it does" title="Four things, live">
-  <Features>
-    <Feature title="Panes fold when room runs out" href="/learn/fitting" more="How a layout fits" demo={<Frame layout="crowded" height={300} />}>
-      Each kind of pane says the narrowest it works at. Drag the frame narrower and panes fold into tabs; widen it and they come back.
-    </Feature>
-    <Feature title="A detail follows its list" href="/learn/following" more="Following a list" demo={<Spotlight layout="chain" target="follow" height={300} />}>
-      Open an order from the list, and its pane shows whichever row you select, once the selection rests.
-    </Feature>
-    <Feature title="The layout lives in the link" href="/guides/url-and-routers" more="Keep the layout in the URL" demo={<LinkDemo />}>
-      Every change is written into the address, so a link opens the same panes in the same places, and Back steps through what you did.
-    </Feature>
-    <Feature title="Keyboard first" href="/guides/commands-and-keys" more="Commands and keys" demo={<KeysDemo />}>
-      Every command has a key, and you can change or turn off any of them. Click inside the workspace, then try these.
-    </Feature>
-  </Features>
+<Section id="workspace" label="What you get" title="What the workspace does for you">
+  <Path>
+    <Proof id="fold" title="Panes fold when room runs out" href="/learn/fitting" more="How a layout fits" demo={<Frame layout="crowded" height={340} />}>
+      Each kind of pane declares the narrowest width it works at. Drag the frame's edge: below that width a pane folds into a tab, and it comes back when there is room.
+    </Proof>
+    <Proof id="follow" title="The detail follows the list" href="/learn/following" more="Following a list" demo={<Spotlight layout="chain" target="follow" height={340} />}>
+      Open a record from a list, and its pane shows whichever row is selected. Pin it to keep one record.
+    </Proof>
+    <Proof id="link" title="The link reopens the layout" href="/guides/url-and-routers" more="Keep the layout in the URL" demo={<LinkDemo />}>
+      Every change is written into the address. Open, close or resize a pane and watch it change. Share the link, and the same panes open in the same places.
+    </Proof>
+    <Proof id="keys" title="Every command has a key" href="/guides/commands-and-keys" more="Commands and keys" demo={<KeysDemo />}>
+      Move focus, maximise, tuck, close and undo from the keyboard, and rebind or turn off any key. Click inside the workspace to try them, or press a key below.
+    </Proof>
+  </Path>
 </Section>
 
-<Section id="packages" label="Two packages" title="The model, and React on top of it">
-  <Packages>
-    <Package name="@jali/core" href="/reference/core" exports="createUiStore, createPaneKinds, createUrlSync, boot, startUi, layout">
-      The layout tree and every change to it, fitting, and a store with focus, undo, follow and unsaved work. No framework.
-    </Package>
-    <Package name="@jali/react" href="/reference/react" exports="Jali, JaliView, definePaneKind, usePaneState, useActiveItemPort">
-      Renders the workspace: panes, dividers, tabs, the shelf and the command palette, with a default theme.
-    </Package>
-  </Packages>
+<Close title="Two packages: @jali/core and @jali/react" lead="Install both. The core has no framework; the React package renders it.">
+  <Package name="@jali/core" href="/reference/core" exports="createUiStore, createPaneKinds, createUrlSync, boot, startUi, layout">
+    The layout tree and every change to it, fitting, and a store with focus, undo, follow and unsaved work.
+  </Package>
+  <Package name="@jali/react" href="/reference/react" exports="Jali, JaliView, definePaneKind, usePaneState, useActiveItemPort">
+    Panes, dividers, tabs, the shelf and the command palette, with a default theme.
+  </Package>
   <Theming href="/guides/theming">
-    Jali reads `--jali-*` tokens and sits in its own cascade layer, so your Tailwind theme or your own CSS wins without `!important`.
+    Jali's styles read `--jali-*` tokens and sit in their own cascade layer, so your Tailwind theme or your own CSS wins without `!important`.
   </Theming>
-</Section>
+</Close>
 
-<LandingFooter />
+<SiteFooter />
