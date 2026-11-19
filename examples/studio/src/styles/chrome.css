@@ -220,6 +220,17 @@
   .jali-tab-item {
     align-self: center;
   }
+  /* Tabs share a short strip before any of them scrolls out of it: each gives up some of its title (down to a few
+     letters and its close button), so two or three tabs in a narrow pane all stay in view and the "+N" key shows
+     only when there really are more than fit. Jali's own tabs keep their width and scroll instead. */
+  .jali-tab-item {
+    flex: 0 1 auto;
+    min-width: 5.25rem;
+  }
+  .jali-tab-item > .jali-tab {
+    flex: 0 1 auto;
+    min-width: 0;
+  }
   /* A tab the layout folded: the same key, its legend in italics (Jali's) and a dotted rim. */
   .jali-tab[data-folded] {
     box-shadow:
