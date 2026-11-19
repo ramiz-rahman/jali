@@ -141,6 +141,8 @@ Jali passes these to `Component`:
 | `peek(ref)` | Show an object in the peek sheet; `peek(null)` closes it. |
 | `dismiss()` | Close this pane quietly, with no undo toast. For the launcher. |
 
+`openBeside`, `openHere`, `peek` and `select` return what the same `jali.actions` return, an `ActionResult`: `openBeside(ref).pane` is the pane that shows the object, and `ok: false` comes with a `reason` when nothing happened.
+
 A component deeper inside the pane reads the same props with `usePane()`, so you don't have to pass them down.
 
 ## What a pane reports

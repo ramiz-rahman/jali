@@ -34,7 +34,7 @@ export const PaneFrame = /* @__PURE__ */ memo(
     const { actions } = store;
     const activity = useUi((s) => s.activity[node.id]);
     const isDragged = useUi((s) => s.dnd?.dragged === node.id);
-    const host = useMemo(() => paneHost(actions, node.id), [actions, node.id]);
+    const host = useMemo(() => paneHost(store, node.id), [store, node.id]);
     const page = useUi((s) => !!s.page);
     // A curated page in Single: the page tabs name the one view and choose it, so the pane header is visually hidden
     // and offers nothing (no grip, tuck, maximise or close) that a keyboard user could land on unseen.
