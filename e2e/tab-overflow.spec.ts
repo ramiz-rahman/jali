@@ -148,7 +148,9 @@ test.describe("tab overflow and marks", () => {
     await page.setViewportSize({ width: 1280, height: 900 });
     await page.addStyleTag({ content: ".jali-tabs { max-width: 3rem; }" });
     const first = page.locator(".jali-tabs").first().locator('[role="tab"]').first();
-    await first.click();
+    // By key: in a 3rem strip the shown tab, shortened to fit, covers where a pointer would land.
+    await first.focus();
+    await page.keyboard.press("Enter");
     await expect(first).toHaveAttribute("aria-selected", "true");
     const [t, s] = await Promise.all([
       first.boundingBox(),

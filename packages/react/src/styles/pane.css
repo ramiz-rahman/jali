@@ -373,7 +373,18 @@
     background: var(--jali-accent);
     pointer-events: none;
   }
+  /* When even the shown tab can't fit, it is shortened ("Order 10…") rather than cut: its × stays, and its title is
+     still its name and tooltip. */
+  .jali-tabs > .jali-tab-item:has(> .jali-tab.is-active) {
+    max-width: 100%;
+    & > .jali-tab {
+      flex: 0 1 auto;
+      min-width: 0;
+      overflow: hidden;
+    }
+  }
   .jali-tab-title {
+    min-width: 0;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;

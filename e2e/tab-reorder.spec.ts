@@ -99,3 +99,34 @@ test("a narrow strip keeps the shown tab in view, pinned tabs shrinking to their
     /.+/,
   );
 });
+
+/** When even the shown tab can't fit whole, it is shortened, not cut: its whole box and its close button stay in view. */
+test("a long shown tab in a narrow strip is shortened, with its close button in view", async ({
+  lab,
+  page,
+}) => {
+  await lab.open({ size: { width: 1920, height: 1000 } });
+  await lab.setting(/Add as a tab/);
+  await lab.drag("order", "orders", "centre");
+  await lab.drag("customer", "order", "centre");
+  await page.locator("[data-tab]").first().click({ button: "right" });
+  await page.getByRole("menuitemcheckbox", { name: "Pin tab" }).click();
+  const shown = page.locator('[role="tab"]:not([data-pinned])').last();
+  await shown.click();
+  // A long title, as an app's useTitle would give.
+  await shown
+    .locator(".jali-tab-title")
+    .evaluate((el) => (el.textContent = "Quarterly revenue by region and product line"));
+  await page.addStyleTag({ content: ".jali-pane-header { max-width: 390px; }" });
+  const part = page.locator(".jali-tabs").first();
+  await expect
+    .poll(async () => {
+      const p = (await part.boundingBox())!;
+      const t = (await shown.boundingBox())!;
+      return t.x >= p.x - 1 && t.x + t.width <= p.x + p.width + 1;
+    })
+    .toBe(true);
+  await expect(part).not.toHaveAttribute("data-fade-r");
+  const title = shown.locator(".jali-tab-title");
+  expect(await title.evaluate((el) => el.scrollWidth > el.clientWidth)).toBe(true);
+});

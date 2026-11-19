@@ -39,7 +39,9 @@ function revealTab(el: HTMLDivElement | null) {
   const end = start + el.offsetWidth;
   const view = strip.clientWidth;
   const scrollTo = (p: number) => (strip.scrollLeft = rtl ? -p : p);
-  if (start < pos + (pos > 0 ? FADE : 0) || end - start > view) scrollTo(Math.max(0, start - FADE));
+  // A tab that fills the strip (shortened to fit, pane.css) shows from its start, with no fade before it.
+  if (end - start >= view - 1) scrollTo(start);
+  else if (start < pos + (pos > 0 ? FADE : 0)) scrollTo(Math.max(0, start - FADE));
   else if (end > pos + view) scrollTo(end - view + FADE);
 }
 
@@ -111,15 +113,27 @@ export function TabStrip({ group, owner }: { group: NonNullable<Frame["group"]>;
     });
     setHiddenCount((p) => (p === n ? p : n));
     // Fade an edge that has tabs past it, so a cut-off tab reads as "more this way" (like the shelf).
+    // No fade while the shown tab fills the strip: it is shortened to fit, and a fade would hide its ×.
+    const fills = !!shown && want >= el.clientWidth - 1;
     const { pos, max, rtl } = scrolledFromStart(el);
-    el.toggleAttribute(rtl ? "data-fade-r" : "data-fade-l", pos > 1);
-    el.toggleAttribute(rtl ? "data-fade-l" : "data-fade-r", pos < max - 1);
+    el.toggleAttribute(rtl ? "data-fade-r" : "data-fade-l", !fills && pos > 1);
+    el.toggleAttribute(rtl ? "data-fade-l" : "data-fade-r", !fills && pos < max - 1);
   };
   useLayoutEffect(measure);
   useEffect(() => {
     const el = strip.current;
-    return el ? observeResize(el, measure) : undefined;
-  }, []);
+    if (!el) return undefined;
+    // A strip that changes size (the header narrowed, a title grew) shows its shown tab again, then counts.
+    const resized = () => {
+      revealTab(el.querySelector<HTMLDivElement>('[role="tab"][aria-selected="true"]'));
+      measure();
+    };
+    const shown = () => el.querySelector('[role="tab"][aria-selected="true"]')?.parentElement;
+    const offs = [observeResize(el, resized)];
+    const item = shown();
+    if (item) offs.push(observeResize(item, resized));
+    return () => offs.forEach((off) => off());
+  }, [group.active]);
   const overflowing = hiddenCount > 0;
 
   const putBackKeys = shortcutLabel(store, "pane.putBack");
