@@ -4,6 +4,7 @@
  */
 import type { NodeId, ObjectRef } from "../layout/types";
 import { tabsToClose } from "../actions/close";
+import { tabBounds } from "../actions/tabs";
 import type { UiStore } from "../state/store";
 
 /** One item in a tab's menu. */
@@ -35,9 +36,9 @@ export function tabMenuOf(store: UiStore, id: NodeId): TabMenuItem[][] {
   const keys = (command: string) => store.keymap.label(command) || undefined;
   const rtl = x.ctx.dir === "rtl";
   const at = st ? st.children.findIndex((c) => c.id === id) : -1;
-  const count = st?.children.length ?? 0;
-  const first = at <= 0,
-    last = at === count - 1;
+  const [lo, hi] = st ? tabBounds(st.children, at) : [0, 0];
+  const first = at <= lo,
+    last = at >= hi;
   const after = tabsToClose(x, id, "after").length;
   const others = tabsToClose(x, id, "others").length;
   const app = env.tabMenu?.({ id, ref: node.ref }) ?? [];
@@ -60,6 +61,12 @@ export function tabMenuOf(store: UiStore, id: NodeId): TabMenuItem[][] {
   ];
   const move: TabMenuItem[] = st
     ? [
+        {
+          id: "pin",
+          title: t.pinTab,
+          checked: !!node.pinned,
+          run: () => a.setPinned(id, !node.pinned),
+        },
         {
           id: "move-left",
           title: t.moveTab("left"),

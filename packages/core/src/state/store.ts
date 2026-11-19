@@ -451,6 +451,9 @@ export function createUiStore(deps: UiStoreDeps): UiStore {
     const after = state;
     if (after.layout !== before.layout) {
       const was = new Map(core.tree.panes(before.layout.root).map((p) => [p.id, p.ref]));
+      const pinnedBefore = new Map(
+        core.tree.panes(before.layout.root).map((p) => [p.id, !!p.pinned]),
+      );
       const now = core.tree.panes(after.layout.root);
       const ids = new Set(now.map((p) => p.id));
       for (const [pane, ref] of was) if (!ids.has(pane)) emit("close", { pane, ref });
@@ -458,6 +461,11 @@ export function createUiStore(deps: UiStoreDeps): UiStore {
         const previous = was.get(p.id);
         if (!previous) emit("open", { pane: p.id, ref: p.ref });
         else if (!sameRef(previous, p.ref)) emit("open", { pane: p.id, ref: p.ref, previous });
+      }
+      for (const p of now) {
+        const was = pinnedBefore.get(p.id);
+        if (was !== undefined && was !== !!p.pinned)
+          emit("pin", { pane: p.id, pinned: !!p.pinned });
       }
     }
     if (after.view.focused !== before.view.focused)

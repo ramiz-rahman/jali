@@ -16,13 +16,16 @@ import type { UiState, UiStore } from "./store";
 
 /**
  * What a workspace tells the app, once per change and only once it is made (never for the steps inside one action).
- * In each change they come in this order: `close`, `open`, `focus`, `layout`.
+ * In each change they come in this order: `close`, `open`, `pin`, `focus`, `layout`.
  */
 export interface JaliEvents {
   /** A pane was added to the layout, or now shows another object (`previous`: what it showed before). */
   open: { pane: NodeId; ref: ObjectRef; previous?: ObjectRef };
   /** A pane left the layout. A pane that is tucked, folded or behind a tab is still in it. */
   close: { pane: NodeId; ref: ObjectRef };
+  /** A pane's tab was pinned or unpinned, however: the tab menu, `setPinned`, `setLayout`, Back or a link. Not for a
+   *  pane that arrives pinned (that is an `open`). */
+  pin: { pane: NodeId; pinned: boolean };
   /** Another pane is focused (`pane` undefined: none). */
   focus: { pane: NodeId | undefined; previous: NodeId | undefined };
   /** The layout changed: by an action, a gesture, a key or `setLayout` ("action"), or by Back, Forward or a link

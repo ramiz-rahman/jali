@@ -32,7 +32,11 @@ export function tab(layout: Layout, targetId: string, pane: PaneNode): void {
   const target = find(layout.root, targetId)!;
   const container = parent(layout.root, targetId);
   if (container?.type === "stack") {
-    container.children.push(pane);
+    // A pinned tab joins at the end of the group's pinned tabs; any other at the end.
+    const at = pane.pinned
+      ? container.children.filter((c) => c.pinned).length
+      : container.children.length;
+    container.children.splice(at, 0, pane);
     container.active = pane.id;
     container.origin = "user";
   } else if (target.type === "pane") {
@@ -41,7 +45,7 @@ export function tab(layout: Layout, targetId: string, pane: PaneNode): void {
       type: "stack",
       size: target.size,
       userSized: target.userSized,
-      children: [target, pane],
+      children: pane.pinned && !target.pinned ? [pane, target] : [target, pane],
       active: pane.id,
       origin: "user",
     });

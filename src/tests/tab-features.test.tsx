@@ -259,7 +259,7 @@ describe("a tab's menu", () => {
         id === "b"
           ? [
               { id: "dup", title: "Duplicate", run: () => {} },
-              { id: "keep", title: "Pin tab", checked: false, run: () => {} },
+              { id: "watch", title: "Watch", checked: false, run: () => {} },
             ]
           : undefined,
     });
@@ -277,9 +277,7 @@ describe("a tab's menu", () => {
       "Duplicate",
     ]);
     expect(
-      within(menu)
-        .getByRole("menuitemcheckbox", { name: /Pin tab/ })
-        .getAttribute("aria-checked"),
+      within(menu).getByRole("menuitemcheckbox", { name: /Watch/ }).getAttribute("aria-checked"),
     ).toBe("false");
     expect(within(menu).getAllByRole("separator").length).toBeGreaterThan(0);
   });
@@ -359,5 +357,83 @@ describe("a tab's menu", () => {
     fireEvent.click(item);
     expect(run).not.toHaveBeenCalled();
     expect(screen.getByRole("menu")).toBeTruthy();
+  });
+});
+
+describe("pinned tabs", () => {
+  const four = (options: Partial<JaliOptions> = {}) =>
+    make(
+      row(
+        tabs(
+          pane(note({ id: 1 }), { id: "a" }),
+          pane(note({ id: 2 }), { id: "b" }),
+          pane(note({ id: 3 }), { id: "c" }),
+          pane(note({ id: 4 }), { id: "d" }),
+        ),
+        pane(note({ id: 9 }), { id: "z" }),
+      ),
+      options,
+    );
+  const order = (jali: ReturnType<typeof make>) =>
+    (
+      jali.getLayout().root as { children: { children?: { id: string }[] }[] }
+    ).children[0]!.children!.map((c) => c.id);
+
+  it("go first in their group, in the order they were pinned", () => {
+    const jali = four();
+    jali.actions.setPinned("c", true);
+    jali.actions.setPinned("d", true);
+    expect(order(jali)).toEqual(["c", "d", "a", "b"]);
+    jali.actions.setPinned("c", false);
+    expect(order(jali)).toEqual(["d", "c", "a", "b"]);
+  });
+
+  it("tell the app once per change, and pinning a pinned tab is no change", () => {
+    const heard: unknown[] = [];
+    const jali = four();
+    jali.on("pin", (e) => heard.push(e));
+    const layouts: unknown[] = [];
+    jali.on("layout", (e) => layouts.push(e));
+    jali.actions.setPinned("b", true);
+    expect(jali.actions.setPinned("b", true)).toMatchObject({ ok: true });
+    expect(heard).toEqual([{ pane: "b", pinned: true }]);
+    expect(layouts).toHaveLength(1);
+  });
+
+  it("are left open by Close other tabs and Close tabs to the right", () => {
+    const jali = four();
+    jali.actions.setPinned("d", true);
+    jali.actions.closeTabs("a", "others");
+    expect(order(jali)).toEqual(["d", "a"]);
+  });
+
+  it("move only among themselves, and the others only after them", () => {
+    const jali = four();
+    jali.actions.setPinned("a", true);
+    jali.actions.moveTab("a", 3);
+    expect(order(jali)).toEqual(["a", "b", "c", "d"]);
+    jali.actions.moveTab("d", 0);
+    expect(order(jali)).toEqual(["a", "d", "b", "c"]);
+  });
+
+  it("show a pin and say they are pinned; the menu has Pin tab, ticked", () => {
+    const jali = four();
+    jali.actions.setPinned("b", true);
+    render(<JaliRoot jali={jali} />);
+    const t = tab("Note 2");
+    expect(t.hasAttribute("data-pinned")).toBe(true);
+    expect(t.getAttribute("aria-description")).toMatch(/^Pinned\. /);
+    fireEvent.contextMenu(t.parentElement!);
+    const pin = screen.getByRole("menuitemcheckbox", { name: "Pin tab" });
+    expect(pin.getAttribute("aria-checked")).toBe("true");
+    act(() => void fireEvent.click(pin));
+    expect(jali.model().pane("b")).not.toHaveProperty("pinned");
+  });
+
+  it("survive a link: the codec carries them", () => {
+    const jali = four();
+    jali.actions.setPinned("c", true);
+    const again = make(jali.getLayout());
+    expect(again.model().pane("c")?.pinned).toBe(true);
   });
 });

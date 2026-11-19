@@ -76,6 +76,7 @@ export type Op =
   | "merge"
   | "unmerge"
   | "moveTab"
+  | "pinTab"
   | "tab"
   | "move"
   | "drop"
@@ -260,6 +261,7 @@ export const POLICY: Record<Op, Policy> = {
   tab: layout("replace", "swap"),
   // A tab's place in its strip: the group keeps its rect.
   moveTab: layout("push", "swap"),
+  pinTab: layout("push", "swap"),
   swap: layout("push", "swap"),
   activate: layout("push", "swap"),
   page: layout("push", "swap", "change"),

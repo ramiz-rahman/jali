@@ -43,15 +43,20 @@ export function setActiveTab(
   return root === next.root ? next : { ...next, root };
 }
 /**
- * Move pane `id` to position `index` among its tab group's tabs, counted from 0 and clamped to the group. Only a
- * group the person or the app made has an order to change: a pane folded or tucked into a group is placed by the
- * layout. The active tab stays active. The same layout when the pane is not in such a group, or is already there.
+ * Move pane `id` to position `index` among its tab group's tabs, counted from 0 and clamped to the group, and to its
+ * part of it: a pinned tab stays among the pinned tabs, any other after them. Only a group the person or the app made
+ * has an order to change: a pane folded or tucked into a group is placed by the layout. The active tab stays active.
+ * The same layout when the pane is not in such a group, or is already there.
  */
 export function moveTab(layout: Layout, id: string, index: number): Layout {
   const stack = stackOf(layout.root, id);
   if (!stack) return layout;
   const from = stack.children.findIndex((c) => c.id === id);
-  const to = Math.max(0, Math.min(stack.children.length - 1, Math.trunc(index)));
+  const pinnedCount = stack.children.filter((c) => c.pinned).length;
+  const [lo, hi] = stack.children[from]!.pinned
+    ? [0, pinnedCount - 1]
+    : [pinnedCount, stack.children.length - 1];
+  const to = Math.max(lo, Math.min(hi, Math.trunc(index)));
   if (from === to || Number.isNaN(to)) return layout;
   const children = stack.children.filter((c) => c.id !== id);
   children.splice(to, 0, stack.children[from]!);
@@ -59,6 +64,25 @@ export function moveTab(layout: Layout, id: string, index: number): Layout {
     ...layout,
     root: map(layout.root, (n) => (n.id === stack.id ? { ...stack, children } : n)),
   };
+}
+
+/**
+ * Pin a pane's tab (`true`) or unpin it. In a tab group it moves to where its pinned tabs end: the last pinned tab,
+ * or the first of the rest. The same layout when it already is.
+ */
+export function setPinned(layout: Layout, id: string, pinned: boolean): Layout {
+  const node = find(layout.root, id);
+  if (node?.type !== "pane" || !!node.pinned === pinned) return layout;
+  const { pinned: _p, ...rest } = node;
+  const flagged: PaneNode = pinned ? { ...rest, pinned: true } : rest;
+  const root = map(layout.root, (n) => {
+    if (n.id === id) return flagged;
+    if (n.type !== "stack" || !n.children.some((c) => c.id === id)) return n;
+    const others = n.children.filter((c) => c.id !== id);
+    const at = others.filter((c) => c.pinned).length;
+    return { ...n, children: [...others.slice(0, at), flagged, ...others.slice(at)] };
+  });
+  return { ...layout, root };
 }
 
 export function reveal(layout: Layout, pane: string, ctx: LayoutContext): Layout {

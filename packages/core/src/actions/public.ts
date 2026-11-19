@@ -40,7 +40,7 @@ import {
   setMode,
 } from "./page";
 import { peek, select } from "./peek";
-import { mergeInto, moveTab, unmerge } from "./tabs";
+import { mergeInto, moveTab, setPinned, unmerge } from "./tabs";
 import { choose, type ChooseOptions } from "./choose";
 import { putBack, tuck } from "./tuck";
 
@@ -113,6 +113,8 @@ export interface JaliActions {
   unmerge(pane?: PaneTarget): ActionResult;
   /** Move a tab to position `index` (from 0) among its group's tabs, clamped. Its group keeps its place and size. */
   moveTab(pane: PaneTarget, index: number): ActionResult;
+  /** Pin a pane's tab, or unpin it: first in its group, and left open by Close other tabs and Close tabs to the right. */
+  setPinned(pane: PaneTarget, pinned: boolean): ActionResult;
 
   // ---------- layouts ----------
   /** Switch to the preset with this id. */
@@ -232,6 +234,7 @@ export function publicActions(run: Run): JaliActions {
     mergeInto: (pane, target) => both(pane, target, mergeInto),
     unmerge: (pane) => opt(pane, (x, id) => unmerge(x, id)),
     moveTab: (pane, index) => on(pane, (x, id) => moveTab(x, id, index)),
+    setPinned: (pane, pinned) => on(pane, (x, id) => setPinned(x, id, pinned)),
 
     preset: (id) =>
       run((x) =>

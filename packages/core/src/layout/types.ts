@@ -28,6 +28,9 @@ export interface PaneNode extends NodeBase {
   follows?: boolean;
   /** Kept by the person: never reused for another object, never following, and the last to fold. */
   kept?: boolean;
+  /** A pinned tab: first in its tab group, and left open by Close other tabs and Close tabs to the right. It stays
+   *  pinned when it leaves a group, so it is pinned again if it joins one. */
+  pinned?: boolean;
   /** Monotonic age; imported panes without an age precede newly opened panes in reading order. */
   born?: number;
   /** The place this pane fills in a designed arrangement ("borrower"). Panes without a role were opened by the person. */

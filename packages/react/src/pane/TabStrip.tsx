@@ -117,6 +117,7 @@ export function TabStrip({ group, owner }: { group: NonNullable<Frame["group"]>;
     const active = t.id === group.active;
     const title = titleOf(store.env, t, titles);
     const dirty = !!unsaved[t.id];
+    const pinned = !!t.pinned;
     const description = tw.description(
       isFolded ? "folded" : tucked ? "tucked" : undefined,
       tucked ? putBackKeys : "",
@@ -129,6 +130,7 @@ export function TabStrip({ group, owner }: { group: NonNullable<Frame["group"]>;
         data-drag-ok
         data-unsaved={dirty || undefined}
         data-drop={dropAt?.tab === t.id ? dropAt.side : undefined}
+        data-pinned={pinned || undefined}
         onPointerDown={(e) => {
           e.stopPropagation();
           startPaneDrag(store, e, t.id);
@@ -154,7 +156,10 @@ export function TabStrip({ group, owner }: { group: NonNullable<Frame["group"]>;
           data-folded={isFolded || undefined}
           data-unsaved={dirty || undefined}
           aria-label={title}
-          aria-description={dirty ? `${words.pane.unsaved}. ${description}` : description}
+          data-pinned={pinned || undefined}
+          aria-description={[pinned && tw.pinned, dirty && words.pane.unsaved, description]
+            .filter(Boolean)
+            .join(". ")}
           aria-keyshortcuts="Delete Backspace Shift+F10"
           aria-haspopup="menu"
           title={isFolded ? tw.foldedTitle(title) : title}
@@ -183,6 +188,11 @@ export function TabStrip({ group, owner }: { group: NonNullable<Frame["group"]>;
             }
           }}
         >
+          {pinned ? (
+            <span className="jali-tab-pin" aria-hidden>
+              <icon.pin size={12} />
+            </span>
+          ) : null}
           <TabIcon node={t} />
           <span
             className="jali-tab-title"

@@ -76,7 +76,7 @@ export function closeOthers(x: Snapshot, id = x.s.view.focused): Outcome {
 
 /**
  * Close several tabs of `id`'s group at once: the others, or those after it in reading order. One change, so the
- * host's `beforeClose` is asked once, listing them all, and one Undo brings them back.
+ * host's `beforeClose` is asked once, listing them all, and one Undo brings them back. Pinned tabs stay.
  */
 export function closeTabs(x: Snapshot, id: NodeId, which: "others" | "after"): Outcome {
   const { s, ctx } = x;
@@ -101,12 +101,14 @@ export function closeTabs(x: Snapshot, id: NodeId, which: "others" | "after"): O
   };
 }
 
-/** The tabs `closeTabs` would close: of `id`'s group, the others or those after it. */
+/** The tabs `closeTabs` would close: of `id`'s group, the others or those after it, but never a pinned tab. */
 export function tabsToClose({ m }: Snapshot, id: NodeId, which: "others" | "after"): NodeId[] {
   const st = m.stackOf(id);
   if (!st) return [];
   const at = st.children.findIndex((c) => c.id === id);
-  return st.children.filter((_, i) => (which === "others" ? i !== at : i > at)).map((c) => c.id);
+  return st.children
+    .filter((c, i) => !c.pinned && (which === "others" ? i !== at : i > at))
+    .map((c) => c.id);
 }
 
 export const checkUndo = ({ s, env }: Snapshot) =>

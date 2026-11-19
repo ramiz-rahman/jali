@@ -236,7 +236,15 @@ Keeps a linked pane on its object (`kept: true`): a follower stops following, a 
 
 <Entry name="layout.moveTab" kind="function" from="@jali/core" signature={`layout.moveTab(layout, pane: string, index: number): Layout`} compact>
 
-Moves `pane` to position `index` (from 0, clamped) among the tabs of its deliberate tab group. The shown tab stays shown and nothing refits. The same layout when `pane` is not in such a group or is already there.
+Moves `pane` to position `index` (from 0, clamped to its part of the group: the pinned tabs or the rest) among the tabs of its deliberate tab group. The shown tab stays shown and nothing refits. The same layout when `pane` is not in such a group or is already there.
+
+<Returns type="Layout" />
+
+</Entry>
+
+<Entry name="layout.setPinned" kind="function" from="@jali/core" signature={`layout.setPinned(layout, pane: string, pinned: boolean): Layout`} compact>
+
+Pins or unpins `pane`'s tab. In a tab group it moves to where the pinned tabs end. The same layout when it already is as asked.
 
 <Returns type="Layout" />
 

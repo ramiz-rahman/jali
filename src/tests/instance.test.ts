@@ -100,6 +100,7 @@ describe("the instance", () => {
         "mergeInto",
         "unmerge",
         "moveTab",
+        "setPinned",
         "preset",
         "resetLayout",
         "openPage",

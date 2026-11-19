@@ -361,6 +361,19 @@
     }
   }
 
+  /* A pinned tab: a pin before its icon. Its width is the app's to choose: --jali-tab-pinned-width (say 2.5rem, for
+   the icon alone) caps it, and the title gives way first. */
+  .jali-tab-pin {
+    display: grid;
+    place-items: center;
+    flex: none;
+    color: var(--jali-text-muted);
+  }
+  .jali-tab-item[data-pinned] > .jali-tab {
+    max-width: var(--jali-tab-pinned-width, none);
+    overflow: hidden;
+  }
+
   /* A tab dragged between its group's tabs: a line where it would go, at the start or end edge in reading order. */
   .jali-tab-item[data-drop]::before {
     content: "";

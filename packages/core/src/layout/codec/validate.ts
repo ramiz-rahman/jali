@@ -79,6 +79,8 @@ export function validate(
         error(path, "invalid linkedTo");
       if (value.kept !== undefined && typeof value.kept !== "boolean")
         error(path, "kept must be boolean");
+      if (value.pinned !== undefined && typeof value.pinned !== "boolean")
+        error(path, "pinned must be boolean");
       if (value.follows !== undefined && typeof value.follows !== "boolean")
         error(path, "follows must be boolean");
       if (

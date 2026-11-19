@@ -102,6 +102,8 @@ const announcements = {
   /** A tab moved within its group: its place, counted from 1, of `count` tabs. */
   tabMoved: (pane: string, position: number, count: number) =>
     `${pane} moved to position ${position} of ${count}`,
+  tabPinned: (pane: string) => `${pane} pinned`,
+  tabUnpinned: (pane: string) => `${pane} unpinned`,
   /** A tab can't move further that way: `edge` is "first" or "last". */
   tabAtEdge: (pane: string, edge: "first" | "last") => `${pane} is already the ${edge} tab`,
 
@@ -383,6 +385,9 @@ const tabs = {
   closeTabsAfter: (side: "left" | "right") => `Close tabs to the ${side}`,
   moveTab: (side: "left" | "right") => `Move tab ${side}`,
   moveOutOfTabs: "Move out of tabs",
+  pinTab: "Pin tab",
+  /** A pinned tab's description starts with this. */
+  pinned: "Pinned",
   splitRight: "Split right",
   splitDown: "Split down",
   maximise: "Maximise",

@@ -88,6 +88,7 @@ export const sameNode = (a: PaneNode, b: PaneNode) =>
   (a.id === b.id &&
     a.linkedTo === b.linkedTo &&
     a.kept === b.kept &&
+    a.pinned === b.pinned &&
     JSON.stringify(a.ref) === JSON.stringify(b.ref));
 const sameGroup = (a: Frame["group"], b: Frame["group"]) =>
   a === b ||

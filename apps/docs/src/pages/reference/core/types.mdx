@@ -41,6 +41,7 @@ A pane: one object, shown by its kind's component.
 <Param name="linkedTo" type="NodeId">The pane it was opened from. Closing that pane drops the link.</Param>
 <Param name="follows" type="boolean">It shows the object selected in `linkedTo` and changes in place when the selection moves. At most one per source and kind.</Param>
 <Param name="kept" type="boolean">Kept by the person: never reused for another object, never following, the last to fold.</Param>
+<Param name="pinned" type="boolean">A pinned tab: first in its tab group, left open by Close other tabs and Close tabs to the right, and still pinned if it leaves the group and joins another.</Param>
 <Param name="born" type="number">Its age, rising with each open; older panes fold first when over the cap. Panes without one come before new ones.</Param>
 <Param name="role" type="string">The view of a curated page it fills ("borrower"). Panes without a role were opened by the person.</Param>
 <Param name="priority" type={`"primary" | "supporting"`}>Supporting panes give way first when room runs out; a primary pane never folds while another can.</Param>
@@ -196,7 +197,7 @@ A builder node's id and size: a share of its parent (`weight`, default 1) or a f
 
 </Entry>
 
-<Entry name="PaneNodeOptions" kind="type" from="@jali/core" signature={`interface PaneNodeOptions extends SizeOptions {\n  linkedTo?; follows?; kept?; role?; priority?; hidden?: boolean;\n}`} compact>
+<Entry name="PaneNodeOptions" kind="type" from="@jali/core" signature={`interface PaneNodeOptions extends SizeOptions {\n  linkedTo?; follows?; kept?; pinned?; role?; priority?; hidden?: boolean;\n}`} compact>
 
 The options of <Ref to="pane" page="/reference/core" />.
 
@@ -413,7 +414,7 @@ A workspace, from <Ref to="createJali" page="/reference/core" />. It is frozen: 
 <Member name="Jali.get" signature="get(): JaliState">The state now.</Member>
 <Member name="Jali.subscribe" signature="subscribe(fn: () => void): () => void">Called after every change of state. Returns the unsubscribe. To hear what changed, use `on`.</Member>
 <Member name="Jali.model" signature="model(): JaliModel">The derived model; the same object while nothing it depends on changed.</Member>
-<Member name="Jali.on" signature={`on(event: keyof JaliEvents, handler: (e) => void): () => void`}>Hear one kind of change: `"open"`, `"close"`, `"focus"` or `"layout"`. Returns the unsubscribe. See <Ref to="JaliEvents" />.</Member>
+<Member name="Jali.on" signature={`on(event: keyof JaliEvents, handler: (e) => void): () => void`}>Hear one kind of change: `"open"`, `"close"`, `"pin"`, `"focus"` or `"layout"`. Returns the unsubscribe. See <Ref to="JaliEvents" />.</Member>
 <Member name="Jali.getLayout" signature="getLayout(): Layout">The layout on screen, to save. It is plain JSON.</Member>
 <Member name="Jali.setLayout" signature="setLayout(layout: LayoutInput): ActionResult">Show a layout: anything `createJali({ layout })` takes. It is fitted to the room, focus stays on a pane that is still there, and the address gets a new entry, so Back returns to the layout before. A curated page that is open closes. Refused with `"invalid"` for a pane kind the workspace doesn't have; held with `"unsaved"` when a pane that would go has unsaved work; asks `beforeClose` like a close.</Member>
 <Member name="Jali.keymap" signature="keymap: Keymap">This workspace's keys: `label(id)` for a tooltip, `sequences(id)`, `platform`.</Member>
@@ -428,13 +429,14 @@ To save a person's layout, listen for `"layout"` and store `getLayout()`. To res
 
 </Entry>
 
-<Entry name="JaliEvents" kind="type" from="@jali/core" signature={`interface JaliEvents { open; close; focus; layout }`} compact>
+<Entry name="JaliEvents" kind="type" from="@jali/core" signature={`interface JaliEvents { open; close; pin; focus; layout }`} compact>
 
-What `jali.on` tells you. Each fires once per change, after the change is made, and never for the steps inside one action (a drag before it drops, the steps of a preset switch). In one change they come in this order: `close`, `open`, `focus`, `layout`.
+What `jali.on` tells you. Each fires once per change, after the change is made, and never for the steps inside one action (a drag before it drops, the steps of a preset switch). In one change they come in this order: `close`, `open`, `pin`, `focus`, `layout`.
 
 <Params title="Events">
 <Param name="open" type="{ pane: NodeId; ref: ObjectRef; previous?: ObjectRef }" required>A pane was added to the layout, or now shows another object. `previous` is what it showed before. A launcher pane counts.</Param>
 <Param name="close" type="{ pane: NodeId; ref: ObjectRef }" required>A pane left the layout. A tucked, folded or tabbed pane is still in it.</Param>
+<Param name="pin" type="{ pane: NodeId; pinned: boolean }" required>A pane's tab was pinned or unpinned, however it happened: the tab menu, `setPinned`, `setLayout`, Back or a link. Not for a pane that arrives pinned, which is an `open`. Pinning a pinned tab is no change, so it says nothing.</Param>
 <Param name="focus" type="{ pane: NodeId | undefined; previous: NodeId | undefined }" required>Another pane is focused.</Param>
 <Param name="layout" type={`{ layout: Layout; source: "action" | "address" }`} required>The layout changed. `"action"`: an action, a gesture, a key or `setLayout`. `"address"`: Back, Forward or a link. Fitting to a new window size does not fire it.</Param>
 </Params>
@@ -816,7 +818,8 @@ A pane that is not there gives `reason: "not-found"`. What a refusal reads out t
 <Member name="actions.mergeInto" signature="mergeInto(pane: PaneTarget, target: PaneTarget)">`pane` joins `target`'s tab group.</Member>
 <Member name="actions.unmerge" signature="unmerge(pane?: PaneTarget)">Move a tab out of its group, to the right of it.</Member>
 <Member name="actions.closeTabs" signature={`closeTabs(pane: PaneTarget, which: "others" | "after")`}>Close the other tabs of `pane`'s group, or the tabs after it in reading order (to its right, or its left right to left). One change: `beforeClose` is asked once, listing them all, and one Undo brings them back. Refused with `"nothing-to-do"` when there are none. The tab menu's Close other tabs and Close tabs to the right.</Member>
-<Member name="actions.moveTab" signature="moveTab(pane: PaneTarget, index: number)">Move a tab to position `index` (from 0) among its group's tabs, clamped to the group; the group keeps its place and size, and its shown tab. Announced as "Orders moved to position 2 of 4". Refused with `"nothing-to-do"` for a pane that is not a tab in a group the person or the app made (a folded or tucked tab is placed by the layout).</Member>
+<Member name="actions.setPinned" signature="setPinned(pane: PaneTarget, pinned: boolean)">Pin a pane's tab, or unpin it. A pinned tab goes to the end of its group's pinned tabs, at the start of the group; unpinned, it goes to the start of the rest. Close other tabs and Close tabs to the right leave it open; Close, middle-click and ⌘W still close it. Already as asked: nothing happens, with no `pin` event and no history entry. Each change fires `pin`.</Member>
+<Member name="actions.moveTab" signature="moveTab(pane: PaneTarget, index: number)">Move a tab to position `index` (from 0) among its group's tabs, clamped to the group and to its part of it (a pinned tab among the pinned tabs, any other after them); the group keeps its place and size, and its shown tab. Announced as "Orders moved to position 2 of 4". Refused with `"nothing-to-do"` for a pane that is not a tab in a group the person or the app made (a folded or tucked tab is placed by the layout).</Member>
 </Members>
 
 <Members title="Layouts">

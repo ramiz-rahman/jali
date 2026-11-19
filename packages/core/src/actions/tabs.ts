@@ -106,11 +106,19 @@ function stepToward({ m, ctx }: Snapshot, side: "left" | "right", id: NodeId | u
   if (!id || !st) return undefined;
   const from = st.children.findIndex((c) => c.id === id);
   const to = from + ((side === "right") === (ctx.dir !== "rtl") ? 1 : -1);
+  // A tab moves within its part of the group: the pinned tabs, or the rest.
+  const [lo, hi] = tabBounds(st.children, from);
   return {
     id,
     to,
-    edge: to < 0 ? ("first" as const) : to >= st.children.length ? ("last" as const) : undefined,
+    edge: to < lo ? ("first" as const) : to > hi ? ("last" as const) : undefined,
   };
+}
+
+/** The first and last index tab `at` may move to: among the pinned tabs if it is one, else after them. */
+export function tabBounds(tabs: readonly { pinned?: boolean }[], at: number): [number, number] {
+  const pinned = tabs.filter((t) => t.pinned).length;
+  return tabs[at]?.pinned ? [0, pinned - 1] : [pinned, tabs.length - 1];
 }
 
 /** Move a tab one place towards `side` (default: the focused pane). At the group's end, says so. */
@@ -125,3 +133,15 @@ export function moveTabToward(x: Snapshot, side: "left" | "right", id = x.s.view
 /** Silent unless the focused pane is a tab in a group (at the group's end, running it says so, as moving a pane does). */
 export const checkMoveTab = ({ s, m }: Snapshot) =>
   m.stackOf(s.view.focused) ? undefined : refuse("nothing-to-do");
+
+/** Pin a tab (`true`) or unpin it: pinned tabs come first in their group and stay when others are closed together. */
+export function setPinned({ s, m }: Snapshot, id: NodeId, pinned: boolean): Outcome {
+  if (!m.pane(id)) return refuse("not-found");
+  const layout = core.setPinned(s.layout, id, pinned);
+  if (layout === s.layout) return null;
+  return {
+    op: "pinTab",
+    layout,
+    msg: pinned ? say(m).tabPinned(m.title(id)) : say(m).tabUnpinned(m.title(id)),
+  };
+}

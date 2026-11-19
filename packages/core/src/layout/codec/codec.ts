@@ -19,6 +19,7 @@ function pack(node: LayoutNode): Packed {
     n.r = [node.ref.kind, node.ref.params];
     if (node.linkedTo !== undefined) n.l = node.linkedTo;
     if (node.kept !== undefined) n.p = node.kept;
+    if (node.pinned !== undefined) n.h = node.pinned;
     if (node.follows !== undefined) n.f = node.follows;
     if (node.born !== undefined) n.g = node.born;
     if (node.role !== undefined) n.e = node.role;
@@ -48,6 +49,7 @@ function unpack(value: unknown, depth = 0): unknown {
     out.ref = Array.isArray(n.r) && n.r.length === 2 ? { kind: n.r[0], params: n.r[1] } : n.r;
     if (n.l !== undefined) out.linkedTo = n.l;
     if (n.p !== undefined) out.kept = n.p;
+    if (n.h !== undefined) out.pinned = n.h;
     if (n.f !== undefined) out.follows = n.f;
     if (n.g !== undefined) out.born = n.g;
     if (n.e !== undefined) out.role = n.e;
