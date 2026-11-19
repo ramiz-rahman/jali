@@ -41,8 +41,10 @@ export function useLinkInterception() {
       const a = (e.target as Element).closest?.("a");
       if (!a || a.target || a.hasAttribute("download")) return;
       const url = new URL(a.href, window.location.href);
+      // The Markdown copies are static text files: open them as files, not as pages.
       if (
         url.origin !== window.location.origin ||
+        url.pathname.endsWith(".md") ||
         (url.pathname === window.location.pathname && url.hash)
       )
         return;
