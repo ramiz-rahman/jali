@@ -309,8 +309,10 @@ export function Panes() {
         height: Math.max(0, area.height + GAP * 2 - switcherH),
       }
     : { left: GAP, top: GAP, width: area.width, height: area.height };
-  // One pane on screen, tiled: full-bleed and quiet, as a plain tab strip would be (ALONE_CHROME).
-  const alone = !single && !page && m.resolved.panes.filter((b) => !b.hidden).length === 1;
+  // One pane on screen, tiled: full-bleed and quiet, as a plain tab strip would be (ALONE_CHROME). Not a maximised
+  // pane: the others are behind it, and it needs its Restore.
+  const alone =
+    !single && !page && !view.zoomed && m.resolved.panes.filter((b) => !b.hidden).length === 1;
   const chrome = single ? CHROME.single : alone ? ALONE_CHROME : CHROME.tiled;
   const bleed = alone
     ? { left: 0, top: 0, width: area.width + GAP * 2, height: area.height + GAP * 2 }

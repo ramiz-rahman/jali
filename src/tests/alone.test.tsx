@@ -65,4 +65,13 @@ describe("a lone pane", () => {
     expect(container.querySelector("[data-alone]")).toBeNull();
     expect(container.querySelectorAll(".jali-act-tuck").length).toBe(2);
   });
+
+  it("is not a maximised pane: the others are behind it, and it keeps Restore", () => {
+    const jali = make(note({ id: 1 }));
+    const { container } = render(<JaliRoot jali={jali} />);
+    act(() => void jali.actions.openBeside(jali.model().visible[0]!, note({ id: 2 })));
+    act(() => void jali.actions.toggleZoom(jali.model().visible[0]!));
+    expect(container.querySelector("[data-alone]")).toBeNull();
+    expect(container.querySelector(".jali-pane[data-zoomed] .jali-act-zoom")).not.toBeNull();
+  });
 });
