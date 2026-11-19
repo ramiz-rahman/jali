@@ -12,6 +12,20 @@ import {
   useUi,
 } from "../state/react";
 
+/**
+ * Scrolls the switcher's own list so the selected entry is in it, and nothing else: `scrollIntoView` would also scroll
+ * the page to this workspace, pulling the reader away from wherever they are (a docs page with several workspaces).
+ */
+function revealInList(el: HTMLElement | null) {
+  const list = el?.parentElement;
+  if (!el || !list) return;
+  // By the boxes on screen, so it reads the same right to left, where scrollLeft counts down from 0.
+  const r = el.getBoundingClientRect();
+  const l = list.getBoundingClientRect();
+  if (r.left < l.left) list.scrollLeft -= l.left - r.left;
+  else if (r.right > l.right) list.scrollLeft += r.right - l.right;
+}
+
 function Item({ node, selected, inView }: { node: PaneNode; selected: boolean; inView?: boolean }) {
   const activity = useUi((s) => s.activity[node.id]);
   const dirty = useUnsavedOf(node.id);
@@ -33,9 +47,7 @@ function Item({ node, selected, inView }: { node: PaneNode; selected: boolean; i
       data-unsaved={dirty || undefined}
       aria-description={dirty ? store.messages.pane.unsaved : undefined}
       onClick={() => actions.focus(node.id)}
-      ref={
-        selected ? (el) => el?.scrollIntoView?.({ inline: "nearest", block: "nearest" }) : undefined
-      }
+      ref={selected ? revealInList : undefined}
     >
       <KindIcon kind={node.ref.kind} size={14} />
       <span className="jali-switch-title">{titleOf(store.env, node, titles)}</span>
