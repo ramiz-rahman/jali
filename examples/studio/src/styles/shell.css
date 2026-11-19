@@ -378,6 +378,10 @@
   .slab[data-f3] {
     --display-min: 184px;
   }
+  /* Reset is in ⌘K too, so it goes before the speed dial. */
+  .slab[data-f3] .tool-reset {
+    display: none;
+  }
   .slab[data-f4] .tp-speed {
     display: none;
   }
@@ -393,7 +397,7 @@
   .slab[data-f7] .group-rotary {
     display: none;
   }
-  .slab[data-f8] :is(.tp-loop, .tool-link, .tool-reset) {
+  .slab[data-f8] :is(.tp-loop, .tool-link) {
     display: none;
   }
   .slab[data-f8] {
