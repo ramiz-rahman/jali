@@ -7,10 +7,18 @@
 import { saved } from "../store";
 
 export const HEADER_BUTTONS = [
-  { id: "printed", label: "Printed glyphs", hint: "A: no cap at rest; a shallow key on hover and press" },
+  {
+    id: "printed",
+    label: "Printed glyphs",
+    hint: "A: no cap at rest; a shallow key on hover and press",
+  },
   { id: "wells", label: "Recessed wells", hint: "B: small flush buttons sunk into the plate" },
   { id: "strip", label: "One low strip", hint: "C: the three joined in a thin segmented strip" },
-  { id: "round", label: "Round push-buttons", hint: "D: small round caps, the icon printed on them" },
+  {
+    id: "round",
+    label: "Round push-buttons",
+    hint: "D: small round caps, the icon printed on them",
+  },
 ] as const;
 export type HeaderButtons = (typeof HEADER_BUTTONS)[number]["id"];
 
@@ -28,5 +36,6 @@ export function setHeaderButtons(v: HeaderButtons) {
 
 /** At start-up: the remembered treatment onto the page. */
 export function applyHeaderButtons() {
-  if (typeof document !== "undefined") document.documentElement.dataset.headerButtons = headerButtons();
+  if (typeof document !== "undefined")
+    document.documentElement.dataset.headerButtons = headerButtons();
 }

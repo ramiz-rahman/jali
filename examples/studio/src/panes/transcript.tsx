@@ -10,7 +10,13 @@
  * E edits it, L loops it, ⇧Space peeks it, ⌘S saves. Space is the transport's.
  */
 import { useEffect, useLayoutEffect, useMemo, useRef, useState, type KeyboardEvent } from "react";
-import { NotePencilIcon, PlayIcon, RepeatIcon, TextAlignLeftIcon, UserIcon } from "@phosphor-icons/react";
+import {
+  NotePencilIcon,
+  PlayIcon,
+  RepeatIcon,
+  TextAlignLeftIcon,
+  UserIcon,
+} from "@phosphor-icons/react";
 import { keyHint } from "@jali/core";
 import {
   definePane,

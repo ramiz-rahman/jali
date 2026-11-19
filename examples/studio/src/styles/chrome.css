@@ -346,3 +346,11 @@
     border-radius: var(--corner);
   }
 }
+
+@layer app {
+  /* A row's name stays on one line (Chakra Petch runs wide); reached as its first child, which has no public
+     selector. */
+  .jali-palette-item > :first-child {
+    white-space: nowrap;
+  }
+}

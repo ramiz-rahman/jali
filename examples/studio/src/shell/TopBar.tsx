@@ -167,7 +167,8 @@ function Transport() {
       <div className="screen player-display">
         <div className="pd-line">
           <span className="pd-show">
-            <span className="pd-title">{session.title}</span> · {session.show} · ep {session.episode}
+            <span className="pd-title">{session.title}</span> · {session.show} · ep{" "}
+            {session.episode}
           </span>
           <span className="pd-state" role="status">
             {t.status === "loading"
@@ -189,13 +190,19 @@ function Transport() {
         </div>
       </div>
       {key("Back 5 seconds", "back", "back", () => engine.skip(-5))}
-      {key(t.playing ? "Pause" : "Play", t.playing ? "pause" : "play", t.playing ? "pause" : "play", () => engine.toggle(), {
-        className: "key-accent key-play",
-        latch: true,
-        disabled: !ready,
-        on: t.playing,
-        title: `${t.playing ? "Pause" : "Play"} (Space)`,
-      })}
+      {key(
+        t.playing ? "Pause" : "Play",
+        t.playing ? "pause" : "play",
+        t.playing ? "pause" : "play",
+        () => engine.toggle(),
+        {
+          className: "key-accent key-play",
+          latch: true,
+          disabled: !ready,
+          on: t.playing,
+          title: `${t.playing ? "Pause" : "Play"} (Space)`,
+        },
+      )}
       {key(
         "Stop",
         "stop",

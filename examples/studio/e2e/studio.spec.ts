@@ -28,7 +28,7 @@ test("the library drives the transcript and the timeline", async ({ page }) => {
   await expect(list.getByRole("option", { selected: true })).toContainText("A library of seeds");
   await expect(header(page, "transcript")).toContainText("A library of seeds");
   await expect(header(page, "timeline")).toContainText("A library of seeds");
-  await expect(page.locator(".tp-title")).toHaveText("A library of seeds");
+  await expect(page.locator(".pd-title")).toHaveText("A library of seeds");
 });
 
 test("Space plays and pauses from inside a pane, and the playhead moves", async ({ page }) => {
