@@ -659,6 +659,9 @@
     text-transform: lowercase;
     color: var(--lcd-dim);
     white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    min-width: 0;
   }
   .tl-who {
     grid-column: 1;
@@ -1530,14 +1533,15 @@
     color: var(--paper-dim);
   }
   /* A line that starts while another is still going (people talking over each other): a short rule in its
-     track's colour beside the time, so overlaps read at a glance. */
-  .tr-seg[data-overlap] .tr-time {
+     track's colour between the time and the words, so overlaps read at a glance. */
+  .tr-line {
+    --gutter: 44px;
     position: relative;
   }
-  .tr-seg[data-overlap] .tr-time::before {
+  .tr-seg[data-overlap] .tr-line::before {
     content: "";
     position: absolute;
-    right: -7px;
+    left: calc(var(--gutter) + 5px);
     top: 7px;
     width: 2px;
     height: 12px;
@@ -1547,6 +1551,7 @@
   }
   /* The mission clock is wider than mm:ss: the gutter grows to hold it. */
   .tr-rows:has(.tr-time[data-wide]) .tr-line {
+    --gutter: 64px;
     grid-template-columns: 64px minmax(0, 1fr) auto;
   }
   .tr-rows:has(.tr-time[data-wide]) .tr-section {
@@ -1639,5 +1644,18 @@
   /* A legend that is an abbreviation keeps its capitals (GET). */
   .key.key-caps {
     text-transform: none;
+  }
+}
+
+@layer app {
+  /* Mute and solo print their words; on a desk of seven or eight narrow modules, their initials. */
+  .mx-short {
+    display: none;
+  }
+  .mx-modules:is([data-count="7"], [data-count="8"]) .mx-word {
+    display: none;
+  }
+  .mx-modules:is([data-count="7"], [data-count="8"]) .mx-short {
+    display: inline;
   }
 }

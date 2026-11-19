@@ -1,8 +1,8 @@
 import { expect, test, type Page } from "@playwright/test";
 
 /*
- * Every pane holds up at every size: each layout at a range of window widths and heights, light and dark. In every
- * pane on screen:
+ * Every pane holds up at every size: each layout with each session (three, eight and four tracks) at a range of
+ * window widths and heights, light and dark. In every pane on screen:
  *  - the pane's body doesn't scroll sideways (a list may scroll down; the mixer's modules may scroll sideways in
  *    their own scroller, with the master pinned);
  *  - every visible control (key, slider, field) is wholly inside its pane, or in a scroller wholly inside it;
@@ -18,6 +18,25 @@ const SIZES = [
   [1920, 1200],
 ] as const;
 const LAYOUTS = ["edit", "mix", "review", "compare"] as const;
+const SESSIONS = ["The Eagle has landed", "The Light caught by the Stone", "Never had an orange"];
+
+/** Put a session in the panes: from the library when it is on screen, else from ⌘K's "Open session…". */
+async function openSession(page: Page, title: string) {
+  const row = page.getByRole("listbox", { name: "Sessions" }).getByRole("option", {
+    name: new RegExp(title),
+  });
+  if (await row.isVisible()) {
+    // A click on the selected session opens its transcript; only the others need one.
+    if ((await row.getAttribute("aria-selected")) !== "true") await row.click();
+  } else {
+    await page.keyboard.press("ControlOrMeta+k");
+    await page.getByRole("combobox").fill("Open session");
+    await page.keyboard.press("Enter");
+    await page.getByRole("combobox", { name: "Open session…" }).fill(title);
+    await page.keyboard.press("Enter");
+  }
+  await expect(page.locator(".pd-title")).toHaveText(title, { timeout: 20_000 });
+}
 const SCROLLERS = ".mx-modules, .tr-rows, .lib-rows, .mk-rows, .clip";
 const LEGENDS =
   ".face-legend, .legend, .pane-label, .toolbar-note, .mx-pan-legend, .mx-db, .mx-label, .clip-stats, .clip-range, .mk-time, .tl-track, .lib-show, .lib-meta > span:first-child, .tr-time, .tr-speaker-name, .key";
@@ -137,7 +156,7 @@ async function check(page: Page) {
 
 for (const dark of [false, true]) {
   test(`every pane fits, every layout and size, ${dark ? "dark" : "light"}`, async ({ page }) => {
-    test.setTimeout(240_000);
+    test.setTimeout(600_000);
     await page.emulateMedia({ colorScheme: dark ? "dark" : "light", reducedMotion: "reduce" });
     const failures: string[] = [];
     for (const preset of LAYOUTS) {
@@ -153,10 +172,14 @@ for (const dark of [false, true]) {
             .getByRole("navigation", { name: "Layouts" })
             .getByRole("button", { name: new RegExp(preset, "i") })
             .click();
-        await page.evaluate(
-          () => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r))),
-        );
-        for (const p of await check(page)) failures.push(`${preset} ${width}×${height}: ${p}`);
+        for (const title of SESSIONS) {
+          await openSession(page, title);
+          await page.evaluate(
+            () => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r))),
+          );
+          for (const p of await check(page))
+            failures.push(`${preset} ${width}×${height} ${title}: ${p}`);
+        }
       }
     }
     expect([...new Set(failures)]).toEqual([]);
