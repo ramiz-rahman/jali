@@ -610,6 +610,8 @@ export function createUiStore(deps: UiStoreDeps): UiStore {
   };
   store.actions = bindActions(store);
   store.jali = createInstance(store);
-  if (pageOnly && !deps.initial?.page) store.actions.openPage();
+  // As an arrival, which writes no history: the address still holds the link boot is about to read, and boot writes
+  // the address itself once it has.
+  if (pageOnly && !deps.initial?.page) store.actions.openPage({ fromUrl: true });
   return store;
 }

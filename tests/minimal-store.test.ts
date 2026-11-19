@@ -102,7 +102,16 @@ describe("a curated page whose items are string ids (finding 13)", () => {
     expect(store.model().pane("main")?.ref.params.id).toBe("t-abc");
     expect(runCommand(store, "page.leave")).toBe(false);
   });
-
+  it("a page-only app opened from a link shows the link's item, and adds no history entry", () => {
+    const location = memoryLocation("?page=desk&item=t-xyz");
+    const store = createJali({
+      panes: [ticket],
+      page: profile,
+      url: { location },
+      storage: memoryStorage(),
+      size: { width: 1200, height: 800 },
+      moveFocus: false,
+    });
     expect(store.get().page).toMatchObject({ profile: "desk", item: "t-xyz" });
     expect(store.model().pane("main")?.ref.params.id).toBe("t-xyz");
     expect(location.entries).toHaveLength(1);
