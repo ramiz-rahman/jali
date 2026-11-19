@@ -17,8 +17,35 @@
   .jali-tab {
     font-weight: 600;
   }
+  /*
+   * Following: the link icon alone, in a small round chip, so three followers don't put the same word in three
+   * headers and squeeze their titles. The word comes back while the header is hovered or focused. Kept says its word
+   * always: a pane that won't change is worth reading.
+   */
   .jali-follow-toggle {
+    height: 22px;
     font-weight: 600;
+    border-radius: var(--t-radius-pill);
+  }
+  .jali-follow-toggle[data-follow="following"] {
+    width: 22px;
+    padding: 0;
+    justify-content: center;
+    border-color: transparent;
+    background: var(--jali-hover);
+  }
+  .jali-follow-toggle[data-follow="following"] span {
+    display: none;
+  }
+  .jali-pane-header:is(:hover, :focus-within) .jali-follow-toggle[data-follow="following"] {
+    width: auto;
+    padding: 0 8px;
+  }
+  .jali-pane-header:is(:hover, :focus-within) .jali-follow-toggle[data-follow="following"] span {
+    display: inline;
+  }
+  .jali-follow-toggle[data-follow="kept"] {
+    padding: 0 8px;
   }
 
   /* ---------- shared ---------- */
@@ -127,7 +154,8 @@
     border-radius: 50%;
     background: var(--day, var(--t-ink));
     color: #fff;
-    font-family: var(--jali-font-mono);
+    font-family: var(--jali-font);
+    font-variant-numeric: tabular-nums;
     font-weight: 700;
     font-size: 13px;
   }
@@ -156,45 +184,67 @@
     font-weight: 700;
     color: var(--jali-text);
   }
+  /* A row of figures: the figure first, a line of context under it. No boxes: space and type separate them. */
   .stats {
     display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: 1px;
-    margin: 16px 0 0;
-    border-radius: 14px;
-    overflow: hidden;
-    background: var(--jali-border);
-    border: 1px solid var(--jali-border);
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 14px 12px;
+    margin: 18px 0 0;
+    padding: 14px 0;
+    border-block: 1px solid var(--jali-border);
   }
   .stat {
-    background: var(--jali-surface);
-    padding: 10px 12px;
     min-width: 0;
+  }
+  .stat + .stat {
+    padding-left: 12px;
+    border-left: 1px solid var(--jali-border);
   }
   .stat dt {
     font-size: 12px;
+    font-weight: 600;
     color: var(--jali-text-subtle);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
   }
   .stat dd {
+    display: grid;
     margin: 2px 0 0;
-    font-family: var(--jali-font-mono);
-    font-size: 15.5px;
-    font-weight: 500;
+  }
+  .stat-value {
+    font-family: var(--t-font-display);
+    font-size: 20px;
+    line-height: 1.2;
+    font-weight: 650;
+    letter-spacing: -0.02em;
     white-space: nowrap;
   }
-  .stat[data-tone="over"] {
-    background: var(--t-over-soft);
+  .stat-sub {
+    display: block;
+    margin-top: 1px;
+    font-size: 12px;
+    color: var(--jali-text-subtle);
   }
-  .stat[data-tone="over"] dt,
-  .stat[data-tone="over"] dd {
+  .stat[data-tone="over"] .stat-value,
+  .stat[data-tone="over"] .stat-sub {
     color: var(--t-over);
   }
-  @container (max-width: 340px) {
+  .stat[data-tone="over"] .stat-sub {
+    font-weight: 600;
+  }
+  .stat-sub svg {
+    vertical-align: -1px;
+  }
+  @container (max-width: 300px) {
     .stats {
       grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .stat:nth-child(3) {
+      grid-column: 1 / -1;
+      padding: 12px 0 0;
+      border-left: 0;
+      border-top: 1px solid var(--jali-border);
     }
   }
   .over-text {
@@ -283,11 +333,12 @@
     background: var(--jali-hover);
     overflow: hidden;
   }
+  /* Spend against the budget in ink: it turns red only when it goes over, so red always means over. */
   .meter span {
     display: block;
     height: 100%;
     border-radius: inherit;
-    background: var(--jali-accent);
+    background: var(--t-ink);
   }
   .meter[data-over] span {
     background: var(--t-over);
@@ -379,15 +430,44 @@
     font-weight: 700;
     letter-spacing: -0.02em;
   }
-  .day-actions {
+  /* "Optimise the order": the day's one suggestion, so it reads as one, in the day's colour. */
+  .day-optimise {
+    width: 100%;
+    justify-content: flex-start;
+    margin: 14px 0 4px;
+    padding: 0 14px;
+    border-color: transparent;
+    border-radius: 12px;
+    background: color-mix(in oklab, var(--day) 10%, var(--jali-surface));
+    color: var(--jali-text);
+  }
+  .day-optimise:hover:not(:disabled) {
+    background: color-mix(in oklab, var(--day) 16%, var(--jali-surface));
+  }
+  .day-optimise svg {
+    color: var(--day);
+  }
+  .day-optimise > span {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .day-optimise-gain {
+    font-weight: 500;
+    color: var(--jali-text-subtle);
+  }
+  .day-optimised {
     display: flex;
     align-items: center;
-    flex-wrap: wrap;
-    gap: 10px 14px;
-    margin: 14px 0 6px;
-  }
-  .day-back {
+    gap: 6px;
+    margin: 14px 0 4px;
+    min-height: 40px;
     font-size: 13px;
+    font-weight: 600;
+    color: var(--jali-text-subtle);
+  }
+  .day-optimised svg {
+    color: var(--t-ok);
   }
   .timeline {
     margin: 10px 0 0;
@@ -398,59 +478,84 @@
     margin: 0;
     padding: 0;
   }
+  /*
+   * The timeline's rail is one 36px column: the hotel's mark, each stop's number and the legs' lines run down it.
+   * A stop's drag handle sits in the pane's gutter, left of the rail, and shows on hover (always, on touch).
+   */
   .endpoint,
   .stop {
+    position: relative;
     display: grid;
-    grid-template-columns: 28px 36px minmax(0, 1fr) auto;
+    grid-template-columns: 36px minmax(0, 1fr);
     align-items: center;
-    column-gap: 4px;
+    column-gap: 6px;
   }
   .endpoint {
+    grid-template-columns: 36px minmax(0, 1fr) auto;
     min-height: 40px;
     color: var(--jali-text-subtle);
     font-size: 13px;
     font-weight: 600;
   }
   .endpoint-mark {
-    grid-column: 2;
+    justify-self: center;
     display: grid;
     place-items: center;
-    width: 32px;
-    height: 32px;
+    width: 30px;
+    height: 30px;
     border-radius: 10px;
     background: var(--t-ink);
     color: var(--jali-surface);
   }
   .endpoint-label {
-    padding-left: 8px;
+    padding-left: 6px;
+    min-width: 0;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
   }
+  .endpoint .stop-time {
+    padding-right: 10px;
+  }
   .stop-handle {
+    position: absolute;
+    left: -20px;
+    top: 50%;
+    translate: 0 -50%;
     display: grid;
     place-items: center;
-    width: 28px;
-    height: 44px;
+    width: 20px;
+    height: 40px;
     border: 0;
+    border-radius: 6px;
     background: none;
     color: var(--jali-text-faint);
     cursor: grab;
     touch-action: none;
-    border-radius: 8px;
+    opacity: 0;
+    transition: opacity 120ms;
+  }
+  .stop:hover .stop-handle,
+  .stop:focus-within .stop-handle,
+  .stop-handle:active {
+    opacity: 1;
+  }
+  @media (hover: none) {
+    .stop-handle {
+      opacity: 1;
+    }
   }
   .stop-handle:hover {
     color: var(--jali-text);
     background: var(--jali-hover);
   }
   .stop-main {
-    grid-column: 2 / -1;
     display: grid;
-    grid-template-columns: 36px minmax(0, 1fr) auto;
+    grid-template-columns: 48px minmax(0, 1fr) auto;
     align-items: center;
-    column-gap: 8px;
-    min-height: 56px;
-    padding: 6px 10px 6px 0;
+    column-gap: 10px;
+    min-height: 64px;
+    padding: 7px 10px 7px 7px;
     border: 0;
     border-radius: 14px;
     background: none;
@@ -461,7 +566,7 @@
     background: var(--jali-hover);
   }
   .stop[aria-current="true"] .stop-main {
-    background: var(--jali-accent-soft);
+    background: color-mix(in oklab, var(--day) 11%, var(--jali-surface));
   }
   .stop-item[data-current] .stop-main {
     box-shadow: inset 0 0 0 2px var(--day);
@@ -470,17 +575,19 @@
     opacity: 0.4;
   }
   .stop-num {
+    position: relative;
+    z-index: 1;
     justify-self: center;
     display: grid;
     place-items: center;
-    width: 30px;
-    height: 30px;
+    width: 28px;
+    height: 28px;
     border-radius: 50%;
     background: var(--day);
     color: #fff;
-    font-family: var(--jali-font-mono);
     font-size: 13px;
     font-weight: 700;
+    font-variant-numeric: tabular-nums;
     box-shadow: 0 0 0 3px var(--jali-surface);
   }
   [data-theme="dark"] .stop-num {
@@ -488,31 +595,132 @@
   }
   .stop-text {
     display: grid;
+    gap: 1px;
     min-width: 0;
   }
+  /* A name wraps (two lines at most) rather than lose its end: "Tha Tien Riverside" matters more than its row height. */
   .stop-name {
     font-weight: 700;
     font-size: 14.5px;
-    white-space: nowrap;
+    line-height: 1.25;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
     overflow: hidden;
-    text-overflow: ellipsis;
+    overflow-wrap: anywhere;
   }
   .stop-meta {
+    font-size: 12.5px;
+    line-height: 1.35;
+    color: var(--jali-text-subtle);
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .stop-meta svg {
+    vertical-align: -2px;
+  }
+  /* Arrive, and below it, leave: the hours the stop takes, as a calendar would show them. */
+  .stop-time {
+    display: grid;
+    justify-items: end;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--jali-text);
+  }
+  .stop-until {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--jali-text-faint);
+  }
+
+  /* The foot of a day: places close to its route, each one press from being on it. */
+  .day-more {
+    margin-top: 20px;
+    padding-top: 16px;
+    border-top: 1px solid var(--jali-border);
+  }
+  .day-more h4 {
+    font-family: var(--t-font-display);
+    font-size: 15px;
+    font-weight: 700;
+    margin-bottom: 6px;
+  }
+  .day-more ul {
+    list-style: none;
+    margin: 0 -8px;
+    padding: 0;
+  }
+  .day-more-row {
     display: flex;
     align-items: center;
     gap: 4px;
-    font-size: 12.5px;
-    color: var(--jali-text-subtle);
+  }
+  .day-more-main {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-height: 52px;
+    padding: 5px 8px;
+    border: 0;
+    border-radius: 12px;
+    background: none;
+    text-align: left;
+    cursor: pointer;
+  }
+  .day-more-main:hover {
+    background: var(--jali-hover);
+  }
+  .day-more-photo {
+    flex: none;
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+  }
+  .day-more-text {
+    display: grid;
+    min-width: 0;
+  }
+  .day-more-name {
+    font-weight: 650;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
   }
-  .stop-time {
-    font-size: 12.5px;
+  .day-more-meta {
+    font-size: 12px;
     color: var(--jali-text-subtle);
-    padding-right: 2px;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
   }
-
+  .day-more-meta svg {
+    vertical-align: -1px;
+  }
+  .day-more-add {
+    flex: none;
+    display: grid;
+    place-items: center;
+    width: 36px;
+    height: 36px;
+    margin-right: 8px;
+    border: 1.5px solid var(--day);
+    border-radius: 50%;
+    background: var(--jali-surface);
+    color: var(--day);
+    cursor: pointer;
+  }
+  .day-more-add:hover {
+    background: var(--day);
+    color: var(--jali-surface);
+  }
+  .day-more-find {
+    margin: 6px 0 0 -12px;
+  }
   /* A leg: a line down from one stop's number to the next, drawn in the mode's pattern. */
   .leg {
     position: relative;
@@ -520,13 +728,13 @@
     align-items: center;
     gap: 10px;
     min-height: 44px;
-    padding-left: 70px;
+    padding-left: 42px;
   }
   .leg-line {
     position: absolute;
-    left: 47px;
-    top: -6px;
-    bottom: -6px;
+    left: 16.5px;
+    top: -8px;
+    bottom: -8px;
     width: 0;
     border-left: 3px solid var(--day);
   }
@@ -569,8 +777,8 @@
   .leg-modes button {
     display: grid;
     place-items: center;
-    width: 32px;
-    height: 30px;
+    width: 30px;
+    height: 28px;
     border: 0;
     border-radius: var(--t-radius-pill);
     background: none;
@@ -589,9 +797,10 @@
     font-size: 12.5px;
     min-width: 0;
   }
-  .leg-text .num {
+  .leg-time {
     font-weight: 600;
     color: var(--jali-text);
+    white-space: nowrap;
   }
   .leg-reset {
     display: grid;
@@ -607,7 +816,7 @@
   .drop-line {
     list-style: none;
     height: 4px;
-    margin: 2px 0 2px 36px;
+    margin: 2px 0 2px 42px;
     border-radius: 4px;
     background: var(--day, var(--jali-accent));
   }
@@ -615,7 +824,7 @@
     display: grid;
     justify-items: start;
     gap: 6px;
-    margin: 6px 0 6px 36px;
+    margin: 6px 0 6px 42px;
     padding: 16px;
     border: 1.5px dashed var(--jali-border-strong);
     border-radius: 14px;
@@ -706,7 +915,8 @@
     border: 1.5px solid var(--day);
     background: var(--jali-surface);
     color: var(--day);
-    font-family: var(--jali-font-mono);
+    font-family: var(--jali-font);
+    font-variant-numeric: tabular-nums;
     font-weight: 700;
     cursor: pointer;
   }
@@ -734,6 +944,37 @@
     margin: 0;
     text-align: right;
     font-weight: 600;
+  }
+  .place-compare {
+    margin: 0 0 2px;
+    font-size: 12.5px;
+    color: var(--jali-text-subtle);
+  }
+  .place-compare b {
+    color: var(--jali-text);
+    font-weight: 650;
+  }
+  /* The difference from the kept place, before the figure: red when it costs more or takes longer. */
+  .delta {
+    display: inline-block;
+    margin-right: 8px;
+    padding: 1px 7px;
+    border-radius: var(--t-radius-pill);
+    font-size: 12px;
+    font-weight: 700;
+    vertical-align: 1px;
+  }
+  .delta[data-tone="worse"] {
+    background: var(--t-over-soft);
+    color: var(--t-over);
+  }
+  .delta[data-tone="better"] {
+    background: color-mix(in oklab, var(--t-ok) 14%, var(--jali-surface));
+    color: var(--t-ok);
+  }
+  .delta[data-tone="same"] {
+    background: var(--jali-hover);
+    color: var(--jali-text-subtle);
   }
   .place-notes {
     margin: 16px 0 0;
@@ -915,6 +1156,29 @@
     flex: none;
     font-size: 13px;
   }
+  .result-yours {
+    font-weight: 650;
+    color: var(--jali-text);
+  }
+  .result-price {
+    display: grid;
+    justify-items: end;
+    line-height: 1.2;
+  }
+  .result-price .num {
+    font-weight: 650;
+  }
+  .result-per {
+    font-size: 11.5px;
+    color: var(--jali-text-faint);
+  }
+  /* Your hotel already: a filled check where the others have +. */
+  .result-add:disabled {
+    opacity: 1;
+    border-color: var(--t-ink);
+    background: var(--t-ink);
+    color: var(--jali-surface);
+  }
   .result-add {
     border: 1px solid var(--jali-border-strong);
     width: 36px;
@@ -954,7 +1218,8 @@
     padding: 0 12px;
     border-radius: 12px;
     border: 1px solid var(--jali-border-strong);
-    font-family: var(--jali-font-mono);
+    font-family: var(--jali-font);
+    font-variant-numeric: tabular-nums;
     color: var(--jali-text);
   }
   .money-field:focus-within {
@@ -965,7 +1230,8 @@
     border: 0;
     outline: none;
     background: none;
-    font-family: var(--jali-font-mono);
+    font-family: var(--jali-font);
+    font-variant-numeric: tabular-nums;
     font-size: 15px;
   }
   .budget-toolbar {

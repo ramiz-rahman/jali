@@ -11,24 +11,57 @@ import {
   ArrowsClockwiseIcon,
   BoatIcon,
   CalendarDotsIcon,
+  CheckIcon,
   DotsSixVerticalIcon,
   HouseLineIcon,
+  MagnifyingGlassIcon,
+  PlusIcon,
   SparkleIcon,
+  WarningIcon,
 } from "@phosphor-icons/react";
 import { keyHint } from "@jali/core";
-import { definePane, useCommands, useJali, useJaliModel, usePaneState, type PaneProps } from "@jali/react";
+import {
+  definePane,
+  useCommands,
+  useJali,
+  useJaliModel,
+  usePaneState,
+  type PaneProps,
+} from "@jali/react";
 import { selectPlace } from "../actions";
 import { addToDay, chooseDay, optimise, removeFromPlan } from "../planning";
 import { usePlan, useServices } from "../services";
 import { useCurrent } from "../selection";
-import { CITY_NAME, mustPlace, type Place } from "../trip/places";
-import { canPlan, DEFAULT_PLAN, dayOf, dayTotals, reorder, round2, setMode, type Day, type Plan } from "../trip/plan";
+import { CITY_NAME, mustPlace, PLACES, type Place } from "../trip/places";
+import {
+  canPlan,
+  DEFAULT_PLAN,
+  dayOf,
+  dayTotals,
+  dayWith,
+  hotelOf,
+  reorder,
+  round2,
+  setMode,
+  type Day,
+  type Plan,
+} from "../trip/plan";
 import { dayBudget } from "../trip/budget";
 import { optimiseDay } from "../trip/optimise";
-import { crossesRiver, FLIGHT, legKey, modeLabel, type Leg, type Mode } from "../trip/travel";
+import {
+  crossesRiver,
+  FLIGHT,
+  haversineKm,
+  leg as legBetween,
+  legKey,
+  modeLabel,
+  type Leg,
+  type Mode,
+} from "../trip/travel";
 import { startStopDrag, useDrag } from "../ui/drag";
 import * as f from "../ui/format";
 import { CATEGORY_ICON, DayMark, Empty, MODE_ICON, Stat } from "../ui/parts";
+import { Photo } from "../ui/photo";
 import { place } from "./place";
 
 /** A day of this trip, 1 to 7: a link naming another (an older, shorter trip's) is not read. */
@@ -42,7 +75,11 @@ function DayPane(props: PaneProps<typeof dayParams>) {
   const plan = usePlan();
   const day = dayOf(plan, props.params.n);
   if (!day)
-    return <Empty title={`There is no Day ${props.params.n}`}>This trip has {plan.days.length} days.</Empty>;
+    return (
+      <Empty title={`There is no Day ${props.params.n}`}>
+        This trip has {plan.days.length} days.
+      </Empty>
+    );
   return <DayBody {...props} day={day} plan={plan} />;
 }
 
@@ -87,7 +124,9 @@ function DayBody({
   const shift = (from: number, to: number) => {
     if (to < 0 || to >= stops.length) return;
     const p = mustPlace(stops[from]!);
-    services.plan.change(`Moved ${p.name} in Day ${day.n}`, (plan) => reorder(plan, day.n, from, to));
+    services.plan.change(`Moved ${p.name} in Day ${day.n}`, (plan) =>
+      reorder(plan, day.n, from, to),
+    );
   };
   const moveToDay = (id: string) =>
     chooseDay(jali, services, `Move ${mustPlace(id).name} to…`, (n) => addToDay(services, id, n), {
@@ -98,7 +137,8 @@ function DayBody({
   const onKeyDown = (e: KeyboardEvent, i: number, id: string) => {
     if (e.metaKey || e.ctrlKey) return;
     const k = e.key;
-    if (e.altKey && (k === "ArrowUp" || k === "ArrowDown")) shift(i, k === "ArrowUp" ? i - 1 : i + 1);
+    if (e.altKey && (k === "ArrowUp" || k === "ArrowDown"))
+      shift(i, k === "ArrowUp" ? i - 1 : i + 1);
     else if (e.altKey) return;
     else if (k === "ArrowDown" || k === "j") stops[i + 1] && moveCursor(stops[i + 1]!);
     else if (k === "ArrowUp" || k === "k") stops[i - 1] && moveCursor(stops[i - 1]!);
@@ -165,47 +205,81 @@ function DayBody({
         <DayMark n={day.n} size="lg" />
         <div className="day-head-text">
           <p className="day-date">
-            {f.dayLong(day.date)}, {day.from ? `${CITY_NAME[day.from]} to ${CITY_NAME[day.city]}` : CITY_NAME[day.city]}
+            {f.dayLong(day.date)},{" "}
+            {day.from ? `${CITY_NAME[day.from]} to ${CITY_NAME[day.city]}` : CITY_NAME[day.city]}
           </p>
           <h3 className="day-title">{day.title}</h3>
         </div>
       </header>
 
-      <dl className="stats">
-        <Stat label="Travel" value={f.minutes(totals.travelMin)} />
+      <dl className="stats day-stats">
         <Stat
-          label={totals.flight ? "Transport and flight" : "Transport"}
-          value={f.price(round2(totals.transport + totals.flight))}
+          label="Travel"
+          value={f.minutes(totals.travelMin)}
+          sub={
+            totals.flight
+              ? `${f.money(round2(totals.transport + totals.flight))} with the flight`
+              : totals.transport
+                ? `${f.money(totals.transport)} in fares`
+                : "No fares"
+          }
         />
-        <Stat label="Spend" value={f.money(totals.spend)} />
         <Stat
-          label={budget.over ? "Over the day's share" : "Day total"}
-          value={budget.over ? f.money(budget.total - budget.allowance) : f.money(budget.total)}
+          label={day.from ? "Check in by" : "Back by"}
+          value={f.clock(totals.endsAt)}
+          sub={`Out at ${f.clock(totals.arrive[0]!)}`}
+        />
+        <Stat
+          label="Day total"
+          value={f.money(budget.total)}
+          sub={
+            budget.over ? (
+              <>
+                <WarningIcon size={12} weight="bold" aria-hidden />{" "}
+                {f.money(round2(budget.total - budget.allowance))} over
+              </>
+            ) : (
+              `of a ${f.moneyRound(budget.allowance)} share`
+            )
+          }
           tone={budget.over ? "over" : undefined}
         />
       </dl>
 
-      <div className="day-actions">
+      {best.savedMin > 0 ? (
         <button
           type="button"
-          className="btn"
+          className="btn day-optimise"
           onClick={() => optimise(services, day.n)}
-          disabled={best.savedMin <= 0}
-          title={best.savedMin > 0 ? `Saves ${f.minutes(best.savedMin)} of travel` : undefined}
+          title={`Reorders the stops for the shortest travel. Undo puts them back.`}
         >
-          <SparkleIcon size={15} aria-hidden />
-          {best.savedMin > 0 ? `Optimise order, save ${f.minutes(best.savedMin)}` : "In its quickest order"}
+          <SparkleIcon size={15} weight="fill" aria-hidden />
+          <span>
+            Optimise the order{" "}
+            <span className="day-optimise-gain">to save {f.minutes(best.savedMin)}</span>
+          </span>
         </button>
-        <span className="day-back muted">Back by {f.clock(totals.endsAt)}</span>
-      </div>
+      ) : (
+        <p className="day-optimised">
+          <CheckIcon size={14} weight="bold" aria-hidden /> In its quickest order
+        </p>
+      )}
 
       <div className="timeline" data-drop-day={day.n}>
-        <Endpoint place={places[0]!} label={`Leave ${places[0]!.name}`} time={f.clock(totals.arrive[0]!)} />
+        <Endpoint
+          place={places[0]!}
+          label={`Leave ${places[0]!.name}`}
+          time={f.clock(totals.arrive[0]!)}
+        />
         {/* The transfer day's fixed start: to the airport, the flight, the arrival. */}
         {places.slice(1, first).map((p, k) => (
           <Fragment key={p.id}>
             <LegRow leg={totals.legs[k]!} plan={plan} />
-            <Endpoint place={p} label={k === first - 2 ? `Land at ${p.name}` : p.name} time={f.clock(totals.arrive[k + 1]!)} />
+            <Endpoint
+              place={p}
+              label={k === first - 2 ? `Land at ${p.name}` : p.name}
+              time={f.clock(totals.arrive[k + 1]!)}
+            />
           </Fragment>
         ))}
         {stops.length ? (
@@ -229,27 +303,35 @@ function DayBody({
                         type="button"
                         className="stop-handle"
                         aria-label={`Drag ${p.name} to reorder or to another day`}
+                        title="Drag to reorder, or onto another day"
                         tabIndex={-1}
                         onPointerDown={(e) =>
-                          startStopDrag(e, { id, day: day.n, index: i, label: p.name }, (sid, drop) =>
-                            addToDay(services, sid, drop.day, drop.index),
+                          startStopDrag(
+                            e,
+                            { id, day: day.n, index: i, label: p.name },
+                            (sid, drop) => addToDay(services, sid, drop.day, drop.index),
                           )
                         }
                       >
-                        <DotsSixVerticalIcon size={18} weight="bold" aria-hidden />
+                        <DotsSixVerticalIcon size={16} weight="bold" aria-hidden />
                       </button>
+                      <span className="stop-num" data-day={day.n} aria-hidden>
+                        {i + 1}
+                      </span>
                       <button
                         type="button"
                         className="stop-main"
                         tabIndex={i === Math.max(0, at) ? 0 : -1}
-                        onClick={() => (i === at ? selectPlace(jali, id, { from: node.id, open: true }) : moveCursor(id))}
+                        onClick={() =>
+                          i === at
+                            ? selectPlace(jali, id, { from: node.id, open: true })
+                            : moveCursor(id)
+                        }
                         onFocus={() => i !== at && moveCursor(id)}
                         onKeyDown={(e) => onKeyDown(e, i, id)}
                         aria-describedby={`${node.id}-hint`}
                       >
-                        <span className="stop-num" data-day={day.n} aria-hidden>
-                          {i + 1}
-                        </span>
+                        <Photo id={id} className="stop-photo" />
                         <span className="stop-text">
                           <span className="stop-name">{p.name}</span>
                           <span className="stop-meta">
@@ -257,7 +339,12 @@ function DayBody({
                             {p.price ? `, ${f.price(p.price)}` : ""}
                           </span>
                         </span>
-                        <span className="stop-time num">{f.clock(totals.arrive[first + i]!)}</span>
+                        <span className="stop-time num">
+                          {f.clock(totals.arrive[first + i]!)}
+                          <span className="stop-until">
+                            {f.clock(totals.arrive[first + i]! + p.visitMin)}
+                          </span>
+                        </span>
                       </button>
                     </div>
                   </li>
@@ -270,16 +357,23 @@ function DayBody({
           <div className="day-empty" data-stop-index-none="">
             <CalendarDotsIcon size={22} aria-hidden />
             <p>
-              No stops yet. Pick a place in {CITY_NAME[day.city]} on the map or in Explore, then add it to Day {day.n}.
+              No stops yet. Pick a place in {CITY_NAME[day.city]} on the map or in Explore, then add
+              it to Day {day.n}.
             </p>
             {dropIndex >= 0 ? <div className="drop-line" aria-hidden /> : null}
           </div>
         )}
         <LegRow leg={totals.legs[totals.legs.length - 1]!} plan={plan} />
-        <Endpoint place={end} label={`${day.from ? "Check in at" : "Back at"} ${end.name}`} time={f.clock(totals.endsAt)} />
+        <Endpoint
+          place={end}
+          label={`${day.from ? "Check in at" : "Back at"} ${end.name}`}
+          time={f.clock(totals.endsAt)}
+        />
       </div>
+      {inPeek ? null : <Suggestions day={day} plan={plan} from={node.id} />}
       <p id={`${node.id}-hint`} className="sr-only">
-        Up and down arrows move between stops. Alt with up or down reorders. M moves to another day. Space peeks.
+        Up and down arrows move between stops. Alt with up or down reorders. M moves to another day.
+        Space peeks.
       </p>
       {current && !stops.includes(current) && !inPeek && (focused || alone) ? (
         <AddCurrent id={current} day={day} plan={plan} />
@@ -301,6 +395,18 @@ function Endpoint({ place: p, label, time }: { place: Place; label: string; time
   );
 }
 
+/** "12 min walk", "13 min by ferry": the leg's mode in words beside its icon. */
+const legWord = (m: Mode, ferry: boolean) =>
+  m === "walk"
+    ? "walk"
+    : m === "transit"
+      ? ferry
+        ? "by ferry"
+        : "by train"
+      : m === "taxi"
+        ? "by taxi"
+        : "by scooter";
+
 /** The way between two stops: its mode (the city's choices), minutes and fare. The flight is fixed. */
 function LegRow({ leg, plan }: { leg: Leg; plan: Plan }) {
   const services = useServices();
@@ -316,7 +422,8 @@ function LegRow({ leg, plan }: { leg: Leg; plan: Plan }) {
         <span className="leg-text">
           <span className="num">{f.minutes(FLIGHT.airMin)} flight</span>
           <span className="muted">
-            {f.distance(leg.km)}, {f.money(leg.cost)}, with {f.minutes(FLIGHT.airportMin)} at the airports
+            {f.distance(leg.km)}, {f.money(leg.cost)}, with {f.minutes(FLIGHT.airportMin)} at the
+            airports
           </span>
         </span>
       </div>
@@ -339,7 +446,11 @@ function LegRow({ leg, plan }: { leg: Leg; plan: Plan }) {
               key={m}
               type="button"
               aria-pressed={leg.mode === m}
-              title={leg.mode === m && leg.chosen ? `${label(m)} (your choice; press again for the suggestion)` : label(m)}
+              title={
+                leg.mode === m && leg.chosen
+                  ? `${label(m)} (your choice; press again for the suggestion)`
+                  : label(m)
+              }
               onClick={() => choose(m)}
             >
               <Icon size={15} weight={leg.mode === m ? "bold" : "regular"} aria-hidden />
@@ -349,9 +460,10 @@ function LegRow({ leg, plan }: { leg: Leg; plan: Plan }) {
         })}
       </div>
       <span className="leg-text">
-        <span className="num">{f.minutes(leg.minutes)}</span>
+        <span className="leg-time">
+          <span className="num">{f.minutes(leg.minutes)}</span> {legWord(leg.mode, ferry)}
+        </span>
         <span className="muted">
-          {ferry && leg.mode === "transit" ? "ferry, " : ""}
           {f.distance(leg.km)}, {leg.cost ? f.money(leg.cost) : "free"}
         </span>
       </span>
@@ -360,13 +472,94 @@ function LegRow({ leg, plan }: { leg: Leg; plan: Plan }) {
           type="button"
           className="leg-reset"
           title="Go back to the suggested mode"
-          onClick={() => services.plan.change(`Suggested mode to ${to.name}`, (p) => setMode(p, key, null))}
+          onClick={() =>
+            services.plan.change(`Suggested mode to ${to.name}`, (p) => setMode(p, key, null))
+          }
         >
           <ArrowsClockwiseIcon size={13} aria-hidden />
           <span className="sr-only">Use the suggested mode</span>
         </button>
       ) : null}
     </div>
+  );
+}
+
+/**
+ * The foot of the day: what else is close to its route and not planned yet, nearest first, with a photo and the way
+ * there, each one press from being on the day. "Find a place" asks for anything else in the city.
+ */
+function Suggestions({ day, plan, from }: { day: Day; plan: Plan; from: string }) {
+  const jali = useJali();
+  const services = useServices();
+  const anchors = day.stops.length ? day.stops.map(mustPlace) : [hotelOf(plan, day.city)];
+  const near = PLACES.filter(
+    (q) =>
+      q.city === day.city &&
+      (q.category === "sight" || q.category === "food") &&
+      !dayWith(plan, q.id),
+  )
+    .map((q) => {
+      const by = anchors.reduce((a, b) => (haversineKm(a, q) <= haversineKm(b, q) ? a : b));
+      return { q, by, way: legBetween(by, q) };
+    })
+    .sort((a, b) => a.way.minutes - b.way.minutes)
+    .slice(0, 3);
+  const find = () =>
+    jali.actions.choose({
+      title: `Add to Day ${day.n}…`,
+      items: PLACES.filter(
+        (q) => q.city === day.city && (q.category === "sight" || q.category === "food"),
+      ),
+      label: (q) => q.name,
+      hint: (q) => {
+        const on = dayWith(plan, q.id);
+        return `${q.kind}, ${q.area}${on ? `, on Day ${on.n}` : ""}`;
+      },
+      placeholder: `A place in ${CITY_NAME[day.city]}`,
+      onChoose: (q) => addToDay(services, q.id, day.n),
+    });
+  return (
+    <section className="day-more" aria-labelledby={`${from}-more`}>
+      <h4 id={`${from}-more`}>Close to this day</h4>
+      {near.length ? (
+        <ul>
+          {near.map(({ q, by, way }) => {
+            const Icon = CATEGORY_ICON[q.category];
+            return (
+              <li key={q.id} className="day-more-row">
+                <button
+                  type="button"
+                  className="day-more-main"
+                  onClick={() => selectPlace(jali, q.id, { from })}
+                  title={`Show ${q.name}`}
+                >
+                  <Photo id={q.id} className="day-more-photo" />
+                  <span className="day-more-text">
+                    <span className="day-more-name">{q.name}</span>
+                    <span className="day-more-meta">
+                      <Icon size={12} aria-hidden /> {q.kind}, {f.minutes(way.minutes)}{" "}
+                      {way.mode === "walk" ? "walk" : "away"} from {by.name}
+                    </span>
+                  </span>
+                </button>
+                <button
+                  type="button"
+                  className="day-more-add"
+                  aria-label={`Add ${q.name} to Day ${day.n}`}
+                  title={`Add to Day ${day.n}`}
+                  onClick={() => addToDay(services, q.id, day.n)}
+                >
+                  <PlusIcon size={16} weight="bold" aria-hidden />
+                </button>
+              </li>
+            );
+          })}
+        </ul>
+      ) : null}
+      <button type="button" className="btn btn-quiet day-more-find" onClick={find}>
+        <MagnifyingGlassIcon size={15} aria-hidden /> Find a place in {CITY_NAME[day.city]} to add
+      </button>
+    </section>
   );
 }
 
@@ -380,9 +573,17 @@ function AddCurrent({ id, day, plan }: { id: string; day: Day; plan: Plan }) {
     <div className="add-current">
       <span>
         <b>{p.name}</b>
-        {on ? <span className="muted">, on Day {on.n}</span> : <span className="muted">, not planned</span>}
+        {on ? (
+          <span className="muted">, on Day {on.n}</span>
+        ) : (
+          <span className="muted">, not planned</span>
+        )}
       </span>
-      <button type="button" className="btn btn-primary" onClick={() => addToDay(services, id, day.n)}>
+      <button
+        type="button"
+        className="btn btn-primary"
+        onClick={() => addToDay(services, id, day.n)}
+      >
         {on ? `Move to Day ${day.n}` : `Add to Day ${day.n}`}
       </button>
     </div>
@@ -397,4 +598,3 @@ export const day = definePane("day", {
   height: { min: 320 },
   Component: DayPane,
 });
-

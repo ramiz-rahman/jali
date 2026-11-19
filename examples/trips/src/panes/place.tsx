@@ -4,8 +4,14 @@
  * Keep it (the header's Keep) to compare two places side by side.
  */
 import { useMemo, type KeyboardEvent } from "react";
-import { AirplaneTiltIcon, CheckIcon, MapPinIcon, PlusIcon, QuestionIcon } from "@phosphor-icons/react";
-import { definePane, useCommands, useJali, type PaneProps } from "@jali/react";
+import {
+  AirplaneTiltIcon,
+  CheckIcon,
+  MapPinIcon,
+  PlusIcon,
+  QuestionIcon,
+} from "@phosphor-icons/react";
+import { definePane, useCommands, useJali, useJaliModel, type PaneProps } from "@jali/react";
 import { selectPlace } from "../actions";
 import { addToDay, chooseDay, removeFromPlan, stayAt } from "../planning";
 import { usePlan, useServices } from "../services";
@@ -14,6 +20,8 @@ import { daysIn, dayWith, hotelOf, isHotel as isHotelOf } from "../trip/plan";
 import { crossesRiver, haversineKm, leg, NEARBY_KM, type Leg, type Mode } from "../trip/travel";
 import * as f from "../ui/format";
 import { CATEGORY_ICON, DayMark, Empty } from "../ui/parts";
+import { Photo } from "../ui/photo";
+import { photoOf } from "../trip/photos";
 
 /**
  * A place's id, read from a link only if this trip has that place. A link from the old Lisbon version (or a typo)
@@ -32,7 +40,9 @@ const BY: Record<Mode, string> = {
 };
 /** How a leg goes, in words: the river ferry by its name. */
 const by = (l: Leg) =>
-  l.mode === "transit" && crossesRiver(mustPlace(l.from), mustPlace(l.to)) ? "by ferry" : BY[l.mode];
+  l.mode === "transit" && crossesRiver(mustPlace(l.from), mustPlace(l.to))
+    ? "by ferry"
+    : BY[l.mode];
 
 function PlacePane({ params, node, inPeek, peek }: PaneProps<typeof placeParams>) {
   const p = placeById(params.id);
@@ -64,11 +74,23 @@ function PlaceBody({
   const hotel = hotelOf(plan, p.city);
   const isHotel = plan.hotels[p.city] === p.id;
   // From the hotel in the place's own city, by the mode a leg there would get.
-  const fromHotel = p.category === "airport" || isHotel ? null : leg(hotel, p);
+  const fromHotel = p.category === "airport" || p.category === "stay" ? null : leg(hotel, p);
   const Icon = CATEGORY_ICON[p.category];
 
   const cityDays = daysIn(plan, p.city);
   const nights = cityDays.length;
+  // A hotel kept in the pane beside: this one is read against it, figure by figure.
+  const model = useJaliModel();
+  const keptId = model.panes
+    .filter(
+      (n) => n.id !== from && n.kept && n.ref.kind === "place" && model.visible.includes(n.id),
+    )
+    .map((n) => String(n.ref.params.id))
+    .find(
+      (id) => id !== p.id && placeById(id)?.category === "stay" && placeById(id)?.city === p.city,
+    );
+  const kept = p.category === "stay" && keptId ? mustPlace(keptId) : null;
+  const toStops = p.category === "stay" ? meanToStops(plan, p) : null;
   const add = () =>
     chooseDay(jali, services, `Add ${p.name} to…`, (n) => addToDay(services, p.id, n), {
       city: p.city,
@@ -107,6 +129,14 @@ function PlaceBody({
 
   return (
     <article className="pane-body place" aria-label={p.name}>
+      <figure className="place-hero">
+        <Photo id={p.id} size="large" alt={photoOf(p.id)?.alt ?? ""} credit eager />
+        {photoOf(p.id)?.standIn ? (
+          <figcaption className="place-standin" title={photoOf(p.id)!.standIn}>
+            Stand-in photo
+          </figcaption>
+        ) : null}
+      </figure>
       <header className="place-head">
         <p className="place-kind">
           <Icon size={16} weight="bold" aria-hidden />
@@ -128,19 +158,28 @@ function PlaceBody({
       <div className="place-plan" data-day={planned?.n}>
         {p.category === "airport" ? (
           <p className="place-plan-line">
-            <AirplaneTiltIcon size={16} weight="bold" aria-hidden /> The flight between Bangkok and Phuket is on Day{" "}
-            {plan.days.find((d) => d.from)?.n}
+            <AirplaneTiltIcon size={16} weight="bold" aria-hidden /> The flight between Bangkok and
+            Phuket is on Day {plan.days.find((d) => d.from)?.n}
           </p>
         ) : p.category === "stay" ? (
           isHotel ? (
             <p className="place-plan-line">
-              <CheckIcon size={16} weight="bold" aria-hidden /> Your hotel in {CITY_NAME[p.city]} for{" "}
-              {nights} nights
+              <CheckIcon size={16} weight="bold" aria-hidden /> Your hotel in {CITY_NAME[p.city]}{" "}
+              for {nights} nights
             </p>
           ) : (
-            <button type="button" className="btn btn-primary" onClick={() => stayAt(services, p.id)}>
-              Stay here
-            </button>
+            <>
+              <p className="place-plan-line muted">
+                You are staying at {hotel.name} in {CITY_NAME[p.city]}.
+              </p>
+              <button
+                type="button"
+                className="btn btn-primary"
+                onClick={() => stayAt(services, p.id)}
+              >
+                Stay here instead, {nights} nights
+              </button>
+            </>
           )
         ) : planned ? (
           <>
@@ -155,14 +194,20 @@ function PlaceBody({
               <button type="button" className="btn" onClick={add}>
                 Move to another day
               </button>
-              <button type="button" className="btn btn-quiet" onClick={() => removeFromPlan(services, p.id)}>
+              <button
+                type="button"
+                className="btn btn-quiet"
+                onClick={() => removeFromPlan(services, p.id)}
+              >
                 Remove
               </button>
             </div>
           </>
         ) : (
           <>
-            <p className="place-plan-line muted">Not in the plan yet. Add it to a day in {CITY_NAME[p.city]}:</p>
+            <p className="place-plan-line muted">
+              Not in the plan yet. Add it to a day in {CITY_NAME[p.city]}:
+            </p>
             <div className="day-buttons" role="group" aria-label={`Add ${p.name} to a day`}>
               {cityDays.map((d) => (
                 <button
@@ -182,10 +227,15 @@ function PlaceBody({
         )}
       </div>
 
+      {kept ? (
+        <p className="place-compare">
+          Compared with <b>{kept.name}</b>, kept beside
+        </p>
+      ) : null}
       <dl className="facts">
         <div>
-          <dt>Hours</dt>
-          <dd>{p.hours}</dd>
+          <dt>{p.category === "stay" ? "Check in" : "Hours"}</dt>
+          <dd>{p.category === "stay" ? p.hours.replace(/^check in /i, "") : p.hours}</dd>
         </div>
         {p.category !== "stay" && p.category !== "airport" ? (
           <div>
@@ -195,14 +245,37 @@ function PlaceBody({
         ) : null}
         {p.category !== "airport" ? (
           <div>
-            <dt>{p.category === "stay" ? "A night" : p.category === "food" ? "A meal, each" : "Ticket"}</dt>
-            <dd className="num">{f.price(p.price)}</dd>
+            <dt>
+              {p.category === "stay"
+                ? "A night"
+                : p.category === "food"
+                  ? "A meal, each"
+                  : "Ticket"}
+            </dt>
+            <dd className="num">
+              {kept ? <Delta by={p.price - kept.price} unit="money" /> : null}
+              {f.price(p.price)}
+            </dd>
           </div>
         ) : null}
         {p.category === "stay" ? (
           <div>
             <dt>{nights} nights</dt>
-            <dd className="num">{f.money(p.price * nights)}</dd>
+            <dd className="num">
+              {kept ? <Delta by={(p.price - kept.price) * nights} unit="money" /> : null}
+              {f.money(p.price * nights)}
+            </dd>
+          </div>
+        ) : null}
+        {toStops !== null ? (
+          <div>
+            <dt title={`The average trip from here to each of your ${CITY_NAME[p.city]} stops`}>
+              To your stops
+            </dt>
+            <dd className="num">
+              {kept ? <Delta by={toStops - meanToStops(plan, kept)!} unit="min" /> : null}
+              {f.minutes(toStops)} on average
+            </dd>
           </div>
         ) : null}
         {fromHotel ? (
@@ -263,7 +336,6 @@ function Nearby({
           <ul>
             {rows.map(({ q, way }) => {
               const on = dayWith(plan, q.id);
-              const Icon = CATEGORY_ICON[q.category];
               return (
                 <li key={q.id}>
                   <button
@@ -273,7 +345,7 @@ function Nearby({
                     onKeyDown={(e) => onKeyDown(e, q.id)}
                     title={inPeek ? undefined : "Show it. Space to peek."}
                   >
-                    <Icon size={15} aria-hidden className="nearby-icon" />
+                    <Photo id={q.id} className="nearby-photo" />
                     <span className="nearby-name">{q.name}</span>
                     {on ? <DayMark n={on.n} size="sm" /> : null}
                     {isHotelOf(plan, q.id) ? <span className="tag">Your hotel</span> : null}
@@ -293,6 +365,31 @@ function Nearby({
 
 const placeRef = (id: string) => place({ id });
 
+/** The average trip, in minutes, from a hotel to each stop planned in its city: how central it is to this plan. */
+function meanToStops(plan: ReturnType<typeof usePlan>, hotel: Place): number | null {
+  const stops = daysIn(plan, hotel.city).flatMap((d) => d.stops.map(mustPlace));
+  if (!stops.length) return null;
+  return Math.round(stops.reduce((s, q) => s + leg(hotel, q).minutes, 0) / stops.length);
+}
+
+/** "+$20" or "−6 min" against the kept place: dearer and further read as worse, cheaper and nearer as better. */
+function Delta({ by, unit }: { by: number; unit: "money" | "min" }) {
+  if (Math.round(by) === 0)
+    return (
+      <span className="delta" data-tone="same">
+        same
+      </span>
+    );
+  const abs = Math.abs(by);
+  const text = unit === "money" ? f.money(abs) : f.minutes(Math.round(abs));
+  return (
+    <span className="delta" data-tone={by > 0 ? "worse" : "better"}>
+      {by > 0 ? "+" : "−"}
+      {text}
+    </span>
+  );
+}
+
 export const place = definePane("place", {
   params: placeParams,
   title: ({ id }) => placeById(id)?.name ?? "Place",
@@ -301,4 +398,3 @@ export const place = definePane("place", {
   height: { min: 260 },
   Component: PlacePane,
 });
-

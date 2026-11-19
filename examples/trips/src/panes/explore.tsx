@@ -4,18 +4,36 @@
  * results show on the map while this pane is on screen.
  */
 import { useEffect, useMemo, useRef, type KeyboardEvent } from "react";
-import { MagnifyingGlassIcon, PlusIcon } from "@phosphor-icons/react";
+import { MagnifyingGlassIcon, CheckIcon, PlusIcon } from "@phosphor-icons/react";
 import { keyHint } from "@jali/core";
-import { definePane, oneOf, optional, useCommands, useJali, useJaliState, usePaneState, type PaneProps } from "@jali/react";
+import {
+  definePane,
+  oneOf,
+  optional,
+  useCommands,
+  useJali,
+  useJaliState,
+  usePaneState,
+  type PaneProps,
+} from "@jali/react";
 import { selectPlace } from "../actions";
 import { addToDay, chooseDay, stayAt } from "../planning";
 import { usePlan, useServices } from "../services";
 import { useCurrent } from "../selection";
-import { CATEGORY_LABEL, CITY_NAME, PLACES, placeById, type Category, type CityId, type Place } from "../trip/places";
+import {
+  CATEGORY_LABEL,
+  CITY_NAME,
+  PLACES,
+  placeById,
+  type Category,
+  type CityId,
+  type Place,
+} from "../trip/places";
 import { dayWith, hotelOf, isHotel, type Plan } from "../trip/plan";
 import { haversineKm, travel, WALK_UP_TO_KM } from "../trip/travel";
 import * as f from "../ui/format";
 import { CATEGORY_ICON, DayMark, Empty, Segmented } from "../ui/parts";
+import { Photo } from "../ui/photo";
 import { place } from "./place";
 
 type Near = "place" | "day" | "anywhere";
@@ -68,7 +86,14 @@ function dayCentre(plan: Plan, n: number): { lat: number; lng: number; city: Cit
   };
 }
 
-function ExplorePane({ params, node, paused, focused, peek, inPeek }: PaneProps<typeof exploreParams>) {
+function ExplorePane({
+  params,
+  node,
+  paused,
+  focused,
+  peek,
+  inPeek,
+}: PaneProps<typeof exploreParams>) {
   const jali = useJali();
   const services = useServices();
   const plan = usePlan();
@@ -161,24 +186,44 @@ function ExplorePane({ params, node, paused, focused, peek, inPeek }: PaneProps<
       : [
           {
             id: "add",
-            title: cur ? (cur.category === "stay" ? `Stay at ${cur.name}` : `Add ${cur.name} to a day…`) : "Add to a day…",
+            title: cur
+              ? cur.category === "stay"
+                ? `Stay at ${cur.name}`
+                : `Add ${cur.name} to a day…`
+              : "Add to a day…",
             keys: "A",
             disabled: cur ? false : "Pick a place first",
             run: () => cur && add(cur),
           },
-          { id: "peek", title: cur ? `Peek at ${cur.name}` : "Peek", keys: keyHint("Space"), disabled: cur ? false : "Pick a place first", run: () => cur && peek(place({ id: cur.id })) },
-          { id: "stays", title: "Explore stays", run: () => set({ category: "stay", near: "anywhere", within: 0 }) },
+          {
+            id: "peek",
+            title: cur ? `Peek at ${cur.name}` : "Peek",
+            keys: keyHint("Space"),
+            disabled: cur ? false : "Pick a place first",
+            run: () => cur && peek(place({ id: cur.id })),
+          },
+          {
+            id: "stays",
+            title: "Explore stays",
+            run: () => set({ category: "stay", near: "anywhere", within: 0 }),
+          },
           {
             id: "food",
             title: "Explore food nearby",
-            run: () => set({ category: "food", near: "place", within: WITHIN[filters.city][1]!.value }),
+            run: () =>
+              set({ category: "food", near: "place", within: WITHIN[filters.city][1]!.value }),
           },
           {
             id: "city",
             title: filters.city === "bkk" ? "Explore Phuket" : "Explore Bangkok",
             run: () => set({ city: filters.city === "bkk" ? "hkt" : "bkk" }),
           },
-          { id: "clear", title: "Clear the filters", run: () => set({ text: "", maxPrice: -1, within: 0, near: "anywhere", category: "all" }) },
+          {
+            id: "clear",
+            title: "Clear the filters",
+            run: () =>
+              set({ text: "", maxPrice: -1, within: 0, near: "anywhere", category: "all" }),
+          },
         ],
   );
 
@@ -247,7 +292,10 @@ function ExplorePane({ params, node, paused, focused, peek, inPeek }: PaneProps<
           </label>
           <label className="select">
             <span>Price</span>
-            <select value={filters.maxPrice} onChange={(e) => set({ maxPrice: Number(e.target.value) })}>
+            <select
+              value={filters.maxPrice}
+              onChange={(e) => set({ maxPrice: Number(e.target.value) })}
+            >
               {PRICES.map((p) => (
                 <option key={p.value} value={p.value}>
                   {p.label}
@@ -259,7 +307,9 @@ function ExplorePane({ params, node, paused, focused, peek, inPeek }: PaneProps<
         <p className="explore-count muted" aria-live="polite">
           {rows.length} {rows.length === 1 ? "place" : "places"} in {CITY_NAME[filters.city]}
           {anchor ? `, nearest ${anchor.label} first` : ""}
-          {near && !anchor ? `; ${near.label} is in ${CITY_NAME[near.at.city]}, so no distances` : ""}
+          {near && !anchor
+            ? `; ${near.label} is in ${CITY_NAME[near.at.city]}, so no distances`
+            : ""}
         </p>
       </div>
       {rows.length ? (
@@ -276,7 +326,9 @@ function ExplorePane({ params, node, paused, focused, peek, inPeek }: PaneProps<
             const Icon = CATEGORY_ICON[p.category];
             const on = dayWith(plan, p.id);
             const walk =
-              km !== null && km <= WALK_UP_TO_KM[p.city] * 1.5 ? travel(km, "walk", p.city).minutes : null;
+              km !== null && km <= WALK_UP_TO_KM[p.city] * 1.5
+                ? travel(km, "walk", p.city).minutes
+                : null;
             return (
               <div
                 key={p.id}
@@ -287,29 +339,39 @@ function ExplorePane({ params, node, paused, focused, peek, inPeek }: PaneProps<
                 data-active={(p.id === cursor && focused) || undefined}
                 data-current={p.id === current || undefined}
                 className="result"
-                onClick={() => (p.id === cursor ? selectPlace(jali, p.id, { from: node.id, open: true }) : moveTo(p.id))}
+                onClick={() =>
+                  p.id === cursor
+                    ? selectPlace(jali, p.id, { from: node.id, open: true })
+                    : moveTo(p.id)
+                }
               >
-                <span className="result-icon" data-category={p.category}>
-                  <Icon size={16} weight="bold" aria-hidden />
+                <span className="result-photo">
+                  <Photo id={p.id} />
+                  <span className="result-cat" data-category={p.category}>
+                    <Icon size={11} weight="bold" aria-hidden />
+                  </span>
                 </span>
                 <span className="result-text">
                   <span className="result-name">{p.name}</span>
                   <span className="result-meta">
+                    {isHotel(plan, p.id) ? <b className="result-yours">Your hotel, </b> : null}
                     {p.kind}, {p.area}
                     {km !== null ? `, ${walk !== null ? `${walk} min walk` : f.distance(km)}` : ""}
                   </span>
                 </span>
                 <span className="result-end">
                   {on ? <DayMark n={on.n} size="sm" /> : null}
-                  {isHotel(plan, p.id) ? <span className="tag">Your hotel</span> : null}
-                  <span className="num">
-                    {f.price(p.price)}
+                  <span className="result-price">
+                    <span className="num">{f.price(p.price)}</span>
+                    {p.category === "stay" ? <span className="result-per">a night</span> : null}
                   </span>
                   <button
                     type="button"
                     className="icon-btn result-add"
                     tabIndex={-1}
-                    aria-label={p.category === "stay" ? `Stay at ${p.name}` : `Add ${p.name} to a day`}
+                    aria-label={
+                      p.category === "stay" ? `Stay at ${p.name}` : `Add ${p.name} to a day`
+                    }
                     title={p.category === "stay" ? "Stay here" : "Add to a day (A)"}
                     onClick={(e) => {
                       e.stopPropagation();
@@ -317,7 +379,11 @@ function ExplorePane({ params, node, paused, focused, peek, inPeek }: PaneProps<
                     }}
                     disabled={isHotel(plan, p.id)}
                   >
-                    <PlusIcon size={16} weight="bold" aria-hidden />
+                    {isHotel(plan, p.id) ? (
+                      <CheckIcon size={16} weight="bold" aria-hidden />
+                    ) : (
+                      <PlusIcon size={16} weight="bold" aria-hidden />
+                    )}
                   </button>
                 </span>
               </div>
@@ -333,7 +399,8 @@ function ExplorePane({ params, node, paused, focused, peek, inPeek }: PaneProps<
 
 export const explore = definePane("explore", {
   params: exploreParams,
-  title: ({ category }) => (category === "stay" ? "Find a stay" : category === "food" ? "Find food" : "Explore"),
+  title: ({ category }) =>
+    category === "stay" ? "Find a stay" : category === "food" ? "Find food" : "Explore",
   icon: MagnifyingGlassIcon,
   width: { min: 300, comfortable: 360, max: 480 },
   height: { min: 320 },

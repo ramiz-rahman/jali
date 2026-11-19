@@ -28,18 +28,35 @@ import {
 import mapWorkerUrl from "maplibre-gl/dist/maplibre-gl-worker.mjs?url";
 import { MapTrifoldIcon, WarningCircleIcon, XIcon } from "@phosphor-icons/react";
 import type { ObjectRef } from "@jali/core";
-import { definePane, useCommands, useJali, useJaliModel, useTheme, type PaneProps } from "@jali/react";
+import {
+  definePane,
+  useCommands,
+  useJali,
+  useJaliModel,
+  useTheme,
+  type PaneProps,
+} from "@jali/react";
 import { selectPlace } from "../actions";
 import { addToDay } from "../planning";
 import { usePlan, useServices } from "../services";
 import { useCurrent } from "../selection";
 import { useStore } from "../store";
-import { AIRPORT, CITY_NAME, mustPlace, PLACES, placeById, type CityId, type Place } from "../trip/places";
+import {
+  AIRPORT,
+  CITY_NAME,
+  mustPlace,
+  PLACES,
+  placeById,
+  type CityId,
+  type Place,
+} from "../trip/places";
 import { daysIn, dayTotals, dayWith, isHotel, routeOf, type Plan } from "../trip/plan";
 import { haversineKm } from "../trip/travel";
 import { dayColor } from "../ui/colors";
 import * as f from "../ui/format";
 import { CATEGORY_ICON, DayMark, Segmented } from "../ui/parts";
+import { Photo, photoSrc } from "../ui/photo";
+import { photoOf } from "../trip/photos";
 
 setWorkerUrl(mapWorkerUrl);
 
@@ -76,17 +93,28 @@ interface Pin {
   order?: number;
 }
 
-function pinsFor(plan: Plan, dayN: number, candidates: readonly string[], selected: string | null): Pin[] {
+function pinsFor(
+  plan: Plan,
+  dayN: number,
+  candidates: readonly string[],
+  selected: string | null,
+): Pin[] {
   const pins = new Map<string, Pin>();
   for (const d of plan.days) {
     d.stops.forEach((id, i) => {
       const shown = dayN === 0 || d.n === dayN;
-      pins.set(id, { p: mustPlace(id), role: shown ? "stop" : "other-day", day: d.n, order: i + 1 });
+      pins.set(id, {
+        p: mustPlace(id),
+        role: shown ? "stop" : "other-day",
+        day: d.n,
+        order: i + 1,
+      });
     });
   }
   for (const id of Object.values(plan.hotels)) pins.set(id, { p: mustPlace(id), role: "hotel" });
   for (const id of Object.values(AIRPORT)) pins.set(id, { p: mustPlace(id), role: "airport" });
-  for (const id of candidates) if (!pins.has(id)) pins.set(id, { p: mustPlace(id), role: "candidate" });
+  for (const id of candidates)
+    if (!pins.has(id)) pins.set(id, { p: mustPlace(id), role: "candidate" });
   if (selected && !pins.has(selected) && placeById(selected))
     pins.set(selected, { p: mustPlace(selected), role: "candidate" });
   return Array.from(pins.values());
@@ -118,7 +146,13 @@ function routesFor(plan: Plan, dayN: number, theme: Theme) {
           properties: { mode: l.mode, color: dayColor(d.n, theme) },
           geometry: {
             type: "LineString" as const,
-            coordinates: l.mode === "flight" ? arc(a, b) : [[a.lng, a.lat], [b.lng, b.lat]],
+            coordinates:
+              l.mode === "flight"
+                ? arc(a, b)
+                : [
+                    [a.lng, a.lat],
+                    [b.lng, b.lat],
+                  ],
           },
         };
       }),
@@ -146,9 +180,17 @@ function addTripLayers(map: MapLibre, theme: Theme) {
   paint("park", "fill-color", tune.park);
 
   if (!map.getSource("trip-routes"))
-    map.addSource("trip-routes", { type: "geojson", data: { type: "FeatureCollection", features: [] } });
+    map.addSource("trip-routes", {
+      type: "geojson",
+      data: { type: "FeatureCollection", features: [] },
+    });
   const casing = theme === "dark" ? "#141418" : "#ffffff";
-  const layer = (id: string, mode: string | null, paintSpec: Record<string, unknown>, layout = {}) => {
+  const layer = (
+    id: string,
+    mode: string | null,
+    paintSpec: Record<string, unknown>,
+    layout = {},
+  ) => {
     if (map.getLayer(id)) return;
     map.addLayer({
       id,
@@ -161,10 +203,28 @@ function addTripLayers(map: MapLibre, theme: Theme) {
   };
   layer("route-casing", null, { "line-color": casing, "line-width": 8, "line-opacity": 0.85 });
   layer("route-transit", "transit", { "line-color": ["get", "color"], "line-width": 4 });
-  layer("route-taxi", "taxi", { "line-color": ["get", "color"], "line-width": 4, "line-dasharray": [2, 1.4] }, { "line-cap": "butt" });
-  layer("route-walk", "walk", { "line-color": ["get", "color"], "line-width": 4.5, "line-dasharray": [0.01, 1.8] });
-  layer("route-scooter", "scooter", { "line-color": ["get", "color"], "line-width": 4, "line-dasharray": [3, 1, 0.01, 1] });
-  layer("route-flight", "flight", { "line-color": ["get", "color"], "line-width": 2.5, "line-dasharray": [1, 2] }, { "line-cap": "butt" });
+  layer(
+    "route-taxi",
+    "taxi",
+    { "line-color": ["get", "color"], "line-width": 4, "line-dasharray": [2, 1.4] },
+    { "line-cap": "butt" },
+  );
+  layer("route-walk", "walk", {
+    "line-color": ["get", "color"],
+    "line-width": 4.5,
+    "line-dasharray": [0.01, 1.8],
+  });
+  layer("route-scooter", "scooter", {
+    "line-color": ["get", "color"],
+    "line-width": 4,
+    "line-dasharray": [3, 1, 0.01, 1],
+  });
+  layer(
+    "route-flight",
+    "flight",
+    { "line-color": ["get", "color"], "line-width": 2.5, "line-dasharray": [1, 2] },
+    { "line-cap": "butt" },
+  );
 }
 
 function MapPane({ params, paused, node, inPeek }: PaneProps<typeof mapParams>) {
@@ -246,7 +306,8 @@ function MapPane({ params, paused, node, inPeek }: PaneProps<typeof mapParams>) 
     map.on("error", (e) => {
       // A style or tile that can't be fetched. The plan doesn't need the map: say so, and keep the pins.
       const status = (e.error as { status?: number } | undefined)?.status;
-      if (!map.isStyleLoaded() || status === undefined || status >= 400) setFailed(!map.isStyleLoaded());
+      if (!map.isStyleLoaded() || status === undefined || status >= 400)
+        setFailed(!map.isStyleLoaded());
     });
     // The canvas is the keyboard's way in: name it, so a screen reader says what it is and what the keys do.
     map.getCanvas().setAttribute("aria-label", "Map. Arrow keys pan, plus and minus zoom.");
@@ -315,7 +376,9 @@ function MapPane({ params, paused, node, inPeek }: PaneProps<typeof mapParams>) 
   // As a list does on first show: start on what the place pane beside it shows, so nothing jumps. And again when a
   // layout (a preset, a link, Back) puts another place in that pane: Jali keeps this pane's selection across a
   // preset switch, but the new preset's place pane arrives with its own place (FINDINGS.md).
-  const follower = model.panes.find((p) => p.linkedTo === node.id && p.follows && p.ref.kind === "place");
+  const follower = model.panes.find(
+    (p) => p.linkedTo === node.id && p.follows && p.ref.kind === "place",
+  );
   const quietSelection = useRef<string | null>(null);
   const followerShows = follower ? String(follower.ref.params.id) : null;
   useEffect(() => {
@@ -396,17 +459,25 @@ function MapPane({ params, paused, node, inPeek }: PaneProps<typeof mapParams>) 
         el.className = "city-badge";
         wrap.append(el);
         el.addEventListener("click", () => {
-          const all = [plan.hotels[city], ...daysIn(planRef.current, city).flatMap((d) => d.stops)].map(mustPlace);
+          const all = [
+            plan.hotels[city],
+            ...daysIn(planRef.current, city).flatMap((d) => d.stops),
+          ].map(mustPlace);
           const b = new LngLatBounds();
           for (const p of all) b.extend([p.lng, p.lat]);
-          map.fitBounds(b, { padding: framePadding(map), maxZoom: 15, duration: reducedMotion() ? 0 : 900 });
+          map.fitBounds(b, {
+            padding: framePadding(map),
+            maxZoom: 15,
+            duration: reducedMotion() ? 0 : 900,
+          });
         });
         m = new Marker({ element: wrap, anchor: "center" }).setLngLat([lng, lat]).addTo(map);
         badges.current.set(city, m);
       }
       m.setLngLat([lng, lat]);
       const el = m.getElement().firstElementChild as HTMLButtonElement;
-      const range = days.length > 1 ? `Days ${days[0]!.n} to ${days[days.length - 1]!.n}` : `Day ${days[0]?.n}`;
+      const range =
+        days.length > 1 ? `Days ${days[0]!.n} to ${days[days.length - 1]!.n}` : `Day ${days[0]?.n}`;
       el.innerHTML = "";
       const name = document.createElement("b");
       name.textContent = CITY_NAME[city];
@@ -426,7 +497,11 @@ function MapPane({ params, paused, node, inPeek }: PaneProps<typeof mapParams>) 
     if (!map || !pts.length) return;
     const b = new LngLatBounds();
     for (const p of pts) b.extend([p.lng, p.lat]);
-    map.fitBounds(b, { padding: framePadding(map), maxZoom: 15, duration: animate && !reducedMotion() ? 700 : 0 });
+    map.fitBounds(b, {
+      padding: framePadding(map),
+      maxZoom: 15,
+      duration: animate && !reducedMotion() ? 700 : 0,
+    });
     framed.current = true;
   };
   frameRef.current = frame;
@@ -457,12 +532,13 @@ function MapPane({ params, paused, node, inPeek }: PaneProps<typeof mapParams>) 
       if (inside) return;
       framed.current = false;
       // Within a city, glide; to the other city (or out of the whole-country view), fly.
-      const far = haversineKm(map.getCenter(), { lat: p.lat, lng: p.lng }) > 60 || map.getZoom() < CITY_ZOOM;
+      const far =
+        haversineKm(map.getCenter(), { lat: p.lat, lng: p.lng }) > 60 || map.getZoom() < CITY_ZOOM;
       const camera = {
         center: [p.lng, p.lat] as [number, number],
         zoom: Math.max(map.getZoom(), p.city === "hkt" ? 13 : 14),
         duration: reducedMotion() ? 0 : far ? 1600 : 600,
-        padding: { top: 40, bottom: Math.min(180, h * 0.3), left: 20, right: 20 },
+        padding: { ...framePadding(map), left: 20, right: 20 },
       };
       if (far) map.flyTo(camera);
       else map.easeTo(camera);
@@ -492,6 +568,11 @@ function MapPane({ params, paused, node, inPeek }: PaneProps<typeof mapParams>) 
   if (inPeek) return <div className="pane-body map-peek">Open the map in a pane to see it.</div>;
 
   const sel = selected ? placeById(selected) : undefined;
+  // A place pane that follows this map and is on screen already says everything the card would: the map stays clear.
+  const shownBeside = model.panes.some(
+    (p) =>
+      p.ref.kind === "place" && p.linkedTo === node.id && p.follows && model.visible.includes(p.id),
+  );
   const day = params.day ? plan.days.find((d) => d.n === params.day) : undefined;
   const totals = day ? dayTotals(plan, day) : null;
   const legendCity: CityId | null = day && !day.from ? day.city : null;
@@ -508,7 +589,11 @@ function MapPane({ params, paused, node, inPeek }: PaneProps<typeof mapParams>) 
             { value: 0, label: "All", title: "Every day" },
             ...plan.days.map((d) => ({
               value: d.n,
-              label: <span data-day={d.n} className="map-day-opt">{d.n}</span>,
+              label: (
+                <span data-day={d.n} className="map-day-opt">
+                  {d.n}
+                </span>
+              ),
               title: `Day ${d.n}: ${d.title}`,
             })),
           ]}
@@ -517,7 +602,8 @@ function MapPane({ params, paused, node, inPeek }: PaneProps<typeof mapParams>) 
           <p className="map-summary">
             <b>{day.title}</b>
             <span>
-              {CITY_NAME[day.city]}, {day.stops.length} stops, {f.minutes(totals.travelMin)} travelling
+              {CITY_NAME[day.city]}, {day.stops.length} stops, {f.minutes(totals.travelMin)}{" "}
+              travelling
             </span>
           </p>
         ) : null}
@@ -530,15 +616,15 @@ function MapPane({ params, paused, node, inPeek }: PaneProps<typeof mapParams>) 
         {!day || day.from ? <li data-mode="flight">Flight</li> : null}
       </ul>
       {/* The card is for a place on this map: a Bangkok place stays selected, but out of the way, on a Phuket day. */}
-      {sel && (!day || day.city === sel.city) ? (
+      {sel && !shownBeside && (!day || day.city === sel.city) ? (
         <PlaceCard p={sel} dayN={params.day} plan={plan} from={node.id} />
       ) : null}
       {failed ? (
         <div className="map-failed" role="status">
           <WarningCircleIcon size={22} aria-hidden />
           <p>
-            <b>The map tiles didn't load.</b> Your plan, the lists and the budget all work without them. Check
-            the connection and reload to try again.
+            <b>The map tiles didn't load.</b> Your plan, the lists and the budget all work without
+            them. Check the connection and reload to try again.
           </p>
         </div>
       ) : null}
@@ -548,10 +634,22 @@ function MapPane({ params, paused, node, inPeek }: PaneProps<typeof mapParams>) 
 
 const mapRef_ = (day: number): ObjectRef => map({ day });
 
+/** Room around a framed day: clear of what floats over the map (the days and the summary on top, the card below). */
 function framePadding(map: MapLibre) {
-  const { clientWidth: w, clientHeight: h } = map.getContainer();
-  const pad = Math.max(24, Math.min(80, w * 0.08));
-  return { top: pad + 48, bottom: pad + Math.min(150, h * 0.25), left: pad, right: pad + 24 };
+  const box = map.getContainer();
+  const { clientWidth: w, clientHeight: h } = box;
+  const pad = Math.max(24, Math.min(64, w * 0.07));
+  const top = box.parentElement?.querySelector<HTMLElement>(".map-top")?.offsetHeight ?? 40;
+  const card = box.parentElement?.querySelector<HTMLElement>(".map-card")?.offsetHeight ?? 0;
+  const legend = box.parentElement?.querySelector<HTMLElement>(".map-legend")?.offsetHeight ?? 0;
+  const bottom = Math.max(card + 24, legend ? legend + 50 : 0, pad + 24);
+  // The selected pin's photo stands 100px above it: the top keeps room for it.
+  return {
+    top: top + 12 + Math.min(70, pad + 30),
+    bottom: Math.min(bottom, h * 0.45),
+    left: pad,
+    right: pad + 24,
+  };
 }
 
 function paintPin(el: HTMLButtonElement, pin: Pin, selected: boolean) {
@@ -574,12 +672,47 @@ function paintPin(el: HTMLButtonElement, pin: Pin, selected: boolean) {
         ? `Your hotel in ${CITY_NAME[p.city]}: ${p.name}`
         : role === "airport"
           ? p.name
-        : role === "other-day"
-          ? `${p.name}, on Day ${day}`
-          : `${p.name}, not planned`,
+          : role === "other-day"
+            ? `${p.name}, on Day ${day}`
+            : `${p.name}, not planned`,
   );
   el.title = p.name;
-  el.parentElement!.style.zIndex = selected ? "5" : role === "stop" ? "3" : role === "hotel" ? "4" : "1";
+  el.parentElement!.style.zIndex = selected
+    ? "5"
+    : role === "stop"
+      ? "3"
+      : role === "hotel"
+        ? "4"
+        : "1";
+  paintBubble(el.parentElement!, selected ? p.id : null, day);
+}
+
+/**
+ * The selected pin's photo, in a round frame above it, so the place is easy to find on the map. Decorative: the
+ * pin has the name, and the card below says the rest.
+ */
+function paintBubble(wrap: HTMLElement, id: string | null, day?: number) {
+  let bubble = wrap.querySelector<HTMLElement>(".pin-photo");
+  const url = id ? photoSrc(id) : undefined;
+  if (!url) {
+    bubble?.remove();
+    return;
+  }
+  if (!bubble) {
+    bubble = document.createElement("span");
+    bubble.className = "pin-photo";
+    bubble.setAttribute("aria-hidden", "true");
+    const img = document.createElement("img");
+    img.alt = "";
+    img.decoding = "async";
+    bubble.append(img);
+    wrap.prepend(bubble);
+  }
+  if (day) bubble.dataset.day = String(day);
+  else delete bubble.dataset.day;
+  const img = bubble.querySelector("img")!;
+  if (img.getAttribute("src") !== url) img.src = url;
+  bubble.style.setProperty("--tone", photoOf(id!)?.tone ?? "transparent");
 }
 
 /** The selected place, over the bottom of the map: what it is, and the next step. */
@@ -590,9 +723,11 @@ function PlaceCard({ p, dayN, plan, from }: { p: Place; dayN: number; plan: Plan
   const Icon = CATEGORY_ICON[p.category];
   // The day to offer: the map's day if it is in the place's city, else the place's day, else its city's first day.
   const mapDay = plan.days.find((d) => d.n === dayN);
-  const target = (mapDay?.city === p.city ? mapDay.n : undefined) ?? on?.n ?? daysIn(plan, p.city)[0]?.n ?? 1;
+  const target =
+    (mapDay?.city === p.city ? mapDay.n : undefined) ?? on?.n ?? daysIn(plan, p.city)[0]?.n ?? 1;
   return (
     <div className="map-card" aria-label={`Selected: ${p.name}`} role="region">
+      <Photo id={p.id} className="map-card-photo" />
       <div className="map-card-text">
         <p className="map-card-kind">
           <Icon size={14} weight="bold" aria-hidden /> {p.kind}, {p.area}
@@ -623,11 +758,19 @@ function PlaceCard({ p, dayN, plan, from }: { p: Place; dayN: number; plan: Plan
       </button>
       <div className="map-card-actions">
         {(p.category === "sight" || p.category === "food") && on?.n !== target ? (
-          <button type="button" className="btn btn-primary" onClick={() => addToDay(services, p.id, target)}>
+          <button
+            type="button"
+            className="btn btn-primary"
+            onClick={() => addToDay(services, p.id, target)}
+          >
             {on ? `Move to Day ${target}` : `Add to Day ${target}`}
           </button>
         ) : null}
-        <button type="button" className="btn" onClick={() => selectPlace(jali, p.id, { from, open: true })}>
+        <button
+          type="button"
+          className="btn"
+          onClick={() => selectPlace(jali, p.id, { from, open: true })}
+        >
           Details
         </button>
       </div>

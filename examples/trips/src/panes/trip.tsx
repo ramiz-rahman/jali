@@ -4,8 +4,20 @@
  * that day. A stop dragged onto a day here moves to the end of that day.
  */
 import { Fragment, useEffect, useRef, type KeyboardEvent } from "react";
-import { AirplaneTiltIcon, ArrowCounterClockwiseIcon, BedIcon, SuitcaseRollingIcon, WarningIcon } from "@phosphor-icons/react";
-import { definePane, useCommands, useJali, useJaliModel, usePaneState, type PaneProps } from "@jali/react";
+import {
+  AirplaneTiltIcon,
+  ArrowCounterClockwiseIcon,
+  SuitcaseRollingIcon,
+  WarningIcon,
+} from "@phosphor-icons/react";
+import {
+  definePane,
+  useCommands,
+  useJali,
+  useJaliModel,
+  usePaneState,
+  type PaneProps,
+} from "@jali/react";
 import { selectPlace, showDay } from "../actions";
 import { resetPlan } from "../planning";
 import { usePlan, useServices } from "../services";
@@ -15,6 +27,7 @@ import { daysIn, dayTotals, hotelOf } from "../trip/plan";
 import { useDrag } from "../ui/drag";
 import * as f from "../ui/format";
 import { DayMark } from "../ui/parts";
+import { Photo } from "../ui/photo";
 import { day as dayKind } from "./day";
 
 function TripPane({ node, focused, select, inPeek }: PaneProps) {
@@ -25,7 +38,11 @@ function TripPane({ node, focused, select, inPeek }: PaneProps) {
   const drag = useDrag();
   const listRef = useRef<HTMLDivElement>(null);
   const budget = tripBudget(plan);
-  const cities = (["bkk", "hkt"] as const).map((c) => ({ c, hotel: hotelOf(plan, c), days: daysIn(plan, c) }));
+  const cities = (["bkk", "hkt"] as const).map((c) => ({
+    c,
+    hotel: hotelOf(plan, c),
+    days: daysIn(plan, c),
+  }));
   const first = plan.days[0]!;
   const last = plan.days[plan.days.length - 1]!;
 
@@ -39,8 +56,11 @@ function TripPane({ node, focused, select, inPeek }: PaneProps) {
   // followers arrive showing their own day (FINDINGS.md).
   const model = useJaliModel();
   const followers = model.panes.filter((p) => p.linkedTo === node.id && p.follows);
-  const lead = followers.find((p) => p.ref.kind === "day") ?? followers.find((p) => p.ref.kind === "map");
-  const shown = lead ? Number(lead.ref.kind === "day" ? lead.ref.params.n : lead.ref.params.day) : 0;
+  const lead =
+    followers.find((p) => p.ref.kind === "day") ?? followers.find((p) => p.ref.kind === "map");
+  const shown = lead
+    ? Number(lead.ref.kind === "day" ? lead.ref.params.n : lead.ref.params.day)
+    : 0;
   useEffect(() => {
     if (inPeek) return;
     moveTo(shown > 0 ? shown : cursor);
@@ -66,7 +86,12 @@ function TripPane({ node, focused, select, inPeek }: PaneProps) {
     inPeek
       ? []
       : [
-          { id: "open-day", title: `Open Day ${cursor}`, keys: "Enter", run: () => showDay(jali, cursor) },
+          {
+            id: "open-day",
+            title: `Open Day ${cursor}`,
+            keys: "Enter",
+            run: () => showDay(jali, cursor),
+          },
           ...cities.map(({ c, hotel }) => ({
             id: `hotel-${c}`,
             title: `Show ${hotel.name}, the hotel in ${CITY_NAME[c]}`,
@@ -79,12 +104,25 @@ function TripPane({ node, focused, select, inPeek }: PaneProps) {
   return (
     <div className="pane-body trip">
       <header className="trip-head">
+        <div className="trip-covers">
+          {cities.map(({ c, days }) => (
+            <div key={c} className="trip-cover">
+              <Photo id={`cover-${c}`} size="small" alt="" credit eager />
+              <span className="trip-cover-text">
+                <b>{CITY_NAME[c]}</b>
+                <span>
+                  {days.length} {days.length === 1 ? "night" : "nights"}
+                </span>
+              </span>
+            </div>
+          ))}
+        </div>
         <p className="trip-kicker">
           <SuitcaseRollingIcon size={16} aria-hidden /> {plan.days.length} days
         </p>
         <h3 className="trip-city">{plan.name}</h3>
         <p className="trip-dates">
-          Bangkok and Phuket, {f.day(first.date)} to {f.day(last.date)} 2027
+          {f.day(first.date)} to {f.day(last.date)} 2027
         </p>
         <div className="trip-hotels">
           {cities.map(({ c, hotel }) => (
@@ -94,7 +132,7 @@ function TripPane({ node, focused, select, inPeek }: PaneProps) {
               className="trip-hotel"
               onClick={() => selectPlace(jali, hotel.id, { open: true })}
             >
-              <BedIcon size={16} aria-hidden />
+              <Photo id={hotel.id} className="trip-hotel-photo" />
               <span>
                 <b>{hotel.name}</b>
                 <span className="muted">
@@ -123,7 +161,9 @@ function TripPane({ node, focused, select, inPeek }: PaneProps) {
           <span style={{ width: `${used * 100}%` }} />
         </div>
         <p className="muted small">
-          {budget.left >= 0 ? `${f.moneyRound(budget.left)} left` : `${f.moneyRound(-budget.left)} over the budget`}
+          {budget.left >= 0
+            ? `${f.moneyRound(budget.left)} left`
+            : `${f.moneyRound(-budget.left)} over the budget`}
           {budget.overDays.length
             ? `. ${budget.overDays.length === 1 ? `Day ${budget.overDays[0]} is` : `${budget.overDays.length} days are`} over the day's share.`
             : "."}
@@ -146,44 +186,47 @@ function TripPane({ node, focused, select, inPeek }: PaneProps) {
           const newCity = i === 0 || plan.days[i - 1]!.city !== d.city;
           return (
             <Fragment key={d.n}>
-            {newCity ? (
-              <div className="trip-city-head" role="presentation">
-                {CITY_NAME[d.city]}
-              </div>
-            ) : null}
-            <div
-              id={`${node.id}-day-${d.n}`}
-              role="option"
-              aria-selected={d.n === cursor}
-              data-active={(d.n === cursor && focused) || undefined}
-              data-drop-day={d.n}
-              data-drop-end=""
-              data-dropping={dropping || undefined}
-              className="trip-day"
-              onClick={() => (d.n === cursor ? showDay(jali, d.n) : moveTo(d.n))}
-            >
-              <DayMark n={d.n} />
-              <span className="trip-day-text">
-                <span className="trip-day-date">{f.day(d.date)}</span>
-                <span className="trip-day-title">{d.title}</span>
-                <span className="trip-day-meta">
-                  {d.from ? (
-                    <>
-                      <AirplaneTiltIcon size={12} weight="bold" aria-label="Flight" /> The flight, then{" "}
-                      {d.stops.length} stops
-                    </>
-                  ) : (
-                    <>
-                      {d.stops.length} stops, {f.minutes(t.travelMin)} travel
-                    </>
-                  )}
+              {newCity ? (
+                <div className="trip-city-head" role="presentation">
+                  {CITY_NAME[d.city]}
+                </div>
+              ) : null}
+              <div
+                id={`${node.id}-day-${d.n}`}
+                role="option"
+                aria-selected={d.n === cursor}
+                data-active={(d.n === cursor && focused) || undefined}
+                data-drop-day={d.n}
+                data-drop-end=""
+                data-dropping={dropping || undefined}
+                className="trip-day"
+                onClick={() => (d.n === cursor ? showDay(jali, d.n) : moveTo(d.n))}
+              >
+                <DayMark n={d.n} />
+                <span className="trip-day-text">
+                  <span className="trip-day-date">{f.day(d.date)}</span>
+                  <span className="trip-day-title">{d.title}</span>
+                  <DayStrip stops={d.stops} />
+                  <span className="trip-day-meta">
+                    {d.from ? (
+                      <>
+                        <AirplaneTiltIcon size={12} weight="bold" aria-label="Flight" /> The flight,
+                        then {d.stops.length} stops
+                      </>
+                    ) : (
+                      <>
+                        {d.stops.length} stops, {f.minutes(t.travelMin)} travel
+                      </>
+                    )}
+                  </span>
                 </span>
-              </span>
-              <span className="trip-day-cost num" data-over={b.over || undefined}>
-                {b.over ? <WarningIcon size={13} weight="bold" aria-label="Over the day's share" /> : null}
-                {f.moneyRound(b.total)}
-              </span>
-            </div>
+                <span className="trip-day-cost num" data-over={b.over || undefined}>
+                  {b.over ? (
+                    <WarningIcon size={13} weight="bold" aria-label="Over the day's share" />
+                  ) : null}
+                  {f.moneyRound(b.total)}
+                </span>
+              </div>
             </Fragment>
           );
         })}
@@ -195,6 +238,21 @@ function TripPane({ node, focused, select, inPeek }: PaneProps) {
         </button>
       </footer>
     </div>
+  );
+}
+
+/** The day at a glance: its first stops' photos in a row, and how many more. Decorative: the row names the day. */
+function DayStrip({ stops }: { stops: readonly string[] }) {
+  const shown = stops.slice(0, 5);
+  const more = stops.length - shown.length;
+  if (!shown.length) return null;
+  return (
+    <span className="trip-day-strip" aria-hidden>
+      {shown.map((id) => (
+        <Photo key={id} id={id} />
+      ))}
+      {more > 0 ? <span className="trip-day-more">+{more}</span> : null}
+    </span>
   );
 }
 

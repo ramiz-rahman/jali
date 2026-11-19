@@ -53,13 +53,12 @@
   .small {
     font-size: 12.5px;
   }
+  /* Figures: the text face's own tabular numbers, so columns of times and prices line up without a typewriter. */
   .num {
-    font-family: var(--jali-font-mono);
     font-variant-numeric: tabular-nums;
-    letter-spacing: -0.01em;
   }
   kbd {
-    font-family: var(--jali-font-mono);
+    font-family: var(--jali-font);
     font-size: 11.5px;
     color: var(--jali-text-subtle);
   }
@@ -182,6 +181,20 @@
     color: var(--jali-text);
     background: var(--jali-hover);
   }
+  /* Commands: its keys where there is room (a pill like the search's), the ⌘ icon where there isn't. */
+  .commands-btn {
+    padding: 0 12px;
+    border-color: var(--jali-border-strong);
+    background: var(--jali-surface);
+  }
+  .commands-btn kbd {
+    font-size: 12.5px;
+    font-weight: 600;
+    color: var(--jali-text-muted);
+  }
+  .commands-btn .commands-icon {
+    display: none;
+  }
   .icon-btn:disabled {
     opacity: 0.4;
     cursor: default;
@@ -204,8 +217,16 @@
     }
     .search-text,
     .search kbd,
-    .icon-btn-wide kbd {
+    .commands-btn kbd {
       display: none;
+    }
+    .commands-btn .commands-icon {
+      display: block;
+    }
+    .commands-btn {
+      padding: 0 10px;
+      border-color: transparent;
+      background: none;
     }
     .search {
       border-color: transparent;

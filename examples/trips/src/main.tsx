@@ -7,10 +7,9 @@ import { toast } from "sonner";
 import { createServices } from "./services";
 import { App } from "./shell/App";
 import { createTripsJali } from "./workspace";
-// Styles: the layer order is declared in index.html. Then the faces (Bricolage Grotesque and Chivo Mono from
-// Fontsource; Satoshi from public/fonts), and the app's own, which import Jali's styles first.
+// Styles: the layer order is declared in index.html. Then the faces (Bricolage Grotesque from Fontsource;
+// Satoshi from public/fonts), and the app's own, which import Jali's styles first.
 import "@fontsource-variable/bricolage-grotesque/index.css";
-import "@fontsource-variable/chivo-mono/index.css";
 import "./styles/app.css";
 
 const services = createServices({

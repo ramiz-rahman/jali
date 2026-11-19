@@ -29,7 +29,15 @@ export const MODE_ICON: Record<Mode, Icon> = {
   flight: AirplaneTiltIcon,
 };
 
-export function Empty({ icon, title, children }: { icon?: ReactNode; title: string; children?: ReactNode }) {
+export function Empty({
+  icon,
+  title,
+  children,
+}: {
+  icon?: ReactNode;
+  title: string;
+  children?: ReactNode;
+}) {
   return (
     <div className="empty" role="status">
       {icon}
@@ -79,12 +87,25 @@ export function DayMark({ n, size = "md" }: { n: number; size?: "sm" | "md" | "l
   );
 }
 
-/** A labelled figure: "Travel 1 h 09". */
-export function Stat({ label, value, tone }: { label: string; value: ReactNode; tone?: "over" }) {
+/** A labelled figure, with an optional line under it: "Travel 1h 17m, $0.40 in fares". */
+export function Stat({
+  label,
+  value,
+  sub,
+  tone,
+}: {
+  label: string;
+  value: ReactNode;
+  sub?: ReactNode;
+  tone?: "over";
+}) {
   return (
     <div className="stat" data-tone={tone}>
       <dt>{label}</dt>
-      <dd>{value}</dd>
+      <dd>
+        <span className="stat-value num">{value}</span>
+        {sub ? <span className="stat-sub">{sub}</span> : null}
+      </dd>
     </div>
   );
 }
