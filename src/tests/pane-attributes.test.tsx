@@ -55,6 +55,8 @@ const make = (layout: LayoutInput) =>
     storage: memoryStorage(),
     size: { width: 1200, height: 600 },
     moveFocus: false,
+    // Folding at 360px is what these tests look at; below the phone width it would be Single view.
+    phone: { below: 0 },
   });
 
 const show = (jali: ReturnType<typeof make>) =>

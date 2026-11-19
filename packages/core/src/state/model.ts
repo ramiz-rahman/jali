@@ -15,7 +15,7 @@ import type {
   TuckRecord,
   ViewState,
 } from "../layout/types";
-import { titleOf, type Env } from "../profile";
+import { PHONE_BELOW, titleOf, type Env } from "../profile";
 import { messagesOf } from "./messages";
 
 /** A tab group as the frame shows it: a deliberate stack, or a fold or tuck group made by resolve. */
@@ -141,9 +141,11 @@ export function buildModel({ layout, view, area, ctx, env, titles }: ModelInput)
     folded: resolved.shelf.filter((e) => e.reason === "folded").map((e) => e.paneId),
     off: flat.panes.filter((b) => b.hidden === "off").map((b) => b.id),
     onScreen: panes.filter((p) => !flat.panes.some((b) => b.id === p.id && b.hidden === "off")),
+    // Phone width (env.phone.below, default 600), or a pane that can't fit even folded.
     single:
       area.width > 0 &&
-      resolved.panes.some((b) => !b.hidden && b.rect.x + b.rect.width > area.width + 0.5),
+      (area.width < (env.phone?.below ?? PHONE_BELOW) ||
+        resolved.panes.some((b) => !b.hidden && b.rect.x + b.rect.width > area.width + 0.5)),
   };
 }
 
@@ -158,6 +160,7 @@ export function modelCache() {
       input.area.height,
       input.env.kinds.version(),
       input.env.profile,
+      input.env.phone?.below,
       input.ctx.paneCap,
       input.titles,
       input.ctx.dir,

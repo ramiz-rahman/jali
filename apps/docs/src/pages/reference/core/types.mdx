@@ -385,6 +385,16 @@ How a curated page is shown: one view at a time (Single) or side by side (Split 
 
 </Entry>
 
+<Entry name="PhoneOptions" kind="type" from="@jali/core" signature={`interface PhoneOptions { below?: number }`} compact>
+
+How the workspace behaves on a phone (`createJali({ phone })`).
+
+<Params title="Fields">
+<Param name="below" type="number">Below this workspace width, in CSS pixels, the workspace shows Single view: one pane at a time, with a switcher at the top. Default 600, Android's compact width, which covers portrait phones. `0` leaves it to the panes' minimum widths alone: Single view only when even one pane can't fit.</Param>
+</Params>
+
+</Entry>
+
 <Entry name="Preset" kind="type" from="@jali/core" signature={`interface Preset { id: string; label: string; build: () => Layout }`} compact>
 
 A layout to start from or switch to ("Layout: Orders"), as `jali.env.presets` holds it: made from a <Ref to="PresetOptions" />, with `build` returning a fresh layout each time.

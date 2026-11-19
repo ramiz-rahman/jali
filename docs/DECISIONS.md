@@ -652,3 +652,10 @@ Data Studio's old tab strip had six features Jali lacked. Each is general, and l
 - **Why:** Data Studio themes Jali by setting tokens on its host element and on `.jali-scrim`, the dialogs' backdrop, which wasn't in the parts contract. Checking it showed a real gap: the tab menu and the "+N" menu were portalled to `document.body`, so tokens set around `<JaliRoot>` never reached them.
 - **What:** both menus now portal into the workspace's layer (`[data-jali-layer]`, `display: contents`, beside the root), where the palette, Settings, the chooser and the discard question already render; `document.body` only before the layer exists. The supported way to theme everything a workspace draws, overlays included, is tokens on an element around `<JaliRoot>`. `.jali-scrim` joins the parts as `dialog`, for styling the backdrop. The theming guide says so.
 - **Test:** `parts.test.tsx` opens a tab's menu and finds it in the layer; the lab e2e (133) passes.
+
+## 19 Nov 2026 · Phones: Single view under 600px of workspace width (founder, from the phone research)
+
+- **Why:** docs/research/phone-split-view.md found that the old "phone rule" was only an overflow rule: on a 390px phone, panes of narrow kinds tiled with desktop chrome (12px dividers, draggable headers), one wide kind flipped the whole workspace to Single view, and landscape stacked two 186px strips. The docs already promised one pane at a time on a phone.
+- **What:** `m.single` is now also true when the workspace's width is under `env.phone.below` (`createJali({ phone: { below } })`, `PhoneOptions`, default `PHONE_BELOW` = 600, Android's compact width). The overflow rule stays for every width. `{ below: 0 }` restores the old behaviour exactly. Layout, address and history are untouched as before; widening restores the arrangement (`restoreWide`).
+- **First of three steps.** Next: opt-in stacked view on portrait phones (two linked panes top and bottom), then foldables (a separating hinge becomes a locked divider), as the research proposes.
+- **Tests:** `pane-attributes.test.tsx` tests folding at 360px, so it sets `below: 0`; the rule's own tests come with the stacked view.

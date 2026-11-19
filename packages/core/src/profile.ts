@@ -108,7 +108,22 @@ export interface Env {
   tabMenu?: import("./commands/tab-menu").TabMenu;
   /** Renaming a pane in place (`createJali({ rename })`). */
   rename?: import("./actions/rename").Rename;
+  /** How the workspace behaves on a phone (`createJali({ phone })`). */
+  phone?: PhoneOptions;
 }
+
+/** How the workspace behaves on a phone. */
+export interface PhoneOptions {
+  /**
+   * Below this workspace width, in CSS pixels, the workspace shows Single view: one pane at a time, with a switcher.
+   * Default 600, Android's compact width, which covers portrait phones. `0` leaves it to the panes' minimum widths
+   * alone (Single view only when even one pane can't fit), as before 19 Nov 2026.
+   */
+  below?: number;
+}
+
+/** The phone width when none is given: Android's compact window width. */
+export const PHONE_BELOW = 600;
 
 export const presetById = (env: Pick<Env, "presets">, id: string | undefined): Preset | undefined =>
   env.presets.find((p) => p.id === id) ?? env.presets[0];

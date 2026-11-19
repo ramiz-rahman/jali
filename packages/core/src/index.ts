@@ -40,7 +40,7 @@ export type {
   FollowParams,
 } from "./pane-kinds";
 export { optional, oneOf } from "./pane-kinds";
-export type { RoleBase, ProfileBase, ViewMode, Preset, Env, ItemId } from "./profile";
+export type { RoleBase, ProfileBase, ViewMode, Preset, Env, ItemId, PhoneOptions } from "./profile";
 
 // ---------- the layout tree (pure: every operation returns a new layout) ----------
 export type {

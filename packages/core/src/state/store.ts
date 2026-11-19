@@ -227,6 +227,8 @@ export interface UiStoreDeps {
   tabMenu?: import("../commands/tab-menu").TabMenu;
   /** Renaming a pane in place: the app keeps the name. */
   rename?: Rename;
+  /** How the workspace behaves on a phone. */
+  phone?: import("../profile").PhoneOptions;
 }
 
 export interface UiStore {
@@ -340,6 +342,7 @@ export function createUiStore(deps: UiStoreDeps): UiStore {
   if (deps.confirmDiscard === false) env.confirmDiscard = false;
   if (deps.tabMenu) env.tabMenu = deps.tabMenu;
   if (deps.rename) env.rename = deps.rename;
+  if (deps.phone) env.phone = deps.phone;
   const focusOf =
     deps.focusPane === undefined
       ? typeof document === "undefined"

@@ -639,6 +639,20 @@ type ViewMode = "single" | "split"
 
 How a curated page is shown: one view at a time (Single) or side by side (Split view). The person's choice, kept on their device and never in a link.
 
+### PhoneOptions
+
+*type*, from `@jali/core`
+
+```ts
+interface PhoneOptions { below?: number }
+```
+
+How the workspace behaves on a phone (`createJali({ phone })`).
+
+**Fields**
+
+- **`below`** (`number`): Below this workspace width, in CSS pixels, the workspace shows Single view: one pane at a time, with a switcher at the top. Default 600, Android's compact width, which covers portrait phones. `0` leaves it to the panes' minimum widths alone: Single view only when even one pane can't fit.
+
 ### Preset
 
 *type*, from `@jali/core`

@@ -1,3 +1,4 @@
+import type { PhoneOptions } from "./profile";
 import type { Rename } from "./actions/rename";
 /**
  * `createJali`: one call from pane kinds and a layout to a workspace that is ready to render.
@@ -128,6 +129,12 @@ export interface JaliOptions<D extends PaneKindBase = PaneKindBase> {
    * (`useTitle`). Return `false`, throw or reject to keep the field open. Without it, nothing offers renaming.
    */
   rename?: Rename;
+  /**
+   * Phones: below `phone.below` pixels of workspace width (default 600), the workspace shows one pane at a time,
+   * with a switcher, whatever the panes' minimums. Its layout, address and history don't change; widen it and the
+   * arrangement comes back. `{ below: 0 }` switches only when even one pane can't fit.
+   */
+  phone?: PhoneOptions;
   /** Settings for a person who has none saved on this device yet: `{ theme: "dark" }` for a dark-first app. Settings
    *  the person changes are saved and win from then on. Default: Jali's (`theme: "system"`, `paneCap: 8`, ...). */
   settings?: Partial<Settings>;
@@ -201,6 +208,7 @@ export function createJali<D extends PaneKindBase>(options: JaliOptions<D>): Jal
     ...(options.confirmDiscard === false ? { confirmDiscard: false } : {}),
     ...(options.tabMenu ? { tabMenu: options.tabMenu } : {}),
     ...(options.rename ? { rename: options.rename } : {}),
+    ...(options.phone ? { phone: options.phone } : {}),
     initial: {
       ...(layout ? { layout: toLayout(layout) } : {}),
       ...(size ? { area: size } : {}),
