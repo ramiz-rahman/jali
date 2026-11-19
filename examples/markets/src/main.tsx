@@ -8,9 +8,8 @@ import { createSimulator } from "./market/simulator";
 import { createServices } from "./services";
 import { App } from "./shell/App";
 import { createMarketsJali } from "./workspace";
-// Styles: the layer order is declared in index.html. Then Jali's styles, its faces (Atkinson Hyperlegible Next
-// and Mono), and the app's own.
-import "@jali/react/styles.css";
+// Styles: the layer order is declared in index.html. Then Jali's faces (Atkinson Hyperlegible Next and Mono), and
+// the app's own, which import Jali's styles first.
 import "@fontsource/atkinson-hyperlegible-next/latin-400.css";
 import "@fontsource/atkinson-hyperlegible-next/latin-500.css";
 import "@fontsource/atkinson-hyperlegible-next/latin-600.css";
