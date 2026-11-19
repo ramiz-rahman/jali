@@ -63,7 +63,8 @@ export function HeaderActions({ id, title, zoomed, chrome, tabs, onMenu }: P) {
         return (
           <button
             key={b}
-            className="jali-icon-btn jali-act-tuck"
+            className="jali-icon-btn jali-act-tuck jali-pane-action"
+            data-action="tuck"
             aria-label={home ? tuckLabel : t.tuck(title)}
             title={tuckLabel}
             disabled={!home}
@@ -80,7 +81,8 @@ export function HeaderActions({ id, title, zoomed, chrome, tabs, onMenu }: P) {
         return (
           <button
             key={b}
-            className="jali-icon-btn jali-act-popout"
+            className="jali-icon-btn jali-act-popout jali-pane-action"
+            data-action="popout"
             aria-label={popped ? t.bringBackPane(title) : t.popOut(title)}
             aria-pressed={popped}
             title={popped ? t.bringBack : t.popOutTip}
@@ -93,7 +95,8 @@ export function HeaderActions({ id, title, zoomed, chrome, tabs, onMenu }: P) {
         return (
           <button
             key={b}
-            className="jali-icon-btn jali-act-close"
+            className="jali-icon-btn jali-act-close jali-pane-action"
+            data-action="close"
             onClick={() => actions.close(id)}
             aria-label={t.close(title)}
             title={keys.withKeys(closeHint, store.keymap.label("pane.close"))}
@@ -112,7 +115,8 @@ export function HeaderActions({ id, title, zoomed, chrome, tabs, onMenu }: P) {
       0,
       <button
         key="menu"
-        className="jali-icon-btn jali-act-menu"
+        className="jali-icon-btn jali-act-menu jali-pane-action"
+        data-action="menu"
         aria-label={t.menu(title)}
         aria-haspopup="menu"
         title={keys.withKeys(t.menuTip, "Shift+F10")}
@@ -134,7 +138,8 @@ function ZoomButton({ id, title, zoomed }: { id: string; title: string; zoomed: 
   const { pane: t, keys } = messages;
   return (
     <button
-      className="jali-icon-btn jali-act-zoom"
+      className="jali-icon-btn jali-act-zoom jali-pane-action"
+      data-action="zoom"
       onClick={() => actions.toggleZoom(id)}
       aria-label={zoomed ? t.restore(title) : t.maximise(title)}
       title={
@@ -155,7 +160,8 @@ function FullScreenButton({ id, title }: { id: string; title: string }) {
   const { pane: t, keys } = messages;
   return (
     <button
-      className="jali-icon-btn jali-act-fullscreen"
+      className="jali-icon-btn jali-act-fullscreen jali-pane-action"
+      data-action="fullscreen"
       onClick={() => actions.toggleFullScreen(id)}
       aria-label={full ? t.exitFullScreen(title) : t.fullScreen(title)}
       aria-pressed={full}

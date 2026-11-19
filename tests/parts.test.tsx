@@ -100,6 +100,9 @@ describe("styling contract", () => {
       "tabIndicator",
       "icon",
       "divider",
+      "dividerLine",
+      "paneAction",
+      "tabTitle",
     ];
     const find = (n: PartName) => document.querySelector(parts[n].selector);
     for (const n of rendered) expect(find(n), n).not.toBeNull();
@@ -111,6 +114,13 @@ describe("styling contract", () => {
     expect(document.querySelector("[data-jali-layer] .jali-tab-menu")).not.toBeNull();
     act(() => void fireEvent.keyDown(document.querySelector(".jali-tab-menu")!, { key: "Escape" }));
 
+    // The header's buttons, each with its action, while two panes are on screen.
+    for (const action of ["tuck", "zoom", "close"])
+      expect(
+        container.querySelector(`.jali-pane-action[data-action="${action}"]`),
+        action,
+      ).not.toBeNull();
+
     const other = container.querySelector<HTMLElement>(".jali-pane:not(:has(.jali-tabbar))")!
       .dataset.pane!;
     act(() => void jali.actions.tuck(other));
@@ -118,5 +128,23 @@ describe("styling contract", () => {
     expect(
       container.querySelector('.jali-shelf-chip[data-chip][data-reason="tucked"][data-activity]'),
     ).not.toBeNull();
+    for (const n of ["shelfChipMain", "shelfChipTitle", "shelfChipPut"] as const)
+      expect(find(n), n).not.toBeNull();
+
+    // ⌘K: the dialog, its field and its rows' parts.
+    act(() => void jali.actions.openPalette());
+    expect(
+      document.querySelector('.jali-dialog.jali-palette[data-dialog="palette"]'),
+    ).not.toBeNull();
+    for (const n of [
+      "dialog",
+      "palette",
+      "paletteInput",
+      "paletteItem",
+      "paletteName",
+      "paletteGroup",
+      "paletteKeys",
+    ] as const)
+      expect(find(n), n).not.toBeNull();
   });
 });

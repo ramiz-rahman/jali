@@ -45,6 +45,7 @@ function ChooseDialog({ request }: { request: ChooseOptions<unknown> }) {
   return (
     <ListDialog<Choice>
       className="jali-chooser"
+      dialog="chooser"
       label={request.title}
       head={<div className="jali-chooser-head">{request.title}</div>}
       placeholder={request.placeholder ?? t.choosePlaceholder}
@@ -59,8 +60,8 @@ function ChooseDialog({ request }: { request: ChooseOptions<unknown> }) {
       itemClass="jali-palette-item"
       render={(c) => (
         <>
-          <span className="palette-title">{c.label}</span>
-          <span className="jali-palette-id">{c.hint}</span>
+          <span className="palette-title jali-palette-name">{c.label}</span>
+          <span className="jali-palette-id jali-palette-hint">{c.hint}</span>
         </>
       )}
       onChoose={(c) => {
@@ -89,6 +90,7 @@ function MergeDialog({ chooser }: { chooser: Extract<ChooserState, { kind: "merg
   return (
     <ListDialog<MergeTarget>
       className="jali-chooser"
+      dialog="chooser"
       label={t.label(title)}
       head={
         <div className="jali-chooser-head">
@@ -113,8 +115,8 @@ function MergeDialog({ chooser }: { chooser: Extract<ChooserState, { kind: "merg
               <KindIcon kind={m.pane(t.id)?.ref.kind ?? ""} size={14} />
             )}
           </span>
-          <span className="palette-title">{t.label}</span>
-          <span className="jali-palette-id">{t.hint}</span>
+          <span className="palette-title jali-palette-name">{t.label}</span>
+          <span className="jali-palette-id jali-palette-hint">{t.hint}</span>
         </>
       )}
       onChoose={(t) => {

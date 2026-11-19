@@ -23,6 +23,7 @@ function PaletteDialog() {
   return (
     <ListDialog<ListedCommand>
       className=""
+      dialog="palette"
       label={t.label}
       placeholder={t.placeholder}
       idPrefix={`${store.dom.id}-cmd-`}
@@ -38,9 +39,9 @@ function PaletteDialog() {
       disabled={(c) => c.disabled}
       render={(c) => (
         <>
-          <span className="palette-title">{c.title}</span>
+          <span className="palette-title jali-palette-name">{c.title}</span>
           <span className="jali-palette-group">{c.group}</span>
-          {c.keys ? <kbd>{c.keys}</kbd> : <span />}
+          {c.keys ? <kbd className="jali-palette-keys">{c.keys}</kbd> : <span />}
         </>
       )}
       onChoose={(c) => {

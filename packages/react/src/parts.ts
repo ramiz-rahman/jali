@@ -1,8 +1,9 @@
 /**
- * The styling contract: the parts of what Jali renders that an app may select on, and the attributes each carries.
- * Everything here is public and changes only with a major version; any other class (`jali-*`, `is-*`) and any
- * attribute not listed is Jali's own and may change in any release. State is always an attribute (`data-*` or ARIA),
- * never a class, so a selector reads `.jali-pane[data-focused]`.
+ * The styling contract: the parts of what Jali renders that an app may select on, the element each is, and the
+ * attributes that carry its state. Everything here is public and changes only with a major version, and so are the
+ * `--jali-*` tokens and the header's container name (`jali-header`). Any other class (`jali-*`, `is-*`), any element
+ * inside a part that is not itself a part, and any attribute not listed is Jali's own and may change in any release.
+ * State is always an attribute (`data-*` or ARIA), never a class, so a selector reads `.jali-pane[data-focused]`.
  *
  * The docs' Parts reference is built from this list, and `tests/parts.test.tsx` checks that each part and
  * attribute is really rendered.
@@ -15,9 +16,27 @@ export interface PartAttribute {
   means: string;
 }
 
+/** Where a part is, for the reference's sections. */
+export type PartArea =
+  | "Workspace"
+  | "Pane"
+  | "Tabs"
+  | "Dividers"
+  | "Drag and drop"
+  | "Shelf"
+  | "Linked panes"
+  | "Dialogs and menus"
+  | "Small screens"
+  | "Curated pages"
+  | "Icons and your chrome";
+
 export interface Part {
   /** The selector to use. */
   selector: string;
+  /** The element it is (`button`, `div`…), so a rule knows what it styles. */
+  element: string;
+  /** The reference's section. */
+  area: PartArea;
   /** What it is. */
   what: string;
   /** Its state attributes. */
@@ -34,16 +53,22 @@ const pinnedTab: PartAttribute = { name: "data-pinned", means: "Flag: a pinned t
 export const parts = {
   root: {
     selector: "[data-jali]",
+    element: "div",
+    area: "Workspace",
     what: "The workspace's root: the element `<JaliRoot>` renders, with your `className`.",
     attributes: [],
   },
   layer: {
     selector: "[data-jali-layer]",
+    element: "div",
+    area: "Workspace",
     what: "Beside the root (`display: contents`), holding everything that overlays the workspace: the palette, Settings, the chooser, the discard question, tab menus and the live region. Tokens set on an element around `<JaliRoot>` reach it; tokens set on the root itself don't.",
     attributes: [],
   },
   workspace: {
     selector: ".jali-workspace",
+    element: 'section (`main` with `createJali({ landmark: "main" })`)',
+    area: "Workspace",
     what: "The area the panes are laid out in.",
     attributes: [
       { name: "data-single", means: "Flag: Single view (one pane at a time, with the switcher)." },
@@ -67,6 +92,8 @@ export const parts = {
   },
   pane: {
     selector: ".jali-pane",
+    element: "section",
+    area: "Pane",
     what: "A pane (a `<section>` region).",
     attributes: [
       { name: "data-pane", means: "The pane's id." },
@@ -91,32 +118,65 @@ export const parts = {
   },
   paneHeader: {
     selector: ".jali-pane-header",
-    what: "A pane's header: title, tabs and buttons.",
+    element: "div",
+    area: "Pane",
+    what: "A pane's header: title, tabs and buttons. It is a size container named `jali-header`, public, so a narrow header can be styled with `@container jali-header (max-width: 20rem) { … }`.",
     attributes: [],
   },
   paneTitle: {
     selector: ".jali-pane-title",
+    element: "div",
+    area: "Pane",
     what: "The title of a pane on its own (no tabs): icon, name, marks.",
     attributes: [],
   },
   paneActions: {
     selector: ".jali-pane-actions",
+    element: "div",
+    area: "Pane",
     what: "The header's buttons (`buttons`: by default tuck, maximise, close), and ⋯ for the rest of the pane's menu.",
     attributes: [],
   },
+  paneAction: {
+    selector: ".jali-pane-action",
+    element: "button",
+    area: "Pane",
+    what: "One of the header's buttons, and ⋯ for the pane's menu. Only the buttons the pane allows are rendered, so their number changes from pane to pane.",
+    attributes: [
+      {
+        name: "data-action",
+        means:
+          "`tuck`, `zoom` (Maximise, or Restore while maximised: see the pane's `data-zoomed`), `fullscreen`, `popout`, `close` or `menu` (⋯).",
+      },
+      { name: "aria-pressed", means: "On `fullscreen` and `popout`: `true` while on." },
+      { name: "disabled", means: "On `tuck`: nothing to tuck behind (its tooltip says why)." },
+    ],
+  },
   paneContent: {
     selector: ".jali-pane-content",
+    element: "div",
+    area: "Pane",
     what: "Where the kind's `Component` renders.",
     attributes: [],
   },
-  tabBar: { selector: ".jali-tabbar", what: "A tab group's strip.", attributes: [] },
+  tabBar: {
+    selector: ".jali-tabbar",
+    element: "div",
+    area: "Tabs",
+    what: "A tab group's strip.",
+    attributes: [],
+  },
   pinnedTabs: {
     selector: ".jali-tabs-pinned",
+    element: "div",
+    area: "Tabs",
     what: "The strip's pinned tabs, which stay in view while the rest scroll.",
     attributes: [],
   },
   tabItem: {
     selector: ".jali-tab-item",
+    element: "div",
+    area: "Tabs",
     what: "One tab with its buttons.",
     attributes: [
       pinnedTab,
@@ -130,6 +190,8 @@ export const parts = {
   },
   tab: {
     selector: ".jali-tab",
+    element: "div",
+    area: "Tabs",
     what: 'A tab (`role="tab"`).',
     attributes: [
       { name: "data-tab", means: "The pane's id." },
@@ -143,38 +205,66 @@ export const parts = {
       unsaved,
     ],
   },
+  tabTitle: {
+    selector: ".jali-tab-title",
+    element: "span",
+    area: "Tabs",
+    what: "A tab's name, inside `.jali-tab`. Give it `min-width: 0` to let it shrink first when you add to the tab.",
+    attributes: [],
+  },
   tabClose: {
     selector: ".jali-tab-close",
+    element: "button",
+    area: "Tabs",
     what: "A tab's close button (an unsaved dot until hovered or focused).",
+    attributes: [],
+  },
+  rename: {
+    selector: ".jali-rename",
+    element: "input",
+    area: "Tabs",
+    what: "The rename field that takes a tab's (or a lone pane's title's) place while renaming (`createJali({ rename })`).",
     attributes: [],
   },
   tabPutBack: {
     selector: ".jali-tab-putback",
+    element: "button",
+    area: "Tabs",
     what: "A tucked tab's Put back button.",
     attributes: [],
   },
   tabAdd: {
     selector: ".jali-tab-add",
+    element: "button",
+    area: "Tabs",
     what: "A tab group's New tab button (with a `launcher`).",
     attributes: [],
   },
   tabMore: {
     selector: ".jali-tab-more",
+    element: "button",
+    area: "Tabs",
     what: 'The "+N" button for tabs that don\'t fit.',
     attributes: [],
   },
   tabIndicator: {
     selector: ".jali-tab-indicator",
+    element: "span",
+    area: "Tabs",
     what: "The one underline under the shown tab.",
     attributes: [],
   },
   tabMenu: {
     selector: ".jali-tab-menu",
+    element: "div",
+    area: "Dialogs and menus",
     what: 'A tab\'s menu, and the "+N" menu.',
     attributes: [],
   },
   menuItem: {
     selector: "[data-menu-item]",
+    element: "button",
+    area: "Dialogs and menus",
     what: "An item in a tab's menu; the value is the item's id (Jali's, or yours from `tabMenu`).",
     attributes: [
       { name: "aria-checked", means: "On a checkbox item: `true` or `false`." },
@@ -183,6 +273,8 @@ export const parts = {
   },
   divider: {
     selector: "[data-divider]",
+    element: "div",
+    area: "Dividers",
     what: 'A divider between panes (`role="separator"`); drag it to resize.',
     attributes: [
       {
@@ -191,38 +283,59 @@ export const parts = {
       },
     ],
   },
+  dividerLine: {
+    selector: ".jali-divider-line",
+    element: "span",
+    area: "Dividers",
+    what: "The line inside a divider, drawn while it is pointed at or dragged (in `--jali-border-strong`). Transparent at rest.",
+    attributes: [],
+  },
   foldLine: {
     selector: ".jali-fold-line",
+    element: "div",
+    area: "Small screens",
     what: "The hairline drawn on a fold's hinge, between the two halves.",
     attributes: [],
   },
   stackDivider: {
     selector: ".jali-stack-divider",
+    element: "div",
+    area: "Small screens",
     what: 'Stacked view\'s divider between the two panes on a phone (`role="separator"`); it settles on a third, a half or two thirds.',
     attributes: [{ name: "data-dragging", means: "Flag: being dragged." }],
   },
   dropZone: {
     selector: "[data-drop-zone]",
+    element: "div",
+    area: "Drag and drop",
     what: "The preview of where a dragged pane will go; the value is `left`, `right`, `top`, `bottom` or `centre`.",
     attributes: [],
   },
   dragChip: {
     selector: ".jali-drag-chip",
+    element: "div",
+    area: "Drag and drop",
     what: "The chip that follows the pointer while a pane is dragged.",
     attributes: [],
   },
   tabFolded: {
     selector: ".jali-tab-folded",
+    element: "button",
+    area: "Tabs",
     what: 'The "N folded" chip at the end of a tab strip: the panes the layout folded into this place, but the one it shows. Its menu lists them.',
     attributes: [],
   },
   shelf: {
     selector: ".jali-shelf",
+    element: "div",
+    area: "Shelf",
     what: "The panes you tucked, as chips (`<Shelf />`). Folded panes wait behind their strip's `tabFolded` chip.",
     attributes: [],
   },
   shelfChip: {
     selector: ".jali-shelf-chip",
+    element: "div",
+    area: "Shelf",
     what: "A chip on the shelf.",
     attributes: [
       { name: "data-chip", means: "The pane's id." },
@@ -235,13 +348,59 @@ export const parts = {
       unsaved,
     ],
   },
+  shelfChipMain: {
+    selector: ".jali-shelf-chip-main",
+    element: "button",
+    area: "Shelf",
+    what: "The chip's main button: the pane's icon, name and marks. Brings the pane back.",
+    attributes: [],
+  },
+  shelfChipTitle: {
+    selector: ".jali-shelf-chip-title",
+    element: "span",
+    area: "Shelf",
+    what: "A pane's name, in a chip and in the shelf's menu.",
+    attributes: [],
+  },
+  shelfChipPut: {
+    selector: ".jali-shelf-chip-put",
+    element: "button",
+    area: "Shelf",
+    what: "A tucked chip's Put back button, shown while the chip is hovered or has focus.",
+    attributes: [],
+  },
+  shelfMore: {
+    selector: ".jali-shelf-more",
+    element: "button",
+    area: "Shelf",
+    what: "The \"+N\" button for chips that don't fit; it opens the shelf's menu.",
+    attributes: [{ name: "aria-expanded", means: "`true` while its menu is open." }],
+  },
+  shelfMenu: {
+    selector: ".jali-shelf-menu",
+    element: 'div (`role="menu"`)',
+    area: "Shelf",
+    what: "The shelf's menu of the chips that don't fit.",
+    attributes: [],
+  },
+  shelfMenuItem: {
+    selector: ".jali-shelf-menu-item",
+    element: 'button (`role="menuitem"`)',
+    area: "Shelf",
+    what: "One pane in the shelf's menu.",
+    attributes: [],
+  },
   switcher: {
     selector: ".jali-switcher",
+    element: "nav",
+    area: "Small screens",
     what: "Single view's pane switcher (a tab list).",
     attributes: [],
   },
   switcherItem: {
     selector: ".jali-switch-item",
+    element: "button",
+    area: "Small screens",
     what: "One pane in the switcher.",
     attributes: [
       { name: "aria-selected", means: "`true` on the pane in view." },
@@ -252,16 +411,22 @@ export const parts = {
   },
   peek: {
     selector: ".jali-peek",
+    element: "aside",
+    area: "Linked panes",
     what: "The peek sheet: a linked object shown over the panes.",
     attributes: [],
   },
   pageBar: {
     selector: ".jali-page-bar",
+    element: "div",
+    area: "Curated pages",
     what: "A curated page's bar: its roles, Single view or Split view, Reset.",
     attributes: [],
   },
   pageTab: {
     selector: ".jali-page-tab",
+    element: "button",
+    area: "Curated pages",
     what: "One role on a curated page's bar.",
     attributes: [
       { name: "data-role", means: "The role's id." },
@@ -273,11 +438,29 @@ export const parts = {
   },
   followToggle: {
     selector: ".jali-follow-toggle",
-    what: "A linked pane's Following and Keep control.",
+    element: "button",
+    area: "Linked panes",
+    what: "A linked pane's one Following / Kept toggle (a button, not a container): a click switches. Its word is `followLabel`.",
     attributes: [{ name: "data-follow", means: "`following`, `kept` or `plain`." }],
+  },
+  followLabel: {
+    selector: ".jali-follow-label",
+    element: "span",
+    area: "Linked panes",
+    what: 'The toggle\'s printed word, "Following" or "Kept" (its icon stays when a narrow header hides the word).',
+    attributes: [],
+  },
+  keptBadge: {
+    selector: ".jali-kept-badge",
+    element: "span",
+    area: "Linked panes",
+    what: '"Kept" on a kept pane that is no longer linked to a list, in place of the toggle.',
+    attributes: [],
   },
   paletteItem: {
     selector: ".jali-palette-item",
+    element: "li",
+    area: "Dialogs and menus",
     what: 'A command in ⌘K, or an entry in the "Add to tabs of…" chooser.',
     attributes: [
       { name: "data-command-id", means: "In ⌘K: the command's id." },
@@ -287,16 +470,89 @@ export const parts = {
   },
   dialog: {
     selector: ".jali-scrim",
-    what: 'A dialog\'s backdrop, holding the dialog: the palette, Settings, the "Add to tabs of…" chooser and the discard question.',
+    element: "div",
+    area: "Dialogs and menus",
+    what: 'A dialog\'s backdrop, holding the dialog (`dialogBox`): the palette, Settings, the "Add to tabs of…" chooser and the discard question.',
+    attributes: [],
+  },
+  dialogBox: {
+    selector: ".jali-dialog",
+    element: 'div (`role="dialog"`, or `"alertdialog"` for the discard question)',
+    area: "Dialogs and menus",
+    what: "The dialog itself, inside its scrim.",
+    attributes: [
+      {
+        name: "data-dialog",
+        means:
+          '`palette` (⌘K), `chooser` ("Add to tabs of…" and `actions.choose`), `settings` or `confirm` (the discard question).',
+      },
+    ],
+  },
+  dialogButton: {
+    selector: ".jali-dialog-button",
+    element: "button",
+    area: "Dialogs and menus",
+    what: "A button in a dialog's footer (the discard question's Discard and Keep editing).",
+    attributes: [
+      {
+        name: "data-role",
+        means: "`primary` (the safe choice, focused when it opens) or `secondary`.",
+      },
+    ],
+  },
+  palette: {
+    selector: ".jali-palette",
+    element: "div",
+    area: "Dialogs and menus",
+    what: "The ⌘K and chooser dialog (also `.jali-dialog`): its field, then its list.",
+    attributes: [],
+  },
+  paletteInput: {
+    selector: ".jali-palette-input",
+    element: 'input (`role="combobox"`)',
+    area: "Dialogs and menus",
+    what: "The palette's and the chooser's search field.",
+    attributes: [],
+  },
+  paletteName: {
+    selector: ".jali-palette-name",
+    element: "span",
+    area: "Dialogs and menus",
+    what: "A row's name: the command's title, or the entry's label.",
+    attributes: [],
+  },
+  paletteGroup: {
+    selector: ".jali-palette-group",
+    element: "span",
+    area: "Dialogs and menus",
+    what: 'In ⌘K: the command\'s group label ("Focus", "Layout", or yours).',
+    attributes: [],
+  },
+  paletteHint: {
+    selector: ".jali-palette-hint",
+    element: "span",
+    area: "Dialogs and menus",
+    what: "In the chooser: the entry's hint, after its name.",
+    attributes: [],
+  },
+  paletteKeys: {
+    selector: ".jali-palette-keys",
+    element: "kbd",
+    area: "Dialogs and menus",
+    what: "In ⌘K: the command's keys, when it has any.",
     attributes: [],
   },
   icon: {
     selector: "[data-jali-icon]",
+    element: "svg",
+    area: "Icons and your chrome",
     what: "One of Jali's own icons; the value is its name (`close`, `pin`…). Your icons carry what you give them.",
     attributes: [],
   },
   hostChrome: {
     selector: "[data-jali-chrome]",
+    element: "any",
+    area: "Icons and your chrome",
     what: "Yours to set: your own chrome inside the root, which Jali never pulls focus out of.",
     attributes: [],
   },

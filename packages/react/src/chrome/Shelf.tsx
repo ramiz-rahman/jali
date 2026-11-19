@@ -238,6 +238,7 @@ export function Shelf() {
             return (
               <button
                 {...marks[it.paneId]}
+                className="jali-shelf-menu-item"
                 role="menuitem"
                 key={it.paneId}
                 onClick={() => {

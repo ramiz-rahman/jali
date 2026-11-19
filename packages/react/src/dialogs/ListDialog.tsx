@@ -4,6 +4,8 @@ import { useStore } from "../state/react";
 interface Props<T> {
   /** The dialog's class (with `jali-palette`) and accessible name. */
   className: string;
+  /** Which dialog it is, as `data-dialog` on `.jali-dialog`. */
+  dialog: "palette" | "chooser";
   label: string;
   head?: ReactNode;
   placeholder: string;
@@ -57,7 +59,8 @@ export function ListDialog<T>(p: Props<T>) {
   return (
     <div className="jali-scrim" onPointerDown={(e) => e.target === e.currentTarget && p.onClose()}>
       <div
-        className={`jali-palette${p.className ? ` ${p.className}` : ""}`}
+        className={`jali-dialog jali-palette${p.className ? ` ${p.className}` : ""}`}
+        data-dialog={p.dialog}
         role="dialog"
         aria-modal="true"
         aria-label={p.label}

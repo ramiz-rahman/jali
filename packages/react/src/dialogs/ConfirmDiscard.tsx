@@ -24,7 +24,8 @@ export function ConfirmDiscard() {
       onPointerDown={(e) => e.target === e.currentTarget && stay()}
     >
       <div
-        className="jali-confirm"
+        className="jali-dialog jali-confirm"
+        data-dialog="confirm"
         role="alertdialog"
         aria-modal="true"
         aria-labelledby={`${id}-confirm-title`}
@@ -48,10 +49,19 @@ export function ConfirmDiscard() {
           </ul>
         </div>
         <footer>
-          <button className="jali-text-btn" onClick={() => store.actions.discardAndContinue()}>
+          <button
+            className="jali-text-btn jali-dialog-button"
+            data-role="secondary"
+            onClick={() => store.actions.discardAndContinue()}
+          >
             {t.discard}
           </button>
-          <button className="jali-text-btn is-primary" ref={keep} onClick={stay}>
+          <button
+            className="jali-text-btn is-primary jali-dialog-button"
+            data-role="primary"
+            ref={keep}
+            onClick={stay}
+          >
             {t.keepEditing}
           </button>
         </footer>

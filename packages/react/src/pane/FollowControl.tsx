@@ -19,7 +19,8 @@ export function FollowControl({ node }: { node: PaneNode; title: string }) {
   const store = useStore();
   const t = useMessages().pane;
   const list = useUi(() => (node.linkedTo ? store.model().title(node.linkedTo) : ""));
-  if (!node.linkedTo) return node.kept ? <span className="jali-badge">{t.kept}</span> : null;
+  if (!node.linkedTo)
+    return node.kept ? <span className="jali-badge jali-kept-badge">{t.kept}</span> : null;
   const kept = !!node.kept;
   const hint = kept ? t.keptTip(list) : node.follows ? t.followingTip(list) : t.plainTip(list);
   return (
@@ -33,7 +34,9 @@ export function FollowControl({ node }: { node: PaneNode; title: string }) {
       onClick={() => store.actions.setKept(node.id, !kept)}
     >
       {kept ? <icon.keep size={12} aria-hidden /> : <icon.follow size={12} aria-hidden />}
-      <span aria-hidden>{kept ? t.kept : t.following}</span>
+      <span className="jali-follow-label" aria-hidden>
+        {kept ? t.kept : t.following}
+      </span>
     </button>
   );
 }
