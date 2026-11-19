@@ -587,6 +587,10 @@ One icon per name Jali draws. `<JaliRoot icons>` takes any part of it; type your
 
 - **`icons.more`**, `more: JaliIcon`: The tab-overflow menu's button. Default: Phosphor's `CaretDown`.
 
+- **`icons.menu`**, `menu: JaliIcon`: The ⋯ button in a pane's header, which opens the pane's menu. Default: Phosphor's `DotsThree`.
+
+- **`icons.popOut`**, `popOut: JaliIcon`: The Pop out button, when a pane's `buttons` include it (Bring back while popped out). Default: Phosphor's `PictureInPicture`.
+
 - **`icons.current`**, `current: JaliIcon`: The shown tab in the tab-overflow menu. Default: Phosphor's `Check`.
 
 - **`icons.fold`**, `fold: JaliIcon`: Marks a folded tab or chip (the layout made it). Default: Phosphor's `ArrowsInLineHorizontal`.

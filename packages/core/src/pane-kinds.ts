@@ -226,6 +226,9 @@ export interface PaneOptions<P = Params> {
   /** What may happen to panes of this kind: `{ fullScreen: false }` for content that can't fill a screen. A kind can
    *  only turn controls off; the workspace's `allow` decides the rest. */
   allow?: import("./actions/allow").PaneAllow;
+  /** The buttons in this kind's header, replacing the workspace's: a list, or a function that adjusts it
+   *  (`(defaults) => [...defaults, "popOut"]`). Leave it out for Jali's. Everything allowed is in the pane's menu. */
+  buttons?: import("./pane/buttons").PaneButtons;
   /** Phones only. `stack: false` keeps this kind out of stacked view; `place` asks for its half of it. */
   phone?: { stack?: boolean; place?: "top" | "bottom" };
 }

@@ -12,6 +12,8 @@ export interface TabMenuAt {
   pane: NodeId;
   x: number;
   y: number;
+  /** `x` is where the menu ends, not starts: under a button at the end of the header. */
+  end?: boolean;
 }
 
 /**
@@ -48,7 +50,7 @@ export function TabMenu({ at, onClose }: { at: TabMenuAt; onClose: (refocus: boo
     const el = menu.current;
     if (!el) return;
     const { width, height } = el.getBoundingClientRect();
-    const x = dir === "rtl" ? at.x - width : at.x;
+    const x = (dir === "rtl") !== !!at.end ? at.x - width : at.x;
     const left = x + width > window.innerWidth - 8 ? at.x - width : x;
     const top = at.y + height > window.innerHeight - 8 ? at.y - height : at.y;
     setPos({ left: Math.max(8, left), top: Math.max(8, top) });

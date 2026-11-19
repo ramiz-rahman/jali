@@ -238,6 +238,8 @@ export interface UiStoreDeps {
   phone?: import("../profile").PhoneOptions;
   /** What may happen to panes. */
   allow?: import("../actions/allow").WorkspaceAllow;
+  /** The buttons in a pane's header. */
+  buttons?: import("../pane/buttons").PaneButtons;
 }
 
 export interface UiStore {
@@ -353,6 +355,7 @@ export function createUiStore(deps: UiStoreDeps): UiStore {
   if (deps.rename) env.rename = deps.rename;
   if (deps.phone) env.phone = deps.phone;
   if (deps.allow) env.allow = deps.allow;
+  if (deps.buttons) env.buttons = deps.buttons;
   const focusOf =
     deps.focusPane === undefined
       ? typeof document === "undefined"

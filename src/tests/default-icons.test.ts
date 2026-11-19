@@ -27,6 +27,8 @@ describe("default icons", () => {
       putBack: true,
       newTab: true,
       more: true,
+      menu: true,
+      popOut: true,
       current: true,
       fold: true,
       grip: true,

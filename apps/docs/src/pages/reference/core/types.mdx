@@ -234,6 +234,7 @@ What a kind says about itself, apart from how it renders. In React, `definePane(
 <Param name="inRecent" type="boolean | ((params: P) => boolean)" default="true (false for scratch kinds)">Whether opened objects of this kind go in Recent.</Param>
 <Param name="holdWhileResizing" type="boolean">Keep the content as it is during a divider drag and reflow once, on release: for long lists and charts.</Param>
 <Param name="allow" type="PaneAllow">What may happen to panes of this kind, for what its content can handle: `{ fullScreen: false }`. A kind can only turn controls off. See <Ref to="PaneAllow" />.</Param>
+<Param name="buttons" type="PaneButtons">The buttons in this kind's header, replacing the workspace's: a list, or a function that adjusts them (`(defaults) => [...defaults, "popOut"]`). Leave it out for the workspace's, or Jali's. See <Ref to="PaneButtons" />.</Param>
 <Param name="phone" type={`{ stack?: boolean; place?: "top" | "bottom" }`}>Phones only, in stacked view (`createJali({ phone: { stack: true } })`). `stack: false` keeps panes of this kind out of it, so they show alone. `place` asks for the top or the bottom half; otherwise the pane others were opened from goes above.</Param>
 <Param name="follow" type="(selected: ObjectRef) => FollowParams<P> | undefined">What a following pane of this kind shows when its list selects an object of another kind: the params for it, or `undefined` to keep what it shows. `follow: (selected) => ({ symbol: selected.params.symbol })` lets a chart follow a watchlist that selects quotes. A follower of the selected object's own kind shows that object without it. Params given as `undefined` are left out; if the kind can't read the result (a required param missing), the pane keeps what it shows. See [Following a list](/learn/following#followers-of-other-kinds).</Param>
 </Params>
@@ -414,6 +415,24 @@ Asked before each action on a pane, after the kind's `allow`: `false` refuses it
 <Entry name="AllowContext" kind="type" from="@jali/core" signature={`interface AllowContext { action: PaneControl; pane: PaneNode; presetId?: string; page?: { mode: ViewMode; item?: string } | null }`} compact>
 
 What `when` is asked about: the action, the pane (its id, kind and params, role, pins and links), the preset the layout came from, and the curated page while one is open.
+
+</Entry>
+
+<Entry name="PaneButton" kind="type" from="@jali/core" signature={`type PaneButton = "tuck" | "maximise" | "fullScreen" | "popOut" | "close"`} compact>
+
+A button a pane's header can show. `maximise` is Restore while the pane is maximised; `fullScreen` is Exit full screen while it is full screen; `popOut` is Bring back while it is popped out.
+
+</Entry>
+
+<Entry name="PaneButtons" kind="type" from="@jali/core" signature={`type PaneButtons = readonly PaneButton[] | ((defaults: readonly PaneButton[], ctx: ButtonsContext) => readonly PaneButton[])`} compact>
+
+A header's buttons, in order: a list that replaces the defaults, or a function that adjusts them (`(defaults) => [...defaults, "popOut"]`). Jali's defaults are `["tuck", "maximise", "close"]`, with `fullScreen` in Maximise's place on a lone pane. `allow` and Jali's own rules still filter the list, and Restore and Exit full screen always show while the pane is in that state. A ⋯ button opens the pane's menu whenever it offers more than the buttons do.
+
+</Entry>
+
+<Entry name="ButtonsContext" kind="type" from="@jali/core" signature={`interface ButtonsContext { pane: PaneNode; presetId?: string; page?: { mode: ViewMode; item?: string } | null }`} compact>
+
+What a `buttons` function is told: the pane, the preset the layout came from, and the curated page while one is open.
 
 </Entry>
 

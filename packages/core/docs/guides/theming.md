@@ -238,6 +238,8 @@ export const myIcons: JaliIcons = {
   putBack: sprite("undo"),
   newTab: sprite("plus"),
   more: sprite("chevron-down"),
+  menu: sprite("more-horizontal"),
+  popOut: sprite("picture-in-picture"),
   current: sprite("check"),
   fold: sprite("fold"),
   grip: sprite("grip"),

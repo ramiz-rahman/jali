@@ -143,6 +143,14 @@ export interface JaliOptions<D extends PaneKindBase = PaneKindBase> {
    * an agent), and the chrome draws only what is allowed. Default: everything but Pop out.
    */
   allow?: WorkspaceAllow;
+  /**
+   * The buttons in a pane's header, as shortcuts: everything allowed is in the pane's menu (right-click, ⋯ or
+   * Shift+F10) and ⌘K either way. Leave it out for Jali's: Tuck, Maximise and Close, with Full screen in Maximise's
+   * place on a lone pane. A list replaces them (`["maximise", "close"]`); a function adjusts them
+   * (`(defaults) => [...defaults, "popOut"]`). A kind's own `buttons` win over these. `allow` still filters them, and
+   * Restore and Exit full screen always show while a pane is maximised or full screen.
+   */
+  buttons?: import("./pane/buttons").PaneButtons;
   /** Settings for a person who has none saved on this device yet: `{ theme: "dark" }` for a dark-first app. Settings
    *  the person changes are saved and win from then on. Default: Jali's (`theme: "system"`, `paneCap: 8`, ...). */
   settings?: Partial<Settings>;
@@ -218,6 +226,7 @@ export function createJali<D extends PaneKindBase>(options: JaliOptions<D>): Jal
     ...(options.rename ? { rename: options.rename } : {}),
     ...(options.phone ? { phone: options.phone } : {}),
     ...(options.allow ? { allow: options.allow } : {}),
+    ...(options.buttons ? { buttons: options.buttons } : {}),
     initial: {
       ...(layout ? { layout: toLayout(layout) } : {}),
       ...(size ? { area: size } : {}),

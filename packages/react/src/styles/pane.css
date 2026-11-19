@@ -142,14 +142,26 @@
   }
   .jali-pane:not(.is-focused):not(:hover) .jali-act-zoom,
   .jali-pane:not(.is-focused):not(:hover) .jali-act-fullscreen,
+  .jali-pane:not(.is-focused):not(:hover) .jali-act-popout,
+  .jali-pane:not(.is-focused):not(:hover) .jali-act-menu,
   .jali-pane:not(.is-focused):not(:hover) .jali-act-tuck {
     opacity: 0;
+  }
+  /* A lone pane's ⋯ is as quiet as its Full screen. */
+  .jali-pane.is-alone:not(:hover):not(:focus-within) .jali-act-menu {
+    opacity: 0;
+  }
+  /* Popped out: Bring back shows. */
+  .jali-pane .jali-pane-actions .jali-icon-btn.jali-act-popout[aria-pressed="true"] {
+    opacity: 1;
   }
   /* A narrow pane's idle tuck and maximise take no room at all, so the title keeps it ("Order 12", not "Order 1…").
    Wider panes keep the room, so hovering never shifts the title. */
   @container jali-header (max-width: 20rem) {
     .jali-pane:not(.is-focused):not(:hover):not(:focus-within) .jali-act-zoom,
     .jali-pane:not(.is-focused):not(:hover):not(:focus-within) .jali-act-fullscreen,
+    .jali-pane:not(.is-focused):not(:hover):not(:focus-within) .jali-act-popout,
+    .jali-pane:not(.is-focused):not(:hover):not(:focus-within) .jali-act-menu,
     .jali-pane:not(.is-focused):not(:hover):not(:focus-within) .jali-act-tuck {
       display: none;
     }

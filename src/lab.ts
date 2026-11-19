@@ -32,6 +32,8 @@ export const createLabJali = (): Jali =>
     ...labOptions,
     url: { sizes: "link" },
     allow: { popOut: true },
+    // Jali's header buttons, plus Pop out (the rest is in each pane's ⋯ menu).
+    buttons: (defaults) => [...defaults.filter((b) => b !== "close"), "popOut", "close"],
     // The Pop out prototype (Document Picture-in-Picture; Chrome and Edge on desktop).
     commands: [
       {

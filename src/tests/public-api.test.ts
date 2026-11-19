@@ -107,7 +107,7 @@ describe("public API", () => {
 
   it("@jali/react/icons exports Jali's default set, with an icon for every name", () => {
     expect(Object.keys(icons)).toEqual(["defaultIcons"]);
-    expect(Object.keys(icons.defaultIcons).length).toBe(30);
+    expect(Object.keys(icons.defaultIcons).length).toBe(32);
   });
 
   it("@jali/core/agent exports the bridge and its actions", () => {

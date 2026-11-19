@@ -1,4 +1,4 @@
-/** Full screen: a pane maximised with the page in the browser's full screen; Escape or the button puts it back. */
+/** Full screen: a pane maximised with the page in the browser's full screen; from the pane's menu; Escape or the header's Exit full screen puts it back. */
 import { test, expect } from "./fixtures/lab";
 
 test("a pane goes full screen from its header and comes back with Escape, exactly as it was", async ({
@@ -11,7 +11,9 @@ test("a pane goes full screen from its header and comes back with Escape, exactl
   const title = (await pane.getAttribute("aria-labelledby"))!;
   const name = await page.locator(`[id="${title}"]`).innerText();
   await pane.hover();
-  await page.getByRole("button", { name: `Full screen ${name}`, exact: true }).click();
+  // Full screen is in the pane's menu (⋯); while on, its way out is a header button.
+  await page.getByRole("button", { name: `More for ${name}`, exact: true }).click();
+  await page.getByRole("menuitem", { name: /^Full screen/ }).click();
 
   await expect(pane).toHaveAttribute("data-full-screen", "true");
   await expect.poll(() => page.evaluate(() => !!document.fullscreenElement)).toBe(true);

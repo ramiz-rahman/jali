@@ -40,6 +40,8 @@ const icons: JaliIcons = {
   putBack: stroke("M6 4L3 7l3 3M3 7h6.5a3 3 0 010 6H8"),
   newTab: stroke("M8 3.5v9M3.5 8h9"),
   more: stroke("M4.5 6.5L8 10l3.5-3.5"),
+  menu: stroke("M4 8h.01M8 8h.01M12 8h.01"),
+  popOut: stroke("M2.5 3.5h11v9h-11zM8.5 8.5h3.5v2.5H8.5z"),
   current: stroke("M3.5 8.5l3 3 6-7"),
   fold: stroke("M8 2.5v11M2.5 8H6M4.5 6L6 8 4.5 10M13.5 8H10M11.5 6L10 8l1.5 2"),
   grip: stroke("M5 6h.01M8 6h.01M11 6h.01M5 10h.01M8 10h.01M11 10h.01"),

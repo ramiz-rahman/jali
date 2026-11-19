@@ -75,3 +75,21 @@ Jali's actions check `allow` themselves, so every way of asking gets the same an
 - **Agents** see what isn't allowed for each pane in their snapshot (`notAllowed`), and are refused if they ask.
 
 For a decision that depends on the moment, such as unsaved work in your app's own data, use `beforeClose`, which is asked as the pane is about to close.
+
+## Header buttons
+
+`allow` decides what can happen; `buttons` decides which of those get a button in the pane's header. The buttons are shortcuts. Everything allowed is always in the pane's menu, which opens from a right-click on the header, from the ⋯ button, or with Shift+F10, and in ⌘K.
+
+You don't have to set `buttons`. Jali's choice is Tuck, Maximise and Close, with Full screen in Maximise's place on a lone pane, and only Close on a phone. A ⋯ button shows whenever the menu offers more than the buttons do, so nothing is out of reach on a touch screen.
+
+To change them, give a list, which replaces Jali's, or a function, which adjusts them. A kind's `buttons` win over the workspace's:
+
+```tsx
+// Every pane: no Tuck button (Tuck stays in the menu).
+createJali({ panes, buttons: ["maximise", "close"] });
+
+// Charts: Jali's buttons, plus Pop out.
+definePane("chart", { buttons: (defaults) => [...defaults, "popOut"], /* ... */ });
+```
+
+`allow` still filters the list: a button for something that isn't allowed isn't drawn. And the way out of a state always shows, whatever the list says: Restore while a pane is maximised, Exit full screen while it is full screen.

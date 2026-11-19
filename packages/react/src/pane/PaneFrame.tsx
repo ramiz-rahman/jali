@@ -114,6 +114,23 @@ export const PaneFrame = /* @__PURE__ */ memo(
         ref={coveredRef}
         onPointerDownCapture={() => actions.focus(node.id)}
         onFocusCapture={() => store.get().view.focused !== node.id && actions.focus(node.id)}
+        // The pane's menu from the keyboard (Shift+F10 or the menu key), on the pane or its header: a tab opens its
+        // own, and the content's keys are the app's.
+        onKeyDown={(e) => {
+          if (bare || e.defaultPrevented) return;
+          if (!(e.key === "ContextMenu" || (e.key === "F10" && e.shiftKey))) return;
+          const target = e.target as HTMLElement;
+          const header = e.currentTarget.querySelector<HTMLElement>(".jali-pane-header");
+          if (target !== e.currentTarget && !header?.contains(target)) return;
+          if (target.closest("input, textarea, [contenteditable]")) return;
+          e.preventDefault();
+          const r = (
+            e.currentTarget.querySelector<HTMLElement>(".jali-act-menu") ?? header
+          )?.getBoundingClientRect();
+          if (!r) return;
+          const rtl = store.get().dir === "rtl";
+          setMenu({ pane: node.id, x: rtl ? r.left : r.right, y: r.bottom + 2, end: true });
+        }}
         className={cls}
         style={style}
       >
@@ -176,6 +193,7 @@ export const PaneFrame = /* @__PURE__ */ memo(
               zoomed={zoomed}
               chrome={chrome}
               tabs={!!group}
+              onMenu={(at) => setMenu({ pane: node.id, ...at })}
             />
           )}
         </div>

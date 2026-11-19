@@ -112,6 +112,8 @@ export interface Env {
   phone?: PhoneOptions;
   /** What may happen to panes (`createJali({ allow })`). */
   allow?: import("./actions/allow").WorkspaceAllow;
+  /** The buttons in a pane's header (`createJali({ buttons })`). */
+  buttons?: import("./pane/buttons").PaneButtons;
 }
 
 /** How the workspace behaves on a phone. */

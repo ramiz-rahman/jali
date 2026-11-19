@@ -37,3 +37,24 @@ test("the menu offers Pop out where the browser can, and it pops the pane out", 
   await opened;
   await expect(pane.locator(".jali-popped-out")).toBeVisible();
 });
+
+test("⋯ opens the same menu, under itself, and Shift+F10 on the pane opens it from the keyboard", async ({
+  lab,
+  page,
+}) => {
+  await lab.open();
+  const pane = page.locator("section[data-pane]").first();
+  const more = pane.locator(".jali-act-menu");
+  await pane.hover();
+  await more.click();
+  const menu = page.getByRole("menu");
+  await expect(menu.getByRole("menuitem", { name: /^Full screen/ })).toBeVisible();
+  const [m, b] = [(await menu.boundingBox())!, (await more.boundingBox())!];
+  expect(Math.round(m.x + m.width)).toBe(Math.round(b.x + b.width));
+  await page.keyboard.press("Escape");
+  await expect(pane).toBeFocused();
+  await page.keyboard.press("Shift+F10");
+  await expect(menu).toBeVisible();
+  await page.keyboard.press("Escape");
+  await expect(menu).toHaveCount(0);
+});

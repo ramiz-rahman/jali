@@ -32,7 +32,7 @@ Attributes a pane sets with `usePaneAttributes` appear on everything that stands
 | `.jali-pane` | A pane (a `<section>` region). | `data-pane`: The pane's id.<br>`data-kind`: The pane's kind.<br>`data-focused`: Flag: the focused pane.<br>`data-full-screen`: Flag: on the whole screen (`toggleFullScreen`).<br>`data-alone`: Flag: the only pane on screen (see the workspace's).<br>`data-zoomed`: Flag: maximised.<br>`data-dragged`: Flag: being dragged.<br>`data-drop-target`: Flag: the pane a drag would drop on.<br>`data-unsaved`: Flag: the pane reports unsaved work (`useUnsaved`).<br>`data-origin`: `opened`: opened beside another from a link; `role`: fills a curated page's role.<br>`data-boundary`: On an opened pane: how it shows it was opened from another, the person's setting (`tint` or `none`). |
 | `.jali-pane-header` | A pane's header: title, tabs and buttons. | none |
 | `.jali-pane-title` | The title of a pane on its own (no tabs): icon, name, marks. | none |
-| `.jali-pane-actions` | The header's buttons: tuck, maximise, close. | none |
+| `.jali-pane-actions` | The header's buttons (`buttons`: by default tuck, maximise, close), and ⋯ for the rest of the pane's menu. | none |
 | `.jali-pane-content` | Where the kind's `Component` renders. | none |
 | `.jali-tabbar` | A tab group's strip. | none |
 | `.jali-tabs-pinned` | The strip's pinned tabs, which stay in view while the rest scroll. | none |

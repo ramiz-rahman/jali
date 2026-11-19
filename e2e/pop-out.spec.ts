@@ -28,7 +28,7 @@ test("a popped-out list still drives its following detail, and Bring back closes
   await pip.getByRole("row", { name: /^5\b/ }).first().click();
   await expect(detail.getByRole("heading", { level: 2 })).toHaveText(/5/);
 
-  await list.getByRole("button", { name: "Bring back" }).click();
+  await list.getByRole("button", { name: "Bring back", exact: true }).click();
   await expect(list.locator(".jali-popped-out")).toHaveCount(0);
   await expect.poll(() => pip.isClosed()).toBe(true);
 });

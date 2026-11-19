@@ -81,6 +81,7 @@ export type {
   PaneControl,
   WorkspaceAllow,
 } from "./actions/allow";
+export type { PaneButton, PaneButtons, ButtonsContext } from "./pane/buttons";
 export type { JaliActions, PaneTarget, OpenPageOptions } from "./actions/public";
 export type { ChooseOptions } from "./actions/choose";
 export type {

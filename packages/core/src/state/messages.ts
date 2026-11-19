@@ -483,6 +483,12 @@ const pane = {
   /** A popped-out pane's place (experimental Pop out). */
   poppedOut: "Popped out into its own window",
   bringBack: "Bring back",
+  popOut: (pane: string) => `Pop out ${pane}`,
+  popOutTip: "Pop out into a floating window",
+  bringBackPane: (pane: string) => `Bring back ${pane}`,
+  /** The ⋯ button: everything the pane's menu offers. */
+  menu: (pane: string) => `More for ${pane}`,
+  menuTip: "More",
   restore: (pane: string) => `Restore ${pane}`,
   restoreTip: "Restore",
   opened: "Opened",

@@ -101,7 +101,7 @@ export const parts = {
   },
   paneActions: {
     selector: ".jali-pane-actions",
-    what: "The header's buttons: tuck, maximise, close.",
+    what: "The header's buttons (`buttons`: by default tuck, maximise, close), and ⋯ for the rest of the pane's menu.",
     attributes: [],
   },
   paneContent: {
