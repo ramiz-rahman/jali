@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="en-GB">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta
+      name="description"
+      content="A map-first trip planner built with Jali: a week in Bangkok and Phuket, the map, each day's stops and travel, hotels, and the budget, in panes that fit the screen. Hotels, restaurants and prices are made up."
+    />
+    <meta name="color-scheme" content="light dark" />
+    <title>Trips · a Jali example</title>
+    <link rel="icon" href="./favicon.svg" type="image/svg+xml" />
+    <!-- The layer order, before any stylesheet: resets (base) below Jali's styles (jali), the app's (app) above. -->
+    <style>
+      @layer base, jali, app;
+    </style>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="./src/main.tsx"></script>
+  </body>
+</html>

@@ -20,7 +20,8 @@
     "minimal": "vp dev examples/minimal",
     "own-icons": "vp dev examples/own-icons",
     "markets": "vp dev examples/markets",
-    "studio": "vp dev examples/studio"
+    "studio": "vp dev examples/studio",
+    "trips": "vp dev examples/trips"
   },
   "dependencies": {
     "@electric-sql/pglite": "^0.5.16",
@@ -28,6 +29,7 @@
     "@jali/react": "workspace:*",
     "@phosphor-icons/react": "^2.1.10",
     "@tanstack/react-query": "^5.107.1",
+    "maplibre-gl": "^6.19.0",
     "radix-ui": "^1.8.1",
     "react": "^19.3.1",
     "react-dom": "^19.3.1",
@@ -35,6 +37,8 @@
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.14.0",
+    "@fontsource-variable/bricolage-grotesque": "^5.3.0",
+    "@fontsource-variable/chivo-mono": "^5.3.0",
     "@fontsource/atkinson-hyperlegible-mono": "^5.3.0",
     "@fontsource/atkinson-hyperlegible-next": "^5.3.0",
     "@fontsource/chakra-petch": "^5.3.0",
