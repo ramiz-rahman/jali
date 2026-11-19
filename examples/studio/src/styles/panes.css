@@ -1361,3 +1361,53 @@
     color: #c2cab9;
   }
 }
+
+@layer app {
+  /*
+   * ---------- segment detail: one small device ----------
+   * Top to bottom, in the order a person works: the display (its range and length on the glass's edge), the
+   * transport keys and the speaker/track LCD side by side, the text on paper, then the note in its inset field with
+   * its keys on one line. Wide, the keys and the LCD share a row; narrow, they stack.
+   */
+  .clip {
+    container: clip / inline-size;
+  }
+  .clip-head {
+    padding-top: 12px;
+  }
+  .clip-wave {
+    height: 96px;
+  }
+  .clip-controls {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: stretch;
+    gap: 10px;
+  }
+  .clip-controls .keyset .key {
+    height: 38px;
+  }
+  .clip-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: stretch;
+  }
+  .clip-row > .clip-controls {
+    flex: none;
+  }
+  .clip-row > .clip-fields {
+    flex: 1 1 220px;
+    margin: 0;
+  }
+  .clip-row .keyset {
+    height: 100%;
+    box-sizing: border-box;
+  }
+  .clip-note-foot {
+    justify-content: space-between;
+  }
+  .clip-note-foot > span:first-child:empty {
+    display: none;
+  }
+}

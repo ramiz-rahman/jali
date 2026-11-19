@@ -105,58 +105,61 @@ function ClipBody({
       </header>
       {!inTransport && !inPeek ? <NotInTransport session={session.id} /> : null}
       <MiniWave seg={seg} view={view} paused={paused || !inTransport} />
-      <div className="clip-controls">
-        <span className="keyset">
-          <button
-            type="button"
-            className="key key-square key-play"
-            aria-label={playing ? "Pause" : `Play segment ${n}`}
-            onMouseDown={(e) => e.preventDefault()}
-            onClick={play}
-          >
-            {playing ? (
-              <PauseIcon size={16} weight="fill" aria-hidden />
-            ) : (
-              <PlayIcon size={16} weight="fill" aria-hidden />
-            )}
-          </button>
-          <button
-            type="button"
-            className="key key-latch"
-            aria-pressed={looping}
-            onMouseDown={(e) => e.preventDefault()}
-            onClick={toggleLoop}
-          >
-            <span className="led" aria-hidden />
-            loop
-          </button>
-        </span>
-        <span className="clip-stats mono">
-          {duration.toFixed(1)} s · {words} words
-        </span>
-      </div>
-      <dl className="clip-fields">
-        <div>
-          <dt>Speaker</dt>
-          <dd>
-            <select
-              aria-label="Who says this segment"
-              value={speaker}
-              onChange={(e) => edits.setSegmentSpeaker(session.id, seg.id, e.target.value)}
+      {/* The keys and the speaker/track LCD on one row when there is room; stacked when narrow. */}
+      <div className="clip-row">
+        <div className="clip-controls">
+          <span className="keyset">
+            <button
+              type="button"
+              className="key key-square key-play"
+              aria-label={playing ? "Pause" : `Play segment ${n}`}
+              onMouseDown={(e) => e.preventDefault()}
+              onClick={play}
             >
-              {session.speakers.map((p) => (
-                <option key={p.id} value={p.id}>
-                  {view.speakerName(p.id)}
-                </option>
-              ))}
-            </select>
-          </dd>
+              {playing ? (
+                <PauseIcon size={16} weight="fill" aria-hidden />
+              ) : (
+                <PlayIcon size={16} weight="fill" aria-hidden />
+              )}
+            </button>
+            <button
+              type="button"
+              className="key key-latch"
+              aria-pressed={looping}
+              onMouseDown={(e) => e.preventDefault()}
+              onClick={toggleLoop}
+            >
+              <span className="led" aria-hidden />
+              loop
+            </button>
+          </span>
+          <span className="clip-stats" hidden>
+            {duration.toFixed(1)} s · {words} words
+          </span>
         </div>
-        <div>
-          <dt>Track</dt>
-          <dd>{TRACKS.find((t) => t.id === trackOf(seg))?.label}</dd>
-        </div>
-      </dl>
+        <dl className="clip-fields">
+          <div>
+            <dt>Speaker</dt>
+            <dd>
+              <select
+                aria-label="Who says this segment"
+                value={speaker}
+                onChange={(e) => edits.setSegmentSpeaker(session.id, seg.id, e.target.value)}
+              >
+                {session.speakers.map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {view.speakerName(p.id)}
+                  </option>
+                ))}
+              </select>
+            </dd>
+          </div>
+          <div>
+            <dt>Track</dt>
+            <dd>{TRACKS.find((t) => t.id === trackOf(seg))?.label}</dd>
+          </div>
+        </dl>
+      </div>
       <blockquote className="clip-text" data-corrected={text !== seg.text ? "" : undefined}>
         {text}
         {text !== seg.text ? <footer>Corrected. Recorded as: “{seg.text}”</footer> : null}
