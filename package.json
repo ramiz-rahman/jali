@@ -7,7 +7,7 @@
   "scripts": {
     "dev": "vp dev --port 5300 --strictPort",
     "build": "tsc -b && vp build",
-    "typecheck": "tsc -b --noEmit",
+    "typecheck": "tsc -b --noEmit && tsc --noEmit -p apps/docs",
     "test": "vp test run && vp test run --config apps/docs/src/reference/vitest.config.ts",
     "e2e": "playwright test",
     "test:e2e": "playwright test",

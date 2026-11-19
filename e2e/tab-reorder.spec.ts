@@ -55,3 +55,36 @@ test("a pinned tab stays in view while the others scroll", async ({ lab, page })
   expect(box.width).toBeGreaterThan(20);
   await expect(page.locator(".jali-tabs [data-pinned]")).toHaveCount(0);
 });
+
+/** In a narrow header the shown tab stays on screen: pinned tabs give way first, down to a pin and an icon. */
+test("a narrow strip keeps the shown tab in view, pinned tabs shrinking to their icon", async ({
+  lab,
+  page,
+}) => {
+  await lab.open({ size: { width: 1920, height: 1000 } });
+  await lab.setting(/Add as a tab/);
+  await lab.drag("order", "orders", "centre");
+  await lab.drag("customer", "order", "centre");
+  const tabs = page.locator("[data-tab]");
+  await expect(tabs).toHaveCount(3);
+  for (let n = 0; n < 2; n++) {
+    await page.locator("[data-tab]:not([data-pinned])").first().click({ button: "right" });
+    await page.getByRole("menuitemcheckbox", { name: "Pin tab" }).click();
+  }
+  await expect(page.locator('[role="tab"][data-pinned]')).toHaveCount(2);
+  // The shown tab is the one left unpinned.
+  const shown = page.locator('[role="tab"]:not([data-pinned])');
+  await shown.click();
+  await page.addStyleTag({ content: ".jali-pane-header { max-width: 390px; }" });
+  const bar = (await page.locator(".jali-tabbar").first().boundingBox())!;
+  const box = (await shown.boundingBox())!;
+  expect(box.width).toBeGreaterThan(40);
+  expect(box.x).toBeGreaterThanOrEqual(bar.x - 1);
+  expect(box.x + 40).toBeLessThanOrEqual(bar.x + bar.width);
+  // Pinned tabs show their icon only, and keep their name.
+  await expect(page.locator("[data-pinned] .jali-tab-title").first()).toBeHidden();
+  await expect(page.locator('[role="tab"][data-pinned]').first()).toHaveAttribute(
+    "aria-label",
+    /.+/,
+  );
+});
