@@ -137,6 +137,8 @@ export function createSimulator(options: SimulatorOptions = {}): Simulator {
       corp: { spread: 30, rate: 0.12, lot: 1_000 },
       fx: { spread: 6 + own.int(0, 6), rate: 2.5, lot: 100_000 },
       index: { spread: 0, rate: 0, lot: 1 },
+      // Crypto is real (kraken.ts), never simulated; this only keeps the table whole.
+      crypto: { spread: 1, rate: 0, lot: 1 },
     }[inst.assetClass];
     const meanSize = params.rate ? dailyVolume(inst) / SESSION_S / params.rate : 0;
     lives.set(inst.symbol, {

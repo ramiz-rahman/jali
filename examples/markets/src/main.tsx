@@ -1,9 +1,10 @@
 /**
- * Markets: a Jali example. A simulated market (no feed, keys or licences), eight kinds of pane, four desks, and a
- * layout that lives in the address, so a desk is a link.
+ * Markets: a Jali example. A simulated market of shares, bonds and currencies with real crypto prices from Kraken
+ * (no keys or licences), eight kinds of pane, five desks, and a layout that lives in the address, so a desk is a link.
  */
 import { createRoot } from "react-dom/client";
 import { toast } from "sonner";
+import { createKrakenMarket } from "./market/kraken";
 import { createSimulator } from "./market/simulator";
 import { createServices } from "./services";
 import { App } from "./shell/App";
@@ -19,13 +20,21 @@ import "./styles/app.css";
 
 // The same market all day for everyone: the seed is today's date.
 const today = new Date();
-const market = createSimulator({
+const simulator = createSimulator({
   seed: today.getFullYear() * 1e4 + (today.getMonth() + 1) * 100 + today.getDate(),
 });
-const services = createServices(market);
-const jali = createMarketsJali(services, { notify: (text) => toast(text) });
+simulator.run();
 
-market.run();
-services.trading.connect();
+async function start() {
+  // Real crypto prices from Kraken, over the simulated market.
+  const market = createKrakenMarket(simulator);
+  // The first quote of every pair, so nothing opens at zero; past a few seconds, open anyway and fill in.
+  if (!(await market.ready()))
+    setTimeout(() => toast("Kraken is slow to answer: crypto prices fill in as they arrive."), 500);
+  const services = createServices(market);
+  const jali = createMarketsJali(services, { notify: (text) => toast(text) });
+  services.trading.connect();
+  createRoot(document.getElementById("root")!).render(<App jali={jali} services={services} />);
+}
 
-createRoot(document.getElementById("root")!).render(<App jali={jali} services={services} />);
+void start();

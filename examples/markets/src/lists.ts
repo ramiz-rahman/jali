@@ -2,6 +2,7 @@
  * Watchlists: named lists of symbols. A watchlist pane shows one (`watchlist({ list: "rates" })`); the lists
  * themselves are the app's state, saved on this device, so "Add to watchlist" in one pane shows in every pane.
  */
+import { CRYPTO_SYMBOLS } from "./market/crypto";
 import { INSTRUMENTS } from "./market/instruments";
 import { createStore, saved, useStore, type Store } from "./store";
 
@@ -36,6 +37,8 @@ export const DEFAULT_LISTS: readonly WatchList[] = [
   { id: "rates", name: "Rates", symbols: [...of("govt"), ...of("corp")] },
   { id: "fx", name: "FX", symbols: of("fx") },
   { id: "indices", name: "Indices", symbols: of("index") },
+  // Real prices, from Kraken.
+  { id: "crypto", name: "Crypto", symbols: [...CRYPTO_SYMBOLS] },
 ];
 
 /** A list's name from its id, for pane titles (which can't read app state). */

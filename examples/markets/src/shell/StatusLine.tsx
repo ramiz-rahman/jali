@@ -26,7 +26,10 @@ export function StatusLine() {
       <Shelf />
       <span className="status-focus">{focused ? m.title(focused) : ""}</span>
       <span className="status-hint">{hint}</span>
-      <span className="status-note">Simulated market · no real prices</span>
+      <span className="status-note">
+        <span className="live-dot" aria-hidden /> Crypto live from Kraken · everything else
+        simulated
+      </span>
     </footer>
   );
 }

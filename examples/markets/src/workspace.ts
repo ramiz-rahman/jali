@@ -26,7 +26,7 @@ type Options = Pick<JaliOptions, "url" | "storage" | "size" | "moveFocus" | "pre
   notify?: (text: string) => void;
 };
 
-const TRADABLE: AssetClass[] = ["equity", "govt", "corp", "fx"];
+const TRADABLE: AssetClass[] = ["equity", "govt", "corp", "fx", "crypto"];
 /** How the chooser names an instrument's class, beside its name. */
 const ASSET_CLASS: Record<AssetClass, string> = {
   equity: "Equity",
@@ -34,12 +34,13 @@ const ASSET_CLASS: Record<AssetClass, string> = {
   corp: "Corporate",
   fx: "FX",
   index: "Index",
+  crypto: "Crypto, live",
 };
 const BOOKED: AssetClass[] = TRADABLE;
 
 export function createMarketsJali(services: Services, options: Options = {}): Jali {
   const { notify = () => {}, ...jaliOptions } = options;
-  const { market, lists } = services;
+  const { market, lists, desks } = services;
   /** Ask for an instrument in Jali's chooser (type a symbol or a name), then `onPick` its symbol. */
   const pick = (jali: Jali, title: string, onPick: (symbol: string) => void, only?: AssetClass[]) =>
     jali.actions.choose({
@@ -153,10 +154,11 @@ export function createMarketsJali(services: Services, options: Options = {}): Ja
     },
   ];
 
-  return createJali({
+  const jali = createJali({
     panes: kinds,
     launcher,
-    presets,
+    // Each desk comes back as the person left it; Reset in the top bar puts them back.
+    presets: presets.map((p) => ({ ...p, saved: () => desks.get(p.id) })),
     commands,
     name: "Markets",
     // Bound like Jali's own commands; ⌘K then ⌘O, and so on.
@@ -168,4 +170,6 @@ export function createMarketsJali(services: Services, options: Options = {}): Ja
     phone: { stack: true },
     ...jaliOptions,
   });
+  desks.track(jali);
+  return jali;
 }

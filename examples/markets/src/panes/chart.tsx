@@ -30,8 +30,12 @@ interface View {
 const AXIS_W = 64; // the price axis, on the right
 const AXIS_H = 20; // the time axis, below
 const VOLUME = 0.18; // of the plot's height
-/** Slots across the chart: a whole session for 1D, so today's line fills in as the day goes on. */
+/** Slots across the chart: a whole session for 1D, so today's line fills in as the day goes on. Crypto never
+ *  closes: its 1D is the last 24 hours, in Kraken's 5-minute bars. */
 const SESSION_MINUTES = 390;
+const DAY_MINUTES = 1440;
+const dayOf = (inst: Instrument) =>
+  inst.continuous ? { minutes: DAY_MINUTES, bar: 5 } : { minutes: SESSION_MINUTES, bar: 1 };
 const SLOTS: Partial<Record<Range, number>> = { "5D": 65 };
 /** Minutes a 1D bar may cover: the fewest that keep a candle 5px wide. */
 const BUCKETS = [1, 2, 5, 10, 15, 30];
@@ -54,15 +58,16 @@ function ChartBody({ inst, paused }: { inst: Instrument; paused: boolean }) {
   const size = useSize(plotRef);
 
   // Today comes by the minute (390 bars a session). A narrow chart merges them into wider bars that read better.
+  const day = dayOf(inst);
   const bucket =
     view.range === "1D"
-      ? (BUCKETS.find((m) => (size.width - AXIS_W) / (SESSION_MINUTES / m) >= 5) ?? 30)
+      ? (BUCKETS.find((m) => m >= day.bar && (size.width - AXIS_W) / (day.minutes / m) >= 5) ?? 30)
       : 1;
   const bars = useMemo(
-    () => (bucket > 1 && raw[0] ? aggregate(raw, bucket * MINUTE, raw[0].time) : raw),
-    [raw, bucket],
+    () => (bucket > day.bar && raw[0] ? aggregate(raw, bucket * MINUTE, raw[0].time) : raw),
+    [raw, bucket, day.bar],
   );
-  const slots = view.range === "1D" ? SESSION_MINUTES / bucket : (SLOTS[view.range] ?? bars.length);
+  const slots = view.range === "1D" ? day.minutes / bucket : (SLOTS[view.range] ?? bars.length);
 
   // A new instrument or range starts with no bar under the cursor.
   useEffect(() => setCursor(null), [inst.symbol, view.range]);
@@ -109,7 +114,7 @@ function ChartBody({ inst, paused }: { inst: Instrument; paused: boolean }) {
     cursor !== null && cursor > 0
       ? bars[cursor - 1]!.close
       : view.range === "1D"
-        ? inst.prevClose
+        ? q.prevClose
         : bars[0]?.open;
   const intraday = view.range === "1D" || view.range === "5D";
 
@@ -189,7 +194,7 @@ function ChartBody({ inst, paused }: { inst: Instrument; paused: boolean }) {
             width={size.width}
             height={size.height}
             last={q.last}
-            prevClose={intraday ? inst.prevClose : undefined}
+            prevClose={intraday ? q.prevClose : undefined}
             cursor={cursor}
             setCursor={setCursor}
           />
@@ -260,7 +265,7 @@ function Plot({
   const linePath = bars
     .map((b, i) => `${i ? "L" : "M"}${x(i).toFixed(1)},${y(b.close).toFixed(1)}`)
     .join("");
-  const timeTicks = timeLabels(bars, view.range, slots);
+  const timeTicks = timeLabels(bars, view.range, slots, dayOf(inst).minutes);
 
   return (
     <svg
@@ -283,7 +288,7 @@ function Plot({
           {/* The last price's tag sits on the axis; a label under it would show through. */}
           {Math.abs(y(t) - y(last)) > 14 ? (
             <text x={plotW + 8} y={y(t) + 4} className="axis-label">
-              {f.price(inst, t)}
+              {axisPrice(inst, t)}
             </text>
           ) : null}
         </g>
@@ -364,6 +369,12 @@ function Plot({
   );
 }
 
+/** A price on the axis: a round number too long for it (100,000.0) loses its decimals. */
+const axisPrice = (inst: Instrument, t: number) => {
+  const text = f.price(inst, t);
+  return text.length > 8 && Number.isInteger(t) ? f.int(t) : text;
+};
+
 /** Round prices for the axis: steps of 1, 2, 2.5 or 5 times a power of ten. */
 export function niceTicks(lo: number, hi: number, count: number): number[] {
   const raw = (hi - lo) / count;
@@ -374,18 +385,26 @@ export function niceTicks(lo: number, hi: number, count: number): number[] {
   return out;
 }
 
-/** Where the time axis gets a label: each hour today, each day over 5D, each week or month beyond. */
+/** Where the time axis gets a label: each hour today (every third over 24 hours), each day over 5D, each week or
+ *  month beyond. */
 function timeLabels(
   bars: readonly Bar[],
   range: Range,
   slots: number,
+  dayMinutes: number,
 ): { i: number; label: string }[] {
   const out: { i: number; label: string }[] = [];
   // Today: every hour of the session, including the ones still to come.
   if (range === "1D" && bars[0]) {
     const open = bars[0].time;
-    const perSlot = (SESSION_MINUTES / slots) * MINUTE;
-    for (let t = open + 30 * MINUTE; t < open + SESSION_MINUTES * MINUTE; t += 60 * MINUTE)
+    const perSlot = (dayMinutes / slots) * MINUTE;
+    const hours = dayMinutes > SESSION_MINUTES ? 3 : 1;
+    const first = new Date(open);
+    first.setMinutes(0, 0, 0);
+    first.setHours(
+      Math.ceil((first.getHours() + (open > first.getTime() ? 1 : 0)) / hours) * hours,
+    );
+    for (let t = first.getTime(); t < open + dayMinutes * MINUTE; t += hours * 60 * MINUTE)
       out.push({ i: Math.round((t - open) / perSlot), label: f.hhmm(t) });
     return out;
   }

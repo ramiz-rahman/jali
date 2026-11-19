@@ -11,6 +11,7 @@ import { useMarket, useQuotes } from "../market/react";
 import type { Instrument, Quote } from "../market/types";
 import { useServices } from "../services";
 import * as f from "../ui/format";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
 import { Delta, Empty, Flash } from "../ui/parts";
 import { Sparkline } from "../ui/Sparkline";
 import { openFollowing } from "../actions";
@@ -162,19 +163,18 @@ function Watchlist({
   return (
     <div className="pane-body watchlist">
       <div className="toolbar">
-        <label className="select">
-          <span className="sr-only">List</span>
-          <select
-            value={params.list}
-            onChange={(e) => openHere(watchlist({ list: e.target.value }))}
-          >
+        <Select value={params.list} onValueChange={(list) => openHere(watchlist({ list }))}>
+          <SelectTrigger aria-label="List">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
             {DEFAULT_LISTS.map((l) => (
-              <option key={l.id} value={l.id}>
+              <SelectItem key={l.id} value={l.id}>
                 {l.name}
-              </option>
+              </SelectItem>
             ))}
-          </select>
-        </label>
+          </SelectContent>
+        </Select>
         <span className="toolbar-note">{rows.length} instruments</span>
       </div>
       <div className="wl-head" role="presentation">

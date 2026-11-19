@@ -1,24 +1,37 @@
 /**
- * The app's top bar, inside <JaliRoot>: the desks (Jali's presets), a few index levels, search, the market clock,
+ * The app's top bar, inside <JaliRoot>: the desks (Jali's presets) and Reset, a few index levels, search, the clock,
  * the theme and ⌘K. Marked `data-jali-chrome`, so Jali leaves keyboard focus here after a layout change.
  */
-import { CommandIcon, MagnifyingGlassIcon, MoonIcon, SunIcon } from "@phosphor-icons/react";
+import {
+  ArrowCounterClockwiseIcon,
+  CommandIcon,
+  MagnifyingGlassIcon,
+  MoonIcon,
+  SunIcon,
+} from "@phosphor-icons/react";
 import { keyHint, runCommand } from "@jali/core";
 import { useJali, useJaliState, useShortcut, useTheme } from "@jali/react";
 import { useQuotes, useTopic } from "../market/react";
 import { useServices } from "../services";
 import * as f from "../ui/format";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
 import { Delta } from "../ui/parts";
 
-// In order of priority: narrower windows show the first few.
-const STRIP = ["MX40", "MXTEC", "GOV10Y", "EURUSD", "MXFIN", "GOV2Y"];
+// In order of priority: narrower windows show the first few. The crypto levels are live, and marked so.
+const STRIP = ["MX40", "BTCUSD", "GOV10Y", "EURUSD", "ETHUSD", "MXTEC"];
 
 export function TopBar() {
   const jali = useJali();
   const current = useJaliState((s) => s.presetId);
   const theme = useTheme();
   const palette = useShortcut("palette.toggle");
+  const { desks } = useServices();
   const search = () => runCommand(jali, "markets.chart");
+  // Every desk back to the demo's layout. This one last, through Jali, so a typed order is asked about first.
+  const reset = () => {
+    desks.forget(current);
+    jali.actions.resetLayout();
+  };
 
   return (
     <header className="topbar" data-jali-chrome="">
@@ -38,16 +51,29 @@ export function TopBar() {
           </button>
         ))}
       </nav>
-      <label className="desks-select">
-        <span className="sr-only">Desk</span>
-        <select value={current} onChange={(e) => jali.actions.preset(e.target.value)}>
-          {jali.env.presets.map((p) => (
-            <option key={p.id} value={p.id}>
-              {p.label}
-            </option>
-          ))}
-        </select>
-      </label>
+      <div className="desks-select">
+        <Select value={current ?? ""} onValueChange={(id) => jali.actions.preset(id)}>
+          <SelectTrigger aria-label="Desk">
+            <SelectValue placeholder="Desk" />
+          </SelectTrigger>
+          <SelectContent>
+            {jali.env.presets.map((p) => (
+              <SelectItem key={p.id} value={p.id}>
+                {p.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+      <button
+        type="button"
+        className="icon-btn reset"
+        aria-label="Reset every desk to the demo layout"
+        title="Reset every desk to the demo layout"
+        onClick={reset}
+      >
+        <ArrowCounterClockwiseIcon size={15} aria-hidden />
+      </button>
       <Strip />
       <div className="topbar-end">
         <button type="button" className="search" onClick={search} aria-label="Search instruments">
@@ -99,7 +125,12 @@ function Strip() {
         const bond = q.yield !== undefined;
         return (
           <li key={s}>
-            <span className="strip-sym">{s}</span>
+            <span className="strip-sym">
+              {inst.source ? (
+                <span className="live-dot" title={`Live from ${inst.source}`} aria-hidden />
+              ) : null}
+              {s}
+            </span>
             <span className="strip-last">{bond ? f.percent(q.yield!) : f.price(inst, q.last)}</span>
             <Delta value={bond ? q.yieldChangeBp! : q.change}>
               {bond ? f.bp(q.yieldChangeBp!) : f.pct(q.changePct)}
@@ -111,12 +142,14 @@ function Strip() {
   );
 }
 
+/** The simulated market's clock: the session the shares, bonds and currencies trade in. Crypto never closes. */
 function Clock() {
   const now = useTopic({ channel: "clock" });
   return (
-    <span className="clock" title="Market time. Every price here is simulated.">
-      <span className="live-dot" aria-hidden />
-      <span className="clock-label">Simulated</span>
+    <span
+      className="clock"
+      title="Market time. Crypto prices are live from Kraken; everything else is simulated."
+    >
       <time>{f.time(now)}</time>
     </span>
   );

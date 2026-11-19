@@ -108,6 +108,11 @@ function News({ params, paused, node, openBeside }: PaneProps<typeof newsParams>
             </li>
           ))}
         </ul>
+      ) : only && market.instrument(only)?.source ? (
+        <Empty icon={<NewspaperIcon size={20} aria-hidden />} title={`No news feed for ${only}`}>
+          Its prices are real, from {market.instrument(only)!.source}, but there is no free news
+          feed tagged by coin. All markets shows the simulated headlines.
+        </Empty>
       ) : (
         <Empty icon={<NewspaperIcon size={20} aria-hidden />} title={`No news about ${only} today`}>
           Switch to all markets to see the day's headlines.

@@ -1,8 +1,9 @@
 /**
- * The app's own services, beside Jali: the market, the paper-trading book and the watchlists. Panes read them from
+ * The app's own services, beside Jali: the market, the paper-trading book, the watchlists and the desks' layouts. Panes read them from
  * context; commands get them when the workspace is made (workspace.ts).
  */
 import { createContext, useContext, type ReactNode } from "react";
+import { createDesks, type Desks } from "./desks";
 import { createLists, type Lists } from "./lists";
 import { MarketProvider } from "./market/react";
 import type { MarketData } from "./market/types";
@@ -20,6 +21,8 @@ export interface Services {
   market: MarketData;
   trading: Trading;
   lists: Lists;
+  /** Each desk as the person left it. */
+  desks: Desks;
   ticket: Store<TicketRequest | null>;
 }
 
@@ -28,6 +31,7 @@ export function createServices(market: MarketData, { persist = true } = {}): Ser
     market,
     trading: createTrading(market, persist),
     lists: createLists(persist),
+    desks: createDesks(persist),
     ticket: createStore<TicketRequest | null>(null),
   };
 }

@@ -129,8 +129,8 @@ function Ticket() {
       ok: true,
       text:
         order.status === "filled"
-          ? `${draft.side === "buy" ? "Bought" : "Sold"} ${f.int(qty)} ${draft.symbol}.`
-          : `Working: ${draft.side} ${f.int(qty)} ${draft.symbol} at ${draft.limit}.`,
+          ? `${draft.side === "buy" ? "Bought" : "Sold"} ${f.size(qty)} ${draft.symbol}.`
+          : `Working: ${draft.side} ${f.size(qty)} ${draft.symbol} at ${draft.limit}.`,
     });
   };
   const clear = () => {

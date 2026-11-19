@@ -1,5 +1,5 @@
 /** One instrument's key figures: the price and today's change, the touch, the day's range, and what it is. */
-import { useMemo, type ReactNode } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { InfoIcon } from "@phosphor-icons/react";
 import { definePane, useCommands, useJali, type PaneProps } from "@jali/react";
 import { prepareTicket } from "../actions";
@@ -70,6 +70,11 @@ function QuoteBody({
           <span>{inst.name}</span>
         </div>
         <span className="chip">{CLASS[inst.assetClass]}</span>
+        {inst.source ? (
+          <span className="chip chip-live" title={`Real prices from ${inst.source}`}>
+            Live · {inst.source}
+          </span>
+        ) : null}
       </header>
 
       <div className="quote-price">
@@ -127,6 +132,7 @@ const CLASS: Record<Instrument["assetClass"], string> = {
   corp: "Corporate bond",
   fx: "FX spot",
   index: "Index",
+  crypto: "Crypto",
 };
 
 /** Bid and ask with their sizes, and the spread between them in the units traders use. */
@@ -159,13 +165,13 @@ function DayRange({ inst, q }: { inst: Instrument; q: Quote }) {
     <div className="range">
       <div className="range-labels">
         <span>Low {f.price(inst, q.low)}</span>
-        <span>Day range</span>
+        <span>{inst.continuous ? "24h range" : "Day range"}</span>
         <span>High {f.price(inst, q.high)}</span>
       </div>
       <div
         className="range-bar"
         role="img"
-        aria-label={`Last ${f.price(inst, q.last)}, between today's low and high`}
+        aria-label={`Last ${f.price(inst, q.last)}, between ${inst.continuous ? "the last 24 hours'" : "today's"} low and high`}
       >
         <span
           className="range-open"
@@ -178,21 +184,49 @@ function DayRange({ inst, q }: { inst: Instrument; q: Quote }) {
   );
 }
 
-/** The year's low and high, from the 1Y bars (read once: it hardly moves). */
+/** The year's low and high, from the 1Y bars (read once: it hardly moves). A live feed may still be loading them:
+ *  then this waits for them, and is null until they come. */
 function useYearRange(inst: Instrument) {
   const market = useMarket();
-  return useMemo(() => {
-    const bars = market.snapshot({ channel: "bars", symbol: inst.symbol, range: "1Y" });
-    return { low: Math.min(...bars.map((b) => b.low)), high: Math.max(...bars.map((b) => b.high)) };
+  const [bars, setBars] = useState(() =>
+    market.snapshot({ channel: "bars", symbol: inst.symbol, range: "1Y" }),
+  );
+  useEffect(() => {
+    const topic = { channel: "bars", symbol: inst.symbol, range: "1Y" } as const;
+    const now = market.snapshot(topic);
+    setBars(now);
+    if (now.length) return;
+    const stop = market.subscribe(topic, (b) => {
+      if (!b.length) return;
+      setBars(b);
+      stop();
+    });
+    return stop;
   }, [market, inst.symbol]);
+  return useMemo(
+    () =>
+      bars.length
+        ? { low: Math.min(...bars.map((b) => b.low)), high: Math.max(...bars.map((b) => b.high)) }
+        : null,
+    [bars],
+  );
 }
 
 function figures(
   inst: Instrument,
   q: Quote,
-  year: { low: number; high: number },
+  year: { low: number; high: number } | null,
 ): [string, ReactNode][] {
   const p = (x: number) => f.price(inst, x);
+  if (inst.assetClass === "crypto")
+    return [
+      ["24h ago", p(q.prevClose)],
+      ["24h volume", `${f.size(q.volume)} ${f.base(inst)}`],
+      ["24h VWAP", p(q.vwap)],
+      ["Quoted in", inst.currency],
+      ["52-week range", year ? `${p(year.low)} – ${p(year.high)}` : "Loading…"],
+      ["Source", `${inst.source}, live`],
+    ];
   const rows: [string, ReactNode][] = [
     ["Open", p(q.open)],
     ["Prev close", p(q.prevClose)],
@@ -224,7 +258,7 @@ function figures(
     );
   if (inst.assetClass === "index")
     rows.push(["Members", String(inst.members!.length)], ["Tracks", inst.group]);
-  rows.push(["52-week range", `${p(year.low)} – ${p(year.high)}`]);
+  rows.push(["52-week range", year ? `${p(year.low)} – ${p(year.high)}` : "Loading…"]);
   return rows;
 }
 

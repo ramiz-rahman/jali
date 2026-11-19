@@ -62,3 +62,32 @@ test("/ asks for an instrument in Jali's chooser and opens its chart", async ({ 
   await expect(input).toBeHidden();
   await expect(page.locator(".jali-pane-header", { hasText: "ORBD chart" })).toBeVisible();
 });
+
+test("the list menu opens over the desk without hiding a pane, and switches the list", async ({
+  page,
+}) => {
+  // A modal menu marks everything outside it aria-hidden; the panes must stay on screen.
+  await page.getByRole("combobox", { name: "List" }).click();
+  await expect(page.getByRole("option", { name: "Crypto" })).toBeVisible();
+  for (const pane of ["watch", "chart", "book", "tape", "quote", "news"])
+    await expect(page.locator(`.jali-pane[data-pane="${pane}"]`)).toBeVisible();
+  await page.getByRole("option", { name: "Rates" }).click();
+  await expect(page.getByRole("listbox", { name: "Rates" })).toBeVisible();
+});
+
+test("a desk comes back as it was left, and Reset puts every desk back", async ({ page }) => {
+  const news = page.locator('.jali-pane[data-pane="news"]');
+  await desk(page, "Rates").click();
+  await expect(news).toBeVisible();
+  await news.getByRole("button", { name: /close/i }).first().click();
+  await expect(news).toHaveCount(0);
+
+  await desk(page, "Equities").click();
+  await expect(title(page, "chart")).toContainText("LMNA chart");
+  await desk(page, "Rates").click();
+  await expect(page.locator('.jali-pane[data-pane="curve"]')).toBeVisible();
+  await expect(news).toHaveCount(0);
+
+  await page.getByRole("button", { name: "Reset every desk to the demo layout" }).click();
+  await expect(news).toBeVisible();
+});

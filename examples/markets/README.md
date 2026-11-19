@@ -1,11 +1,17 @@
 # Markets: a Jali example
 
-A market terminal for shares, bonds, currencies and indices, built on `@jali/core` and `@jali/react` alone. It runs on a simulated market, so it needs no feed, keys or licences: every company, ticker and price in it is made up.
+A market terminal for shares, bonds, currencies, indices and crypto, built on `@jali/core` and `@jali/react` alone. The crypto prices are real; everything else runs on a simulated market, so it needs no keys or licences: every company, ticker and price outside crypto is made up.
 
 ```sh
-pnpm install          # at the repository's root
-pnpm example:markets  # http://localhost:5320
+vp install              # at the repository's root
+vp dev examples/markets # http://localhost:5320, or the next free port
 ```
+
+### Live prices
+
+Ten crypto pairs stream from [Kraken](https://docs.kraken.com/api/docs/websocket-v2/ticker)'s public API, with no key and no backend. On the Crypto desk, the quote, chart (up to a year), order book and trades are all real. A green dot marks them in the top bar, the quote says "Live · Kraken", and the status line says the rest is simulated. If Kraken can't be reached, the app opens anyway and the crypto prices fill in when they arrive.
+
+There is no live news: no free news feed tagged by coin works from a browser. Shares, bonds and currencies stay simulated because no free source gives real-time quotes with an order book. Before putting the example on a public site, read Kraken's terms on showing its data.
 
 Build it as a static site with `pnpm exec vp build` in this folder, and serve `dist/` from any path: assets are linked relative to the page, and the layout lives in the query string.
 
@@ -14,6 +20,7 @@ Build it as a static site with `pnpm exec vp build` in this folder, and serve `d
 - Move through the watchlist with J and K. The chart, quote, book, trades and news follow it.
 - Press **Following** on the chart to pin it, move to another row and press Enter: two charts, side by side. The Compare desk starts that way.
 - Switch desks in the top bar, then copy the address: the link opens the same desk. Reload, or press Back.
+- Rearrange a desk, switch to another and come back: it is as you left it, even after a reload. The Reset button (↺) beside the desks puts every desk back to the demo's layout.
 - Press / to find an instrument, or ⌘K for every command ("Open chart for…", "Add to watchlist…", "Buy…").
 - Press Buy on a quote, type a quantity and leave it unsent. Switching to a desk without the blotter asks first.
 - Narrow the window. Panes fold into tabs rather than squeeze, and come back as it widens.
@@ -24,13 +31,16 @@ Build it as a static site with `pnpm exec vp build` in this folder, and serve `d
 | ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | `src/market/types.ts`     | The `MarketData` interface: `snapshot(topic)` and `subscribe(topic, onData)`. A real feed fits here.                                                   |
 | `src/market/simulator.ts` | A seeded random walk behind it: quotes, an order book, trades, bars and news.                                                                          |
+| `src/market/kraken.ts`    | The live feed: Kraken's websocket and REST API behind the same `MarketData`, in front of the simulator.                                                |
 | `src/market/react.tsx`    | `useTopic(topic, paused)`: a pane stops listening while Jali says it is paused.                                                                        |
 | `src/panes/*.tsx`         | The eight pane kinds, each one `definePane` with params, a title, an icon and widths.                                                                  |
 | `src/panes/follow.ts`     | How one watchlist drives followers of several kinds: each kind's `follow`.                                                                             |
 | `src/panes/blotter.tsx`   | The order ticket: `usePaneState` for the draft, `useUnsaved` for an unsent order, `useCommands`.                                                       |
-| `src/presets.ts`          | The four desks, written with `row`, `column` and `pane`; followers are `linkedTo: "watch"`.                                                            |
+| `src/presets.ts`          | The five desks, written with `row`, `column` and `pane`; followers are `linkedTo: "watch"`.                                                            |
+| `src/desks.ts`            | Each desk as it was left, in `localStorage`: a preset's `saved`, kept from `jali.on("layout")`.                                                        |
 | `src/workspace.ts`        | `createJali`: the kinds, presets, launcher, and the app's own ⌘K commands and keys; the "…" commands ask for an instrument with `jali.actions.choose`. |
 | `src/shell/`              | The app's chrome inside `<JaliRoot>`: a top bar, and a status line with Jali's `<Shelf />`.                                                            |
+| `src/ui/select.tsx`       | The list and desk menus: shadcn/ui's Select on Radix, styled on Jali's tokens in plain CSS (the example has no Tailwind).                              |
 | `src/styles/tokens.css`   | The terminal's theme, set on Jali's `--jali-*` tokens, and the app's up and down colours.                                                              |
 
 Up and down are always shown three ways at once: the sign, an arrow and a colour, so neither a colour-blind reader nor a screen reader misses them. Prices flash when they tick, except under reduced motion.

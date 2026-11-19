@@ -36,7 +36,7 @@ export function dailyVolume(inst: Instrument): number {
   if (inst.assetClass === "fx") return 9e9;
   if (inst.assetClass === "govt") return 4e9;
   if (inst.assetClass === "corp") return 1.5e8;
-  return 0;
+  return 0; // indices, and crypto (which is never simulated)
 }
 
 /** One instrument's history (not an index: see `indexHistory`). */
