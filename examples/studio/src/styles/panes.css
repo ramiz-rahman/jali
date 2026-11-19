@@ -730,7 +730,7 @@
   }
   @container timeline (max-width: 520px) {
     .tl-body {
-      grid-template-columns: 92px minmax(0, 1fr);
+      grid-template-columns: 112px minmax(0, 1fr);
     }
     .tl-ms {
       display: none;

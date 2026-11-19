@@ -175,6 +175,8 @@ The deeper restyle (one tiled top row, one set of parts for every button-like th
 
 28. **The doubled ring on transcript rows was Studio's, not Jali's.** It came from Studio's own rule for a selected row in a focused pane (`[data-active]`), which fired after a click as well as from the keyboard. Jali draws no ring on rows; its focus mark is on the pane (`[data-focused]`). Nothing to change in Jali here; noted so the next reader doesn't look for it there.
 
+29. **A light and a dark finish need different shadow strengths, and Jali's shadow tokens are fixed strings.** Studio scales every dark shadow by its own `--sh` number per theme; Jali's `--jali-shadow-*` tokens take one value each, set as `light-dark()` colours inside, which can't scale an offset or a blur. Want: shadow tokens built from a few parts (`--jali-shadow-color`, `--jali-shadow-strength`) or one per theme scope, documented.
+
 Not Jali's, for the record: making the top row one flex row of blocks meant grouping elements in `display: contents` wrappers that keep their roles (`navigation` "Layouts", `group` "Transport", "Tools"). Chrome exposes those roles; it is worth testing in other browsers before relying on it.
 
 ## What worked

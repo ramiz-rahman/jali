@@ -280,13 +280,15 @@ function TimelineBody({ paused, view }: PaneProps<typeof timelineParams> & { vie
     return () => el.removeEventListener("wheel", on);
   }, [engine, session.id, inTransport]);
 
+  // All headers take the compact form together, so one timeline never mixes the two.
+  const compact = lanes.some((l) => l.h < 30);
   const pos = inTransport ? engine.position() : 0;
   return (
     <div className="pane-body timeline">
       {!inTransport ? <NotInTransport session={session.id} /> : null}
       <div className="tl-body">
         {/* Track headers: the mixer's scribble strips, in the mixer's order, with its lamps mirrored. */}
-        <ol className="tl-labels" aria-hidden style={{ paddingTop: RULER }}>
+        <ol className="tl-labels" style={{ paddingTop: RULER }} aria-label="Tracks">
           {lanes.map(({ track, h }) => {
             const ch = channelOf(view.edits, track.id);
             return (
@@ -296,7 +298,7 @@ function TimelineBody({ paused, view }: PaneProps<typeof timelineParams> & { vie
                 data-channel={CHANNEL[track.id]}
                 data-silent={audible(view.edits, track.id) ? undefined : ""}
                 data-short={h < 38 ? "" : undefined}
-                data-compact={h < 30 ? "" : undefined}
+                data-compact={compact ? "" : undefined}
                 title={`${track.label}: ${trackName(track, view.speakerName)}`}
               >
                 <span className="mx-lamp" />
