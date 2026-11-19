@@ -28,7 +28,7 @@ Cascade layers are ordered by where each name first appears. Declare yours, with
 
 <Code code={app} filename="src/app.css" />
 
-Import only `app.css` from your code. Rules in a layer after `jali` (here `components`) beat Jali's at any specificity. Rules in a layer before it (`base`, for page resets) lose to Jali's, so a reset like `button { font: inherit }` can't undo Jali's type sizes.
+Import only `app.css` from your code. Rules in a layer after `jali` (here `components`) beat Jali's at any specificity. Rules in a layer before it (`base`, for page resets) lose to Jali's, so a reset like `button { font: inherit }` can't undo Jali's type sizes. Jali's root is a flex column that fills its box, so a rule that lays out the element you pass `className` to (a grid of top bar, panes and status line) belongs in a layer after `jali`, or outside any layer.
 
 <Callout type="warning" title="Order matters">
 If Jali's CSS loads first, `jali` becomes the first layer, and every layer you name after it beats Jali, resets included.

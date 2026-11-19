@@ -21,6 +21,8 @@ import { useModel, useStore, useUi } from "../state/react";
 import { DropIndicator } from "./DropIndicator";
 import { useSingleView } from "./useSingleView";
 
+const DEV = !!(import.meta as unknown as { env?: { DEV?: boolean } }).env?.DEV;
+
 /** The workspace's usable size follows the element (minus the inset), and so does its reading direction (an
  *  ancestor's `dir`, read again when any `dir` on the page changes), unless the workspace was given one. */
 function useMeasure(store: UiStore) {
@@ -37,6 +39,12 @@ function useMeasure(store: UiStore) {
         store.set({ area: { width, height }, dir });
     };
     measure();
+    if (DEV && el.clientWidth > 0 && el.clientHeight === 0)
+      console.warn(
+        "Jali: the workspace measures 0 pixels high, so every pane is collapsed. Give <JaliRoot> (or the element " +
+          "around <JaliView />) a height, or make it a flex or grid cell that has one.",
+        el,
+      );
     const unobserve = observeResize(el, measure);
     const unwatch = watchDirection(measure);
     return () => {

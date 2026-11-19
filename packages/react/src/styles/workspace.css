@@ -35,6 +35,18 @@
   }
 
   /* ---------- workspace ---------- */
+  /* The root fills the box it is given and is a column the panes fill: chrome placed around <JaliView /> takes its own
+     height and the panes take the rest. The panes have no height of their own, so a root in a box with no height
+     measures 0 (a development warning says so). No specificity, in the jali layer: any rule of the host's wins. */
+  :where([data-jali]) {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    min-height: 0;
+  }
+  :where([data-jali]) > :where(.jali-workspace, .jali-page) {
+    flex: 1 1 0;
+  }
   /* `isolation`: the workspace's own layers (peek, drop preview, menus) stack inside it, never over the host's sticky
    headers or other chrome. */
   .jali-workspace {

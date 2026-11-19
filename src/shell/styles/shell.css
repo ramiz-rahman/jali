@@ -1,5 +1,18 @@
 /* The lab's own top bar and status line (Jali ships neither: a host app has its own). */
 @layer lab {
+  /* The app's grid: top bar, panes, status line. Above Jali's layer, since it sizes Jali's root ([data-jali]). */
+  .app {
+    display: grid;
+    grid-template-rows: var(--topbar-h) minmax(0, 1fr) var(--status-h);
+    height: 100%;
+  }
+  .app > .jali-workspace {
+    grid-row: 2;
+  }
+  .app > .status {
+    grid-row: 3;
+  }
+
   /* ---------- top bar ---------- */
   .topbar {
     display: flex;

@@ -94,3 +94,34 @@ describe("without ResizeObserver", () => {
     expect(screen.queryAllByRole("tab")).toHaveLength(0);
   });
 });
+
+describe("a workspace with no height", () => {
+  const sized = (height: number) => {
+    for (const [prop, px] of [
+      ["clientWidth", 1000],
+      ["clientHeight", height],
+    ] as const)
+      vi.spyOn(HTMLElement.prototype, prop, "get").mockImplementation(function (this: HTMLElement) {
+        return this.classList.contains("jali-workspace") ? px : 0;
+      });
+  };
+
+  it("warns in development when it measures 0 high after mount", () => {
+    stubResizeObserver();
+    sized(0);
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    render(<JaliRoot jali={make()} />);
+    expect(warn).toHaveBeenCalledTimes(1);
+    expect(String(warn.mock.calls[0]![0])).toMatch(/^Jali: the workspace measures 0 pixels high/);
+  });
+
+  it("says nothing when it has a height, or when nothing is laid out (jsdom, a hidden root)", () => {
+    stubResizeObserver();
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    render(<JaliRoot jali={make()} />);
+    cleanup();
+    sized(500);
+    render(<JaliRoot jali={make()} />);
+    expect(warn).not.toHaveBeenCalled();
+  });
+});
