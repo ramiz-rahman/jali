@@ -8,6 +8,7 @@ import { column, pane as paneOf, row, toLayout } from "../build";
 import { decode, encode } from "../codec/codec";
 import type { KindRegistry, Layout, LayoutContext, ResolvedLayout } from "../types";
 import { folded } from "./fixtures";
+import { offsetToShow, scrolled } from "../geometry/scroll";
 
 const kinds: KindRegistry = {
   day: { kind: "day", minWidth: 300, minHeight: 200, comfortableWidth: 360, maxWidth: 480, title: () => "Day" },
@@ -141,5 +142,41 @@ describe("a row that scrolls sideways", () => {
     const odd = toLayout(strip(2));
     (odd.root as { scroll?: string }).scroll = "y";
     expect(decode(encode(odd), kinds)).toBeNull();
+  });
+});
+
+describe("a strip at a scroll position", () => {
+  const r = place(toLayout(strip(7)));
+  const s = r.scrollers[0]!;
+
+  it("moves its panes and dividers by the offset, and cuts them to its window", () => {
+    const at = scrolled(r, { strip: 400 });
+    expect(rect(at, "d2").x).toBe(366 - 400);
+    expect(at.panes.find((p) => p.id === "d2")!.clip).toEqual(s.rect);
+    const d = at.dividers.find((x) => x.parentId === "strip" && x.index === 0)!;
+    expect(d.rect.x).toBe(360 - 400);
+    expect(d.clip).toEqual(s.rect);
+  });
+
+  it("keeps the offset within the content", () => {
+    expect(rect(scrolled(r, { strip: -50 }), "d1").x).toBe(0);
+    const end = s.contentWidth - s.rect.width;
+    expect(rect(scrolled(r, { strip: 1e6 }), "d7").x).toBe(6 * 366 - end);
+  });
+
+  it("right to left, an offset moves the content right", () => {
+    const rtl = place(toLayout(strip(7)), ctx(1440, 900, 10, "rtl"));
+    expect(rect(scrolled(rtl, { strip: 100 }, "rtl"), "d1").x).toBe(rect(rtl, "d1").x + 100);
+  });
+
+  it("scrolls the least that shows a pane whole, and not at all when it shows", () => {
+    expect(offsetToShow(s, rect(r, "d2"), 0)).toBe(0);
+    // Day 5 ends at 5 * 366 - 6 = 1824: scroll until its end meets the window's.
+    expect(offsetToShow(s, rect(r, "d5"), 0)).toBe(1824 - 1440);
+    // Back to day 1 from far along: its start.
+    expect(offsetToShow(s, rect(r, "d1"), 900)).toBe(0);
+    const rtl = place(toLayout(strip(7)), ctx(1440, 900, 10, "rtl")).scrollers[0]!;
+    const rr = place(toLayout(strip(7)), ctx(1440, 900, 10, "rtl"));
+    expect(offsetToShow(rtl, rect(rr, "d5"), 0, "rtl")).toBe(1824 - 1440);
   });
 });

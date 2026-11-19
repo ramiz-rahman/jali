@@ -78,6 +78,8 @@ export interface Layout {
 export interface ViewState {
   focused?: NodeId;
   zoomed?: NodeId;
+  /** How far each row that scrolls has scrolled, by its id, in px along its content (geometry/scroll.ts). */
+  scroll?: Record<NodeId, number>;
   peek?: ObjectRef;
   focusHistory: NodeId[];
 }
@@ -114,8 +116,12 @@ export interface PaneBox {
   rect: Rect;
   stackId?: NodeId;
   hidden?: "tab" | "zoom" | "off";
+  /** In a row that scrolls, once scrolled (`scrolled`): the strip's window, which the pane is cut to. */
+  clip?: Rect;
 }
 export interface DividerBox {
+  /** In a row that scrolls, once scrolled: the strip's window. */
+  clip?: Rect;
   parentId: NodeId;
   index: number;
   axis: Axis;

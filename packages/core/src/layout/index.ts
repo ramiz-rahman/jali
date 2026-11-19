@@ -16,6 +16,7 @@ export { focus, focusCycle, focusDirection, toggleZoom } from "./ops/focus";
 export { snapToCentre, SNAP_IN, SNAP_OUT } from "./geometry/snap";
 export { extentAlong } from "./geometry/extent";
 export { minSize } from "./geometry/bounds";
+export { scrolled, offsetToShow, clampOffset, maxOffset, inWindow, type Offsets } from "./geometry/scroll";
 export { resolve } from "./fit/resolve";
 export { refit } from "./fit/refit";
 export { encode, decode } from "./codec/codec";
