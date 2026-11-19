@@ -186,7 +186,17 @@
     background: var(--mk-up);
   }
 
-  /* Narrower: the strip goes first, then the desk buttons become a menu, then labels go. */
+  /* Narrower: the strip shortens first, then the desk buttons become a menu, then labels go. */
+  @media (max-width: 1800px) {
+    .strip li:nth-child(n + 6) {
+      display: none;
+    }
+  }
+  @media (max-width: 1600px) {
+    .strip li:nth-child(n + 5) {
+      display: none;
+    }
+  }
   @media (max-width: 1360px) {
     .strip li:nth-child(n + 3) {
       display: none;

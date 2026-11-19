@@ -12,7 +12,8 @@ import { Delta } from "../ui/parts";
 import { show } from "../actions";
 import { chart } from "../panes/chart";
 
-const STRIP = ["MX40", "MXTEC", "GOV10Y", "EURUSD"];
+// In order of priority: narrower windows show the first few.
+const STRIP = ["MX40", "MXTEC", "GOV10Y", "EURUSD", "MXFIN", "GOV2Y"];
 
 export function TopBar() {
   const jali = useJali();

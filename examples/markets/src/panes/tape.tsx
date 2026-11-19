@@ -50,7 +50,9 @@ function TapeBody({ inst, paused }: { inst: Instrument; paused: boolean }) {
             <th scope="col" className="num">
               Size
             </th>
-            <th scope="col">Side</th>
+            <th scope="col" className="t-side-h">
+              <span className="side-word">Side</span>
+            </th>
           </tr>
         </thead>
         <tbody>

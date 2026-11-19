@@ -869,7 +869,8 @@
       padding: 0 6px;
     }
     /* Narrow: the arrow says it; the word stays for screen readers. */
-    .t-side .side-word {
+    .t-side .side-word,
+    .t-side-h .side-word {
       position: absolute;
       width: 1px;
       height: 1px;
@@ -1226,5 +1227,27 @@
     display: flex;
     flex-wrap: wrap;
     gap: 6px;
+  }
+}
+
+/* Touch: rows and buttons a finger can hit (36px and up), at the cost of some density. */
+@layer app {
+  @media (pointer: coarse) {
+    :root {
+      --mk-row-h: 38px;
+    }
+    .segmented button {
+      height: 32px;
+      min-width: 40px;
+    }
+    .news-list li,
+    .grid-table td,
+    .curve-table td {
+      min-height: 38px;
+      height: 38px;
+    }
+    .btn {
+      height: 38px;
+    }
   }
 }
