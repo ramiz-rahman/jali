@@ -29,7 +29,13 @@ A pane opened from a list can follow it. Give it `linkedTo` (the list's pane id)
 
 A preset's `layout` can also be a function, to build a fresh layout each time it is chosen.
 
-Sizes are a starting point. With weights, each pane first gets its kind's `width.min`, then spare room brings it up to `width.comfortable`, then it is shared by weight. Panes that don't fit fold into tabs. See [Define a pane kind](/guides/pane-kinds) for the widths.
+Sizes are a starting point. With weights, each pane first gets its kind's `width.min`, then spare room brings it up to `width.comfortable`, then it is shared by weight. Panes that don't fit fold into tabs. See [Define a pane kind](/guides/pane-kinds) for the widths. A tab group (`tabs(...)`) is as narrow as its widest tab allows: every tab must fit in it, whichever one is shown, so a group holding a chart that needs 360px never goes below 360px.
+
+### A pane in more than one preset
+
+Give a pane the same `id` in two presets, showing the same object, and it is the same pane in both. Switching between them keeps it mounted: its [pane state](/guides/unsaved-work-and-pane-state#keep-the-panes-own-state) and its unsaved work come along, and the switch doesn't ask, because nothing is lost. A half-written order ticket stays half-written when the person moves to another layout that has the ticket.
+
+If the other preset has that id showing another object, or doesn't have it, the switch asks first when the pane has unsaved work, and the pane starts afresh there.
 
 ## Give them to the workspace
 
