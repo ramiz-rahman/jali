@@ -110,13 +110,14 @@ What sits on top of the tree. Written by the operations; read it, don't write it
 
 </Entry>
 
-<Entry name="ViewState" kind="type" from="@jali/core" signature={`interface ViewState { focused?: NodeId; zoomed?: NodeId; peek?: ObjectRef; focusHistory: NodeId[] }`} compact>
+<Entry name="ViewState" kind="type" from="@jali/core" signature={`interface ViewState { focused?: NodeId; zoomed?: NodeId; scroll?: Record<NodeId, number>; peek?: ObjectRef; focusHistory: NodeId[] }`} compact>
 
 What the person is looking at, apart from the layout.
 
 <Params title="Fields">
 <Param name="focused" type="NodeId">The pane with workspace focus (the accent edge).</Param>
 <Param name="zoomed" type="NodeId">The maximised pane. In the URL as `zoom`.</Param>
+<Param name="scroll" type="Record<NodeId, number>">How far each row that scrolls has scrolled, by the row's id, in px along its content. Focusing a pane in it sets it, so the pane shows whole.</Param>
 <Param name="peek" type="ObjectRef">What the peek sheet shows. In the URL as `peek`.</Param>
 <Param name="focusHistory" type="NodeId[]" required>Panes most recently focused first.</Param>
 </Params>
@@ -153,13 +154,13 @@ A box in pixels, relative to the workspace's inner area.
 
 </Entry>
 
-<Entry name="ResolvedLayout" kind="type" from="@jali/core" signature={`interface ResolvedLayout { panes: PaneBox[]; dividers: DividerBox[]; stacks; shelf }`} compact>
+<Entry name="ResolvedLayout" kind="type" from="@jali/core" signature={`interface ResolvedLayout { panes: PaneBox[]; dividers: DividerBox[]; stacks; shelf; scrollers: ScrollerBox[] }`} compact>
 
 What `layout.resolve` returns: `panes` and `dividers` with their rects; `stacks`, the groups made by folding and tucking (`{ id, kind: "fold" | "tuck", homeId, paneIds }`); and `shelf`, every pane behind a tab with why (`{ paneId, homeId, stackId, reason: "tucked" | "folded" | "tab" }`).
 
 </Entry>
 
-<Entry name="PaneBox" kind="type" from="@jali/core" signature={`interface PaneBox { id: NodeId; rect: Rect; stackId?: NodeId; hidden?: "tab" | "zoom" | "off" }`} compact>
+<Entry name="PaneBox" kind="type" from="@jali/core" signature={`interface PaneBox { id: NodeId; rect: Rect; stackId?: NodeId; hidden?: "tab" | "zoom" | "off"; clip?: Rect }`} compact>
 
 A pane's place. `hidden`: behind another tab, behind a maximised pane, or `"off"` (hidden by the overlay, with an empty rect).
 
@@ -168,6 +169,12 @@ A pane's place. `hidden`: behind another tab, behind a maximised pane, or `"off"
 <Entry name="DividerBox" kind="type" from="@jali/core" signature={`interface DividerBox {\n  parentId: NodeId; index: number; axis: Axis; rect: Rect;\n  min: number; max: number; value: number;\n  neighbours?: [NodeId[], NodeId[]];\n}`} compact>
 
 A divider between child `index` and `index + 1` of split `parentId`. `value` is the first side's length now; `min` and `max` are how far a drag can take it; `neighbours` are the panes on each side.
+
+</Entry>
+
+<Entry name="ScrollerBox" kind="type" from="@jali/core" signature={`interface ScrollerBox { id: NodeId; rect: Rect; contentWidth: number; paneIds: NodeId[] }`} compact>
+
+A row that scrolls sideways (`row({ scroll: "x" }, …)`), as drawn. `rect` is its window on screen; its panes are laid along its content, `contentWidth` long, from `rect.x`. Once scrolled (<Ref to="layout.scrolled" />), a strip's panes and dividers carry `clip`: the window they are cut to.
 
 </Entry>
 
@@ -188,6 +195,12 @@ A pane that is not on screen, listed on the shelf: tucked, folded by the fit, or
 <Entry name="LayoutInput" kind="type" from="@jali/core" signature={`type LayoutInput = Layout | Draft | ObjectRef`} compact>
 
 Anything that stands for a layout: a builder's result (`row(...)`), a single ref (a one-pane layout), or a whole `Layout`. `createJali({ layout })`, a preset's `layout` and a page's `build` all take one.
+
+</Entry>
+
+<Entry name="RowOptions" kind="type" from="@jali/core" signature={`interface RowOptions extends SizeOptions { scroll?: "x" }`} compact>
+
+A row's options. `scroll: "x"` makes a row that scrolls sideways: each child keeps its own width (its comfortable width until the person sizes it) and the row scrolls to the rest, so nothing folds. To its parent it needs one child's room; to the pane cap it is one slot. Focusing a pane in it scrolls it into view.
 
 </Entry>
 
@@ -589,7 +602,9 @@ Where a workspace writes its address. Pass one as `url` to write it somewhere of
 What is on screen, derived once per change (`jali.model()`, `useJaliModel()`).
 
 <Params title="Fields">
-<Param name="resolved" type="ResolvedLayout" required>Boxes, dividers, groups and shelf, with the maximise applied.</Param>
+<Param name="resolved" type="ResolvedLayout" required>Boxes, dividers, groups and shelf, with the maximise applied and each row that scrolls at its scroll position.</Param>
+<Param name="content" type="ResolvedLayout" required>The same, unscrolled: each strip's panes along its content.</Param>
+<Param name="outOfView" type="ReadonlySet<NodeId>" required>Panes in a row that scrolls, scrolled out of its window. They stay mounted and in the focus order, and are `paused`.</Param>
 <Param name="flat" type="ResolvedLayout" required>The same as if nothing were maximised.</Param>
 <Param name="panes" type="PaneNode[]" required>Every pane in tree order.</Param>
 <Param name="pane" type="(id: NodeId | undefined) => PaneNode | undefined" required>A pane by id.</Param>

@@ -127,14 +127,14 @@ A param that is one of a few values: `oneOf("open", "closed")` gives `"open" | "
 
 ## Layouts
 
-<Entry name="row" kind="function" from="@jali/core" signature={`row(options?: SizeOptions, ...children: (Draft | ObjectRef)[]): Draft`} example={builderCode} exampleFile="layouts.ts">
+<Entry name="row" kind="function" from="@jali/core" signature={`row(options?: RowOptions, ...children: (Draft | ObjectRef)[]): Draft`} example={builderCode} exampleFile="layouts.ts">
 
 Children side by side. A child is a ref (a pane showing it), a `pane(ref, options)`, or another `row`, `column` or `tabs`. Options come first when there are any: `row({ weight: 2 }, a, b)`.
 
 Nodes without an `id` are named after what they hold: `"row"`, `"column"`, `"tabs"`, or the pane's kind, then `"order-2"` and so on. Give an `id` to a pane another one links to, or that your code names.
 
 <Params>
-<Param name="options" type="SizeOptions">`id`; `weight` (its share of the parent, default 1) or `px` (a fixed length).</Param>
+<Param name="options" type="RowOptions">`id`; `weight` (its share of the parent, default 1) or `px` (a fixed length); `scroll: "x"` for a row that scrolls sideways, its children at their own widths, instead of sharing its width and folding what doesn't fit.</Param>
 <Param name="children" type="(Draft | ObjectRef)[]" required />
 </Params>
 
@@ -287,6 +287,25 @@ Runs a command by id if its check passes. A refusal is not announced here (the k
 </Params>
 
 <Returns type="boolean">Whether it ran: `false` for an unknown id or a refused check.</Returns>
+
+</Entry>
+
+<Entry name="edgeScroll" kind="function" from="@jali/core" signature={`edgeScroll(jali: Jali, onScroll?: () => void): EdgeScroll`} compact>
+
+Scrolls a row that scrolls sideways while a drag is held within 56px of its left or right edge, faster the closer it is, so a drag can reach a pane out of view. For an app's own drag: Jali's pane drag (by a header) doesn't use it yet. Call `move` on every pointer move and `stop` when the drag ends. `onScroll` runs after each step, so the drag can find what is under the pointer again as the panes slide past.
+
+<Params>
+<Param name="jali" type="Jali" required />
+<Param name="onScroll" type="() => void">After each step of scrolling.</Param>
+</Params>
+
+<Returns type="EdgeScroll" />
+
+</Entry>
+
+<Entry name="EdgeScroll" kind="type" from="@jali/core" signature={`interface EdgeScroll { move(clientX: number, clientY: number): void; stop(): void }`} compact>
+
+What <Ref to="edgeScroll" /> returns: tell it where the pointer is, and when the drag ends.
 
 </Entry>
 

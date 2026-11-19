@@ -31,8 +31,12 @@ export interface JaliModel {
   /** The pane kinds and profile it was built with. */
   env: Env;
   layout: Layout;
-  /** Boxes, dividers, groups and shelf, zoom-aware. */
+  /** Boxes, dividers, groups and shelf, zoom-aware, with each row that scrolls at its scroll position. */
   resolved: ResolvedLayout;
+  /** The same, unscrolled: each strip's panes along its content (what `offsetToShow` measures against). */
+  content: ResolvedLayout;
+  /** Panes in a row that scrolls, scrolled out of its window: on screen in the layout, but not to be seen. */
+  outOfView: ReadonlySet<NodeId>;
   /** The same layout as if nothing were zoomed: focus keys move on from a zoomed pane with it. */
   flat: ResolvedLayout;
   /** Every pane in tree order. */
@@ -76,8 +80,17 @@ export interface ModelInput {
 }
 
 export function buildModel({ layout, view, area, ctx, env, titles, hinge }: ModelInput): JaliModel {
-  const resolved = core.resolve(layout, view, ctx);
-  const flat = view.zoomed ? core.resolve(layout, core.tree.unzoom(view), ctx) : resolved;
+  const content = core.resolve(layout, view, ctx);
+  const offsets = view.scroll ?? {};
+  const resolved = core.scrolled(content, offsets, ctx.dir);
+  const flat = view.zoomed
+    ? core.scrolled(core.resolve(layout, core.tree.unzoom(view), ctx), offsets, ctx.dir)
+    : resolved;
+  const outOfView = new Set(
+    resolved.panes
+      .filter((b) => b.clip && !b.hidden && !core.inWindow(b.rect, b.clip))
+      .map((b) => b.id),
+  );
   const panes = core.tree.panes(layout.root);
   const byId = new Map(panes.map((p) => [p.id, p]));
   const shown = (r: ResolvedLayout) => r.panes.filter((b) => !b.hidden).map((b) => b.id);
@@ -124,6 +137,8 @@ export function buildModel({ layout, view, area, ctx, env, titles, hinge }: Mode
     layout,
     env,
     resolved,
+    content,
+    outOfView,
     flat,
     panes,
     title,
@@ -150,7 +165,10 @@ export function buildModel({ layout, view, area, ctx, env, titles, hinge }: Mode
     single:
       area.width > 0 &&
       (area.width < (env.phone?.below ?? PHONE_BELOW) ||
-        resolved.panes.some((b) => !b.hidden && b.rect.x + b.rect.width > area.width + 0.5)),
+        // A pane in a row that scrolls runs past the edge by design: it is cut to its strip, not too wide.
+        resolved.panes.some(
+          (b) => !b.hidden && !b.clip && b.rect.x + b.rect.width > area.width + 0.5,
+        )),
   };
   const current = () =>
     view.focused && byId.has(view.focused) && !model.off.includes(view.focused)
@@ -178,6 +196,7 @@ export function modelCache() {
     const key = [
       input.layout,
       input.view.zoomed,
+      input.view.scroll,
       input.area.width,
       input.area.height,
       input.env.kinds.version(),

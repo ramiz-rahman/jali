@@ -25,6 +25,10 @@ export interface Frame {
   covered: boolean;
   /** The tab strip of the group this pane shows for, when it is in one and on screen. */
   group?: { id: NodeId; tabs: Tab[]; active: NodeId };
+  /** In a row that scrolls: its window, which the frame is cut to. */
+  clip?: Rect;
+  /** In a row that scrolls, and scrolled out of its window: mounted and in the focus order, but paused. */
+  outOfView?: boolean;
 }
 
 /** The pane single view shows: the focused one, else the first. */
@@ -116,6 +120,7 @@ export function frames(
       {
         node,
         rect: zoomed ? { x: 0, y: 0, ...size } : box.rect,
+        ...(box.clip && !zoomed ? { clip: box.clip, outOfView: m.outOfView.has(box.id) } : {}),
         hidden: !!box.hidden,
         focused: view.focused === box.id,
         zoomed,
@@ -168,5 +173,7 @@ export const sameFrame = (a: Frame, b: Frame) =>
   a.focused === b.focused &&
   a.zoomed === b.zoomed &&
   a.covered === b.covered &&
+  a.outOfView === b.outOfView &&
+  (a.clip === b.clip || (!!a.clip && !!b.clip && sameRect(a.clip, b.clip))) &&
   sameNode(a.node, b.node) &&
   sameGroup(a.group, b.group);
