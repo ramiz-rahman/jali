@@ -1772,6 +1772,12 @@
   .live-tour-cursor[data-press] {
     animation: live-tour-press 420ms ease-out;
   }
+  /* Holding something: the cursor follows the drag frame by frame, pressed in. */
+  .live-tour-cursor[data-drag] {
+    scale: 0.8;
+    background: color-mix(in srgb, var(--jali-accent) 30%, transparent);
+    transition: opacity 240ms ease;
+  }
   @keyframes live-tour-press {
     40% {
       scale: 0.72;

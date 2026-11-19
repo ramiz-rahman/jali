@@ -14,32 +14,41 @@ import {
   PauseIcon,
   PlayIcon,
 } from "@phosphor-icons/react";
-import { buildSearch, type UiStore } from "@jali/core/adapter";
-import type { JaliActions, JaliModel } from "@jali/core/adapter";
-import { notesKind, orderKind } from "./kinds";
+import { buildSearch, GAP, tabDropAt, zoneFor, type UiStore } from "@jali/core/adapter";
+import type { DndState, JaliActions, JaliModel } from "@jali/core/adapter";
+import { orderKind } from "./kinds";
 
 export type TourStatus = "idle" | "playing" | "paused" | "stopped" | "done";
+
+/** A point on the page, in client pixels. */
+interface At {
+  x: number;
+  y: number;
+}
 
 /** What a step can do: wait (paused and stopped with the tour), drive the workspace, and point at things. */
 interface Ctx {
   wait(ms: number): Promise<void>;
-  /** Reduced motion: the steps cut, with no cursor and no animated width. */
+  /** Reduced motion: the steps cut, with no cursor and no animated width or drag. */
   cut: boolean;
   actions: JaliActions;
   model(): JaliModel;
   ws: HTMLElement;
+  /** A pane's element, or something inside it (`sel`). */
+  pane(id: string | undefined, sel?: string): Element | null;
+  /** A tab's element in a strip. */
+  tab(id: string): Element | null;
   /** Move the soft cursor to an element's centre (null hides it); `press` shows a click. */
   point(el: Element | null | undefined, press?: boolean): void;
+  /**
+   * Drag `pane` from an element (its title or its tab) to a point, as a person would: the cursor presses, the chip and
+   * the drop preview follow it, and the drop is the one a person's release makes. Resolves whether it dropped.
+   */
+  drag(pane: string, from: Element | null, to: At | null): Promise<boolean>;
   /** The workspace's width inside the figure: px, or null for all of it. Resolves when the change has played. */
   room(px: number | null): Promise<void>;
   /** Show the JSON beside the workspace (without changing what the reader chose to keep). */
   showJson(): void;
-  /** Scroll the JSON panel (never the page) to a node's first line. */
-  jsonTo(node: string): void;
-  /** Type into the palette's field, a letter at a time. */
-  type(text: string): Promise<void>;
-  /** Press Enter in the palette's field. */
-  enter(): void;
 }
 
 interface Step {
@@ -58,7 +67,19 @@ async function reveal(t: Ctx, pane: string | undefined) {
   await t.wait(900);
 }
 
-const ORDERS = [1047, 1046, 1045];
+/** A point inside an element's box, as fractions of its width and height. */
+function inside(el: Element | null, fx: number, fy: number): At | null {
+  if (!el) return null;
+  const r = el.getBoundingClientRect();
+  return { x: r.left + r.width * fx, y: r.top + r.height * fy };
+}
+
+/** The pane the order list's detail and customer are: found by kind, since a drop can't rename them. */
+const byKind = (t: Ctx, kind: string) => t.model().panes.find((p) => p.ref.kind === kind)?.id;
+/** A drag needs panes side by side: one at a time (a phone) has nothing to drop on. */
+const oneAtATime = (t: Ctx) => t.model().single;
+
+const ORDERS = [1047, 1046];
 
 const STEPS: Step[] = [
   {
@@ -76,7 +97,58 @@ const STEPS: Step[] = [
       t.point(null);
       // One pane at a time: show the detail, which followed.
       await reveal(t, "order");
-      await t.wait(500);
+      await t.wait(400);
+    },
+  },
+  {
+    id: "merge",
+    caption: "Drop one pane on another, and they share a place as tabs.",
+    skip: oneAtATime,
+    async run(t) {
+      const customer = byKind(t, "customer"),
+        order = byKind(t, "order");
+      if (!customer || !order) return;
+      await t.drag(customer, t.pane(customer, ".jali-pane-title"), inside(t.pane(order), 0.5, 0.5));
+      await t.wait(1700);
+    },
+  },
+  {
+    id: "reorder",
+    caption: "Drag a tab along its strip to put it in a new place.",
+    skip: (t) => oneAtATime(t) || !t.model().stackOf(byKind(t, "customer")),
+    async run(t) {
+      const customer = byKind(t, "customer")!,
+        order = byKind(t, "order")!;
+      await t.drag(customer, t.tab(customer), inside(t.tab(order), 0.2, 0.5));
+      await t.wait(1500);
+    },
+  },
+  {
+    id: "pin",
+    caption: "Pin a tab, and it stays at the front.",
+    skip: (t) => oneAtATime(t) || !t.model().stackOf(byKind(t, "order")),
+    async run(t) {
+      const order = byKind(t, "order")!;
+      t.point(t.tab(order));
+      await t.wait(t.cut ? 0 : 700);
+      t.point(t.tab(order), true);
+      await t.wait(t.cut ? 0 : 300);
+      t.actions.setPinned(order, true);
+      await t.wait(t.cut ? 0 : 450);
+      // The tab moved to the front: the cursor goes with it.
+      t.point(t.tab(order));
+      await t.wait(1500);
+      t.point(null);
+    },
+  },
+  {
+    id: "split",
+    caption: "Drag a tab to the edge of a pane, and it splits out beside it.",
+    skip: (t) => oneAtATime(t) || !t.model().stackOf(byKind(t, "customer")),
+    async run(t) {
+      const customer = byKind(t, "customer")!;
+      await t.drag(customer, t.tab(customer), inside(t.pane("orders"), 0.5, 0.88));
+      await t.wait(1900);
     },
   },
   {
@@ -87,7 +159,7 @@ const STEPS: Step[] = [
     async run(t) {
       const full = t.ws.parentElement?.clientWidth ?? 900;
       await t.room(Math.round(Math.min(480, full * 0.6)));
-      await t.wait(2200);
+      await t.wait(1900);
     },
   },
   {
@@ -96,72 +168,22 @@ const STEPS: Step[] = [
     skip: (t) => !t.ws.style.width,
     async run(t) {
       await t.room(null);
-      await t.wait(1800);
+      await t.wait(1400);
     },
   },
   {
     id: "link",
-    caption: "Open the customer's notes. The layout changes, and its link with it.",
+    caption: "Every change is in the layout, and in its link.",
     async run(t) {
+      // The JSON from its start: the split the tour just made is its first child.
       t.showJson();
-      await t.wait(700);
-      const m = t.model();
-      const customer =
-        m.panes.find((p) => p.ref.kind === "customer" && m.visible.includes(p.id)) ??
-        m.panes.find((p) => p.ref.kind === "customer");
-      const id = Number(customer?.ref.params.id ?? 7);
-      await reveal(t, customer?.id);
-      const button = customer
-        ? t.ws.querySelector(`[data-pane="${customer.id}"] .live-k-link`)
-        : null;
-      t.point(button);
-      await t.wait(t.cut ? 0 : 800);
-      t.point(button, true);
-      await t.wait(t.cut ? 0 : 380);
-      t.point(null);
-      const opened = t.actions.openBeside(customer?.id ?? "customer", notesKind({ customer: id }));
-      // The new pane's lines are at the end of the JSON: bring them into view while their band shows.
-      await t.wait(80);
-      if (opened.pane) t.jsonTo(opened.pane);
-      await t.wait(3900);
-    },
-  },
-  {
-    id: "palette",
-    caption: "Press ⌘K and type a command: maximise a pane, then restore it.",
-    async run(t) {
-      if (t.model().panes.some((p) => p.id === "order")) t.actions.focus("order");
-      await t.wait(400);
-      for (const [word, dwell] of [
-        ["max", 2000],
-        ["restore", 1300],
-      ] as const) {
-        t.actions.openPalette();
-        await t.wait(550);
-        await t.type(word);
-        await t.wait(650);
-        t.enter();
-        await t.wait(dwell);
-      }
+      await t.wait(4300);
     },
   },
   {
     id: "end",
-    caption: "Close the notes, and it's your turn. Click anything.",
+    caption: "Your turn. Drag a tab, or click anything.",
     async run(t) {
-      const notes = t.model().panes.find((p) => p.ref.kind === "notes");
-      if (notes) {
-        await t.wait(300);
-        const x = t.ws.querySelector(
-          `[data-pane="${notes.id}"] .jali-pane-header button[aria-label^="Close"]`,
-        );
-        t.point(x);
-        await t.wait(t.cut ? 0 : 750);
-        t.point(x, true);
-        await t.wait(t.cut ? 0 : 380);
-        t.point(null);
-        t.actions.close(notes.id);
-      }
       await t.wait(2800);
     },
   },
@@ -262,7 +284,34 @@ const markSeen = () => {
 };
 const media = (q: string) => (typeof matchMedia === "function" ? matchMedia(q).matches : false);
 
-const INPUT_VALUE = () => Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value")?.set;
+/** The drag's ease: slow off the mark, slow into the drop, as a hand moves. */
+const ease = (k: number) => (k < 0.5 ? 4 * k * k * k : 1 - (-2 * k + 2) ** 3 / 2);
+
+/**
+ * What a person's drag shows with the pointer at (x, y): the same rule as Jali's own drag (workspace/dnd.ts). Over its
+ * own strip a tab reorders; over a pane, its edges place beside and its middle adds a tab; its own group's middle
+ * does nothing.
+ */
+function dragAt(store: UiStore, pane: string, ws: HTMLElement, x: number, y: number): DndState {
+  const box = ws.querySelector(".jali-workspace")?.getBoundingClientRect();
+  const p = { x: x - (box?.left ?? 0) - GAP, y: y - (box?.top ?? 0) - GAP };
+  const tabAt = tabDropAt(store, pane, x, y);
+  if (tabAt) return { dragged: pane, ...p, tabAt };
+  const boxes = store.model().resolved.panes;
+  const hit = boxes.find(
+    (b) =>
+      !b.hidden &&
+      b.id !== pane &&
+      p.x >= b.rect.x &&
+      p.x <= b.rect.x + b.rect.width &&
+      p.y >= b.rect.y &&
+      p.y <= b.rect.y + b.rect.height,
+  );
+  let zone = hit ? zoneFor(hit.rect, p.x, p.y) : undefined;
+  const own = boxes.find((b) => b.id === pane)?.stackId;
+  if (hit?.stackId && hit.stackId === own && zone === "centre") zone = undefined;
+  return { dragged: pane, ...p, ...(hit && zone ? { target: hit.id, zone } : {}) };
+}
 
 export interface TourOptions {
   /** Off: no tour, no listeners. */
@@ -337,9 +386,17 @@ export function useTour(o: TourOptions): Tour {
     delete ws.dataset.tourAnim;
     delete opts.current.fig.current?.dataset.tourRoom;
   };
+  /** A drag the tour is showing, put away: its chip and preview never outlive the tour. */
+  const dropDrag = () => {
+    const c = opts.current.cursor.current;
+    if (c) delete c.dataset.drag;
+    const { store } = opts.current;
+    if (store.get().dnd) store.set({ dnd: null });
+  };
   const end = (s: "stopped" | "done") => {
     const l = live.current;
     l.clock?.stop();
+    dropDrag();
     l.clock = null;
     if (l.focus) l.focus.focusHeld = false;
     l.focus = null;
@@ -354,35 +411,77 @@ export function useTour(o: TourOptions): Tour {
   const ctxFor = (clock: Clock, reduced: boolean): Ctx => {
     const { store } = opts.current;
     const ws = opts.current.wrap.current!;
-    const input = () => ws.querySelector<HTMLInputElement>(".jali-palette-input");
-    const fill = (text: string) => {
-      const el = input();
-      if (!el) return;
-      INPUT_VALUE()?.call(el, text);
-      el.dispatchEvent(new Event("input", { bubbles: true }));
+    const cursorTo = (x: number, y: number) => {
+      const c = opts.current.cursor.current;
+      const stage = c?.parentElement;
+      if (!c || !stage || reduced) return;
+      const b = stage.getBoundingClientRect();
+      c.style.translate = `${x - b.left}px ${y - b.top}px`;
+      c.dataset.on = "";
     };
-    return {
+    const centre = (el: Element) => {
+      const a = el.getBoundingClientRect();
+      return { x: a.left + Math.min(a.width / 2, 56), y: a.top + a.height / 2 };
+    };
+    const ctx: Ctx = {
       wait: (ms) => clock.wait(ms),
       cut: reduced,
       actions: store.jali.actions,
       model: () => store.jali.model(),
       ws,
+      pane: (id, sel) => {
+        const el = id ? ws.querySelector(`[data-pane="${CSS.escape(id)}"]`) : null;
+        return sel ? (el?.querySelector(sel) ?? null) : el;
+      },
+      tab: (id) => ws.querySelector(`.jali-tab-item [data-tab="${CSS.escape(id)}"]`),
       point(el, press) {
         const c = opts.current.cursor.current;
-        const stage = c?.parentElement;
-        if (!c || !stage) return;
+        if (!c) return;
         if (!el || reduced) return cursorOff();
-        const a = el.getBoundingClientRect(),
-          b = stage.getBoundingClientRect();
-        const x = a.left - b.left + Math.min(a.width / 2, 56),
-          y = a.top - b.top + a.height / 2;
-        c.style.translate = `${x}px ${y}px`;
-        c.dataset.on = "";
+        const p = centre(el);
+        cursorTo(p.x, p.y);
         if (press) {
           delete c.dataset.press;
           void c.offsetWidth;
           c.dataset.press = "";
         }
+      },
+      async drag(pane, from, to) {
+        if (!from || !to) return false;
+        const start = centre(from);
+        const show = (x: number, y: number) => store.set({ dnd: dragAt(store, pane, ws, x, y) });
+        if (reduced) {
+          // No motion: the drop preview where the drag would end, held long enough to read, then the drop.
+          show(to.x, to.y);
+          await clock.wait(1100);
+        } else {
+          ctx.point(from);
+          await clock.wait(700);
+          ctx.point(from, true);
+          await clock.wait(260);
+          // Held: the cursor follows each frame, without its own easing.
+          const c = opts.current.cursor.current;
+          if (c) c.dataset.drag = "";
+          const frames = 54;
+          for (let i = 1; i <= frames; i++) {
+            const k = ease(i / frames);
+            const x = start.x + (to.x - start.x) * k,
+              y = start.y + (to.y - start.y) * k;
+            cursorTo(x, y);
+            show(x, y);
+            await clock.wait(16);
+          }
+          // Over the drop: the preview says what letting go will do.
+          await clock.wait(750);
+        }
+        const d = store.get().dnd;
+        dropDrag();
+        cursorOff();
+        // The release a person's drag makes (workspace/dnd.ts).
+        if (d?.tabAt) store.actions.moveTab(pane, d.tabAt.index);
+        else if (d?.target && d.zone) store.actions.drop(pane, d.target, d.zone);
+        else return false;
+        return true;
       },
       room(px) {
         const fig = opts.current.fig.current;
@@ -412,28 +511,8 @@ export function useTour(o: TourOptions): Tour {
         return clock.wait(1300);
       },
       showJson: () => opts.current.showPanel("json"),
-      jsonTo(node) {
-        const pre = opts.current.fig.current?.querySelector<HTMLElement>(".live-json");
-        const line = pre?.querySelector<HTMLElement>(`[data-node="${CSS.escape(node)}"]`);
-        if (!pre || !line) return;
-        pre.scrollTo({
-          top: Math.max(0, line.offsetTop - pre.clientHeight / 4),
-          behavior: reduced ? "auto" : "smooth",
-        });
-      },
-      async type(text) {
-        if (reduced) return fill(text);
-        for (let i = 1; i <= text.length; i++) {
-          fill(text.slice(0, i));
-          await clock.wait(120);
-        }
-      },
-      enter() {
-        const el = input();
-        if (!el) return;
-        el.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", bubbles: true }));
-      },
     };
+    return ctx;
   };
 
   const play = (from: number) => {
@@ -491,6 +570,7 @@ export function useTour(o: TourOptions): Tour {
     const l = live.current;
     l.clock?.stop();
     l.clock = null;
+    dropDrag();
     cursorOff();
     fullRoom();
     opts.current.reset();
@@ -554,6 +634,7 @@ export function useTour(o: TourOptions): Tour {
       clearTimeout(l.roomTimer);
       l.clock?.stop();
       l.clock = null;
+      dropDrag();
       if (l.focus) l.focus.focusHeld = false;
       l.focus = null;
       l.unquiet?.();

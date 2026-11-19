@@ -16,8 +16,11 @@ import { buildDemoLayout, type DemoLayoutId } from "./demo";
 import { demoKinds } from "./kinds";
 import "./live.css";
 
-/** A store for one figure. Stable across renders; its id is safe in DOM ids and the same on server and client. */
-export function useLiveStore(layoutId: DemoLayoutId): UiStore {
+/**
+ * A store for one figure. Stable across renders; its id is safe in DOM ids and the same on server and client.
+ * `centreDrop` is what a drop on a pane's middle does here (Jali's default swaps; the hero adds it as a tab).
+ */
+export function useLiveStore(layoutId: DemoLayoutId, centreDrop?: "swap" | "tab"): UiStore {
   const raw = useId();
   const [store] = useState(() =>
     createUiStore({
@@ -29,6 +32,7 @@ export function useLiveStore(layoutId: DemoLayoutId): UiStore {
       // A figure on a docs page: only its own keys, and the site keeps its theme.
       keys: "scoped",
       pageTheme: false,
+      ...(centreDrop ? { settings: { centreDrop } } : {}),
     }),
   );
   return store;

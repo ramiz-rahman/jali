@@ -12,6 +12,7 @@ import {
   ArrowCounterClockwiseIcon,
   ArrowsHorizontalIcon,
   CursorClickIcon,
+  HandGrabbingIcon,
   HandIcon,
   TreeStructureIcon,
   XIcon,
@@ -76,6 +77,15 @@ function triesFor(m: JaliModel, json: boolean, tree = true): { icon: ReactNode; 
           },
         ]
       : []),
+    // Tabs and titles drag only with panes side by side (a phone shows one at a time).
+    ...(!m.single && m.visible.length > 1
+      ? [
+          {
+            icon: <HandGrabbingIcon size={15} aria-hidden />,
+            text: "Drag a tab or a title onto another pane",
+          },
+        ]
+      : []),
     ...(m.resolved.dividers.length
       ? [
           {
@@ -112,7 +122,8 @@ export function TreeView({
   panels,
   tour = false,
 }: TreeViewProps) {
-  const store = useLiveStore(layout);
+  // The hero's tour drops a pane on another to make tabs: a reader's own drop there does the same.
+  const store = useLiveStore(layout, tour ? "tab" : undefined);
   const m = useSyncExternalStore(store.subscribe, store.model, store.model);
   const [hover, setHover] = useState<Hover | null>(null);
   const [mode, setMode] = useState<"map" | "json">(showJson ? "json" : "map");
