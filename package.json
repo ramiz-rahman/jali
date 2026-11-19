@@ -14,7 +14,8 @@
     "screens": "SCREENS=1 playwright test",
     "build:packages": "pnpm -r --filter \"./packages/*\" build",
     "example:minimal": "vp dev --config examples/minimal/vite.config.ts --port 5310",
-    "example:bare-icons": "vp dev --config examples/bare-icons/vite.config.ts --port 5311"
+    "example:bare-icons": "vp dev --config examples/bare-icons/vite.config.ts --port 5311",
+    "example:markets": "vp dev --config examples/markets/vite.config.ts --port 5320"
   },
   "dependencies": {
     "@electric-sql/pglite": "^0.5.16",
