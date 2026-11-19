@@ -4,12 +4,13 @@
  */
 import type { Layout, LayoutNode, ObjectRef, PaneNode } from "@jali/core";
 
-export type DemoLayoutId = "two" | "chain" | "nested" | "stack" | "crowded";
+export type DemoLayoutId = "two" | "chain" | "nested" | "stack" | "strip" | "crowded";
 export const demoLayouts: Record<DemoLayoutId, string> = {
   two: "Two panes side by side",
   chain: "A list, its detail, and a related record",
   nested: "A row with a column inside it",
   stack: "Tabs: a stack of three panes",
+  strip: "One group of three tabs, the first pinned",
   crowded: "More panes than fit, so some fold",
 };
 
@@ -54,6 +55,15 @@ const builders: Record<DemoLayoutId, () => LayoutNode> = {
         children: [pane("order", ref("order", { id: 1048 })), notes(), activity()],
       },
     ]),
+  // One tab group across the whole figure, so every tab shows: for the Tabs guide (reorder, pin, the menu).
+  strip: () => ({
+    id: "tabs",
+    type: "stack",
+    size: { weight: 1 },
+    origin: "user",
+    active: "order",
+    children: [customer({ pinned: true }), pane("order", ref("order", { id: 1048 })), activity()],
+  }),
   crowded: () =>
     split("row", "root", [
       orders(),
