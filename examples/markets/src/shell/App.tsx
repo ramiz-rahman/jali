@@ -1,32 +1,20 @@
 /**
- * The app: Jali's root with the app's chrome around the panes, and two things outside the workspace (overlays):
- * toasts and the instrument picker.
+ * The app: Jali's root with the app's chrome around the panes, and the toasts outside the workspace (overlays). The
+ * instrument search is Jali's own chooser, opened by the app's commands (workspace.ts).
  */
 import { useEffect } from "react";
 import { Toaster, toast } from "sonner";
-import type { Jali } from "@jali/core";
+import { runCommand, type Jali } from "@jali/core";
 import { JaliRoot, JaliView, useJali, useTheme } from "@jali/react";
 import { ServicesProvider, useServices, type Services } from "../services";
 import * as f from "../ui/format";
-import { show } from "../actions";
-import { chart } from "../panes/chart";
-import { Picker } from "./Picker";
 import { StatusLine } from "./StatusLine";
 import { TopBar } from "./TopBar";
 
 export function App({ jali, services }: { jali: Jali; services: Services }) {
   return (
     <ServicesProvider services={services}>
-      <JaliRoot
-        jali={jali}
-        className="app"
-        overlays={
-          <>
-            <Toasts />
-            <Picker />
-          </>
-        }
-      >
+      <JaliRoot jali={jali} className="app" overlays={<Toasts />}>
         <TopBar />
         <SearchKey />
         <JaliView />
@@ -81,17 +69,16 @@ function Toasts() {
  */
 function SearchKey() {
   const jali = useJali();
-  const { picker } = useServices();
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key !== "/" || e.defaultPrevented || e.metaKey || e.ctrlKey || e.altKey) return;
       const t = e.target as HTMLElement | null;
       if (t?.closest("input, textarea, select, [contenteditable=true], dialog")) return;
       e.preventDefault();
-      picker.set({ title: "Open chart for…", onPick: (symbol) => show(jali, chart({ symbol })) });
+      runCommand(jali, "markets.chart");
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [jali, picker]);
+  }, [jali]);
   return null;
 }

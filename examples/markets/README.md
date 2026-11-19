@@ -20,18 +20,18 @@ Build it as a static site with `pnpm exec vp build` in this folder, and serve `d
 
 ## How it is built
 
-| File                      | What it shows                                                                                        |
-| ------------------------- | ---------------------------------------------------------------------------------------------------- |
-| `src/market/types.ts`     | The `MarketData` interface: `snapshot(topic)` and `subscribe(topic, onData)`. A real feed fits here. |
-| `src/market/simulator.ts` | A seeded random walk behind it: quotes, an order book, trades, bars and news.                        |
-| `src/market/react.tsx`    | `useTopic(topic, paused)`: a pane stops listening while Jali says it is paused.                      |
-| `src/panes/*.tsx`         | The eight pane kinds, each one `definePane` with params, a title, an icon and widths.                |
-| `src/panes/follow.ts`     | How one watchlist drives followers of several kinds: each kind's `follow`.                           |
-| `src/panes/blotter.tsx`   | The order ticket: `usePaneState` for the draft, `useUnsaved` for an unsent order, `useCommands`.     |
-| `src/presets.ts`          | The four desks, written with `row`, `column` and `pane`; followers are `linkedTo: "watch"`.          |
-| `src/workspace.ts`        | `createJali`: the kinds, presets, launcher, and the app's own ⌘K commands and keys.                  |
-| `src/shell/`              | The app's chrome inside `<JaliRoot>`: a top bar, a status line with Jali's `<Shelf />`, the picker.  |
-| `src/styles/tokens.css`   | The terminal's theme, set on Jali's `--jali-*` tokens, and the app's up and down colours.            |
+| File                      | What it shows                                                                                                                                          |
+| ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `src/market/types.ts`     | The `MarketData` interface: `snapshot(topic)` and `subscribe(topic, onData)`. A real feed fits here.                                                   |
+| `src/market/simulator.ts` | A seeded random walk behind it: quotes, an order book, trades, bars and news.                                                                          |
+| `src/market/react.tsx`    | `useTopic(topic, paused)`: a pane stops listening while Jali says it is paused.                                                                        |
+| `src/panes/*.tsx`         | The eight pane kinds, each one `definePane` with params, a title, an icon and widths.                                                                  |
+| `src/panes/follow.ts`     | How one watchlist drives followers of several kinds: each kind's `follow`.                                                                             |
+| `src/panes/blotter.tsx`   | The order ticket: `usePaneState` for the draft, `useUnsaved` for an unsent order, `useCommands`.                                                       |
+| `src/presets.ts`          | The four desks, written with `row`, `column` and `pane`; followers are `linkedTo: "watch"`.                                                            |
+| `src/workspace.ts`        | `createJali`: the kinds, presets, launcher, and the app's own ⌘K commands and keys; the "…" commands ask for an instrument with `jali.actions.choose`. |
+| `src/shell/`              | The app's chrome inside `<JaliRoot>`: a top bar, and a status line with Jali's `<Shelf />`.                                                            |
+| `src/styles/tokens.css`   | The terminal's theme, set on Jali's `--jali-*` tokens, and the app's up and down colours.                                                              |
 
 Up and down are always shown three ways at once: the sign, an arrow and a colour, so neither a colour-blind reader nor a screen reader misses them. Prices flash when they tick, except under reduced motion.
 

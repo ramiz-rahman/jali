@@ -48,3 +48,17 @@ test("a typed order is unsaved work: a desk without the blotter asks first", asy
     "200",
   );
 });
+
+test("/ asks for an instrument in Jali's chooser and opens its chart", async ({ page }) => {
+  await page.getByRole("listbox", { name: "Equities" }).getByRole("option").first().click();
+  await page.keyboard.press("/");
+  const input = page.getByRole("combobox", { name: "Open chart for…" });
+  await expect(input).toBeFocused();
+  await input.fill("orb");
+  await expect(
+    page.getByRole("listbox", { name: "Choices" }).getByRole("option").first(),
+  ).toContainText("ORBD");
+  await page.keyboard.press("Enter");
+  await expect(input).toBeHidden();
+  await expect(page.locator(".jali-pane-header", { hasText: "ORBD chart" })).toBeVisible();
+});

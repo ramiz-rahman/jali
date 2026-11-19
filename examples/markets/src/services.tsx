@@ -1,22 +1,13 @@
 /**
- * The app's own services, beside Jali: the market, the paper-trading book, the watchlists and the instrument
- * picker. Panes read them from context; commands get them when the workspace is made (workspace.ts).
+ * The app's own services, beside Jali: the market, the paper-trading book and the watchlists. Panes read them from
+ * context; commands get them when the workspace is made (workspace.ts).
  */
 import { createContext, useContext, type ReactNode } from "react";
 import { createLists, type Lists } from "./lists";
 import { MarketProvider } from "./market/react";
-import type { AssetClass, MarketData } from "./market/types";
+import type { MarketData } from "./market/types";
 import { createStore, type Store } from "./store";
 import { createTrading, type Side, type Trading } from "./trading/trading";
-
-/** The instrument picker: one dialog that "Open chart for…", "Add to watchlist…" and / all use. */
-export interface PickRequest {
-  title: string;
-  /** Only instruments of these classes, when given. */
-  only?: readonly AssetClass[];
-  onPick: (symbol: string) => void;
-}
-export type Picker = Store<PickRequest | null>;
 
 /** "Buy LMNA" from a quote or ⌘K: the blotter's ticket picks it up. `at` tells two requests apart. */
 export interface TicketRequest {
@@ -29,7 +20,6 @@ export interface Services {
   market: MarketData;
   trading: Trading;
   lists: Lists;
-  picker: Picker;
   ticket: Store<TicketRequest | null>;
 }
 
@@ -38,7 +28,6 @@ export function createServices(market: MarketData, { persist = true } = {}): Ser
     market,
     trading: createTrading(market, persist),
     lists: createLists(persist),
-    picker: createStore<PickRequest | null>(null),
     ticket: createStore<TicketRequest | null>(null),
   };
 }

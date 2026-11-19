@@ -3,14 +3,12 @@
  * the theme and ⌘K. Marked `data-jali-chrome`, so Jali leaves keyboard focus here after a layout change.
  */
 import { CommandIcon, MagnifyingGlassIcon, MoonIcon, SunIcon } from "@phosphor-icons/react";
-import { keyHint } from "@jali/core";
+import { keyHint, runCommand } from "@jali/core";
 import { useJali, useJaliState, useShortcut, useTheme } from "@jali/react";
 import { useQuotes, useTopic } from "../market/react";
 import { useServices } from "../services";
 import * as f from "../ui/format";
 import { Delta } from "../ui/parts";
-import { show } from "../actions";
-import { chart } from "../panes/chart";
 
 // In order of priority: narrower windows show the first few.
 const STRIP = ["MX40", "MXTEC", "GOV10Y", "EURUSD", "MXFIN", "GOV2Y"];
@@ -20,9 +18,7 @@ export function TopBar() {
   const current = useJaliState((s) => s.presetId);
   const theme = useTheme();
   const palette = useShortcut("palette.toggle");
-  const { picker } = useServices();
-  const search = () =>
-    picker.set({ title: "Open chart for…", onPick: (symbol) => show(jali, chart({ symbol })) });
+  const search = () => runCommand(jali, "markets.chart");
 
   return (
     <header className="topbar" data-jali-chrome="">

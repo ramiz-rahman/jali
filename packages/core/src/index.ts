@@ -74,6 +74,7 @@ export { sameRef } from "./actions/follow";
 // ---------- the instance: actions, results, events ----------
 export type { JaliEvents, JaliState } from "./state/instance";
 export type { JaliActions, PaneTarget, OpenPageOptions } from "./actions/public";
+export type { ChooseOptions } from "./actions/choose";
 export type {
   ActionResult,
   Refusal,

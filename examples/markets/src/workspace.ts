@@ -27,13 +27,29 @@ type Options = Pick<JaliOptions, "url" | "storage" | "size" | "moveFocus" | "pre
 };
 
 const TRADABLE: AssetClass[] = ["equity", "govt", "corp", "fx"];
+/** How the chooser names an instrument's class, beside its name. */
+const ASSET_CLASS: Record<AssetClass, string> = {
+  equity: "Equity",
+  govt: "Government",
+  corp: "Corporate",
+  fx: "FX",
+  index: "Index",
+};
 const BOOKED: AssetClass[] = TRADABLE;
 
 export function createMarketsJali(services: Services, options: Options = {}): Jali {
   const { notify = () => {}, ...jaliOptions } = options;
-  const { picker, lists } = services;
-  const pick = (title: string, onPick: (symbol: string) => void, only?: AssetClass[]) =>
-    picker.set({ title, onPick, only });
+  const { market, lists } = services;
+  /** Ask for an instrument in Jali's chooser (type a symbol or a name), then `onPick` its symbol. */
+  const pick = (jali: Jali, title: string, onPick: (symbol: string) => void, only?: AssetClass[]) =>
+    jali.actions.choose({
+      title,
+      items: market.instruments.filter((i) => !only || only.includes(i.assetClass)),
+      label: (i) => i.symbol,
+      hint: (i) => `${i.name} · ${ASSET_CLASS[i.assetClass]}`,
+      placeholder: "Symbol or name",
+      onChoose: (i) => onPick(i.symbol),
+    });
 
   /** The watchlist "Add to watchlist" adds to: the focused one, else the first on screen, else Core. */
   const targetList = (jali: Jali) => {
@@ -49,32 +65,33 @@ export function createMarketsJali(services: Services, options: Options = {}): Ja
       id: "markets.chart",
       title: "Open chart for…",
       group: "Markets",
-      run: (jali) => pick("Open chart for…", (symbol) => show(jali, chart({ symbol }))),
+      run: (jali) => pick(jali, "Open chart for…", (symbol) => show(jali, chart({ symbol }))),
     },
     {
       id: "markets.quote",
       title: "Open quote for…",
       group: "Markets",
-      run: (jali) => pick("Open quote for…", (symbol) => show(jali, quote({ symbol }))),
+      run: (jali) => pick(jali, "Open quote for…", (symbol) => show(jali, quote({ symbol }))),
     },
     {
       id: "markets.book",
       title: "Open order book for…",
       group: "Markets",
-      run: (jali) => pick("Open order book for…", (symbol) => show(jali, book({ symbol })), BOOKED),
+      run: (jali) =>
+        pick(jali, "Open order book for…", (symbol) => show(jali, book({ symbol })), BOOKED),
     },
     {
       id: "markets.tape",
       title: "Open time and sales for…",
       group: "Markets",
       run: (jali) =>
-        pick("Open time and sales for…", (symbol) => show(jali, tape({ symbol })), BOOKED),
+        pick(jali, "Open time and sales for…", (symbol) => show(jali, tape({ symbol })), BOOKED),
     },
     {
       id: "markets.news",
       title: "Open news for…",
       group: "Markets",
-      run: (jali) => pick("Open news for…", (symbol) => show(jali, news({ symbol }))),
+      run: (jali) => pick(jali, "Open news for…", (symbol) => show(jali, news({ symbol }))),
     },
     {
       id: "markets.watch",
@@ -82,7 +99,7 @@ export function createMarketsJali(services: Services, options: Options = {}): Ja
       group: "Markets",
       run: (jali) => {
         const list = targetList(jali);
-        pick(`Add to ${listName(list)}…`, (symbol) =>
+        pick(jali, `Add to ${listName(list)}…`, (symbol) =>
           notify(
             lists.add(list, symbol)
               ? `${symbol} added to ${listName(list)}`
@@ -108,14 +125,14 @@ export function createMarketsJali(services: Services, options: Options = {}): Ja
       title: "Buy…",
       group: "Trading",
       run: (jali) =>
-        pick("Buy…", (symbol) => prepareTicket(jali, services, symbol, "buy"), TRADABLE),
+        pick(jali, "Buy…", (symbol) => prepareTicket(jali, services, symbol, "buy"), TRADABLE),
     },
     {
       id: "markets.sell",
       title: "Sell…",
       group: "Trading",
       run: (jali) =>
-        pick("Sell…", (symbol) => prepareTicket(jali, services, symbol, "sell"), TRADABLE),
+        pick(jali, "Sell…", (symbol) => prepareTicket(jali, services, symbol, "sell"), TRADABLE),
     },
     {
       id: "markets.blotter",

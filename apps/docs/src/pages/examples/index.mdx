@@ -39,7 +39,7 @@ It serves on [localhost:5320](http://localhost:5320). It shows:
 - comparing two instruments: pin a chart or quote with its **Following** toggle, then open another row with Enter, or choose the Compare desk;
 - four presets, the desks (Equities, Rates, FX and Compare), switched from the top bar or ⌘K;
 - the layout kept in the address, so a desk is a link you can send, and a reload or Back brings it back;
-- the app's own commands in ⌘K ("Open chart for…", "Add to watchlist…", "Buy…"), and each pane's own with `useCommands`;
+- the app's own commands in ⌘K ("Open chart for…", "Add to watchlist…", "Buy…"), which ask for an instrument in Jali's chooser with `jali.actions.choose`, and each pane's own with `useCommands`;
 - the order ticket's draft in `usePaneState`, and a typed order reported with `useUnsaved`, so a desk that would lose it asks first;
 - panes that pause their market subscriptions while they are folded, tucked or behind a tab, using the `paused` prop;
 - a dark theme set on Jali's `--jali-*` tokens, light mode, and layouts that fold from a wide screen down to a phone.

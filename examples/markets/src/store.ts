@@ -1,4 +1,4 @@
-/** A very small external store, for the app's own state (watchlists, trading, the instrument picker). */
+/** A very small external store, for the app's own state (watchlists, trading, the order ticket). */
 import { useSyncExternalStore } from "react";
 
 export interface Store<T> {

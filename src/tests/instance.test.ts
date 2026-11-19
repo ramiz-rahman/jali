@@ -108,6 +108,7 @@ describe("the instance", () => {
         "backToPage",
         "resetPage",
         "setCanInvestigate",
+        "choose",
         "openPalette",
         "closePalette",
         "openSettings",

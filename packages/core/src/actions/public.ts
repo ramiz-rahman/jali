@@ -41,6 +41,7 @@ import {
 } from "./page";
 import { peek, select } from "./peek";
 import { mergeInto, unmerge } from "./tabs";
+import { choose, type ChooseOptions } from "./choose";
 import { putBack, tuck } from "./tuck";
 
 /** A pane, by its id or by the object it shows. */
@@ -134,6 +135,9 @@ export interface JaliActions {
   setCanInvestigate(canInvestigate: boolean): ActionResult;
 
   // ---------- dialogs and settings ----------
+  /** Ask the person for one item from `items`, in Jali's chooser (search, arrows, Enter, Esc). `onChoose` gets it once
+   *  the chooser closes. For a command that needs an argument: "Open chart for…". */
+  choose<T>(options: ChooseOptions<T>): ActionResult;
   openPalette(): ActionResult;
   closePalette(): ActionResult;
   openSettings(): ActionResult;
@@ -242,6 +246,7 @@ export function publicActions(run: Run): JaliActions {
     resetPage: () => run(resetPage),
     setCanInvestigate: (can) => run((x) => setCanInvestigate(x, can)),
 
+    choose: (options) => run((x) => choose(x, options as ChooseOptions<unknown>)),
     openPalette: () => run(openPalette()),
     closePalette: () => run(closePalette()),
     openSettings: () => run(openSettings()),

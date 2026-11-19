@@ -56,6 +56,7 @@ import {
 } from "../commands/keymap";
 import type { Command } from "../commands/registry";
 import { resolveMessages, type MessageOverrides, type Messages } from "./messages";
+import type { ChooseOptions } from "../actions/choose";
 
 /** A drag in progress. `label` names a view dragged from a page's tabs, which may not be on screen. */
 export interface DndState {
@@ -71,11 +72,10 @@ export interface ConfirmState {
   panes: NodeId[];
   change: Change;
 }
-/** A chooser dialog opened by a command (⌘K "Add to tabs of…"). */
-export interface ChooserState {
-  kind: "merge";
-  source: NodeId;
-}
+/** A chooser dialog: ⌘K "Add to tabs of…" (`merge`), or an item asked for by the app (`choose`, actions/choose.ts). */
+export type ChooserState =
+  | { kind: "merge"; source: NodeId }
+  | { kind: "choose"; request: ChooseOptions<unknown> };
 
 /** A curated page in use (profile.ts): the item, the mode, the view Single shows, and what this person may do. */
 export interface PageState {

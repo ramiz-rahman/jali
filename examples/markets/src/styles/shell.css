@@ -1,4 +1,4 @@
-/* The page, the top bar, the status line, the picker and toasts: the app's chrome around Jali's panes. */
+/* The page, the top bar, the status line and toasts: the app's chrome around Jali's panes. */
 @layer base {
   html,
   body,
@@ -267,76 +267,6 @@
     .status-note {
       display: none;
     }
-  }
-
-  /* ---------- the instrument picker ---------- */
-  .picker {
-    width: min(520px, calc(100vw - 32px));
-    max-height: min(520px, calc(100dvh - 96px));
-    margin: 12vh auto auto;
-    padding: 0;
-    border: 1px solid var(--jali-border-strong);
-    border-radius: var(--jali-radius-menu);
-    background: var(--jali-surface-raised);
-    color: var(--jali-text);
-    box-shadow: var(--jali-shadow-dialog);
-    display: flex;
-    flex-direction: column;
-  }
-  .picker:not([open]) {
-    display: none;
-  }
-  .picker::backdrop {
-    background: var(--jali-scrim);
-  }
-  .picker-input {
-    height: 44px;
-    padding: 0 14px;
-    border: 0;
-    border-bottom: 1px solid var(--jali-border);
-    background: none;
-    font-size: 15px;
-    outline: none;
-  }
-  .picker-list {
-    margin: 0;
-    padding: 4px;
-    list-style: none;
-    overflow: auto;
-    flex: 1;
-  }
-  .picker-list li {
-    display: grid;
-    grid-template-columns: 72px 1fr auto;
-    align-items: baseline;
-    gap: 8px;
-    padding: 6px 10px;
-    border-radius: var(--jali-radius-control);
-    cursor: pointer;
-  }
-  .picker-list li[aria-selected="true"] {
-    background: var(--jali-accent-mid);
-  }
-  .picker-list b {
-    font-family: var(--jali-font-mono);
-    font-weight: 500;
-  }
-  .picker-name {
-    color: var(--jali-text-muted);
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-  .picker-class,
-  .picker-foot,
-  .picker-none {
-    color: var(--jali-text-subtle);
-    font-size: 12px;
-  }
-  .picker-foot {
-    margin: 0;
-    padding: 8px 14px;
-    border-top: 1px solid var(--jali-border);
   }
 
   /* ---------- toasts (Sonner) ---------- */

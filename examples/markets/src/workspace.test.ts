@@ -22,6 +22,19 @@ function testJali({ search = "", width = 1440, height = 900 } = {}) {
   return { jali, location, services };
 }
 
+/** What the chooser was asked (the engine's state: what Jali's chooser dialog renders). */
+const chooser = (jali: Jali) => {
+  const c = storeOf(jali).get().chooser;
+  if (c?.kind !== "choose") throw new Error("the chooser is not asking");
+  return c.request;
+};
+/** Choose the item labelled `label`, as the person would in the chooser titled `title`. */
+const choose = (jali: Jali, label: string, title: string) => {
+  const request = chooser(jali);
+  expect(request.title).toBe(title);
+  request.onChoose(request.items.find((i) => request.label(i) === label));
+};
+
 const ids = (jali: Jali) => jali.model().panes.map((p) => p.id);
 const shown = (jali: Jali, id: string) => jali.model().pane(id)?.ref.params.symbol;
 
@@ -129,17 +142,25 @@ describe("the markets workspace", () => {
     expect(listed.some((c) => c.title === "Layout: Rates desk")).toBe(true);
   });
 
-  it("opens the picker from a command, and shows the chosen chart", () => {
-    const { jali, services } = testJali();
+  it("asks for an instrument in Jali's chooser, and shows the chosen chart", () => {
+    const { jali } = testJali();
     listCommands(jali)
       .find((c) => c.id === "markets.chart")!
       .run();
-    const request = services.picker.get();
-    expect(request?.title).toBe("Open chart for…");
-    request!.onPick("GOV5Y");
+    choose(jali, "GOV5Y", "Open chart for…");
     expect(
       jali.model().panes.some((p) => p.ref.kind === "chart" && p.ref.params.symbol === "GOV5Y"),
     ).toBe(true);
+  });
+
+  it("asks only for instruments that trade, to buy", () => {
+    const { jali } = testJali();
+    listCommands(jali)
+      .find((c) => c.id === "markets.buy")!
+      .run();
+    const request = chooser(jali);
+    expect(request.items.map(request.label)).not.toContain("MX40");
+    expect(request.items.map(request.label)).toContain("LMNA");
   });
 
   it("opens a second chart as a tab of the chart, in one step", () => {
@@ -167,7 +188,7 @@ describe("the markets workspace", () => {
     listCommands(jali)
       .find((c) => c.id === "markets.watch")!
       .run();
-    services.picker.get()!.onPick("EURUSD");
+    choose(jali, "EURUSD", "Add to Equities…");
     expect(services.lists.get().find((l) => l.id === "equities")?.symbols).toContain("EURUSD");
   });
 });

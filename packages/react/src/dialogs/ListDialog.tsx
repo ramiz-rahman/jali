@@ -14,6 +14,8 @@ interface Props<T> {
   items: T[];
   keyOf(item: T): string;
   matches(item: T, query: string): boolean;
+  /** Orders the matches for a query, lowest first (equal ranks keep their order). Default: the items' order. */
+  rank?(item: T, query: string): number;
   /** The option's class and content. */
   itemClass: string;
   render(item: T): ReactNode;
@@ -39,7 +41,13 @@ export function ListDialog<T>(p: Props<T>) {
   }, []);
   const items = useMemo(() => {
     const t = q.trim().toLowerCase();
-    return p.items.filter((it) => !t || p.matches(it, t));
+    const found = p.items.filter((it) => !t || p.matches(it, t));
+    if (!t || !p.rank) return found;
+    const rank = p.rank;
+    return found
+      .map((it, n) => ({ it, n, r: rank(it, t) }))
+      .sort((a, b) => a.r - b.r || a.n - b.n)
+      .map((e) => e.it);
   }, [p.items, q]); // eslint-disable-line react-hooks/exhaustive-deps
   const sel = items[Math.min(i, items.length - 1)];
   return (
