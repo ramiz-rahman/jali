@@ -161,14 +161,11 @@ function startDrag(
       return;
     }
     const boxes = m.resolved.panes;
-    const hit = boxes.find(
-      (b) =>
-        !b.hidden &&
-        p.x >= b.rect.x &&
-        p.x <= b.rect.x + b.rect.width &&
-        p.y >= b.rect.y &&
-        p.y <= b.rect.y + b.rect.height,
-    );
+    const inside = (r: { x: number; y: number; width: number; height: number }) =>
+      p.x >= r.x && p.x <= r.x + r.width && p.y >= r.y && p.y <= r.y + r.height;
+    // A pane in a row that scrolls is there only within the strip's window: past its edge it is hidden, and the
+    // pointer is over whatever is beside the strip.
+    const hit = boxes.find((b) => !b.hidden && inside(b.rect) && (!b.clip || inside(b.clip)));
     const target = hit && hit.id !== paneId ? hit : undefined;
     let zone: Edge | "centre" | undefined = target ? zoneFor(target.rect, p.x, p.y) : undefined;
     // Own group's visible pane: edges split a tab out, the centre does nothing.

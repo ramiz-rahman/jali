@@ -1,3 +1,4 @@
+import { offsetToShow, scrolled } from "../geometry/scroll";
 import type { Edge, Layout, LayoutContext, PaneNode, ViewState } from "../types";
 import { activate, clone, find, nodes, parent, remove, unzoom, noFocus } from "../tree/tree";
 import { beside, tab } from "../tree/insert";
@@ -109,7 +110,17 @@ export function moveDirection(
   ctx: LayoutContext,
 ) {
   const nextView = unzoom(view);
-  const resolved = resolve(layout, { ...nextView, focused: pane }, ctx);
+  let resolved = resolve(layout, { ...nextView, focused: pane }, ctx);
+  // In a row that scrolls, directions are judged as on screen with the pane in view: the strip scrolled to show it.
+  // Along its content, the last pane of a week sits far right of the map beside the strip, never left of it.
+  const strip = resolved.scrollers.find((s) => s.paneIds.includes(pane));
+  const box = strip && resolved.panes.find((b) => b.id === pane);
+  if (strip && box)
+    resolved = scrolled(
+      resolved,
+      { [strip.id]: offsetToShow(strip, box.rect, 0, ctx.dir) },
+      ctx.dir,
+    );
   const target = directionalCandidates({ ...nextView, focused: pane }, resolved, dir)[0];
   return target
     ? drop(layout, nextView, pane, target.id, treeSide(dir, ctx.dir), "swap", ctx)
