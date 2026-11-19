@@ -47,10 +47,8 @@ test("Replay plays it again from the start, and a reload in the same session doe
   const replay = hero(page).getByRole("button", { name: "Replay" });
   await replay.click();
   await expect(hero(page)).toHaveAttribute("data-tour", "playing");
-  await expect(hero(page).getByRole("button", { name: "Play tour" })).toHaveAttribute(
-    "aria-pressed",
-    "true",
-  );
+  // While it plays, the button says what it will do.
+  await expect(hero(page).getByRole("button", { name: "Pause tour" })).toBeVisible();
   // Back to the start: order 1048, then the steps again.
   await expect(caption(page)).toHaveText(/^Pick an order/);
   await expect(ws(page).locator('[aria-selected="true"]')).toHaveId(/-o-1048$/);
@@ -60,10 +58,9 @@ test("Replay plays it again from the start, and a reload in the same session doe
   );
 
   // Pause holds it on its step; Play carries on.
-  const toggle = hero(page).getByRole("button", { name: "Play tour" });
-  await toggle.click();
-  await expect(toggle).toHaveAttribute("aria-pressed", "false");
+  await hero(page).getByRole("button", { name: "Pause tour" }).click();
   await expect(hero(page)).toHaveAttribute("data-tour", "paused");
+  const toggle = hero(page).getByRole("button", { name: "Play tour" });
   const held = await snapshot(page);
   await page.waitForTimeout(2500);
   expect((await snapshot(page)).selected).toBe(held.selected);
@@ -88,7 +85,6 @@ test("with reduced motion it doesn't play by itself, and Play cuts between steps
   expect(await snapshot(page)).toEqual(before);
 
   const play = hero(page).getByRole("button", { name: "Play tour" });
-  await expect(play).toHaveAttribute("aria-pressed", "false");
   await play.click();
   await expect(hero(page)).toHaveAttribute("data-tour", "playing");
   await expect(caption(page)).toHaveText(/^Less room/, { timeout: 15_000 });
@@ -113,11 +109,22 @@ test("leaving the page mid-tour leaves nothing running", async ({ page }) => {
   page.on("pageerror", (e) => errors.push(String(e)));
   await page.goto("/");
   await expect(hero(page)).toHaveAttribute("data-tour", "playing", { timeout: 10_000 });
-  expect(await page.evaluate(() => HTMLElement.prototype.focus.name)).toBe("held");
+  // The tour holds focus through the workspace, not by patching the browser.
+  expect(await page.evaluate(() => HTMLElement.prototype.focus.name)).toBe("focus");
   await page.getByRole("link", { name: "Docs", exact: true }).first().click();
   await expect(hero(page)).toHaveCount(0);
-  // The focus hold is gone with the hero, and nothing the tour scheduled runs later.
-  expect(await page.evaluate(() => HTMLElement.prototype.focus.name)).toBe("focus");
+  // Nothing the tour scheduled runs later.
   await page.waitForTimeout(4000);
   expect(errors).toEqual([]);
+});
+
+test("nothing the tour does takes keyboard focus, the palette included", async ({ page }) => {
+  await page.goto("/");
+  await expect(caption(page)).toHaveText(/^Press ⌘K/, { timeout: 25_000 });
+  // While the palette is open and being typed into, focus stays on the page.
+  await expect(hero(page).locator(".jali-palette-input")).toBeVisible({ timeout: 4_000 });
+  expect(await page.evaluate(() => document.activeElement === document.body)).toBe(true);
+  await expect(caption(page)).toHaveText(/^Close the notes/, { timeout: 15_000 });
+  expect(await page.evaluate(() => document.activeElement === document.body)).toBe(true);
+  await expect(hero(page)).toHaveAttribute("data-tour", "playing");
 });

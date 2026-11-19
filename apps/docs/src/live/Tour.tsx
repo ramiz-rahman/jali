@@ -4,7 +4,7 @@
  *  - a pointer, a key, a wheel or focus inside the figure (outside the tour's own controls) stops it for good, and the
  *    workspace stays exactly as the tour left it;
  *  - it plays once a session, when the hero is first in view, and never by itself on a phone or with reduced motion;
- *  - while it plays, nothing it does moves keyboard focus (Jali's own focus moves inside the workspace are held back);
+ *  - while it plays, nothing it does moves keyboard focus (the store's `focusHeld` holds Jali's own focus moves back);
  *  - it pauses while the hero is out of view or the tab is hidden, and everything is torn down on unmount.
  */
 import { useEffect, useRef, useState, type ReactNode, type RefObject } from "react";
@@ -229,32 +229,6 @@ function createClock() {
 type Clock = ReturnType<typeof createClock>;
 
 /**
- * While the tour plays, Jali's own focus moves into the workspace (a pane after a change, the palette's field on open,
- * the palette handing focus back) would take the reader's keyboard focus, so they are held back. `hush` also holds
- * back focus moves elsewhere for a moment, for the palette handing focus back to where it was when it opened.
- */
-function holdFocus(scope: () => HTMLElement | null) {
-  const proto = HTMLElement.prototype;
-  const original = proto.focus;
-  let hushUntil = 0;
-  function held(this: HTMLElement, options?: FocusOptions) {
-    const s = scope();
-    if (s && s.contains(this)) return;
-    if (performance.now() < hushUntil && this !== document.activeElement) return;
-    return original.call(this, options);
-  }
-  proto.focus = held;
-  return {
-    hush(ms: number) {
-      hushUntil = performance.now() + ms;
-    },
-    release() {
-      if (proto.focus === held) proto.focus = original;
-    },
-  };
-}
-
-/**
  * While the tour plays, its caption says what is happening, once per step. Jali's own announcer would also read out
  * every move the tour makes ("Showing Order 1047", "Showing Tomás Ruiz", …), so it is quiet until the tour ends.
  */
@@ -330,7 +304,7 @@ export function useTour(o: TourOptions): Tour {
     status: "idle" as TourStatus,
     step: 0,
     clock: null as Clock | null,
-    focus: null as ReturnType<typeof holdFocus> | null,
+    focus: null as UiStore | null,
     unquiet: null as (() => void) | null,
     away: false,
     held: false,
@@ -367,7 +341,7 @@ export function useTour(o: TourOptions): Tour {
     const l = live.current;
     l.clock?.stop();
     l.clock = null;
-    l.focus?.release();
+    if (l.focus) l.focus.focusHeld = false;
     l.focus = null;
     l.unquiet?.();
     l.unquiet = null;
@@ -457,7 +431,6 @@ export function useTour(o: TourOptions): Tour {
       enter() {
         const el = input();
         if (!el) return;
-        live.current.focus?.hush(400);
         el.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", bubbles: true }));
       },
     };
@@ -469,8 +442,10 @@ export function useTour(o: TourOptions): Tour {
     l.clock?.stop();
     const clock = createClock();
     l.clock = clock;
-    l.focus?.release();
-    l.focus = holdFocus(() => opts.current.wrap.current);
+    // Jali moves no focus of its own while the tour drives it, so the reader's keyboard focus stays where it was.
+    if (l.focus) l.focus.focusHeld = false;
+    l.focus = opts.current.store;
+    l.focus.focusHeld = true;
     l.unquiet ??= quietAnnouncer(opts.current.wrap.current);
     const reduced = media("(prefers-reduced-motion: reduce)");
     setCut(reduced);
@@ -579,7 +554,7 @@ export function useTour(o: TourOptions): Tour {
       clearTimeout(l.roomTimer);
       l.clock?.stop();
       l.clock = null;
-      l.focus?.release();
+      if (l.focus) l.focus.focusHeld = false;
       l.focus = null;
       l.unquiet?.();
       l.unquiet = null;
@@ -660,7 +635,6 @@ export function TourBar({
           <button
             type="button"
             className="live-tour-btn"
-            aria-pressed={playing}
             title={playing ? "Pause the tour" : "Play the tour"}
             onClick={tour.toggle}
           >
@@ -669,7 +643,7 @@ export function TourBar({
             ) : (
               <PlayIcon size={14} weight="fill" aria-hidden />
             )}
-            <span>Play tour</span>
+            <span>{playing ? "Pause tour" : "Play tour"}</span>
           </button>
         )}
         {tour.status !== "idle" ? (
