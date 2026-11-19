@@ -264,6 +264,10 @@
     .status-note {
       display: none;
     }
+    /* With the hint gone, the maker's mark still stands in the right corner. */
+    .status > .maker {
+      margin-left: auto;
+    }
   }
 
   /* ---------- toasts (Sonner) ---------- */

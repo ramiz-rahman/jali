@@ -1,13 +1,17 @@
+import { useId } from "react";
+
 /** Jali's small lockup (docs/brand/final/jali/jali-lockup-small.svg), in currentColor so the theme's --brand colours it. */
 export function JaliLockup() {
+  // Its own id: a page may show the lockup more than once (the top bar, and "built with Jali" in the status line).
+  const clip = useId();
   return (
     <svg className="brand-lockup" viewBox="12 2 183.8 96" role="img" aria-label="Jali">
       <defs>
-        <clipPath id="jali-k">
+        <clipPath id={clip}>
           <path d="M14 92.3V40A36 36 0 0 1 86 40V92.3Z" />
         </clipPath>
       </defs>
-      <g fill="currentColor" clipPath="url(#jali-k)">
+      <g fill="currentColor" clipPath={`url(#${clip})`}>
         <rect x="13.70" y="0.00" width="9.00" height="92.30" />
         <rect x="27.30" y="0.00" width="9.00" height="92.30" />
         <rect x="40.90" y="0.00" width="9.00" height="92.30" />

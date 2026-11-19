@@ -3,7 +3,7 @@
  * read from the keymap so they are right on every platform and after any rebinding.
  */
 import { Shelf, useJali, useJaliModel, useJaliState } from "@jali/react";
-import { Maker } from "../../../shared/src/maker/maker";
+import { BuiltWithJali, Maker } from "../../../shared/src/maker/maker";
 
 export function StatusLine() {
   const { keymap } = useJali();
@@ -24,6 +24,7 @@ export function StatusLine() {
         .join(" · ");
   return (
     <footer className="status" aria-label="Status">
+      <BuiltWithJali />
       <Shelf />
       <span className="status-focus">{focused ? m.title(focused) : ""}</span>
       <span className="status-hint">{hint}</span>

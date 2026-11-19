@@ -40,15 +40,8 @@
       0 10px 14px -4px rgb(0 0 0 / calc(0.2 * var(--sh))),
       0 22px 30px -14px rgb(0 0 0 / calc(0.35 * var(--sh)));
   }
-  /* The focused device: a ring round the plate (a lamp lights in its header too, chrome.css). */
-  .jali-pane[data-focused] {
-    box-shadow:
-      inset 0 1.5px 0 var(--body-hi),
-      inset 0 0 0 1px var(--body-rim),
-      0 0 0 1.5px var(--focus),
-      0 3px 0 1.5px var(--body-wall),
-      0 22px 30px -14px rgb(0 0 0 / calc(0.35 * var(--sh)));
-  }
+  /* The focused device is told by the lamp in its header alone (chrome.css): no ring, so the plates stay clean.
+     Keyboard focus inside it still shows on the control that has it. */
 
   /* ---------- tray ---------- */
   :where(.tray) {

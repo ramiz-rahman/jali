@@ -3,7 +3,7 @@
  * and a plain note that the businesses and prices are made up.
  */
 import { Shelf, useJali, useJaliState } from "@jali/react";
-import { Maker } from "../../../shared/src/maker/maker";
+import { BuiltWithJali, Maker } from "../../../shared/src/maker/maker";
 
 export function StatusLine() {
   const { keymap } = useJali();
@@ -17,6 +17,7 @@ export function StatusLine() {
         .join(", ");
   return (
     <footer className="status" aria-label="Status">
+      <BuiltWithJali />
       <Shelf />
       <span className="status-hint">{hint}</span>
       <span className="status-note">

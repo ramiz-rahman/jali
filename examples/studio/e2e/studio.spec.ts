@@ -295,18 +295,7 @@ test("each session loads and plays, with its own tracks on the desk and the time
   }
 });
 
-test("the credits are on screen: the loaded session's in the status line, all of them in Credits", async ({
-  page,
-}) => {
-  const credit = page.locator(".status-credit");
-  await expect(credit).toContainText("NASA");
-  await expect(credit).toContainText("No endorsement by NASA implied");
-  const list = page.getByRole("listbox", { name: "Sessions" });
-  await list.getByRole("option", { name: /The Light caught by the Stone/ }).click();
-  await expect(credit).toContainText("CC BY 4.0");
-  await expect(credit).toContainText("Pablo C. Budassi");
-  await list.getByRole("option", { name: /Never had an orange/ }).click();
-  await expect(credit).toContainText("Modified from DiPCo");
+test("the status line's credits key opens every credit and licence", async ({ page }) => {
   await page.locator(".status-credits").click();
   const pane = page.locator('.jali-pane[data-kind="credits"]');
   await expect(pane).toBeVisible();

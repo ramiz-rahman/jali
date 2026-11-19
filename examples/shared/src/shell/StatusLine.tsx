@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useDataLayer } from "../data/react";
 import { useJali, useJaliModel, useJaliState, Shelf } from "@jali/react";
-import { Maker } from "../maker/maker";
+import { BuiltWithJali, Maker } from "../maker/maker";
 import { useShowStats } from "./stats-pref";
 
 export function StatusLine() {
@@ -39,6 +39,7 @@ export function StatusLine() {
   const n = m.onScreen.length;
   return (
     <footer className="status" aria-label="Status" data-shelf-on={tucked ? "" : undefined}>
+      <BuiltWithJali />
       {/* Hidden panes live here, on the left, so the workspace height never changes. The count and focus step right. */}
       <Shelf />
       <span className="status-main" data-testid="status-main">

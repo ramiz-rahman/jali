@@ -463,39 +463,52 @@
       0 -1px 0 light-dark(rgb(0 0 0 / calc(0.25 * var(--sh))), #000);
     text-shadow: 0 1px 0 light-dark(rgb(255 255 255 / 0.8), rgb(0 0 0 / calc(0.6 * var(--sh))));
   }
-  .status-focus {
-    color: var(--ink);
-    font-weight: 500;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-  .status-hint {
+  /* The keys worth knowing: each a small cap standing on the rail, and what it does. */
+  .status-keys {
+    display: flex;
+    align-items: center;
+    gap: 14px;
     margin-left: auto;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-  /* The loaded session's credit: always shown (a licence asks for it), cut to the room it has; the whole of it is in
-     its tooltip and in Credits beside it. */
-  .status-credit {
     flex: 0 1 auto;
-    min-width: 8em;
-    max-width: 52%;
-    white-space: nowrap;
+    min-width: 0;
     overflow: hidden;
-    text-overflow: ellipsis;
-    padding-left: 16px;
-    border-left: 1px solid var(--seam-dark);
-    box-shadow: -1px 0 0 var(--seam-lit);
+    white-space: nowrap;
   }
+  .status-key {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    flex: none;
+  }
+  .status-key kbd {
+    display: inline-grid;
+    place-items: center;
+    min-width: 20px;
+    height: 20px;
+    padding: 0 5px;
+    box-sizing: border-box;
+    border-radius: var(--corner);
+    font-family: var(--jali-font-mono);
+    font-size: 10.5px;
+    font-weight: 500;
+    color: var(--cap-ink);
+    opacity: 1;
+    background: linear-gradient(180deg, var(--cap-1), var(--cap-2));
+    box-shadow:
+      inset 0 1px 0 var(--cap-hi),
+      inset 0 0 0 1px var(--cap-rim),
+      0 1.5px 0 var(--cap-edge);
+    text-shadow: none;
+  }
+  /* The key to every credit and licence: a small cap, like the key hints beside it but one you press. */
   .status-credits {
     flex: none;
-    height: 26px;
+    height: 24px;
     padding: 0 10px;
     border: 0;
     border-radius: var(--corner);
-    font: inherit;
+    font-family: var(--jali-font-mono);
+    font-size: 11px;
     font-weight: 500;
     color: var(--cap-ink);
     background: linear-gradient(180deg, var(--cap-1), var(--cap-2));
@@ -505,9 +518,12 @@
       0 2px 0 var(--cap-edge);
     text-shadow: none;
     cursor: pointer;
+    transition:
+      translate var(--travel),
+      box-shadow var(--travel);
   }
   .status-credits:active {
-    transform: translateY(1px);
+    translate: 0 1px;
     box-shadow:
       inset 0 0 0 1px var(--cap-rim),
       0 1px 0 var(--cap-edge);
@@ -516,25 +532,36 @@
     outline: 2px solid var(--focus);
     outline-offset: 2px;
   }
-  .status-hint {
-    flex: 0 1 auto;
-    min-width: 0;
+  /* The bookends, each engraved in the rail beyond a seam: Jali's lockup and the maker's name in the rail's ink. */
+  .status {
+    --maker-ink: var(--ink);
+    --maker-lockup: 20px;
   }
-  @media (max-width: 1100px) {
-    .status-hint {
+  .status > :is(.built-with, .maker) {
+    align-self: stretch;
+    gap: 7px;
+  }
+  .status > .built-with {
+    padding-right: 16px;
+    border-right: 1px solid var(--seam-dark);
+    box-shadow: 1px 0 0 var(--seam-lit);
+  }
+  .status > .maker {
+    padding-left: 16px;
+    border-left: 1px solid var(--seam-dark);
+    box-shadow: -1px 0 0 var(--seam-lit);
+  }
+  @media (max-width: 900px) {
+    .status-keys {
       display: none;
     }
-    .status-credit {
+    .status-credits {
       margin-left: auto;
-      max-width: none;
     }
   }
   @media (max-width: 760px) {
-    .status-focus {
-      display: none;
-    }
-    .status-credit {
-      padding-left: 0;
+    .status > :is(.built-with, .maker) {
+      padding-inline: 0;
       border: 0;
       box-shadow: none;
     }

@@ -1,5 +1,10 @@
-/* Layout only: the colour and the type come from where the mark stands (see maker.tsx). */
-.maker {
+/*
+ * Layout only: the colour and the type come from where the marks stand (see maker.tsx). These rules are outside
+ * the apps' cascade layers, so an app cannot override them from inside a layer; it dresses the marks through
+ * custom properties instead: --maker-ink (the lockup and the maker's name), --maker-lockup (the lockup's height).
+ */
+.maker,
+.built-with {
   display: inline-flex;
   align-items: center;
   gap: 0.45em;
@@ -10,16 +15,29 @@
   white-space: nowrap;
 }
 .maker:hover > span,
-.maker:focus-visible > span {
+.maker:focus-visible > span,
+.built-with:hover > span,
+.built-with:focus-visible > span {
   text-decoration: underline;
   text-underline-offset: 0.2em;
 }
 .maker-mark {
   flex: none;
 }
-/* In a status line on a small screen the mark stands alone; the link keeps its name for screen readers. */
+/* Jali's lockup at the size of the words beside it, in their colour. */
+.built-with .brand-lockup {
+  display: block;
+  height: var(--maker-lockup, 1.5em);
+  width: auto;
+  color: var(--maker-ink, inherit);
+}
+.maker {
+  color: var(--maker-ink, inherit);
+}
+/* In a status line on a small screen the marks stand alone; each link keeps its name for screen readers. */
 @media (max-width: 760px) {
-  .status .maker > span {
+  .status .maker > span,
+  .status .built-with > span {
     display: none;
   }
 }

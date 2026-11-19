@@ -1,17 +1,24 @@
 /**
- * Who made this: Jali and every example app are designed and built by Ramiz Rahman. One place for the name, the
- * mark and the link, so each app shows the same thing: `<Maker />` in its status line and `makerCommand` in ⌘K.
+ * What this is and who made it, the same in every example: "Example app built with Jali" beside Jali's lockup, and
+ * the maker's mark and name. One place for the words, the marks and the links: each app's status line starts with
+ * `<BuiltWithJali />` and ends with `<Maker />`, and `makerCommand` is in ⌘K.
  *
  * The styles here only lay the mark out. It takes its colour and its type from where it stands (`currentColor`,
  * `font: inherit`), so each app's own theme dresses it.
  */
 import type { Command } from "@jali/core";
+import { JaliLockup } from "../shell/JaliLockup";
 import "./maker.css";
 
 export const MAKER = {
   name: "Ramiz Rahman",
   url: "https://ramizrahman.com/",
   credit: "Designed and built by Ramiz Rahman",
+} as const;
+
+export const JALI = {
+  url: "https://jali.ramizrahman.com/",
+  line: "Example app built with",
 } as const;
 
 /** The monogram (docs/brand/ramiz_rahman_personal_brand/Logo), in currentColor. */
@@ -51,10 +58,26 @@ export function Maker() {
   );
 }
 
+/** "Example app built with Jali": the words and Jali's lockup, linking to Jali's site. */
+export function BuiltWithJali() {
+  return (
+    <a
+      className="built-with"
+      href={JALI.url}
+      target="_blank"
+      rel="noopener"
+      aria-label={`${JALI.line} Jali`}
+    >
+      <span>{JALI.line}</span>
+      <JaliLockup />
+    </a>
+  );
+}
+
 /** ⌘K "About": who made it, and a way to the site. */
 export const makerCommand: Command = {
   id: "app.about",
-  title: "About: designed and built by Ramiz Rahman",
+  title: "About: an example app built with Jali, by Ramiz Rahman",
   group: "Help",
   run: () => void window.open(MAKER.url, "_blank", "noopener"),
 };
