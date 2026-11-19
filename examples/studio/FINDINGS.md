@@ -12,6 +12,8 @@ Studio is built on `@jali/core` and `@jali/react` alone, with no change to `pack
 
 **Suggestion.** Hold only the follower with unsaved work and move the rest in the same change, with the same "stays put" announcement. If holding them all is deliberate, say so in the Following guide, and let the follow step report what it held (an event, or the refusal in `select`'s result).
 
+**Fixed in Jali:** only the follower with unsaved work is held, with the same "stays put" announcement, and the others move in the same change. Once its work is saved or discarded, it catches up at once. The transcript no longer keeps itself. There is no event for what was held yet: the announcement is the report.
+
 ## 2. `useActivity(undefined)` leaves the last activity standing
 
 **Wanted.** The timeline reports `"loading"` while the session's music renders, then nothing. The mixer reports `"working"` while sound goes through it, then nothing.
@@ -21,6 +23,8 @@ Studio is built on `@jali/core` and `@jali/react` alone, with no change to `pack
 **Workaround.** Pass `"idle"` instead of `undefined` (`panes/timeline.tsx`, `panes/mixer.tsx`).
 
 **Suggestion.** Make `undefined` (and unmount) clear the pane's activity, as `useUnsaved` does with a falsy value. If `undefined` must mean "leave it as it is", document that `"idle"` is the way to stop reporting.
+
+**Fixed in Jali:** `useActivity(undefined)` now clears the activity, as does unmount; Studio passes `undefined` again.
 
 ## 3. Space: no public way to give an app-wide key to an app command
 
@@ -37,6 +41,8 @@ Studio is built on `@jali/core` and `@jali/react` alone, with no change to `pack
 
 **Suggestion.** Either let an app command take a single key when the app says it is app-wide (for example `keymap: { "studio.play": { keys: "Space", when: "not-typing" } }`), applied by Jali after the content has had its turn and with Jali's own typing and control checks; or export the check (`keyBelongsToContent(event)`) so apps don't copy it. Document the Space convention for lists in one place, with what an app should do when it wants Space for itself.
 
+**Fixed in Jali:** `keyBelongsToContent(event)` is exported from `@jali/react`, documented with the Space convention in the commands and keys guide. `shell/keys.ts` uses it.
+
 ## 4. A layout switch leaves a list and its new follower disagreeing
 
 **Wanted.** Compare starts with segment 4 kept and segment 6 following the transcript. The transcript is the same pane in Edit and Compare (same id, same object), so it keeps its state and its cursor.
@@ -46,6 +52,8 @@ Studio is built on `@jali/core` and `@jali/react` alone, with no change to `pack
 **Workaround.** The transcript watches `presetId`; on a change it adopts the segment its follower shows (`panes/transcript.tsx`). The layout's word wins, so Compare starts on 4 and 6 as designed.
 
 **Suggestion.** After a preset (or `setLayout`) puts a new follower beside a list that has a selection, decide one way and do it: follow the list's selection, or reset the selection to match. A preset option could say which.
+
+**Fixed in Jali:** the layout's word wins. After a preset or `setLayout`, a follower of the selected kind resets the list's selection to what it shows, and with none of that kind the followers follow the selection. The transcript no longer watches `presetId`, and Compare still starts on 4 kept and 6 following.
 
 ## 5. Tokens are `light-dark()` pairs, which a canvas can't read
 
