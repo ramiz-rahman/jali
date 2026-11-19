@@ -93,7 +93,6 @@ describe("the instance", () => {
         "undo",
         "tuck",
         "putBack",
-        "reveal",
         "move",
         "swapWithNext",
         "mergeInto",
@@ -115,7 +114,14 @@ describe("the instance", () => {
         "changeSettings",
       ].sort(),
     );
-    for (const step of ["commitDividerDrag", "noteOpen", "arrive", "setPaneState", "setActivity"])
+    for (const step of [
+      "commitDividerDrag",
+      "noteOpen",
+      "arrive",
+      "setPaneState",
+      "setActivity",
+      "reveal",
+    ])
       expect(names).not.toContain(step);
   });
 

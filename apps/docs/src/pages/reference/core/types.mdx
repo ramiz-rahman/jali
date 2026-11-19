@@ -758,7 +758,7 @@ A pane, by its id or by the object it shows. A ref means the pane showing that o
 A pane that is not there gives `reason: "not-found"`. What a refusal reads out to screen readers is the same as before; `message` holds it.
 
 <Members title="Focus">
-<Member name="actions.focus" signature="focus(pane: PaneTarget)">Focus a pane.</Member>
+<Member name="actions.focus" signature="focus(pane: PaneTarget)">Focus a pane and show it. A pane that is folded, tucked or behind another tab has its tab chosen; nothing else on screen moves. While another pane is maximised, this one is maximised instead.</Member>
 <Member name="actions.toggleZoom" signature="toggleZoom(pane?: PaneTarget)">Maximise or restore. Refused with `"single-view"` in a curated page's Single view; nothing with one pane.</Member>
 </Members>
 
@@ -784,7 +784,6 @@ A pane that is not there gives `reason: "not-found"`. What a refusal reads out t
 <Members title="Tuck, move and tabs">
 <Member name="actions.tuck" signature="tuck(pane?: PaneTarget)">Tuck a pane into its neighbour. Without `pane`, the focused pane or the one focused last.</Member>
 <Member name="actions.putBack" signature="putBack(pane?: PaneTarget)">Put a tucked pane back where it was. Without `pane`, the focused pane if it is tucked, else the most recently tucked.</Member>
-<Member name="actions.reveal" signature="reveal(pane: PaneTarget)">Show a pane that is folded, tucked or behind a tab, by choosing its tab, and focus it.</Member>
 <Member name="actions.move" signature="move(pane: PaneTarget, direction: Edge)">Move a pane past its neighbour. `"blocked"` at the edge.</Member>
 <Member name="actions.swapWithNext" signature="swapWithNext(pane?: PaneTarget)">Swap with the next pane on screen (or the previous, for the last).</Member>
 <Member name="actions.mergeInto" signature="mergeInto(pane: PaneTarget, target: PaneTarget)">`pane` joins `target`'s tab group.</Member>

@@ -9,7 +9,7 @@ import { blotter } from "./panes/blotter";
  *  - the pane that already shows it is revealed (one object, one pane);
  *  - else it opens as a tab of a pane of the same kind on screen (a second chart joins the chart), or of `tabWith`;
  *  - else beside `from` (default: the focused pane).
- * `reveal` brings it to the front even when the desk is full and Jali folds it into a tab.
+ * Focusing it brings it to the front even when the desk is full and Jali folds it into a tab.
  */
 export function show(
   jali: Jali,
@@ -19,7 +19,7 @@ export function show(
   const m = jali.model();
   const open = m.panes.find((p) => jali.env.kinds.sameObject(p.ref, ref));
   if (open) {
-    jali.actions.reveal(open.id);
+    jali.actions.focus(open.id);
     return open.id;
   }
   const onScreen = new Set(m.resolved.panes.filter((b) => !b.hidden).map((b) => b.id));
@@ -29,7 +29,7 @@ export function show(
   const id = source ? jali.actions.openBeside(source, ref).pane : undefined;
   if (!id) return undefined;
   if (into && jali.model().pane(into)) jali.actions.mergeInto(id, into);
-  jali.actions.reveal(id);
+  jali.actions.focus(id);
   return id;
 }
 
@@ -48,7 +48,7 @@ export function openFollowing(jali: Jali, list: NodeId, ref: ObjectRef): NodeId 
   if (follower) {
     // Folded behind a tab (a phone, a crowded desk): bring it to the front, since the person asked to open it.
     const hidden = !jali.model().resolved.panes.some((b) => b.id === follower.id && !b.hidden);
-    if (hidden) jali.actions.reveal(follower.id);
+    if (hidden) jali.actions.focus(follower.id);
     return follower.id;
   }
   return jali.actions.openBeside(list, ref).pane;

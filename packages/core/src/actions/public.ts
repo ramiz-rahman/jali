@@ -16,7 +16,7 @@ import type { ItemId, ViewMode } from "../profile";
 import { refuse, type ActionResult, type Outcome, type Snapshot } from "../state/apply";
 import type { Settings } from "../state/settings";
 import { close, closeOthers, remove, undo } from "./close";
-import { focus, toggleZoom } from "./focus";
+import { focusShown, toggleZoom } from "./focus";
 import { sameRef, setPinned } from "./follow";
 import {
   changeSettings,
@@ -41,7 +41,7 @@ import {
 } from "./page";
 import { peek, select } from "./peek";
 import { mergeInto, unmerge } from "./tabs";
-import { putBack, reveal, tuck } from "./tuck";
+import { putBack, tuck } from "./tuck";
 
 /** A pane, by its id or by the object it shows. */
 export type PaneTarget = NodeId | ObjectRef;
@@ -56,7 +56,8 @@ export interface OpenPageOptions {
 
 export interface JaliActions {
   // ---------- focus ----------
-  /** Focus a pane. */
+  /** Focus a pane, and show it: a pane that is folded, tucked or behind another tab has its tab chosen (nothing else
+   *  moves), and while another pane is maximised, this one is maximised instead. */
   focus(pane: PaneTarget): ActionResult;
   /** Maximise a pane (default: the focused one), or restore it. */
   toggleZoom(pane?: PaneTarget): ActionResult;
@@ -99,8 +100,6 @@ export interface JaliActions {
   tuck(pane?: PaneTarget): ActionResult;
   /** Put a tucked pane back where it was (default: the most recently tucked one). */
   putBack(pane?: PaneTarget): ActionResult;
-  /** Show a pane that is off screen (folded, tucked or behind another tab) and focus it. */
-  reveal(pane: PaneTarget): ActionResult;
   /** Move a pane one step towards an edge. */
   move(pane: PaneTarget, direction: Edge): ActionResult;
   /** Swap a pane (default: the focused one) with the next pane on screen. */
@@ -189,7 +188,7 @@ export function publicActions(run: Run): JaliActions {
     });
 
   return {
-    focus: (pane) => on(pane, focus),
+    focus: (pane) => on(pane, focusShown),
     toggleZoom: (pane) => opt(pane, (x, id) => toggleZoom(x, id)),
 
     openBeside: (pane, ref) => on(pane, (x, id) => openBeside(x, id, ref)),
@@ -219,7 +218,6 @@ export function publicActions(run: Run): JaliActions {
 
     tuck: (pane) => opt(pane, (x, id) => tuck(x, id)),
     putBack: (pane) => opt(pane, (x, id) => putBack(x, id)),
-    reveal: (pane) => on(pane, reveal),
     move: (pane, direction) => on(pane, (x, id) => moveDirection(x, direction, id)),
     swapWithNext: (pane) => opt(pane, (x, id) => swapWithNext(x, id)),
     mergeInto: (pane, target) => both(pane, target, mergeInto),
