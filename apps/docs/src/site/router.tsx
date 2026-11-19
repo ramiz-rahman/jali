@@ -1,5 +1,8 @@
 /** A small client router: the address's path picks the page; links with `data-nav` or plain same-origin anchors navigate in place. */
-import { useEffect, useSyncExternalStore } from "react";
+import { createContext, useContext, useEffect, useSyncExternalStore } from "react";
+
+/** The path the page was prerendered for: what the server renders, and what hydration must match. */
+export const InitialPath = createContext("/");
 
 const listeners = new Set<() => void>();
 const notify = () => {
@@ -18,13 +21,14 @@ export function navigate(to: string) {
 }
 
 export function usePath(): string {
+  const initial = useContext(InitialPath);
   return useSyncExternalStore(
     (l) => {
       listeners.add(l);
       return () => listeners.delete(l);
     },
     currentPath,
-    () => "/",
+    () => initial,
   );
 }
 

@@ -12,7 +12,7 @@ import {
 } from "react";
 import { MDXProvider } from "@mdx-js/react";
 import { pages, type Frontmatter } from "../site/pages";
-import { usePath, useLinkInterception } from "../site/router";
+import { InitialPath, usePath, useLinkInterception } from "../site/router";
 import { MARKDOWN_TABLES } from "../site/markdown-tables";
 import { sources, toMarkdown } from "../site/sources";
 import { SITE_NAME } from "../site/config";
@@ -32,6 +32,14 @@ interface Loaded {
 }
 
 const cache = new Map<string, Loaded>();
+
+/**
+ * Puts a page's module in the cache before the first render, so the prerender (src/pages/[...slug].astro) and the
+ * hydration that follows (Site.tsx) both render the page at once instead of an empty shell.
+ */
+export function seedPage(path: string, m: { default: ComponentType; frontmatter: Frontmatter }) {
+  cache.set(path, { path, Component: m.default, frontmatter: m.frontmatter });
+}
 
 function useLoadedPage(path: string): Loaded | null {
   const [loaded, setLoaded] = useState<Loaded | null>(() => cache.get(path) ?? null);

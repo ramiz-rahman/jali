@@ -11,7 +11,7 @@
     "isolatedModules": true,
     "noUncheckedIndexedAccess": true,
     "customConditions": ["source"],
-    "types": ["vite/client", "mdx", "node"]
+    "types": ["astro/client", "mdx", "node"]
   },
-  "include": ["src", "vite.config.ts"]
+  "include": ["src", ".astro/types.d.ts"]
 }

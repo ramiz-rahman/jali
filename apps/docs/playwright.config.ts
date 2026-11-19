@@ -12,7 +12,7 @@ export default defineConfig({
   workers: 1,
   reporter: [["list"]],
   webServer: {
-    command: `JALI_DOCS_CACHE=node_modules/.vite-e2e pnpm exec vp dev --port ${port} --strictPort`,
+    command: `JALI_DOCS_CACHE=node_modules/.vite-e2e pnpm exec astro dev --port ${port} --strictPort`,
     url: URL,
     reuseExistingServer: true,
     timeout: 60_000,
