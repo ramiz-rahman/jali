@@ -267,7 +267,9 @@ function TranscriptBody({
 
   return (
     <div className="pane-body transcript">
-      <div className="toolbar">
+      {/* One control row: the follow latch, the segment counter on a small LCD, the selected segment's keys, and
+          (when there are corrections) their save keys. It wraps onto a second row in a narrow pane. */}
+      <div className="toolbar tr-controls">
         <button
           type="button"
           className="key key-latch"
@@ -279,9 +281,70 @@ function TranscriptBody({
           <span className="led" aria-hidden />
           follow playback
         </button>
-        <span className="toolbar-note mono">
-          {segs.length} segments · {clock(session.duration)}
+        <span className="tr-counter lcd" aria-label={`Segment ${at + 1} of ${segs.length}`}>
+          <b>{String(at + 1).padStart(2, "0")}</b>/{String(segs.length).padStart(2, "0")}
         </span>
+        {/* The selected segment's keys: real buttons, outside the list, so no control sits inside a row. */}
+        <div className="segment-keys" role="toolbar" aria-label={`Segment ${at + 1}`}>
+          <span className="keyset" role="group" aria-label="Playback">
+            <button
+              type="button"
+              className="key key-s"
+              title={`Play from this segment (${keyHint("Enter")})`}
+              onMouseDown={keepFocus}
+              onClick={() => playFrom(current)}
+            >
+              <PlayIcon size={13} weight="fill" aria-hidden />
+              <span className="key-word">play</span>
+            </button>
+            <button
+              type="button"
+              className="key key-s key-latch"
+              aria-pressed={loop?.segment === current.id}
+              title="Loop this segment (L)"
+              onMouseDown={keepFocus}
+              onClick={() => loopSegment(current)}
+            >
+              <span className="led" aria-hidden />
+              <RepeatIcon size={14} aria-hidden />
+              <span className="key-word">loop</span>
+            </button>
+          </span>
+          <span className="keyset" role="group" aria-label="Edit">
+            <button
+              type="button"
+              className="key key-s"
+              title="Correct this segment (E)"
+              onMouseDown={keepFocus}
+              onClick={() => edit(current)}
+            >
+              <NotePencilIcon size={14} aria-hidden />
+              <span className="key-word">correct</span>
+            </button>
+            <button
+              type="button"
+              className="key key-s"
+              title={`Rename ${view.speakerName(view.speakerOf(current))}`}
+              onMouseDown={keepFocus}
+              onClick={() => setRenaming(current.id)}
+            >
+              <UserIcon size={14} aria-hidden />
+              <span className="key-word">rename</span>
+            </button>
+          </span>
+          <span className="keyset">
+            <button
+              type="button"
+              className="key key-s"
+              title={`Open this segment's detail (${keyHint("Alt+Enter")})`}
+              onMouseDown={keepFocus}
+              onClick={() => openDetail(current)}
+            >
+              <TextAlignLeftIcon size={14} aria-hidden />
+              <span className="key-word">detail</span>
+            </button>
+          </span>
+        </div>
         <span className="toolbar-end">
           {count ? (
             <>
@@ -305,68 +368,6 @@ function TranscriptBody({
               {Object.keys(view.edits.corrections).length} corrected
             </span>
           ) : null}
-        </span>
-      </div>
-      {/* The selected segment's keys: real buttons, outside the list, so no control sits inside a row. */}
-      <div className="toolbar segment-keys" role="toolbar" aria-label={`Segment ${at + 1}`}>
-        <span className="legend">seg {String(at + 1).padStart(2, "0")}</span>
-        <span className="keyset" role="group" aria-label="Playback">
-          <button
-            type="button"
-            className="key key-s"
-            title={`Play from this segment (${keyHint("Enter")})`}
-            onMouseDown={keepFocus}
-            onClick={() => playFrom(current)}
-          >
-            <PlayIcon size={13} weight="fill" aria-hidden />
-            <span className="key-word">play</span>
-          </button>
-          <button
-            type="button"
-            className="key key-s key-latch"
-            aria-pressed={loop?.segment === current.id}
-            title="Loop this segment (L)"
-            onMouseDown={keepFocus}
-            onClick={() => loopSegment(current)}
-          >
-            <span className="led" aria-hidden />
-            <RepeatIcon size={14} aria-hidden />
-            <span className="key-word">loop</span>
-          </button>
-        </span>
-        <span className="keyset" role="group" aria-label="Edit">
-          <button
-            type="button"
-            className="key key-s"
-            title="Correct this segment (E)"
-            onMouseDown={keepFocus}
-            onClick={() => edit(current)}
-          >
-            <NotePencilIcon size={14} aria-hidden />
-            <span className="key-word">correct</span>
-          </button>
-          <button
-            type="button"
-            className="key key-s"
-            title={`Rename ${view.speakerName(view.speakerOf(current))}`}
-            onMouseDown={keepFocus}
-            onClick={() => setRenaming(current.id)}
-          >
-            <UserIcon size={14} aria-hidden />
-            <span className="key-word">rename</span>
-          </button>
-        </span>
-        <span className="keyset">
-          <button
-            type="button"
-            className="key key-s"
-            title={`Open this segment's detail (${keyHint("Alt+Enter")})`}
-            onMouseDown={keepFocus}
-            onClick={() => openDetail(current)}
-          >
-            <TextAlignLeftIcon size={14} aria-hidden />
-            <span className="key-word">detail</span>
-          </button>
         </span>
       </div>
       {!inTransport ? <NotInTransport session={session.id} /> : null}

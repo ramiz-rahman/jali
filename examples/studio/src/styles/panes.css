@@ -1195,3 +1195,70 @@
     padding-right: 58px;
   }
 }
+
+@layer app {
+  /*
+   * ---------- transcript: a reading surface set into the faceplate ----------
+   * One control row above it (the follow latch, the segment counter on a small LCD, the segment's keysets, the
+   * save keys when there are corrections), wrapping in a narrow pane. The sheet sits in a frame: a black bezel and a
+   * ruled gutter down its left for the timecodes, so the text column starts on one line and reads at about 65
+   * characters a line.
+   */
+  .tr-controls {
+    flex-wrap: wrap;
+    row-gap: 8px;
+    gap: 10px;
+    padding-block: 8px;
+  }
+  .tr-controls .segment-keys {
+    display: flex;
+    gap: 8px;
+    min-height: 0;
+    padding: 0;
+    border: 0;
+    flex-wrap: wrap;
+  }
+  .tr-counter {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 1px;
+    height: 30px;
+    box-sizing: border-box;
+    padding: 0 10px;
+    align-items: center;
+    font-family: var(--font-readout);
+    font-size: 12px;
+    color: var(--lcd-dim);
+  }
+  .tr-counter b {
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--lcd-ink);
+  }
+  .tr-controls .toolbar-end:empty {
+    display: none;
+  }
+  .tr-rows {
+    margin: 0 12px 12px;
+    background:
+      linear-gradient(90deg, transparent 77px, var(--paper-rule) 77px, var(--paper-rule) 78px, transparent 78px),
+      var(--paper);
+    box-shadow:
+      inset 0 0 0 1px light-dark(rgb(0 0 0 / 0.14), rgb(0 0 0 / 0.7)),
+      inset 0 2px 4px rgb(0 0 0 / 0.14),
+      0 0 0 3px light-dark(#b9b8b3, #0b0b0c),
+      0 1px 0 3px var(--seam-lit);
+  }
+  .tr-text {
+    max-width: 66ch;
+  }
+  .tr-time {
+    font-size: 11px;
+    padding-top: 6px;
+  }
+  @container (max-width: 460px) {
+    .tr-rows {
+      background: var(--paper);
+    }
+  }
+}
