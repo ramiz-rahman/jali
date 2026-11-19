@@ -4,7 +4,8 @@
  *
  * Corrections are the pane's work. They are a draft in pane state (kept through folds, tabs and reloads) until the
  * person saves them, and while there are some the pane reports unsaved work, so closing it, a preset without it, or
- * the library moving on asks first (or, for a following pane, keeps it on its session and says why).
+ * the library moving on asks first (or, for a following pane, keeps it on its session and says why, while the
+ * library's other followers move on; once saved or discarded it catches up).
  *
  * Keys, while the transcript has focus: J/K or the arrows move, Enter plays from the segment, ⌥Enter opens its detail,
  * E edits it, L loops it, ⇧Space peeks it, ⌘S saves. Space is the transport's.
@@ -100,24 +101,6 @@ function TranscriptBody({
     count > 0 &&
       `${count} unsaved ${count === 1 ? "correction" : "corrections"} in “${session.title}”`,
   );
-
-  // Jali holds a whole follow step when one follower has unsaved work, so unsaved corrections here would stop the
-  // timeline, the mixer and the markers following the library too (FINDINGS.md). While there are some, the
-  // transcript keeps itself on its session instead (Keep, in its header), and lets go once they are saved or
-  // discarded, catching up with the library at once. A Keep the person pressed is theirs: it is left alone.
-  const keptForWork = useRef(false);
-  const hasWork = count > 0;
-  useEffect(() => {
-    const me = jali.model().pane(node.id);
-    if (!me) return; // the peek sheet: not in the layout
-    if (hasWork && me.follows && !me.kept) {
-      keptForWork.current = true;
-      jali.actions.setKept(node.id, true);
-    } else if (!hasWork && keptForWork.current) {
-      keptForWork.current = false;
-      if (me.kept) jali.actions.setKept(node.id, false);
-    }
-  }, [hasWork, jali, node.id]);
 
   // Tell Jali which segment is selected: the detail that follows the transcript shows it.
   const moveTo = (id: string) => {
