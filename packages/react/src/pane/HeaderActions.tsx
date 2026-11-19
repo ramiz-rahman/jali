@@ -1,4 +1,4 @@
-import { checkTuck, tuckHome } from "@jali/core/adapter";
+import { allows, checkTuck, tuckHome } from "@jali/core/adapter";
 import { useJaliIcons } from "../icons/context";
 import { useModel, useStore, useUi } from "../state/react";
 import type { Chrome } from "@jali/core/adapter";
@@ -29,9 +29,13 @@ export function HeaderActions({ id, title, zoomed, chrome, tabs }: P) {
   const closeHint = store.get().page && node?.role ? t.closeViewTip : t.closeTip;
   // On the whole screen, the way back is Exit full screen; Maximise's Restore would leave half of it.
   const full = useUi((s) => s.fullScreen === id);
-  const canTuck = chrome.tuckable && !zoomed;
-  const showClose = chrome.closeWithTabs || !tabs;
-  if (!canTuck && !chrome.zoomable && !chrome.fullScreenable && !showClose) return null;
+  // What the app allows for this pane (`allow`): a control it turns off has no button.
+  const x = store.snapshot();
+  const canTuck = chrome.tuckable && !zoomed && allows(x, id, "tuck");
+  const canZoom = chrome.zoomable && !full && (zoomed || allows(x, id, "maximise"));
+  const canFull = chrome.fullScreenable && (full || allows(x, id, "fullScreen"));
+  const showClose = (chrome.closeWithTabs || !tabs) && allows(x, id, "close");
+  if (!canTuck && !canZoom && !canFull && !showClose) return null;
   return (
     <div className="jali-pane-actions">
       {canTuck ? (
@@ -45,8 +49,8 @@ export function HeaderActions({ id, title, zoomed, chrome, tabs }: P) {
           <icon.tuck size={14} aria-hidden />
         </button>
       ) : null}
-      {chrome.zoomable && !full ? <ZoomButton id={id} title={title} zoomed={zoomed} /> : null}
-      {chrome.fullScreenable ? <FullScreenButton id={id} title={title} /> : null}
+      {canZoom ? <ZoomButton id={id} title={title} zoomed={zoomed} /> : null}
+      {canFull ? <FullScreenButton id={id} title={title} /> : null}
       {showClose ? (
         <button
           className="jali-icon-btn jali-act-close"

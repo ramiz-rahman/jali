@@ -1,3 +1,4 @@
+import { notAllowed } from "./allow";
 import * as core from "../layout";
 import { treeSide } from "../layout/geometry/direction";
 import type { NodeId } from "../layout/types";
@@ -45,7 +46,10 @@ export const checkMerge = (x: Snapshot) =>
   mergeTargets(x).length ? undefined : refuse("nothing-to-do");
 
 /** Merge without dragging (WCAG 2.5.7): the pane joins `target`'s stack as a tab. Same op as a centre drop in tab mode. */
-export function mergeInto({ s, m, ctx }: Snapshot, source: NodeId, target: NodeId): Outcome {
+export function mergeInto(x: Snapshot, source: NodeId, target: NodeId): Outcome {
+  const { s, m, ctx } = x;
+  const denied = notAllowed(x, source, "move");
+  if (denied) return denied;
   if (!m.pane(source) || !m.pane(target) || source === target) return null;
   const r = core.drop(s.layout, unzoomed(s.view), source, target, "centre", "tab", ctx);
   const text = m.stackOf(target)
@@ -58,7 +62,10 @@ export const checkUnmerge = ({ s, m }: Snapshot) =>
   m.stackOf(s.view.focused) ? undefined : refuse("nothing-to-do");
 
 /** Move a tab out of its stack, to the right of the stack. Same op as dragging the tab to the right edge. */
-export function unmerge({ s, m, ctx }: Snapshot, id = s.view.focused): Outcome {
+export function unmerge(x: Snapshot, id = x.s.view.focused): Outcome {
+  const { s, m, ctx } = x;
+  const denied = notAllowed(x, id, "move");
+  if (denied) return denied;
   const st = m.stackOf(id);
   if (!id || !st) return refuse("nothing-to-do", say(m).notInTabs(m.title(id)));
   const other = st.children.find((c) => c.id !== id)!;
@@ -91,7 +98,10 @@ export function setActiveTab({ s, m, ctx }: Snapshot, stack: NodeId, pane: NodeI
 }
 
 /** Move a tab to position `index` (from 0) in its group: same op from a drag between tabs, a key or the app. */
-export function moveTab({ s, m }: Snapshot, id: NodeId, index: number): Outcome {
+export function moveTab(x: Snapshot, id: NodeId, index: number): Outcome {
+  const { s, m } = x;
+  const denied = notAllowed(x, id, "move");
+  if (denied) return denied;
   const st = m.stackOf(id);
   if (!st) return refuse("nothing-to-do", say(m).notInTabs(m.title(id)));
   const layout = core.moveTab(s.layout, id, index);
@@ -135,7 +145,10 @@ export const checkMoveTab = ({ s, m }: Snapshot) =>
   m.stackOf(s.view.focused) ? undefined : refuse("nothing-to-do");
 
 /** Pin a tab (`true`) or unpin it: pinned tabs come first in their group and stay when others are closed together. */
-export function setPinned({ s, m }: Snapshot, id: NodeId, pinned: boolean): Outcome {
+export function setPinned(x: Snapshot, id: NodeId, pinned: boolean): Outcome {
+  const { s, m } = x;
+  const denied = notAllowed(x, id, "pin");
+  if (denied) return denied;
   if (!m.pane(id)) return refuse("not-found");
   const layout = core.setPinned(s.layout, id, pinned);
   if (layout === s.layout) return null;

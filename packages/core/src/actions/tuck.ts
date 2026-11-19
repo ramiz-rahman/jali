@@ -1,3 +1,4 @@
+import { notAllowed } from "./allow";
 import * as core from "../layout";
 import type { NodeId, TuckRefusal } from "../layout/types";
 import { refuse, type Outcome, type RefusalStep, type Snapshot } from "../state/apply";
@@ -32,6 +33,8 @@ export function checkTuck(x: Snapshot, id?: NodeId): RefusalStep | undefined {
   if (x.s.page?.mode === "single") return refuse("single-view", say(x).singleNoLayout);
   const target = tuckTarget(x, id);
   if (!target) return refuse("not-found", say(x).noFocus);
+  const denied = notAllowed(x, target, "tuck");
+  if (denied) return denied;
   const r = core.canTuck(x.s.layout, target, x.ctx);
   return r.ok ? undefined : tuckRefusal(x, target, r.reason);
 }
@@ -41,6 +44,8 @@ export function checkTuck(x: Snapshot, id?: NodeId): RefusalStep | undefined {
  * nothing else moves or unfolds. Focus moves into the home. Undo (⌘K ⌘Z) puts it back.
  */
 export function tuck(x: Snapshot, id?: NodeId): Outcome {
+  const denied = notAllowed(x, id ?? x.s.view.focused, "tuck");
+  if (denied) return denied;
   if (x.s.page?.mode === "single") return refuse("single-view", say(x).singleNoLayout);
   const target = tuckTarget(x, id);
   if (!target) return refuse("not-found", say(x).noFocus);

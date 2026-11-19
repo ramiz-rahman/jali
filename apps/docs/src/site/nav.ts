@@ -39,6 +39,7 @@ export const NAV: NavSection[] = [
       { path: "/guides/url-and-routers" },
       { path: "/guides/unsaved-work-and-pane-state" },
       { path: "/guides/tabs" },
+      { path: "/guides/pane-controls" },
       { path: "/guides/commands-and-keys" },
       { path: "/guides/theming" },
       { path: "/guides/translating" },

@@ -13,6 +13,8 @@
  * or closes panes (`arrange`). A close that would lose unsaved work still asks the person.
  */
 import { withInput } from "./dom/input";
+import { PANE_CONTROLS, allows } from "./actions/allow";
+import { storeOf } from "./state/instance";
 import type { Layout, ObjectRef } from "./layout/types";
 import type { ActionResult } from "./state/apply";
 import type { Jali } from "./state/instance";
@@ -98,6 +100,8 @@ export interface AgentPane {
   follows?: true;
   /** It has unsaved work: closing it asks the person. */
   unsaved?: string;
+  /** What the app doesn't allow for this pane (`allow`): asking for it is refused. */
+  notAllowed?: string[];
   activity?: string;
 }
 
@@ -220,6 +224,8 @@ export function createAgent(jali: Jali, options: AgentOptions = {}): JaliAgent {
               ? "folded"
               : "tab";
       const unsaved = s.unsaved[p.id];
+      const x = storeOf(jali).snapshot();
+      const denied = PANE_CONTROLS.filter((c) => c !== "popOut" && !allows(x, p.id, c));
       const activity = s.activity[p.id];
       return {
         id: p.id,
@@ -235,6 +241,7 @@ export function createAgent(jali: Jali, options: AgentOptions = {}): JaliAgent {
         ...(p.linkedTo ? { linkedTo: p.linkedTo } : {}),
         ...(p.follows ? { follows: true as const } : {}),
         ...(unsaved ? { unsaved: typeof unsaved === "string" ? unsaved : "unsaved work" } : {}),
+        ...(denied.length ? { notAllowed: denied } : {}),
         ...(activity && activity !== "idle" ? { activity } : {}),
       };
     });

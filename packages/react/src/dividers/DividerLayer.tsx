@@ -9,6 +9,7 @@ import {
   isDividerDragging,
   startDividerDrag,
   geometryFor,
+  dividerAllowed,
 } from "@jali/core/adapter";
 import { useModel, useStore, useUi } from "../state/react";
 import { Divider } from "./Divider";
@@ -26,7 +27,8 @@ export function DividerLayer() {
     <div className="jali-divider-layer">
       {m.resolved.dividers.map((d) => {
         const g = geometryFor(m, d);
-        if (!g) return null;
+        // A divider beside a pane the app doesn't let resize (`allow: { resize: false }`) isn't drawn: no handle.
+        if (!g || !dividerAllowed(store.snapshot(), d.parentId, d.index)) return null;
         return (
           <Divider
             key={dividerKey(d)}

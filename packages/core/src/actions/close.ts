@@ -1,3 +1,4 @@
+import { allows, notAllowed } from "./allow";
 import * as core from "../layout";
 import type { NodeId } from "../layout/types";
 import { refuse, type Outcome, type Snapshot } from "../state/apply";
@@ -9,6 +10,8 @@ import { backToPage, hideRole } from "./page";
 const unzoomed = core.tree.unzoom;
 
 export function close(x: Snapshot, id = x.s.view.focused): Outcome {
+  const denied = notAllowed(x, id, "close");
+  if (denied) return denied;
   const { s, m, ctx } = x;
   if (!id || !m.pane(id)) return null;
   // In a curated page a view is never closed for good: it goes back to the tabs.
@@ -63,6 +66,26 @@ export function closeOthers(x: Snapshot, id = x.s.view.focused): Outcome {
   if (s.page) return backToPage(x);
   if (!id) return null;
   if (m.panes.length <= 1) return refuse("nothing-to-do", say(x).noOtherPanes);
+  // Panes the app keeps (`allow: { close: false }`) stay; the rest close in one change.
+  const kept = m.panes.filter((p) => p.id !== id && !allows(x, p.id, "close"));
+  if (kept.length) {
+    const closing = m.panes.filter((p) => p.id !== id && allows(x, p.id, "close")).map((p) => p.id);
+    if (!closing.length) return refuse("nothing-to-do", say(x).noOtherPanes);
+    let layout = s.layout,
+      view = unzoomed(s.view);
+    for (const p of closing) ({ layout, view } = core.close(layout, view, p, ctx));
+    return {
+      op: "closeOthers",
+      layout,
+      view: core.focus(view, id, ctx),
+      msg: say(x).othersClosed,
+      toast: messagesOf(x).toasts.othersClosed(),
+      undo: pushUndo(s.undoStack, {
+        kind: "closeOthers",
+        before: { layout: core.tree.clone(s.layout), view: core.tree.clone(s.view) },
+      }),
+    };
+  }
   const r = core.closeOthers(s.layout, unzoomed(s.view), id, ctx);
   return {
     op: "closeOthers",
@@ -102,12 +125,13 @@ export function closeTabs(x: Snapshot, id: NodeId, which: "others" | "after"): O
 }
 
 /** The tabs `closeTabs` would close: of `id`'s group, the others or those after it, but never a pinned tab. */
-export function tabsToClose({ m }: Snapshot, id: NodeId, which: "others" | "after"): NodeId[] {
-  const st = m.stackOf(id);
+export function tabsToClose(x: Snapshot, id: NodeId, which: "others" | "after"): NodeId[] {
+  const st = x.m.stackOf(id);
   if (!st) return [];
   const at = st.children.findIndex((c) => c.id === id);
   return st.children
     .filter((c, i) => !c.pinned && (which === "others" ? i !== at : i > at))
+    .filter((c) => allows(x, c.id, "close"))
     .map((c) => c.id);
 }
 

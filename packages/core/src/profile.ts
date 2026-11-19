@@ -110,6 +110,8 @@ export interface Env {
   rename?: import("./actions/rename").Rename;
   /** How the workspace behaves on a phone (`createJali({ phone })`). */
   phone?: PhoneOptions;
+  /** What may happen to panes (`createJali({ allow })`). */
+  allow?: import("./actions/allow").WorkspaceAllow;
 }
 
 /** How the workspace behaves on a phone. */

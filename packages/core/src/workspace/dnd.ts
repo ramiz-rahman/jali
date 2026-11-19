@@ -3,6 +3,7 @@
  * swaps or adds a tab (Settings). Esc or a drop outside a pane cancels. Zoomed and single-pane layouts don't drag.
  * The drag lives in this closure and in `dnd` state; there is no module state.
  */
+import { allows } from "../actions/allow";
 import type { Edge, Rect } from "../layout/types";
 import type { UiStore } from "../state/store";
 import { GAP } from "../tokens";
@@ -130,6 +131,8 @@ function startDrag(
   let started = false;
   const handle = { dragged: () => started };
   if (e.button !== 0) return handle;
+  // A pane the app doesn't let move never starts a drag (from outside, the dragged thing isn't a pane yet).
+  if (!fromOutside && !allows(store.snapshot(), paneId, "move")) return handle;
   const workspace =
     (e.currentTarget as HTMLElement).closest<HTMLElement>(".jali-workspace") ??
     store.dom.root().querySelector<HTMLElement>(".jali-workspace");

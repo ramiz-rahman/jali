@@ -4,6 +4,7 @@
  * The palette lists every command (disabled while the check refuses) with its keys; the keyboard runs the command a
  * binding names (and says a refusal's reason); tooltips print `store.keymap.label(id)`.
  */
+import { notAllowed, type PaneControl } from "../actions/allow";
 import type { Edge } from "../layout/types";
 import { checkUndo } from "../actions/close";
 import { checkZoom } from "../actions/focus";
@@ -35,6 +36,17 @@ export interface CommandDef extends Omit<Command, "run"> {
   run: (store: UiStore) => void;
 }
 
+/** `check`, then the app's `allow` for the focused pane (a command for something it doesn't allow is greyed out,
+ *  saying why). Leaving maximise or full screen is always allowed. */
+const also =
+  (check: (x: Snapshot) => RefusalStep | undefined, control: PaneControl) =>
+  (x: Snapshot): RefusalStep | undefined => {
+    const id = x.s.view.focused;
+    const leaving =
+      (control === "maximise" && x.s.view.zoomed === id) ||
+      (control === "fullScreen" && x.s.fullScreen === id);
+    return check(x) ?? (leaving ? undefined : notAllowed(x, id, control));
+  };
 const needFocus = ({ s }: Snapshot) => (s.view.focused ? undefined : refuse("unavailable"));
 const needLauncher = (x: Snapshot) =>
   x.s.view.focused && x.env.launcher ? undefined : refuse("unavailable");
@@ -85,14 +97,17 @@ function buildCommands(env: Env): CommandDef[] {
       id: "pane.zoom",
       title: t.zoom,
       group: g.pane,
-      check: checkZoom,
+      check: also(checkZoom, "maximise"),
       run: (u) => u.actions.toggleZoom(),
     },
     {
       id: "pane.fullscreen",
       title: t.fullScreen,
       group: g.pane,
-      check: ({ s }) => (s.page?.mode === "single" ? refuse("single-view") : undefined),
+      check: also(
+        ({ s }) => (s.page?.mode === "single" ? refuse("single-view") : undefined),
+        "fullScreen",
+      ),
       run: (u) => u.actions.toggleFullScreen(),
     },
     {
@@ -128,7 +143,7 @@ function buildCommands(env: Env): CommandDef[] {
       id: "pane.close",
       title: t.close,
       group: g.pane,
-      check: needOthers,
+      check: also(needOthers, "close"),
       run: (u) => u.actions.close(),
     },
     {
@@ -172,14 +187,14 @@ function buildCommands(env: Env): CommandDef[] {
       id: `pane.move.${w}`,
       title: t.moveDirection(w),
       group: g.move,
-      check: needOthers,
+      check: also(needOthers, "move"),
       run: (u) => u.actions.moveDirection(d),
     })),
     {
       id: "pane.swap",
       title: t.swap,
       group: g.move,
-      check: needOthers,
+      check: also(needOthers, "move"),
       run: (u) => u.actions.swapWithNext(),
     },
 
@@ -188,21 +203,21 @@ function buildCommands(env: Env): CommandDef[] {
       id: "pane.merge",
       title: t.merge,
       group: g.tabs,
-      check: checkMerge,
+      check: also(checkMerge, "move"),
       run: (u) => u.set({ chooser: { kind: "merge", source: u.get().view.focused! } }),
     },
     {
       id: "pane.unmerge",
       title: t.unmerge,
       group: g.tabs,
-      check: checkUnmerge,
+      check: also(checkUnmerge, "move"),
       run: (u) => u.actions.unmerge(),
     },
     ...(["left", "right"] as const).map((side) => ({
       id: `tab.move.${side}`,
       title: t.moveTab(side),
       group: g.tabs,
-      check: checkMoveTab,
+      check: also(checkMoveTab, "move"),
       run: (u: UiStore) => u.actions.moveTabToward(side),
     })),
     {

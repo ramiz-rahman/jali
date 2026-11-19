@@ -233,6 +233,7 @@ What a kind says about itself, apart from how it renders. In React, `definePane(
 <Param name="scratch" type="boolean">Every pane is new (a scratch note, a launcher): never matched against an open pane, and left out of Recent unless `inRecent` says otherwise.</Param>
 <Param name="inRecent" type="boolean | ((params: P) => boolean)" default="true (false for scratch kinds)">Whether opened objects of this kind go in Recent.</Param>
 <Param name="holdWhileResizing" type="boolean">Keep the content as it is during a divider drag and reflow once, on release: for long lists and charts.</Param>
+<Param name="allow" type="PaneAllow">What may happen to panes of this kind, for what its content can handle: `{ fullScreen: false }`. A kind can only turn controls off. See <Ref to="PaneAllow" />.</Param>
 <Param name="phone" type={`{ stack?: boolean; place?: "top" | "bottom" }`}>Phones only, in stacked view (`createJali({ phone: { stack: true } })`). `stack: false` keeps panes of this kind out of it, so they show alone. `place` asks for the top or the bottom half; otherwise the pane others were opened from goes above.</Param>
 <Param name="follow" type="(selected: ObjectRef) => FollowParams<P> | undefined">What a following pane of this kind shows when its list selects an object of another kind: the params for it, or `undefined` to keep what it shows. `follow: (selected) => ({ symbol: selected.params.symbol })` lets a chart follow a watchlist that selects quotes. A follower of the selected object's own kind shows that object without it. Params given as `undefined` are left out; if the kind can't read the result (a required param missing), the pane keeps what it shows. See [Following a list](/learn/following#followers-of-other-kinds).</Param>
 </Params>
@@ -383,6 +384,36 @@ One view of a curated page. In React, `PageView` adds its icon.
 <Entry name="ViewMode" kind="type" from="@jali/core" signature={`type ViewMode = "single" | "split"`} compact>
 
 How a curated page is shown: one view at a time (Single) or side by side (Split view). The person's choice, kept on their device and never in a link.
+
+</Entry>
+
+<Entry name="PaneControl" kind="type" from="@jali/core" signature={`type PaneControl = "close" | "tuck" | "maximise" | "fullScreen" | "move" | "resize" | "pin" | "popOut"`} compact>
+
+Something that can happen to a pane. `move` covers dragging it, the move keys, swapping, merging into tabs, pulling a tab out and reordering tabs; `resize` the dividers beside it. Restoring a maximised pane and leaving full screen are always allowed.
+
+</Entry>
+
+<Entry name="PaneAllow" kind="type" from="@jali/core" signature={`type PaneAllow = Partial<Record<PaneControl, boolean>>`} compact>
+
+Controls turned off with `false`. Leaving one out, or `true`, leaves it to the other levels. A kind's `allow` and a workspace's are both one.
+
+</Entry>
+
+<Entry name="WorkspaceAllow" kind="type" from="@jali/core" signature={`type WorkspaceAllow = PaneAllow & { when?: AllowRule }`} compact>
+
+`createJali({ allow })`: the workspace's defaults, and `when` for rules that depend on context. `popOut` is off until this says `true`.
+
+</Entry>
+
+<Entry name="AllowRule" kind="type" from="@jali/core" signature={`type AllowRule = (ctx: AllowContext) => boolean | undefined | void`} compact>
+
+Asked before each action on a pane, after the kind's `allow`: `false` refuses it; anything else allows it.
+
+</Entry>
+
+<Entry name="AllowContext" kind="type" from="@jali/core" signature={`interface AllowContext { action: PaneControl; pane: PaneNode; presetId?: string; page?: { mode: ViewMode; item?: string } | null }`} compact>
+
+What `when` is asked about: the action, the pane (its id, kind and params, role, pins and links), the preset the layout came from, and the curated page while one is open.
 
 </Entry>
 

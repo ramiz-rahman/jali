@@ -2,16 +2,19 @@ import * as core from "../layout";
 import type { Layout, NodeId } from "../layout/types";
 import { refuse, type Outcome, type Snapshot } from "../state/apply";
 import { say } from "../state/messages";
+import { dividerAllowed } from "./allow";
 import { clampSize, geometryFor, nearestDivider } from "../dividers/resize";
 
 /** Sizes do not change minimums, so a divider never changes what fits: no refit. The URL follows 120ms later. */
 export function resizeDivider(
-  { s, ctx }: Snapshot,
+  x: Snapshot,
   parentId: NodeId,
   index: number,
   deltaPx: number,
 ): Outcome {
+  const { s, ctx } = x;
   if (!deltaPx) return null;
+  if (!dividerAllowed(x, parentId, index)) return refuse("not-allowed");
   return { op: "resize", layout: core.resizeDivider(s.layout, parentId, index, deltaPx, ctx) };
 }
 

@@ -4,6 +4,7 @@ import { bringBack, usePopOutTarget } from "./PopOut";
 import { useJaliIcons } from "../icons/context";
 import {
   ALONE_CHROME,
+  allows,
   paneDomId,
   paneTitleId,
   roleOf,
@@ -53,6 +54,8 @@ export const PaneFrame = /* @__PURE__ */ memo(
     // and offers nothing (no grip, tuck, maximise or close) that a keyboard user could land on unseen.
     const bare = useUi((s) => s.page?.mode === "single");
     const bareRef = useInert(bare);
+    // A grip only where the pane may be dragged (Jali's chrome, and the app's `allow`).
+    const draggable = chrome.draggable && !bare && allows(store.snapshot(), node.id, "move");
     const boundary = useUi((s) => s.settings.boundary);
     const env = store.env,
       profile = env.profile;
@@ -114,15 +117,13 @@ export const PaneFrame = /* @__PURE__ */ memo(
       >
         <div
           className="jali-pane-header"
-          onPointerDown={
-            chrome.draggable && !bare ? (e) => startPaneDrag(store, e, node.id) : undefined
-          }
+          onPointerDown={draggable ? (e) => startPaneDrag(store, e, node.id) : undefined}
           onDoubleClick={(e) => {
             if (bare || !chrome.zoomable || (e.target as HTMLElement).closest("button")) return;
             actions.toggleZoom(node.id);
           }}
         >
-          {chrome.draggable && !bare ? (
+          {draggable ? (
             <span className="jali-grip" aria-hidden>
               <icon.grip size={14} />
             </span>

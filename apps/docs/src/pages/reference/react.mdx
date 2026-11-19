@@ -457,7 +457,7 @@ Prototypes, to try and give feedback on. Their names start `unstable_`, and thei
 
 <Entry name="unstable_popOut" kind="function" from="@jali/react" signature={`unstable_popOut(jali: Jali, pane?: string, size?: { width: number; height: number }): Promise<boolean>`} compact>
 
-Opens a pane (default: the focused one) in a floating window that stays on top of every other window, even while the person is in another tab or app, as a video call's does. It uses the browser's Document Picture-in-Picture, in Chrome and Edge on desktop; resolves `false` elsewhere. Call it from a click or a key, since the browser asks for the person's gesture.
+Off until the workspace allows it: `createJali({ allow: { popOut: true } })`. Opens a pane (default: the focused one) in a floating window that stays on top of every other window, even while the person is in another tab or app, as a video call's does. It uses the browser's Document Picture-in-Picture, in Chrome and Edge on desktop; resolves `false` elsewhere. Call it from a click or a key, since the browser asks for the person's gesture.
 
 The pane keeps its place in the layout, which says "Popped out into its own window" with a Bring back button. Its content renders in the window with the page's styles and theme, and keeps Jali's context, so its hooks, data and actions work. Closing the window, Bring back, or closing the pane puts it back. One pane at a time.
 

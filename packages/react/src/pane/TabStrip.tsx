@@ -2,6 +2,7 @@ import type { NodeId, PaneNode } from "@jali/core";
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { useJaliIcons } from "../icons/context";
 import type { Frame, Tab } from "@jali/core/adapter";
+import { allows } from "@jali/core/adapter";
 import {
   shortcutLabel,
   paneDomId,
@@ -53,6 +54,8 @@ function TabActivity({ id }: { id: NodeId }) {
 export function TabStrip({ group, owner }: { group: NonNullable<Frame["group"]>; owner: NodeId }) {
   const icon = useJaliIcons();
   const store = useStore();
+  // A tab the app keeps open (`allow: { close: false }`) has no ×.
+  const closable = (id: string) => allows(store.snapshot(), id, "close");
   const { actions, env } = store;
   const words = store.messages;
   const tw = words.tabs;
@@ -259,15 +262,19 @@ export function TabStrip({ group, owner }: { group: NonNullable<Frame["group"]>;
               <icon.putBack size={14} aria-hidden />
             </button>
           ) : null}
-          <button
-            className="jali-tab-close"
-            tabIndex={-1}
-            aria-label={tw.close(title)}
-            onClick={() => actions.close(t.id)}
-          >
-            <icon.close size={14} aria-hidden />
-            {dirty ? <UnsavedMark /> : null}
-          </button>
+          {closable(t.id) ? (
+            <button
+              className="jali-tab-close"
+              tabIndex={-1}
+              aria-label={tw.close(title)}
+              onClick={() => actions.close(t.id)}
+            >
+              <icon.close size={14} aria-hidden />
+              {dirty ? <UnsavedMark /> : null}
+            </button>
+          ) : dirty ? (
+            <UnsavedMark />
+          ) : null}
         </span>
       </div>
     );

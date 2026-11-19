@@ -31,6 +31,7 @@ export const createLabJali = (): Jali =>
   createJali({
     ...labOptions,
     url: { sizes: "link" },
+    allow: { popOut: true },
     // The Pop out prototype (Document Picture-in-Picture; Chrome and Edge on desktop).
     commands: [
       {

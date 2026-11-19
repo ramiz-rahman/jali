@@ -1,3 +1,4 @@
+import type { WorkspaceAllow } from "./actions/allow";
 import type { PhoneOptions } from "./profile";
 import type { Rename } from "./actions/rename";
 /**
@@ -135,6 +136,13 @@ export interface JaliOptions<D extends PaneKindBase = PaneKindBase> {
    * arrangement comes back. `{ below: 0 }` switches only when even one pane can't fit.
    */
   phone?: PhoneOptions;
+  /**
+   * What may happen to panes, beside each kind's own `allow`: turn controls off (`{ fullScreen: false }`), turn Pop out
+   * on (`{ popOut: true }`), and `when` for rules that depend on the layout: `when: ({ action, presetId }) =>
+   * !(presetId === "review" && action === "close")`. The actions obey it, whatever asks (a button, a key, ⌘K, a drag,
+   * an agent), and the chrome draws only what is allowed. Default: everything but Pop out.
+   */
+  allow?: WorkspaceAllow;
   /** Settings for a person who has none saved on this device yet: `{ theme: "dark" }` for a dark-first app. Settings
    *  the person changes are saved and win from then on. Default: Jali's (`theme: "system"`, `paneCap: 8`, ...). */
   settings?: Partial<Settings>;
@@ -209,6 +217,7 @@ export function createJali<D extends PaneKindBase>(options: JaliOptions<D>): Jal
     ...(options.tabMenu ? { tabMenu: options.tabMenu } : {}),
     ...(options.rename ? { rename: options.rename } : {}),
     ...(options.phone ? { phone: options.phone } : {}),
+    ...(options.allow ? { allow: options.allow } : {}),
     initial: {
       ...(layout ? { layout: toLayout(layout) } : {}),
       ...(size ? { area: size } : {}),

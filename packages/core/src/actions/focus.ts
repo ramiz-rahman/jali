@@ -1,3 +1,4 @@
+import { notAllowed } from "./allow";
 import * as core from "../layout";
 import type { Edge, NodeId, ViewState } from "../layout/types";
 import { refuse, type Outcome, type Snapshot } from "../state/apply";
@@ -55,9 +56,15 @@ export function checkZoom({ s, m }: Snapshot) {
     : refuse("nothing-to-do");
 }
 
-export function toggleZoom({ s, m, ctx }: Snapshot, id = s.view.focused): Outcome {
+export function toggleZoom(x: Snapshot, id = x.s.view.focused): Outcome {
+  const { s, m, ctx } = x;
   if (s.page?.mode === "single") return refuse("single-view", say(m).singleNoLayout);
   if (!id) return null;
+  // Restoring is always allowed: only maximising can be turned off.
+  if (s.view.zoomed !== id) {
+    const denied = notAllowed(x, id, "maximise");
+    if (denied) return denied;
+  }
   if (m.panes.length <= 1 && !s.view.zoomed) return null; // one pane alone: zoom does nothing
   const view = core.toggleZoom(core.focus(s.view, id, ctx), id, ctx);
   return {
@@ -73,7 +80,8 @@ export function toggleZoom({ s, m, ctx }: Snapshot, id = s.view.focused): Outcom
  * Full screen: the pane maximised, and the workspace's page on the whole screen (the adapter asks the browser), so
  * the pane covers the display. Again, or Escape, or leaving the browser's full screen, puts it back as it was.
  */
-export function toggleFullScreen({ s, m, ctx }: Snapshot, id = s.view.focused): Outcome {
+export function toggleFullScreen(x: Snapshot, id = x.s.view.focused): Outcome {
+  const { s, m, ctx } = x;
   if (s.fullScreen) {
     const was = s.fullScreen;
     const view = s.view.zoomed === was ? core.tree.unzoom(s.view) : s.view;
@@ -86,6 +94,8 @@ export function toggleFullScreen({ s, m, ctx }: Snapshot, id = s.view.focused): 
   }
   if (s.page?.mode === "single") return refuse("single-view", say(m).singleNoLayout);
   if (!id || !m.pane(id)) return refuse("not-found");
+  const denied = notAllowed(x, id, "fullScreen");
+  if (denied) return denied;
   const focused = core.focus(s.view, id, ctx);
   const view =
     m.panes.length > 1 && focused.zoomed !== id ? core.toggleZoom(focused, id, ctx) : focused;

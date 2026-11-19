@@ -5,6 +5,7 @@
 export type * from "./layout/types";
 export * as layout from "./layout";
 export * from "./actions";
+export * from "./actions/allow";
 export * from "./index";
 // Queries the React adapter reads (what a merge, tuck or link would do); the actions themselves run through store.actions.
 export { besidePreview, investigation } from "./actions/page";

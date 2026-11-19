@@ -74,6 +74,13 @@ export { sameRef } from "./actions/follow";
 // ---------- the instance: actions, results, events ----------
 export type { JaliEventBase, JaliEvents, JaliState } from "./state/instance";
 export type { JaliInput } from "./dom/input";
+export type {
+  AllowContext,
+  AllowRule,
+  PaneAllow,
+  PaneControl,
+  WorkspaceAllow,
+} from "./actions/allow";
 export type { JaliActions, PaneTarget, OpenPageOptions } from "./actions/public";
 export type { ChooseOptions } from "./actions/choose";
 export type {

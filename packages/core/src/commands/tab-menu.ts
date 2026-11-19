@@ -6,6 +6,7 @@ import type { NodeId, ObjectRef } from "../layout/types";
 import { tabsToClose } from "../actions/close";
 import { tabBounds } from "../actions/tabs";
 import { canRename } from "../actions/rename";
+import { allows, type PaneControl } from "../actions/allow";
 import type { UiStore } from "../state/store";
 
 /** One item in a tab's menu. */
@@ -45,8 +46,10 @@ export function tabMenuOf(store: UiStore, id: NodeId): TabMenuItem[][] {
   const app = env.tabMenu?.({ id, ref: node.ref }) ?? [];
   const zoomed = s.view.zoomed === id;
 
+  // Only what the app allows for this tab (`allow`) is offered.
+  const may = (c: PaneControl) => allows(x, id, c);
   const close: TabMenuItem[] = [
-    { id: "close", title: t.closeTab, run: () => a.close(id) },
+    ...(may("close") ? [{ id: "close", title: t.closeTab, run: () => a.close(id) }] : []),
     {
       id: "close-others",
       title: t.closeOtherTabs,
@@ -72,34 +75,43 @@ export function tabMenuOf(store: UiStore, id: NodeId): TabMenuItem[][] {
               },
             ]
           : []),
-        {
-          id: "pin",
-          title: t.pinTab,
-          checked: !!node.pinned,
-          run: () => a.setPinned(id, !node.pinned),
-        },
-        {
-          id: "move-left",
-          title: t.moveTab("left"),
-          keys: keys("tab.move.left"),
-          disabled: rtl ? last : first,
-          run: () => a.moveTab(id, at + (rtl ? 1 : -1)),
-        },
-        {
-          id: "move-right",
-          title: t.moveTab("right"),
-          keys: keys("tab.move.right"),
-          disabled: rtl ? first : last,
-          run: () => a.moveTab(id, at + (rtl ? -1 : 1)),
-        },
-        {
-          id: "unmerge",
-          title: t.moveOutOfTabs,
-          keys: keys("pane.unmerge"),
-          run: () => a.unmerge(id),
-        },
+        ...(may("pin")
+          ? [
+              {
+                id: "pin",
+                title: t.pinTab,
+                checked: !!node.pinned,
+                run: () => a.setPinned(id, !node.pinned),
+              },
+            ]
+          : []),
       ]
     : [];
+  const moves: TabMenuItem[] =
+    st && may("move")
+      ? [
+          {
+            id: "move-left",
+            title: t.moveTab("left"),
+            keys: keys("tab.move.left"),
+            disabled: rtl ? last : first,
+            run: () => a.moveTab(id, at + (rtl ? 1 : -1)),
+          },
+          {
+            id: "move-right",
+            title: t.moveTab("right"),
+            keys: keys("tab.move.right"),
+            disabled: rtl ? first : last,
+            run: () => a.moveTab(id, at + (rtl ? -1 : 1)),
+          },
+          {
+            id: "unmerge",
+            title: t.moveOutOfTabs,
+            keys: keys("pane.unmerge"),
+            run: () => a.unmerge(id),
+          },
+        ]
+      : [];
   const arrange: TabMenuItem[] = [
     ...(env.launcher && !s.page
       ? [
@@ -117,7 +129,7 @@ export function tabMenuOf(store: UiStore, id: NodeId): TabMenuItem[][] {
           },
         ]
       : []),
-    ...(m.panes.length > 1 && s.page?.mode !== "single"
+    ...(m.panes.length > 1 && s.page?.mode !== "single" && (zoomed || may("maximise"))
       ? [
           {
             id: "zoom",
@@ -128,5 +140,5 @@ export function tabMenuOf(store: UiStore, id: NodeId): TabMenuItem[][] {
         ]
       : []),
   ];
-  return [close, move, arrange, [...app]].filter((g) => g.length);
+  return [close, [...move, ...moves], arrange, [...app]].filter((g) => g.length);
 }

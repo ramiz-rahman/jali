@@ -236,6 +236,8 @@ export interface UiStoreDeps {
   rename?: Rename;
   /** How the workspace behaves on a phone. */
   phone?: import("../profile").PhoneOptions;
+  /** What may happen to panes. */
+  allow?: import("../actions/allow").WorkspaceAllow;
 }
 
 export interface UiStore {
@@ -350,6 +352,7 @@ export function createUiStore(deps: UiStoreDeps): UiStore {
   if (deps.tabMenu) env.tabMenu = deps.tabMenu;
   if (deps.rename) env.rename = deps.rename;
   if (deps.phone) env.phone = deps.phone;
+  if (deps.allow) env.allow = deps.allow;
   const focusOf =
     deps.focusPane === undefined
       ? typeof document === "undefined"

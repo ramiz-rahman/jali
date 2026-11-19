@@ -9,7 +9,7 @@
  * page it came from navigates away.
  */
 import type { Jali, NodeId } from "@jali/core";
-import { storeOf, type UiStore } from "@jali/core/adapter";
+import { allows, storeOf, type UiStore } from "@jali/core/adapter";
 import { useSyncExternalStore } from "react";
 
 interface DocumentPictureInPicture {
@@ -71,6 +71,11 @@ export async function popOut(
   const store = storeOf(jali);
   const pane = target ?? store.get().view.focused;
   if (!pip || !pane || !store.model().pane(pane)) return false;
+  // Off unless the app turns it on: `createJali({ allow: { popOut: true } })`.
+  if (!allows(store.snapshot(), pane, "popOut")) {
+    store.announce(store.messages.announcements.notAllowed("popOut", store.model().title(pane)));
+    return false;
+  }
   if (current) bringBack();
   const win = await pip.requestWindow({ width: size?.width ?? 480, height: size?.height ?? 360 });
   copyStyles(document, win.document);

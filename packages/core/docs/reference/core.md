@@ -96,6 +96,8 @@ The address.
 
 - **`rename`** (`Rename`): Renaming in place: double-click or F2 on a tab or a lone pane's title opens a field there, and `run(pane, text)` saves the name in your app. `can(pane)` limits it to some panes. Without it, nothing offers renaming. See [`Rename`](core/types.md#Rename).
 
+- **`allow`** (`WorkspaceAllow`): What may happen to panes: turn controls off for the whole workspace (`{ fullScreen: false }`), turn Pop out on (`{ popOut: true }`), and `when({ action, pane, presetId, page })` to decide by context; `false` refuses. Each kind's own `allow` is asked first, and only takes away. See [Choose what people can do with panes](../guides/pane-controls.md) and [`WorkspaceAllow`](core/types.md#WorkspaceAllow).
+
 - **`phone`** (`PhoneOptions`): Phones: below `phone.below` pixels of workspace width (default 600) the workspace shows Single view, one pane at a time with a switcher, whatever the panes' minimums. `{ below: 0 }` switches only when even one pane can't fit. See [`PhoneOptions`](core/types.md#PhoneOptions).
 
 - **`onPaneError`** (`(error: unknown, info: PaneErrorInfo) => void`): Called when a pane's component throws. That pane shows a failed state with Retry and Close, and the other panes carry on. `info` says which pane ([`PaneErrorInfo`](core/types.md#PaneErrorInfo)). Send it to your error reporting.
