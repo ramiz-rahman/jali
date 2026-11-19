@@ -5,11 +5,14 @@
 import { createContext, useContext, type ReactNode } from "react";
 import { createEngine, type Engine } from "./audio/engine";
 import { createEdits, type Edits } from "./edits";
+import { createLayouts, type Layouts } from "./layouts";
 import { SESSIONS } from "./sessions/sessions";
 
 export interface Services {
   engine: Engine;
   edits: Edits;
+  /** Each layout as the person left it (layouts.ts). */
+  layouts: Layouts;
 }
 
 export function createServices({
@@ -18,7 +21,7 @@ export function createServices({
   session = SESSIONS[0]!.id,
 }: { persist?: boolean; audio?: boolean; session?: string } = {}): Services {
   const edits = createEdits(persist);
-  return { edits, engine: createEngine({ edits, session, audio }) };
+  return { edits, layouts: createLayouts(persist), engine: createEngine({ edits, session, audio }) };
 }
 
 const ServicesContext = createContext<Services | null>(null);

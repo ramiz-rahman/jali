@@ -32,7 +32,7 @@ async function check(page: Page) {
         return b.width > 0 && b.height > 0 && getComputedStyle(el).visibility !== "hidden";
       };
       for (const pane of document.querySelectorAll<HTMLElement>(".jali-pane")) {
-        if (!visible(pane) || pane.getAttribute("aria-hidden") === "true") continue;
+        if (!visible(pane) || pane.hasAttribute("data-covered")) continue;
         const kind = pane.dataset.kind ?? "?";
         const body = pane.querySelector<HTMLElement>(".pane-body");
         if (!body || !visible(body)) continue;

@@ -24,10 +24,12 @@ The speech was made with macOS system voices (`say`), as a placeholder. Replace 
 - The selected segment's keys sit above the transcript: play, correct, loop, detail and rename. Nothing sits inside a row, so every row is one option a screen reader can move through.
 - Press E on a segment to correct it, then Esc. The correction is unsaved work: the tab shows a dot, and choosing Mix (which has no transcript) asks first. Choose Review instead: the transcript and its draft come along. ⌘S saves.
 - Click a speaker's name in the transcript to rename them. The timeline, the mixer and the segment detail follow.
-- In Mix, move a fader, mute or solo a track, and watch the meters. Make the window short until the mixer folds into a tab: the sound and the mix go on, only the meters stop drawing. The folded mixer's shelf chip shows it is working.
-- Press Keep on the segment detail, select another segment and press ⌥↵: two segments side by side. The Compare layout starts that way, with segment 4 kept and segment 6 following.
+- In Mix, move a fader, mute or solo a track, and watch the meters. Make the window short until the mixer folds: it waits behind its strip's "N folded" chip, the sound and the mix go on, and only the meters stop drawing.
+- Press Following on the segment detail's header to make it Kept, select another segment and press ⌥↵: two segments side by side. The Compare layout starts that way, with segment 4 kept and segment 6 following.
 - Switch layouts in the top bar, then copy the link (the link button, or ⌘K "Copy a link to this layout"). The link reopens the same layout and session.
-- Narrow the window. Panes fold into tabs rather than squeeze, and come back as it widens. Below 600 pixels a phone shows the library over the transcript.
+- Narrow the window. Panes fold rather than squeeze: the one shown stays a tab, the rest wait behind an "N folded" chip at the end of the strip, and come back as it widens. Below 600 pixels a phone shows the library over the transcript.
+- Rearrange a layout, switch to another and back: it comes back as you left it. The reset key in the slab (or ⌘K "Reset this layout to its design") puts it back as designed.
+- Each pane's header carries two shortcuts, Maximise and Close; ⋯ (or Shift+F10, or a right-click on the header) opens its menu with the rest: Tuck, Full screen, Pop out where the browser allows it.
 
 ## Keys
 
@@ -135,11 +137,12 @@ The way the bodies, keys and screens are built (a molded body with a lit top edg
 | `src/panes/clip.tsx`       | The segment detail: its own waveform, loop, attribution, a note with `useUnsaved`, and `useTitle` for the speaker's current name.                     |
 | `src/panes/mixer.tsx`      | Strips on the real graph, meters drawn only while on screen, `useActivity("working")` while the sound goes through it.                                |
 | `src/presets.ts`           | Edit, Mix, Review and Compare, written with `row`, `column` and `pane`: short wide panes stacked in columns.                                          |
+| `src/layouts.ts`          | Each layout as the person left it, on this device: Jali's saved presets, and the reset that forgets one.                                       |
 | `src/workspace.ts`         | `createJali`: the kinds, layouts, launcher, keymap, `reservedKeys`, and ⌘K commands that ask with `jali.actions.choose`.                              |
 | `src/shell/`               | The app's chrome inside `<JaliRoot>`: a top bar with the layouts and the transport, a status line with Jali's `<Shelf />`, the app's keys.            |
 | `src/styles/tokens.css`    | The hardware family on Jali's `--jali-*` tokens and the app's own: bodies, key caps, screens, the LCD, paper. Light and dark as `light-dark()` pairs. |
 | `src/styles/parts.css`     | The parts, defined once: housing, tray, key, latch, lamp, knob, jog, fader, readout, LCD, paper, legend.                                              |
-| `src/styles/chrome.css`    | Jali's own chrome as part of the family: faceplates, header keys, tabs as latched keys, the shelf, ⌘K and the chooser with a screen for a field.      |
+| `src/styles/chrome.css`    | Jali's own chrome as part of the family: faceplates, header shortcuts and the ⋯ menu as a device panel, the Following/Kept latch, tabs as latched keys, the "N folded" chip, the shelf, ⌘K and the chooser with a screen for a field. |
 | `src/ui/Knob.tsx`          | The knobs and the jog wheel: drawn in CSS and SVG, built as `role="slider"` with names, values, keys and drag.                                        |
 | `scripts/make-voices.mjs`  | Makes the speech (`say`, `afconvert`) and `src/sessions/generated.ts`: segment times from the clips' real lengths, word times interpolated.           |
 

@@ -33,6 +33,14 @@ type Options = Pick<
   notify?: (text: string) => void;
 };
 
+/** The layout in use back to its design: forget how it was left, then let Jali rebuild it (it asks about unsaved
+ *  work first). */
+export function resetLayout(jali: Jali, services: Services) {
+  const id = jali.get().presetId;
+  if (id) services.layouts.forget(id);
+  return jali.actions.resetLayout();
+}
+
 export function createStudioJali(services: Services, options: Options = {}): Jali {
   const { notify = () => {}, ...jaliOptions } = options;
   const { engine, edits } = services;
@@ -169,6 +177,12 @@ export function createStudioJali(services: Services, options: Options = {}): Jal
       run: (jali) => show(jali, markers({ session: engine.get().session })),
     },
     {
+      id: "studio.reset",
+      title: "Reset this layout to its design",
+      group: "Studio",
+      run: (jali) => resetLayout(jali, services),
+    },
+    {
       id: "studio.copy-link",
       title: "Copy a link to this layout",
       group: "Studio",
@@ -201,18 +215,24 @@ export function createStudioJali(services: Services, options: Options = {}): Jal
     },
   ];
 
-  return createJali({
+  const jali = createJali({
     panes: kinds,
     launcher,
-    presets,
+    // Each layout comes back as the person left it; Reset builds its design again.
+    presets: presets.map((p) => ({ ...p, saved: () => services.layouts.get(p.id) })),
     commands,
     name: "Studio",
     // Bound like Jali's own commands: ⌘K then ⌘P plays, ⌘K then ⌘J goes to a segment.
     keymap: { "studio.play": "Mod+K Mod+P", "studio.segment": "Mod+K Mod+J" },
     // Space is the transport's (shell/keys.ts). Jali binds nothing to it; this keeps it that way.
     reservedKeys: ["Space"],
+    // Header shortcuts: Maximise and Close. Tuck, Full screen and Pop out are in the pane's ⋯ menu (and ⌘K), so a
+    // header carries two keys and the pane's name stays its strongest mark.
+    buttons: (defaults) => defaults.filter((b) => b !== "tuck"),
     storage: "studio",
     phone: { stack: true },
     ...jaliOptions,
   });
+  services.layouts.track(jali);
+  return jali;
 }

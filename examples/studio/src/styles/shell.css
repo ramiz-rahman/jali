@@ -393,7 +393,7 @@
   .slab[data-f7] .group-rotary {
     display: none;
   }
-  .slab[data-f8] :is(.tp-loop, .tool-link) {
+  .slab[data-f8] :is(.tp-loop, .tool-link, .tool-reset) {
     display: none;
   }
   .slab[data-f8] {

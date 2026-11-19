@@ -1,6 +1,6 @@
 /**
  * One segment in detail: its own waveform, play and loop, who says it, and a note. It follows the transcript's
- * selection. Keep it (the anchor in its header) and select another segment, then open that one's detail: two
+ * selection. Click Following in its header to make it Kept, select another segment, then open that one's detail: two
  * segments side by side, to compare a take or a correction.
  *
  * The note is the pane's work: a draft in pane state until saved, reported with `useUnsaved`. While it has one, the

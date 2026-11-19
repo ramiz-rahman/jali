@@ -2,13 +2,44 @@
 
 Studio is built on `@jali/core` and `@jali/react` alone, with no change to `packages/`. Most of what it needed was there and fit well (see "What worked" at the end). These are the places where the API fell short, was awkward, or did something unexpected. Each has what we wanted, what happened, the workaround in the app, and a suggested change. The most important come first.
 
+
+## Status on the latest Jali (after merging master)
+
+Jali since these were written: a menu on every pane header (⋯, Shift+F10, right-click) with Full screen, Tuck and Pop out; header buttons as shortcuts chosen with `buttons`; Following and Keep as one toggle; folded panes behind one "N folded" chip in the tab strip, the shelf for tucked panes only; presets' `saved` and Reset; a covered pane marked `data-covered`. Item by item:
+
+| Item | Status | Note |
+| --- | --- | --- |
+| 1. One follower's unsaved work stops every follower | Open | Unchanged. The workaround stands; the person now sees the header say Kept. |
+| 2. `useActivity(undefined)` | Open | The hook still sets only a truthy value. Studio still passes `"idle"`. |
+| 3. Space for an app command | Open | Unchanged. |
+| 4. A layout switch leaves list and follower disagreeing | Open | Unchanged. Saved layouts make it rarer (a layout comes back with its own follower state), not gone. |
+| 5. `light-dark()` tokens on canvas | Open | Unchanged. |
+| 6. No "live" activity | Open | Unchanged. |
+| 7. Heights have only a minimum | Open | `PaneHeight` is still `min` only. |
+| 8. A narrow header keeps all its buttons | Resolved | The header carries shortcuts; the rest is in the ⋯ menu. Studio chose Maximise and Close (`buttons` in `workspace.ts`). `allow: { fullScreen: false }` on the lists stays, as a list has nothing to show full screen. |
+| 9. A wide pane folded into a narrow one | Open | Studio's layouts still avoid it. Folded panes now wait behind a chip, so the result is easier to read, but the fitting rule is the same. |
+| 10. Smaller things | Partly | "Keep is what the brief called pinning": the toggle now says Following or Kept, which reads as the state, so a reader finds it. The rest are open. |
+| Theming 1. Header buttons | Partly | `.jali-pane-actions` is public and the set is chosen with `buttons`; each button still has only private classes (`.jali-act-*`). |
+| Theming 2. Keep and Following | Resolved | One public part, `.jali-follow-toggle[data-follow]`. Studio's narrow-header hack and its `.jali-follow-status` rules are gone. |
+| Theming 11. Shelf chip internals | Partly | The folded case moved to the public `.jali-tab-folded`; the shelf's own inner buttons are still private. Studio's folded shelf-chip rule is gone. |
+| Theming 15. Folded tabs | Partly | Folded panes are now a chip, not italic tabs; a folded tab still shown carries `data-folded`. |
+| Theming 16. Header buttons come and go | Resolved | `buttons` fixes the set. Panes in Studio's layouts show the same two keys, so the four temporary header treatments line up from pane to pane. |
+| Theming 18. The header's layout is fixed | Partly | The order is now documented (grip, title, toggle, shortcuts). No slot for app controls yet. |
+| Others (3 to 7, 9, 10, 12 to 14, 17, 19 to 29) | Open | Unchanged. |
+
+New, from adopting it:
+
+- **The menu's parts.** `.jali-tab-menu` and `[data-menu-item]` are public, and so is the ⋯ button's place in `.jali-pane-actions`. The key hint in a menu row (`.jali-menu-keys`), the check and the separator are private; Studio reaches them as `kbd` and `[role="separator"]`. Want: listed as parts.
+- **The follow toggle's icon.** The toggle draws a link or an anchor icon before its word. Studio hides it (`svg`) and lights a lamp instead. A documented slot or attribute for the mark would be cleaner than hiding Jali's icon.
+- **Saved layouts are the app's job to store.** `saved` asks the app; the app keeps a layout per preset and forgets it on Reset. That is the right split, but every app writes the same twenty lines (`src/layouts.ts`, like Markets' desks). A small helper (`savedLayouts(storage)`) would do.
+
 ## 1. One follower's unsaved work stops every follower of the list
 
 **Wanted.** The library drives four followers: the transcript, the timeline, the mixer and the markers. With unsaved corrections in the transcript, moving the library should keep the transcript on its session (the guide says "a following detail with unsaved work keeps its object") and move the others.
 
 **Happened.** Nothing moves. The follow step is one change for all followers, and the workspace refuses the whole change when any of them would lose work (an `op: "follow"` with unsaved work is refused with "The detail stays put"). The timeline and the mixer, which have nothing unsaved, stay on the old session too. The transport has meanwhile loaded the new one, so every pane says "Not in the transport". `workspace.test.ts` pins this down ("holds every follower of the library while one of them has unsaved work").
 
-**Workaround.** While the transcript has unsaved corrections it keeps itself (`jali.actions.setKept(node.id, true)`), and lets go when they are saved or discarded, which makes it catch up at once (`panes/transcript.tsx`). The person sees Keep pressed in its header. A Keep the person pressed is left alone.
+**Workaround.** While the transcript has unsaved corrections it keeps itself (`jali.actions.setKept(node.id, true)`), and lets go when they are saved or discarded, which makes it catch up at once (`panes/transcript.tsx`). The person sees Kept in its header. A Kept the person chose is left alone.
 
 **Suggestion.** Hold only the follower with unsaved work and move the rest in the same change, with the same "stays put" announcement. If holding them all is deliberate, say so in the Following guide, and let the follow step report what it held (an event, or the refusal in `select`'s result).
 

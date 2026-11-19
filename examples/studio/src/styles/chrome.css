@@ -172,10 +172,11 @@
       inset 0 0 0 1px var(--cap-rim);
   }
 
-  /* Following and Keep. Keep (`.jali-follow-toggle`, public) is a small latch key with its lamp (parts.css). The
-     printed "Following" is not a public part (`.jali-follow-status`): it is set as a legend, and dropped in a
-     narrow header so the pane's name keeps its room. */
-  /* Keep: a low latch, as light as the header's buttons, so the pane's name stays the strongest thing there. */
+  /*
+   * Following or Kept: Jali's one toggle (`.jali-follow-toggle`, its state in `data-follow`), as one small latch key:
+   * its word printed, its lamp off while it follows and lit when kept, the key sunk when kept. Jali's link and anchor
+   * icons give way to the lamp.
+   */
   .jali-follow-toggle {
     --wall: 1px;
     height: 24px;
@@ -186,16 +187,8 @@
   .jali-follow-toggle svg {
     display: none;
   }
-  .jali-pane-header .jali-follow-status {
-    font-family: var(--jali-font-mono);
-    font-size: 10.5px;
-    text-transform: lowercase;
-    color: var(--legend);
-  }
-  @container jali-header (max-width: 400px) {
-    .jali-follow-status {
-      display: none;
-    }
+  .jali-follow-toggle[data-follow="plain"] {
+    opacity: 0.8;
   }
 
   /* ---------- tabs ---------- */
@@ -374,5 +367,102 @@
     min-width: 0;
     overflow: hidden;
     text-overflow: ellipsis;
+  }
+}
+
+@layer app {
+  /*
+   * The "N folded" chip at the end of a tab strip (`.jali-tab-folded`): a small key with a dashed rim, so it reads
+   * as the layout's, not the person's, tab.
+   */
+  .jali-tab-folded {
+    --wall: 2px;
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    height: 30px;
+    margin-block: 0;
+    padding: 0 10px;
+    border: 0;
+    border-radius: var(--corner);
+    background: linear-gradient(180deg, var(--cap-1), var(--cap-2));
+    color: var(--cap-ink);
+    font-family: var(--jali-font);
+    font-size: 11.5px;
+    font-weight: 500;
+    cursor: pointer;
+    outline: 1px dashed var(--legend);
+    outline-offset: -4px;
+    box-shadow:
+      inset 0 1px 0 var(--cap-hi),
+      inset 0 0 0 1px var(--cap-rim),
+      0 2px 0 var(--cap-edge);
+  }
+  .jali-tab-folded[aria-expanded="true"] {
+    background: linear-gradient(180deg, var(--cap-2), color-mix(in srgb, var(--cap-2) 86%, #000));
+    box-shadow:
+      inset 0 2px 4px rgb(0 0 0 / calc(0.3 * var(--sh))),
+      inset 0 0 0 1px var(--cap-rim);
+  }
+  .jali-tab-folded:focus-visible {
+    outline: 2px solid var(--focus);
+    outline-offset: 2px;
+  }
+
+  /*
+   * The pane's menu and a tab's menu (`.jali-tab-menu`): a small device panel. Its items (`[data-menu-item]`) are
+   * printed rows; the one under the pointer or the keyboard is latched into a tray with its lamp lit; key hints
+   * are tiny caps.
+   */
+  .jali-tab-menu {
+    padding: 6px;
+    min-width: 220px;
+  }
+  .jali-tab-menu [data-menu-item] {
+    position: relative;
+    min-height: 32px;
+    padding-inline: 24px 10px;
+    border-radius: var(--corner);
+    font-family: var(--jali-font);
+    font-size: 13px;
+    color: var(--ink);
+  }
+  .jali-tab-menu [data-menu-item]::before {
+    content: "";
+    position: absolute;
+    inset-inline-start: 9px;
+    top: 50%;
+    width: 6px;
+    height: 6px;
+    margin-top: -3px;
+    border-radius: 50%;
+    background: var(--led-off);
+  }
+  .jali-tab-menu [data-menu-item]:is(:hover, :focus-visible) {
+    background: light-dark(rgb(0 0 0 / calc(0.07 * var(--sh))), rgb(0 0 0 / 0.42));
+    box-shadow: inset 0 2px 3px rgb(0 0 0 / calc(0.2 * var(--sh)));
+    outline: none;
+  }
+  .jali-tab-menu [data-menu-item]:is(:hover, :focus-visible)::before {
+    background: var(--led-on);
+    box-shadow: 0 0 7px rgb(255 79 0 / 0.8);
+  }
+  .jali-tab-menu kbd {
+    padding: 2px 5px;
+    border-radius: var(--corner);
+    font-family: var(--font-readout);
+    font-size: 10.5px;
+    background: linear-gradient(180deg, var(--cap-1), var(--cap-2));
+    box-shadow:
+      inset 0 0 0 1px var(--cap-rim),
+      0 1px 0 var(--cap-edge);
+    opacity: 1;
+  }
+  .jali-tab-menu [role="separator"] {
+    height: 1px;
+    margin: 5px 4px;
+    background: var(--seam-dark);
+    box-shadow: 0 1px 0 var(--seam-lit);
   }
 }

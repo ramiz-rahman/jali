@@ -52,6 +52,23 @@ describe("the studio workspace", () => {
     expect(sessionInLayout(jali)).toBe(FERRY);
   });
 
+  it("brings each layout back as it was left, and Reset puts the one in use back to its design", async () => {
+    const { jali } = testJali();
+    jali.actions.preset("mix");
+    expect(ids(jali)).toContain("markers");
+    jali.actions.close("markers");
+    expect(ids(jali)).not.toContain("markers");
+    jali.actions.preset("edit");
+    jali.actions.preset("mix");
+    expect(ids(jali), "Mix as it was left").not.toContain("markers");
+    await run(jali, "studio.reset");
+    expect(jali.get().presetId).toBe("mix");
+    expect(ids(jali), "Mix as designed").toContain("markers");
+    jali.actions.preset("edit");
+    jali.actions.preset("mix");
+    expect(ids(jali), "the reset arrangement is the one kept").toContain("markers");
+  });
+
   it("has four layouts, each with rows and columns, and nothing folds at 1440 by 900", () => {
     for (const preset of ["edit", "mix", "review", "compare"]) {
       const { jali } = testJali();

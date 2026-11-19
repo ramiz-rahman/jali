@@ -46,11 +46,10 @@ test("the sound goes on while the mixer is folded away", async ({ page }) => {
   await layout(page, "Mix").click();
   await expect(page.locator('.jali-pane[data-pane="mixer"]')).toBeVisible();
   await transport(page, "Play").click();
-  // A short window: the mixer folds into a tab rather than squeeze, and the shelf lists it, working.
+  // A short window: the mixer folds into a tab rather than squeeze, and waits behind its strip's "N folded" chip.
   await page.setViewportSize({ width: 1100, height: 560 });
-  const chip = page.locator(".jali-shelf-chip", { hasText: "Mixer" });
-  await expect(chip).toBeVisible();
-  await expect(chip.locator("[class*=ra-ring]")).toBeVisible();
+  await expect(page.locator(".jali-tab-folded").first()).toBeVisible();
+  await expect(page.locator('.jali-pane[data-kind="mixer"]')).toBeHidden();
   const before = await seconds(page);
   await page.waitForTimeout(1500);
   expect(await seconds(page)).toBeGreaterThan(before + 1);
@@ -71,7 +70,7 @@ test("a correction is unsaved work: a layout without the transcript asks first",
   await expect(page.getByRole("alertdialog")).toContainText("1 unsaved correction");
   await page.getByRole("button", { name: "Keep editing" }).click();
   await expect(layout(page, "Edit")).toHaveAttribute("aria-pressed", "true");
-  await page.getByRole("button", { name: /^Save (⌘|Ctrl)/ }).click();
+  await page.getByRole("button", { name: /^save (⌘|Ctrl)/ }).click();
   await expect(page.locator(".tr-text").first()).toContainText("from the engine room");
 });
 
@@ -175,9 +174,11 @@ test("a mixer fader drags without jumping, settles at 0 dB, and a pan dial turns
   await page.mouse.move(x, cap.y + cap.height / 2 + 6);
   await page.mouse.down();
   await expect(fader).toHaveAttribute("aria-valuetext", "−4.0 dB");
-  // Up a little: into the 0 dB detent, wherever the pointer drifts (pointer capture).
-  for (let i = 1; i <= 8; i++)
-    await page.mouse.move(x + i * 30, cap.y + cap.height / 2 + 6 - i * 2.5);
+  // Up to just short of the 0 dB mark: into its detent, wherever the pointer drifts sideways (pointer capture).
+  const travel = (await fader.locator(".fader-travel").boundingBox())!;
+  const from = cap.y + cap.height / 2;
+  const to = travel.y + (1 - 0.7079) * travel.height + 2; // 2px short of the mark, as a hand would stop
+  for (let i = 1; i <= 8; i++) await page.mouse.move(x + i * 30, from + 6 + ((to - from) * i) / 8);
   await page.mouse.up();
   await expect(fader).toHaveAttribute("aria-valuenow", "0");
   await fader.focus();

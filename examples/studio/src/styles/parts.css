@@ -198,7 +198,7 @@
     .lib-row[aria-selected="true"],
     .jali-tab[aria-selected="true"],
     .jali-switch-item[aria-selected="true"],
-    .jali-follow-toggle[aria-pressed="true"]
+    .jali-follow-toggle[data-follow="kept"]
   ) {
     /* Latched keys stay level with their neighbours (shared tops and baselines); they read as down by their
        sunken face, their inner shadow and their lit lamp. */
@@ -237,7 +237,7 @@
     .led[data-on],
     .jali-tab[aria-selected="true"]::before,
     .jali-switch-item[aria-selected="true"]::before,
-    .jali-follow-toggle[aria-pressed="true"]::before
+    .jali-follow-toggle[data-follow="kept"]::before
   ) {
     background: var(--led-on);
     box-shadow:

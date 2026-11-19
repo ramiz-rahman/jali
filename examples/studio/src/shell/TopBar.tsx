@@ -6,7 +6,13 @@
  * playhead every pane follows. A screen with the time, four big square keys, a loop latch, a jog wheel to scrub and
  * a speed knob.
  */
-import { CommandIcon, LinkSimpleIcon, MoonIcon, SunIcon } from "@phosphor-icons/react";
+import {
+  ArrowCounterClockwiseIcon,
+  CommandIcon,
+  LinkSimpleIcon,
+  MoonIcon,
+  SunIcon,
+} from "@phosphor-icons/react";
 import { copyLink, keyHint, runCommand } from "@jali/core";
 import { useLayoutEffect, useRef } from "react";
 import { useJali, useJaliState, useShortcut, useTheme } from "@jali/react";
@@ -15,6 +21,7 @@ import { usePosition, useTransport } from "../audio/react";
 import { useServices } from "../services";
 import { clock, clockTenths, sessionById } from "../sessions/sessions";
 import { JogDial, SelectorDial } from "../ui/Knob";
+import { resetLayout } from "../workspace";
 
 /** Keys don't keep focus after a click, so Space goes on playing and pausing. */
 const keepFocus = (e: React.MouseEvent) => e.preventDefault();
@@ -24,6 +31,7 @@ export function TopBar() {
   const current = useJaliState((s) => s.presetId);
   const theme = useTheme();
   const palette = useShortcut("palette.toggle");
+  const services = useServices();
   const slab = useFit();
   const currentLabel = jali.env.presets.find((p) => p.id === current)?.label ?? "";
 
