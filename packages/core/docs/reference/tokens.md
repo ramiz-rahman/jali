@@ -85,11 +85,21 @@ One set for both themes.
 
 | Token | Used for | Light | Dark |
 | --- | --- | --- | --- |
-| `--jali-radius` | Corners of panes, the peek sheet, the drop indicator and the tab-preview outline. | `0.625rem` | `0.625rem` |
-| `--jali-radius-control` | Corners of buttons, inputs, palette rows and the drag chip. | `0.375rem` | `0.375rem` |
+| `--jali-radius` | Corners of panes, the peek sheet, the drop indicator and the tab-preview outline. Dialogs (the palette, the chooser, Settings and the discard question) are 1.2 × this, rounded down to a whole pixel. | `0.625rem` | `0.625rem` |
+| `--jali-radius-control` | Corners of buttons, inputs, palette rows, the drag chip and the tab preview's label. | `0.375rem` | `0.375rem` |
 | `--jali-radius-menu` | Corners of menus and the drop label. | `0.5rem` | `0.5rem` |
+| `--jali-radius-chip` | Corners of small things inside a header, tab or chip: the Following / Kept toggle, a tab's close button, the rename field, the Kept badge and the peek's label. Shelf chips and their buttons, the shelf's "more" and its items, and tab menu items are 1.25 × this; investigation chips 1.75 ×, each rounded down to a whole pixel. | `0.25rem` | `0.25rem` |
 | `--jali-font` | The workspace's typeface: the workspace and its dialogs set font-family from it. | `"Atkinson Hyperlegible Next", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif` | `"Atkinson Hyperlegible Next", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif` |
 | `--jali-font-mono` | Monospace: the pane cap input in Settings. | `"Atkinson Hyperlegible Mono", ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace` | `"Atkinson Hyperlegible Mono", ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace` |
+
+## Spacing
+
+Written by Jali, not set by you. The layout measures in pixels, so the space between panes is an option, `createJali({ gap, inset })`, and `<JaliRoot>` writes it on its root and its layer as these two variables. Read them in your own styles to line things up with the panes; setting them in CSS moves nothing.
+
+| Token | What it is | Default |
+|---|---|---|
+| `--jali-gap` | The space between panes, and the gutter a strip's scrollbar sits in (`createJali({ gap })`). | `6px` |
+| `--jali-inset` | The space between the workspace's edges and its panes (`createJali({ inset })`, else the gap). | the gap |
 
 ## Derived
 
@@ -140,6 +150,7 @@ Each token reads the first of your variables that is defined, else Jali's own de
 | `--jali-radius` | `--radius-card`, then `--radius-lg` | `0.625rem` |
 | `--jali-radius-control` | `--radius-control`, then `--radius-md` | `0.375rem` |
 | `--jali-radius-menu` | `--radius-md` | `0.5rem` |
+| `--jali-radius-chip` | `--radius-sm` | `0.25rem` |
 | `--jali-font` | `--font-sans` | `system-ui, sans-serif` |
 | `--jali-font-mono` | `--font-mono` | `ui-monospace, monospace` |
 | `--jali-focus-ring` | `--color-focus-ring`, then `--color-ring` | `var(--jali-accent)` |

@@ -42,7 +42,7 @@ Written from the docs site by scripts/agent-docs.mjs; don't edit these files.
 - [The layout namespace](reference/core/layout.md): The pure layout operations of @jali/core, each taking a layout and returning a new one.
 - [@jali/react](reference/react.md): Every component, hook and type @jali/react exports, with its props, defaults and what it returns.
 - [Tokens](reference/tokens.md): Every public --jali-* token, what reads it, its light and dark values, and how the Tailwind bridge maps it.
-- [Parts](reference/parts.md): Every part of the workspace you can style, its selector, and the attributes that carry its state.
+- [Parts](reference/parts.md): Every part of the workspace you can style, its element, its selector, and the attributes that carry its state.
 - [Commands](reference/commands.md): Every workspace command, its default keys on a Mac and on Windows and Linux, and when it is refused.
 
 ## Examples

@@ -82,6 +82,10 @@ The address.
 
 - **`dir`** (`Direction`): The reading direction. By default the workspace reads its page's: the computed `direction` where it renders, so `<html dir="rtl">` is enough, and it follows a later change of `dir`. Give one to fix it; `<JaliRoot>` then sets `dir` on its elements, so the styles agree. Right to left, a row starts at the right, and every left and right a key, command, drop zone or message names is still the screen's. The layout and its links are the same in both. See [`Direction`](core/types.md#Direction).
 
+- **`gap`** (`number`): The space between panes, in CSS pixels. The layout measures with it (splits, rows that scroll, the stacked view), and `<JaliRoot>` writes it on its root and its layer as `--jali-gap`, so a style that reads the variable agrees with where the panes are.
+
+- **`inset`** (`number`): The space between the workspace's edges and its panes, in CSS pixels, written as `--jali-inset`. Set it apart from the gap to line the panes up with your own bars.
+
 - **`size`** (`{ width: number; height: number }`): A fixed size instead of the window's, for tests and server rendering. `<JaliRoot>` measures the real one once it renders.
 
 - **`moveFocus`** (`boolean`): `false` leaves DOM focus alone: for tests and a workspace that is never shown.
@@ -530,7 +534,7 @@ Lets a list inside a pane keep its current item through the workspace, so the pa
 const GAP: number
 ```
 
-The gap between panes and the workspace's inset, in pixels (6). For measuring a workspace from outside: its usable area is its element's size minus `GAP * 2`.
+The default gap between panes and inset from the workspace's edges, in pixels (6); a workspace's own are `createJali({ gap, inset })`. For measuring a workspace from outside: its usable area is its element's size minus twice its inset (`GAP * 2` by default).
 
 ## The layout namespace
 

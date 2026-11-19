@@ -58,10 +58,14 @@ The tokens you are most likely to change:
 | `--jali-border`, `--jali-border-strong`, `--jali-control` | Lines between things; the edges of buttons and inputs |
 | `--jali-text`, `--jali-text-muted`, `--jali-text-subtle`, `--jali-text-faint` | Text, from strongest to faintest |
 | `--jali-working`, `--jali-blocked`, `--jali-done`, `--jali-failed` | A pane's activity marks |
-| `--jali-radius`, `--jali-radius-control`, `--jali-radius-menu` | Corners of panes, controls and menus |
+| `--jali-radius`, `--jali-radius-control`, `--jali-radius-menu`, `--jali-radius-chip` | Corners of panes, controls, menus and the small things in headers, tabs and chips. Every corner reads one of them (a dialog is 1.2 × `--jali-radius`, rounded to a whole pixel), so setting all four to `0` or `2px` squares the whole workspace |
 | `--jali-font`, `--jali-font-mono` | Type |
 
 Every token, with its light and dark values, is in the [Tokens reference](../reference/tokens.md).
+
+## Spacing
+
+The space between panes, and between the workspace's edges and its panes, are options, because the layout measures with them: `createJali({ gap: 3, inset: 20 })`. The gap defaults to 6px and the inset to the gap. Jali writes them on its root as `--jali-gap` and `--jali-inset`, so your own bars can line up with the panes (`padding-inline: var(--jali-inset)`).
 
 The accent's tints (`--jali-accent-weak`, `--jali-accent-mid`, `--jali-drop` and the focus ring) are mixed from `--jali-accent` on each workspace. Change the accent and they follow, on the whole page or on one workspace. For one workspace, set it on an element around `<JaliRoot>`: the palette, the other dialogs and the tab menus render in a layer beside the workspace's root (`[data-jali-layer]`), not inside it, so an accent set on the root itself reaches the panes but not them.
 
@@ -152,14 +156,14 @@ The bridge reads these names, each falling back to Jali's own value when your th
 | `--color-primary`, `--color-primary-subtle`, `--color-primary-foreground` | `--jali-accent`, `--jali-accent-soft`, `--jali-on-accent` |
 | `--color-destructive` | `--jali-failed` |
 | `--color-ring`, `--color-focus-ring` | the focus ring |
-| `--radius-card`, `--radius-control`, `--radius-md`, `--radius-lg` | the radii |
+| `--radius-card`, `--radius-control`, `--radius-sm`, `--radius-md`, `--radius-lg` | the radii |
 | `--font-sans`, `--font-mono` | `--jali-font`, `--jali-font-mono` |
 
 Your theme's variables switch with your dark mode, so Jali follows. To follow a variable your theme sets again inside a `.dark` element, the bridge declares Jali's tokens again on each theme scope (`.light`, `.dark`, `[data-theme]`). So with the bridge, theme Jali through your theme's variables, or set a `--jali-*` token on the scope element itself. Tailwind drops theme variables that nothing uses; the bridge uses these, so keep it in the stylesheet Tailwind builds, or mark the theme `@theme static`.
 
 ## Style the parts
 
-Every class Jali renders starts with `jali-`, so none collide with yours. The parts you may rely on, and the attributes that carry their state, are listed in [Parts](../reference/parts.md): a pane is `.jali-pane` with `data-kind` and `data-focused`, a tab is `.jali-tab` with `aria-selected`, `data-pinned` and `data-folded`, and so on. State is always an attribute, never a class. Anything not listed there is Jali's own and may change.
+Every class Jali renders starts with `jali-`, so none collide with yours. The parts you may rely on, and the attributes that carry their state, are listed in [Parts](../reference/parts.md): a pane is `.jali-pane` with `data-kind` and `data-focused`, a tab is `.jali-tab` with `aria-selected`, `data-pinned` and `data-folded`, and so on. State is always an attribute, never a class. Only the listed parts and the tokens are stable: anything not listed there, including the elements inside a part (`.jali-pane-actions button`), is Jali's own and may change.
 
 `src/parts.css`
 

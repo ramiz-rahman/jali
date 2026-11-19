@@ -552,6 +552,18 @@ How far the shown boxes among `ids` reach along `axis`, gaps included. `0` when 
 
 **Returns** `number`:
 
+### layout.extentIn
+
+*function*, from `@jali/core`
+
+```ts
+layout.extentIn(resolved: ResolvedLayout, ids: readonly string[], axis: Axis): number
+```
+
+As `layout.extentAlong`, but a row that scrolls counts as its window: when every pane of a strip is among `ids`, the strip takes the room its window does, not the length of its content. What a divider beside a strip measures.
+
+**Returns** `number`:
+
 ### layout.scrolled
 
 *function*, from `@jali/core`
