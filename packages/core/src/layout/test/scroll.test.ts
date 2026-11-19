@@ -11,7 +11,14 @@ import { folded } from "./fixtures";
 import { offsetToShow, scrolled } from "../geometry/scroll";
 
 const kinds: KindRegistry = {
-  day: { kind: "day", minWidth: 300, minHeight: 200, comfortableWidth: 360, maxWidth: 480, title: () => "Day" },
+  day: {
+    kind: "day",
+    minWidth: 300,
+    minHeight: 200,
+    comfortableWidth: 360,
+    maxWidth: 480,
+    title: () => "Day",
+  },
   list: { kind: "list", minWidth: 320, minHeight: 120, title: () => "List" },
   map: { kind: "map", minWidth: 640, minHeight: 240, title: () => "Map" },
 };
@@ -77,14 +84,23 @@ describe("a row that scrolls sideways", () => {
     expect(s.contentWidth).toBe(7 * 360 + 36);
   });
 
-  it("needs only one child's room from its parent, so it never makes the panes beside it fold", () => {
-    // 320 + 6 + 300 + 6 + 640 = 1272: one day is all the strip asks for.
+  it("needs one child's room at comfort from its parent, so the panes beside it fold only short of that", () => {
+    // 320 + 6 + 360 + 6 + 640 = 1332: one day, whole, is all the strip asks for.
     const layout = toLayout(
-      row(paneOf({ kind: "list", params: {} }, { id: "overview" }), strip(7), paneOf({ kind: "map", params: {} }, { id: "map" })),
+      row(
+        paneOf({ kind: "list", params: {} }, { id: "overview" }),
+        strip(7),
+        paneOf({ kind: "map", params: {} }, { id: "map" }),
+      ),
     );
-    const r = place(layout, ctx(1280));
+    const r = place(layout, ctx(1340));
     expect(folded(r)).toEqual([]);
-    expect(r.scrollers[0]!.rect.width).toBeGreaterThanOrEqual(300);
+    expect(r.scrollers[0]!.rect.width).toBeGreaterThanOrEqual(360);
+    // Narrower, a neighbour folds: the strip never shows less than one whole day.
+    const tight = place(layout, ctx(1200));
+    expect(folded(tight).length).toBeGreaterThan(0);
+    expect(folded(tight).every((id) => !id.startsWith("d"))).toBe(true);
+    expect(tight.scrollers[0]!.rect.width).toBeGreaterThanOrEqual(360);
   });
 
   it("leaves no void: children that don't fill the strip share out its width", () => {
@@ -95,7 +111,14 @@ describe("a row that scrolls sideways", () => {
 
   it("a column in a strip is one child: its panes stack down it at the column's width", () => {
     const layout = toLayout(
-      row({ id: "strip", scroll: "x" }, day(1), column({ id: "c" }, day(2), day(3)), day(4), day(5), day(6)),
+      row(
+        { id: "strip", scroll: "x" },
+        day(1),
+        column({ id: "c" }, day(2), day(3)),
+        day(4),
+        day(5),
+        day(6),
+      ),
     );
     const r = place(layout);
     expect(rect(r, "d2")).toMatchObject({ x: 366, width: 360 });
@@ -129,7 +152,9 @@ describe("a row that scrolls sideways", () => {
   });
 
   it("goes through a link and back", () => {
-    const layout = toLayout(row(paneOf({ kind: "list", params: {} }, { id: "overview" }), strip(3)));
+    const layout = toLayout(
+      row(paneOf({ kind: "list", params: {} }, { id: "overview" }), strip(3)),
+    );
     const again = decode(encode(layout), kinds)!;
     expect(again).not.toBeNull();
     expect((again.root as { children: { scroll?: string }[] }).children[1]!.scroll).toBe("x");

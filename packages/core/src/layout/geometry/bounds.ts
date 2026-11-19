@@ -26,11 +26,12 @@ export function combineBounds(
   // Side by side, needs add up. Stacked, the slot can use what any of its panes can. Tabbed, every tab must fit (the
   // minimums), and the slot is measured as its home: a fold of tables into a record's slot is still a record's slot,
   // and choosing a tab never resizes it.
-  // A row that scrolls needs room for its widest child only (it scrolls to the rest), and would like all of them
-  // at comfort, so its parent gives it what room there is.
+  // A row that scrolls needs room for one child whole, at its comfortable width (it scrolls to the rest; a window
+  // narrower than that would cut even the child in view), and would like all of them at comfort, so its parent
+  // gives it what room there is. Short of that room, a neighbour folds rather than the strip.
   if (type === "row" && scroll)
     return {
-      width: Math.max(...widths),
+      width: Math.max(...comfortable),
       height: Math.max(...heights),
       comfortable: sum(comfortable),
       maxWidth: sum(maxima),
