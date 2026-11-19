@@ -104,3 +104,54 @@ test("renaming a speaker in the transcript renames them everywhere", async ({ pa
   await expect(page.locator(".tl-who").first()).toHaveText("Maren H. Holt");
   await expect(page.locator(".tr-speaker-name").first()).toHaveText("Maren H. Holt");
 });
+
+test("the scrub dial turns round its centre: a quarter turn is 2.5 seconds, and it holds playback while turned", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1700, height: 900 });
+  const dial = page.getByRole("slider", { name: "Scrub" });
+  const body = (await dial.locator(".dial-body").boundingBox())!;
+  const cx = body.x + body.width / 2;
+  const cy = body.y + body.height / 2;
+  await transport(page, "Play").click();
+  const before = await seconds(page);
+  await page.mouse.move(cx, cy - 20);
+  await page.mouse.down();
+  // A quarter turn clockwise, then on round well outside the dial (pointer capture keeps it).
+  for (let a = 0; a <= 90; a += 10) {
+    const r = (a * Math.PI) / 180;
+    await page.mouse.move(cx + Math.sin(r) * 20, cy - Math.cos(r) * 20);
+  }
+  await expect(transport(page, "Play")).toBeVisible(); // held while turning
+  for (let a = 90; a <= 180; a += 10) {
+    const r = (a * Math.PI) / 180;
+    await page.mouse.move(cx + Math.sin(r) * 200, cy - Math.cos(r) * 200);
+  }
+  await page.mouse.up();
+  await expect(transport(page, "Pause")).toBeVisible(); // and plays on
+  const after = await seconds(page);
+  expect(after - before).toBeGreaterThan(4.5);
+  expect(after - before).toBeLessThan(6.5);
+  // The keys step it too.
+  await transport(page, "Pause").click();
+  await dial.focus();
+  const at = await seconds(page);
+  await page.keyboard.press("ArrowRight");
+  await expect.poll(() => seconds(page)).toBeCloseTo(at + 1, 0);
+});
+
+test("the speed dial snaps to its detents and resets to 1× on a double-click", async ({ page }) => {
+  await page.setViewportSize({ width: 1700, height: 900 });
+  const dial = page.getByRole("slider", { name: "Speed" });
+  await expect(dial).toHaveAttribute("aria-valuetext", "1×");
+  await dial.focus();
+  await page.keyboard.press("End");
+  await expect(dial).toHaveAttribute("aria-valuetext", "2×");
+  await expect(page.locator(".rotary-value")).toHaveText("2×");
+  await dial.dblclick();
+  await expect(dial).toHaveAttribute("aria-valuetext", "1×");
+  // Press at 12 o'clock: the middle detent, 1.25×.
+  const body = (await dial.locator(".dial-body").boundingBox())!;
+  await page.mouse.click(body.x + body.width / 2, body.y + 4);
+  await expect(dial).toHaveAttribute("aria-valuetext", "1.25×");
+});

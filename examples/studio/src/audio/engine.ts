@@ -14,7 +14,7 @@ import { sessionById, trackOf, TRACKS, type SessionData } from "../sessions/sess
 import { createStore, type Store } from "../store";
 import { peaksOf, renderBed, renderSting } from "./synth";
 
-export const SPEEDS = [0.75, 1, 1.25, 1.5] as const;
+export const SPEEDS = [0.75, 1, 1.25, 1.5, 2] as const;
 
 export interface Loop {
   start: number;

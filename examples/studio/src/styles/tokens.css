@@ -184,7 +184,7 @@
   --grid: 4px;
   /* Legend sizes: group labels, key legends, pane titles. */
   --t-label: 10.5px;
-  --t-legend: 12px;
+  --t-legend: 13px;
   --t-title: 13px;
 }
 [data-theme="dark"],

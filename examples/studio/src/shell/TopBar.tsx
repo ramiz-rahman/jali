@@ -8,12 +8,13 @@
  */
 import { CommandIcon, LinkSimpleIcon, MoonIcon, SunIcon } from "@phosphor-icons/react";
 import { copyLink, keyHint, runCommand } from "@jali/core";
+import { useRef } from "react";
 import { useJali, useJaliState, useShortcut, useTheme } from "@jali/react";
 import { SPEEDS } from "../audio/engine";
 import { usePosition, useTransport } from "../audio/react";
 import { useServices } from "../services";
 import { clock, clockTenths, sessionById } from "../sessions/sessions";
-import { Jog, Knob } from "../ui/Knob";
+import { JogDial, SelectorDial } from "../ui/Knob";
 
 /** Keys don't keep focus after a click, so Space goes on playing and pausing. */
 const keepFocus = (e: React.MouseEvent) => e.preventDefault();
@@ -40,9 +41,6 @@ export function TopBar() {
         <span className="badge-name">studio</span>
       </a>
       <div className="zone zone-layouts">
-        <span className="zone-label" aria-hidden>
-          layout
-        </span>
         <nav className="pocket group-layouts" aria-label="Layouts">
           {jali.env.presets.map((p) => (
             <button
@@ -78,9 +76,6 @@ export function TopBar() {
       </div>
       <Transport />
       <div className="zone zone-tools">
-        <span className="zone-label" aria-hidden>
-          tools
-        </span>
         <div className="pocket group-tools" role="group" aria-label="Tools">
           <button
             type="button"
@@ -90,7 +85,7 @@ export function TopBar() {
             onMouseDown={keepFocus}
             onClick={() => copyLink(jali)}
           >
-            <LinkSimpleIcon size={20} aria-hidden className="face-glyph" />
+            <LinkSimpleIcon size={22} aria-hidden className="face-glyph" />
             <span className="face-legend" aria-hidden>
               link
             </span>
@@ -106,9 +101,9 @@ export function TopBar() {
             }
           >
             {theme === "dark" ? (
-              <SunIcon size={20} aria-hidden className="face-glyph" />
+              <SunIcon size={22} aria-hidden className="face-glyph" />
             ) : (
-              <MoonIcon size={20} aria-hidden className="face-glyph" />
+              <MoonIcon size={22} aria-hidden className="face-glyph" />
             )}
             <span className="face-legend" aria-hidden>
               {theme === "dark" ? "light" : "dark"}
@@ -122,7 +117,7 @@ export function TopBar() {
             onMouseDown={keepFocus}
             onClick={() => jali.actions.openPalette()}
           >
-            <CommandIcon size={20} aria-hidden className="face-glyph" />
+            <CommandIcon size={22} aria-hidden className="face-glyph" />
             <span className="face-legend" aria-hidden>
               {palette || keyHint("Mod+K")}
             </span>
@@ -140,7 +135,17 @@ function Transport() {
   const session = sessionById(t.session)!;
   const pos = usePosition(false, 0.05);
   const ready = t.status === "ready";
-  const speed = SPEEDS.indexOf(t.rate as (typeof SPEEDS)[number]);
+  // Scrubbing holds playback while the hand is on the wheel, and carries on from where it lets go: no audio restarts
+  // on every pixel of the drag.
+  const wasPlaying = useRef(false);
+  const startScrub = () => {
+    wasPlaying.current = engine.get().playing;
+    engine.pause();
+  };
+  const endScrub = () => {
+    if (wasPlaying.current) engine.play();
+    wasPlaying.current = false;
+  };
   const key = (
     label: string,
     legend: string,
@@ -176,9 +181,6 @@ function Transport() {
   );
   return (
     <div className="zone zone-player" role="group" aria-label="Transport">
-      <span className="zone-label" aria-hidden>
-        player
-      </span>
       <div className="zone-row">
         {/* The display: glass bonded flush into its own cutout. Title and series on the first line, the clock and
           state on the second, the progress across the foot. */}
@@ -246,36 +248,37 @@ function Transport() {
         </div>
         <div className="pocket group-rotary">
           <div className="face rotary tp-scrub">
-            <span className="face-glyph">
-              <Jog
-                label="Scrub"
-                value={pos}
-                min={0}
-                max={session.duration}
-                step={1}
-                degreesPerUnit={24}
-                valueText={`${clock(pos)} of ${clock(session.duration)}`}
-                onChange={(v) => engine.seek(v)}
-              />
+            <JogDial
+              label="Scrub"
+              value={pos}
+              min={0}
+              max={session.duration}
+              secondsPerTurn={10}
+              valueText={`${clock(pos)} of ${clock(session.duration)}`}
+              onStart={startScrub}
+              onChange={(v) => engine.seek(v)}
+              onEnd={endScrub}
+              className="rotary-control"
+            />
+            <span className="rotary-note" aria-hidden>
+              10 s/turn
             </span>
             <span className="face-legend" aria-hidden>
               scrub
             </span>
           </div>
           <div className="face rotary tp-speed">
-            <span className="face-glyph">
-              <Knob
-                label="Speed"
-                value={Math.max(0, speed)}
-                min={0}
-                max={SPEEDS.length - 1}
-                step={1}
-                reset={SPEEDS.indexOf(1)}
-                cap="graphite"
-                size={26}
-                valueText={`${t.rate} times`}
-                onChange={(i) => engine.setRate(SPEEDS[i]!)}
-              />
+            <SelectorDial
+              label="Speed"
+              values={SPEEDS}
+              value={(SPEEDS.includes(t.rate as never) ? t.rate : 1) as (typeof SPEEDS)[number]}
+              reset={1}
+              format={(r) => `${r}×`}
+              onChange={(r) => engine.setRate(r)}
+              className="rotary-control"
+            />
+            <span className="rotary-note rotary-value" aria-hidden>
+              {t.rate}×
             </span>
             <span className="face-legend" aria-hidden>
               speed
@@ -290,7 +293,7 @@ function Transport() {
 /** The transport's printed glyphs: plain geometry, one stroke weight, like the legends on a recorder's keys. */
 function Glyph({ name }: { name: "play" | "pause" | "stop" | "back" | "forward" | "loop" }) {
   return (
-    <svg viewBox="0 0 20 20" width="20" height="20" aria-hidden className="face-glyph glyph">
+    <svg viewBox="0 0 20 20" width="22" height="22" aria-hidden className="face-glyph glyph">
       {name === "play" ? (
         <path d="M6.5 4.5v11l8.5-5.5z" />
       ) : name === "pause" ? (
@@ -323,7 +326,7 @@ function LayoutGlyph({ id }: { id: string }) {
     <rect x={x} y={y} width={w} height={h} fill="none" stroke="currentColor" strokeWidth="1.3" />
   );
   return (
-    <svg viewBox="0 0 22 16" width="24" height="18" aria-hidden className="face-glyph">
+    <svg viewBox="0 0 22 16" width="29" height="21" aria-hidden className="face-glyph">
       {id === "mix" ? (
         <>
           {r(1, 1, 4, 14)}

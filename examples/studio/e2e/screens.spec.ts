@@ -75,7 +75,10 @@ for (const [name, width, height, dark] of [
     await page.setViewportSize({ width, height });
     await stage(page, "edit", { dark });
     const box = (await page.locator(".topbar").boundingBox())!;
-    await page.screenshot({ path: shot(name), clip: { x: 0, y: 0, width: box.width, height: box.height + 16 } });
+    await page.screenshot({
+      path: shot(name),
+      clip: { x: 0, y: 0, width: box.width, height: box.height + 16 },
+    });
   });
 }
 
@@ -126,6 +129,26 @@ for (const dark of [false, true]) {
     await page.screenshot({
       path: shot(`toprow-wide${dark ? "-dark" : ""}@2x`),
       clip: { x: 0, y: 0, width: box.width, height: box.height + 16 },
+    });
+    await context.close();
+  });
+}
+
+// The scrub and speed dials, close up, at 2x, light and dark.
+for (const dark of [false, true]) {
+  test(`rotary ${dark ? "dark" : "light"}`, async ({ browser, baseURL }) => {
+    const context = await browser.newContext({
+      baseURL,
+      viewport: { width: 1700, height: 900 },
+      deviceScaleFactor: 2,
+      colorScheme: dark ? "dark" : "light",
+    });
+    const page = await context.newPage();
+    await stage(page, "edit", { dark });
+    const box = (await page.locator(".group-rotary").boundingBox())!;
+    await page.screenshot({
+      path: shot(`rotary-${dark ? "dark" : "light"}`),
+      clip: { x: box.x - 16, y: box.y - 14, width: box.width + 32, height: box.height + 28 },
     });
     await context.close();
   });
