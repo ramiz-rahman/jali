@@ -259,205 +259,114 @@
     color: var(--st-signal);
   }
 
-  /* ---------- knob ---------- */
-  .knob {
+  /*
+   * ---------- fader: a long-throw slide (ui/Fader.tsx) ----------
+   * A milled slot with real depth, a shaped cap with grip ribs and a centre line, a 0 dB mark across the slot. The
+   * travel box (`.fader-travel`) is inset by half a cap from the slot's ends; the meter and the scale beside it use
+   * the same inset (`--travel-inset`), so their ticks line up with the cap's centre line.
+   */
+  .fader {
+    --cap-h: 34px;
+    --travel-inset: calc(var(--cap-h) / 2 + 4px);
     position: relative;
-    display: grid;
-    place-items: center;
-    width: calc(var(--knob) + 16px);
-    height: calc(var(--knob) + 16px);
-    border-radius: 50%;
-    cursor: ns-resize;
+    width: 40px;
+    height: 100%;
+    cursor: grab;
     touch-action: none;
-    flex: none;
+    border-radius: var(--corner);
   }
-  .knob-scale {
+  .fader[data-dragging] {
+    cursor: grabbing;
+  }
+  .fader-slot {
     position: absolute;
     inset: 0;
-    stroke: var(--legend);
-    stroke-width: 2.4;
-    stroke-linecap: round;
   }
-  .knob-body {
-    display: grid;
-    place-items: center;
-    width: var(--knob);
-    height: var(--knob);
-    border-radius: 50%;
-    background: repeating-conic-gradient(from 0deg, #3b3b3e 0 5deg, #1b1b1d 5deg 10deg);
-    box-shadow:
-      0 0 0 1px rgb(0 0 0 / 0.55),
-      0 3px 0 rgb(0 0 0 / 0.4),
-      0 5px 7px rgb(0 0 0 / 0.3);
-    rotate: var(--angle);
-    transition: rotate 60ms linear;
-  }
-  .knob-cap {
-    --c: var(--enc-white);
-    position: relative;
-    width: 72%;
-    height: 72%;
-    border-radius: 50%;
-    background: radial-gradient(
-      circle at 38% 30%,
-      color-mix(in srgb, var(--c) 55%, #fff),
-      var(--c) 55%,
-      color-mix(in srgb, var(--c) 78%, #000)
-    );
-    box-shadow:
-      inset 0 1px 0 rgb(255 255 255 / 0.5),
-      inset 0 -1px 1px rgb(0 0 0 / 0.25);
-  }
-  .knob-cap::after {
-    content: "";
+  .fader-travel {
     position: absolute;
-    top: 7%;
-    left: 50%;
-    width: 2.5px;
-    height: 34%;
-    border-radius: var(--corner);
-    translate: -50% 0;
-    background: var(--pointer, #fff);
+    left: 0;
+    right: 0;
+    top: var(--travel-inset);
+    bottom: var(--travel-inset);
   }
-  .knob[data-cap="orange"] .knob-cap {
-    --c: var(--enc-orange);
-    --pointer: #170a03;
-  }
-  .knob[data-cap="blue"] .knob-cap {
-    --c: var(--enc-blue);
-    --pointer: #0b1a2a;
-  }
-  .knob[data-cap="green"] .knob-cap {
-    --c: var(--enc-green);
-    --pointer: #0a1f12;
-  }
-  .knob[data-cap="white"] .knob-cap {
-    --c: var(--enc-white);
-    --pointer: #18181a;
-  }
-  .knob[data-cap="graphite"] .knob-cap {
-    --c: var(--enc-graphite);
-    --pointer: #ffffff;
-  }
-  .knob:focus-visible,
-  .jog:focus-visible {
-    outline-offset: 1px;
-  }
-
-  /* ---------- jog ---------- */
-  .jog {
-    display: grid;
-    place-items: center;
-    width: 56px;
-    height: 56px;
-    border-radius: 50%;
-    cursor: ew-resize;
-    touch-action: none;
-    flex: none;
-  }
-  .jog-ring {
-    display: grid;
-    place-items: center;
-    width: 100%;
-    height: 100%;
-    border-radius: 50%;
-    background: repeating-conic-gradient(
-      from 0deg,
-      light-dark(#b9b9b4, #18181a) 0 3deg,
-      light-dark(#e6e6e2, #3a3a3e) 3deg 6deg
-    );
-    box-shadow:
-      0 0 0 1px var(--body-rim),
-      0 3px 0 var(--body-wall),
-      0 5px 7px rgb(0 0 0 / 0.25);
-    rotate: var(--angle);
-  }
-  .jog-face {
-    position: relative;
-    width: 78%;
-    height: 78%;
-    border-radius: 50%;
-    background: radial-gradient(
-      circle at 40% 30%,
-      light-dark(#ffffff, #4a4a4e),
-      light-dark(#dededa, #2a2a2d) 70%
-    );
-    box-shadow:
-      inset 0 0 0 1px var(--body-rim),
-      inset 0 -2px 3px rgb(0 0 0 / 0.12);
-  }
-  .jog-dimple {
+  /* The slot: 8px wide, cut deep, its floor black, the light catching its lower lip. */
+  .fader-groove {
     position: absolute;
-    top: 14%;
     left: 50%;
-    width: 9px;
-    height: 9px;
+    top: calc(var(--travel-inset) * -1 + 4px);
+    bottom: calc(var(--travel-inset) * -1 + 4px);
+    width: 8px;
     translate: -50% 0;
-    border-radius: 50%;
-    background: radial-gradient(
-      circle at 50% 65%,
-      light-dark(#f4f4f1, #3a3a3e),
-      light-dark(#c4c4bf, #1a1a1c)
-    );
-    box-shadow: inset 0 1px 2px rgb(0 0 0 / 0.35);
-  }
-
-  /* ---------- fader ---------- */
-  .fader {
-    display: flex;
-    justify-content: center;
-    width: 30px;
-    height: 100%;
-  }
-  .fader input {
-    writing-mode: vertical-lr;
-    direction: rtl;
-    appearance: none;
-    width: 30px;
-    height: 100%;
-    margin: 0;
-    background: none;
-    cursor: ns-resize;
-  }
-  .fader input::-webkit-slider-runnable-track {
-    width: 6px;
     border-radius: var(--corner);
-    background: #050506;
+    background: linear-gradient(90deg, #000, #0d0d0f 40%, #050506);
     box-shadow:
-      inset 0 1px 2px #000,
-      0 0 0 1px rgb(0 0 0 / 0.6),
-      1px 0 0 var(--seam-lit);
+      inset 0 3px 3px rgb(0 0 0 / 0.9),
+      inset 1px 0 0 rgb(0 0 0 / 0.8),
+      0 1px 0 var(--seam-lit),
+      -1px 0 0 rgb(0 0 0 / 0.4);
   }
-  .fader input::-moz-range-track {
-    width: 6px;
+  .fader-zero {
+    position: absolute;
+    left: 50%;
+    bottom: calc(var(--zero, 0.708) * 100%);
+    width: 22px;
+    height: 1px;
+    translate: -50% 0.5px;
+    background: var(--legend);
+  }
+  /* The cap: a shaped block that straddles the slot, grip ribs top and bottom, a centre line across. */
+  .fader-cap {
+    position: absolute;
+    left: 50%;
+    bottom: calc(var(--pos) * 100%);
+    width: 36px;
+    height: var(--cap-h);
+    translate: -50% 50%;
     border-radius: var(--corner);
-    background: #050506;
-  }
-  .fader input::-webkit-slider-thumb {
-    appearance: none;
-    width: 26px;
-    height: 26px;
-    margin-left: -10px;
-    border-radius: 50%;
-    background: radial-gradient(circle at 40% 32%, #ffffff, #e9e9e5 55%, #b9b9b3);
-    border: 0;
+    background:
+      repeating-linear-gradient(180deg, transparent 0 3px, rgb(0 0 0 / 0.16) 3px 4px) 0 4px / 100%
+        9px no-repeat,
+      repeating-linear-gradient(180deg, transparent 0 3px, rgb(0 0 0 / 0.16) 3px 4px) 0
+        calc(100% - 4px) / 100% 9px no-repeat,
+      linear-gradient(180deg, #fbfbf9, #e2e2de 48%, #cfcfca 52%, #e8e8e4);
     box-shadow:
-      inset 0 -1px 1px rgb(0 0 0 / 0.2),
+      inset 0 1px 0 #fff,
+      inset 0 -1px 0 rgb(0 0 0 / 0.2),
       0 0 0 1px rgb(0 0 0 / 0.55),
       0 3px 0 #0a0a0b,
-      0 5px 6px rgb(0 0 0 / 0.5);
+      0 6px 6px rgb(0 0 0 / 0.5);
   }
-  .fader input::-moz-range-thumb {
-    width: 24px;
-    height: 24px;
-    border-radius: 50%;
-    background: #f2f2ee;
-    border: 0;
+  .fader-line {
+    position: absolute;
+    left: 3px;
+    right: 3px;
+    top: 50%;
+    height: 2px;
+    translate: 0 -50%;
+    background: #18181a;
   }
-  .fader input:focus-visible {
+  /* The master's cap: graphite, its centre line orange. */
+  .fader-master .fader-cap {
+    width: 44px;
+    background:
+      repeating-linear-gradient(180deg, transparent 0 3px, rgb(255 255 255 / 0.07) 3px 4px) 0 4px /
+        100% 9px no-repeat,
+      repeating-linear-gradient(180deg, transparent 0 3px, rgb(255 255 255 / 0.07) 3px 4px) 0
+        calc(100% - 4px) / 100% 9px no-repeat,
+      linear-gradient(180deg, #5b5b61, #3c3c41 48%, #303034 52%, #424247);
+    box-shadow:
+      inset 0 1px 0 rgb(255 255 255 / 0.2),
+      0 0 0 1px #000,
+      0 3px 0 #000,
+      0 6px 6px rgb(0 0 0 / 0.6);
+  }
+  .fader-master .fader-line {
+    background: var(--st-signal);
+  }
+  .fader:focus-visible {
     outline: none;
   }
-  .fader input:focus-visible::-webkit-slider-thumb {
+  .fader:focus-visible .fader-cap {
     box-shadow:
       0 0 0 2px var(--focus),
       0 0 0 5px var(--st-signal-soft),
@@ -524,7 +433,7 @@
 
   @media (prefers-reduced-motion: reduce) {
     :where(.key, .lib-row, .jali-tab, .jali-shelf-chip),
-    .knob-body {
+    .dial-body {
       transition: none;
     }
   }
@@ -810,5 +719,33 @@
 @layer app {
   .rotary .face-legend {
     pointer-events: none;
+  }
+}
+
+@layer app {
+  /* A pan dial's face carries its channel's colour as a ring on the machined top. */
+  .pan-dial[data-cap="blue"] .dial-face {
+    box-shadow:
+      inset 0 0 0 3px var(--enc-blue),
+      inset 0 1px 0 rgb(255 255 255 / 0.25),
+      0 0 0 1px rgb(0 0 0 / 0.35);
+  }
+  .pan-dial[data-cap="green"] .dial-face {
+    box-shadow:
+      inset 0 0 0 3px var(--enc-green),
+      inset 0 1px 0 rgb(255 255 255 / 0.25),
+      0 0 0 1px rgb(0 0 0 / 0.35);
+  }
+  .pan-dial[data-cap="white"] .dial-face {
+    box-shadow:
+      inset 0 0 0 3px var(--enc-white),
+      inset 0 1px 0 rgb(255 255 255 / 0.25),
+      0 0 0 1px rgb(0 0 0 / 0.35);
+  }
+  .pan-dial[data-cap="orange"] .dial-face {
+    box-shadow:
+      inset 0 0 0 3px var(--enc-orange),
+      inset 0 1px 0 rgb(255 255 255 / 0.25),
+      0 0 0 1px rgb(0 0 0 / 0.35);
   }
 }

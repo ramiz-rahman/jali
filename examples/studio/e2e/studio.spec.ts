@@ -162,3 +162,43 @@ test("the speed dial snaps to its detents and resets to 1× on a double-click", 
   await page.mouse.click(body.x + body.width / 2, body.y + 4);
   await expect(dial).toHaveAttribute("aria-valuetext", "1.25×");
 });
+
+test("a mixer fader drags without jumping, settles at 0 dB, and a pan dial turns and centres", async ({
+  page,
+}) => {
+  await layout(page, "Mix").click();
+  const fader = page.getByRole("slider", { name: "Level for Music bed" });
+  await expect(fader).toHaveAttribute("aria-valuetext", "−4.0 dB");
+  const cap = (await fader.locator(".fader-cap").boundingBox())!;
+  const x = cap.x + cap.width / 2;
+  // Grab the cap off-centre: nothing moves.
+  await page.mouse.move(x, cap.y + cap.height / 2 + 6);
+  await page.mouse.down();
+  await expect(fader).toHaveAttribute("aria-valuetext", "−4.0 dB");
+  // Up a little: into the 0 dB detent, wherever the pointer drifts (pointer capture).
+  for (let i = 1; i <= 8; i++)
+    await page.mouse.move(x + i * 30, cap.y + cap.height / 2 + 6 - i * 2.5);
+  await page.mouse.up();
+  await expect(fader).toHaveAttribute("aria-valuenow", "0");
+  await fader.focus();
+  await page.keyboard.press("PageDown");
+  await expect(fader).toHaveAttribute("aria-valuetext", "−3.0 dB");
+  await fader.dblclick();
+  await expect(fader).toHaveAttribute("aria-valuetext", "0.0 dB");
+
+  const pan = page.getByRole("slider", { name: "Pan for Mic A" });
+  await expect(pan).toHaveAttribute("aria-valuenow", "-15");
+  const body = (await pan.locator(".dial-body").boundingBox())!;
+  const cx = body.x + body.width / 2;
+  const cy = body.y + body.height / 2;
+  await page.mouse.move(cx, cy - 18);
+  await page.mouse.down();
+  for (let a = 0; a <= 90; a += 10) {
+    const r = (a * Math.PI) / 180;
+    await page.mouse.move(cx + Math.sin(r) * 18, cy - Math.cos(r) * 18);
+  }
+  await page.mouse.up();
+  await expect(pan).toHaveAttribute("aria-valuenow", "52");
+  await pan.dblclick();
+  await expect(pan).toHaveAttribute("aria-valuetext", "centre");
+});

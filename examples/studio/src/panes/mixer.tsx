@@ -15,24 +15,15 @@ import { channelOf, useSessionView, type SessionView } from "../edits";
 import { useServices } from "../services";
 import { sessionById, TRACKS, type Track } from "../sessions/sessions";
 import { Empty, NotInTransport } from "../ui/parts";
-import { Knob } from "../ui/Knob";
+import { dbToFader, Fader } from "../ui/Fader";
+import { PanDial } from "../ui/Knob";
 import { screenPaletteOf, prepare, useSize } from "../ui/waveform";
 import { followSession } from "./follow";
 
 const mixerParams = { session: String };
 
-/** Fader travel to dB and back: +6 at the top, -6 at the middle, silence at the bottom. */
-export const faderToDb = (p: number) => (p <= 0.032 ? -60 : 40 * Math.log10(p) + 6);
-export const dbToFader = (db: number) => (db <= -60 ? 0 : Math.min(1, 10 ** ((db - 6) / 40)));
 const dbLabel = (db: number) =>
   db <= -60 ? "−∞" : `${db > 0 ? "+" : db < 0 ? "−" : ""}${Math.abs(db).toFixed(1)}`;
-/** Each track's encoder cap, as on a synthesiser's coloured encoders. */
-const CAPS: Record<string, "blue" | "green" | "white" | "orange"> = {
-  "mic-a": "blue",
-  "mic-b": "green",
-  bed: "white",
-  sting: "orange",
-};
 const panText = (p: number) =>
   Math.abs(p) < 0.02
     ? "centre"
@@ -67,7 +58,7 @@ function Mixer({ params, paused }: PaneProps<typeof mixerParams>) {
   return (
     <div className="pane-body mixer">
       {!inTransport ? <NotInTransport session={params.session} /> : null}
-      <div className="mx-strips" role="group" aria-label={`Mixer for ${view.session.title}`}>
+      <div className="mx-modules" role="group" aria-label={`Mixer for ${view.session.title}`}>
         {TRACKS.map((t) => (
           <Strip key={t.id} track={t} view={view} />
         ))}
@@ -78,6 +69,38 @@ function Mixer({ params, paused }: PaneProps<typeof mixerParams>) {
   );
 }
 
+/** Each channel's colour: its pan dial's cap and its module's lamp, as on a synthesiser's coloured encoders. */
+const CAPS: Record<string, "blue" | "green" | "white" | "orange"> = {
+  "mic-a": "blue",
+  "mic-b": "green",
+  bed: "white",
+  sting: "orange",
+};
+
+/** The printed scale beside every fader and meter: its ticks sit where the cap's centre line sits for that dB. */
+const TICKS = [6, 0, -6, -12, -24, -48];
+function Scale() {
+  return (
+    <ol className="mx-scale" aria-hidden>
+      {TICKS.map((db) => (
+        <li
+          key={db}
+          data-db={db}
+          data-zero={db === 0 ? "" : undefined}
+          style={{ bottom: `${dbToFader(db) * 100}%` }}
+        >
+          <span>{db > 0 ? `+${db}` : db}</span>
+        </li>
+      ))}
+    </ol>
+  );
+}
+
+/**
+ * A channel module: a plate of its own, cut from the faceplate. At its head a scribble strip (the input and its
+ * name, the channel's lamp); then the pan dial; the meter, the scale and the long-throw fader, which take the
+ * module's height; the level on a glass readout; mute and solo as latch keys.
+ */
 function Strip({ track, view }: { track: Track; view: SessionView }) {
   const { edits } = useServices();
   const ch = channelOf(view.edits, track.id);
@@ -91,61 +114,48 @@ function Strip({ track, view }: { track: Track; view: SessionView }) {
   const silent = ch.mute || (anySolo && !ch.solo);
   return (
     <section
-      className="mx-strip"
-      data-kind={track.kind}
+      className="mx-module"
+      data-channel={CAPS[track.id]}
       data-silent={silent ? "" : undefined}
       aria-label={`${track.label}, ${name}`}
     >
-      <header className="mx-head">
+      <header className="mx-scribble">
+        <span className="mx-lamp" aria-hidden />
         <span className="mx-label">{track.label}</span>
         <span className="mx-name" title={name}>
           {name}
         </span>
       </header>
       <div className="mx-pan">
-        <Knob
+        <PanDial
           label={`Pan for ${track.label}`}
           value={Math.round(ch.pan * 100)}
-          min={-100}
-          max={100}
-          step={1}
-          reset={0}
-          centre
-          cap={CAPS[track.id] ?? "white"}
-          size={40}
+          cap={CAPS[track.id]}
           valueText={panText(ch.pan)}
-          onChange={(v) => edits.setChannel(session, track.id, { pan: v / 100 })}
+          onChange={(v: number) => edits.setChannel(session, track.id, { pan: v / 100 })}
         />
-        <span className="legend mx-pan-legend" aria-hidden>
-          pan <span className="mx-pan-value">{panLabel(ch.pan)}</span>
+        <span className="mx-pan-legend" aria-hidden>
+          pan <b>{panLabel(ch.pan)}</b>
         </span>
       </div>
       <div className="mx-fader-row">
         <div className="mx-meter" data-meter={track.id} aria-hidden />
-        <label className="fader">
-          <span className="sr-only">Level for {track.label}</span>
-          <input
-            type="range"
-            min={0}
-            max={1000}
-            step={1}
-            value={Math.round(dbToFader(ch.gain) * 1000)}
-            onChange={(e) =>
-              edits.setChannel(session, track.id, {
-                gain: Math.round(faderToDb(Number(e.target.value) / 1000) * 10) / 10,
-              })
-            }
-            onDoubleClick={() => edits.setChannel(session, track.id, { gain: 0 })}
-            aria-valuetext={`${dbLabel(ch.gain)} dB`}
-          />
-        </label>
         <Scale />
+        <Fader
+          label={`Level for ${track.label}`}
+          value={ch.gain}
+          valueText={`${dbLabel(ch.gain)} dB`}
+          onChange={(gain) => edits.setChannel(session, track.id, { gain })}
+        />
       </div>
-      <span className="mx-db mono">{dbLabel(ch.gain)} dB</span>
-      <div className="mx-buttons keyset">
+      <span className="screen mx-db" aria-hidden>
+        {dbLabel(ch.gain)}
+        <small> dB</small>
+      </span>
+      <div className="keyset mx-keys">
         <button
           type="button"
-          className="key key-s key-latch mx-btn"
+          className="key mx-btn"
           data-role="mute"
           aria-pressed={ch.mute}
           aria-label={`Mute ${track.label}`}
@@ -153,11 +163,12 @@ function Strip({ track, view }: { track: Track; view: SessionView }) {
           onMouseDown={(e) => e.preventDefault()}
           onClick={() => edits.setChannel(session, track.id, { mute: !ch.mute })}
         >
-          <span className="led" aria-hidden />M
+          <span className="led" aria-hidden />
+          mute
         </button>
         <button
           type="button"
-          className="key key-s key-latch mx-btn"
+          className="key mx-btn"
           data-role="solo"
           aria-pressed={ch.solo}
           aria-label={`Solo ${track.label}`}
@@ -165,72 +176,65 @@ function Strip({ track, view }: { track: Track; view: SessionView }) {
           onMouseDown={(e) => e.preventDefault()}
           onClick={() => edits.setChannel(session, track.id, { solo: !ch.solo })}
         >
-          <span className="led" aria-hidden />S
+          <span className="led" aria-hidden />
+          solo
         </button>
       </div>
     </section>
   );
 }
 
+/**
+ * The master: wider, a stereo meter with a clip lamp for each side, a graphite fader cap with an orange line, its
+ * readout and a reset key.
+ */
 function Master({ view }: { view: SessionView }) {
   const { edits } = useServices();
   const gain = view.edits.masterGain;
   return (
-    <section className="mx-strip mx-master" aria-label="Master">
-      <header className="mx-head">
-        <span className="mx-label">Master</span>
+    <section className="mx-module mx-master" aria-label="Master">
+      <header className="mx-scribble">
+        <span className="mx-lamp" aria-hidden />
+        <span className="mx-label">master</span>
         <span className="mx-name">Stereo out</span>
       </header>
-      <div className="mx-pan mx-pan-blank" aria-hidden />
+      <div className="mx-pan mx-clips" aria-hidden>
+        <span className="mx-clip" data-clip="master-l">
+          <span className="led" />L
+        </span>
+        <span className="mx-clip" data-clip="master-r">
+          <span className="led" />R
+        </span>
+        <span className="mx-pan-legend">clip</span>
+      </div>
       <div className="mx-fader-row">
         <div className="mx-meter" data-meter="master-l" aria-hidden />
         <div className="mx-meter" data-meter="master-r" aria-hidden />
-        <label className="fader">
-          <span className="sr-only">Master level</span>
-          <input
-            type="range"
-            min={0}
-            max={1000}
-            step={1}
-            value={Math.round(dbToFader(gain) * 1000)}
-            onChange={(e) =>
-              edits.setMasterGain(
-                view.session.id,
-                Math.round(faderToDb(Number(e.target.value) / 1000) * 10) / 10,
-              )
-            }
-            onDoubleClick={() => edits.setMasterGain(view.session.id, 0)}
-            aria-valuetext={`${dbLabel(gain)} dB`}
-          />
-        </label>
         <Scale />
+        <Fader
+          label="Master level"
+          className="fader-master"
+          value={gain}
+          valueText={`${dbLabel(gain)} dB`}
+          onChange={(g) => edits.setMasterGain(view.session.id, g)}
+        />
       </div>
-      <span className="mx-db mono">{dbLabel(gain)} dB</span>
-      <div className="mx-buttons keyset">
+      <span className="screen mx-db" aria-hidden>
+        {dbLabel(gain)}
+        <small> dB</small>
+      </span>
+      <div className="keyset mx-keys">
         <button
           type="button"
-          className="key key-s mx-btn mx-btn-wide"
+          className="key mx-btn mx-btn-wide"
           onMouseDown={(e) => e.preventDefault()}
           onClick={() => edits.resetMix(view.session.id)}
           title="Reset every fader, pan, mute and solo"
         >
-          Reset
+          reset mix
         </button>
       </div>
     </section>
-  );
-}
-
-const TICKS = [6, 0, -6, -12, -24, -48];
-function Scale() {
-  return (
-    <ol className="mx-scale mono" aria-hidden>
-      {TICKS.map((db) => (
-        <li key={db} style={{ bottom: `${dbToFader(db) * 100}%` }}>
-          {db > 0 ? `+${db}` : db}
-        </li>
-      ))}
-    </ol>
   );
 }
 
@@ -238,11 +242,15 @@ function Scale() {
  * Every meter in the mixer, drawn in one loop while the pane is on screen: each `[data-meter]` box gets a canvas.
  * The level falls back at 24 dB a second, and the peak holds for a second.
  */
+/** The meters' middle zone, between the pale low cells and the orange top: an extension of the accent rules. */
+const AMBER = "#f2b33d";
+
 function Meters({ paused, engineReady }: { paused: boolean; engineReady: boolean }) {
   const { engine } = useServices();
   const root = useRef<HTMLSpanElement>(null);
   const state = useRef(new Map<string, { level: number; hold: number; heldAt: number }>());
   const last = useRef(0);
+  const clipped = useRef(new Map<string, number>());
   const theme = useTheme();
   const { width } = useSize(root);
   useFrame(paused, () => {
@@ -268,18 +276,28 @@ function Meters({ paused, engineReady }: { paused: boolean; engineReady: boolean
         s.heldAt = now;
       }
       state.current.set(id, s);
-      // An OLED column of cells, on the fader's scale: a level reads against the fader beside it.
+      // A ladder of LED cells on the fader's scale, so a level reads against the fader beside it: pale up to
+      // −12 dB, amber to −3, signal orange above. The peak holds for a second as one lit cell.
       const y = (db: number) => h - dbToFader(db) * h;
       const cell = 3;
       const top = s.level > -59 ? y(s.level) : h + 1;
+      const zone = (cy: number) => (cy < y(-3) ? c.played : cy < y(-12) ? AMBER : c.text);
       for (let cy = h - cell; cy >= 0; cy -= cell + 1) {
         const lit = cy + cell > top;
-        g.fillStyle = lit ? (cy < y(-9) ? c.played : c.text) : c.line;
+        g.fillStyle = lit ? zone(cy) : c.line;
         g.fillRect(0, cy, w, cell);
       }
       if (s.hold > -59) {
-        g.fillStyle = s.hold > -9 ? c.played : c.text;
-        g.fillRect(0, Math.round(y(s.hold)), w, 1.5);
+        const hy = Math.max(0, Math.min(h - cell, Math.round(y(s.hold))));
+        g.fillStyle = zone(hy);
+        g.fillRect(0, hy, w, 2);
+      }
+      // The master's clip lamps: lit for two seconds after a peak within 0.5 dB of full scale.
+      if (id.startsWith("master")) {
+        const lamp = strips.querySelector<HTMLElement>(`[data-clip="${id}"]`);
+        if (m.peak > -0.5) clipped.current.set(id, now);
+        const on = now - (clipped.current.get(id) ?? -1e9) < 2000;
+        if (lamp) lamp.toggleAttribute("data-on", on);
       }
     }
   }, [theme, width, engineReady]);
@@ -290,8 +308,8 @@ export const mixer = definePane("mixer", {
   params: mixerParams,
   title: ({ session }) => `Mixer · ${sessionById(session)?.title ?? session}`,
   icon: SlidersHorizontalIcon,
-  width: { min: 420, comfortable: 520 },
-  height: { min: 300 },
+  width: { min: 420, comfortable: 640 },
+  height: { min: 340 },
   follow: followSession,
   Component: Mixer,
 });
