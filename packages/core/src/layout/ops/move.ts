@@ -122,7 +122,44 @@ export function moveDirection(
       ctx.dir,
     );
   const target = directionalCandidates({ ...nextView, focused: pane }, resolved, dir)[0];
-  return target
-    ? drop(layout, nextView, pane, target.id, treeSide(dir, ctx.dir), "swap", ctx)
-    : { layout, view };
+  if (target) return drop(layout, nextView, pane, target.id, treeSide(dir, ctx.dir), "swap", ctx);
+  // Nothing that way: at a strip's edge, the pane still leaves the strip, beside it on that side.
+  return (
+    (strip && leaveStrip(layout, nextView, pane, strip.id, treeSide(dir, ctx.dir), ctx)) || {
+      layout,
+      view,
+    }
+  );
+}
+
+/**
+ * Take `pane` out of the row that scrolls `stripId`, beside the strip on `side` (a tree side), when it is the
+ * strip's first child and `side` is its start, or its last and `side` its end. Else undefined: a pane inside a strip
+ * moves past its neighbours, not out. A strip left with one child becomes that child, and the pane goes beside it.
+ */
+function leaveStrip(
+  layout: Layout,
+  view: ViewState,
+  pane: string,
+  stripId: string,
+  side: Edge,
+  ctx: LayoutContext,
+) {
+  if (side !== "left" && side !== "right") return undefined;
+  const strip = find(layout.root, stripId);
+  if (!strip || strip.type !== "row") return undefined;
+  const at = strip.children.findIndex((c) => nodes(c).some((n) => n.id === pane));
+  if (at !== (side === "left" ? 0 : strip.children.length - 1)) return undefined;
+  const others = strip.children.filter((_, i) => i !== at).map((c) => c.id);
+  const next = clone(layout);
+  const moved = clone(find(next.root, pane) as PaneNode);
+  // A deliberate move ends a tuck, as a drop does.
+  next.root = remove(next.root, pane)!;
+  forget(next, [pane]);
+  const anchor = find(next.root, stripId) ? stripId : others.find((id) => find(next.root, id));
+  if (!anchor) return undefined;
+  beside(next, anchor, side, moved);
+  activate(next, pane);
+  const nextView = focus(view, pane, ctx);
+  return { layout: fitLayout(next, nextView, ctx), view: nextView };
 }

@@ -254,3 +254,49 @@ describe("a strip at a scroll position", () => {
     expect(offsetToShow(rtl, rect(rr, "d5"), 0, "rtl")).toBe(1824 - 1440);
   });
 });
+
+describe("moving a pane out of a strip", () => {
+  const view = (focused: string) => ({ focused, focusHistory: [focused] });
+  const ids = (n: any): any => (n.type === "pane" ? n.id : { [n.id]: n.children.map(ids) });
+  const move = (layout: Layout, pane: string, dir: "left" | "right", c = ctx()) =>
+    core.moveDirection(layout, view(pane), pane, dir, c).layout;
+
+  it("the first pane, moved towards the strip's start, leaves it even with nothing beyond", () => {
+    const after = move(toLayout(strip(3)), "d1", "left");
+    expect(ids(after.root)).toEqual({ [after.root.id]: ["d1", { strip: ["d2", "d3"] }] });
+    expect((core.tree.find(after.root, "strip") as { scroll?: string }).scroll).toBe("x");
+  });
+
+  it("the last pane, moved towards the strip's end, leaves it even with nothing beyond", () => {
+    const after = move(toLayout(strip(3)), "d3", "right");
+    expect(ids(after.root)).toEqual({ [after.root.id]: [{ strip: ["d1", "d2"] }, "d3"] });
+  });
+
+  it("lands beside the strip in the row that holds it, next to what is there", () => {
+    const layout = toLayout(
+      row({ id: "outer" }, strip(3), paneOf({ kind: "map", params: {} }, { id: "map" })),
+    );
+    expect(ids(move(layout, "d1", "left").root)).toEqual({
+      outer: ["d1", { strip: ["d2", "d3"] }, "map"],
+    });
+  });
+
+  it("a pane inside the strip still swaps with its neighbour", () => {
+    expect(ids(move(toLayout(strip(3)), "d2", "left").root)).toEqual({ strip: ["d2", "d1", "d3"] });
+  });
+
+  it("right to left, the strip starts at the right: its first pane leaves by moving right", () => {
+    const rtl = ctx(1440, 900, 10, "rtl");
+    const after = move(toLayout(strip(3)), "d1", "right", rtl);
+    expect(ids(after.root)).toEqual({ [after.root.id]: ["d1", { strip: ["d2", "d3"] }] });
+    // And moving left from the first pane, towards the strip's inside, swaps with the second.
+    expect(ids(move(toLayout(strip(3)), "d1", "left", rtl).root)).toEqual({
+      strip: ["d2", "d1", "d3"],
+    });
+  });
+
+  it("the last of two leaves the other alone, wherever the tree puts it", () => {
+    const after = move(toLayout(strip(2)), "d2", "right");
+    expect(core.tree.panes(after.root).map((p) => p.id)).toEqual(["d1", "d2"]);
+  });
+});
