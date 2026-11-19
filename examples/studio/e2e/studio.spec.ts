@@ -46,9 +46,11 @@ test("the sound goes on while the mixer is folded away", async ({ page }) => {
   await layout(page, "Mix").click();
   await expect(page.locator('.jali-pane[data-pane="mixer"]')).toBeVisible();
   await transport(page, "Play").click();
-  await page.setViewportSize({ width: 820, height: 900 });
-  // Narrow: panes fold into tabs rather than squeeze, and the shelf lists them.
-  await expect(page.locator(".jali-shelf-chip").first()).toBeVisible();
+  // A short window: the mixer folds into a tab rather than squeeze, and the shelf lists it, working.
+  await page.setViewportSize({ width: 1100, height: 560 });
+  const chip = page.locator(".jali-shelf-chip", { hasText: "Mixer" });
+  await expect(chip).toBeVisible();
+  await expect(chip.locator("[class*=ra-ring]")).toBeVisible();
   const before = await seconds(page);
   await page.waitForTimeout(1500);
   expect(await seconds(page)).toBeGreaterThan(before + 1);
