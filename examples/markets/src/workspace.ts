@@ -164,6 +164,8 @@ export function createMarketsJali(services: Services, options: Options = {}): Ja
     storage: "markets",
     // Dark first: until the person picks a theme, a terminal is dark. (Jali's own default follows the system.)
     settings: { theme: "dark" },
+    // On a portrait phone: the watchlist above the chart it opened, rather than one at a time.
+    phone: { stack: true },
     ...jaliOptions,
   });
 }

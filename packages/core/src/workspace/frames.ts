@@ -32,12 +32,38 @@ export const currentPane = (m: JaliModel, view: ViewState) =>
     ? view.focused
     : m.onScreen[0]?.id;
 
+/** Room between the two panes of stacked view: the divider's line sits in it. */
+export const STACK_GAP = 6;
+
 export function frames(
   m: JaliModel,
   view: ViewState,
   mode: Presentation,
   size: { width: number; height: number },
+  /** Stacked view: the top pane's share of the height (0 to 1), or `false` to show one pane (the keyboard is up). */
+  stack: number | false = 0.5,
 ): Frame[] {
+  if (mode === "single" && m.stacked && stack !== false) {
+    const { top, bottom } = m.stacked;
+    const topH = Math.round((size.height - STACK_GAP) * stack);
+    const rects = {
+      [top]: { x: 0, y: 0, width: size.width, height: topH },
+      [bottom]: {
+        x: 0,
+        y: topH + STACK_GAP,
+        width: size.width,
+        height: size.height - topH - STACK_GAP,
+      },
+    };
+    return m.panes.map((node) => ({
+      node,
+      rect: rects[node.id] ?? { x: 0, y: 0, ...size },
+      hidden: !rects[node.id],
+      focused: node.id === view.focused,
+      zoomed: false,
+      covered: false,
+    }));
+  }
   if (mode === "single") {
     const current = currentPane(m, view);
     const rect = { x: 0, y: 0, ...size };

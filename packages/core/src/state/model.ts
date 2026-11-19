@@ -16,6 +16,7 @@ import type {
   ViewState,
 } from "../layout/types";
 import { PHONE_BELOW, titleOf, type Env } from "../profile";
+import { stackPair, type StackPair } from "../workspace/stack";
 import { messagesOf } from "./messages";
 
 /** A tab group as the frame shows it: a deliberate stack, or a fold or tuck group made by resolve. */
@@ -56,8 +57,10 @@ export interface JaliModel {
   off: NodeId[];
   /** Every pane except hidden ones, in tree order: what single view switches between. */
   onScreen: PaneNode[];
-  /** Phone rule: even one pane's minimum overflows the width, so one pane shows at a time. */
+  /** Phone rule: under the phone width, or even one pane's minimum overflows it, so one pane shows at a time. */
   single: boolean;
+  /** In Single view on a portrait phone with `phone.stack`: the two linked panes shown one above the other. */
+  stacked?: StackPair;
 }
 
 export interface ModelInput {
@@ -115,7 +118,7 @@ export function buildModel({ layout, view, area, ctx, env, titles }: ModelInput)
     ];
   });
 
-  return {
+  const model: JaliModel = {
     layout,
     env,
     resolved,
@@ -147,6 +150,15 @@ export function buildModel({ layout, view, area, ctx, env, titles }: ModelInput)
       (area.width < (env.phone?.below ?? PHONE_BELOW) ||
         resolved.panes.some((b) => !b.hidden && b.rect.x + b.rect.width > area.width + 0.5)),
   };
+  if (model.single) {
+    const current =
+      view.focused && byId.has(view.focused) && !model.off.includes(view.focused)
+        ? view.focused
+        : model.onScreen[0]?.id;
+    const pair = stackPair({ env, view, area, onScreen: model.onScreen, current });
+    if (pair) model.stacked = pair;
+  }
+  return model;
 }
 
 /** A one-entry cache: the same inputs give the same model object, so components can compare by identity. */
@@ -161,6 +173,8 @@ export function modelCache() {
       input.env.kinds.version(),
       input.env.profile,
       input.env.phone?.below,
+      // Stacked view pairs the focused pane: only then does focus change the model.
+      input.env.phone?.stack ? input.view.focused : undefined,
       input.ctx.paneCap,
       input.titles,
       input.ctx.dir,

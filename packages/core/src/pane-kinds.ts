@@ -223,6 +223,8 @@ export interface PaneOptions<P = Params> {
    * shows that object. Params left `undefined` are left out, and params its kind can't read keep the pane as it is.
    */
   follow?: (selected: ObjectRef) => FollowParams<P> | undefined;
+  /** Phones only. `stack: false` keeps this kind out of stacked view; `place` asks for its half of it. */
+  phone?: { stack?: boolean; place?: "top" | "bottom" };
 }
 
 /** What a kind's `follow` gives: its params, each one possibly missing (Jali checks them against `params`). */

@@ -379,6 +379,8 @@ What a kind says about itself, apart from how it renders. In React, `definePane(
 
 - **`holdWhileResizing`** (`boolean`): Keep the content as it is during a divider drag and reflow once, on release: for long lists and charts.
 
+- **`phone`** (`{ stack?: boolean; place?: "top" | "bottom" }`): Phones only, in stacked view (`createJali({ phone: { stack: true } })`). `stack: false` keeps panes of this kind out of it, so they show alone. `place` asks for the top or the bottom half; otherwise the pane others were opened from goes above.
+
 - **`follow`** (`(selected: ObjectRef) => FollowParams<P> | undefined`): What a following pane of this kind shows when its list selects an object of another kind: the params for it, or `undefined` to keep what it shows. `follow: (selected) => ({ symbol: selected.params.symbol })` lets a chart follow a watchlist that selects quotes. A follower of the selected object's own kind shows that object without it. Params given as `undefined` are left out; if the kind can't read the result (a required param missing), the pane keeps what it shows. See [Following a list](../../learn/following.md#followers-of-other-kinds).
 
 ### PaneWidth
@@ -644,7 +646,7 @@ How a curated page is shown: one view at a time (Single) or side by side (Split 
 *type*, from `@jali/core`
 
 ```ts
-interface PhoneOptions { below?: number }
+interface PhoneOptions { below?: number; stack?: boolean; stackFloor?: number }
 ```
 
 How the workspace behaves on a phone (`createJali({ phone })`).
@@ -652,6 +654,10 @@ How the workspace behaves on a phone (`createJali({ phone })`).
 **Fields**
 
 - **`below`** (`number`): Below this workspace width, in CSS pixels, the workspace shows Single view: one pane at a time, with a switcher at the top. Default 600, Android's compact width, which covers portrait phones. `0` leaves it to the panes' minimum widths alone: Single view only when even one pane can't fit.
+
+- **`stack`** (`boolean`): On a portrait phone, show two linked panes one above the other instead of one at a time: the focused pane and the pane it was opened from (a list above its detail), else one opened from it. Only with room for both: the workspace at least 480 pixels tall, and each pane at least `stackFloor` and its kind's minimum height. While the on-screen keyboard is up, the focused pane shows alone. Default `false`.
+
+- **`stackFloor`** (`number`): The shortest a stacked pane may be, in CSS pixels. Default 200.
 
 ### Preset
 

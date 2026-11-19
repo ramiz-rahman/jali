@@ -93,4 +93,10 @@ The workspace's chrome grows only when there is something to arrange. While one 
 
 On a phone, a workspace narrower than 600 pixels shows a single view: one pane fills the width, with a switcher at the top listing every pane. It does the same at any width when even one pane is too wide at its minimum, since folding can't help then. Other panes stay mounted, so their state survives. `createJali({ phone: { below } })` moves the line; `below: 0` keeps only the second rule.
 
+### Two panes, stacked
+
+A list and its detail often work best together, even on a phone. With `createJali({ phone: { stack: true } })`, a portrait phone shows the focused pane together with the pane it was opened from, one above the other, instead of one at a time. A divider between them, a 44 pixel touch target, settles on a third, a half or two thirds of the height, by drag or arrow keys. The switcher marks both panes.
+
+Stacking happens only when both panes have room: the workspace at least 480 pixels tall, each pane at least 200 (`stackFloor`) and at least its kind's minimum height. It never stacks more than two. Held sideways, the phone is wide enough for the normal layout. While the on-screen keyboard is up, the pane you're typing in shows alone, so the keyboard doesn't cover it. A kind can stay out with `phone: { stack: false }`, or ask for its half with `phone: { place: "top" }`.
+
 The layout, the address and the history don't change. Widen the window and the arrangement comes back.

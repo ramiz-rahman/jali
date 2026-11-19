@@ -659,3 +659,13 @@ Data Studio's old tab strip had six features Jali lacked. Each is general, and l
 - **What:** `m.single` is now also true when the workspace's width is under `env.phone.below` (`createJali({ phone: { below } })`, `PhoneOptions`, default `PHONE_BELOW` = 600, Android's compact width). The overflow rule stays for every width. `{ below: 0 }` restores the old behaviour exactly. Layout, address and history are untouched as before; widening restores the arrangement (`restoreWide`).
 - **First of three steps.** Next: opt-in stacked view on portrait phones (two linked panes top and bottom), then foldables (a separating hinge becomes a locked divider), as the research proposes.
 - **Tests:** `pane-attributes.test.tsx` tests folding at 360px, so it sets `below: 0`; the rule's own tests come with the stacked view.
+
+## 19 Nov 2026 · Phones: stacked view, two linked panes top and bottom (opt-in)
+
+- **What:** `createJali({ phone: { stack: true } })`. In Single view, when the focused pane has a partner on screen (the pane it was opened from, else a follower, else any pane opened from it) the model's `stacked` names the pair, source above, and `frames` lays them out top and bottom. Derived each render: layout, address and history don't change. Step two of the phone work (docs/research/phone-split-view.md).
+- **Only with room:** the workspace at least 480px tall (`STACK_MIN_HEIGHT`, Android's compact height), and each half, after the 44px switcher, at least the larger of `stackFloor` (default 200) and the kind's minimum height. Never more than two. A kind opts out (`phone: { stack: false }`) or asks for a half (`place`). While the visual viewport is under three quarters of the window (the keyboard is up), the focused pane shows alone, so a field in the lower pane isn't covered.
+- **The divider:** `.jali-stack-divider`, a 44px touch target around the 6px gap with a grabber; `role="separator"`, drag or Up/Down/Home/End, settling on a third, a half or two thirds. The ratio is the React tree's state for the session, not layout. Entering a pair is announced once ("Two panes stacked: Orders above, Order 7 below"). The switcher marks the other pane in view (`data-in-view`); the workspace carries `data-stacked`. Both in the parts contract.
+- **Model cost:** with `stack` on, the focused pane is part of the model's cache key (the pair follows focus); without it, nothing changes.
+- **The markets example** turns it on: its watchlist sits above the chart it opened at 390×844.
+- **Deferred, as the research suggested:** dragging the divider to an edge to go single, stacking in landscape, three panes, keeping the ratio across sessions.
+- **Tests:** `src/tests/stacked.test.tsx`.

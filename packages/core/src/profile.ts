@@ -120,6 +120,15 @@ export interface PhoneOptions {
    * alone (Single view only when even one pane can't fit), as before 19 Nov 2026.
    */
   below?: number;
+  /**
+   * On a portrait phone, show two linked panes one above the other instead of one: the focused pane and the pane it
+   * was opened from (a list above its detail), when both have room (each at least `stackFloor` tall, default 200,
+   * and the workspace at least 480). Default false. A kind can stay out (`phone: { stack: false }`) or ask for its
+   * half (`phone: { place: "top" }`).
+   */
+  stack?: boolean;
+  /** The shortest a stacked pane may be, in CSS pixels. Default 200. */
+  stackFloor?: number;
 }
 
 /** The phone width when none is given: Android's compact window width. */

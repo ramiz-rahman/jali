@@ -157,6 +157,8 @@ const announcements = {
   // what the workspace did on its own
   singleOn: "Single view: one pane at a time. Use the pane switcher at the top.",
   singleOff: "Single view ended: full layout restored",
+  /** Stacked view on a phone: two linked panes, one above the other. */
+  stacked: (top: string, bottom: string) => `Two panes stacked: ${top} above, ${bottom} below`,
   folded: (panes: string[]) => `${panes.join(", ")} folded into tabs: not enough room`,
   unfolded: (panes: string[]) => `${panes.join(", ")} unfolded: room returned`,
 
@@ -521,6 +523,8 @@ const workspace = {
       ? panes.join(", ")
       : `${panes.slice(0, 2).join(", ")}, +${panes.length - 2} more`,
   divider: (a: string, b: string) => `Resize between ${a} and ${b}`,
+  /** Stacked view's divider: the top pane's share, as the person hears it. */
+  stackValue: (top: string, percent: number) => `${top} ${percent} percent of the height`,
   dividerValue: (a: string, aPx: number, b: string, bPx: number) =>
     `${a} ${aPx} pixels, ${b} ${bPx} pixels`,
   /** One side of a focused divider's size tip. */

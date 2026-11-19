@@ -14,6 +14,7 @@ import {
   observeResize,
   watchDirection,
 } from "@jali/core/adapter";
+import { StackDivider, useKeyboardUp, useStackAnnouncement } from "./Stacked";
 import { PaneSwitcher } from "../chrome/PaneSwitcher";
 import { Peek } from "../chrome/Peek";
 import { DividerLayer } from "../dividers/DividerLayer";
@@ -236,6 +237,11 @@ export function Panes() {
   const bleed = alone
     ? { left: 0, top: 0, width: area.width + GAP * 2, height: area.height + GAP * 2 }
     : inner;
+  // Stacked view (a portrait phone, phone.stack): two linked panes, unless the keyboard is up.
+  const keyboardUp = useKeyboardUp();
+  const [stackRatio, setStackRatio] = useState(0.5);
+  const stacked = single && !page && !!m.stacked && !keyboardUp;
+  useStackAnnouncement(store, m, stacked);
   const dropBox =
     !single && dnd?.target ? m.resolved.panes.find((b) => b.id === dnd.target) : undefined;
 
@@ -249,13 +255,26 @@ export function Panes() {
       ref={ref}
       aria-label={store.messages.workspace.label}
       data-single={single ? "" : undefined}
+      data-stacked={stacked ? "" : undefined}
       data-alone={alone ? "" : undefined}
       data-zoomed={!single && view.zoomed ? "" : undefined}
       data-page={page}
     >
-      {single && !page ? <PaneSwitcher panes={m.onScreen} current={currentPane(m, view)} /> : null}
+      {single && !page ? (
+        <PaneSwitcher
+          panes={m.onScreen}
+          current={currentPane(m, view)}
+          inView={stacked && m.stacked ? [m.stacked.top, m.stacked.bottom] : undefined}
+        />
+      ) : null}
       <div className="jali-workspace-inner" style={bleed}>
-        {frames(m, view, mode, { width: inner.width, height: inner.height }).map((f) => (
+        {frames(
+          m,
+          view,
+          mode,
+          { width: inner.width, height: inner.height },
+          stacked ? stackRatio : false,
+        ).map((f) => (
           <PaneFrame
             key={f.node.id}
             frame={
@@ -268,6 +287,9 @@ export function Panes() {
           />
         ))}
         {single ? null : <DividerLayer />}
+        {stacked ? (
+          <StackDivider m={m} ratio={stackRatio} setRatio={setStackRatio} height={inner.height} />
+        ) : null}
         {dropBox && dnd?.zone ? <DropIndicator rect={dropBox.rect} zone={dnd.zone} /> : null}
         {dnd && !single ? (
           <DragChip

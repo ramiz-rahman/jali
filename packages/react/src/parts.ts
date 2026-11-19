@@ -47,6 +47,10 @@ export const parts = {
     what: "The area the panes are laid out in.",
     attributes: [
       { name: "data-single", means: "Flag: Single view (one pane at a time, with the switcher)." },
+      {
+        name: "data-stacked",
+        means: "Flag: stacked view, two panes one above the other (a phone with `phone.stack`).",
+      },
       { name: "data-zoomed", means: "Flag: a pane is maximised." },
       {
         name: "data-alone",
@@ -180,6 +184,11 @@ export const parts = {
       },
     ],
   },
+  stackDivider: {
+    selector: ".jali-stack-divider",
+    what: 'Stacked view\'s divider between the two panes on a phone (`role="separator"`); it settles on a third, a half or two thirds.',
+    attributes: [{ name: "data-dragging", means: "Flag: being dragged." }],
+  },
   dropZone: {
     selector: "[data-drop-zone]",
     what: "The preview of where a dragged pane will go; the value is `left`, `right`, `top`, `bottom` or `centre`.",
@@ -221,6 +230,7 @@ export const parts = {
     attributes: [
       { name: "aria-selected", means: "`true` on the pane in view." },
       { name: "data-tucked", means: "Flag: a tucked pane." },
+      { name: "data-in-view", means: "Flag: in stacked view, the other pane on screen." },
       unsaved,
     ],
   },

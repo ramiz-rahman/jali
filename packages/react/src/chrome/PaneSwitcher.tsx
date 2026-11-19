@@ -12,7 +12,7 @@ import {
   useUi,
 } from "../state/react";
 
-function Item({ node, selected }: { node: PaneNode; selected: boolean }) {
+function Item({ node, selected, inView }: { node: PaneNode; selected: boolean; inView?: boolean }) {
   const activity = useUi((s) => s.activity[node.id]);
   const dirty = useUnsavedOf(node.id);
   const titles = useUi((s) => s.titles);
@@ -29,6 +29,7 @@ function Item({ node, selected }: { node: PaneNode; selected: boolean }) {
       aria-controls={paneDomId(store.dom.id, node.id)}
       tabIndex={selected ? 0 : -1}
       data-tucked={tucked || undefined}
+      data-in-view={inView || undefined}
       data-unsaved={dirty || undefined}
       aria-description={dirty ? store.messages.pane.unsaved : undefined}
       onClick={() => actions.focus(node.id)}
@@ -48,9 +49,12 @@ function Item({ node, selected }: { node: PaneNode; selected: boolean }) {
 export function PaneSwitcher({
   panes,
   current,
+  inView,
 }: {
   panes: PaneNode[];
   current: string | undefined;
+  /** Stacked view: both panes on screen, the current one among them. */
+  inView?: string[];
 }) {
   const actions = useActions();
   const t = useMessages().workspace;
@@ -77,7 +81,7 @@ export function PaneSwitcher({
         }}
       >
         {panes.map((p) => (
-          <Item key={p.id} node={p} selected={p.id === current} />
+          <Item key={p.id} node={p} selected={p.id === current} inView={inView?.includes(p.id)} />
         ))}
       </div>
     </nav>

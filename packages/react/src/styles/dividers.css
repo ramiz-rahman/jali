@@ -179,4 +179,37 @@
   body.jali-resizing-column * {
     cursor: row-resize !important;
   }
+
+  /* Stacked view's divider: a 44px touch target around the 6px gap, with a grabber in the middle. */
+  .jali-stack-divider {
+    position: absolute;
+    inset-inline: 0;
+    height: 2.75rem;
+    transform: translateY(-50%);
+    z-index: 6;
+    cursor: row-resize;
+    touch-action: none;
+    outline: none;
+  }
+  .jali-stack-divider::after {
+    content: "";
+    position: absolute;
+    inset-block-start: 50%;
+    inset-inline-start: 50%;
+    width: 2.25rem;
+    height: 0.25rem;
+    border-radius: 999px;
+    background: var(--jali-border-strong);
+    transform: translate(-50%, -50%);
+  }
+  .jali-stack-divider:dir(rtl)::after {
+    transform: translate(50%, -50%);
+  }
+  .jali-stack-divider[data-dragging]::after,
+  .jali-stack-divider:focus-visible::after {
+    background: var(--jali-accent);
+  }
+  .jali-stack-divider:focus-visible::after {
+    box-shadow: 0 0 0 3px var(--jali-accent-mid);
+  }
 }

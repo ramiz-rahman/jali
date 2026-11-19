@@ -112,6 +112,11 @@
     border-color: var(--jali-accent-mid);
     color: var(--jali-text);
   }
+  /* Stacked view: the other pane on screen. */
+  .jali-switch-item[data-in-view]:not(.is-active) {
+    border-color: var(--jali-border);
+    color: var(--jali-text);
+  }
   .jali-switch-item.is-tucked {
     border-style: dashed;
     border-color: var(--jali-border);
