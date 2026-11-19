@@ -153,3 +153,165 @@ for (const dark of [false, true]) {
     await context.close();
   });
 }
+
+// Each pane, close up, light and dark, and one mixer module at 2x.
+const PANES = [
+  ["mixer", "mix"],
+  ["markers", "mix"],
+  ["library", "edit"],
+  ["transcript", "edit"],
+  ["timeline", "review"],
+  ["clip", "review"],
+] as const;
+for (const [kind, preset] of PANES) {
+  for (const dark of [false, true]) {
+    test(`pane ${kind}${dark ? " dark" : ""}`, async ({ page }) => {
+      await page.setViewportSize({ width: 1440, height: 1000 });
+      await stage(page, preset, { dark });
+      await page
+        .locator(`.jali-pane[data-kind="${kind}"]`)
+        .first()
+        .screenshot({
+          path: shot(`pane-${kind}${dark ? "-dark" : ""}`),
+        });
+    });
+  }
+}
+
+test("a mixer module at 2x", async ({ browser, baseURL }) => {
+  const context = await browser.newContext({
+    baseURL,
+    viewport: { width: 1440, height: 1100 },
+    deviceScaleFactor: 2,
+    colorScheme: "dark",
+  });
+  const page = await context.newPage();
+  await stage(page, "mix", { dark: true });
+  await page
+    .locator(".mx-module")
+    .nth(1)
+    .screenshot({ path: shot("mixer-module@2x") });
+  await context.close();
+});
+
+// The launcher and the empty, missing and failed states, light and dark.
+for (const dark of [false, true]) {
+  test(`states${dark ? " dark" : ""}`, async ({ page }) => {
+    const d = dark ? "-dark" : "";
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await stage(page, "mix", { dark });
+    await page.keyboard.press("Space");
+    const mk = page.locator('.jali-pane[data-kind="markers"]');
+    await mk.getByRole("listbox", { name: "Markers" }).focus();
+    for (let i = 0; i < 6; i++) await page.keyboard.press("Delete");
+    await mk.screenshot({ path: shot(`state-empty-markers${d}`) });
+    await page.locator('.jali-pane[data-kind="timeline"] .tl-lanes').click();
+    await page.keyboard.press("ControlOrMeta+Backslash");
+    await page
+      .locator('.jali-pane[data-kind="launcher"]')
+      .screenshot({ path: shot(`launcher${d}`) });
+    // A link to a session that isn't there.
+    const url = new URL(page.url());
+    const l = url.searchParams.get("l")!;
+    const json = Buffer.from(l.slice(2), "base64url").toString();
+    url.searchParams.set(
+      "l",
+      `1.${Buffer.from(json.replace('["mixer",{"session":"night-ferry"}]', '["mixer",{"session":"gone"}]')).toString("base64url")}`,
+    );
+    await page.goto(url.toString());
+    await page
+      .locator('.jali-pane[data-kind="mixer"]')
+      .screenshot({ path: shot(`state-missing${d}`) });
+  });
+  test(`state no audio${dark ? " dark" : ""}`, async ({ page }) => {
+    await page.emulateMedia({ colorScheme: dark ? "dark" : "light", reducedMotion: "reduce" });
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.route("**/*.m4a", (r) => r.abort());
+    await page.goto("/");
+    await expect(page.locator(".pd-alert")).toHaveText("no audio");
+    await page
+      .locator(".topbar")
+      .screenshot({ path: shot(`state-no-audio${dark ? "-dark" : ""}`) });
+  });
+}
+
+// A selected transcript row after a click, and after moving to it with the keyboard.
+for (const dark of [false, true]) {
+  test(`transcript rows${dark ? " dark" : ""}`, async ({ page }) => {
+    const d = dark ? "-dark" : "";
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.emulateMedia({ colorScheme: dark ? "dark" : "light", reducedMotion: "reduce" });
+    await page.goto("/");
+    const rows = page.getByRole("listbox", { name: /Transcript of/ });
+    await expect(rows).toBeVisible();
+    await rows
+      .getByRole("option")
+      .nth(1)
+      .click({ position: { x: 300, y: 20 } });
+    await page.mouse.move(0, 0);
+    await rows
+      .getByRole("option")
+      .nth(1)
+      .screenshot({ path: shot(`row-selected${d}`) });
+    await page.keyboard.press("j");
+    await rows
+      .getByRole("option")
+      .nth(2)
+      .screenshot({ path: shot(`row-keyboard${d}`) });
+  });
+}
+
+// The fixes in this round, close up.
+test("light finish after", async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 820 });
+  await page.emulateMedia({ colorScheme: "light", reducedMotion: "reduce" });
+  await page.goto("/");
+  await page
+    .getByRole("listbox", { name: "Sessions" })
+    .getByRole("option", { name: /Recording the quiet/ })
+    .click();
+  await page
+    .getByRole("navigation", { name: "Layouts" })
+    .getByRole("button", { name: "Compare" })
+    .click();
+  await page.waitForTimeout(600);
+  await page.screenshot({ path: shot("light-shadows-after") });
+});
+for (const dark of [false, true]) {
+  const d = dark ? "-dark" : "";
+  test(`transcript controls and displays${d}`, async ({ browser, baseURL }) => {
+    const context = await browser.newContext({
+      baseURL,
+      viewport: { width: 1440, height: 900 },
+      deviceScaleFactor: 2,
+      colorScheme: dark ? "dark" : "light",
+    });
+    const page = await context.newPage();
+    await page.goto("/");
+    await expect(page.locator(".tr-controls")).toBeVisible();
+    await page.waitForTimeout(800);
+    await page.locator(".tr-controls").screenshot({ path: shot(`transcript-controls${d}`) });
+    await page
+      .getByRole("navigation", { name: "Layouts" })
+      .getByRole("button", { name: "Review" })
+      .click();
+    await page.waitForTimeout(600);
+    await page.locator(".clip-wave").screenshot({ path: shot(`display-segment${d}`) });
+    await page.getByRole("button", { name: /Play segment/ }).click();
+    await page.waitForTimeout(1800);
+    await page.locator(".clip-wave").screenshot({ path: shot(`display-segment-playing${d}`) });
+    await page.locator(".tl-body").screenshot({ path: shot(`timeline-selected${d}`) });
+    await context.close();
+  });
+}
+test("timeline labels when short", async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 620 });
+  await page.emulateMedia({ colorScheme: "light", reducedMotion: "reduce" });
+  await page.goto("/");
+  await page
+    .getByRole("navigation", { name: "Layouts" })
+    .getByRole("button", { name: "Edit" })
+    .click();
+  await page.waitForTimeout(600);
+  await page.locator(".tl-body").screenshot({ path: shot("timeline-labels") });
+});

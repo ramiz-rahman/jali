@@ -162,3 +162,95 @@ test("the speed dial snaps to its detents and resets to 1× on a double-click", 
   await page.mouse.click(body.x + body.width / 2, body.y + 4);
   await expect(dial).toHaveAttribute("aria-valuetext", "1.25×");
 });
+
+test("a mixer fader drags without jumping, settles at 0 dB, and a pan dial turns and centres", async ({
+  page,
+}) => {
+  await layout(page, "Mix").click();
+  const fader = page.getByRole("slider", { name: "Level for Music bed" });
+  await expect(fader).toHaveAttribute("aria-valuetext", "−4.0 dB");
+  const cap = (await fader.locator(".fader-cap").boundingBox())!;
+  const x = cap.x + cap.width / 2;
+  // Grab the cap off-centre: nothing moves.
+  await page.mouse.move(x, cap.y + cap.height / 2 + 6);
+  await page.mouse.down();
+  await expect(fader).toHaveAttribute("aria-valuetext", "−4.0 dB");
+  // Up a little: into the 0 dB detent, wherever the pointer drifts (pointer capture).
+  for (let i = 1; i <= 8; i++)
+    await page.mouse.move(x + i * 30, cap.y + cap.height / 2 + 6 - i * 2.5);
+  await page.mouse.up();
+  await expect(fader).toHaveAttribute("aria-valuenow", "0");
+  await fader.focus();
+  await page.keyboard.press("PageDown");
+  await expect(fader).toHaveAttribute("aria-valuetext", "−3.0 dB");
+  await fader.dblclick();
+  await expect(fader).toHaveAttribute("aria-valuetext", "0.0 dB");
+
+  const pan = page.getByRole("slider", { name: "Pan for Mic A" });
+  await expect(pan).toHaveAttribute("aria-valuenow", "-15");
+  const body = (await pan.locator(".dial-body").boundingBox())!;
+  const cx = body.x + body.width / 2;
+  const cy = body.y + body.height / 2;
+  await page.mouse.move(cx, cy - 18);
+  await page.mouse.down();
+  for (let a = 0; a <= 90; a += 10) {
+    const r = (a * Math.PI) / 180;
+    await page.mouse.move(cx + Math.sin(r) * 18, cy - Math.cos(r) * 18);
+  }
+  await page.mouse.up();
+  await expect(pan).toHaveAttribute("aria-valuenow", "52");
+  await pan.dblclick();
+  await expect(pan).toHaveAttribute("aria-valuetext", "centre");
+});
+
+test("the timeline seeks by click, drag (with pointer capture), the wheel and the keys", async ({
+  page,
+}) => {
+  const lanes = page.getByRole("slider", { name: /Playhead in/ });
+  const box = (await lanes.boundingBox())!;
+  // A click a quarter of the way along: about a quarter of the session.
+  await page.mouse.click(box.x + box.width / 4, box.y + box.height / 2);
+  const quarter = await seconds(page);
+  expect(quarter).toBeGreaterThan(12);
+  expect(quarter).toBeLessThan(25);
+  // Drag right, and on past the pane: the playhead follows to the end.
+  await page.mouse.move(box.x + box.width / 4, box.y + box.height / 2);
+  await page.mouse.down();
+  await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+  await page.mouse.move(box.x + box.width + 400, box.y + 300);
+  await page.mouse.up();
+  expect(await seconds(page)).toBeGreaterThan(70);
+  // The wheel: 100 of delta is a second.
+  await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+  await page.keyboard.press("Home");
+  await lanes.focus();
+  await page.keyboard.press("Home");
+  await expect.poll(() => seconds(page)).toBe(0);
+  await page.mouse.wheel(0, 500);
+  await expect.poll(() => seconds(page)).toBe(5);
+  await page.keyboard.press("ArrowRight");
+  await expect.poll(() => seconds(page)).toBe(6);
+});
+
+test("a clicked transcript row is selected without a focus ring; the keyboard adds a light one", async ({
+  page,
+}) => {
+  const rows = page.getByRole("listbox", { name: /Transcript of/ });
+  const ring = (el: import("@playwright/test").Locator) =>
+    el.evaluate((e) => getComputedStyle(e).boxShadow);
+  const bar = (el: import("@playwright/test").Locator) =>
+    el.evaluate((e) => getComputedStyle(e, "::before").backgroundColor);
+  // Click a row: selected (the side bar), no ring.
+  const third = rows.getByRole("option").nth(2);
+  await third.click({ position: { x: 300, y: 20 } });
+  await expect(third).toHaveAttribute("aria-selected", "true");
+  expect(await ring(third)).toBe("none");
+  expect(await bar(third)).not.toBe("rgba(0, 0, 0, 0)");
+  // Move with the keyboard: the next row is selected, with the side bar and a thin neutral outline.
+  await page.keyboard.press("j");
+  const fourth = rows.getByRole("option").nth(3);
+  await expect(fourth).toHaveAttribute("aria-selected", "true");
+  expect(await bar(fourth)).not.toBe("rgba(0, 0, 0, 0)");
+  expect(await ring(fourth)).toContain("inset");
+  expect(await ring(fourth)).not.toContain("255, 79, 0");
+});

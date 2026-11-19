@@ -40,7 +40,7 @@ import {
   wordIndexAt,
   type SegmentData,
 } from "../sessions/sessions";
-import { Empty, NotInTransport } from "../ui/parts";
+import { Missing, NotInTransport } from "../ui/parts";
 import { clip } from "./clip";
 import { followSession } from "./follow";
 import { listMove } from "./keys";
@@ -50,7 +50,7 @@ const transcriptParams = { session: String };
 function Transcript(props: PaneProps<typeof transcriptParams>) {
   const { edits } = useServices();
   const view = useSessionView(edits, props.params.session);
-  if (!view) return <Empty title="No such session">It may have been removed.</Empty>;
+  if (!view) return <Missing what="session" openHere={props.openHere} />;
   return <TranscriptBody {...props} view={view} />;
 }
 
@@ -267,107 +267,114 @@ function TranscriptBody({
 
   return (
     <div className="pane-body transcript">
-      <div className="toolbar">
-        <button
-          type="button"
-          className="key key-latch"
-          aria-pressed={follow}
-          onMouseDown={keepFocus}
-          onClick={() => setFollow(!follow)}
-          title="Move the selection, and the segment detail, with the segment being spoken"
+      {/* One control row: the follow latch, the segment counter on a small LCD, the selected segment's keys, and
+          (when there are corrections) their save keys. It wraps onto a second row in a narrow pane. */}
+      {/* One tray, the width of the sheet below: the follow latch and the segment counter; the segment's playback,
+          edit and detail keys; and, while there are corrections, their count and the keys that keep or drop them.
+          Every cap is one height; caps in a group meet at a seam, groups stand one gap apart. */}
+      <div className="toolbar tr-controls">
+        <div
+          className="tray tr-tray"
+          role="toolbar"
+          aria-label={`Segment ${at + 1} of ${segs.length}`}
         >
-          <span className="led" aria-hidden />
-          follow playback
-        </button>
-        <span className="toolbar-note mono">
-          {segs.length} segments · {clock(session.duration)}
-        </span>
-        <span className="toolbar-end">
+          <span className="tr-group">
+            <button
+              type="button"
+              className="key key-s key-latch"
+              aria-pressed={follow}
+              onMouseDown={keepFocus}
+              onClick={() => setFollow(!follow)}
+              title="Move the selection, and the segment detail, with the segment being spoken"
+            >
+              <span className="led" aria-hidden />
+              follow
+            </button>
+            <span className="lcd tr-counter" aria-hidden>
+              <b>{String(at + 1).padStart(2, "0")}</b>/{String(segs.length).padStart(2, "0")}
+            </span>
+          </span>
+          <span className="tr-group" role="group" aria-label="Playback">
+            <button
+              type="button"
+              className="key key-s"
+              title={`Play from this segment (${keyHint("Enter")})`}
+              onMouseDown={keepFocus}
+              onClick={() => playFrom(current)}
+            >
+              <PlayIcon size={14} weight="fill" aria-hidden />
+              <span className="key-word">play</span>
+            </button>
+            <button
+              type="button"
+              className="key key-s key-latch"
+              aria-pressed={loop?.segment === current.id}
+              title="Loop this segment (L)"
+              onMouseDown={keepFocus}
+              onClick={() => loopSegment(current)}
+            >
+              <span className="led" aria-hidden />
+              <RepeatIcon size={14} aria-hidden />
+              <span className="key-word">loop</span>
+            </button>
+          </span>
+          <span className="tr-group" role="group" aria-label="Edit">
+            <button
+              type="button"
+              className="key key-s"
+              title="Correct this segment (E)"
+              onMouseDown={keepFocus}
+              onClick={() => edit(current)}
+            >
+              <NotePencilIcon size={14} aria-hidden />
+              <span className="key-word">correct</span>
+            </button>
+            <button
+              type="button"
+              className="key key-s"
+              title={`Rename ${view.speakerName(view.speakerOf(current))}`}
+              onMouseDown={keepFocus}
+              onClick={() => setRenaming(current.id)}
+            >
+              <UserIcon size={14} aria-hidden />
+              <span className="key-word">rename</span>
+            </button>
+            <button
+              type="button"
+              className="key key-s"
+              title={`Open this segment's detail (${keyHint("Alt+Enter")})`}
+              onMouseDown={keepFocus}
+              onClick={() => openDetail(current)}
+            >
+              <TextAlignLeftIcon size={14} aria-hidden />
+              <span className="key-word">detail</span>
+            </button>
+          </span>
           {count ? (
-            <>
-              <span className="unsaved-note" role="status">
+            <span className="tr-group tr-corrections" role="group" aria-label="Corrections">
+              <span className="lcd tr-counter tr-unsaved" role="status">
                 {count} unsaved
               </span>
-              <button type="button" className="key" onMouseDown={keepFocus} onClick={discard}>
-                Discard
+              <button type="button" className="key key-s" onMouseDown={keepFocus} onClick={discard}>
+                discard
               </button>
               <button
                 type="button"
-                className="key key-accent"
+                className="key key-s key-accent"
                 onMouseDown={keepFocus}
                 onClick={save}
               >
-                Save <kbd>{keyHint("Mod+S")}</kbd>
+                save <kbd>{keyHint("Mod+S")}</kbd>
               </button>
-            </>
+            </span>
           ) : Object.keys(view.edits.corrections).length ? (
-            <span className="toolbar-note">
-              {Object.keys(view.edits.corrections).length} corrected
+            <span className="tr-group tr-corrections">
+              <span className="lcd tr-counter">
+                {Object.keys(view.edits.corrections).length} corrected
+              </span>
             </span>
           ) : null}
-        </span>
-      </div>
-      {/* The selected segment's keys: real buttons, outside the list, so no control sits inside a row. */}
-      <div className="toolbar segment-keys" role="toolbar" aria-label={`Segment ${at + 1}`}>
-        <span className="legend">seg {String(at + 1).padStart(2, "0")}</span>
-        <span className="keyset" role="group" aria-label="Playback">
-          <button
-            type="button"
-            className="key key-s"
-            title={`Play from this segment (${keyHint("Enter")})`}
-            onMouseDown={keepFocus}
-            onClick={() => playFrom(current)}
-          >
-            <PlayIcon size={13} weight="fill" aria-hidden />
-            <span className="key-word">play</span>
-          </button>
-          <button
-            type="button"
-            className="key key-s key-latch"
-            aria-pressed={loop?.segment === current.id}
-            title="Loop this segment (L)"
-            onMouseDown={keepFocus}
-            onClick={() => loopSegment(current)}
-          >
-            <span className="led" aria-hidden />
-            <RepeatIcon size={14} aria-hidden />
-            <span className="key-word">loop</span>
-          </button>
-        </span>
-        <span className="keyset" role="group" aria-label="Edit">
-          <button
-            type="button"
-            className="key key-s"
-            title="Correct this segment (E)"
-            onMouseDown={keepFocus}
-            onClick={() => edit(current)}
-          >
-            <NotePencilIcon size={14} aria-hidden />
-            <span className="key-word">correct</span>
-          </button>
-          <button
-            type="button"
-            className="key key-s"
-            title={`Rename ${view.speakerName(view.speakerOf(current))}`}
-            onMouseDown={keepFocus}
-            onClick={() => setRenaming(current.id)}
-          >
-            <UserIcon size={14} aria-hidden />
-            <span className="key-word">rename</span>
-          </button>
-        </span>
-        <span className="keyset">
-          <button
-            type="button"
-            className="key key-s"
-            title={`Open this segment's detail (${keyHint("Alt+Enter")})`}
-            onMouseDown={keepFocus}
-            onClick={() => openDetail(current)}
-          >
-            <TextAlignLeftIcon size={14} aria-hidden />
-            <span className="key-word">detail</span>
-          </button>
-        </span>
+        </div>
       </div>
       {!inTransport ? <NotInTransport session={session.id} /> : null}
       <div

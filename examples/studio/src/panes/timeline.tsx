@@ -6,27 +6,28 @@
  * It draws on a canvas every frame while playing, and not at all while Jali says it is paused (folded, behind a tab,
  * tucked, behind a maximised pane). The sound is the engine's and carries on.
  */
-import { useMemo, useRef, useState, type KeyboardEvent, type PointerEvent } from "react";
+import { useEffect, useMemo, useRef, useState, type KeyboardEvent, type PointerEvent } from "react";
 import { WaveSineIcon } from "@phosphor-icons/react";
 import { definePane, useActivity, useJaliState, useTheme, type PaneProps } from "@jali/react";
 import { cue } from "../actions";
 import { useFrame, useTransport } from "../audio/react";
-import { audible, useSessionView, type SessionView } from "../edits";
+import { audible, channelOf, useSessionView, type SessionView } from "../edits";
 import { useServices } from "../services";
-import { clock, sessionById, trackOf, TRACKS } from "../sessions/sessions";
-import { Empty, NotInTransport } from "../ui/parts";
+import { CHANNEL, clock, sessionById, trackName, trackOf, TRACKS } from "../sessions/sessions";
+import { Missing, NotInTransport } from "../ui/parts";
 import { drawBars, loudest, screenPaletteOf, prepare, trackPeaks, useSize } from "../ui/waveform";
 import { followSession } from "./follow";
 
 const timelineParams = { session: String };
-const RULER = 24;
+/** The ruler: a row of timecodes over a row of flags. */
+const RULER = 36;
 /** Each lane's share of the height: the voices first, the sting smallest. */
-const LANE_WEIGHT: Record<string, number> = { "mic-a": 1.25, "mic-b": 1.25, bed: 1, sting: 0.7 };
+const LANE_WEIGHT: Record<string, number> = { "mic-a": 1.2, "mic-b": 1.2, bed: 1, sting: 0.9 };
 
 function Timeline(props: PaneProps<typeof timelineParams>) {
   const { edits } = useServices();
   const view = useSessionView(edits, props.params.session);
-  if (!view) return <Empty title="No such session" />;
+  if (!view) return <Missing what="session" openHere={props.openHere} />;
   return <TimelineBody {...props} view={view} />;
 }
 
@@ -82,31 +83,32 @@ function TimelineBody({ paused, view }: PaneProps<typeof timelineParams> & { vie
       const x = (t: number) => (t / session.duration) * width;
       const playhead = inTransport ? pos : -1;
 
-      // The ruler: a tick every five seconds, a label every ten (or twenty, when narrow).
+      // The ruler: timecodes printed on its top row, a long tick for each and a short one every second; the flags'
+      // row below them.
       g.font = `500 10px ${getComputedStyle(canvas.current!).getPropertyValue("--font-readout")}`;
       g.textBaseline = "middle";
       const every = width / session.duration < 9 ? 20 : 10;
-      for (let t = 0; t <= session.duration; t += 5) {
-        g.fillStyle = t % every === 0 ? c.lineStrong : c.line;
-        g.fillRect(
-          Math.round(x(t)),
-          t % every === 0 ? 14 : 18,
-          1,
-          RULER - (t % every === 0 ? 14 : 18),
-        );
-        if (t % every === 0 && x(t) < width - 30) {
-          g.fillStyle = c.faint;
+      const perSecond = width / session.duration >= 6;
+      for (let t = 0; t <= session.duration; t += 1) {
+        const major = t % every === 0;
+        const mid = t % 5 === 0;
+        if (!major && !mid && !perSecond) continue;
+        g.fillStyle = major ? c.lineStrong : c.line;
+        const top = major ? 2 : mid ? RULER - 8 : RULER - 4;
+        g.fillRect(Math.round(x(t)), top, 1, major ? 12 : RULER - top);
+        if (major) g.fillRect(Math.round(x(t)), RULER - 8, 1, 8);
+        if (major && x(t) < width - 34) {
+          g.fillStyle = c.subtle;
           g.fillText(clock(t), Math.round(x(t)) + 4, 8);
         }
       }
       g.fillStyle = c.line;
       g.fillRect(0, RULER - 1, width, 1);
 
-      // The loop, behind everything.
+      // The loop: two orange lines down the lanes and a bar across the ruler's foot. No fill on the glass.
       if (loop) {
-        g.fillStyle = c.signalSoft;
-        g.fillRect(x(loop.start), RULER, x(loop.end) - x(loop.start), height - RULER);
         g.fillStyle = c.played;
+        g.fillRect(x(loop.start), RULER - 3, x(loop.end) - x(loop.start), 2);
         g.fillRect(Math.round(x(loop.start)), RULER, 1, height - RULER);
         g.fillRect(Math.round(x(loop.end)), RULER, 1, height - RULER);
       }
@@ -119,14 +121,19 @@ function TimelineBody({ paused, view }: PaneProps<typeof timelineParams> & { vie
             if (trackOf(seg) !== track.id) continue;
             const x0 = x(seg.start);
             const x1 = x(seg.end);
-            g.fillStyle = c.block;
-            g.beginPath();
-            g.roundRect(x0, y + 3, x1 - x0, h - 6, 1);
-            g.fill();
-            if (selected.has(seg.id)) {
-              g.strokeStyle = c.played;
-              g.lineWidth = 1.5;
-              g.stroke();
+            // A segment's block on its lane; the selected one lit from behind, like a lamp under glass.
+            // The selected one is bracketed, not filled: an orange in and out line with short arms.
+            const lit = selected.has(seg.id);
+            if (lit) {
+              const a = Math.round(x0);
+              const b = Math.round(x1);
+              g.fillStyle = c.played;
+              g.fillRect(a, y + 2, 2, h - 4);
+              g.fillRect(b - 2, y + 2, 2, h - 4);
+              g.fillRect(a, y + 2, 6, 2);
+              g.fillRect(a, y + h - 4, 6, 2);
+              g.fillRect(b - 6, y + 2, 6, 2);
+              g.fillRect(b - 6, y + h - 4, 6, 2);
             }
           }
         }
@@ -156,33 +163,61 @@ function TimelineBody({ paused, view }: PaneProps<typeof timelineParams> & { vie
         g.fillRect(0, Math.round(y + h) - 1, width, 1);
       }
 
-      // Markers: a flag on the ruler, a faint line down the lanes.
-      for (const m of view.markers) {
+      // Markers: a flag on the ruler with its name printed beside it when there is room before the next one, and a
+      // faint line down the lanes.
+      const ms = [...view.markers].sort((a, b) => a.time - b.time);
+      ms.forEach((m, i) => {
         const mx = Math.round(x(m.time));
+        const next = ms[i + 1] ? x(ms[i + 1]!.time) : width;
         g.fillStyle = c.lineStrong;
         g.fillRect(mx, RULER, 1, height - RULER);
         g.fillStyle = c.played;
         g.beginPath();
         g.moveTo(mx, RULER - 1);
-        g.lineTo(mx, RULER - 10);
-        g.lineTo(mx + 7, RULER - 6);
+        g.lineTo(mx, RULER - 16);
+        g.lineTo(mx + 7, RULER - 16);
+        g.lineTo(mx + 7, RULER - 9);
+        g.lineTo(mx + 1, RULER - 9);
         g.closePath();
         g.fill();
-      }
-
+        const label = m.label;
+        const w = g.measureText(label).width;
+        if (mx + 10 + w + 6 < next) {
+          g.fillStyle = c.text;
+          g.fillText(label, mx + 10, RULER - 12);
+        }
+      });
+      // Hover: a line down the lanes and the time under the pointer, on a small tag at the foot.
       if (hover !== null) {
+        const hx = Math.round(hover);
         g.fillStyle = c.subtle;
-        g.globalAlpha = 0.45;
-        g.fillRect(Math.round(hover), RULER, 1, height - RULER);
+        g.globalAlpha = 0.5;
+        g.fillRect(hx, RULER, 1, height - RULER);
         g.globalAlpha = 1;
+        const label = clock(timeAt(hover));
+        const tw = g.measureText(label).width + 8;
+        const tx = Math.min(width - tw, Math.max(0, hx - tw / 2));
+        g.fillStyle = c.lineStrong;
+        g.fillRect(tx, height - 15, tw, 14);
+        g.fillStyle = c.text;
+        g.fillText(label, tx + 4, height - 7);
       }
+      // The playhead: a hairline with a cap at the ruler, a pointed foot so it reads which instant it marks.
       if (playhead >= 0) {
         const px = Math.round(x(playhead));
         g.fillStyle = c.played;
-        g.fillRect(px - 1, 0, 2, height);
+        g.fillRect(px - 1, 12, 2, height - 12);
+        // Its cap sits in the timecodes' row, so it never covers a marker's name.
         g.beginPath();
-        g.roundRect(px - 5, 2, 10, 9, 2.5);
+        g.moveTo(px - 6, 1);
+        g.lineTo(px + 6, 1);
+        g.lineTo(px + 6, 8);
+        g.lineTo(px, 14);
+        g.lineTo(px - 6, 8);
+        g.closePath();
         g.fill();
+        g.fillStyle = "rgb(255 255 255 / 0.5)";
+        g.fillRect(px - 5, 2, 10, 1);
       }
     },
     [width, height, lanes, selected, loop, theme, rendered, hover, view, inTransport, at],
@@ -231,28 +266,55 @@ function TimelineBody({ paused, view }: PaneProps<typeof timelineParams> & { vie
     cue(engine, session.id, to, inTransport && engine.get().playing);
   };
 
+  // The wheel or a trackpad moves the playhead: 100 of delta is a second, as on the scrub dial.
+  useEffect(() => {
+    const el = box.current;
+    if (!el) return;
+    const on = (e: WheelEvent) => {
+      if (e.ctrlKey) return; // pinch-zoom is the browser's
+      e.preventDefault();
+      const d = Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.deltaY;
+      cue(engine, session.id, engine.position() + d / 100, inTransport && engine.get().playing);
+    };
+    el.addEventListener("wheel", on, { passive: false });
+    return () => el.removeEventListener("wheel", on);
+  }, [engine, session.id, inTransport]);
+
+  // All headers take the compact form together, so one timeline never mixes the two.
+  const compact = lanes.some((l) => l.h < 30);
   const pos = inTransport ? engine.position() : 0;
   return (
     <div className="pane-body timeline">
       {!inTransport ? <NotInTransport session={session.id} /> : null}
       <div className="tl-body">
-        <ol className="tl-labels" aria-hidden style={{ paddingTop: RULER }}>
-          {lanes.map(({ track, h }) => (
-            <li
-              key={track.id}
-              style={{ height: h }}
-              data-silent={audible(view.edits, track.id) ? undefined : ""}
-            >
-              <span className="tl-track">{track.label}</span>
-              <span className="tl-who" hidden={h < 38}>
-                {track.speaker
-                  ? view.speakerName(track.speaker)
-                  : track.kind === "music"
-                    ? "Synth pad"
-                    : "Synth bells"}
-              </span>
-            </li>
-          ))}
+        {/* Track headers: the mixer's scribble strips, in the mixer's order, with its lamps mirrored. */}
+        <ol className="tl-labels" style={{ paddingTop: RULER }} aria-label="Tracks">
+          {lanes.map(({ track, h }) => {
+            const ch = channelOf(view.edits, track.id);
+            return (
+              <li
+                key={track.id}
+                style={{ height: h }}
+                data-channel={CHANNEL[track.id]}
+                data-silent={audible(view.edits, track.id) ? undefined : ""}
+                data-short={h < 38 ? "" : undefined}
+                data-compact={compact ? "" : undefined}
+                title={`${track.label}: ${trackName(track, view.speakerName)}`}
+              >
+                <span className="mx-lamp" />
+                <span className="tl-track">{track.label}</span>
+                <span className="tl-who">{trackName(track, view.speakerName)}</span>
+                <span className="tl-ms">
+                  <span className="tl-m" data-on={ch.mute ? "" : undefined}>
+                    M
+                  </span>
+                  <span className="tl-s" data-on={ch.solo ? "" : undefined}>
+                    S
+                  </span>
+                </span>
+              </li>
+            );
+          })}
         </ol>
         <div
           ref={box}
@@ -283,7 +345,8 @@ export const timeline = definePane("timeline", {
   title: ({ session }) => `Timeline · ${sessionById(session)?.title ?? session}`,
   icon: WaveSineIcon,
   width: { min: 440, comfortable: 760 },
-  height: { min: 190 },
+  // Room for four legible lanes under the ruler, with the "not loaded" note.
+  height: { min: 230 },
   follow: followSession,
   Component: Timeline,
 });

@@ -94,6 +94,24 @@ async function check(page: Page) {
       )
         problems.push(`a dial mark outside its cap`);
     }
+    // A dial cap's legend and value never touch its dial: 6px clear.
+    for (const cap of slab.querySelectorAll(".rotary")) {
+      if (!visible(cap)) continue;
+      const dial = cap.querySelector(".dial-body");
+      if (!dial) continue;
+      const d = r(dial);
+      for (const t of cap.querySelectorAll(".face-legend, .rotary-note")) {
+        if (!visible(t)) continue;
+        const b = r(t);
+        const range = document.createRange();
+        range.selectNodeContents(t);
+        const ink = range.getBoundingClientRect();
+        if (ink.right > d.left - 6 && ink.bottom > d.top && ink.top < d.bottom)
+          problems.push(
+            `"${t.textContent?.trim()}" ${(d.left - ink.right).toFixed(1)}px from its dial (${b.width})`,
+          );
+      }
+    }
     // No clipped text.
     for (const el of slab.querySelectorAll<HTMLElement>(
       ".face-legend, .badge-name, .rotary-note, .pd-title, .pd-show, .pd-time, .pd-state, .tp-now",
@@ -142,4 +160,7 @@ test("at 1440px the four layout keys and the studio name are all on the slab", a
       page.getByRole("navigation", { name: "Layouts" }).getByRole("button", { name }),
     ).toBeVisible();
   await expect(page.locator(".badge-name")).toBeVisible();
+  // The display keeps the play state and the total time.
+  await expect(page.locator(".pd-state")).toBeVisible();
+  await expect(page.locator(".pd-total")).toBeVisible();
 });

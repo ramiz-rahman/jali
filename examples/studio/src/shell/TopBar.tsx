@@ -242,7 +242,14 @@ function Transport() {
         <div className="cutout player-cutout">
           <div className="screen player-display">
             <div className="pd-line">
-              <span className="pd-title">{session.title}</span>
+              {/* Loading and failure take the title's place, so the time row never has to make room for them. */}
+              {t.status === "ready" ? (
+                <span className="pd-title">{session.title}</span>
+              ) : (
+                <span className="pd-title pd-alert">
+                  {t.status === "loading" ? "loading…" : "no audio"}
+                </span>
+              )}
               <span className="pd-show">
                 {session.show} · ep {session.episode}
               </span>
@@ -251,13 +258,14 @@ function Transport() {
               <span className="tp-now">{clockTenths(pos)}</span>
               <span className="pd-total">/ {clock(session.duration)}</span>
               <span className="pd-state" role="status">
-                {t.status === "loading"
-                  ? "loading"
-                  : t.status === "error"
-                    ? "no audio"
-                    : t.playing
-                      ? "▶ play"
-                      : "■ stop"}
+                {t.status === "error" ? (
+                  "✕"
+                ) : (
+                  <>
+                    {t.playing ? "▶" : "■"}
+                    <span className="pd-state-word"> {t.playing ? "play" : "stop"}</span>
+                  </>
+                )}
                 <span className="pd-rate"> · {t.rate}×</span>
               </span>
             </div>

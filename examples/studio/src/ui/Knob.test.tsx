@@ -1,39 +1,9 @@
 import { describe, expect, it, vi } from "vite-plus/test";
 import { fireEvent, render, screen } from "@testing-library/react";
-import { JogDial, Knob, SelectorDial } from "./Knob";
+import { dbToFader, Fader, faderToDb, settle } from "./Fader";
+import { JogDial, PanDial, SelectorDial } from "./Knob";
 
 describe("the rotary controls are real sliders", () => {
-  it("a knob has a role, a name and a value, and turns with the keys", () => {
-    const onChange = vi.fn();
-    render(
-      <Knob
-        label="Pan for Mic A"
-        value={0}
-        min={-100}
-        max={100}
-        step={1}
-        reset={0}
-        valueText="centre"
-        onChange={onChange}
-      />,
-    );
-    const knob = screen.getByRole("slider", { name: "Pan for Mic A" });
-    expect(knob.getAttribute("aria-valuenow")).toBe("0");
-    expect(knob.getAttribute("aria-valuetext")).toBe("centre");
-    expect(knob.tabIndex).toBe(0);
-    fireEvent.keyDown(knob, { key: "ArrowRight" });
-    expect(onChange).toHaveBeenLastCalledWith(1);
-    fireEvent.keyDown(knob, { key: "ArrowDown", shiftKey: true });
-    expect(onChange).toHaveBeenLastCalledWith(-10);
-    fireEvent.keyDown(knob, { key: "End" });
-    expect(onChange).toHaveBeenLastCalledWith(100);
-    fireEvent.doubleClick(knob);
-    expect(onChange).toHaveBeenLastCalledWith(0);
-    // A key it doesn't use is left to bubble: Space still reaches the transport.
-    const space = fireEvent.keyDown(knob, { key: " " });
-    expect(space).toBe(true);
-  });
-
   const box = (el: Element) => {
     (el as HTMLElement).getBoundingClientRect = () =>
       ({
@@ -167,5 +137,147 @@ describe("the speed dial snaps to its detents", () => {
     const { dial, onChange } = setup(1);
     fireEvent.wheel(dial, { deltaY: -100, timeStamp: 1000 });
     expect(onChange).toHaveBeenLastCalledWith(1.25);
+  });
+});
+
+const square = (el: Element, size = 100) => {
+  (el as HTMLElement).getBoundingClientRect = () =>
+    ({
+      left: 0,
+      top: 0,
+      width: size,
+      height: size,
+      right: size,
+      bottom: size,
+      x: 0,
+      y: 0,
+      toJSON() {},
+    }) as DOMRect;
+};
+
+describe("the pan dial", () => {
+  it("turns round its centre: 270° is the full range, with a detent at C", () => {
+    const onChange = vi.fn();
+    render(<PanDial label="Pan" value={0} onChange={onChange} />);
+    const dial = screen.getByRole("slider", { name: "Pan" });
+    square(dial.querySelector(".dial-body")!);
+    fireEvent.pointerDown(dial, { button: 0, clientX: 50, clientY: 0, pointerId: 1 });
+    // A quarter turn clockwise: 90/270 of 200 is 67.
+    fireEvent.pointerMove(dial, { clientX: 100, clientY: 50, pointerId: 1 });
+    expect(onChange).toHaveBeenLastCalledWith(67);
+    fireEvent.pointerUp(dial, { pointerId: 1 });
+  });
+
+  it("settles into C when close, unless Shift is held; double-click centres it", () => {
+    const onChange = vi.fn();
+    render(<PanDial label="Pan" value={10} onChange={onChange} />);
+    const dial = screen.getByRole("slider", { name: "Pan" });
+    square(dial.querySelector(".dial-body")!);
+    // From 12 o'clock, about 10° anticlockwise: 10 - 7 = 3, inside the detent.
+    fireEvent.pointerDown(dial, { button: 0, clientX: 50, clientY: 0, pointerId: 1 });
+    fireEvent.pointerMove(dial, { clientX: 41.3, clientY: 0.8, pointerId: 1 });
+    expect(onChange).toHaveBeenLastCalledWith(0);
+    fireEvent.pointerUp(dial, { pointerId: 1 });
+    fireEvent.doubleClick(dial);
+    expect(onChange).toHaveBeenLastCalledWith(0);
+  });
+
+  it("steps with the keys and the wheel", () => {
+    const onChange = vi.fn();
+    render(<PanDial label="Pan" value={20} onChange={onChange} />);
+    const dial = screen.getByRole("slider", { name: "Pan" });
+    fireEvent.keyDown(dial, { key: "ArrowRight" });
+    expect(onChange).toHaveBeenLastCalledWith(21);
+    fireEvent.keyDown(dial, { key: "ArrowLeft", shiftKey: true });
+    expect(onChange).toHaveBeenLastCalledWith(10);
+    fireEvent.keyDown(dial, { key: "Home" });
+    expect(onChange).toHaveBeenLastCalledWith(-100);
+    fireEvent.wheel(dial, { deltaY: -100 });
+    expect(onChange).toHaveBeenLastCalledWith(25);
+  });
+});
+
+describe("the fader", () => {
+  it("has a taper with 0 dB three quarters up and −6 dB at the middle", () => {
+    expect(dbToFader(6)).toBeCloseTo(1);
+    expect(dbToFader(0)).toBeCloseTo(0.708, 2);
+    expect(dbToFader(-6)).toBeCloseTo(0.5, 2);
+    expect(faderToDb(dbToFader(-12))).toBeCloseTo(-12);
+    expect(faderToDb(0)).toBe(-60);
+  });
+
+  it("settles near 0 dB into its detent, unless fine", () => {
+    expect(settle(0.6)).toBe(0);
+    expect(settle(-0.7)).toBe(0);
+    expect(settle(0.6, true)).toBe(0.6);
+    expect(settle(-61)).toBe(-60);
+    expect(settle(9)).toBe(6);
+  });
+
+  const setup = (value = -6) => {
+    const onChange = vi.fn();
+    render(<Fader label="Level" value={value} onChange={onChange} />);
+    const fader = screen.getByRole("slider", { name: "Level" });
+    const travel = fader.querySelector(".fader-travel")!;
+    (travel as HTMLElement).getBoundingClientRect = () =>
+      ({
+        left: 0,
+        top: 0,
+        width: 30,
+        height: 200,
+        right: 30,
+        bottom: 200,
+        x: 0,
+        y: 0,
+        toJSON() {},
+      }) as DOMRect;
+    return { fader, onChange };
+  };
+
+  it("grabbing the cap never jumps it; dragging moves it relative, finely with Shift", () => {
+    const { fader, onChange } = setup(-6);
+    const cap = fader.querySelector(".fader-cap")!;
+    // At −6 dB the cap sits at the middle (y 100). Grab it a little off-centre: no change.
+    fireEvent.pointerDown(cap, { button: 0, clientY: 110, pointerId: 1 });
+    expect(onChange).not.toHaveBeenCalled();
+    // 20px up is a tenth of the travel, from where the cap was.
+    const at = dbToFader(-6);
+    const db = (p: number) => Math.round(faderToDb(p) * 10) / 10;
+    fireEvent.pointerMove(cap, { clientY: 90, pointerId: 1 });
+    expect(onChange).toHaveBeenLastCalledWith(db(at + 0.1));
+    // With Shift, 20px more is a quarter as far.
+    fireEvent.pointerMove(cap, { clientY: 70, shiftKey: true, pointerId: 1 });
+    expect(onChange).toHaveBeenLastCalledWith(db(at + 0.125));
+    fireEvent.pointerUp(cap, { pointerId: 1 });
+  });
+
+  it("pressing the slot moves the cap there; double-click resets to 0 dB", () => {
+    const { fader, onChange } = setup(-6);
+    fireEvent.pointerDown(fader.querySelector(".fader-groove")!, {
+      button: 0,
+      clientY: 150,
+      pointerId: 1,
+    });
+    expect(onChange).toHaveBeenLastCalledWith(Math.round(faderToDb(0.25) * 10) / 10);
+    fireEvent.pointerUp(fader, { pointerId: 1 });
+    fireEvent.doubleClick(fader);
+    expect(onChange).toHaveBeenLastCalledWith(0);
+  });
+
+  it("steps with the keys and the wheel", () => {
+    const { fader, onChange } = setup(-6);
+    fireEvent.keyDown(fader, { key: "ArrowUp" });
+    expect(onChange).toHaveBeenLastCalledWith(-5.5);
+    fireEvent.keyDown(fader, { key: "ArrowDown", shiftKey: true });
+    expect(onChange).toHaveBeenLastCalledWith(-6.1);
+    fireEvent.keyDown(fader, { key: "PageUp" });
+    expect(onChange).toHaveBeenLastCalledWith(-3);
+    fireEvent.keyDown(fader, { key: "End" });
+    expect(onChange).toHaveBeenLastCalledWith(6);
+    fireEvent.keyDown(fader, { key: "Home" });
+    expect(onChange).toHaveBeenLastCalledWith(-60);
+    fireEvent.wheel(fader, { deltaY: -100 });
+    expect(onChange).toHaveBeenLastCalledWith(-5.5);
+    expect(fader.getAttribute("aria-orientation")).toBe("vertical");
   });
 });

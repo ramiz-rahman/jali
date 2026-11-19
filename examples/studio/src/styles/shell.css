@@ -83,10 +83,11 @@
       var(--grain), var(--slab-falloff), linear-gradient(180deg, var(--slab-1), var(--slab-2));
     box-shadow:
       inset 0 -1px 0 light-dark(rgb(255 255 255 / 0.9), rgb(255 255 255 / 0.1)),
-      inset 0 -3px 0 light-dark(rgb(0 0 0 / 0.04), rgb(0 0 0 / 0.25)),
-      0 1px 0 light-dark(rgb(0 0 0 / 0.32), #000),
-      0 2px 1px light-dark(rgb(0 0 0 / 0.12), rgb(0 0 0 / 0.5)),
-      0 10px 16px -10px rgb(0 0 0 / 0.45);
+      inset 0 -3px 0
+        light-dark(rgb(0 0 0 / calc(0.04 * var(--sh))), rgb(0 0 0 / calc(0.25 * var(--sh)))),
+      0 1px 0 light-dark(rgb(0 0 0 / calc(0.32 * var(--sh))), #000),
+      0 2px 1px light-dark(rgb(0 0 0 / calc(0.12 * var(--sh))), rgb(0 0 0 / calc(0.5 * var(--sh)))),
+      0 10px 16px -10px rgb(0 0 0 / calc(0.45 * var(--sh)));
   }
   /* The row inside the slab: one flex row, real gaps, nothing positioned. How it gives way is measured (`useFit`
      in TopBar.tsx), so its content always fits. */
@@ -150,7 +151,9 @@
   }
   .brand-mark {
     fill: currentColor;
-    filter: drop-shadow(0 1px 0 light-dark(rgb(255 255 255 / 0.85), rgb(0 0 0 / 0.6)));
+    filter: drop-shadow(
+      0 1px 0 light-dark(rgb(255 255 255 / 0.85), rgb(0 0 0 / calc(0.6 * var(--sh))))
+    );
   }
   .brand-mark-hot {
     fill: var(--st-signal);
@@ -162,7 +165,7 @@
     letter-spacing: 0.08em;
     color: light-dark(#4f4f4b, #a5a5aa);
     text-shadow:
-      0 -1px 0 light-dark(rgb(0 0 0 / 0.18), rgb(0 0 0 / 0.7)),
+      0 -1px 0 light-dark(rgb(0 0 0 / calc(0.18 * var(--sh))), rgb(0 0 0 / calc(0.7 * var(--sh)))),
       0 1px 0 light-dark(rgb(255 255 255 / 0.9), rgb(255 255 255 / 0.08));
   }
 
@@ -287,14 +290,18 @@
       display: none;
     }
   }
+  /* Compact: the clock a size smaller, the state as its sign beside the title, the rate gone; the total stays. */
   @container (max-width: 270px) {
-    .pd-total,
-    .pd-rate {
+    .pd-rate,
+    .pd-state-word {
       display: none;
     }
+    .tp-now {
+      font-size: 21px;
+    }
   }
-  @container (max-width: 200px) {
-    .pd-state {
+  @container (max-width: 176px) {
+    .pd-total {
       display: none;
     }
     .pd-title {
@@ -322,14 +329,16 @@
     box-shadow:
       inset 0 1px 0 var(--cap-hi),
       inset 0 0 0 1px var(--cap-rim),
-      inset 0 -2px 0 rgb(0 0 0 / 0.06),
+      inset 0 -2px 0 rgb(0 0 0 / calc(0.06 * var(--sh))),
       0 var(--d-cap) 0 var(--cap-edge),
-      0 calc(var(--d-cap) + 2px) 4px rgb(0 0 0 / 0.24);
+      0 calc(var(--d-cap) + 2px) 4px rgb(0 0 0 / calc(0.24 * var(--sh)));
   }
+  /* The legend keeps its own room left of the dial: never under it. */
   .rotary .face-legend {
     left: 12px;
     right: auto;
     text-align: left;
+    max-width: calc(100% - 12px - 10px - var(--dial, 46px) - 8px);
   }
   .rotary-note {
     position: absolute;
@@ -352,14 +361,17 @@
    * How it gives way: the steps `useFit` takes (TopBar.tsx), cumulative, in order, until the content fits.
    */
   .slab[data-f1] {
-    --rotary: 116px;
+    --rotary: 120px;
+  }
+  .slab[data-f1] .rotary .dial {
+    --dial: 42px;
   }
   .slab[data-f1] .tp-scrub .rotary-note {
     display: none;
   }
   .slab[data-f2] {
     --cell: 58px;
-    --layout-cell: 78px;
+    --layout-cell: 74px;
     --zone-gap: 20px;
     padding-inline: 16px;
   }
@@ -444,8 +456,8 @@
       var(--grain), var(--slab-falloff), linear-gradient(180deg, var(--slab-2), var(--slab-1));
     box-shadow:
       inset 0 1px 0 light-dark(rgb(255 255 255 / 0.9), rgb(255 255 255 / 0.1)),
-      0 -1px 0 light-dark(rgb(0 0 0 / 0.25), #000);
-    text-shadow: 0 1px 0 light-dark(rgb(255 255 255 / 0.8), rgb(0 0 0 / 0.6));
+      0 -1px 0 light-dark(rgb(0 0 0 / calc(0.25 * var(--sh))), #000);
+    text-shadow: 0 1px 0 light-dark(rgb(255 255 255 / 0.8), rgb(0 0 0 / calc(0.6 * var(--sh))));
   }
   .status-focus {
     color: var(--ink);
@@ -481,5 +493,13 @@
   .toast {
     font-family: var(--jali-font) !important;
     border-radius: var(--corner);
+  }
+}
+
+@layer app {
+  .pd-title.pd-alert {
+    color: var(--scr-hot);
+    font-family: var(--font-readout);
+    font-size: 12px;
   }
 }

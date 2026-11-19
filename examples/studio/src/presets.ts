@@ -45,8 +45,9 @@ export const presets: PresetOptions[] = [
       lib(),
       column(
         { weight: 2.6 },
+        // The timeline needs a few lanes' height; the mixer's faders want all the throw they can get.
         tl(1),
-        pane(mixer({ session }), { id: "mixer", ...followsLibrary, weight: 1.6 }),
+        pane(mixer({ session }), { id: "mixer", ...followsLibrary, weight: 2.6 }),
       ),
       pane(markers({ session }), { id: "markers", ...followsLibrary, weight: 0.9 }),
     ),
@@ -86,7 +87,7 @@ export const presets: PresetOptions[] = [
     label: "Compare",
     layout: row(
       pane(library(), { id: "library", weight: 0.7 }),
-      column({ weight: 1.5 }, tr(2.2), tl(1)),
+      column({ weight: 1.5 }, tr(2), tl(1.3)),
       pane(clip({ session, segment: "s04" }), {
         id: "clip-a",
         linkedTo: "transcript",

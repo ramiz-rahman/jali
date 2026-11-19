@@ -166,23 +166,22 @@ function Row({
       onClick={onSelect}
       aria-label={`${session.title}, ${session.show} episode ${session.episode}, ${spokenDuration(session.duration)}`}
     >
-      <div className="lib-top">
+      {/* A cartridge: a paper label with the show and the title, a lamp; a window onto the tape (the waveform);
+          the running time and the voices printed on its foot. */}
+      <span className="lib-lamp" aria-hidden />
+      <div className="lib-label">
         <span className="lib-show">
-          {session.show} · Ep {session.episode}
+          {session.show} · ep {session.episode}
         </span>
-        {live ? (
-          <span className="lib-live">
-            <span className="live-dot" aria-hidden /> Playing
-          </span>
-        ) : null}
+        <b className="lib-title">{session.title}</b>
       </div>
-      <b className="lib-title">{session.title}</b>
       <Thumbnail session={session} paused={paused} inTransport={inTransport} />
       <div className="lib-meta">
         <span className="mono">{clock(session.duration)}</span>
         <span className="dot" aria-hidden />
         <span>{speakers.join(" & ")}</span>
       </div>
+      {live ? <span className="lib-live">playing</span> : null}
       {corrected || notes ? (
         <div className="lib-tags">
           {corrected ? <span className="tag">{corrected} corrected</span> : null}

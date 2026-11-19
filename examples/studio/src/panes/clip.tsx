@@ -29,7 +29,7 @@ import {
   TRACKS,
   type SegmentData,
 } from "../sessions/sessions";
-import { Empty, NotInTransport } from "../ui/parts";
+import { Missing, NotInTransport } from "../ui/parts";
 import { drawBars, loudest, screenPaletteOf, prepare, useSize, voicePeaks } from "../ui/waveform";
 
 const clipParams = { session: String, segment: String };
@@ -38,7 +38,7 @@ function Clip(props: PaneProps<typeof clipParams>) {
   const { edits } = useServices();
   const view = useSessionView(edits, props.params.session);
   const seg = segmentById(view?.session, props.params.segment);
-  if (!view || !seg) return <Empty title="No such segment" />;
+  if (!view || !seg) return <Missing what="segment" openHere={props.openHere} />;
   return <ClipBody {...props} view={view} seg={seg} />;
 }
 
@@ -104,59 +104,62 @@ function ClipBody({
         </span>
       </header>
       {!inTransport && !inPeek ? <NotInTransport session={session.id} /> : null}
-      <MiniWave seg={seg} view={view} paused={paused || !inTransport} />
-      <div className="clip-controls">
-        <span className="keyset">
-          <button
-            type="button"
-            className="key key-square key-play"
-            aria-label={playing ? "Pause" : `Play segment ${n}`}
-            onMouseDown={(e) => e.preventDefault()}
-            onClick={play}
-          >
-            {playing ? (
-              <PauseIcon size={16} weight="fill" aria-hidden />
-            ) : (
-              <PlayIcon size={16} weight="fill" aria-hidden />
-            )}
-          </button>
-          <button
-            type="button"
-            className="key key-latch"
-            aria-pressed={looping}
-            onMouseDown={(e) => e.preventDefault()}
-            onClick={toggleLoop}
-          >
-            <span className="led" aria-hidden />
-            loop
-          </button>
-        </span>
-        <span className="clip-stats mono">
-          {duration.toFixed(1)} s · {words} words
-        </span>
-      </div>
-      <dl className="clip-fields">
-        <div>
-          <dt>Speaker</dt>
-          <dd>
-            <select
-              aria-label="Who says this segment"
-              value={speaker}
-              onChange={(e) => edits.setSegmentSpeaker(session.id, seg.id, e.target.value)}
+      <MiniWave seg={seg} view={view} paused={paused} />
+      {/* The keys and the speaker/track LCD on one row when there is room; stacked when narrow. */}
+      <div className="clip-row">
+        <div className="clip-controls">
+          <span className="keyset">
+            <button
+              type="button"
+              className="key key-square key-play"
+              aria-label={playing ? "Pause" : `Play segment ${n}`}
+              onMouseDown={(e) => e.preventDefault()}
+              onClick={play}
             >
-              {session.speakers.map((p) => (
-                <option key={p.id} value={p.id}>
-                  {view.speakerName(p.id)}
-                </option>
-              ))}
-            </select>
-          </dd>
+              {playing ? (
+                <PauseIcon size={16} weight="fill" aria-hidden />
+              ) : (
+                <PlayIcon size={16} weight="fill" aria-hidden />
+              )}
+            </button>
+            <button
+              type="button"
+              className="key key-latch"
+              aria-pressed={looping}
+              onMouseDown={(e) => e.preventDefault()}
+              onClick={toggleLoop}
+            >
+              <span className="led" aria-hidden />
+              loop
+            </button>
+          </span>
+          <span className="clip-stats" hidden>
+            {duration.toFixed(1)} s · {words} words
+          </span>
         </div>
-        <div>
-          <dt>Track</dt>
-          <dd>{TRACKS.find((t) => t.id === trackOf(seg))?.label}</dd>
-        </div>
-      </dl>
+        <dl className="clip-fields">
+          <div>
+            <dt>Speaker</dt>
+            <dd>
+              <select
+                aria-label="Who says this segment"
+                value={speaker}
+                onChange={(e) => edits.setSegmentSpeaker(session.id, seg.id, e.target.value)}
+              >
+                {session.speakers.map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {view.speakerName(p.id)}
+                  </option>
+                ))}
+              </select>
+            </dd>
+          </div>
+          <div>
+            <dt>Track</dt>
+            <dd>{TRACKS.find((t) => t.id === trackOf(seg))?.label}</dd>
+          </div>
+        </dl>
+      </div>
       <blockquote className="clip-text" data-corrected={text !== seg.text ? "" : undefined}>
         {text}
         {text !== seg.text ? <footer>Corrected. Recorded as: “{seg.text}”</footer> : null}
@@ -181,12 +184,14 @@ function ClipBody({
         ) : saved ? (
           <span className="toolbar-note">Saved</span>
         ) : null}
-        <button type="button" className="key" disabled={!dirty} onClick={() => setNote(null)}>
-          Revert
-        </button>
-        <button type="button" className="key key-accent" disabled={!dirty} onClick={saveNote}>
-          Save note
-        </button>
+        <span className="keyset">
+          <button type="button" className="key" disabled={!dirty} onClick={() => setNote(null)}>
+            Revert
+          </button>
+          <button type="button" className="key key-accent" disabled={!dirty} onClick={saveNote}>
+            Save note
+          </button>
+        </span>
       </div>
     </div>
   );
@@ -204,6 +209,7 @@ function MiniWave({ seg, view, paused }: { seg: SegmentData; view: SessionView; 
   const from = Math.max(0, seg.start - 0.4);
   const to = Math.min(view.session.duration, seg.end + 0.4);
   const inTransport = useTransport((s) => s.session === view.session.id);
+  const looping = useTransport((s) => s.session === view.session.id && s.loop?.segment === seg.id);
   const scale = 1 / loudest(peaks);
   const timeAt = (x: number) => from + (x / Math.max(1, width)) * (to - from);
 
@@ -214,29 +220,47 @@ function MiniWave({ seg, view, paused }: { seg: SegmentData; view: SessionView; 
       if (!g) return;
       const c = screenPaletteOf(canvas.current!);
       const x = (t: number) => ((t - from) / (to - from)) * width;
-      // The segment's own span, behind the bars.
-      g.fillStyle = c.signalSoft;
-      g.fillRect(x(seg.start), 0, x(seg.end) - x(seg.start), height);
+      // One clean glass: no fill. The segment's range is marked with lines: an in and an out line with flags at the
+      // top, and a fine baseline between them. State lives in the bars: the context outside the segment dim, the
+      // segment's own bars bright, the played part orange. A loop over the segment is a second bracket at the foot.
+      const x0 = Math.round(x(seg.start));
+      const x1 = Math.round(x(seg.end));
+      const playhead = inTransport && pos >= from && pos <= to ? pos : -1;
       drawBars(
         g,
         peaks,
-        { x: 0, y: 6, w: width, h: height - 12 },
+        { x: 0, y: 12, w: width, h: height - 24 },
         { from, to },
-        { idle: c.idle, played: c.played, bar: 3, gap: 2 },
-        inTransport && pos >= from && pos <= to ? pos : -1,
-        null,
+        { idle: c.scrMusic, marked: c.scrBright, played: c.played, bar: 3, gap: 2 },
+        playhead,
+        { from: seg.start, to: seg.end },
         scale,
       );
-      if (inTransport && pos >= from && pos <= to) {
+      g.fillStyle = c.scrDim;
+      g.fillRect(x0, 0, 1, height);
+      g.fillRect(x1, 0, 1, height);
+      g.fillRect(x0, 0, 7, 2);
+      g.fillRect(x1 - 6, 0, 7, 2);
+      g.fillStyle = c.scrLine;
+      g.fillRect(x0, Math.round(height / 2), x1 - x0, 1);
+      if (looping) {
         g.fillStyle = c.played;
-        g.fillRect(Math.round(x(pos)) - 1, 0, 2, height);
+        g.fillRect(x0, height - 2, x1 - x0 + 1, 2);
+        g.fillRect(x0, height - 7, 2, 7);
+        g.fillRect(x1 - 1, height - 7, 2, 7);
+      }
+      if (playhead >= 0) {
+        const px = Math.round(x(pos));
+        g.fillStyle = c.played;
+        g.fillRect(px - 1, 3, 2, height - 3);
+        g.fillRect(px - 4, 0, 8, 3);
       }
       if (hover !== null) {
-        g.fillStyle = c.signalSoft;
+        g.fillStyle = c.scrDim;
         g.fillRect(Math.round(hover), 0, 1, height);
       }
     },
-    [width, height, seg, hover, inTransport],
+    [width, height, seg, hover, inTransport, looping],
   );
 
   const seek = (e: PointerEvent<HTMLDivElement>) => {

@@ -1,158 +1,17 @@
 /**
- * Rotary controls, drawn in CSS and SVG and built as real sliders: `role="slider"` with a name, a value and a
- * spoken value, the arrow keys (Shift for ten steps), Page Up and Down, Home and End, and a drag. A double-click
- * puts it back to `reset`.
+ * Rotary controls, one dial in three uses, drawn in CSS and built as real sliders: `role="slider"` with a name,
+ * a value and a spoken value, the keys, the mouse wheel and a circular drag with pointer capture.
  *
- * - `Knob`: a cap with a pointer mark over a printed scale, turning through 270 degrees, for pan, gain and speed.
+ * - `PanDial`: a dial with a pointer through 270°, a centre detent at C, for pan.
  * - `JogDial`: a knurled dial with a dimple, turned round its centre, for scrubbing.
  * - `SelectorDial`: the same dial with a pointer, snapping to a few detents, for speed.
  */
-import {
-  useEffect,
-  useRef,
-  type CSSProperties,
-  type KeyboardEvent,
-  type PointerEvent,
-  type RefObject,
-} from "react";
+import { useEffect, useRef, type CSSProperties, type RefObject } from "react";
 
-interface Common {
-  label: string;
-  value: number;
-  min: number;
-  max: number;
-  step: number;
-  onChange(value: number): void;
-  valueText?: string;
-  reset?: number;
-  className?: string;
-}
-
-const clamp = (v: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, v));
-const snap = (v: number, step: number, min: number) =>
-  Number((Math.round((v - min) / step) * step + min).toFixed(6));
-
-/** The keys every rotary control shares. Returns the new value, or null for a key it doesn't use. */
-function keyValue(e: KeyboardEvent, p: Common): number | null {
-  if (e.metaKey || e.ctrlKey || e.altKey) return null;
-  const big = e.shiftKey ? 10 : 1;
-  switch (e.key) {
-    case "ArrowUp":
-    case "ArrowRight":
-      return p.value + p.step * big;
-    case "ArrowDown":
-    case "ArrowLeft":
-      return p.value - p.step * big;
-    case "PageUp":
-      return p.value + p.step * 10;
-    case "PageDown":
-      return p.value - p.step * 10;
-    case "Home":
-      return p.min;
-    case "End":
-      return p.max;
-    default:
-      return null;
-  }
-}
-
-/** Vertical drag (and horizontal, for a trackpad's habit): 180 pixels from one end of the range to the other. */
-function useDrag(p: Common, pixelsForRange = 180) {
-  const start = useRef<{ x: number; y: number; value: number } | null>(null);
-  const latest = useRef(p);
-  latest.current = p;
-  return {
-    onPointerDown(e: PointerEvent<HTMLElement>) {
-      if (e.button !== 0) return;
-      e.currentTarget.setPointerCapture(e.pointerId);
-      e.currentTarget.focus();
-      start.current = { x: e.clientX, y: e.clientY, value: latest.current.value };
-      e.preventDefault();
-    },
-    onPointerMove(e: PointerEvent<HTMLElement>) {
-      const s = start.current;
-      if (!s) return;
-      const q = latest.current;
-      const moved = s.y - e.clientY + (e.clientX - s.x);
-      const next = s.value + (moved / pixelsForRange) * (q.max - q.min);
-      const v = snap(clamp(next, q.min, q.max), q.step, q.min);
-      if (v !== q.value) q.onChange(v);
-    },
-    onPointerUp() {
-      start.current = null;
-    },
-  };
-}
-
-export function Knob(
-  p: Common & {
-    /** The cap's colour: one of the app's encoder colours. */
-    cap?: "orange" | "blue" | "green" | "white" | "graphite";
-    /** A centre mark on the scale (pan), or none. */
-    centre?: boolean;
-    size?: number;
-  },
-) {
-  const drag = useDrag(p);
-  const ref = useRef<HTMLDivElement>(null);
-  const latest = useRef(p);
-  latest.current = p;
-  useWheel(ref, (e) => {
-    const q = latest.current;
-    const d = Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : -e.deltaY;
-    q.onChange(snap(clamp(q.value + Math.sign(d) * q.step * 5, q.min, q.max), q.step, q.min));
-  });
-  const turn = (clamp(p.value, p.min, p.max) - p.min) / (p.max - p.min); // 0 to 1
-  const angle = -135 + turn * 270;
-  const size = p.size ?? 44;
-  const ticks = 11;
-  return (
-    <div
-      ref={ref}
-      className={`knob ${p.className ?? ""}`}
-      role="slider"
-      tabIndex={0}
-      aria-label={p.label}
-      aria-valuemin={p.min}
-      aria-valuemax={p.max}
-      aria-valuenow={p.value}
-      aria-valuetext={p.valueText}
-      data-cap={p.cap ?? "white"}
-      style={{ "--knob": `${size}px`, "--angle": `${angle}deg` } as CSSProperties}
-      onKeyDown={(e) => {
-        const v = keyValue(e, p);
-        if (v === null) return;
-        e.preventDefault();
-        p.onChange(snap(clamp(v, p.min, p.max), p.step, p.min));
-      }}
-      onDoubleClick={() => p.reset !== undefined && p.onChange(p.reset)}
-      {...drag}
-    >
-      <svg className="knob-scale" viewBox="0 0 100 100" aria-hidden>
-        {Array.from({ length: ticks }, (_, i) => {
-          const a = ((-135 + (i / (ticks - 1)) * 270 - 90) * Math.PI) / 180;
-          const long = i === 0 || i === ticks - 1 || (p.centre && i === (ticks - 1) / 2);
-          const r0 = long ? 40 : 43;
-          return (
-            <line
-              key={i}
-              x1={50 + Math.cos(a) * r0}
-              y1={50 + Math.sin(a) * r0}
-              x2={50 + Math.cos(a) * 48}
-              y2={50 + Math.sin(a) * 48}
-            />
-          );
-        })}
-      </svg>
-      <span className="knob-body" aria-hidden>
-        <span className="knob-cap" />
-      </span>
-    </div>
-  );
-}
+export const clamp = (v: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, v));
 
 /** Calls `fn(event)` for wheel events on `ref`, as a non-passive listener, so the page doesn't scroll under it. */
-function useWheel(ref: RefObject<HTMLElement | null>, fn: (e: WheelEvent) => void) {
+export function useWheel(ref: RefObject<HTMLElement | null>, fn: (e: WheelEvent) => void) {
   const latest = useRef(fn);
   latest.current = fn;
   useEffect(() => {
@@ -168,14 +27,14 @@ function useWheel(ref: RefObject<HTMLElement | null>, fn: (e: WheelEvent) => voi
 }
 
 /** While a drag runs: the drag's cursor everywhere, and no text selection under it. */
-function dragging(cursor: string | null) {
+export function dragging(cursor: string | null) {
   const s = document.documentElement.style;
   s.cursor = cursor ?? "";
   s.userSelect = cursor ? "none" : "";
 }
 
 /** The pointer's angle around an element's centre, in degrees, clockwise from 12 o'clock. */
-function angleOf(el: HTMLElement, x: number, y: number) {
+export function angleOf(el: HTMLElement, x: number, y: number) {
   const r = el.getBoundingClientRect();
   const cx = r.left + r.width / 2;
   const cy = r.top + r.height / 2;
@@ -183,7 +42,7 @@ function angleOf(el: HTMLElement, x: number, y: number) {
 }
 
 /** The step from one angle to the next, unwrapped across ±180°, so a turn past 6 o'clock doesn't jump. */
-const turnBy = (from: number, to: number) => ((to - from + 540) % 360) - 180;
+export const turnBy = (from: number, to: number) => ((to - from + 540) % 360) - 180;
 
 /**
  * The jog dial, for scrubbing. A knurled dial with a finger dimple, turned by dragging round its centre: the dial
@@ -414,6 +273,115 @@ export function SelectorDial<T extends number>(p: {
         ))}
       </span>
       <span ref={dial} className="dial-body" aria-hidden>
+        <span className="dial-face">
+          <span className="dial-pointer" />
+        </span>
+      </span>
+    </div>
+  );
+}
+
+/**
+ * The pan dial: the slab's dial with a pointer, turning through 270° (L100 at 7 o'clock, C at 12, R100 at 5).
+ * Turned round its centre like the jog (relative: grabbing it never jumps it), 270° of turn is the full range. Near C
+ * it settles into a detent (within 4, unless Shift is held); Shift turns it finely (a quarter as far). The mouse
+ * wheel moves 5 a notch, the arrow keys 1 (Shift: 10), Home and End go to the ends, and a double-click centres it.
+ */
+export function PanDial(p: {
+  label: string;
+  value: number;
+  onChange(value: number): void;
+  valueText?: string;
+  cap?: "blue" | "green" | "white" | "orange";
+  className?: string;
+}) {
+  const ref = useRef<HTMLDivElement>(null);
+  const body = useRef<HTMLSpanElement>(null);
+  const turn = useRef<{ angle: number; raw: number } | null>(null);
+  const latest = useRef(p);
+  latest.current = p;
+  const set = (v: number, fine = false) => {
+    let x = clamp(Math.round(v), -100, 100);
+    if (!fine && Math.abs(x) < 4) x = 0;
+    if (x !== latest.current.value) latest.current.onChange(x);
+  };
+  useWheel(ref, (e) => {
+    const d = Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : -e.deltaY;
+    set(latest.current.value + Math.sign(d) * (e.shiftKey ? 1 : 5), true);
+  });
+  const end = (el: HTMLElement) => {
+    turn.current = null;
+    delete el.dataset.dragging;
+    dragging(null);
+  };
+  return (
+    <div
+      ref={ref}
+      className={`dial pan-dial ${p.className ?? ""}`}
+      role="slider"
+      tabIndex={0}
+      aria-label={p.label}
+      aria-valuemin={-100}
+      aria-valuemax={100}
+      aria-valuenow={p.value}
+      aria-valuetext={p.valueText}
+      data-cap={p.cap}
+      style={{ "--angle": `${p.value * 1.35}deg` } as CSSProperties}
+      onPointerDown={(e) => {
+        if (e.button !== 0 || !body.current) return;
+        e.preventDefault();
+        e.currentTarget.setPointerCapture?.(e.pointerId);
+        e.currentTarget.focus();
+        turn.current = {
+          angle: angleOf(body.current, e.clientX, e.clientY),
+          raw: latest.current.value,
+        };
+        e.currentTarget.dataset.dragging = "";
+        dragging("grabbing");
+      }}
+      onPointerMove={(e) => {
+        const t = turn.current;
+        if (!t || !body.current) return;
+        const a = angleOf(body.current, e.clientX, e.clientY);
+        t.raw += (turnBy(t.angle, a) / 270) * 200 * (e.shiftKey ? 0.25 : 1);
+        t.raw = clamp(t.raw, -100, 100);
+        t.angle = a;
+        set(t.raw, e.shiftKey);
+      }}
+      onPointerUp={(e) => end(e.currentTarget)}
+      onPointerCancel={(e) => end(e.currentTarget)}
+      onDoubleClick={() => latest.current.onChange(0)}
+      onKeyDown={(e) => {
+        if (e.metaKey || e.ctrlKey || e.altKey) return;
+        const v = latest.current.value;
+        const step = e.shiftKey ? 10 : 1;
+        const to =
+          e.key === "ArrowRight" || e.key === "ArrowUp"
+            ? v + step
+            : e.key === "ArrowLeft" || e.key === "ArrowDown"
+              ? v - step
+              : e.key === "Home"
+                ? -100
+                : e.key === "End"
+                  ? 100
+                  : null;
+        if (to === null) return;
+        e.preventDefault();
+        set(to, true);
+      }}
+    >
+      <span className="dial-ticks" aria-hidden>
+        {[-100, -50, 0, 50, 100].map((v) => (
+          <span
+            key={v}
+            className="dial-tick"
+            data-reset={v === 0 ? "" : undefined}
+            data-on={v === 0 && p.value === 0 ? "" : undefined}
+            style={{ "--at": `${v * 1.35}deg` } as CSSProperties}
+          />
+        ))}
+      </span>
+      <span ref={body} className="dial-body" aria-hidden>
         <span className="dial-face">
           <span className="dial-pointer" />
         </span>
