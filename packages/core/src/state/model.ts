@@ -156,6 +156,7 @@ export function modelCache() {
       input.env.kinds.version(),
       input.env.profile,
       input.ctx.paneCap,
+      input.ctx.dir,
     ];
     if (last && key.every((k, i) => k === last!.key[i])) return last.model;
     last = { key, model: buildModel(input) };

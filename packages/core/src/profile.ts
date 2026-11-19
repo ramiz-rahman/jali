@@ -9,7 +9,7 @@
  *
  * A link carries content only (item, focused view, opened panes); the mode and the split layout are personal.
  */
-import type { Layout, ObjectRef, PaneNode } from "./layout/types";
+import type { Direction, Layout, ObjectRef, PaneNode } from "./layout/types";
 import type { LayoutInput } from "./layout/build";
 import type { PaneKinds } from "./pane-kinds";
 import type { Command } from "./commands/registry";
@@ -88,6 +88,8 @@ export interface Env {
   launcher?: string;
   /** False when the host shows Jali's commands in its own command menu (`palette: false`). */
   palette?: boolean;
+  /** The reading direction it was given (`createJali({ dir })`); unset, the workspace follows its page. */
+  dir?: Direction;
 }
 
 export const presetById = (env: Pick<Env, "presets">, id: string | undefined): Preset | undefined =>

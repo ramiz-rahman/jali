@@ -26,6 +26,7 @@ export function TabOverflow({
   const btn = useRef<HTMLButtonElement>(null);
   const menu = useRef<HTMLDivElement>(null);
   const page = useUi((s) => !!s.page);
+  const dir = useUi((s) => s.dir);
 
   const close = (refocus: boolean) => {
     setOpen(false);
@@ -36,11 +37,13 @@ export function TabOverflow({
     if (!open || !btn.current) return;
     const r = btn.current.getBoundingClientRect();
     const w = 280;
+    // Under the button, lined up with its end side: its right edge, or its left edge right to left.
+    const left = dir === "rtl" ? r.left : r.right - w;
     setPos({
-      left: Math.max(8, Math.min(r.right - w, window.innerWidth - w - 8)),
+      left: Math.max(8, Math.min(left, window.innerWidth - w - 8)),
       top: r.bottom + 4,
     });
-  }, [open]);
+  }, [open, dir]);
   useEffect(() => {
     if (!open || !pos) return;
     const items = menu.current?.querySelectorAll<HTMLElement>('[role="menuitem"]');
@@ -124,6 +127,7 @@ export function TabOverflow({
               ref={menu}
               className="jali-tab-menu"
               role="menu"
+              dir={dir}
               aria-label="Tabs in this group"
               style={pos ? { left: pos.left, top: pos.top } : { visibility: "hidden" }}
               onKeyDown={onKey}

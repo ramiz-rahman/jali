@@ -1,4 +1,5 @@
 import * as core from "../layout";
+import { treeSide } from "../layout/geometry/direction";
 import type { NodeId, ObjectRef, PaneNode, ViewState } from "../layout/types";
 import type { PaneKinds } from "../pane-kinds";
 import { refuse, type Outcome, type Snapshot } from "../state/apply";
@@ -141,7 +142,8 @@ export function split(x: Snapshot, dir: "right" | "bottom", target = x.s.view.fo
   const p = m.pane(target);
   const launcher = launcherOf(x);
   if (!p || !launcher) return null;
-  const r = core.split(s.layout, unzoomed(s.view), p.id, dir, launcher, ctx);
+  // `dir` is the screen's: "Split right" opens on the right in either reading direction.
+  const r = core.split(s.layout, unzoomed(s.view), p.id, treeSide(dir, ctx.dir), launcher, ctx);
   return {
     op: "split",
     layout: r.layout,

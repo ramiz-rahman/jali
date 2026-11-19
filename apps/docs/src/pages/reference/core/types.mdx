@@ -86,7 +86,13 @@ The direction of a split.
 
 <Entry name="Edge" kind="type" from="@jali/core" signature={`type Edge = "left" | "right" | "top" | "bottom"`} compact>
 
-A side of a pane: where to open or drop.
+A side of a pane: where to open or drop. In actions and commands it is a side of the screen, in either reading direction. The layout operations (`layout.drop`, `layout.open`, `layout.split`) take a side in the tree instead: `"left"` is before, `"right"` after, which right to left is the other side of the screen.
+
+</Entry>
+
+<Entry name="Direction" kind="type" from="@jali/core" signature={`type Direction = "ltr" | "rtl"`} compact>
+
+The reading direction a workspace lays its panes out in (`jali.get().dir`, `createJali({ dir })`). Right to left, a row's first child is at the right: the same tree, mirrored on screen.
 
 </Entry>
 
@@ -128,9 +134,9 @@ Kinds by name, as the layout operations take them (`kinds.registry()`).
 
 </Entry>
 
-<Entry name="LayoutContext" kind="type" from="@jali/core" signature={`interface LayoutContext { fit: FitOptions; paneCap: number }`} compact>
+<Entry name="LayoutContext" kind="type" from="@jali/core" signature={`interface LayoutContext { fit: FitOptions; paneCap: number; dir?: Direction }`} compact>
 
-Everything a layout operation needs besides the layout: `jali.ctx()`. `paneCap` is the most panes on screen before the oldest folds (the `paneCap` setting).
+Everything a layout operation needs besides the layout: `jali.ctx()`. `paneCap` is the most panes on screen before the oldest folds (the `paneCap` setting). `dir: "rtl"` mirrors the rects `resolve` returns, so they stay screen coordinates; the tree and the fit are the same.
 
 </Entry>
 
@@ -363,9 +369,9 @@ A preset, as `createJali({ presets })` takes it.
 
 </Entry>
 
-<Entry name="Env" kind="type" from="@jali/core" signature={`interface Env { kinds: PaneKinds; profile: ProfileBase | null; presets: readonly Preset[]; commands?: readonly Command[]; name: string; launcher?: string }`} compact>
+<Entry name="Env" kind="type" from="@jali/core" signature={`interface Env { kinds: PaneKinds; profile: ProfileBase | null; presets: readonly Preset[]; commands?: readonly Command[]; name: string; launcher?: string; dir?: Direction }`} compact>
 
-What a workspace is made of besides its state: `jali.env`. `profile` is its curated page; `launcher` the kind Split opens.
+What a workspace is made of besides its state: `jali.env`. `profile` is its curated page; `launcher` the kind Split opens; `dir` the reading direction `createJali({ dir })` fixed, if any.
 
 </Entry>
 
@@ -380,7 +386,7 @@ A workspace, from <Ref to="createJali" page="/reference/core" />.
 <Member name="Jali.set" signature="set(patch: Partial<JaliState>): void">A raw write, for what has no action: interaction state such as a drag or the measured `area`. A change of `area` or `settings.paneCap` refits the layout. Prefer `actions`.</Member>
 <Member name="Jali.subscribe" signature="subscribe(fn: () => void): () => void">Hear every change. Returns the unsubscribe.</Member>
 <Member name="Jali.model" signature="model(): JaliModel">The derived model; the same object while nothing it depends on changed.</Member>
-<Member name="Jali.ctx" signature="ctx(): LayoutContext">The context for layout operations: area, gap 6, kinds, pane cap.</Member>
+<Member name="Jali.ctx" signature="ctx(): LayoutContext">The context for layout operations: area, gap 6, kinds, pane cap and, right to left, the direction.</Member>
 <Member name="Jali.snapshot" signature="snapshot(): Snapshot">State, model, context and env together.</Member>
 <Member name="Jali.apply" signature="apply(o: Outcome): NodeId | undefined">Commits an outcome. The bound `actions` call this.</Member>
 <Member name="Jali.announce" signature="announce(text: string): void">Says something in the live region (a repeat is announced again).</Member>
@@ -428,6 +434,7 @@ Everything a workspace holds. Read it with `jali.get()` or `useJaliState(select)
 <Param name="chooser" type={`{ kind: "merge"; source: NodeId } | null`} required>The "Add to tabs of…" chooser.</Param>
 <Param name="recent" type="ObjectRef[]" required>Objects opened this session, newest first, at most 8.</Param>
 <Param name="area" type="{ width: number; height: number }" required>The workspace's inner size; `<Panes>` measures it.</Param>
+<Param name="dir" type="Direction" required>The reading direction the panes are laid out in. `<Panes>` reads it from the page, unless `createJali({ dir })` fixed it.</Param>
 <Param name="reshapes" type="number" required>A count of layout changes that move panes; the workspace animates on a new one.</Param>
 <Param name="ghost" type="string | null" required>A page tab hovered with Alt held: the role whose placement is previewed.</Param>
 <Param name="unsaved" type="Record<NodeId, string>" required>Panes with unsaved work, and what it is.</Param>

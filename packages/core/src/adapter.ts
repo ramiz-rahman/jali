@@ -24,6 +24,7 @@ export * from "./commands/registry";
 export * from "./contracts/active-item";
 export * from "./dividers/drag";
 export * from "./dividers/resize";
+export * from "./dom/direction";
 export * from "./dom/focus";
 export * from "./dom/ids";
 export * from "./pane-kinds";

@@ -39,6 +39,7 @@ export type { RoleBase, ProfileBase, ViewMode, Preset, Env, ItemId } from "./pro
 // ---------- the layout tree (pure: every operation returns a new layout) ----------
 export type {
   Axis,
+  Direction,
   Edge,
   Size,
   NodeId,

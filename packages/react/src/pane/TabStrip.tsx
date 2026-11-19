@@ -8,6 +8,7 @@ import {
   roleOf,
   titleOf,
   startPaneDrag,
+  scrolledFromStart,
   FOLDED_DESC,
   FOLDED_TIP,
   TUCKED_DESC,
@@ -27,13 +28,16 @@ const FADE = 24;
 function revealTab(el: HTMLDivElement | null) {
   const strip = el?.parentElement;
   if (!el || !strip) return;
-  const left =
-    el.getBoundingClientRect().left - strip.getBoundingClientRect().left + strip.scrollLeft;
-  const right = left + el.offsetWidth;
+  // Measured from the strip's start: its left, or its right when the strip reads right to left.
+  const { pos, rtl } = scrolledFromStart(strip);
+  const r = el.getBoundingClientRect(),
+    box = strip.getBoundingClientRect();
+  const start = (rtl ? box.right - r.right : r.left - box.left) + pos;
+  const end = start + el.offsetWidth;
   const view = strip.clientWidth;
-  if (left < strip.scrollLeft + (strip.scrollLeft > 0 ? FADE : 0) || right - left > view)
-    strip.scrollLeft = Math.max(0, left - FADE);
-  else if (right > strip.scrollLeft + view) strip.scrollLeft = right - view + FADE;
+  const scrollTo = (p: number) => (strip.scrollLeft = rtl ? -p : p);
+  if (start < pos + (pos > 0 ? FADE : 0) || end - start > view) scrollTo(Math.max(0, start - FADE));
+  else if (end > pos + view) scrollTo(end - view + FADE);
 }
 
 function TabActivity({ id }: { id: NodeId }) {
@@ -73,8 +77,9 @@ export function TabStrip({ group, owner }: { group: NonNullable<Frame["group"]>;
     });
     setHiddenCount((p) => (p === n ? p : n));
     // Fade an edge that has tabs past it, so a cut-off tab reads as "more this way" (like the shelf).
-    el.toggleAttribute("data-fade-l", el.scrollLeft > 1);
-    el.toggleAttribute("data-fade-r", el.scrollLeft + el.clientWidth < el.scrollWidth - 1);
+    const { pos, max, rtl } = scrolledFromStart(el);
+    el.toggleAttribute(rtl ? "data-fade-r" : "data-fade-l", pos > 1);
+    el.toggleAttribute(rtl ? "data-fade-l" : "data-fade-r", pos < max - 1);
   };
   useLayoutEffect(measure);
   useEffect(() => {

@@ -5,6 +5,9 @@ import { App } from "./shell/App";
 import "./shell/styles/index.css";
 import "@jali/react/styles.css";
 
+// Right-to-left mode (`?dir=rtl`): the page reads right to left, as an Arabic or Hebrew app does. Jali follows the page.
+if (new URLSearchParams(location.search).get("dir") === "rtl") document.documentElement.dir = "rtl";
+
 const data = createDataLayer();
 void data.api.ready();
 

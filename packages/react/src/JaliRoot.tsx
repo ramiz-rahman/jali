@@ -50,11 +50,16 @@ export function JaliRoot({
   useEffect(() => jali.start(), [jali]);
   return (
     <StoreProvider store={jali}>
-      <div {...rest} data-jali="" ref={jali.dom.attach}>
+      <div {...rest} dir={jali.env.dir ?? rest.dir} data-jali="" ref={jali.dom.attach}>
         {children}
       </div>
       {/* The dialogs render outside the root but are this workspace's: keys pressed in them count as its own. */}
-      <div data-jali-layer="" ref={jali.dom.attachLayer} style={{ display: "contents" }}>
+      <div
+        data-jali-layer=""
+        dir={jali.env.dir}
+        ref={jali.dom.attachLayer}
+        style={{ display: "contents" }}
+      >
         <Announcer />
         {jali.env.palette === false ? null : <Palette />}
         {settings ? <SettingsPanel>{settingsExtra}</SettingsPanel> : null}
