@@ -735,3 +735,10 @@ Data Studio's old tab strip had six features Jali lacked. Each is general, and l
 - **⋯** (`icons.menu`, Phosphor's DotsThree) opens the same menu, right-aligned under itself, whenever the menu offers more than the buttons: right-click doesn't exist on touch and is never found from the keyboard. It sits before Close, so Close keeps the corner. **Shift+F10** or the menu key on a focused pane or its header opens it too (a tab keeps its own; the content's keys stay the app's).
 - **Icons:** `menu` and `popOut` (PictureInPicture) join `JaliIcons`. A host typing a full set gets a type error naming the two, as the theming guide promises; nothing outside this repo types a full set yet.
 - **Tests:** `src/tests/buttons.test.tsx` (defaults, lone and phone, list, function, allow, ways out, ⋯ drawn and opening the menu); `e2e/pane-menu.spec.ts` (⋯ position, Shift+F10); `e2e/fullscreen.spec.ts` now enters from the menu. The lab adds Pop out to its buttons.
+
+## 19 Nov 2026 · Following and Keep are one toggle (founder)
+
+- **Why:** the founder asked why a linked pane had both "Following" and "Keep" when it can only be one or the other. "Following" looked like a button and was only a label; "Keep" was the button.
+- **Now:** one toggle naming what the pane does: **Following** (link icon; it changes with its list, or the next link from its source replaces it) or **Kept** (anchor, in the accent; it stays and the next link opens beside). A click switches. A plain link's toggle stays quiet until the header is hovered or focused, as before.
+- **Accessibility:** the name starts with the visible word ("Following orders", "Kept", WCAG 2.5.3), and `aria-description` and the tooltip say what a click does. Because the name changes with the state, it is not also `aria-pressed` (APG: a toggle's name stays put). Tests and styles read `data-follow` (`following`, `kept`, `plain`), which the parts contract already lists.
+- **Removed:** the message keys `pane.keep` and `pane.keepWord` (new: `pane.followingName(list)`) and `.jali-follow-status` (never in the contract). Data Studio was told before this landed.

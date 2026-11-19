@@ -69,15 +69,18 @@ test.describe("A list's detail follows its selection", () => {
       .pane("customer")
       .getByRole("button", { name: /^Close/ })
       .click();
-    const keep = lab.pane("order").getByRole("button", { name: /^Keep order/ });
-    await expect(keep).toHaveAttribute("aria-pressed", "false");
+    // One toggle naming what the pane does: Following, then Kept.
+    const keep = lab.pane("order").locator(".jali-follow-toggle");
+    await expect(keep).toHaveAttribute("data-follow", "following");
+    await expect(keep).toHaveAccessibleName("Following orders");
     await lab.row("orders", /^2\b/).click();
     await expect(lab.heading("order")).toHaveText("order 2");
 
     // ⌥↵ on the row it shows: that detail is kept in place, no copy opens.
     const count = await lab.visibleCount();
     await page.keyboard.press("Alt+Enter");
-    await expect(keep).toHaveAttribute("aria-pressed", "true");
+    await expect(keep).toHaveAttribute("data-follow", "kept");
+    await expect(keep).toHaveAccessibleName("Kept");
     await expect(lab.announcer()).toHaveText(/^order 2 kept/);
     expect(await lab.visibleCount()).toBe(count);
 
@@ -89,7 +92,7 @@ test.describe("A list's detail follows its selection", () => {
     await expect.poll(() => lab.visibleCount()).toBe(count + 1);
     const follower = page
       .locator('section[data-pane][data-kind="record"]')
-      .filter({ has: page.getByRole("button", { name: /^Keep order/, pressed: false }) });
+      .filter({ has: page.locator('.jali-follow-toggle[data-follow="following"]') });
     await expect(follower.getByRole("heading", { level: 2 })).toHaveText("order 3");
     await page.keyboard.press("j");
     await expect(follower.getByRole("heading", { level: 2 })).toHaveText("order 4");

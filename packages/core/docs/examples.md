@@ -35,7 +35,7 @@ It serves on [localhost:5320](http://localhost:5320). It shows:
 
 - eight pane kinds, each defined with `definePane` and a realistic `width.min`: a watchlist, a chart, a quote, an order book, time and sales, news, a yield curve, and a blotter with an order ticket;
 - one list driving details of several kinds: move through the watchlist with J and K, and the chart, quote, book, trades and news beside it follow (each kind's `follow` says what it shows for the selected quote), until you keep one;
-- comparing two instruments: keep a chart or quote with **Keep** in its header, then open another row with Enter, or choose the Compare desk;
+- comparing two instruments: keep a chart or quote by clicking **Following** in its header (it says **Kept**), then open another row with Enter, or choose the Compare desk;
 - four presets, the desks (Equities, Rates, FX and Compare), switched from the top bar or ⌘K;
 - the layout kept in the address, so a desk is a link you can send, and a reload or Back brings it back;
 - the app's own commands in ⌘K ("Open chart for…", "Add to watchlist…", "Buy…"), which ask for an instrument in Jali's chooser with `jali.actions.choose`, and each pane's own with `useCommands`;

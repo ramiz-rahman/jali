@@ -597,9 +597,9 @@ One icon per name Jali draws. `<JaliRoot icons>` takes any part of it; type your
 
 - **`icons.grip`**, `grip: JaliIcon`: The drag handle on a pane's header. Default: Phosphor's `DotsSix`.
 
-- **`icons.follow`**, `follow: JaliIcon`: A following detail's "Following" toggle. Default: Phosphor's `LinkSimpleHorizontal`.
+- **`icons.follow`**, `follow: JaliIcon`: A linked pane's toggle while it follows (**Following**). Default: Phosphor's `LinkSimpleHorizontal`.
 
-- **`icons.keep`**, `keep: JaliIcon`: The Keep toggle on a linked pane. Default: Phosphor's `AnchorSimple`.
+- **`icons.keep`**, `keep: JaliIcon`: A kept pane's toggle (**Kept**). Default: Phosphor's `AnchorSimple`.
 
 - **`icons.pin`**, `pin: JaliIcon`: A pinned tab's mark. Default: Phosphor's `PushPin`.
 

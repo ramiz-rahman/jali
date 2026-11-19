@@ -148,7 +148,7 @@ The detail waits until the selection rests for 150ms, so holding J doesn't load 
 
 A pane opened from another is linked to it (`linkedTo`). A plain link, such as a customer name in a ticket, replaces the earlier link of the same kind from the same pane instead of adding another pane.
 
-A kept pane stays on its object: it never follows and is never reused for another link, and it folds after panes that are not kept. **Keep** in a linked pane's header keeps it.
+A kept pane stays on its object: it never follows and is never reused for another link, and it folds after panes that are not kept. A linked pane's header says **Following**; clicking it keeps the pane, and it says **Kept**.
 
 ## Curated pages
 

@@ -494,14 +494,13 @@ const pane = {
   opened: "Opened",
   kept: "Kept",
   following: "Following",
-  /** The Keep toggle's name; its visible word is `keepWord`, which the name starts with. */
-  keep: (pane: string) => `Keep ${pane}`,
-  keepWord: "Keep",
-  /** The Keep toggle's tooltip: kept, following its list's selection, or a plain link from `list`. */
-  keptTip: (list: string) => `Kept: stays on this item. Press again to let ${list} change it`,
-  followingTip: (list: string) => `Follows the selection in ${list}. Keep to stay on this item`,
+  /** The follow toggle's name while it follows `list` (its visible word is `following`, which the name starts with). */
+  followingName: (list: string) => `Following ${list}`,
+  /** The follow toggle's tooltip and description: what it does now, and what a click does. */
+  keptTip: (list: string) => `Kept: stays on this item. Click to follow ${list} again`,
+  followingTip: (list: string) => `Follows the selection in ${list}. Click to keep this one`,
   plainTip: (list: string) =>
-    `The next link from ${list} shows here. Keep to open it beside this one instead`,
+    `The next link from ${list} shows here. Click to keep this one and open the next beside it`,
   loading: "Loading",
   working: "Working",
   needsYou: "Needs you",

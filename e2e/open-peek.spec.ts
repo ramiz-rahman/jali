@@ -21,10 +21,12 @@ test.describe("Open and peek", () => {
     await lab.row("orders", /^5\b/).click();
     await page.keyboard.press("Alt+Enter");
     await expect.poll(() => lab.visibleCount()).toBe(3);
-    await expect(lab.page.getByRole("button", { name: /^Keep order 5/ })).toHaveAttribute(
-      "aria-pressed",
-      "false",
-    );
+    await expect(
+      lab.page
+        .locator("section[data-pane]")
+        .filter({ hasText: "order 5" })
+        .locator(".jali-follow-toggle"),
+    ).toHaveAttribute("data-follow", "following");
     // Focus is still in the list.
     await expect(lab.pane("orders")).toHaveAttribute("data-focused", "true");
     await expect.poll(() => lab.focusIn("orders")).toBe(true);
