@@ -10,6 +10,7 @@ import { checkZoom } from "../actions/focus";
 import { checkPeek } from "../actions/peek";
 import { checkPutBack, checkTuck } from "../actions/tuck";
 import { checkMerge, checkMoveTab, checkUnmerge } from "../actions/tabs";
+import { checkRename } from "../actions/rename";
 import { activeTabId, focusShelfChip } from "../dom/focus";
 import { viewerLabel, type Env } from "../profile";
 import { refuse, type RefusalStep, type Snapshot } from "../state/apply";
@@ -197,6 +198,13 @@ function buildCommands(env: Env): CommandDef[] {
       check: checkMoveTab,
       run: (u: UiStore) => u.actions.moveTabToward(side),
     })),
+    {
+      id: "pane.rename",
+      title: t.rename,
+      group: g.pane,
+      check: checkRename,
+      run: (u) => u.actions.startRename(),
+    },
     {
       id: "stack.new-tab",
       title: t.newTab,

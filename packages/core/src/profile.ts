@@ -106,6 +106,8 @@ export interface Env {
   confirmDiscard?: false;
   /** The app's items for a tab's menu (`createJali({ tabMenu })`). */
   tabMenu?: import("./commands/tab-menu").TabMenu;
+  /** Renaming a pane in place (`createJali({ rename })`). */
+  rename?: import("./actions/rename").Rename;
 }
 
 export const presetById = (env: Pick<Env, "presets">, id: string | undefined): Preset | undefined =>

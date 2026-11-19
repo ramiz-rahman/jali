@@ -15,6 +15,7 @@ import {
 import { useEnv, useStore, useUi } from "../state/react";
 import { Activity } from "./Activity";
 import { KindIcon } from "./icons";
+import { RenameField, useCanRename } from "./RenameField";
 import { TabMenu, type TabMenuAt } from "./TabMenu";
 import { TabOverflow } from "./TabOverflow";
 import { UnsavedMark } from "./Unsaved";
@@ -60,6 +61,8 @@ export function TabStrip({ group, owner }: { group: NonNullable<Frame["group"]>;
   // A tab dragged over this strip: the line shows where it would go.
   const dropAt = useUi((s) => s.dnd?.tabAt);
   const dir = useUi((s) => s.dir);
+  const renaming = useUi((s) => s.renaming);
+  const canRename = useCanRename();
   // No launcher kind, no "+": there is nothing to open in the new tab.
   // A curated page's views live in the page tabs, so a pane's strip lists a page view only while it is shown: never a
   // repeat. The exception is a group of page views, which only a centre drop ("Add as tab") makes: you asked for
@@ -118,6 +121,13 @@ export function TabStrip({ group, owner }: { group: NonNullable<Frame["group"]>;
     const title = titleOf(store.env, t, titles);
     const dirty = !!unsaved[t.id];
     const pinned = !!t.pinned;
+    // Renaming: the field takes the tab's place until it closes.
+    if (renaming === t.id)
+      return (
+        <div key={t.id} className="jali-tab-item is-renaming" role="presentation">
+          <RenameField pane={t.id} title={title} />
+        </div>
+      );
     const description = tw.description(
       isFolded ? "folded" : tucked ? "tucked" : undefined,
       tucked ? putBackKeys : "",
@@ -168,6 +178,7 @@ export function TabStrip({ group, owner }: { group: NonNullable<Frame["group"]>;
           aria-controls={paneDomId(store.dom.id, t.id)}
           tabIndex={active ? 0 : -1}
           onClick={() => actions.setActiveTab(group.id, t.id)}
+          onDoubleClick={() => canRename(t.id) && actions.startRename(t.id)}
           // Focus scrolls the strip by the browser's rule (a tab wider than the strip shows its end); put it right.
           onFocus={(e) => revealTab(e.currentTarget)}
           onKeyDown={(e) => {

@@ -1,3 +1,4 @@
+import type { Rename } from "../actions/rename";
 /**
  * The workspace: state, one derived model, and apply(). Layout and view come from the layout ops; actions are pure
  * (actions/) and the store only commits them. Effects leave through sinks given at creation (URL, DOM focus) and
@@ -128,6 +129,8 @@ export interface UiState {
   paletteOpen: boolean;
   settingsOpen: boolean;
   chooser: ChooserState | null;
+  /** The pane whose title is being renamed in place (`actions.startRename`), if any. */
+  renaming: NodeId | null;
   /** Objects opened this session, most recent first (the launcher's "Recent"). */
   recent: ObjectRef[];
   area: { width: number; height: number };
@@ -221,6 +224,8 @@ export interface UiStoreDeps {
   confirmDiscard?: boolean;
   /** The app's items for a tab's menu, after Jali's. */
   tabMenu?: import("../commands/tab-menu").TabMenu;
+  /** Renaming a pane in place: the app keeps the name. */
+  rename?: Rename;
 }
 
 export interface UiStore {
@@ -333,6 +338,7 @@ export function createUiStore(deps: UiStoreDeps): UiStore {
   if (deps.landmark === "main") env.landmark = "main";
   if (deps.confirmDiscard === false) env.confirmDiscard = false;
   if (deps.tabMenu) env.tabMenu = deps.tabMenu;
+  if (deps.rename) env.rename = deps.rename;
   const focusOf =
     deps.focusPane === undefined
       ? typeof document === "undefined"
@@ -367,6 +373,7 @@ export function createUiStore(deps: UiStoreDeps): UiStore {
     paletteOpen: false,
     settingsOpen: false,
     chooser: null,
+    renaming: null,
     recent: [],
     area: initialArea(),
     dir: deps.dir ?? pageDirection(),

@@ -11,6 +11,7 @@ export { besidePreview, investigation } from "./actions/page";
 export { mergeTargets, type MergeTarget } from "./actions/tabs";
 export { sameRef } from "./actions/follow";
 export { checkTuck, tuckHome } from "./actions/tuck";
+export { canRename } from "./actions/rename";
 export { openPaneFor } from "./actions/open";
 export { publicActions, paneFor } from "./actions/public";
 export { restoreLayout, arrive } from "./actions/layout";

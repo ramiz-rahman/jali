@@ -1,3 +1,4 @@
+import type { Rename } from "./actions/rename";
 /**
  * `createJali`: one call from pane kinds and a layout to a workspace that is ready to render.
  *
@@ -121,6 +122,12 @@ export interface JaliOptions<D extends PaneKindBase = PaneKindBase> {
    * `(pane) => [{ id: "duplicate", title: "Duplicate", run: () => duplicate(pane.ref) }]`.
    */
   tabMenu?: TabMenu;
+  /**
+   * Renaming in place: double-click or F2 on a tab, or on a lone pane's title, opens a field there. `can(pane)` says
+   * which panes may be renamed (default: all); `run(pane, text)` saves the name in your app, which then shows it
+   * (`useTitle`). Return `false`, throw or reject to keep the field open. Without it, nothing offers renaming.
+   */
+  rename?: Rename;
   /** Settings for a person who has none saved on this device yet: `{ theme: "dark" }` for a dark-first app. Settings
    *  the person changes are saved and win from then on. Default: Jali's (`theme: "system"`, `paneCap: 8`, ...). */
   settings?: Partial<Settings>;
@@ -193,6 +200,7 @@ export function createJali<D extends PaneKindBase>(options: JaliOptions<D>): Jal
     onPaneError: options.onPaneError,
     ...(options.confirmDiscard === false ? { confirmDiscard: false } : {}),
     ...(options.tabMenu ? { tabMenu: options.tabMenu } : {}),
+    ...(options.rename ? { rename: options.rename } : {}),
     initial: {
       ...(layout ? { layout: toLayout(layout) } : {}),
       ...(size ? { area: size } : {}),

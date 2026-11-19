@@ -53,6 +53,9 @@ export const DEFAULT_KEYMAP = {
   "pane.split.down": ["Mod+K Mod+\\"],
   "pane.merge": ["Mod+K Mod+G"],
   "pane.unmerge": ["Mod+K Shift+Mod+G"],
+  // A file manager's rename key. Content that uses F2 (a grid editing a cell) claims it first; a host that owns F2 lists
+  // it in reservedKeys and calls actions.startRename itself.
+  "pane.rename": ["F2"],
   // A browser's and VS Code's move-tab keys (Ctrl+Shift+PageUp/PageDown), after the prefix.
   "tab.move.left": ["Mod+K Shift+PageUp"],
   "tab.move.right": ["Mod+K Shift+PageDown"],

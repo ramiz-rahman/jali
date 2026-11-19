@@ -7,7 +7,7 @@ import { act, cleanup, fireEvent, render, screen, within } from "@testing-librar
 import { createJali, memoryLocation, memoryStorage, pane, row, runCommand, tabs } from "@jali/core";
 import { storeOf } from "@jali/core/adapter";
 import type { JaliOptions, LayoutInput } from "@jali/core";
-import { JaliRoot, definePane, useUnsaved } from "@jali/react";
+import { JaliRoot, definePane, useTitle, useUnsaved } from "@jali/react";
 
 beforeAll(() => {
   globalThis.ResizeObserver ??= class {
@@ -435,5 +435,122 @@ describe("pinned tabs", () => {
     jali.actions.setPinned("c", true);
     const again = make(jali.getLayout());
     expect(again.model().pane("c")?.pinned).toBe(true);
+  });
+});
+
+describe("renaming in place", () => {
+  const names: Record<string, string> = {};
+  const doc = definePane("doc", {
+    params: { id: Number },
+    title: ({ id }) => `Doc ${id}`,
+    Component: ({ params }) => {
+      useTitle(names[params.id] ?? null);
+      return <p>doc {params.id}</p>;
+    },
+  });
+  const docs = (rename: JaliOptions["rename"], layout?: LayoutInput) =>
+    createJali({
+      panes: [note, doc],
+      layout:
+        layout ??
+        row(
+          tabs(pane(doc({ id: 1 }), { id: "a" }), pane(note({ id: 2 }), { id: "b" })),
+          pane(doc({ id: 3 }), { id: "c" }),
+        ),
+      url: { location: memoryLocation() },
+      storage: memoryStorage(),
+      size: { width: 1200, height: 600 },
+      moveFocus: false,
+      ...(rename ? { rename } : {}),
+    });
+  const field = () => screen.getByRole("textbox") as HTMLInputElement;
+
+  it("opens on a tab's double-click with the title selected; Enter saves through the app, focus back on the tab", async () => {
+    const saved: string[] = [];
+    const jali = docs({
+      can: ({ ref }) => ref.kind === "doc",
+      run: ({ ref }, text) => {
+        saved.push(text);
+        names[ref.params.id as number] = text;
+      },
+    });
+    const { rerender } = render(<JaliRoot jali={jali} />);
+    fireEvent.doubleClick(tab("Doc 1"));
+    expect(field().value).toBe("Doc 1");
+    expect(field().getAttribute("aria-label")).toBe("Rename Doc 1");
+    fireEvent.change(field(), { target: { value: "  Orders by region " } });
+    await act(async () => void fireEvent.keyDown(field(), { key: "Enter" }));
+    expect(saved).toEqual(["Orders by region"]);
+    expect(screen.queryByRole("textbox")).toBeNull();
+    rerender(<JaliRoot jali={jali} />);
+    delete names[1];
+  });
+
+  it("is offered only where `can` says so, and never without `rename`", () => {
+    const jali = docs({ can: ({ ref }) => ref.kind === "doc", run: () => {} });
+    render(<JaliRoot jali={jali} />);
+    fireEvent.doubleClick(tab("Note 2"));
+    expect(screen.queryByRole("textbox")).toBeNull();
+    expect(jali.actions.startRename("b")).toMatchObject({ ok: false, reason: "unavailable" });
+    expect(docs(undefined).actions.startRename("a")).toMatchObject({
+      ok: false,
+      reason: "unavailable",
+    });
+    fireEvent.contextMenu(tab("Note 2").parentElement!);
+    expect(screen.queryByRole("menuitem", { name: /Rename/ })).toBeNull();
+  });
+
+  it("opens from the app, on a lone pane's title, and Esc keeps the old name", () => {
+    const run = vi.fn();
+    const jali = docs({ run });
+    render(<JaliRoot jali={jali} />);
+    act(() => void jali.actions.startRename("c"));
+    expect(field().closest("h2")).not.toBeNull();
+    fireEvent.change(field(), { target: { value: "Other" } });
+    fireEvent.keyDown(field(), { key: "Escape" });
+    expect(run).not.toHaveBeenCalled();
+    expect(screen.queryByRole("textbox")).toBeNull();
+  });
+
+  it("stays open with the text when the app says no", async () => {
+    const jali = docs({ run: () => false });
+    render(<JaliRoot jali={jali} />);
+    act(() => void jali.actions.startRename("a"));
+    fireEvent.change(field(), { target: { value: "Taken" } });
+    await act(async () => void fireEvent.keyDown(field(), { key: "Enter" }));
+    expect(field().value).toBe("Taken");
+    expect(field().getAttribute("aria-invalid")).toBe("true");
+  });
+
+  it("saves nothing for an empty or unchanged name", async () => {
+    const run = vi.fn();
+    const jali = docs({ run });
+    render(<JaliRoot jali={jali} />);
+    act(() => void jali.actions.startRename("a"));
+    fireEvent.change(field(), { target: { value: "   " } });
+    await act(async () => void fireEvent.keyDown(field(), { key: "Enter" }));
+    expect(run).not.toHaveBeenCalled();
+  });
+
+  it("is F2 on the focused pane, unless the app reserves F2", () => {
+    expect(docs({ run: () => {} }).keymap.label("pane.rename")).toBe("F2");
+    const own = createJali({
+      panes: [doc],
+      layout: row(doc({ id: 1 })),
+      url: { location: memoryLocation() },
+      storage: memoryStorage(),
+      reservedKeys: ["F2"],
+      keymapOptions: { onInvalid: () => {} },
+      rename: { run: () => {} },
+    });
+    expect(own.keymap.label("pane.rename")).toBe("");
+  });
+
+  it("is in the tab's menu", () => {
+    const jali = docs({ run: () => {} });
+    render(<JaliRoot jali={jali} />);
+    fireEvent.contextMenu(tab("Doc 1").parentElement!);
+    act(() => void fireEvent.click(screen.getByRole("menuitem", { name: /Rename/ })));
+    expect(field().value).toBe("Doc 1");
   });
 });

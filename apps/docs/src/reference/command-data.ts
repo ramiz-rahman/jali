@@ -80,6 +80,8 @@ export const REFUSED: Record<string, string> = {
     'Silent unless the focused pane is a tab in a group made by the person or the app. At the start of the strip: "… is already the first tab".',
   "tab.move.right":
     'Silent unless the focused pane is a tab in a group made by the person or the app. At the end of the strip: "… is already the last tab".',
+  "pane.rename":
+    "Silent unless the workspace has `rename` and its `can` allows the focused pane. Opens the rename field on its tab or title.",
   "stack.new-tab": "Silent when no pane is focused, or the workspace has no launcher kind.",
   [PRESET_PATTERN]: 'Never. One command per preset, titled "Layout: <label>".',
   "layout.reset": "Silent in a workspace without presets. Rebuilds the preset last chosen.",

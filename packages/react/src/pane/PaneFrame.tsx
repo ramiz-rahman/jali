@@ -20,6 +20,7 @@ import { KindIcon } from "./icons";
 import { PaneBody, paneHost } from "./PaneBody";
 import { TabStrip } from "./TabStrip";
 import { UnsavedMark, useUnsavedOf } from "./Unsaved";
+import { RenameField, useCanRename } from "./RenameField";
 
 interface Props {
   frame: Frame;
@@ -35,6 +36,8 @@ export const PaneFrame = /* @__PURE__ */ memo(
     const { actions } = store;
     const activity = useUi((s) => s.activity[node.id]);
     const dirty = useUnsavedOf(node.id);
+    const renaming = useUi((s) => s.renaming === node.id) && !group;
+    const canRename = useCanRename();
     const isDragged = useUi((s) => s.dnd?.dragged === node.id);
     const host = useMemo(() => paneHost(store, node.id), [store, node.id]);
     const page = useUi((s) => !!s.page);
@@ -112,7 +115,17 @@ export const PaneFrame = /* @__PURE__ */ memo(
           ) : (
             <div className="jali-pane-title">
               {role ? <role.icon size={16} aria-hidden /> : <KindIcon kind={node.ref.kind} />}
-              <h2 id={paneTitleId(store.dom.id, node.id)}>{title}</h2>
+              <h2
+                id={paneTitleId(store.dom.id, node.id)}
+                onDoubleClick={(e) => {
+                  // A title that can be renamed opens the field; anywhere else in the header maximises.
+                  if (bare || !canRename(node.id)) return;
+                  e.stopPropagation();
+                  actions.startRename(node.id);
+                }}
+              >
+                {renaming ? <RenameField pane={node.id} title={title} /> : title}
+              </h2>
               {role && shows !== title ? <span className="jali-pane-sub">{shows}</span> : null}
               {dirty ? <UnsavedMark labelled /> : null}
               <Activity a={activity} />

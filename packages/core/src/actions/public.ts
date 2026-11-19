@@ -41,6 +41,7 @@ import {
 } from "./page";
 import { peek, select } from "./peek";
 import { mergeInto, moveTab, setPinned, unmerge } from "./tabs";
+import { startRename } from "./rename";
 import { choose, type ChooseOptions } from "./choose";
 import { putBack, tuck } from "./tuck";
 
@@ -115,6 +116,9 @@ export interface JaliActions {
   moveTab(pane: PaneTarget, index: number): ActionResult;
   /** Pin a pane's tab, or unpin it: first in its group, and left open by Close other tabs and Close tabs to the right. */
   setPinned(pane: PaneTarget, pinned: boolean): ActionResult;
+  /** Open the rename field on a pane's tab or title (default: the focused pane). `"unavailable"` without
+   *  `createJali({ rename })`, or when `rename.can` says no. */
+  startRename(pane?: PaneTarget): ActionResult;
 
   // ---------- layouts ----------
   /** Switch to the preset with this id. */
@@ -235,6 +239,7 @@ export function publicActions(run: Run): JaliActions {
     unmerge: (pane) => opt(pane, (x, id) => unmerge(x, id)),
     moveTab: (pane, index) => on(pane, (x, id) => moveTab(x, id, index)),
     setPinned: (pane, pinned) => on(pane, (x, id) => setPinned(x, id, pinned)),
+    startRename: (pane) => opt(pane, (x, id) => startRename(x, id)),
 
     preset: (id) =>
       run((x) =>

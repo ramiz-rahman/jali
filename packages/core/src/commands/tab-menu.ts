@@ -5,6 +5,7 @@
 import type { NodeId, ObjectRef } from "../layout/types";
 import { tabsToClose } from "../actions/close";
 import { tabBounds } from "../actions/tabs";
+import { canRename } from "../actions/rename";
 import type { UiStore } from "../state/store";
 
 /** One item in a tab's menu. */
@@ -61,6 +62,16 @@ export function tabMenuOf(store: UiStore, id: NodeId): TabMenuItem[][] {
   ];
   const move: TabMenuItem[] = st
     ? [
+        ...(canRename(x, id)
+          ? [
+              {
+                id: "rename",
+                title: t.rename,
+                keys: keys("pane.rename"),
+                run: () => void a.startRename(id),
+              },
+            ]
+          : []),
         {
           id: "pin",
           title: t.pinTab,

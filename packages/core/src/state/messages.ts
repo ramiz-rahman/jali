@@ -220,6 +220,7 @@ const commands = {
   unmerge: "Move out of tabs",
   moveTab: (direction: "left" | "right") => `Move tab ${direction}`,
   newTab: "New tab here",
+  rename: "Rename pane",
   preset: (label: string) => `Layout: ${label}`,
   resetLayout: "Reset layout",
   copyLink: "Copy link to this layout",
@@ -386,6 +387,7 @@ const tabs = {
   moveTab: (side: "left" | "right") => `Move tab ${side}`,
   moveOutOfTabs: "Move out of tabs",
   pinTab: "Pin tab",
+  rename: "Rename…",
   /** A pinned tab's description starts with this. */
   pinned: "Pinned",
   splitRight: "Split right",
@@ -487,6 +489,9 @@ const pane = {
   closeFailed: "Close",
   /** A pane whose content is still loading, when its kind has no `Loading`. */
   loadingContent: "Loading…",
+  /** The rename field's name, and what it says when the app turned the name down. */
+  renameField: (pane: string) => `Rename ${pane}`,
+  renameFailed: "Not renamed. Change the name, or press Escape",
   /** A pane with unsaved work (`useUnsaved`): the unsaved mark's name, and the start of a tab's description. */
   unsaved: "Unsaved changes",
 };

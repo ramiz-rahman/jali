@@ -22,6 +22,7 @@ import {
 } from "./resize";
 import { openPeekFull, peek, openPeekBeside, select } from "./peek";
 import { follow, setKept } from "./follow";
+import { endRename, startRename } from "./rename";
 import {
   arrive,
   changeSettings,
@@ -85,6 +86,8 @@ export const ACTIONS = {
   moveTab,
   moveTabToward,
   setPinned,
+  startRename,
+  endRename,
   setActiveTab,
   resizeDivider,
   setDividerSize,

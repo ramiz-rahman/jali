@@ -654,6 +654,12 @@ One entry of a command menu, from <Ref to="listCommands" page="/reference/core" 
 
 </Entry>
 
+<Entry name="Rename" kind="type" from="@jali/core" signature={`interface Rename {\n  can?(pane: { id: NodeId; ref: ObjectRef }): boolean;\n  run(pane: { id: NodeId; ref: ObjectRef }, text: string): void | false | Promise<void | false>;\n}`} compact>
+
+Renaming in place, from `createJali({ rename })`. Double-click or F2 on a tab, or on a lone pane's title, the tab menu's Rename…, or `actions.startRename` opens a field there with the title selected. Enter or leaving the field calls `run` with the trimmed text; Esc keeps the old name, and an empty or unchanged name calls nothing. Jali stores no name: your app saves it and the pane shows it, usually with `useTitle`. Return `false`, throw or reject to keep the field open with the text, marked invalid; a promise keeps it busy until it settles. `can` says which panes may be renamed; leave it out for all.
+
+</Entry>
+
 <Entry name="TabMenu" kind="type" from="@jali/core" signature={`type TabMenu = (pane: { id: NodeId; ref: ObjectRef }) => readonly TabMenuItem[] | undefined`} compact>
 
 Your items for a tab's menu, from `createJali({ tabMenu })`. Called each time a tab's menu opens (right-click, Shift+F10 or the menu key on the tab), with that tab's pane. They come after Jali's own, after a separator. Return `undefined` or `[]` for a pane that has none.
@@ -819,6 +825,7 @@ A pane that is not there gives `reason: "not-found"`. What a refusal reads out t
 <Member name="actions.unmerge" signature="unmerge(pane?: PaneTarget)">Move a tab out of its group, to the right of it.</Member>
 <Member name="actions.closeTabs" signature={`closeTabs(pane: PaneTarget, which: "others" | "after")`}>Close the other tabs of `pane`'s group, or the tabs after it in reading order (to its right, or its left right to left). One change: `beforeClose` is asked once, listing them all, and one Undo brings them back. Refused with `"nothing-to-do"` when there are none. The tab menu's Close other tabs and Close tabs to the right.</Member>
 <Member name="actions.setPinned" signature="setPinned(pane: PaneTarget, pinned: boolean)">Pin a pane's tab, or unpin it. A pinned tab goes to the end of its group's pinned tabs, at the start of the group; unpinned, it goes to the start of the rest. Close other tabs and Close tabs to the right leave it open; Close, middle-click and ⌘W still close it. Already as asked: nothing happens, with no `pin` event and no history entry. Each change fires `pin`.</Member>
+<Member name="actions.startRename" signature="startRename(pane?: PaneTarget)">Open the rename field on `pane`'s tab, or its title when it is alone (default: the focused pane). For an app that owns its own rename key or menu item. `"unavailable"` without `createJali({ rename })`, or when `rename.can` says no.</Member>
 <Member name="actions.moveTab" signature="moveTab(pane: PaneTarget, index: number)">Move a tab to position `index` (from 0) among its group's tabs, clamped to the group and to its part of it (a pinned tab among the pinned tabs, any other after them); the group keeps its place and size, and its shown tab. Announced as "Orders moved to position 2 of 4". Refused with `"nothing-to-do"` for a pane that is not a tab in a group the person or the app made (a folded or tucked tab is placed by the layout).</Member>
 </Members>
 
