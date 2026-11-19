@@ -6,8 +6,8 @@
 @layer app {
   /* ---------- the pane's header: the top of its faceplate ---------- */
   .jali-pane-header {
-    height: 48px;
-    padding-inline: 24px 9px;
+    height: var(--h-bar);
+    padding-inline: 24px 8px;
     background: transparent;
     border-bottom: 1px solid var(--seam-dark);
     box-shadow: 0 1px 0 var(--seam-lit);
@@ -18,16 +18,16 @@
     position: absolute;
     inset-inline-start: 10px;
     top: 50%;
-    width: 7px;
-    height: 7px;
-    margin-top: -3.5px;
+    width: var(--lamp);
+    height: var(--lamp);
+    margin-top: calc(var(--lamp) / -2);
     border-radius: 50%;
     background: var(--led-off);
     box-shadow: inset 0 1px 1px rgb(0 0 0 / calc(0.35 * var(--sh)));
   }
   .jali-pane[data-focused] .jali-pane-header::before {
     background: var(--led-on);
-    box-shadow: 0 0 7px rgb(255 79 0 / 0.8);
+    box-shadow: var(--lamp-glow);
   }
   .jali-pane-title {
     color: var(--legend);
@@ -54,7 +54,7 @@
     place-items: center;
     width: 30px;
     min-width: 30px;
-    height: 30px;
+    height: var(--h-key-s);
     padding: 0;
     border: 0;
     border-radius: var(--corner);
@@ -179,13 +179,23 @@
    */
   .jali-follow-toggle {
     --wall: 1px;
-    height: 24px;
+    height: var(--h-key-xs);
     gap: 6px;
     padding: 0 8px;
     font-size: var(--type-legend);
   }
   .jali-follow-toggle svg {
     display: none;
+  }
+  /* A narrow header gives the pane's name the room: the toggle keeps its lamp and drops its word (its name stays
+     for screen readers and in its tooltip). Uses Jali's internal header container name (FINDINGS.md). */
+  @container jali-header (max-width: 300px) {
+    .jali-follow-toggle {
+      width: var(--h-key-xs);
+      padding: 0;
+      gap: 0;
+      font-size: 0;
+    }
   }
 
   /* ---------- tabs ---------- */
@@ -194,9 +204,9 @@
     padding-block: 4px 6px;
   }
   .jali-tab {
-    gap: 7px;
+    gap: 8px;
     margin-block: 0;
-    padding-inline: 9px 8px;
+    padding-inline: 8px 8px;
   }
   /* A narrow header gives its "+" key away first, so the shown tab keeps a little more of its name. Uses Jali's
      internal header container name (FINDINGS.md). */
@@ -246,7 +256,7 @@
     gap: 8px;
   }
   .jali-shelf-chip {
-    height: 28px;
+    height: var(--h-key-s);
   }
 
   /* ---------- drop zones ---------- */
@@ -273,7 +283,7 @@
   .jali-scrim [role="combobox"] {
     margin: 2px 2px 8px;
     width: calc(100% - 4px);
-    height: 50px;
+    height: var(--h-bar);
     padding: 0 16px;
     box-sizing: border-box;
     caret-color: var(--scr-hot);
@@ -286,8 +296,8 @@
   /* Palette and chooser rows: printed on the plate; the one under the cursor latched into a tray, its lamp lit. */
   .jali-palette-item {
     position: relative;
-    min-height: 36px;
-    padding-inline-start: 26px;
+    min-height: var(--h-row);
+    padding-inline-start: 28px;
     border-radius: var(--corner);
     font-size: var(--type-body);
   }
@@ -296,9 +306,9 @@
     position: absolute;
     inset-inline-start: 10px;
     top: 50%;
-    width: 6px;
-    height: 6px;
-    margin-top: -3px;
+    width: var(--lamp);
+    height: var(--lamp);
+    margin-top: calc(var(--lamp) / -2);
     border-radius: 50%;
     background: var(--led-off);
     box-shadow: inset 0 1px 1px rgb(0 0 0 / calc(0.35 * var(--sh)));
@@ -312,11 +322,11 @@
   }
   .jali-palette-item[aria-selected="true"]::before {
     background: var(--led-on);
-    box-shadow: 0 0 7px rgb(255 79 0 / 0.8);
+    box-shadow: var(--lamp-glow);
   }
   /* Not a public part: the key hint, reached as `kbd`. A tiny key cap. */
   .jali-palette-item kbd {
-    padding: 3px 6px;
+    padding: 2px 6px;
     border-radius: var(--corner);
     background: linear-gradient(180deg, var(--cap-1), var(--cap-2));
     box-shadow:
@@ -326,7 +336,7 @@
   }
   /* Not a public part: the dialog's buttons, reached as `button`. Standard keys; Jali keeps its own colours. */
   .jali-scrim [role="alertdialog"] button {
-    height: 38px;
+    height: var(--h-key);
     padding: 0 16px;
   }
 
@@ -343,10 +353,10 @@
   /* Not a public part: which of the dialog's buttons is the primary one. Only its order says so (it comes last):
      the orange cap, as in the parts' .key-accent. */
   .jali-scrim [role="alertdialog"] button:last-of-type {
-    --cap-1: #ff6a26;
-    --cap-2: #f24a00;
-    --cap-edge: #a83300;
-    --cap-ink: #170a03;
+    --cap-1: var(--cap-signal-1);
+    --cap-2: var(--cap-signal-2);
+    --cap-edge: var(--cap-signal-edge);
+    --cap-ink: var(--on-signal);
     --cap-rim: rgb(120 30 0 / 0.35);
     --cap-hi: rgb(255 255 255 / 0.45);
   }
@@ -390,7 +400,7 @@
     grid-template-columns: minmax(0, 1fr) auto;
     column-gap: 20px;
     height: auto;
-    min-height: 38px;
+    min-height: var(--h-row);
     padding-inline-end: 12px;
   }
   .jali-chooser .jali-palette-id {
@@ -433,7 +443,7 @@
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    height: 30px;
+    height: var(--h-key-s);
     margin-block: 0;
     padding: 0 10px;
     border: 0;
@@ -452,7 +462,11 @@
       0 2px 0 var(--cap-edge);
   }
   .jali-tab-folded[aria-expanded="true"] {
-    background: linear-gradient(180deg, var(--cap-2), color-mix(in srgb, var(--cap-2) 86%, #000));
+    background: linear-gradient(
+      180deg,
+      var(--cap-2),
+      color-mix(in srgb, var(--cap-2) 86%, var(--black))
+    );
     box-shadow:
       inset 0 2px 4px rgb(0 0 0 / calc(0.3 * var(--sh))),
       inset 0 0 0 1px var(--cap-rim);
@@ -473,7 +487,7 @@
   }
   .jali-tab-menu [data-menu-item] {
     position: relative;
-    min-height: 32px;
+    min-height: var(--h-row);
     padding-inline: 20px 10px;
     border-radius: var(--corner);
     font-family: var(--jali-font);
@@ -489,9 +503,9 @@
     position: absolute;
     inset-inline-start: 9px;
     top: 50%;
-    width: 6px;
-    height: 6px;
-    margin-top: -3px;
+    width: var(--lamp);
+    height: var(--lamp);
+    margin-top: calc(var(--lamp) / -2);
     border-radius: 50%;
     background: var(--led-off);
   }
@@ -502,10 +516,10 @@
   }
   .jali-tab-menu [data-menu-item]:is(:hover, :focus-visible)::before {
     background: var(--led-on);
-    box-shadow: 0 0 7px rgb(255 79 0 / 0.8);
+    box-shadow: var(--lamp-glow);
   }
   .jali-tab-menu kbd {
-    padding: 2px 5px;
+    padding: 2px 6px;
     border-radius: var(--corner);
     font-family: var(--font-readout);
     font-size: var(--type-fine);
@@ -517,7 +531,7 @@
   }
   .jali-tab-menu [role="separator"] {
     height: 1px;
-    margin: 5px 4px;
+    margin: 6px 4px;
     background: var(--seam-dark);
     box-shadow: 0 1px 0 var(--seam-lit);
   }

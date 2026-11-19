@@ -50,8 +50,8 @@
   :where(.tray) {
     display: flex;
     align-items: center;
-    gap: 7px;
-    padding: 7px 7px 9px;
+    gap: 8px;
+    padding: 8px 8px 8px;
     border-radius: var(--corner);
     background: light-dark(
       rgb(0 0 0 / calc(0.075 * var(--sh))),
@@ -81,10 +81,10 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    gap: 7px;
-    height: 38px;
+    gap: 8px;
+    height: var(--h-key);
     min-width: 38px;
-    padding: 0 14px;
+    padding: 0 12px;
     border: 0;
     border-radius: var(--corner);
     background: linear-gradient(180deg, var(--cap-1), var(--cap-2));
@@ -123,7 +123,7 @@
     .jali-follow-toggle
   ) {
     --wall: 2px;
-    height: 30px;
+    height: var(--h-key-s);
     min-width: 30px;
     padding: 0 10px;
     border-radius: var(--corner);
@@ -131,14 +131,14 @@
   }
   :where(.key-m) {
     --wall: 4px;
-    height: 48px;
+    height: var(--h-key-m);
     min-width: 48px;
     border-radius: var(--corner);
   }
   :where(.key-l) {
     --wall: 4px;
     width: 54px;
-    height: 50px;
+    height: var(--h-key-m);
     padding: 0;
     border-radius: var(--corner);
   }
@@ -147,14 +147,14 @@
     aspect-ratio: 1;
     padding: 0;
     flex-direction: column;
-    gap: 3px;
+    gap: 4px;
   }
   /* A legend printed at the key's foot, its lamp in the corner: the top row's layout keys. */
   :where(.key-legend) {
     justify-content: flex-start;
     align-items: flex-end;
     min-width: 76px;
-    padding: 0 10px 9px;
+    padding: 0 10px 8px;
   }
   :where(.key-sub) {
     font-size: var(--type-fine);
@@ -175,7 +175,7 @@
     ):active:not(:disabled) {
     --press: var(--wall);
     /* Down fast, like a switch going over centre; the way back up is the slower `--travel` on the key itself. */
-    transition-duration: 35ms;
+    transition-duration: var(--travel-press);
     transition-timing-function: cubic-bezier(0.3, 0, 0.6, 1);
     filter: brightness(0.94);
   }
@@ -203,7 +203,11 @@
     /* Latched keys stay level with their neighbours (shared tops and baselines); they read as down by their
        sunken face, their inner shadow and their lit lamp. */
     --press: 0px;
-    background: linear-gradient(180deg, var(--cap-2), color-mix(in srgb, var(--cap-2) 86%, #000));
+    background: linear-gradient(
+      180deg,
+      var(--cap-2),
+      color-mix(in srgb, var(--cap-2) 86%, var(--black))
+    );
     box-shadow:
       inset 0 2px 3px rgb(0 0 0 / calc(0.24 * var(--sh))),
       inset 0 0 0 1px var(--cap-rim),
@@ -217,8 +221,8 @@
   :where(.led),
   :where(.jali-tab, .jali-switch-item, .jali-follow-toggle)::before {
     flex: none;
-    width: 6px;
-    height: 6px;
+    width: var(--lamp);
+    height: var(--lamp);
     border-radius: 50%;
     background: var(--led-off);
     box-shadow: inset 0 1px 1px rgb(0 0 0 / calc(0.35 * var(--sh)));
@@ -241,23 +245,23 @@
     background: var(--led-on);
     box-shadow:
       0 0 0 1px rgb(255 79 0 / 0.25),
-      0 0 7px rgb(255 79 0 / 0.8);
+      var(--lamp-glow);
   }
 
   /* ---------- the orange cap and the play legend ---------- */
   :where(.key-accent) {
-    --cap-1: #ff6a26;
-    --cap-2: #f24a00;
-    --cap-edge: #a83300;
-    --cap-ink: #170a03;
+    --cap-1: var(--cap-signal-1);
+    --cap-2: var(--cap-signal-2);
+    --cap-edge: var(--cap-signal-edge);
+    --cap-ink: var(--on-signal);
     --cap-rim: rgb(120 30 0 / 0.35);
     --cap-hi: rgb(255 255 255 / 0.45);
   }
   :where(.key-accent):disabled {
-    --cap-1: light-dark(#f3d3c3, #4a2a1c);
-    --cap-2: light-dark(#ecc6b3, #3e2316);
-    --cap-edge: light-dark(#cfa894, #20120b);
-    color: light-dark(#6e4430, #c49a83);
+    --cap-1: var(--cap-signal-off-1);
+    --cap-2: var(--cap-signal-off-2);
+    --cap-edge: var(--cap-signal-off-edge);
+    color: var(--cap-signal-off-ink);
   }
   :where(.key-play) :where(svg) {
     fill: var(--st-signal);
@@ -310,7 +314,7 @@
     width: 8px;
     translate: -50% 0;
     border-radius: var(--corner);
-    background: linear-gradient(90deg, #000, #0d0d0f 40%, #050506);
+    background: var(--mat-slot);
     box-shadow:
       inset 0 3px 3px rgb(0 0 0 / calc(0.9 * var(--sh))),
       inset 1px 0 0 rgb(0 0 0 / calc(0.8 * var(--sh))),
@@ -348,12 +352,12 @@
           rgb(0 0 0 / calc(0.16 * var(--sh))) 3px 4px
         )
         0 calc(100% - 4px) / 100% 9px no-repeat,
-      linear-gradient(180deg, #fbfbf9, #e2e2de 48%, #cfcfca 52%, #e8e8e4);
+      var(--mat-cap-silver);
     box-shadow:
-      inset 0 1px 0 #fff,
+      inset 0 1px 0 var(--white),
       inset 0 -1px 0 rgb(0 0 0 / calc(0.2 * var(--sh))),
       0 0 0 1px rgb(0 0 0 / calc(0.55 * var(--sh))),
-      0 3px 0 #0a0a0b,
+      0 3px 0 var(--mat-wall),
       0 6px 6px rgb(0 0 0 / calc(0.5 * var(--sh)));
   }
   .fader-line {
@@ -363,7 +367,7 @@
     top: 50%;
     height: 2px;
     translate: 0 -50%;
-    background: #18181a;
+    background: var(--mat-cap-line);
   }
   /* The master's cap: graphite, its centre line orange. */
   .fader-master .fader-cap {
@@ -373,11 +377,11 @@
         100% 9px no-repeat,
       repeating-linear-gradient(180deg, transparent 0 3px, rgb(255 255 255 / 0.07) 3px 4px) 0
         calc(100% - 4px) / 100% 9px no-repeat,
-      linear-gradient(180deg, #5b5b61, #3c3c41 48%, #303034 52%, #424247);
+      var(--mat-cap-graphite);
     box-shadow:
       inset 0 1px 0 rgb(255 255 255 / 0.2),
-      0 0 0 1px #000,
-      0 3px 0 #000,
+      0 0 0 1px var(--black),
+      0 3px 0 var(--black),
       0 6px 6px rgb(0 0 0 / calc(0.6 * var(--sh)));
   }
   .fader-master .fader-line {
@@ -390,7 +394,7 @@
     box-shadow:
       0 0 0 2px var(--focus),
       0 0 0 5px var(--st-signal-soft),
-      0 3px 0 #0a0a0b;
+      0 3px 0 var(--mat-wall);
   }
 
   /* ---------- readout: black glass ---------- */
@@ -513,7 +517,11 @@
      neighbours'. The lamp says it is on. */
   :where(.face:is([aria-pressed="true"], [data-on])) {
     --press: 0px;
-    background: linear-gradient(180deg, color-mix(in srgb, var(--cap-2) 92%, #000), var(--cap-2));
+    background: linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--cap-2) 92%, var(--black)),
+      var(--cap-2)
+    );
     box-shadow:
       inset 0 2px 4px rgb(0 0 0 / calc(0.22 * var(--sh))),
       inset 0 0 0 1px var(--cap-rim),
@@ -542,7 +550,7 @@
   }
   /* The play key's cap is orange; its glyph and legend print dark on it. */
   :where(.key-play) :where(.glyph) {
-    fill: #170a03;
+    fill: var(--on-signal);
   }
 }
 
@@ -557,9 +565,9 @@
     display: inline-flex;
     align-items: stretch;
     gap: 2px;
-    padding: 3px 3px 5px;
+    padding: var(--lip) var(--lip) var(--lip-foot);
     border-radius: var(--corner);
-    background: light-dark(#e2e2de, #070708);
+    background: var(--pocket-floor);
     box-shadow:
       inset 0 1px 2px rgb(0 0 0 / calc(0.25 * var(--sh))),
       inset 0 0 0 1px rgb(0 0 0 / calc(0.14 * var(--sh))),
@@ -579,7 +587,7 @@
     display: flex;
     align-items: stretch;
     gap: var(--seam);
-    padding: 3px 3px 5px;
+    padding: var(--lip) var(--lip) var(--lip-foot);
     border-radius: var(--corner);
     background: light-dark(rgb(0 0 0 / calc(0.1 * var(--sh))), rgb(0 0 0 / calc(0.45 * var(--sh))));
     box-shadow:
@@ -596,7 +604,7 @@
   :where(.cutout) {
     padding: 2px;
     border-radius: var(--corner);
-    background: #000;
+    background: var(--black);
     box-shadow:
       inset 0 1px 1px rgb(0 0 0 / calc(0.6 * var(--sh))),
       0 1px 0 light-dark(rgb(255 255 255 / 0.85), rgb(255 255 255 / 0.07));
@@ -627,7 +635,7 @@
   .dial[data-dragging] .dial-body {
     filter: brightness(0.95);
     box-shadow:
-      0 0 0 1px light-dark(rgb(0 0 0 / calc(0.4 * var(--sh))), #000),
+      0 0 0 1px light-dark(rgb(0 0 0 / calc(0.4 * var(--sh))), var(--black)),
       0 0 0 3px light-dark(rgb(0 0 0 / calc(0.14 * var(--sh))), rgb(0 0 0 / calc(0.6 * var(--sh)))),
       0 0 0 4px var(--cap-hi),
       0 1px 2px rgb(0 0 0 / calc(0.4 * var(--sh)));
@@ -643,11 +651,11 @@
     /* The counterbore it stands in, then the knurled skirt. */
     background: repeating-conic-gradient(
       from 0deg,
-      light-dark(#9d9d98, #141416) 0 4deg,
-      light-dark(#f1f1ee, #4a4a4f) 4deg 8deg
+      var(--mat-knurl-1) 0 4deg,
+      var(--mat-knurl-2) 4deg 8deg
     );
     box-shadow:
-      0 0 0 1px light-dark(rgb(0 0 0 / calc(0.35 * var(--sh))), #000),
+      0 0 0 1px light-dark(rgb(0 0 0 / calc(0.35 * var(--sh))), var(--black)),
       0 0 0 3px light-dark(rgb(0 0 0 / calc(0.1 * var(--sh))), rgb(0 0 0 / calc(0.5 * var(--sh)))),
       0 0 0 4px var(--cap-hi),
       0 3px 4px rgb(0 0 0 / calc(0.35 * var(--sh)));
@@ -664,16 +672,9 @@
         rgb(0 0 0 / calc(0.06 * var(--sh))) 59%,
         transparent 61%
       ),
-      conic-gradient(
-        from 200deg,
-        light-dark(#ffffff, #5a5a60),
-        light-dark(#d6d6d2, #2f2f33) 25%,
-        light-dark(#f7f7f5, #4c4c51) 50%,
-        light-dark(#cfcfcb, #2a2a2e) 75%,
-        light-dark(#ffffff, #5a5a60)
-      );
+      var(--mat-dial-face);
     box-shadow:
-      inset 0 1px 0 light-dark(#fff, rgb(255 255 255 / 0.25)),
+      inset 0 1px 0 light-dark(var(--white), rgb(255 255 255 / 0.25)),
       inset 0 -1px 1px rgb(0 0 0 / calc(0.3 * var(--sh))),
       0 0 0 1px rgb(0 0 0 / calc(0.35 * var(--sh)));
   }
@@ -686,11 +687,7 @@
     height: 10px;
     translate: -50% 0;
     border-radius: 50%;
-    background: radial-gradient(
-      circle at 50% 70%,
-      light-dark(#f4f4f1, #57575c),
-      light-dark(#9e9e99, #1b1b1d)
-    );
+    background: var(--mat-dimple);
     box-shadow:
       inset 0 1.5px 2px rgb(0 0 0 / calc(0.45 * var(--sh))),
       0 1px 0 light-dark(rgb(255 255 255 / 0.9), rgb(255 255 255 / 0.15));
@@ -746,7 +743,7 @@
   }
   @media (prefers-reduced-motion: no-preference) {
     .selector-dial .dial-body {
-      transition: rotate 90ms cubic-bezier(0.45, 0, 0.15, 1);
+      transition: rotate var(--travel-detent);
     }
   }
 }
@@ -803,7 +800,7 @@
   :where(.field, .tr-editor, .clip-note textarea, .tr-speaker-field, .mk-field) {
     box-sizing: border-box;
     margin: 0;
-    padding: 7px 10px;
+    padding: 8px 10px;
     border: 0;
     border-radius: var(--corner);
     background: var(--paper);
@@ -836,13 +833,13 @@
   }
   .tr-speaker-field,
   .mk-field {
-    height: 28px;
+    height: calc(var(--h-row) - 8px);
     padding-block: 0;
     font-size: var(--type-control);
   }
   .mk-field {
     min-width: 0;
-    background: #e6ebdd;
+    background: var(--lcd-field);
     color: var(--lcd-ink);
   }
 }

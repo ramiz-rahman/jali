@@ -34,7 +34,7 @@
     display: flex;
     align-items: center;
     gap: 10px;
-    min-height: 48px;
+    min-height: var(--h-bar);
     padding: 0 12px;
     flex: none;
     min-width: 0;
@@ -76,7 +76,7 @@
     content: "";
     width: 5px;
     height: 5px;
-    margin-right: 5px;
+    margin-right: 6px;
     border-radius: 50%;
     background: var(--st-signal);
   }
@@ -91,19 +91,19 @@
   }
   .unsaved-note::before {
     content: "";
-    width: 6px;
-    height: 6px;
+    width: var(--lamp);
+    height: var(--lamp);
     border-radius: 50%;
     background: var(--led-on);
-    box-shadow: 0 0 7px rgb(255 79 0 / 0.75);
+    box-shadow: var(--lamp-glow);
   }
   .live-dot {
     display: inline-block;
-    width: 6px;
-    height: 6px;
+    width: var(--lamp);
+    height: var(--lamp);
     border-radius: 50%;
     background: var(--led-on);
-    box-shadow: 0 0 7px rgb(255 79 0 / 0.8);
+    box-shadow: var(--lamp-glow);
   }
   .not-live {
     display: flex;
@@ -175,7 +175,7 @@
   .lib-label {
     display: grid;
     gap: 2px;
-    padding: 7px 26px 8px 10px;
+    padding: 8px 28px 8px 10px;
     border-radius: var(--corner);
     background: var(--paper);
     color: var(--paper-ink);
@@ -189,15 +189,15 @@
     top: 18px;
     right: 18px;
     z-index: 1;
-    width: 7px;
-    height: 7px;
+    width: var(--lamp);
+    height: var(--lamp);
     border-radius: 50%;
     background: var(--led-off);
     box-shadow: inset 0 1px 1px rgb(0 0 0 / calc(0.35 * var(--sh)));
   }
   .lib-row[aria-selected="true"] .lib-lamp {
     background: var(--led-on);
-    box-shadow: 0 0 7px rgb(255 79 0 / 0.8);
+    box-shadow: var(--lamp-glow);
   }
   @media (prefers-reduced-motion: no-preference) {
     .lib-row[data-live] .lib-lamp {
@@ -216,6 +216,7 @@
     letter-spacing: var(--track-legend);
     color: var(--paper-dim);
     line-height: var(--lead-tight);
+    text-wrap: balance;
   }
   /* A session's name is never cut: it takes a second line when the pane is narrow. */
   .lib-title {
@@ -225,7 +226,7 @@
     text-wrap: balance;
   }
   .lib-wave {
-    height: 34px;
+    height: var(--h-key-s);
     margin: 0;
     padding: 0 8px;
   }
@@ -282,11 +283,13 @@
     container-type: inline-size;
   }
   .tr-rows {
+    /* The column the times stand in; the words, names and headings start 12px after it. */
+    --gutter: 44px;
     flex: 1;
     min-height: 0;
     overflow: auto;
     margin: 0 10px 10px;
-    padding: 14px 0 40vh;
+    padding: 12px 0 40vh;
     scroll-padding: 48px 0;
   }
   .tr-seg {
@@ -321,7 +324,7 @@
     box-shadow: inset 0 0 0 1.5px var(--paper-dim);
   }
   .tr-speaker {
-    padding: 14px 0 4px 56px;
+    padding: 12px 0 4px calc(var(--gutter) + 12px);
   }
   .tr-seg:first-child .tr-speaker {
     padding-top: 2px;
@@ -353,12 +356,12 @@
   }
   .tr-line {
     display: grid;
-    grid-template-columns: 44px minmax(0, 1fr) auto;
+    grid-template-columns: var(--gutter) minmax(0, 1fr) auto;
     gap: 12px;
     align-items: start;
   }
   .tr-time {
-    padding: 5px 0 0;
+    padding: 5px 0 0; /* optical: the time sits on the first line's baseline */
     border: 0;
     background: none;
     color: var(--paper-dim);
@@ -406,7 +409,7 @@
     display: flex;
     align-items: center;
     gap: 6px;
-    padding-top: 3px;
+    padding-top: 4px;
     min-height: 26px;
   }
   @container (max-width: 460px) {
@@ -424,12 +427,12 @@
   /* ---------- segment detail ---------- */
   .clip {
     overflow: auto;
-    gap: 14px;
+    gap: 12px;
     padding: 0 0 16px;
   }
   .clip > * {
     flex: none;
-    margin-inline: 14px;
+    margin-inline: 12px;
   }
   .clip > .not-live {
     margin-inline: 10px;
@@ -439,7 +442,7 @@
     align-items: baseline;
     justify-content: space-between;
     gap: 8px;
-    padding-top: 14px;
+    padding-top: 12px;
   }
   .clip-range {
     font-size: var(--type-legend);
@@ -516,7 +519,7 @@
   }
   .clip-text {
     margin-block: 0;
-    padding: 12px 14px;
+    padding: 12px 16px;
     border-left: 3px solid transparent;
     font-size: var(--type-title);
     line-height: var(--lead-read);
@@ -549,7 +552,7 @@
     grid-template-columns: 52px minmax(0, 1fr) auto;
     align-items: center;
     gap: 8px;
-    min-height: 34px;
+    min-height: var(--h-row);
     padding: 0 4px 0 16px;
     border-radius: var(--corner);
     cursor: pointer;
@@ -560,10 +563,10 @@
   /* The cursor's row prints inverted, as a segment display does. */
   .mk-row[aria-selected="true"] {
     background: var(--lcd-ink);
-    color: #c2cab9;
+    color: var(--lcd-paper);
   }
   .mk-row[aria-selected="true"] .mk-time {
-    color: #c2cab9;
+    color: var(--lcd-paper);
   }
   .mk-time {
     font-size: var(--type-control);
@@ -616,7 +619,7 @@
     grid-template-rows: auto auto;
     align-content: center;
     column-gap: 6px;
-    padding: 0 6px 0 18px;
+    padding: 0 6px 0 20px;
     box-sizing: border-box;
     min-height: 0;
     overflow: hidden;
@@ -633,10 +636,10 @@
   .tl-labels li .mx-lamp {
     left: 6px;
     top: 50%;
-    margin-top: -3px;
+    margin-top: calc(var(--lamp) / -2);
   }
   .tl-labels li[data-silent] {
-    opacity: 0.6;
+    opacity: var(--silent);
   }
   .tl-track {
     grid-column: 1;
@@ -684,7 +687,7 @@
     grid-row: 1 / -1;
     align-self: center;
     display: flex;
-    gap: 3px;
+    gap: 2px;
   }
   .tl-m,
   .tl-s {
@@ -702,7 +705,7 @@
   .tl-m[data-on],
   .tl-s[data-on] {
     background: var(--lcd-ink);
-    color: #c2cab9;
+    color: var(--lcd-paper);
   }
   .tl-lanes {
     min-width: 0;
@@ -758,11 +761,11 @@
     gap: 10px;
     padding: 8px 8px 10px;
     border-radius: var(--corner);
-    background: var(--grain), linear-gradient(180deg, #2f2f33, #252528);
+    background: var(--grain), linear-gradient(180deg, var(--module-1), var(--module-2));
     box-shadow:
       inset 0 1px 0 rgb(255 255 255 / 0.09),
       inset 0 0 0 1px rgb(0 0 0 / calc(0.7 * var(--sh))),
-      0 3px 0 #0a0a0b,
+      0 3px 0 var(--mat-wall),
       0 5px 6px rgb(0 0 0 / calc(0.35 * var(--sh)));
   }
   .mx-module > * {
@@ -783,7 +786,8 @@
     min-width: 132px;
     max-width: 196px;
     margin-left: 6px;
-    background: var(--grain), linear-gradient(180deg, #232326, #19191b);
+    background:
+      var(--grain), linear-gradient(180deg, var(--module-master-1), var(--module-master-2));
   }
   .mx-master {
     margin-right: 12px;
@@ -801,15 +805,15 @@
       box-shadow:
         inset 0 1px 0 rgb(255 255 255 / 0.09),
         inset 0 0 0 1px rgb(0 0 0 / calc(0.7 * var(--sh))),
-        0 3px 0 #0a0a0b,
+        0 3px 0 var(--mat-wall),
         -10px 0 14px -6px rgb(0 0 0 / calc(0.7 * var(--sh))),
-        12px 0 0 0 #252528;
+        12px 0 0 0 var(--body);
     }
   }
   /* A muted or soloed-away channel: its readout and fader dim, its keys say why. */
   .mx-module[data-silent] .mx-fader-row,
   .mx-module[data-silent] .mx-db {
-    opacity: 0.5;
+    opacity: var(--silent);
   }
   /* The scribble strip: a small LCD at the module's head, the channel's lamp in its corner. */
   .mx-scribble {
@@ -817,7 +821,7 @@
     display: grid;
     gap: 1px;
     width: 100%;
-    padding: 6px 8px 6px 18px;
+    padding: 6px 8px 6px 20px;
     box-sizing: border-box;
     background: var(--lcd-glass);
     color: var(--lcd-ink);
@@ -832,8 +836,8 @@
     position: absolute;
     left: 7px;
     top: 9px;
-    width: 6px;
-    height: 6px;
+    width: var(--lamp);
+    height: var(--lamp);
     border-radius: 50%;
     background: var(--chan, var(--st-signal));
     box-shadow: 0 0 0 1px rgb(0 0 0 / calc(0.35 * var(--sh)));
@@ -892,7 +896,7 @@
   /* The master's clip lamps, in place of a pan dial. */
   .mx-clips {
     grid-template-columns: auto auto;
-    column-gap: 14px;
+    column-gap: 12px;
     align-content: center;
   }
   .mx-clips .mx-pan-legend {
@@ -908,7 +912,7 @@
   }
   .mx-clip[data-on] .led {
     background: var(--led-on);
-    box-shadow: 0 0 7px rgb(255 79 0 / 0.85);
+    box-shadow: var(--lamp-glow);
   }
   .mx-clip[data-on] {
     color: var(--ink);
@@ -940,7 +944,7 @@
   .mx-scale {
     position: relative;
     width: 22px;
-    margin: 21px 0;
+    margin: var(--travel-inset) 0;
     padding: 0;
     list-style: none;
     flex: none;
@@ -986,7 +990,7 @@
   }
   .mx-db {
     min-width: 70%;
-    padding: 5px 8px;
+    padding: 6px 8px;
     box-sizing: border-box;
     font-family: var(--font-readout);
     font-size: var(--type-body);
@@ -1004,9 +1008,9 @@
   .mx-keys .mx-btn {
     flex: 1 1 0;
     min-width: 0;
-    height: 34px;
+    height: var(--h-key-s);
     padding: 0 6px;
-    gap: 5px;
+    gap: 6px;
     font-size: var(--type-legend);
   }
   .mx-keys .mx-btn-wide {
@@ -1019,7 +1023,7 @@
   @container mixer (max-height: 470px) {
     .mx-module {
       --mx-dial: 36px;
-      gap: 7px;
+      gap: 8px;
     }
     .mx-label {
       display: none;
@@ -1031,14 +1035,14 @@
       --pan-h: calc(var(--mx-dial) + 24px);
     }
     .mx-scribble {
-      height: 30px;
+      height: var(--h-key-s);
       padding-block: 6px;
     }
     .mx-keys .mx-btn {
-      height: 30px;
+      height: var(--h-key-s);
     }
     .mx-db {
-      padding-block: 3px;
+      padding-block: 4px;
     }
   }
   /* Very short: the scale keeps +6, 0 and −48, so its numbers never touch. */
@@ -1152,7 +1156,8 @@
 @layer app {
   /* The printed "playing" sits at the cartridge's foot: the voices' line makes room for it. */
   .lib-row[data-live] .lib-meta {
-    padding-right: 58px;
+    --playing: 58px; /* the width of the printed word and its lamp */
+    padding-right: var(--playing);
   }
 }
 
@@ -1188,7 +1193,7 @@
       inset 0 0 0 1px
         light-dark(rgb(0 0 0 / calc(0.14 * var(--sh))), rgb(0 0 0 / calc(0.7 * var(--sh)))),
       inset 0 2px 4px rgb(0 0 0 / calc(0.14 * var(--sh))),
-      0 0 0 3px light-dark(#d4d4d0, #0b0b0c),
+      0 0 0 3px var(--body-wall),
       0 1px 0 3px var(--seam-lit);
   }
   .tr-text {
@@ -1223,13 +1228,13 @@
     display: inline-flex;
     align-items: center;
     gap: 8px;
-    padding: 8px 14px;
+    padding: 8px 12px;
     font-family: var(--font-readout);
     font-size: var(--type-control);
     color: var(--scr-dim);
   }
   .empty-screen .led {
-    background: #1a1a1c;
+    background: var(--scr-led-off);
   }
   .empty[data-kind="missing"] .empty-code {
     color: var(--scr-hot);
@@ -1254,7 +1259,7 @@
 
   /* ---------- the launcher: a selector panel ---------- */
   .launcher {
-    gap: 18px;
+    gap: 16px;
     padding: 16px;
     overflow: auto;
   }
@@ -1301,7 +1306,7 @@
     justify-content: space-between;
     gap: 10px;
     width: 100%;
-    padding: 7px 10px;
+    padding: 8px 10px;
     border: 0;
     border-radius: var(--corner);
     background: none;
@@ -1314,13 +1319,13 @@
   .launcher-recent button:hover,
   .launcher-recent button:focus-visible {
     background: var(--lcd-ink);
-    color: #c2cab9;
+    color: var(--lcd-paper);
   }
   .launcher-open {
     color: var(--lcd-dim);
   }
   .launcher-recent button:hover .launcher-open {
-    color: #c2cab9;
+    color: var(--lcd-paper);
   }
 }
 
@@ -1347,7 +1352,7 @@
     gap: 10px;
   }
   .clip-controls .keyset .key {
-    height: 38px;
+    height: var(--h-key);
   }
   .clip-row {
     display: flex;
@@ -1397,7 +1402,7 @@
    * 3px and 5px lips) all stand 38px tall, top and bottom aligned.
    */
   :root {
-    --row-control: 38px;
+    --row-control: var(--h-key);
   }
   :is(.toolbar, .clip-row) > :is(.key, .lcd, .tr-counter, .keyset, select),
   .toolbar > .toolbar-end > :is(.key, .keyset) {
@@ -1440,7 +1445,7 @@
   }
   .tr-tray .key,
   .tr-tray .lcd {
-    height: 30px;
+    height: var(--h-key-s);
     box-sizing: border-box;
   }
   .tr-tray .key-latch:first-child {
@@ -1482,12 +1487,13 @@
     display: flex;
     align-items: center;
     gap: 10px;
-    margin: 14px 0 2px 56px;
+    /* The heading starts where the words do: the row's own margin and padding, then the gutter and its gap. */
+    margin: 12px 10px 2px;
+    padding-left: calc(16px + var(--gutter) + 12px);
     font-family: var(--jali-font);
     font-size: var(--type-fine);
     font-weight: 600;
-    letter-spacing: var(--track-wide);
-    text-transform: uppercase;
+    letter-spacing: var(--track-legend);
     color: var(--paper-dim);
   }
   .tr-section::after {
@@ -1517,7 +1523,6 @@
   /* A line that starts while another is still going (people talking over each other): a short rule in its
      track's colour between the time and the words, so overlaps read at a glance. */
   .tr-line {
-    --gutter: 44px;
     position: relative;
   }
   .tr-seg[data-overlap] .tr-line::before {
@@ -1531,13 +1536,12 @@
     background: var(--chan);
     opacity: 0.8;
   }
-  /* The mission clock is wider than mm:ss: the gutter grows to hold it. */
-  .tr-rows:has(.tr-time[data-wide]) .tr-line {
+  /* The mission clock is wider than mm:ss: the gutter grows to hold it, and the names and headings move with it. */
+  .tr-rows:has(.tr-time[data-wide]) {
     --gutter: 64px;
-    grid-template-columns: 64px minmax(0, 1fr) auto;
   }
-  .tr-rows:has(.tr-time[data-wide]) .tr-section {
-    margin-left: 76px;
+  .tr-rows:has(.tr-time[data-wide]) .tr-line {
+    grid-template-columns: var(--gutter) minmax(0, 1fr) auto;
   }
 
   /* ---------- credits: one paper sheet a session ---------- */
@@ -1555,7 +1559,7 @@
     min-height: 0;
   }
   .cr-sheet {
-    padding: 14px 16px;
+    padding: 12px 16px;
     font-size: var(--type-body);
     line-height: var(--lead-body);
   }
@@ -1595,8 +1599,7 @@
   .cr-fields dt {
     font-size: var(--type-fine);
     font-weight: 600;
-    letter-spacing: var(--track-wide);
-    text-transform: uppercase;
+    letter-spacing: var(--track-legend);
     color: var(--paper-dim);
     padding-top: 2px;
   }
@@ -1659,7 +1662,7 @@
     max-height: 240px;
     field-sizing: content;
     resize: none;
-    padding: 9px 11px;
+    padding: 8px 12px;
     font-size: var(--type-body);
     line-height: var(--lead-body);
     outline: none;
@@ -1674,7 +1677,7 @@
     display: flex;
     align-items: stretch;
     gap: var(--seam);
-    height: 32px;
+    height: var(--h-key-s);
   }
   .notepad-keys > .key {
     height: 100%;
@@ -1717,11 +1720,11 @@
     }
     .notepad-state {
       flex: 1 0 100%;
-      height: 26px;
+      height: var(--h-key-s);
     }
     .notepad-keys > .key {
       flex: 1;
-      height: 32px;
+      height: var(--h-key-s);
     }
   }
 }
