@@ -227,3 +227,11 @@ Not Jali's, for the record: making the top row one flex row of blocks meant grou
 ## The chooser's rows can't be laid out by an app
 
 `jali.actions.choose` rows share the palette's row: a fixed 2rem height and three columns (name, hint, 72px for a key hint a chooser row never has). A long hint wraps inside the fixed height and prints over the next row ("Go to segment…" with a long speaker name). Studio fixes it by reaching `.jali-chooser` and `.jali-palette-id`, which are not public parts. Jali could give chooser rows two columns and one line by default (name cut with an ellipsis, hint never wrapping), make the chooser's parts public, and let `choose` take a `render` for a row.
+
+## A short tab strip scrolls a tab away before it shortens any
+
+With two tabs in a narrow pane (Library and Markers at about 335px), Jali keeps the shown tab at its full title width, scrolls the other partly out of view and shows "+1", although both would fit with their titles cut. It reads as if a third tab existed. Studio lets tab items shrink (`.jali-tab-item`, `.jali-tab`, with a minimum) so tabs share the strip first and "+N" shows only when there are more than fit. Jali could do this by default, or offer it as an option: shorten titles down to a minimum before scrolling.
+
+## An app has nowhere to keep its own preferences
+
+Studio has three device preferences of its own (the header-button treatment, key and dial sounds, the controls at the top or the bottom). Each is a hand-written module: a storage key, a getter and setter, an attribute on `<html>`, and a command in ⌘K. Jali already stores and applies one such setting, the theme, through `changeSettings`. Letting an app add its own entries to that store (typed, remembered with the rest, listed in Settings) would remove the repetition. A convenience, not a blocker.
