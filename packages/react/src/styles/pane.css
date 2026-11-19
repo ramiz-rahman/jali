@@ -361,6 +361,30 @@
     }
   }
 
+  /* Unsaved work (useUnsaved): a dot. On a tab it holds the close button's place, and turns back into × on hover or
+   focus, so the mark costs no width. */
+  .jali-unsaved {
+    flex: none;
+    width: 0.5rem;
+    height: 0.5rem;
+    border-radius: 50%;
+    background: currentColor;
+  }
+  .jali-tab-close > .jali-unsaved {
+    display: none;
+  }
+  .jali-tab-item[data-unsaved] > .jali-tab-actions .jali-tab-close {
+    opacity: 1;
+  }
+  .jali-tab-item[data-unsaved]:not(:hover, :focus-within) > .jali-tab-actions .jali-tab-close {
+    & > svg {
+      display: none;
+    }
+    & > .jali-unsaved {
+      display: block;
+    }
+  }
+
   /* Tabs made by you vs made by the layout. Yours: plain, or tucked (dashed underline, Put back). The layout's: folded, in a
    trailing segment after a hairline, italic, with a fold icon (shape, not colour). Both marks reserve their slot, so a tab's
    width does not change with its state or with hover. */

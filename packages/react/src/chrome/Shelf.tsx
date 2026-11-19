@@ -6,6 +6,7 @@ import { useShortcut } from "../commands/react";
 import { flashTab, inlineStep, observeResize, scrolledFromStart } from "@jali/core/adapter";
 import { Activity, shelfActivity } from "../pane/Activity";
 import { KindIcon } from "../pane/icons";
+import { UnsavedMark } from "../pane/Unsaved";
 import { useActions, useMessages, useModel, useStore, useUi } from "../state/react";
 
 function label(m: JaliModel, it: ShelfEntry, a: PaneActivity | undefined) {
@@ -33,6 +34,7 @@ export function Shelf() {
     [m.resolved.shelf, tuckedItems],
   );
   const items = useMemo(() => [...tuckedItems, ...foldedItems], [tuckedItems, foldedItems]);
+  const unsaved = useUi((s) => s.unsaved);
   const activity = useUi((s) => s.activity);
   const marks = useUi((s) => s.paneAttributes);
   const dir = useUi((s) => s.dir);
@@ -144,6 +146,10 @@ export function Shelf() {
 
   const chip = (it: ShelfEntry) => {
     const L = label(m, it, activity[it.paneId]);
+    const dirty = !!unsaved[it.paneId];
+    const description = [dirty && words.pane.unsaved, L.folded && words.tabs.foldedDescription]
+      .filter(Boolean)
+      .join(". ");
     return (
       <div
         {...marks[it.paneId]}
@@ -151,7 +157,15 @@ export function Shelf() {
         data-chip={it.paneId}
         data-reason={it.reason}
         data-activity={L.state}
+        data-unsaved={dirty || undefined}
         key={it.paneId}
+        // The middle button closes the pane, as on a tab.
+        onMouseDown={(e) => e.button === 1 && e.preventDefault()}
+        onAuxClick={(e) => {
+          if (e.button !== 1) return;
+          e.preventDefault();
+          actions.close(it.paneId);
+        }}
       >
         <button
           className="jali-shelf-chip-main"
@@ -162,7 +176,7 @@ export function Shelf() {
             reason: it.reason,
             activity: activity[it.paneId],
           })}
-          aria-description={L.folded ? words.tabs.foldedDescription : undefined}
+          aria-description={description || undefined}
           title={L.folded ? words.tabs.foldedTitle(L.title) : t.chipTip(L.title, L.home)}
           onFocus={() => setFocusId(it.paneId)}
           onClick={() => doReveal(it)}
@@ -173,6 +187,7 @@ export function Shelf() {
             <KindIcon kind={L.node.ref.kind} size={13} />
           ) : null}
           <span className="jali-shelf-chip-title">{L.title}</span>
+          {dirty ? <UnsavedMark /> : null}
           <Activity a={activity[it.paneId]} shape />
         </button>
         {it.reason === "tucked" ? (

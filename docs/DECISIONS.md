@@ -539,3 +539,12 @@ The docs' hero tour drives a real workspace while the reader watches. Jali's own
 - **Why runtime, not `createJali({ moveFocus })`:** that option is fixed at creation and only covers the focus port; a tour turns the hold on and off as it plays and stops.
 - **Why the adapter, not `Jali`:** one known use (a scripted tour; a remote presenter is the next likely one). It joins the public instance when an app needs it.
 - **Tests:** `src/tests/focus-held.test.ts`; the docs' `e2e/tour.spec.ts` checks focus stays on the page through the ⌘K step and that the browser's `focus` is never replaced.
+
+## 2026-11-19 · Tab features for apps with documents (Data Studio's request)
+
+Data Studio's old tab strip had six features Jali lacked. Each is general, and lands on its own.
+
+- **The unsaved mark.** A pane that reports unsaved work (`useUnsaved`) shows a dot. On a tab it holds the close button's place and turns back into × on hover or focus, so it costs no width. It also shows in a lone pane's header, on a shelf chip, in Single view's switcher, and in the peek sheet while it shows the same object. A tab's, chip's and switcher item's description starts "Unsaved changes" (`messages.pane.unsaved`). Elsewhere, the dot is an image with that name. `data-unsaved` is on each, for the app's styles.
+- **`confirmDiscard: false`.** For an app that asks about unsaved work itself, from `beforeClose`. Its yes stands: Jali's "Discard unsaved changes?" never follows, and Jali doesn't hold the page's unload. Panes still report work, so the mark still shows. A following detail with unsaved work still keeps its object, since nothing asked. **Why an option and not `useUnsaved(what, { ask: false })`:** whether to ask is the app's policy, not each pane's, and one app never wants two dialogs.
+- **Middle-click closes** a tab or a shelf chip: `auxclick` with button 1 runs `actions.close`, so `beforeClose` gets reason `"close"` exactly as from ×. The middle button's press is prevented, so autoscroll doesn't start.
+- **Tests:** `src/tests/tab-features.test.tsx`.

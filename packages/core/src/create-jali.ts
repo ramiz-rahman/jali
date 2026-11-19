@@ -108,6 +108,12 @@ export interface JaliOptions<D extends PaneKindBase = PaneKindBase> {
    * changes?" comes after a yes, when a pane still reports unsaved work (`useUnsaved`).
    */
   beforeClose?: BeforeClose;
+  /**
+   * `false`: the app asks about unsaved work itself, usually from `beforeClose`. Panes still report it with
+   * `useUnsaved` and show the unsaved mark, but Jali never asks "Discard unsaved changes?" and doesn't hold the page's
+   * unload. Default true.
+   */
+  confirmDiscard?: boolean;
   /** Settings for a person who has none saved on this device yet: `{ theme: "dark" }` for a dark-first app. Settings
    *  the person changes are saved and win from then on. Default: Jali's (`theme: "system"`, `paneCap: 8`, ...). */
   settings?: Partial<Settings>;
@@ -178,6 +184,7 @@ export function createJali<D extends PaneKindBase>(options: JaliOptions<D>): Jal
     ...(options.landmark ? { landmark: options.landmark } : {}),
     unstable: options.onUnstable,
     onPaneError: options.onPaneError,
+    ...(options.confirmDiscard === false ? { confirmDiscard: false } : {}),
     initial: {
       ...(layout ? { layout: toLayout(layout) } : {}),
       ...(size ? { area: size } : {}),

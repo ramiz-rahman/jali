@@ -118,7 +118,8 @@ export function startUi(
   });
   // Leaving the page with unsaved work: the browser asks first.
   const onUnload = (e: BeforeUnloadEvent) => {
-    if (Object.keys(store.get().unsaved).length) e.preventDefault();
+    if (store.env.confirmDiscard !== false && Object.keys(store.get().unsaved).length)
+      e.preventDefault();
   };
   window.addEventListener("beforeunload", onUnload);
   const offTheme = watchSystemTheme((systemDark) => store.set({ systemDark }));

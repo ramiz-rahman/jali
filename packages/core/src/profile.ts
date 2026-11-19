@@ -102,6 +102,8 @@ export interface Env {
   dir?: Direction;
   /** `"main"` when the panes are the page's main content (`createJali({ landmark })`); unset, a labelled region. */
   landmark?: "region" | "main";
+  /** `false` when the app asks about unsaved work itself (`createJali({ confirmDiscard })`). */
+  confirmDiscard?: false;
 }
 
 export const presetById = (env: Pick<Env, "presets">, id: string | undefined): Preset | undefined =>

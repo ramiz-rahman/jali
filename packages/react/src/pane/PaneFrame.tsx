@@ -19,6 +19,7 @@ import { HeaderActions } from "./HeaderActions";
 import { KindIcon } from "./icons";
 import { PaneBody, paneHost } from "./PaneBody";
 import { TabStrip } from "./TabStrip";
+import { UnsavedMark, useUnsavedOf } from "./Unsaved";
 
 interface Props {
   frame: Frame;
@@ -33,6 +34,7 @@ export const PaneFrame = /* @__PURE__ */ memo(
     const icon = useJaliIcons();
     const { actions } = store;
     const activity = useUi((s) => s.activity[node.id]);
+    const dirty = useUnsavedOf(node.id);
     const isDragged = useUi((s) => s.dnd?.dragged === node.id);
     const host = useMemo(() => paneHost(store, node.id), [store, node.id]);
     const page = useUi((s) => !!s.page);
@@ -111,6 +113,7 @@ export const PaneFrame = /* @__PURE__ */ memo(
               {role ? <role.icon size={16} aria-hidden /> : <KindIcon kind={node.ref.kind} />}
               <h2 id={paneTitleId(store.dom.id, node.id)}>{title}</h2>
               {role && shows !== title ? <span className="jali-pane-sub">{shows}</span> : null}
+              {dirty ? <UnsavedMark labelled /> : null}
               <Activity a={activity} />
               {bare ? null : <FollowControl node={node} title={title} />}
               {opened && boundary === "tint" ? (

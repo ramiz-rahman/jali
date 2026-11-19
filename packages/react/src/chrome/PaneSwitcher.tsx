@@ -2,6 +2,7 @@ import type { PaneNode } from "@jali/core";
 import { inlineStep, paneDomId, titleOf } from "@jali/core/adapter";
 import { Activity } from "../pane/Activity";
 import { KindIcon } from "../pane/icons";
+import { UnsavedMark, useUnsavedOf } from "../pane/Unsaved";
 import {
   useActions,
   useMessages,
@@ -13,6 +14,7 @@ import {
 
 function Item({ node, selected }: { node: PaneNode; selected: boolean }) {
   const activity = useUi((s) => s.activity[node.id]);
+  const dirty = useUnsavedOf(node.id);
   const titles = useUi((s) => s.titles);
   const marks = usePaneAttributesOf(node.id);
   const tucked = !!useModel().tuckOf(node.id);
@@ -26,6 +28,8 @@ function Item({ node, selected }: { node: PaneNode; selected: boolean }) {
       aria-selected={selected}
       aria-controls={paneDomId(store.dom.id, node.id)}
       tabIndex={selected ? 0 : -1}
+      data-unsaved={dirty || undefined}
+      aria-description={dirty ? store.messages.pane.unsaved : undefined}
       onClick={() => actions.focus(node.id)}
       ref={
         selected ? (el) => el?.scrollIntoView?.({ inline: "nearest", block: "nearest" }) : undefined
@@ -33,6 +37,7 @@ function Item({ node, selected }: { node: PaneNode; selected: boolean }) {
     >
       <KindIcon kind={node.ref.kind} size={14} />
       <span className="jali-switch-title">{titleOf(store.env, node, titles)}</span>
+      {dirty ? <UnsavedMark /> : null}
       <Activity a={activity} />
     </button>
   );

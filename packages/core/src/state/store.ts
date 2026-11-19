@@ -215,6 +215,8 @@ export interface UiStoreDeps {
   dir?: Direction;
   /** `"main"`: the panes are the page's main landmark. Default `"region"`, a labelled section. */
   landmark?: "region" | "main";
+  /** `false`: the app asks about unsaved work itself; Jali never does. Default true. */
+  confirmDiscard?: boolean;
 }
 
 export interface UiStore {
@@ -325,6 +327,7 @@ export function createUiStore(deps: UiStoreDeps): UiStore {
   if (deps.launcher) env.launcher = deps.launcher;
   if (deps.dir) env.dir = deps.dir;
   if (deps.landmark === "main") env.landmark = "main";
+  if (deps.confirmDiscard === false) env.confirmDiscard = false;
   const focusOf =
     deps.focusPane === undefined
       ? typeof document === "undefined"

@@ -16,6 +16,7 @@ import { useEnv, useStore, useUi } from "../state/react";
 import { Activity } from "./Activity";
 import { KindIcon } from "./icons";
 import { TabOverflow } from "./TabOverflow";
+import { UnsavedMark } from "./Unsaved";
 
 /** The edge fade's width (pane.css): a revealed tab clears it, unless it is at the strip's end. */
 const FADE = 24;
@@ -54,6 +55,7 @@ export function TabStrip({ group, owner }: { group: NonNullable<Frame["group"]>;
   const page = useUi((s) => !!s.page);
   const titles = useUi((s) => s.titles);
   const marks = useUi((s) => s.paneAttributes);
+  const unsaved = useUi((s) => s.unsaved);
   // No launcher kind, no "+": there is nothing to open in the new tab.
   // A curated page's views live in the page tabs, so a pane's strip lists a page view only while it is shown: never a
   // repeat. The exception is a group of page views, which only a centre drop ("Add as tab") makes: you asked for
@@ -101,15 +103,28 @@ export function TabStrip({ group, owner }: { group: NonNullable<Frame["group"]>;
   const renderTab = ({ node: t, tucked, folded: isFolded }: Tab) => {
     const active = t.id === group.active;
     const title = titleOf(store.env, t, titles);
+    const dirty = !!unsaved[t.id];
+    const description = tw.description(
+      isFolded ? "folded" : tucked ? "tucked" : undefined,
+      tucked ? putBackKeys : "",
+    );
     return (
       <div
         key={t.id}
         className="jali-tab-item"
         role="presentation"
         data-drag-ok
+        data-unsaved={dirty || undefined}
         onPointerDown={(e) => {
           e.stopPropagation();
           startPaneDrag(store, e, t.id);
+        }}
+        // The middle button closes a tab, as in a browser: the same close as its ×. Its press would start autoscroll.
+        onMouseDown={(e) => e.button === 1 && e.preventDefault()}
+        onAuxClick={(e) => {
+          if (e.button !== 1) return;
+          e.preventDefault();
+          actions.close(t.id);
         }}
       >
         <div
@@ -119,11 +134,9 @@ export function TabStrip({ group, owner }: { group: NonNullable<Frame["group"]>;
           data-tab={t.id}
           data-tucked={tucked || undefined}
           data-folded={isFolded || undefined}
+          data-unsaved={dirty || undefined}
           aria-label={title}
-          aria-description={tw.description(
-            isFolded ? "folded" : tucked ? "tucked" : undefined,
-            tucked ? putBackKeys : "",
-          )}
+          aria-description={dirty ? `${words.pane.unsaved}. ${description}` : description}
           aria-keyshortcuts="Delete Backspace"
           title={isFolded ? tw.foldedTitle(title) : title}
           role="tab"
@@ -182,6 +195,7 @@ export function TabStrip({ group, owner }: { group: NonNullable<Frame["group"]>;
             onClick={() => actions.close(t.id)}
           >
             <icon.close size={14} aria-hidden />
+            {dirty ? <UnsavedMark /> : null}
           </button>
         </span>
       </div>

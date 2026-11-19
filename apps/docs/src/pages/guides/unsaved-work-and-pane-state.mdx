@@ -19,6 +19,8 @@ useUnsaved(edited && "an unsaved note");
 
 It clears itself when the component unmounts.
 
+While it has some, the pane is marked with a dot: on its tab, where the dot holds the close button's place and turns back into × on hover or focus; in its header; on its shelf chip and in Single view's switcher; and in the peek sheet while it shows the same object. Screen readers hear "Unsaved changes" with the pane's name. Each of those elements carries `data-unsaved`, for your own styles.
+
 While a pane has unsaved work, any change that would remove it or show another object in it is held, and the person is asked: "Discard unsaved changes?". The dialog names each pane and the words you gave. **Keep editing** is focused, and Esc or a click outside keeps the work. **Discard** makes the held change exactly as it was asked for.
 
 That covers every way a pane can go: closing it, closing the others, choosing a preset, Back and Forward, and showing another object in it. You don't handle any of them yourself.
@@ -81,6 +83,20 @@ const jali = createJali({
 - The action returns `{ ok: false, reason: "kept" }`, or `reason: "pending"` with `settled`, a promise of the final result.
 - Your answer comes first. After a yes, a pane that still reports unsaved work gets Jali's own "Discard unsaved changes?".
 - If it throws or rejects, the panes stay.
+
+### When your app asks instead
+
+An app with its own "Save changes?" dialog asks from `beforeClose`. Pass `confirmDiscard: false`, and Jali's question never follows: your yes stands. Panes still report their work with `useUnsaved`, so the dot still shows; the browser's prompt on leaving the page is yours to add too.
+
+```ts
+const jali = createJali({
+  panes,
+  confirmDiscard: false,
+  beforeClose: ({ panes }) => askToSave(panes),
+});
+```
+
+A following detail with unsaved work still keeps its object when the list's cursor moves on: nothing asked, so nothing is lost. `jali.actions.remove` never asks either way: neither `beforeClose` nor Jali's question runs, because your app has already decided.
 
 ## Test it
 

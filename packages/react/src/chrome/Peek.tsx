@@ -4,6 +4,7 @@ import { useJaliIcons } from "../icons/context";
 import { sameRef, type Presentation } from "@jali/core/adapter";
 import { KindIcon } from "../pane/icons";
 import { PaneBody, peekHost } from "../pane/PaneBody";
+import { UnsavedMark } from "../pane/Unsaved";
 import { useStore, useUi } from "../state/react";
 
 export const PEEK_WIDTH = 480;
@@ -26,6 +27,17 @@ export function Peek({ presentation }: { presentation: Presentation }) {
       return !!p && sameRef(p.ref, ref);
     });
     return shown ? s.paneAttributes[shown] : undefined;
+  });
+  // The same for unsaved work: the pane showing this object has some.
+  const dirty = useUi((s) => {
+    const ref = s.view.peek;
+    return (
+      !!ref &&
+      Object.keys(s.unsaved).some((id) => {
+        const p = store.model().pane(id);
+        return !!p && sameRef(p.ref, ref);
+      })
+    );
   });
   const openedBy = useRef<"pointer" | "keyboard">("keyboard");
   // Observes (never takes) the last input, so only a pointer-opened peek animates.
@@ -58,6 +70,7 @@ export function Peek({ presentation }: { presentation: Presentation }) {
         <div className="jali-pane-title">
           <KindIcon kind={ref.kind} />
           <h2>{title}</h2>
+          {dirty ? <UnsavedMark labelled /> : null}
           <span className="jali-peek-label">{t.badge}</span>
         </div>
         <div className="jali-pane-actions">

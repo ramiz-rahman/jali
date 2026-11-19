@@ -470,8 +470,11 @@ export function apply(io: ApplyIO, o: Outcome): ActionResult {
     if (losing.length) {
       if (o.op === "follow")
         return apply(io, refuse("unsaved", say(io.snapshot()).keptUnsaved(s.unsaved[losing[0]!]!)));
-      io.set({ confirm: { panes: losing, change: { ...o, allowed: true } } });
-      return refused("unsaved");
+      // `confirmDiscard: false`: the app asked already (beforeClose), so its yes stands.
+      if (io.snapshot().env.confirmDiscard !== false) {
+        io.set({ confirm: { panes: losing, change: { ...o, allowed: true } } });
+        return refused("unsaved");
+      }
     }
     const geometry = o.geometry ?? p.geometry;
     const check =

@@ -451,6 +451,8 @@ const pane = {
   closeFailed: "Close",
   /** A pane whose content is still loading, when its kind has no `Loading`. */
   loadingContent: "Loading…",
+  /** A pane with unsaved work (`useUnsaved`): the unsaved mark's name, and the start of a tab's description. */
+  unsaved: "Unsaved changes",
 };
 
 /** The peek sheet. */
