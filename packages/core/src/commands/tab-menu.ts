@@ -51,18 +51,23 @@ export function tabMenuOf(store: UiStore, id: NodeId): TabMenuItem[][] {
   const may = (c: PaneControl) => allows(x, id, c);
   const close: TabMenuItem[] = [
     ...(may("close") ? [{ id: "close", title: t.closeTab, run: () => a.close(id) }] : []),
-    {
-      id: "close-others",
-      title: t.closeOtherTabs,
-      disabled: !others,
-      run: () => a.closeTabs(id, "others"),
-    },
-    {
-      id: "close-after",
-      title: t.closeTabsAfter(rtl ? "left" : "right"),
-      disabled: !after,
-      run: () => a.closeTabs(id, "after"),
-    },
+    // Closing other tabs needs tabs: a pane on its own (its header's menu) has none.
+    ...(st
+      ? [
+          {
+            id: "close-others",
+            title: t.closeOtherTabs,
+            disabled: !others,
+            run: () => a.closeTabs(id, "others"),
+          },
+          {
+            id: "close-after",
+            title: t.closeTabsAfter(rtl ? "left" : "right"),
+            disabled: !after,
+            run: () => a.closeTabs(id, "after"),
+          },
+        ]
+      : []),
   ];
   const move: TabMenuItem[] = st
     ? [
