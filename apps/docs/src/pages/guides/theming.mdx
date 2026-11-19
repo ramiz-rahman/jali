@@ -8,6 +8,9 @@ import app from "../../samples/guides/theming/app.css?raw";
 import parts from "../../samples/guides/theming/parts.css?raw";
 import tailwind from "../../samples/guides/theming/tailwind.css?raw";
 import dark from "../../samples/guides/theming/dark-mode.ts?raw";
+import ownIcons from "../../samples/guides/theming/own-icons.tsx?raw";
+import myIcons from "../../samples/guides/theming/my-icons.tsx?raw";
+import bareIcons from "../../samples/guides/theming/bare.tsx?raw";
 
 Everything Jali draws reads `--jali-*` CSS variables, called tokens. Change a token and every part that uses it follows, in light and in dark. Jali's own rules sit in a cascade layer called `jali`, so your rules can win without `!important`.
 
@@ -111,9 +114,42 @@ Every class Jali renders starts with `jali-`, so none collide with yours. Parts 
 
 With Tailwind, put rules like these in your stylesheet, in a layer after `jali`. Jali's parts don't take class names from your code.
 
+## Your own icons
+
+Jali's icons are [Phosphor's](https://phosphoricons.com), in the regular weight. To use your app's own, pass `icons` to `<JaliRoot>`, by name: `close`, `maximise`, `tuck`, `fold` and the rest ([every name](/reference/react#icons)). Each is a component that takes `size`, `className` and `aria-hidden`; a Phosphor icon is one. Names you leave out stay Phosphor's.
+
+<Code code={ownIcons} filename="src/App.tsx" />
+
+To leave Phosphor out of your bundle altogether, import from `@jali/react/bare`. It is the same package without Phosphor: `<JaliRoot icons>` is required there and must name every icon, which the types check.
+
+<Code code={myIcons} filename="src/my-icons.tsx" />
+
+<Code code={bareIcons} filename="src/App.tsx" />
+
+A kind's own icon is set on the kind (`definePane("order", { icon })`), and the default for a kind without one is `defaultKind`. For chrome of your own that should match, `useJaliIcons()` returns the set in use.
+
 ## Your chrome inside the workspace
 
 A top bar or status line you render inside `<JaliRoot>` is yours to style. Mark it `data-jali-chrome`. After a layout change Jali moves keyboard focus back to the focused pane, but not out of an element marked this way, so a person using your top bar stays there.
+
+## Right to left
+
+For Arabic, Hebrew, Persian or Urdu, set `dir="rtl"` on the page (or on an element around the workspace). Jali reads the direction where it renders and follows it if it changes later, so a language switch needs nothing more.
+
+```html filename="index.html"
+<html lang="ar" dir="rtl">
+```
+
+Right to left, the workspace is the mirror of the same layout:
+
+- A row starts at the right, so reading order, F6 and "Focus next pane" go from right to left.
+- Left and right still mean the screen. "Focus pane left" (⌘K ⌘←) goes to the pane on the left of the screen, a drop on a pane's left edge puts the pane on its left, and "Split right" opens the new pane on the right.
+- Dividers follow the pointer and the arrow keys, the peek sheet opens on the left, and tab strips, the shelf and menus read from the right.
+- The layout and its link are the same in both directions, so a link made in a left-to-right app opens mirrored in a right-to-left one.
+
+To fix the direction instead of reading it, pass `createJali({ dir: "rtl" })`. `<JaliRoot>` then sets `dir` on its own elements, so the styles agree.
+
+Jali's styles use logical properties (`margin-inline-start`, `inset-inline-end`), so they flip with the direction. If you style the parts yourself, do the same.
 
 ## Next
 

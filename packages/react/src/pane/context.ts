@@ -13,6 +13,7 @@ export interface PaneHost {
   setActivity(a: PaneActivity): void;
   setUnsaved(what: string | null): void;
   setCommands(commands: PaneCommand[] | null): void;
+  setTitle(title: string | null): void;
 }
 
 export interface PaneContextValue {

@@ -14,6 +14,7 @@ import layoutCode from "../../samples/reference/layout-ops.ts?raw";
 import sameRefCode from "../../samples/reference/same-ref.ts?raw";
 import readCode from "../../samples/reference/read-store.ts?raw";
 import messagesCode from "../../samples/reference/messages.ts?raw";
+import paramsCode from "../../samples/reference/params.tsx?raw";
 
 The framework-free part of Jali: the workspace, the layouts it shows, the address and storage ports, commands and keys. Render it with [@jali/react](/reference/react). Types have their own page, [@jali/core types](/reference/core/types); the pure layout operations are on [The layout namespace](/reference/core/layout).
 
@@ -65,9 +66,11 @@ The address.
 <Param name="keyPrefix" type="KeyString" default={`"Mod+K"`}>The first step of every default two-step binding, and the palette's key. Move it when your app owns ⌘K: `"Mod+J"` makes "Restore last closed pane" ⌘J ⌘Z. Bindings in `keymap` are used as written.</Param>
 <Param name="reservedKeys" type="readonly KeyString[]">Keys your app uses for itself. Any of Jali's bindings that is one of them, or starts with one, is dropped and reported to `keymapOptions.onInvalid` when the workspace is made.</Param>
 <Param name="palette" type="boolean" default="true">`false`: your app's own command menu lists Jali's commands (<Ref to="useJaliCommands" page="/reference/react" />, <Ref to="listCommands" />). `<JaliRoot>` renders no palette, and its key is unbound unless `keymap` binds `"palette.toggle"`.</Param>
+<Param name="dir" type="Direction" default="the page's">The reading direction. By default the workspace reads its page's: the computed `direction` where it renders, so `<html dir="rtl">` is enough, and it follows a later change of `dir`. Give one to fix it; `<JaliRoot>` then sets `dir` on its elements, so the styles agree. Right to left, a row starts at the right, and every left and right a key, command, drop zone or message names is still the screen's. The layout and its links are the same in both. See <Ref to="Direction" page="/reference/core/types" />.</Param>
 <Param name="size" type="{ width: number; height: number }">A fixed size instead of the window's, for tests and server rendering. `<JaliRoot>` measures the real one once it renders.</Param>
 <Param name="moveFocus" type="boolean" default="true">`false` leaves DOM focus alone: for tests and a workspace that is never shown.</Param>
 <Param name="onUnstable" type="(op: string, before: string, after: string) => void" default="console.error in development">Called when a focus or swap action moved a pane on screen, which it never should.</Param>
+<Param name="onPaneError" type="(error: unknown, info: PaneErrorInfo) => void" default="console.error in development">Called when a pane's component throws. That pane shows a failed state with Retry and Close, and the other panes carry on. `info` says which pane (<Ref to="PaneErrorInfo" page="/reference/core/types" />). Send it to your error reporting.</Param>
 <Param name="messages" type="MessageOverrides" default="English (en)">Words to use instead of Jali's English ones, by area: `{ commands: { close: "Fermer le volet" } }`. Keys you leave out stay English. See <Ref to="en" /> and [Translate Jali](/guides/translating).</Param>
 </ChildParams>
 </Param>
@@ -82,6 +85,34 @@ The address.
 Every workspace action, bound to its workspace: each reads the current state, commits what it decides (layout, focus, address, announcement, toast) and returns the pane it opened or acted on, when there is one.
 
 An action that would remove or replace a pane with unsaved work is held instead, and "Discard unsaved changes?" opens (`JaliState.confirm`). A following detail with unsaved work keeps its object and says so. Every action is listed under <Ref to="Actions" page="/reference/core/types" />.
+
+</Entry>
+
+## Pane params
+
+What a kind's refs hold, in its `params`: `Number`, `String`, `Boolean`, `oneOf(...)` or your own function, each required unless wrapped in `optional`. The [Pane kinds guide](/guides/pane-kinds#params) explains what happens to a ref that is missing a required param. Both are also exported from `@jali/react`.
+
+<Entry name="optional" kind="function" from="@jali/core, @jali/react" signature={`optional<T extends ParamType>(type: T): OptionalParam<T>`} example={paramsCode} exampleFile="ticket.tsx">
+
+A param a ref may leave out. The kind's code sees it as optional (`tab?: string`), and its ref maker takes it or not. An optional param given as `undefined` is left out of the ref, as a link would leave it.
+
+<Params>
+<Param name="type" type="ParamType" required>How to read it when it is there: `Number`, `String`, `Boolean`, `oneOf(...)` or a function.</Param>
+</Params>
+
+<Returns type="OptionalParam<T>" />
+
+</Entry>
+
+<Entry name="oneOf" kind="function" from="@jali/core, @jali/react" signature={`oneOf<const V extends readonly (string | number)[]>(...values: V): OneOf<V[number]>`} compact>
+
+A param that is one of a few values: `oneOf("open", "closed")` gives `"open" | "closed"`. Values are compared as text, so `oneOf(10, 25)` reads `"25"` from a link as `25`. Any other value can't be read, and the ref doesn't open.
+
+<Params>
+<Param name="values" type="(string | number)[]" required>The values it can be.</Param>
+</Params>
+
+<Returns type="OneOf<V[number]>">A reader, with the values as `values`.</Returns>
 
 </Entry>
 

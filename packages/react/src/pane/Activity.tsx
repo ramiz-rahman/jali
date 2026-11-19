@@ -1,6 +1,6 @@
-import { X } from "lucide-react";
 import type { PaneActivity } from "@jali/core/adapter";
 import { useMessages } from "../state/react";
+import { useJaliIcons } from "../icons/context";
 
 /**
  * One activity model. Headers, tabs and the switcher show a dot with a label; the shelf shows a shape as well as a
@@ -25,6 +25,7 @@ export const shelfActivity = (a: PaneActivity | undefined) => (a ? ACTIVITY[a].s
 
 export function Activity({ a, shape = false }: { a: PaneActivity | undefined; shape?: boolean }) {
   const words = useMessages().pane;
+  const icon = useJaliIcons();
   if (!a || a === "idle") return null;
   const label = words[ACTIVITY[a].label!];
   if (!shape)
@@ -47,7 +48,7 @@ export function Activity({ a, shape = false }: { a: PaneActivity | undefined; sh
     );
   return (
     <span className="jali-ra jali-ra-fail" data-shape="fail" aria-hidden>
-      <X size={8} strokeWidth={3.5} />
+      <icon.activityError size={8} aria-hidden />
     </span>
   );
 }

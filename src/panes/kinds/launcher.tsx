@@ -1,6 +1,6 @@
 import { KindIcon, definePane, useLauncher } from "@jali/react";
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
-import { Plus, Search, Table2 } from "lucide-react";
+import { MagnifyingGlassIcon, PlusIcon, TableIcon } from "@phosphor-icons/react";
 import type { ObjectRef, TableInfo } from "../../data/types";
 import { useFocusWhen } from "../shared/useFocusWhen";
 import { useCatalog } from "../../data/hooks";
@@ -76,7 +76,7 @@ export function LauncherPane({ node, focused, paused, openHere, dismiss }: PaneP
         ref: tableRef(tb.name),
         label: tb.name,
         meta: <span className="pk-mono">{formatCount(tb.rowCount)}</span>,
-        icon: <Table2 size={14} strokeWidth={1.5} aria-hidden />,
+        icon: <TableIcon size={14} aria-hidden />,
       });
     }
     if (hit("new query") || hit("sql"))
@@ -86,7 +86,7 @@ export function LauncherPane({ node, focused, paused, openHere, dismiss }: PaneP
         ref: NEW_QUERY,
         label: "New query",
         meta: <span className="pk-mono">SQL</span>,
-        icon: <Plus size={14} strokeWidth={1.5} aria-hidden />,
+        icon: <PlusIcon size={14} aria-hidden />,
       });
     return out;
   }, [q, recent, catalog.data, titleFor]);
@@ -135,7 +135,7 @@ export function LauncherPane({ node, focused, paused, openHere, dismiss }: PaneP
   return (
     <div className="pk launcher">
       <label className="launcher-search">
-        <Search size={15} strokeWidth={1.5} aria-hidden />
+        <MagnifyingGlassIcon size={15} aria-hidden />
         <input
           ref={input}
           data-autofocus
@@ -226,7 +226,7 @@ export function LauncherPane({ node, focused, paused, openHere, dismiss }: PaneP
 
 export const launcherKind = definePane("launcher", {
   title: "New pane",
-  icon: Plus,
+  icon: PlusIcon,
   width: { min: 320 },
   height: { min: 200 },
   scratch: true,

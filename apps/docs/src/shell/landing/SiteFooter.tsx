@@ -3,7 +3,7 @@
  * (Docs, Learn, Reference, Project). Titles come from the pages, so a renamed page renames its link here.
  * Written for the landing; it can sit under the docs pages as well.
  */
-import { ArrowUpRight } from "lucide-react";
+import { ArrowUpRightIcon } from "@phosphor-icons/react";
 import { REPO_URL } from "../../site/config";
 import { resolvedNav } from "../../site/sources";
 import { Lattice, Lockup } from "../brand";
@@ -80,9 +80,7 @@ export function SiteFooter() {
                       {...(l.external ? { target: "_blank", rel: "noreferrer" } : {})}
                     >
                       {l.title}
-                      {l.external ? (
-                        <ArrowUpRight aria-hidden size={13} strokeWidth={1.75} />
-                      ) : null}
+                      {l.external ? <ArrowUpRightIcon aria-hidden size={13} /> : null}
                     </a>
                   </li>
                 ))}

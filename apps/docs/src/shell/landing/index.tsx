@@ -7,10 +7,10 @@
  * Words stay in pages/index.mdx; the parts here are layout and the small live pieces only the landing needs.
  */
 import { Children, isValidElement, type ReactNode } from "react";
-import { ArrowRight } from "lucide-react";
+import { ArrowRightIcon, GithubLogoIcon } from "@phosphor-icons/react";
 import { PALETTE_ID, runCommand } from "@jali/core/adapter";
 import { REPO_URL } from "../../site/config";
-import { GitHubIcon, Lattice } from "../brand";
+import { Lattice } from "../brand";
 import { Code, Install, Tab, Tabs } from "../mdx";
 import { LandingWorkspace, useAddress, useLandingApp } from "./NotesWorkspace";
 import noteCode from "../../samples/concepts/quickstart/note-open-beside.tsx?raw";
@@ -46,10 +46,10 @@ export function Opening({
         <div className="landing-buttons landing-buttons-hero">
           <a className="button button-primary" href="/get-started/quickstart">
             Start the quickstart
-            <ArrowRight aria-hidden size={16} strokeWidth={2} />
+            <ArrowRightIcon aria-hidden size={16} />
           </a>
           <a className="button button-quiet" href={REPO_URL} target="_blank" rel="noreferrer">
-            <GitHubIcon size={16} />
+            <GithubLogoIcon aria-hidden size={16} weight="fill" />
             View the source
           </a>
         </div>
@@ -148,7 +148,7 @@ export function Proof({
         <div className="landing-proof-body">{children}</div>
         <a className="landing-more" href={href}>
           {more}
-          <ArrowRight aria-hidden size={15} strokeWidth={1.75} />
+          <ArrowRightIcon aria-hidden size={15} />
         </a>
       </div>
       <div className="landing-proof-demo">{demo}</div>
@@ -251,7 +251,7 @@ export function Close({
         <div className="landing-buttons">
           <a className="button button-primary" href="/get-started/quickstart">
             Start the quickstart
-            <ArrowRight aria-hidden size={16} strokeWidth={2} />
+            <ArrowRightIcon aria-hidden size={16} />
           </a>
           <a className="button button-quiet" href="/get-started/key-concepts">
             Read the key concepts
@@ -296,7 +296,7 @@ export function Theming({ href, children }: { href: string; children?: ReactNode
       <div className="landing-theming-text">{children}</div>
       <a className="landing-more" href={href}>
         Theming
-        <ArrowRight aria-hidden size={15} strokeWidth={1.75} />
+        <ArrowRightIcon aria-hidden size={15} />
       </a>
     </div>
   );

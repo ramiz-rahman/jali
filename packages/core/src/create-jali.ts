@@ -13,7 +13,13 @@ import { boot } from "./boot";
 import type { KeymapOptions, KeymapOverrides, KeyString } from "./commands/keymap";
 import type { Command } from "./commands/registry";
 import { toLayout, type LayoutInput } from "./layout/build";
-import { createPaneKinds, type PaneKindBase, type PaneKinds } from "./pane-kinds";
+import type { Direction } from "./layout/types";
+import {
+  createPaneKinds,
+  type PaneErrorInfo,
+  type PaneKindBase,
+  type PaneKinds,
+} from "./pane-kinds";
 import { browserStorage, memoryStorage, type StoragePort } from "./ports";
 import type { Preset, ProfileBase } from "./profile";
 import { createUiStore, type UiStore, type UiStoreDeps, type UrlWriter } from "./state/store";
@@ -76,6 +82,10 @@ export interface JaliOptions<D extends PaneKindBase = PaneKindBase> {
   palette?: boolean;
   /** The keymap's platform, and how refused bindings are reported. */
   keymapOptions?: KeymapOptions;
+  /** The reading direction. Default: the page's (the computed `direction` where the workspace is rendered, so
+   *  `<html dir="rtl">` is enough), followed when it changes. Give one to fix it: `<JaliRoot>` then sets `dir` on its
+   *  elements, so the styles agree. Right to left, a row starts at the right; the layout and its links are the same. */
+  dir?: Direction;
   /** A fixed size instead of the window's (tests, server rendering). */
   size?: { width: number; height: number };
   /** `false` leaves DOM focus alone (tests, a workspace that is never shown). Default true. */
@@ -85,6 +95,10 @@ export interface JaliOptions<D extends PaneKindBase = PaneKindBase> {
   /** Jali's words in your language, or your own wording: any keys of `Messages`, by area. The rest stay English
    *  (`en`). `{ commands: { close: "Fermer le volet" }, palette: { placeholder: "Rechercher…" } }`. */
   messages?: MessageOverrides;
+  /** Called when a pane's component throws. The pane shows a failed state with Retry and Close; the other panes
+   *  carry on. `pane` is the pane's id (null in the peek sheet), `ref` what it was showing. Default: `console.error`
+   *  in development. */
+  onPaneError?: (error: unknown, info: PaneErrorInfo) => void;
 }
 
 /** A workspace: its state, its actions (`jali.actions.openBeside(...)`) and what it was made with. */
@@ -141,7 +155,9 @@ export function createJali<D extends PaneKindBase>(options: JaliOptions<D>): Jal
     },
     palette: options.palette,
     messages: options.messages,
+    ...(options.dir ? { dir: options.dir } : {}),
     unstable: options.onUnstable,
+    onPaneError: options.onPaneError,
     initial: {
       ...(layout ? { layout: toLayout(layout) } : {}),
       ...(size ? { area: size } : {}),

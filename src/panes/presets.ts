@@ -47,7 +47,7 @@ export const dataStudioPresets: PresetOptions[] = [
         { id: "r" },
         column(
           { id: "c", weight: 1.6 },
-          pane(queryKind({ sql: SQL, autorun: 1 }), { id: "query" }),
+          pane(queryKind({ sql: SQL, autorun: true }), { id: "query" }),
           pane(chartKind({ runId: "" }), { id: "chart", linkedTo: "query" }),
         ),
         pane(structureKind({ table: "sample_orders" }), { id: "inspector" }),

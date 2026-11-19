@@ -18,9 +18,13 @@ import { browserLocation, browserStorage, type LocationPort, type StoragePort } 
 export const PERSIST_MS = 120;
 const BROKEN_KEY = "broken-layout";
 
+/**
+ * A ref as text, for `peek=` and a page's `open=`: `record~table=orders~id=#42~draft=!true`. A number is marked `#`
+ * and a flag `!`, so both come back as they went; text is written as it is.
+ */
 export function encodePeek(ref: ObjectRef): string {
   const params = Object.entries(ref.params).map(
-    ([k, v]) => `${k}=${typeof v === "number" ? `#${v}` : v}`,
+    ([k, v]) => `${k}=${typeof v === "number" ? `#${v}` : typeof v === "boolean" ? `!${v}` : v}`,
   );
   return [ref.kind, ...params].join("~");
 }
@@ -35,10 +39,16 @@ export function decodePeek(text: string): ObjectRef | null {
     params[p.slice(0, i)] =
       v.startsWith("#") && v.length > 1 && !Number.isNaN(Number(v.slice(1)))
         ? Number(v.slice(1))
-        : v;
+        : v === "!true" || v === "!false"
+          ? v === "!true"
+          : v;
   }
   return { kind, params };
 }
+
+/** A ref from a link that its kind can read; an unknown kind is kept (the pane says so), unreadable params are not. */
+const readable = (kinds: KindRegistry, ref: ObjectRef) =>
+  !Object.hasOwn(kinds, ref.kind) || !kinds[ref.kind]!.checkParams?.(ref.params);
 
 /**
  * The search params a workspace owns. Every other param in the address is the host's and is kept as it is. `prefix`
@@ -116,14 +126,14 @@ export function readSearch(
   const view: Partial<ViewState> = {};
   const peek = q.get(k.peek);
   const ref = peek ? decodePeek(peek) : null;
-  if (ref) view.peek = ref;
+  if (ref && readable(kinds, ref)) view.peek = ref;
   // `?app=review` is the lab's form from before pages had ids (19 Nov 2026).
   if (q.get(k.page) || q.get("app") === "review") {
     const item = q.get(k.item) || undefined;
     const investigation = q
       .getAll(k.open)
       .map(decodePeek)
-      .filter((r): r is ObjectRef => !!r && Object.hasOwn(kinds, r.kind));
+      .filter((r): r is ObjectRef => !!r && Object.hasOwn(kinds, r.kind) && readable(kinds, r));
     return { page: { tab: q.get(k.tab) ?? "", item, investigation }, view };
   }
   if (!code) return null;

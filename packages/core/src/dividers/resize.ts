@@ -74,11 +74,13 @@ export function geometryFor(
   };
 }
 
-/** For resize mode: the divider beside a pane on its far side, else its near side, along one axis. */
+/** For resize mode: the divider beside a pane on its far side (the side its row ends on: the left when `rtl`), else
+ *  its near side, along one axis. */
 export function nearestDivider(
   m: JaliModel,
   paneId: NodeId,
   horizontal: boolean,
+  rtl = false,
 ): DividerBox | null {
   const box = m.resolved.panes.find((b) => b.id === paneId && !b.hidden);
   if (!box) return null;
@@ -92,9 +94,8 @@ export function nearestDivider(
   const cands = m.resolved.dividers.filter(
     (d) => d.axis === (horizontal ? "row" : "column") && overlaps(d),
   );
-  return (
-    cands.find((d) => Math.abs(d.rect[start] - (p[start] + p[end])) <= GAP) ??
-    cands.find((d) => Math.abs(d.rect[start] + d.rect[end] - p[start]) <= GAP) ??
-    null
-  );
+  const after = (d: DividerBox) => Math.abs(d.rect[start] - (p[start] + p[end])) <= GAP;
+  const before = (d: DividerBox) => Math.abs(d.rect[start] + d.rect[end] - p[start]) <= GAP;
+  const [far, near] = rtl ? [before, after] : [after, before];
+  return cands.find(far) ?? cands.find(near) ?? null;
 }

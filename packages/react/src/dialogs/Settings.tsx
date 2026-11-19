@@ -1,5 +1,5 @@
 import { useEffect, useRef, type ReactNode } from "react";
-import { X } from "lucide-react";
+import { useJaliIcons } from "../icons/context";
 import type { Settings as S, ThemeChoice } from "@jali/core/adapter";
 import { useStore, useUi } from "../state/react";
 import { PALETTE_ID, commandById, parseKeys, viewerLabel } from "@jali/core/adapter";
@@ -12,6 +12,7 @@ const THEMES: { id: ThemeChoice; label: "themeSystem" | "themeLight" | "themeDar
 
 /** Jali's settings. `children` are the host's own fieldsets, shown last. */
 export function SettingsPanel({ children }: { children?: ReactNode } = {}) {
+  const icon = useJaliIcons();
   const store = useStore();
   const id = store.dom.id;
   const open = useUi((s) => s.settingsOpen);
@@ -48,7 +49,7 @@ export function SettingsPanel({ children }: { children?: ReactNode } = {}) {
         <header>
           <h2 id={`${id}-settings-title`}>{t.title}</h2>
           <button className="jali-icon-btn" onClick={close} aria-label={t.close}>
-            <X size={14} strokeWidth={1.5} aria-hidden />
+            <icon.close size={14} aria-hidden />
           </button>
         </header>
         <fieldset>

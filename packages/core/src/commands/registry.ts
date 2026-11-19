@@ -13,7 +13,7 @@ import { checkMerge, checkUnmerge } from "../actions/tabs";
 import { activeTabId, focusShelfChip } from "../dom/focus";
 import { viewerLabel, type Env } from "../profile";
 import { refuse, type Refusal, type Snapshot } from "../state/apply";
-import { messagesOf, type Direction } from "../state/messages";
+import { messagesOf, type ScreenDirection } from "../state/messages";
 import type { UiStore } from "../state/store";
 import { cycleRegions } from "./regions";
 
@@ -30,7 +30,7 @@ export interface Command {
 const needFocus = ({ s }: Snapshot) => (s.view.focused ? undefined : refuse());
 const needLauncher = (x: Snapshot) => (x.s.view.focused && x.env.launcher ? undefined : refuse());
 const needOthers = (x: Snapshot) => needFocus(x) ?? (x.m.panes.length > 1 ? undefined : refuse());
-const DIRS: [Edge, Direction][] = [
+const DIRS: [Edge, ScreenDirection][] = [
   ["left", "left"],
   ["right", "right"],
   ["top", "up"],

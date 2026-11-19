@@ -19,6 +19,18 @@
       "import": "./dist/index.js",
       "default": "./dist/index.js"
     },
+    "./bare": {
+      "source": "./src/bare.ts",
+      "types": "./dist/bare.d.ts",
+      "import": "./dist/bare.js",
+      "default": "./dist/bare.js"
+    },
+    "./icons": {
+      "source": "./src/icons.ts",
+      "types": "./dist/icons.d.ts",
+      "import": "./dist/icons.js",
+      "default": "./dist/icons.js"
+    },
     "./styles.css": {
       "source": "./src/styles/index.css",
       "default": "./dist/styles.css"
@@ -38,11 +50,19 @@
     "prepack": "vp pack"
   },
   "dependencies": {
-    "@jali/core": "workspace:*",
-    "lucide-react": "^1.73.0"
+    "@jali/core": "workspace:*"
+  },
+  "devDependencies": {
+    "@phosphor-icons/react": "^2.1.10"
   },
   "peerDependencies": {
+    "@phosphor-icons/react": "^2.1.10",
     "react": ">=19 <20",
     "react-dom": ">=19 <20"
+  },
+  "peerDependenciesMeta": {
+    "@phosphor-icons/react": {
+      "optional": true
+    }
   }
 }

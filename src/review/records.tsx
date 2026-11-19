@@ -2,8 +2,16 @@
  * The loan-review record views: one designed view per table (application, member, group, field officer, loan), each in
  * plain words. Related records are links that open with the pane's own action: a peek in Single, beside in Split view.
  */
-import { Briefcase, FileText, History, Phone, UserRound, UsersRound } from "lucide-react";
+import {
+  BriefcaseIcon,
+  ClockCounterClockwiseIcon,
+  FileTextIcon,
+  PhoneIcon,
+  UserIcon,
+  UsersIcon,
+} from "@phosphor-icons/react";
 import type { PaneProps } from "@jali/react";
+import { recordParams } from "../panes/kinds/record";
 import { isLoading, useRecord, useRows } from "../data/hooks";
 import type { TableName } from "../data/types";
 import { applicationFacts } from "../data/sample-sql";
@@ -50,9 +58,9 @@ const when = (v: unknown) => {
 };
 
 /** One record of any loan-book table; tables without a designed view fall back to the Data Studio record. */
-export function ReviewRecordPane(p: PaneProps<{ table: string; id?: string | number }>) {
-  const table = (p.params.table ?? "") as TableName;
-  const id = String(p.params.id ?? "");
+export function ReviewRecordPane(p: PaneProps<typeof recordParams>) {
+  const table = p.params.table as TableName;
+  const id = String(p.params.id);
   const designed = table in VIEWS;
   const rec = useRecord(table, id, { paused: p.paused || !designed });
   useActivity(designed ? (isLoading(rec) ? "loading" : rec.isError ? "error" : "idle") : undefined);
@@ -140,7 +148,7 @@ function ApplicationView({ row: app, open, paused }: ViewProps) {
                 open={open}
                 to={recordRef("lending_groups", app.group_id)}
                 name={group ? String(group.name) : "the group"}
-                icon={<UsersRound size={15} strokeWidth={1.75} />}
+                icon={<UsersIcon size={15} />}
                 label={group ? String(group.name) : "Group"}
                 note={group ? `Group · ${group.village}` : "Group"}
               />
@@ -148,7 +156,7 @@ function ApplicationView({ row: app, open, paused }: ViewProps) {
                 open={open}
                 to={recordRef("field_officers", app.field_officer_id)}
                 name={officer ? String(officer.name) : "the field officer"}
-                icon={<Briefcase size={15} strokeWidth={1.75} />}
+                icon={<BriefcaseIcon size={15} />}
                 label={officer ? String(officer.name) : "Field officer"}
                 note={officer ? `Field officer · ${officer.branch}` : "Field officer"}
               />
@@ -164,7 +172,7 @@ function ApplicationView({ row: app, open, paused }: ViewProps) {
                     ? listRef("loans", "member_id", app.member_id, "Loan history")
                     : undefined
                 }
-                icon={<History size={15} strokeWidth={1.75} />}
+                icon={<ClockCounterClockwiseIcon size={15} />}
                 label={loans ? counted(loans.length, "earlier loan") : "Earlier loans"}
                 note={
                   loans?.length
@@ -185,7 +193,7 @@ function ApplicationView({ row: app, open, paused }: ViewProps) {
                       )
                     : undefined
                 }
-                icon={<FileText size={15} strokeWidth={1.75} />}
+                icon={<FileTextIcon size={15} />}
                 label={
                   apps === undefined ? "Other applications" : counted(apps - 1, "other application")
                 }
@@ -326,7 +334,7 @@ function BorrowerView({ row: m, open, paused }: ViewProps) {
                 open={open}
                 to={recordRef("lending_groups", m.group_id)}
                 name={group ? String(group.name) : "the group"}
-                icon={<UsersRound size={15} strokeWidth={1.75} />}
+                icon={<UsersIcon size={15} />}
                 label={group ? String(group.name) : "Group"}
                 note={group ? `${group.village} · meets ${group.meeting_day}` : undefined}
               />
@@ -335,7 +343,7 @@ function BorrowerView({ row: m, open, paused }: ViewProps) {
                   open={open}
                   to={recordRef("field_officers", group.field_officer_id)}
                   name={officer ? String(officer.name) : "the field officer"}
-                  icon={<Briefcase size={15} strokeWidth={1.75} />}
+                  icon={<BriefcaseIcon size={15} />}
                   label={officer ? String(officer.name) : "Field officer"}
                   note={officer ? `Field officer · ${officer.branch}` : undefined}
                 />
@@ -348,7 +356,7 @@ function BorrowerView({ row: m, open, paused }: ViewProps) {
                 open={open}
                 name="loan history"
                 to={loans?.length ? listRef("loans", "member_id", m.id, "Loan history") : undefined}
-                icon={<History size={15} strokeWidth={1.75} />}
+                icon={<ClockCounterClockwiseIcon size={15} />}
                 label={loans ? counted(loans.length, "loan") : "Loans"}
                 note={b?.active ? `${taka(b.outstanding)} owed` : undefined}
               />
@@ -360,7 +368,7 @@ function BorrowerView({ row: m, open, paused }: ViewProps) {
                     ? listRef("loan_applications", "member_id", m.id, `Applications by ${m.name}`)
                     : undefined
                 }
-                icon={<FileText size={15} strokeWidth={1.75} />}
+                icon={<FileTextIcon size={15} />}
                 label={apps === undefined ? "Applications" : counted(apps, "application")}
               />
               <Related
@@ -376,7 +384,7 @@ function BorrowerView({ row: m, open, paused }: ViewProps) {
                       )
                     : undefined
                 }
-                icon={<UserRound size={15} strokeWidth={1.75} />}
+                icon={<UserIcon size={15} />}
                 label={
                   groupSize === undefined ? "Group members" : counted(groupSize - 1, "other member")
                 }
@@ -500,7 +508,7 @@ function GroupView({ row: g, open, paused }: ViewProps) {
                     ? listRef("members", "group_id", g.id, `Members of ${g.name}`)
                     : undefined
                 }
-                icon={<UserRound size={15} strokeWidth={1.75} />}
+                icon={<UserIcon size={15} />}
                 label={members ? counted(members.length, "member") : "Members"}
               />
               <Related
@@ -511,7 +519,7 @@ function GroupView({ row: g, open, paused }: ViewProps) {
                     ? listRef("loan_applications", "group_id", g.id, `Applications from ${g.name}`)
                     : undefined
                 }
-                icon={<FileText size={15} strokeWidth={1.75} />}
+                icon={<FileTextIcon size={15} />}
                 label={apps === undefined ? "Applications" : counted(apps, "application")}
               />
             </RelatedList>
@@ -583,7 +591,7 @@ function OfficerView({ row: o, open, paused }: ViewProps) {
     <View label="Field officer">
       <ViewHead kicker={`Field officer · ${o.branch} branch`} title={String(o.name)}>
         <a className="rv-tel" href={`tel:${String(o.phone).replace(/\D/g, "")}`}>
-          <Phone size={12} strokeWidth={1.75} aria-hidden /> {String(o.phone)}
+          <PhoneIcon size={12} aria-hidden /> {String(o.phone)}
         </a>
       </ViewHead>
       <div className="rv-body">
@@ -674,7 +682,7 @@ function OfficerView({ row: o, open, paused }: ViewProps) {
                     ? listRef("lending_groups", "field_officer_id", o.id, `Groups of ${o.name}`)
                     : undefined
                 }
-                icon={<UsersRound size={15} strokeWidth={1.75} />}
+                icon={<UsersIcon size={15} />}
                 label={groups ? counted(groups.length, "group") : "Groups"}
                 note={groups
                   ?.slice(0, 3)
@@ -689,7 +697,7 @@ function OfficerView({ row: o, open, paused }: ViewProps) {
                     ? listRef("loans", "field_officer_id", o.id, `Loans of ${o.name}`)
                     : undefined
                 }
-                icon={<History size={15} strokeWidth={1.75} />}
+                icon={<ClockCounterClockwiseIcon size={15} />}
                 label={s ? counted(s.active, "active loan") : "Loans"}
                 note={s ? `${s.loans} in all` : undefined}
               />
@@ -706,7 +714,7 @@ function OfficerView({ row: o, open, paused }: ViewProps) {
                       )
                     : undefined
                 }
-                icon={<FileText size={15} strokeWidth={1.75} />}
+                icon={<FileTextIcon size={15} />}
                 label={apps === undefined ? "Applications" : counted(apps, "application")}
               />
             </RelatedList>
@@ -798,7 +806,7 @@ function LoanView({ row: l, open, paused }: ViewProps) {
                 open={open}
                 to={recordRef("field_officers", l.field_officer_id)}
                 name={officer ? String(officer.name) : "the field officer"}
-                icon={<Briefcase size={15} strokeWidth={1.75} />}
+                icon={<BriefcaseIcon size={15} />}
                 label={officer ? String(officer.name) : "Field officer"}
                 note="Field officer"
               />

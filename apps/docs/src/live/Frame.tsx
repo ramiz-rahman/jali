@@ -8,7 +8,7 @@ import {
   type KeyboardEvent,
   type PointerEvent,
 } from "react";
-import { FoldHorizontal, RotateCcw } from "lucide-react";
+import { ArrowCounterClockwiseIcon, ArrowsInLineHorizontalIcon } from "@phosphor-icons/react";
 import { GAP as JALI_GAP, layout as jl, type Layout, type UiStore } from "@jali/core/adapter";
 import type { DemoLayoutId } from "./demo";
 import { demoLayouts } from "./demo";
@@ -157,7 +157,7 @@ export function Frame({ layout, width, minWidth = 260, height = 320, caption }: 
           ) : folded.length ? (
             <>
               <span className="live-frame-label">
-                <FoldHorizontal size={13} strokeWidth={1.75} aria-hidden /> Folded
+                <ArrowsInLineHorizontalIcon size={13} aria-hidden /> Folded
               </span>
               {folded.map((id) => (
                 <span className="live-frame-chip" key={id}>
@@ -179,7 +179,7 @@ export function Frame({ layout, width, minWidth = 260, height = 320, caption }: 
             resetLive(store, layout);
           }}
         >
-          <RotateCcw size={13} strokeWidth={1.75} aria-hidden />
+          <ArrowCounterClockwiseIcon size={13} aria-hidden />
         </button>
       </div>
 

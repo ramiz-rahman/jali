@@ -1,6 +1,6 @@
 import { useEffect, useRef, type KeyboardEvent } from "react";
-import { Columns2, RotateCcw, Square, Undo2 } from "lucide-react";
-import { investigation, startTabDrag } from "@jali/core/adapter";
+import { useJaliIcons } from "../icons/context";
+import { investigation, startTabDrag, inlineStep } from "@jali/core/adapter";
 import { bold, Parts, useModel, useStore, useUi, useProfile } from "../state/react";
 import { Panes } from "../workspace/Workspace";
 
@@ -9,6 +9,7 @@ import { Panes } from "../workspace/Workspace";
  * links) with its way back, and Reset for the split layout. Which views are on screen is the tabs' job.
  */
 export function PageBar() {
+  const icon = useJaliIcons();
   const page = useUi((s) => s.page);
   const m = useModel();
   const { actions, messages } = useStore();
@@ -27,7 +28,7 @@ export function PageBar() {
           onClick={() => actions.setMode("single")}
           title={t.singleTip}
         >
-          <Square size={14} strokeWidth={1.5} aria-hidden /> {t.single}
+          <icon.singleView size={14} aria-hidden /> {t.single}
         </button>
         <button
           role="radio"
@@ -37,7 +38,7 @@ export function PageBar() {
           disabled={!page.canInvestigate}
           title={page.canInvestigate ? t.splitTip : t.splitTipLimited}
         >
-          <Columns2 size={14} strokeWidth={1.5} aria-hidden /> {t.split}
+          <icon.splitView size={14} aria-hidden /> {t.split}
         </button>
       </div>
       {multi && opened ? (
@@ -47,7 +48,7 @@ export function PageBar() {
             <Parts of={t.investigating(opened, bold)} />
           </span>
           <button className="jali-inv-back" onClick={() => actions.backToPage()}>
-            <Undo2 size={13} strokeWidth={1.75} aria-hidden /> {t.backTo(profile.name)}
+            <icon.back size={13} aria-hidden /> {t.backTo(profile.name)}
           </button>
         </div>
       ) : null}
@@ -58,7 +59,7 @@ export function PageBar() {
           aria-label={t.reset}
           title={t.resetTip}
         >
-          <RotateCcw size={15} strokeWidth={1.5} aria-hidden />
+          <icon.reset size={15} aria-hidden />
         </button>
       ) : null}
     </div>
@@ -79,6 +80,7 @@ function PageTabs() {
   const focused = useUi((s) => s.view.focused);
   const m = useModel();
   const strip = useRef<HTMLDivElement>(null);
+  const dir = useUi((s) => s.dir);
   // The drag a pointer-down started: a click that ends a drag is not a click.
   const drag = useRef<{ dragged(): boolean } | null>(null);
   // ⌥ over a tab previews where ⌥-click would open it beside (the workspace draws it).
@@ -110,10 +112,11 @@ function PageTabs() {
   };
   const selected = multi ? (m.pane(focused)?.role ?? page.tab) : page.tab;
   const keys = (e: KeyboardEvent) => {
-    if (e.key !== "ArrowRight" && e.key !== "ArrowLeft") return;
+    const step = inlineStep(e.key, dir);
+    if (!step) return;
     const tabs = [...(strip.current?.querySelectorAll<HTMLElement>("[role=tab]") ?? [])];
     const i = tabs.indexOf(document.activeElement as HTMLElement);
-    tabs[(i + (e.key === "ArrowRight" ? 1 : -1) + tabs.length) % tabs.length]?.focus();
+    tabs[(i + step + tabs.length) % tabs.length]?.focus();
     e.preventDefault();
   };
   return (
@@ -171,7 +174,7 @@ function PageTabs() {
               } else actions.openTab(r.id);
             }}
           >
-            <Icon size={14} strokeWidth={1.5} aria-hidden />
+            <Icon size={14} aria-hidden />
             <span>{r.label}</span>
           </button>
         );

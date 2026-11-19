@@ -5,6 +5,7 @@
  */
 import * as core from "../layout";
 import type {
+  Direction,
   Layout,
   LayoutContext,
   NodeId,
@@ -12,7 +13,7 @@ import type {
   UndoEntry,
   ViewState,
 } from "../layout/types";
-import type { PaneActivity, PaneCommand, PaneKinds } from "../pane-kinds";
+import type { PaneActivity, PaneCommand, PaneErrorInfo, PaneKinds } from "../pane-kinds";
 import { GAP, initialArea } from "../tokens";
 import { toLayout } from "../layout/build";
 import { bindActions, type Actions } from "../actions";
@@ -38,6 +39,7 @@ import {
 } from "../profile";
 import { browserStorage, type StoragePort } from "../ports";
 import { focusPane } from "../dom/focus";
+import { pageDirection } from "../dom/direction";
 import { loadPaneState } from "./pane-state";
 import { startUi } from "../boot";
 import {
@@ -116,6 +118,9 @@ export interface UiState {
   /** Objects opened this session, most recent first (the launcher's "Recent"). */
   recent: ObjectRef[];
   area: { width: number; height: number };
+  /** The reading direction the panes are laid out in: right to left, a row starts at the right. Read from the page
+   *  when the workspace is measured, unless `createJali({ dir })` fixed it. */
+  dir: Direction;
   /** Layout changes of the reshape class so far (state/apply.ts): the workspace animates on a new one. */
   reshapes: number;
   /** A page tab hovered with ⌥ held: the workspace previews where it would open beside. */
@@ -126,6 +131,9 @@ export interface UiState {
   confirm: ConfirmState | null;
   /** Each pane's commands for ⌘K (useCommands). */
   paneCommands: Record<NodeId, PaneCommand[]>;
+  /** Titles panes set from their data (useTitle), in place of their kind's title. Not saved; a pane that shows
+   *  another object loses its title until it sets one again. */
+  titles: Record<NodeId, string>;
   /** Each pane's own state (usePaneState): JSON values, kept through folds, tabs and reloads, dropped on close. */
   paneState: Record<NodeId, Record<string, unknown>>;
   /** The live region's text; `seq` makes a repeat a new announcement. */
@@ -183,6 +191,10 @@ export interface UiStoreDeps {
   palette?: boolean;
   /** Words to use instead of Jali's English ones (state/messages.ts). Default: English. */
   messages?: MessageOverrides;
+  /** A pane's content threw while rendering. Default: reported in development. */
+  onPaneError?: (error: unknown, info: PaneErrorInfo) => void;
+  /** A fixed reading direction. Default: the page's, read where the workspace is rendered. */
+  dir?: Direction;
 }
 
 export interface UiStore {
@@ -269,7 +281,15 @@ export function createUiStore(deps: UiStoreDeps): UiStore {
     name: deps.name ?? messages.workspace.name,
     messages,
   };
+  const onPaneError =
+    deps.onPaneError ??
+    (DEV
+      ? (error: unknown, { pane, ref }: PaneErrorInfo) =>
+          console.error(`Jali: pane ${pane ?? "peek"} (${ref.kind}) failed`, error)
+      : undefined);
+  if (onPaneError) env.onPaneError = onPaneError;
   if (deps.launcher) env.launcher = deps.launcher;
+  if (deps.dir) env.dir = deps.dir;
   const focusOf =
     deps.focusPane === undefined
       ? typeof document === "undefined"
@@ -306,12 +326,14 @@ export function createUiStore(deps: UiStoreDeps): UiStore {
     chooser: null,
     recent: [],
     area: initialArea(),
+    dir: deps.dir ?? pageDirection(),
     announcement: { text: "", seq: 0 },
     reshapes: 0,
     ghost: null,
     unsaved: {},
     confirm: null,
     paneCommands: {},
+    titles: {},
     paneState: loadPaneState(storage),
     ...deps.initial,
   };
@@ -345,6 +367,7 @@ export function createUiStore(deps: UiStoreDeps): UiStore {
   const ctx = (): LayoutContext => ({
     fit: { ...state.area, gap: GAP, kinds: env.kinds.registry() },
     paneCap: state.settings.paneCap,
+    ...(state.dir === "rtl" ? { dir: state.dir } : {}),
   });
 
   const store: UiStore = {
@@ -371,7 +394,14 @@ export function createUiStore(deps: UiStoreDeps): UiStore {
       return () => subs.delete(fn);
     },
     model: () =>
-      models({ layout: state.layout, view: state.view, area: state.area, ctx: ctx(), env }),
+      models({
+        layout: state.layout,
+        view: state.view,
+        area: state.area,
+        ctx: ctx(),
+        env,
+        titles: state.titles,
+      }),
     ctx,
     snapshot: () => ({ s: state, m: store.model(), ctx: ctx(), env }),
     apply: (o) => apply(io, o),

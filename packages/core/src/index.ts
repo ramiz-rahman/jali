@@ -28,17 +28,23 @@ export type {
   PaneKinds,
   PaneCommand,
   PaneActivity,
+  PaneErrorInfo,
   Params,
   ParamValue,
   ParamType,
   ParamTypes,
   ParamsOf,
+  OptionalParam,
+  OneOf,
+  ParamProblem,
 } from "./pane-kinds";
+export { optional, oneOf } from "./pane-kinds";
 export type { RoleBase, ProfileBase, ViewMode, Preset, Env, ItemId } from "./profile";
 
 // ---------- the layout tree (pure: every operation returns a new layout) ----------
 export type {
   Axis,
+  Direction,
   Edge,
   Size,
   NodeId,
@@ -84,7 +90,7 @@ export type { Snapshot, Outcome, Change, Refusal, Toast, HistoryMode } from "./s
 export type { Settings, ThemeChoice, Theme } from "./state/settings";
 
 // ---------- words (translations) ----------
-export { en, type Messages, type MessageOverrides, type Direction } from "./state/messages";
+export { en, type Messages, type MessageOverrides, type ScreenDirection } from "./state/messages";
 
 // ---------- the address and what a person keeps ----------
 export type { UrlSyncOptions, LinkSizes } from "./url";

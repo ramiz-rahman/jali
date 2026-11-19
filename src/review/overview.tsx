@@ -4,7 +4,7 @@
  * Each section leads to its tab.
  */
 import type { ReactNode } from "react";
-import { ArrowRight } from "lucide-react";
+import { ArrowRightIcon } from "@phosphor-icons/react";
 import type { PaneProps } from "@jali/react";
 import { useJali } from "@jali/react";
 import { Loading } from "../panes/shared/states";
@@ -53,8 +53,7 @@ function Section({
           aria-label={`Open ${title}`}
           title={`Open the full view · ${altClick()} a tab to open it beside`}
         >
-          <span className="ov-go-text">View</span>{" "}
-          <ArrowRight size={13} strokeWidth={1.75} aria-hidden />
+          <span className="ov-go-text">View</span> <ArrowRightIcon size={13} aria-hidden />
         </button>
       </header>
       {lead ? <p className={warn ? "ov-lead is-warn" : "ov-lead"}>{lead}</p> : null}

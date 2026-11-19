@@ -1,4 +1,5 @@
 import * as core from "../layout";
+import { treeSide } from "../layout/geometry/direction";
 import type { NodeId } from "../layout/types";
 import { refuse, type Outcome, type Snapshot } from "../state/apply";
 import { messagesOf, say } from "../state/messages";
@@ -60,7 +61,16 @@ export function unmerge({ s, m, ctx }: Snapshot, id = s.view.focused): Outcome {
   const st = m.stackOf(id);
   if (!id || !st) return refuse(say(m).notInTabs(m.title(id)));
   const other = st.children.find((c) => c.id !== id)!;
-  const r = core.drop(s.layout, unzoomed(s.view), id, other.id, "right", "swap", ctx);
+  // To the right on screen, as the message says, in either reading direction.
+  const r = core.drop(
+    s.layout,
+    unzoomed(s.view),
+    id,
+    other.id,
+    treeSide("right", ctx.dir),
+    "swap",
+    ctx,
+  );
   return {
     op: "unmerge",
     layout: r.layout,

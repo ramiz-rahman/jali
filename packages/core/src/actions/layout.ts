@@ -49,8 +49,8 @@ export function arrive({ s, ctx }: Snapshot, layout: Layout, arrived: Partial<Vi
   };
 }
 
-export function setActivity({ s }: Snapshot, id: NodeId, a: PaneActivity): Outcome {
-  return s.activity[id] === a
+export function setActivity({ s, m }: Snapshot, id: NodeId, a: PaneActivity): Outcome {
+  return !m.pane(id) || s.activity[id] === a
     ? null
     : { op: "patch", patch: { activity: { ...s.activity, [id]: a } } };
 }

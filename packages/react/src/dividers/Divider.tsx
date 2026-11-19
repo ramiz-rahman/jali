@@ -18,6 +18,8 @@ export interface DividerProps {
   labelB: string;
   /** DOM ids of the pane regions before the divider, for aria-controls. */
   controls: string;
+  /** The first neighbour is on the right (a row read right to left): ← grows it, → shrinks it. */
+  rtl?: boolean;
   /** Pointer down starts the drag (drag.ts); `setSizeA` resizes from the keyboard; `onReset` restores sizes. */
   onDragStart(e: React.PointerEvent<HTMLElement>): void;
   setSizeA(size: number): void;
@@ -37,13 +39,19 @@ export const Divider = memo(
   function Divider(p: DividerProps) {
     const row = p.axis === "row";
     const t = useMessages().workspace;
+    // The arrow that shrinks the first neighbour, and the one that grows it: the divider moves the way it points.
+    const [less, more] = !row
+      ? ["ArrowUp", "ArrowDown"]
+      : p.rtl
+        ? ["ArrowRight", "ArrowLeft"]
+        : ["ArrowLeft", "ArrowRight"];
     const onKeyDown = (e: KeyboardEvent<HTMLElement>) => {
       if (e.altKey || e.metaKey || e.ctrlKey) return;
       const step = e.shiftKey ? STEP_BIG : STEP;
       const target =
-        e.key === (row ? "ArrowLeft" : "ArrowUp")
+        e.key === less
           ? p.sizeA - step
-          : e.key === (row ? "ArrowRight" : "ArrowDown")
+          : e.key === more
             ? p.sizeA + step
             : e.key === "Home"
               ? p.minA
@@ -104,5 +112,6 @@ export const Divider = memo(
     a.total === b.total &&
     a.labelA === b.labelA &&
     a.labelB === b.labelB &&
-    a.controls === b.controls,
+    a.controls === b.controls &&
+    a.rtl === b.rtl,
 );

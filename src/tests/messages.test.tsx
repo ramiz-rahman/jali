@@ -127,6 +127,33 @@ describe("messages", () => {
     expect(dialog.querySelector("li")!.innerHTML).toBe("<b>Note 1</b>: a draft");
   });
 
+  it("replace a failed pane's words, and its Retry command", () => {
+    const broken = definePane("broken", {
+      title: "Broken",
+      Component: () => {
+        throw new Error("boom");
+      },
+    });
+    const jali = make({
+      panes: [note, broken],
+      layout: row(note({ id: 1 }), broken()),
+      onPaneError: () => {},
+      messages: {
+        pane: { failed: (pane) => `${pane} n’a pas pu s’afficher.`, retry: "Réessayer" },
+      },
+    });
+    const error = console.error;
+    console.error = () => {};
+    try {
+      render(<JaliRoot jali={jali} />);
+    } finally {
+      console.error = error;
+    }
+    expect(screen.getByText("Broken n’a pas pu s’afficher.")).toBeTruthy();
+    const buttons = [...document.querySelectorAll(".jali-pane-failed button")];
+    expect(buttons.map((b) => b.textContent)).toEqual(["Réessayer", "Close"]);
+  });
+
   it("type a full translation: a missing or misspelt key is an error", () => {
     // @ts-expect-error: a Messages needs every area
     const partial: Messages = { palette: en.palette };
@@ -199,6 +226,10 @@ describe("no hard-coded words", () => {
             if (READ.has(name) && WORDS.test(text))
               found.push(`${relative(root, file)}: ${name}="${text}"`);
           }
+          // A title given in an object (a pane command's, for one).
+          const key = n.type === "Property" ? (n.key as { name?: string }).name : undefined;
+          if (key === "title" && WORDS.test(literalText(n.value as Node)))
+            found.push(`${relative(root, file)}: ${key}: "${literalText(n.value as Node)}"`);
         },
         null,
       );

@@ -2,6 +2,18 @@
 
 React for [Jali](../core) workspaces, with Jali's default theme.
 
+```sh
+npm install @jali/core @jali/react @phosphor-icons/react
+```
+
+React 19 is a peer dependency, and so is `@phosphor-icons/react` (optional). Jali's icons are Phosphor's regular weight, the set Chakni uses; give a kind any Phosphor icon (`icon: FileTextIcon`) and it matches.
+
+## Icons
+
+- `<JaliRoot icons={{ close: MyClose }}>` replaces any of Jali's icons by name; the rest stay Phosphor's. `useJaliIcons()` returns the set in use.
+- `@jali/react/bare` is the same API without Phosphor: `<JaliRoot icons>` takes every icon (`JaliIcons`, checked by the types), so Phosphor is never installed or bundled. `@jali/react/icons` exports `phosphorIcons`, the full default map.
+- Each icon is a component taking `{ size, className, "aria-hidden" }`. The names are in the reference (Icons).
+
 ```tsx
 import { createJali, row } from "@jali/core";
 import { JaliRoot, definePane } from "@jali/react";

@@ -1,15 +1,15 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState, type KeyboardEvent } from "react";
-import { FoldHorizontal, Undo2 } from "lucide-react";
+import { useJaliIcons } from "../icons/context";
 import type { ShelfEntry, JaliModel, PaneActivity } from "@jali/core/adapter";
 import { useShortcut } from "../commands/react";
-import { flashTab, titleOf } from "@jali/core/adapter";
+import { flashTab, inlineStep, scrolledFromStart } from "@jali/core/adapter";
 import { Activity, shelfActivity } from "../pane/Activity";
 import { KindIcon } from "../pane/icons";
 import { useActions, useMessages, useModel, useStore, useUi } from "../state/react";
 
 function label(m: JaliModel, it: ShelfEntry, a: PaneActivity | undefined) {
   const node = m.pane(it.paneId);
-  const title = node ? titleOf(m.env, node) : m.title(it.paneId);
+  const title = m.title(it.paneId);
   const home = m.title(it.homeId);
   const folded = it.reason === "folded";
   return { node, title, home, folded, state: shelfActivity(a)?.state ?? "idle" };
@@ -20,6 +20,7 @@ const FOLDED_CHIPS = 3;
 const SUMMARY = "folded-summary";
 
 export function Shelf() {
+  const icon = useJaliIcons();
   const m = useModel();
   // Every pane that is a tab but not by choice is listed too: tucked (yours, can be put back) and folded (the layout's).
   const tuckedItems = m.shelf;
@@ -32,6 +33,7 @@ export function Shelf() {
   );
   const items = useMemo(() => [...tuckedItems, ...foldedItems], [tuckedItems, foldedItems]);
   const activity = useUi((s) => s.activity);
+  const dir = useUi((s) => s.dir);
   const actions = useActions();
   const store = useStore();
   const words = useMessages();
@@ -67,10 +69,10 @@ export function Shelf() {
     const sc = scroller.current,
       b = bar.current;
     if (!sc || !b) return;
-    const l = sc.scrollLeft > 1,
-      r = sc.scrollLeft + sc.clientWidth < sc.scrollWidth - 1;
-    b.toggleAttribute("data-fade-l", l);
-    b.toggleAttribute("data-fade-r", r);
+    // Chips past the start (left, or right when the shelf reads right to left) and past the end.
+    const { pos, max, rtl } = scrolledFromStart(sc);
+    b.toggleAttribute(rtl ? "data-fade-r" : "data-fade-l", pos > 1);
+    b.toggleAttribute(rtl ? "data-fade-l" : "data-fade-r", pos < max - 1);
     const box = sc.getBoundingClientRect();
     const out: string[] = [];
     sc.querySelectorAll<HTMLElement>("[data-chip]").forEach((c) => {
@@ -121,8 +123,8 @@ export function Shelf() {
       e.preventDefault();
       focusChip(ids[(n + ids.length) % ids.length]!);
     };
-    if (e.key === "ArrowRight") go(i + 1);
-    else if (e.key === "ArrowLeft") go(i - 1);
+    const step = inlineStep(e.key, dir);
+    if (step) go(i + step);
     else if (e.key === "Home") go(0);
     else if (e.key === "End") go(ids.length - 1);
     else if (e.key === "Enter" && e.shiftKey) {
@@ -166,7 +168,7 @@ export function Shelf() {
           onClick={() => doReveal(it)}
         >
           {L.folded ? (
-            <FoldHorizontal size={13} strokeWidth={1.75} aria-hidden />
+            <icon.fold size={13} aria-hidden />
           ) : L.node ? (
             <KindIcon kind={L.node.ref.kind} size={13} />
           ) : null}
@@ -181,7 +183,7 @@ export function Shelf() {
             title={words.keys.withKeys(t.putBackTip, putBackKeys)}
             onClick={() => actions.putBack(it.paneId)}
           >
-            <Undo2 size={13} strokeWidth={1.75} aria-hidden />
+            <icon.putBack size={13} aria-hidden />
           </button>
         ) : null}
       </div>
@@ -238,7 +240,7 @@ export function Shelf() {
                   onFocus={() => setFocusId(SUMMARY)}
                   onClick={() => setMenu((v) => (v === "folded" ? false : "folded"))}
                 >
-                  <FoldHorizontal size={13} strokeWidth={1.75} aria-hidden />
+                  <icon.fold size={13} aria-hidden />
                   <span className="jali-shelf-chip-title">{t.summaryText(foldedItems.length)}</span>
                 </button>
               </div>
@@ -251,7 +253,7 @@ export function Shelf() {
               key="folded"
             >
               <span className="jali-shelf-home" title={words.tabs.foldedTip}>
-                <FoldHorizontal size={12} strokeWidth={1.75} aria-hidden /> {t.foldedHeading}
+                <icon.fold size={12} aria-hidden /> {t.foldedHeading}
               </span>
               {foldedItems.map(chip)}
             </div>

@@ -3,7 +3,9 @@ import { keyHint } from "@jali/core";
 import { definePane, useCommands, usePaneState, useUnsaved, type PaneProps } from "@jali/react";
 import { noteBody, saveNote } from "./data";
 
-function NoteEditor({ params }: PaneProps<{ id: number }>) {
+const noteParams = { id: Number };
+
+function NoteEditor({ params }: PaneProps<typeof noteParams>) {
   const [saved, setSaved] = useState(() => noteBody(params.id));
   // The draft is pane state: it survives a fold, a tab switch, a tuck and a reload, and goes when the pane closes.
   const [draft, setDraft] = usePaneState("draft", saved);
@@ -43,7 +45,7 @@ function NoteEditor({ params }: PaneProps<{ id: number }>) {
 }
 
 export const noteEditor = definePane("note", {
-  params: { id: Number },
+  params: noteParams,
   title: ({ id }) => `Note ${id}`,
   width: { min: 280 },
   Component: NoteEditor,

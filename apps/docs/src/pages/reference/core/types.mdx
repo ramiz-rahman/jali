@@ -72,9 +72,9 @@ A node's id.
 
 </Entry>
 
-<Entry name="ObjectRef" kind="type" from="@jali/core" signature={`interface ObjectRef { kind: string; params: Record<string, string | number> }`} compact>
+<Entry name="ObjectRef" kind="type" from="@jali/core" signature={`interface ObjectRef { kind: string; params: Record<string, string | number | boolean> }`} compact>
 
-What a pane shows: a kind and the params that name the object (`{ kind: "order", params: { id: 1041 } }`). Params must be strings or finite numbers.
+What a pane shows: a kind and the params that name the object (`{ kind: "order", params: { id: 1041 } }`). Params must be strings, finite numbers or booleans.
 
 </Entry>
 
@@ -86,7 +86,13 @@ The direction of a split.
 
 <Entry name="Edge" kind="type" from="@jali/core" signature={`type Edge = "left" | "right" | "top" | "bottom"`} compact>
 
-A side of a pane: where to open or drop.
+A side of a pane: where to open or drop. In actions and commands it is a side of the screen, in either reading direction. The layout operations (`layout.drop`, `layout.open`, `layout.split`) take a side in the tree instead: `"left"` is before, `"right"` after, which right to left is the other side of the screen.
+
+</Entry>
+
+<Entry name="Direction" kind="type" from="@jali/core" signature={`type Direction = "ltr" | "rtl"`} compact>
+
+The reading direction a workspace lays its panes out in (`jali.get().dir`, `createJali({ dir })`). Right to left, a row's first child is at the right: the same tree, mirrored on screen.
 
 </Entry>
 
@@ -116,9 +122,9 @@ What the person is looking at, apart from the layout.
 
 </Entry>
 
-<Entry name="PaneKind" kind="type" from="@jali/core" signature={`interface PaneKind { kind; title(ref); minWidth; minHeight; comfortableWidth?; maxWidth? }`} compact>
+<Entry name="PaneKind" kind="type" from="@jali/core" signature={`interface PaneKind { kind; title(ref); minWidth; minHeight; comfortableWidth?; maxWidth?; checkParams? }`} compact>
 
-The part of a kind the layout operations read, from `kinds.registry()`. The sizes are explained under <Ref to="PaneKindBase" />.
+The part of a kind the layout operations read, from `kinds.registry()`. The sizes are explained under <Ref to="PaneKindBase" />. `checkParams(params)`, set for a kind that declares `params`, says what is wrong with a ref's params (a required param missing, a value its type can't read), or returns `undefined`; <Ref to="layout.validate" page="/reference/core/layout" /> rejects a layout holding such a ref, so a link to it opens as broken.
 
 </Entry>
 
@@ -128,9 +134,9 @@ Kinds by name, as the layout operations take them (`kinds.registry()`).
 
 </Entry>
 
-<Entry name="LayoutContext" kind="type" from="@jali/core" signature={`interface LayoutContext { fit: FitOptions; paneCap: number }`} compact>
+<Entry name="LayoutContext" kind="type" from="@jali/core" signature={`interface LayoutContext { fit: FitOptions; paneCap: number; dir?: Direction }`} compact>
 
-Everything a layout operation needs besides the layout: `jali.ctx()`. `paneCap` is the most panes on screen before the oldest folds (the `paneCap` setting).
+Everything a layout operation needs besides the layout: `jali.ctx()`. `paneCap` is the most panes on screen before the oldest folds (the `paneCap` setting). `dir: "rtl"` mirrors the rects `resolve` returns, so they stay screen coordinates; the tree and the fit are the same.
 
 </Entry>
 
@@ -215,7 +221,7 @@ The options of <Ref to="tabs" page="/reference/core" />.
 What a kind says about itself, apart from how it renders. In React, `definePane(kind, options)` takes these with `Component` and `icon`.
 
 <Params title="Fields">
-<Param name="params" type="ParamTypes">How to read each param back from a link, which turns values into text: `{ id: Number }` gives the component and `title` `id: number`. Declare the params every ref of the kind has; params left out stay plain `string | number` values.</Param>
+<Param name="params" type="ParamTypes">What a ref of the kind holds, and how to read each param back from a link, which can turn values into text: `{ id: Number, tab: optional(String) }` gives the component and `title` `{ id: number; tab?: string }`. A ref missing a required param, or holding a value its type can't read, never reaches the component (see <Ref to="ParamProblem" />). Without `params`, params are plain values.</Param>
 <Param name="title" type="string | ((params: P) => string)" required>The pane's title in its header, its tab and the palette.</Param>
 <Param name="width" type="PaneWidth" default="{ min: 240 }">
 
@@ -266,19 +272,37 @@ A ref's params: plain data, so they fit in a link.
 
 </Entry>
 
-<Entry name="ParamValue" kind="type" from="@jali/core" signature={`type ParamValue = string | number`} compact>One param's value.</Entry>
+<Entry name="ParamValue" kind="type" from="@jali/core" signature={`type ParamValue = string | number | boolean`} compact>One param's value.</Entry>
 
-<Entry name="ParamType" kind="type" from="@jali/core" signature={`type ParamType = (value: ParamValue) => ParamValue`} compact>
+<Entry name="ParamType" kind="type" from="@jali/core" signature={`type ParamType = (value: ParamValue) => ParamValue | undefined`} compact>
 
-How to read one param back: `Number`, `String`, or your own function.
+How to read one param back: `Number`, `String`, `Boolean`, <Ref to="oneOf" page="/reference/core" />, or your own function. `Number` reads text that is a finite number; `Boolean` reads `true`, `false`, `"true"`, `"false"`, `1` and `0`. Your function says it can't read a value by returning `undefined` or `NaN`, or by throwing.
 
 </Entry>
 
-<Entry name="ParamTypes" kind="type" from="@jali/core" signature={`type ParamTypes = Record<string, ParamType>`} compact>A kind's `params`.</Entry>
+<Entry name="ParamTypes" kind="type" from="@jali/core" signature={`type ParamTypes = Record<string, ParamType | OptionalParam>`} compact>A kind's `params`.</Entry>
 
-<Entry name="ParamsOf" kind="type" from="@jali/core" signature={`type ParamsOf<T extends ParamTypes> = { [K in keyof T]: ReturnType<T[K]> } & Params`} compact>
+<Entry name="OptionalParam" kind="type" from="@jali/core" signature={`interface OptionalParam<T extends ParamType = ParamType> { readonly optional: T }`} compact>
 
-The params a kind's code sees: `ParamsOf<{ id: NumberConstructor }>` is `{ id: number }`, with any other params as plain values.
+A param a ref may leave out, made by <Ref to="optional" page="/reference/core" />.
+
+</Entry>
+
+<Entry name="OneOf" kind="type" from="@jali/core" signature={`type OneOf<V extends string | number> = ((value: ParamValue) => V | undefined) & { readonly values: readonly V[] }`} compact>
+
+A param that is one of a few values, made by <Ref to="oneOf" page="/reference/core" />.
+
+</Entry>
+
+<Entry name="ParamsOf" kind="type" from="@jali/core" signature={`type ParamsOf<T extends ParamTypes> = { [K in Required]: Read<T[K]> } & { [K in Optional]?: Read<T[K]> }`} compact>
+
+The params a kind's code sees, from its declaration: `ParamsOf<{ id: NumberConstructor; tab: OptionalParam<StringConstructor> }>` is `{ id: number; tab?: string }`. Use it as `ParamsOf<typeof orderParams>` to name the type of params declared apart from the kind. Without a declaration, `Params`.
+
+</Entry>
+
+<Entry name="ParamProblem" kind="type" from="@jali/core" signature={`interface ParamProblem { param: string; value?: ParamValue }`} compact>
+
+A param a ref is missing (`value` is undefined), or holds a value its type can't read. A ref with one never reaches the component: a layout link or saved layout holding it opens as broken, a peek or a page's opened pane with it is left out of the link, and a pane your code opens with it shows a message naming the param. Listed by `PaneKinds.problems`.
 
 </Entry>
 
@@ -293,7 +317,8 @@ A workspace's kinds, as `jali.env.kinds`.
 <Member name="PaneKinds.onChange" signature="onChange(l: () => void): () => void">Hear registrations. Returns the unsubscribe.</Member>
 <Member name="PaneKinds.registry" signature="registry(): KindRegistry">The framework-free view for the layout operations; the same object until the next registration.</Member>
 <Member name="PaneKinds.params" signature="params(ref: ObjectRef): Params">The ref's params, read with its kind's `params` types.</Member>
-<Member name="PaneKinds.title" signature="title(ref: ObjectRef): string">The title, or the kind name for an unknown kind or a title that throws.</Member>
+<Member name="PaneKinds.problems" signature="problems(ref: ObjectRef): ParamProblem[]">What its kind can't read in the ref's params: required params missing, values of the wrong type. Empty when it opens.</Member>
+<Member name="PaneKinds.title" signature="title(ref: ObjectRef): string">The title, or the kind name for an unknown kind, a ref with problems or a title that throws.</Member>
 <Member name="PaneKinds.identityOf" signature="identityOf(ref: ObjectRef): string | undefined">The ref's identity as text, `undefined` for scratch kinds.</Member>
 <Member name="PaneKinds.sameObject" signature="sameObject(a: ObjectRef, b: ObjectRef): boolean">Same object type and identity. Scratch refs are never the same object.</Member>
 <Member name="PaneKinds.sameRecent" signature="sameRecent(a: ObjectRef, b: ObjectRef): boolean">The same entry in Recent: same kind and identity (scratch kinds: same params).</Member>
@@ -318,6 +343,12 @@ A curated page's item id: a number, or a string such as a UUID or a slug. See `f
 <Entry name="PaneActivity" kind="type" from="@jali/core" signature={`type PaneActivity = "idle" | "loading" | "working" | "needs-you" | "error"`} compact>
 
 What a pane reports about itself (`useActivity`), shown in its header, its tab, the shelf and the status line. On the shelf, loading reads as working.
+
+</Entry>
+
+<Entry name="PaneErrorInfo" kind="type" from="@jali/core" signature={`interface PaneErrorInfo { pane: NodeId | null; ref: ObjectRef }`} compact>
+
+Which pane failed, for `createJali({ onPaneError })`: its id (`null` in the peek sheet) and the ref it was showing.
 
 </Entry>
 
@@ -363,9 +394,9 @@ A preset, as `createJali({ presets })` takes it.
 
 </Entry>
 
-<Entry name="Env" kind="type" from="@jali/core" signature={`interface Env { kinds: PaneKinds; profile: ProfileBase | null; presets: readonly Preset[]; commands?: readonly Command[]; name: string; launcher?: string; messages?: Messages }`} compact>
+<Entry name="Env" kind="type" from="@jali/core" signature={`interface Env { kinds: PaneKinds; profile: ProfileBase | null; presets: readonly Preset[]; commands?: readonly Command[]; name: string; launcher?: string; dir?: Direction; messages?: Messages }`} compact>
 
-What a workspace is made of besides its state: `jali.env`. `profile` is its curated page; `launcher` the kind Split opens.
+What a workspace is made of besides its state: `jali.env`. `profile` is its curated page; `launcher` the kind Split opens; `dir` the reading direction `createJali({ dir })` fixed, if any.
 
 </Entry>
 
@@ -380,7 +411,7 @@ A workspace, from <Ref to="createJali" page="/reference/core" />.
 <Member name="Jali.set" signature="set(patch: Partial<JaliState>): void">A raw write, for what has no action: interaction state such as a drag or the measured `area`. A change of `area` or `settings.paneCap` refits the layout. Prefer `actions`.</Member>
 <Member name="Jali.subscribe" signature="subscribe(fn: () => void): () => void">Hear every change. Returns the unsubscribe.</Member>
 <Member name="Jali.model" signature="model(): JaliModel">The derived model; the same object while nothing it depends on changed.</Member>
-<Member name="Jali.ctx" signature="ctx(): LayoutContext">The context for layout operations: area, gap 6, kinds, pane cap.</Member>
+<Member name="Jali.ctx" signature="ctx(): LayoutContext">The context for layout operations: area, gap 6, kinds, pane cap and, right to left, the direction.</Member>
 <Member name="Jali.snapshot" signature="snapshot(): Snapshot">State, model, context and env together.</Member>
 <Member name="Jali.apply" signature="apply(o: Outcome): NodeId | undefined">Commits an outcome. The bound `actions` call this.</Member>
 <Member name="Jali.announce" signature="announce(text: string): void">Says something in the live region (a repeat is announced again).</Member>
@@ -429,11 +460,13 @@ Everything a workspace holds. Read it with `jali.get()` or `useJaliState(select)
 <Param name="chooser" type={`{ kind: "merge"; source: NodeId } | null`} required>The "Add to tabs of…" chooser.</Param>
 <Param name="recent" type="ObjectRef[]" required>Objects opened this session, newest first, at most 8.</Param>
 <Param name="area" type="{ width: number; height: number }" required>The workspace's inner size; `<Panes>` measures it.</Param>
+<Param name="dir" type="Direction" required>The reading direction the panes are laid out in. `<Panes>` reads it from the page, unless `createJali({ dir })` fixed it.</Param>
 <Param name="reshapes" type="number" required>A count of layout changes that move panes; the workspace animates on a new one.</Param>
 <Param name="ghost" type="string | null" required>A page tab hovered with Alt held: the role whose placement is previewed.</Param>
 <Param name="unsaved" type="Record<NodeId, string>" required>Panes with unsaved work, and what it is.</Param>
 <Param name="confirm" type="{ panes: NodeId[]; change } | null" required>A change held until the person discards their work or keeps editing.</Param>
 <Param name="paneCommands" type="Record<NodeId, PaneCommand[]>" required>Each pane's palette commands.</Param>
+<Param name="titles" type="Record<NodeId, string>" required>Titles panes set from their data (`useTitle`), in place of their kind's title. Not saved. A pane that shows another object loses its title.</Param>
 <Param name="paneState" type="Record<NodeId, Record<string, unknown>>" required>Each pane's own state (`usePaneState`), saved in storage.</Param>
 <Param name="announcement" type="{ text: string; seq: number }" required>The live region's text; `seq` makes a repeat new.</Param>
 </Params>
@@ -684,7 +717,7 @@ What `createJali({ messages })` takes: any areas, and any keys in them. Keys you
 
 </Entry>
 
-<Entry name="Direction" kind="type" from="@jali/core" signature={`type Direction = "left" | "right" | "up" | "down"`} compact>A direction as command ids name it (`pane.focus.left`), passed to `commands.focusDirection` and `commands.moveDirection`.</Entry>
+<Entry name="ScreenDirection" kind="type" from="@jali/core" signature={`type ScreenDirection = "left" | "right" | "up" | "down"`} compact>A direction on screen (right to left too), as command ids name it (`pane.focus.left`), passed to `commands.focusDirection` and `commands.moveDirection`.</Entry>
 
 ## Lists and their detail
 
@@ -789,6 +822,7 @@ How a list's item ids map to refs; see <Ref to="activeItemPort" page="/reference
 <Members title="Pane content">
 <Member name="actions.setUnsaved" signature="setUnsaved(id: NodeId, what: string | null)">Report unsaved work, or `null` when it is saved (`useUnsaved` calls it).</Member>
 <Member name="actions.setPaneCommands" signature="setPaneCommands(id: NodeId, commands: PaneCommand[] | null)">A pane's palette commands (`useCommands` calls it).</Member>
+<Member name="actions.setTitle" signature="setTitle(id: NodeId, title: string | null)">A pane's title from its data, or `null` for its kind's title (`useTitle` calls it).</Member>
 <Member name="actions.setPaneState" signature="setPaneState(id: NodeId, key: string, value: unknown)">One value of a pane's own state. JSON only.</Member>
 <Member name="actions.discardAndContinue" signature="discardAndContinue()">Forget the held panes' unsaved work and make the held change.</Member>
 <Member name="actions.keepEditing" signature="keepEditing()">Drop the held change.</Member>

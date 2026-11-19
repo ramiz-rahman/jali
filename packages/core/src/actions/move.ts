@@ -3,6 +3,7 @@ import type { Edge, NodeId } from "../layout/types";
 import { refuse, type Outcome, type Snapshot } from "../state/apply";
 import { say } from "../state/messages";
 import { putBack } from "./tuck";
+import { treeSide } from "../layout/geometry/direction";
 
 const unzoomed = core.tree.unzoom;
 
@@ -13,19 +14,21 @@ export function moveDirection({ s, m, ctx }: Snapshot, dir: Edge, id = s.view.fo
   return { op: "move", layout: r.layout, view: r.view, msg: say(m).moved(m.title(id), dir) };
 }
 
-/** A pointer drop. Dragging a tucked tab out of its home on the side it came from is a put back (exact slot and size). */
+/** A pointer drop on `zone`, a side of the screen. Dragging a tucked tab out of its home on the side it came from is a
+ *  put back (exact slot and size). */
 export function drop(x: Snapshot, dragged: NodeId, target: NodeId, zone: Edge | "centre"): Outcome {
   const { s, m, ctx } = x;
+  const side = treeSide(zone, ctx.dir);
   const home = m.resolved.stacks.find((g) => g.paneIds.includes(dragged));
   if (
     m.tuckOf(dragged) &&
-    zone !== "centre" &&
+    side !== "centre" &&
     home?.paneIds.includes(target) &&
-    zone === core.putBackEdge(s.layout, dragged)
+    side === core.putBackEdge(s.layout, dragged)
   )
     return putBack(x, dragged);
   const mode = s.settings.centreDrop;
-  const r = core.drop(s.layout, s.view, dragged, target, zone, mode, ctx);
+  const r = core.drop(s.layout, s.view, dragged, target, side, mode, ctx);
   const a = m.title(dragged),
     b = m.title(target);
   const text =

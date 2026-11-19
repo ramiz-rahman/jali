@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { Layers } from "lucide-react";
+import { useJaliIcons } from "../icons/context";
 import { mergeTargets, type MergeTarget } from "@jali/core/adapter";
 import { KindIcon } from "../pane/icons";
 import { bold, Parts, useModel, useStore, useUi } from "../state/react";
@@ -13,6 +13,7 @@ export function Chooser() {
 }
 
 function ChooserDialog({ chooser }: { chooser: ChooserState }) {
+  const icon = useJaliIcons();
   const store = useStore();
   const m = useModel();
   // The targets as they were when the chooser opened.
@@ -45,7 +46,7 @@ function ChooserDialog({ chooser }: { chooser: ChooserState }) {
         <>
           <span className="jali-chooser-icon" aria-hidden>
             {m.stackOf(t.id) ? (
-              <Layers size={14} strokeWidth={1.5} />
+              <icon.addToTabs size={14} />
             ) : (
               <KindIcon kind={m.pane(t.id)?.ref.kind ?? ""} size={14} />
             )}

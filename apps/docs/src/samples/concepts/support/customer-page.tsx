@@ -1,4 +1,4 @@
-import { LayoutDashboard, LifeBuoy, ShoppingCart, UserRound } from "lucide-react";
+import { LayoutIcon, LifebuoyIcon, ShoppingCartIcon, UserIcon } from "@phosphor-icons/react";
 import { pane, row } from "@jali/core";
 import { definePage, type PageView } from "@jali/react";
 import { customer, customerOrders, customerOverview, customerTickets } from "./customer";
@@ -6,10 +6,10 @@ import { customers } from "./data";
 
 // The page's views, in tab order. A view says whether its pane gives way first when room runs out.
 const roles: PageView[] = [
-  { id: "overview", label: "Overview", priority: "supporting", icon: LayoutDashboard },
-  { id: "profile", label: "Customer", priority: "primary", icon: UserRound },
-  { id: "orders", label: "Orders", priority: "supporting", icon: ShoppingCart },
-  { id: "tickets", label: "Tickets", priority: "supporting", icon: LifeBuoy },
+  { id: "overview", label: "Overview", priority: "supporting", icon: LayoutIcon },
+  { id: "profile", label: "Customer", priority: "primary", icon: UserIcon },
+  { id: "orders", label: "Orders", priority: "supporting", icon: ShoppingCartIcon },
+  { id: "tickets", label: "Tickets", priority: "supporting", icon: LifebuoyIcon },
 ];
 
 // What each view shows for one customer. Another customer swaps these in place.

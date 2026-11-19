@@ -1,4 +1,4 @@
-import { Database } from "lucide-react";
+import { DatabaseIcon } from "@phosphor-icons/react";
 import { definePane } from "@jali/react";
 import { useState } from "react";
 import { PaneGate } from "../shared/PaneGate";
@@ -68,7 +68,7 @@ export function CatalogPane({ paused, focused, openBeside, peek }: PaneProps) {
 
 export const catalogKind = definePane("catalog", {
   title: "Tables",
-  icon: Database,
+  icon: DatabaseIcon,
   width: { min: 240, max: 320 },
   height: { min: 200 },
   Component: CatalogPane,

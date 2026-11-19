@@ -1,14 +1,15 @@
-import { FileText, LayoutDashboard, Link2 } from "lucide-react";
+import { FileTextIcon, LayoutIcon, LinkSimpleHorizontalIcon } from "@phosphor-icons/react";
 import { definePane } from "@jali/react";
 import { singular } from "../panes/shared/refs";
 import { OverviewPane } from "./overview";
 import { ReviewRecordPane } from "./records";
+import { recordParams } from "../panes/kinds/record";
 import { ReviewRelatedPane } from "./lists";
 
 export const overviewKind = definePane("review-overview", {
   params: { item: Number },
   title: ({ item }) => `Application #${item} overview`,
-  icon: LayoutDashboard,
+  icon: LayoutIcon,
   width: { min: 360 },
   height: { min: 240 },
   inRecent: false,
@@ -24,10 +25,8 @@ const NOUN: Record<string, string> = {
   loans: "Loan",
   repayments: "Instalment",
 };
-const recordTitle = (table: string, id: unknown) => {
-  const noun = NOUN[table] ?? singular(table);
-  return id === undefined ? noun : `${noun} #${id}`;
-};
+const recordTitle = (table: string, id: string | number) =>
+  `${NOUN[table] ?? singular(table)} #${id}`;
 
 /**
  * The tabs' views, designed for the reviewer (records.tsx, lists.tsx): plain words, ৳ amounts, related records as
@@ -35,9 +34,9 @@ const recordTitle = (table: string, id: unknown) => {
  * record and related kinds, so a link to one already on the page goes to it, whichever kind the link names.
  */
 export const reviewRecordKind = definePane("review-record", {
-  params: { table: String },
-  title: ({ table, id }) => recordTitle(table ?? "", id),
-  icon: FileText,
+  params: recordParams,
+  title: ({ table, id }) => recordTitle(table, id),
+  icon: FileTextIcon,
   width: { min: 380 },
   height: { min: 240 },
   shows: "record",
@@ -46,7 +45,7 @@ export const reviewRecordKind = definePane("review-record", {
 
 export const reviewRelatedKind = definePane("review-related", {
   title: ({ label }) => String(label ?? "Related"),
-  icon: Link2,
+  icon: LinkSimpleHorizontalIcon,
   width: { min: 360 },
   height: { min: 240 },
   shows: "related",

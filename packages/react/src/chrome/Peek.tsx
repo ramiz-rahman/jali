@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef } from "react";
-import { Maximize, PanelRightOpen, X } from "lucide-react";
+import { useJaliIcons } from "../icons/context";
 import type { PaneNode, Presentation } from "@jali/core/adapter";
 import { KindIcon } from "../pane/icons";
 import { PaneBody, peekHost } from "../pane/PaneBody";
@@ -9,6 +9,7 @@ export const PEEK_WIDTH = 480;
 
 /** A sheet over the right of main. Not part of the tree; the list stays usable. Animates only on pointer open. */
 export function Peek({ presentation }: { presentation: Presentation }) {
+  const icon = useJaliIcons();
   const store = useStore();
   const ref = useUi((s) => s.view.peek);
   const areaW = useUi((s) => s.area.width);
@@ -51,7 +52,7 @@ export function Peek({ presentation }: { presentation: Presentation }) {
           {/* A curated workspace never replaces its arrangement; a role that only peeks can't pin either. */}
           {canPin ? (
             <button className="jali-text-btn" onClick={() => actions.pinPeek()} title={t.pinBeside}>
-              <PanelRightOpen size={14} strokeWidth={1.5} aria-hidden /> {t.pinBeside}
+              <icon.pinBeside size={14} aria-hidden /> {t.pinBeside}
             </button>
           ) : null}
           {page ? null : (
@@ -60,7 +61,7 @@ export function Peek({ presentation }: { presentation: Presentation }) {
               onClick={() => actions.openPeekFull()}
               title={t.openFull}
             >
-              <Maximize size={14} strokeWidth={1.5} aria-hidden /> {t.openFull}
+              <icon.openFull size={14} aria-hidden /> {t.openFull}
             </button>
           )}
           <button
@@ -69,7 +70,7 @@ export function Peek({ presentation }: { presentation: Presentation }) {
             aria-label={t.close}
             title={t.closeTip(store.keymap.format([{ key: "Escape" }]))}
           >
-            <X size={14} strokeWidth={1.5} aria-hidden />
+            <icon.close size={14} aria-hidden />
           </button>
         </div>
       </header>

@@ -1,11 +1,12 @@
 import type { PaneNode } from "@jali/core/adapter";
-import { paneDomId, titleOf } from "@jali/core/adapter";
+import { inlineStep, paneDomId, titleOf } from "@jali/core/adapter";
 import { Activity } from "../pane/Activity";
 import { KindIcon } from "../pane/icons";
 import { useActions, useMessages, useModel, useStore, useUi } from "../state/react";
 
 function Item({ node, selected }: { node: PaneNode; selected: boolean }) {
   const activity = useUi((s) => s.activity[node.id]);
+  const titles = useUi((s) => s.titles);
   const tucked = !!useModel().tuckOf(node.id);
   const actions = useActions();
   const store = useStore();
@@ -22,7 +23,7 @@ function Item({ node, selected }: { node: PaneNode; selected: boolean }) {
       }
     >
       <KindIcon kind={node.ref.kind} size={14} />
-      <span className="jali-switch-title">{titleOf(store.env, node)}</span>
+      <span className="jali-switch-title">{titleOf(store.env, node, titles)}</span>
       <Activity a={activity} />
     </button>
   );
@@ -38,6 +39,7 @@ export function PaneSwitcher({
 }) {
   const actions = useActions();
   const t = useMessages().workspace;
+  const dir = useUi((s) => s.dir);
   return (
     <nav className="jali-switcher" aria-label={t.switcher}>
       <div
@@ -46,16 +48,14 @@ export function PaneSwitcher({
         aria-label={t.switcherList(panes.length)}
         onKeyDown={(e) => {
           const i = panes.findIndex((p) => p.id === current);
-          const n =
-            e.key === "ArrowRight"
-              ? i + 1
-              : e.key === "ArrowLeft"
-                ? i - 1
-                : e.key === "Home"
-                  ? 0
-                  : e.key === "End"
-                    ? panes.length - 1
-                    : -1;
+          const step = inlineStep(e.key, dir);
+          const n = step
+            ? i + step
+            : e.key === "Home"
+              ? 0
+              : e.key === "End"
+                ? panes.length - 1
+                : -1;
           if (n < 0 || !panes.length) return;
           e.preventDefault();
           actions.focus(panes[(n + panes.length) % panes.length]!.id);

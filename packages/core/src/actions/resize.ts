@@ -33,15 +33,17 @@ export function setDividerSize(
   );
 }
 
-/** Resize mode: arrows move the divider nearest the pane on that side. */
+/** Resize mode: arrows move the divider nearest the pane, `deltaPx` towards the screen's right (or down). Right to
+ *  left, a row's first neighbour is the one on the right, so moving the divider right shrinks it. */
 export function nudgeDivider(
   x: Snapshot,
   pane: NodeId,
   horizontal: boolean,
   deltaPx: number,
 ): Outcome {
-  const d = nearestDivider(x.m, pane, horizontal);
-  return d ? resizeDivider(x, d.parentId, d.index, deltaPx) : null;
+  const rtl = horizontal && x.ctx.dir === "rtl";
+  const d = nearestDivider(x.m, pane, horizontal, rtl);
+  return d ? resizeDivider(x, d.parentId, d.index, rtl ? -deltaPx : deltaPx) : null;
 }
 
 /** End of a pointer drag: the layout the drag previewed, committed once. */

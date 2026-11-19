@@ -54,15 +54,12 @@ export const useProfile = (): Page | null => useEnv().profile;
 /** A pane's name: its role's label in a curated page, else its kind's title for what it shows. */
 export function useTitleOf(): (node: PaneNode) => string {
   const env = useEnv();
-  return (node) => titleOf(env, node);
+  const titles = useUi((s) => s.titles);
+  return (node) => titleOf(env, node, titles);
 }
 
 // ---------- the public names ----------
 
-/** Provides a workspace to the hooks below it. `<JaliRoot>` does this; use it to render Jali's parts on their own. */
-export const JaliProvider = ({ jali, children }: { jali: UiStore; children?: ReactNode }) => (
-  <StoreProvider store={jali}>{children}</StoreProvider>
-);
 /** The workspace: its actions (`useJali().actions.openBeside(...)`), keymap, kinds and state. */
 export const useJali = useStore;
 /** Part of the workspace's state, re-rendering only when it changes: `useJaliState((s) => s.view.focused)`. */

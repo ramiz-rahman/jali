@@ -1,9 +1,10 @@
 import { memo, useMemo, type CSSProperties } from "react";
-import { GripHorizontal } from "lucide-react";
+import { useJaliIcons } from "../icons/context";
 import {
   paneDomId,
   paneTitleId,
   roleOf,
+  shownTitle,
   titleOf,
   startPaneDrag,
   sameFrame,
@@ -29,6 +30,7 @@ export const PaneFrame = memo(
   function PaneFrame({ frame, chrome, dropTarget }: Props) {
     const { node, rect, hidden, focused, zoomed, covered, group } = frame;
     const store = useStore();
+    const icon = useJaliIcons();
     const { actions } = store;
     const activity = useUi((s) => s.activity[node.id]);
     const isDragged = useUi((s) => s.dnd?.dragged === node.id);
@@ -43,7 +45,9 @@ export const PaneFrame = memo(
     const role = page && node.role && profile ? roleOf(profile, node.role) : undefined;
     // In a curated workspace, a pane without a role was opened by following a link: it belongs to the investigation.
     const opened = page && !node.role;
-    const title = titleOf(env, node);
+    const titles = useUi((s) => s.titles);
+    const title = titleOf(env, node, titles);
+    const shows = shownTitle(env, node, titles);
     const style: CSSProperties = {
       left: rect.x,
       top: rect.y,
@@ -93,7 +97,7 @@ export const PaneFrame = memo(
         >
           {chrome.draggable && !bare ? (
             <span className="jali-grip" aria-hidden>
-              <GripHorizontal size={14} strokeWidth={1.5} />
+              <icon.grip size={14} />
             </span>
           ) : null}
           {group ? (
@@ -102,15 +106,9 @@ export const PaneFrame = memo(
             </div>
           ) : (
             <div className="jali-pane-title">
-              {role ? (
-                <role.icon size={16} strokeWidth={1.5} aria-hidden />
-              ) : (
-                <KindIcon kind={node.ref.kind} />
-              )}
+              {role ? <role.icon size={16} aria-hidden /> : <KindIcon kind={node.ref.kind} />}
               <h2 id={paneTitleId(store.dom.id, node.id)}>{title}</h2>
-              {role && env.kinds.title(node.ref) !== title ? (
-                <span className="jali-pane-sub">{env.kinds.title(node.ref)}</span>
-              ) : null}
+              {role && shows !== title ? <span className="jali-pane-sub">{shows}</span> : null}
               <Activity a={activity} />
               {bare ? null : <FollowControl node={node} title={title} />}
               {opened && boundary === "tint" ? (

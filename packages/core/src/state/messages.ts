@@ -8,13 +8,13 @@
  * plurals. A message with emphasis (a bold title) takes `bold` and returns its parts in order.
  */
 import type { Edge } from "../layout/types";
-import type { PaneActivity } from "../pane-kinds";
+import type { PaneActivity, ParamProblem } from "../pane-kinds";
 import type { Platform } from "../commands/format";
 import type { Env } from "../profile";
 import type { Toast } from "./apply";
 
-/** A direction as command ids name it. */
-export type Direction = "left" | "right" | "up" | "down";
+/** A direction on screen, as command ids name it ("pane.focus.left"). Right to left, left is still the screen's left. */
+export type ScreenDirection = "left" | "right" | "up" | "down";
 
 /** Direction as a word: "up", "down", "left", "right", "into the centre". */
 export const dirWord = (d: Edge | "centre") =>
@@ -185,7 +185,7 @@ const drop = {
 const commands = {
   focusNext: "Focus next pane",
   focusPrevious: "Focus previous pane",
-  focusDirection: (direction: Direction) => `Focus pane ${direction}`,
+  focusDirection: (direction: ScreenDirection) => `Focus pane ${direction}`,
   focusIndex: (n: number) => `Focus pane ${n}`,
   zoom: "Maximise or restore pane",
   tuck: "Tuck pane into its neighbour",
@@ -198,7 +198,7 @@ const commands = {
   splitRight: "Split right (new pane)",
   splitDown: "Split down (new pane)",
   splitAuto: "Split auto (new pane, by shape)",
-  moveDirection: (direction: Direction) => `Move pane ${direction}`,
+  moveDirection: (direction: ScreenDirection) => `Move pane ${direction}`,
   swap: "Swap with next pane",
   merge: "Add to tabs of…",
   unmerge: "Move out of tabs",
@@ -417,6 +417,25 @@ const pane = {
   /** `keys` opens the command palette ("⌘K"). */
   unknownKindHelp: (keys: string) =>
     `This pane stays in place so the layout keeps its shape. Close it or reset the layout from the command palette (${keys}).`,
+  /** A ref its kind can't read: `kind` is the kind's name ("order"). */
+  cantOpen: (kind: string) => `This ${kind} can’t open.`,
+  /** Why: each param missing (`value` undefined) or unreadable, then what to do. */
+  cantOpenHelp: (problems: ParamProblem[]) =>
+    `${problems
+      .map((p) =>
+        p.value === undefined
+          ? `Its link has no “${p.param}”.`
+          : `Its “${p.param}” (${String(p.value)}) isn’t one it can read.`,
+      )
+      .join(" ")} Close it, or open it again from where it was linked.`,
+  /** A pane whose content threw while rendering. */
+  failed: (pane: string) => `${pane} could not be shown.`,
+  retry: "Retry",
+  /** The failed pane's Retry, in ⌘K while it is focused. */
+  retryCommand: "Retry",
+  closeFailed: "Close",
+  /** A pane whose content is still loading, when its kind has no `Loading`. */
+  loadingContent: "Loading…",
 };
 
 /** The peek sheet. */
