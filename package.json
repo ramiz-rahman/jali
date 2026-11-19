@@ -19,7 +19,8 @@
     "size": "pnpm build:packages && tsc -p scripts/size && node scripts/size.mjs",
     "example:minimal": "vp dev --config examples/minimal/vite.config.ts --port 5310",
     "example:own-icons": "vp dev --config examples/own-icons/vite.config.ts --port 5311",
-    "example:markets": "vp dev --config examples/markets/vite.config.ts --port 5320"
+    "example:markets": "vp dev --config examples/markets/vite.config.ts --port 5320",
+    "example:trips": "vp dev --config examples/trips/vite.config.ts --port 5340"
   },
   "dependencies": {
     "@electric-sql/pglite": "^0.5.16",

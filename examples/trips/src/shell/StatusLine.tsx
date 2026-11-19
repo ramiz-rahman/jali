@@ -1,0 +1,23 @@
+/**
+ * The status line: Jali's shelf (tucked and folded panes, as chips), the keys worth knowing, read from the keymap,
+ * and a plain note that the businesses and prices are made up.
+ */
+import { Shelf, useJali, useJaliState } from "@jali/react";
+
+export function StatusLine() {
+  const { keymap } = useJali();
+  const zoomed = useJaliState((s) => !!s.view.zoomed);
+  const keys = (id: string, what: string) => (keymap.label(id) ? `${keymap.label(id)} ${what}` : "");
+  const hint = zoomed
+    ? "Maximised. Esc to restore."
+    : ["/ find a place", keys("palette.toggle", "commands"), keys("pane.focus.next", "next pane")]
+        .filter(Boolean)
+        .join(", ");
+  return (
+    <footer className="status" aria-label="Status">
+      <Shelf />
+      <span className="status-hint">{hint}</span>
+      <span className="status-note">Hotels, restaurants and every price are made up</span>
+    </footer>
+  );
+}
