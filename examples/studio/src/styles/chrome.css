@@ -371,7 +371,41 @@
   /* A row's name stays on one line (Chakra Petch runs wide); reached as its first child, which has no public
      selector. */
   .jali-palette-item > :first-child {
+    min-width: 0;
     white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  /*
+   * The chooser ("Go to segment…", "Jump to marker…"): a wider plate, and each row one line of two columns. The
+   * name takes the room and is cut with an ellipsis; what is printed after it (who, and when) keeps to its own
+   * column on the right, never wraps, and ends on the time, so the times line up down the edge. Jali's row is a
+   * fixed height with a third column for a key hint, which a chooser row has none of. Reached through
+   * `.jali-chooser` and `.jali-palette-id`, which are not public parts (FINDINGS.md).
+   */
+  .jali-chooser {
+    width: min(44rem, calc(100vw - 2rem));
+  }
+  .jali-chooser .jali-palette-item {
+    grid-template-columns: minmax(0, 1fr) auto;
+    column-gap: 20px;
+    height: auto;
+    min-height: 38px;
+    padding-inline-end: 12px;
+  }
+  .jali-chooser .jali-palette-id {
+    max-width: min(20rem, 40vw);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-family: var(--font-readout);
+    font-size: 11.5px;
+    font-variant-numeric: tabular-nums;
+    color: var(--legend);
+  }
+  /* Only the row under the cursor shows a lamp: a column of dark ones down the list says nothing. */
+  .jali-palette-item:not([aria-selected="true"])::before {
+    display: none;
   }
 }
 

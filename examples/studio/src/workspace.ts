@@ -92,7 +92,8 @@ export function createStudioJali(services: Services, options: Options = {}): Jal
           title: "Go to segment…",
           items: v.session.segments,
           label: (seg) => opening(v.textOf(seg), 9),
-          hint: (seg) => `${clock(seg.start)} · ${v.speakerName(v.speakerOf(seg))}`,
+          // Who, then when: the list sets hints flush right, so the times line up down its edge.
+          hint: (seg) => `${v.speakerName(v.speakerOf(seg))}  ${clock(seg.start)}`,
           placeholder: "A word, a name or a time",
           onChoose: (seg) => {
             cue(engine, v.session.id, seg.start, engine.get().playing);

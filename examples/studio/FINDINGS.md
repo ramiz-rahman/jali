@@ -223,3 +223,7 @@ Not Jali's, for the record: making the top row one flex row of blocks meant grou
 - **Commands.** `createJali({ commands, keymap })` and `jali.actions.choose` made "Go to segment…", "Jump to marker…" and "Playback speed…" a few lines each, searchable by any word of the line.
 - **Fit or fold.** Honest minimum widths, and `priority: "supporting"` on the markers in Review, were enough for every layout to fold sensibly down to a phone, where `phone: { stack: true }` shows the library over the transcript.
 - **Theming.** The hardware look came from Jali's tokens and the public part selectors, with no `!important` (see above for the few rules that reached further).
+
+## The chooser's rows can't be laid out by an app
+
+`jali.actions.choose` rows share the palette's row: a fixed 2rem height and three columns (name, hint, 72px for a key hint a chooser row never has). A long hint wraps inside the fixed height and prints over the next row ("Go to segment…" with a long speaker name). Studio fixes it by reaching `.jali-chooser` and `.jali-palette-id`, which are not public parts. Jali could give chooser rows two columns and one line by default (name cut with an ellipsis, hint never wrapping), make the chooser's parts public, and let `choose` take a `render` for a row.
