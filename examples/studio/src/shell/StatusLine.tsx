@@ -1,8 +1,8 @@
 /**
- * The status line, bookended: what this is on the left ("Example app built with Jali"), who made it on the right.
- * Between them, Jali's shelf (tucked panes, as chips), the keys worth knowing (read from the keymap, so they are
- * right on every platform and after any rebinding) and the key to every credit and licence. The loaded session's
- * own credit is that key's tooltip; its licence is on its row in the library.
+ * The status line: one quiet line of print along the edge, like the line on the back of a device. What this is on
+ * the left ("Example app built with Jali"), who made it on the right, and between them only what the moment needs:
+ * Jali's shelf (tucked panes, as chips), a word when a pane is maximised, and the way to every credit and licence.
+ * The keys are not listed here: ⌘K lists every command with its key.
  */
 import { Shelf, useJali, useJaliState } from "@jali/react";
 import { BuiltWithJali, Maker } from "../../../shared/src/maker/maker";
@@ -13,43 +13,24 @@ import { catalogueOf } from "../sessions/catalog";
 
 export function StatusLine() {
   const jali = useJali();
-  const { keymap } = jali;
   const loaded = useTransport((s) => s.session);
   const cat = catalogueOf(loaded);
   const zoomed = useJaliState((s) => !!s.view.zoomed);
-  // The keys worth knowing, each as a small cap and what it does.
-  const keys: [key: string, does: string][] = zoomed
-    ? [["Esc", "restore"]]
-    : [
-        ["Space", "play"],
-        ["/", "go to segment"],
-        [keymap.label("palette.toggle") ?? "", "commands"],
-        [keymap.label("pane.focus.next") ?? "", "next pane"],
-      ];
   return (
     <footer className="status" aria-label="Status">
       <BuiltWithJali />
       <Shelf />
-      <span className="status-keys">
-        {keys
-          .filter(([key]) => key)
-          .map(([key, does]) => (
-            <span key={does} className="status-key">
-              <kbd>{key}</kbd>
-              {does}
-            </span>
-          ))}
-      </span>
+      {zoomed ? <span className="status-note">Maximised. Esc restores the layout.</span> : null}
       <button
         type="button"
         className="status-credits"
-        title={`${cat.short}\nPress for every credit and licence.`}
+        title={`${cat.short}\nEvery credit and licence.`}
         onMouseDown={(e) => e.preventDefault()}
         onClick={() => show(jali, credits())}
       >
-        credits
+        Credits
       </button>
-      <Maker />
+      <Maker words />
     </footer>
   );
 }

@@ -442,19 +442,26 @@
   }
 
   /*
-   * ---------- the foot rail ----------
-   * The status line as the slab's twin, flush to the bottom and sides: its top edge catches the light.
+   * ---------- the edge rail ----------
+   * The status line: the slab's twin on the opposite edge, flush to it and the sides, and slim. One line of fine
+   * print engraved in the metal, as on the back of a device: what this is at one end, who made it at the other,
+   * the marks in the ink of the keys' legends and the words a shade quieter. No caps, no seams, no keys: the rail
+   * is the quietest thing on the desk.
    */
   .status {
+    --maker-ink: var(--ink);
+    --maker-lockup: 17px;
+    --maker-mark: 15px;
     position: relative;
     display: flex;
     align-items: center;
-    gap: 16px;
-    min-height: 40px;
-    padding: 0 16px;
+    gap: 28px;
+    min-height: 34px;
+    padding: 0 20px;
     color: var(--legend);
     font-family: var(--jali-font);
-    font-size: 11.5px;
+    font-size: 11px;
+    letter-spacing: 0.035em;
     min-width: 0;
     background:
       var(--grain), var(--slab-falloff), linear-gradient(180deg, var(--slab-2), var(--slab-1));
@@ -463,107 +470,55 @@
       0 -1px 0 light-dark(rgb(0 0 0 / calc(0.25 * var(--sh))), #000);
     text-shadow: 0 1px 0 light-dark(rgb(255 255 255 / 0.8), rgb(0 0 0 / calc(0.6 * var(--sh))));
   }
-  /* The keys worth knowing: each a small cap standing on the rail, and what it does. */
-  .status-keys {
-    display: flex;
-    align-items: center;
-    gap: 14px;
-    margin-left: auto;
-    flex: 0 1 auto;
-    min-width: 0;
-    overflow: hidden;
-    white-space: nowrap;
+  .status :is(.maker, .built-with) {
+    gap: 8px;
   }
-  .status-key {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    flex: none;
-  }
-  .status-key kbd {
-    display: inline-grid;
-    place-items: center;
-    min-width: 20px;
-    height: 20px;
-    padding: 0 5px;
-    box-sizing: border-box;
-    border-radius: var(--corner);
-    font-family: var(--jali-font-mono);
-    font-size: 10.5px;
+  .status .maker-name {
     font-weight: 500;
-    color: var(--cap-ink);
-    opacity: 1;
-    background: linear-gradient(180deg, var(--cap-1), var(--cap-2));
-    box-shadow:
-      inset 0 1px 0 var(--cap-hi),
-      inset 0 0 0 1px var(--cap-rim),
-      0 1.5px 0 var(--cap-edge);
-    text-shadow: none;
   }
-  /* The key to every credit and licence: a small cap, like the key hints beside it but one you press. */
+  /* The engraving catches the light on its lower edge, the marks as the print does. */
+  .status :is(.brand-lockup, .maker-mark) {
+    filter: drop-shadow(
+      0 1px 0 light-dark(rgb(255 255 255 / 0.8), rgb(0 0 0 / calc(0.6 * var(--sh))))
+    );
+  }
+  /* Tucked panes wait here as small keys; they are the only things on the rail that stand up from it. */
+  .status .jali-shelf-chip {
+    height: 24px;
+    font-size: 10.5px;
+  }
+  .status-note {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    min-width: 0;
+  }
+  /* Credits: print too, pushed to the maker's end. It is a button, and says so only under the pointer or focus. */
   .status-credits {
     flex: none;
-    height: 24px;
-    padding: 0 10px;
+    margin-left: auto;
+    padding: 4px 0;
     border: 0;
-    border-radius: var(--corner);
-    font-family: var(--jali-font-mono);
-    font-size: 11px;
-    font-weight: 500;
-    color: var(--cap-ink);
-    background: linear-gradient(180deg, var(--cap-1), var(--cap-2));
-    box-shadow:
-      inset 0 1px 0 var(--cap-hi),
-      inset 0 0 0 1px var(--cap-rim),
-      0 2px 0 var(--cap-edge);
-    text-shadow: none;
+    background: none;
+    font: inherit;
+    letter-spacing: inherit;
+    color: inherit;
+    text-shadow: inherit;
     cursor: pointer;
-    transition:
-      translate var(--travel),
-      box-shadow var(--travel);
   }
-  .status-credits:active {
-    translate: 0 1px;
-    box-shadow:
-      inset 0 0 0 1px var(--cap-rim),
-      0 1px 0 var(--cap-edge);
+  .status-credits:hover {
+    color: var(--ink);
+    text-decoration: underline;
+    text-underline-offset: 0.25em;
   }
   .status-credits:focus-visible {
     outline: 2px solid var(--focus);
-    outline-offset: 2px;
-  }
-  /* The bookends, each engraved in the rail beyond a seam: Jali's lockup and the maker's name in the rail's ink. */
-  .status {
-    --maker-ink: var(--ink);
-    --maker-lockup: 20px;
-  }
-  .status > :is(.built-with, .maker) {
-    align-self: stretch;
-    gap: 7px;
-  }
-  .status > .built-with {
-    padding-right: 16px;
-    border-right: 1px solid var(--seam-dark);
-    box-shadow: 1px 0 0 var(--seam-lit);
-  }
-  .status > .maker {
-    padding-left: 16px;
-    border-left: 1px solid var(--seam-dark);
-    box-shadow: -1px 0 0 var(--seam-lit);
-  }
-  @media (max-width: 900px) {
-    .status-keys {
-      display: none;
-    }
-    .status-credits {
-      margin-left: auto;
-    }
+    outline-offset: 3px;
   }
   @media (max-width: 760px) {
-    .status > :is(.built-with, .maker) {
-      padding-inline: 0;
-      border: 0;
-      box-shadow: none;
+    .status {
+      gap: 16px;
+      padding: 0 14px;
     }
   }
 

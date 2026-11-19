@@ -41,8 +41,8 @@ function Toasts() {
       ),
     [jali],
   );
-  // Clear of whatever stands along the bottom: the status line (40px), or the control slab (104px).
-  const bottom = useControlsPlace() === "bottom" ? 116 : 40;
+  // Clear of whatever stands along the bottom: the status line (34px), or the control slab (104px).
+  const bottom = useControlsPlace() === "bottom" ? 116 : 46;
   return (
     <Toaster
       theme={theme}

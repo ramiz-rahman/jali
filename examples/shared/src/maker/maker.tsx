@@ -41,8 +41,11 @@ export function MakerMark({ size = 14 }: { size?: number }) {
   );
 }
 
-/** The mark and the name, linking to the maker's site. For a status line or a footer. */
-export function Maker() {
+/**
+ * The mark and the name, linking to the maker's site. For a status line or a footer. With `words`, "Designed and
+ * built by" is printed before them, to mirror "Example app built with Jali" at the other end of a line.
+ */
+export function Maker({ words = false }: { words?: boolean }) {
   return (
     <a
       className="maker"
@@ -50,10 +53,11 @@ export function Maker() {
       target="_blank"
       rel="noopener"
       title={MAKER.credit}
-      aria-label={MAKER.name}
+      aria-label={words ? MAKER.credit : MAKER.name}
     >
+      {words ? <span className="maker-words">Designed and built by</span> : null}
       <MakerMark />
-      <span>{MAKER.name}</span>
+      <span className="maker-name">{MAKER.name}</span>
     </a>
   );
 }
@@ -68,7 +72,7 @@ export function BuiltWithJali() {
       rel="noopener"
       aria-label={`${JALI.line} Jali`}
     >
-      <span>{JALI.line}</span>
+      <span className="maker-words">{JALI.line}</span>
       <JaliLockup />
     </a>
   );
