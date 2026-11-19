@@ -11,6 +11,7 @@ import { expect, test, type Page } from "@playwright/test";
  */
 const SIZES = [
   [760, 700],
+  [1280, 620],
   [1024, 760],
   [1280, 800],
   [1440, 900],
@@ -61,6 +62,66 @@ async function check(page: Page) {
               keys[i]!.top < keys[i - 1]!.bottom - 0.5
             )
               problems.push(`${kind}: keys overlap in a keyset`);
+        }
+        // A control row: every cap in it (keys, latches, LCD and readout windows) one height and one top, measured
+        // cap to cap; every pocket in it styled alike; gaps of two values only (the seam, and the group gap).
+        for (const row of body.querySelectorAll(".toolbar, .clip-row, .clip-note-foot")) {
+          // A select set inside an LCD window is part of that window, not a cap of its own.
+          const caps = [...row.querySelectorAll(".key, .lcd, select")].filter(
+            (c) => visible(c) && !c.parentElement?.closest(".lcd, .clip-fields"),
+          );
+          const lines = new Map<number, Element[]>();
+          for (const c of caps) {
+            const t = Math.round(r(c).top);
+            const key = [...lines.keys()].find((k) => Math.abs(k - t) < 8) ?? t;
+            lines.set(key, [...(lines.get(key) ?? []), c]);
+          }
+          for (const line of lines.values()) {
+            const boxes = line.map(r).sort((p, q) => p.left - q.left);
+            const h = boxes[0]!.height;
+            const top = boxes[0]!.top;
+            for (const [i, b] of boxes.entries()) {
+              if (Math.abs(b.height - h) > 0.5 || Math.abs(b.top - top) > 0.5)
+                problems.push(
+                  `${kind}: caps in a row differ: ${b.height}px at ${b.top} vs ${h}px at ${top} ("${line[i]?.textContent?.trim().slice(0, 16)}")`,
+                );
+            }
+            const gaps = new Set<number>();
+            for (let i = 1; i < boxes.length; i++)
+              gaps.add(Math.round((boxes[i]!.left - boxes[i - 1]!.right) * 2) / 2);
+            if (gaps.size > 2)
+              problems.push(
+                `${kind}: gaps in a row take ${gaps.size} values: ${[...gaps].join(", ")}`,
+              );
+          }
+          const pockets = new Set(
+            caps
+              .map((c) => c.closest(".tray, .pocket, .keyset"))
+              .map((p) => (p ? getComputedStyle(p).boxShadow : "bare")),
+          );
+          if (pockets.size > 1)
+            problems.push(`${kind}: a row mixes ${pockets.size} kinds of housing`);
+        }
+        // Track headers: every name wholly inside its header, top to bottom, at a legible size.
+        for (const li of body.querySelectorAll<HTMLElement>(".tl-labels li")) {
+          const who = li.querySelector<HTMLElement>(".tl-who");
+          if (!who || !visible(li)) continue;
+          const a = r(li);
+          const b = r(who);
+          if (
+            b.top < a.top - 0.5 ||
+            b.bottom > a.bottom + 0.5 ||
+            parseFloat(getComputedStyle(who).fontSize) < 11
+          )
+            problems.push(
+              `${kind}: track name "${who.textContent}" cut by its header (${a.height.toFixed(1)}px)`,
+            );
+          const lamp = li.querySelector(".mx-lamp");
+          if (lamp) {
+            const l = r(lamp);
+            if (l.top < a.top - 0.5 || l.bottom > a.bottom + 0.5)
+              problems.push(`${kind}: a lamp crosses its header's edge`);
+          }
         }
         for (const el of body.querySelectorAll<HTMLElement>(legends)) {
           if (!visible(el) || getComputedStyle(el).textOverflow === "ellipsis") continue;

@@ -87,7 +87,7 @@ export const presets: PresetOptions[] = [
     label: "Compare",
     layout: row(
       pane(library(), { id: "library", weight: 0.7 }),
-      column({ weight: 1.5 }, tr(2.2), tl(1)),
+      column({ weight: 1.5 }, tr(2), tl(1.3)),
       pane(clip({ session, segment: "s04" }), {
         id: "clip-a",
         linkedTo: "transcript",

@@ -104,7 +104,7 @@ function ClipBody({
         </span>
       </header>
       {!inTransport && !inPeek ? <NotInTransport session={session.id} /> : null}
-      <MiniWave seg={seg} view={view} paused={paused || !inTransport} />
+      <MiniWave seg={seg} view={view} paused={paused} />
       {/* The keys and the speaker/track LCD on one row when there is room; stacked when narrow. */}
       <div className="clip-row">
         <div className="clip-controls">
@@ -209,6 +209,7 @@ function MiniWave({ seg, view, paused }: { seg: SegmentData; view: SessionView; 
   const from = Math.max(0, seg.start - 0.4);
   const to = Math.min(view.session.duration, seg.end + 0.4);
   const inTransport = useTransport((s) => s.session === view.session.id);
+  const looping = useTransport((s) => s.session === view.session.id && s.loop?.segment === seg.id);
   const scale = 1 / loudest(peaks);
   const timeAt = (x: number) => from + (x / Math.max(1, width)) * (to - from);
 
@@ -219,29 +220,47 @@ function MiniWave({ seg, view, paused }: { seg: SegmentData; view: SessionView; 
       if (!g) return;
       const c = screenPaletteOf(canvas.current!);
       const x = (t: number) => ((t - from) / (to - from)) * width;
-      // The segment's own span, behind the bars.
-      g.fillStyle = c.signalSoft;
-      g.fillRect(x(seg.start), 0, x(seg.end) - x(seg.start), height);
+      // One clean glass: no fill. The segment's range is marked with lines: an in and an out line with flags at the
+      // top, and a fine baseline between them. State lives in the bars: the context outside the segment dim, the
+      // segment's own bars bright, the played part orange. A loop over the segment is a second bracket at the foot.
+      const x0 = Math.round(x(seg.start));
+      const x1 = Math.round(x(seg.end));
+      const playhead = inTransport && pos >= from && pos <= to ? pos : -1;
       drawBars(
         g,
         peaks,
-        { x: 0, y: 6, w: width, h: height - 12 },
+        { x: 0, y: 12, w: width, h: height - 24 },
         { from, to },
-        { idle: c.idle, played: c.played, bar: 3, gap: 2 },
-        inTransport && pos >= from && pos <= to ? pos : -1,
-        null,
+        { idle: c.scrMusic, marked: c.scrBright, played: c.played, bar: 3, gap: 2 },
+        playhead,
+        { from: seg.start, to: seg.end },
         scale,
       );
-      if (inTransport && pos >= from && pos <= to) {
+      g.fillStyle = c.scrDim;
+      g.fillRect(x0, 0, 1, height);
+      g.fillRect(x1, 0, 1, height);
+      g.fillRect(x0, 0, 7, 2);
+      g.fillRect(x1 - 6, 0, 7, 2);
+      g.fillStyle = c.scrLine;
+      g.fillRect(x0, Math.round(height / 2), x1 - x0, 1);
+      if (looping) {
         g.fillStyle = c.played;
-        g.fillRect(Math.round(x(pos)) - 1, 0, 2, height);
+        g.fillRect(x0, height - 2, x1 - x0 + 1, 2);
+        g.fillRect(x0, height - 7, 2, 7);
+        g.fillRect(x1 - 1, height - 7, 2, 7);
+      }
+      if (playhead >= 0) {
+        const px = Math.round(x(pos));
+        g.fillStyle = c.played;
+        g.fillRect(px - 1, 3, 2, height - 3);
+        g.fillRect(px - 4, 0, 8, 3);
       }
       if (hover !== null) {
-        g.fillStyle = c.signalSoft;
+        g.fillStyle = c.scrDim;
         g.fillRect(Math.round(hover), 0, 1, height);
       }
     },
-    [width, height, seg, hover, inTransport],
+    [width, height, seg, hover, inTransport, looping],
   );
 
   const seek = (e: PointerEvent<HTMLDivElement>) => {

@@ -105,11 +105,10 @@ function TimelineBody({ paused, view }: PaneProps<typeof timelineParams> & { vie
       g.fillStyle = c.line;
       g.fillRect(0, RULER - 1, width, 1);
 
-      // The loop, behind everything.
+      // The loop: two orange lines down the lanes and a bar across the ruler's foot. No fill on the glass.
       if (loop) {
-        g.fillStyle = c.signalSoft;
-        g.fillRect(x(loop.start), RULER, x(loop.end) - x(loop.start), height - RULER);
         g.fillStyle = c.played;
+        g.fillRect(x(loop.start), RULER - 3, x(loop.end) - x(loop.start), 2);
         g.fillRect(Math.round(x(loop.start)), RULER, 1, height - RULER);
         g.fillRect(Math.round(x(loop.end)), RULER, 1, height - RULER);
       }
@@ -123,13 +122,18 @@ function TimelineBody({ paused, view }: PaneProps<typeof timelineParams> & { vie
             const x0 = x(seg.start);
             const x1 = x(seg.end);
             // A segment's block on its lane; the selected one lit from behind, like a lamp under glass.
+            // The selected one is bracketed, not filled: an orange in and out line with short arms.
             const lit = selected.has(seg.id);
-            g.fillStyle = lit ? c.signalSoft : c.block;
-            g.fillRect(x0, y + 3, x1 - x0, h - 6);
             if (lit) {
+              const a = Math.round(x0);
+              const b = Math.round(x1);
               g.fillStyle = c.played;
-              g.fillRect(x0, y + 3, x1 - x0, 2);
-              g.fillRect(x0, y + h - 5, x1 - x0, 2);
+              g.fillRect(a, y + 2, 2, h - 4);
+              g.fillRect(b - 2, y + 2, 2, h - 4);
+              g.fillRect(a, y + 2, 6, 2);
+              g.fillRect(a, y + h - 4, 6, 2);
+              g.fillRect(b - 6, y + 2, 6, 2);
+              g.fillRect(b - 6, y + h - 4, 6, 2);
             }
           }
         }
@@ -202,17 +206,18 @@ function TimelineBody({ paused, view }: PaneProps<typeof timelineParams> & { vie
       if (playhead >= 0) {
         const px = Math.round(x(playhead));
         g.fillStyle = c.played;
-        g.fillRect(px - 1, RULER - 2, 2, height - RULER + 2);
+        g.fillRect(px - 1, 12, 2, height - 12);
+        // Its cap sits in the timecodes' row, so it never covers a marker's name.
         g.beginPath();
-        g.moveTo(px - 6, RULER - 16);
-        g.lineTo(px + 6, RULER - 16);
-        g.lineTo(px + 6, RULER - 8);
-        g.lineTo(px, RULER - 2);
-        g.lineTo(px - 6, RULER - 8);
+        g.moveTo(px - 6, 1);
+        g.lineTo(px + 6, 1);
+        g.lineTo(px + 6, 8);
+        g.lineTo(px, 14);
+        g.lineTo(px - 6, 8);
         g.closePath();
         g.fill();
         g.fillStyle = "rgb(255 255 255 / 0.5)";
-        g.fillRect(px - 5, RULER - 15, 10, 1);
+        g.fillRect(px - 5, 2, 10, 1);
       }
     },
     [width, height, lanes, selected, loop, theme, rendered, hover, view, inTransport, at],
@@ -291,7 +296,8 @@ function TimelineBody({ paused, view }: PaneProps<typeof timelineParams> & { vie
                 data-channel={CHANNEL[track.id]}
                 data-silent={audible(view.edits, track.id) ? undefined : ""}
                 data-short={h < 38 ? "" : undefined}
-                data-tiny={h < 20 ? "" : undefined}
+                data-compact={h < 30 ? "" : undefined}
+                title={`${track.label}: ${trackName(track, view.speakerName)}`}
               >
                 <span className="mx-lamp" />
                 <span className="tl-track">{track.label}</span>
@@ -337,7 +343,8 @@ export const timeline = definePane("timeline", {
   title: ({ session }) => `Timeline · ${sessionById(session)?.title ?? session}`,
   icon: WaveSineIcon,
   width: { min: 440, comfortable: 760 },
-  height: { min: 190 },
+  // Room for four legible lanes under the ruler, with the "not loaded" note.
+  height: { min: 230 },
   follow: followSession,
   Component: Timeline,
 });

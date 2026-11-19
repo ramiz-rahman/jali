@@ -164,6 +164,7 @@ const COLOURS = {
   music: "--st-wave-music",
   // On a screen (OLED glass): light marks on black, in both themes.
   scrIdle: "--scr-idle",
+  scrBright: "--scr-bright",
   scrMusic: "--scr-music",
   scrInk: "--scr-ink",
   scrDim: "--scr-dim",

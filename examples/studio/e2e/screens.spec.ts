@@ -260,3 +260,58 @@ for (const dark of [false, true]) {
       .screenshot({ path: shot(`row-keyboard${d}`) });
   });
 }
+
+// The fixes in this round, close up.
+test("light finish after", async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 820 });
+  await page.emulateMedia({ colorScheme: "light", reducedMotion: "reduce" });
+  await page.goto("/");
+  await page
+    .getByRole("listbox", { name: "Sessions" })
+    .getByRole("option", { name: /Recording the quiet/ })
+    .click();
+  await page
+    .getByRole("navigation", { name: "Layouts" })
+    .getByRole("button", { name: "Compare" })
+    .click();
+  await page.waitForTimeout(600);
+  await page.screenshot({ path: shot("light-shadows-after") });
+});
+for (const dark of [false, true]) {
+  const d = dark ? "-dark" : "";
+  test(`transcript controls and displays${d}`, async ({ browser, baseURL }) => {
+    const context = await browser.newContext({
+      baseURL,
+      viewport: { width: 1440, height: 900 },
+      deviceScaleFactor: 2,
+      colorScheme: dark ? "dark" : "light",
+    });
+    const page = await context.newPage();
+    await page.goto("/");
+    await expect(page.locator(".tr-controls")).toBeVisible();
+    await page.waitForTimeout(800);
+    await page.locator(".tr-controls").screenshot({ path: shot(`transcript-controls${d}`) });
+    await page
+      .getByRole("navigation", { name: "Layouts" })
+      .getByRole("button", { name: "Review" })
+      .click();
+    await page.waitForTimeout(600);
+    await page.locator(".clip-wave").screenshot({ path: shot(`display-segment${d}`) });
+    await page.getByRole("button", { name: /Play segment/ }).click();
+    await page.waitForTimeout(1800);
+    await page.locator(".clip-wave").screenshot({ path: shot(`display-segment-playing${d}`) });
+    await page.locator(".tl-body").screenshot({ path: shot(`timeline-selected${d}`) });
+    await context.close();
+  });
+}
+test("timeline labels when short", async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 620 });
+  await page.emulateMedia({ colorScheme: "light", reducedMotion: "reduce" });
+  await page.goto("/");
+  await page
+    .getByRole("navigation", { name: "Layouts" })
+    .getByRole("button", { name: "Edit" })
+    .click();
+  await page.waitForTimeout(600);
+  await page.locator(".tl-body").screenshot({ path: shot("timeline-labels") });
+});

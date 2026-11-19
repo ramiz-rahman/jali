@@ -48,10 +48,10 @@ export function NotInTransport({ session }: { session: string }) {
   const { engine } = useServices();
   const playing = useTransport((s) => sessionById(s.session)?.title);
   return (
-    <div className="not-live" role="note">
-      <span>Not in the transport{playing ? <>: it has “{playing}”</> : null}.</span>
+    <div className="not-live" role="note" title={playing ? `The transport has “${playing}”.` : undefined}>
+      <span>Not loaded.</span>
       <button type="button" className="key key-s" onClick={() => cue(engine, session, 0)}>
-        <PlayIcon size={12} weight="fill" aria-hidden /> Load this session
+        <PlayIcon size={12} weight="fill" aria-hidden /> load
       </button>
     </div>
   );

@@ -115,8 +115,8 @@
     font-family: var(--jali-font-mono);
     font-size: 11px;
     color: var(--legend);
-    background: light-dark(rgb(0 0 0 / 0.05), rgb(0 0 0 / 0.3));
-    box-shadow: inset 0 1px 2px rgb(0 0 0 / 0.14);
+    background: light-dark(rgb(0 0 0 / calc(0.05 * var(--sh))), rgb(0 0 0 / calc(0.3 * var(--sh))));
+    box-shadow: inset 0 1px 2px rgb(0 0 0 / calc(0.14 * var(--sh)));
     flex: none;
   }
   .not-live span {
@@ -180,7 +180,8 @@
     background: var(--paper);
     color: var(--paper-ink);
     box-shadow:
-      inset 0 0 0 1px light-dark(rgb(0 0 0 / 0.08), rgb(0 0 0 / 0.5)),
+      inset 0 0 0 1px
+        light-dark(rgb(0 0 0 / calc(0.08 * var(--sh))), rgb(0 0 0 / calc(0.5 * var(--sh)))),
       0 1px 0 var(--cap-hi);
   }
   .lib-lamp {
@@ -192,7 +193,7 @@
     height: 7px;
     border-radius: 50%;
     background: var(--led-off);
-    box-shadow: inset 0 1px 1px rgb(0 0 0 / 0.35);
+    box-shadow: inset 0 1px 1px rgb(0 0 0 / calc(0.35 * var(--sh)));
   }
   .lib-row[aria-selected="true"] .lib-lamp {
     background: var(--led-on);
@@ -317,7 +318,7 @@
     background: var(--st-signal);
   }
   .tr-seg[aria-selected="true"] {
-    background: light-dark(rgb(0 0 0 / 0.04), rgb(255 255 255 / 0.045));
+    background: light-dark(rgb(0 0 0 / calc(0.04 * var(--sh))), rgb(255 255 255 / 0.045));
   }
   .tr-rows:focus-visible .tr-seg[aria-selected="true"] {
     box-shadow: inset 0 0 0 1.5px var(--paper-dim);
@@ -349,7 +350,7 @@
     margin-right: 8px;
     border-radius: 50%;
     background: var(--enc-blue);
-    box-shadow: inset 0 0 0 1px rgb(0 0 0 / 0.25);
+    box-shadow: inset 0 0 0 1px rgb(0 0 0 / calc(0.25 * var(--sh)));
     vertical-align: -0.5px;
   }
   .tr-seg[data-speaker="guest"] .tr-speaker-name::before {
@@ -631,10 +632,11 @@
     color: var(--lcd-ink);
     border-radius: var(--corner);
     box-shadow:
-      inset 0 1px 3px rgb(0 0 0 / 0.3),
-      inset 0 0 0 1px rgb(0 0 0 / 0.25);
+      inset 0 1px 3px rgb(0 0 0 / calc(0.3 * var(--sh))),
+      inset 0 0 0 1px rgb(0 0 0 / calc(0.25 * var(--sh)));
   }
   .tl-labels li .mx-lamp {
+    left: 6px;
     top: 50%;
     margin-top: -3px;
   }
@@ -677,10 +679,18 @@
   .tl-labels li[data-short] .tl-track {
     display: none;
   }
-  .tl-labels li[data-tiny] .tl-who {
-    font-size: 11px;
+  /* Compact: one line a track (the lamp, then the name, legible), no LCD frame; the M and S lamps go. */
+  .tl-labels li[data-compact] {
+    background: none;
+    box-shadow: none;
+    padding-left: 16px;
+    color: var(--ink);
   }
-  .tl-labels li[data-tiny] .tl-ms {
+  .tl-labels li[data-compact] .tl-who {
+    font-size: 11.5px;
+    line-height: 1.2;
+  }
+  .tl-labels li[data-compact] .tl-ms {
     display: none;
   }
   .tl-ms {
@@ -765,9 +775,9 @@
     background: var(--grain), linear-gradient(180deg, #2f2f33, #252528);
     box-shadow:
       inset 0 1px 0 rgb(255 255 255 / 0.09),
-      inset 0 0 0 1px rgb(0 0 0 / 0.7),
+      inset 0 0 0 1px rgb(0 0 0 / calc(0.7 * var(--sh))),
       0 3px 0 #0a0a0b,
-      0 5px 6px rgb(0 0 0 / 0.35);
+      0 5px 6px rgb(0 0 0 / calc(0.35 * var(--sh)));
   }
   .mx-module > * {
     min-width: 0;
@@ -795,9 +805,9 @@
     .mx-master {
       box-shadow:
         inset 0 1px 0 rgb(255 255 255 / 0.09),
-        inset 0 0 0 1px rgb(0 0 0 / 0.7),
+        inset 0 0 0 1px rgb(0 0 0 / calc(0.7 * var(--sh))),
         0 3px 0 #0a0a0b,
-        -10px 0 14px -6px rgb(0 0 0 / 0.7),
+        -10px 0 14px -6px rgb(0 0 0 / calc(0.7 * var(--sh))),
         12px 0 0 0 #252528;
     }
   }
@@ -818,8 +828,8 @@
     color: var(--lcd-ink);
     border-radius: var(--corner);
     box-shadow:
-      inset 0 1px 3px rgb(0 0 0 / 0.35),
-      inset 0 0 0 1px rgb(0 0 0 / 0.3),
+      inset 0 1px 3px rgb(0 0 0 / calc(0.35 * var(--sh))),
+      inset 0 0 0 1px rgb(0 0 0 / calc(0.3 * var(--sh))),
       0 1px 0 rgb(255 255 255 / 0.06);
     text-align: left;
   }
@@ -831,7 +841,7 @@
     height: 6px;
     border-radius: 50%;
     background: var(--chan, var(--st-signal));
-    box-shadow: 0 0 0 1px rgb(0 0 0 / 0.35);
+    box-shadow: 0 0 0 1px rgb(0 0 0 / calc(0.35 * var(--sh)));
   }
   .mx-module[data-channel="blue"] {
     --chan: var(--enc-blue);
@@ -1063,7 +1073,7 @@
     .mx-module .pan-dial[data-cap] .dial-face {
       box-shadow:
         inset 0 1px 0 rgb(255 255 255 / 0.25),
-        0 0 0 1px rgb(0 0 0 / 0.35);
+        0 0 0 1px rgb(0 0 0 / calc(0.35 * var(--sh)));
     }
     .pan-dial .dial-tick:not([data-reset]) {
       display: none;
@@ -1120,13 +1130,6 @@
 
 @layer app {
   /* The transcript's segment keys: three keysets with gutters between them. */
-  .segment-keys {
-    gap: 10px;
-    min-height: 52px;
-  }
-  .segment-keys .key-s {
-    height: 32px;
-  }
   /* Long reading in Chakra Petch: a little larger and looser than the Plex it replaced. */
   .tr-text {
     font-size: 17px;
@@ -1142,18 +1145,15 @@
   /* A narrow transcript keeps every segment key and drops their words; their titles and the key's text (kept for
      screen readers) still name them. */
   @container (max-width: 560px) {
-    .segment-keys .key-word {
+    .tr-tray .key-word {
       position: absolute;
       width: 1px;
       height: 1px;
       overflow: hidden;
       clip-path: inset(50%);
     }
-    .segment-keys > .legend {
-      display: none;
-    }
-    .segment-keys .key-s {
-      width: 36px;
+    .tr-tray .tr-group:not(:first-child) .key-s {
+      width: 34px;
       padding: 0;
     }
   }
@@ -1187,31 +1187,6 @@
     gap: 10px;
     padding-block: 8px;
   }
-  .tr-controls .segment-keys {
-    display: flex;
-    gap: 8px;
-    min-height: 0;
-    padding: 0;
-    border: 0;
-    flex-wrap: wrap;
-  }
-  .tr-counter {
-    display: inline-flex;
-    align-items: baseline;
-    gap: 1px;
-    height: 30px;
-    box-sizing: border-box;
-    padding: 0 10px;
-    align-items: center;
-    font-family: var(--font-readout);
-    font-size: 12px;
-    color: var(--lcd-dim);
-  }
-  .tr-counter b {
-    font-size: 15px;
-    font-weight: 500;
-    color: var(--lcd-ink);
-  }
   .tr-controls .toolbar-end:empty {
     display: none;
   }
@@ -1227,9 +1202,10 @@
       ),
       var(--paper);
     box-shadow:
-      inset 0 0 0 1px light-dark(rgb(0 0 0 / 0.14), rgb(0 0 0 / 0.7)),
-      inset 0 2px 4px rgb(0 0 0 / 0.14),
-      0 0 0 3px light-dark(#b9b8b3, #0b0b0c),
+      inset 0 0 0 1px
+        light-dark(rgb(0 0 0 / calc(0.14 * var(--sh))), rgb(0 0 0 / calc(0.7 * var(--sh)))),
+      inset 0 2px 4px rgb(0 0 0 / calc(0.14 * var(--sh))),
+      0 0 0 3px light-dark(#d4d4d0, #0b0b0c),
       0 1px 0 3px var(--seam-lit);
   }
   .tr-text {
@@ -1420,5 +1396,101 @@
   .mk-rows:focus-visible .mk-row[aria-selected="true"] {
     outline: 1.5px solid var(--lcd-ink);
     outline-offset: 2px;
+  }
+}
+
+@layer app {
+  /* "Not loaded": a quiet one-line note, never clipped; its key loads the session. */
+  .not-live {
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 6px 10px;
+    padding: 4px 4px 4px 12px;
+  }
+  .not-live span {
+    flex: 1 1 auto;
+    white-space: normal;
+    overflow: visible;
+  }
+}
+
+@layer app {
+  /*
+   * One control height in every control row: a bare key, an LCD readout and a keyset (a 30px key in its pocket's
+   * 3px and 5px lips) all stand 38px tall, top and bottom aligned.
+   */
+  :root {
+    --row-control: 38px;
+  }
+  :is(.toolbar, .clip-row, .clip-note-foot) > :is(.key, .lcd, .tr-counter, .keyset, select),
+  .toolbar > .toolbar-end > :is(.key, .keyset) {
+    height: var(--row-control);
+    box-sizing: border-box;
+  }
+  :is(.toolbar, .clip-row, .clip-note-foot) .keyset > .key {
+    height: 100%;
+    min-height: 0;
+  }
+  :is(.toolbar, .clip-row, .clip-note-foot) .keyset > .key-square {
+    width: 30px;
+    aspect-ratio: auto;
+  }
+  .tr-controls {
+    align-items: flex-start;
+  }
+}
+
+@layer app {
+  /*
+   * ---------- the transcript's control row: one tray ----------
+   * The tray spans the sheet's width. Inside it every cap is 30px (key-s): keys, latches and the LCD windows alike,
+   * one top, one bottom. Caps in a group meet at the 2px seam; groups stand 12px apart. One legend size (11.5px)
+   * and one centre line; the counter's numerals are the readout face at the same size.
+   */
+  .tr-controls {
+    padding: 8px 12px;
+    min-height: 0;
+  }
+  .tr-tray {
+    flex: 1 1 auto;
+    flex-wrap: wrap;
+    gap: 6px 12px;
+    padding: 4px;
+  }
+  .tr-group {
+    display: inline-flex;
+    gap: var(--seam);
+  }
+  .tr-tray .key,
+  .tr-tray .lcd {
+    height: 30px;
+    box-sizing: border-box;
+  }
+  .tr-tray .key-latch:first-child {
+    min-width: 88px;
+  }
+  .tr-tray .lcd.tr-counter {
+    display: inline-flex;
+    align-items: center;
+    gap: 0;
+    padding: 0 10px;
+    font-family: var(--font-readout);
+    font-size: 11.5px;
+    line-height: 1;
+    color: var(--lcd-dim);
+    box-shadow:
+      inset 0 1px 2px rgb(0 0 0 / calc(0.3 * var(--sh))),
+      inset 0 0 0 1px rgb(0 0 0 / calc(0.22 * var(--sh)));
+  }
+  .tr-tray .lcd.tr-counter b {
+    font-size: 11.5px;
+    font-weight: 500;
+    color: var(--lcd-ink);
+  }
+  .tr-tray .lcd.tr-unsaved {
+    color: var(--lcd-ink);
+  }
+  .tr-corrections {
+    margin-left: auto;
   }
 }
