@@ -354,3 +354,16 @@
     white-space: nowrap;
   }
 }
+
+@layer app {
+  /* The tab's lamp takes room from its title, not from the close button's place: the title shrinks first. Reached
+     through `.jali-tab`, as `.jali-tab-title` is not a public part. */
+  .jali-tab {
+    overflow: hidden;
+  }
+  .jali-tab .jali-tab-title {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+}

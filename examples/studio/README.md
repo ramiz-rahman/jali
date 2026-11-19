@@ -74,6 +74,9 @@ One material, one light, a few depths. The tokens are in `src/styles/tokens.css`
 - **Meter.** A ladder of LED cells behind glass, on the fader's scale: pale up to −12 dB, amber (#f2b33d) to −3 dB, signal orange above, with a held peak. The master's is stereo, with a clip lamp for each side. Amber is the one colour added to the accent rules, and only for meters.
 - **Card.** The library's sessions are cartridges: a raised key with a paper label (the show and the title), a lamp, a glass window onto the tape (the waveform) and a printed foot. Latched and lit when chosen; "playing" printed and the lamp pulsing while it plays.
 - **Inset field.** One recess for every text input, textarea and select: a paper floor, the wall's shadow from above, a lit lower lip; on focus an orange ring inside and a soft halo outside. The correction editor, the rename fields and the segment note use it.
+- **Channel colours.** One map (`CHANNEL` in `src/sessions/sessions.ts`) used the same way everywhere: Mic A blue, Mic B green, the music bed white, the sting orange. The mixer's lamps and pan rings, the timeline's track headers, and the transcript's speaker marks all read it.
+- **Display states.** A pane with nothing to show, or whose object is gone, shows a small display with a dark lamp ("– – : – –" for empty, "no signal" in orange for a missing object), the title printed under it, a line of help and a key to recover. Loading and a failed audio decode print on the top bar display's title line.
+- **Launcher.** A selector panel: the views of the session as big keys in a pocket (the key face), the library beside them, and recent objects on an LCD list.
 - **Motion.** Keys travel 70ms with a mechanical ease and stop dead; nothing moves under reduced motion.
 
 ### The top bar
