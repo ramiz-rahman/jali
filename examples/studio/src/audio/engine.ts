@@ -8,12 +8,18 @@
  * point starts each file at that offset. Seeking, a new speed or a loop's restart stops every source and starts
  * them again from there. A session with another set of tracks gets its own strips when it is loaded.
  *
+ * Speed plays the files faster, which on its own raises their pitch like a record spun fast. So at any speed but 1×
+ * the master goes through a pitch shifter that puts the pitch back: master → shifter → gate → speakers. The shifter
+ * holds the sound for a moment (`lag`), so the playhead waits that long too, and the gate shuts while what is left
+ * inside it from before a seek or a pause drains.
+ *
  * Without Web Audio (tests, a browser that refuses it) the engine is a silent clock with the same API.
  */
 import { audible, channelOf, type Edits } from "../edits";
 import { sessionById, type SessionData } from "../sessions/sessions";
 import { catalogueOf } from "../sessions/catalog";
 import { createStore, type Store } from "../store";
+import type { StretchNode } from "signalsmith-stretch";
 
 export const SPEEDS = [0.75, 1, 1.25, 1.5, 2] as const;
 
@@ -100,6 +106,13 @@ export function createEngine({
   const loaded = new Map<string, Loaded>();
   const loading = new Map<string, Promise<void>>();
   let sources: AudioBufferSourceNode[] = [];
+  let shifter: StretchNode | null = null;
+  let gate: GainNode | null = null;
+  let shifterAsked = false;
+  /** The master is going through the shifter. */
+  let shifting = false;
+  /** Seconds the shifter holds the sound. */
+  let lag = 0;
   let anchorPos = 0;
   let anchorTime = 0;
   let watchdog: ReturnType<typeof setInterval> | 0 = 0;
@@ -175,7 +188,48 @@ export function createEngine({
     loaded.set(id, new Map(buffers));
   }
 
+  /** The pitch back where it was at this speed. The shifter is fetched the first time a speed needs it. */
+  function pitch() {
+    const c = ctx;
+    if (!c || !master) return;
+    const rate = get().rate;
+    if (rate !== 1 && !shifterAsked) {
+      shifterAsked = true;
+      import("signalsmith-stretch")
+        .then(async ({ default: create }) => {
+          const node = await create(c);
+          const out = c.createGain();
+          node.connect(out).connect(c.destination);
+          lag = await node.latency();
+          shifter = node;
+          gate = out;
+          if (get().playing) restart(engine.position());
+          else pitch();
+        })
+        .catch(() => {
+          // no worklet here: speed keeps its raised pitch
+        });
+    }
+    const on = rate !== 1 && !!shifter;
+    if (on !== shifting) {
+      master.disconnect(on ? c.destination : shifter!);
+      master.connect(on ? shifter! : c.destination);
+      shifting = on;
+    }
+    if (on) void shifter!.schedule({ active: true, semitones: -12 * Math.log2(rate) });
+  }
+
+  /** Shut now; open again when sound that goes into the shifter at `from` comes out of it. */
+  function shut(from?: number) {
+    if (!ctx || !gate) return;
+    const g = gate.gain;
+    g.cancelScheduledValues(ctx.currentTime);
+    g.setValueAtTime(0, ctx.currentTime);
+    if (from !== undefined) g.setTargetAtTime(1, from + lag - 0.01, 0.004);
+  }
+
   function stopSources() {
+    shut();
     for (const src of sources) {
       try {
         src.stop();
@@ -195,6 +249,8 @@ export function createEngine({
     const s = session();
     const rate = get().rate;
     const t0 = c.currentTime + 0.04;
+    pitch();
+    shut(t0);
     anchorPos = pos;
     anchorTime = t0;
     const place = (buffer: AudioBuffer, at: number, track: string) => {
@@ -251,7 +307,8 @@ export function createEngine({
     session,
     position() {
       if (!get().playing) return anchorPos;
-      return clamp(anchorPos + Math.max(0, now() - anchorTime) * get().rate);
+      const heard = now() - anchorTime - (shifting ? lag : 0);
+      return clamp(anchorPos + Math.max(0, heard) * get().rate);
     },
     load(id) {
       if (!sessionById(id)) return;
@@ -319,6 +376,7 @@ export function createEngine({
       const pos = engine.position();
       set({ rate });
       if (get().playing) restart(pos);
+      else pitch();
     },
     setLoop(loop) {
       set({ loop });
@@ -367,6 +425,10 @@ function mediaKeys(engine: Engine) {
     const s = engine.session();
     ms.playbackState = engine.get().playing ? "playing" : "paused";
     if (ms.metadata?.title !== s.title && typeof MediaMetadata !== "undefined")
-      ms.metadata = new MediaMetadata({ title: s.title, artist: catalogueOf(s).source, album: "Studio" });
+      ms.metadata = new MediaMetadata({
+        title: s.title,
+        artist: catalogueOf(s).source,
+        album: "Studio",
+      });
   });
 }

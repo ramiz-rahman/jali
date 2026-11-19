@@ -44,18 +44,19 @@ Checked 2026-11-20. I read every quoted sentence at the source named next to it.
   - Saved: `licenses/cc-by-4.0-legalcode.txt`. Section 3(a)(1): "If You Share the Licensed Material (including in modified form), You must: a. retain … identification of the creator(s) … a copyright notice; … a notice that refers to this Public License; … a notice that refers to the disclaimer of warranties; … a URI or hyperlink to the Licensed Material to the extent reasonably practicable; b. indicate if You modified the Licensed Material …; and c. indicate the Licensed Material is licensed under this Public License, and include the text of, or the URI or hyperlink to, this Public License."
 - **Performers listed in the item:**
 
-  | Part | Performer |
-  |---|---|
-  | Drums | Diego Gimenez |
-  | Bass | Fran Vanini |
-  | Guitar | Gon Arriagada |
-  | Keyboards | Pablo Budassi |
-  | Voices | Pablo Budassi, Tatiana Pino |
-  | Trumpet and tenor sax | Nicolas Budassi |
-  | Alto sax | Gerardo Soria |
-  | Trombone | Roberto Rodríguez |
+  | Part                  | Performer                   |
+  | --------------------- | --------------------------- |
+  | Drums                 | Diego Gimenez               |
+  | Bass                  | Fran Vanini                 |
+  | Guitar                | Gon Arriagada               |
+  | Keyboards             | Pablo Budassi               |
+  | Voices                | Pablo Budassi, Tatiana Pino |
+  | Trumpet and tenor sax | Nicolas Budassi             |
+  | Alto sax              | Gerardo Soria               |
+  | Trombone              | Roberto Rodríguez           |
 
   Produced by Pablo Budassi.
+
 - **Caveats:**
   - The licence is asserted by the archive.org uploader. Whether that account belongs to the rights holder could not be confirmed: the account name differs from the creator's, and that is unconfirmed.
   - The item also holds a 2024 mix by "Kresimir K". I used it only to compare levels and did not ship it.
@@ -94,3 +95,7 @@ Checked 2026-11-20. I read every quoted sentence at the source named next to it.
 - **Modifications:** I excerpted S02 18.50 to 146.00 s, applied a 70 Hz high-pass, gated each mic by its wearer's utterance times (−14 dB outside them), resampled 16 to 32 kHz, levelled each track, applied fades, and encoded to MP3.
 - **Notice to display:**
   > Conversation audio and transcript: DiPCo – Dinner Party Corpus, Amazon (zenodo.org/record/8122551), licensed under the Community Data License Agreement – Permissive 1.0 (cdla.dev/permissive-1-0). These files are modified from the original data: excerpted, filtered, gated, levelled and re-encoded.
+
+## Software
+
+- **Signalsmith Stretch** (`signalsmith-stretch`, Geraint Luff, MIT licence, signalsmith-audio.co.uk/code/stretch): the pitch shifter that keeps voices at their own pitch when the speed is not 1×.
