@@ -45,8 +45,9 @@ export const presets: PresetOptions[] = [
       lib(),
       column(
         { weight: 2.6 },
+        // The timeline needs a few lanes' height; the mixer's faders want all the throw they can get.
         tl(1),
-        pane(mixer({ session }), { id: "mixer", ...followsLibrary, weight: 1.6 }),
+        pane(mixer({ session }), { id: "mixer", ...followsLibrary, weight: 2.6 }),
       ),
       pane(markers({ session }), { id: "markers", ...followsLibrary, weight: 0.9 }),
     ),

@@ -987,12 +987,27 @@
     }
   }
   /* Very short: the scale keeps +6, 0 and −48, so its numbers never touch. */
+  @container mixer (max-height: 380px) {
+    .mx-scale li[data-db="-24"] span {
+      display: none;
+    }
+  }
   @container mixer (max-height: 420px) {
     .mx-module {
-      --mx-dial: 30px;
+      --mx-dial: 34px;
       gap: 6px;
     }
-    .mx-scale li:not([data-db="6"], [data-db="0"], [data-db="-48"]) span {
+    /* A small dial keeps one mark: the pointer. The channel's colour moves to the scribble strip's lamp. */
+    .mx-module .pan-dial[data-cap] .dial-face {
+      box-shadow:
+        inset 0 1px 0 rgb(255 255 255 / 0.25),
+        0 0 0 1px rgb(0 0 0 / 0.35);
+    }
+    .pan-dial .dial-tick:not([data-reset]) {
+      display: none;
+    }
+    /* The scale keeps every number that has room: −48 goes first (its gap is the smallest), then −24. */
+    .mx-scale li[data-db="-48"] span {
       display: none;
     }
   }
