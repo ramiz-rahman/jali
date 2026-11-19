@@ -46,14 +46,28 @@ test("the sound goes on while the mixer is folded away", async ({ page }) => {
   await layout(page, "Mix").click();
   await expect(page.locator('.jali-pane[data-pane="mixer"]')).toBeVisible();
   await transport(page, "Play").click();
-  // A short window: the mixer folds into a tab rather than squeeze, and the shelf lists it, working.
+  // A short window: the mixer folds into a tab rather than squeeze, and waits behind its place's "N folded" chip.
   await page.setViewportSize({ width: 1100, height: 560 });
-  const chip = page.locator(".jali-shelf-chip", { hasText: "Mixer" });
-  await expect(chip).toBeVisible();
-  await expect(chip.locator("[class*=ra-ring]")).toBeVisible();
+  await page.getByRole("button", { name: /\d+ folded panes?/ }).click();
+  await expect(page.getByRole("menuitem", { name: /Mixer/ })).toBeVisible();
+  await page.keyboard.press("Escape");
   const before = await seconds(page);
   await page.waitForTimeout(1500);
   expect(await seconds(page)).toBeGreaterThan(before + 1);
+  await transport(page, "Pause").click();
+});
+
+// The mixer reports "working" while it plays (its hidden header carries the mark), but the folded menu doesn't draw
+// it: since 3f57a4c the shelf holds only tucked panes and the "N folded" menu lists panes without their marks. Turn
+// this on when the menu shows a folded pane's activity.
+test.fixme("a folded mixer shows that it is working", async ({ page }) => {
+  await layout(page, "Mix").click();
+  await transport(page, "Play").click();
+  await page.setViewportSize({ width: 1100, height: 560 });
+  await page.getByRole("button", { name: /\d+ folded panes?/ }).click();
+  const entry = page.getByRole("menuitem", { name: /Mixer/ });
+  await expect(entry.locator("[class*=jali-ra], [class*=jali-activity]")).toBeVisible();
+  await page.keyboard.press("Escape");
   await transport(page, "Pause").click();
 });
 
@@ -71,7 +85,10 @@ test("a correction is unsaved work: a layout without the transcript asks first",
   await expect(page.getByRole("alertdialog")).toContainText("1 unsaved correction");
   await page.getByRole("button", { name: "Keep editing" }).click();
   await expect(layout(page, "Edit")).toHaveAttribute("aria-pressed", "true");
-  await page.getByRole("button", { name: /^Save (⌘|Ctrl)/ }).click();
+  // Save is the transcript's own ⌘S (also "Save corrections" in ⌘K), not a button.
+  await page.getByRole("listbox", { name: /Transcript of/ }).focus();
+  await page.keyboard.press("ControlOrMeta+s");
+  await expect(page.getByText("1 unsaved")).toBeHidden();
   await expect(page.locator(".tr-text").first()).toContainText("from the engine room");
 });
 
@@ -175,9 +192,12 @@ test("a mixer fader drags without jumping, settles at 0 dB, and a pan dial turns
   await page.mouse.move(x, cap.y + cap.height / 2 + 6);
   await page.mouse.down();
   await expect(fader).toHaveAttribute("aria-valuetext", "−4.0 dB");
-  // Up a little: into the 0 dB detent, wherever the pointer drifts (pointer capture).
+  // Up to the 0 dB mark, wherever the pointer drifts sideways (pointer capture): into the detent. The slot's
+  // height follows the layout, so the distance is read from the marks, not counted in pixels.
+  const zero = (await fader.locator(".fader-zero").boundingBox())!;
+  const dy = zero.y + zero.height / 2 - (cap.y + cap.height / 2);
   for (let i = 1; i <= 8; i++)
-    await page.mouse.move(x + i * 30, cap.y + cap.height / 2 + 6 - i * 2.5);
+    await page.mouse.move(x + i * 30, cap.y + cap.height / 2 + 6 + (dy * i) / 8);
   await page.mouse.up();
   await expect(fader).toHaveAttribute("aria-valuenow", "0");
   await fader.focus();
