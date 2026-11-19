@@ -868,6 +868,8 @@
     align-content: start;
     gap: 2px;
     height: var(--pan-h);
+    /* Clear of the scale's top number, which stands just under it. */
+    margin-bottom: 4px;
   }
   .mx-scribble {
     height: 46px;
@@ -893,11 +895,13 @@
     font-weight: 500;
     color: var(--ink);
   }
-  /* The master's clip lamps, in place of a pan dial. */
+  /* The master's clip lamps, in place of a pan dial: the lamps where the dial is, the word where "pan" is. */
   .mx-clips {
     grid-template-columns: auto auto;
+    grid-template-rows: calc(var(--mx-dial) + 24px) auto;
+    justify-content: center;
+    align-items: center;
     column-gap: 12px;
-    align-content: center;
   }
   .mx-clips .mx-pan-legend {
     grid-column: 1 / -1;
@@ -917,8 +921,11 @@
   .mx-clip[data-on] {
     color: var(--ink);
   }
-  /* Meter, scale and fader: one box, one travel. */
+  /* Meter, scale and fader: one box, one travel. The travel's inset is the fader's own (half its cap, and the
+     slot's 4px end), set here once so the meter's column and the scale's marks start and stop where the cap does. */
   .mx-fader-row {
+    --cap-h: 34px;
+    --travel-inset: calc(var(--cap-h) / 2 + 4px);
     position: relative;
     display: flex;
     justify-content: center;
@@ -928,7 +935,6 @@
     width: 100%;
   }
   .mx-meter {
-    --travel-inset: 21px;
     width: 9px;
     height: 100%;
     flex: none;
@@ -988,8 +994,9 @@
     color: var(--ink);
     font-weight: 600;
   }
+  /* The readout is as wide as the label strip above and the keys below: three blocks, one column. */
   .mx-db {
-    min-width: 70%;
+    width: 100%;
     padding: 6px 8px;
     box-sizing: border-box;
     font-family: var(--font-readout);
@@ -1636,6 +1643,8 @@
   /* Mute and solo print their words; on a desk of seven or eight narrow modules, their initials. */
   .mx-short {
     display: none;
+    /* Initials keep their capitals, as GET does. */
+    text-transform: none;
   }
   .mx-modules:is([data-count="7"], [data-count="8"]) .mx-word {
     display: none;

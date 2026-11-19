@@ -88,7 +88,8 @@ function Scale() {
           data-zero={db === 0 ? "" : undefined}
           style={{ bottom: `${dbToFader(db) * 100}%` }}
         >
-          <span>{db > 0 ? `+${db}` : db}</span>
+          {/* As a console prints it: +6 above the line, plain numbers below. A minus beside each tick reads as two. */}
+          <span>{db > 0 ? `+${db}` : Math.abs(db)}</span>
         </li>
       ))}
     </ol>
