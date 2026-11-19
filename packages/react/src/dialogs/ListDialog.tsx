@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { useStore } from "../state/react";
 
 interface Props<T> {
   /** The dialog's class (with `jali-palette`) and accessible name. */
@@ -28,17 +29,20 @@ interface Props<T> {
 }
 
 /** A modal combobox over a filtered list: type to filter, arrows to move, Enter to choose, Escape to close. Focus
- *  goes to the field on open and back to where it was on close. */
+ *  goes to the field on open and back to where it was on close, unless the store holds focus (`focusHeld`). */
 export function ListDialog<T>(p: Props<T>) {
   const [q, setQ] = useState("");
   const [i, setI] = useState(0);
   const input = useRef<HTMLInputElement>(null);
   const restore = useRef<Element | null>(document.activeElement);
+  const store = useStore();
   useEffect(() => {
-    input.current?.focus();
+    if (!store.focusHeld) input.current?.focus();
     const back = restore.current;
-    return () => (back as HTMLElement | null)?.focus?.({ preventScroll: true });
-  }, []);
+    return () => {
+      if (!store.focusHeld) (back as HTMLElement | null)?.focus?.({ preventScroll: true });
+    };
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
   const items = useMemo(() => {
     const t = q.trim().toLowerCase();
     const found = p.items.filter((it) => !t || p.matches(it, t));

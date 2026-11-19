@@ -530,3 +530,12 @@ Research, sources and the full table: `docs/research/keyboard-shortcuts.md`. Cod
 - **Public API:** values unchanged; types added `FollowParams`, `ChooseOptions`; `JaliActions` gains `choose` and loses `reveal`; `PaneKinds` gains `follow`; the `layout` namespace gains `followers`; `JaliOptions` gains `settings`; `Jali` still has 13 members.
 - **Left open:** `jali.actions.openBeside` outside a curated page opens an object that is already open in another pane (it reuses the source's earlier plain link instead of showing the open pane), though the reference says the open pane is shown; found while testing 47, not changed here.
 - **Tests:** `src/tests/follow-kinds.test.ts`, `preset-link.test.ts`, `settings-defaults.test.ts`, `css-exports.test.ts`, `focus-reveals.test.ts`, `pane-props-results.test.tsx`, `choose.test.tsx`, `documented-fits.test.ts`, an `addTab` case in `instance.test.ts`; the markets example's `workspace.test.ts` and its smoke test (now also the chooser from /).
+
+## 19 Nov 2026 · Holding focus while something else drives the workspace
+
+The docs' hero tour drives a real workspace while the reader watches. Jali's own focus moves (into a pane after a change, into the palette's field when it opens, back when it closes) would take the reader's keyboard focus, and the tour first held them back by replacing `HTMLElement.prototype.focus` for the whole page while it played. A public demo shouldn't patch the browser, so the workspace now has the switch itself.
+
+- **`UiStore.focusHeld` (`@jali/core/adapter`), default false.** While true, the store's focus port does nothing, `<Workspace>` skips keeping focus on the focused pane, and `ListDialog` (palette, chooser) neither takes focus on open nor hands it back on close. Keys the person presses still move focus as usual (tab lists, F6, the overflow menu, dialogs they open).
+- **Why runtime, not `createJali({ moveFocus })`:** that option is fixed at creation and only covers the focus port; a tour turns the hold on and off as it plays and stops.
+- **Why the adapter, not `Jali`:** one known use (a scripted tour; a remote presenter is the next likely one). It joins the public instance when an app needs it.
+- **Tests:** `src/tests/focus-held.test.ts`; the docs' `e2e/tour.spec.ts` checks focus stays on the page through the ⌘K step and that the browser's `focus` is never replaced.

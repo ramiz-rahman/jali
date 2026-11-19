@@ -252,6 +252,13 @@ export interface UiStore {
   href(): string;
   /** The URL writer this store was made with (`deps.url`). */
   url: UrlWriter | undefined;
+  /**
+   * While true, the workspace moves no DOM focus of its own: not into a pane after a change, not into a dialog's
+   * field when it opens, not back when the dialog closes. For something that drives the workspace while the person
+   * watches (a scripted tour, a remote presenter), so their keyboard focus stays where they left it. Keys the person
+   * presses still move focus as usual. Default false.
+   */
+  focusHeld: boolean;
   /** Start the page-lifetime listeners: keys, Back and Forward, theme and saving. Returns their stop. `<JaliRoot>` calls
    *  it on mount; calling it while started does nothing. */
   start(): () => void;
@@ -470,6 +477,7 @@ export function createUiStore(deps: UiStoreDeps): UiStore {
     set: (patch) => batch(() => write(patch)),
     jali: undefined as unknown as Jali,
     guard: deps.beforeClose,
+    focusHeld: false,
     on(event, handler) {
       let set = handlers.get(event);
       if (!set) handlers.set(event, (set = new Set()));
@@ -543,7 +551,7 @@ export function createUiStore(deps: UiStoreDeps): UiStore {
     url: store.writeUrl,
     announce: store.announce,
     toast: store.toast,
-    focus: (id: NodeId) => focusOf?.(dom, id),
+    focus: (id: NodeId) => (store.focusHeld ? undefined : focusOf?.(dom, id)),
     defer,
     unstable:
       deps.unstable ??

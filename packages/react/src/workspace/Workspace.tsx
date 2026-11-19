@@ -211,10 +211,9 @@ export function Panes() {
   // Keep DOM focus on the focused pane after structural changes (focus is never lost), but only once the person has
   // been in this workspace: mounting one, or a change while they are elsewhere on the page, leaves their place alone.
   const engaged = useEngaged(store);
-  useEffect(
-    () => keepPaneFocus(store.dom, view.focused, { fromBody: engaged.current }),
-    [view.focused, m.layout],
-  );
+  useEffect(() => {
+    if (!store.focusHeld) keepPaneFocus(store.dom, view.focused, { fromBody: engaged.current });
+  }, [view.focused, m.layout]);
 
   const single = m.single;
   // A curated page in Single mode shows one view under its tabs: the tabs name it, so the pane has no header.
