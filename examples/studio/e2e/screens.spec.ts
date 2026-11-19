@@ -153,3 +153,43 @@ for (const dark of [false, true]) {
     await context.close();
   });
 }
+
+// Each pane, close up, light and dark, and one mixer module at 2x.
+const PANES = [
+  ["mixer", "mix"],
+  ["markers", "mix"],
+  ["library", "edit"],
+  ["transcript", "edit"],
+  ["timeline", "review"],
+  ["clip", "review"],
+] as const;
+for (const [kind, preset] of PANES) {
+  for (const dark of [false, true]) {
+    test(`pane ${kind}${dark ? " dark" : ""}`, async ({ page }) => {
+      await page.setViewportSize({ width: 1440, height: 1000 });
+      await stage(page, preset, { dark });
+      await page
+        .locator(`.jali-pane[data-kind="${kind}"]`)
+        .first()
+        .screenshot({
+          path: shot(`pane-${kind}${dark ? "-dark" : ""}`),
+        });
+    });
+  }
+}
+
+test("a mixer module at 2x", async ({ browser, baseURL }) => {
+  const context = await browser.newContext({
+    baseURL,
+    viewport: { width: 1440, height: 1100 },
+    deviceScaleFactor: 2,
+    colorScheme: "dark",
+  });
+  const page = await context.newPage();
+  await stage(page, "mix", { dark: true });
+  await page
+    .locator(".mx-module")
+    .nth(1)
+    .screenshot({ path: shot("mixer-module@2x") });
+  await context.close();
+});
