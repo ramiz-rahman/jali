@@ -10,9 +10,10 @@
  *  - Keep keeps a detail on its object; releasing makes it the list's follower again (and keeps the previous one).
  */
 import * as core from "../layout";
-import type { NodeId, ObjectRef } from "../layout/types";
+import type { Layout, NodeId, ObjectRef, ViewState } from "../layout/types";
 import { refuse, type Change, type Deferred, type Outcome, type Snapshot } from "../state/apply";
 import { say } from "../state/messages";
+import type { UiState } from "../state/store";
 
 export const FOLLOW_MS = 150;
 
@@ -110,4 +111,34 @@ export function setKept({ s, m }: Snapshot, id: NodeId, kept: boolean): Outcome 
   // Following again: catch up with the list's selection now.
   const sel = s.selection[p.linkedTo];
   return kept || !sel ? change : [change, (y: Snapshot) => follow(y, p.linkedTo!, sel.ref, id)];
+}
+
+/**
+ * A new layout (a preset, `setLayout`) and the lists' selections agree. For each list in `layout` with a selection:
+ *  - when the layout gives it a follower of the selected object's kind, the layout's word wins: the selection becomes
+ *    what that follower shows, and the list's other followers show what their kinds give for it;
+ *  - with no follower of that kind, its followers follow the selection, as a follow step would.
+ * A follower with unsaved work keeps what the layout gives it (moving it would lose the work). Lists are taken in
+ * tree order, so a chain (a list following a list) settles from the top. Returns the layout and the selections.
+ */
+export function agreeWithSelection(
+  { s, ctx, env }: Pick<Snapshot, "s" | "ctx" | "env">,
+  layout: Layout,
+  view: ViewState,
+): { layout: Layout; selection: UiState["selection"] } {
+  let selection = s.selection;
+  for (const list of core.tree.panes(layout.root)) {
+    const sel = selection[list.id];
+    if (!sel) continue;
+    const own = core.follower(layout, list.id, sel.ref.kind);
+    const target = own ? own.ref : sel.ref;
+    if (own && !sameRef(own.ref, sel.ref))
+      selection = { ...selection, [list.id]: { ref: structuredClone(own.ref), inResults: true } };
+    for (const f of core.followers(layout, list.id)) {
+      if (f.id in s.unsaved) continue;
+      const ref = env.kinds.follow(f.ref.kind, target);
+      if (ref && !sameRef(ref, f.ref)) layout = core.setRef(layout, view, f.id, ref, ctx);
+    }
+  }
+  return { layout, selection };
 }

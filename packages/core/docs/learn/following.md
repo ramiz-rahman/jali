@@ -119,6 +119,15 @@ With a following detail on screen, Space on a row shows that row in the detail, 
 
 With no following detail, or one that is out of sight (folded, behind a tab, tucked), Space opens the peek sheet as usual.
 
+## A new layout beside a list
+
+A list keeps its selection through a preset or `setLayout` when it is in the new layout too (the same `id`). The new layout may put a follower beside it that shows something else. The list and its followers agree as soon as the layout changes, in the same change, and the layout's word wins:
+
+- When the layout gives the list a follower of the selected item's kind, the list's selection becomes what that follower shows. The list's other followers show what their kinds give for it.
+- When it gives none of that kind, the list's followers follow its selection, as they would when the selection moves.
+
+A list that keeps its cursor only in its own state won't see this. To move the cursor with it, read the selection back from the workspace, `useJaliState((s) => s.selection[node.id])`, and put the cursor on that item. A kept detail keeps the object the layout gives it. A follower with unsaved work does too: if the layout shows another object in it, the person is asked first, as for any change that would lose the work.
+
 ## Not in the current results
 
 If the person filters the list and the followed row is no longer in it, the detail keeps showing it, with a note: "Not in the current results of Tickets". The detail doesn't go blank under them because of a filter.

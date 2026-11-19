@@ -766,3 +766,10 @@ Data Studio's old tab strip had six features Jali lacked. Each is general, and l
 - **Now:** the follow step (`actions/follow.ts`) leaves out each follower with unsaved work and moves the rest in the same change. The workspace still says "The detail stays put: it has …" for the one held. A held follower still follows: once its work is saved or discarded (`setUnsaved(null)`), it catches up with the list's selection at once (`actions/content.ts`). The check in `apply()` stays as a safety net.
 - **Not added:** an event for what was held. The follow step is deferred, so `select`'s result can't carry it, and an event belongs in the store; the announcement is the report for now.
 - **Tests:** `tests/follow-kinds.test.ts` (mixed followers, all held, catching up), `examples/studio/src/workspace.test.ts`.
+
+## 20 Nov 2026 · A new layout and a list's selection agree; the layout's word wins (Studio, FINDINGS.md #4)
+
+- **Why:** a list keeps its selection through a preset or `setLayout` when it is in both (the same id). The new layout could put a follower beside it showing something else: Studio's Compare showed segment 6 while the transcript's cursor stayed on 5, and selecting 5 again did nothing, since the selection hadn't changed.
+- **Now:** `preset` and `setLayout` settle it in the same change (`agreeWithSelection`, `actions/follow.ts`). For each list in the new layout with a selection: a follower of the selected kind resets the selection to what it shows, and the list's other followers show what their kinds give for it; with no follower of that kind, the followers follow the selection. Lists are taken in tree order, so a chain settles from the top. Kept details and followers with unsaved work keep what the layout gives them. A Back, a link or a reload (`arrive`) is unchanged.
+- **Not added:** a preset option to choose the other rule. One rule, until an app needs the other.
+- **Tests:** `tests/follow-layout-switch.test.ts`, `examples/studio/src/workspace.test.ts` (Edit on segment 5, then Compare: 4 kept, 6 following, the cursor on 6).
