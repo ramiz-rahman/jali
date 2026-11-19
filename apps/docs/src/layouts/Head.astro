@@ -1,0 +1,74 @@
+---
+/**
+ * Everything a search engine or a link preview reads: the title, description, canonical address, social card and
+ * structured data. The shell keeps title and description current as readers move between pages in place.
+ */
+interface Props {
+  title: string;
+  description: string;
+  path: string;
+  noindex?: boolean;
+  breadcrumbs?: { name: string; path: string }[];
+}
+const { title, description, path, noindex, breadcrumbs } = Astro.props;
+const site = Astro.site!;
+const canonical = new URL(path, site).href;
+const image = new URL("/jali-social.png", site).href;
+const ld = [
+  path === "/"
+    ? {
+        "@context": "https://schema.org",
+        "@type": "WebSite",
+        name: "Jali",
+        url: new URL("/", site).href,
+        description,
+      }
+    : {
+        "@context": "https://schema.org",
+        "@type": "TechArticle",
+        headline: title.replace(/ · Jali$/, ""),
+        description,
+        url: canonical,
+        isPartOf: { "@type": "WebSite", name: "Jali", url: new URL("/", site).href },
+      },
+  ...(breadcrumbs && breadcrumbs.length > 1
+    ? [
+        {
+          "@context": "https://schema.org",
+          "@type": "BreadcrumbList",
+          itemListElement: breadcrumbs.map((b, i) => ({
+            "@type": "ListItem",
+            position: i + 1,
+            name: b.name,
+            ...(b.path ? { item: new URL(b.path, site).href } : {}),
+          })),
+        },
+      ]
+    : []),
+];
+---
+
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>{title}</title>
+<meta name="description" content={description} />
+<link rel="canonical" href={canonical} />
+{noindex ? <meta name="robots" content="noindex" /> : null}
+<link rel="sitemap" href="/sitemap-index.xml" />
+{path !== "/" ? <link rel="alternate" type="text/markdown" href={`${path}.md`} title="This page as Markdown" /> : <link rel="alternate" type="text/markdown" href="/index.md" title="This page as Markdown" />}
+<link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+<link rel="icon" href="/favicon-32.png" type="image/png" sizes="32x32" />
+<link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+<meta property="og:type" content={path === "/" ? "website" : "article"} />
+<meta property="og:site_name" content="Jali" />
+<meta property="og:title" content={title} />
+<meta property="og:description" content={description} />
+<meta property="og:url" content={canonical} />
+<meta property="og:image" content={image} />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content={title} />
+<meta name="twitter:description" content={description} />
+<meta name="twitter:image" content={image} />
+<meta name="theme-color" content="#f7f5f1" media="(prefers-color-scheme: light)" />
+<meta name="theme-color" content="#13120f" media="(prefers-color-scheme: dark)" />
+<script type="application/ld+json" set:html={JSON.stringify(ld.length === 1 ? ld[0] : ld)} />

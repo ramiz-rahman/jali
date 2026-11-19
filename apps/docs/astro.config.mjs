@@ -1,13 +1,15 @@
-// The docs site: Astro prerenders every page to static HTML, then the
+// The docs site: Astro prerenders every page to static HTML (title, description, canonical, sitemap), then the
 // React shell hydrates for navigation, search and the live workspaces.
 import { defineConfig } from "astro/config";
 import react from "@astrojs/react";
+import sitemap from "@astrojs/sitemap";
 import { defaultClientConditions, defaultServerConditions } from "vite";
 import mdx from "@mdx-js/rollup";
 import remarkGfm from "remark-gfm";
 import remarkFrontmatter from "remark-frontmatter";
 import remarkMdxFrontmatter from "remark-mdx-frontmatter";
 import rehypeShiki from "@shikijs/rehype";
+import { SITE_URL } from "./src/site/site-url.mjs";
 
 // The pages under src/docs are React MDX (rendered by the shell through MDXProvider), not Astro MDX, so they are
 // compiled here with @mdx-js/rollup. It compiles any .mdx id, even `?raw` ones; those must stay plain text (the
@@ -50,9 +52,13 @@ const sourceCondition = {
 };
 
 export default defineConfig({
+  site: SITE_URL,
   trailingSlash: "never",
   build: { format: "file" },
-  integrations: [react()],
+  integrations: [
+    react(),
+    sitemap({ filter: (page) => !/\/_[^/]*$/.test(new URL(page).pathname) }),
+  ],
   vite: {
     // Each dev server gets its own dependency cache (JALI_DOCS_CACHE), so several can run at once.
     cacheDir: process.env.JALI_DOCS_CACHE ?? "node_modules/.vite",

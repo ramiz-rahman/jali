@@ -110,6 +110,11 @@ export function App() {
           : `${fm.title} · ${SITE_NAME}`
         : `Not found · ${SITE_NAME}`;
     document.querySelector('meta[name="description"]')?.setAttribute("content", fm?.summary ?? "");
+    // Prerendered pages carry their own canonical address; keep it current as readers move between pages in place.
+    if (loaded.Component) {
+      const canonical = document.querySelector<HTMLLinkElement>('link[rel="canonical"]');
+      if (canonical) canonical.href = new URL(loaded.path, canonical.href).href;
+    }
     const hash = decodeURIComponent(window.location.hash.slice(1));
     if (hash) document.getElementById(hash)?.scrollIntoView();
     if (!first.current && !hash)
