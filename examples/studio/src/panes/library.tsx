@@ -232,5 +232,7 @@ export const library = definePane("library", {
   icon: BooksIcon,
   width: { min: 240, comfortable: 280, max: 340 },
   height: { min: 220 },
+  // A list has nothing to show on the whole screen; one button fewer in a narrow header.
+  allow: { fullScreen: false },
   Component: Library,
 });

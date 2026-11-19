@@ -203,5 +203,6 @@ export const markers = definePane("markers", {
   width: { min: 240, comfortable: 290, max: 400 },
   height: { min: 170 },
   follow: followSession,
+  allow: { fullScreen: false },
   Component: Markers,
 });

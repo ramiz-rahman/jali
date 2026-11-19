@@ -63,7 +63,13 @@ export const presets: PresetOptions[] = [
         column(
           { weight: 1.2 },
           pane(clip({ session, segment: "s01" }), { id: "clip", ...followsTranscript, weight: 1.5 }),
-          pane(markers({ session }), { id: "markers", ...followsLibrary, weight: 1 }),
+          // The markers give way first on a narrow screen: the transcript is what Review is for.
+          pane(markers({ session }), {
+            id: "markers",
+            ...followsLibrary,
+            weight: 1,
+            priority: "supporting",
+          }),
         ),
       ),
       tl(1),

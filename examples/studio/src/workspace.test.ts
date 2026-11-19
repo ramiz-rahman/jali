@@ -5,7 +5,7 @@ import { openFollowing, sessionInLayout } from "./actions";
 import { clip } from "./panes/clip";
 import { transcript } from "./panes/transcript";
 import { createServices } from "./services";
-import { sessionById, wordsFor } from "./sessions/sessions";
+import { sessionById, wordsFor, type SegmentData } from "./sessions/sessions";
 import { slashForSearch, spaceForTransport } from "./shell/keys";
 import { createStudioJali, kinds } from "./workspace";
 
@@ -196,7 +196,9 @@ describe("the studio workspace", () => {
     // The person types a word from the line: it is in the label.
     const tomato = request.items.find((s) => request.label(s).includes("yellow"));
     expect(tomato).toBeUndefined(); // the ferry has no tomatoes
-    const storm = request.items.find((s) => request.label(s).startsWith("Once, in a winter storm"))!;
+    const storm = request.items.find((s) =>
+      request.label(s).startsWith("Once, in a winter storm"),
+    ) as SegmentData;
     expect(request.hint!(storm)).toContain("Tomas Vell");
     request.onChoose(storm);
     expect(services.engine.position()).toBeCloseTo(storm.start);

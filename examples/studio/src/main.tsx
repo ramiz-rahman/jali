@@ -11,11 +11,11 @@ import { App } from "./shell/App";
 import { createStudioJali } from "./workspace";
 // Styles: the layer order is declared in index.html. Then Spoke's faces (IBM Plex Sans and Mono), and the app's own,
 // which import Jali's styles first.
-import "@fontsource/ibm-plex-sans/400.css";
-import "@fontsource/ibm-plex-sans/500.css";
-import "@fontsource/ibm-plex-sans/600.css";
-import "@fontsource/ibm-plex-mono/400.css";
-import "@fontsource/ibm-plex-mono/500.css";
+import "@fontsource/ibm-plex-sans/latin-400.css";
+import "@fontsource/ibm-plex-sans/latin-500.css";
+import "@fontsource/ibm-plex-sans/latin-600.css";
+import "@fontsource/ibm-plex-mono/latin-400.css";
+import "@fontsource/ibm-plex-mono/latin-500.css";
 import "./styles/app.css";
 
 const services = createServices();

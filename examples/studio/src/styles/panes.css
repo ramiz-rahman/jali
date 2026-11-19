@@ -784,14 +784,14 @@
     flex: 1;
     min-height: 0;
     display: flex;
-    justify-content: center;
-    gap: 8px;
+    justify-content: safe center;
+    gap: 6px;
     padding: 12px;
     overflow-x: auto;
   }
   .mx-strip {
     flex: 1 1 0;
-    min-width: 76px;
+    min-width: 64px;
     max-width: 132px;
     display: grid;
     grid-template-rows: auto auto minmax(0, 1fr) auto auto;
@@ -810,6 +810,9 @@
     margin-left: 6px;
     background: light-dark(var(--zinc-50), #1d1d21);
   }
+  .mx-strip > * {
+    min-width: 0;
+  }
   .mx-head {
     display: grid;
     gap: 2px;
@@ -819,10 +822,12 @@
   .mx-label {
     font-family: var(--jali-font-mono);
     font-size: var(--st-label);
-    letter-spacing: 0.14em;
+    letter-spacing: 0.12em;
     text-transform: uppercase;
     color: var(--jali-text-faint);
     white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
   .mx-name {
     font-size: 12px;
