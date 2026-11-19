@@ -21,7 +21,7 @@ export interface Placement {
 /**
  * `yields: false`: no pane gives way for the new one; short of room, the new pane becomes a tab of its source.
  * `fromSelection`: `ref` is the source's selected item (a list's row). The new pane follows the selection, or, when
- * the source already has a follower of that kind, opens pinned beside it (ops/follow.ts). Never reuses a pane.
+ * the source already has a follower of that kind, opens kept beside it (ops/follow.ts). Never reuses a pane.
  */
 export interface OpenOptions {
   yields?: boolean;
@@ -42,10 +42,10 @@ export function open(
   const original = find(layout.root, target);
   if (original?.type !== "pane") throw new Error(`Unknown source pane: ${target}`);
   if (!fit.kinds[ref.kind]) throw new Error(`Unknown pane kind: ${ref.kind}`);
-  // A plain link reuses the source's earlier plain link of the same kind; followers and pinned panes are never reused.
+  // A plain link reuses the source's earlier plain link of the same kind; followers and kept panes are never reused.
   if (linked && !opts.fromSelection) {
     const existing = panes(layout.root).find(
-      (p) => p.linkedTo === target && p.ref.kind === ref.kind && !p.pinned && !p.follows,
+      (p) => p.linkedTo === target && p.ref.kind === ref.kind && !p.kept && !p.follows,
     );
     if (existing) {
       let next = setRef(layout, view, existing.id, ref, ctx);
@@ -82,7 +82,7 @@ export function open(
   );
   const nextView = linked ? focus(unzoom(view), target, ctx) : focus(unzoom(view), pane.id, ctx);
   // No room, or over the cap: the fold is decided now, at open, and recorded. With no room the new pane becomes a tab
-  // of its source (spec §3 "Opened as a tab: not enough room"); over the cap the oldest unpinned, unfocused pane does.
+  // of its source (spec §3 "Opened as a tab: not enough room"); over the cap the oldest released, unfocused pane does.
   const fitted = fitLayout(next, nextView, ctx, {
     fresh: pane.id,
     keep: [pane.id, target],

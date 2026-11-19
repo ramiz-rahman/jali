@@ -286,11 +286,11 @@ function buildCommands(env: Env): CommandDef[] {
       run: (u) => u.actions.peek(null),
     },
     {
-      id: "peek.pin",
-      title: t.peekPin,
+      id: "peek.open_beside",
+      title: t.peekOpenBeside,
       group: g.peek,
       check: checkPeek,
-      run: (u) => u.actions.pinPeek(),
+      run: (u) => u.actions.openPeekBeside(),
     },
     {
       id: "peek.open_full",

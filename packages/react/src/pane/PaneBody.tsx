@@ -128,6 +128,6 @@ export const PaneBody = /* @__PURE__ */ memo(
     a.paused === b.paused &&
     a.focused === b.focused &&
     a.node.linkedTo === b.node.linkedTo &&
-    a.node.pinned === b.node.pinned &&
+    a.node.kept === b.node.kept &&
     JSON.stringify(a.node.ref) === JSON.stringify(b.node.ref),
 );

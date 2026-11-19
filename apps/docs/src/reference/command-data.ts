@@ -94,7 +94,7 @@ export const REFUSED: Record<string, string> = {
   "page.as_limited": "Silent unless a curated page is open and the viewer may investigate.",
   "page.as_full": "Silent unless a curated page is open and the viewer may not investigate.",
   "peek.close": "Silent when no peek is open.",
-  "peek.pin": "Silent when no peek is open.",
+  "peek.open_beside": "Silent when no peek is open.",
   "peek.open_full": "Silent when no peek is open.",
   "settings.open": "Never.",
   "settings.centre_drop.toggle": "Never.",

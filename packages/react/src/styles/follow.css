@@ -27,9 +27,30 @@
     color: var(--jali-text);
     border-color: var(--jali-text-faint);
   }
+  .jali-follow-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    flex: none;
+    font-size: 0.6875rem;
+    color: var(--jali-text-subtle);
+  }
+  /* A plain link's Keep is quiet until the header is hovered or focused: most links are followed once. */
+  .jali-follow-toggle[data-follow="plain"]:not(:focus-visible) {
+    opacity: 0;
+  }
+  .jali-pane-header:is(:hover, :focus-within) .jali-follow-toggle[data-follow="plain"] {
+    opacity: 1;
+  }
+  @media (hover: none) {
+    .jali-follow-toggle[data-follow="plain"]:not(:focus-visible) {
+      opacity: 1;
+    }
+  }
   /* Below about 250px the word goes and the icon stays (its name and tooltip still say it), so the title keeps its room. */
   @container jali-header (max-width: 15.5rem) {
-    .jali-follow-toggle span {
+    .jali-follow-toggle span,
+    .jali-follow-status span {
       display: none;
     }
     .jali-follow-toggle {

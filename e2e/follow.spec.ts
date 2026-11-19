@@ -59,7 +59,7 @@ test.describe("A list's detail follows its selection", () => {
     expect(shown.length).toBeLessThan(6);
   });
 
-  test("⌥↵ on the row the detail shows pins it there; the next ⌥↵ opens a new follower; a pinned detail stays", async ({
+  test("⌥↵ on the row the detail shows keeps it there; the next ⌥↵ opens a new follower; a kept detail stays", async ({
     lab,
     page,
   }) => {
@@ -69,19 +69,19 @@ test.describe("A list's detail follows its selection", () => {
       .pane("customer")
       .getByRole("button", { name: /^Close/ })
       .click();
-    const pin = lab.pane("order").getByRole("button", { name: /^Pin order/ });
-    await expect(pin).toHaveAttribute("aria-pressed", "false");
+    const keep = lab.pane("order").getByRole("button", { name: /^Keep order/ });
+    await expect(keep).toHaveAttribute("aria-pressed", "false");
     await lab.row("orders", /^2\b/).click();
     await expect(lab.heading("order")).toHaveText("order 2");
 
-    // ⌥↵ on the row it shows: that detail is pinned in place, no copy opens.
+    // ⌥↵ on the row it shows: that detail is kept in place, no copy opens.
     const count = await lab.visibleCount();
     await page.keyboard.press("Alt+Enter");
-    await expect(pin).toHaveAttribute("aria-pressed", "true");
-    await expect(lab.announcer()).toHaveText(/^order 2 pinned/);
+    await expect(keep).toHaveAttribute("aria-pressed", "true");
+    await expect(lab.announcer()).toHaveText(/^order 2 kept/);
     expect(await lab.visibleCount()).toBe(count);
 
-    // Browse on: the pinned detail stays; ⌥↵ makes a new follower that follows from here.
+    // Browse on: the kept detail stays; ⌥↵ makes a new follower that follows from here.
     await page.keyboard.press("j");
     await page.waitForTimeout(400);
     await expect(lab.heading("order")).toHaveText("order 2");
@@ -89,7 +89,7 @@ test.describe("A list's detail follows its selection", () => {
     await expect.poll(() => lab.visibleCount()).toBe(count + 1);
     const follower = page
       .locator('section[data-pane][data-kind="record"]')
-      .filter({ has: page.getByRole("button", { name: /^Pin order/, pressed: false }) });
+      .filter({ has: page.getByRole("button", { name: /^Keep order/, pressed: false }) });
     await expect(follower.getByRole("heading", { level: 2 })).toHaveText("order 3");
     await page.keyboard.press("j");
     await expect(follower.getByRole("heading", { level: 2 })).toHaveText("order 4");

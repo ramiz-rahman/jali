@@ -103,7 +103,7 @@ Keys: content first. Claim the keys you use with `event.preventDefault()` (J and
 <Param name="paused" type="boolean" required>The pane is hidden: tabbed away, tucked, folded, or behind a maximised pane. Pause subscriptions and timers; keep state.</Param>
 <Param name="focused" type="boolean" required>The pane has workspace focus.</Param>
 <Param name="inPeek" type="boolean" required>Rendered in the peek sheet rather than a pane.</Param>
-<Param name="openBeside" type="(ref: ObjectRef) => ActionResult" required>Open `ref` beside this pane; focus stays here. The selected item opens a following detail (pinned if one already follows); another link replaces this pane's earlier plain link of the same kind. Returns what `jali.actions.openBeside` does: `pane` is the pane that shows `ref`.</Param>
+<Param name="openBeside" type="(ref: ObjectRef) => ActionResult" required>Open `ref` beside this pane; focus stays here. The selected item opens a following detail (kept if one already follows); another link replaces this pane's earlier plain link of the same kind. Returns what `jali.actions.openBeside` does: `pane` is the pane that shows `ref`.</Param>
 <Param name="openHere" type="(ref: ObjectRef) => ActionResult" required>Show `ref` in this pane. If it is open elsewhere, that pane is focused instead. In the peek sheet, which has no pane of its own, `{ ok: false, reason: "unavailable" }`.</Param>
 <Param name="peek" type="(ref: ObjectRef | null) => ActionResult" required>Open or move the peek sheet; `null` closes it.</Param>
 <Param name="select" type="(ref: ObjectRef | null, options?: { inResults?: boolean }) => ActionResult" required>Report the item a list is on. An open peek from this pane follows it at once; this pane's following detail once it rests. `{ inResults: false }`: the filter no longer shows `ref`. Report the selection before opening it, so the opened pane is linked to it.</Param>
@@ -399,10 +399,11 @@ One icon per name Jali draws. `<JaliRoot icons>` takes any part of it from `@jal
 <Member name="icons.fold" signature="fold: JaliIcon">Marks a folded tab or chip (the layout made it). Default: Phosphor's `ArrowsInLineHorizontal`.</Member>
 <Member name="icons.grip" signature="grip: JaliIcon">The drag handle on a pane's header. Default: Phosphor's `DotsSix`.</Member>
 <Member name="icons.follow" signature="follow: JaliIcon">A following detail's "Following" toggle. Default: Phosphor's `LinkSimpleHorizontal`.</Member>
-<Member name="icons.pin" signature="pin: JaliIcon">The same toggle once pinned. Default: Phosphor's `PushPin`.</Member>
+<Member name="icons.keep" signature="keep: JaliIcon">The Keep toggle on a linked pane. Default: Phosphor's `AnchorSimple`.</Member>
+<Member name="icons.pin" signature="pin: JaliIcon">A pinned tab's mark. Default: Phosphor's `PushPin`.</Member>
 <Member name="icons.activityError" signature="activityError: JaliIcon">The cross in an error activity mark (8px). Default: Phosphor's `X, bold`.</Member>
 <Member name="icons.defaultKind" signature="defaultKind: JaliIcon">A kind without an icon. Default: Phosphor's `Square`.</Member>
-<Member name="icons.pinBeside" signature="pinBeside: JaliIcon">The peek's "Pin beside". Default: Phosphor's `SidebarSimple, mirrored`.</Member>
+<Member name="icons.openBeside" signature="openBeside: JaliIcon">The peek's "Open beside". Default: Phosphor's `SidebarSimple, mirrored`.</Member>
 <Member name="icons.openFull" signature="openFull: JaliIcon">The peek's "Open full". Default: Phosphor's `CornersOut`.</Member>
 <Member name="icons.addToTabs" signature="addToTabs: JaliIcon">Each group in the "Add to tabs of…" chooser. Default: Phosphor's `Stack`.</Member>
 <Member name="icons.singleView" signature="singleView: JaliIcon">A curated page's "Single view". Default: Phosphor's `Square`.</Member>

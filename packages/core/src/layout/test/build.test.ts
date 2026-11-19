@@ -47,7 +47,7 @@ describe("layout builders", () => {
           weight: 2,
           linkedTo: "list",
           follows: true,
-          pinned: true,
+          kept: true,
           role: "detail",
           priority: "primary",
         }),
@@ -59,7 +59,7 @@ describe("layout builders", () => {
       size: { weight: 2 },
       linkedTo: "list",
       follows: true,
-      pinned: true,
+      kept: true,
       role: "detail",
       priority: "primary",
     });

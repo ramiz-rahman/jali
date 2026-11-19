@@ -1,5 +1,5 @@
 /**
- * Two behaviours the guides state (finding 49), pinned: a tab group is as narrow as its widest tab allows, and a pane
+ * Two behaviours the guides state (finding 49), kept: a tab group is as narrow as its widest tab allows, and a pane
  * id two presets share keeps its state and unsaved work across a switch, when it shows the same object in both.
  */
 import { describe, expect, it } from "vite-plus/test";

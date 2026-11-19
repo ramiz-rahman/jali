@@ -1,6 +1,6 @@
 /**
  * Linked selection (actions/follow.ts): a list's following detail shows its selection once it rests, in place
- * (a swap: no rect changes), with the URL replaced; a pinned detail stays; Space shows the row in the detail.
+ * (a swap: no rect changes), with the URL replaced; a kept detail stays; Space shows the row in the detail.
  */
 import { afterEach, beforeEach, describe, expect, it, vi } from "vite-plus/test";
 import type { ObjectRef, PaneNode } from "../../packages/core/src/layout/types";
@@ -51,24 +51,24 @@ describe("a list's detail follows its selection", () => {
     expect(said()).toBe("Showing order 4");
   });
 
-  it("a pinned detail does not follow; unpinning catches up with the selection", () => {
-    store.actions.setPinned("order", true);
-    expect(node("order")).toMatchObject({ pinned: true });
+  it("a kept detail does not follow; releasing catches up with the selection", () => {
+    store.actions.setKept("order", true);
+    expect(node("order")).toMatchObject({ kept: true });
     store.actions.select("orders", order(5));
     vi.advanceTimersByTime(FOLLOW_MS);
     expect(node("order").ref).toEqual(order(1));
-    store.actions.setPinned("order", false);
+    store.actions.setKept("order", false);
     expect(node("order").ref).toEqual(order(5));
     expect(node("order").follows).toBe(true);
   });
 
-  it("opening the row the detail shows pins it in place; browsing on, the next open makes a new follower", () => {
+  it("opening the row the detail shows keeps it in place; browsing on, the next open makes a new follower", () => {
     store.actions.select("orders", order(6));
     vi.advanceTimersByTime(FOLLOW_MS);
     const panes = store.model().panes.length;
     store.actions.openBeside("orders", order(6));
     expect(store.model().panes).toHaveLength(panes);
-    expect(node("order")).toMatchObject({ ref: order(6), pinned: true });
+    expect(node("order")).toMatchObject({ ref: order(6), kept: true });
     store.actions.select("orders", order(7));
     vi.advanceTimersByTime(FOLLOW_MS);
     expect(node("order").ref).toEqual(order(6));
@@ -92,11 +92,11 @@ describe("a list's detail follows its selection", () => {
     expect(node("order").ref).toEqual(order(9));
   });
 
-  it("opening the row a pinned detail shows, with no follower, goes to the pinned one: never a second copy", () => {
+  it("opening the row a kept detail shows, with no follower, goes to the kept one: never a second copy", () => {
     store.actions.select("orders", order(6));
     vi.advanceTimersByTime(FOLLOW_MS);
     store.actions.openBeside("orders", order(6));
-    expect(node("order")).toMatchObject({ ref: order(6), pinned: true });
+    expect(node("order")).toMatchObject({ ref: order(6), kept: true });
     const panes = store.model().panes.length;
     const got = store.actions.openBeside("orders", order(6));
     expect(store.model().panes).toHaveLength(panes);
@@ -112,7 +112,7 @@ describe("a list's detail follows its selection", () => {
       params: { table: "customers", id: 3 },
     })!;
     expect(node(opened).follows).toBeUndefined();
-    expect(node(opened).pinned).toBeUndefined();
+    expect(node(opened).kept).toBeUndefined();
     expect(node("order").ref).toEqual(order(2));
   });
 

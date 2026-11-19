@@ -20,8 +20,8 @@ import {
   resizeDivider,
   setDividerSize,
 } from "./resize";
-import { openPeekFull, peek, pinPeek, select } from "./peek";
-import { follow, setPinned } from "./follow";
+import { openPeekFull, peek, openPeekBeside, select } from "./peek";
+import { follow, setKept } from "./follow";
 import {
   arrive,
   changeSettings,
@@ -93,11 +93,11 @@ export const ACTIONS = {
   enterResizeMode,
   leaveResizeMode,
   peek,
-  pinPeek,
+  openPeekBeside,
   openPeekFull,
   select,
   follow,
-  setPinned,
+  setKept,
   preset,
   resetLayout,
   arrive,

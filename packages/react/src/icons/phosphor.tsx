@@ -2,6 +2,7 @@
  * Jali's default icons: Phosphor's (`@phosphor-icons/react`), regular weight, one module per icon so a bundle takes
  * only these. Only `@jali/react` and `@jali/react/icons` import this file; `@jali/react/bare` never does.
  */
+import { AnchorSimpleIcon } from "@phosphor-icons/react/AnchorSimple";
 import { ArrowCounterClockwiseIcon } from "@phosphor-icons/react/ArrowCounterClockwise";
 import { ArrowDownIcon } from "@phosphor-icons/react/ArrowDown";
 import { ArrowLeftIcon } from "@phosphor-icons/react/ArrowLeft";
@@ -28,7 +29,7 @@ import { StackIcon } from "@phosphor-icons/react/Stack";
 import { XIcon } from "@phosphor-icons/react/X";
 import type { JaliIconProps, JaliIcons } from "./types";
 
-/** The peek pins beside, on the right: Phosphor's sidebar, mirrored. */
+/** The peek keeps beside, on the right: Phosphor's sidebar, mirrored. */
 const PinBeside = (p: JaliIconProps) => <SidebarSimpleIcon mirrored {...p} />;
 /** The cross in an activity dot is 8px: bold, since regular would be half a pixel. */
 const ActivityError = (p: JaliIconProps) => <XIcon weight="bold" {...p} />;
@@ -46,10 +47,11 @@ export const phosphorIcons: JaliIcons = {
   fold: ArrowsInLineHorizontalIcon,
   grip: DotsSixIcon,
   follow: LinkSimpleHorizontalIcon,
+  keep: AnchorSimpleIcon,
   pin: PushPinIcon,
   activityError: ActivityError,
   defaultKind: SquareIcon,
-  pinBeside: PinBeside,
+  openBeside: PinBeside,
   openFull: CornersOutIcon,
   addToTabs: StackIcon,
   singleView: SquareIcon,

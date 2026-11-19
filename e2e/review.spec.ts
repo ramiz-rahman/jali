@@ -59,7 +59,7 @@ test.describe("Loan review: Single (default)", () => {
     await expect(pageTab(page, "Loan history")).toHaveAttribute("aria-selected", "true");
   });
 
-  test("a link peeks instead of opening beside, and the peek offers no Pin beside", async ({
+  test("a link peeks instead of opening beside, and the peek offers no Open beside", async ({
     lab,
     page,
   }) => {
@@ -67,7 +67,7 @@ test.describe("Loan review: Single (default)", () => {
     await groupLink(lab, "borrower").click();
     await expect(lab.peek()).toBeVisible();
     await expect(opened(page)).toHaveCount(0);
-    await expect(lab.peek().getByRole("button", { name: "Pin beside" })).toHaveCount(0);
+    await expect(lab.peek().getByRole("button", { name: "Open beside" })).toHaveCount(0);
   });
 
   test("another application from the queue keeps the view; J/K move through the queue", async ({

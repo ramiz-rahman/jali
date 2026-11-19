@@ -259,7 +259,7 @@ describe("a tab's menu", () => {
         id === "b"
           ? [
               { id: "dup", title: "Duplicate", run: () => {} },
-              { id: "pin", title: "Pin tab", checked: false, run: () => {} },
+              { id: "keep", title: "Pin tab", checked: false, run: () => {} },
             ]
           : undefined,
     });

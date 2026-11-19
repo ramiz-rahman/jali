@@ -84,7 +84,7 @@ describe("the instance", () => {
         "peek",
         "closePeek",
         "select",
-        "setPinned",
+        "setKept",
         "split",
         "newTab",
         "addTab",
@@ -287,10 +287,10 @@ describe("events", () => {
         { id: "b", label: "B", layout: () => row(list(), order({ id: 2 }), order({ id: 3 })) },
       ],
     });
-    // Pin from peek: close the sheet, then open beside (two steps).
+    // Keep from peek: close the sheet, then open beside (two steps).
     jali.actions.peek("orders", order({ id: 4 }));
     const heard = record(jali);
-    storeOf(jali).actions.pinPeek();
+    storeOf(jali).actions.openPeekBeside();
     expect(heard.filter(([n]) => n === "layout")).toHaveLength(1);
     expect(heard.filter(([n]) => n === "open")).toHaveLength(1);
     heard.length = 0;

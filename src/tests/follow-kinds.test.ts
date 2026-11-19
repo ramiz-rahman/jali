@@ -121,19 +121,19 @@ describe("one selection, followers of every kind", () => {
     expect(shown(jali, "note")).toEqual(note({ id: 4 }));
   });
 
-  it("a pinned follower keeps its object, and unpinning catches only it up", () => {
+  it("a kept follower keeps its object, and releasing catches only it up", () => {
     const jali = make();
-    jali.actions.setPinned("chart", true);
+    jali.actions.setKept("chart", true);
     jali.actions.select("watch", quote({ symbol: "ORBD" }));
     vi.advanceTimersByTime(FOLLOW_MS);
     expect(shown(jali, "chart")).toEqual(chart({ symbol: "LMNA" }));
     expect(shown(jali, "news")).toEqual(news({ symbol: "ORBD" }));
-    jali.actions.setPinned("chart", false);
+    jali.actions.setKept("chart", false);
     expect(shown(jali, "chart")).toEqual(chart({ symbol: "ORBD" }));
     expect(jali.model().pane("chart")).toMatchObject({ follows: true });
   });
 
-  it("opening a chart for the selected quote is opening the selection: it follows, or pins to compare", () => {
+  it("opening a chart for the selected quote is opening the selection: it follows, or keeps to compare", () => {
     const jali = make(
       row(
         pane(watchlist(), { id: "watch" }),
@@ -147,9 +147,9 @@ describe("one selection, followers of every kind", () => {
     jali.actions.select("watch", quote({ symbol: "HRBK" }));
     vi.advanceTimersByTime(FOLLOW_MS);
     expect(shown(jali, opened.pane!)).toEqual(chart({ symbol: "HRBK" }));
-    // Opening the chart it already shows pins it, as for a follower of the selected kind.
+    // Opening the chart it already shows keeps it, as for a follower of the selected kind.
     jali.actions.openBeside("watch", chart({ symbol: "HRBK" }));
-    expect(jali.model().pane(opened.pane!)).toMatchObject({ pinned: true });
+    expect(jali.model().pane(opened.pane!)).toMatchObject({ kept: true });
     // A chart of something else is a plain link, not the selection.
     const other = jali.actions.openBeside("watch", chart({ symbol: "KSTR" }));
     expect(jali.model().pane(other.pane!)?.follows).toBeUndefined();

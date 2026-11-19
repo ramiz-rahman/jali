@@ -27,11 +27,12 @@ export type JaliIconName =
   | "fold"
   | "grip"
   | "follow"
+  | "keep"
   | "pin"
   | "activityError"
   | "defaultKind"
   // the peek sheet and the chooser
-  | "pinBeside"
+  | "openBeside"
   | "openFull"
   | "addToTabs"
   // a curated page's bar

@@ -91,7 +91,7 @@ describe("collapse priority on the order chain", () => {
       recentE.panes.find((p) => p.id === "b")!.stackId,
     );
   });
-  it("folds unlinked panes before linked ones and pinned panes last", () => {
+  it("folds unlinked panes before linked ones and kept panes last", () => {
     const tree: Layout = {
       version: 1,
       root: {
@@ -102,7 +102,7 @@ describe("collapse priority on the order chain", () => {
           refPane("a", { kind: "table", params: {} }),
           refPane("b", { kind: "record", params: { n: 1 } }, { linkedTo: "a" }),
           refPane("x", { kind: "record", params: { n: 2 } }),
-          refPane("y", { kind: "record", params: { n: 3 } }, { pinned: true }),
+          refPane("y", { kind: "record", params: { n: 3 } }, { kept: true }),
         ],
       },
     };

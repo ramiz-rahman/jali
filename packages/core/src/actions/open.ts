@@ -7,7 +7,7 @@ import { peekSheet } from "./peek";
 import { goToRole, investigation, placeAfterArrangement, roleLabel, settleRoles } from "./page";
 import type { JaliModel } from "../state/model";
 import { say } from "../state/messages";
-import { follow, followLater, sameRef, setPinned } from "./follow";
+import { follow, followLater, sameRef, setKept } from "./follow";
 
 /** What a new split or a stack's "+" shows until the person chooses an object: the workspace's launcher. */
 const launcherOf = (x: Snapshot): ObjectRef | undefined =>
@@ -29,9 +29,25 @@ export function openPaneFor(m: JaliModel, ref: ObjectRef, except?: NodeId): Pane
   return m.panes.find((p) => p.id !== except && m.env.kinds.sameObject(p.ref, ref));
 }
 
+/** The pane of `source`'s chain of links that shows `ref`'s object: `source`, a pane up its chain, or one it opened. */
+function chainPaneFor({ m }: Snapshot, source: NodeId, ref: ObjectRef): NodeId | undefined {
+  const { kinds } = m.env;
+  if (kinds.identityOf(ref) === undefined) return undefined;
+  const shows = (id: NodeId | undefined) => {
+    const p = m.pane(id);
+    return !!p && kinds.sameObject(p.ref, ref);
+  };
+  const seen = new Set<NodeId>();
+  for (let up: NodeId | undefined = source; up && !seen.has(up); up = m.pane(up)?.linkedTo) {
+    if (shows(up)) return up;
+    seen.add(up);
+  }
+  return m.panes.find((p) => p.linkedTo === source && shows(p.id))?.id;
+}
+
 /**
  * Focus stays in the source. Opening the source's selected item (a list's row) links the new pane
- * to the selection: it follows it, or, when the list already has a following detail, it opens pinned beside it for
+ * to the selection: it follows it, or, when the list already has a following detail, it opens kept beside it for
  * comparison (layout/ops/follow.ts). The selected item is the selected object itself or, for another kind, what that
  * kind's `follow` shows for it (a chart for a watchlist's selected quote). Any other link opens a plain linked pane.
  */
@@ -62,17 +78,17 @@ export function openBeside(x: Snapshot, source: NodeId, ref: ObjectRef): Outcome
   // In a curated page nothing the person placed gives way for an opened pane: short of room, it opens as a tab.
   const selected = s.selection[source]?.ref;
   const fromSelection = !!selected && sameRef(m.env.kinds.follow(ref.kind, selected), ref);
-  // The list already has a following detail: opening its row pins that detail in place when it shows the row (keep
+  // The list already has a following detail: opening its row keeps that detail in place when it shows the row (keep
   // it, browse on: the next open makes a new follower), or shows the row there now. Never a second copy of a row.
   const showing = fromSelection ? core.follower(s.layout, source, ref.kind) : undefined;
   if (showing)
     return sameRef(showing.ref, ref)
-      ? setPinned(x, showing.id, true)
+      ? setKept(x, showing.id, true)
       : [
           { op: "select", defer: followLater(source, null) },
           (y: Snapshot) => follow(y, source, selected!),
         ];
-  // A detail of this list already shows the row (one pinned earlier, with no follower now): show that one, focus stays.
+  // A detail of this list already shows the row (one kept earlier, with no follower now): show that one, focus stays.
   const kept = fromSelection
     ? m.panes.find((p) => p.linkedTo === source && sameRef(p.ref, ref))
     : undefined;
@@ -84,6 +100,18 @@ export function openBeside(x: Snapshot, source: NodeId, ref: ObjectRef): Outcome
       msg: say(x).alreadyOpenBeside(m.title(kept.id)),
       result: kept.id,
     };
+  // A link never copies a pane of its own chain: the source itself, a pane it came from (up the chain), or a pane it
+  // opened. That pane is shown instead and focus stays. Another chain may show the same object: the person may want
+  // two customers' orders side by side.
+  const inChain = !s.page ? chainPaneFor(x, source, ref) : undefined;
+  if (inChain) {
+    const revealed = core.reveal(s.layout, inChain, ctx);
+    const msg = say(x).alreadyOpenBeside(m.title(inChain));
+    // Already on screen, nothing changes but what is said.
+    return revealed === s.layout
+      ? { op: "focus", msg, result: inChain }
+      : { op: "focusExisting", layout: revealed, view: s.view, msg, result: inChain };
+  }
   const r = core.openBeside(s.layout, unzoomed(s.view), source, ref, ctx, place, {
     ...(s.page ? { yields: false } : {}),
     ...(fromSelection ? { fromSelection } : {}),
@@ -120,11 +148,11 @@ export function openBeside(x: Snapshot, source: NodeId, ref: ObjectRef): Outcome
     ));
     opened = t.opened;
   }
-  const pinned =
-    !!core.tree.panes(layout.root).find((p) => p.id === opened)?.pinned && fromSelection;
+  const openedKept =
+    !!core.tree.panes(layout.root).find((p) => p.id === opened)?.kept && fromSelection;
   const said =
-    pinned && r.mode === "beside"
-      ? say(x).openedPinned(m.env.kinds.title(ref), m.title(source))
+    openedKept && r.mode === "beside"
+      ? say(x).openedKept(m.env.kinds.title(ref), m.title(source))
       : say(x).openedBeside(r.mode, m.env.kinds.title(ref), m.title(source));
   return {
     op: "open",

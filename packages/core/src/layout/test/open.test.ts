@@ -43,10 +43,10 @@ describe("open", () => {
       ref: ref("record", 99),
     });
   });
-  it("does not replace a pinned linked pane or unrelated same-kind pane", () => {
+  it("does not replace a kept linked pane or unrelated same-kind pane", () => {
     const tree = layout(
       pane("a"),
-      pane("b", "record", { linkedTo: "a", pinned: true }),
+      pane("b", "record", { linkedTo: "a", kept: true }),
       pane("c", "record"),
     );
     const result = core.openBeside(tree, view(), "a", ref(), ctx(fit(1920)));
@@ -194,17 +194,17 @@ describe("open", () => {
     expect(result.mode).toBe("beside");
     expect(panes(result.layout.root)).toHaveLength(11);
   });
-  it("uses a new tab if all cap victims are pinned or focused", () => {
+  it("uses a new tab if all cap victims are kept or focused", () => {
     const ctx = (f: TestFit = context().fit) => context(f, 2);
     const result = core.openBeside(
-      layout(pane("a", "small", { pinned: true }), pane("b")),
+      layout(pane("a", "small", { kept: true }), pane("b")),
       view("b"),
       "b",
       ref("small"),
       ctx(fit()),
     );
     expect(result.mode).toBe("tab");
-    expect((find(result.layout.root, "a") as PaneNode).pinned).toBe(true);
+    expect((find(result.layout.root, "a") as PaneNode).kept).toBe(true);
     expect(
       core.resolve(result.layout, result.view, ctx(fit())).panes.filter((p) => !p.hidden).length,
     ).toBeLessThanOrEqual(2);

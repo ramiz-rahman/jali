@@ -24,7 +24,7 @@ A detail opened from the list's selected row **follows** the list. Move the sele
 
 A list has at most one following detail of each kind, and it can have followers of several kinds. The detail's header shows a **Following** toggle, so the person can see that it moves with the list.
 
-<Spotlight layout="chain" target="follow" height={300} caption="The Following toggle in the detail's header. Press it to pin the detail." />
+<Spotlight layout="chain" target="follow" height={300} caption="Following, and the Keep toggle, in the detail's header. Press Keep to stay on this item." />
 
 Focus stays in the list the whole time, so the person keeps moving with J and K. A following step replaces the address rather than adding to the history, so Back skips the rows they passed through.
 
@@ -42,9 +42,9 @@ export const chart = definePane("chart", {
 });
 ```
 
-When the selection moves, every follower of the list that can show it moves, together, as one change: one entry replaced in the history, and one announcement. A follower keeps what it shows when its kind has no `follow`, when `follow` returns `undefined`, or when its kind can't read what `follow` gives (a required param missing). A pinned detail never moves.
+When the selection moves, every follower of the list that can show it moves, together, as one change: one entry replaced in the history, and one announcement. A follower keeps what it shows when its kind has no `follow`, when `follow` returns `undefined`, or when its kind can't read what `follow` gives (a required param missing). A kept detail never moves.
 
-Opening a chart for the selected quote counts as opening the selection, so the new chart follows the list, or opens pinned beside the list's following chart, just as a second quote would.
+Opening a chart for the selected quote counts as opening the selection, so the new chart follows the list, or opens kept beside the list's following chart, just as a second quote would.
 
 ## It waits for the selection to rest
 
@@ -54,11 +54,11 @@ Opening a row (⌥↵, or a row's open button) while that wait is running shows 
 
 ## Pinning
 
-To keep a ticket on screen and go on browsing, the person pins the detail: press **Following** in its header (it becomes **Pinned**), or open the row the detail already shows.
+To keep a ticket on screen and go on browsing, the person keeps the detail: press **Keep** in its header (it stays pressed, and **Following** goes), or open the row the detail already shows.
 
-A pinned detail keeps its object. The next row opened from the list makes a new following detail beside it, so comparing two tickets is "pin this one, keep going".
+A kept detail stays on its object. The next row opened from the list makes a new following detail beside it, so comparing two tickets is "keep this one, go on".
 
-Unpinning a detail makes it follow again, and it catches up with the list's selection at once. If another detail was following that list, that one is pinned in its place, so there is still only one follower.
+Pressing **Keep** again makes it follow again, and it catches up with the list's selection at once. If another detail was following that list, that one is kept in its place, so there is still only one follower.
 
 ## Space shows the row in the detail
 
@@ -80,6 +80,6 @@ If the following detail has [unsaved work](/get-started/key-concepts#unsaved-wor
 
 ## Links that are not the selection
 
-A link that is not the list's selected row, such as a customer name in a ticket, opens a plain linked pane. It never replaces the following detail or a pinned one.
+A link that is not the list's selected row, such as a customer name in a ticket, opens a plain linked pane. It never replaces the following detail or a kept one.
 
 Closing the list unlinks its detail: the detail stays, showing what it showed, and stops following. Undo brings the list back with the link.

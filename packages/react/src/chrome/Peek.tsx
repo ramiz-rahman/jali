@@ -74,10 +74,14 @@ export function Peek({ presentation }: { presentation: Presentation }) {
           <span className="jali-peek-label">{t.badge}</span>
         </div>
         <div className="jali-pane-actions">
-          {/* A curated workspace never replaces its arrangement; a role that only peeks can't pin either. */}
+          {/* A curated workspace never replaces its arrangement; a role that only peeks can't keep either. */}
           {canPin ? (
-            <button className="jali-text-btn" onClick={() => actions.pinPeek()} title={t.pinBeside}>
-              <icon.pinBeside size={14} aria-hidden /> {t.pinBeside}
+            <button
+              className="jali-text-btn"
+              onClick={() => actions.openPeekBeside()}
+              title={t.openBeside}
+            >
+              <icon.openBeside size={14} aria-hidden /> {t.openBeside}
             </button>
           ) : null}
           {page ? null : (

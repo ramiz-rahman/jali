@@ -67,7 +67,7 @@ A folded tab is marked as made by the layout: italic, with a fold icon. It needs
 
 <h3 id="pane-cap">Pane cap</h3>
 
-The pane cap is the most panes shown at once, 8 by default. Past it, the oldest pane that is not pinned or focused becomes a tab, even when there is room.
+The pane cap is the most panes shown at once, 8 by default. Past it, the oldest pane that is not kept or focused becomes a tab, even when there is room.
 
 <h3 id="single-view">Single view</h3>
 
@@ -93,7 +93,7 @@ F6 and Shift+F6 move focus between panes. Opening a pane beside keeps focus wher
 
 A peek is a sheet over the right of the workspace that shows an object without adding a pane. It is not part of the layout.
 
-In a list, Space usually opens it. From the sheet, **Pin beside** opens the object as a pane and **Open full** makes it the only pane. Esc closes it.
+In a list, Space usually opens it. From the sheet, **Open beside** opens the object as a pane and **Open full** makes it the only pane. Esc closes it.
 
 <h3 id="selection">Selection and the following detail</h3>
 
@@ -101,11 +101,11 @@ A list reports its selected item with `select(ref)`. A detail opened from that i
 
 The detail waits until the selection rests for 150ms, so holding J doesn't load every row on the way. [Following a list](/learn/following) has the rules.
 
-<h3 id="linked">Linked and pinned</h3>
+<h3 id="linked">Linked and kept</h3>
 
 A pane opened from another is linked to it (`linkedTo`). A plain link, such as a customer name in a ticket, replaces the earlier link of the same kind from the same pane instead of adding another pane.
 
-A pinned pane keeps its object: it never follows and is never reused for another link, and it folds after panes that are not pinned.
+A kept pane stays on its object: it never follows and is never reused for another link, and it folds after panes that are not kept. **Keep** in a linked pane's header keeps it.
 
 ## Curated pages
 

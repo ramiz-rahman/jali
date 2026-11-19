@@ -78,7 +78,7 @@ describe("the markets workspace", () => {
     // The link names its desk: the top bar marks Compare, and Reset rebuilds it.
     expect(reader.get().presetId).toBe("compare");
     expect(reader.model().pane("chart-a")).toMatchObject({
-      pinned: true,
+      kept: true,
       ref: chart({ symbol: "LMNA" }),
     });
   });
@@ -94,7 +94,7 @@ describe("the markets workspace", () => {
     for (const id of ["chart", "book", "tape", "news"]) expect(shown(jali, id)).toBe("ORBD");
   });
 
-  it("compares: a pinned quote keeps its instrument while the following one moves", () => {
+  it("compares: a kept quote keeps its instrument while the following one moves", () => {
     vi.useFakeTimers();
     const { jali } = testJali();
     jali.actions.preset("compare");
@@ -117,9 +117,9 @@ describe("the markets workspace", () => {
     expect(jali.get().presetId).toBe("rates");
   });
 
-  it("has room to compare at 1440: pin the chart, open another, and nothing folds", () => {
+  it("has room to compare at 1440: keep the chart, open another, and nothing folds", () => {
     const { jali } = testJali({ width: 1424, height: 820 });
-    jali.actions.setPinned("chart", true);
+    jali.actions.setKept("chart", true);
     jali.actions.select("watch", quote({ symbol: "ORBD" }));
     const opened = openFollowing(jali, "watch", chart({ symbol: "ORBD" }))!;
     expect(jali.model().pane(opened)).toMatchObject({
@@ -127,7 +127,7 @@ describe("the markets workspace", () => {
       ref: chart({ symbol: "ORBD" }),
     });
     expect(jali.model().pane("chart")).toMatchObject({
-      pinned: true,
+      kept: true,
       ref: chart({ symbol: "LMNA" }),
     });
     expect(jali.model().folded).toEqual([]);

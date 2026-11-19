@@ -6,7 +6,7 @@
  *    that object, and a follower of another kind shows what its kind's `follow` gives for it (a watchlist of quotes
  *    moves its chart, book and news). The others keep what they show. All of them move in one change.
  *  - Following is a swap: same slot, same size; the URL is replaced, so Back skips the rows passed through.
- *  - Pin keeps a detail on its object; unpinning makes it the list's follower again (and pins the previous one).
+ *  - Keep keeps a detail on its object; releasing makes it the list's follower again (and keeps the previous one).
  */
 import * as core from "../layout";
 import type { NodeId, ObjectRef } from "../layout/types";
@@ -43,7 +43,7 @@ export function followMoves(
 
 /**
  * Show `selected` in `source`'s following details now: each one that can show it (followMoves). Nothing when none
- * moves. `only` moves that follower alone (one just unpinned, catching up).
+ * moves. `only` moves that follower alone (one just released, catching up).
  */
 export function follow(
   { s, ctx, env }: Snapshot,
@@ -73,18 +73,26 @@ export function followerOnScreen({ s, m }: Snapshot, source: NodeId, kind: strin
   return f && m.resolved.panes.some((b) => b.id === f.id && !b.hidden) ? f : undefined;
 }
 
-/** Pin (`true`) or unpin (`false`) a linked detail. */
-export function setPinned({ s, m }: Snapshot, id: NodeId, pinned: boolean): Outcome {
+/**
+ * Keep (`true`) a linked pane on its object, or let it go (`false`). A detail of a list (its source reports a
+ * selection) follows the selection again, catching up now; a plain link goes back to being replaced by the next link.
+ */
+export function setKept({ s, m }: Snapshot, id: NodeId, kept: boolean): Outcome {
   const p = m.pane(id);
   if (!p?.linkedTo) return null;
-  const layout = core.setFollows(s.layout, id, !pinned);
+  const list = p.linkedTo in s.selection;
+  const layout = core.setKept(s.layout, id, kept, { follow: list });
   if (layout === s.layout) return null;
   const change: Change = {
-    op: "pin",
+    op: "keep",
     layout,
-    msg: pinned ? say(m).pinned(m.title(id)) : say(m).unpinned(m.title(id), m.title(p.linkedTo)),
+    msg: kept
+      ? say(m).kept(m.title(id))
+      : list
+        ? say(m).released(m.title(id), m.title(p.linkedTo))
+        : say(m).unkept(m.title(id)),
   };
-  // Unpinned: catch up with the list's selection now.
+  // Following again: catch up with the list's selection now.
   const sel = s.selection[p.linkedTo];
-  return pinned || !sel ? change : [change, (y: Snapshot) => follow(y, p.linkedTo!, sel.ref, id)];
+  return kept || !sel ? change : [change, (y: Snapshot) => follow(y, p.linkedTo!, sel.ref, id)];
 }

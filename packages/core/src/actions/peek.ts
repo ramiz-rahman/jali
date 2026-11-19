@@ -34,8 +34,8 @@ export function peekSheet({ s, env }: Snapshot, ref: ObjectRef | null, source?: 
   };
 }
 
-/** Pin: close the peek, then open its object beside the pane it came from. */
-export function pinPeek(x: Snapshot): Outcome {
+/** Keep: close the peek, then open its object beside the pane it came from. */
+export function openPeekBeside(x: Snapshot): Outcome {
   const ref = x.s.view.peek,
     source = x.s.peekSource ?? x.s.view.focused;
   if (!ref || !source) return null;

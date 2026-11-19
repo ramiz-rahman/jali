@@ -17,7 +17,7 @@ export interface SizeOptions {
 }
 
 export interface PaneNodeOptions
-  extends SizeOptions, Pick<PaneNode, "linkedTo" | "follows" | "pinned" | "role" | "priority"> {
+  extends SizeOptions, Pick<PaneNode, "linkedTo" | "follows" | "kept" | "role" | "priority"> {
   /** Off screen at the start (no slot, no tab): its neighbours take the space, and showing it brings it back. */
   hidden?: boolean;
 }
@@ -113,7 +113,7 @@ export function toLayout(input: LayoutInput): Layout {
     const id = name(d);
     const size = sizeOf(d.options);
     if (d.type === "pane") {
-      const { hidden: off, linkedTo, follows, pinned, role, priority } = d.options;
+      const { hidden: off, linkedTo, follows, kept, role, priority } = d.options;
       if (off) hidden.push(id);
       const node: PaneNode = {
         id,
@@ -123,7 +123,7 @@ export function toLayout(input: LayoutInput): Layout {
       };
       if (linkedTo !== undefined) node.linkedTo = linkedTo;
       if (follows !== undefined) node.follows = follows;
-      if (pinned !== undefined) node.pinned = pinned;
+      if (kept !== undefined) node.kept = kept;
       if (role !== undefined) node.role = role;
       if (priority !== undefined) node.priority = priority;
       return node;

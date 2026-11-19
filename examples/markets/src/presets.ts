@@ -2,7 +2,7 @@
  * The desks: four layouts to start from, in ⌘K as "Layout: …" and in the top bar.
  *
  * Each desk has one watchlist (id "watch"). A pane with `linkedTo: "watch", follows: true` shows whatever the
- * watchlist's cursor is on; `pinned: true` keeps its instrument, for comparing. The blotter opens from any Buy or
+ * watchlist's cursor is on; `kept: true` keeps its instrument, for comparing. The blotter opens from any Buy or
  * Sell (or ⌘K ⌘B); the FX desk keeps it on screen. A pane with the same id in two desks keeps its state across a
  * switch, so a half-written ticket comes along from one desk with a blotter to another.
  */
@@ -75,7 +75,7 @@ export const presets: PresetOptions[] = [
     ),
   },
   {
-    // Two instruments side by side: the top row is pinned to one; the bottom row follows the watchlist.
+    // Two instruments side by side: the top row is kept to one; the bottom row follows the watchlist.
     id: "compare",
     label: "Compare",
     layout: row(
@@ -86,10 +86,10 @@ export const presets: PresetOptions[] = [
           pane(chart({ symbol: "LMNA" }), {
             id: "chart-a",
             linkedTo: "watch",
-            pinned: true,
+            kept: true,
             weight: 1.8,
           }),
-          pane(quote({ symbol: "LMNA" }), { id: "quote-a", linkedTo: "watch", pinned: true }),
+          pane(quote({ symbol: "LMNA" }), { id: "quote-a", linkedTo: "watch", kept: true }),
         ),
         row(
           pane(chart({ symbol: "ORBD" }), { id: "chart", ...follows, weight: 1.8 }),

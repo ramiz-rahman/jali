@@ -83,7 +83,7 @@ function foldUntilFit(
           s.pane &&
           !keep.has(s.id) &&
           s.id !== view.focused &&
-          !s.pane.pinned &&
+          !s.pane.kept &&
           s.pane.priority !== "primary",
       )
       .sort((a, b) => ages.get(a.id)! - ages.get(b.id)!)[0];

@@ -40,7 +40,7 @@ A pane: one object, shown by its kind's component.
 <Param name="base" type="Size">The size a divider reset returns to. Carried in the layout and the URL.</Param>
 <Param name="linkedTo" type="NodeId">The pane it was opened from. Closing that pane drops the link.</Param>
 <Param name="follows" type="boolean">It shows the object selected in `linkedTo` and changes in place when the selection moves. At most one per source and kind.</Param>
-<Param name="pinned" type="boolean">Kept by the person: never reused for another object, never following, the last to fold.</Param>
+<Param name="kept" type="boolean">Kept by the person: never reused for another object, never following, the last to fold.</Param>
 <Param name="born" type="number">Its age, rising with each open; older panes fold first when over the cap. Panes without one come before new ones.</Param>
 <Param name="role" type="string">The view of a curated page it fills ("borrower"). Panes without a role were opened by the person.</Param>
 <Param name="priority" type={`"primary" | "supporting"`}>Supporting panes give way first when room runs out; a primary pane never folds while another can.</Param>
@@ -196,7 +196,7 @@ A builder node's id and size: a share of its parent (`weight`, default 1) or a f
 
 </Entry>
 
-<Entry name="PaneNodeOptions" kind="type" from="@jali/core" signature={`interface PaneNodeOptions extends SizeOptions {\n  linkedTo?; follows?; pinned?; role?; priority?; hidden?: boolean;\n}`} compact>
+<Entry name="PaneNodeOptions" kind="type" from="@jali/core" signature={`interface PaneNodeOptions extends SizeOptions {\n  linkedTo?; follows?; kept?; role?; priority?; hidden?: boolean;\n}`} compact>
 
 The options of <Ref to="pane" page="/reference/core" />.
 
@@ -592,7 +592,7 @@ How a change reaches the address: a new entry, in place, in place 120 ms after t
 
 <Params title="Fields">
 <Param name="centreDrop" type={`"swap" | "tab"`} default={`"swap"`} required>What a drop on a pane's centre does.</Param>
-<Param name="paneCap" type="number" default="8" required>The most panes on screen; past it the oldest pane that is not pinned or focused folds. Settings allows 2 to 16.</Param>
+<Param name="paneCap" type="number" default="8" required>The most panes on screen; past it the oldest pane that is not kept or focused folds. Settings allows 2 to 16.</Param>
 <Param name="theme" type={`"system" | "light" | "dark"`} default={`"system"`} required>The theme choice.</Param>
 <Param name="boundary" type={`"tint" | "none"`} default={`"tint"`} required>How a curated page marks panes opened while investigating.</Param>
 </Params>
@@ -790,12 +790,12 @@ A pane that is not there gives `reason: "not-found"`. What a refusal reads out t
 </Members>
 
 <Members title="Open">
-<Member name="actions.openBeside" signature="openBeside(pane: PaneTarget, ref: ObjectRef)">Open `ref` beside `pane`; focus stays in `pane`. `pane`'s selected item opens a following detail (pinned if one already follows). In a curated page: a peek in Single view or for a limited viewer, and an object already on the page is focused instead. `pane` in the result is the pane that shows `ref`.</Member>
+<Member name="actions.openBeside" signature="openBeside(pane: PaneTarget, ref: ObjectRef)">Open `ref` beside `pane`; focus stays in `pane`. `pane`'s selected item opens a following detail (kept if one already follows). A link never copies a pane of its own chain: when `ref`'s object is `pane` itself, a pane `pane` was opened from (up the chain), or one it opened, that pane is shown instead (`pane` in the result), focus stays, and it is announced "Already open". Outside a curated page, another chain may still show the same object. In a curated page: a peek in Single view or for a limited viewer, and an object already on the page is focused instead. `pane` in the result is the pane that shows `ref`.</Member>
 <Member name="actions.openHere" signature="openHere(pane: PaneTarget, ref: ObjectRef)">Show `ref` in `pane`. If it is open elsewhere, focus that pane (and close `pane` when it is a launcher).</Member>
 <Member name="actions.peek" signature="peek(pane: PaneTarget, ref: ObjectRef)">Show `ref` in the peek sheet, for `pane`. When `pane`'s following detail of that kind is on screen, the detail shows `ref` instead.</Member>
 <Member name="actions.closePeek" signature="closePeek()">Close the peek sheet.</Member>
 <Member name="actions.select" signature="select(pane: PaneTarget, ref: ObjectRef | null, options?: { inResults?: boolean })">Report a list's selection (`null`: none). An open peek from it follows at once; its following detail after 150 ms of rest. `inResults: false`: the list's filter no longer shows it.</Member>
-<Member name="actions.setPinned" signature="setPinned(pane: PaneTarget, pinned: boolean)">Pin a linked detail on what it shows, or unpin it so it follows its list again. `"nothing-to-do"` for a pane that is not linked to a list.</Member>
+<Member name="actions.setKept" signature="setKept(pane: PaneTarget, kept: boolean)">Keep a linked pane on what it shows, or let it go. A kept follower stops following its list; a kept plain link is no longer replaced by the next link from its source, which opens beside it instead. Let go, a detail of a list (its source reports a selection) follows the selection again and catches up; a plain link goes back to being replaced. `"nothing-to-do"` for a pane with no link.</Member>
 <Member name="actions.split" signature={`split(pane?: PaneTarget, direction?: "right" | "bottom")`}>Open the launcher beside `pane` and focus it. Without `direction`: right of a wide pane, below a tall one. `"unavailable"` without a launcher.</Member>
 <Member name="actions.newTab" signature="newTab(pane?: PaneTarget)">The launcher as a new tab of the pane's group. `"unavailable"` without a launcher.</Member>
 <Member name="actions.addTab" signature="addTab(pane: PaneTarget, ref: ObjectRef)">Show `ref` as a new tab of `pane`'s group (or a new group), and focus it. It is one step: one entry in the history, and the tab takes `pane`'s slot, so nothing else folds or moves. Use it rather than `openBeside` then `mergeInto`, which is two entries and can fold other panes in between. If `ref` is already open, that pane is shown instead. `"invalid"` for a kind the workspace doesn't have.</Member>

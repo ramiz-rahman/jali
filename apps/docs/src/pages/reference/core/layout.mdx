@@ -16,7 +16,7 @@ import layoutCode from "../../../samples/reference/layout-ops.ts?raw";
 
 Opens `ref` in a new pane at `edge` of `target`, then fits the layout. `openBeside` and `split` are the two common forms.
 
-When there is no room, or the pane cap is passed, what folds is decided now and recorded in the overlay. With no room, the new pane becomes a tab of its source. Over the cap, the oldest pane that is not pinned, focused or primary folds. A linked open (not from a selection) reuses the source's earlier plain link of the same kind instead of opening another pane; followers and pinned panes are never reused. A linked open keeps focus on `target`; an unlinked one focuses the new pane.
+When there is no room, or the pane cap is passed, what folds is decided now and recorded in the overlay. With no room, the new pane becomes a tab of its source. Over the cap, the oldest pane that is not kept, focused or primary folds. A linked open (not from a selection) reuses the source's earlier plain link of the same kind instead of opening another pane; followers and kept panes are never reused. A linked open keeps focus on `target`; an unlinked one focuses the new pane.
 
 <Params>
 <Param name="layout" type="Layout" required>The layout now.</Param>
@@ -27,7 +27,7 @@ When there is no room, or the pane cap is passed, what folds is decided now and 
 <Param name="ctx" type="LayoutContext" required>The room, the gap, the kinds and the pane cap (see <Ref to="LayoutContext" page="/reference/core/types" />). A negative width or height counts as zero. Throws a `RangeError` for a non-finite size or gap, a negative gap, or a cap that is not a positive integer.</Param>
 <Param name="linked" type="boolean" required>Whether the new pane is linked to `target` (`linkedTo`). Closing the source drops the link.</Param>
 <Param name="place" type="{ target: string; edge: Edge }">Somewhere else to put it: a curated page keeps opened panes after its arrangement. Ignored when `place.target` is not in the layout.</Param>
-<Param name="opts" type="{ yields?: boolean; fromSelection?: boolean }" default="{}">`yields: false`: no supporting pane gives way for the new one; short of room, the new pane becomes a tab of its source. `fromSelection`: `ref` is the source's selected row (or what its kind's `follow` shows for it), so the new pane follows the selection, or opens pinned when the source already has a follower of that kind.</Param>
+<Param name="opts" type="{ yields?: boolean; fromSelection?: boolean }" default="{}">`yields: false`: no supporting pane gives way for the new one; short of room, the new pane becomes a tab of its source. `fromSelection`: `ref` is the source's selected row (or what its kind's `follow` shows for it), so the new pane follows the selection, or opens kept when the source already has a follower of that kind.</Param>
 </Params>
 
 <Returns type={`{ layout: Layout; view: ViewState; opened: NodeId; mode: "beside" | "replaced" | "tab" }`}>
@@ -218,17 +218,17 @@ Shows `ref` in `source`'s follower of that kind, in place (a swap: same node, sl
 
 </Entry>
 
-<Entry name="layout.selectionLink" kind="function" from="@jali/core" signature={`layout.selectionLink(layout, source, kind): { follows: true } | { pinned: true }`} compact>
+<Entry name="layout.selectionLink" kind="function" from="@jali/core" signature={`layout.selectionLink(layout, source, kind): { follows: true } | { kept: true }`} compact>
 
-The link flags for a pane newly opened from `source`'s selection: it follows, unless the source already has a follower of that kind, then it opens pinned.
+The link flags for a pane newly opened from `source`'s selection: it follows, unless the source already has a follower of that kind, then it opens kept.
 
-<Returns type={`Pick<PaneNode, "follows" | "pinned">`} />
+<Returns type={`Pick<PaneNode, "follows" | "kept">`} />
 
 </Entry>
 
-<Entry name="layout.setFollows" kind="function" from="@jali/core" signature={`layout.setFollows(layout: Layout, id: NodeId, follows: boolean): Layout`} compact>
+<Entry name="layout.setKept" kind="function" from="@jali/core" signature={`layout.setKept(layout: Layout, id: NodeId, kept: boolean, opts?: { follow?: boolean }): Layout`} compact>
 
-Pins (`false`) or unpins (`true`) a linked pane. Unpinned, it follows its source, and any other follower of that source and kind is pinned in its place. Unlinked panes, and a pane already in that state, return the same layout.
+Keeps a linked pane on its object (`kept: true`): a follower stops following, a plain link is no longer replaced by the next link from its source. Let go (`kept: false`) with `follow`, it follows its source again, and any other follower of that source and kind is kept in its place; without, it is a plain link again. Unlinked panes and unchanged states return `layout`.
 
 <Returns type="Layout" />
 

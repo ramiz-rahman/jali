@@ -25,10 +25,7 @@ async function axe(page: Page) {
     "best-practice",
   ]);
   for (const s of JALI) if (await page.locator(s).count()) b = b.include(s);
-  b = b
-    .exclude(".jali-pane-content-inner")
-    // Known, left for its own change: the follow toggle shows "Following" but is named "Pin <pane>" (WCAG 2.5.3).
-    .disableRules(["label-content-name-mismatch"]);
+  b = b.exclude(".jali-pane-content-inner");
   const { violations } = await b.analyze();
   return violations.map((v) => ({
     id: v.id,

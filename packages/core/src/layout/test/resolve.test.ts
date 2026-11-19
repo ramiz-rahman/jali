@@ -36,7 +36,7 @@ describe("resolve and fold", () => {
         expect(tree.root.type).toBe("row");
       });
     }
-  it("folds the narrowest unpinned context first", () => {
+  it("folds the narrowest released context first", () => {
     const tree = layout(
       pane("a", "list"),
       pane("b", "record", { linkedTo: "a" }),
@@ -55,11 +55,11 @@ describe("resolve and fold", () => {
     expect(result.panes.find((p) => p.id === "b")!.hidden).toBeUndefined();
     expect(folded(result)).toEqual(["a"]);
   });
-  it("skips pinned contexts and falls back to a single switcher when necessary", () => {
+  it("skips kept contexts and falls back to a single switcher when necessary", () => {
     const result = place(
       layout(
         pane("a", "list"),
-        pane("b", "record", { linkedTo: "a", pinned: true }),
+        pane("b", "record", { linkedTo: "a", kept: true }),
         pane("c", "inspector", { linkedTo: "a" }),
       ),
       view(),

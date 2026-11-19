@@ -21,7 +21,7 @@ test.describe("Open and peek", () => {
     await lab.row("orders", /^5\b/).click();
     await page.keyboard.press("Alt+Enter");
     await expect.poll(() => lab.visibleCount()).toBe(3);
-    await expect(lab.page.getByRole("button", { name: /^Pin order 5/ })).toHaveAttribute(
+    await expect(lab.page.getByRole("button", { name: /^Keep order 5/ })).toHaveAttribute(
       "aria-pressed",
       "false",
     );
@@ -36,7 +36,7 @@ test.describe("Open and peek", () => {
     await lab.shot("01-open-beside-replaces");
   });
 
-  test("peek with Space, follow with J, Pin beside, Open full, Esc", async ({ lab, page }) => {
+  test("peek with Space, follow with J, Open beside, Open full, Esc", async ({ lab, page }) => {
     // No detail follows the list in this layout, so Space opens the peek sheet.
     await lab.open({ preset: "One table" });
     await lab.row("orders", /^3\b/).click();
@@ -56,10 +56,10 @@ test.describe("Open and peek", () => {
     await expect(peek).toBeHidden();
     expect(page.url()).not.toContain("peek=");
 
-    // Pin beside: becomes a real pane in the linked slot.
+    // Open beside: becomes a real pane in the linked slot.
     await page.keyboard.press("Space");
     await expect(peek).toBeVisible();
-    await peek.getByRole("button", { name: /Pin beside/ }).click();
+    await peek.getByRole("button", { name: /Open beside/ }).click();
     await expect(peek).toBeHidden();
     await expect(
       page.locator('section[data-kind="record"]').getByRole("heading", { level: 2 }),

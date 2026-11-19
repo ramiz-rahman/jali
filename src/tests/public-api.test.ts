@@ -108,7 +108,7 @@ describe("public API", () => {
 
   it("@jali/react/icons exports Phosphor's set, with an icon for every name", () => {
     expect(Object.keys(icons)).toEqual(["phosphorIcons"]);
-    expect(Object.keys(icons.phosphorIcons).length).toBe(27);
+    expect(Object.keys(icons.phosphorIcons).length).toBe(28);
   });
 
   it("the layout namespace is the pure tree API", () => {

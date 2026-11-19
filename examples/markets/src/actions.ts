@@ -33,7 +33,7 @@ export function show(
 /**
  * Open `ref` from a list as a detail that follows it: the chart for a watchlist row. If the list already has a
  * following detail of that kind, that one is shown (it shows the row once the selection rests), brought to the front
- * if it was folded. Pin it first to keep it, then open another to compare.
+ * if it was folded. Keep it first to keep it, then open another to compare.
  *
  * The watchlist selects a quote; a chart for the same instrument counts as opening the selection because the chart's
  * kind says what it shows for a quote (`follow`, panes/follow.ts), so the new chart follows the list.

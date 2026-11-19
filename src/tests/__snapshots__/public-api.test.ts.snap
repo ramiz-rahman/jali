@@ -35,7 +35,7 @@ exports[`public API > the layout namespace is the pure tree API 1`] = `
   "reveal",
   "selectionLink",
   "setActiveTab",
-  "setFollows",
+  "setKept",
   "setRef",
   "show",
   "snapToCentre",

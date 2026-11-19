@@ -24,14 +24,14 @@ describe("codec", () => {
         type: "column",
         size: { weight: 3 },
         children: [
-          pane("b", "record", { linkedTo: "a", pinned: true, born: 12, base: { weight: 1.5 } }),
+          pane("b", "record", { linkedTo: "a", kept: true, born: 12, base: { weight: 1.5 } }),
           {
             id: "user",
             type: "stack",
             origin: "user",
             size: { weight: 2 },
             active: "d",
-            children: [pane("c"), pane("d", "inspector", { pinned: false, userSized: false })],
+            children: [pane("c"), pane("d", "inspector", { kept: false, userSized: false })],
           },
         ],
       },

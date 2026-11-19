@@ -56,10 +56,12 @@ const announcements = {
   discarded: (count: number) =>
     count === 1 ? "Changes discarded" : `Changes in ${count} panes discarded`,
   keptEditing: "Nothing changed. Keep editing",
-  openedPinned: (pane: string, source: string) =>
-    `${pane} opened beside ${source}, pinned: it stays on this item`,
-  pinned: (pane: string) => `${pane} pinned: it stays on this item`,
-  unpinned: (pane: string, list: string) => `${pane} follows the selection in ${list}`,
+  openedKept: (pane: string, source: string) =>
+    `${pane} opened beside ${source}, kept: it stays on this item`,
+  kept: (pane: string) => `${pane} kept: it stays on this item`,
+  released: (pane: string, list: string) => `${pane} follows the selection in ${list}`,
+  /** A kept plain link let go: the next link from its source shows there again. */
+  unkept: (pane: string) => `${pane} is no longer kept`,
   notInResults: (list: string) => `Not in the current results of ${list}`,
 
   // close and undo
@@ -230,7 +232,7 @@ const commands = {
   viewAsLimited: (viewer: string) => `View as ${viewer} (Single only, links peek)`,
   viewAsFull: (viewer: string) => `View as ${viewer} (links open beside)`,
   peekClose: "Close peek",
-  peekPin: "Pin peek beside",
+  peekOpenBeside: "Open peek beside",
   peekOpenFull: "Open peek full",
   settingsOpen: "Open settings",
   centreDropToggle: "Switch centre drop (swap ↔ tab)",
@@ -326,7 +328,7 @@ const settings = {
   centreDropSwap: "Swap the two panes",
   centreDropTab: "Add as a tab",
   paneCap: "Pane cap",
-  paneCapHelp: "Over the cap, the oldest unpinned, unfocused pane becomes a tab.",
+  paneCapHelp: "Over the cap, the oldest pane that is neither kept nor focused becomes a tab.",
   openedPanes: (page: string) => `${page}: opened panes`,
   boundaryTint: "Tinted header and “Opened” tag",
   boundaryNone: "No marking",
@@ -443,12 +445,16 @@ const pane = {
   restore: (pane: string) => `Restore ${pane}`,
   restoreTip: "Restore",
   opened: "Opened",
-  pinned: "Pinned",
+  kept: "Kept",
   following: "Following",
-  pin: (pane: string) => `Pin ${pane}`,
-  pinnedTip: (list: string) =>
-    `Pinned: stays on this item. Unpin to follow the selection in ${list}`,
-  followingTip: (list: string) => `Follows the selection in ${list}. Pin to keep this item`,
+  /** The Keep toggle's name; its visible word is `keepWord`, which the name starts with. */
+  keep: (pane: string) => `Keep ${pane}`,
+  keepWord: "Keep",
+  /** The Keep toggle's tooltip: kept, following its list's selection, or a plain link from `list`. */
+  keptTip: (list: string) => `Kept: stays on this item. Press again to let ${list} change it`,
+  followingTip: (list: string) => `Follows the selection in ${list}. Keep to stay on this item`,
+  plainTip: (list: string) =>
+    `The next link from ${list} shows here. Keep to open it beside this one instead`,
   loading: "Loading",
   working: "Working",
   needsYou: "Needs you",
@@ -484,7 +490,7 @@ const pane = {
 const peek = {
   label: (pane: string) => `Peek: ${pane}`,
   badge: "Peek",
-  pinBeside: "Pin beside",
+  openBeside: "Open beside",
   openFull: "Open full",
   close: "Close peek",
   closeTip: (keys: string) => `Close (${keys})`,

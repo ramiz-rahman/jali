@@ -91,7 +91,7 @@ export type Op =
   | "mode"
   | "permission"
   | "follow"
-  | "pin"
+  | "keep"
   | "setLayout"
   | "remove";
 
@@ -265,8 +265,8 @@ export const POLICY: Record<Op, Policy> = {
   page: layout("push", "swap", "change"),
   // A list's detail follows its selection in place; history is replaced, so Back skips the rows passed through.
   follow: layout("replace", "swap"),
-  // Pin or unpin a linked detail: a flag on the pane, nothing moves.
-  pin: layout("replace", "focus"),
+  // Keep or release a linked detail: a flag on the pane, nothing moves.
+  keep: layout("replace", "focus"),
   // reshape: deliberate gestures
   open: layout("push", "reshape"),
   split: layout("push", "reshape"),

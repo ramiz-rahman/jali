@@ -17,7 +17,7 @@ import { refuse, type ActionResult, type Outcome, type Snapshot } from "../state
 import type { Settings } from "../state/settings";
 import { close, closeOthers, closeTabs, remove, undo } from "./close";
 import { focusShown, toggleZoom } from "./focus";
-import { sameRef, setPinned } from "./follow";
+import { sameRef, setKept } from "./follow";
 import {
   changeSettings,
   closePalette,
@@ -74,8 +74,8 @@ export interface JaliActions {
   closePeek(): ActionResult;
   /** The item selected in a list `pane` (`null`: none). Its following detail and an open peek follow it. */
   select(pane: PaneTarget, ref: ObjectRef | null, options?: { inResults?: boolean }): ActionResult;
-  /** Pin a linked detail on what it shows (`true`), or make it follow its list again (`false`). */
-  setPinned(pane: PaneTarget, pinned: boolean): ActionResult;
+  /** Keep a linked detail on what it shows (`true`), or make it follow its list again (`false`). */
+  setKept(pane: PaneTarget, kept: boolean): ActionResult;
   /** A new pane beside `pane` (default: the focused one) with the launcher in it. `direction` default: right for a
    *  wide pane, below for a tall one. */
   split(pane?: PaneTarget, direction?: "right" | "bottom"): ActionResult;
@@ -204,9 +204,9 @@ export function publicActions(run: Run): JaliActions {
     peek: (pane, ref) => on(pane, (x, id) => peek(x, ref, id)),
     closePeek: () => run((x) => (x.s.view.peek ? peek(x, null) : null)),
     select: (pane, ref, options) => on(pane, (x, id) => select(x, id, ref, options)),
-    setPinned: (pane, pinned) =>
+    setKept: (pane, kept) =>
       on(pane, (x, id) =>
-        x.m.pane(id)?.linkedTo ? setPinned(x, id, pinned) : refuse("nothing-to-do"),
+        x.m.pane(id)?.linkedTo ? setKept(x, id, kept) : refuse("nothing-to-do"),
       ),
     split: (pane, direction) =>
       opt(pane, (x, id) => {
