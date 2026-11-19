@@ -23,6 +23,10 @@ You need a React 19 app. Any bundler that handles CSS imports works; the example
 
 <Install packages="@jali/core @jali/react @phosphor-icons/react" />
 
+<Callout type="warning" title="Linked or in a monorepo">
+If your app gets Jali through `link:`, `file:` or `workspace:`, or from a symlinked checkout, Jali can find its own copy of React beside its source. The app then bundles two Reacts, and hooks fail with "Invalid hook call". With Vite, add `resolve: { dedupe: ["react", "react-dom"] }` to `vite.config.ts` so there is one. With webpack, alias `react` and `react-dom` to your app's copy.
+</Callout>
+
 </Step>
 <Step title="Define a pane">
 
