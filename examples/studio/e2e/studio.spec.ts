@@ -109,7 +109,7 @@ test("renaming a speaker in the transcript renames them everywhere", async ({ pa
   ).toHaveText("Charlie Duke");
 });
 
-test("the scrub dial turns round its centre: a quarter turn is 2.5 seconds, and it holds playback while turned", async ({
+test("the scrub dial turns round its centre: a quarter turn is 2.5 seconds, and playback goes on", async ({
   page,
 }) => {
   await page.setViewportSize({ width: 1700, height: 900 });
@@ -130,7 +130,7 @@ test("the scrub dial turns round its centre: a quarter turn is 2.5 seconds, and 
     const r = (a * Math.PI) / 180;
     await page.mouse.move(cx + Math.sin(r) * 20, cy - Math.cos(r) * 20);
   }
-  await expect(transport(page, "Play")).toBeVisible(); // held while turning
+  await expect(transport(page, "Pause")).toBeVisible(); // still playing while turned
   for (let a = 90; a <= 180; a += 10) {
     const r = (a * Math.PI) / 180;
     await page.mouse.move(cx + Math.sin(r) * 200, cy - Math.cos(r) * 200);
@@ -267,7 +267,9 @@ const SESSIONS = [
   { title: "Never had an orange", tracks: 4 },
 ];
 
-test("each session loads and plays, with its own tracks on the desk and the timeline", async ({ page }) => {
+test("each session loads and plays, with its own tracks on the desk and the timeline", async ({
+  page,
+}) => {
   await layout(page, "Mix").click();
   const list = page.getByRole("listbox", { name: "Sessions" });
   for (const s of SESSIONS) {
@@ -331,7 +333,9 @@ test("the dinner party: neutral speaker labels, overlapping lines, sounds as qui
   expect(await rows.locator(".w-tag[data-state]").count()).toBe(0);
 });
 
-test("the landing: callsigns, a loop with no transcript, and the mission clock", async ({ page }) => {
+test("the landing: callsigns, a loop with no transcript, and the mission clock", async ({
+  page,
+}) => {
   await expect(page.locator(".tr-code").first()).toHaveText("CC");
   await expect(page.locator(".tl-labels li", { hasText: "Flight Director loop" })).toContainText(
     "no transcript",

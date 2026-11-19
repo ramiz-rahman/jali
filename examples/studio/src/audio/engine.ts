@@ -13,6 +13,11 @@
  * holds the sound for a moment (`lag`), so the playhead waits that long too, and the gate shuts while what is left
  * inside it from before a seek or a pause drains.
  *
+ * Scrubbing is heard: each move of the hand plays a short grain of every track from where the playhead now is,
+ * backwards when the hand moves back (a grain played backwards is a reversed copy of its samples). Grains overlap,
+ * so a steady turn is a steady sound. Every grain plays as recorded, so the pitch stays put however fast the hand
+ * moves: a fast turn skips more between grains. They skip the shifter, which has nothing to put back.
+ *
  * Without Web Audio (tests, a browser that refuses it) the engine is a silent clock with the same API.
  */
 import { audible, channelOf, type Edits } from "../edits";
@@ -58,6 +63,11 @@ export interface Engine extends Store<TransportState> {
   pause(): void;
   toggle(): void;
   seek(time: number): void;
+  /**
+   * Move the playhead by hand, as on a jog wheel: the sound follows the hand, forwards or backwards, at its own
+   * pitch. Once the hand rests, playback carries on from there if it was playing.
+   */
+  scrub(time: number): void;
   skip(seconds: number): void;
   setRate(rate: number): void;
   setLoop(loop: Loop | null): void;
@@ -113,6 +123,9 @@ export function createEngine({
   let shifting = false;
   /** Seconds the shifter holds the sound. */
   let lag = 0;
+  /** A hand is moving the playhead: where it last was, and whether to play on once it rests. */
+  let hand: { pos: number; resume: boolean; rest: ReturnType<typeof setTimeout> } | null = null;
+  let lastGrain = 0;
   let anchorPos = 0;
   let anchorTime = 0;
   let watchdog: ReturnType<typeof setInterval> | 0 = 0;
@@ -210,7 +223,7 @@ export function createEngine({
           // no worklet here: speed keeps its raised pitch
         });
     }
-    const on = rate !== 1 && !!shifter;
+    const on = rate !== 1 && !!shifter && !hand;
     if (on !== shifting) {
       master.disconnect(on ? c.destination : shifter!);
       master.connect(on ? shifter! : c.destination);
@@ -270,11 +283,59 @@ export function createEngine({
     }
   }
 
+  const GRAIN = 0.09;
+  /** A grain of every track at `pos`, as recorded, backwards if `back`. */
+  function grain(pos: number, back: boolean) {
+    const c = ctx;
+    const data = loaded.get(get().session);
+    if (!c || !data || c.state !== "running") return;
+    const t = c.currentTime + 0.005;
+    const span = GRAIN;
+    for (const [track, buffer] of data) {
+      const strip = strips.get(track);
+      const from = back ? pos - span : pos;
+      if (!strip || from < 0 || from + span > buffer.duration) continue;
+      const src = c.createBufferSource();
+      if (back) {
+        const n = Math.floor(span * buffer.sampleRate);
+        const start = Math.floor(from * buffer.sampleRate);
+        const rev = c.createBuffer(buffer.numberOfChannels, n, buffer.sampleRate);
+        for (let ch = 0; ch < buffer.numberOfChannels; ch++)
+          rev.getChannelData(ch).set(
+            buffer
+              .getChannelData(ch)
+              .subarray(start, start + n)
+              .reverse(),
+          );
+        src.buffer = rev;
+      } else src.buffer = buffer;
+      const env = c.createGain();
+      env.gain.setValueAtTime(0, t);
+      env.gain.linearRampToValueAtTime(0.8, t + 0.02);
+      env.gain.setValueAtTime(0.8, t + GRAIN - 0.03);
+      env.gain.linearRampToValueAtTime(0, t + GRAIN);
+      src.connect(env).connect(strip.gain);
+      if (back) src.start(t);
+      else src.start(t, from, span);
+      src.stop(t + GRAIN);
+      src.onended = () => env.disconnect();
+    }
+  }
+
+  /** The hand is off the playhead. */
+  function letGo() {
+    if (!hand) return false;
+    clearTimeout(hand.rest);
+    const resume = hand.resume;
+    hand = null;
+    return resume;
+  }
+
   function startWatchdog() {
     if (watchdog) return;
     watchdog = setInterval(() => {
       const { loop, playing } = get();
-      if (!playing) return;
+      if (!playing || hand) return;
       const pos = engine.position();
       if (loop && pos >= loop.end) restart(loop.start);
       else if (pos >= session().duration) {
@@ -306,7 +367,7 @@ export function createEngine({
     audio,
     session,
     position() {
-      if (!get().playing) return anchorPos;
+      if (!get().playing || hand) return anchorPos;
       const heard = now() - anchorTime - (shifting ? lag : 0);
       return clamp(anchorPos + Math.max(0, heard) * get().rate);
     },
@@ -341,6 +402,7 @@ export function createEngine({
       if (s.status !== "ready") return;
       let pos = from ?? engine.position();
       if (pos >= session().duration - 0.05) pos = s.loop?.start ?? 0;
+      letGo();
       stopSources();
       anchorPos = pos;
       anchorTime = now();
@@ -355,6 +417,7 @@ export function createEngine({
       if (c.state === "running") schedule(pos);
     },
     pause() {
+      letGo();
       if (!get().playing) return;
       const pos = engine.position();
       stopSources();
@@ -365,10 +428,35 @@ export function createEngine({
     toggle: () => (get().playing ? engine.pause() : engine.play()),
     seek(time) {
       const pos = clamp(time);
+      letGo();
       if (get().playing) restart(pos);
       else {
         anchorPos = pos;
         set({ at: pos });
+      }
+    },
+    scrub(time) {
+      const pos = clamp(time);
+      const c = graph();
+      if (c && c.state !== "running") void c.resume();
+      const at = performance.now() / 1000;
+      const resume = hand ? hand.resume : get().playing;
+      const moved = pos - (hand ? hand.pos : anchorPos);
+      if (hand) clearTimeout(hand.rest);
+      else {
+        stopSources();
+        hand = { pos, resume, rest: 0 as never };
+        pitch();
+      }
+      hand.pos = pos;
+      hand.rest = setTimeout(() => {
+        if (letGo() && get().playing) restart(anchorPos);
+      }, 180);
+      anchorPos = pos;
+      set({ at: pos });
+      if (moved && at - lastGrain >= GRAIN / 2) {
+        lastGrain = at;
+        grain(pos, moved < 0);
       }
     },
     skip: (seconds) => engine.seek(engine.position() + seconds),

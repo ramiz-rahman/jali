@@ -6,7 +6,7 @@
  * The note is the pane's work: a draft in pane state until saved, reported with `useUnsaved`. While it has one, the
  * detail stays on its segment when the transcript moves on, and Jali says why.
  */
-import { useRef, useState, type KeyboardEvent, type PointerEvent } from "react";
+import { useId, useRef, useState, type KeyboardEvent, type PointerEvent } from "react";
 import { PauseIcon, PlayIcon, WaveformIcon } from "@phosphor-icons/react";
 import { keyHint } from "@jali/core";
 import {
@@ -64,6 +64,7 @@ function ClipBody({
   const [note, setNote] = usePaneState<string | null>("note", null);
   const text = view.textOf(seg);
   const dirty = note !== null && note !== saved;
+  const noteId = useId();
 
   useTitle(`${Word} ${n} · ${view.speakerName(speaker)}`);
   useUnsaved(dirty && `an unsaved note on ${word} ${n}`);
@@ -168,34 +169,37 @@ function ClipBody({
         {text}
         {text !== seg.text ? <footer>Corrected. Recorded as: “{seg.text}”</footer> : null}
       </blockquote>
-      <label className="clip-note">
-        <span className="pane-label">Note</span>
-        <textarea
-          value={note ?? saved}
-          placeholder="A note for the edit: a retake, a cut, a fact to check."
-          onChange={(e) => setNote(e.target.value)}
-          onKeyDown={(e: KeyboardEvent) => {
-            if (e.key === "s" && (e.metaKey || e.ctrlKey)) {
-              e.preventDefault();
-              if (dirty) saveNote();
-            }
-          }}
-        />
-      </label>
-      <div className="clip-note-foot">
-        {dirty ? (
-          <span className="unsaved-note">Not saved</span>
-        ) : saved ? (
-          <span className="toolbar-note">Saved</span>
-        ) : null}
-        <span className="keyset">
-          <button type="button" className="key" disabled={!dirty} onClick={() => setNote(null)}>
-            Revert
-          </button>
-          <button type="button" className="key key-accent" disabled={!dirty} onClick={saveNote}>
-            Save note
-          </button>
-        </span>
+      <div className="clip-note">
+        <label className="pane-label" htmlFor={noteId}>
+          Note
+        </label>
+        {/* One recess: the page, and under it a row with the state and the two keys. */}
+        <div className="pocket notepad" data-dirty={dirty ? "" : undefined}>
+          <textarea
+            id={noteId}
+            value={note ?? saved}
+            placeholder="A note for the edit: a retake, a cut, a fact to check."
+            onChange={(e) => setNote(e.target.value)}
+            onKeyDown={(e: KeyboardEvent) => {
+              if ((e.key === "s" || e.key === "Enter") && (e.metaKey || e.ctrlKey)) {
+                e.preventDefault();
+                if (dirty) saveNote();
+              }
+            }}
+          />
+          <div className="notepad-keys">
+            <span className="notepad-state" role="status">
+              <span className="led" data-on={dirty ? "" : undefined} aria-hidden />
+              {dirty ? "Not saved" : saved ? "Saved" : "No note"}
+            </span>
+            <button type="button" className="key" disabled={!dirty} onClick={() => setNote(null)}>
+              Revert
+            </button>
+            <button type="button" className="key key-accent" disabled={!dirty} onClick={saveNote}>
+              Save note <kbd aria-hidden>⌘S</kbd>
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   );

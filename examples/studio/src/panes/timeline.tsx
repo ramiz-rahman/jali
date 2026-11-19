@@ -230,25 +230,23 @@ function TimelineBody({ paused, view }: PaneProps<typeof timelineParams> & { vie
     [width, height, lanes, selected, loop, theme, hover, view, inTransport, at],
   );
 
-  // Drag to scrub: the sound pauses while the pointer is down and plays on from where it lets go.
-  const drag = useRef<{ wasPlaying: boolean } | null>(null);
+  // Drag to scrub: the sound follows the pointer, and plays on from where it rests.
+  const drag = useRef(false);
   const onPointerDown = (e: PointerEvent<HTMLDivElement>) => {
     if (e.button !== 0) return;
     e.currentTarget.setPointerCapture(e.pointerId);
     const t = timeAt(e.clientX - e.currentTarget.getBoundingClientRect().left);
     if (!inTransport) return cue(engine, session.id, t);
-    drag.current = { wasPlaying: engine.get().playing };
-    engine.pause();
-    engine.seek(t);
+    drag.current = true;
+    engine.scrub(t);
   };
   const onPointerMove = (e: PointerEvent<HTMLDivElement>) => {
     const px = e.clientX - e.currentTarget.getBoundingClientRect().left;
     setHover(px);
-    if (drag.current) engine.seek(timeAt(px));
+    if (drag.current) engine.scrub(timeAt(px));
   };
   const onPointerUp = () => {
-    if (drag.current?.wasPlaying) engine.play();
-    drag.current = null;
+    drag.current = false;
   };
   const onKeyDown = (e: KeyboardEvent) => {
     if (e.metaKey || e.ctrlKey || e.altKey) return;
@@ -281,7 +279,8 @@ function TimelineBody({ paused, view }: PaneProps<typeof timelineParams> & { vie
       if (e.ctrlKey) return; // pinch-zoom is the browser's
       e.preventDefault();
       const d = Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.deltaY;
-      cue(engine, session.id, engine.position() + d / 100, inTransport && engine.get().playing);
+      if (inTransport) engine.scrub(engine.position() + d / 100);
+      else cue(engine, session.id, engine.position() + d / 100);
     };
     el.addEventListener("wheel", on, { passive: false });
     return () => el.removeEventListener("wheel", on);

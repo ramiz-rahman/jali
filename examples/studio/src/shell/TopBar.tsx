@@ -212,17 +212,6 @@ function Transport() {
   const session = sessionById(t.session)!;
   const pos = usePosition(false, 0.05);
   const ready = t.status === "ready";
-  // Scrubbing holds playback while the hand is on the wheel, and carries on from where it lets go: no audio restarts
-  // on every pixel of the drag.
-  const wasPlaying = useRef(false);
-  const startScrub = () => {
-    wasPlaying.current = engine.get().playing;
-    engine.pause();
-  };
-  const endScrub = () => {
-    if (wasPlaying.current) engine.play();
-    wasPlaying.current = false;
-  };
   const key = (
     label: string,
     legend: string,
@@ -274,7 +263,9 @@ function Transport() {
               )}
               {/* The mission clock where the session has one (Apollo's GET), else where it came from. */}
               <span className="pd-show">
-                {missionTime(session, pos) ? `GET ${missionTime(session, pos)}` : catalogueOf(session).source}
+                {missionTime(session, pos)
+                  ? `GET ${missionTime(session, pos)}`
+                  : catalogueOf(session).source}
               </span>
             </div>
             <div className="pd-time" aria-label={`${clock(pos)} of ${clock(session.duration)}`}>
@@ -341,9 +332,8 @@ function Transport() {
               max={session.duration}
               secondsPerTurn={10}
               valueText={`${clock(pos)} of ${clock(session.duration)}`}
-              onStart={startScrub}
-              onChange={(v) => engine.seek(v)}
-              onEnd={endScrub}
+              onChange={(v) => engine.scrub(v)}
+              onTurn={(by) => engine.scrub(engine.position() + by)}
               className="rotary-control"
             />
             <span className="rotary-note" aria-hidden>

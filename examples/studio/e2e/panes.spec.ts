@@ -84,7 +84,7 @@ async function check(page: Page) {
         }
         // A control row: every cap in it (keys, latches, LCD and readout windows) one height and one top, measured
         // cap to cap; every pocket in it styled alike; gaps of two values only (the seam, and the group gap).
-        for (const row of body.querySelectorAll(".toolbar, .clip-row, .clip-note-foot")) {
+        for (const row of body.querySelectorAll(".toolbar, .clip-row")) {
           // A select set inside an LCD window is part of that window, not a cap of its own.
           const caps = [...row.querySelectorAll(".key, .lcd, select")].filter(
             (c) => visible(c) && !c.parentElement?.closest(".lcd, .clip-fields"),

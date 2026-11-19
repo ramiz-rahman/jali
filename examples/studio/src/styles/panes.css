@@ -536,15 +536,6 @@
     display: grid;
     gap: 6px;
   }
-  .clip-note-foot {
-    display: flex;
-    align-items: center;
-    justify-content: flex-end;
-    gap: 8px;
-  }
-  .clip-note-foot > span {
-    margin-right: auto;
-  }
 
   /* ---------- markers: dark print behind the LCD ---------- */
   .mk-rows {
@@ -1378,12 +1369,6 @@
     height: 100%;
     box-sizing: border-box;
   }
-  .clip-note-foot {
-    justify-content: space-between;
-  }
-  .clip-note-foot > span:first-child:empty {
-    display: none;
-  }
 }
 
 @layer app {
@@ -1417,16 +1402,16 @@
   :root {
     --row-control: 38px;
   }
-  :is(.toolbar, .clip-row, .clip-note-foot) > :is(.key, .lcd, .tr-counter, .keyset, select),
+  :is(.toolbar, .clip-row) > :is(.key, .lcd, .tr-counter, .keyset, select),
   .toolbar > .toolbar-end > :is(.key, .keyset) {
     height: var(--row-control);
     box-sizing: border-box;
   }
-  :is(.toolbar, .clip-row, .clip-note-foot) .keyset > .key {
+  :is(.toolbar, .clip-row) .keyset > .key {
     height: 100%;
     min-height: 0;
   }
-  :is(.toolbar, .clip-row, .clip-note-foot) .keyset > .key-square {
+  :is(.toolbar, .clip-row) .keyset > .key-square {
     width: 30px;
     aspect-ratio: auto;
   }
@@ -1657,5 +1642,89 @@
   }
   .mx-modules:is([data-count="7"], [data-count="8"]) .mx-short {
     display: inline;
+  }
+}
+
+@layer app {
+  /*
+   * ---------- the segment's note: one recess ----------
+   * The page and its row of keys stand in one pocket, a seam apart, so the note reads as one part: write on the
+   * page, and the row under it says whether that is saved and holds the two keys that act on it. The page is flush
+   * in the pocket (no recess of its own) and grows with what is written. Focus is one orange line round the page.
+   */
+  .notepad {
+    flex-direction: column;
+  }
+  .notepad textarea {
+    display: block;
+    width: 100%;
+    min-height: 76px;
+    max-height: 240px;
+    field-sizing: content;
+    resize: none;
+    padding: 9px 11px;
+    font-size: 13.5px;
+    line-height: 1.5;
+    outline: none;
+    box-shadow: inset 0 0 0 1px var(--paper-rule);
+  }
+  .notepad textarea:focus,
+  .notepad textarea:focus-visible {
+    outline: none;
+    box-shadow: inset 0 0 0 2px var(--focus);
+  }
+  .notepad-keys {
+    display: flex;
+    align-items: stretch;
+    gap: var(--seam);
+    height: 32px;
+  }
+  .notepad-keys > .key {
+    height: 100%;
+    min-height: 0;
+    padding-inline: 12px;
+    white-space: nowrap;
+  }
+  .notepad-keys kbd {
+    margin-left: 6px;
+    text-transform: none;
+  }
+  /* Nothing to save: the orange key goes grey with its neighbour, so orange here always means "press me". */
+  .notepad-keys > .key-accent:disabled {
+    filter: saturate(0);
+  }
+  /* The state: a plain plate with a lamp, lit while the page holds something not saved. */
+  .notepad-state {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding-inline: 10px;
+    border-radius: var(--corner);
+    background: light-dark(rgb(255 255 255 / 0.45), rgb(255 255 255 / 0.035));
+    font-family: var(--jali-font-mono);
+    font-size: 11px;
+    color: var(--legend);
+    white-space: nowrap;
+    overflow: hidden;
+  }
+  .notepad[data-dirty] .notepad-state {
+    color: var(--ink);
+  }
+  /* A narrow pane: the state takes its own line above the keys. */
+  @container clip (width < 300px) {
+    .notepad-keys {
+      height: auto;
+      flex-wrap: wrap;
+    }
+    .notepad-state {
+      flex: 1 0 100%;
+      height: 26px;
+    }
+    .notepad-keys > .key {
+      flex: 1;
+      height: 32px;
+    }
   }
 }
