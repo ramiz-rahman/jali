@@ -22,7 +22,7 @@ export interface PaneContextValue {
   props: PaneProps;
 }
 
-export const PaneContext = createContext<PaneContextValue | null>(null);
+export const PaneContext = /* @__PURE__ */ createContext<PaneContextValue | null>(null);
 
 export function usePaneContext(hook: string): PaneContextValue {
   const pane = useContext(PaneContext);

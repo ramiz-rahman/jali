@@ -1,0 +1,17 @@
+{
+  // Type-checks the size scenarios against the packed dist (no "source" condition), as an app sees @jali/*.
+  "compilerOptions": {
+    "target": "ES2023",
+    "lib": ["ES2023", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "jsx": "react-jsx",
+    "strict": true,
+    "noEmit": true,
+    "skipLibCheck": false,
+    "isolatedModules": true,
+    "types": ["vite/client"]
+  },
+  "include": ["*.ts", "*.tsx"],
+  "exclude": ["vite.config.ts", "src.config.ts"]
+}

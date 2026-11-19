@@ -51,7 +51,7 @@ interface BodyProps {
 }
 
 /** The pane's content. Memoised on what the kind actually sees, so divider drags don't re-render content. */
-export const PaneBody = memo(
+export const PaneBody = /* @__PURE__ */ memo(
   function PaneBody({ node, host, paused, focused, inPeek = false }: BodyProps) {
     const { kinds } = useEnv();
     const def = kinds.get(node.ref.kind);

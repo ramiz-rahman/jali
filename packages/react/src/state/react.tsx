@@ -4,7 +4,7 @@ import type { Actions, PaneNode, JaliModel, UiState, UiStore } from "@jali/core/
 import type { ReactEnv, Page } from "../define";
 import { resolveTheme, titleOf, type Theme } from "@jali/core/adapter";
 
-const StoreContext = createContext<UiStore | null>(null);
+const StoreContext = /* @__PURE__ */ createContext<UiStore | null>(null);
 
 export function StoreProvider({ store, children }: { store: UiStore; children?: ReactNode }) {
   return <StoreContext.Provider value={store}>{children}</StoreContext.Provider>;

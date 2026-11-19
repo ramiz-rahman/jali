@@ -25,7 +25,7 @@ interface Props {
   dropTarget: boolean;
 }
 
-export const PaneFrame = memo(
+export const PaneFrame = /* @__PURE__ */ memo(
   function PaneFrame({ frame, chrome, dropTarget }: Props) {
     const { node, rect, hidden, focused, zoomed, covered, group } = frame;
     const store = useStore();

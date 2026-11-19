@@ -17,7 +17,7 @@ export const detectPlatform = (): Platform =>
     : "other";
 
 /** @deprecated read `store.keymap.platform`; kept for code that has no store at hand (content-level hints). */
-export const isMac = detectPlatform() === "mac";
+export const isMac = /* @__PURE__ */ detectPlatform() === "mac";
 
 export interface Chord {
   /** `KeyboardEvent.code` ("KeyM", "Digit1", "Backslash") or, for named keys, `KeyboardEvent.key` ("ArrowLeft", "F6"). */
@@ -120,7 +120,9 @@ const WORD: Record<string, string> = {
   Escape: "Esc",
   " ": "Space",
 };
-const PUNCT_LABEL = Object.fromEntries(Object.entries(PUNCT).map(([ch, code]) => [code, ch]));
+const PUNCT_LABEL = /* @__PURE__ */ Object.fromEntries(
+  /* @__PURE__ */ Object.entries(PUNCT).map(([ch, code]) => [code, ch]),
+);
 
 function keyLabel(key: string, platform: Platform) {
   if (PUNCT_LABEL[key]) return PUNCT_LABEL[key];

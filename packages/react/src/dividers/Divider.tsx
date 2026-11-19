@@ -32,7 +32,7 @@ const rectEq = (a: Rect, b: Rect) =>
  * per keypress. Enter does nothing: a tuck would remove this divider from under focus.
  * Memoised on geometry and labels, so a resize re-renders only the dividers that moved.
  */
-export const Divider = memo(
+export const Divider = /* @__PURE__ */ memo(
   function Divider(p: DividerProps) {
     const row = p.axis === "row";
     const onKeyDown = (e: KeyboardEvent<HTMLElement>) => {
