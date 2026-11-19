@@ -96,9 +96,16 @@ export function TabStrip({ group, owner }: { group: NonNullable<Frame["group"]>;
   const measure = () => {
     const el = strip.current;
     if (!el) return;
+    // The scrolling part keeps room for the whole shown tab (pane.css): pinned tabs give way for it first.
+    const shown = el.querySelector<HTMLElement>('[role="tab"][aria-selected="true"]');
+    const want = shown?.parentElement?.offsetWidth ?? 0;
+    if (el.style.getPropertyValue("--jali-shown-tab") !== `${want}px`)
+      el.style.setProperty("--jali-shown-tab", `${want}px`);
     const box = el.getBoundingClientRect();
     let n = 0;
+    // Out of view: tabs past either edge, but never the shown tab, which is revealed.
     el.querySelectorAll<HTMLElement>("[data-tab]").forEach((t) => {
+      if (t === shown) return;
       const r = t.getBoundingClientRect();
       if (r.left < box.left - 1 || r.right > box.right + 1) n++;
     });

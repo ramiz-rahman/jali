@@ -79,8 +79,12 @@ test("a narrow strip keeps the shown tab in view, pinned tabs shrinking to their
   const bar = (await page.locator(".jali-tabbar").first().boundingBox())!;
   const box = (await shown.boundingBox())!;
   expect(box.width).toBeGreaterThan(40);
-  expect(box.x).toBeGreaterThanOrEqual(bar.x - 1);
-  expect(box.x + 40).toBeLessThanOrEqual(bar.x + bar.width);
+  // The shown tab is whole: neither edge past its part of the strip, and it is not counted in "+N".
+  const part = (await page.locator(".jali-tabs").first().boundingBox())!;
+  expect(box.x).toBeGreaterThanOrEqual(part.x - 1);
+  expect(box.x + box.width).toBeLessThanOrEqual(part.x + part.width + 1);
+  const more = page.locator(".jali-tab-more");
+  if (await more.count()) await expect(more).toHaveAttribute("data-hidden-count", "0");
   // Every pinned tab is at least partly on screen.
   for (const p of await page.locator('[role="tab"][data-pinned]').all()) {
     const b = (await p.boundingBox())!;

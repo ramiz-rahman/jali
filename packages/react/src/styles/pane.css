@@ -251,7 +251,12 @@
   }
   .jali-tabs-pinned + .jali-tabs:has(> .jali-tab-item) {
     flex: 1 1 auto;
-    min-width: min(8rem, 60%);
+    /* About one tab, or the whole shown tab (measured: --jali-shown-tab), whichever is wider, while the collapsed
+       pinned tabs still fit. */
+    min-width: max(
+      min(8rem, 60%),
+      min(var(--jali-shown-tab, 0px), calc(100% - var(--jali-tab-pinned-collapsed, 4.5rem)))
+    );
   }
   .jali-tabs-pinned:has(+ .jali-tabs > .jali-tab-item) {
     padding-inline-end: 2px;
