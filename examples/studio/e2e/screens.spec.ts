@@ -17,7 +17,10 @@ const LAYOUTS = ["edit", "mix", "review", "compare"] as const;
 
 /** Open a layout, go to the winter storm and play a moment: a session in the middle, every pane following it. */
 async function stage(page: Page, preset: string, { dark = false } = {}) {
-  await page.emulateMedia({ colorScheme: dark ? "dark" : "light", reducedMotion: "reduce" });
+  await page.emulateMedia({
+    colorScheme: dark ? "dark" : "light",
+    reducedMotion: "reduce",
+  });
   await page.goto("/");
   await expect(
     page
@@ -40,29 +43,69 @@ async function stage(page: Page, preset: string, { dark = false } = {}) {
   await page.waitForTimeout(2600);
 }
 
-for (const size of SIZES) {
-  for (const preset of LAYOUTS) {
-    test(`${preset} at ${size.name}`, async ({ page }) => {
-      await page.setViewportSize({ width: size.width, height: size.height });
-      await stage(page, preset);
-      await page.screenshot({ path: shot(`${preset}-${size.name}`) });
-    });
+for (const dark of [false, true])
+  for (const size of SIZES) {
+    for (const preset of LAYOUTS) {
+      const d = dark ? "-dark" : "";
+      test(`${preset} at ${size.name}${d}`, async ({ page }) => {
+        await page.setViewportSize({ width: size.width, height: size.height });
+        await stage(page, preset, { dark });
+        await page.screenshot({ path: shot(`${preset}-${size.name}${d}`) });
+      });
+    }
   }
-}
 
-for (const preset of ["edit", "mix"] as const) {
-  test(`${preset} in dark`, async ({ page }) => {
-    await page.setViewportSize({ width: 1440, height: 900 });
-    await stage(page, preset, { dark: true });
-    await page.screenshot({ path: shot(`${preset}-wide-dark`) });
+for (const dark of [false, true])
+  test(`a phone${dark ? " dark" : ""}`, async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await stage(page, "edit", { dark });
+    await page.screenshot({ path: shot(`edit-phone${dark ? "-dark" : ""}`) });
+  });
+
+// The latest Jali's header: two shortcuts, the ⋯ menu, the Following/Kept latch, and the "N folded" chip.
+for (const dark of [false, true]) {
+  const d = dark ? "-dark" : "";
+  test(`header, menu and folded chip${d}`, async ({ browser, baseURL }) => {
+    const page = await browser.newPage({
+      baseURL,
+      viewport: { width: 1440, height: 900 },
+      deviceScaleFactor: 2,
+    });
+    await stage(page, "compare", { dark });
+    await page
+      .locator('.jali-pane[data-kind="clip"]')
+      .first()
+      .locator(".jali-pane-header")
+      .screenshot({ path: shot(`header-kept${d}`) });
+    await page
+      .locator('.jali-pane[data-kind="clip"]')
+      .last()
+      .locator(".jali-pane-header")
+      .screenshot({ path: shot(`header-following${d}`) });
+    const tl = page.locator('.jali-pane[data-kind="timeline"]');
+    await tl.locator(".jali-act-menu").click();
+    const menu = page.locator(".jali-tab-menu");
+    await menu.locator("[data-menu-item]").nth(1).hover();
+    const box = (await menu.boundingBox())!;
+    await page.screenshot({
+      path: shot(`pane-menu${d}`),
+      clip: {
+        x: box.x - 12,
+        y: box.y - 12,
+        width: box.width + 24,
+        height: box.height + 24,
+      },
+    });
+    await page.keyboard.press("Escape");
+    await page.setViewportSize({ width: 1100, height: 560 });
+    await stage(page, "mix", { dark });
+    const chip = page.locator(".jali-tab-folded").first();
+    await chip
+      .locator("xpath=ancestor::*[contains(@class,'jali-pane-header')]")
+      .screenshot({ path: shot(`folded-chip${d}`) });
+    await page.close();
   });
 }
-
-test("a phone", async ({ page }) => {
-  await page.setViewportSize({ width: 390, height: 844 });
-  await stage(page, "edit");
-  await page.screenshot({ path: shot("edit-phone") });
-});
 
 // Close-ups of the top row: one row of full-height blocks at every width.
 for (const [name, width, height, dark] of [
@@ -93,7 +136,10 @@ for (const [letter, variant] of [
   for (const dark of [false, true]) {
     test(`header buttons ${variant}${dark ? " dark" : ""}`, async ({ page }) => {
       await page.setViewportSize({ width: 1100, height: 700 });
-      await page.emulateMedia({ colorScheme: dark ? "dark" : "light", reducedMotion: "reduce" });
+      await page.emulateMedia({
+        colorScheme: dark ? "dark" : "light",
+        reducedMotion: "reduce",
+      });
       await page.addInitScript(
         (v) => localStorage.setItem("studio:header-buttons", JSON.stringify(v)),
         variant,
@@ -148,7 +194,12 @@ for (const dark of [false, true]) {
     const box = (await page.locator(".group-rotary").boundingBox())!;
     await page.screenshot({
       path: shot(`rotary-${dark ? "dark" : "light"}`),
-      clip: { x: box.x - 16, y: box.y - 14, width: box.width + 32, height: box.height + 28 },
+      clip: {
+        x: box.x - 16,
+        y: box.y - 14,
+        width: box.width + 32,
+        height: box.height + 28,
+      },
     });
     await context.close();
   });
@@ -224,7 +275,10 @@ for (const dark of [false, true]) {
       .screenshot({ path: shot(`state-missing${d}`) });
   });
   test(`state no audio${dark ? " dark" : ""}`, async ({ page }) => {
-    await page.emulateMedia({ colorScheme: dark ? "dark" : "light", reducedMotion: "reduce" });
+    await page.emulateMedia({
+      colorScheme: dark ? "dark" : "light",
+      reducedMotion: "reduce",
+    });
     await page.setViewportSize({ width: 1440, height: 900 });
     await page.route("**/*.m4a", (r) => r.abort());
     await page.goto("/");
@@ -240,7 +294,10 @@ for (const dark of [false, true]) {
   test(`transcript rows${dark ? " dark" : ""}`, async ({ page }) => {
     const d = dark ? "-dark" : "";
     await page.setViewportSize({ width: 1440, height: 900 });
-    await page.emulateMedia({ colorScheme: dark ? "dark" : "light", reducedMotion: "reduce" });
+    await page.emulateMedia({
+      colorScheme: dark ? "dark" : "light",
+      reducedMotion: "reduce",
+    });
     await page.goto("/");
     const rows = page.getByRole("listbox", { name: /Transcript of/ });
     await expect(rows).toBeVisible();

@@ -21,7 +21,11 @@ export function createServices({
   session = SESSIONS[0]!.id,
 }: { persist?: boolean; audio?: boolean; session?: string } = {}): Services {
   const edits = createEdits(persist);
-  return { edits, layouts: createLayouts(persist), engine: createEngine({ edits, session, audio }) };
+  return {
+    edits,
+    layouts: createLayouts(persist),
+    engine: createEngine({ edits, session, audio }),
+  };
 }
 
 const ServicesContext = createContext<Services | null>(null);

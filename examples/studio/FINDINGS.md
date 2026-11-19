@@ -2,30 +2,29 @@
 
 Studio is built on `@jali/core` and `@jali/react` alone, with no change to `packages/`. Most of what it needed was there and fit well (see "What worked" at the end). These are the places where the API fell short, was awkward, or did something unexpected. Each has what we wanted, what happened, the workaround in the app, and a suggested change. The most important come first.
 
-
 ## Status on the latest Jali (after merging master)
 
 Jali since these were written: a menu on every pane header (⋯, Shift+F10, right-click) with Full screen, Tuck and Pop out; header buttons as shortcuts chosen with `buttons`; Following and Keep as one toggle; folded panes behind one "N folded" chip in the tab strip, the shelf for tucked panes only; presets' `saved` and Reset; a covered pane marked `data-covered`. Item by item:
 
-| Item | Status | Note |
-| --- | --- | --- |
-| 1. One follower's unsaved work stops every follower | Open | Unchanged. The workaround stands; the person now sees the header say Kept. |
-| 2. `useActivity(undefined)` | Open | The hook still sets only a truthy value. Studio still passes `"idle"`. |
-| 3. Space for an app command | Open | Unchanged. |
-| 4. A layout switch leaves list and follower disagreeing | Open | Unchanged. Saved layouts make it rarer (a layout comes back with its own follower state), not gone. |
-| 5. `light-dark()` tokens on canvas | Open | Unchanged. |
-| 6. No "live" activity | Open | Unchanged. |
-| 7. Heights have only a minimum | Open | `PaneHeight` is still `min` only. |
-| 8. A narrow header keeps all its buttons | Resolved | The header carries shortcuts; the rest is in the ⋯ menu. Studio chose Maximise and Close (`buttons` in `workspace.ts`). `allow: { fullScreen: false }` on the lists stays, as a list has nothing to show full screen. |
-| 9. A wide pane folded into a narrow one | Open | Studio's layouts still avoid it. Folded panes now wait behind a chip, so the result is easier to read, but the fitting rule is the same. |
-| 10. Smaller things | Partly | "Keep is what the brief called pinning": the toggle now says Following or Kept, which reads as the state, so a reader finds it. The rest are open. |
-| Theming 1. Header buttons | Partly | `.jali-pane-actions` is public and the set is chosen with `buttons`; each button still has only private classes (`.jali-act-*`). |
-| Theming 2. Keep and Following | Resolved | One public part, `.jali-follow-toggle[data-follow]`. Studio's narrow-header hack and its `.jali-follow-status` rules are gone. |
-| Theming 11. Shelf chip internals | Partly | The folded case moved to the public `.jali-tab-folded`; the shelf's own inner buttons are still private. Studio's folded shelf-chip rule is gone. |
-| Theming 15. Folded tabs | Partly | Folded panes are now a chip, not italic tabs; a folded tab still shown carries `data-folded`. |
-| Theming 16. Header buttons come and go | Resolved | `buttons` fixes the set. Panes in Studio's layouts show the same two keys, so the four temporary header treatments line up from pane to pane. |
-| Theming 18. The header's layout is fixed | Partly | The order is now documented (grip, title, toggle, shortcuts). No slot for app controls yet. |
-| Others (3 to 7, 9, 10, 12 to 14, 17, 19 to 29) | Open | Unchanged. |
+| Item                                                    | Status   | Note                                                                                                                                                                                                                  |
+| ------------------------------------------------------- | -------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1. One follower's unsaved work stops every follower     | Open     | Unchanged. The workaround stands; the person now sees the header say Kept.                                                                                                                                            |
+| 2. `useActivity(undefined)`                             | Open     | The hook still sets only a truthy value. Studio still passes `"idle"`.                                                                                                                                                |
+| 3. Space for an app command                             | Open     | Unchanged.                                                                                                                                                                                                            |
+| 4. A layout switch leaves list and follower disagreeing | Open     | Unchanged. Saved layouts make it rarer (a layout comes back with its own follower state), not gone.                                                                                                                   |
+| 5. `light-dark()` tokens on canvas                      | Open     | Unchanged.                                                                                                                                                                                                            |
+| 6. No "live" activity                                   | Open     | Unchanged.                                                                                                                                                                                                            |
+| 7. Heights have only a minimum                          | Open     | `PaneHeight` is still `min` only.                                                                                                                                                                                     |
+| 8. A narrow header keeps all its buttons                | Resolved | The header carries shortcuts; the rest is in the ⋯ menu. Studio chose Maximise and Close (`buttons` in `workspace.ts`). `allow: { fullScreen: false }` on the lists stays, as a list has nothing to show full screen. |
+| 9. A wide pane folded into a narrow one                 | Open     | Studio's layouts still avoid it. Folded panes now wait behind a chip, so the result is easier to read, but the fitting rule is the same.                                                                              |
+| 10. Smaller things                                      | Partly   | "Keep is what the brief called pinning": the toggle now says Following or Kept, which reads as the state, so a reader finds it. The rest are open.                                                                    |
+| Theming 1. Header buttons                               | Partly   | `.jali-pane-actions` is public and the set is chosen with `buttons`; each button still has only private classes (`.jali-act-*`).                                                                                      |
+| Theming 2. Keep and Following                           | Resolved | One public part, `.jali-follow-toggle[data-follow]`. Studio's narrow-header hack and its `.jali-follow-status` rules are gone.                                                                                        |
+| Theming 11. Shelf chip internals                        | Partly   | The folded case moved to the public `.jali-tab-folded`; the shelf's own inner buttons are still private. Studio's folded shelf-chip rule is gone.                                                                     |
+| Theming 15. Folded tabs                                 | Partly   | Folded panes are now a chip, not italic tabs; a folded tab still shown carries `data-folded`.                                                                                                                         |
+| Theming 16. Header buttons come and go                  | Resolved | `buttons` fixes the set. Panes in Studio's layouts show the same two keys, so the four temporary header treatments line up from pane to pane.                                                                         |
+| Theming 18. The header's layout is fixed                | Partly   | The order is now documented (grip, title, toggle, shortcuts). No slot for app controls yet.                                                                                                                           |
+| Others (3 to 7, 9, 10, 12 to 14, 17, 19 to 29)          | Open     | Unchanged.                                                                                                                                                                                                            |
 
 New, from adopting it:
 

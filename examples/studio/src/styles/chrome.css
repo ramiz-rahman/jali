@@ -187,9 +187,6 @@
   .jali-follow-toggle svg {
     display: none;
   }
-  .jali-follow-toggle[data-follow="plain"] {
-    opacity: 0.8;
-  }
 
   /* ---------- tabs ---------- */
   .jali-tabbar {
@@ -212,6 +209,16 @@
   }
   .jali-tab-indicator {
     display: none;
+  }
+  /* A lone tab's lamp stays dark: the pane's own lamp beside it already says which pane this is. The lamp picks
+     the shown tab only where there is a choice. */
+  .jali-tabs:not(:has(.jali-tab-item + .jali-tab-item)) .jali-tab::before {
+    background: var(--led-off);
+    box-shadow: inset 0 1px 1px rgb(0 0 0 / calc(0.35 * var(--sh)));
+  }
+  /* A tab's item is as tall as its key, so its close button centres on the key, not on the strip. */
+  .jali-tab-item {
+    align-self: center;
   }
   /* A tab the layout folded: the same key, its legend in italics (Jali's) and a dotted rim. */
   .jali-tab[data-folded] {
@@ -422,11 +429,15 @@
   .jali-tab-menu [data-menu-item] {
     position: relative;
     min-height: 32px;
-    padding-inline: 24px 10px;
+    padding-inline: 20px 10px;
     border-radius: var(--corner);
     font-family: var(--jali-font);
     font-size: 13px;
     color: var(--ink);
+  }
+  /* Jali's check column stays only where an item can be checked. */
+  .jali-tab-menu [data-menu-item]:not([aria-checked]) > span:first-child:empty {
+    display: none;
   }
   .jali-tab-menu [data-menu-item]::before {
     content: "";

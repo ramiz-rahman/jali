@@ -231,14 +231,13 @@
     top: 8px;
     right: 8px;
   }
+  /* (A pseudo-element can't sit inside :where(), so Jali's latched parts take their lamp in a list of their own.) */
+  :where(.key[aria-pressed="true"] .led, .key[data-on] .led, .led[data-on]),
   :where(
-    .key[aria-pressed="true"] .led,
-    .key[data-on] .led,
-    .led[data-on],
-    .jali-tab[aria-selected="true"]::before,
-    .jali-switch-item[aria-selected="true"]::before,
-    .jali-follow-toggle[data-follow="kept"]::before
-  ) {
+      .jali-tab[aria-selected="true"],
+      .jali-switch-item[aria-selected="true"],
+      .jali-follow-toggle[data-follow="kept"]
+    )::before {
     background: var(--led-on);
     box-shadow:
       0 0 0 1px rgb(255 79 0 / 0.25),

@@ -89,6 +89,19 @@ export function TopBar() {
           <div className="pocket group-tools" role="group" aria-label="Tools">
             <button
               type="button"
+              className="key face tool-reset"
+              aria-label="Reset this layout to its design"
+              title="Reset this layout to its design"
+              onMouseDown={keepFocus}
+              onClick={() => void resetLayout(jali, services)}
+            >
+              <ArrowCounterClockwiseIcon size={22} aria-hidden className="face-glyph" />
+              <span className="face-legend" aria-hidden>
+                reset
+              </span>
+            </button>
+            <button
+              type="button"
               className="key face tool-link"
               aria-label="Copy a link to this layout"
               title="Copy a link to this layout"
