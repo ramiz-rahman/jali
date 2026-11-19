@@ -1,0 +1,72 @@
+/*
+ * Studio's theme, after Spoke: zinc "unibody" neutrals, white paper surfaces, signal orange (#ff4f00) as the one
+ * accent, IBM Plex Sans and Mono, soft precise corners. Set on Jali's own tokens, so every part of Jali follows:
+ * panes, tabs, the palette, the chooser, the shelf.
+ *
+ * Each colour is a light-dark() pair: the browser picks one by the color-scheme where it is used, which Jali sets
+ * from its theme setting (data-theme on <html>) or the system. Set unlayered on :root, so they win over Jali's
+ * defaults without !important.
+ *
+ * The app's own tokens are --st-*. Orange text uses --st-signal-ink, darker in light and lighter in dark, so it
+ * reads at 4.5:1; pure signal orange is for marks, bars and fills.
+ */
+:root {
+  /* Zinc, as Spoke's Tailwind palette has it. */
+  --zinc-50: #fafafa;
+  --zinc-100: #f4f4f5;
+  --zinc-200: #e4e4e7;
+  --zinc-300: #d4d4d8;
+  --zinc-400: #a1a1aa;
+  --zinc-500: #71717a;
+  --zinc-600: #52525b;
+  --zinc-700: #3f3f46;
+  --zinc-800: #27272a;
+  --zinc-900: #18181b;
+  --zinc-950: #09090b;
+
+  --jali-canvas: light-dark(#ededef, var(--zinc-950));
+  --jali-surface: light-dark(#ffffff, var(--zinc-900));
+  --jali-surface-raised: light-dark(#ffffff, #202024);
+  --jali-border: light-dark(var(--zinc-200), #2b2b30);
+  --jali-border-strong: light-dark(var(--zinc-300), var(--zinc-700));
+  /* Edges of inputs and buttons: 3:1 against the surface. */
+  --jali-control: light-dark(#8b8b94, #74747d);
+  --jali-text: light-dark(var(--zinc-900), var(--zinc-100));
+  --jali-text-muted: light-dark(var(--zinc-700), var(--zinc-300));
+  --jali-text-subtle: light-dark(var(--zinc-600), var(--zinc-400));
+  --jali-text-faint: light-dark(var(--zinc-500), #8e8e97);
+  --jali-hover: light-dark(var(--zinc-100), #232327);
+  --jali-brand: #ff4f00;
+  --jali-accent: #ff4f00;
+  --jali-accent-soft: light-dark(#fff1ea, #33190c);
+  /* Near-black on orange: 6.6:1, where white would be 3.2:1. */
+  --jali-on-accent: var(--zinc-950);
+  /* A pane that is "working" is live: sound is going through it. Signal orange, as Spoke's recording dot. */
+  --jali-working: #ff4f00;
+  --jali-chip: light-dark(var(--zinc-900), var(--zinc-100));
+  --jali-on-chip: light-dark(#ffffff, var(--zinc-950));
+  --jali-shadow-raised: 0 1px 2px light-dark(rgb(9 9 11 / 0.05), rgb(0 0 0 / 0.4));
+  --jali-shadow-dialog: 0 24px 64px light-dark(rgb(9 9 11 / 0.18), rgb(0 0 0 / 0.6));
+  --jali-shadow-menu: 0 12px 32px light-dark(rgb(9 9 11 / 0.14), rgb(0 0 0 / 0.5));
+
+  --jali-radius: 12px;
+  --jali-radius-control: 8px;
+  --jali-radius-menu: 10px;
+  --jali-font: "IBM Plex Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --jali-font-mono: "IBM Plex Mono", ui-monospace, "SF Mono", SFMono-Regular, Menlo, monospace;
+
+  /* The app's own. */
+  --st-signal: #ff4f00;
+  --st-signal-ink: light-dark(#bf3b00, #ff8a52);
+  --st-signal-soft: light-dark(rgb(255 79 0 / 0.1), rgb(255 79 0 / 0.16));
+  --st-signal-line: light-dark(rgb(255 79 0 / 0.35), rgb(255 79 0 / 0.45));
+  --st-wave-idle: light-dark(var(--zinc-400), var(--zinc-600));
+  --st-wave-music: light-dark(#c3c3ca, #4a4a52);
+  --st-wave-marked: light-dark(var(--zinc-600), var(--zinc-300));
+  /* Recessed: the transport's well, the mixer's bay, the fader slots. */
+  --st-well: light-dark(var(--zinc-100), #111114);
+  --st-well-edge: light-dark(rgb(9 9 11 / 0.06), rgb(0 0 0 / 0.5));
+  --st-host: light-dark(var(--zinc-900), var(--zinc-100));
+  --st-guest: light-dark(var(--zinc-500), var(--zinc-400));
+  --st-label: 10.5px;
+}

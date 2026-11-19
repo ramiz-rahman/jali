@@ -1,0 +1,387 @@
+/* The page, the top bar with the transport, the status line and toasts: the app's chrome around Jali's panes. */
+@layer base {
+  html,
+  body,
+  #root {
+    height: 100%;
+    margin: 0;
+  }
+  body {
+    font-family: var(--jali-font);
+    font-size: 14px;
+    line-height: 1.45;
+    background: var(--jali-canvas);
+    color: var(--jali-text);
+    -webkit-font-smoothing: antialiased;
+  }
+  button,
+  input,
+  select,
+  textarea {
+    font: inherit;
+    color: inherit;
+  }
+  ::selection {
+    background: var(--st-signal);
+    color: #ffffff;
+  }
+}
+
+@layer app {
+  .app {
+    height: 100dvh;
+    display: grid;
+    grid-template-rows: auto minmax(0, 1fr) auto;
+  }
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+  .mono {
+    font-family: var(--jali-font-mono);
+    letter-spacing: -0.01em;
+    font-variant-numeric: tabular-nums;
+  }
+  kbd {
+    font-family: var(--jali-font-mono);
+    font-size: 11px;
+    color: inherit;
+    opacity: 0.7;
+  }
+  :focus-visible {
+    outline: 2px solid var(--jali-focus-ring);
+    outline-offset: -2px;
+  }
+
+  /* ---------- buttons shared by the chrome and the panes ---------- */
+  .icon-btn {
+    display: inline-grid;
+    place-items: center;
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    border: 0;
+    border-radius: 999px;
+    background: none;
+    color: var(--jali-text-subtle);
+    cursor: pointer;
+    flex: none;
+  }
+  .icon-btn:hover {
+    color: var(--st-signal-ink);
+    background: var(--jali-hover);
+  }
+  .icon-btn-wide {
+    display: inline-flex;
+    gap: 6px;
+    width: auto;
+    padding: 0 12px;
+    border: 1px solid var(--jali-border-strong);
+  }
+  .play-btn {
+    display: inline-grid;
+    place-items: center;
+    width: 40px;
+    height: 40px;
+    padding: 0;
+    border: 0;
+    border-radius: 999px;
+    background: var(--st-signal);
+    color: #ffffff;
+    cursor: pointer;
+    flex: none;
+    box-shadow:
+      0 1px 0 rgb(255 255 255 / 0.25) inset,
+      0 2px 6px rgb(255 79 0 / 0.3);
+    transition: transform 120ms ease;
+  }
+  .play-btn:hover {
+    transform: scale(1.05);
+  }
+  .play-btn:active {
+    transform: scale(0.96);
+  }
+  .play-btn:disabled {
+    opacity: 0.4;
+    cursor: default;
+    transform: none;
+  }
+  .play-btn:focus-visible {
+    outline-offset: 2px;
+  }
+  .play-btn-small {
+    width: 32px;
+    height: 32px;
+  }
+
+  /* ---------- top bar ---------- */
+  .topbar {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    height: 60px;
+    padding: 0 12px 0 16px;
+    background: var(--jali-canvas);
+    min-width: 0;
+  }
+  .brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+    color: var(--jali-text);
+    text-decoration: none;
+    flex: none;
+  }
+  .brand-mark {
+    fill: currentColor;
+  }
+  .brand-mark-hot {
+    fill: var(--st-signal);
+  }
+  .brand-name {
+    font-weight: 600;
+    font-size: 15px;
+    letter-spacing: -0.01em;
+  }
+  .layouts {
+    display: flex;
+    gap: 2px;
+    padding: 3px;
+    border-radius: 999px;
+    background: var(--st-well);
+    box-shadow: inset 0 1px 2px var(--st-well-edge);
+    flex: none;
+  }
+  .layouts button {
+    height: 28px;
+    padding: 0 14px;
+    border: 0;
+    border-radius: 999px;
+    background: none;
+    color: var(--jali-text-subtle);
+    font-family: var(--jali-font-mono);
+    font-size: 11.5px;
+    font-weight: 500;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  .layouts button:hover {
+    color: var(--jali-text);
+  }
+  .layouts button[aria-pressed="true"] {
+    background: var(--jali-surface);
+    color: var(--jali-text);
+    box-shadow:
+      0 1px 2px rgb(9 9 11 / 0.08),
+      0 0 0 1px var(--jali-border);
+  }
+  .layouts-select {
+    display: none;
+  }
+  .layouts-select select,
+  .tp-speed select {
+    height: 30px;
+    padding: 0 8px;
+    border: 1px solid var(--jali-border-strong);
+    border-radius: 999px;
+    background: var(--jali-surface);
+    font-family: var(--jali-font-mono);
+    font-size: 12px;
+  }
+
+  /* The transport: a device's control strip, in a recessed well. */
+  .transport {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    min-width: 0;
+    margin: 0 auto;
+    padding: 4px 14px 4px 6px;
+    border-radius: 999px;
+    background: var(--jali-surface);
+    border: 1px solid var(--jali-border);
+    box-shadow: var(--jali-shadow-raised);
+  }
+  .tp-session {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    padding: 0 10px 0 12px;
+    margin-right: 4px;
+    border-right: 1px solid var(--jali-border);
+    line-height: 1.2;
+  }
+  .tp-show {
+    font-family: var(--jali-font-mono);
+    font-size: var(--st-label);
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--jali-text-faint);
+    white-space: nowrap;
+  }
+  .tp-title {
+    font-size: 13px;
+    font-weight: 500;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 200px;
+  }
+  .tp-time {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 6px;
+    margin: 0 6px 0 8px;
+    font-size: 13px;
+    white-space: nowrap;
+  }
+  .tp-now {
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--jali-text);
+    min-width: 7ch;
+  }
+  .tp-total {
+    color: var(--jali-text-faint);
+  }
+  .tp-speed select {
+    height: 26px;
+  }
+  .tp-loop {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    height: 24px;
+    padding: 0 4px 0 8px;
+    border-radius: 999px;
+    background: var(--st-signal-soft);
+    color: var(--st-signal-ink);
+    font-size: 11.5px;
+    white-space: nowrap;
+  }
+  .tp-loop-off {
+    display: inline-grid;
+    place-items: center;
+    width: 18px;
+    height: 18px;
+    padding: 0;
+    border: 0;
+    border-radius: 999px;
+    background: none;
+    color: inherit;
+    cursor: pointer;
+  }
+  .tp-loop-off:hover {
+    background: var(--st-signal-soft);
+  }
+  .tp-status {
+    font-family: var(--jali-font-mono);
+    font-size: var(--st-label);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--jali-text-faint);
+    white-space: nowrap;
+  }
+  .tp-status:empty {
+    display: none;
+  }
+  .topbar-end {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    flex: none;
+  }
+
+  /* Narrower windows: the session's name goes first, then the layouts become a menu. */
+  @media (max-width: 1240px) {
+    .tp-session {
+      display: none;
+    }
+  }
+  @media (max-width: 980px) {
+    .layouts {
+      display: none;
+    }
+    .layouts-select {
+      display: block;
+    }
+  }
+  @media (max-width: 760px) {
+    .brand-name,
+    .tp-total,
+    .tp-speed,
+    .icon-btn-wide kbd {
+      display: none;
+    }
+    .topbar {
+      gap: 8px;
+      padding: 0 6px 0 10px;
+    }
+    .transport {
+      padding-right: 8px;
+    }
+    .icon-btn-wide {
+      padding: 0 9px;
+    }
+  }
+  @media (max-width: 520px) {
+    .transport .icon-btn,
+    .topbar-end .icon-btn:first-child {
+      display: none;
+    }
+  }
+
+  /* ---------- status line ---------- */
+  .status {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    min-height: 32px;
+    padding: 0 14px;
+    color: var(--jali-text-faint);
+    font-family: var(--jali-font-mono);
+    font-size: 11px;
+    min-width: 0;
+  }
+  .status-focus {
+    color: var(--jali-text-subtle);
+    font-family: var(--jali-font);
+    font-size: 12px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .status-hint {
+    margin-left: auto;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .status-note {
+    white-space: nowrap;
+    padding-left: 14px;
+    border-left: 1px solid var(--jali-border-strong);
+  }
+  @media (max-width: 1100px) {
+    .status-note {
+      display: none;
+    }
+  }
+  @media (max-width: 760px) {
+    .status-hint,
+    .status-focus {
+      display: none;
+    }
+  }
+
+  .toast {
+    font-family: var(--jali-font) !important;
+    border-radius: var(--jali-radius) !important;
+  }
+}
