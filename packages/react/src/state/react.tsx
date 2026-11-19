@@ -22,13 +22,15 @@ export function useStore(): ReactUiStore {
 
 export function useUi<T>(select: (s: UiState) => T): T {
   const store = useStore();
-  return useSyncExternalStore(store.subscribe, () => select(store.get()));
+  const read = () => select(store.get());
+  // The same read on the server: a workspace renders with server rendering (Next.js, Astro) as in the browser.
+  return useSyncExternalStore(store.subscribe, read, read);
 }
 
 /** The derived workspace model; a new object only when something it depends on changed. */
 export function useModel(): JaliModel {
   const store = useStore();
-  return useSyncExternalStore(store.subscribe, store.model);
+  return useSyncExternalStore(store.subscribe, store.model, store.model);
 }
 
 export const useActions = (): Actions => useStore().actions;
