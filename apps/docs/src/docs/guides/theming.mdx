@@ -53,6 +53,10 @@ The tokens you are most likely to change:
 
 Every token, with its light and dark values, is in the [Tokens reference](/reference/tokens).
 
+## Spacing
+
+The space between panes, and between the workspace's edges and its panes, are options, because the layout measures with them: `createJali({ gap: 3, inset: 20 })`. The gap defaults to 6px and the inset to the gap. Jali writes them on its root as `--jali-gap` and `--jali-inset`, so your own bars can line up with the panes (`padding-inline: var(--jali-inset)`).
+
 The accent's tints (`--jali-accent-weak`, `--jali-accent-mid`, `--jali-drop` and the focus ring) are mixed from `--jali-accent` on each workspace. Change the accent and they follow, on the whole page or on one workspace. For one workspace, set it on an element around `<JaliRoot>`: the palette, the other dialogs and the tab menus render in a layer beside the workspace's root (`[data-jali-layer]`), not inside it, so an accent set on the root itself reaches the panes but not them.
 
 ## Example: retheme to teal
@@ -103,7 +107,7 @@ Your theme's variables switch with your dark mode, so Jali follows. To follow a 
 
 ## Style the parts
 
-Every class Jali renders starts with `jali-`, so none collide with yours. The parts you may rely on, and the attributes that carry their state, are listed in [Parts](/reference/parts): a pane is `.jali-pane` with `data-kind` and `data-focused`, a tab is `.jali-tab` with `aria-selected`, `data-pinned` and `data-folded`, and so on. State is always an attribute, never a class. Anything not listed there is Jali's own and may change.
+Every class Jali renders starts with `jali-`, so none collide with yours. The parts you may rely on, and the attributes that carry their state, are listed in [Parts](/reference/parts): a pane is `.jali-pane` with `data-kind` and `data-focused`, a tab is `.jali-tab` with `aria-selected`, `data-pinned` and `data-folded`, and so on. State is always an attribute, never a class. Only the listed parts and the tokens are stable: anything not listed there, including the elements inside a part (`.jali-pane-actions button`), is Jali's own and may change.
 
 <Code code={parts} filename="src/parts.css" />
 

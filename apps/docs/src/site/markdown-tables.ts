@@ -29,16 +29,19 @@ const keys = (id: string, platform: "mac" | "other") => {
 };
 
 export const MARKDOWN_TABLES: Record<string, (attrs: Record<string, string | true>) => string> = {
-  PartsTable: () =>
+  PartsTable: (a) =>
     table(
-      ["Part", "What it is", "State attributes"],
-      Object.values(parts).map((p) => [
-        `\`${p.selector}\``,
-        p.what,
-        p.attributes.length
-          ? p.attributes.map((a) => `\`${a.name}\`: ${a.means}`).join("<br>")
-          : "none",
-      ]),
+      ["Part", "Element", "What it is", "State attributes"],
+      Object.values(parts)
+        .filter((p) => typeof a.area !== "string" || p.area === a.area)
+        .map((p) => [
+          `\`${p.selector}\``,
+          p.element.startsWith("`") ? p.element : p.element.replace(/^(\w+)/, "`$1`"),
+          p.what,
+          p.attributes.length
+            ? p.attributes.map((a) => `\`${a.name}\`: ${a.means}`).join("<br>")
+            : "none",
+        ]),
     ),
   CommandTable: () =>
     table(

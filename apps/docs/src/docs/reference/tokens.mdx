@@ -48,6 +48,15 @@ One set for both themes.
 
 <TokenTable group="Shape and type" />
 
+## Spacing
+
+Written by Jali, not set by you. The layout measures in pixels, so the space between panes is an option, `createJali({ gap, inset })`, and `<JaliRoot>` writes it on its root and its layer as these two variables. Read them in your own styles to line things up with the panes; setting them in CSS moves nothing.
+
+| Token | What it is | Default |
+|---|---|---|
+| `--jali-gap` | The space between panes, and the gutter a strip's scrollbar sits in (`createJali({ gap })`). | `6px` |
+| `--jali-inset` | The space between the workspace's edges and its panes (`createJali({ inset })`, else the gap). | the gap |
+
 ## Derived
 
 Mixed from `--jali-accent` on `:root` and again on every Jali root (`[data-jali]`) and dialog (`.jali-scrim`), so an accent set on a subtree gets matching tints there. Set one yourself to override the mix.
