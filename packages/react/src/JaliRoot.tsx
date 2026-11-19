@@ -56,7 +56,7 @@ export function JaliRoot({
       {/* The dialogs render outside the root but are this workspace's: keys pressed in them count as its own. */}
       <div data-jali-layer="" ref={jali.dom.attachLayer} style={{ display: "contents" }}>
         <Announcer />
-        <Palette />
+        {jali.env.palette === false ? null : <Palette />}
         {settings ? <SettingsPanel>{settingsExtra}</SettingsPanel> : null}
         <Chooser />
         <ConfirmDiscard />

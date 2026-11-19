@@ -96,7 +96,14 @@ export {
 } from "./ports";
 
 // ---------- commands and keys ----------
-export { commandsOf, runCommand, copyLink, type Command } from "./commands/registry";
+export {
+  commandsOf,
+  runCommand,
+  copyLink,
+  listCommands,
+  type Command,
+  type ListedCommand,
+} from "./commands/registry";
 export {
   DEFAULT_KEYMAP,
   type Keymap,

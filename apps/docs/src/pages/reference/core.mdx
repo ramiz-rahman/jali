@@ -61,6 +61,9 @@ The address.
 <Param name="commands" type="readonly Command[]">Your own commands. They are listed in ⌘K after Jali's, and `keymap` can bind them like any other (`{ "orders.refresh": "Mod+K Mod+U" }`). If an id repeats one of Jali's, Jali's wins.</Param>
 <Param name="keymap" type="KeymapOverrides">Rebind or unbind commands: `{ "pane.zoom": "Mod+K Mod+Enter", "pane.close": null }`. A binding is refused (and reported) when it can't be parsed, is a single character key with no Mod, Ctrl or Alt (those belong to the content), or has more than two steps.</Param>
 <Param name="keymapOptions" type="KeymapOptions">`platform` (`"mac"` or `"other"`, for tests and the server) and `onInvalid(id, binding, reason)` (default `console.warn`).</Param>
+<Param name="keyPrefix" type="KeyString" default={`"Mod+K"`}>The first step of every default two-step binding, and the palette's key. Move it when your app owns ⌘K: `"Mod+J"` makes "Restore last closed pane" ⌘J ⌘Z. Bindings in `keymap` are used as written.</Param>
+<Param name="reservedKeys" type="readonly KeyString[]">Keys your app uses for itself. Any of Jali's bindings that is one of them, or starts with one, is dropped and reported to `keymapOptions.onInvalid` when the workspace is made.</Param>
+<Param name="palette" type="boolean" default="true">`false`: your app's own command menu lists Jali's commands (<Ref to="useJaliCommands" page="/reference/react" />, <Ref to="listCommands" />). `<JaliRoot>` renders no palette, and its key is unbound unless `keymap` binds `"palette.toggle"`.</Param>
 <Param name="size" type="{ width: number; height: number }">A fixed size instead of the window's, for tests and server rendering. `<JaliRoot>` measures the real one once it renders.</Param>
 <Param name="moveFocus" type="boolean" default="true">`false` leaves DOM focus alone: for tests and a workspace that is never shown.</Param>
 <Param name="onUnstable" type="(op: string, before: string, after: string) => void" default="console.error in development">Called when a focus or swap action moved a pane on screen, which it never should.</Param>
@@ -220,6 +223,14 @@ Every command the workspace has, in palette order: the fixed set, one per preset
 </Params>
 
 <Returns type="readonly Command[]">Each with `id`, `title`, `group`, an optional `check` that returns a refusal when it can't run now, and `run`.</Returns>
+
+</Entry>
+
+<Entry name="listCommands" kind="function" from="@jali/core" signature={`listCommands(jali: Jali): ListedCommand[]`} compact>
+
+Every command a person can run from a menu now, in the palette's order: the focused pane's own commands first (keys `pane:<id>`), then the workspace's and your own `commands`. Each has its `title`, `group`, `keys` label for this platform, `disabled` and the `reason`, and `run`. For an app with its own command menu (`palette: false`); in React, <Ref to="useJaliCommands" page="/reference/react" />. Read it again after `jali.subscribe` calls back.
+
+<Returns type="ListedCommand[]" />
 
 </Entry>
 

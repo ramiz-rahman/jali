@@ -86,6 +86,8 @@ export interface Env {
   name: string;
   /** The kind a split or a new tab opens until the person chooses what to show. Without one, there is no Split. */
   launcher?: string;
+  /** False when the host shows Jali's commands in its own command menu (`palette: false`). */
+  palette?: boolean;
 }
 
 export const presetById = (env: Pick<Env, "presets">, id: string | undefined): Preset | undefined =>

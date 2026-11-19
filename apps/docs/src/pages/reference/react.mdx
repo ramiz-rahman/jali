@@ -26,7 +26,7 @@ Styles: `@jali/react/styles.css` is Jali's default theme and the workspace's sty
 
 <Entry name="JaliRoot" kind="component" from="@jali/react" signature={`<JaliRoot jali={jali} overlays? settings? settingsExtra?>{children?}</JaliRoot>`} example={appCode} exampleFile="App.tsx">
 
-Draws a workspace: its panes, and the dialogs every workspace has (the command palette, Settings, the "Add to tabs of…" chooser, "Discard unsaved changes?" and the live region). While it is mounted, it starts the workspace's keys, Back and Forward, theme and saving (<Ref to="Jali" page="/reference/core" />'s `start`), and stops them when it unmounts.
+Draws a workspace: its panes, and the dialogs every workspace has (the command palette unless the workspace was made with `palette: false`, Settings, the "Add to tabs of…" chooser, "Discard unsaved changes?" and the live region). While it is mounted, it starts the workspace's keys, Back and Forward, theme and saving (<Ref to="Jali" page="/reference/core/types" />'s `start`), and stops them when it unmounts.
 
 `<JaliRoot jali={jali} />` is a whole app. To add your own chrome, pass children and put `<JaliView />` where the panes go.
 
@@ -234,6 +234,14 @@ The workspace as it is on screen, subscribed: the panes, their boxes and titles,
 <Entry name="useTheme" kind="hook" from="@jali/react" signature={`useTheme(): "light" | "dark"`} compact>
 
 The theme in use: the person's setting, or the system's when they chose "System". For a toaster or anything else of yours that needs to match.
+
+</Entry>
+
+<Entry name="useJaliCommands" kind="hook" from="@jali/react" signature={`useJaliCommands(): ListedCommand[]`} compact>
+
+Jali's commands for your app's own command menu, when the workspace is made with `palette: false`: <Ref to="listCommands" page="/reference/core" />, re-rendering whenever the list can change (focus, the layout, what panes report). See [Commands and keys](/guides/commands-and-keys#inside-an-app-with-its-own-k-and-keys).
+
+<Returns type="ListedCommand[]" />
 
 </Entry>
 

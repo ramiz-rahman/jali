@@ -29,7 +29,7 @@ export { useActiveItemPort } from "./pane/useActiveItemPort";
 
 // ---------- the workspace in React ----------
 export { JaliProvider, useJali, useJaliState, useJaliModel, useTheme } from "./state/react";
-export { useShortcut } from "./commands/react";
+export { useShortcut, useJaliCommands } from "./commands/react";
 
 // ---------- parts, to compose your own (<JaliRoot> and <JaliView> render these) ----------
 export { Panes } from "./workspace/Workspace";

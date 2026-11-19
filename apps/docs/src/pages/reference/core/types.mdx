@@ -617,6 +617,12 @@ What one person keeps on one device. Keys Jali uses: `settings`, `pane-state`, a
 
 ## Commands and keys
 
+<Entry name="ListedCommand" kind="type" from="@jali/core" signature={`interface ListedCommand {\n  key: string; id?: string; title: string; group: string;\n  keys: string; disabled: boolean; reason?: string; run(): void;\n}`} compact>
+
+One entry of a command menu, from <Ref to="listCommands" page="/reference/core" />. `key` is unique in the list; `id` is the command id, undefined for a pane's own commands. `group` is the pane's title for those. Close your menu before `run`: some commands move focus.
+
+</Entry>
+
 <Entry name="Command" kind="type" from="@jali/core" signature={`interface Command {\n  id: string; title: string;\n  group: "Focus" | "Pane" | "Move" | "Tabs" | "Layout" | "Peek" | "Settings";\n  check?: (x: Snapshot) => Refusal | undefined;\n  run: (jali: Jali) => void;\n}`} compact>
 
 A workspace command. `check` returns a refusal when it can't run now (silent without `msg`). Your own commands go in `createJali({ commands })`, with a group of your own if you like.
@@ -635,9 +641,9 @@ A host's key changes: a binding, several, or `null` to unbind.
 
 </Entry>
 
-<Entry name="KeymapOptions" kind="type" from="@jali/core" signature={`interface KeymapOptions { platform?: Platform; onInvalid?: (id: string, binding: KeyString, reason: string) => void }`} compact>
+<Entry name="KeymapOptions" kind="type" from="@jali/core" signature={`interface KeymapOptions {\n  platform?: Platform; prefix?: KeyString; reserved?: readonly KeyString[];\n  onInvalid?: (id: string, binding: KeyString, reason: string) => void;\n}`} compact>
 
-The `keymapOptions` of `createJali`: `platform` to match and print keys for, and `onInvalid`, called for each refused binding (default `console.warn`).
+The `keymapOptions` of `createJali`: `platform` to match and print keys for, and `onInvalid`, called for each refused binding (default `console.warn`). `prefix` and `reserved` are what `createJali`'s `keyPrefix` and `reservedKeys` set.
 
 </Entry>
 

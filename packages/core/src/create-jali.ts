@@ -10,7 +10,7 @@
  * `jali.start()` without React) starts its keys, Back and Forward, theme and saving.
  */
 import { boot } from "./boot";
-import type { KeymapOptions, KeymapOverrides } from "./commands/keymap";
+import type { KeymapOptions, KeymapOverrides, KeyString } from "./commands/keymap";
 import type { Command } from "./commands/registry";
 import { toLayout, type LayoutInput } from "./layout/build";
 import { createPaneKinds, type PaneKindBase, type PaneKinds } from "./pane-kinds";
@@ -64,6 +64,15 @@ export interface JaliOptions<D extends PaneKindBase = PaneKindBase> {
   commands?: readonly Command[];
   /** Rebind or unbind commands: `{ "pane.zoom": "Mod+K Mod+Enter", "pane.close": null }`. */
   keymap?: KeymapOverrides;
+  /** The first step of Jali's two-step keys, and its palette's key. Default "Mod+K". Move it when the app owns ⌘K:
+   *  `"Mod+J"` makes "Restore last closed pane" ⌘J ⌘Z. */
+  keyPrefix?: KeyString;
+  /** Keys the app uses for itself (`["Mod+K", "Mod+/"]`). Jali drops any binding of its own that is one of them,
+   *  or starts with one, and reports it to `keymapOptions.onInvalid`. */
+  reservedKeys?: readonly KeyString[];
+  /** `false`: the app shows Jali's commands in its own command menu (`useJaliCommands`, `listCommands`). Jali then
+   *  renders no palette, and its key is unbound unless `keymap` binds "palette.toggle". Default true. */
+  palette?: boolean;
   /** The keymap's platform, and how refused bindings are reported. */
   keymapOptions?: KeymapOptions;
   /** A fixed size instead of the window's (tests, server rendering). */
@@ -121,7 +130,12 @@ export function createJali<D extends PaneKindBase>(options: JaliOptions<D>): Jal
     pageTheme: options.pageTheme,
     commands: options.commands,
     keymap: options.keymap,
-    keymapOptions: options.keymapOptions,
+    keymapOptions: {
+      ...options.keymapOptions,
+      ...(options.keyPrefix ? { prefix: options.keyPrefix } : {}),
+      ...(options.reservedKeys ? { reserved: options.reservedKeys } : {}),
+    },
+    palette: options.palette,
     unstable: options.onUnstable,
     initial: {
       ...(layout ? { layout: toLayout(layout) } : {}),

@@ -67,6 +67,16 @@ export type KeymapOverrides = Partial<
 export interface KeymapOptions {
   /** Defaults to the running platform. */
   platform?: Platform;
+  /**
+   * The first step of every default two-step binding, and the palette's own key. Default "Mod+K". Move it when the
+   * host owns ⌘K: `"Mod+J"` makes "pane.undo_close" ⌘J ⌘Z. Bindings in `overrides` are used as written.
+   */
+  prefix?: KeyString;
+  /**
+   * Keys the host app uses for itself. Any binding that is one of them, or starts with one, is dropped and reported
+   * to `onInvalid`, so a clash shows up at start-up rather than when someone presses the key.
+   */
+  reserved?: readonly KeyString[];
   /** Called for each binding refused (unparsable, a bare character key, or a sequence longer than two). Default: console.warn. */
   onInvalid?: (id: string, binding: KeyString, reason: string) => void;
 }
@@ -91,12 +101,43 @@ const sameChord = (a: Chord, b: Chord) =>
   !!a.alt === !!b.alt &&
   !!a.shift === !!b.shift;
 
+/** The default prefix every two-step default binding starts with. */
+export const DEFAULT_PREFIX = "Mod+K";
+
+/** `binding` with its first step moved from the default prefix to `prefix`. */
+const withPrefix = (binding: KeyString, prefix: KeyString): KeyString =>
+  binding === DEFAULT_PREFIX
+    ? prefix
+    : binding.startsWith(`${DEFAULT_PREFIX} `)
+      ? `${prefix} ${binding.slice(DEFAULT_PREFIX.length + 1)}`
+      : binding;
+
+const sameSequence = (a: KeySequence, b: KeySequence) =>
+  a.length === b.length && a.every((c, i) => sameChord(c, b[i]!));
+
 export function createKeymap(overrides: KeymapOverrides = {}, opts: KeymapOptions = {}): Keymap {
   const platform = opts.platform ?? detectPlatform();
   const warn =
     opts.onInvalid ??
     ((id, b, why) => console.warn(`[pane keymap] ${id}: "${b}" ignored (${why})`));
-  const merged = new Map<string, readonly KeyString[]>(Object.entries(DEFAULT_KEYMAP));
+  const prefix = opts.prefix ?? DEFAULT_PREFIX;
+  const reserved: KeySequence[] = [];
+  for (const b of opts.reserved ?? []) {
+    try {
+      reserved.push(parseKeys(b));
+    } catch (err) {
+      warn("reservedKeys", b, (err as Error).message);
+    }
+  }
+  // A binding clashes when it is a reserved sequence, or starts with a reserved single key.
+  const clash = (seq: KeySequence) =>
+    reserved.find((r) => sameSequence(r, seq) || (r.length === 1 && sameChord(r[0]!, seq[0]!)));
+  const merged = new Map<string, readonly KeyString[]>(
+    Object.entries(DEFAULT_KEYMAP).map(([id, list]) => [
+      id,
+      list.map((b) => withPrefix(b, prefix)),
+    ]),
+  );
   for (const [id, v] of Object.entries(overrides)) {
     if (v === undefined) continue;
     if (v === null) merged.delete(id);
@@ -113,9 +154,12 @@ export function createKeymap(overrides: KeymapOverrides = {}, opts: KeymapOption
         warn(id, b, (err as Error).message);
         continue;
       }
+      const taken = clash(seq);
       if (seq.length > 2) warn(id, b, "a binding has at most two steps");
       else if (seq.length === 1 && isCharacterKey(seq[0]!))
         warn(id, b, "a single character key belongs to the focused content (WCAG 2.1.4)");
+      else if (taken)
+        warn(id, b, `the host reserves ${formatKeys(taken, platform)} (reservedKeys)`);
       else seqs.push(seq);
     }
     if (seqs.length) entries.push([id, seqs]);

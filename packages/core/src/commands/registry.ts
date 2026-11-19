@@ -15,6 +15,7 @@ import { viewerLabel, type Env } from "../profile";
 import { refuse, type Refusal, type Snapshot } from "../state/apply";
 import { msg } from "../state/messages";
 import type { UiStore } from "../state/store";
+import { formatChord } from "./format";
 import { cycleRegions } from "./regions";
 
 export interface Command {
@@ -353,4 +354,60 @@ function toggleCentreDrop(store: UiStore) {
   const centreDrop = settings.centreDrop === "swap" ? "tab" : "swap";
   store.set({ settings: { ...settings, centreDrop } });
   store.announce(msg.centreDrop(centreDrop));
+}
+
+/**
+ * One entry of a command menu: what Jali's palette lists, for a host that shows Jali's commands in its own ⌘K
+ * (cmdk, kbar, …). The focused pane's own commands come first, then the workspace's and the host's.
+ */
+export interface ListedCommand {
+  /** Unique in the list. Workspace commands use their command id; a pane's own are `pane:<id>`. */
+  key: string;
+  /** The command id: what `keymap` binds and `runCommand` runs. Undefined for a pane's own commands. */
+  id?: string;
+  title: string;
+  /** "Focus", "Pane", "Layout", … for workspace commands; the pane's title for a pane's own. */
+  group: string;
+  /** Its keys for this platform ("⌘K ⌘Z"), or "" when unbound. */
+  keys: string;
+  /** It can't run now. */
+  disabled: boolean;
+  /** Why, when Jali says (for a tooltip or screen readers). */
+  reason?: string;
+  /** Run it. Close your menu first: some commands move focus. */
+  run: () => void;
+}
+
+/** Every command a person can run now, in palette order. Read it again after each change (`store.subscribe`). */
+export function listCommands(store: UiStore): ListedCommand[] {
+  const x = store.snapshot();
+  const focused = x.s.view.focused;
+  const own = (focused ? x.s.paneCommands[focused] : undefined) ?? [];
+  return [
+    ...own.map((c): ListedCommand => ({
+      key: `pane:${c.id}`,
+      title: c.title,
+      group: x.m.title(focused),
+      keys: c.keys ?? "",
+      disabled: !!c.disabled,
+      ...(c.disabled ? { reason: c.disabled } : {}),
+      run: c.run,
+    })),
+    ...commandsOf(store).map((c): ListedCommand => {
+      const refused = c.check?.(x);
+      return {
+        key: c.id,
+        id: c.id,
+        title: c.title,
+        group: c.group,
+        // Esc closes a peek through the Esc ladder, not the keymap.
+        keys:
+          store.keymap.label(c.id) ||
+          (c.id === "peek.close" ? formatChord({ key: "Escape" }, store.keymap.platform) : ""),
+        disabled: !!refused,
+        ...(refused?.msg ? { reason: refused.msg } : {}),
+        run: () => runCommand(store, c.id),
+      };
+    }),
+  ];
 }

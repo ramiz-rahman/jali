@@ -42,6 +42,7 @@ import { loadPaneState } from "./pane-state";
 import { startUi } from "../boot";
 import {
   createKeymap,
+  PALETTE_ID,
   type Keymap,
   type KeymapOptions,
   type KeymapOverrides,
@@ -177,6 +178,8 @@ export interface UiStoreDeps {
   keymap?: KeymapOverrides;
   /** The keymap's platform and how refused bindings are reported. */
   keymapOptions?: KeymapOptions;
+  /** `false`: the host has its own command menu. Jali renders no palette and its key is unbound. Default true. */
+  palette?: boolean;
 }
 
 export interface UiStore {
@@ -256,6 +259,7 @@ export function createUiStore(deps: UiStoreDeps): UiStore {
     profile: deps.profile ?? null,
     presets: deps.presets ?? [],
     commands: deps.commands ?? [],
+    palette: deps.palette !== false,
     name: deps.name ?? "Workspace",
   };
   if (deps.launcher) env.launcher = deps.launcher;
@@ -373,7 +377,13 @@ export function createUiStore(deps: UiStoreDeps): UiStore {
       return () => toastFns.delete(fn);
     },
     actions: undefined as unknown as Actions,
-    keymap: createKeymap(deps.keymap, deps.keymapOptions),
+    keymap: createKeymap(
+      // Without Jali's palette, its key is the host's, unless the host binds it on purpose.
+      deps.palette === false && !(PALETTE_ID in (deps.keymap ?? {}))
+        ? { ...deps.keymap, [PALETTE_ID]: null }
+        : deps.keymap,
+      deps.keymapOptions,
+    ),
     env,
     dom,
     storage,
