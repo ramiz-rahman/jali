@@ -40,7 +40,7 @@ export interface SimulatorOptions {
   /** Default 1. */
   seed?: number;
   /** Market time when the simulation starts, ms since the epoch. The session opens at 09:30 that day, and the
-   *  morning until `start` is simulated first, so charts have history. Default: today at 11:45. */
+   *  morning until `start` is simulated first, so charts have history. Default: today at 13:40. */
   start?: number;
   /** Market time per step, in ms. Default 250: four ticks a second. */
   tickMs?: number;
@@ -107,7 +107,7 @@ export function createSimulator(options: SimulatorOptions = {}): Simulator {
   const instruments = options.instruments ?? INSTRUMENTS;
   const r = createRandom(seed);
 
-  const start = options.start ?? todayAt(11, 45);
+  const start = options.start ?? todayAt(13, 40);
   const sessionOpen = new Date(start).setHours(9, 30, 0, 0);
   let now = sessionOpen;
   let tradeId = 0;

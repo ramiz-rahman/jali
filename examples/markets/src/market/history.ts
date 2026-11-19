@@ -44,7 +44,8 @@ export function instrumentHistory(inst: Instrument, today: number, seed: number)
   const r = createRandom(hash(inst.symbol, seed));
   const sessions = previousSessions(today, DAYS);
   const isBond = inst.coupon !== undefined;
-  const dayVol = isBond ? inst.vol / 100 : inst.vol / Math.sqrt(252);
+  // A little calmer than today's volatility: a year of it at full strength wanders further than real prices do.
+  const dayVol = (isBond ? inst.vol / 100 : inst.vol / Math.sqrt(252)) * 0.7;
   // A day's move in the price: for a bond, its yield's move times roughly its duration.
   const pxVol = isBond ? (Math.min(inst.maturity! * 0.85, 18) * inst.vol) / 1e4 : dayVol;
 
