@@ -391,7 +391,8 @@ describe("pinned tabs", () => {
   it("tell the app once per change, and pinning a pinned tab is no change", () => {
     const heard: unknown[] = [];
     const jali = four();
-    jali.on("pin", ({ input: _, ...e }) => heard.push(e));
+    // Only what changed: `input` depends on what earlier tests in this task pressed (event-input.test.ts covers it).
+    jali.on("pin", ({ pane, pinned }) => heard.push({ pane, pinned }));
     const layouts: unknown[] = [];
     jali.on("layout", (e) => layouts.push(e));
     jali.actions.setPinned("b", true);
