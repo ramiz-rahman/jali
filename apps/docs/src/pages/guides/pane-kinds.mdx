@@ -4,6 +4,8 @@ summary: Describe one kind of pane, what it shows, how narrow it can go, and the
 ---
 
 import orders from "../../samples/guides/pane-kinds/orders.tsx?raw";
+import ticket from "../../samples/guides/pane-kinds/ticket.tsx?raw";
+import customer from "../../samples/guides/pane-kinds/customer.tsx?raw";
 
 A [pane kind](/get-started/key-concepts#kind) is one sort of pane in your app: an orders list, one order, a customer. You define it once with `definePane`, and every pane of that kind in the workspace uses it.
 
@@ -17,7 +19,7 @@ Each pane shows one object, named by a **ref**: a kind and some params. The kind
 orderKind({ id: 12 }) // { kind: "order", params: { id: 12 } }
 ```
 
-A ref is plain data, so it fits in a link. Params are strings or numbers. Your component reads them and loads the object itself: Jali never fetches anything.
+A ref is plain data, so it fits in a link. Params are text, numbers or `true`/`false`. Your component reads them and loads the object itself: Jali never fetches anything.
 
 ## The options
 
@@ -34,9 +36,9 @@ export const orderKind = definePane("order", {
 });
 ```
 
-With `params`, the component and `title` get `id` as a number, and `orderKind({ id: "12" })` is a type error. Declare the params every pane of the kind has. Others still work as plain `string | number` values.
+With `params`, the component and `title` get `id` as a number, and `orderKind({ id: "12" })` is a type error, as are `orderKind()` and a param the kind doesn't declare. [Params](#params) below covers optional params and the other types.
 
-`title` names the pane in its header, its tab and the shelf. A kind whose panes all have the same name can pass a string: `title: "Orders"`.
+`title` names the pane in its header, its tab and the shelf. A kind whose panes all have the same name can pass a string: `title: "Orders"`. To name a pane from its data, see [Failures, loading and titles](#failures-loading-and-titles).
 
 </Step>
 <Step title="Say how narrow it can go">
@@ -64,7 +66,7 @@ By default two refs are the same when all their params match as text, so `{ id: 
 </Step>
 <Step title="Draw it">
 
-`Component` renders the pane's content. `icon` is a 16px component shown in the header, the tab and the shelf, such as a `lucide-react` icon. Without one, Jali draws a plain square.
+`Component` renders the pane's content. `icon` is shown in the header, the tab and the shelf. Jali's own icons are [Phosphor](https://phosphoricons.com) (`@phosphor-icons/react`, the set Chakni uses), so a Phosphor icon in its regular weight matches them; any component that takes `size` works. Without one, Jali draws a plain square.
 
 </Step>
 </Steps>
@@ -73,6 +75,53 @@ Two more options:
 
 - `holdWhileResizing: true` keeps the content as it is while a divider is dragged, and reflows it once on release. Use it for long lists and grids.
 - `inRecent: false` keeps the kind out of Recent. It can also be a function of the params.
+
+## Params
+
+`params` lists what a pane of the kind can show, and the type of each:
+
+| Type | The component gets | In a link |
+|---|---|---|
+| `Number` | a number | `"12"` reads as `12` |
+| `String` | text | as written |
+| `Boolean` | `true` or `false` | `"true"` and `"false"` read as flags, and so do `1` and `0` |
+| `oneOf("open", "closed")` | `"open" \| "closed"` | any other value can't be read |
+| `optional(type)` | the type, or `undefined` | may be left out |
+| a function | what it returns | it gets the value; it returns `undefined` or `NaN`, or throws, when it can't read it |
+
+A param is required unless it is wrapped in `optional`. For example, a ticket with an optional tab and a flag:
+
+<Code code={ticket} filename="src/panes/ticket.tsx" />
+
+The component, `title` and the other options get `{ id: number; tab?: "thread" | "details"; internal?: boolean }`. By default every param counts towards which object a pane shows. When an optional param doesn't make it another object, give the kind an `identity`, as here.
+
+### A component written apart from its kind
+
+Declare the params first, and type the component from them with `PaneProps<typeof …>`. The orders file below does this:
+
+```tsx
+const orderParams = { id: Number, tab: optional(oneOf("summary", "history")) };
+
+function OrderDetail({ params }: PaneProps<typeof orderParams>) {
+  // params is { id: number; tab?: "summary" | "history" }
+}
+
+export const orderKind = definePane("order", { params: orderParams, /* ... */ Component: OrderDetail });
+```
+
+`PaneProps<{ id: number }>`, with the params' type written out, still works. `ParamsOf<typeof orderParams>` is the params' type alone.
+
+### When a ref is missing a param
+
+Links are written by people and by older versions of your app, so a ref can arrive without a required param, or with a value its type can't read (`"abc"` for a `Number`). Jali never passes such params to your component:
+
+- A layout link (`?l=`) or a saved layout holding one is treated as broken, like any link that can't be read.
+- A peek, or a pane opened on a curated page, is left out of the link it came in.
+- A ref your own code opens shows a message in its pane, naming the param, instead of the component. Its title is the kind's name, and it stays out of Recent.
+
+Params a kind doesn't declare are a type error in your code, but a link that carries them still opens: they reach the component as plain values.
+
+Lists and dates are not param types: a link can't carry a list cleanly. Pass a date as text (`"2026-11-19"`) and read it in the component.
 
 ## The component's props
 
@@ -102,6 +151,25 @@ Three hooks tell the workspace about the pane they are called in:
 - `useCommands([...])` adds commands to ⌘K while the pane is focused.
 
 The last two are covered in [Unsaved work and pane state](/guides/unsaved-work-and-pane-state).
+
+## Failures, loading and titles
+
+Each pane's component renders inside its own error boundary and its own Suspense boundary. One pane that throws or waits for data never blanks the others.
+
+**When a component throws,** that pane shows what failed, with a Retry button and a Close button. The layout keeps its shape. Retry mounts the component again, and it is also in ⌘K while the pane is focused. The pane's activity reads `"error"`. Showing another object in the pane clears the failure. Pass `onPaneError` to `createJali` to send the error to your reporting; by default it is logged in development.
+
+```ts
+const jali = createJali({
+  panes: orderKinds,
+  onPaneError: (error, { pane, ref }) => reportError(error, { pane, kind: ref.kind }),
+});
+```
+
+**When a component suspends** (it reads data with `use()`, or a Suspense query), the pane shows a quiet "Loading…" and its activity reads `"loading"`. Give the kind a `Loading` component to show something of your own. It gets the same props as `Component`.
+
+**To name a pane from its data,** call `useTitle(name)` in the pane. "Ada Okafor" then replaces "Customer 7" in the header, the tab, the shelf, ⌘K and announcements. The kind's `title` comes back when the component unmounts, when the pane shows another object, or when you pass `null`. The title is not saved, and the peek sheet always uses the kind's `title`.
+
+<Code code={customer} filename="src/panes/customer.tsx" />
 
 ## Pause hidden panes
 

@@ -23,7 +23,7 @@ Set `width.min` to the narrowest width the content still works at once it adapts
 
 ### 2. Declare params, and read them typed
 
-What a pane shows arrives as `params`, read with the kind's `params` types: `params: { id: Number }` gives `params.id` as a number, so never cast it. Declare the params every pane of the kind has. Keep params small: ids, never the data itself, because they go in the address.
+What a pane shows arrives as `params`, read with the kind's `params` types: `params: { id: Number }` gives `params.id` as a number, so never cast it. Declare every param: one a pane may leave out is `optional(String)`, a flag is `Boolean`, a fixed choice is `oneOf("open", "closed")`. A component written apart from its kind takes `PaneProps<typeof ticketParams>`, with the params declared first, never the type written out again. Keep params small: ids, never the data itself, because they go in the address.
 
 ### 3. Claim your keys, let the rest bubble
 

@@ -3,7 +3,12 @@
  * overlay card (what fitting and the person did on top of the tree, without changing it).
  */
 import { createContext, type CSSProperties } from "react";
-import { Archive, EyeOff, FoldHorizontal, Layers } from "lucide-react";
+import {
+  ArchiveIcon,
+  ArrowsInLineHorizontalIcon,
+  EyeSlashIcon,
+  StackIcon,
+} from "@phosphor-icons/react";
 import type { LayoutNode, Rect, Size, JaliModel } from "@jali/core";
 import { colourOf } from "./colours";
 
@@ -84,7 +89,7 @@ export function OverlayCard({ m }: { m: JaliModel }) {
       <dl>
         <div>
           <dt>
-            <FoldHorizontal size={13} strokeWidth={1.75} aria-hidden /> Folded
+            <ArrowsInLineHorizontalIcon size={13} aria-hidden /> Folded
           </dt>
           <dd>
             <Chips ids={m.folded.map((id) => ({ id }))} m={m} empty="nothing: everything fits" />
@@ -92,7 +97,7 @@ export function OverlayCard({ m }: { m: JaliModel }) {
         </div>
         <div>
           <dt>
-            <Archive size={13} strokeWidth={1.75} aria-hidden /> Tucked
+            <ArchiveIcon size={13} aria-hidden /> Tucked
           </dt>
           <dd>
             <Chips ids={tucks} m={m} empty="none" />
@@ -100,7 +105,7 @@ export function OverlayCard({ m }: { m: JaliModel }) {
         </div>
         <div>
           <dt>
-            <EyeOff size={13} strokeWidth={1.75} aria-hidden /> Hidden
+            <EyeSlashIcon size={13} aria-hidden /> Hidden
           </dt>
           <dd>
             <Chips ids={m.off.map((id) => ({ id }))} m={m} empty="none" />
@@ -109,7 +114,7 @@ export function OverlayCard({ m }: { m: JaliModel }) {
         {shown.length ? (
           <div>
             <dt>
-              <Layers size={13} strokeWidth={1.75} aria-hidden /> Tab shown
+              <StackIcon size={13} aria-hidden /> Tab shown
             </dt>
             <dd>
               <Chips ids={shown} m={m} empty="none" />

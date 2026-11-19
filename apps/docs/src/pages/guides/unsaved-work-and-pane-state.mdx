@@ -62,14 +62,33 @@ useCommands([
 
 Pass the list on every render. The palette is updated only when an id, title, label or reason changes, and `run` always calls the latest function you gave, so it never sees stale state.
 
-## Test it
+## Ask your app first
 
-The workspace's actions do what the hooks do, so the rules can be tested without rendering:
+Your app may know more than a pane does: a draft saved on the server, a write that is still running. Give the workspace `beforeClose`, and it asks before any change removes panes or makes one show something else: a close, close others, a preset, `jali.setLayout`, Back and Forward, a pane showing another object.
 
 ```ts
-jali.actions.setUnsaved("note", "an unsaved note");
-jali.actions.close("note");
-expect(jali.get().confirm?.panes).toEqual(["note"]);
+const jali = createJali({
+  panes,
+  layout,
+  beforeClose: async ({ panes }) => {
+    const drafts = await api.draftsFor(panes.map((p) => p.ref));
+    return drafts.length === 0 || confirm(`Discard ${drafts.length} drafts?`);
+  },
+});
+```
+
+- Return `true` to let the change happen, `false` to keep the panes. A promise holds the change until it answers. If the layout changed in the meantime, the held change is dropped.
+- The action returns `{ ok: false, reason: "kept" }`, or `reason: "pending"` with `settled`, a promise of the final result.
+- Your answer comes first. After a yes, a pane that still reports unsaved work gets Jali's own "Discard unsaved changes?".
+- If it throws or rejects, the panes stay.
+
+## Test it
+
+The rules can be tested without rendering. What `useUnsaved` reports from a rendered pane can be reported through the engine's own steps (`storeOf` from `@jali/core/adapter`):
+
+```ts
+storeOf(jali).actions.setUnsaved("note", "an unsaved note");
+expect(jali.actions.close("note")).toEqual({ ok: false, reason: "unsaved" });
 ```
 
 See [Test a workspace](/guides/testing).

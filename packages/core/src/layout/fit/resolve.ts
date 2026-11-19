@@ -2,6 +2,7 @@ import type { Axis, Layout, LayoutContext, Rect, ResolvedLayout } from "../types
 import type { ViewState } from "../types";
 import { shares } from "../geometry/shares";
 import { extentAlong } from "../geometry/extent";
+import { mirrorRect } from "../geometry/direction";
 import { noFocus, panes } from "../tree/tree";
 import { allPanes, choose, foldSlot, overlayOf, replay, type Projected } from "./overlay";
 import { chooseFold } from "./priority";
@@ -145,12 +146,13 @@ export function resolve(layout: Layout, view: ViewState, ctx: LayoutContext): Re
       }
     });
   }
-  draw(root, {
-    x: 0,
-    y: 0,
-    width: Math.max(fit.width, root.bounds.width),
-    height: Math.max(fit.height, root.bounds.height),
-  });
+  const width = Math.max(fit.width, root.bounds.width);
+  draw(root, { x: 0, y: 0, width, height: Math.max(fit.height, root.bounds.height) });
+  // Right to left, a row starts at the right: the same layout, mirrored. Rects are screen coordinates either way.
+  if (ctx.dir === "rtl") {
+    for (const b of result.panes) b.rect = mirrorRect(b.rect, width);
+    for (const d of result.dividers) d.rect = mirrorRect(d.rect, width);
+  }
   // Hidden panes keep a box (so their content can stay mounted and paused) with no size and no group.
   const drawn = new Set(result.panes.map((b) => b.id)),
     inTree = new Set(panes(layout.root).map((p) => p.id));

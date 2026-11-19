@@ -48,6 +48,24 @@ Jali lists presets in ⌘K. If you want them in your top bar too, read them from
 
 <Code code={menu} filename="src/PresetMenu.tsx" />
 
+## Save a person's layout
+
+To keep each person's layout on your server, save it when it changes and give it back when the workspace is made:
+
+```ts
+const saved = await api.loadLayout(user.id); // what you saved last time, or null
+const jali = createJali({ panes, presets, ...(saved ? { layout: saved } : {}) });
+
+jali.on("layout", ({ layout, source }) => {
+  if (source === "action") void api.saveLayout(user.id, layout);
+});
+```
+
+- `"layout"` fires once per change. `source` is `"action"` for the person's own changes and `"address"` for Back, Forward or a link. Fitting to a new window size does not fire it.
+- `jali.getLayout()` is the layout on screen, as JSON, at any time.
+- A link in the address still wins over `layout`, so a shared link opens what was shared.
+- A layout that arrives after the workspace is made goes through `jali.setLayout(saved)`. It fits the layout to the room, asks before losing unsaved work, and adds a history entry, so Back returns. It returns `{ ok: false, reason: "invalid" }` for a layout with a pane kind the workspace no longer has.
+
 ## No presets: one starting layout
 
 A workspace that doesn't need presets passes one `layout`. It needs one or the other: with neither, `createJali` throws.

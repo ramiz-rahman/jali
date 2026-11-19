@@ -1,0 +1,64 @@
+---
+title: Translate Jali
+summary: Show and announce Jali's words in your app's language, or in your own wording, with English as the default.
+---
+
+import overrides from "../../samples/guides/translating/overrides.ts?raw";
+import french from "../../samples/guides/translating/french.ts?raw";
+import app from "../../samples/guides/translating/app.tsx?raw";
+
+Every word Jali shows or says can be replaced. That covers what it announces to screen readers, its toasts, the titles and groups of its commands, and the text of its dialogs, tabs, shelf and buttons, including labels, tooltips and placeholders. English is the default.
+
+## Change a few words
+
+Pass `messages` to `createJali`. Give only the words you want to change. Everything else stays English.
+
+<Code code={overrides} filename="src/workspace.ts" />
+
+The words are grouped by area. The type lists every key, so your editor completes them, and a misspelt key is a type error.
+
+| Area | What it holds |
+|---|---|
+| `announcements` | What the live region says after a change, and why something did not happen |
+| `toasts` | The title and description of each toast (`jali.onToast`) |
+| `commands`, `commandGroups` | Command titles and the groups they are listed under, in ⌘K and `listCommands` |
+| `palette`, `chooser`, `confirmDiscard`, `settings` | The command palette, "Add to tabs of…", "Discard unsaved changes?" and the settings panel |
+| `pane`, `tabs`, `shelf`, `peek` | A pane's header, its tabs and their menu, the shelf, the peek sheet |
+| `workspace`, `page`, `drop` | The panes region and its dividers, a curated page's bar and tabs, the label shown while dragging |
+| `keys` | Words in printed keys ("Ctrl", "Esc", "Alt-click"), and how a tooltip shows its shortcut |
+
+## Write a full translation
+
+Start from `en`, Jali's English messages, and give the type `Messages`. A `Messages` must have every area and every key. Spread `en` where you have not translated yet. An area you write out without spreading `en` (`palette` below) must list every key: one you missed is a type error, and so is one a later version of Jali adds.
+
+<Code code={french} filename="src/jali-fr.ts" />
+
+## Values, plurals and word order
+
+A message that needs values is a function: a pane's title, a count, a direction, a key. You write the whole sentence, so you choose the word order and the plural form. Jali never joins translated pieces itself.
+
+- Counts come in as numbers, as in `discarded(count)` and `backToPage(page, count)`.
+- Directions come in as values (`"top"`, `"left"`), as in `moved(pane, edge)`.
+- Keys come in already printed for the platform, as in `keys.withKeys(label, keys)`, which turns "Put back" and "⌘K ⌘]" into "Put back · ⌘K ⌘]".
+- A message with a bold part takes `bold` and returns its parts in order, as in `confirmDiscard.item(pane, what, bold)` and `chooser.heading(pane, bold)`.
+
+## Pick the language
+
+The words belong to the workspace: choose them when you call `createJali`. To change language, make the workspace again with the new words.
+
+<Code code={app} filename="src/App.tsx" />
+
+Read them back from `jali.messages`, for example to word your own toasts or menus the same way.
+
+## What stays yours
+
+Some words come from your app, so Jali shows them as you give them:
+
+- Pane titles (`definePane`'s `title`) and preset labels.
+- A curated page's name, view labels, `itemNoun` and `viewers` (`definePage`).
+- The free workspace's name (`createJali({ name })`), when you give one.
+- Your own commands and the commands a pane adds with `useCommands`.
+
+Two things are not translated. The Mac's key symbols (⌘, ⌥, ⇧, ↵, the arrows) are symbols, not words. Errors and console warnings meant for developers stay in English.
+
+`formatKeys` and `keyHint` print English key words unless you pass words as their third argument (`keyHint("Alt+Enter", platform, fr.keys)`). `jali.keymap.label(id)` and `jali.keymap.format(seq)` use the workspace's own words.

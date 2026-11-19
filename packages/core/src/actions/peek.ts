@@ -1,11 +1,11 @@
 import * as core from "../layout";
 import type { Layout, NodeId, ObjectRef, ViewState } from "../layout/types";
 import { refuse, type Change, type Outcome, type Snapshot } from "../state/apply";
-import { msg } from "../state/messages";
+import { say } from "../state/messages";
 import { openBeside, withRecent } from "./open";
 import { follow, followerOnScreen, followLater, sameRef } from "./follow";
 
-export const checkPeek = ({ s }: Snapshot) => (s.view.peek ? undefined : refuse());
+export const checkPeek = ({ s }: Snapshot) => (s.view.peek ? undefined : refuse("nothing-to-do"));
 
 /**
  * Open (or move) the peek sheet; `null` closes it. It acts for the pane it came from. When that pane's following
@@ -30,7 +30,7 @@ export function peekSheet({ s, env }: Snapshot, ref: ObjectRef | null, source?: 
     op: "peek",
     view,
     patch: { peekSource: ref ? (source ?? s.peekSource ?? s.view.focused) : undefined },
-    msg: ref ? msg.peek(env.kinds.title(ref)) : msg.peekClosed,
+    msg: ref ? say(env).peek(env.kinds.title(ref)) : say(env).peekClosed,
   };
 }
 
@@ -54,7 +54,7 @@ export function openPeekFull({ s, ctx, env }: Snapshot): Outcome {
     op: "openFull",
     layout: core.refit(layout, view, ctx),
     view,
-    msg: msg.openedFull(env.kinds.title(ref)),
+    msg: say(env).openedFull(env.kinds.title(ref)),
     patch: { peekSource: undefined, recent: withRecent(env.kinds, s.recent, [ref]) },
   };
 }

@@ -28,17 +28,23 @@ export type {
   PaneKinds,
   PaneCommand,
   PaneActivity,
+  PaneErrorInfo,
   Params,
   ParamValue,
   ParamType,
   ParamTypes,
   ParamsOf,
+  OptionalParam,
+  OneOf,
+  ParamProblem,
 } from "./pane-kinds";
+export { optional, oneOf } from "./pane-kinds";
 export type { RoleBase, ProfileBase, ViewMode, Preset, Env, ItemId } from "./profile";
 
 // ---------- the layout tree (pure: every operation returns a new layout) ----------
 export type {
   Axis,
+  Direction,
   Edge,
   Size,
   NodeId,
@@ -60,28 +66,30 @@ export type {
   LayoutContext,
   FitOptions,
   ShelfEntry,
-  UndoEntry,
 } from "./layout/types";
 export * as layout from "./layout";
 export { sameRef } from "./actions/follow";
 
-// ---------- the workspace's state ----------
+// ---------- the instance: actions, results, events ----------
+export type { JaliEvents, JaliState } from "./state/instance";
+export type { JaliActions, PaneTarget, OpenPageOptions } from "./actions/public";
 export type {
-  UiState as JaliState,
-  PageState,
-  Selection,
-  JaliDom,
-  UrlWriter,
-  DndState,
-  ConfirmState,
-  ChooserState,
-} from "./state/store";
-export type { Actions } from "./actions";
-export type { OpenPage } from "./actions/page";
-export type { PagePrefs } from "./state/page-prefs";
+  ActionResult,
+  Refusal,
+  RefusalReason,
+  BeforeClose,
+  CloseRequest,
+  Toast,
+  HistoryMode,
+} from "./state/apply";
+
+// ---------- the workspace's state ----------
+export type { PageState, Selection, UrlWriter } from "./state/store";
 export type { JaliModel, Group } from "./state/model";
-export type { Snapshot, Outcome, Change, Refusal, Toast, HistoryMode } from "./state/apply";
 export type { Settings, ThemeChoice, Theme } from "./state/settings";
+
+// ---------- words (translations) ----------
+export { en, type Messages, type MessageOverrides, type ScreenDirection } from "./state/messages";
 
 // ---------- the address and what a person keeps ----------
 export type { UrlSyncOptions, LinkSizes } from "./url";
@@ -116,6 +124,7 @@ export {
   keyHint,
   formatKeys,
   type Platform,
+  type KeyWords,
   type Chord,
   type KeySequence,
 } from "./commands/format";

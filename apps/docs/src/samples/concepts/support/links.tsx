@@ -3,7 +3,9 @@ import { definePane, type PaneProps } from "@jali/react";
 import { tickets } from "./data";
 import { ticket } from "./ticket";
 
-function CustomerTickets({ params, openBeside, openHere, peek }: PaneProps<{ customer: number }>) {
+const ticketsParams = { customer: Number };
+
+function CustomerTickets({ params, openBeside, openHere, peek }: PaneProps<typeof ticketsParams>) {
   const mine = tickets.filter((t) => t.customer === params.customer);
 
   // A plain link, made a pane link. A click opens the ticket beside; ⌘-click still opens a browser tab.
@@ -29,7 +31,7 @@ function CustomerTickets({ params, openBeside, openHere, peek }: PaneProps<{ cus
 }
 
 export const customerTicketLinks = definePane("customer-tickets", {
-  params: { customer: Number },
+  params: ticketsParams,
   title: ({ customer }) => `Tickets of customer ${customer}`,
   width: { min: 320 },
   height: { min: 200 },

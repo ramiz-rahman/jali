@@ -5,37 +5,44 @@
 import * as core from "./layout";
 import { installKeyboard, type KeyboardScope } from "./commands/keyboard";
 import { presetById } from "./profile";
-import { msg, toasts } from "./state/messages";
+
 import { applyTheme, resolveTheme, saveSettings, watchSystemTheme } from "./state/settings";
 import type { UiStore } from "./state/store";
 import { applyTokens } from "./tokens";
 import { savePrefs } from "./state/page-prefs";
 import { savePaneState } from "./state/pane-state";
-import { withoutOpened } from "./actions/page";
+import { openPage, withoutOpened } from "./actions/page";
+import { arrive } from "./actions/layout";
+import { DONE, type ActionResult } from "./state/apply";
 import type { UrlSync } from "./url";
 
-/** Apply the URL to the store (first load, Back/Forward). A link that can't be read opens the current preset. */
-function arriveFromUrl(store: UiStore, url: UrlSync): boolean {
+/** Apply the URL to the store (first load, Back/Forward). A link that can't be read opens the current preset.
+ *  Undefined when the address holds no layout. */
+function arriveFromUrl(store: UiStore, url: UrlSync): ActionResult | undefined {
   const r = url.read(store.env.kinds.registry());
-  if (!r) return false;
+  if (!r) return undefined;
   if ("page" in r) {
     const { tab, item, investigation } = r.page;
-    store.actions.openPage({
-      tab: tab || undefined,
-      item: item || undefined,
-      investigation,
-      fromUrl: true,
-      view: r.view,
-    });
-  } else if ("broken" in r) {
+    return store.apply((x) =>
+      openPage(x, {
+        tab: tab || undefined,
+        item: item || undefined,
+        investigation,
+        fromUrl: true,
+        view: r.view,
+      }),
+    );
+  }
+  if ("broken" in r) {
     const p = presetById(store.env, store.get().presetId);
-    if (p) store.actions.arrive(p.build(), r.view);
+    const done = p ? store.apply((x) => arrive(x, p.build(), r.view)) : DONE;
     url.keepBroken(r.broken);
     store.writeUrl("replace");
-    store.toast(toasts.brokenLink(p?.label));
-    store.announce(msg.brokenLink);
-  } else store.actions.arrive(r.layout, r.view);
-  return true;
+    store.toast(store.messages.toasts.brokenLink(p?.label));
+    store.announce(store.messages.announcements.brokenLink);
+    return done;
+  }
+  return store.apply((x) => arrive(x, r.layout, r.view));
 }
 
 /** The store's URL sync, when it was made with one that can also read (createUrlSync). */
@@ -116,8 +123,14 @@ export function startUi(
   const offKeys = installKeyboard(store, keys);
   const offPop = sync
     ? sync.onPop(() => {
-        arriveFromUrl(store, sync);
-        store.announce(msg.historyChanged);
+        const r = arriveFromUrl(store, sync);
+        // The host's beforeClose kept the panes: the address goes back to what is on screen.
+        if (r && !r.ok && r.reason === "kept") store.writeUrl("replace");
+        if (r && !r.ok && r.reason === "pending")
+          void r.settled?.then((end) => {
+            if (!end.ok) store.writeUrl("replace");
+          });
+        store.announce(store.messages.announcements.historyChanged);
       })
     : () => {};
   return () => {

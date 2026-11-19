@@ -1,17 +1,21 @@
 import * as core from "../layout";
 import type { NodeId, TuckRefusal } from "../layout/types";
-import { refuse, type Outcome, type Refusal, type Snapshot } from "../state/apply";
-import { msg } from "../state/messages";
+import { refuse, type Outcome, type RefusalStep, type Snapshot } from "../state/apply";
+import { say } from "../state/messages";
 import { forgetTuck, pushUndo, tuckOrder } from "../state/undo";
 
 const unzoomed = core.tree.unzoom;
 
-function tuckRefusal({ m }: Snapshot, id: NodeId, reason: TuckRefusal): Refusal {
+function tuckRefusal({ m }: Snapshot, id: NodeId, reason: TuckRefusal): RefusalStep {
   const title = m.title(id);
-  if (reason === "missing") return refuse(msg.noFocus);
-  if (reason === "tab") return refuse(msg.alreadyTab(title, m.title(m.shownWith(id))));
-  if (reason === "hidden") return refuse(msg.notOnScreen(title));
-  return refuse(m.panes.length <= 1 ? msg.onlyOpen(title) : msg.onlyOnScreen(title));
+  if (reason === "missing") return refuse("not-found", say(m).noFocus);
+  if (reason === "tab")
+    return refuse("blocked", say(m).alreadyTab(title, m.title(m.shownWith(id))));
+  if (reason === "hidden") return refuse("blocked", say(m).notOnScreen(title));
+  return refuse(
+    "blocked",
+    m.panes.length <= 1 ? say(m).onlyOpen(title) : say(m).onlyOnScreen(title),
+  );
 }
 
 /** The pane a tuck acts on: the given or focused pane, else the most recently focused one still open. */
@@ -24,10 +28,10 @@ export function tuckHome({ s, ctx }: Snapshot, id: NodeId | undefined): NodeId |
   return r?.ok ? r.home : undefined;
 }
 
-export function checkTuck(x: Snapshot, id?: NodeId): Refusal | undefined {
-  if (x.s.page?.mode === "single") return refuse(msg.singleNoLayout);
+export function checkTuck(x: Snapshot, id?: NodeId): RefusalStep | undefined {
+  if (x.s.page?.mode === "single") return refuse("single-view", say(x).singleNoLayout);
   const target = tuckTarget(x, id);
-  if (!target) return refuse(msg.noFocus);
+  if (!target) return refuse("not-found", say(x).noFocus);
   const r = core.canTuck(x.s.layout, target, x.ctx);
   return r.ok ? undefined : tuckRefusal(x, target, r.reason);
 }
@@ -37,16 +41,16 @@ export function checkTuck(x: Snapshot, id?: NodeId): Refusal | undefined {
  * nothing else moves or unfolds. Focus moves into the home. Undo (⌘K ⌘Z) puts it back.
  */
 export function tuck(x: Snapshot, id?: NodeId): Outcome {
-  if (x.s.page?.mode === "single") return refuse(msg.singleNoLayout);
+  if (x.s.page?.mode === "single") return refuse("single-view", say(x).singleNoLayout);
   const target = tuckTarget(x, id);
-  if (!target) return refuse(msg.noFocus);
+  if (!target) return refuse("not-found", say(x).noFocus);
   const r = core.tuck(x.s.layout, unzoomed(x.s.view), target, x.ctx);
   if (!r.ok) return tuckRefusal(x, target, r.reason);
   return {
     op: "tuck",
     layout: r.layout,
     view: r.view,
-    msg: msg.tucked(x.m.title(target), x.m.title(r.home)),
+    msg: say(x).tucked(x.m.title(target), x.m.title(r.home)),
     undo: pushUndo(x.s.undoStack, r.undo),
     focusDom: r.home,
   };
@@ -62,19 +66,22 @@ function putBackTarget({ s, m }: Snapshot, id?: NodeId, preferred?: NodeId): Nod
 }
 
 export const checkPutBack = (x: Snapshot) =>
-  putBackTarget(x) ? undefined : refuse(msg.nothingTucked);
+  putBackTarget(x) ? undefined : refuse("nothing-to-do", say(x).nothingTucked);
 
 /** Put back: restores the pane's slot and size; only folds if room ran out. Focus moves in. */
 export function putBack(x: Snapshot, id?: NodeId, preferred?: NodeId): Outcome {
   const target = putBackTarget(x, id, preferred);
-  if (!target) return refuse(msg.nothingTucked);
+  if (!target) return refuse("nothing-to-do", say(x).nothingTucked);
   const r = core.putBack(x.s.layout, unzoomed(x.s.view), target, x.ctx);
-  if (!r.ok) return refuse(r.reason === "missing" ? msg.noFocus : msg.notTucked(x.m.title(target)));
+  if (!r.ok)
+    return r.reason === "missing"
+      ? refuse("not-found", say(x).noFocus)
+      : refuse("nothing-to-do", say(x).notTucked(x.m.title(target)));
   return {
     op: "putBack",
     layout: r.layout,
     view: r.view,
-    msg: msg.putBack(x.m.title(target)),
+    msg: say(x).putBack(x.m.title(target)),
     undo: forgetTuck(x.s.undoStack, target),
     focusDom: target,
   };
@@ -88,7 +95,7 @@ export function reveal({ s, m, ctx }: Snapshot, id: NodeId): Outcome {
     op: "reveal",
     layout,
     view: core.focus(s.view, id, ctx),
-    msg: msg.revealed(m.title(id), m.title(m.shownWith(id))),
+    msg: say(m).revealed(m.title(id), m.title(m.shownWith(id))),
     focusDom: id,
   };
 }

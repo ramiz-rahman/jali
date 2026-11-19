@@ -1,4 +1,4 @@
-import { Table2 } from "lucide-react";
+import { TableIcon } from "@phosphor-icons/react";
 import { definePane } from "@jali/react";
 import { useMemo, useState } from "react";
 import type { ObjectRef, Row, TableName, ColumnInfo } from "../../data/types";
@@ -153,8 +153,8 @@ export function TablePane(p: PaneProps<{ table: string }>) {
 
 export const tableKind = definePane("table", {
   params: { table: String },
-  title: ({ table }) => table ?? "Table",
-  icon: Table2,
+  title: ({ table }) => table,
+  icon: TableIcon,
   width: { min: 440, comfortable: 560 },
   height: { min: 240 },
   holdWhileResizing: true,

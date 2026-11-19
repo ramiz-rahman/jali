@@ -4,7 +4,7 @@
  * and the tree's structure at once. A folded or tucked pane is a dashed box inside the pane it went into.
  */
 import { useContext, type CSSProperties, type ReactNode } from "react";
-import { Columns2, Layers, Rows2 } from "lucide-react";
+import { RowsIcon, SquareSplitHorizontalIcon, StackIcon } from "@phosphor-icons/react";
 import type { LayoutNode, PaneNode, StackNode, JaliModel } from "@jali/core/adapter";
 import { KindIcon, useJaliModel } from "@jali/react";
 import { PreviewRects, extentOf, panesUnder, sizeText, type Hover } from "./LayoutTree";
@@ -121,7 +121,7 @@ function StackBox({ node, c }: { node: StackNode; c: Ctx }) {
       {...hoverProps(node.id, c, `Tabs: ${node.children.length} panes share one place`)}
     >
       <div className="live-map-label">
-        <Layers size={13} strokeWidth={1.75} aria-hidden />
+        <StackIcon size={13} aria-hidden />
         <b>Tabs</b>
         <span>{node.children.length} panes share one place</span>
       </div>
@@ -155,7 +155,7 @@ function SplitBox({ node, c }: { node: Extract<LayoutNode, { type: "row" | "colu
   const ext = extentOf(node, c.m, preview);
   const lit = c.hover?.id === node.id;
   const under = !!c.hover && !lit && panesUnder(node).includes(c.hover.id);
-  const Glyph = row ? Columns2 : Rows2;
+  const Glyph = row ? SquareSplitHorizontalIcon : RowsIcon;
   const words = row ? "side by side" : "one above the other";
   return (
     <div

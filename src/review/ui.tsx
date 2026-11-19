@@ -1,6 +1,12 @@
 /** The loan-review views' parts: a view with its own head, fact lists, links to related records, status marks, tables. */
 import type { ReactNode } from "react";
-import { AlertTriangle, ArrowUpRight, Check, Info, OctagonAlert } from "lucide-react";
+import {
+  ArrowUpRightIcon,
+  CheckIcon,
+  InfoIcon,
+  WarningIcon,
+  WarningOctagonIcon,
+} from "@phosphor-icons/react";
 import type { ObjectRef } from "@jali/core";
 import type { Row } from "../data/types";
 import type { PaneProps } from "@jali/react";
@@ -169,7 +175,7 @@ export function Related({
         <span className="rv-rel-label">{label}</span>
         {note ? <span className="rv-rel-note">{note}</span> : null}
       </span>
-      {to ? <ArrowUpRight className="rv-rel-go" size={14} strokeWidth={1.75} aria-hidden /> : null}
+      {to ? <ArrowUpRightIcon className="rv-rel-go" size={14} aria-hidden /> : null}
     </>
   );
   return (
@@ -203,17 +209,17 @@ export function StatusMark({ status }: { status: unknown }) {
   const s = String(status);
   return (
     <span className="rv-status" data-status={s}>
-      {s === "overdue" ? <AlertTriangle size={12} strokeWidth={2} aria-hidden /> : null}
+      {s === "overdue" ? <WarningIcon size={12} aria-hidden /> : null}
       {statusLabel(s)}
     </span>
   );
 }
 
 const TONE_ICON: Record<Tone, ReactNode> = {
-  ok: <Check size={14} strokeWidth={2} aria-hidden />,
-  info: <Info size={14} strokeWidth={1.75} aria-hidden />,
-  warn: <AlertTriangle size={14} strokeWidth={1.75} aria-hidden />,
-  risk: <OctagonAlert size={14} strokeWidth={1.75} aria-hidden />,
+  ok: <CheckIcon size={14} aria-hidden />,
+  info: <InfoIcon size={14} aria-hidden />,
+  warn: <WarningIcon size={14} aria-hidden />,
+  risk: <WarningOctagonIcon size={14} aria-hidden />,
 };
 export const ToneIcon = ({ tone }: { tone: Tone }) => (
   <span className="rv-tone" data-tone={tone}>

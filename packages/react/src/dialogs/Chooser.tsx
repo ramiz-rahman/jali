@@ -1,8 +1,8 @@
 import { useMemo } from "react";
-import { Layers } from "lucide-react";
+import { useJaliIcons } from "../icons/context";
 import { mergeTargets, type MergeTarget } from "@jali/core/adapter";
 import { KindIcon } from "../pane/icons";
-import { useModel, useStore, useUi } from "../state/react";
+import { bold, Parts, useModel, useStore, useUi } from "../state/react";
 import type { ChooserState } from "@jali/core/adapter";
 import { ListDialog } from "./ListDialog";
 
@@ -13,6 +13,7 @@ export function Chooser() {
 }
 
 function ChooserDialog({ chooser }: { chooser: ChooserState }) {
+  const icon = useJaliIcons();
   const store = useStore();
   const m = useModel();
   // The targets as they were when the chooser opened.
@@ -22,20 +23,21 @@ function ChooserDialog({ chooser }: { chooser: ChooserState }) {
   );
   const close = () => store.set({ chooser: null });
   const title = m.title(chooser.source);
+  const t = store.messages.chooser;
   return (
     <ListDialog<MergeTarget>
       className="jali-chooser"
-      label={`Add ${title} to tabs of`}
+      label={t.label(title)}
       head={
         <div className="jali-chooser-head">
-          Add <b>{title}</b> to the tabs of…
+          <Parts of={t.heading(title, bold)} />
         </div>
       }
-      placeholder="Pane or stack"
-      inputLabel="Pane or stack"
+      placeholder={t.placeholder}
+      inputLabel={t.inputLabel}
       idPrefix={`${store.dom.id}-merge-`}
       listId={`${store.dom.id}-chooser-list`}
-      listLabel="Panes and stacks"
+      listLabel={t.listLabel}
       items={all}
       keyOf={(t) => t.id}
       matches={(t, q) => t.label.toLowerCase().includes(q)}
@@ -44,7 +46,7 @@ function ChooserDialog({ chooser }: { chooser: ChooserState }) {
         <>
           <span className="jali-chooser-icon" aria-hidden>
             {m.stackOf(t.id) ? (
-              <Layers size={14} strokeWidth={1.5} />
+              <icon.addToTabs size={14} />
             ) : (
               <KindIcon kind={m.pane(t.id)?.ref.kind ?? ""} size={14} />
             )}
@@ -59,7 +61,7 @@ function ChooserDialog({ chooser }: { chooser: ChooserState }) {
         setTimeout(() => store.actions.mergeInto(chooser.source, t.id), 0);
       }}
       onClose={close}
-      empty={(q) => <>No pane or stack matches “{q}”.</>}
+      empty={t.empty}
     />
   );
 }

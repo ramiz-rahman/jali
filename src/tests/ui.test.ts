@@ -151,8 +151,8 @@ describe("split opens a launcher", () => {
   it("split down and split auto open launchers too", () => {
     actions.preset("one-table");
     actions.focus("orders");
-    expect(runCommand(store, "pane.split.down")).toBe(true);
-    expect(runCommand(store, "pane.split.auto")).toBe(true);
+    expect(runCommand(store.jali, "pane.split.down")).toBe(true);
+    expect(runCommand(store.jali, "pane.split.auto")).toBe(true);
     expect(kinds().filter((k) => k === "launcher")).toHaveLength(2);
   });
   it("choosing fills the same node in place", () => {
@@ -250,9 +250,9 @@ describe("merge and unmerge without dragging", () => {
   it("unmerge is disabled outside a stack; merge is disabled with one pane", () => {
     actions.preset("order-chain");
     actions.focus("orders");
-    expect(runCommand(store, "pane.unmerge")).toBe(false);
+    expect(runCommand(store.jali, "pane.unmerge")).toBe(false);
     actions.closeOthers("orders");
-    expect(runCommand(store, "pane.merge")).toBe(false);
+    expect(runCommand(store.jali, "pane.merge")).toBe(false);
   });
 });
 
@@ -271,7 +271,7 @@ describe("new tab here", () => {
   it("on a lone pane it makes a deliberate stack of two", () => {
     actions.preset("order-chain");
     actions.focus("order");
-    expect(runCommand(store, "stack.new-tab")).toBe(true);
+    expect(runCommand(store.jali, "stack.new-tab")).toBe(true);
     const st = stackOf("order")!;
     expect(st.origin).toBe("user");
     expect(st.children.map((c) => c.ref.kind)).toEqual(["record", "launcher"]);

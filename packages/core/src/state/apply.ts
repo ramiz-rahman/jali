@@ -16,8 +16,15 @@
  */
 import * as core from "../layout";
 import type { Env } from "../profile";
-import { msg } from "./messages";
-import type { Layout, LayoutContext, NodeId, UndoEntry, ViewState } from "../layout/types";
+import { say } from "./messages";
+import type {
+  Layout,
+  LayoutContext,
+  NodeId,
+  ObjectRef,
+  UndoEntry,
+  ViewState,
+} from "../layout/types";
 import type { JaliModel } from "./model";
 import type { UiState } from "./store";
 import { pruneUndo } from "./undo";
@@ -83,7 +90,9 @@ export type Op =
   | "mode"
   | "permission"
   | "follow"
-  | "pin";
+  | "pin"
+  | "setLayout"
+  | "remove";
 
 export type Geometry = "focus" | "swap" | "reshape" | "direct";
 
@@ -104,19 +113,115 @@ export interface Change {
   geometry?: Geometry;
   /** A step to run later (debounced by key): see the header. */
   defer?: Deferred;
+  /** The host's `beforeClose` already allowed this change: it is not asked again. */
+  allowed?: true;
 }
 
+/**
+ * Why an action did not happen. Each public action documents the reasons it can give.
+ *  - "not-found": the pane, preset, view or item it names is not there.
+ *  - "invalid": the layout given can't be shown (a pane kind this workspace doesn't have, or a malformed tree).
+ *  - "unavailable": this workspace can't do it: no launcher (split, new tab), no curated page, no free workspace.
+ *  - "single-view": a curated page in Single view has no layout to change.
+ *  - "not-allowed": the person's role on the curated page may only peek (`setCanInvestigate(false)`).
+ *  - "last-pane": the last pane, or a page's last view on screen, stays.
+ *  - "blocked": the pane can't go there (move past the edge, tuck the only pane, tuck a tab).
+ *  - "nothing-to-do": nothing to undo, put back, close, resize or unmerge.
+ *  - "unsaved": it would lose unsaved work, so Jali asks the person ("Discard unsaved changes?") and holds it.
+ *  - "kept": the host's `beforeClose` kept the panes.
+ *  - "pending": the host's `beforeClose` is still deciding; `settled` says what happened in the end.
+ */
+export type RefusalReason =
+  | "not-found"
+  | "invalid"
+  | "unavailable"
+  | "single-view"
+  | "not-allowed"
+  | "last-pane"
+  | "blocked"
+  | "nothing-to-do"
+  | "unsaved"
+  | "kept"
+  | "pending";
+
 /** An action that did not happen, and why (silent without `msg`). */
-export interface Refusal {
+export interface RefusalStep {
   op: "refused";
+  reason: RefusalReason;
   msg?: string;
 }
-export const refuse = (msg?: string): Refusal => ({ op: "refused", msg });
-export const isRefusal = (o: Outcome): o is Refusal =>
+export const refuse = (reason: RefusalReason, msg?: string): RefusalStep => ({
+  op: "refused",
+  reason,
+  msg,
+});
+export const isRefusal = (o: Outcome): o is RefusalStep =>
   !!o && typeof o === "object" && "op" in o && o.op === "refused";
 
 /** A change, a refusal, nothing, a step computed from the state the previous step left, or several in order. */
-export type Outcome = Change | Refusal | null | undefined | ((x: Snapshot) => Outcome) | Outcome[];
+export type Outcome =
+  | Change
+  | RefusalStep
+  | null
+  | undefined
+  | ((x: Snapshot) => Outcome)
+  | Outcome[];
+
+/** An action happened (or there was nothing to do: what it asks for is already so). `pane`: the pane it opened or
+ *  acted on, when there is one. */
+export interface Done {
+  ok: true;
+  pane?: NodeId;
+  /** Always undefined, so `result.reason` reads without checking `ok` first. */
+  reason?: undefined;
+  message?: undefined;
+  settled?: undefined;
+}
+
+/** An action did not happen. `message` is what Jali announced to screen readers, if anything. */
+export interface Refusal {
+  ok: false;
+  reason: RefusalReason;
+  message?: string;
+  /** Always undefined, so `result.pane` reads without checking `ok` first. */
+  pane?: undefined;
+  /** With "pending": what happened once the host's `beforeClose` answered. */
+  settled?: Promise<ActionResult>;
+}
+
+/** What every public action returns. */
+export type ActionResult = Done | Refusal;
+
+export const DONE: Done = Object.freeze({ ok: true }) as Done;
+const refused = (reason: RefusalReason, message?: string): Refusal =>
+  message === undefined ? { ok: false, reason } : { ok: false, reason, message };
+
+/** Why the host's `beforeClose` is asked. */
+export type CloseReason = "close" | "show" | "layout" | "address";
+
+/** What `beforeClose` is asked about: the panes a change would remove or point at another object. */
+export interface CloseRequest {
+  panes: { pane: NodeId; ref: ObjectRef }[];
+  /** "close": closed (close, close others, Back to the page). "show": the pane would show another object.
+   *  "layout": a new layout (a preset, `setLayout`, undo, a page's mode or item). "address": Back, Forward or a link. */
+  reason: CloseReason;
+}
+
+/** The host's close guard (`createJali({ beforeClose })`): true lets the change happen, false keeps the panes. */
+export type BeforeClose = (request: CloseRequest) => boolean | Promise<boolean>;
+
+const CLOSE_REASON: Partial<Record<Op, CloseReason>> = {
+  close: "close",
+  closeOthers: "close",
+  dismiss: "close",
+  hide: "close",
+  openHere: "show",
+  focusExisting: "show",
+  follow: "show",
+  page: "show",
+  activate: "show",
+  arrive: "address",
+};
 
 interface Policy {
   /** "view" ops only touch the view (and patch); "layout" ops commit layout and view together. */
@@ -178,6 +283,9 @@ export const POLICY: Record<Op, Policy> = {
   resetSizes: layout("replace", "reshape"),
   wide: layout("replace", "reshape"),
   arrive: layout("none", "reshape"),
+  setLayout: layout("push", "reshape"),
+  // The host closed the pane's object elsewhere: Back never returns to it.
+  remove: layout("replace", "reshape"),
   hide: layout("push", "reshape"),
   mode: layout("push", "reshape"),
   // direct: follows the pointer
@@ -205,6 +313,12 @@ export interface ApplyIO {
   defer?(d: Deferred): void;
   /** A focus or swap op that moved something: development reports it. */
   unstable?(op: Op, before: string, after: string): void;
+  /** A layout change was committed by `op` (the store's events say so once the commit ends). */
+  committed?(op: Op): void;
+  /** The host's close guard (`createJali({ beforeClose })`). */
+  beforeClose?: BeforeClose;
+  /** Commit an outcome later, from the top (a change `beforeClose` allowed after a while). */
+  later?(o: Outcome): ActionResult;
 }
 
 /**
@@ -221,6 +335,31 @@ export function wouldLoseWork(s: UiState, next: Layout): NodeId[] {
       b = after.get(id);
     return !!a && (!b || JSON.stringify(a.ref) !== JSON.stringify(b.ref));
   });
+}
+
+/** Every pane `next` would remove or point at another object, with what it shows now (`beforeClose` is asked). */
+export function leavingPanes(s: UiState, next: Layout): CloseRequest["panes"] {
+  if (next === s.layout) return [];
+  const after = new Map(core.tree.panes(next.root).map((p) => [p.id, p]));
+  return core.tree
+    .panes(s.layout.root)
+    .filter((a) => {
+      const b = after.get(a.id);
+      return !b || JSON.stringify(a.ref) !== JSON.stringify(b.ref);
+    })
+    .map((p) => ({ pane: p.id, ref: p.ref }));
+}
+
+/** Ask the host. An answer that throws or rejects keeps the panes. */
+function ask(guard: BeforeClose, request: CloseRequest): boolean | Promise<boolean> {
+  try {
+    const answer = guard(request);
+    return typeof answer === "boolean"
+      ? answer
+      : Promise.resolve(answer).then(Boolean, () => false);
+  } catch {
+    return false;
+  }
 }
 
 /**
@@ -253,26 +392,40 @@ function prunePanes(s: UiState, layout: Layout, undo: UndoEntry[]): Partial<UiSt
     Object.keys(r).every((id) => live.has(id))
       ? r
       : Object.fromEntries(Object.entries(r).filter(([id]) => live.has(id)));
+  // A title from data names the object it was set for: it goes when the pane shows another.
+  const named = Object.keys(s.titles).every((id) => live.has(id) && !moved.has(id))
+    ? s.titles
+    : Object.fromEntries(Object.entries(s.titles).filter(([id]) => live.has(id) && !moved.has(id)));
   return {
     paneState: keep(s.paneState),
     unsaved: mounted(s.unsaved),
     paneCommands: mounted(s.paneCommands),
     activity: mounted(s.activity),
+    titles: named,
   };
 }
 
 const sameView = (a: ViewState, b: ViewState) =>
   a.focused === b.focused && a.zoomed === b.zoomed && a.peek === b.peek;
 
-/** Commit an outcome. Returns the last step's `result`. */
-export function apply(io: ApplyIO, o: Outcome): NodeId | undefined {
-  if (!o) return undefined;
+/**
+ * Commit an outcome. Returns what happened: the last step's `result` as `pane`, or the first refusal among the steps
+ * (later steps still run, as before).
+ */
+export function apply(io: ApplyIO, o: Outcome): ActionResult {
+  if (!o) return DONE;
   if (typeof o === "function") return apply(io, o(io.snapshot()));
-  if (Array.isArray(o))
-    return o.reduce<NodeId | undefined>((_, step) => apply(io, step), undefined);
+  if (Array.isArray(o)) {
+    let out: ActionResult = DONE;
+    for (const step of o) {
+      const r = apply(io, step);
+      if (out.ok) out = r;
+    }
+    return out;
+  }
   if (o.op === "refused") {
     if (o.msg) io.announce(o.msg);
-    return undefined;
+    return refused(o.reason, o.msg);
   }
   const s = io.get(),
     p = POLICY[o.op];
@@ -286,11 +439,33 @@ export function apply(io: ApplyIO, o: Outcome): NodeId | undefined {
       viewChanged = !sameView(next.view, s.view);
     // Unsaved work is never lost without asking. A following detail keeps its object instead (it moves on its own
     // while the person browses the list: a question each time would be worse).
-    const losing = layoutChanged ? wouldLoseWork(s, next.layout) : [];
+    // The host is asked first (beforeClose); its yes still meets Jali's own question about unsaved work.
+    const leaving =
+      layoutChanged && io.beforeClose && !o.allowed ? leavingPanes(s, next.layout) : [];
+    if (leaving.length) {
+      const answer = ask(io.beforeClose!, {
+        panes: leaving,
+        reason: CLOSE_REASON[o.op] ?? "layout",
+      });
+      if (answer === false) return refused("kept");
+      if (answer !== true) {
+        const from = s.layout;
+        // Allowed later: the change is made if nothing has changed the layout meanwhile, else it is dropped.
+        const settled = answer.then((yes): ActionResult => {
+          if (!yes) return refused("kept");
+          if (io.get().layout !== from) return refused("kept");
+          return io.later ? io.later({ ...o, allowed: true }) : apply(io, { ...o, allowed: true });
+        });
+        return { ok: false, reason: "pending", settled };
+      }
+    }
+    // A pane the host removed has no work left to keep: its object is gone.
+    const losing = layoutChanged && o.op !== "remove" ? wouldLoseWork(s, next.layout) : [];
     if (losing.length) {
-      if (o.op === "follow") return apply(io, refuse(msg.keptUnsaved(s.unsaved[losing[0]!]!)));
-      io.set({ confirm: { panes: losing, change: o } });
-      return undefined;
+      if (o.op === "follow")
+        return apply(io, refuse("unsaved", say(io.snapshot()).keptUnsaved(s.unsaved[losing[0]!]!)));
+      io.set({ confirm: { panes: losing, change: { ...o, allowed: true } } });
+      return refused("unsaved");
     }
     const geometry = o.geometry ?? p.geometry;
     const check =
@@ -310,6 +485,7 @@ export function apply(io: ApplyIO, o: Outcome): NodeId | undefined {
         ...pruned,
         undoStack,
       });
+      if (layoutChanged) io.committed?.(o.op);
       if (check !== null) {
         const after = geometryOf(io.snapshot().m);
         if (after !== check) io.unstable!(o.op, check, after);
@@ -322,5 +498,5 @@ export function apply(io: ApplyIO, o: Outcome): NodeId | undefined {
   }
   if (o.focusDom) io.focus(o.focusDom);
   if (o.defer) io.defer?.(o.defer);
-  return o.result;
+  return o.result === undefined ? DONE : { ok: true, pane: o.result };
 }

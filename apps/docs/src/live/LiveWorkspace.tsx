@@ -103,7 +103,7 @@ export function LiveWorkspace({
       ref={setRef}
       style={{ height }}
     >
-      <JaliRoot jali={store} className="live-jali" settings={false}>
+      <JaliRoot jali={store.jali} className="live-jali" settings={false}>
         <JaliView />
         {status ? <LiveStatus /> : null}
       </JaliRoot>

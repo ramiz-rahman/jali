@@ -5,7 +5,6 @@
  * (`[tabindex="0"]`), else the region itself.
  */
 import { focusInShelf, focusShelf, shownShelf } from "../dom/focus";
-import { msg } from "../state/messages";
 import type { UiStore } from "../state/store";
 
 /** Host regions in document order, on screen only. */
@@ -30,7 +29,7 @@ export function cycleRegions(store: UiStore, back: boolean): void {
             el: shelf,
             enter: () => {
               focusShelf(shelf);
-              store.announce(msg.shelf);
+              store.announce(store.messages.announcements.shelf);
             },
           },
         ]

@@ -3,6 +3,7 @@ import { describe, expect, it } from "vite-plus/test";
 import { createJali, memoryLocation, memoryStorage, pane, row, type JaliOptions } from "@jali/core";
 import { definePane } from "@jali/react";
 import { runCommand } from "../../packages/core/src/commands/registry";
+import { storeOf } from "../../packages/core/src/state/instance";
 import { readSearch } from "../../packages/core/src/url";
 
 const note = definePane("note", {
@@ -27,8 +28,10 @@ const make = (options: Partial<JaliOptions> = {}) => {
     moveFocus: false,
     ...options,
   });
-  store.set({ view: { ...store.get().view, focused: "a" } });
-  return store;
+  // The engine's store: these tests reach its steps and raw state.
+  const s = storeOf(store);
+  s.set({ view: { ...s.get().view, focused: "a" } });
+  return s;
 };
 
 describe("a workspace without a launcher (finding 4)", () => {
@@ -41,7 +44,7 @@ describe("a workspace without a launcher (finding 4)", () => {
   });
   it("refuses the split command", () => {
     const store = make();
-    expect(() => runCommand(store, "pane.split.right")).not.toThrow();
+    expect(() => runCommand(store.jali, "pane.split.right")).not.toThrow();
     expect(store.get().layout.root.type).toBe("row");
   });
   it("opens the `launcher` option's kind", () => {

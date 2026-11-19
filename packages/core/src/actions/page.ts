@@ -4,6 +4,7 @@
  * Panes opened by following links form an investigation after the layout that "Back to <page>" clears.
  */
 import * as core from "../layout";
+import { endSide, treeSide } from "../layout/geometry/direction";
 import { toLayout } from "../layout/build";
 import type {
   Edge,
@@ -24,7 +25,7 @@ import {
   type ProfileBase,
 } from "../profile";
 import { refuse, type Change, type Outcome, type Snapshot } from "../state/apply";
-import { msg, toasts } from "../state/messages";
+import { messagesOf, say } from "../state/messages";
 import type { PagePrefs } from "../state/page-prefs";
 import type { PageState } from "../state/store";
 import { pushUndo } from "../state/undo";
@@ -169,7 +170,7 @@ export interface OpenPage {
 /** Open the curated page (or arrive at it from a link). A link with opened panes needs Split view to show them. */
 export function openPage(x: Snapshot, o: OpenPage = {}): Outcome {
   const p = x.env.profile;
-  if (!p) return null;
+  if (!p) return refuse("unavailable");
   const prev = x.s.page;
   const opened = o.investigation ?? [];
   const page: PageState = {
@@ -193,7 +194,7 @@ export function openPage(x: Snapshot, o: OpenPage = {}): Outcome {
     op: o.fromUrl ? "arrive" : "mode",
     layout,
     view: { ...view, ...o.view },
-    msg: msg.pageOpened(p.name, page.mode),
+    msg: say(x).pageOpened(p.name, page.mode),
     patch: { page, prefs, peekSource: undefined, resizeMode: null },
     undo: [],
   };
@@ -202,7 +203,7 @@ export function openPage(x: Snapshot, o: OpenPage = {}): Outcome {
 /** Back to the free workspace: the person's own layout again. The page's mode and layout are kept for next time. */
 export function leavePage(x: Snapshot): Outcome {
   // A page-only app has no free workspace to go back to.
-  if (!x.env.presets.length) return refuse();
+  if (!x.env.presets.length) return refuse("unavailable");
   const studio = preset(x, x.s.presetId) as Change;
   return { ...studio, patch: { ...studio.patch, page: null, prefs: keep(x) }, undo: [] };
 }
@@ -211,7 +212,8 @@ export function leavePage(x: Snapshot): Outcome {
 export function setMode(x: Snapshot, mode: ViewMode): Outcome {
   const p = x.env.profile,
     r = x.s.page;
-  if (!p || !r || r.mode === mode) return null;
+  if (!p || !r) return refuse("unavailable");
+  if (r.mode === mode) return null;
   if (mode === "single") {
     const tab = currentRole(x) ?? r.tab;
     const { layout, view } = single(p, r.item, tab, x.ctx);
@@ -219,18 +221,18 @@ export function setMode(x: Snapshot, mode: ViewMode): Outcome {
       op: "mode",
       layout,
       view,
-      msg: msg.modeSingle(label(p, tab)),
+      msg: say(x).modeSingle(label(p, tab)),
       patch: { page: { ...r, mode, tab }, prefs: keep(x, mode), peekSource: undefined },
       undo: [],
     };
   }
-  if (!r.canInvestigate) return refuse(msg.singleOnly);
+  if (!r.canInvestigate) return refuse("not-allowed", say(x).singleOnly);
   const { layout, view } = split(x, p, r.item, r.tab, true);
   return {
     op: "mode",
     layout,
     view,
-    msg: msg.modeSplit,
+    msg: say(x).modeSplit,
     patch: { page: { ...r, mode }, prefs: { ...x.s.prefs, mode } },
     undo: [],
     focusDom: view.focused,
@@ -252,7 +254,8 @@ function slotFor({ s, m }: Snapshot): NodeId | undefined {
 export function openTab(x: Snapshot, role: string): Outcome {
   const p = x.env.profile,
     r = x.s.page;
-  if (!p || !r || !roleOf(p, role)) return null;
+  if (!p || !r) return refuse("unavailable");
+  if (!roleOf(p, role)) return refuse("not-found");
   const patch = { page: { ...r, tab: role } };
   if (r.mode === "single") {
     if (r.tab === role) return null;
@@ -261,7 +264,7 @@ export function openTab(x: Snapshot, role: string): Outcome {
       op: "page",
       layout,
       view,
-      msg: msg.viewing(label(p, role)),
+      msg: say(x).viewing(label(p, role)),
       patch: { ...patch, peekSource: undefined },
     };
   }
@@ -273,7 +276,7 @@ export function openTab(x: Snapshot, role: string): Outcome {
       op: "reveal",
       layout: core.reveal(x.s.layout, role, x.ctx),
       view: core.focus(view, role, x.ctx),
-      msg: msg.viewing(label(p, role)),
+      msg: say(x).viewing(label(p, role)),
       patch,
       focusDom: role,
     };
@@ -287,8 +290,8 @@ export function openTab(x: Snapshot, role: string): Outcome {
     patch,
     focusDom: role,
     msg: rep.reshaped
-      ? msg.replacedNeedsRoom(label(p, role), label(p, slot))
-      : msg.replaced(label(p, role), label(p, slot)),
+      ? say(x).replacedNeedsRoom(label(p, role), label(p, slot))
+      : say(x).replaced(label(p, role), label(p, slot)),
     ...(rep.reshaped ? { geometry: "reshape" as const } : {}),
   };
 }
@@ -428,7 +431,7 @@ export function besidePreview(x: Snapshot, role: string): BesidePreview | undefi
   return { incoming, moved, leaving: [...now.keys()].filter((id) => !next.has(id)) };
 }
 
-/** Drop a view from the tabs onto a pane's edge (or centre: as a tab of its group). From Single, this switches to
+/** Drop a view from the tabs onto a pane's edge, a side of the screen (or centre: as a tab of its group). From Single, this switches to
  *  Split view first: dragging a tab out is asking for two views at once. Room is made by sending the least recently
  *  used views back to the tabs (settleRoles), never by folding views into tab groups. */
 export function placeTab(
@@ -442,23 +445,27 @@ export function placeTab(
   if (!p || !r || !roleOf(p, role)) return null;
   const place = (y: Snapshot): Outcome => {
     if (role === target || !y.m.pane(target)) return openTab(y, role);
-    const d = placeRole(y.s.layout, y.s.view, role, target, zone, y.ctx);
+    const d = placeRole(y.s.layout, y.s.view, role, target, treeSide(zone, y.ctx.dir), y.ctx);
     if (!d) return openTab(y, role);
     const said =
       zone === "centre"
-        ? msg.addedToTabsOf(label(p, role), y.m.title(target))
-        : msg.placed(label(p, role), zone, y.m.title(target));
+        ? say(x).addedToTabsOf(label(p, role), y.m.title(target))
+        : say(x).placed(label(p, role), zone, y.m.title(target));
     return {
       op: "drop",
       layout: d.layout,
       view: d.view,
       patch: { page: { ...y.s.page!, tab: role } },
       focusDom: role,
-      msg: d.sent.length ? `${said} · ${msg.sentToTabs(d.sent.map((id) => label(p, id)))}` : said,
+      msg: d.sent.length
+        ? say(x).both(said, say(x).sentToTabs(d.sent.map((id) => label(p, id))))
+        : said,
     };
   };
   if (r.mode === "single")
-    return r.canInvestigate ? [setMode(x, "split"), place] : refuse(msg.singleOnly);
+    return r.canInvestigate
+      ? [setMode(x, "split"), place]
+      : refuse("not-allowed", say(x).singleOnly);
   return place(x);
 }
 
@@ -470,9 +477,9 @@ export function openTabBeside(x: Snapshot, role: string): Outcome {
     besideTarget(y.s.layout, unzoomed(y.s.view), y.ctx) ?? y.s.page!.tab;
   if (r.mode === "single")
     return r.canInvestigate
-      ? [setMode(x, "split"), (y: Snapshot) => placeTab(y, role, target(y), "right")]
-      : refuse(msg.singleOnly);
-  return placeTab(x, role, target(x), "right");
+      ? [setMode(x, "split"), (y: Snapshot) => placeTab(y, role, target(y), endSide(y.ctx.dir))]
+      : refuse("not-allowed", say(x).singleOnly);
+  return placeTab(x, role, target(x), endSide(x.ctx.dir));
 }
 
 /**
@@ -491,21 +498,25 @@ export function goToRole(x: Snapshot, role: string, from?: NodeId): Outcome {
     const t = label(p, role);
     const prefix = (o: Outcome): Outcome =>
       o && typeof o === "object" && !Array.isArray(o) && o.op !== "refused" && o.msg
-        ? { ...o, msg: `${msg.alreadyView(t)} · ${o.msg}` }
+        ? { ...o, msg: say(x).both(say(x).alreadyView(t), o.msg) }
         : o;
-    return (y: Snapshot) => prefix(apply1(placeTab(y, role, from, "right"), y));
+    return (y: Snapshot) => prefix(apply1(placeTab(y, role, from, endSide(y.ctx.dir)), y));
   }
   const o = openTab(x, role);
   if (!o || typeof o !== "object" || Array.isArray(o) || o.op === "refused") return o;
   const t = label(p, role);
-  return { ...o, msg: o.op === "page" ? `${msg.alreadyView(t)} · ${o.msg}` : msg.alreadyOpen(t) };
+  return {
+    ...o,
+    msg: o.op === "page" ? say(x).both(say(x).alreadyView(t), o.msg ?? "") : say(x).alreadyOpen(t),
+  };
 }
 
 /** Another item: every role shows it, in place, and the previous item's investigation closes. */
 export function activate(x: Snapshot, item: ItemId): Outcome {
   const p = x.env.profile,
     r = x.s.page;
-  if (!p || !r || r.item === item) return null;
+  if (!p || !r) return refuse("unavailable");
+  if (r.item === item) return null;
   const page = { ...r, item, before: undefined };
   const saved = x.s.prefs.split;
   const prefs = {
@@ -518,7 +529,7 @@ export function activate(x: Snapshot, item: ItemId): Outcome {
       op: "activate",
       layout,
       view,
-      msg: msg.activated(p.itemNoun, item, 0),
+      msg: say(x).activated(p.itemNoun, item, 0),
       patch: { page, prefs, peekSource: undefined },
       undo: [],
     };
@@ -533,7 +544,7 @@ export function activate(x: Snapshot, item: ItemId): Outcome {
     op: "activate",
     layout,
     view: focused,
-    msg: msg.activated(p.itemNoun, item, dropped),
+    msg: say(x).activated(p.itemNoun, item, dropped),
     patch: { page, prefs, peekSource: undefined },
     undo: [],
     ...(dropped ? { geometry: "reshape" as const } : {}),
@@ -543,10 +554,10 @@ export function activate(x: Snapshot, item: ItemId): Outcome {
 /** Close every pane opened by following links; the layout comes back as the person left it. Undo (⌘K ⌘Z) reopens them. */
 export function backToPage(x: Snapshot): Outcome {
   const r = x.s.page;
-  if (!r) return null;
+  if (!r) return refuse("unavailable");
   const name = x.env.profile?.name ?? "page";
   const opened = investigation(x.m.panes);
-  if (!opened.length) return refuse(msg.notInvestigating);
+  if (!opened.length) return refuse("nothing-to-do", say(x).notInvestigating);
   const view = unzoomed(x.s.view);
   const plain = withoutOpened(x.s.layout, x.ctx);
   // Exactly as before the investigation, unless the views were rearranged meanwhile (then: as they are now).
@@ -564,8 +575,8 @@ export function backToPage(x: Snapshot): Outcome {
     layout,
     view: focused,
     patch: { page: { ...r, before: undefined } },
-    msg: msg.backToPage(name, opened.length),
-    toast: toasts.backToPage(name, opened.length),
+    msg: say(x).backToPage(name, opened.length),
+    toast: messagesOf(x).toasts.backToPage(name, opened.length),
     undo: pushUndo(x.s.undoStack, undo),
   };
 }
@@ -576,12 +587,15 @@ export function hideRole(x: Snapshot, id: NodeId): Outcome {
     node = x.m.pane(id);
   if (!p || x.s.page?.mode !== "split" || !node?.role) return null;
   const r = core.hide(x.s.layout, unzoomed(x.s.view), id, x.ctx);
-  if (!r.ok) return refuse(r.reason === "last" ? msg.lastView(label(p, node.role)) : undefined);
+  if (!r.ok)
+    return r.reason === "last"
+      ? refuse("last-pane", say(x).lastView(label(p, node.role)))
+      : refuse("blocked");
   return {
     op: "hide",
     layout: r.layout,
     view: r.view,
-    msg: msg.roleHidden(label(p, node.role)),
+    msg: say(x).roleHidden(label(p, node.role)),
     focusDom: r.view.focused,
   };
 }
@@ -590,7 +604,8 @@ export function hideRole(x: Snapshot, id: NodeId): Outcome {
 export function resetPage(x: Snapshot): Outcome {
   const p = x.env.profile,
     r = x.s.page;
-  if (!p || r?.mode !== "split") return null;
+  if (!p || !r) return refuse("unavailable");
+  if (r.mode !== "split") return refuse("single-view");
   const tab = currentRole(x) ?? r.tab;
   const opened = investigation(x.m.panes).map((o) => o.ref);
   const y = { ...x, s: { ...x.s, prefs: { ...x.s.prefs, split: null } } };
@@ -600,7 +615,7 @@ export function resetPage(x: Snapshot): Outcome {
     op: "preset",
     layout,
     view,
-    msg: msg.pageReset,
+    msg: say(x).pageReset,
     patch: {
       page: { ...r, before: opened.length ? base.layout : undefined },
       prefs: { ...x.s.prefs, split: null },
@@ -613,13 +628,17 @@ export function resetPage(x: Snapshot): Outcome {
  *  credit reviewer) may multiplex. The profile names both (`viewers`). */
 export function setCanInvestigate(x: Snapshot, canInvestigate: boolean): Outcome {
   const { s } = x;
-  if (!s.page || s.page.canInvestigate === canInvestigate) return null;
+  if (!s.page) return refuse("unavailable");
+  if (s.page.canInvestigate === canInvestigate) return null;
   const toSingle = !canInvestigate && s.page.mode === "split" ? setMode(x, "single") : null;
   return [
     toSingle,
     (y: Snapshot) => ({
       op: "permission",
-      msg: msg.permission(viewerLabel(x.env.profile, canInvestigate), canInvestigate),
+      msg: say(x).permission(
+        viewerLabel(x.env.profile, canInvestigate, messagesOf(x).page),
+        canInvestigate,
+      ),
       patch: { page: { ...y.s.page!, canInvestigate } },
     }),
   ];

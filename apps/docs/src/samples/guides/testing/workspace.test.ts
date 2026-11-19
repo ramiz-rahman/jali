@@ -1,10 +1,11 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vite-plus/test";
 import { createJali, memoryLocation, memoryStorage, type Jali } from "@jali/core";
+import { storeOf } from "@jali/core/adapter";
 import { orderKind, orderKinds } from "../pane-kinds/orders";
 import { presets } from "../presets/layouts";
 
 /** A workspace with nothing shared: its own address, its own storage, a fixed size, no DOM focus. */
-function testJali(search = "") {
+function testJali(search = "", size = { width: 1440, height: 900 }) {
   const location = memoryLocation(search);
   const jali = createJali({
     panes: orderKinds,
@@ -12,7 +13,7 @@ function testJali(search = "") {
     preset: "triage",
     url: { location },
     storage: memoryStorage(),
-    size: { width: 1440, height: 900 },
+    size,
     moveFocus: false,
   });
   return { jali, location };
@@ -28,18 +29,24 @@ describe("the orders workspace", () => {
 
   it("opens an order beside the list and keeps focus in the list", () => {
     const opened = jali.actions.openBeside("orders", orderKind({ id: 3 }));
-    expect(jali.model().pane(opened)?.ref.params.id).toBe(3);
+    expect(opened.ok).toBe(true);
+    expect(jali.model().pane(opened.pane)?.ref.params.id).toBe(3);
     expect(jali.get().view.focused).toBe("orders");
   });
 
-  it("asks before closing a pane with unsaved work", () => {
-    jali.actions.setUnsaved("order", "an unsaved note");
-    jali.actions.close("order");
-    expect(jali.get().confirm?.panes).toEqual(["order"]);
+  it("says why a close did not happen", () => {
+    expect(jali.actions.close("invoices")).toEqual({ ok: false, reason: "not-found" });
+    // What useUnsaved reports from a rendered pane, reported by hand (the engine's own step).
+    storeOf(jali).actions.setUnsaved("order", "an unsaved note");
+    expect(jali.actions.close("order")).toEqual({ ok: false, reason: "unsaved" });
     expect(ids(jali)).toContain("order");
+  });
 
-    jali.actions.discardAndContinue();
-    expect(ids(jali)).not.toContain("order");
+  it("tells the app what opened and closed", () => {
+    const closed: string[] = [];
+    jali.on("close", ({ pane }) => closed.push(pane));
+    jali.actions.close("order");
+    expect(closed).toEqual(["order"]);
   });
 
   it("writes the layout to its own address, and a new history entry for a deliberate change", () => {
@@ -65,7 +72,8 @@ describe("the orders workspace", () => {
   });
 
   it("folds what does not fit", () => {
-    jali.set({ area: { width: 700, height: 900 } }); // orders 440 + order 360 do not fit in 700
-    expect(jali.model().folded.length).toBeGreaterThan(0);
+    // orders 440 + order 360 do not fit in 700
+    const { jali: narrow } = testJali("", { width: 700, height: 900 });
+    expect(narrow.model().folded.length).toBeGreaterThan(0);
   });
 });

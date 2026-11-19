@@ -17,5 +17,5 @@ export function useJaliCommands(): ListedCommand[] {
   const store = useStore();
   const state = useUi((s) => s);
   const model = useModel();
-  return useMemo(() => listCommands(store), [store, state, model]);
+  return useMemo(() => listCommands(store.jali), [store, state, model]);
 }

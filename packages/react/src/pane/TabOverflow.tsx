@@ -1,8 +1,8 @@
 import { useEffect, useLayoutEffect, useRef, useState, type KeyboardEvent } from "react";
+import { useJaliIcons } from "../icons/context";
 import { createPortal } from "react-dom";
-import { Check, ChevronDown, FoldHorizontal, Undo2 } from "lucide-react";
 import type { NodeId, Tab } from "@jali/core/adapter";
-import { roleOf, titleOf, FOLDED_DESC, FOLDED_WORD, TUCKED_DESC } from "@jali/core/adapter";
+import { roleOf, titleOf } from "@jali/core/adapter";
 import { useStore } from "../state/react";
 import { useUi } from "../state/react";
 import { KindIcon } from "./icons";
@@ -20,12 +20,16 @@ export function TabOverflow({
   onChoose: (id: NodeId) => void;
 }) {
   const store = useStore(),
-    env = store.env;
+    env = store.env,
+    tw = store.messages.tabs;
+  const icon = useJaliIcons();
   const [open, setOpen] = useState(false);
   const [pos, setPos] = useState<{ left: number; top: number } | null>(null);
   const btn = useRef<HTMLButtonElement>(null);
   const menu = useRef<HTMLDivElement>(null);
   const page = useUi((s) => !!s.page);
+  const titles = useUi((s) => s.titles);
+  const dir = useUi((s) => s.dir);
 
   const close = (refocus: boolean) => {
     setOpen(false);
@@ -36,11 +40,13 @@ export function TabOverflow({
     if (!open || !btn.current) return;
     const r = btn.current.getBoundingClientRect();
     const w = 280;
+    // Under the button, lined up with its end side: its right edge, or its left edge right to left.
+    const left = dir === "rtl" ? r.left : r.right - w;
     setPos({
-      left: Math.max(8, Math.min(r.right - w, window.innerWidth - w - 8)),
+      left: Math.max(8, Math.min(left, window.innerWidth - w - 8)),
       top: r.bottom + 4,
     });
-  }, [open]);
+  }, [open, dir]);
   useEffect(() => {
     if (!open || !pos) return;
     const items = menu.current?.querySelectorAll<HTMLElement>('[role="menuitem"]');
@@ -99,8 +105,8 @@ export function TabOverflow({
         className="jali-tab-more"
         aria-haspopup="menu"
         aria-expanded={open}
-        aria-label={`All ${tabs.length} tabs${hiddenCount ? `, ${hiddenCount} out of view` : ""}`}
-        title="All tabs"
+        aria-label={tw.all(tabs.length, hiddenCount)}
+        title={tw.allTip}
         data-hidden-count={hiddenCount}
         onPointerDown={(e) => e.stopPropagation()}
         onClick={(e) => {
@@ -115,8 +121,8 @@ export function TabOverflow({
           }
         }}
       >
-        <span className="tab-more-n">+{hiddenCount}</span>
-        <ChevronDown size={12} strokeWidth={1.75} aria-hidden />
+        <span className="tab-more-n">{tw.moreCount(hiddenCount)}</span>
+        <icon.more size={12} aria-hidden />
       </button>
       {open
         ? createPortal(
@@ -124,7 +130,8 @@ export function TabOverflow({
               ref={menu}
               className="jali-tab-menu"
               role="menu"
-              aria-label="Tabs in this group"
+              dir={dir}
+              aria-label={tw.menuLabel}
               style={pos ? { left: pos.left, top: pos.top } : { visibility: "hidden" }}
               onKeyDown={onKey}
             >
@@ -139,29 +146,31 @@ export function TabOverflow({
                     data-folded={folded || undefined}
                     data-tucked={tucked || undefined}
                     aria-current={t.id === active || undefined}
-                    aria-description={folded ? FOLDED_DESC : tucked ? TUCKED_DESC : undefined}
+                    aria-description={
+                      folded ? tw.foldedDescription : tucked ? tw.tuckedDescription : undefined
+                    }
                     tabIndex={-1}
                     onClick={() => choose(t.id)}
                   >
                     <span className="jali-tab-menu-check" aria-hidden>
-                      {t.id === active ? <Check size={13} strokeWidth={2} /> : null}
+                      {t.id === active ? <icon.current size={13} /> : null}
                     </span>
                     {role ? (
-                      <role.icon size={14} strokeWidth={1.5} aria-hidden />
+                      <role.icon size={14} aria-hidden />
                     ) : (
                       <KindIcon kind={t.ref.kind} size={14} />
                     )}
-                    <span className="jali-tab-menu-title">{titleOf(env, t)}</span>
+                    <span className="jali-tab-menu-title">{titleOf(env, t, titles)}</span>
                     {folded ? (
                       <small className="jali-tab-menu-mark">
-                        <FoldHorizontal size={12} strokeWidth={1.75} aria-hidden />
-                        {FOLDED_WORD}
+                        <icon.fold size={12} aria-hidden />
+                        {tw.folded}
                       </small>
                     ) : null}
                     {tucked ? (
                       <small className="jali-tab-menu-mark">
-                        <Undo2 size={12} strokeWidth={1.75} aria-hidden />
-                        Tucked
+                        <icon.putBack size={12} aria-hidden />
+                        {tw.tucked}
                       </small>
                     ) : null}
                   </button>

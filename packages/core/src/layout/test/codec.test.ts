@@ -86,7 +86,10 @@ describe("codec", () => {
     [1, { i: "a", t: "p", s: [1, 0], r: ["small", {}] }],
     [1, { i: "a", t: "p", s: [1, null], r: ["small", {}] }],
     [1, { i: "a", t: "p", s: [1, 1], r: ["unknown", {}] }],
-    [1, { i: "a", t: "p", s: [1, 1], r: ["small", { id: false }] }],
+    // A flag is a value (19 Nov 2026); a list, an object or null is not.
+    [1, { i: "a", t: "p", s: [1, 1], r: ["small", { id: [1] }] }],
+    [1, { i: "a", t: "p", s: [1, 1], r: ["small", { id: { n: 1 } }] }],
+    [1, { i: "a", t: "p", s: [1, 1], r: ["small", { id: null }] }],
     [1, { i: "a", t: "p", s: [1, 1], r: ["small", {}], p: "yes" }],
     [1, { i: "a", t: "p", s: [1, 1], r: ["small", {}], u: 1 }],
     [1, { i: "root", t: "r", s: [1, 1], n: [] }],

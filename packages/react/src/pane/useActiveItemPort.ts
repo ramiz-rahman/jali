@@ -17,7 +17,7 @@ export function useActiveItemPort(mapping: ActiveItemMapping): ActiveItemPort | 
   return useMemo(
     () =>
       pane
-        ? activeItemPort(store, pane, {
+        ? activeItemPort(store.jali, pane, {
             toRef: (id) => latest.current.toRef(id),
             idOf: (ref) => latest.current.idOf(ref),
           })

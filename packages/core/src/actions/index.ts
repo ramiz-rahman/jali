@@ -1,9 +1,10 @@
 /**
- * Every workspace action, pure: `(x: Snapshot, ...args) => Outcome`. `bindActions(store)` gives callers the familiar
- * `actions.close(id)` shape: snapshot, run, apply, and return the action's result (the pane it opened, for example).
+ * Every step of the engine, pure: `(x: Snapshot, ...args) => Outcome`. `bindActions(store)` gives adapters the
+ * `store.actions.close(id)` shape: snapshot, run, apply, and return the pane it opened or acted on, if any. Apps use
+ * `jali.actions` (actions/public.ts): the subset an app calls, with one convention and results that say why not.
  */
 import type { NodeId } from "../layout/types";
-import type { Outcome, Snapshot } from "../state/apply";
+import type { ActionResult, Outcome, Snapshot } from "../state/apply";
 import { focus, focusCycle, focusDirection, focusEnd, focusIndex, toggleZoom } from "./focus";
 import { dismiss, newTab, noteOpen, openBeside, openHere, split, splitAuto } from "./open";
 import { close, closeOthers, undo } from "./close";
@@ -37,6 +38,7 @@ import {
   keepEditing,
   setPaneCommands,
   setPaneState,
+  setTitle,
   setUnsaved,
 } from "./content";
 import {
@@ -104,6 +106,7 @@ export const ACTIONS = {
   setUnsaved,
   setPaneCommands,
   setPaneState,
+  setTitle,
   discardAndContinue,
   keepEditing,
   openPage,
@@ -126,14 +129,14 @@ export type Actions = { [K in keyof typeof ACTIONS]: Bound<(typeof ACTIONS)[K]> 
 
 export function bindActions(store: {
   snapshot(): Snapshot;
-  apply(o: Outcome): NodeId | undefined;
+  apply(o: Outcome): ActionResult;
 }): Actions {
   const out = {} as Record<string, (...args: unknown[]) => NodeId | undefined>;
   for (const [name, fn] of Object.entries(ACTIONS) as [
     string,
     (x: Snapshot, ...a: unknown[]) => Outcome,
   ][]) {
-    out[name] = (...args) => store.apply(fn(store.snapshot(), ...args));
+    out[name] = (...args) => store.apply(fn(store.snapshot(), ...args)).pane;
   }
   return out as unknown as Actions;
 }
