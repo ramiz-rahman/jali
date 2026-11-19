@@ -18,7 +18,9 @@ export default defineConfig({
     timeout: 60_000,
   },
   use: {
-    // Real Chrome: it decodes the AAC clips (Playwright's own Chromium doesn't).
+    // Installed Chrome, as the repository's other Playwright configs use. The sessions are MP3, which Playwright's own
+    // Chromium builds decode too (scripts/audio/checks/decode.txt); the build this Playwright version wants is not
+    // installed on every machine, so the tests don't depend on it.
     channel: "chrome",
     baseURL: URL,
     viewport: { width: 1440, height: 900 },

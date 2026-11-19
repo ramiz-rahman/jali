@@ -188,12 +188,13 @@ function TranscriptBody({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [follow, playing, editing, session.id]);
 
-  // Markers as headings: each over the first line that starts at or after it.
+  // Markers as headings: over the first line at or after each one. Where several fall before one line (a song's
+  // intro and groove before its first sung line), the last of them names the section the line opens.
   const sections = useMemo(() => {
-    const out = new Map<string, string[]>();
+    const out = new Map<string, string>();
     for (const m of [...view.markers].sort((a, b) => a.time - b.time)) {
       const seg = segs.find((x) => x.start >= m.time - 0.05);
-      if (seg) out.set(seg.id, [...(out.get(seg.id) ?? []), m.label]);
+      if (seg) out.set(seg.id, m.label);
     }
     return out;
   }, [view.markers, segs]);
@@ -322,7 +323,7 @@ function TranscriptBody({
             {hasGet ? (
               <button
                 type="button"
-                className="key key-s key-latch"
+                className="key key-s key-latch key-caps"
                 aria-pressed={onGet}
                 onMouseDown={keepFocus}
                 onClick={() => setOnGet(!onGet)}
@@ -436,7 +437,7 @@ function TranscriptBody({
             <Fragment key={seg.id}>
               {heading ? (
                 <div className="tr-section" aria-hidden>
-                  {heading.join(" · ")}
+                  {heading}
                 </div>
               ) : null}
               <Segment

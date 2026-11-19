@@ -18,6 +18,7 @@ import {
   colourOf,
   hasTranscript,
   sessionById,
+  trackInput,
   trackName,
   trackOf,
 } from "../sessions/sessions";
@@ -30,6 +31,7 @@ const timelineParams = { session: String };
 const RULER = 36;
 /** Each lane's share of the height: a track with words in the transcript a little more than one without. */
 const laneWeight = (withWords: boolean) => (withWords ? 1.25 : 1);
+const pad = (h: number) => Math.max(1.5, Math.min(5, h * 0.12));
 
 function Timeline(props: PaneProps<typeof timelineParams>) {
   const { edits } = useServices();
@@ -149,7 +151,8 @@ function TimelineBody({ paused, view }: PaneProps<typeof timelineParams> & { vie
           drawBars(
             g,
             peaks,
-            { x: 0, y: y + 5, w: width, h: h - 10 },
+            // A lane keeps 5px of glass above and below its bars, less when eight tracks share a short pane.
+            { x: 0, y: y + pad(h), w: width, h: h - 2 * pad(h) },
             { from: 0, to: session.duration },
             {
               idle: hasTranscript(session, track.id) ? c.idle : c.music,
@@ -303,11 +306,11 @@ function TimelineBody({ paused, view }: PaneProps<typeof timelineParams> & { vie
                 data-silent={audible(view.edits, track.id, session.tracks) ? undefined : ""}
                 data-short={h < 38 ? "" : undefined}
                 data-compact={compact ? "" : undefined}
-                title={`${track.label}: ${trackName(track, view.speakerName)}`}
+                title={`${trackInput(track)}: ${trackName(track, view.speakerName, view.session)}`}
               >
                 <span className="mx-lamp" />
-                <span className="tl-track">{track.label}</span>
-                <span className="tl-who">{trackName(track, view.speakerName)}</span>
+                <span className="tl-track">{trackInput(track)}</span>
+                <span className="tl-who">{trackName(track, view.speakerName, view.session)}</span>
                 <span className="tl-ms">
                   <span className="tl-m" data-on={ch.mute ? "" : undefined}>
                     M

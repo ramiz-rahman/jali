@@ -13,7 +13,7 @@ import { definePane, useActivity, useCommands, useTheme, type PaneProps } from "
 import { useFrame, useTransport } from "../audio/react";
 import { channelOf, useSessionView, type SessionView } from "../edits";
 import { useServices } from "../services";
-import { colourOf, sessionById, trackName, type Track } from "../sessions/sessions";
+import { colourOf, sessionById, trackInput, trackName, type Track } from "../sessions/sessions";
 import { Empty, Missing, NotInTransport } from "../ui/parts";
 import { dbToFader, Fader } from "../ui/Fader";
 import { PanDial } from "../ui/Knob";
@@ -104,7 +104,7 @@ function Strip({ track, view }: { track: Track; view: SessionView }) {
   const { edits } = useServices();
   const ch = channelOf(view.edits, track.id);
   const session = view.session.id;
-  const name = trackName(track, view.speakerName);
+  const name = trackName(track, view.speakerName, view.session);
   const anySolo = view.session.tracks.some((t) => channelOf(view.edits, t.id).solo);
   const silent = ch.mute || (anySolo && !ch.solo);
   return (
@@ -116,7 +116,7 @@ function Strip({ track, view }: { track: Track; view: SessionView }) {
     >
       <header className="mx-scribble">
         <span className="mx-lamp" aria-hidden />
-        <span className="mx-label">{track.label}</span>
+        <span className="mx-label">{trackInput(track)}</span>
         <span className="mx-name" title={name}>
           {name}
         </span>

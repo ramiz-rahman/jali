@@ -29,9 +29,37 @@ export function colourOf(session: SessionData, track: string): ChannelColour {
   return PALETTE[Math.max(0, i) % PALETTE.length]!;
 }
 
-/** A track's display name: its speaker's, else its own label ("Air-to-ground", "Drums"). */
-export const trackName = (track: Track, speakerName: (id: string) => string) =>
-  track.speaker ? speakerName(track.speaker) : track.label;
+/**
+ * Who or what is on a track, for its scribble strip: the person wearing the microphone (a dinner guest); else the
+ * people heard on it, by callsign where the transcript prints one ("CC · LMP · CDR"); else a song group's own name
+ * ("Drums"); else that it has no transcript (the Flight Director's loop).
+ */
+export function trackName(
+  track: Track,
+  speakerName: (id: string) => string,
+  session?: SessionData,
+): string {
+  if (track.speaker) return speakerName(track.speaker);
+  if (session) {
+    const heard = [
+      ...new Set(session.segments.filter((s) => s.track === track.id).map((s) => s.speaker)),
+    ];
+    const people = heard.map((id) => session.speakers.find((p) => p.id === id));
+    if (people.length && people.every((p) => p?.code)) return people.map((p) => p!.code).join(" · ");
+    if (people.length) return heard.map(speakerName).join(", ");
+  }
+  if (track.stems?.length) return track.label;
+  return "no transcript";
+}
+
+/** The input line of a scribble strip: the microphone or loop ("Close-talk P05"), or for a song's group the masters
+ *  summed into it ("8 stems"). */
+export const trackInput = (track: Track) =>
+  track.stems?.length
+    ? track.stems.length === 1
+      ? "1 stem"
+      : `${track.stems.length} stems`
+    : track.label;
 
 /** The track a segment is heard on. */
 export const trackOf = (segment: SegmentData) => segment.track;
