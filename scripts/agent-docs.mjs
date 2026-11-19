@@ -24,6 +24,12 @@ export async function render() {
     logLevel: "silent",
     server: { middlewareMode: true, hmr: false, ws: false },
     appType: "custom",
+    // @jali/* from their source, as the site has them: without this the SSR loader takes the packages' dist, which
+    // is only as fresh as the last build.
+    ssr: {
+      noExternal: [/^@jali\//],
+      resolve: { conditions: ["source"], externalConditions: ["source"] },
+    },
   });
   try {
     const { readingOrder, sources, toMarkdown } =

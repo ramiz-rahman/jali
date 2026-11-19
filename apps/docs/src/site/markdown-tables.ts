@@ -53,7 +53,7 @@ export const MARKDOWN_TABLES: Record<string, (attrs: Record<string, string | tru
         ],
         ...COMMANDS.map((c) => [
           `\`${displayId(c.id)}\``,
-          `${c.group}: ${c.title}`,
+          c.title,
           keys(c.id, "mac"),
           keys(c.id, "other"),
           REFUSED[displayId(c.id)] ?? "Not documented.",
