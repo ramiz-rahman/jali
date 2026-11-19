@@ -9,7 +9,15 @@
  * Keys, while the transcript has focus: J/K or the arrows move, Enter plays from the segment, ⌥Enter opens its detail,
  * E edits it, L loops it, ⇧Space peeks it, ⌘S saves. Space is the transport's.
  */
-import { useEffect, useLayoutEffect, useMemo, useRef, useState, type KeyboardEvent } from "react";
+import {
+  Fragment,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+  type KeyboardEvent,
+} from "react";
 import {
   NotePencilIcon,
   PlayIcon,
@@ -31,8 +39,11 @@ import { cue, openFollowing } from "../actions";
 import { usePosition, useTransport } from "../audio/react";
 import { useSessionView, type SessionView } from "../edits";
 import { useServices } from "../services";
+import { catalogueOf } from "../sessions/catalog";
 import {
   clock,
+  colourOf,
+  missionTime,
   segmentById,
   segmentIndexAt,
   segmentIndexNear,
@@ -69,6 +80,11 @@ function TranscriptBody({
   const [draft, setDraft] = usePaneState<Record<string, string>>("draft", {});
   const [cursor, setCursor] = usePaneState<string | null>("cursor", null);
   const [follow, setFollow] = usePaneState("follow", true);
+  // Apollo's lines can be timed on the mission clock (GET), as NASA's transcript prints them.
+  const [onGet, setOnGet] = usePaneState("get", false);
+  const hasGet = !!session.clock;
+  const cat = catalogueOf(session);
+  const word = cat.words.segment;
   const [editing, setEditing] = useState<string | null>(null);
   /** The segment whose speaker label is being renamed (the name changes everywhere). */
   const [renaming, setRenaming] = useState<string | null>(null);
@@ -171,6 +187,16 @@ function TranscriptBody({
     return () => clearInterval(t);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [follow, playing, editing, session.id]);
+
+  // Markers as headings: each over the first line that starts at or after it.
+  const sections = useMemo(() => {
+    const out = new Map<string, string[]>();
+    for (const m of [...view.markers].sort((a, b) => a.time - b.time)) {
+      const seg = segs.find((x) => x.start >= m.time - 0.05);
+      if (seg) out.set(seg.id, [...(out.get(seg.id) ?? []), m.label]);
+    }
+    return out;
+  }, [view.markers, segs]);
 
   // Keep the spoken segment in view while following, and the cursor's after a key.
   const speaking = inTransport ? segmentIndexAt(session, playhead) : -1;
@@ -276,7 +302,7 @@ function TranscriptBody({
         <div
           className="tray tr-tray"
           role="toolbar"
-          aria-label={`Segment ${at + 1} of ${segs.length}`}
+          aria-label={`${word[0]!.toUpperCase()}${word.slice(1)} ${at + 1} of ${segs.length}`}
         >
           <span className="tr-group">
             <button
@@ -285,7 +311,7 @@ function TranscriptBody({
               aria-pressed={follow}
               onMouseDown={keepFocus}
               onClick={() => setFollow(!follow)}
-              title="Move the selection, and the segment detail, with the segment being spoken"
+              title={`Move the selection, and the ${word} detail, with the ${word} being heard`}
             >
               <span className="led" aria-hidden />
               follow
@@ -293,12 +319,25 @@ function TranscriptBody({
             <span className="lcd tr-counter" aria-hidden>
               <b>{String(at + 1).padStart(2, "0")}</b>/{String(segs.length).padStart(2, "0")}
             </span>
+            {hasGet ? (
+              <button
+                type="button"
+                className="key key-s key-latch"
+                aria-pressed={onGet}
+                onMouseDown={keepFocus}
+                onClick={() => setOnGet(!onGet)}
+                title="Time the lines on the mission clock (GET), as NASA's transcript prints them"
+              >
+                <span className="led" aria-hidden />
+                GET
+              </button>
+            ) : null}
           </span>
           <span className="tr-group" role="group" aria-label="Playback">
             <button
               type="button"
               className="key key-s"
-              title={`Play from this segment (${keyHint("Enter")})`}
+              title={`Play from this ${word} (${keyHint("Enter")})`}
               onMouseDown={keepFocus}
               onClick={() => playFrom(current)}
             >
@@ -309,7 +348,7 @@ function TranscriptBody({
               type="button"
               className="key key-s key-latch"
               aria-pressed={loop?.segment === current.id}
-              title="Loop this segment (L)"
+              title={`Loop this ${word} (L)`}
               onMouseDown={keepFocus}
               onClick={() => loopSegment(current)}
             >
@@ -322,7 +361,7 @@ function TranscriptBody({
             <button
               type="button"
               className="key key-s"
-              title="Correct this segment (E)"
+              title={`Correct this ${word} (E)`}
               onMouseDown={keepFocus}
               onClick={() => edit(current)}
             >
@@ -342,7 +381,7 @@ function TranscriptBody({
             <button
               type="button"
               className="key key-s"
-              title={`Open this segment's detail (${keyHint("Alt+Enter")})`}
+              title={`Open this ${word}'s detail (${keyHint("Alt+Enter")})`}
               onMouseDown={keepFocus}
               onClick={() => openDetail(current)}
             >
@@ -381,7 +420,7 @@ function TranscriptBody({
         ref={listRef}
         className="tr-rows"
         role="listbox"
-        aria-label={`Transcript of ${session.title}`}
+        aria-label={`${cat.words.transcript} of ${session.title}`}
         tabIndex={0}
         aria-activedescendant={`${node.id}-${current.id}`}
         onKeyDown={onKeyDown}
@@ -390,40 +429,55 @@ function TranscriptBody({
           const text = draft[seg.id] ?? view.textOf(seg);
           const speaker = view.speakerOf(seg);
           const prev = segs[i - 1];
+          // A marker is a heading over the first line at or after it: a section of the song, a topic at dinner, a
+          // moment of the landing. Headings are print on the paper, not rows: the list's options stay the lines.
+          const heading = sections.get(seg.id);
           return (
-            <Segment
-              key={seg.id}
-              id={`${node.id}-${seg.id}`}
-              seg={seg}
-              view={view}
-              text={text}
-              speaker={speaker}
-              speakerName={view.speakerName(speaker)}
-              showSpeaker={!prev || view.speakerOf(prev) !== speaker || renaming === seg.id}
-              selected={i === at}
-              active={focused && i === at}
-              progress={progressOf(seg, playhead, view.wordsOf(seg, text))}
-              unsaved={changed.includes(seg.id)}
-              corrected={!!view.edits.corrections[seg.id]}
-              looping={loop?.segment === seg.id}
-              editing={editing === seg.id}
-              renaming={renaming === seg.id}
-              onSelect={() => moveTo(seg.id)}
-              onSeek={(t) => cue(engine, session.id, t, playing)}
-              onOpen={() => openDetail(seg)}
-              onEdit={() => edit(seg)}
-              onChange={(value) => setDraft((d) => ({ ...d, [seg.id]: value }))}
-              onDoneEditing={() => {
-                setEditing(null);
-                listRef.current?.focus();
-              }}
-              onSave={save}
-              onRename={() => setRenaming(seg.id)}
-              onRenamed={(name) => {
-                if (name !== null && name.trim()) edits.renameSpeaker(session.id, speaker, name);
-                setRenaming(null);
-              }}
-            />
+            <Fragment key={seg.id}>
+              {heading ? (
+                <div className="tr-section" aria-hidden>
+                  {heading.join(" · ")}
+                </div>
+              ) : null}
+              <Segment
+                id={`${node.id}-${seg.id}`}
+                seg={seg}
+                view={view}
+                text={text}
+                speaker={speaker}
+                speakerName={view.speakerName(speaker)}
+                code={session.speakers.find((p) => p.id === speaker)?.code}
+                channel={colourOf(session, seg.track)}
+                overlaps={!!prev && segs.slice(0, i).some((p) => p.end > seg.start)}
+                time={onGet && hasGet ? missionTime(session, seg.start)! : clock(seg.start)}
+                showSpeaker={
+                  !prev || view.speakerOf(prev) !== speaker || renaming === seg.id || !!heading
+                }
+                selected={i === at}
+                active={focused && i === at}
+                progress={progressOf(seg, playhead, view.wordsOf(seg, text))}
+                unsaved={changed.includes(seg.id)}
+                corrected={!!view.edits.corrections[seg.id]}
+                looping={loop?.segment === seg.id}
+                editing={editing === seg.id}
+                renaming={renaming === seg.id}
+                onSelect={() => moveTo(seg.id)}
+                onSeek={(t) => cue(engine, session.id, t, playing)}
+                onOpen={() => openDetail(seg)}
+                onEdit={() => edit(seg)}
+                onChange={(value) => setDraft((d) => ({ ...d, [seg.id]: value }))}
+                onDoneEditing={() => {
+                  setEditing(null);
+                  listRef.current?.focus();
+                }}
+                onSave={save}
+                onRename={() => setRenaming(seg.id)}
+                onRenamed={(name) => {
+                  if (name !== null && name.trim()) edits.renameSpeaker(session.id, speaker, name);
+                  setRenaming(null);
+                }}
+              />
+            </Fragment>
           );
         })}
       </div>
@@ -460,6 +514,14 @@ interface SegmentProps {
   text: string;
   speaker: string;
   speakerName: string;
+  /** A callsign as the transcript prints it (CDR, CC). */
+  code?: string;
+  /** The colour of the track the line is heard on. */
+  channel: string;
+  /** Starts while an earlier line is still going: two people at once. */
+  overlaps: boolean;
+  /** The line's start as printed in the gutter: session time, or the mission clock. */
+  time: string;
   showSpeaker: boolean;
   selected: boolean;
   active: boolean;
@@ -493,6 +555,8 @@ function Segment(p: SegmentProps) {
       data-speaking={speaking ? "" : undefined}
       data-played={p.progress === Infinity ? "" : undefined}
       data-speaker={p.speaker}
+      data-channel={p.channel}
+      data-overlap={p.overlaps ? "" : undefined}
       className="tr-seg"
       onClick={p.onSelect}
       onDoubleClick={p.onEdit}
@@ -512,6 +576,7 @@ function Segment(p: SegmentProps) {
                 p.onRename();
               }}
             >
+              {p.code ? <b className="tr-code">{p.code}</b> : null}
               {p.speakerName}
             </span>
           )}
@@ -521,37 +586,45 @@ function Segment(p: SegmentProps) {
         <span
           className="tr-time mono"
           title={`Play from ${clock(p.seg.start)}`}
+          data-wide={p.time.length > 5 ? "" : undefined}
           onClick={(e) => {
             e.stopPropagation();
             p.onSeek(p.seg.start);
           }}
         >
-          {clock(p.seg.start)}
+          {p.time}
         </span>
         {p.editing ? (
           <Editor text={p.text} onChange={p.onChange} onDone={p.onDoneEditing} onSave={p.onSave} />
         ) : (
           <p className="tr-text">
-            {words.map((w, i) => (
-              <span
-                key={i}
-                className="w"
-                data-state={
-                  p.progress === Infinity || i < p.progress
-                    ? "played"
-                    : i === p.progress
-                      ? "now"
-                      : undefined
-                }
-                onClick={(e) => {
-                  e.stopPropagation();
-                  p.onSelect();
-                  p.onSeek(w[1]);
-                }}
-              >
-                {w[0]}{" "}
-              </span>
-            ))}
+            {words.map((w, i) =>
+              // A sound, not a word ("[laugh]", "[noise]"): a quiet annotation, never lit as it plays.
+              /^\[.*\]$/.test(w[0]) ? (
+                <span key={i} className="w-tag">
+                  {w[0].slice(1, -1)}{" "}
+                </span>
+              ) : (
+                <span
+                  key={i}
+                  className="w"
+                  data-state={
+                    p.progress === Infinity || i < p.progress
+                      ? "played"
+                      : i === p.progress
+                        ? "now"
+                        : undefined
+                  }
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    p.onSelect();
+                    p.onSeek(w[1]);
+                  }}
+                >
+                  {w[0]}{" "}
+                </span>
+              ),
+            )}
           </p>
         )}
         <span className="tr-marks">
@@ -653,7 +726,10 @@ function SpeakerField({ name, onDone }: { name: string; onDone(name: string | nu
 
 export const transcript = definePane("transcript", {
   params: transcriptParams,
-  title: ({ session }) => `Transcript · ${sessionById(session)?.title ?? session}`,
+  title: ({ session }) => {
+    const s = sessionById(session);
+    return `${s ? catalogueOf(s).words.transcript : "Transcript"} · ${s?.title ?? session}`;
+  },
   icon: TextAlignLeftIcon,
   width: { min: 380, comfortable: 560 },
   height: { min: 240 },

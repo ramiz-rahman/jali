@@ -1,0 +1,11 @@
+NOTICE: these files are modified.
+
+p05.mp3, p06.mp3, p07.mp3 and p08.mp3 are modified from the DiPCo data (DiPCo - Dinner Party Corpus,
+Amazon; https://zenodo.org/record/8122551). They are an excerpt of session S02 (18.50 to 146.00 s),
+close-talk microphones P05 to P08: high-passed at 70 Hz, gated outside each wearer's own utterances
+(-14 dB), resampled from 16 to 32 kHz, levelled, faded and encoded to MP3. The transcript in
+src/sessions/data/dinner-party.json is from S02.json, verbatim, with word times added by forced alignment.
+
+Licensed under the Community Data License Agreement - Permissive - Version 1.0 (CDLA-Permissive-1.0).
+The text of the agreement is in examples/studio/licenses/DiPCo-zenodo-LICENSE.txt, and at
+https://cdla.dev/permissive-1-0/.

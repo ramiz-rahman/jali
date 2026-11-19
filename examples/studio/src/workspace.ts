@@ -7,6 +7,8 @@
  * so nothing of Jali's needs moving; the app takes Space itself (shell/keys.ts) and names it in `reservedKeys`, so a
  * later Jali binding on Space would be refused at start-up rather than fight the transport.
  */
+import { credits } from "./panes/credits";
+import { catalogueOf } from "./sessions/catalog";
 import { copyLink, createJali, type Command, type Jali, type JaliOptions } from "@jali/core";
 import { cue, show } from "./actions";
 import { SPEEDS } from "./audio/engine";
@@ -23,7 +25,7 @@ import type { Services } from "./services";
 import { clock, opening, SESSIONS, sessionById } from "./sessions/sessions";
 import { HEADER_BUTTONS, headerButtons, setHeaderButtons } from "./ui/headerButtons";
 
-export const kinds = [library, transcript, timeline, mixer, markers, clip];
+export const kinds = [library, transcript, timeline, mixer, markers, clip, credits];
 
 type Options = Pick<
   JaliOptions,
@@ -156,7 +158,7 @@ export function createStudioJali(services: Services, options: Options = {}): Jal
           title: "Open session…",
           items: SESSIONS,
           label: (s) => s.title,
-          hint: (s) => `${s.show} · Ep ${s.episode}`,
+          hint: (s) => `${catalogueOf(s).source} · ${s.tracks.length} tracks`,
           onChoose: (s) => {
             const lib = jali.model().panes.find((p) => p.ref.kind === "library");
             if (lib) jali.actions.select(lib.id, transcript({ session: s.id }));
@@ -175,6 +177,12 @@ export function createStudioJali(services: Services, options: Options = {}): Jal
       title: "Show the markers",
       group: "Studio",
       run: (jali) => show(jali, markers({ session: engine.get().session })),
+    },
+    {
+      id: "studio.credits",
+      title: "Credits and licences",
+      group: "Studio",
+      run: (jali) => show(jali, credits()),
     },
     {
       id: "studio.reset",

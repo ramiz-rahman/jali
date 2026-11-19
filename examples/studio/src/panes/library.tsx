@@ -18,6 +18,7 @@ import { openFollowing } from "../actions";
 import { useFrame, useTransport } from "../audio/react";
 import { useSessionView } from "../edits";
 import { useServices } from "../services";
+import { catalogueOf } from "../sessions/catalog";
 import { clock, SESSIONS, spokenDuration, type SessionData } from "../sessions/sessions";
 import {
   drawBars,
@@ -153,7 +154,8 @@ function Row({
   const view = useSessionView(edits, session.id);
   const corrected = Object.keys(view?.edits.corrections ?? {}).length;
   const notes = Object.keys(view?.edits.notes ?? {}).length;
-  const speakers = session.speakers.map((p) => view?.speakerName(p.id) ?? p.name);
+  const cat = catalogueOf(session);
+  const tracks = `${session.tracks.length} tracks`;
   return (
     <div
       id={id}
@@ -164,22 +166,24 @@ function Row({
       data-live={live ? "" : undefined}
       className="lib-row"
       onClick={onSelect}
-      aria-label={`${session.title}, ${session.show} episode ${session.episode}, ${spokenDuration(session.duration)}`}
+      aria-label={`${session.title}, ${cat.source}, ${spokenDuration(session.duration)}, ${tracks}, ${cat.licence.short}`}
     >
-      {/* A cartridge: a paper label with the show and the title, a lamp; a window onto the tape (the waveform);
-          the running time and the voices printed on its foot. */}
+      {/* A cartridge: a paper label with the source and the title, a lamp; a window onto the tape (every track's
+          loudest at each moment); the running time, the track count and the licence printed on its foot. */}
       <span className="lib-lamp" aria-hidden />
       <div className="lib-label">
-        <span className="lib-show">
-          {session.show} · ep {session.episode}
-        </span>
+        <span className="lib-show">{cat.source}</span>
         <b className="lib-title">{session.title}</b>
       </div>
       <Thumbnail session={session} paused={paused} inTransport={inTransport} />
       <div className="lib-meta">
         <span className="mono">{clock(session.duration)}</span>
         <span className="dot" aria-hidden />
-        <span>{speakers.join(" & ")}</span>
+        <span>{tracks}</span>
+        <span className="dot" aria-hidden />
+        <span className="lib-licence" title={cat.licence.name}>
+          {cat.licence.short}
+        </span>
       </div>
       {live ? <span className="lib-live">playing</span> : null}
       {corrected || notes ? (

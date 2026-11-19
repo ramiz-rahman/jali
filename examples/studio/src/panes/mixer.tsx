@@ -13,7 +13,7 @@ import { definePane, useActivity, useCommands, useTheme, type PaneProps } from "
 import { useFrame, useTransport } from "../audio/react";
 import { channelOf, useSessionView, type SessionView } from "../edits";
 import { useServices } from "../services";
-import { CHANNEL, sessionById, TRACKS, trackName, type Track } from "../sessions/sessions";
+import { colourOf, sessionById, trackName, type Track } from "../sessions/sessions";
 import { Empty, Missing, NotInTransport } from "../ui/parts";
 import { dbToFader, Fader } from "../ui/Fader";
 import { PanDial } from "../ui/Knob";
@@ -50,7 +50,9 @@ function Mixer({ params, paused, openHere }: PaneProps<typeof mixerParams>) {
       id: "unmute",
       title: "Unmute and unsolo every track",
       run: () =>
-        TRACKS.forEach((t) => edits.setChannel(params.session, t.id, { mute: false, solo: false })),
+        sessionById(params.session)?.tracks.forEach((t) =>
+          edits.setChannel(params.session, t.id, { mute: false, solo: false }),
+        ),
     },
   ]);
 
@@ -58,8 +60,13 @@ function Mixer({ params, paused, openHere }: PaneProps<typeof mixerParams>) {
   return (
     <div className="pane-body mixer">
       {!inTransport ? <NotInTransport session={params.session} /> : null}
-      <div className="mx-modules" role="group" aria-label={`Mixer for ${view.session.title}`}>
-        {TRACKS.map((t) => (
+      <div
+        className="mx-modules"
+        role="group"
+        aria-label={`Mixer for ${view.session.title}`}
+        data-count={view.session.tracks.length}
+      >
+        {view.session.tracks.map((t) => (
           <Strip key={t.id} track={t} view={view} />
         ))}
         <Master view={view} />
@@ -68,8 +75,6 @@ function Mixer({ params, paused, openHere }: PaneProps<typeof mixerParams>) {
     </div>
   );
 }
-
-const CAPS = CHANNEL;
 
 /** The printed scale beside every fader and meter: its ticks sit where the cap's centre line sits for that dB. */
 const TICKS = [6, 0, -6, -12, -24, -48];
@@ -100,12 +105,12 @@ function Strip({ track, view }: { track: Track; view: SessionView }) {
   const ch = channelOf(view.edits, track.id);
   const session = view.session.id;
   const name = trackName(track, view.speakerName);
-  const anySolo = TRACKS.some((t) => channelOf(view.edits, t.id).solo);
+  const anySolo = view.session.tracks.some((t) => channelOf(view.edits, t.id).solo);
   const silent = ch.mute || (anySolo && !ch.solo);
   return (
     <section
       className="mx-module"
-      data-channel={CAPS[track.id]}
+      data-channel={colourOf(view.session, track.id)}
       data-silent={silent ? "" : undefined}
       aria-label={`${track.label}, ${name}`}
     >
@@ -120,7 +125,7 @@ function Strip({ track, view }: { track: Track; view: SessionView }) {
         <PanDial
           label={`Pan for ${track.label}`}
           value={Math.round(ch.pan * 100)}
-          cap={CAPS[track.id]}
+          cap={colourOf(view.session, track.id)}
           valueText={panText(ch.pan)}
           onChange={(v: number) => edits.setChannel(session, track.id, { pan: v / 100 })}
         />

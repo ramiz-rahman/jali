@@ -63,6 +63,11 @@
   --enc-blue: #5aa6ea;
   --enc-green: #47c07f;
   --enc-white: #f4f4f1;
+  /* Four more channel colours, so a session of eight tracks has eight distinct strips. */
+  --enc-violet: #a688f0;
+  --enc-yellow: #e8cc4a;
+  --enc-cyan: #4ec9d0;
+  --enc-rose: #ee7aa6;
   --enc-graphite: #4e4e53;
 
   /* ---------- Jali's tokens ---------- */

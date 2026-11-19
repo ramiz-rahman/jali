@@ -3,16 +3,17 @@
  * on whatever Jali does with them: a mixer folded into a tab, a tucked timeline or a maximised transcript changes
  * nothing here. Panes only read it (`position()`, the meters) while Jali says they are on screen.
  *
- * The graph, one strip a track: clips → gain (fader, mute, solo) → pan → analyser (the meter) → master → speakers.
- * Voice clips are scheduled at their times on the session's clock; the bed and the sting are rendered once
- * (synth.ts). Seeking, a new speed or a loop's restart stops every source and schedules them again from there.
+ * The graph, one strip a track of the session in the transport: the track's file → gain (fader, mute, solo) → pan →
+ * analyser (the meter) → master → speakers. Every track is one continuous recording from time 0, so playing from a
+ * point starts each file at that offset. Seeking, a new speed or a loop's restart stops every source and starts
+ * them again from there. A session with another set of tracks gets its own strips when it is loaded.
  *
  * Without Web Audio (tests, a browser that refuses it) the engine is a silent clock with the same API.
  */
 import { audible, channelOf, type Edits } from "../edits";
-import { sessionById, trackOf, TRACKS, type SessionData } from "../sessions/sessions";
+import { sessionById, type SessionData } from "../sessions/sessions";
+import { catalogueOf } from "../sessions/catalog";
 import { createStore, type Store } from "../store";
-import { peaksOf, renderBed, renderSting } from "./synth";
 
 export const SPEEDS = [0.75, 1, 1.25, 1.5, 2] as const;
 
@@ -32,8 +33,6 @@ export interface TransportState {
   loop: Loop | null;
   /** The position when the state last changed (a seek, a pause). The live one is `engine.position()`. */
   at: number;
-  /** Sessions whose music has been rendered: their bed and sting have peaks to draw. */
-  rendered: readonly string[];
   error?: string;
 }
 
@@ -56,8 +55,6 @@ export interface Engine extends Store<TransportState> {
   skip(seconds: number): void;
   setRate(rate: number): void;
   setLoop(loop: Loop | null): void;
-  /** The music's envelope (50 a second), once rendered. Voices draw from the session's own peaks. */
-  musicPeaks(session: string, track: "bed" | "sting"): Float32Array | null;
   /** A track's level now, or the master's ("master-l", "master-r"). Read only by a mixer on screen. */
   meter(track: string): Meter;
 }
@@ -66,11 +63,8 @@ const SILENT: Meter = { rms: -60, peak: -60 };
 const dbToGain = (db: number) => (db <= -60 ? 0 : 10 ** (db / 20));
 const toDb = (v: number) => (v <= 0.001 ? -60 : Math.max(-60, 20 * Math.log10(v)));
 
-interface Loaded {
-  clips: Map<string, AudioBuffer>;
-  bed: AudioBuffer;
-  sting: AudioBuffer;
-}
+/** A session's decoded tracks, by track id. */
+type Loaded = Map<string, AudioBuffer>;
 
 interface Strip {
   gain: GainNode;
@@ -94,7 +88,6 @@ export function createEngine({
     rate: 1,
     loop: null,
     at: 0,
-    rendered: [],
   });
   const get = () => store.get();
   const set = (patch: Partial<TransportState>) => store.set((s) => ({ ...s, ...patch }));
@@ -105,7 +98,6 @@ export function createEngine({
   let masterR: AnalyserNode | null = null;
   const strips = new Map<string, Strip>();
   const loaded = new Map<string, Loaded>();
-  const music = new Map<string, { bed: Float32Array; sting: Float32Array }>();
   const loading = new Map<string, Promise<void>>();
   let sources: AudioBufferSourceNode[] = [];
   let anchorPos = 0;
@@ -130,7 +122,16 @@ export function createEngine({
     master.connect(split);
     split.connect(masterL, 0);
     split.connect(masterR, 1);
-    for (const t of TRACKS) {
+    stripsFor(session());
+    applyMix(true);
+    return ctx;
+  }
+
+  /** A strip for each of the session's tracks that has none yet. Track ids are unique across the library. */
+  function stripsFor(s: SessionData) {
+    if (!ctx || !master) return;
+    for (const t of s.tracks) {
+      if (strips.has(t.id)) continue;
       const gain = ctx.createGain();
       const pan = ctx.createStereoPanner();
       const analyser = ctx.createAnalyser();
@@ -138,8 +139,6 @@ export function createEngine({
       gain.connect(pan).connect(analyser).connect(master);
       strips.set(t.id, { gain, pan, analyser });
     }
-    applyMix(true);
-    return ctx;
   }
 
   /** The faders, pans, mutes and solos of the session in the transport, onto the graph. */
@@ -149,10 +148,12 @@ export function createEngine({
     const at = ctx.currentTime;
     const to = (p: AudioParam, v: number) =>
       immediate ? p.setValueAtTime(v, at) : p.setTargetAtTime(v, at, 0.015);
-    for (const t of TRACKS) {
+    const tracks = session().tracks;
+    stripsFor(session());
+    for (const t of tracks) {
       const s = strips.get(t.id)!;
       const ch = channelOf(e, t.id);
-      to(s.gain.gain, audible(e, t.id) ? dbToGain(ch.gain) : 0);
+      to(s.gain.gain, audible(e, t.id, tracks) ? dbToGain(ch.gain) : 0);
       to(s.pan.pan, ch.pan);
     }
     to(master.gain, dbToGain(e.masterGain));
@@ -168,14 +169,10 @@ export function createEngine({
       if (!res.ok) throw new Error(`${url}: ${res.status}`);
       return c.decodeAudioData(await res.arrayBuffer());
     };
-    const [clips, bed, sting] = await Promise.all([
-      Promise.all(s.segments.map(async (seg) => [seg.id, await decode(seg.clip)] as const)),
-      renderBed(s),
-      renderSting(s),
-    ]);
-    loaded.set(id, { clips: new Map(clips), bed, sting });
-    music.set(id, { bed: peaksOf(bed), sting: stingTrackPeaks(s, peaksOf(sting)) });
-    set({ rendered: [...get().rendered, id] });
+    const buffers = await Promise.all(
+      s.tracks.map(async (t) => [t.id, await decode(t.file)] as const),
+    );
+    loaded.set(id, new Map(buffers));
   }
 
   function stopSources() {
@@ -210,13 +207,11 @@ export function createEngine({
       src.start(t0 + Math.max(0, at - pos) / rate, Math.max(0, pos - at));
       sources.push(src);
     };
-    for (const seg of s.segments) {
-      const clip = data.clips.get(seg.id);
-      if (clip) place(clip, seg.start, trackOf(seg));
+    stripsFor(s);
+    for (const t of s.tracks) {
+      const buffer = data.get(t.id);
+      if (buffer) place(buffer, 0, t.id);
     }
-    place(data.bed, 0, "bed");
-    place(data.sting, 0, "sting");
-    place(data.sting, s.outro, "sting");
   }
 
   function startWatchdog() {
@@ -332,7 +327,6 @@ export function createEngine({
         if (pos < loop.start || pos >= loop.end) engine.seek(loop.start);
       }
     },
-    musicPeaks: (id, track) => music.get(id)?.[track] ?? null,
     meter(track) {
       const a =
         track === "master-l"
@@ -357,16 +351,6 @@ export function createEngine({
   return engine;
 }
 
-/** The sting's envelope where it plays: at the start and at the outro. */
-function stingTrackPeaks(s: SessionData, one: Float32Array): Float32Array {
-  const out = new Float32Array(Math.ceil(s.duration * 50));
-  for (const at of [0, s.outro]) {
-    const from = Math.round(at * 50);
-    for (let i = 0; i < one.length && from + i < out.length; i++) out[from + i] = one[i]!;
-  }
-  return out;
-}
-
 /** The keyboard's and the system's media keys play and pause too. */
 function mediaKeys(engine: Engine) {
   const ms = typeof navigator !== "undefined" ? navigator.mediaSession : undefined;
@@ -383,6 +367,6 @@ function mediaKeys(engine: Engine) {
     const s = engine.session();
     ms.playbackState = engine.get().playing ? "playing" : "paused";
     if (ms.metadata?.title !== s.title && typeof MediaMetadata !== "undefined")
-      ms.metadata = new MediaMetadata({ title: s.title, artist: s.show, album: "Studio" });
+      ms.metadata = new MediaMetadata({ title: s.title, artist: catalogueOf(s).source, album: "Studio" });
   });
 }

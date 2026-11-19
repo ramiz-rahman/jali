@@ -19,9 +19,10 @@ import { useJali, useJaliState, useShortcut, useTheme } from "@jali/react";
 import { SPEEDS } from "../audio/engine";
 import { usePosition, useTransport } from "../audio/react";
 import { useServices } from "../services";
-import { clock, clockTenths, sessionById } from "../sessions/sessions";
+import { clock, clockTenths, missionTime, sessionById } from "../sessions/sessions";
 import { JogDial, SelectorDial } from "../ui/Knob";
 import { resetLayout } from "../workspace";
+import { catalogueOf } from "../sessions/catalog";
 
 /** Keys don't keep focus after a click, so Space goes on playing and pausing. */
 const keepFocus = (e: React.MouseEvent) => e.preventDefault();
@@ -271,8 +272,9 @@ function Transport() {
                   {t.status === "loading" ? "loading…" : "no audio"}
                 </span>
               )}
+              {/* The mission clock where the session has one (Apollo's GET), else where it came from. */}
               <span className="pd-show">
-                {session.show} · ep {session.episode}
+                {missionTime(session, pos) ? `GET ${missionTime(session, pos)}` : catalogueOf(session).source}
               </span>
             </div>
             <div className="pd-time" aria-label={`${clock(pos)} of ${clock(session.duration)}`}>

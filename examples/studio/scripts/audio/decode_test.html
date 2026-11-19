@@ -1,0 +1,17 @@
+<!doctype html><meta charset="utf-8"><title>decode test</title><pre id="out">running</pre>
+<script>
+// Decodes every session's MP3 with Web Audio decodeAudioData, as the Studio engine does, and prints the result.
+(async () => {
+  const files = (new URLSearchParams(location.search).get("f") || "").split(",").filter(Boolean);
+  const ctx = new OfflineAudioContext(1, 1, 44100);
+  const rows = [navigator.userAgent];
+  for (const f of files) {
+    try {
+      const buf = await ctx.decodeAudioData(await (await fetch(f)).arrayBuffer());
+      let pk = 0; const d = buf.getChannelData(0); for (let i = 0; i < d.length; i += 7) pk = Math.max(pk, Math.abs(d[i]));
+      rows.push(`OK   ${f}  ${buf.duration.toFixed(4)} s  ${buf.numberOfChannels} ch  ${buf.sampleRate} Hz  peak ${pk.toFixed(3)}`);
+    } catch (e) { rows.push(`FAIL ${f}  ${e}`); }
+  }
+  document.getElementById("out").textContent = rows.join("\n") + "\nDONE";
+})();
+</script>

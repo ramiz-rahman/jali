@@ -1,0 +1,54 @@
+{
+ "duration": 127.5,
+ "utterances": 37,
+ "gate": {
+  "P05": {
+   "open_fraction": 0.196,
+   "gain_db": 24.8
+  },
+  "P06": {
+   "open_fraction": 0.233,
+   "gain_db": 9.01
+  },
+  "P07": {
+   "open_fraction": 0.303,
+   "gain_db": 15.01
+  },
+  "P08": {
+   "open_fraction": 0.205,
+   "gain_db": 26.36
+  }
+ },
+ "low_score_utts": [
+  [
+   5,
+   "yeah",
+   0.16
+  ],
+  [
+   17,
+   "hmmm hmmm",
+   0.06
+  ],
+  [
+   23,
+   "hmmm",
+   0.06
+  ],
+  [
+   26,
+   "hmmm hmmm",
+   0.11
+  ],
+  [
+   32,
+   "hmmm hmmm i like it too",
+   0.29
+  ],
+  [
+   34,
+   "hmmm",
+   0.01
+  ]
+ ]
+}

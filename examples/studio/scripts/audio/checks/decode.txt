@@ -1,0 +1,40 @@
+=== /Users/ramizrahman/Library/Caches/ms-playwright/chromium-1223/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing
+browser: 148.0.7778.96
+Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/148.0.0.0 Safari/537.36
+OK   /sessions/apollo11-landing/audio/air-ground.mp3  213.0000 s  1 ch  44100 Hz  peak 0.606
+OK   /sessions/apollo11-landing/audio/flight-loop.mp3  213.0000 s  1 ch  44100 Hz  peak 0.837
+OK   /sessions/apollo11-landing/audio/pao.mp3  213.0000 s  1 ch  44100 Hz  peak 0.508
+OK   /sessions/dinner-party/audio/p05.mp3  127.5000 s  1 ch  44100 Hz  peak 0.817
+OK   /sessions/dinner-party/audio/p06.mp3  127.5000 s  1 ch  44100 Hz  peak 0.793
+OK   /sessions/dinner-party/audio/p07.mp3  127.5000 s  1 ch  44100 Hz  peak 0.835
+OK   /sessions/dinner-party/audio/p08.mp3  127.5000 s  1 ch  44100 Hz  peak 0.850
+OK   /sessions/light-caught-by-the-stone/audio/bass.mp3  146.4407 s  1 ch  44100 Hz  peak 0.599
+OK   /sessions/light-caught-by-the-stone/audio/chorus.mp3  146.4407 s  1 ch  44100 Hz  peak 0.338
+OK   /sessions/light-caught-by-the-stone/audio/drums.mp3  146.4407 s  1 ch  44100 Hz  peak 0.737
+OK   /sessions/light-caught-by-the-stone/audio/guitars.mp3  146.4407 s  1 ch  44100 Hz  peak 0.135
+OK   /sessions/light-caught-by-the-stone/audio/horns.mp3  146.4407 s  1 ch  44100 Hz  peak 0.553
+OK   /sessions/light-caught-by-the-stone/audio/keys.mp3  146.4407 s  1 ch  44100 Hz  peak 0.321
+OK   /sessions/light-caught-by-the-stone/audio/vox1.mp3  146.4407 s  1 ch  44100 Hz  peak 0.168
+OK   /sessions/light-caught-by-the-stone/audio/vox2.mp3  146.4407 s  1 ch  44100 Hz  peak 0.139
+OK   /work/decode/app-s01.m4a  5.8021 s  1 ch  44100 Hz  peak 0.782
+DONE
+=== /Users/ramizrahman/Library/Caches/ms-playwright/chromium_headless_shell-1248/chrome-headless-shell-mac-arm64/chrome-headless-shell
+browser: 156.0.8078.4
+Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/156.0.8078.4 Safari/537.36
+OK   /sessions/apollo11-landing/audio/air-ground.mp3  213.0000 s  1 ch  44100 Hz  peak 0.606
+OK   /sessions/apollo11-landing/audio/flight-loop.mp3  213.0000 s  1 ch  44100 Hz  peak 0.837
+OK   /sessions/apollo11-landing/audio/pao.mp3  213.0000 s  1 ch  44100 Hz  peak 0.508
+OK   /sessions/dinner-party/audio/p05.mp3  127.5000 s  1 ch  44100 Hz  peak 0.817
+OK   /sessions/dinner-party/audio/p06.mp3  127.5000 s  1 ch  44100 Hz  peak 0.793
+OK   /sessions/dinner-party/audio/p07.mp3  127.5000 s  1 ch  44100 Hz  peak 0.835
+OK   /sessions/dinner-party/audio/p08.mp3  127.5000 s  1 ch  44100 Hz  peak 0.850
+OK   /sessions/light-caught-by-the-stone/audio/bass.mp3  146.4407 s  1 ch  44100 Hz  peak 0.599
+OK   /sessions/light-caught-by-the-stone/audio/chorus.mp3  146.4407 s  1 ch  44100 Hz  peak 0.338
+OK   /sessions/light-caught-by-the-stone/audio/drums.mp3  146.4407 s  1 ch  44100 Hz  peak 0.737
+OK   /sessions/light-caught-by-the-stone/audio/guitars.mp3  146.4407 s  1 ch  44100 Hz  peak 0.135
+OK   /sessions/light-caught-by-the-stone/audio/horns.mp3  146.4407 s  1 ch  44100 Hz  peak 0.553
+OK   /sessions/light-caught-by-the-stone/audio/keys.mp3  146.4407 s  1 ch  44100 Hz  peak 0.321
+OK   /sessions/light-caught-by-the-stone/audio/vox1.mp3  146.4407 s  1 ch  44100 Hz  peak 0.168
+OK   /sessions/light-caught-by-the-stone/audio/vox2.mp3  146.4407 s  1 ch  44100 Hz  peak 0.139
+OK   /work/decode/app-s01.m4a  5.7961 s  1 ch  44100 Hz  peak 0.782
+DONE

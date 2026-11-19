@@ -2,45 +2,43 @@
  * The sessions and what the app derives from them: tracks, the segment or word at a time, and word times for a
  * corrected line. Plain functions of the bundled data, so pane titles, commands and tests can use them too.
  */
-import { SESSIONS } from "./generated";
-import type { MarkerData, SegmentData, SessionData, WordTime } from "./types";
+import apollo from "./data/apollo11-landing.json";
+import dinner from "./data/dinner-party.json";
+import song from "./data/light-caught-by-the-stone.json";
+import { catalogueOf, PALETTE, type ChannelColour } from "./catalog";
+import type { MarkerData, SegmentData, SessionData, TrackData, WordTime } from "./types";
 
-export { SESSIONS };
-export type { MarkerData, SegmentData, SessionData, WordTime };
+/** The library, in its order: the landing first (the session a first visit opens on), then the song, then dinner. */
+export const SESSIONS: readonly SessionData[] = [apollo, song, dinner] as unknown as SessionData[];
 
-export type TrackKind = "voice" | "music" | "sting";
-export interface Track {
-  id: string;
-  kind: TrackKind;
-  /** "Mic A": the input, not the person. A voice track's default speaker is `speaker`. */
-  label: string;
-  speaker?: string;
+export type { MarkerData, SegmentData, SessionData, TrackData, WordTime };
+export type Track = TrackData;
+
+/** A session's tracks, in the order of its channel strips and lanes. */
+export const tracksOf = (session: SessionData): readonly Track[] => session.tracks;
+
+export const trackById = (session: SessionData, id: string) =>
+  session.tracks.find((t) => t.id === id);
+
+/** A track's channel colour, used the same way everywhere: the mixer's lamp and pan ring, the timeline's lamp and
+ *  the transcript's speaker marks (a line takes the colour of the track it is heard on). */
+export function colourOf(session: SessionData, track: string): ChannelColour {
+  const set = catalogueOf(session).colours[track];
+  if (set) return set;
+  const i = session.tracks.findIndex((t) => t.id === track);
+  return PALETTE[Math.max(0, i) % PALETTE.length]!;
 }
 
-/** Every session has the same four tracks: two microphones, the music bed and the sting. */
-export const TRACKS: readonly Track[] = [
-  { id: "mic-a", kind: "voice", label: "Mic A", speaker: "host" },
-  { id: "mic-b", kind: "voice", label: "Mic B", speaker: "guest" },
-  { id: "bed", kind: "music", label: "Music bed" },
-  { id: "sting", kind: "sting", label: "Sting" },
-];
-
-/** Each track's channel colour, used the same way everywhere: the mixer's lamp and pan ring, the timeline's lamp
- *  and the transcript's speaker marks (a speaker takes the colour of the microphone they speak into). */
-export const CHANNEL: Record<string, "blue" | "green" | "white" | "orange"> = {
-  "mic-a": "blue",
-  "mic-b": "green",
-  bed: "white",
-  sting: "orange",
-};
-
-/** A track's display name: its speaker's, or the synth's. */
+/** A track's display name: its speaker's, else its own label ("Air-to-ground", "Drums"). */
 export const trackName = (track: Track, speakerName: (id: string) => string) =>
-  track.speaker ? speakerName(track.speaker) : track.kind === "music" ? "Synth pad" : "Synth bells";
+  track.speaker ? speakerName(track.speaker) : track.label;
 
-/** The track a segment's clip is on: the microphone of the speaker who recorded it. */
-export const trackOf = (segment: SegmentData) =>
-  TRACKS.find((t) => t.speaker === segment.speaker)?.id ?? "mic-a";
+/** The track a segment is heard on. */
+export const trackOf = (segment: SegmentData) => segment.track;
+
+/** Whether a track has words in the transcript (the Flight Director's loop has none). */
+export const hasTranscript = (session: SessionData, track: string) =>
+  session.segments.some((s) => s.track === track);
 
 export const sessionById = (id: string): SessionData | undefined =>
   SESSIONS.find((s) => s.id === id);
@@ -48,19 +46,22 @@ export const sessionById = (id: string): SessionData | undefined =>
 export const segmentById = (session: SessionData | undefined, id: string) =>
   session?.segments.find((s) => s.id === id);
 
-/** The segment playing at `time`, or -1 in a pause between two. */
+/**
+ * The segment playing at `time`, or -1 in a pause. Segments may overlap (people talk over each other at dinner): of
+ * those under the playhead, the one that started last, which is the one a listener has just begun to hear.
+ */
 export function segmentIndexAt(session: SessionData, time: number): number {
+  const at = segmentsAt(session, time);
+  return at.length ? at[at.length - 1]! : -1;
+}
+
+/** Every segment playing at `time`, in the order they started. */
+export function segmentsAt(session: SessionData, time: number): number[] {
   const segs = session.segments;
-  let lo = 0;
-  let hi = segs.length - 1;
-  while (lo <= hi) {
-    const mid = (lo + hi) >> 1;
-    const s = segs[mid]!;
-    if (time < s.start) hi = mid - 1;
-    else if (time >= s.end) lo = mid + 1;
-    else return mid;
-  }
-  return -1;
+  const out: number[] = [];
+  for (let i = 0; i < segs.length && segs[i]!.start <= time; i++)
+    if (time < segs[i]!.end) out.push(i);
+  return out;
 }
 
 /** The segment at or before `time`: where the transcript's reading place is during a pause. */
@@ -116,6 +117,19 @@ export function wordsFor(segment: SegmentData, text: string): WordTime[] {
 export function clock(t: number): string {
   const s = Math.max(0, Math.floor(t + 1e-6));
   return `${String(Math.floor(s / 60)).padStart(2, "0")}:${String(s % 60).padStart(2, "0")}`;
+}
+
+/**
+ * The mission clock at session time `t` ("GET 102:43:21"), for a session that has one (Apollo: time 0 is GET
+ * 102:42:40); `null` for the others.
+ */
+export function missionTime(session: SessionData, t: number): string | null {
+  const zero = session.clock?.get_at_zero;
+  if (!zero) return null;
+  const [h, m, sec] = zero.split(":").map(Number) as [number, number, number];
+  const all = h * 3600 + m * 60 + sec + Math.max(0, Math.floor(t + 1e-6));
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${Math.floor(all / 3600)}:${pad(Math.floor(all / 60) % 60)}:${pad(all % 60)}`;
 }
 
 /** "01:07.4", for the transport and the selected range. */

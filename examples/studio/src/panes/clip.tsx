@@ -25,10 +25,11 @@ import {
   clockTenths,
   segmentById,
   sessionById,
+  trackById,
   trackOf,
-  TRACKS,
   type SegmentData,
 } from "../sessions/sessions";
+import { catalogueOf } from "../sessions/catalog";
 import { Missing, NotInTransport } from "../ui/parts";
 import { drawBars, loudest, screenPaletteOf, prepare, useSize, voicePeaks } from "../ui/waveform";
 
@@ -51,6 +52,9 @@ function ClipBody({
   const { engine, edits } = useServices();
   const { session } = view;
   const n = session.segments.indexOf(seg) + 1;
+  // "Segment 8", or "Line 8" in a song's lyrics.
+  const word = catalogueOf(session).words.segment;
+  const Word = word[0]!.toUpperCase() + word.slice(1);
   const speaker = view.speakerOf(seg);
   const inTransport = useTransport((s) => s.session === session.id);
   const playing = useTransport((s) => s.playing && s.session === session.id);
@@ -61,8 +65,8 @@ function ClipBody({
   const text = view.textOf(seg);
   const dirty = note !== null && note !== saved;
 
-  useTitle(`Segment ${n} · ${view.speakerName(speaker)}`);
-  useUnsaved(dirty && `an unsaved note on segment ${n}`);
+  useTitle(`${Word} ${n} · ${view.speakerName(speaker)}`);
+  useUnsaved(dirty && `an unsaved note on ${word} ${n}`);
 
   const play = () => {
     if (playing && engine.position() >= seg.start && engine.position() < seg.end)
@@ -80,8 +84,8 @@ function ClipBody({
   };
 
   useCommands([
-    { id: "play", title: `Play segment ${n}`, run: play },
-    { id: "loop", title: looping ? "Stop looping" : `Loop segment ${n}`, run: toggleLoop },
+    { id: "play", title: `Play ${word} ${n}`, run: play },
+    { id: "loop", title: looping ? "Stop looping" : `Loop ${word} ${n}`, run: toggleLoop },
     {
       id: "save-note",
       title: "Save the note",
@@ -97,7 +101,7 @@ function ClipBody({
     <div className="pane-body clip">
       <header className="clip-head">
         <span className="pane-label">
-          Segment {String(n).padStart(2, "0")} of {session.segments.length}
+          {Word} {String(n).padStart(2, "0")} of {session.segments.length}
         </span>
         <span className="clip-range mono">
           {clockTenths(seg.start)} – {clockTenths(seg.end)}
@@ -112,7 +116,7 @@ function ClipBody({
             <button
               type="button"
               className="key key-square key-play"
-              aria-label={playing ? "Pause" : `Play segment ${n}`}
+              aria-label={playing ? "Pause" : `Play ${word} ${n}`}
               onMouseDown={(e) => e.preventDefault()}
               onClick={play}
             >
@@ -142,7 +146,7 @@ function ClipBody({
             <dt>Speaker</dt>
             <dd>
               <select
-                aria-label="Who says this segment"
+                aria-label={`Who says this ${word}`}
                 value={speaker}
                 onChange={(e) => edits.setSegmentSpeaker(session.id, seg.id, e.target.value)}
               >
@@ -156,7 +160,7 @@ function ClipBody({
           </div>
           <div>
             <dt>Track</dt>
-            <dd>{TRACKS.find((t) => t.id === trackOf(seg))?.label}</dd>
+            <dd>{trackById(session, trackOf(seg))?.label}</dd>
           </div>
         </dl>
       </div>
@@ -287,7 +291,8 @@ export const clip = definePane("clip", {
   title: ({ session, segment }) => {
     const s = sessionById(session);
     const n = s ? s.segments.findIndex((x) => x.id === segment) + 1 : 0;
-    return n ? `Segment ${n}` : "Segment";
+    const Word = s?.id && catalogueOf(s).words.segment === "line" ? "Line" : "Segment";
+    return n ? `${Word} ${n}` : Word;
   },
   icon: WaveformIcon,
   width: { min: 300, comfortable: 380, max: 560 },

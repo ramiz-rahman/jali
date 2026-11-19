@@ -36,8 +36,8 @@ const run = (jali: Jali, id: string) =>
 
 const ids = (jali: Jali) => jali.model().panes.map((p) => p.id);
 const shown = (jali: Jali, id: string) => jali.model().pane(id)?.ref.params;
-const FERRY = "night-ferry";
-const SEEDS = "seed-library";
+const APOLLO = "apollo11-landing";
+const DINNER = "dinner-party";
 
 describe("the studio workspace", () => {
   afterEach(() => vi.useRealTimers());
@@ -49,7 +49,7 @@ describe("the studio workspace", () => {
     for (const id of ["transcript", "timeline"])
       expect(jali.model().pane(id)).toMatchObject({ linkedTo: "library", follows: true });
     expect(jali.model().pane("clip")).toMatchObject({ linkedTo: "transcript", follows: true });
-    expect(sessionInLayout(jali)).toBe(FERRY);
+    expect(sessionInLayout(jali)).toBe(APOLLO);
   });
 
   it("brings each layout back as it was left, and Reset puts the one in use back to its design", async () => {
@@ -91,35 +91,35 @@ describe("the studio workspace", () => {
     vi.useFakeTimers();
     const { jali } = testJali();
     jali.actions.preset("mix");
-    jali.actions.select("library", transcript({ session: SEEDS }));
-    expect(shown(jali, "mixer")?.session).toBe(FERRY);
+    jali.actions.select("library", transcript({ session: DINNER }));
+    expect(shown(jali, "mixer")?.session).toBe(APOLLO);
     vi.advanceTimersByTime(200);
     // The timeline, the mixer and the markers all show the selected session (their kinds' `follow`).
-    for (const id of ["timeline", "mixer", "markers"]) expect(shown(jali, id)?.session).toBe(SEEDS);
+    for (const id of ["timeline", "mixer", "markers"]) expect(shown(jali, id)?.session).toBe(DINNER);
   });
 
   it("follows a segment: the transcript selects it, and the detail shows it", () => {
     vi.useFakeTimers();
     const { jali } = testJali();
-    jali.actions.select("transcript", clip({ session: FERRY, segment: "s05" }));
+    jali.actions.select("transcript", clip({ session: APOLLO, segment: "s05" }));
     vi.advanceTimersByTime(200);
-    expect(shown(jali, "clip")).toEqual({ session: FERRY, segment: "s05" });
+    expect(shown(jali, "clip")).toEqual({ session: APOLLO, segment: "s05" });
   });
 
   it("compares: keep the segment detail, open another, and the two sit side by side", () => {
     vi.useFakeTimers();
     const { jali } = testJali();
     jali.actions.setKept("clip", true);
-    jali.actions.select("transcript", clip({ session: FERRY, segment: "s08" }));
-    const opened = openFollowing(jali, "transcript", clip({ session: FERRY, segment: "s08" }))!;
+    jali.actions.select("transcript", clip({ session: APOLLO, segment: "s08" }));
+    const opened = openFollowing(jali, "transcript", clip({ session: APOLLO, segment: "s08" }))!;
     expect(opened).not.toBe("clip");
     expect(jali.model().pane(opened)).toMatchObject({ follows: true, linkedTo: "transcript" });
     expect(jali.model().pane("clip")).toMatchObject({
       kept: true,
-      ref: clip({ session: FERRY, segment: "s01" }),
+      ref: clip({ session: APOLLO, segment: "s01" }),
     });
     // The kept one stays as the cursor moves on; the new one follows.
-    jali.actions.select("transcript", clip({ session: FERRY, segment: "s10" }));
+    jali.actions.select("transcript", clip({ session: APOLLO, segment: "s10" }));
     vi.advanceTimersByTime(200);
     expect(shown(jali, opened)?.segment).toBe("s10");
     expect(shown(jali, "clip")?.segment).toBe("s01");
@@ -130,17 +130,17 @@ describe("the studio workspace", () => {
     const { jali } = testJali();
     jali.actions.preset("compare");
     expect(jali.model().pane("clip-a")).toMatchObject({ kept: true, linkedTo: "transcript" });
-    jali.actions.select("transcript", clip({ session: FERRY, segment: "s12" }));
+    jali.actions.select("transcript", clip({ session: APOLLO, segment: "s12" }));
     vi.advanceTimersByTime(200);
     expect(shown(jali, "clip")?.segment).toBe("s12");
-    expect(shown(jali, "clip-a")?.segment).toBe("s04");
+    expect(shown(jali, "clip-a")?.segment).toBe("s39");
   });
 
   it("keeps the layout in the address: a link opens the same arrangement and session", () => {
     vi.useFakeTimers();
     const { jali, location } = testJali();
     jali.actions.preset("review");
-    jali.actions.select("library", transcript({ session: SEEDS }));
+    jali.actions.select("library", transcript({ session: DINNER }));
     vi.advanceTimersByTime(200);
     const link = location.search();
     expect(new URLSearchParams(link).get("l")).toBeTruthy();
@@ -149,8 +149,8 @@ describe("the studio workspace", () => {
     const { jali: reader } = testJali({ search: link });
     expect(ids(reader)).toEqual(ids(jali));
     expect(reader.get().presetId).toBe("review");
-    expect(sessionInLayout(reader)).toBe(SEEDS);
-    expect(shown(reader, "timeline")?.session).toBe(SEEDS);
+    expect(sessionInLayout(reader)).toBe(DINNER);
+    expect(shown(reader, "timeline")?.session).toBe(DINNER);
   });
 
   it("asks before a layout without the transcript loses its unsaved corrections", () => {
@@ -176,11 +176,11 @@ describe("the studio workspace", () => {
     vi.useFakeTimers();
     const { jali } = testJali();
     storeOf(jali).actions.setUnsaved("transcript", "1 unsaved correction");
-    jali.actions.select("library", transcript({ session: SEEDS }));
+    jali.actions.select("library", transcript({ session: DINNER }));
     vi.advanceTimersByTime(200);
-    expect(shown(jali, "transcript")?.session).toBe(FERRY);
+    expect(shown(jali, "transcript")?.session).toBe(APOLLO);
     // The timeline has nothing unsaved, and still stays.
-    expect(shown(jali, "timeline")?.session).toBe(FERRY);
+    expect(shown(jali, "timeline")?.session).toBe(APOLLO);
   });
 
   it("so a transcript with unsaved corrections keeps itself, and the other followers move on", () => {
@@ -189,14 +189,14 @@ describe("the studio workspace", () => {
     // What the transcript does when its draft has corrections (panes/transcript.tsx).
     storeOf(jali).actions.setUnsaved("transcript", "1 unsaved correction");
     jali.actions.setKept("transcript", true);
-    jali.actions.select("library", transcript({ session: SEEDS }));
+    jali.actions.select("library", transcript({ session: DINNER }));
     vi.advanceTimersByTime(200);
-    expect(shown(jali, "transcript")?.session).toBe(FERRY);
-    expect(shown(jali, "timeline")?.session).toBe(SEEDS);
+    expect(shown(jali, "transcript")?.session).toBe(APOLLO);
+    expect(shown(jali, "timeline")?.session).toBe(DINNER);
     // Saved: it lets go, and catches up with the library at once.
     storeOf(jali).actions.setUnsaved("transcript", null);
     jali.actions.setKept("transcript", false);
-    expect(shown(jali, "transcript")?.session).toBe(SEEDS);
+    expect(shown(jali, "transcript")?.session).toBe(DINNER);
   });
 
   it("lists the app's commands in ⌘K, with their keys", () => {
@@ -214,22 +214,22 @@ describe("the studio workspace", () => {
     const request = chooser(jali);
     expect(request.title).toBe("Go to segment…");
     // The person types a word from the line: it is in the label.
-    const tomato = request.items.find((s) => request.label(s).includes("yellow"));
-    expect(tomato).toBeUndefined(); // the ferry has no tomatoes
+    const orange = request.items.find((s) => request.label(s).includes("orange"));
+    expect(orange).toBeUndefined(); // the landing has no oranges
     const storm = request.items.find((s) =>
-      request.label(s).startsWith("Once, in a winter storm"),
+      request.label(s).startsWith("THE EAGLE HAS LANDED"),
     ) as SegmentData;
-    expect(request.hint!(storm)).toContain("Tomas Vell");
+    expect(request.hint!(storm)).toContain("Neil A. Armstrong");
     request.onChoose(storm);
     expect(services.engine.position()).toBeCloseTo(storm.start);
     expect(jali.get().selection.transcript?.ref).toEqual(
-      clip({ session: FERRY, segment: storm.id }),
+      clip({ session: APOLLO, segment: storm.id }),
     );
   });
 
   it("jumps to a marker, the person's own included", () => {
     const { jali, services } = testJali();
-    services.edits.addMarker(FERRY, 42.5, "Good quote");
+    services.edits.addMarker(APOLLO, 42.5, "Good quote");
     run(jali, "studio.marker");
     const request = chooser(jali);
     const mine = request.items.find((m) => request.label(m) === "Good quote")!;
@@ -288,7 +288,7 @@ describe("the transport", () => {
       toFake: ["setInterval", "clearInterval", "setTimeout", "performance", "Date"],
     });
     const { engine } = createServices({ persist: false, audio: false });
-    engine.load(FERRY);
+    engine.load(APOLLO);
     expect(engine.get().status).toBe("ready");
     engine.play(10);
     vi.advanceTimersByTime(2000);
@@ -297,13 +297,13 @@ describe("the transport", () => {
     vi.advanceTimersByTime(2000);
     expect(engine.position()).toBeCloseTo(15, 0);
     // A loop of one segment: the playhead wraps at its end.
-    const seg = sessionById(FERRY)!.segments[3]!;
+    const seg = sessionById(APOLLO)!.segments[3]!;
     engine.setLoop({ start: seg.start, end: seg.end, segment: seg.id });
     vi.advanceTimersByTime(((seg.end - seg.start) / 1.5) * 1000 + 300);
     expect(engine.position()).toBeGreaterThanOrEqual(seg.start);
     expect(engine.position()).toBeLessThan(seg.end);
     engine.setLoop(null);
-    engine.seek(sessionById(FERRY)!.duration - 0.5);
+    engine.seek(sessionById(APOLLO)!.duration - 0.5);
     vi.advanceTimersByTime(2000);
     expect(engine.get().playing).toBe(false);
   });
@@ -311,14 +311,14 @@ describe("the transport", () => {
   it("switches sessions paused, at the start", () => {
     const { engine } = createServices({ persist: false, audio: false });
     engine.play(20);
-    engine.load(SEEDS);
-    expect(engine.get()).toMatchObject({ session: SEEDS, playing: false, at: 0 });
+    engine.load(DINNER);
+    expect(engine.get()).toMatchObject({ session: DINNER, playing: false, at: 0 });
   });
 });
 
 describe("corrections", () => {
   it("re-times a corrected line across the clip's voiced part", () => {
-    const seg = sessionById(FERRY)!.segments[1]!;
+    const seg = sessionById(APOLLO)!.segments[1]!;
     expect(wordsFor(seg, seg.text)).toBe(seg.words);
     const words = wordsFor(seg, "Thanks for having me here.");
     expect(words.map((w) => w[0])).toEqual(["Thanks", "for", "having", "me", "here."]);
@@ -328,10 +328,10 @@ describe("corrections", () => {
 
   it("saves corrections in the app's store, and drops one put back as recorded", () => {
     const { edits } = createServices({ persist: false, audio: false });
-    const seg = sessionById(FERRY)!.segments[0]!;
-    edits.saveCorrections(FERRY, { [seg.id]: "Welcome back to Harbour Hours." });
-    expect(edits.of(FERRY).corrections[seg.id]).toBe("Welcome back to Harbour Hours.");
-    edits.saveCorrections(FERRY, { [seg.id]: seg.text });
-    expect(edits.of(FERRY).corrections[seg.id]).toBeUndefined();
+    const seg = sessionById(APOLLO)!.segments[0]!;
+    edits.saveCorrections(APOLLO, { [seg.id]: "Welcome back to Harbour Hours." });
+    expect(edits.of(APOLLO).corrections[seg.id]).toBe("Welcome back to Harbour Hours.");
+    edits.saveCorrections(APOLLO, { [seg.id]: seg.text });
+    expect(edits.of(APOLLO).corrections[seg.id]).toBeUndefined();
   });
 });

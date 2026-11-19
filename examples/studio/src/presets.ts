@@ -15,7 +15,7 @@ import { mixer } from "./panes/mixer";
 import { timeline } from "./panes/timeline";
 import { transcript } from "./panes/transcript";
 
-export const FIRST_SESSION = "night-ferry";
+export const FIRST_SESSION = "apollo11-landing";
 const session = FIRST_SESSION;
 const followsLibrary = { linkedTo: "library", follows: true } as const;
 const followsTranscript = { linkedTo: "transcript", follows: true } as const;
@@ -88,12 +88,12 @@ export const presets: PresetOptions[] = [
     layout: row(
       pane(library(), { id: "library", weight: 0.7 }),
       column({ weight: 1.5 }, tr(2), tl(1.3)),
-      pane(clip({ session, segment: "s04" }), {
+      pane(clip({ session, segment: "s39" }), {
         id: "clip-a",
         linkedTo: "transcript",
         kept: true,
       }),
-      pane(clip({ session, segment: "s06" }), { id: "clip", ...followsTranscript }),
+      pane(clip({ session, segment: "s47" }), { id: "clip", ...followsTranscript }),
     ),
   },
 ];

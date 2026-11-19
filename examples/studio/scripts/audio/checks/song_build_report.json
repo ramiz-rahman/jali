@@ -1,0 +1,214 @@
+{
+ "gain_db": -3.9,
+ "excerpt": [
+  3.7,
+  150.1406779661017
+ ],
+ "duration": 146.44068027210884,
+ "compare_mix": {
+  "mix_offset_s": 3.7,
+  "corr_envelope": 0.6686812991285835,
+  "bands_db_sum_minus_mix": [
+   0.0,
+   2.1,
+   -2.0,
+   0.9,
+   -7.4
+  ],
+  "band_edges_hz": [
+   20,
+   120,
+   500,
+   2000,
+   6000,
+   16000
+  ],
+  "group_share_db": {
+   "drums": -9.9,
+   "bass": -1.4,
+   "guitars": -20.9,
+   "keys": -14.3,
+   "horns": -14.5,
+   "vox1": -16.1,
+   "vox2": -18.2,
+   "chorus": -13.7
+  }
+ },
+ "line_scores": [
+  [
+   "s01",
+   37.18,
+   40.46,
+   "as infering the light caught b",
+   0.8
+  ],
+  [
+   "s02",
+   41.04,
+   44.54,
+   "from the one that bounces, anc",
+   0.78
+  ],
+  [
+   "s03",
+   45.28,
+   48.1,
+   "as natural as intelligence",
+   0.77
+  ],
+  [
+   "s04",
+   49.3,
+   52.19,
+   "as artificial as an idea",
+   0.75
+  ],
+  [
+   "s05",
+   52.96,
+   55.2,
+   "Your hate is love to me",
+   0.69
+  ],
+  [
+   "s06",
+   57.42,
+   59.97,
+   "and your love is everything",
+   0.88
+  ],
+  [
+   "s07",
+   61.54,
+   62.88,
+   "And each fragment",
+   0.43
+  ],
+  [
+   "s08",
+   63.0,
+   66.42,
+   "is, from all others around, eq",
+   0.7
+  ],
+  [
+   "s09",
+   73.54,
+   76.3,
+   "the interior of a knowledge pl",
+   0.65
+  ],
+  [
+   "s10",
+   76.42,
+   80.2,
+   "and all quasars receding from ",
+   0.64
+  ],
+  [
+   "s11",
+   81.72,
+   84.96,
+   "bent space, elastic time",
+   0.79
+  ],
+  [
+   "s12",
+   85.88,
+   88.94,
+   "extreme vertigo you may experi",
+   0.82
+  ],
+  [
+   "s13",
+   90.4,
+   95.28,
+   "but it's always been the same ",
+   0.63
+  ],
+  [
+   "s14",
+   95.88,
+   97.24,
+   "same reality",
+   0.61
+  ],
+  [
+   "s15",
+   98.34,
+   101.86,
+   "and being realistic I overstan",
+   0.55
+  ],
+  [
+   "s16",
+   102.06,
+   105.02,
+   "that reality is hidden from us",
+   0.47
+  ],
+  [
+   "s17",
+   105.82,
+   109.14,
+   "but expanding the perception w",
+   0.81
+  ],
+  [
+   "s18",
+   110.18,
+   113.92,
+   "nature reveals all its secrets",
+   0.51
+  ],
+  [
+   "s19",
+   115.26,
+   117.68,
+   "much is revealed with instinct",
+   0.41
+  ],
+  [
+   "s20",
+   119.32,
+   121.84,
+   "some secrets are more encrypte",
+   0.53
+  ],
+  [
+   "s21",
+   123.46,
+   125.76,
+   "ultimately all is there",
+   0.44
+  ],
+  [
+   "s22",
+   127.22,
+   129.76,
+   "the magic of cosmos and your l",
+   0.61
+  ],
+  [
+   "s23",
+   130.1,
+   131.78,
+   "And your point of view",
+   0.62
+  ],
+  [
+   "s24",
+   133.94,
+   136.3,
+   "is equidistant from all,",
+   0.46
+  ],
+  [
+   "s25",
+   138.14,
+   143.16,
+   "has access to all",
+   0.56
+  ]
+ ]
+}

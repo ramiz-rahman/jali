@@ -1,45 +1,38 @@
 /**
  * Waveforms in Spoke's manner: rounded bars, quiet zinc until played, signal orange after. Drawn on a canvas, from
- * envelopes at 50 values a second: the voices' come with the session (the generator measured them), the music's from
- * the engine once it has rendered.
+ * envelopes at 50 values a second that come with each session's tracks (measured when the session was built).
  */
 import { useLayoutEffect, useState, type RefObject } from "react";
-import type { Engine } from "../audio/engine";
-import { trackOf, TRACKS, type SessionData } from "../sessions/sessions";
+import type { SessionData } from "../sessions/sessions";
 
 export const PEAKS_PER_SECOND = 50;
 
-const voiceCache = new Map<string, Float32Array>();
+const cache = new Map<string, Float32Array>();
 
-/** A voice track's envelope across the whole session, 0 to 1. */
-export function voicePeaks(session: SessionData, track: string): Float32Array {
+/** A track's envelope across the whole session, 0 to 1. One scale for all of a session's tracks. */
+export function trackPeaks(session: SessionData, track: string): Float32Array {
   const key = `${session.id}/${track}`;
-  let out = voiceCache.get(key);
+  let out = cache.get(key);
   if (out) return out;
-  out = new Float32Array(Math.ceil(session.duration * PEAKS_PER_SECOND));
-  for (const seg of session.segments) {
-    if (trackOf(seg) !== track) continue;
-    const from = Math.round(seg.start * PEAKS_PER_SECOND);
-    seg.peaks.forEach((v, i) => {
-      if (from + i < out!.length) out![from + i] = v / 99;
-    });
-  }
-  voiceCache.set(key, out);
+  const peaks = session.tracks.find((t) => t.id === track)?.peaks ?? [];
+  out = Float32Array.from(peaks, (v) => v / 99);
+  cache.set(key, out);
   return out;
 }
 
-/** Any track's envelope, or null for music that has not rendered yet. */
-export function trackPeaks(engine: Engine, session: SessionData, track: string) {
-  const kind = TRACKS.find((t) => t.id === track)?.kind;
-  if (kind === "voice") return voicePeaks(session, track);
-  return engine.musicPeaks(session.id, track as "bed" | "sting");
-}
+/** A voice track's envelope: the same as any track's, now that every track is one recording. */
+export const voicePeaks = trackPeaks;
 
-/** The whole session in one envelope: the library's thumbnails. */
+/** The whole session in one envelope, the loudest track at each moment: the library's thumbnails. */
 export function overviewPeaks(session: SessionData): Float32Array {
-  const a = voicePeaks(session, "mic-a");
-  const b = voicePeaks(session, "mic-b");
-  return a.map((v, i) => Math.max(v, b[i] ?? 0));
+  const key = `${session.id}/*`;
+  let out = cache.get(key);
+  if (out) return out;
+  const all = session.tracks.map((t) => trackPeaks(session, t.id));
+  out = new Float32Array(Math.max(0, ...all.map((a) => a.length)));
+  for (const a of all) for (let i = 0; i < a.length; i++) if (a[i]! > out[i]!) out[i] = a[i]!;
+  cache.set(key, out);
+  return out;
 }
 
 export interface BarStyle {

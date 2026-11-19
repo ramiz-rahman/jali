@@ -6,6 +6,7 @@
  * - `JogDial`: a knurled dial with a dimple, turned round its centre, for scrubbing.
  * - `SelectorDial`: the same dial with a pointer, snapping to a few detents, for speed.
  */
+import type { ChannelColour } from "../sessions/catalog";
 import { useEffect, useRef, type CSSProperties, type RefObject } from "react";
 
 export const clamp = (v: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, v));
@@ -292,7 +293,7 @@ export function PanDial(p: {
   value: number;
   onChange(value: number): void;
   valueText?: string;
-  cap?: "blue" | "green" | "white" | "orange";
+  cap?: ChannelColour;
   className?: string;
 }) {
   const ref = useRef<HTMLDivElement>(null);

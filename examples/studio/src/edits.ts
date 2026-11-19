@@ -4,9 +4,9 @@
  * (`usePaneState`) and writes here when the person saves; everything else is written here at once.
  */
 import { useMemo } from "react";
+import { CATALOGUE } from "./sessions/catalog";
 import {
   sessionById,
-  TRACKS,
   wordsFor,
   type MarkerData,
   type SegmentData,
@@ -36,12 +36,13 @@ export interface SessionEdits {
   masterGain: number;
 }
 
-export const DEFAULT_CHANNEL: Record<string, Channel> = {
-  "mic-a": { gain: 0, pan: -0.15, mute: false, solo: false },
-  "mic-b": { gain: 0, pan: 0.15, mute: false, solo: false },
-  bed: { gain: -4, pan: 0, mute: false, solo: false },
-  sting: { gain: -3, pan: 0, mute: false, solo: false },
-};
+/** Each track's starting fader and pan, from the catalogue. Track ids are unique across the library, so one map
+ *  serves every session; a track it doesn't name starts at 0 dB, centred. */
+export const DEFAULT_CHANNEL: Record<string, Channel> = Object.fromEntries(
+  Object.values(CATALOGUE).flatMap((c) =>
+    Object.entries(c.mix).map(([id, m]) => [id, { ...m, mute: false, solo: false }]),
+  ),
+);
 
 const empty = (): SessionEdits => ({
   corrections: {},
@@ -131,10 +132,10 @@ export function createEdits(persist = true): Edits {
 export const channelOf = (e: SessionEdits, track: string): Channel =>
   e.mix[track] ?? DEFAULT_CHANNEL[track] ?? { gain: 0, pan: 0, mute: false, solo: false };
 
-/** Whether a track is heard: not muted, and soloed if anything is. */
-export function audible(e: SessionEdits, track: string): boolean {
+/** Whether a track is heard: not muted, and soloed if anything is (among the session's `tracks`). */
+export function audible(e: SessionEdits, track: string, tracks: readonly { id: string }[]): boolean {
   const ch = channelOf(e, track);
-  const anySolo = TRACKS.some((t) => channelOf(e, t.id).solo);
+  const anySolo = tracks.some((t) => channelOf(e, t.id).solo);
   return !ch.mute && (!anySolo || ch.solo);
 }
 

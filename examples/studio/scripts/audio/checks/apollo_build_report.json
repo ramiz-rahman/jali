@@ -1,0 +1,306 @@
+{
+ "lag": {
+  "points": 169,
+  "lag_start_s": 17.653275582017613,
+  "lag_end_s": 18.278723367902373,
+  "fit_residual_ms_rms": 12.750060930137545,
+  "fit_residual_ms_p95": 27.520591793525277,
+  "after_warp_ms_median": 0.5000000000023874,
+  "after_warp_ms_p95_abs": 26.331249999988383,
+  "after_warp_windows": 60
+ },
+ "get_offset_s": 369760.34,
+ "get_resid_s": [
+  1.38,
+  0.4,
+  0.18,
+  0.9,
+  0.01,
+  1.5,
+  0.48,
+  1.1,
+  0.84,
+  0.56,
+  0.88,
+  0.42,
+  0.28,
+  0.9,
+  0.74,
+  0.7,
+  -1.32,
+  -0.02,
+  0.44,
+  0.54,
+  0.28,
+  0.2,
+  0.0,
+  -2.92,
+  -0.14,
+  -0.36,
+  -0.26,
+  -0.14,
+  -0.04,
+  -0.16,
+  -0.34,
+  -0.68,
+  -0.52,
+  -0.4,
+  -0.44,
+  0.14,
+  -0.46,
+  -0.6,
+  -0.2,
+  -0.24,
+  -0.22,
+  -0.04,
+  -0.38
+ ],
+ "gains_db": {
+  "air-ground": -1.52,
+  "flight-loop": 1.31,
+  "pao": -4.41
+ },
+ "segment_scores": [
+  [
+   "s01",
+   "Eagle, looking great. You're G",
+   0.483
+  ],
+  [
+   "s02",
+   "Altitude 1600. 1400 feet. Stil",
+   0.959
+  ],
+  [
+   "s03",
+   "Roger. 1202. We copy it.",
+   0.452
+  ],
+  [
+   "s04",
+   "35 degrees. 35 degrees. 750. C",
+   0.494
+  ],
+  [
+   "s05",
+   "700 feet, 21 down, 33 degrees.",
+   0.779
+  ],
+  [
+   "s06",
+   "600 feet, down at 19.",
+   0.362
+  ],
+  [
+   "s07",
+   "540 feet, down at - 30. Down a",
+   0.385
+  ],
+  [
+   "s08",
+   "At 400 feet, down at 9.",
+   0.437
+  ],
+  [
+   "s09",
+   "... forward.",
+   0.422
+  ],
+  [
+   "s10",
+   "350 feet, down at 4.",
+   0.412
+  ],
+  [
+   "s11",
+   "30, ... one-half down.",
+   0.426
+  ],
+  [
+   "s12",
+   "We're pegged on horizontal vel",
+   0.273
+  ],
+  [
+   "s13",
+   "300 feet, down 3 1/2, 47 forwa",
+   0.306
+  ],
+  [
+   "s14",
+   "... up.",
+   0.118
+  ],
+  [
+   "s15",
+   "On 1 a minute, 1 1/2 down.",
+   0.262
+  ],
+  [
+   "s16",
+   "70.",
+   0.275
+  ],
+  [
+   "s17",
+   "Watch your shadow out there.",
+   0.194
+  ],
+  [
+   "s18",
+   "50, down at 2 1/2, 19 forward.",
+   0.403
+  ],
+  [
+   "s19",
+   "Altitude-velocity light.",
+   0.139
+  ],
+  [
+   "s20",
+   "3 1/2 down, 220 feet, 13 forwa",
+   0.409
+  ],
+  [
+   "s21",
+   "11 forward. Coming down nicely",
+   0.262
+  ],
+  [
+   "s22",
+   "200 feet, 4 1/2 down.",
+   0.384
+  ],
+  [
+   "s23",
+   "5 1/2 down.",
+   0.587
+  ],
+  [
+   "s24",
+   "160, 6 - 6 1/2 down.",
+   0.211
+  ],
+  [
+   "s25",
+   "5 1/2 down, 9 forward. That's ",
+   0.524
+  ],
+  [
+   "s26",
+   "120 feet.",
+   0.33
+  ],
+  [
+   "s27",
+   "100 feet, 3 1/2 down, 9 forwar",
+   0.352
+  ],
+  [
+   "s28",
+   "Okay. 75 feet. There's looking",
+   0.332
+  ],
+  [
+   "s29",
+   "60 seconds.",
+   0.171
+  ],
+  [
+   "s30",
+   "Lights on. ...",
+   0.378
+  ],
+  [
+   "s31",
+   "Down 2 1/2. Forward. Forward. ",
+   0.459
+  ],
+  [
+   "s32",
+   "40 feet, down 2 1/2. Kicking u",
+   0.23
+  ],
+  [
+   "s33",
+   "30 feet, 2 1/2 down. Faint sha",
+   0.226
+  ],
+  [
+   "s34",
+   "4 forward. 4 forward. Drifting",
+   0.462
+  ],
+  [
+   "s35",
+   "30 seconds.",
+   0.165
+  ],
+  [
+   "s36",
+   "Forward drift?",
+   0.338
+  ],
+  [
+   "s37",
+   "Yes.",
+   0.01
+  ],
+  [
+   "s38",
+   "Okay.",
+   0.073
+  ],
+  [
+   "s39",
+   "CONTACT LIGHT.",
+   0.233
+  ],
+  [
+   "s40",
+   "Okay. ENGINE STOP.",
+   0.266
+  ],
+  [
+   "s41",
+   "ACA - out of DETENT.",
+   0.2
+  ],
+  [
+   "s42",
+   "Out of DETENT.",
+   0.122
+  ],
+  [
+   "s43",
+   "MODE CONTROL - both AUTO. DESC",
+   0.452
+  ],
+  [
+   "s44",
+   "413 is in.",
+   0.397
+  ],
+  [
+   "s45",
+   "We copy you down, Eagle.",
+   0.669
+  ],
+  [
+   "s46",
+   "Houston, Tranquility Base here",
+   0.357
+  ],
+  [
+   "s47",
+   "THE EAGLE HAS LANDED.",
+   0.376
+  ],
+  [
+   "s48",
+   "Roger, Tranquility. We copy yo",
+   0.543
+  ]
+ ],
+ "duration": 213.0
+}

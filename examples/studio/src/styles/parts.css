@@ -742,28 +742,36 @@
 }
 
 @layer app {
+  /* A channel's colour: one custom property, `--chan`, set by the colour's name wherever a track is drawn (a mixer
+     module, a track header, a transcript row, a pan dial). Eight colours (catalog.ts). */
+  :where([data-channel="blue"], [data-cap="blue"]) {
+    --chan: var(--enc-blue);
+  }
+  :where([data-channel="green"], [data-cap="green"]) {
+    --chan: var(--enc-green);
+  }
+  :where([data-channel="white"], [data-cap="white"]) {
+    --chan: var(--enc-white);
+  }
+  :where([data-channel="orange"], [data-cap="orange"]) {
+    --chan: var(--enc-orange);
+  }
+  :where([data-channel="violet"], [data-cap="violet"]) {
+    --chan: var(--enc-violet);
+  }
+  :where([data-channel="yellow"], [data-cap="yellow"]) {
+    --chan: var(--enc-yellow);
+  }
+  :where([data-channel="cyan"], [data-cap="cyan"]) {
+    --chan: var(--enc-cyan);
+  }
+  :where([data-channel="rose"], [data-cap="rose"]) {
+    --chan: var(--enc-rose);
+  }
   /* A pan dial's face carries its channel's colour as a ring on the machined top. */
-  .pan-dial[data-cap="blue"] .dial-face {
+  .pan-dial[data-cap] .dial-face {
     box-shadow:
-      inset 0 0 0 3px var(--enc-blue),
-      inset 0 1px 0 rgb(255 255 255 / 0.25),
-      0 0 0 1px rgb(0 0 0 / calc(0.35 * var(--sh)));
-  }
-  .pan-dial[data-cap="green"] .dial-face {
-    box-shadow:
-      inset 0 0 0 3px var(--enc-green),
-      inset 0 1px 0 rgb(255 255 255 / 0.25),
-      0 0 0 1px rgb(0 0 0 / calc(0.35 * var(--sh)));
-  }
-  .pan-dial[data-cap="white"] .dial-face {
-    box-shadow:
-      inset 0 0 0 3px var(--enc-white),
-      inset 0 1px 0 rgb(255 255 255 / 0.25),
-      0 0 0 1px rgb(0 0 0 / calc(0.35 * var(--sh)));
-  }
-  .pan-dial[data-cap="orange"] .dial-face {
-    box-shadow:
-      inset 0 0 0 3px var(--enc-orange),
+      inset 0 0 0 3px var(--chan),
       inset 0 1px 0 rgb(255 255 255 / 0.25),
       0 0 0 1px rgb(0 0 0 / calc(0.35 * var(--sh)));
   }
