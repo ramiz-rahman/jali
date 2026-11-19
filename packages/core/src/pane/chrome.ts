@@ -10,9 +10,30 @@ export interface Chrome {
   tuckable: boolean;
   /** Border, radius and focus edge. */
   island: boolean;
+  /** The header's close button shows even when the header holds tabs (each tab has its own ×). */
+  closeWithTabs: boolean;
 }
 
 export const CHROME: Record<Presentation, Chrome> = {
-  tiled: { draggable: true, zoomable: true, tuckable: true, island: true },
-  single: { draggable: false, zoomable: false, tuckable: false, island: false },
+  tiled: { draggable: true, zoomable: true, tuckable: true, island: true, closeWithTabs: true },
+  single: {
+    draggable: false,
+    zoomable: false,
+    tuckable: false,
+    island: false,
+    closeWithTabs: true,
+  },
+};
+
+/**
+ * A lone pane (the only one on screen, tiled): the chrome grows only when there is something to arrange. Full-bleed
+ * with no focus edge (there is nothing to tell it from), no tuck, maximise or drag, and no header close when its tabs
+ * carry their own ×. A second pane brings the island back.
+ */
+export const ALONE_CHROME: Chrome = {
+  draggable: false,
+  zoomable: false,
+  tuckable: false,
+  island: false,
+  closeWithTabs: false,
 };

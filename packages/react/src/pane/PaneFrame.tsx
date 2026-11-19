@@ -1,6 +1,7 @@
 import { memo, useMemo, type CSSProperties } from "react";
 import { useJaliIcons } from "../icons/context";
 import {
+  ALONE_CHROME,
   paneDomId,
   paneTitleId,
   roleOf,
@@ -32,6 +33,7 @@ interface Props {
 export const PaneFrame = /* @__PURE__ */ memo(
   function PaneFrame({ frame, chrome, dropTarget }: Props) {
     const { node, rect, hidden, focused, zoomed, covered, group } = frame;
+    const alone = chrome === ALONE_CHROME;
     const store = useStore();
     const icon = useJaliIcons();
     const { actions } = store;
@@ -67,6 +69,7 @@ export const PaneFrame = /* @__PURE__ */ memo(
     const cls = [
       "jali-pane",
       !chrome.island && "is-single",
+      alone && "is-alone",
       focused && "is-focused",
       zoomed && "is-zoomed",
       isDragged && "is-dragged",
@@ -85,6 +88,7 @@ export const PaneFrame = /* @__PURE__ */ memo(
         data-pane={node.id}
         data-kind={node.ref.kind}
         data-focused={focused || undefined}
+        data-alone={alone || undefined}
         data-zoomed={zoomed || undefined}
         data-dragged={isDragged || undefined}
         data-drop-target={dropTarget || undefined}
@@ -141,7 +145,13 @@ export const PaneFrame = /* @__PURE__ */ memo(
             </div>
           )}
           {bare ? null : (
-            <HeaderActions id={node.id} title={title} zoomed={zoomed} chrome={chrome} />
+            <HeaderActions
+              id={node.id}
+              title={title}
+              zoomed={zoomed}
+              chrome={chrome}
+              tabs={!!group}
+            />
           )}
         </div>
         {dropTarget ? <DropZoneLabel paneId={node.id} /> : null}

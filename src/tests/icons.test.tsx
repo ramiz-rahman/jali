@@ -1,6 +1,6 @@
 /** The icon slot: a host's icons replace Jali's by name, and the rest stay Jali's own. */
 import { cleanup, render, screen, within } from "@testing-library/react";
-import { afterEach, beforeAll, describe, expect, it } from "vite-plus/test";
+import { afterAll, afterEach, beforeAll, describe, expect, it } from "vite-plus/test";
 import { createJali, memoryLocation, memoryStorage, row } from "@jali/core";
 import { JaliRoot, definePane, type JaliIconProps } from "@jali/react";
 import { defaultIcons } from "@jali/react/icons";
@@ -24,12 +24,21 @@ const make = () =>
 const HostClose = ({ size }: JaliIconProps) => <svg data-testid="host-close" width={size} />;
 const isJali = (el: Element | null) => el?.hasAttribute("data-jali-icon") ?? false;
 
+// jsdom has no layout: the workspace is told its size, so the two notes sit side by side (one pane alone has no
+// tuck or maximise).
+const size = { clientWidth: 1200, clientHeight: 800 };
 beforeAll(() => {
   globalThis.ResizeObserver ??= class {
     observe() {}
     unobserve() {}
     disconnect() {}
   } as unknown as typeof ResizeObserver;
+  for (const [k, v] of Object.entries(size))
+    Object.defineProperty(HTMLElement.prototype, k, { configurable: true, get: () => v });
+});
+afterAll(() => {
+  for (const k of Object.keys(size))
+    delete (HTMLElement.prototype as unknown as Record<string, unknown>)[k];
 });
 afterEach(cleanup);
 
@@ -38,7 +47,7 @@ describe("icons", () => {
     render(<JaliRoot jali={make()} icons={{ close: HostClose }} />);
     const close = screen.getAllByRole("button", { name: "Close Note 1" })[0]!;
     expect(within(close).getByTestId("host-close")).toBeTruthy();
-    const tuck = screen.getAllByRole("button", { name: "Tuck Note 1" })[0]!;
+    const tuck = screen.getAllByRole("button", { name: /^Tuck/ })[0]!;
     expect(isJali(tuck.querySelector("svg"))).toBe(true);
     // A kind without an icon gets the default kind icon, a square.
     const header = close.closest(".jali-pane-header")!;

@@ -77,7 +77,7 @@ test.describe("tuck and put back", () => {
     const before = await lab.snap();
     await lab.tuck("customer").click();
     const tab = lab.tab(/customer 1/);
-    await expect(tab).toHaveAttribute("aria-keyshortcuts", "Delete Backspace");
+    await expect(tab).toHaveAttribute("aria-keyshortcuts", "Delete Backspace Shift+F10");
     await expect(tab).toHaveAttribute(
       "aria-description",
       /^Tucked here\. (⌘K ⌘\]|Ctrl\+K Ctrl\+\]) puts it back\. Delete closes it\.$/,
@@ -129,7 +129,7 @@ test.describe("tuck and put back", () => {
     await lab.expectSnap(before, "after ⌘K ⌘Z");
   });
 
-  test("the last pane: Tuck is disabled with a truthful tooltip and announcement", async ({
+  test("the last pane: no Tuck button (a lone pane is quiet), and ⌘K ⌘[ says why", async ({
     lab,
     page,
   }) => {
@@ -137,11 +137,7 @@ test.describe("tuck and put back", () => {
     await page.getByRole("button", { name: "Close order 1", exact: true }).click();
     await page.getByRole("button", { name: "Close customer 1", exact: true }).click();
     await expect.poll(() => lab.visibleCount()).toBe(1);
-    const btn = lab.tuck("orders");
-    await expect(btn).toBeDisabled();
-    expect(await btn.getAttribute("title")).toBe(
-      "orders is the only open pane and can't be tucked",
-    );
+    await expect(lab.tuck("orders")).toHaveCount(0);
     await lab.recordAnnouncements();
     await lab.pane("orders").click({ position: { x: 100, y: 300 } });
     await page.keyboard.press("ControlOrMeta+k");

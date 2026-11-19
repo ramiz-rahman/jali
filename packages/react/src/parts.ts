@@ -48,6 +48,10 @@ export const parts = {
     attributes: [
       { name: "data-single", means: "Flag: Single view (one pane at a time, with the switcher)." },
       { name: "data-zoomed", means: "Flag: a pane is maximised." },
+      {
+        name: "data-alone",
+        means: "Flag: one pane on screen, shown full-bleed with no tuck, maximise or drag.",
+      },
       { name: "data-page", means: "On a curated page: `split` or `single`, the page's mode." },
     ],
   },
@@ -58,6 +62,7 @@ export const parts = {
       { name: "data-pane", means: "The pane's id." },
       { name: "data-kind", means: "The pane's kind." },
       { name: "data-focused", means: "Flag: the focused pane." },
+      { name: "data-alone", means: "Flag: the only pane on screen (see the workspace's)." },
       { name: "data-zoomed", means: "Flag: maximised." },
       { name: "data-dragged", means: "Flag: being dragged." },
       { name: "data-drop-target", means: "Flag: the pane a drag would drop on." },

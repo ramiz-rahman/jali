@@ -4,6 +4,7 @@ import {
   besidePreview,
   roleOf,
   keepPaneFocus,
+  ALONE_CHROME,
   CHROME,
   GAP,
   SWITCHER_H,
@@ -229,6 +230,12 @@ export function Panes() {
         height: Math.max(0, area.height + GAP * 2 - switcherH),
       }
     : { left: GAP, top: GAP, width: area.width, height: area.height };
+  // One pane on screen, tiled: full-bleed and quiet, as a plain tab strip would be (ALONE_CHROME).
+  const alone = !single && !page && m.resolved.panes.filter((b) => !b.hidden).length === 1;
+  const chrome = single ? CHROME.single : alone ? ALONE_CHROME : CHROME.tiled;
+  const bleed = alone
+    ? { left: 0, top: 0, width: area.width + GAP * 2, height: area.height + GAP * 2 }
+    : inner;
   const dropBox =
     !single && dnd?.target ? m.resolved.panes.find((b) => b.id === dnd.target) : undefined;
 
@@ -242,16 +249,21 @@ export function Panes() {
       ref={ref}
       aria-label={store.messages.workspace.label}
       data-single={single ? "" : undefined}
+      data-alone={alone ? "" : undefined}
       data-zoomed={!single && view.zoomed ? "" : undefined}
       data-page={page}
     >
       {single && !page ? <PaneSwitcher panes={m.onScreen} current={currentPane(m, view)} /> : null}
-      <div className="jali-workspace-inner" style={inner}>
+      <div className="jali-workspace-inner" style={bleed}>
         {frames(m, view, mode, { width: inner.width, height: inner.height }).map((f) => (
           <PaneFrame
             key={f.node.id}
-            frame={f}
-            chrome={CHROME[mode]}
+            frame={
+              alone && !f.hidden
+                ? { ...f, rect: { x: 0, y: 0, width: bleed.width, height: bleed.height } }
+                : f
+            }
+            chrome={chrome}
             dropTarget={!single && dnd?.target === f.node.id}
           />
         ))}

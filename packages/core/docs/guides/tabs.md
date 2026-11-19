@@ -146,7 +146,7 @@ jali.on("pin", ({ pane, pinned }) => saveDocument(pane, { pinned }));
 
 Setting a tab to the value it already has is no change, so it fires no event. Your app can call `setPinned` when its own data changes, and write back from `on("pin")`, without the two calling each other in a loop.
 
-Pinned tabs stay in view while the other tabs scroll. `--jali-tab-pinned-width` caps a pinned tab's width (default 12rem); see [Theming](theming.md). When the header is narrow (under about 32rem), pinned tabs shrink to a pin and an icon, keeping their title as their name and tooltip, so the shown tab always has room. If even that does not fit, the pinned tabs scroll too.
+A tab is as wide as its title, up to `--jali-tab-max-width` (default 20rem), and a title longer than that is shortened with an ellipsis. Pinned tabs stay in view while the other tabs scroll. `--jali-tab-pinned-width` caps a pinned tab's width (default 12rem); see [Theming](theming.md). When the header is narrow (under about 32rem), pinned tabs shrink to a pin and an icon, keeping their title as their name and tooltip, so the shown tab always has room. If even that does not fit, the pinned tabs scroll too.
 
 ## Rename in place
 

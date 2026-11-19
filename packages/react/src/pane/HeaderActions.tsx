@@ -8,10 +8,12 @@ interface P {
   title: string;
   zoomed: boolean;
   chrome: Chrome;
+  /** The header shows a tab strip. */
+  tabs: boolean;
 }
 
 /** Tuck, maximise, close: 26px targets, 4px apart. Tuck is a plain minus: it puts the pane behind the pane it would join. */
-export function HeaderActions({ id, title, zoomed, chrome }: P) {
+export function HeaderActions({ id, title, zoomed, chrome, tabs }: P) {
   const icon = useJaliIcons();
   const store = useStore();
   const m = useModel();
@@ -25,9 +27,12 @@ export function HeaderActions({ id, title, zoomed, chrome }: P) {
   const node = m.pane(id);
   // A curated page's view closes back into the tabs above.
   const closeHint = store.get().page && node?.role ? t.closeViewTip : t.closeTip;
+  const canTuck = chrome.tuckable && !zoomed;
+  const showClose = chrome.closeWithTabs || !tabs;
+  if (!canTuck && !chrome.zoomable && !showClose) return null;
   return (
     <div className="jali-pane-actions">
-      {chrome.tuckable && !zoomed ? (
+      {canTuck ? (
         <button
           className="jali-icon-btn jali-act-tuck"
           aria-label={home ? tuckLabel : t.tuck(title)}
@@ -39,14 +44,16 @@ export function HeaderActions({ id, title, zoomed, chrome }: P) {
         </button>
       ) : null}
       {chrome.zoomable ? <ZoomButton id={id} title={title} zoomed={zoomed} /> : null}
-      <button
-        className="jali-icon-btn jali-act-close"
-        onClick={() => actions.close(id)}
-        aria-label={t.close(title)}
-        title={keys.withKeys(closeHint, store.keymap.label("pane.close"))}
-      >
-        <icon.close size={14} aria-hidden />
-      </button>
+      {showClose ? (
+        <button
+          className="jali-icon-btn jali-act-close"
+          onClick={() => actions.close(id)}
+          aria-label={t.close(title)}
+          title={keys.withKeys(closeHint, store.keymap.label("pane.close"))}
+        >
+          <icon.close size={14} aria-hidden />
+        </button>
+      ) : null}
     </div>
   );
 }
