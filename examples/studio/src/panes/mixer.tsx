@@ -38,8 +38,7 @@ function Mixer({ params, paused, openHere }: PaneProps<typeof mixerParams>) {
   const playing = useTransport((s) => s.playing && s.session === params.session);
   const loading = useTransport((s) => s.session === params.session && s.status === "loading");
 
-  // "idle", not undefined: undefined leaves the last report standing (FINDINGS.md).
-  useActivity(loading ? "loading" : playing ? "working" : "idle");
+  useActivity(loading ? "loading" : playing ? "working" : undefined);
   useCommands([
     {
       id: "reset",

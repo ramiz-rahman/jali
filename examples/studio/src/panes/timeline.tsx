@@ -57,8 +57,7 @@ function TimelineBody({ paused, view }: PaneProps<typeof timelineParams> & { vie
     [selection, session.id],
   );
 
-  // "idle", not undefined: undefined leaves "loading" standing once the music has rendered (FINDINGS.md).
-  useActivity(loading ? "loading" : "idle");
+  useActivity(loading ? "loading" : undefined);
 
   const lanes = useMemo(() => {
     const total = TRACKS.reduce((s, t) => s + LANE_WEIGHT[t.id]!, 0);
