@@ -1103,3 +1103,10 @@
     box-shadow: inset 0 0 0 1px var(--paper-rule);
   }
 }
+
+@layer app {
+  /* The printed "playing" sits at the cartridge's foot: the voices' line makes room for it. */
+  .lib-row[data-live] .lib-meta {
+    padding-right: 58px;
+  }
+}
