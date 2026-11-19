@@ -94,7 +94,7 @@ function TimelineBody({ paused, view }: PaneProps<typeof timelineParams> & { vie
 
       // The ruler: timecodes printed on its top row, a long tick for each and a short one every second; the flags'
       // row below them.
-      g.font = `500 10px ${getComputedStyle(canvas.current!).getPropertyValue("--font-readout")}`;
+      g.font = `500 11px ${getComputedStyle(canvas.current!).getPropertyValue("--font-readout")}`;
       g.textBaseline = "middle";
       const every = width / session.duration < 9 ? 20 : 10;
       const perSecond = width / session.duration >= 6;

@@ -18,9 +18,9 @@
     gap: 8px;
     margin: 0;
     font-family: var(--jali-font-mono);
-    font-size: var(--st-label);
+    font-size: var(--type-legend);
     font-weight: 500;
-    letter-spacing: 0.04em;
+    letter-spacing: var(--track-legend);
     text-transform: lowercase;
     color: var(--legend);
   }
@@ -41,7 +41,7 @@
   }
   .toolbar-note {
     font-family: var(--jali-font-mono);
-    font-size: 11px;
+    font-size: var(--type-legend);
     color: var(--legend);
     white-space: nowrap;
   }
@@ -58,7 +58,7 @@
     padding: 0 6px;
     border-radius: var(--corner);
     font-family: var(--jali-font-mono);
-    font-size: 10.5px;
+    font-size: var(--type-fine);
     text-transform: lowercase;
     white-space: nowrap;
     color: var(--paper-dim);
@@ -85,7 +85,7 @@
     align-items: center;
     gap: 6px;
     font-family: var(--jali-font-mono);
-    font-size: 11px;
+    font-size: var(--type-legend);
     color: var(--st-signal-ink);
     white-space: nowrap;
   }
@@ -113,7 +113,7 @@
     padding: 6px 6px 6px 12px;
     border-radius: var(--corner);
     font-family: var(--jali-font-mono);
-    font-size: 11px;
+    font-size: var(--type-legend);
     color: var(--legend);
     background: light-dark(rgb(0 0 0 / calc(0.05 * var(--sh))), rgb(0 0 0 / calc(0.3 * var(--sh))));
     box-shadow: inset 0 1px 2px rgb(0 0 0 / calc(0.14 * var(--sh)));
@@ -162,7 +162,7 @@
     border-radius: var(--corner);
     white-space: normal;
     font-family: var(--jali-font);
-    font-size: 14px;
+    font-size: var(--type-body);
     text-align: left;
   }
   /* Three states, three marks: the chosen cartridge is latched with its lamp steady; the one playing pulses its
@@ -211,21 +211,18 @@
   }
   .lib-show {
     font-family: var(--jali-font);
-    font-size: 11px;
+    font-size: var(--type-legend);
     font-weight: 500;
-    letter-spacing: 0.03em;
+    letter-spacing: var(--track-legend);
     color: var(--paper-dim);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    line-height: var(--lead-tight);
   }
+  /* A session's name is never cut: it takes a second line when the pane is narrow. */
   .lib-title {
     font-weight: 600;
-    font-size: 15px;
-    letter-spacing: 0;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    font-size: var(--type-title);
+    line-height: var(--lead-tight);
+    text-wrap: balance;
   }
   .lib-wave {
     height: 34px;
@@ -245,7 +242,7 @@
     align-items: center;
     gap: 6px;
     padding: 0 2px;
-    font-size: 12px;
+    font-size: var(--type-control);
     color: var(--legend);
     min-width: 0;
   }
@@ -266,7 +263,7 @@
     right: 12px;
     bottom: 11px;
     font-family: var(--jali-font);
-    font-size: 11px;
+    font-size: var(--type-legend);
     font-weight: 600;
     color: var(--st-signal-ink);
     background: inherit;
@@ -334,9 +331,9 @@
     border: 0;
     background: none;
     font-family: var(--jali-font-mono);
-    font-size: 11.5px;
+    font-size: var(--type-legend);
     font-weight: 500;
-    letter-spacing: 0.02em;
+    letter-spacing: var(--track-print);
     color: var(--paper-dim);
     cursor: text;
   }
@@ -366,7 +363,7 @@
     background: none;
     color: var(--paper-dim);
     font-family: var(--jali-font-mono);
-    font-size: 11px;
+    font-size: var(--type-legend);
     text-align: right;
     cursor: pointer;
   }
@@ -377,8 +374,8 @@
   .tr-text {
     margin: 0;
     max-width: 68ch;
-    font-size: 16px;
-    line-height: 1.65;
+    font-size: var(--type-title);
+    line-height: var(--lead-read);
     color: var(--paper-ink);
     text-wrap: pretty;
   }
@@ -445,7 +442,7 @@
     padding-top: 14px;
   }
   .clip-range {
-    font-size: 11.5px;
+    font-size: var(--type-legend);
     color: var(--legend);
   }
   .clip-wave {
@@ -461,7 +458,7 @@
   }
   .clip-stats {
     margin-left: auto;
-    font-size: 11px;
+    font-size: var(--type-legend);
     color: var(--legend);
   }
   /* Speaker and track: an LCD window. */
@@ -482,14 +479,14 @@
   }
   .clip-fields dt {
     font-family: var(--jali-font-mono);
-    font-size: 10.5px;
+    font-size: var(--type-fine);
     text-transform: lowercase;
     color: var(--lcd-dim);
   }
   .clip-fields dd {
     margin: 0;
     font-family: var(--jali-font-mono);
-    font-size: 13px;
+    font-size: var(--type-body);
     min-width: 0;
     white-space: nowrap;
     overflow: hidden;
@@ -521,15 +518,15 @@
     margin-block: 0;
     padding: 12px 14px;
     border-left: 3px solid transparent;
-    font-size: 15px;
-    line-height: 1.6;
+    font-size: var(--type-title);
+    line-height: var(--lead-read);
   }
   .clip-text[data-corrected] {
     border-left-color: var(--st-signal);
   }
   .clip-text footer {
     margin-top: 6px;
-    font-size: 12px;
+    font-size: var(--type-control);
     color: var(--paper-dim);
   }
   .clip-note {
@@ -569,7 +566,7 @@
     color: #c2cab9;
   }
   .mk-time {
-    font-size: 12px;
+    font-size: var(--type-control);
     color: var(--lcd-dim);
   }
   /* The marker just passed: an arrow before it, and bold. */
@@ -586,7 +583,7 @@
     translate: 0 -50%;
   }
   .mk-label {
-    font-size: 13px;
+    font-size: var(--type-body);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -644,9 +641,9 @@
   .tl-track {
     grid-column: 1;
     font-family: var(--jali-font);
-    font-size: 10px;
+    font-size: var(--type-fine);
     font-weight: 600;
-    letter-spacing: 0.04em;
+    letter-spacing: var(--track-legend);
     text-transform: lowercase;
     color: var(--lcd-dim);
     white-space: nowrap;
@@ -656,7 +653,7 @@
   }
   .tl-who {
     grid-column: 1;
-    font-size: 12px;
+    font-size: var(--type-legend);
     font-weight: 600;
     white-space: nowrap;
     overflow: hidden;
@@ -676,8 +673,8 @@
     color: var(--ink);
   }
   .tl-labels li[data-compact] .tl-who {
-    font-size: 11.5px;
-    line-height: 1.2;
+    font-size: var(--type-legend);
+    line-height: var(--lead-tight);
   }
   .tl-labels li[data-compact] .tl-ms {
     display: none;
@@ -697,8 +694,8 @@
     height: 14px;
     border-radius: var(--corner);
     font-family: var(--jali-font);
-    font-size: 9px;
-    font-weight: 700;
+    font-size: var(--type-fine);
+    font-weight: 600;
     color: var(--lcd-dim);
     box-shadow: inset 0 0 0 1px var(--lcd-ghost);
   }
@@ -843,9 +840,9 @@
   }
   .mx-label {
     font-family: var(--jali-font);
-    font-size: 10.5px;
+    font-size: var(--type-fine);
     font-weight: 600;
-    letter-spacing: 0.04em;
+    letter-spacing: var(--track-legend);
     text-transform: lowercase;
     color: var(--lcd-dim);
     white-space: nowrap;
@@ -853,7 +850,7 @@
     text-overflow: ellipsis;
   }
   .mx-name {
-    font-size: 12.5px;
+    font-size: var(--type-legend);
     font-weight: 600;
     white-space: nowrap;
     overflow: hidden;
@@ -883,7 +880,7 @@
   }
   .mx-pan-legend {
     font-family: var(--jali-font);
-    font-size: 11px;
+    font-size: var(--type-legend);
     color: var(--legend);
     white-space: nowrap;
   }
@@ -906,7 +903,7 @@
     align-items: center;
     gap: 6px;
     font-family: var(--font-readout);
-    font-size: 11px;
+    font-size: var(--type-legend);
     color: var(--legend);
   }
   .mx-clip[data-on] .led {
@@ -961,7 +958,7 @@
     right: 6px;
     translate: 0 -50%;
     font-family: var(--font-readout);
-    font-size: 9.5px;
+    font-size: var(--type-fine);
     line-height: 1;
     color: var(--legend);
   }
@@ -992,12 +989,12 @@
     padding: 5px 8px;
     box-sizing: border-box;
     font-family: var(--font-readout);
-    font-size: 13px;
+    font-size: var(--type-body);
     text-align: center;
     white-space: nowrap;
   }
   .mx-db small {
-    font-size: 10px;
+    font-size: var(--type-fine);
     color: var(--scr-dim);
   }
   .mx-keys {
@@ -1010,7 +1007,7 @@
     height: 34px;
     padding: 0 6px;
     gap: 5px;
-    font-size: 11.5px;
+    font-size: var(--type-legend);
   }
   .mx-keys .mx-btn-wide {
     flex: 1;
@@ -1077,7 +1074,7 @@
       text-transform: none;
     }
     .mx-keys .mx-btn::after {
-      font-size: 11.5px;
+      font-size: var(--type-legend);
     }
     .mx-keys .mx-btn[data-role="mute"]::after {
       content: "M";
@@ -1086,7 +1083,7 @@
       content: "S";
     }
     .mx-keys .mx-btn-wide {
-      font-size: 11px;
+      font-size: var(--type-legend);
     }
   }
 
@@ -1118,12 +1115,12 @@
   /* The transcript's segment keys: three keysets with gutters between them. */
   /* Long reading in Chakra Petch: a little larger and looser than the Plex it replaced. */
   .tr-text {
-    font-size: 17px;
-    line-height: 1.62;
-    letter-spacing: 0.005em;
+    font-size: var(--type-large);
+    line-height: var(--lead-read);
+    letter-spacing: var(--track-print);
   }
   .clip-text {
-    font-size: 15.5px;
+    font-size: var(--type-title);
   }
 }
 
@@ -1198,7 +1195,7 @@
     max-width: 66ch;
   }
   .tr-time {
-    font-size: 11px;
+    font-size: var(--type-legend);
     padding-top: 6px;
   }
   @container (max-width: 460px) {
@@ -1228,7 +1225,7 @@
     gap: 8px;
     padding: 8px 14px;
     font-family: var(--font-readout);
-    font-size: 12px;
+    font-size: var(--type-control);
     color: var(--scr-dim);
   }
   .empty-screen .led {
@@ -1238,15 +1235,15 @@
     color: var(--scr-hot);
   }
   .empty-title {
-    font-size: 14px;
+    font-size: var(--type-body);
     font-weight: 600;
     color: var(--ink);
   }
   .empty p {
     max-width: 34ch;
     margin: 0;
-    font-size: 12.5px;
-    line-height: 1.45;
+    font-size: var(--type-control);
+    line-height: var(--lead-body);
   }
   .mk-rows + .empty,
   .markers .empty {
@@ -1310,7 +1307,7 @@
     background: none;
     color: var(--lcd-ink);
     font-family: var(--font-readout);
-    font-size: 12.5px;
+    font-size: var(--type-control);
     text-align: left;
     cursor: pointer;
   }
@@ -1455,7 +1452,7 @@
     gap: 0;
     padding: 0 10px;
     font-family: var(--font-readout);
-    font-size: 11.5px;
+    font-size: var(--type-legend);
     line-height: 1;
     color: var(--lcd-dim);
     box-shadow:
@@ -1463,7 +1460,7 @@
       inset 0 0 0 1px rgb(0 0 0 / calc(0.22 * var(--sh)));
   }
   .tr-tray .lcd.tr-counter b {
-    font-size: 11.5px;
+    font-size: var(--type-legend);
     font-weight: 500;
     color: var(--lcd-ink);
   }
@@ -1487,9 +1484,9 @@
     gap: 10px;
     margin: 14px 0 2px 56px;
     font-family: var(--jali-font);
-    font-size: 10.5px;
+    font-size: var(--type-fine);
     font-weight: 600;
-    letter-spacing: 0.12em;
+    letter-spacing: var(--track-wide);
     text-transform: uppercase;
     color: var(--paper-dim);
   }
@@ -1507,7 +1504,7 @@
     margin-right: 6px;
     font-family: var(--font-readout);
     font-weight: 600;
-    letter-spacing: 0.04em;
+    letter-spacing: var(--track-legend);
     text-transform: none;
     color: var(--paper-ink);
   }
@@ -1559,8 +1556,8 @@
   }
   .cr-sheet {
     padding: 14px 16px;
-    font-size: 13px;
-    line-height: 1.55;
+    font-size: var(--type-body);
+    line-height: var(--lead-body);
   }
   .cr-head {
     display: grid;
@@ -1569,11 +1566,11 @@
   }
   .cr-head h3 {
     margin: 0;
-    font-size: 15px;
+    font-size: var(--type-title);
     font-weight: 600;
   }
   .cr-source {
-    font-size: 11.5px;
+    font-size: var(--type-legend);
     color: var(--paper-dim);
   }
   .cr-credit,
@@ -1596,9 +1593,9 @@
     gap: 8px;
   }
   .cr-fields dt {
-    font-size: 10.5px;
+    font-size: var(--type-fine);
     font-weight: 600;
-    letter-spacing: 0.08em;
+    letter-spacing: var(--track-wide);
     text-transform: uppercase;
     color: var(--paper-dim);
     padding-top: 2px;
@@ -1617,7 +1614,7 @@
   }
   .cr-foot {
     margin: 0;
-    font-size: 11.5px;
+    font-size: var(--type-legend);
     color: var(--legend);
   }
   .lib-licence {
@@ -1663,8 +1660,8 @@
     field-sizing: content;
     resize: none;
     padding: 9px 11px;
-    font-size: 13.5px;
-    line-height: 1.5;
+    font-size: var(--type-body);
+    line-height: var(--lead-body);
     outline: none;
     box-shadow: inset 0 0 0 1px var(--paper-rule);
   }
@@ -1704,7 +1701,7 @@
     border-radius: var(--corner);
     background: light-dark(rgb(255 255 255 / 0.45), rgb(255 255 255 / 0.035));
     font-family: var(--jali-font-mono);
-    font-size: 11px;
+    font-size: var(--type-legend);
     color: var(--legend);
     white-space: nowrap;
     overflow: hidden;

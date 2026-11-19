@@ -111,6 +111,10 @@ One material, one light, a few depths. The tokens are in `src/styles/tokens.css`
 
 One slab, flush to the window's top, left and right, 104px tall on a 4px grid, with no printed labels: the groups are told apart by the bare slab between them (28px, less as the window narrows) and the shape of their pockets. Every pocket is 76px tall and centred, 14px from the slab's top and foot; every key in it is 68px tall (62px wide, the layout keys 84px), with 22px glyphs and 13px legends. Only the slab's foot is an edge: a lit chamfer, a dark arris and a short contact shadow on the desk. The name is engraved straight into the metal; the layout keys stand in one pocket; the player's display is glass in a cutout, its five transport keys in a pocket, and scrub and speed in a second pocket; the tools in a pocket. On a phone it is one taller slab in two tiers. The status line is its twin at the bottom: a foot rail flush to the bottom and sides, its top edge catching the light.
 
+### Type
+
+Two faces: Chakra Petch for everything printed, IBM Plex Mono for numbers that tick and for the screens. Every size in the app is one of eight, named for what the text is for (`--type-fine` 11px, `--type-legend` 12, `--type-control` 13, `--type-body` 14, `--type-title` 16, `--type-large` 17, `--type-display-small` 22, `--type-display` 24), with three weights (400, 500, 600), four trackings and three leadings beside them. They are defined, with what each is for, in `src/styles/tokens.css`; no rule sets a size of its own. Nothing is smaller than 11px. A session's name is never cut short: it takes a second line.
+
 ### Controls at the top or the bottom
 
 ⌘K "Controls: move to the bottom / top" moves the control slab to the window's bottom edge, like a console's front panel under the work, and the status line up to the top in its place (`src/ui/controlsPlace.ts`, `data-controls` on `<html>`). The choice is remembered on this device. Only the look moves: the slab stays first in the page for the keyboard and for screen readers.

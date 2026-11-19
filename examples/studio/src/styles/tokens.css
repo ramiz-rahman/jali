@@ -123,7 +123,41 @@
   --st-wave-idle: var(--scr-idle);
   --st-wave-music: var(--scr-music);
   --st-wave-marked: var(--scr-dim);
-  --st-label: 11px;
+
+  /*
+   * ---------- type ----------
+   * Two faces (above): Chakra Petch for everything printed, IBM Plex Mono for numbers that tick and for the
+   * screens. Every size, tracking and leading in the app is one of these; nothing sets a size of its own.
+   *
+   * Sizes, by what the text is for:
+   *   fine           the smallest print: a scale's numbers, a second legend on a key, a tag
+   *   legend         what a control or a group is called: key legends, pane labels, field labels, hints
+   *   control        what a control says or shows: a key's word, a readout's value, a list's second line
+   *   body           what is read in a list or a form: rows, pane titles, fields, notes
+   *   title          what a thing is named: a session, a segment's text, a heading
+   *   large          the transcript, set to be read; and a dial's value
+   *   display-small  the name on the slab, and the clock when its glass is narrow
+   *   display        the clock
+   * Weights: 400 for reading, 500 for print on controls, 600 for names and what is selected. No others.
+   * Tracking: print is opened a little (Chakra Petch is tight when small), legends a little more, the few
+   * spaced-out words most; the monospaced readouts are closed up a touch.
+   * Leading: 1 on a control's single line, tight for a name, body for lists and forms, read for the transcript.
+   */
+  --type-fine: 11px;
+  --type-legend: 12px;
+  --type-control: 13px;
+  --type-body: 14px;
+  --type-title: 16px;
+  --type-large: 17px;
+  --type-display-small: 22px;
+  --type-display: 24px;
+  --track-print: 0.02em;
+  --track-legend: 0.04em;
+  --track-wide: 0.08em;
+  --track-readout: -0.01em;
+  --lead-tight: 1.2;
+  --lead-body: 1.5;
+  --lead-read: 1.6;
   /* Mechanisms move, they don't spring: a short travel that stops dead. */
   --travel: 70ms cubic-bezier(0.45, 0, 0.15, 1);
 }
@@ -211,7 +245,6 @@
   --grid: 4px;
   /* Legend sizes: group labels, key legends, pane titles. */
   --t-label: 10.5px;
-  --t-legend: 13px;
   --t-title: 13px;
 }
 [data-theme="dark"],

@@ -8,8 +8,8 @@
   }
   body {
     font-family: var(--jali-font);
-    font-size: 14px;
-    line-height: 1.45;
+    font-size: var(--type-body);
+    line-height: var(--lead-body);
     background: var(--jali-canvas);
     color: var(--ink);
     -webkit-font-smoothing: antialiased;
@@ -51,12 +51,12 @@
   }
   .mono {
     font-family: var(--font-readout);
-    letter-spacing: -0.01em;
+    letter-spacing: var(--track-readout);
     font-variant-numeric: tabular-nums;
   }
   kbd {
     font-family: var(--jali-font-mono);
-    font-size: 10.5px;
+    font-size: var(--type-fine);
     color: inherit;
     opacity: 0.75;
   }
@@ -161,8 +161,8 @@
   .badge-name {
     font-family: var(--jali-font);
     font-weight: 600;
-    font-size: 22px;
-    letter-spacing: 0.08em;
+    font-size: var(--type-display-small);
+    letter-spacing: var(--track-wide);
     color: light-dark(#4f4f4b, #a5a5aa);
     text-shadow:
       0 -1px 0 light-dark(rgb(0 0 0 / calc(0.18 * var(--sh))), rgb(0 0 0 / calc(0.7 * var(--sh)))),
@@ -231,7 +231,7 @@
   }
   .pd-title {
     font-family: var(--jali-font);
-    font-size: 14px;
+    font-size: var(--type-body);
     font-weight: 500;
     color: var(--scr-ink);
     white-space: nowrap;
@@ -241,7 +241,7 @@
   }
   .pd-show {
     flex: none;
-    font-size: 10.5px;
+    font-size: var(--type-fine);
     color: var(--scr-dim);
     white-space: nowrap;
   }
@@ -253,18 +253,18 @@
     font-variant-numeric: tabular-nums;
   }
   .tp-now {
-    font-size: 25px;
-    letter-spacing: 0.02em;
+    font-size: var(--type-display);
+    letter-spacing: var(--track-print);
     color: var(--scr-ink);
     text-shadow: 0 0 10px rgb(255 255 255 / 0.18);
   }
   .pd-total {
-    font-size: 11px;
+    font-size: var(--type-legend);
     color: var(--scr-dim);
   }
   .pd-state {
     margin-left: auto;
-    font-size: 11px;
+    font-size: var(--type-legend);
     color: var(--scr-hot);
     white-space: nowrap;
   }
@@ -297,7 +297,7 @@
       display: none;
     }
     .tp-now {
-      font-size: 21px;
+      font-size: var(--type-display-small);
     }
   }
   @container (max-width: 176px) {
@@ -305,7 +305,7 @@
       display: none;
     }
     .pd-title {
-      font-size: 12px;
+      font-size: var(--type-legend);
     }
   }
   @container (max-width: 140px) {
@@ -345,13 +345,13 @@
     left: 12px;
     top: 12px;
     font-family: var(--font-readout);
-    font-size: 10px;
+    font-size: var(--type-fine);
     color: var(--legend);
     pointer-events: none;
     white-space: nowrap;
   }
   .rotary-value {
-    font-size: 17px;
+    font-size: var(--type-large);
     font-weight: 500;
     top: 10px;
     color: var(--cap-ink);
@@ -459,8 +459,8 @@
     padding: 0 20px;
     color: var(--legend);
     font-family: var(--jali-font);
-    font-size: 13px;
-    letter-spacing: 0.02em;
+    font-size: var(--type-body);
+    letter-spacing: var(--track-print);
     min-width: 0;
   }
   .status :is(.maker, .built-with) {
@@ -517,7 +517,7 @@
   .pd-title.pd-alert {
     color: var(--scr-hot);
     font-family: var(--font-readout);
-    font-size: 12px;
+    font-size: var(--type-control);
   }
 }
 

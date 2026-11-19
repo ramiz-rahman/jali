@@ -42,6 +42,9 @@
   }
   /* The focused device is told by the lamp in its header alone (chrome.css): no ring, so the plates stay clean.
      Keyboard focus inside it still shows on the control that has it. */
+  .jali-pane:focus-visible {
+    outline: none;
+  }
 
   /* ---------- tray ---------- */
   :where(.tray) {
@@ -87,9 +90,9 @@
     background: linear-gradient(180deg, var(--cap-1), var(--cap-2));
     color: var(--cap-ink);
     font-family: var(--jali-font-mono);
-    font-size: 12.5px;
+    font-size: var(--type-control);
     font-weight: 500;
-    letter-spacing: 0.02em;
+    letter-spacing: var(--track-print);
     white-space: nowrap;
     cursor: pointer;
     user-select: none;
@@ -124,7 +127,7 @@
     min-width: 30px;
     padding: 0 10px;
     border-radius: var(--corner);
-    font-size: 11.5px;
+    font-size: var(--type-legend);
   }
   :where(.key-m) {
     --wall: 4px;
@@ -154,8 +157,8 @@
     padding: 0 10px 9px;
   }
   :where(.key-sub) {
-    font-size: 9.5px;
-    letter-spacing: 0.04em;
+    font-size: var(--type-fine);
+    letter-spacing: var(--track-legend);
     color: var(--legend);
   }
   /* Pressed: down by the height of its wall. */
@@ -440,9 +443,9 @@
   /* ---------- legend ---------- */
   :where(.legend, .pane-label) {
     font-family: var(--jali-font-mono);
-    font-size: var(--st-label);
+    font-size: var(--type-legend);
     font-weight: 500;
-    letter-spacing: 0.04em;
+    letter-spacing: var(--track-legend);
     text-transform: lowercase;
     color: var(--legend);
     white-space: nowrap;
@@ -493,10 +496,10 @@
     bottom: 10px;
     text-align: center;
     font-family: var(--jali-font);
-    font-size: var(--t-legend);
+    font-size: var(--type-control);
     font-weight: 500;
     line-height: 1;
-    letter-spacing: 0.03em;
+    letter-spacing: var(--track-legend);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -826,8 +829,8 @@
   .tr-editor {
     display: block;
     width: 100%;
-    font-size: 17px;
-    line-height: 1.6;
+    font-size: var(--type-large);
+    line-height: var(--lead-read);
     resize: none;
     overflow: hidden;
   }
@@ -835,7 +838,7 @@
   .mk-field {
     height: 28px;
     padding-block: 0;
-    font-size: 12.5px;
+    font-size: var(--type-control);
   }
   .mk-field {
     min-width: 0;
