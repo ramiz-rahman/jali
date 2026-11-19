@@ -179,12 +179,7 @@ function ClipBody({
         ) : saved ? (
           <span className="toolbar-note">Saved</span>
         ) : null}
-        <button
-          type="button"
-          className="key"
-          disabled={!dirty}
-          onClick={() => setNote(null)}
-        >
+        <button type="button" className="key" disabled={!dirty} onClick={() => setNote(null)}>
           Revert
         </button>
         <button type="button" className="key key-accent" disabled={!dirty} onClick={saveNote}>

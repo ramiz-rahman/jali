@@ -153,8 +153,7 @@ function Strip({ track, view }: { track: Track; view: SessionView }) {
           onMouseDown={(e) => e.preventDefault()}
           onClick={() => edits.setChannel(session, track.id, { mute: !ch.mute })}
         >
-          <span className="led" aria-hidden />
-          M
+          <span className="led" aria-hidden />M
         </button>
         <button
           type="button"
@@ -166,8 +165,7 @@ function Strip({ track, view }: { track: Track; view: SessionView }) {
           onMouseDown={(e) => e.preventDefault()}
           onClick={() => edits.setChannel(session, track.id, { solo: !ch.solo })}
         >
-          <span className="led" aria-hidden />
-          S
+          <span className="led" aria-hidden />S
         </button>
       </div>
     </section>

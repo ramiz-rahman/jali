@@ -19,7 +19,14 @@
  */
 @layer app {
   /* ---------- housing ---------- */
-  :where(.device, .jali-pane, .jali-peek, .jali-tab-menu, .jali-scrim > [role="dialog"], .jali-scrim > [role="alertdialog"]) {
+  :where(
+    .device,
+    .jali-pane,
+    .jali-peek,
+    .jali-tab-menu,
+    .jali-scrim > [role="dialog"],
+    .jali-scrim > [role="alertdialog"]
+  ) {
     background: linear-gradient(180deg, var(--body-1), var(--body-2));
     border: 0;
     border-radius: var(--corner);
@@ -58,17 +65,17 @@
 
   /* ---------- key ---------- */
   :where(
-      .key,
-      .lib-row,
-      .jali-tab,
-      .jali-tab-add,
-      .jali-tab-more,
-      .jali-shelf-chip,
-      .jali-switch-item,
-      .jali-pane-actions button,
-      .jali-follow-toggle,
-      .jali-scrim [role="alertdialog"] button
-    ) {
+    .key,
+    .lib-row,
+    .jali-tab,
+    .jali-tab-add,
+    .jali-tab-more,
+    .jali-shelf-chip,
+    .jali-switch-item,
+    .jali-pane-actions button,
+    .jali-follow-toggle,
+    .jali-scrim [role="alertdialog"] button
+  ) {
     --wall: 3px;
     --press: 0px;
     position: relative;
@@ -107,15 +114,15 @@
   }
   /* Sizes: small (header buttons, tabs, chips, strip keys), unit (the top row), transport. */
   :where(
-      .key-s,
-      .jali-tab,
-      .jali-tab-add,
-      .jali-tab-more,
-      .jali-shelf-chip,
-      .jali-switch-item,
-      .jali-pane-actions button,
-      .jali-follow-toggle
-    ) {
+    .key-s,
+    .jali-tab,
+    .jali-tab-add,
+    .jali-tab-more,
+    .jali-shelf-chip,
+    .jali-switch-item,
+    .jali-pane-actions button,
+    .jali-follow-toggle
+  ) {
     --wall: 2px;
     height: 30px;
     min-width: 30px;
@@ -171,7 +178,11 @@
     --press: var(--wall);
   }
   :where(.key, .jali-tab, .jali-pane-actions button):hover:not(:disabled) {
-    background: linear-gradient(180deg, var(--cap-1), color-mix(in srgb, var(--cap-2) 80%, var(--cap-1)));
+    background: linear-gradient(
+      180deg,
+      var(--cap-1),
+      color-mix(in srgb, var(--cap-2) 80%, var(--cap-1))
+    );
   }
   :where(.key):disabled {
     cursor: default;
@@ -180,13 +191,13 @@
 
   /* ---------- latch ---------- */
   :where(
-      .key[aria-pressed="true"],
-      .key[data-on],
-      .lib-row[aria-selected="true"],
-      .jali-tab[aria-selected="true"],
-      .jali-switch-item[aria-selected="true"],
-      .jali-follow-toggle[aria-pressed="true"]
-    ) {
+    .key[aria-pressed="true"],
+    .key[data-on],
+    .lib-row[aria-selected="true"],
+    .jali-tab[aria-selected="true"],
+    .jali-switch-item[aria-selected="true"],
+    .jali-follow-toggle[aria-pressed="true"]
+  ) {
     --press: calc(var(--wall) - 1px);
     background: linear-gradient(180deg, var(--cap-2), color-mix(in srgb, var(--cap-2) 86%, #000));
     box-shadow:
@@ -217,13 +228,13 @@
     right: 8px;
   }
   :where(
-      .key[aria-pressed="true"] .led,
-      .key[data-on] .led,
-      .led[data-on],
-      .jali-tab[aria-selected="true"]::before,
-      .jali-switch-item[aria-selected="true"]::before,
-      .jali-follow-toggle[aria-pressed="true"]::before
-    ) {
+    .key[aria-pressed="true"] .led,
+    .key[data-on] .led,
+    .led[data-on],
+    .jali-tab[aria-selected="true"]::before,
+    .jali-switch-item[aria-selected="true"]::before,
+    .jali-follow-toggle[aria-pressed="true"]::before
+  ) {
     background: var(--led-on);
     box-shadow:
       0 0 0 1px rgb(255 79 0 / 0.25),
@@ -368,7 +379,11 @@
     width: 78%;
     height: 78%;
     border-radius: 50%;
-    background: radial-gradient(circle at 40% 30%, light-dark(#ffffff, #4a4a4e), light-dark(#dededa, #2a2a2d) 70%);
+    background: radial-gradient(
+      circle at 40% 30%,
+      light-dark(#ffffff, #4a4a4e),
+      light-dark(#dededa, #2a2a2d) 70%
+    );
     box-shadow:
       inset 0 0 0 1px var(--body-rim),
       inset 0 -2px 3px rgb(0 0 0 / 0.12);
@@ -381,7 +396,11 @@
     height: 9px;
     translate: -50% 0;
     border-radius: 50%;
-    background: radial-gradient(circle at 50% 65%, light-dark(#f4f4f1, #3a3a3e), light-dark(#c4c4bf, #1a1a1c));
+    background: radial-gradient(
+      circle at 50% 65%,
+      light-dark(#f4f4f1, #3a3a3e),
+      light-dark(#c4c4bf, #1a1a1c)
+    );
     box-shadow: inset 0 1px 2px rgb(0 0 0 / 0.35);
   }
 
@@ -510,5 +529,12 @@
     .knob-body {
       transition: none;
     }
+  }
+}
+
+@layer app {
+  /* A key's glyph keeps its size when the key is squeezed. */
+  :where(.key) :where(svg) {
+    flex: none;
   }
 }

@@ -137,6 +137,28 @@ Studio was restyled so that each pane reads as a device on a desk: faceplates, k
 - Give pressable chrome a `data-pressed` while the pointer is down, and toggles `aria-pressed` everywhere they latch.
 - Document which structural selectors are safe, or say plainly that only the listed parts are, so an app knows what will break.
 
+## Theming gaps, consolidated (for the next change to Jali's API)
+
+The deeper restyle (one tiled top row, one set of parts for every button-like thing, square corners everywhere) needed the items below. For each: the part, what Studio used, and the API that would make it clean. Everything else went through `--jali-*` tokens and the public parts with no trouble.
+
+1. **Pane header buttons** (tuck, maximise, full screen, close). Used `.jali-pane-actions button`; the buttons themselves carry only private classes (`.jali-icon-btn`, `.jali-act-close`, …). Want: a public part `.jali-pane-action` with `data-action="tuck" | "zoom" | "fullscreen" | "close"`.
+2. **Keep and Following.** `.jali-follow-toggle` turned out to be the Keep button itself, not a container (the Parts reference doesn't say), and the printed "Following" is the private `.jali-follow-status`. Studio hides the status in narrow headers with `@container jali-header (max-width: 400px)`, a container name that is Jali's internal. Want: `.jali-follow-status` public, the parts' element types documented, and a public header container name or a `data-narrow` attribute on narrow headers.
+3. **The ⌘K and chooser dialog and its field.** Used `.jali-scrim > [role="dialog"]` and `.jali-scrim [role="combobox"]`. `.jali-palette` and `.jali-palette-input` exist but are not listed as parts. Want: both listed as public parts, and a token for the dialog's padding.
+4. **"Discard unsaved changes?" buttons.** Used `.jali-scrim [role="alertdialog"] button`, and `:last-of-type` to find the primary one (the only marker is the private `.is-primary`). Want: `data-role="primary" | "secondary"` on every dialog button, public.
+5. **Palette rows' key hint and group label.** Used `.jali-palette-item kbd`; the group is private `.jali-palette-group`. Want: both as public parts.
+6. **Corners Jali hard-codes.** These ignore `--jali-radius`, `--jali-radius-control` and `--jali-radius-menu`: the palette, Settings and confirm dialogs (12px), the Keep toggle (4px), a tab's close button (4px), the rename field (4px), tab menu items (5px), the shelf's chips, their inner buttons, "more" and its menu (5px), the kept badge (4px), the peek label (4px), the investigation chips (7px). Studio squared them with `:where(.jali-shelf, .jali-pane-header, .jali-peek, .jali-tab-menu, [data-jali-layer]) :where(button, input, li, kbd)` and `.jali-scrim > *`. Want: every radius in Jali's styles reads one of the radius tokens (add `--jali-radius-chip` if a fourth size is needed), so `--jali-radius*: 2px` is enough.
+7. **The gap between panes.** `GAP` is a constant (6px). Faceplates with a 3 to 4px side wall nearly touch; the top row uses a 3px gap and the panes can't match it. Want: `--jali-gap` (read by the layout's measuring too) or `createJali({ gap })`.
+8. **The pane's own shadow and focus.** To add a ring for focus, Studio repeats the whole shadow stack in `.jali-pane[data-focused]` (Jali's own focus is a 0.5px accent shadow plus border colour). Want: tokens `--jali-pane-shadow`, `--jali-pane-shadow-focused` and `--jali-pane-border`, so a theme sets them once.
+9. **Divider line.** `[data-divider]` is public; the line it lights is the private `.jali-divider-line`, coloured by `--jali-border-strong`. Want: the line as a public part, or a `--jali-divider-hover` token.
+10. **Adornments on tabs and switcher items.** A latched tab gets its lamp from `::before`, since a tab takes no children of the app's. If Jali ever uses `::before` there, the lamp breaks. Want: a documented slot (for example `tabAdornment(pane)` returning a node), or a promise that `::before` and `::after` on public parts are the app's.
+11. **Shelf menu and shelf chip internals.** `.jali-shelf-menu`, `.jali-shelf-chip-main`, `.jali-shelf-chip-put` and `.jali-shelf-more` are private; reached as `.jali-shelf button`. Want: listed as parts.
+12. **Icon sizes.** Jali passes a fixed `size` to each icon (12 to 16px by place). Hardware keys want larger glyphs in header buttons. Want: a size token per place (`--jali-icon-header`, `--jali-icon-tab`) or a size in the `icons` map.
+13. **Activity marks.** Only their colours are tokens; their shape (a dot, a spinning ring) is fixed. Studio wanted a lamp for "working". Want: activity marks as public parts with `data-activity`, so an app can draw its own.
+14. **Pressed state.** Jali's buttons have no attribute while held; `:active` covers the pointer, but a key held from the keyboard (Space, Enter on a tab) shows no travel. Want: `data-pressed` while a Jali control is held, by pointer or key.
+15. **Folded tabs' treatment.** Italic is hard-coded for `data-folded`. Fine, but a token (`--jali-tab-folded-style`) would let a hardware theme print a dotted rim instead without fighting it.
+
+Not Jali's, for the record: making the top row one flex row of blocks meant grouping elements in `display: contents` wrappers that keep their roles (`navigation` "Layouts", `group` "Transport", "Tools"). Chrome exposes those roles; it is worth testing in other browsers before relying on it.
+
 ## What worked
 
 - **Following a moment in time.** The playhead lives in the app's engine, not in Jali. Panes read it with `usePosition(paused)` or `useFrame(paused, draw)`, and `paused` was exactly the signal needed: a folded, tabbed, tucked or zoomed-past pane stops drawing, and the sound goes on.

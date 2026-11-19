@@ -45,7 +45,8 @@
   }
   .jali-pane-actions button {
     padding: 0;
-    width: 30px;
+    width: 28px;
+    min-width: 28px;
   }
   /* Following and Keep. Keep (`.jali-follow-toggle`, public) is a small latch key with its lamp (parts.css). The
      printed "Following" is not a public part (`.jali-follow-status`): it is set as a legend, and dropped in a
@@ -78,6 +79,14 @@
   .jali-tab {
     gap: 7px;
     margin-block: 0;
+    padding-inline: 9px 8px;
+  }
+  /* A narrow header gives its "+" key away first, so the shown tab keeps a little more of its name. Uses Jali's
+     internal header container name (FINDINGS.md). */
+  @container jali-header (max-width: 320px) {
+    .jali-tab-add {
+      display: none;
+    }
   }
   .jali-tab-indicator {
     display: none;

@@ -29,7 +29,11 @@ export function TopBar() {
   // the session's progress, and the tools. Groups are `display: contents`, so every block is a cell of one row.
   return (
     <header className="topbar" data-jali-chrome="">
-      <a className="block block-plate badge" href="./" aria-label="Studio, a Jali example: back to the Edit layout">
+      <a
+        className="block block-plate badge"
+        href="./"
+        aria-label="Studio, a Jali example: back to the Edit layout"
+      >
         <StudioMark />
         <span className="badge-name">studio</span>
       </a>

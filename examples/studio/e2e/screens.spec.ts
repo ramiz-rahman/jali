@@ -63,3 +63,17 @@ test("a phone", async ({ page }) => {
   await stage(page, "edit");
   await page.screenshot({ path: shot("edit-phone") });
 });
+
+// Close-ups of the top row: one row of full-height blocks at every width.
+for (const [name, width, height, dark] of [
+  ["toprow-wide", 1440, 900, false],
+  ["toprow-wide-dark", 1440, 900, true],
+  ["toprow-medium", 1100, 800, false],
+  ["toprow-phone", 390, 844, false],
+] as const) {
+  test(name, async ({ page }) => {
+    await page.setViewportSize({ width, height });
+    await stage(page, "edit", { dark });
+    await page.locator(".topbar").screenshot({ path: shot(name) });
+  });
+}

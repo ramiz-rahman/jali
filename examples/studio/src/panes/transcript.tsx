@@ -285,7 +285,12 @@ function TranscriptBody({
               <button type="button" className="key" onMouseDown={keepFocus} onClick={discard}>
                 Discard
               </button>
-              <button type="button" className="key key-accent" onMouseDown={keepFocus} onClick={save}>
+              <button
+                type="button"
+                className="key key-accent"
+                onMouseDown={keepFocus}
+                onClick={save}
+              >
                 Save <kbd>{keyHint("Mod+S")}</kbd>
               </button>
             </>
