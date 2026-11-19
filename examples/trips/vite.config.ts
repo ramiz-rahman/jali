@@ -11,8 +11,9 @@ export default defineConfig({
   cacheDir: "../../node_modules/.vite-example-trips",
   plugins: [react()],
   resolve: { conditions: ["source", ...defaultClientConditions] },
-  // React, Jali, MapLibre and the app: MapLibre alone is most of it. A demo has no routes to split by.
-  build: { chunkSizeWarningLimit: 1600 },
+  // React, Jali, MapLibre and the app in one file: about 480 kB gzipped, most of it MapLibre (its worker is a file
+  // of its own). A demo has no routes to split by.
+  build: { chunkSizeWarningLimit: 1800 },
   server: { port: 5340 },
   preview: { port: 5340 },
 });

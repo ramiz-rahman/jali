@@ -35,10 +35,10 @@ const WITHIN = [
   { value: 0.6, label: "600 m" },
   { value: 1.2, label: "1.2 km" },
   { value: 2.5, label: "2.5 km" },
-  { value: 0, label: "Any distance" },
+  { value: 0, label: "Any" },
 ];
 const PRICES = [
-  { value: -1, label: "Any price" },
+  { value: -1, label: "Any" },
   { value: 0, label: "Free" },
   { value: 10, label: "Up to €10" },
   { value: 25, label: "Up to €25" },
