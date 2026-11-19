@@ -68,6 +68,7 @@ describe("public API", () => {
       "useJaliState",
       "useLauncher",
       "usePane",
+      "usePaneAttributes",
       "usePaneState",
       "useShortcut",
       "useTheme",

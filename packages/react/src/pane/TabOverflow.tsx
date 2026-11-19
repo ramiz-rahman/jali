@@ -29,6 +29,7 @@ export function TabOverflow({
   const menu = useRef<HTMLDivElement>(null);
   const page = useUi((s) => !!s.page);
   const titles = useUi((s) => s.titles);
+  const marks = useUi((s) => s.paneAttributes);
   const dir = useUi((s) => s.dir);
 
   const close = (refocus: boolean) => {
@@ -139,6 +140,7 @@ export function TabOverflow({
                 const role = page && t.role ? roleOf(env.profile!, t.role) : undefined;
                 return (
                   <button
+                    {...marks[t.id]}
                     key={t.id}
                     role="menuitem"
                     className={`jali-tab-menu-item${t.id === active ? " is-active" : ""}`}

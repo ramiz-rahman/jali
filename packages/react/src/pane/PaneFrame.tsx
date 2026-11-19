@@ -10,7 +10,7 @@ import {
   sameFrame,
   type Frame,
 } from "@jali/core/adapter";
-import { useStore, useUi } from "../state/react";
+import { usePaneAttributesOf, useStore, useUi } from "../state/react";
 import { DropZoneLabel } from "../workspace/DropIndicator";
 import { Activity } from "./Activity";
 import { FollowControl, NotInResults } from "./FollowControl";
@@ -46,6 +46,7 @@ export const PaneFrame = memo(
     // In a curated workspace, a pane without a role was opened by following a link: it belongs to the investigation.
     const opened = page && !node.role;
     const titles = useUi((s) => s.titles);
+    const marks = usePaneAttributesOf(node.id);
     const title = titleOf(env, node, titles);
     const shows = shownTitle(env, node, titles);
     const style: CSSProperties = {
@@ -68,6 +69,7 @@ export const PaneFrame = memo(
 
     return (
       <section
+        {...marks}
         id={paneDomId(store.dom.id, node.id)}
         role="region"
         aria-labelledby={paneTitleId(store.dom.id, node.id)}

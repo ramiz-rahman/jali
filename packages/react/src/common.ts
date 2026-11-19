@@ -22,6 +22,7 @@ export {
   useUnsaved,
   useCommands,
   useTitle,
+  usePaneAttributes,
   useLauncher,
   type LauncherSources,
 } from "./pane/hooks";

@@ -13,7 +13,13 @@ import type {
   UndoEntry,
   ViewState,
 } from "../layout/types";
-import type { PaneActivity, PaneCommand, PaneErrorInfo, PaneKinds } from "../pane-kinds";
+import type {
+  PaneActivity,
+  PaneAttributes,
+  PaneCommand,
+  PaneErrorInfo,
+  PaneKinds,
+} from "../pane-kinds";
 import { GAP, initialArea } from "../tokens";
 import { toLayout } from "../layout/build";
 import { bindActions, type Actions } from "../actions";
@@ -139,6 +145,9 @@ export interface UiState {
   /** Titles panes set from their data (useTitle), in place of their kind's title. Not saved; a pane that shows
    *  another object loses its title until it sets one again. */
   titles: Record<NodeId, string>;
+  /** `data-*` attributes panes set from their data (usePaneAttributes), put on everything that stands for the pane.
+   *  Not saved; cleared, like a title, when the pane closes or shows another object. */
+  paneAttributes: Record<NodeId, PaneAttributes>;
   /** Each pane's own state (usePaneState): JSON values, kept through folds, tabs and reloads, dropped on close. */
   paneState: Record<NodeId, Record<string, unknown>>;
   /** The live region's text; `seq` makes a repeat a new announcement. */
@@ -351,6 +360,7 @@ export function createUiStore(deps: UiStoreDeps): UiStore {
     confirm: null,
     paneCommands: {},
     titles: {},
+    paneAttributes: {},
     paneState: loadPaneState(storage),
     ...deps.initial,
   };

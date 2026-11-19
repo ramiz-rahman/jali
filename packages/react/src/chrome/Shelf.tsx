@@ -33,6 +33,7 @@ export function Shelf() {
   );
   const items = useMemo(() => [...tuckedItems, ...foldedItems], [tuckedItems, foldedItems]);
   const activity = useUi((s) => s.activity);
+  const marks = useUi((s) => s.paneAttributes);
   const dir = useUi((s) => s.dir);
   const actions = useActions();
   const store = useStore();
@@ -144,6 +145,7 @@ export function Shelf() {
     const L = label(m, it, activity[it.paneId]);
     return (
       <div
+        {...marks[it.paneId]}
         className={`jali-shelf-chip${L.folded ? " is-folded" : ""}`}
         data-chip={it.paneId}
         data-reason={it.reason}
@@ -285,6 +287,7 @@ export function Shelf() {
             const L = label(m, it, activity[it.paneId]);
             return (
               <button
+                {...marks[it.paneId]}
                 role="menuitem"
                 key={it.paneId}
                 onClick={() => {

@@ -171,6 +171,8 @@ const jali = createJali({
 
 <Code code={customer} filename="src/panes/customer.tsx" />
 
+**To mark a pane from its data,** call `usePaneAttributes` with `data-*` attributes, such as `{ "data-connection": "production" }` on a query that runs against production. Jali puts them on the pane, its tab, its shelf chip, its switcher entry and the peek sheet while it shows the same object, and styles none of them, so your CSS decides what a production pane looks like: `[data-connection="production"] { border-top: 2px solid crimson; }`. Like a title, they go when the pane shows another object or closes, and are not saved.
+
 ## Pause hidden panes
 
 Every pane in the layout stays mounted, even when it is folded or behind a tab, so its state survives. That also means its timers and subscriptions keep running. Stop live work while `paused` is true, and keep the state:

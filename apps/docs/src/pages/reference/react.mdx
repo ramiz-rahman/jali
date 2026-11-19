@@ -164,6 +164,14 @@ It is cleared when the component unmounts and when the pane shows another object
 
 </Entry>
 
+<Entry name="usePaneAttributes" kind="hook" from="@jali/react" signature={`usePaneAttributes(attributes: Record<\`data-\${string}\`, string> | null | undefined): void`} compact>
+
+Mark the pane from its data with `data-*` attributes, so your styles can tell it apart: `usePaneAttributes({ "data-connection": "production" })` on a query pane connected to production. Jali puts them on everything that stands for the pane: its section, its tab in any strip (folded and tucked too), its shelf chip, its entry in the phone's pane switcher, the tab and shelf menus, and the peek sheet while it shows the pane's object. Jali gives them no style of its own.
+
+Only `data-*` names are kept, and not the ones Jali's own parts use (`data-pane`, `data-tab`, `data-focused`, `data-jali-*` and the rest). `null` or `undefined` clears them. They are cleared when the component unmounts and when the pane closes or shows another object, then set again from the next render. They are not saved. The peek sheet's own content can't set them.
+
+</Entry>
+
 <Entry name="useCommands" kind="hook" from="@jali/react" signature={`useCommands(commands: readonly PaneCommand[]): void`} compact>
 
 The commands this pane lists first in the palette while it is focused. Pass them on every render: they are listed again only when an id, title, keys label or disabled reason changes, and each runs the latest `run` it was given, so `run` can close over current state. Removed when the component unmounts.

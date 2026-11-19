@@ -1,6 +1,12 @@
 /** The pane a component is inside, for the hooks that act for it (usePane, useCommands, usePaneState, ...). */
 import { createContext, useContext } from "react";
-import type { NodeId, ObjectRef, PaneActivity, PaneCommand } from "@jali/core/adapter";
+import type {
+  NodeId,
+  ObjectRef,
+  PaneActivity,
+  PaneAttributes,
+  PaneCommand,
+} from "@jali/core/adapter";
 import type { PaneProps } from "../define";
 
 /** What a pane's content can ask of the workspace. */
@@ -14,6 +20,7 @@ export interface PaneHost {
   setUnsaved(what: string | null): void;
   setCommands(commands: PaneCommand[] | null): void;
   setTitle(title: string | null): void;
+  setAttributes(attributes: PaneAttributes | null): void;
 }
 
 export interface PaneContextValue {

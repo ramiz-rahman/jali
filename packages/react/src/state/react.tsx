@@ -6,6 +6,8 @@ import type {
   JaliState,
   PaneNode,
   JaliModel,
+  NodeId,
+  PaneAttributes,
   UiState,
   UiStore,
 } from "@jali/core/adapter";
@@ -65,6 +67,10 @@ export function useTitleOf(): (node: PaneNode) => string {
   const titles = useUi((s) => s.titles);
   return (node) => titleOf(env, node, titles);
 }
+
+/** The `data-*` attributes a pane set from its data (usePaneAttributes), to spread on what stands for it. */
+export const usePaneAttributesOf = (id: NodeId | undefined): PaneAttributes | undefined =>
+  useUi((s) => (id ? s.paneAttributes[id] : undefined));
 
 // ---------- the public names ----------
 

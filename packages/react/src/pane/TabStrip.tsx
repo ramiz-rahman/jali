@@ -52,6 +52,7 @@ export function TabStrip({ group, owner }: { group: NonNullable<Frame["group"]>;
   // A curated page, or a workspace without a launcher: no "+" (its views come from the page's tabs).
   const page = useUi((s) => !!s.page);
   const titles = useUi((s) => s.titles);
+  const marks = useUi((s) => s.paneAttributes);
   // No launcher kind, no "+": there is nothing to open in the new tab.
   // A curated page's views live in the page tabs, so a pane's strip lists a page view only while it is shown: never a
   // repeat. The exception is a group of page views, which only a centre drop ("Add as tab") makes: you asked for
@@ -111,6 +112,7 @@ export function TabStrip({ group, owner }: { group: NonNullable<Frame["group"]>;
         }}
       >
         <div
+          {...marks[t.id]}
           ref={active ? revealTab : undefined}
           className={`jali-tab${active ? " is-active" : ""}${tucked ? " is-tucked" : ""}${isFolded ? " is-folded" : ""}`}
           data-tab={t.id}

@@ -6,9 +6,16 @@
  *   useUnsaved(draft !== saved && "an unsaved note");
  *   useCommands([{ id: "save", title: "Save note", run: save }]);
  *   useTitle(query.data?.name);
+ *   usePaneAttributes({ "data-connection": connection.kind });
  */
 import { useEffect, useMemo, useRef } from "react";
-import type { ObjectRef, PaneActivity, PaneCommand, Params } from "@jali/core/adapter";
+import type {
+  ObjectRef,
+  PaneActivity,
+  PaneAttributes,
+  PaneCommand,
+  Params,
+} from "@jali/core/adapter";
 import { openPaneFor } from "@jali/core/adapter";
 import type { PaneProps } from "../define";
 import { useModel, useUi } from "../state/react";
@@ -71,6 +78,28 @@ export function useTitle(title: string | null | undefined): void {
     host.setTitle(text);
   }, [host, text, shows]);
   useEffect(() => () => host.setTitle(null), [host]);
+}
+
+/**
+ * Mark the pane from its data with `data-*` attributes (`{ "data-connection": "production" }`), so your styles can
+ * tell it apart. Jali puts them on everything that stands for the pane: its section, its tab in any strip, its shelf
+ * chip, its entry in the pane switcher and the tab and shelf menus, and the peek sheet while it shows the pane's
+ * object. Jali gives them no style. `null` or `undefined` clears them; they are also cleared when the component
+ * unmounts or the pane shows another object, and they are not saved. Jali's own `data-*` attributes win over yours.
+ */
+export function usePaneAttributes(
+  attributes: Record<`data-${string}`, string> | null | undefined,
+): void {
+  const { host, props } = usePaneContext("usePaneAttributes");
+  const shape = attributes ? JSON.stringify(attributes) : null;
+  const latest = useRef<PaneAttributes | null | undefined>(attributes);
+  latest.current = attributes;
+  // As with a title: the workspace drops them when the pane shows another object; this sets the new object's again.
+  const shows = JSON.stringify(props.node.ref);
+  useEffect(() => {
+    host.setAttributes(shape ? (latest.current ?? null) : null);
+  }, [host, shape, shows]);
+  useEffect(() => () => host.setAttributes(null), [host]);
 }
 
 /** What a launcher chooses from: the objects opened recently, whether one is open now, and its title. */

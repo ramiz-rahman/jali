@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef } from "react";
 import { useJaliIcons } from "../icons/context";
-import type { PaneNode, Presentation } from "@jali/core/adapter";
+import { sameRef, type PaneNode, type Presentation } from "@jali/core/adapter";
 import { KindIcon } from "../pane/icons";
 import { PaneBody, peekHost } from "../pane/PaneBody";
 import { useStore, useUi } from "../state/react";
@@ -16,6 +16,16 @@ export function Peek({ presentation }: { presentation: Presentation }) {
   const page = useUi((s) => s.page);
   const canPin = !page || (page.canInvestigate && page.mode === "split");
   const host = useMemo(() => peekHost(store), [store]);
+  // The sheet stands for a pane while it shows that pane's object: it carries the pane's data-* attributes.
+  const marks = useUi((s) => {
+    if (!s.view.peek) return undefined;
+    const ref = s.view.peek;
+    const shown = Object.keys(s.paneAttributes).find((id) => {
+      const p = store.model().pane(id);
+      return !!p && sameRef(p.ref, ref);
+    });
+    return shown ? s.paneAttributes[shown] : undefined;
+  });
   const openedBy = useRef<"pointer" | "keyboard">("keyboard");
   // Observes (never takes) the last input, so only a pointer-opened peek animates.
   useEffect(() => {
@@ -36,6 +46,7 @@ export function Peek({ presentation }: { presentation: Presentation }) {
   const t = store.messages.peek;
   return (
     <aside
+      {...marks}
       className={`jali-peek${openedBy.current === "pointer" ? " is-animated" : ""}`}
       style={{ width: presentation === "single" ? "100%" : Math.min(PEEK_WIDTH, areaW) }}
       role="complementary"
