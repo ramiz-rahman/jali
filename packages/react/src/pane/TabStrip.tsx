@@ -23,7 +23,7 @@ const FADE = 24;
  * against the strip itself (a tab's offsetLeft is from the header). A tab wider than the strip shows its start.
  */
 function revealTab(el: HTMLDivElement | null) {
-  const strip = el?.parentElement;
+  const strip = el?.closest<HTMLElement>('[role="tablist"]');
   if (!el || !strip) return;
   // Measured from the strip's start: its left, or its right when the strip reads right to left.
   const { pos, rtl } = scrolledFromStart(strip);
@@ -92,75 +92,94 @@ export function TabStrip({ group, owner }: { group: NonNullable<Frame["group"]>;
   }, []);
   const overflowing = hiddenCount > 0;
 
+  const putBackKeys = shortcutLabel(store, "pane.putBack");
+  // A tab holds no controls (APG tabs, deletable tabs): its close and put back are its siblings in a presentational
+  // wrapper. They are for the pointer: out of the tab order, and hidden from assistive technology, since a tablist may
+  // own only tabs. The tab says what they do instead: Delete or Backspace closes it, and on a tucked tab the put back
+  // command (which acts on a focused tucked tab) puts it back. Spacers inside the tab keep the buttons' room, so the
+  // tab's box is as it was and the buttons sit on it.
   const renderTab = ({ node: t, tucked, folded: isFolded }: Tab) => {
     const active = t.id === group.active;
     const title = titleOf(store.env, t, titles);
     return (
       <div
         key={t.id}
-        ref={active ? revealTab : undefined}
-        className={`jali-tab${active ? " is-active" : ""}${tucked ? " is-tucked" : ""}${isFolded ? " is-folded" : ""}`}
-        data-tab={t.id}
-        data-tucked={tucked || undefined}
-        data-folded={isFolded || undefined}
-        aria-label={title}
-        aria-description={
-          isFolded ? tw.foldedDescription : tucked ? tw.tuckedDescription : undefined
-        }
-        title={isFolded ? tw.foldedTitle(title) : title}
-        role="tab"
-        aria-selected={active}
-        aria-controls={paneDomId(store.dom.id, t.id)}
-        tabIndex={active ? 0 : -1}
+        className="jali-tab-item"
+        role="presentation"
         data-drag-ok
         onPointerDown={(e) => {
           e.stopPropagation();
           startPaneDrag(store, e, t.id);
         }}
-        onClick={() => actions.setActiveTab(group.id, t.id)}
-        // Focus scrolls the strip by the browser's rule (a tab wider than the strip shows its end); put it right.
-        onFocus={(e) => revealTab(e.currentTarget)}
-        onKeyDown={(e) => {
-          if (e.key === "Enter" || e.key === " ") {
-            e.preventDefault();
-            actions.setActiveTab(group.id, t.id);
-          }
-        }}
       >
-        <TabIcon node={t} />
-        <span className="jali-tab-title" id={active ? paneTitleId(store.dom.id, owner) : undefined}>
-          {title}
-        </span>
-        <TabActivity id={t.id} />
-        {isFolded ? (
-          <span className="jali-tab-fold-mark" aria-hidden>
-            <icon.fold size={13} />
-          </span>
-        ) : null}
-        {tucked ? (
-          <button
-            className="jali-tab-putback"
-            aria-label={tw.putBack(title)}
-            title={words.keys.withKeys(tw.putBackTip, shortcutLabel(store, "pane.putBack"))}
-            onPointerDown={(e) => e.stopPropagation()}
-            onClick={(e) => {
-              e.stopPropagation();
-              actions.putBack(t.id);
-            }}
-          >
-            <icon.putBack size={14} aria-hidden />
-          </button>
-        ) : null}
-        <button
-          className="jali-tab-close"
-          aria-label={tw.close(title)}
-          onClick={(e) => {
-            e.stopPropagation();
-            actions.close(t.id);
+        <div
+          ref={active ? revealTab : undefined}
+          className={`jali-tab${active ? " is-active" : ""}${tucked ? " is-tucked" : ""}${isFolded ? " is-folded" : ""}`}
+          data-tab={t.id}
+          data-tucked={tucked || undefined}
+          data-folded={isFolded || undefined}
+          aria-label={title}
+          aria-description={tw.description(
+            isFolded ? "folded" : tucked ? "tucked" : undefined,
+            tucked ? putBackKeys : "",
+          )}
+          aria-keyshortcuts="Delete Backspace"
+          title={isFolded ? tw.foldedTitle(title) : title}
+          role="tab"
+          aria-selected={active}
+          aria-controls={paneDomId(store.dom.id, t.id)}
+          tabIndex={active ? 0 : -1}
+          onClick={() => actions.setActiveTab(group.id, t.id)}
+          // Focus scrolls the strip by the browser's rule (a tab wider than the strip shows its end); put it right.
+          onFocus={(e) => revealTab(e.currentTarget)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === " ") {
+              e.preventDefault();
+              actions.setActiveTab(group.id, t.id);
+            } else if (
+              (e.key === "Delete" || e.key === "Backspace") &&
+              !(e.metaKey || e.ctrlKey || e.altKey || e.shiftKey)
+            ) {
+              e.preventDefault();
+              actions.close(t.id);
+            }
           }}
         >
-          <icon.close size={14} aria-hidden />
-        </button>
+          <TabIcon node={t} />
+          <span className="jali-tab-title" id={active ? paneTitleId(store.dom.id, owner) : undefined}>
+            {title}
+          </span>
+          <TabActivity id={t.id} />
+          {isFolded ? (
+            <span className="jali-tab-fold-mark" aria-hidden>
+              <icon.fold size={13} />
+            </span>
+          ) : null}
+          {tucked ? <span className="jali-tab-space" aria-hidden /> : null}
+          <span className="jali-tab-space" aria-hidden />
+        </div>
+        <span className="jali-tab-actions" aria-hidden>
+          {tucked ? (
+            <button
+              className="jali-tab-putback"
+              tabIndex={-1}
+              aria-label={tw.putBack(title)}
+              title={words.keys.withKeys(tw.putBackTip, putBackKeys)}
+              onPointerDown={(e) => e.stopPropagation()}
+              onClick={() => actions.putBack(t.id)}
+            >
+              <icon.putBack size={14} aria-hidden />
+            </button>
+          ) : null}
+          <button
+            className="jali-tab-close"
+            tabIndex={-1}
+            aria-label={tw.close(title)}
+            onClick={() => actions.close(t.id)}
+          >
+            <icon.close size={14} aria-hidden />
+          </button>
+        </span>
       </div>
     );
   };

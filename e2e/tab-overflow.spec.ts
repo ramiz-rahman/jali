@@ -17,7 +17,7 @@ test.describe("tab overflow and marks", () => {
     expect(await folded.count()).toBeGreaterThan(3);
     await expect(folded.first()).toHaveAttribute(
       "aria-description",
-      "Folded: returns when there's room",
+      "Folded: returns when there's room. Delete closes it.",
     );
     await expect(folded.first().locator(".jali-tab-fold-mark")).toBeVisible();
     await expect(page.locator('[role="tab"]:not([data-folded])').first()).not.toHaveAttribute(
@@ -33,7 +33,7 @@ test.describe("tab overflow and marks", () => {
           .map((c) =>
             c.classList.contains("jali-tab-sep")
               ? "|"
-              : c.classList.contains("is-folded")
+              : c.querySelector(".jali-tab")?.classList.contains("is-folded")
                 ? "f"
                 : "m",
           )

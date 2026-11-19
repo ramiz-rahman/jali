@@ -280,6 +280,29 @@
     background: var(--jali-hover);
     color: var(--jali-text);
   }
+  /* A tab and its buttons: the buttons are the tab's siblings (a tab holds no controls) and sit over the spacers at
+     its end, so the tab's box, underline and hover cover them as before. */
+  .jali-tab-item {
+    position: relative;
+    display: flex;
+    flex: none;
+  }
+  .jali-tab-space {
+    flex: none;
+    width: 1.5rem;
+    margin-inline-start: -2px;
+  }
+  .jali-tab-actions {
+    position: absolute;
+    /* The tab's box, underline and overlap included, so the buttons centre where they did inside it. */
+    inset-block: 0 -1px;
+    inset-inline-end: 0.25rem;
+    box-sizing: border-box;
+    border-bottom: 1.5px solid transparent;
+    display: flex;
+    align-items: center;
+    gap: calc(0.375rem - 2px);
+  }
   .jali-tab {
     display: flex;
     align-items: center;
@@ -294,7 +317,7 @@
     margin-bottom: -1px;
     cursor: pointer;
   }
-  .jali-tab:hover {
+  .jali-tab-item:hover > .jali-tab {
     color: var(--jali-text);
   }
   .jali-tab.is-active {
@@ -314,7 +337,6 @@
     flex: none;
     width: 1.5rem;
     height: 1.5rem;
-    margin-inline-start: -2px;
     padding: 0;
     border: 0;
     border-radius: 4px;
@@ -326,17 +348,15 @@
     background: var(--jali-hover);
     color: var(--jali-text);
   }
-  .jali-tab:not(.is-active) .jali-tab-close {
+  .jali-tab:not(.is-active) ~ .jali-tab-actions .jali-tab-close {
     opacity: 0;
   }
-  .jali-tab:hover .jali-tab-close,
-  .jali-tab:focus-within .jali-tab-close,
-  .jali-tab .jali-tab-close:focus-visible,
-  .jali-tab.is-active .jali-tab-close {
+  .jali-tab-item:is(:hover, :focus-within) > .jali-tab-actions .jali-tab-close,
+  .jali-tab.is-active ~ .jali-tab-actions .jali-tab-close {
     opacity: 1;
   }
   @media (hover: none) {
-    .jali-tab:not(.is-active) .jali-tab-close {
+    .jali-tab:not(.is-active) ~ .jali-tab-actions .jali-tab-close {
       opacity: 1;
     }
   }
@@ -357,7 +377,6 @@
     flex: none;
     width: 1.5rem;
     height: 1.5rem;
-    margin-inline-start: -2px;
     padding: 0;
     border: 0;
     border-radius: var(--jali-radius-control);
@@ -366,9 +385,7 @@
     cursor: pointer;
     opacity: 0.7;
   }
-  .jali-tab:hover .jali-tab-putback,
-  .jali-tab:focus-within .jali-tab-putback,
-  .jali-tab .jali-tab-putback:focus-visible {
+  .jali-tab-item:is(:hover, :focus-within) > .jali-tab-actions .jali-tab-putback {
     opacity: 1;
   }
   .jali-tab-putback:hover {

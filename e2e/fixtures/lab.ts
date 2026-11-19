@@ -331,10 +331,15 @@ export class Lab {
       .and(this.page.locator(":enabled"));
     return which === "first" ? l.first() : l.last();
   };
+  /** A tab's own buttons (close, put back): siblings of the tab in its presentational wrapper, for the pointer only
+   *  (hidden from assistive technology, so found with `includeHidden`). */
+  tabButtons = (title: RegExp) => this.tab(title).locator("..");
   putBackTab = async (title: RegExp) => {
     const tab = this.tab(title);
     await tab.hover();
-    await tab.getByRole("button", { name: /^Put back / }).click();
+    await this.tabButtons(title)
+      .getByRole("button", { name: /^Put back /, includeHidden: true })
+      .click();
   };
   /** Set a pane's activity through the dev hook the app exposes (window.__lab). */
   setActivity = (id: string, a: string) =>
