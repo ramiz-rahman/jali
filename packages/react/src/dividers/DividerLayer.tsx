@@ -3,6 +3,7 @@
  * commit on release); keys commit per keypress; double-click resets; the URL is written 120ms after the last change.
  */
 import { useRef } from "react";
+import type { ScrollerBox } from "@jali/core";
 import {
   paneDomId,
   dividerKey,
@@ -14,7 +15,8 @@ import {
 import { useModel, useStore, useUi } from "../state/react";
 import { Divider } from "./Divider";
 
-export function DividerLayer() {
+/** The workspace's dividers, or with `strip`, the ones inside that row that scrolls (drawn in it, by Scroller). */
+export function DividerLayer({ strip }: { strip?: ScrollerBox } = {}) {
   const store = useStore();
   const m = useModel();
   const zoomed = useUi((s) => s.view.zoomed);
@@ -25,16 +27,16 @@ export function DividerLayer() {
   const { actions } = store;
   return (
     <div className="jali-divider-layer">
-      {m.resolved.dividers.map((d) => {
+      {(strip
+        ? // A row that scrolls draws its own dividers, inside it, at their place along its content.
+          m.content.dividers.filter((d) =>
+            d.neighbours?.every((side) => side.every((id) => strip.paneIds.includes(id))),
+          )
+        : m.resolved.dividers.filter((d) => !d.clip)
+      ).map((d) => {
         const g = geometryFor(m, d);
         // A divider beside a pane the app doesn't let resize (`allow: { resize: false }`) isn't drawn: no handle.
         if (!g || !dividerAllowed(store.snapshot(), d.parentId, d.index)) return null;
-        // In a row that scrolls, a divider scrolled out of the strip's window isn't drawn over the panes beside it.
-        if (
-          d.clip &&
-          (d.rect.x < d.clip.x - 0.5 || d.rect.x + d.rect.width > d.clip.x + d.clip.width + 0.5)
-        )
-          return null;
         return (
           <Divider
             key={dividerKey(d)}

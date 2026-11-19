@@ -25,8 +25,11 @@ export interface Frame {
   covered: boolean;
   /** The tab strip of the group this pane shows for, when it is in one and on screen. */
   group?: { id: NodeId; tabs: Tab[]; active: NodeId };
-  /** In a row that scrolls: its window, which the frame is cut to. */
-  clip?: Rect;
+  /**
+   * In a row that scrolls: the row's id. The frame is drawn inside the row's scrolling element, which the browser
+   * scrolls, so its `rect` is its place along the row's content (unscrolled), in workspace coordinates.
+   */
+  strip?: NodeId;
   /** In a row that scrolls, and scrolled out of its window: mounted and in the focus order, but paused. */
   outOfView?: boolean;
 }
@@ -111,6 +114,10 @@ export function frames(
       covered: false,
     }));
   }
+  const stripOf = new Map(
+    m.content.scrollers.flatMap((s) => s.paneIds.map((id) => [id, s.id] as const)),
+  );
+  const along = new Map(m.content.panes.map((b) => [b.id, b.rect]));
   return m.resolved.panes.flatMap((box): Frame[] => {
     const node = m.pane(box.id);
     if (!node) return [];
@@ -119,8 +126,14 @@ export function frames(
     return [
       {
         node,
-        rect: zoomed ? { x: 0, y: 0, ...size } : box.rect,
-        ...(box.clip && !zoomed ? { clip: box.clip, outOfView: m.outOfView.has(box.id) } : {}),
+        rect: zoomed
+          ? { x: 0, y: 0, ...size }
+          : stripOf.has(box.id)
+            ? along.get(box.id)!
+            : box.rect,
+        ...(stripOf.has(box.id)
+          ? { strip: stripOf.get(box.id)!, outOfView: m.outOfView.has(box.id) }
+          : {}),
         hidden: !!box.hidden,
         focused: view.focused === box.id,
         zoomed,
@@ -174,6 +187,6 @@ export const sameFrame = (a: Frame, b: Frame) =>
   a.zoomed === b.zoomed &&
   a.covered === b.covered &&
   a.outOfView === b.outOfView &&
-  (a.clip === b.clip || (!!a.clip && !!b.clip && sameRect(a.clip, b.clip))) &&
+  a.strip === b.strip &&
   sameNode(a.node, b.node) &&
   sameGroup(a.group, b.group);

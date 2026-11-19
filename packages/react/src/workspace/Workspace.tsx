@@ -22,7 +22,7 @@ import { PaneSwitcher } from "../chrome/PaneSwitcher";
 import { Peek } from "../chrome/Peek";
 import { DividerLayer } from "../dividers/DividerLayer";
 import { PaneFrame } from "../pane/PaneFrame";
-import { Scrollers } from "./Scroller";
+import { Strip, useFocusIntoStrip } from "./Scroller";
 import type { UiStore } from "@jali/core/adapter";
 import { useModel, useStore, useUi } from "../state/react";
 import { DropIndicator } from "./DropIndicator";
@@ -326,8 +326,15 @@ export function Panes() {
   useStackAnnouncement(store, m, stacked);
   const dropBox =
     !single && dnd?.target ? m.resolved.panes.find((b) => b.id === dnd.target) : undefined;
-  // The box the panes are positioned in: rows that scroll read the wheel over it.
-  const innerRef = useRef<HTMLDivElement>(null);
+  const placed = frames(
+    m,
+    view,
+    mode,
+    { width: inner.width, height: inner.height },
+    stacked ? stackRatio : false,
+    { x: inner.left, y: inner.top },
+  );
+  useFocusIntoStrip(store);
 
   // A labelled region inside the host's page, or the page's main landmark when the host says Jali is the whole app.
   const Landmark = store.env.landmark === "main" ? "main" : "section";
@@ -353,28 +360,40 @@ export function Panes() {
           inView={stacked && m.stacked ? [m.stacked.top, m.stacked.bottom] : undefined}
         />
       ) : null}
-      <div className="jali-workspace-inner" style={bleed} ref={innerRef}>
-        {frames(
-          m,
-          view,
-          mode,
-          { width: inner.width, height: inner.height },
-          stacked ? stackRatio : false,
-          { x: inner.left, y: inner.top },
-        ).map((f) => (
-          <PaneFrame
-            key={f.node.id}
-            frame={
-              alone && !f.hidden
-                ? { ...f, rect: { x: 0, y: 0, width: bleed.width, height: bleed.height } }
-                : f
-            }
-            chrome={chrome}
-            dropTarget={!single && dnd?.target === f.node.id}
-          />
-        ))}
+      <div className="jali-workspace-inner" style={bleed}>
+        {placed
+          .filter((f) => !f.strip)
+          .map((f) => (
+            <PaneFrame
+              key={f.node.id}
+              frame={
+                alone && !f.hidden
+                  ? { ...f, rect: { x: 0, y: 0, width: bleed.width, height: bleed.height } }
+                  : f
+              }
+              chrome={chrome}
+              dropTarget={!single && dnd?.target === f.node.id}
+            />
+          ))}
         {single ? null : <DividerLayer />}
-        {single ? null : <Scrollers host={innerRef} />}
+        {/* Rows that scroll sideways: their panes and dividers inside an element the browser scrolls. */}
+        {single
+          ? null
+          : m.content.scrollers.map((s) => (
+              <Strip key={s.id} strip={s} zoomed={!!view.zoomed && s.paneIds.includes(view.zoomed)}>
+                {placed
+                  .filter((f) => f.strip === s.id)
+                  .map((f) => (
+                    <PaneFrame
+                      key={f.node.id}
+                      frame={f}
+                      chrome={chrome}
+                      dropTarget={dnd?.target === f.node.id}
+                    />
+                  ))}
+                <DividerLayer strip={s} />
+              </Strip>
+            ))}
         {stacked && m.stacked?.hinge ? <FoldLine hinge={m.stacked.hinge} origin={inner} /> : null}
         {stacked && !m.stacked?.hinge ? (
           <StackDivider m={m} ratio={stackRatio} setRatio={setStackRatio} height={inner.height} />

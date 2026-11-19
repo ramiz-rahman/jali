@@ -7,7 +7,7 @@
  *   // on every pointermove: edge.move(e.clientX, e.clientY);  on drop or cancel: edge.stop();
  */
 import type { Jali } from "../state/instance";
-import { clampOffset, maxOffset } from "../layout/geometry/scroll";
+import { maxOffset } from "../layout/geometry/scroll";
 import { storeOf } from "../state/instance";
 
 /** How near a strip's edge, in px, the pointer starts it scrolling. */
@@ -48,7 +48,6 @@ export function edgeScroll(jali: Jali, onScroll?: () => void): EdgeScroll {
     if (!o) return;
     const x = at.x - o.x,
       y = at.y - o.y;
-    const rtl = store.get().dir === "rtl";
     for (const s of [...jali.model().resolved.scrollers].reverse()) {
       const { rect } = s;
       if (
@@ -67,11 +66,13 @@ export function edgeScroll(jali: Jali, onScroll?: () => void): EdgeScroll {
             ? (EDGE - fromRight) / EDGE
             : 0;
       if (!pull || maxOffset(s) <= 0) return;
-      const view = store.get().view;
-      const now = view.scroll?.[s.id] ?? 0;
-      const next = clampOffset(s, now + Math.max(-1, Math.min(1, pull)) * SPEED * (rtl ? -1 : 1));
-      if (Math.abs(next - now) < 0.5) return;
-      store.set({ view: { ...view, scroll: { ...view.scroll, [s.id]: next } } });
+      // The strip's scrolling element (Scroller in @jali/react): scrolling it is the browser's work, and the strip
+      // tells the view state where it got to. Moving towards the edge the pointer is at, whichever way text runs.
+      const el = store.dom.pane(s.paneIds[0]!)?.closest<HTMLElement>(".jali-strip-viewport");
+      if (!el) return;
+      const before = el.scrollLeft;
+      el.scrollLeft = before + Math.max(-1, Math.min(1, pull)) * SPEED;
+      if (Math.abs(el.scrollLeft - before) < 0.5) return;
       onScroll?.();
       frame = requestAnimationFrame(step);
       return;

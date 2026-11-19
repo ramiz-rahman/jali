@@ -1,17 +1,49 @@
 @layer jali {
   /* ---------- rows that scroll sideways (workspace/Scroller.tsx) ---------- */
-  /* Drawn over the strip's window: it lets every press through to the panes, except on its scrollbar. */
   .jali-strip {
     position: absolute;
-    z-index: 20;
-    pointer-events: none;
+  }
+  /* The browser scrolls this: a swipe, Shift and the wheel, momentum. Its own scrollbar is hidden (the strip draws a
+     thin one in the gutter), and a swipe past the end stays here rather than going back a page. No snapping: a
+     window that holds one and a bit panes would snap a pane's start in and cut the one focus just brought whole. */
+  .jali-strip-viewport {
+    position: absolute;
+    inset: 0;
+    overflow-x: auto;
+    overflow-y: hidden;
+    overscroll-behavior-x: contain;
+    scrollbar-width: none;
+    /* Always measured from the left (Scroller maps right to left itself); the content keeps the page's direction. */
+    direction: ltr;
+  }
+  .jali-strip-viewport::-webkit-scrollbar {
+    display: none;
+  }
+  /* Starts at the workspace's corner (Scroller sets the offsets), so panes sit at their workspace places in it. */
+  .jali-strip-content {
+    position: absolute;
+  }
+  /* A pane in the strip maximised: the strip lets it out to cover the workspace. */
+  .jali-strip[data-zoomed] {
+    z-index: 30;
+  }
+  .jali-strip[data-zoomed] .jali-strip-viewport {
+    overflow: visible;
   }
   /* Where there is more: the canvas fading in over the edge, so a half-shown pane reads as "keeps going". */
   .jali-strip-fade {
     position: absolute;
     top: 0;
     bottom: 0;
+    z-index: 2;
     width: 28px;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 160ms;
+  }
+  .jali-strip[data-more-left] .jali-strip-fade[data-edge="left"],
+  .jali-strip[data-more-right] .jali-strip-fade[data-edge="right"] {
+    opacity: 1;
   }
   .jali-strip-fade[data-edge="left"] {
     left: 0;
@@ -21,23 +53,25 @@
     right: 0;
     background: linear-gradient(to left, var(--jali-canvas), transparent);
   }
-  /* The scrollbar sits in the gutter under the panes, thin until it is pointed at. */
+  /* The scrollbar, in the gutter under the panes: thin until pointed at. */
   .jali-strip-track {
     position: absolute;
     left: 0;
     right: 0;
     bottom: -6px;
+    z-index: 2;
     height: 6px;
-    pointer-events: auto;
     cursor: pointer;
   }
   .jali-strip-thumb {
     position: absolute;
+    left: 0;
     top: 1px;
     height: 4px;
     border-radius: 999px;
     background: var(--jali-border-strong);
     cursor: grab;
+    will-change: transform;
     transition:
       height 120ms,
       top 120ms,
@@ -53,6 +87,7 @@
     cursor: grabbing;
   }
   @media (prefers-reduced-motion: reduce) {
+    .jali-strip-fade,
     .jali-strip-thumb {
       transition: none;
     }

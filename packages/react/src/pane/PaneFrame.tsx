@@ -15,7 +15,6 @@ import {
   sameFrame,
   type Frame,
 } from "@jali/core/adapter";
-import type { Rect } from "@jali/core";
 import { usePaneAttributesOf, useStore, useUi } from "../state/react";
 import { DropZoneLabel } from "../workspace/DropIndicator";
 import { Activity } from "./Activity";
@@ -79,8 +78,6 @@ export const PaneFrame = /* @__PURE__ */ memo(
           width: rect.width,
           height: rect.height,
           display: hidden ? "none" : undefined,
-          // In a row that scrolls: cut to the strip's window, so a pane half scrolled out ends at its edge.
-          ...(frame.clip ? { clipPath: clipInset(rect, frame.clip) } : {}),
         };
     const cls = [
       "jali-pane",
@@ -244,10 +241,3 @@ export const PaneFrame = /* @__PURE__ */ memo(
   },
   (a, b) => a.chrome === b.chrome && a.dropTarget === b.dropTarget && sameFrame(a.frame, b.frame),
 );
-
-/** A frame's rect cut to its strip's window, as a clip-path, with room for its focus ring. */
-function clipInset(rect: Rect, clip: Rect): string {
-  const left = Math.max(0, clip.x - rect.x);
-  const right = Math.max(0, rect.x + rect.width - (clip.x + clip.width));
-  return `inset(-4px ${right ? right : -4}px -4px ${left ? left : -4}px)`;
-}
