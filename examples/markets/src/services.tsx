@@ -1,0 +1,66 @@
+/**
+ * The app's own services, beside Jali: the market, the paper-trading book, the watchlists and the instrument
+ * picker. Panes read them from context; commands get them when the workspace is made (workspace.ts).
+ */
+import { createContext, useContext, type ReactNode } from "react";
+import { createLists, type Lists } from "./lists";
+import { MarketProvider } from "./market/react";
+import type { AssetClass, MarketData } from "./market/types";
+import { createStore, type Store } from "./store";
+import { createTrading, type Side, type Trading } from "./trading/trading";
+
+/** The instrument picker: one dialog that "Open chart for…", "Add to watchlist…" and / all use. */
+export interface PickRequest {
+  title: string;
+  /** Only instruments of these classes, when given. */
+  only?: readonly AssetClass[];
+  onPick: (symbol: string) => void;
+}
+export type Picker = Store<PickRequest | null>;
+
+/** "Buy LMNA" from a quote or ⌘K: the blotter's ticket picks it up. `at` tells two requests apart. */
+export interface TicketRequest {
+  symbol: string;
+  side: Side;
+  at: number;
+}
+
+export interface Services {
+  market: MarketData;
+  trading: Trading;
+  lists: Lists;
+  picker: Picker;
+  ticket: Store<TicketRequest | null>;
+}
+
+export function createServices(market: MarketData, { persist = true } = {}): Services {
+  return {
+    market,
+    trading: createTrading(market, persist),
+    lists: createLists(persist),
+    picker: createStore<PickRequest | null>(null),
+    ticket: createStore<TicketRequest | null>(null),
+  };
+}
+
+const ServicesContext = createContext<Services | null>(null);
+
+export function ServicesProvider({
+  services,
+  children,
+}: {
+  services: Services;
+  children: ReactNode;
+}) {
+  return (
+    <ServicesContext.Provider value={services}>
+      <MarketProvider market={services.market}>{children}</MarketProvider>
+    </ServicesContext.Provider>
+  );
+}
+
+export function useServices(): Services {
+  const s = useContext(ServicesContext);
+  if (!s) throw new Error("useServices needs a <ServicesProvider> above it");
+  return s;
+}
