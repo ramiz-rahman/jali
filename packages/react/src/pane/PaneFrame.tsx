@@ -110,6 +110,7 @@ export const PaneFrame = /* @__PURE__ */ memo(
         data-unsaved={dirty || undefined}
         data-origin={opened ? "opened" : role ? "role" : undefined}
         data-boundary={opened ? boundary : undefined}
+        data-covered={covered || undefined}
         aria-hidden={covered || undefined}
         ref={coveredRef}
         onPointerDownCapture={() => actions.focus(node.id)}

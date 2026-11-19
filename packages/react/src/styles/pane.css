@@ -29,7 +29,9 @@
     border-color: var(--jali-border);
     box-shadow: none;
   }
-  .jali-pane[aria-hidden="true"] {
+  /* A pane under a maximised or lifted one. Keyed on Jali's own mark, not aria-hidden: a modal popup from any
+   library (Radix, React Aria, Headless UI) sets aria-hidden on everything outside it, and the panes must stay. */
+  .jali-pane[data-covered] {
     visibility: hidden;
   }
   /* Single view (phone), and a lone pane at any width (is-alone carries is-single too): full-bleed, no island. */
