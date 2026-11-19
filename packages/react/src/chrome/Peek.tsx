@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef } from "react";
-import { Maximize, PanelRightOpen, X } from "lucide-react";
+import { CornersOutIcon, SidebarSimpleIcon, XIcon } from "@phosphor-icons/react";
 import type { PaneNode, Presentation } from "@jali/core/adapter";
 import { formatChord } from "@jali/core/adapter";
 import { KindIcon } from "../pane/icons";
@@ -51,7 +51,7 @@ export function Peek({ presentation }: { presentation: Presentation }) {
           {/* A curated workspace never replaces its arrangement; a role that only peeks can't pin either. */}
           {canPin ? (
             <button className="jali-text-btn" onClick={() => actions.pinPeek()} title="Pin beside">
-              <PanelRightOpen size={14} strokeWidth={1.5} aria-hidden /> Pin beside
+              <SidebarSimpleIcon size={14} mirrored aria-hidden /> Pin beside
             </button>
           ) : null}
           {page ? null : (
@@ -60,7 +60,7 @@ export function Peek({ presentation }: { presentation: Presentation }) {
               onClick={() => actions.openPeekFull()}
               title="Open full"
             >
-              <Maximize size={14} strokeWidth={1.5} aria-hidden /> Open full
+              <CornersOutIcon size={14} aria-hidden /> Open full
             </button>
           )}
           <button
@@ -69,7 +69,7 @@ export function Peek({ presentation }: { presentation: Presentation }) {
             aria-label="Close peek"
             title={`Close (${formatChord({ key: "Escape" }, store.keymap.platform)})`}
           >
-            <X size={14} strokeWidth={1.5} aria-hidden />
+            <XIcon size={14} aria-hidden />
           </button>
         </div>
       </header>

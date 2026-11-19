@@ -10,7 +10,7 @@ export default defineConfig({
     target: "es2022",
     sourcemap: true,
     clean: true,
-    deps: { neverBundle: [/^@jali\/core/, /^react/, "lucide-react"] },
+    deps: { neverBundle: [/^@jali\/core/, /^react/, /^@phosphor-icons\/react/] },
     onSuccess: "node scripts/build-css.mjs",
   },
 });

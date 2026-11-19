@@ -2,7 +2,7 @@
  * Linked selection in a detail's header (actions/follow.ts): the Pin toggle, and a note when the list's filter no
  * longer shows the item the detail follows.
  */
-import { Link2, Pin } from "lucide-react";
+import { LinkSimpleHorizontalIcon, PushPinIcon } from "@phosphor-icons/react";
 import type { PaneNode } from "@jali/core/adapter";
 import { sameRef, msg } from "@jali/core/adapter";
 import { useStore, useUi } from "../state/react";
@@ -28,9 +28,9 @@ export function FollowControl({ node, title }: { node: PaneNode; title: string }
       onClick={() => store.actions.setPinned(node.id, !pinned)}
     >
       {pinned ? (
-        <Pin size={12} strokeWidth={1.5} aria-hidden />
+        <PushPinIcon size={12} aria-hidden />
       ) : (
-        <Link2 size={12} strokeWidth={1.5} aria-hidden />
+        <LinkSimpleHorizontalIcon size={12} aria-hidden />
       )}
       <span aria-hidden>{pinned ? "Pinned" : "Following"}</span>
     </button>

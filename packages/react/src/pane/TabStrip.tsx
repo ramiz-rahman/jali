@@ -1,5 +1,10 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
-import { FoldHorizontal, Plus, Undo2, X } from "lucide-react";
+import {
+  ArrowUUpLeftIcon,
+  ArrowsInLineHorizontalIcon,
+  PlusIcon,
+  XIcon,
+} from "@phosphor-icons/react";
 import type { NodeId, PaneNode, Frame, Tab } from "@jali/core/adapter";
 import {
   shortcutLabel,
@@ -126,7 +131,7 @@ export function TabStrip({ group, owner }: { group: NonNullable<Frame["group"]>;
         <TabActivity id={t.id} />
         {isFolded ? (
           <span className="jali-tab-fold-mark" aria-hidden>
-            <FoldHorizontal size={13} strokeWidth={1.75} />
+            <ArrowsInLineHorizontalIcon size={13} />
           </span>
         ) : null}
         {tucked ? (
@@ -140,7 +145,7 @@ export function TabStrip({ group, owner }: { group: NonNullable<Frame["group"]>;
               actions.putBack(t.id);
             }}
           >
-            <Undo2 size={14} strokeWidth={1.75} aria-hidden />
+            <ArrowUUpLeftIcon size={14} aria-hidden />
           </button>
         ) : null}
         <button
@@ -151,7 +156,7 @@ export function TabStrip({ group, owner }: { group: NonNullable<Frame["group"]>;
             actions.close(t.id);
           }}
         >
-          <X size={14} strokeWidth={1.75} aria-hidden />
+          <XIcon size={14} aria-hidden />
         </button>
       </div>
     );
@@ -188,7 +193,7 @@ export function TabStrip({ group, owner }: { group: NonNullable<Frame["group"]>;
             actions.newTab(group.active);
           }}
         >
-          <Plus size={14} strokeWidth={1.5} aria-hidden />
+          <PlusIcon size={14} aria-hidden />
         </button>
       )}
     </div>
@@ -200,9 +205,5 @@ function TabIcon({ node }: { node: PaneNode }) {
   const { profile } = useEnv();
   const role =
     useUi((s) => !!s.page) && node.role && profile ? roleOf(profile, node.role) : undefined;
-  return role ? (
-    <role.icon size={14} strokeWidth={1.5} aria-hidden />
-  ) : (
-    <KindIcon kind={node.ref.kind} size={14} />
-  );
+  return role ? <role.icon size={14} aria-hidden /> : <KindIcon kind={node.ref.kind} size={14} />;
 }

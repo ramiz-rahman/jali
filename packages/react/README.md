@@ -2,6 +2,12 @@
 
 React for [Jali](../core) workspaces, with Jali's default theme.
 
+```sh
+npm install @jali/core @jali/react @phosphor-icons/react
+```
+
+React 19 and `@phosphor-icons/react` are peer dependencies. Jali's icons are Phosphor's regular weight, the set Chakni uses; give a kind any Phosphor icon (`icon: FileTextIcon`) and it matches.
+
 ```tsx
 import { createJali, row } from "@jali/core";
 import { JaliRoot, definePane } from "@jali/react";

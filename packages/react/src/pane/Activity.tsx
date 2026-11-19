@@ -1,4 +1,4 @@
-import { X } from "lucide-react";
+import { XIcon } from "@phosphor-icons/react";
 import type { PaneActivity } from "@jali/core/adapter";
 
 /**
@@ -44,7 +44,7 @@ export function Activity({ a, shape = false }: { a: PaneActivity | undefined; sh
     );
   return (
     <span className="jali-ra jali-ra-fail" data-shape="fail" aria-hidden>
-      <X size={8} strokeWidth={3.5} />
+      <XIcon size={8} weight="bold" />
     </span>
   );
 }

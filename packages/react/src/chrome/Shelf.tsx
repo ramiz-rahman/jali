@@ -1,5 +1,5 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState, type KeyboardEvent } from "react";
-import { FoldHorizontal, Undo2 } from "lucide-react";
+import { ArrowUUpLeftIcon, ArrowsInLineHorizontalIcon } from "@phosphor-icons/react";
 import type { ShelfEntry, JaliModel, PaneActivity } from "@jali/core/adapter";
 import { useShortcut } from "../commands/react";
 import { flashTab, FOLDED_DESC, FOLDED_TIP, titleOf } from "@jali/core/adapter";
@@ -168,7 +168,7 @@ export function Shelf() {
           onClick={() => doReveal(it)}
         >
           {L.folded ? (
-            <FoldHorizontal size={13} strokeWidth={1.75} aria-hidden />
+            <ArrowsInLineHorizontalIcon size={13} aria-hidden />
           ) : L.node ? (
             <KindIcon kind={L.node.ref.kind} size={13} />
           ) : null}
@@ -183,7 +183,7 @@ export function Shelf() {
             title={`Put back${putBackKeys}`}
             onClick={() => actions.putBack(it.paneId)}
           >
-            <Undo2 size={13} strokeWidth={1.75} aria-hidden />
+            <ArrowUUpLeftIcon size={13} aria-hidden />
           </button>
         ) : null}
       </div>
@@ -240,7 +240,7 @@ export function Shelf() {
                   onFocus={() => setFocusId(SUMMARY)}
                   onClick={() => setMenu((v) => (v === "folded" ? false : "folded"))}
                 >
-                  <FoldHorizontal size={13} strokeWidth={1.75} aria-hidden />
+                  <ArrowsInLineHorizontalIcon size={13} aria-hidden />
                   <span className="jali-shelf-chip-title">{foldedItems.length} folded</span>
                 </button>
               </div>
@@ -253,7 +253,7 @@ export function Shelf() {
               key="folded"
             >
               <span className="jali-shelf-home" title={FOLDED_TIP}>
-                <FoldHorizontal size={12} strokeWidth={1.75} aria-hidden /> Folded:
+                <ArrowsInLineHorizontalIcon size={12} aria-hidden /> Folded:
               </span>
               {foldedItems.map(chip)}
             </div>

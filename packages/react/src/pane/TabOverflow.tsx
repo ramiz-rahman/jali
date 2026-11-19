@@ -1,6 +1,11 @@
 import { useEffect, useLayoutEffect, useRef, useState, type KeyboardEvent } from "react";
 import { createPortal } from "react-dom";
-import { Check, ChevronDown, FoldHorizontal, Undo2 } from "lucide-react";
+import {
+  ArrowUUpLeftIcon,
+  ArrowsInLineHorizontalIcon,
+  CaretDownIcon,
+  CheckIcon,
+} from "@phosphor-icons/react";
 import type { NodeId, Tab } from "@jali/core/adapter";
 import { roleOf, titleOf, FOLDED_DESC, FOLDED_WORD, TUCKED_DESC } from "@jali/core/adapter";
 import { useStore } from "../state/react";
@@ -116,7 +121,7 @@ export function TabOverflow({
         }}
       >
         <span className="tab-more-n">+{hiddenCount}</span>
-        <ChevronDown size={12} strokeWidth={1.75} aria-hidden />
+        <CaretDownIcon size={12} aria-hidden />
       </button>
       {open
         ? createPortal(
@@ -144,23 +149,23 @@ export function TabOverflow({
                     onClick={() => choose(t.id)}
                   >
                     <span className="jali-tab-menu-check" aria-hidden>
-                      {t.id === active ? <Check size={13} strokeWidth={2} /> : null}
+                      {t.id === active ? <CheckIcon size={13} /> : null}
                     </span>
                     {role ? (
-                      <role.icon size={14} strokeWidth={1.5} aria-hidden />
+                      <role.icon size={14} aria-hidden />
                     ) : (
                       <KindIcon kind={t.ref.kind} size={14} />
                     )}
                     <span className="jali-tab-menu-title">{titleOf(env, t)}</span>
                     {folded ? (
                       <small className="jali-tab-menu-mark">
-                        <FoldHorizontal size={12} strokeWidth={1.75} aria-hidden />
+                        <ArrowsInLineHorizontalIcon size={12} aria-hidden />
                         {FOLDED_WORD}
                       </small>
                     ) : null}
                     {tucked ? (
                       <small className="jali-tab-menu-mark">
-                        <Undo2 size={12} strokeWidth={1.75} aria-hidden />
+                        <ArrowUUpLeftIcon size={12} aria-hidden />
                         Tucked
                       </small>
                     ) : null}

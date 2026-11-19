@@ -1,5 +1,10 @@
 import { useEffect, useRef, type KeyboardEvent } from "react";
-import { Columns2, RotateCcw, Square, Undo2 } from "lucide-react";
+import {
+  ArrowCounterClockwiseIcon,
+  ArrowUUpLeftIcon,
+  SquareIcon,
+  SquareSplitHorizontalIcon,
+} from "@phosphor-icons/react";
 import { investigation, startTabDrag, altClick } from "@jali/core/adapter";
 import { useModel, useStore, useUi, useProfile } from "../state/react";
 import { Panes } from "../workspace/Workspace";
@@ -26,7 +31,7 @@ export function PageBar() {
           onClick={() => actions.setMode("single")}
           title="One view at a time"
         >
-          <Square size={14} strokeWidth={1.5} aria-hidden /> Single view
+          <SquareIcon size={14} aria-hidden /> Single view
         </button>
         <button
           role="radio"
@@ -40,7 +45,7 @@ export function PageBar() {
               : "Your role works in Single"
           }
         >
-          <Columns2 size={14} strokeWidth={1.5} aria-hidden /> Split view
+          <SquareSplitHorizontalIcon size={14} aria-hidden /> Split view
         </button>
       </div>
       {multi && opened ? (
@@ -50,7 +55,7 @@ export function PageBar() {
             Investigating · <b>{opened}</b> opened
           </span>
           <button className="jali-inv-back" onClick={() => actions.backToPage()}>
-            <Undo2 size={13} strokeWidth={1.75} aria-hidden /> Back to {profile.name}
+            <ArrowUUpLeftIcon size={13} aria-hidden /> Back to {profile.name}
           </button>
         </div>
       ) : null}
@@ -61,7 +66,7 @@ export function PageBar() {
           aria-label="Reset layout to its design"
           title="Reset layout · drops your split layout"
         >
-          <RotateCcw size={15} strokeWidth={1.5} aria-hidden />
+          <ArrowCounterClockwiseIcon size={15} aria-hidden />
         </button>
       ) : null}
     </div>
@@ -172,7 +177,7 @@ function PageTabs() {
               } else actions.openTab(r.id);
             }}
           >
-            <Icon size={14} strokeWidth={1.5} aria-hidden />
+            <Icon size={14} aria-hidden />
             <span>{r.label}</span>
           </button>
         );

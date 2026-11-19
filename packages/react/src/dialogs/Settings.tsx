@@ -1,5 +1,5 @@
 import { useEffect, useRef, type ReactNode } from "react";
-import { X } from "lucide-react";
+import { XIcon } from "@phosphor-icons/react";
 import type { Settings as S, ThemeChoice } from "@jali/core/adapter";
 import { useStore, useUi } from "../state/react";
 import { formatChord, formatKeys, PALETTE_ID, commandById, viewerLabel } from "@jali/core/adapter";
@@ -49,7 +49,7 @@ export function SettingsPanel({ children }: { children?: ReactNode } = {}) {
         <header>
           <h2 id={`${id}-settings-title`}>Settings</h2>
           <button className="jali-icon-btn" onClick={close} aria-label="Close settings">
-            <X size={14} strokeWidth={1.5} aria-hidden />
+            <XIcon size={14} aria-hidden />
           </button>
         </header>
         <fieldset>

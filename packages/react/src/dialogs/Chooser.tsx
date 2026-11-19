@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { Layers } from "lucide-react";
+import { StackIcon } from "@phosphor-icons/react";
 import { mergeTargets, type MergeTarget } from "@jali/core/adapter";
 import { KindIcon } from "../pane/icons";
 import { useModel, useStore, useUi } from "../state/react";
@@ -44,7 +44,7 @@ function ChooserDialog({ chooser }: { chooser: ChooserState }) {
         <>
           <span className="jali-chooser-icon" aria-hidden>
             {m.stackOf(t.id) ? (
-              <Layers size={14} strokeWidth={1.5} />
+              <StackIcon size={14} />
             ) : (
               <KindIcon kind={m.pane(t.id)?.ref.kind ?? ""} size={14} />
             )}

@@ -38,10 +38,13 @@
     "prepack": "vp pack"
   },
   "dependencies": {
-    "@jali/core": "workspace:*",
-    "lucide-react": "^1.73.0"
+    "@jali/core": "workspace:*"
+  },
+  "devDependencies": {
+    "@phosphor-icons/react": "^2.1.10"
   },
   "peerDependencies": {
+    "@phosphor-icons/react": "^2.1.10",
     "react": ">=19 <20",
     "react-dom": ">=19 <20"
   }

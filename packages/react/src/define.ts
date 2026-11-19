@@ -55,15 +55,19 @@ export interface PaneProps<P = Params> {
   dismiss: () => void;
 }
 
+/** Phosphor's weights (`@phosphor-icons/react`), the set Jali's own icons use. */
+type IconWeight = "thin" | "light" | "regular" | "bold" | "fill" | "duotone";
+
+/** Any Phosphor icon fits; so does any component that takes these props. Jali passes `size` and `aria-hidden`. */
 type IconComponent = ComponentType<{
   size?: number;
-  strokeWidth?: number;
+  weight?: IconWeight;
   "aria-hidden"?: boolean;
 }>;
 
 /** A pane kind for React: the options of any kind, plus its icon and component. */
 export interface PaneOptionsReact<P = Params> extends PaneOptions<P> {
-  /** For the header, tab and shelf: any 16px icon component. Default: a plain square. */
+  /** For the header, tab and shelf: a Phosphor icon (regular weight), or any icon component. Default: a plain square. */
   icon?: IconComponent;
   Component: ComponentType<PaneProps<P>>;
 }

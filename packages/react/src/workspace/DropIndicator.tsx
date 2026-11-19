@@ -1,11 +1,11 @@
 import {
-  ArrowDown,
-  ArrowLeft,
-  ArrowLeftRight,
-  ArrowRight,
-  ArrowUp,
-  SquarePlus,
-} from "lucide-react";
+  ArrowDownIcon,
+  ArrowLeftIcon,
+  ArrowRightIcon,
+  ArrowUpIcon,
+  ArrowsLeftRightIcon,
+  PlusSquareIcon,
+} from "@phosphor-icons/react";
 import type { Edge, Rect } from "@jali/core/adapter";
 import { dropText, zoneRect } from "@jali/core/adapter";
 import { useModel, useUi } from "../state/react";
@@ -24,12 +24,12 @@ export function DropIndicator({ rect, zone }: { rect: Rect; zone: Edge | "centre
 }
 
 const ICONS = {
-  swap: ArrowLeftRight,
-  tab: SquarePlus,
-  left: ArrowLeft,
-  right: ArrowRight,
-  top: ArrowUp,
-  bottom: ArrowDown,
+  swap: ArrowsLeftRightIcon,
+  tab: PlusSquareIcon,
+  left: ArrowLeftIcon,
+  right: ArrowRightIcon,
+  top: ArrowUpIcon,
+  bottom: ArrowDownIcon,
 };
 const INSET: Record<Edge | "centre", string> = {
   centre: "0",
@@ -50,7 +50,7 @@ export function DropZoneLabel({ paneId }: { paneId: string }) {
   return (
     <div className="jali-drop-label-zone" style={{ inset: INSET[zone] }} aria-hidden>
       <span className="jali-drop-label">
-        <Icon size={16} strokeWidth={1.75} aria-hidden />
+        <Icon size={16} aria-hidden />
         {dropText(zone, m.title(paneId), centreDrop)}
       </span>
     </div>

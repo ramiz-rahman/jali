@@ -1,5 +1,5 @@
 import { memo, useMemo, type CSSProperties } from "react";
-import { GripHorizontal } from "lucide-react";
+import { DotsSixIcon } from "@phosphor-icons/react";
 import {
   paneDomId,
   paneTitleId,
@@ -93,7 +93,7 @@ export const PaneFrame = memo(
         >
           {chrome.draggable && !bare ? (
             <span className="jali-grip" aria-hidden>
-              <GripHorizontal size={14} strokeWidth={1.5} />
+              <DotsSixIcon size={14} />
             </span>
           ) : null}
           {group ? (
@@ -102,11 +102,7 @@ export const PaneFrame = memo(
             </div>
           ) : (
             <div className="jali-pane-title">
-              {role ? (
-                <role.icon size={16} strokeWidth={1.5} aria-hidden />
-              ) : (
-                <KindIcon kind={node.ref.kind} />
-              )}
+              {role ? <role.icon size={16} aria-hidden /> : <KindIcon kind={node.ref.kind} />}
               <h2 id={paneTitleId(store.dom.id, node.id)}>{title}</h2>
               {role && env.kinds.title(node.ref) !== title ? (
                 <span className="jali-pane-sub">{env.kinds.title(node.ref)}</span>

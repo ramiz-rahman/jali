@@ -1,4 +1,4 @@
-import { Maximize2, Minimize2, Minus, X } from "lucide-react";
+import { ArrowsInSimpleIcon, ArrowsOutSimpleIcon, MinusIcon, XIcon } from "@phosphor-icons/react";
 import { checkTuck, tuckHome, formatChord } from "@jali/core/adapter";
 import { useModel, useStore } from "../state/react";
 import type { Chrome } from "@jali/core/adapter";
@@ -34,7 +34,7 @@ export function HeaderActions({ id, title, zoomed, chrome }: P) {
           disabled={!home}
           onClick={() => actions.tuck(id)}
         >
-          <Minus size={14} strokeWidth={1.5} aria-hidden />
+          <MinusIcon size={14} aria-hidden />
         </button>
       ) : null}
       {chrome.zoomable ? <ZoomButton id={id} title={title} zoomed={zoomed} /> : null}
@@ -44,7 +44,7 @@ export function HeaderActions({ id, title, zoomed, chrome }: P) {
         aria-label={`Close ${title}`}
         title={`${closeHint}${hint("pane.close")}`}
       >
-        <X size={14} strokeWidth={1.5} aria-hidden />
+        <XIcon size={14} aria-hidden />
       </button>
     </div>
   );
@@ -65,9 +65,9 @@ function ZoomButton({ id, title, zoomed }: { id: string; title: string; zoomed: 
       }
     >
       {zoomed ? (
-        <Minimize2 size={14} strokeWidth={1.5} aria-hidden />
+        <ArrowsInSimpleIcon size={14} aria-hidden />
       ) : (
-        <Maximize2 size={14} strokeWidth={1.5} aria-hidden />
+        <ArrowsOutSimpleIcon size={14} aria-hidden />
       )}
     </button>
   );
