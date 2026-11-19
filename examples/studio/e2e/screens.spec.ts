@@ -74,7 +74,8 @@ for (const [name, width, height, dark] of [
   test(name, async ({ page }) => {
     await page.setViewportSize({ width, height });
     await stage(page, "edit", { dark });
-    await page.locator(".topbar").screenshot({ path: shot(name) });
+    const box = (await page.locator(".topbar").boundingBox())!;
+    await page.screenshot({ path: shot(name), clip: { x: 0, y: 0, width: box.width, height: box.height + 16 } });
   });
 }
 
@@ -108,4 +109,24 @@ for (const [letter, variant] of [
       });
     });
   }
+}
+
+// The top bar at 2x device scale, light and dark: the slab's edges, grain and pockets at full resolution.
+for (const dark of [false, true]) {
+  test(`toprow-wide@2x${dark ? " dark" : ""}`, async ({ browser, baseURL }) => {
+    const context = await browser.newContext({
+      baseURL,
+      viewport: { width: 1440, height: 900 },
+      deviceScaleFactor: 2,
+      colorScheme: dark ? "dark" : "light",
+    });
+    const page = await context.newPage();
+    await stage(page, "edit", { dark });
+    const box = (await page.locator(".topbar").boundingBox())!;
+    await page.screenshot({
+      path: shot(`toprow-wide${dark ? "-dark" : ""}@2x`),
+      clip: { x: 0, y: 0, width: box.width, height: box.height + 16 },
+    });
+    await context.close();
+  });
 }
