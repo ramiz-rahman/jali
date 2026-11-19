@@ -115,10 +115,13 @@
     --jali-text-subtle: var(--jali-default-text-subtle);
     --jali-working: var(--jali-default-working);
 
-    /* Shape and type: one set for both themes. */
+    /* Shape and type: one set for both themes. Every corner Jali draws reads one of the four radii; a few are drawn
+       a little larger, scaled from one (a dialog is 1.2 × --jali-radius) and rounded down to a whole pixel, so radii set
+       to 2px make them 2px too. */
     --jali-radius: 0.625rem;
     --jali-radius-control: 0.375rem;
     --jali-radius-menu: 0.5rem;
+    --jali-radius-chip: 0.25rem;
     /* Jali's faces: Atkinson Hyperlegible Next and Mono (load them from @fontsource or your own files); system faces
        stand in when they are not loaded. */
     --jali-font:

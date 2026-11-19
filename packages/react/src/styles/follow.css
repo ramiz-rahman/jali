@@ -12,7 +12,7 @@
     color: var(--jali-text-subtle);
     background: none;
     border: 1px solid var(--jali-border);
-    border-radius: 4px;
+    border-radius: var(--jali-radius-chip);
     cursor: pointer;
   }
   .jali-follow-toggle:hover {

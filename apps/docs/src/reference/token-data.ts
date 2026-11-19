@@ -225,17 +225,24 @@ export const TOKEN_PURPOSE: Record<string, TokenInfo> = {
   "--jali-radius": {
     group: "Shape and type",
     swatch: "radius",
-    purpose: "Corners of panes, the peek sheet, the drop indicator and the tab-preview outline.",
+    purpose:
+      "Corners of panes, the peek sheet, the drop indicator and the tab-preview outline. Dialogs (the palette, the chooser, Settings and the discard question) are 1.2 × this, rounded down to a whole pixel.",
   },
   "--jali-radius-control": {
     group: "Shape and type",
     swatch: "radius",
-    purpose: "Corners of buttons, inputs, palette rows and the drag chip.",
+    purpose: "Corners of buttons, inputs, palette rows, the drag chip and the tab preview's label.",
   },
   "--jali-radius-menu": {
     group: "Shape and type",
     swatch: "radius",
     purpose: "Corners of menus and the drop label.",
+  },
+  "--jali-radius-chip": {
+    group: "Shape and type",
+    swatch: "radius",
+    purpose:
+      "Corners of small things inside a header, tab or chip: the Following / Kept toggle, a tab's close button, the rename field, the Kept badge and the peek's label. Shelf chips and their buttons, the shelf's \"more\" and its items, and tab menu items are 1.25 × this; investigation chips 1.75 ×, each rounded down to a whole pixel.",
   },
   "--jali-font": {
     group: "Shape and type",

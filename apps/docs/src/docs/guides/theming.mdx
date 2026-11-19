@@ -48,7 +48,7 @@ The tokens you are most likely to change:
 | `--jali-border`, `--jali-border-strong`, `--jali-control` | Lines between things; the edges of buttons and inputs |
 | `--jali-text`, `--jali-text-muted`, `--jali-text-subtle`, `--jali-text-faint` | Text, from strongest to faintest |
 | `--jali-working`, `--jali-blocked`, `--jali-done`, `--jali-failed` | A pane's activity marks |
-| `--jali-radius`, `--jali-radius-control`, `--jali-radius-menu` | Corners of panes, controls and menus |
+| `--jali-radius`, `--jali-radius-control`, `--jali-radius-menu`, `--jali-radius-chip` | Corners of panes, controls, menus and the small things in headers, tabs and chips. Every corner reads one of them (a dialog is 1.2 × `--jali-radius`, rounded to a whole pixel), so setting all four to `0` or `2px` squares the whole workspace |
 | `--jali-font`, `--jali-font-mono` | Type |
 
 Every token, with its light and dark values, is in the [Tokens reference](/reference/tokens).
@@ -96,7 +96,7 @@ The bridge reads these names, each falling back to Jali's own value when your th
 | `--color-primary`, `--color-primary-subtle`, `--color-primary-foreground` | `--jali-accent`, `--jali-accent-soft`, `--jali-on-accent` |
 | `--color-destructive` | `--jali-failed` |
 | `--color-ring`, `--color-focus-ring` | the focus ring |
-| `--radius-card`, `--radius-control`, `--radius-md`, `--radius-lg` | the radii |
+| `--radius-card`, `--radius-control`, `--radius-sm`, `--radius-md`, `--radius-lg` | the radii |
 | `--font-sans`, `--font-mono` | `--jali-font`, `--jali-font-mono` |
 
 Your theme's variables switch with your dark mode, so Jali follows. To follow a variable your theme sets again inside a `.dark` element, the bridge declares Jali's tokens again on each theme scope (`.light`, `.dark`, `[data-theme]`). So with the bridge, theme Jali through your theme's variables, or set a `--jali-*` token on the scope element itself. Tailwind drops theme variables that nothing uses; the bridge uses these, so keep it in the stylesheet Tailwind builds, or mark the theme `@theme static`.

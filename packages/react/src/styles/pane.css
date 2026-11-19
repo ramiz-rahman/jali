@@ -98,7 +98,7 @@
     font-size: 0.6875rem;
     color: var(--jali-text-subtle);
     border: 1px solid var(--jali-border);
-    border-radius: 4px;
+    border-radius: var(--jali-radius-chip);
     padding: 0 0.25rem;
   }
 
@@ -423,7 +423,7 @@
     height: 1.5rem;
     padding: 0;
     border: 0;
-    border-radius: 4px;
+    border-radius: var(--jali-radius-chip);
     background: none;
     color: var(--jali-text-faint);
     cursor: pointer;
@@ -486,7 +486,7 @@
     color: var(--jali-text);
     background: var(--jali-surface);
     border: 1px solid var(--jali-border-strong);
-    border-radius: 4px;
+    border-radius: var(--jali-radius-chip);
     outline: none;
   }
   .jali-rename:focus-visible {
@@ -699,7 +699,8 @@
     height: 1.875rem;
     padding-block: 0;
     padding-inline: 0.25rem 0.5rem;
-    border-radius: 5px;
+    border-radius: calc(var(--jali-radius-chip) * 1.25);
+    border-radius: round(down, var(--jali-radius-chip) * 1.25, 1px);
     cursor: pointer;
     color: var(--jali-text);
   }
