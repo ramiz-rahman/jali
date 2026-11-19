@@ -528,6 +528,17 @@
   .live-map-pane-head svg {
     flex: none;
   }
+  /* A narrow box (four or more panes in a row) puts the icon above the name, so the name has the box's whole width
+     and breaks only at spaces ("Orders", not "Orde rs"). */
+  .live-map-pane {
+    container-type: inline-size;
+  }
+  @container (max-width: 8.5rem) {
+    .live-map-pane-head {
+      flex-direction: column;
+      gap: 0.3125rem;
+    }
+  }
   .live-map-pane-name {
     font-weight: 600;
     font-size: 0.9375rem;
