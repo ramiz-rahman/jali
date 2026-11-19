@@ -88,7 +88,7 @@ test("⌘K: Go to place… asks in Jali's chooser and shows the place", async ({
   await expect(pane(page, "place").locator(".place-name")).toHaveText("Oceanário de Lisboa");
 });
 
-test("on a phone, one pane at a time: the map, a pin, and the place", async ({ browser }) => {
+test("on a phone: the map, a pin, and the place under the map", async ({ browser }) => {
   const ctx = await browser.newContext({ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true });
   const page = await ctx.newPage();
   await page.goto("/");
