@@ -2,14 +2,17 @@
  * `createJali({ gap, inset })`: the layout measures with the workspace's own spacing, and `<JaliRoot>` writes it as
  * `--jali-gap` and `--jali-inset`, so styles that read the variables agree with where the panes are.
  */
-import { afterEach, describe, expect, it } from "vite-plus/test";
-import { cleanup, render } from "@testing-library/react";
+import { afterEach, describe, expect, it, vi } from "vite-plus/test";
+import { act, cleanup, render } from "@testing-library/react";
 import { GAP, createJali, memoryLocation, memoryStorage, pane, row } from "@jali/core";
 import type { JaliOptions } from "@jali/core";
 import { storeOf } from "@jali/core/adapter";
-import { JaliRoot, definePane } from "@jali/react";
+import { JaliRoot, JaliView, definePane } from "@jali/react";
 
-afterEach(cleanup);
+afterEach(() => {
+  cleanup();
+  vi.unstubAllGlobals();
+});
 
 const note = definePane("note", {
   params: { id: Number },
@@ -30,7 +33,9 @@ const make = (options: Partial<JaliOptions> = {}) =>
 
 /** The space between the two panes, from the resolved layout. */
 const between = (jali: ReturnType<typeof make>) => {
-  const [a, b] = storeOf(jali).model().resolved.panes.map((p) => p.rect);
+  const [a, b] = storeOf(jali)
+    .model()
+    .resolved.panes.map((p) => p.rect);
   return b!.x - (a!.x + a!.width);
 };
 
@@ -64,5 +69,28 @@ describe("spacing", () => {
     const layer = document.querySelector<HTMLElement>("[data-jali-layer]")!;
     expect(layer.style.getPropertyValue("--jali-gap")).toBe("3px");
     expect(layer.style.display).toBe("contents");
+  });
+
+  it("measures the workspace inside its own inset", () => {
+    vi.stubGlobal(
+      "ResizeObserver",
+      class {
+        observe() {}
+        unobserve() {}
+        disconnect() {}
+      },
+    );
+    const jali = make({ gap: 2, inset: 15 });
+    render(
+      <JaliRoot jali={jali}>
+        <JaliView />
+      </JaliRoot>,
+    );
+    const ws = document.querySelector<HTMLElement>(".jali-workspace")!;
+    for (const [k, v] of Object.entries({ clientWidth: 1000, clientHeight: 500 }))
+      Object.defineProperty(ws, k, { value: v });
+    act(() => void window.dispatchEvent(new Event("resize")));
+    expect(jali.get().area).toEqual({ width: 1000 - 30, height: 500 - 30 });
+    expect(between(jali)).toBe(2);
   });
 });

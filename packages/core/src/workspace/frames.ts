@@ -3,6 +3,7 @@ import type { NodeId, PaneNode, Rect, ViewState } from "../layout/types";
 import type { JaliModel } from "../state/model";
 import type { Presentation } from "../pane/chrome";
 import type { Hinge } from "./stack";
+import { GAP } from "../tokens";
 
 /**
  * Why a pane is a tab. Made by the person: a tab they merged or opened (neither flag), or one they tucked (`tucked`).
@@ -62,8 +63,9 @@ function acrossFold(
   ];
 }
 
-/** Room between the two panes of stacked view: the divider's line sits in it. */
-export const STACK_GAP = 6;
+/** Room between the two panes of stacked view by default: the divider's line sits in it. A workspace's own is its
+ *  gap (`createJali({ gap })`). */
+export const STACK_GAP = GAP;
 
 export function frames(
   m: JaliModel,
@@ -81,14 +83,15 @@ export function frames(
     const rects = hinge
       ? acrossFold(hinge, size, origin)
       : (() => {
-          const topH = Math.round((size.height - STACK_GAP) * ratio);
+          const { gap } = m.env.spacing;
+          const topH = Math.round((size.height - gap) * ratio);
           return [
             { x: 0, y: 0, width: size.width, height: topH },
             {
               x: 0,
-              y: topH + STACK_GAP,
+              y: topH + gap,
               width: size.width,
-              height: size.height - topH - STACK_GAP,
+              height: size.height - topH - gap,
             },
           ] as const;
         })();

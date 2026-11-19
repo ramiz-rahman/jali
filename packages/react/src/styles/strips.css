@@ -53,21 +53,21 @@
     right: 0;
     background: linear-gradient(to left, var(--jali-canvas), transparent);
   }
-  /* The scrollbar, in the gutter under the panes: thin until pointed at. */
+  /* The scrollbar, in the gutter under the panes (the workspace's gap, at least 4px to hold): thin until pointed at. */
   .jali-strip-track {
     position: absolute;
     left: 0;
     right: 0;
-    bottom: -6px;
+    bottom: calc(-1 * max(var(--jali-gap, 6px), 4px));
     z-index: 2;
-    height: 6px;
+    height: max(var(--jali-gap, 6px), 4px);
     cursor: pointer;
   }
   .jali-strip-thumb {
     position: absolute;
     left: 0;
     top: 1px;
-    height: 4px;
+    height: calc(100% - 2px);
     border-radius: 999px;
     background: var(--jali-border-strong);
     cursor: grab;
@@ -80,7 +80,7 @@
   .jali-strip-track:hover .jali-strip-thumb,
   .jali-strip-thumb:active {
     top: 0;
-    height: 6px;
+    height: 100%;
     background: var(--jali-text-faint);
   }
   .jali-strip-thumb:active {

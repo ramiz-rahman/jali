@@ -6,7 +6,6 @@ import {
   keepPaneFocus,
   ALONE_CHROME,
   CHROME,
-  GAP,
   SWITCHER_H,
   hingeOf,
   type Hinge,
@@ -37,9 +36,10 @@ function useMeasure(store: UiStore) {
   useLayoutEffect(() => {
     const el = ref.current;
     if (!el) return;
+    const { inset } = store.env.spacing;
     const measure = () => {
-      const width = Math.max(0, Math.floor(el.clientWidth - GAP * 2)),
-        height = Math.max(0, Math.floor(el.clientHeight - GAP * 2));
+      const width = Math.max(0, Math.floor(el.clientWidth - inset * 2)),
+        height = Math.max(0, Math.floor(el.clientHeight - inset * 2));
       const s = store.get();
       const dir = directionOf(store.env.dir, el);
       // A fold across the workspace, from the browser's viewport segments (Chrome and Edge 138+; none elsewhere).
@@ -302,21 +302,22 @@ export function Panes() {
   const mode = single ? "single" : "tiled";
   // On a phone the page tabs already choose the view, so a curated page has no pane switcher under them.
   const switcherH = page ? 0 : SWITCHER_H;
+  const { inset } = store.env.spacing;
   const inner = single
     ? {
         left: 0,
         top: switcherH,
-        width: area.width + GAP * 2,
-        height: Math.max(0, area.height + GAP * 2 - switcherH),
+        width: area.width + inset * 2,
+        height: Math.max(0, area.height + inset * 2 - switcherH),
       }
-    : { left: GAP, top: GAP, width: area.width, height: area.height };
+    : { left: inset, top: inset, width: area.width, height: area.height };
   // One pane on screen, tiled: full-bleed and quiet, as a plain tab strip would be (ALONE_CHROME). Not a maximised
   // pane: the others are behind it, and it needs its Restore.
   const alone =
     !single && !page && !view.zoomed && m.resolved.panes.filter((b) => !b.hidden).length === 1;
   const chrome = single ? CHROME.single : alone ? ALONE_CHROME : CHROME.tiled;
   const bleed = alone
-    ? { left: 0, top: 0, width: area.width + GAP * 2, height: area.height + GAP * 2 }
+    ? { left: 0, top: 0, width: area.width + inset * 2, height: area.height + inset * 2 }
     : inner;
   // Stacked view (a portrait phone, phone.stack): two linked panes, unless the keyboard is up.
   const keyboardUp = useKeyboardUp();

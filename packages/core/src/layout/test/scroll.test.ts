@@ -58,6 +58,26 @@ describe("a row that scrolls sideways", () => {
     expect(rect(r, "d7").x).toBe(6 * 366);
   });
 
+  it("lays its children out with the workspace's gap, whatever it is, and so do the panes beside it", () => {
+    const withGap = (gap: number): LayoutContext => ({ ...ctx(), fit: { ...ctx().fit, gap } });
+    for (const gap of [0, 3, 20]) {
+      const r = place(
+        toLayout(row(paneOf({ kind: "list", params: {} }, { id: "overview" }), strip(7))),
+        withGap(gap),
+      );
+      const s = r.scrollers[0]!;
+      expect(folded(r)).toEqual([]);
+      expect(s.contentWidth).toBe(7 * 360 + 6 * gap);
+      expect(s.rect.x).toBeCloseTo(rect(r, "overview").width + gap);
+      expect(s.rect.width).toBeCloseTo(1440 - rect(r, "overview").width - gap);
+      expect(rect(r, "d2").x - (rect(r, "d1").x + 360)).toBeCloseTo(gap);
+      // Scrolled to its end, the last day ends at the strip's right edge.
+      const end = scrolled(r, { strip: s.contentWidth - s.rect.width });
+      const last = end.panes.find((p) => p.id === "d7")!.rect;
+      expect(last.x + last.width).toBeCloseTo(s.rect.x + s.rect.width);
+    }
+  });
+
   it("is one slot to the pane cap: twelve panes in a strip with a cap of 4 fold none", () => {
     const r = place(toLayout(strip(12)), ctx(1440, 900, 4));
     expect(folded(r)).toEqual([]);

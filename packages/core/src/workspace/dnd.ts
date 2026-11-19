@@ -6,7 +6,6 @@
 import { allows } from "../actions/allow";
 import type { Edge, Rect } from "../layout/types";
 import type { UiStore } from "../state/store";
-import { GAP } from "../tokens";
 
 export const DRAG_THRESHOLD = 4;
 
@@ -141,7 +140,8 @@ function startDrag(
 
   const local = (cx: number, cy: number) => {
     const b = workspace?.getBoundingClientRect();
-    return { x: cx - (b?.left ?? 0) - GAP, y: cy - (b?.top ?? 0) - GAP };
+    const { inset } = store.env.spacing;
+    return { x: cx - (b?.left ?? 0) - inset, y: cy - (b?.top ?? 0) - inset };
   };
 
   const move = (ev: PointerEvent) => {
