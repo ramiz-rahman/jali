@@ -274,6 +274,7 @@ describe("a tab's menu", () => {
       "Move tab right",
       "Move out of tabs",
       "Maximise",
+      "Full screen",
       "Duplicate",
     ]);
     expect(
@@ -286,7 +287,7 @@ describe("a tab's menu", () => {
     const jali = group({ tabMenu: () => [] });
     render(<JaliRoot jali={jali} />);
     fireEvent.contextMenu(tab("Note 3").parentElement!);
-    expect(items().at(-1)).toBe("Maximise");
+    expect(items().at(-1)).toBe("Full screen");
     // The last tab has nothing after it.
     expect(
       screen

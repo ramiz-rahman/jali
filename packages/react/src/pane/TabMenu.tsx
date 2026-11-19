@@ -1,6 +1,8 @@
 import type { NodeId } from "@jali/core";
 import { useEffect, useLayoutEffect, useMemo, useRef, useState, type KeyboardEvent } from "react";
 import { createPortal } from "react-dom";
+import { allows } from "@jali/core/adapter";
+import { canPopOut, popOut } from "./PopOut";
 import { tabMenuOf, titleOf, type TabMenuItem } from "@jali/core/adapter";
 import { useJaliIcons } from "../icons/context";
 import { useStore, useUi } from "../state/react";
@@ -23,7 +25,21 @@ export function TabMenu({ at, onClose }: { at: TabMenuAt; onClose: (refocus: boo
   const titles = useUi((s) => s.titles);
   const menu = useRef<HTMLDivElement>(null);
   // Built once as the menu opens: what the tab could do then.
-  const groups = useMemo(() => tabMenuOf(store, at.pane), [store, at.pane]);
+  const groups = useMemo(() => {
+    const g = tabMenuOf(store, at.pane);
+    // Pop out, where the browser can and the app allows it: beside Maximise and Full screen.
+    if (canPopOut() && allows(store.snapshot(), at.pane, "popOut")) {
+      const item: TabMenuItem = {
+        id: "pop-out",
+        title: store.messages.tabs.popOut,
+        run: () => void popOut(store.jali, at.pane),
+      };
+      const near = g.find((group) => group.some((i) => i.id === "full-screen" || i.id === "zoom"));
+      if (near) near.push(item);
+      else g.push([item]);
+    }
+    return g;
+  }, [store, at.pane]);
   const node = store.model().pane(at.pane);
   const [pos, setPos] = useState<{ left: number; top: number } | null>(null);
 

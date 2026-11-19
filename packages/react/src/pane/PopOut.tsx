@@ -79,15 +79,37 @@ export async function popOut(
   if (current) bringBack();
   const win = await pip.requestWindow({ width: size?.width ?? 480, height: size?.height ?? 360 });
   copyStyles(document, win.document);
+  // The browser's zoom on the page (⌘+) doesn't carry into the window it opens: match it, and follow changes.
+  const zoom = () => {
+    const ratio = window.devicePixelRatio / (win.devicePixelRatio || 1);
+    win.document.documentElement.style.zoom = Math.abs(ratio - 1) < 0.01 ? "" : String(ratio);
+  };
+  zoom();
+  let media: MediaQueryList | null = null;
+  const watchZoom = () => {
+    media?.removeEventListener("change", onZoom);
+    media = window.matchMedia(`(resolution: ${window.devicePixelRatio}dppx)`);
+    media.addEventListener("change", onZoom);
+  };
+  const onZoom = () => {
+    zoom();
+    watchZoom();
+  };
+  watchZoom();
+  win.addEventListener("resize", zoom);
   const root = win.document.createElement("div");
   root.className = "jali-popout";
   root.setAttribute("data-jali-popout", "");
   win.document.body.appendChild(root);
   win.document.title = store.model().title(pane);
   // The pane closing in the workspace closes its window.
-  const off = store.subscribe(() => {
+  const unsubscribe = store.subscribe(() => {
     if (current?.win === win && !store.model().pane(pane)) bringBack();
   });
+  const off = () => {
+    unsubscribe();
+    media?.removeEventListener("change", onZoom);
+  };
   current = { store, pane, win, root, off };
   // The window's own close (its ×, or the page leaving) brings the pane back.
   win.addEventListener("pagehide", () => {

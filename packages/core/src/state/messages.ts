@@ -417,6 +417,10 @@ const tabs = {
   splitDown: "Split down",
   maximise: "Maximise",
   restore: "Restore",
+  fullScreen: "Full screen",
+  exitFullScreen: "Exit full screen",
+  tuck: "Tuck",
+  popOut: "Pop out",
 };
 
 /** The shelf: tucked and folded panes as chips. */

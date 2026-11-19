@@ -95,14 +95,15 @@ Only tabs that someone made have an order to change. Tabs that the layout made, 
 
 ## The tab's menu
 
-Right-click a tab, or focus it and press Shift+F10 or the menu key. The menu acts on that tab, even when another pane has focus. Jali's own items come first:
+Right-click a tab, or focus it and press Shift+F10 or the menu key. A pane on its own, with no tabs, has the same menu on its header: right-click its title bar. The menu acts on that pane, even when another one has focus. Right-clicking the content stays your app's. Jali's own items come first, and only those your app [allows](pane-controls.md):
 
 - Close, Close other tabs, and Close tabs to the right (to the left, right to left).
 - Rename…, when you've set up `rename` and it allows this pane.
 - Pin tab, a checkbox.
 - Move tab left, Move tab right, and Move out of tabs.
 - Split right and Split down, when the workspace has a `launcher` and isn't showing a curated page.
-- Maximise, or Restore.
+- Maximise or Restore, Full screen or Exit full screen, and Pop out (where the browser can and the app turned it on).
+- Tuck, on a pane without tabs.
 
 Close other tabs and Close tabs to the right are one change. `beforeClose` is asked once, with every pane in the list, and one Undo brings them all back. From your code, it's `jali.actions.closeTabs(pane, "others")` or `"after"`. "After" means later in reading order, so your code doesn't need to know the direction.
 
