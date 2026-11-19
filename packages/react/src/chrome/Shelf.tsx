@@ -2,14 +2,14 @@ import { useEffect, useLayoutEffect, useMemo, useRef, useState, type KeyboardEve
 import { useJaliIcons } from "../icons/context";
 import type { ShelfEntry, JaliModel, PaneActivity } from "@jali/core/adapter";
 import { useShortcut } from "../commands/react";
-import { flashTab, FOLDED_DESC, FOLDED_TIP, titleOf } from "@jali/core/adapter";
+import { flashTab, FOLDED_DESC, FOLDED_TIP } from "@jali/core/adapter";
 import { Activity, shelfActivity } from "../pane/Activity";
 import { KindIcon } from "../pane/icons";
 import { useActions, useModel, useStore, useUi } from "../state/react";
 
 function label(m: JaliModel, it: ShelfEntry, a: PaneActivity | undefined) {
   const node = m.pane(it.paneId);
-  const title = node ? titleOf(m.env, node) : m.title(it.paneId);
+  const title = m.title(it.paneId);
   const home = m.title(it.homeId);
   const word = shelfActivity(a)?.word;
   const folded = it.reason === "folded";

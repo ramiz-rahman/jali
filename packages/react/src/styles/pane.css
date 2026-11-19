@@ -165,6 +165,29 @@
     gap: 0.25rem;
     color: var(--jali-text-muted);
   }
+  /* A pane whose content threw (PaneBoundary.tsx), and one whose content is still loading. */
+  .jali-pane-failed {
+    padding: 1rem;
+    display: grid;
+    gap: 0.5rem;
+    justify-items: start;
+    color: var(--jali-text-muted);
+  }
+  .jali-pane-failed strong {
+    color: var(--jali-text);
+  }
+  .jali-pane-failed-message {
+    overflow-wrap: anywhere;
+  }
+  .jali-pane-failed-actions {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 0.25rem;
+  }
+  .jali-pane-loading {
+    padding: 1rem;
+    color: var(--jali-text-faint);
+  }
 
   /* Activity dot (header, tab, switcher). The shelf's shapes are in shelf.css. */
   .jali-activity {

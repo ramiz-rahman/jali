@@ -27,6 +27,7 @@ export function TabOverflow({
   const btn = useRef<HTMLButtonElement>(null);
   const menu = useRef<HTMLDivElement>(null);
   const page = useUi((s) => !!s.page);
+  const titles = useUi((s) => s.titles);
 
   const close = (refocus: boolean) => {
     setOpen(false);
@@ -152,7 +153,7 @@ export function TabOverflow({
                     ) : (
                       <KindIcon kind={t.ref.kind} size={14} />
                     )}
-                    <span className="jali-tab-menu-title">{titleOf(env, t)}</span>
+                    <span className="jali-tab-menu-title">{titleOf(env, t, titles)}</span>
                     {folded ? (
                       <small className="jali-tab-menu-mark">
                         <icon.fold size={12} aria-hidden />

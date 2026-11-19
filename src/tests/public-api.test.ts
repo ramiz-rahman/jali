@@ -70,6 +70,7 @@ describe("public API", () => {
       "usePaneState",
       "useShortcut",
       "useTheme",
+      "useTitle",
       "useUnsaved",
     ]);
   });

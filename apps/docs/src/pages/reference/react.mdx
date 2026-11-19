@@ -68,6 +68,7 @@ Everything in <Ref to="PaneOptions" page="/reference/core/types" /> (`params`, `
 
 <ChildParams label="view fields">
 <Param name="Component" type="ComponentType<PaneProps<P>>" required>Renders the pane's content. It stays mounted while the pane is folded, tabbed, tucked or moved.</Param>
+<Param name="Loading" type="ComponentType<PaneProps<P>>">Shown while `Component` suspends (for example, it reads data with `use()`). It gets the same props. Default: a quiet "Loading…". The pane's activity is `"loading"` meanwhile.</Param>
 <Param name="icon" type="JaliIcon">The kind's icon in the header, tab and shelf: a Phosphor icon such as `FileTextIcon`, or any component that takes `{ size, className, "aria-hidden" }`. Jali passes `size` and `aria-hidden`, never a weight, so Phosphor's default (regular) or your `IconContext` decides it. Without one, the `defaultKind` icon (a square).</Param>
 </ChildParams>
 
@@ -84,7 +85,7 @@ A kind made with <Ref to="definePane" />. `P` is its params' type; `Pane` alone 
 
 </Entry>
 
-<Entry name="PaneOptionsReact" kind="type" from="@jali/react" signature={`interface PaneOptionsReact<P> extends PaneOptions<P> {\n  icon?: JaliIcon;\n  Component: ComponentType<PaneProps<P>>;\n}`} compact>
+<Entry name="PaneOptionsReact" kind="type" from="@jali/react" signature={`interface PaneOptionsReact<P> extends PaneOptions<P> {\n  icon?: JaliIcon;\n  Component: ComponentType<PaneProps<P>>;\n  Loading?: ComponentType<PaneProps<P>>;\n}`} compact>
 
 The options of <Ref to="definePane" />.
 
@@ -152,6 +153,14 @@ Report what the pane is doing (`"loading"`, `"working"`, `"needs-you"`, `"error"
 <Entry name="useUnsaved" kind="hook" from="@jali/react" signature={`useUnsaved(what: string | null | false | undefined): void`} compact>
 
 Report unsaved work in words (`"an unsaved query"`), or a falsy value once it is saved, so `useUnsaved(dirty && "an unsaved note")` works. While a pane has some, closing it, closing others, a preset or showing another object in it asks first; a following detail keeps its object. Moving, tabbing, folding and tucking never ask. Cleared when the component unmounts.
+
+</Entry>
+
+<Entry name="useTitle" kind="hook" from="@jali/react" signature={`useTitle(title: string | null | undefined): void`} compact>
+
+Name the pane from its data: `useTitle(customer.data?.name)` shows "Acme Ltd" rather than the kind's "Customer 12". While set, it replaces the kind's `title` in the header, the tab, the shelf, the palette, the switcher, announcements and `jali.model().title(id)`. In a curated page, the view's label still names the pane, and this title is shown beside it. `null` or `undefined` goes back to the kind's title.
+
+It is cleared when the component unmounts and when the pane shows another object, then set again from the next render. It is not saved, so a reload shows the kind's title until the data loads. The peek sheet keeps the kind's title.
 
 </Entry>
 

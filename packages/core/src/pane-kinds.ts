@@ -2,7 +2,7 @@
  * Pane kinds: what an app says about each kind of pane (its params, title, sizes and identity), and the registry a
  * workspace keeps of them. A framework adapter adds the view: @jali/react's `definePane` adds `Component` and `icon`.
  */
-import type { KindRegistry, ObjectRef, PaneKind } from "./layout/types";
+import type { KindRegistry, NodeId, ObjectRef, PaneKind } from "./layout/types";
 
 // ---------- params ----------
 
@@ -164,6 +164,12 @@ export interface PaneCommand {
 
 /** What a pane reports about itself; shown in its header, its tab, the shelf and the status line. */
 export type PaneActivity = "idle" | "loading" | "working" | "needs-you" | "error";
+
+/** Which pane failed (`createJali({ onPaneError })`): its id, null in the peek sheet, and what it was showing. */
+export interface PaneErrorInfo {
+  pane: NodeId | null;
+  ref: ObjectRef;
+}
 
 // ---------- a kind ----------
 

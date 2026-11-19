@@ -5,6 +5,7 @@
  *   useActivity(query.isFetching ? "loading" : "idle");
  *   useUnsaved(draft !== saved && "an unsaved note");
  *   useCommands([{ id: "save", title: "Save note", run: save }]);
+ *   useTitle(query.data?.name);
  */
 import { useEffect, useMemo, useRef } from "react";
 import type { ObjectRef, PaneActivity, PaneCommand, Params } from "@jali/core/adapter";
@@ -54,6 +55,22 @@ export function useCommands(commands: readonly PaneCommand[]): void {
     host.setCommands(listed.length ? listed : null);
   }, [host, shape]);
   useEffect(() => () => host.setCommands(null), [host]);
+}
+
+/**
+ * Name the pane from its data ("Acme Ltd" rather than "Customer 12"): in its header, tab, the shelf, ⌘K, the switcher
+ * and announcements, in place of the kind's `title`. `null` or `undefined` goes back to the kind's title. Cleared when
+ * the component unmounts or the pane shows another object; not saved. The peek sheet keeps the kind's title.
+ */
+export function useTitle(title: string | null | undefined): void {
+  const { host, props } = usePaneContext("useTitle");
+  const text = title || null;
+  // The workspace drops a title when the pane shows another object; this sets the new object's again.
+  const shows = JSON.stringify(props.node.ref);
+  useEffect(() => {
+    host.setTitle(text);
+  }, [host, text, shows]);
+  useEffect(() => () => host.setTitle(null), [host]);
 }
 
 /** What a launcher chooses from: the objects opened recently, whether one is open now, and its title. */

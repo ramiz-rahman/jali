@@ -36,7 +36,7 @@ export interface JaliModel {
   /** Every pane in tree order. */
   panes: PaneNode[];
   pane(id: NodeId | undefined): PaneNode | undefined;
-  /** The pane's title, or "pane" when there is none. */
+  /** The pane's name: its role, the title its content set (useTitle), else its kind's title; "pane" for none. */
   title(id: NodeId | undefined): string;
   /** Panes on screen, reading order (zoom-aware). */
   visible: NodeId[];
@@ -65,9 +65,11 @@ export interface ModelInput {
   area: { width: number; height: number };
   ctx: LayoutContext;
   env: Env;
+  /** Titles panes set from their data (useTitle). */
+  titles?: Record<NodeId, string>;
 }
 
-export function buildModel({ layout, view, area, ctx, env }: ModelInput): JaliModel {
+export function buildModel({ layout, view, area, ctx, env, titles }: ModelInput): JaliModel {
   const resolved = core.resolve(layout, view, ctx);
   const flat = view.zoomed ? core.resolve(layout, core.tree.unzoom(view), ctx) : resolved;
   const panes = core.tree.panes(layout.root);
@@ -78,7 +80,7 @@ export function buildModel({ layout, view, area, ctx, env }: ModelInput): JaliMo
   const stackOf = (id: NodeId | undefined) => (id ? core.tree.stackOf(layout.root, id) : undefined);
   const title = (id: NodeId | undefined) => {
     const p = id ? byId.get(id) : undefined;
-    return p ? titleOf(env, p) : "pane";
+    return p ? titleOf(env, p, titles) : "pane";
   };
 
   const groups = new Map<NodeId, Group>();
@@ -156,6 +158,7 @@ export function modelCache() {
       input.env.kinds.version(),
       input.env.profile,
       input.ctx.paneCap,
+      input.titles,
     ];
     if (last && key.every((k, i) => k === last!.key[i])) return last.model;
     last = { key, model: buildModel(input) };
