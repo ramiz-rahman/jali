@@ -18,8 +18,9 @@
  * This file is the root without icons: `@jali/react` wraps it with Phosphor's (withPhosphor.tsx), and
  * `@jali/react/bare` exports it as it is, so a host that brings every icon never bundles Phosphor.
  */
+import type { Jali } from "@jali/core";
 import { useEffect, type HTMLAttributes, type ReactNode } from "react";
-import { storeOf, type Jali } from "@jali/core/adapter";
+import { storeOf } from "@jali/core/adapter";
 import { Announcer } from "./chrome/Announcer";
 import { CuratedPage } from "./chrome/PageBar";
 import { Chooser } from "./dialogs/Chooser";

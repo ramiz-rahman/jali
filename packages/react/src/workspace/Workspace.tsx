@@ -1,3 +1,4 @@
+import type { JaliModel } from "@jali/core";
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import {
   besidePreview,
@@ -9,16 +10,19 @@ import {
   currentPane,
   directionOf,
   frames,
+  observeResize,
   watchDirection,
 } from "@jali/core/adapter";
 import { PaneSwitcher } from "../chrome/PaneSwitcher";
 import { Peek } from "../chrome/Peek";
 import { DividerLayer } from "../dividers/DividerLayer";
 import { PaneFrame } from "../pane/PaneFrame";
-import type { JaliModel, UiStore } from "@jali/core/adapter";
+import type { UiStore } from "@jali/core/adapter";
 import { useModel, useStore, useUi } from "../state/react";
 import { DropIndicator } from "./DropIndicator";
 import { useSingleView } from "./useSingleView";
+
+const DEV = !!(import.meta as unknown as { env?: { DEV?: boolean } }).env?.DEV;
 
 /** The workspace's usable size follows the element (minus the inset), and so does its reading direction (an
  *  ancestor's `dir`, read again when any `dir` on the page changes), unless the workspace was given one. */
@@ -36,11 +40,16 @@ function useMeasure(store: UiStore) {
         store.set({ area: { width, height }, dir });
     };
     measure();
-    const ro = new ResizeObserver(measure);
-    ro.observe(el);
+    if (DEV && el.clientWidth > 0 && el.clientHeight === 0)
+      console.warn(
+        "Jali: the workspace measures 0 pixels high, so every pane is collapsed. Give <JaliRoot> (or the element " +
+          "around <JaliView />) a height, or make it a flex or grid cell that has one.",
+        el,
+      );
+    const unobserve = observeResize(el, measure);
     const unwatch = watchDirection(measure);
     return () => {
-      ro.disconnect();
+      unobserve();
       unwatch();
     };
   }, [store]);
@@ -224,8 +233,10 @@ export function Panes() {
   const dropBox =
     !single && dnd?.target ? m.resolved.panes.find((b) => b.id === dnd.target) : undefined;
 
+  // A labelled region inside the host's page, or the page's main landmark when the host says Jali is the whole app.
+  const Landmark = store.env.landmark === "main" ? "main" : "section";
   return (
-    <main
+    <Landmark
       className={["jali-workspace", single && "is-single", sliding && !single && "is-reshaping"]
         .filter(Boolean)
         .join(" ")}
@@ -258,6 +269,6 @@ export function Panes() {
         {ghost && !single && !dnd ? <Ghost role={ghost} /> : null}
         <Peek presentation={mode} />
       </div>
-    </main>
+    </Landmark>
   );
 }

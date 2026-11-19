@@ -165,6 +165,9 @@ export interface PaneCommand {
 /** What a pane reports about itself; shown in its header, its tab, the shelf and the status line. */
 export type PaneActivity = "idle" | "loading" | "working" | "needs-you" | "error";
 
+/** `data-*` attributes a pane sets from its data (usePaneAttributes), such as `{ "data-connection": "production" }`. */
+export type PaneAttributes = Record<`data-${string}`, string>;
+
 /** Which pane failed (`createJali({ onPaneError })`): its id, null in the peek sheet, and what it was showing. */
 export interface PaneErrorInfo {
   pane: NodeId | null;

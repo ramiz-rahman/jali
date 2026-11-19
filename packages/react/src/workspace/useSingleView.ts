@@ -1,5 +1,6 @@
+import type { ViewState, JaliModel } from "@jali/core";
 import { useEffect, useRef } from "react";
-import type { ViewState, JaliModel, UiStore } from "@jali/core/adapter";
+import type { UiStore } from "@jali/core/adapter";
 import { restoreWide, snapshotWide, type WideSnapshot } from "@jali/core/adapter";
 
 /**

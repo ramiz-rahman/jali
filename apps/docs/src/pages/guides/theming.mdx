@@ -28,7 +28,7 @@ Cascade layers are ordered by where each name first appears. Declare yours, with
 
 <Code code={app} filename="src/app.css" />
 
-Import only `app.css` from your code. Rules in a layer after `jali` (here `components`) beat Jali's at any specificity. Rules in a layer before it (`base`, for page resets) lose to Jali's, so a reset like `button { font: inherit }` can't undo Jali's type sizes.
+Import only `app.css` from your code. Rules in a layer after `jali` (here `components`) beat Jali's at any specificity. Rules in a layer before it (`base`, for page resets) lose to Jali's, so a reset like `button { font: inherit }` can't undo Jali's type sizes. Jali's root is a flex column that fills its box, so a rule that lays out the element you pass `className` to (a grid of top bar, panes and status line) belongs in a layer after `jali`, or outside any layer.
 
 <Callout type="warning" title="Order matters">
 If Jali's CSS loads first, `jali` becomes the first layer, and every layer you name after it beats Jali, resets included.
@@ -36,7 +36,7 @@ If Jali's CSS loads first, `jali` becomes the first layer, and every layer you n
 
 ## Set tokens by hand
 
-Set any public token on `:root`, or on any element to theme just that part of the page. Jali declares its tokens with zero specificity, so your declaration wins in any order.
+Set any public token on `:root`, or on any element to theme just that part of the page: an element around a workspace, or the workspace's root (`[data-jali]`) itself. Jali declares each token once, on the root, with zero specificity, so your declaration wins in any order, and it still wins inside a `.dark` or `.light` element below it.
 
 The tokens you are most likely to change:
 
@@ -54,7 +54,7 @@ The tokens you are most likely to change:
 
 Every token, with its light and dark values, is in the [Tokens reference](/reference/tokens).
 
-The accent's tints (`--jali-accent-weak`, `--jali-accent-mid`, `--jali-drop` and the focus ring) are mixed from `--jali-accent` on each workspace. Change the accent and they follow, on the whole page or on one workspace. For one workspace, set it on an element around `<JaliRoot>`: the palette and other dialogs render beside the workspace's root, not inside it.
+The accent's tints (`--jali-accent-weak`, `--jali-accent-mid`, `--jali-drop` and the focus ring) are mixed from `--jali-accent` on each workspace. Change the accent and they follow, on the whole page or on one workspace. For one workspace, set it on an element around `<JaliRoot>`: the palette and other dialogs render beside the workspace's root, not inside it, so an accent set on the root itself reaches the panes but not the dialogs.
 
 ## Example: retheme to teal
 
@@ -62,14 +62,16 @@ Jali's default accent is indigo. Here it is teal, with a lighter teal in dark mo
 
 <Code code={teal} filename="src/teal.css" />
 
-Set each token on the same scopes Jali uses for light and dark (`:root` and `.light`; `.dark` and `[data-theme="dark"]`; and the system's dark preference). A token set only on `:root` is replaced inside a `.dark` element by Jali's dark value.
+`light-dark(light, dark)` gives a token both values at once. The browser picks one wherever the token is used, by that element's `color-scheme`, which Jali sets for each theme scope (below). A token with one value, such as `--jali-accent: #0f766e`, is the same in light and dark.
 
 ## Dark mode
 
-Jali's tokens switch to dark:
+Jali's default palette switches to dark (Jali sets `color-scheme: dark`, and every default is a `light-dark()` pair):
 
 - when the system prefers dark, unless the page or a parent says light (`.light` or `data-theme="light"`);
 - inside a `.dark` element or a `data-theme="dark"` one, whatever the system says.
+
+A theme scope switches only Jali's defaults. A token you set yourself, on `:root` or any element above the scope, is kept inside it. If your app sets `color-scheme` itself, Jali's defaults follow yours.
 
 Jali also has its own theme setting (System, Light or Dark, in its settings panel), and a started workspace writes the result to `data-theme` on `<html>` (unless it was made with `pageTheme: false`). If your app has its own light and dark switch, either pass the choice to Jali as well, so the two never disagree, or make the workspace with `pageTheme: false` so it never writes `data-theme` and follows your scopes:
 
@@ -96,7 +98,7 @@ The bridge reads these names, each falling back to Jali's own value when your th
 | `--radius-card`, `--radius-control`, `--radius-md`, `--radius-lg` | the radii |
 | `--font-sans`, `--font-mono` | `--jali-font`, `--jali-font-mono` |
 
-Your theme's variables switch with your dark mode, so Jali follows. Tailwind drops theme variables that nothing uses; the bridge uses these, so keep it in the stylesheet Tailwind builds, or mark the theme `@theme static`.
+Your theme's variables switch with your dark mode, so Jali follows. To follow a variable your theme sets again inside a `.dark` element, the bridge declares Jali's tokens again on each theme scope (`.light`, `.dark`, `[data-theme]`). So with the bridge, theme Jali through your theme's variables, or set a `--jali-*` token on the scope element itself. Tailwind drops theme variables that nothing uses; the bridge uses these, so keep it in the stylesheet Tailwind builds, or mark the theme `@theme static`.
 
 ## Style the parts
 
@@ -106,7 +108,9 @@ Every class Jali renders starts with `jali-`, so none collide with yours. Parts 
 |---|---|
 | A pane (`.jali-pane`) | `data-pane` (its id), `data-kind`, `data-focused`, `data-zoomed` |
 | A tab (`.jali-tab`) | `aria-selected`, `data-folded`, `data-tucked` |
+| A tab's buttons (`.jali-tab-actions`, beside the tab in `.jali-tab-item`) | none: style `.jali-tab-close` and `.jali-tab-putback` |
 | A divider | `data-divider` |
+| Anything that stands for a pane (its section, tab, shelf chip, switcher entry) | the `data-*` attributes the pane sets with `usePaneAttributes` |
 | The drop preview | `data-drop-zone` (`left`, `right`, `top`, `bottom` or `centre`) |
 | The workspace root | `data-jali` |
 

@@ -339,6 +339,16 @@ const tabs = {
   foldedTitle: (pane: string) => `${pane} · Folded: not enough room · returns when there's space`,
   foldedDescription: "Folded: returns when there's room",
   tuckedDescription: "Tucked here. Put back to restore its place.",
+  /**
+   * A tab's description in a strip: why it is a tab, when it is folded or tucked, then the keys it takes. `putBackKeys`
+   * is the put back shortcut on a tucked tab ("⌘K ⌘]"), "" otherwise or when it is unbound.
+   */
+  description: (reason: "folded" | "tucked" | undefined, putBackKeys: string) =>
+    reason === "folded"
+      ? "Folded: returns when there's room. Delete closes it."
+      : reason === "tucked"
+        ? `Tucked here. ${putBackKeys ? `${putBackKeys} puts it back` : "Put back to restore its place"}. Delete closes it.`
+        : "Delete closes it.",
   all: (count: number, outOfView: number) =>
     `All ${count} tabs${outOfView ? `, ${outOfView} out of view` : ""}`,
   allTip: "All tabs",

@@ -100,6 +100,8 @@ export interface Env {
   onPaneError?: (error: unknown, info: PaneErrorInfo) => void;
   /** The reading direction it was given (`createJali({ dir })`); unset, the workspace follows its page. */
   dir?: Direction;
+  /** `"main"` when the panes are the page's main content (`createJali({ landmark })`); unset, a labelled region. */
+  landmark?: "region" | "main";
 }
 
 export const presetById = (env: Pick<Env, "presets">, id: string | undefined): Preset | undefined =>

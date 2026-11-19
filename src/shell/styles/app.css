@@ -45,18 +45,6 @@
     border: 0;
   }
 
-  .app {
-    display: grid;
-    grid-template-rows: var(--topbar-h) minmax(0, 1fr) var(--status-h);
-    height: 100%;
-  }
-  .app > .jali-workspace {
-    grid-row: 2;
-  }
-  .app > .status {
-    grid-row: 3;
-  }
-
   /* toasts */
   .toast {
     font-family: var(--jali-font) !important;

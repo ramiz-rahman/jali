@@ -6,7 +6,11 @@ React for [Jali](../core) workspaces, with Jali's default theme.
 npm install @jali/core @jali/react @phosphor-icons/react
 ```
 
-React 19 is a peer dependency, and so is `@phosphor-icons/react` (optional). Jali's icons are Phosphor's regular weight, the set Chakni uses; give a kind any Phosphor icon (`icon: FileTextIcon`) and it matches.
+React 19 is a peer dependency, and so is `@phosphor-icons/react` (optional).
+
+**Linked or in a monorepo** (`link:`, `file:`, `workspace:` or a symlinked checkout): the package can resolve its own copy of React from beside its source, and the app then bundles two Reacts, which breaks hooks ("Invalid hook call"). With Vite, tell it to use the app's: `resolve: { dedupe: ["react", "react-dom"] }` in `vite.config.ts`. With webpack, alias `react` and `react-dom` to the app's copy (`resolve.alias`).
+
+Jali's icons are Phosphor's regular weight, the set Chakni uses; give a kind any Phosphor icon (`icon: FileTextIcon`) and it matches.
 
 ## Icons
 
@@ -45,7 +49,7 @@ Everything Jali draws reads `--jali-*` tokens and sits in the `jali` cascade lay
 ```
 
 - **Your Tailwind theme:** also import `@jali/react/tailwind.css`. It points Jali's tokens at your theme's (`--color-primary`, `--color-card`, `--color-border`, `--radius-card`, …), the same names Chakni reads.
-- **By hand:** set any `--jali-*` token on `:root` or a subtree (`--jali-accent: #0f766e;`). Dark mode follows `prefers-color-scheme`, `.dark` or `[data-theme="dark"]`.
+- **By hand:** set any `--jali-*` token on `:root`, on any element around the workspace, or on its root (`--jali-accent: #0f766e;`, or `light-dark(#0f766e, #2dd4bf)` for both themes). Your value wins there and below, whatever theme scope sits in between. Dark mode follows `prefers-color-scheme`, `.dark` or `[data-theme="dark"]`: those switch Jali's default palette, never a token you set.
 - **Type:** Jali's face is Atkinson Hyperlegible: Next for text, Mono for code (`--jali-font`, `--jali-font-mono`). Jali doesn't bundle font files; load them (for example `@fontsource/atkinson-hyperlegible-next` and `-mono`) or set the tokens to your own faces.
 - **Parts** carry their state as attributes (`data-pane`, `data-kind`, `data-focused`, `aria-selected`, `data-drop-zone`) and every class is `jali-*`. Parts take no `className`: style them with your own rule on those classes and attributes (`.jali-pane[data-focused] { … }`, or in Tailwind `@apply` inside such a rule). Since Jali's rules are in the `jali` layer, yours win without `!important`. `<JaliRoot className>` styles the root.
 

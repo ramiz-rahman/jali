@@ -76,7 +76,12 @@ const note = definePane("note", {
   ),
 });
 
-const jali = createJali({ panes: [note], layout: row(note({ id: 1 }), note({ id: 2 })) });
+// The workspace is the whole page, so its panes are the page's <main>.
+const jali = createJali({
+  panes: [note],
+  layout: row(note({ id: 1 }), note({ id: 2 })),
+  landmark: "main",
+});
 
 createRoot(document.getElementById("root")!).render(
   <JaliRoot jali={jali} icons={icons} className="app" />,

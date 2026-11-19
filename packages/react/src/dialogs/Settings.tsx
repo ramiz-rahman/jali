@@ -1,6 +1,7 @@
+import type { Settings as S, ThemeChoice } from "@jali/core";
 import { useEffect, useRef, type ReactNode } from "react";
 import { useJaliIcons } from "../icons/context";
-import type { Settings as S, ThemeChoice } from "@jali/core/adapter";
+
 import { useStore, useUi } from "../state/react";
 import { PALETTE_ID, commandById, parseKeys, viewerLabel } from "@jali/core/adapter";
 

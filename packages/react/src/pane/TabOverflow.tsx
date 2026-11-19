@@ -1,7 +1,8 @@
+import type { NodeId } from "@jali/core";
 import { useEffect, useLayoutEffect, useRef, useState, type KeyboardEvent } from "react";
 import { useJaliIcons } from "../icons/context";
 import { createPortal } from "react-dom";
-import type { NodeId, Tab } from "@jali/core/adapter";
+import type { Tab } from "@jali/core/adapter";
 import { roleOf, titleOf } from "@jali/core/adapter";
 import { useStore } from "../state/react";
 import { useUi } from "../state/react";
@@ -29,6 +30,7 @@ export function TabOverflow({
   const menu = useRef<HTMLDivElement>(null);
   const page = useUi((s) => !!s.page);
   const titles = useUi((s) => s.titles);
+  const marks = useUi((s) => s.paneAttributes);
   const dir = useUi((s) => s.dir);
 
   const close = (refocus: boolean) => {
@@ -139,6 +141,7 @@ export function TabOverflow({
                 const role = page && t.role ? roleOf(env.profile!, t.role) : undefined;
                 return (
                   <button
+                    {...marks[t.id]}
                     key={t.id}
                     role="menuitem"
                     className={`jali-tab-menu-item${t.id === active ? " is-active" : ""}`}

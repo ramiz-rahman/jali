@@ -17,7 +17,8 @@
  *
  * No Tailwind build is needed for this file itself: it is plain CSS that reads Tailwind's variables.
  * In the "jali" layer, after jali-theme.css, so it wins over Jali's defaults and a host's own --jali-* (unlayered,
- * or in a later layer) still wins over it.
+ * or in a later layer) still wins over it on the same element. Unlike jali-theme.css, it declares the tokens again on
+ * every theme scope, so it follows a theme variable that a .dark scope sets again: theme through those variables.
  */
 @layer jali {
   :where(:root, .light, .dark, [data-theme]) {

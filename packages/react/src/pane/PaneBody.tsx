@@ -1,13 +1,6 @@
+import type { NodeId, ObjectRef, PaneNode, PaneActivity, PaneCommand } from "@jali/core";
 import { memo, useMemo } from "react";
-import type {
-  NodeId,
-  ObjectRef,
-  PaneNode,
-  Actions,
-  PaneActivity,
-  PaneCommand,
-  UiStore,
-} from "@jali/core/adapter";
+import type { Actions, UiStore } from "@jali/core/adapter";
 import { parseKeys } from "@jali/core/adapter";
 import type { PaneProps } from "../define";
 import { PaneContext, type PaneHost } from "./context";
@@ -26,6 +19,7 @@ export const paneHost = (actions: Actions, id: NodeId): PaneHost => ({
   setUnsaved: (what: string | null) => actions.setUnsaved(id, what),
   setCommands: (commands: PaneCommand[] | null) => actions.setPaneCommands(id, commands),
   setTitle: (title: string | null) => actions.setTitle(id, title),
+  setAttributes: (attributes) => actions.setPaneAttributes(id, attributes),
 });
 
 /** The peek sheet acts for the pane it came from, and has no place of its own to fill, close or report on. */
@@ -42,6 +36,7 @@ export function peekHost(store: UiStore): PaneHost {
     setUnsaved: none,
     setCommands: none,
     setTitle: none,
+    setAttributes: none,
   };
 }
 

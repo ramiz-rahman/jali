@@ -1,8 +1,9 @@
 /** The active-item port (pane/activeItem.ts) for the pane a React component renders in. */
+import type { ActiveItemPort, ActiveItemMapping } from "@jali/core";
 import { useContext, useMemo, useRef } from "react";
-import type { ActiveItemPort } from "@jali/core/adapter";
+
 import { useStore, useUi } from "../state/react";
-import { activeItemPort, type ActiveItemMapping } from "@jali/core/adapter";
+import { activeItemPort } from "@jali/core/adapter";
 import { PaneContext } from "./context";
 
 /** The port for the pane this content is in. Re-renders when the list's item changes, so `itemId` reads fresh. The

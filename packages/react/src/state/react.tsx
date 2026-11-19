@@ -1,16 +1,9 @@
 /** React access to the store: one provider, and hooks that subscribe to exactly what a component reads. */
+import type { Jali, JaliState, PaneNode, JaliModel, NodeId, Messages, Theme } from "@jali/core";
 import { createContext, Fragment, useContext, useSyncExternalStore, type ReactNode } from "react";
-import type {
-  Actions,
-  Jali,
-  JaliState,
-  PaneNode,
-  JaliModel,
-  UiState,
-  UiStore,
-} from "@jali/core/adapter";
+import type { Actions, PaneAttributes, UiState, UiStore } from "@jali/core/adapter";
 import type { ReactEnv, Page } from "../define";
-import { resolveTheme, titleOf, type Messages, type Theme } from "@jali/core/adapter";
+import { resolveTheme, titleOf } from "@jali/core/adapter";
 
 const StoreContext = /* @__PURE__ */ createContext<UiStore | null>(null);
 
@@ -65,6 +58,10 @@ export function useTitleOf(): (node: PaneNode) => string {
   const titles = useUi((s) => s.titles);
   return (node) => titleOf(env, node, titles);
 }
+
+/** The `data-*` attributes a pane set from its data (usePaneAttributes), to spread on what stands for it. */
+export const usePaneAttributesOf = (id: NodeId | undefined): PaneAttributes | undefined =>
+  useUi((s) => (id ? s.paneAttributes[id] : undefined));
 
 // ---------- the public names ----------
 

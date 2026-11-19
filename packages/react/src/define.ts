@@ -16,7 +16,6 @@
  *
  * The pane contract (keys, pausing, unsaved work, commands) is in the docs: Guides, "Pane kinds".
  */
-import type { ComponentType } from "react";
 import type {
   ObjectRef,
   PaneDefinition,
@@ -31,7 +30,9 @@ import type {
   ProfileBase,
   RoleBase,
   ItemId,
-} from "@jali/core/adapter";
+} from "@jali/core";
+import type { ComponentType } from "react";
+
 import { defineKind } from "@jali/core/adapter";
 import type { JaliIcon } from "./icons/types";
 

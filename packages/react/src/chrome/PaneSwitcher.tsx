@@ -1,17 +1,26 @@
-import type { PaneNode } from "@jali/core/adapter";
+import type { PaneNode } from "@jali/core";
 import { inlineStep, paneDomId, titleOf } from "@jali/core/adapter";
 import { Activity } from "../pane/Activity";
 import { KindIcon } from "../pane/icons";
-import { useActions, useMessages, useModel, useStore, useUi } from "../state/react";
+import {
+  useActions,
+  useMessages,
+  useModel,
+  usePaneAttributesOf,
+  useStore,
+  useUi,
+} from "../state/react";
 
 function Item({ node, selected }: { node: PaneNode; selected: boolean }) {
   const activity = useUi((s) => s.activity[node.id]);
   const titles = useUi((s) => s.titles);
+  const marks = usePaneAttributesOf(node.id);
   const tucked = !!useModel().tuckOf(node.id);
   const actions = useActions();
   const store = useStore();
   return (
     <button
+      {...marks}
       role="tab"
       className={`jali-switch-item${selected ? " is-active" : ""}${tucked ? " is-tucked" : ""}`}
       aria-selected={selected}

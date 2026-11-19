@@ -1,7 +1,7 @@
+import type { NodeId, Rect } from "@jali/core";
 import { dividerKey, STEP, STEP_BIG } from "@jali/core/adapter";
 import { memo, type KeyboardEvent } from "react";
 import { useMessages } from "../state/react";
-import type { NodeId, Rect } from "@jali/core/adapter";
 
 export interface DividerProps {
   parentId: NodeId;

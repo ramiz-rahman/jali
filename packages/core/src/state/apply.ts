@@ -392,16 +392,22 @@ function prunePanes(s: UiState, layout: Layout, undo: UndoEntry[]): Partial<UiSt
     Object.keys(r).every((id) => live.has(id))
       ? r
       : Object.fromEntries(Object.entries(r).filter(([id]) => live.has(id)));
-  // A title from data names the object it was set for: it goes when the pane shows another.
+  // A title or attributes from data are about the object they were set for: they go when the pane shows another.
   const named = Object.keys(s.titles).every((id) => live.has(id) && !moved.has(id))
     ? s.titles
     : Object.fromEntries(Object.entries(s.titles).filter(([id]) => live.has(id) && !moved.has(id)));
+  const marked = Object.keys(s.paneAttributes).every((id) => live.has(id) && !moved.has(id))
+    ? s.paneAttributes
+    : Object.fromEntries(
+        Object.entries(s.paneAttributes).filter(([id]) => live.has(id) && !moved.has(id)),
+      );
   return {
     paneState: keep(s.paneState),
     unsaved: mounted(s.unsaved),
     paneCommands: mounted(s.paneCommands),
     activity: mounted(s.activity),
     titles: named,
+    paneAttributes: marked,
   };
 }
 

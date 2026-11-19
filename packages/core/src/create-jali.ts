@@ -88,6 +88,12 @@ export interface JaliOptions<D extends PaneKindBase = PaneKindBase> {
    *  `<html dir="rtl">` is enough), followed when it changes. Give one to fix it: `<JaliRoot>` then sets `dir` on its
    *  elements, so the styles agree. Right to left, a row starts at the right; the layout and its links are the same. */
   dir?: Direction;
+  /**
+   * What the panes are to assistive technology. Default `"region"`: a `<section>` labelled "Panes", which sits inside
+   * your page's own `<main>`. `"main"` renders the page's `<main>` instead: use it when Jali is the whole app and your
+   * page has no `<main>` of its own (a page should have one).
+   */
+  landmark?: "region" | "main";
   /** A fixed size instead of the window's (tests, server rendering). */
   size?: { width: number; height: number };
   /** `false` leaves DOM focus alone (tests, a workspace that is never shown). Default true. */
@@ -164,6 +170,7 @@ export function createJali<D extends PaneKindBase>(options: JaliOptions<D>): Jal
     palette: options.palette,
     messages: options.messages,
     ...(options.dir ? { dir: options.dir } : {}),
+    ...(options.landmark ? { landmark: options.landmark } : {}),
     unstable: options.onUnstable,
     onPaneError: options.onPaneError,
     initial: {

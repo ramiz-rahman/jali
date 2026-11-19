@@ -23,6 +23,11 @@ test.describe("Accessibility", () => {
       });
       expect(name.length, `pane ${i} has an accessible name`).toBeGreaterThan(0);
     }
+    // One main landmark (the lab is the whole page: `landmark: "main"`), and no pane header is a banner.
+    await expect(page.getByRole("main")).toHaveCount(1);
+    await expect(lab.main()).toHaveClass(/jali-workspace/);
+    await expect(page.getByRole("banner")).toHaveCount(1);
+    await expect(page.locator("header.jali-pane-header")).toHaveCount(0);
     for (const r of await page.getByRole("region").all())
       expect(
         (await r.getAttribute("aria-labelledby")) !== null ||

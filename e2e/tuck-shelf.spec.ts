@@ -33,7 +33,9 @@ test.describe("tuck and put back", () => {
     // The tucked tab is marked, and Put back appears on hover and on focus.
     const tab = lab.tab(/customer 1/);
     await expect(tab).toHaveAttribute("data-tucked", "true");
-    const pb = tab.getByRole("button", { name: "Put back customer 1" });
+    const pb = lab
+      .tabButtons(/customer 1/)
+      .getByRole("button", { name: "Put back customer 1", includeHidden: true });
     await tab.hover();
     await expect(pb).toBeVisible();
     expect(await pb.getAttribute("title")).toMatch(/^Put back · (⌘K ⌘\]|Ctrl\+K Ctrl\+\])$/);
@@ -65,6 +67,39 @@ test.describe("tuck and put back", () => {
     await lab.putBackTab(/customer 1/);
     await expect.poll(() => lab.homeOf("customer 1")).toBeNull();
     await lab.expectSnap(before, "after the tab's Put back");
+  });
+
+  test("a focused tucked tab: ⌘K ⌘] puts it back, Delete closes a tab, and its buttons stay out of the tab order", async ({
+    lab,
+    page,
+  }) => {
+    await lab.open();
+    const before = await lab.snap();
+    await lab.tuck("customer").click();
+    const tab = lab.tab(/customer 1/);
+    await expect(tab).toHaveAttribute("aria-keyshortcuts", "Delete Backspace");
+    await expect(tab).toHaveAttribute(
+      "aria-description",
+      /^Tucked here\. (⌘K ⌘\]|Ctrl\+K Ctrl\+\]) puts it back\. Delete closes it\.$/,
+    );
+    await tab.focus();
+    await page.keyboard.press("ControlOrMeta+k");
+    await page.keyboard.press("ControlOrMeta+BracketRight");
+    await expect.poll(() => lab.homeOf("customer 1")).toBeNull();
+    await lab.expectSnap(before, "after ⌘K ⌘] on the focused tab");
+
+    await lab.tuck("customer").click();
+    await expect.poll(() => lab.homeOf("customer 1")).not.toBeNull();
+    await lab.tab(/customer 1/).focus();
+    // Tab leaves the tab without stopping on its Put back or Close.
+    await page.keyboard.press("Tab");
+    expect(await page.evaluate(() => !!document.activeElement?.closest(".jali-tab-actions"))).toBe(
+      false,
+    );
+    await lab.tab(/customer 1/).focus();
+    await page.keyboard.press("Delete");
+    await expect(lab.tab(/customer 1/)).toHaveCount(0);
+    await expect(lab.pane("customer")).toHaveCount(0);
   });
 
   test("dragging a tucked tab out puts it back", async ({ lab, page }) => {

@@ -21,6 +21,8 @@ export const labOptions = {
   name: "Data Studio",
   // The lab's saved settings and pages predate the "jali" default.
   storage: "pane-lab",
+  // The lab is the whole page and has no <main> of its own: the panes are it.
+  landmark: "main",
 } satisfies JaliOptions;
 
 /** The lab app's workspace. Data Studio links reopen exactly, sizes included (the founder's round-trip rule, 17 Nov). */

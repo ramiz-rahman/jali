@@ -42,7 +42,7 @@ describe("icons", () => {
     const tuck = screen.getAllByRole("button", { name: "Tuck Note 1" })[0]!;
     expect(isPhosphor(tuck.querySelector("svg"))).toBe(true);
     // A kind without an icon gets the default kind icon, Phosphor's square.
-    const header = close.closest("header")!;
+    const header = close.closest(".jali-pane-header")!;
     expect([...header.querySelectorAll("svg")].some(isPhosphor)).toBe(true);
   });
 

@@ -1,4 +1,4 @@
-import type { PaneActivity } from "@jali/core/adapter";
+import type { PaneActivity } from "@jali/core";
 import { useMessages } from "../state/react";
 import { useJaliIcons } from "../icons/context";
 

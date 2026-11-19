@@ -1,8 +1,9 @@
+import type { ShelfEntry, JaliModel, PaneActivity } from "@jali/core";
 import { useEffect, useLayoutEffect, useMemo, useRef, useState, type KeyboardEvent } from "react";
 import { useJaliIcons } from "../icons/context";
-import type { ShelfEntry, JaliModel, PaneActivity } from "@jali/core/adapter";
+
 import { useShortcut } from "../commands/react";
-import { flashTab, inlineStep, scrolledFromStart } from "@jali/core/adapter";
+import { flashTab, inlineStep, observeResize, scrolledFromStart } from "@jali/core/adapter";
 import { Activity, shelfActivity } from "../pane/Activity";
 import { KindIcon } from "../pane/icons";
 import { useActions, useMessages, useModel, useStore, useUi } from "../state/react";
@@ -33,6 +34,7 @@ export function Shelf() {
   );
   const items = useMemo(() => [...tuckedItems, ...foldedItems], [tuckedItems, foldedItems]);
   const activity = useUi((s) => s.activity);
+  const marks = useUi((s) => s.paneAttributes);
   const dir = useUi((s) => s.dir);
   const actions = useActions();
   const store = useStore();
@@ -84,10 +86,7 @@ export function Shelf() {
   useLayoutEffect(measure);
   useEffect(() => {
     const sc = scroller.current;
-    if (!sc) return;
-    const ro = new ResizeObserver(measure);
-    ro.observe(sc);
-    return () => ro.disconnect();
+    return sc ? observeResize(sc, measure) : undefined;
   }, [items.length]);
   useEffect(() => {
     if (!menu) return;
@@ -147,6 +146,7 @@ export function Shelf() {
     const L = label(m, it, activity[it.paneId]);
     return (
       <div
+        {...marks[it.paneId]}
         className={`jali-shelf-chip${L.folded ? " is-folded" : ""}`}
         data-chip={it.paneId}
         data-reason={it.reason}
@@ -288,6 +288,7 @@ export function Shelf() {
             const L = label(m, it, activity[it.paneId]);
             return (
               <button
+                {...marks[it.paneId]}
                 role="menuitem"
                 key={it.paneId}
                 onClick={() => {
