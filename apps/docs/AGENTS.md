@@ -4,25 +4,26 @@ Read first: `docs/DOCS-PLAN.md` (what the site holds), `docs/research/docs-sites
 
 ## Run it
 
-- `cd apps/docs && JALI_DOCS_CACHE=node_modules/.vite-<you> pnpm exec vp dev --port <your port> --strictPort`. Your own cache directory and port, always: two dev servers sharing a cache break each other.
+- `cd apps/docs && JALI_DOCS_CACHE=node_modules/.vite-<you> pnpm exec astro dev --port <your port> --strictPort`. Your own cache directory and port, always: two dev servers sharing a cache break each other.
 - Ports: 5400 lead, 5401 shell, 5402 live, 5403 concepts, 5404 reference, 5405 guides. The example apps' servers are 5300 (Data Studio) and 5350 (Loan review); leave them alone.
+- The site is Astro (`astro.config.mjs`): `pnpm build` prerenders every page to static HTML in `dist/` (with sitemap, robots.txt and a `.md` copy of each page); a page that fails to prerender fails the build. Live workspaces render in the browser only (`src/live/ClientOnly.tsx`).
 - `npx tsc --noEmit -p apps/docs` must pass. Check your pages in a real browser (Playwright, `channel: "chrome"`), at 1440 and 390 wide, light and dark.
 
 ## Who owns what (edit only your files)
 
 | Area                | Files                                                                                                                                               |
 | ------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Shell and design    | `src/shell/**`, `src/styles/**`, `src/site/**`, `index.html`, `src/pages/index.mdx`, `src/pages/get-started/introduction.mdx`, `src/pages/_lab.mdx` |
-| Live parts          | `src/live/**`, `src/pages/_live.mdx` (a test page)                                                                                                  |
-| Concepts            | `src/pages/get-started/{quickstart,key-concepts,coding-agents}.mdx`, `src/pages/learn/**`, `src/samples/concepts/**`                                |
-| Reference           | `src/pages/reference/**`, `src/reference/**`, `src/samples/reference/**`                                                                            |
-| Guides and examples | `src/pages/guides/**`, `src/pages/examples/**`, `src/samples/guides/**`                                                                             |
+| Shell and design    | `src/shell/**`, `src/styles/**`, `src/site/**`, `src/layouts/**`, `src/pages/**` (Astro routes), `astro.config.mjs`, `src/docs/index.mdx`, `src/docs/get-started/introduction.mdx`, `src/docs/_lab.mdx` |
+| Live parts          | `src/live/**`, `src/docs/_live.mdx` (a test page)                                                                                                  |
+| Concepts            | `src/docs/get-started/{quickstart,key-concepts,coding-agents}.mdx`, `src/docs/learn/**`, `src/samples/concepts/**`                                |
+| Reference           | `src/docs/reference/**`, `src/reference/**`, `src/samples/reference/**`                                                                            |
+| Guides and examples | `src/docs/guides/**`, `src/docs/examples/**`, `src/samples/guides/**`                                                                             |
 
 Never edit `packages/**`, the example apps (`examples/`) or another area's files. If the packages are wrong, unclear or missing something, say so in your report with the file and line; don't work around it in the docs.
 
 ## Contracts (names and props are fixed; implementations may change)
 
-- **Pages** are MDX under `src/pages`, path = URL (`learn/layout-tree.mdx` is `/learn/layout-tree`). Frontmatter: `title`, `summary` (one plain sentence). The nav is `src/site/nav.ts`. Don't repeat the title as an `# h1` in the page: the shell renders title and summary.
+- **Pages** are MDX under `src/docs` (`src/pages` holds Astro's routes), path = URL (`learn/layout-tree.mdx` is `/learn/layout-tree`). Frontmatter: `title`, `summary` (one plain sentence). The nav is `src/site/nav.ts`. The summary is also the page's meta description for search engines, so make it a sentence that stands alone. Don't repeat the title as an `# h1` in the page: the shell renders title and summary.
 - **MDX components, available without import** (`src/shell/mdx.tsx`): `<Code code lang filename highlight="3-5" />`, `<Callout type="note|tip|warning" title>`, `<Steps>` / `<Step title>`, `<Tabs group>` / `<Tab label>`, `<Install packages="…" />`, `<Cards>` / `<Card title href>`. Fenced code blocks also work (Shiki, light and dark).
 - **Live parts** (`import { TreeView, Frame, Spotlight } from "../../live"`): `<TreeView layout panels height caption detail tries tour />`, `<Frame layout width minWidth height caption />`, `<Spotlight layout target height caption />`. `layout` is a demo layout id from `src/live/demo.ts` (`two`, `chain`, `nested`, `stack`, `strip`, `crowded`); `target` is `shelf`, `follow`, `drop-zones`, `tabs`, `divider` or a selector.
   - TreeView `panels` says what sits beside the workspace: `auto` (the default: map and JSON side by side when wide, else a Map | JSON toggle), `map`, `json`, `map+json`, or `side` (the hero: one closable panel beside the workspace showing map, JSON or both). `detail` shows sizes and the overlay card, for pages that teach the model. `tries={false}` drops the row of things to try. `tour` plays the scripted tour (`src/live/Tour.tsx`); it belongs on the home page's hero only.
