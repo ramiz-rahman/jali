@@ -646,7 +646,7 @@ How a curated page is shown: one view at a time (Single) or side by side (Split 
 *type*, from `@jali/core`
 
 ```ts
-interface PhoneOptions { below?: number; stack?: boolean; stackFloor?: number }
+interface PhoneOptions { below?: number; stack?: boolean; stackFloor?: number; fold?: boolean }
 ```
 
 How the workspace behaves on a phone (`createJali({ phone })`).
@@ -658,6 +658,8 @@ How the workspace behaves on a phone (`createJali({ phone })`).
 - **`stack`** (`boolean`): On a portrait phone, show two linked panes one above the other instead of one at a time: the focused pane and the pane it was opened from (a list above its detail), else one opened from it. Only with room for both: the workspace at least 480 pixels tall, and each pane at least `stackFloor` and its kind's minimum height. While the on-screen keyboard is up, the focused pane shows alone. Default `false`.
 
 - **`stackFloor`** (`number`): The shortest a stacked pane may be, in CSS pixels. Default 200.
+
+- **`fold`** (`boolean`): On a screen that folds into two (a half-open Galaxy Fold or Pixel Fold, a Flip in flex mode, a dual-screen phone), put a pane each side of the fold so none straddles the hinge: the focused pane and the pane it was opened from, else the next pane. Read from the browser's viewport segments, in Chrome and Edge 138 and later; elsewhere nothing changes. Default `true`.
 
 ### Preset
 

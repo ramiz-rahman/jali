@@ -2,6 +2,7 @@
 import type { NodeId, PaneNode, Rect, ViewState } from "../layout/types";
 import type { JaliModel } from "../state/model";
 import type { Presentation } from "../pane/chrome";
+import type { Hinge } from "./stack";
 
 /**
  * Why a pane is a tab. Made by the person: a tab they merged or opened (neither flag), or one they tucked (`tucked`).
@@ -32,6 +33,28 @@ export const currentPane = (m: JaliModel, view: ViewState) =>
     ? view.focused
     : m.onScreen[0]?.id;
 
+/** The two halves either side of a fold, in the box's coordinates: start first. */
+function acrossFold(
+  hinge: Hinge,
+  size: { width: number; height: number },
+  origin: { x: number; y: number },
+): readonly [Rect, Rect] {
+  if (hinge.axis === "row") {
+    const a = Math.max(0, Math.min(size.width, Math.round(hinge.start - origin.x)));
+    const b = Math.max(a, Math.min(size.width, Math.round(hinge.start + hinge.size - origin.x)));
+    return [
+      { x: 0, y: 0, width: a, height: size.height },
+      { x: b, y: 0, width: size.width - b, height: size.height },
+    ];
+  }
+  const a = Math.max(0, Math.min(size.height, Math.round(hinge.start - origin.y)));
+  const b = Math.max(a, Math.min(size.height, Math.round(hinge.start + hinge.size - origin.y)));
+  return [
+    { x: 0, y: 0, width: size.width, height: a },
+    { x: 0, y: b, width: size.width, height: size.height - b },
+  ];
+}
+
 /** Room between the two panes of stacked view: the divider's line sits in it. */
 export const STACK_GAP = 6;
 
@@ -42,23 +65,31 @@ export function frames(
   size: { width: number; height: number },
   /** Stacked view: the top pane's share of the height (0 to 1), or `false` to show one pane (the keyboard is up). */
   stack: number | false = 0.5,
+  /** Where this box sits in the workspace, which a fold's hinge is measured in. */
+  origin: { x: number; y: number } = { x: 0, y: 0 },
 ): Frame[] {
-  if (mode === "single" && m.stacked && stack !== false) {
-    const { top, bottom } = m.stacked;
-    const topH = Math.round((size.height - STACK_GAP) * stack);
-    const rects = {
-      [top]: { x: 0, y: 0, width: size.width, height: topH },
-      [bottom]: {
-        x: 0,
-        y: topH + STACK_GAP,
-        width: size.width,
-        height: size.height - topH - STACK_GAP,
-      },
-    };
+  if (mode === "single" && m.stacked && (stack !== false || m.stacked.hinge)) {
+    const { top, bottom, hinge } = m.stacked;
+    const ratio = stack === false ? 0.5 : stack;
+    const rects = hinge
+      ? acrossFold(hinge, size, origin)
+      : (() => {
+          const topH = Math.round((size.height - STACK_GAP) * ratio);
+          return [
+            { x: 0, y: 0, width: size.width, height: topH },
+            {
+              x: 0,
+              y: topH + STACK_GAP,
+              width: size.width,
+              height: size.height - topH - STACK_GAP,
+            },
+          ] as const;
+        })();
+    const byId = { [top]: rects[0], [bottom]: rects[1] };
     return m.panes.map((node) => ({
       node,
-      rect: rects[node.id] ?? { x: 0, y: 0, ...size },
-      hidden: !rects[node.id],
+      rect: byId[node.id] ?? { x: 0, y: 0, ...size },
+      hidden: !byId[node.id],
       focused: node.id === view.focused,
       zoomed: false,
       covered: false,

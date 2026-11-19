@@ -8,6 +8,9 @@ import {
   CHROME,
   GAP,
   SWITCHER_H,
+  hingeOf,
+  type Hinge,
+  sameHinge,
   currentPane,
   directionOf,
   frames,
@@ -38,8 +41,17 @@ function useMeasure(store: UiStore) {
         height = Math.max(0, Math.floor(el.clientHeight - GAP * 2));
       const s = store.get();
       const dir = directionOf(store.env.dir, el);
-      if (s.area.width !== width || s.area.height !== height || s.dir !== dir)
-        store.set({ area: { width, height }, dir });
+      // A fold across the workspace, from the browser's viewport segments (Chrome and Edge 138+; none elsewhere).
+      const segments = (window as { viewport?: { segments?: DOMRect[] | null } }).viewport
+        ?.segments;
+      const hinge = hingeOf(segments ?? undefined, el.getBoundingClientRect());
+      if (
+        s.area.width !== width ||
+        s.area.height !== height ||
+        s.dir !== dir ||
+        !sameHinge(s.hinge, hinge)
+      )
+        store.set({ area: { width, height }, dir, hinge });
     };
     measure();
     if (DEV && el.clientWidth > 0 && el.clientHeight === 0)
@@ -50,9 +62,21 @@ function useMeasure(store: UiStore) {
       );
     const unobserve = observeResize(el, measure);
     const unwatch = watchDirection(measure);
+    // Folding and unfolding changes the segments, sometimes without changing the element's size.
+    window.addEventListener("resize", measure);
+    const posture = (navigator as { devicePosture?: EventTarget }).devicePosture;
+    posture?.addEventListener("change", measure);
+    // A fold that turns from book to tabletop changes the segments alone: their media queries say so.
+    const folds = ["(horizontal-viewport-segments: 2)", "(vertical-viewport-segments: 2)"].map(
+      (q) => window.matchMedia?.(q),
+    );
+    folds.forEach((q) => q?.addEventListener?.("change", measure));
     return () => {
       unobserve();
       unwatch();
+      window.removeEventListener("resize", measure);
+      posture?.removeEventListener("change", measure);
+      folds.forEach((q) => q?.removeEventListener?.("change", measure));
     };
   }, [store]);
   return ref;
@@ -196,6 +220,21 @@ function DragChip({ x, y, label, rtl }: { x: number; y: number; label: string; r
   );
 }
 
+/** A fold's hinge, drawn as a hairline where the halves meet (a seamless fold has no gap of its own). */
+function FoldLine({ hinge, origin }: { hinge: Hinge; origin: { left: number; top: number } }) {
+  const row = hinge.axis === "row";
+  const at = hinge.start + hinge.size / 2 - (row ? origin.left : origin.top);
+  return (
+    <div
+      className="jali-fold-line"
+      aria-hidden
+      style={
+        row ? { left: at, top: 0, bottom: 0, width: 1 } : { top: at, left: 0, right: 0, height: 1 }
+      }
+    />
+  );
+}
+
 /** The panes: the layout, its dividers, tabs, the shelf, the peek sheet and drop previews. */
 export function Panes() {
   const store = useStore();
@@ -240,7 +279,8 @@ export function Panes() {
   // Stacked view (a portrait phone, phone.stack): two linked panes, unless the keyboard is up.
   const keyboardUp = useKeyboardUp();
   const [stackRatio, setStackRatio] = useState(0.5);
-  const stacked = single && !page && !!m.stacked && !keyboardUp;
+  // Across a fold the two halves stay whatever the keyboard does: they are two screens.
+  const stacked = single && !page && !!m.stacked && (!keyboardUp || !!m.stacked.hinge);
   useStackAnnouncement(store, m, stacked);
   const dropBox =
     !single && dnd?.target ? m.resolved.panes.find((b) => b.id === dnd.target) : undefined;
@@ -256,6 +296,7 @@ export function Panes() {
       aria-label={store.messages.workspace.label}
       data-single={single ? "" : undefined}
       data-stacked={stacked ? "" : undefined}
+      data-fold={stacked ? m.stacked?.hinge?.axis : undefined}
       data-alone={alone ? "" : undefined}
       data-zoomed={!single && view.zoomed ? "" : undefined}
       data-page={page}
@@ -274,6 +315,7 @@ export function Panes() {
           mode,
           { width: inner.width, height: inner.height },
           stacked ? stackRatio : false,
+          { x: inner.left, y: inner.top },
         ).map((f) => (
           <PaneFrame
             key={f.node.id}
@@ -287,7 +329,8 @@ export function Panes() {
           />
         ))}
         {single ? null : <DividerLayer />}
-        {stacked ? (
+        {stacked && m.stacked?.hinge ? <FoldLine hinge={m.stacked.hinge} origin={inner} /> : null}
+        {stacked && !m.stacked?.hinge ? (
           <StackDivider m={m} ratio={stackRatio} setRatio={setStackRatio} height={inner.height} />
         ) : null}
         {dropBox && dnd?.zone ? <DropIndicator rect={dropBox.rect} zone={dnd.zone} /> : null}

@@ -16,7 +16,7 @@ import type {
   ViewState,
 } from "../layout/types";
 import { PHONE_BELOW, titleOf, type Env } from "../profile";
-import { stackPair, type StackPair } from "../workspace/stack";
+import { foldPair, stackPair, type Hinge, type StackPair } from "../workspace/stack";
 import { messagesOf } from "./messages";
 
 /** A tab group as the frame shows it: a deliberate stack, or a fold or tuck group made by resolve. */
@@ -71,9 +71,11 @@ export interface ModelInput {
   env: Env;
   /** Titles panes set from their data (useTitle). */
   titles?: Record<NodeId, string>;
+  /** A fold that splits the workspace in two (the browser's viewport segments). */
+  hinge?: Hinge;
 }
 
-export function buildModel({ layout, view, area, ctx, env, titles }: ModelInput): JaliModel {
+export function buildModel({ layout, view, area, ctx, env, titles, hinge }: ModelInput): JaliModel {
   const resolved = core.resolve(layout, view, ctx);
   const flat = view.zoomed ? core.resolve(layout, core.tree.unzoom(view), ctx) : resolved;
   const panes = core.tree.panes(layout.root);
@@ -150,12 +152,20 @@ export function buildModel({ layout, view, area, ctx, env, titles }: ModelInput)
       (area.width < (env.phone?.below ?? PHONE_BELOW) ||
         resolved.panes.some((b) => !b.hidden && b.rect.x + b.rect.width > area.width + 0.5)),
   };
-  if (model.single) {
-    const current =
-      view.focused && byId.has(view.focused) && !model.off.includes(view.focused)
-        ? view.focused
-        : model.onScreen[0]?.id;
-    const pair = stackPair({ env, view, area, onScreen: model.onScreen, current });
+  const current = () =>
+    view.focused && byId.has(view.focused) && !model.off.includes(view.focused)
+      ? view.focused
+      : model.onScreen[0]?.id;
+  // A fold splits the workspace: a pane each side of it, presented as Single view's chrome with two panes.
+  const across =
+    hinge && env.phone?.fold !== false
+      ? foldPair({ env, hinge, onScreen: model.onScreen, current: current() })
+      : undefined;
+  if (across) {
+    model.single = true;
+    model.stacked = across;
+  } else if (model.single) {
+    const pair = stackPair({ env, view, area, onScreen: model.onScreen, current: current() });
     if (pair) model.stacked = pair;
   }
   return model;
@@ -174,7 +184,10 @@ export function modelCache() {
       input.env.profile,
       input.env.phone?.below,
       // Stacked view pairs the focused pane: only then does focus change the model.
-      input.env.phone?.stack ? input.view.focused : undefined,
+      input.env.phone?.stack || input.hinge ? input.view.focused : undefined,
+      input.hinge?.axis,
+      input.hinge?.start,
+      input.hinge?.size,
       input.ctx.paneCap,
       input.titles,
       input.ctx.dir,

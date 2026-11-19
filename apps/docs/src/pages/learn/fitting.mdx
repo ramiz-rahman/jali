@@ -99,4 +99,8 @@ A list and its detail often work best together, even on a phone. With `createJal
 
 Stacking happens only when both panes have room: the workspace at least 480 pixels tall, each pane at least 200 (`stackFloor`) and at least its kind's minimum height. It never stacks more than two. Held sideways, the phone is wide enough for the normal layout. While the on-screen keyboard is up, the pane you're typing in shows alone, so the keyboard doesn't cover it. A kind can stay out with `phone: { stack: false }`, or ask for its half with `phone: { place: "top" }`.
 
+### Folding screens
+
+A phone that folds into two halves, held half open like a book or a laptop, or a phone with two screens, has a hinge where content shouldn't sit. When the browser reports the fold, Jali puts a pane each side of it: the focused pane and the pane it was opened from, else the next pane, with a hairline on the hinge. Book posture puts them side by side, tabletop one above the other. Unfold the phone and the layout comes back. This is on by default, and changes nothing on a screen that doesn't fold. Turn it off with `phone: { fold: false }`. Browsers report folds in Chrome and Edge 138 and later; Safari and Firefox don't yet, and there the normal rules apply.
+
 The layout, the address and the history don't change. Widen the window and the arrangement comes back.

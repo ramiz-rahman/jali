@@ -159,6 +159,8 @@ const announcements = {
   singleOff: "Single view ended: full layout restored",
   /** Stacked view on a phone: two linked panes, one above the other. */
   stacked: (top: string, bottom: string) => `Two panes stacked: ${top} above, ${bottom} below`,
+  /** A folding screen: a pane each side of the fold. */
+  foldSplit: (first: string, second: string) => `Split at the fold: ${first} and ${second}`,
   folded: (panes: string[]) => `${panes.join(", ")} folded into tabs: not enough room`,
   unfolded: (panes: string[]) => `${panes.join(", ")} unfolded: room returned`,
 

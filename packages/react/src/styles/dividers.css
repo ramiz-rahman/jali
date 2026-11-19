@@ -212,4 +212,12 @@
   .jali-stack-divider:focus-visible::after {
     box-shadow: 0 0 0 3px var(--jali-accent-mid);
   }
+
+  /* A fold's hinge: a hairline where the two halves meet. */
+  .jali-fold-line {
+    position: absolute;
+    z-index: 6;
+    background: var(--jali-border-strong);
+    pointer-events: none;
+  }
 }

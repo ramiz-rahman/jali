@@ -16,8 +16,54 @@ export const STACK_MIN_HEIGHT = 480;
 export const STACK_FLOOR = 200;
 
 export interface StackPair {
+  /** Above, or (side by side, `axis: "row"`) at the start. */
   top: NodeId;
+  /** Below, or at the end. */
   bottom: NodeId;
+  /** `column` (default): one above the other; `row`: side by side, either side of a fold. */
+  axis?: "row" | "column";
+  /** Across a fold: where the hinge is, which the divider sits on and nobody moves. */
+  hinge?: Hinge;
+}
+
+/**
+ * A fold that separates the screen into two (a half-open Galaxy Fold or Pixel Fold, a Flip in flex mode, a spanned
+ * Surface Duo), from the browser's viewport segments, in the workspace's own coordinates: `axis: "row"` when the two
+ * halves are side by side (the hinge runs down), `"column"` when one is above the other. `start` and `size` place the
+ * hinge along that axis (`size` 0 for a seamless fold, the mask's width for a dual screen).
+ */
+export interface Hinge {
+  axis: "row" | "column";
+  start: number;
+  size: number;
+}
+
+/**
+ * Across a fold: two panes, one each side, so nothing straddles the hinge. The pair is the focused pane and its
+ * partner, else the next pane on screen; one pane alone spans both halves. Not for kinds that stay out of stacking.
+ */
+export function foldPair(input: {
+  env: Env;
+  hinge: Hinge;
+  onScreen: PaneNode[];
+  current: NodeId | undefined;
+}): StackPair | undefined {
+  const { env, hinge, onScreen, current } = input;
+  if (env.phone?.fold === false || !current) return undefined;
+  const byId = new Map(onScreen.map((p) => [p.id, p]));
+  const pane = byId.get(current);
+  if (!pane) return undefined;
+  const source = pane.linkedTo ? byId.get(pane.linkedTo) : undefined;
+  const opened = onScreen.filter((p) => p.linkedTo === pane.id);
+  const i = onScreen.indexOf(pane);
+  const partner =
+    source ?? opened.find((p) => p.follows) ?? opened[0] ?? onScreen[i + 1] ?? onScreen[i - 1];
+  if (!partner) return undefined;
+  const ahead = source || onScreen.indexOf(partner) < i;
+  let [top, bottom] = ahead ? [partner, pane] : [pane, partner];
+  const hint = (p: PaneNode) => env.kinds.get(p.ref.kind)?.phone;
+  if (hint(top)?.place === "bottom" || hint(bottom)?.place === "top") [top, bottom] = [bottom, top];
+  return { top: top.id, bottom: bottom.id, axis: hinge.axis, hinge };
 }
 
 export function stackPair(input: {
@@ -54,3 +100,24 @@ export function stackPair(input: {
   if (hint(top)?.place === "bottom" || hint(bottom)?.place === "top") [top, bottom] = [bottom, top];
   return { top: top.id, bottom: bottom.id };
 }
+
+type Box = { left: number; top: number; right: number; bottom: number };
+
+/**
+ * The hinge two viewport segments make across `box` (the workspace element's client rect), in the box's coordinates,
+ * or undefined: no fold, more than two segments, or a fold that misses the box or only grazes its edge (within 48px),
+ * where a split would leave a sliver.
+ */
+export function hingeOf(segments: readonly Box[] | undefined, box: Box): Hinge | undefined {
+  if (!segments || segments.length !== 2) return undefined;
+  const [a, b] = segments as [Box, Box];
+  const EDGE = 48;
+  if (a.right <= b.left && box.left + EDGE < a.right && b.left < box.right - EDGE)
+    return { axis: "row", start: a.right - box.left, size: b.left - a.right };
+  if (a.bottom <= b.top && box.top + EDGE < a.bottom && b.top < box.bottom - EDGE)
+    return { axis: "column", start: a.bottom - box.top, size: b.top - a.bottom };
+  return undefined;
+}
+
+export const sameHinge = (a: Hinge | undefined, b: Hinge | undefined) =>
+  a === b || (!!a && !!b && a.axis === b.axis && a.start === b.start && a.size === b.size);

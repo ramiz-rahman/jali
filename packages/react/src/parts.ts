@@ -49,7 +49,12 @@ export const parts = {
       { name: "data-single", means: "Flag: Single view (one pane at a time, with the switcher)." },
       {
         name: "data-stacked",
-        means: "Flag: stacked view, two panes one above the other (a phone with `phone.stack`).",
+        means:
+          "Flag: stacked view, two panes one above the other (a phone with `phone.stack`), or a pane each side of a fold.",
+      },
+      {
+        name: "data-fold",
+        means: "Across a fold: `row` (the halves side by side) or `column` (one above the other).",
       },
       { name: "data-zoomed", means: "Flag: a pane is maximised." },
       {
@@ -183,6 +188,11 @@ export const parts = {
         means: "`vertical` between side-by-side panes, `horizontal` between stacked ones.",
       },
     ],
+  },
+  foldLine: {
+    selector: ".jali-fold-line",
+    what: "The hairline drawn on a fold's hinge, between the two halves.",
+    attributes: [],
   },
   stackDivider: {
     selector: ".jali-stack-divider",

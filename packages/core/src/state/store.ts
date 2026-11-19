@@ -1,3 +1,4 @@
+import type { Hinge } from "../workspace/stack";
 import type { Rename } from "../actions/rename";
 /**
  * The workspace: state, one derived model, and apply(). Layout and view come from the layout ops; actions are pure
@@ -135,6 +136,9 @@ export interface UiState {
   /** Objects opened this session, most recent first (the launcher's "Recent"). */
   recent: ObjectRef[];
   area: { width: number; height: number };
+  /** A fold that splits the workspace in two, measured from the browser's viewport segments; unset on a flat screen
+   *  and in browsers without them. */
+  hinge?: Hinge;
   /** The reading direction the panes are laid out in: right to left, a row starts at the right. Read from the page
    *  when the workspace is measured, unless `createJali({ dir })` fixed it. */
   dir: Direction;
@@ -531,6 +535,7 @@ export function createUiStore(deps: UiStoreDeps): UiStore {
         ctx: ctx(),
         env,
         titles: state.titles,
+        ...(state.hinge ? { hinge: state.hinge } : {}),
       }),
     ctx,
     snapshot: () => ({ s: state, m: store.model(), ctx: ctx(), env }),

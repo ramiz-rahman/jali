@@ -129,6 +129,12 @@ export interface PhoneOptions {
   stack?: boolean;
   /** The shortest a stacked pane may be, in CSS pixels. Default 200. */
   stackFloor?: number;
+  /**
+   * On a device whose screen folds into two (a half-open Fold, a Flip in flex mode, a dual-screen phone), put a pane
+   * each side of the fold, so none straddles the hinge. Read from the browser's viewport segments (Chrome and Edge
+   * 138 and later); elsewhere nothing changes. Default true.
+   */
+  fold?: boolean;
 }
 
 /** The phone width when none is given: Android's compact window width. */

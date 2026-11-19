@@ -32,10 +32,11 @@ export function useStackAnnouncement(store: UiStore, m: JaliModel, shown: boolea
   const key = shown && m.stacked ? `${m.stacked.top} ${m.stacked.bottom}` : "";
   const was = useRef("");
   useEffect(() => {
-    if (key && key !== was.current && m.stacked)
-      store.announce(
-        store.messages.announcements.stacked(m.title(m.stacked.top), m.title(m.stacked.bottom)),
-      );
+    if (key && key !== was.current && m.stacked) {
+      const said = store.messages.announcements;
+      const [a, b] = [m.title(m.stacked.top), m.title(m.stacked.bottom)];
+      store.announce(m.stacked.hinge ? said.foldSplit(a, b) : said.stacked(a, b));
+    }
     was.current = key;
   }, [key]);
 }
