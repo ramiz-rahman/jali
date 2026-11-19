@@ -64,7 +64,8 @@ export interface PlanStore extends Store<Plan> {
   reset(): void;
 }
 
-const KEY = "trips:plan";
+// Versioned: a plan saved by an older version of the example (the Lisbon trip) is never read back as this one.
+const KEY = "trips:plan:v2";
 const HISTORY = 40;
 
 export function createPlanStore(persist = true, initial?: Plan): PlanStore {

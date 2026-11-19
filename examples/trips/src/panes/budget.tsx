@@ -51,7 +51,7 @@ function BudgetPane({ inPeek }: PaneProps) {
         <label className="budget-input">
           <span>Trip budget</span>
           <span className="money-field">
-            <span aria-hidden>€</span>
+            <span aria-hidden>$</span>
             <input
               inputMode="numeric"
               value={draft ?? String(plan.budget)}
@@ -140,7 +140,7 @@ function BudgetPane({ inPeek }: PaneProps) {
 
       <p className="budget-note muted small">
         <WalletIcon size={14} aria-hidden /> Each day's share is {f.money(b.days[0]?.allowance ?? 0)}: the budget
-        over {plan.days.length} days. Transport is the sum of the day's legs, so a taxi instead of a walk shows here.
+        over {plan.days.length} days. Transport is the sum of the day's legs, so a scooter instead of a taxi in Phuket shows here; the flight is its own line.
         Every price in this example is made up.
       </p>
     </div>

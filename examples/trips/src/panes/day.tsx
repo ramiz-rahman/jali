@@ -1,12 +1,15 @@
 /**
- * One day of the trip: its stops in order, from the hotel and back, with the leg between each pair (walk, transit
- * or taxi, its minutes and its fare), and the day's totals. Reorder by dragging a stop's handle (also onto another
+ * One day of the trip: its stops in order, from the city's hotel and back, with the leg between each pair (the
+ * city's own modes, its minutes and its fare), and the day's totals. The transfer day starts at the other city's
+ * hotel, with the ride to the airport and the flight, before its stops. Reorder by dragging a stop's handle (also onto another
  * day's pane, or a day in the overview) or with Alt+↑ and Alt+↓; change a leg's mode; "Optimise order" finds the
  * quickest order and says what it saved, with Undo.
  */
 import { Fragment, useEffect, useRef, type KeyboardEvent } from "react";
 import {
+  AirplaneTiltIcon,
   ArrowsClockwiseIcon,
+  BoatIcon,
   CalendarDotsIcon,
   DotsSixVerticalIcon,
   HouseLineIcon,
@@ -18,11 +21,11 @@ import { selectPlace } from "../actions";
 import { addToDay, chooseDay, optimise, removeFromPlan } from "../planning";
 import { usePlan, useServices } from "../services";
 import { useCurrent } from "../selection";
-import { mustPlace } from "../trip/places";
-import { dayOf, dayTotals, reorder, setMode, type Plan } from "../trip/plan";
+import { CITY_NAME, mustPlace, type Place } from "../trip/places";
+import { canPlan, dayOf, dayTotals, reorder, round2, setMode, type Day, type Plan } from "../trip/plan";
 import { dayBudget } from "../trip/budget";
 import { optimiseDay } from "../trip/optimise";
-import { MODES, MODE_LABEL, legKey, type Leg, type Mode } from "../trip/travel";
+import { crossesRiver, FLIGHT, legKey, modeLabel, type Leg, type Mode } from "../trip/travel";
 import { startStopDrag, useDrag } from "../ui/drag";
 import * as f from "../ui/format";
 import { CATEGORY_ICON, DayMark, Empty, MODE_ICON, Stat } from "../ui/parts";
@@ -30,24 +33,39 @@ import { place } from "./place";
 
 const dayParams = { n: Number };
 
-function DayPane({ params, node, focused, paused, select, peek, inPeek }: PaneProps<typeof dayParams>) {
+function DayPane(props: PaneProps<typeof dayParams>) {
+  const plan = usePlan();
+  const day = dayOf(plan, props.params.n);
+  if (!day)
+    return <Empty title={`There is no Day ${props.params.n}`}>This trip has {plan.days.length} days.</Empty>;
+  return <DayBody {...props} day={day} plan={plan} />;
+}
+
+function DayBody({
+  node,
+  focused,
+  paused,
+  select,
+  peek,
+  inPeek,
+  day,
+  plan,
+}: PaneProps<typeof dayParams> & { day: Day; plan: Plan }) {
   const jali = useJali();
   const services = useServices();
-  const plan = usePlan();
-  const day = dayOf(plan, params.n);
   const [cursor, setCursor] = usePaneState<string | null>("cursor", null);
   const listRef = useRef<HTMLOListElement>(null);
   const drag = useDrag();
   const current = useCurrent();
 
-  const stops = day?.stops ?? [];
+  const stops = day.stops;
   // "Add the selected place to this day" shows in the one day pane, or the focused one when several are open.
   const alone = useJaliModel().panes.filter((p) => p.ref.kind === "day").length === 1;
   const at = cursor ? stops.indexOf(cursor) : -1;
-  const totals = dayTotals(plan, stops);
-  const budget = dayBudget(plan, params.n);
+  const totals = dayTotals(plan, day);
+  const budget = dayBudget(plan, day.n);
   // Worked out on every render (a few stops): the button says whether there is anything to gain.
-  const best = optimiseDay(plan, stops);
+  const best = optimiseDay(plan, day);
 
   // Keep keyboard focus on the cursor's row after a reorder.
   useEffect(() => {
@@ -55,8 +73,6 @@ function DayPane({ params, node, focused, paused, select, peek, inPeek }: PanePr
     const row = listRef.current?.querySelector<HTMLElement>(`[data-stop-index="${at}"] .stop-main`);
     if (row && listRef.current?.contains(document.activeElement)) row.focus();
   }, [at, focused, stops.join()]);
-
-  if (!day) return <Empty title={`There is no Day ${params.n}`}>This trip has {plan.days.length} days.</Empty>;
 
   const moveCursor = (id: string) => {
     setCursor(id);
@@ -71,6 +87,7 @@ function DayPane({ params, node, focused, paused, select, peek, inPeek }: PanePr
   const moveToDay = (id: string) =>
     chooseDay(jali, services, `Move ${mustPlace(id).name} to…`, (n) => addToDay(services, id, n), {
       except: day.n,
+      city: day.city,
     });
 
   const onKeyDown = (e: KeyboardEvent, i: number, id: string) => {
@@ -132,31 +149,29 @@ function DayPane({ params, node, focused, paused, select, peek, inPeek }: PanePr
         ],
   );
 
-  const hotel = mustPlace(plan.hotel);
+  const { places, first } = totals.route;
   const over = drag?.over?.day === day.n ? drag.over : null;
   const dropIndex = over ? (over.index ?? stops.length) : -1;
-  // Arrival time at each stop: from 09:00, adding legs and visits as they come.
-  let clock = 9 * 60;
-  const arrive: number[] = [];
-  stops.forEach((id, i) => {
-    clock += totals.legs[i]!.minutes;
-    arrive.push(clock);
-    clock += mustPlace(id).visitMin;
-  });
+  const end = places[places.length - 1]!;
 
   return (
     <div className="pane-body day" data-day={day.n} data-paused={paused || undefined}>
       <header className="day-head">
         <DayMark n={day.n} size="lg" />
         <div className="day-head-text">
-          <p className="day-date">{f.dayLong(day.date)}</p>
+          <p className="day-date">
+            {f.dayLong(day.date)}, {day.from ? `${CITY_NAME[day.from]} to ${CITY_NAME[day.city]}` : CITY_NAME[day.city]}
+          </p>
           <h3 className="day-title">{day.title}</h3>
         </div>
       </header>
 
       <dl className="stats">
         <Stat label="Travel" value={f.minutes(totals.travelMin)} />
-        <Stat label="Transport" value={f.price(totals.transport)} />
+        <Stat
+          label={totals.flight ? "Transport and flight" : "Transport"}
+          value={f.price(round2(totals.transport + totals.flight))}
+        />
         <Stat label="Spend" value={f.money(totals.spend)} />
         <Stat
           label={budget.over ? "Over the day's share" : "Day total"}
@@ -180,7 +195,14 @@ function DayPane({ params, node, focused, paused, select, peek, inPeek }: PanePr
       </div>
 
       <div className="timeline" data-drop-day={day.n}>
-        <Endpoint label={`Leave ${hotel.name}`} time="09:00" />
+        <Endpoint place={places[0]!} label={`Leave ${places[0]!.name}`} time={f.clock(totals.arrive[0]!)} />
+        {/* The transfer day's fixed start: to the airport, the flight, the arrival. */}
+        {places.slice(1, first).map((p, k) => (
+          <Fragment key={p.id}>
+            <LegRow leg={totals.legs[k]!} plan={plan} />
+            <Endpoint place={p} label={k === first - 2 ? `Land at ${p.name}` : p.name} time={f.clock(totals.arrive[k + 1]!)} />
+          </Fragment>
+        ))}
         {stops.length ? (
           <ol ref={listRef} className="stops" aria-label={`Stops on Day ${day.n}`}>
             {stops.map((id, i) => {
@@ -196,7 +218,7 @@ function DayPane({ params, node, focused, paused, select, peek, inPeek }: PanePr
                     data-dragged={dragged || undefined}
                     data-current={current === id || undefined}
                   >
-                    <LegRow leg={totals.legs[i]!} plan={plan} />
+                    <LegRow leg={totals.legs[first - 1 + i]!} plan={plan} />
                     <div className="stop" aria-current={i === at ? "true" : undefined}>
                       <button
                         type="button"
@@ -230,7 +252,7 @@ function DayPane({ params, node, focused, paused, select, peek, inPeek }: PanePr
                             {p.price ? `, ${f.price(p.price)}` : ""}
                           </span>
                         </span>
-                        <span className="stop-time num">{f.clock(arrive[i]!)}</span>
+                        <span className="stop-time num">{f.clock(totals.arrive[first + i]!)}</span>
                       </button>
                     </div>
                   </li>
@@ -242,28 +264,31 @@ function DayPane({ params, node, focused, paused, select, peek, inPeek }: PanePr
         ) : (
           <div className="day-empty" data-stop-index-none="">
             <CalendarDotsIcon size={22} aria-hidden />
-            <p>No stops yet. Pick a place on the map or in Explore, then add it to Day {day.n}.</p>
+            <p>
+              No stops yet. Pick a place in {CITY_NAME[day.city]} on the map or in Explore, then add it to Day {day.n}.
+            </p>
             {dropIndex >= 0 ? <div className="drop-line" aria-hidden /> : null}
           </div>
         )}
-        {stops.length ? <LegRow leg={totals.legs[stops.length]!} plan={plan} /> : null}
-        <Endpoint label={`Back at ${hotel.name}`} time={f.clock(totals.endsAt)} />
+        <LegRow leg={totals.legs[totals.legs.length - 1]!} plan={plan} />
+        <Endpoint place={end} label={`${day.from ? "Check in at" : "Back at"} ${end.name}`} time={f.clock(totals.endsAt)} />
       </div>
       <p id={`${node.id}-hint`} className="sr-only">
         Up and down arrows move between stops. Alt with up or down reorders. M moves to another day. Space peeks.
       </p>
       {current && !stops.includes(current) && !inPeek && (focused || alone) ? (
-        <AddCurrent id={current} n={day.n} plan={plan} />
+        <AddCurrent id={current} day={day} plan={plan} />
       ) : null}
     </div>
   );
 }
 
-function Endpoint({ label, time }: { label: string; time: string }) {
+function Endpoint({ place: p, label, time }: { place: Place; label: string; time: string }) {
+  const Icon = p.category === "airport" ? AirplaneTiltIcon : HouseLineIcon;
   return (
-    <div className="endpoint">
+    <div className="endpoint" data-category={p.category}>
       <span className="endpoint-mark" aria-hidden>
-        <HouseLineIcon size={14} weight="bold" />
+        <Icon size={14} weight="bold" />
       </span>
       <span className="endpoint-label">{label}</span>
       <span className="stop-time num">{time}</span>
@@ -271,31 +296,49 @@ function Endpoint({ label, time }: { label: string; time: string }) {
   );
 }
 
-/** The way between two stops: its mode (a choice of three), minutes and fare. */
+/** The way between two stops: its mode (the city's choices), minutes and fare. The flight is fixed. */
 function LegRow({ leg, plan }: { leg: Leg; plan: Plan }) {
   const services = useServices();
   const key = legKey(leg.from, leg.to);
   const to = mustPlace(leg.to);
+  if (leg.mode === "flight")
+    return (
+      <div className="leg leg-flight" data-mode="flight">
+        <span className="leg-line" aria-hidden />
+        <span className="leg-flight-mark" aria-hidden>
+          <AirplaneTiltIcon size={16} weight="bold" />
+        </span>
+        <span className="leg-text">
+          <span className="num">{f.minutes(FLIGHT.airMin)} flight</span>
+          <span className="muted">
+            {f.distance(leg.km)}, {f.money(leg.cost)}, with {f.minutes(FLIGHT.airportMin)} at the airports
+          </span>
+        </span>
+      </div>
+    );
+  const city = leg.city === "between" ? "bkk" : leg.city;
   const choose = (mode: Mode) =>
-    services.plan.change(`${MODE_LABEL[mode]} to ${to.name}`, (p) =>
+    services.plan.change(`${modeLabel(mode, city)} to ${to.name}`, (p) =>
       setMode(p, key, plan.modes[key] === mode ? null : mode),
     );
+  const ferry = crossesRiver(mustPlace(leg.from), to);
+  const label = (m: Mode) => (ferry && m === "transit" ? "River ferry" : modeLabel(m, city));
   return (
     <div className="leg" data-mode={leg.mode}>
       <span className="leg-line" aria-hidden />
       <div className="leg-modes" role="group" aria-label={`How to get to ${to.name}`}>
-        {MODES.map((m) => {
-          const Icon = MODE_ICON[m];
+        {leg.options.map((m) => {
+          const Icon = ferry && m === "transit" ? BoatIcon : MODE_ICON[m];
           return (
             <button
               key={m}
               type="button"
               aria-pressed={leg.mode === m}
-              title={leg.mode === m && leg.chosen ? `${MODE_LABEL[m]} (your choice; press again for the suggestion)` : MODE_LABEL[m]}
+              title={leg.mode === m && leg.chosen ? `${label(m)} (your choice; press again for the suggestion)` : label(m)}
               onClick={() => choose(m)}
             >
               <Icon size={15} weight={leg.mode === m ? "bold" : "regular"} aria-hidden />
-              <span className="sr-only">{MODE_LABEL[m]}</span>
+              <span className="sr-only">{label(m)}</span>
             </button>
           );
         })}
@@ -303,6 +346,7 @@ function LegRow({ leg, plan }: { leg: Leg; plan: Plan }) {
       <span className="leg-text">
         <span className="num">{f.minutes(leg.minutes)}</span>
         <span className="muted">
+          {ferry && leg.mode === "transit" ? "ferry, " : ""}
           {f.distance(leg.km)}, {leg.cost ? f.money(leg.cost) : "free"}
         </span>
       </span>
@@ -321,11 +365,11 @@ function LegRow({ leg, plan }: { leg: Leg; plan: Plan }) {
   );
 }
 
-/** The place selected elsewhere, offered for this day. */
-function AddCurrent({ id, n, plan }: { id: string; n: number; plan: Plan }) {
+/** The place selected elsewhere, offered for this day when it is in the day's city. */
+function AddCurrent({ id, day, plan }: { id: string; day: Day; plan: Plan }) {
   const services = useServices();
   const p = mustPlace(id);
-  if (p.category === "stay" || plan.hotel === id) return null;
+  if (!canPlan(plan, id, day.n)) return null;
   const on = plan.days.find((d) => d.stops.includes(id));
   return (
     <div className="add-current">
@@ -333,8 +377,8 @@ function AddCurrent({ id, n, plan }: { id: string; n: number; plan: Plan }) {
         <b>{p.name}</b>
         {on ? <span className="muted">, on Day {on.n}</span> : <span className="muted">, not planned</span>}
       </span>
-      <button type="button" className="btn btn-primary" onClick={() => addToDay(services, id, n)}>
-        {on ? `Move to Day ${n}` : `Add to Day ${n}`}
+      <button type="button" className="btn btn-primary" onClick={() => addToDay(services, id, day.n)}>
+        {on ? `Move to Day ${day.n}` : `Add to Day ${day.n}`}
       </button>
     </div>
   );

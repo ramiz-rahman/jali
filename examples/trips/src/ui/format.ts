@@ -1,18 +1,19 @@
 /** How the app writes money, time, distance and dates. */
 
-const eur = new Intl.NumberFormat("en-GB", { style: "currency", currency: "EUR" });
-const eurRound = new Intl.NumberFormat("en-GB", {
+// US dollars, the trip's one currency (prices are Thai, made up, and shown in dollars).
+const usd = new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" });
+const usdRound = new Intl.NumberFormat("en-US", {
   style: "currency",
-  currency: "EUR",
+  currency: "USD",
   maximumFractionDigits: 0,
 });
 
-/** €12.50 or €15 (no cents on a whole number), or "Free". */
+/** $12.50 or $15 (no cents on a whole number), or "Free". */
 export const price = (n: number) => (n === 0 ? "Free" : money(n));
-/** €12.50 or €15, always a number. */
-export const money = (n: number) => (Number.isInteger(n) ? eurRound : eur).format(n);
-/** €1,240, for totals. */
-export const moneyRound = (n: number) => eurRound.format(Math.round(n));
+/** $12.50 or $15, always a number. */
+export const money = (n: number) => (Number.isInteger(n) ? usdRound : usd).format(n);
+/** $1,240, for totals. */
+export const moneyRound = (n: number) => usdRound.format(Math.round(n));
 
 /** "45 min", "1h 05m". */
 export function minutes(m: number): string {
@@ -28,7 +29,7 @@ export const clock = (m: number) =>
 
 /** "1.4 km", "650 m". */
 export const distance = (km: number) =>
-  km < 1 ? `${Math.round((km * 1000) / 10) * 10} m` : `${km.toFixed(1)} km`;
+  km < 1 ? `${Math.round((km * 1000) / 10) * 10} m` : km < 100 ? `${km.toFixed(1)} km` : `${Math.round(km)} km`;
 
 /** "Thu 15 Apr", from an ISO date (read as a calendar date, not a moment). */
 export function day(iso: string): string {

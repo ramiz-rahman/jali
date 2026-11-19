@@ -74,11 +74,14 @@
   --t-day-3: #3d63d4;
   --t-day-4: #8b4cc4;
   --t-day-5: #9a6f00;
+  --t-day-6: #b8345f;
+  --t-day-7: #2f7d4f;
 
   --t-cat-stay: #52525b;
   --t-cat-sights: oklch(0.58 0.12 200);
   --t-cat-food: oklch(0.67 0.15 80);
   --t-cat-transport: oklch(0.55 0.18 260);
+  --t-cat-flight: oklch(0.55 0.18 305);
 }
 
 .dark,
@@ -117,11 +120,14 @@
   --t-day-3: #7c9bf5;
   --t-day-4: #bb8cf0;
   --t-day-5: #e0b440;
+  --t-day-6: #f07ca3;
+  --t-day-7: #5fcf8c;
 
   --t-cat-stay: #a1a1aa;
   --t-cat-sights: oklch(0.7 0.14 200);
   --t-cat-food: oklch(0.78 0.15 80);
   --t-cat-transport: oklch(0.65 0.18 260);
+  --t-cat-flight: oklch(0.66 0.18 305);
 }
 
 [data-day="1"] {
@@ -138,4 +144,10 @@
 }
 [data-day="5"] {
   --day: var(--t-day-5);
+}
+[data-day="6"] {
+  --day: var(--t-day-6);
+}
+[data-day="7"] {
+  --day: var(--t-day-7);
 }

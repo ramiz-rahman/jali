@@ -17,7 +17,7 @@ export function StatusLine() {
     <footer className="status" aria-label="Status">
       <Shelf />
       <span className="status-hint">{hint}</span>
-      <span className="status-note">Hotels, restaurants and every price are made up</span>
+      <span className="status-note">Hotels, restaurants and every price (in US dollars) are made up</span>
     </footer>
   );
 }

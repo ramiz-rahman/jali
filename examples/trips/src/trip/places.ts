@@ -1,35 +1,46 @@
 /**
- * The places of the bundled trip: five days in Lisbon.
+ * The places of the bundled trip: a week in Thailand, Bangkok first, then Phuket.
  *
- * Sights are real public landmarks at their real coordinates. Their opening hours, visit lengths and ticket prices
- * are made up for the example. Every hotel and restaurant is fictional: invented names at invented spots in real
- * neighbourhoods, with invented prices. None of them is a real business.
+ * Sights, beaches and the two airports are real places at their real coordinates. Their opening hours, visit
+ * lengths and ticket prices are made up for the example. Every hotel and restaurant is fictional: invented names at
+ * invented spots in real neighbourhoods, with invented prices. None of them is a real business. Prices are in US
+ * dollars, at levels that are plausible for Thailand.
  */
 
-export type Category = "sight" | "food" | "stay";
+export type CityId = "bkk" | "hkt";
+
+export const CITY_NAME: Record<CityId, string> = { bkk: "Bangkok", hkt: "Phuket" };
+
+export type Category = "sight" | "food" | "stay" | "airport";
 
 export interface Place {
   id: string;
   name: string;
   category: Category;
+  city: CityId;
   /** The neighbourhood, for lists. */
   area: string;
   lat: number;
   lng: number;
   /** Opening hours as people read them. */
   hours: string;
-  /** A typical visit, in minutes (a night for a hotel). */
+  /** A typical visit, in minutes. */
   visitMin: number;
-  /** In euros: a ticket, a typical meal for one, or a night for a hotel. 0 is free. */
+  /** In US dollars: a ticket, a typical meal for one, or a night for a hotel. 0 is free. */
   price: number;
   notes: string;
   /** A made-up business (every hotel and restaurant here). */
   fictional: boolean;
-  /** A few words of what it is ("Viewpoint", "Bakery"). */
+  /** A few words of what it is ("Temple", "Beach"). */
   kind: string;
+  /** On the Thonburi bank of the Chao Phraya, across the river from old Bangkok: the way there is a ferry. */
+  acrossRiver?: boolean;
 }
 
+type Extra = Partial<Pick<Place, "acrossRiver">>;
+
 const sight = (
+  city: CityId,
   id: string,
   name: string,
   area: string,
@@ -40,23 +51,12 @@ const sight = (
   price: number,
   hours: string,
   notes: string,
-): Place => ({
-  id,
-  name,
-  category: "sight",
-  area,
-  lat,
-  lng,
-  kind,
-  visitMin,
-  price,
-  hours,
-  notes,
-  fictional: false,
-});
+  extra: Extra = {},
+): Place => ({ id, name, category: "sight", city, area, lat, lng, kind, visitMin, price, hours, notes, fictional: false, ...extra });
 
 const made = (
   category: "food" | "stay",
+  city: CityId,
   id: string,
   name: string,
   area: string,
@@ -67,79 +67,95 @@ const made = (
   hours: string,
   notes: string,
   visitMin = category === "food" ? 60 : 0,
-): Place => ({
+): Place => ({ id, name, category, city, area, lat, lng, kind, visitMin, price, hours, notes, fictional: true });
+
+const airport = (city: CityId, id: string, name: string, lat: number, lng: number, notes: string): Place => ({
   id,
   name,
-  category,
-  area,
+  category: "airport",
+  city,
+  area: "Airport",
   lat,
   lng,
-  kind,
-  visitMin,
-  price,
-  hours,
+  kind: "Airport",
+  visitMin: 0,
+  price: 0,
+  hours: "Open all day",
   notes,
-  fictional: true,
+  fictional: false,
 });
 
 export const PLACES: readonly Place[] = [
-  // Belém, by the river
-  sight("torre-belem", "Torre de Belém", "Belém", 38.69157, -9.21598, "Fortress", 60, 8, "10:00 to 18:00, closed Mondays", "A small fortified tower at the water's edge. The queue moves faster before eleven."),
-  sight("jeronimos", "Mosteiro dos Jerónimos", "Belém", 38.69785, -9.20654, "Monastery", 90, 12, "10:00 to 18:00, closed Mondays", "The cloister is the part to see. The church itself is free."),
-  sight("padrao", "Padrão dos Descobrimentos", "Belém", 38.69363, -9.20573, "Monument", 40, 6, "10:00 to 19:00", "Take the lift to the top for the view over the river and the compass rose below."),
-  sight("jardim-tropical", "Jardim Botânico Tropical", "Belém", 38.69763, -9.20319, "Garden", 45, 3, "10:00 to 19:00", "A quiet garden of palms and ponds, behind the monastery."),
-  sight("maat", "MAAT", "Belém", 38.69596, -9.1946, "Museum", 75, 11, "10:00 to 19:00, closed Tuesdays", "Walk over the curved roof for free, whether or not you go in."),
-  sight("lx-factory", "LX Factory", "Alcântara", 38.70318, -9.1786, "Old factory", 75, 0, "Shops from 10:00, bars late", "Old printworks turned into shops and cafés under the bridge."),
-  sight("mnaa", "Museu Nacional de Arte Antiga", "Madragoa", 38.70497, -9.16101, "Museum", 90, 10, "10:00 to 18:00, closed Mondays", "Portuguese painting and the Japanese screens. The garden café looks over the docks."),
-  // Estrela and the west
-  sight("estrela", "Basílica da Estrela", "Estrela", 38.71314, -9.16021, "Church", 30, 0, "07:30 to 20:00", "Climb to the dome for a small fee, paid at the door."),
-  sight("jardim-estrela", "Jardim da Estrela", "Estrela", 38.71377, -9.15943, "Park", 30, 0, "07:00 to 24:00", "A shaded park opposite the basilica, with a bandstand and a kiosk."),
-  sight("aqueduto", "Aqueduto das Águas Livres", "Campolide", 38.72705, -9.17212, "Aqueduct", 45, 6, "10:00 to 17:30, closed Sundays", "Walk along the top of the arches. Wind can close it."),
-  // Chiado and Bairro Alto
-  sight("ribeira", "Mercado da Ribeira", "Cais do Sodré", 38.70693, -9.14588, "Market hall", 45, 0, "Mornings for the fresh market", "The old market hall. Come early for the fish and flower stalls."),
-  sight("carmo", "Convento do Carmo", "Chiado", 38.71203, -9.14063, "Ruin", 40, 7, "10:00 to 19:00, closed Sundays", "A church left roofless by the 1755 earthquake, with a small museum."),
-  sight("santa-justa", "Elevador de Santa Justa", "Baixa", 38.71208, -9.1394, "Lift", 20, 6, "07:30 to 23:00", "An iron lift from the Baixa up to Carmo. The view deck is the point."),
-  sight("sao-pedro", "Miradouro de São Pedro de Alcântara", "Bairro Alto", 38.7154, -9.14438, "Viewpoint", 25, 0, "Open all day", "A terrace garden looking across to the castle."),
-  // Baixa
-  sight("rossio", "Rossio", "Baixa", 38.71394, -9.13915, "Square", 20, 0, "Open all day", "The busy square with the wave-patterned paving."),
-  sight("arco-augusta", "Arco da Rua Augusta", "Baixa", 38.70847, -9.13655, "Arch", 25, 3.5, "10:00 to 19:00", "A short climb to the top of the arch over the square."),
-  sight("comercio", "Praça do Comércio", "Baixa", 38.70754, -9.13649, "Square", 30, 0, "Open all day", "The great riverfront square. Walk down to the steps at the water."),
-  // Alfama, the castle and Graça
-  sight("se", "Sé de Lisboa", "Alfama", 38.70977, -9.13339, "Cathedral", 35, 5, "09:30 to 19:00", "The city's cathedral. The cloister excavations cost a little extra."),
-  sight("santa-luzia", "Miradouro de Santa Luzia", "Alfama", 38.71183, -9.13029, "Viewpoint", 20, 0, "Open all day", "Tiled walls and bougainvillea over the Alfama roofs."),
-  sight("castelo", "Castelo de São Jorge", "Castelo", 38.71391, -9.13342, "Castle", 90, 15, "09:00 to 21:00", "Walk the walls at sunset. It is a steep climb from the Baixa."),
-  sight("fado-museu", "Museu do Fado", "Alfama", 38.71049, -9.12732, "Museum", 50, 5, "10:00 to 18:00, closed Mondays", "Fado's story, with headphones to listen as you go."),
-  sight("panteao", "Panteão Nacional", "São Vicente", 38.71509, -9.12465, "Monument", 40, 8, "10:00 to 17:00, closed Mondays", "Climb to the terrace around the white dome."),
-  sight("feira-ladra", "Feira da Ladra", "São Vicente", 38.71499, -9.12594, "Flea market", 45, 0, "Tuesdays and Saturdays, mornings", "The flea market on Campo de Santa Clara."),
-  sight("graca", "Miradouro da Graça", "Graça", 38.71623, -9.13127, "Viewpoint", 20, 0, "Open all day", "Pine trees, a kiosk and the castle across the valley."),
-  sight("senhora-monte", "Miradouro da Senhora do Monte", "Graça", 38.71913, -9.13261, "Viewpoint", 20, 0, "Open all day", "The highest viewpoint in the old town. Best at sunset."),
-  sight("azulejo", "Museu Nacional do Azulejo", "Xabregas", 38.72475, -9.11367, "Museum", 80, 8, "10:00 to 18:00, closed Mondays", "Five centuries of painted tiles in a former convent."),
-  // Avenidas and the east
-  sight("eduardo-vii", "Parque Eduardo VII", "Avenidas", 38.72867, -9.15367, "Park", 40, 0, "Open all day", "The long formal park. The greenhouses on the west side charge a small fee."),
-  sight("gulbenkian", "Museu Calouste Gulbenkian", "Avenidas", 38.73719, -9.15441, "Museum", 100, 14, "10:00 to 18:00, closed Tuesdays", "A fine collection in a garden worth an hour on its own."),
-  sight("oceanario", "Oceanário de Lisboa", "Parque das Nações", 38.76354, -9.09379, "Aquarium", 120, 25, "10:00 to 20:00", "One great central tank seen from every side."),
+  // ---------- Bangkok ----------
+  // Rattanakosin, the old royal island
+  sight("bkk", "grand-palace", "Grand Palace", "Rattanakosin", 13.75, 100.4913, "Palace", 120, 15, "08:30 to 15:30", "The palace and Wat Phra Kaew, the Emerald Buddha. Shoulders and knees covered; go at opening, before the heat."),
+  sight("bkk", "wat-pho", "Wat Pho", "Rattanakosin", 13.7465, 100.493, "Temple", 75, 9, "08:00 to 18:30", "The reclining Buddha, 46 metres long, and the old school of Thai massage in the grounds."),
+  sight("bkk", "wat-arun", "Wat Arun", "Thonburi", 13.7437, 100.4889, "Temple", 50, 6, "08:00 to 18:00", "The Temple of Dawn, across the river. The tower's steep steps give a view back over the palace.", { acrossRiver: true }),
+  sight("bkk", "museum-siam", "Museum Siam", "Rattanakosin", 13.7441, 100.4943, "Museum", 60, 6, "10:00 to 18:00, closed Mondays", "A playful museum of what it means to be Thai, in an old ministry building."),
+  sight("bkk", "pak-khlong", "Pak Khlong Talat", "Phra Nakhon", 13.7424, 100.4967, "Flower market", 30, 0, "Open all day, busiest at night", "Mountains of marigolds and orchids, sold wholesale through the night."),
+  sight("bkk", "national-museum", "Bangkok National Museum", "Rattanakosin", 13.7577, 100.4925, "Museum", 90, 6, "09:00 to 16:00, closed Mondays and Tuesdays", "Thai art and royal regalia in a former palace."),
+  sight("bkk", "giant-swing", "Wat Suthat and the Giant Swing", "Phra Nakhon", 13.7514, 100.5013, "Temple", 40, 3, "08:30 to 21:00", "A tall red swing frame in the square, and one of the city's finest temple halls behind it."),
+  sight("bkk", "golden-mount", "Golden Mount", "Pom Prap", 13.7537, 100.5066, "Temple", 45, 3, "07:00 to 19:00", "Three hundred steps up an artificial hill to a golden chedi and a breeze."),
+  sight("bkk", "khao-san", "Khao San Road", "Banglamphu", 13.7589, 100.4974, "Street", 40, 0, "Liveliest after dark", "Backpacker street of stalls and bars. Loud at night, quieter on the side lanes."),
+  sight("bkk", "marble-temple", "Wat Benchamabophit", "Dusit", 13.7666, 100.5142, "Temple", 40, 3, "08:00 to 18:00", "The Marble Temple: white Carrara marble and a gallery of Buddha images."),
+  // Chinatown and the riverside
+  sight("bkk", "wat-traimit", "Wat Traimit", "Chinatown", 13.7378, 100.5137, "Temple", 40, 3, "08:00 to 17:00", "The Golden Buddha, five tonnes of gold, found under plaster in 1955."),
+  sight("bkk", "yaowarat", "Yaowarat Road", "Chinatown", 13.7409, 100.5095, "Street", 60, 0, "Food stalls from 17:00", "Chinatown's main street, neon signs and the city's best street food after dark."),
+  sight("bkk", "talat-noi", "Talat Noi", "Chinatown", 13.734, 100.513, "Old quarter", 45, 0, "Open all day", "Lanes of machine shops, street art and an old Chinese mansion on the river."),
+  // Pathum Wan and the parks
+  sight("bkk", "jim-thompson", "Jim Thompson House", "Pathum Wan", 13.7493, 100.5283, "House museum", 60, 6, "10:00 to 18:00", "Teak houses joined into one, full of the silk trader's collection. Guided visits only."),
+  sight("bkk", "erawan", "Erawan Shrine", "Ratchaprasong", 13.7443, 100.5404, "Shrine", 20, 0, "06:00 to 22:00", "A busy Hindu shrine at a crossroads of malls, with dancers hired by the faithful."),
+  sight("bkk", "lumphini", "Lumphini Park", "Pathum Wan", 13.7314, 100.5418, "Park", 50, 0, "04:30 to 21:00", "A big green park with a lake and monitor lizards. Pleasant late in the day."),
+  sight("bkk", "chatuchak", "Chatuchak Weekend Market", "Chatuchak", 13.7999, 100.5505, "Market", 120, 0, "Saturdays and Sundays, 09:00 to 18:00", "Fifteen thousand stalls. Arrive early, carry water, and agree a place to meet."),
+  airport("bkk", "bkk-airport", "Suvarnabhumi Airport", 13.69, 100.7501, "Bangkok's main airport, east of the city. Leave about two hours for check-in and security."),
+
+  // ---------- Phuket ----------
+  sight("hkt", "old-town", "Phuket Old Town", "Phuket Town", 7.8853, 98.3887, "Old quarter", 90, 0, "Open all day; Sunday walking street from 16:00", "Sino-Portuguese shophouses in pastel colours along Thalang Road."),
+  sight("hkt", "khao-rang", "Khao Rang viewpoint", "Phuket Town", 7.897, 98.3787, "Viewpoint", 30, 0, "Open all day", "A hilltop over Phuket Town and the bay, with a café terrace."),
+  sight("hkt", "wat-chalong", "Wat Chalong", "Chalong", 7.8469, 98.3367, "Temple", 45, 0, "07:00 to 17:00", "The island's most visited temple; the tall chedi holds a relic of the Buddha."),
+  sight("hkt", "big-buddha", "Big Buddha", "Karon hills", 7.8277, 98.3127, "Monument", 50, 0, "08:00 to 19:30", "A white marble Buddha 45 metres tall on the ridge, with views to both coasts. Donations welcome."),
+  sight("hkt", "promthep", "Promthep Cape", "Rawai", 7.762, 98.3054, "Headland", 45, 0, "Open all day; crowded at sunset", "The island's southern tip. The sunset is the reason to come; arrive early for a spot."),
+  sight("hkt", "nai-harn", "Nai Harn Beach", "Rawai", 7.778, 98.304, "Beach", 120, 0, "Open all day", "A calm bay between green hills. Good swimming outside the monsoon."),
+  sight("hkt", "kata-view", "Karon Viewpoint", "Kata", 7.793, 98.3044, "Viewpoint", 25, 0, "Open all day", "Three bays in one view: Kata Noi, Kata and Karon."),
+  sight("hkt", "kata-beach", "Kata Beach", "Kata", 7.82, 98.298, "Beach", 150, 0, "Open all day", "A family beach with gentle waves and a reef at the north end for snorkelling."),
+  sight("hkt", "karon-beach", "Karon Beach", "Karon", 7.844, 98.294, "Beach", 90, 0, "Open all day", "A long, wide beach of squeaky sand. Strong currents in the wet season."),
+  sight("hkt", "patong", "Patong Beach", "Patong", 7.896, 98.296, "Beach", 90, 0, "Open all day", "The island's busiest beach, with Bangla Road behind it."),
+  sight("hkt", "bangla", "Bangla Road", "Patong", 7.8932, 98.2988, "Street", 60, 0, "From 18:00, closed to traffic at night", "Neon, music and bars. Worth one walk, after dark."),
+  sight("hkt", "kamala", "Kamala Beach", "Kamala", 7.95, 98.283, "Beach", 90, 0, "Open all day", "A quieter bay north of Patong, with a fishing village at the south end."),
+  sight("hkt", "surin", "Surin Beach", "Surin", 7.975, 98.279, "Beach", 90, 0, "Open all day", "A short, steep beach lined with casuarina trees."),
+  sight("hkt", "bang-pae", "Bang Pae Waterfall", "Khao Phra Thaeo", 8.0389, 98.3906, "Waterfall", 90, 6, "08:00 to 16:30", "A forest walk to a small waterfall in the national park, in the island's north east."),
+  airport("hkt", "hkt-airport", "Phuket International Airport", 8.1132, 98.3169, "At the north end of the island: about an hour by road to the southern beaches."),
 
   // Where to stay: every one is fictional.
-  made("stay", "h-ribeira", "Ribeira Loft Rooms", "Cais do Sodré", 38.7074, -9.1449, "Guesthouse", 109, "Check in from 15:00", "Six rooms above a tile shop, two minutes from the trains and ferries."),
-  made("stay", "h-alfama", "Pátio das Gaivotas", "Alfama", 38.7112, -9.1287, "Small hotel", 128, "Check in from 14:00", "Rooms around a whitewashed courtyard. Steep lanes in every direction."),
-  made("stay", "h-baixa", "Hotel Corda Azul", "Baixa", 38.7109, -9.1378, "Hotel", 152, "Check in from 15:00", "A plain, quiet hotel on a pedestrian street in the grid of the Baixa."),
-  made("stay", "h-graca", "Graça Terrace Inn", "Graça", 38.7172, -9.1306, "Guesthouse", 88, "Check in from 16:00", "Simple rooms and a roof terrace. The 28 tram passes the corner."),
-  made("stay", "h-estrela", "Casa Estrela Verde", "Estrela", 38.7128, -9.1572, "Guesthouse", 96, "Check in from 15:00", "A family house by the park, away from the busy streets."),
-  made("stay", "h-belem", "Belém Rio Suites", "Belém", 38.6967, -9.2008, "Apartments", 118, "Check in from 15:00", "Apartments with kitchens, near the monastery and far from the centre."),
-  made("stay", "h-avenida", "Avenida Linho Hotel", "Avenida", 38.7211, -9.1456, "Hotel", 174, "Check in from 14:00", "A larger hotel on the main avenue, with a pool on the roof."),
+  made("stay", "bkk", "h-riverside", "Riverside Teak House", "Tha Tien", 13.7448, 100.4925, "Guesthouse", 75, "Check in from 14:00", "Teak rooms over the river, a short walk from Wat Pho and the ferry to Wat Arun."),
+  made("stay", "bkk", "h-phranakhon", "Phra Nakhon Courtyard", "Banglamphu", 13.757, 100.499, "Small hotel", 55, "Check in from 14:00", "Rooms around a shaded courtyard, near Khao San Road but out of its noise."),
+  made("stay", "bkk", "h-silom", "Silom Lantern Hotel", "Silom", 13.727, 100.529, "Hotel", 95, "Check in from 15:00", "A taller hotel by the BTS and the MRT, with a pool on the roof."),
+  made("stay", "bkk", "h-sukhumvit", "Sukhumvit Bamboo Rooms", "Sukhumvit", 13.737, 100.56, "Guesthouse", 60, "Check in from 15:00", "Simple rooms on a quiet soi, five minutes from the BTS."),
+  made("stay", "bkk", "h-ari", "Ari Garden Loft", "Ari", 13.779, 100.544, "Apartments", 48, "Check in from 15:00", "Apartments with kitchens in a leafy, local neighbourhood north of the centre."),
+  made("stay", "hkt", "h-kata", "Kata Hillside Bungalows", "Kata", 7.819, 98.302, "Bungalows", 90, "Check in from 14:00", "Bungalows on the hill above Kata Beach. A steep walk down, a scooter ride up."),
+  made("stay", "hkt", "h-oldtown", "Old Town Shophouse Stay", "Phuket Town", 7.885, 98.387, "Guesthouse", 45, "Check in from 14:00", "Rooms in a restored shophouse. Cheap and charming, but every beach is a ride away."),
+  made("stay", "hkt", "h-patong", "Patong Palm Rooms", "Patong", 7.893, 98.301, "Hotel", 68, "Check in from 15:00", "A plain hotel two streets back from the beach. Noisy on weekend nights."),
+  made("stay", "hkt", "h-naiharn", "Nai Harn Lagoon Villas", "Rawai", 7.78, 98.308, "Villas", 150, "Check in from 15:00", "Villas with plunge pools by the lagoon, near the island's quietest good beach."),
+  made("stay", "hkt", "h-karon", "Karon Sea Breeze Inn", "Karon", 7.845, 98.299, "Small hotel", 78, "Check in from 14:00", "A small hotel across the road from Karon Beach."),
 
   // Where to eat: every one is fictional.
-  made("food", "f-bica", "Bica Lenta Café", "Baixa", 38.7101, -9.1386, "Café", 7, "08:00 to 19:00", "Coffee and custard tarts at the counter.", 30),
-  made("food", "f-pombo", "Tasca do Pombo", "Alfama", 38.7108, -9.1301, "Tavern", 18, "12:00 to 23:00, closed Sundays", "Grilled fish and a short handwritten menu. Cash only."),
-  made("food", "f-graca", "Mesa da Graça", "Graça", 38.7161, -9.1317, "Restaurant", 24, "19:00 to 23:30", "Slow-cooked pork and clams on a terrace by the viewpoint.", 75),
-  made("food", "f-brasa", "Sal e Brasa", "Cais do Sodré", 38.7067, -9.1437, "Grill", 28, "12:30 to 23:00", "Charcoal-grilled meat and fish near the river.", 75),
-  made("food", "f-forno", "Forno de Belém", "Belém", 38.6974, -9.2024, "Bakery", 6, "08:00 to 20:00", "Warm pastries and strong coffee, opposite the monastery.", 30),
-  made("food", "f-cais", "Cais Verde Kitchen", "Belém", 38.6963, -9.1986, "Lunch", 22, "12:00 to 17:00", "Salads and grilled sardines on a terrace by the water."),
-  made("food", "f-lanterna", "Lanterna Petiscos", "Bairro Alto", 38.7135, -9.1452, "Small plates", 20, "18:00 to 01:00", "Small plates to share, on a narrow street that fills up late."),
-  made("food", "f-pao", "Pão da Estrela", "Estrela", 38.7139, -9.1579, "Bakery", 9, "07:30 to 19:00", "Bread, sandwiches and soup by the park.", 30),
-  made("food", "f-azulejo", "Azulejo Lunch Room", "Xabregas", 38.7241, -9.1149, "Lunch", 14, "12:00 to 16:00", "A set lunch in a tiled room near the museum."),
-  made("food", "f-cantina", "Avenida Cantina", "Avenidas", 38.7352, -9.1501, "Canteen", 16, "11:30 to 22:00", "Soup, a main and coffee at a fixed price."),
-  made("food", "f-doca", "Doca Oito", "Parque das Nações", 38.7621, -9.0951, "Restaurant", 26, "12:00 to 23:00", "Seafood rice by the old docks, next to the aquarium.", 75),
+  made("food", "bkk", "f-khaomangai", "Baan Khao Man Gai", "Tha Tien", 13.7455, 100.4945, "Street stall", 2.5, "07:00 to 14:00", "Poached chicken on rice, one dish, done well.", 30),
+  made("food", "bkk", "f-thatien", "Tha Tien Riverside Kitchen", "Tha Tien", 13.746, 100.4905, "Restaurant", 14, "11:00 to 22:00", "Grilled river prawns on a deck facing Wat Arun.", 75),
+  made("food", "bkk", "f-noodle", "Yaowarat Noodle Corner", "Chinatown", 13.7405, 100.509, "Street stall", 4, "17:00 to 01:00", "Peppery pork noodle soup at plastic tables on the pavement.", 40),
+  made("food", "bkk", "f-coffee", "Talat Noi Coffee Shophouse", "Chinatown", 13.7345, 100.5125, "Café", 4.5, "08:00 to 18:00", "Iced coffee and toast in an old machine shop.", 30),
+  made("food", "bkk", "f-somtam", "Ratchathewi Som Tam", "Ratchathewi", 13.752, 100.531, "Restaurant", 6, "10:00 to 21:00", "Papaya salad and grilled chicken, Isan style."),
+  made("food", "bkk", "f-coconut", "Chatuchak Coconut Stall", "Chatuchak", 13.8, 100.549, "Stall", 3, "Weekends, 09:00 to 18:00", "Coconut ice cream in a coconut shell.", 20),
+  made("food", "bkk", "f-goldenmount", "Golden Mount Noodle House", "Pom Prap", 13.754, 100.505, "Restaurant", 3, "09:00 to 17:00", "Boat noodles in small bowls; order several.", 40),
+  made("food", "bkk", "f-phraathit", "Phra Athit Supper Club", "Banglamphu", 13.762, 100.495, "Restaurant", 16, "18:00 to 00:00", "Southern Thai curries in a wooden house by the river.", 90),
+  made("food", "hkt", "f-dimsum", "Thalang Road Dim Sum", "Phuket Town", 7.885, 98.388, "Café", 6, "06:00 to 12:00", "Phuket-style dim sum for breakfast, with strong coffee.", 45),
+  made("food", "hkt", "f-rang", "Rang Hill Terrace", "Phuket Town", 7.8975, 98.378, "Restaurant", 13, "11:00 to 22:00", "Lunch with the town spread out below.", 60),
+  made("food", "hkt", "f-chalong", "Chalong Seafood House", "Chalong", 7.823, 98.36, "Restaurant", 20, "11:00 to 22:00", "Grilled fish by weight on a deck over the bay.", 75),
+  made("food", "hkt", "f-fruit", "Nai Harn Fruit Stand", "Rawai", 7.779, 98.305, "Stall", 2.5, "08:00 to 18:00", "Mango, pineapple and coconut, cut while you wait.", 15),
+  made("food", "hkt", "f-katagrill", "Kata Night Grill", "Kata", 7.8205, 98.2995, "Restaurant", 18, "17:00 to 23:00", "Barbecued seafood on tables in the sand.", 90),
+  made("food", "hkt", "f-karonshack", "Karon Beach Shack", "Karon", 7.8445, 98.295, "Beach bar", 10, "10:00 to 22:00", "Pad thai and fruit shakes under the trees."),
+  made("food", "hkt", "f-bangpae", "Bang Pae Forest Café", "Khao Phra Thaeo", 8.038, 98.388, "Café", 5.5, "08:00 to 16:00", "Noodle soup and iced tea at the park gate.", 45),
+  made("food", "hkt", "f-surin", "Surin Sunset Deck", "Surin", 7.976, 98.28, "Restaurant", 19, "16:00 to 23:00", "Cocktails and grilled squid as the sun goes down.", 90),
+  made("food", "hkt", "f-patong", "Patong Night Noodles", "Patong", 7.894, 98.299, "Street stall", 4.5, "18:00 to 02:00", "Late bowls of noodles behind the beach road.", 30),
 ];
 
 const byId = new Map(PLACES.map((p) => [p.id, p]));
@@ -153,14 +169,19 @@ export function mustPlace(id: string): Place {
   return p;
 }
 
+/** The airport each city flies from and to. */
+export const AIRPORT: Record<CityId, string> = { bkk: "bkk-airport", hkt: "hkt-airport" };
+
 export const CATEGORY_LABEL: Record<Category, string> = {
   sight: "Sights",
   food: "Food",
   stay: "Stays",
+  airport: "Airports",
 };
 
 export const CATEGORY_ONE: Record<Category, string> = {
   sight: "Sight",
   food: "Food",
   stay: "Stay",
+  airport: "Airport",
 };

@@ -26,7 +26,7 @@ export const presets: PresetOptions[] = [
       pane(trip(), { id: "overview", weight: 0.8 }),
       pane(map({ day: 1 }), { id: "map", ...followsOverview, weight: 2.2 }),
       pane(day({ n: 1 }), { id: "day", ...followsOverview, weight: 1 }),
-      pane(place({ id: "castelo" }), { id: "place", ...followsMap, weight: 0.95 }),
+      pane(place({ id: "grand-palace" }), { id: "place", ...followsMap, weight: 0.95 }),
     ),
   },
   {
@@ -40,27 +40,29 @@ export const presets: PresetOptions[] = [
       pane(day({ n: 3 }), { id: "day-3" }),
       pane(day({ n: 4 }), { id: "day-4" }),
       pane(day({ n: 5 }), { id: "day-5" }),
+      pane(day({ n: 6 }), { id: "day-6" }),
+      pane(day({ n: 7 }), { id: "day-7" }),
       column(
         { weight: 1.3 },
         pane(map({ day: 0 }), { id: "map", weight: 1.4 }),
-        pane(place({ id: "castelo" }), { id: "place", ...followsMap }),
+        pane(place({ id: "grand-palace" }), { id: "place", ...followsMap }),
       ),
     ),
   },
   {
-    // Choosing where to stay: hotels to search, the map, and two hotels compared. The first is kept (Keep, in its
-    // header); the second follows whatever is selected.
+    // Choosing where to stay: hotels to search, the map, and two Bangkok hotels compared. The first is kept (Keep,
+    // in its header); the second follows whatever is selected.
     id: "stay",
     label: "Stay",
     layout: row(
       pane(explore({ category: "stay" }), { id: "explore", weight: 0.9 }),
       pane(map({ day: 0 }), { id: "map", weight: 1.6 }),
-      pane(place({ id: "h-ribeira" }), { id: "place-kept", linkedTo: "map", kept: true }),
-      pane(place({ id: "h-alfama" }), { id: "place", ...followsMap }),
+      pane(place({ id: "h-riverside" }), { id: "place-kept", linkedTo: "map", kept: true }),
+      pane(place({ id: "h-silom" }), { id: "place", ...followsMap }),
     ),
   },
   {
-    // The money: the budget beside the days, and the map of the day picked.
+    // The money: the budget beside the days, and the map of the day picked (the dearest, a day of Phuket taxis).
     id: "budget",
     label: "Budget",
     layout: row(
@@ -68,8 +70,8 @@ export const presets: PresetOptions[] = [
       pane(trip(), { id: "overview", weight: 0.8 }),
       column(
         { weight: 1.5 },
-        pane(map({ day: 5 }), { id: "map", ...followsOverview, weight: 1.5 }),
-        pane(day({ n: 5 }), { id: "day", ...followsOverview }),
+        pane(map({ day: 7 }), { id: "map", ...followsOverview, weight: 1.5 }),
+        pane(day({ n: 7 }), { id: "day", ...followsOverview }),
       ),
     ),
   },

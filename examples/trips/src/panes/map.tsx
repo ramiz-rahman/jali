@@ -34,8 +34,8 @@ import { addToDay } from "../planning";
 import { usePlan, useServices } from "../services";
 import { useCurrent } from "../selection";
 import { useStore } from "../store";
-import { mustPlace, PLACES, placeById, type Place } from "../trip/places";
-import { dayTotals, dayWith, type Plan } from "../trip/plan";
+import { AIRPORT, CITY_NAME, mustPlace, PLACES, placeById, type CityId, type Place } from "../trip/places";
+import { daysIn, dayTotals, dayWith, isHotel, routeOf, type Plan } from "../trip/plan";
 import { haversineKm } from "../trip/travel";
 import { dayColor } from "../ui/colors";
 import * as f from "../ui/format";
@@ -57,7 +57,11 @@ const TUNE = {
   dark: { background: "#141418", water: "#1d2230", park: "#18201b" },
 };
 
-const LISBON = { center: [-9.152, 38.712] as [number, number], zoom: 12.4 };
+/** Thailand, with both cities in view, until the first day is framed. */
+const TRIP = { center: [99.55, 10.9] as [number, number], zoom: 5 };
+
+/** Below this zoom the map shows each city as one badge rather than its pins (they would pile up). */
+const CITY_ZOOM = 8.5;
 
 const reducedMotion = () => !!window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
 
@@ -66,7 +70,7 @@ type Theme = "light" | "dark";
 /** A pin: what the map draws for one place. */
 interface Pin {
   p: Place;
-  role: "stop" | "hotel" | "candidate" | "other-day";
+  role: "stop" | "hotel" | "candidate" | "other-day" | "airport";
   day?: number;
   /** 1-based, for a stop. */
   order?: number;
@@ -80,28 +84,55 @@ function pinsFor(plan: Plan, dayN: number, candidates: readonly string[], select
       pins.set(id, { p: mustPlace(id), role: shown ? "stop" : "other-day", day: d.n, order: i + 1 });
     });
   }
-  pins.set(plan.hotel, { p: mustPlace(plan.hotel), role: "hotel" });
+  for (const id of Object.values(plan.hotels)) pins.set(id, { p: mustPlace(id), role: "hotel" });
+  for (const id of Object.values(AIRPORT)) pins.set(id, { p: mustPlace(id), role: "airport" });
   for (const id of candidates) if (!pins.has(id)) pins.set(id, { p: mustPlace(id), role: "candidate" });
   if (selected && !pins.has(selected) && placeById(selected))
     pins.set(selected, { p: mustPlace(selected), role: "candidate" });
   return Array.from(pins.values());
 }
 
+/** The flight as a gentle arc, not a ruler line across the gulf. */
+function arc(a: Place, b: Place, steps = 48): [number, number][] {
+  const [x1, y1, x2, y2] = [a.lng, a.lat, b.lng, b.lat];
+  // The control point sits off the middle, to the west of the line.
+  const [mx, my] = [(x1 + x2) / 2, (y1 + y2) / 2];
+  const [dx, dy] = [x2 - x1, y2 - y1];
+  const [cx, cy] = [mx - dy * 0.18, my + dx * 0.18];
+  return Array.from({ length: steps + 1 }, (_, i) => {
+    const t = i / steps;
+    const u = 1 - t;
+    return [u * u * x1 + 2 * u * t * cx + t * t * x2, u * u * y1 + 2 * u * t * cy + t * t * y2];
+  });
+}
+
 function routesFor(plan: Plan, dayN: number, theme: Theme) {
   const features = plan.days
     .filter((d) => dayN === 0 || d.n === dayN)
     .flatMap((d) =>
-      dayTotals(plan, d.stops).legs.map((l) => {
+      dayTotals(plan, d).legs.map((l) => {
         const a = mustPlace(l.from);
         const b = mustPlace(l.to);
         return {
           type: "Feature" as const,
           properties: { mode: l.mode, color: dayColor(d.n, theme) },
-          geometry: { type: "LineString" as const, coordinates: [[a.lng, a.lat], [b.lng, b.lat]] },
+          geometry: {
+            type: "LineString" as const,
+            coordinates: l.mode === "flight" ? arc(a, b) : [[a.lng, a.lat], [b.lng, b.lat]],
+          },
         };
       }),
     );
   return { type: "FeatureCollection" as const, features };
+}
+
+/** The places to frame for a day: its own city's part of the route (on the transfer day, from the landing). */
+function framePoints(plan: Plan, dayN: number): Place[] {
+  if (dayN === 0)
+    return [...Object.values(plan.hotels), ...plan.days.flatMap((d) => d.stops)].map(mustPlace);
+  const day = plan.days.find((d) => d.n === dayN);
+  if (!day) return [];
+  return routeOf(plan, day).places.filter((p) => p.city === day.city);
 }
 
 function addTripLayers(map: MapLibre, theme: Theme) {
@@ -132,6 +163,8 @@ function addTripLayers(map: MapLibre, theme: Theme) {
   layer("route-transit", "transit", { "line-color": ["get", "color"], "line-width": 4 });
   layer("route-taxi", "taxi", { "line-color": ["get", "color"], "line-width": 4, "line-dasharray": [2, 1.4] }, { "line-cap": "butt" });
   layer("route-walk", "walk", { "line-color": ["get", "color"], "line-width": 4.5, "line-dasharray": [0.01, 1.8] });
+  layer("route-scooter", "scooter", { "line-color": ["get", "color"], "line-width": 4, "line-dasharray": [3, 1, 0.01, 1] });
+  layer("route-flight", "flight", { "line-color": ["get", "color"], "line-width": 2.5, "line-dasharray": [1, 2] }, { "line-cap": "butt" });
 }
 
 function MapPane({ params, paused, node, inPeek }: PaneProps<typeof mapParams>) {
@@ -146,6 +179,11 @@ function MapPane({ params, paused, node, inPeek }: PaneProps<typeof mapParams>) 
   const mapRef = useRef<MapLibre | null>(null);
   const markers = useRef(new Map<string, { marker: Marker; el: HTMLButtonElement }>());
   const pausedRef = useRef(paused);
+  /** The map shows the day as framed (not moved by the person since). */
+  const framed = useRef(true);
+  const frameRef = useRef<(animate?: boolean) => void>(() => {});
+  // The city badges, for the clean-up of the map effect (declared further down).
+  const badgeList = useRef<() => Marker[]>(() => []);
   const pending = useRef<(() => void) | null>(null);
   const [styleTick, setStyleTick] = useState(0);
   const [failed, setFailed] = useState(false);
@@ -160,7 +198,15 @@ function MapPane({ params, paused, node, inPeek }: PaneProps<typeof mapParams>) 
     if (exploreShown) return results!.ids;
     const at = selected ? placeById(selected) : undefined;
     if (!at) return [];
-    return PLACES.filter((q) => q.id !== at.id && !dayWith(plan, q.id) && haversineKm(at, q) <= 0.9)
+    const radius = at.city === "bkk" ? 0.9 : 3;
+    return PLACES.filter(
+      (q) =>
+        q.id !== at.id &&
+        q.city === at.city &&
+        q.category !== "airport" &&
+        !dayWith(plan, q.id) &&
+        haversineKm(at, q) <= radius,
+    )
       .slice(0, 10)
       .map((q) => q.id);
   }, [exploreShown, results, selected, plan]);
@@ -178,9 +224,9 @@ function MapPane({ params, paused, node, inPeek }: PaneProps<typeof mapParams>) 
     const map = new MapLibre({
       container: el,
       style: STYLE[themeRef.current],
-      center: LISBON.center,
-      zoom: LISBON.zoom,
-      minZoom: 10,
+      center: TRIP.center,
+      zoom: TRIP.zoom,
+      minZoom: 4,
       maxZoom: 18,
       attributionControl: { compact: false },
       dragRotate: false,
@@ -206,13 +252,30 @@ function MapPane({ params, paused, node, inPeek }: PaneProps<typeof mapParams>) 
     map.getCanvas().setAttribute("aria-label", "Map. Arrow keys pan, plus and minus zoom.");
     mapRef.current = map;
 
+    // A pan or zoom by the person ends the framing; the map stays where they put it.
+    const moved = (e: { originalEvent?: unknown }) => {
+      if (e.originalEvent) framed.current = false;
+    };
+    map.on("dragstart", moved);
+    map.on("zoomstart", moved);
+    map.on("rotatestart", moved);
+
+    // Zoomed out to the whole country, each city is one badge; zoomed in, its pins.
+    const far = () => el.toggleAttribute("data-far", map.getZoom() < CITY_ZOOM);
+    map.on("zoom", far);
+    far();
+
     // It resizes with its box, unless it is out of sight (then it catches up when shown).
     let frame = 0;
     const ro = new ResizeObserver(() => {
       if (pausedRef.current || frame) return;
       frame = requestAnimationFrame(() => {
         frame = 0;
-        if (el.clientWidth > 0 && el.clientHeight > 0) map.resize();
+        if (el.clientWidth > 0 && el.clientHeight > 0) {
+          map.resize();
+          // Until the person moves the map, it keeps the day framed as its box changes (a fold, a preset).
+          if (framed.current) frameRef.current(false);
+        }
       });
     });
     ro.observe(el);
@@ -221,6 +284,7 @@ function MapPane({ params, paused, node, inPeek }: PaneProps<typeof mapParams>) 
       cancelAnimationFrame(frame);
       for (const m of markers.current.values()) m.marker.remove();
       markers.current.clear();
+      for (const b of badgeList.current()) b.remove();
       map.remove();
       mapRef.current = null;
     };
@@ -305,23 +369,78 @@ function MapPane({ params, paused, node, inPeek }: PaneProps<typeof mapParams>) 
       }
   }, [pins, selected, jali, node.id, styleTick]);
 
-  // A new day: frame its stops and the hotel.
+  // A badge for each city, shown when the whole country is in view: its name and its days. A click frames it.
+  const badges = useRef(new Map<CityId, Marker>());
+  badgeList.current = () => {
+    const all = Array.from(badges.current.values());
+    badges.current.clear();
+    return all;
+  };
   useEffect(() => {
-    const days = plan.days.filter((d) => params.day === 0 || d.n === params.day);
-    const pts = [plan.hotel, ...days.flatMap((d) => d.stops)].map(mustPlace);
-    whenShown(() => {
-      const map = mapRef.current;
-      if (!map) return;
-      const b = new LngLatBounds();
-      for (const p of pts) b.extend([p.lng, p.lat]);
-      map.fitBounds(b, { padding: framePadding(map), maxZoom: 15, duration: reducedMotion() ? 0 : 700 });
-    });
+    const map = mapRef.current;
+    if (!map) return;
+    for (const city of ["bkk", "hkt"] as const) {
+      const days = daysIn(plan, city);
+      const pts = [plan.hotels[city], ...days.flatMap((d) => d.stops)].map(mustPlace);
+      const lat = pts.reduce((s, p) => s + p.lat, 0) / pts.length;
+      const lng = pts.reduce((s, p) => s + p.lng, 0) / pts.length;
+      let m = badges.current.get(city);
+      if (!m) {
+        const wrap = document.createElement("div");
+        wrap.className = "city-badge-wrap";
+        const el = document.createElement("button");
+        el.type = "button";
+        el.className = "city-badge";
+        wrap.append(el);
+        el.addEventListener("click", () => {
+          const all = [plan.hotels[city], ...daysIn(planRef.current, city).flatMap((d) => d.stops)].map(mustPlace);
+          const b = new LngLatBounds();
+          for (const p of all) b.extend([p.lng, p.lat]);
+          map.fitBounds(b, { padding: framePadding(map), maxZoom: 15, duration: reducedMotion() ? 0 : 900 });
+        });
+        m = new Marker({ element: wrap, anchor: "center" }).setLngLat([lng, lat]).addTo(map);
+        badges.current.set(city, m);
+      }
+      m.setLngLat([lng, lat]);
+      const el = m.getElement().firstElementChild as HTMLButtonElement;
+      const range = days.length > 1 ? `Days ${days[0]!.n} to ${days[days.length - 1]!.n}` : `Day ${days[0]?.n}`;
+      el.innerHTML = "";
+      const name = document.createElement("b");
+      name.textContent = CITY_NAME[city];
+      const sub = document.createElement("span");
+      sub.textContent = `${range}, ${days.reduce((s, d) => s + d.stops.length, 0)} stops`;
+      el.append(name, sub);
+      el.setAttribute("aria-label", `${CITY_NAME[city]}: ${range}. Show it on the map.`);
+    }
+  }, [plan, styleTick]);
+  const planRef = useRef(plan);
+  planRef.current = plan;
+
+  // A new day: frame its stops and its hotel, in its own city. "All" frames both cities.
+  const frame = (animate = true) => {
+    const map = mapRef.current;
+    const pts = framePoints(plan, params.day);
+    if (!map || !pts.length) return;
+    const b = new LngLatBounds();
+    for (const p of pts) b.extend([p.lng, p.lat]);
+    map.fitBounds(b, { padding: framePadding(map), maxZoom: 15, duration: animate && !reducedMotion() ? 700 : 0 });
+    framed.current = true;
+  };
+  frameRef.current = frame;
+  useEffect(() => {
+    whenShown(() => frame());
     // Only when the day changes (or the map is first made): moving a stop doesn't re-frame the person's view.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [params.day]);
 
-  // A place selected anywhere: bring it into view, gently, unless it is already well inside.
+  // A place selected anywhere: bring it into view, gently, unless it is already well inside. Not on the map's first
+  // show, which frames the day instead (the selection may be in the other city).
+  const firstSelection = useRef(true);
   useEffect(() => {
+    if (firstSelection.current) {
+      firstSelection.current = false;
+      return;
+    }
     if (!selected) return;
     const p = placeById(selected);
     if (!p) return;
@@ -332,12 +451,17 @@ function MapPane({ params, paused, node, inPeek }: PaneProps<typeof mapParams>) 
       const { clientWidth: w, clientHeight: h } = map.getContainer();
       const inside = pt.x > w * 0.15 && pt.x < w * 0.85 && pt.y > h * 0.15 && pt.y < h * 0.7;
       if (inside) return;
-      map.easeTo({
-        center: [p.lng, p.lat],
-        zoom: Math.max(map.getZoom(), 14),
-        duration: reducedMotion() ? 0 : 600,
+      framed.current = false;
+      // Within a city, glide; to the other city (or out of the whole-country view), fly.
+      const far = haversineKm(map.getCenter(), { lat: p.lat, lng: p.lng }) > 60 || map.getZoom() < CITY_ZOOM;
+      const camera = {
+        center: [p.lng, p.lat] as [number, number],
+        zoom: Math.max(map.getZoom(), p.city === "hkt" ? 13 : 14),
+        duration: reducedMotion() ? 0 : far ? 1600 : 600,
         padding: { top: 40, bottom: Math.min(180, h * 0.3), left: 20, right: 20 },
-      });
+      };
+      if (far) map.flyTo(camera);
+      else map.easeTo(camera);
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selected]);
@@ -350,15 +474,7 @@ function MapPane({ params, paused, node, inPeek }: PaneProps<typeof mapParams>) 
           {
             id: "frame",
             title: "Frame the day on the map",
-            run: () => {
-              const map = mapRef.current;
-              const days = plan.days.filter((d) => params.day === 0 || d.n === params.day);
-              const pts = [plan.hotel, ...days.flatMap((d) => d.stops)].map(mustPlace);
-              if (!map) return;
-              const b = new LngLatBounds();
-              for (const p of pts) b.extend([p.lng, p.lat]);
-              map.fitBounds(b, { padding: framePadding(map), maxZoom: 15 });
-            },
+            run: () => frame(),
           },
           {
             id: "all",
@@ -373,7 +489,8 @@ function MapPane({ params, paused, node, inPeek }: PaneProps<typeof mapParams>) 
 
   const sel = selected ? placeById(selected) : undefined;
   const day = params.day ? plan.days.find((d) => d.n === params.day) : undefined;
-  const totals = day ? dayTotals(plan, day.stops) : null;
+  const totals = day ? dayTotals(plan, day) : null;
+  const legendCity: CityId | null = day && !day.from ? day.city : null;
   return (
     <div className="pane-body map" data-paused={paused || undefined}>
       <div ref={box} className="map-canvas" />
@@ -396,15 +513,17 @@ function MapPane({ params, paused, node, inPeek }: PaneProps<typeof mapParams>) 
           <p className="map-summary">
             <b>{day.title}</b>
             <span>
-              {day.stops.length} stops, {f.minutes(totals.travelMin)} travelling
+              {CITY_NAME[day.city]}, {day.stops.length} stops, {f.minutes(totals.travelMin)} travelling
             </span>
           </p>
         ) : null}
       </div>
       <ul className="map-legend" aria-label="Route key">
         <li data-mode="walk">Walk</li>
-        <li data-mode="transit">Transit</li>
+        {legendCity !== "hkt" ? <li data-mode="transit">Train or boat</li> : null}
         <li data-mode="taxi">Taxi</li>
+        {legendCity !== "bkk" ? <li data-mode="scooter">Scooter</li> : null}
+        {!day || day.from ? <li data-mode="flight">Flight</li> : null}
       </ul>
       {sel ? <PlaceCard p={sel} dayN={params.day} plan={plan} from={node.id} /> : null}
       {failed ? (
@@ -445,7 +564,9 @@ function paintPin(el: HTMLButtonElement, pin: Pin, selected: boolean) {
     role === "stop"
       ? `Day ${day}, stop ${order}: ${p.name}`
       : role === "hotel"
-        ? `Your hotel: ${p.name}`
+        ? `Your hotel in ${CITY_NAME[p.city]}: ${p.name}`
+        : role === "airport"
+          ? p.name
         : role === "other-day"
           ? `${p.name}, on Day ${day}`
           : `${p.name}, not planned`,
@@ -460,7 +581,9 @@ function PlaceCard({ p, dayN, plan, from }: { p: Place; dayN: number; plan: Plan
   const services = useServices();
   const on = dayWith(plan, p.id);
   const Icon = CATEGORY_ICON[p.category];
-  const target = dayN || on?.n || 1;
+  // The day to offer: the map's day if it is in the place's city, else the place's day, else its city's first day.
+  const mapDay = plan.days.find((d) => d.n === dayN);
+  const target = (mapDay?.city === p.city ? mapDay.n : undefined) ?? on?.n ?? daysIn(plan, p.city)[0]?.n ?? 1;
   return (
     <div className="map-card" aria-label={`Selected: ${p.name}`} role="region">
       <div className="map-card-text">
@@ -474,8 +597,8 @@ function PlaceCard({ p, dayN, plan, from }: { p: Place; dayN: number; plan: Plan
             <>
               <DayMark n={on.n} size="sm" /> Day {on.n}, stop {on.stops.indexOf(p.id) + 1}
             </>
-          ) : plan.hotel === p.id ? (
-            "Your hotel"
+          ) : isHotel(plan, p.id) ? (
+            `Your hotel in ${CITY_NAME[p.city]}`
           ) : (
             "Not planned"
           )}
@@ -492,7 +615,7 @@ function PlaceCard({ p, dayN, plan, from }: { p: Place; dayN: number; plan: Plan
         <XIcon size={16} aria-hidden />
       </button>
       <div className="map-card-actions">
-        {p.category !== "stay" && on?.n !== target ? (
+        {(p.category === "sight" || p.category === "food") && on?.n !== target ? (
           <button type="button" className="btn btn-primary" onClick={() => addToDay(services, p.id, target)}>
             {on ? `Move to Day ${target}` : `Add to Day ${target}`}
           </button>

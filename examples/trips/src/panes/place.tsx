@@ -4,18 +4,27 @@
  * Keep it (the header's Keep) to compare two places side by side.
  */
 import { useMemo, type KeyboardEvent } from "react";
-import { CheckIcon, MapPinIcon, PlusIcon, QuestionIcon } from "@phosphor-icons/react";
+import { AirplaneTiltIcon, CheckIcon, MapPinIcon, PlusIcon, QuestionIcon } from "@phosphor-icons/react";
 import { definePane, useCommands, useJali, type PaneProps } from "@jali/react";
 import { selectPlace } from "../actions";
 import { addToDay, chooseDay, removeFromPlan, stayAt } from "../planning";
 import { usePlan, useServices } from "../services";
-import { CATEGORY_ONE, PLACES, placeById, type Place } from "../trip/places";
-import { dayWith } from "../trip/plan";
-import { haversineKm, travel, WALK_UP_TO_KM } from "../trip/travel";
+import { CATEGORY_ONE, CITY_NAME, PLACES, placeById, type Place } from "../trip/places";
+import { daysIn, dayWith, hotelOf, isHotel as isHotelOf } from "../trip/plan";
+import { haversineKm, leg, NEARBY_KM, type Mode } from "../trip/travel";
 import * as f from "../ui/format";
 import { CATEGORY_ICON, DayMark, Empty } from "../ui/parts";
 
 const placeParams = { id: String };
+
+/** "12 min by taxi". */
+const BY: Record<Mode, string> = {
+  walk: "on foot",
+  transit: "by train or boat",
+  taxi: "by taxi",
+  scooter: "by scooter",
+  flight: "by air",
+};
 
 function PlacePane({ params, node, inPeek, peek }: PaneProps<typeof placeParams>) {
   const p = placeById(params.id);
@@ -44,12 +53,19 @@ function PlaceBody({
   const plan = usePlan();
   const planned = dayWith(plan, p.id);
   const index = planned ? planned.stops.indexOf(p.id) : -1;
-  const hotel = placeById(plan.hotel)!;
-  const isHotel = plan.hotel === p.id;
-  const fromHotel = travel(haversineKm(hotel, p), haversineKm(hotel, p) <= WALK_UP_TO_KM ? "walk" : "transit");
+  const hotel = hotelOf(plan, p.city);
+  const isHotel = plan.hotels[p.city] === p.id;
+  // From the hotel in the place's own city, by the mode a leg there would get.
+  const fromHotel = p.category === "airport" || isHotel ? null : leg(hotel, p);
   const Icon = CATEGORY_ICON[p.category];
 
-  const add = () => chooseDay(jali, services, `Add ${p.name} to…`, (n) => addToDay(services, p.id, n));
+  const cityDays = daysIn(plan, p.city);
+  const nights = cityDays.length;
+  const add = () =>
+    chooseDay(jali, services, `Add ${p.name} to…`, (n) => addToDay(services, p.id, n), {
+      city: p.city,
+      except: planned?.n,
+    });
 
   useCommands(
     inPeek
@@ -97,15 +113,21 @@ function PlaceBody({
         </p>
         <h3 className="place-name">{p.name}</h3>
         <p className="place-area">
-          <MapPinIcon size={14} aria-hidden /> {p.area}, {plan.city}
+          <MapPinIcon size={14} aria-hidden /> {p.area}, {CITY_NAME[p.city]}
         </p>
       </header>
 
       <div className="place-plan" data-day={planned?.n}>
-        {p.category === "stay" ? (
+        {p.category === "airport" ? (
+          <p className="place-plan-line">
+            <AirplaneTiltIcon size={16} weight="bold" aria-hidden /> The flight between Bangkok and Phuket is on Day{" "}
+            {plan.days.find((d) => d.from)?.n}
+          </p>
+        ) : p.category === "stay" ? (
           isHotel ? (
             <p className="place-plan-line">
-              <CheckIcon size={16} weight="bold" aria-hidden /> Your hotel for all {plan.days.length} nights
+              <CheckIcon size={16} weight="bold" aria-hidden /> Your hotel in {CITY_NAME[p.city]} for{" "}
+              {nights} nights
             </p>
           ) : (
             <button type="button" className="btn btn-primary" onClick={() => stayAt(services, p.id)}>
@@ -132,9 +154,9 @@ function PlaceBody({
           </>
         ) : (
           <>
-            <p className="place-plan-line muted">Not in the plan yet. Add it to a day:</p>
+            <p className="place-plan-line muted">Not in the plan yet. Add it to a day in {CITY_NAME[p.city]}:</p>
             <div className="day-buttons" role="group" aria-label={`Add ${p.name} to a day`}>
-              {plan.days.map((d) => (
+              {cityDays.map((d) => (
                 <button
                   key={d.n}
                   type="button"
@@ -157,27 +179,29 @@ function PlaceBody({
           <dt>Hours</dt>
           <dd>{p.hours}</dd>
         </div>
-        {p.category !== "stay" ? (
+        {p.category !== "stay" && p.category !== "airport" ? (
           <div>
             <dt>Typical visit</dt>
             <dd className="num">{f.minutes(p.visitMin)}</dd>
           </div>
         ) : null}
-        <div>
-          <dt>{p.category === "stay" ? "A night" : p.category === "food" ? "A meal, each" : "Ticket"}</dt>
-          <dd className="num">{f.price(p.price)}</dd>
-        </div>
-        {p.category === "stay" ? (
+        {p.category !== "airport" ? (
           <div>
-            <dt>{plan.days.length} nights</dt>
-            <dd className="num">{f.money(p.price * plan.days.length)}</dd>
+            <dt>{p.category === "stay" ? "A night" : p.category === "food" ? "A meal, each" : "Ticket"}</dt>
+            <dd className="num">{f.price(p.price)}</dd>
           </div>
         ) : null}
-        {!isHotel ? (
+        {p.category === "stay" ? (
+          <div>
+            <dt>{nights} nights</dt>
+            <dd className="num">{f.money(p.price * nights)}</dd>
+          </div>
+        ) : null}
+        {fromHotel ? (
           <div>
             <dt>From your hotel</dt>
             <dd className="num">
-              {f.minutes(fromHotel.minutes)} {fromHotel.mode === "walk" ? "on foot" : "by transit"}
+              {f.minutes(fromHotel.minutes)} {BY[fromHotel.mode]}
             </dd>
           </div>
         ) : null}
@@ -190,7 +214,7 @@ function PlaceBody({
   );
 }
 
-/** Within walking distance: stays, food and sights, nearest first. */
+/** Nearby in the same city: on foot in Bangkok, a short ride in Phuket. Stays, food and sights, nearest first. */
 function Nearby({
   p,
   from,
@@ -205,9 +229,9 @@ function Nearby({
   const jali = useJali();
   const plan = usePlan();
   const near = useMemo(() => {
-    const all = PLACES.filter((q) => q.id !== p.id)
-      .map((q) => ({ q, km: haversineKm(p, q) }))
-      .filter((x) => x.km <= WALK_UP_TO_KM)
+    const all = PLACES.filter((q) => q.id !== p.id && q.city === p.city && q.category !== "airport")
+      .map((q) => ({ q, km: haversineKm(p, q), way: leg(p, q) }))
+      .filter((x) => x.km <= NEARBY_KM[p.city])
       .sort((a, b) => a.km - b.km);
     return (["stay", "food", "sight"] as const)
       .map((c) => ({ c, rows: all.filter((x) => x.q.category === c).slice(0, 3) }))
@@ -224,12 +248,12 @@ function Nearby({
   if (!near.length) return null;
   return (
     <section className="nearby" aria-labelledby={`nearby-${p.id}`}>
-      <h4 id={`nearby-${p.id}`}>Nearby on foot</h4>
+      <h4 id={`nearby-${p.id}`}>{p.city === "bkk" ? "Nearby" : "Nearby by road"}</h4>
       {near.map(({ c, rows }) => (
         <div key={c} className="nearby-group">
           <h5>{c === "stay" ? "Stays" : c === "food" ? "Food" : "Sights"}</h5>
           <ul>
-            {rows.map(({ q, km }) => {
+            {rows.map(({ q, way }) => {
               const on = dayWith(plan, q.id);
               const Icon = CATEGORY_ICON[q.category];
               return (
@@ -244,8 +268,10 @@ function Nearby({
                     <Icon size={15} aria-hidden className="nearby-icon" />
                     <span className="nearby-name">{q.name}</span>
                     {on ? <DayMark n={on.n} size="sm" /> : null}
-                    {plan.hotel === q.id ? <span className="tag">Your hotel</span> : null}
-                    <span className="nearby-dist num">{f.minutes(travel(km, "walk").minutes)} walk</span>
+                    {isHotelOf(plan, q.id) ? <span className="tag">Your hotel</span> : null}
+                    <span className="nearby-dist num">
+                      {f.minutes(way.minutes)} {way.mode === "walk" ? "walk" : BY[way.mode]}
+                    </span>
                   </button>
                 </li>
               );

@@ -1,5 +1,5 @@
 /**
- * Trips: a Jali example. A map-first planner for five days in Lisbon: the days, the map, the place, the hotels and
+ * Trips: a Jali example. A map-first planner for a week in Thailand, Bangkok then Phuket: the days, the map, the place, the hotels and
  * the budget in panes that fit the screen. The plan is kept on this device, and the layout lives in the address.
  */
 import { createRoot } from "react-dom/client";

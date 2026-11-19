@@ -1,6 +1,6 @@
 /**
- * Find a place to stay, eat or see: by category, by name, near the selected place or the day's centre, and under a
- * price. The filters are the pane's own state (`usePaneState`), so they survive a fold, a tab and a reload. The
+ * Find a place to stay, eat or see, in Bangkok or in Phuket: by category, by name, near the selected place or the
+ * day's centre, and under a price. Distances are only ever measured within the city shown. The filters are the pane's own state (`usePaneState`), so they survive a fold, a tab and a reload. The
  * results show on the map while this pane is on screen.
  */
 import { useEffect, useMemo, useRef, type KeyboardEvent } from "react";
@@ -11,8 +11,8 @@ import { selectPlace } from "../actions";
 import { addToDay, chooseDay, stayAt } from "../planning";
 import { usePlan, useServices } from "../services";
 import { useCurrent } from "../selection";
-import { CATEGORY_LABEL, PLACES, placeById, type Category, type Place } from "../trip/places";
-import { dayWith, type Plan } from "../trip/plan";
+import { CATEGORY_LABEL, CITY_NAME, PLACES, placeById, type Category, type CityId, type Place } from "../trip/places";
+import { dayWith, hotelOf, isHotel, type Plan } from "../trip/plan";
 import { haversineKm, travel, WALK_UP_TO_KM } from "../trip/travel";
 import * as f from "../ui/format";
 import { CATEGORY_ICON, DayMark, Empty, Segmented } from "../ui/parts";
@@ -20,39 +20,51 @@ import { place } from "./place";
 
 type Near = "place" | "day" | "anywhere";
 interface Filters {
+  city: CityId;
   category: Category | "all";
   text: string;
   near: Near;
   /** km, 0 for any distance. */
   within: number;
-  /** €, -1 for any price. */
+  /** Dollars, -1 for any price. */
   maxPrice: number;
 }
 
 const exploreParams = { category: optional(oneOf("sight", "food", "stay")) };
 
-const WITHIN = [
-  { value: 0.6, label: "600 m" },
-  { value: 1.2, label: "1.2 km" },
-  { value: 2.5, label: "2.5 km" },
-  { value: 0, label: "Any" },
-];
+// Bangkok is compact and walked; Phuket is spread out and driven, so its distances are longer.
+const WITHIN: Record<CityId, { value: number; label: string }[]> = {
+  bkk: [
+    { value: 0.6, label: "600 m" },
+    { value: 1.2, label: "1.2 km" },
+    { value: 3, label: "3 km" },
+    { value: 0, label: "Any" },
+  ],
+  hkt: [
+    { value: 2, label: "2 km" },
+    { value: 5, label: "5 km" },
+    { value: 15, label: "15 km" },
+    { value: 0, label: "Any" },
+  ],
+};
 const PRICES = [
   { value: -1, label: "Any" },
   { value: 0, label: "Free" },
-  { value: 10, label: "Up to €10" },
-  { value: 25, label: "Up to €25" },
-  { value: 120, label: "Up to €120" },
-  { value: 150, label: "Up to €150" },
+  { value: 5, label: "Up to $5" },
+  { value: 15, label: "Up to $15" },
+  { value: 60, label: "Up to $60" },
+  { value: 100, label: "Up to $100" },
 ];
 
-/** The centre of a day: the average of its stops, or the hotel for an empty day. */
-function dayCentre(plan: Plan, n: number): { lat: number; lng: number } {
-  const stops = (plan.days.find((d) => d.n === n)?.stops ?? []).map((id) => placeById(id)!);
-  if (!stops.length) return placeById(plan.hotel)!;
+/** The centre of a day: the average of its stops, or its city's hotel for an empty day. */
+function dayCentre(plan: Plan, n: number): { lat: number; lng: number; city: CityId } {
+  const day = plan.days.find((d) => d.n === n) ?? plan.days[0]!;
+  const stops = day.stops.map((id) => placeById(id)!);
+  if (!stops.length) return hotelOf(plan, day.city);
   return {
     lat: stops.reduce((s, p) => s + p.lat, 0) / stops.length,
     lng: stops.reduce((s, p) => s + p.lng, 0) / stops.length,
+    city: day.city,
   };
 }
 
@@ -61,11 +73,14 @@ function ExplorePane({ params, node, paused, focused, peek, inPeek }: PaneProps<
   const services = useServices();
   const plan = usePlan();
   const current = useCurrent();
+  // Start in the city of whatever is selected, else Bangkok.
+  const startCity = (current && placeById(current)?.city) || "bkk";
   const [filters, setFilters] = usePaneState<Filters>("filters", {
+    city: startCity,
     category: params.category ?? "all",
     text: "",
     near: params.category === "stay" ? "anywhere" : "place",
-    within: params.category === "stay" ? 0 : 1.2,
+    within: params.category === "stay" ? 0 : WITHIN[startCity][1]!.value,
     maxPrice: -1,
   });
   const [cursor, setCursor] = usePaneState<string | null>("cursor", null);
@@ -77,16 +92,19 @@ function ExplorePane({ params, node, paused, focused, peek, inPeek }: PaneProps<
     const m = s.layout.root && jali.model().panes.find((p) => p.ref.kind === "map");
     return Number(m?.ref.params.day ?? 0) || 1;
   });
-  const anchor =
+  const near =
     filters.near === "place" && current
       ? { at: placeById(current)!, label: placeById(current)!.name }
       : filters.near === "day"
         ? { at: dayCentre(plan, mapDay), label: `the middle of Day ${mapDay}` }
         : null;
+  // Never a distance across the country: an anchor in the other city is no anchor here.
+  const anchor = near && near.at.city === filters.city ? near : null;
 
   const rows = useMemo(() => {
     const text = filters.text.trim().toLowerCase();
-    return PLACES.filter((p) => filters.category === "all" || p.category === filters.category)
+    return PLACES.filter((p) => p.city === filters.city && p.category !== "airport")
+      .filter((p) => filters.category === "all" || p.category === filters.category)
       .filter((p) => !text || `${p.name} ${p.area} ${p.kind}`.toLowerCase().includes(text))
       .filter((p) => filters.maxPrice < 0 || p.price <= filters.maxPrice)
       .map((p) => ({ p, km: anchor ? haversineKm(anchor.at, p) : null }))
@@ -150,7 +168,16 @@ function ExplorePane({ params, node, paused, focused, peek, inPeek }: PaneProps<
           },
           { id: "peek", title: cur ? `Peek at ${cur.name}` : "Peek", keys: keyHint("Space"), disabled: cur ? false : "Pick a place first", run: () => cur && peek(place({ id: cur.id })) },
           { id: "stays", title: "Explore stays", run: () => set({ category: "stay", near: "anywhere", within: 0 }) },
-          { id: "food", title: "Explore food nearby", run: () => set({ category: "food", near: "place", within: 1.2 }) },
+          {
+            id: "food",
+            title: "Explore food nearby",
+            run: () => set({ category: "food", near: "place", within: WITHIN[filters.city][1]!.value }),
+          },
+          {
+            id: "city",
+            title: filters.city === "bkk" ? "Explore Phuket" : "Explore Bangkok",
+            run: () => set({ city: filters.city === "bkk" ? "hkt" : "bkk" }),
+          },
           { id: "clear", title: "Clear the filters", run: () => set({ text: "", maxPrice: -1, within: 0, near: "anywhere", category: "all" }) },
         ],
   );
@@ -175,6 +202,15 @@ function ExplorePane({ params, node, paused, focused, peek, inPeek }: PaneProps<
             }}
           />
         </label>
+        <Segmented
+          label="City"
+          value={filters.city}
+          onChange={(city) => set({ city, within: filters.within ? WITHIN[city][1]!.value : 0 })}
+          options={[
+            { value: "bkk", label: CITY_NAME.bkk },
+            { value: "hkt", label: CITY_NAME.hkt },
+          ]}
+        />
         <Segmented
           label="Category"
           value={filters.category}
@@ -202,7 +238,7 @@ function ExplorePane({ params, node, paused, focused, peek, inPeek }: PaneProps<
               disabled={filters.near === "anywhere"}
               onChange={(e) => set({ within: Number(e.target.value) })}
             >
-              {WITHIN.map((w) => (
+              {WITHIN[filters.city].map((w) => (
                 <option key={w.value} value={w.value}>
                   {w.label}
                 </option>
@@ -221,8 +257,9 @@ function ExplorePane({ params, node, paused, focused, peek, inPeek }: PaneProps<
           </label>
         </div>
         <p className="explore-count muted" aria-live="polite">
-          {rows.length} {rows.length === 1 ? "place" : "places"}
+          {rows.length} {rows.length === 1 ? "place" : "places"} in {CITY_NAME[filters.city]}
           {anchor ? `, nearest ${anchor.label} first` : ""}
+          {near && !anchor ? `; ${near.label} is in ${CITY_NAME[near.at.city]}, so no distances` : ""}
         </p>
       </div>
       {rows.length ? (
@@ -238,7 +275,8 @@ function ExplorePane({ params, node, paused, focused, peek, inPeek }: PaneProps<
           {rows.map(({ p, km }) => {
             const Icon = CATEGORY_ICON[p.category];
             const on = dayWith(plan, p.id);
-            const walk = km !== null && km <= WALK_UP_TO_KM * 1.5 ? travel(km, "walk").minutes : null;
+            const walk =
+              km !== null && km <= WALK_UP_TO_KM[p.city] * 1.5 ? travel(km, "walk", p.city).minutes : null;
             return (
               <div
                 key={p.id}
@@ -263,7 +301,7 @@ function ExplorePane({ params, node, paused, focused, peek, inPeek }: PaneProps<
                 </span>
                 <span className="result-end">
                   {on ? <DayMark n={on.n} size="sm" /> : null}
-                  {plan.hotel === p.id ? <span className="tag">Your hotel</span> : null}
+                  {isHotel(plan, p.id) ? <span className="tag">Your hotel</span> : null}
                   <span className="num">
                     {f.price(p.price)}
                   </span>
@@ -277,7 +315,7 @@ function ExplorePane({ params, node, paused, focused, peek, inPeek }: PaneProps<
                       e.stopPropagation();
                       add(p);
                     }}
-                    disabled={plan.hotel === p.id}
+                    disabled={isHotel(plan, p.id)}
                   >
                     <PlusIcon size={16} weight="bold" aria-hidden />
                   </button>

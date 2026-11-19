@@ -1,10 +1,12 @@
 /**
- * "Optimise order": the order of a day's stops that takes the least travel time, starting and ending at the hotel.
+ * "Optimise order": the order of a day's stops that takes the least travel time, from where the day's stops begin
+ * (the hotel, or the airport on the transfer day) to the hotel at the end. The stops are all in the day's city, so
+ * it only ever weighs legs within one city.
  * Nearest neighbour gives a first order, and 2-opt improves it (reverse any stretch that makes the day shorter,
  * until none does). It is not always the best possible order, but for a day of a few stops it is close, and it is
  * the same every time.
  */
-import { dayTotals, type Plan } from "./plan";
+import { dayTotals, routeOf, type Day, type Plan } from "./plan";
 import { leg } from "./travel";
 import { mustPlace } from "./places";
 
@@ -18,15 +20,18 @@ export interface Optimised {
   savedCost: number;
 }
 
-export function optimiseDay(plan: Plan, stops: readonly string[]): Optimised {
-  const before = dayTotals(plan, stops);
+export function optimiseDay(plan: Plan, day: Day, stops: readonly string[] = day.stops): Optimised {
+  const before = dayTotals(plan, day, stops);
   const n = stops.length;
-  if (n < 2) return result(plan, stops, stops, before);
+  if (n < 2) return result(plan, day, stops, stops, before);
 
-  // Travel minutes between any two of the hotel (index 0) and the stops (1..n).
-  const ids = [plan.hotel, ...stops];
-  const places = ids.map(mustPlace);
-  const cost = places.map((a) => places.map((b) => (a === b ? 0 : leg(a, b, plan.modes).minutes)));
+  // Travel minutes between any two of: where the stops begin (index 0), the stops (1..n), the hotel (n + 1).
+  const route = routeOf(plan, day, stops);
+  const start = route.places[route.first - 1]!;
+  const end = route.places[route.places.length - 1]!;
+  const places = [start, ...stops.map(mustPlace), end];
+  const ids = places.map((p) => p.id);
+  const cost = places.map((a, i) => places.map((b, j) => (i === j ? 0 : leg(a, b, plan.modes).minutes)));
   const length = (order: number[]) => {
     let total = 0;
     let at = 0;
@@ -34,7 +39,7 @@ export function optimiseDay(plan: Plan, stops: readonly string[]): Optimised {
       total += cost[at]![i]!;
       at = i;
     }
-    return total + cost[at]![0]!;
+    return total + cost[at]![n + 1]!;
   };
 
   // Nearest neighbour from the hotel. Ties go to the stop planned earlier, so the result is stable.
@@ -69,16 +74,17 @@ export function optimiseDay(plan: Plan, stops: readonly string[]): Optimised {
 
   const candidate = order.map((i) => ids[i]!);
   // Keep the person's order unless the new one is really quicker.
-  return result(plan, stops, dayTotals(plan, candidate).travelMin < before.travelMin ? candidate : stops, before);
+  return result(plan, day, stops, dayTotals(plan, day, candidate).travelMin < before.travelMin ? candidate : stops, before);
 }
 
 function result(
   plan: Plan,
+  day: Day,
   original: readonly string[],
   stops: readonly string[],
   before: ReturnType<typeof dayTotals>,
 ): Optimised {
-  const after = stops === original ? before : dayTotals(plan, stops);
+  const after = stops === original ? before : dayTotals(plan, day, stops);
   return {
     stops: [...stops],
     beforeMin: before.travelMin,

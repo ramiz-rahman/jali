@@ -1,17 +1,17 @@
 /**
- * The trip at a glance: the city, the dates, the hotel, the budget so far, and the days as a list. The list drives
+ * The trip at a glance: the dates, a hotel in each city, the budget so far, and the days as a list, by city. The list drives
  * the rest: moving through it (J/K or the arrows) selects a day, and the day plan and the map that follow it show
  * that day. A stop dragged onto a day here moves to the end of that day.
  */
-import { useEffect, useRef, type KeyboardEvent } from "react";
-import { ArrowCounterClockwiseIcon, BedIcon, SuitcaseRollingIcon, WarningIcon } from "@phosphor-icons/react";
+import { Fragment, useEffect, useRef, type KeyboardEvent } from "react";
+import { AirplaneTiltIcon, ArrowCounterClockwiseIcon, BedIcon, SuitcaseRollingIcon, WarningIcon } from "@phosphor-icons/react";
 import { definePane, useCommands, useJali, useJaliModel, usePaneState, type PaneProps } from "@jali/react";
 import { selectPlace, showDay } from "../actions";
 import { resetPlan } from "../planning";
 import { usePlan, useServices } from "../services";
 import { dayBudget, tripBudget } from "../trip/budget";
-import { mustPlace } from "../trip/places";
-import { dayTotals } from "../trip/plan";
+import { CITY_NAME } from "../trip/places";
+import { daysIn, dayTotals, hotelOf } from "../trip/plan";
 import { useDrag } from "../ui/drag";
 import * as f from "../ui/format";
 import { DayMark } from "../ui/parts";
@@ -25,7 +25,7 @@ function TripPane({ node, focused, select, inPeek }: PaneProps) {
   const drag = useDrag();
   const listRef = useRef<HTMLDivElement>(null);
   const budget = tripBudget(plan);
-  const hotel = mustPlace(plan.hotel);
+  const cities = (["bkk", "hkt"] as const).map((c) => ({ c, hotel: hotelOf(plan, c), days: daysIn(plan, c) }));
   const first = plan.days[0]!;
   const last = plan.days[plan.days.length - 1]!;
 
@@ -67,7 +67,11 @@ function TripPane({ node, focused, select, inPeek }: PaneProps) {
       ? []
       : [
           { id: "open-day", title: `Open Day ${cursor}`, keys: "Enter", run: () => showDay(jali, cursor) },
-          { id: "hotel", title: `Show ${hotel.name}`, run: () => selectPlace(jali, hotel.id, { open: true }) },
+          ...cities.map(({ c, hotel }) => ({
+            id: `hotel-${c}`,
+            title: `Show ${hotel.name}, the hotel in ${CITY_NAME[c]}`,
+            run: () => selectPlace(jali, hotel.id, { open: true }),
+          })),
         ],
   );
 
@@ -78,19 +82,28 @@ function TripPane({ node, focused, select, inPeek }: PaneProps) {
         <p className="trip-kicker">
           <SuitcaseRollingIcon size={16} aria-hidden /> {plan.days.length} days
         </p>
-        <h3 className="trip-city">{plan.city}</h3>
+        <h3 className="trip-city">{plan.name}</h3>
         <p className="trip-dates">
-          {f.day(first.date)} to {f.day(last.date)} 2027
+          Bangkok and Phuket, {f.day(first.date)} to {f.day(last.date)} 2027
         </p>
-        <button type="button" className="trip-hotel" onClick={() => selectPlace(jali, hotel.id, { open: true })}>
-          <BedIcon size={16} aria-hidden />
-          <span>
-            <b>{hotel.name}</b>
-            <span className="muted">
-              {hotel.area}, {f.money(hotel.price)} a night
-            </span>
-          </span>
-        </button>
+        <div className="trip-hotels">
+          {cities.map(({ c, hotel }) => (
+            <button
+              key={c}
+              type="button"
+              className="trip-hotel"
+              onClick={() => selectPlace(jali, hotel.id, { open: true })}
+            >
+              <BedIcon size={16} aria-hidden />
+              <span>
+                <b>{hotel.name}</b>
+                <span className="muted">
+                  {CITY_NAME[c]}, {f.money(hotel.price)} a night
+                </span>
+              </span>
+            </button>
+          ))}
+        </div>
       </header>
 
       <section className="trip-budget" aria-label="Budget">
@@ -126,13 +139,19 @@ function TripPane({ node, focused, select, inPeek }: PaneProps) {
         aria-activedescendant={`${node.id}-day-${cursor}`}
         onKeyDown={onKeyDown}
       >
-        {plan.days.map((d) => {
-          const t = dayTotals(plan, d.stops);
+        {plan.days.map((d, i) => {
+          const t = dayTotals(plan, d);
           const b = dayBudget(plan, d.n);
           const dropping = drag?.over?.day === d.n && drag.fromDay !== d.n;
+          const newCity = i === 0 || plan.days[i - 1]!.city !== d.city;
           return (
+            <Fragment key={d.n}>
+            {newCity ? (
+              <div className="trip-city-head" role="presentation">
+                {CITY_NAME[d.city]}
+              </div>
+            ) : null}
             <div
-              key={d.n}
               id={`${node.id}-day-${d.n}`}
               role="option"
               aria-selected={d.n === cursor}
@@ -148,7 +167,16 @@ function TripPane({ node, focused, select, inPeek }: PaneProps) {
                 <span className="trip-day-date">{f.day(d.date)}</span>
                 <span className="trip-day-title">{d.title}</span>
                 <span className="trip-day-meta">
-                  {d.stops.length} stops, {f.minutes(t.travelMin)} travel
+                  {d.from ? (
+                    <>
+                      <AirplaneTiltIcon size={12} weight="bold" aria-label="Flight" /> The flight, then{" "}
+                      {d.stops.length} stops
+                    </>
+                  ) : (
+                    <>
+                      {d.stops.length} stops, {f.minutes(t.travelMin)} travel
+                    </>
+                  )}
                 </span>
               </span>
               <span className="trip-day-cost num" data-over={b.over || undefined}>
@@ -156,6 +184,7 @@ function TripPane({ node, focused, select, inPeek }: PaneProps) {
                 {f.moneyRound(b.total)}
               </span>
             </div>
+            </Fragment>
           );
         })}
       </div>

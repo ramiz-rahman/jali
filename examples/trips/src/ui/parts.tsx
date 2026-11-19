@@ -1,8 +1,10 @@
 /** Small parts the panes share. */
 import type { ReactNode } from "react";
 import {
+  AirplaneTiltIcon,
   BedIcon,
-  BusIcon,
+  MopedIcon,
+  TrainIcon,
   CarIcon,
   ForkKnifeIcon,
   PersonSimpleWalkIcon,
@@ -13,6 +15,7 @@ import type { Category } from "../trip/places";
 import type { Mode } from "../trip/travel";
 
 export const CATEGORY_ICON: Record<Category, Icon> = {
+  airport: AirplaneTiltIcon,
   sight: StarIcon,
   food: ForkKnifeIcon,
   stay: BedIcon,
@@ -20,8 +23,10 @@ export const CATEGORY_ICON: Record<Category, Icon> = {
 
 export const MODE_ICON: Record<Mode, Icon> = {
   walk: PersonSimpleWalkIcon,
-  transit: BusIcon,
+  transit: TrainIcon,
   taxi: CarIcon,
+  scooter: MopedIcon,
+  flight: AirplaneTiltIcon,
 };
 
 export function Empty({ icon, title, children }: { icon?: ReactNode; title: string; children?: ReactNode }) {

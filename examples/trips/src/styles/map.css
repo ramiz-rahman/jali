@@ -119,6 +119,14 @@
   .map-legend li[data-mode="taxi"]::before {
     border-top-style: dashed;
   }
+  .map-legend li[data-mode="scooter"]::before {
+    border-top-style: double;
+    border-top-width: 4px;
+  }
+  .map-legend li[data-mode="flight"]::before {
+    border-top-width: 2px;
+    border-top-style: dashed;
+  }
   /* The selected place's card covers the legend's corner on a narrow map. */
   .map:has(.map-card) .map-legend {
     display: none;
@@ -362,5 +370,62 @@
     .pin {
       transition: none;
     }
+  }
+}
+
+@layer app {
+  /* ---------- the whole country: a badge per city instead of its pins ---------- */
+  .map-canvas[data-far] .pin-wrap {
+    display: none;
+  }
+  .map-canvas:not([data-far]) .city-badge-wrap {
+    display: none;
+  }
+  .city-badge {
+    display: grid;
+    gap: 1px;
+    padding: 10px 16px;
+    border: 0;
+    border-radius: 16px;
+    background: var(--t-ink);
+    color: var(--jali-surface);
+    text-align: left;
+    cursor: pointer;
+    box-shadow: var(--t-shadow-float);
+    font-family: var(--jali-font);
+  }
+  .city-badge b {
+    font-family: var(--t-font-display);
+    font-size: 18px;
+    letter-spacing: -0.01em;
+  }
+  .city-badge span {
+    font-size: 12px;
+    opacity: 0.8;
+  }
+  .city-badge:hover {
+    transform: scale(1.04);
+  }
+  .city-badge:focus-visible {
+    outline: 3px solid var(--jali-accent);
+    outline-offset: 3px;
+  }
+  .pin[data-role="airport"] {
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: var(--jali-surface);
+    box-shadow:
+      inset 0 0 0 2px var(--t-ink),
+      var(--t-shadow-pin);
+  }
+  .pin[data-role="airport"]::after {
+    content: "";
+    width: 15px;
+    height: 15px;
+    background: var(--t-ink);
+    /* A plane. */
+    mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M15 8.6V7.4L9 5V1.6a1 1 0 0 0-2 0V5L1 7.4v1.2l6-1.3V12l-1.8 1.3V14.5L8 13.7l2.8.8v-1.2L9 12V7.3Z'/%3E%3C/svg%3E")
+      center / contain no-repeat;
   }
 }

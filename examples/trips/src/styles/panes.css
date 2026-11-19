@@ -229,12 +229,26 @@
     color: var(--jali-text-subtle);
     font-weight: 500;
   }
+  .trip-hotels {
+    display: grid;
+    gap: 6px;
+    margin-top: 14px;
+  }
+  .trip-city-head {
+    margin: 10px 10px 2px;
+    font-family: var(--t-font-display);
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--jali-text-subtle);
+  }
+  .trip-city-head:first-child {
+    margin-top: 0;
+  }
   .trip-hotel {
     display: flex;
     align-items: center;
     gap: 10px;
     width: 100%;
-    margin-top: 14px;
     padding: 10px 12px;
     border-radius: 14px;
     border: 1px solid var(--jali-border);
@@ -521,6 +535,29 @@
   }
   .leg[data-mode="taxi"] .leg-line {
     border-left-style: dashed;
+  }
+  .leg-flight-mark {
+    display: grid;
+    place-items: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: var(--day);
+    color: var(--jali-surface);
+  }
+  .leg-flight .leg-line {
+    border-left-style: dashed;
+    border-left-width: 2px;
+  }
+  .leg[data-mode="scooter"] .leg-line {
+    border-left-style: double;
+    border-left-width: 4px;
+  }
+  .endpoint[data-category="airport"] .endpoint-mark {
+    background: var(--jali-surface);
+    color: var(--t-ink);
+    box-shadow: inset 0 0 0 2px var(--t-ink);
+    border-radius: 50%;
   }
   .leg-modes {
     display: inline-flex;
@@ -970,6 +1007,9 @@
   }
   [data-cat="transport"] {
     --cat: var(--t-cat-transport);
+  }
+  [data-cat="flight"] {
+    --cat: var(--t-cat-flight);
   }
   .budget-days,
   .budget-cats {

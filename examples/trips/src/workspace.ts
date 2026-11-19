@@ -15,7 +15,7 @@ import { trip } from "./panes/trip";
 import { addToDay, chooseDay, optimise, resetPlan, stayAt, undoPlan } from "./planning";
 import { presets } from "./presets";
 import type { Services } from "./services";
-import { CATEGORY_ONE, PLACES, type Place } from "./trip/places";
+import { CATEGORY_ONE, CITY_NAME, PLACES, type Place } from "./trip/places";
 import { dayWith } from "./trip/plan";
 import { optimiseDay } from "./trip/optimise";
 import * as f from "./ui/format";
@@ -27,7 +27,7 @@ type Options = Pick<JaliOptions, "url" | "storage" | "size" | "moveFocus" | "pre
 export function createTripsJali(services: Services, options: Options = {}): Jali {
   const placeHint = (p: Place) => {
     const on = dayWith(services.plan.get(), p.id);
-    return `${CATEGORY_ONE[p.category]}, ${p.area}${on ? `, Day ${on.n}` : ""}`;
+    return `${CATEGORY_ONE[p.category]}, ${p.area}, ${CITY_NAME[p.city]}${on ? `, Day ${on.n}` : ""}`;
   };
   /** Ask for a place (type a name, an area or "food"). */
   const pickPlace = (jali: Jali, title: string, onPick: (p: Place) => void, only?: (p: Place) => boolean) =>
@@ -45,7 +45,8 @@ export function createTripsJali(services: Services, options: Options = {}): Jali
       id: "trips.go",
       title: "Go to place…",
       group: "Trip",
-      run: (jali) => pickPlace(jali, "Go to place…", (p) => selectPlace(jali, p.id, { open: true })),
+      run: (jali) =>
+        pickPlace(jali, "Go to place…", (p) => selectPlace(jali, p.id, { open: true }), (p) => p.category !== "airport"),
     },
     {
       id: "trips.add",
@@ -58,7 +59,8 @@ export function createTripsJali(services: Services, options: Options = {}): Jali
           (p) =>
             p.category === "stay"
               ? stayAt(services, p.id)
-              : chooseDay(jali, services, `Add ${p.name} to…`, (n) => addToDay(services, p.id, n)),
+              : chooseDay(jali, services, `Add ${p.name} to…`, (n) => addToDay(services, p.id, n), { city: p.city }),
+          (p) => p.category !== "airport",
         ),
     },
     {
@@ -72,7 +74,7 @@ export function createTripsJali(services: Services, options: Options = {}): Jali
           items: plan.days,
           label: (d) => `Day ${d.n}: ${d.title}`,
           hint: (d) => {
-            const r = optimiseDay(plan, d.stops);
+            const r = optimiseDay(plan, d);
             return r.savedMin > 0 ? `saves ${f.minutes(r.savedMin)}` : "already quickest";
           },
           placeholder: "Day or theme",
@@ -127,10 +129,14 @@ export function createTripsJali(services: Services, options: Options = {}): Jali
     commands,
     name: "Trip",
     keymap: { "trips.go": "Mod+K Mod+P", "trips.optimise": "Mod+K Mod+O" },
-    storage: "trips",
+    // A new prefix for the Thailand trip, so pane state saved for the Lisbon one (a cursor on a Lisbon place) is left behind.
+    storage: "trips-thailand",
     // On a portrait phone: a pane with the one it follows, one above the other. The place shows under the map it
     // follows, and the day under the overview, instead of one at a time.
     phone: { stack: true },
+    // Days lays out seven days, the map and the place: nine panes. Jali's default cap of 8 would fold one even on a
+    // screen with room for all of them, so the trip starts with 10 (a person can change it in Settings).
+    settings: { paneCap: 10 },
     ...options,
   });
 }
