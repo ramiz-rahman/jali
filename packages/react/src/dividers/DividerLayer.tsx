@@ -29,6 +29,12 @@ export function DividerLayer() {
         const g = geometryFor(m, d);
         // A divider beside a pane the app doesn't let resize (`allow: { resize: false }`) isn't drawn: no handle.
         if (!g || !dividerAllowed(store.snapshot(), d.parentId, d.index)) return null;
+        // In a row that scrolls, a divider scrolled out of the strip's window isn't drawn over the panes beside it.
+        if (
+          d.clip &&
+          (d.rect.x < d.clip.x - 0.5 || d.rect.x + d.rect.width > d.clip.x + d.clip.width + 0.5)
+        )
+          return null;
         return (
           <Divider
             key={dividerKey(d)}

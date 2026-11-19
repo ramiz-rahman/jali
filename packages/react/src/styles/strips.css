@@ -1,0 +1,60 @@
+@layer jali {
+  /* ---------- rows that scroll sideways (workspace/Scroller.tsx) ---------- */
+  /* Drawn over the strip's window: it lets every press through to the panes, except on its scrollbar. */
+  .jali-strip {
+    position: absolute;
+    z-index: 20;
+    pointer-events: none;
+  }
+  /* Where there is more: the canvas fading in over the edge, so a half-shown pane reads as "keeps going". */
+  .jali-strip-fade {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 28px;
+  }
+  .jali-strip-fade[data-edge="left"] {
+    left: 0;
+    background: linear-gradient(to right, var(--jali-canvas), transparent);
+  }
+  .jali-strip-fade[data-edge="right"] {
+    right: 0;
+    background: linear-gradient(to left, var(--jali-canvas), transparent);
+  }
+  /* The scrollbar sits in the gutter under the panes, thin until it is pointed at. */
+  .jali-strip-track {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: -6px;
+    height: 6px;
+    pointer-events: auto;
+    cursor: pointer;
+  }
+  .jali-strip-thumb {
+    position: absolute;
+    top: 1px;
+    height: 4px;
+    border-radius: 999px;
+    background: var(--jali-border-strong);
+    cursor: grab;
+    transition:
+      height 120ms,
+      top 120ms,
+      background 120ms;
+  }
+  .jali-strip-track:hover .jali-strip-thumb,
+  .jali-strip-thumb:active {
+    top: 0;
+    height: 6px;
+    background: var(--jali-text-faint);
+  }
+  .jali-strip-thumb:active {
+    cursor: grabbing;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .jali-strip-thumb {
+      transition: none;
+    }
+  }
+}

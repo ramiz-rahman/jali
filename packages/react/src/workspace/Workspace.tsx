@@ -22,6 +22,7 @@ import { PaneSwitcher } from "../chrome/PaneSwitcher";
 import { Peek } from "../chrome/Peek";
 import { DividerLayer } from "../dividers/DividerLayer";
 import { PaneFrame } from "../pane/PaneFrame";
+import { Scrollers } from "./Scroller";
 import type { UiStore } from "@jali/core/adapter";
 import { useModel, useStore, useUi } from "../state/react";
 import { DropIndicator } from "./DropIndicator";
@@ -325,6 +326,8 @@ export function Panes() {
   useStackAnnouncement(store, m, stacked);
   const dropBox =
     !single && dnd?.target ? m.resolved.panes.find((b) => b.id === dnd.target) : undefined;
+  // The box the panes are positioned in: rows that scroll read the wheel over it.
+  const innerRef = useRef<HTMLDivElement>(null);
 
   // A labelled region inside the host's page, or the page's main landmark when the host says Jali is the whole app.
   const Landmark = store.env.landmark === "main" ? "main" : "section";
@@ -350,7 +353,7 @@ export function Panes() {
           inView={stacked && m.stacked ? [m.stacked.top, m.stacked.bottom] : undefined}
         />
       ) : null}
-      <div className="jali-workspace-inner" style={bleed}>
+      <div className="jali-workspace-inner" style={bleed} ref={innerRef}>
         {frames(
           m,
           view,
@@ -371,6 +374,7 @@ export function Panes() {
           />
         ))}
         {single ? null : <DividerLayer />}
+        {single ? null : <Scrollers host={innerRef} />}
         {stacked && m.stacked?.hinge ? <FoldLine hinge={m.stacked.hinge} origin={inner} /> : null}
         {stacked && !m.stacked?.hinge ? (
           <StackDivider m={m} ratio={stackRatio} setRatio={setStackRatio} height={inner.height} />
