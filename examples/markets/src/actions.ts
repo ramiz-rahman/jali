@@ -35,7 +35,8 @@ export function show(
 
 /**
  * Open `ref` from a list as a detail that follows it: the chart for a watchlist row. If the list already has a
- * following detail of that kind, it shows `ref` now instead (pin it first to keep it, then open another to compare).
+ * following detail of that kind, it shows `ref` now instead, and comes to the front if it was folded (pin it first
+ * to keep it, then open another to compare).
  *
  * Jali links a new pane to a list's selection only when it opens the selected ref itself. The watchlist selects a
  * quote, so a chart opened from its row arrives as a plain link; unpinning it (`setPinned(id, false)`) makes it the
@@ -47,6 +48,9 @@ export function openFollowing(jali: Jali, list: NodeId, ref: ObjectRef): NodeId 
     .panes.find((p) => p.linkedTo === list && p.follows && p.ref.kind === ref.kind);
   if (follower) {
     jali.actions.follow(list, ref);
+    // Folded behind a tab (a phone, a crowded desk): bring it to the front, since the person asked to open it.
+    const hidden = !jali.model().resolved.panes.some((b) => b.id === follower.id && !b.hidden);
+    if (hidden) jali.actions.reveal(follower.id);
     return follower.id;
   }
   const id = jali.actions.openBeside(list, ref);

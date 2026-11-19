@@ -216,7 +216,8 @@ function Watchlist({
                   ? r.inst.group
                   : undefined
               }
-              onSelect={() => moveTo(r.inst.symbol)}
+              // A second tap on the selected row opens its chart: on a phone there is no Enter or double-click.
+              onSelect={() => (i === at ? openChart(r.inst.symbol) : moveTo(r.inst.symbol))}
               onOpen={() => openChart(r.inst.symbol)}
             />
           ))}
