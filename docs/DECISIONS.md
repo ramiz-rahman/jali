@@ -646,3 +646,9 @@ Data Studio's old tab strip had six features Jali lacked. Each is general, and l
 - **The snapshot:** panes (id, kind, title, params, where each is: shown, tab, folded, tucked or hidden; tab group, focus, zoom, pin, keep, link, follow, unsaved work, activity), kinds with their params described (`number`, `one of: a, b`, `?` for optional) and widths, presets, the allowed actions with what each does, and the workspace's size and view.
 - **Tests:** `src/tests/agent.test.ts`; `public-api.test.ts` pins the entry's exports.
 - **Size:** the bridge ships only to apps that import `@jali/core/agent`. Core grew from 44.1 to 45.2 KB gzipped in an app with React, from auto layout (`arrange.ts`, 1.7 KB minified, shipped with every action like the rest of `ACTIONS`) and input tracking (`input.ts`, 0.7 KB). Core budgets reset to about 10% over: 49.5 with React, 45 headless.
+
+## 19 Nov 2026 · Tab menus render in the workspace's layer; the dialog backdrop is a part (Data Studio)
+
+- **Why:** Data Studio themes Jali by setting tokens on its host element and on `.jali-scrim`, the dialogs' backdrop, which wasn't in the parts contract. Checking it showed a real gap: the tab menu and the "+N" menu were portalled to `document.body`, so tokens set around `<JaliRoot>` never reached them.
+- **What:** both menus now portal into the workspace's layer (`[data-jali-layer]`, `display: contents`, beside the root), where the palette, Settings, the chooser and the discard question already render; `document.body` only before the layer exists. The supported way to theme everything a workspace draws, overlays included, is tokens on an element around `<JaliRoot>`. `.jali-scrim` joins the parts as `dialog`, for styling the backdrop. The theming guide says so.
+- **Test:** `parts.test.tsx` opens a tab's menu and finds it in the layer; the lab e2e (133) passes.

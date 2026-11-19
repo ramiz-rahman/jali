@@ -53,7 +53,7 @@ The tokens you are most likely to change:
 
 Every token, with its light and dark values, is in the [Tokens reference](/reference/tokens).
 
-The accent's tints (`--jali-accent-weak`, `--jali-accent-mid`, `--jali-drop` and the focus ring) are mixed from `--jali-accent` on each workspace. Change the accent and they follow, on the whole page or on one workspace. For one workspace, set it on an element around `<JaliRoot>`: the palette and other dialogs render beside the workspace's root, not inside it, so an accent set on the root itself reaches the panes but not the dialogs.
+The accent's tints (`--jali-accent-weak`, `--jali-accent-mid`, `--jali-drop` and the focus ring) are mixed from `--jali-accent` on each workspace. Change the accent and they follow, on the whole page or on one workspace. For one workspace, set it on an element around `<JaliRoot>`: the palette, the other dialogs and the tab menus render in a layer beside the workspace's root (`[data-jali-layer]`), not inside it, so an accent set on the root itself reaches the panes but not them.
 
 ## Example: retheme to teal
 

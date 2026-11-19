@@ -180,7 +180,7 @@ export function TabOverflow({
                 );
               })}
             </div>,
-            document.body,
+            store.dom.layer() ?? document.body,
           )
         : null}
     </>

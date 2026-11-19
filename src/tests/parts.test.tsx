@@ -5,7 +5,7 @@
  */
 import { readdirSync, readFileSync, statSync } from "node:fs";
 import { join } from "node:path";
-import { act, cleanup, render } from "@testing-library/react";
+import { act, cleanup, fireEvent, render } from "@testing-library/react";
 import { afterAll, afterEach, beforeAll, describe, expect, it } from "vite-plus/test";
 import { createJali, memoryLocation, memoryStorage, pane, row, tabs } from "@jali/core";
 import { JaliRoot, JaliView, Shelf, definePane } from "@jali/react";
@@ -105,6 +105,11 @@ describe("styling contract", () => {
     for (const n of rendered) expect(find(n), n).not.toBeNull();
     expect(container.querySelector(".jali-pane[data-pane][data-kind]")).not.toBeNull();
     expect(container.querySelector(".jali-tab[data-pinned][aria-selected]")).not.toBeNull();
+
+    // A tab's menu opens in the layer beside the root, with the dialogs, so tokens set around <JaliRoot> reach it.
+    act(() => void fireEvent.contextMenu(container.querySelector(".jali-tab")!));
+    expect(document.querySelector("[data-jali-layer] .jali-tab-menu")).not.toBeNull();
+    act(() => void fireEvent.keyDown(document.querySelector(".jali-tab-menu")!, { key: "Escape" }));
 
     const other = container.querySelector<HTMLElement>(".jali-pane:not(:has(.jali-tabbar))")!
       .dataset.pane!;

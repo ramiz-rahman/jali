@@ -115,6 +115,7 @@ export function TabMenu({ at, onClose }: { at: TabMenuAt; onClose: (refocus: boo
         </div>
       ))}
     </div>,
-    document.body,
+    // Into the workspace's layer, beside its dialogs, so tokens set around <JaliRoot> reach the menu too.
+    store.dom.layer() ?? document.body,
   );
 }

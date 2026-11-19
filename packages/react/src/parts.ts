@@ -39,7 +39,7 @@ export const parts = {
   },
   layer: {
     selector: "[data-jali-layer]",
-    what: "Beside the root, holding the workspace's dialogs and live region.",
+    what: "Beside the root (`display: contents`), holding everything that overlays the workspace: the palette, Settings, the chooser, the discard question, tab menus and the live region. Tokens set on an element around `<JaliRoot>` reach it; tokens set on the root itself don't.",
     attributes: [],
   },
   workspace: {
@@ -258,6 +258,11 @@ export const parts = {
       { name: "aria-selected", means: "`true` on the highlighted entry." },
       { name: "aria-disabled", means: "`true` when unavailable." },
     ],
+  },
+  dialog: {
+    selector: ".jali-scrim",
+    what: 'A dialog\'s backdrop, holding the dialog: the palette, Settings, the "Add to tabs of…" chooser and the discard question.',
+    attributes: [],
   },
   icon: {
     selector: "[data-jali-icon]",

@@ -27,7 +27,7 @@ Attributes a pane sets with `usePaneAttributes` appear on everything that stands
 | Part | What it is | State attributes |
 | --- | --- | --- |
 | `[data-jali]` | The workspace's root: the element `<JaliRoot>` renders, with your `className`. | none |
-| `[data-jali-layer]` | Beside the root, holding the workspace's dialogs and live region. | none |
+| `[data-jali-layer]` | Beside the root (`display: contents`), holding everything that overlays the workspace: the palette, Settings, the chooser, the discard question, tab menus and the live region. Tokens set on an element around `<JaliRoot>` reach it; tokens set on the root itself don't. | none |
 | `.jali-workspace` | The area the panes are laid out in. | `data-single`: Flag: Single view (one pane at a time, with the switcher).<br>`data-zoomed`: Flag: a pane is maximised.<br>`data-alone`: Flag: one pane on screen, shown full-bleed with no tuck, maximise or drag.<br>`data-page`: On a curated page: `split` or `single`, the page's mode. |
 | `.jali-pane` | A pane (a `<section>` region). | `data-pane`: The pane's id.<br>`data-kind`: The pane's kind.<br>`data-focused`: Flag: the focused pane.<br>`data-alone`: Flag: the only pane on screen (see the workspace's).<br>`data-zoomed`: Flag: maximised.<br>`data-dragged`: Flag: being dragged.<br>`data-drop-target`: Flag: the pane a drag would drop on.<br>`data-unsaved`: Flag: the pane reports unsaved work (`useUnsaved`).<br>`data-origin`: `opened`: opened beside another from a link; `role`: fills a curated page's role.<br>`data-boundary`: On an opened pane: how it shows it was opened from another, the person's setting (`tint` or `none`). |
 | `.jali-pane-header` | A pane's header: title, tabs and buttons. | none |
@@ -57,5 +57,6 @@ Attributes a pane sets with `usePaneAttributes` appear on everything that stands
 | `.jali-page-tab` | One role on a curated page's bar. | `data-role`: The role's id.<br>`data-state`: `focused`, `shown`, `behind` (open, not in view) or `off` (not open). |
 | `.jali-follow-toggle` | A linked pane's Following and Keep control. | `data-follow`: `following`, `kept` or `plain`. |
 | `.jali-palette-item` | A command in ⌘K, or an entry in the "Add to tabs of…" chooser. | `data-command-id`: In ⌘K: the command's id.<br>`aria-selected`: `true` on the highlighted entry.<br>`aria-disabled`: `true` when unavailable. |
+| `.jali-scrim` | A dialog's backdrop, holding the dialog: the palette, Settings, the "Add to tabs of…" chooser and the discard question. | none |
 | `[data-jali-icon]` | One of Jali's own icons; the value is its name (`close`, `pin`…). Your icons carry what you give them. | none |
 | `[data-jali-chrome]` | Yours to set: your own chrome inside the root, which Jali never pulls focus out of. | none |
