@@ -29,3 +29,29 @@ test("a tab dragged between its group's tabs moves there", async ({ lab, page })
   await expect.poll(ids).toEqual([before[1], before[2], before[0]]);
   await expect(page.locator(".jali-tab-item[data-drop]")).toHaveCount(0);
 });
+
+/** A pinned tab never scrolls out of view: only the other tabs scroll, as in a browser (the docs' Tabs guide). */
+test("a pinned tab stays in view while the others scroll", async ({ lab, page }) => {
+  await lab.open({ size: { width: 1920, height: 1000 } });
+  await lab.setting(/Add as a tab/);
+  await lab.drag("order", "orders", "centre");
+  await lab.drag("customer", "order", "centre");
+  const tabs = page.locator("[data-tab]");
+  await expect(tabs).toHaveCount(3);
+  // Pin the first tab from its menu.
+  await tabs.first().click({ button: "right" });
+  await page.getByRole("menuitemcheckbox", { name: "Pin tab" }).click();
+  const pinned = page.locator('[role="tab"][data-pinned]');
+  await expect(pinned).toHaveCount(1);
+  // A narrow strip, scrolled to its end.
+  await page.addStyleTag({ content: ".jali-tabs { max-width: 4rem; }" });
+  await page
+    .locator(".jali-tabs")
+    .first()
+    .evaluate((el) => (el.scrollLeft = el.scrollWidth));
+  const box = (await pinned.boundingBox())!;
+  const bar = (await page.locator(".jali-tabbar").first().boundingBox())!;
+  expect(box.x).toBeGreaterThanOrEqual(bar.x - 1);
+  expect(box.width).toBeGreaterThan(20);
+  await expect(page.locator(".jali-tabs [data-pinned]")).toHaveCount(0);
+});

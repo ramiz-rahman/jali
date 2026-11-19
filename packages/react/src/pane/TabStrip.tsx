@@ -28,7 +28,7 @@ const FADE = 24;
  * against the strip itself (a tab's offsetLeft is from the header). A tab wider than the strip shows its start.
  */
 function revealTab(el: HTMLDivElement | null) {
-  const strip = el?.closest<HTMLElement>('[role="tablist"]');
+  const strip = el?.closest<HTMLElement>(".jali-tabs");
   if (!el || !strip) return;
   // Measured from the strip's start: its left, or its right when the strip reads right to left.
   const { pos, rtl } = scrolledFromStart(strip);
@@ -75,15 +75,19 @@ export function TabStrip({ group, owner }: { group: NonNullable<Frame["group"]>;
       );
   // Made by you first, made by the layout (folded) after a hairline: the second kind returns by itself.
   const mine = tabs.filter((t) => !t.folded);
+  // Pinned tabs stay in view at the strip's start, as in a browser: only the rest scroll.
+  const pinnedTabs = mine.filter((t) => t.node.pinned);
+  const scrolling = mine.filter((t) => !t.node.pinned);
   const folded = tabs.filter((t) => t.folded);
 
   const strip = useRef<HTMLDivElement>(null);
+  const bar = useRef<HTMLDivElement>(null);
   const [menu, setMenu] = useState<TabMenuAt | null>(null);
   const closeMenu = useCallback(
     (refocus: boolean) => {
       setMenu(null);
       if (menu && refocus)
-        strip.current?.querySelector<HTMLElement>(`[data-tab="${menu.pane}"]`)?.focus();
+        bar.current?.querySelector<HTMLElement>(`[data-tab="${menu.pane}"]`)?.focus();
     },
     [menu],
   );
@@ -248,17 +252,16 @@ export function TabStrip({ group, owner }: { group: NonNullable<Frame["group"]>;
   };
 
   return (
-    <div className="jali-tabbar">
-      <div
-        className="jali-tabs"
-        ref={strip}
-        role="tablist"
-        aria-label={tw.listLabel(tabs.length)}
-        onScroll={measure}
-      >
-        {mine.map(renderTab)}
-        {folded.length && mine.length ? <span className="jali-tab-sep" aria-hidden /> : null}
-        {folded.map(renderTab)}
+    <div className="jali-tabbar" ref={bar}>
+      <div className="jali-tablist" role="tablist" aria-label={tw.listLabel(tabs.length)}>
+        {pinnedTabs.length ? (
+          <div className="jali-tabs-pinned">{pinnedTabs.map(renderTab)}</div>
+        ) : null}
+        <div className="jali-tabs" ref={strip} onScroll={measure}>
+          {scrolling.map(renderTab)}
+          {folded.length && mine.length ? <span className="jali-tab-sep" aria-hidden /> : null}
+          {folded.map(renderTab)}
+        </div>
       </div>
       {menu ? <TabMenu at={menu} onClose={closeMenu} /> : null}
       {overflowing ? (
