@@ -11,7 +11,7 @@ export default defineConfig({
   workers: 1,
   reporter: [["list"]],
   webServer: {
-    command: "pnpm example:studio --strictPort",
+    command: "vp dev examples/studio --strictPort",
     cwd: "../..",
     url: URL,
     reuseExistingServer: true,

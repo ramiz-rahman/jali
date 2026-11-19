@@ -19,8 +19,8 @@ The sights, beaches and airports are real places at their real coordinates. Ever
 One hotel per city. Each day starts and ends at its city's hotel; the transfer day starts at the Bangkok hotel and ends at the Phuket one.
 
 ```sh
-pnpm install         # at the repository's root
-pnpm example:trips   # http://localhost:5340 (or the next free port)
+vp install            # at the repository's root
+vp dev examples/trips # http://localhost:5340 (or the next free port)
 ```
 
 The plan is kept on this device (`localStorage`, under `trips:plan:v2`; a plan saved by the earlier Lisbon version is ignored). "Reset the trip", at the foot of the overview or in ⌘K, puts the bundled plan back, and that can be undone too.
