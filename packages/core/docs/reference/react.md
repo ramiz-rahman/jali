@@ -26,7 +26,7 @@ Draws a workspace: its panes, and the dialogs every workspace has (the command p
 
 The root is a `<div data-jali>` that the workspace attaches to, so focus, drag and F6 stay inside it. The dialogs render after it, in a `<div data-jali-layer>` (styled `display: contents`), which counts as the workspace's for its keys. Mark your own chrome inside it with `data-jali-chrome` and Jali never pulls focus out of it.
 
-Two things are yours to render. **The shelf** (tucked and folded panes as chips): put `Shelf` in your status line or footer, or tucked panes have nowhere to come back from but ⌘K "Show a pane from the shelf". **Toasts**: Jali sends them through `jali.onToast` (closes and tucks come with Undo, which ⌘K ⌘Z also runs) and shows none itself; render them with your toaster in `overlays`.
+Two things are yours to render. **The shelf** (tucked panes as chips): put `Shelf` in your status line or footer, or tucked panes have nowhere to come back from but ⌘K "Show a pane from the shelf". **Toasts**: Jali sends them through `jali.onToast` (closes and tucks come with Undo, which ⌘K ⌘Z also runs) and shows none itself; render them with your toaster in `overlays`.
 
 **Props**
 
@@ -453,7 +453,7 @@ A curated page's controls, for your top bar: the Single / Split view switch (Spl
 <Shelf />
 ```
 
-The panes that are tabs but not by the person's choice: tucked ones (with Put back) and folded ones, as chips grouped by home, for a status line. More than three folded panes collapse into one summary chip. Arrow keys move between chips, Enter shows one, Shift+Enter puts a tucked one back. Renders nothing when no pane is tucked or folded.
+The panes the person tucked, as chips grouped by home (with Put back), for a status line. Folded panes are not here: they wait behind their tab strip's **N folded** chip. Arrow keys move between chips, Enter shows one, Shift+Enter puts it back. Renders nothing when no pane is tucked.
 
 ### Announcer
 
@@ -593,7 +593,7 @@ One icon per name Jali draws. `<JaliRoot icons>` takes any part of it; type your
 
 - **`icons.current`**, `current: JaliIcon`: The shown tab in the tab-overflow menu. Default: Phosphor's `Check`.
 
-- **`icons.fold`**, `fold: JaliIcon`: Marks a folded tab or chip (the layout made it). Default: Phosphor's `ArrowsInLineHorizontal`.
+- **`icons.fold`**, `fold: JaliIcon`: Marks a folded pane: the strip's **N folded** chip, and the tab of a folded pane while it is shown. Default: Phosphor's `ArrowsInLineHorizontal`.
 
 - **`icons.grip`**, `grip: JaliIcon`: The drag handle on a pane's header. Default: Phosphor's `DotsSix`.
 

@@ -8,53 +8,37 @@ const strip = (page: import("@playwright/test").Page) =>
     .first();
 
 test.describe("tab overflow and marks", () => {
-  test("folded tabs follow a hairline, carry a fold mark and a description; yours do not", async ({
+  test('folded panes wait behind one "N folded" chip, not as tabs; its menu says why, and a pick shows the pane there', async ({
     lab,
     page,
   }) => {
     await lab.open({ preset: "Stress: 10 panes", size: { width: 1280, height: 900 } });
-    const folded = page.locator('[role="tab"][data-folded]');
-    expect(await folded.count()).toBeGreaterThan(3);
-    await expect(folded.first()).toHaveAttribute(
-      "aria-description",
-      "Folded: returns when there's room. Delete closes it.",
-    );
-    await expect(folded.first().locator(".jali-tab-fold-mark")).toBeVisible();
-    await expect(page.locator('[role="tab"]:not([data-folded])').first()).not.toHaveAttribute(
-      "aria-description",
-      /Folded/,
-    );
-    // Yours first, the layout's after the separator.
-    const order = await page
-      .locator(".jali-tabs")
-      .first()
-      .evaluate((el) =>
-        [...el.children]
-          .filter((c) => !c.classList.contains("jali-tab-indicator"))
-          .map((c) =>
-            c.classList.contains("jali-tab-sep")
-              ? "|"
-              : c.querySelector(".jali-tab")?.classList.contains("is-folded")
-                ? "f"
-                : "m",
-          )
-          .join(""),
-      );
-    expect(order).toMatch(/^m+\|f+$/);
-    // The shelf counts every folded pane (past three, one summary chip that lists them), with the same wording.
-    const n = await folded.count();
-    const summary = page.locator("[data-chip][data-summary]");
-    await expect(summary).toContainText(`${n} folded`);
-    await expect(summary.getByRole("button")).toHaveAttribute(
-      "aria-description",
-      "Folded: returns when there's room",
-    );
-    await summary.getByRole("button").click();
-    await expect(
-      page.getByRole("menu", { name: "Folded panes" }).getByRole("menuitem"),
-    ).toHaveCount(n);
+    // No folded tabs: the strip is yours. The chip counts the rest.
+    await expect(page.locator('[role="tab"][data-folded]')).toHaveCount(0);
+    const chip = page.locator(".jali-tab-folded").first();
+    const n = Number((await chip.innerText()).match(/\d+/)![0]);
+    expect(n).toBeGreaterThan(3);
+    await expect(chip).toHaveAccessibleName(`${n} folded panes`);
+    await expect(chip).toHaveAttribute("aria-description", "Folded: returns when there's room");
+    // Not on the shelf: that is for panes you tucked.
+    await expect(page.locator("[data-shelf]")).toHaveCount(0);
+
+    await chip.click();
+    const menu = page.getByRole("menu", { name: "Folded panes" });
+    await expect(menu).toContainText("No room to show these side by side");
+    const items = menu.getByRole("menuitem");
+    await expect(items).toHaveCount(n);
     await page.keyboard.press("Escape");
-    await expect(summary.getByRole("button")).toBeFocused();
+    await expect(chip).toBeFocused();
+
+    // A pick shows it in this place, and the pane it replaces waits behind the chip instead.
+    await chip.click();
+    const target = await items.first().getAttribute("data-item");
+    await items.first().click();
+    const tab = page.locator(`[role="tab"][data-tab="${target}"]`);
+    await expect(tab).toHaveAttribute("aria-selected", "true");
+    await expect(page.locator(`section[data-pane="${target}"]`)).toBeVisible();
+    await expect(chip).toContainText(`${n} folded`);
   });
 
   test("the overflow button counts hidden tabs; the menu lists all of them, keys work, the chosen tab is shown", async ({
@@ -62,10 +46,31 @@ test.describe("tab overflow and marks", () => {
     page,
   }) => {
     await lab.open({ preset: "Stress: 10 panes", size: { width: 1280, height: 900 } });
+    // Two tabs of yours (tuck the last pane into its neighbour), in a strip too narrow for them.
+    await page.evaluate(() => {
+      const shown = [...document.querySelectorAll<HTMLElement>("section[data-pane]")].filter(
+        (e) => e.style.display !== "none",
+      );
+      (window as unknown as { __lab: { actions: { tuck(id: string): void } } }).__lab.actions.tuck(
+        shown.at(-1)!.dataset.pane!,
+      );
+    });
+    await page.addStyleTag({ content: ".jali-tabs { max-width: 4rem; }" });
     const bar = strip(page);
     const more = bar.locator(".jali-tab-more");
     await expect(more).toBeVisible();
-    const total = await bar.getByRole("tab").count();
+    // The menu lists every pane in the group: its tabs, and those behind the folded chip.
+    const folded = Number(
+      (
+        (
+          await bar
+            .locator(".jali-tab-folded")
+            .innerText()
+            .catch(() => "0")
+        ).match(/\d+/) ?? ["0"]
+      )[0],
+    );
+    const total = (await bar.getByRole("tab").count()) + folded;
     const n = Number(await more.getAttribute("data-hidden-count"));
     expect(n).toBeGreaterThan(0);
     await expect(more).toHaveText(new RegExp(`\\+${n}`));
@@ -103,7 +108,7 @@ test.describe("tab overflow and marks", () => {
     page,
   }) => {
     await lab.open({ preset: "Stress: 10 panes", size: { width: 1440, height: 900 } });
-    const tab = page.locator('[role="tab"][data-folded]').first();
+    const tab = page.locator('[role="tab"]').first();
     const before = (await tab.boundingBox())!.width;
     await tab.hover();
     expect((await tab.boundingBox())!.width).toBe(before);

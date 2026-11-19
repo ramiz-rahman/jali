@@ -32,7 +32,7 @@ Draws a workspace: its panes, and the dialogs every workspace has (the command p
 
 The root is a `<div data-jali>` that the workspace attaches to, so focus, drag and F6 stay inside it. The dialogs render after it, in a `<div data-jali-layer>` (styled `display: contents`), which counts as the workspace's for its keys. Mark your own chrome inside it with `data-jali-chrome` and Jali never pulls focus out of it.
 
-Two things are yours to render. **The shelf** (tucked and folded panes as chips): put <Ref to="Shelf" /> in your status line or footer, or tucked panes have nowhere to come back from but ⌘K "Show a pane from the shelf". **Toasts**: Jali sends them through `jali.onToast` (closes and tucks come with Undo, which ⌘K ⌘Z also runs) and shows none itself; render them with your toaster in `overlays`.
+Two things are yours to render. **The shelf** (tucked panes as chips): put <Ref to="Shelf" /> in your status line or footer, or tucked panes have nowhere to come back from but ⌘K "Show a pane from the shelf". **Toasts**: Jali sends them through `jali.onToast` (closes and tucks come with Undo, which ⌘K ⌘Z also runs) and shows none itself; render them with your toaster in `overlays`.
 
 <Params title="Props">
 <Param name="workspace" type="Jali" required>From `createJali`.</Param>
@@ -311,7 +311,7 @@ A curated page's controls, for your top bar: the Single / Split view switch (Spl
 
 <Entry name="Shelf" kind="component" from="@jali/react" signature={`<Shelf />`} compact>
 
-The panes that are tabs but not by the person's choice: tucked ones (with Put back) and folded ones, as chips grouped by home, for a status line. More than three folded panes collapse into one summary chip. Arrow keys move between chips, Enter shows one, Shift+Enter puts a tucked one back. Renders nothing when no pane is tucked or folded.
+The panes the person tucked, as chips grouped by home (with Put back), for a status line. Folded panes are not here: they wait behind their tab strip's **N folded** chip. Arrow keys move between chips, Enter shows one, Shift+Enter puts it back. Renders nothing when no pane is tucked.
 
 </Entry>
 
@@ -399,7 +399,7 @@ One icon per name Jali draws. `<JaliRoot icons>` takes any part of it; type your
 <Member name="icons.menu" signature="menu: JaliIcon">The ⋯ button in a pane's header, which opens the pane's menu. Default: Phosphor's `DotsThree`.</Member>
 <Member name="icons.popOut" signature="popOut: JaliIcon">The Pop out button, when a pane's `buttons` include it (Bring back while popped out). Default: Phosphor's `PictureInPicture`.</Member>
 <Member name="icons.current" signature="current: JaliIcon">The shown tab in the tab-overflow menu. Default: Phosphor's `Check`.</Member>
-<Member name="icons.fold" signature="fold: JaliIcon">Marks a folded tab or chip (the layout made it). Default: Phosphor's `ArrowsInLineHorizontal`.</Member>
+<Member name="icons.fold" signature="fold: JaliIcon">Marks a folded pane: the strip's **N folded** chip, and the tab of a folded pane while it is shown. Default: Phosphor's `ArrowsInLineHorizontal`.</Member>
 <Member name="icons.grip" signature="grip: JaliIcon">The drag handle on a pane's header. Default: Phosphor's `DotsSix`.</Member>
 <Member name="icons.follow" signature="follow: JaliIcon">A linked pane's toggle while it follows (**Following**). Default: Phosphor's `LinkSimpleHorizontal`.</Member>
 <Member name="icons.keep" signature="keep: JaliIcon">A kept pane's toggle (**Kept**). Default: Phosphor's `AnchorSimple`.</Member>

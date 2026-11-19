@@ -54,7 +54,7 @@ export function resetLive(store: UiStore, layoutId: DemoLayoutId) {
   });
 }
 
-/** The status line under the panes: the shelf (folded and tucked panes) and a count. */
+/** The status line under the panes: the shelf (tucked panes) and a count. */
 function LiveStatus() {
   const m = useJaliModel();
   const tucked = m.shelf.length,

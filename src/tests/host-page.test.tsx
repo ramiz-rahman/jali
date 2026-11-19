@@ -70,11 +70,11 @@ describe("landmarks", () => {
 });
 
 describe("without ResizeObserver", () => {
-  it("mounts the workspace, a tab strip and the shelf, and measures on the window's resize instead", () => {
+  it("mounts the workspace and a tab strip with its folded chip, and measures on the window's resize instead", () => {
     // jsdom has none, and nothing here stubs it.
     expect(typeof globalThis.ResizeObserver).toBe("undefined");
     const jali = make();
-    // jsdom lays nothing out, so the workspace measures 0 and the second pane folds: a tab strip and a shelf chip.
+    // jsdom lays nothing out, so the workspace measures 0 and the second pane folds: a tab strip and its "1 folded".
     render(
       <JaliRoot jali={jali}>
         <JaliView />
@@ -83,7 +83,7 @@ describe("without ResizeObserver", () => {
     );
     expect(screen.getByRole("region", { name: "Panes" })).toBeTruthy();
     expect(screen.getAllByRole("tab").length).toBeGreaterThan(0);
-    expect(screen.getByRole("region", { name: "Shelf" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "1 folded pane" })).toBeTruthy();
 
     // The fallback: a window resize measures the workspace again.
     const sizes = { clientWidth: 1000, clientHeight: 500 };

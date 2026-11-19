@@ -380,10 +380,15 @@ const tabs = {
   newTabTip: "New tab",
   folded: "Folded",
   tucked: "Tucked",
-  foldedTip: "Folded: not enough room · returns when there's space",
   /** A folded tab's tooltip: its title, then why it is a tab. */
   foldedTitle: (pane: string) => `${pane} · Folded: not enough room · returns when there's space`,
   foldedDescription: "Folded: returns when there's room",
+  /** The chip at the end of a strip for the panes the layout folded into it (not the one it shows). */
+  foldedChip: (count: number) => `${count} folded`,
+  foldedChipLabel: (count: number) => `${count} folded ${count === 1 ? "pane" : "panes"}`,
+  foldedChipTip: "Folded: not enough room to show these side by side",
+  /** Atop the folded chip's menu. */
+  foldedNote: "No room to show these side by side. Widen the window, or pick one to show it here.",
   tuckedDescription: "Tucked here. Put back to restore its place.",
   /**
    * A tab's description in a strip: why it is a tab, when it is folded or tucked, then the keys it takes. `putBackKeys`
@@ -426,11 +431,9 @@ const tabs = {
 /** The shelf: tucked and folded panes as chips. */
 const shelf = {
   label: "Shelf",
-  toolbar: "Tucked and folded panes",
+  toolbar: "Tucked panes",
   behind: (home: string) => `Behind ${home}`,
   behindHeading: (home: string) => `Behind ${home}:`,
-  folded: "Folded",
-  foldedHeading: "Folded:",
   /** A chip's name for screen readers. `activity` is the pane's (`useActivity`); `reason`, why it is on the shelf. */
   chip: (c: {
     pane: string;
@@ -453,12 +456,10 @@ const shelf = {
   chipTip: (pane: string, home: string) => `${pane} · behind ${home}`,
   putBack: (pane: string) => `Put back ${pane}`,
   putBackTip: "Put back",
-  summary: (count: number) => `${count} folded panes. Enter lists them`,
-  summaryText: (count: number) => `${count} folded`,
-  more: (count: number) => `${count} more tucked or folded panes`,
+  more: (count: number) => `${count} more tucked panes`,
   moreCount: (count: number) => `+${count}`,
   menuFolded: "Folded panes",
-  menuMore: "More tucked or folded panes",
+  menuMore: "More tucked panes",
   /** Beside a pane in the shelf's menus: where it is. */
   where: (folded: boolean, home: string) => (folded ? "folded" : `behind ${home}`),
 };

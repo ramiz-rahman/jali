@@ -87,7 +87,7 @@ describe("usePaneAttributes", () => {
     expect(document.querySelectorAll("[data-pane]")).toHaveLength(2);
   });
 
-  it("marks its tab, tucked and folded too, and its shelf chip", () => {
+  it("marks its tab, its shelf chip when tucked, and its folded menu item", () => {
     const jali = make(
       row(pane(query({ conn: "stage" }), { id: "a" }), pane(query({ conn: "prod" }), { id: "b" })),
     );
@@ -105,11 +105,11 @@ describe("usePaneAttributes", () => {
     room = { width: 360, height: 600 };
     act(() => void window.dispatchEvent(new Event("resize")));
     act(() => storeOf(jali).set({ area: { width: 360, height: 600 } }));
-    const folded = document.querySelector<HTMLElement>('[role="tab"][data-folded]')!;
-    expect(folded).toBeTruthy();
-    expect(folded.dataset.connection).toBe(folded.dataset.tab === "b" ? "production" : "staging");
-    const chip = document.querySelector<HTMLElement>(`[data-chip="${folded.dataset.tab}"]`)!;
-    expect(chip.dataset.connection).toBe(folded.dataset.connection);
+    // The folded pane waits behind its strip's "1 folded" chip, whose menu item is marked.
+    act(() => document.querySelector<HTMLElement>(".jali-tab-folded")!.click());
+    const item = document.querySelector<HTMLElement>('[role="menuitem"][data-item]')!;
+    expect(item).toBeTruthy();
+    expect(item.dataset.connection).toBe(item.dataset.item === "b" ? "production" : "staging");
   });
 
   it("marks its entry in the pane switcher (single view)", () => {

@@ -50,8 +50,9 @@ Attributes a pane sets with `usePaneAttributes` appear on everything that stands
 | `.jali-stack-divider` | Stacked view's divider between the two panes on a phone (`role="separator"`); it settles on a third, a half or two thirds. | `data-dragging`: Flag: being dragged. |
 | `[data-drop-zone]` | The preview of where a dragged pane will go; the value is `left`, `right`, `top`, `bottom` or `centre`. | none |
 | `.jali-drag-chip` | The chip that follows the pointer while a pane is dragged. | none |
-| `.jali-shelf` | Tucked and folded panes, as chips (`<Shelf />`). | none |
-| `.jali-shelf-chip` | A chip on the shelf. | `data-chip`: The pane's id.<br>`data-reason`: `tucked` or `folded`.<br>`data-activity`: The pane's activity (`useActivity`): `idle`, `working` (loading too), `needs-you` or `failed`.<br>`data-summary`: Flag: the one "N folded" chip that stands for several.<br>`data-unsaved`: Flag: the pane reports unsaved work (`useUnsaved`). |
+| `.jali-tab-folded` | The "N folded" chip at the end of a tab strip: the panes the layout folded into this place, but the one it shows. Its menu lists them. | none |
+| `.jali-shelf` | The panes you tucked, as chips (`<Shelf />`). Folded panes wait behind their strip's `tabFolded` chip. | none |
+| `.jali-shelf-chip` | A chip on the shelf. | `data-chip`: The pane's id.<br>`data-reason`: `tucked`.<br>`data-activity`: The pane's activity (`useActivity`): `idle`, `working` (loading too), `needs-you` or `failed`.<br>`data-unsaved`: Flag: the pane reports unsaved work (`useUnsaved`). |
 | `.jali-switcher` | Single view's pane switcher (a tab list). | none |
 | `.jali-switch-item` | One pane in the switcher. | `aria-selected`: `true` on the pane in view.<br>`data-tucked`: Flag: a tucked pane.<br>`data-in-view`: Flag: in stacked view, the other pane on screen.<br>`data-unsaved`: Flag: the pane reports unsaved work (`useUnsaved`). |
 | `.jali-peek` | The peek sheet: a linked object shown over the panes. | none |

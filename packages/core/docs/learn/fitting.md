@@ -86,9 +86,9 @@ Within one of those steps, ties are broken in this order:
 
 A folded pane becomes a tab of the pane it was opened from, so a ticket folds behind the list it came from, not behind something unrelated. If that pane is folded too, it joins the same group. A pane with no link joins its nearest neighbour.
 
-*Live demo on the site: Folded tabs are italic, with a fold icon: the layout made them, and they return on their own.*
+*Live demo on the site: Folded panes wait behind one chip at the end of the tab strip: the layout put them there, and they return on their own.*
 
-A folded tab is marked as made by the layout. Its tooltip says it returns when there is room. The person doesn't need to do anything with it, which is what tells it apart from a tab they made or a pane they [tucked](../get-started/key-concepts.md#tuck).
+The tab strip is for the tabs the person made. Folded panes don't appear as tabs: they wait behind one **N folded** chip at the end of the strip. Its menu lists them and says why ("No room to show these side by side"), and picking one shows it in that place, where it is a tab marked with a fold icon. The person doesn't need to do anything with them, which is what tells them apart from a tab they made or a pane they [tucked](../get-started/key-concepts.md#tuck): tucked panes are on the shelf, folded ones never are.
 
 ## What comes back first
 

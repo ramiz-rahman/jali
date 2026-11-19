@@ -627,6 +627,43 @@
     direction: ltr;
     unicode-bidi: isolate;
   }
+  /* "N folded": the panes the layout folded into this place, not tabs of yours. A dashed outline: there for now. */
+  .jali-tab-folded {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    flex: none;
+    height: 1.5rem;
+    margin-inline: 0.25rem;
+    padding-inline: 0.375rem;
+    border: 1px dashed var(--jali-border-strong);
+    border-radius: var(--jali-radius-control);
+    background: none;
+    color: var(--jali-text-muted);
+    font: inherit;
+    font-size: 0.6875rem;
+    font-variant-numeric: tabular-nums;
+    line-height: 1;
+    white-space: nowrap;
+    cursor: pointer;
+  }
+  .jali-tab-folded:hover,
+  .jali-tab-folded[aria-expanded="true"] {
+    background: var(--jali-hover);
+    color: var(--jali-text);
+  }
+  .jali-tab-folded:focus-visible {
+    outline: 2px solid var(--jali-focus-ring);
+    outline-offset: 1px;
+  }
+  .jali-tab-menu-note {
+    margin: 0;
+    padding: 0.375rem 0.5rem 0.5rem;
+    color: var(--jali-text-subtle);
+    line-height: 1.4;
+    border-bottom: 1px solid var(--jali-border);
+    margin-bottom: 0.25rem;
+  }
   .jali-tab-more:hover,
   .jali-tab-more[aria-expanded="true"] {
     background: var(--jali-hover);

@@ -81,10 +81,13 @@ export function TabStrip({ group, owner }: { group: NonNullable<Frame["group"]>;
       );
   // Made by you first, made by the layout (folded) after a hairline: the second kind returns by itself.
   const mine = tabs.filter((t) => !t.folded);
+  // The strip is for your tabs: of the panes the layout folded here, only the one shown is a tab; the rest wait behind
+  // one "N folded" chip, so yours and the layout's never blend.
   // Pinned tabs stay in view at the strip's start, as in a browser: only the rest scroll.
   const pinnedTabs = mine.filter((t) => t.node.pinned);
   const scrolling = mine.filter((t) => !t.node.pinned);
-  const folded = tabs.filter((t) => t.folded);
+  const folded = tabs.filter((t) => t.folded && t.node.id === group.active);
+  const foldedAway = tabs.filter((t) => t.folded && t.node.id !== group.active);
 
   const strip = useRef<HTMLDivElement>(null);
   const bar = useRef<HTMLDivElement>(null);
@@ -290,7 +293,11 @@ export function TabStrip({ group, owner }: { group: NonNullable<Frame["group"]>;
 
   return (
     <div className="jali-tabbar" ref={bar}>
-      <div className="jali-tablist" role="tablist" aria-label={tw.listLabel(tabs.length)}>
+      <div
+        className="jali-tablist"
+        role="tablist"
+        aria-label={tw.listLabel(mine.length + folded.length)}
+      >
         {pinnedTabs.length ? (
           <div className="jali-tabs-pinned">
             {pinnedTabs.map(renderTab)}
@@ -305,9 +312,17 @@ export function TabStrip({ group, owner }: { group: NonNullable<Frame["group"]>;
         </div>
       </div>
       {menu ? <TabMenu at={menu} onClose={closeMenu} /> : null}
+      {foldedAway.length ? (
+        <TabOverflow
+          folded
+          tabs={foldedAway}
+          active={group.active}
+          onChoose={(id) => actions.setActiveTab(group.id, id)}
+        />
+      ) : null}
       {overflowing ? (
         <TabOverflow
-          tabs={[...mine, ...folded]}
+          tabs={[...mine, ...folded, ...foldedAway]}
           active={group.active}
           hiddenCount={hiddenCount}
           onChoose={(id) => actions.setActiveTab(group.id, id)}
