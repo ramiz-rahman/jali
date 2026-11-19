@@ -66,16 +66,15 @@ describe("the markets workspace", () => {
     });
   });
 
-  it("moves the following quote when the watchlist selects, once the selection rests", () => {
+  it("moves every follower when the watchlist selects, once the selection rests", () => {
     vi.useFakeTimers();
     const { jali } = testJali();
     jali.actions.select("watch", quote({ symbol: "ORBD" }));
     expect(shown(jali, "quote")).toBe("LMNA");
     vi.advanceTimersByTime(200);
     expect(shown(jali, "quote")).toBe("ORBD");
-    // The chart, book and news catch up through `follow` (panes/follow.ts does this as the selection changes).
-    storeOf(jali).actions.follow("watch", chart({ symbol: "ORBD" }));
-    expect(shown(jali, "chart")).toBe("ORBD");
+    // The chart, book, trades and news show the same instrument, in the same change (their kinds' `follow`).
+    for (const id of ["chart", "book", "tape", "news"]) expect(shown(jali, id)).toBe("ORBD");
   });
 
   it("compares: a pinned quote keeps its instrument while the following one moves", () => {

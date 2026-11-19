@@ -22,11 +22,29 @@ Opening a row selects it first. That order matters: when `openBeside` is called 
 
 A detail opened from the list's selected row **follows** the list. Move the selection, and the detail shows the new row in the same pane, at the same place and size. Nothing else on screen moves.
 
-A list has at most one following detail of each kind. The detail's header shows a **Following** toggle, so the person can see that it moves with the list.
+A list has at most one following detail of each kind, and it can have followers of several kinds. The detail's header shows a **Following** toggle, so the person can see that it moves with the list.
 
 <Spotlight layout="chain" target="follow" height={300} caption="The Following toggle in the detail's header. Press it to pin the detail." />
 
 Focus stays in the list the whole time, so the person keeps moving with J and K. A following step replaces the address rather than adding to the history, so Back skips the rows they passed through.
+
+## Followers of other kinds
+
+One list can drive details of several kinds. A watchlist selects a quote, and beside it a chart, an order book and the news follow the same instrument. A follower of the selected object's kind shows that object. A follower of another kind shows what its kind says it shows for it, with `follow`:
+
+```tsx filename="src/panes/chart.tsx"
+export const chart = definePane("chart", {
+  params: { symbol: String },
+  title: ({ symbol }) => `${symbol} chart`,
+  // The watchlist selects quote({ symbol }): show the chart of the same symbol.
+  follow: (selected) => ({ symbol: selected.params.symbol }),
+  Component: Chart,
+});
+```
+
+When the selection moves, every follower of the list that can show it moves, together, as one change: one entry replaced in the history, and one announcement. A follower keeps what it shows when its kind has no `follow`, when `follow` returns `undefined`, or when its kind can't read what `follow` gives (a required param missing). A pinned detail never moves.
+
+Opening a chart for the selected quote counts as opening the selection, so the new chart follows the list, or opens pinned beside the list's following chart, just as a second quote would.
 
 ## It waits for the selection to rest
 

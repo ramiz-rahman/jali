@@ -75,6 +75,7 @@ Two more options:
 
 - `holdWhileResizing: true` keeps the content as it is while a divider is dragged, and reflows it once on release. Use it for long lists and grids.
 - `inRecent: false` keeps the kind out of Recent. It can also be a function of the params.
+- `follow` says what a following pane of this kind shows when its list selects an object of another kind: `follow: (selected) => ({ symbol: selected.params.symbol })` lets a chart follow a watchlist of quotes. See [Following a list](/learn/following#followers-of-other-kinds).
 
 ## Params
 
@@ -189,7 +190,7 @@ With TanStack Query, pass `enabled: !paused` or `subscribed: !paused`.
 
 A list pane tells the workspace where its cursor is with `select(ref)`. Call it as the cursor moves. Then:
 
-- a detail pane that follows this list shows the item once the cursor rests;
+- the detail panes that follow this list show the item once the cursor rests, each one of its own kind if the kind has `follow`;
 - Space can call `peek(ref)` to show it in a sheet;
 - Alt+Enter can call `openBeside(ref)` to open it in a pane of its own.
 

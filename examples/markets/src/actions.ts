@@ -1,6 +1,5 @@
 /** The app's own moves on the workspace, shared by panes and ⌘K commands. */
 import type { Jali, NodeId, ObjectRef } from "@jali/core";
-import { storeOf } from "@jali/core/adapter";
 import type { Services } from "./services";
 import type { Side } from "./trading/trading";
 import { blotter } from "./panes/blotter";
@@ -36,29 +35,23 @@ export function show(
 
 /**
  * Open `ref` from a list as a detail that follows it: the chart for a watchlist row. If the list already has a
- * following detail of that kind, it shows `ref` now instead, and comes to the front if it was folded (pin it first
- * to keep it, then open another to compare).
+ * following detail of that kind, that one is shown (it shows the row once the selection rests), brought to the front
+ * if it was folded. Pin it first to keep it, then open another to compare.
  *
- * Jali links a new pane to a list's selection only when it opens the selected ref itself. The watchlist selects a
- * quote, so a chart opened from its row arrives as a plain link; unpinning it (`setPinned(id, false)`) makes it the
- * list's follower.
+ * The watchlist selects a quote; a chart for the same instrument counts as opening the selection because the chart's
+ * kind says what it shows for a quote (`follow`, panes/follow.ts), so the new chart follows the list.
  */
 export function openFollowing(jali: Jali, list: NodeId, ref: ObjectRef): NodeId | undefined {
   const follower = jali
     .model()
     .panes.find((p) => p.linkedTo === list && p.follows && p.ref.kind === ref.kind);
   if (follower) {
-    // Jali has no public "show this in the follower now": the engine's own step.
-    storeOf(jali).actions.follow(list, ref);
     // Folded behind a tab (a phone, a crowded desk): bring it to the front, since the person asked to open it.
     const hidden = !jali.model().resolved.panes.some((b) => b.id === follower.id && !b.hidden);
     if (hidden) jali.actions.reveal(follower.id);
     return follower.id;
   }
-  const id = jali.actions.openBeside(list, ref).pane;
-  const opened = id ? jali.model().pane(id) : undefined;
-  if (id && opened?.linkedTo === list && !opened.follows) jali.actions.setPinned(id, false);
-  return id;
+  return jali.actions.openBeside(list, ref).pane;
 }
 
 /** Fill the order ticket with a side and an instrument, and bring the blotter that holds it. */

@@ -72,7 +72,7 @@ function Watchlist({
   const at = rows.findIndex((r) => r.inst.symbol === cursor);
   const current = at >= 0 ? rows[at]!.inst : undefined;
 
-  // Tell Jali what is selected: its following quote shows it, and the chart, book and news catch up (follow.ts).
+  // Tell Jali what is selected: its following quote, chart, book, trades and news show it (panes/follow.ts).
   const moveTo = (symbol: string) => {
     setCursor(symbol);
     select(quote({ symbol }));

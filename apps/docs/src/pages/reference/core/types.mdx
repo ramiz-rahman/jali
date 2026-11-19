@@ -232,6 +232,7 @@ What a kind says about itself, apart from how it renders. In React, `definePane(
 <Param name="scratch" type="boolean">Every pane is new (a scratch note, a launcher): never matched against an open pane, and left out of Recent unless `inRecent` says otherwise.</Param>
 <Param name="inRecent" type="boolean | ((params: P) => boolean)" default="true (false for scratch kinds)">Whether opened objects of this kind go in Recent.</Param>
 <Param name="holdWhileResizing" type="boolean">Keep the content as it is during a divider drag and reflow once, on release: for long lists and charts.</Param>
+<Param name="follow" type="(selected: ObjectRef) => FollowParams<P> | undefined">What a following pane of this kind shows when its list selects an object of another kind: the params for it, or `undefined` to keep what it shows. `follow: (selected) => ({ symbol: selected.params.symbol })` lets a chart follow a watchlist that selects quotes. A follower of the selected object's own kind shows that object without it. Params given as `undefined` are left out; if the kind can't read the result (a required param missing), the pane keeps what it shows. See [Following a list](/learn/following#followers-of-other-kinds).</Param>
 </Params>
 
 </Entry>
@@ -294,6 +295,12 @@ The params a kind's code sees, from its declaration: `ParamsOf<{ id: NumberConst
 
 </Entry>
 
+<Entry name="FollowParams" kind="type" from="@jali/core" signature={`type FollowParams<P> = { [K in keyof P]?: ParamValue | undefined }`} compact>
+
+What a kind's `follow` returns: its params, any of which may be missing. Jali checks them against the kind's `params` before the pane shows them.
+
+</Entry>
+
 <Entry name="ParamProblem" kind="type" from="@jali/core" signature={`interface ParamProblem { param: string; value?: ParamValue }`} compact>
 
 A param a ref is missing (`value` is undefined), or holds a value its type can't read. A ref with one never reaches the component: a layout link or saved layout holding it opens as broken, a peek or a page's opened pane with it is left out of the link, and a pane your code opens with it shows a message naming the param. Listed by `PaneKinds.problems`.
@@ -315,6 +322,7 @@ A workspace's kinds, as `jali.env.kinds`.
 <Member name="PaneKinds.title" signature="title(ref: ObjectRef): string">The title, or the kind name for an unknown kind, a ref with problems or a title that throws.</Member>
 <Member name="PaneKinds.identityOf" signature="identityOf(ref: ObjectRef): string | undefined">The ref's identity as text, `undefined` for scratch kinds.</Member>
 <Member name="PaneKinds.sameObject" signature="sameObject(a: ObjectRef, b: ObjectRef): boolean">Same object type and identity. Scratch refs are never the same object.</Member>
+<Member name="PaneKinds.follow" signature="follow(kind: string, selected: ObjectRef): ObjectRef | undefined">What a following pane of `kind` shows when its list selects `selected`: `selected` itself for its own kind, else what the kind's `follow` gives, when the kind can read it. `undefined`: the pane keeps what it shows.</Member>
 <Member name="PaneKinds.sameRecent" signature="sameRecent(a: ObjectRef, b: ObjectRef): boolean">The same entry in Recent: same kind and identity (scratch kinds: same params).</Member>
 <Member name="PaneKinds.isRecordable" signature="isRecordable(ref: ObjectRef): boolean">Whether it goes in Recent: the kind's `inRecent`.</Member>
 <Member name="PaneKinds.isTransient" signature="isTransient(ref: ObjectRef): boolean">Whether it is the workspace's launcher.</Member>

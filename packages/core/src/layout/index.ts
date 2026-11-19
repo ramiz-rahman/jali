@@ -9,7 +9,7 @@ export { canTuck, tuck, putBack, putBackEdge } from "./ops/tuck";
 export { hide, show } from "./ops/hide";
 export { replace } from "./ops/replace";
 export { setRef } from "./ops/ref";
-export { follow, follower, selectionLink, setFollows } from "./ops/follow";
+export { follow, follower, followers, selectionLink, setFollows } from "./ops/follow";
 export { addTab, reveal, setActiveTab, resetLayout } from "./ops/tabs";
 export { focus, focusCycle, focusDirection, toggleZoom } from "./ops/focus";
 export { snapToCentre, SNAP_IN, SNAP_OUT } from "./geometry/snap";

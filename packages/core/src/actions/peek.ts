@@ -88,7 +88,8 @@ export function select(
     op: "select",
     ...(peekFollows ? { view: { ...s.view, peek: ref } } : {}),
     ...(patch ? { patch } : {}),
-    ...(moved && core.follower(s.layout, source, ref.kind)
+    // Any follower: a later selection also replaces a follow still waiting for an earlier one.
+    ...(moved && core.followers(s.layout, source).length
       ? { defer: followLater(source, ref) }
       : {}),
   };

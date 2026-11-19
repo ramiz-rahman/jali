@@ -213,7 +213,17 @@ export interface PaneOptions<P = Params> {
   inRecent?: boolean | ((params: P) => boolean);
   /** Keep the content as it is while a divider is dragged, and reflow once on release: for long lists and charts. */
   holdWhileResizing?: boolean;
+  /**
+   * What a following pane of this kind shows when its list selects an object of another kind: the params for it, or
+   * `undefined` to keep what it shows. A chart that follows a watchlist of quotes:
+   * `follow: (selected) => ({ symbol: selected.params.symbol })`. A follower of the selected object's own kind always
+   * shows that object. Params left `undefined` are left out, and params its kind can't read keep the pane as it is.
+   */
+  follow?: (selected: ObjectRef) => FollowParams<P> | undefined;
 }
+
+/** What a kind's `follow` gives: its params, each one possibly missing (Jali checks them against `params`). */
+export type FollowParams<P> = { [K in keyof P]?: ParamValue | undefined };
 
 /** A kind as the workspace keeps it. `transient` is set by the workspace on its launcher. */
 export interface PaneKindBase extends PaneOptions<never> {
@@ -263,6 +273,9 @@ export interface PaneKinds<D extends PaneKindBase = PaneKindBase> {
   identityOf(ref: ObjectRef): string | undefined;
   /** Same object: the same object type (`shows`, else the kind) and identity. Scratch refs match nothing. */
   sameObject(a: ObjectRef, b: ObjectRef): boolean;
+  /** What a following pane of `kind` shows when its list selects `selected`: `selected` itself for its own kind,
+   *  else what the kind's `follow` gives, when the kind can read it. Undefined: the pane keeps what it shows. */
+  follow(kind: string, selected: ObjectRef): ObjectRef | undefined;
   /** Same entry in Recent: the same object, or (scratch kinds) the same params. */
   sameRecent(a: ObjectRef, b: ObjectRef): boolean;
   isRecordable(ref: ObjectRef): boolean;
@@ -356,6 +369,26 @@ export function createPaneKinds<D extends PaneKindBase = PaneKindBase>(
       if (objectType(a) !== objectType(b)) return false;
       const ia = identityOf(a);
       return ia !== undefined && ia === identityOf(b);
+    },
+    follow(kind, selected) {
+      if (selected.kind === kind) return selected;
+      const def = kinds.get(kind);
+      const of = def?.follow as
+        | ((s: ObjectRef) => Record<string, ParamValue | undefined> | undefined)
+        | undefined;
+      if (!of || !def) return undefined;
+      let given: Record<string, ParamValue | undefined> | undefined;
+      try {
+        given = of(selected);
+      } catch {
+        return undefined;
+      }
+      if (!given) return undefined;
+      const params = Object.fromEntries(
+        Object.entries(given).filter((e): e is [string, ParamValue] => isValue(e[1])),
+      );
+      const ref = { kind, params };
+      return parseParams(def.params, params).problems.length ? undefined : ref;
     },
     sameRecent: (a, b) =>
       a.kind === b.kind &&

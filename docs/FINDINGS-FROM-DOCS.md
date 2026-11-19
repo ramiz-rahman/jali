@@ -61,6 +61,7 @@ Where each was resolved: "packages pass" is branch jali-packages-pass, "API simp
 40. Done 19 Nov [resolved in: branch jali-phosphor; see DECISIONS.md, "Icons are Phosphor"]: `@jali/react`, the lab, the docs and the live parts use `@phosphor-icons/react` (regular weight), a peer dependency of `@jali/react`; `lucide-react` is gone from every package.json; the default kind icon is Phosphor's `SquareIcon`. ~~**Icons: switch from Lucide to Phosphor** (founder, 19 Nov), to match Chakni (`@phosphor-icons/react`, a peer dependency there). Covers `@jali/react` (about 13 files, `lucide-react` dependency), the docs site and the live parts, and the default kind icon.~~
 
 ## From building examples/markets (19 Nov)
+
 41. **One selection drives followers of one kind only** (`core/src/actions/peek.ts:91`, `layout/ops/follow.ts:13`, `actions/open.ts:61`). A watchlist driving chart, book, trades and news has to call `actions.follow` per kind. Let followers of any kind match one selected item.
 42. **A link doesn't say which preset it came from:** `presetId` resets to the first preset on load (`core/src/state/store.ts:289`), so the desk is marked wrong and Reset rebuilds the wrong layout. The example works around it with its own `desk` param and the undocumented `jali.set({ presetId })`.
 43. **No default settings option on `createJali`** (`state/settings.ts:18`): a dark-first app needs a first-run flag and `changeSettings`.

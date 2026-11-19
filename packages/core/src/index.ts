@@ -37,6 +37,7 @@ export type {
   OptionalParam,
   OneOf,
   ParamProblem,
+  FollowParams,
 } from "./pane-kinds";
 export { optional, oneOf } from "./pane-kinds";
 export type { RoleBase, ProfileBase, ViewMode, Preset, Env, ItemId } from "./profile";

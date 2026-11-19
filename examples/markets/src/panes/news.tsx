@@ -8,7 +8,7 @@ import { definePane, optional, usePaneState, type PaneProps } from "@jali/react"
 import { useMarket, useTopic } from "../market/react";
 import * as f from "../ui/format";
 import { Empty, Segmented } from "../ui/parts";
-import { useFollowSymbol } from "./follow";
+import { followSymbol } from "./follow";
 import { listMove, scrollRowIntoView } from "./keys";
 import { quote } from "./quote";
 
@@ -19,7 +19,6 @@ const newsParams = { symbol: optional(String) };
 
 function News({ params, paused, node, openBeside }: PaneProps<typeof newsParams>) {
   const symbol = params.symbol || undefined;
-  useFollowSymbol(news, symbol);
   const market = useMarket();
   const [scope, setScope] = usePaneState<"instrument" | "all">("scope", "instrument");
   const only = symbol && scope === "instrument" ? symbol : undefined;
@@ -120,6 +119,7 @@ function News({ params, paused, node, openBeside }: PaneProps<typeof newsParams>
 
 export const news = definePane("news", {
   params: newsParams,
+  follow: followSymbol,
   title: ({ symbol }) => (symbol ? `${symbol} news` : "Market news"),
   icon: NewspaperIcon,
   width: { min: 260, comfortable: 380 },

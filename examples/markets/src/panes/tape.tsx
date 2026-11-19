@@ -6,7 +6,7 @@ import { useTopic } from "../market/react";
 import type { Instrument } from "../market/types";
 import * as f from "../ui/format";
 import { Arrow, Empty, Known } from "../ui/parts";
-import { useFollowSymbol } from "./follow";
+import { followSymbol } from "./follow";
 
 const ROWS = 80;
 
@@ -14,7 +14,6 @@ const ROWS = 80;
 const tapeParams = { symbol: String };
 
 function TapePane({ params, paused }: PaneProps<typeof tapeParams>) {
-  useFollowSymbol(tape, params.symbol);
   return (
     <Known symbol={params.symbol}>
       {(inst) =>
@@ -78,6 +77,7 @@ function TapeBody({ inst, paused }: { inst: Instrument; paused: boolean }) {
 
 export const tape = definePane("tape", {
   params: tapeParams,
+  follow: followSymbol,
   title: ({ symbol }) => `${symbol} trades`,
   icon: ReceiptIcon,
   width: { min: 220, comfortable: 280, max: 420 },

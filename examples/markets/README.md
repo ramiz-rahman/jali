@@ -26,7 +26,7 @@ Build it as a static site with `pnpm exec vp build` in this folder, and serve `d
 | `src/market/simulator.ts` | A seeded random walk behind it: quotes, an order book, trades, bars and news.                        |
 | `src/market/react.tsx`    | `useTopic(topic, paused)`: a pane stops listening while Jali says it is paused.                      |
 | `src/panes/*.tsx`         | The eight pane kinds, each one `definePane` with params, a title, an icon and widths.                |
-| `src/panes/follow.ts`     | How one watchlist drives followers of several kinds.                                                 |
+| `src/panes/follow.ts`     | How one watchlist drives followers of several kinds: each kind's `follow`.                           |
 | `src/panes/blotter.tsx`   | The order ticket: `usePaneState` for the draft, `useUnsaved` for an unsent order, `useCommands`.     |
 | `src/presets.ts`          | The four desks, written with `row`, `column` and `pane`; followers are `linkedTo: "watch"`.          |
 | `src/workspace.ts`        | `createJali`: the kinds, presets, launcher, and the app's own ⌘K commands and keys.                  |

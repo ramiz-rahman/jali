@@ -27,7 +27,7 @@ When there is no room, or the pane cap is passed, what folds is decided now and 
 <Param name="ctx" type="LayoutContext" required>The room, the gap, the kinds and the pane cap (see <Ref to="LayoutContext" page="/reference/core/types" />). A negative width or height counts as zero. Throws a `RangeError` for a non-finite size or gap, a negative gap, or a cap that is not a positive integer.</Param>
 <Param name="linked" type="boolean" required>Whether the new pane is linked to `target` (`linkedTo`). Closing the source drops the link.</Param>
 <Param name="place" type="{ target: string; edge: Edge }">Somewhere else to put it: a curated page keeps opened panes after its arrangement. Ignored when `place.target` is not in the layout.</Param>
-<Param name="opts" type="{ yields?: boolean; fromSelection?: boolean }" default="{}">`yields: false`: no supporting pane gives way for the new one; short of room, the new pane becomes a tab of its source. `fromSelection`: `ref` is the source's selected row, so the new pane follows the selection, or opens pinned when the source already has a follower of that kind.</Param>
+<Param name="opts" type="{ yields?: boolean; fromSelection?: boolean }" default="{}">`yields: false`: no supporting pane gives way for the new one; short of room, the new pane becomes a tab of its source. `fromSelection`: `ref` is the source's selected row (or what its kind's `follow` shows for it), so the new pane follows the selection, or opens pinned when the source already has a follower of that kind.</Param>
 </Params>
 
 <Returns type={`{ layout: Layout; view: ViewState; opened: NodeId; mode: "beside" | "replaced" | "tab" }`}>
@@ -199,6 +199,14 @@ Shows `ref` in pane `id`: same node, new object. By default the slot keeps its r
 The pane following `source`'s selection for `kind`: linked to it, with `follows: true`. There is at most one per source and kind.
 
 <Returns type="PaneNode | undefined" />
+
+</Entry>
+
+<Entry name="layout.followers" kind="function" from="@jali/core" signature={`layout.followers(layout, source: NodeId): PaneNode[]`} compact>
+
+Every pane following `source`'s selection, one per kind, in tree order. A list's selection moves each of them that can show it (see `follow` on <Ref to="PaneOptions" page="/reference/core/types" />).
+
+<Returns type="PaneNode[]" />
 
 </Entry>
 

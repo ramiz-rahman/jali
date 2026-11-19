@@ -8,13 +8,12 @@ import { useTopic } from "../market/react";
 import type { BookLevel, Instrument } from "../market/types";
 import * as f from "../ui/format";
 import { Empty, Known } from "../ui/parts";
-import { useFollowSymbol } from "./follow";
+import { followSymbol } from "./follow";
 
 /** What a book pane shows; its component and `definePane` share it. */
 const bookParams = { symbol: String };
 
 function BookPane({ params, paused }: PaneProps<typeof bookParams>) {
-  useFollowSymbol(book, params.symbol);
   return (
     <Known symbol={params.symbol}>
       {(inst) =>
@@ -101,6 +100,7 @@ function BookBody({ inst, paused }: { inst: Instrument; paused: boolean }) {
 
 export const book = definePane("book", {
   params: bookParams,
+  follow: followSymbol,
   title: ({ symbol }) => `${symbol} book`,
   icon: StackIcon,
   width: { min: 220, comfortable: 280, max: 400 },

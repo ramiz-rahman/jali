@@ -19,7 +19,7 @@ import { useTopic } from "../market/react";
 import { RANGES, type Bar, type Instrument, type Range } from "../market/types";
 import * as f from "../ui/format";
 import { Delta, Known, Segmented } from "../ui/parts";
-import { useFollowSymbol } from "./follow";
+import { followSymbol } from "./follow";
 
 type Style = "candles" | "line";
 interface View {
@@ -40,7 +40,6 @@ const BUCKETS = [1, 2, 5, 10, 15, 30];
 const chartParams = { symbol: String };
 
 function Chart({ params, paused }: PaneProps<typeof chartParams>) {
-  useFollowSymbol(chart, params.symbol);
   return (
     <Known symbol={params.symbol}>{(inst) => <ChartBody inst={inst} paused={paused} />}</Known>
   );
@@ -422,6 +421,7 @@ function useSize(ref: RefObject<HTMLElement | null>) {
 
 export const chart = definePane("chart", {
   params: chartParams,
+  follow: followSymbol,
   title: ({ symbol }) => `${symbol} chart`,
   icon: ChartLineIcon,
   width: { min: 360, comfortable: 560 },
