@@ -16,6 +16,7 @@ import { useEnv, useStore, useUi } from "../state/react";
 import { Activity } from "./Activity";
 import { KindIcon } from "./icons";
 import { RenameField, useCanRename } from "./RenameField";
+import { TabIndicator } from "./TabIndicator";
 import { TabMenu, type TabMenuAt } from "./TabMenu";
 import { TabOverflow } from "./TabOverflow";
 import { UnsavedMark } from "./Unsaved";
@@ -251,16 +252,28 @@ export function TabStrip({ group, owner }: { group: NonNullable<Frame["group"]>;
     );
   };
 
+  // One underline per strip, in the part that holds the shown tab; none while it is renamed.
+  const activeIn = pinnedTabs.some((t) => t.node.id === group.active)
+    ? "pinned"
+    : tabs.some((t) => t.node.id === group.active)
+      ? "scrolling"
+      : null;
+  const indicator = <TabIndicator active={group.active} hidden={renaming === group.active} />;
+
   return (
     <div className="jali-tabbar" ref={bar}>
       <div className="jali-tablist" role="tablist" aria-label={tw.listLabel(tabs.length)}>
         {pinnedTabs.length ? (
-          <div className="jali-tabs-pinned">{pinnedTabs.map(renderTab)}</div>
+          <div className="jali-tabs-pinned">
+            {pinnedTabs.map(renderTab)}
+            {activeIn === "pinned" ? indicator : null}
+          </div>
         ) : null}
         <div className="jali-tabs" ref={strip} onScroll={measure}>
           {scrolling.map(renderTab)}
           {folded.length && mine.length ? <span className="jali-tab-sep" aria-hidden /> : null}
           {folded.map(renderTab)}
+          {activeIn === "scrolling" ? indicator : null}
         </div>
       </div>
       {menu ? <TabMenu at={menu} onClose={closeMenu} /> : null}

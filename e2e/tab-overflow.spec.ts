@@ -30,6 +30,7 @@ test.describe("tab overflow and marks", () => {
       .first()
       .evaluate((el) =>
         [...el.children]
+          .filter((c) => !c.classList.contains("jali-tab-indicator"))
           .map((c) =>
             c.classList.contains("jali-tab-sep")
               ? "|"

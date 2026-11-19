@@ -234,14 +234,14 @@
     flex: 0 1 auto;
     height: 100%;
   }
-  /* When room is short, pinned tabs give way first: the scrolling strip keeps room for about one tab, so the shown tab
-   is always on screen. Below that the pinned part scrolls too. */
+  /* When room is short the scrolling tabs give way first, down to about one tab, so the shown tab stays on screen; then
+   the pinned tabs, down to about one collapsed tab. Past both, each part scrolls. */
   .jali-tabs-pinned {
     display: flex;
     align-items: stretch;
     gap: 2px;
-    flex: 0 1 auto;
-    min-width: 0;
+    flex: 0 0.0001 auto;
+    min-width: min(var(--jali-tab-pinned-collapsed, 4.5rem), 40%);
     overflow-x: auto;
     overflow-y: hidden;
     scrollbar-width: none;
@@ -249,12 +249,11 @@
   .jali-tabs-pinned::-webkit-scrollbar {
     display: none;
   }
-  .jali-tabs-pinned + .jali-tabs:has(> *) {
-    flex-shrink: 0;
+  .jali-tabs-pinned + .jali-tabs:has(> .jali-tab-item) {
+    flex: 1 1 auto;
     min-width: min(8rem, 60%);
-    max-width: 100%;
   }
-  .jali-tabs-pinned:has(+ .jali-tabs > *) {
+  .jali-tabs-pinned:has(+ .jali-tabs > .jali-tab-item) {
     padding-inline-end: 2px;
     border-inline-end: 1px solid var(--jali-border);
   }
@@ -355,7 +354,19 @@
   }
   .jali-tab.is-active {
     color: var(--jali-text);
-    border-bottom-color: var(--jali-text);
+  }
+  /* The shown tab's underline: one per strip, under the tab and its close button as one (pane/TabIndicator.tsx). */
+  .jali-tabs,
+  .jali-tabs-pinned {
+    position: relative;
+  }
+  .jali-tab-indicator {
+    position: absolute;
+    z-index: 1;
+    height: 2px;
+    border-radius: 1px;
+    background: var(--jali-accent);
+    pointer-events: none;
   }
   .jali-tab-title {
     white-space: nowrap;

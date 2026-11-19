@@ -81,6 +81,13 @@ test("a narrow strip keeps the shown tab in view, pinned tabs shrinking to their
   expect(box.width).toBeGreaterThan(40);
   expect(box.x).toBeGreaterThanOrEqual(bar.x - 1);
   expect(box.x + 40).toBeLessThanOrEqual(bar.x + bar.width);
+  // Every pinned tab is at least partly on screen.
+  for (const p of await page.locator('[role="tab"][data-pinned]').all()) {
+    const b = (await p.boundingBox())!;
+    expect(b.width).toBeGreaterThan(8);
+    expect(b.x + b.width).toBeGreaterThan(bar.x + 8);
+    expect(b.x).toBeLessThan(bar.x + bar.width - 8);
+  }
   // Pinned tabs show their icon only, and keep their name.
   await expect(page.locator("[data-pinned] .jali-tab-title").first()).toBeHidden();
   await expect(page.locator('[role="tab"][data-pinned]').first()).toHaveAttribute(
