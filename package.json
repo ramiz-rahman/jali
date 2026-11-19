@@ -5,7 +5,7 @@
   "description": "Jali's lab: Data Studio and a loan review built on @jali/core and @jali/react (packages/). See docs/BRIEF.md.",
   "type": "module",
   "scripts": {
-    "dev": "vp dev --port 5300 --strictPort",
+    "dev": "vp dev",
     "build": "tsc -b && vp build",
     "typecheck": "tsc -b --noEmit && tsc --noEmit -p apps/docs",
     "test": "vp test run && vp test run --config apps/docs/src/reference/vitest.config.ts && node scripts/agent-docs.mjs --check",
@@ -17,9 +17,9 @@
     "agent-docs": "node scripts/agent-docs.mjs",
     "icons": "node scripts/icons.mjs && vp fmt packages/react/src/icons/default-paths.ts",
     "size": "pnpm build:packages && tsc -p scripts/size && node scripts/size.mjs",
-    "example:minimal": "vp dev --config examples/minimal/vite.config.ts --port 5310",
-    "example:own-icons": "vp dev --config examples/own-icons/vite.config.ts --port 5311",
-    "example:markets": "vp dev --config examples/markets/vite.config.ts --port 5320"
+    "minimal": "vp dev examples/minimal",
+    "own-icons": "vp dev examples/own-icons",
+    "markets": "vp dev examples/markets"
   },
   "dependencies": {
     "@electric-sql/pglite": "^0.5.16",

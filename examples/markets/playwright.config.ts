@@ -10,7 +10,7 @@ export default defineConfig({
   workers: 1,
   reporter: [["list"]],
   webServer: {
-    command: "pnpm example:markets",
+    command: "vp dev examples/markets --strictPort",
     cwd: "../..",
     url: URL,
     reuseExistingServer: true,

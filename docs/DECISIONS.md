@@ -316,7 +316,7 @@ Research, sources and the full table: `docs/research/keyboard-shortcuts.md`. Cod
 - **`<Jali store>`** provides the store, renders the workspace root (`data-jali`, where DOM lookups stay) and the dialogs every workspace has; `overlays` renders things that must sit outside the root (a toaster). **`<JaliView>`** is the panes, or the curated page while one is open. The lab's App is now `<Jali><TopBar /><JaliView /><StatusLine /></Jali>`.
 - **Shorter start-up.** DOM focus defaults to Jali's own helper (`focusPane: null` turns it off), and the store keeps its URL sync, so `boot(store)` and `startUi(store)` need nothing else. Passing the sync to both still works.
 - **Build:** tsdown per package (ESM, `.d.ts`, source maps). `@jali/react`'s `dist/styles.css` inlines its imports; `theme.css` and `tailwind.css` ship beside it. Core is 55 kB gzipped unminified, React 21 kB. `pnpm build:packages`.
-- **`examples/minimal`**: the smallest app on the public API alone (one kind, two panes, the default theme). `pnpm example:minimal` serves it on :5310.
+- **`examples/minimal`**: the smallest app on the public API alone (one kind, two panes, the default theme). `vp dev examples/minimal` serves it on :5310.
 
 ## 19 Nov 2026 · Jali's default neutrals are stone (founder)
 

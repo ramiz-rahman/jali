@@ -67,7 +67,7 @@ There is **no app shell beyond a slim 48px top bar** (title, layout presets, set
 
 ## Rules
 
-- Run `pnpm test` and `pnpm typecheck` before handing back. Keep `pnpm dev` working on port 5300.
+- Run `pnpm test` and `pnpm typecheck` before handing back. Keep `vp dev` working on port 5300.
 - **No network installs:** dependencies are already installed. Ask the coordinator if something is missing.
 - Commit small and often on `main`, with plain messages. The git identity is the machine's. Do not add a co-author line, and do not push (there is no remote).
 - Touch only your work package's folders, plus `docs/DECISIONS.md` (append only).

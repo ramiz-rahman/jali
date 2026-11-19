@@ -13,6 +13,7 @@ export default defineConfig({
   resolve: { conditions: ["source", ...defaultClientConditions] },
   // React, Jali and the app in one file: about 170 kB gzipped. A demo has no routes to split by.
   build: { chunkSizeWarningLimit: 700 },
-  server: { port: 5320, strictPort: true },
-  preview: { port: 5320, strictPort: true },
+  // Not strict: when another checkout already holds 5320, `vp dev` takes the next free port and prints it.
+  server: { port: 5320 },
+  preview: { port: 5320 },
 });

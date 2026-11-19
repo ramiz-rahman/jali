@@ -13,7 +13,8 @@ export default defineConfig({
   workers: 1,
   reporter: [["list"]],
   webServer: {
-    command: "pnpm dev",
+    // Strict here, so the tests never drift to another port while waiting on :5300.
+    command: "vp dev --strictPort",
     url: URL,
     reuseExistingServer: true,
     timeout: 60_000,

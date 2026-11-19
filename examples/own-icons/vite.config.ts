@@ -8,4 +8,5 @@ export default defineConfig({
   cacheDir: "../../node_modules/.vite-example-own-icons",
   plugins: [react()],
   resolve: { conditions: ["source", ...defaultClientConditions] },
+  server: { port: 5311 },
 });

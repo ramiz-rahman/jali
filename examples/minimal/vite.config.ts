@@ -8,4 +8,5 @@ export default defineConfig({
   cacheDir: "../../node_modules/.vite-example-minimal",
   plugins: [react()],
   resolve: { conditions: ["source", ...defaultClientConditions] },
+  server: { port: 5310 },
 });
