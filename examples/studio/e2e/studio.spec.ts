@@ -90,3 +90,13 @@ test("a layout is a link: a reload keeps it", async ({ page }) => {
   await expect(layout(page, "Review")).toHaveAttribute("aria-pressed", "true");
   await expect(page.locator('.jali-pane[data-pane="markers"]')).toBeVisible();
 });
+
+test("renaming a speaker in the transcript renames them everywhere", async ({ page }) => {
+  await page.locator(".tr-speaker-name").first().click();
+  const field = page.getByRole("textbox", { name: "Speaker's name" });
+  await expect(field).toBeFocused();
+  await field.fill("Maren H. Holt");
+  await page.keyboard.press("Enter");
+  await expect(page.locator(".tl-who").first()).toHaveText("Maren H. Holt");
+  await expect(page.locator(".tr-speaker-name").first()).toHaveText("Maren H. Holt");
+});

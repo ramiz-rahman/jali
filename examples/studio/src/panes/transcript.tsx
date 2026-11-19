@@ -71,6 +71,7 @@ function TranscriptBody({
   const [cursor, setCursor] = usePaneState<string | null>("cursor", null);
   const [follow, setFollow] = usePaneState("follow", true);
   const [editing, setEditing] = useState<string | null>(null);
+  /** The segment whose speaker label is being renamed (the name changes everywhere). */
   const [renaming, setRenaming] = useState<string | null>(null);
   const listRef = useRef<HTMLDivElement>(null);
   const inTransport = useTransport((s) => s.session === session.id);
@@ -246,7 +247,7 @@ function TranscriptBody({
     {
       id: "rename",
       title: `Rename ${view.speakerName(view.speakerOf(current))}`,
-      run: () => setRenaming(view.speakerOf(current)),
+      run: () => setRenaming(current.id),
     },
     {
       id: "follow",
@@ -313,7 +314,7 @@ function TranscriptBody({
               text={text}
               speaker={speaker}
               speakerName={view.speakerName(speaker)}
-              showSpeaker={!prev || view.speakerOf(prev) !== speaker}
+              showSpeaker={!prev || view.speakerOf(prev) !== speaker || renaming === seg.id}
               selected={i === at}
               active={focused && i === at}
               progress={progressOf(seg, playhead, view.wordsOf(seg, text))}
@@ -321,7 +322,7 @@ function TranscriptBody({
               corrected={!!view.edits.corrections[seg.id]}
               looping={loop?.segment === seg.id}
               editing={editing === seg.id}
-              renaming={renaming === speaker}
+              renaming={renaming === seg.id}
               onSelect={() => moveTo(seg.id)}
               onSeek={(t) => cue(engine, session.id, t, playing)}
               onOpen={() => openDetail(seg)}
@@ -332,7 +333,7 @@ function TranscriptBody({
                 listRef.current?.focus();
               }}
               onSave={save}
-              onRename={() => setRenaming(speaker)}
+              onRename={() => setRenaming(seg.id)}
               onRenamed={(name) => {
                 if (name !== null && name.trim()) edits.renameSpeaker(session.id, speaker, name);
                 setRenaming(null);
