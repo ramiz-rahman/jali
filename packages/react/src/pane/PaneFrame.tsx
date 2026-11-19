@@ -1,4 +1,6 @@
 import { memo, useMemo, type CSSProperties } from "react";
+import { createPortal } from "react-dom";
+import { bringBack, usePopOutTarget } from "./PopOut";
 import { useJaliIcons } from "../icons/context";
 import {
   ALONE_CHROME,
@@ -35,6 +37,8 @@ export const PaneFrame = /* @__PURE__ */ memo(
     const { node, rect, hidden, focused, zoomed, covered, group } = frame;
     const alone = chrome === ALONE_CHROME;
     const store = useStore();
+    // Popped out (experimental): the content renders in a floating window; its place here says so.
+    const popTarget = usePopOutTarget(store, node.id);
     const icon = useJaliIcons();
     const { actions } = store;
     const activity = useUi((s) => s.activity[node.id]);
@@ -163,9 +167,26 @@ export const PaneFrame = /* @__PURE__ */ memo(
         {dropTarget ? <DropZoneLabel paneId={node.id} /> : null}
         <NotInResults node={node} />
         <div className="jali-pane-content">
-          <div className="jali-pane-content-inner">
-            <PaneBody node={node} host={host} paused={hidden || covered} focused={focused} />
-          </div>
+          {popTarget ? (
+            <div className="jali-popped-out" role="status">
+              <span>{store.messages.pane.poppedOut}</span>
+              <button type="button" className="jali-text-btn" onClick={bringBack}>
+                {store.messages.pane.bringBack}
+              </button>
+            </div>
+          ) : null}
+          {popTarget ? (
+            createPortal(
+              <div className="jali-pane-content-inner">
+                <PaneBody node={node} host={host} paused={false} focused={focused} />
+              </div>,
+              popTarget,
+            )
+          ) : (
+            <div className="jali-pane-content-inner">
+              <PaneBody node={node} host={host} paused={hidden || covered} focused={focused} />
+            </div>
+          )}
         </div>
       </section>
     );

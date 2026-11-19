@@ -462,6 +462,9 @@ const pane = {
   fullScreenTip: "Full screen",
   exitFullScreen: (pane: string) => `Exit full screen ${pane}`,
   exitFullScreenTip: "Exit full screen",
+  /** A popped-out pane's place (experimental Pop out). */
+  poppedOut: "Popped out into its own window",
+  bringBack: "Bring back",
   restore: (pane: string) => `Restore ${pane}`,
   restoreTip: "Restore",
   opened: "Opened",

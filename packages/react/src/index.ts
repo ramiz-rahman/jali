@@ -6,3 +6,12 @@
 
 export * from "./common";
 export { JaliRoot, JaliProvider, type JaliRootProps } from "./JaliRoot";
+
+// ---------- experimental ----------
+// Pop out a pane into a floating window that stays on top (Document Picture-in-Picture: Chrome and Edge on desktop).
+// A prototype: its name and shape may change in any release.
+export {
+  popOut as unstable_popOut,
+  bringBack as unstable_bringBack,
+  canPopOut as unstable_canPopOut,
+} from "./pane/PopOut";

@@ -10,6 +10,7 @@ import {
 } from "@jali/core/adapter";
 import { createJali, type Jali, type JaliOptions } from "@jali/core";
 import { loanReview, loanReviewKinds } from "./review";
+import { unstable_popOut } from "@jali/react";
 
 /** What the lab's workspace is made of. */
 export const labOptions = {
@@ -26,7 +27,20 @@ export const labOptions = {
 } satisfies JaliOptions;
 
 /** The lab app's workspace. Data Studio links reopen exactly, sizes included (the founder's round-trip rule, 17 Nov). */
-export const createLabJali = (): Jali => createJali({ ...labOptions, url: { sizes: "link" } });
+export const createLabJali = (): Jali =>
+  createJali({
+    ...labOptions,
+    url: { sizes: "link" },
+    // The Pop out prototype (Document Picture-in-Picture; Chrome and Edge on desktop).
+    commands: [
+      {
+        id: "lab.pop_out",
+        title: "Pop out pane (experimental)",
+        group: "Pane",
+        run: (jali) => void unstable_popOut(jali),
+      },
+    ],
+  });
 
 export const labKinds = () =>
   createPaneKinds([...labOptions.panes, { ...dataStudioLauncher, transient: true }]);

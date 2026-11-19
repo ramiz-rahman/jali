@@ -749,4 +749,33 @@
     border-color: var(--jali-opened-line);
     background: var(--jali-surface);
   }
+
+  /* A popped-out pane's place: what happened, and the way back. */
+  .jali-popped-out {
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    display: grid;
+    place-content: center;
+    justify-items: center;
+    gap: 0.5rem;
+    background: var(--jali-surface);
+    color: var(--jali-text-subtle);
+    font-size: 0.8125rem;
+  }
+  /* The floating window's own page: the pane's content fills it. */
+  .jali-popout {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    background: var(--jali-surface);
+    color: var(--jali-text);
+    font-family: var(--jali-font);
+  }
+  .jali-popout > .jali-pane-content-inner {
+    flex: 1;
+    min-height: 0;
+    overflow: auto;
+  }
 }

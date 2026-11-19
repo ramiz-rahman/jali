@@ -682,3 +682,41 @@ useJaliIcons(): JaliIcons
 ```
 
 The icons this workspace draws with, for chrome of your own that should match Jali's: `const { close } = useJaliIcons()`. Inside `<JaliRoot>` or `<JaliProvider>`.
+
+## Experimental
+
+Prototypes, to try and give feedback on. Their names start `unstable_`, and their shape may change in any release.
+
+### unstable_popOut
+
+*function*, from `@jali/react`
+
+```ts
+unstable_popOut(jali: Jali, pane?: string, size?: { width: number; height: number }): Promise<boolean>
+```
+
+Opens a pane (default: the focused one) in a floating window that stays on top of every other window, even while the person is in another tab or app, as a video call's does. It uses the browser's Document Picture-in-Picture, in Chrome and Edge on desktop; resolves `false` elsewhere. Call it from a click or a key, since the browser asks for the person's gesture.
+
+The pane keeps its place in the layout, which says "Popped out into its own window" with a Bring back button. Its content renders in the window with the page's styles and theme, and keeps Jali's context, so its hooks, data and actions work. Closing the window, Bring back, or closing the pane puts it back. One pane at a time.
+
+Known limits: the content remounts as it moves, so its own `useState` starts again (`usePaneState` and your data cache carry over); Jali's keys don't work inside the window yet; and the window closes when the page that opened it navigates away.
+
+### unstable_bringBack
+
+*function*, from `@jali/react`
+
+```ts
+unstable_bringBack(): void
+```
+
+Puts the popped-out pane back in its place and closes its window.
+
+### unstable_canPopOut
+
+*function*, from `@jali/react`
+
+```ts
+unstable_canPopOut(): boolean
+```
+
+Whether this browser can pop a pane out: Document Picture-in-Picture on a secure page. Use it to offer Pop out only where it works.
