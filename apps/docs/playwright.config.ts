@@ -1,6 +1,6 @@
 import { defineConfig } from "@playwright/test";
 
-// The docs' own browser tests, against a docs dev server (the root config points at the lab).
+// The docs' own browser tests, against a docs dev server (the root config points at the example apps).
 // Point at another server with DOCS_URL, e.g. DOCS_URL=http://localhost:5421 pnpm exec playwright test -c apps/docs.
 const URL = process.env.DOCS_URL ?? "http://localhost:5400";
 const port = new globalThis.URL(URL).port || "5400";

@@ -77,6 +77,8 @@ export interface Preset {
   id: string;
   label: string;
   build: () => Layout;
+  /** The layout the person left it in, if the app kept one (`PresetOptions.saved`). */
+  saved?: () => LayoutInput | undefined;
 }
 
 /** What a workspace is made of, beyond its state: its pane kinds, presets and (a curated page) its profile. One per store. */
@@ -112,6 +114,8 @@ export interface Env {
   phone?: PhoneOptions;
   /** What may happen to panes (`createJali({ allow })`). */
   allow?: import("./actions/allow").WorkspaceAllow;
+  /** The buttons in a pane's header (`createJali({ buttons })`). */
+  buttons?: import("./pane/buttons").PaneButtons;
 }
 
 /** How the workspace behaves on a phone. */

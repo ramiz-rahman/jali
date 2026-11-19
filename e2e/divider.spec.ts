@@ -1,18 +1,18 @@
-import { test, expect } from "./fixtures/lab";
+import { test, expect } from "./fixtures/app";
 
 // One divider implementation (our own APG window splitter); the Ark adapter was removed in the ui refactor.
 test.describe("Divider", () => {
-  test.beforeEach(async ({ lab }) => {
-    await lab.open();
+  test.beforeEach(async ({ app }) => {
+    await app.open();
   });
 
   test("pointer drag clamps at the minimum; double-click resets; hit area wider than the line", async ({
-    lab,
+    app,
     page,
   }) => {
-    const orders = lab.pane("orders");
-    const initial = await lab.width(orders);
-    const s = lab.separator(0);
+    const orders = app.pane("orders");
+    const initial = await app.width(orders);
+    const s = app.separator(0);
     const box = (await s.boundingBox())!;
     // The hit area is wider than the 6px gap line: a point 5px either side still lands on the separator.
     const hit = await page.evaluate(
@@ -28,8 +28,8 @@ test.describe("Divider", () => {
     await page.mouse.move(x - 120, y, { steps: 8 });
     await page.mouse.move(x - 900, y, { steps: 8 }); // far past the minimum
     await page.mouse.up();
-    await lab.stable();
-    const clamped = await lab.width(orders);
+    await app.stable();
+    const clamped = await app.width(orders);
     expect(clamped).toBeLessThan(initial);
     expect(clamped).toBeGreaterThanOrEqual(440); // table minimum
     await page.mouse.move(x - 1200, y);
@@ -39,54 +39,54 @@ test.describe("Divider", () => {
     await page.mouse.down();
     await page.mouse.move(b2.x - 700, y, { steps: 8 });
     await page.mouse.up();
-    await lab.stable();
-    expect(Math.abs((await lab.width(orders)) - clamped)).toBeLessThanOrEqual(1);
-    await lab.shot("06-divider-clamped-own");
+    await app.stable();
+    expect(Math.abs((await app.width(orders)) - clamped)).toBeLessThanOrEqual(1);
+    await app.shot("06-divider-clamped-own");
 
     await s.dblclick();
-    await expect.poll(() => lab.width(orders)).toBeGreaterThan(clamped + 20);
-    expect(Math.abs((await lab.width(orders)) - initial)).toBeLessThanOrEqual(2);
+    await expect.poll(() => app.width(orders)).toBeGreaterThan(clamped + 20);
+    expect(Math.abs((await app.width(orders)) - initial)).toBeLessThanOrEqual(2);
   });
 
   test("keyboard: arrows 16px, Shift 64px, Home/End ; aria-valuenow follows", async ({
-    lab,
+    app,
     page,
   }) => {
-    const orders = lab.pane("orders");
-    const s = lab.separator(0);
-    const w0 = await lab.width(orders);
-    const v0 = await lab.attr(s, "aria-valuenow");
+    const orders = app.pane("orders");
+    const s = app.separator(0);
+    const w0 = await app.width(orders);
+    const v0 = await app.attr(s, "aria-valuenow");
     await s.focus();
 
     await page.keyboard.press("ArrowLeft");
-    await expect.poll(() => lab.width(orders)).toBe(w0 - 16);
-    expect(await lab.attr(s, "aria-valuenow")).toBeLessThan(v0);
+    await expect.poll(() => app.width(orders)).toBe(w0 - 16);
+    expect(await app.attr(s, "aria-valuenow")).toBeLessThan(v0);
     await page.keyboard.press("ArrowRight");
-    await expect.poll(() => lab.width(orders)).toBe(w0);
-    expect(await lab.attr(s, "aria-valuenow")).toBe(v0);
+    await expect.poll(() => app.width(orders)).toBe(w0);
+    expect(await app.attr(s, "aria-valuenow")).toBe(v0);
 
     await page.keyboard.press("Shift+ArrowLeft");
-    await expect.poll(() => lab.width(orders)).toBe(w0 - 64);
+    await expect.poll(() => app.width(orders)).toBe(w0 - 64);
 
     await page.keyboard.press("Home");
-    await expect.poll(() => lab.width(orders)).toBe(440); // table minimum
-    expect(await lab.attr(s, "aria-valuenow")).toBe(await lab.attr(s, "aria-valuemin"));
+    await expect.poll(() => app.width(orders)).toBe(440); // table minimum
+    expect(await app.attr(s, "aria-valuenow")).toBe(await app.attr(s, "aria-valuemin"));
     await page.keyboard.press("End");
     // End takes orders as far as its neighbour's minimum allows. The records start at their comfortable 440, above
     // their 360 minimum, so orders grows past its start (it could not when records needed 480).
-    await expect.poll(() => lab.width(orders)).toBeGreaterThan(w0);
-    expect(await lab.attr(s, "aria-valuenow")).toBe(await lab.attr(s, "aria-valuemax"));
+    await expect.poll(() => app.width(orders)).toBeGreaterThan(w0);
+    expect(await app.attr(s, "aria-valuenow")).toBe(await app.attr(s, "aria-valuemax"));
   });
 
-  test("separator has role, orientation, valuenow within min and max", async ({ lab, page }) => {
+  test("separator has role, orientation, valuenow within min and max", async ({ app, page }) => {
     const seps = page.getByRole("separator");
     expect(await seps.count()).toBe(2);
     for (let i = 0; i < 2; i++) {
       const s = seps.nth(i);
       const [now, min, max] = [
-        await lab.attr(s, "aria-valuenow"),
-        await lab.attr(s, "aria-valuemin"),
-        await lab.attr(s, "aria-valuemax"),
+        await app.attr(s, "aria-valuenow"),
+        await app.attr(s, "aria-valuemin"),
+        await app.attr(s, "aria-valuemax"),
       ];
       expect(min).toBeLessThanOrEqual(now);
       expect(now).toBeLessThanOrEqual(max);
@@ -96,25 +96,25 @@ test.describe("Divider", () => {
     }
   });
 
-  test("resize mode: ⌘K ⌘R then arrows", async ({ lab, page }) => {
-    const orders = lab.pane("orders");
-    await lab.header("orders").click({ position: { x: 200, y: 20 } });
-    const w0 = await lab.width(orders);
+  test("resize mode: ⌘K ⌘R then arrows", async ({ app, page }) => {
+    const orders = app.pane("orders");
+    await app.header("orders").click({ position: { x: 200, y: 20 } });
+    const w0 = await app.width(orders);
     await page.keyboard.press("ControlOrMeta+k");
     await page.keyboard.press("ControlOrMeta+r");
-    await expect(lab.status()).toContainText("Resize mode");
+    await expect(app.status()).toContainText("Resize mode");
     await page.keyboard.press("ArrowLeft");
-    await expect.poll(() => lab.width(orders)).toBe(w0 - 16);
+    await expect.poll(() => app.width(orders)).toBe(w0 - 16);
     await page.keyboard.press("Escape");
-    await expect(lab.status()).not.toContainText("Resize mode");
+    await expect(app.status()).not.toContainText("Resize mode");
   });
 
   test("drag smoothness: a 400px drag in small steps has no long task, follows the pointer 1:1, writes the URL once after release, and does not jump", async ({
-    lab,
+    app,
     page,
   }) => {
     await page.setViewportSize({ width: 2560, height: 1000 });
-    await expect.poll(() => lab.width(lab.pane("orders"))).toBeGreaterThan(1000);
+    await expect.poll(() => app.width(app.pane("orders"))).toBeGreaterThan(1000);
     await page.evaluate(() => {
       const w = window as unknown as { __lt: number[]; __on: boolean };
       w.__lt = [];
@@ -123,9 +123,9 @@ test.describe("Divider", () => {
         for (const e of l.getEntries()) if (w.__on) w.__lt.push(Math.round(e.duration));
       }).observe({ type: "longtask" });
     });
-    const orders = lab.pane("orders");
+    const orders = app.pane("orders");
     const w0 = (await orders.boundingBox())!.width;
-    const box = (await lab.separator(0).boundingBox())!;
+    const box = (await app.separator(0).boundingBox())!;
     const x = box.x + box.width / 2,
       y = box.y + 300;
     const url0 = page.url();
@@ -145,7 +145,7 @@ test.describe("Divider", () => {
       cursor: getComputedStyle(document.body).cursor,
       selectable: getComputedStyle(document.body).userSelect,
     }));
-    const line = await lab.dividerPreview().isVisible();
+    const line = await app.dividerPreview().isVisible();
     const previewed = (await orders.boundingBox())!.width;
     expect(page.url(), "no URL write during the drag").toBe(url0);
     await page.mouse.up();
@@ -158,6 +158,6 @@ test.describe("Divider", () => {
     expect((await orders.boundingBox())!.width, "committed size equals the previewed size").toBe(
       previewed,
     );
-    await expect(lab.dividerPreview()).toBeHidden();
+    await expect(app.dividerPreview()).toBeHidden();
   });
 });

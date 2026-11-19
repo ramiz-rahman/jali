@@ -32,7 +32,7 @@ Draws a workspace: its panes, and the dialogs every workspace has (the command p
 
 The root is a `<div data-jali>` that the workspace attaches to, so focus, drag and F6 stay inside it. The dialogs render after it, in a `<div data-jali-layer>` (styled `display: contents`), which counts as the workspace's for its keys. Mark your own chrome inside it with `data-jali-chrome` and Jali never pulls focus out of it.
 
-Two things are yours to render. **The shelf** (tucked and folded panes as chips): put <Ref to="Shelf" /> in your status line or footer, or tucked panes have nowhere to come back from but ⌘K "Show a pane from the shelf". **Toasts**: Jali sends them through `jali.onToast` (closes and tucks come with Undo, which ⌘K ⌘Z also runs) and shows none itself; render them with your toaster in `overlays`.
+Two things are yours to render. **The shelf** (tucked panes as chips): put <Ref to="Shelf" /> in your status line or footer, or tucked panes have nowhere to come back from but ⌘K "Show a pane from the shelf". **Toasts**: Jali sends them through `jali.onToast` (closes and tucks come with Undo, which ⌘K ⌘Z also runs) and shows none itself; render them with your toaster in `overlays`.
 
 <Params title="Props">
 <Param name="workspace" type="Jali" required>From `createJali`.</Param>
@@ -311,7 +311,7 @@ A curated page's controls, for your top bar: the Single / Split view switch (Spl
 
 <Entry name="Shelf" kind="component" from="@jali/react" signature={`<Shelf />`} compact>
 
-The panes that are tabs but not by the person's choice: tucked ones (with Put back) and folded ones, as chips grouped by home, for a status line. More than three folded panes collapse into one summary chip. Arrow keys move between chips, Enter shows one, Shift+Enter puts a tucked one back. Renders nothing when no pane is tucked or folded.
+The panes the person tucked, as chips grouped by home (with Put back), for a status line. Folded panes are not here: they wait behind their tab strip's **N folded** chip. Arrow keys move between chips, Enter shows one, Shift+Enter puts it back. Renders nothing when no pane is tucked.
 
 </Entry>
 
@@ -396,11 +396,13 @@ One icon per name Jali draws. `<JaliRoot icons>` takes any part of it; type your
 <Member name="icons.putBack" signature="putBack: JaliIcon">Put a tucked or folded pane back, on its tab and shelf chip. Default: Phosphor's `ArrowUUpLeft`.</Member>
 <Member name="icons.newTab" signature="newTab: JaliIcon">A tab group's "New tab". Default: Phosphor's `Plus`.</Member>
 <Member name="icons.more" signature="more: JaliIcon">The tab-overflow menu's button. Default: Phosphor's `CaretDown`.</Member>
+<Member name="icons.menu" signature="menu: JaliIcon">The ⋯ button in a pane's header, which opens the pane's menu. Default: Phosphor's `DotsThree`.</Member>
+<Member name="icons.popOut" signature="popOut: JaliIcon">The Pop out button, when a pane's `buttons` include it (Bring back while popped out). Default: Phosphor's `PictureInPicture`.</Member>
 <Member name="icons.current" signature="current: JaliIcon">The shown tab in the tab-overflow menu. Default: Phosphor's `Check`.</Member>
-<Member name="icons.fold" signature="fold: JaliIcon">Marks a folded tab or chip (the layout made it). Default: Phosphor's `ArrowsInLineHorizontal`.</Member>
+<Member name="icons.fold" signature="fold: JaliIcon">Marks a folded pane: the strip's **N folded** chip, and the tab of a folded pane while it is shown. Default: Phosphor's `ArrowsInLineHorizontal`.</Member>
 <Member name="icons.grip" signature="grip: JaliIcon">The drag handle on a pane's header. Default: Phosphor's `DotsSix`.</Member>
-<Member name="icons.follow" signature="follow: JaliIcon">A following detail's "Following" toggle. Default: Phosphor's `LinkSimpleHorizontal`.</Member>
-<Member name="icons.keep" signature="keep: JaliIcon">The Keep toggle on a linked pane. Default: Phosphor's `AnchorSimple`.</Member>
+<Member name="icons.follow" signature="follow: JaliIcon">A linked pane's toggle while it follows (**Following**). Default: Phosphor's `LinkSimpleHorizontal`.</Member>
+<Member name="icons.keep" signature="keep: JaliIcon">A kept pane's toggle (**Kept**). Default: Phosphor's `AnchorSimple`.</Member>
 <Member name="icons.pin" signature="pin: JaliIcon">A pinned tab's mark. Default: Phosphor's `PushPin`.</Member>
 <Member name="icons.activityError" signature="activityError: JaliIcon">The cross in an error activity mark (8px). Default: Phosphor's `X, bold`.</Member>
 <Member name="icons.defaultKind" signature="defaultKind: JaliIcon">A kind without an icon. Default: Phosphor's `Square`.</Member>
@@ -457,7 +459,7 @@ Prototypes, to try and give feedback on. Their names start `unstable_`, and thei
 
 <Entry name="unstable_popOut" kind="function" from="@jali/react" signature={`unstable_popOut(jali: Jali, pane?: string, size?: { width: number; height: number }): Promise<boolean>`} compact>
 
-Off until the workspace allows it: `createJali({ allow: { popOut: true } })`. Opens a pane (default: the focused one) in a floating window that stays on top of every other window, even while the person is in another tab or app, as a video call's does. It uses the browser's Document Picture-in-Picture, in Chrome and Edge on desktop; resolves `false` elsewhere. Call it from a click or a key, since the browser asks for the person's gesture.
+Off until the workspace allows it: `createJali({ allow: { popOut: true } })`. Opens a pane (default: the focused one) in a floating window that stays on top of every other window, even while the person is in another tab or app, as a video call's does. It uses the browser's Document Picture-in-Picture, in Chrome and Edge on desktop; resolves `false` elsewhere. Call it from a click or a key, since the browser asks for the person's gesture. Where it's allowed, people also find Pop out in a tab's menu and a pane header's (right-click). The window matches the page's browser zoom.
 
 The pane keeps its place in the layout, which says "Popped out into its own window" with a Bring back button. Its content renders in the window with the page's styles and theme, and keeps Jali's context, so its hooks, data and actions work. Closing the window, Bring back, or closing the pane puts it back. One pane at a time.
 

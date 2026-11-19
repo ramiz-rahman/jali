@@ -1,0 +1,649 @@
+/**
+ * The map: MapLibre GL on OpenFreeMap's free vector tiles, with the day's stops numbered in order, the route drawn
+ * between them (dots for walking, a line for transit, dashes for a taxi), the hotel, and candidates: what Explore
+ * shows, or else what is near the selected place.
+ *
+ * What it shows with Jali:
+ *  - It wants room: `width.min` 360, `comfortable` 640, and it resizes with its box (ResizeObserver, `map.resize()`),
+ *    as dividers move and panes fold.
+ *  - While Jali says it is `paused` (behind a tab, folded, tucked, behind a maximised pane) it does nothing: no
+ *    resize, no camera moves. The last move asked for waits and happens when it is shown again.
+ *  - It is a list: a pin selects its place (`select`), and the place pane follows it. A place selected anywhere else
+ *    is handed to the map's selection (actions.ts), and the map flies to it.
+ *  - It follows the overview: `follow` turns a selected day into `{ day }`.
+ *  - Arrow keys pan it (MapLibre claims them with preventDefault, which Jali respects); ⌘K, F6 and Esc still reach
+ *    the workspace.
+ */
+import { useEffect, useMemo, useRef, useState } from "react";
+import {
+  GeoJSONSource,
+  LngLatBounds,
+  Map as MapLibre,
+  Marker,
+  NavigationControl,
+  setWorkerUrl,
+} from "maplibre-gl";
+// MapLibre runs its tile work in a Web Worker, a file of its own. Bundled, it can't find it beside itself, so the
+// bundler copies the file and gives its URL.
+import mapWorkerUrl from "maplibre-gl/dist/maplibre-gl-worker.mjs?url";
+import { MapTrifoldIcon, WarningCircleIcon, XIcon } from "@phosphor-icons/react";
+import type { ObjectRef } from "@jali/core";
+import { definePane, useCommands, useJali, useJaliModel, useTheme, type PaneProps } from "@jali/react";
+import { selectPlace } from "../actions";
+import { addToDay } from "../planning";
+import { usePlan, useServices } from "../services";
+import { useCurrent } from "../selection";
+import { useStore } from "../store";
+import { AIRPORT, CITY_NAME, mustPlace, PLACES, placeById, type CityId, type Place } from "../trip/places";
+import { daysIn, dayTotals, dayWith, isHotel, routeOf, type Plan } from "../trip/plan";
+import { haversineKm } from "../trip/travel";
+import { dayColor } from "../ui/colors";
+import * as f from "../ui/format";
+import { CATEGORY_ICON, DayMark, Segmented } from "../ui/parts";
+
+setWorkerUrl(mapWorkerUrl);
+
+const mapParams = { day: Number };
+
+/** OpenFreeMap: free, no key. Attribution comes with the tiles and MapLibre shows it. */
+const STYLE = {
+  light: "https://tiles.openfreemap.org/styles/positron",
+  dark: "https://tiles.openfreemap.org/styles/dark",
+};
+
+/** Nava's zinc ground and a cool, quiet river, so the coral and the day colours carry the map. */
+const TUNE = {
+  light: { background: "#f4f4f5", water: "#cdd6dc", park: "#e3e8e1" },
+  dark: { background: "#141418", water: "#1d2230", park: "#18201b" },
+};
+
+/** Thailand, with both cities in view, until the first day is framed. */
+const TRIP = { center: [99.55, 10.9] as [number, number], zoom: 5 };
+
+/** Below this zoom the map shows each city as one badge rather than its pins (they would pile up). */
+const CITY_ZOOM = 8.5;
+
+const reducedMotion = () => !!window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+
+type Theme = "light" | "dark";
+
+/** A pin: what the map draws for one place. */
+interface Pin {
+  p: Place;
+  role: "stop" | "hotel" | "candidate" | "other-day" | "airport";
+  day?: number;
+  /** 1-based, for a stop. */
+  order?: number;
+}
+
+function pinsFor(plan: Plan, dayN: number, candidates: readonly string[], selected: string | null): Pin[] {
+  const pins = new Map<string, Pin>();
+  for (const d of plan.days) {
+    d.stops.forEach((id, i) => {
+      const shown = dayN === 0 || d.n === dayN;
+      pins.set(id, { p: mustPlace(id), role: shown ? "stop" : "other-day", day: d.n, order: i + 1 });
+    });
+  }
+  for (const id of Object.values(plan.hotels)) pins.set(id, { p: mustPlace(id), role: "hotel" });
+  for (const id of Object.values(AIRPORT)) pins.set(id, { p: mustPlace(id), role: "airport" });
+  for (const id of candidates) if (!pins.has(id)) pins.set(id, { p: mustPlace(id), role: "candidate" });
+  if (selected && !pins.has(selected) && placeById(selected))
+    pins.set(selected, { p: mustPlace(selected), role: "candidate" });
+  return Array.from(pins.values());
+}
+
+/** The flight as a gentle arc, not a ruler line across the gulf. */
+function arc(a: Place, b: Place, steps = 48): [number, number][] {
+  const [x1, y1, x2, y2] = [a.lng, a.lat, b.lng, b.lat];
+  // The control point sits off the middle, to the west of the line.
+  const [mx, my] = [(x1 + x2) / 2, (y1 + y2) / 2];
+  const [dx, dy] = [x2 - x1, y2 - y1];
+  const [cx, cy] = [mx - dy * 0.18, my + dx * 0.18];
+  return Array.from({ length: steps + 1 }, (_, i) => {
+    const t = i / steps;
+    const u = 1 - t;
+    return [u * u * x1 + 2 * u * t * cx + t * t * x2, u * u * y1 + 2 * u * t * cy + t * t * y2];
+  });
+}
+
+function routesFor(plan: Plan, dayN: number, theme: Theme) {
+  const features = plan.days
+    .filter((d) => dayN === 0 || d.n === dayN)
+    .flatMap((d) =>
+      dayTotals(plan, d).legs.map((l) => {
+        const a = mustPlace(l.from);
+        const b = mustPlace(l.to);
+        return {
+          type: "Feature" as const,
+          properties: { mode: l.mode, color: dayColor(d.n, theme) },
+          geometry: {
+            type: "LineString" as const,
+            coordinates: l.mode === "flight" ? arc(a, b) : [[a.lng, a.lat], [b.lng, b.lat]],
+          },
+        };
+      }),
+    );
+  return { type: "FeatureCollection" as const, features };
+}
+
+/** The places to frame for a day: its own city's part of the route (on the transfer day, from the landing). */
+function framePoints(plan: Plan, dayN: number): Place[] {
+  if (dayN === 0)
+    return [...Object.values(plan.hotels), ...plan.days.flatMap((d) => d.stops)].map(mustPlace);
+  const day = plan.days.find((d) => d.n === dayN);
+  if (!day) return [];
+  return routeOf(plan, day).places.filter((p) => p.city === day.city);
+}
+
+function addTripLayers(map: MapLibre, theme: Theme) {
+  const tune = TUNE[theme];
+  // The base style's own colours, softened, where its layers have these names (positron and dark do).
+  const paint = (layer: string, prop: string, value: string) => {
+    if (map.getLayer(layer)) map.setPaintProperty(layer, prop as "fill-color", value);
+  };
+  paint("background", "background-color", tune.background);
+  paint("water", "fill-color", tune.water);
+  paint("park", "fill-color", tune.park);
+
+  if (!map.getSource("trip-routes"))
+    map.addSource("trip-routes", { type: "geojson", data: { type: "FeatureCollection", features: [] } });
+  const casing = theme === "dark" ? "#141418" : "#ffffff";
+  const layer = (id: string, mode: string | null, paintSpec: Record<string, unknown>, layout = {}) => {
+    if (map.getLayer(id)) return;
+    map.addLayer({
+      id,
+      type: "line",
+      source: "trip-routes",
+      ...(mode ? { filter: ["==", ["get", "mode"], mode] } : {}),
+      layout: { "line-cap": "round", "line-join": "round", ...layout },
+      paint: paintSpec,
+    } as Parameters<MapLibre["addLayer"]>[0]);
+  };
+  layer("route-casing", null, { "line-color": casing, "line-width": 8, "line-opacity": 0.85 });
+  layer("route-transit", "transit", { "line-color": ["get", "color"], "line-width": 4 });
+  layer("route-taxi", "taxi", { "line-color": ["get", "color"], "line-width": 4, "line-dasharray": [2, 1.4] }, { "line-cap": "butt" });
+  layer("route-walk", "walk", { "line-color": ["get", "color"], "line-width": 4.5, "line-dasharray": [0.01, 1.8] });
+  layer("route-scooter", "scooter", { "line-color": ["get", "color"], "line-width": 4, "line-dasharray": [3, 1, 0.01, 1] });
+  layer("route-flight", "flight", { "line-color": ["get", "color"], "line-width": 2.5, "line-dasharray": [1, 2] }, { "line-cap": "butt" });
+}
+
+function MapPane({ params, paused, node, inPeek }: PaneProps<typeof mapParams>) {
+  const jali = useJali();
+  const services = useServices();
+  const plan = usePlan();
+  const theme = useTheme();
+  const selected = useCurrent();
+  const model = useJaliModel();
+  const results = useStore(services.results, (r) => r);
+  const box = useRef<HTMLDivElement>(null);
+  const mapRef = useRef<MapLibre | null>(null);
+  const markers = useRef(new Map<string, { marker: Marker; el: HTMLButtonElement }>());
+  const pausedRef = useRef(paused);
+  /** The map shows the day as framed (not moved by the person since). */
+  const framed = useRef(true);
+  const frameRef = useRef<(animate?: boolean) => void>(() => {});
+  // The city badges, for the clean-up of the map effect (declared further down).
+  const badgeList = useRef<() => Marker[]>(() => []);
+  const pending = useRef<(() => void) | null>(null);
+  const [styleTick, setStyleTick] = useState(0);
+  const [failed, setFailed] = useState(false);
+  const themeRef = useRef(theme);
+  themeRef.current = theme;
+  pausedRef.current = paused;
+
+  // Explore's results count only while its pane is on screen; else, what is near the selected place.
+  const exploreShown =
+    !!results && model.resolved.panes.some((b) => b.id === results.pane && !b.hidden);
+  const candidates = useMemo(() => {
+    if (exploreShown) return results!.ids;
+    const at = selected ? placeById(selected) : undefined;
+    if (!at) return [];
+    const radius = at.city === "bkk" ? 0.9 : 3;
+    return PLACES.filter(
+      (q) =>
+        q.id !== at.id &&
+        q.city === at.city &&
+        q.category !== "airport" &&
+        !dayWith(plan, q.id) &&
+        haversineKm(at, q) <= radius,
+    )
+      .slice(0, 10)
+      .map((q) => q.id);
+  }, [exploreShown, results, selected, plan]);
+
+  /** Run a camera move now, or when the map is next shown. */
+  const whenShown = (move: () => void) => {
+    if (pausedRef.current || !mapRef.current) pending.current = move;
+    else move();
+  };
+
+  // The map, made once.
+  useEffect(() => {
+    const el = box.current;
+    if (!el || inPeek) return;
+    const map = new MapLibre({
+      container: el,
+      style: STYLE[themeRef.current],
+      center: TRIP.center,
+      zoom: TRIP.zoom,
+      minZoom: 4,
+      maxZoom: 18,
+      attributionControl: { compact: false },
+      dragRotate: false,
+      pitchWithRotate: false,
+      touchPitch: false,
+      // Ctrl + scroll or two fingers would be the cooperative alternative; a map-first app keeps plain scroll.
+      cooperativeGestures: false,
+    });
+    map.touchZoomRotate.disableRotation();
+    map.keyboard.disableRotation();
+    map.addControl(new NavigationControl({ showCompass: false }), "top-right");
+    map.on("style.load", () => {
+      setFailed(false);
+      addTripLayers(map, themeRef.current);
+      setStyleTick((t) => t + 1);
+    });
+    map.on("error", (e) => {
+      // A style or tile that can't be fetched. The plan doesn't need the map: say so, and keep the pins.
+      const status = (e.error as { status?: number } | undefined)?.status;
+      if (!map.isStyleLoaded() || status === undefined || status >= 400) setFailed(!map.isStyleLoaded());
+    });
+    // The canvas is the keyboard's way in: name it, so a screen reader says what it is and what the keys do.
+    map.getCanvas().setAttribute("aria-label", "Map. Arrow keys pan, plus and minus zoom.");
+    mapRef.current = map;
+
+    // A pan or zoom by the person ends the framing; the map stays where they put it.
+    const moved = (e: { originalEvent?: unknown }) => {
+      if (e.originalEvent) framed.current = false;
+    };
+    map.on("dragstart", moved);
+    map.on("zoomstart", moved);
+    map.on("rotatestart", moved);
+
+    // Zoomed out to the whole country, each city is one badge; zoomed in, its pins.
+    const far = () => el.toggleAttribute("data-far", map.getZoom() < CITY_ZOOM);
+    map.on("zoom", far);
+    far();
+
+    // It resizes with its box, unless it is out of sight (then it catches up when shown).
+    let frame = 0;
+    const ro = new ResizeObserver(() => {
+      if (pausedRef.current || frame) return;
+      frame = requestAnimationFrame(() => {
+        frame = 0;
+        if (el.clientWidth > 0 && el.clientHeight > 0) {
+          map.resize();
+          // Until the person moves the map, it keeps the day framed as its box changes (a fold, a preset).
+          if (framed.current) frameRef.current(false);
+        }
+      });
+    });
+    ro.observe(el);
+    return () => {
+      ro.disconnect();
+      cancelAnimationFrame(frame);
+      for (const m of markers.current.values()) m.marker.remove();
+      markers.current.clear();
+      for (const b of badgeList.current()) b.remove();
+      map.remove();
+      mapRef.current = null;
+    };
+  }, [inPeek]);
+
+  // Paused: stop any camera move. Shown again: fit the box it now has, and make the move that waited.
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map) return;
+    if (paused) {
+      map.stop();
+      return;
+    }
+    map.resize();
+    const move = pending.current;
+    pending.current = null;
+    move?.();
+  }, [paused]);
+
+  // Light and dark: swap the base style; the trip's layers come back on "style.load".
+  const lastTheme = useRef(theme);
+  useEffect(() => {
+    if (lastTheme.current === theme) return;
+    lastTheme.current = theme;
+    mapRef.current?.setStyle(STYLE[theme], { diff: false });
+  }, [theme]);
+
+  // As a list does on first show: start on what the place pane beside it shows, so nothing jumps. And again when a
+  // layout (a preset, a link, Back) puts another place in that pane: Jali keeps this pane's selection across a
+  // preset switch, but the new preset's place pane arrives with its own place (FINDINGS.md).
+  const follower = model.panes.find((p) => p.linkedTo === node.id && p.follows && p.ref.kind === "place");
+  const quietSelection = useRef<string | null>(null);
+  const followerShows = follower ? String(follower.ref.params.id) : null;
+  useEffect(() => {
+    if (inPeek || !follower || followerShows === selected) return;
+    // Taken from the layout, not picked by the person: the map keeps its framing rather than fly to it.
+    quietSelection.current = followerShows;
+    jali.actions.select(node.id, follower.ref);
+    // Only when the place pane's object changes by layout; a selection the person makes reaches it a moment later.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [followerShows]);
+
+  // The routes.
+  useEffect(() => {
+    const src = mapRef.current?.getSource("trip-routes") as GeoJSONSource | undefined;
+    src?.setData(routesFor(plan, params.day, theme));
+  }, [plan, params.day, theme, styleTick]);
+
+  // The pins: DOM markers, so each is a real button with a name, and big enough for a finger.
+  const pins = useMemo(
+    () => pinsFor(plan, params.day, candidates, selected),
+    [plan, params.day, candidates, selected],
+  );
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map) return;
+    const seen = new Set<string>();
+    for (const pin of pins) {
+      seen.add(pin.p.id);
+      let m = markers.current.get(pin.p.id);
+      if (!m) {
+        // MapLibre moves the marker's own element with `transform`; the pin is a button inside it, free to grow.
+        const wrap = document.createElement("div");
+        wrap.className = "pin-wrap";
+        const el = document.createElement("button");
+        el.type = "button";
+        el.className = "pin";
+        wrap.append(el);
+        el.addEventListener("click", (e) => {
+          e.stopPropagation();
+          selectPlace(jali, el.dataset.id!, { from: node.id });
+        });
+        const marker = new Marker({ element: wrap, anchor: "center" })
+          .setLngLat([pin.p.lng, pin.p.lat])
+          .addTo(map);
+        m = { marker, el };
+        markers.current.set(pin.p.id, m);
+      }
+      paintPin(m.el, pin, pin.p.id === selected);
+    }
+    for (const [id, m] of markers.current)
+      if (!seen.has(id)) {
+        m.marker.remove();
+        markers.current.delete(id);
+      }
+  }, [pins, selected, jali, node.id, styleTick]);
+
+  // A badge for each city, shown when the whole country is in view: its name and its days. A click frames it.
+  const badges = useRef(new Map<CityId, Marker>());
+  badgeList.current = () => {
+    const all = Array.from(badges.current.values());
+    badges.current.clear();
+    return all;
+  };
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map) return;
+    for (const city of ["bkk", "hkt"] as const) {
+      const days = daysIn(plan, city);
+      const pts = [plan.hotels[city], ...days.flatMap((d) => d.stops)].map(mustPlace);
+      const lat = pts.reduce((s, p) => s + p.lat, 0) / pts.length;
+      const lng = pts.reduce((s, p) => s + p.lng, 0) / pts.length;
+      let m = badges.current.get(city);
+      if (!m) {
+        const wrap = document.createElement("div");
+        wrap.className = "city-badge-wrap";
+        const el = document.createElement("button");
+        el.type = "button";
+        el.className = "city-badge";
+        wrap.append(el);
+        el.addEventListener("click", () => {
+          const all = [plan.hotels[city], ...daysIn(planRef.current, city).flatMap((d) => d.stops)].map(mustPlace);
+          const b = new LngLatBounds();
+          for (const p of all) b.extend([p.lng, p.lat]);
+          map.fitBounds(b, { padding: framePadding(map), maxZoom: 15, duration: reducedMotion() ? 0 : 900 });
+        });
+        m = new Marker({ element: wrap, anchor: "center" }).setLngLat([lng, lat]).addTo(map);
+        badges.current.set(city, m);
+      }
+      m.setLngLat([lng, lat]);
+      const el = m.getElement().firstElementChild as HTMLButtonElement;
+      const range = days.length > 1 ? `Days ${days[0]!.n} to ${days[days.length - 1]!.n}` : `Day ${days[0]?.n}`;
+      el.innerHTML = "";
+      const name = document.createElement("b");
+      name.textContent = CITY_NAME[city];
+      const sub = document.createElement("span");
+      sub.textContent = `${range}, ${days.reduce((s, d) => s + d.stops.length, 0)} stops`;
+      el.append(name, sub);
+      el.setAttribute("aria-label", `${CITY_NAME[city]}: ${range}. Show it on the map.`);
+    }
+  }, [plan, styleTick]);
+  const planRef = useRef(plan);
+  planRef.current = plan;
+
+  // A new day: frame its stops and its hotel, in its own city. "All" frames both cities.
+  const frame = (animate = true) => {
+    const map = mapRef.current;
+    const pts = framePoints(plan, params.day);
+    if (!map || !pts.length) return;
+    const b = new LngLatBounds();
+    for (const p of pts) b.extend([p.lng, p.lat]);
+    map.fitBounds(b, { padding: framePadding(map), maxZoom: 15, duration: animate && !reducedMotion() ? 700 : 0 });
+    framed.current = true;
+  };
+  frameRef.current = frame;
+  useEffect(() => {
+    whenShown(() => frame());
+    // Only when the day changes (or the map is first made): moving a stop doesn't re-frame the person's view.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [params.day]);
+
+  // A place selected anywhere: bring it into view, gently, unless it is already well inside. Not on the map's first
+  // show, which frames the day instead (the selection may be in the other city).
+  const firstSelection = useRef(true);
+  useEffect(() => {
+    if (firstSelection.current || quietSelection.current === selected) {
+      firstSelection.current = false;
+      quietSelection.current = null;
+      return;
+    }
+    if (!selected) return;
+    const p = placeById(selected);
+    if (!p) return;
+    whenShown(() => {
+      const map = mapRef.current;
+      if (!map) return;
+      const pt = map.project([p.lng, p.lat]);
+      const { clientWidth: w, clientHeight: h } = map.getContainer();
+      const inside = pt.x > w * 0.15 && pt.x < w * 0.85 && pt.y > h * 0.15 && pt.y < h * 0.7;
+      if (inside) return;
+      framed.current = false;
+      // Within a city, glide; to the other city (or out of the whole-country view), fly.
+      const far = haversineKm(map.getCenter(), { lat: p.lat, lng: p.lng }) > 60 || map.getZoom() < CITY_ZOOM;
+      const camera = {
+        center: [p.lng, p.lat] as [number, number],
+        zoom: Math.max(map.getZoom(), p.city === "hkt" ? 13 : 14),
+        duration: reducedMotion() ? 0 : far ? 1600 : 600,
+        padding: { top: 40, bottom: Math.min(180, h * 0.3), left: 20, right: 20 },
+      };
+      if (far) map.flyTo(camera);
+      else map.easeTo(camera);
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selected]);
+
+  const showDay = (n: number) => jali.actions.openHere(node.id, mapRef_(n));
+  useCommands(
+    inPeek
+      ? []
+      : [
+          {
+            id: "frame",
+            title: "Frame the day on the map",
+            run: () => frame(),
+          },
+          {
+            id: "all",
+            title: params.day ? "Show every day on the map" : "Showing every day",
+            disabled: params.day ? false : "Showing every day already",
+            run: () => showDay(0),
+          },
+        ],
+  );
+
+  if (inPeek) return <div className="pane-body map-peek">Open the map in a pane to see it.</div>;
+
+  const sel = selected ? placeById(selected) : undefined;
+  const day = params.day ? plan.days.find((d) => d.n === params.day) : undefined;
+  const totals = day ? dayTotals(plan, day) : null;
+  const legendCity: CityId | null = day && !day.from ? day.city : null;
+  return (
+    <div className="pane-body map" data-paused={paused || undefined}>
+      <div ref={box} className="map-canvas" />
+      <div className="map-top">
+        <Segmented
+          className="map-days"
+          label="Days on the map"
+          value={params.day}
+          onChange={showDay}
+          options={[
+            { value: 0, label: "All", title: "Every day" },
+            ...plan.days.map((d) => ({
+              value: d.n,
+              label: <span data-day={d.n} className="map-day-opt">{d.n}</span>,
+              title: `Day ${d.n}: ${d.title}`,
+            })),
+          ]}
+        />
+        {day && totals ? (
+          <p className="map-summary">
+            <b>{day.title}</b>
+            <span>
+              {CITY_NAME[day.city]}, {day.stops.length} stops, {f.minutes(totals.travelMin)} travelling
+            </span>
+          </p>
+        ) : null}
+      </div>
+      <ul className="map-legend" aria-label="Route key">
+        <li data-mode="walk">Walk</li>
+        {legendCity !== "hkt" ? <li data-mode="transit">Train or boat</li> : null}
+        <li data-mode="taxi">Taxi</li>
+        {legendCity !== "bkk" ? <li data-mode="scooter">Scooter</li> : null}
+        {!day || day.from ? <li data-mode="flight">Flight</li> : null}
+      </ul>
+      {/* The card is for a place on this map: a Bangkok place stays selected, but out of the way, on a Phuket day. */}
+      {sel && (!day || day.city === sel.city) ? (
+        <PlaceCard p={sel} dayN={params.day} plan={plan} from={node.id} />
+      ) : null}
+      {failed ? (
+        <div className="map-failed" role="status">
+          <WarningCircleIcon size={22} aria-hidden />
+          <p>
+            <b>The map tiles didn't load.</b> Your plan, the lists and the budget all work without them. Check
+            the connection and reload to try again.
+          </p>
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
+const mapRef_ = (day: number): ObjectRef => map({ day });
+
+function framePadding(map: MapLibre) {
+  const { clientWidth: w, clientHeight: h } = map.getContainer();
+  const pad = Math.max(24, Math.min(80, w * 0.08));
+  return { top: pad + 48, bottom: pad + Math.min(150, h * 0.25), left: pad, right: pad + 24 };
+}
+
+function paintPin(el: HTMLButtonElement, pin: Pin, selected: boolean) {
+  const { p, role, day, order } = pin;
+  el.dataset.id = p.id;
+  el.dataset.role = role;
+  el.dataset.category = p.category;
+  if (day) el.dataset.day = String(day);
+  else delete el.dataset.day;
+  el.toggleAttribute("data-selected", selected);
+  // The day's stops and the hotel are in the Tab order; other pins are reached by pointer or by the lists.
+  el.tabIndex = role === "stop" || role === "hotel" ? 0 : -1;
+  const text = role === "stop" ? String(order) : role === "other-day" ? "" : "";
+  if (el.textContent !== text) el.textContent = text;
+  el.setAttribute(
+    "aria-label",
+    role === "stop"
+      ? `Day ${day}, stop ${order}: ${p.name}`
+      : role === "hotel"
+        ? `Your hotel in ${CITY_NAME[p.city]}: ${p.name}`
+        : role === "airport"
+          ? p.name
+        : role === "other-day"
+          ? `${p.name}, on Day ${day}`
+          : `${p.name}, not planned`,
+  );
+  el.title = p.name;
+  el.parentElement!.style.zIndex = selected ? "5" : role === "stop" ? "3" : role === "hotel" ? "4" : "1";
+}
+
+/** The selected place, over the bottom of the map: what it is, and the next step. */
+function PlaceCard({ p, dayN, plan, from }: { p: Place; dayN: number; plan: Plan; from: string }) {
+  const jali = useJali();
+  const services = useServices();
+  const on = dayWith(plan, p.id);
+  const Icon = CATEGORY_ICON[p.category];
+  // The day to offer: the map's day if it is in the place's city, else the place's day, else its city's first day.
+  const mapDay = plan.days.find((d) => d.n === dayN);
+  const target = (mapDay?.city === p.city ? mapDay.n : undefined) ?? on?.n ?? daysIn(plan, p.city)[0]?.n ?? 1;
+  return (
+    <div className="map-card" aria-label={`Selected: ${p.name}`} role="region">
+      <div className="map-card-text">
+        <p className="map-card-kind">
+          <Icon size={14} weight="bold" aria-hidden /> {p.kind}, {p.area}
+          {p.fictional ? <span className="tag">Made up</span> : null}
+        </p>
+        <p className="map-card-name">{p.name}</p>
+        <p className="map-card-meta">
+          {on ? (
+            <>
+              <DayMark n={on.n} size="sm" /> Day {on.n}, stop {on.stops.indexOf(p.id) + 1}
+            </>
+          ) : isHotel(plan, p.id) ? (
+            `Your hotel in ${CITY_NAME[p.city]}`
+          ) : (
+            "Not planned"
+          )}
+          <span className="num">{f.price(p.price)}</span>
+        </p>
+      </div>
+      <button
+        type="button"
+        className="map-card-close icon-btn"
+        aria-label="Clear the selection"
+        title="Clear the selection"
+        onClick={() => jali.actions.select(from, null)}
+      >
+        <XIcon size={16} aria-hidden />
+      </button>
+      <div className="map-card-actions">
+        {(p.category === "sight" || p.category === "food") && on?.n !== target ? (
+          <button type="button" className="btn btn-primary" onClick={() => addToDay(services, p.id, target)}>
+            {on ? `Move to Day ${target}` : `Add to Day ${target}`}
+          </button>
+        ) : null}
+        <button type="button" className="btn" onClick={() => selectPlace(jali, p.id, { from, open: true })}>
+          Details
+        </button>
+      </div>
+    </div>
+  );
+}
+
+export const map = definePane("map", {
+  params: mapParams,
+  // The overview selects a day; the map that follows it shows that day.
+  follow: (selected) => (selected.kind === "day" ? { day: Number(selected.params.n) } : undefined),
+  title: ({ day }) => (day ? `Map of Day ${day}` : "Trip map"),
+  icon: MapTrifoldIcon,
+  width: { min: 360, comfortable: 640 },
+  height: { min: 300 },
+  // Stacked on a phone, the map goes on top: the place, or the day, reads below it.
+  phone: { place: "top" },
+  Component: MapPane,
+});

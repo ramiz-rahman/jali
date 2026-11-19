@@ -176,14 +176,16 @@
     color: var(--jali-text-muted);
     white-space: nowrap;
   }
-  .clock-label {
-    font-family: var(--jali-font);
-  }
+  /* Marks a real price: the crypto levels in the strip, and the note in the status line. */
   .live-dot {
+    display: inline-block;
+    flex: none;
     width: 6px;
     height: 6px;
+    margin-right: 5px;
     border-radius: 50%;
     background: var(--mk-up);
+    vertical-align: 1px;
   }
 
   /* Narrower: the strip shortens first, then the desk buttons become a menu, then labels go. */
@@ -214,19 +216,14 @@
     .desks-select {
       display: block;
     }
-    .desks-select select {
+    .desks-select .select-trigger {
       height: 28px;
-      padding: 0 6px;
-      border: 1px solid var(--jali-border-strong);
-      border-radius: var(--jali-radius-control);
-      background: var(--jali-canvas);
     }
     .search {
       min-width: 0;
     }
     .search-text,
-    .search kbd,
-    .clock-label {
+    .search kbd {
       display: none;
     }
   }

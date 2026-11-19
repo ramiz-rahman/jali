@@ -12,7 +12,7 @@
  *     <JaliView />
  *   </JaliRoot>
  *
- * Two things are the host's to render: the shelf (`<Shelf />`, tucked and folded panes as chips, usually in a status
+ * Two things are the host's to render: the shelf (`<Shelf />`, tucked panes as chips, usually in a status
  * line) and toasts (`jali.onToast`; closes and tucks offer Undo). Put a toaster in `overlays`.
  *
  * Icons: Jali's own (`defaultIcons`), with the host's `icons` over them by name.

@@ -85,7 +85,7 @@ export const resetLayout = () => jali.actions.resetLayout();
 - `presets` is the list, in menu order. ⌘K shows each as "Layout: *label*".
 - `preset` is the one to open on. Without it, the first. A link with a layout in it wins over both: see [Keep the layout in the URL](url-and-routers.md).
 - `jali.actions.preset(id)` switches. If a pane that would go has unsaved work, the person is asked first.
-- `jali.actions.resetLayout()` rebuilds the preset in use. ⌘K "Reset layout" does the same.
+- `jali.actions.resetLayout()` rebuilds the preset in use, as written. ⌘K "Reset layout" does the same.
 - `jali.get().presetId` is the preset in use, the last one chosen. A layout link names it (`preset=` beside `l=`), so a colleague who opens the link has the same preset marked in your menu, and Reset rebuilds it.
 
 Switching to a preset is a new step in the browser's history, so Back returns to the layout before it.
@@ -132,6 +132,30 @@ jali.on("layout", ({ layout, source }) => {
 - `jali.getLayout()` is the layout on screen, as JSON, at any time.
 - A link in the address still wins over `layout`, so a shared link opens what was shared.
 - A layout that arrives after the workspace is made goes through `jali.setLayout(saved)`. It fits the layout to the room, asks before losing unsaved work, and adds a history entry, so Back returns. It returns `{ ok: false, reason: "invalid" }` for a layout with a pane kind the workspace no longer has.
+
+## Keep each preset as it was left
+
+By default, choosing a preset builds its layout afresh, so a person who rearranges one preset, moves to another and comes back finds their changes gone. To bring each preset back as it was left, keep its layout as it changes and give it back with `saved`:
+
+```ts
+const left = new Map<string, LayoutInput>(); // or localStorage, or your server
+const jali = createJali({
+  panes,
+  presets: presets.map((p) => ({ ...p, saved: () => left.get(p.id) })),
+});
+
+jali.on("layout", ({ layout }) => {
+  const id = jali.get().presetId;
+  if (id) left.set(id, layout);
+});
+```
+
+- `saved` is asked every time the preset is chosen: from your menu, ⌘K or a key. Return `undefined` to build `layout`.
+- "Reset layout" (`jali.actions.resetLayout()`) always builds the preset's own `layout`, so the person can get back to it.
+- A saved layout naming a pane kind the workspace no longer has is ignored, and `layout` is built.
+- The switch is still one step in history, and still asks before losing unsaved work.
+
+The Markets example keeps its desks this way, in `localStorage`, with a button that resets every desk.
 
 ## No presets: one starting layout
 

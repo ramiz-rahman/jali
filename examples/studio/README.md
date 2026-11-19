@@ -3,8 +3,8 @@
 An audio session editor, for a short podcast episode or a recorded interview with a music bed. A library of sessions, a transcript that lights up word by word as it plays, a timeline of the tracks, a mixer on the real audio graph, a detail for each segment and a list of markers. One transport, in the app's own top bar, plays the session; every pane follows its playhead. It is built on `@jali/core` and `@jali/react` alone, with a hardware-inspired look: each pane is a device on a desk.
 
 ```sh
-pnpm install         # at the repository's root
-pnpm example:studio  # http://localhost:5330
+vp install              # at the repository's root
+vp dev examples/studio  # http://localhost:5330, or the next free port
 ```
 
 Build it as a static site with `pnpm exec vp build` in this folder, and serve `dist/` from any path: assets and audio clips are linked relative to the page, and the layout lives in the query string.
@@ -13,7 +13,7 @@ The audio is real. The speech is one clip per transcript segment, read by macOS 
 
 ## The voices are placeholders
 
-The speech was made with macOS system voices (`say`), as a placeholder for the lab. Replace it with properly licensed recordings before this example is published. The script is in `scripts/dialogue.mjs`: three short fictional interviews. Every show, person and place in them is made up.
+The speech was made with macOS system voices (`say`), as a placeholder. Replace it with properly licensed recordings before this example is published. The script is in `scripts/dialogue.mjs`: three short fictional interviews. Every show, person and place in them is made up.
 
 ## What to try
 

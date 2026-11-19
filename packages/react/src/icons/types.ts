@@ -26,6 +26,8 @@ export type JaliIconName =
   | "putBack"
   | "newTab"
   | "more"
+  | "menu"
+  | "popOut"
   | "current"
   | "fold"
   | "grip"

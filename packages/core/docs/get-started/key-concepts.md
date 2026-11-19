@@ -106,7 +106,7 @@ Each kind says the narrowest it works at (`width.min`). When the window is too n
 
 *Live demo on the site: Narrow the frame: panes fold into tabs one at a time, and come back as it widens.*
 
-A folded tab is marked as made by the layout: italic, with a fold icon. It needs nothing from the person. [How a layout fits](../learn/fitting.md) explains what folds first.
+Folded panes wait behind one **N folded** chip at the end of the tab strip, never mixed with the tabs the person made. They need nothing from the person. [How a layout fits](../learn/fitting.md) explains what folds first.
 
 <h3 id="pane-cap">Pane cap</h3>
 
@@ -120,9 +120,7 @@ When even one pane is too wide for the workspace at its minimum, as on a phone, 
 
 Tucking puts a pane away by hand: it becomes a tab of a neighbour (its home), and the home takes its space. Nothing else on screen moves.
 
-A tucked tab has a **Put back** button that restores its slot. The shelf, `<Shelf />`, lists tucked panes by home, then folded ones; you place it in your own chrome, such as a status line.
-
-*Live demo on the site: The shelf lists what is tucked and what is folded.*
+A tucked tab has a **Put back** button that restores its slot. The shelf, `<Shelf />`, lists tucked panes by home; you place it in your own chrome, such as a status line. It holds only what the person put away, never what the layout folded.
 
 ## Working in panes
 
@@ -148,7 +146,7 @@ The detail waits until the selection rests for 150ms, so holding J doesn't load 
 
 A pane opened from another is linked to it (`linkedTo`). A plain link, such as a customer name in a ticket, replaces the earlier link of the same kind from the same pane instead of adding another pane.
 
-A kept pane stays on its object: it never follows and is never reused for another link, and it folds after panes that are not kept. **Keep** in a linked pane's header keeps it.
+A kept pane stays on its object: it never follows and is never reused for another link, and it folds after panes that are not kept. A linked pane's header says **Following**; clicking it keeps the pane, and it says **Kept**.
 
 ## Curated pages
 

@@ -4,7 +4,7 @@
  * attribute not listed is Jali's own and may change in any release. State is always an attribute (`data-*` or ARIA),
  * never a class, so a selector reads `.jali-pane[data-focused]`.
  *
- * The docs' Parts reference is built from this list, and `src/tests/parts.test.tsx` checks that each part and
+ * The docs' Parts reference is built from this list, and `tests/parts.test.tsx` checks that each part and
  * attribute is really rendered.
  */
 
@@ -101,7 +101,7 @@ export const parts = {
   },
   paneActions: {
     selector: ".jali-pane-actions",
-    what: "The header's buttons: tuck, maximise, close.",
+    what: "The header's buttons (`buttons`: by default tuck, maximise, close), and ⋯ for the rest of the pane's menu.",
     attributes: [],
   },
   paneContent: {
@@ -211,9 +211,14 @@ export const parts = {
     what: "The chip that follows the pointer while a pane is dragged.",
     attributes: [],
   },
+  tabFolded: {
+    selector: ".jali-tab-folded",
+    what: 'The "N folded" chip at the end of a tab strip: the panes the layout folded into this place, but the one it shows. Its menu lists them.',
+    attributes: [],
+  },
   shelf: {
     selector: ".jali-shelf",
-    what: "Tucked and folded panes, as chips (`<Shelf />`).",
+    what: "The panes you tucked, as chips (`<Shelf />`). Folded panes wait behind their strip's `tabFolded` chip.",
     attributes: [],
   },
   shelfChip: {
@@ -221,13 +226,12 @@ export const parts = {
     what: "A chip on the shelf.",
     attributes: [
       { name: "data-chip", means: "The pane's id." },
-      { name: "data-reason", means: "`tucked` or `folded`." },
+      { name: "data-reason", means: "`tucked`." },
       {
         name: "data-activity",
         means:
           "The pane's activity (`useActivity`): `idle`, `working` (loading too), `needs-you` or `failed`.",
       },
-      { name: "data-summary", means: 'Flag: the one "N folded" chip that stands for several.' },
       unsaved,
     ],
   },

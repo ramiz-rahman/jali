@@ -8,10 +8,13 @@ import { say } from "../state/messages";
 import type { Settings } from "../state/settings";
 import { withRecent } from "./open";
 
-export function preset({ s, ctx, env }: Snapshot, id: string | undefined): Outcome {
+/** Switch to a preset: the layout the app saved for it (`PresetOptions.saved`), if it has one this workspace can
+ *  still read, else its own. `own`: always its own (Reset layout). */
+export function preset({ s, ctx, env }: Snapshot, id: string | undefined, own = false): Outcome {
   const p = presetById(env, id);
   if (!p) return null;
-  const built = p.build();
+  const saved = own ? undefined : p.saved?.();
+  const built = (saved && readLayout(saved, env)) || p.build();
   const initial = core.tree.panes(built.root)[0]?.id;
   const layout = core.resetLayout(
     built,
@@ -31,7 +34,16 @@ export function preset({ s, ctx, env }: Snapshot, id: string | undefined): Outco
   };
 }
 
-export const resetLayout = (x: Snapshot) => preset(x, x.s.presetId);
+export const resetLayout = (x: Snapshot) => preset(x, x.s.presetId, true);
+
+function readLayout(input: LayoutInput, env: Snapshot["env"]): Layout | undefined {
+  try {
+    const layout = structuredClone(toLayout(input));
+    return core.validate(layout, env.kinds.registry()).ok ? layout : undefined;
+  } catch {
+    return undefined;
+  }
+}
 
 /** A layout arriving from outside (link, reload, Back): keep focus where it still exists, and fit it to the window.
  *  `presetId`: the preset the link says the layout came from (a known one); without it the preset stays as it is. */

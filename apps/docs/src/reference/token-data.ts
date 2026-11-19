@@ -111,7 +111,7 @@ export const TOKEN_PURPOSE: Record<string, TokenInfo> = {
     group: "Accent",
     swatch: "color",
     purpose:
-      "A soft accent fill, for the host (the lab and the docs use it). Part of the palette and mapped by the Tailwind bridge; Jali's own styles mix their tints from the accent instead.",
+      "A soft accent fill, for the host (the example apps and the docs use it). Part of the palette and mapped by the Tailwind bridge; Jali's own styles mix their tints from the accent instead.",
   },
   "--jali-brand": {
     group: "Accent",

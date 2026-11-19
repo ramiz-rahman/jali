@@ -5,7 +5,7 @@ Read first: `docs/DOCS-PLAN.md` (what the site holds), `docs/research/docs-sites
 ## Run it
 
 - `cd apps/docs && JALI_DOCS_CACHE=node_modules/.vite-<you> pnpm exec vp dev --port <your port> --strictPort`. Your own cache directory and port, always: two dev servers sharing a cache break each other.
-- Ports: 5400 lead, 5401 shell, 5402 live, 5403 concepts, 5404 reference, 5405 guides. The lab's own server is 5300; leave it alone.
+- Ports: 5400 lead, 5401 shell, 5402 live, 5403 concepts, 5404 reference, 5405 guides. The example apps' servers are 5300 (Data Studio) and 5350 (Loan review); leave them alone.
 - `npx tsc --noEmit -p apps/docs` must pass. Check your pages in a real browser (Playwright, `channel: "chrome"`), at 1440 and 390 wide, light and dark.
 
 ## Who owns what (edit only your files)
@@ -18,7 +18,7 @@ Read first: `docs/DOCS-PLAN.md` (what the site holds), `docs/research/docs-sites
 | Reference           | `src/pages/reference/**`, `src/reference/**`, `src/samples/reference/**`                                                                            |
 | Guides and examples | `src/pages/guides/**`, `src/pages/examples/**`, `src/samples/guides/**`                                                                             |
 
-Never edit `packages/**`, the lab (`src/` at the repo root) or another area's files. If the packages are wrong, unclear or missing something, say so in your report with the file and line; don't work around it in the docs.
+Never edit `packages/**`, the example apps (`examples/`) or another area's files. If the packages are wrong, unclear or missing something, say so in your report with the file and line; don't work around it in the docs.
 
 ## Contracts (names and props are fixed; implementations may change)
 
@@ -33,7 +33,7 @@ Never edit `packages/**`, the lab (`src/` at the repo root) or another area's fi
 ## Writing
 
 - Plain, short sentences. Say what something does for the reader, then how. One idea per paragraph. No marketing words ("powerful", "seamless", "robust"), no em dashes, no jargon a reader has to look up; when a Jali word is needed, link it to Key concepts the first time.
-- Every fact about behaviour comes from the code (`packages/core/src`, `packages/react/src`) or the lab's tests and decisions (`docs/DECISIONS.md`). Don't guess. If you can't confirm something, leave it out and say so in your report.
+- Every fact about behaviour comes from the code (`packages/core/src`, `packages/react/src`) or the repo's tests and decisions (`docs/DECISIONS.md`). Don't guess. If you can't confirm something, leave it out and say so in your report.
 - Examples use neutral, real-feeling domains (orders, customers, notes, tickets), never "foo/bar".
 
 ## Git

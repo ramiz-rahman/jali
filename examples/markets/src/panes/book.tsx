@@ -31,6 +31,12 @@ function BookPane({ params, paused }: PaneProps<typeof bookParams>) {
 
 function BookBody({ inst, paused }: { inst: Instrument; paused: boolean }) {
   const b = useTopic({ channel: "book", symbol: inst.symbol }, paused);
+  if (!b.bids.length && !b.asks.length)
+    return (
+      <Empty icon={<StackIcon size={20} aria-hidden />} title="Waiting for the book">
+        {inst.source ? `Asking ${inst.source} for ${inst.symbol}'s order book.` : "No orders yet."}
+      </Empty>
+    );
   const depth = (levels: BookLevel[]) =>
     levels.reduce<number[]>((acc, l) => [...acc, (acc.at(-1) ?? 0) + l.size], []);
   const bidDepth = depth(b.bids);
@@ -39,6 +45,9 @@ function BookBody({ inst, paused }: { inst: Instrument; paused: boolean }) {
   const bidTotal = bidDepth.at(-1) ?? 0;
   const askTotal = askDepth.at(-1) ?? 0;
   const bidShare = bidTotal / (bidTotal + askTotal || 1);
+  // Kraken's book gives sizes, not how many orders make them up.
+  const counted = inst.source === undefined;
+  const cols = counted ? 3 : 2;
 
   const row = (l: BookLevel, cum: number, side: "bid" | "ask") => (
     <tr key={`${side}-${l.price}`} data-side={side}>
@@ -47,7 +56,7 @@ function BookBody({ inst, paused }: { inst: Instrument; paused: boolean }) {
         <span className="b-bar" style={{ width: `${(cum / most) * 100}%` }} aria-hidden />
         <span>{f.size(l.size)}</span>
       </td>
-      <td className="b-orders">{l.orders}</td>
+      {counted ? <td className="b-orders">{l.orders}</td> : null}
     </tr>
   );
 
@@ -65,9 +74,11 @@ function BookBody({ inst, paused }: { inst: Instrument; paused: boolean }) {
             <th scope="col" className="b-size">
               Size
             </th>
-            <th scope="col" className="b-orders">
-              Orders
-            </th>
+            {counted ? (
+              <th scope="col" className="b-orders">
+                Orders
+              </th>
+            ) : null}
           </tr>
         </thead>
         <tbody>
@@ -76,7 +87,7 @@ function BookBody({ inst, paused }: { inst: Instrument; paused: boolean }) {
             .reverse()
             .map(({ l, cum }) => row(l, cum, "ask"))}
           <tr className="b-spread">
-            <td colSpan={3}>
+            <td colSpan={cols}>
               Spread{" "}
               {b.bids[0] && b.asks[0] ? f.spread(inst, b.bids[0].price, b.asks[0].price) : ""}
             </td>

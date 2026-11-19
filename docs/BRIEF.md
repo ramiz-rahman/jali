@@ -1,4 +1,4 @@
-# Pane lab: brief
+# Jali: brief
 
 **What this is:** a throwaway spike that proves the shared Sixface pane system before any shared package is built. The founder agreed it on 17 Nov 2026.
 
@@ -10,9 +10,9 @@
 
 All three are in the same folder.
 
-**Data:** Data Studio's fictional sample database, from `src/data/sample-sql.ts`, a copy of `packages/contracts/src/sample.ts`. It runs in the browser on PGlite, with no backend.
+**Data:** Data Studio's fictional sample database, from `examples/shared/src/data/sample-sql.ts`, a copy of `packages/contracts/src/sample.ts`. It runs in the browser on PGlite, with no backend.
 
-## What the lab must prove
+## What Jali must prove
 
 1. **Many arbitrary panes fit or fold, and are never squeezed.** Chains of 6–10 panes built by following relations, for example order → customer → their orders → product → supplier → reviews. Required behaviours:
    - pixel minimums per pane kind;
@@ -34,7 +34,7 @@ All three are in the same folder.
 
 ## Architecture
 
-The engine is two packages in a pnpm workspace (since 19 Nov 2026); the lab is an app built on them.
+The engine is two packages in a pnpm workspace (since 19 Nov 2026). Five example apps are built on them (since 20 Nov 2026; before that, Data Studio and the loan review were one app, "the lab", at the root).
 
 ```
 packages/core/     @jali/core, no framework: layout/ (model, ops, fit, codec, validation), the workspace store,
@@ -42,17 +42,22 @@ packages/core/     @jali/core, no framework: layout/ (model, ops, fit, codec, va
 packages/react/    @jali/react: workspace renderer, pane frame and tabs, dividers, peek, drag/drop zones, shelf,
                    curated page, palette, settings, chooser, announcer; styles.css (theme + workspace, @layer jali)
                    and tailwind.css (the bridge to a host's Tailwind theme)
-src/data/          PGlite + sample + TanStack Query keys + entity invalidation + result store       (no layout knowledge)
-src/panes/         Data Studio's pane kinds and presets: table-list (catalog), table (grid), record, related,
-                   query (editor+results), chart (of a result handle), structure, er, audit, launcher
-src/review/        the loan review: its profile (a curated page), kinds and views
-src/shell/         the lab's own top bar, status line, toasts (Sonner) and app switch
-src/tests/         engine tests that run against the lab's kinds
-e2e/               Playwright demo script that walks every interaction and asserts the key behaviours
+apps/docs/         the docs site; scripts/agent-docs.mjs writes its pages into packages/core/docs as Markdown
+examples/          five example apps, each with `vp dev examples/<name>`:
+  data-studio/     a database browser: catalog, query, chart, structure, er, audit, launcher; its presets
+  loan-review/     a curated page: the loan review's profile, kinds and views
+  markets/ studio/ trips/   a market terminal, an audio editor, a trip planner
+  shared/          not an app: what Data Studio and Loan review share. data/ (PGlite + sample + TanStack Query
+                   keys + entity invalidation + result store, no layout knowledge), the table, record and related
+                   panes and the grid, and shell/ (top bar, status line, toasts with Sonner)
+fixtures/          minimal and own-icons: the quickstart's app and the bundle-size checks' apps
+tests/             engine tests that run against Data Studio's and Loan review's kinds in one store
+e2e/               Playwright demo script that walks every interaction and asserts the key behaviours, against
+                   Data Studio (:5300) and Loan review (:5350)
 docs/              BRIEF.md, DECISIONS.md (every deviation, with reason), FINDINGS.md (what we learned, for the founder)
 ```
 
-**Contracts:** `packages/core/src/layout/types.ts` and `src/data/types.ts`. The coordinator wrote them. Implement them; any signature change goes in `docs/DECISIONS.md`.
+**Contracts:** `packages/core/src/layout/types.ts` and `examples/shared/src/data/types.ts`. The coordinator wrote them. Implement them; any signature change goes in `docs/DECISIONS.md`.
 
 ## Visual language
 
@@ -67,7 +72,7 @@ There is **no app shell beyond a slim 48px top bar** (title, layout presets, set
 
 ## Rules
 
-- Run `pnpm test` and `pnpm typecheck` before handing back. Keep `pnpm dev` working on port 5300.
+- Run `pnpm test` and `pnpm typecheck` before handing back. Keep `vp dev` working on port 5300.
 - **No network installs:** dependencies are already installed. Ask the coordinator if something is missing.
 - Commit small and often on `main`, with plain messages. The git identity is the machine's. Do not add a co-author line, and do not push (there is no remote).
 - Touch only your work package's folders, plus `docs/DECISIONS.md` (append only).

@@ -26,10 +26,7 @@ export function StatusLine() {
       <Shelf />
       <span className="status-focus">{focused ? m.title(focused) : ""}</span>
       <span className="status-hint">{hint}</span>
-      <span
-        className="status-note"
-        title="The voices are macOS system voices, a placeholder for the lab."
-      >
+      <span className="status-note" title="The voices are macOS system voices, a placeholder.">
         Placeholder voices · synthesised music
       </span>
     </footer>

@@ -5,7 +5,7 @@
  *
  *   pnpm icons
  *
- * `src/tests/default-icons.test.ts` fails when the file and this script disagree.
+ * `tests/default-icons.test.ts` fails when the file and this script disagree.
  */
 import { readFileSync, writeFileSync } from "node:fs";
 import { createRequire } from "node:module";
@@ -28,6 +28,8 @@ export const SOURCES = {
   putBack: "ArrowUUpLeft",
   newTab: "Plus",
   more: "CaretDown",
+  menu: "DotsThree",
+  popOut: "PictureInPicture",
   current: "Check",
   fold: "ArrowsInLineHorizontal",
   grip: "DotsSix",

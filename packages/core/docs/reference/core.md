@@ -36,7 +36,7 @@ Its listeners (keys, Back and Forward, theme and saving) start with `jali.start(
 
 - **`layout`** (`LayoutInput`): The layout it opens on: a builder's result (`row(...)`), a single ref, or a whole `Layout`. Give this or `presets`.
 
-- **`presets`** (`readonly PresetOptions[]`): Layouts to start from, in menu order, each `{ id, label, layout }`. Each gets a `layout.preset.<id>` command, titled "Layout: label", and "Reset layout" rebuilds the one in use. `layout` may be a function, to build a fresh one each time.
+- **`presets`** (`readonly PresetOptions[]`): Layouts to start from, in menu order, each `{ id, label, layout }`. Each gets a `layout.preset.<id>` command, titled "Layout: label", and "Reset layout" rebuilds the one in use. `layout` may be a function, to build a fresh one each time. `saved` gives back the layout the person left a preset in.
 
 - **`preset`** (`string`): The preset it opens on when no link says otherwise. An id that is not in `presets` also gives the first.
 
@@ -97,6 +97,8 @@ The address.
 - **`rename`** (`Rename`): Renaming in place: double-click or F2 on a tab or a lone pane's title opens a field there, and `run(pane, text)` saves the name in your app. `can(pane)` limits it to some panes. Without it, nothing offers renaming. See [`Rename`](core/types.md#Rename).
 
 - **`allow`** (`WorkspaceAllow`): What may happen to panes: turn controls off for the whole workspace (`{ fullScreen: false }`), turn Pop out on (`{ popOut: true }`), and `when({ action, pane, presetId, page })` to decide by context; `false` refuses. Each kind's own `allow` is asked first, and only takes away. See [Choose what people can do with panes](../guides/pane-controls.md) and [`WorkspaceAllow`](core/types.md#WorkspaceAllow).
+
+- **`buttons`** (`PaneButtons`): The buttons in a pane's header, as shortcuts: everything allowed is in the pane's menu (right-click, ⋯ or Shift+F10) and ⌘K either way. Leave it out for Jali's: Tuck, Maximise and Close, with Full screen in Maximise's place on a lone pane. A list replaces them; a function adjusts them (`(defaults) => [...defaults, "popOut"]`). A kind's own `buttons` win. See [`PaneButtons`](core/types.md#PaneButtons).
 
 - **`phone`** (`PhoneOptions`): Phones: below `phone.below` pixels of workspace width (default 600) the workspace shows Single view, one pane at a time with a switcher, whatever the panes' minimums. `{ below: 0 }` switches only when even one pane can't fit. See [`PhoneOptions`](core/types.md#PhoneOptions).
 

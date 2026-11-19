@@ -39,6 +39,13 @@ export interface PresetOptions {
   label: string;
   /** The layout, or a function that builds it each time it is chosen. */
   layout: LayoutInput | (() => LayoutInput);
+  /**
+   * The layout the person left this preset in, if the app kept one (from `getLayout()`, or `on("layout")`).
+   * Choosing the preset, from a button, ⌘K or a key, shows it instead of `layout`, so each preset comes back as it
+   * was arranged. "Reset layout" (`resetLayout`) builds `layout`. A saved layout that names a kind this workspace
+   * no longer has is ignored.
+   */
+  saved?: () => LayoutInput | undefined;
 }
 
 export interface JaliOptions<D extends PaneKindBase = PaneKindBase> {
@@ -143,6 +150,14 @@ export interface JaliOptions<D extends PaneKindBase = PaneKindBase> {
    * an agent), and the chrome draws only what is allowed. Default: everything but Pop out.
    */
   allow?: WorkspaceAllow;
+  /**
+   * The buttons in a pane's header, as shortcuts: everything allowed is in the pane's menu (right-click, ⋯ or
+   * Shift+F10) and ⌘K either way. Leave it out for Jali's: Tuck, Maximise and Close, with Full screen in Maximise's
+   * place on a lone pane. A list replaces them (`["maximise", "close"]`); a function adjusts them
+   * (`(defaults) => [...defaults, "popOut"]`). A kind's own `buttons` win over these. `allow` still filters them, and
+   * Restore and Exit full screen always show while a pane is maximised or full screen.
+   */
+  buttons?: import("./pane/buttons").PaneButtons;
   /** Settings for a person who has none saved on this device yet: `{ theme: "dark" }` for a dark-first app. Settings
    *  the person changes are saved and win from then on. Default: Jali's (`theme: "system"`, `paneCap: 8`, ...). */
   settings?: Partial<Settings>;
@@ -159,9 +174,10 @@ export type { Jali };
 
 const inBrowser = typeof window !== "undefined";
 
-const presetOf = ({ id, label, layout }: PresetOptions): Preset => ({
+const presetOf = ({ id, label, layout, saved }: PresetOptions): Preset => ({
   id,
   label,
+  ...(saved ? { saved } : {}),
   build: () => toLayout(typeof layout === "function" ? layout() : structuredClone(layout)),
 });
 
@@ -218,6 +234,7 @@ export function createJali<D extends PaneKindBase>(options: JaliOptions<D>): Jal
     ...(options.rename ? { rename: options.rename } : {}),
     ...(options.phone ? { phone: options.phone } : {}),
     ...(options.allow ? { allow: options.allow } : {}),
+    ...(options.buttons ? { buttons: options.buttons } : {}),
     initial: {
       ...(layout ? { layout: toLayout(layout) } : {}),
       ...(size ? { area: size } : {}),

@@ -6,6 +6,7 @@ import type { NodeId, ObjectRef } from "../layout/types";
 import { tabsToClose } from "../actions/close";
 import { tabBounds } from "../actions/tabs";
 import { canRename } from "../actions/rename";
+import { checkTuck } from "../actions/tuck";
 import { allows, type PaneControl } from "../actions/allow";
 import type { UiStore } from "../state/store";
 
@@ -50,18 +51,23 @@ export function tabMenuOf(store: UiStore, id: NodeId): TabMenuItem[][] {
   const may = (c: PaneControl) => allows(x, id, c);
   const close: TabMenuItem[] = [
     ...(may("close") ? [{ id: "close", title: t.closeTab, run: () => a.close(id) }] : []),
-    {
-      id: "close-others",
-      title: t.closeOtherTabs,
-      disabled: !others,
-      run: () => a.closeTabs(id, "others"),
-    },
-    {
-      id: "close-after",
-      title: t.closeTabsAfter(rtl ? "left" : "right"),
-      disabled: !after,
-      run: () => a.closeTabs(id, "after"),
-    },
+    // Closing other tabs needs tabs: a pane on its own (its header's menu) has none.
+    ...(st
+      ? [
+          {
+            id: "close-others",
+            title: t.closeOtherTabs,
+            disabled: !others,
+            run: () => a.closeTabs(id, "others"),
+          },
+          {
+            id: "close-after",
+            title: t.closeTabsAfter(rtl ? "left" : "right"),
+            disabled: !after,
+            run: () => a.closeTabs(id, "after"),
+          },
+        ]
+      : []),
   ];
   const move: TabMenuItem[] = st
     ? [
@@ -138,6 +144,20 @@ export function tabMenuOf(store: UiStore, id: NodeId): TabMenuItem[][] {
             run: () => void a.toggleZoom(id),
           },
         ]
+      : []),
+    ...(s.page?.mode !== "single" && (s.fullScreen === id || may("fullScreen"))
+      ? [
+          {
+            id: "full-screen",
+            title: s.fullScreen === id ? t.exitFullScreen : t.fullScreen,
+            keys: keys("pane.fullscreen"),
+            run: () => void a.toggleFullScreen(id),
+          },
+        ]
+      : []),
+    // A pane on its own (no tabs) can be tucked from its menu; a tab's group is already its neighbour.
+    ...(!st && m.panes.length > 1 && s.view.zoomed !== id && may("tuck") && !checkTuck(x, id)
+      ? [{ id: "tuck", title: t.tuck, keys: keys("pane.tuck"), run: () => void a.tuck(id) }]
       : []),
   ];
   return [close, [...move, ...moves], arrange, [...app]].filter((g) => g.length);

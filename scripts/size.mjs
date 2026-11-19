@@ -20,13 +20,13 @@ const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 // Scenario → entry file in scripts/size/; gzipped budgets in KB, about 10% over what each shipped on 19 Nov 2026
 // (docs/DECISIONS.md has the numbers); and source files it must not ship (more than a stray mapping's few bytes).
 const SCENARIOS = {
-  // One kind, no curated page, no launcher: examples/minimal without its fonts.
+  // One kind, no curated page, no launcher: fixtures/minimal without its fonts.
   minimal: { entry: "minimal.tsx", budget: { core: 49.5, react: 18.3, css: 7.8, phosphor: 0 } },
   // Every feature: a curated page, presets, a launcher, URL sync, host commands and the hooks.
   full: { entry: "full.tsx", budget: { core: 49.5, react: 19, css: 7.8, phosphor: 2 } },
-  // examples/own-icons: the host's own icon for every name.
+  // fixtures/own-icons: the host's own icon for every name.
   "own-icons": {
-    entry: "../../examples/own-icons/src/main.tsx",
+    entry: "../../fixtures/own-icons/src/main.tsx",
     budget: { core: 49.5, react: 18.3, css: 7.8, phosphor: 0 },
   },
   // The workspace without React.

@@ -381,6 +381,8 @@ What a kind says about itself, apart from how it renders. In React, `definePane(
 
 - **`allow`** (`PaneAllow`): What may happen to panes of this kind, for what its content can handle: `{ fullScreen: false }`. A kind can only turn controls off. See `PaneAllow`.
 
+- **`buttons`** (`PaneButtons`): The buttons in this kind's header, replacing the workspace's: a list, or a function that adjusts them (`(defaults) => [...defaults, "popOut"]`). Leave it out for the workspace's, or Jali's. See `PaneButtons`.
+
 - **`phone`** (`{ stack?: boolean; place?: "top" | "bottom" }`): Phones only, in stacked view (`createJali({ phone: { stack: true } })`). `stack: false` keeps panes of this kind out of it, so they show alone. `place` asks for the top or the bottom half; otherwise the pane others were opened from goes above.
 
 - **`follow`** (`(selected: ObjectRef) => FollowParams<P> | undefined`): What a following pane of this kind shows when its list selects an object of another kind: the params for it, or `undefined` to keep what it shows. `follow: (selected) => ({ symbol: selected.params.symbol })` lets a chart follow a watchlist that selects quotes. A follower of the selected object's own kind shows that object without it. Params given as `undefined` are left out; if the kind can't read the result (a required param missing), the pane keeps what it shows. See [Following a list](../../learn/following.md#followers-of-other-kinds).
@@ -693,6 +695,36 @@ interface AllowContext { action: PaneControl; pane: PaneNode; presetId?: string;
 
 What `when` is asked about: the action, the pane (its id, kind and params, role, pins and links), the preset the layout came from, and the curated page while one is open.
 
+### PaneButton
+
+*type*, from `@jali/core`
+
+```ts
+type PaneButton = "tuck" | "maximise" | "fullScreen" | "popOut" | "close"
+```
+
+A button a pane's header can show. `maximise` is Restore while the pane is maximised; `fullScreen` is Exit full screen while it is full screen; `popOut` is Bring back while it is popped out.
+
+### PaneButtons
+
+*type*, from `@jali/core`
+
+```ts
+type PaneButtons = readonly PaneButton[] | ((defaults: readonly PaneButton[], ctx: ButtonsContext) => readonly PaneButton[])
+```
+
+A header's buttons, in order: a list that replaces the defaults, or a function that adjusts them (`(defaults) => [...defaults, "popOut"]`). Jali's defaults are `["tuck", "maximise", "close"]`, with `fullScreen` in Maximise's place on a lone pane. `allow` and Jali's own rules still filter the list, and Restore and Exit full screen always show while the pane is in that state. A ⋯ button opens the pane's menu whenever it offers more than the buttons do.
+
+### ButtonsContext
+
+*type*, from `@jali/core`
+
+```ts
+interface ButtonsContext { pane: PaneNode; presetId?: string; page?: { mode: ViewMode; item?: string } | null }
+```
+
+What a `buttons` function is told: the pane, the preset the layout came from, and the curated page while one is open.
+
 ### PhoneOptions
 
 *type*, from `@jali/core`
@@ -728,10 +760,10 @@ A layout to start from or switch to ("Layout: Orders"), as `jali.env.presets` ho
 *type*, from `@jali/core`
 
 ```ts
-interface PresetOptions { id: string; label: string; layout: LayoutInput | (() => LayoutInput) }
+interface PresetOptions { id: string; label: string; layout: LayoutInput | (() => LayoutInput); saved?: () => LayoutInput | undefined }
 ```
 
-A preset, as `createJali({ presets })` takes it.
+A preset, as `createJali({ presets })` takes it. `saved`, if given, is asked each time the preset is chosen: a layout it returns is shown instead of `layout`, so the preset comes back as the person left it. "Reset layout" always builds `layout`. See [Start from presets](../../guides/presets.md#keep-each-preset-as-it-was-left).
 
 ### Env
 

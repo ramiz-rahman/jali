@@ -23,7 +23,7 @@ Two sibling libraries, one bar system. `final/preview.png` shows every piece in 
 
 - Keep Nil deep, never bright: it is ink-dyed cloth, not a tech purple.
 - Cha is fainter at 16px than Nil; Chakni's favicon uses the deeper `#9C4A12`.
-- The pane lab uses Nil as its accent (`--brand`, `--accent` in `src/ui/styles/tokens.css`) and Jali's favicon in Nil.
+- Data Studio and Loan review use Nil as their accent (`--brand`, `--accent` in `examples/shared/src/shell/styles/tokens.css`) and Jali's favicon in Nil.
 
 ## Files (per library, in `final/<name>/`)
 

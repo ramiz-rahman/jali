@@ -1,12 +1,12 @@
-import { test, expect } from "./fixtures/lab";
+import { test, expect } from "./fixtures/app";
 
 test.describe("Accessibility", () => {
   test("every pane is a named region; separators carry the splitter attributes; live region announces", async ({
-    lab,
+    app,
     page,
   }) => {
-    await lab.open({ size: { width: 1920, height: 1000 } });
-    await lab.preset("Stress: 10 panes");
+    await app.open({ size: { width: 1920, height: 1000 } });
+    await app.preset("Stress: 10 panes");
     const regions = page.locator("section[data-pane]");
     const n = await regions.count();
     expect(n).toBe(10);
@@ -23,9 +23,9 @@ test.describe("Accessibility", () => {
       });
       expect(name.length, `pane ${i} has an accessible name`).toBeGreaterThan(0);
     }
-    // One main landmark (the lab is the whole page: `landmark: "main"`), and no pane header is a banner.
+    // One main landmark (the app is the whole page: `landmark: "main"`), and no pane header is a banner.
     await expect(page.getByRole("main")).toHaveCount(1);
-    await expect(lab.main()).toHaveClass(/jali-workspace/);
+    await expect(app.main()).toHaveClass(/jali-workspace/);
     await expect(page.getByRole("banner")).toHaveCount(1);
     await expect(page.locator("header.jali-pane-header")).toHaveCount(0);
     for (const r of await page.getByRole("region").all())
@@ -36,7 +36,7 @@ test.describe("Accessibility", () => {
 
     // Dividers are checked on the chain, where the layout is not folded into one switcher.
     await page.getByRole("button", { name: "Order → customer chain" }).click();
-    await expect(lab.pane("customer")).toBeVisible();
+    await expect(app.pane("customer")).toBeVisible();
     const seps = page.getByRole("separator");
     const sc = await seps.count();
     expect(sc).toBeGreaterThan(0);
@@ -52,15 +52,15 @@ test.describe("Accessibility", () => {
         expect(await s.getAttribute(a), `separator ${i} ${a}`).not.toBeNull();
       }
       const [now, min, max] = [
-        await lab.attr(s, "aria-valuenow"),
-        await lab.attr(s, "aria-valuemin"),
-        await lab.attr(s, "aria-valuemax"),
+        await app.attr(s, "aria-valuenow"),
+        await app.attr(s, "aria-valuemin"),
+        await app.attr(s, "aria-valuemax"),
       ];
       expect(min <= now && now <= max, `separator ${i}: ${min} <= ${now} <= ${max}`).toBe(true);
       expect(await s.getAttribute("tabindex")).toBe("0");
     }
 
-    const live = lab.announcer();
+    const live = app.announcer();
     await expect(live).toHaveAttribute("aria-live", "polite");
     await page
       .getByRole("button", { name: /^Close customer/ })
@@ -69,11 +69,11 @@ test.describe("Accessibility", () => {
     await expect(live).toContainText(/closed/i);
   });
 
-  test("focus is visible on the focused pane and on a focused divider", async ({ lab }) => {
-    await lab.open();
-    await expect(lab.pane("orders")).toHaveCSS("border-top-color", /.+/);
-    await lab.separator(0).focus();
-    const outline = await lab.separator(0).evaluate((e) => {
+  test("focus is visible on the focused pane and on a focused divider", async ({ app }) => {
+    await app.open();
+    await expect(app.pane("orders")).toHaveCSS("border-top-color", /.+/);
+    await app.separator(0).focus();
+    const outline = await app.separator(0).evaluate((e) => {
       const c = getComputedStyle(e);
       return `${c.outlineStyle}|${c.outlineWidth}|${c.boxShadow}`;
     });

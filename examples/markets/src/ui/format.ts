@@ -40,9 +40,13 @@ export const int = (x: number) => fmt(0).format(Math.round(x)).replace("-", MINU
 export const money = (x: number, digits = 0) =>
   signed(fmt(digits).format(Math.abs(x)), round(x, digits));
 
-/** 1,240 · 12.4K · 3.1M · 1.2B: sizes and volumes in a narrow column. */
+/** 1,240 · 12.4K · 3.1M · 1.2B: sizes and volumes in a narrow column. A fraction (0.0153 BTC) keeps its digits. */
 export function size(x: number): string {
   const a = Math.abs(x);
+  if (a < 1000 && !Number.isInteger(x))
+    return fmt(0, a < 1 ? 4 : a < 100 ? 3 : 1)
+      .format(x)
+      .replace("-", MINUS);
   if (a < 10_000) return int(x);
   const [d, s] = a < 1e6 ? [1e3, "K"] : a < 1e9 ? [1e6, "M"] : [1e9, "B"];
   return `${fmt(a / d < 100 ? 1 : 0)
@@ -75,18 +79,26 @@ function round(x: number, digits: number) {
   return Number(x.toFixed(digits));
 }
 
-/** What a quantity is in: shares, face value or a currency. */
+/** What a quantity is in: shares, face value, a currency or a coin. */
 export const unit = (inst: Instrument) =>
   inst.assetClass === "equity"
     ? "shares"
     : inst.assetClass === "fx"
       ? inst.symbol.slice(0, 3)
-      : "face";
+      : inst.assetClass === "crypto"
+        ? base(inst)
+        : "face";
 
-/** The spread in the units traders use: pips for FX, price points for bonds, basis points for shares. */
+/** A crypto pair's coin: BTC in BTCUSD. */
+export const base = (inst: Instrument) => inst.symbol.replace(/USD$/, "");
+
+/** The spread in the units traders use: pips for FX, price points for bonds, basis points for shares, and for crypto
+ *  (whose spread is often a single tick, far under a basis point) the price itself. */
 export const spread = (inst: Instrument, bid: number, ask: number) =>
   inst.assetClass === "fx"
     ? `${((ask - bid) / (inst.tick * 10)).toFixed(1)} pips`
     : inst.coupon !== undefined
       ? (ask - bid).toFixed(3)
-      : `${(((ask - bid) / ask) * 1e4).toFixed(1)}bp`;
+      : inst.assetClass === "crypto"
+        ? price(inst, ask - bid)
+        : `${(((ask - bid) / ask) * 1e4).toFixed(1)}bp`;

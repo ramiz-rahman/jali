@@ -1,4 +1,4 @@
-import { test, expect } from "./fixtures/lab";
+import { test, expect, review } from "./fixtures/app";
 
 /**
  * The keyboard ladder in a real browser: content first, then the pane layer (docs/DECISIONS.md "Keyboard").
@@ -7,63 +7,63 @@ import { test, expect } from "./fixtures/lab";
  */
 test.describe("Keyboard ladder", () => {
   test("⌘Z / Ctrl+Z in the SQL editor is the editor's undo; a closed pane stays closed", async ({
-    lab,
+    app,
     page,
   }) => {
-    await lab.open({ preset: "Query + chart + inspector" });
-    const before = await lab.visibleCount();
+    await app.open({ preset: "Query + chart + inspector" });
+    const before = await app.visibleCount();
     await page
       .getByRole("button", { name: /^Close / })
       .last()
       .click();
-    await expect.poll(() => lab.visibleCount()).toBe(before - 1);
+    await expect.poll(() => app.visibleCount()).toBe(before - 1);
     const editor = page.locator("section[data-pane] textarea").first();
     await editor.click();
     await page.keyboard.type(" -- note");
     await expect(editor).toHaveValue(/-- note/);
     await page.keyboard.press("ControlOrMeta+z");
     await expect(editor).not.toHaveValue(/-- note/);
-    await expect.poll(() => lab.visibleCount()).toBe(before - 1);
+    await expect.poll(() => app.visibleCount()).toBe(before - 1);
     // The pane layer's undo has its own chord, from inside the editor too.
     await page.keyboard.press("ControlOrMeta+k");
     await page.keyboard.press("ControlOrMeta+z");
-    await expect.poll(() => lab.visibleCount()).toBe(before);
+    await expect.poll(() => app.visibleCount()).toBe(before);
   });
 
   test("J/K in a grid move its rows; the pane layer takes no character key", async ({
-    lab,
+    app,
     page,
   }) => {
-    await lab.open();
-    await lab.grid("orders").click({ position: { x: 120, y: 60 } });
-    const focused = await lab.focusedId();
+    await app.open();
+    await app.grid("orders").click({ position: { x: 120, y: 60 } });
+    const focused = await app.focusedId();
     await page.keyboard.press("j");
     await page.keyboard.press("k");
-    await expect.poll(() => lab.focusedId()).toBe(focused);
+    await expect.poll(() => app.focusedId()).toBe(focused);
     await expect(page.getByRole("dialog", { name: "Commands" })).toHaveCount(0);
   });
 
   test("Esc: the launcher's search first, then the launcher; a peek before maximise", async ({
-    lab,
+    app,
     page,
   }) => {
-    await lab.open();
-    await lab.pane("orders").click({ position: { x: 100, y: 300 } });
+    await app.open();
+    await app.pane("orders").click({ position: { x: 100, y: 300 } });
     await page.keyboard.press("ControlOrMeta+k");
     await page.keyboard.press("ControlOrMeta+m");
-    await expect(lab.isZoomed("orders")).toHaveCount(1);
-    await lab.grid("orders").focus();
+    await expect(app.isZoomed("orders")).toHaveCount(1);
+    await app.grid("orders").focus();
     await page.keyboard.press("Space");
-    await expect(lab.peek()).toBeVisible();
+    await expect(app.peek()).toBeVisible();
     await page.keyboard.press("Escape");
-    await expect(lab.peek()).toHaveCount(0);
-    await expect(lab.isZoomed("orders")).toHaveCount(1);
+    await expect(app.peek()).toHaveCount(0);
+    await expect(app.isZoomed("orders")).toHaveCount(1);
     await page.keyboard.press("Escape");
-    await expect(lab.isZoomed("orders")).toHaveCount(0);
+    await expect(app.isZoomed("orders")).toHaveCount(0);
   });
 
-  test("Settings lists the keys in this platform's words", async ({ lab, page }) => {
-    await lab.open();
+  test("Settings lists the keys in this platform's words", async ({ app, page }) => {
+    await app.open();
     await page.keyboard.press("ControlOrMeta+k");
     await page.keyboard.type("open settings");
     await page.keyboard.press("Enter");
@@ -78,11 +78,11 @@ test.describe("Keyboard ladder", () => {
   });
 
   test("F6 reaches the review queue, where J/K move through applications", async ({
-    lab,
+    app,
     page,
   }) => {
-    await lab.open({
-      path: "/?app=review&item=4&tab=application",
+    await app.open({
+      path: review("?page=loan-review&item=4&tab=application"),
       size: { width: 1440, height: 900 },
     });
     const queue = page.getByRole("listbox", { name: "Loan applications" });

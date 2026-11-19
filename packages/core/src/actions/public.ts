@@ -126,9 +126,9 @@ export interface JaliActions {
   startRename(pane?: PaneTarget): ActionResult;
 
   // ---------- layouts ----------
-  /** Switch to the preset with this id. */
+  /** Switch to the preset with this id: its `saved` layout if it has one, else its own. */
   preset(id: string): ActionResult;
-  /** Rebuild the preset last chosen. */
+  /** Rebuild the preset last chosen, as written (never its `saved` layout). */
   resetLayout(): ActionResult;
   /** Arrange every pane from the room there is and each kind's size hints: columns at the kinds' comfortable widths,
    *  a second row when the height allows, the rest as tabs beside the pane they were opened from. The same panes, so

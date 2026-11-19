@@ -1,12 +1,12 @@
 {
-  "name": "pane-lab",
+  "name": "jali",
   "version": "0.0.0",
   "private": true,
-  "description": "Jali's lab: Data Studio and a loan review built on @jali/core and @jali/react (packages/). See docs/BRIEF.md.",
+  "description": "Jali (@jali/core and @jali/react, in packages/), its docs site (apps/docs) and five example apps (examples/). See docs/BRIEF.md.",
   "type": "module",
   "scripts": {
-    "dev": "vp dev --port 5300 --strictPort",
-    "build": "tsc -b && vp build",
+    "dev": "vp dev examples/data-studio",
+    "build": "tsc -b && vp build examples/data-studio && vp build examples/loan-review",
     "typecheck": "tsc -b --noEmit && tsc --noEmit -p apps/docs",
     "test": "vp test run && vp test run --config apps/docs/src/reference/vitest.config.ts && node scripts/agent-docs.mjs --check",
     "e2e": "playwright test",
@@ -17,10 +17,13 @@
     "agent-docs": "node scripts/agent-docs.mjs",
     "icons": "node scripts/icons.mjs && vp fmt packages/react/src/icons/default-paths.ts",
     "size": "pnpm build:packages && tsc -p scripts/size && node scripts/size.mjs",
-    "example:minimal": "vp dev --config examples/minimal/vite.config.ts --port 5310",
-    "example:own-icons": "vp dev --config examples/own-icons/vite.config.ts --port 5311",
-    "example:markets": "vp dev --config examples/markets/vite.config.ts --port 5320",
-    "example:studio": "vp dev --config examples/studio/vite.config.ts --port 5330"
+    "data-studio": "vp dev examples/data-studio",
+    "loan-review": "vp dev examples/loan-review",
+    "markets": "vp dev examples/markets",
+    "studio": "vp dev examples/studio",
+    "trips": "vp dev examples/trips",
+    "minimal": "vp dev fixtures/minimal",
+    "own-icons": "vp dev fixtures/own-icons"
   },
   "dependencies": {
     "@electric-sql/pglite": "^0.5.16",
@@ -28,12 +31,16 @@
     "@jali/react": "workspace:*",
     "@phosphor-icons/react": "^2.1.10",
     "@tanstack/react-query": "^5.107.1",
+    "maplibre-gl": "^6.19.0",
+    "radix-ui": "^1.8.1",
     "react": "^19.3.1",
     "react-dom": "^19.3.1",
     "sonner": "^2.0.8"
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.14.0",
+    "@fontsource-variable/bricolage-grotesque": "^5.3.0",
+    "@fontsource-variable/chivo-mono": "^5.3.0",
     "@fontsource/atkinson-hyperlegible-mono": "^5.3.0",
     "@fontsource/atkinson-hyperlegible-next": "^5.3.0",
     "@fontsource/chakra-petch": "^5.3.0",

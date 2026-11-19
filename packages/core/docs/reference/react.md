@@ -26,7 +26,7 @@ Draws a workspace: its panes, and the dialogs every workspace has (the command p
 
 The root is a `<div data-jali>` that the workspace attaches to, so focus, drag and F6 stay inside it. The dialogs render after it, in a `<div data-jali-layer>` (styled `display: contents`), which counts as the workspace's for its keys. Mark your own chrome inside it with `data-jali-chrome` and Jali never pulls focus out of it.
 
-Two things are yours to render. **The shelf** (tucked and folded panes as chips): put `Shelf` in your status line or footer, or tucked panes have nowhere to come back from but ⌘K "Show a pane from the shelf". **Toasts**: Jali sends them through `jali.onToast` (closes and tucks come with Undo, which ⌘K ⌘Z also runs) and shows none itself; render them with your toaster in `overlays`.
+Two things are yours to render. **The shelf** (tucked panes as chips): put `Shelf` in your status line or footer, or tucked panes have nowhere to come back from but ⌘K "Show a pane from the shelf". **Toasts**: Jali sends them through `jali.onToast` (closes and tucks come with Undo, which ⌘K ⌘Z also runs) and shows none itself; render them with your toaster in `overlays`.
 
 **Props**
 
@@ -453,7 +453,7 @@ A curated page's controls, for your top bar: the Single / Split view switch (Spl
 <Shelf />
 ```
 
-The panes that are tabs but not by the person's choice: tucked ones (with Put back) and folded ones, as chips grouped by home, for a status line. More than three folded panes collapse into one summary chip. Arrow keys move between chips, Enter shows one, Shift+Enter puts a tucked one back. Renders nothing when no pane is tucked or folded.
+The panes the person tucked, as chips grouped by home (with Put back), for a status line. Folded panes are not here: they wait behind their tab strip's **N folded** chip. Arrow keys move between chips, Enter shows one, Shift+Enter puts it back. Renders nothing when no pane is tucked.
 
 ### Announcer
 
@@ -587,15 +587,19 @@ One icon per name Jali draws. `<JaliRoot icons>` takes any part of it; type your
 
 - **`icons.more`**, `more: JaliIcon`: The tab-overflow menu's button. Default: Phosphor's `CaretDown`.
 
+- **`icons.menu`**, `menu: JaliIcon`: The ⋯ button in a pane's header, which opens the pane's menu. Default: Phosphor's `DotsThree`.
+
+- **`icons.popOut`**, `popOut: JaliIcon`: The Pop out button, when a pane's `buttons` include it (Bring back while popped out). Default: Phosphor's `PictureInPicture`.
+
 - **`icons.current`**, `current: JaliIcon`: The shown tab in the tab-overflow menu. Default: Phosphor's `Check`.
 
-- **`icons.fold`**, `fold: JaliIcon`: Marks a folded tab or chip (the layout made it). Default: Phosphor's `ArrowsInLineHorizontal`.
+- **`icons.fold`**, `fold: JaliIcon`: Marks a folded pane: the strip's **N folded** chip, and the tab of a folded pane while it is shown. Default: Phosphor's `ArrowsInLineHorizontal`.
 
 - **`icons.grip`**, `grip: JaliIcon`: The drag handle on a pane's header. Default: Phosphor's `DotsSix`.
 
-- **`icons.follow`**, `follow: JaliIcon`: A following detail's "Following" toggle. Default: Phosphor's `LinkSimpleHorizontal`.
+- **`icons.follow`**, `follow: JaliIcon`: A linked pane's toggle while it follows (**Following**). Default: Phosphor's `LinkSimpleHorizontal`.
 
-- **`icons.keep`**, `keep: JaliIcon`: The Keep toggle on a linked pane. Default: Phosphor's `AnchorSimple`.
+- **`icons.keep`**, `keep: JaliIcon`: A kept pane's toggle (**Kept**). Default: Phosphor's `AnchorSimple`.
 
 - **`icons.pin`**, `pin: JaliIcon`: A pinned tab's mark. Default: Phosphor's `PushPin`.
 
@@ -695,7 +699,7 @@ Prototypes, to try and give feedback on. Their names start `unstable_`, and thei
 unstable_popOut(jali: Jali, pane?: string, size?: { width: number; height: number }): Promise<boolean>
 ```
 
-Off until the workspace allows it: `createJali({ allow: { popOut: true } })`. Opens a pane (default: the focused one) in a floating window that stays on top of every other window, even while the person is in another tab or app, as a video call's does. It uses the browser's Document Picture-in-Picture, in Chrome and Edge on desktop; resolves `false` elsewhere. Call it from a click or a key, since the browser asks for the person's gesture.
+Off until the workspace allows it: `createJali({ allow: { popOut: true } })`. Opens a pane (default: the focused one) in a floating window that stays on top of every other window, even while the person is in another tab or app, as a video call's does. It uses the browser's Document Picture-in-Picture, in Chrome and Edge on desktop; resolves `false` elsewhere. Call it from a click or a key, since the browser asks for the person's gesture. Where it's allowed, people also find Pop out in a tab's menu and a pane header's (right-click). The window matches the page's browser zoom.
 
 The pane keeps its place in the layout, which says "Popped out into its own window" with a Bring back button. Its content renders in the window with the page's styles and theme, and keeps Jali's context, so its hooks, data and actions work. Closing the window, Bring back, or closing the pane puts it back. One pane at a time.
 

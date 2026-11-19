@@ -380,10 +380,15 @@ const tabs = {
   newTabTip: "New tab",
   folded: "Folded",
   tucked: "Tucked",
-  foldedTip: "Folded: not enough room · returns when there's space",
   /** A folded tab's tooltip: its title, then why it is a tab. */
   foldedTitle: (pane: string) => `${pane} · Folded: not enough room · returns when there's space`,
   foldedDescription: "Folded: returns when there's room",
+  /** The chip at the end of a strip for the panes the layout folded into it (not the one it shows). */
+  foldedChip: (count: number) => `${count} folded`,
+  foldedChipLabel: (count: number) => `${count} folded ${count === 1 ? "pane" : "panes"}`,
+  foldedChipTip: "Folded: not enough room to show these side by side",
+  /** Atop the folded chip's menu. */
+  foldedNote: "No room to show these side by side. Widen the window, or pick one to show it here.",
   tuckedDescription: "Tucked here. Put back to restore its place.",
   /**
    * A tab's description in a strip: why it is a tab, when it is folded or tucked, then the keys it takes. `putBackKeys`
@@ -417,16 +422,18 @@ const tabs = {
   splitDown: "Split down",
   maximise: "Maximise",
   restore: "Restore",
+  fullScreen: "Full screen",
+  exitFullScreen: "Exit full screen",
+  tuck: "Tuck",
+  popOut: "Pop out",
 };
 
 /** The shelf: tucked and folded panes as chips. */
 const shelf = {
   label: "Shelf",
-  toolbar: "Tucked and folded panes",
+  toolbar: "Tucked panes",
   behind: (home: string) => `Behind ${home}`,
   behindHeading: (home: string) => `Behind ${home}:`,
-  folded: "Folded",
-  foldedHeading: "Folded:",
   /** A chip's name for screen readers. `activity` is the pane's (`useActivity`); `reason`, why it is on the shelf. */
   chip: (c: {
     pane: string;
@@ -449,12 +456,10 @@ const shelf = {
   chipTip: (pane: string, home: string) => `${pane} · behind ${home}`,
   putBack: (pane: string) => `Put back ${pane}`,
   putBackTip: "Put back",
-  summary: (count: number) => `${count} folded panes. Enter lists them`,
-  summaryText: (count: number) => `${count} folded`,
-  more: (count: number) => `${count} more tucked or folded panes`,
+  more: (count: number) => `${count} more tucked panes`,
   moreCount: (count: number) => `+${count}`,
   menuFolded: "Folded panes",
-  menuMore: "More tucked or folded panes",
+  menuMore: "More tucked panes",
   /** Beside a pane in the shelf's menus: where it is. */
   where: (folded: boolean, home: string) => (folded ? "folded" : `behind ${home}`),
 };
@@ -479,19 +484,24 @@ const pane = {
   /** A popped-out pane's place (experimental Pop out). */
   poppedOut: "Popped out into its own window",
   bringBack: "Bring back",
+  popOut: (pane: string) => `Pop out ${pane}`,
+  popOutTip: "Pop out into a floating window",
+  bringBackPane: (pane: string) => `Bring back ${pane}`,
+  /** The ⋯ button: everything the pane's menu offers. */
+  menu: (pane: string) => `More for ${pane}`,
+  menuTip: "More",
   restore: (pane: string) => `Restore ${pane}`,
   restoreTip: "Restore",
   opened: "Opened",
   kept: "Kept",
   following: "Following",
-  /** The Keep toggle's name; its visible word is `keepWord`, which the name starts with. */
-  keep: (pane: string) => `Keep ${pane}`,
-  keepWord: "Keep",
-  /** The Keep toggle's tooltip: kept, following its list's selection, or a plain link from `list`. */
-  keptTip: (list: string) => `Kept: stays on this item. Press again to let ${list} change it`,
-  followingTip: (list: string) => `Follows the selection in ${list}. Keep to stay on this item`,
+  /** The follow toggle's name while it follows `list` (its visible word is `following`, which the name starts with). */
+  followingName: (list: string) => `Following ${list}`,
+  /** The follow toggle's tooltip and description: what it does now, and what a click does. */
+  keptTip: (list: string) => `Kept: stays on this item. Click to follow ${list} again`,
+  followingTip: (list: string) => `Follows the selection in ${list}. Click to keep this one`,
   plainTip: (list: string) =>
-    `The next link from ${list} shows here. Keep to open it beside this one instead`,
+    `The next link from ${list} shows here. Click to keep this one and open the next beside it`,
   loading: "Loading",
   working: "Working",
   needsYou: "Needs you",

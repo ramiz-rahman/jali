@@ -1,11 +1,11 @@
 /**
  * The market as the panes see it: instruments, and topics a pane can read once (`snapshot`) or follow (`subscribe`).
  *
- * The app only ever talks to `MarketData`. This example plugs in a simulator (simulator.ts); a real feed would
- * implement the same two calls over a websocket, and no pane would change.
+ * The app only ever talks to `MarketData`. This example plugs in a simulator (simulator.ts), with real crypto
+ * prices from Kraken over a websocket on top of it (kraken.ts): the same two calls, and no pane changes.
  */
 
-export type AssetClass = "equity" | "govt" | "corp" | "fx" | "index";
+export type AssetClass = "equity" | "govt" | "corp" | "fx" | "index" | "crypto";
 
 export interface Instrument {
   symbol: string;
@@ -30,6 +30,10 @@ export interface Instrument {
   prevYield?: number;
   /** Indices: the symbols they are made of. */
   members?: string[];
+  /** Real data: where it comes from ("Kraken"). Absent for the simulated market. */
+  source?: string;
+  /** Trades around the clock: "today" is the last 24 hours, and there is no close (crypto). */
+  continuous?: boolean;
 }
 
 /** One instrument's latest prices. A new object every time something in it changes. */

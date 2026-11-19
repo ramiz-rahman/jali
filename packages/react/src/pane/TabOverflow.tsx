@@ -8,21 +8,30 @@ import { useStore } from "../state/react";
 import { useUi } from "../state/react";
 import { KindIcon } from "./icons";
 
-/** The "+N" at the end of a tab strip that overflows: opens a menu of every tab in the group, marks included. */
+/**
+ * The "+N" at the end of a tab strip that overflows: opens a menu of every tab in the group, marks included. With
+ * `folded`, the "N folded" chip instead: the panes the layout folded into this place, which it doesn't show as tabs,
+ * with a note saying why; picking one shows it here.
+ */
 export function TabOverflow({
   tabs,
   active,
-  hiddenCount,
+  hiddenCount = 0,
+  folded = false,
   onChoose,
 }: {
   tabs: Tab[];
   active: NodeId;
-  hiddenCount: number;
+  hiddenCount?: number;
+  folded?: boolean;
   onChoose: (id: NodeId) => void;
 }) {
   const store = useStore(),
     env = store.env,
-    tw = store.messages.tabs;
+    words = store.messages,
+    tw = words.tabs;
+  // The folded chip lists only folded panes: no need to mark each one.
+  const chip = folded;
   const icon = useJaliIcons();
   const [open, setOpen] = useState(false);
   const [pos, setPos] = useState<{ left: number; top: number } | null>(null);
@@ -104,12 +113,13 @@ export function TabOverflow({
     <>
       <button
         ref={btn}
-        className="jali-tab-more"
+        className={folded ? "jali-tab-folded" : "jali-tab-more"}
         aria-haspopup="menu"
         aria-expanded={open}
-        aria-label={tw.all(tabs.length, hiddenCount)}
-        title={tw.allTip}
-        data-hidden-count={hiddenCount}
+        aria-label={folded ? tw.foldedChipLabel(tabs.length) : tw.all(tabs.length, hiddenCount)}
+        aria-description={folded ? tw.foldedDescription : undefined}
+        title={folded ? tw.foldedChipTip : tw.allTip}
+        data-hidden-count={folded ? undefined : hiddenCount}
         onPointerDown={(e) => e.stopPropagation()}
         onClick={(e) => {
           e.stopPropagation();
@@ -123,8 +133,17 @@ export function TabOverflow({
           }
         }}
       >
-        <span className="tab-more-n">{tw.moreCount(hiddenCount)}</span>
-        <icon.more size={12} aria-hidden />
+        {folded ? (
+          <>
+            <icon.fold size={12} aria-hidden />
+            <span>{tw.foldedChip(tabs.length)}</span>
+          </>
+        ) : (
+          <>
+            <span className="tab-more-n">{tw.moreCount(hiddenCount)}</span>
+            <icon.more size={12} aria-hidden />
+          </>
+        )}
       </button>
       {open
         ? createPortal(
@@ -133,11 +152,18 @@ export function TabOverflow({
               className="jali-tab-menu"
               role="menu"
               dir={dir}
-              aria-label={tw.menuLabel}
+              aria-label={folded ? words.shelf.menuFolded : tw.menuLabel}
+              aria-description={folded ? tw.foldedNote : undefined}
               style={pos ? { left: pos.left, top: pos.top } : { visibility: "hidden" }}
               onKeyDown={onKey}
             >
-              {tabs.map(({ node: t, tucked, folded }) => {
+              {folded ? (
+                <p className="jali-tab-menu-note" aria-hidden>
+                  {tw.foldedNote}
+                </p>
+              ) : null}
+              {tabs.map(({ node: t, tucked, folded: isFolded }) => {
+                const folded = isFolded;
                 const role = page && t.role ? roleOf(env.profile!, t.role) : undefined;
                 return (
                   <button
@@ -146,7 +172,7 @@ export function TabOverflow({
                     role="menuitem"
                     className={`jali-tab-menu-item${t.id === active ? " is-active" : ""}`}
                     data-item={t.id}
-                    data-folded={folded || undefined}
+                    data-folded={(folded && !chip) || undefined}
                     data-tucked={tucked || undefined}
                     aria-current={t.id === active || undefined}
                     aria-description={
@@ -164,7 +190,7 @@ export function TabOverflow({
                       <KindIcon kind={t.ref.kind} size={14} />
                     )}
                     <span className="jali-tab-menu-title">{titleOf(env, t, titles)}</span>
-                    {folded ? (
+                    {folded && !chip ? (
                       <small className="jali-tab-menu-mark">
                         <icon.fold size={12} aria-hidden />
                         {tw.folded}

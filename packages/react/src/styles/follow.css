@@ -23,19 +23,13 @@
     outline: 2px solid var(--jali-focus-ring);
     outline-offset: 1px;
   }
-  .jali-follow-toggle[aria-pressed="true"] {
-    color: var(--jali-text);
-    border-color: var(--jali-text-faint);
+  /* Kept: the pane won't change by itself, so it says so in the accent. */
+  .jali-follow-toggle[data-follow="kept"] {
+    color: var(--jali-accent);
+    border-color: var(--jali-accent-mid);
+    background: var(--jali-accent-weak);
   }
-  .jali-follow-status {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.25rem;
-    flex: none;
-    font-size: 0.6875rem;
-    color: var(--jali-text-subtle);
-  }
-  /* A plain link's Keep is quiet until the header is hovered or focused: most links are followed once. */
+  /* A plain link's toggle is quiet until the header is hovered or focused: most links are followed once. */
   .jali-follow-toggle[data-follow="plain"]:not(:focus-visible) {
     opacity: 0;
   }
@@ -49,8 +43,7 @@
   }
   /* Below about 250px the word goes and the icon stays (its name and tooltip still say it), so the title keeps its room. */
   @container jali-header (max-width: 15.5rem) {
-    .jali-follow-toggle span,
-    .jali-follow-status span {
+    .jali-follow-toggle span {
       display: none;
     }
     .jali-follow-toggle {

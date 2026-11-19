@@ -1,0 +1,153 @@
+/*
+ * The theme, after Nava's ("energetic editorial"): neon coral on zinc neutrals, Satoshi for text, Bricolage
+ * Grotesque for display, Chivo Mono for numbers, generous radii. Set on Jali's own tokens so every part of Jali
+ * follows, on the same scopes Jali uses for light and dark (see the Theming guide), unlayered, so they win.
+ *
+ * The app's own tokens are --t-*: Nava's coral scale, the day colours (keep them in step with ui/colors.ts, which
+ * the map reads), the budget's category colours, and the floating shadow for things over the map.
+ */
+@font-face {
+  font-family: "Satoshi";
+  /* From Nava's repository (Fontshare's free licence, FFL.txt beside it). Check the licence before publishing. */
+  src: url("/fonts/satoshi/Satoshi-Variable.woff2") format("woff2");
+  font-display: swap;
+  font-style: normal;
+  font-weight: 300 900;
+}
+
+:root {
+  --t-coral-100: oklch(0.96 0.03 28);
+  --t-coral-200: oklch(0.92 0.06 28);
+  --t-coral-300: oklch(0.85 0.12 28);
+  --t-coral-400: oklch(0.75 0.2 28);
+  --t-coral-500: oklch(0.68 0.22 28);
+  --t-coral-600: oklch(0.6 0.2 28);
+  --t-coral-700: oklch(0.52 0.16 28);
+  --t-coral-800: oklch(0.44 0.12 28);
+  --t-coral-900: oklch(0.36 0.08 28);
+
+  --t-font-display: "Bricolage Grotesque Variable", "Satoshi", system-ui, sans-serif;
+  --t-radius-card: 16px;
+  --t-radius-pill: 999px;
+
+  --jali-font: "Satoshi", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --jali-font-mono: "Chivo Mono Variable", ui-monospace, "SF Mono", monospace;
+  --jali-radius: 14px;
+  --jali-radius-control: 10px;
+  --jali-radius-menu: 12px;
+}
+
+:root,
+.light,
+[data-theme="light"] {
+  --jali-canvas: #f4f4f5;
+  --jali-surface: #ffffff;
+  --jali-surface-raised: #ffffff;
+  --jali-border: #e4e4e7;
+  --jali-border-strong: #d4d4d8;
+  --jali-control: #d4d4d8;
+  --jali-hover: #f4f4f5;
+  --jali-text: #09090b;
+  --jali-text-muted: #3f3f46;
+  --jali-text-subtle: #52525b;
+  --jali-text-faint: #6b6b75;
+  --jali-accent: oklch(0.52 0.16 28);
+  --jali-on-accent: #ffffff;
+  --jali-accent-soft: color-mix(in oklab, oklch(0.52 0.16 28) 10%, #ffffff);
+  --jali-brand: oklch(0.6 0.2 28);
+  --jali-done: #047857;
+  --jali-failed: #be123c;
+  --jali-blocked: #b45309;
+  --jali-working: #0369a1;
+
+  --t-primary-text: oklch(0.44 0.12 28);
+  --t-pin-ring: #ffffff;
+  --t-ink: #18181b;
+  --t-over: #be123c;
+  --t-over-soft: color-mix(in oklab, #f43f5e 12%, #ffffff);
+  --t-ok: #047857;
+  --t-shadow-float: 0 12px 32px -16px rgb(24 24 27 / 0.28), 0 2px 8px -2px rgb(24 24 27 / 0.1);
+  --t-shadow-pin: 0 2px 6px rgb(24 24 27 / 0.3);
+
+  --t-day-1: #c04a35;
+  --t-day-2: #0f8290;
+  --t-day-3: #3d63d4;
+  --t-day-4: #8b4cc4;
+  --t-day-5: #9a6f00;
+  --t-day-6: #b8345f;
+  --t-day-7: #2f7d4f;
+
+  --t-cat-stay: #52525b;
+  --t-cat-sights: oklch(0.58 0.12 200);
+  --t-cat-food: oklch(0.67 0.15 80);
+  --t-cat-transport: oklch(0.55 0.18 260);
+  --t-cat-flight: oklch(0.55 0.18 305);
+}
+
+.dark,
+[data-theme="dark"] {
+  --jali-canvas: oklch(0.14 0.01 285);
+  --jali-surface: #18181b;
+  --jali-surface-raised: #202024;
+  --jali-border: #2a2a2f;
+  --jali-border-strong: #3f3f46;
+  --jali-control: #3f3f46;
+  --jali-hover: #232327;
+  --jali-text: #f4f4f5;
+  --jali-text-muted: #d4d4d8;
+  --jali-text-subtle: #a1a1aa;
+  --jali-text-faint: #8d8d96;
+  --jali-accent: oklch(0.75 0.2 28);
+  --jali-on-accent: #09090b;
+  --jali-accent-soft: color-mix(in oklab, oklch(0.75 0.2 28) 14%, #18181b);
+  --jali-brand: oklch(0.75 0.2 28);
+  --jali-done: #34d399;
+  --jali-failed: #fb7185;
+  --jali-blocked: #fbbf24;
+  --jali-working: #38bdf8;
+
+  --t-primary-text: oklch(0.85 0.12 28);
+  --t-pin-ring: #18181b;
+  --t-ink: #f4f4f5;
+  --t-over: #fb7185;
+  --t-over-soft: color-mix(in oklab, #f43f5e 16%, #18181b);
+  --t-ok: #34d399;
+  --t-shadow-float: 0 14px 36px -12px rgb(0 0 0 / 0.7), 0 0 0 1px rgb(255 255 255 / 0.06);
+  --t-shadow-pin: 0 2px 8px rgb(0 0 0 / 0.6);
+
+  --t-day-1: #f07a62;
+  --t-day-2: #3cc0cc;
+  --t-day-3: #7c9bf5;
+  --t-day-4: #bb8cf0;
+  --t-day-5: #e0b440;
+  --t-day-6: #f07ca3;
+  --t-day-7: #5fcf8c;
+
+  --t-cat-stay: #a1a1aa;
+  --t-cat-sights: oklch(0.7 0.14 200);
+  --t-cat-food: oklch(0.78 0.15 80);
+  --t-cat-transport: oklch(0.65 0.18 260);
+  --t-cat-flight: oklch(0.66 0.18 305);
+}
+
+[data-day="1"] {
+  --day: var(--t-day-1);
+}
+[data-day="2"] {
+  --day: var(--t-day-2);
+}
+[data-day="3"] {
+  --day: var(--t-day-3);
+}
+[data-day="4"] {
+  --day: var(--t-day-4);
+}
+[data-day="5"] {
+  --day: var(--t-day-5);
+}
+[data-day="6"] {
+  --day: var(--t-day-6);
+}
+[data-day="7"] {
+  --day: var(--t-day-7);
+}

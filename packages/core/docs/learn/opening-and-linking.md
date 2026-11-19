@@ -64,7 +64,7 @@ When a pane opens an object of the same kind as a link it opened before, the new
 
 **Why:** a person following links is usually looking for one thing. Without this rule, each click adds a pane, and the screen fills with objects they have already moved past.
 
-The rule has two exceptions. A [kept](../get-started/key-concepts.md#linked) pane is never replaced: press **Keep** in its header, and the next link opens beside it. And a pane following the list's [selection](../get-started/key-concepts.md#selection) is never reused by a plain link; [Following a list](following.md) covers how a detail changes there.
+The rule has two exceptions. A [kept](../get-started/key-concepts.md#linked) pane is never replaced: click **Following** in its header so it says **Kept**, and the next link opens beside it. And a pane following the list's [selection](../get-started/key-concepts.md#selection) is never reused by a plain link; [Following a list](following.md) covers how a detail changes there.
 
 ## Open here
 

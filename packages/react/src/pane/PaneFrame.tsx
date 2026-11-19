@@ -1,4 +1,5 @@
-import { memo, useMemo, type CSSProperties } from "react";
+import { memo, useMemo, useState, type CSSProperties } from "react";
+import { TabMenu, type TabMenuAt } from "./TabMenu";
 import { createPortal } from "react-dom";
 import { bringBack, usePopOutTarget } from "./PopOut";
 import { useJaliIcons } from "../icons/context";
@@ -38,6 +39,7 @@ export const PaneFrame = /* @__PURE__ */ memo(
     const { node, rect, hidden, focused, zoomed, covered, group } = frame;
     const alone = chrome === ALONE_CHROME;
     const store = useStore();
+    const [menu, setMenu] = useState<TabMenuAt | null>(null);
     // Popped out (experimental): the content renders in a floating window; its place here says so.
     const popTarget = usePopOutTarget(store, node.id);
     const icon = useJaliIcons();
@@ -108,15 +110,45 @@ export const PaneFrame = /* @__PURE__ */ memo(
         data-unsaved={dirty || undefined}
         data-origin={opened ? "opened" : role ? "role" : undefined}
         data-boundary={opened ? boundary : undefined}
+        data-covered={covered || undefined}
         aria-hidden={covered || undefined}
         ref={coveredRef}
         onPointerDownCapture={() => actions.focus(node.id)}
         onFocusCapture={() => store.get().view.focused !== node.id && actions.focus(node.id)}
+        // The pane's menu from the keyboard (Shift+F10 or the menu key), on the pane or its header: a tab opens its
+        // own, and the content's keys are the app's.
+        onKeyDown={(e) => {
+          if (bare || e.defaultPrevented) return;
+          if (!(e.key === "ContextMenu" || (e.key === "F10" && e.shiftKey))) return;
+          const target = e.target as HTMLElement;
+          const header = e.currentTarget.querySelector<HTMLElement>(".jali-pane-header");
+          if (target !== e.currentTarget && !header?.contains(target)) return;
+          if (target.closest("input, textarea, [contenteditable]")) return;
+          e.preventDefault();
+          const r = (
+            e.currentTarget.querySelector<HTMLElement>(".jali-act-menu") ?? header
+          )?.getBoundingClientRect();
+          if (!r) return;
+          const rtl = store.get().dir === "rtl";
+          setMenu({ pane: node.id, x: rtl ? r.left : r.right, y: r.bottom + 2, end: true });
+        }}
         className={cls}
         style={style}
       >
         <div
           className="jali-pane-header"
+          // Right-click on the header (not a tab: its strip has its own) opens the pane's menu. The content below is
+          // the app's, so its right-click stays the app's.
+          onContextMenu={(e) => {
+            if (
+              bare ||
+              group ||
+              (e.target as HTMLElement).closest("input, textarea, [contenteditable]")
+            )
+              return;
+            e.preventDefault();
+            setMenu({ pane: node.id, x: e.clientX, y: e.clientY });
+          }}
           onPointerDown={draggable ? (e) => startPaneDrag(store, e, node.id) : undefined}
           onDoubleClick={(e) => {
             if (bare || !chrome.zoomable || (e.target as HTMLElement).closest("button")) return;
@@ -162,9 +194,19 @@ export const PaneFrame = /* @__PURE__ */ memo(
               zoomed={zoomed}
               chrome={chrome}
               tabs={!!group}
+              onMenu={(at) => setMenu({ pane: node.id, ...at })}
             />
           )}
         </div>
+        {menu ? (
+          <TabMenu
+            at={menu}
+            onClose={(refocus) => {
+              setMenu(null);
+              if (refocus) store.dom.pane(node.id)?.focus({ preventScroll: true });
+            }}
+          />
+        ) : null}
         {dropTarget ? <DropZoneLabel paneId={node.id} /> : null}
         <NotInResults node={node} />
         <div className="jali-pane-content">

@@ -1,4 +1,4 @@
-import { test, expect } from "./fixtures/lab";
+import { test, expect } from "./fixtures/app";
 
 const SIZES = [
   { width: 1920, height: 1000 },
@@ -8,16 +8,16 @@ const SIZES = [
 ];
 
 test("responsive: stress preset folds step by step and never scrolls sideways", async ({
-  lab,
+  app,
   page,
 }) => {
   const counts: number[] = [];
   const report: string[] = [];
-  await lab.open({ size: SIZES[0] });
-  await lab.preset("Stress: 10 panes");
+  await app.open({ size: SIZES[0] });
+  await app.preset("Stress: 10 panes");
   for (const size of SIZES) {
     await page.setViewportSize(size);
-    await lab.stable();
+    await app.stable();
     const m = await page.evaluate(() => {
       const main = document.querySelector('main[aria-label="Panes"]') as HTMLElement;
       const vis = [...document.querySelectorAll("section[data-pane]")].filter(
@@ -36,7 +36,7 @@ test("responsive: stress preset folds step by step and never scrolls sideways", 
     report.push(
       `${size.width}px: ${m.visible} visible panes, rightmost edge ${Math.round(m.right)} of ${m.vw}, scroll overflow main ${m.mainScroll} doc ${m.docScroll}`,
     );
-    await lab.shot(`14-responsive-${size.width}`);
+    await app.shot(`14-responsive-${size.width}`);
   }
   console.log(report.join("\n"));
   for (let i = 1; i < counts.length; i++)
@@ -45,7 +45,7 @@ test("responsive: stress preset folds step by step and never scrolls sideways", 
   expect(counts[3]).toBe(1);
   for (const size of SIZES) {
     await page.setViewportSize(size);
-    await lab.stable();
+    await app.stable();
     const m = await page.evaluate(() => {
       const main = document.querySelector('main[aria-label="Panes"]') as HTMLElement;
       const vis = [...document.querySelectorAll("section[data-pane]")].filter(
@@ -64,35 +64,35 @@ test("responsive: stress preset folds step by step and never scrolls sideways", 
 });
 
 test("responsive: single view has a pane switcher that switches panes and restores the layout", async ({
-  lab,
+  app,
   page,
 }) => {
-  await lab.open({ size: { width: 1440, height: 900 } });
-  await lab.preset("Stress: 10 panes");
+  await app.open({ size: { width: 1440, height: 900 } });
+  await app.preset("Stress: 10 panes");
   const urlBefore = new URL(page.url()).search;
-  const wide = await lab.visibleIds();
+  const wide = await app.visibleIds();
   await page.setViewportSize({ width: 390, height: 844 });
   const sw = page.getByRole("navigation", { name: "Panes" });
   await expect(sw).toBeVisible();
-  await expect(lab.main().getByRole("separator")).toHaveCount(0);
-  await expect(lab.announcer()).toContainText("Single view");
+  await expect(app.main().getByRole("separator")).toHaveCount(0);
+  await expect(app.announcer()).toContainText("Single view");
   const tabs = sw.getByRole("tab");
   expect(await tabs.count()).toBeGreaterThan(5);
   await expect(sw.getByRole("tab", { selected: true })).toHaveCount(1);
   await tabs.nth(3).click();
   await expect(tabs.nth(3)).toHaveAttribute("aria-selected", "true");
-  await expect.poll(() => lab.visibleCount()).toBe(1);
+  await expect.poll(() => app.visibleCount()).toBe(1);
   expect(new URL(page.url()).search).toBe(urlBefore);
   const sideways = await page.evaluate(
     () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
   );
   expect(sideways).toBeLessThanOrEqual(1);
-  await lab.shot("15-single-view-390");
+  await app.shot("15-single-view-390");
   await page.setViewportSize({ width: 1440, height: 900 });
   await expect(sw).toHaveCount(0);
   // Exact restore: the same panes show as before single view, even though the switcher moved focus to another pane.
   await expect
-    .poll(async () => (await lab.visibleIds()).slice().sort())
+    .poll(async () => (await app.visibleIds()).slice().sort())
     .toEqual(wide.slice().sort());
   // And again from a different pane picked in single view (the last tab).
   await page.setViewportSize({ width: 390, height: 844 });
@@ -101,6 +101,6 @@ test("responsive: single view has a pane switcher that switches panes and restor
   await page.setViewportSize({ width: 1440, height: 900 });
   await expect(sw).toHaveCount(0);
   await expect
-    .poll(async () => (await lab.visibleIds()).slice().sort())
+    .poll(async () => (await app.visibleIds()).slice().sort())
     .toEqual(wide.slice().sort());
 });

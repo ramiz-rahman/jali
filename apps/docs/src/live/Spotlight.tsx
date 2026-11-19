@@ -18,7 +18,11 @@ export interface SpotlightProps {
 const NAMED: Record<string, { selector: string; all?: boolean; label: string }> = {
   shelf: {
     selector: "[data-shelf]",
-    label: "The shelf: panes folded or tucked away, one click from coming back",
+    label: "The shelf: panes you tucked away, one click from coming back",
+  },
+  folded: {
+    selector: ".jali-tab-folded",
+    label: "Folded: the panes there wasn't room for, one click from showing",
   },
   follow: {
     selector: ".jali-follow-toggle",

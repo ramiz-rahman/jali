@@ -3,15 +3,15 @@
  * DevTools protocol), a pane sits each side of the hinge and none straddles it. Unfolding brings the layout back.
  * Emulation doesn't model the physical seam: check a real Fold or Flip before calling fold support done.
  */
-import { test, expect } from "./fixtures/lab";
+import { test, expect } from "./fixtures/app";
 
 const SIZE = { width: 690, height: 840 };
 
 test("a fold puts a pane each side of the hinge, and unfolding restores the layout", async ({
-  lab,
+  app,
   page,
 }) => {
-  await lab.open({ size: SIZE });
+  await app.open({ size: SIZE });
   const cdp = await page.context().newCDPSession(page);
   const fold = (displayFeature?: object) =>
     cdp.send("Emulation.setDeviceMetricsOverride", {
@@ -29,7 +29,7 @@ test("a fold puts a pane each side of the hinge, and unfolding restores the layo
           return { left: r.left, right: r.right, top: r.top, bottom: r.bottom };
         }),
     );
-  const before = await lab.snap();
+  const before = await app.snap();
 
   // Book posture: the hinge runs down the middle.
   await fold({ orientation: "vertical", offset: 345, maskLength: 0 });
@@ -51,5 +51,5 @@ test("a fold puts a pane each side of the hinge, and unfolding restores the layo
 
   await fold();
   await expect(page.locator("[data-fold]")).toHaveCount(0);
-  await lab.expectSnap(before, "after unfolding");
+  await app.expectSnap(before, "after unfolding");
 });

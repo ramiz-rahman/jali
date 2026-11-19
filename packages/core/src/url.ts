@@ -133,7 +133,7 @@ export function readSearch(
   const peek = q.get(k.peek);
   const ref = peek ? decodePeek(peek) : null;
   if (ref && readable(kinds, ref)) view.peek = ref;
-  // `?app=review` is the lab's form from before pages had ids (19 Nov 2026).
+  // `?app=review` is the old combined lab app's form from before pages had ids (19 Nov 2026).
   if (q.get(k.page) || q.get("app") === "review") {
     const item = q.get(k.item) || undefined;
     const investigation = q

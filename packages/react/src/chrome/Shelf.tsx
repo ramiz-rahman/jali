@@ -17,23 +17,17 @@ function label(m: JaliModel, it: ShelfEntry, a: PaneActivity | undefined) {
   return { node, title, home, folded, state: shelfActivity(a)?.state ?? "idle" };
 }
 
-/** The shelf: tucked and folded panes, as chips by home. Renders nothing unless something is tucked or folded. */
-const FOLDED_CHIPS = 3;
-const SUMMARY = "folded-summary";
+/**
+ * The shelf: the panes you tucked, as chips by home. Renders nothing unless something is tucked. Folded panes (the
+ * layout's, for want of room) are not here: they wait behind their strip's "N folded" chip, so what you put away and
+ * what the layout put away never look the same.
+ */
 
 export function Shelf() {
   const icon = useJaliIcons();
   const m = useModel();
-  // Every pane that is a tab but not by choice is listed too: tucked (yours, can be put back) and folded (the layout's).
   const tuckedItems = m.shelf;
-  const foldedItems = useMemo(
-    () =>
-      m.resolved.shelf.filter(
-        (e) => e.reason === "folded" && !tuckedItems.some((t) => t.paneId === e.paneId),
-      ),
-    [m.resolved.shelf, tuckedItems],
-  );
-  const items = useMemo(() => [...tuckedItems, ...foldedItems], [tuckedItems, foldedItems]);
+  const items = tuckedItems;
   const unsaved = useUi((s) => s.unsaved);
   const activity = useUi((s) => s.activity);
   const marks = useUi((s) => s.paneAttributes);
@@ -48,8 +42,8 @@ export function Shelf() {
     flashTab(store.dom, it.paneId);
   };
   const [focusId, setFocusId] = useState<string | null>(null);
-  // The +N list (chips scrolled out of view) or, past FOLDED_CHIPS folded panes, the folded list behind one summary chip.
-  const [menu, setMenu] = useState<false | "more" | "folded">(false);
+  // The +N list: chips scrolled out of view.
+  const [menu, setMenu] = useState(false);
   const [hiddenIds, setHiddenIds] = useState<string[]>([]);
   const scroller = useRef<HTMLDivElement>(null);
   const bar = useRef<HTMLDivElement>(null);
@@ -60,12 +54,7 @@ export function Shelf() {
     return [...byHome.entries()];
   }, [tuckedItems]);
   // Keyboard order is the order on screen (grouped by home), not the store's order.
-  // Folded panes return on their own: past a few, one summary chip lists them instead of a row of chips.
-  const summarise = foldedItems.length > FOLDED_CHIPS;
-  const ids = [
-    ...groups.flatMap(([, list]) => list.map((i) => i.paneId)),
-    ...(summarise ? [SUMMARY] : foldedItems.map((i) => i.paneId)),
-  ];
+  const ids = groups.flatMap(([, list]) => list.map((i) => i.paneId));
   const tab = focusId && ids.includes(focusId) ? focusId : ids[0];
 
   // Fade edges and the +N list: chips scrolled out of view.
@@ -93,12 +82,7 @@ export function Shelf() {
   useEffect(() => {
     if (!menu) return;
     const off = (e: MouseEvent) => {
-      if (
-        !(e.target as HTMLElement).closest(
-          ".jali-shelf-menu, .jali-shelf-more, .jali-shelf-summary",
-        )
-      )
-        setMenu(false);
+      if (!(e.target as HTMLElement).closest(".jali-shelf-menu, .jali-shelf-more")) setMenu(false);
     };
     document.addEventListener("pointerdown", off);
     return () => document.removeEventListener("pointerdown", off);
@@ -130,13 +114,9 @@ export function Shelf() {
     else if (e.key === "End") go(ids.length - 1);
     else if (e.key === "Enter" && e.shiftKey) {
       e.preventDefault();
-      if (items.find((x) => x.paneId === cur)?.reason !== "tucked") return;
       const next = ids[i + 1] ?? ids[i - 1];
       actions.putBack(cur);
       if (next) setFocusId(next);
-    } else if ((e.key === "Enter" || e.key === " ") && cur === SUMMARY) {
-      e.preventDefault();
-      setMenu((v) => (v === "folded" ? false : "folded"));
     } else if (e.key === "Enter" || e.key === " ") {
       e.preventDefault();
       const it = items.find((x) => x.paneId === cur);
@@ -206,7 +186,6 @@ export function Shelf() {
   };
 
   const hidden = items.filter((i) => hiddenIds.includes(i.paneId));
-  const listed = menu === "folded" ? foldedItems : hidden;
   return (
     <div className="jali-shelf" role="region" aria-label={t.label} tabIndex={-1} data-shelf>
       <div className="jali-shelf-bar" ref={bar}>
@@ -231,48 +210,6 @@ export function Shelf() {
               {list.map(chip)}
             </div>
           ))}
-          {foldedItems.length && summarise ? (
-            <div
-              className="jali-shelf-group is-folded"
-              role="group"
-              aria-label={t.folded}
-              key="folded"
-            >
-              <div
-                className="jali-shelf-chip is-folded jali-shelf-summary"
-                data-chip={SUMMARY}
-                data-reason="folded"
-                data-summary
-              >
-                <button
-                  className="jali-shelf-chip-main"
-                  tabIndex={tab === SUMMARY ? 0 : -1}
-                  aria-haspopup="menu"
-                  aria-expanded={menu === "folded"}
-                  aria-label={t.summary(foldedItems.length)}
-                  aria-description={words.tabs.foldedDescription}
-                  title={words.tabs.foldedTip}
-                  onFocus={() => setFocusId(SUMMARY)}
-                  onClick={() => setMenu((v) => (v === "folded" ? false : "folded"))}
-                >
-                  <icon.fold size={13} aria-hidden />
-                  <span className="jali-shelf-chip-title">{t.summaryText(foldedItems.length)}</span>
-                </button>
-              </div>
-            </div>
-          ) : foldedItems.length ? (
-            <div
-              className="jali-shelf-group is-folded"
-              role="group"
-              aria-label={t.folded}
-              key="folded"
-            >
-              <span className="jali-shelf-home" title={words.tabs.foldedTip}>
-                <icon.fold size={12} aria-hidden /> {t.foldedHeading}
-              </span>
-              {foldedItems.map(chip)}
-            </div>
-          ) : null}
         </div>
         <span className="jali-shelf-fade jali-shelf-fade-r" aria-hidden />
       </div>
@@ -280,9 +217,9 @@ export function Shelf() {
         <button
           className="jali-shelf-more"
           aria-haspopup="menu"
-          aria-expanded={menu === "more"}
+          aria-expanded={menu}
           aria-label={t.more(hidden.length)}
-          onClick={() => setMenu((v) => (v === "more" ? false : "more"))}
+          onClick={() => setMenu((v) => !v)}
         >
           {t.moreCount(hidden.length)}
         </button>
@@ -291,15 +228,12 @@ export function Shelf() {
         <div
           className="jali-shelf-menu"
           role="menu"
-          aria-label={menu === "folded" ? t.menuFolded : t.menuMore}
+          aria-label={t.menuMore}
           onKeyDown={(e) => {
-            if (e.key === "Escape") {
-              setMenu(false);
-              if (menu === "folded") focusChip(SUMMARY);
-            }
+            if (e.key === "Escape") setMenu(false);
           }}
         >
-          {listed.map((it) => {
+          {hidden.map((it) => {
             const L = label(m, it, activity[it.paneId]);
             return (
               <button

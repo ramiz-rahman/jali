@@ -1,5 +1,5 @@
 /**
- * The desks: four layouts to start from, in ⌘K as "Layout: …" and in the top bar.
+ * The desks: five layouts to start from, in ⌘K as "Layout: …" and in the top bar.
  *
  * Each desk has one watchlist (id "watch"). A pane with `linkedTo: "watch", follows: true` shows whatever the
  * watchlist's cursor is on; `kept: true` keeps its instrument, for comparing. The blotter opens from any Buy or
@@ -17,6 +17,27 @@ import { tape } from "./panes/tape";
 import { watchlist } from "./panes/watchlist";
 
 const follows = { linkedTo: "watch", follows: true } as const;
+
+/** The one desk on real prices, from Kraken; its book and trades are the exchange's own. */
+const crypto: PresetOptions = {
+  id: "crypto",
+  label: "Crypto desk",
+  layout: row(
+    pane(watchlist({ list: "crypto" }), { id: "watch", weight: 0.9 }),
+    column(
+      { weight: 1.7 },
+      pane(chart({ symbol: "BTCUSD" }), { id: "chart", ...follows, weight: 1.5 }),
+      row(
+        pane(book({ symbol: "BTCUSD" }), { id: "book", ...follows }),
+        pane(tape({ symbol: "BTCUSD" }), { id: "tape", ...follows }),
+      ),
+    ),
+    column(
+      pane(quote({ symbol: "BTCUSD" }), { id: "quote", ...follows }),
+      pane(blotter(), { id: "blotter", weight: 1.3 }),
+    ),
+  ),
+};
 
 export const presets: PresetOptions[] = [
   {
@@ -39,6 +60,7 @@ export const presets: PresetOptions[] = [
       ),
     ),
   },
+  crypto,
   {
     id: "rates",
     label: "Rates desk",

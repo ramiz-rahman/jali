@@ -21,7 +21,7 @@ export const DEFAULT_SETTINGS: Settings = {
 const KEY = "settings";
 
 /** Saved settings over the defaults (Jali's, with the app's `defaults` over them: `createJali({ settings })`). Keys
- *  from older builds (the divider adapter, the lab's showStats) are dropped. */
+ *  from older builds (the divider adapter, the example apps' showStats) are dropped. */
 export function loadSettings(storage: StoragePort, defaults: Partial<Settings> = {}): Settings {
   const base = { ...DEFAULT_SETTINGS, ...defaults };
   try {

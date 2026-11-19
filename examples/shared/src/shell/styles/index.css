@@ -1,0 +1,11 @@
+/*
+ * The shared shell's styles for Data Studio and Loan review: Jali's (theme and workspace, in the "jali" layer), the
+ * apps' names for Jali's tokens, page globals and the top bar and status line. Page resets sit in a layer below
+ * Jali's (base), so a bare `button { font: inherit }` never beats a Jali rule; the shell sits above it (app);
+ * unlayered styles win over all. Jali's own sheet (@jali/react/styles.css) is imported in start.tsx, after this
+ * one, so this layer order holds.
+ */
+@layer base, jali, app;
+@import "./tokens.css";
+@import "./app.css";
+@import "./shell.css";
