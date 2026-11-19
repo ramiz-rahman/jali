@@ -513,5 +513,7 @@ export const map = definePane("map", {
   icon: MapTrifoldIcon,
   width: { min: 360, comfortable: 640 },
   height: { min: 300 },
+  // Stacked on a phone, the map goes on top: the place, or the day, reads below it.
+  phone: { place: "top" },
   Component: MapPane,
 });

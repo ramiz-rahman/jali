@@ -151,26 +151,6 @@
     border: 1px solid var(--jali-border);
     box-shadow: var(--t-shadow-pin);
   }
-  /* A short map keeps the card to its name and next step. */
-  @container (max-height: 520px) {
-    .map-card {
-      padding: 8px 8px 8px 14px;
-    }
-    .map-card-kind,
-    .map-card-meta {
-      display: none;
-    }
-    .map-card-name {
-      font-size: 15.5px;
-    }
-    .map-card-actions {
-      flex-direction: row;
-    }
-    .map-card-actions .btn {
-      min-height: 36px;
-      padding: 0 12px;
-    }
-  }
   .map-card-text {
     flex: 1;
     min-width: 0;
@@ -215,6 +195,26 @@
   @container (min-width: 520px) {
     .map-card-actions {
       flex-direction: row;
+    }
+  }
+  /* A short map keeps the card to its name and next step. */
+  @container (max-height: 520px) {
+    .map-card {
+      padding: 8px 8px 8px 14px;
+    }
+    .map-card-kind,
+    .map-card-meta {
+      display: none;
+    }
+    .map-card-name {
+      font-size: 15.5px;
+    }
+    .map-card-actions {
+      flex-direction: row;
+    }
+    .map-card-actions .btn {
+      min-height: 36px;
+      padding: 0 12px;
     }
   }
 

@@ -128,6 +128,9 @@ export function createTripsJali(services: Services, options: Options = {}): Jali
     name: "Trip",
     keymap: { "trips.go": "Mod+K Mod+P", "trips.optimise": "Mod+K Mod+O" },
     storage: "trips",
+    // On a portrait phone: a pane with the one it follows, one above the other. The place shows under the map it
+    // follows, and the day under the overview, instead of one at a time.
+    phone: { stack: true },
     ...options,
   });
 }
