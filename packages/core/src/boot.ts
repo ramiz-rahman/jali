@@ -89,7 +89,7 @@ export function startUi(
   { keys = {}, pageTheme = true }: StartOptions = {},
 ): () => void {
   const sync = syncOf(store, url);
-  if (!keys.root && typeof document !== "undefined") applyTokens();
+  if (!keys.root && typeof document !== "undefined") applyTokens(undefined, store.env.spacing);
   let prev = store.get();
   // Pane state changes with typing and scrolling: saved once things settle.
   let saveTimer: ReturnType<typeof setTimeout> | undefined;

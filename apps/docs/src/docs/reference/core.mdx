@@ -69,6 +69,8 @@ The address.
 <Param name="palette" type="boolean" default="true">`false`: your app's own command menu lists Jali's commands (<Ref to="useJaliCommands" page="/reference/react" />, <Ref to="listCommands" />). `<JaliRoot>` renders no palette, and its key is unbound unless `keymap` binds `"palette.toggle"`.</Param>
 <Param name="landmark" type={`"region" | "main"`} default={`"region"`}>What the panes are to screen readers. `"region"`: a `<section>` labelled "Panes", which sits inside your page's own `<main>` and adds no second one. `"main"`: the panes render as the page's `<main>`. Use it when Jali is the whole app and the page has no `<main>` of its own.</Param>
 <Param name="dir" type="Direction" default="the page's">The reading direction. By default the workspace reads its page's: the computed `direction` where it renders, so `<html dir="rtl">` is enough, and it follows a later change of `dir`. Give one to fix it; `<JaliRoot>` then sets `dir` on its elements, so the styles agree. Right to left, a row starts at the right, and every left and right a key, command, drop zone or message names is still the screen's. The layout and its links are the same in both. See <Ref to="Direction" page="/reference/core/types" />.</Param>
+<Param name="gap" type="number" default="6 (GAP)">The space between panes, in CSS pixels. The layout measures with it (splits, rows that scroll, the stacked view), and `<JaliRoot>` writes it on its root and its layer as `--jali-gap`, so a style that reads the variable agrees with where the panes are.</Param>
+<Param name="inset" type="number" default="the gap">The space between the workspace's edges and its panes, in CSS pixels, written as `--jali-inset`. Set it apart from the gap to line the panes up with your own bars.</Param>
 <Param name="size" type="{ width: number; height: number }">A fixed size instead of the window's, for tests and server rendering. `<JaliRoot>` measures the real one once it renders.</Param>
 <Param name="moveFocus" type="boolean" default="true">`false` leaves DOM focus alone: for tests and a workspace that is never shown.</Param>
 <Param name="onUnstable" type="(op: string, before: string, after: string) => void" default="console.error in development">Called when a focus or swap action moved a pane on screen, which it never should.</Param>
@@ -398,7 +400,7 @@ Lets a list inside a pane keep its current item through the workspace, so the pa
 
 <Entry name="GAP" kind="constant" from="@jali/core" signature={`const GAP: number`} compact>
 
-The gap between panes and the workspace's inset, in pixels (6). For measuring a workspace from outside: its usable area is its element's size minus `GAP * 2`.
+The default gap between panes and inset from the workspace's edges, in pixels (6); a workspace's own are `createJali({ gap, inset })`. For measuring a workspace from outside: its usable area is its element's size minus twice its inset (`GAP * 2` by default).
 
 </Entry>
 
