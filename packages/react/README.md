@@ -8,6 +8,8 @@ npm install @jali/core @jali/react @phosphor-icons/react
 
 React 18.2 or later (18 or 19) is a peer dependency, and so is `@phosphor-icons/react` (optional).
 
+Browsers: Baseline 2024 (Chrome and Edge 123, Firefox 120, Safari 17.5, Electron 30). The theme's colours are `light-dark()` pairs, the newest feature Jali uses.
+
 **Linked or in a monorepo** (`link:`, `file:`, `workspace:` or a symlinked checkout): the package can resolve its own copy of React from beside its source, and the app then bundles two Reacts, which breaks hooks ("Invalid hook call"). With Vite, tell it to use the app's: `resolve: { dedupe: ["react", "react-dom"] }` in `vite.config.ts`. With webpack, alias `react` and `react-dom` to the app's copy (`resolve.alias`).
 
 Jali's icons are Phosphor's regular weight, the set Chakni uses; give a kind any Phosphor icon (`icon: FileTextIcon`) and it matches.

@@ -579,3 +579,9 @@ Data Studio's old tab strip had six features Jali lacked. Each is general, and l
 - **Types:** `JaliIconProps` takes `size?: number | string` and `"aria-hidden"?: boolean | "true" | "false"`, so a Phosphor icon is a `JaliIcon` under React 18's types too (their `propTypes` made it fail there).
 - **Why not 17:** no `useSyncExternalStore`, which the state hookup relies on, no `createRoot` or automatic batching; a shrinking share of apps, at a real cost. **Why 18.2:** what most apps on 18 run; 18.3 only adds warnings ahead of 19.
 - **Checked:** `pnpm test:react18` (scripts/test-react18.sh) copies HEAD to a throwaway worktree with React 18.3.1 and its types, typechecks and runs the unit tests (706 pass; the two dist bundle checks skip without a build). The lab on React 18 passes the axe, tab, zoom, peek and review e2e specs. The suspending tests no longer use React 19's `use()`: they throw the promise, as a data library does.
+
+## 2026-11-19 · Browsers: Baseline 2024
+
+- **Jali needs Baseline 2024 browsers:** Chrome and Edge 123, Firefox 120, Safari 17.5, Electron 30. Stated in the quickstart, the theming guide and `@jali/react`'s README.
+- **What sets it:** the theme's `light-dark()` pairs (41 tokens). Jali already needed late 2023 for `:has()` (Firefox 121), `color-mix()` (Safari 16.2) and container queries, so the floor moved by about five months. A scan of the packages found nothing newer: JS is es2022 (`.at()` the newest), with the `ResizeObserver` fallback already in place.
+- **Why no fallback:** it would mean every token written twice, light and dark, which `light-dark()` replaced; the browsers left out are iPhones and iPads not updated past iOS 17.4 and Macs too old for Safari 17.5. Data Studio's Electron 45 (Chromium 142) is well inside.
