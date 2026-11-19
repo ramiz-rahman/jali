@@ -69,8 +69,8 @@ export class Lab {
   toast = (text: string | RegExp) =>
     this.page.locator("[data-sonner-toast]").filter({ hasText: text });
   shelf = () => this.page.getByRole("region", { name: "Shelf" });
-  shelfBar = () => this.shelf().getByRole("toolbar", { name: "Tucked and folded panes" });
-  /** Tucked chips (made by the person). Folded ones (made by the layout) are foldedChips. */
+  shelfBar = () => this.shelf().getByRole("toolbar", { name: "Tucked panes" });
+  /** Tucked chips (made by the person). Folded panes are not on the shelf: their strip has an "N folded" chip. */
   chips = () => this.shelf().locator('[data-chip]:not([data-reason="folded"])');
   foldedChips = () => this.shelf().locator('[data-chip][data-reason="folded"]');
   /** The main button of each shelf chip (not its put-back mini-action). */
@@ -362,7 +362,9 @@ export class Lab {
     where: "centre" | "left" | "right",
     opts: { release?: boolean } = {},
   ) {
-    const from = (await this.header(fromId).boundingBox())!;
+    // On the grip: the rest of the header holds the title and its controls (Following, the buttons).
+    const grip = this.header(fromId).locator(".jali-grip");
+    const from = (await ((await grip.count()) ? grip : this.header(fromId)).boundingBox())!;
     const to = (await this.pane(toId).boundingBox())!;
     const tx =
       where === "centre"
@@ -371,9 +373,9 @@ export class Lab {
           ? to.x + 20
           : to.x + to.width - 20;
     const ty = to.y + to.height / 2;
-    await this.page.mouse.move(from.x + from.width / 2 - 60, from.y + from.height / 2);
+    await this.page.mouse.move(from.x + from.width / 2, from.y + from.height / 2);
     await this.page.mouse.down();
-    await this.page.mouse.move(from.x + from.width / 2 - 40, from.y + from.height / 2 + 10, {
+    await this.page.mouse.move(from.x + from.width / 2 + 20, from.y + from.height / 2 + 10, {
       steps: 3,
     }); // past the 4px threshold
     await this.page.mouse.move(tx, ty, { steps: 12 });
