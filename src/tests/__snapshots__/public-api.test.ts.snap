@@ -21,6 +21,7 @@ exports[`public API > the layout namespace is the pure tree API 1`] = `
   "hide",
   "minSize",
   "moveDirection",
+  "moveTab",
   "open",
   "openBeside",
   "putBack",

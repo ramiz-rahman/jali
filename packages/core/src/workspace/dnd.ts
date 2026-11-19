@@ -8,6 +8,13 @@ import type { UiStore } from "../state/store";
 import { GAP } from "../tokens";
 
 export const DRAG_THRESHOLD = 4;
+
+/** A tab dropped between its group's tabs: next to `tab`, on its `side` in reading order, ending at `index`. */
+export interface TabDrop {
+  tab: string;
+  side: "before" | "after";
+  index: number;
+}
 export const EDGE_ZONE = 0.25;
 
 /** Pure zone rule, exported for tests. */
@@ -52,8 +59,39 @@ export function startPaneDrag(store: UiStore, e: PointerStart, paneId: string) {
     return;
   startDrag(store, e, {
     id: paneId,
+    reorder: true,
     onDrop: (target, zone) => store.actions.drop(paneId, target, zone),
   });
+}
+
+/**
+ * Where a tab dragged over its own strip would go: before or after the tab under the pointer (in reading order), and
+ * the index it would then have. Only within a group the person or the app made; undefined anywhere else.
+ */
+export function tabDropAt(
+  store: UiStore,
+  paneId: string,
+  clientX: number,
+  clientY: number,
+): TabDrop | undefined {
+  // The tab's own box, or its close button beside it (both sit in the tab's item).
+  const el = document
+    .elementFromPoint?.(clientX, clientY)
+    ?.closest(".jali-tab-item")
+    ?.querySelector<HTMLElement>("[data-tab]");
+  const over = el?.dataset.tab;
+  const stack = store.model().stackOf(paneId);
+  if (!el || !over || !stack) return undefined;
+  const at = stack.children.findIndex((c) => c.id === over);
+  if (at < 0) return undefined;
+  const r = el.getBoundingClientRect();
+  const rtl = getComputedStyle(el).direction === "rtl";
+  const firstHalf = rtl ? clientX > r.left + r.width / 2 : clientX < r.left + r.width / 2;
+  const side = firstHalf ? "before" : "after";
+  const from = stack.children.findIndex((c) => c.id === paneId);
+  let index = side === "before" ? at : at + 1;
+  if (from < index) index--;
+  return { tab: over, side, index };
 }
 
 /**
@@ -79,13 +117,15 @@ interface DragOpts {
   id: string;
   label?: string;
   fromOutside?: boolean;
+  /** A pane's own tab can be dropped between the tabs of its group, to reorder them. */
+  reorder?: boolean;
   onDrop(target: string, zone: Edge | "centre"): void;
 }
 
 function startDrag(
   store: UiStore,
   e: PointerStart,
-  { id: paneId, label, fromOutside, onDrop }: DragOpts,
+  { id: paneId, label, fromOutside, reorder, onDrop }: DragOpts,
 ) {
   let started = false;
   const handle = { dragged: () => started };
@@ -111,6 +151,12 @@ function startDrag(
       window.getSelection()?.removeAllRanges();
     }
     const p = local(ev.clientX, ev.clientY);
+    // Over its own strip, a tab reorders: a line between tabs, never a split.
+    const tabAt = reorder ? tabDropAt(store, paneId, ev.clientX, ev.clientY) : undefined;
+    if (tabAt) {
+      store.set({ dnd: { dragged: paneId, x: p.x, y: p.y, ...(label ? { label } : {}), tabAt } });
+      return;
+    }
     const boxes = m.resolved.panes;
     const hit = boxes.find(
       (b) =>
@@ -142,7 +188,8 @@ function startDrag(
   const up = () => {
     const d = store.get().dnd;
     cleanup();
-    if (started && d?.target && d.zone) onDrop(d.target, d.zone);
+    if (started && d?.tabAt) store.actions.moveTab(paneId, d.tabAt.index);
+    else if (started && d?.target && d.zone) onDrop(d.target, d.zone);
   };
   const key = (ev: KeyboardEvent) => {
     if (ev.key !== "Escape" || !started) return;

@@ -56,6 +56,8 @@ export function TabStrip({ group, owner }: { group: NonNullable<Frame["group"]>;
   const titles = useUi((s) => s.titles);
   const marks = useUi((s) => s.paneAttributes);
   const unsaved = useUi((s) => s.unsaved);
+  // A tab dragged over this strip: the line shows where it would go.
+  const dropAt = useUi((s) => s.dnd?.tabAt);
   // No launcher kind, no "+": there is nothing to open in the new tab.
   // A curated page's views live in the page tabs, so a pane's strip lists a page view only while it is shown: never a
   // repeat. The exception is a group of page views, which only a centre drop ("Add as tab") makes: you asked for
@@ -115,6 +117,7 @@ export function TabStrip({ group, owner }: { group: NonNullable<Frame["group"]>;
         role="presentation"
         data-drag-ok
         data-unsaved={dirty || undefined}
+        data-drop={dropAt?.tab === t.id ? dropAt.side : undefined}
         onPointerDown={(e) => {
           e.stopPropagation();
           startPaneDrag(store, e, t.id);

@@ -94,6 +94,11 @@ const announcements = {
   movedOutOfTabs: (pane: string, rightOf: string) =>
     `${pane} moved out of tabs, right of ${rightOf}`,
   tabShown: (pane: string) => `${pane} tab shown`,
+  /** A tab moved within its group: its place, counted from 1, of `count` tabs. */
+  tabMoved: (pane: string, position: number, count: number) =>
+    `${pane} moved to position ${position} of ${count}`,
+  /** A tab can't move further that way: `edge` is "first" or "last". */
+  tabAtEdge: (pane: string, edge: "first" | "last") => `${pane} is already the ${edge} tab`,
 
   // sizes
   sizesReset: "Sizes reset",
@@ -202,6 +207,7 @@ const commands = {
   swap: "Swap with next pane",
   merge: "Add to tabs of…",
   unmerge: "Move out of tabs",
+  moveTab: (direction: "left" | "right") => `Move tab ${direction}`,
   newTab: "New tab here",
   preset: (label: string) => `Layout: ${label}`,
   resetLayout: "Reset layout",

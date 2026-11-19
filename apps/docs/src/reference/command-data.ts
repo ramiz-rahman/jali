@@ -76,6 +76,10 @@ export const REFUSED: Record<string, string> = {
     'Silent when no pane is focused, or there is no other pane or stack on screen to join. Opens the "Add to tabs of…" chooser.',
   "pane.unmerge":
     "Silent unless the focused pane is in a tab group made by the person (not one the layout folded).",
+  "tab.move.left":
+    'Silent unless the focused pane is a tab in a group made by the person or the app. At the start of the strip: "… is already the first tab".',
+  "tab.move.right":
+    'Silent unless the focused pane is a tab in a group made by the person or the app. At the end of the strip: "… is already the last tab".',
   "stack.new-tab": "Silent when no pane is focused, or the workspace has no launcher kind.",
   [PRESET_PATTERN]: 'Never. One command per preset, titled "Layout: <label>".',
   "layout.reset": "Silent in a workspace without presets. Rebuilds the preset last chosen.",

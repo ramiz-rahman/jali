@@ -75,6 +75,7 @@ export type Op =
   | "reveal"
   | "merge"
   | "unmerge"
+  | "moveTab"
   | "tab"
   | "move"
   | "drop"
@@ -257,6 +258,8 @@ export const POLICY: Record<Op, Policy> = {
   focusExisting: layout("push", "swap", "change"),
   reveal: layout("replace", "swap"),
   tab: layout("replace", "swap"),
+  // A tab's place in its strip: the group keeps its rect.
+  moveTab: layout("push", "swap"),
   swap: layout("push", "swap"),
   activate: layout("push", "swap"),
   page: layout("push", "swap", "change"),

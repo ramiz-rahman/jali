@@ -98,6 +98,7 @@ describe("the instance", () => {
         "swapWithNext",
         "mergeInto",
         "unmerge",
+        "moveTab",
         "preset",
         "resetLayout",
         "openPage",

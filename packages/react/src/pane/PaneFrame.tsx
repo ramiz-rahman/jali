@@ -80,6 +80,7 @@ export const PaneFrame = /* @__PURE__ */ memo(
         data-kind={node.ref.kind}
         data-focused={focused || undefined}
         data-zoomed={zoomed || undefined}
+        data-unsaved={dirty || undefined}
         data-origin={opened ? "opened" : role ? "role" : undefined}
         data-boundary={opened ? boundary : undefined}
         aria-hidden={covered || undefined}

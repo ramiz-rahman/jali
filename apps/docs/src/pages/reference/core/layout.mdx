@@ -234,6 +234,14 @@ Pins (`false`) or unpins (`true`) a linked pane. Unpinned, it follows its source
 
 </Entry>
 
+<Entry name="layout.moveTab" kind="function" from="@jali/core" signature={`layout.moveTab(layout, pane: string, index: number): Layout`} compact>
+
+Moves `pane` to position `index` (from 0, clamped) among the tabs of its deliberate tab group. The shown tab stays shown and nothing refits. The same layout when `pane` is not in such a group or is already there.
+
+<Returns type="Layout" />
+
+</Entry>
+
 <Entry name="layout.setActiveTab" kind="function" from="@jali/core" signature={`layout.setActiveTab(layout, stack: string, pane: string, ctx): Layout`} compact>
 
 Shows `pane` in its tab group, deliberate or made by the layout. Nothing else moves and nothing refits.

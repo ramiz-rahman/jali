@@ -53,6 +53,9 @@ export const DEFAULT_KEYMAP = {
   "pane.split.down": ["Mod+K Mod+\\"],
   "pane.merge": ["Mod+K Mod+G"],
   "pane.unmerge": ["Mod+K Shift+Mod+G"],
+  // A browser's and VS Code's move-tab keys (Ctrl+Shift+PageUp/PageDown), after the prefix.
+  "tab.move.left": ["Mod+K Shift+PageUp"],
+  "tab.move.right": ["Mod+K Shift+PageDown"],
 } as const satisfies Record<string, readonly KeyString[]>;
 
 export type DefaultKeymapId = keyof typeof DEFAULT_KEYMAP;

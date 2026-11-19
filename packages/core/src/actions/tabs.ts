@@ -89,3 +89,39 @@ export function setActiveTab({ s, m, ctx }: Snapshot, stack: NodeId, pane: NodeI
     msg: say(m).tabShown(m.title(pane)),
   };
 }
+
+/** Move a tab to position `index` (from 0) in its group: same op from a drag between tabs, a key or the app. */
+export function moveTab({ s, m }: Snapshot, id: NodeId, index: number): Outcome {
+  const st = m.stackOf(id);
+  if (!st) return refuse("nothing-to-do", say(m).notInTabs(m.title(id)));
+  const layout = core.moveTab(s.layout, id, index);
+  if (layout === s.layout) return null;
+  const at = core.tree.stackOf(layout.root, id)!.children.findIndex((c) => c.id === id);
+  return { op: "moveTab", layout, msg: say(m).tabMoved(m.title(id), at + 1, st.children.length) };
+}
+
+/** Where a tab moves one place towards a screen side: in a right-to-left strip, left is later. */
+function stepToward({ m, ctx }: Snapshot, side: "left" | "right", id: NodeId | undefined) {
+  const st = m.stackOf(id);
+  if (!id || !st) return undefined;
+  const from = st.children.findIndex((c) => c.id === id);
+  const to = from + ((side === "right") === (ctx.dir !== "rtl") ? 1 : -1);
+  return {
+    id,
+    to,
+    edge: to < 0 ? ("first" as const) : to >= st.children.length ? ("last" as const) : undefined,
+  };
+}
+
+/** Move a tab one place towards `side` (default: the focused pane). At the group's end, says so. */
+export function moveTabToward(x: Snapshot, side: "left" | "right", id = x.s.view.focused): Outcome {
+  const step = stepToward(x, side, id);
+  if (!step) return refuse("nothing-to-do");
+  return step.edge
+    ? refuse("nothing-to-do", say(x.m).tabAtEdge(x.m.title(step.id), step.edge))
+    : moveTab(x, step.id, step.to);
+}
+
+/** Silent unless the focused pane is a tab in a group (at the group's end, running it says so, as moving a pane does). */
+export const checkMoveTab = ({ s, m }: Snapshot) =>
+  m.stackOf(s.view.focused) ? undefined : refuse("nothing-to-do");

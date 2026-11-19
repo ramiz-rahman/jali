@@ -1,0 +1,31 @@
+import { test, expect } from "./fixtures/lab";
+
+/** Dragging a tab between its group's tabs reorders them, with a line where it would go (Data Studio's request). */
+test("a tab dragged between its group's tabs moves there", async ({ lab, page }) => {
+  await lab.open({ size: { width: 1920, height: 1000 } });
+  await lab.setting(/Add as a tab/);
+  // Order → customer chain: put all three in one tab group.
+  await lab.drag("order", "orders", "centre");
+  await lab.drag("customer", "order", "centre"); // order is the shown tab now
+  const strip = page
+    .locator('[role="tablist"]')
+    .filter({ has: page.locator("[data-tab]") })
+    .first();
+  const tabs = strip.locator("[data-tab]");
+  await expect(tabs).toHaveCount(3);
+  const ids = () => tabs.evaluateAll((els) => els.map((e) => (e as HTMLElement).dataset.tab));
+  const before = await ids();
+
+  // The first tab, over the second half of the last: a line after the last, then it moves to the end.
+  const first = (await tabs.nth(0).boundingBox())!;
+  const last = (await tabs.nth(2).boundingBox())!;
+  await page.mouse.move(first.x + first.width / 2, first.y + first.height / 2);
+  await page.mouse.down();
+  await page.mouse.move(first.x + first.width / 2 + 10, first.y + first.height / 2, { steps: 3 });
+  await page.mouse.move(last.x + last.width * 0.8, last.y + last.height / 2, { steps: 12 });
+  await expect(page.locator('.jali-tab-item[data-drop="after"]')).toHaveCount(1);
+  await expect(page.locator(".jali-drop-zone, [data-testid='drop-zone']")).toHaveCount(0);
+  await page.mouse.up();
+  await expect.poll(ids).toEqual([before[1], before[2], before[0]]);
+  await expect(page.locator(".jali-tab-item[data-drop]")).toHaveCount(0);
+});

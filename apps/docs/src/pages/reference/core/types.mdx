@@ -803,6 +803,7 @@ A pane that is not there gives `reason: "not-found"`. What a refusal reads out t
 <Member name="actions.swapWithNext" signature="swapWithNext(pane?: PaneTarget)">Swap with the next pane on screen (or the previous, for the last).</Member>
 <Member name="actions.mergeInto" signature="mergeInto(pane: PaneTarget, target: PaneTarget)">`pane` joins `target`'s tab group.</Member>
 <Member name="actions.unmerge" signature="unmerge(pane?: PaneTarget)">Move a tab out of its group, to the right of it.</Member>
+<Member name="actions.moveTab" signature="moveTab(pane: PaneTarget, index: number)">Move a tab to position `index` (from 0) among its group's tabs, clamped to the group; the group keeps its place and size, and its shown tab. Announced as "Orders moved to position 2 of 4". Refused with `"nothing-to-do"` for a pane that is not a tab in a group the person or the app made (a folded or tucked tab is placed by the layout).</Member>
 </Members>
 
 <Members title="Layouts">

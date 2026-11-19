@@ -72,6 +72,8 @@ export interface DndState {
   target?: NodeId;
   zone?: import("../layout/types").Edge | "centre";
   label?: string;
+  /** Over its own tab strip: where the tab would go (workspace/dnd.ts). */
+  tabAt?: import("../workspace/dnd").TabDrop;
 }
 /** "Discard unsaved changes?": the panes that would lose work and the change, applied as is on Discard. */
 export interface ConfirmState {

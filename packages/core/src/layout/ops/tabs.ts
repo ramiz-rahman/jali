@@ -42,6 +42,25 @@ export function setActiveTab(
   );
   return root === next.root ? next : { ...next, root };
 }
+/**
+ * Move pane `id` to position `index` among its tab group's tabs, counted from 0 and clamped to the group. Only a
+ * group the person or the app made has an order to change: a pane folded or tucked into a group is placed by the
+ * layout. The active tab stays active. The same layout when the pane is not in such a group, or is already there.
+ */
+export function moveTab(layout: Layout, id: string, index: number): Layout {
+  const stack = stackOf(layout.root, id);
+  if (!stack) return layout;
+  const from = stack.children.findIndex((c) => c.id === id);
+  const to = Math.max(0, Math.min(stack.children.length - 1, Math.trunc(index)));
+  if (from === to || Number.isNaN(to)) return layout;
+  const children = stack.children.filter((c) => c.id !== id);
+  children.splice(to, 0, stack.children[from]!);
+  return {
+    ...layout,
+    root: map(layout.root, (n) => (n.id === stack.id ? { ...stack, children } : n)),
+  };
+}
+
 export function reveal(layout: Layout, pane: string, ctx: LayoutContext): Layout {
   const box = resolve(layout, noFocus(), ctx).panes.find((b) => b.id === pane);
   return box?.hidden && box.stackId ? setActiveTab(layout, box.stackId, pane, ctx) : layout;

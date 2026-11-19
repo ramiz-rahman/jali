@@ -361,6 +361,23 @@
     }
   }
 
+  /* A tab dragged between its group's tabs: a line where it would go, at the start or end edge in reading order. */
+  .jali-tab-item[data-drop]::before {
+    content: "";
+    position: absolute;
+    z-index: 1;
+    inset-block: 0.25rem;
+    width: 2px;
+    border-radius: 1px;
+    background: var(--jali-accent);
+  }
+  .jali-tab-item[data-drop="before"]::before {
+    inset-inline-start: -1px;
+  }
+  .jali-tab-item[data-drop="after"]::before {
+    inset-inline-end: -1px;
+  }
+
   /* Unsaved work (useUnsaved): a dot. On a tab it holds the close button's place, and turns back into × on hover or
    focus, so the mark costs no width. */
   .jali-unsaved {

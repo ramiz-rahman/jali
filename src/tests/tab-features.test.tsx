@@ -4,7 +4,8 @@
  */
 import { afterEach, beforeAll, describe, expect, it } from "vite-plus/test";
 import { act, cleanup, fireEvent, render, screen, within } from "@testing-library/react";
-import { createJali, memoryLocation, memoryStorage, pane, row, tabs } from "@jali/core";
+import { createJali, memoryLocation, memoryStorage, pane, row, runCommand, tabs } from "@jali/core";
+import { storeOf } from "@jali/core/adapter";
 import type { JaliOptions, LayoutInput } from "@jali/core";
 import { JaliRoot, definePane, useUnsaved } from "@jali/react";
 
@@ -78,7 +79,9 @@ describe("the unsaved mark", () => {
   it("names it on a lone pane's header", () => {
     const jali = make(row(pane(draft({ id: 2 }), { id: "b" }), pane(note({ id: 1 }), { id: "a" })));
     render(<JaliRoot jali={jali} />);
-    expect(screen.getAllByRole("img", { name: "Unsaved changes" })).toHaveLength(1);
+    const mark = screen.getByRole("img", { name: "Unsaved changes" });
+    expect(mark.closest(".jali-pane-header")).not.toBeNull();
+    expect(mark.closest("section")!.hasAttribute("data-unsaved")).toBe(true);
   });
 });
 
@@ -143,5 +146,91 @@ describe("confirmDiscard: false", () => {
     act(() => void (r = jali.actions.close("b")));
     expect(r!.reason).toBe("unsaved");
     expect(jali.model().panes).toHaveLength(2);
+  });
+});
+
+describe("reordering tabs", () => {
+  const three = () =>
+    make(
+      row(
+        tabs(
+          pane(note({ id: 1 }), { id: "a" }),
+          pane(note({ id: 2 }), { id: "b" }),
+          pane(note({ id: 3 }), { id: "c" }),
+        ),
+        pane(note({ id: 9 }), { id: "z" }),
+      ),
+    );
+  const order = (jali: ReturnType<typeof make>) =>
+    (
+      jali.getLayout().root as { children: { children?: { id: string }[] }[] }
+    ).children[0]!.children!.map((c) => c.id);
+  const said = (jali: ReturnType<typeof make>) => storeOf(jali).get().announcement.text;
+
+  it("moves a tab to a position, clamped, and says where it went", () => {
+    const jali = three();
+    expect(jali.actions.moveTab("a", 2)).toEqual({ ok: true, pane: "a" });
+    expect(order(jali)).toEqual(["b", "c", "a"]);
+    expect(said(jali)).toBe("Note 1 moved to position 3 of 3");
+    jali.actions.moveTab("a", -5);
+    expect(order(jali)).toEqual(["a", "b", "c"]);
+    jali.actions.moveTab("c", 99);
+    expect(order(jali)).toEqual(["a", "b", "c"]);
+  });
+
+  it("keeps the shown tab shown", () => {
+    const jali = three();
+    jali.actions.focus("b");
+    const active = () =>
+      (jali.getLayout().root as { children: { active?: string }[] }).children[0]!.active;
+    const before = active();
+    jali.actions.moveTab("a", 1);
+    expect(active()).toBe(before);
+  });
+
+  it("refuses a pane that is not a tab", () => {
+    const jali = three();
+    expect(jali.actions.moveTab("z", 0)).toMatchObject({ ok: false, reason: "nothing-to-do" });
+  });
+
+  it("moves the focused tab one place with the keys, and says so at the end", () => {
+    const jali = three();
+    jali.actions.focus("b");
+    runCommand(jali, "tab.move.right");
+    expect(order(jali)).toEqual(["a", "c", "b"]);
+    runCommand(jali, "tab.move.right");
+    expect(order(jali)).toEqual(["a", "c", "b"]);
+    expect(said(jali)).toBe("Note 2 is already the last tab");
+    runCommand(jali, "tab.move.left");
+    expect(order(jali)).toEqual(["a", "b", "c"]);
+  });
+
+  it("reverses the keys right to left", () => {
+    const jali = make(
+      row(tabs(pane(note({ id: 1 }), { id: "a" }), pane(note({ id: 2 }), { id: "b" }))),
+      { dir: "rtl" },
+    );
+    jali.actions.focus("a");
+    runCommand(jali, "tab.move.left");
+    expect(
+      (
+        jali.getLayout().root as { children: { children: { id: string }[] }[] }
+      ).children[0]!.children.map((c) => c.id),
+    ).toEqual(["b", "a"]);
+  });
+
+  it("can be bound to a single chord, after the app's prefix by default", () => {
+    const jali = three();
+    expect(jali.keymap.sequences("tab.move.left")).toHaveLength(1);
+    const own = make(
+      row(tabs(pane(note({ id: 1 }), { id: "a" }), pane(note({ id: 2 }), { id: "b" }))),
+      {
+        keyPrefix: "Mod+J",
+        keymap: { "tab.move.right": "Alt+Shift+ArrowRight" },
+      },
+    );
+    expect(own.keymap.label("tab.move.left")).toMatch(/J/);
+    expect(own.keymap.sequences("tab.move.right")).toHaveLength(1);
+    expect(own.keymap.sequences("tab.move.right")[0]!).toHaveLength(1);
   });
 });
