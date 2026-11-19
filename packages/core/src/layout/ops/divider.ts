@@ -21,6 +21,18 @@ export function resizeDivider(
   const first = owner.children.filter((c) => panes(c).some((p) => leftIds.includes(p.id)));
   const second = owner.children.filter((c) => panes(c).some((p) => rightIds.includes(p.id)));
   if (!first.length || !second.length) return layout;
+  // In a row that scrolls, the child before the divider takes the new width, in px, and the rest keep theirs: the
+  // content gets longer or shorter, so nothing is taken from a neighbour.
+  if (owner.type === "row" && owner.scroll === "x") {
+    const value = Math.max(divider.min, divider.value + deltaPx);
+    if (Math.abs(value - divider.value) < 1e-9) return layout;
+    for (const child of first) {
+      child.base ??= clone(child.size);
+      child.size = { px: Math.round(value / first.length) };
+      child.userSized = true;
+    }
+    return next;
+  }
   const secondExtent = extentAlong(resolved.panes, rightIds, owner.type);
   const total = divider.value + secondExtent;
   const value = Math.max(divider.min, Math.min(divider.max, divider.value + deltaPx));

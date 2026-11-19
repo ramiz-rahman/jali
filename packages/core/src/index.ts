@@ -14,6 +14,7 @@ export {
   toLayout,
   type LayoutInput,
   type SizeOptions,
+  type RowOptions,
   type PaneNodeOptions,
   type TabsOptions,
 } from "./layout/build";
@@ -62,6 +63,7 @@ export type {
   ResolvedStack,
   PaneBox,
   DividerBox,
+  ScrollerBox,
   PaneKind,
   KindRegistry,
   LayoutContext,

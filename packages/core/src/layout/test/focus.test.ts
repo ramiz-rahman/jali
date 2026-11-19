@@ -13,6 +13,7 @@ const resolved = (...panes: PaneBox[]): ResolvedLayout => ({
   dividers: [],
   stacks: [],
   shelf: [],
+  scrollers: [],
 });
 
 describe("focus", () => {

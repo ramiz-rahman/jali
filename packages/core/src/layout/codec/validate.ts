@@ -113,6 +113,8 @@ export function validate(
       error(path, "children must be non-empty");
       return;
     }
+    if (value.scroll !== undefined && (value.type !== "row" || value.scroll !== "x"))
+      error(path, "only a row scrolls, and only sideways");
     if (value.type === "stack") {
       if (value.origin !== undefined && value.origin !== "user")
         error(path, "invalid stack origin");

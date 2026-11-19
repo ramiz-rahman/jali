@@ -48,6 +48,12 @@ export interface StackNode extends NodeBase {
 export interface SplitNode extends NodeBase {
   type: Axis;
   children: LayoutNode[];
+  /**
+   * A row that scrolls sideways (rows only): its children keep their own widths (a person's px size, else their
+   * comfortable width) and the row scrolls to the rest, instead of sharing its width and folding what doesn't fit.
+   * To its parent it needs one child's room; to the pane cap it is one slot. See docs/research/scrolling-rows.md.
+   */
+  scroll?: "x";
 }
 export type LayoutNode = PaneNode | StackNode | SplitNode;
 export interface TuckRecord {
@@ -131,10 +137,23 @@ export interface ResolvedStack {
   homeId: NodeId;
   paneIds: NodeId[];
 }
+/**
+ * A row that scrolls sideways, as drawn: `rect` is its window on screen, and its panes' rects are laid along its
+ * content, from `rect.x` to `rect.x + contentWidth` (unscrolled). A renderer scrolls that content inside `rect`.
+ */
+export interface ScrollerBox {
+  id: NodeId;
+  rect: Rect;
+  contentWidth: number;
+  /** Its panes, in reading order. */
+  paneIds: NodeId[];
+}
 export interface ResolvedLayout {
   panes: PaneBox[];
   dividers: DividerBox[];
   stacks: ResolvedStack[];
+  /** Rows that scroll sideways, outermost first. */
+  scrollers: ScrollerBox[];
   /** Single source for hidden-pane reasons; zoom does not change the shelf. */
   shelf: ShelfEntry[];
 }

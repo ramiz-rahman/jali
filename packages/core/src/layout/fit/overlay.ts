@@ -11,6 +11,8 @@ export interface Projected {
   /** Pane the automatic stack formed around (the folded panes' related home). */
   home?: string;
   kind?: "fold" | "tuck";
+  /** A row that scrolls sideways: one slot to the fit, its children never folded. */
+  scroll?: boolean;
   /** Sized by the person (or allocated exactly, as under a tuck): its split shares by exact weights, not the share rule. */
   userSized?: boolean;
   bounds: Bounds;
@@ -23,6 +25,7 @@ export function refresh(node: Projected, fit: FitOptions): void {
     node.children.map((c) => c.bounds),
     fit.gap,
     Math.max(0, home),
+    !!node.scroll,
   );
 }
 export function project(node: LayoutNode, fit: FitOptions): Projected {
@@ -43,6 +46,7 @@ export function project(node: LayoutNode, fit: FitOptions): Projected {
     size: node.size,
     userSized: node.userSized,
     active: node.type === "stack" ? node.active : undefined,
+    scroll: node.type === "row" && node.scroll === "x" ? true : undefined,
     children: node.children.map((c) => project(c, fit)),
     bounds: { width: 0, height: 0, comfortable: 0, maxWidth: Infinity },
   };
@@ -93,8 +97,11 @@ export function auto(
   refresh(result, fit);
   return result;
 }
+/** The slots the fit folds among. A row that scrolls is one: its children are never folded to make room. */
 export function slots(root: Projected): Projected[] {
-  return root.type === "row" || root.type === "column" ? root.children.flatMap(slots) : [root];
+  return (root.type === "row" && !root.scroll) || root.type === "column"
+    ? root.children.flatMap(slots)
+    : [root];
 }
 export function autos(root: Projected): Projected[] {
   return root.type === "auto" ? [root] : root.pane ? [] : root.children.flatMap(autos);

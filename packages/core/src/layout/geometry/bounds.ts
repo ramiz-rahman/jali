@@ -10,7 +10,13 @@ export interface Bounds {
   maxWidth: number;
 }
 /** `home`: for a tab group, the index of the child the slot belongs to (a stack's first tab, a fold's home pane). */
-export function combineBounds(type: string, children: Bounds[], gap: number, home = 0): Bounds {
+export function combineBounds(
+  type: string,
+  children: Bounds[],
+  gap: number,
+  home = 0,
+  scroll = false,
+): Bounds {
   const sum = (values: number[]) =>
     values.reduce((a, b) => a + b, 0) + Math.max(0, children.length - 1) * gap;
   const widths = children.map((c) => c.width),
@@ -20,6 +26,15 @@ export function combineBounds(type: string, children: Bounds[], gap: number, hom
   // Side by side, needs add up. Stacked, the slot can use what any of its panes can. Tabbed, every tab must fit (the
   // minimums), and the slot is measured as its home: a fold of tables into a record's slot is still a record's slot,
   // and choosing a tab never resizes it.
+  // A row that scrolls needs room for its widest child only (it scrolls to the rest), and would like all of them
+  // at comfort, so its parent gives it what room there is.
+  if (type === "row" && scroll)
+    return {
+      width: Math.max(...widths),
+      height: Math.max(...heights),
+      comfortable: sum(comfortable),
+      maxWidth: sum(maxima),
+    };
   if (type === "row")
     return {
       width: sum(widths),
@@ -50,6 +65,8 @@ export function bounds(node: LayoutNode, kinds: KindRegistry, gap: number): Boun
       node.type,
       node.children.map((c) => bounds(c, kinds, gap)),
       gap,
+      0,
+      node.type === "row" && node.scroll === "x",
     );
   const kind = kinds[node.ref.kind];
   if (!kind) throw new Error(`Unknown pane kind: ${node.ref.kind}`);
