@@ -248,15 +248,17 @@ function MapPane({ params, paused, node, inPeek }: PaneProps<typeof mapParams>) 
     mapRef.current?.setStyle(STYLE[theme], { diff: false });
   }, [theme]);
 
-  // As a list does on first show: start on what the place pane beside it already shows, so nothing jumps.
+  // As a list does on first show: start on what the place pane beside it shows, so nothing jumps. And again when a
+  // layout (a preset, a link, Back) puts another place in that pane: Jali keeps this pane's selection across a
+  // preset switch, but the new preset's place pane arrives with its own place (FINDINGS.md).
+  const follower = model.panes.find((p) => p.linkedTo === node.id && p.follows && p.ref.kind === "place");
+  const followerShows = follower ? String(follower.ref.params.id) : null;
   useEffect(() => {
-    if (inPeek || jali.get().selection[node.id]) return;
-    const follower = jali
-      .model()
-      .panes.find((p) => p.linkedTo === node.id && p.follows && p.ref.kind === "place");
-    if (follower) jali.actions.select(node.id, follower.ref);
+    if (inPeek || !follower || followerShows === selected) return;
+    jali.actions.select(node.id, follower.ref);
+    // Only when the place pane's object changes by layout; a selection the person makes reaches it a moment later.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [followerShows]);
 
   // The routes.
   useEffect(() => {

@@ -10,6 +10,8 @@
   .map-canvas {
     position: absolute;
     inset: 0;
+    /* The pins' z-index stays inside the map, under the controls floating over it. */
+    isolation: isolate;
   }
   .map-canvas canvas:focus-visible {
     outline: 3px solid var(--jali-accent);
