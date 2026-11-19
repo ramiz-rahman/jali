@@ -19,6 +19,8 @@ describe("default icons", () => {
   it("the script names a source for every icon Jali draws", () => {
     const names: Record<JaliIconName, true> = {
       close: true,
+      fullScreen: true,
+      exitFullScreen: true,
       maximise: true,
       restore: true,
       tuck: true,

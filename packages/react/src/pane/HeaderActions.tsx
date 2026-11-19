@@ -1,6 +1,6 @@
 import { checkTuck, tuckHome } from "@jali/core/adapter";
 import { useJaliIcons } from "../icons/context";
-import { useModel, useStore } from "../state/react";
+import { useModel, useStore, useUi } from "../state/react";
 import type { Chrome } from "@jali/core/adapter";
 
 interface P {
@@ -27,9 +27,11 @@ export function HeaderActions({ id, title, zoomed, chrome, tabs }: P) {
   const node = m.pane(id);
   // A curated page's view closes back into the tabs above.
   const closeHint = store.get().page && node?.role ? t.closeViewTip : t.closeTip;
+  // On the whole screen, the way back is Exit full screen; Maximise's Restore would leave half of it.
+  const full = useUi((s) => s.fullScreen === id);
   const canTuck = chrome.tuckable && !zoomed;
   const showClose = chrome.closeWithTabs || !tabs;
-  if (!canTuck && !chrome.zoomable && !showClose) return null;
+  if (!canTuck && !chrome.zoomable && !chrome.fullScreenable && !showClose) return null;
   return (
     <div className="jali-pane-actions">
       {canTuck ? (
@@ -43,7 +45,8 @@ export function HeaderActions({ id, title, zoomed, chrome, tabs }: P) {
           <icon.tuck size={14} aria-hidden />
         </button>
       ) : null}
-      {chrome.zoomable ? <ZoomButton id={id} title={title} zoomed={zoomed} /> : null}
+      {chrome.zoomable && !full ? <ZoomButton id={id} title={title} zoomed={zoomed} /> : null}
+      {chrome.fullScreenable ? <FullScreenButton id={id} title={title} /> : null}
       {showClose ? (
         <button
           className="jali-icon-btn jali-act-close"
@@ -74,6 +77,32 @@ function ZoomButton({ id, title, zoomed }: { id: string; title: string; zoomed: 
       }
     >
       {zoomed ? <icon.restore size={14} aria-hidden /> : <icon.maximise size={14} aria-hidden />}
+    </button>
+  );
+}
+
+function FullScreenButton({ id, title }: { id: string; title: string }) {
+  const icon = useJaliIcons();
+  const { actions, keymap, messages } = useStore();
+  const full = useUi((s) => s.fullScreen === id);
+  const { pane: t, keys } = messages;
+  return (
+    <button
+      className="jali-icon-btn jali-act-fullscreen"
+      onClick={() => actions.toggleFullScreen(id)}
+      aria-label={full ? t.exitFullScreen(title) : t.fullScreen(title)}
+      aria-pressed={full}
+      title={
+        full
+          ? keys.withKeys(t.exitFullScreenTip, keymap.format([{ key: "Escape" }]))
+          : keys.withKeys(t.fullScreenTip, keymap.label("pane.fullscreen"))
+      }
+    >
+      {full ? (
+        <icon.exitFullScreen size={14} aria-hidden />
+      ) : (
+        <icon.fullScreen size={14} aria-hidden />
+      )}
     </button>
   );
 }

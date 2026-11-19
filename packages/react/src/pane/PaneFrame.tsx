@@ -59,17 +59,22 @@ export const PaneFrame = /* @__PURE__ */ memo(
     const marks = usePaneAttributesOf(node.id);
     const title = titleOf(env, node, titles);
     const shows = shownTitle(env, node, titles);
-    const style: CSSProperties = {
-      left: rect.x,
-      top: rect.y,
-      width: rect.width,
-      height: rect.height,
-      display: hidden ? "none" : undefined,
-    };
+    // Full screen: the pane covers the window (and the browser, asked by the workspace, takes the whole screen).
+    const full = useUi((s) => s.fullScreen === node.id) && !hidden;
+    const style: CSSProperties = full
+      ? { position: "fixed", inset: 0, zIndex: 50 }
+      : {
+          left: rect.x,
+          top: rect.y,
+          width: rect.width,
+          height: rect.height,
+          display: hidden ? "none" : undefined,
+        };
     const cls = [
       "jali-pane",
       !chrome.island && "is-single",
       alone && "is-alone",
+      full && "is-single",
       focused && "is-focused",
       zoomed && "is-zoomed",
       isDragged && "is-dragged",
@@ -89,6 +94,7 @@ export const PaneFrame = /* @__PURE__ */ memo(
         data-kind={node.ref.kind}
         data-focused={focused || undefined}
         data-alone={alone || undefined}
+        data-full-screen={full || undefined}
         data-zoomed={zoomed || undefined}
         data-dragged={isDragged || undefined}
         data-drop-target={dropTarget || undefined}

@@ -89,6 +89,12 @@ Even with room, a workspace shows at most 8 panes at once by default. The person
 
 The workspace's chrome grows only when there is something to arrange. While one pane is on screen, with or without tabs, it fills the workspace edge to edge, with no border or focus edge, and its header has no tuck or maximise. If it has tabs, each tab's × closes it, so the header has no close button either. Open a second pane and both get their edges and buttons back.
 
+## Maximise and full screen
+
+Maximise lets one pane cover the workspace, with the others kept behind it (⇧⌘↵, or the button in its header). Full screen goes further: the pane covers the whole screen, the browser's own bars included, for a chart, a document or a presentation. Its button sits beside Maximise; ⌘K has "Full screen, or exit full screen", and `jali.actions.toggleFullScreen(pane)` does it from your code. Escape, the button again, or leaving the browser's full screen puts everything back as it was. ⌘K and Jali's dialogs still open over it. Where the browser has no full screen, as on an iPhone, the pane still covers the page.
+
+The pane is placed over the window, so an element of yours around the workspace that is its own stacking context (a `transform`, a `filter`, `isolation: isolate`) keeps it inside that element.
+
 ## Phones get a single view
 
 On a phone, a workspace narrower than 600 pixels shows a single view: one pane fills the width, with a switcher at the top listing every pane. It does the same at any width when even one pane is too wide at its minimum, since folding can't help then. Other panes stay mounted, so their state survives. `createJali({ phone: { below } })` moves the line; `below: 0` keeps only the second rule.

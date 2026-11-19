@@ -1485,6 +1485,8 @@ A pane that is not there gives `reason: "not-found"`. What a refusal reads out t
 
 - **`actions.preset`**, `preset(id: string)`: Switch to a preset. `"not-found"` for an id the workspace doesn't have.
 
+- **`actions.toggleFullScreen`**, `toggleFullScreen(pane?)`: Put a pane (default: the focused one) on the whole screen: maximised, with the page in the browser's full screen. Again, Escape, or leaving the browser's full screen puts it back as it was. Where the browser has no full screen (an iPhone), the pane still covers the page. ⌘K: "Full screen, or exit full screen".
+
 - **`actions.resetLayout`**, `resetLayout()`: Rebuild the preset last chosen.
 
 - **`actions.autoLayout`**, `autoLayout()`: Arrange every pane from the room there is and each kind's size hints ([`layout.arrange`](layout.md#layout.arrange)): columns at the kinds' comfortable widths, a second row when the height allows, the rest as tabs beside the pane they were opened from. The same panes, so nothing reloads; tucked and folded panes are placed too. Back returns to the arrangement before. `"unavailable"` on a curated page, `"nothing-to-do"` with one pane. ⌘K: "Arrange panes automatically".

@@ -157,4 +157,10 @@
     white-space: nowrap;
     border: 0;
   }
+
+  /* Full screen: the pane is fixed over the window, so the workspace stops being its own stacking context, or the
+     host's later chrome (a status line) would paint over the pane. */
+  .jali-workspace[data-full-screen] {
+    isolation: auto;
+  }
 }

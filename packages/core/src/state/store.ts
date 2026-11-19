@@ -136,6 +136,9 @@ export interface UiState {
   /** Objects opened this session, most recent first (the launcher's "Recent"). */
   recent: ObjectRef[];
   area: { width: number; height: number };
+  /** The pane on the whole screen (`actions.toggleFullScreen`): maximised, with the page in the browser's full
+   *  screen. Not in the layout or the address. */
+  fullScreen?: NodeId;
   /** A fold that splits the workspace in two, measured from the browser's viewport segments; unset on a flat screen
    *  and in browsers without them. */
   hinge?: Hinge;

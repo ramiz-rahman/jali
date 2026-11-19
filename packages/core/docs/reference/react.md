@@ -575,6 +575,10 @@ One icon per name Jali draws. `<JaliRoot icons>` takes any part of it; type your
 
 - **`icons.restore`**, `restore: JaliIcon`: Restore a maximised pane. Default: Phosphor's `ArrowsInSimple`.
 
+- **`icons.fullScreen`**, `fullScreen: JaliIcon`: Put a pane on the whole screen. Default: Phosphor's `CornersOut`.
+
+- **`icons.exitFullScreen`**, `exitFullScreen: JaliIcon`: Leave full screen. Default: Phosphor's `CornersIn`.
+
 - **`icons.tuck`**, `tuck: JaliIcon`: Tuck a pane into the shelf. Default: Phosphor's `Minus`.
 
 - **`icons.putBack`**, `putBack: JaliIcon`: Put a tucked or folded pane back, on its tab and shelf chip. Default: Phosphor's `ArrowUUpLeft`.

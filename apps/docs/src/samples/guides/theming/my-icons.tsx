@@ -15,6 +15,8 @@ export const myIcons: JaliIcons = {
   close: sprite("x"),
   maximise: sprite("expand"),
   restore: sprite("collapse"),
+  fullScreen: sprite("fullscreen"),
+  exitFullScreen: sprite("fullscreen-exit"),
   tuck: sprite("minus"),
   putBack: sprite("undo"),
   newTab: sprite("plus"),

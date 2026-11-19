@@ -57,6 +57,7 @@ export const parts = {
         means: "Across a fold: `row` (the halves side by side) or `column` (one above the other).",
       },
       { name: "data-zoomed", means: "Flag: a pane is maximised." },
+      { name: "data-full-screen", means: "Flag: a pane is on the whole screen." },
       {
         name: "data-alone",
         means: "Flag: one pane on screen, shown full-bleed with no tuck, maximise or drag.",
@@ -71,6 +72,7 @@ export const parts = {
       { name: "data-pane", means: "The pane's id." },
       { name: "data-kind", means: "The pane's kind." },
       { name: "data-focused", means: "Flag: the focused pane." },
+      { name: "data-full-screen", means: "Flag: on the whole screen (`toggleFullScreen`)." },
       { name: "data-alone", means: "Flag: the only pane on screen (see the workspace's)." },
       { name: "data-zoomed", means: "Flag: maximised." },
       { name: "data-dragged", means: "Flag: being dragged." },

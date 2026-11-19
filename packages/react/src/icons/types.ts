@@ -20,6 +20,8 @@ export type JaliIconName =
   | "close"
   | "maximise"
   | "restore"
+  | "fullScreen"
+  | "exitFullScreen"
   | "tuck"
   | "putBack"
   | "newTab"

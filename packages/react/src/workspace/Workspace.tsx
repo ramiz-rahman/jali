@@ -220,6 +220,40 @@ function DragChip({ x, y, label, rtl }: { x: number; y: number; label: string; r
   );
 }
 
+/**
+ * Full screen: while a pane is on the whole screen (`actions.toggleFullScreen`), the page is in the browser's full
+ * screen, so the pane (fixed over the window) covers the display. Leaving the browser's full screen (Escape, the
+ * browser's own controls) leaves Jali's too. Where the browser can't (an iPhone), the pane still covers the page.
+ */
+function useFullScreen(store: UiStore, m: JaliModel) {
+  const full = useUi((s) => s.fullScreen);
+  const asked = useRef(false);
+  useEffect(() => {
+    if (typeof document === "undefined") return;
+    if (full && !document.fullscreenElement && document.documentElement.requestFullscreen) {
+      asked.current = true;
+      document.documentElement.requestFullscreen().catch(() => (asked.current = false));
+    } else if (!full && asked.current) {
+      asked.current = false;
+      if (document.fullscreenElement) document.exitFullscreen?.().catch(() => {});
+    }
+  }, [full]);
+  useEffect(() => {
+    const left = () => {
+      if (!document.fullscreenElement && asked.current && store.get().fullScreen) {
+        asked.current = false;
+        store.actions.toggleFullScreen();
+      }
+    };
+    document.addEventListener("fullscreenchange", left);
+    return () => document.removeEventListener("fullscreenchange", left);
+  }, [store]);
+  // The pane closed while on the whole screen.
+  useEffect(() => {
+    if (full && !m.pane(full)) store.set({ fullScreen: undefined });
+  });
+}
+
 /** A fold's hinge, drawn as a hairline where the halves meet (a seamless fold has no gap of its own). */
 function FoldLine({ hinge, origin }: { hinge: Hinge; origin: { left: number; top: number } }) {
   const row = hinge.axis === "row";
@@ -248,6 +282,8 @@ export function Panes() {
   const ref = useMeasure(store);
   const measured = area.width > 0;
   useSingleView(store, m, view, measured);
+  useFullScreen(store, m);
+  const fullScreen = useUi((s) => !!s.fullScreen && !!m.pane(s.fullScreen));
   useFoldAnnouncements(store, m, area);
   // Keep DOM focus on the focused pane after structural changes (focus is never lost), but only once the person has
   // been in this workspace: mounting one, or a change while they are elsewhere on the page, leaves their place alone.
@@ -297,6 +333,7 @@ export function Panes() {
       data-single={single ? "" : undefined}
       data-stacked={stacked ? "" : undefined}
       data-fold={stacked ? m.stacked?.hinge?.axis : undefined}
+      data-full-screen={fullScreen ? "" : undefined}
       data-alone={alone ? "" : undefined}
       data-zoomed={!single && view.zoomed ? "" : undefined}
       data-page={page}

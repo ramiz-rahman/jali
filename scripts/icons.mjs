@@ -22,6 +22,8 @@ export const SOURCES = {
   close: "X",
   maximise: "ArrowsOutSimple",
   restore: "ArrowsInSimple",
+  fullScreen: "CornersOut",
+  exitFullScreen: "CornersIn",
   tuck: "Minus",
   putBack: "ArrowUUpLeft",
   newTab: "Plus",

@@ -5,7 +5,15 @@
  */
 import type { NodeId } from "../layout/types";
 import type { ActionResult, Outcome, Snapshot } from "../state/apply";
-import { focus, focusCycle, focusDirection, focusEnd, focusIndex, toggleZoom } from "./focus";
+import {
+  focus,
+  focusCycle,
+  focusDirection,
+  focusEnd,
+  focusIndex,
+  toggleFullScreen,
+  toggleZoom,
+} from "./focus";
 import { dismiss, newTab, noteOpen, openBeside, openHere, split, splitAuto } from "./open";
 import { close, closeOthers, closeTabs, undo } from "./close";
 import { putBack, reveal, tuck } from "./tuck";
@@ -65,6 +73,7 @@ export const ACTIONS = {
   focusIndex,
   focusEnd,
   toggleZoom,
+  toggleFullScreen,
   openBeside,
   split,
   splitAuto,

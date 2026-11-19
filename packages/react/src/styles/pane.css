@@ -132,7 +132,12 @@
     background: none;
     color: var(--jali-text-subtle);
   }
+  /* A lone pane is quiet: its Full screen button shows on hover or focus inside it. */
+  .jali-pane.is-alone:not(:hover):not(:focus-within) .jali-act-fullscreen {
+    opacity: 0;
+  }
   .jali-pane:not(.is-focused):not(:hover) .jali-act-zoom,
+  .jali-pane:not(.is-focused):not(:hover) .jali-act-fullscreen,
   .jali-pane:not(.is-focused):not(:hover) .jali-act-tuck {
     opacity: 0;
   }
@@ -140,6 +145,7 @@
    Wider panes keep the room, so hovering never shifts the title. */
   @container jali-header (max-width: 20rem) {
     .jali-pane:not(.is-focused):not(:hover):not(:focus-within) .jali-act-zoom,
+    .jali-pane:not(.is-focused):not(:hover):not(:focus-within) .jali-act-fullscreen,
     .jali-pane:not(.is-focused):not(:hover):not(:focus-within) .jali-act-tuck {
       display: none;
     }

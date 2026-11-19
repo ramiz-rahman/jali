@@ -12,16 +12,26 @@ export interface Chrome {
   island: boolean;
   /** The header's close button shows even when the header holds tabs (each tab has its own ×). */
   closeWithTabs: boolean;
+  /** A Full screen button in the header. */
+  fullScreenable: boolean;
 }
 
 export const CHROME: Record<Presentation, Chrome> = {
-  tiled: { draggable: true, zoomable: true, tuckable: true, island: true, closeWithTabs: true },
+  tiled: {
+    draggable: true,
+    zoomable: true,
+    tuckable: true,
+    island: true,
+    closeWithTabs: true,
+    fullScreenable: true,
+  },
   single: {
     draggable: false,
     zoomable: false,
     tuckable: false,
     island: false,
     closeWithTabs: true,
+    fullScreenable: false,
   },
 };
 
@@ -36,4 +46,6 @@ export const ALONE_CHROME: Chrome = {
   tuckable: false,
   island: false,
   closeWithTabs: false,
+  // A lone pane may still want the whole screen: a chart, a document, a presentation.
+  fullScreenable: true,
 };

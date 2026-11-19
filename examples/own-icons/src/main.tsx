@@ -34,6 +34,8 @@ const icons: JaliIcons = {
   close: stroke("M4 4l8 8M12 4l-8 8"),
   maximise: stroke("M9 3h4v4M7 13H3V9M13 3L9 7M3 13l4-4"),
   restore: stroke("M13 7H9V3M3 9h4v4M9 7l4-4M7 9l-4 4"),
+  fullScreen: stroke("M3 6V3h3M10 3h3v3M13 10v3h-3M6 13H3v-3"),
+  exitFullScreen: stroke("M6 3v3H3M13 6h-3V3M10 13v-3h3M3 10h3v3"),
   tuck: stroke("M3.5 8h9"),
   putBack: stroke("M6 4L3 7l3 3M3 7h6.5a3 3 0 010 6H8"),
   newTab: stroke("M8 3.5v9M3.5 8h9"),

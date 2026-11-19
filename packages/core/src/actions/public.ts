@@ -16,7 +16,7 @@ import type { ItemId, ViewMode } from "../profile";
 import { refuse, type ActionResult, type Outcome, type Snapshot } from "../state/apply";
 import type { Settings } from "../state/settings";
 import { close, closeOthers, closeTabs, remove, undo } from "./close";
-import { focusShown, toggleZoom } from "./focus";
+import { focusShown, toggleFullScreen, toggleZoom } from "./focus";
 import { sameRef, setKept } from "./follow";
 import {
   changeSettings,
@@ -64,6 +64,10 @@ export interface JaliActions {
   focus(pane: PaneTarget): ActionResult;
   /** Maximise a pane (default: the focused one), or restore it. */
   toggleZoom(pane?: PaneTarget): ActionResult;
+  /** Put a pane (default: the focused one) on the whole screen: maximised, with the page in the browser's full
+   *  screen where it allows. Again, or Escape, puts it back. Where the browser has no full screen (an iPhone), the
+   *  pane still covers the page. */
+  toggleFullScreen(pane?: PaneTarget): ActionResult;
 
   // ---------- open ----------
   /** Open `ref` beside `pane`. Focus stays in `pane`. If `ref` is already open, that pane is shown instead. */
@@ -210,6 +214,7 @@ export function publicActions(run: Run): JaliActions {
   return {
     focus: (pane) => on(pane, focusShown),
     toggleZoom: (pane) => opt(pane, (x, id) => toggleZoom(x, id)),
+    toggleFullScreen: (pane) => opt(pane, (x, id) => toggleFullScreen(x, id)),
 
     openBeside: (pane, ref) => on(pane, (x, id) => openBeside(x, id, ref)),
     openHere: (pane, ref) => on(pane, (x, id) => openHere(x, id, ref)),

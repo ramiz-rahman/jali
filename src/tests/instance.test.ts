@@ -82,6 +82,7 @@ describe("the instance", () => {
       [
         "focus",
         "toggleZoom",
+        "toggleFullScreen",
         "openBeside",
         "openHere",
         "peek",

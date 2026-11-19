@@ -89,6 +89,13 @@ function buildCommands(env: Env): CommandDef[] {
       run: (u) => u.actions.toggleZoom(),
     },
     {
+      id: "pane.fullscreen",
+      title: t.fullScreen,
+      group: g.pane,
+      check: ({ s }) => (s.page?.mode === "single" ? refuse("single-view") : undefined),
+      run: (u) => u.actions.toggleFullScreen(),
+    },
+    {
       id: "pane.tuck",
       title: t.tuck,
       group: g.pane,

@@ -27,6 +27,8 @@ const cap = (t: string) => t.charAt(0).toUpperCase() + t.slice(1);
 const announcements = {
   // focus and zoom
   maximised: (pane: string) => `${pane} maximised · Escape to restore`,
+  fullScreen: (pane: string) => `${pane} full screen · Escape to exit`,
+  fullScreenOff: (pane: string) => `${pane} left full screen`,
   restored: (pane: string) => `${pane} restored`,
   noFocus: "No pane focused",
 
@@ -209,6 +211,7 @@ const commands = {
   focusDirection: (direction: ScreenDirection) => `Focus pane ${direction}`,
   focusIndex: (n: number) => `Focus pane ${n}`,
   zoom: "Maximise or restore pane",
+  fullScreen: "Full screen, or exit full screen",
   tuck: "Tuck pane into its neighbour",
   putBack: "Put back tucked pane",
   revealFromShelf: "Show a pane from the shelf",
@@ -455,6 +458,10 @@ const pane = {
   closeViewTip: "Close · it stays in the tabs above",
   maximise: (pane: string) => `Maximise ${pane}`,
   maximiseTip: "Maximise",
+  fullScreen: (pane: string) => `Full screen ${pane}`,
+  fullScreenTip: "Full screen",
+  exitFullScreen: (pane: string) => `Exit full screen ${pane}`,
+  exitFullScreenTip: "Exit full screen",
   restore: (pane: string) => `Restore ${pane}`,
   restoreTip: "Restore",
   opened: "Opened",

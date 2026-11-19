@@ -64,5 +64,30 @@ export function toggleZoom({ s, m, ctx }: Snapshot, id = s.view.focused): Outcom
     op: "zoom",
     view,
     msg: view.zoomed ? say(m).maximised(m.title(id)) : say(m).restored(m.title(id)),
+    // Leaving maximise leaves full screen too: full screen is a maximised pane on the whole screen.
+    ...(s.fullScreen ? { patch: { fullScreen: undefined } } : {}),
   };
+}
+
+/**
+ * Full screen: the pane maximised, and the workspace's page on the whole screen (the adapter asks the browser), so
+ * the pane covers the display. Again, or Escape, or leaving the browser's full screen, puts it back as it was.
+ */
+export function toggleFullScreen({ s, m, ctx }: Snapshot, id = s.view.focused): Outcome {
+  if (s.fullScreen) {
+    const was = s.fullScreen;
+    const view = s.view.zoomed === was ? core.tree.unzoom(s.view) : s.view;
+    return {
+      op: "zoom",
+      view,
+      patch: { fullScreen: undefined },
+      msg: say(m).fullScreenOff(m.title(was)),
+    };
+  }
+  if (s.page?.mode === "single") return refuse("single-view", say(m).singleNoLayout);
+  if (!id || !m.pane(id)) return refuse("not-found");
+  const focused = core.focus(s.view, id, ctx);
+  const view =
+    m.panes.length > 1 && focused.zoomed !== id ? core.toggleZoom(focused, id, ctx) : focused;
+  return { op: "zoom", view, patch: { fullScreen: id }, msg: say(m).fullScreen(m.title(id)) };
 }
