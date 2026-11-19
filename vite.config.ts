@@ -1,12 +1,10 @@
 import { defineConfig, defaultClientConditions, lazyPlugins } from "vite-plus";
 import react from "@vitejs/plugin-react";
 export default defineConfig({
+  // The root serves no app: each example has its own config (`vp dev examples/<name>`). This one holds the
+  // formatter, the linter and the unit tests, which resolve the packages to their source.
   plugins: lazyPlugins(() => [react()]),
-  // The packages resolve to their source (the "source" export condition), so the lab runs them without a build.
   resolve: { conditions: ["source", ...defaultClientConditions] },
-  optimizeDeps: { exclude: ["@electric-sql/pglite"] },
-  // Not strict: when another checkout already holds 5300, `vp dev` takes the next free port and prints it.
-  server: { port: 5300 },
   // MDX is left as written: the formatter reflows JSX children and breaks fenced code inside components. So is the
   // Markdown scripts/agent-docs.mjs writes from it, which its --check compares byte for byte.
   fmt: { ignorePatterns: ["**/*.mdx", "packages/core/docs/**"] },
@@ -17,7 +15,7 @@ export default defineConfig({
   test: {
     globals: true,
     include: [
-      "src/**/*.test.{ts,tsx}",
+      "tests/**/*.test.{ts,tsx}",
       "packages/*/src/**/*.test.{ts,tsx}",
       "examples/*/src/**/*.test.{ts,tsx}",
     ],

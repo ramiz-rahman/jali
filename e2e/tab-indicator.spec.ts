@@ -1,5 +1,5 @@
 import type { Page } from "@playwright/test";
-import { test, expect, type Lab } from "./fixtures/lab";
+import { test, expect, type App } from "./fixtures/app";
 
 /**
  * The shown tab's underline (Data Studio's request): one per strip, spanning the tab and its close button as one box,
@@ -38,24 +38,24 @@ async function check(page: Page) {
   expect(results.every((n) => n === 1)).toBe(true);
 }
 
-async function group(lab: Lab, page: Page) {
-  await lab.setting(/Add as a tab/);
-  await lab.drag("order", "orders", "centre");
-  await lab.drag("customer", "order", "centre");
+async function group(app: App, page: Page) {
+  await app.setting(/Add as a tab/);
+  await app.drag("order", "orders", "centre");
+  await app.drag("customer", "order", "centre");
   await expect(page.locator("[data-tab]")).toHaveCount(3);
 }
 
-test("one line under the shown tab and its close button", async ({ lab, page }) => {
-  await lab.open({ size: { width: 1280, height: 900 } });
-  await group(lab, page);
+test("one line under the shown tab and its close button", async ({ app, page }) => {
+  await app.open({ size: { width: 1280, height: 900 } });
+  await group(app, page);
   await check(page);
   await page.locator('[role="tab"]').first().click();
   await check(page);
 });
 
-test("under a pinned tab, which may have no close button", async ({ lab, page }) => {
-  await lab.open({ size: { width: 1280, height: 900 } });
-  await group(lab, page);
+test("under a pinned tab, which may have no close button", async ({ app, page }) => {
+  await app.open({ size: { width: 1280, height: 900 } });
+  await group(app, page);
   const first = page.locator('[role="tab"]').first();
   await first.click({ button: "right" });
   await page.getByRole("menuitemcheckbox", { name: "Pin tab" }).click();
@@ -66,11 +66,11 @@ test("under a pinned tab, which may have no close button", async ({ lab, page })
 });
 
 test("stays on the shown tab as an overflowing strip scrolls it into view", async ({
-  lab,
+  app,
   page,
 }) => {
-  await lab.open({ size: { width: 1280, height: 900 } });
-  await group(lab, page);
+  await app.open({ size: { width: 1280, height: 900 } });
+  await group(app, page);
   await page.addStyleTag({ content: ".jali-tabs { max-width: 7rem; }" });
   await page.locator('[role="tab"]').last().focus();
   await page.keyboard.press("Enter");
@@ -80,13 +80,13 @@ test("stays on the shown tab as an overflowing strip scrolls it into view", asyn
   await check(page);
 });
 
-test("is gone while the shown tab is renamed", async ({ lab, page }) => {
-  await lab.open({ size: { width: 1280, height: 900 } });
-  await group(lab, page);
+test("is gone while the shown tab is renamed", async ({ app, page }) => {
+  await app.open({ size: { width: 1280, height: 900 } });
+  await group(app, page);
   await page.evaluate(() => {
     const el = document.querySelector('[role="tab"][aria-selected="true"]') as HTMLElement;
     el.dispatchEvent(new MouseEvent("dblclick", { bubbles: true }));
   });
-  // The lab has no rename, so nothing opens and the line stays: renaming itself is covered by the unit tests.
+  // The app has no rename, so nothing opens and the line stays: renaming itself is covered by the unit tests.
   await check(page);
 });

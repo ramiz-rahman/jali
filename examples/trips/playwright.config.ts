@@ -1,6 +1,6 @@
 import { defineConfig } from "@playwright/test";
 
-// The trips example's own smoke test, against its own server (never the lab's). Port 5340 by default; another
+// The trips example's own smoke test, against its own server (never another example's). Port 5340 by default; another
 // session may hold it, so TRIPS_URL points at whichever port `vp dev examples/trips` printed.
 // Run from the repository root: `pnpm exec playwright test -c examples/trips`.
 const URL = process.env.TRIPS_URL ?? "http://localhost:5340";

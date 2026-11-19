@@ -2,14 +2,14 @@
  * Pop out (experimental): a pane's content in a floating window that stays on top (Document Picture-in-Picture), still
  * part of the workspace: a row chosen in the window moves the detail that follows it. Bring back closes the window.
  */
-import { test, expect } from "./fixtures/lab";
+import { test, expect } from "./fixtures/app";
 
 test("a popped-out list still drives its following detail, and Bring back closes the window", async ({
-  lab,
+  app,
   page,
   context,
 }) => {
-  await lab.open();
+  await app.open();
   test.skip(
     !(await page.evaluate(() => "documentPictureInPicture" in window)),
     "no Document Picture-in-Picture in this browser",

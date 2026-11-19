@@ -1,5 +1,5 @@
 /** Tabs: made by you vs made by the layout; the overflow menu when a strip cannot show every tab. */
-import { test, expect } from "./fixtures/lab";
+import { test, expect, review } from "./fixtures/app";
 
 const strip = (page: import("@playwright/test").Page) =>
   page
@@ -9,10 +9,10 @@ const strip = (page: import("@playwright/test").Page) =>
 
 test.describe("tab overflow and marks", () => {
   test('folded panes wait behind one "N folded" chip, not as tabs; its menu says why, and a pick shows the pane there', async ({
-    lab,
+    app,
     page,
   }) => {
-    await lab.open({ preset: "Stress: 10 panes", size: { width: 1280, height: 900 } });
+    await app.open({ preset: "Stress: 10 panes", size: { width: 1280, height: 900 } });
     // No folded tabs: the strip is yours. The chip counts the rest.
     await expect(page.locator('[role="tab"][data-folded]')).toHaveCount(0);
     const chip = page.locator(".jali-tab-folded").first();
@@ -42,18 +42,18 @@ test.describe("tab overflow and marks", () => {
   });
 
   test("the overflow button counts hidden tabs; the menu lists all of them, keys work, the chosen tab is shown", async ({
-    lab,
+    app,
     page,
   }) => {
-    await lab.open({ preset: "Stress: 10 panes", size: { width: 1280, height: 900 } });
+    await app.open({ preset: "Stress: 10 panes", size: { width: 1280, height: 900 } });
     // Two tabs of yours (tuck the last pane into its neighbour), in a strip too narrow for them.
     await page.evaluate(() => {
       const shown = [...document.querySelectorAll<HTMLElement>("section[data-pane]")].filter(
         (e) => e.style.display !== "none",
       );
-      (window as unknown as { __lab: { actions: { tuck(id: string): void } } }).__lab.actions.tuck(
-        shown.at(-1)!.dataset.pane!,
-      );
+      (
+        window as unknown as { __jali: { actions: { tuck(id: string): void } } }
+      ).__jali.actions.tuck(shown.at(-1)!.dataset.pane!);
     });
     await page.addStyleTag({ content: ".jali-tabs { max-width: 4rem; }" });
     const bar = strip(page);
@@ -104,10 +104,10 @@ test.describe("tab overflow and marks", () => {
   });
 
   test("a tab's width does not change when it is hovered or its state shows", async ({
-    lab,
+    app,
     page,
   }) => {
-    await lab.open({ preset: "Stress: 10 panes", size: { width: 1440, height: 900 } });
+    await app.open({ preset: "Stress: 10 panes", size: { width: 1440, height: 900 } });
     const tab = page.locator('[role="tab"]').first();
     const before = (await tab.boundingBox())!.width;
     await tab.hover();
@@ -115,11 +115,11 @@ test.describe("tab overflow and marks", () => {
   });
 
   test("the loan review shows no overflow button and no folded marks for its page views", async ({
-    lab,
+    app,
     page,
   }) => {
-    await lab.open({
-      path: "/?app=review&item=4&tab=application",
+    await app.open({
+      path: review("?page=loan-review&item=4&tab=application"),
       size: { width: 1280, height: 900 },
     });
     await expect(page.locator(".jali-tab-more")).toHaveCount(0);
@@ -127,13 +127,13 @@ test.describe("tab overflow and marks", () => {
   });
 
   test("a narrow strip shows its active tab whole, the first one included (finding 30)", async ({
-    lab,
+    app,
     page,
   }) => {
-    await lab.open({ preset: "Stress: 10 panes", size: { width: 1280, height: 900 } });
+    await app.open({ preset: "Stress: 10 panes", size: { width: 1280, height: 900 } });
     for (const width of [1280, 1100, 900, 800]) {
       await page.setViewportSize({ width, height: 900 });
-      await lab.stable();
+      await app.stable();
       const cut = await page.locator(".jali-tabs").evaluateAll((strips) =>
         strips.flatMap((s) => {
           const tab = s.querySelector<HTMLElement>('[role="tab"][aria-selected="true"]');

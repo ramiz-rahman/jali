@@ -1,69 +1,69 @@
-import { test, expect } from "./fixtures/lab";
+import { test, expect } from "./fixtures/app";
 
 test.describe("Maximise", () => {
-  test("button, double-click header, ⇧⌘↵ (and ⌘K ⌘M), Esc", async ({ lab, page }) => {
-    await lab.open();
-    const area = (await lab.main().boundingBox())!;
+  test("button, double-click header, ⇧⌘↵ (and ⌘K ⌘M), Esc", async ({ app, page }) => {
+    await app.open();
+    const area = (await app.main().boundingBox())!;
 
     await page.getByRole("button", { name: "Maximise orders" }).click();
-    await expect(lab.isZoomed("orders")).toHaveCount(1);
-    expect(await lab.width(lab.pane("orders"))).toBeGreaterThan(area.width - 40);
-    await expect(lab.status()).toContainText("Zoomed · Esc to restore");
+    await expect(app.isZoomed("orders")).toHaveCount(1);
+    expect(await app.width(app.pane("orders"))).toBeGreaterThan(area.width - 40);
+    await expect(app.status()).toContainText("Zoomed · Esc to restore");
     expect(page.url()).toContain("zoom=orders");
-    await lab.shot("07-maximised");
+    await app.shot("07-maximised");
     await page.keyboard.press("Escape");
-    await expect(lab.isZoomed("orders")).toHaveCount(0);
+    await expect(app.isZoomed("orders")).toHaveCount(0);
 
-    await lab.header("order").dblclick({ position: { x: 300, y: 20 } });
-    await expect(lab.isZoomed("order")).toHaveCount(1);
+    await app.header("order").dblclick({ position: { x: 300, y: 20 } });
+    await expect(app.isZoomed("order")).toHaveCount(1);
     await page.keyboard.press("Escape");
-    await expect(lab.isZoomed("order")).toHaveCount(0);
+    await expect(app.isZoomed("order")).toHaveCount(0);
 
-    await lab.pane("customer").click({ position: { x: 100, y: 300 } });
+    await app.pane("customer").click({ position: { x: 100, y: 300 } });
     await page.keyboard.press("ControlOrMeta+Shift+Enter");
-    await expect(lab.isZoomed("customer")).toHaveCount(1);
+    await expect(app.isZoomed("customer")).toHaveCount(1);
     await page.keyboard.press("ControlOrMeta+Shift+Enter");
-    await expect(lab.isZoomed("customer")).toHaveCount(0);
+    await expect(app.isZoomed("customer")).toHaveCount(0);
     // A link inside the pane has focus: still maximise, and no new browser tab.
-    const link = lab
+    const link = app
       .pane("customer")
       .getByRole("link")
-      .or(lab.pane("customer").locator("button[data-ref], a"))
+      .or(app.pane("customer").locator("button[data-ref], a"))
       .first();
     if (await link.count()) {
       await link.focus();
       const pages = page.context().pages().length;
       await page.keyboard.press("ControlOrMeta+Shift+Enter");
-      await expect(lab.isZoomed("customer")).toHaveCount(1);
+      await expect(app.isZoomed("customer")).toHaveCount(1);
       expect(page.context().pages().length).toBe(pages);
       await page.keyboard.press("Escape");
     }
     // The ⌘K form still works.
     await page.keyboard.press("ControlOrMeta+k");
     await page.keyboard.press("ControlOrMeta+m");
-    await expect(lab.isZoomed("customer")).toHaveCount(1);
+    await expect(app.isZoomed("customer")).toHaveCount(1);
     await page.keyboard.press("ControlOrMeta+k");
     await page.keyboard.press("ControlOrMeta+m");
-    await expect(lab.isZoomed("customer")).toHaveCount(0);
+    await expect(app.isZoomed("customer")).toHaveCount(0);
     // The tree and sizes were preserved through all of it.
-    await expect.poll(() => lab.visibleIds()).toEqual(["orders", "order", "customer"]);
+    await expect.poll(() => app.visibleIds()).toEqual(["orders", "order", "customer"]);
   });
 
-  test("while zoomed, F6 switches which pane is zoomed", async ({ lab, page }) => {
-    await lab.open();
+  test("while zoomed, F6 switches which pane is zoomed", async ({ app, page }) => {
+    await app.open();
     await page.getByRole("button", { name: "Maximise orders" }).click();
     await page.keyboard.press("F6");
-    await expect(lab.isZoomed("order")).toHaveCount(1);
+    await expect(app.isZoomed("order")).toHaveCount(1);
   });
 });
 
 test.describe("Focus", () => {
   test("F6 cycles, the palette focuses by position, ⌘K ⌘arrows by direction with no wrap", async ({
-    lab,
+    app,
     page,
   }) => {
-    await lab.open();
-    const focused = async (want: string) => expect.poll(() => lab.focusedId()).toBe(want);
+    await app.open();
+    const focused = async (want: string) => expect.poll(() => app.focusedId()).toBe(want);
     await focused("orders");
     await page.keyboard.press("F6");
     await focused("order");
@@ -95,58 +95,58 @@ test.describe("Focus", () => {
     await page.keyboard.press("ControlOrMeta+k");
     await page.keyboard.press("ControlOrMeta+ArrowRight"); // rightmost: no wrap
     await focused("customer");
-    await expect(lab.pane("customer")).toHaveCSS("outline-style", /.*/);
+    await expect(app.pane("customer")).toHaveCSS("outline-style", /.*/);
   });
 });
 
 test.describe("Close", () => {
-  test("focus returns, Sonner toast, live region, ⌘K ⌘Z restores", async ({ lab, page }) => {
-    await lab.open();
-    await lab.header("orders").click({ position: { x: 200, y: 20 } });
+  test("focus returns, Sonner toast, live region, ⌘K ⌘Z restores", async ({ app, page }) => {
+    await app.open();
+    await app.header("orders").click({ position: { x: 200, y: 20 } });
     await page.getByRole("button", { name: "Close customer 1", exact: true }).click();
-    await expect.poll(() => lab.visibleIds()).toEqual(["orders", "order"]);
+    await expect.poll(() => app.visibleIds()).toEqual(["orders", "order"]);
 
-    const toast = lab.toast("Pane closed");
+    const toast = app.toast("Pane closed");
     await expect(toast).toBeVisible();
     await expect(toast.getByRole("button", { name: "Undo" })).toBeVisible();
-    await expect(lab.announcer()).toContainText(/closed/i);
-    await expect(lab.announcer()).toContainText(/Undo available/);
+    await expect(app.announcer()).toContainText(/closed/i);
+    await expect(app.announcer()).toContainText(/Undo available/);
     // Focus goes back to where it came from, not to a random pane.
-    await expect(lab.pane("orders")).toHaveAttribute("data-focused", "true");
-    await lab.shot("09-close-toast");
+    await expect(app.pane("orders")).toHaveAttribute("data-focused", "true");
+    await app.shot("09-close-toast");
 
     await page.keyboard.press("ControlOrMeta+k");
     await page.keyboard.press("ControlOrMeta+z");
-    await expect(lab.pane("customer")).toBeVisible();
-    await expect.poll(() => lab.visibleIds()).toEqual(["orders", "order", "customer"]);
+    await expect(app.pane("customer")).toBeVisible();
+    await expect.poll(() => app.visibleIds()).toEqual(["orders", "order", "customer"]);
 
     // The toast's Undo button works too. While two toasts stack, Sonner keeps the front one animating, so
     // Playwright's stability check never passes; wait for it to mount, then dispatch the click.
     await page.getByRole("button", { name: "Close order 1", exact: true }).click();
-    await expect.poll(() => lab.visibleCount()).toBe(2);
+    await expect.poll(() => app.visibleCount()).toBe(2);
     const front = page.locator('[data-sonner-toast][data-front="true"][data-mounted="true"]');
     await expect(front).toContainText("Pane closed");
     await front.getByRole("button", { name: "Undo" }).dispatchEvent("click");
-    await expect.poll(() => lab.visibleCount()).toBe(3);
+    await expect.poll(() => app.visibleCount()).toBe(3);
   });
 
-  test("the last pane stays open", async ({ lab, page }) => {
-    await lab.open();
+  test("the last pane stays open", async ({ app, page }) => {
+    await app.open();
     await page.getByRole("button", { name: "Close order 1", exact: true }).click();
     await page.getByRole("button", { name: "Close customer 1", exact: true }).click();
     await page.getByRole("button", { name: "Close orders" }).click();
-    await expect.poll(() => lab.visibleCount()).toBe(1);
-    await expect(lab.announcer()).toContainText(/last pane stays open/i);
+    await expect.poll(() => app.visibleCount()).toBe(1);
+    await expect(app.announcer()).toContainText(/last pane stays open/i);
   });
 });
 
 test.describe("Palette", () => {
-  test("⌘K runs a command", async ({ lab, page }) => {
-    await lab.open();
+  test("⌘K runs a command", async ({ app, page }) => {
+    await app.open();
     await page.keyboard.press("ControlOrMeta+k");
     const dlg = page.getByRole("dialog", { name: "Commands" });
     await expect(dlg).toBeVisible();
-    await lab.shot("10-command-palette");
+    await app.shot("10-command-palette");
     await page.keyboard.type("stress");
     await page.keyboard.press("Enter");
     await expect(dlg).toBeHidden();
@@ -156,13 +156,13 @@ test.describe("Palette", () => {
     );
     // and a pane command: back to the chain, close other panes, then undo
     await page.getByRole("button", { name: "Order → customer chain" }).click();
-    await expect.poll(() => lab.visibleCount()).toBe(3);
+    await expect.poll(() => app.visibleCount()).toBe(3);
     await page.keyboard.press("ControlOrMeta+k");
     await page.keyboard.type("close other");
     await page.keyboard.press("Enter");
-    await expect.poll(() => lab.visibleCount()).toBe(1);
+    await expect.poll(() => app.visibleCount()).toBe(1);
     await page.keyboard.press("ControlOrMeta+k");
     await page.keyboard.press("ControlOrMeta+z");
-    await expect.poll(() => lab.visibleCount()).toBe(3);
+    await expect.poll(() => app.visibleCount()).toBe(3);
   });
 });

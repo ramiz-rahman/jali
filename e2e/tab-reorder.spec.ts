@@ -1,12 +1,12 @@
-import { test, expect } from "./fixtures/lab";
+import { test, expect } from "./fixtures/app";
 
 /** Dragging a tab between its group's tabs reorders them, with a line where it would go (Data Studio's request). */
-test("a tab dragged between its group's tabs moves there", async ({ lab, page }) => {
-  await lab.open({ size: { width: 1920, height: 1000 } });
-  await lab.setting(/Add as a tab/);
+test("a tab dragged between its group's tabs moves there", async ({ app, page }) => {
+  await app.open({ size: { width: 1920, height: 1000 } });
+  await app.setting(/Add as a tab/);
   // Order → customer chain: put all three in one tab group.
-  await lab.drag("order", "orders", "centre");
-  await lab.drag("customer", "order", "centre"); // order is the shown tab now
+  await app.drag("order", "orders", "centre");
+  await app.drag("customer", "order", "centre"); // order is the shown tab now
   const strip = page
     .locator('[role="tablist"]')
     .filter({ has: page.locator("[data-tab]") })
@@ -31,11 +31,11 @@ test("a tab dragged between its group's tabs moves there", async ({ lab, page })
 });
 
 /** A pinned tab never scrolls out of view: only the other tabs scroll, as in a browser (the docs' Tabs guide). */
-test("a pinned tab stays in view while the others scroll", async ({ lab, page }) => {
-  await lab.open({ size: { width: 1920, height: 1000 } });
-  await lab.setting(/Add as a tab/);
-  await lab.drag("order", "orders", "centre");
-  await lab.drag("customer", "order", "centre");
+test("a pinned tab stays in view while the others scroll", async ({ app, page }) => {
+  await app.open({ size: { width: 1920, height: 1000 } });
+  await app.setting(/Add as a tab/);
+  await app.drag("order", "orders", "centre");
+  await app.drag("customer", "order", "centre");
   const tabs = page.locator("[data-tab]");
   await expect(tabs).toHaveCount(3);
   // Pin the first tab from its menu.
@@ -58,13 +58,13 @@ test("a pinned tab stays in view while the others scroll", async ({ lab, page })
 
 /** In a narrow header the shown tab stays on screen: pinned tabs give way first, down to a pin and an icon. */
 test("a narrow strip keeps the shown tab in view, pinned tabs shrinking to their icon", async ({
-  lab,
+  app,
   page,
 }) => {
-  await lab.open({ size: { width: 1920, height: 1000 } });
-  await lab.setting(/Add as a tab/);
-  await lab.drag("order", "orders", "centre");
-  await lab.drag("customer", "order", "centre");
+  await app.open({ size: { width: 1920, height: 1000 } });
+  await app.setting(/Add as a tab/);
+  await app.drag("order", "orders", "centre");
+  await app.drag("customer", "order", "centre");
   const tabs = page.locator("[data-tab]");
   await expect(tabs).toHaveCount(3);
   for (let n = 0; n < 2; n++) {
@@ -102,13 +102,13 @@ test("a narrow strip keeps the shown tab in view, pinned tabs shrinking to their
 
 /** When even the shown tab can't fit whole, it is shortened, not cut: its whole box and its close button stay in view. */
 test("a long shown tab in a narrow strip is shortened, with its close button in view", async ({
-  lab,
+  app,
   page,
 }) => {
-  await lab.open({ size: { width: 1920, height: 1000 } });
-  await lab.setting(/Add as a tab/);
-  await lab.drag("order", "orders", "centre");
-  await lab.drag("customer", "order", "centre");
+  await app.open({ size: { width: 1920, height: 1000 } });
+  await app.setting(/Add as a tab/);
+  await app.drag("order", "orders", "centre");
+  await app.drag("customer", "order", "centre");
   await page.locator("[data-tab]").first().click({ button: "right" });
   await page.getByRole("menuitemcheckbox", { name: "Pin tab" }).click();
   const shown = page.locator('[role="tab"]:not([data-pinned])').last();

@@ -1,6 +1,6 @@
 import { defineConfig } from "@playwright/test";
 
-// The markets example's own smoke test, against its own server on :5320 (never the lab's).
+// The markets example's own smoke test, against its own server on :5320 (never another example's).
 // Run from the repository root: `pnpm exec playwright test -c examples/markets`.
 const URL = process.env.MARKETS_URL ?? "http://localhost:5320";
 

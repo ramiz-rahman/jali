@@ -1,11 +1,11 @@
 /** A pane's own menu: right-click its header (a pane without tabs) for what can be done with it. */
-import { test, expect } from "./fixtures/lab";
+import { test, expect } from "./fixtures/app";
 
 test("right-clicking a pane's header opens its menu; Escape closes it and focus goes back to the pane", async ({
-  lab,
+  app,
   page,
 }) => {
-  await lab.open();
+  await app.open();
   const pane = page.locator("section[data-pane]").first();
   await pane.locator(".jali-pane-title").click({ button: "right" });
   const menu = page.getByRole("menu");
@@ -24,11 +24,11 @@ test("right-clicking a pane's header opens its menu; Escape closes it and focus 
 });
 
 test("the menu offers Pop out where the browser can, and it pops the pane out", async ({
-  lab,
+  app,
   page,
   context,
 }) => {
-  await lab.open();
+  await app.open();
   test.skip(!(await page.evaluate(() => "documentPictureInPicture" in window)), "no Document PiP");
   const pane = page.locator("section[data-pane]").first();
   await pane.locator(".jali-pane-title").click({ button: "right" });
@@ -39,10 +39,10 @@ test("the menu offers Pop out where the browser can, and it pops the pane out", 
 });
 
 test("⋯ opens the same menu, under itself, and Shift+F10 on the pane opens it from the keyboard", async ({
-  lab,
+  app,
   page,
 }) => {
-  await lab.open();
+  await app.open();
   const pane = page.locator("section[data-pane]").first();
   const more = pane.locator(".jali-act-menu");
   await pane.hover();

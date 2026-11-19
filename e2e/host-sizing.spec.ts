@@ -2,21 +2,21 @@
  * Jali's root is a column the panes fill: a host that gives <JaliRoot> only a height (or nothing at all) gets panes
  * that fill it, and a root with no height warns in development instead of collapsing in silence.
  */
-import { test, expect } from "./fixtures/lab";
+import { test, expect } from "./fixtures/app";
 
 test.describe("the root sizes the panes", () => {
   test("without the host's grid, the panes fill the root between its own chrome", async ({
-    lab,
+    app,
     page,
   }) => {
-    await lab.open();
-    const before = (await lab.main().boundingBox())!;
-    // Take away the lab's grid: what is left is Jali's own rule for [data-jali].
+    await app.open();
+    const before = (await app.main().boundingBox())!;
+    // Take away the app's grid: what is left is Jali's own rule for [data-jali].
     await page.addStyleTag({
-      content: "@layer lab { .app { display: revert-layer; grid-template-rows: revert-layer; } }",
+      content: "@layer app { .app { display: revert-layer; grid-template-rows: revert-layer; } }",
     });
     await expect(page.locator("[data-jali]")).toHaveCSS("display", "flex");
-    await lab.stable();
+    await app.stable();
     const box = async (s: string) => (await page.locator(s).first().boundingBox())!;
     const [root, top, status, panes] = [
       await box("[data-jali]"),
@@ -33,11 +33,11 @@ test.describe("the root sizes the panes", () => {
   test("a root in a box with no height warns that the panes measure 0", async ({ page }) => {
     const warnings: string[] = [];
     page.on("console", (m) => m.type() === "warning" && warnings.push(m.text()));
-    // Before the app loads: #root (the root's box) has no height, and neither has the lab's grid.
+    // Before the app loads: #root (the root's box) has no height, and neither has the app's grid.
     await page.addInitScript(() => {
       document.addEventListener("DOMContentLoaded", () => {
         const s = document.createElement("style");
-        s.textContent = "@layer lab { #root, .app { height: auto !important; } }";
+        s.textContent = "@layer app { #root, .app { height: auto !important; } }";
         document.head.append(s);
       });
     });

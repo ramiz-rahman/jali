@@ -1,13 +1,13 @@
 import { defineConfig, defaultClientConditions } from "vite-plus";
 import react from "@vitejs/plugin-react";
 
-// Resolves @jali/* to the packages' source ("source" condition), as the lab does.
+// Resolves @jali/* to the packages' source ("source" condition), as the other examples do.
 export default defineConfig({
   root: __dirname,
   // "./": every asset is linked relative to the page, so the built site works from any path. The layout lives in
   // the query string, which any path keeps.
   base: "./",
-  // Its own dependency cache, so it can run beside the lab's dev server without invalidating that one's.
+  // Its own dependency cache, so it can run beside the other examples' dev servers without invalidating theirs.
   cacheDir: "../../node_modules/.vite-example-trips",
   plugins: [react()],
   resolve: { conditions: ["source", ...defaultClientConditions] },

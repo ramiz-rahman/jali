@@ -1,7 +1,7 @@
 /**
  * The three demo sessions: short fictional interviews. Every show, person and place here is made up.
  *
- * Each line is one segment, spoken by one macOS system voice (`say -v`). The voices are a placeholder for the lab:
+ * Each line is one segment, spoken by one macOS system voice (`say -v`). The voices are a placeholder:
  * replace them with properly licensed recordings before this example is published.
  *
  * `markers` name a segment by its index; the marker sits at that segment's start.

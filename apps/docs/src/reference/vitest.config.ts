@@ -1,6 +1,6 @@
 /**
- * Runs the reference coverage test, which the repo's root config does not include (its `include` covers the lab's
- * src/ and packages/ only). From the repo root:
+ * Runs the reference coverage test, which the repo's root config does not include (its `include` covers tests/,
+ * packages/ and the examples only). From the repo root:
  *   pnpm exec vp test run --config apps/docs/src/reference/vitest.config.ts
  */
 import { fileURLToPath } from "node:url";
