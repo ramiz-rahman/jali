@@ -67,19 +67,20 @@ The address.
 <Param name="size" type="{ width: number; height: number }">A fixed size instead of the window's, for tests and server rendering. `<JaliRoot>` measures the real one once it renders.</Param>
 <Param name="moveFocus" type="boolean" default="true">`false` leaves DOM focus alone: for tests and a workspace that is never shown.</Param>
 <Param name="onUnstable" type="(op: string, before: string, after: string) => void" default="console.error in development">Called when a focus or swap action moved a pane on screen, which it never should.</Param>
+<Param name="beforeClose" type="BeforeClose">Asked before a change removes panes or makes a pane show another object: a close, close others, a preset, `setLayout`, Back and Forward, `openHere`. Return `true` to let it happen or `false` to keep the panes, or a promise of either for a check that takes time. Jali's own "Discard unsaved changes?" follows a yes when a pane still reports unsaved work. See <Ref to="BeforeClose" page="/reference/core/types" />.</Param>
 </ChildParams>
 </Param>
 </Params>
 
-<Returns type="Jali">The workspace. Its members are listed under <Ref to="Jali" page="/reference/core/types" />; the ones you use most are `actions`, `get()`, `subscribe()`, `model()` and `start()`.</Returns>
+<Returns type="Jali">The workspace. Its members are listed under <Ref to="Jali" page="/reference/core/types" />: `actions`, `get()`, `subscribe()`, `on()`, `model()`, `getLayout()`, `setLayout()`, `keymap`, `env`, `href()`, `onToast()` and `start()`.</Returns>
 
 </Entry>
 
-<Entry name="actions" kind="namespace" from="@jali/core (jali.actions)" note="A member of the workspace, not an import" signature={`jali.actions.openBeside(source: NodeId, ref: ObjectRef): NodeId | undefined`} example={readCode} exampleFile="actions.ts">
+<Entry name="actions" kind="namespace" from="@jali/core (jali.actions)" note="A member of the workspace, not an import" signature={`jali.actions.openBeside(pane: PaneTarget, ref: ObjectRef): ActionResult`} example={readCode} exampleFile="actions.ts">
 
-Every workspace action, bound to its workspace: each reads the current state, commits what it decides (layout, focus, address, announcement, toast) and returns the pane it opened or acted on, when there is one.
+What an app asks the workspace to do. Each action reads the current state, makes its change once (layout, focus, address, announcement, toast) and returns what happened: `{ ok: true, pane }`, or `{ ok: false, reason }` with the reason it did not.
 
-An action that would remove or replace a pane with unsaved work is held instead, and "Discard unsaved changes?" opens (`JaliState.confirm`). A following detail with unsaved work keeps its object and says so. Every action is listed under <Ref to="Actions" page="/reference/core/types" />.
+The pane comes first, by its id or by the object it shows: `close("order")` and `close(orderKind({ id: 7 }))` both work. An action that would remove or replace a pane with unsaved work is held instead (`reason: "unsaved"`), and "Discard unsaved changes?" opens. A following detail with unsaved work keeps its object and says so. Every action is listed under <Ref to="JaliActions" page="/reference/core/types" />.
 
 </Entry>
 

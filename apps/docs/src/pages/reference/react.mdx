@@ -30,7 +30,7 @@ Draws a workspace: its panes, and the dialogs every workspace has (the command p
 
 `<JaliRoot jali={jali} />` is a whole app. To add your own chrome, pass children and put `<JaliView />` where the panes go.
 
-The root is a `<div data-jali>` that the workspace attaches to (`jali.dom`), so focus, drag and F6 stay inside it. The dialogs render after it, in a `<div data-jali-layer>` (`jali.dom.layer()`, styled `display: contents`), which counts as the workspace's for its keys. Mark your own chrome inside it with `data-jali-chrome` and Jali never pulls focus out of it.
+The root is a `<div data-jali>` that the workspace attaches to, so focus, drag and F6 stay inside it. The dialogs render after it, in a `<div data-jali-layer>` (styled `display: contents`), which counts as the workspace's for its keys. Mark your own chrome inside it with `data-jali-chrome` and Jali never pulls focus out of it.
 
 Two things are yours to render. **The shelf** (tucked and folded panes as chips): put <Ref to="Shelf" /> in your status line or footer, or tucked panes have nowhere to come back from but ⌘K "Show a pane from the shelf". **Toasts**: Jali sends them through `jali.onToast` (closes and tucks come with Undo, which ⌘K ⌘Z also runs) and shows none itself; render them with your toaster in `overlays`.
 
@@ -205,7 +205,7 @@ The active-item port for the pane this content is in (see <Ref to="activeItemPor
 
 <Entry name="useJali" kind="hook" from="@jali/react" signature={`useJali(): Jali`} compact>
 
-The workspace from the nearest `<JaliRoot>`: its `actions`, `keymap`, `env` (kinds, presets, page) and state. Reading it does not subscribe; use `useJaliState` or `useJaliModel` for values that change. Throws outside `<JaliRoot>`.
+The workspace from the nearest `<JaliRoot>`: its `actions`, `on`, `getLayout` and `setLayout`, `keymap`, `env` (kinds, presets, page) and state. Reading it does not subscribe; use `useJaliState` or `useJaliModel` for values that change. Throws outside `<JaliRoot>`.
 
 <Returns type="Jali" />
 

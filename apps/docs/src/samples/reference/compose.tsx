@@ -9,15 +9,16 @@ import {
   JaliProvider,
   useJali,
 } from "@jali/react";
+import { storeOf } from "@jali/core/adapter";
 import { useEffect } from "react";
 import { store } from "./store";
 
-// <JaliRoot> without <JaliRoot>: the same parts, placed by you.
+// <JaliRoot> without <JaliRoot>: the same parts, placed by you. The root element is the adapter's business.
 function Root({ children }: { children: React.ReactNode }) {
-  const { dom, start } = useJali();
-  useEffect(start, [start]); // keys, Back and Forward, theme and saving, while mounted
+  const jali = useJali();
+  useEffect(jali.start, [jali]); // keys, Back and Forward, theme and saving, while mounted
   return (
-    <div data-jali="" ref={dom.attach} className="app">
+    <div data-jali="" ref={storeOf(jali).dom.attach} className="app">
       {children}
     </div>
   );

@@ -254,7 +254,7 @@ export function TreeView({
             )}
           </div>
           {open ? (
-            <JaliProvider jali={store}>
+            <JaliProvider jali={store.jali}>
               <PreviewRects.Provider value={preview}>
                 <section className="live-panel live-side" aria-label="The layout tree">
                   <header className="live-panel-head">
@@ -344,7 +344,7 @@ export function TreeView({
         >
           <LiveWorkspace store={store} height={h} wrapRef={wrap} />
         </div>
-        <JaliProvider jali={store}>
+        <JaliProvider jali={store.jali}>
           <PreviewRects.Provider value={preview}>
             {both ? (
               three ? (
