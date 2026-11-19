@@ -106,29 +106,31 @@ function ClipBody({
       {!inTransport && !inPeek ? <NotInTransport session={session.id} /> : null}
       <MiniWave seg={seg} view={view} paused={paused || !inTransport} />
       <div className="clip-controls">
-        <button
-          type="button"
-          className="key key-square key-play"
-          aria-label={playing ? "Pause" : `Play segment ${n}`}
-          onMouseDown={(e) => e.preventDefault()}
-          onClick={play}
-        >
-          {playing ? (
-            <PauseIcon size={16} weight="fill" aria-hidden />
-          ) : (
-            <PlayIcon size={16} weight="fill" aria-hidden />
-          )}
-        </button>
-        <button
-          type="button"
-          className="key key-latch"
-          aria-pressed={looping}
-          onMouseDown={(e) => e.preventDefault()}
-          onClick={toggleLoop}
-        >
-          <span className="led" aria-hidden />
-          loop
-        </button>
+        <span className="keyset">
+          <button
+            type="button"
+            className="key key-square key-play"
+            aria-label={playing ? "Pause" : `Play segment ${n}`}
+            onMouseDown={(e) => e.preventDefault()}
+            onClick={play}
+          >
+            {playing ? (
+              <PauseIcon size={16} weight="fill" aria-hidden />
+            ) : (
+              <PlayIcon size={16} weight="fill" aria-hidden />
+            )}
+          </button>
+          <button
+            type="button"
+            className="key key-latch"
+            aria-pressed={looping}
+            onMouseDown={(e) => e.preventDefault()}
+            onClick={toggleLoop}
+          >
+            <span className="led" aria-hidden />
+            loop
+          </button>
+        </span>
         <span className="clip-stats mono">
           {duration.toFixed(1)} s · {words} words
         </span>

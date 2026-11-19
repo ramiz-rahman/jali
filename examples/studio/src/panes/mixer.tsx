@@ -116,8 +116,8 @@ function Strip({ track, view }: { track: Track; view: SessionView }) {
           valueText={panText(ch.pan)}
           onChange={(v) => edits.setChannel(session, track.id, { pan: v / 100 })}
         />
-        <span className="legend" aria-hidden>
-          pan {panLabel(ch.pan)}
+        <span className="legend mx-pan-legend" aria-hidden>
+          pan <span className="mx-pan-value">{panLabel(ch.pan)}</span>
         </span>
       </div>
       <div className="mx-fader-row">
@@ -142,7 +142,7 @@ function Strip({ track, view }: { track: Track; view: SessionView }) {
         <Scale />
       </div>
       <span className="mx-db mono">{dbLabel(ch.gain)} dB</span>
-      <div className="mx-buttons">
+      <div className="mx-buttons keyset">
         <button
           type="button"
           className="key key-s key-latch mx-btn"
@@ -206,7 +206,7 @@ function Master({ view }: { view: SessionView }) {
         <Scale />
       </div>
       <span className="mx-db mono">{dbLabel(gain)} dB</span>
-      <div className="mx-buttons">
+      <div className="mx-buttons keyset">
         <button
           type="button"
           className="key key-s mx-btn mx-btn-wide"

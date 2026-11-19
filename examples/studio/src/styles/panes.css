@@ -821,3 +821,72 @@
     gap: 4px;
   }
 }
+
+@layer app {
+  /* Numbers that tick, and what sits behind glass or on the LCD: the readout face (tokens.css). */
+  .tr-time,
+  .mk-rows,
+  .mk-field,
+  .clip-fields,
+  .clip-fields dt,
+  .clip-fields dd,
+  .clip-fields select,
+  .clip-range,
+  .clip-stats,
+  .mx-db,
+  .mx-scale,
+  .jali-scrim [role="combobox"] {
+    font-family: var(--font-readout);
+  }
+}
+
+@layer app {
+  /* The transcript's segment keys: three keysets with gutters between them. */
+  .segment-keys {
+    gap: 10px;
+    min-height: 52px;
+  }
+  .segment-keys .key-s {
+    height: 32px;
+  }
+  /* Long reading in Chakra Petch: a little larger and looser than the Plex it replaced. */
+  .tr-text {
+    font-size: 17px;
+    line-height: 1.62;
+    letter-spacing: 0.005em;
+  }
+  .clip-text {
+    font-size: 15.5px;
+  }
+  .mx-pan-value {
+    font-family: var(--font-readout);
+    text-transform: none;
+  }
+  .mx-buttons.keyset {
+    gap: 2px;
+  }
+  .mx-buttons .mx-btn {
+    width: 38px;
+  }
+}
+
+@layer app {
+  /* A narrow transcript keeps every segment key and drops their words; their titles and the key's text (kept for
+     screen readers) still name them. */
+  @container (max-width: 560px) {
+    .segment-keys .key-word {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip-path: inset(50%);
+    }
+    .segment-keys > .legend {
+      display: none;
+    }
+    .segment-keys .key-s {
+      width: 36px;
+      padding: 0;
+    }
+  }
+}

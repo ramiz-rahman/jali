@@ -83,7 +83,7 @@ function TimelineBody({ paused, view }: PaneProps<typeof timelineParams> & { vie
       const playhead = inTransport ? pos : -1;
 
       // The ruler: a tick every five seconds, a label every ten (or twenty, when narrow).
-      g.font = `500 10px ${getComputedStyle(canvas.current!).getPropertyValue("--jali-font-mono")}`;
+      g.font = `500 10px ${getComputedStyle(canvas.current!).getPropertyValue("--font-readout")}`;
       g.textBaseline = "middle";
       const every = width / session.duration < 9 ? 20 : 10;
       for (let t = 0; t <= session.duration; t += 5) {

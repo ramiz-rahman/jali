@@ -10,7 +10,7 @@
  * E edits it, L loops it, ⇧Space peeks it, ⌘S saves. Space is the transport's.
  */
 import { useEffect, useLayoutEffect, useMemo, useRef, useState, type KeyboardEvent } from "react";
-import { NotePencilIcon, PlayIcon, TextAlignLeftIcon, UserIcon } from "@phosphor-icons/react";
+import { NotePencilIcon, PlayIcon, RepeatIcon, TextAlignLeftIcon, UserIcon } from "@phosphor-icons/react";
 import { keyHint } from "@jali/core";
 import {
   definePane,
@@ -304,57 +304,64 @@ function TranscriptBody({
       {/* The selected segment's keys: real buttons, outside the list, so no control sits inside a row. */}
       <div className="toolbar segment-keys" role="toolbar" aria-label={`Segment ${at + 1}`}>
         <span className="legend">seg {String(at + 1).padStart(2, "0")}</span>
-        <button
-          type="button"
-          className="key key-s"
-          title={`Play from this segment (${keyHint("Enter")})`}
-          onMouseDown={keepFocus}
-          onClick={() => playFrom(current)}
-        >
-          <PlayIcon size={13} weight="fill" aria-hidden />
-          <span className="key-word">play</span>
-        </button>
-        <button
-          type="button"
-          className="key key-s"
-          title="Correct this segment (E)"
-          onMouseDown={keepFocus}
-          onClick={() => edit(current)}
-        >
-          <NotePencilIcon size={14} aria-hidden />
-          <span className="key-word">correct</span>
-        </button>
-        <button
-          type="button"
-          className="key key-s key-latch"
-          aria-pressed={loop?.segment === current.id}
-          title="Loop this segment (L)"
-          onMouseDown={keepFocus}
-          onClick={() => loopSegment(current)}
-        >
-          <span className="led" aria-hidden />
-          <span className="key-word">loop</span>
-        </button>
-        <button
-          type="button"
-          className="key key-s"
-          title={`Open this segment's detail (${keyHint("Alt+Enter")})`}
-          onMouseDown={keepFocus}
-          onClick={() => openDetail(current)}
-        >
-          <TextAlignLeftIcon size={14} aria-hidden />
-          <span className="key-word">detail</span>
-        </button>
-        <button
-          type="button"
-          className="key key-s"
-          title={`Rename ${view.speakerName(view.speakerOf(current))}`}
-          onMouseDown={keepFocus}
-          onClick={() => setRenaming(current.id)}
-        >
-          <UserIcon size={14} aria-hidden />
-          <span className="key-word">rename</span>
-        </button>
+        <span className="keyset" role="group" aria-label="Playback">
+          <button
+            type="button"
+            className="key key-s"
+            title={`Play from this segment (${keyHint("Enter")})`}
+            onMouseDown={keepFocus}
+            onClick={() => playFrom(current)}
+          >
+            <PlayIcon size={13} weight="fill" aria-hidden />
+            <span className="key-word">play</span>
+          </button>
+          <button
+            type="button"
+            className="key key-s key-latch"
+            aria-pressed={loop?.segment === current.id}
+            title="Loop this segment (L)"
+            onMouseDown={keepFocus}
+            onClick={() => loopSegment(current)}
+          >
+            <span className="led" aria-hidden />
+            <RepeatIcon size={14} aria-hidden />
+            <span className="key-word">loop</span>
+          </button>
+        </span>
+        <span className="keyset" role="group" aria-label="Edit">
+          <button
+            type="button"
+            className="key key-s"
+            title="Correct this segment (E)"
+            onMouseDown={keepFocus}
+            onClick={() => edit(current)}
+          >
+            <NotePencilIcon size={14} aria-hidden />
+            <span className="key-word">correct</span>
+          </button>
+          <button
+            type="button"
+            className="key key-s"
+            title={`Rename ${view.speakerName(view.speakerOf(current))}`}
+            onMouseDown={keepFocus}
+            onClick={() => setRenaming(current.id)}
+          >
+            <UserIcon size={14} aria-hidden />
+            <span className="key-word">rename</span>
+          </button>
+        </span>
+        <span className="keyset">
+          <button
+            type="button"
+            className="key key-s"
+            title={`Open this segment's detail (${keyHint("Alt+Enter")})`}
+            onMouseDown={keepFocus}
+            onClick={() => openDetail(current)}
+          >
+            <TextAlignLeftIcon size={14} aria-hidden />
+            <span className="key-word">detail</span>
+          </button>
+        </span>
       </div>
       {!inTransport ? <NotInTransport session={session.id} /> : null}
       <div

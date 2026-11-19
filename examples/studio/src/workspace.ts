@@ -21,6 +21,7 @@ import { transcript } from "./panes/transcript";
 import { presets } from "./presets";
 import type { Services } from "./services";
 import { clock, opening, SESSIONS, sessionById } from "./sessions/sessions";
+import { HEADER_BUTTONS, headerButtons, setHeaderButtons } from "./ui/headerButtons";
 
 export const kinds = [library, transcript, timeline, mixer, markers, clip];
 
@@ -172,6 +173,20 @@ export function createStudioJali(services: Services, options: Options = {}): Jal
       title: "Copy a link to this layout",
       group: "Studio",
       run: (jali) => copyLink(jali),
+    },
+    {
+      // TEMPORARY comparison switch (ui/headerButtons.ts): remove once a treatment is chosen.
+      id: "studio.header-buttons",
+      title: "Header buttons: printed / wells / strip / round…",
+      group: "Settings",
+      run: (jali) =>
+        jali.actions.choose({
+          title: "Header buttons…",
+          items: [...HEADER_BUTTONS],
+          label: (b) => b.label,
+          hint: (b) => (b.id === headerButtons() ? `${b.hint} · now` : b.hint),
+          onChoose: (b) => setHeaderButtons(b.id),
+        }),
     },
     {
       id: "studio.theme",

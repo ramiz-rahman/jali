@@ -72,7 +72,6 @@
     .jali-tab-more,
     .jali-shelf-chip,
     .jali-switch-item,
-    .jali-pane-actions button,
     .jali-follow-toggle,
     .jali-scrim [role="alertdialog"] button
   ) {
@@ -120,7 +119,6 @@
     .jali-tab-more,
     .jali-shelf-chip,
     .jali-switch-item,
-    .jali-pane-actions button,
     .jali-follow-toggle
   ) {
     --wall: 2px;
@@ -171,13 +169,12 @@
       .jali-tab-more,
       .jali-shelf-chip,
       .jali-switch-item,
-      .jali-pane-actions button,
       .jali-follow-toggle,
       .jali-scrim [role="alertdialog"] button
     ):active:not(:disabled) {
     --press: var(--wall);
   }
-  :where(.key, .jali-tab, .jali-pane-actions button):hover:not(:disabled) {
+  :where(.key, .jali-tab):hover:not(:disabled) {
     background: linear-gradient(
       180deg,
       var(--cap-1),
@@ -525,7 +522,7 @@
   }
 
   @media (prefers-reduced-motion: reduce) {
-    :where(.key, .lib-row, .jali-tab, .jali-shelf-chip, .jali-pane-actions button),
+    :where(.key, .lib-row, .jali-tab, .jali-shelf-chip),
     .knob-body {
       transition: none;
     }
@@ -535,6 +532,107 @@
 @layer app {
   /* A key's glyph keeps its size when the key is squeezed. */
   :where(.key) :where(svg) {
+    flex: none;
+  }
+}
+
+@layer app {
+  /*
+   * ---------- the key face: one layout for every key with a glyph ----------
+   * The glyph sits centred, its middle 8px above the key's middle; the legend is centred under it on one baseline,
+   * 9px from the foot; the lamp sits 7px in from the top right corner. Positions are absolute, so a longer legend,
+   * a latched key or a missing lamp never moves anything else. A latched key does not travel (its baseline stays
+   * with its neighbours); it shows its state by its darker face and its lit lamp. A press travels 1px.
+   */
+  :where(.face) {
+    position: relative;
+    display: block;
+    padding: 0;
+    text-transform: none;
+  }
+  :where(.face) :where(.face-glyph) {
+    position: absolute;
+    left: 50%;
+    top: calc(50% - 8px);
+    translate: -50% -50%;
+    display: grid;
+    place-items: center;
+  }
+  :where(.face) :where(.face-legend) {
+    position: absolute;
+    left: 4px;
+    right: 4px;
+    bottom: 9px;
+    text-align: center;
+    font-family: var(--jali-font);
+    font-size: 12px;
+    font-weight: 500;
+    line-height: 1;
+    letter-spacing: 0.03em;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  :where(.face) :where(.led) {
+    position: absolute;
+    top: 7px;
+    right: 7px;
+  }
+  /* Latched: the face sinks in colour, not in position, and keeps its wall, so its edges stay with its
+     neighbours'. The lamp says it is on. */
+  :where(.face:is([aria-pressed="true"], [data-on])) {
+    --press: 0px;
+    background: linear-gradient(180deg, color-mix(in srgb, var(--cap-2) 92%, #000), var(--cap-2));
+    box-shadow:
+      inset 0 2px 4px rgb(0 0 0 / 0.22),
+      inset 0 0 0 1px var(--cap-rim),
+      0 var(--wall) 0 var(--cap-edge),
+      0 calc(var(--wall) + 2px) 4px rgb(0 0 0 / 0.24);
+  }
+  :where(.face):active:not(:disabled) {
+    --press: 1px;
+  }
+  :where(.face) :where(.glyph) {
+    fill: currentColor;
+  }
+  /* A plate: a cell with the key's face but no travel, for the knob and the jog wheel. */
+  :where(.face-plate) {
+    position: relative;
+    border-radius: var(--corner);
+    background: linear-gradient(180deg, var(--cap-2), var(--cap-1));
+    color: var(--cap-ink);
+    box-shadow:
+      inset 0 1px 2px rgb(0 0 0 / 0.12),
+      inset 0 0 0 1px var(--cap-rim),
+      0 3px 0 var(--cap-edge);
+  }
+  :where(.face-plate) :where(.face-legend) {
+    color: var(--cap-ink);
+  }
+  /* The play key's cap is orange; its glyph and legend print dark on it. */
+  :where(.key-play) :where(.glyph) {
+    fill: #170a03;
+  }
+}
+
+@layer app {
+  /*
+   * ---------- keyset: related keys in one bezel ----------
+   * The same grouping as the top row, at the panes' scale: keys meet at a 2px seam inside a recessed bezel; two
+   * keysets stand apart by a gutter. Used for the transcript's segment keys, the segment detail's play and loop,
+   * and each mixer strip's mute and solo.
+   */
+  :where(.keyset) {
+    display: inline-flex;
+    align-items: stretch;
+    gap: 2px;
+    padding: 3px 3px 5px;
+    border-radius: var(--corner);
+    background: light-dark(#bdbcb7, #070708);
+    box-shadow:
+      inset 0 1px 2px rgb(0 0 0 / 0.25),
+      inset 0 0 0 1px rgb(0 0 0 / 0.14),
+      0 1px 0 var(--seam-lit);
     flex: none;
   }
 }
