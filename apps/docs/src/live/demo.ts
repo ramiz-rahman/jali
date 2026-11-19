@@ -10,7 +10,7 @@ export const demoLayouts: Record<DemoLayoutId, string> = {
   chain: "A list, its detail, and a related record",
   nested: "A row with a column inside it",
   stack: "Tabs: a stack of three panes",
-  strip: "One group of three tabs, the first pinned",
+  strip: "One group of four tabs, the first pinned",
   crowded: "More panes than fit, so some fold",
 };
 
@@ -62,7 +62,12 @@ const builders: Record<DemoLayoutId, () => LayoutNode> = {
     size: { weight: 1 },
     origin: "user",
     active: "order",
-    children: [customer({ pinned: true }), pane("order", ref("order", { id: 1048 })), activity()],
+    children: [
+      customer({ pinned: true }),
+      pane("order", ref("order", { id: 1048 })),
+      notes(),
+      activity(),
+    ],
   }),
   crowded: () =>
     split("row", "root", [
