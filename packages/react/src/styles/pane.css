@@ -241,7 +241,7 @@
     align-items: stretch;
     gap: 2px;
     flex: 0 0.0001 auto;
-    min-width: min(var(--jali-tab-pinned-collapsed, 4.5rem), 40%);
+    min-width: min(var(--jali-tab-pinned-collapsed, 3rem), 40%);
     overflow-x: auto;
     overflow-y: hidden;
     scrollbar-width: none;
@@ -255,7 +255,7 @@
        pinned tabs still fit. */
     min-width: max(
       min(8rem, 60%),
-      min(var(--jali-shown-tab, 0px), calc(100% - var(--jali-tab-pinned-collapsed, 4.5rem)))
+      min(var(--jali-shown-tab, 0px), calc(100% - var(--jali-tab-pinned-collapsed, 3rem)))
     );
   }
   .jali-tabs-pinned:has(+ .jali-tabs > .jali-tab-item) {
@@ -443,6 +443,7 @@
         display: none;
       }
       & > .jali-tab {
+        min-width: 0;
         max-width: none;
         padding-inline: 0.375rem;
       }
