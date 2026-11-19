@@ -13,7 +13,7 @@ The audio is real. The speech is one clip per transcript segment, read by macOS 
 
 ## The voices are placeholders
 
-The speech was made with macOS system voices (`say`), as a placeholder for the lab. Replace it with properly licensed recordings before this example is published. The script is in `scripts/dialogue.mjs`: three short fictional interviews. Every show, person and place in them is made up.
+The speech was made with macOS system voices (`say`), as a placeholder. Replace it with properly licensed recordings before this example is published. The script is in `scripts/dialogue.mjs`: three short fictional interviews. Every show, person and place in them is made up.
 
 ## What to try
 

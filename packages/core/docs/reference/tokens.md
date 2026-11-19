@@ -40,7 +40,7 @@ Each row below gives the token, what it is for, and the `jali-*` classes whose r
 | --- | --- | --- | --- |
 | `--jali-accent` | Focus and action: the focused pane's edge, a zoomed pane, divider handles, the drop indicator, the focused page tab, primary buttons. | `#4456c7` | `#8c9bea` |
 | `--jali-on-accent` | Text on the accent: the drop label and primary buttons. | `#ffffff` | `#0e0d0b` |
-| `--jali-accent-soft` | A soft accent fill, for the host (the lab and the docs use it). Part of the palette and mapped by the Tailwind bridge; Jali's own styles mix their tints from the accent instead. | `#e8eaf6` | `#20244a` |
+| `--jali-accent-soft` | A soft accent fill, for the host (the example apps and the docs use it). Part of the palette and mapped by the Tailwind bridge; Jali's own styles mix their tints from the accent instead. | `#e8eaf6` | `#20244a` |
 | `--jali-brand` | Nil for the mark (#2B3990 in light), for a host that draws a logo. Part of the palette; Jali draws no mark. | `#2b3990` | `#8c9bea` |
 
 ## Status
