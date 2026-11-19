@@ -197,6 +197,44 @@ test("Days keeps the whole week at a comfortable width, in a row that scrolls", 
   await expect.poll(() => wholeInWeek(page, "day-1")).toBe(true);
 });
 
+test("a day comes out of the week by its header, onto the side of a pane beside it", async ({
+  page,
+}) => {
+  await layout(page, "Days").click();
+  const header = (await pane(page, "day-2").locator(".jali-pane-header").boundingBox())!;
+  const map = (await pane(page, "map").boundingBox())!;
+  await page.mouse.move(header.x + 60, header.y + header.height / 2);
+  await page.mouse.down();
+  await page.mouse.move(header.x + 90, header.y + 30, { steps: 5 });
+  // Over the map's left edge, where days scrolled out of the week lie hidden under it.
+  await page.mouse.move(map.x + 30, map.y + map.height / 2, { steps: 12 });
+  await page.mouse.up();
+  await expect(page.locator('.jali-strip .jali-pane[data-pane="day-2"]')).toHaveCount(0);
+  await expect(pane(page, "day-2")).toBeVisible();
+  await expect(page.locator('.jali-strip .jali-pane[data-kind="day"]')).toHaveCount(6);
+});
+
+test("the divider beside the week widens the overview, and the days keep their width", async ({
+  page,
+}) => {
+  await layout(page, "Days").click();
+  const overview = (await pane(page, "overview").boundingBox())!.width;
+  const week = (await page.locator('[data-strip="week"]').boundingBox())!.width;
+  const day1 = (await pane(page, "day-1").boundingBox())!.width;
+  const divider = page.getByRole("separator").first();
+  await divider.focus();
+  for (let i = 0; i < 3; i++) await page.keyboard.press("ArrowRight");
+  await expect
+    .poll(async () => (await pane(page, "overview").boundingBox())!.width)
+    .toBeGreaterThan(overview + 30);
+  const grown = (await pane(page, "overview").boundingBox())!.width - overview;
+  expect((await page.locator('[data-strip="week"]').boundingBox())!.width).toBeCloseTo(
+    week - grown,
+    0,
+  );
+  expect((await pane(page, "day-1").boundingBox())!.width).toBeCloseTo(day1, 0);
+});
+
 test("drag a stop from one Phuket day to another; a Bangkok stop can't go to Phuket", async ({
   page,
 }) => {
