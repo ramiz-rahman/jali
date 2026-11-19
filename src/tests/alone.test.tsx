@@ -4,7 +4,7 @@
  */
 import { act, cleanup, render } from "@testing-library/react";
 import { afterAll, afterEach, beforeAll, describe, expect, it } from "vite-plus/test";
-import { createJali, memoryLocation, memoryStorage, row, tabs } from "@jali/core";
+import { createJali, memoryLocation, memoryStorage, tabs } from "@jali/core";
 import { JaliRoot, definePane } from "@jali/react";
 
 const note = definePane("note", {
