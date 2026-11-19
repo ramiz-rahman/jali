@@ -287,23 +287,40 @@ function block(css: string, selector: string): Record<string, string> {
   return out;
 }
 
-const LIGHT = block(theme, ':where(:root, .light, [data-theme="light"])');
-const DARK = block(theme, ':where(.dark, [data-theme="dark"])');
-const PUBLIC = block(theme, ":where(:root, .light, .dark, [data-theme])");
-const SHAPE = block(theme, ":where(:root)");
-const DERIVED_LIGHT = block(theme, ":where(:root, [data-jali], .jali-scrim)");
-const DERIVED_DARK = block(
-  theme,
-  ':where(.dark, [data-theme="dark"]) :where([data-jali], .jali-scrim),\n:where(.dark, [data-theme="dark"])',
-);
+/**
+ * Every light-dark(light, dark) in a value replaced by one side: Jali's palette is written once, and the browser picks
+ * the side by the color-scheme where a token is used.
+ */
+function side(value: string, which: 0 | 1): string {
+  let out = value;
+  for (;;) {
+    const at = out.indexOf("light-dark(");
+    if (at < 0) return out;
+    let depth = 0,
+      comma = -1,
+      end = -1;
+    for (let i = at + "light-dark(".length - 1; i < out.length; i++) {
+      const c = out[i];
+      if (c === "(") depth++;
+      else if (c === ")" && --depth === 0) {
+        end = i;
+        break;
+      } else if (c === "," && depth === 1 && comma < 0) comma = i;
+    }
+    const args = [out.slice(at + "light-dark(".length, comma), out.slice(comma + 1, end)];
+    out = out.slice(0, at) + args[which]!.trim() + out.slice(end + 1);
+  }
+}
+
+/** The root's block: the default palette, the public tokens and shape and type. */
+const ROOT = block(theme, ":where(:root)");
+const DERIVED = block(theme, ":where(:root, [data-jali], .jali-scrim)");
 
 /** Every public token a theme file declares (the --jali-default-* palette is internal). */
 export function publicTokensOf(css: string): string[] {
-  const all = [
-    ":where(:root, .light, .dark, [data-theme])",
-    ":where(:root)",
-    ":where(:root, [data-jali], .jali-scrim)",
-  ].flatMap((sel) => Object.keys(block(css, sel)));
+  const all = [":where(:root)", ":where(:root, [data-jali], .jali-scrim)"].flatMap((sel) =>
+    Object.keys(block(css, sel)),
+  );
   return [...new Set(all)].filter(
     (t) => t.startsWith("--jali-") && !t.startsWith("--jali-default-"),
   );
@@ -312,12 +329,9 @@ export const PUBLIC_TOKENS: string[] = publicTokensOf(theme);
 
 /** A token's value in light and in dark: the default palette entry for palette tokens, the declaration otherwise. */
 export function valuesOf(token: string): { light: string; dark: string } {
-  const def = `--jali-default-${token.slice("--jali-".length)}`;
-  if (PUBLIC[token])
-    return { light: LIGHT[def] ?? PUBLIC[token]!, dark: DARK[def] ?? PUBLIC[token]! };
-  if (SHAPE[token]) return { light: SHAPE[token]!, dark: SHAPE[token]! };
-  const light = DERIVED_LIGHT[token] ?? "";
-  return { light, dark: DERIVED_DARK[token] ?? light };
+  const value =
+    ROOT[`--jali-default-${token.slice("--jali-".length)}`] ?? ROOT[token] ?? DERIVED[token] ?? "";
+  return { light: side(value, 0), dark: side(value, 1) };
 }
 
 const PARTS_CSS = { workspace, pane, dividers, shelf, chrome, page, dialogs, follow };

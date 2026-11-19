@@ -1,10 +1,16 @@
 /*
  * Jali's default theme: Nil (Bengal indigo) on stone, the brand's warm ground (#EFEAE2). See docs/brand/README.md.
  *
- * The --jali-* tokens are the only variables Jali's styles read. Every block uses :where(), so a host's own
- * declaration of a token wins at any specificity and in any import order (the same contract as Chakni's
- * --chakni-* tokens). Light on the root; dark under prefers-color-scheme, or inside a .dark or [data-theme="dark"]
- * scope; a .light or [data-theme="light"] scope keeps light when the system is dark.
+ * The --jali-* tokens are the only variables Jali's styles read. Jali declares each public one once, on the root, so a
+ * host's own value wins wherever it is set: on :root, on any ancestor of the workspace, or on the Jali root
+ * ([data-jali]) itself, at any specificity, in any import order, and with any theme scope in between (the same
+ * contract as Chakni's --chakni-* tokens).
+ *
+ * Light and dark: a theme scope switches only Jali's default palette, never a host's token. Each --jali-default-* value
+ * is light-dark(light, dark), which the browser resolves where it is used, by that element's color-scheme. Jali sets
+ * color-scheme light on the root, dark under prefers-color-scheme: dark, dark inside a .dark or [data-theme="dark"]
+ * scope, and light inside a .light or [data-theme="light"] scope (which keeps light when the system is dark). So a
+ * .dark subtree gets the dark defaults, and a token the host set above it still wins there.
  *
  * To retheme from a Tailwind theme, import jali-tailwind.css after this file. To retheme by hand, set the public
  * --jali-* tokens on your root (or any scope); the derived ones follow. The --jali-default-* names are internal.
@@ -12,134 +18,68 @@
  * after jali, wins.
  */
 @layer jali {
-  /* ---------- palette: light ---------- */
+  /* ---------- which palette a scope uses: its color-scheme ---------- */
   :where(:root, .light, [data-theme="light"]) {
-    --jali-default-canvas: #efeae2;
-    --jali-default-surface: #fdfcfa;
-    --jali-default-surface-raised: #ffffff;
-    --jali-default-border: #e4ded4;
-    --jali-default-border-strong: #d3cbbd;
-    /* Boundaries of controls (buttons, inputs): 3:1 against the surface, unlike the decorative border. */
-    --jali-default-control: #8a8274;
-    --jali-default-text: #1c1915;
-    --jali-default-text-muted: #4f4941;
-    --jali-default-text-subtle: #685f54;
-    --jali-default-text-faint: #a1998c;
-    --jali-default-hover: #eee9e1;
-    /* Nil: #2B3990 for the mark, #4456C7 for controls and focus (6.2:1 on white). */
-    --jali-default-brand: #2b3990;
-    --jali-default-accent: #4456c7;
-    --jali-default-accent-soft: #e8eaf6;
-    --jali-default-on-accent: #ffffff;
-    /* Pane activity: teal for working, apart from the indigo of focus. */
-    --jali-default-working: #0e7490;
-    --jali-default-blocked: #d97706;
-    --jali-default-done: #059669;
-    --jali-default-failed: #dc2626;
-    --jali-default-on-status: #ffffff;
-    --jali-default-chip: #1c1915;
-    --jali-default-on-chip: #ffffff;
-    --jali-default-scrim: rgba(28, 25, 21, 0.16);
-    --jali-default-scrim-light: rgba(28, 25, 21, 0.08);
-    --jali-default-shadow-zoom: 0 12px 32px rgba(28, 25, 21, 0.1);
-    --jali-default-shadow-peek:
-      -8px 0 24px rgba(28, 25, 21, 0.08), 0 1px 2px rgba(28, 25, 21, 0.04);
-    --jali-default-shadow-dialog: 0 16px 48px rgba(28, 25, 21, 0.16);
-    --jali-default-shadow-menu: 0 8px 24px rgba(0, 0, 0, 0.16);
-    --jali-default-shadow-chip: 0 4px 16px rgba(0, 0, 0, 0.18);
-    --jali-default-shadow-raised: 0 1px 2px rgba(28, 25, 21, 0.06);
-    /* Panes opened while investigating in a curated page: a warm sand, apart from the indigo of focus. */
-    --jali-default-opened-bg: #fbf8f1;
-    --jali-default-opened-line: #eadfc8;
-    --jali-default-opened-mark: #c08a2e;
-    --jali-default-opened-ink: #8a6420;
     color-scheme: light;
   }
-
-  /* ---------- palette: dark ---------- */
   @media (prefers-color-scheme: dark) {
     :where(:root:not(.light, [data-theme="light"])) {
-      --jali-default-canvas: #0e0d0b;
-      --jali-default-surface: #1a1815;
-      --jali-default-surface-raised: #221f1b;
-      --jali-default-border: #2d2a25;
-      --jali-default-border-strong: #3f3a33;
-      --jali-default-control: #7b7468;
-      --jali-default-text: #f1ece4;
-      --jali-default-text-muted: #bfb7aa;
-      --jali-default-text-subtle: #a1998c;
-      --jali-default-text-faint: #6c655b;
-      --jali-default-hover: #24211d;
-      --jali-default-brand: #8c9bea;
-      --jali-default-accent: #8c9bea;
-      --jali-default-accent-soft: #20244a;
-      --jali-default-on-accent: #0e0d0b;
-      --jali-default-working: #22d3ee;
-      --jali-default-blocked: #fbbf24;
-      --jali-default-done: #34d399;
-      --jali-default-failed: #f87171;
-      --jali-default-on-status: #0e0d0b;
-      --jali-default-chip: #f1ece4;
-      --jali-default-on-chip: #0e0d0b;
-      --jali-default-scrim: rgba(0, 0, 0, 0.55);
-      --jali-default-scrim-light: rgba(0, 0, 0, 0.4);
-      --jali-default-shadow-zoom: 0 12px 32px rgba(0, 0, 0, 0.5);
-      --jali-default-shadow-peek: -8px 0 24px rgba(0, 0, 0, 0.45), 0 1px 2px rgba(0, 0, 0, 0.3);
-      --jali-default-shadow-dialog: 0 16px 48px rgba(0, 0, 0, 0.6);
-      --jali-default-shadow-menu: 0 8px 24px rgba(0, 0, 0, 0.5);
-      --jali-default-shadow-chip: 0 4px 16px rgba(0, 0, 0, 0.5);
-      --jali-default-shadow-raised: 0 1px 2px rgba(0, 0, 0, 0.4);
-      --jali-default-opened-bg: #211d15;
-      --jali-default-opened-line: #3d3424;
-      --jali-default-opened-mark: #d9a648;
-      --jali-default-opened-ink: #e2bd78;
       color-scheme: dark;
     }
   }
   :where(.dark, [data-theme="dark"]) {
-    --jali-default-canvas: #0e0d0b;
-    --jali-default-surface: #1a1815;
-    --jali-default-surface-raised: #221f1b;
-    --jali-default-border: #2d2a25;
-    --jali-default-border-strong: #3f3a33;
-    --jali-default-control: #7b7468;
-    --jali-default-text: #f1ece4;
-    --jali-default-text-muted: #bfb7aa;
-    --jali-default-text-subtle: #a1998c;
-    --jali-default-text-faint: #6c655b;
-    --jali-default-hover: #24211d;
-    --jali-default-brand: #8c9bea;
-    --jali-default-accent: #8c9bea;
-    --jali-default-accent-soft: #20244a;
-    --jali-default-on-accent: #0e0d0b;
-    --jali-default-working: #22d3ee;
-    --jali-default-blocked: #fbbf24;
-    --jali-default-done: #34d399;
-    --jali-default-failed: #f87171;
-    --jali-default-on-status: #0e0d0b;
-    --jali-default-chip: #f1ece4;
-    --jali-default-on-chip: #0e0d0b;
-    --jali-default-scrim: rgba(0, 0, 0, 0.55);
-    --jali-default-scrim-light: rgba(0, 0, 0, 0.4);
-    --jali-default-shadow-zoom: 0 12px 32px rgba(0, 0, 0, 0.5);
-    --jali-default-shadow-peek: -8px 0 24px rgba(0, 0, 0, 0.45), 0 1px 2px rgba(0, 0, 0, 0.3);
-    --jali-default-shadow-dialog: 0 16px 48px rgba(0, 0, 0, 0.6);
-    --jali-default-shadow-menu: 0 8px 24px rgba(0, 0, 0, 0.5);
-    --jali-default-shadow-chip: 0 4px 16px rgba(0, 0, 0, 0.5);
-    --jali-default-shadow-raised: 0 1px 2px rgba(0, 0, 0, 0.4);
-    --jali-default-opened-bg: #211d15;
-    --jali-default-opened-line: #3d3424;
-    --jali-default-opened-mark: #d9a648;
-    --jali-default-opened-ink: #e2bd78;
     color-scheme: dark;
   }
 
   /*
-   * ---------- the public palette tokens ----------
-   * Each reads its default for the scope it is in. Declared on every theme scope, so a .dark subtree gets dark values;
-   * a host's own declaration of a token wins (set it on the same scope), and jali-tailwind.css points them at the host's theme.
+   * ---------- the root: the default palette, the public tokens, shape and type ----------
+   * Declared here only. A public palette token reads its default, which stays light-dark() until an element uses it,
+   * so every scope below gets its own palette from this one declaration.
    */
-  :where(:root, .light, .dark, [data-theme]) {
+  :where(:root) {
+    /* The default palette: light-dark(light, dark). */
+    --jali-default-canvas: light-dark(#efeae2, #0e0d0b);
+    --jali-default-surface: light-dark(#fdfcfa, #1a1815);
+    --jali-default-surface-raised: light-dark(#ffffff, #221f1b);
+    --jali-default-border: light-dark(#e4ded4, #2d2a25);
+    --jali-default-border-strong: light-dark(#d3cbbd, #3f3a33);
+    /* Boundaries of controls (buttons, inputs): 3:1 against the surface, unlike the decorative border. */
+    --jali-default-control: light-dark(#8a8274, #7b7468);
+    --jali-default-text: light-dark(#1c1915, #f1ece4);
+    --jali-default-text-muted: light-dark(#4f4941, #bfb7aa);
+    --jali-default-text-subtle: light-dark(#685f54, #a1998c);
+    --jali-default-text-faint: light-dark(#a1998c, #6c655b);
+    --jali-default-hover: light-dark(#eee9e1, #24211d);
+    /* Nil: #2B3990 for the mark, #4456C7 for controls and focus (6.2:1 on white). */
+    --jali-default-brand: light-dark(#2b3990, #8c9bea);
+    --jali-default-accent: light-dark(#4456c7, #8c9bea);
+    --jali-default-accent-soft: light-dark(#e8eaf6, #20244a);
+    --jali-default-on-accent: light-dark(#ffffff, #0e0d0b);
+    /* Pane activity: teal for working, apart from the indigo of focus. */
+    --jali-default-working: light-dark(#0e7490, #22d3ee);
+    --jali-default-blocked: light-dark(#d97706, #fbbf24);
+    --jali-default-done: light-dark(#059669, #34d399);
+    --jali-default-failed: light-dark(#dc2626, #f87171);
+    --jali-default-on-status: light-dark(#ffffff, #0e0d0b);
+    --jali-default-chip: light-dark(#1c1915, #f1ece4);
+    --jali-default-on-chip: light-dark(#ffffff, #0e0d0b);
+    --jali-default-scrim: light-dark(rgba(28, 25, 21, 0.16), rgba(0, 0, 0, 0.55));
+    --jali-default-scrim-light: light-dark(rgba(28, 25, 21, 0.08), rgba(0, 0, 0, 0.4));
+    --jali-default-shadow-zoom: 0 12px 32px light-dark(rgba(28, 25, 21, 0.1), rgba(0, 0, 0, 0.5));
+    --jali-default-shadow-peek:
+      -8px 0 24px light-dark(rgba(28, 25, 21, 0.08), rgba(0, 0, 0, 0.45)),
+      0 1px 2px light-dark(rgba(28, 25, 21, 0.04), rgba(0, 0, 0, 0.3));
+    --jali-default-shadow-dialog: 0 16px 48px light-dark(rgba(28, 25, 21, 0.16), rgba(0, 0, 0, 0.6));
+    --jali-default-shadow-menu: 0 8px 24px light-dark(rgba(0, 0, 0, 0.16), rgba(0, 0, 0, 0.5));
+    --jali-default-shadow-chip: 0 4px 16px light-dark(rgba(0, 0, 0, 0.18), rgba(0, 0, 0, 0.5));
+    --jali-default-shadow-raised: 0 1px 2px light-dark(rgba(28, 25, 21, 0.06), rgba(0, 0, 0, 0.4));
+    /* Panes opened while investigating in a curated page: a warm sand, apart from the indigo of focus. */
+    --jali-default-opened-bg: light-dark(#fbf8f1, #211d15);
+    --jali-default-opened-line: light-dark(#eadfc8, #3d3424);
+    --jali-default-opened-mark: light-dark(#c08a2e, #d9a648);
+    --jali-default-opened-ink: light-dark(#8a6420, #e2bd78);
+
+    /* The public palette tokens. */
     --jali-accent: var(--jali-default-accent);
     --jali-accent-soft: var(--jali-default-accent-soft);
     --jali-blocked: var(--jali-default-blocked);
@@ -174,10 +114,8 @@
     --jali-text-muted: var(--jali-default-text-muted);
     --jali-text-subtle: var(--jali-default-text-subtle);
     --jali-working: var(--jali-default-working);
-  }
 
-  /* ---------- shape and type: one set for both themes ---------- */
-  :where(:root) {
+    /* Shape and type: one set for both themes. */
     --jali-radius: 0.625rem;
     --jali-radius-control: 0.375rem;
     --jali-radius-menu: 0.5rem;
@@ -194,27 +132,23 @@
   /*
    * ---------- derived from the accent ----------
    * Declared on the root and again on each Jali root ([data-jali]) and dialog (.jali-scrim, which renders beside the
-   * root), so a host that sets --jali-accent on a subtree gets matching tints there, not the root's. Dialogs inherit
-   * from the element around <Jali>: set a per-workspace accent there, not on the Jali root itself.
+   * root), so an accent set on a subtree, or on the Jali root itself, gets matching tints there, not the root's.
+   * Dialogs inherit from the element around <JaliRoot>: an accent set on the Jali root reaches its panes, not its
+   * dialogs. Stronger in dark, where a faint tint disappears.
    */
   :where(:root, [data-jali], .jali-scrim) {
-    --jali-accent-weak: color-mix(in srgb, var(--jali-accent) 8%, transparent);
-    --jali-accent-mid: color-mix(in srgb, var(--jali-accent) 16%, transparent);
-    --jali-drop: color-mix(in srgb, var(--jali-accent) 12%, transparent);
+    --jali-accent-weak: light-dark(
+      color-mix(in srgb, var(--jali-accent) 8%, transparent),
+      color-mix(in srgb, var(--jali-accent) 14%, transparent)
+    );
+    --jali-accent-mid: light-dark(
+      color-mix(in srgb, var(--jali-accent) 16%, transparent),
+      color-mix(in srgb, var(--jali-accent) 26%, transparent)
+    );
+    --jali-drop: light-dark(
+      color-mix(in srgb, var(--jali-accent) 12%, transparent),
+      color-mix(in srgb, var(--jali-accent) 16%, transparent)
+    );
     --jali-focus-ring: var(--jali-accent);
-  }
-  :where(.dark, [data-theme="dark"]) :where([data-jali], .jali-scrim),
-  :where(.dark, [data-theme="dark"]) {
-    --jali-accent-weak: color-mix(in srgb, var(--jali-accent) 14%, transparent);
-    --jali-accent-mid: color-mix(in srgb, var(--jali-accent) 26%, transparent);
-    --jali-drop: color-mix(in srgb, var(--jali-accent) 16%, transparent);
-  }
-  @media (prefers-color-scheme: dark) {
-    :where(:root:not(.light, [data-theme="light"])),
-    :where(:root:not(.light, [data-theme="light"])) :where([data-jali], .jali-scrim) {
-      --jali-accent-weak: color-mix(in srgb, var(--jali-accent) 14%, transparent);
-      --jali-accent-mid: color-mix(in srgb, var(--jali-accent) 26%, transparent);
-      --jali-drop: color-mix(in srgb, var(--jali-accent) 16%, transparent);
-    }
   }
 }

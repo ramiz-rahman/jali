@@ -52,6 +52,57 @@ test.describe("Theme", () => {
     expect(weak).toContain("rgb(194, 98, 26)");
   });
 
+  test("a host token on an ancestor wins with a .dark scope in between, which still gets dark defaults", async ({
+    lab,
+    page,
+  }) => {
+    await lab.open();
+    // body (the host's ancestor) sets the accent; #root, between it and the Jali root, is a .dark scope.
+    await page.addStyleTag({ content: "body { --jali-accent: rgb(194, 98, 26); }" });
+    await page.evaluate(() => document.getElementById("root")!.classList.add("dark"));
+    expect(await focusedBorder(lab)).toBe("rgb(194, 98, 26)");
+    const [weak, surface] = await lab.page
+      .locator("section[data-pane][data-focused]")
+      .first()
+      .evaluate((e) => {
+        const c = getComputedStyle(e);
+        return [
+          getComputedStyle(e.closest("[data-jali]")!).getPropertyValue("--jali-accent-weak"),
+          c.backgroundColor,
+        ];
+      });
+    // The tints follow the host's accent, at dark's strength; the surface is dark's (#1A1815).
+    expect(weak).toContain("rgb(194, 98, 26)");
+    expect(surface).toBe("rgb(26, 24, 21)");
+  });
+
+  test("a .dark scope with no host token gets the dark palette; a .light scope inside it, the light one", async ({
+    lab,
+    page,
+  }) => {
+    await lab.open();
+    await page.evaluate(() => document.getElementById("root")!.classList.add("dark"));
+    // Nil on dark: #8C9BEA.
+    expect(await focusedBorder(lab)).toBe("rgb(140, 155, 234)");
+    await page.evaluate(() => document.querySelector("[data-jali]")!.classList.add("light"));
+    expect(await focusedBorder(lab)).toBe("rgb(68, 86, 199)");
+  });
+
+  test("a host token on the Jali root itself wins, and its tints follow there", async ({
+    lab,
+    page,
+  }) => {
+    await lab.open();
+    await page.addStyleTag({ content: "[data-jali] { --jali-accent: rgb(194, 98, 26); }" });
+    expect(await focusedBorder(lab)).toBe("rgb(194, 98, 26)");
+    const weak = await page.evaluate(() =>
+      getComputedStyle(document.querySelector(".jali-workspace")!)
+        .getPropertyValue("--jali-accent-weak")
+        .trim(),
+    );
+    expect(weak).toContain("rgb(194, 98, 26)");
+  });
+
   test("the Tailwind bridge takes the host's semantic tokens", async ({ lab, page }) => {
     await lab.open();
     await page.addStyleTag(bridge);
