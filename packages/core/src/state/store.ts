@@ -202,6 +202,8 @@ export interface UiStoreDeps {
   onPaneError?: (error: unknown, info: PaneErrorInfo) => void;
   /** A fixed reading direction. Default: the page's, read where the workspace is rendered. */
   dir?: Direction;
+  /** `"main"`: the panes are the page's main landmark. Default `"region"`, a labelled section. */
+  landmark?: "region" | "main";
 }
 
 export interface UiStore {
@@ -304,6 +306,7 @@ export function createUiStore(deps: UiStoreDeps): UiStore {
   if (onPaneError) env.onPaneError = onPaneError;
   if (deps.launcher) env.launcher = deps.launcher;
   if (deps.dir) env.dir = deps.dir;
+  if (deps.landmark === "main") env.landmark = "main";
   const focusOf =
     deps.focusPane === undefined
       ? typeof document === "undefined"

@@ -42,11 +42,13 @@ const launcher = definePane("launcher", {
   ),
 });
 
-// A workspace: its kinds of pane, the launcher, and the layout it opens on (two notes side by side).
+// A workspace: its kinds of pane, the launcher, and the layout it opens on (two notes side by side). It is the whole
+// page, so its panes are the page's <main> landmark.
 const jali = createJali({
   panes: [note],
   launcher,
   layout: row(note({ id: 1 }), note({ id: 2 })),
+  landmark: "main",
 });
 
 createRoot(document.getElementById("root")!).render(<JaliRoot jali={jali} className="app" />);

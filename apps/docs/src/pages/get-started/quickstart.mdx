@@ -57,6 +57,8 @@ The workspace keeps its layout in the address bar. Reload the page and the layou
 
 The workspace fills the box you give it, so `<JaliRoot>` needs a height. To add your own top bar or sidebar, put it inside `<JaliRoot>` with `<JaliView />` where the panes go.
 
+Screen readers meet the panes as a region named "Panes", inside your page's own `<main>`. When Jali is the whole page and it has no `<main>` of its own, pass `landmark: "main"` to `createJali` so the panes are the page's `<main>`.
+
 </Step>
 <Step title="Add the styles and the layer line">
 

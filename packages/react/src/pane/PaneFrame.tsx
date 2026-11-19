@@ -85,7 +85,7 @@ export const PaneFrame = memo(
         className={cls}
         style={style}
       >
-        <header
+        <div
           className="jali-pane-header"
           onPointerDown={
             chrome.draggable && !bare ? (e) => startPaneDrag(store, e, node.id) : undefined
@@ -119,7 +119,7 @@ export const PaneFrame = memo(
           {bare ? null : (
             <HeaderActions id={node.id} title={title} zoomed={zoomed} chrome={chrome} />
           )}
-        </header>
+        </div>
         {dropTarget ? <DropZoneLabel paneId={node.id} /> : null}
         <NotInResults node={node} />
         <div className="jali-pane-content">

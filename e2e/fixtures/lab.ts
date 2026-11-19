@@ -21,6 +21,7 @@ export type OpenOpts = { preset?: string; path?: string; size?: Size };
  *   dragChip      .drag-chip          wanted: data-testid="drag-chip"          (the chip that follows the pointer)
  *   dividerPreview .divider-visual    wanted: data-testid="divider-preview"    (the line shown during a divider drag)
  *   statusMain    .status-main        wanted: data-testid="status-main"        (count and focus text, right of the shelf)
+ *   paneHeader    .jali-pane-header   a pane's header bar (a div: a pane header is no banner landmark)
  *   isZoomed      .is-zoomed          wanted: data-zoomed on the pane section  (main already has data-zoomed)
  *   activity dots .ra-ring/-need/-fail wanted: data-shape on the dot          (shape per activity state)
  */
@@ -28,6 +29,7 @@ const HOOKS = {
   dragChip: ".jali-drag-chip",
   dividerPreview: ".jali-divider-visual",
   statusMain: ".status-main",
+  paneHeader: ".jali-pane-header",
   zoomed: ".is-zoomed",
 };
 const SHAPES = {
@@ -48,7 +50,7 @@ export class Lab {
   // ---------- locators ----------
   /** The pane section with this id (the shown tab's id for a tab group). */
   pane = (id: string) => this.page.locator(`section[data-pane="${id}"]`);
-  header = (id: string) => this.pane(id).locator("header").first();
+  header = (id: string) => this.pane(id).locator(HOOKS.paneHeader).first();
   heading = (id: string) => this.pane(id).getByRole("heading", { level: 2 });
   grid = (id: string) => this.pane(id).getByRole("grid");
   row = (id: string, name: RegExp) => this.pane(id).getByRole("row", { name }).first();

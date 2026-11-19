@@ -285,7 +285,7 @@ Makes a workspace available to the hooks and parts below it. `<JaliRoot>` render
 
 <Entry name="Panes" kind="component" from="@jali/react" signature={`<Panes />`} example={composeCode} exampleFile="App.tsx">
 
-The panes: frames, dividers, drop zones, the drag chip, the peek sheet and (on a phone) the pane switcher. It is a `<main aria-label="Panes">`, measures itself to set the workspace's `area`, keeps DOM focus on the focused pane, and announces panes folding or unfolding when the room changes. When even one pane's minimum doesn't fit, it shows one pane at a time. It is `position: relative` with `overflow: hidden` and no size of its own: give it one (a grid or flex cell in your layout).
+The panes: frames, dividers, drop zones, the drag chip, the peek sheet and (on a phone) the pane switcher. It is a `<section aria-label="Panes">` region, or the page's `<main>` with `createJali({ landmark: "main" })`, measures itself to set the workspace's `area`, keeps DOM focus on the focused pane, and announces panes folding or unfolding when the room changes. When even one pane's minimum doesn't fit, it shows one pane at a time. It is `position: relative` with `overflow: hidden` and no size of its own: give it one (a grid or flex cell in your layout).
 
 </Entry>
 

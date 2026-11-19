@@ -224,8 +224,10 @@ export function Panes() {
   const dropBox =
     !single && dnd?.target ? m.resolved.panes.find((b) => b.id === dnd.target) : undefined;
 
+  // A labelled region inside the host's page, or the page's main landmark when the host says Jali is the whole app.
+  const Landmark = store.env.landmark === "main" ? "main" : "section";
   return (
-    <main
+    <Landmark
       className={["jali-workspace", single && "is-single", sliding && !single && "is-reshaping"]
         .filter(Boolean)
         .join(" ")}
@@ -258,6 +260,6 @@ export function Panes() {
         {ghost && !single && !dnd ? <Ghost role={ghost} /> : null}
         <Peek presentation={mode} />
       </div>
-    </main>
+    </Landmark>
   );
 }
