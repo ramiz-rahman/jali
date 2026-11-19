@@ -1,5 +1,6 @@
 /** The app's own moves on the workspace, shared by panes and ⌘K commands. */
 import type { Jali, NodeId, ObjectRef } from "@jali/core";
+import { storeOf } from "@jali/core/adapter";
 import type { Services } from "./services";
 import type { Side } from "./trading/trading";
 import { blotter } from "./panes/blotter";
@@ -26,7 +27,7 @@ export function show(
   const sameKind = m.panes.find((p) => p.ref.kind === ref.kind && onScreen.has(p.id));
   const into = sameKind?.id ?? tabWith;
   const source = into ?? from ?? jali.get().view.focused ?? m.panes[0]?.id;
-  const id = source ? jali.actions.openBeside(source, ref) : undefined;
+  const id = source ? jali.actions.openBeside(source, ref).pane : undefined;
   if (!id) return undefined;
   if (into && jali.model().pane(into)) jali.actions.mergeInto(id, into);
   jali.actions.reveal(id);
@@ -47,13 +48,14 @@ export function openFollowing(jali: Jali, list: NodeId, ref: ObjectRef): NodeId 
     .model()
     .panes.find((p) => p.linkedTo === list && p.follows && p.ref.kind === ref.kind);
   if (follower) {
-    jali.actions.follow(list, ref);
+    // Jali has no public "show this in the follower now": the engine's own step.
+    storeOf(jali).actions.follow(list, ref);
     // Folded behind a tab (a phone, a crowded desk): bring it to the front, since the person asked to open it.
     const hidden = !jali.model().resolved.panes.some((b) => b.id === follower.id && !b.hidden);
     if (hidden) jali.actions.reveal(follower.id);
     return follower.id;
   }
-  const id = jali.actions.openBeside(list, ref);
+  const id = jali.actions.openBeside(list, ref).pane;
   const opened = id ? jali.model().pane(id) : undefined;
   if (id && opened?.linkedTo === list && !opened.follows) jali.actions.setPinned(id, false);
   return id;

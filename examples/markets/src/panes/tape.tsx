@@ -10,7 +10,10 @@ import { useFollowSymbol } from "./follow";
 
 const ROWS = 80;
 
-function TapePane({ params, paused }: PaneProps<{ symbol: string }>) {
+/** What a tape pane shows; its component and `definePane` share it. */
+const tapeParams = { symbol: String };
+
+function TapePane({ params, paused }: PaneProps<typeof tapeParams>) {
   useFollowSymbol(tape, params.symbol);
   return (
     <Known symbol={params.symbol}>
@@ -74,7 +77,7 @@ function TapeBody({ inst, paused }: { inst: Instrument; paused: boolean }) {
 }
 
 export const tape = definePane("tape", {
-  params: { symbol: String },
+  params: tapeParams,
   title: ({ symbol }) => `${symbol} trades`,
   icon: ReceiptIcon,
   width: { min: 220, comfortable: 280, max: 420 },

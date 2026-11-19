@@ -36,7 +36,10 @@ const SLOTS: Partial<Record<Range, number>> = { "5D": 65 };
 /** Minutes a 1D bar may cover: the fewest that keep a candle 5px wide. */
 const BUCKETS = [1, 2, 5, 10, 15, 30];
 
-function Chart({ params, paused }: PaneProps<{ symbol: string }>) {
+/** What a chart pane shows; its component and `definePane` share it. */
+const chartParams = { symbol: String };
+
+function Chart({ params, paused }: PaneProps<typeof chartParams>) {
   useFollowSymbol(chart, params.symbol);
   return (
     <Known symbol={params.symbol}>{(inst) => <ChartBody inst={inst} paused={paused} />}</Known>
@@ -418,7 +421,7 @@ function useSize(ref: RefObject<HTMLElement | null>) {
 }
 
 export const chart = definePane("chart", {
-  params: { symbol: String },
+  params: chartParams,
   title: ({ symbol }) => `${symbol} chart`,
   icon: ChartLineIcon,
   width: { min: 360, comfortable: 560 },

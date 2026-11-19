@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vite-plus/test";
 import { listCommands, memoryLocation, memoryStorage, type Jali } from "@jali/core";
+import { storeOf } from "@jali/core/adapter";
 import { openFollowing } from "./actions";
 import { createSimulator } from "./market/simulator";
 import { chart } from "./panes/chart";
@@ -73,7 +74,7 @@ describe("the markets workspace", () => {
     vi.advanceTimersByTime(200);
     expect(shown(jali, "quote")).toBe("ORBD");
     // The chart, book and news catch up through `follow` (panes/follow.ts does this as the selection changes).
-    jali.actions.follow("watch", chart({ symbol: "ORBD" }));
+    storeOf(jali).actions.follow("watch", chart({ symbol: "ORBD" }));
     expect(shown(jali, "chart")).toBe("ORBD");
   });
 
@@ -90,11 +91,13 @@ describe("the markets workspace", () => {
   it("asks before a desk change loses an unsent order", () => {
     const { jali } = testJali();
     jali.actions.preset("fx");
-    jali.actions.setUnsaved("blotter", "an unsent order to buy 100 LMNA");
-    jali.actions.preset("rates");
-    expect(jali.get().confirm?.panes).toEqual(["blotter"]);
+    // What the blotter's `useUnsaved` reports, and the Discard button: the engine's steps, as React calls them.
+    const store = storeOf(jali);
+    store.actions.setUnsaved("blotter", "an unsent order to buy 100 LMNA");
+    expect(jali.actions.preset("rates")).toMatchObject({ ok: false, reason: "unsaved" });
+    expect(store.get().confirm?.panes).toEqual(["blotter"]);
     expect(jali.get().presetId).toBe("fx");
-    jali.actions.discardAndContinue();
+    store.actions.discardAndContinue();
     expect(jali.get().presetId).toBe("rates");
   });
 

@@ -4,7 +4,7 @@
  */
 import { useRef, useState, type KeyboardEvent } from "react";
 import { NewspaperIcon } from "@phosphor-icons/react";
-import { definePane, usePaneState, type PaneProps } from "@jali/react";
+import { definePane, optional, usePaneState, type PaneProps } from "@jali/react";
 import { useMarket, useTopic } from "../market/react";
 import * as f from "../ui/format";
 import { Empty, Segmented } from "../ui/parts";
@@ -14,8 +14,11 @@ import { quote } from "./quote";
 
 const FRESH_MS = 90_000;
 
-function News({ params, paused, node, openBeside }: PaneProps) {
-  const symbol = typeof params.symbol === "string" && params.symbol ? params.symbol : undefined;
+/** `symbol` is optional: without it, the pane shows the whole market's news. */
+const newsParams = { symbol: optional(String) };
+
+function News({ params, paused, node, openBeside }: PaneProps<typeof newsParams>) {
+  const symbol = params.symbol || undefined;
   useFollowSymbol(news, symbol);
   const market = useMarket();
   const [scope, setScope] = usePaneState<"instrument" | "all">("scope", "instrument");
@@ -116,7 +119,7 @@ function News({ params, paused, node, openBeside }: PaneProps) {
 }
 
 export const news = definePane("news", {
-  // `symbol` is optional: without it, the pane shows the whole market's news.
+  params: newsParams,
   title: ({ symbol }) => (symbol ? `${symbol} news` : "Market news"),
   icon: NewspaperIcon,
   width: { min: 260, comfortable: 380 },

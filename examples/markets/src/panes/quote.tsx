@@ -10,7 +10,10 @@ import * as f from "../ui/format";
 import { Delta, Figures, Flash, Known } from "../ui/parts";
 import { chart } from "./chart";
 
-function QuotePane({ params, paused, node, inPeek, openBeside }: PaneProps<{ symbol: string }>) {
+/** What a quote pane shows; its component and `definePane` share it. */
+const quoteParams = { symbol: String };
+
+function QuotePane({ params, paused, node, inPeek, openBeside }: PaneProps<typeof quoteParams>) {
   return (
     <Known symbol={params.symbol}>
       {(inst) => (
@@ -226,7 +229,7 @@ function figures(
 }
 
 export const quote = definePane("quote", {
-  params: { symbol: String },
+  params: quoteParams,
   title: ({ symbol }) => `${symbol} quote`,
   icon: InfoIcon,
   width: { min: 260, comfortable: 300, max: 440 },

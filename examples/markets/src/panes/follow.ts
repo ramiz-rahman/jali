@@ -8,6 +8,7 @@
  */
 import { useEffect } from "react";
 import type { ObjectRef } from "@jali/core";
+import { storeOf } from "@jali/core/adapter";
 import { useJali, useJaliState, usePane } from "@jali/react";
 
 const REST_MS = 150;
@@ -26,7 +27,7 @@ export function useFollowSymbol(
   useEffect(() => {
     if (!source || typeof selected !== "string" || selected === symbol) return;
     const timer = setTimeout(
-      () => jali.actions.follow(source, kind({ symbol: selected })),
+      () => storeOf(jali).actions.follow(source, kind({ symbol: selected })),
       REST_MS,
     );
     return () => clearTimeout(timer);

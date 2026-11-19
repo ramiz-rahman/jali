@@ -128,8 +128,9 @@ export function createMarketsJali(services: Services, options: Options = {}): Ja
       title: "Switch between light and dark",
       group: "Settings",
       run: (jali) => {
-        const s = jali.get();
-        const dark = s.settings.theme === "dark" || (s.settings.theme === "system" && s.systemDark);
+        const { theme } = jali.get().settings;
+        const systemDark = !!window.matchMedia?.("(prefers-color-scheme: dark)").matches;
+        const dark = theme === "dark" || (theme === "system" && systemDark);
         jali.actions.changeSettings({ theme: dark ? "light" : "dark" });
       },
     },

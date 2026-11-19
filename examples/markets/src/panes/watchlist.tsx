@@ -31,6 +31,9 @@ const COLUMNS: { by: SortBy; label: string; className: string }[] = [
   { by: "volume", label: "Volume", className: "c-num c-vol" },
 ];
 
+/** What a watchlist pane shows; its component and `definePane` share it. */
+const watchlistParams = { list: String };
+
 function Watchlist({
   params,
   paused,
@@ -39,7 +42,7 @@ function Watchlist({
   select,
   peek,
   openHere,
-}: PaneProps<{ list: string }>) {
+}: PaneProps<typeof watchlistParams>) {
   const { lists } = useServices();
   const market = useMarket();
   const jali = useJali();
@@ -300,7 +303,7 @@ function Row({
 }
 
 export const watchlist = definePane("watchlist", {
-  params: { list: String },
+  params: watchlistParams,
   title: ({ list }) => listName(list),
   icon: ListBulletsIcon,
   width: { min: 280, comfortable: 380 },

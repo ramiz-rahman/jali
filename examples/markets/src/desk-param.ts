@@ -6,6 +6,7 @@
  * keeps the desk in a param of its own (`desk`), which Jali leaves alone, and gives it back on load and on Back.
  */
 import type { Jali } from "@jali/core";
+import { storeOf } from "@jali/core/adapter";
 
 const PARAM = "desk";
 
@@ -20,7 +21,7 @@ export function keepDeskInAddress(jali: Jali): () => void {
       jali.env.presets.some((p) => p.id === desk) &&
       jali.get().presetId !== desk
     )
-      jali.set({ presetId: desk });
+      storeOf(jali).set({ presetId: desk });
   };
   restore();
 

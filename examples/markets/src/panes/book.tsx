@@ -10,7 +10,10 @@ import * as f from "../ui/format";
 import { Empty, Known } from "../ui/parts";
 import { useFollowSymbol } from "./follow";
 
-function BookPane({ params, paused }: PaneProps<{ symbol: string }>) {
+/** What a book pane shows; its component and `definePane` share it. */
+const bookParams = { symbol: String };
+
+function BookPane({ params, paused }: PaneProps<typeof bookParams>) {
   useFollowSymbol(book, params.symbol);
   return (
     <Known symbol={params.symbol}>
@@ -97,7 +100,7 @@ function BookBody({ inst, paused }: { inst: Instrument; paused: boolean }) {
 }
 
 export const book = definePane("book", {
-  params: { symbol: String },
+  params: bookParams,
   title: ({ symbol }) => `${symbol} book`,
   icon: StackIcon,
   width: { min: 220, comfortable: 280, max: 400 },
