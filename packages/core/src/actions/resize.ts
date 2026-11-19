@@ -1,7 +1,7 @@
 import * as core from "../layout";
 import type { Layout, NodeId } from "../layout/types";
 import { refuse, type Outcome, type Snapshot } from "../state/apply";
-import { msg } from "../state/messages";
+import { say } from "../state/messages";
 import { clampSize, geometryFor, nearestDivider } from "../dividers/resize";
 
 /** Sizes do not change minimums, so a divider never changes what fits: no refit. The URL follows 120ms later. */
@@ -33,15 +33,17 @@ export function setDividerSize(
   );
 }
 
-/** Resize mode: arrows move the divider nearest the pane on that side. */
+/** Resize mode: arrows move the divider nearest the pane, `deltaPx` towards the screen's right (or down). Right to
+ *  left, a row's first neighbour is the one on the right, so moving the divider right shrinks it. */
 export function nudgeDivider(
   x: Snapshot,
   pane: NodeId,
   horizontal: boolean,
   deltaPx: number,
 ): Outcome {
-  const d = nearestDivider(x.m, pane, horizontal);
-  return d ? resizeDivider(x, d.parentId, d.index, deltaPx) : null;
+  const rtl = horizontal && x.ctx.dir === "rtl";
+  const d = nearestDivider(x.m, pane, horizontal, rtl);
+  return d ? resizeDivider(x, d.parentId, d.index, rtl ? -deltaPx : deltaPx) : null;
 }
 
 /** End of a pointer drag: the layout the drag previewed, committed once. */
@@ -50,22 +52,26 @@ export const commitDividerDrag = (_x: Snapshot, layout: Layout): Outcome => ({
   layout,
 });
 
-export const resetDivider = ({ s, ctx }: Snapshot, parentId: NodeId, index: number): Outcome => ({
+export const resetDivider = (
+  { s, ctx, env }: Snapshot,
+  parentId: NodeId,
+  index: number,
+): Outcome => ({
   op: "resetSizes",
   layout: core.resetDivider(s.layout, parentId, index, ctx),
-  msg: msg.sizesReset,
+  msg: say(env).sizesReset,
 });
 
 export function enterResizeMode({ s, m }: Snapshot): Outcome {
   const id = s.view.focused;
   if (!id) return null;
   if (!nearestDivider(m, id, true) && !nearestDivider(m, id, false))
-    return refuse("nothing-to-do", msg.nothingToResize);
-  return { op: "patch", patch: { resizeMode: id }, msg: msg.resizeModeOn };
+    return refuse("nothing-to-do", say(m).nothingToResize);
+  return { op: "patch", patch: { resizeMode: id }, msg: say(m).resizeModeOn };
 }
 
-export const leaveResizeMode = (): Outcome => ({
+export const leaveResizeMode = (x: Snapshot): Outcome => ({
   op: "patch",
   patch: { resizeMode: null },
-  msg: msg.resizeModeOff,
+  msg: say(x).resizeModeOff,
 });

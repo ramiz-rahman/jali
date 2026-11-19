@@ -1,11 +1,12 @@
 import * as core from "../layout";
+import { treeSide } from "../layout/geometry/direction";
 import type { NodeId, ObjectRef, PaneNode, ViewState } from "../layout/types";
 import type { PaneKinds } from "../pane-kinds";
 import { refuse, type Outcome, type Snapshot } from "../state/apply";
 import { peekSheet } from "./peek";
 import { goToRole, investigation, placeAfterArrangement, roleLabel, settleRoles } from "./page";
 import type { JaliModel } from "../state/model";
-import { msg } from "../state/messages";
+import { say } from "../state/messages";
 import { follow, followLater, sameRef, setPinned } from "./follow";
 
 /** What a new split or a stack's "+" shows until the person chooses an object: the workspace's launcher. */
@@ -37,9 +38,9 @@ export function openBeside(x: Snapshot, source: NodeId, ref: ObjectRef): Outcome
   const { s, m, ctx } = x;
   // A curated page: in Single mode, or for a role that may not investigate, a link peeks. Opened panes gather after the layout.
   if (s.page && !s.page.canInvestigate)
-    return { ...peekSheet(x, ref, source), msg: msg.peekOnly(m.env.kinds.title(ref)) };
+    return { ...peekSheet(x, ref, source), msg: say(x).peekOnly(m.env.kinds.title(ref)) };
   if (s.page?.mode === "single")
-    return { ...peekSheet(x, ref, source), msg: msg.peekSingle(m.env.kinds.title(ref)) };
+    return { ...peekSheet(x, ref, source), msg: say(x).peekSingle(m.env.kinds.title(ref)) };
   if (s.page) {
     // One object, one pane: a link to what is already on the page goes there (a view, whatever kind shows it).
     const dup = openPaneFor(m, ref);
@@ -49,7 +50,7 @@ export function openBeside(x: Snapshot, source: NodeId, ref: ObjectRef): Outcome
         op: "focusExisting",
         layout: core.reveal(s.layout, dup.id, ctx),
         view: core.focus(unzoomed(s.view), dup.id, ctx),
-        msg: msg.alreadyOpen(m.title(dup.id)),
+        msg: say(x).alreadyOpen(m.title(dup.id)),
         result: dup.id,
       };
   }
@@ -78,7 +79,7 @@ export function openBeside(x: Snapshot, source: NodeId, ref: ObjectRef): Outcome
       op: "focusExisting",
       layout: core.reveal(s.layout, kept.id, ctx),
       view: s.view,
-      msg: msg.alreadyOpenBeside(m.title(kept.id)),
+      msg: say(x).alreadyOpenBeside(m.title(kept.id)),
       result: kept.id,
     };
   const r = core.openBeside(s.layout, unzoomed(s.view), source, ref, ctx, place, {
@@ -121,14 +122,14 @@ export function openBeside(x: Snapshot, source: NodeId, ref: ObjectRef): Outcome
     !!core.tree.panes(layout.root).find((p) => p.id === opened)?.pinned && fromSelection;
   const said =
     pinned && r.mode === "beside"
-      ? msg.openedPinned(m.env.kinds.title(ref), m.title(source))
-      : msg.openedBeside(r.mode, m.env.kinds.title(ref), m.title(source));
+      ? say(x).openedPinned(m.env.kinds.title(ref), m.title(source))
+      : say(x).openedBeside(r.mode, m.env.kinds.title(ref), m.title(source));
   return {
     op: "open",
     layout,
     view,
     msg: sent.length
-      ? `${said} · ${msg.sentToTabs(sent.map((id) => roleLabel(x.env.profile, id)))}`
+      ? say(x).both(said, say(x).sentToTabs(sent.map((id) => roleLabel(x.env.profile, id))))
       : said,
     patch: { recent: withRecent(m.env.kinds, s.recent, [ref]), ...page },
     result: opened,
@@ -142,12 +143,13 @@ export function split(x: Snapshot, dir: "right" | "bottom", target = x.s.view.fo
   const launcher = launcherOf(x);
   if (!p) return refuse("not-found");
   if (!launcher) return refuse("unavailable");
-  const r = core.split(s.layout, unzoomed(s.view), p.id, dir, launcher, ctx);
+  // `dir` is the screen's: "Split right" opens on the right in either reading direction.
+  const r = core.split(s.layout, unzoomed(s.view), p.id, treeSide(dir, ctx.dir), launcher, ctx);
   return {
     op: "split",
     layout: r.layout,
     view: core.focus(r.view, r.opened, ctx),
-    msg: msg.split(r.mode, dir, m.title(p.id)),
+    msg: say(x).split(r.mode, dir, m.title(p.id)),
     result: r.opened,
   };
 }
@@ -177,7 +179,7 @@ export function openHere({ s, m, ctx }: Snapshot, id: NodeId, ref: ObjectRef): O
       op: "focusExisting",
       layout,
       view: core.focus(view, dup.id, ctx),
-      msg: msg.alreadyOpen(m.env.kinds.title(dup.ref)),
+      msg: say(m).alreadyOpen(m.env.kinds.title(dup.ref)),
       patch,
       result: dup.id,
     };
@@ -191,7 +193,7 @@ export function openHere({ s, m, ctx }: Snapshot, id: NodeId, ref: ObjectRef): O
       geometry: "reshape",
       layout,
       view: core.focus(s.view, id, ctx),
-      msg: msg.opened(m.env.kinds.title(ref)),
+      msg: say(m).opened(m.env.kinds.title(ref)),
       patch,
       result: id,
     };
@@ -201,7 +203,7 @@ export function openHere({ s, m, ctx }: Snapshot, id: NodeId, ref: ObjectRef): O
     op: "openHere",
     layout,
     view: core.focus(s.view, id, ctx),
-    msg: msg.opened(m.env.kinds.title(ref)),
+    msg: say(m).opened(m.env.kinds.title(ref)),
     patch,
     result: id,
   };
@@ -210,13 +212,13 @@ export function openHere({ s, m, ctx }: Snapshot, id: NodeId, ref: ObjectRef): O
 /** Esc on an untouched launcher: close it without an undo toast; focus returns to where it came from. */
 export function dismiss({ s, m, ctx }: Snapshot, id: NodeId): Outcome {
   if (!m.pane(id)) return null;
-  if (m.panes.length <= 1) return refuse("last-pane", msg.lastPaneStays);
+  if (m.panes.length <= 1) return refuse("last-pane", say(m).lastPaneStays);
   const r = core.close(s.layout, unzoomed(s.view), id, ctx);
   return {
     op: "dismiss",
     layout: r.layout,
     view: r.view,
-    msg: msg.launcherClosed(m.title(r.view.focused)),
+    msg: say(m).launcherClosed(m.title(r.view.focused)),
   };
 }
 
@@ -232,7 +234,7 @@ export function newTab(x: Snapshot, id = x.s.view.focused): Outcome {
     op: "newTab",
     layout: r.layout,
     view: r.view,
-    msg: msg.newTab(m.title(p.id)),
+    msg: say(x).newTab(m.title(p.id)),
     result: r.opened,
   };
 }
@@ -240,7 +242,7 @@ export function newTab(x: Snapshot, id = x.s.view.focused): Outcome {
 /** `ref` as a new tab of pane `id`'s group (or a new group), shown and focused. Already open: that pane is shown. */
 export function addTab(x: Snapshot, id: NodeId, ref: ObjectRef): Outcome {
   const { s, m, ctx } = x;
-  if (s.page?.mode === "single") return refuse("single-view", msg.singleNoLayout);
+  if (s.page?.mode === "single") return refuse("single-view", say(m).singleNoLayout);
   if (!m.pane(id)) return refuse("not-found");
   if (!ctx.fit.kinds[ref.kind]) return refuse("invalid");
   const dup = openPaneFor(m, ref);
@@ -249,7 +251,7 @@ export function addTab(x: Snapshot, id: NodeId, ref: ObjectRef): Outcome {
       op: "focusExisting",
       layout: core.reveal(s.layout, dup.id, ctx),
       view: core.focus(unzoomed(s.view), dup.id, ctx),
-      msg: msg.alreadyOpen(m.title(dup.id)),
+      msg: say(m).alreadyOpen(m.title(dup.id)),
       result: dup.id,
     };
   const r = core.addTab(s.layout, unzoomed(s.view), id, ref, ctx);
@@ -257,7 +259,7 @@ export function addTab(x: Snapshot, id: NodeId, ref: ObjectRef): Outcome {
     op: "newTab",
     layout: r.layout,
     view: r.view,
-    msg: msg.opened(m.env.kinds.title(ref)),
+    msg: say(m).opened(m.env.kinds.title(ref)),
     patch: { recent: withRecent(m.env.kinds, s.recent, [ref]) },
     result: r.opened,
   };

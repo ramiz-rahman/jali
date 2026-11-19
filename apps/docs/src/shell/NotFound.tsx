@@ -1,5 +1,5 @@
 /** The page for an address with no page. */
-import { ArrowRight } from "lucide-react";
+import { ArrowRightIcon } from "@phosphor-icons/react";
 import { Lattice } from "./brand";
 
 export function NotFound({ path }: { path: string }) {
@@ -18,13 +18,13 @@ export function NotFound({ path }: { path: string }) {
         <li>
           <a href="/">
             Docs home
-            <ArrowRight aria-hidden size={15} />
+            <ArrowRightIcon aria-hidden size={15} />
           </a>
         </li>
         <li>
           <a href="/get-started/introduction">
             Introduction
-            <ArrowRight aria-hidden size={15} />
+            <ArrowRightIcon aria-hidden size={15} />
           </a>
         </li>
       </ul>

@@ -8,7 +8,7 @@
 import * as core from "../layout";
 import type { NodeId, ObjectRef } from "../layout/types";
 import type { Change, Deferred, Outcome, Snapshot } from "../state/apply";
-import { msg } from "../state/messages";
+import { say } from "../state/messages";
 
 export const FOLLOW_MS = 150;
 
@@ -27,7 +27,7 @@ export function follow({ s, ctx, env }: Snapshot, source: NodeId, ref: ObjectRef
   const r = core.follow(s.layout, s.view, source, ref, ctx);
   if (!r.pane || r.layout === s.layout) return null;
   // Polite and short: the detail's new title, nothing about the mechanism.
-  return { op: "follow", layout: r.layout, msg: msg.followed(env.kinds.title(ref)) };
+  return { op: "follow", layout: r.layout, msg: say(env).followed(env.kinds.title(ref)) };
 }
 
 /** The deferred step that makes `source`'s detail follow `ref`, or a cancellation (`ref` null). */
@@ -51,7 +51,7 @@ export function setPinned({ s, m }: Snapshot, id: NodeId, pinned: boolean): Outc
   const change: Change = {
     op: "pin",
     layout,
-    msg: pinned ? msg.pinned(m.title(id)) : msg.unpinned(m.title(id), m.title(p.linkedTo)),
+    msg: pinned ? say(m).pinned(m.title(id)) : say(m).unpinned(m.title(id), m.title(p.linkedTo)),
   };
   // Unpinned: catch up with the list's selection now.
   const sel = s.selection[p.linkedTo];

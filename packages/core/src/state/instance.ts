@@ -7,6 +7,7 @@ import type { Layout, NodeId, ObjectRef } from "../layout/types";
 import type { LayoutInput } from "../layout/build";
 import type { Keymap } from "../commands/keymap";
 import type { Env } from "../profile";
+import type { Messages } from "./messages";
 import { publicActions, type JaliActions } from "../actions/public";
 import { restoreLayout } from "../actions/layout";
 import type { ActionResult, Toast } from "./apply";
@@ -45,6 +46,7 @@ export type JaliState = Pick<
   | "selection"
   | "recent"
   | "area"
+  | "dir"
   | "unsaved"
   | "paletteOpen"
   | "settingsOpen"
@@ -71,6 +73,9 @@ export interface Jali {
   readonly keymap: Keymap;
   /** The pane kinds, presets and curated page it was made with. */
   readonly env: Env;
+  /** Every word it shows or says: English (`en`) with `createJali({ messages })` over it, for the app's own UI in
+   *  the same language. */
+  readonly messages: Messages;
   /** The address to share. */
   href(): string;
   /** Toasts to show (a close offers Undo). Toasts sent before anyone listens are kept until someone does. */
@@ -99,6 +104,7 @@ export function createInstance(store: UiStore): Jali {
     setLayout: (layout) => store.apply((x) => restoreLayout(x, layout)),
     keymap: store.keymap,
     env: store.env,
+    messages: store.messages,
     href: store.href,
     onToast: store.onToast,
     start: () => store.start(),

@@ -2,6 +2,7 @@
 import * as core from "../layout";
 import type { DividerBox, LayoutNode, NodeId, Rect, ResolvedLayout } from "../layout/types";
 import type { JaliModel } from "../state/model";
+import { messagesOf } from "../state/messages";
 import { GAP } from "../tokens";
 
 /** Keyboard resize steps: arrows, and Shift+arrows. */
@@ -60,13 +61,7 @@ export function geometryFor(
   const byId = new Map(r.panes.filter((b) => !b.hidden).map((b) => [b.id, b.rect]));
   const rects = (ids: NodeId[]) => ids.flatMap((id) => byId.get(id) ?? []);
   if (!union(rects(idsA)) || !union(rects(idsB))) return null;
-  const label = (ids: NodeId[]) =>
-    ids.length <= 3
-      ? ids.map((i) => m.title(i)).join(", ")
-      : `${ids
-          .slice(0, 2)
-          .map((i) => m.title(i))
-          .join(", ")}, +${ids.length - 2} more`;
+  const label = (ids: NodeId[]) => messagesOf(m).workspace.dividerSide(ids.map((i) => m.title(i)));
   const sa = core.extentAlong(r.panes, idsA, d.axis),
     sb = core.extentAlong(r.panes, idsB, d.axis);
   return {
@@ -79,11 +74,13 @@ export function geometryFor(
   };
 }
 
-/** For resize mode: the divider beside a pane on its far side, else its near side, along one axis. */
+/** For resize mode: the divider beside a pane on its far side (the side its row ends on: the left when `rtl`), else
+ *  its near side, along one axis. */
 export function nearestDivider(
   m: JaliModel,
   paneId: NodeId,
   horizontal: boolean,
+  rtl = false,
 ): DividerBox | null {
   const box = m.resolved.panes.find((b) => b.id === paneId && !b.hidden);
   if (!box) return null;
@@ -97,9 +94,8 @@ export function nearestDivider(
   const cands = m.resolved.dividers.filter(
     (d) => d.axis === (horizontal ? "row" : "column") && overlaps(d),
   );
-  return (
-    cands.find((d) => Math.abs(d.rect[start] - (p[start] + p[end])) <= GAP) ??
-    cands.find((d) => Math.abs(d.rect[start] + d.rect[end] - p[start]) <= GAP) ??
-    null
-  );
+  const after = (d: DividerBox) => Math.abs(d.rect[start] - (p[start] + p[end])) <= GAP;
+  const before = (d: DividerBox) => Math.abs(d.rect[start] + d.rect[end] - p[start]) <= GAP;
+  const [far, near] = rtl ? [before, after] : [after, before];
+  return cands.find(far) ?? cands.find(near) ?? null;
 }

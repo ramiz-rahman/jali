@@ -1,4 +1,4 @@
-import { FileText } from "lucide-react";
+import { FileTextIcon } from "@phosphor-icons/react";
 import { definePane, useActivity } from "@jali/react";
 import { copyRaw } from "../shared/copyRaw";
 import { useState } from "react";
@@ -24,14 +24,17 @@ import { foreignKeyRef, relationRef, singular, tableRef } from "../shared/refs";
 import { ErrorState, Loading, NullChip, Shell } from "../shared/states";
 import { PaneGate } from "../shared/PaneGate";
 import type { PaneProps } from "@jali/react";
+import type { ParamValue } from "@jali/core";
 
-export function RecordPane({
-  params,
-  paused,
-  openBeside,
-}: PaneProps<{ table: string; id?: string | number }>) {
+/** A record's id: a number, or text (a composite key is joined with ":"). Links keep whichever it was. */
+const rowKey = (v: ParamValue): string | number => (typeof v === "number" ? v : String(v));
+
+/** A record: its table and its id. */
+export const recordParams = { table: String, id: rowKey };
+
+export function RecordPane({ params, paused, openBeside }: PaneProps<typeof recordParams>) {
   const table = params.table as TableName;
-  const id = String(params.id ?? "");
+  const id = String(params.id);
   const cat = useTableInfo(table, paused);
   const rec = useRecord(table, id, { paused });
   const info = cat.data;
@@ -287,9 +290,9 @@ function RelationLink({ rel, openBeside }: { rel: Relation; openBeside: PaneProp
 }
 
 export const recordKind = definePane("record", {
-  params: { table: String },
-  title: ({ table, id }) => `${singular(table ?? "record")} ${id ?? ""}`.trim(),
-  icon: FileText,
+  params: recordParams,
+  title: ({ table, id }) => `${singular(table)} ${id}`,
+  icon: FileTextIcon,
   width: { min: 360, comfortable: 440, max: 600 },
   height: { min: 240 },
   Component: RecordPane,

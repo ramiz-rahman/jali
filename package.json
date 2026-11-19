@@ -13,14 +13,15 @@
     "test:e2e": "playwright test",
     "screens": "SCREENS=1 playwright test",
     "build:packages": "pnpm -r --filter \"./packages/*\" build",
-    "example:minimal": "vp dev --config examples/minimal/vite.config.ts --port 5310"
+    "example:minimal": "vp dev --config examples/minimal/vite.config.ts --port 5310",
+    "example:bare-icons": "vp dev --config examples/bare-icons/vite.config.ts --port 5311"
   },
   "dependencies": {
     "@electric-sql/pglite": "^0.5.16",
     "@jali/core": "workspace:*",
     "@jali/react": "workspace:*",
+    "@phosphor-icons/react": "^2.1.10",
     "@tanstack/react-query": "^5.107.1",
-    "lucide-react": "^1.73.0",
     "react": "^19.3.1",
     "react-dom": "^19.3.1",
     "sonner": "^2.0.8"

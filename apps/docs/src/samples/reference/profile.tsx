@@ -1,4 +1,4 @@
-import { FileText, User } from "lucide-react";
+import { FileTextIcon, UserIcon } from "@phosphor-icons/react";
 import { pane, row } from "@jali/core";
 import { definePage, definePane } from "@jali/react";
 
@@ -20,8 +20,8 @@ export const loanReview = definePage({
   itemNoun: "application",
   viewers: { full: "credit reviewer", limited: "loan officer" },
   roles: [
-    { id: "borrower", label: "Borrower", priority: "primary", icon: User },
-    { id: "documents", label: "Documents", priority: "supporting", icon: FileText },
+    { id: "borrower", label: "Borrower", priority: "primary", icon: UserIcon },
+    { id: "documents", label: "Documents", priority: "supporting", icon: FileTextIcon },
   ],
   home: "borrower",
   firstItem: 1,

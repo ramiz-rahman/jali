@@ -1,39 +1,42 @@
 import * as core from "../layout";
 import type { Edge, NodeId } from "../layout/types";
 import { refuse, type Outcome, type Snapshot } from "../state/apply";
-import { msg } from "../state/messages";
+import { say } from "../state/messages";
 import { putBack } from "./tuck";
+import { treeSide } from "../layout/geometry/direction";
 
 const unzoomed = core.tree.unzoom;
 
 export function moveDirection({ s, m, ctx }: Snapshot, dir: Edge, id = s.view.focused): Outcome {
   if (!id) return null;
   const r = core.moveDirection(s.layout, unzoomed(s.view), id, dir, ctx);
-  if (r.layout === s.layout) return refuse("blocked", msg.cantMove(m.title(id), dir));
-  return { op: "move", layout: r.layout, view: r.view, msg: msg.moved(m.title(id), dir) };
+  if (r.layout === s.layout) return refuse("blocked", say(m).cantMove(m.title(id), dir));
+  return { op: "move", layout: r.layout, view: r.view, msg: say(m).moved(m.title(id), dir) };
 }
 
-/** A pointer drop. Dragging a tucked tab out of its home on the side it came from is a put back (exact slot and size). */
+/** A pointer drop on `zone`, a side of the screen. Dragging a tucked tab out of its home on the side it came from is a
+ *  put back (exact slot and size). */
 export function drop(x: Snapshot, dragged: NodeId, target: NodeId, zone: Edge | "centre"): Outcome {
   const { s, m, ctx } = x;
+  const side = treeSide(zone, ctx.dir);
   const home = m.resolved.stacks.find((g) => g.paneIds.includes(dragged));
   if (
     m.tuckOf(dragged) &&
-    zone !== "centre" &&
+    side !== "centre" &&
     home?.paneIds.includes(target) &&
-    zone === core.putBackEdge(s.layout, dragged)
+    side === core.putBackEdge(s.layout, dragged)
   )
     return putBack(x, dragged);
   const mode = s.settings.centreDrop;
-  const r = core.drop(s.layout, s.view, dragged, target, zone, mode, ctx);
+  const r = core.drop(s.layout, s.view, dragged, target, side, mode, ctx);
   const a = m.title(dragged),
     b = m.title(target);
   const text =
     zone === "centre"
       ? mode === "swap"
-        ? msg.swapped(a, b)
-        : msg.addedToTabsOf(a, b)
-      : msg.placed(a, zone, b);
+        ? say(x).swapped(a, b)
+        : say(x).addedToTabsOf(a, b)
+      : say(x).placed(a, zone, b);
   return { op: "drop", layout: r.layout, view: core.focus(r.view, dragged, ctx), msg: text };
 }
 
@@ -44,6 +47,6 @@ export function swapWithNext({ s, m, ctx }: Snapshot, id = s.view.focused): Outc
   return {
     op: "swap",
     layout: core.swap(s.layout, id, other, ctx),
-    msg: msg.swapped(m.title(id), m.title(other)),
+    msg: say(m).swapped(m.title(id), m.title(other)),
   };
 }

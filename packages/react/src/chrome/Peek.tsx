@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useRef } from "react";
-import { Maximize, PanelRightOpen, X } from "lucide-react";
+import { useJaliIcons } from "../icons/context";
 import type { PaneNode, Presentation } from "@jali/core/adapter";
-import { formatChord } from "@jali/core/adapter";
 import { KindIcon } from "../pane/icons";
 import { PaneBody, peekHost } from "../pane/PaneBody";
 import { useStore, useUi } from "../state/react";
@@ -10,6 +9,7 @@ export const PEEK_WIDTH = 480;
 
 /** A sheet over the right of main. Not part of the tree; the list stays usable. Animates only on pointer open. */
 export function Peek({ presentation }: { presentation: Presentation }) {
+  const icon = useJaliIcons();
   const store = useStore();
   const ref = useUi((s) => s.view.peek);
   const areaW = useUi((s) => s.area.width);
@@ -33,43 +33,44 @@ export function Peek({ presentation }: { presentation: Presentation }) {
   const node: PaneNode = { id: "peek", type: "pane", size: { weight: 1 }, ref };
   const title = store.env.kinds.title(ref);
   const { actions } = store;
+  const t = store.messages.peek;
   return (
     <aside
       className={`jali-peek${openedBy.current === "pointer" ? " is-animated" : ""}`}
       style={{ width: presentation === "single" ? "100%" : Math.min(PEEK_WIDTH, areaW) }}
       role="complementary"
-      aria-label={`Peek: ${title}`}
+      aria-label={t.label(title)}
       data-testid="peek"
     >
       <header className="jali-peek-header">
         <div className="jali-pane-title">
           <KindIcon kind={ref.kind} />
           <h2>{title}</h2>
-          <span className="jali-peek-label">Peek</span>
+          <span className="jali-peek-label">{t.badge}</span>
         </div>
         <div className="jali-pane-actions">
           {/* A curated workspace never replaces its arrangement; a role that only peeks can't pin either. */}
           {canPin ? (
-            <button className="jali-text-btn" onClick={() => actions.pinPeek()} title="Pin beside">
-              <PanelRightOpen size={14} strokeWidth={1.5} aria-hidden /> Pin beside
+            <button className="jali-text-btn" onClick={() => actions.pinPeek()} title={t.pinBeside}>
+              <icon.pinBeside size={14} aria-hidden /> {t.pinBeside}
             </button>
           ) : null}
           {page ? null : (
             <button
               className="jali-text-btn"
               onClick={() => actions.openPeekFull()}
-              title="Open full"
+              title={t.openFull}
             >
-              <Maximize size={14} strokeWidth={1.5} aria-hidden /> Open full
+              <icon.openFull size={14} aria-hidden /> {t.openFull}
             </button>
           )}
           <button
             className="jali-icon-btn"
             onClick={() => actions.peek(null)}
-            aria-label="Close peek"
-            title={`Close (${formatChord({ key: "Escape" }, store.keymap.platform)})`}
+            aria-label={t.close}
+            title={t.closeTip(store.keymap.format([{ key: "Escape" }]))}
           >
-            <X size={14} strokeWidth={1.5} aria-hidden />
+            <icon.close size={14} aria-hidden />
           </button>
         </div>
       </header>

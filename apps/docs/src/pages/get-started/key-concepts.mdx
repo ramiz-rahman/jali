@@ -37,7 +37,7 @@ A ref is what a pane shows: a kind and a few params, small enough to put in a li
 ticket({ id: 101 }) // { kind: "ticket", params: { id: 101 } }
 ```
 
-Params are strings and numbers only. Two refs show the same object when their kind and params match, with ids compared as text, so `101` and `"101"` are the same ticket. A kind can change that rule with `identity`, or say that two kinds show the same objects with `shows`.
+Params are text, numbers and `true`/`false` only. Two refs show the same object when their kind and params match, with ids compared as text, so `101` and `"101"` are the same ticket. A kind can change that rule with `identity`, or say that two kinds show the same objects with `shows`.
 
 ## The layout
 

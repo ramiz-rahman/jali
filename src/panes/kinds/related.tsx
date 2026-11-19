@@ -1,4 +1,4 @@
-import { Link2 } from "lucide-react";
+import { LinkSimpleHorizontalIcon } from "@phosphor-icons/react";
 import { definePane } from "@jali/react";
 import { useMemo } from "react";
 import type { TableName } from "../../data/types";
@@ -20,7 +20,7 @@ export function RelatedPane(p: PaneProps) {
 
 export const relatedKind = definePane("related", {
   title: ({ label }) => String(label ?? "Related"),
-  icon: Link2,
+  icon: LinkSimpleHorizontalIcon,
   width: { min: 360, comfortable: 480 },
   height: { min: 240 },
   Component: RelatedPane,

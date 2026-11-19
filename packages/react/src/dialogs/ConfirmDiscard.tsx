@@ -1,5 +1,5 @@
 import { useEffect, useRef } from "react";
-import { useModel, useStore, useUi } from "../state/react";
+import { bold, Parts, useModel, useStore, useUi } from "../state/react";
 
 /**
  * "Discard unsaved changes?": a change would close or replace panes with unsaved work. Keep editing is the default
@@ -17,7 +17,7 @@ export function ConfirmDiscard() {
   }, [confirm]);
   if (!confirm) return null;
   const stay = () => store.actions.keepEditing();
-  const one = confirm.panes.length === 1;
+  const t = store.messages.confirmDiscard;
   return (
     <div
       className="jali-scrim jali-scrim-light"
@@ -36,27 +36,23 @@ export function ConfirmDiscard() {
           }
         }}
       >
-        <h2 id={`${id}-confirm-title`}>Discard unsaved changes?</h2>
+        <h2 id={`${id}-confirm-title`}>{t.title}</h2>
         <div id={`${id}-confirm-body`}>
-          <p>
-            {one
-              ? "This pane has work that is not saved. It will be lost."
-              : "These panes have work that is not saved. It will be lost."}
-          </p>
+          <p>{t.body(confirm.panes.length)}</p>
           <ul>
             {confirm.panes.map((id) => (
               <li key={id}>
-                <b>{m.title(id)}</b>: {unsaved[id]}
+                <Parts of={t.item(m.title(id), unsaved[id] ?? "", bold)} />
               </li>
             ))}
           </ul>
         </div>
         <footer>
           <button className="jali-text-btn" onClick={() => store.actions.discardAndContinue()}>
-            Discard
+            {t.discard}
           </button>
           <button className="jali-text-btn is-primary" ref={keep} onClick={stay}>
-            Keep editing
+            {t.keepEditing}
           </button>
         </footer>
       </div>

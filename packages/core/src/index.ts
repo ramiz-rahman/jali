@@ -28,17 +28,23 @@ export type {
   PaneKinds,
   PaneCommand,
   PaneActivity,
+  PaneErrorInfo,
   Params,
   ParamValue,
   ParamType,
   ParamTypes,
   ParamsOf,
+  OptionalParam,
+  OneOf,
+  ParamProblem,
 } from "./pane-kinds";
+export { optional, oneOf } from "./pane-kinds";
 export type { RoleBase, ProfileBase, ViewMode, Preset, Env, ItemId } from "./profile";
 
 // ---------- the layout tree (pure: every operation returns a new layout) ----------
 export type {
   Axis,
+  Direction,
   Edge,
   Size,
   NodeId,
@@ -82,6 +88,9 @@ export type { PageState, Selection, UrlWriter } from "./state/store";
 export type { JaliModel, Group } from "./state/model";
 export type { Settings, ThemeChoice, Theme } from "./state/settings";
 
+// ---------- words (translations) ----------
+export { en, type Messages, type MessageOverrides, type ScreenDirection } from "./state/messages";
+
 // ---------- the address and what a person keeps ----------
 export type { UrlSyncOptions, LinkSizes } from "./url";
 export {
@@ -115,6 +124,7 @@ export {
   keyHint,
   formatKeys,
   type Platform,
+  type KeyWords,
   type Chord,
   type KeySequence,
 } from "./commands/format";

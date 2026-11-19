@@ -1,7 +1,7 @@
 import * as core from "../layout";
 import type { NodeId } from "../layout/types";
 import { refuse, type Outcome, type Snapshot } from "../state/apply";
-import { msg, toasts } from "../state/messages";
+import { messagesOf, say } from "../state/messages";
 import { pushUndo } from "../state/undo";
 import { putBack } from "./tuck";
 import { backToPage, hideRole } from "./page";
@@ -13,16 +13,18 @@ export function close(x: Snapshot, id = x.s.view.focused): Outcome {
   if (!id || !m.pane(id)) return null;
   // In a curated page a view is never closed for good: it goes back to the tabs.
   if (s.page && m.pane(id)!.role)
-    return s.page.mode === "single" ? refuse("single-view", msg.singleNoLayout) : hideRole(x, id);
-  if (m.panes.length <= 1) return refuse("last-pane", msg.lastPaneStays);
+    return s.page.mode === "single"
+      ? refuse("single-view", say(x).singleNoLayout)
+      : hideRole(x, id);
+  if (m.panes.length <= 1) return refuse("last-pane", say(x).lastPaneStays);
   const title = m.title(id);
   const r = core.close(s.layout, unzoomed(s.view), id, ctx);
   return {
     op: "close",
     layout: r.layout,
     view: r.view,
-    msg: msg.closed(title),
-    toast: toasts.closed(title),
+    msg: say(x).closed(title),
+    toast: messagesOf(x).toasts.closed(title),
     undo: pushUndo(s.undoStack, r.undo),
     patch: s.peekSource === id ? { peekSource: undefined } : undefined,
   };
@@ -60,20 +62,20 @@ export function closeOthers(x: Snapshot, id = x.s.view.focused): Outcome {
   const { s, m, ctx } = x;
   if (s.page) return backToPage(x);
   if (!id) return null;
-  if (m.panes.length <= 1) return refuse("nothing-to-do", msg.noOtherPanes);
+  if (m.panes.length <= 1) return refuse("nothing-to-do", say(x).noOtherPanes);
   const r = core.closeOthers(s.layout, unzoomed(s.view), id, ctx);
   return {
     op: "closeOthers",
     layout: r.layout,
     view: r.view,
-    msg: msg.othersClosed,
-    toast: toasts.othersClosed(),
+    msg: say(x).othersClosed,
+    toast: messagesOf(x).toasts.othersClosed(),
     undo: pushUndo(s.undoStack, r.undo),
   };
 }
 
-export const checkUndo = ({ s }: Snapshot) =>
-  s.undoStack.length ? undefined : refuse("nothing-to-do", msg.nothingToRestore);
+export const checkUndo = ({ s, env }: Snapshot) =>
+  s.undoStack.length ? undefined : refuse("nothing-to-do", say(env).nothingToRestore);
 
 /** Undo (⌘K ⌘Z, the Undo toast): the last close or tuck. A tuck is undone by putting the pane back, so later changes survive. */
 export function undo(x: Snapshot): Outcome {
@@ -85,7 +87,7 @@ export function undo(x: Snapshot): Outcome {
     op: "undo",
     layout: core.refit(e.before.layout, view, x.ctx),
     view,
-    msg: msg.undone(e.kind === "close" ? "close" : "closeOthers"),
+    msg: say(x).undone(e.kind === "close" ? "close" : "closeOthers"),
     undo: x.s.undoStack.slice(0, -1),
   };
 }

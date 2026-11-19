@@ -1,27 +1,27 @@
 import { useEffect, useRef, type ReactNode } from "react";
-import { X } from "lucide-react";
+import { useJaliIcons } from "../icons/context";
 import type { Settings as S, ThemeChoice } from "@jali/core/adapter";
 import { useStore, useUi } from "../state/react";
-import { formatChord, formatKeys, PALETTE_ID, commandById, viewerLabel } from "@jali/core/adapter";
+import { PALETTE_ID, commandById, parseKeys, viewerLabel } from "@jali/core/adapter";
 
-const THEMES: { id: ThemeChoice; label: string }[] = [
-  { id: "system", label: "System" },
-  { id: "light", label: "Light" },
-  { id: "dark", label: "Dark" },
+const THEMES: { id: ThemeChoice; label: "themeSystem" | "themeLight" | "themeDark" }[] = [
+  { id: "system", label: "themeSystem" },
+  { id: "light", label: "themeLight" },
+  { id: "dark", label: "themeDark" },
 ];
-
-const cap = (t: string) => t.charAt(0).toUpperCase() + t.slice(1);
 
 /** Jali's settings. `children` are the host's own fieldsets, shown last. */
 export function SettingsPanel({ children }: { children?: ReactNode } = {}) {
+  const icon = useJaliIcons();
   const store = useStore();
   const id = store.dom.id;
   const open = useUi((s) => s.settingsOpen);
   const settings = useUi((s) => s.settings);
   const page = useUi((s) => s.page);
   const profile = store.env.profile;
-  const full = viewerLabel(profile, true);
-  const limited = viewerLabel(profile, false);
+  const t = store.messages.settings;
+  const full = viewerLabel(profile, true, store.messages.page);
+  const limited = viewerLabel(profile, false, store.messages.page);
   const first = useRef<HTMLInputElement>(null);
   useEffect(() => {
     if (open) first.current?.focus();
@@ -47,28 +47,28 @@ export function SettingsPanel({ children }: { children?: ReactNode } = {}) {
         }}
       >
         <header>
-          <h2 id={`${id}-settings-title`}>Settings</h2>
-          <button className="jali-icon-btn" onClick={close} aria-label="Close settings">
-            <X size={14} strokeWidth={1.5} aria-hidden />
+          <h2 id={`${id}-settings-title`}>{t.title}</h2>
+          <button className="jali-icon-btn" onClick={close} aria-label={t.close}>
+            <icon.close size={14} aria-hidden />
           </button>
         </header>
         <fieldset>
-          <legend>Theme</legend>
-          {THEMES.map((t, n) => (
-            <label key={t.id} className="jali-radio">
+          <legend>{t.theme}</legend>
+          {THEMES.map((theme, n) => (
+            <label key={theme.id} className="jali-radio">
               <input
                 ref={n === 0 ? first : undefined}
                 type="radio"
                 name={`${id}-theme`}
-                checked={settings.theme === t.id}
-                onChange={() => set({ theme: t.id })}
+                checked={settings.theme === theme.id}
+                onChange={() => set({ theme: theme.id })}
               />
-              <span>{t.label}</span>
+              <span>{t[theme.label]}</span>
             </label>
           ))}
         </fieldset>
         <fieldset>
-          <legend>Centre drop</legend>
+          <legend>{t.centreDrop}</legend>
           <label className="jali-radio">
             <input
               type="radio"
@@ -76,7 +76,7 @@ export function SettingsPanel({ children }: { children?: ReactNode } = {}) {
               checked={settings.centreDrop === "swap"}
               onChange={() => set({ centreDrop: "swap" })}
             />
-            <span>Swap the two panes</span>
+            <span>{t.centreDropSwap}</span>
           </label>
           <label className="jali-radio">
             <input
@@ -85,11 +85,11 @@ export function SettingsPanel({ children }: { children?: ReactNode } = {}) {
               checked={settings.centreDrop === "tab"}
               onChange={() => set({ centreDrop: "tab" })}
             />
-            <span>Add as a tab</span>
+            <span>{t.centreDropTab}</span>
           </label>
         </fieldset>
         <fieldset>
-          <legend>Pane cap</legend>
+          <legend>{t.paneCap}</legend>
           <label className="jali-row-field">
             <input
               type="number"
@@ -100,12 +100,12 @@ export function SettingsPanel({ children }: { children?: ReactNode } = {}) {
                 set({ paneCap: Math.max(2, Math.min(16, Number(e.target.value) || 8)) })
               }
             />
-            <span>Over the cap, the oldest unpinned, unfocused pane becomes a tab.</span>
+            <span>{t.paneCapHelp}</span>
           </label>
         </fieldset>
         {profile ? (
           <fieldset>
-            <legend>{profile.name}: opened panes</legend>
+            <legend>{t.openedPanes(profile.name)}</legend>
             <label className="jali-radio">
               <input
                 type="radio"
@@ -113,7 +113,7 @@ export function SettingsPanel({ children }: { children?: ReactNode } = {}) {
                 checked={settings.boundary === "tint"}
                 onChange={() => set({ boundary: "tint" })}
               />
-              <span>Tinted header and “Opened” tag</span>
+              <span>{t.boundaryTint}</span>
             </label>
             <label className="jali-radio">
               <input
@@ -122,13 +122,13 @@ export function SettingsPanel({ children }: { children?: ReactNode } = {}) {
                 checked={settings.boundary === "none"}
                 onChange={() => set({ boundary: "none" })}
               />
-              <span>No marking</span>
+              <span>{t.boundaryNone}</span>
             </label>
           </fieldset>
         ) : null}
         {page ? (
           <fieldset>
-            <legend>{profile?.name}: viewing as</legend>
+            <legend>{t.viewingAs(profile?.name ?? "")}</legend>
             <label className="jali-radio">
               <input
                 type="radio"
@@ -136,7 +136,7 @@ export function SettingsPanel({ children }: { children?: ReactNode } = {}) {
                 checked={page.canInvestigate}
                 onChange={() => store.actions.setCanInvestigate(true)}
               />
-              <span>{cap(full)}: links open beside</span>
+              <span>{t.viewerFull(full)}</span>
             </label>
             <label className="jali-radio">
               <input
@@ -145,7 +145,7 @@ export function SettingsPanel({ children }: { children?: ReactNode } = {}) {
                 checked={!page.canInvestigate}
                 onChange={() => store.actions.setCanInvestigate(false)}
               />
-              <span>{cap(limited)}: Single only, links open as a peek</span>
+              <span>{t.viewerLimited(limited)}</span>
             </label>
           </fieldset>
         ) : null}
@@ -163,23 +163,21 @@ export function SettingsPanel({ children }: { children?: ReactNode } = {}) {
 function KeyboardList() {
   const store = useStore();
   const { keymap } = store;
+  const { settings: t, keys } = store.messages;
   const rows = keymap.entries.map(([id, seqs]) => ({
     id,
-    title:
-      id === PALETTE_ID
-        ? "Command palette (then a second key for a chord)"
-        : (commandById(store, id)?.title ?? id),
-    keys: seqs.map((q) => formatKeys(q, keymap.platform)).join(" or "),
+    title: id === PALETTE_ID ? t.paletteKey : (commandById(store, id)?.title ?? id),
+    keys: keys.alternatives(seqs.map((q) => keymap.format(q))),
   }));
   rows.push({
     id: "escape",
-    title: "Close the peek, then leave maximise (after the pane's own use of it)",
-    keys: formatChord({ key: "Escape" }, keymap.platform),
+    title: t.escapeKey,
+    keys: keymap.format([{ key: "Escape" }]),
   });
   return (
     <fieldset>
-      <legend>Keyboard</legend>
-      <dl className="jali-keys-list" aria-label="Keyboard shortcuts">
+      <legend>{t.keyboard}</legend>
+      <dl className="jali-keys-list" aria-label={t.keyboardLabel}>
         {rows.map((r) => (
           <div key={r.id} className="jali-keys-row" data-command-id={r.id}>
             <dt>{r.title}</dt>
@@ -189,11 +187,7 @@ function KeyboardList() {
           </div>
         ))}
       </dl>
-      <p className="jali-keys-note">
-        Inside a pane, its own keys come first: J/K and the arrows move, Space peeks,{" "}
-        {keymap.platform === "mac" ? "⌘Z" : "Ctrl+Z"} undoes the pane's own changes, and the first
-        Esc is the pane's.
-      </p>
+      <p className="jali-keys-note">{t.keyboardNote(keymap.format(parseKeys("Mod+Z")))}</p>
     </fieldset>
   );
 }

@@ -18,14 +18,15 @@ function PaletteDialog() {
   useModel();
   const close = () => store.actions.closePalette();
   const items = listCommands(store.jali);
+  const t = store.messages.palette;
   return (
     <ListDialog<ListedCommand>
       className=""
-      label="Commands"
-      placeholder="Type a command…"
+      label={t.label}
+      placeholder={t.placeholder}
       idPrefix={`${store.dom.id}-cmd-`}
       listId={`${store.dom.id}-palette-list`}
-      listLabel="Commands"
+      listLabel={t.listLabel}
       items={items}
       keyOf={(c) => c.key}
       matches={(c, t) =>
@@ -47,7 +48,7 @@ function PaletteDialog() {
         setTimeout(c.run, 0);
       }}
       onClose={close}
-      empty={(q) => <>No command matches “{q}”.</>}
+      empty={t.empty}
     />
   );
 }

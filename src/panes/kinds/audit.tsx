@@ -1,4 +1,4 @@
-import { History } from "lucide-react";
+import { ClockCounterClockwiseIcon } from "@phosphor-icons/react";
 import { definePane } from "@jali/react";
 import type { Row } from "../../data/types";
 import { entityTable } from "../../data/tables";
@@ -27,7 +27,7 @@ export function AuditPane(props: PaneProps) {
 
 export const auditKind = definePane("audit", {
   title: "Audit log",
-  icon: History,
+  icon: ClockCounterClockwiseIcon,
   width: { min: 360, comfortable: 480 },
   height: { min: 240 },
   Component: AuditPane,

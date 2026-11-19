@@ -40,6 +40,7 @@ export const NAV: NavSection[] = [
       { path: "/guides/unsaved-work-and-pane-state" },
       { path: "/guides/commands-and-keys" },
       { path: "/guides/theming" },
+      { path: "/guides/translating" },
       { path: "/guides/chakni" },
       { path: "/guides/testing" },
       { path: "/guides/two-workspaces" },

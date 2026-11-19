@@ -1,5 +1,11 @@
 import { useEffect, useRef, useState } from "react";
-import { Command, Settings, Link2, ChevronDown, LayoutGrid } from "lucide-react";
+import {
+  CaretDownIcon,
+  CommandIcon,
+  GearSixIcon,
+  LinkSimpleHorizontalIcon,
+  SquaresFourIcon,
+} from "@phosphor-icons/react";
 import { useShortcut, useJali, useJaliState, PageBar } from "@jali/react";
 import { copyLink } from "@jali/core";
 import { AppSwitch } from "./AppSwitch";
@@ -56,8 +62,7 @@ function LayoutsMenu() {
         aria-controls="layouts-menu"
         onClick={() => setOpen((o) => !o)}
       >
-        <LayoutGrid size={14} strokeWidth={1.5} aria-hidden /> Layouts{" "}
-        <ChevronDown size={14} strokeWidth={1.5} aria-hidden />
+        <SquaresFourIcon size={14} aria-hidden /> Layouts <CaretDownIcon size={14} aria-hidden />
       </button>
       {open ? (
         <div id="layouts-menu" className="layouts-menu" role="group" aria-label="Layout presets">
@@ -104,7 +109,7 @@ export function TopBar() {
           }
           title="Copy link"
         >
-          <Link2 size={16} strokeWidth={1.5} aria-hidden />
+          <LinkSimpleHorizontalIcon size={16} aria-hidden />
         </button>
         <button
           className="jali-icon-btn"
@@ -112,15 +117,14 @@ export function TopBar() {
           aria-label="Settings"
           title="Settings"
         >
-          <Settings size={16} strokeWidth={1.5} aria-hidden />
+          <GearSixIcon size={16} aria-hidden />
         </button>
         <button
           className="kbd-btn"
           onClick={() => store.actions.openPalette()}
           aria-label="Command palette"
         >
-          <Command size={14} strokeWidth={1.5} aria-hidden />{" "}
-          <span className="kbd-label">{paletteKeys}</span>
+          <CommandIcon size={14} aria-hidden /> <span className="kbd-label">{paletteKeys}</span>
         </button>
       </div>
     </header>

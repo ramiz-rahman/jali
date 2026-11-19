@@ -3,7 +3,12 @@
  * Pagefind searches the built pages (docs/DOCS-PLAN.md).
  */
 import { useEffect, useMemo, useRef, useState, type KeyboardEvent } from "react";
-import { CornerDownLeft, FileText, Hash, Search as SearchIcon } from "lucide-react";
+import {
+  ArrowElbowDownLeftIcon,
+  FileTextIcon,
+  HashIcon,
+  MagnifyingGlassIcon,
+} from "@phosphor-icons/react";
 import { navigate } from "../site/router";
 import { publicPages, readingOrder, sectionOf } from "../site/sources";
 import { slugify } from "./mdx";
@@ -150,7 +155,7 @@ export function SearchDialog({ open, onClose }: { open: boolean; onClose: () => 
     >
       <div className="search-panel">
         <div className="search-field">
-          <SearchIcon aria-hidden size={18} strokeWidth={1.75} />
+          <MagnifyingGlassIcon aria-hidden size={18} />
           <input
             ref={input}
             type="search"
@@ -193,9 +198,9 @@ export function SearchDialog({ open, onClose }: { open: boolean; onClose: () => 
             >
               <span className="search-hit-icon">
                 {h.heading ? (
-                  <Hash aria-hidden size={15} />
+                  <HashIcon aria-hidden size={15} />
                 ) : (
-                  <FileText aria-hidden size={15} strokeWidth={1.75} />
+                  <FileTextIcon aria-hidden size={15} />
                 )}
               </span>
               <span className="search-hit-text">
@@ -203,7 +208,7 @@ export function SearchDialog({ open, onClose }: { open: boolean; onClose: () => 
                 <span className="search-hit-detail">{h.heading ? `In ${h.detail}` : h.detail}</span>
               </span>
               {i === active ? (
-                <CornerDownLeft aria-hidden className="search-hit-enter" size={14} />
+                <ArrowElbowDownLeftIcon aria-hidden className="search-hit-enter" size={14} />
               ) : null}
             </li>
           ))}

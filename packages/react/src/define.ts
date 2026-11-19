@@ -9,6 +9,11 @@
  *
  *   note({ id: 2 }) // the ref of note 2, to open, peek or put in a layout
  *
+ * A component written apart from its kind takes the params' declaration, declared first:
+ *
+ *   const noteParams = { id: Number, tab: optional(String) };
+ *   function NoteView({ params }: PaneProps<typeof noteParams>) { ... } // params: { id: number; tab?: string }
+ *
  * The pane contract (keys, pausing, unsaved work, commands) is in the docs: Guides, "Pane kinds".
  */
 import type { ComponentType } from "react";
@@ -28,11 +33,16 @@ import type {
   ItemId,
 } from "@jali/core/adapter";
 import { defineKind } from "@jali/core/adapter";
+import type { JaliIcon } from "./icons/types";
 
-/** What a pane's component gets. `P` is the type of its params. */
+/** `P` as params: a declaration (`{ id: Number }`) is read as `ParamsOf` it; params' own type stays as it is. */
+export type ParamsFrom<P> = [P] extends [ParamTypes] ? ParamsOf<P> : P;
+
+/** What a pane's component gets. `P` is its params' declaration (`PaneProps<typeof orderParams>`) or their type
+ *  (`PaneProps<{ id: number }>`). */
 export interface PaneProps<P = Params> {
   /** What the pane shows, typed by the kind's `params`. */
-  params: P;
+  params: ParamsFrom<P>;
   /** The pane's node in the layout. In the peek sheet this is a node that is not in the layout. */
   node: PaneNode;
   /** Hidden (behind a tab, tucked, folded, behind a maximised pane): pause live work, keep state. */
@@ -55,25 +65,24 @@ export interface PaneProps<P = Params> {
   dismiss: () => void;
 }
 
-type IconComponent = ComponentType<{
-  size?: number;
-  strokeWidth?: number;
-  "aria-hidden"?: boolean;
-}>;
-
 /** A pane kind for React: the options of any kind, plus its icon and component. */
 export interface PaneOptionsReact<P = Params> extends PaneOptions<P> {
-  /** For the header, tab and shelf: any 16px icon component. Default: a plain square. */
-  icon?: IconComponent;
+  /** For the header, tab and shelf: a Phosphor icon, or any `JaliIcon`. Default: the workspace's `defaultKind` icon. */
+  icon?: JaliIcon;
   Component: ComponentType<PaneProps<P>>;
+  /** Shown while `Component` suspends (it awaits data with `use()` or a Suspense query). Default: a quiet
+   *  "Loading". The pane's activity reads "loading" meanwhile. */
+  Loading?: ComponentType<PaneProps<P>>;
 }
 
 /** A kind as a React workspace keeps it. */
 export interface PaneKindDef extends PaneKindBase {
-  icon?: IconComponent;
+  icon?: JaliIcon;
   // Each kind's component takes its own params; the workspace passes the ones it read for it.
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   Component: ComponentType<PaneProps<any>>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  Loading?: ComponentType<PaneProps<any>>;
 }
 
 /** A pane kind, defined. Call it with params to name one of its objects. `Pane` alone is any kind, for lists. */
@@ -89,7 +98,7 @@ export function definePane<const T extends ParamTypes | undefined = undefined>(
 
 /** One of a curated page's views, with its tab icon. */
 export interface PageView extends RoleBase {
-  icon: IconComponent;
+  icon: JaliIcon;
 }
 
 /** A curated page: one item at a time, with a list beside it (the rail) and the item's header above its tabs. `I` is

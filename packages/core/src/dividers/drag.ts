@@ -54,6 +54,8 @@ export function startDividerDrag(
   const layout0 = s0.layout,
     view0 = s0.view;
   const row = g0.axis === "row";
+  // The pointer moves on screen; the size is the first neighbour's, which right to left is the one on the right.
+  const sign = row && ctx0.dir === "rtl" ? -1 : 1;
   const start = row ? e.clientX : e.clientY;
   const min = g0.a.min,
     max = g0.divider.max,
@@ -126,7 +128,7 @@ export function startDividerDrag(
 
   const render = () => {
     raf = 0;
-    let size = clampSize(g0.a.size + (pointer - start), min, max);
+    let size = clampSize(g0.a.size + sign * (pointer - start), min, max);
     if (centreOk) {
       const s = snap(size, centre, snapped);
       snapped = s.snapped;

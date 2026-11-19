@@ -4,12 +4,13 @@
  */
 import { useEffect, type KeyboardEvent } from "react";
 import {
-  Activity as ActivityIcon,
-  ListOrdered,
-  Receipt,
-  StickyNote,
-  UserRound,
-} from "lucide-react";
+  ListNumbersIcon,
+  NoteIcon,
+  PulseIcon,
+  ReceiptIcon,
+  UserIcon,
+  type Icon as PhosphorIcon,
+} from "@phosphor-icons/react";
 import { definePane, useJaliModel, useJaliState, type PaneProps } from "@jali/react";
 import {
   activity,
@@ -23,18 +24,16 @@ import {
   type OrderStatus,
 } from "./data";
 
-type IconProps = { size?: number; strokeWidth?: number; "aria-hidden"?: boolean };
-
 /**
  * A kind's icon in a small circle tinted with its pane's colour (`--live-id`, set on the pane, its tab, its shelf chip
  * and its map box), so the workspace and the map mark a pane the same way. Outside the live parts it falls back to
  * a neutral circle.
  */
-function circled(Icon: (p: IconProps) => React.ReactNode) {
-  return function CircledIcon({ size = 16, strokeWidth = 1.5 }: IconProps) {
+function circled(Icon: PhosphorIcon) {
+  return function CircledIcon({ size = 16 }: { size?: number }) {
     return (
       <span className="live-kind" style={{ width: size + 8, height: size + 8 }} aria-hidden>
-        <Icon size={size - 2} strokeWidth={Math.max(strokeWidth, 1.75)} aria-hidden />
+        <Icon size={size - 2} aria-hidden />
       </span>
     );
   };
@@ -126,7 +125,7 @@ function OrderPane({ params, openBeside, select }: PaneProps<{ id: number }>) {
         className="live-k-link"
         onClick={() => openBeside(customerRef(o.customer))}
       >
-        <UserRound size={13} strokeWidth={1.75} aria-hidden /> {c?.name}
+        <UserIcon size={13} aria-hidden /> {c?.name}
       </button>
       <table className="live-k-table">
         <tbody>
@@ -193,7 +192,7 @@ function CustomerPane({ params, openBeside, select }: PaneProps<{ id: number }>)
         </div>
       </dl>
       <button type="button" className="live-k-link" onClick={() => openBeside(notesRef(c.id))}>
-        <StickyNote size={13} strokeWidth={1.75} aria-hidden /> {(notes[c.id] ?? []).length}{" "}
+        <NoteIcon size={13} aria-hidden /> {(notes[c.id] ?? []).length}{" "}
         {(notes[c.id] ?? []).length === 1 ? "note" : "notes"}
       </button>
     </div>
@@ -233,7 +232,7 @@ function ActivityPane() {
 
 export const ordersKind = definePane("orders", {
   title: "Orders",
-  icon: circled(ListOrdered),
+  icon: circled(ListNumbersIcon),
   width: { min: 200, comfortable: 300 },
   Component: OrdersPane,
 });
@@ -241,7 +240,7 @@ export const ordersKind = definePane("orders", {
 export const orderKind = definePane("order", {
   params: { id: Number },
   title: ({ id }) => `Order ${id}`,
-  icon: circled(Receipt),
+  icon: circled(ReceiptIcon),
   width: { min: 190, comfortable: 260, max: 420 },
   Component: OrderPane,
 });
@@ -249,7 +248,7 @@ export const orderKind = definePane("order", {
 export const customerKind = definePane("customer", {
   params: { id: Number },
   title: ({ id }) => customerById(id)?.name ?? `Customer ${id}`,
-  icon: circled(UserRound),
+  icon: circled(UserIcon),
   width: { min: 170, comfortable: 240, max: 380 },
   Component: CustomerPane,
 });
@@ -257,7 +256,7 @@ export const customerKind = definePane("customer", {
 export const notesKind = definePane("notes", {
   params: { customer: Number },
   title: ({ customer }) => `Notes on ${first(customerById(customer)?.name)}`,
-  icon: circled(StickyNote),
+  icon: circled(NoteIcon),
   width: { min: 180, comfortable: 240, max: 400 },
   height: { min: 140 },
   Component: NotesPane,
@@ -265,7 +264,7 @@ export const notesKind = definePane("notes", {
 
 export const activityKind = definePane("activity", {
   title: "Activity",
-  icon: circled(ActivityIcon),
+  icon: circled(PulseIcon),
   width: { min: 170, comfortable: 220, max: 360 },
   height: { min: 140 },
   Component: ActivityPane,

@@ -1,5 +1,5 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
-import { FoldHorizontal, Plus, Undo2, X } from "lucide-react";
+import { useJaliIcons } from "../icons/context";
 import type { NodeId, PaneNode, Frame, Tab } from "@jali/core/adapter";
 import {
   shortcutLabel,
@@ -8,9 +8,7 @@ import {
   roleOf,
   titleOf,
   startPaneDrag,
-  FOLDED_DESC,
-  FOLDED_TIP,
-  TUCKED_DESC,
+  scrolledFromStart,
 } from "@jali/core/adapter";
 import { useEnv, useStore, useUi } from "../state/react";
 import { Activity } from "./Activity";
@@ -27,13 +25,16 @@ const FADE = 24;
 function revealTab(el: HTMLDivElement | null) {
   const strip = el?.parentElement;
   if (!el || !strip) return;
-  const left =
-    el.getBoundingClientRect().left - strip.getBoundingClientRect().left + strip.scrollLeft;
-  const right = left + el.offsetWidth;
+  // Measured from the strip's start: its left, or its right when the strip reads right to left.
+  const { pos, rtl } = scrolledFromStart(strip);
+  const r = el.getBoundingClientRect(),
+    box = strip.getBoundingClientRect();
+  const start = (rtl ? box.right - r.right : r.left - box.left) + pos;
+  const end = start + el.offsetWidth;
   const view = strip.clientWidth;
-  if (left < strip.scrollLeft + (strip.scrollLeft > 0 ? FADE : 0) || right - left > view)
-    strip.scrollLeft = Math.max(0, left - FADE);
-  else if (right > strip.scrollLeft + view) strip.scrollLeft = right - view + FADE;
+  const scrollTo = (p: number) => (strip.scrollLeft = rtl ? -p : p);
+  if (start < pos + (pos > 0 ? FADE : 0) || end - start > view) scrollTo(Math.max(0, start - FADE));
+  else if (end > pos + view) scrollTo(end - view + FADE);
 }
 
 function TabActivity({ id }: { id: NodeId }) {
@@ -42,10 +43,14 @@ function TabActivity({ id }: { id: NodeId }) {
 
 /** A group's tabs. `owner` is the frame showing the group: the active tab's title labels its region. */
 export function TabStrip({ group, owner }: { group: NonNullable<Frame["group"]>; owner: NodeId }) {
+  const icon = useJaliIcons();
   const store = useStore();
   const { actions, env } = store;
+  const words = store.messages;
+  const tw = words.tabs;
   // A curated page, or a workspace without a launcher: no "+" (its views come from the page's tabs).
   const page = useUi((s) => !!s.page);
+  const titles = useUi((s) => s.titles);
   // No launcher kind, no "+": there is nothing to open in the new tab.
   // A curated page's views live in the page tabs, so a pane's strip lists a page view only while it is shown: never a
   // repeat. The exception is a group of page views, which only a centre drop ("Add as tab") makes: you asked for
@@ -73,8 +78,9 @@ export function TabStrip({ group, owner }: { group: NonNullable<Frame["group"]>;
     });
     setHiddenCount((p) => (p === n ? p : n));
     // Fade an edge that has tabs past it, so a cut-off tab reads as "more this way" (like the shelf).
-    el.toggleAttribute("data-fade-l", el.scrollLeft > 1);
-    el.toggleAttribute("data-fade-r", el.scrollLeft + el.clientWidth < el.scrollWidth - 1);
+    const { pos, max, rtl } = scrolledFromStart(el);
+    el.toggleAttribute(rtl ? "data-fade-r" : "data-fade-l", pos > 1);
+    el.toggleAttribute(rtl ? "data-fade-l" : "data-fade-r", pos < max - 1);
   };
   useLayoutEffect(measure);
   useEffect(() => {
@@ -88,7 +94,7 @@ export function TabStrip({ group, owner }: { group: NonNullable<Frame["group"]>;
 
   const renderTab = ({ node: t, tucked, folded: isFolded }: Tab) => {
     const active = t.id === group.active;
-    const title = titleOf(store.env, t);
+    const title = titleOf(store.env, t, titles);
     return (
       <div
         key={t.id}
@@ -98,8 +104,10 @@ export function TabStrip({ group, owner }: { group: NonNullable<Frame["group"]>;
         data-tucked={tucked || undefined}
         data-folded={isFolded || undefined}
         aria-label={title}
-        aria-description={isFolded ? FOLDED_DESC : tucked ? TUCKED_DESC : undefined}
-        title={isFolded ? `${title} · ${FOLDED_TIP}` : title}
+        aria-description={
+          isFolded ? tw.foldedDescription : tucked ? tw.tuckedDescription : undefined
+        }
+        title={isFolded ? tw.foldedTitle(title) : title}
         role="tab"
         aria-selected={active}
         aria-controls={paneDomId(store.dom.id, t.id)}
@@ -126,32 +134,32 @@ export function TabStrip({ group, owner }: { group: NonNullable<Frame["group"]>;
         <TabActivity id={t.id} />
         {isFolded ? (
           <span className="jali-tab-fold-mark" aria-hidden>
-            <FoldHorizontal size={13} strokeWidth={1.75} />
+            <icon.fold size={13} />
           </span>
         ) : null}
         {tucked ? (
           <button
             className="jali-tab-putback"
-            aria-label={`Put back ${title}`}
-            title={`Put back${shortcutLabel(store, "pane.putBack") ? ` · ${shortcutLabel(store, "pane.putBack")}` : ""}`}
+            aria-label={tw.putBack(title)}
+            title={words.keys.withKeys(tw.putBackTip, shortcutLabel(store, "pane.putBack"))}
             onPointerDown={(e) => e.stopPropagation()}
             onClick={(e) => {
               e.stopPropagation();
               actions.putBack(t.id);
             }}
           >
-            <Undo2 size={14} strokeWidth={1.75} aria-hidden />
+            <icon.putBack size={14} aria-hidden />
           </button>
         ) : null}
         <button
           className="jali-tab-close"
-          aria-label={`Close ${title}`}
+          aria-label={tw.close(title)}
           onClick={(e) => {
             e.stopPropagation();
             actions.close(t.id);
           }}
         >
-          <X size={14} strokeWidth={1.75} aria-hidden />
+          <icon.close size={14} aria-hidden />
         </button>
       </div>
     );
@@ -163,7 +171,7 @@ export function TabStrip({ group, owner }: { group: NonNullable<Frame["group"]>;
         className="jali-tabs"
         ref={strip}
         role="tablist"
-        aria-label={`Tabs: ${tabs.length}`}
+        aria-label={tw.listLabel(tabs.length)}
         onScroll={measure}
       >
         {mine.map(renderTab)}
@@ -181,14 +189,14 @@ export function TabStrip({ group, owner }: { group: NonNullable<Frame["group"]>;
       {page || !env.launcher ? null : (
         <button
           className="jali-tab-add"
-          aria-label="New tab in this stack"
-          title="New tab"
+          aria-label={tw.newTab}
+          title={tw.newTabTip}
           onClick={(e) => {
             e.stopPropagation();
             actions.newTab(group.active);
           }}
         >
-          <Plus size={14} strokeWidth={1.5} aria-hidden />
+          <icon.newTab size={14} aria-hidden />
         </button>
       )}
     </div>
@@ -200,9 +208,5 @@ function TabIcon({ node }: { node: PaneNode }) {
   const { profile } = useEnv();
   const role =
     useUi((s) => !!s.page) && node.role && profile ? roleOf(profile, node.role) : undefined;
-  return role ? (
-    <role.icon size={14} strokeWidth={1.5} aria-hidden />
-  ) : (
-    <KindIcon kind={node.ref.kind} size={14} />
-  );
+  return role ? <role.icon size={14} aria-hidden /> : <KindIcon kind={node.ref.kind} size={14} />;
 }

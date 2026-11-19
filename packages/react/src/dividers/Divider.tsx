@@ -1,5 +1,6 @@
 import { dividerKey, STEP, STEP_BIG } from "@jali/core/adapter";
 import { memo, type KeyboardEvent } from "react";
+import { useMessages } from "../state/react";
 import type { NodeId, Rect } from "@jali/core/adapter";
 
 export interface DividerProps {
@@ -17,6 +18,8 @@ export interface DividerProps {
   labelB: string;
   /** DOM ids of the pane regions before the divider, for aria-controls. */
   controls: string;
+  /** The first neighbour is on the right (a row read right to left): ← grows it, → shrinks it. */
+  rtl?: boolean;
   /** Pointer down starts the drag (drag.ts); `setSizeA` resizes from the keyboard; `onReset` restores sizes. */
   onDragStart(e: React.PointerEvent<HTMLElement>): void;
   setSizeA(size: number): void;
@@ -35,13 +38,20 @@ const rectEq = (a: Rect, b: Rect) =>
 export const Divider = memo(
   function Divider(p: DividerProps) {
     const row = p.axis === "row";
+    const t = useMessages().workspace;
+    // The arrow that shrinks the first neighbour, and the one that grows it: the divider moves the way it points.
+    const [less, more] = !row
+      ? ["ArrowUp", "ArrowDown"]
+      : p.rtl
+        ? ["ArrowRight", "ArrowLeft"]
+        : ["ArrowLeft", "ArrowRight"];
     const onKeyDown = (e: KeyboardEvent<HTMLElement>) => {
       if (e.altKey || e.metaKey || e.ctrlKey) return;
       const step = e.shiftKey ? STEP_BIG : STEP;
       const target =
-        e.key === (row ? "ArrowLeft" : "ArrowUp")
+        e.key === less
           ? p.sizeA - step
-          : e.key === (row ? "ArrowRight" : "ArrowDown")
+          : e.key === more
             ? p.sizeA + step
             : e.key === "Home"
               ? p.minA
@@ -76,16 +86,17 @@ export const Divider = memo(
         aria-valuenow={pct(p.sizeA, p.total)}
         aria-valuemin={pct(p.minA, p.total)}
         aria-valuemax={pct(p.maxA, p.total)}
-        aria-valuetext={`${p.labelA} ${Math.round(p.sizeA)} pixels, ${p.labelB} ${restB} pixels`}
+        aria-valuetext={t.dividerValue(p.labelA, Math.round(p.sizeA), p.labelB, restB)}
         aria-controls={p.controls}
-        aria-label={`Resize between ${p.labelA} and ${p.labelB}`}
+        aria-label={t.divider(p.labelA, p.labelB)}
       >
         {/* Keyboard-focus affordance: an accent capsule and a size label, both CSS-gated on :focus-visible. */}
         <span className="jali-divider-line" aria-hidden />
         <span className="jali-divider-handle" aria-hidden />
         <span className="jali-divider-tip" aria-hidden>
-          {p.labelA} · {Math.round(p.sizeA)}px<i> | </i>
-          {p.labelB} · {restB}px
+          {t.dividerTip(p.labelA, Math.round(p.sizeA))}
+          <i> | </i>
+          {t.dividerTip(p.labelB, restB)}
         </span>
       </div>
     );
@@ -101,5 +112,6 @@ export const Divider = memo(
     a.total === b.total &&
     a.labelA === b.labelA &&
     a.labelB === b.labelB &&
-    a.controls === b.controls,
+    a.controls === b.controls &&
+    a.rtl === b.rtl,
 );

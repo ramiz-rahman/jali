@@ -5,6 +5,7 @@
  */
 import * as core from "../layout";
 import type {
+  Direction,
   Layout,
   LayoutContext,
   NodeId,
@@ -12,7 +13,7 @@ import type {
   UndoEntry,
   ViewState,
 } from "../layout/types";
-import type { PaneActivity, PaneCommand, PaneKinds } from "../pane-kinds";
+import type { PaneActivity, PaneCommand, PaneErrorInfo, PaneKinds } from "../pane-kinds";
 import { GAP, initialArea } from "../tokens";
 import { toLayout } from "../layout/build";
 import { bindActions, type Actions } from "../actions";
@@ -43,6 +44,7 @@ import {
 } from "../profile";
 import { browserStorage, type StoragePort } from "../ports";
 import { focusPane } from "../dom/focus";
+import { pageDirection } from "../dom/direction";
 import { loadPaneState } from "./pane-state";
 import { startUi } from "../boot";
 import {
@@ -53,6 +55,7 @@ import {
   type KeymapOverrides,
 } from "../commands/keymap";
 import type { Command } from "../commands/registry";
+import { resolveMessages, type MessageOverrides, type Messages } from "./messages";
 
 /** A drag in progress. `label` names a view dragged from a page's tabs, which may not be on screen. */
 export interface DndState {
@@ -120,6 +123,9 @@ export interface UiState {
   /** Objects opened this session, most recent first (the launcher's "Recent"). */
   recent: ObjectRef[];
   area: { width: number; height: number };
+  /** The reading direction the panes are laid out in: right to left, a row starts at the right. Read from the page
+   *  when the workspace is measured, unless `createJali({ dir })` fixed it. */
+  dir: Direction;
   /** Layout changes of the reshape class so far (state/apply.ts): the workspace animates on a new one. */
   reshapes: number;
   /** A page tab hovered with ⌥ held: the workspace previews where it would open beside. */
@@ -130,6 +136,9 @@ export interface UiState {
   confirm: ConfirmState | null;
   /** Each pane's commands for ⌘K (useCommands). */
   paneCommands: Record<NodeId, PaneCommand[]>;
+  /** Titles panes set from their data (useTitle), in place of their kind's title. Not saved; a pane that shows
+   *  another object loses its title until it sets one again. */
+  titles: Record<NodeId, string>;
   /** Each pane's own state (usePaneState): JSON values, kept through folds, tabs and reloads, dropped on close. */
   paneState: Record<NodeId, Record<string, unknown>>;
   /** The live region's text; `seq` makes a repeat a new announcement. */
@@ -187,6 +196,12 @@ export interface UiStoreDeps {
   palette?: boolean;
   /** The host's close guard: asked before a change removes panes or points them at another object (state/apply.ts). */
   beforeClose?: BeforeClose;
+  /** Words to use instead of Jali's English ones (state/messages.ts). Default: English. */
+  messages?: MessageOverrides;
+  /** A pane's content threw while rendering. Default: reported in development. */
+  onPaneError?: (error: unknown, info: PaneErrorInfo) => void;
+  /** A fixed reading direction. Default: the page's, read where the workspace is rendered. */
+  dir?: Direction;
 }
 
 export interface UiStore {
@@ -217,6 +232,8 @@ export interface UiStore {
   env: Env;
   /** Where this workspace lives in the DOM. */
   dom: JaliDom;
+  /** Every word this workspace shows or says: English with `createJali({ messages })` over it. */
+  messages: Messages;
   storage: StoragePort;
   /** The address to share, from the URL port. */
   href(): string;
@@ -268,15 +285,25 @@ function createDom(id: string): JaliDom {
 const DEV = !!(import.meta as unknown as { env?: { DEV?: boolean } }).env?.DEV;
 
 export function createUiStore(deps: UiStoreDeps): UiStore {
+  const messages = resolveMessages(deps.messages);
   const env: Env = {
     kinds: deps.kinds,
     profile: deps.profile ?? null,
     presets: deps.presets ?? [],
     commands: deps.commands ?? [],
     palette: deps.palette !== false,
-    name: deps.name ?? "Workspace",
+    name: deps.name ?? messages.workspace.name,
+    messages,
   };
+  const onPaneError =
+    deps.onPaneError ??
+    (DEV
+      ? (error: unknown, { pane, ref }: PaneErrorInfo) =>
+          console.error(`Jali: pane ${pane ?? "peek"} (${ref.kind}) failed`, error)
+      : undefined);
+  if (onPaneError) env.onPaneError = onPaneError;
   if (deps.launcher) env.launcher = deps.launcher;
+  if (deps.dir) env.dir = deps.dir;
   const focusOf =
     deps.focusPane === undefined
       ? typeof document === "undefined"
@@ -313,12 +340,14 @@ export function createUiStore(deps: UiStoreDeps): UiStore {
     chooser: null,
     recent: [],
     area: initialArea(),
+    dir: deps.dir ?? pageDirection(),
     announcement: { text: "", seq: 0 },
     reshapes: 0,
     ghost: null,
     unsaved: {},
     confirm: null,
     paneCommands: {},
+    titles: {},
     paneState: loadPaneState(storage),
     ...deps.initial,
   };
@@ -352,6 +381,7 @@ export function createUiStore(deps: UiStoreDeps): UiStore {
   const ctx = (): LayoutContext => ({
     fit: { ...state.area, gap: GAP, kinds: env.kinds.registry() },
     paneCap: state.settings.paneCap,
+    ...(state.dir === "rtl" ? { dir: state.dir } : {}),
   });
 
   /** A raw write. Size and cap changes come from outside the layout, so they refit it. Link arrivals refit where
@@ -439,7 +469,14 @@ export function createUiStore(deps: UiStoreDeps): UiStore {
       return () => subs.delete(fn);
     },
     model: () =>
-      models({ layout: state.layout, view: state.view, area: state.area, ctx: ctx(), env }),
+      models({
+        layout: state.layout,
+        view: state.view,
+        area: state.area,
+        ctx: ctx(),
+        env,
+        titles: state.titles,
+      }),
     ctx,
     snapshot: () => ({ s: state, m: store.model(), ctx: ctx(), env }),
     apply: (o) => batch(() => apply(io, o)),
@@ -457,10 +494,11 @@ export function createUiStore(deps: UiStoreDeps): UiStore {
       deps.palette === false && !(PALETTE_ID in (deps.keymap ?? {}))
         ? { ...deps.keymap, [PALETTE_ID]: null }
         : deps.keymap,
-      deps.keymapOptions,
+      { ...deps.keymapOptions, words: deps.keymapOptions?.words ?? messages.keys },
     ),
     env,
     dom,
+    messages,
     storage,
     href: () => deps.url?.href?.() ?? (typeof location === "undefined" ? "" : location.href),
     url: deps.url,

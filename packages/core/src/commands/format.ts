@@ -100,55 +100,90 @@ export function parseChord(text: string): Chord {
 /** "Mod+K Mod+M" → two chords. */
 export const parseKeys = (text: string): KeySequence => text.trim().split(/\s+/).map(parseChord);
 
+/** The words in printed keys (`messages.keys`): modifier names elsewhere than a Mac, and Esc, Space and arrows. */
+export interface KeyWords {
+  ctrl: string;
+  alt: string;
+  shift: string;
+  escape: string;
+  space: string;
+  left: string;
+  right: string;
+  up: string;
+  down: string;
+}
+
+const ENGLISH: KeyWords = {
+  ctrl: "Ctrl",
+  alt: "Alt",
+  shift: "Shift",
+  escape: "Esc",
+  space: "Space",
+  left: "Left",
+  right: "Right",
+  up: "Up",
+  down: "Down",
+};
+
 const GLYPH: Record<string, string> = {
   ArrowLeft: "←",
   ArrowRight: "→",
   ArrowUp: "↑",
   ArrowDown: "↓",
   Enter: "↵",
-  Escape: "Esc",
   Backspace: "⌫",
   Delete: "⌦",
-  " ": "Space",
   Tab: "⇥",
 };
-const WORD: Record<string, string> = {
-  ArrowLeft: "Left",
-  ArrowRight: "Right",
-  ArrowUp: "Up",
-  ArrowDown: "Down",
-  Escape: "Esc",
-  " ": "Space",
+const WORD: Record<string, keyof KeyWords> = {
+  ArrowLeft: "left",
+  ArrowRight: "right",
+  ArrowUp: "up",
+  ArrowDown: "down",
+  Escape: "escape",
+  " ": "space",
 };
 const PUNCT_LABEL = Object.fromEntries(Object.entries(PUNCT).map(([ch, code]) => [code, ch]));
 
-function keyLabel(key: string, platform: Platform) {
+function keyLabel(key: string, platform: Platform, words: KeyWords) {
   if (PUNCT_LABEL[key]) return PUNCT_LABEL[key];
-  const named = platform === "mac" ? GLYPH[key] : WORD[key];
+  // A Mac shows symbols for arrows and Enter, and words for Esc and Space.
+  const named =
+    platform === "mac" && GLYPH[key] ? GLYPH[key] : WORD[key] ? words[WORD[key]] : undefined;
   return named ?? key.replace(/^(Key|Digit)/, "");
 }
 
-/** "⌥⇧⌘M" on a Mac (Apple's modifier order), "Ctrl+Alt+Shift+M" elsewhere. */
-export function formatChord(c: Chord, platform: Platform = detectPlatform()): string {
+/** "⌥⇧⌘M" on a Mac (Apple's modifier order), "Ctrl+Alt+Shift+M" elsewhere. `words` translates the words. */
+export function formatChord(
+  c: Chord,
+  platform: Platform = detectPlatform(),
+  words: KeyWords = ENGLISH,
+): string {
   if (platform === "mac")
-    return `${c.ctrl ? "⌃" : ""}${c.alt ? "⌥" : ""}${c.shift ? "⇧" : ""}${c.mod ? "⌘" : ""}${keyLabel(c.key, platform)}`;
+    return `${c.ctrl ? "⌃" : ""}${c.alt ? "⌥" : ""}${c.shift ? "⇧" : ""}${c.mod ? "⌘" : ""}${keyLabel(c.key, platform, words)}`;
   return [
-    (c.mod || c.ctrl) && "Ctrl",
-    c.alt && "Alt",
-    c.shift && "Shift",
-    keyLabel(c.key, platform),
+    (c.mod || c.ctrl) && words.ctrl,
+    c.alt && words.alt,
+    c.shift && words.shift,
+    keyLabel(c.key, platform, words),
   ]
     .filter(Boolean)
     .join("+");
 }
 
 /** "⌘K ⌘M" / "Ctrl+K Ctrl+M". */
-export const formatKeys = (seq: KeySequence, platform: Platform = detectPlatform()) =>
-  seq.map((c) => formatChord(c, platform)).join(" ");
+export const formatKeys = (
+  seq: KeySequence,
+  platform: Platform = detectPlatform(),
+  words: KeyWords = ENGLISH,
+) => seq.map((c) => formatChord(c, platform, words)).join(" ");
 
 /** A content-level hint ("Alt+Enter" → "⌥↵" or "Alt+Enter"), for keys a pane kind owns rather than the keymap. */
-export const keyHint = (text: string, platform: Platform = detectPlatform()) =>
-  formatKeys(parseKeys(text), platform);
+export const keyHint = (
+  text: string,
+  platform: Platform = detectPlatform(),
+  words: KeyWords = ENGLISH,
+) => formatKeys(parseKeys(text), platform, words);
 
 /** The word for click-with-modifier hints: "⌥-click" / "Alt-click". */
 export const altClick = (platform: Platform = detectPlatform()) =>

@@ -1,4 +1,4 @@
-import { GitFork } from "lucide-react";
+import { GitForkIcon } from "@phosphor-icons/react";
 import { definePane } from "@jali/react";
 import type { TableName } from "../../data/types";
 import { useCatalog } from "../../data/hooks";
@@ -133,8 +133,8 @@ export function ErPane({ params, paused, openBeside }: PaneProps<{ table: string
 
 export const erKind = definePane("er", {
   params: { table: String },
-  title: ({ table }) => `${table ?? ""} relations`.trim(),
-  icon: GitFork,
+  title: ({ table }) => `${table} relations`,
+  icon: GitForkIcon,
   width: { min: 400, comfortable: 560 },
   height: { min: 240 },
   Component: ErPane,

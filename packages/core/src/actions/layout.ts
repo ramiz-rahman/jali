@@ -4,7 +4,7 @@ import type { PaneActivity } from "../pane-kinds";
 import { presetById } from "../profile";
 import { refuse, type Outcome, type Snapshot } from "../state/apply";
 import { toLayout, type LayoutInput } from "../layout/build";
-import { msg } from "../state/messages";
+import { say } from "../state/messages";
 import type { Settings } from "../state/settings";
 import { withRecent } from "./open";
 
@@ -26,7 +26,7 @@ export function preset({ s, ctx, env }: Snapshot, id: string | undefined): Outco
     op: "preset",
     layout,
     view,
-    msg: msg.preset(p.label),
+    msg: say(env).preset(p.label),
     patch: { presetId: id, peekSource: undefined, resizeMode: null, recent },
   };
 }
@@ -89,8 +89,8 @@ export function restoreLayout(x: Snapshot, input: LayoutInput): Outcome {
   };
 }
 
-export function setActivity({ s }: Snapshot, id: NodeId, a: PaneActivity): Outcome {
-  return s.activity[id] === a
+export function setActivity({ s, m }: Snapshot, id: NodeId, a: PaneActivity): Outcome {
+  return !m.pane(id) || s.activity[id] === a
     ? null
     : { op: "patch", patch: { activity: { ...s.activity, [id]: a } } };
 }

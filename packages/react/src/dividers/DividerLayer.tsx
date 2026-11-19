@@ -17,6 +17,7 @@ export function DividerLayer() {
   const store = useStore();
   const m = useModel();
   const zoomed = useUi((s) => s.view.zoomed);
+  const rtl = useUi((s) => s.dir === "rtl");
   // The line shown while dragging: drawn by drag.ts straight onto the DOM, never by React.
   const line = useRef<HTMLDivElement>(null);
   if (zoomed) return null;
@@ -40,6 +41,7 @@ export function DividerLayer() {
             labelA={g.a.label}
             labelB={g.b.label}
             controls={g.a.ids.map((id) => paneDomId(store.dom.id, id)).join(" ")}
+            rtl={rtl && g.axis === "row"}
             onDragStart={(e) => startDividerDrag(store, line.current, e, d.parentId, d.index)}
             setSizeA={(size) =>
               isDividerDragging() || actions.setDividerSize(d.parentId, d.index, size)

@@ -9,10 +9,11 @@
  *
  * A link carries content only (item, focused view, opened panes); the mode and the split layout are personal.
  */
-import type { Layout, ObjectRef, PaneNode } from "./layout/types";
+import type { Direction, Layout, NodeId, ObjectRef, PaneNode } from "./layout/types";
 import type { LayoutInput } from "./layout/build";
-import type { PaneKinds } from "./pane-kinds";
+import type { PaneErrorInfo, PaneKinds } from "./pane-kinds";
 import type { Command } from "./commands/registry";
+import { en, type Messages } from "./state/messages";
 
 /** One of a curated page's views. Adapters add its icon (@jali/react: RoleDef). */
 export interface RoleBase {
@@ -60,11 +61,16 @@ export const roleOf = <R extends RoleBase>(
   id: string | undefined,
 ): R | undefined => p.roles.find((r) => r.id === id);
 
-/** A pane's name: its role in a curated page ("Borrower"), else what it shows ("member 12"). */
-export function titleOf(env: Env, node: PaneNode): string {
+/** A pane's name: its role in a curated page ("Borrower"), else what it shows: the title its content set from its
+ *  data (`titles`, useTitle), else its kind's title ("member 12"). */
+export function titleOf(env: Env, node: PaneNode, titles?: Record<NodeId, string>): string {
   const role = node.role && env.profile ? roleOf(env.profile, node.role) : undefined;
-  return role?.label ?? env.kinds.title(node.ref);
+  return role?.label ?? shownTitle(env, node, titles);
 }
+
+/** What a pane shows, by name: the title its content set (useTitle), else its kind's title. Ignores roles. */
+export const shownTitle = (env: Env, node: PaneNode, titles?: Record<NodeId, string>): string =>
+  titles?.[node.id] ?? env.kinds.title(node.ref);
 
 /** A layout the person can switch to from the bar or ⌘K ("Layout: One table"). `build` returns a fresh layout. */
 export interface Preset {
@@ -88,10 +94,21 @@ export interface Env {
   launcher?: string;
   /** False when the host shows Jali's commands in its own command menu (`palette: false`). */
   palette?: boolean;
+  /** Every word the workspace shows or says (state/messages.ts). Default: English (`en`). */
+  messages?: Messages;
+  /** Told when a pane's content throws while rendering (`createJali({ onPaneError })`). */
+  onPaneError?: (error: unknown, info: PaneErrorInfo) => void;
+  /** The reading direction it was given (`createJali({ dir })`); unset, the workspace follows its page. */
+  dir?: Direction;
 }
 
 export const presetById = (env: Pick<Env, "presets">, id: string | undefined): Preset | undefined =>
   env.presets.find((p) => p.id === id) ?? env.presets[0];
 
-export const viewerLabel = (profile: ProfileBase | null, full: boolean) =>
-  (full ? profile?.viewers?.full : profile?.viewers?.limited) ?? (full ? "investigator" : "viewer");
+export const viewerLabel = (
+  profile: ProfileBase | null,
+  full: boolean,
+  words: Pick<Messages["page"], "viewerFull" | "viewerLimited"> = en.page,
+) =>
+  (full ? profile?.viewers?.full : profile?.viewers?.limited) ??
+  (full ? words.viewerFull : words.viewerLimited);

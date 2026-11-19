@@ -62,6 +62,7 @@ describe("the instance", () => {
       "getLayout",
       "href",
       "keymap",
+      "messages",
       "model",
       "on",
       "onToast",
