@@ -10,7 +10,6 @@ import tailwind from "../../samples/guides/theming/tailwind.css?raw";
 import dark from "../../samples/guides/theming/dark-mode.ts?raw";
 import ownIcons from "../../samples/guides/theming/own-icons.tsx?raw";
 import myIcons from "../../samples/guides/theming/my-icons.tsx?raw";
-import bareIcons from "../../samples/guides/theming/bare.tsx?raw";
 
 Everything Jali draws reads `--jali-*` CSS variables, called tokens. Change a token and every part that uses it follows, in light and in dark. Jali's own rules sit in a cascade layer called `jali`, so your rules can win without `!important`.
 
@@ -122,15 +121,13 @@ With Tailwind, put rules like these in your stylesheet, in a layer after `jali`.
 
 ## Your own icons
 
-Jali's icons are [Phosphor's](https://phosphoricons.com), in the regular weight. To use your app's own, pass `icons` to `<JaliRoot>`, by name: `close`, `maximise`, `tuck`, `fold` and the rest ([every name](/reference/react#icons)). Each is a component that takes `size`, `className` and `aria-hidden`; a Phosphor icon is one. Names you leave out stay Phosphor's.
+Jali comes with its own icons, so you install no icon library for them. They are [Phosphor's](https://phosphoricons.com) in the regular weight, copied into the package. To use your app's own, pass `icons` to `<JaliRoot>`, by name: `close`, `maximise`, `tuck`, `fold` and the rest ([every name](/reference/react#icons)). Each is a component that takes `size`, `className` and `aria-hidden`; an icon from Phosphor, Lucide or most other React sets is one. Names you leave out stay Jali's.
 
 <Code code={ownIcons} filename="src/App.tsx" />
 
-To leave Phosphor out of your bundle altogether, import from `@jali/react/bare`. It is the same package without Phosphor: `<JaliRoot icons>` is required there and must name every icon, which the types check.
+To replace them all, type your set as `JaliIcons`, and the types tell you when one is missing:
 
 <Code code={myIcons} filename="src/my-icons.tsx" />
-
-<Code code={bareIcons} filename="src/App.tsx" />
 
 A kind's own icon is set on the kind (`definePane("order", { icon })`), and the default for a kind without one is `defaultKind`. For chrome of your own that should match, `useJaliIcons()` returns the set in use.
 

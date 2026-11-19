@@ -1,11 +1,11 @@
 /**
- * Jali with the host's own icons and no Phosphor: `@jali/react/bare` takes every icon Jali draws, and the types
- * refuse a set with one missing. These are a few strokes on a 16px grid, standing in for an app's icon set.
- * The bundle test (packages/react/src/bundle.test.ts) builds this app and checks that no Phosphor code is in it.
+ * Jali drawing with the host's own icons: `<JaliRoot icons>` takes any of Jali's icon names; this app gives all of
+ * them (typed `JaliIcons`, so one missing fails to compile). These are a few strokes on a 16px grid, standing in for
+ * an app's icon set. The bundle test (packages/react/src/bundle.test.ts) builds this app.
  */
 import { createRoot } from "react-dom/client";
 import { createJali, row } from "@jali/core";
-import { JaliRoot, definePane, type JaliIconProps, type JaliIcons } from "@jali/react/bare";
+import { JaliRoot, definePane, type JaliIconProps, type JaliIcons } from "@jali/react";
 import "./app.css";
 import "@jali/react/styles.css";
 

@@ -1,11 +1,10 @@
 /**
- * The packages' public entry points. A change to what "@jali/core", "@jali/react", "@jali/react/bare" or "@jali/react/icons" exports fails here, so it is made
+ * The packages' public entry points. A change to what "@jali/core", "@jali/react" or "@jali/react/icons" exports fails here, so it is made
  * on purpose: update the list, and the docs and changelog with it. "@jali/core/adapter" is for adapters and unchecked.
  */
 import { describe, expect, it } from "vite-plus/test";
 import * as core from "@jali/core";
 import * as react from "@jali/react";
-import * as bare from "@jali/react/bare";
 import * as icons from "@jali/react/icons";
 
 describe("public API", () => {
@@ -102,13 +101,9 @@ describe("public API", () => {
     ]);
   });
 
-  it("@jali/react/bare exports the same values as @jali/react", () => {
-    expect(Object.keys(bare).sort()).toEqual(Object.keys(react).sort());
-  });
-
-  it("@jali/react/icons exports Phosphor's set, with an icon for every name", () => {
-    expect(Object.keys(icons)).toEqual(["phosphorIcons"]);
-    expect(Object.keys(icons.phosphorIcons).length).toBe(28);
+  it("@jali/react/icons exports Jali's default set, with an icon for every name", () => {
+    expect(Object.keys(icons)).toEqual(["defaultIcons"]);
+    expect(Object.keys(icons.defaultIcons).length).toBe(28);
   });
 
   it("the layout namespace is the pure tree API", () => {

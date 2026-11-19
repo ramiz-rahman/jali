@@ -14,9 +14,10 @@
     "test:react18": "scripts/test-react18.sh",
     "screens": "SCREENS=1 playwright test",
     "build:packages": "pnpm -r --filter \"./packages/*\" build",
+    "icons": "node scripts/icons.mjs && vp fmt packages/react/src/icons/default-paths.ts",
     "size": "pnpm build:packages && tsc -p scripts/size && node scripts/size.mjs",
     "example:minimal": "vp dev --config examples/minimal/vite.config.ts --port 5310",
-    "example:bare-icons": "vp dev --config examples/bare-icons/vite.config.ts --port 5311",
+    "example:own-icons": "vp dev --config examples/own-icons/vite.config.ts --port 5311",
     "example:markets": "vp dev --config examples/markets/vite.config.ts --port 5320"
   },
   "dependencies": {

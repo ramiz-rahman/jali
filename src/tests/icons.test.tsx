@@ -1,10 +1,9 @@
-/** The icon slot: a host's icons replace Jali's by name, the rest stay Phosphor's, and the bare entry wants them all. */
+/** The icon slot: a host's icons replace Jali's by name, and the rest stay Jali's own. */
 import { cleanup, render, screen, within } from "@testing-library/react";
 import { afterEach, beforeAll, describe, expect, it } from "vite-plus/test";
 import { createJali, memoryLocation, memoryStorage, row } from "@jali/core";
 import { JaliRoot, definePane, type JaliIconProps } from "@jali/react";
-import { JaliRoot as BareJaliRoot } from "@jali/react/bare";
-import { phosphorIcons } from "@jali/react/icons";
+import { defaultIcons } from "@jali/react/icons";
 
 const note = definePane("note", {
   params: { id: Number },
@@ -23,7 +22,7 @@ const make = () =>
   });
 
 const HostClose = ({ size }: JaliIconProps) => <svg data-testid="host-close" width={size} />;
-const isPhosphor = (el: Element | null) => el?.getAttribute("viewBox") === "0 0 256 256";
+const isJali = (el: Element | null) => el?.hasAttribute("data-jali-icon") ?? false;
 
 beforeAll(() => {
   globalThis.ResizeObserver ??= class {
@@ -35,32 +34,27 @@ beforeAll(() => {
 afterEach(cleanup);
 
 describe("icons", () => {
-  it("a host's icon replaces one of Jali's in a pane's header; the others stay Phosphor's", () => {
+  it("a host's icon replaces one of Jali's in a pane's header; the others stay Jali's", () => {
     render(<JaliRoot jali={make()} icons={{ close: HostClose }} />);
     const close = screen.getAllByRole("button", { name: "Close Note 1" })[0]!;
     expect(within(close).getByTestId("host-close")).toBeTruthy();
     const tuck = screen.getAllByRole("button", { name: "Tuck Note 1" })[0]!;
-    expect(isPhosphor(tuck.querySelector("svg"))).toBe(true);
-    // A kind without an icon gets the default kind icon, Phosphor's square.
+    expect(isJali(tuck.querySelector("svg"))).toBe(true);
+    // A kind without an icon gets the default kind icon, a square.
     const header = close.closest(".jali-pane-header")!;
-    expect([...header.querySelectorAll("svg")].some(isPhosphor)).toBe(true);
+    expect([...header.querySelectorAll("svg")].some(isJali)).toBe(true);
   });
 
-  it("with no icons, every icon is Phosphor's", () => {
+  it("with no icons, every icon is Jali's own", () => {
     render(<JaliRoot jali={make()} />);
     const close = screen.getAllByRole("button", { name: "Close Note 1" })[0]!;
-    expect(isPhosphor(close.querySelector("svg"))).toBe(true);
+    expect(isJali(close.querySelector("svg"))).toBe(true);
   });
 
-  it("the bare entry draws with exactly the icons it is given", () => {
-    render(<BareJaliRoot jali={make()} icons={{ ...phosphorIcons, close: HostClose }} />);
+  it("a full set of the host's draws no icon of Jali's", () => {
+    const own = Object.fromEntries(Object.keys(defaultIcons).map((k) => [k, HostClose]));
+    const { container } = render(<JaliRoot jali={make()} icons={own} />);
     expect(screen.getAllByTestId("host-close").length).toBeGreaterThan(0);
-  });
-
-  it("the bare entry's types refuse an incomplete set", () => {
-    const partial = { close: HostClose };
-    // @ts-expect-error: @jali/react/bare needs every icon (JaliIcons), not some of them.
-    const el = <BareJaliRoot jali={make()} icons={partial} />;
-    expect(el).toBeTruthy();
+    expect(container.querySelector("[data-jali-icon]")).toBeNull();
   });
 });

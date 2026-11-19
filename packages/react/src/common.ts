@@ -1,7 +1,4 @@
-/**
- * What `@jali/react` and `@jali/react/bare` both export: everything but `<JaliRoot>` and `<JaliProvider>`, which each
- * entry gives its own icons. Nothing here imports Phosphor.
- */
+/** What `@jali/react` exports apart from `<JaliRoot>` and `<JaliProvider>`. */
 
 // ---------- start here ----------
 export { JaliView } from "./JaliRoot";

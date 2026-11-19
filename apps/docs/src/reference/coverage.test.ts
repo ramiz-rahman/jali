@@ -77,12 +77,12 @@ describe("the reference covers the public API", () => {
     expect(missing(names)).toEqual([]);
   });
 
-  it("every value @jali/react exports has an entry (and @jali/react/icons; /bare exports the same names)", () => {
+  it("every value @jali/react exports has an entry (and @jali/react/icons)", () => {
     expect(missing([...Object.keys(react), ...Object.keys(icons)])).toEqual([]);
   });
 
   it("every icon name has an entry", () => {
-    expect(missing(Object.keys(icons.phosphorIcons).map((k) => `icons.${k}`))).toEqual([]);
+    expect(missing(Object.keys(icons.defaultIcons).map((k) => `icons.${k}`))).toEqual([]);
   });
 
   it("every type the two packages export has an entry", () => {

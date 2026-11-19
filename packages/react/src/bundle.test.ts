@@ -1,8 +1,9 @@
 // @vitest-environment node
 /**
- * A host that brings every icon never bundles Phosphor. Builds examples/bare-icons (on `@jali/react/bare`) and checks
- * the output has no Phosphor in it; builds examples/minimal (on `@jali/react`) as the control, which must. Both build
- * from the packages' source, and again from dist when `pnpm build:packages` has made it (what a `link:` host gets).
+ * Jali ships its own default icons, so no app bundles an icon library for them. Builds examples/minimal (Jali's icons)
+ * and examples/own-icons (the host's for every name) and checks neither has Phosphor in it, and that the minimal one
+ * has Jali's icons. Both build from the packages' source, and again from dist when `pnpm build:packages` has made it
+ * (what a `link:` host gets).
  */
 import { existsSync } from "node:fs";
 import { fileURLToPath } from "node:url";
@@ -11,7 +12,7 @@ import { build, defaultClientConditions } from "vite-plus";
 import react from "@vitejs/plugin-react";
 
 const repo = fileURLToPath(new URL("../../..", import.meta.url));
-const hasDist = existsSync(`${repo}/packages/react/dist/bare.js`);
+const hasDist = existsSync(`${repo}/packages/react/dist/icons.js`);
 
 /** All the JavaScript a production build of the example emits. */
 async function bundle(example: string, from: "source" | "dist"): Promise<string> {
@@ -45,14 +46,16 @@ const phosphorIn = (code: string) => ({
 describe.each(hasDist ? (["source", "dist"] as const) : (["source"] as const))(
   "bundles from %s",
   (from) => {
-    it("@jali/react/bare with a full icon set has no Phosphor in it", async () => {
-      const code = await bundle("bare-icons", from);
-      expect(code).toContain("Open the next note beside");
+    it("an app on Jali's own icons has no Phosphor in it, and has Jali's icons", async () => {
+      const code = await bundle("minimal", from);
       expect(phosphorIn(code)).toEqual({ name: false, weights: false });
+      expect(code).toContain("data-jali-icon");
     }, 60_000);
 
-    it("@jali/react with no icons has Phosphor's (the control)", async () => {
-      expect(phosphorIn(await bundle("minimal", from)).weights).toBe(true);
+    it("an app with its own icon for every name has no Phosphor in it", async () => {
+      const code = await bundle("own-icons", from);
+      expect(code).toContain("Open the next note beside");
+      expect(phosphorIn(code)).toEqual({ name: false, weights: false });
     }, 60_000);
   },
 );

@@ -3,21 +3,21 @@
 React for [Jali](../core) workspaces, with Jali's default theme.
 
 ```sh
-npm install @jali/core @jali/react @phosphor-icons/react
+npm install @jali/core @jali/react
 ```
 
-React 18.2 or later (18 or 19) is a peer dependency, and so is `@phosphor-icons/react` (optional).
+React 18.2 or later (18 or 19) is a peer dependency; nothing else is.
 
 Browsers: Baseline 2024 (Chrome and Edge 123, Firefox 120, Safari 17.5, Electron 30). The theme's colours are `light-dark()` pairs, the newest feature Jali uses.
 
 **Linked or in a monorepo** (`link:`, `file:`, `workspace:` or a symlinked checkout): the package can resolve its own copy of React from beside its source, and the app then bundles two Reacts, which breaks hooks ("Invalid hook call"). With Vite, tell it to use the app's: `resolve: { dedupe: ["react", "react-dom"] }` in `vite.config.ts`. With webpack, alias `react` and `react-dom` to the app's copy (`resolve.alias`).
 
-Jali's icons are Phosphor's regular weight, the set Chakni uses; give a kind any Phosphor icon (`icon: FileTextIcon`) and it matches.
+Jali's icons are built in: Phosphor's regular weight, copied into the package, so there is no icon library to install. Give a kind any Phosphor icon (`icon: FileTextIcon`) and it matches.
 
 ## Icons
 
-- `<JaliRoot icons={{ close: MyClose }}>` replaces any of Jali's icons by name; the rest stay Phosphor's. `useJaliIcons()` returns the set in use.
-- `@jali/react/bare` is the same API without Phosphor: `<JaliRoot icons>` takes every icon (`JaliIcons`, checked by the types), so Phosphor is never installed or bundled. `@jali/react/icons` exports `phosphorIcons`, the full default map.
+- `<JaliRoot icons={{ close: MyClose }}>` replaces any of Jali's icons by name; the rest stay Jali's. `useJaliIcons()` returns the set in use.
+- `@jali/react/icons` exports `defaultIcons`, the full default map. Type a set of your own as `JaliIcons` and the types check it names every icon.
 - Each icon is a component taking `{ size, className, "aria-hidden" }`. The names are in the reference (Icons).
 
 ```tsx

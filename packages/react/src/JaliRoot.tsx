@@ -15,11 +15,10 @@
  * Two things are the host's to render: the shelf (`<Shelf />`, tucked and folded panes as chips, usually in a status
  * line) and toasts (`jali.onToast`; closes and tucks offer Undo). Put a toaster in `overlays`.
  *
- * This file is the root without icons: `@jali/react` wraps it with Phosphor's (withPhosphor.tsx), and
- * `@jali/react/bare` exports it as it is, so a host that brings every icon never bundles Phosphor.
+ * Icons: Jali's own (`defaultIcons`), with the host's `icons` over them by name.
  */
 import type { Jali } from "@jali/core";
-import { useEffect, type HTMLAttributes, type ReactNode } from "react";
+import { useEffect, useMemo, type HTMLAttributes, type ReactNode } from "react";
 import { storeOf } from "@jali/core/adapter";
 import { Announcer } from "./chrome/Announcer";
 import { CuratedPage } from "./chrome/PageBar";
@@ -28,12 +27,12 @@ import { ConfirmDiscard } from "./dialogs/ConfirmDiscard";
 import { Palette } from "./dialogs/Palette";
 import { SettingsPanel } from "./dialogs/Settings";
 import { IconsProvider } from "./icons/context";
+import { defaultIcons } from "./icons/default";
 import type { JaliIcons } from "./icons/types";
 import { StoreProvider, useUi } from "./state/react";
 import { Panes } from "./workspace/Workspace";
 
-/** `<JaliRoot>`'s props apart from `icons`, which each entry types its own way. */
-export interface JaliRootOptions extends HTMLAttributes<HTMLDivElement> {
+export interface JaliRootProps extends HTMLAttributes<HTMLDivElement> {
   jali: Jali;
   /** What goes inside the workspace's root. Default: `<JaliView />`. */
   children?: ReactNode;
@@ -44,16 +43,14 @@ export interface JaliRootOptions extends HTMLAttributes<HTMLDivElement> {
   settings?: boolean;
   /** Your own fieldsets, shown at the end of the settings panel (`<fieldset><legend>…</legend>…</fieldset>`). */
   settingsExtra?: ReactNode;
+  /** Your own icons for any of Jali's, by name (`{ close: MyClose }`); the rest stay Jali's own. */
+  icons?: Partial<JaliIcons>;
 }
 
-/** `@jali/react/bare`'s `JaliRootProps`: `icons` is required and complete. */
-export interface BareJaliRootProps extends JaliRootOptions {
-  /** Every icon Jali draws. Start from `phosphorIcons` (`@jali/react/icons`) or bring your own set. */
-  icons: JaliIcons;
-}
+const useIcons = (icons: Partial<JaliIcons> | undefined): JaliIcons =>
+  useMemo(() => (icons ? { ...defaultIcons, ...icons } : defaultIcons), [icons]);
 
-/** `<JaliRoot>` with a complete set of icons: `@jali/react/bare` exports it as `JaliRoot`. */
-export function BareJaliRoot({
+export function JaliRoot({
   jali,
   icons,
   children = <JaliView />,
@@ -61,11 +58,11 @@ export function BareJaliRoot({
   settings = true,
   settingsExtra,
   ...rest
-}: BareJaliRootProps) {
+}: JaliRootProps) {
   const store = storeOf(jali);
   useEffect(() => store.start(), [store]);
   return (
-    <BareJaliProvider jali={jali} icons={icons}>
+    <JaliProvider jali={jali} icons={icons}>
       <div {...rest} dir={store.env.dir ?? rest.dir} data-jali="" ref={store.dom.attach}>
         {children}
       </div>
@@ -83,23 +80,23 @@ export function BareJaliRoot({
         <ConfirmDiscard />
       </div>
       {overlays}
-    </BareJaliProvider>
+    </JaliProvider>
   );
 }
 
-/** Provides a workspace and its icons to the hooks and parts below it, as `<JaliRoot>` does. */
-export function BareJaliProvider({
+/** Provides a workspace and its icons to the hooks and parts below it. `<JaliRoot>` does this; use it to render Jali's parts on their own. */
+export function JaliProvider({
   jali,
   icons,
   children,
 }: {
   jali: Jali;
-  icons: JaliIcons;
+  icons?: Partial<JaliIcons>;
   children?: ReactNode;
 }) {
   return (
     <StoreProvider store={storeOf(jali)}>
-      <IconsProvider icons={icons}>{children}</IconsProvider>
+      <IconsProvider icons={useIcons(icons)}>{children}</IconsProvider>
     </StoreProvider>
   );
 }

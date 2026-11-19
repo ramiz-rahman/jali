@@ -2,13 +2,13 @@ import type { ComponentType } from "react";
 
 /** What Jali passes an icon: a pixel size, sometimes a class, and `aria-hidden` (a label always sits beside it). */
 export interface JaliIconProps {
-  /** Jali passes a number of pixels. A string is allowed so icon sets that take one (Phosphor) fit in React 18's types. */
+  /** Jali passes a number of pixels. A string is allowed so icon sets that take one (such as Phosphor) fit in React 18's types. */
   size?: number | string;
   className?: string;
   "aria-hidden"?: boolean | "true" | "false";
 }
 
-/** An icon Jali can draw: any Phosphor icon, or any component that takes these props. */
+/** An icon Jali can draw: any component that takes these props, such as a Phosphor, Lucide or Heroicons icon. */
 export type JaliIcon = ComponentType<JaliIconProps>;
 
 /**
@@ -49,5 +49,5 @@ export type JaliIconName =
   | "dropSwap"
   | "dropTab";
 
-/** One icon per name: the complete set `@jali/react/bare` needs. `@jali/react` takes any part of it. */
+/** One icon per name. `<JaliRoot icons>` takes any part of it; `defaultIcons` is all of it. */
 export type JaliIcons = Record<JaliIconName, JaliIcon>;
