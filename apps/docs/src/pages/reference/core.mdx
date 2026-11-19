@@ -40,7 +40,7 @@ Its listeners (keys, Back and Forward, theme and saving) start with `jali.start(
 <ChildParams>
 <Param name="panes" type="readonly PaneKindBase[]" required>The kinds of pane it can show, from `definePane`. A layout can only show refs of these kinds.</Param>
 <Param name="layout" type="LayoutInput">The layout it opens on: a builder's result (`row(...)`), a single ref, or a whole `Layout`. Give this or `presets`.</Param>
-<Param name="presets" type="readonly PresetOptions[]" default="[]">Layouts to start from, in menu order, each `{ id, label, layout }`. Each gets a `layout.preset.<id>` command, titled "Layout: label", and "Reset layout" rebuilds the one in use. `layout` may be a function, to build a fresh one each time.</Param>
+<Param name="presets" type="readonly PresetOptions[]" default="[]">Layouts to start from, in menu order, each `{ id, label, layout }`. Each gets a `layout.preset.<id>` command, titled "Layout: label", and "Reset layout" rebuilds the one in use. `layout` may be a function, to build a fresh one each time. `saved` gives back the layout the person left a preset in.</Param>
 <Param name="preset" type="string" default="the first preset">The preset it opens on when no link says otherwise. An id that is not in `presets` also gives the first.</Param>
 <Param name="launcher" type="PaneKindBase">What Split and "New tab here" open until the person chooses what to show. It closes quietly and its component reads `useLauncher()`. Without one, those commands and the tab strip's "+" are not offered.</Param>
 <Param name="page" type="Page | null" default="null">A curated page this workspace can show, from `definePage`.</Param>

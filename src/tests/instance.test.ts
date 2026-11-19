@@ -9,8 +9,10 @@ import {
   memoryStorage,
   pane,
   row,
+  runCommand,
   tabs,
   type JaliEvents,
+  type LayoutInput,
   type JaliOptions,
 } from "@jali/core";
 import { storeOf } from "@jali/core/adapter";
@@ -237,6 +239,37 @@ describe("results", () => {
     });
     expect(jali.actions.preset("two")).toEqual({ ok: false, reason: "not-found" });
     expect(jali.actions.preset("one").ok).toBe(true);
+  });
+
+  it("comes back to a preset as the app saved it, from any switch, and resets to its own", () => {
+    const saved = new Map<string, LayoutInput>();
+    const jali = make({
+      layout: undefined,
+      presets: [
+        { id: "one", label: "One", layout: () => row(list(), order({ id: 5 })) },
+        { id: "two", label: "Two", layout: () => row(order({ id: 7 })) },
+      ].map((p) => ({ ...p, saved: () => saved.get(p.id) })),
+    });
+    jali.on("layout", ({ layout }) => saved.set(jali.get().presetId!, layout));
+    // The orders on screen, by id.
+    const orders = () =>
+      [...JSON.stringify(jali.getLayout().root).matchAll(/"id":(\d+)/g)]
+        .map((m) => Number(m[1]))
+        .sort();
+    jali.actions.openBeside("orders", order({ id: 9 }));
+    jali.actions.preset("two");
+    expect(orders()).toEqual([7]);
+
+    expect(runCommand(jali, "layout.preset.one")).toBe(true);
+    expect(jali.get().presetId).toBe("one");
+    expect(orders()).toEqual([5, 9]);
+
+    jali.actions.resetLayout();
+    expect(orders()).toEqual([5]);
+    // A saved layout this workspace can't read: the preset's own.
+    saved.set("two", row(pane({ kind: "gone", params: {} })));
+    jali.actions.preset("two");
+    expect(orders()).toEqual([7]);
   });
 
   it("is ok when what it asks for is already so", () => {

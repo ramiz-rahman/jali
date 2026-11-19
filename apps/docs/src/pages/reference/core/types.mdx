@@ -455,9 +455,9 @@ A layout to start from or switch to ("Layout: Orders"), as `jali.env.presets` ho
 
 </Entry>
 
-<Entry name="PresetOptions" kind="type" from="@jali/core" signature={`interface PresetOptions { id: string; label: string; layout: LayoutInput | (() => LayoutInput) }`} compact>
+<Entry name="PresetOptions" kind="type" from="@jali/core" signature={`interface PresetOptions { id: string; label: string; layout: LayoutInput | (() => LayoutInput); saved?: () => LayoutInput | undefined }`} compact>
 
-A preset, as `createJali({ presets })` takes it.
+A preset, as `createJali({ presets })` takes it. `saved`, if given, is asked each time the preset is chosen: a layout it returns is shown instead of `layout`, so the preset comes back as the person left it. "Reset layout" always builds `layout`. See [Start from presets](/guides/presets#keep-each-preset-as-it-was-left).
 
 </Entry>
 

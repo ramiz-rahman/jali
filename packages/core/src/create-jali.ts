@@ -39,6 +39,13 @@ export interface PresetOptions {
   label: string;
   /** The layout, or a function that builds it each time it is chosen. */
   layout: LayoutInput | (() => LayoutInput);
+  /**
+   * The layout the person left this preset in, if the app kept one (from `getLayout()`, or `on("layout")`).
+   * Choosing the preset, from a button, ⌘K or a key, shows it instead of `layout`, so each preset comes back as it
+   * was arranged. "Reset layout" (`resetLayout`) builds `layout`. A saved layout that names a kind this workspace
+   * no longer has is ignored.
+   */
+  saved?: () => LayoutInput | undefined;
 }
 
 export interface JaliOptions<D extends PaneKindBase = PaneKindBase> {
@@ -167,9 +174,10 @@ export type { Jali };
 
 const inBrowser = typeof window !== "undefined";
 
-const presetOf = ({ id, label, layout }: PresetOptions): Preset => ({
+const presetOf = ({ id, label, layout, saved }: PresetOptions): Preset => ({
   id,
   label,
+  ...(saved ? { saved } : {}),
   build: () => toLayout(typeof layout === "function" ? layout() : structuredClone(layout)),
 });
 

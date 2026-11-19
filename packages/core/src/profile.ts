@@ -77,6 +77,8 @@ export interface Preset {
   id: string;
   label: string;
   build: () => Layout;
+  /** The layout the person left it in, if the app kept one (`PresetOptions.saved`). */
+  saved?: () => LayoutInput | undefined;
 }
 
 /** What a workspace is made of, beyond its state: its pane kinds, presets and (a curated page) its profile. One per store. */
