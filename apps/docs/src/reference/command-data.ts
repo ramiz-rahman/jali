@@ -4,7 +4,7 @@
  * in packages/core/src/commands/registry.ts and the action it runs. The coverage test checks that every command id
  * has a note here, and no note names a command that is gone.
  */
-import { commandsOf, createPaneKinds, type Env, type Layout } from "@jali/core/adapter";
+import { commandsOf, createPaneKinds, spacingOf, type Env, type Layout } from "@jali/core/adapter";
 
 const empty = (): Layout => ({
   version: 1,
@@ -18,6 +18,7 @@ export const SAMPLE_ENV: Env = {
   profile: null,
   presets: [{ id: "orders", label: "Orders", build: empty }],
   name: "Workspace",
+  spacing: spacingOf(),
 };
 
 /** The one id per preset, shown as a pattern. */
