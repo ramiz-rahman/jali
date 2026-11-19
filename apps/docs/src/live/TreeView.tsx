@@ -26,6 +26,7 @@ import { LayoutMap } from "./LayoutMap";
 import { OverlayCard, PreviewRects, panesUnder, type Hover } from "./LayoutTree";
 import { LiveWorkspace, resetLive, useLiveStore } from "./LiveWorkspace";
 import { useLitPanes, usePaneColours } from "./light";
+import { TourBar, useTour } from "./Tour";
 
 /** A live workspace beside its layout tree, kept in step. */
 export interface TreeViewProps {
@@ -50,6 +51,12 @@ export interface TreeViewProps {
    * "collapsed" is an older name for "side".
    */
   panels?: "auto" | "map" | "json" | "map+json" | "side" | "collapsed";
+  /**
+   * A short scripted tour of the workspace (with `panels="side"`, the hero): it plays once a session when the figure
+   * is first in view, stops for good when the reader touches anything inside, and has Play and Replay controls. It
+   * never plays by itself on a phone or with reduced motion. Default false.
+   */
+  tour?: boolean;
 }
 
 /** Wide enough (px) for the workspace, the map and the JSON side by side. */
@@ -103,6 +110,7 @@ export function TreeView({
   detail = false,
   tries = true,
   panels,
+  tour = false,
 }: TreeViewProps) {
   const store = useLiveStore(layout);
   const m = useSyncExternalStore(store.subscribe, store.model, store.model);
@@ -115,7 +123,21 @@ export function TreeView({
 
   const want = panels ?? (json ? "auto" : "map");
   const collapsed = want === "collapsed" || want === "side";
-  const [side, setSide] = useSidePanel();
+  const [side, setSide, showSide] = useSidePanel();
+  const cursor = useRef<HTMLSpanElement | null>(null);
+  const tourOn = tour && collapsed;
+  const guide = useTour({
+    enabled: tourOn,
+    store,
+    fig,
+    wrap,
+    cursor,
+    showPanel: (v) => showSide(v),
+    reset: () => {
+      setHover(null);
+      resetLive(store, layout);
+    },
+  });
   const three = (want === "auto" && width >= THREE_UP) || (want === "map+json" && width >= 56 * 16);
   const both = want === "map+json" || three;
   const toggle = !both && want === "auto";
@@ -148,6 +170,7 @@ export function TreeView({
       title="Reset the layout"
       onClick={() => {
         setHover(null);
+        guide.fullRoom();
         resetLive(store, layout);
       }}
     >
@@ -233,18 +256,24 @@ export function TreeView({
         data-live="tree-view"
         data-parts="side"
         data-side={side}
+        data-tour={tourOn ? guide.status : undefined}
         aria-label={caption ?? demoLayouts[layout]}
         style={{ ["--live-ws-h" as string]: h }}
       >
-        {tries ? (
-          <ul className="live-tries" aria-label="Things to try">
-            {triesFor(m, side === "json" || side === "both", open).map((t) => (
-              <li key={t.text}>
-                {t.icon}
-                <span>{t.text}</span>
-              </li>
-            ))}
-          </ul>
+        {tourOn ? (
+          <TourBar
+            tour={guide}
+            store={store}
+            tries={
+              tries ? (
+                <Tries items={triesFor(m, side === "json" || side === "both", open)} />
+              ) : (
+                <span />
+              )
+            }
+          />
+        ) : tries ? (
+          <Tries items={triesFor(m, side === "json" || side === "both", open)} />
         ) : null}
         <div className="live-tv-grid">
           <div
@@ -253,6 +282,7 @@ export function TreeView({
             onPointerLeave={() => hover?.from === "ws" && setHover(null)}
           >
             <LiveWorkspace store={store} height={h} wrapRef={wrap} status={false} />
+            {tourOn ? <span className="live-tour-cursor" ref={cursor} aria-hidden /> : null}
             {open ? null : (
               <button type="button" className="live-edge-tab" onClick={() => setSide("map")}>
                 <TreeStructureIcon size={15} aria-hidden />
@@ -378,21 +408,42 @@ export function TreeView({
   );
 }
 
+function Tries({ items }: { items: { icon: ReactNode; text: string }[] }) {
+  return (
+    <ul className="live-tries" aria-label="Things to try">
+      {items.map((t) => (
+        <li key={t.text}>
+          {t.icon}
+          <span>{t.text}</span>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
 type Side = "map" | "json" | "both" | "closed";
 const SIDE_KEY = "jali-docs:tree-panel";
 
 /** The side panel's view, remembered on this device (the page works the same when storage is blocked). */
-function useSidePanel(): [Side, (s: Side) => void] {
+function useSidePanel(): [Side, (s: Side) => void, (s: "json" | null) => void] {
   const [side, setSide] = useState<Side>("map");
+  const chosen = useRef<Side>("map");
   useEffect(() => {
     try {
       const v = localStorage.getItem(SIDE_KEY);
-      if (v === "map" || v === "json" || v === "both" || v === "closed") setSide(v);
+      if (v === "map" || v === "json" || v === "both" || v === "closed") {
+        chosen.current = v;
+        setSide(v);
+      }
     } catch {
       /* storage blocked: keep the default */
     }
   }, []);
+  // For a while (the tour): a view that shows the JSON, not remembered; `null` goes back to the reader's choice.
+  const show = (v: "json" | null) =>
+    setSide(v === null ? chosen.current : chosen.current === "both" ? "both" : v);
   const set = (v: Side) => {
+    chosen.current = v;
     setSide(v);
     try {
       localStorage.setItem(SIDE_KEY, v);
@@ -400,7 +451,7 @@ function useSidePanel(): [Side, (s: Side) => void] {
       /* storage blocked */
     }
   };
-  return [side, set];
+  return [side, set, show];
 }
 
 /** The figure's width, measured (0 before the first measure, as on the server). */

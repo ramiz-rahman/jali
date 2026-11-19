@@ -1618,3 +1618,208 @@
     outline-offset: 2px;
   }
 }
+@layer live {
+  /* ---------- The hero's tour: a caption row with its controls, a soft cursor, and the workspace's room ---------- */
+  .live-tour-bar {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem 1.25rem;
+    min-height: 2rem;
+    margin: 0 0 0.75rem;
+  }
+  .live-tour-bar > .live-tries {
+    flex: 1 1 auto;
+    min-width: 0;
+    margin: 0 !important;
+  }
+  .live-tour-caption {
+    flex: 1 1 auto;
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+  .live-tour-steps {
+    display: inline-flex;
+    gap: 3px;
+    flex: none;
+  }
+  .live-tour-steps i {
+    width: 0.875rem;
+    height: 3px;
+    border-radius: 2px;
+    background: var(--jali-border-strong);
+    transition: background-color 240ms ease;
+  }
+  .live-tour-steps i[data-done] {
+    background: color-mix(in srgb, var(--jali-accent) 45%, var(--jali-border));
+  }
+  .live-tour-steps i[data-at] {
+    background: var(--jali-accent);
+  }
+  .live-tour-text {
+    font-size: 0.9375rem;
+    line-height: 1.4;
+    font-weight: 500;
+    color: var(--jali-text);
+    animation: live-tour-in 320ms cubic-bezier(0.2, 0, 0, 1) both;
+  }
+  @keyframes live-tour-in {
+    from {
+      opacity: 0;
+      transform: translateY(3px);
+    }
+  }
+  .live-tour-address {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    min-width: 0;
+    max-width: 34rem;
+    flex: 0 1 auto;
+    padding: 0.1875rem 0.5rem;
+    border: 1px solid var(--jali-border);
+    border-radius: 0.4375rem;
+    background: var(--jali-surface);
+    color: var(--jali-text-subtle);
+    animation: live-tour-in 320ms cubic-bezier(0.2, 0, 0, 1) both;
+  }
+  .live-tour-address svg {
+    flex: none;
+    color: var(--jali-accent);
+  }
+  .live-tour-address code {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font: 0.75rem/1.4 var(--jali-font-mono);
+    color: var(--jali-text);
+  }
+  .live-tour-address code span {
+    color: var(--jali-text-subtle);
+  }
+  .live-tour-controls {
+    display: inline-flex;
+    gap: 0.375rem;
+    flex: none;
+    margin-left: auto;
+  }
+  .live-tour-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    height: 1.875rem;
+    padding: 0 0.6875rem 0 0.5625rem;
+    border: 1px solid var(--jali-border);
+    border-radius: 999px;
+    background: var(--jali-surface);
+    color: var(--jali-text-muted);
+    font: 500 0.8125rem/1 var(--jali-font);
+    cursor: pointer;
+  }
+  .live-tour-btn svg {
+    color: var(--jali-accent);
+  }
+  .live-tour-btn:hover {
+    color: var(--jali-text);
+    border-color: var(--jali-border-strong);
+  }
+  .live-tour-btn[aria-pressed="true"] {
+    background: var(--jali-accent-soft);
+    border-color: color-mix(in srgb, var(--jali-accent) 40%, var(--jali-border));
+    color: var(--jali-text);
+  }
+  .live-tour-btn:focus-visible {
+    outline: 2px solid var(--jali-focus-ring);
+    outline-offset: 2px;
+  }
+
+  /* The soft cursor: shows where the tour acts. It takes no pointer events. */
+  .live-tour-cursor {
+    position: absolute;
+    left: 0;
+    top: 0;
+    z-index: 45;
+    width: 1.5rem;
+    height: 1.5rem;
+    margin: -0.75rem 0 0 -0.75rem;
+    border-radius: 50%;
+    border: 1.5px solid color-mix(in srgb, var(--jali-accent) 75%, transparent);
+    background: color-mix(in srgb, var(--jali-accent) 16%, transparent);
+    box-shadow: 0 2px 10px color-mix(in srgb, var(--jali-accent) 25%, transparent);
+    pointer-events: none;
+    opacity: 0;
+    /* Moved with `translate`, so the press's `scale` shrinks it in place. */
+    transition:
+      translate 620ms cubic-bezier(0.3, 0.7, 0.2, 1),
+      opacity 240ms ease;
+  }
+  .live-tour-cursor[data-on] {
+    opacity: 1;
+  }
+  .live-tour-cursor[data-press] {
+    animation: live-tour-press 420ms ease-out;
+  }
+  @keyframes live-tour-press {
+    40% {
+      scale: 0.72;
+      background: color-mix(in srgb, var(--jali-accent) 34%, transparent);
+    }
+  }
+
+  /* Less room: the workspace's own box narrows inside the figure; the room it gave up is hatched. */
+  .live-tv[data-tour-room] .live-stage {
+    background: repeating-linear-gradient(
+      -45deg,
+      var(--jali-canvas) 0 6px,
+      color-mix(in srgb, var(--jali-border) 55%, var(--jali-canvas)) 6px 7px
+    );
+  }
+  .live-tv[data-tour-room] .live-stage > .live-ws {
+    box-shadow: 1px 0 0 var(--jali-border-strong);
+    background: var(--jali-surface);
+  }
+  .live-stage > .live-ws[data-tour-anim] {
+    transition: width 1200ms cubic-bezier(0.45, 0, 0.2, 1);
+  }
+
+  /* Narrow: the controls on their own line, the caption under them at full width. */
+  @container live-fig (max-width: 44rem) {
+    .live-tour-bar {
+      flex-wrap: wrap;
+    }
+    .live-tour-bar > .live-tries,
+    .live-tour-caption {
+      order: 2;
+      flex-basis: 100%;
+    }
+    .live-tour-bar > .live-tries {
+      margin-top: 0.25rem !important;
+    }
+    .live-tour-caption {
+      flex-wrap: wrap;
+      align-items: center;
+      row-gap: 0.5rem;
+      min-height: 4.5rem;
+      align-content: flex-start;
+    }
+    .live-tour-text {
+      flex: 1 1 14rem;
+    }
+    .live-tour-address {
+      max-width: 100%;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .live-tour-text,
+    .live-tour-address,
+    .live-tour-cursor[data-press] {
+      animation: none;
+    }
+    .live-tour-cursor,
+    .live-stage > .live-ws[data-tour-anim] {
+      transition: none;
+    }
+  }
+}
