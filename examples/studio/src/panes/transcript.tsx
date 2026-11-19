@@ -99,6 +99,24 @@ function TranscriptBody({
       `${count} unsaved ${count === 1 ? "correction" : "corrections"} in “${session.title}”`,
   );
 
+  // Jali holds a whole follow step when one follower has unsaved work, so unsaved corrections here would stop the
+  // timeline, the mixer and the markers following the library too (FINDINGS.md). While there are some, the
+  // transcript keeps itself on its session instead (Keep, in its header), and lets go once they are saved or
+  // discarded, catching up with the library at once. A Keep the person pressed is theirs: it is left alone.
+  const keptForWork = useRef(false);
+  const hasWork = count > 0;
+  useEffect(() => {
+    const me = jali.model().pane(node.id);
+    if (!me) return; // the peek sheet: not in the layout
+    if (hasWork && me.follows && !me.kept) {
+      keptForWork.current = true;
+      jali.actions.setKept(node.id, true);
+    } else if (!hasWork && keptForWork.current) {
+      keptForWork.current = false;
+      if (me.kept) jali.actions.setKept(node.id, false);
+    }
+  }, [hasWork, jali, node.id]);
+
   // Tell Jali which segment is selected: the detail that follows the transcript shows it.
   const moveTo = (id: string) => {
     setCursor(id);
