@@ -76,25 +76,19 @@ export const presets: PresetOptions[] = [
     ),
   },
   {
-    // Two segments side by side: the left one is kept; the right one follows the transcript.
+    // Two segments side by side, full height: the left one is kept; the right one follows the transcript, which has
+    // the timeline under it. Narrow, the two segments fold into the transcript's tabs.
     id: "compare",
     label: "Compare",
     layout: row(
       pane(library(), { id: "library", weight: 0.7 }),
-      tr(1.4),
-      column(
-        { weight: 2 },
-        row(
-          { weight: 1.6 },
-          pane(clip({ session, segment: "s04" }), {
-            id: "clip-a",
-            linkedTo: "transcript",
-            kept: true,
-          }),
-          pane(clip({ session, segment: "s06" }), { id: "clip", ...followsTranscript }),
-        ),
-        tl(1),
-      ),
+      column({ weight: 1.5 }, tr(2.2), tl(1)),
+      pane(clip({ session, segment: "s04" }), {
+        id: "clip-a",
+        linkedTo: "transcript",
+        kept: true,
+      }),
+      pane(clip({ session, segment: "s06" }), { id: "clip", ...followsTranscript }),
     ),
   },
 ];

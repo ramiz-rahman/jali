@@ -24,7 +24,7 @@ The speech was made with macOS system voices (`say`), as a placeholder for the l
 - Press E on a segment to correct it, then Esc. The correction is unsaved work: the tab shows a dot, and choosing Mix (which has no transcript) asks first. Choose Review instead: the transcript and its draft come along. ⌘S saves.
 - Click a speaker's name in the transcript to rename them. The timeline, the mixer and the segment detail follow.
 - In Mix, move a fader, mute or solo a track, and watch the meters. Make the window short until the mixer folds into a tab: the sound and the mix go on, only the meters stop drawing. The folded mixer's shelf chip shows it is working.
-- Press Keep on the segment detail, select another segment and press ⌥↵: two segments side by side. The Compare layout starts that way.
+- Press Keep on the segment detail, select another segment and press ⌥↵: two segments side by side. The Compare layout starts that way, with segment 4 kept and segment 6 following.
 - Switch layouts in the top bar, then copy the link (the link button, or ⌘K "Copy a link to this layout"). The link reopens the same layout and session.
 - Narrow the window. Panes fold into tabs rather than squeeze, and come back as it widens. Below 600 pixels a phone shows the library over the transcript.
 

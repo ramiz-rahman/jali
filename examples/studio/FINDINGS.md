@@ -87,7 +87,17 @@ Studio is built on `@jali/core` and `@jali/react` alone, with no change to `pack
 
 **Suggestion.** In a narrow header, move tuck, maximise and full screen into a menu before the shown tab's title drops below a few characters.
 
-## 9. Smaller things
+## 9. A wide pane folded into a narrow one's tabs can fold everything
+
+**Wanted.** Compare at 760 pixels: the library and the transcript, with the two segments and the timeline as tabs.
+
+**Happened.** In the first version of Compare the timeline (minimum 440) sat under the two segments. At 760 the segments folded, then the timeline folded into the library's tab group, since it follows the library. A tab group is as narrow as its widest tab allows, so the library's group became 440 wide, the transcript no longer fitted beside it, and it folded too: one pane on screen, "4 folded" on the shelf. Each step follows the documented rules; together they gave the worst result.
+
+**Workaround.** Compare now puts the timeline under the transcript, so a fold never sends a wide pane into the library (`presets.ts`). At 760 it shows the library, the transcript and the timeline, with the two segments as tabs of the transcript.
+
+**Suggestion.** When choosing where a folded pane goes, prefer a group whose minimum it doesn't raise, or let fitting compare the outcome of folding into the source against folding into a neighbour.
+
+## 10. Smaller things
 
 - **Peek with a following detail.** ⇧Space (Studio's peek) shows the row in the following detail, not in the peek sheet. That is the documented rule, but it surprises an app whose own handler calls `peek(ref)` and sees no sheet. A line in `PaneProps.peek`'s reference would help.
 - **Titles can't read app state.** A kind's `title` is a function of its params, so a renamed speaker appears in the segment detail's title only through `useTitle`, and the peek sheet keeps the kind's title. The two titles differ for the same object.
