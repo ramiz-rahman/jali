@@ -14,6 +14,7 @@ import {
   type JaliOptions,
 } from "@jali/core";
 import { storeOf } from "@jali/core/adapter";
+import { geometryOf } from "../../packages/core/src/state/apply";
 import { definePane } from "@jali/react";
 
 const list = definePane("orders", { title: "Orders", Component: () => null });
@@ -586,6 +587,23 @@ describe("keeping in step with the host's documents", () => {
         ?.children.map((c) => c.ref),
     ).toEqual([order({ id: 1 }), order({ id: 8 })]);
     expect(said(jali)).toBe("Order 8 opened");
+  });
+
+  it("addTab is one step on a full workspace: one history entry, one layout event, nothing folds", () => {
+    const location = memoryLocation();
+    const jali = make({ url: { location }, size: { width: 1000, height: 800 } });
+    const entries = location.entries.length;
+    const folded = jali.model().folded;
+    const geometry = geometryOf(jali.model());
+    const heard = record(jali);
+    const r = jali.actions.addTab("order", order({ id: 9 }));
+    expect(r.ok).toBe(true);
+    expect(location.entries.length).toBe(entries + 1);
+    expect(heard.filter(([name]) => name === "layout")).toHaveLength(1);
+    expect(jali.model().folded).toEqual(folded);
+    // The tab takes the pane's slot: every rect on screen is where it was.
+    expect(geometryOf(jali.model())).toBe(geometry);
+    expect(jali.get().view.focused).toBe(r.pane);
   });
 
   it("addTab shows a ref that is already open instead of opening it twice", () => {

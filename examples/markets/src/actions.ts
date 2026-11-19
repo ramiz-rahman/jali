@@ -6,10 +6,11 @@ import { blotter } from "./panes/blotter";
 
 /**
  * Show `ref` and bring it into view, without reshaping the desk:
- *  - the pane that already shows it is revealed (one object, one pane);
- *  - else it opens as a tab of a pane of the same kind on screen (a second chart joins the chart), or of `tabWith`;
- *  - else beside `from` (default: the focused pane).
- * Focusing it brings it to the front even when the desk is full and Jali folds it into a tab.
+ *  - the pane that already shows it is focused, which brings it to the front (one object, one pane);
+ *  - else it opens as a tab of a pane of the same kind on screen (a second chart joins the chart), or of `tabWith`,
+ *    in one step (`addTab`: one history entry, nothing folds on the way);
+ *  - else beside `from` (default: the focused pane), focused, so it comes to the front even when the desk is full and
+ *    Jali folds it into a tab.
  */
 export function show(
   jali: Jali,
@@ -18,18 +19,14 @@ export function show(
 ): NodeId | undefined {
   const m = jali.model();
   const open = m.panes.find((p) => jali.env.kinds.sameObject(p.ref, ref));
-  if (open) {
-    jali.actions.focus(open.id);
-    return open.id;
-  }
+  if (open) return jali.actions.focus(open.id).pane;
   const onScreen = new Set(m.resolved.panes.filter((b) => !b.hidden).map((b) => b.id));
   const sameKind = m.panes.find((p) => p.ref.kind === ref.kind && onScreen.has(p.id));
-  const into = sameKind?.id ?? tabWith;
-  const source = into ?? from ?? jali.get().view.focused ?? m.panes[0]?.id;
+  const into = sameKind?.id ?? (tabWith && m.pane(tabWith) ? tabWith : undefined);
+  if (into) return jali.actions.addTab(into, ref).pane;
+  const source = from ?? jali.get().view.focused ?? m.panes[0]?.id;
   const id = source ? jali.actions.openBeside(source, ref).pane : undefined;
-  if (!id) return undefined;
-  if (into && jali.model().pane(into)) jali.actions.mergeInto(id, into);
-  jali.actions.focus(id);
+  if (id) jali.actions.focus(id);
   return id;
 }
 

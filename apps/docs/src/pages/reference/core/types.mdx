@@ -771,7 +771,7 @@ A pane that is not there gives `reason: "not-found"`. What a refusal reads out t
 <Member name="actions.setPinned" signature="setPinned(pane: PaneTarget, pinned: boolean)">Pin a linked detail on what it shows, or unpin it so it follows its list again. `"nothing-to-do"` for a pane that is not linked to a list.</Member>
 <Member name="actions.split" signature={`split(pane?: PaneTarget, direction?: "right" | "bottom")`}>Open the launcher beside `pane` and focus it. Without `direction`: right of a wide pane, below a tall one. `"unavailable"` without a launcher.</Member>
 <Member name="actions.newTab" signature="newTab(pane?: PaneTarget)">The launcher as a new tab of the pane's group. `"unavailable"` without a launcher.</Member>
-<Member name="actions.addTab" signature="addTab(pane: PaneTarget, ref: ObjectRef)">Show `ref` as a new tab of `pane`'s group (or a new group), and focus it. If `ref` is already open, that pane is shown instead. `"invalid"` for a kind the workspace doesn't have.</Member>
+<Member name="actions.addTab" signature="addTab(pane: PaneTarget, ref: ObjectRef)">Show `ref` as a new tab of `pane`'s group (or a new group), and focus it. It is one step: one entry in the history, and the tab takes `pane`'s slot, so nothing else folds or moves. Use it rather than `openBeside` then `mergeInto`, which is two entries and can fold other panes in between. If `ref` is already open, that pane is shown instead. `"invalid"` for a kind the workspace doesn't have.</Member>
 </Members>
 
 <Members title="Close">

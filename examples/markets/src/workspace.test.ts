@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vite-plus/test";
 import { listCommands, memoryLocation, memoryStorage, type Jali } from "@jali/core";
 import { storeOf } from "@jali/core/adapter";
-import { openFollowing } from "./actions";
+import { openFollowing, show } from "./actions";
 import { createSimulator } from "./market/simulator";
 import { chart } from "./panes/chart";
 import { quote } from "./panes/quote";
@@ -140,6 +140,26 @@ describe("the markets workspace", () => {
     expect(
       jali.model().panes.some((p) => p.ref.kind === "chart" && p.ref.params.symbol === "GOV5Y"),
     ).toBe(true);
+  });
+
+  it("opens a second chart as a tab of the chart, in one step", () => {
+    const { jali, location } = testJali();
+    const entries = location.entries.length;
+    const panes = ids(jali);
+    const opened = show(jali, chart({ symbol: "ORBD" }))!;
+    expect(
+      jali
+        .model()
+        .stackOf(opened)
+        ?.children.map((c) => c.id),
+    ).toEqual(["chart", opened]);
+    expect(location.entries.length).toBe(entries + 1);
+    expect(jali.model().folded).toEqual([]);
+    expect(ids(jali).filter((id) => id !== opened)).toEqual(panes);
+    expect(jali.get().view.focused).toBe(opened);
+    // Already open: shown, not opened twice.
+    expect(show(jali, chart({ symbol: "ORBD" }))).toBe(opened);
+    expect(ids(jali)).toHaveLength(panes.length + 1);
   });
 
   it("adds to the watchlist on screen", () => {
