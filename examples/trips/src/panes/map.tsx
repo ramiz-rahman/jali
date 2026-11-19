@@ -15,9 +15,18 @@
  *    the workspace.
  */
 import { useEffect, useMemo, useRef, useState } from "react";
-import { GeoJSONSource, LngLatBounds, Map as MapLibre, Marker, NavigationControl } from "maplibre-gl";
-import "maplibre-gl/dist/maplibre-gl.css";
-import { MapTrifoldIcon, WarningCircleIcon } from "@phosphor-icons/react";
+import {
+  GeoJSONSource,
+  LngLatBounds,
+  Map as MapLibre,
+  Marker,
+  NavigationControl,
+  setWorkerUrl,
+} from "maplibre-gl";
+// MapLibre runs its tile work in a Web Worker, a file of its own. Bundled, it can't find it beside itself, so the
+// bundler copies the file and gives its URL.
+import mapWorkerUrl from "maplibre-gl/dist/maplibre-gl-worker.mjs?url";
+import { MapTrifoldIcon, WarningCircleIcon, XIcon } from "@phosphor-icons/react";
 import type { ObjectRef } from "@jali/core";
 import { definePane, useCommands, useJali, useJaliModel, useTheme, type PaneProps } from "@jali/react";
 import { selectPlace } from "../actions";
@@ -31,6 +40,8 @@ import { haversineKm } from "../trip/travel";
 import { dayColor } from "../ui/colors";
 import * as f from "../ui/format";
 import { CATEGORY_ICON, DayMark, Segmented } from "../ui/parts";
+
+setWorkerUrl(mapWorkerUrl);
 
 const mapParams = { day: Number };
 
@@ -266,14 +277,20 @@ function MapPane({ params, paused, node, inPeek }: PaneProps<typeof mapParams>) 
       seen.add(pin.p.id);
       let m = markers.current.get(pin.p.id);
       if (!m) {
+        // MapLibre moves the marker's own element with `transform`; the pin is a button inside it, free to grow.
+        const wrap = document.createElement("div");
+        wrap.className = "pin-wrap";
         const el = document.createElement("button");
         el.type = "button";
         el.className = "pin";
+        wrap.append(el);
         el.addEventListener("click", (e) => {
           e.stopPropagation();
           selectPlace(jali, el.dataset.id!, { from: node.id });
         });
-        const marker = new Marker({ element: el, anchor: "center" }).setLngLat([pin.p.lng, pin.p.lat]).addTo(map);
+        const marker = new Marker({ element: wrap, anchor: "center" })
+          .setLngLat([pin.p.lng, pin.p.lat])
+          .addTo(map);
         m = { marker, el };
         markers.current.set(pin.p.id, m);
       }
@@ -432,7 +449,7 @@ function paintPin(el: HTMLButtonElement, pin: Pin, selected: boolean) {
           : `${p.name}, not planned`,
   );
   el.title = p.name;
-  el.style.zIndex = selected ? "5" : role === "stop" ? "3" : role === "hotel" ? "4" : "1";
+  el.parentElement!.style.zIndex = selected ? "5" : role === "stop" ? "3" : role === "hotel" ? "4" : "1";
 }
 
 /** The selected place, over the bottom of the map: what it is, and the next step. */
@@ -463,6 +480,15 @@ function PlaceCard({ p, dayN, plan, from }: { p: Place; dayN: number; plan: Plan
           <span className="num">{f.price(p.price)}</span>
         </p>
       </div>
+      <button
+        type="button"
+        className="map-card-close icon-btn"
+        aria-label="Clear the selection"
+        title="Clear the selection"
+        onClick={() => jali.actions.select(from, null)}
+      >
+        <XIcon size={16} aria-hidden />
+      </button>
       <div className="map-card-actions">
         {p.category !== "stay" && on?.n !== target ? (
           <button type="button" className="btn btn-primary" onClick={() => addToDay(services, p.id, target)}>

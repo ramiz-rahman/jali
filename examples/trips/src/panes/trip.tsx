@@ -5,7 +5,7 @@
  */
 import { useEffect, useRef, type KeyboardEvent } from "react";
 import { ArrowCounterClockwiseIcon, BedIcon, SuitcaseRollingIcon, WarningIcon } from "@phosphor-icons/react";
-import { definePane, useCommands, useJali, usePaneState, type PaneProps } from "@jali/react";
+import { definePane, useCommands, useJali, useJaliModel, usePaneState, type PaneProps } from "@jali/react";
 import { selectPlace, showDay } from "../actions";
 import { resetPlan } from "../planning";
 import { usePlan, useServices } from "../services";
@@ -34,15 +34,19 @@ function TripPane({ node, focused, select, inPeek }: PaneProps) {
     select(dayKind({ n }));
   };
 
-  // On first show, start on the day the panes that follow this list already show, so nothing jumps.
+  // Start on the day the panes that follow this list show, and stay with them when a layout (a preset, a link,
+  // Back) gives them another day: Jali keeps this list's selection across a preset switch, while the new preset's
+  // followers arrive showing their own day (FINDINGS.md).
+  const model = useJaliModel();
+  const followers = model.panes.filter((p) => p.linkedTo === node.id && p.follows);
+  const lead = followers.find((p) => p.ref.kind === "day") ?? followers.find((p) => p.ref.kind === "map");
+  const shown = lead ? Number(lead.ref.kind === "day" ? lead.ref.params.n : lead.ref.params.day) : 0;
   useEffect(() => {
     if (inPeek) return;
-    const follower = jali.model().panes.find((p) => p.linkedTo === node.id && p.follows);
-    const shown =
-      follower?.ref.kind === "day" ? Number(follower.ref.params.n) : Number(follower?.ref.params.day);
     moveTo(shown > 0 ? shown : cursor);
+    // When what the followers show changes, not on every move of the cursor (they catch up a moment later).
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [shown]);
 
   const onKeyDown = (e: KeyboardEvent) => {
     if (e.metaKey || e.ctrlKey || e.altKey) return;

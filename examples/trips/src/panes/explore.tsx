@@ -266,7 +266,6 @@ function ExplorePane({ params, node, paused, focused, peek, inPeek }: PaneProps<
                   {plan.hotel === p.id ? <span className="tag">Your hotel</span> : null}
                   <span className="num">
                     {f.price(p.price)}
-                    {p.category === "stay" ? <span className="muted small"> a night</span> : null}
                   </span>
                   <button
                     type="button"

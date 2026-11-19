@@ -7,19 +7,19 @@ const eurRound = new Intl.NumberFormat("en-GB", {
   maximumFractionDigits: 0,
 });
 
-/** €12.50, or "Free". */
-export const price = (n: number) => (n === 0 ? "Free" : eur.format(n));
-/** €12.50, always a number. */
-export const money = (n: number) => eur.format(n);
+/** €12.50 or €15 (no cents on a whole number), or "Free". */
+export const price = (n: number) => (n === 0 ? "Free" : money(n));
+/** €12.50 or €15, always a number. */
+export const money = (n: number) => (Number.isInteger(n) ? eurRound : eur).format(n);
 /** €1,240, for totals. */
 export const moneyRound = (n: number) => eurRound.format(Math.round(n));
 
-/** "45 min", "1 h 05". */
+/** "45 min", "1h 05m". */
 export function minutes(m: number): string {
   if (m < 60) return `${m} min`;
   const h = Math.floor(m / 60);
   const rest = m % 60;
-  return rest ? `${h} h ${String(rest).padStart(2, "0")}` : `${h} h`;
+  return rest ? `${h}h ${String(rest).padStart(2, "0")}m` : `${h}h`;
 }
 
 /** "14:35", from minutes after midnight. */

@@ -13,7 +13,7 @@ import {
   SparkleIcon,
 } from "@phosphor-icons/react";
 import { keyHint } from "@jali/core";
-import { definePane, useCommands, useJali, usePaneState, type PaneProps } from "@jali/react";
+import { definePane, useCommands, useJali, useJaliModel, usePaneState, type PaneProps } from "@jali/react";
 import { selectPlace } from "../actions";
 import { addToDay, chooseDay, optimise, removeFromPlan } from "../planning";
 import { usePlan, useServices } from "../services";
@@ -41,6 +41,8 @@ function DayPane({ params, node, focused, paused, select, peek, inPeek }: PanePr
   const current = useCurrent();
 
   const stops = day?.stops ?? [];
+  // "Add the selected place to this day" shows in the one day pane, or the focused one when several are open.
+  const alone = useJaliModel().panes.filter((p) => p.ref.kind === "day").length === 1;
   const at = cursor ? stops.indexOf(cursor) : -1;
   const totals = dayTotals(plan, stops);
   const budget = dayBudget(plan, params.n);
@@ -250,7 +252,7 @@ function DayPane({ params, node, focused, paused, select, peek, inPeek }: PanePr
       <p id={`${node.id}-hint`} className="sr-only">
         Up and down arrows move between stops. Alt with up or down reorders. M moves to another day. Space peeks.
       </p>
-      {current && !stops.includes(current) && !inPeek ? (
+      {current && !stops.includes(current) && !inPeek && (focused || alone) ? (
         <AddCurrent id={current} n={day.n} plan={plan} />
       ) : null}
     </div>
