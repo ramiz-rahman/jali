@@ -56,6 +56,7 @@ describe("public API", () => {
       "Shelf",
       "definePage",
       "definePane",
+      "keyBelongsToContent",
       "oneOf",
       "optional",
       "unstable_bringBack",
