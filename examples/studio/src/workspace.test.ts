@@ -119,6 +119,17 @@ describe("the studio workspace", () => {
     expect(shown(jali, "clip-a")?.segment).toBe("s04");
   });
 
+  it("switching from Edit to Compare, the transcript's cursor takes Compare's segment (the layout's word wins)", () => {
+    vi.useFakeTimers();
+    const { jali } = testJali();
+    jali.actions.select("transcript", clip({ session: FERRY, segment: "s05" }));
+    vi.advanceTimersByTime(200);
+    jali.actions.preset("compare");
+    expect(shown(jali, "clip-a")).toEqual({ session: FERRY, segment: "s04" });
+    expect(shown(jali, "clip")).toEqual({ session: FERRY, segment: "s06" });
+    expect(jali.get().selection.transcript?.ref).toEqual(clip({ session: FERRY, segment: "s06" }));
+  });
+
   it("keeps the layout in the address: a link opens the same arrangement and session", () => {
     vi.useFakeTimers();
     const { jali, location } = testJali();

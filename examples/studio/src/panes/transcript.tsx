@@ -125,24 +125,6 @@ function TranscriptBody({
 
   const cursorRef = useRef(cursor);
   cursorRef.current = current.id;
-  // A new layout may bring a follower showing another segment (Compare starts on segments 4 and 6): the cursor takes
-  // the layout's word for it, so the list and its detail agree.
-  const presetId = useJaliState((s) => s.presetId);
-  const firstPreset = useRef(presetId);
-  useEffect(() => {
-    if (presetId === firstPreset.current) return;
-    firstPreset.current = presetId;
-    const follower = jali.model().panes.find((p) => p.linkedTo === node.id && p.follows);
-    const shown = follower?.ref.params.segment;
-    if (
-      follower?.ref.params.session === session.id &&
-      typeof shown === "string" &&
-      shown !== current.id
-    )
-      moveTo(shown);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [presetId]);
-
   // Following playback: while the transport plays this session, the cursor (and so the detail) moves with the
   // segment being spoken. This runs while the pane is hidden too: it is a few checks a second, not drawing.
   useEffect(() => {
