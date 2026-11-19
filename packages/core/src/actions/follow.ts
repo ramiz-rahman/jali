@@ -5,12 +5,13 @@
  *  - One selection moves every follower of the list that can show it: a follower of the selected object's kind shows
  *    that object, and a follower of another kind shows what its kind's `follow` gives for it (a watchlist of quotes
  *    moves its chart, book and news). The others keep what they show. All of them move in one change.
+ *  - A follower with unsaved work is held on its object, and the workspace says why; the others still move.
  *  - Following is a swap: same slot, same size; the URL is replaced, so Back skips the rows passed through.
  *  - Keep keeps a detail on its object; releasing makes it the list's follower again (and keeps the previous one).
  */
 import * as core from "../layout";
 import type { NodeId, ObjectRef } from "../layout/types";
-import type { Change, Deferred, Outcome, Snapshot } from "../state/apply";
+import { refuse, type Change, type Deferred, type Outcome, type Snapshot } from "../state/apply";
 import { say } from "../state/messages";
 
 export const FOLLOW_MS = 150;
@@ -44,6 +45,10 @@ export function followMoves(
 /**
  * Show `selected` in `source`'s following details now: each one that can show it (followMoves). Nothing when none
  * moves. `only` moves that follower alone (one just released, catching up).
+ *
+ * A follower with unsaved work keeps its object: it is held, and the rest move in the same change. The workspace
+ * says why it stayed ("The detail stays put: …"), as a refusal after the change, so the step's result is that refusal
+ * when anything was held.
  */
 export function follow(
   { s, ctx, env }: Snapshot,
@@ -53,12 +58,22 @@ export function follow(
 ): Outcome {
   const moves = followMoves({ s, env }, source, selected, only);
   if (!moves.length) return null;
+  const held = moves.filter((m) => m.id in s.unsaved);
+  const going = moves.filter((m) => !(m.id in s.unsaved));
+  const stays = held.length
+    ? refuse("unsaved", say(env).keptUnsaved(s.unsaved[held[0]!.id]!))
+    : null;
   let layout = s.layout;
-  for (const { id, ref } of moves) layout = core.setRef(layout, s.view, id, ref, ctx);
-  if (layout === s.layout) return null;
+  for (const { id, ref } of going) layout = core.setRef(layout, s.view, id, ref, ctx);
+  if (layout === s.layout) return stays;
   // Polite and short: one detail's new title, nothing about the mechanism. The one of the selected kind if it moved.
-  const said = moves.find((m) => m.ref.kind === selected.kind) ?? moves[0]!;
-  return { op: "follow", layout, msg: say(env).followed(env.kinds.title(said.ref)) };
+  const said = going.find((m) => m.ref.kind === selected.kind) ?? going[0]!;
+  const change: Change = {
+    op: "follow",
+    layout,
+    msg: say(env).followed(env.kinds.title(said.ref)),
+  };
+  return stays ? [change, stays] : change;
 }
 
 /** The deferred step that makes `source`'s detail follow `ref`, or a cancellation (`ref` null). */

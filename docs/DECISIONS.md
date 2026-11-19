@@ -759,3 +759,10 @@ Data Studio's old tab strip had six features Jali lacked. Each is general, and l
 - **Renamed:** storage `pane-lab` is `data-studio` and `loan-review` (saved settings and layouts start fresh), the dev hook `window.__lab` is `window.__jali`, the command `lab.pop_out` is `app.pop_out`, the CSS layers `lab-base` and `lab` are `base` and `app`.
 - **Found and fixed:** a page-only workspace opened from a link showed the first item, not the link's. Its start opened the page with a `"mode"` op, which pushed the first item's address before boot read the link. It opens as an arrival now (no history). Tests: `tests/minimal-store.test.ts`.
 - **Kept:** `?app=review` still reads as the loan review's page (`packages/core/src/url.ts`), for links from before.
+
+## 20 Nov 2026 · A follower with unsaved work holds only itself (Studio, FINDINGS.md #1)
+
+- **Why:** a list with several followers moved none of them while one had unsaved work. `apply()` refused the whole `follow` change, so Studio's timeline and mixer stayed on the old session beside a transport that had loaded the new one. Studio kept its transcript by hand (Keep) to get round it.
+- **Now:** the follow step (`actions/follow.ts`) leaves out each follower with unsaved work and moves the rest in the same change. The workspace still says "The detail stays put: it has …" for the one held. A held follower still follows: once its work is saved or discarded (`setUnsaved(null)`), it catches up with the list's selection at once (`actions/content.ts`). The check in `apply()` stays as a safety net.
+- **Not added:** an event for what was held. The follow step is deferred, so `select`'s result can't carry it, and an event belongs in the store; the announcement is the report for now.
+- **Tests:** `tests/follow-kinds.test.ts` (mixed followers, all held, catching up), `examples/studio/src/workspace.test.ts`.

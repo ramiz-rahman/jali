@@ -131,6 +131,10 @@ A list should keep its selection on the same item, not the same position, when i
 
 If the following detail has [unsaved work](../get-started/key-concepts.md#unsaved-work), it stays on its object while the list moves on, and the workspace says why: "The detail stays put: it has an unsaved reply". Asking on every row would be worse than a detail that waits.
 
+Only the detail with unsaved work is held. When a list has several followers, the others move as usual, in the same change. The announcement is about the one that stayed.
+
+Once its work is saved or discarded (the pane reports no unsaved work), the held detail catches up with the list's selection at once. It is still following throughout: nothing is kept, and the header still says **Following**.
+
 ## Links that are not the selection
 
 A link that is not the list's selected row, such as a customer name in a ticket, opens a plain linked pane. It never replaces the following detail or a kept one.
