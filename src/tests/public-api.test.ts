@@ -18,6 +18,7 @@ describe("public API", () => {
       "commandsOf",
       "copyLink",
       "createJali",
+      "en",
       "formatKeys",
       "keyHint",
       "layout",

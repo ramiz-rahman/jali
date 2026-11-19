@@ -2,7 +2,7 @@ import { useEffect, useLayoutEffect, useRef, useState, type KeyboardEvent } from
 import { createPortal } from "react-dom";
 import { Check, ChevronDown, FoldHorizontal, Undo2 } from "lucide-react";
 import type { NodeId, Tab } from "@jali/core/adapter";
-import { roleOf, titleOf, FOLDED_DESC, FOLDED_WORD, TUCKED_DESC } from "@jali/core/adapter";
+import { roleOf, titleOf } from "@jali/core/adapter";
 import { useStore } from "../state/react";
 import { useUi } from "../state/react";
 import { KindIcon } from "./icons";
@@ -20,7 +20,8 @@ export function TabOverflow({
   onChoose: (id: NodeId) => void;
 }) {
   const store = useStore(),
-    env = store.env;
+    env = store.env,
+    tw = store.messages.tabs;
   const [open, setOpen] = useState(false);
   const [pos, setPos] = useState<{ left: number; top: number } | null>(null);
   const btn = useRef<HTMLButtonElement>(null);
@@ -99,8 +100,8 @@ export function TabOverflow({
         className="jali-tab-more"
         aria-haspopup="menu"
         aria-expanded={open}
-        aria-label={`All ${tabs.length} tabs${hiddenCount ? `, ${hiddenCount} out of view` : ""}`}
-        title="All tabs"
+        aria-label={tw.all(tabs.length, hiddenCount)}
+        title={tw.allTip}
         data-hidden-count={hiddenCount}
         onPointerDown={(e) => e.stopPropagation()}
         onClick={(e) => {
@@ -115,7 +116,7 @@ export function TabOverflow({
           }
         }}
       >
-        <span className="tab-more-n">+{hiddenCount}</span>
+        <span className="tab-more-n">{tw.moreCount(hiddenCount)}</span>
         <ChevronDown size={12} strokeWidth={1.75} aria-hidden />
       </button>
       {open
@@ -124,7 +125,7 @@ export function TabOverflow({
               ref={menu}
               className="jali-tab-menu"
               role="menu"
-              aria-label="Tabs in this group"
+              aria-label={tw.menuLabel}
               style={pos ? { left: pos.left, top: pos.top } : { visibility: "hidden" }}
               onKeyDown={onKey}
             >
@@ -139,7 +140,9 @@ export function TabOverflow({
                     data-folded={folded || undefined}
                     data-tucked={tucked || undefined}
                     aria-current={t.id === active || undefined}
-                    aria-description={folded ? FOLDED_DESC : tucked ? TUCKED_DESC : undefined}
+                    aria-description={
+                      folded ? tw.foldedDescription : tucked ? tw.tuckedDescription : undefined
+                    }
                     tabIndex={-1}
                     onClick={() => choose(t.id)}
                   >
@@ -155,13 +158,13 @@ export function TabOverflow({
                     {folded ? (
                       <small className="jali-tab-menu-mark">
                         <FoldHorizontal size={12} strokeWidth={1.75} aria-hidden />
-                        {FOLDED_WORD}
+                        {tw.folded}
                       </small>
                     ) : null}
                     {tucked ? (
                       <small className="jali-tab-menu-mark">
                         <Undo2 size={12} strokeWidth={1.75} aria-hidden />
-                        Tucked
+                        {tw.tucked}
                       </small>
                     ) : null}
                   </button>

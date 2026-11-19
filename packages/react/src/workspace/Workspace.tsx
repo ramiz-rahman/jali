@@ -4,7 +4,6 @@ import {
   roleOf,
   keepPaneFocus,
   CHROME,
-  msg,
   GAP,
   SWITCHER_H,
   currentPane,
@@ -76,8 +75,9 @@ function useFoldAnnouncements(
         now = new Set(m.folded);
       const added = m.folded.filter((id) => !before.has(id)),
         removed = was.filter((id) => !now.has(id) && m.pane(id));
-      if (added.length) store.announce(msg.folded(added.map(m.title)));
-      else if (removed.length) store.announce(msg.unfolded(removed.map(m.title)));
+      const said = store.messages.announcements;
+      if (added.length) store.announce(said.folded(added.map(m.title)));
+      else if (removed.length) store.announce(said.unfolded(removed.map(m.title)));
     }
     prev.current = { folded: m.folded, room };
   });
@@ -114,9 +114,7 @@ function Ghost({ role }: { role: string }) {
     width: r.width,
     height: r.height,
   });
-  const leaving = preview.leaving.length
-    ? ` · ${preview.leaving.map(name).join(", ")} back to the tabs`
-    : "";
+
   return (
     <>
       {preview.moved.map((v) => (
@@ -129,9 +127,7 @@ function Ghost({ role }: { role: string }) {
         />
       ))}
       <div className="jali-ghost" data-ghost={role} style={box(preview.incoming)} aria-hidden>
-        <span>
-          {name(role)} opens here{leaving}
-        </span>
+        <span>{store.messages.page.ghost(name(role), preview.leaving.map(name))}</span>
       </div>
     </>
   );
@@ -216,7 +212,7 @@ export function Panes() {
         .filter(Boolean)
         .join(" ")}
       ref={ref}
-      aria-label="Panes"
+      aria-label={store.messages.workspace.label}
       data-single={single ? "" : undefined}
       data-zoomed={!single && view.zoomed ? "" : undefined}
       data-page={page}

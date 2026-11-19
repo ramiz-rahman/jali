@@ -114,7 +114,7 @@ export const PaneFrame = memo(
               <Activity a={activity} />
               {bare ? null : <FollowControl node={node} title={title} />}
               {opened && boundary === "tint" ? (
-                <span className="jali-badge jali-badge-opened">Opened</span>
+                <span className="jali-badge jali-badge-opened">{store.messages.pane.opened}</span>
               ) : null}
             </div>
           )}

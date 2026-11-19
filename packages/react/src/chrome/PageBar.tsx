@@ -1,7 +1,7 @@
 import { useEffect, useRef, type KeyboardEvent } from "react";
 import { Columns2, RotateCcw, Square, Undo2 } from "lucide-react";
-import { investigation, startTabDrag, altClick } from "@jali/core/adapter";
-import { useModel, useStore, useUi, useProfile } from "../state/react";
+import { investigation, startTabDrag } from "@jali/core/adapter";
+import { bold, Parts, useModel, useStore, useUi, useProfile } from "../state/react";
 import { Panes } from "../workspace/Workspace";
 
 /**
@@ -11,22 +11,23 @@ import { Panes } from "../workspace/Workspace";
 export function PageBar() {
   const page = useUi((s) => s.page);
   const m = useModel();
-  const { actions } = useStore();
+  const { actions, messages } = useStore();
+  const t = messages.page;
   const profile = useProfile();
   if (!profile || !page) return null;
   const opened = investigation(m.panes).length;
   const multi = page.mode === "split";
   return (
     <div className="jali-page-bar">
-      <div className="jali-seg jali-mode-switch" role="radiogroup" aria-label="View mode">
+      <div className="jali-seg jali-mode-switch" role="radiogroup" aria-label={t.viewMode}>
         <button
           role="radio"
           aria-checked={!multi}
           className="jali-seg-btn"
           onClick={() => actions.setMode("single")}
-          title="One view at a time"
+          title={t.singleTip}
         >
-          <Square size={14} strokeWidth={1.5} aria-hidden /> Single view
+          <Square size={14} strokeWidth={1.5} aria-hidden /> {t.single}
         </button>
         <button
           role="radio"
@@ -34,23 +35,19 @@ export function PageBar() {
           className="jali-seg-btn"
           onClick={() => actions.setMode("split")}
           disabled={!page.canInvestigate}
-          title={
-            page.canInvestigate
-              ? "Views side by side: drag tabs into the layout"
-              : "Your role works in Single"
-          }
+          title={page.canInvestigate ? t.splitTip : t.splitTipLimited}
         >
-          <Columns2 size={14} strokeWidth={1.5} aria-hidden /> Split view
+          <Columns2 size={14} strokeWidth={1.5} aria-hidden /> {t.split}
         </button>
       </div>
       {multi && opened ? (
-        <div className="jali-inv" role="group" aria-label="Investigation">
+        <div className="jali-inv" role="group" aria-label={t.investigation}>
           <span className="jali-inv-mark" aria-hidden />
           <span className="jali-inv-text">
-            Investigating · <b>{opened}</b> opened
+            <Parts of={t.investigating(opened, bold)} />
           </span>
           <button className="jali-inv-back" onClick={() => actions.backToPage()}>
-            <Undo2 size={13} strokeWidth={1.75} aria-hidden /> Back to {profile.name}
+            <Undo2 size={13} strokeWidth={1.75} aria-hidden /> {t.backTo(profile.name)}
           </button>
         </div>
       ) : null}
@@ -58,8 +55,8 @@ export function PageBar() {
         <button
           className="jali-icon-btn jali-page-reset"
           onClick={() => actions.resetPage()}
-          aria-label="Reset layout to its design"
-          title="Reset layout · drops your split layout"
+          aria-label={t.reset}
+          title={t.resetTip}
         >
           <RotateCcw size={15} strokeWidth={1.5} aria-hidden />
         </button>
@@ -76,6 +73,8 @@ function PageTabs() {
   const p = useProfile()!;
   const store = useStore();
   const { actions } = store;
+  const t = store.messages.page;
+  const altClick = store.messages.keys.altClick(store.keymap.platform);
   const page = useUi((s) => s.page)!;
   const focused = useUi((s) => s.view.focused);
   const m = useModel();
@@ -121,7 +120,7 @@ function PageTabs() {
     <div
       className="jali-page-tabs"
       role="tablist"
-      aria-label={`${p.name} views`}
+      aria-label={t.tabsLabel(p.name)}
       ref={strip}
       onKeyDown={keys}
     >
@@ -140,18 +139,18 @@ function PageTabs() {
             aria-description={
               multi
                 ? st === "off"
-                  ? "Not on screen"
+                  ? t.tabOff
                   : st === "behind"
-                    ? "Behind another tab"
-                    : "On screen"
+                    ? t.tabBehind
+                    : t.tabOn
                 : undefined
             }
             title={
               multi
                 ? st === "off"
-                  ? `${r.label} in place of the view you're in · drag to place it · ${altClick()}: beside`
-                  : `Focus ${r.label} · drag to move it`
-                : `${r.label} · drag or ${altClick()} to see it beside`
+                  ? t.tabTipOff(r.label, altClick)
+                  : t.tabTipFocus(r.label)
+                : t.tabTipSingle(r.label, altClick)
             }
             onPointerDown={(e) => {
               drag.current = startTabDrag(store, e, r.id, r.label);

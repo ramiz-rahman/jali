@@ -1,5 +1,6 @@
 import { X } from "lucide-react";
 import type { PaneActivity } from "@jali/core/adapter";
+import { useMessages } from "../state/react";
 
 /**
  * One activity model. Headers, tabs and the switcher show a dot with a label; the shelf shows a shape as well as a
@@ -7,29 +8,31 @@ import type { PaneActivity } from "@jali/core/adapter";
  */
 const ACTIVITY: Record<
   PaneActivity,
-  { label: string; shelf?: { shape: "ring" | "need" | "fail"; word: string; state: string } }
+  {
+    label?: "loading" | "working" | "needsYou" | "error";
+    shelf?: { shape: "ring" | "need" | "fail"; state: string };
+  }
 > = {
-  idle: { label: "" },
-  loading: { label: "Loading", shelf: { shape: "ring", word: "working", state: "working" } },
-  working: { label: "Working", shelf: { shape: "ring", word: "working", state: "working" } },
-  "needs-you": {
-    label: "Needs you",
-    shelf: { shape: "need", word: "needs you", state: "needs-you" },
-  },
-  error: { label: "Error", shelf: { shape: "fail", word: "failed", state: "failed" } },
+  idle: {},
+  loading: { label: "loading", shelf: { shape: "ring", state: "working" } },
+  working: { label: "working", shelf: { shape: "ring", state: "working" } },
+  "needs-you": { label: "needsYou", shelf: { shape: "need", state: "needs-you" } },
+  error: { label: "error", shelf: { shape: "fail", state: "failed" } },
 };
 
-/** The shelf's words and state for an activity: "working", "needs you", "failed"; idle has none. */
+/** The shelf's shape and state for an activity: "working", "needs-you", "failed"; idle has none. */
 export const shelfActivity = (a: PaneActivity | undefined) => (a ? ACTIVITY[a].shelf : undefined);
 
 export function Activity({ a, shape = false }: { a: PaneActivity | undefined; shape?: boolean }) {
+  const words = useMessages().pane;
   if (!a || a === "idle") return null;
+  const label = words[ACTIVITY[a].label!];
   if (!shape)
     return (
       <span
         className={`jali-activity jali-activity-${a}`}
-        title={ACTIVITY[a].label}
-        aria-label={ACTIVITY[a].label}
+        title={label}
+        aria-label={label}
         role="img"
       />
     );

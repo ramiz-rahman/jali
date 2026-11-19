@@ -16,6 +16,7 @@ import type {
   ViewState,
 } from "../layout/types";
 import { titleOf, type Env } from "../profile";
+import { messagesOf } from "./messages";
 
 /** A tab group as the frame shows it: a deliberate stack, or a fold or tuck group made by resolve. */
 export interface Group {
@@ -78,7 +79,7 @@ export function buildModel({ layout, view, area, ctx, env }: ModelInput): JaliMo
   const stackOf = (id: NodeId | undefined) => (id ? core.tree.stackOf(layout.root, id) : undefined);
   const title = (id: NodeId | undefined) => {
     const p = id ? byId.get(id) : undefined;
-    return p ? titleOf(env, p) : "pane";
+    return p ? titleOf(env, p) : messagesOf(env).pane.untitled;
   };
 
   const groups = new Map<NodeId, Group>();

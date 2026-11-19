@@ -363,7 +363,7 @@ A preset, as `createJali({ presets })` takes it.
 
 </Entry>
 
-<Entry name="Env" kind="type" from="@jali/core" signature={`interface Env { kinds: PaneKinds; profile: ProfileBase | null; presets: readonly Preset[]; commands?: readonly Command[]; name: string; launcher?: string }`} compact>
+<Entry name="Env" kind="type" from="@jali/core" signature={`interface Env { kinds: PaneKinds; profile: ProfileBase | null; presets: readonly Preset[]; commands?: readonly Command[]; name: string; launcher?: string; messages?: Messages }`} compact>
 
 What a workspace is made of besides its state: `jali.env`. `profile` is its curated page; `launcher` the kind Split opens.
 
@@ -391,6 +391,7 @@ A workspace, from <Ref to="createJali" page="/reference/core" />.
 <Member name="Jali.keymap" signature="keymap: Keymap">This workspace's keys: `label(id)` for a tooltip, `sequences(id)`, `platform`.</Member>
 <Member name="Jali.env" signature="env: Env">Its kinds, presets, page, name and launcher.</Member>
 <Member name="Jali.dom" signature="dom: JaliDom">Where it lives in the DOM.</Member>
+<Member name="Jali.messages" signature="messages: Messages">Every word it shows or says: `en` with `createJali({ messages })` over it.</Member>
 <Member name="Jali.storage" signature="storage: StoragePort">The storage it was made with.</Member>
 <Member name="Jali.href" signature="href(): string">The address to share: `url.href()`, else `location.href`, else `""`.</Member>
 <Member name="Jali.url" signature="url: UrlWriter | undefined">Where it writes its address, when it has one.</Member>
@@ -631,7 +632,7 @@ A workspace command. `check` returns a refusal when it can't run now (silent wit
 
 <Entry name="Keymap" kind="type" from="@jali/core" signature={`interface Keymap`} compact>
 
-A workspace's resolved keys (`jali.keymap`): the defaults with its `keymap` overrides applied, with `platform`, `entries`, `sequences(id)`, `label(id)`, `find(match, prefix?)` and `isPrefix(match)`.
+A workspace's resolved keys (`jali.keymap`): the defaults with its `keymap` overrides applied, with `platform`, `entries`, `sequences(id)`, `label(id)`, `format(seq)`, `find(match, prefix?)` and `isPrefix(match)`. `label` and `format` print keys in the workspace's words (`messages.keys`).
 
 </Entry>
 
@@ -641,9 +642,9 @@ A host's key changes: a binding, several, or `null` to unbind.
 
 </Entry>
 
-<Entry name="KeymapOptions" kind="type" from="@jali/core" signature={`interface KeymapOptions {\n  platform?: Platform; prefix?: KeyString; reserved?: readonly KeyString[];\n  onInvalid?: (id: string, binding: KeyString, reason: string) => void;\n}`} compact>
+<Entry name="KeymapOptions" kind="type" from="@jali/core" signature={`interface KeymapOptions {\n  platform?: Platform; prefix?: KeyString; reserved?: readonly KeyString[];\n  onInvalid?: (id: string, binding: KeyString, reason: string) => void; words?: KeyWords;\n}`} compact>
 
-The `keymapOptions` of `createJali`: `platform` to match and print keys for, and `onInvalid`, called for each refused binding (default `console.warn`). `prefix` and `reserved` are what `createJali`'s `keyPrefix` and `reservedKeys` set.
+The `keymapOptions` of `createJali`: `platform` to match and print keys for, and `onInvalid`, called for each refused binding (default `console.warn`). `prefix` and `reserved` are what `createJali`'s `keyPrefix` and `reservedKeys` set. `words` defaults to the workspace's `messages.keys`.
 
 </Entry>
 
@@ -666,6 +667,24 @@ One key press. `key` is `KeyboardEvent.code` (`"KeyM"`, `"Backslash"`) or, for n
 <Entry name="KeySequence" kind="type" from="@jali/core" signature={`type KeySequence = readonly Chord[]`} compact>One binding: a chord, or a prefix chord then a second chord (⌘K ⌘M).</Entry>
 
 <Entry name="Platform" kind="type" from="@jali/core" signature={`type Platform = "mac" | "other"`} compact>The platform keys are matched and printed for.</Entry>
+
+<Entry name="KeyWords" kind="type" from="@jali/core" signature={`interface KeyWords { ctrl; alt; shift; escape; space; left; right; up; down: string }`} compact>The words printed keys use: modifier names elsewhere than a Mac, and Esc, Space and the arrows. `messages.keys` is one.</Entry>
+
+## Words
+
+<Entry name="Messages" kind="type" from="@jali/core" signature={`type Messages = { announcements: …; toasts: …; commands: …; … }`} compact>
+
+Every word Jali uses, by area, with the same keys and shapes as <Ref to="en" page="/reference/core" />. A full translation is a `Messages`: a missing area or key, or a message of the wrong shape, is a type error. See [Translate Jali](/guides/translating).
+
+</Entry>
+
+<Entry name="MessageOverrides" kind="type" from="@jali/core" signature={`type MessageOverrides = { [Area in keyof Messages]?: Partial<Messages[Area]> }`} compact>
+
+What `createJali({ messages })` takes: any areas, and any keys in them. Keys you leave out stay English. A misspelt key is a type error.
+
+</Entry>
+
+<Entry name="Direction" kind="type" from="@jali/core" signature={`type Direction = "left" | "right" | "up" | "down"`} compact>A direction as command ids name it (`pane.focus.left`), passed to `commands.focusDirection` and `commands.moveDirection`.</Entry>
 
 ## Lists and their detail
 

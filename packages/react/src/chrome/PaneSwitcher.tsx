@@ -2,7 +2,7 @@ import type { PaneNode } from "@jali/core/adapter";
 import { paneDomId, titleOf } from "@jali/core/adapter";
 import { Activity } from "../pane/Activity";
 import { KindIcon } from "../pane/icons";
-import { useActions, useModel, useStore, useUi } from "../state/react";
+import { useActions, useMessages, useModel, useStore, useUi } from "../state/react";
 
 function Item({ node, selected }: { node: PaneNode; selected: boolean }) {
   const activity = useUi((s) => s.activity[node.id]);
@@ -37,12 +37,13 @@ export function PaneSwitcher({
   current: string | undefined;
 }) {
   const actions = useActions();
+  const t = useMessages().workspace;
   return (
-    <nav className="jali-switcher" aria-label="Panes">
+    <nav className="jali-switcher" aria-label={t.switcher}>
       <div
         className="jali-switch-list"
         role="tablist"
-        aria-label={`Panes: ${panes.length}`}
+        aria-label={t.switcherList(panes.length)}
         onKeyDown={(e) => {
           const i = panes.findIndex((p) => p.id === current);
           const n =

@@ -8,9 +8,6 @@ import {
   roleOf,
   titleOf,
   startPaneDrag,
-  FOLDED_DESC,
-  FOLDED_TIP,
-  TUCKED_DESC,
 } from "@jali/core/adapter";
 import { useEnv, useStore, useUi } from "../state/react";
 import { Activity } from "./Activity";
@@ -44,6 +41,8 @@ function TabActivity({ id }: { id: NodeId }) {
 export function TabStrip({ group, owner }: { group: NonNullable<Frame["group"]>; owner: NodeId }) {
   const store = useStore();
   const { actions, env } = store;
+  const words = store.messages;
+  const tw = words.tabs;
   // A curated page, or a workspace without a launcher: no "+" (its views come from the page's tabs).
   const page = useUi((s) => !!s.page);
   // No launcher kind, no "+": there is nothing to open in the new tab.
@@ -98,8 +97,10 @@ export function TabStrip({ group, owner }: { group: NonNullable<Frame["group"]>;
         data-tucked={tucked || undefined}
         data-folded={isFolded || undefined}
         aria-label={title}
-        aria-description={isFolded ? FOLDED_DESC : tucked ? TUCKED_DESC : undefined}
-        title={isFolded ? `${title} · ${FOLDED_TIP}` : title}
+        aria-description={
+          isFolded ? tw.foldedDescription : tucked ? tw.tuckedDescription : undefined
+        }
+        title={isFolded ? tw.foldedTitle(title) : title}
         role="tab"
         aria-selected={active}
         aria-controls={paneDomId(store.dom.id, t.id)}
@@ -132,8 +133,8 @@ export function TabStrip({ group, owner }: { group: NonNullable<Frame["group"]>;
         {tucked ? (
           <button
             className="jali-tab-putback"
-            aria-label={`Put back ${title}`}
-            title={`Put back${shortcutLabel(store, "pane.putBack") ? ` · ${shortcutLabel(store, "pane.putBack")}` : ""}`}
+            aria-label={tw.putBack(title)}
+            title={words.keys.withKeys(tw.putBackTip, shortcutLabel(store, "pane.putBack"))}
             onPointerDown={(e) => e.stopPropagation()}
             onClick={(e) => {
               e.stopPropagation();
@@ -145,7 +146,7 @@ export function TabStrip({ group, owner }: { group: NonNullable<Frame["group"]>;
         ) : null}
         <button
           className="jali-tab-close"
-          aria-label={`Close ${title}`}
+          aria-label={tw.close(title)}
           onClick={(e) => {
             e.stopPropagation();
             actions.close(t.id);
@@ -163,7 +164,7 @@ export function TabStrip({ group, owner }: { group: NonNullable<Frame["group"]>;
         className="jali-tabs"
         ref={strip}
         role="tablist"
-        aria-label={`Tabs: ${tabs.length}`}
+        aria-label={tw.listLabel(tabs.length)}
         onScroll={measure}
       >
         {mine.map(renderTab)}
@@ -181,8 +182,8 @@ export function TabStrip({ group, owner }: { group: NonNullable<Frame["group"]>;
       {page || !env.launcher ? null : (
         <button
           className="jali-tab-add"
-          aria-label="New tab in this stack"
-          title="New tab"
+          aria-label={tw.newTab}
+          title={tw.newTabTip}
           onClick={(e) => {
             e.stopPropagation();
             actions.newTab(group.active);

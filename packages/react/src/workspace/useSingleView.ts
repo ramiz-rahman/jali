@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react";
 import type { ViewState, JaliModel, UiStore } from "@jali/core/adapter";
-import { msg, restoreWide, snapshotWide, type WideSnapshot } from "@jali/core/adapter";
+import { restoreWide, snapshotWide, type WideSnapshot } from "@jali/core/adapter";
 
 /**
  * Says when single view starts and ends, and restores the wide arrangement when it ends. The arrangement seen on the
@@ -17,7 +17,8 @@ export function useSingleView(store: UiStore, m: JaliModel, view: ViewState, mea
         store.apply(restoreWide(store.snapshot(), frozen.current));
         frozen.current = null;
       }
-      store.announce(m.single ? msg.singleOn : msg.singleOff);
+      const said = store.messages.announcements;
+      store.announce(m.single ? said.singleOn : said.singleOff);
     }
     was.current = m.single;
   }, [m.single, store]);

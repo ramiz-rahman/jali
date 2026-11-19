@@ -1,5 +1,6 @@
 import { dividerKey, STEP, STEP_BIG } from "@jali/core/adapter";
 import { memo, type KeyboardEvent } from "react";
+import { useMessages } from "../state/react";
 import type { NodeId, Rect } from "@jali/core/adapter";
 
 export interface DividerProps {
@@ -35,6 +36,7 @@ const rectEq = (a: Rect, b: Rect) =>
 export const Divider = memo(
   function Divider(p: DividerProps) {
     const row = p.axis === "row";
+    const t = useMessages().workspace;
     const onKeyDown = (e: KeyboardEvent<HTMLElement>) => {
       if (e.altKey || e.metaKey || e.ctrlKey) return;
       const step = e.shiftKey ? STEP_BIG : STEP;
@@ -76,16 +78,17 @@ export const Divider = memo(
         aria-valuenow={pct(p.sizeA, p.total)}
         aria-valuemin={pct(p.minA, p.total)}
         aria-valuemax={pct(p.maxA, p.total)}
-        aria-valuetext={`${p.labelA} ${Math.round(p.sizeA)} pixels, ${p.labelB} ${restB} pixels`}
+        aria-valuetext={t.dividerValue(p.labelA, Math.round(p.sizeA), p.labelB, restB)}
         aria-controls={p.controls}
-        aria-label={`Resize between ${p.labelA} and ${p.labelB}`}
+        aria-label={t.divider(p.labelA, p.labelB)}
       >
         {/* Keyboard-focus affordance: an accent capsule and a size label, both CSS-gated on :focus-visible. */}
         <span className="jali-divider-line" aria-hidden />
         <span className="jali-divider-handle" aria-hidden />
         <span className="jali-divider-tip" aria-hidden>
-          {p.labelA} · {Math.round(p.sizeA)}px<i> | </i>
-          {p.labelB} · {restB}px
+          {t.dividerTip(p.labelA, Math.round(p.sizeA))}
+          <i> | </i>
+          {t.dividerTip(p.labelB, restB)}
         </span>
       </div>
     );

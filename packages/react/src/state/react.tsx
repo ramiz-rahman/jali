@@ -1,8 +1,8 @@
 /** React access to the store: one provider, and hooks that subscribe to exactly what a component reads. */
-import { createContext, useContext, useSyncExternalStore, type ReactNode } from "react";
+import { createContext, Fragment, useContext, useSyncExternalStore, type ReactNode } from "react";
 import type { Actions, PaneNode, JaliModel, UiState, UiStore } from "@jali/core/adapter";
 import type { ReactEnv, Page } from "../define";
-import { resolveTheme, titleOf, type Theme } from "@jali/core/adapter";
+import { resolveTheme, titleOf, type Messages, type Theme } from "@jali/core/adapter";
 
 const StoreContext = createContext<UiStore | null>(null);
 
@@ -31,6 +31,21 @@ export function useModel(): JaliModel {
 }
 
 export const useActions = (): Actions => useStore().actions;
+
+/** This workspace's words (`createJali({ messages })`, English by default). */
+export const useMessages = (): Messages => useStore().messages;
+
+/** Emphasis inside a message (`messages.chooser.heading(title, bold)`). */
+export const bold = (text: string) => <b>{text}</b>;
+
+/** A message's parts, in the order the message gives them. */
+export const Parts = ({ of }: { of: ReactNode[] }) => (
+  <>
+    {of.map((part, i) => (
+      <Fragment key={i}>{part}</Fragment>
+    ))}
+  </>
+);
 
 /** This workspace's pane kinds and profile. */
 export const useEnv = (): ReactEnv => useStore().env;

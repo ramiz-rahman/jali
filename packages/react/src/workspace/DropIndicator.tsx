@@ -8,7 +8,7 @@ import {
 } from "lucide-react";
 import type { Edge, Rect } from "@jali/core/adapter";
 import { dropText, zoneRect } from "@jali/core/adapter";
-import { useModel, useUi } from "../state/react";
+import { useMessages, useModel, useUi } from "../state/react";
 
 /** The tinted part of the target pane that the drop will fill. */
 export function DropIndicator({ rect, zone }: { rect: Rect; zone: Edge | "centre" }) {
@@ -45,13 +45,14 @@ export function DropZoneLabel({ paneId }: { paneId: string }) {
   // A view dragged from a page's tabs always joins the group in the centre.
   const centreDrop = useUi((s) => (s.dnd?.label ? "tab" : s.settings.centreDrop));
   const m = useModel();
+  const words = useMessages().drop;
   if (!zone) return null;
   const Icon = ICONS[zone === "centre" ? centreDrop : zone];
   return (
     <div className="jali-drop-label-zone" style={{ inset: INSET[zone] }} aria-hidden>
       <span className="jali-drop-label">
         <Icon size={16} strokeWidth={1.75} aria-hidden />
-        {dropText(zone, m.title(paneId), centreDrop)}
+        {dropText(zone, m.title(paneId), centreDrop, words)}
       </span>
     </div>
   );

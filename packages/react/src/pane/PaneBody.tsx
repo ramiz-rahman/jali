@@ -8,10 +8,10 @@ import type {
   PaneCommand,
   UiStore,
 } from "@jali/core/adapter";
-import { keyHint } from "@jali/core/adapter";
+import { parseKeys } from "@jali/core/adapter";
 import type { PaneProps } from "../define";
 import { PaneContext, type PaneHost } from "./context";
-import { useEnv } from "../state/react";
+import { useEnv, useStore } from "../state/react";
 
 export type { PaneHost };
 
@@ -54,6 +54,7 @@ interface BodyProps {
 export const PaneBody = memo(
   function PaneBody({ node, host, paused, focused, inPeek = false }: BodyProps) {
     const { kinds } = useEnv();
+    const { keymap, messages } = useStore();
     const def = kinds.get(node.ref.kind);
     const params = useMemo(() => kinds.params(node.ref), [kinds, node.ref]);
     const props = useMemo(
@@ -79,11 +80,8 @@ export const PaneBody = memo(
     if (!def) {
       return (
         <div className="jali-pane-missing" role="alert">
-          <strong>Unknown pane kind “{node.ref.kind}”.</strong>
-          <span>
-            This pane stays in place so the layout keeps its shape. Close it or reset the layout
-            from the command palette ({keyHint("Mod+K")}).
-          </span>
+          <strong>{messages.pane.unknownKind(node.ref.kind)}</strong>
+          <span>{messages.pane.unknownKindHelp(keymap.format(parseKeys("Mod+K")))}</span>
         </div>
       );
     }

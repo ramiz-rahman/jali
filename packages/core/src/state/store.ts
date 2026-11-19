@@ -48,6 +48,7 @@ import {
   type KeymapOverrides,
 } from "../commands/keymap";
 import type { Command } from "../commands/registry";
+import { resolveMessages, type MessageOverrides, type Messages } from "./messages";
 
 /** A drag in progress. `label` names a view dragged from a page's tabs, which may not be on screen. */
 export interface DndState {
@@ -180,6 +181,8 @@ export interface UiStoreDeps {
   keymapOptions?: KeymapOptions;
   /** `false`: the host has its own command menu. Jali renders no palette and its key is unbound. Default true. */
   palette?: boolean;
+  /** Words to use instead of Jali's English ones (state/messages.ts). Default: English. */
+  messages?: MessageOverrides;
 }
 
 export interface UiStore {
@@ -203,6 +206,8 @@ export interface UiStore {
   env: Env;
   /** Where this workspace lives in the DOM. */
   dom: JaliDom;
+  /** Every word this workspace shows or says: English with `createJali({ messages })` over it. */
+  messages: Messages;
   storage: StoragePort;
   /** The address to share, from the URL port. */
   href(): string;
@@ -254,13 +259,15 @@ function createDom(id: string): JaliDom {
 const DEV = !!(import.meta as unknown as { env?: { DEV?: boolean } }).env?.DEV;
 
 export function createUiStore(deps: UiStoreDeps): UiStore {
+  const messages = resolveMessages(deps.messages);
   const env: Env = {
     kinds: deps.kinds,
     profile: deps.profile ?? null,
     presets: deps.presets ?? [],
     commands: deps.commands ?? [],
     palette: deps.palette !== false,
-    name: deps.name ?? "Workspace",
+    name: deps.name ?? messages.workspace.name,
+    messages,
   };
   if (deps.launcher) env.launcher = deps.launcher;
   const focusOf =
@@ -382,10 +389,11 @@ export function createUiStore(deps: UiStoreDeps): UiStore {
       deps.palette === false && !(PALETTE_ID in (deps.keymap ?? {}))
         ? { ...deps.keymap, [PALETTE_ID]: null }
         : deps.keymap,
-      deps.keymapOptions,
+      { ...deps.keymapOptions, words: deps.keymapOptions?.words ?? messages.keys },
     ),
     env,
     dom,
+    messages,
     storage,
     href: () => deps.url?.href?.() ?? (typeof location === "undefined" ? "" : location.href),
     url: deps.url,

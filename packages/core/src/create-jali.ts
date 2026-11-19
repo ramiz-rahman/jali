@@ -18,6 +18,7 @@ import { browserStorage, memoryStorage, type StoragePort } from "./ports";
 import type { Preset, ProfileBase } from "./profile";
 import { createUiStore, type UiStore, type UiStoreDeps, type UrlWriter } from "./state/store";
 import { createUrlSync, type UrlSyncOptions } from "./url";
+import type { MessageOverrides } from "./state/messages";
 
 /** A layout the person can switch to from ⌘K ("Layout: Triage"), and "Reset layout" rebuilds. */
 export interface PresetOptions {
@@ -81,6 +82,9 @@ export interface JaliOptions<D extends PaneKindBase = PaneKindBase> {
   moveFocus?: boolean;
   /** Called when a focus or swap moved panes it should not have. Default: reported in development. */
   onUnstable?: (op: string, before: string, after: string) => void;
+  /** Jali's words in your language, or your own wording: any keys of `Messages`, by area. The rest stay English
+   *  (`en`). `{ commands: { close: "Fermer le volet" }, palette: { placeholder: "Rechercher…" } }`. */
+  messages?: MessageOverrides;
 }
 
 /** A workspace: its state, its actions (`jali.actions.openBeside(...)`) and what it was made with. */
@@ -136,6 +140,7 @@ export function createJali<D extends PaneKindBase>(options: JaliOptions<D>): Jal
       ...(options.reservedKeys ? { reserved: options.reservedKeys } : {}),
     },
     palette: options.palette,
+    messages: options.messages,
     unstable: options.onUnstable,
     initial: {
       ...(layout ? { layout: toLayout(layout) } : {}),

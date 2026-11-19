@@ -1,7 +1,7 @@
 import * as core from "../layout";
 import type { Layout, NodeId } from "../layout/types";
 import { refuse, type Outcome, type Snapshot } from "../state/apply";
-import { msg } from "../state/messages";
+import { say } from "../state/messages";
 import { clampSize, geometryFor, nearestDivider } from "../dividers/resize";
 
 /** Sizes do not change minimums, so a divider never changes what fits: no refit. The URL follows 120ms later. */
@@ -50,22 +50,26 @@ export const commitDividerDrag = (_x: Snapshot, layout: Layout): Outcome => ({
   layout,
 });
 
-export const resetDivider = ({ s, ctx }: Snapshot, parentId: NodeId, index: number): Outcome => ({
+export const resetDivider = (
+  { s, ctx, env }: Snapshot,
+  parentId: NodeId,
+  index: number,
+): Outcome => ({
   op: "resetSizes",
   layout: core.resetDivider(s.layout, parentId, index, ctx),
-  msg: msg.sizesReset,
+  msg: say(env).sizesReset,
 });
 
 export function enterResizeMode({ s, m }: Snapshot): Outcome {
   const id = s.view.focused;
   if (!id) return null;
   if (!nearestDivider(m, id, true) && !nearestDivider(m, id, false))
-    return refuse(msg.nothingToResize);
-  return { op: "patch", patch: { resizeMode: id }, msg: msg.resizeModeOn };
+    return refuse(say(m).nothingToResize);
+  return { op: "patch", patch: { resizeMode: id }, msg: say(m).resizeModeOn };
 }
 
-export const leaveResizeMode = (): Outcome => ({
+export const leaveResizeMode = (x: Snapshot): Outcome => ({
   op: "patch",
   patch: { resizeMode: null },
-  msg: msg.resizeModeOff,
+  msg: say(x).resizeModeOff,
 });

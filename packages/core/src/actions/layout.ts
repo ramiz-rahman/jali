@@ -3,7 +3,7 @@ import type { Layout, NodeId, ViewState } from "../layout/types";
 import type { PaneActivity } from "../pane-kinds";
 import { presetById } from "../profile";
 import type { Outcome, Snapshot } from "../state/apply";
-import { msg } from "../state/messages";
+import { say } from "../state/messages";
 import type { Settings } from "../state/settings";
 import { withRecent } from "./open";
 
@@ -25,7 +25,7 @@ export function preset({ s, ctx, env }: Snapshot, id: string | undefined): Outco
     op: "preset",
     layout,
     view,
-    msg: msg.preset(p.label),
+    msg: say(env).preset(p.label),
     patch: { presetId: id, peekSource: undefined, resizeMode: null, recent },
   };
 }

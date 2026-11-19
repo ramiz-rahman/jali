@@ -5,7 +5,7 @@
 import * as core from "./layout";
 import { installKeyboard, type KeyboardScope } from "./commands/keyboard";
 import { presetById } from "./profile";
-import { msg, toasts } from "./state/messages";
+
 import { applyTheme, resolveTheme, saveSettings, watchSystemTheme } from "./state/settings";
 import type { UiStore } from "./state/store";
 import { applyTokens } from "./tokens";
@@ -32,8 +32,8 @@ function arriveFromUrl(store: UiStore, url: UrlSync): boolean {
     if (p) store.actions.arrive(p.build(), r.view);
     url.keepBroken(r.broken);
     store.writeUrl("replace");
-    store.toast(toasts.brokenLink(p?.label));
-    store.announce(msg.brokenLink);
+    store.toast(store.messages.toasts.brokenLink(p?.label));
+    store.announce(store.messages.announcements.brokenLink);
   } else store.actions.arrive(r.layout, r.view);
   return true;
 }
@@ -117,7 +117,7 @@ export function startUi(
   const offPop = sync
     ? sync.onPop(() => {
         arriveFromUrl(store, sync);
-        store.announce(msg.historyChanged);
+        store.announce(store.messages.announcements.historyChanged);
       })
     : () => {};
   return () => {

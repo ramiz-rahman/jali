@@ -13,6 +13,7 @@ import activeCode from "../../samples/reference/active-item.ts?raw";
 import layoutCode from "../../samples/reference/layout-ops.ts?raw";
 import sameRefCode from "../../samples/reference/same-ref.ts?raw";
 import readCode from "../../samples/reference/read-store.ts?raw";
+import messagesCode from "../../samples/reference/messages.ts?raw";
 
 The framework-free part of Jali: the workspace, the layouts it shows, the address and storage ports, commands and keys. Render it with [@jali/react](/reference/react). Types have their own page, [@jali/core types](/reference/core/types); the pure layout operations are on [The layout namespace](/reference/core/layout).
 
@@ -67,6 +68,7 @@ The address.
 <Param name="size" type="{ width: number; height: number }">A fixed size instead of the window's, for tests and server rendering. `<JaliRoot>` measures the real one once it renders.</Param>
 <Param name="moveFocus" type="boolean" default="true">`false` leaves DOM focus alone: for tests and a workspace that is never shown.</Param>
 <Param name="onUnstable" type="(op: string, before: string, after: string) => void" default="console.error in development">Called when a focus or swap action moved a pane on screen, which it never should.</Param>
+<Param name="messages" type="MessageOverrides" default="English (en)">Words to use instead of Jali's English ones, by area: `{ commands: { close: "Fermer le volet" } }`. Keys you leave out stay English. See <Ref to="en" /> and [Translate Jali](/guides/translating).</Param>
 </ChildParams>
 </Param>
 </Params>
@@ -271,29 +273,39 @@ The defaults keep to three rules:
 
 </Entry>
 
-<Entry name="formatKeys" kind="function" from="@jali/core" signature={`formatKeys(seq: KeySequence, platform?: Platform): string`} example={formatCode} exampleFile="format.ts">
+<Entry name="formatKeys" kind="function" from="@jali/core" signature={`formatKeys(seq: KeySequence, platform?: Platform, words?: KeyWords): string`} example={formatCode} exampleFile="format.ts">
 
-A key sequence as people read it: "⌘K ⌘M" on a Mac, "Ctrl+K Ctrl+M" elsewhere. Sequences come from `keymap.sequences(id)`.
+A key sequence as people read it: "⌘K ⌘M" on a Mac, "Ctrl+K Ctrl+M" elsewhere. Sequences come from `keymap.sequences(id)`. `jali.keymap.format(seq)` does the same in the workspace's own words.
 
 <Params>
 <Param name="seq" type="readonly Chord[]" required>One binding: a chord, or a prefix chord and a second chord.</Param>
 <Param name="platform" type="Platform" default="this platform" />
+<Param name="words" type="KeyWords" default="English">The words for modifiers, Esc, Space and the arrows, such as `messages.keys`.</Param>
 </Params>
 
 <Returns type="string" />
 
 </Entry>
 
-<Entry name="keyHint" kind="function" from="@jali/core" signature={`keyHint(text: string, platform?: Platform): string`} compact>
+<Entry name="keyHint" kind="function" from="@jali/core" signature={`keyHint(text: string, platform?: Platform, words?: KeyWords): string`} compact>
 
 A binding string printed for the platform: `keyHint("Alt+Enter")` is "⌥↵" on a Mac and "Alt+Enter" elsewhere. For keys a pane handles itself, which are not in the keymap. Throws on a key or modifier it doesn't know.
 
 <Params>
 <Param name="text" type="string" required>A binding such as `"Mod+K Mod+M"`.</Param>
 <Param name="platform" type="Platform" default="this platform" />
+<Param name="words" type="KeyWords" default="English">As for `formatKeys`.</Param>
 </Params>
 
 <Returns type="string" />
+
+</Entry>
+
+## Words
+
+<Entry name="en" kind="constant" from="@jali/core" signature={`const en: Messages`} example={messagesCode} exampleFile="messages.ts">
+
+Jali's English messages: every word it shows or says, by area (`announcements`, `toasts`, `commands`, `commandGroups`, `keys`, `palette`, `chooser`, `confirmDiscard`, `settings`, `tabs`, `shelf`, `pane`, `peek`, `workspace`, `page`, `drop`). A workspace made without `messages` uses this object as is (`jali.messages === en`). Spread it to start a translation. A message that needs values is a function, such as `en.announcements.closed(pane)`; a message with a bold part takes `bold` and returns its parts in order.
 
 </Entry>
 

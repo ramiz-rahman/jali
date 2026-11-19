@@ -20,6 +20,7 @@ import {
   parseKeys,
   type Chord,
   type KeySequence,
+  type KeyWords,
   type Platform,
 } from "./format";
 
@@ -79,6 +80,8 @@ export interface KeymapOptions {
   reserved?: readonly KeyString[];
   /** Called for each binding refused (unparsable, a bare character key, or a sequence longer than two). Default: console.warn. */
   onInvalid?: (id: string, binding: KeyString, reason: string) => void;
+  /** The words printed keys use ("Ctrl", "Esc"). Default: English; a workspace passes its `messages.keys`. */
+  words?: KeyWords;
 }
 
 export interface Keymap {
@@ -88,6 +91,8 @@ export interface Keymap {
   sequences(id: string): readonly KeySequence[];
   /** The first binding, formatted for this platform ("⌘K ⌘M" / "Ctrl+K Ctrl+M"); "" when unbound. */
   label(id: string): string;
+  /** A key sequence formatted for this platform, in the workspace's words ("Esc", "Ctrl+K Ctrl+M"). */
+  format(seq: KeySequence): string;
   /** Command ids whose sequence is exactly `prefix` then a chord matching `match` (two-step), or `prefix` alone. */
   find(match: (c: Chord) => boolean, prefix?: Chord): string | undefined;
   /** Whether some binding starts with a chord matching `match` and has a second step. */
@@ -171,8 +176,9 @@ export function createKeymap(overrides: KeymapOverrides = {}, opts: KeymapOption
     sequences: (id) => byId.get(id) ?? [],
     label: (id) => {
       const s = byId.get(id)?.[0];
-      return s ? formatKeys(s, platform) : "";
+      return s ? formatKeys(s, platform, opts.words) : "";
     },
+    format: (seq) => formatKeys(seq, platform, opts.words),
     find(match, prefix) {
       for (const [id, seqs] of entries)
         for (const s of seqs) {

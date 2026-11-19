@@ -2,25 +2,17 @@ import { useEffect, useLayoutEffect, useMemo, useRef, useState, type KeyboardEve
 import { FoldHorizontal, Undo2 } from "lucide-react";
 import type { ShelfEntry, JaliModel, PaneActivity } from "@jali/core/adapter";
 import { useShortcut } from "../commands/react";
-import { flashTab, FOLDED_DESC, FOLDED_TIP, titleOf } from "@jali/core/adapter";
+import { flashTab, titleOf } from "@jali/core/adapter";
 import { Activity, shelfActivity } from "../pane/Activity";
 import { KindIcon } from "../pane/icons";
-import { useActions, useModel, useStore, useUi } from "../state/react";
+import { useActions, useMessages, useModel, useStore, useUi } from "../state/react";
 
 function label(m: JaliModel, it: ShelfEntry, a: PaneActivity | undefined) {
   const node = m.pane(it.paneId);
   const title = node ? titleOf(m.env, node) : m.title(it.paneId);
   const home = m.title(it.homeId);
-  const word = shelfActivity(a)?.word;
   const folded = it.reason === "folded";
-  return {
-    node,
-    title,
-    home,
-    folded,
-    state: shelfActivity(a)?.state ?? "idle",
-    full: `${title}${word ? `, ${word}` : ""}, ${folded ? "folded" : `behind ${home}`}`,
-  };
+  return { node, title, home, folded, state: shelfActivity(a)?.state ?? "idle" };
 }
 
 /** The shelf: tucked and folded panes, as chips by home. Renders nothing unless something is tucked or folded. */
@@ -42,8 +34,9 @@ export function Shelf() {
   const activity = useUi((s) => s.activity);
   const actions = useActions();
   const store = useStore();
-  const putBackShortcut = useShortcut("pane.putBack");
-  const putBackKeys = putBackShortcut ? ` · ${putBackShortcut}` : "";
+  const words = useMessages();
+  const t = words.shelf;
+  const putBackKeys = useShortcut("pane.putBack");
   const doReveal = (it: ShelfEntry) => {
     actions.reveal(it.paneId);
     flashTab(store.dom, it.paneId);
@@ -161,9 +154,14 @@ export function Shelf() {
         <button
           className="jali-shelf-chip-main"
           tabIndex={it.paneId === tab ? 0 : -1}
-          aria-label={`${L.full}. Enter shows it${it.reason === "tucked" ? ", Shift+Enter puts it back" : ""}`}
-          aria-description={L.folded ? FOLDED_DESC : undefined}
-          title={L.folded ? `${L.title} · ${FOLDED_TIP}` : `${L.title} · behind ${L.home}`}
+          aria-label={t.chip({
+            pane: L.title,
+            home: L.home,
+            reason: it.reason,
+            activity: activity[it.paneId],
+          })}
+          aria-description={L.folded ? words.tabs.foldedDescription : undefined}
+          title={L.folded ? words.tabs.foldedTitle(L.title) : t.chipTip(L.title, L.home)}
           onFocus={() => setFocusId(it.paneId)}
           onClick={() => doReveal(it)}
         >
@@ -179,8 +177,8 @@ export function Shelf() {
           <button
             className="jali-shelf-chip-put"
             tabIndex={-1}
-            aria-label={`Put back ${L.title}`}
-            title={`Put back${putBackKeys}`}
+            aria-label={t.putBack(L.title)}
+            title={words.keys.withKeys(t.putBackTip, putBackKeys)}
             onClick={() => actions.putBack(it.paneId)}
           >
             <Undo2 size={13} strokeWidth={1.75} aria-hidden />
@@ -193,14 +191,14 @@ export function Shelf() {
   const hidden = items.filter((i) => hiddenIds.includes(i.paneId));
   const listed = menu === "folded" ? foldedItems : hidden;
   return (
-    <div className="jali-shelf" role="region" aria-label="Shelf" tabIndex={-1} data-shelf>
+    <div className="jali-shelf" role="region" aria-label={t.label} tabIndex={-1} data-shelf>
       <div className="jali-shelf-bar" ref={bar}>
         <span className="jali-shelf-fade jali-shelf-fade-l" aria-hidden />
         <div
           className="jali-shelf-scroll"
           ref={scroller}
           role="toolbar"
-          aria-label="Tucked and folded panes"
+          aria-label={t.toolbar}
           aria-orientation="horizontal"
           onKeyDown={onKey}
           onScroll={measure}
@@ -209,10 +207,10 @@ export function Shelf() {
             <div
               className="jali-shelf-group"
               role="group"
-              aria-label={`Behind ${m.title(home)}`}
+              aria-label={t.behind(m.title(home))}
               key={home}
             >
-              <span className="jali-shelf-home">Behind {m.title(home)}:</span>
+              <span className="jali-shelf-home">{t.behindHeading(m.title(home))}</span>
               {list.map(chip)}
             </div>
           ))}
@@ -220,7 +218,7 @@ export function Shelf() {
             <div
               className="jali-shelf-group is-folded"
               role="group"
-              aria-label="Folded"
+              aria-label={t.folded}
               key="folded"
             >
               <div
@@ -234,14 +232,14 @@ export function Shelf() {
                   tabIndex={tab === SUMMARY ? 0 : -1}
                   aria-haspopup="menu"
                   aria-expanded={menu === "folded"}
-                  aria-label={`${foldedItems.length} folded panes. Enter lists them`}
-                  aria-description={FOLDED_DESC}
-                  title={FOLDED_TIP}
+                  aria-label={t.summary(foldedItems.length)}
+                  aria-description={words.tabs.foldedDescription}
+                  title={words.tabs.foldedTip}
                   onFocus={() => setFocusId(SUMMARY)}
                   onClick={() => setMenu((v) => (v === "folded" ? false : "folded"))}
                 >
                   <FoldHorizontal size={13} strokeWidth={1.75} aria-hidden />
-                  <span className="jali-shelf-chip-title">{foldedItems.length} folded</span>
+                  <span className="jali-shelf-chip-title">{t.summaryText(foldedItems.length)}</span>
                 </button>
               </div>
             </div>
@@ -249,11 +247,11 @@ export function Shelf() {
             <div
               className="jali-shelf-group is-folded"
               role="group"
-              aria-label="Folded"
+              aria-label={t.folded}
               key="folded"
             >
-              <span className="jali-shelf-home" title={FOLDED_TIP}>
-                <FoldHorizontal size={12} strokeWidth={1.75} aria-hidden /> Folded:
+              <span className="jali-shelf-home" title={words.tabs.foldedTip}>
+                <FoldHorizontal size={12} strokeWidth={1.75} aria-hidden /> {t.foldedHeading}
               </span>
               {foldedItems.map(chip)}
             </div>
@@ -266,17 +264,17 @@ export function Shelf() {
           className="jali-shelf-more"
           aria-haspopup="menu"
           aria-expanded={menu === "more"}
-          aria-label={`${hidden.length} more tucked or folded panes`}
+          aria-label={t.more(hidden.length)}
           onClick={() => setMenu((v) => (v === "more" ? false : "more"))}
         >
-          +{hidden.length}
+          {t.moreCount(hidden.length)}
         </button>
       ) : null}
       {menu ? (
         <div
           className="jali-shelf-menu"
           role="menu"
-          aria-label={menu === "folded" ? "Folded panes" : "More tucked or folded panes"}
+          aria-label={menu === "folded" ? t.menuFolded : t.menuMore}
           onKeyDown={(e) => {
             if (e.key === "Escape") {
               setMenu(false);
@@ -298,7 +296,7 @@ export function Shelf() {
                 {L.node ? <KindIcon kind={L.node.ref.kind} size={14} /> : null}
                 <span className="jali-shelf-chip-title">{L.title}</span>
                 <Activity a={activity[it.paneId]} shape />
-                <small>{L.folded ? "folded" : `behind ${L.home}`}</small>
+                <small>{t.where(L.folded, L.home)}</small>
               </button>
             );
           })}

@@ -83,6 +83,9 @@ export type { JaliModel, Group } from "./state/model";
 export type { Snapshot, Outcome, Change, Refusal, Toast, HistoryMode } from "./state/apply";
 export type { Settings, ThemeChoice, Theme } from "./state/settings";
 
+// ---------- words (translations) ----------
+export { en, type Messages, type MessageOverrides, type Direction } from "./state/messages";
+
 // ---------- the address and what a person keeps ----------
 export type { UrlSyncOptions, LinkSizes } from "./url";
 export {
@@ -116,6 +119,7 @@ export {
   keyHint,
   formatKeys,
   type Platform,
+  type KeyWords,
   type Chord,
   type KeySequence,
 } from "./commands/format";

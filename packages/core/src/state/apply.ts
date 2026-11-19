@@ -16,7 +16,7 @@
  */
 import * as core from "../layout";
 import type { Env } from "../profile";
-import { msg } from "./messages";
+import { say } from "./messages";
 import type { Layout, LayoutContext, NodeId, UndoEntry, ViewState } from "../layout/types";
 import type { JaliModel } from "./model";
 import type { UiState } from "./store";
@@ -288,7 +288,8 @@ export function apply(io: ApplyIO, o: Outcome): NodeId | undefined {
     // while the person browses the list: a question each time would be worse).
     const losing = layoutChanged ? wouldLoseWork(s, next.layout) : [];
     if (losing.length) {
-      if (o.op === "follow") return apply(io, refuse(msg.keptUnsaved(s.unsaved[losing[0]!]!)));
+      if (o.op === "follow")
+        return apply(io, refuse(say(io.snapshot()).keptUnsaved(s.unsaved[losing[0]!]!)));
       io.set({ confirm: { panes: losing, change: o } });
       return undefined;
     }

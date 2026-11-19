@@ -1,7 +1,7 @@
 import * as core from "../layout";
 import type { Edge, NodeId, ViewState } from "../layout/types";
 import { refuse, type Outcome, type Snapshot } from "../state/apply";
-import { msg } from "../state/messages";
+import { say } from "../state/messages";
 
 export function focus({ s, ctx }: Snapshot, id: NodeId): Outcome {
   if (s.view.focused === id && s.view.focusHistory[0] === id) return null;
@@ -14,7 +14,7 @@ export function focusMoved({ s, m }: Snapshot, view: ViewState): Outcome {
     return {
       op: "zoom",
       view: { ...view, zoomed: view.focused },
-      msg: msg.maximised(m.title(view.focused)),
+      msg: say(m).maximised(m.title(view.focused)),
     };
   }
   return { op: "focus", view };
@@ -36,18 +36,18 @@ export const focusEnd = (x: Snapshot, last: boolean) => {
 };
 
 export function checkZoom({ s, m }: Snapshot) {
-  if (s.page?.mode === "single") return refuse(msg.singleNoLayout);
+  if (s.page?.mode === "single") return refuse(say(m).singleNoLayout);
   return s.view.focused && (m.panes.length > 1 || s.view.zoomed) ? undefined : refuse();
 }
 
 export function toggleZoom({ s, m, ctx }: Snapshot, id = s.view.focused): Outcome {
-  if (s.page?.mode === "single") return refuse(msg.singleNoLayout);
+  if (s.page?.mode === "single") return refuse(say(m).singleNoLayout);
   if (!id) return null;
   if (m.panes.length <= 1 && !s.view.zoomed) return null; // one pane alone: zoom does nothing
   const view = core.toggleZoom(core.focus(s.view, id, ctx), id, ctx);
   return {
     op: "zoom",
     view,
-    msg: view.zoomed ? msg.maximised(m.title(id)) : msg.restored(m.title(id)),
+    msg: view.zoomed ? say(m).maximised(m.title(id)) : say(m).restored(m.title(id)),
   };
 }

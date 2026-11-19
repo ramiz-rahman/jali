@@ -13,6 +13,7 @@ import type { Layout, ObjectRef, PaneNode } from "./layout/types";
 import type { LayoutInput } from "./layout/build";
 import type { PaneKinds } from "./pane-kinds";
 import type { Command } from "./commands/registry";
+import { en, type Messages } from "./state/messages";
 
 /** One of a curated page's views. Adapters add its icon (@jali/react: RoleDef). */
 export interface RoleBase {
@@ -88,10 +89,17 @@ export interface Env {
   launcher?: string;
   /** False when the host shows Jali's commands in its own command menu (`palette: false`). */
   palette?: boolean;
+  /** Every word the workspace shows or says (state/messages.ts). Default: English (`en`). */
+  messages?: Messages;
 }
 
 export const presetById = (env: Pick<Env, "presets">, id: string | undefined): Preset | undefined =>
   env.presets.find((p) => p.id === id) ?? env.presets[0];
 
-export const viewerLabel = (profile: ProfileBase | null, full: boolean) =>
-  (full ? profile?.viewers?.full : profile?.viewers?.limited) ?? (full ? "investigator" : "viewer");
+export const viewerLabel = (
+  profile: ProfileBase | null,
+  full: boolean,
+  words: Pick<Messages["page"], "viewerFull" | "viewerLimited"> = en.page,
+) =>
+  (full ? profile?.viewers?.full : profile?.viewers?.limited) ??
+  (full ? words.viewerFull : words.viewerLimited);

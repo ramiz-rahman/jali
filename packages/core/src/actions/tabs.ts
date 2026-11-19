@@ -1,7 +1,7 @@
 import * as core from "../layout";
 import type { NodeId } from "../layout/types";
 import { refuse, type Outcome, type Snapshot } from "../state/apply";
-import { msg } from "../state/messages";
+import { messagesOf, say } from "../state/messages";
 
 const unzoomed = core.tree.unzoom;
 
@@ -24,7 +24,7 @@ export function mergeTargets({ s, m }: Snapshot, source = s.view.focused): Merge
         {
           id: b.id,
           label: st.children.map((c) => m.env.kinds.title(c.ref)).join(" · "),
-          hint: `${st.children.length} tabs`,
+          hint: messagesOf(m).chooser.stackHint(st.children.length),
         },
       ];
     const p = m.pane(b.id);
@@ -33,7 +33,7 @@ export function mergeTargets({ s, m }: Snapshot, source = s.view.focused): Merge
           {
             id: b.id,
             label: m.env.kinds.title(p.ref),
-            hint: m.env.kinds.isTransient(p.ref) ? "new pane" : p.ref.kind,
+            hint: m.env.kinds.isTransient(p.ref) ? messagesOf(m).chooser.newPaneHint : p.ref.kind,
           },
         ]
       : [];
@@ -47,8 +47,8 @@ export function mergeInto({ s, m, ctx }: Snapshot, source: NodeId, target: NodeI
   if (!m.pane(source) || !m.pane(target) || source === target) return null;
   const r = core.drop(s.layout, unzoomed(s.view), source, target, "centre", "tab", ctx);
   const text = m.stackOf(target)
-    ? msg.addedToTabsOf(m.title(source), m.title(target))
-    : msg.addedToTabsWith(m.title(source), m.title(target));
+    ? say(m).addedToTabsOf(m.title(source), m.title(target))
+    : say(m).addedToTabsWith(m.title(source), m.title(target));
   return { op: "merge", layout: r.layout, view: core.focus(r.view, source, ctx), msg: text };
 }
 
@@ -58,14 +58,14 @@ export const checkUnmerge = ({ s, m }: Snapshot) =>
 /** Move a tab out of its stack, to the right of the stack. Same op as dragging the tab to the right edge. */
 export function unmerge({ s, m, ctx }: Snapshot, id = s.view.focused): Outcome {
   const st = m.stackOf(id);
-  if (!id || !st) return refuse(msg.notInTabs(m.title(id)));
+  if (!id || !st) return refuse(say(m).notInTabs(m.title(id)));
   const other = st.children.find((c) => c.id !== id)!;
   const r = core.drop(s.layout, unzoomed(s.view), id, other.id, "right", "swap", ctx);
   return {
     op: "unmerge",
     layout: r.layout,
     view: core.focus(r.view, id, ctx),
-    msg: msg.movedOutOfTabs(m.title(id), m.title(st.active === id ? other.id : st.active)),
+    msg: say(m).movedOutOfTabs(m.title(id), m.title(st.active === id ? other.id : st.active)),
   };
 }
 
@@ -75,6 +75,6 @@ export function setActiveTab({ s, m, ctx }: Snapshot, stack: NodeId, pane: NodeI
     op: "tab",
     layout: core.setActiveTab(s.layout, stack, pane, ctx),
     view: core.focus(s.view, pane, ctx),
-    msg: msg.tabShown(m.title(pane)),
+    msg: say(m).tabShown(m.title(pane)),
   };
 }

@@ -29,7 +29,6 @@ export * from "./dom/ids";
 export * from "./pane-kinds";
 export * from "./pane/activeItem";
 export * from "./pane/chrome";
-export * from "./pane/tabState";
 export * from "./ports";
 export * from "./profile";
 export * from "./state/apply";
