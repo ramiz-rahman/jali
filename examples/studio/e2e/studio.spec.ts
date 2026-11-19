@@ -202,3 +202,30 @@ test("a mixer fader drags without jumping, settles at 0 dB, and a pan dial turns
   await pan.dblclick();
   await expect(pan).toHaveAttribute("aria-valuetext", "centre");
 });
+
+test("the timeline seeks by click, drag (with pointer capture), the wheel and the keys", async ({ page }) => {
+  const lanes = page.getByRole("slider", { name: /Playhead in/ });
+  const box = (await lanes.boundingBox())!;
+  // A click a quarter of the way along: about a quarter of the session.
+  await page.mouse.click(box.x + box.width / 4, box.y + box.height / 2);
+  const quarter = await seconds(page);
+  expect(quarter).toBeGreaterThan(12);
+  expect(quarter).toBeLessThan(25);
+  // Drag right, and on past the pane: the playhead follows to the end.
+  await page.mouse.move(box.x + box.width / 4, box.y + box.height / 2);
+  await page.mouse.down();
+  await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+  await page.mouse.move(box.x + box.width + 400, box.y + 300);
+  await page.mouse.up();
+  expect(await seconds(page)).toBeGreaterThan(70);
+  // The wheel: 100 of delta is a second.
+  await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+  await page.keyboard.press("Home");
+  await lanes.focus();
+  await page.keyboard.press("Home");
+  await expect.poll(() => seconds(page)).toBe(0);
+  await page.mouse.wheel(0, 500);
+  await expect.poll(() => seconds(page)).toBe(5);
+  await page.keyboard.press("ArrowRight");
+  await expect.poll(() => seconds(page)).toBe(6);
+});

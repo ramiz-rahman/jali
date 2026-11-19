@@ -13,7 +13,7 @@ import { definePane, useActivity, useCommands, useTheme, type PaneProps } from "
 import { useFrame, useTransport } from "../audio/react";
 import { channelOf, useSessionView, type SessionView } from "../edits";
 import { useServices } from "../services";
-import { sessionById, TRACKS, type Track } from "../sessions/sessions";
+import { CHANNEL, sessionById, TRACKS, trackName, type Track } from "../sessions/sessions";
 import { Empty, NotInTransport } from "../ui/parts";
 import { dbToFader, Fader } from "../ui/Fader";
 import { PanDial } from "../ui/Knob";
@@ -69,13 +69,7 @@ function Mixer({ params, paused }: PaneProps<typeof mixerParams>) {
   );
 }
 
-/** Each channel's colour: its pan dial's cap and its module's lamp, as on a synthesiser's coloured encoders. */
-const CAPS: Record<string, "blue" | "green" | "white" | "orange"> = {
-  "mic-a": "blue",
-  "mic-b": "green",
-  bed: "white",
-  sting: "orange",
-};
+const CAPS = CHANNEL;
 
 /** The printed scale beside every fader and meter: its ticks sit where the cap's centre line sits for that dB. */
 const TICKS = [6, 0, -6, -12, -24, -48];
@@ -105,11 +99,7 @@ function Strip({ track, view }: { track: Track; view: SessionView }) {
   const { edits } = useServices();
   const ch = channelOf(view.edits, track.id);
   const session = view.session.id;
-  const name = track.speaker
-    ? view.speakerName(track.speaker)
-    : track.kind === "music"
-      ? "Synth pad"
-      : "Synth bells";
+  const name = trackName(track, view.speakerName);
   const anySolo = TRACKS.some((t) => channelOf(view.edits, t.id).solo);
   const silent = ch.mute || (anySolo && !ch.solo);
   return (

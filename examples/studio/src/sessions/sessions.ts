@@ -25,6 +25,19 @@ export const TRACKS: readonly Track[] = [
   { id: "sting", kind: "sting", label: "Sting" },
 ];
 
+/** Each track's channel colour, used the same way everywhere: the mixer's lamp and pan ring, the timeline's lamp
+ *  and the transcript's speaker marks (a speaker takes the colour of the microphone they speak into). */
+export const CHANNEL: Record<string, "blue" | "green" | "white" | "orange"> = {
+  "mic-a": "blue",
+  "mic-b": "green",
+  bed: "white",
+  sting: "orange",
+};
+
+/** A track's display name: its speaker's, or the synth's. */
+export const trackName = (track: Track, speakerName: (id: string) => string) =>
+  track.speaker ? speakerName(track.speaker) : track.kind === "music" ? "Synth pad" : "Synth bells";
+
 /** The track a segment's clip is on: the microphone of the speaker who recorded it. */
 export const trackOf = (segment: SegmentData) =>
   TRACKS.find((t) => t.speaker === segment.speaker)?.id ?? "mic-a";
