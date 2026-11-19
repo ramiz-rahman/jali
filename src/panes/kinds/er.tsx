@@ -133,7 +133,7 @@ export function ErPane({ params, paused, openBeside }: PaneProps<{ table: string
 
 export const erKind = definePane("er", {
   params: { table: String },
-  title: ({ table }) => `${table ?? ""} relations`.trim(),
+  title: ({ table }) => `${table} relations`,
   icon: GitForkIcon,
   width: { min: 400, comfortable: 560 },
   height: { min: 240 },

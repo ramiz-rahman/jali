@@ -24,6 +24,8 @@ export {
   useLauncher,
   type LauncherSources,
 } from "./pane/hooks";
+// Declaring a kind's params: `params: { id: Number, tab: optional(String) }` (from @jali/core).
+export { optional, oneOf } from "@jali/core/adapter";
 export { usePaneState } from "./pane/usePaneState";
 export { useActiveItemPort } from "./pane/useActiveItemPort";
 

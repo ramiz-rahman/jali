@@ -1,5 +1,5 @@
 import { useEffect, useState, type KeyboardEvent } from "react";
-import { definePane, useLauncher, type PaneProps } from "@jali/react";
+import { definePane, oneOf, optional, useLauncher, type PaneProps } from "@jali/react";
 import { ClipboardTextIcon, FileTextIcon, NoteIcon, PlusIcon } from "@phosphor-icons/react";
 
 // Your data. Jali never fetches anything: a pane is told which object to show, and shows it.
@@ -59,10 +59,20 @@ function OrderList({ select, peek, openBeside, paused }: PaneProps) {
   );
 }
 
-/** One order, read from its typed params. */
-function OrderDetail({ params }: PaneProps<{ id: number }>) {
+// What an order pane shows: its id, read back as a number, so "1" in a link and 1 in code are the same order, and,
+// optionally, which tab of the order is open. Declared first, so the component below is typed from it.
+const orderParams = { id: Number, tab: optional(oneOf("summary", "history")) };
+
+/** One order, read from its typed params: { id: number; tab?: "summary" | "history" }. */
+function OrderDetail({ params }: PaneProps<typeof orderParams>) {
   const order = ORDERS.find((o) => o.id === params.id);
   if (!order) return <p>Order {params.id} was not found.</p>;
+  if (params.tab === "history")
+    return (
+      <p>
+        Order {order.id} was placed by {order.customer}.
+      </p>
+    );
   return (
     <dl>
       <dt>Customer</dt>
@@ -88,12 +98,13 @@ export const orderList = definePane("orders", {
 });
 
 export const orderKind = definePane("order", {
-  params: { id: Number }, // read back as a number, so "1" in a link and 1 in code are the same order
-  title: ({ id }) => `Order ${id}`,
+  params: orderParams,
+  title: ({ id, tab }) => (tab === "history" ? `Order ${id} history` : `Order ${id}`),
   icon: FileTextIcon,
   width: { min: 360, comfortable: 440, max: 600 }, // past max, spare room goes to the neighbours first
   height: { min: 200 },
   shows: "order", // another kind that shows orders counts as the same object
+  identity: ({ id }) => id, // the open tab doesn't make it another order
   Component: OrderDetail,
 });
 

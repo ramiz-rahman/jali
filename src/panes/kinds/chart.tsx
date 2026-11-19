@@ -12,8 +12,11 @@ import type { PaneProps } from "@jali/react";
 const MAX_BARS = 20;
 
 /** A bar chart of the same result handle the grid reads (same cache key, so no second fetch). */
-export function ChartPane({ params, paused }: PaneProps<{ runId: string }>) {
-  const runId = params.runId ?? "";
+/** The result handle to chart; empty until the linked query has run. */
+export const chartParams = { runId: String };
+
+export function ChartPane({ params, paused }: PaneProps<typeof chartParams>) {
+  const runId = params.runId;
   const w = useResultWindow(runId, 0, paused);
   const q = w.q;
   const rows = w.rows;
@@ -134,7 +137,7 @@ export function ChartPane({ params, paused }: PaneProps<{ runId: string }>) {
 }
 
 export const chartKind = definePane("chart", {
-  params: { runId: String },
+  params: chartParams,
   title: "Chart",
   icon: ChartBarIcon,
   width: { min: 360, comfortable: 480 },

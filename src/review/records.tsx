@@ -11,6 +11,7 @@ import {
   UsersIcon,
 } from "@phosphor-icons/react";
 import type { PaneProps } from "@jali/react";
+import { recordParams } from "../panes/kinds/record";
 import { isLoading, useRecord, useRows } from "../data/hooks";
 import type { TableName } from "../data/types";
 import { applicationFacts } from "../data/sample-sql";
@@ -57,9 +58,9 @@ const when = (v: unknown) => {
 };
 
 /** One record of any loan-book table; tables without a designed view fall back to the Data Studio record. */
-export function ReviewRecordPane(p: PaneProps<{ table: string; id?: string | number }>) {
-  const table = (p.params.table ?? "") as TableName;
-  const id = String(p.params.id ?? "");
+export function ReviewRecordPane(p: PaneProps<typeof recordParams>) {
+  const table = p.params.table as TableName;
+  const id = String(p.params.id);
   const designed = table in VIEWS;
   const rec = useRecord(table, id, { paused: p.paused || !designed });
   useActivity(designed ? (isLoading(rec) ? "loading" : rec.isError ? "error" : "idle") : undefined);

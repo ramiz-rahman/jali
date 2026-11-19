@@ -72,9 +72,9 @@ A node's id.
 
 </Entry>
 
-<Entry name="ObjectRef" kind="type" from="@jali/core" signature={`interface ObjectRef { kind: string; params: Record<string, string | number> }`} compact>
+<Entry name="ObjectRef" kind="type" from="@jali/core" signature={`interface ObjectRef { kind: string; params: Record<string, string | number | boolean> }`} compact>
 
-What a pane shows: a kind and the params that name the object (`{ kind: "order", params: { id: 1041 } }`). Params must be strings or finite numbers.
+What a pane shows: a kind and the params that name the object (`{ kind: "order", params: { id: 1041 } }`). Params must be strings, finite numbers or booleans.
 
 </Entry>
 
@@ -116,9 +116,9 @@ What the person is looking at, apart from the layout.
 
 </Entry>
 
-<Entry name="PaneKind" kind="type" from="@jali/core" signature={`interface PaneKind { kind; title(ref); minWidth; minHeight; comfortableWidth?; maxWidth? }`} compact>
+<Entry name="PaneKind" kind="type" from="@jali/core" signature={`interface PaneKind { kind; title(ref); minWidth; minHeight; comfortableWidth?; maxWidth?; checkParams? }`} compact>
 
-The part of a kind the layout operations read, from `kinds.registry()`. The sizes are explained under <Ref to="PaneKindBase" />.
+The part of a kind the layout operations read, from `kinds.registry()`. The sizes are explained under <Ref to="PaneKindBase" />. `checkParams(params)`, set for a kind that declares `params`, says what is wrong with a ref's params (a required param missing, a value its type can't read), or returns `undefined`; <Ref to="layout.validate" page="/reference/core/layout" /> rejects a layout holding such a ref, so a link to it opens as broken.
 
 </Entry>
 
@@ -215,7 +215,7 @@ The options of <Ref to="tabs" page="/reference/core" />.
 What a kind says about itself, apart from how it renders. In React, `definePane(kind, options)` takes these with `Component` and `icon`.
 
 <Params title="Fields">
-<Param name="params" type="ParamTypes">How to read each param back from a link, which turns values into text: `{ id: Number }` gives the component and `title` `id: number`. Declare the params every ref of the kind has; params left out stay plain `string | number` values.</Param>
+<Param name="params" type="ParamTypes">What a ref of the kind holds, and how to read each param back from a link, which can turn values into text: `{ id: Number, tab: optional(String) }` gives the component and `title` `{ id: number; tab?: string }`. A ref missing a required param, or holding a value its type can't read, never reaches the component (see <Ref to="ParamProblem" />). Without `params`, params are plain values.</Param>
 <Param name="title" type="string | ((params: P) => string)" required>The pane's title in its header, its tab and the palette.</Param>
 <Param name="width" type="PaneWidth" default="{ min: 240 }">
 
@@ -266,19 +266,37 @@ A ref's params: plain data, so they fit in a link.
 
 </Entry>
 
-<Entry name="ParamValue" kind="type" from="@jali/core" signature={`type ParamValue = string | number`} compact>One param's value.</Entry>
+<Entry name="ParamValue" kind="type" from="@jali/core" signature={`type ParamValue = string | number | boolean`} compact>One param's value.</Entry>
 
-<Entry name="ParamType" kind="type" from="@jali/core" signature={`type ParamType = (value: ParamValue) => ParamValue`} compact>
+<Entry name="ParamType" kind="type" from="@jali/core" signature={`type ParamType = (value: ParamValue) => ParamValue | undefined`} compact>
 
-How to read one param back: `Number`, `String`, or your own function.
+How to read one param back: `Number`, `String`, `Boolean`, <Ref to="oneOf" page="/reference/core" />, or your own function. `Number` reads text that is a finite number; `Boolean` reads `true`, `false`, `"true"`, `"false"`, `1` and `0`. Your function says it can't read a value by returning `undefined` or `NaN`, or by throwing.
 
 </Entry>
 
-<Entry name="ParamTypes" kind="type" from="@jali/core" signature={`type ParamTypes = Record<string, ParamType>`} compact>A kind's `params`.</Entry>
+<Entry name="ParamTypes" kind="type" from="@jali/core" signature={`type ParamTypes = Record<string, ParamType | OptionalParam>`} compact>A kind's `params`.</Entry>
 
-<Entry name="ParamsOf" kind="type" from="@jali/core" signature={`type ParamsOf<T extends ParamTypes> = { [K in keyof T]: ReturnType<T[K]> } & Params`} compact>
+<Entry name="OptionalParam" kind="type" from="@jali/core" signature={`interface OptionalParam<T extends ParamType = ParamType> { readonly optional: T }`} compact>
 
-The params a kind's code sees: `ParamsOf<{ id: NumberConstructor }>` is `{ id: number }`, with any other params as plain values.
+A param a ref may leave out, made by <Ref to="optional" page="/reference/core" />.
+
+</Entry>
+
+<Entry name="OneOf" kind="type" from="@jali/core" signature={`type OneOf<V extends string | number> = ((value: ParamValue) => V | undefined) & { readonly values: readonly V[] }`} compact>
+
+A param that is one of a few values, made by <Ref to="oneOf" page="/reference/core" />.
+
+</Entry>
+
+<Entry name="ParamsOf" kind="type" from="@jali/core" signature={`type ParamsOf<T extends ParamTypes> = { [K in Required]: Read<T[K]> } & { [K in Optional]?: Read<T[K]> }`} compact>
+
+The params a kind's code sees, from its declaration: `ParamsOf<{ id: NumberConstructor; tab: OptionalParam<StringConstructor> }>` is `{ id: number; tab?: string }`. Use it as `ParamsOf<typeof orderParams>` to name the type of params declared apart from the kind. Without a declaration, `Params`.
+
+</Entry>
+
+<Entry name="ParamProblem" kind="type" from="@jali/core" signature={`interface ParamProblem { param: string; value?: ParamValue }`} compact>
+
+A param a ref is missing (`value` is undefined), or holds a value its type can't read. A ref with one never reaches the component: a layout link or saved layout holding it opens as broken, a peek or a page's opened pane with it is left out of the link, and a pane your code opens with it shows a message naming the param. Listed by `PaneKinds.problems`.
 
 </Entry>
 
@@ -293,7 +311,8 @@ A workspace's kinds, as `jali.env.kinds`.
 <Member name="PaneKinds.onChange" signature="onChange(l: () => void): () => void">Hear registrations. Returns the unsubscribe.</Member>
 <Member name="PaneKinds.registry" signature="registry(): KindRegistry">The framework-free view for the layout operations; the same object until the next registration.</Member>
 <Member name="PaneKinds.params" signature="params(ref: ObjectRef): Params">The ref's params, read with its kind's `params` types.</Member>
-<Member name="PaneKinds.title" signature="title(ref: ObjectRef): string">The title, or the kind name for an unknown kind or a title that throws.</Member>
+<Member name="PaneKinds.problems" signature="problems(ref: ObjectRef): ParamProblem[]">What its kind can't read in the ref's params: required params missing, values of the wrong type. Empty when it opens.</Member>
+<Member name="PaneKinds.title" signature="title(ref: ObjectRef): string">The title, or the kind name for an unknown kind, a ref with problems or a title that throws.</Member>
 <Member name="PaneKinds.identityOf" signature="identityOf(ref: ObjectRef): string | undefined">The ref's identity as text, `undefined` for scratch kinds.</Member>
 <Member name="PaneKinds.sameObject" signature="sameObject(a: ObjectRef, b: ObjectRef): boolean">Same object type and identity. Scratch refs are never the same object.</Member>
 <Member name="PaneKinds.sameRecent" signature="sameRecent(a: ObjectRef, b: ObjectRef): boolean">The same entry in Recent: same kind and identity (scratch kinds: same params).</Member>
