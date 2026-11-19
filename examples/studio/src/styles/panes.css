@@ -168,7 +168,7 @@
   /* Three states, three marks: the chosen cartridge is latched with its lamp steady; the one playing pulses its
      lamp and prints "playing"; the keyboard's place is the focus ring, only while the list has keyboard focus. */
   .lib-rows:focus-visible .lib-row[aria-selected="true"] {
-    outline: 2px solid var(--focus);
+    outline: 1.5px solid var(--legend);
     outline-offset: 3px;
   }
   /* The label: a printed paper sticker on the cartridge. */
@@ -307,16 +307,20 @@
     border-radius: var(--corner);
     background: transparent;
   }
-  .tr-seg[data-speaking]::before {
+  /*
+   * Selection, keyboard focus and playing are three marks that never stack (the rule for every list in the app):
+   *  - selected: the orange side bar and a slightly raised tint;
+   *  - keyboard focus (only from the keyboard, `:focus-visible` on the list): a thin neutral inner outline;
+   *  - playing: the word's underline and tint, and the timecode lit.
+   */
+  .tr-seg[aria-selected="true"]::before {
     background: var(--st-signal);
   }
   .tr-seg[aria-selected="true"] {
-    background: light-dark(rgb(0 0 0 / 0.04), rgb(255 255 255 / 0.04));
-    box-shadow: inset 0 0 0 1px var(--paper-rule);
+    background: light-dark(rgb(0 0 0 / 0.04), rgb(255 255 255 / 0.045));
   }
-  .tr-rows:focus-visible .tr-seg[aria-selected="true"],
-  .tr-seg[data-active] {
-    box-shadow: inset 0 0 0 2px var(--st-signal);
+  .tr-rows:focus-visible .tr-seg[aria-selected="true"] {
+    box-shadow: inset 0 0 0 1.5px var(--paper-dim);
   }
   .tr-speaker {
     padding: 14px 0 4px 56px;
@@ -1157,9 +1161,8 @@
 
 @layer app {
   /* While a line is being corrected, its field carries the focus ring: the row's own ring steps back. */
-  .tr-seg:has(.tr-editor),
   .tr-rows:focus-visible .tr-seg:has(.tr-editor) {
-    box-shadow: inset 0 0 0 1px var(--paper-rule);
+    box-shadow: none;
   }
 }
 
@@ -1409,5 +1412,13 @@
   }
   .clip-note-foot > span:first-child:empty {
     display: none;
+  }
+}
+
+@layer app {
+  /* The markers' selected row prints inverted; keyboard focus adds a thin outline outside it, in the LCD's ink. */
+  .mk-rows:focus-visible .mk-row[aria-selected="true"] {
+    outline: 1.5px solid var(--lcd-ink);
+    outline-offset: 2px;
   }
 }

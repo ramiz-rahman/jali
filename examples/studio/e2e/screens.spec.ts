@@ -234,3 +234,29 @@ for (const dark of [false, true]) {
       .screenshot({ path: shot(`state-no-audio${dark ? "-dark" : ""}`) });
   });
 }
+
+// A selected transcript row after a click, and after moving to it with the keyboard.
+for (const dark of [false, true]) {
+  test(`transcript rows${dark ? " dark" : ""}`, async ({ page }) => {
+    const d = dark ? "-dark" : "";
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.emulateMedia({ colorScheme: dark ? "dark" : "light", reducedMotion: "reduce" });
+    await page.goto("/");
+    const rows = page.getByRole("listbox", { name: /Transcript of/ });
+    await expect(rows).toBeVisible();
+    await rows
+      .getByRole("option")
+      .nth(1)
+      .click({ position: { x: 300, y: 20 } });
+    await page.mouse.move(0, 0);
+    await rows
+      .getByRole("option")
+      .nth(1)
+      .screenshot({ path: shot(`row-selected${d}`) });
+    await page.keyboard.press("j");
+    await rows
+      .getByRole("option")
+      .nth(2)
+      .screenshot({ path: shot(`row-keyboard${d}`) });
+  });
+}

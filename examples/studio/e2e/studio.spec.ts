@@ -231,3 +231,26 @@ test("the timeline seeks by click, drag (with pointer capture), the wheel and th
   await page.keyboard.press("ArrowRight");
   await expect.poll(() => seconds(page)).toBe(6);
 });
+
+test("a clicked transcript row is selected without a focus ring; the keyboard adds a light one", async ({
+  page,
+}) => {
+  const rows = page.getByRole("listbox", { name: /Transcript of/ });
+  const ring = (el: import("@playwright/test").Locator) =>
+    el.evaluate((e) => getComputedStyle(e).boxShadow);
+  const bar = (el: import("@playwright/test").Locator) =>
+    el.evaluate((e) => getComputedStyle(e, "::before").backgroundColor);
+  // Click a row: selected (the side bar), no ring.
+  const third = rows.getByRole("option").nth(2);
+  await third.click({ position: { x: 300, y: 20 } });
+  await expect(third).toHaveAttribute("aria-selected", "true");
+  expect(await ring(third)).toBe("none");
+  expect(await bar(third)).not.toBe("rgba(0, 0, 0, 0)");
+  // Move with the keyboard: the next row is selected, with the side bar and a thin neutral outline.
+  await page.keyboard.press("j");
+  const fourth = rows.getByRole("option").nth(3);
+  await expect(fourth).toHaveAttribute("aria-selected", "true");
+  expect(await bar(fourth)).not.toBe("rgba(0, 0, 0, 0)");
+  expect(await ring(fourth)).toContain("inset");
+  expect(await ring(fourth)).not.toContain("255, 79, 0");
+});

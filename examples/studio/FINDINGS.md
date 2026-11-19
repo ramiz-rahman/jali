@@ -173,6 +173,8 @@ The deeper restyle (one tiled top row, one set of parts for every button-like th
 26. **The tab's title isn't a public part.** A tab's lamp (Studio's `::before`) took room from the title, which then ran under the close button. Studio reaches the title as `.jali-tab .jali-tab-title` to make it shrink. Want: `.jali-tab-title` public, and the tab's room for its buttons guaranteed whatever the app adds.
 27. **A pane can't render a designed state for an object Jali can't read.** A link naming a session that doesn't exist reaches the component (the param is a valid string), so the app draws its own "no signal" state. A link with a param Jali can't read gets Jali's own message instead, which the app can't style or give a recovery key. Want: a kind-level `Missing` component, like `Loading`, used for both.
 
+28. **The doubled ring on transcript rows was Studio's, not Jali's.** It came from Studio's own rule for a selected row in a focused pane (`[data-active]`), which fired after a click as well as from the keyboard. Jali draws no ring on rows; its focus mark is on the pane (`[data-focused]`). Nothing to change in Jali here; noted so the next reader doesn't look for it there.
+
 Not Jali's, for the record: making the top row one flex row of blocks meant grouping elements in `display: contents` wrappers that keep their roles (`navigation` "Layouts", `group` "Transport", "Tools"). Chrome exposes those roles; it is worth testing in other browsers before relying on it.
 
 ## What worked
