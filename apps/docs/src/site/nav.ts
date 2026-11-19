@@ -55,6 +55,7 @@ export const NAV: NavSection[] = [
       { path: "/reference/core/layout", title: "The layout namespace" },
       { path: "/reference/react" },
       { path: "/reference/tokens" },
+      { path: "/reference/parts" },
       { path: "/reference/commands" },
     ],
   },

@@ -150,7 +150,7 @@ export function TabStrip({ group, owner }: { group: NonNullable<Frame["group"]>;
     // Renaming: the field takes the tab's place until it closes.
     if (renaming === t.id)
       return (
-        <div key={t.id} className="jali-tab-item is-renaming" role="presentation">
+        <div key={t.id} className="jali-tab-item is-renaming" role="presentation" data-renaming>
           <RenameField pane={t.id} title={title} />
         </div>
       );

@@ -28,6 +28,7 @@ function Item({ node, selected }: { node: PaneNode; selected: boolean }) {
       aria-selected={selected}
       aria-controls={paneDomId(store.dom.id, node.id)}
       tabIndex={selected ? 0 : -1}
+      data-tucked={tucked || undefined}
       data-unsaved={dirty || undefined}
       aria-description={dirty ? store.messages.pane.unsaved : undefined}
       onClick={() => actions.focus(node.id)}

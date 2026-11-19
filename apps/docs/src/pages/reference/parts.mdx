@@ -1,0 +1,30 @@
+---
+title: Parts
+summary: Every part of the workspace you can style, its selector, and the attributes that carry its state.
+---
+
+import { PartsTable } from "../../reference";
+
+These are the parts of what Jali renders that your styles may rely on. Each has one selector, a `jali-` class or a `data-` attribute, and carries its state in attributes, never in classes: select `.jali-pane[data-focused]`, `.jali-tab[aria-selected="true"]` or `.jali-shelf-chip[data-reason="folded"]`.
+
+Everything on this page is public, and changes only in a major version. Other `jali-*` classes, any `is-*` class, and attributes not listed are Jali's own and may change in any release. Put your rules in a cascade layer after `jali`, as in [Theming](/guides/theming#the-layer-line), so they win without `!important`.
+
+```css
+@layer components {
+  .jali-pane[data-kind="ticket"][data-focused] {
+    box-shadow: 0 0 0 2px var(--jali-accent);
+  }
+  .jali-tab[data-pinned] {
+    font-weight: 600;
+  }
+  .jali-shelf-chip[data-activity="needs-you"] {
+    outline: 1px solid var(--jali-blocked);
+  }
+}
+```
+
+With Tailwind, the same attributes work as variants: `data-[focused]:ring-2`, or `group-data-[zoomed]:hidden` inside a pane.
+
+Attributes a pane sets with `usePaneAttributes` appear on everything that stands for it (its section, tab, shelf chip and switcher entry), alongside these.
+
+<PartsTable />

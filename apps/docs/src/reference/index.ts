@@ -15,3 +15,4 @@ export {
 } from "./Entry";
 export { TokenTable, BridgeTable } from "./Tokens";
 export { CommandTable } from "./Commands";
+export { PartsTable } from "./Parts";

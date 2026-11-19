@@ -103,17 +103,7 @@ Your theme's variables switch with your dark mode, so Jali follows. To follow a 
 
 ## Style the parts
 
-Every class Jali renders starts with `jali-`, so none collide with yours. Parts carry their state as attributes, which you can select on:
-
-| Part | Attributes |
-|---|---|
-| A pane (`.jali-pane`) | `data-pane` (its id), `data-kind`, `data-focused`, `data-zoomed` |
-| A tab (`.jali-tab`) | `aria-selected`, `data-folded`, `data-tucked` |
-| A tab's buttons (`.jali-tab-actions`, beside the tab in `.jali-tab-item`) | none: style `.jali-tab-close` and `.jali-tab-putback` |
-| A divider | `data-divider` |
-| Anything that stands for a pane (its section, tab, shelf chip, switcher entry) | the `data-*` attributes the pane sets with `usePaneAttributes` |
-| The drop preview | `data-drop-zone` (`left`, `right`, `top`, `bottom` or `centre`) |
-| The workspace root | `data-jali` |
+Every class Jali renders starts with `jali-`, so none collide with yours. The parts you may rely on, and the attributes that carry their state, are listed in [Parts](/reference/parts): a pane is `.jali-pane` with `data-kind` and `data-focused`, a tab is `.jali-tab` with `aria-selected`, `data-pinned` and `data-folded`, and so on. State is always an attribute, never a class. Anything not listed there is Jali's own and may change.
 
 <Code code={parts} filename="src/parts.css" />
 
