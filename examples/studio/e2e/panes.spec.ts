@@ -30,7 +30,7 @@ async function openSession(page: Page, title: string) {
     if ((await row.getAttribute("aria-selected")) !== "true") await row.click();
   } else {
     await page.keyboard.press("ControlOrMeta+k");
-    await page.getByRole("combobox").fill("Open session");
+    await page.locator(".jali-scrim").getByRole("combobox").fill("Open session");
     await page.keyboard.press("Enter");
     await page.getByRole("combobox", { name: "Open session…" }).fill(title);
     await page.keyboard.press("Enter");

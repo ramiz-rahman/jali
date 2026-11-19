@@ -15,8 +15,21 @@ const SIZES = [
 ] as const;
 const LAYOUTS = ["edit", "mix", "review", "compare"] as const;
 
-/** Open a layout, go to the winter storm and play a moment: a session in the middle, every pane following it. */
-async function stage(page: Page, preset: string, { dark = false } = {}) {
+/** Open a layout and a session, go somewhere in the middle and play a moment: every pane following it. */
+/** Which session, and where in it: the landing at contact light, the song a minute in (its Mix desk), dinner at the
+ *  orange. The song is reached by the timeline's keys, not by searching its words. */
+type Session = "apollo" | "song" | "dinner";
+const TITLES: Record<Session, string> = {
+  apollo: "The Eagle has landed",
+  song: "The Light caught by the Stone",
+  dinner: "Never had an orange",
+};
+
+async function stage(
+  page: Page,
+  preset: string,
+  { dark = false, session = "apollo" as Session } = {},
+) {
   await page.emulateMedia({
     colorScheme: dark ? "dark" : "light",
     reducedMotion: "reduce",
@@ -36,10 +49,26 @@ async function stage(page: Page, preset: string, { dark = false } = {}) {
       .nth(LAYOUTS.indexOf(preset as (typeof LAYOUTS)[number]))
       .click();
   await page.waitForTimeout(300);
-  await page.locator("body").press("/");
-  await page.getByRole("combobox", { name: "Go to segment…" }).fill("winter storm");
-  await page.keyboard.press("Enter");
-  await page.keyboard.press("Space");
+  if (session !== "apollo") {
+    await page.keyboard.press("ControlOrMeta+k");
+    await page.locator(".jali-scrim").getByRole("combobox").fill("Open session");
+    await page.keyboard.press("Enter");
+    await page.getByRole("combobox", { name: "Open session…" }).fill(TITLES[session]);
+    await page.keyboard.press("Enter");
+    await expect(page.locator(".pd-title")).toHaveText(TITLES[session], { timeout: 20_000 });
+  }
+  if (session === "song") {
+    const lanes = page.getByRole("slider", { name: /Playhead in/ });
+    await lanes.focus();
+    for (let i = 0; i < 6; i++) await page.keyboard.press("PageDown");
+  } else {
+    await page.locator("body").press("/");
+    await page
+      .getByRole("combobox", { name: "Go to segment…" })
+      .fill(session === "apollo" ? "CONTACT LIGHT" : "met somebody recently");
+    await page.keyboard.press("Enter");
+  }
+  await page.locator("body").press("Space");
   await page.waitForTimeout(2600);
 }
 
@@ -54,6 +83,37 @@ for (const dark of [false, true])
       });
     }
   }
+
+// The song's eight groups on the Mix desk, and the dinner party's four voices talking over each other.
+for (const dark of [false, true])
+  for (const size of SIZES) {
+    const d = dark ? "-dark" : "";
+    test(`the song in Mix at ${size.name}${d}`, async ({ page }) => {
+      await page.setViewportSize({ width: size.width, height: size.height });
+      await stage(page, "mix", { dark, session: "song" });
+      await page.screenshot({ path: shot(`song-mix-${size.name}${d}`) });
+    });
+    for (const preset of ["edit", "review"])
+      test(`dinner in ${preset} at ${size.name}${d}`, async ({ page }) => {
+        await page.setViewportSize({ width: size.width, height: size.height });
+        await stage(page, preset, { dark, session: "dinner" });
+        await page.screenshot({ path: shot(`dinner-${preset}-${size.name}${d}`) });
+      });
+  }
+
+// Credits: every session's attribution, licence and notice.
+for (const dark of [false, true])
+  test(`credits${dark ? " dark" : ""}`, async ({ page }) => {
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await stage(page, "edit", { dark, session: "dinner" });
+    await page.locator("body").press("Space");
+    await page.locator(".status-credits").click();
+    const pane = page.locator('.jali-pane[data-kind="credits"]');
+    await expect(pane).toBeVisible();
+    await page.waitForTimeout(300);
+    await page.screenshot({ path: shot(`credits${dark ? "-dark" : ""}`) });
+    await pane.screenshot({ path: shot(`credits-pane${dark ? "-dark" : ""}`) });
+  });
 
 for (const dark of [false, true])
   test(`a phone${dark ? " dark" : ""}`, async ({ page }) => {
@@ -267,7 +327,7 @@ for (const dark of [false, true]) {
     const json = Buffer.from(l.slice(2), "base64url").toString();
     url.searchParams.set(
       "l",
-      `1.${Buffer.from(json.replace('["mixer",{"session":"night-ferry"}]', '["mixer",{"session":"gone"}]')).toString("base64url")}`,
+      `1.${Buffer.from(json.replace('["mixer",{"session":"apollo11-landing"}]', '["mixer",{"session":"gone"}]')).toString("base64url")}`,
     );
     await page.goto(url.toString());
     await page
@@ -280,7 +340,7 @@ for (const dark of [false, true]) {
       reducedMotion: "reduce",
     });
     await page.setViewportSize({ width: 1440, height: 900 });
-    await page.route("**/*.m4a", (r) => r.abort());
+    await page.route("**/*.mp3", (r) => r.abort());
     await page.goto("/");
     await expect(page.locator(".pd-alert")).toHaveText("no audio");
     await page
@@ -325,7 +385,7 @@ test("light finish after", async ({ page }) => {
   await page.goto("/");
   await page
     .getByRole("listbox", { name: "Sessions" })
-    .getByRole("option", { name: /Recording the quiet/ })
+    .getByRole("option", { name: /Never had an orange/ })
     .click();
   await page
     .getByRole("navigation", { name: "Layouts" })

@@ -1,6 +1,6 @@
 # Studio: a Jali example
 
-An audio session editor, for a short podcast episode or a recorded interview with a music bed. A library of sessions, a transcript that lights up word by word as it plays, a timeline of the tracks, a mixer on the real audio graph, a detail for each segment and a list of markers. One transport, in the app's own top bar, plays the session; every pane follows its playhead. It is built on `@jali/core` and `@jali/react` alone, with a hardware-inspired look: each pane is a device on a desk.
+An audio session editor for short multitrack recordings. A library of sessions, a transcript that lights up word by word as it plays, a timeline of the tracks, a mixer on the real audio graph, a detail for each segment and a list of markers. One transport, in the app's own top bar, plays the session; every pane follows its playhead. It is built on `@jali/core` and `@jali/react` alone, with a hardware-inspired look: each pane is a device on a desk.
 
 ```sh
 vp install              # at the repository's root
@@ -9,11 +9,31 @@ vp dev examples/studio  # http://localhost:5330, or the next free port
 
 Build it as a static site with `pnpm exec vp build` in this folder, and serve `dist/` from any path: assets and audio clips are linked relative to the page, and the layout lives in the query string.
 
-The audio is real. The speech is one clip per transcript segment, read by macOS system voices. The music bed and the sting are synthesised with the Web Audio API when a session loads. Nothing needs a key, a feed or a network service.
+Three real sessions, each a different kind of material: radio traffic from the Apollo 11 landing (3 tracks, NASA's own transcript, callsigns, a loop with no transcript), a song from its multitrack masters (8 tracks, the words as lyrics in sections), and a dinner-party conversation from a research corpus (4 close-talk microphones, people talking over each other). Every track is one continuous MP3 that starts at time 0. Nothing needs a key, a feed or a network service.
 
-## The voices are placeholders
+## The sessions, their sources and licences
 
-The speech was made with macOS system voices (`say`), as a placeholder. Replace it with properly licensed recordings before this example is published. The script is in `scripts/dialogue.mjs`: three short fictional interviews. Every show, person and place in them is made up.
+| Session | What it is | Licence | Credit shown in the app |
+| --- | --- | --- | --- |
+| The Eagle has landed (`apollo11-landing`) | Apollo 11 final descent, 20 July 1969, 3:33. Air-to-ground, the Flight Director's loop and the public affairs commentary, from NASA JSC tapes at the Internet Archive. Text from NASA's Technical Air-to-Ground Voice Transcription. | Public domain (Public Domain Mark 1.0). NASA's media guidelines apply. | NASA as the source; "Use does not imply endorsement by NASA". |
+| The Light caught by the Stone (`light-caught-by-the-stone`) | A song by Pablo Carlos Budassi (Awe Plant), performed by Nueve Millas, 2:26, from the open multitrack masters at the Internet Archive. 28 masters summed into 8 groups. | Creative Commons Attribution 4.0 (CC BY 4.0). | The creator, the licence and its link, the source, and what was changed. |
+| Never had an orange (`dinner-party`) | DiPCo, the Dinner Party Corpus (Amazon), session S02, 2:07, four close-talk microphones. The transcript is the corpus's, verbatim, tags included. | Community Data License Agreement, Permissive 1.0 (CDLA-Permissive-1.0). | The corpus and its provider, the licence's name and link, and the notice that the files were modified. |
+
+What was changed, for each: excerpted, levelled, faded and encoded to mono MP3; the song's masters were also summed into 8 groups; the dinner's microphones were also high-passed, gated outside each wearer's own lines and resampled. Word times come from forced alignment on the source's own text; no transcript text came from speech recognition. The details, every source URL, and the exact licence sentences are in [CREDITS.md](CREDITS.md); the licence texts and the sources' metadata are in [licenses/](licenses/); the dinner party's per-file modification notice is in `public/audio/dinner-party/NOTICE.txt`.
+
+**Where the credits appear in the app.** The status line always shows the credit of the session in the transport (and its whole credit in a tooltip), with a Credits key beside it. Credits (that key, the library cartridges' licence tags, or ⌘K "Credits and licences") lists all three with their licence names and links, their sources, and the dinner party's notice of modification. No NASA insignia or logo is used anywhere.
+
+**Conditions to keep** if you change or reuse this example: credit NASA and imply no endorsement, and use no NASA insignia; keep the song's attribution, the licence link and the note of changes visible; keep the CDLA's name and link, the credit to DiPCo and Amazon, and the notice that the files were modified.
+
+**Rebuilding the audio.** `scripts/audio/` holds the scripts that fetched, cut, aligned and checked these sessions, with their outputs in `scripts/audio/checks/` and the full account in `scripts/audio/PREPARATION.md`. From that folder, `sh build_all.sh` does it all (it sets up a Python venv, fetches about 300 MB of sources, downloads the alignment models and needs about 1.5 GB while it runs). Its outputs are `sessions/<id>/session.json` and `sessions/<id>/audio/*.mp3`: copy the JSON to `src/sessions/data/<id>.json` and the audio to `public/audio/<id>/`. The scripts expect to run from the folder they were written in; read `PREPARATION.md` before re-running.
+
+**Caveats, still open:**
+
+- The song's licence is the one its Internet Archive item states. The uploading account's name differs from the creator's, so whether the uploader holds the rights is not confirmed.
+- The dinner party's audio came from a Hugging Face mirror of DiPCo. Its transcript and licence were checked byte for byte against the Zenodo original; the audio files were not.
+- In the dinner party, one speaker jokes that their manager said to take only one orange. Another excerpt of S02 (132 to 256 s, about vegetarian cheese, jello and Oreos) is ready in `scripts/audio/build_dipco.py` if that line should go.
+- The Apollo excerpt runs 3:33 so that it includes the 1202 alarm. A 3:00 cut (from "540 feet") is ready in `scripts/audio/build_apollo.py`.
+- The MP3s decoded in Chrome and in Playwright's Chromium builds; Safari and Firefox were not tested.
 
 ## What to try
 
@@ -25,7 +45,8 @@ The speech was made with macOS system voices (`say`), as a placeholder. Replace 
 - Press E on a segment to correct it, then Esc. The correction is unsaved work: the tab shows a dot, and choosing Mix (which has no transcript) asks first. Choose Review instead: the transcript and its draft come along. ⌘S saves.
 - Click a speaker's name in the transcript to rename them. The timeline, the mixer and the segment detail follow.
 - In Mix, move a fader, mute or solo a track, and watch the meters. Make the window short until the mixer folds: it waits behind its strip's "N folded" chip, the sound and the mix go on, and only the meters stop drawing.
-- Press Following on the segment detail's header to make it Kept, select another segment and press ⌥↵: two segments side by side. The Compare layout starts that way, with segment 4 kept and segment 6 following.
+- Press Following on the segment detail's header to make it Kept, select another segment and press ⌥↵: two segments side by side. The Compare layout starts that way, with "CONTACT LIGHT" kept and "THE EAGLE HAS LANDED" following.
+- Open each session. The landing shows callsigns beside the names, a Flight Director loop with a lane and a channel but no lines, the mission clock (GET) on the transport's display, and a GET key in the transcript that prints each line's time as NASA's transcript does. The song's transcript reads as lyrics, in sections from its markers, and its detail says "line"; its eight groups fill the Mix desk. At dinner, four people talk over each other: each line that starts while another is still going has a short mark in its speaker's colour, both lines light as they play, and sounds such as laughter print as quiet notes, not words.
 - Switch layouts in the top bar, then copy the link (the link button, or ⌘K "Copy a link to this layout"). The link reopens the same layout and session.
 - Narrow the window. Panes fold rather than squeeze: the one shown stays a tab, the rest wait behind an "N folded" chip at the end of the strip, and come back as it widens. Below 600 pixels a phone shows the library over the transcript.
 - Rearrange a layout, switch to another and back: it comes back as you left it. The reset key in the slab (or ⌘K "Reset this layout to its design") puts it back as designed.
@@ -76,7 +97,7 @@ One material, one light, a few depths. The tokens are in `src/styles/tokens.css`
 - **Meter.** A ladder of LED cells behind glass, on the fader's scale: pale up to −12 dB, amber (#f2b33d) to −3 dB, signal orange above, with a held peak. The master's is stereo, with a clip lamp for each side. Amber is the one colour added to the accent rules, and only for meters.
 - **Card.** The library's sessions are cartridges: a raised key with a paper label (the show and the title), a lamp, a glass window onto the tape (the waveform) and a printed foot. Latched and lit when chosen; "playing" printed and the lamp pulsing while it plays.
 - **Inset field.** One recess for every text input, textarea and select: a paper floor, the wall's shadow from above, a lit lower lip; on focus an orange ring inside and a soft halo outside. The correction editor, the rename fields and the segment note use it.
-- **Channel colours.** One map (`CHANNEL` in `src/sessions/sessions.ts`) used the same way everywhere: Mic A blue, Mic B green, the music bed white, the sting orange. The mixer's lamps and pan rings, the timeline's track headers, and the transcript's speaker marks all read it.
+- **Channel colours.** Eight, so a session of eight tracks has eight distinct strips: blue, green, white, orange, violet, yellow, cyan and rose (`--enc-*` in `tokens.css`). Each session's catalogue entry (`src/sessions/catalog.ts`) gives each track its colour, and one property, `--chan`, carries it everywhere a track is drawn: the mixer's lamps and pan rings, the timeline's track headers, and the transcript's speaker marks (a line takes the colour of the track it is heard on).
 - **Display states.** A pane with nothing to show, or whose object is gone, shows a small display with a dark lamp ("– – : – –" for empty, "no signal" in orange for a missing object), the title printed under it, a line of help and a key to recover. Loading and a failed audio decode print on the top bar display's title line.
 - **Launcher.** A selector panel: the views of the session as big keys in a pocket (the key face), the library beside them, and recent objects on an LCD list.
 - **Selection, focus, playing.** Three marks that never stack, in every list. Selected: the row's own mark (the transcript's orange side bar and a raised tint; the library cartridge latched with its lamp lit; the markers row printed inverted on the LCD; the timeline segment lit under glass; the palette row latched with its lamp). Keyboard focus: a thin neutral outline, only when focus came from the keyboard (`:focus-visible`), never after a click and never as playback moves the selection. Playing: the word's underline and tint, the lit timecode, the cartridge's pulsing lamp and "playing". No list draws two orange outlines for one row.
@@ -130,11 +151,12 @@ The way the bodies, keys and screens are built (a molded body with a lit top edg
 
 | File                       | What it shows                                                                                                                                                                                                                         |
 | -------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `src/audio/engine.ts`      | The engine and transport, outside the panes: clips scheduled on one clock, a strip of gain, pan and meter per track, loop, speed.                                                                                                     |
-| `src/audio/synth.ts`       | The music bed and the sting, rendered in an `OfflineAudioContext`. The bed ducks under the voices by itself.                                                                                                                          |
+| `src/audio/engine.ts`      | The engine and transport, outside the panes: each session's tracks as continuous files on one clock, a strip of gain, pan and meter per track (built for each session's tracks), loop, speed. |
+| `src/sessions/`            | The three sessions as delivered (`data/*.json`), their types, and `catalog.ts`: the kind of material, the words a pane uses ("Lyrics", "line"), the source line, the licence and credit, each track's colour and starting mix. |
+| `src/panes/credits.tsx`    | Credits: every session's attribution, licence and link, sources, and the notice of modification where the licence asks for one. |
 | `src/audio/react.ts`       | `usePosition(paused)` and `useFrame(paused, draw)`: a pane reads the clock and draws only while Jali says it is on screen.                                                                                                            |
 | `src/edits.ts`             | The person's changes, saved on this device: corrections, speaker names, notes, markers and the mix. The engine applies the mix from here.                                                                                             |
-| `src/panes/*.tsx`          | The six kinds of pane (and the launcher), each one `definePane` with params, a title, an icon and honest widths.                                                                                                                      |
+| `src/panes/*.tsx`          | The seven kinds of pane (and the launcher), each one `definePane` with params, a title, an icon and honest widths.                                                                                                                      |
 | `src/panes/follow.ts`      | How one library drives followers of several kinds: each kind's `follow`.                                                                                                                                                              |
 | `src/panes/transcript.tsx` | A list that is also a follower: `usePaneState` for the draft, `useUnsaved` for unsaved corrections, `useCommands`, `select`.                                                                                                          |
 | `src/panes/clip.tsx`       | The segment detail: its own waveform, loop, attribution, a note with `useUnsaved`, and `useTitle` for the speaker's current name.                                                                                                     |
@@ -147,15 +169,15 @@ The way the bodies, keys and screens are built (a molded body with a lit top edg
 | `src/styles/parts.css`     | The parts, defined once: housing, tray, key, latch, lamp, knob, jog, fader, readout, LCD, paper, legend.                                                                                                                              |
 | `src/styles/chrome.css`    | Jali's own chrome as part of the family: faceplates, header shortcuts and the ⋯ menu as a device panel, the Following/Kept latch, tabs as latched keys, the "N folded" chip, the shelf, ⌘K and the chooser with a screen for a field. |
 | `src/ui/Knob.tsx`          | The knobs and the jog wheel: drawn in CSS and SVG, built as `role="slider"` with names, values, keys and drag.                                                                                                                        |
-| `scripts/make-voices.mjs`  | Makes the speech (`say`, `afconvert`) and `src/sessions/generated.ts`: segment times from the clips' real lengths, word times interpolated.                                                                                           |
+| `scripts/audio/`           | How the sessions were made: fetch, cut, align and check (Python), with their reports. See "Rebuilding the audio" above. |
 
-Run the script again after changing the dialogue: `node examples/studio/scripts/make-voices.mjs` (macOS only). Its output is committed, so the example runs without it.
 
 Panes keep drawing only while they are on screen: each one passes Jali's `paused` to `usePosition` or `useFrame`. The sound itself never depends on a pane: it is in the engine, so it keeps playing whatever Jali does with the mixer or the timeline. The playback speed is Web Audio's `playbackRate`, so a faster voice is also higher; there is no time stretching.
 
 ## Tests
 
-- `src/workspace.test.ts`: a workspace made with the app's kinds and layouts, in memory: following, pinning to compare, links, folding, unsaved work, commands and the chooser, the Space rule, and the silent transport (play, speed, loop, the end).
-- `e2e/studio.spec.ts`: a Playwright smoke test against this app's own server, in real Chrome (it decodes the AAC clips). Run it from the repository's root with `pnpm exec playwright test -c examples/studio`.
-- `e2e/slab.spec.ts` and `e2e/panes.spec.ts`: the top slab swept from 360 to 2200px, and every pane in every layout at five window sizes, light and dark: nothing overflows, overlaps or is clipped.
+- `src/workspace.test.ts`: a workspace made with the app's kinds and layouts, in memory: following, pinning to compare, links, folding, unsaved work, commands and the chooser, the Space rule, the silent transport (play, speed, loop, the end), and every layout moving between sessions of three, eight and four tracks.
+- `src/sessions/sessions.test.ts`: every delivered session against the types and itself: tracks of one length and present on disk, words inside their segments and spelling the text, real tracks and speakers, markers inside the session, credits and the catalogue's licence conditions; overlapping lines, callsigns and the mission clock.
+- `e2e/studio.spec.ts`: a Playwright smoke test against this app's own server, in installed Chrome like the repository's other Playwright configs (the MP3s also decode in Playwright's own Chromium builds; the build this Playwright version wants is not installed everywhere). Each session loads and plays with its own tracks on the desk, the credits are on screen, the dinner's overlaps and the landing's callsigns and mission clock show. Run it from the repository's root with `pnpm exec playwright test -c examples/studio`.
+- `e2e/slab.spec.ts` and `e2e/panes.spec.ts`: the top slab swept from 360 to 2200px, and every pane in every layout with each of the three sessions at six window sizes, light and dark: nothing overflows, overlaps or is clipped.
 - `e2e/screens.spec.ts`: the screenshots in `screens/`, every layout at three widths in light and dark, a phone in both, and close-ups of each part. `SCREENS=1 pnpm exec playwright test -c examples/studio screens`.

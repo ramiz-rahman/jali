@@ -32,6 +32,11 @@ New, from adopting it:
 - **The follow toggle's icon.** The toggle draws a link or an anchor icon before its word. Studio hides it (`svg`) and lights a lamp instead. A documented slot or attribute for the mark would be cleaner than hiding Jali's icon.
 - **Saved layouts are the app's job to store.** `saved` asks the app; the app keeps a layout per preset and forgets it on Reset. That is the right split, but every app writes the same twenty lines (`src/layouts.ts`, like Markets' desks). A small helper (`savedLayouts(storage)`) would do.
 
+New, from the three real sessions:
+
+- **A kind's size can't depend on the object.** The mixer needs about 90px a channel: 3 channels at the landing, 8 for the song. `width` is fixed per kind, so Mix is laid out for one desk and the song's desk is made to fit by narrower modules and M/S legends instead. Want: a size hint per object (`width: (params) => …`), or `useSize`-style hints a pane can raise while it is open.
+- **Titles that need the app's data.** A song's detail is "Line 3", a speech's "Segment 3"; the kind's `title` can read the bundled session, so it works here, but only because the data is in the bundle. The same gap as item 10's.
+
 ## 1. One follower's unsaved work stops every follower of the list
 
 **Wanted.** The library drives four followers: the transcript, the timeline, the mixer and the markers. With unsaved corrections in the transcript, moving the library should keep the transcript on its session (the guide says "a following detail with unsaved work keeps its object") and move the others.

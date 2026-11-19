@@ -158,7 +158,7 @@ describe("the studio workspace", () => {
     const { jali } = testJali();
     // What the transcript's `useUnsaved` reports, and the Discard button: the engine's steps, as React calls them.
     const store = storeOf(jali);
-    store.actions.setUnsaved("transcript", "2 unsaved corrections in “The night ferry”");
+    store.actions.setUnsaved("transcript", "2 unsaved corrections in “The Eagle has landed”");
     expect(jali.actions.preset("mix")).toMatchObject({ ok: false, reason: "unsaved" });
     expect(store.get().confirm?.panes).toEqual(["transcript"]);
     expect(jali.get().presetId).toBe("edit");
@@ -377,8 +377,8 @@ describe("corrections", () => {
   it("saves corrections in the app's store, and drops one put back as recorded", () => {
     const { edits } = createServices({ persist: false, audio: false });
     const seg = sessionById(APOLLO)!.segments[0]!;
-    edits.saveCorrections(APOLLO, { [seg.id]: "Welcome back to Harbour Hours." });
-    expect(edits.of(APOLLO).corrections[seg.id]).toBe("Welcome back to Harbour Hours.");
+    edits.saveCorrections(APOLLO, { [seg.id]: "Eagle, you are looking great." });
+    expect(edits.of(APOLLO).corrections[seg.id]).toBe("Eagle, you are looking great.");
     edits.saveCorrections(APOLLO, { [seg.id]: seg.text });
     expect(edits.of(APOLLO).corrections[seg.id]).toBeUndefined();
   });
