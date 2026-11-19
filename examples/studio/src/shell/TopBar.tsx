@@ -247,7 +247,7 @@ function Transport() {
                 <span className="pd-title">{session.title}</span>
               ) : (
                 <span className="pd-title pd-alert">
-                  {t.status === "loading" ? "loading the audio…" : "no audio"}
+                  {t.status === "loading" ? "loading…" : "no audio"}
                 </span>
               )}
               <span className="pd-show">
