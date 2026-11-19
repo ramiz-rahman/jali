@@ -97,7 +97,10 @@ describe("the studio workspace", () => {
     const opened = openFollowing(jali, "transcript", clip({ session: FERRY, segment: "s08" }))!;
     expect(opened).not.toBe("clip");
     expect(jali.model().pane(opened)).toMatchObject({ follows: true, linkedTo: "transcript" });
-    expect(jali.model().pane("clip")).toMatchObject({ kept: true, ref: clip({ session: FERRY, segment: "s01" }) });
+    expect(jali.model().pane("clip")).toMatchObject({
+      kept: true,
+      ref: clip({ session: FERRY, segment: "s01" }),
+    });
     // The kept one stays as the cursor moves on; the new one follows.
     jali.actions.select("transcript", clip({ session: FERRY, segment: "s10" }));
     vi.advanceTimersByTime(200);
@@ -202,7 +205,9 @@ describe("the studio workspace", () => {
     expect(request.hint!(storm)).toContain("Tomas Vell");
     request.onChoose(storm);
     expect(services.engine.position()).toBeCloseTo(storm.start);
-    expect(jali.get().selection.transcript?.ref).toEqual(clip({ session: FERRY, segment: storm.id }));
+    expect(jali.get().selection.transcript?.ref).toEqual(
+      clip({ session: FERRY, segment: storm.id }),
+    );
   });
 
   it("jumps to a marker, the person's own included", () => {
@@ -244,7 +249,11 @@ describe("the studio workspace", () => {
     expect(spaceForTransport(key(el("<input>")))).toBe(false);
     expect(spaceForTransport(key(el("<button>Mute</button>")))).toBe(false);
     expect(spaceForTransport(key(el('<div role="tab" tabindex="0"></div>')))).toBe(false);
-    expect(spaceForTransport(key(el('<div role="dialog"><span tabindex="0"></span></div>').firstElementChild!))).toBe(false);
+    expect(
+      spaceForTransport(
+        key(el('<div role="dialog"><span tabindex="0"></span></div>').firstElementChild!),
+      ),
+    ).toBe(false);
     // Shift+Space is the lists' peek; a pane that claimed the key keeps it.
     expect(spaceForTransport(key(document.body, { shiftKey: true }))).toBe(false);
     const claimed = key(document.body, { cancelable: true });
@@ -258,7 +267,9 @@ describe("the transport", () => {
   afterEach(() => vi.useRealTimers());
 
   it("is a silent clock without Web Audio: play, seek, loop and stop at the end", () => {
-    vi.useFakeTimers({ toFake: ["setInterval", "clearInterval", "setTimeout", "performance", "Date"] });
+    vi.useFakeTimers({
+      toFake: ["setInterval", "clearInterval", "setTimeout", "performance", "Date"],
+    });
     const { engine } = createServices({ persist: false, audio: false });
     engine.load(FERRY);
     expect(engine.get().status).toBe("ready");

@@ -24,7 +24,10 @@ import { clock, opening, SESSIONS, sessionById } from "./sessions/sessions";
 
 export const kinds = [library, transcript, timeline, mixer, markers, clip];
 
-type Options = Pick<JaliOptions, "url" | "storage" | "size" | "moveFocus" | "preset" | "keymapOptions"> & {
+type Options = Pick<
+  JaliOptions,
+  "url" | "storage" | "size" | "moveFocus" | "preset" | "keymapOptions"
+> & {
   /** A short message for the person ("Marker added at 00:42"). */
   notify?: (text: string) => void;
 };

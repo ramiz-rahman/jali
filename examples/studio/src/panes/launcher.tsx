@@ -29,7 +29,11 @@ function Launcher({ openHere, dismiss }: PaneProps) {
     }
   };
   return (
-    <nav className="pane-body launcher" aria-label="Choose what this pane shows" onKeyDown={onKeyDown}>
+    <nav
+      className="pane-body launcher"
+      aria-label="Choose what this pane shows"
+      onKeyDown={onKeyDown}
+    >
       <section>
         <h3 className="pane-label">{sessionById(session)?.title}</h3>
         <div className="launcher-grid">

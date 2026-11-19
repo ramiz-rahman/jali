@@ -173,8 +173,17 @@ function ClipBody({
         />
       </label>
       <div className="clip-note-foot">
-        {dirty ? <span className="unsaved-note">Not saved</span> : saved ? <span className="toolbar-note">Saved</span> : null}
-        <button type="button" className="btn btn-quiet" disabled={!dirty} onClick={() => setNote(null)}>
+        {dirty ? (
+          <span className="unsaved-note">Not saved</span>
+        ) : saved ? (
+          <span className="toolbar-note">Saved</span>
+        ) : null}
+        <button
+          type="button"
+          className="btn btn-quiet"
+          disabled={!dirty}
+          onClick={() => setNote(null)}
+        >
           Revert
         </button>
         <button type="button" className="btn btn-signal" disabled={!dirty} onClick={saveNote}>

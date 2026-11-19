@@ -850,7 +850,8 @@
     margin: 0;
     background:
       linear-gradient(var(--jali-text-faint), var(--jali-text-faint)) center / 1px 10px no-repeat,
-      linear-gradient(var(--jali-border-strong), var(--jali-border-strong)) center / 100% 2px no-repeat;
+      linear-gradient(var(--jali-border-strong), var(--jali-border-strong)) center / 100% 2px
+        no-repeat;
     cursor: ew-resize;
   }
   .mx-pan input::-webkit-slider-thumb {

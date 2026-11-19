@@ -66,7 +66,8 @@ function envelope({ rate, samples }) {
   const out = [];
   for (let i = 0; i < samples.length; i += win) {
     let m = 0;
-    for (let j = i; j < Math.min(samples.length, i + win); j++) m = Math.max(m, Math.abs(samples[j]));
+    for (let j = i; j < Math.min(samples.length, i + win); j++)
+      m = Math.max(m, Math.abs(samples[j]));
     out.push(m);
   }
   return out;
@@ -83,7 +84,7 @@ function wordTimes(text, env) {
   const t = (i) => i / PEAKS_PER_SECOND;
   // Pauses inside the voiced span: runs of two or more quiet windows.
   const gaps = [];
-  for (let i = first; i < last; ) {
+  for (let i = first; i < last;) {
     if (env[i] < max * 0.07) {
       let j = i;
       while (j < last && env[j] < max * 0.07) j++;
@@ -93,7 +94,11 @@ function wordTimes(text, env) {
   }
   const words = text.split(/\s+/).filter(Boolean);
   // A word's share: its letters, plus a little for the pause a comma or a full stop brings.
-  const weight = (w) => w.replace(/[^\p{L}\p{N}]/gu, "").length + 1.5 + (/[,;:]$/.test(w) ? 3 : 0) + (/[.?!]$/.test(w) ? 5 : 0);
+  const weight = (w) =>
+    w.replace(/[^\p{L}\p{N}]/gu, "").length +
+    1.5 +
+    (/[,;:]$/.test(w) ? 3 : 0) +
+    (/[.?!]$/.test(w) ? 5 : 0);
   const total = words.reduce((s, w) => s + weight(w), 0);
   const start = t(first);
   const span = t(last) - start;
@@ -118,7 +123,8 @@ function wordTimes(text, env) {
   for (let a = 0; a < anchors.length - 1; a++) {
     const [i0, t0] = anchors[a];
     const [i1, t1] = anchors[a + 1];
-    for (let i = i0; i < i1; i++) bounds[i] = t0 + ((cum[i] - cum[i0]) / (cum[i1] - cum[i0])) * (t1 - t0);
+    for (let i = i0; i < i1; i++)
+      bounds[i] = t0 + ((cum[i] - cum[i0]) / (cum[i1] - cum[i0])) * (t1 - t0);
   }
   bounds[words.length] = t(last);
   return { voiced: [start, t(last)], words: words.map((w, i) => [w, bounds[i], bounds[i + 1]]) };

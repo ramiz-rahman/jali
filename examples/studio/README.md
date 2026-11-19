@@ -30,18 +30,18 @@ The speech was made with macOS system voices (`say`), as a placeholder for the l
 
 ## Keys
 
-| Key                 | Where                       | Does                                                    |
-| ------------------- | --------------------------- | ------------------------------------------------------- |
-| Space               | anywhere but a field or a button | Play or pause                                      |
-| /                   | anywhere but a field        | Go to segment…                                          |
-| ⌘K ⌘P, ⌘K ⌘J        | anywhere                    | Play or pause; Go to segment… (Jali's keymap)           |
-| J, K, arrows        | a list                      | Move                                                    |
-| Enter               | library, transcript, markers | Open the transcript; play from the segment; go to the marker |
-| ⌥Enter              | transcript                  | Open the segment's detail beside it                     |
-| ⇧Space              | library, transcript         | Show the row in its detail now (Jali's peek)            |
-| E, L, ⌘S            | transcript                  | Correct the segment, loop it, save corrections          |
-| M, R, Delete        | markers                     | Add a marker at the playhead, rename it, delete it      |
-| ← →, Home, End      | timeline                    | Step a second (⇧: five), go to either end               |
+| Key            | Where                            | Does                                                         |
+| -------------- | -------------------------------- | ------------------------------------------------------------ |
+| Space          | anywhere but a field or a button | Play or pause                                                |
+| /              | anywhere but a field             | Go to segment…                                               |
+| ⌘K ⌘P, ⌘K ⌘J   | anywhere                         | Play or pause; Go to segment… (Jali's keymap)                |
+| J, K, arrows   | a list                           | Move                                                         |
+| Enter          | library, transcript, markers     | Open the transcript; play from the segment; go to the marker |
+| ⌥Enter         | transcript                       | Open the segment's detail beside it                          |
+| ⇧Space         | library, transcript              | Show the row in its detail now (Jali's peek)                 |
+| E, L, ⌘S       | transcript                       | Correct the segment, loop it, save corrections               |
+| M, R, Delete   | markers                          | Add a marker at the playhead, rename it, delete it           |
+| ← →, Home, End | timeline                         | Step a second (⇧: five), go to either end                    |
 
 ### Space, and how it is shared with Jali
 
@@ -56,22 +56,22 @@ Every audio tool plays and pauses with Space, and Jali's lists use Space to peek
 
 ## How it is built
 
-| File                                  | What it shows                                                                                                                            |
-| ------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
-| `src/audio/engine.ts`                 | The engine and transport, outside the panes: clips scheduled on one clock, a strip of gain, pan and meter per track, loop, speed.        |
-| `src/audio/synth.ts`                  | The music bed and the sting, rendered in an `OfflineAudioContext`. The bed ducks under the voices by itself.                            |
-| `src/audio/react.ts`                  | `usePosition(paused)` and `useFrame(paused, draw)`: a pane reads the clock and draws only while Jali says it is on screen.               |
-| `src/edits.ts`                        | The person's changes, saved on this device: corrections, speaker names, notes, markers and the mix. The engine applies the mix from here. |
-| `src/panes/*.tsx`                     | The six kinds of pane (and the launcher), each one `definePane` with params, a title, an icon and honest widths.                         |
-| `src/panes/follow.ts`                 | How one library drives followers of several kinds: each kind's `follow`.                                                                 |
-| `src/panes/transcript.tsx`            | A list that is also a follower: `usePaneState` for the draft, `useUnsaved` for unsaved corrections, `useCommands`, `select`.            |
-| `src/panes/clip.tsx`                  | The segment detail: its own waveform, loop, attribution, a note with `useUnsaved`, and `useTitle` for the speaker's current name.       |
-| `src/panes/mixer.tsx`                 | Strips on the real graph, meters drawn only while on screen, `useActivity("working")` while the sound goes through it.                  |
-| `src/presets.ts`                      | Edit, Mix, Review and Compare, written with `row`, `column` and `pane`: short wide panes stacked in columns.                              |
-| `src/workspace.ts`                    | `createJali`: the kinds, layouts, launcher, keymap, `reservedKeys`, and ⌘K commands that ask with `jali.actions.choose`.                |
-| `src/shell/`                          | The app's chrome inside `<JaliRoot>`: a top bar with the layouts and the transport, a status line with Jali's `<Shelf />`, the app's keys. |
-| `src/styles/tokens.css`               | Spoke's look on Jali's `--jali-*` tokens: zinc, white paper, signal orange, IBM Plex. Light and dark as `light-dark()` pairs.            |
-| `scripts/make-voices.mjs`             | Makes the speech (`say`, `afconvert`) and `src/sessions/generated.ts`: segment times from the clips' real lengths, word times interpolated. |
+| File                       | What it shows                                                                                                                               |
+| -------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| `src/audio/engine.ts`      | The engine and transport, outside the panes: clips scheduled on one clock, a strip of gain, pan and meter per track, loop, speed.           |
+| `src/audio/synth.ts`       | The music bed and the sting, rendered in an `OfflineAudioContext`. The bed ducks under the voices by itself.                                |
+| `src/audio/react.ts`       | `usePosition(paused)` and `useFrame(paused, draw)`: a pane reads the clock and draws only while Jali says it is on screen.                  |
+| `src/edits.ts`             | The person's changes, saved on this device: corrections, speaker names, notes, markers and the mix. The engine applies the mix from here.   |
+| `src/panes/*.tsx`          | The six kinds of pane (and the launcher), each one `definePane` with params, a title, an icon and honest widths.                            |
+| `src/panes/follow.ts`      | How one library drives followers of several kinds: each kind's `follow`.                                                                    |
+| `src/panes/transcript.tsx` | A list that is also a follower: `usePaneState` for the draft, `useUnsaved` for unsaved corrections, `useCommands`, `select`.                |
+| `src/panes/clip.tsx`       | The segment detail: its own waveform, loop, attribution, a note with `useUnsaved`, and `useTitle` for the speaker's current name.           |
+| `src/panes/mixer.tsx`      | Strips on the real graph, meters drawn only while on screen, `useActivity("working")` while the sound goes through it.                      |
+| `src/presets.ts`           | Edit, Mix, Review and Compare, written with `row`, `column` and `pane`: short wide panes stacked in columns.                                |
+| `src/workspace.ts`         | `createJali`: the kinds, layouts, launcher, keymap, `reservedKeys`, and ⌘K commands that ask with `jali.actions.choose`.                    |
+| `src/shell/`               | The app's chrome inside `<JaliRoot>`: a top bar with the layouts and the transport, a status line with Jali's `<Shelf />`, the app's keys.  |
+| `src/styles/tokens.css`    | Spoke's look on Jali's `--jali-*` tokens: zinc, white paper, signal orange, IBM Plex. Light and dark as `light-dark()` pairs.               |
+| `scripts/make-voices.mjs`  | Makes the speech (`say`, `afconvert`) and `src/sessions/generated.ts`: segment times from the clips' real lengths, word times interpolated. |
 
 Run the script again after changing the dialogue: `node examples/studio/scripts/make-voices.mjs` (macOS only). Its output is committed, so the example runs without it.
 

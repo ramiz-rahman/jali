@@ -77,8 +77,7 @@ export function createEdits(persist = true): Edits {
   const of = (session: string): SessionEdits => ({ ...empty(), ...store.get()[session] });
   const change = (session: string, fn: (e: SessionEdits) => Partial<SessionEdits>) =>
     store.set((all) => ({ ...all, [session]: { ...of(session), ...fn(of(session)) } }));
-  const markersOf = (session: string) =>
-    of(session).markers ?? sessionById(session)?.markers ?? [];
+  const markersOf = (session: string) => of(session).markers ?? sessionById(session)?.markers ?? [];
   let made = 0;
 
   return {

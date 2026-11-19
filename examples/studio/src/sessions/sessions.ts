@@ -29,7 +29,8 @@ export const TRACKS: readonly Track[] = [
 export const trackOf = (segment: SegmentData) =>
   TRACKS.find((t) => t.speaker === segment.speaker)?.id ?? "mic-a";
 
-export const sessionById = (id: string): SessionData | undefined => SESSIONS.find((s) => s.id === id);
+export const sessionById = (id: string): SessionData | undefined =>
+  SESSIONS.find((s) => s.id === id);
 
 export const segmentById = (session: SessionData | undefined, id: string) =>
   session?.segments.find((s) => s.id === id);

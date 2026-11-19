@@ -20,7 +20,9 @@ async function stage(page: Page, preset: string, { dark = false } = {}) {
   await page.emulateMedia({ colorScheme: dark ? "dark" : "light", reducedMotion: "reduce" });
   await page.goto("/");
   await expect(
-    page.getByRole("group", { name: "Transport" }).getByRole("button", { name: "Play", exact: true }),
+    page
+      .getByRole("group", { name: "Transport" })
+      .getByRole("button", { name: "Play", exact: true }),
   ).toBeEnabled({ timeout: 20_000 });
   const select = page.locator(".layouts-select select");
   if (await select.isVisible()) await select.selectOption(preset);

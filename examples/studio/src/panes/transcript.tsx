@@ -9,14 +9,7 @@
  * Keys, while the transcript has focus: J/K or the arrows move, Enter plays from the segment, ⌥Enter opens its detail,
  * E edits it, L loops it, ⇧Space peeks it, ⌘S saves. Space is the transport's.
  */
-import {
-  useEffect,
-  useLayoutEffect,
-  useMemo,
-  useRef,
-  useState,
-  type KeyboardEvent,
-} from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState, type KeyboardEvent } from "react";
 import { ArrowsClockwiseIcon, NotePencilIcon, TextAlignLeftIcon } from "@phosphor-icons/react";
 import { keyHint } from "@jali/core";
 import {
@@ -91,7 +84,9 @@ function TranscriptBody({
     segs.findIndex((s) => s.id === (selected ?? cursor)),
   );
   const current = segs[at]!;
-  const changed = Object.keys(draft).filter((id) => draft[id] !== view.textOf(segmentById(session, id)!));
+  const changed = Object.keys(draft).filter(
+    (id) => draft[id] !== view.textOf(segmentById(session, id)!),
+  );
   const count = changed.length;
 
   // The words Jali shows in "Discard unsaved changes?".
@@ -150,7 +145,11 @@ function TranscriptBody({
     firstPreset.current = presetId;
     const follower = jali.model().panes.find((p) => p.linkedTo === node.id && p.follows);
     const shown = follower?.ref.params.segment;
-    if (follower?.ref.params.session === session.id && typeof shown === "string" && shown !== current.id)
+    if (
+      follower?.ref.params.session === session.id &&
+      typeof shown === "string" &&
+      shown !== current.id
+    )
       moveTo(shown);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [presetId]);
@@ -208,8 +207,7 @@ function TranscriptBody({
     else if (e.key === "Enter" && !e.metaKey && !e.ctrlKey) playFrom(current);
     else if ((e.key === "e" || e.key === "E") && !e.metaKey && !e.ctrlKey) edit(current);
     else if ((e.key === "l" || e.key === "L") && !e.metaKey && !e.ctrlKey) loopSegment(current);
-    else if (e.key === " " && e.shiftKey)
-      peek(clip({ session: session.id, segment: current.id }));
+    else if (e.key === " " && e.shiftKey) peek(clip({ session: session.id, segment: current.id }));
     else if (e.key === "s" && (e.metaKey || e.ctrlKey)) {
       if (count) save();
     } else return; // not ours: let it bubble (Space plays and pauses, ⌘K opens commands)
@@ -230,7 +228,12 @@ function TranscriptBody({
       disabled: count ? false : "No unsaved corrections",
       run: discard,
     },
-    { id: "play", title: "Play from this segment", keys: keyHint("Enter"), run: () => playFrom(current) },
+    {
+      id: "play",
+      title: "Play from this segment",
+      keys: keyHint("Enter"),
+      run: () => playFrom(current),
+    },
     { id: "edit", title: "Correct this segment", keys: "E", run: () => edit(current) },
     {
       id: "detail",

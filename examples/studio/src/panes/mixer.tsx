@@ -23,7 +23,8 @@ const mixerParams = { session: String };
 /** Fader travel to dB and back: +6 at the top, -6 at the middle, silence at the bottom. */
 export const faderToDb = (p: number) => (p <= 0.032 ? -60 : 40 * Math.log10(p) + 6);
 export const dbToFader = (db: number) => (db <= -60 ? 0 : Math.min(1, 10 ** ((db - 6) / 40)));
-const dbLabel = (db: number) => (db <= -60 ? "−∞" : `${db > 0 ? "+" : db < 0 ? "−" : ""}${Math.abs(db).toFixed(1)}`);
+const dbLabel = (db: number) =>
+  db <= -60 ? "−∞" : `${db > 0 ? "+" : db < 0 ? "−" : ""}${Math.abs(db).toFixed(1)}`;
 const panLabel = (p: number) =>
   Math.abs(p) < 0.02 ? "C" : `${p < 0 ? "L" : "R"}${Math.round(Math.abs(p) * 100)}`;
 
@@ -69,11 +70,20 @@ function Strip({ track, view }: { track: Track; view: SessionView }) {
   const { edits } = useServices();
   const ch = channelOf(view.edits, track.id);
   const session = view.session.id;
-  const name = track.speaker ? view.speakerName(track.speaker) : track.kind === "music" ? "Synth pad" : "Synth bells";
+  const name = track.speaker
+    ? view.speakerName(track.speaker)
+    : track.kind === "music"
+      ? "Synth pad"
+      : "Synth bells";
   const anySolo = TRACKS.some((t) => channelOf(view.edits, t.id).solo);
   const silent = ch.mute || (anySolo && !ch.solo);
   return (
-    <section className="mx-strip" data-kind={track.kind} data-silent={silent ? "" : undefined} aria-label={`${track.label}, ${name}`}>
+    <section
+      className="mx-strip"
+      data-kind={track.kind}
+      data-silent={silent ? "" : undefined}
+      aria-label={`${track.label}, ${name}`}
+    >
       <header className="mx-head">
         <span className="mx-label">{track.label}</span>
         <span className="mx-name" title={name}>
@@ -88,7 +98,9 @@ function Strip({ track, view }: { track: Track; view: SessionView }) {
           max={100}
           step={1}
           value={Math.round(ch.pan * 100)}
-          onChange={(e) => edits.setChannel(session, track.id, { pan: Number(e.target.value) / 100 })}
+          onChange={(e) =>
+            edits.setChannel(session, track.id, { pan: Number(e.target.value) / 100 })
+          }
           onDoubleClick={() => edits.setChannel(session, track.id, { pan: 0 })}
           aria-valuetext={panLabel(ch.pan)}
         />
@@ -221,60 +233,56 @@ function Meters({ paused, engineReady }: { paused: boolean; engineReady: boolean
   const last = useRef(0);
   const theme = useTheme();
   const { width } = useSize(root);
-  useFrame(
-    paused,
-    () => {
-      const strips = root.current?.closest(".mixer");
-      if (!strips) return;
-      const now = performance.now();
-      const dt = Math.min(0.1, last.current ? (now - last.current) / 1000 : 0);
-      last.current = now;
-      for (const box of strips.querySelectorAll<HTMLElement>("[data-meter]")) {
-        let canvas = box.querySelector("canvas");
-        if (!canvas) canvas = box.appendChild(document.createElement("canvas"));
-        const w = box.clientWidth;
-        const h = box.clientHeight;
-        const g = prepare(canvas, w, h);
-        if (!g) continue;
-        const c = paletteOf(box);
-        const id = box.dataset.meter!;
-        const m = engine.meter(id);
-        const s = state.current.get(id) ?? { level: -60, hold: -60, heldAt: 0 };
-        s.level = Math.max(m.peak, s.level - 24 * dt);
-        if (m.peak >= s.hold || now - s.heldAt > 1000) {
-          s.hold = m.peak;
-          s.heldAt = now;
-        }
-        state.current.set(id, s);
-        // The scale is the fader's: a level reads against the fader beside it.
-        const y = (db: number) => h - dbToFader(db) * h;
-        g.fillStyle = c.line;
+  useFrame(paused, () => {
+    const strips = root.current?.closest(".mixer");
+    if (!strips) return;
+    const now = performance.now();
+    const dt = Math.min(0.1, last.current ? (now - last.current) / 1000 : 0);
+    last.current = now;
+    for (const box of strips.querySelectorAll<HTMLElement>("[data-meter]")) {
+      let canvas = box.querySelector("canvas");
+      if (!canvas) canvas = box.appendChild(document.createElement("canvas"));
+      const w = box.clientWidth;
+      const h = box.clientHeight;
+      const g = prepare(canvas, w, h);
+      if (!g) continue;
+      const c = paletteOf(box);
+      const id = box.dataset.meter!;
+      const m = engine.meter(id);
+      const s = state.current.get(id) ?? { level: -60, hold: -60, heldAt: 0 };
+      s.level = Math.max(m.peak, s.level - 24 * dt);
+      if (m.peak >= s.hold || now - s.heldAt > 1000) {
+        s.hold = m.peak;
+        s.heldAt = now;
+      }
+      state.current.set(id, s);
+      // The scale is the fader's: a level reads against the fader beside it.
+      const y = (db: number) => h - dbToFader(db) * h;
+      g.fillStyle = c.line;
+      g.beginPath();
+      g.roundRect(0, 0, w, h, w / 2);
+      g.fill();
+      if (s.level > -59) {
+        const top = y(s.level);
+        const hot = y(-9);
+        g.save();
         g.beginPath();
         g.roundRect(0, 0, w, h, w / 2);
-        g.fill();
-        if (s.level > -59) {
-          const top = y(s.level);
-          const hot = y(-9);
-          g.save();
-          g.beginPath();
-          g.roundRect(0, 0, w, h, w / 2);
-          g.clip();
-          g.fillStyle = c.text;
-          g.fillRect(0, Math.max(top, hot), w, h - Math.max(top, hot));
-          if (top < hot) {
-            g.fillStyle = c.played;
-            g.fillRect(0, top, w, hot - top);
-          }
-          g.restore();
+        g.clip();
+        g.fillStyle = c.text;
+        g.fillRect(0, Math.max(top, hot), w, h - Math.max(top, hot));
+        if (top < hot) {
+          g.fillStyle = c.played;
+          g.fillRect(0, top, w, hot - top);
         }
-        if (s.hold > -59) {
-          g.fillStyle = s.hold > -9 ? c.played : c.subtle;
-          g.fillRect(0, Math.round(y(s.hold)), w, 2);
-        }
+        g.restore();
       }
-    },
-    [theme, width, engineReady],
-  );
+      if (s.hold > -59) {
+        g.fillStyle = s.hold > -9 ? c.played : c.subtle;
+        g.fillRect(0, Math.round(y(s.hold)), w, 2);
+      }
+    }
+  }, [theme, width, engineReady]);
   return <span ref={root} className="mx-meters-anchor" aria-hidden />;
 }
 

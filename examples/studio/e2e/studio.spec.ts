@@ -57,7 +57,9 @@ test("the sound goes on while the mixer is folded away", async ({ page }) => {
   await transport(page, "Pause").click();
 });
 
-test("a correction is unsaved work: a layout without the transcript asks first", async ({ page }) => {
+test("a correction is unsaved work: a layout without the transcript asks first", async ({
+  page,
+}) => {
   await page.getByRole("listbox", { name: /Transcript of/ }).focus();
   await page.keyboard.press("e");
   const field = page.getByRole("textbox", { name: "Correct the segment's text" });

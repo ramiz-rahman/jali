@@ -62,7 +62,11 @@ export const presets: PresetOptions[] = [
         tr(1.7),
         column(
           { weight: 1.2 },
-          pane(clip({ session, segment: "s01" }), { id: "clip", ...followsTranscript, weight: 1.5 }),
+          pane(clip({ session, segment: "s01" }), {
+            id: "clip",
+            ...followsTranscript,
+            weight: 1.5,
+          }),
           // The markers give way first on a narrow screen: the transcript is what Review is for.
           pane(markers({ session }), {
             id: "markers",

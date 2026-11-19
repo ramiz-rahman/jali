@@ -70,7 +70,8 @@ function TimelineBody({ paused, view }: PaneProps<typeof timelineParams> & { vie
     });
   }, [height]);
 
-  const timeAt = (x: number) => Math.max(0, Math.min(session.duration, (x / width) * session.duration));
+  const timeAt = (x: number) =>
+    Math.max(0, Math.min(session.duration, (x / width) * session.duration));
 
   useFrame(
     paused,
@@ -87,7 +88,12 @@ function TimelineBody({ paused, view }: PaneProps<typeof timelineParams> & { vie
       const every = width / session.duration < 9 ? 20 : 10;
       for (let t = 0; t <= session.duration; t += 5) {
         g.fillStyle = t % every === 0 ? c.lineStrong : c.line;
-        g.fillRect(Math.round(x(t)), t % every === 0 ? 14 : 18, 1, RULER - (t % every === 0 ? 14 : 18));
+        g.fillRect(
+          Math.round(x(t)),
+          t % every === 0 ? 14 : 18,
+          1,
+          RULER - (t % every === 0 ? 14 : 18),
+        );
         if (t % every === 0 && x(t) < width - 30) {
           g.fillStyle = c.faint;
           g.fillText(clock(t), Math.round(x(t)) + 4, 8);
@@ -232,10 +238,18 @@ function TimelineBody({ paused, view }: PaneProps<typeof timelineParams> & { vie
       <div className="tl-body">
         <ol className="tl-labels" aria-hidden style={{ paddingTop: RULER }}>
           {lanes.map(({ track, h }) => (
-            <li key={track.id} style={{ height: h }} data-silent={audible(view.edits, track.id) ? undefined : ""}>
+            <li
+              key={track.id}
+              style={{ height: h }}
+              data-silent={audible(view.edits, track.id) ? undefined : ""}
+            >
               <span className="tl-track">{track.label}</span>
               <span className="tl-who" hidden={h < 38}>
-                {track.speaker ? view.speakerName(track.speaker) : track.kind === "music" ? "Synth pad" : "Synth bells"}
+                {track.speaker
+                  ? view.speakerName(track.speaker)
+                  : track.kind === "music"
+                    ? "Synth pad"
+                    : "Synth bells"}
               </span>
             </li>
           ))}

@@ -179,7 +179,11 @@ function Row({
       {corrected || notes ? (
         <div className="lib-tags">
           {corrected ? <span className="tag">{corrected} corrected</span> : null}
-          {notes ? <span className="tag">{notes} {notes === 1 ? "note" : "notes"}</span> : null}
+          {notes ? (
+            <span className="tag">
+              {notes} {notes === 1 ? "note" : "notes"}
+            </span>
+          ) : null}
         </div>
       ) : null}
     </div>
