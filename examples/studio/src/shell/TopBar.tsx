@@ -8,7 +8,7 @@
  */
 import { CommandIcon, LinkSimpleIcon, MoonIcon, SunIcon } from "@phosphor-icons/react";
 import { copyLink, keyHint, runCommand } from "@jali/core";
-import { useRef } from "react";
+import { useLayoutEffect, useRef } from "react";
 import { useJali, useJaliState, useShortcut, useTheme } from "@jali/react";
 import { SPEEDS } from "../audio/engine";
 import { usePosition, useTransport } from "../audio/react";
@@ -24,6 +24,7 @@ export function TopBar() {
   const current = useJaliState((s) => s.presetId);
   const theme = useTheme();
   const palette = useShortcut("palette.toggle");
+  const slab = useFit();
   const currentLabel = jali.env.presets.find((p) => p.id === current)?.label ?? "";
 
   // Four groups in one row of one height: identity, layouts, the player, tools. Inside a group the keys meet at
@@ -31,101 +32,155 @@ export function TopBar() {
   // legend centred under it at one baseline, lamp in the top right corner.
   return (
     <header className="topbar" data-jali-chrome="">
-      {/* The identity, engraved straight into the slab. */}
-      <a
-        className="zone zone-id badge"
-        href="./"
-        aria-label="Studio, a Jali example: back to the Edit layout"
-      >
-        <StudioMark />
-        <span className="badge-name">studio</span>
-      </a>
-      <div className="zone zone-layouts">
-        <nav className="pocket group-layouts" aria-label="Layouts">
-          {jali.env.presets.map((p) => (
+      <div ref={slab} className="slab">
+        {/* The identity, engraved straight into the slab. */}
+        <a
+          className="zone zone-id badge"
+          href="./"
+          aria-label="Studio, a Jali example: back to the Edit layout"
+        >
+          <StudioMark />
+          <span className="badge-name">studio</span>
+        </a>
+        <div className="zone zone-layouts">
+          <nav className="pocket group-layouts" aria-label="Layouts">
+            {jali.env.presets.map((p) => (
+              <button
+                key={p.id}
+                type="button"
+                className="key face layout-key"
+                aria-pressed={p.id === current}
+                onMouseDown={keepFocus}
+                onClick={() => jali.actions.preset(p.id)}
+              >
+                <span className="led" aria-hidden />
+                <LayoutGlyph id={p.id} />
+                <span className="face-legend">{p.label.toLowerCase()}</span>
+              </button>
+            ))}
+            {/* Narrower: the four become one key that opens a menu (a real <select> under its face). */}
+            <label className="key face layout-menu">
+              <span className="led" data-on="" aria-hidden />
+              <LayoutGlyph id={current ?? "edit"} />
+              <span className="face-legend" aria-hidden>
+                {currentLabel.toLowerCase()} ▾
+              </span>
+              <span className="sr-only">Layout</span>
+              <select value={current} onChange={(e) => jali.actions.preset(e.target.value)}>
+                {jali.env.presets.map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {p.label}
+                  </option>
+                ))}
+              </select>
+            </label>
+          </nav>
+        </div>
+        <Transport />
+        <div className="zone zone-tools">
+          <div className="pocket group-tools" role="group" aria-label="Tools">
             <button
-              key={p.id}
               type="button"
-              className="key face layout-key"
-              aria-pressed={p.id === current}
+              className="key face tool-link"
+              aria-label="Copy a link to this layout"
+              title="Copy a link to this layout"
               onMouseDown={keepFocus}
-              onClick={() => jali.actions.preset(p.id)}
+              onClick={() => copyLink(jali)}
             >
-              <span className="led" aria-hidden />
-              <LayoutGlyph id={p.id} />
-              <span className="face-legend">{p.label.toLowerCase()}</span>
+              <LinkSimpleIcon size={22} aria-hidden className="face-glyph" />
+              <span className="face-legend" aria-hidden>
+                link
+              </span>
             </button>
-          ))}
-          {/* Narrower: the four become one key that opens a menu (a real <select> under its face). */}
-          <label className="key face layout-menu">
-            <span className="led" data-on="" aria-hidden />
-            <LayoutGlyph id={current ?? "edit"} />
-            <span className="face-legend" aria-hidden>
-              {currentLabel.toLowerCase()} ▾
-            </span>
-            <span className="sr-only">Layout</span>
-            <select value={current} onChange={(e) => jali.actions.preset(e.target.value)}>
-              {jali.env.presets.map((p) => (
-                <option key={p.id} value={p.id}>
-                  {p.label}
-                </option>
-              ))}
-            </select>
-          </label>
-        </nav>
-      </div>
-      <Transport />
-      <div className="zone zone-tools">
-        <div className="pocket group-tools" role="group" aria-label="Tools">
-          <button
-            type="button"
-            className="key face tool-link"
-            aria-label="Copy a link to this layout"
-            title="Copy a link to this layout"
-            onMouseDown={keepFocus}
-            onClick={() => copyLink(jali)}
-          >
-            <LinkSimpleIcon size={22} aria-hidden className="face-glyph" />
-            <span className="face-legend" aria-hidden>
-              link
-            </span>
-          </button>
-          <button
-            type="button"
-            className="key face"
-            aria-label={theme === "dark" ? "Use the light theme" : "Use the dark theme"}
-            title={theme === "dark" ? "Light theme" : "Dark theme"}
-            onMouseDown={keepFocus}
-            onClick={() =>
-              jali.actions.changeSettings({ theme: theme === "dark" ? "light" : "dark" })
-            }
-          >
-            {theme === "dark" ? (
-              <SunIcon size={22} aria-hidden className="face-glyph" />
-            ) : (
-              <MoonIcon size={22} aria-hidden className="face-glyph" />
-            )}
-            <span className="face-legend" aria-hidden>
-              {theme === "dark" ? "light" : "dark"}
-            </span>
-          </button>
-          <button
-            type="button"
-            className="key face"
-            aria-label="Commands"
-            title={`Commands ${palette}`}
-            onMouseDown={keepFocus}
-            onClick={() => jali.actions.openPalette()}
-          >
-            <CommandIcon size={22} aria-hidden className="face-glyph" />
-            <span className="face-legend" aria-hidden>
-              {palette || keyHint("Mod+K")}
-            </span>
-          </button>
+            <button
+              type="button"
+              className="key face"
+              aria-label={theme === "dark" ? "Use the light theme" : "Use the dark theme"}
+              title={theme === "dark" ? "Light theme" : "Dark theme"}
+              onMouseDown={keepFocus}
+              onClick={() =>
+                jali.actions.changeSettings({ theme: theme === "dark" ? "light" : "dark" })
+              }
+            >
+              {theme === "dark" ? (
+                <SunIcon size={22} aria-hidden className="face-glyph" />
+              ) : (
+                <MoonIcon size={22} aria-hidden className="face-glyph" />
+              )}
+              <span className="face-legend" aria-hidden>
+                {theme === "dark" ? "light" : "dark"}
+              </span>
+            </button>
+            <button
+              type="button"
+              className="key face"
+              aria-label="Commands"
+              title={`Commands ${palette}`}
+              onMouseDown={keepFocus}
+              onClick={() => jali.actions.openPalette()}
+            >
+              <CommandIcon size={22} aria-hidden className="face-glyph" />
+              <span className="face-legend" aria-hidden>
+                {palette || keyHint("Mod+K")}
+              </span>
+            </button>
+          </div>
         </div>
       </div>
     </header>
   );
+}
+
+/**
+ * How the slab gives way: by the room it has, measured, never by guessed window widths. Each step (`data-f1` to
+ * `data-f11` on the slab, cumulative) takes something out or tightens something, in a fixed order; on every
+ * resize, and once the fonts have loaded, the slab starts from nothing taken away and takes steps until its content
+ * fits. So two parts can never overlap or overflow, at any width, zoom or font. Steps, in order:
+ *
+ *   1 the scrub dial's "10 s/turn" note, and narrower dial caps   7 the scrub dial
+ *   2 tighter gaps and padding, slightly narrower keys            8 the loop and link keys
+ *   3 a narrower display                                          9 the stop key; slightly shorter keys
+ *   4 the speed dial                                              10 two tiers (a phone)
+ *   5 the studio name                                             11 the stop key again, in two tiers
+ *   6 the four layout keys fold into one menu key
+ */
+export const FIT_STEPS = 11;
+
+function useFit() {
+  const ref = useRef<HTMLDivElement>(null);
+  useLayoutEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const set = (level: number) => {
+      for (let i = 1; i <= FIT_STEPS; i++) {
+        if (i <= level) el.setAttribute(`data-f${i}`, "");
+        else el.removeAttribute(`data-f${i}`);
+      }
+    };
+    const fits = () => el.scrollWidth <= el.clientWidth + 0.5;
+    let frame = 0;
+    const measure = () => {
+      cancelAnimationFrame(frame);
+      let level = 0;
+      set(0);
+      while (level < FIT_STEPS && !fits()) set(++level);
+      el.dataset.fit = String(level);
+    };
+    measure();
+    const ro =
+      typeof ResizeObserver !== "undefined"
+        ? new ResizeObserver(() => {
+            frame = requestAnimationFrame(measure);
+          })
+        : null;
+    ro?.observe(el);
+    void document.fonts?.ready.then(measure);
+    return () => {
+      ro?.disconnect();
+      cancelAnimationFrame(frame);
+    };
+  }, []);
+  return ref;
 }
 
 function Transport() {

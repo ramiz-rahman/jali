@@ -21,8 +21,7 @@ export default defineConfig({
     // Real Chrome: it decodes the AAC clips (Playwright's own Chromium doesn't).
     channel: "chrome",
     baseURL: URL,
-    // Wide enough for the top bar in full: its four layout keys fold into one menu key below 1460px.
-    viewport: { width: 1600, height: 900 },
+    viewport: { width: 1440, height: 900 },
     reducedMotion: "reduce",
     launchOptions: { args: ["--autoplay-policy=no-user-gesture-required"] },
   },

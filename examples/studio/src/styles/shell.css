@@ -76,17 +76,8 @@
    * 8px apart.
    */
   .topbar {
-    --key-h: 68px;
-    --cell: 62px;
-    --zone-gap: 28px;
     position: relative;
     z-index: 1;
-    display: flex;
-    align-items: center;
-    gap: var(--zone-gap);
-    height: 104px;
-    padding: 0 20px;
-    box-sizing: border-box;
     min-width: 0;
     background:
       var(--grain), var(--slab-falloff), linear-gradient(180deg, var(--slab-1), var(--slab-2));
@@ -96,6 +87,23 @@
       0 1px 0 light-dark(rgb(0 0 0 / 0.32), #000),
       0 2px 1px light-dark(rgb(0 0 0 / 0.12), rgb(0 0 0 / 0.5)),
       0 10px 16px -10px rgb(0 0 0 / 0.45);
+  }
+  /* The row inside the slab: one flex row, real gaps, nothing positioned. How it gives way is measured (`useFit`
+     in TopBar.tsx), so its content always fits. */
+  .slab {
+    --key-h: 68px;
+    --cell: 62px;
+    --layout-cell: 84px;
+    --rotary: 148px;
+    --display-min: 232px;
+    --zone-gap: 28px;
+    display: flex;
+    align-items: center;
+    gap: var(--zone-gap);
+    height: 104px;
+    padding: 0 20px;
+    box-sizing: border-box;
+    min-width: 0;
   }
   .zone {
     display: flex;
@@ -107,11 +115,16 @@
     gap: 8px;
     min-width: 0;
   }
+  /* The player grows into spare room but never shrinks below its content (the display's minimum and the keys):
+     so when room runs out the row overflows the slab, which `useFit` sees and answers, instead of the player
+     sliding under its neighbours unseen. */
   .zone-player {
     flex: 1 1 auto;
+    min-width: min-content;
   }
   .zone-player .zone-row {
     flex: 1 1 auto;
+    min-width: min-content;
   }
   .pocket {
     height: calc(var(--key-h) + 8px);
@@ -131,7 +144,7 @@
     align-items: center;
     gap: 12px;
     height: calc(var(--key-h) + 8px);
-    padding: 0 8px 0 2px;
+    padding: 0 0 0 2px;
     text-decoration: none;
     color: var(--legend);
   }
@@ -155,7 +168,7 @@
 
   /* Layouts. */
   .pocket > .layout-key {
-    width: 84px;
+    width: var(--layout-cell);
   }
   .pocket > .layout-menu {
     display: none;
@@ -177,7 +190,7 @@
   /* The display: the heart of the instrument. */
   .player-cutout {
     flex: 1 1 auto;
-    min-width: 200px;
+    min-width: var(--display-min);
     height: calc(var(--key-h) + 8px);
     box-sizing: border-box;
     container-type: inline-size;
@@ -284,6 +297,14 @@
     .pd-state {
       display: none;
     }
+    .pd-title {
+      font-size: 12px;
+    }
+  }
+  @container (max-width: 140px) {
+    .pd-line {
+      display: none;
+    }
   }
 
   /*
@@ -292,7 +313,7 @@
    * what it does: the jog's mapping, the selector's value. The whole cap is the control's target.
    */
   .pocket > .rotary {
-    width: 148px;
+    width: var(--rotary);
   }
   .rotary {
     border-radius: var(--corner);
@@ -327,84 +348,81 @@
     color: var(--cap-ink);
   }
 
-  /* How it narrows, group by group, always one slab. */
-  @media (max-width: 1640px) {
-    .badge-name {
-      display: none;
-    }
-    .topbar {
-      --zone-gap: 22px;
-      padding-inline: 16px;
-    }
+  /*
+   * How it gives way: the steps `useFit` takes (TopBar.tsx), cumulative, in order, until the content fits.
+   */
+  .slab[data-f1] {
+    --rotary: 116px;
   }
-  @media (max-width: 1460px) {
-    .pocket > .layout-key {
-      display: none;
-    }
-    .pocket > .layout-menu {
-      display: block;
-    }
+  .slab[data-f1] .tp-scrub .rotary-note {
+    display: none;
   }
-  @media (max-width: 1260px) {
-    .tp-speed {
-      display: none;
-    }
+  .slab[data-f2] {
+    --cell: 58px;
+    --layout-cell: 78px;
+    --zone-gap: 20px;
+    padding-inline: 16px;
   }
-  @media (max-width: 1120px) {
-    .group-rotary,
-    .tp-loop,
-    .tool-link {
-      display: none;
-    }
-    .topbar {
-      --zone-gap: 16px;
-    }
+  .slab[data-f3] {
+    --display-min: 184px;
   }
-  @media (max-width: 860px) {
-    .topbar {
-      --key-h: 60px;
-      --cell: 56px;
-      --zone-gap: 12px;
-      height: 92px;
-      padding: 0 12px;
-    }
-    .tp-stop {
-      display: none;
-    }
+  .slab[data-f4] .tp-speed {
+    display: none;
   }
-  /* A phone: one taller slab in two tiers. */
-  @media (max-width: 620px) {
-    .topbar {
-      --key-h: 58px;
-      --cell: 54px;
-      height: auto;
-      flex-wrap: wrap;
-      row-gap: 12px;
-      padding: 12px 10px 14px;
-    }
-    .zone-layouts,
-    .zone-layouts .pocket {
-      flex: 1 1 auto;
-    }
-    .pocket > .layout-menu {
-      flex: 1 1 auto;
-      width: auto;
-    }
-    .zone-player {
-      order: 3;
-      flex: 1 0 100%;
-    }
-    .tp-stop {
-      display: block;
-    }
-    .player-cutout {
-      min-width: 0;
-    }
+  .slab[data-f5] .badge-name {
+    display: none;
   }
-  @media (max-width: 400px) {
-    .topbar {
-      --cell: 50px;
-    }
+  .slab[data-f6] .pocket > .layout-key {
+    display: none;
+  }
+  .slab[data-f6] .pocket > .layout-menu {
+    display: block;
+  }
+  .slab[data-f7] .group-rotary {
+    display: none;
+  }
+  .slab[data-f8] :is(.tp-loop, .tool-link) {
+    display: none;
+  }
+  .slab[data-f8] {
+    --zone-gap: 14px;
+    --display-min: 150px;
+  }
+  .slab[data-f9] {
+    --key-h: 60px;
+    --cell: 54px;
+    --zone-gap: 12px;
+    height: 92px;
+    padding-inline: 12px;
+  }
+  .slab[data-f9] .tp-stop {
+    display: none;
+  }
+  /* Two tiers: identity, layout and tools; then the player across the full width. Still one slab. */
+  .slab[data-f10] {
+    --key-h: 58px;
+    --cell: 54px;
+    --display-min: 0px;
+    height: auto;
+    flex-wrap: wrap;
+    row-gap: 12px;
+    padding: 12px 10px 14px;
+  }
+  .slab[data-f10] .tp-stop {
+    display: block;
+  }
+  .slab[data-f10] :is(.zone-layouts, .zone-layouts .pocket, .pocket > .layout-menu) {
+    flex: 1 1 auto;
+  }
+  .slab[data-f10] .pocket > .layout-menu {
+    width: auto;
+  }
+  .slab[data-f10] .zone-player {
+    order: 3;
+    flex: 1 0 100%;
+  }
+  .slab[data-f11] .tp-stop {
+    display: none;
   }
 
   /*

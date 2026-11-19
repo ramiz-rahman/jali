@@ -687,7 +687,7 @@
     touch-action: none;
   }
   .dial {
-    --dial: 52px;
+    --dial: 46px;
     cursor: grab;
   }
   .dial[data-dragging] {
