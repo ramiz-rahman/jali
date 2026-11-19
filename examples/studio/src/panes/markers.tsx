@@ -3,7 +3,7 @@
  * Enter goes to the selected one, F2-like renaming is R (F2 is Jali's, for tabs), Delete removes.
  */
 import { useEffect, useRef, useState, type KeyboardEvent } from "react";
-import { BookmarkSimpleIcon, PlusIcon, XIcon } from "@phosphor-icons/react";
+import { BookmarkSimpleIcon, PencilSimpleIcon, PlusIcon, XIcon } from "@phosphor-icons/react";
 import { keyHint } from "@jali/core";
 import { definePane, useCommands, usePaneState, type PaneProps } from "@jali/react";
 import { cue } from "../actions";
@@ -97,15 +97,39 @@ function Markers({ params, paused, node, focused }: PaneProps<typeof markersPara
         <span className="pane-label">
           Markers <span className="pane-label-count">{markers.length}</span>
         </span>
-        <button
-          type="button"
-          className="btn btn-quiet toolbar-end"
-          onMouseDown={(e) => e.preventDefault()}
-          onClick={add}
-          title="Add a marker at the playhead (M)"
-        >
-          <PlusIcon size={13} aria-hidden /> At {clock(inTransport ? pos : 0)}
-        </button>
+        <span className="toolbar-end">
+          <button
+            type="button"
+            className="key key-s"
+            onMouseDown={(e) => e.preventDefault()}
+            onClick={add}
+            title="Add a marker at the playhead (M)"
+          >
+            <PlusIcon size={13} aria-hidden /> at {clock(inTransport ? pos : 0)}
+          </button>
+          <button
+            type="button"
+            className="key key-s key-square"
+            disabled={!current}
+            aria-label="Rename the selected marker"
+            onMouseDown={(e) => e.preventDefault()}
+            onClick={() => current && setRenaming(current.id)}
+            title="Rename the selected marker (R)"
+          >
+            <PencilSimpleIcon size={13} aria-hidden />
+          </button>
+          <button
+            type="button"
+            className="key key-s key-square"
+            disabled={!current}
+            aria-label={current ? `Delete “${current.label}”` : "Delete marker"}
+            title="Delete the selected marker (Delete)"
+            onMouseDown={(e) => e.preventDefault()}
+            onClick={() => current && remove(current.id)}
+          >
+            <XIcon size={13} aria-hidden />
+          </button>
+        </span>
       </div>
       {markers.length ? (
         <div
@@ -143,18 +167,6 @@ function Markers({ params, paused, node, focused }: PaneProps<typeof markersPara
               ) : (
                 <span className="mk-label">{m.label}</span>
               )}
-              <button
-                type="button"
-                className="icon-btn mk-remove"
-                tabIndex={-1}
-                aria-label={`Delete “${m.label}”`}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  remove(m.id);
-                }}
-              >
-                <XIcon size={12} aria-hidden />
-              </button>
             </div>
           ))}
         </div>

@@ -24,7 +24,7 @@ async function stage(page: Page, preset: string, { dark = false } = {}) {
       .getByRole("group", { name: "Transport" })
       .getByRole("button", { name: "Play", exact: true }),
   ).toBeEnabled({ timeout: 20_000 });
-  const select = page.locator(".layouts-select select");
+  const select = page.locator(".layout-menu select");
   if (await select.isVisible()) await select.selectOption(preset);
   else
     await page

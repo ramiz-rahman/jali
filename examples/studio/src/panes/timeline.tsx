@@ -121,7 +121,7 @@ function TimelineBody({ paused, view }: PaneProps<typeof timelineParams> & { vie
             const x1 = x(seg.end);
             g.fillStyle = c.block;
             g.beginPath();
-            g.roundRect(x0, y + 3, x1 - x0, h - 6, 4);
+            g.roundRect(x0, y + 3, x1 - x0, h - 6, 1);
             g.fill();
             if (selected.has(seg.id)) {
               g.strokeStyle = c.played;

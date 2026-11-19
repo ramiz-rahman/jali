@@ -122,7 +122,7 @@ function Strip({ track, view }: { track: Track; view: SessionView }) {
       </div>
       <div className="mx-fader-row">
         <div className="mx-meter" data-meter={track.id} aria-hidden />
-        <label className="mx-fader">
+        <label className="fader">
           <span className="sr-only">Level for {track.label}</span>
           <input
             type="range"
@@ -145,7 +145,7 @@ function Strip({ track, view }: { track: Track; view: SessionView }) {
       <div className="mx-buttons">
         <button
           type="button"
-          className="key key-pill mx-btn"
+          className="key key-s key-latch mx-btn"
           data-role="mute"
           aria-pressed={ch.mute}
           aria-label={`Mute ${track.label}`}
@@ -153,11 +153,12 @@ function Strip({ track, view }: { track: Track; view: SessionView }) {
           onMouseDown={(e) => e.preventDefault()}
           onClick={() => edits.setChannel(session, track.id, { mute: !ch.mute })}
         >
-          <span className="led" aria-hidden />M
+          <span className="led" aria-hidden />
+          M
         </button>
         <button
           type="button"
-          className="key key-pill mx-btn"
+          className="key key-s key-latch mx-btn"
           data-role="solo"
           aria-pressed={ch.solo}
           aria-label={`Solo ${track.label}`}
@@ -165,7 +166,8 @@ function Strip({ track, view }: { track: Track; view: SessionView }) {
           onMouseDown={(e) => e.preventDefault()}
           onClick={() => edits.setChannel(session, track.id, { solo: !ch.solo })}
         >
-          <span className="led" aria-hidden />S
+          <span className="led" aria-hidden />
+          S
         </button>
       </div>
     </section>
@@ -185,7 +187,7 @@ function Master({ view }: { view: SessionView }) {
       <div className="mx-fader-row">
         <div className="mx-meter" data-meter="master-l" aria-hidden />
         <div className="mx-meter" data-meter="master-r" aria-hidden />
-        <label className="mx-fader">
+        <label className="fader">
           <span className="sr-only">Master level</span>
           <input
             type="range"
@@ -209,7 +211,7 @@ function Master({ view }: { view: SessionView }) {
       <div className="mx-buttons">
         <button
           type="button"
-          className="key key-pill mx-btn mx-btn-wide"
+          className="key key-s mx-btn mx-btn-wide"
           onMouseDown={(e) => e.preventDefault()}
           onClick={() => edits.resetMix(view.session.id)}
           title="Reset every fader, pan, mute and solo"

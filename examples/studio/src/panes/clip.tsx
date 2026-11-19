@@ -7,7 +7,7 @@
  * detail stays on its segment when the transcript moves on, and Jali says why.
  */
 import { useRef, useState, type KeyboardEvent, type PointerEvent } from "react";
-import { PauseIcon, PlayIcon, RepeatIcon, WaveformIcon } from "@phosphor-icons/react";
+import { PauseIcon, PlayIcon, WaveformIcon } from "@phosphor-icons/react";
 import { keyHint } from "@jali/core";
 import {
   definePane,
@@ -108,25 +108,26 @@ function ClipBody({
       <div className="clip-controls">
         <button
           type="button"
-          className="play-btn play-btn-small"
+          className="key key-square key-play"
           aria-label={playing ? "Pause" : `Play segment ${n}`}
           onMouseDown={(e) => e.preventDefault()}
           onClick={play}
         >
           {playing ? (
-            <PauseIcon size={14} weight="fill" aria-hidden />
+            <PauseIcon size={16} weight="fill" aria-hidden />
           ) : (
-            <PlayIcon size={14} weight="fill" aria-hidden />
+            <PlayIcon size={16} weight="fill" aria-hidden />
           )}
         </button>
         <button
           type="button"
-          className="chip-toggle"
+          className="key key-latch"
           aria-pressed={looping}
           onMouseDown={(e) => e.preventDefault()}
           onClick={toggleLoop}
         >
-          <RepeatIcon size={14} aria-hidden /> Loop
+          <span className="led" aria-hidden />
+          loop
         </button>
         <span className="clip-stats mono">
           {duration.toFixed(1)} s · {words} words
@@ -180,13 +181,13 @@ function ClipBody({
         ) : null}
         <button
           type="button"
-          className="btn btn-quiet"
+          className="key"
           disabled={!dirty}
           onClick={() => setNote(null)}
         >
           Revert
         </button>
-        <button type="button" className="btn btn-signal" disabled={!dirty} onClick={saveNote}>
+        <button type="button" className="key key-accent" disabled={!dirty} onClick={saveNote}>
           Save note
         </button>
       </div>

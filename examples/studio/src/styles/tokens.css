@@ -93,9 +93,14 @@
     0 12px 24px -8px rgb(0 0 0 / 0.35);
   --jali-shadow-peek: -2px 0 0 var(--body-wall), -16px 0 40px -12px rgb(0 0 0 / 0.4);
   --jali-shadow-zoom: 0 3px 0 var(--body-wall), 0 20px 40px -10px rgb(0 0 0 / 0.4);
-  --jali-radius: 14px;
-  --jali-radius-control: 7px;
-  --jali-radius-menu: 12px;
+  /* One corner for everything square by nature: keys, blocks, faceplates, glass, paper, menus, dialogs. */
+  --corner: 2px;
+  --jali-radius: var(--corner);
+  /* Focus: 3:1 or more on the aluminium and on the black bodies. */
+  --focus: light-dark(#b43800, #ff7a33);
+  --jali-focus-ring: var(--focus);
+  --jali-radius-control: var(--corner);
+  --jali-radius-menu: var(--corner);
   --jali-font: "IBM Plex Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
   --jali-font-mono: "IBM Plex Mono", ui-monospace, "SF Mono", SFMono-Regular, Menlo, monospace;
 

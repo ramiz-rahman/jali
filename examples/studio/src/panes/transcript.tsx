@@ -10,7 +10,7 @@
  * E edits it, L loops it, ⇧Space peeks it, ⌘S saves. Space is the transport's.
  */
 import { useEffect, useLayoutEffect, useMemo, useRef, useState, type KeyboardEvent } from "react";
-import { ArrowsClockwiseIcon, NotePencilIcon, TextAlignLeftIcon } from "@phosphor-icons/react";
+import { NotePencilIcon, PlayIcon, TextAlignLeftIcon, UserIcon } from "@phosphor-icons/react";
 import { keyHint } from "@jali/core";
 import {
   definePane,
@@ -264,12 +264,14 @@ function TranscriptBody({
       <div className="toolbar">
         <button
           type="button"
-          className="chip-toggle"
+          className="key key-latch"
           aria-pressed={follow}
+          onMouseDown={keepFocus}
           onClick={() => setFollow(!follow)}
           title="Move the selection, and the segment detail, with the segment being spoken"
         >
-          <ArrowsClockwiseIcon size={14} aria-hidden /> Follow playback
+          <span className="led" aria-hidden />
+          follow playback
         </button>
         <span className="toolbar-note mono">
           {segs.length} segments · {clock(session.duration)}
@@ -280,10 +282,10 @@ function TranscriptBody({
               <span className="unsaved-note" role="status">
                 {count} unsaved
               </span>
-              <button type="button" className="btn btn-quiet" onClick={discard}>
+              <button type="button" className="key" onMouseDown={keepFocus} onClick={discard}>
                 Discard
               </button>
-              <button type="button" className="btn btn-signal" onClick={save}>
+              <button type="button" className="key key-accent" onMouseDown={keepFocus} onClick={save}>
                 Save <kbd>{keyHint("Mod+S")}</kbd>
               </button>
             </>
@@ -293,6 +295,61 @@ function TranscriptBody({
             </span>
           ) : null}
         </span>
+      </div>
+      {/* The selected segment's keys: real buttons, outside the list, so no control sits inside a row. */}
+      <div className="toolbar segment-keys" role="toolbar" aria-label={`Segment ${at + 1}`}>
+        <span className="legend">seg {String(at + 1).padStart(2, "0")}</span>
+        <button
+          type="button"
+          className="key key-s"
+          title={`Play from this segment (${keyHint("Enter")})`}
+          onMouseDown={keepFocus}
+          onClick={() => playFrom(current)}
+        >
+          <PlayIcon size={13} weight="fill" aria-hidden />
+          <span className="key-word">play</span>
+        </button>
+        <button
+          type="button"
+          className="key key-s"
+          title="Correct this segment (E)"
+          onMouseDown={keepFocus}
+          onClick={() => edit(current)}
+        >
+          <NotePencilIcon size={14} aria-hidden />
+          <span className="key-word">correct</span>
+        </button>
+        <button
+          type="button"
+          className="key key-s key-latch"
+          aria-pressed={loop?.segment === current.id}
+          title="Loop this segment (L)"
+          onMouseDown={keepFocus}
+          onClick={() => loopSegment(current)}
+        >
+          <span className="led" aria-hidden />
+          <span className="key-word">loop</span>
+        </button>
+        <button
+          type="button"
+          className="key key-s"
+          title={`Open this segment's detail (${keyHint("Alt+Enter")})`}
+          onMouseDown={keepFocus}
+          onClick={() => openDetail(current)}
+        >
+          <TextAlignLeftIcon size={14} aria-hidden />
+          <span className="key-word">detail</span>
+        </button>
+        <button
+          type="button"
+          className="key key-s"
+          title={`Rename ${view.speakerName(view.speakerOf(current))}`}
+          onMouseDown={keepFocus}
+          onClick={() => setRenaming(current.id)}
+        >
+          <UserIcon size={14} aria-hidden />
+          <span className="key-word">rename</span>
+        </button>
       </div>
       {!inTransport ? <NotInTransport session={session.id} /> : null}
       <div
@@ -348,6 +405,9 @@ function TranscriptBody({
     </div>
   );
 }
+
+/** Keys don't keep focus after a click, so Space goes on playing and pausing. */
+const keepFocus = (e: React.MouseEvent) => e.preventDefault();
 
 const rowAt = (list: HTMLElement | null, i: number) =>
   list?.querySelectorAll<HTMLElement>("[data-row]")[i];
@@ -417,8 +477,9 @@ function Segment(p: SegmentProps) {
           {p.renaming ? (
             <SpeakerField name={p.speakerName} onDone={p.onRenamed} />
           ) : (
-            <button
-              type="button"
+            // A label, not a button: no control sits inside a row (the rows are options). Clicking it renames, as
+            // a convenience; the keyboard has "rename" in the segment keys above and in ⌘K.
+            <span
               className="tr-speaker-name"
               title="Rename this speaker"
               onClick={(e) => {
@@ -427,23 +488,21 @@ function Segment(p: SegmentProps) {
               }}
             >
               {p.speakerName}
-            </button>
+            </span>
           )}
         </div>
       ) : null}
       <div className="tr-line">
-        <button
-          type="button"
+        <span
           className="tr-time mono"
-          tabIndex={-1}
-          aria-label={`Play from ${clock(p.seg.start)}`}
+          title={`Play from ${clock(p.seg.start)}`}
           onClick={(e) => {
             e.stopPropagation();
             p.onSeek(p.seg.start);
           }}
         >
           {clock(p.seg.start)}
-        </button>
+        </span>
         {p.editing ? (
           <Editor text={p.text} onChange={p.onChange} onDone={p.onDoneEditing} onSave={p.onSave} />
         ) : (
@@ -479,36 +538,6 @@ function Segment(p: SegmentProps) {
           ) : p.corrected ? (
             <span className="tag" title="Corrected and saved">
               Corrected
-            </span>
-          ) : null}
-          {p.selected && !p.editing ? (
-            <span className="tr-actions">
-              <button
-                type="button"
-                className="icon-btn"
-                tabIndex={-1}
-                aria-label="Correct this segment (E)"
-                title="Correct (E)"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  p.onEdit();
-                }}
-              >
-                <NotePencilIcon size={15} aria-hidden />
-              </button>
-              <button
-                type="button"
-                className="icon-btn"
-                tabIndex={-1}
-                aria-label="Open this segment's detail"
-                title={`Open detail (${keyHint("Alt+Enter")})`}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  p.onOpen();
-                }}
-              >
-                <TextAlignLeftIcon size={15} aria-hidden />
-              </button>
             </span>
           ) : null}
         </span>

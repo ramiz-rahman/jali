@@ -1,7 +1,4 @@
-/*
- * The page and the parts every device shares: key caps, LEDs, knobs, the jog wheel, screens and the LCD; then the
- * app's chrome on the desk (the top bar with the transport, the status line).
- */
+/* The page, and the app's chrome on the desk: the top row of three units on a rail, and the status line. */
 @layer base {
   html,
   body,
@@ -64,411 +61,146 @@
     opacity: 0.75;
   }
   :focus-visible {
-    outline: 2px solid var(--st-signal);
+    outline: 2px solid var(--focus);
     outline-offset: 2px;
   }
-  /* A printed legend: small, lower case, technical. */
-  .legend {
-    font-family: var(--jali-font-mono);
-    font-size: var(--st-label);
-    font-weight: 500;
-    letter-spacing: 0.04em;
-    text-transform: lowercase;
-    color: var(--legend);
-    white-space: nowrap;
-    user-select: none;
-  }
 
-  /* ---------- key caps ---------- */
   /*
-   * A key stands in its hole: a lit top edge, a rim, and a side wall (the hard 2px shadow) that it travels down
-   * into when pressed. A latched key (aria-pressed) stays down, its face darker, and its LED lit: state is shown
-   * by the LED and the legend, never by the shadow alone.
+   * ---------- the top row: one row of full-height blocks, tiled edge to edge ----------
+   * Every block is a cell of one flex row (the groups are `display: contents`): the same height, a 3px gap, the
+   * same body, depth and corners. Keys are blocks; the readout, jog and knob are set into plate blocks; one filler
+   * plate takes the leftover width.
    */
-  .key {
-    --press: 0px;
-    position: relative;
-    display: inline-flex;
+  .topbar {
+    --row-h: 70px;
+    --gap: 3px;
+    display: flex;
+    align-items: stretch;
+    gap: var(--gap);
+    height: var(--row-h);
+    padding: 8px 8px 10px;
+    min-width: 0;
+  }
+  .blocks {
+    display: contents;
+  }
+  .row-break {
+    display: none;
+  }
+  /* A block: a key, or a plate of the same body. Full height, square shoulders, slightly rounded. */
+  .block {
+    height: auto;
+    align-self: stretch;
+    border-radius: var(--corner);
+    flex: none;
+    box-sizing: border-box;
+  }
+  .block.key {
+    --wall: 4px;
+    min-width: 64px;
+    padding: 0 14px;
+  }
+  /* A plate: the key's body without its travel, for parts that sit in a block. */
+  .block-plate {
+    display: flex;
     align-items: center;
-    justify-content: center;
-    gap: 7px;
-    min-width: 32px;
-    min-height: 32px;
+    gap: 10px;
     padding: 0 12px;
-    border: 0;
-    border-radius: var(--jali-radius-control);
     background: linear-gradient(180deg, var(--cap-1), var(--cap-2));
     color: var(--cap-ink);
-    font-family: var(--jali-font-mono);
-    font-size: 12px;
-    font-weight: 500;
-    letter-spacing: 0.02em;
-    text-transform: lowercase;
-    white-space: nowrap;
-    cursor: pointer;
-    user-select: none;
-    translate: 0 var(--press);
     box-shadow:
       inset 0 1px 0 var(--cap-hi),
       inset 0 0 0 1px var(--cap-rim),
-      0 calc(2px - var(--press)) 0 var(--cap-edge),
-      0 calc(3px - var(--press)) calc(3px - var(--press)) rgb(0 0 0 / 0.18);
-    transition:
-      translate var(--travel),
-      box-shadow var(--travel);
+      inset 0 -2px 0 rgb(0 0 0 / 0.06),
+      0 4px 0 var(--cap-edge),
+      0 6px 4px rgb(0 0 0 / 0.24);
   }
-  .key:hover {
-    background: linear-gradient(
-      180deg,
-      var(--cap-1),
-      color-mix(in srgb, var(--cap-2) 85%, var(--cap-1))
-    );
+  /* A legend printed at the block's foot, its lamp in the corner. */
+  .block-legend {
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: flex-end;
+    padding: 0 14px 11px;
+    gap: 4px;
   }
-  .key:active:not(:disabled) {
-    --press: 2px;
-  }
-  .key[aria-pressed="true"] {
-    --press: 1.5px;
-    background: linear-gradient(180deg, var(--cap-2), color-mix(in srgb, var(--cap-2) 88%, #000));
-    box-shadow:
-      inset 0 1px 2px rgb(0 0 0 / 0.22),
-      inset 0 0 0 1px var(--cap-rim),
-      0 0.5px 0 var(--cap-edge);
-  }
-  .key:disabled {
-    cursor: default;
-    color: color-mix(in srgb, var(--cap-ink) 45%, transparent);
-  }
-  .key:focus-visible {
-    outline-offset: 3px;
-  }
-  .key-s {
-    min-height: 28px;
-    padding: 0 10px;
-    font-size: 11.5px;
-  }
-  .key-icon {
-    padding: 0;
-    width: 34px;
-    min-height: 34px;
-  }
-  .key-wide {
-    width: auto;
-    padding: 0 11px;
-  }
-  .key-pill {
-    border-radius: 999px;
-  }
-  /* The transport's big square keys. */
-  .key-l {
-    width: 52px;
-    min-height: 48px;
-    padding: 0;
-    border-radius: 9px;
-  }
-  .key-l .glyph {
-    fill: currentColor;
-  }
-  /* Play: a light key with an orange legend and lamp, as a recorder's record key. */
-  .key-play .glyph {
-    fill: var(--st-signal);
-  }
-  .key-play .led {
+  .block .led {
     position: absolute;
-    top: 7px;
-    right: 7px;
+    top: 10px;
+    right: 10px;
   }
-  .key-play[data-on] {
-    --press: 1.5px;
-    box-shadow:
-      inset 0 1px 2px rgb(0 0 0 / 0.22),
-      inset 0 0 0 1px var(--cap-rim),
-      0 0.5px 0 var(--cap-edge);
+  .block-icon {
+    position: absolute;
+    top: 11px;
+    left: 13px;
   }
-  /* The orange cap: for the one primary action in a device. Black legend: 6:1 on the orange. */
-  .key-accent {
-    --cap-1: #ff6a26;
-    --cap-2: #f24a00;
-    --cap-edge: #a83300;
-    --cap-ink: #170a03;
-    --cap-rim: rgb(120 30 0 / 0.35);
-    --cap-hi: rgb(255 255 255 / 0.45);
-  }
-  .led {
-    flex: none;
-    width: 6px;
-    height: 6px;
-    border-radius: 50%;
-    background: var(--led-off);
-    box-shadow: inset 0 1px 1px rgb(0 0 0 / 0.35);
-  }
-  .key[aria-pressed="true"] .led,
-  .key[data-on] .led,
-  .led[data-on] {
-    background: var(--led-on);
-    box-shadow:
-      0 0 0 1px rgb(255 79 0 / 0.25),
-      0 0 7px rgb(255 79 0 / 0.75);
+  .block-top {
+    position: absolute;
+    top: 10px;
+    left: 14px;
   }
 
-  /* ---------- knobs: a knurled skirt, a coloured cap, a pointer, a printed scale ---------- */
-  .knob {
-    position: relative;
-    display: grid;
-    place-items: center;
-    width: calc(var(--knob) + 16px);
-    height: calc(var(--knob) + 16px);
-    border-radius: 50%;
-    cursor: ns-resize;
-    touch-action: none;
-    flex: none;
-  }
-  .knob-scale {
-    position: absolute;
-    inset: 0;
-    stroke: var(--legend);
-    stroke-width: 2.4;
-    stroke-linecap: round;
-  }
-  .knob-body {
-    display: grid;
-    place-items: center;
-    width: var(--knob);
-    height: var(--knob);
-    border-radius: 50%;
-    background: repeating-conic-gradient(from 0deg, #3b3b3e 0 5deg, #1b1b1d 5deg 10deg);
-    box-shadow:
-      0 0 0 1px rgb(0 0 0 / 0.55),
-      0 2px 0 rgb(0 0 0 / 0.35),
-      0 4px 6px rgb(0 0 0 / 0.3);
-    rotate: var(--angle);
-    transition: rotate 60ms linear;
-  }
-  .knob-cap {
-    --c: var(--enc-white);
-    position: relative;
-    width: 72%;
-    height: 72%;
-    border-radius: 50%;
-    background: radial-gradient(
-      circle at 38% 30%,
-      color-mix(in srgb, var(--c) 55%, #fff),
-      var(--c) 55%,
-      color-mix(in srgb, var(--c) 78%, #000)
-    );
-    box-shadow:
-      inset 0 1px 0 rgb(255 255 255 / 0.5),
-      inset 0 -1px 1px rgb(0 0 0 / 0.25);
-  }
-  /* The pointer: a printed line from the edge towards the centre. */
-  .knob-cap::after {
-    content: "";
-    position: absolute;
-    top: 7%;
-    left: 50%;
-    width: 2.5px;
-    height: 34%;
-    border-radius: 2px;
-    translate: -50% 0;
-    background: var(--pointer, #fff);
-  }
-  .knob[data-cap="orange"] .knob-cap {
-    --c: var(--enc-orange);
-    --pointer: #170a03;
-  }
-  .knob[data-cap="blue"] .knob-cap {
-    --c: var(--enc-blue);
-    --pointer: #0b1a2a;
-  }
-  .knob[data-cap="green"] .knob-cap {
-    --c: var(--enc-green);
-    --pointer: #0a1f12;
-  }
-  .knob[data-cap="white"] .knob-cap {
-    --c: var(--enc-white);
-    --pointer: #18181a;
-  }
-  .knob[data-cap="graphite"] .knob-cap {
-    --c: var(--enc-graphite);
-    --pointer: #ffffff;
-  }
-  .knob:focus-visible {
-    outline-offset: 0;
-  }
-
-  /* ---------- the jog wheel: a knurled ring round an aluminium face with a finger dimple ---------- */
-  .jog {
-    display: grid;
-    place-items: center;
-    width: 54px;
-    height: 54px;
-    border-radius: 50%;
-    cursor: ew-resize;
-    touch-action: none;
-    flex: none;
-  }
-  .jog-ring {
-    display: grid;
-    place-items: center;
-    width: 100%;
-    height: 100%;
-    border-radius: 50%;
-    background: repeating-conic-gradient(
-      from 0deg,
-      light-dark(#b9b9b4, #18181a) 0 3deg,
-      light-dark(#e6e6e2, #3a3a3e) 3deg 6deg
-    );
-    box-shadow:
-      0 0 0 1px var(--body-rim),
-      0 2px 0 var(--body-wall),
-      0 4px 6px rgb(0 0 0 / 0.25);
-    rotate: var(--angle);
-  }
-  .jog-face {
-    position: relative;
-    width: 78%;
-    height: 78%;
-    border-radius: 50%;
-    background: radial-gradient(
-      circle at 40% 30%,
-      light-dark(#ffffff, #4a4a4e),
-      light-dark(#dededa, #2a2a2d) 70%
-    );
-    box-shadow:
-      inset 0 0 0 1px var(--body-rim),
-      inset 0 -2px 3px rgb(0 0 0 / 0.12);
-  }
-  .jog-dimple {
-    position: absolute;
-    top: 14%;
-    left: 50%;
-    width: 9px;
-    height: 9px;
-    translate: -50% 0;
-    border-radius: 50%;
-    background: radial-gradient(
-      circle at 50% 65%,
-      light-dark(#f4f4f1, #3a3a3e),
-      light-dark(#c4c4bf, #1a1a1c)
-    );
-    box-shadow: inset 0 1px 2px rgb(0 0 0 / 0.35);
-  }
-
-  /* ---------- screens and the LCD, set into the plate ---------- */
-  .screen {
-    position: relative;
-    background: var(--scr-glass);
-    color: var(--scr-ink);
-    border-radius: 7px;
-    box-shadow:
-      inset 0 0 0 1px rgb(0 0 0 / 0.9),
-      inset 0 2px 4px rgb(0 0 0 / 0.7),
-      0 0 0 2px light-dark(rgb(0 0 0 / 0.06), rgb(0 0 0 / 0.3)),
-      0 1px 0 2px var(--seam-lit);
-  }
-  /* A faint reflection across the top of the glass. */
-  .screen::after {
-    content: "";
-    position: absolute;
-    inset: 1px 1px 55% 1px;
-    border-radius: 6px 6px 40% 40% / 6px 6px 12px 12px;
-    background: linear-gradient(180deg, rgb(255 255 255 / 0.045), transparent);
-    pointer-events: none;
-  }
-  .lcd {
-    background: var(--lcd-glass);
-    color: var(--lcd-ink);
-    border-radius: 7px;
-    box-shadow:
-      inset 0 1px 3px rgb(0 0 0 / 0.3),
-      inset 0 0 0 1px rgb(0 0 0 / 0.22),
-      0 1px 0 var(--seam-lit);
-  }
-
-  /* ---------- the top bar: on the desk ---------- */
-  .topbar {
-    display: flex;
-    align-items: center;
-    gap: 14px;
-    min-height: 84px;
-    padding: 8px 14px 6px 18px;
-    min-width: 0;
-  }
-  .brand {
-    display: inline-flex;
-    align-items: center;
+  .badge {
     gap: 9px;
-    color: var(--ink);
+    padding: 0 18px 0 16px;
+    color: var(--legend);
     text-decoration: none;
-    flex: none;
   }
   .brand-mark {
     fill: currentColor;
+    filter: drop-shadow(0 1px 0 var(--seam-lit));
   }
   .brand-mark-hot {
     fill: var(--st-signal);
   }
-  .brand-name {
+  /* Engraved: cut into the plate, a shadow above and a lit edge below. */
+  .badge-name {
     font-family: var(--jali-font-mono);
     font-weight: 500;
-    font-size: 15px;
-    letter-spacing: 0.02em;
-  }
-  .layouts {
-    display: flex;
-    gap: 6px;
-    padding: 6px;
-    border-radius: 11px;
-    background: light-dark(rgb(0 0 0 / 0.07), rgb(0 0 0 / 0.35));
-    box-shadow:
-      inset 0 1px 2px rgb(0 0 0 / 0.18),
+    font-size: 16px;
+    letter-spacing: 0.04em;
+    color: light-dark(#4a4a46, #a2a2a7);
+    text-shadow:
+      0 -1px 0 rgb(0 0 0 / 0.22),
       0 1px 0 var(--seam-lit);
-    flex: none;
   }
-  .layouts-select {
+  .layout-key {
+    min-width: 92px;
+  }
+  .layout-menu {
     display: none;
+    min-width: 116px;
   }
-  .layouts-select select {
-    height: 34px;
-    padding: 0 10px;
-    border: 0;
-    border-radius: var(--jali-radius-control);
-    background: linear-gradient(180deg, var(--cap-1), var(--cap-2));
-    box-shadow:
-      inset 0 1px 0 var(--cap-hi),
-      inset 0 0 0 1px var(--cap-rim),
-      0 2px 0 var(--cap-edge);
-    font-family: var(--jali-font-mono);
-    font-size: 12px;
+  .layout-menu select {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    cursor: pointer;
+  }
+  .layout-menu:focus-within {
+    outline: 2px solid var(--focus);
+    outline-offset: 2px;
+  }
+  .layout-menu-name::after {
+    content: " ▾";
+    color: var(--legend);
   }
 
-  /* The transport: a device of its own. */
-  .device {
-    background: linear-gradient(180deg, var(--body-1), var(--body-2));
-    border-radius: var(--jali-radius);
-    box-shadow:
-      inset 0 1px 0 var(--body-hi),
-      inset 0 0 0 1px var(--body-rim),
-      0 3px 0 var(--body-wall),
-      0 5px 4px rgb(0 0 0 / 0.14),
-      0 14px 24px -8px rgb(0 0 0 / 0.3);
-  }
-  .transport {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    min-width: 0;
-    margin: 0 auto;
-    padding: 8px 14px 8px 8px;
+  /* The readout block: black glass set into a plate. */
+  .block-readout {
+    padding: 6px;
   }
   .tp-screen {
     display: grid;
+    align-content: center;
     gap: 1px;
-    width: 216px;
-    padding: 7px 12px 8px;
+    width: 196px;
+    height: 100%;
+    box-sizing: border-box;
+    padding: 4px 11px;
     font-family: var(--jali-font-mono);
     line-height: 1.2;
-    flex: none;
   }
   .tp-line {
     display: flex;
@@ -489,7 +221,7 @@
     white-space: nowrap;
   }
   .tp-title {
-    font-size: 11.5px;
+    font-size: 11px;
     color: var(--scr-ink);
     white-space: nowrap;
     overflow: hidden;
@@ -499,96 +231,153 @@
     display: flex;
     align-items: baseline;
     gap: 8px;
-    margin-top: 1px;
     font-variant-numeric: tabular-nums;
   }
   .tp-now {
-    font-size: 19px;
-    font-weight: 400;
+    font-size: 17px;
     letter-spacing: 0.02em;
     color: var(--scr-ink);
     text-shadow: 0 0 8px rgb(255 255 255 / 0.25);
   }
   .tp-total,
   .tp-rate {
-    font-size: 11px;
+    font-size: 10.5px;
     color: var(--scr-dim);
   }
   .tp-rate {
     margin-left: auto;
   }
-  .tp-keys {
-    display: flex;
+  /* The transport keys: square blocks, the glyph in the middle. */
+  .transport-key {
+    width: var(--row-h);
+    padding: 0;
+  }
+  .transport-key .glyph {
+    fill: currentColor;
+  }
+  /* Play: the one solid orange block, as a call to action; a dark legend, its lamp lit while playing. */
+  .key-play .glyph {
+    fill: #170a03;
+  }
+  .tp-loop {
+    min-width: 76px;
+  }
+  .block-control {
+    flex-direction: column;
+    justify-content: center;
+    gap: 0;
+    padding: 0 10px;
+  }
+  .tp-scrub .jog {
+    width: 46px;
+    height: 46px;
+  }
+  .tp-speed .knob {
+    margin-top: -6px;
+  }
+  .block-control .legend {
+    margin-top: -2px;
+    font-size: 10px;
+  }
+  /* The filler: the leftover width, with the session's progress cut into it as a groove. */
+  .block-fill {
+    flex: 1 1 0;
+    min-width: 0;
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: center;
     gap: 8px;
-    padding: 6px;
-    border-radius: 12px;
-    background: light-dark(rgb(0 0 0 / 0.08), rgb(0 0 0 / 0.4));
+    padding: 0 18px;
+  }
+  .block-fill {
+    container-type: inline-size;
+  }
+  @container (max-width: 110px) {
+    .block-fill .legend {
+      display: none;
+    }
+  }
+  .groove {
+    position: relative;
+    height: 6px;
+    border-radius: var(--corner);
+    background: light-dark(rgb(0 0 0 / 0.12), rgb(0 0 0 / 0.55));
     box-shadow:
-      inset 0 1px 3px rgb(0 0 0 / 0.25),
+      inset 0 1px 2px rgb(0 0 0 / 0.3),
       0 1px 0 var(--seam-lit);
+    overflow: hidden;
   }
-  .tp-controls {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding-left: 12px;
-    border-left: 1px solid var(--seam-dark);
-    box-shadow: -1px 0 0 var(--seam-lit);
+  .groove-fill {
+    position: absolute;
+    inset: 0 auto 0 0;
+    background: var(--st-signal);
   }
-  .control {
-    display: grid;
-    justify-items: center;
-    gap: 2px;
-  }
-  .topbar-end {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    flex: none;
+  .tool-key {
+    width: 72px;
+    min-width: 0;
   }
 
-  /* Narrower windows: the speed knob, then the session's name, then the layout keys give way. */
-  @media (max-width: 1320px) {
+  /*
+   * How the row gives way: it stays one row of full-height blocks as long as it can. Paddings and legends go first,
+   * then the speed knob, then the layout keys fold into one layout block, then the scrub wheel and the loop key.
+   * On a phone it becomes two rows, each still full width and edge to edge.
+   */
+  @media (max-width: 1400px) {
     .tp-speed {
       display: none;
     }
-  }
-  @media (max-width: 1200px) {
-    .tp-screen {
-      width: 150px;
+    .layout-key {
+      min-width: 80px;
     }
+  }
+  @media (max-width: 1280px) {
+    .nav-layouts,
+    .layout-key {
+      display: none;
+    }
+    .layout-menu {
+      display: flex;
+    }
+  }
+  @media (max-width: 1120px) {
+    .badge-name,
     .tp-title,
-    .tp-show {
+    .tp-show,
+    .tp-total {
       display: none;
     }
-  }
-  @media (max-width: 1240px) {
-    .layouts {
+    .tp-screen {
+      width: 140px;
+    }
+    .tool-key .block-word {
       display: none;
     }
-    .layouts-select {
-      display: block;
+    .tool-key {
+      width: var(--row-h);
+    }
+    .block-icon {
+      position: static;
+    }
+    .tool-key.block-legend {
+      justify-content: center;
+      align-items: center;
+      padding: 0;
     }
   }
-  @media (max-width: 1060px) {
+  @media (max-width: 960px) {
+    .tp-scrub,
     .tp-loop {
       display: none;
     }
   }
-  @media (max-width: 820px) {
-    .tp-controls,
-    .brand-name,
-    .key-wide kbd {
-      display: none;
-    }
+  @media (max-width: 760px) {
     .topbar {
-      gap: 8px;
-      padding: 6px 8px 4px 12px;
-      min-height: 72px;
+      --row-h: 62px;
+      padding: 6px 6px 8px;
     }
-    .transport {
-      gap: 8px;
-      padding-right: 8px;
+    .tool-link,
+    .tp-stop {
+      display: none;
     }
     .tp-screen {
       width: 112px;
@@ -597,19 +386,59 @@
     .tp-rate {
       display: none;
     }
+    .badge {
+      padding: 0 14px;
+    }
   }
-  @media (max-width: 560px) {
-    .tp-keys .key-l:not(.key-play),
-    .topbar-end .key:first-child,
-    .brand {
+  @media (max-width: 620px) {
+    .topbar {
+      --row-h: 58px;
+      height: auto;
+      flex-wrap: wrap;
+      row-gap: 7px;
+    }
+    .block {
+      height: var(--row-h);
+    }
+    .row-break {
+      display: block;
+      flex-basis: 100%;
+      height: 0;
+    }
+    .block-fill {
       display: none;
     }
-    .key-l {
-      width: 46px;
-      min-height: 44px;
+    .layout-menu {
+      flex: 1 1 0;
+    }
+    .block-readout {
+      flex: 1 1 0;
+      min-width: 0;
     }
     .tp-screen {
-      width: 96px;
+      width: 100%;
+    }
+    .tp-stop {
+      display: inline-flex;
+    }
+    .transport-key {
+      flex: 0 0 54px;
+      min-width: 0;
+    }
+    /* Two rows: the mark, the layout block and the tools first; the transport on a row of its own. */
+    .topbar > *,
+    .blocks > * {
+      order: 4;
+    }
+    .badge,
+    .layout-menu {
+      order: 0;
+    }
+    .tool-key {
+      order: 2;
+    }
+    .row-break {
+      order: 3;
     }
   }
 
@@ -618,8 +447,8 @@
     display: flex;
     align-items: center;
     gap: 14px;
-    min-height: 34px;
-    padding: 0 14px 2px;
+    min-height: 40px;
+    padding: 0 12px 4px;
     color: var(--legend);
     font-family: var(--jali-font-mono);
     font-size: 11px;
@@ -656,13 +485,6 @@
 
   .toast {
     font-family: var(--jali-font) !important;
-    border-radius: var(--jali-radius) !important;
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    .key,
-    .knob-body {
-      transition: none;
-    }
+    border-radius: var(--corner);
   }
 }

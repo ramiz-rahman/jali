@@ -1,46 +1,26 @@
 /*
- * Jali's own chrome as part of the same family, through its tokens (tokens.css) and rules on its public parts
- * (`.jali-*` classes and attributes from the Parts reference). Where a part has no public selector of its own, a
- * rule reaches it through a public parent and an element or role: noted in FINDINGS.md.
+ * Jali's own chrome in the family. Faces come from the shared parts (parts.css: housing, key, latch, lamp, readout);
+ * this file only fits them to Jali's layout. Every selector here is a public part from the Parts reference, except
+ * where noted: those reach an element through a public parent, and are listed in FINDINGS.md.
  */
 @layer app {
-  /* ---------- a pane is a faceplate ---------- */
-  .jali-pane {
-    background: linear-gradient(180deg, var(--body-1), var(--body-2));
-    border: 0;
-    box-shadow:
-      inset 0 1px 0 var(--body-hi),
-      inset 0 0 0 1px var(--body-rim),
-      0 2px 0 var(--body-wall),
-      0 4px 4px rgb(0 0 0 / 0.12),
-      0 12px 22px -8px rgb(0 0 0 / 0.28);
-  }
-  /* The focused device: an orange ring round the plate and its lamp lit (below). */
-  .jali-pane[data-focused] {
-    box-shadow:
-      inset 0 1px 0 var(--body-hi),
-      inset 0 0 0 1px var(--body-rim),
-      0 0 0 2px var(--st-signal),
-      0 2px 0 2px var(--body-wall),
-      0 12px 22px -8px rgb(0 0 0 / 0.28);
-  }
-
-  /* The header: the top of the plate, with a seam cut under it and a lamp at its start. */
+  /* ---------- the pane's header: the top of its faceplate ---------- */
   .jali-pane-header {
-    height: 42px;
-    padding-inline-start: 22px;
+    height: 48px;
+    padding-inline: 24px 9px;
     background: transparent;
     border-bottom: 1px solid var(--seam-dark);
     box-shadow: 0 1px 0 var(--seam-lit);
   }
+  /* The device's lamp, lit while it has focus. */
   .jali-pane-header::before {
     content: "";
     position: absolute;
     inset-inline-start: 10px;
     top: 50%;
-    width: 6px;
-    height: 6px;
-    margin-top: -3px;
+    width: 7px;
+    height: 7px;
+    margin-top: -3.5px;
     border-radius: 50%;
     background: var(--led-off);
     box-shadow: inset 0 1px 1px rgb(0 0 0 / 0.35);
@@ -54,194 +34,153 @@
   }
   .jali-pane-title h2 {
     font-family: var(--jali-font-mono);
-    font-size: 12px;
+    font-size: 12.5px;
     font-weight: 500;
     letter-spacing: 0.01em;
     color: var(--ink);
   }
-  /* The header's buttons (tuck, maximise, full screen, close): small keys. Reached through the public
-     `.jali-pane-actions`: the buttons have no public selector of their own. */
-  .jali-pane-actions button {
-    width: 26px;
-    height: 24px;
-    border-radius: 6px;
-    color: var(--cap-ink);
-    background: linear-gradient(180deg, var(--cap-1), var(--cap-2));
-    box-shadow:
-      inset 0 1px 0 var(--cap-hi),
-      inset 0 0 0 1px var(--cap-rim),
-      0 1.5px 0 var(--cap-edge);
-    transition:
-      translate var(--travel),
-      box-shadow var(--travel);
-  }
+  /* Not a public part: the buttons, reached through `.jali-pane-actions`. Small keys (parts.css). */
   .jali-pane-actions {
-    gap: 5px;
+    gap: 6px;
   }
-  .jali-pane-actions button:hover {
-    color: var(--st-signal-ink);
+  .jali-pane-actions button {
+    padding: 0;
+    width: 30px;
   }
-  .jali-pane-actions button:active {
-    translate: 0 1.5px;
-    box-shadow:
-      inset 0 1px 2px rgb(0 0 0 / 0.2),
-      inset 0 0 0 1px var(--cap-rim);
-  }
-  /* Following and Keep: a printed status and a latch key. */
+  /* Following and Keep. Keep (`.jali-follow-toggle`, public) is a small latch key with its lamp (parts.css). The
+     printed "Following" is not a public part (`.jali-follow-status`): it is set as a legend, and dropped in a
+     narrow header so the pane's name keeps its room. */
   .jali-follow-toggle {
+    height: 26px;
+    gap: 6px;
+    padding: 0 8px;
+  }
+  .jali-follow-toggle svg {
+    display: none;
+  }
+  .jali-pane-header .jali-follow-status {
     font-family: var(--jali-font-mono);
-    font-size: 11px;
+    font-size: 10.5px;
+    text-transform: lowercase;
     color: var(--legend);
   }
-  .jali-follow-toggle button {
-    height: 22px;
-    border: 0;
-    border-radius: 6px;
-    color: var(--cap-ink);
-    background: linear-gradient(180deg, var(--cap-1), var(--cap-2));
-    box-shadow:
-      inset 0 1px 0 var(--cap-hi),
-      inset 0 0 0 1px var(--cap-rim),
-      0 1.5px 0 var(--cap-edge);
-  }
-  .jali-follow-toggle button[aria-pressed="true"] {
-    translate: 0 1px;
-    color: var(--st-signal-ink);
-    background: linear-gradient(180deg, var(--cap-2), color-mix(in srgb, var(--cap-2) 88%, #000));
-    box-shadow:
-      inset 0 1px 2px rgb(0 0 0 / 0.22),
-      inset 0 0 0 1px var(--st-signal-line);
+  @container jali-header (max-width: 400px) {
+    .jali-follow-status {
+      display: none;
+    }
   }
 
-  /* ---------- tabs: a row of keys; the shown one latched, its lamp lit ---------- */
+  /* ---------- tabs ---------- */
   .jali-tabbar {
-    gap: 4px;
+    gap: 6px;
+    padding-block: 4px 6px;
   }
   .jali-tab {
-    gap: 6px;
-    height: 28px;
-    margin-block: 6px;
-    padding-inline: 10px;
-    border-radius: 7px;
-    font-family: var(--jali-font-mono);
-    font-size: 11.5px;
-    color: var(--cap-ink);
-    background: linear-gradient(180deg, var(--cap-1), var(--cap-2));
-    box-shadow:
-      inset 0 1px 0 var(--cap-hi),
-      inset 0 0 0 1px var(--cap-rim),
-      0 2px 0 var(--cap-edge);
-  }
-  .jali-tab[aria-selected="true"] {
-    translate: 0 1.5px;
-    font-weight: 600;
-    background: linear-gradient(180deg, var(--cap-2), color-mix(in srgb, var(--cap-2) 88%, #000));
-    box-shadow:
-      inset 0 1px 2px rgb(0 0 0 / 0.22),
-      inset 0 0 0 1px var(--cap-rim),
-      inset 0 -2px 0 var(--st-signal);
-  }
-  /* A tab the layout folded: printed in italics, on a quieter cap. */
-  .jali-tab[data-folded] {
-    background: transparent;
-    box-shadow: inset 0 0 0 1px var(--seam-dark);
+    gap: 7px;
+    margin-block: 0;
   }
   .jali-tab-indicator {
     display: none;
   }
-
-  /* ---------- the shelf: chips as small keys along the desk's edge ---------- */
-  .jali-shelf-chip {
-    border: 0;
-    border-radius: 7px;
-    color: var(--cap-ink);
-    background: linear-gradient(180deg, var(--cap-1), var(--cap-2));
+  /* A tab the layout folded: the same key, its legend in italics (Jali's) and a dotted rim. */
+  .jali-tab[data-folded] {
     box-shadow:
-      inset 0 1px 0 var(--cap-hi),
       inset 0 0 0 1px var(--cap-rim),
+      inset 0 0 0 2px var(--cap-1),
       0 2px 0 var(--cap-edge);
-  }
-  .jali-shelf-chip[data-reason="folded"] {
-    background: linear-gradient(
-      180deg,
-      color-mix(in srgb, var(--cap-1) 70%, transparent),
-      color-mix(in srgb, var(--cap-2) 70%, transparent)
-    );
+    outline: 1px dashed var(--legend);
+    outline-offset: -4px;
   }
 
-  /* Dividers stay as Jali draws them: the gap between two devices, its line coloured by --jali-border-strong. */
+  /* ---------- the shelf ---------- */
+  .jali-shelf {
+    gap: 8px;
+  }
+  .jali-shelf-chip {
+    height: 28px;
+  }
 
-  /* ---------- drop zones: where a device will go, outlined in orange ---------- */
+  /* ---------- drop zones ---------- */
   [data-drop-zone] {
     background: var(--st-signal-soft);
     border: 2px dashed var(--st-signal);
-    border-radius: var(--jali-radius);
+    border-radius: var(--corner);
   }
 
-  /* ---------- the peek: a device slid in over the desk ---------- */
+  /* ---------- the peek ---------- */
   .jali-peek {
-    background: linear-gradient(180deg, var(--body-1), var(--body-2));
-    border-radius: var(--jali-radius) 0 0 var(--jali-radius);
+    border-radius: var(--corner);
   }
 
-  /* ---------- ⌘K, the chooser, "Discard unsaved changes?": a device with a screen for its field ---------- */
+  /* ---------- dialogs: ⌘K, the chooser, Settings, "Discard unsaved changes?" ---------- */
   .jali-scrim {
     backdrop-filter: blur(2px);
   }
   .jali-scrim > [role="dialog"],
   .jali-scrim > [role="alertdialog"] {
-    background: linear-gradient(180deg, var(--body-1), var(--body-2));
-    border: 0;
-    padding: 6px;
+    padding: 8px;
   }
+  /* Not a public part: the field, reached by its role. A readout (parts.css). */
   .jali-scrim [role="combobox"] {
-    margin: 4px 4px 6px;
-    width: calc(100% - 8px);
-    height: 46px;
-    padding: 0 14px;
-    border: 0;
-    border-radius: 8px;
-    background: var(--scr-glass);
-    color: var(--scr-ink);
+    margin: 2px 2px 8px;
+    width: calc(100% - 4px);
+    height: 50px;
+    padding: 0 16px;
+    box-sizing: border-box;
     caret-color: var(--scr-hot);
     font-family: var(--jali-font-mono);
     font-size: 14px;
-    box-shadow:
-      inset 0 0 0 1px rgb(0 0 0 / 0.9),
-      inset 0 2px 4px rgb(0 0 0 / 0.7),
-      0 1px 0 var(--seam-lit);
-    box-sizing: border-box;
   }
   .jali-scrim [role="combobox"]::placeholder {
     color: var(--scr-dim);
   }
+  /* Palette and chooser rows: printed on the plate; the one under the cursor latched into a tray, its lamp lit. */
   .jali-palette-item {
-    border-radius: 7px;
+    position: relative;
+    min-height: 36px;
+    padding-inline-start: 26px;
+    border-radius: var(--corner);
     font-size: 13px;
   }
-  /* The row the cursor is on: latched, with a lamp. */
-  .jali-palette-item[aria-selected="true"] {
-    background: light-dark(rgb(0 0 0 / 0.07), rgb(0 0 0 / 0.35));
-    box-shadow:
-      inset 0 1px 2px rgb(0 0 0 / 0.16),
-      inset 3px 0 0 var(--st-signal);
+  .jali-palette-item::before {
+    content: "";
+    position: absolute;
+    inset-inline-start: 10px;
+    top: 50%;
+    width: 6px;
+    height: 6px;
+    margin-top: -3px;
+    border-radius: 50%;
+    background: var(--led-off);
+    box-shadow: inset 0 1px 1px rgb(0 0 0 / 0.35);
   }
+  .jali-palette-item[aria-selected="true"] {
+    background: light-dark(rgb(0 0 0 / 0.075), rgb(0 0 0 / 0.42));
+    box-shadow: inset 0 2px 3px rgb(0 0 0 / 0.2);
+  }
+  .jali-palette-item[aria-selected="true"]::before {
+    background: var(--led-on);
+    box-shadow: 0 0 7px rgb(255 79 0 / 0.8);
+  }
+  /* Not a public part: the key hint, reached as `kbd`. A tiny key cap. */
   .jali-palette-item kbd {
-    padding: 2px 5px;
-    border-radius: 4px;
+    padding: 3px 6px;
+    border-radius: var(--corner);
     background: linear-gradient(180deg, var(--cap-1), var(--cap-2));
     box-shadow:
       inset 0 0 0 1px var(--cap-rim),
-      0 1px 0 var(--cap-edge);
+      0 1.5px 0 var(--cap-edge);
     opacity: 1;
   }
-  .jali-scrim button {
-    border-radius: var(--jali-radius-control);
+  /* Not a public part: the dialog's buttons, reached as `button`. Standard keys; Jali keeps its own colours. */
+  .jali-scrim [role="alertdialog"] button {
+    height: 38px;
+    padding: 0 16px;
   }
 
-  /* ---------- the drag chip: a key in the hand ---------- */
+  /* ---------- the drag chip ---------- */
   .jali-drag-chip {
-    border-radius: 8px;
+    border-radius: var(--corner);
     background: linear-gradient(180deg, var(--cap-1), var(--cap-2));
     color: var(--cap-ink);
     font-family: var(--jali-font-mono);
@@ -249,42 +188,29 @@
 }
 
 @layer app {
-  /* "Discard unsaved changes?": its buttons become keys; Jali keeps its own colours for them. */
-  .jali-scrim [role="alertdialog"] button {
-    border: 0;
-    border-radius: var(--jali-radius-control);
-    box-shadow:
-      inset 0 1px 0 rgb(255 255 255 / 0.4),
-      inset 0 0 0 1px rgb(0 0 0 / 0.18),
-      0 2px 0 rgb(0 0 0 / 0.3);
-    font-family: var(--jali-font-mono);
+  /* Not a public part: which of the dialog's buttons is the primary one. Only its order says so (it comes last):
+     the orange cap, as in the parts' .key-accent. */
+  .jali-scrim [role="alertdialog"] button:last-of-type {
+    --cap-1: #ff6a26;
+    --cap-2: #f24a00;
+    --cap-edge: #a83300;
+    --cap-ink: #170a03;
+    --cap-rim: rgb(120 30 0 / 0.35);
+    --cap-hi: rgb(255 255 255 / 0.45);
   }
-  .jali-scrim [role="alertdialog"] button:active {
-    translate: 0 2px;
-    box-shadow: inset 0 1px 2px rgb(0 0 0 / 0.25);
-  }
+}
 
-  /* A phone's pane switcher: a row of keys; the pane on screen latched. */
-  .jali-switch-item {
-    border: 0;
-    border-radius: 7px;
-    font-family: var(--jali-font-mono);
-    font-size: 11.5px;
-    color: var(--cap-ink);
-    background: linear-gradient(180deg, var(--cap-1), var(--cap-2));
-    box-shadow:
-      inset 0 1px 0 var(--cap-hi),
-      inset 0 0 0 1px var(--cap-rim),
-      0 2px 0 var(--cap-edge);
+@layer app {
+  /*
+   * Square corners on Jali's parts that don't read the radius tokens: the dialogs (palette, Settings, confirm),
+   * the Following toggle, the tab's close button, tab menu items, the rename field, and the shelf's chips, "more"
+   * button and menu all have their own fixed radius in Jali's styles. Reached here by element, inside public parts.
+   */
+  :where(.jali-shelf, .jali-pane-header, .jali-peek, .jali-tab-menu, [data-jali-layer])
+    :where(button, input, li, kbd) {
+    border-radius: var(--corner);
   }
-  .jali-switch-item[aria-selected="true"] {
-    translate: 0 1.5px;
-    font-weight: 600;
-    color: var(--cap-ink);
-    background: linear-gradient(180deg, var(--cap-2), color-mix(in srgb, var(--cap-2) 88%, #000));
-    box-shadow:
-      inset 0 1px 2px rgb(0 0 0 / 0.22),
-      inset 0 0 0 1px var(--cap-rim),
-      inset 0 -2px 0 var(--st-signal);
+  .jali-scrim > * {
+    border-radius: var(--corner);
   }
 }

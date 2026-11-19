@@ -50,113 +50,12 @@
     align-items: center;
     gap: 8px;
   }
-  /* The panes' buttons are keys: `.btn` a plain cap, `.btn-signal` the orange one, `.chip-toggle` a latch with a
-     lamp, `.icon-btn` a small square key, `.play-btn` the light key with the orange legend. */
-  .btn,
-  .chip-toggle,
-  .icon-btn,
-  .play-btn {
-    --press: 0px;
-    position: relative;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 6px;
-    height: 30px;
-    padding: 0 12px;
-    border: 0;
-    border-radius: var(--jali-radius-control);
-    background: linear-gradient(180deg, var(--cap-1), var(--cap-2));
-    color: var(--cap-ink);
-    font-family: var(--jali-font-mono);
-    font-size: 11.5px;
-    font-weight: 500;
-    letter-spacing: 0.02em;
-    text-transform: lowercase;
-    white-space: nowrap;
-    cursor: pointer;
-    flex: none;
-    translate: 0 var(--press);
-    box-shadow:
-      inset 0 1px 0 var(--cap-hi),
-      inset 0 0 0 1px var(--cap-rim),
-      0 calc(2px - var(--press)) 0 var(--cap-edge),
-      0 calc(3px - var(--press)) calc(3px - var(--press)) rgb(0 0 0 / 0.16);
-    transition:
-      translate var(--travel),
-      box-shadow var(--travel);
-  }
-  :is(.btn, .chip-toggle, .icon-btn, .play-btn):active:not(:disabled) {
-    --press: 2px;
-  }
-  :is(.btn, .chip-toggle, .icon-btn, .play-btn):disabled {
-    cursor: default;
-    color: color-mix(in srgb, var(--cap-ink) 45%, transparent);
-  }
-  .btn-quiet {
-    background: transparent;
-    box-shadow: inset 0 0 0 1px var(--seam-dark);
-  }
-  .btn-quiet:active:not(:disabled) {
-    --press: 1px;
-  }
-  .btn-signal {
-    --cap-1: #ff6a26;
-    --cap-2: #f24a00;
-    --cap-edge: #a83300;
-    --cap-ink: #170a03;
-    --cap-rim: rgb(120 30 0 / 0.35);
-    --cap-hi: rgb(255 255 255 / 0.45);
-  }
-  .btn-signal:disabled {
-    --cap-1: light-dark(#f3d3c3, #4a2a1c);
-    --cap-2: light-dark(#ecc6b3, #3e2316);
-    --cap-edge: light-dark(#cfa894, #20120b);
-    color: light-dark(#7a4a33, #b88a72);
-  }
-  .chip-toggle::before {
-    content: "";
-    width: 6px;
-    height: 6px;
-    border-radius: 50%;
-    background: var(--led-off);
-    box-shadow: inset 0 1px 1px rgb(0 0 0 / 0.35);
-  }
-  .chip-toggle[aria-pressed="true"] {
-    --press: 1.5px;
-    background: linear-gradient(180deg, var(--cap-2), color-mix(in srgb, var(--cap-2) 88%, #000));
-    box-shadow:
-      inset 0 1px 2px rgb(0 0 0 / 0.22),
-      inset 0 0 0 1px var(--cap-rim),
-      0 0.5px 0 var(--cap-edge);
-  }
-  .chip-toggle[aria-pressed="true"]::before {
-    background: var(--led-on);
-    box-shadow: 0 0 7px rgb(255 79 0 / 0.75);
-  }
-  .chip-toggle svg {
-    display: none;
-  }
-  .icon-btn {
-    width: 28px;
-    height: 26px;
-    padding: 0;
-  }
-  .play-btn {
-    width: 40px;
-    height: 36px;
-    padding: 0;
-    color: var(--st-signal);
-  }
-  .btn kbd {
-    opacity: 0.7;
-  }
   .tag {
     display: inline-flex;
     align-items: center;
     height: 18px;
     padding: 0 6px;
-    border-radius: 4px;
+    border-radius: var(--corner);
     font-family: var(--jali-font-mono);
     font-size: 10.5px;
     text-transform: lowercase;
@@ -224,7 +123,7 @@
     gap: 8px;
     margin: 0 10px 8px;
     padding: 6px 6px 6px 12px;
-    border-radius: 8px;
+    border-radius: var(--corner);
     font-family: var(--jali-font-mono);
     font-size: 11px;
     color: var(--legend);
@@ -243,17 +142,6 @@
     outline: none;
   }
 
-  /* Paper: a recessed sheet in the plate, for long reading. */
-  .paper {
-    background: var(--paper);
-    color: var(--paper-ink);
-    border-radius: 9px;
-    box-shadow:
-      inset 0 1px 3px rgb(0 0 0 / 0.14),
-      inset 0 0 0 1px light-dark(rgb(0 0 0 / 0.1), rgb(0 0 0 / 0.6)),
-      0 1px 0 var(--seam-lit);
-  }
-
   /* ---------- library: each session a raised plate; the chosen one latched with its lamp lit ---------- */
   .lib-rows {
     flex: 1;
@@ -265,44 +153,17 @@
     gap: 10px;
   }
   .lib-row {
-    position: relative;
     display: grid;
+    justify-content: stretch;
+    align-items: stretch;
     gap: 3px;
-    padding: 11px 12px 12px 26px;
-    border-radius: 10px;
-    cursor: pointer;
-    background: linear-gradient(180deg, var(--cap-1), var(--cap-2));
-    box-shadow:
-      inset 0 1px 0 var(--cap-hi),
-      inset 0 0 0 1px var(--cap-rim),
-      0 2px 0 var(--cap-edge),
-      0 3px 3px rgb(0 0 0 / 0.14);
-    transition:
-      translate var(--travel),
-      box-shadow var(--travel);
-  }
-  .lib-row::before {
-    content: "";
-    position: absolute;
-    left: 11px;
-    top: 16px;
-    width: 6px;
-    height: 6px;
-    border-radius: 50%;
-    background: var(--led-off);
-    box-shadow: inset 0 1px 1px rgb(0 0 0 / 0.35);
-  }
-  .lib-row[aria-selected="true"] {
-    translate: 0 1.5px;
-    background: linear-gradient(180deg, var(--cap-2), color-mix(in srgb, var(--cap-2) 90%, #000));
-    box-shadow:
-      inset 0 1px 2px rgb(0 0 0 / 0.2),
-      inset 0 0 0 1px var(--cap-rim),
-      0 0.5px 0 var(--cap-edge);
-  }
-  .lib-row[aria-selected="true"]::before {
-    background: var(--led-on);
-    box-shadow: 0 0 7px rgb(255 79 0 / 0.8);
+    height: auto;
+    padding: 12px 14px 14px;
+    border-radius: var(--corner);
+    white-space: normal;
+    font-family: var(--jali-font);
+    font-size: 14px;
+    text-align: left;
   }
   .lib-rows:focus-visible .lib-row[aria-selected="true"],
   .lib-row[data-active] {
@@ -393,19 +254,12 @@
     margin: 0 10px 10px;
     padding: 14px 0 40vh;
     scroll-padding: 48px 0;
-    background: var(--paper);
-    color: var(--paper-ink);
-    border-radius: 9px;
-    box-shadow:
-      inset 0 1px 3px rgb(0 0 0 / 0.14),
-      inset 0 0 0 1px light-dark(rgb(0 0 0 / 0.1), rgb(0 0 0 / 0.6)),
-      0 1px 0 var(--seam-lit);
   }
   .tr-seg {
     position: relative;
     margin: 0 10px;
     padding: 6px 12px 8px 16px;
-    border-radius: 8px;
+    border-radius: var(--corner);
   }
   .tr-seg::before {
     content: "";
@@ -414,7 +268,7 @@
     top: 8px;
     bottom: 8px;
     width: 3px;
-    border-radius: 2px;
+    border-radius: var(--corner);
     background: transparent;
   }
   .tr-seg[data-speaking]::before {
@@ -468,7 +322,7 @@
     height: 26px;
     padding: 0 8px;
     border: 0;
-    border-radius: 6px;
+    border-radius: var(--corner);
     background: var(--paper);
     box-shadow: inset 0 0 0 2px var(--st-signal);
     font-family: var(--jali-font-mono);
@@ -505,7 +359,7 @@
   }
   .w {
     cursor: pointer;
-    border-radius: 3px;
+    border-radius: var(--corner);
   }
   .w:hover {
     text-decoration: underline;
@@ -532,7 +386,7 @@
     margin: 0;
     padding: 6px 10px;
     border: 0;
-    border-radius: 8px;
+    border-radius: var(--corner);
     background: var(--paper);
     color: var(--paper-ink);
     font-size: 16px;
@@ -550,10 +404,6 @@
     gap: 6px;
     padding-top: 3px;
     min-height: 26px;
-  }
-  .tr-actions {
-    display: inline-flex;
-    gap: 6px;
   }
   @container (max-width: 460px) {
     .tr-line {
@@ -614,13 +464,6 @@
     gap: 0;
     margin-block: 0;
     padding: 8px 4px;
-    background: var(--lcd-glass);
-    color: var(--lcd-ink);
-    border-radius: 7px;
-    box-shadow:
-      inset 0 1px 3px rgb(0 0 0 / 0.3),
-      inset 0 0 0 1px rgb(0 0 0 / 0.22),
-      0 1px 0 var(--seam-lit);
   }
   .clip-fields > div {
     display: grid;
@@ -645,7 +488,7 @@
     margin-left: -4px;
     padding: 2px;
     border: 0;
-    border-radius: 4px;
+    border-radius: var(--corner);
     background: none;
     color: var(--lcd-ink);
     font-family: var(--jali-font-mono);
@@ -658,14 +501,7 @@
   .clip-text {
     margin-block: 0;
     padding: 12px 14px;
-    background: var(--paper);
-    color: var(--paper-ink);
-    border-radius: 9px;
     border-left: 3px solid transparent;
-    box-shadow:
-      inset 0 1px 3px rgb(0 0 0 / 0.12),
-      inset 0 0 0 1px light-dark(rgb(0 0 0 / 0.1), rgb(0 0 0 / 0.6)),
-      0 1px 0 var(--seam-lit);
     font-size: 15px;
     line-height: 1.6;
   }
@@ -684,16 +520,9 @@
   .clip-note textarea {
     min-height: 76px;
     padding: 9px 11px;
-    border: 0;
-    border-radius: 9px;
-    background: var(--paper);
-    color: var(--paper-ink);
     font-size: 13.5px;
     line-height: 1.5;
     resize: vertical;
-    box-shadow:
-      inset 0 1px 3px rgb(0 0 0 / 0.12),
-      inset 0 0 0 1px light-dark(rgb(0 0 0 / 0.12), rgb(0 0 0 / 0.6));
   }
   .clip-note textarea:focus {
     outline: none;
@@ -731,7 +560,7 @@
     gap: 8px;
     min-height: 34px;
     padding: 0 4px 0 16px;
-    border-radius: 4px;
+    border-radius: var(--corner);
     cursor: pointer;
   }
   .mk-row:hover {
@@ -768,20 +597,11 @@
     overflow: hidden;
     text-overflow: ellipsis;
   }
-  .mk-remove {
-    width: 24px;
-    height: 22px;
-    opacity: 0;
-  }
-  .mk-row:hover .mk-remove,
-  .mk-row[aria-selected="true"] .mk-remove {
-    opacity: 1;
-  }
   .mk-field {
     height: 26px;
     padding: 0 6px;
     border: 0;
-    border-radius: 4px;
+    border-radius: var(--corner);
     background: rgb(255 255 255 / 0.5);
     color: var(--lcd-ink);
     box-shadow: inset 0 0 0 2px var(--st-signal);
@@ -924,82 +744,17 @@
   }
   /* The meters: OLED columns set into the plate. */
   .mx-meter {
-    width: 7px;
+    width: 8px;
     height: 100%;
     flex: none;
     padding: 3px 2px;
     box-sizing: border-box;
-    border-radius: 3px;
-    background: #050506;
-    box-shadow:
-      inset 0 0 0 1px #000,
-      0 1px 0 var(--seam-lit);
+    border-radius: var(--corner);
   }
   .mx-meter canvas {
     display: block;
     width: 100%;
     height: 100%;
-  }
-  /* The fader: a cap riding in a slot cut into the plate. */
-  .mx-fader {
-    display: flex;
-    justify-content: center;
-    width: 30px;
-    height: 100%;
-  }
-  .mx-fader input {
-    writing-mode: vertical-lr;
-    direction: rtl;
-    appearance: none;
-    width: 30px;
-    height: 100%;
-    margin: 0;
-    background: none;
-    cursor: ns-resize;
-  }
-  .mx-fader input::-webkit-slider-runnable-track {
-    width: 6px;
-    border-radius: 4px;
-    background: #050506;
-    box-shadow:
-      inset 0 1px 2px #000,
-      0 0 0 1px rgb(0 0 0 / 0.6),
-      1px 0 0 var(--seam-lit);
-  }
-  .mx-fader input::-moz-range-track {
-    width: 6px;
-    border-radius: 4px;
-    background: #050506;
-  }
-  .mx-fader input::-webkit-slider-thumb {
-    appearance: none;
-    width: 24px;
-    height: 24px;
-    margin-left: -9px;
-    border-radius: 50%;
-    background: radial-gradient(circle at 40% 32%, #ffffff, #e9e9e5 55%, #b9b9b3);
-    border: 0;
-    box-shadow:
-      inset 0 -1px 1px rgb(0 0 0 / 0.2),
-      0 0 0 1px rgb(0 0 0 / 0.55),
-      0 3px 0 #0a0a0b,
-      0 5px 6px rgb(0 0 0 / 0.5);
-  }
-  .mx-fader input::-moz-range-thumb {
-    width: 22px;
-    height: 22px;
-    border-radius: 50%;
-    background: #f2f2ee;
-    border: 0;
-  }
-  .mx-fader input:focus-visible {
-    outline: none;
-  }
-  .mx-fader input:focus-visible::-webkit-slider-thumb {
-    box-shadow:
-      0 0 0 2px var(--st-signal),
-      0 0 0 5px var(--st-signal-soft),
-      0 3px 0 #0a0a0b;
   }
   .mx-scale {
     position: absolute;
@@ -1018,14 +773,9 @@
   }
   /* The level, on a small OLED readout. */
   .mx-db {
-    padding: 3px 7px;
-    border-radius: 4px;
+    padding: 4px 8px;
+    border-radius: var(--corner);
     font-size: 10.5px;
-    color: var(--scr-ink);
-    background: #050506;
-    box-shadow:
-      inset 0 0 0 1px #000,
-      0 1px 0 var(--seam-lit);
     white-space: nowrap;
   }
   .mx-buttons {
@@ -1034,12 +784,9 @@
     gap: 5px;
   }
   .mx-btn {
-    min-width: 0;
-    width: 38px;
-    min-height: 28px;
+    width: 42px;
     padding: 0;
-    gap: 4px;
-    font-size: 11px;
+    gap: 5px;
     text-transform: none;
   }
   .mx-btn-wide {

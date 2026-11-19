@@ -25,7 +25,7 @@ export function NotInTransport({ session }: { session: string }) {
   return (
     <div className="not-live" role="note">
       <span>Not in the transport{playing ? <>: it has “{playing}”</> : null}.</span>
-      <button type="button" className="btn btn-quiet" onClick={() => cue(engine, session, 0)}>
+      <button type="button" className="key key-s" onClick={() => cue(engine, session, 0)}>
         <PlayIcon size={12} weight="fill" aria-hidden /> Load this session
       </button>
     </div>

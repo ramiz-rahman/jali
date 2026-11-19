@@ -23,19 +23,22 @@ export function TopBar() {
   const current = useJaliState((s) => s.presetId);
   const theme = useTheme();
   const palette = useShortcut("palette.toggle");
+  const currentLabel = jali.env.presets.find((p) => p.id === current)?.label ?? "";
 
+  // One row of full-height blocks, tiled edge to edge: the mark, the layouts, the transport's parts, a filler with
+  // the session's progress, and the tools. Groups are `display: contents`, so every block is a cell of one row.
   return (
     <header className="topbar" data-jali-chrome="">
-      <a className="brand" href="./" aria-label="Studio, a Jali example: back to the Edit layout">
+      <a className="block block-plate badge" href="./" aria-label="Studio, a Jali example: back to the Edit layout">
         <StudioMark />
-        <span className="brand-name">studio</span>
+        <span className="badge-name">studio</span>
       </a>
-      <nav className="layouts" aria-label="Layouts">
+      <nav className="blocks" aria-label="Layouts">
         {jali.env.presets.map((p) => (
           <button
             key={p.id}
             type="button"
-            className="key key-s"
+            className="key block block-legend layout-key"
             aria-pressed={p.id === current}
             onMouseDown={keepFocus}
             onClick={() => jali.actions.preset(p.id)}
@@ -45,7 +48,15 @@ export function TopBar() {
           </button>
         ))}
       </nav>
-      <label className="layouts-select">
+      {/* Narrower: one block that opens a menu, the layout in use printed on it. A real <select> over its face. */}
+      <label className="key block block-legend layout-menu">
+        <span className="led" data-on="" aria-hidden />
+        <span className="block-top legend" aria-hidden>
+          layout
+        </span>
+        <span className="layout-menu-name" aria-hidden>
+          {currentLabel}
+        </span>
         <span className="sr-only">Layout</span>
         <select value={current} onChange={(e) => jali.actions.preset(e.target.value)}>
           {jali.env.presets.map((p) => (
@@ -56,20 +67,21 @@ export function TopBar() {
         </select>
       </label>
       <Transport />
-      <div className="topbar-end">
+      <div className="blocks" role="group" aria-label="Tools">
         <button
           type="button"
-          className="key key-icon"
+          className="key block block-legend tool-key tool-link"
           aria-label="Copy a link to this layout"
           title="Copy a link to this layout"
           onMouseDown={keepFocus}
           onClick={() => copyLink(jali)}
         >
-          <LinkSimpleIcon size={16} aria-hidden />
+          <LinkSimpleIcon size={18} aria-hidden className="block-icon" />
+          <span className="block-word">link</span>
         </button>
         <button
           type="button"
-          className="key key-icon"
+          className="key block block-legend tool-key"
           aria-label={theme === "dark" ? "Use the light theme" : "Use the dark theme"}
           title={theme === "dark" ? "Light theme" : "Dark theme"}
           onMouseDown={keepFocus}
@@ -78,21 +90,22 @@ export function TopBar() {
           }
         >
           {theme === "dark" ? (
-            <SunIcon size={16} aria-hidden />
+            <SunIcon size={18} aria-hidden className="block-icon" />
           ) : (
-            <MoonIcon size={16} aria-hidden />
+            <MoonIcon size={18} aria-hidden className="block-icon" />
           )}
+          <span className="block-word">{theme === "dark" ? "light" : "dark"}</span>
         </button>
         <button
           type="button"
-          className="key key-icon key-wide"
+          className="key block block-legend tool-key"
           aria-label="Commands"
           title={`Commands ${palette}`}
           onMouseDown={keepFocus}
           onClick={() => jali.actions.openPalette()}
         >
-          <CommandIcon size={15} aria-hidden />
-          <kbd>{palette || keyHint("Mod+K")}</kbd>
+          <CommandIcon size={18} aria-hidden className="block-icon" />
+          <span className="block-word">{palette || keyHint("Mod+K")}</span>
         </button>
       </div>
     </header>
@@ -108,80 +121,81 @@ function Transport() {
   const ready = t.status === "ready";
   const speed = SPEEDS.indexOf(t.rate as (typeof SPEEDS)[number]);
   return (
-    <div className="transport device" role="group" aria-label="Transport">
-      <div className="screen tp-screen">
-        <div className="tp-line">
-          <span className="tp-show">
-            {session.show} · ep {session.episode}
-          </span>
-          <span className="tp-state" role="status">
-            {t.status === "loading"
-              ? "loading"
-              : t.status === "error"
-                ? "no audio"
-                : t.playing
-                  ? "▶ play"
-                  : "■ stop"}
+    <div className="blocks" role="group" aria-label="Transport">
+      <span className="row-break" aria-hidden />
+      <div className="block block-plate block-readout">
+        <div className="screen tp-screen">
+          <div className="tp-line">
+            <span className="tp-show">
+              {session.show} · ep {session.episode}
+            </span>
+            <span className="tp-state" role="status">
+              {t.status === "loading"
+                ? "loading"
+                : t.status === "error"
+                  ? "no audio"
+                  : t.playing
+                    ? "▶ play"
+                    : "■ stop"}
+            </span>
+          </div>
+          <span className="tp-title">{session.title}</span>
+          <span className="tp-time" aria-label={`${clock(pos)} of ${clock(session.duration)}`}>
+            <span className="tp-now">{clockTenths(pos)}</span>
+            <span className="tp-total">{clock(session.duration)}</span>
+            <span className="tp-rate">{t.rate}×</span>
           </span>
         </div>
-        <span className="tp-title">{session.title}</span>
-        <span className="tp-time" aria-label={`${clock(pos)} of ${clock(session.duration)}`}>
-          <span className="tp-now">{clockTenths(pos)}</span>
-          <span className="tp-total">{clock(session.duration)}</span>
-          <span className="tp-rate">{t.rate}×</span>
-        </span>
-      </div>
-      <div className="tp-keys">
-        <button
-          type="button"
-          className="key key-l"
-          aria-label="Back 5 seconds"
-          title="Back 5 seconds"
-          onMouseDown={keepFocus}
-          onClick={() => engine.skip(-5)}
-        >
-          <Glyph name="back" />
-        </button>
-        <button
-          type="button"
-          className="key key-l key-play"
-          aria-label={t.playing ? "Pause" : "Play"}
-          title={`${t.playing ? "Pause" : "Play"} (Space)`}
-          disabled={!ready}
-          data-on={t.playing ? "" : undefined}
-          onMouseDown={keepFocus}
-          onClick={() => engine.toggle()}
-        >
-          <span className="led" aria-hidden />
-          <Glyph name={t.playing ? "pause" : "play"} />
-        </button>
-        <button
-          type="button"
-          className="key key-l"
-          aria-label="Stop"
-          title="Stop, and go back to the start"
-          onMouseDown={keepFocus}
-          onClick={() => {
-            engine.pause();
-            engine.seek(t.loop?.start ?? 0);
-          }}
-        >
-          <Glyph name="stop" />
-        </button>
-        <button
-          type="button"
-          className="key key-l"
-          aria-label="Forward 5 seconds"
-          title="Forward 5 seconds"
-          onMouseDown={keepFocus}
-          onClick={() => engine.skip(5)}
-        >
-          <Glyph name="forward" />
-        </button>
       </div>
       <button
         type="button"
-        className="key key-s tp-loop"
+        className="key block transport-key"
+        aria-label="Back 5 seconds"
+        title="Back 5 seconds"
+        onMouseDown={keepFocus}
+        onClick={() => engine.skip(-5)}
+      >
+        <Glyph name="back" />
+      </button>
+      <button
+        type="button"
+        className="key key-accent block transport-key key-play"
+        aria-label={t.playing ? "Pause" : "Play"}
+        title={`${t.playing ? "Pause" : "Play"} (Space)`}
+        disabled={!ready}
+        data-on={t.playing ? "" : undefined}
+        onMouseDown={keepFocus}
+        onClick={() => engine.toggle()}
+      >
+        <span className="led" aria-hidden />
+        <Glyph name={t.playing ? "pause" : "play"} />
+      </button>
+      <button
+        type="button"
+        className="key block transport-key tp-stop"
+        aria-label="Stop"
+        title="Stop, and go back to the start"
+        onMouseDown={keepFocus}
+        onClick={() => {
+          engine.pause();
+          engine.seek(t.loop?.start ?? 0);
+        }}
+      >
+        <Glyph name="stop" />
+      </button>
+      <button
+        type="button"
+        className="key block transport-key"
+        aria-label="Forward 5 seconds"
+        title="Forward 5 seconds"
+        onMouseDown={keepFocus}
+        onClick={() => engine.skip(5)}
+      >
+        <Glyph name="forward" />
+      </button>
+      <button
+        type="button"
+        className="key block block-legend tp-loop"
         aria-pressed={!!t.loop}
         title={
           t.loop
@@ -194,39 +208,46 @@ function Transport() {
         <span className="led" aria-hidden />
         loop
       </button>
-      <div className="tp-controls">
-        <div className="control">
-          <Jog
-            label="Scrub"
-            value={pos}
-            min={0}
-            max={session.duration}
-            step={1}
-            degreesPerUnit={24}
-            valueText={`${clock(pos)} of ${clock(session.duration)}`}
-            onChange={(v) => engine.seek(v)}
-          />
-          <span className="legend" aria-hidden>
-            scrub
-          </span>
-        </div>
-        <div className="control tp-speed">
-          <Knob
-            label="Speed"
-            value={Math.max(0, speed)}
-            min={0}
-            max={SPEEDS.length - 1}
-            step={1}
-            reset={SPEEDS.indexOf(1)}
-            cap="graphite"
-            size={34}
-            valueText={`${t.rate} times`}
-            onChange={(i) => engine.setRate(SPEEDS[i]!)}
-          />
-          <span className="legend" aria-hidden>
-            speed
-          </span>
-        </div>
+      <div className="block block-plate block-control tp-scrub">
+        <Jog
+          label="Scrub"
+          value={pos}
+          min={0}
+          max={session.duration}
+          step={1}
+          degreesPerUnit={24}
+          valueText={`${clock(pos)} of ${clock(session.duration)}`}
+          onChange={(v) => engine.seek(v)}
+        />
+        <span className="legend" aria-hidden>
+          scrub
+        </span>
+      </div>
+      <div className="block block-plate block-control tp-speed">
+        <Knob
+          label="Speed"
+          value={Math.max(0, speed)}
+          min={0}
+          max={SPEEDS.length - 1}
+          step={1}
+          reset={SPEEDS.indexOf(1)}
+          cap="graphite"
+          size={30}
+          valueText={`${t.rate} times`}
+          onChange={(i) => engine.setRate(SPEEDS[i]!)}
+        />
+        <span className="legend" aria-hidden>
+          speed
+        </span>
+      </div>
+      {/* The filler: a plain plate that takes the leftover width, with the session's progress cut into it. */}
+      <div className="block block-plate block-fill" aria-hidden>
+        <span className="legend">
+          {clock(pos)} / {clock(session.duration)}
+        </span>
+        <span className="groove">
+          <span className="groove-fill" style={{ width: `${(pos / session.duration) * 100}%` }} />
+        </span>
       </div>
     </div>
   );

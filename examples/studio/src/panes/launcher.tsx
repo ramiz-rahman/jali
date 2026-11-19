@@ -41,14 +41,14 @@ function Launcher({ openHere, dismiss }: PaneProps) {
             <button
               key={v.label}
               type="button"
-              className="btn"
+              className="key"
               autoFocus={i === 0}
               onClick={() => go(v.make({ session }))}
             >
               {v.label}
             </button>
           ))}
-          <button type="button" className="btn" onClick={() => go(library())}>
+          <button type="button" className="key" onClick={() => go(library())}>
             Library
           </button>
         </div>
@@ -61,7 +61,7 @@ function Launcher({ openHere, dismiss }: PaneProps) {
               <button
                 key={JSON.stringify(ref)}
                 type="button"
-                className="btn"
+                className="key"
                 onClick={() => go(ref)}
                 title={isOpen(ref) ? "Open in another pane: goes there" : undefined}
               >
