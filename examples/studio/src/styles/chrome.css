@@ -71,7 +71,9 @@
       inset 0 1px 0 var(--cap-hi),
       inset 0 0 0 1px var(--cap-rim),
       0 1.5px 0 var(--cap-edge);
-    transition: translate var(--travel), box-shadow var(--travel);
+    transition:
+      translate var(--travel),
+      box-shadow var(--travel);
   }
   .jali-pane-actions {
     gap: 5px;
@@ -160,14 +162,14 @@
       0 2px 0 var(--cap-edge);
   }
   .jali-shelf-chip[data-reason="folded"] {
-    background: linear-gradient(180deg, color-mix(in srgb, var(--cap-1) 70%, transparent), color-mix(in srgb, var(--cap-2) 70%, transparent));
+    background: linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--cap-1) 70%, transparent),
+      color-mix(in srgb, var(--cap-2) 70%, transparent)
+    );
   }
 
-  /* ---------- dividers: the gap between two devices; a slot lights while dragged ---------- */
-  [data-divider]:hover::after,
-  [data-divider]:focus-visible::after {
-    background: var(--st-signal);
-  }
+  /* Dividers stay as Jali draws them: the gap between two devices, its line coloured by --jali-border-strong. */
 
   /* ---------- drop zones: where a device will go, outlined in orange ---------- */
   [data-drop-zone] {
@@ -243,5 +245,46 @@
     background: linear-gradient(180deg, var(--cap-1), var(--cap-2));
     color: var(--cap-ink);
     font-family: var(--jali-font-mono);
+  }
+}
+
+@layer app {
+  /* "Discard unsaved changes?": its buttons become keys; Jali keeps its own colours for them. */
+  .jali-scrim [role="alertdialog"] button {
+    border: 0;
+    border-radius: var(--jali-radius-control);
+    box-shadow:
+      inset 0 1px 0 rgb(255 255 255 / 0.4),
+      inset 0 0 0 1px rgb(0 0 0 / 0.18),
+      0 2px 0 rgb(0 0 0 / 0.3);
+    font-family: var(--jali-font-mono);
+  }
+  .jali-scrim [role="alertdialog"] button:active {
+    translate: 0 2px;
+    box-shadow: inset 0 1px 2px rgb(0 0 0 / 0.25);
+  }
+
+  /* A phone's pane switcher: a row of keys; the pane on screen latched. */
+  .jali-switch-item {
+    border: 0;
+    border-radius: 7px;
+    font-family: var(--jali-font-mono);
+    font-size: 11.5px;
+    color: var(--cap-ink);
+    background: linear-gradient(180deg, var(--cap-1), var(--cap-2));
+    box-shadow:
+      inset 0 1px 0 var(--cap-hi),
+      inset 0 0 0 1px var(--cap-rim),
+      0 2px 0 var(--cap-edge);
+  }
+  .jali-switch-item[aria-selected="true"] {
+    translate: 0 1.5px;
+    font-weight: 600;
+    color: var(--cap-ink);
+    background: linear-gradient(180deg, var(--cap-2), color-mix(in srgb, var(--cap-2) 88%, #000));
+    box-shadow:
+      inset 0 1px 2px rgb(0 0 0 / 0.22),
+      inset 0 0 0 1px var(--cap-rim),
+      inset 0 -2px 0 var(--st-signal);
   }
 }

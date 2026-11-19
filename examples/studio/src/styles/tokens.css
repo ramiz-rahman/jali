@@ -48,7 +48,7 @@
   /* ---------- the LCD: grey-green reflective glass, dark print ---------- */
   --lcd-glass: linear-gradient(180deg, #a9b3a1, #bfc7b6 30%, #b8c0ae);
   --lcd-ink: #121410;
-  --lcd-dim: rgb(18 20 16 / 0.7);
+  --lcd-dim: rgb(18 20 16 / 0.78);
   --lcd-ghost: rgb(18 20 16 / 0.08);
 
   /* ---------- paper: the transcript and the notes, for long reading ---------- */

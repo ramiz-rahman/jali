@@ -19,7 +19,14 @@ import { useFrame, useTransport } from "../audio/react";
 import { useSessionView } from "../edits";
 import { useServices } from "../services";
 import { clock, SESSIONS, spokenDuration, type SessionData } from "../sessions/sessions";
-import { drawBars, loudest, overviewPeaks, screenPaletteOf, prepare, useSize } from "../ui/waveform";
+import {
+  drawBars,
+  loudest,
+  overviewPeaks,
+  screenPaletteOf,
+  prepare,
+  useSize,
+} from "../ui/waveform";
 import { listMove, scrollRowIntoView } from "./keys";
 import { mixer } from "./mixer";
 import { transcript } from "./transcript";

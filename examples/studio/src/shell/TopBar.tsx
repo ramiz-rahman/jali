@@ -77,7 +77,11 @@ export function TopBar() {
             jali.actions.changeSettings({ theme: theme === "dark" ? "light" : "dark" })
           }
         >
-          {theme === "dark" ? <SunIcon size={16} aria-hidden /> : <MoonIcon size={16} aria-hidden />}
+          {theme === "dark" ? (
+            <SunIcon size={16} aria-hidden />
+          ) : (
+            <MoonIcon size={16} aria-hidden />
+          )}
         </button>
         <button
           type="button"

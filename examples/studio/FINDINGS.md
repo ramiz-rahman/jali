@@ -105,6 +105,38 @@ Studio is built on `@jali/core` and `@jali/react` alone, with no change to `pack
 - **Keep is what the brief called pinning.** Jali's "pin" is for tabs; "keep" is for a follower that stops following. Clear once known, but a reader looks for "pin" first.
 - **Chained following is by hand.** Library, then transcript, then segment detail: when the library moves on, the detail follows only once the transcript, having changed session, reports a new selection from its own effect. It is how a list should behave, but each list in a chain has to remember to do it.
 
+## Theming Jali to look like hardware
+
+Studio was restyled so that each pane reads as a device on a desk: faceplates, key caps that travel, knobs, a jog wheel, screens and an LCD (README, "Styling"). This is what that taught us about Jali's theming surface.
+
+**Easy, through the supported surface.**
+
+- **Faceplates.** `.jali-pane` takes any background and layered `box-shadow`, so a pane became a molded body with a lit top edge and a side wall. `[data-focused]` carries focus as an attribute, so the focused device got an orange ring and a lit lamp in its header.
+- **One unit in another body.** Setting tokens on one pane (`.jali-pane[data-kind="mixer"]`, with `color-scheme: dark`) made the mixer black anodised in the light theme, header and tabs included. Tokens on a subtree work as the Theming guide promises.
+- **Tabs, the shelf, the switcher, drop zones, the drag chip, the peek.** Each has a public selector with its state in attributes (`aria-selected`, `data-folded`, `data-reason`, `data-drop-zone`), so tabs became latched keys and shelf chips small keys with no fight.
+- **Dialogs and menus.** `--jali-shadow-dialog`, `--jali-shadow-menu`, `--jali-surface-raised` and `--jali-radius-menu` were enough to make ⌘K, the chooser, Settings and the tab menus look molded.
+- **`light-dark()` pairs.** One declaration per token covers both themes. The cascade layer (`@layer base, jali, app`) meant no `!important` anywhere in the restyle.
+
+**Possible only by reaching through a public part to an element inside it.** These parts have no public selector of their own, so the rules depend on Jali's markup staying as it is:
+
+- **The header's buttons** (tuck, maximise, full screen, close) are reached as `.jali-pane-actions button`. To make them keys we needed each button, and each one's state; the only selectors are private classes (`.jali-icon-btn`, `.jali-act-close`).
+- **The ⌘K and chooser field** is reached as `.jali-scrim [role="combobox"]`, and the dialog box as `.jali-scrim > [role="dialog"]`. The Parts reference lists the scrim and the items, not the dialog or its field, though both are what an app most wants to restyle. Studio puts the field behind black glass.
+- **"Discard unsaved changes?"** Its buttons are reached as `.jali-scrim [role="alertdialog"] button`. There is no way to tell its primary button from its secondary one except by order or private class, so Studio gives both the key shape and leaves Jali's colours.
+- **The palette's key hints** are reached as `.jali-palette-item kbd`, and the group label as a private class we left alone.
+
+**Not reachable at all.**
+
+- **Hover and pressed states of Jali's own buttons.** There is no attribute for "pressed" on a header button or a tab while the pointer is down. `:active` works, but nothing says "this is a toggle" except `aria-pressed` on the Follow and Keep toggle.
+- **The Following status text and Keep toggle.** They are one part (`.jali-follow-toggle`), so the printed "Following" and the Keep key can't be told apart except by element (`button`).
+- **The divider's line.** `[data-divider]` is public, but the line it lights on hover is a private child (`.jali-divider-line`). Studio wanted a slot cut into the desk there; it leaves the divider as Jali draws it, coloured by `--jali-border-strong`.
+- **Icons are one weight and one size per place.** A hardware legend wants glyphs drawn as print, and Jali passes only `size` to an icon. `<JaliRoot icons>` could replace them all, but at a per-place size Studio doesn't control.
+
+**Suggestions.**
+
+- Add public parts for the header's buttons (`data-action="close" | "tuck" | "zoom" | "fullscreen"`), the palette's dialog and field (`.jali-palette`, `.jali-palette-input` are already there: list them), and the confirm dialog's buttons with a `data-role="primary"`.
+- Give pressable chrome a `data-pressed` while the pointer is down, and toggles `aria-pressed` everywhere they latch.
+- Document which structural selectors are safe, or say plainly that only the listed parts are, so an app knows what will break.
+
 ## What worked
 
 - **Following a moment in time.** The playhead lives in the app's engine, not in Jali. Panes read it with `usePosition(paused)` or `useFrame(paused, draw)`, and `paused` was exactly the signal needed: a folded, tabbed, tucked or zoomed-past pane stops drawing, and the sound goes on.
@@ -113,4 +145,4 @@ Studio is built on `@jali/core` and `@jali/react` alone, with no change to `pack
 - **Unsaved work and pane state.** `usePaneState` for the draft and `useUnsaved` for the question: a layout without the transcript asks, a layout with it carries the draft across, and a reload keeps it.
 - **Commands.** `createJali({ commands, keymap })` and `jali.actions.choose` made "Go to segment…", "Jump to marker…" and "Playback speed…" a few lines each, searchable by any word of the line.
 - **Fit or fold.** Honest minimum widths, and `priority: "supporting"` on the markers in Review, were enough for every layout to fold sensibly down to a phone, where `phone: { stack: true }` shows the library over the transcript.
-- **Theming.** Spoke's look came from Jali's tokens and the public part selectors, with no `!important`.
+- **Theming.** The hardware look came from Jali's tokens and the public part selectors, with no `!important` (see above for the few rules that reached further).

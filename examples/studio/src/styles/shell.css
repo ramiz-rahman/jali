@@ -37,7 +37,11 @@
     grid-template-rows: auto minmax(0, 1fr) auto;
     /* The desk mat: a soft pool of light from above, no texture. */
     background:
-      radial-gradient(120% 80% at 50% 0%, light-dark(rgb(255 255 255 / 0.35), rgb(255 255 255 / 0.03)), transparent 70%),
+      radial-gradient(
+        120% 80% at 50% 0%,
+        light-dark(rgb(255 255 255 / 0.35), rgb(255 255 255 / 0.03)),
+        transparent 70%
+      ),
       var(--jali-canvas);
   }
   .sr-only {
@@ -114,7 +118,11 @@
       box-shadow var(--travel);
   }
   .key:hover {
-    background: linear-gradient(180deg, var(--cap-1), color-mix(in srgb, var(--cap-2) 85%, var(--cap-1)));
+    background: linear-gradient(
+      180deg,
+      var(--cap-1),
+      color-mix(in srgb, var(--cap-2) 85%, var(--cap-1))
+    );
   }
   .key:active:not(:disabled) {
     --press: 2px;
@@ -305,7 +313,11 @@
     width: 100%;
     height: 100%;
     border-radius: 50%;
-    background: repeating-conic-gradient(from 0deg, light-dark(#b9b9b4, #18181a) 0 3deg, light-dark(#e6e6e2, #3a3a3e) 3deg 6deg);
+    background: repeating-conic-gradient(
+      from 0deg,
+      light-dark(#b9b9b4, #18181a) 0 3deg,
+      light-dark(#e6e6e2, #3a3a3e) 3deg 6deg
+    );
     box-shadow:
       0 0 0 1px var(--body-rim),
       0 2px 0 var(--body-wall),
@@ -317,7 +329,11 @@
     width: 78%;
     height: 78%;
     border-radius: 50%;
-    background: radial-gradient(circle at 40% 30%, light-dark(#ffffff, #4a4a4e), light-dark(#dededa, #2a2a2d) 70%);
+    background: radial-gradient(
+      circle at 40% 30%,
+      light-dark(#ffffff, #4a4a4e),
+      light-dark(#dededa, #2a2a2d) 70%
+    );
     box-shadow:
       inset 0 0 0 1px var(--body-rim),
       inset 0 -2px 3px rgb(0 0 0 / 0.12);
@@ -330,7 +346,11 @@
     height: 9px;
     translate: -50% 0;
     border-radius: 50%;
-    background: radial-gradient(circle at 50% 65%, light-dark(#f4f4f1, #3a3a3e), light-dark(#c4c4bf, #1a1a1c));
+    background: radial-gradient(
+      circle at 50% 65%,
+      light-dark(#f4f4f1, #3a3a3e),
+      light-dark(#c4c4bf, #1a1a1c)
+    );
     box-shadow: inset 0 1px 2px rgb(0 0 0 / 0.35);
   }
 

@@ -34,7 +34,9 @@ const CAPS: Record<string, "blue" | "green" | "white" | "orange"> = {
   sting: "orange",
 };
 const panText = (p: number) =>
-  Math.abs(p) < 0.02 ? "centre" : `${Math.round(Math.abs(p) * 100)} percent ${p < 0 ? "left" : "right"}`;
+  Math.abs(p) < 0.02
+    ? "centre"
+    : `${Math.round(Math.abs(p) * 100)} percent ${p < 0 ? "left" : "right"}`;
 const panLabel = (p: number) =>
   Math.abs(p) < 0.02 ? "C" : `${p < 0 ? "L" : "R"}${Math.round(Math.abs(p) * 100)}`;
 
