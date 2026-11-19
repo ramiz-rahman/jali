@@ -198,6 +198,16 @@ The pane's `PaneProps`, for components below the kind's own: `const { params, op
 
 **Returns** `PaneProps<P>`:
 
+### keyBelongsToContent
+
+*function*, from `@jali/react`
+
+```ts
+keyBelongsToContent(event: KeyboardEvent): boolean
+```
+
+Whether a key event belongs to the focused content: its target is a text field, a contenteditable region, a combobox or search box, inside a dialog, or a control that Space presses (a button, link, tab, checkbox, switch, radio or menu item). Use it in a window-level `keydown` handler that wants a single key such as Space. See [Space in lists](../guides/commands-and-keys.md).
+
 ### useActivity
 
 *hook*, from `@jali/react`
@@ -206,7 +216,7 @@ The pane's `PaneProps`, for components below the kind's own: `const { params, op
 useActivity(activity: PaneActivity | undefined): void
 ```
 
-Report what the pane is doing (`"loading"`, `"working"`, `"needs-you"`, `"error"` or `"idle"`), for its header, its tab, the shelf and the status line. `undefined` reports nothing. Reported again whenever it changes.
+Report what the pane is doing (`"loading"`, `"working"`, `"needs-you"`, `"error"` or `"idle"`), for its header, its tab, the shelf and the status line. `undefined` clears it, the same as `"idle"`, and so does the component unmounting. Reported again whenever it changes.
 
 ### useUnsaved
 

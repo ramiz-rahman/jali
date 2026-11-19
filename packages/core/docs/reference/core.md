@@ -163,7 +163,7 @@ A param that is one of a few values: `oneOf("open", "closed")` gives `"open" | "
 *function*, from `@jali/core`
 
 ```ts
-row(options?: SizeOptions, ...children: (Draft | ObjectRef)[]): Draft
+row(options?: RowOptions, ...children: (Draft | ObjectRef)[]): Draft
 ```
 
 Children side by side. A child is a ref (a pane showing it), a `pane(ref, options)`, or another `row`, `column` or `tabs`. Options come first when there are any: `row({ weight: 2 }, a, b)`.
@@ -172,7 +172,7 @@ Nodes without an `id` are named after what they hold: `"row"`, `"column"`, `"tab
 
 **Parameters**
 
-- **`options`** (`SizeOptions`): `id`; `weight` (its share of the parent, default 1) or `px` (a fixed length).
+- **`options`** (`RowOptions`): `id`; `weight` (its share of the parent, default 1) or `px` (a fixed length); `scroll: "x"` for a row that scrolls sideways, its children at their own widths, instead of sharing its width and folding what doesn't fit.
 
 - **`children`** (`(Draft | ObjectRef)[]`, required):
 
@@ -381,6 +381,33 @@ Runs a command by id if its check passes. A refusal is not announced here (the k
 - **`id`** (`string`, required): A command id, such as `"pane.zoom"`.
 
 **Returns** `boolean`: Whether it ran: `false` for an unknown id or a refused check.
+
+### edgeScroll
+
+*function*, from `@jali/core`
+
+```ts
+edgeScroll(jali: Jali, onScroll?: () => void): EdgeScroll
+```
+
+Scrolls a row that scrolls sideways while a drag is held within 56px of its left or right edge, faster the closer it is, so a drag can reach a pane out of view. For an app's own drag: Jali's pane drag (by a header) doesn't use it yet. Call `move` on every pointer move and `stop` when the drag ends. `onScroll` runs after each step, so the drag can find what is under the pointer again as the panes slide past.
+
+**Parameters**
+
+- **`jali`** (`Jali`, required):
+- **`onScroll`** (`() => void`): After each step of scrolling.
+
+**Returns** `EdgeScroll`:
+
+### EdgeScroll
+
+*type*, from `@jali/core`
+
+```ts
+interface EdgeScroll { move(clientX: number, clientY: number): void; stop(): void }
+```
+
+What `edgeScroll` returns: tell it where the pointer is, and when the drag ends.
 
 ### copyLink
 

@@ -245,6 +245,19 @@ export const orderKinds = [orderList, orderKind, customerKind, scratchNote];
 
 Single character keys (J, K, Space) must act only while your content has focus. Put the handler on the focused element, as above, not on `window`.
 
+### Space in lists
+
+Jali binds no single keys. By convention its lists use Space or Shift+Space to peek, each in its own `onKeyDown`. An app that wants Space for itself (play and pause, say) should listen on `window` in the bubble phase, so content has had its turn, and skip the key when `keyBelongsToContent(event)` is true. That check is true in text fields, editable regions, comboboxes, dialogs, and on buttons, tabs and other controls that Space presses.
+
+```ts
+
+window.addEventListener("keydown", (e) => {
+  if (e.key === " " && !e.defaultPrevented && !keyBelongsToContent(e)) togglePlayback();
+});
+```
+
+If a list in your app should keep peek, move the app's key to another one, as Studio does with Shift+Space for peek.
+
 ## Content that needs every key
 
 An editor or a terminal needs every key, ⌘K included. Mark it `data-pane-keys="content"`. Inside it, the workspace takes only F6 and ⇧F6, so a keyboard user can always move focus out.

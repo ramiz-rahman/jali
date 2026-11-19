@@ -552,6 +552,66 @@ How far the shown boxes among `ids` reach along `axis`, gaps included. `0` when 
 
 **Returns** `number`:
 
+### layout.scrolled
+
+*function*, from `@jali/core`
+
+```ts
+layout.scrolled(resolved: ResolvedLayout, offsets: Offsets, dir?: "ltr" | "rtl"): ResolvedLayout
+```
+
+The resolved layout with each row that scrolls at its offset (`offsets`, by the row's id, in px along its content): its panes and dividers moved, and given `clip`, the strip's window. Right to left, an offset moves the content right. The model applies it with `view.scroll`.
+
+**Returns** `ResolvedLayout`:
+
+### layout.offsetToShow
+
+*function*, from `@jali/core`
+
+```ts
+layout.offsetToShow(strip: ScrollerBox, rect: Rect, offset: number, dir?: "ltr" | "rtl"): number
+```
+
+The offset that shows the whole of `rect` (a pane in the strip, unscrolled) with the least movement from `offset`; `offset` itself when it already shows. A pane wider than the window shows from its start.
+
+**Returns** `number`:
+
+### layout.clampOffset
+
+*function*, from `@jali/core`
+
+```ts
+layout.clampOffset(strip: ScrollerBox, offset: number): number
+```
+
+An offset kept between 0 and `layout.maxOffset`.
+
+**Returns** `number`:
+
+### layout.maxOffset
+
+*function*, from `@jali/core`
+
+```ts
+layout.maxOffset(strip: ScrollerBox): number
+```
+
+How far a strip scrolls: its content past its window, or 0.
+
+**Returns** `number`:
+
+### layout.inWindow
+
+*function*, from `@jali/core`
+
+```ts
+layout.inWindow(rect: Rect, clip: Rect): boolean
+```
+
+Whether a scrolled pane shows at all in its strip's window.
+
+**Returns** `boolean`:
+
 ### layout.snapToCentre
 
 *function*, from `@jali/core`
