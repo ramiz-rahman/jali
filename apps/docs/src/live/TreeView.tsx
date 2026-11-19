@@ -28,6 +28,7 @@ import { OverlayCard, PreviewRects, panesUnder, type Hover } from "./LayoutTree"
 import { LiveWorkspace, resetLive, useLiveStore } from "./LiveWorkspace";
 import { useLitPanes, usePaneColours } from "./light";
 import { TourBar, useTour } from "./Tour";
+import { ClientOnly } from "./ClientOnly";
 
 /** A live workspace beside its layout tree, kept in step. */
 export interface TreeViewProps {
@@ -302,7 +303,7 @@ export function TreeView({
             )}
           </div>
           {open ? (
-            <JaliProvider jali={store.jali}>
+            <ClientOnly><JaliProvider jali={store.jali}>
               <PreviewRects.Provider value={preview}>
                 <section className="live-panel live-side" aria-label="The layout tree">
                   <header className="live-panel-head">
@@ -356,7 +357,7 @@ export function TreeView({
                   </div>
                 </section>
               </PreviewRects.Provider>
-            </JaliProvider>
+            </JaliProvider></ClientOnly>
           ) : null}
         </div>
         {caption ? <figcaption className="live-caption">{caption}</figcaption> : null}
@@ -392,7 +393,7 @@ export function TreeView({
         >
           <LiveWorkspace store={store} height={h} wrapRef={wrap} />
         </div>
-        <JaliProvider jali={store.jali}>
+        <ClientOnly><JaliProvider jali={store.jali}>
           <PreviewRects.Provider value={preview}>
             {both ? (
               three ? (
@@ -412,7 +413,7 @@ export function TreeView({
               jsonPanel
             ) : null}
           </PreviewRects.Provider>
-        </JaliProvider>
+        </JaliProvider></ClientOnly>
       </div>
       {caption ? <figcaption className="live-caption">{caption}</figcaption> : null}
     </figure>
