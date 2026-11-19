@@ -21,7 +21,6 @@ import type { MDXComponents } from "mdx/types";
 import type { ThemedToken } from "shiki/core";
 import {
   ArrowRightIcon,
-  ArrowUDownLeftIcon,
   CheckIcon,
   CopyIcon,
   FileIcon,
@@ -129,6 +128,28 @@ function subscribeWrap(l: () => void) {
 }
 const useWrap = () => useSyncExternalStore(subscribeWrap, readWrap, () => false);
 
+/**
+ * Wrap lines: the editors' glyph (a line that runs on, hooks round and returns under itself, then a short line).
+ * Phosphor has none, so it is drawn on Phosphor's 256 grid with its regular stroke (16, round caps).
+ */
+function WrapIcon({ size = 16 }: { size?: number }) {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 256 256"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={16}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden
+    >
+      <path d="M40 64H216M40 128H180a32 32 0 0 1 0 64H140M164 168l-24 24 24 24M40 192H96" />
+    </svg>
+  );
+}
+
 function WrapButton() {
   const wrap = useWrap();
   return (
@@ -147,7 +168,7 @@ function WrapButton() {
         if (Math.abs(moved) > 1) window.scrollBy({ top: moved, behavior: "instant" });
       }}
     >
-      <ArrowUDownLeftIcon aria-hidden size={15} />
+      <WrapIcon size={15} />
     </button>
   );
 }
