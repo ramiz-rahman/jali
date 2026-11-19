@@ -2,14 +2,14 @@
 
 Working apps built on Jali, from the smallest one to a market terminal and the two fuller apps in the lab.
 
-Each example is a real app in Jali's repository, running on the packages' source. Run `pnpm install` at the repository's root, then start the one you want.
+Each example is a real app in Jali's repository, running on the packages' source. Run `vp install` at the repository's root, then start the one you want. Each has its own port; if something already holds it, the server takes the next free one and prints the address.
 
 ## Minimal
 
 The smallest Jali app, on the public API alone: `examples/minimal`.
 
 ```sh
-pnpm example:minimal
+vp dev examples/minimal
 ```
 
 It serves on [localhost:5310](http://localhost:5310). It shows:
@@ -25,10 +25,10 @@ The app is one file, `examples/minimal/src/main.tsx`, with a few lines of CSS. S
 
 ## Markets
 
-A market terminal for shares, bonds, currencies and indices, on the public API alone: `examples/markets`. It runs on a simulated market, so it needs no data feed, keys or licences. Every company, ticker and price in it is made up.
+A market terminal for shares, bonds, currencies, indices and crypto, on the public API alone: `examples/markets`. The crypto prices are real, from Kraken's public API; everything else runs on a simulated market, so it needs no keys or licences. Every company, ticker and price outside crypto is made up.
 
 ```sh
-pnpm example:markets
+vp dev examples/markets
 ```
 
 It serves on [localhost:5320](http://localhost:5320). It shows:
@@ -36,21 +36,21 @@ It serves on [localhost:5320](http://localhost:5320). It shows:
 - eight pane kinds, each defined with `definePane` and a realistic `width.min`: a watchlist, a chart, a quote, an order book, time and sales, news, a yield curve, and a blotter with an order ticket;
 - one list driving details of several kinds: move through the watchlist with J and K, and the chart, quote, book, trades and news beside it follow (each kind's `follow` says what it shows for the selected quote), until you keep one;
 - comparing two instruments: keep a chart or quote by clicking **Following** in its header (it says **Kept**), then open another row with Enter, or choose the Compare desk;
-- four presets, the desks (Equities, Rates, FX and Compare), switched from the top bar or ⌘K;
+- five presets, the desks (Equities, Crypto, Rates, FX and Compare), switched from the top bar or ⌘K; each comes back as the person left it (a preset's `saved`), and Reset in the top bar puts every desk back;
 - the layout kept in the address, so a desk is a link you can send, and a reload or Back brings it back;
 - the app's own commands in ⌘K ("Open chart for…", "Add to watchlist…", "Buy…"), which ask for an instrument in Jali's chooser with `jali.actions.choose`, and each pane's own with `useCommands`;
 - the order ticket's draft in `usePaneState`, and a typed order reported with `useUnsaved`, so a desk that would lose it asks first;
 - panes that pause their market subscriptions while they are folded, tucked or behind a tab, using the `paused` prop;
 - a dark theme set on Jali's `--jali-*` tokens, light mode, and layouts that fold from a wide screen down to a phone.
 
-The market sits behind a small `MarketData` interface (`snapshot` and `subscribe`), so a real feed could replace the simulator without changing a pane. To publish it as a static site, run `pnpm exec vp build` in `examples/markets` and serve `dist` from any path. The README in that folder walks through the code.
+The market sits behind a small `MarketData` interface (`snapshot` and `subscribe`), so a real feed plugs in without changing a pane. The crypto pairs show one: Kraken's websocket sits in front of the simulator, and the panes can't tell the difference. To publish it as a static site, run `pnpm exec vp build` in `examples/markets` and serve `dist` from any path. The README in that folder walks through the code.
 
 ## The lab: Data Studio and Loan review
 
 The lab is where Jali is built and tested. It holds two fuller apps in one workspace, on a sample database that runs in the browser (PGlite), with no backend. Start it from the repository's root:
 
 ```sh
-pnpm dev
+vp dev
 ```
 
 It serves on [localhost:5300](http://localhost:5300). The switch in its top bar moves between the two apps.
