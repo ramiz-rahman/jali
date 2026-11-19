@@ -160,6 +160,8 @@ When the panes a person opened have piled up, `jali.actions.autoLayout()` arrang
 <button onClick={() => jali.actions.autoLayout()}>Tidy up</button>
 ```
 
+An agent can call it too, or leave the workspace to arrange itself after each of its turns: see [Let an agent use the workspace](agents.md).
+
 ## Next
 
 - [Keep the layout in the URL](url-and-routers.md)

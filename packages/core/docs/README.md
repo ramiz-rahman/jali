@@ -32,6 +32,7 @@ Written from the docs site by scripts/agent-docs.mjs; don't edit these files.
 - [Use Jali with Chakni](guides/chakni.md): Let a list inside a pane drive the pane's following detail through the active-item port, and share one theme.
 - [Test a workspace](guides/testing.md): Test your layouts and pane rules without a browser, by running the workspace's actions and reading its state.
 - [Two workspaces on one page](guides/two-workspaces.md): Put two workspaces side by side, or one in a dialog, without their links, saved settings or keys getting mixed up.
+- [Let an agent use the workspace](guides/agents.md): Give an AI agent the workspace as tools, so it can read what is open and open, arrange and pin panes through Jali's own actions, within the limits your app sets.
 
 ## Reference
 

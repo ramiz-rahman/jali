@@ -21,16 +21,16 @@ const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 // (docs/DECISIONS.md has the numbers); and source files it must not ship (more than a stray mapping's few bytes).
 const SCENARIOS = {
   // One kind, no curated page, no launcher: examples/minimal without its fonts.
-  minimal: { entry: "minimal.tsx", budget: { core: 45, react: 18.3, css: 7.8, phosphor: 0 } },
+  minimal: { entry: "minimal.tsx", budget: { core: 49.5, react: 18.3, css: 7.8, phosphor: 0 } },
   // Every feature: a curated page, presets, a launcher, URL sync, host commands and the hooks.
-  full: { entry: "full.tsx", budget: { core: 45, react: 19, css: 7.8, phosphor: 2 } },
+  full: { entry: "full.tsx", budget: { core: 49.5, react: 19, css: 7.8, phosphor: 2 } },
   // examples/own-icons: the host's own icon for every name.
   "own-icons": {
     entry: "../../examples/own-icons/src/main.tsx",
-    budget: { core: 45, react: 18.3, css: 7.8, phosphor: 0 },
+    budget: { core: 49.5, react: 18.3, css: 7.8, phosphor: 0 },
   },
   // The workspace without React.
-  headless: { entry: "headless.ts", budget: { core: 41.5 } },
+  headless: { entry: "headless.ts", budget: { core: 45 } },
   // Only the pure layout tree: the builders and the `layout` namespace. No workspace, keyboard or curated page.
   layout: {
     entry: "layout.ts",

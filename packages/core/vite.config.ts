@@ -16,7 +16,12 @@ const layoutNamespace = {
 
 export default defineConfig({
   pack: {
-    entry: { index: "src/index.ts", adapter: "src/adapter.ts", layout: "src/layout/index.ts" },
+    entry: {
+      index: "src/index.ts",
+      adapter: "src/adapter.ts",
+      agent: "src/agent.ts",
+      layout: "src/layout/index.ts",
+    },
     format: "esm",
     dts: true,
     platform: "neutral",
