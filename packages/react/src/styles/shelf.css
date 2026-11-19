@@ -1,5 +1,5 @@
 @layer jali {
-  /* ---------- shelf: lives in the 28px status line (left), so the workspace never changes height ---------- */
+  /* ---------- shelf: lives in the 28px status line (at its start), so the workspace never changes height ---------- */
   .jali-shelf {
     position: relative;
     flex: 1 1 0;
@@ -58,7 +58,7 @@
   .jali-shelf-home {
     flex: none;
     color: var(--jali-text-subtle);
-    margin-right: 2px;
+    margin-inline-end: 2px;
     white-space: nowrap;
   }
   .jali-shelf-chip {
@@ -117,7 +117,7 @@
     width: 1.25rem;
     opacity: 1;
     pointer-events: auto;
-    margin-right: 1px;
+    margin-inline-end: 1px;
   }
   .jali-shelf-chip-put:hover {
     background: color-mix(in srgb, var(--jali-text) 10%, transparent);
@@ -125,8 +125,9 @@
   }
   .jali-shelf-more {
     flex: none;
+    direction: ltr; /* "+3" reads as a count in either direction */
     height: 1.25rem;
-    margin-left: 0.5rem;
+    margin-inline-start: 0.5rem;
     padding: 0 0.4375rem;
     border: 1px solid var(--jali-border);
     border-radius: 5px;
@@ -144,7 +145,7 @@
   }
   .jali-shelf-menu {
     position: absolute;
-    left: 0;
+    inset-inline-start: 0;
     bottom: calc(100% + 0.25rem);
     z-index: 40;
     min-width: 13.75rem;
@@ -175,7 +176,7 @@
     background: var(--jali-hover);
   }
   .jali-shelf-menu small {
-    margin-left: auto;
+    margin-inline-start: auto;
     color: var(--jali-text-subtle);
     white-space: nowrap;
     font-size: 0.6875rem;
@@ -233,12 +234,12 @@
   /* Folded chips (made by the layout): dotted border, italic, fold icon; the same marks the tab strip uses. */
   .jali-shelf-group.is-folded:not(:first-child) {
     position: relative;
-    padding-left: 0.875rem;
+    padding-inline-start: 0.875rem;
   }
   .jali-shelf-group.is-folded:not(:first-child)::before {
     content: "";
     position: absolute;
-    left: 0;
+    inset-inline-start: 0;
     top: 0.25rem;
     bottom: 0.25rem;
     width: 1px;
@@ -253,6 +254,6 @@
   }
   .jali-shelf-chip.is-folded .jali-shelf-chip-title {
     font-style: italic;
-    padding-right: 2px;
+    padding-right: 2px; /* italics lean right in either direction */
   } /* italics lean past the box; room so the last letter is not clipped */
 }

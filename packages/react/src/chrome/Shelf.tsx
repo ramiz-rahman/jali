@@ -2,7 +2,13 @@ import { useEffect, useLayoutEffect, useMemo, useRef, useState, type KeyboardEve
 import { useJaliIcons } from "../icons/context";
 import type { ShelfEntry, JaliModel, PaneActivity } from "@jali/core/adapter";
 import { useShortcut } from "../commands/react";
-import { flashTab, FOLDED_DESC, FOLDED_TIP } from "@jali/core/adapter";
+import {
+  flashTab,
+  inlineStep,
+  scrolledFromStart,
+  FOLDED_DESC,
+  FOLDED_TIP,
+} from "@jali/core/adapter";
 import { Activity, shelfActivity } from "../pane/Activity";
 import { KindIcon } from "../pane/icons";
 import { useActions, useModel, useStore, useUi } from "../state/react";
@@ -41,6 +47,7 @@ export function Shelf() {
   );
   const items = useMemo(() => [...tuckedItems, ...foldedItems], [tuckedItems, foldedItems]);
   const activity = useUi((s) => s.activity);
+  const dir = useUi((s) => s.dir);
   const actions = useActions();
   const store = useStore();
   const putBackShortcut = useShortcut("pane.putBack");
@@ -75,10 +82,10 @@ export function Shelf() {
     const sc = scroller.current,
       b = bar.current;
     if (!sc || !b) return;
-    const l = sc.scrollLeft > 1,
-      r = sc.scrollLeft + sc.clientWidth < sc.scrollWidth - 1;
-    b.toggleAttribute("data-fade-l", l);
-    b.toggleAttribute("data-fade-r", r);
+    // Chips past the start (left, or right when the shelf reads right to left) and past the end.
+    const { pos, max, rtl } = scrolledFromStart(sc);
+    b.toggleAttribute(rtl ? "data-fade-r" : "data-fade-l", pos > 1);
+    b.toggleAttribute(rtl ? "data-fade-l" : "data-fade-r", pos < max - 1);
     const box = sc.getBoundingClientRect();
     const out: string[] = [];
     sc.querySelectorAll<HTMLElement>("[data-chip]").forEach((c) => {
@@ -129,8 +136,8 @@ export function Shelf() {
       e.preventDefault();
       focusChip(ids[(n + ids.length) % ids.length]!);
     };
-    if (e.key === "ArrowRight") go(i + 1);
-    else if (e.key === "ArrowLeft") go(i - 1);
+    const step = inlineStep(e.key, dir);
+    if (step) go(i + step);
     else if (e.key === "Home") go(0);
     else if (e.key === "End") go(ids.length - 1);
     else if (e.key === "Enter" && e.shiftKey) {

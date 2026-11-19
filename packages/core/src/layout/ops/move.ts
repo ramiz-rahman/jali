@@ -6,6 +6,7 @@ import { fitLayout } from "../fit/refit";
 import { resolve } from "../fit/resolve";
 import { forget } from "../fit/overlay";
 import { holdGeometry } from "../fit/hold";
+import { treeSide } from "../geometry/direction";
 
 function swapTree(layout: Layout, a: string, b: string): Layout {
   const next = clone(layout);
@@ -36,6 +37,8 @@ export function swap(layout: Layout, a: string, b: string, ctx: LayoutContext): 
   // Slots keep their rects; the panes trade places in them.
   return next === layout ? layout : holdGeometry(layout, fitLayout(next, noFocus(), ctx), ctx);
 }
+/** `zone` is a tree side ("left" is before the target, "right" after), whatever the reading direction: an action that
+ *  takes a screen side converts it first (geometry/direction.ts). */
 export function drop(
   layout: Layout,
   view: ViewState,
@@ -97,6 +100,7 @@ export function drop(
   };
 }
 
+/** `dir` is a screen side: the neighbour on that side of the screen, in either reading direction. */
 export function moveDirection(
   layout: Layout,
   view: ViewState,
@@ -107,5 +111,7 @@ export function moveDirection(
   const nextView = unzoom(view);
   const resolved = resolve(layout, { ...nextView, focused: pane }, ctx);
   const target = directionalCandidates({ ...nextView, focused: pane }, resolved, dir)[0];
-  return target ? drop(layout, nextView, pane, target.id, dir, "swap", ctx) : { layout, view };
+  return target
+    ? drop(layout, nextView, pane, target.id, treeSide(dir, ctx.dir), "swap", ctx)
+    : { layout, view };
 }

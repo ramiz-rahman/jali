@@ -1,5 +1,5 @@
 import type { PaneNode } from "@jali/core/adapter";
-import { paneDomId, titleOf } from "@jali/core/adapter";
+import { inlineStep, paneDomId, titleOf } from "@jali/core/adapter";
 import { Activity } from "../pane/Activity";
 import { KindIcon } from "../pane/icons";
 import { useActions, useModel, useStore, useUi } from "../state/react";
@@ -38,6 +38,7 @@ export function PaneSwitcher({
   current: string | undefined;
 }) {
   const actions = useActions();
+  const dir = useUi((s) => s.dir);
   return (
     <nav className="jali-switcher" aria-label="Panes">
       <div
@@ -46,16 +47,14 @@ export function PaneSwitcher({
         aria-label={`Panes: ${panes.length}`}
         onKeyDown={(e) => {
           const i = panes.findIndex((p) => p.id === current);
-          const n =
-            e.key === "ArrowRight"
-              ? i + 1
-              : e.key === "ArrowLeft"
-                ? i - 1
-                : e.key === "Home"
-                  ? 0
-                  : e.key === "End"
-                    ? panes.length - 1
-                    : -1;
+          const step = inlineStep(e.key, dir);
+          const n = step
+            ? i + step
+            : e.key === "Home"
+              ? 0
+              : e.key === "End"
+                ? panes.length - 1
+                : -1;
           if (n < 0 || !panes.length) return;
           e.preventDefault();
           actions.focus(panes[(n + panes.length) % panes.length]!.id);

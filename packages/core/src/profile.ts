@@ -9,7 +9,7 @@
  *
  * A link carries content only (item, focused view, opened panes); the mode and the split layout are personal.
  */
-import type { Layout, NodeId, ObjectRef, PaneNode } from "./layout/types";
+import type { Direction, Layout, NodeId, ObjectRef, PaneNode } from "./layout/types";
 import type { LayoutInput } from "./layout/build";
 import type { PaneErrorInfo, PaneKinds } from "./pane-kinds";
 import type { Command } from "./commands/registry";
@@ -95,6 +95,8 @@ export interface Env {
   palette?: boolean;
   /** Told when a pane's content throws while rendering (`createJali({ onPaneError })`). */
   onPaneError?: (error: unknown, info: PaneErrorInfo) => void;
+  /** The reading direction it was given (`createJali({ dir })`); unset, the workspace follows its page. */
+  dir?: Direction;
 }
 
 export const presetById = (env: Pick<Env, "presets">, id: string | undefined): Preset | undefined =>

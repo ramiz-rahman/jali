@@ -5,6 +5,7 @@
  */
 import * as core from "../layout";
 import type {
+  Direction,
   Layout,
   LayoutContext,
   NodeId,
@@ -38,6 +39,7 @@ import {
 } from "../profile";
 import { browserStorage, type StoragePort } from "../ports";
 import { focusPane } from "../dom/focus";
+import { pageDirection } from "../dom/direction";
 import { loadPaneState } from "./pane-state";
 import { startUi } from "../boot";
 import {
@@ -115,6 +117,9 @@ export interface UiState {
   /** Objects opened this session, most recent first (the launcher's "Recent"). */
   recent: ObjectRef[];
   area: { width: number; height: number };
+  /** The reading direction the panes are laid out in: right to left, a row starts at the right. Read from the page
+   *  when the workspace is measured, unless `createJali({ dir })` fixed it. */
+  dir: Direction;
   /** Layout changes of the reshape class so far (state/apply.ts): the workspace animates on a new one. */
   reshapes: number;
   /** A page tab hovered with ⌥ held: the workspace previews where it would open beside. */
@@ -185,6 +190,8 @@ export interface UiStoreDeps {
   palette?: boolean;
   /** A pane's content threw while rendering. Default: reported in development. */
   onPaneError?: (error: unknown, info: PaneErrorInfo) => void;
+  /** A fixed reading direction. Default: the page's, read where the workspace is rendered. */
+  dir?: Direction;
 }
 
 export interface UiStore {
@@ -275,6 +282,7 @@ export function createUiStore(deps: UiStoreDeps): UiStore {
       : undefined);
   if (onPaneError) env.onPaneError = onPaneError;
   if (deps.launcher) env.launcher = deps.launcher;
+  if (deps.dir) env.dir = deps.dir;
   const focusOf =
     deps.focusPane === undefined
       ? typeof document === "undefined"
@@ -311,6 +319,7 @@ export function createUiStore(deps: UiStoreDeps): UiStore {
     chooser: null,
     recent: [],
     area: initialArea(),
+    dir: deps.dir ?? pageDirection(),
     announcement: { text: "", seq: 0 },
     reshapes: 0,
     ghost: null,
@@ -351,6 +360,7 @@ export function createUiStore(deps: UiStoreDeps): UiStore {
   const ctx = (): LayoutContext => ({
     fit: { ...state.area, gap: GAP, kinds: env.kinds.registry() },
     paneCap: state.settings.paneCap,
+    ...(state.dir === "rtl" ? { dir: state.dir } : {}),
   });
 
   const store: UiStore = {

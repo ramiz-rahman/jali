@@ -2,6 +2,8 @@
 export type NodeId = string;
 export type Axis = "row" | "column";
 export type Edge = "left" | "right" | "top" | "bottom";
+/** Reading direction. Right to left, a row lays its children out from the right; the tree is the same. */
+export type Direction = "ltr" | "rtl";
 export type Size = { px: number } | { weight: number };
 export interface ObjectRef {
   kind: string;
@@ -142,6 +144,9 @@ export interface FitOptions {
 export interface LayoutContext {
   fit: FitOptions;
   paneCap: number;
+  /** Reading direction. "rtl" mirrors the geometry (rects are screen coordinates); the tree is the same. Default
+   *  "ltr". */
+  dir?: Direction;
 }
 export type OpenResult = {
   layout: Layout;

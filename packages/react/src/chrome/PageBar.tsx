@@ -1,6 +1,6 @@
 import { useEffect, useRef, type KeyboardEvent } from "react";
 import { useJaliIcons } from "../icons/context";
-import { investigation, startTabDrag, altClick } from "@jali/core/adapter";
+import { investigation, startTabDrag, altClick, inlineStep } from "@jali/core/adapter";
 import { useModel, useStore, useUi, useProfile } from "../state/react";
 import { Panes } from "../workspace/Workspace";
 
@@ -81,6 +81,7 @@ function PageTabs() {
   const focused = useUi((s) => s.view.focused);
   const m = useModel();
   const strip = useRef<HTMLDivElement>(null);
+  const dir = useUi((s) => s.dir);
   // The drag a pointer-down started: a click that ends a drag is not a click.
   const drag = useRef<{ dragged(): boolean } | null>(null);
   // ⌥ over a tab previews where ⌥-click would open it beside (the workspace draws it).
@@ -112,10 +113,11 @@ function PageTabs() {
   };
   const selected = multi ? (m.pane(focused)?.role ?? page.tab) : page.tab;
   const keys = (e: KeyboardEvent) => {
-    if (e.key !== "ArrowRight" && e.key !== "ArrowLeft") return;
+    const step = inlineStep(e.key, dir);
+    if (!step) return;
     const tabs = [...(strip.current?.querySelectorAll<HTMLElement>("[role=tab]") ?? [])];
     const i = tabs.indexOf(document.activeElement as HTMLElement);
-    tabs[(i + (e.key === "ArrowRight" ? 1 : -1) + tabs.length) % tabs.length]?.focus();
+    tabs[(i + step + tabs.length) % tabs.length]?.focus();
     e.preventDefault();
   };
   return (

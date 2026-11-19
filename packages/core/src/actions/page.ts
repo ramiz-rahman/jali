@@ -4,6 +4,7 @@
  * Panes opened by following links form an investigation after the layout that "Back to <page>" clears.
  */
 import * as core from "../layout";
+import { endSide, treeSide } from "../layout/geometry/direction";
 import { toLayout } from "../layout/build";
 import type {
   Edge,
@@ -428,7 +429,7 @@ export function besidePreview(x: Snapshot, role: string): BesidePreview | undefi
   return { incoming, moved, leaving: [...now.keys()].filter((id) => !next.has(id)) };
 }
 
-/** Drop a view from the tabs onto a pane's edge (or centre: as a tab of its group). From Single, this switches to
+/** Drop a view from the tabs onto a pane's edge, a side of the screen (or centre: as a tab of its group). From Single, this switches to
  *  Split view first: dragging a tab out is asking for two views at once. Room is made by sending the least recently
  *  used views back to the tabs (settleRoles), never by folding views into tab groups. */
 export function placeTab(
@@ -442,7 +443,7 @@ export function placeTab(
   if (!p || !r || !roleOf(p, role)) return null;
   const place = (y: Snapshot): Outcome => {
     if (role === target || !y.m.pane(target)) return openTab(y, role);
-    const d = placeRole(y.s.layout, y.s.view, role, target, zone, y.ctx);
+    const d = placeRole(y.s.layout, y.s.view, role, target, treeSide(zone, y.ctx.dir), y.ctx);
     if (!d) return openTab(y, role);
     const said =
       zone === "centre"
@@ -470,9 +471,9 @@ export function openTabBeside(x: Snapshot, role: string): Outcome {
     besideTarget(y.s.layout, unzoomed(y.s.view), y.ctx) ?? y.s.page!.tab;
   if (r.mode === "single")
     return r.canInvestigate
-      ? [setMode(x, "split"), (y: Snapshot) => placeTab(y, role, target(y), "right")]
+      ? [setMode(x, "split"), (y: Snapshot) => placeTab(y, role, target(y), endSide(y.ctx.dir))]
       : refuse(msg.singleOnly);
-  return placeTab(x, role, target(x), "right");
+  return placeTab(x, role, target(x), endSide(x.ctx.dir));
 }
 
 /**
@@ -493,7 +494,7 @@ export function goToRole(x: Snapshot, role: string, from?: NodeId): Outcome {
       o && typeof o === "object" && !Array.isArray(o) && o.op !== "refused" && o.msg
         ? { ...o, msg: `${msg.alreadyView(t)} · ${o.msg}` }
         : o;
-    return (y: Snapshot) => prefix(apply1(placeTab(y, role, from, "right"), y));
+    return (y: Snapshot) => prefix(apply1(placeTab(y, role, from, endSide(y.ctx.dir)), y));
   }
   const o = openTab(x, role);
   if (!o || typeof o !== "object" || Array.isArray(o) || o.op === "refused") return o;

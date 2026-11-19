@@ -8,7 +8,9 @@ import {
   GAP,
   SWITCHER_H,
   currentPane,
+  directionOf,
   frames,
+  watchDirection,
 } from "@jali/core/adapter";
 import { PaneSwitcher } from "../chrome/PaneSwitcher";
 import { Peek } from "../chrome/Peek";
@@ -19,7 +21,8 @@ import { useModel, useStore, useUi } from "../state/react";
 import { DropIndicator } from "./DropIndicator";
 import { useSingleView } from "./useSingleView";
 
-/** The workspace's usable size follows the element (minus the inset). */
+/** The workspace's usable size follows the element (minus the inset), and so does its reading direction (an
+ *  ancestor's `dir`, read again when any `dir` on the page changes), unless the workspace was given one. */
 function useMeasure(store: UiStore) {
   const ref = useRef<HTMLElement>(null);
   useLayoutEffect(() => {
@@ -28,13 +31,19 @@ function useMeasure(store: UiStore) {
     const measure = () => {
       const width = Math.max(0, Math.floor(el.clientWidth - GAP * 2)),
         height = Math.max(0, Math.floor(el.clientHeight - GAP * 2));
-      const a = store.get().area;
-      if (a.width !== width || a.height !== height) store.set({ area: { width, height } });
+      const s = store.get();
+      const dir = directionOf(store.env.dir, el);
+      if (s.area.width !== width || s.area.height !== height || s.dir !== dir)
+        store.set({ area: { width, height }, dir });
     };
     measure();
     const ro = new ResizeObserver(measure);
     ro.observe(el);
-    return () => ro.disconnect();
+    const unwatch = watchDirection(measure);
+    return () => {
+      ro.disconnect();
+      unwatch();
+    };
   }, [store]);
   return ref;
 }
@@ -138,10 +147,11 @@ function Ghost({ role }: { role: string }) {
 }
 
 /**
- * The chip that follows the pointer: flipped to the pointer's left when it would pass the viewport's right edge, and
- * moved below the drop label when it would cover it (a centre drop puts the pointer where the label is).
+ * The chip that follows the pointer: on the pointer's right (its left, right to left), flipped to the other side when
+ * it would pass the viewport's edge, and moved below the drop label when it would cover it (a centre drop puts the
+ * pointer where the label is).
  */
-function DragChip({ x, y, label }: { x: number; y: number; label: string }) {
+function DragChip({ x, y, label, rtl }: { x: number; y: number; label: string; rtl: boolean }) {
   const el = useRef<HTMLDivElement>(null);
   const [pos, setPos] = useState({ left: x + 12, top: y + 12 });
   useLayoutEffect(() => {
@@ -149,8 +159,15 @@ function DragChip({ x, y, label }: { x: number; y: number; label: string }) {
     const host = chip?.offsetParent as HTMLElement | null;
     if (!chip || !host) return setPos({ left: x + 12, top: y + 12 });
     const o = host.getBoundingClientRect();
-    const fits = o.left + x + 12 + chip.offsetWidth <= document.documentElement.clientWidth - 4;
-    const left = fits ? x + 12 : Math.max(-o.left + 4, x - 12 - chip.offsetWidth);
+    const viewport = document.documentElement.clientWidth;
+    const before = x - 12 - chip.offsetWidth;
+    const left = rtl
+      ? o.left + before >= 4
+        ? before
+        : Math.min(viewport - o.left - 4 - chip.offsetWidth, x + 12)
+      : o.left + x + 12 + chip.offsetWidth <= viewport - 4
+        ? x + 12
+        : Math.max(-o.left + 4, before);
     let top = y + 12;
     const lab = host.querySelector(".jali-drop-label")?.getBoundingClientRect();
     if (lab) {
@@ -164,7 +181,7 @@ function DragChip({ x, y, label }: { x: number; y: number; label: string }) {
         top = lab.bottom - o.top + 8;
     }
     setPos({ left, top });
-  }, [x, y, label]);
+  }, [x, y, label, rtl]);
   return (
     <div ref={el} className="jali-drag-chip" data-testid="drag-chip" style={pos} aria-hidden>
       {label}
@@ -180,6 +197,7 @@ export function Panes() {
   const area = useUi((s) => s.area);
   const dnd = useUi((s) => s.dnd);
   const ghost = useUi((s) => s.ghost);
+  const dir = useUi((s) => s.dir);
   const sliding = useReshapeMotion(useUi((s) => s.reshapes));
   const ref = useMeasure(store);
   const measured = area.width > 0;
@@ -234,7 +252,12 @@ export function Panes() {
         {single ? null : <DividerLayer />}
         {dropBox && dnd?.zone ? <DropIndicator rect={dropBox.rect} zone={dnd.zone} /> : null}
         {dnd && !single ? (
-          <DragChip x={dnd.x} y={dnd.y} label={dnd.label ?? m.title(dnd.dragged)} />
+          <DragChip
+            x={dnd.x}
+            y={dnd.y}
+            label={dnd.label ?? m.title(dnd.dragged)}
+            rtl={dir === "rtl"}
+          />
         ) : null}
         {ghost && !single && !dnd ? <Ghost role={ghost} /> : null}
         <Peek presentation={mode} />
