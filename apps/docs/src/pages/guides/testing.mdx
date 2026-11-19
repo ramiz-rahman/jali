@@ -57,6 +57,10 @@ expect(jali.model().pane("order")?.ref.params.id).toBe(5);
 
 `jali.start()` listens on the window, so a test can fire `keydown` events at an element and check what the workspace did. Pass `keymapOptions: { platform: "mac" }` (or `"other"`) so the test means the same keys on every machine. Call the function `start` returns to remove the listeners after the test.
 
+## Render it
+
+`<JaliRoot>` mounts in jsdom as it is: you don't need to stub `ResizeObserver`. Where there is none, Jali measures again when the window resizes. jsdom lays nothing out, so the workspace measures 0 by 0 and folds every pane but one into tabs. Give the workspace element a `clientWidth` and `clientHeight` in the test when the layout matters.
+
 ## What to test in the browser
 
 Store tests cover rules: what opens where, what folds, what asks first. Test the rest in a real browser, with Playwright or similar: that your components render, that dragging works, and how things look.

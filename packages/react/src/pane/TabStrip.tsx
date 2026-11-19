@@ -9,6 +9,7 @@ import {
   titleOf,
   startPaneDrag,
   scrolledFromStart,
+  observeResize,
 } from "@jali/core/adapter";
 import { useEnv, useStore, useUi } from "../state/react";
 import { Activity } from "./Activity";
@@ -85,10 +86,7 @@ export function TabStrip({ group, owner }: { group: NonNullable<Frame["group"]>;
   useLayoutEffect(measure);
   useEffect(() => {
     const el = strip.current;
-    if (!el) return;
-    const ro = new ResizeObserver(measure);
-    ro.observe(el);
-    return () => ro.disconnect();
+    return el ? observeResize(el, measure) : undefined;
   }, []);
   const overflowing = hiddenCount > 0;
 

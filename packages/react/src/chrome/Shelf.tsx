@@ -2,7 +2,7 @@ import { useEffect, useLayoutEffect, useMemo, useRef, useState, type KeyboardEve
 import { useJaliIcons } from "../icons/context";
 import type { ShelfEntry, JaliModel, PaneActivity } from "@jali/core/adapter";
 import { useShortcut } from "../commands/react";
-import { flashTab, inlineStep, scrolledFromStart } from "@jali/core/adapter";
+import { flashTab, inlineStep, observeResize, scrolledFromStart } from "@jali/core/adapter";
 import { Activity, shelfActivity } from "../pane/Activity";
 import { KindIcon } from "../pane/icons";
 import { useActions, useMessages, useModel, useStore, useUi } from "../state/react";
@@ -84,10 +84,7 @@ export function Shelf() {
   useLayoutEffect(measure);
   useEffect(() => {
     const sc = scroller.current;
-    if (!sc) return;
-    const ro = new ResizeObserver(measure);
-    ro.observe(sc);
-    return () => ro.disconnect();
+    return sc ? observeResize(sc, measure) : undefined;
   }, [items.length]);
   useEffect(() => {
     if (!menu) return;

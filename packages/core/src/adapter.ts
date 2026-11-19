@@ -30,6 +30,7 @@ export * from "./dividers/resize";
 export * from "./dom/direction";
 export * from "./dom/focus";
 export * from "./dom/ids";
+export * from "./dom/resize";
 export * from "./pane-kinds";
 export * from "./pane/activeItem";
 export * from "./pane/chrome";

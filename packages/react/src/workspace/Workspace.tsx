@@ -9,6 +9,7 @@ import {
   currentPane,
   directionOf,
   frames,
+  observeResize,
   watchDirection,
 } from "@jali/core/adapter";
 import { PaneSwitcher } from "../chrome/PaneSwitcher";
@@ -36,11 +37,10 @@ function useMeasure(store: UiStore) {
         store.set({ area: { width, height }, dir });
     };
     measure();
-    const ro = new ResizeObserver(measure);
-    ro.observe(el);
+    const unobserve = observeResize(el, measure);
     const unwatch = watchDirection(measure);
     return () => {
-      ro.disconnect();
+      unobserve();
       unwatch();
     };
   }, [store]);
