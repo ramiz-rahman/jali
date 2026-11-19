@@ -1,6 +1,6 @@
 /** Every DOM focus move the workspace makes, in one place. The store asks for them; it never touches the DOM. */
 import type { NodeId } from "../layout/types";
-import type { WorkspaceDom } from "../state/store";
+import type { JaliDom } from "../state/store";
 
 /** The element a pane's focus lands on: its autofocus target, else its grid (so J/K and Space keep working), else itself. */
 function paneTarget(el: HTMLElement) {
@@ -12,7 +12,7 @@ function paneTarget(el: HTMLElement) {
 }
 
 /** Focus a pane after the next paint, unless focus is on a divider or in a dialog. */
-export function focusPane(dom: WorkspaceDom, id: NodeId) {
+export function focusPane(dom: JaliDom, id: NodeId) {
   if (typeof document === "undefined" || typeof requestAnimationFrame === "undefined") return;
   requestAnimationFrame(() => {
     if (document.activeElement?.closest?.("[role=separator], .jali-divider, [role=dialog]")) return;
@@ -29,7 +29,7 @@ export function focusPane(dom: WorkspaceDom, id: NodeId) {
  * are elsewhere on the page), so the change is not theirs to follow.
  */
 export function keepPaneFocus(
-  dom: WorkspaceDom,
+  dom: JaliDom,
   id: NodeId | undefined,
   { fromBody = true }: { fromBody?: boolean } = {},
 ) {
@@ -56,7 +56,7 @@ export function activeTabId(): NodeId | undefined {
 }
 
 /** The shelf, when it is on screen (on a phone it folds into the pane switcher). */
-export function shownShelf(dom: WorkspaceDom): HTMLElement | null {
+export function shownShelf(dom: JaliDom): HTMLElement | null {
   const shelf =
     typeof document !== "undefined" ? dom.root().querySelector<HTMLElement>("[data-shelf]") : null;
   return shelf && shelf.getClientRects().length > 0 ? shelf : null;
@@ -71,7 +71,7 @@ export function focusShelf(shelf: HTMLElement) {
 }
 
 /** ⌘K "Show a pane from the shelf" with several panes: focus the first chip (the shelf need not be on screen). */
-export function focusShelfChip(dom: WorkspaceDom): boolean {
+export function focusShelfChip(dom: JaliDom): boolean {
   const chip =
     typeof document !== "undefined"
       ? dom
@@ -85,7 +85,7 @@ export function focusShelfChip(dom: WorkspaceDom): boolean {
 }
 
 /** A 600ms highlight on a tab, so the eye finds where a revealed pane went. Skipped under reduced motion. */
-export function flashTab(dom: WorkspaceDom, paneId: NodeId) {
+export function flashTab(dom: JaliDom, paneId: NodeId) {
   if (window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) return;
   requestAnimationFrame(() => {
     const el = dom.root().querySelector<HTMLElement>(`[role="tab"][data-tab="${paneId}"]`);

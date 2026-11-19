@@ -5,10 +5,10 @@ summary: Every workspace command, its default keys on a Mac and on Windows and L
 
 import { CommandTable } from "../../reference";
 
-Every command has a stable id. The palette lists them all (greyed while refused); the keyboard runs the one a binding names; `runCommand(workspace, id)` runs one from code. Rebind or unbind any of them with the workspace's `keymap` option:
+Every command has a stable id. The palette lists them all (greyed while refused); the keyboard runs the one a binding names; `runCommand(jali, id)` runs one from code. Rebind or unbind any of them with the workspace's `keymap` option:
 
 ```ts
-createWorkspace({ panes, layout, keymap: { "pane.close": "Mod+K Mod+W", "pane.split.down": null } });
+createJali({ panes, layout, keymap: { "pane.close": "Mod+K Mod+W", "pane.split.down": null } });
 ```
 
 `Mod` is ⌘ on a Mac and Ctrl on Windows and Linux. A key written after a space is a second step: for ⌘K ⌘M, hold ⌘, press K, then M, keeping ⌘ held. ⌘K on its own opens the palette.

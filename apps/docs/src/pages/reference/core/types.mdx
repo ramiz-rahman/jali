@@ -130,7 +130,7 @@ Kinds by name, as the layout operations take them (`kinds.registry()`).
 
 <Entry name="LayoutContext" kind="type" from="@jali/core" signature={`interface LayoutContext { fit: FitOptions; paneCap: number }`} compact>
 
-Everything a layout operation needs besides the layout: `workspace.ctx()`. `paneCap` is the most panes on screen before the oldest folds (the `paneCap` setting).
+Everything a layout operation needs besides the layout: `jali.ctx()`. `paneCap` is the most panes on screen before the oldest folds (the `paneCap` setting).
 
 </Entry>
 
@@ -186,7 +186,7 @@ One step of undo (`state.undoStack`): what was done and the layout and view befo
 
 <Entry name="LayoutInput" kind="type" from="@jali/core" signature={`type LayoutInput = Layout | Draft | ObjectRef`} compact>
 
-Anything that stands for a layout: a builder's result (`row(...)`), a single ref (a one-pane layout), or a whole `Layout`. `createWorkspace({ layout })`, a preset's `layout` and a page's `build` all take one.
+Anything that stands for a layout: a builder's result (`row(...)`), a single ref (a one-pane layout), or a whole `Layout`. `createJali({ layout })`, a preset's `layout` and a page's `build` all take one.
 
 </Entry>
 
@@ -256,7 +256,7 @@ A defined kind, callable to make its refs. In React, `Pane<P>`.
 
 <Entry name="PaneKindBase" kind="type" from="@jali/core" signature={`interface PaneKindBase extends PaneOptions { kind: string }`} compact>
 
-A kind as a workspace keeps it: its name and its options. What `createWorkspace({ panes })` takes.
+A kind as a workspace keeps it: its name and its options. What `createJali({ panes })` takes.
 
 </Entry>
 
@@ -284,7 +284,7 @@ The params a kind's code sees: `ParamsOf<{ id: NumberConstructor }>` is `{ id: n
 
 <Entry name="PaneKinds" kind="type" from="@jali/core" signature={`interface PaneKinds<D extends PaneKindBase = PaneKindBase>`} compact>
 
-A workspace's kinds, as `workspace.env.kinds`.
+A workspace's kinds, as `jali.env.kinds`.
 
 <Members>
 <Member name="PaneKinds.register" signature="register(def: D): void">Adds or replaces a kind and bumps `version()`.</Member>
@@ -353,61 +353,61 @@ How a curated page is shown: one view at a time (Single) or side by side (Split 
 
 <Entry name="Preset" kind="type" from="@jali/core" signature={`interface Preset { id: string; label: string; build: () => Layout }`} compact>
 
-A layout to start from or switch to ("Layout: Orders"), as `workspace.env.presets` holds it: made from a <Ref to="PresetOptions" />, with `build` returning a fresh layout each time.
+A layout to start from or switch to ("Layout: Orders"), as `jali.env.presets` holds it: made from a <Ref to="PresetOptions" />, with `build` returning a fresh layout each time.
 
 </Entry>
 
 <Entry name="PresetOptions" kind="type" from="@jali/core" signature={`interface PresetOptions { id: string; label: string; layout: LayoutInput | (() => LayoutInput) }`} compact>
 
-A preset, as `createWorkspace({ presets })` takes it.
+A preset, as `createJali({ presets })` takes it.
 
 </Entry>
 
 <Entry name="Env" kind="type" from="@jali/core" signature={`interface Env { kinds: PaneKinds; profile: ProfileBase | null; presets: readonly Preset[]; commands?: readonly Command[]; name: string; launcher?: string }`} compact>
 
-What a workspace is made of besides its state: `workspace.env`. `profile` is its curated page; `launcher` the kind Split opens.
+What a workspace is made of besides its state: `jali.env`. `profile` is its curated page; `launcher` the kind Split opens.
 
 </Entry>
 
 ## The workspace
 
-<Entry name="Workspace" kind="type" from="@jali/core" signature={`interface Workspace`} compact>
+<Entry name="Jali" kind="type" from="@jali/core" signature={`interface Jali`} compact>
 
-A workspace, from <Ref to="createWorkspace" page="/reference/core" />.
+A workspace, from <Ref to="createJali" page="/reference/core" />.
 
 <Members>
-<Member name="Workspace.get" signature="get(): WorkspaceState">The state now.</Member>
-<Member name="Workspace.set" signature="set(patch: Partial<WorkspaceState>): void">A raw write, for what has no action: interaction state such as a drag or the measured `area`. A change of `area` or `settings.paneCap` refits the layout. Prefer `actions`.</Member>
-<Member name="Workspace.subscribe" signature="subscribe(fn: () => void): () => void">Hear every change. Returns the unsubscribe.</Member>
-<Member name="Workspace.model" signature="model(): WorkspaceModel">The derived model; the same object while nothing it depends on changed.</Member>
-<Member name="Workspace.ctx" signature="ctx(): LayoutContext">The context for layout operations: area, gap 6, kinds, pane cap.</Member>
-<Member name="Workspace.snapshot" signature="snapshot(): Snapshot">State, model, context and env together.</Member>
-<Member name="Workspace.apply" signature="apply(o: Outcome): NodeId | undefined">Commits an outcome. The bound `actions` call this.</Member>
-<Member name="Workspace.announce" signature="announce(text: string): void">Says something in the live region (a repeat is announced again).</Member>
-<Member name="Workspace.writeUrl" signature="writeUrl(mode: HistoryMode): void">Writes the address through `url`.</Member>
-<Member name="Workspace.toast" signature="toast(t: Toast): void">Sends a toast to whoever listens; kept until someone does.</Member>
-<Member name="Workspace.onToast" signature="onToast(fn: (t: Toast) => void): () => void">Render toasts. Toasts sent earlier arrive at once.</Member>
-<Member name="Workspace.actions" signature="actions: Actions">Every workspace action, bound.</Member>
-<Member name="Workspace.keymap" signature="keymap: Keymap">This workspace's keys: `label(id)` for a tooltip, `sequences(id)`, `platform`.</Member>
-<Member name="Workspace.env" signature="env: Env">Its kinds, presets, page, name and launcher.</Member>
-<Member name="Workspace.dom" signature="dom: WorkspaceDom">Where it lives in the DOM.</Member>
-<Member name="Workspace.storage" signature="storage: StoragePort">The storage it was made with.</Member>
-<Member name="Workspace.href" signature="href(): string">The address to share: `url.href()`, else `location.href`, else `""`.</Member>
-<Member name="Workspace.url" signature="url: UrlWriter | undefined">Where it writes its address, when it has one.</Member>
-<Member name="Workspace.start" signature="start(): () => void">Starts its listeners (keys, Back and Forward, theme, saving) and returns their stop. `<Jali>` calls it while mounted; calling it while started does nothing.</Member>
+<Member name="Jali.get" signature="get(): JaliState">The state now.</Member>
+<Member name="Jali.set" signature="set(patch: Partial<JaliState>): void">A raw write, for what has no action: interaction state such as a drag or the measured `area`. A change of `area` or `settings.paneCap` refits the layout. Prefer `actions`.</Member>
+<Member name="Jali.subscribe" signature="subscribe(fn: () => void): () => void">Hear every change. Returns the unsubscribe.</Member>
+<Member name="Jali.model" signature="model(): JaliModel">The derived model; the same object while nothing it depends on changed.</Member>
+<Member name="Jali.ctx" signature="ctx(): LayoutContext">The context for layout operations: area, gap 6, kinds, pane cap.</Member>
+<Member name="Jali.snapshot" signature="snapshot(): Snapshot">State, model, context and env together.</Member>
+<Member name="Jali.apply" signature="apply(o: Outcome): NodeId | undefined">Commits an outcome. The bound `actions` call this.</Member>
+<Member name="Jali.announce" signature="announce(text: string): void">Says something in the live region (a repeat is announced again).</Member>
+<Member name="Jali.writeUrl" signature="writeUrl(mode: HistoryMode): void">Writes the address through `url`.</Member>
+<Member name="Jali.toast" signature="toast(t: Toast): void">Sends a toast to whoever listens; kept until someone does.</Member>
+<Member name="Jali.onToast" signature="onToast(fn: (t: Toast) => void): () => void">Render toasts. Toasts sent earlier arrive at once.</Member>
+<Member name="Jali.actions" signature="actions: Actions">Every workspace action, bound.</Member>
+<Member name="Jali.keymap" signature="keymap: Keymap">This workspace's keys: `label(id)` for a tooltip, `sequences(id)`, `platform`.</Member>
+<Member name="Jali.env" signature="env: Env">Its kinds, presets, page, name and launcher.</Member>
+<Member name="Jali.dom" signature="dom: JaliDom">Where it lives in the DOM.</Member>
+<Member name="Jali.storage" signature="storage: StoragePort">The storage it was made with.</Member>
+<Member name="Jali.href" signature="href(): string">The address to share: `url.href()`, else `location.href`, else `""`.</Member>
+<Member name="Jali.url" signature="url: UrlWriter | undefined">Where it writes its address, when it has one.</Member>
+<Member name="Jali.start" signature="start(): () => void">Starts its listeners (keys, Back and Forward, theme, saving) and returns their stop. `<JaliRoot>` calls it while mounted; calling it while started does nothing.</Member>
 </Members>
 
 </Entry>
 
-<Entry name="WorkspaceOptions" kind="type" from="@jali/core" signature={`interface WorkspaceOptions`} compact>
+<Entry name="JaliOptions" kind="type" from="@jali/core" signature={`interface JaliOptions`} compact>
 
-The options of `createWorkspace`. Each one, with its default, is under <Ref to="createWorkspace" page="/reference/core" />.
+The options of `createJali`. Each one, with its default, is under <Ref to="createJali" page="/reference/core" />.
 
 </Entry>
 
-<Entry name="WorkspaceState" kind="type" from="@jali/core" signature={`interface WorkspaceState`} compact>
+<Entry name="JaliState" kind="type" from="@jali/core" signature={`interface JaliState`} compact>
 
-Everything a workspace holds. Read it with `workspace.get()` or `useWorkspaceState(select)`. Change it through `actions`.
+Everything a workspace holds. Read it with `jali.get()` or `useJaliState(select)`. Change it through `actions`.
 
 <Params title="Fields">
 <Param name="layout" type="Layout" required>The arrangement.</Param>
@@ -460,9 +460,9 @@ A list's selected item. `inResults: false`: the list's filter no longer shows it
 
 </Entry>
 
-<Entry name="WorkspaceDom" kind="type" from="@jali/core" signature={`interface WorkspaceDom { id: string; root(): ParentNode; attach(el: Element | null): void; pane(id: NodeId): HTMLElement | null }`} compact>
+<Entry name="JaliDom" kind="type" from="@jali/core" signature={`interface JaliDom { id: string; root(): ParentNode; attach(el: Element | null): void; pane(id: NodeId): HTMLElement | null }`} compact>
 
-A workspace's place in the DOM. `<Jali>` attaches its root element; until then `root()` is the document. DOM lookups (focus, drag, F6) search inside `root()` only.
+A workspace's place in the DOM. `<JaliRoot>` attaches its root element; until then `root()` is the document. DOM lookups (focus, drag, F6) search inside `root()` only.
 
 </Entry>
 
@@ -472,9 +472,9 @@ Where a workspace writes its address. Pass one as `url` to write it somewhere of
 
 </Entry>
 
-<Entry name="WorkspaceModel" kind="type" from="@jali/core" signature={`interface WorkspaceModel`} compact>
+<Entry name="JaliModel" kind="type" from="@jali/core" signature={`interface JaliModel`} compact>
 
-What is on screen, derived once per change (`workspace.model()`, `useWorkspaceModel()`).
+What is on screen, derived once per change (`jali.model()`, `useJaliModel()`).
 
 <Params title="Fields">
 <Param name="resolved" type="ResolvedLayout" required>Boxes, dividers, groups and shelf, with the maximise applied.</Param>
@@ -499,15 +499,15 @@ What is on screen, derived once per change (`workspace.model()`, `useWorkspaceMo
 
 </Entry>
 
-<Entry name="Snapshot" kind="type" from="@jali/core" signature={`interface Snapshot { s: UiState; m: WorkspaceModel; ctx: LayoutContext; env: Env }`} compact>
+<Entry name="Snapshot" kind="type" from="@jali/core" signature={`interface Snapshot { s: UiState; m: JaliModel; ctx: LayoutContext; env: Env }`} compact>
 
-What an action reads: `workspace.snapshot()`.
+What an action reads: `jali.snapshot()`.
 
 </Entry>
 
 <Entry name="Outcome" kind="type" from="@jali/core" signature={`type Outcome = Change | Refusal | null | undefined | ((x: Snapshot) => Outcome) | Outcome[]`} compact>
 
-What an action decides, for `workspace.apply`: a change, a refusal, nothing, a step computed from the state the previous step left, or several in order.
+What an action decides, for `jali.apply`: a change, a refusal, nothing, a step computed from the state the previous step left, or several in order.
 
 </Entry>
 
@@ -519,7 +519,7 @@ An action or command that did not happen; `msg` is announced when there is one.
 
 <Entry name="Toast" kind="type" from="@jali/core" signature={`interface Toast { title: string; description?: string; undo?: boolean; error?: boolean }`} compact>
 
-A toast for the host to render (`workspace.onToast`). `undo`: offer Undo (run `workspace.actions.undo()`).
+A toast for the host to render (`jali.onToast`). `undo`: offer Undo (run `jali.actions.undo()`).
 
 </Entry>
 
@@ -591,7 +591,7 @@ A tab group as the model sees it (`model().groups`): a stack in the tree, or one
 
 <Entry name="UrlSyncOptions" kind="type" from="@jali/core" signature={`interface UrlSyncOptions { location?; storage?; prefix?; sizes? }`} compact>
 
-The `url` option of `createWorkspace`: `location` (a <Ref to="LocationPort" />, default the browser's history), `prefix` (for two workspaces in one address: `"b."` writes `b.l`, `b.zoom`), `sizes` (<Ref to="LinkSizes" />) and `storage` (default: the workspace's own).
+The `url` option of `createJali`: `location` (a <Ref to="LocationPort" />, default the browser's history), `prefix` (for two workspaces in one address: `"b."` writes `b.l`, `b.zoom`), `sizes` (<Ref to="LinkSizes" />) and `storage` (default: the workspace's own).
 
 </Entry>
 
@@ -617,15 +617,15 @@ What one person keeps on one device. Keys Jali uses: `settings`, `pane-state`, a
 
 ## Commands and keys
 
-<Entry name="Command" kind="type" from="@jali/core" signature={`interface Command {\n  id: string; title: string;\n  group: "Focus" | "Pane" | "Move" | "Tabs" | "Layout" | "Peek" | "Settings";\n  check?: (x: Snapshot) => Refusal | undefined;\n  run: (workspace: Workspace) => void;\n}`} compact>
+<Entry name="Command" kind="type" from="@jali/core" signature={`interface Command {\n  id: string; title: string;\n  group: "Focus" | "Pane" | "Move" | "Tabs" | "Layout" | "Peek" | "Settings";\n  check?: (x: Snapshot) => Refusal | undefined;\n  run: (jali: Jali) => void;\n}`} compact>
 
-A workspace command. `check` returns a refusal when it can't run now (silent without `msg`). Your own commands go in `createWorkspace({ commands })`, with a group of your own if you like.
+A workspace command. `check` returns a refusal when it can't run now (silent without `msg`). Your own commands go in `createJali({ commands })`, with a group of your own if you like.
 
 </Entry>
 
 <Entry name="Keymap" kind="type" from="@jali/core" signature={`interface Keymap`} compact>
 
-A workspace's resolved keys (`workspace.keymap`): the defaults with its `keymap` overrides applied, with `platform`, `entries`, `sequences(id)`, `label(id)`, `find(match, prefix?)` and `isPrefix(match)`.
+A workspace's resolved keys (`jali.keymap`): the defaults with its `keymap` overrides applied, with `platform`, `entries`, `sequences(id)`, `label(id)`, `find(match, prefix?)` and `isPrefix(match)`.
 
 </Entry>
 
@@ -637,7 +637,7 @@ A host's key changes: a binding, several, or `null` to unbind.
 
 <Entry name="KeymapOptions" kind="type" from="@jali/core" signature={`interface KeymapOptions { platform?: Platform; onInvalid?: (id: string, binding: KeyString, reason: string) => void }`} compact>
 
-The `keymapOptions` of `createWorkspace`: `platform` to match and print keys for, and `onInvalid`, called for each refused binding (default `console.warn`).
+The `keymapOptions` of `createJali`: `platform` to match and print keys for, and `onInvalid`, called for each refused binding (default `console.warn`).
 
 </Entry>
 
@@ -691,7 +691,7 @@ How a list's item ids map to refs; see <Ref to="activeItemPort" page="/reference
 
 <Entry name="Actions" kind="type" from="@jali/core" signature={`type Actions = { [name]: (...args) => NodeId | undefined }`} compact>
 
-`workspace.actions` (in React, `useWorkspace().actions`). Every action reads the state now, commits what it decides and returns the pane it opened or acted on, when there is one. `id` arguments default to the focused pane where the signature shows `?`.
+`jali.actions` (in React, `useJali().actions`). Every action reads the state now, commits what it decides and returns the pane it opened or acted on, when there is one. `id` arguments default to the focused pane where the signature shows `?`.
 
 <Members title="Focus">
 <Member name="actions.focus" signature="focus(id: NodeId)">Focus a pane.</Member>

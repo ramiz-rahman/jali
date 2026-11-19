@@ -1,13 +1,13 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState, type KeyboardEvent } from "react";
 import { FoldHorizontal, Undo2 } from "lucide-react";
-import type { ShelfEntry, WorkspaceModel, PaneActivity } from "@jali/core/adapter";
+import type { ShelfEntry, JaliModel, PaneActivity } from "@jali/core/adapter";
 import { useShortcut } from "../commands/react";
 import { flashTab, FOLDED_DESC, FOLDED_TIP, titleOf } from "@jali/core/adapter";
 import { Activity, shelfActivity } from "../pane/Activity";
 import { KindIcon } from "../pane/icons";
 import { useActions, useModel, useStore, useUi } from "../state/react";
 
-function label(m: WorkspaceModel, it: ShelfEntry, a: PaneActivity | undefined) {
+function label(m: JaliModel, it: ShelfEntry, a: PaneActivity | undefined) {
   const node = m.pane(it.paneId);
   const title = node ? titleOf(m.env, node) : m.title(it.paneId);
   const home = m.title(it.homeId);

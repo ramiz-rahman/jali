@@ -1,5 +1,5 @@
 /**
- * One derived WorkspaceModel: what is on screen, what is in each group, what is tucked. Every component and action
+ * One derived JaliModel: what is on screen, what is in each group, what is tucked. Every component and action
  * reads it instead of re-walking the tree or re-resolving. Memoised on what resolve depends on: layout, zoom, area,
  * the kind registry and the pane cap (focus is not part of it; the view only places the zoom overlay).
  */
@@ -25,7 +25,7 @@ export interface Group {
   active: NodeId;
 }
 
-export interface WorkspaceModel {
+export interface JaliModel {
   /** The pane kinds and profile it was built with. */
   env: Env;
   layout: Layout;
@@ -67,7 +67,7 @@ export interface ModelInput {
   env: Env;
 }
 
-export function buildModel({ layout, view, area, ctx, env }: ModelInput): WorkspaceModel {
+export function buildModel({ layout, view, area, ctx, env }: ModelInput): JaliModel {
   const resolved = core.resolve(layout, view, ctx);
   const flat = view.zoomed ? core.resolve(layout, core.tree.unzoom(view), ctx) : resolved;
   const panes = core.tree.panes(layout.root);
@@ -146,8 +146,8 @@ export function buildModel({ layout, view, area, ctx, env }: ModelInput): Worksp
 
 /** A one-entry cache: the same inputs give the same model object, so components can compare by identity. */
 export function modelCache() {
-  let last: { key: unknown[]; model: WorkspaceModel } | null = null;
-  return (input: ModelInput): WorkspaceModel => {
+  let last: { key: unknown[]; model: JaliModel } | null = null;
+  return (input: ModelInput): JaliModel => {
     const key = [
       input.layout,
       input.view.zoomed,

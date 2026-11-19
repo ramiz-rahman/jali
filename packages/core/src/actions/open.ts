@@ -4,7 +4,7 @@ import type { PaneKinds } from "../pane-kinds";
 import { refuse, type Outcome, type Snapshot } from "../state/apply";
 import { peekSheet } from "./peek";
 import { goToRole, investigation, placeAfterArrangement, roleLabel, settleRoles } from "./page";
-import type { WorkspaceModel } from "../state/model";
+import type { JaliModel } from "../state/model";
 import { msg } from "../state/messages";
 import { follow, followLater, sameRef, setPinned } from "./follow";
 
@@ -23,11 +23,7 @@ export function withRecent(kinds: PaneKinds, recent: ObjectRef[], refs: ObjectRe
 }
 
 /** The pane already showing `ref`, other than `except`. Scratch kinds (no identity) never count. */
-export function openPaneFor(
-  m: WorkspaceModel,
-  ref: ObjectRef,
-  except?: NodeId,
-): PaneNode | undefined {
+export function openPaneFor(m: JaliModel, ref: ObjectRef, except?: NodeId): PaneNode | undefined {
   if (m.env.kinds.identityOf(ref) === undefined) return undefined;
   return m.panes.find((p) => p.id !== except && m.env.kinds.sameObject(p.ref, ref));
 }

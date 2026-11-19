@@ -24,18 +24,18 @@ Styles: `@jali/react/styles.css` is Jali's default theme and the workspace's sty
 
 ## Start here
 
-<Entry name="Jali" kind="component" from="@jali/react" signature={`<Jali workspace={workspace} overlays? settings? settingsExtra?>{children?}</Jali>`} example={appCode} exampleFile="App.tsx">
+<Entry name="JaliRoot" kind="component" from="@jali/react" signature={`<JaliRoot jali={jali} overlays? settings? settingsExtra?>{children?}</JaliRoot>`} example={appCode} exampleFile="App.tsx">
 
-Draws a workspace: its panes, and the dialogs every workspace has (the command palette, Settings, the "Add to tabs of…" chooser, "Discard unsaved changes?" and the live region). While it is mounted, it starts the workspace's keys, Back and Forward, theme and saving (<Ref to="Workspace" page="/reference/core" />'s `start`), and stops them when it unmounts.
+Draws a workspace: its panes, and the dialogs every workspace has (the command palette, Settings, the "Add to tabs of…" chooser, "Discard unsaved changes?" and the live region). While it is mounted, it starts the workspace's keys, Back and Forward, theme and saving (<Ref to="Jali" page="/reference/core" />'s `start`), and stops them when it unmounts.
 
-`<Jali workspace={workspace} />` is a whole app. To add your own chrome, pass children and put `<JaliView />` where the panes go.
+`<JaliRoot jali={jali} />` is a whole app. To add your own chrome, pass children and put `<JaliView />` where the panes go.
 
-The root is a `<div data-jali>` that the workspace attaches to (`workspace.dom`), so focus, drag and F6 stay inside it. The dialogs render after it, in a `<div data-jali-layer>` (`workspace.dom.layer()`, styled `display: contents`), which counts as the workspace's for its keys. Mark your own chrome inside it with `data-jali-chrome` and Jali never pulls focus out of it.
+The root is a `<div data-jali>` that the workspace attaches to (`jali.dom`), so focus, drag and F6 stay inside it. The dialogs render after it, in a `<div data-jali-layer>` (`jali.dom.layer()`, styled `display: contents`), which counts as the workspace's for its keys. Mark your own chrome inside it with `data-jali-chrome` and Jali never pulls focus out of it.
 
-Two things are yours to render. **The shelf** (tucked and folded panes as chips): put <Ref to="Shelf" /> in your status line or footer, or tucked panes have nowhere to come back from but ⌘K "Show a pane from the shelf". **Toasts**: Jali sends them through `workspace.onToast` (closes and tucks come with Undo, which ⌘K ⌘Z also runs) and shows none itself; render them with your toaster in `overlays`.
+Two things are yours to render. **The shelf** (tucked and folded panes as chips): put <Ref to="Shelf" /> in your status line or footer, or tucked panes have nowhere to come back from but ⌘K "Show a pane from the shelf". **Toasts**: Jali sends them through `jali.onToast` (closes and tucks come with Undo, which ⌘K ⌘Z also runs) and shows none itself; render them with your toaster in `overlays`.
 
 <Params title="Props">
-<Param name="workspace" type="Workspace" required>From `createWorkspace`.</Param>
+<Param name="workspace" type="Jali" required>From `createJali`.</Param>
 <Param name="children" type="ReactNode" default="<JaliView />">Rendered inside the root: `<JaliView>` and your chrome.</Param>
 <Param name="overlays" type="ReactNode">Rendered after the root: things that must sit outside the workspace, such as a toaster. Focus is never pulled back from outside the root.</Param>
 <Param name="settings" type="boolean" default="true">`false` leaves the Settings panel out.</Param>
@@ -47,7 +47,7 @@ Two things are yours to render. **The shelf** (tucked and folded panes as chips)
 
 <Entry name="JaliView" kind="component" from="@jali/react" signature={`<JaliView />`} compact>
 
-The panes, or the curated page while one is open. Takes no props. `<Jali>` renders it when it has no children; place it yourself when you add chrome.
+The panes, or the curated page while one is open. Takes no props. `<JaliRoot>` renders it when it has no children; place it yourself when you add chrome.
 
 </Entry>
 
@@ -55,7 +55,7 @@ The panes, or the curated page while one is open. Takes no props. `<Jali>` rende
 
 <Entry name="definePane" kind="function" from="@jali/react" signature={`definePane(kind: string, options: PaneOptionsReact): Pane`} example={kindsCode} exampleFile="kinds.tsx">
 
-Defines a kind of pane: what it shows (its params), its title and sizes, and the component that renders it. Pass your kinds to `createWorkspace({ panes })`.
+Defines a kind of pane: what it shows (its params), its title and sizes, and the component that renders it. Pass your kinds to `createJali({ panes })`.
 
 The result is also how you name an object of the kind: `orderKind({ id: 1041 })` is the [ref](/get-started/key-concepts#ref) `{ kind: "order", params: { id: 1041 } }`, to open, peek, select or put in a layout. When the kind declares `params`, the call is typed: a missing or wrongly typed param is a type error.
 
@@ -112,7 +112,7 @@ Keys: content first. Claim the keys you use with `event.preventDefault()` (J and
 
 <Entry name="definePage" kind="function" from="@jali/react" signature={`definePage(page: Page): Page`} example={profileCode} exampleFile="loan-review.tsx">
 
-Defines a curated page: one item at a time (a loan application, a customer), its views as tabs, a list of items at the left (`Rail`, which calls `activate(item)` to show another) and the item's header above the tabs (`Header`). Pass it to `createWorkspace({ page })`. It returns `page` as it is; it is there for the types.
+Defines a curated page: one item at a time (a loan application, a customer), its views as tabs, a list of items at the left (`Rail`, which calls `activate(item)` to show another) and the item's header above the tabs (`Header`). Pass it to `createJali({ page })`. It returns `page` as it is; it is there for the types.
 
 <Returns type="Page" />
 
@@ -203,31 +203,31 @@ The active-item port for the pane this content is in (see <Ref to="activeItemPor
 
 ## The workspace in React
 
-<Entry name="useWorkspace" kind="hook" from="@jali/react" signature={`useWorkspace(): Workspace`} compact>
+<Entry name="useJali" kind="hook" from="@jali/react" signature={`useJali(): Jali`} compact>
 
-The workspace from the nearest `<Jali>`: its `actions`, `keymap`, `env` (kinds, presets, page) and state. Reading it does not subscribe; use `useWorkspaceState` or `useWorkspaceModel` for values that change. Throws outside `<Jali>`.
+The workspace from the nearest `<JaliRoot>`: its `actions`, `keymap`, `env` (kinds, presets, page) and state. Reading it does not subscribe; use `useJaliState` or `useJaliModel` for values that change. Throws outside `<JaliRoot>`.
 
-<Returns type="Workspace" />
+<Returns type="Jali" />
 
 </Entry>
 
-<Entry name="useWorkspaceState" kind="hook" from="@jali/react" signature={`useWorkspaceState<T>(select: (s: WorkspaceState) => T): T`} example={hooksCode} exampleFile="StatusLine.tsx">
+<Entry name="useJaliState" kind="hook" from="@jali/react" signature={`useJaliState<T>(select: (s: JaliState) => T): T`} example={hooksCode} exampleFile="StatusLine.tsx">
 
 Subscribes to one value of the state. The component re-renders when that value changes (compared with `Object.is`), so return a field or a primitive, not a new object each time.
 
 <Params>
-<Param name="select" type="(s: WorkspaceState) => T" required>Picks the value.</Param>
+<Param name="select" type="(s: JaliState) => T" required>Picks the value.</Param>
 </Params>
 
 <Returns type="T" />
 
 </Entry>
 
-<Entry name="useWorkspaceModel" kind="hook" from="@jali/react" signature={`useWorkspaceModel(): WorkspaceModel`} example={iconCode} exampleFile="OpenPanes.tsx">
+<Entry name="useJaliModel" kind="hook" from="@jali/react" signature={`useJaliModel(): JaliModel`} example={iconCode} exampleFile="OpenPanes.tsx">
 
 The workspace as it is on screen, subscribed: the panes, their boxes and titles, the groups, the shelf. A new object only when something it depends on changed (the layout, the maximised pane, the area, the kinds, the page or the pane cap); focus alone does not change it.
 
-<Returns type="WorkspaceModel" />
+<Returns type="JaliModel" />
 
 </Entry>
 
@@ -249,12 +249,12 @@ A command's keys in this workspace's keymap, for a tooltip ("⌘K ⌘[" or "Ctrl
 
 </Entry>
 
-<Entry name="WorkspaceProvider" kind="component" from="@jali/react" signature={`<WorkspaceProvider workspace={workspace}>{children}</WorkspaceProvider>`} compact>
+<Entry name="JaliProvider" kind="component" from="@jali/react" signature={`<JaliProvider jali={jali}>{children}</JaliProvider>`} compact>
 
-Makes a workspace available to the hooks and parts below it. `<Jali>` renders one; use it alone when you compose the parts yourself, and call `workspace.start()` in an effect.
+Makes a workspace available to the hooks and parts below it. `<JaliRoot>` renders one; use it alone when you compose the parts yourself, and call `jali.start()` in an effect.
 
 <Params title="Props">
-<Param name="workspace" type="Workspace" required />
+<Param name="workspace" type="Jali" required />
 <Param name="children" type="ReactNode" />
 </Params>
 
@@ -262,7 +262,7 @@ Makes a workspace available to the hooks and parts below it. `<Jali>` renders on
 
 ## Parts
 
-`<Jali>` and `<JaliView>` render these. Use them to compose your own: each must be inside a `<WorkspaceProvider>`, and none takes props unless shown.
+`<JaliRoot>` and `<JaliView>` render these. Use them to compose your own: each must be inside a `<JaliProvider>`, and none takes props unless shown.
 
 <Entry name="Panes" kind="component" from="@jali/react" signature={`<Panes />`} example={composeCode} exampleFile="App.tsx">
 
@@ -302,7 +302,7 @@ The command palette (⌘K or Ctrl+K), while `paletteOpen` is set. The focused pa
 
 <Entry name="SettingsPanel" kind="component" from="@jali/react" signature={`<SettingsPanel>{extra?}</SettingsPanel>`} compact>
 
-The Settings dialog, while `settingsOpen` is set: theme, centre drop, pane cap (2 to 16), a curated page's opened-pane marking and viewer, every key binding from the workspace's keymap, then its children (your own fieldsets; `<Jali settingsExtra>`). Changes go through `actions.changeSettings` and are saved on this device.
+The Settings dialog, while `settingsOpen` is set: theme, centre drop, pane cap (2 to 16), a curated page's opened-pane marking and viewer, every key binding from the workspace's keymap, then its children (your own fieldsets; `<JaliRoot settingsExtra>`). Changes go through `actions.changeSettings` and are saved on this device.
 
 </Entry>
 
@@ -340,8 +340,8 @@ A pane's activity mark. Renders nothing for `idle` or `undefined`.
 
 </Entry>
 
-<Entry name="JaliProps" kind="type" from="@jali/react" signature={`interface JaliProps extends HTMLAttributes<HTMLDivElement> {\n  workspace: Workspace; children?: ReactNode;\n  overlays?: ReactNode; settings?: boolean;\n}`} compact>
+<Entry name="JaliRootProps" kind="type" from="@jali/react" signature={`interface JaliRootProps extends HTMLAttributes<HTMLDivElement> {\n  workspace: Jali; children?: ReactNode;\n  overlays?: ReactNode; settings?: boolean;\n}`} compact>
 
-The props of <Ref to="Jali" />.
+The props of <Ref to="JaliRoot" />.
 
 </Entry>

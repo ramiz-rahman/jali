@@ -1,8 +1,8 @@
-import { createWorkspace } from "@jali/core";
+import { createJali } from "@jali/core";
 import { orderKinds } from "../pane-kinds/orders";
 import { presets } from "../presets/layouts";
 
-export const workspace = createWorkspace({
+export const jali = createJali({
   panes: orderKinds,
   presets,
   keymap: {
@@ -20,4 +20,4 @@ export const workspace = createWorkspace({
 });
 
 // What a tooltip or menu prints: "⌘K ⌘X" on a Mac, "Ctrl+K Ctrl+X" elsewhere; "" when unbound.
-export const closeLabel = workspace.keymap.label("pane.close");
+export const closeLabel = jali.keymap.label("pane.close");

@@ -1,8 +1,8 @@
 /** A pane's unsaved work is the content's: it is cleared when the content unmounts, so a kind need not (finding 17). */
 import { afterEach, beforeAll, describe, expect, it } from "vite-plus/test";
 import { cleanup, render } from "@testing-library/react";
-import { createWorkspace, memoryLocation, memoryStorage, pane } from "@jali/core";
-import { Jali, definePane, useUnsaved } from "@jali/react";
+import { createJali, memoryLocation, memoryStorage, pane } from "@jali/core";
+import { JaliRoot, definePane, useUnsaved } from "@jali/react";
 
 function Draft() {
   useUnsaved("a draft");
@@ -21,7 +21,7 @@ afterEach(cleanup);
 
 describe("useUnsaved", () => {
   it("clears the pane's unsaved work when the content unmounts", () => {
-    const workspace = createWorkspace({
+    const jali = createJali({
       panes: [draft],
       layout: pane(draft(), { id: "a" }),
       url: { location: memoryLocation() },
@@ -29,9 +29,9 @@ describe("useUnsaved", () => {
       size: { width: 800, height: 600 },
       moveFocus: false,
     });
-    const { unmount } = render(<Jali workspace={workspace} />);
-    expect(workspace.get().unsaved).toEqual({ a: "a draft" });
+    const { unmount } = render(<JaliRoot jali={jali} />);
+    expect(jali.get().unsaved).toEqual({ a: "a draft" });
     unmount();
-    expect(workspace.get().unsaved).toEqual({});
+    expect(jali.get().unsaved).toEqual({});
   });
 });

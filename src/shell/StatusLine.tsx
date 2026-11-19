@@ -1,20 +1,20 @@
 import { useEffect, useState } from "react";
 import { useDataLayer } from "../data/react";
-import { useWorkspace, useWorkspaceModel, useWorkspaceState, Shelf } from "@jali/react";
+import { useJali, useJaliModel, useJaliState, Shelf } from "@jali/react";
 import { useShowStats } from "./stats-pref";
 
 export function StatusLine() {
-  const m = useWorkspaceModel();
-  const { keymap } = useWorkspace();
+  const m = useJaliModel();
+  const { keymap } = useJali();
   const keys = (id: string, what: string) =>
     keymap.label(id) ? `${keymap.label(id)} ${what}` : "";
-  const view = useWorkspaceState((s) => s.view);
-  const resizeMode = useWorkspaceState((s) => s.resizeMode);
-  const curated = useWorkspaceState((s) => !!s.page);
-  const single = useWorkspaceState((s) => s.page?.mode === "single");
+  const view = useJaliState((s) => s.view);
+  const resizeMode = useJaliState((s) => s.resizeMode);
+  const curated = useJaliState((s) => !!s.page);
+  const single = useJaliState((s) => s.page?.mode === "single");
   // Fetch and cache telemetry is for Data Studio; a curated page speaks in views.
   const showStats = useShowStats() && !curated;
-  const activity = useWorkspaceState((s) => s.activity);
+  const activity = useJaliState((s) => s.activity);
   // Every tucked pane, shown or not (the shelf lists them all); folded panes are counted separately.
   const tucked = m.shelf.length;
   const busy = Object.entries(activity).filter(

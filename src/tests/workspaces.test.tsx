@@ -15,8 +15,8 @@ import {
   startUi,
   type UiStore,
 } from "@jali/core/adapter";
-import { createWorkspace, row } from "@jali/core";
-import { Jali, definePane } from "@jali/react";
+import { createJali, row } from "@jali/core";
+import { JaliRoot, definePane } from "@jali/react";
 import { parseKeys } from "../../packages/core/src/commands/format";
 import { createLabStore } from "../lab";
 
@@ -63,17 +63,17 @@ afterEach(() => {
 
 describe("keys scoped to a root (1, 12)", () => {
   it("a ⌘K chord finishes in the palette, which renders outside the root", () => {
-    // keys: "workspace" scopes each workspace's keys to its root while <Jali> has it started.
-    const a = make({ id: "a", keys: "workspace" }),
-      b = make({ id: "b", keys: "workspace" });
+    // keys: "scoped" scopes each workspace's keys to its root while <JaliRoot> has it started.
+    const a = make({ id: "a", keys: "scoped" }),
+      b = make({ id: "b", keys: "scoped" });
     const r = render(
       <>
-        <Jali workspace={a}>
+        <JaliRoot jali={a}>
           <button>in a</button>
-        </Jali>
-        <Jali workspace={b}>
+        </JaliRoot>
+        <JaliRoot jali={b}>
           <button>in b</button>
-        </Jali>
+        </JaliRoot>
       </>,
     );
     {
@@ -96,12 +96,12 @@ describe("dialog ids (2)", () => {
     // No panes: only the dialogs are under test (the lab's panes need its data layer).
     render(
       <>
-        <Jali workspace={a}>
+        <JaliRoot jali={a}>
           <div />
-        </Jali>
-        <Jali workspace={b}>
+        </JaliRoot>
+        <JaliRoot jali={b}>
           <div />
-        </Jali>
+        </JaliRoot>
       </>,
     );
     for (const s of [a, b]) act(() => s.set({ settingsOpen: true }));
@@ -139,9 +139,9 @@ describe("default storage (3)", () => {
     expect(a.storage.get("k")).toBe("A");
     expect(b.storage.get("k")).toBe("B");
   });
-  it("createWorkspace saves under its id when no storage is given", () => {
+  it("createJali saves under its id when no storage is given", () => {
     const note = definePane("note", { title: "Note", Component: () => null });
-    const s = createWorkspace({
+    const s = createJali({
       panes: [note],
       layout: note(),
       id: "orders",
@@ -244,14 +244,14 @@ describe("mounting (25)", () => {
       title: ({ id }) => `Note ${id}`,
       Component: ({ params }) => <button>note {params.id}</button>,
     });
-    const s = createWorkspace({
+    const s = createJali({
       panes: [note],
       layout: row(note({ id: 1 }), note({ id: 2 })),
       url: false,
       size: area,
     });
     document.body.focus();
-    render(<Jali workspace={s} />);
+    render(<JaliRoot jali={s} />);
     await act(() => new Promise((r) => setTimeout(r, 30)));
     expect(document.activeElement).toBe(document.body);
   });

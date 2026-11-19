@@ -1,6 +1,6 @@
 /** What each pane frame shows, in both presentations: one list feeds one render loop. Pure. */
 import type { NodeId, PaneNode, Rect, ViewState } from "../layout/types";
-import type { WorkspaceModel } from "../state/model";
+import type { JaliModel } from "../state/model";
 import type { Presentation } from "../pane/chrome";
 
 /**
@@ -27,13 +27,13 @@ export interface Frame {
 }
 
 /** The pane single view shows: the focused one, else the first. */
-export const currentPane = (m: WorkspaceModel, view: ViewState) =>
+export const currentPane = (m: JaliModel, view: ViewState) =>
   view.focused && m.pane(view.focused) && !m.off.includes(view.focused)
     ? view.focused
     : m.onScreen[0]?.id;
 
 export function frames(
-  m: WorkspaceModel,
+  m: JaliModel,
   view: ViewState,
   mode: Presentation,
   size: { width: number; height: number },

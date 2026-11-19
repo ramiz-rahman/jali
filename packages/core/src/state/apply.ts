@@ -18,14 +18,14 @@ import * as core from "../layout";
 import type { Env } from "../profile";
 import { msg } from "./messages";
 import type { Layout, LayoutContext, NodeId, UndoEntry, ViewState } from "../layout/types";
-import type { WorkspaceModel } from "./model";
+import type { JaliModel } from "./model";
 import type { UiState } from "./store";
 import { pruneUndo } from "./undo";
 
 /** What an action reads: the state, the model derived from it, and the core's context. */
 export interface Snapshot {
   s: UiState;
-  m: WorkspaceModel;
+  m: JaliModel;
   ctx: LayoutContext;
   /** The workspace's pane kinds and profile. */
   env: Env;
@@ -185,7 +185,7 @@ export const POLICY: Record<Op, Policy> = {
 };
 
 /** The geometry on screen: the set of rects, whoever fills them. Equal before and after a focus or swap op. */
-export const geometryOf = (m: WorkspaceModel) =>
+export const geometryOf = (m: JaliModel) =>
   m.resolved.panes
     .filter((b) => !b.hidden)
     .map((b) => `${b.rect.x},${b.rect.y},${b.rect.width},${b.rect.height}`)

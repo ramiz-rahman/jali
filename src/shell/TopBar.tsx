@@ -1,14 +1,14 @@
 import { useEffect, useRef, useState } from "react";
 import { Command, Settings, Link2, ChevronDown, LayoutGrid } from "lucide-react";
-import { useShortcut, useWorkspace, useWorkspaceState, PageBar } from "@jali/react";
+import { useShortcut, useJali, useJaliState, PageBar } from "@jali/react";
 import { copyLink } from "@jali/core";
 import { AppSwitch } from "./AppSwitch";
 import { JaliLockup } from "./JaliLockup";
 
 /** The presets as toggle buttons: in the bar on desktop, in the Layouts menu below 768px. */
 function PresetButtons({ onChoose }: { onChoose?: () => void }) {
-  const presetId = useWorkspaceState((s) => s.presetId);
-  const { actions, env } = useWorkspace();
+  const presetId = useJaliState((s) => s.presetId);
+  const { actions, env } = useJali();
   return env.presets.map((p) => (
     <button
       key={p.id}
@@ -74,9 +74,9 @@ function LayoutsMenu() {
 }
 
 export function TopBar() {
-  const store = useWorkspace();
+  const store = useJali();
   const paletteKeys = useShortcut("palette.toggle");
-  const page = useWorkspaceState((s) => !!s.page);
+  const page = useJaliState((s) => !!s.page);
   return (
     <header className="topbar" data-jali-chrome="">
       <div className="brand">

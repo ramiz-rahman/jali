@@ -4,7 +4,7 @@
  */
 import { createContext, type CSSProperties } from "react";
 import { Archive, EyeOff, FoldHorizontal, Layers } from "lucide-react";
-import type { LayoutNode, Rect, Size, WorkspaceModel } from "@jali/core";
+import type { LayoutNode, Rect, Size, JaliModel } from "@jali/core";
 import { colourOf } from "./colours";
 
 export interface Hover {
@@ -25,7 +25,7 @@ export const PreviewRects = createContext<Record<string, Rect> | null>(null);
 /** The box a node fills on screen: the union of its panes that are showing. */
 export function extentOf(
   n: LayoutNode,
-  m: WorkspaceModel,
+  m: JaliModel,
   preview?: Record<string, Rect> | null,
 ): Rect | null {
   const ids = new Set(panesUnder(n));
@@ -46,7 +46,7 @@ function Chips({
   empty,
 }: {
   ids: { id: string; note?: string }[];
-  m: WorkspaceModel;
+  m: JaliModel;
   empty: string;
 }) {
   if (!ids.length) return <span className="live-ov-none">{empty}</span>;
@@ -68,7 +68,7 @@ function Chips({
 }
 
 /** The overlay: kept beside the tree, so folding and tucking never rewrite the layout the person made. */
-export function OverlayCard({ m }: { m: WorkspaceModel }) {
+export function OverlayCard({ m }: { m: JaliModel }) {
   const ov = m.layout.overlay;
   const tucks = (ov?.tucks ?? []).map((t) => ({ id: t.pane, note: `behind ${m.title(t.home)}` }));
   const shown = Object.entries(ov?.shown ?? {}).map(([home, id]) => ({

@@ -1,13 +1,13 @@
 /**
- * `createWorkspace`: one call from pane kinds and a layout to a workspace that is ready to render.
+ * `createJali`: one call from pane kinds and a layout to a workspace that is ready to render.
  *
- *   const workspace = createWorkspace({
+ *   const jali = createJali({
  *     panes: [orders, order, customer],
  *     layout: row(orders(), order({ id: 1 })),
  *   });
  *
- * The workspace reads its address, fits its first layout and is ready before the first render. `<Jali>` (or
- * `workspace.start()` without React) starts its keys, Back and Forward, theme and saving.
+ * The workspace reads its address, fits its first layout and is ready before the first render. `<JaliRoot>` (or
+ * `jali.start()` without React) starts its keys, Back and Forward, theme and saving.
  */
 import { boot } from "./boot";
 import type { KeymapOptions, KeymapOverrides } from "./commands/keymap";
@@ -27,7 +27,7 @@ export interface PresetOptions {
   layout: LayoutInput | (() => LayoutInput);
 }
 
-export interface WorkspaceOptions<D extends PaneKindBase = PaneKindBase> {
+export interface JaliOptions<D extends PaneKindBase = PaneKindBase> {
   /** The kinds of pane this workspace can show. */
   panes: readonly D[] | PaneKinds<D>;
   /** The layout it opens on. Give this or `presets`. */
@@ -55,7 +55,7 @@ export interface WorkspaceOptions<D extends PaneKindBase = PaneKindBase> {
   /** Prefix for DOM ids. Give each workspace on one page its own. Default "jali". */
   id?: string;
   /** "workspace": take only keys from inside this workspace, for two on one page. Default "page": every key. */
-  keys?: "page" | "workspace";
+  keys?: "page" | "scoped";
   /** Set the page's theme (`data-theme` on `<html>`) from the person's setting. Default true; false when the
    *  workspace sits inside a page that has its own theme. */
   pageTheme?: boolean;
@@ -74,8 +74,8 @@ export interface WorkspaceOptions<D extends PaneKindBase = PaneKindBase> {
   onUnstable?: (op: string, before: string, after: string) => void;
 }
 
-/** A workspace: its state, its actions (`workspace.actions.openBeside(...)`) and what it was made with. */
-export type Workspace = UiStore;
+/** A workspace: its state, its actions (`jali.actions.openBeside(...)`) and what it was made with. */
+export type Jali = UiStore;
 
 const inBrowser = typeof window !== "undefined";
 
@@ -85,7 +85,7 @@ const presetOf = ({ id, label, layout }: PresetOptions): Preset => ({
   build: () => toLayout(typeof layout === "function" ? layout() : structuredClone(layout)),
 });
 
-export function createWorkspace<D extends PaneKindBase>(options: WorkspaceOptions<D>): Workspace {
+export function createJali<D extends PaneKindBase>(options: JaliOptions<D>): Jali {
   const { panes, launcher, layout, url = inBrowser, size, moveFocus = true } = options;
 
   const kinds: PaneKinds<D> = "register" in panes ? panes : createPaneKinds<D>([...panes]);
@@ -130,7 +130,7 @@ export function createWorkspace<D extends PaneKindBase>(options: WorkspaceOption
   };
   if (!moveFocus) deps.focusPane = null;
 
-  const workspace = createUiStore(deps);
-  boot(workspace);
-  return workspace;
+  const jali = createUiStore(deps);
+  boot(jali);
+  return jali;
 }

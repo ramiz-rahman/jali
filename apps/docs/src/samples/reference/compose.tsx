@@ -6,15 +6,15 @@ import {
   Panes,
   SettingsPanel,
   Shelf,
-  WorkspaceProvider,
-  useWorkspace,
+  JaliProvider,
+  useJali,
 } from "@jali/react";
 import { useEffect } from "react";
 import { store } from "./store";
 
-// <Jali> without <Jali>: the same parts, placed by you.
+// <JaliRoot> without <JaliRoot>: the same parts, placed by you.
 function Root({ children }: { children: React.ReactNode }) {
-  const { dom, start } = useWorkspace();
+  const { dom, start } = useJali();
   useEffect(start, [start]); // keys, Back and Forward, theme and saving, while mounted
   return (
     <div data-jali="" ref={dom.attach} className="app">
@@ -25,7 +25,7 @@ function Root({ children }: { children: React.ReactNode }) {
 
 export function App() {
   return (
-    <WorkspaceProvider workspace={store}>
+    <JaliProvider jali={store}>
       <Root>
         <Panes />
         <footer className="status">
@@ -37,6 +37,6 @@ export function App() {
       <SettingsPanel />
       <Chooser />
       <ConfirmDiscard />
-    </WorkspaceProvider>
+    </JaliProvider>
   );
 }

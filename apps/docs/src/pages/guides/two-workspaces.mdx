@@ -27,9 +27,9 @@ A workspace saves its settings and pane state to `localStorage` under its `id` b
 
 ## Its own keys and start-up
 
-`keys: "workspace"` makes a workspace take only keys from inside its own root and its dialogs, plus keys pressed with nothing focused, when it was the last one used. So F6 in the notes moves between notes panes, and ⌘K then ⌘M maximises a notes pane. The palette renders outside the root, but it is the workspace's own, so the chord finishes there. The default, `"page"`, takes every key on the page: right for one workspace, wrong for two.
+`keys: "scoped"` makes a workspace take only keys from inside its own root and its dialogs, plus keys pressed with nothing focused, when it was the last one used. So F6 in the notes moves between notes panes, and ⌘K then ⌘M maximises a notes pane. The palette renders outside the root, but it is the workspace's own, so the chord finishes there. The default, `"page"`, takes every key on the page: right for one workspace, wrong for two.
 
-Everything else a workspace starts while its `<Jali>` is mounted works for each one: saving settings and pane state, Back and Forward, and the browser's prompt when the page closes with unsaved work.
+Everything else a workspace starts while its `<JaliRoot>` is mounted works for each one: saving settings and pane state, Back and Forward, and the browser's prompt when the page closes with unsaved work.
 
 ## Inside a page with its own theme
 
@@ -41,7 +41,7 @@ Mounting a workspace never takes the page's focus. A page with three workspaces,
 
 ## Its own look
 
-To give one workspace its own accent, set `--jali-accent` on an element around its `<Jali>`. See [Theming](/guides/theming).
+To give one workspace its own accent, set `--jali-accent` on an element around its `<JaliRoot>`. See [Theming](/guides/theming).
 
 ## Next
 

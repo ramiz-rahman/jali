@@ -5,7 +5,7 @@
 import * as core from "../layout";
 import type { LayoutNode, NodeId, ViewState } from "../layout/types";
 import type { Outcome, Snapshot } from "../state/apply";
-import type { WorkspaceModel } from "../state/model";
+import type { JaliModel } from "../state/model";
 
 export interface WideSnapshot {
   /** Tree shape only (ids, types, order): sizes and active tabs may change without invalidating a restore. */
@@ -15,7 +15,7 @@ export interface WideSnapshot {
   view: ViewState;
 }
 
-export function snapshotWide(m: WorkspaceModel, view: ViewState): WideSnapshot {
+export function snapshotWide(m: JaliModel, view: ViewState): WideSnapshot {
   const active: Record<NodeId, NodeId> = {};
   (function walk(n: LayoutNode) {
     if (n.type === "pane") return;

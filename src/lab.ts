@@ -8,7 +8,7 @@ import {
   type UiStore,
   type UiStoreDeps,
 } from "@jali/core/adapter";
-import { createWorkspace, type Workspace, type WorkspaceOptions } from "@jali/core";
+import { createJali, type Jali, type JaliOptions } from "@jali/core";
 import { loanReview, loanReviewKinds } from "./review";
 
 /** What the lab's workspace is made of. */
@@ -21,11 +21,10 @@ export const labOptions = {
   name: "Data Studio",
   // The lab's saved settings and pages predate the "jali" default.
   storage: "pane-lab",
-} satisfies WorkspaceOptions;
+} satisfies JaliOptions;
 
 /** The lab app's workspace. Data Studio links reopen exactly, sizes included (the founder's round-trip rule, 17 Nov). */
-export const createLabWorkspace = (): Workspace =>
-  createWorkspace({ ...labOptions, url: { sizes: "link" } });
+export const createLabJali = (): Jali => createJali({ ...labOptions, url: { sizes: "link" } });
 
 export const labKinds = () =>
   createPaneKinds([...labOptions.panes, { ...dataStudioLauncher, transient: true }]);

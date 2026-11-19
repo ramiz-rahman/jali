@@ -1,7 +1,7 @@
-import { createWorkspace, row } from "@jali/core";
+import { createJali, row } from "@jali/core";
 import { note } from "./note";
 
-export const workspace = createWorkspace({
+export const jali = createJali({
   panes: [note],
   layout: row(note({ id: 1 }), note({ id: 2 })),
 });

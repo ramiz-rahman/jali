@@ -7,7 +7,7 @@ import type { PaneProps } from "@jali/react";
 import { isLoading, useRecord, useRows } from "../data/hooks";
 import type { TableName } from "../data/types";
 import { applicationFacts } from "../data/sample-sql";
-import { useActivity, useWorkspaceState } from "@jali/react";
+import { useActivity, useJaliState } from "@jali/react";
 import { PaneGate } from "../panes/shared/PaneGate";
 import { RecordPane } from "../panes/kinds/record";
 import { day, taka } from "./page";
@@ -396,7 +396,7 @@ function GroupView({ row: g, open, paused }: ViewProps) {
   const officer = useRecord("field_officers", String(g.field_officer_id), { paused }).data;
   const { members, loans, standing: s } = useGroupStanding(g, paused);
   const latest = loans ? latestLoans(loans) : undefined;
-  const applicant = useWorkspaceState((x) =>
+  const applicant = useJaliState((x) =>
     x.page ? applicationFacts(Number(x.page.item)).member : undefined,
   );
   const apps = useCount("loan_applications", { group_id: n(g.id) }, paused);

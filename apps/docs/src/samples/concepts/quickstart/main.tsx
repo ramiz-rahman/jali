@@ -1,7 +1,7 @@
 import { createRoot } from "react-dom/client";
-import { Jali } from "@jali/react";
+import { JaliRoot } from "@jali/react";
 import "@jali/react/styles.css";
 import "./app.css";
-import { workspace } from "./workspace";
+import { jali } from "./workspace";
 
-createRoot(document.getElementById("root")!).render(<Jali workspace={workspace} className="app" />);
+createRoot(document.getElementById("root")!).render(<JaliRoot jali={jali} className="app" />);

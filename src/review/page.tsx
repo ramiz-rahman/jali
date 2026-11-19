@@ -1,7 +1,7 @@
 /** The loan-review page around the panes: the queue at the left and the application's header above the tabs. */
 import { useEffect, useMemo, useRef, useState } from "react";
 import { ListFilter, X } from "lucide-react";
-import { useWorkspace } from "@jali/react";
+import { useJali } from "@jali/react";
 import { isLoading, useRows } from "../data/hooks";
 import { formatTimestamp } from "../panes/format";
 import type { Row } from "../data/types";
@@ -132,7 +132,7 @@ export function QueueRail({ item, activate }: { item: number; activate: (item: n
 
 /** Phones have no rail: a "N waiting" button in the header opens the queue as a sheet. Hidden from 768px up. */
 function QueueSheet({ item }: { item: number }) {
-  const { actions } = useWorkspace();
+  const { actions } = useJali();
   const apps = useRows("loan_applications", { orderBy: "id ASC", limit: 200 });
   const [open, setOpen] = useState(false);
   const btn = useRef<HTMLButtonElement>(null);

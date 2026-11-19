@@ -6,14 +6,14 @@
  * takes keys only when they are pressed inside it.
  */
 import { useId, useState, useSyncExternalStore } from "react";
-import { createWorkspace, memoryLocation, memoryStorage, row, type Workspace } from "@jali/core";
-import { Jali } from "@jali/react";
+import { createJali, memoryLocation, memoryStorage, row, type Jali } from "@jali/core";
+import { JaliRoot } from "@jali/react";
 import { note } from "../../samples/concepts/quickstart/note-open-beside";
 import { demoKinds } from "../../live/kinds";
 import { buildDemoLayout, type DemoLayoutId } from "../../live/demo";
 
 export interface LandingApp {
-  store: Workspace;
+  store: Jali;
   /** The address the workspace writes, in memory: the search string ("?l=…"), and how many history entries. */
   address(): { search: string; entries: number };
   subscribeAddress(fn: () => void): () => void;
@@ -25,16 +25,16 @@ function makeApp(source: Source, id: string): LandingApp {
   const location = memoryLocation();
   const storage = memoryStorage();
   // On the landing page: its own keys only, and the site keeps its theme.
-  const embedded = { url: { location }, storage, id, keys: "workspace", pageTheme: false } as const;
+  const embedded = { url: { location }, storage, id, keys: "scoped", pageTheme: false } as const;
   const store =
     source.app === "quickstart"
-      ? createWorkspace({
+      ? createJali({
           ...embedded,
           panes: [note],
           layout: row(note({ id: 1 }), note({ id: 2 })),
           name: "Notes",
         })
-      : createWorkspace({
+      : createJali({
           ...embedded,
           panes: demoKinds,
           layout: buildDemoLayout(source.layout),
@@ -91,7 +91,7 @@ export function LandingWorkspace({
       style={{ margin: 0, height: height === "100%" ? "100%" : undefined }}
     >
       <div className="live-ws landing-ws-box" style={{ height }}>
-        <Jali workspace={app.store} className="live-jali" settings={false} />
+        <JaliRoot jali={app.store} className="live-jali" settings={false} />
       </div>
     </div>
   );

@@ -1,8 +1,8 @@
-import { createWorkspace } from "@jali/core";
+import { createJali } from "@jali/core";
 import { orderKinds } from "../pane-kinds/orders";
 import { presets } from "../presets/layouts";
 
-export const workspace = createWorkspace({
+export const jali = createJali({
   panes: orderKinds,
   presets,
   url: {

@@ -25,7 +25,7 @@ import {
   type Snapshot,
   type Toast,
 } from "./apply";
-import { modelCache, type WorkspaceModel } from "./model";
+import { modelCache, type JaliModel } from "./model";
 import { loadSettings, systemPrefersDark, type Settings } from "./settings";
 import { loadPrefs, type PagePrefs } from "./page-prefs";
 import {
@@ -153,7 +153,7 @@ export interface UiStoreDeps {
   launcher?: string;
   /** Which keys the workspace takes: every key on the page ("page", the default), or only keys from inside its root
    *  and keys on the page body while it was the last one used ("workspace": two workspaces on one page). */
-  keys?: "page" | "workspace";
+  keys?: "page" | "scoped";
   /** Set `data-theme` on `<html>` from the person's setting while started. Default true. */
   pageTheme?: boolean;
   /** Where the workspace writes its address: usually `createUrlSync()`, which `boot` and `startUi` then also read
@@ -161,7 +161,7 @@ export interface UiStoreDeps {
   url?: UrlWriter;
   /** Moves DOM focus into a pane after the next paint. Default: Jali's (dom/focus.ts), looking inside the workspace's
    *  root; `null` leaves DOM focus alone (a test, a workspace that is never shown). */
-  focusPane?: ((scope: WorkspaceDom, id: NodeId) => void) | null;
+  focusPane?: ((scope: JaliDom, id: NodeId) => void) | null;
   /** What this person keeps on this device: settings, a curated page's mode and layout. Default: localStorage
    *  under the store's `id` ("jali" by default), so each workspace keeps its own. */
   storage?: StoragePort;
@@ -184,7 +184,7 @@ export interface UiStore {
   /** A raw state write for interaction state (drag, dialogs, area). Area and pane-cap changes refit the layout. */
   set(patch: Partial<UiState>): void;
   subscribe(fn: () => void): () => void;
-  model(): WorkspaceModel;
+  model(): JaliModel;
   ctx(): LayoutContext;
   snapshot(): Snapshot;
   apply(o: Outcome): NodeId | undefined;
@@ -199,13 +199,13 @@ export interface UiStore {
   /** The pane kinds and profile this store was made with. */
   env: Env;
   /** Where this workspace lives in the DOM. */
-  dom: WorkspaceDom;
+  dom: JaliDom;
   storage: StoragePort;
   /** The address to share, from the URL port. */
   href(): string;
   /** The URL writer this store was made with (`deps.url`). */
   url: UrlWriter | undefined;
-  /** Start the page-lifetime listeners: keys, Back and Forward, theme and saving. Returns their stop. `<Jali>` calls
+  /** Start the page-lifetime listeners: keys, Back and Forward, theme and saving. Returns their stop. `<JaliRoot>` calls
    *  it on mount; calling it while started does nothing. */
   start(): () => void;
 }
@@ -214,7 +214,7 @@ export interface UiStore {
  * A workspace's place in the DOM: the id prefix of its elements, and the element that holds it (its app shell), set
  * by the component that renders it. DOM lookups (focus, drag, F6 regions) search inside `root()` only.
  */
-export interface WorkspaceDom {
+export interface JaliDom {
   id: string;
   /** The workspace's root element; the document until one is attached. */
   root(): ParentNode;
@@ -227,7 +227,7 @@ export interface WorkspaceDom {
   pane(id: NodeId): HTMLElement | null;
 }
 
-function createDom(id: string): WorkspaceDom {
+function createDom(id: string): JaliDom {
   let el: Element | null = null,
     layer: Element | null = null;
   const root = (): ParentNode => el ?? document;
@@ -382,7 +382,7 @@ export function createUiStore(deps: UiStoreDeps): UiStore {
     start() {
       if (stop) return () => {};
       const off = startUi(store, undefined, {
-        keys: deps.keys === "workspace" ? { root: rootElement } : {},
+        keys: deps.keys === "scoped" ? { root: rootElement } : {},
         pageTheme: deps.pageTheme,
       });
       stop = () => {

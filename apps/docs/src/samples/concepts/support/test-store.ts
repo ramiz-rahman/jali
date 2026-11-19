@@ -1,11 +1,11 @@
-import { createWorkspace, memoryLocation, memoryStorage } from "@jali/core";
+import { createJali, memoryLocation, memoryStorage } from "@jali/core";
 import { triage } from "./layouts";
 import { ticket } from "./ticket";
 import { ticketList } from "./ticket-list";
 
 // The same workspace with nothing shared: its address and storage in memory, a fixed size, DOM focus left alone.
-export const testWorkspace = () =>
-  createWorkspace({
+export const testJali = () =>
+  createJali({
     panes: [ticketList, ticket],
     layout: triage,
     url: { location: memoryLocation() },

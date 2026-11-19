@@ -154,7 +154,7 @@ test.describe("the shelf", () => {
     expect(Math.round((await status.boundingBox())!.height)).toBe(28);
   });
 
-  test("the shelf never resizes the workspace: same height with and without hidden panes", async ({
+  test("the shelf never resizes the jali: same height with and without hidden panes", async ({
     lab,
   }) => {
     await lab.open();

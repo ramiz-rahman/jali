@@ -135,10 +135,10 @@ Define it like any kind, usually with `scratch: true`, and pass it as `launcher`
 
 ## Give the kinds to the workspace
 
-Pass every kind to `createWorkspace`, and the launcher on its own. Each workspace has its own kinds: nothing is shared between workspaces or tests.
+Pass every kind to `createJali`, and the launcher on its own. Each workspace has its own kinds: nothing is shared between workspaces or tests.
 
 ```ts
-const workspace = createWorkspace({ panes: orderKinds, launcher, presets });
+const jali = createJali({ panes: orderKinds, launcher, presets });
 ```
 
 ## The whole file

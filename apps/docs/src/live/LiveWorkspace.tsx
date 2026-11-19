@@ -11,7 +11,7 @@ import {
   memoryStorage,
   type UiStore,
 } from "@jali/core/adapter";
-import { Jali, JaliView, Shelf, useWorkspaceModel } from "@jali/react";
+import { JaliRoot, JaliView, Shelf, useJaliModel } from "@jali/react";
 import { buildDemoLayout, type DemoLayoutId } from "./demo";
 import { demoKinds } from "./kinds";
 import "./live.css";
@@ -27,7 +27,7 @@ export function useLiveStore(layoutId: DemoLayoutId): UiStore {
       id: `live-${layoutId}-${raw.replace(/[^a-zA-Z0-9]/g, "")}`,
       name: "Shop",
       // A figure on a docs page: only its own keys, and the site keeps its theme.
-      keys: "workspace",
+      keys: "scoped",
       pageTheme: false,
     }),
   );
@@ -52,7 +52,7 @@ export function resetLive(store: UiStore, layoutId: DemoLayoutId) {
 
 /** The status line under the panes: the shelf (folded and tucked panes) and a count. */
 function LiveStatus() {
-  const m = useWorkspaceModel();
+  const m = useJaliModel();
   const tucked = m.shelf.length,
     folded = m.folded.length,
     n = m.visible.length;
@@ -103,10 +103,10 @@ export function LiveWorkspace({
       ref={setRef}
       style={{ height }}
     >
-      <Jali workspace={store} className="live-jali" settings={false}>
+      <JaliRoot jali={store} className="live-jali" settings={false}>
         <JaliView />
         {status ? <LiveStatus /> : null}
-      </Jali>
+      </JaliRoot>
       {overlay}
     </div>
   );

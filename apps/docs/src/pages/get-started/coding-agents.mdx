@@ -17,7 +17,7 @@ Each page of these docs is also available as Markdown, from the buttons under it
 
 ### 1. A kind is data plus a component
 
-Define each kind of pane with `definePane("kind", { params, title, width, height, Component })` in its own module, and pass the app's kinds to `createWorkspace({ panes })`. Nothing about a kind is global, so two workspaces on one page never share kinds. Name objects with the kind itself, `ticket({ id: 101 })`, never with a hand-written `{ kind, params }`.
+Define each kind of pane with `definePane("kind", { params, title, width, height, Component })` in its own module, and pass the app's kinds to `createJali({ panes })`. Nothing about a kind is global, so two workspaces on one page never share kinds. Name objects with the kind itself, `ticket({ id: 101 })`, never with a hand-written `{ kind, params }`.
 
 Set `width.min` to the narrowest width the content still works at once it adapts, not the width it looks best at. Jali folds a pane into a tab rather than squeeze it below its minimum, so a minimum that is too large folds panes early. Use `width.comfortable` and `width.max` for the rest ([How a layout fits](/learn/fitting)).
 
@@ -96,7 +96,7 @@ Dark mode follows `prefers-color-scheme`, a `.dark` class or `[data-theme="dark"
 
 ## A checklist for a review
 
-- Every kind is defined with `definePane` and listed in `createWorkspace({ panes })`.
+- Every kind is defined with `definePane` and listed in `createJali({ panes })`.
 - Every `width.min` is the narrowest the content works at.
 - Refs are made with the kind (`ticket({ id })`), and params are declared, not cast.
 - Refs hold ids, not data.

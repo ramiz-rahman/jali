@@ -27,7 +27,7 @@ A kind is one sort of pane: its name, what it shows, its title, the smallest siz
 
 <Code code={ticket} filename="ticket.tsx" highlight="5-13" />
 
-A kind is data plus a component. Each workspace has its own list of kinds (`createWorkspace({ panes })`), so two workspaces on one page never share them.
+A kind is data plus a component. Each workspace has its own list of kinds (`createJali({ panes })`), so two workspaces on one page never share them.
 
 <h3 id="ref">Ref</h3>
 
@@ -135,7 +135,7 @@ A profile can name two kinds of viewer. One has full access: they may work in Sp
 
 <h3 id="store">Workspace and actions</h3>
 
-A workspace holds its layout, focus, selection, settings and history. You make it with `createWorkspace`, and everything it does is an action on it.
+A workspace holds its layout, focus, selection, settings and history. You make it with `createJali`, and everything it does is an action on it.
 
 <Code code={actions} filename="actions.ts" />
 
@@ -188,7 +188,7 @@ A pane gets `paused: true` while it is out of sight: behind a tab, tucked, folde
 
 A command is something the workspace can do, with an id such as `pane.close`. The keymap binds keys to commands; ⌘K (Ctrl+K) opens the command palette and starts a two-key chord, such as ⌘K ⌘Z to restore a closed pane.
 
-Each workspace has its own keymap. Rebind or unbind a command with `createWorkspace({ keymap: { "pane.zoom": null } })`. Your app adds its own commands with `createWorkspace({ commands })`, and a pane adds its own to ⌘K with `useCommands`.
+Each workspace has its own keymap. Rebind or unbind a command with `createJali({ keymap: { "pane.zoom": null } })`. Your app adds its own commands with `createJali({ commands })`, and a pane adds its own to ⌘K with `useCommands`.
 
 <h3 id="content-first">Content first</h3>
 

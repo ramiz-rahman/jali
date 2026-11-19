@@ -4,7 +4,7 @@
  */
 
 // ---------- start here ----------
-export { Jali, JaliView, type JaliProps } from "./Jali";
+export { JaliRoot, JaliView, type JaliRootProps } from "./JaliRoot";
 export {
   definePane,
   definePage,
@@ -28,16 +28,10 @@ export { usePaneState } from "./pane/usePaneState";
 export { useActiveItemPort } from "./pane/useActiveItemPort";
 
 // ---------- the workspace in React ----------
-export {
-  WorkspaceProvider,
-  useWorkspace,
-  useWorkspaceState,
-  useWorkspaceModel,
-  useTheme,
-} from "./state/react";
+export { JaliProvider, useJali, useJaliState, useJaliModel, useTheme } from "./state/react";
 export { useShortcut } from "./commands/react";
 
-// ---------- parts, to compose your own (<Jali> and <JaliView> render these) ----------
+// ---------- parts, to compose your own (<JaliRoot> and <JaliView> render these) ----------
 export { Panes } from "./workspace/Workspace";
 export { CuratedPage, PageBar } from "./chrome/PageBar";
 export { Shelf } from "./chrome/Shelf";

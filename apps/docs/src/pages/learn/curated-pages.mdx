@@ -35,7 +35,7 @@ While a page is open, `<JaliView>` renders it: your rail, your header, the tabs,
 
 <Code code={pageStore} filename="workspace.ts" highlight="9,14" />
 
-A link opens a page with `?page=customer&item=7&tab=orders`. Without one, open it with `workspace.actions.openPage()`, or from ⌘K ("Open Customer"). `workspace.actions.leavePage()` goes back to the free workspace. A page-only app (a page and no presets or layout) needs neither: the workspace starts on its page.
+A link opens a page with `?page=customer&item=7&tab=orders`. Without one, open it with `jali.actions.openPage()`, or from ⌘K ("Open Customer"). `jali.actions.leavePage()` goes back to the free workspace. A page-only app (a page and no presets or layout) needs neither: the workspace starts on its page.
 
 ## Single: one view at a time
 
@@ -79,4 +79,4 @@ Choosing another item swaps every view in place and closes the investigation, be
 
 A page can be used by two kinds of person, named by `viewers`. The `full` viewer may switch to Split view and open links beside. The `limited` viewer works in Single only and opens links as a peek. The sample names them "account manager" and "support agent".
 
-`workspace.actions.setCanInvestigate(false)` sets the limited one. In a product, your app sets it from the person's role.
+`jali.actions.setCanInvestigate(false)` sets the limited one. In a product, your app sets it from the person's role.

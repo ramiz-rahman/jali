@@ -4,7 +4,7 @@ import { AlertTriangle, ArrowUpRight, Check, Info, OctagonAlert } from "lucide-r
 import type { ObjectRef } from "@jali/core";
 import type { Row } from "../data/types";
 import type { PaneProps } from "@jali/react";
-import { useWorkspaceState } from "@jali/react";
+import { useJaliState } from "@jali/react";
 import { Shell } from "../panes/shared/states";
 import { statusLabel } from "./data";
 import type { Tone } from "./signals";
@@ -105,7 +105,7 @@ export function Facts({ rows, cols }: { rows: (Fact | null | false)[]; cols?: 1 
 
 /** How a link is followed here: a peek in Single (and for roles that only peek), beside in Split view. */
 function useLinkVerb() {
-  return useWorkspaceState((s) =>
+  return useJaliState((s) =>
     s.page && (s.page.mode === "single" || !s.page.canInvestigate) ? "peek" : "beside",
   );
 }

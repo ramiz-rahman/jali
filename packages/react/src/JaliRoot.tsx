@@ -1,19 +1,19 @@
 /**
- * The component an app starts with. `<Jali workspace>` renders the workspace, the dialogs every workspace has (⌘K,
+ * The component an app starts with. `<JaliRoot jali>` renders the workspace, the dialogs every workspace has (⌘K,
  * settings, "Add to tabs of…", "Discard unsaved changes?") and the live region, and starts the workspace's keys,
  * Back and Forward, theme and saving while it is mounted.
  *
- *   <Jali workspace={workspace} />
+ *   <JaliRoot jali={jali} />
  *
  * To put your own chrome around the panes, pass children and place `<JaliView />` among them:
  *
- *   <Jali workspace={workspace} className="app">
+ *   <JaliRoot jali={jali} className="app">
  *     <MyTopBar />
  *     <JaliView />
- *   </Jali>
+ *   </JaliRoot>
  *
  * Two things are the host's to render: the shelf (`<Shelf />`, tucked and folded panes as chips, usually in a status
- * line) and toasts (`store.onToast`; closes and tucks offer Undo). Put a toaster in `overlays`.
+ * line) and toasts (`jali.onToast`; closes and tucks offer Undo). Put a toaster in `overlays`.
  */
 import { useEffect, type HTMLAttributes, type ReactNode } from "react";
 import type { UiStore } from "@jali/core/adapter";
@@ -26,8 +26,8 @@ import { SettingsPanel } from "./dialogs/Settings";
 import { StoreProvider, useUi } from "./state/react";
 import { Panes } from "./workspace/Workspace";
 
-export interface JaliProps extends HTMLAttributes<HTMLDivElement> {
-  workspace: UiStore;
+export interface JaliRootProps extends HTMLAttributes<HTMLDivElement> {
+  jali: UiStore;
   /** What goes inside the workspace's root. Default: `<JaliView />`. */
   children?: ReactNode;
   /** Rendered after the root, inside the provider: things that must sit outside the workspace, such as a toaster
@@ -39,22 +39,22 @@ export interface JaliProps extends HTMLAttributes<HTMLDivElement> {
   settingsExtra?: ReactNode;
 }
 
-export function Jali({
-  workspace,
+export function JaliRoot({
+  jali,
   children = <JaliView />,
   overlays,
   settings = true,
   settingsExtra,
   ...rest
-}: JaliProps) {
-  useEffect(() => workspace.start(), [workspace]);
+}: JaliRootProps) {
+  useEffect(() => jali.start(), [jali]);
   return (
-    <StoreProvider store={workspace}>
-      <div {...rest} data-jali="" ref={workspace.dom.attach}>
+    <StoreProvider store={jali}>
+      <div {...rest} data-jali="" ref={jali.dom.attach}>
         {children}
       </div>
       {/* The dialogs render outside the root but are this workspace's: keys pressed in them count as its own. */}
-      <div data-jali-layer="" ref={workspace.dom.attachLayer} style={{ display: "contents" }}>
+      <div data-jali-layer="" ref={jali.dom.attachLayer} style={{ display: "contents" }}>
         <Announcer />
         <Palette />
         {settings ? <SettingsPanel>{settingsExtra}</SettingsPanel> : null}

@@ -3,8 +3,8 @@
 React for [Jali](../core) workspaces, with Jali's default theme.
 
 ```tsx
-import { createWorkspace, row } from "@jali/core";
-import { Jali, definePane } from "@jali/react";
+import { createJali, row } from "@jali/core";
+import { JaliRoot, definePane } from "@jali/react";
 import "@jali/react/styles.css";
 
 const note = definePane("note", {
@@ -17,9 +17,9 @@ const note = definePane("note", {
   ),
 });
 
-const workspace = createWorkspace({ panes: [note], layout: row(note({ id: 1 }), note({ id: 2 })) });
+const jali = createJali({ panes: [note], layout: row(note({ id: 1 }), note({ id: 2 })) });
 
-<Jali workspace={workspace} className="app" />;
+<JaliRoot jali={jali} className="app" />;
 ```
 
 Inside a pane, `usePane()` reads its props from any depth, and `useActivity`, `useUnsaved`, `useCommands` and `usePaneState` report to the workspace.
@@ -35,6 +35,6 @@ Everything Jali draws reads `--jali-*` tokens and sits in the `jali` cascade lay
 - **Your Tailwind theme:** also import `@jali/react/tailwind.css`. It points Jali's tokens at your theme's (`--color-primary`, `--color-card`, `--color-border`, `--radius-card`, …), the same names Chakni reads.
 - **By hand:** set any `--jali-*` token on `:root` or a subtree (`--jali-accent: #0f766e;`). Dark mode follows `prefers-color-scheme`, `.dark` or `[data-theme="dark"]`.
 - **Type:** Jali's face is Atkinson Hyperlegible: Next for text, Mono for code (`--jali-font`, `--jali-font-mono`). Jali doesn't bundle font files; load them (for example `@fontsource/atkinson-hyperlegible-next` and `-mono`) or set the tokens to your own faces.
-- **Parts** carry their state as attributes (`data-pane`, `data-kind`, `data-focused`, `aria-selected`, `data-drop-zone`) and every class is `jali-*`. Parts take no `className`: style them with your own rule on those classes and attributes (`.jali-pane[data-focused] { … }`, or in Tailwind `@apply` inside such a rule). Since Jali's rules are in the `jali` layer, yours win without `!important`. `<Jali className>` styles the root.
+- **Parts** carry their state as attributes (`data-pane`, `data-kind`, `data-focused`, `aria-selected`, `data-drop-zone`) and every class is `jali-*`. Parts take no `className`: style them with your own rule on those classes and attributes (`.jali-pane[data-focused] { … }`, or in Tailwind `@apply` inside such a rule). Since Jali's rules are in the `jali` layer, yours win without `!important`. `<JaliRoot className>` styles the root.
 
 See `examples/minimal` for the smallest working app.

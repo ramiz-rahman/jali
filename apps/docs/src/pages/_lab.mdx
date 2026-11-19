@@ -3,7 +3,7 @@ title: Lab
 summary: Every docs component on one page, for building and checking them. Not in the nav.
 ---
 
-A paragraph with a [link to the introduction](/get-started/introduction), some **strong words**, *a little emphasis* and `inline code` such as `createWorkspace`. Prose runs at sixteen on twenty-six, about seventy characters a line, so a paragraph reads without the eye losing its place at the end of each line.
+A paragraph with a [link to the introduction](/get-started/introduction), some **strong words**, *a little emphasis* and `inline code` such as `createJali`. Prose runs at sixteen on twenty-six, about seventy characters a line, so a paragraph reads without the eye losing its place at the end of each line.
 
 ## Callouts
 
@@ -41,9 +41,9 @@ export const order = definePane("order", {
 A fenced block:
 
 ```ts
-import { createWorkspace, row } from "@jali/core";
+import { createJali, row } from "@jali/core";
 
-const workspace = createWorkspace({
+const jali = createJali({
   panes: [order, customer],
   layout: row(order({ id: 1 }), customer({ id: 7 })), // kept in the address
 });
@@ -74,7 +74,7 @@ const workspace = createWorkspace({
     A kind says what a pane shows and the narrowest it works at.
   </Step>
   <Step title="Render the workspace">
-    Render `<Jali workspace={workspace} />`.
+    Render `<JaliRoot jali={jali} />`.
   </Step>
 </Steps>
 

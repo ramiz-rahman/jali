@@ -4,7 +4,7 @@
  */
 import { AlertTriangle } from "lucide-react";
 import type { PaneProps } from "@jali/react";
-import { useActivity, useWorkspaceState } from "@jali/react";
+import { useActivity, useJaliState } from "@jali/react";
 import { isLoading, useRows } from "../data/hooks";
 import type { TableName } from "../data/types";
 import { PaneGate } from "../panes/shared/PaneGate";
@@ -262,7 +262,7 @@ function MemberList({ rows, label, open }: ListProps) {
 function ApplicationList({ rows, column, label, open, paused }: ListProps) {
   const names = useMemberNames(paused);
   const byMember = column === "member_id";
-  const current = useWorkspaceState((x) => x.page?.item);
+  const current = useJaliState((x) => x.page?.item);
   return (
     <View label={label}>
       <ViewHead kicker="Applications" title={label} />

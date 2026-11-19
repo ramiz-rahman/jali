@@ -1,7 +1,7 @@
-import { createWorkspace, memoryLocation, memoryStorage } from "@jali/core";
+import { createJali, memoryLocation, memoryStorage } from "@jali/core";
 import { launcherKind, orderKind, ordersKind } from "./kinds";
 
-export const workspace = createWorkspace({
+export const jali = createJali({
   panes: [ordersKind, orderKind], // the kinds of pane it can show
   layout: ordersKind(), // the layout it opens on (or `presets`)
   launcher: launcherKind, // what Split opens: without one there is no Split
@@ -9,14 +9,14 @@ export const workspace = createWorkspace({
   url: { prefix: "a.", sizes: "link" }, // or true (the default in a browser), or false
   storage: "sales", // localStorage keys "sales:…", or a StoragePort
   id: "sales", // DOM ids "sales-pane-…"
-  keys: "workspace", // only keys pressed inside it
+  keys: "scoped", // only keys pressed inside it
   pageTheme: false, // leave data-theme on <html> to the page
   keymap: { "pane.close": "Mod+K Mod+W" },
 });
 
 // With no browser (a test, the server): the address and storage in memory, a fixed size, DOM focus left alone.
 const location = memoryLocation();
-export const inMemory = createWorkspace({
+export const inMemory = createJali({
   panes: [orderKind],
   layout: orderKind({ id: 1041 }),
   url: { location },

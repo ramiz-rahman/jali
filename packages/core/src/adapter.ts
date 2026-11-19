@@ -13,7 +13,7 @@ export { sameRef } from "./actions/follow";
 export { checkTuck, tuckHome } from "./actions/tuck";
 export { openPaneFor } from "./actions/open";
 export * from "./boot";
-export * from "./create-workspace";
+export * from "./create-jali";
 export * from "./layout/build";
 export * from "./state/pane-state";
 export * from "./commands/format";

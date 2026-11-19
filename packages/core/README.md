@@ -8,16 +8,16 @@ A workspace of panes that fits the space it has. No framework.
 - **Ports.** The address and what a person keeps on their device go through small interfaces, so a router or a test can own them.
 
 ```ts
-import { createWorkspace, row } from "@jali/core";
+import { createJali, row } from "@jali/core";
 
-const workspace = createWorkspace({
+const jali = createJali({
   panes: [orders, order], // your kinds: definePane from @jali/react
   layout: row(orders(), order({ id: 1 })), // two panes side by side, kept in the address
 });
 
-workspace.actions.openBeside("orders", order({ id: 2 }));
+jali.actions.openBeside("orders", order({ id: 2 }));
 ```
 
-More than one workspace on a page: give each its own `id` (DOM ids and saved keys), URL `prefix` (`url: { prefix: "n." }`) and `keys: "workspace"`. A workspace inside a page with its own theme passes `pageTheme: false`.
+More than one workspace on a page: give each its own `id` (DOM ids and saved keys), URL `prefix` (`url: { prefix: "n." }`) and `keys: "scoped"`. A workspace inside a page with its own theme passes `pageTheme: false`.
 
 Render it with [`@jali/react`](../react). Framework adapters import `@jali/core/adapter`.

@@ -9,8 +9,8 @@ import {
   type ReactNode,
 } from "react";
 import { Hand, MousePointerClick, MoveHorizontal, Network, RotateCcw, X } from "lucide-react";
-import { layout as jl, type Rect, type WorkspaceModel } from "@jali/core/adapter";
-import { WorkspaceProvider } from "@jali/react";
+import { layout as jl, type Rect, type JaliModel } from "@jali/core/adapter";
+import { JaliProvider } from "@jali/react";
 import type { DemoLayoutId } from "./demo";
 import { demoLayouts } from "./demo";
 import { colourOf } from "./colours";
@@ -49,11 +49,7 @@ export interface TreeViewProps {
 const THREE_UP = 1200;
 
 /** What a reader can do in the workspace as it is now (a phone shows one pane, so there is no gap to drag). */
-function triesFor(
-  m: WorkspaceModel,
-  json: boolean,
-  tree = true,
-): { icon: ReactNode; text: string }[] {
+function triesFor(m: JaliModel, json: boolean, tree = true): { icon: ReactNode; text: string }[] {
   const list = m.panes.find((p) => p.ref.kind === "orders" && m.visible.includes(p.id));
   const follows =
     !!list && m.panes.some((p) => p.linkedTo === list.id && p.follows && m.visible.includes(p.id));
@@ -258,7 +254,7 @@ export function TreeView({
             )}
           </div>
           {open ? (
-            <WorkspaceProvider workspace={store}>
+            <JaliProvider jali={store}>
               <PreviewRects.Provider value={preview}>
                 <section className="live-panel live-side" aria-label="The layout tree">
                   <header className="live-panel-head">
@@ -312,7 +308,7 @@ export function TreeView({
                   </div>
                 </section>
               </PreviewRects.Provider>
-            </WorkspaceProvider>
+            </JaliProvider>
           ) : null}
         </div>
         {caption ? <figcaption className="live-caption">{caption}</figcaption> : null}
@@ -348,7 +344,7 @@ export function TreeView({
         >
           <LiveWorkspace store={store} height={h} wrapRef={wrap} />
         </div>
-        <WorkspaceProvider workspace={store}>
+        <JaliProvider jali={store}>
           <PreviewRects.Provider value={preview}>
             {both ? (
               three ? (
@@ -368,7 +364,7 @@ export function TreeView({
               jsonPanel
             ) : null}
           </PreviewRects.Provider>
-        </WorkspaceProvider>
+        </JaliProvider>
       </div>
       {caption ? <figcaption className="live-caption">{caption}</figcaption> : null}
     </figure>

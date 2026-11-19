@@ -1,16 +1,9 @@
-/** The app-facing API: definePane, createWorkspace with the layout builders, <Jali> and the pane hooks. */
+/** The app-facing API: definePane, createJali with the layout builders, <JaliRoot> and the pane hooks. */
 import { act, cleanup, render } from "@testing-library/react";
 import { afterEach, beforeAll, describe, expect, it } from "vite-plus/test";
 import { useState } from "react";
-import {
-  createWorkspace,
-  memoryLocation,
-  memoryStorage,
-  pane,
-  row,
-  type WorkspaceOptions,
-} from "@jali/core";
-import { Jali, definePane, useActivity, useCommands, usePane, useUnsaved } from "@jali/react";
+import { createJali, memoryLocation, memoryStorage, pane, row, type JaliOptions } from "@jali/core";
+import { JaliRoot, definePane, useActivity, useCommands, usePane, useUnsaved } from "@jali/react";
 
 const note = definePane("note", {
   params: { id: Number },
@@ -43,8 +36,8 @@ const launcher = definePane("launcher", {
 });
 
 /** A workspace with nothing shared: its own address and storage, a fixed size, DOM focus left alone. */
-const make = (options: Partial<WorkspaceOptions> = {}) =>
-  createWorkspace({
+const make = (options: Partial<JaliOptions> = {}) =>
+  createJali({
     panes: [note],
     layout: row(note({ id: 1 }), note({ id: 2 })),
     url: { location: memoryLocation() },
@@ -74,11 +67,11 @@ describe("definePane", () => {
   });
 
   it("reads params back with their types, for the title and the component", () => {
-    const workspace = make({
+    const jali = make({
       layout: row(pane({ kind: "note", params: { id: "7" } }, { id: "seven" })),
     });
-    expect(workspace.env.kinds.params(workspace.model().pane("seven")!.ref)).toEqual({ id: 7 });
-    expect(workspace.model().title("seven")).toBe("Note 7");
+    expect(jali.env.kinds.params(jali.model().pane("seven")!.ref)).toEqual({ id: 7 });
+    expect(jali.model().title("seven")).toBe("Note 7");
   });
 
   it("gives sizes defaults, so a kind only states what it needs", () => {
@@ -94,11 +87,11 @@ describe("definePane", () => {
   });
 });
 
-describe("createWorkspace", () => {
+describe("createJali", () => {
   it("opens on its layout, fitted and focused, ready before the first render", () => {
-    const workspace = make();
-    expect(workspace.model().panes.map((p) => p.id)).toEqual(["note", "note-2"]);
-    expect(workspace.get().view.focused).toBe("note");
+    const jali = make();
+    expect(jali.model().panes.map((p) => p.id)).toEqual(["note", "note-2"]);
+    expect(jali.get().view.focused).toBe("note");
   });
 
   it("writes the layout to the address and reads it back", () => {
@@ -110,29 +103,29 @@ describe("createWorkspace", () => {
 
   it("offers Split only with a launcher, which it marks transient", () => {
     expect(make().actions.split("right")).toBeUndefined();
-    const workspace = make({ launcher });
-    const opened = workspace.actions.split("right");
-    expect(workspace.model().pane(opened!)?.ref.kind).toBe("launcher");
-    expect(workspace.env.kinds.isTransient(launcher())).toBe(true);
+    const jali = make({ launcher });
+    const opened = jali.actions.split("right");
+    expect(jali.model().pane(opened!)?.ref.kind).toBe("launcher");
+    expect(jali.env.kinds.isTransient(launcher())).toBe(true);
   });
 
   it("builds a preset each time it is chosen", () => {
-    const workspace = make({
+    const jali = make({
       layout: undefined,
       presets: [{ id: "one", label: "One", layout: () => row(note({ id: 5 })) }],
     });
-    workspace.actions.close("note");
-    workspace.actions.preset("one");
-    expect(workspace.model().panes.map((p) => p.ref.params.id)).toEqual([5]);
+    jali.actions.close("note");
+    jali.actions.preset("one");
+    expect(jali.model().panes.map((p) => p.ref.params.id)).toEqual([5]);
   });
 });
 
-describe("<Jali> and the pane hooks", () => {
+describe("<JaliRoot> and the pane hooks", () => {
   it("renders the workspace and reports what each pane says about itself", async () => {
-    const workspace = make({ layout: row(note({ id: 1 })) });
-    const { getByLabelText } = render(<Jali workspace={workspace} />);
+    const jali = make({ layout: row(note({ id: 1 })) });
+    const { getByLabelText } = render(<JaliRoot jali={jali} />);
     expect(getByLabelText("Draft of note 1")).toBeTruthy();
-    expect(workspace.get().paneCommands.note?.map((c) => c.title)).toEqual(["Open note 2"]);
+    expect(jali.get().paneCommands.note?.map((c) => c.title)).toEqual(["Open note 2"]);
 
     const text = getByLabelText("Draft of note 1") as HTMLTextAreaElement;
     await act(async () => {
@@ -140,20 +133,20 @@ describe("<Jali> and the pane hooks", () => {
       set.call(text, "Buy milk");
       text.dispatchEvent(new Event("input", { bubbles: true }));
     });
-    expect(workspace.get().unsaved.note).toBe("an unsaved note");
-    expect(workspace.get().activity.note).toBe("working");
+    expect(jali.get().unsaved.note).toBe("an unsaved note");
+    expect(jali.get().activity.note).toBe("working");
 
     // A command runs the latest `run` it was given.
-    await act(async () => workspace.get().paneCommands.note![0]!.run());
-    expect(workspace.model().panes.map((p) => p.ref.params.id)).toEqual([1, 2]);
+    await act(async () => jali.get().paneCommands.note![0]!.run());
+    expect(jali.model().panes.map((p) => p.ref.params.id)).toEqual([1, 2]);
   });
 
   it("starts the workspace's listeners while mounted, once", () => {
-    const workspace = make();
-    const { unmount } = render(<Jali workspace={workspace} />);
-    expect(workspace.start()).toBeTypeOf("function"); // already started: a no-op stop
+    const jali = make();
+    const { unmount } = render(<JaliRoot jali={jali} />);
+    expect(jali.start()).toBeTypeOf("function"); // already started: a no-op stop
     unmount();
-    const stop = workspace.start(); // stopped on unmount, so this starts it again
+    const stop = jali.start(); // stopped on unmount, so this starts it again
     stop();
   });
 });

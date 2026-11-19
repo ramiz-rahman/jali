@@ -1,4 +1,4 @@
-import { createWorkspace, type Command } from "@jali/core";
+import { createJali, type Command } from "@jali/core";
 import { launcher, orderKinds } from "../pane-kinds/orders";
 import { presets } from "../presets/layouts";
 
@@ -18,7 +18,7 @@ const commands: Command[] = [
   },
 ];
 
-export const workspace = createWorkspace({
+export const jali = createJali({
   panes: orderKinds,
   launcher,
   presets,

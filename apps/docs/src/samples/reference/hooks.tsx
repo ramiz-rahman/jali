@@ -1,10 +1,10 @@
-import { useShortcut, useWorkspace, useWorkspaceModel, useWorkspaceState } from "@jali/react";
+import { useShortcut, useJali, useJaliModel, useJaliState } from "@jali/react";
 
 // A status line: reads exactly what it shows, so it re-renders only when that changes.
 export function StatusLine() {
-  const focused = useWorkspaceState((s) => s.view.focused);
-  const m = useWorkspaceModel();
-  const { actions } = useWorkspace();
+  const focused = useJaliState((s) => s.view.focused);
+  const m = useJaliModel();
+  const { actions } = useJali();
   const keys = useShortcut("pane.zoom");
   return (
     <footer>

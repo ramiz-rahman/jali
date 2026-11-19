@@ -5,12 +5,7 @@
  */
 
 // ---------- start here ----------
-export {
-  createWorkspace,
-  type Workspace,
-  type WorkspaceOptions,
-  type PresetOptions,
-} from "./create-workspace";
+export { createJali, type Jali, type JaliOptions, type PresetOptions } from "./create-jali";
 export {
   row,
   column,
@@ -72,10 +67,10 @@ export { sameRef } from "./actions/follow";
 
 // ---------- the workspace's state ----------
 export type {
-  UiState as WorkspaceState,
+  UiState as JaliState,
   PageState,
   Selection,
-  WorkspaceDom,
+  JaliDom,
   UrlWriter,
   DndState,
   ConfirmState,
@@ -84,7 +79,7 @@ export type {
 export type { Actions } from "./actions";
 export type { OpenPage } from "./actions/page";
 export type { PagePrefs } from "./state/page-prefs";
-export type { WorkspaceModel, Group } from "./state/model";
+export type { JaliModel, Group } from "./state/model";
 export type { Snapshot, Outcome, Change, Refusal, Toast, HistoryMode } from "./state/apply";
 export type { Settings, ThemeChoice, Theme } from "./state/settings";
 

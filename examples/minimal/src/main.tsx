@@ -1,7 +1,7 @@
 /** The smallest Jali app: one kind of pane, a starting layout, and the workspace filling the window. */
 import { createRoot } from "react-dom/client";
-import { createWorkspace, row } from "@jali/core";
-import { Jali, definePane } from "@jali/react";
+import { createJali, row } from "@jali/core";
+import { JaliRoot, definePane } from "@jali/react";
 // The layer order is declared in index.html. Then the app's styles, Jali's, and its faces: Atkinson Hyperlegible
 // Next and Mono.
 import "./app.css";
@@ -43,10 +43,10 @@ const launcher = definePane("launcher", {
 });
 
 // A workspace: its kinds of pane, the launcher, and the layout it opens on (two notes side by side).
-const workspace = createWorkspace({
+const jali = createJali({
   panes: [note],
   launcher,
   layout: row(note({ id: 1 }), note({ id: 2 })),
 });
 
-createRoot(document.getElementById("root")!).render(<Jali workspace={workspace} className="app" />);
+createRoot(document.getElementById("root")!).render(<JaliRoot jali={jali} className="app" />);

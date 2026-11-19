@@ -10,7 +10,7 @@ import {
   StickyNote,
   UserRound,
 } from "lucide-react";
-import { definePane, useWorkspaceModel, useWorkspaceState, type PaneProps } from "@jali/react";
+import { definePane, useJaliModel, useJaliState, type PaneProps } from "@jali/react";
 import {
   activity,
   customerById,
@@ -52,9 +52,9 @@ function Status({ s }: { s: OrderStatus }) {
 
 /** The order list. Its selection is what the order detail beside it follows. */
 function OrdersPane({ node, select, openBeside }: PaneProps) {
-  const m = useWorkspaceModel();
+  const m = useJaliModel();
   const follower = m.panes.find((p) => p.linkedTo === node.id && p.follows);
-  const picked = useWorkspaceState((s) => s.selection[node.id]?.ref.params.id);
+  const picked = useJaliState((s) => s.selection[node.id]?.ref.params.id);
   const current = Number(picked ?? follower?.ref.params.id ?? NaN);
   const index = orders.findIndex((o) => o.id === current);
   const choose = (i: number) => {

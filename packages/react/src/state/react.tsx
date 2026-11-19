@@ -1,6 +1,6 @@
 /** React access to the store: one provider, and hooks that subscribe to exactly what a component reads. */
 import { createContext, useContext, useSyncExternalStore, type ReactNode } from "react";
-import type { Actions, PaneNode, WorkspaceModel, UiState, UiStore } from "@jali/core/adapter";
+import type { Actions, PaneNode, JaliModel, UiState, UiStore } from "@jali/core/adapter";
 import type { ReactEnv, Page } from "../define";
 import { resolveTheme, titleOf, type Theme } from "@jali/core/adapter";
 
@@ -25,7 +25,7 @@ export function useUi<T>(select: (s: UiState) => T): T {
 }
 
 /** The derived workspace model; a new object only when something it depends on changed. */
-export function useModel(): WorkspaceModel {
+export function useModel(): JaliModel {
   const store = useStore();
   return useSyncExternalStore(store.subscribe, store.model);
 }
@@ -44,19 +44,15 @@ export function useTitleOf(): (node: PaneNode) => string {
 
 // ---------- the public names ----------
 
-/** Provides a workspace to the hooks below it. `<Jali>` does this; use it to render Jali's parts on their own. */
-export const WorkspaceProvider = ({
-  workspace,
-  children,
-}: {
-  workspace: UiStore;
-  children?: ReactNode;
-}) => <StoreProvider store={workspace}>{children}</StoreProvider>;
-/** The workspace: its actions (`useWorkspace().actions.openBeside(...)`), keymap, kinds and state. */
-export const useWorkspace = useStore;
-/** Part of the workspace's state, re-rendering only when it changes: `useWorkspaceState((s) => s.view.focused)`. */
-export const useWorkspaceState = useUi;
+/** Provides a workspace to the hooks below it. `<JaliRoot>` does this; use it to render Jali's parts on their own. */
+export const JaliProvider = ({ jali, children }: { jali: UiStore; children?: ReactNode }) => (
+  <StoreProvider store={jali}>{children}</StoreProvider>
+);
+/** The workspace: its actions (`useJali().actions.openBeside(...)`), keymap, kinds and state. */
+export const useJali = useStore;
+/** Part of the workspace's state, re-rendering only when it changes: `useJaliState((s) => s.view.focused)`. */
+export const useJaliState = useUi;
 /** The workspace as it is on screen: its panes, their boxes and titles, the shelf. */
-export const useWorkspaceModel = useModel;
+export const useJaliModel = useModel;
 /** The theme in use, "light" or "dark": the person's choice, or the system's when they chose "system". */
 export const useTheme = (): Theme => useUi((s) => resolveTheme(s.settings.theme, s.systemDark));

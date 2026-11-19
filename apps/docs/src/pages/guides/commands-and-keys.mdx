@@ -33,7 +33,7 @@ Every command and its id is in the [Commands reference](/reference/commands). Es
 
 ## Rebind and unbind
 
-Pass `keymap` to `createWorkspace`. Each entry is a command id and its new bindings:
+Pass `keymap` to `createJali`. Each entry is a command id and its new bindings:
 
 <Code code={keymap} filename="src/workspace.ts" />
 
@@ -81,13 +81,13 @@ Your keymap may differ from the defaults, and the keys print differently on each
 <Code code={label} filename="src/CloseButton.tsx" />
 
 - `useShortcut(id)` gives "⌘K ⌘⌫" on a Mac and "Ctrl+K Ctrl+Backspace" elsewhere, or `""` when the command is unbound.
-- Outside React, `workspace.keymap.label(id)` does the same.
+- Outside React, `jali.keymap.label(id)` does the same.
 
 For keys your content handles itself, `keyHint("Mod+Enter")` prints them the same way ("⌘↵" or "Ctrl+Enter").
 
 ## Your app's own commands
 
-Commands that belong to your app rather than to one pane, such as "Refresh orders", go in `createWorkspace({ commands })`. They are listed in ⌘K after the workspace's, and `keymap` binds them like any other:
+Commands that belong to your app rather than to one pane, such as "Refresh orders", go in `createJali({ commands })`. They are listed in ⌘K after the workspace's, and `keymap` binds them like any other:
 
 <Code code={hostCommands} filename="src/workspace.ts" />
 

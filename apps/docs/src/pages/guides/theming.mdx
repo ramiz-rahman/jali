@@ -51,7 +51,7 @@ The tokens you are most likely to change:
 
 Every token, with its light and dark values, is in the [Tokens reference](/reference/tokens).
 
-The accent's tints (`--jali-accent-weak`, `--jali-accent-mid`, `--jali-drop` and the focus ring) are mixed from `--jali-accent` on each workspace. Change the accent and they follow, on the whole page or on one workspace. For one workspace, set it on an element around `<Jali>`: the palette and other dialogs render beside the workspace's root, not inside it.
+The accent's tints (`--jali-accent-weak`, `--jali-accent-mid`, `--jali-drop` and the focus ring) are mixed from `--jali-accent` on each workspace. Change the accent and they follow, on the whole page or on one workspace. For one workspace, set it on an element around `<JaliRoot>`: the palette and other dialogs render beside the workspace's root, not inside it.
 
 ## Example: retheme to teal
 
@@ -113,7 +113,7 @@ With Tailwind, put rules like these in your stylesheet, in a layer after `jali`.
 
 ## Your chrome inside the workspace
 
-A top bar or status line you render inside `<Jali>` is yours to style. Mark it `data-jali-chrome`. After a layout change Jali moves keyboard focus back to the focused pane, but not out of an element marked this way, so a person using your top bar stays there.
+A top bar or status line you render inside `<JaliRoot>` is yours to style. Mark it `data-jali-chrome`. After a layout change Jali moves keyboard focus back to the focused pane, but not out of an element marked this way, so a person using your top bar stays there.
 
 ## Next
 

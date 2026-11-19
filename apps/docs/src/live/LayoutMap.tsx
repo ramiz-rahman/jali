@@ -5,13 +5,13 @@
  */
 import { useContext, type CSSProperties, type ReactNode } from "react";
 import { Columns2, Layers, Rows2 } from "lucide-react";
-import type { LayoutNode, PaneNode, StackNode, WorkspaceModel } from "@jali/core/adapter";
-import { KindIcon, useWorkspaceModel } from "@jali/react";
+import type { LayoutNode, PaneNode, StackNode, JaliModel } from "@jali/core/adapter";
+import { KindIcon, useJaliModel } from "@jali/react";
 import { PreviewRects, extentOf, panesUnder, sizeText, type Hover } from "./LayoutTree";
 import { colourOf } from "./colours";
 
 interface Ctx {
-  m: WorkspaceModel;
+  m: JaliModel;
   hover: Hover | null;
   setHover(h: Hover | null): void;
   sizes: boolean;
@@ -20,7 +20,7 @@ interface Ctx {
 const px = (v: number) => `${Math.round(v)} px`;
 
 /** Panes not on screen, drawn inside the pane they went into, with how they got there. */
-function guestsOf(host: string, m: WorkspaceModel): { node: PaneNode; how: string }[] {
+function guestsOf(host: string, m: JaliModel): { node: PaneNode; how: string }[] {
   return m.panes.flatMap((p) => {
     if (p.id === host || m.shownWith(p.id) !== host) return [];
     if (m.stackOf(p.id)) return []; // a tab of a stack is drawn by the stack
@@ -42,7 +42,7 @@ function hoverProps(id: string, c: Ctx, label: string) {
 }
 
 /** What a pane is doing, in a few plain words. */
-function roleWords(p: PaneNode, m: WorkspaceModel): string | null {
+function roleWords(p: PaneNode, m: JaliModel): string | null {
   const leads = m.panes.find((q) => q.linkedTo === p.id && q.follows);
   if (p.linkedTo && p.follows) return `follows ${m.title(p.linkedTo)}`;
   if (p.linkedTo) return `opened from ${m.title(p.linkedTo)}`;
@@ -200,7 +200,7 @@ export function LayoutMap({
   setHover(h: Hover | null): void;
   sizes: boolean;
 }) {
-  const m = useWorkspaceModel();
+  const m = useJaliModel();
   const pick = (e: { target: EventTarget }) => {
     const id = (e.target as Element).closest<HTMLElement>("[data-node]")?.dataset.node;
     if (id && id !== hover?.id) setHover({ id, from: "tree" });

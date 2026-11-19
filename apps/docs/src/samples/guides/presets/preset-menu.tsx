@@ -1,9 +1,9 @@
-import { useWorkspace, useWorkspaceState } from "@jali/react";
+import { useJali, useJaliState } from "@jali/react";
 
-/** The presets as buttons in your own top bar. Render it inside <Jali>. */
+/** The presets as buttons in your own top bar. Render it inside <JaliRoot>. */
 export function PresetMenu() {
-  const { env, actions } = useWorkspace();
-  const current = useWorkspaceState((s) => s.presetId);
+  const { env, actions } = useJali();
+  const current = useJaliState((s) => s.presetId);
   return (
     <nav aria-label="Layouts">
       {env.presets.map((p) => (

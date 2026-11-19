@@ -37,20 +37,20 @@ Sizes are a starting point. With weights, each pane first gets its kind's `width
 
 - `presets` is the list, in menu order. ⌘K shows each as "Layout: *label*".
 - `preset` is the one to open on. Without it, the first. A link with a layout in it wins over both: see [Keep the layout in the URL](/guides/url-and-routers).
-- `workspace.actions.preset(id)` switches. If a pane that would go has unsaved work, the person is asked first.
-- `workspace.actions.resetLayout()` rebuilds the preset in use. ⌘K "Reset layout" does the same.
+- `jali.actions.preset(id)` switches. If a pane that would go has unsaved work, the person is asked first.
+- `jali.actions.resetLayout()` rebuilds the preset in use. ⌘K "Reset layout" does the same.
 
 Switching to a preset is a new step in the browser's history, so Back returns to the layout before it.
 
 ## Your own preset menu
 
-Jali lists presets in ⌘K. If you want them in your top bar too, read them from the workspace. Render this inside `<Jali>`:
+Jali lists presets in ⌘K. If you want them in your top bar too, read them from the workspace. Render this inside `<JaliRoot>`:
 
 <Code code={menu} filename="src/PresetMenu.tsx" />
 
 ## No presets: one starting layout
 
-A workspace that doesn't need presets passes one `layout`. It needs one or the other: with neither, `createWorkspace` throws.
+A workspace that doesn't need presets passes one `layout`. It needs one or the other: with neither, `createJali` throws.
 
 <Code code={initial} filename="src/workspace.ts" />
 

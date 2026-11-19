@@ -31,7 +31,7 @@ const KIND_LABEL: Record<EntryKind, string> = {
   method: "Method",
 };
 
-/** The anchor for a name: `layout.open` stays `layout.open`, `<Jali>` is `Jali`. */
+/** The anchor for a name: `layout.open` stays `layout.open`, `<JaliRoot>` is `JaliRoot`. */
 export const anchorOf = (name: string) => name.replace(/[<>/\s]/g, "");
 
 type CodeProps = { code: string; lang?: string; filename?: string; highlight?: string };
@@ -51,7 +51,7 @@ function useCode() {
 }
 
 export interface EntryProps {
-  /** The exported name, exactly as imported (`createWorkspace`, `layout.open`, `Jali`). */
+  /** The exported name, exactly as imported (`createJali`, `layout.open`, `JaliRoot`). */
   name: string;
   kind: EntryKind;
   /** "@jali/core" or "@jali/react". */
@@ -270,7 +270,7 @@ export function Member({
   );
 }
 
-/** An inline link to another entry: <Ref to="createWorkspace" /> or <Ref to="WorkspaceState" page="/reference/core/types" />. */
+/** An inline link to another entry: <Ref to="createJali" /> or <Ref to="JaliState" page="/reference/core/types" />. */
 export function Ref({ to, page, children }: { to: string; page?: string; children?: ReactNode }) {
   return (
     <a className="ref-link" href={`${page ?? ""}#${anchorOf(to)}`}>

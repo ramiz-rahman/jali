@@ -90,7 +90,7 @@ describe("the reference covers the public API", () => {
   });
 
   it("every workspace action has an entry", () => {
-    const store = core.createWorkspace({
+    const store = core.createJali({
       panes: [{ kind: "note", title: "Note" }],
       layout: { kind: "note", params: {} },
       url: false,

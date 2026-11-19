@@ -1,13 +1,6 @@
 /** A workspace made with the public API alone and few options: what the docs' smallest app does must not throw. */
 import { describe, expect, it } from "vite-plus/test";
-import {
-  createWorkspace,
-  memoryLocation,
-  memoryStorage,
-  pane,
-  row,
-  type WorkspaceOptions,
-} from "@jali/core";
+import { createJali, memoryLocation, memoryStorage, pane, row, type JaliOptions } from "@jali/core";
 import { definePane } from "@jali/react";
 import { runCommand } from "../../packages/core/src/commands/registry";
 import { readSearch } from "../../packages/core/src/url";
@@ -24,8 +17,8 @@ const ticket = definePane("ticket", {
   Component: () => null,
 });
 
-const make = (options: Partial<WorkspaceOptions> = {}) => {
-  const store = createWorkspace({
+const make = (options: Partial<JaliOptions> = {}) => {
+  const store = createJali({
     panes: [note, ticket],
     layout: row(pane(note({ id: 1 }), { id: "a" }), pane(note({ id: 2 }), { id: "b" })),
     url: { location: memoryLocation() },
@@ -94,7 +87,7 @@ describe("a curated page whose items are string ids (finding 13)", () => {
     expect(store.get().page?.item).toBe(4);
   });
   it("a page-only app needs no preset or layout: the workspace starts on its page (finding 14)", () => {
-    const store = createWorkspace({
+    const store = createJali({
       panes: [ticket],
       page: profile,
       url: { location: memoryLocation() },

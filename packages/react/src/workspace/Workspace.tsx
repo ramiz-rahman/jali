@@ -14,7 +14,7 @@ import { PaneSwitcher } from "../chrome/PaneSwitcher";
 import { Peek } from "../chrome/Peek";
 import { DividerLayer } from "../dividers/DividerLayer";
 import { PaneFrame } from "../pane/PaneFrame";
-import type { WorkspaceModel, UiStore } from "@jali/core/adapter";
+import type { JaliModel, UiStore } from "@jali/core/adapter";
 import { useModel, useStore, useUi } from "../state/react";
 import { DropIndicator } from "./DropIndicator";
 import { useSingleView } from "./useSingleView";
@@ -64,7 +64,7 @@ function useEngaged(store: UiStore) {
  *  Only a change of room: an action that folds says so itself, in its own words. */
 function useFoldAnnouncements(
   store: UiStore,
-  m: WorkspaceModel,
+  m: JaliModel,
   area: { width: number; height: number },
 ) {
   const prev = useRef<{ folded: string[]; room: string } | null>(null);

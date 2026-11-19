@@ -10,17 +10,17 @@ With the layout in the address, a person can send a link to what they are lookin
 
 ## It is on by default
 
-In a browser, `createWorkspace` keeps the layout in the address with no options at all. Its `url` option configures how:
+In a browser, `createJali` keeps the layout in the address with no options at all. Its `url` option configures how:
 
 <Code code={urlSync} filename="src/workspace.ts" />
 
-The workspace reads the address when it is made, so the first render already shows the linked layout, and follows Back and Forward while its `<Jali>` is mounted. `url: false` leaves the address alone.
+The workspace reads the address when it is made, so the first render already shows the linked layout, and follows Back and Forward while its `<JaliRoot>` is mounted. `url: false` leaves the address alone.
 
 When the page opens:
 
 - an address with a layout opens that layout, fitted to the window;
 - an address without one opens the preset;
-- a link that can't be read (damaged, or naming a kind this app doesn't have) opens the preset instead. Jali keeps a copy of the code in storage and tells the person, with a screen reader announcement and a toast for your app to show (`workspace.onToast`).
+- a link that can't be read (damaged, or naming a kind this app doesn't have) opens the preset instead. Jali keeps a copy of the code in storage and tells the person, with a screen reader announcement and a toast for your app to show (`jali.onToast`).
 
 ## What goes in the address
 
@@ -79,7 +79,7 @@ With a data router (`createBrowserRouter`), the router object can read, navigate
 
 ```ts
 import { createBrowserRouter } from "react-router";
-import { createWorkspace } from "@jali/core";
+import { createJali } from "@jali/core";
 import { routerLocation } from "./router-location";
 
 export const router = createBrowserRouter(routes);
@@ -93,7 +93,7 @@ const location = routerLocation({
   listen: (onChange) => router.subscribe(() => onChange()),
 });
 
-export const workspace = createWorkspace({ panes, presets, url: { location } });
+export const jali = createJali({ panes, presets, url: { location } });
 ```
 
 `router.subscribe` calls back on every router state change, including loaders finishing. The wrapper only passes on a change of the search string.
@@ -104,7 +104,7 @@ TanStack Router keeps its history object public. Writing through it keeps the ro
 
 ```ts
 import { createRouter } from "@tanstack/react-router";
-import { createWorkspace } from "@jali/core";
+import { createJali } from "@jali/core";
 import { routerLocation } from "./router-location";
 
 export const router = createRouter({ routeTree });
@@ -120,7 +120,7 @@ const location = routerLocation({
   listen: (onChange) => router.history.subscribe(() => onChange()),
 });
 
-export const workspace = createWorkspace({ panes, presets, url: { location } });
+export const jali = createJali({ panes, presets, url: { location } });
 ```
 
 If a route validates its search params, let unknown keys through: Jali's keys (`l`, `zoom`, `peek`, and the page keys) are not in your schema.

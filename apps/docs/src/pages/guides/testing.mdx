@@ -15,17 +15,17 @@ Each option keeps the test apart from the page and from other tests:
 
 - **`url: { location: memoryLocation(search) }`** is an address in memory. The workspace writes its layout there instead of the browser's address. Start it with a search string to test opening a link.
 - **`storage: memoryStorage()`** keeps saved settings, pane state and dragged sizes in memory, never in `localStorage`.
-- **`size`** gives the workspace a size. Folding depends on it, and with no rendered workspace nothing measures the window. Change it later with `workspace.set({ area })`.
+- **`size`** gives the workspace a size. Folding depends on it, and with no rendered workspace nothing measures the window. Change it later with `jali.set({ area })`.
 - **`moveFocus: false`** stops the workspace moving DOM focus into panes after changes. There are no panes in the DOM in a workspace test.
 
 Kinds belong to the workspace, so every test gets its own: nothing about one workspace affects another.
 
 ## Run actions, read state
 
-`workspace.actions` holds every workspace action: `openBeside`, `close`, `preset`, `select`, `setUnsaved` and the rest. Components call the same actions, so a test that runs them tests what a person does.
+`jali.actions` holds every workspace action: `openBeside`, `close`, `preset`, `select`, `setUnsaved` and the rest. Components call the same actions, so a test that runs them tests what a person does.
 
-- `workspace.get()` is the state: `layout`, `view.focused`, `confirm` (a held change waiting for "Discard unsaved changes?"), `unsaved`, `paneState`, `selection`.
-- `workspace.model()` is what is derived from it: `panes` in tree order, `pane(id)`, `folded`, `visible`, `resolved` (every pane's box on screen).
+- `jali.get()` is the state: `layout`, `view.focused`, `confirm` (a held change waiting for "Discard unsaved changes?"), `unsaved`, `paneState`, `selection`.
+- `jali.model()` is what is derived from it: `panes` in tree order, `pane(id)`, `folded`, `visible`, `resolved` (every pane's box on screen).
 
 An action that opens a pane returns its id.
 
@@ -34,8 +34,8 @@ An action that opens a pane returns its id.
 To check that a link opens what it should, make a second workspace whose `memoryLocation` starts at the first one's address. A workspace reads its address when it is made, as a page load does:
 
 ```ts
-const { workspace: reader } = testWorkspace(link);
-expect(ids(reader)).toEqual(ids(workspace));
+const { jali: reader } = testJali(link);
+expect(ids(reader)).toEqual(ids(jali));
 ```
 
 `memoryLocation` also records history. `location.entries` lists every entry, so you can check which changes push a new one. `location.visit(search)` acts like Back, Forward or a router link: the address changes and a started workspace hears it.
@@ -46,14 +46,14 @@ Some changes wait. A following detail shows the list's item once the cursor rest
 
 ```ts
 vi.useFakeTimers();
-workspace.actions.select("orders", orderKind({ id: 5 }));
+jali.actions.select("orders", orderKind({ id: 5 }));
 vi.advanceTimersByTime(200);
-expect(workspace.model().pane("order")?.ref.params.id).toBe(5);
+expect(jali.model().pane("order")?.ref.params.id).toBe(5);
 ```
 
 ## Keys
 
-`workspace.start()` listens on the window, so a test can fire `keydown` events at an element and check what the workspace did. Pass `keymapOptions: { platform: "mac" }` (or `"other"`) so the test means the same keys on every machine. Call the function `start` returns to remove the listeners after the test.
+`jali.start()` listens on the window, so a test can fire `keydown` events at an element and check what the workspace did. Pass `keymapOptions: { platform: "mac" }` (or `"other"`) so the test means the same keys on every machine. Call the function `start` returns to remove the listeners after the test.
 
 ## What to test in the browser
 

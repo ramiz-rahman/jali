@@ -6,19 +6,19 @@ import { DataLayerProvider } from "../data/react";
 import { TopBar } from "./TopBar";
 import { StatusLine } from "./StatusLine";
 import { StatsSetting } from "./stats-pref";
-import { Jali, JaliView, useTheme, useWorkspace, useWorkspaceState } from "@jali/react";
-import type { Workspace } from "@jali/core";
+import { JaliRoot, JaliView, useTheme, useJali, useJaliState } from "@jali/react";
+import type { Jali } from "@jali/core";
 
 export const UNDO_MS = 8000;
 
-const undoKeys = (store: Workspace) => {
+const undoKeys = (store: Jali) => {
   const k = store.keymap.label("pane.undo_close");
   return k ? `${k} to undo` : "";
 };
 
 /** Shows the store's toasts with Sonner. Undo toasts offer the undo that "Undo last close or tuck" (⌘K ⌘Z) runs. */
 function Toasts() {
-  const store = useWorkspace();
+  const store = useJali();
   const theme = useTheme();
   useEffect(
     () =>
@@ -36,7 +36,7 @@ function Toasts() {
     [store],
   );
   // A curated page keeps its toasts over the queue (bottom-left, narrow), never over a view's content.
-  const curated = useWorkspaceState((s) => !!s.page);
+  const curated = useJaliState((s) => !!s.page);
   return curated ? (
     <Toaster
       theme={theme}
@@ -56,12 +56,12 @@ function Toasts() {
   );
 }
 
-export function App({ workspace, data }: { workspace: Workspace; data: DataLayer }) {
+export function App({ jali, data }: { jali: Jali; data: DataLayer }) {
   return (
     <QueryClientProvider client={data.queryClient}>
       <DataLayerProvider value={data}>
-        <Jali
-          workspace={workspace}
+        <JaliRoot
+          jali={jali}
           className="app"
           overlays={<Toasts />}
           settingsExtra={<StatsSetting />}
@@ -69,7 +69,7 @@ export function App({ workspace, data }: { workspace: Workspace; data: DataLayer
           <TopBar />
           <JaliView />
           <StatusLine />
-        </Jali>
+        </JaliRoot>
       </DataLayerProvider>
     </QueryClientProvider>
   );

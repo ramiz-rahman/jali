@@ -67,9 +67,9 @@ Pass the list on every render. The palette is updated only when an id, title, la
 The workspace's actions do what the hooks do, so the rules can be tested without rendering:
 
 ```ts
-workspace.actions.setUnsaved("note", "an unsaved note");
-workspace.actions.close("note");
-expect(workspace.get().confirm?.panes).toEqual(["note"]);
+jali.actions.setUnsaved("note", "an unsaved note");
+jali.actions.close("note");
+expect(jali.get().confirm?.panes).toEqual(["note"]);
 ```
 
 See [Test a workspace](/guides/testing).

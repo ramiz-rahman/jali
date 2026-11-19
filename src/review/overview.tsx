@@ -6,7 +6,7 @@
 import type { ReactNode } from "react";
 import { ArrowRight } from "lucide-react";
 import type { PaneProps } from "@jali/react";
-import { useWorkspace } from "@jali/react";
+import { useJali } from "@jali/react";
 import { Loading } from "../panes/shared/states";
 import { day, taka, useApplication } from "./page";
 import {
@@ -42,7 +42,7 @@ function Section({
   children: ReactNode;
   area: string;
 }) {
-  const { actions } = useWorkspace();
+  const { actions } = useJali();
   return (
     <section className="ov-sec" aria-label={title} style={{ gridArea: area }}>
       <header className="ov-head">
