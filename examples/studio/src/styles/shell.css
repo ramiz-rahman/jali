@@ -287,14 +287,18 @@
       display: none;
     }
   }
+  /* Compact: the clock a size smaller, the state as its sign beside the title, the rate gone; the total stays. */
   @container (max-width: 270px) {
-    .pd-total,
-    .pd-rate {
+    .pd-rate,
+    .pd-state-word {
       display: none;
     }
+    .tp-now {
+      font-size: 21px;
+    }
   }
-  @container (max-width: 200px) {
-    .pd-state {
+  @container (max-width: 176px) {
+    .pd-total {
       display: none;
     }
     .pd-title {
@@ -352,14 +356,14 @@
    * How it gives way: the steps `useFit` takes (TopBar.tsx), cumulative, in order, until the content fits.
    */
   .slab[data-f1] {
-    --rotary: 116px;
+    --rotary: 108px;
   }
   .slab[data-f1] .tp-scrub .rotary-note {
     display: none;
   }
   .slab[data-f2] {
     --cell: 58px;
-    --layout-cell: 78px;
+    --layout-cell: 74px;
     --zone-gap: 20px;
     padding-inline: 16px;
   }

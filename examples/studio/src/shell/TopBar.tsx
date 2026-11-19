@@ -251,13 +251,16 @@ function Transport() {
               <span className="tp-now">{clockTenths(pos)}</span>
               <span className="pd-total">/ {clock(session.duration)}</span>
               <span className="pd-state" role="status">
-                {t.status === "loading"
-                  ? "loading"
-                  : t.status === "error"
-                    ? "no audio"
-                    : t.playing
-                      ? "▶ play"
-                      : "■ stop"}
+                {t.status === "loading" ? (
+                  "loading"
+                ) : t.status === "error" ? (
+                  "no audio"
+                ) : (
+                  <>
+                    {t.playing ? "▶" : "■"}
+                    <span className="pd-state-word"> {t.playing ? "play" : "stop"}</span>
+                  </>
+                )}
                 <span className="pd-rate"> · {t.rate}×</span>
               </span>
             </div>

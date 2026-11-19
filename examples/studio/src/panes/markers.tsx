@@ -97,7 +97,7 @@ function Markers({ params, paused, node, focused }: PaneProps<typeof markersPara
         <span className="pane-label">
           Markers <span className="pane-label-count">{markers.length}</span>
         </span>
-        <span className="toolbar-end">
+        <span className="toolbar-end keyset">
           <button
             type="button"
             className="key key-s"

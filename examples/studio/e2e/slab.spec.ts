@@ -142,4 +142,7 @@ test("at 1440px the four layout keys and the studio name are all on the slab", a
       page.getByRole("navigation", { name: "Layouts" }).getByRole("button", { name }),
     ).toBeVisible();
   await expect(page.locator(".badge-name")).toBeVisible();
+  // The display keeps the play state and the total time.
+  await expect(page.locator(".pd-state")).toBeVisible();
+  await expect(page.locator(".pd-total")).toBeVisible();
 });
