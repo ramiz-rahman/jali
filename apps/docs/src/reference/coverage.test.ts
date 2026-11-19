@@ -10,6 +10,7 @@ import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vite-plus/test";
 import * as core from "@jali/core";
 import * as react from "@jali/react";
+import * as icons from "@jali/react/icons";
 import { COMMANDS, REFUSED, displayId } from "./command-data";
 import { TOKEN_PURPOSE, publicTokensOf } from "./token-data";
 
@@ -76,14 +77,20 @@ describe("the reference covers the public API", () => {
     expect(missing(names)).toEqual([]);
   });
 
-  it("every value @jali/react exports has an entry", () => {
-    expect(missing(Object.keys(react))).toEqual([]);
+  it("every value @jali/react exports has an entry (and @jali/react/icons; /bare exports the same names)", () => {
+    expect(missing([...Object.keys(react), ...Object.keys(icons)])).toEqual([]);
+  });
+
+  it("every icon name has an entry", () => {
+    expect(missing(Object.keys(icons.phosphorIcons).map((k) => `icons.${k}`))).toEqual([]);
   });
 
   it("every type the two packages export has an entry", () => {
     const types = [
       ...typeExports(join(packages, "core/src/index.ts")),
       ...typeExports(join(packages, "react/src/index.ts")),
+      ...typeExports(join(packages, "react/src/common.ts")),
+      ...typeExports(join(packages, "react/src/icons.ts")),
     ];
     expect(types.length).toBeGreaterThan(50);
     expect(missing(types)).toEqual([]);

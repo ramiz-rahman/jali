@@ -14,7 +14,7 @@ import composeCode from "../../samples/reference/compose.tsx?raw";
 import profileCode from "../../samples/reference/profile.tsx?raw";
 import iconCode from "../../samples/reference/kind-icon.tsx?raw";
 
-React components and hooks for a workspace made with [@jali/core](/reference/core). React 19 and `@phosphor-icons/react` (Jali's icons, the set Chakni uses) are peer dependencies.
+React components and hooks for a workspace made with [@jali/core](/reference/core). React 19 is a peer dependency, and so is `@phosphor-icons/react` (Jali's default icons, the set Chakni uses), which is optional: an app that brings every icon imports `@jali/react/bare` and never installs or bundles it. See [Icons](#icons).
 
 ```sh
 npm install @jali/core @jali/react @phosphor-icons/react
@@ -24,7 +24,7 @@ Styles: `@jali/react/styles.css` is Jali's default theme and the workspace's sty
 
 ## Start here
 
-<Entry name="JaliRoot" kind="component" from="@jali/react" signature={`<JaliRoot jali={jali} overlays? settings? settingsExtra?>{children?}</JaliRoot>`} example={appCode} exampleFile="App.tsx">
+<Entry name="JaliRoot" kind="component" from="@jali/react" signature={`<JaliRoot jali={jali} icons? overlays? settings? settingsExtra?>{children?}</JaliRoot>`} example={appCode} exampleFile="App.tsx">
 
 Draws a workspace: its panes, and the dialogs every workspace has (the command palette unless the workspace was made with `palette: false`, Settings, the "Add to tabs of…" chooser, "Discard unsaved changes?" and the live region). While it is mounted, it starts the workspace's keys, Back and Forward, theme and saving (<Ref to="Jali" page="/reference/core/types" />'s `start`), and stops them when it unmounts.
 
@@ -39,6 +39,7 @@ Two things are yours to render. **The shelf** (tucked and folded panes as chips)
 <Param name="children" type="ReactNode" default="<JaliView />">Rendered inside the root: `<JaliView>` and your chrome.</Param>
 <Param name="overlays" type="ReactNode">Rendered after the root: things that must sit outside the workspace, such as a toaster. Focus is never pulled back from outside the root.</Param>
 <Param name="settings" type="boolean" default="true">`false` leaves the Settings panel out.</Param>
+<Param name="icons" type="Partial<JaliIcons>">Your own icons for any of the names Jali draws (`{ close: MyClose }`); the others stay Phosphor's. From `@jali/react/bare`, `JaliIcons`: required and complete. See [Icons](#icons).</Param>
 <Param name="settingsExtra" type="ReactNode">Your own settings, as `<fieldset>`s with a `<legend>`, shown at the end of the Settings panel. Store their values yourself.</Param>
 <Param name="...rest" type="HTMLAttributes<HTMLDivElement>">Passed to the root `<div>` (`className`, `style`, `id`). `ref` and `data-jali` are Jali's.</Param>
 </Params>
@@ -67,7 +68,7 @@ Everything in <Ref to="PaneOptions" page="/reference/core/types" /> (`params`, `
 
 <ChildParams label="view fields">
 <Param name="Component" type="ComponentType<PaneProps<P>>" required>Renders the pane's content. It stays mounted while the pane is folded, tabbed, tucked or moved.</Param>
-<Param name="icon" type="ComponentType<{ size?: number; weight?: IconWeight; 'aria-hidden'?: boolean }>">The kind's icon in the header, tab and shelf: a Phosphor icon such as `FileTextIcon`, or any component with these props. Jali passes `size` and `aria-hidden`, and leaves the weight to Phosphor's default (regular) or your `IconContext`. Without one, a square.</Param>
+<Param name="icon" type="JaliIcon">The kind's icon in the header, tab and shelf: a Phosphor icon such as `FileTextIcon`, or any component that takes `{ size, className, "aria-hidden" }`. Jali passes `size` and `aria-hidden`, never a weight, so Phosphor's default (regular) or your `IconContext` decides it. Without one, the `defaultKind` icon (a square).</Param>
 </ChildParams>
 
 </Param>
@@ -83,7 +84,7 @@ A kind made with <Ref to="definePane" />. `P` is its params' type; `Pane` alone 
 
 </Entry>
 
-<Entry name="PaneOptionsReact" kind="type" from="@jali/react" signature={`interface PaneOptionsReact<P> extends PaneOptions<P> {\n  icon?: IconComponent;\n  Component: ComponentType<PaneProps<P>>;\n}`} compact>
+<Entry name="PaneOptionsReact" kind="type" from="@jali/react" signature={`interface PaneOptionsReact<P> extends PaneOptions<P> {\n  icon?: JaliIcon;\n  Component: ComponentType<PaneProps<P>>;\n}`} compact>
 
 The options of <Ref to="definePane" />.
 
@@ -124,7 +125,7 @@ A curated page for React: <Ref to="ProfileBase" page="/reference/core/types" /> 
 
 </Entry>
 
-<Entry name="PageView" kind="type" from="@jali/react" signature={`interface PageView extends RoleBase { icon: IconComponent }`} compact>
+<Entry name="PageView" kind="type" from="@jali/react" signature={`interface PageView extends RoleBase { icon: JaliIcon }`} compact>
 
 One of a curated page's views, with the icon for its tab.
 
@@ -257,12 +258,13 @@ A command's keys in this workspace's keymap, for a tooltip ("⌘K ⌘[" or "Ctrl
 
 </Entry>
 
-<Entry name="JaliProvider" kind="component" from="@jali/react" signature={`<JaliProvider jali={jali}>{children}</JaliProvider>`} compact>
+<Entry name="JaliProvider" kind="component" from="@jali/react" signature={`<JaliProvider jali={jali} icons?>{children}</JaliProvider>`} compact>
 
 Makes a workspace available to the hooks and parts below it. `<JaliRoot>` renders one; use it alone when you compose the parts yourself, and call `jali.start()` in an effect.
 
 <Params title="Props">
 <Param name="workspace" type="Jali" required />
+<Param name="icons" type="Partial<JaliIcons>">As on `<JaliRoot>`. From `@jali/react/bare`, required and complete.</Param>
 <Param name="children" type="ReactNode" />
 </Params>
 
@@ -328,7 +330,7 @@ The Settings dialog, while `settingsOpen` is set: theme, centre drop, pane cap (
 
 <Entry name="KindIcon" kind="component" from="@jali/react" signature={`<KindIcon kind={kind} size={16} />`} example={iconCode} exampleFile="OpenPanes.tsx">
 
-A kind's icon at `size`, `aria-hidden`; Phosphor's square for an unknown kind or one without an icon.
+A kind's icon at `size`, `aria-hidden`; the `defaultKind` icon (Phosphor's square unless you replaced it) for an unknown kind or one without an icon.
 
 <Params title="Props">
 <Param name="kind" type="string" required>The kind's name.</Param>
@@ -348,8 +350,84 @@ A pane's activity mark. Renders nothing for `idle` or `undefined`.
 
 </Entry>
 
-<Entry name="JaliRootProps" kind="type" from="@jali/react" signature={`interface JaliRootProps extends HTMLAttributes<HTMLDivElement> {\n  workspace: Jali; children?: ReactNode;\n  overlays?: ReactNode; settings?: boolean;\n}`} compact>
+<Entry name="JaliRootProps" kind="type" from="@jali/react" signature={`interface JaliRootProps extends HTMLAttributes<HTMLDivElement> {\n  workspace: Jali; icons?: Partial<JaliIcons>; children?: ReactNode;\n  overlays?: ReactNode; settings?: boolean;\n}`} compact>
 
-The props of <Ref to="JaliRoot" />.
+The props of <Ref to="JaliRoot" />. `@jali/react/bare` exports its own `JaliRootProps`, the same with `icons: JaliIcons` required.
+
+</Entry>
+
+## Icons
+
+Jali draws its own chrome icons from a map of names (`JaliIcons`). `@jali/react` uses Phosphor's and lets you replace any of them; `@jali/react/bare` has none and takes the whole map, so an app with its own icon set never bundles Phosphor. A kind's icon is the kind's own (`definePane({ icon })`). The host's buttons (your top bar, ⌘K, settings, a switcher) are yours and use your icons already. See [Your own icons](/guides/theming#your-own-icons).
+
+```ts
+import { JaliRoot } from "@jali/react"; // Phosphor's icons; icons={...} replaces some
+import { JaliRoot } from "@jali/react/bare"; // no Phosphor; icons={...} must name them all
+import { phosphorIcons } from "@jali/react/icons"; // Phosphor's set, to pass or spread
+```
+
+<Entry name="JaliIcons" kind="type" from="@jali/react" signature={`type JaliIcons = Record<JaliIconName, JaliIcon>`}>
+
+One icon per name Jali draws. `<JaliRoot icons>` takes any part of it from `@jali/react`, and all of it from `@jali/react/bare`.
+
+<Members>
+<Member name="icons.close" signature="close: JaliIcon">Close a pane, a tab, the peek and Settings. Default: Phosphor's `X`.</Member>
+<Member name="icons.maximise" signature="maximise: JaliIcon">Maximise a pane. Default: Phosphor's `ArrowsOutSimple`.</Member>
+<Member name="icons.restore" signature="restore: JaliIcon">Restore a maximised pane. Default: Phosphor's `ArrowsInSimple`.</Member>
+<Member name="icons.tuck" signature="tuck: JaliIcon">Tuck a pane into the shelf. Default: Phosphor's `Minus`.</Member>
+<Member name="icons.putBack" signature="putBack: JaliIcon">Put a tucked or folded pane back, on its tab and shelf chip. Default: Phosphor's `ArrowUUpLeft`.</Member>
+<Member name="icons.newTab" signature="newTab: JaliIcon">A tab group's "New tab". Default: Phosphor's `Plus`.</Member>
+<Member name="icons.more" signature="more: JaliIcon">The tab-overflow menu's button. Default: Phosphor's `CaretDown`.</Member>
+<Member name="icons.current" signature="current: JaliIcon">The shown tab in the tab-overflow menu. Default: Phosphor's `Check`.</Member>
+<Member name="icons.fold" signature="fold: JaliIcon">Marks a folded tab or chip (the layout made it). Default: Phosphor's `ArrowsInLineHorizontal`.</Member>
+<Member name="icons.grip" signature="grip: JaliIcon">The drag handle on a pane's header. Default: Phosphor's `DotsSix`.</Member>
+<Member name="icons.follow" signature="follow: JaliIcon">A following detail's "Following" toggle. Default: Phosphor's `LinkSimpleHorizontal`.</Member>
+<Member name="icons.pin" signature="pin: JaliIcon">The same toggle once pinned. Default: Phosphor's `PushPin`.</Member>
+<Member name="icons.activityError" signature="activityError: JaliIcon">The cross in an error activity mark (8px). Default: Phosphor's `X, bold`.</Member>
+<Member name="icons.defaultKind" signature="defaultKind: JaliIcon">A kind without an icon. Default: Phosphor's `Square`.</Member>
+<Member name="icons.pinBeside" signature="pinBeside: JaliIcon">The peek's "Pin beside". Default: Phosphor's `SidebarSimple, mirrored`.</Member>
+<Member name="icons.openFull" signature="openFull: JaliIcon">The peek's "Open full". Default: Phosphor's `CornersOut`.</Member>
+<Member name="icons.addToTabs" signature="addToTabs: JaliIcon">Each group in the "Add to tabs of…" chooser. Default: Phosphor's `Stack`.</Member>
+<Member name="icons.singleView" signature="singleView: JaliIcon">A curated page's "Single view". Default: Phosphor's `Square`.</Member>
+<Member name="icons.splitView" signature="splitView: JaliIcon">A curated page's "Split view". Default: Phosphor's `SquareSplitHorizontal`.</Member>
+<Member name="icons.back" signature="back: JaliIcon">"Back to" the curated page. Default: Phosphor's `ArrowUUpLeft`.</Member>
+<Member name="icons.reset" signature="reset: JaliIcon">Reset a curated page's layout. Default: Phosphor's `ArrowCounterClockwise`.</Member>
+<Member name="icons.dropLeft" signature="dropLeft: JaliIcon">A drop that puts the pane left of its target. Default: Phosphor's `ArrowLeft`.</Member>
+<Member name="icons.dropRight" signature="dropRight: JaliIcon">A drop to the right. Default: Phosphor's `ArrowRight`.</Member>
+<Member name="icons.dropTop" signature="dropTop: JaliIcon">A drop above. Default: Phosphor's `ArrowUp`.</Member>
+<Member name="icons.dropBottom" signature="dropBottom: JaliIcon">A drop below. Default: Phosphor's `ArrowDown`.</Member>
+<Member name="icons.dropSwap" signature="dropSwap: JaliIcon">A centre drop that swaps the two panes. Default: Phosphor's `ArrowsLeftRight`.</Member>
+<Member name="icons.dropTab" signature="dropTab: JaliIcon">A centre drop that adds the pane as a tab. Default: Phosphor's `PlusSquare`.</Member>
+</Members>
+
+</Entry>
+
+<Entry name="JaliIconName" kind="type" from="@jali/react" signature={`type JaliIconName = "close" | "maximise" | "restore" | … | "dropTab"`} compact>
+
+The names above.
+
+</Entry>
+
+<Entry name="JaliIcon" kind="type" from="@jali/react" signature={`type JaliIcon = ComponentType<JaliIconProps>`} compact>
+
+An icon Jali can draw: any Phosphor icon, or any component that takes <Ref to="JaliIconProps" />. Also the type of a kind's `icon`.
+
+</Entry>
+
+<Entry name="JaliIconProps" kind="type" from="@jali/react" signature={`interface JaliIconProps {\n  size?: number;\n  className?: string;\n  "aria-hidden"?: boolean;\n}`} compact>
+
+What Jali passes an icon: its size in pixels, sometimes a class, and `aria-hidden` (a label always sits beside it, or on its button).
+
+</Entry>
+
+<Entry name="phosphorIcons" kind="constant" from="@jali/react/icons" signature={`const phosphorIcons: JaliIcons`} compact>
+
+Phosphor's icon for every name, in the regular weight: the defaults of `@jali/react`. Import it to pass a complete map to `@jali/react/bare`, or spread it under a few of your own.
+
+</Entry>
+
+<Entry name="useJaliIcons" kind="hook" from="@jali/react" signature={`useJaliIcons(): JaliIcons`} compact>
+
+The icons this workspace draws with, for chrome of your own that should match Jali's: `const { close } = useJaliIcons()`. Inside `<JaliRoot>` or `<JaliProvider>`.
 
 </Entry>
