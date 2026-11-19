@@ -144,6 +144,20 @@ describe("the trips workspace", () => {
     expect(shows(reader, "place")).toEqual({ id: "nai-harn" });
   });
 
+  it("doesn't open a link to a place this trip doesn't have (an old Lisbon link): it opens the layout instead", () => {
+    const { jali, location } = testJali();
+    jali.actions.preset("days");
+    const params = new URLSearchParams(location.search());
+    const [version, body] = params.get("l")!.split(".");
+    const json = Buffer.from(body!, "base64").toString("utf8");
+    expect(json).toContain('"grand-palace"');
+    const lisbon = Buffer.from(json.replace('"grand-palace"', '"castelo"'), "utf8").toString("base64").replace(/=+$/, "");
+    params.set("l", `${version}.${lisbon}`);
+    const { jali: reader } = testJali({ search: `?${params}` });
+    expect(shows(reader, "place")).toEqual({ id: "grand-palace" });
+    expect(reader.get().presetId).toBe("days");
+  });
+
   it("names its preset in the link", () => {
     const { jali, location } = testJali();
     jali.actions.preset("budget");

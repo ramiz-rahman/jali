@@ -16,9 +16,9 @@ It works, and it still runs through Jali's own selection and followers (the rest
 
 ## 2. After a preset switch, a list's selection and its followers disagree
 
-**Wanted.** Switch from Plan (Day 1 on the map) to Budget (Day 5 on the map and the day plan) and see the overview marking Day 5.
+**Wanted.** Switch from Plan (Day 1 on the map) to Budget (Day 7 on the map and the day plan) and see the overview marking Day 7.
 
-**What happened.** The overview has the same id in both presets, so it keeps its selection (Day 1). The Budget preset's followers arrive showing their own refs (Day 5). The list says Day 1 and the panes that follow it say Day 5, until the person moves the cursor. The same happens to the map's selected place against the Days preset's place pane, and after Back, Forward or a link.
+**What happened.** The overview has the same id in both presets, so it keeps its selection (Day 1). The Budget preset's followers arrive showing their own refs (Day 7). The list says Day 1 and the panes that follow it say Day 5, until the person moves the cursor. The same happens to the map's selected place against the Days preset's place pane, and after Back, Forward or a link.
 
 **Workaround.** The overview and the map watch their followers' refs (`useJaliModel`) and, when a layout change gives a follower another object, select that object (`src/panes/trip.tsx`, `src/panes/map.tsx`). Moving the cursor still drives the followers; the watch only fires when a follower's object changes.
 
@@ -46,7 +46,7 @@ It works, and it still runs through Jali's own selection and followers (the rest
 
 ## 5. The app's undo and Jali's undo are two separate things
 
-**Wanted.** One Undo for "Optimised Day 1", "Moved the castle to Day 3" and "Closed the budget pane".
+**Wanted.** One Undo for "Optimised Day 1", "Moved the Golden Mount to Day 2" and "Closed the budget pane".
 
 **What happened.** `jali.actions.undo()` covers closes, close others and tucks. The app has no way to put its own changes on that history, so ⌘K ⌘Z undoes a closed pane and the app's Undo undoes the plan. And ⌘Z for the plan could not go in `keymap`: a binding there fires even while the person types in a field (Explore's search, the budget), where ⌘Z belongs to the field.
 
@@ -56,7 +56,7 @@ It works, and it still runs through Jali's own selection and followers (the rest
 
 ## 6. App drags live happily beside Jali's, but can't reach a folded pane
 
-**Wanted.** Drag a stop from Day 1 to Day 4, side by side, and also to a day that has folded into a tab.
+**Wanted.** Drag a stop from Day 6 to Day 7, side by side, and also to a day that has folded into a tab.
 
 **What happened.** The two drags never meet. Jali's pane drag starts only from a header, so a pointer drag on a stop's handle (with `touch-action: none`, so it works with a finger) is the app's alone. Dropping across panes works because they share one DOM. Esc during a stop drag is the app's: it listens in the capture phase and stops the event, so Jali doesn't also restore a maximised pane or close the peek. Pane drags and stop drags both still work afterwards.
 
@@ -78,9 +78,9 @@ What doesn't work: a day folded into a tab can't be a drop target. Its pane is m
 
 ## 8. Following and Keep crowd the title in a narrow header
 
-**Wanted.** "Castelo de São Jorge" or "Map of Day 1" in the header of a 300 to 360 pixel pane.
+**Wanted.** "Grand Palace" or "Map of Day 1" in the header of a 300 to 360 pixel pane.
 
-**What happened.** The Following toggle and the Keep button take about 150 pixels, so titles shorten to "Caste…" and "Map of …" at the widths most detail panes have. The screenshots in `screens/` show it.
+**What happened.** The Following toggle and the Keep button take about 150 pixels, so titles shorten to "Gran…" and "Map of …" at the widths most detail panes have. The screenshots in `screens/` show it.
 
 **Workaround.** None in the header. The place pane repeats the name large in its body, so nothing is lost there, but the header and tab read poorly.
 
@@ -94,13 +94,26 @@ What doesn't work: a day folded into a tab can't be a drop target. Its pane is m
 
 ## 10. What worked as hoped
 
-- **A pane that wants the room.** `width: { min: 360, comfortable: 640 }` on the map and smaller minimums elsewhere: at 1440 pixels Plan fits four panes; at 1024 the place folds behind the map it follows; on Days, the days fold into tabs and come back as the window widens. A ResizeObserver calling `map.resize()` kept the canvas the size of its box through divider drags and folds.
+- **A pane that wants the room.** `width: { min: 360, comfortable: 640 }` on the map and smaller minimums elsewhere: at 1440 pixels Plan fits four panes; at 1024 the place folds behind the map it follows; on Days, the seven days fold into tabs and come back as the window widens. A ResizeObserver calling `map.resize()` kept the canvas the size of its box through divider drags and folds.
 - **Pause.** `paused` stops camera moves and resizes while the map is behind a tab, folded, or on another phone screen; the last move asked for runs when it is shown again. The map stays mounted, so its WebGL context survives.
 - **A follower of another kind.** The map follows the overview with `follow: (selected) => ({ day: selected.params.n })`. The day plan and the map move together, as one change.
 - **Keep to compare.** Keep a place pane, select another hotel, and a second place pane opens beside it. Stay opens that way from its preset (`kept: true`).
+- **Rejecting a param from an old link.** The place kind's `id` param is a function that reads an id only if this trip has that place, and the day's `n` only from 1 to 7. A link from the Lisbon version of the example names `castelo`; Jali treats it as a link it can't read and opens the layout, with its toast, instead of a pane that says "not found". That was all it took.
 - **The map's keys.** MapLibre claims the arrow keys with `preventDefault()` and ignores keys with ⌘, Ctrl or Alt, so Jali's content-first rule did the rest: arrows pan the map, F6 leaves it, ⌘K opens the palette from it, and Esc reaches Jali. The app had nothing to arbitrate.
 - **Commands that ask twice.** "Add to day…" asks for a place, then for a day, by calling `jali.actions.choose` again from the first `onChoose`. It just worked.
 - **Phones.** With `phone: { stack: true }`, and `phone: { place: "top" }` on the map kind, a portrait phone shows the place under the map it follows: a usable planner at 390 pixels with no phone-only code.
+
+## 11. Two cities taught a few more things
+
+The trip changed from one compact city (Lisbon) to two cities 680 km apart (Bangkok, then Phuket, with a flight between). Most of that was the app's own model: a city on every place, each day's city and hotel, per-city travel rules, a transfer day that starts with the flight. Jali needed nothing new for it. These are what it showed about Jali.
+
+**The default pane cap folds a preset on a screen with room.** Days lays out seven days, the map and the place: nine panes. Jali's default cap is 8, so one day folded even at 3200 pixels wide. The workspace test caught it, not the eye: the folded tab looked like any fold for room. The app passes `settings: { paneCap: 10 }`, but that is only the default for a person with no saved settings, and a preset can't say "I am nine panes". Suggested change: let a preset raise the cap while it is in use (`{ id, label, layout, paneCap }`), and say in the shelf when a pane folded for the cap rather than for room.
+
+**A selection can't say where it came from.** The map flies to a place when the person picks it, but must not fly when the app sets the map's selection to match a place pane the layout brought (finding 2's watch): on a Phuket day it would fly to a Bangkok place. Jali's events carry `input` (person, code, agent), but a selection fires no event and records no source. The map remembers the one selection it set itself and skips it (`quietSelection` in `src/panes/map.tsx`). Suggested change: a `select` event with `input`, or `select(ref, { quiet: true })` for selections the app makes that should not count as the person's.
+
+**Saved state has no version.** The plan's own key could be versioned (`trips:plan:v2`). Jali's saved pane state (a cursor on a Lisbon place, Explore's filters) sits under the storage prefix with no version, so the app changed its prefix (`trips-thailand`) to leave it behind; a person's saved settings went with it. Suggested change: `createJali({ storage: { prefix, version } })`, dropping pane state from another version and keeping settings.
+
+**A pane's own data decides what it can accept, which Jali can't see.** A place can only go on a day in its city. The app's drag, the chooser (only days in the place's city are offered) and the place pane's day buttons all apply the rule; a drop on a day of the other city is refused with a note. That is app logic, as it should be. Nothing in Jali needed to know.
 
 ## Not about Jali
 

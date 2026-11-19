@@ -15,7 +15,12 @@ import { crossesRiver, haversineKm, leg, NEARBY_KM, type Leg, type Mode } from "
 import * as f from "../ui/format";
 import { CATEGORY_ICON, DayMark, Empty } from "../ui/parts";
 
-const placeParams = { id: String };
+/**
+ * A place's id, read from a link only if this trip has that place. A link from the old Lisbon version (or a typo)
+ * names a place we don't have: Jali then treats the link as one it can't read and opens the layout instead.
+ */
+const placeId = (v: string | number | boolean) => (placeById(String(v)) ? String(v) : undefined);
+const placeParams = { id: placeId };
 
 /** "12 min by taxi". */
 const BY: Record<Mode, string> = {

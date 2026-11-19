@@ -22,7 +22,7 @@ import { addToDay, chooseDay, optimise, removeFromPlan } from "../planning";
 import { usePlan, useServices } from "../services";
 import { useCurrent } from "../selection";
 import { CITY_NAME, mustPlace, type Place } from "../trip/places";
-import { canPlan, dayOf, dayTotals, reorder, round2, setMode, type Day, type Plan } from "../trip/plan";
+import { canPlan, DEFAULT_PLAN, dayOf, dayTotals, reorder, round2, setMode, type Day, type Plan } from "../trip/plan";
 import { dayBudget } from "../trip/budget";
 import { optimiseDay } from "../trip/optimise";
 import { crossesRiver, FLIGHT, legKey, modeLabel, type Leg, type Mode } from "../trip/travel";
@@ -31,7 +31,12 @@ import * as f from "../ui/format";
 import { CATEGORY_ICON, DayMark, Empty, MODE_ICON, Stat } from "../ui/parts";
 import { place } from "./place";
 
-const dayParams = { n: Number };
+/** A day of this trip, 1 to 7: a link naming another (an older, shorter trip's) is not read. */
+const dayNumber = (v: string | number | boolean) => {
+  const n = Number(v);
+  return Number.isInteger(n) && n >= 1 && n <= DEFAULT_PLAN.days.length ? n : undefined;
+};
+const dayParams = { n: dayNumber };
 
 function DayPane(props: PaneProps<typeof dayParams>) {
   const plan = usePlan();
