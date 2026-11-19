@@ -23,6 +23,7 @@ import { transcript } from "./panes/transcript";
 import { presets } from "./presets";
 import type { Services } from "./services";
 import { clock, opening, SESSIONS, sessionById } from "./sessions/sessions";
+import { feelSounds, setFeelSounds } from "./ui/feel";
 import { HEADER_BUTTONS, headerButtons, setHeaderButtons } from "./ui/headerButtons";
 
 export const kinds = [library, transcript, timeline, mixer, markers, clip, credits];
@@ -209,6 +210,15 @@ export function createStudioJali(services: Services, options: Options = {}): Jal
           hint: (b) => (b.id === headerButtons() ? `${b.hint} · now` : b.hint),
           onChoose: (b) => setHeaderButtons(b.id),
         }),
+    },
+    {
+      id: "studio.feel-sounds",
+      title: "Key and dial sounds: turn on or off",
+      group: "Settings",
+      run: () => {
+        setFeelSounds(!feelSounds());
+        notify(feelSounds() ? "Key and dial sounds are on" : "Key and dial sounds are off");
+      },
     },
     {
       id: "studio.theme",

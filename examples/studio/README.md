@@ -111,6 +111,10 @@ One material, one light, a few depths. The tokens are in `src/styles/tokens.css`
 
 One slab, flush to the window's top, left and right, 104px tall on a 4px grid, with no printed labels: the groups are told apart by the bare slab between them (28px, less as the window narrows) and the shape of their pockets. Every pocket is 76px tall and centred, 14px from the slab's top and foot; every key in it is 68px tall (62px wide, the layout keys 84px), with 22px glyphs and 13px legends. Only the slab's foot is an edge: a lit chamfer, a dark arris and a short contact shadow on the desk. The name is engraved straight into the metal; the layout keys stand in one pocket; the player's display is glass in a cutout, its five transport keys in a pocket, and scrub and speed in a second pocket; the tools in a pocket. On a phone it is one taller slab in two tiers. The status line is its twin at the bottom: a foot rail flush to the bottom and sides, its top edge catching the light.
 
+### Feel
+
+The controls answer in sound (`src/ui/feel.ts`): a key clacks down and up, lower for the big transport keys; a fader and a pan dial tick as they move, with a firmer click at 0 dB and at centre and a soft thud at the ends of their travel; the speed selector clunks into each detent. The sounds are synthesised, play on an audio context of their own (so they never reach the mix or the meters) and come from listening to the whole page, so Jali's own buttons and tabs sound too. A key goes down faster than it comes up, and a fader cap or dial darkens a touch under the hand. ⌘K "Key and dial sounds" turns the sounds off and on, remembered on this device.
+
 ### Scrub and speed
 
 A matched pair of dials, 52px across, on caps like the keys' (the same face, rim, wall and legend baseline; the whole 148 by 68px cap is the target):

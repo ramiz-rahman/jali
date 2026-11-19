@@ -178,6 +178,10 @@
       .jali-scrim [role="alertdialog"] button
     ):active:not(:disabled) {
     --press: var(--wall);
+    /* Down fast, like a switch going over centre; the way back up is the slower `--travel` on the key itself. */
+    transition-duration: 35ms;
+    transition-timing-function: cubic-bezier(0.3, 0, 0.6, 1);
+    filter: brightness(0.94);
   }
   :where(.key, .jali-tab):hover:not(:disabled) {
     background: linear-gradient(
@@ -282,6 +286,13 @@
   }
   .fader[data-dragging] {
     cursor: grabbing;
+  }
+  /* A hand on the cap: it darkens a touch, as a cap does under a finger. */
+  .fader-cap {
+    transition: filter var(--travel);
+  }
+  .fader[data-dragging] .fader-cap {
+    filter: brightness(0.93);
   }
   .fader-slot {
     position: absolute;
@@ -615,6 +626,15 @@
   }
   .dial[data-dragging] {
     cursor: grabbing;
+  }
+  /* A hand on the dial: pressed a little into its counterbore. */
+  .dial[data-dragging] .dial-body {
+    filter: brightness(0.95);
+    box-shadow:
+      0 0 0 1px light-dark(rgb(0 0 0 / calc(0.4 * var(--sh))), #000),
+      0 0 0 3px light-dark(rgb(0 0 0 / calc(0.14 * var(--sh))), rgb(0 0 0 / calc(0.6 * var(--sh)))),
+      0 0 0 4px var(--cap-hi),
+      0 1px 2px rgb(0 0 0 / calc(0.4 * var(--sh)));
   }
   .dial-body {
     position: absolute;
