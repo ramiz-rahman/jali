@@ -56,7 +56,7 @@ export const presets: PresetOptions[] = [
     label: "Stay",
     layout: row(
       pane(explore({ category: "stay" }), { id: "explore", weight: 0.9 }),
-      pane(map({ day: 0 }), { id: "map", weight: 1.6 }),
+      pane(map({ day: 1 }), { id: "map", weight: 1.6 }),
       pane(place({ id: "h-riverside" }), { id: "place-kept", linkedTo: "map", kept: true }),
       pane(place({ id: "h-silom" }), { id: "place", ...followsMap }),
     ),

@@ -316,9 +316,12 @@ function MapPane({ params, paused, node, inPeek }: PaneProps<typeof mapParams>) 
   // layout (a preset, a link, Back) puts another place in that pane: Jali keeps this pane's selection across a
   // preset switch, but the new preset's place pane arrives with its own place (FINDINGS.md).
   const follower = model.panes.find((p) => p.linkedTo === node.id && p.follows && p.ref.kind === "place");
+  const quietSelection = useRef<string | null>(null);
   const followerShows = follower ? String(follower.ref.params.id) : null;
   useEffect(() => {
     if (inPeek || !follower || followerShows === selected) return;
+    // Taken from the layout, not picked by the person: the map keeps its framing rather than fly to it.
+    quietSelection.current = followerShows;
     jali.actions.select(node.id, follower.ref);
     // Only when the place pane's object changes by layout; a selection the person makes reaches it a moment later.
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -437,8 +440,9 @@ function MapPane({ params, paused, node, inPeek }: PaneProps<typeof mapParams>) 
   // show, which frames the day instead (the selection may be in the other city).
   const firstSelection = useRef(true);
   useEffect(() => {
-    if (firstSelection.current) {
+    if (firstSelection.current || quietSelection.current === selected) {
       firstSelection.current = false;
+      quietSelection.current = null;
       return;
     }
     if (!selected) return;
@@ -525,7 +529,10 @@ function MapPane({ params, paused, node, inPeek }: PaneProps<typeof mapParams>) 
         {legendCity !== "bkk" ? <li data-mode="scooter">Scooter</li> : null}
         {!day || day.from ? <li data-mode="flight">Flight</li> : null}
       </ul>
-      {sel ? <PlaceCard p={sel} dayN={params.day} plan={plan} from={node.id} /> : null}
+      {/* The card is for a place on this map: a Bangkok place stays selected, but out of the way, on a Phuket day. */}
+      {sel && (!day || day.city === sel.city) ? (
+        <PlaceCard p={sel} dayN={params.day} plan={plan} from={node.id} />
+      ) : null}
       {failed ? (
         <div className="map-failed" role="status">
           <WarningCircleIcon size={22} aria-hidden />

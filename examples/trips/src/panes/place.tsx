@@ -9,9 +9,9 @@ import { definePane, useCommands, useJali, type PaneProps } from "@jali/react";
 import { selectPlace } from "../actions";
 import { addToDay, chooseDay, removeFromPlan, stayAt } from "../planning";
 import { usePlan, useServices } from "../services";
-import { CATEGORY_ONE, CITY_NAME, PLACES, placeById, type Place } from "../trip/places";
+import { CATEGORY_ONE, CITY_NAME, mustPlace, PLACES, placeById, type Place } from "../trip/places";
 import { daysIn, dayWith, hotelOf, isHotel as isHotelOf } from "../trip/plan";
-import { haversineKm, leg, NEARBY_KM, type Mode } from "../trip/travel";
+import { crossesRiver, haversineKm, leg, NEARBY_KM, type Leg, type Mode } from "../trip/travel";
 import * as f from "../ui/format";
 import { CATEGORY_ICON, DayMark, Empty } from "../ui/parts";
 
@@ -25,6 +25,9 @@ const BY: Record<Mode, string> = {
   scooter: "by scooter",
   flight: "by air",
 };
+/** How a leg goes, in words: the river ferry by its name. */
+const by = (l: Leg) =>
+  l.mode === "transit" && crossesRiver(mustPlace(l.from), mustPlace(l.to)) ? "by ferry" : BY[l.mode];
 
 function PlacePane({ params, node, inPeek, peek }: PaneProps<typeof placeParams>) {
   const p = placeById(params.id);
@@ -201,7 +204,7 @@ function PlaceBody({
           <div>
             <dt>From your hotel</dt>
             <dd className="num">
-              {f.minutes(fromHotel.minutes)} {BY[fromHotel.mode]}
+              {f.minutes(fromHotel.minutes)} {by(fromHotel)}
             </dd>
           </div>
         ) : null}
@@ -270,7 +273,7 @@ function Nearby({
                     {on ? <DayMark n={on.n} size="sm" /> : null}
                     {isHotelOf(plan, q.id) ? <span className="tag">Your hotel</span> : null}
                     <span className="nearby-dist num">
-                      {f.minutes(way.minutes)} {way.mode === "walk" ? "walk" : BY[way.mode]}
+                      {f.minutes(way.minutes)} {way.mode === "walk" ? "walk" : by(way)}
                     </span>
                   </button>
                 </li>
