@@ -166,7 +166,8 @@ function Row({
       data-live={live ? "" : undefined}
       className="lib-row"
       onClick={onSelect}
-      aria-label={`${session.title}, ${cat.source}, ${spokenDuration(session.duration)}, ${tracks}, ${cat.licence.short}`}
+      // Named by what it shows (WCAG 2.5.3: the name contains the visible words); the running time spoken in full.
+      aria-description={spokenDuration(session.duration)}
     >
       {/* A cartridge: a paper label with the source and the title, a lamp; a window onto the tape (every track's
           loudest at each moment); the running time, the track count and the licence printed on its foot. */}

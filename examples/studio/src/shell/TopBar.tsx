@@ -136,7 +136,7 @@ export function TopBar() {
             <button
               type="button"
               className="key face"
-              aria-label="Commands"
+              aria-label="⌘K: commands"
               title={`Commands ${palette}`}
               onMouseDown={keepFocus}
               onClick={() => jali.actions.openPalette()}
@@ -322,7 +322,7 @@ function Transport() {
             },
             { className: "tp-stop", title: "Stop, and go back to the start" },
           )}
-          {key("Forward 5 seconds", "fwd", "forward", () => engine.skip(5))}
+          {key("Fwd: forward 5 seconds", "fwd", "forward", () => engine.skip(5))}
           {key("Loop", "loop", "loop", () => runCommand(jali, "studio.loop"), {
             className: "tp-loop",
             latch: true,
