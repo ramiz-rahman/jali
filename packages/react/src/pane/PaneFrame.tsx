@@ -1,5 +1,5 @@
 import { memo, useMemo, type CSSProperties } from "react";
-import { DotsSixIcon } from "@phosphor-icons/react";
+import { useJaliIcons } from "../icons/context";
 import {
   paneDomId,
   paneTitleId,
@@ -29,6 +29,7 @@ export const PaneFrame = memo(
   function PaneFrame({ frame, chrome, dropTarget }: Props) {
     const { node, rect, hidden, focused, zoomed, covered, group } = frame;
     const store = useStore();
+    const icon = useJaliIcons();
     const { actions } = store;
     const activity = useUi((s) => s.activity[node.id]);
     const isDragged = useUi((s) => s.dnd?.dragged === node.id);
@@ -93,7 +94,7 @@ export const PaneFrame = memo(
         >
           {chrome.draggable && !bare ? (
             <span className="jali-grip" aria-hidden>
-              <DotsSixIcon size={14} />
+              <icon.grip size={14} />
             </span>
           ) : null}
           {group ? (

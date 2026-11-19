@@ -1,5 +1,5 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState, type KeyboardEvent } from "react";
-import { ArrowUUpLeftIcon, ArrowsInLineHorizontalIcon } from "@phosphor-icons/react";
+import { useJaliIcons } from "../icons/context";
 import type { ShelfEntry, JaliModel, PaneActivity } from "@jali/core/adapter";
 import { useShortcut } from "../commands/react";
 import { flashTab, FOLDED_DESC, FOLDED_TIP, titleOf } from "@jali/core/adapter";
@@ -28,6 +28,7 @@ const FOLDED_CHIPS = 3;
 const SUMMARY = "folded-summary";
 
 export function Shelf() {
+  const icon = useJaliIcons();
   const m = useModel();
   // Every pane that is a tab but not by choice is listed too: tucked (yours, can be put back) and folded (the layout's).
   const tuckedItems = m.shelf;
@@ -168,7 +169,7 @@ export function Shelf() {
           onClick={() => doReveal(it)}
         >
           {L.folded ? (
-            <ArrowsInLineHorizontalIcon size={13} aria-hidden />
+            <icon.fold size={13} aria-hidden />
           ) : L.node ? (
             <KindIcon kind={L.node.ref.kind} size={13} />
           ) : null}
@@ -183,7 +184,7 @@ export function Shelf() {
             title={`Put back${putBackKeys}`}
             onClick={() => actions.putBack(it.paneId)}
           >
-            <ArrowUUpLeftIcon size={13} aria-hidden />
+            <icon.putBack size={13} aria-hidden />
           </button>
         ) : null}
       </div>
@@ -240,7 +241,7 @@ export function Shelf() {
                   onFocus={() => setFocusId(SUMMARY)}
                   onClick={() => setMenu((v) => (v === "folded" ? false : "folded"))}
                 >
-                  <ArrowsInLineHorizontalIcon size={13} aria-hidden />
+                  <icon.fold size={13} aria-hidden />
                   <span className="jali-shelf-chip-title">{foldedItems.length} folded</span>
                 </button>
               </div>
@@ -253,7 +254,7 @@ export function Shelf() {
               key="folded"
             >
               <span className="jali-shelf-home" title={FOLDED_TIP}>
-                <ArrowsInLineHorizontalIcon size={12} aria-hidden /> Folded:
+                <icon.fold size={12} aria-hidden /> Folded:
               </span>
               {foldedItems.map(chip)}
             </div>

@@ -44,10 +44,6 @@ export function useTitleOf(): (node: PaneNode) => string {
 
 // ---------- the public names ----------
 
-/** Provides a workspace to the hooks below it. `<JaliRoot>` does this; use it to render Jali's parts on their own. */
-export const JaliProvider = ({ jali, children }: { jali: UiStore; children?: ReactNode }) => (
-  <StoreProvider store={jali}>{children}</StoreProvider>
-);
 /** The workspace: its actions (`useJali().actions.openBeside(...)`), keymap, kinds and state. */
 export const useJali = useStore;
 /** Part of the workspace's state, re-rendering only when it changes: `useJaliState((s) => s.view.focused)`. */

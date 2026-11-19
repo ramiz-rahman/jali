@@ -1,11 +1,6 @@
 import { useEffect, useLayoutEffect, useRef, useState, type KeyboardEvent } from "react";
+import { useJaliIcons } from "../icons/context";
 import { createPortal } from "react-dom";
-import {
-  ArrowUUpLeftIcon,
-  ArrowsInLineHorizontalIcon,
-  CaretDownIcon,
-  CheckIcon,
-} from "@phosphor-icons/react";
 import type { NodeId, Tab } from "@jali/core/adapter";
 import { roleOf, titleOf, FOLDED_DESC, FOLDED_WORD, TUCKED_DESC } from "@jali/core/adapter";
 import { useStore } from "../state/react";
@@ -26,6 +21,7 @@ export function TabOverflow({
 }) {
   const store = useStore(),
     env = store.env;
+  const icon = useJaliIcons();
   const [open, setOpen] = useState(false);
   const [pos, setPos] = useState<{ left: number; top: number } | null>(null);
   const btn = useRef<HTMLButtonElement>(null);
@@ -121,7 +117,7 @@ export function TabOverflow({
         }}
       >
         <span className="tab-more-n">+{hiddenCount}</span>
-        <CaretDownIcon size={12} aria-hidden />
+        <icon.more size={12} aria-hidden />
       </button>
       {open
         ? createPortal(
@@ -149,7 +145,7 @@ export function TabOverflow({
                     onClick={() => choose(t.id)}
                   >
                     <span className="jali-tab-menu-check" aria-hidden>
-                      {t.id === active ? <CheckIcon size={13} /> : null}
+                      {t.id === active ? <icon.current size={13} /> : null}
                     </span>
                     {role ? (
                       <role.icon size={14} aria-hidden />
@@ -159,13 +155,13 @@ export function TabOverflow({
                     <span className="jali-tab-menu-title">{titleOf(env, t)}</span>
                     {folded ? (
                       <small className="jali-tab-menu-mark">
-                        <ArrowsInLineHorizontalIcon size={12} aria-hidden />
+                        <icon.fold size={12} aria-hidden />
                         {FOLDED_WORD}
                       </small>
                     ) : null}
                     {tucked ? (
                       <small className="jali-tab-menu-mark">
-                        <ArrowUUpLeftIcon size={12} aria-hidden />
+                        <icon.putBack size={12} aria-hidden />
                         Tucked
                       </small>
                     ) : null}

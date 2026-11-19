@@ -1,10 +1,5 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
-import {
-  ArrowUUpLeftIcon,
-  ArrowsInLineHorizontalIcon,
-  PlusIcon,
-  XIcon,
-} from "@phosphor-icons/react";
+import { useJaliIcons } from "../icons/context";
 import type { NodeId, PaneNode, Frame, Tab } from "@jali/core/adapter";
 import {
   shortcutLabel,
@@ -47,6 +42,7 @@ function TabActivity({ id }: { id: NodeId }) {
 
 /** A group's tabs. `owner` is the frame showing the group: the active tab's title labels its region. */
 export function TabStrip({ group, owner }: { group: NonNullable<Frame["group"]>; owner: NodeId }) {
+  const icon = useJaliIcons();
   const store = useStore();
   const { actions, env } = store;
   // A curated page, or a workspace without a launcher: no "+" (its views come from the page's tabs).
@@ -131,7 +127,7 @@ export function TabStrip({ group, owner }: { group: NonNullable<Frame["group"]>;
         <TabActivity id={t.id} />
         {isFolded ? (
           <span className="jali-tab-fold-mark" aria-hidden>
-            <ArrowsInLineHorizontalIcon size={13} />
+            <icon.fold size={13} />
           </span>
         ) : null}
         {tucked ? (
@@ -145,7 +141,7 @@ export function TabStrip({ group, owner }: { group: NonNullable<Frame["group"]>;
               actions.putBack(t.id);
             }}
           >
-            <ArrowUUpLeftIcon size={14} aria-hidden />
+            <icon.putBack size={14} aria-hidden />
           </button>
         ) : null}
         <button
@@ -156,7 +152,7 @@ export function TabStrip({ group, owner }: { group: NonNullable<Frame["group"]>;
             actions.close(t.id);
           }}
         >
-          <XIcon size={14} aria-hidden />
+          <icon.close size={14} aria-hidden />
         </button>
       </div>
     );
@@ -193,7 +189,7 @@ export function TabStrip({ group, owner }: { group: NonNullable<Frame["group"]>;
             actions.newTab(group.active);
           }}
         >
-          <PlusIcon size={14} aria-hidden />
+          <icon.newTab size={14} aria-hidden />
         </button>
       )}
     </div>

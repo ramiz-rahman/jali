@@ -1,5 +1,5 @@
-import { XIcon } from "@phosphor-icons/react";
 import type { PaneActivity } from "@jali/core/adapter";
+import { useJaliIcons } from "../icons/context";
 
 /**
  * One activity model. Headers, tabs and the switcher show a dot with a label; the shelf shows a shape as well as a
@@ -23,6 +23,7 @@ const ACTIVITY: Record<
 export const shelfActivity = (a: PaneActivity | undefined) => (a ? ACTIVITY[a].shelf : undefined);
 
 export function Activity({ a, shape = false }: { a: PaneActivity | undefined; shape?: boolean }) {
+  const icon = useJaliIcons();
   if (!a || a === "idle") return null;
   if (!shape)
     return (
@@ -44,7 +45,7 @@ export function Activity({ a, shape = false }: { a: PaneActivity | undefined; sh
     );
   return (
     <span className="jali-ra jali-ra-fail" data-shape="fail" aria-hidden>
-      <XIcon size={8} weight="bold" />
+      <icon.activityError size={8} aria-hidden />
     </span>
   );
 }

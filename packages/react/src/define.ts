@@ -28,6 +28,7 @@ import type {
   ItemId,
 } from "@jali/core/adapter";
 import { defineKind } from "@jali/core/adapter";
+import type { JaliIcon } from "./icons/types";
 
 /** What a pane's component gets. `P` is the type of its params. */
 export interface PaneProps<P = Params> {
@@ -55,26 +56,16 @@ export interface PaneProps<P = Params> {
   dismiss: () => void;
 }
 
-/** Phosphor's weights (`@phosphor-icons/react`), the set Jali's own icons use. */
-type IconWeight = "thin" | "light" | "regular" | "bold" | "fill" | "duotone";
-
-/** Any Phosphor icon fits; so does any component that takes these props. Jali passes `size` and `aria-hidden`. */
-type IconComponent = ComponentType<{
-  size?: number;
-  weight?: IconWeight;
-  "aria-hidden"?: boolean;
-}>;
-
 /** A pane kind for React: the options of any kind, plus its icon and component. */
 export interface PaneOptionsReact<P = Params> extends PaneOptions<P> {
-  /** For the header, tab and shelf: a Phosphor icon (regular weight), or any icon component. Default: a plain square. */
-  icon?: IconComponent;
+  /** For the header, tab and shelf: a Phosphor icon, or any `JaliIcon`. Default: the workspace's `defaultKind` icon. */
+  icon?: JaliIcon;
   Component: ComponentType<PaneProps<P>>;
 }
 
 /** A kind as a React workspace keeps it. */
 export interface PaneKindDef extends PaneKindBase {
-  icon?: IconComponent;
+  icon?: JaliIcon;
   // Each kind's component takes its own params; the workspace passes the ones it read for it.
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   Component: ComponentType<PaneProps<any>>;
@@ -93,7 +84,7 @@ export function definePane<const T extends ParamTypes | undefined = undefined>(
 
 /** One of a curated page's views, with its tab icon. */
 export interface PageView extends RoleBase {
-  icon: IconComponent;
+  icon: JaliIcon;
 }
 
 /** A curated page: one item at a time, with a list beside it (the rail) and the item's header above its tabs. `I` is

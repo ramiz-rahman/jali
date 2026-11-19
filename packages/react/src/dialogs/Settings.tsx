@@ -1,5 +1,5 @@
 import { useEffect, useRef, type ReactNode } from "react";
-import { XIcon } from "@phosphor-icons/react";
+import { useJaliIcons } from "../icons/context";
 import type { Settings as S, ThemeChoice } from "@jali/core/adapter";
 import { useStore, useUi } from "../state/react";
 import { formatChord, formatKeys, PALETTE_ID, commandById, viewerLabel } from "@jali/core/adapter";
@@ -14,6 +14,7 @@ const cap = (t: string) => t.charAt(0).toUpperCase() + t.slice(1);
 
 /** Jali's settings. `children` are the host's own fieldsets, shown last. */
 export function SettingsPanel({ children }: { children?: ReactNode } = {}) {
+  const icon = useJaliIcons();
   const store = useStore();
   const id = store.dom.id;
   const open = useUi((s) => s.settingsOpen);
@@ -49,7 +50,7 @@ export function SettingsPanel({ children }: { children?: ReactNode } = {}) {
         <header>
           <h2 id={`${id}-settings-title`}>Settings</h2>
           <button className="jali-icon-btn" onClick={close} aria-label="Close settings">
-            <XIcon size={14} aria-hidden />
+            <icon.close size={14} aria-hidden />
           </button>
         </header>
         <fieldset>

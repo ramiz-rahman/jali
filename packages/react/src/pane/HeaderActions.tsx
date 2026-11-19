@@ -1,5 +1,5 @@
-import { ArrowsInSimpleIcon, ArrowsOutSimpleIcon, MinusIcon, XIcon } from "@phosphor-icons/react";
 import { checkTuck, tuckHome, formatChord } from "@jali/core/adapter";
+import { useJaliIcons } from "../icons/context";
 import { useModel, useStore } from "../state/react";
 import type { Chrome } from "@jali/core/adapter";
 
@@ -12,6 +12,7 @@ interface P {
 
 /** Tuck, maximise, close: 26px targets, 4px apart. Tuck is a plain minus: it puts the pane behind the pane it would join. */
 export function HeaderActions({ id, title, zoomed, chrome }: P) {
+  const icon = useJaliIcons();
   const store = useStore();
   const m = useModel();
   const home = tuckHome(store.snapshot(), id);
@@ -34,7 +35,7 @@ export function HeaderActions({ id, title, zoomed, chrome }: P) {
           disabled={!home}
           onClick={() => actions.tuck(id)}
         >
-          <MinusIcon size={14} aria-hidden />
+          <icon.tuck size={14} aria-hidden />
         </button>
       ) : null}
       {chrome.zoomable ? <ZoomButton id={id} title={title} zoomed={zoomed} /> : null}
@@ -44,13 +45,14 @@ export function HeaderActions({ id, title, zoomed, chrome }: P) {
         aria-label={`Close ${title}`}
         title={`${closeHint}${hint("pane.close")}`}
       >
-        <XIcon size={14} aria-hidden />
+        <icon.close size={14} aria-hidden />
       </button>
     </div>
   );
 }
 
 function ZoomButton({ id, title, zoomed }: { id: string; title: string; zoomed: boolean }) {
+  const icon = useJaliIcons();
   const { actions, keymap } = useStore();
   const zoomKeys = keymap.label("pane.zoom");
   return (
@@ -64,11 +66,7 @@ function ZoomButton({ id, title, zoomed }: { id: string; title: string; zoomed: 
           : `Maximise${zoomKeys ? ` · ${zoomKeys}` : ""}`
       }
     >
-      {zoomed ? (
-        <ArrowsInSimpleIcon size={14} aria-hidden />
-      ) : (
-        <ArrowsOutSimpleIcon size={14} aria-hidden />
-      )}
+      {zoomed ? <icon.restore size={14} aria-hidden /> : <icon.maximise size={14} aria-hidden />}
     </button>
   );
 }

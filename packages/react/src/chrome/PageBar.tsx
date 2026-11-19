@@ -1,10 +1,5 @@
 import { useEffect, useRef, type KeyboardEvent } from "react";
-import {
-  ArrowCounterClockwiseIcon,
-  ArrowUUpLeftIcon,
-  SquareIcon,
-  SquareSplitHorizontalIcon,
-} from "@phosphor-icons/react";
+import { useJaliIcons } from "../icons/context";
 import { investigation, startTabDrag, altClick } from "@jali/core/adapter";
 import { useModel, useStore, useUi, useProfile } from "../state/react";
 import { Panes } from "../workspace/Workspace";
@@ -14,6 +9,7 @@ import { Panes } from "../workspace/Workspace";
  * links) with its way back, and Reset for the split layout. Which views are on screen is the tabs' job.
  */
 export function PageBar() {
+  const icon = useJaliIcons();
   const page = useUi((s) => s.page);
   const m = useModel();
   const { actions } = useStore();
@@ -31,7 +27,7 @@ export function PageBar() {
           onClick={() => actions.setMode("single")}
           title="One view at a time"
         >
-          <SquareIcon size={14} aria-hidden /> Single view
+          <icon.singleView size={14} aria-hidden /> Single view
         </button>
         <button
           role="radio"
@@ -45,7 +41,7 @@ export function PageBar() {
               : "Your role works in Single"
           }
         >
-          <SquareSplitHorizontalIcon size={14} aria-hidden /> Split view
+          <icon.splitView size={14} aria-hidden /> Split view
         </button>
       </div>
       {multi && opened ? (
@@ -55,7 +51,7 @@ export function PageBar() {
             Investigating · <b>{opened}</b> opened
           </span>
           <button className="jali-inv-back" onClick={() => actions.backToPage()}>
-            <ArrowUUpLeftIcon size={13} aria-hidden /> Back to {profile.name}
+            <icon.back size={13} aria-hidden /> Back to {profile.name}
           </button>
         </div>
       ) : null}
@@ -66,7 +62,7 @@ export function PageBar() {
           aria-label="Reset layout to its design"
           title="Reset layout · drops your split layout"
         >
-          <ArrowCounterClockwiseIcon size={15} aria-hidden />
+          <icon.reset size={15} aria-hidden />
         </button>
       ) : null}
     </div>
