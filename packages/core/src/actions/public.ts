@@ -26,6 +26,7 @@ import {
   openSettings,
   preset,
   resetLayout,
+  autoLayout,
 } from "./layout";
 import { moveDirection, swapWithNext } from "./move";
 import { addTab, newTab, openBeside, openHere, openPaneFor, split } from "./open";
@@ -125,6 +126,11 @@ export interface JaliActions {
   preset(id: string): ActionResult;
   /** Rebuild the preset last chosen. */
   resetLayout(): ActionResult;
+  /** Arrange every pane from the room there is and each kind's size hints: columns at the kinds' comfortable widths,
+   *  a second row when the height allows, the rest as tabs beside the pane they were opened from. The same panes, so
+   *  nothing reloads; Back returns to the arrangement before. `"unavailable"` on a curated page, `"nothing-to-do"`
+   *  with one pane. */
+  autoLayout(): ActionResult;
 
   // ---------- the curated page ----------
   /** Open the curated page. */
@@ -250,6 +256,7 @@ export function publicActions(run: Run): JaliActions {
             : refuse("not-found"),
       ),
     resetLayout: () => run((x) => (x.env.presets.length ? resetLayout(x) : refuse("unavailable"))),
+    autoLayout: () => run(autoLayout),
 
     openPage: (options = {}) => run((x) => openPage(x, { item: options.item, tab: options.tab })),
     leavePage: () => run((x) => (x.s.page ? leavePage(x) : null)),

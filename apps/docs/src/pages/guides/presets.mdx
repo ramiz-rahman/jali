@@ -81,6 +81,14 @@ A workspace that doesn't need presets passes one `layout`. It needs one or the o
 
 Without presets, ⌘K "Reset layout" is unavailable.
 
+## Let Jali arrange the panes
+
+When the panes a person opened have piled up, `jali.actions.autoLayout()` arranges them from the room there is and each kind's size hints, with no layout to write. It puts as many panes side by side as fit at their comfortable widths and adds a second row when the height allows. The rest become tabs beside the pane they were opened from, so a detail stays with its list. It keeps the same panes, so nothing reloads, and Back returns to the arrangement before. People find it in ⌘K as "Arrange panes automatically".
+
+```tsx
+<button onClick={() => jali.actions.autoLayout()}>Tidy up</button>
+```
+
 ## Next
 
 - [Keep the layout in the URL](/guides/url-and-routers)

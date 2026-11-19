@@ -118,3 +118,24 @@ export const changeSettings = ({ s }: Snapshot, patch: Partial<Settings>): Outco
   op: "patch",
   patch: { settings: { ...s.settings, ...patch } },
 });
+
+/**
+ * `jali.actions.autoLayout()`: arrange every pane in the free workspace from the room there is and the kinds' size
+ * hints (`layout.arrange`). The same panes, so their state survives; tucked and folded panes are placed too, and the
+ * fit runs after. Like a preset, the address gets a new entry, so Back returns to the arrangement before.
+ */
+export function autoLayout(x: Snapshot): Outcome {
+  const { s, ctx, env } = x;
+  if (s.page) return refuse("unavailable");
+  const panes = core.tree.panes(s.layout.root);
+  if (panes.length < 2) return refuse("nothing-to-do");
+  const layout = core.arrange(s.layout, ctx, { focused: s.view.focused });
+  const view: ViewState = { ...s.view, zoomed: undefined };
+  return {
+    op: "setLayout",
+    layout: core.refit(layout, view, ctx),
+    view,
+    msg: say(env).arranged(panes.length),
+    patch: { peekSource: undefined, resizeMode: null },
+  };
+}

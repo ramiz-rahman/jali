@@ -8,6 +8,7 @@ export { resizeDivider, resetDivider } from "./ops/divider";
 export { canTuck, tuck, putBack, putBackEdge } from "./ops/tuck";
 export { hide, show } from "./ops/hide";
 export { replace } from "./ops/replace";
+export { arrange, type ArrangeOptions } from "./ops/arrange";
 export { setRef } from "./ops/ref";
 export { follow, follower, followers, selectionLink, setKept } from "./ops/follow";
 export { addTab, moveTab, reveal, setActiveTab, setPinned, resetLayout } from "./ops/tabs";

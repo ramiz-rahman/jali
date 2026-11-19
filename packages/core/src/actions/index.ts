@@ -32,6 +32,7 @@ import {
   openSettings,
   preset,
   resetLayout,
+  autoLayout,
   setActivity,
 } from "./layout";
 import {
@@ -104,6 +105,7 @@ export const ACTIONS = {
   setKept,
   preset,
   resetLayout,
+  autoLayout,
   arrive,
   setActivity,
   openPalette,

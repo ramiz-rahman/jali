@@ -629,3 +629,11 @@ Data Studio's old tab strip had six features Jali lacked. Each is general, and l
 - **Tabs** are as wide as their title up to `--jali-tab-max-width` (default 20rem, was a fixed 12.5rem), then shortened with an ellipsis. In a full strip, the overflow rules (the shown tab whole, "+N") do the rest; wider tabs mean "+N" comes a little sooner.
 - **Kept for Data Studio's smokes:** `.jali-tab-indicator`, `.jali-unsaved` in a pane's header, `.jali-tab-close` inside `.jali-tab-item`.
 - **Tests:** `src/tests/alone.test.tsx`. The icon tests now give jsdom a size, so their two panes sit side by side instead of folding into one.
+
+## 19 Nov 2026 · Auto layout: Jali arranges the panes itself (founder)
+
+- **What:** `layout.arrange(layout, ctx, options)` (pure, in the `layout` namespace) and `jali.actions.autoLayout()`, with the ⌘K command `layout.auto`, "Arrange panes automatically" (no default key). The founder asked for both a built-in arrangement and an agent that may use it on its own; this is the first half, and the agent bridge calls it.
+- **The rule:** reading order with each pane's linked panes right after it; as many columns as fit at the kinds' comfortable widths (else their minimums); a second row in a column only when the height holds two of the tallest minimum, never more than two; panes past the cells become tabs of the cell holding the pane they were opened from, else the last cell, with the focused pane shown. Column weights follow the widest comfortable width; nothing is marked as sized by the person. The fit runs after, so a narrow window still folds.
+- **The same panes:** ids, refs, links, follows, keeps and pins carry over, so no pane remounts or loses state. Tucked, folded and hidden panes are placed too: arranging is a fresh start. Splits and stacks get fresh ids that can't collide with a pane's.
+- **Undo:** like a preset or `setLayout`, it adds an address entry, so Back returns to the arrangement before; it announces "Arranged N panes". Refused on a curated page (`unavailable`, the page has its own design) and with one pane (`nothing-to-do`).
+- **Tests:** `src/tests/auto-layout.test.ts`.

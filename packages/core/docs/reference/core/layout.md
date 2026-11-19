@@ -393,6 +393,33 @@ A preset's layout, fitted, with every node's size recorded as its `base`, so a d
 
 **Returns** `Layout`:
 
+### layout.arrange
+
+*function*, from `@jali/core`
+
+```ts
+layout.arrange(layout: Layout, ctx: LayoutContext, options?: ArrangeOptions): Layout
+```
+
+A new arrangement of the same panes (same ids, refs, links, pins and keeps), from the room in `ctx` and each kind's size hints, with no sizes anyone chose. What `jali.actions.autoLayout()` uses.
+
+1. **Order:** reading order, each pane followed by the panes opened from it, so a list sits beside its detail.
+2. **Columns:** as many as fit across at the kinds' comfortable widths (`width.comfortable`, else `width.min`).
+3. **Rows:** a second row in each column when the height holds two of the tallest minimum, never more than two.
+4. **The rest:** tabs of the cell holding the pane they were opened from, else of the last cell. `options.focused` stays the shown tab.
+
+The layout as it is when it holds fewer than two panes. Fit the result with `layout.refit`.
+
+**ArrangeOptions**
+
+- **`focused`** (`string`): The pane to keep shown when it lands in tabs.
+
+- **`maxColumns`** (`number`): At most this many columns. Default: as many as fit.
+
+- **`maxRows`** (`number`): At most this many rows in a column, 1 or 2. Default 2.
+
+**Returns** `Layout`:
+
 ### layout.focus
 
 *function*, from `@jali/core`

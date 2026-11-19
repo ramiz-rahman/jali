@@ -107,6 +107,7 @@ describe("the instance", () => {
         "startRename",
         "preset",
         "resetLayout",
+        "autoLayout",
         "openPage",
         "leavePage",
         "setMode",

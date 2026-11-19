@@ -115,6 +115,7 @@ const announcements = {
 
   // layout, peek, link, settings
   preset: (label: string) => `Layout: ${label}`,
+  arranged: (n: number) => `Arranged ${n} ${panes(n)}`,
   peek: (pane: string) => `Peek: ${pane} · Escape to close`,
   peekClosed: "Peek closed",
   linkCopied: "Link copied",
@@ -223,6 +224,7 @@ const commands = {
   rename: "Rename pane",
   preset: (label: string) => `Layout: ${label}`,
   resetLayout: "Reset layout",
+  autoLayout: "Arrange panes automatically",
   copyLink: "Copy link to this layout",
   /** `page` is the curated page's name; undefined in a workspace without one. */
   pageBack: (page: string | undefined) => `Back to ${page ?? "page"} (close opened panes)`,

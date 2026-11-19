@@ -1465,6 +1465,8 @@ A pane that is not there gives `reason: "not-found"`. What a refusal reads out t
 
 - **`actions.resetLayout`**, `resetLayout()`: Rebuild the preset last chosen.
 
+- **`actions.autoLayout`**, `autoLayout()`: Arrange every pane from the room there is and each kind's size hints ([`layout.arrange`](layout.md#layout.arrange)): columns at the kinds' comfortable widths, a second row when the height allows, the rest as tabs beside the pane they were opened from. The same panes, so nothing reloads; tucked and folded panes are placed too. Back returns to the arrangement before. `"unavailable"` on a curated page, `"nothing-to-do"` with one pane. ⌘K: "Arrange panes automatically".
+
 - **`actions.openPage`**, `openPage(options?: OpenPageOptions)`: Open the workspace's curated page. `"unavailable"` without one.
 
 - **`actions.leavePage`**, `leavePage()`: Back to the free workspace's preset. The page's mode and layout are kept. `"unavailable"` in a page-only app.

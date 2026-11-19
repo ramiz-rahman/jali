@@ -85,6 +85,8 @@ export const REFUSED: Record<string, string> = {
   "stack.new-tab": "Silent when no pane is focused, or the workspace has no launcher kind.",
   [PRESET_PATTERN]: 'Never. One command per preset, titled "Layout: <label>".',
   "layout.reset": "Silent in a workspace without presets. Rebuilds the preset last chosen.",
+  "layout.auto":
+    "On a curated page, or with one pane. Arranges every pane from the room and the kinds' sizes; Back undoes it.",
   "layout.copy_link":
     'Never. Copies store.href() and says "Link copied", or "Couldn\'t copy the link" when the clipboard refuses; says nothing where there is no clipboard API.',
   "page.back": "Silent unless a curated page is open and has panes opened from links.",

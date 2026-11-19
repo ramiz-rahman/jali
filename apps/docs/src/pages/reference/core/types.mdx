@@ -852,6 +852,7 @@ A pane that is not there gives `reason: "not-found"`. What a refusal reads out t
 <Members title="Layouts">
 <Member name="actions.preset" signature="preset(id: string)">Switch to a preset. `"not-found"` for an id the workspace doesn't have.</Member>
 <Member name="actions.resetLayout" signature="resetLayout()">Rebuild the preset last chosen.</Member>
+<Member name="actions.autoLayout" signature="autoLayout()">Arrange every pane from the room there is and each kind's size hints (<Ref to="layout.arrange" page="/reference/core/layout" />): columns at the kinds' comfortable widths, a second row when the height allows, the rest as tabs beside the pane they were opened from. The same panes, so nothing reloads; tucked and folded panes are placed too. Back returns to the arrangement before. `"unavailable"` on a curated page, `"nothing-to-do"` with one pane. ⌘K: "Arrange panes automatically".</Member>
 </Members>
 
 <Members title="Curated pages">
