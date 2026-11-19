@@ -17,7 +17,7 @@ function PaletteDialog() {
   useUi((s) => s);
   useModel();
   const close = () => store.actions.closePalette();
-  const items = listCommands(store);
+  const items = listCommands(store.jali);
   return (
     <ListDialog<ListedCommand>
       className=""

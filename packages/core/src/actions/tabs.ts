@@ -40,7 +40,8 @@ export function mergeTargets({ s, m }: Snapshot, source = s.view.focused): Merge
   });
 }
 
-export const checkMerge = (x: Snapshot) => (mergeTargets(x).length ? undefined : refuse());
+export const checkMerge = (x: Snapshot) =>
+  mergeTargets(x).length ? undefined : refuse("nothing-to-do");
 
 /** Merge without dragging (WCAG 2.5.7): the pane joins `target`'s stack as a tab. Same op as a centre drop in tab mode. */
 export function mergeInto({ s, m, ctx }: Snapshot, source: NodeId, target: NodeId): Outcome {
@@ -53,12 +54,12 @@ export function mergeInto({ s, m, ctx }: Snapshot, source: NodeId, target: NodeI
 }
 
 export const checkUnmerge = ({ s, m }: Snapshot) =>
-  m.stackOf(s.view.focused) ? undefined : refuse();
+  m.stackOf(s.view.focused) ? undefined : refuse("nothing-to-do");
 
 /** Move a tab out of its stack, to the right of the stack. Same op as dragging the tab to the right edge. */
 export function unmerge({ s, m, ctx }: Snapshot, id = s.view.focused): Outcome {
   const st = m.stackOf(id);
-  if (!id || !st) return refuse(msg.notInTabs(m.title(id)));
+  if (!id || !st) return refuse("nothing-to-do", msg.notInTabs(m.title(id)));
   const other = st.children.find((c) => c.id !== id)!;
   const r = core.drop(s.layout, unzoomed(s.view), id, other.id, "right", "swap", ctx);
   return {

@@ -67,6 +67,30 @@ describe("public API", () => {
     ]);
   });
 
+  it("a workspace has exactly these members (src/tests/instance.test.ts lists its actions)", () => {
+    const jali = core.createJali({
+      panes: [{ kind: "note", title: "Note" }],
+      layout: { kind: "note", params: {} },
+      url: false,
+      storage: core.memoryStorage(),
+      moveFocus: false,
+    });
+    expect(Object.keys(jali).sort()).toEqual([
+      "actions",
+      "env",
+      "get",
+      "getLayout",
+      "href",
+      "keymap",
+      "model",
+      "on",
+      "onToast",
+      "setLayout",
+      "start",
+      "subscribe",
+    ]);
+  });
+
   it("the layout namespace is the pure tree API", () => {
     expect(Object.keys(core.layout).sort()).toMatchSnapshot();
   });

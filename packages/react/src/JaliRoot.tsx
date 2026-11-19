@@ -16,7 +16,7 @@
  * line) and toasts (`jali.onToast`; closes and tucks offer Undo). Put a toaster in `overlays`.
  */
 import { useEffect, type HTMLAttributes, type ReactNode } from "react";
-import type { UiStore } from "@jali/core/adapter";
+import { storeOf, type Jali } from "@jali/core/adapter";
 import { Announcer } from "./chrome/Announcer";
 import { CuratedPage } from "./chrome/PageBar";
 import { Chooser } from "./dialogs/Chooser";
@@ -27,7 +27,7 @@ import { StoreProvider, useUi } from "./state/react";
 import { Panes } from "./workspace/Workspace";
 
 export interface JaliRootProps extends HTMLAttributes<HTMLDivElement> {
-  jali: UiStore;
+  jali: Jali;
   /** What goes inside the workspace's root. Default: `<JaliView />`. */
   children?: ReactNode;
   /** Rendered after the root, inside the provider: things that must sit outside the workspace, such as a toaster
@@ -47,16 +47,17 @@ export function JaliRoot({
   settingsExtra,
   ...rest
 }: JaliRootProps) {
-  useEffect(() => jali.start(), [jali]);
+  const store = storeOf(jali);
+  useEffect(() => store.start(), [store]);
   return (
-    <StoreProvider store={jali}>
-      <div {...rest} data-jali="" ref={jali.dom.attach}>
+    <StoreProvider store={store}>
+      <div {...rest} data-jali="" ref={store.dom.attach}>
         {children}
       </div>
       {/* The dialogs render outside the root but are this workspace's: keys pressed in them count as its own. */}
-      <div data-jali-layer="" ref={jali.dom.attachLayer} style={{ display: "contents" }}>
+      <div data-jali-layer="" ref={store.dom.attachLayer} style={{ display: "contents" }}>
         <Announcer />
-        {jali.env.palette === false ? null : <Palette />}
+        {store.env.palette === false ? null : <Palette />}
         {settings ? <SettingsPanel>{settingsExtra}</SettingsPanel> : null}
         <Chooser />
         <ConfirmDiscard />

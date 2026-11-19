@@ -23,7 +23,7 @@ beforeEach(() => {
     initial: { area: { width: 1600, height: 800 } },
   });
   store.actions.preset("order-chain");
-  port = activeItemPort(store, "orders", mapping);
+  port = activeItemPort(store.jali, "orders", mapping);
 });
 afterEach(() => vi.useRealTimers());
 
@@ -43,7 +43,7 @@ describe("the active-item port", () => {
 
   it("with no detail on screen, open shows a sheet, step moves it, close shuts it and keeps the cursor", () => {
     store.actions.preset("one-table");
-    const list = activeItemPort(store, "orders", mapping);
+    const list = activeItemPort(store.jali, "orders", mapping);
     list.write("2", "open");
     expect(store.get().view.peek).toEqual(order(2));
     list.write("3", "step");

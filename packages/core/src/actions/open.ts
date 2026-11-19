@@ -140,7 +140,8 @@ export function split(x: Snapshot, dir: "right" | "bottom", target = x.s.view.fo
   const { s, m, ctx } = x;
   const p = m.pane(target);
   const launcher = launcherOf(x);
-  if (!p || !launcher) return null;
+  if (!p) return refuse("not-found");
+  if (!launcher) return refuse("unavailable");
   const r = core.split(s.layout, unzoomed(s.view), p.id, dir, launcher, ctx);
   return {
     op: "split",
@@ -209,7 +210,7 @@ export function openHere({ s, m, ctx }: Snapshot, id: NodeId, ref: ObjectRef): O
 /** Esc on an untouched launcher: close it without an undo toast; focus returns to where it came from. */
 export function dismiss({ s, m, ctx }: Snapshot, id: NodeId): Outcome {
   if (!m.pane(id)) return null;
-  if (m.panes.length <= 1) return refuse(msg.lastPaneStays);
+  if (m.panes.length <= 1) return refuse("last-pane", msg.lastPaneStays);
   const r = core.close(s.layout, unzoomed(s.view), id, ctx);
   return {
     op: "dismiss",
@@ -224,13 +225,40 @@ export function newTab(x: Snapshot, id = x.s.view.focused): Outcome {
   const { s, m, ctx } = x;
   const p = m.pane(id);
   const launcher = launcherOf(x);
-  if (!p || !launcher) return null;
+  if (!p) return refuse("not-found");
+  if (!launcher) return refuse("unavailable");
   const r = core.addTab(s.layout, unzoomed(s.view), p.id, launcher, ctx);
   return {
     op: "newTab",
     layout: r.layout,
     view: r.view,
     msg: msg.newTab(m.title(p.id)),
+    result: r.opened,
+  };
+}
+
+/** `ref` as a new tab of pane `id`'s group (or a new group), shown and focused. Already open: that pane is shown. */
+export function addTab(x: Snapshot, id: NodeId, ref: ObjectRef): Outcome {
+  const { s, m, ctx } = x;
+  if (s.page?.mode === "single") return refuse("single-view", msg.singleNoLayout);
+  if (!m.pane(id)) return refuse("not-found");
+  if (!ctx.fit.kinds[ref.kind]) return refuse("invalid");
+  const dup = openPaneFor(m, ref);
+  if (dup)
+    return {
+      op: "focusExisting",
+      layout: core.reveal(s.layout, dup.id, ctx),
+      view: core.focus(unzoomed(s.view), dup.id, ctx),
+      msg: msg.alreadyOpen(m.title(dup.id)),
+      result: dup.id,
+    };
+  const r = core.addTab(s.layout, unzoomed(s.view), id, ref, ctx);
+  return {
+    op: "newTab",
+    layout: r.layout,
+    view: r.view,
+    msg: msg.opened(m.env.kinds.title(ref)),
+    patch: { recent: withRecent(m.env.kinds, s.recent, [ref]) },
     result: r.opened,
   };
 }

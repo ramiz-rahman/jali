@@ -60,7 +60,7 @@ export function enterResizeMode({ s, m }: Snapshot): Outcome {
   const id = s.view.focused;
   if (!id) return null;
   if (!nearestDivider(m, id, true) && !nearestDivider(m, id, false))
-    return refuse(msg.nothingToResize);
+    return refuse("nothing-to-do", msg.nothingToResize);
   return { op: "patch", patch: { resizeMode: id }, msg: msg.resizeModeOn };
 }
 

@@ -60,27 +60,26 @@ export type {
   LayoutContext,
   FitOptions,
   ShelfEntry,
-  UndoEntry,
 } from "./layout/types";
 export * as layout from "./layout";
 export { sameRef } from "./actions/follow";
 
-// ---------- the workspace's state ----------
+// ---------- the instance: actions, results, events ----------
+export type { JaliEvents, JaliState } from "./state/instance";
+export type { JaliActions, PaneTarget, OpenPageOptions } from "./actions/public";
 export type {
-  UiState as JaliState,
-  PageState,
-  Selection,
-  JaliDom,
-  UrlWriter,
-  DndState,
-  ConfirmState,
-  ChooserState,
-} from "./state/store";
-export type { Actions } from "./actions";
-export type { OpenPage } from "./actions/page";
-export type { PagePrefs } from "./state/page-prefs";
+  ActionResult,
+  Refusal,
+  RefusalReason,
+  BeforeClose,
+  CloseRequest,
+  Toast,
+  HistoryMode,
+} from "./state/apply";
+
+// ---------- the workspace's state ----------
+export type { PageState, Selection, UrlWriter } from "./state/store";
 export type { JaliModel, Group } from "./state/model";
-export type { Snapshot, Outcome, Change, Refusal, Toast, HistoryMode } from "./state/apply";
 export type { Settings, ThemeChoice, Theme } from "./state/settings";
 
 // ---------- the address and what a person keeps ----------

@@ -12,25 +12,34 @@ import { checkPutBack, checkTuck } from "../actions/tuck";
 import { checkMerge, checkUnmerge } from "../actions/tabs";
 import { activeTabId, focusShelfChip } from "../dom/focus";
 import { viewerLabel, type Env } from "../profile";
-import { refuse, type Refusal, type Snapshot } from "../state/apply";
+import { refuse, type RefusalStep, type Snapshot } from "../state/apply";
 import { msg } from "../state/messages";
 import type { UiStore } from "../state/store";
+import { storeOf, type Jali } from "../state/instance";
 import { formatChord } from "./format";
 import { cycleRegions } from "./regions";
 
+/** A command: one of Jali's (`commandsOf`), or the app's own (`createJali({ commands })`). */
 export interface Command {
   id: string;
   title: string;
   /** Jali's groups, or a host command's own. */
   group: "Focus" | "Pane" | "Move" | "Tabs" | "Layout" | "Peek" | "Settings" | (string & {});
+  run: (jali: Jali) => void;
+}
+
+/** A command as the registry holds it (adapters): with its check, run on the store. */
+export interface CommandDef extends Omit<Command, "run"> {
   /** Why the command can't run now (silent without a message); undefined when it can. */
-  check?: (x: Snapshot) => Refusal | undefined;
+  check?: (x: Snapshot) => RefusalStep | undefined;
   run: (store: UiStore) => void;
 }
 
-const needFocus = ({ s }: Snapshot) => (s.view.focused ? undefined : refuse());
-const needLauncher = (x: Snapshot) => (x.s.view.focused && x.env.launcher ? undefined : refuse());
-const needOthers = (x: Snapshot) => needFocus(x) ?? (x.m.panes.length > 1 ? undefined : refuse());
+const needFocus = ({ s }: Snapshot) => (s.view.focused ? undefined : refuse("unavailable"));
+const needLauncher = (x: Snapshot) =>
+  x.s.view.focused && x.env.launcher ? undefined : refuse("unavailable");
+const needOthers = (x: Snapshot) =>
+  needFocus(x) ?? (x.m.panes.length > 1 ? undefined : refuse("unavailable"));
 const DIRS: [Edge, string][] = [
   ["left", "left"],
   ["right", "right"],
@@ -39,7 +48,7 @@ const DIRS: [Edge, string][] = [
 ];
 
 /** Every command a workspace has: the fixed set, its presets', and titles in its own words (its name, its viewers). */
-function buildCommands(env: Env): Command[] {
+function buildCommands(env: Env): CommandDef[] {
   const profile = env.profile;
   const full = viewerLabel(profile, true);
   const limited = viewerLabel(profile, false);
@@ -57,14 +66,14 @@ function buildCommands(env: Env): Command[] {
       group: "Focus",
       run: (u) => cycleRegions(u, true),
     },
-    ...DIRS.map(([d, w]): Command => ({
+    ...DIRS.map(([d, w]): CommandDef => ({
       id: `pane.focus.${w}`,
       title: `Focus pane ${w}`,
       group: "Focus",
       check: needFocus,
       run: (u) => u.actions.focusDirection(d),
     })),
-    ...[1, 2, 3, 4, 5, 6, 7, 8, 9].map((n): Command => ({
+    ...[1, 2, 3, 4, 5, 6, 7, 8, 9].map((n): CommandDef => ({
       id: `pane.focus.${n}`,
       title: `Focus pane ${n}`,
       group: "Focus",
@@ -97,7 +106,7 @@ function buildCommands(env: Env): Command[] {
       id: "shelf.reveal",
       title: "Show a pane from the shelf",
       group: "Pane",
-      check: (x) => (x.m.resolved.shelf.length ? undefined : refuse()),
+      check: (x) => (x.m.resolved.shelf.length ? undefined : refuse("unavailable")),
       run: revealFromShelf,
     },
     {
@@ -151,7 +160,7 @@ function buildCommands(env: Env): Command[] {
       run: (u) => u.actions.splitAuto(),
     },
 
-    ...DIRS.map(([d, w]): Command => ({
+    ...DIRS.map(([d, w]): CommandDef => ({
       id: `pane.move.${w}`,
       title: `Move pane ${w}`,
       group: "Move",
@@ -189,7 +198,7 @@ function buildCommands(env: Env): Command[] {
       run: (u) => u.actions.newTab(),
     },
 
-    ...env.presets.map((p): Command => ({
+    ...env.presets.map((p): CommandDef => ({
       id: `layout.preset.${p.id}`,
       title: `Layout: ${p.label}`,
       group: "Layout",
@@ -199,64 +208,71 @@ function buildCommands(env: Env): Command[] {
       id: "layout.reset",
       title: "Reset layout",
       group: "Layout",
-      check: () => (env.presets.length ? undefined : refuse()),
+      check: () => (env.presets.length ? undefined : refuse("unavailable")),
       run: (u) => u.actions.resetLayout(),
     },
-    { id: "layout.copy_link", title: "Copy link to this layout", group: "Layout", run: copyLink },
+    {
+      id: "layout.copy_link",
+      title: "Copy link to this layout",
+      group: "Layout",
+      run: (u) => copyLink(u.jali),
+    },
     {
       id: "page.back",
       title: `Back to ${profile?.name ?? "page"} (close opened panes)`,
       group: "Layout",
-      check: ({ s, m }) => (s.page && m.panes.some((p) => !p.role) ? undefined : refuse()),
+      check: ({ s, m }) =>
+        s.page && m.panes.some((p) => !p.role) ? undefined : refuse("unavailable"),
       run: (u) => u.actions.backToPage(),
     },
     {
       id: "page.reset",
       title: "Reset layout to its design",
       group: "Layout",
-      check: ({ s }) => (s.page?.mode === "split" ? undefined : refuse()),
+      check: ({ s }) => (s.page?.mode === "split" ? undefined : refuse("unavailable")),
       run: (u) => u.actions.resetPage(),
     },
     {
       id: "page.single",
       title: "Single view: one view at a time",
       group: "Layout",
-      check: ({ s }) => (s.page?.mode === "split" ? undefined : refuse()),
+      check: ({ s }) => (s.page?.mode === "split" ? undefined : refuse("unavailable")),
       run: (u) => u.actions.setMode("single"),
     },
     {
       id: "page.split",
       title: "Split view: views side by side",
       group: "Layout",
-      check: ({ s }) => (s.page?.mode === "single" && s.page.canInvestigate ? undefined : refuse()),
+      check: ({ s }) =>
+        s.page?.mode === "single" && s.page.canInvestigate ? undefined : refuse("unavailable"),
       run: (u) => u.actions.setMode("split"),
     },
     {
       id: "page.open",
       title: `Open ${profile?.name ?? "page"}`,
       group: "Layout",
-      check: ({ s }) => (s.page || !profile ? refuse() : undefined),
+      check: ({ s }) => (s.page || !profile ? refuse("unavailable") : undefined),
       run: (u) => u.actions.openPage(),
     },
     {
       id: "page.leave",
       title: `Open ${env.name}`,
       group: "Layout",
-      check: ({ s }) => (s.page && env.presets.length ? undefined : refuse()),
+      check: ({ s }) => (s.page && env.presets.length ? undefined : refuse("unavailable")),
       run: (u) => u.actions.leavePage(),
     },
     {
       id: "page.as_limited",
       title: `View as ${limited} (Single only, links peek)`,
       group: "Settings",
-      check: ({ s }) => (s.page?.canInvestigate ? undefined : refuse()),
+      check: ({ s }) => (s.page?.canInvestigate ? undefined : refuse("unavailable")),
       run: (u) => u.actions.setCanInvestigate(false),
     },
     {
       id: "page.as_full",
       title: `View as ${full} (links open beside)`,
       group: "Settings",
-      check: ({ s }) => (s.page && !s.page.canInvestigate ? undefined : refuse()),
+      check: ({ s }) => (s.page && !s.page.canInvestigate ? undefined : refuse("unavailable")),
       run: (u) => u.actions.setCanInvestigate(true),
     },
 
@@ -296,34 +312,57 @@ function buildCommands(env: Env): Command[] {
     },
 
     // The host's own, last (a Jali id wins if a host repeats one).
-    ...(env.commands ?? []),
+    ...(env.commands ?? []).map((c): CommandDef => ({
+      id: c.id,
+      title: c.title,
+      group: c.group,
+      run: (u) => c.run(u.jali),
+    })),
   ];
 }
 
-const built = new WeakMap<Env, { commands: Command[]; byId: Map<string, Command> }>();
+interface Built {
+  defs: CommandDef[];
+  byId: Map<string, CommandDef>;
+  commands: Command[];
+}
+const built = new WeakMap<Env, Built>();
 const forEnv = (env: Env) => {
   let b = built.get(env);
   if (!b) {
-    const commands = buildCommands(env);
-    const byId = new Map<string, Command>();
-    for (const c of commands) if (!byId.has(c.id)) byId.set(c.id, c);
-    b = { commands: commands.filter((c) => byId.get(c.id) === c), byId };
+    const all = buildCommands(env);
+    const byId = new Map<string, CommandDef>();
+    for (const c of all) if (!byId.has(c.id)) byId.set(c.id, c);
+    const defs = all.filter((c) => byId.get(c.id) === c);
+    const commands = defs.map((c): Command => ({
+      id: c.id,
+      title: c.title,
+      group: c.group,
+      run: (jali) => void run(storeOf(jali), c.id),
+    }));
+    b = { defs, byId, commands };
     built.set(env, b);
   }
   return b;
 };
 
-/** The workspace's commands, in palette order. Same array per store. */
-export const commandsOf = (store: Pick<UiStore, "env">): readonly Command[] =>
-  forEnv(store.env).commands;
+/** The workspace's commands, in palette order. Same array per workspace. */
+export const commandsOf = (jali: Pick<Jali, "env">): readonly Command[] =>
+  forEnv(jali.env).commands;
 
-/** Runs a command if its check passes. Returns whether it ran (the palette and tests use this). */
-export function runCommand(store: UiStore, id: string): boolean {
+/** The registry's commands, with their checks (adapters). */
+export const commandDefsOf = (store: Pick<UiStore, "env">): readonly CommandDef[] =>
+  forEnv(store.env).defs;
+
+function run(store: UiStore, id: string): boolean {
   const c = forEnv(store.env).byId.get(id);
   if (!c || c.check?.(store.snapshot())) return false;
   c.run(store);
   return true;
 }
+
+/** Runs a command if it can run now. Returns whether it ran. */
+export const runCommand = (jali: Jali, id: string): boolean => run(storeOf(jali), id);
 
 export const commandById = (store: Pick<UiStore, "env">, id: string) =>
   forEnv(store.env).byId.get(id);
@@ -331,7 +370,9 @@ export const commandById = (store: Pick<UiStore, "env">, id: string) =>
 /** "⌘K ⌘M": a command's first binding in this store's keymap, for tooltips and the palette ("" when unbound). */
 export const shortcutLabel = (store: Pick<UiStore, "keymap">, id: string) => store.keymap.label(id);
 
-export function copyLink(store: UiStore) {
+/** Put the address on the clipboard, and say so ("Link copied"). */
+export function copyLink(jali: Jali) {
+  const store = storeOf(jali);
   const url = store.href();
   navigator.clipboard?.writeText(url).then(
     () => store.announce(msg.linkCopied),
@@ -378,8 +419,9 @@ export interface ListedCommand {
   run: () => void;
 }
 
-/** Every command a person can run now, in palette order. Read it again after each change (`store.subscribe`). */
-export function listCommands(store: UiStore): ListedCommand[] {
+/** Every command a person can run now, in palette order. Read it again after each change (`jali.subscribe`). */
+export function listCommands(jali: Jali): ListedCommand[] {
+  const store = storeOf(jali);
   const x = store.snapshot();
   const focused = x.s.view.focused;
   const own = (focused ? x.s.paneCommands[focused] : undefined) ?? [];
@@ -393,7 +435,7 @@ export function listCommands(store: UiStore): ListedCommand[] {
       ...(c.disabled ? { reason: c.disabled } : {}),
       run: c.run,
     })),
-    ...commandsOf(store).map((c): ListedCommand => {
+    ...commandDefsOf(store).map((c): ListedCommand => {
       const refused = c.check?.(x);
       return {
         key: c.id,
@@ -406,7 +448,7 @@ export function listCommands(store: UiStore): ListedCommand[] {
           (c.id === "peek.close" ? formatChord({ key: "Escape" }, store.keymap.platform) : ""),
         disabled: !!refused,
         ...(refused?.msg ? { reason: refused.msg } : {}),
-        run: () => runCommand(store, c.id),
+        run: () => void run(store, c.id),
       };
     }),
   ];

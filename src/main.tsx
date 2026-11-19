@@ -1,5 +1,6 @@
 import { createRoot } from "react-dom/client";
 import { createDataLayer } from "./data";
+import { storeOf } from "@jali/core/adapter";
 import { createLabJali } from "./lab";
 import { App } from "./shell/App";
 import "./shell/styles/index.css";
@@ -9,8 +10,8 @@ const data = createDataLayer();
 void data.api.ready();
 
 const jali = createLabJali();
-// Dev-only handle so e2e can drive activity states (the sample panes rarely report them).
+// Dev-only handle so e2e can drive activity states (the sample panes rarely report them): the engine's steps.
 if ((import.meta as unknown as { env?: { DEV?: boolean } }).env?.DEV)
-  (window as unknown as { __lab?: unknown }).__lab = { actions: jali.actions };
+  (window as unknown as { __lab?: unknown }).__lab = { actions: storeOf(jali).actions };
 
 createRoot(document.getElementById("root")!).render(<App jali={jali} data={data} />);

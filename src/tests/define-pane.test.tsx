@@ -3,6 +3,7 @@ import { act, cleanup, render } from "@testing-library/react";
 import { afterEach, beforeAll, describe, expect, it } from "vite-plus/test";
 import { useState } from "react";
 import { createJali, memoryLocation, memoryStorage, pane, row, type JaliOptions } from "@jali/core";
+import { storeOf } from "@jali/core/adapter";
 import { JaliRoot, definePane, useActivity, useCommands, usePane, useUnsaved } from "@jali/react";
 
 const note = definePane("note", {
@@ -102,10 +103,10 @@ describe("createJali", () => {
   });
 
   it("offers Split only with a launcher, which it marks transient", () => {
-    expect(make().actions.split("right")).toBeUndefined();
+    expect(make().actions.split()).toEqual({ ok: false, reason: "unavailable" });
     const jali = make({ launcher });
-    const opened = jali.actions.split("right");
-    expect(jali.model().pane(opened!)?.ref.kind).toBe("launcher");
+    const opened = jali.actions.split(undefined, "right").pane;
+    expect(jali.model().pane(opened)?.ref.kind).toBe("launcher");
     expect(jali.env.kinds.isTransient(launcher())).toBe(true);
   });
 
@@ -125,7 +126,11 @@ describe("<JaliRoot> and the pane hooks", () => {
     const jali = make({ layout: row(note({ id: 1 })) });
     const { getByLabelText } = render(<JaliRoot jali={jali} />);
     expect(getByLabelText("Draft of note 1")).toBeTruthy();
-    expect(jali.get().paneCommands.note?.map((c) => c.title)).toEqual(["Open note 2"]);
+    expect(
+      storeOf(jali)
+        .get()
+        .paneCommands.note?.map((c) => c.title),
+    ).toEqual(["Open note 2"]);
 
     const text = getByLabelText("Draft of note 1") as HTMLTextAreaElement;
     await act(async () => {
@@ -137,7 +142,7 @@ describe("<JaliRoot> and the pane hooks", () => {
     expect(jali.get().activity.note).toBe("working");
 
     // A command runs the latest `run` it was given.
-    await act(async () => jali.get().paneCommands.note![0]!.run());
+    await act(async () => storeOf(jali).get().paneCommands.note![0]!.run());
     expect(jali.model().panes.map((p) => p.ref.params.id)).toEqual([1, 2]);
   });
 

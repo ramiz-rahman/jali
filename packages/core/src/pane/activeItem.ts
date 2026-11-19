@@ -11,7 +11,7 @@
  */
 import type { NodeId, ObjectRef } from "../layout/types";
 import type { ActiveItemPort } from "../contracts/active-item";
-import type { UiStore } from "../state/store";
+import type { Jali } from "../state/instance";
 
 export interface ActiveItemMapping {
   /** The object an item id shows. */
@@ -23,25 +23,25 @@ export interface ActiveItemMapping {
 const ACCEPTED = { status: "accepted" } as const;
 
 export function activeItemPort(
-  store: UiStore,
+  jali: Jali,
   pane: NodeId,
   { toRef, idOf }: ActiveItemMapping,
 ): ActiveItemPort {
   return {
     get itemId() {
-      const ref = store.get().selection[pane]?.ref;
+      const ref = jali.get().selection[pane]?.ref;
       return ref ? idOf(ref) : null;
     },
     write(itemId, action) {
-      const { actions } = store;
+      const { actions } = jali;
       if (action === "close") {
         // Only a sheet this list opened; the cursor stays.
-        if (store.get().view.peek && store.get().peekSource === pane) actions.peek(null, pane);
+        if (jali.get().view.peek && jali.get().peekSource === pane) actions.closePeek();
         return ACCEPTED;
       }
       const ref = itemId === null ? null : toRef(itemId);
       actions.select(pane, ref);
-      if (action === "open" && ref) actions.peek(ref, pane);
+      if (action === "open" && ref) actions.peek(pane, ref);
       return ACCEPTED;
     },
   };

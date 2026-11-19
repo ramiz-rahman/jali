@@ -16,7 +16,9 @@ import { toLayout, type LayoutInput } from "./layout/build";
 import { createPaneKinds, type PaneKindBase, type PaneKinds } from "./pane-kinds";
 import { browserStorage, memoryStorage, type StoragePort } from "./ports";
 import type { Preset, ProfileBase } from "./profile";
-import { createUiStore, type UiStore, type UiStoreDeps, type UrlWriter } from "./state/store";
+import type { BeforeClose } from "./state/apply";
+import type { Jali } from "./state/instance";
+import { createUiStore, type UiStoreDeps, type UrlWriter } from "./state/store";
 import { createUrlSync, type UrlSyncOptions } from "./url";
 
 /** A layout the person can switch to from ⌘K ("Layout: Triage"), and "Reset layout" rebuilds. */
@@ -81,10 +83,16 @@ export interface JaliOptions<D extends PaneKindBase = PaneKindBase> {
   moveFocus?: boolean;
   /** Called when a focus or swap moved panes it should not have. Default: reported in development. */
   onUnstable?: (op: string, before: string, after: string) => void;
+  /**
+   * Asked before a change removes panes or makes them show another object: a close, close others, a preset,
+   * `setLayout`, Back and Forward, a pane showing something else. `true` lets it happen, `false` keeps the panes; a
+   * promise holds the change until it answers (the action returns `reason: "pending"`). Jali's own "Discard unsaved
+   * changes?" comes after a yes, when a pane still reports unsaved work (`useUnsaved`).
+   */
+  beforeClose?: BeforeClose;
 }
 
-/** A workspace: its state, its actions (`jali.actions.openBeside(...)`) and what it was made with. */
-export type Jali = UiStore;
+export type { Jali };
 
 const inBrowser = typeof window !== "undefined";
 
@@ -144,7 +152,9 @@ export function createJali<D extends PaneKindBase>(options: JaliOptions<D>): Jal
   };
   if (!moveFocus) deps.focusPane = null;
 
-  const jali = createUiStore(deps);
-  boot(jali);
-  return jali;
+  const store = createUiStore(deps);
+  boot(store);
+  // Only now: putting the first layout in place closes nothing the person had.
+  store.guard = options.beforeClose;
+  return store.jali;
 }

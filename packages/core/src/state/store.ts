@@ -18,13 +18,18 @@ import { toLayout } from "../layout/build";
 import { bindActions, type Actions } from "../actions";
 import {
   apply,
+  type ActionResult,
+  type BeforeClose,
   type Change,
   type Deferred,
   type HistoryMode,
+  type Op,
   type Outcome,
   type Snapshot,
   type Toast,
 } from "./apply";
+import { createInstance, type Jali, type JaliEvent, type JaliEvents } from "./instance";
+import { sameRef } from "../actions/follow";
 import { modelCache, type JaliModel } from "./model";
 import { loadSettings, systemPrefersDark, type Settings } from "./settings";
 import { loadPrefs, type PagePrefs } from "./page-prefs";
@@ -180,6 +185,8 @@ export interface UiStoreDeps {
   keymapOptions?: KeymapOptions;
   /** `false`: the host has its own command menu. Jali renders no palette and its key is unbound. Default true. */
   palette?: boolean;
+  /** The host's close guard: asked before a change removes panes or points them at another object (state/apply.ts). */
+  beforeClose?: BeforeClose;
 }
 
 export interface UiStore {
@@ -190,7 +197,14 @@ export interface UiStore {
   model(): JaliModel;
   ctx(): LayoutContext;
   snapshot(): Snapshot;
-  apply(o: Outcome): NodeId | undefined;
+  /** Commit an outcome (or a step of the snapshot), and say what happened. Events go out once it is done. */
+  apply(o: Outcome): ActionResult;
+  /** The app's events (instance.ts). */
+  on<E extends JaliEvent>(event: E, handler: (event: JaliEvents[E]) => void): () => void;
+  /** The workspace as an app sees it: what `createJali` returns. */
+  jali: Jali;
+  /** The host's close guard in use (`deps.beforeClose`). `createJali` sets it once the first layout is in place. */
+  guard: BeforeClose | undefined;
   announce(text: string): void;
   writeUrl(mode: HistoryMode): void;
   toast(t: Toast): void;
@@ -340,24 +354,85 @@ export function createUiStore(deps: UiStoreDeps): UiStore {
     paneCap: state.settings.paneCap,
   });
 
+  /** A raw write. Size and cap changes come from outside the layout, so they refit it. Link arrivals refit where
+   *  they land. */
+  const write = (patch: Partial<UiState>) => {
+    const prev = state;
+    state = { ...state, ...patch };
+    const resized = prev.area.width !== state.area.width || prev.area.height !== state.area.height;
+    const recapped = prev.settings.paneCap !== state.settings.paneCap;
+    const known = env.kinds.registry();
+    if (
+      (resized || recapped) &&
+      core.tree.panes(state.layout.root).every((p) => known[p.ref.kind])
+    ) {
+      const layout = core.refit(state.layout, state.view, ctx());
+      if (layout !== state.layout) state = { ...state, layout };
+    }
+    notify();
+  };
+
+  // Events: changes are gathered while a commit runs (apply, set, and anything they call) and told once it ends.
+  const handlers = new Map<JaliEvent, Set<(e: never) => void>>();
+  const emit = <E extends JaliEvent>(event: E, e: JaliEvents[E]) => {
+    for (const fn of handlers.get(event) ?? []) {
+      try {
+        (fn as (e: JaliEvents[E]) => void)(e);
+      } catch (err) {
+        console.error(err);
+      }
+    }
+  };
+  let depth = 0;
+  let from: UiState = state;
+  /** Layout ops committed in this batch: a refit alone is not a layout change. */
+  let ops: Op[] = [];
+  const told = (before: UiState) => {
+    const after = state;
+    if (after.layout !== before.layout) {
+      const was = new Map(core.tree.panes(before.layout.root).map((p) => [p.id, p.ref]));
+      const now = core.tree.panes(after.layout.root);
+      const ids = new Set(now.map((p) => p.id));
+      for (const [pane, ref] of was) if (!ids.has(pane)) emit("close", { pane, ref });
+      for (const p of now) {
+        const previous = was.get(p.id);
+        if (!previous) emit("open", { pane: p.id, ref: p.ref });
+        else if (!sameRef(previous, p.ref)) emit("open", { pane: p.id, ref: p.ref, previous });
+      }
+    }
+    if (after.view.focused !== before.view.focused)
+      emit("focus", { pane: after.view.focused, previous: before.view.focused });
+    if (after.layout !== before.layout && ops.length)
+      emit("layout", {
+        layout: after.layout,
+        source: ops.includes("arrive") ? "address" : "action",
+      });
+  };
+  const batch = <T>(run: () => T): T => {
+    if (depth++ === 0) {
+      from = state;
+      ops = [];
+    }
+    try {
+      return run();
+    } finally {
+      if (--depth === 0 && handlers.size) told(from);
+    }
+  };
+
   const store: UiStore = {
     get: () => state,
-    set(patch) {
-      const prev = state;
-      state = { ...state, ...patch };
-      // Size and cap changes come from outside the layout, so they refit it. Link arrivals refit where they land.
-      const resized =
-        prev.area.width !== state.area.width || prev.area.height !== state.area.height;
-      const recapped = prev.settings.paneCap !== state.settings.paneCap;
-      const known = env.kinds.registry();
-      if (
-        (resized || recapped) &&
-        core.tree.panes(state.layout.root).every((p) => known[p.ref.kind])
-      ) {
-        const layout = core.refit(state.layout, state.view, ctx());
-        if (layout !== state.layout) state = { ...state, layout };
-      }
-      notify();
+    set: (patch) => batch(() => write(patch)),
+    jali: undefined as unknown as Jali,
+    guard: deps.beforeClose,
+    on(event, handler) {
+      let set = handlers.get(event);
+      if (!set) handlers.set(event, (set = new Set()));
+      set.add(handler as (e: never) => void);
+      return () => {
+        set.delete(handler as (e: never) => void);
+        if (!set.size) handlers.delete(event);
+      };
     },
     subscribe(fn) {
       subs.add(fn);
@@ -367,7 +442,7 @@ export function createUiStore(deps: UiStoreDeps): UiStore {
       models({ layout: state.layout, view: state.view, area: state.area, ctx: ctx(), env }),
     ctx,
     snapshot: () => ({ s: state, m: store.model(), ctx: ctx(), env }),
-    apply: (o) => apply(io, o),
+    apply: (o) => batch(() => apply(io, o)),
     announce: (text) => store.set({ announcement: { text, seq: state.announcement.seq + 1 } }),
     writeUrl: (mode) => deps.url?.write(store.get, mode),
     toast: (t) => (toastFns.size ? toastFns.forEach((fn) => fn(t)) : pendingToasts.push(t)),
@@ -405,7 +480,12 @@ export function createUiStore(deps: UiStoreDeps): UiStore {
   let stop: (() => void) | null = null;
   const io = {
     get: store.get,
-    set: store.set,
+    set: write,
+    committed: (op: Op) => ops.push(op),
+    get beforeClose() {
+      return store.guard;
+    },
+    later: (o: Outcome) => store.apply(o),
     snapshot: store.snapshot,
     url: store.writeUrl,
     announce: store.announce,
@@ -420,6 +500,7 @@ export function createUiStore(deps: UiStoreDeps): UiStore {
         : undefined),
   };
   store.actions = bindActions(store);
+  store.jali = createInstance(store);
   if (pageOnly && !deps.initial?.page) store.actions.openPage();
   return store;
 }

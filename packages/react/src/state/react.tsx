@@ -1,8 +1,16 @@
 /** React access to the store: one provider, and hooks that subscribe to exactly what a component reads. */
 import { createContext, useContext, useSyncExternalStore, type ReactNode } from "react";
-import type { Actions, PaneNode, JaliModel, UiState, UiStore } from "@jali/core/adapter";
+import type {
+  Actions,
+  Jali,
+  JaliState,
+  PaneNode,
+  JaliModel,
+  UiState,
+  UiStore,
+} from "@jali/core/adapter";
 import type { ReactEnv, Page } from "../define";
-import { resolveTheme, titleOf, type Theme } from "@jali/core/adapter";
+import { resolveTheme, storeOf, titleOf, type Theme } from "@jali/core/adapter";
 
 const StoreContext = createContext<UiStore | null>(null);
 
@@ -45,13 +53,13 @@ export function useTitleOf(): (node: PaneNode) => string {
 // ---------- the public names ----------
 
 /** Provides a workspace to the hooks below it. `<JaliRoot>` does this; use it to render Jali's parts on their own. */
-export const JaliProvider = ({ jali, children }: { jali: UiStore; children?: ReactNode }) => (
-  <StoreProvider store={jali}>{children}</StoreProvider>
+export const JaliProvider = ({ jali, children }: { jali: Jali; children?: ReactNode }) => (
+  <StoreProvider store={storeOf(jali)}>{children}</StoreProvider>
 );
-/** The workspace: its actions (`useJali().actions.openBeside(...)`), keymap, kinds and state. */
-export const useJali = useStore;
+/** The workspace: its actions (`useJali().actions.openBeside(pane, ref)`), events, layout, keymap and kinds. */
+export const useJali = (): Jali => useStore().jali;
 /** Part of the workspace's state, re-rendering only when it changes: `useJaliState((s) => s.view.focused)`. */
-export const useJaliState = useUi;
+export const useJaliState = <T,>(select: (s: JaliState) => T): T => useUi(select);
 /** The workspace as it is on screen: its panes, their boxes and titles, the shelf. */
 export const useJaliModel = useModel;
 /** The theme in use, "light" or "dark": the person's choice, or the system's when they chose "system". */

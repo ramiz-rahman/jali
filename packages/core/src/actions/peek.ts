@@ -5,7 +5,7 @@ import { msg } from "../state/messages";
 import { openBeside, withRecent } from "./open";
 import { follow, followerOnScreen, followLater, sameRef } from "./follow";
 
-export const checkPeek = ({ s }: Snapshot) => (s.view.peek ? undefined : refuse());
+export const checkPeek = ({ s }: Snapshot) => (s.view.peek ? undefined : refuse("nothing-to-do"));
 
 /**
  * Open (or move) the peek sheet; `null` closes it. It acts for the pane it came from. When that pane's following

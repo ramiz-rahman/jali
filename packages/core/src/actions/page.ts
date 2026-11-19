@@ -169,7 +169,7 @@ export interface OpenPage {
 /** Open the curated page (or arrive at it from a link). A link with opened panes needs Split view to show them. */
 export function openPage(x: Snapshot, o: OpenPage = {}): Outcome {
   const p = x.env.profile;
-  if (!p) return null;
+  if (!p) return refuse("unavailable");
   const prev = x.s.page;
   const opened = o.investigation ?? [];
   const page: PageState = {
@@ -202,7 +202,7 @@ export function openPage(x: Snapshot, o: OpenPage = {}): Outcome {
 /** Back to the free workspace: the person's own layout again. The page's mode and layout are kept for next time. */
 export function leavePage(x: Snapshot): Outcome {
   // A page-only app has no free workspace to go back to.
-  if (!x.env.presets.length) return refuse();
+  if (!x.env.presets.length) return refuse("unavailable");
   const studio = preset(x, x.s.presetId) as Change;
   return { ...studio, patch: { ...studio.patch, page: null, prefs: keep(x) }, undo: [] };
 }
@@ -211,7 +211,8 @@ export function leavePage(x: Snapshot): Outcome {
 export function setMode(x: Snapshot, mode: ViewMode): Outcome {
   const p = x.env.profile,
     r = x.s.page;
-  if (!p || !r || r.mode === mode) return null;
+  if (!p || !r) return refuse("unavailable");
+  if (r.mode === mode) return null;
   if (mode === "single") {
     const tab = currentRole(x) ?? r.tab;
     const { layout, view } = single(p, r.item, tab, x.ctx);
@@ -224,7 +225,7 @@ export function setMode(x: Snapshot, mode: ViewMode): Outcome {
       undo: [],
     };
   }
-  if (!r.canInvestigate) return refuse(msg.singleOnly);
+  if (!r.canInvestigate) return refuse("not-allowed", msg.singleOnly);
   const { layout, view } = split(x, p, r.item, r.tab, true);
   return {
     op: "mode",
@@ -252,7 +253,8 @@ function slotFor({ s, m }: Snapshot): NodeId | undefined {
 export function openTab(x: Snapshot, role: string): Outcome {
   const p = x.env.profile,
     r = x.s.page;
-  if (!p || !r || !roleOf(p, role)) return null;
+  if (!p || !r) return refuse("unavailable");
+  if (!roleOf(p, role)) return refuse("not-found");
   const patch = { page: { ...r, tab: role } };
   if (r.mode === "single") {
     if (r.tab === role) return null;
@@ -458,7 +460,7 @@ export function placeTab(
     };
   };
   if (r.mode === "single")
-    return r.canInvestigate ? [setMode(x, "split"), place] : refuse(msg.singleOnly);
+    return r.canInvestigate ? [setMode(x, "split"), place] : refuse("not-allowed", msg.singleOnly);
   return place(x);
 }
 
@@ -471,7 +473,7 @@ export function openTabBeside(x: Snapshot, role: string): Outcome {
   if (r.mode === "single")
     return r.canInvestigate
       ? [setMode(x, "split"), (y: Snapshot) => placeTab(y, role, target(y), "right")]
-      : refuse(msg.singleOnly);
+      : refuse("not-allowed", msg.singleOnly);
   return placeTab(x, role, target(x), "right");
 }
 
@@ -505,7 +507,8 @@ export function goToRole(x: Snapshot, role: string, from?: NodeId): Outcome {
 export function activate(x: Snapshot, item: ItemId): Outcome {
   const p = x.env.profile,
     r = x.s.page;
-  if (!p || !r || r.item === item) return null;
+  if (!p || !r) return refuse("unavailable");
+  if (r.item === item) return null;
   const page = { ...r, item, before: undefined };
   const saved = x.s.prefs.split;
   const prefs = {
@@ -543,10 +546,10 @@ export function activate(x: Snapshot, item: ItemId): Outcome {
 /** Close every pane opened by following links; the layout comes back as the person left it. Undo (⌘K ⌘Z) reopens them. */
 export function backToPage(x: Snapshot): Outcome {
   const r = x.s.page;
-  if (!r) return null;
+  if (!r) return refuse("unavailable");
   const name = x.env.profile?.name ?? "page";
   const opened = investigation(x.m.panes);
-  if (!opened.length) return refuse(msg.notInvestigating);
+  if (!opened.length) return refuse("nothing-to-do", msg.notInvestigating);
   const view = unzoomed(x.s.view);
   const plain = withoutOpened(x.s.layout, x.ctx);
   // Exactly as before the investigation, unless the views were rearranged meanwhile (then: as they are now).
@@ -576,7 +579,10 @@ export function hideRole(x: Snapshot, id: NodeId): Outcome {
     node = x.m.pane(id);
   if (!p || x.s.page?.mode !== "split" || !node?.role) return null;
   const r = core.hide(x.s.layout, unzoomed(x.s.view), id, x.ctx);
-  if (!r.ok) return refuse(r.reason === "last" ? msg.lastView(label(p, node.role)) : undefined);
+  if (!r.ok)
+    return r.reason === "last"
+      ? refuse("last-pane", msg.lastView(label(p, node.role)))
+      : refuse("blocked");
   return {
     op: "hide",
     layout: r.layout,
@@ -590,7 +596,8 @@ export function hideRole(x: Snapshot, id: NodeId): Outcome {
 export function resetPage(x: Snapshot): Outcome {
   const p = x.env.profile,
     r = x.s.page;
-  if (!p || r?.mode !== "split") return null;
+  if (!p || !r) return refuse("unavailable");
+  if (r.mode !== "split") return refuse("single-view");
   const tab = currentRole(x) ?? r.tab;
   const opened = investigation(x.m.panes).map((o) => o.ref);
   const y = { ...x, s: { ...x.s, prefs: { ...x.s.prefs, split: null } } };
@@ -613,7 +620,8 @@ export function resetPage(x: Snapshot): Outcome {
  *  credit reviewer) may multiplex. The profile names both (`viewers`). */
 export function setCanInvestigate(x: Snapshot, canInvestigate: boolean): Outcome {
   const { s } = x;
-  if (!s.page || s.page.canInvestigate === canInvestigate) return null;
+  if (!s.page) return refuse("unavailable");
+  if (s.page.canInvestigate === canInvestigate) return null;
   const toSingle = !canInvestigate && s.page.mode === "split" ? setMode(x, "single") : null;
   return [
     toSingle,

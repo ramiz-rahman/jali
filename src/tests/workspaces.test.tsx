@@ -68,10 +68,10 @@ describe("keys scoped to a root (1, 12)", () => {
       b = make({ id: "b", keys: "scoped" });
     const r = render(
       <>
-        <JaliRoot jali={a}>
+        <JaliRoot jali={a.jali}>
           <button>in a</button>
         </JaliRoot>
-        <JaliRoot jali={b}>
+        <JaliRoot jali={b.jali}>
           <button>in b</button>
         </JaliRoot>
       </>,
@@ -96,10 +96,10 @@ describe("dialog ids (2)", () => {
     // No panes: only the dialogs are under test (the lab's panes need its data layer).
     render(
       <>
-        <JaliRoot jali={a}>
+        <JaliRoot jali={a.jali}>
           <div />
         </JaliRoot>
-        <JaliRoot jali={b}>
+        <JaliRoot jali={b.jali}>
           <div />
         </JaliRoot>
       </>,
@@ -149,7 +149,7 @@ describe("default storage (3)", () => {
       size: area,
       moveFocus: false,
     });
-    s.storage.set("k", "v");
+    core.storeOf(s).storage.set("k", "v");
     expect(localStorage.getItem("orders:k")).toBe("v");
   });
   it("the default store keeps its old prefix", () => {

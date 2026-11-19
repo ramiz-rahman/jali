@@ -9,7 +9,7 @@ const unzoomed = core.tree.unzoom;
 export function moveDirection({ s, m, ctx }: Snapshot, dir: Edge, id = s.view.focused): Outcome {
   if (!id) return null;
   const r = core.moveDirection(s.layout, unzoomed(s.view), id, dir, ctx);
-  if (r.layout === s.layout) return refuse(msg.cantMove(m.title(id), dir));
+  if (r.layout === s.layout) return refuse("blocked", msg.cantMove(m.title(id), dir));
   return { op: "move", layout: r.layout, view: r.view, msg: msg.moved(m.title(id), dir) };
 }
 
