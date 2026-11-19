@@ -15,7 +15,7 @@ import { audible, useSessionView, type SessionView } from "../edits";
 import { useServices } from "../services";
 import { clock, sessionById, trackOf, TRACKS } from "../sessions/sessions";
 import { Empty, NotInTransport } from "../ui/parts";
-import { drawBars, loudest, paletteOf, prepare, trackPeaks, useSize } from "../ui/waveform";
+import { drawBars, loudest, screenPaletteOf, prepare, trackPeaks, useSize } from "../ui/waveform";
 import { followSession } from "./follow";
 
 const timelineParams = { session: String };
@@ -78,7 +78,7 @@ function TimelineBody({ paused, view }: PaneProps<typeof timelineParams> & { vie
     (pos) => {
       const g = prepare(canvas.current, width, height);
       if (!g) return;
-      const c = paletteOf(canvas.current!);
+      const c = screenPaletteOf(canvas.current!);
       const x = (t: number) => (t / session.duration) * width;
       const playhead = inTransport ? pos : -1;
 
@@ -119,7 +119,7 @@ function TimelineBody({ paused, view }: PaneProps<typeof timelineParams> & { vie
             if (trackOf(seg) !== track.id) continue;
             const x0 = x(seg.start);
             const x1 = x(seg.end);
-            g.fillStyle = c.line;
+            g.fillStyle = c.block;
             g.beginPath();
             g.roundRect(x0, y + 3, x1 - x0, h - 6, 4);
             g.fill();
@@ -256,7 +256,7 @@ function TimelineBody({ paused, view }: PaneProps<typeof timelineParams> & { vie
         </ol>
         <div
           ref={box}
-          className="tl-lanes"
+          className="tl-lanes screen"
           role="slider"
           tabIndex={0}
           aria-label={`Playhead in ${session.title}`}

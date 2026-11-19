@@ -162,6 +162,15 @@ const COLOURS = {
   surface: "--jali-surface",
   signalSoft: "--st-signal-soft",
   music: "--st-wave-music",
+  // On a screen (OLED glass): light marks on black, in both themes.
+  scrIdle: "--scr-idle",
+  scrMusic: "--scr-music",
+  scrInk: "--scr-ink",
+  scrDim: "--scr-dim",
+  scrLine: "--scr-line",
+  scrBlock: "--scr-block",
+  scrSoft: "--scr-soft",
+  scrHot: "--scr-hot",
 } as const;
 type Palette = Record<keyof typeof COLOURS, string>;
 let probe: HTMLElement | null = null;
@@ -188,4 +197,25 @@ export function paletteOf(_el?: Element): Palette {
   }
   cached = { key, palette };
   return palette;
+}
+
+/**
+ * The same names for drawing on a screen: every waveform and meter sits behind dark glass, so its marks are light,
+ * in the light theme too.
+ */
+export function screenPaletteOf(el?: Element) {
+  const c = paletteOf(el);
+  return {
+    ...c,
+    idle: c.scrIdle,
+    music: c.scrMusic,
+    played: c.scrHot,
+    text: c.scrInk,
+    subtle: c.scrDim,
+    faint: c.scrDim,
+    line: c.scrLine,
+    lineStrong: c.scrDim,
+    signalSoft: c.scrSoft,
+    block: c.scrBlock,
+  };
 }

@@ -19,7 +19,7 @@ import { useFrame, useTransport } from "../audio/react";
 import { useSessionView } from "../edits";
 import { useServices } from "../services";
 import { clock, SESSIONS, spokenDuration, type SessionData } from "../sessions/sessions";
-import { drawBars, loudest, overviewPeaks, paletteOf, prepare, useSize } from "../ui/waveform";
+import { drawBars, loudest, overviewPeaks, screenPaletteOf, prepare, useSize } from "../ui/waveform";
 import { listMove, scrollRowIntoView } from "./keys";
 import { mixer } from "./mixer";
 import { transcript } from "./transcript";
@@ -210,7 +210,7 @@ function Thumbnail({
     (pos) => {
       const g = prepare(canvas.current, width, height);
       if (!g) return;
-      const c = paletteOf(canvas.current!);
+      const c = screenPaletteOf(canvas.current!);
       drawBars(
         g,
         peaks,
@@ -225,7 +225,7 @@ function Thumbnail({
     [width, height, inTransport, session],
   );
   return (
-    <div ref={box} className="lib-wave" aria-hidden>
+    <div ref={box} className="lib-wave screen" aria-hidden>
       <canvas ref={canvas} />
     </div>
   );

@@ -30,7 +30,7 @@ import {
   type SegmentData,
 } from "../sessions/sessions";
 import { Empty, NotInTransport } from "../ui/parts";
-import { drawBars, loudest, paletteOf, prepare, useSize, voicePeaks } from "../ui/waveform";
+import { drawBars, loudest, screenPaletteOf, prepare, useSize, voicePeaks } from "../ui/waveform";
 
 const clipParams = { session: String, segment: String };
 
@@ -214,7 +214,7 @@ function MiniWave({ seg, view, paused }: { seg: SegmentData; view: SessionView; 
     (pos) => {
       const g = prepare(canvas.current, width, height);
       if (!g) return;
-      const c = paletteOf(canvas.current!);
+      const c = screenPaletteOf(canvas.current!);
       const x = (t: number) => ((t - from) / (to - from)) * width;
       // The segment's own span, behind the bars.
       g.fillStyle = c.signalSoft;
@@ -248,7 +248,7 @@ function MiniWave({ seg, view, paused }: { seg: SegmentData; view: SessionView; 
   return (
     <div
       ref={box}
-      className="clip-wave"
+      className="clip-wave screen"
       role="img"
       aria-label={`Waveform of the segment, ${(seg.end - seg.start).toFixed(1)} seconds. Click to play from a point.`}
       onPointerDown={seek}

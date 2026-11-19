@@ -110,7 +110,7 @@ function Markers({ params, paused, node, focused }: PaneProps<typeof markersPara
       {markers.length ? (
         <div
           ref={listRef}
-          className="mk-rows"
+          className="mk-rows lcd"
           role="listbox"
           aria-label="Markers"
           tabIndex={0}

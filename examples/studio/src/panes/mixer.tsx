@@ -15,7 +15,8 @@ import { channelOf, useSessionView, type SessionView } from "../edits";
 import { useServices } from "../services";
 import { sessionById, TRACKS, type Track } from "../sessions/sessions";
 import { Empty, NotInTransport } from "../ui/parts";
-import { paletteOf, prepare, useSize } from "../ui/waveform";
+import { Knob } from "../ui/Knob";
+import { screenPaletteOf, prepare, useSize } from "../ui/waveform";
 import { followSession } from "./follow";
 
 const mixerParams = { session: String };
@@ -25,6 +26,15 @@ export const faderToDb = (p: number) => (p <= 0.032 ? -60 : 40 * Math.log10(p) +
 export const dbToFader = (db: number) => (db <= -60 ? 0 : Math.min(1, 10 ** ((db - 6) / 40)));
 const dbLabel = (db: number) =>
   db <= -60 ? "−∞" : `${db > 0 ? "+" : db < 0 ? "−" : ""}${Math.abs(db).toFixed(1)}`;
+/** Each track's encoder cap, as on a synthesiser's coloured encoders. */
+const CAPS: Record<string, "blue" | "green" | "white" | "orange"> = {
+  "mic-a": "blue",
+  "mic-b": "green",
+  bed: "white",
+  sting: "orange",
+};
+const panText = (p: number) =>
+  Math.abs(p) < 0.02 ? "centre" : `${Math.round(Math.abs(p) * 100)} percent ${p < 0 ? "left" : "right"}`;
 const panLabel = (p: number) =>
   Math.abs(p) < 0.02 ? "C" : `${p < 0 ? "L" : "R"}${Math.round(Math.abs(p) * 100)}`;
 
@@ -90,24 +100,24 @@ function Strip({ track, view }: { track: Track; view: SessionView }) {
           {name}
         </span>
       </header>
-      <label className="mx-pan">
-        <span className="sr-only">Pan for {track.label}</span>
-        <input
-          type="range"
+      <div className="mx-pan">
+        <Knob
+          label={`Pan for ${track.label}`}
+          value={Math.round(ch.pan * 100)}
           min={-100}
           max={100}
           step={1}
-          value={Math.round(ch.pan * 100)}
-          onChange={(e) =>
-            edits.setChannel(session, track.id, { pan: Number(e.target.value) / 100 })
-          }
-          onDoubleClick={() => edits.setChannel(session, track.id, { pan: 0 })}
-          aria-valuetext={panLabel(ch.pan)}
+          reset={0}
+          centre
+          cap={CAPS[track.id] ?? "white"}
+          size={40}
+          valueText={panText(ch.pan)}
+          onChange={(v) => edits.setChannel(session, track.id, { pan: v / 100 })}
         />
-        <span className="mx-readout mono" aria-hidden>
-          {panLabel(ch.pan)}
+        <span className="legend" aria-hidden>
+          pan {panLabel(ch.pan)}
         </span>
-      </label>
+      </div>
       <div className="mx-fader-row">
         <div className="mx-meter" data-meter={track.id} aria-hidden />
         <label className="mx-fader">
@@ -133,7 +143,7 @@ function Strip({ track, view }: { track: Track; view: SessionView }) {
       <div className="mx-buttons">
         <button
           type="button"
-          className="mx-btn"
+          className="key key-pill mx-btn"
           data-role="mute"
           aria-pressed={ch.mute}
           aria-label={`Mute ${track.label}`}
@@ -141,11 +151,11 @@ function Strip({ track, view }: { track: Track; view: SessionView }) {
           onMouseDown={(e) => e.preventDefault()}
           onClick={() => edits.setChannel(session, track.id, { mute: !ch.mute })}
         >
-          M
+          <span className="led" aria-hidden />M
         </button>
         <button
           type="button"
-          className="mx-btn"
+          className="key key-pill mx-btn"
           data-role="solo"
           aria-pressed={ch.solo}
           aria-label={`Solo ${track.label}`}
@@ -153,7 +163,7 @@ function Strip({ track, view }: { track: Track; view: SessionView }) {
           onMouseDown={(e) => e.preventDefault()}
           onClick={() => edits.setChannel(session, track.id, { solo: !ch.solo })}
         >
-          S
+          <span className="led" aria-hidden />S
         </button>
       </div>
     </section>
@@ -197,7 +207,7 @@ function Master({ view }: { view: SessionView }) {
       <div className="mx-buttons">
         <button
           type="button"
-          className="mx-btn mx-btn-wide"
+          className="key key-pill mx-btn mx-btn-wide"
           onMouseDown={(e) => e.preventDefault()}
           onClick={() => edits.resetMix(view.session.id)}
           title="Reset every fader, pan, mute and solo"
@@ -246,7 +256,7 @@ function Meters({ paused, engineReady }: { paused: boolean; engineReady: boolean
       const h = box.clientHeight;
       const g = prepare(canvas, w, h);
       if (!g) continue;
-      const c = paletteOf(box);
+      const c = screenPaletteOf(box);
       const id = box.dataset.meter!;
       const m = engine.meter(id);
       const s = state.current.get(id) ?? { level: -60, hold: -60, heldAt: 0 };
@@ -256,30 +266,18 @@ function Meters({ paused, engineReady }: { paused: boolean; engineReady: boolean
         s.heldAt = now;
       }
       state.current.set(id, s);
-      // The scale is the fader's: a level reads against the fader beside it.
+      // An OLED column of cells, on the fader's scale: a level reads against the fader beside it.
       const y = (db: number) => h - dbToFader(db) * h;
-      g.fillStyle = c.line;
-      g.beginPath();
-      g.roundRect(0, 0, w, h, w / 2);
-      g.fill();
-      if (s.level > -59) {
-        const top = y(s.level);
-        const hot = y(-9);
-        g.save();
-        g.beginPath();
-        g.roundRect(0, 0, w, h, w / 2);
-        g.clip();
-        g.fillStyle = c.text;
-        g.fillRect(0, Math.max(top, hot), w, h - Math.max(top, hot));
-        if (top < hot) {
-          g.fillStyle = c.played;
-          g.fillRect(0, top, w, hot - top);
-        }
-        g.restore();
+      const cell = 3;
+      const top = s.level > -59 ? y(s.level) : h + 1;
+      for (let cy = h - cell; cy >= 0; cy -= cell + 1) {
+        const lit = cy + cell > top;
+        g.fillStyle = lit ? (cy < y(-9) ? c.played : c.text) : c.line;
+        g.fillRect(0, cy, w, cell);
       }
       if (s.hold > -59) {
-        g.fillStyle = s.hold > -9 ? c.played : c.subtle;
-        g.fillRect(0, Math.round(y(s.hold)), w, 2);
+        g.fillStyle = s.hold > -9 ? c.played : c.text;
+        g.fillRect(0, Math.round(y(s.hold)), w, 1.5);
       }
     }
   }, [theme, width, engineReady]);
