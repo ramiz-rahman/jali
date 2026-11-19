@@ -40,7 +40,7 @@ import {
   wordIndexAt,
   type SegmentData,
 } from "../sessions/sessions";
-import { Empty, NotInTransport } from "../ui/parts";
+import { Missing, NotInTransport } from "../ui/parts";
 import { clip } from "./clip";
 import { followSession } from "./follow";
 import { listMove } from "./keys";
@@ -50,7 +50,7 @@ const transcriptParams = { session: String };
 function Transcript(props: PaneProps<typeof transcriptParams>) {
   const { edits } = useServices();
   const view = useSessionView(edits, props.params.session);
-  if (!view) return <Empty title="No such session">It may have been removed.</Empty>;
+  if (!view) return <Missing what="session" openHere={props.openHere} />;
   return <TranscriptBody {...props} view={view} />;
 }
 

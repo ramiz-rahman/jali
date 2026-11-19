@@ -203,7 +203,9 @@ test("a mixer fader drags without jumping, settles at 0 dB, and a pan dial turns
   await expect(pan).toHaveAttribute("aria-valuetext", "centre");
 });
 
-test("the timeline seeks by click, drag (with pointer capture), the wheel and the keys", async ({ page }) => {
+test("the timeline seeks by click, drag (with pointer capture), the wheel and the keys", async ({
+  page,
+}) => {
   const lanes = page.getByRole("slider", { name: /Playhead in/ });
   const box = (await lanes.boundingBox())!;
   // A click a quarter of the way along: about a quarter of the session.

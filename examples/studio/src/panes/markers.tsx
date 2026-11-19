@@ -11,13 +11,13 @@ import { usePosition, useTransport } from "../audio/react";
 import { useSessionView } from "../edits";
 import { useServices } from "../services";
 import { clock, markerIndexAt, sessionById } from "../sessions/sessions";
-import { Empty } from "../ui/parts";
+import { Empty, Missing } from "../ui/parts";
 import { followSession } from "./follow";
 import { listMove, scrollRowIntoView } from "./keys";
 
 const markersParams = { session: String };
 
-function Markers({ params, paused, node, focused }: PaneProps<typeof markersParams>) {
+function Markers({ params, paused, node, focused, openHere }: PaneProps<typeof markersParams>) {
   const { engine, edits } = useServices();
   const view = useSessionView(edits, params.session);
   const [cursor, setCursor] = usePaneState<string | null>("cursor", null);
@@ -90,7 +90,7 @@ function Markers({ params, paused, node, focused }: PaneProps<typeof markersPara
     },
   ]);
 
-  if (!view) return <Empty title="No such session" />;
+  if (!view) return <Missing what="session" openHere={openHere} />;
   return (
     <div className="pane-body markers">
       <div className="toolbar">
@@ -171,7 +171,12 @@ function Markers({ params, paused, node, focused }: PaneProps<typeof markersPara
           ))}
         </div>
       ) : (
-        <Empty title="No markers">Press M, or “At 00:00” above, to add one at the playhead.</Empty>
+        <Empty
+          title="No markers yet"
+          action={{ label: `add one at ${clock(inTransport ? pos : 0)}`, run: add }}
+        >
+          Press M anywhere in this pane to mark the playhead.
+        </Empty>
       )}
     </div>
   );

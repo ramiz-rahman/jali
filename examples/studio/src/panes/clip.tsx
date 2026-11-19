@@ -29,7 +29,7 @@ import {
   TRACKS,
   type SegmentData,
 } from "../sessions/sessions";
-import { Empty, NotInTransport } from "../ui/parts";
+import { Missing, NotInTransport } from "../ui/parts";
 import { drawBars, loudest, screenPaletteOf, prepare, useSize, voicePeaks } from "../ui/waveform";
 
 const clipParams = { session: String, segment: String };
@@ -38,7 +38,7 @@ function Clip(props: PaneProps<typeof clipParams>) {
   const { edits } = useServices();
   const view = useSessionView(edits, props.params.session);
   const seg = segmentById(view?.session, props.params.segment);
-  if (!view || !seg) return <Empty title="No such segment" />;
+  if (!view || !seg) return <Missing what="segment" openHere={props.openHere} />;
   return <ClipBody {...props} view={view} seg={seg} />;
 }
 

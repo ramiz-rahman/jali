@@ -14,7 +14,7 @@ import { useFrame, useTransport } from "../audio/react";
 import { channelOf, useSessionView, type SessionView } from "../edits";
 import { useServices } from "../services";
 import { CHANNEL, sessionById, TRACKS, trackName, type Track } from "../sessions/sessions";
-import { Empty, NotInTransport } from "../ui/parts";
+import { Empty, Missing, NotInTransport } from "../ui/parts";
 import { dbToFader, Fader } from "../ui/Fader";
 import { PanDial } from "../ui/Knob";
 import { screenPaletteOf, prepare, useSize } from "../ui/waveform";
@@ -31,7 +31,7 @@ const panText = (p: number) =>
 const panLabel = (p: number) =>
   Math.abs(p) < 0.02 ? "C" : `${p < 0 ? "L" : "R"}${Math.round(Math.abs(p) * 100)}`;
 
-function Mixer({ params, paused }: PaneProps<typeof mixerParams>) {
+function Mixer({ params, paused, openHere }: PaneProps<typeof mixerParams>) {
   const { edits, engine } = useServices();
   const view = useSessionView(edits, params.session);
   const inTransport = useTransport((s) => s.session === params.session);
@@ -54,7 +54,7 @@ function Mixer({ params, paused }: PaneProps<typeof mixerParams>) {
     },
   ]);
 
-  if (!view) return <Empty title="No such session" />;
+  if (!view) return <Missing what="session" openHere={openHere} />;
   return (
     <div className="pane-body mixer">
       {!inTransport ? <NotInTransport session={params.session} /> : null}

@@ -1,6 +1,13 @@
 /** What Split (⌘\) and a tab strip's "+" open: choose a view of the session in the transport, or the library. */
 import type { KeyboardEvent } from "react";
-import { PlusIcon } from "@phosphor-icons/react";
+import {
+  BookmarkSimpleIcon,
+  BooksIcon,
+  PlusIcon,
+  SlidersHorizontalIcon,
+  TextAlignLeftIcon,
+  WaveSineIcon,
+} from "@phosphor-icons/react";
 import type { ObjectRef } from "@jali/core";
 import { definePane, useLauncher, type PaneProps } from "@jali/react";
 import { useTransport } from "../audio/react";
@@ -12,12 +19,16 @@ import { timeline } from "./timeline";
 import { transcript } from "./transcript";
 
 const VIEWS = [
-  { label: "Transcript", make: transcript },
-  { label: "Timeline", make: timeline },
-  { label: "Mixer", make: mixer },
-  { label: "Markers", make: markers },
+  { label: "transcript", make: transcript, Icon: TextAlignLeftIcon },
+  { label: "timeline", make: timeline, Icon: WaveSineIcon },
+  { label: "mixer", make: mixer, Icon: SlidersHorizontalIcon },
+  { label: "markers", make: markers, Icon: BookmarkSimpleIcon },
 ] as const;
 
+/**
+ * The launcher: a selector panel. The views of the session in the transport as a row of big keys (the key face:
+ * glyph centred, legend under it), the library beside them, and the recent objects on an LCD list.
+ */
 function Launcher({ openHere, dismiss }: PaneProps) {
   const session = useTransport((s) => s.session);
   const { recent, titleOf, isOpen } = useLauncher();
@@ -36,45 +47,49 @@ function Launcher({ openHere, dismiss }: PaneProps) {
     >
       <section>
         <h3 className="pane-label">{sessionById(session)?.title}</h3>
-        <div className="launcher-grid">
+        <div className="keyset launcher-keys">
           {VIEWS.map((v, i) => (
             <button
               key={v.label}
               type="button"
-              className="key"
+              className="key key-m face"
               autoFocus={i === 0}
               onClick={() => go(v.make({ session }))}
             >
-              {v.label}
+              <v.Icon size={22} aria-hidden className="face-glyph" />
+              <span className="face-legend">{v.label}</span>
             </button>
           ))}
-          <button type="button" className="key" onClick={() => go(library())}>
-            Library
+        </div>
+        <div className="keyset launcher-keys">
+          <button type="button" className="key key-m face" onClick={() => go(library())}>
+            <BooksIcon size={22} aria-hidden className="face-glyph" />
+            <span className="face-legend">library</span>
           </button>
         </div>
       </section>
       {recent.length ? (
         <section>
-          <h3 className="pane-label">Recent</h3>
-          <div className="launcher-grid">
+          <h3 className="pane-label">recent</h3>
+          <ul className="lcd launcher-recent">
             {recent.map((ref) => (
-              <button
-                key={JSON.stringify(ref)}
-                type="button"
-                className="key"
-                onClick={() => go(ref)}
-                title={isOpen(ref) ? "Open in another pane: goes there" : undefined}
-              >
-                {titleOf(ref)}
-              </button>
+              <li key={JSON.stringify(ref)}>
+                <button
+                  type="button"
+                  onClick={() => go(ref)}
+                  title={isOpen(ref) ? "Open in another pane: goes there" : undefined}
+                >
+                  <span>{titleOf(ref)}</span>
+                  {isOpen(ref) ? <span className="launcher-open">open</span> : null}
+                </button>
+              </li>
             ))}
-          </div>
+          </ul>
         </section>
       ) : null}
     </nav>
   );
 }
-
 export const launcher = definePane("launcher", {
   title: "New pane",
   icon: PlusIcon,

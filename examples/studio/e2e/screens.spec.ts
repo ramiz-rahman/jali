@@ -193,3 +193,44 @@ test("a mixer module at 2x", async ({ browser, baseURL }) => {
     .screenshot({ path: shot("mixer-module@2x") });
   await context.close();
 });
+
+// The launcher and the empty, missing and failed states, light and dark.
+for (const dark of [false, true]) {
+  test(`states${dark ? " dark" : ""}`, async ({ page }) => {
+    const d = dark ? "-dark" : "";
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await stage(page, "mix", { dark });
+    await page.keyboard.press("Space");
+    const mk = page.locator('.jali-pane[data-kind="markers"]');
+    await mk.getByRole("listbox", { name: "Markers" }).focus();
+    for (let i = 0; i < 6; i++) await page.keyboard.press("Delete");
+    await mk.screenshot({ path: shot(`state-empty-markers${d}`) });
+    await page.locator('.jali-pane[data-kind="timeline"] .tl-lanes').click();
+    await page.keyboard.press("ControlOrMeta+Backslash");
+    await page
+      .locator('.jali-pane[data-kind="launcher"]')
+      .screenshot({ path: shot(`launcher${d}`) });
+    // A link to a session that isn't there.
+    const url = new URL(page.url());
+    const l = url.searchParams.get("l")!;
+    const json = Buffer.from(l.slice(2), "base64url").toString();
+    url.searchParams.set(
+      "l",
+      `1.${Buffer.from(json.replace('["mixer",{"session":"night-ferry"}]', '["mixer",{"session":"gone"}]')).toString("base64url")}`,
+    );
+    await page.goto(url.toString());
+    await page
+      .locator('.jali-pane[data-kind="mixer"]')
+      .screenshot({ path: shot(`state-missing${d}`) });
+  });
+  test(`state no audio${dark ? " dark" : ""}`, async ({ page }) => {
+    await page.emulateMedia({ colorScheme: dark ? "dark" : "light", reducedMotion: "reduce" });
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.route("**/*.m4a", (r) => r.abort());
+    await page.goto("/");
+    await expect(page.locator(".pd-alert")).toHaveText("no audio");
+    await page
+      .locator(".topbar")
+      .screenshot({ path: shot(`state-no-audio${dark ? "-dark" : ""}`) });
+  });
+}

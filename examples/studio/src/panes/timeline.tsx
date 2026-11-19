@@ -14,7 +14,7 @@ import { useFrame, useTransport } from "../audio/react";
 import { audible, channelOf, useSessionView, type SessionView } from "../edits";
 import { useServices } from "../services";
 import { CHANNEL, clock, sessionById, trackName, trackOf, TRACKS } from "../sessions/sessions";
-import { Empty, NotInTransport } from "../ui/parts";
+import { Missing, NotInTransport } from "../ui/parts";
 import { drawBars, loudest, screenPaletteOf, prepare, trackPeaks, useSize } from "../ui/waveform";
 import { followSession } from "./follow";
 
@@ -27,7 +27,7 @@ const LANE_WEIGHT: Record<string, number> = { "mic-a": 1.2, "mic-b": 1.2, bed: 1
 function Timeline(props: PaneProps<typeof timelineParams>) {
   const { edits } = useServices();
   const view = useSessionView(edits, props.params.session);
-  if (!view) return <Empty title="No such session" />;
+  if (!view) return <Missing what="session" openHere={props.openHere} />;
   return <TimelineBody {...props} view={view} />;
 }
 
@@ -95,7 +95,7 @@ function TimelineBody({ paused, view }: PaneProps<typeof timelineParams> & { vie
         if (!major && !mid && !perSecond) continue;
         g.fillStyle = major ? c.lineStrong : c.line;
         const top = major ? 2 : mid ? RULER - 8 : RULER - 4;
-        g.fillRect(Math.round(x(t)), top, 1, (major ? 12 : RULER - top));
+        g.fillRect(Math.round(x(t)), top, 1, major ? 12 : RULER - top);
         if (major) g.fillRect(Math.round(x(t)), RULER - 8, 1, 8);
         if (major && x(t) < width - 34) {
           g.fillStyle = c.subtle;
