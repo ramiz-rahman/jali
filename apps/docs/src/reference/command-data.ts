@@ -84,7 +84,8 @@ export const REFUSED: Record<string, string> = {
     "Silent unless the workspace has `rename` and its `can` allows the focused pane. Opens the rename field on its tab or title.",
   "stack.new-tab": "Silent when no pane is focused, or the workspace has no launcher kind.",
   [PRESET_PATTERN]: 'Never. One command per preset, titled "Layout: <label>".',
-  "pane.fullscreen": "On a curated page in Single view. Puts the focused pane on the whole screen, or takes it off.",
+  "pane.fullscreen":
+    "On a curated page in Single view. Puts the focused pane on the whole screen, or takes it off.",
   "layout.reset": "Silent in a workspace without presets. Rebuilds the preset last chosen.",
   "layout.auto":
     "On a curated page, or with one pane. Arranges every pane from the room and the kinds' sizes; Back undoes it.",
