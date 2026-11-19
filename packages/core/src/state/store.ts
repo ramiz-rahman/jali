@@ -37,6 +37,7 @@ import {
   type Toast,
 } from "./apply";
 import { createInstance, type Jali, type JaliEvent, type JaliEvents } from "./instance";
+import { currentInput, trackInput, type JaliInput } from "../dom/input";
 import { sameRef } from "../actions/follow";
 import { modelCache, type JaliModel } from "./model";
 import { loadSettings, systemPrefersDark, type Settings } from "./settings";
@@ -452,6 +453,8 @@ export function createUiStore(deps: UiStoreDeps): UiStore {
   };
   let depth = 0;
   let from: UiState = state;
+  /** Where this batch's change came from, read when it starts. */
+  let input: JaliInput = "code";
   /** Layout ops committed in this batch: a refit alone is not a layout change. */
   let ops: Op[] = [];
   const told = (before: UiState) => {
@@ -463,30 +466,33 @@ export function createUiStore(deps: UiStoreDeps): UiStore {
       );
       const now = core.tree.panes(after.layout.root);
       const ids = new Set(now.map((p) => p.id));
-      for (const [pane, ref] of was) if (!ids.has(pane)) emit("close", { pane, ref });
+      for (const [pane, ref] of was) if (!ids.has(pane)) emit("close", { pane, ref, input });
       for (const p of now) {
         const previous = was.get(p.id);
-        if (!previous) emit("open", { pane: p.id, ref: p.ref });
-        else if (!sameRef(previous, p.ref)) emit("open", { pane: p.id, ref: p.ref, previous });
+        if (!previous) emit("open", { pane: p.id, ref: p.ref, input });
+        else if (!sameRef(previous, p.ref))
+          emit("open", { pane: p.id, ref: p.ref, previous, input });
       }
       for (const p of now) {
         const was = pinnedBefore.get(p.id);
         if (was !== undefined && was !== !!p.pinned)
-          emit("pin", { pane: p.id, pinned: !!p.pinned });
+          emit("pin", { pane: p.id, pinned: !!p.pinned, input });
       }
     }
     if (after.view.focused !== before.view.focused)
-      emit("focus", { pane: after.view.focused, previous: before.view.focused });
+      emit("focus", { pane: after.view.focused, previous: before.view.focused, input });
     if (after.layout !== before.layout && ops.length)
       emit("layout", {
         layout: after.layout,
         source: ops.includes("arrive") ? "address" : "action",
+        input,
       });
   };
   const batch = <T>(run: () => T): T => {
     if (depth++ === 0) {
       from = state;
       ops = [];
+      input = currentInput();
     }
     try {
       return run();
@@ -550,12 +556,14 @@ export function createUiStore(deps: UiStoreDeps): UiStore {
     url: deps.url,
     start() {
       if (stop) return () => {};
+      const offInput = trackInput();
       const off = startUi(store, undefined, {
         keys: deps.keys === "scoped" ? { root: rootElement } : {},
         pageTheme: deps.pageTheme,
       });
       stop = () => {
         off();
+        offInput();
         stop = null;
       };
       return stop;

@@ -433,6 +433,12 @@ To save a person's layout, listen for `"layout"` and store `getLayout()`. To res
 
 What `jali.on` tells you. Each fires once per change, after the change is made, and never for the steps inside one action (a drag before it drops, the steps of a preset switch). In one change they come in this order: `close`, `open`, `pin`, `focus`, `layout`.
 
+Every event also carries `input`, where the change came from (<Ref to="JaliInput" />), so you can tell a person's close from your own code's, or from an agent's:
+
+```ts
+jali.on("close", ({ pane, input }) => track("pane closed", { pane, by: input }));
+```
+
 <Params title="Events">
 <Param name="open" type="{ pane: NodeId; ref: ObjectRef; previous?: ObjectRef }" required>A pane was added to the layout, or now shows another object. `previous` is what it showed before. A launcher pane counts.</Param>
 <Param name="close" type="{ pane: NodeId; ref: ObjectRef }" required>A pane left the layout. A tucked, folded or tabbed pane is still in it.</Param>
@@ -440,6 +446,20 @@ What `jali.on` tells you. Each fires once per change, after the change is made, 
 <Param name="focus" type="{ pane: NodeId | undefined; previous: NodeId | undefined }" required>Another pane is focused.</Param>
 <Param name="layout" type={`{ layout: Layout; source: "action" | "address" }`} required>The layout changed. `"action"`: an action, a gesture, a key or `setLayout`. `"address"`: Back, Forward or a link. Fitting to a new window size does not fire it.</Param>
 </Params>
+
+</Entry>
+
+<Entry name="JaliEventBase" kind="type" from="@jali/core" signature={`interface JaliEventBase { input: JaliInput }`} compact>
+
+What every event in <Ref to="JaliEvents" /> carries, beside its own fields.
+
+</Entry>
+
+<Entry name="JaliInput" kind="type" from="@jali/core" signature={`type JaliInput = "mouse" | "touch" | "pen" | "keyboard" | "virtual" | "agent" | "code"`} compact>
+
+Where a change came from. `mouse`, `touch` and `pen` are a person's pointer; `keyboard` a key; `virtual` a click with no pointer or key behind it, as a screen reader sends; `agent` an agent, through the agent bridge; `code` your own code, with nothing a person did behind it.
+
+A person's input is noted from the page while the workspace is started (`<JaliRoot>` starts it), and lasts until the event that caused it is handled. A change your code makes after a timer or an `await` reads as `code`, even if a click started it. Use it for analytics and to tell changes apart, not to make Jali behave differently.
 
 </Entry>
 

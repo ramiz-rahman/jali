@@ -391,7 +391,7 @@ describe("pinned tabs", () => {
   it("tell the app once per change, and pinning a pinned tab is no change", () => {
     const heard: unknown[] = [];
     const jali = four();
-    jali.on("pin", (e) => heard.push(e));
+    jali.on("pin", ({ input: _, ...e }) => heard.push(e));
     const layouts: unknown[] = [];
     jali.on("layout", (e) => layouts.push(e));
     jali.actions.setPinned("b", true);

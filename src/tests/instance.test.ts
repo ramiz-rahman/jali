@@ -41,11 +41,14 @@ const make = (options: Partial<JaliOptions> = {}) =>
     ...options,
   });
 
-/** Every event, in order, as `[name, payload]`. */
+/** Every event, in order, as `[name, payload]`, without `input` (code, since no person is behind these). */
 function record(jali: ReturnType<typeof make>) {
   const heard: [keyof JaliEvents, unknown][] = [];
   for (const name of ["open", "close", "focus", "layout"] as const)
-    jali.on(name, (e) => heard.push([name, e]));
+    jali.on(name, ({ input, ...e }) => {
+      expect(input).toBe("code");
+      heard.push([name, e]);
+    });
   return heard;
 }
 

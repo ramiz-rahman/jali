@@ -12,25 +12,33 @@ import { publicActions, type JaliActions } from "../actions/public";
 import { restoreLayout } from "../actions/layout";
 import type { ActionResult, Toast } from "./apply";
 import type { JaliModel } from "./model";
+import type { JaliInput } from "../dom/input";
 import type { UiState, UiStore } from "./store";
+
+/** What every event carries. */
+export interface JaliEventBase {
+  /** Where the change came from: a person's `mouse`, `touch`, `pen`, `keyboard` or `virtual` click, an `agent`, or the
+   *  app's own `code`. For analytics, and to tell a person's change from your own; not to change what Jali does. */
+  input: JaliInput;
+}
 
 /**
  * What a workspace tells the app, once per change and only once it is made (never for the steps inside one action).
- * In each change they come in this order: `close`, `open`, `pin`, `focus`, `layout`.
+ * In each change they come in this order: `close`, `open`, `pin`, `focus`, `layout`. Each carries `input`.
  */
 export interface JaliEvents {
   /** A pane was added to the layout, or now shows another object (`previous`: what it showed before). */
-  open: { pane: NodeId; ref: ObjectRef; previous?: ObjectRef };
+  open: JaliEventBase & { pane: NodeId; ref: ObjectRef; previous?: ObjectRef };
   /** A pane left the layout. A pane that is tucked, folded or behind a tab is still in it. */
-  close: { pane: NodeId; ref: ObjectRef };
+  close: JaliEventBase & { pane: NodeId; ref: ObjectRef };
   /** A pane's tab was pinned or unpinned, however: the tab menu, `setPinned`, `setLayout`, Back or a link. Not for a
    *  pane that arrives pinned (that is an `open`). */
-  pin: { pane: NodeId; pinned: boolean };
+  pin: JaliEventBase & { pane: NodeId; pinned: boolean };
   /** Another pane is focused (`pane` undefined: none). */
-  focus: { pane: NodeId | undefined; previous: NodeId | undefined };
+  focus: JaliEventBase & { pane: NodeId | undefined; previous: NodeId | undefined };
   /** The layout changed: by an action, a gesture, a key or `setLayout` ("action"), or by Back, Forward or a link
    *  ("address"). Fitting to a new window size is not a change. */
-  layout: { layout: Layout; source: "action" | "address" };
+  layout: JaliEventBase & { layout: Layout; source: "action" | "address" };
 }
 
 export type JaliEvent = keyof JaliEvents;
