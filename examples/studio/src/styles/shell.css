@@ -553,3 +553,31 @@
     font-size: 12px;
   }
 }
+
+@layer app {
+  /*
+   * ---------- the controls along the bottom ----------
+   * `data-controls="bottom"` (ui/controlsPlace.ts): the slab stands on the window's bottom edge, like a console's
+   * front panel under the work, and the status line moves up to be the head rail. The light still comes from above,
+   * so each part's edges swap: the slab's top edge is now the one that shows (a lit chamfer over a dark seam, no
+   * shadow thrown down), and the rail's lower edge is the one that meets the desk.
+   */
+  [data-controls="bottom"] .app > .topbar {
+    order: 1;
+    box-shadow:
+      inset 0 1px 0 light-dark(rgb(255 255 255 / 0.9), rgb(255 255 255 / 0.12)),
+      inset 0 3px 0 light-dark(rgb(255 255 255 / 0.35), rgb(255 255 255 / 0.03)),
+      0 -1px 0 light-dark(rgb(0 0 0 / calc(0.32 * var(--sh))), #000),
+      0 -8px 14px -10px rgb(0 0 0 / calc(0.35 * var(--sh)));
+  }
+  [data-controls="bottom"] .app > .status {
+    order: -1;
+    background:
+      var(--grain), var(--slab-falloff), linear-gradient(180deg, var(--slab-1), var(--slab-2));
+    box-shadow:
+      inset 0 -1px 0 light-dark(rgb(255 255 255 / 0.9), rgb(255 255 255 / 0.1)),
+      0 1px 0 light-dark(rgb(0 0 0 / calc(0.32 * var(--sh))), #000),
+      0 6px 10px -8px rgb(0 0 0 / calc(0.4 * var(--sh)));
+    z-index: 1;
+  }
+}

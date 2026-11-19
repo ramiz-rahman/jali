@@ -23,6 +23,7 @@ import { transcript } from "./panes/transcript";
 import { presets } from "./presets";
 import type { Services } from "./services";
 import { clock, opening, SESSIONS, sessionById } from "./sessions/sessions";
+import { controlsPlace, setControlsPlace } from "./ui/controlsPlace";
 import { feelSounds, setFeelSounds } from "./ui/feel";
 import { HEADER_BUTTONS, headerButtons, setHeaderButtons } from "./ui/headerButtons";
 
@@ -210,6 +211,12 @@ export function createStudioJali(services: Services, options: Options = {}): Jal
           hint: (b) => (b.id === headerButtons() ? `${b.hint} · now` : b.hint),
           onChoose: (b) => setHeaderButtons(b.id),
         }),
+    },
+    {
+      id: "studio.controls-place",
+      title: "Controls: move to the bottom / top",
+      group: "Settings",
+      run: () => setControlsPlace(controlsPlace() === "top" ? "bottom" : "top"),
     },
     {
       id: "studio.feel-sounds",

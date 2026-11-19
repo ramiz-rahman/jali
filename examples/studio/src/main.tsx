@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { sessionInLayout } from "./actions";
 import { createServices } from "./services";
 import { App } from "./shell/App";
+import { applyControlsPlace } from "./ui/controlsPlace";
 import { installFeel } from "./ui/feel";
 import { applyHeaderButtons } from "./ui/headerButtons";
 import { createStudioJali } from "./workspace";
@@ -21,6 +22,7 @@ import "@fontsource/ibm-plex-mono/latin-500.css";
 import "./styles/app.css";
 
 applyHeaderButtons();
+applyControlsPlace();
 installFeel();
 const services = createServices();
 const jali = createStudioJali(services, { notify: (text) => toast(text) });
