@@ -1,6 +1,6 @@
 import { keyHint } from "@jali/core";
 import { definePane, useCommands, usePaneState, useUnsaved, type PaneProps } from "@jali/react";
-import { NotebookPen } from "lucide-react";
+import { NotePencilIcon } from "@phosphor-icons/react";
 
 // Your own save, for example a fetch to your API.
 declare function saveNote(ticketId: number, text: string): Promise<void>;
@@ -49,7 +49,7 @@ function TicketNote({ params }: PaneProps<{ id: number }>) {
 export const ticketNote = definePane("ticket-note", {
   params: { id: Number },
   title: ({ id }) => `Note on ticket ${id}`,
-  icon: NotebookPen,
+  icon: NotePencilIcon,
   width: { min: 320 },
   height: { min: 200 },
   Component: TicketNote,

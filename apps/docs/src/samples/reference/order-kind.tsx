@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { definePane, useActivity, useCommands, useUnsaved, type PaneProps } from "@jali/react";
-import { FileText } from "lucide-react";
+import { FileTextIcon } from "@phosphor-icons/react";
 
 function OrderNote({ params, paused }: PaneProps<{ id: number }>) {
   const [draft, setDraft] = useState("");
@@ -30,7 +30,7 @@ function OrderNote({ params, paused }: PaneProps<{ id: number }>) {
 export const orderNoteKind = definePane("order-note", {
   params: { id: Number },
   title: ({ id }) => `Note on order ${id}`,
-  icon: FileText,
+  icon: FileTextIcon,
   width: { min: 280, max: 640 },
   Component: OrderNote,
 });

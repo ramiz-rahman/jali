@@ -20,16 +20,16 @@ import { flushSync } from "react-dom";
 import type { MDXComponents } from "mdx/types";
 import type { ThemedToken } from "shiki/core";
 import {
-  ArrowRight,
-  Check,
-  Copy,
-  File,
-  Info,
-  Lightbulb,
-  Link as LinkIcon,
-  TriangleExclamationPoint,
-  WrapText,
-} from "lucide-react";
+  ArrowRightIcon,
+  ArrowUDownLeftIcon,
+  CheckIcon,
+  CopyIcon,
+  FileIcon,
+  InfoIcon,
+  LightbulbIcon,
+  LinkIcon,
+  WarningIcon,
+} from "@phosphor-icons/react";
 import { langOf, parseRanges, tokenize } from "./highlight";
 import { readStored, writeStored } from "../site/storage";
 
@@ -91,11 +91,7 @@ function CopyButton({ text, label = "Copy code" }: { text: string; label?: strin
       data-copied={copied || undefined}
       onClick={async () => setCopied(await copyText(text))}
     >
-      {copied ? (
-        <Check aria-hidden size={15} strokeWidth={2} />
-      ) : (
-        <Copy aria-hidden size={15} strokeWidth={1.75} />
-      )}
+      {copied ? <CheckIcon aria-hidden size={15} /> : <CopyIcon aria-hidden size={15} />}
       <span className="visually-hidden" aria-live="polite">
         {copied ? "Copied" : ""}
       </span>
@@ -151,7 +147,7 @@ function WrapButton() {
         if (Math.abs(moved) > 1) window.scrollBy({ top: moved, behavior: "instant" });
       }}
     >
-      <WrapText aria-hidden size={15} strokeWidth={1.75} />
+      <ArrowUDownLeftIcon aria-hidden size={15} />
     </button>
   );
 }
@@ -286,7 +282,7 @@ export function Code({
       {filename ? (
         <figcaption className="code-header">
           <span className="code-filename">
-            <File aria-hidden size={14} strokeWidth={1.75} />
+            <FileIcon aria-hidden size={14} />
             {filename}
           </span>
           <span className="code-tools">{tools}</span>
@@ -337,7 +333,7 @@ function heading(level: 2 | 3 | 4) {
           href={`#${slug}`}
           aria-label={`Link to this section: ${textOf(children)}`}
         >
-          <LinkIcon aria-hidden size={14} strokeWidth={2} />
+          <LinkIcon aria-hidden size={14} />
         </a>
         {children}
       </Tag>
@@ -347,7 +343,7 @@ function heading(level: 2 | 3 | 4) {
 
 // ---------- callout ----------
 
-const CALLOUT_ICON = { note: Info, tip: Lightbulb, warning: TriangleExclamationPoint };
+const CALLOUT_ICON = { note: InfoIcon, tip: LightbulbIcon, warning: WarningIcon };
 const CALLOUT_LABEL = { note: "Note", tip: "Tip", warning: "Warning" };
 
 /** A note beside the text. `type`: note (default), tip, warning. */
@@ -360,14 +356,14 @@ export function Callout({
   title?: string;
   children?: ReactNode;
 }) {
-  const Icon = CALLOUT_ICON[type] ?? Info;
+  const Icon = CALLOUT_ICON[type] ?? InfoIcon;
   return (
     <aside
       className="callout"
       data-callout={type}
       aria-label={title ? undefined : CALLOUT_LABEL[type]}
     >
-      <Icon aria-hidden className="callout-icon" size={17} strokeWidth={1.75} />
+      <Icon aria-hidden className="callout-icon" size={17} />
       <div className="callout-body">
         {title ? <p className="callout-title">{title}</p> : null}
         {children}
@@ -594,7 +590,7 @@ export function Card({
     <a className="card" data-card="" href={href}>
       <span className="card-title">
         {title}
-        <ArrowRight aria-hidden className="card-arrow" size={16} strokeWidth={1.75} />
+        <ArrowRightIcon aria-hidden className="card-arrow" size={16} />
       </span>
       {children ? <span className="card-text">{children}</span> : null}
     </a>

@@ -1,6 +1,6 @@
 import { useEffect, useState, type KeyboardEvent } from "react";
 import { definePane, useLauncher, type PaneProps } from "@jali/react";
-import { ClipboardList, FileText, Plus, StickyNote } from "lucide-react";
+import { ClipboardTextIcon, FileTextIcon, NoteIcon, PlusIcon } from "@phosphor-icons/react";
 
 // Your data. Jali never fetches anything: a pane is told which object to show, and shows it.
 interface Order {
@@ -77,7 +77,7 @@ function OrderDetail({ params }: PaneProps<{ id: number }>) {
 
 export const orderList = definePane("orders", {
   title: "Orders",
-  icon: ClipboardList,
+  icon: ClipboardTextIcon,
   width: {
     min: 440, // narrower than this, the pane folds into a tab
     comfortable: 560, // spare room brings it up to here first
@@ -90,7 +90,7 @@ export const orderList = definePane("orders", {
 export const orderKind = definePane("order", {
   params: { id: Number }, // read back as a number, so "1" in a link and 1 in code are the same order
   title: ({ id }) => `Order ${id}`,
-  icon: FileText,
+  icon: FileTextIcon,
   width: { min: 360, comfortable: 440, max: 600 }, // past max, spare room goes to the neighbours first
   height: { min: 200 },
   shows: "order", // another kind that shows orders counts as the same object
@@ -108,7 +108,7 @@ export const customerKind = definePane("customer", {
 /** A scratch pad: every one is new, so it is never matched against an open pane, and stays out of Recent. */
 export const scratchNote = definePane("scratch", {
   title: "Scratch note",
-  icon: StickyNote,
+  icon: NoteIcon,
   width: { min: 280 },
   scratch: true,
   Component: () => <textarea aria-label="Scratch note" />,
@@ -117,7 +117,7 @@ export const scratchNote = definePane("scratch", {
 /** What Split and "New tab here" open until the person chooses: the workspace's `launcher`. */
 export const launcher = definePane("launcher", {
   title: "New pane",
-  icon: Plus,
+  icon: PlusIcon,
   width: { min: 320 },
   height: { min: 200 },
   scratch: true,

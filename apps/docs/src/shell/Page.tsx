@@ -1,6 +1,14 @@
 /** A page's header (section, title, summary, actions) and footer (previous and next, edit). */
 import { useEffect, useState } from "react";
-import { ArrowLeft, ArrowRight, ArrowUpRight, Check, Copy, FileText, Pencil } from "lucide-react";
+import {
+  ArrowLeftIcon,
+  ArrowRightIcon,
+  ArrowUpRightIcon,
+  CheckIcon,
+  CopyIcon,
+  FileTextIcon,
+  PencilSimpleIcon,
+} from "@phosphor-icons/react";
 import { editUrl } from "../site/config";
 import { markdownUrl, neighbours, sectionOf, sources, toMarkdown } from "../site/sources";
 import { copyText } from "./mdx";
@@ -24,15 +32,11 @@ function PageActions({ path, title }: { path: string; title: string }) {
         className="page-action"
         onClick={async () => setCopied(await copyText(toMarkdown(page)))}
       >
-        {copied ? (
-          <Check aria-hidden size={15} />
-        ) : (
-          <Copy aria-hidden size={15} strokeWidth={1.75} />
-        )}
+        {copied ? <CheckIcon aria-hidden size={15} /> : <CopyIcon aria-hidden size={15} />}
         <span aria-live="polite">{copied ? "Copied" : "Copy page"}</span>
       </button>
       <a className="page-action" href={md} target="_blank" rel="noreferrer">
-        <FileText aria-hidden size={15} strokeWidth={1.75} />
+        <FileTextIcon aria-hidden size={15} />
         View as Markdown
       </a>
       <a
@@ -41,7 +45,7 @@ function PageActions({ path, title }: { path: string; title: string }) {
         target="_blank"
         rel="noreferrer"
       >
-        <ArrowUpRight aria-hidden size={15} strokeWidth={1.75} />
+        <ArrowUpRightIcon aria-hidden size={15} />
         Open in Claude
       </a>
     </div>
@@ -78,7 +82,7 @@ export function PageFooter({ path }: { path: string }) {
           {prev ? (
             <a className="pager-link" data-dir="prev" href={prev.path}>
               <span className="pager-label">
-                <ArrowLeft aria-hidden size={14} />
+                <ArrowLeftIcon aria-hidden size={14} />
                 Previous
               </span>
               <span className="pager-title">{prev.title}</span>
@@ -90,7 +94,7 @@ export function PageFooter({ path }: { path: string }) {
             <a className="pager-link" data-dir="next" href={next.path}>
               <span className="pager-label">
                 Next
-                <ArrowRight aria-hidden size={14} />
+                <ArrowRightIcon aria-hidden size={14} />
               </span>
               <span className="pager-title">{next.title}</span>
             </a>
@@ -100,7 +104,7 @@ export function PageFooter({ path }: { path: string }) {
       <div className="page-meta">
         {file ? (
           <a href={editUrl(file)} target="_blank" rel="noreferrer">
-            <Pencil aria-hidden size={13} strokeWidth={1.75} />
+            <PencilSimpleIcon aria-hidden size={13} />
             Edit this page
           </a>
         ) : null}

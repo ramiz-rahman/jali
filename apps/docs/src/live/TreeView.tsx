@@ -8,7 +8,14 @@ import {
   type PointerEvent,
   type ReactNode,
 } from "react";
-import { Hand, MousePointerClick, MoveHorizontal, Network, RotateCcw, X } from "lucide-react";
+import {
+  ArrowCounterClockwiseIcon,
+  ArrowsHorizontalIcon,
+  CursorClickIcon,
+  HandIcon,
+  TreeStructureIcon,
+  XIcon,
+} from "@phosphor-icons/react";
 import { layout as jl, type Rect, type JaliModel } from "@jali/core/adapter";
 import { JaliProvider } from "@jali/react";
 import type { DemoLayoutId } from "./demo";
@@ -57,7 +64,7 @@ function triesFor(m: JaliModel, json: boolean, tree = true): { icon: ReactNode; 
     ...(follows
       ? [
           {
-            icon: <MousePointerClick size={15} strokeWidth={1.75} aria-hidden />,
+            icon: <CursorClickIcon size={15} aria-hidden />,
             text: "Click an order, and the detail follows",
           },
         ]
@@ -65,23 +72,23 @@ function triesFor(m: JaliModel, json: boolean, tree = true): { icon: ReactNode; 
     ...(m.resolved.dividers.length
       ? [
           {
-            icon: <MoveHorizontal size={15} strokeWidth={1.75} aria-hidden />,
+            icon: <ArrowsHorizontalIcon size={15} aria-hidden />,
             text: "Drag the divider between panes",
           },
         ]
       : []),
     ...(m.panes.length > 1
-      ? [{ icon: <X size={15} strokeWidth={1.75} aria-hidden />, text: "Close a pane" }]
+      ? [{ icon: <XIcon size={15} aria-hidden />, text: "Close a pane" }]
       : []),
     tree
       ? {
-          icon: <Hand size={15} strokeWidth={1.75} aria-hidden />,
+          icon: <HandIcon size={15} aria-hidden />,
           text: json
             ? "Point at a box or a JSON block to find its pane"
             : "Point at a box to find its pane",
         }
       : {
-          icon: <Network size={15} strokeWidth={1.75} aria-hidden />,
+          icon: <TreeStructureIcon size={15} aria-hidden />,
           text: "Show the layout tree to see how it is built",
         },
   ];
@@ -144,7 +151,7 @@ export function TreeView({
         resetLive(store, layout);
       }}
     >
-      <RotateCcw size={14} strokeWidth={1.75} aria-hidden />
+      <ArrowCounterClockwiseIcon size={14} aria-hidden />
     </button>
   );
   const switcher = toggle ? (
@@ -248,7 +255,7 @@ export function TreeView({
             <LiveWorkspace store={store} height={h} wrapRef={wrap} status={false} />
             {open ? null : (
               <button type="button" className="live-edge-tab" onClick={() => setSide("map")}>
-                <Network size={15} strokeWidth={1.75} aria-hidden />
+                <TreeStructureIcon size={15} aria-hidden />
                 <span>Show the layout tree</span>
               </button>
             )}
@@ -284,7 +291,7 @@ export function TreeView({
                           setHover(null);
                         }}
                       >
-                        <X size={15} strokeWidth={1.75} aria-hidden />
+                        <XIcon size={15} aria-hidden />
                       </button>
                     </span>
                   </header>

@@ -1,16 +1,24 @@
 /** The bar across the top: lockup, search, theme, GitHub; on a phone, the menu button that opens the nav drawer. */
 import { useEffect, useRef, type KeyboardEvent } from "react";
-import { Menu, Monitor, Moon, Search as SearchIcon, Sun, X } from "lucide-react";
+import {
+  GithubLogoIcon,
+  ListIcon,
+  MagnifyingGlassIcon,
+  MonitorIcon,
+  MoonIcon,
+  SunIcon,
+  XIcon,
+} from "@phosphor-icons/react";
 import { REPO_URL } from "../site/config";
 import { setTheme, useTheme, type ThemeChoice } from "../site/theme";
-import { GitHubIcon, Lockup } from "./brand";
+import { Lockup } from "./brand";
 import { Nav } from "./Nav";
 import { isMac } from "./Search";
 
-const THEMES: { value: ThemeChoice; label: string; Icon: typeof Sun }[] = [
-  { value: "light", label: "Light", Icon: Sun },
-  { value: "dark", label: "Dark", Icon: Moon },
-  { value: "system", label: "System", Icon: Monitor },
+const THEMES: { value: ThemeChoice; label: string; Icon: typeof SunIcon }[] = [
+  { value: "light", label: "Light", Icon: SunIcon },
+  { value: "dark", label: "Dark", Icon: MoonIcon },
+  { value: "system", label: "System", Icon: MonitorIcon },
 ];
 
 function ThemeToggle() {
@@ -41,7 +49,7 @@ function ThemeToggle() {
           tabIndex={choice === value ? 0 : -1}
           onClick={() => setTheme(value)}
         >
-          <Icon aria-hidden size={15} strokeWidth={1.75} />
+          <Icon aria-hidden size={15} />
         </button>
       ))}
     </div>
@@ -83,7 +91,7 @@ export function TopBar({
           aria-expanded={!!menuOpen}
           onClick={onMenu}
         >
-          <Menu aria-hidden size={20} strokeWidth={1.75} />
+          <ListIcon aria-hidden size={20} />
         </button>
         <a className="brand" href="/" aria-label="Jali, home">
           <Lockup className="brand-lockup" />
@@ -108,7 +116,7 @@ export function TopBar({
             aria-label="Search the docs"
             aria-keyshortcuts="Meta+K Control+K /"
           >
-            <SearchIcon aria-hidden size={16} strokeWidth={1.75} />
+            <MagnifyingGlassIcon aria-hidden size={16} />
             <span className="search-button-label">Search</span>
             <kbd className="kbd search-button-kbd">{isMac() ? "⌘" : "Ctrl "}K</kbd>
           </button>
@@ -121,7 +129,7 @@ export function TopBar({
             aria-label="Jali on GitHub"
             title="GitHub"
           >
-            <GitHubIcon size={18} />
+            <GithubLogoIcon aria-hidden size={18} weight="fill" />
           </a>
         </div>
       </div>
@@ -171,7 +179,7 @@ export function NavDrawer({
             onClick={onClose}
             autoFocus
           >
-            <X aria-hidden size={20} strokeWidth={1.75} />
+            <XIcon aria-hidden size={20} />
           </button>
         </div>
         <Nav path={path} />

@@ -14,10 +14,10 @@ import composeCode from "../../samples/reference/compose.tsx?raw";
 import profileCode from "../../samples/reference/profile.tsx?raw";
 import iconCode from "../../samples/reference/kind-icon.tsx?raw";
 
-React components and hooks for a workspace made with [@jali/core](/reference/core). React 19 is a peer dependency.
+React components and hooks for a workspace made with [@jali/core](/reference/core). React 19 and `@phosphor-icons/react` (Jali's icons, the set Chakni uses) are peer dependencies.
 
 ```sh
-npm install @jali/core @jali/react
+npm install @jali/core @jali/react @phosphor-icons/react
 ```
 
 Styles: `@jali/react/styles.css` is Jali's default theme and the workspace's styles; `@jali/react/theme.css` is the theme alone; `@jali/react/tailwind.css` points the tokens at your Tailwind theme. See [Tokens](/reference/tokens).
@@ -67,7 +67,7 @@ Everything in <Ref to="PaneOptions" page="/reference/core/types" /> (`params`, `
 
 <ChildParams label="view fields">
 <Param name="Component" type="ComponentType<PaneProps<P>>" required>Renders the pane's content. It stays mounted while the pane is folded, tabbed, tucked or moved.</Param>
-<Param name="icon" type="ComponentType<{ size?: number; strokeWidth?: number; 'aria-hidden'?: boolean }>">The kind's icon in the header, tab and shelf: any 16px icon component. Without one, a square.</Param>
+<Param name="icon" type="ComponentType<{ size?: number; weight?: IconWeight; 'aria-hidden'?: boolean }>">The kind's icon in the header, tab and shelf: a Phosphor icon such as `FileTextIcon`, or any component with these props. Jali passes `size` and `aria-hidden`, and leaves the weight to Phosphor's default (regular) or your `IconContext`. Without one, a square.</Param>
 </ChildParams>
 
 </Param>
@@ -328,7 +328,7 @@ The Settings dialog, while `settingsOpen` is set: theme, centre drop, pane cap (
 
 <Entry name="KindIcon" kind="component" from="@jali/react" signature={`<KindIcon kind={kind} size={16} />`} example={iconCode} exampleFile="OpenPanes.tsx">
 
-A kind's icon with a 1.5px stroke, `aria-hidden`; a square for an unknown kind or one without an icon.
+A kind's icon at `size`, `aria-hidden`; Phosphor's square for an unknown kind or one without an icon.
 
 <Params title="Props">
 <Param name="kind" type="string" required>The kind's name.</Param>
