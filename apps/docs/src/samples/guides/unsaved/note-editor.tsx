@@ -5,8 +5,11 @@ import { NotebookPen } from "lucide-react";
 // Your own save, for example a fetch to your API.
 declare function saveNote(ticketId: number, text: string): Promise<void>;
 
+// The params, declared first so the component can be typed from them.
+const noteParams = { id: Number };
+
 /** A note on a ticket. The draft outlives folds, tabs and reloads; closing with an unsaved edit asks first. */
-function TicketNote({ params }: PaneProps<{ id: number }>) {
+function TicketNote({ params }: PaneProps<typeof noteParams>) {
   // Kept by the workspace for this pane. JSON values only.
   const [draft, setDraft] = usePaneState("draft", "");
   const [saved, setSaved] = usePaneState("saved", "");
@@ -47,7 +50,7 @@ function TicketNote({ params }: PaneProps<{ id: number }>) {
 }
 
 export const ticketNote = definePane("ticket-note", {
-  params: { id: Number },
+  params: noteParams,
   title: ({ id }) => `Note on ticket ${id}`,
   icon: NotebookPen,
   width: { min: 320 },

@@ -33,7 +33,11 @@ export type {
   ParamType,
   ParamTypes,
   ParamsOf,
+  OptionalParam,
+  OneOf,
+  ParamProblem,
 } from "./pane-kinds";
+export { optional, oneOf } from "./pane-kinds";
 export type { RoleBase, ProfileBase, ViewMode, Preset, Env, ItemId } from "./profile";
 
 // ---------- the layout tree (pure: every operation returns a new layout) ----------

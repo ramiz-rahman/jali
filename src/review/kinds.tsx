@@ -3,6 +3,7 @@ import { definePane } from "@jali/react";
 import { singular } from "../panes/shared/refs";
 import { OverviewPane } from "./overview";
 import { ReviewRecordPane } from "./records";
+import { recordParams } from "../panes/kinds/record";
 import { ReviewRelatedPane } from "./lists";
 
 export const overviewKind = definePane("review-overview", {
@@ -24,10 +25,8 @@ const NOUN: Record<string, string> = {
   loans: "Loan",
   repayments: "Instalment",
 };
-const recordTitle = (table: string, id: unknown) => {
-  const noun = NOUN[table] ?? singular(table);
-  return id === undefined ? noun : `${noun} #${id}`;
-};
+const recordTitle = (table: string, id: string | number) =>
+  `${NOUN[table] ?? singular(table)} #${id}`;
 
 /**
  * The tabs' views, designed for the reviewer (records.tsx, lists.tsx): plain words, ৳ amounts, related records as
@@ -35,8 +34,8 @@ const recordTitle = (table: string, id: unknown) => {
  * record and related kinds, so a link to one already on the page goes to it, whichever kind the link names.
  */
 export const reviewRecordKind = definePane("review-record", {
-  params: { table: String },
-  title: ({ table, id }) => recordTitle(table ?? "", id),
+  params: recordParams,
+  title: ({ table, id }) => recordTitle(table, id),
   icon: FileText,
   width: { min: 380 },
   height: { min: 240 },

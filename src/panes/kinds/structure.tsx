@@ -99,7 +99,7 @@ export function StructurePane({ params, paused, openBeside }: PaneProps<{ table:
 
 export const structureKind = definePane("structure", {
   params: { table: String },
-  title: ({ table }) => `${table ?? ""} structure`.trim(),
+  title: ({ table }) => `${table} structure`,
   icon: ListTree,
   width: { min: 380, comfortable: 440, max: 720 },
   height: { min: 240 },

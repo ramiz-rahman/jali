@@ -87,6 +87,25 @@ export const PaneBody = memo(
         </div>
       );
     }
+    // A ref its kind can't read (a required param missing, a value of the wrong type) never reaches the component.
+    const problems = kinds.problems(node.ref);
+    if (problems.length) {
+      return (
+        <div className="jali-pane-missing" role="alert">
+          <strong>This {node.ref.kind} can’t open.</strong>
+          <span>
+            {problems
+              .map((p) =>
+                p.value === undefined
+                  ? `Its link has no “${p.param}”.`
+                  : `Its “${p.param}” (${String(p.value)}) isn’t one it can read.`,
+              )
+              .join(" ")}{" "}
+            Close it, or open it again from where it was linked.
+          </span>
+        </div>
+      );
+    }
     const C = def.Component;
     return (
       <PaneContext.Provider value={context}>

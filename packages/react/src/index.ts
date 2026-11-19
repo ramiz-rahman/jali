@@ -14,6 +14,8 @@ export {
   type Page,
   type PageView,
 } from "./define";
+// Declaring a kind's params: `params: { id: Number, tab: optional(String) }` (from @jali/core).
+export { optional, oneOf } from "@jali/core/adapter";
 
 // ---------- inside a pane ----------
 export {

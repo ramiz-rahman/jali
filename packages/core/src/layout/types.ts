@@ -5,7 +5,7 @@ export type Edge = "left" | "right" | "top" | "bottom";
 export type Size = { px: number } | { weight: number };
 export interface ObjectRef {
   kind: string;
-  params: Record<string, string | number>;
+  params: Record<string, string | number | boolean>;
 }
 interface NodeBase {
   id: NodeId;
@@ -86,6 +86,9 @@ export interface PaneKind {
   minHeight: number;
   comfortableWidth?: number;
   maxWidth?: number;
+  /** What is wrong with a ref's params for this kind (a required param missing, a value its type can't read), or
+   *  undefined when nothing is. A layout holding such a ref is invalid, so a link to it opens as broken. */
+  checkParams?(params: ObjectRef["params"]): string | undefined;
 }
 export type KindRegistry = Record<string, PaneKind>;
 export interface Rect {

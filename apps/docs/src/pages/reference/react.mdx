@@ -57,7 +57,7 @@ The panes, or the curated page while one is open. Takes no props. `<JaliRoot>` r
 
 Defines a kind of pane: what it shows (its params), its title and sizes, and the component that renders it. Pass your kinds to `createJali({ panes })`.
 
-The result is also how you name an object of the kind: `orderKind({ id: 1041 })` is the [ref](/get-started/key-concepts#ref) `{ kind: "order", params: { id: 1041 } }`, to open, peek, select or put in a layout. When the kind declares `params`, the call is typed: a missing or wrongly typed param is a type error.
+The result is also how you name an object of the kind: `orderKind({ id: 1041 })` is the [ref](/get-started/key-concepts#ref) `{ kind: "order", params: { id: 1041 } }`, to open, peek, select or put in a layout. When the kind declares `params`, the call is typed: a missing required param, a wrongly typed one or one the kind doesn't declare is a type error. Params are declared with `Number`, `String`, `Boolean`, <Ref to="oneOf" page="/reference/core" /> and <Ref to="optional" page="/reference/core" />, which `@jali/react` also exports.
 
 <Params>
 <Param name="kind" type="string" required>The kind's name. Every pane of this kind carries it, and links name it.</Param>
@@ -91,12 +91,12 @@ The options of <Ref to="definePane" />.
 
 <Entry name="PaneProps" kind="type" from="@jali/react" signature={`interface PaneProps<P = Params>`} example={noteCode} exampleFile="order-note.tsx">
 
-What a kind's `Component` gets. Components below it read the same with <Ref to="usePane" />. To type a component written apart from its kind, give the params: `PaneProps<{ id: number }>`.
+What a kind's `Component` gets. Components below it read the same with <Ref to="usePane" />. To type a component written apart from its kind, declare the params first and pass their declaration: `const orderParams = { id: Number }`, then `PaneProps<typeof orderParams>` (`params` is `{ id: number }`). `PaneProps<{ id: number }>`, the params' own type, also works.
 
 Keys: content first. Claim the keys you use with `event.preventDefault()` (J and K, Space, Enter, ⌘Z for your own undo, the first Esc) and let the rest bubble; single character keys must act only while your content has focus. Content that needs every key (an editor) marks itself `data-pane-keys="content"`; the workspace then takes only F6 and Shift+F6 there.
 
 <Params title="Props">
-<Param name="params" type="P" required>What the pane shows, read with the kind's `params` types.</Param>
+<Param name="params" type="P" required>What the pane shows, read with the kind's `params` types. A ref missing a required param, or holding a value its type can't read, never gets here: its pane shows a message naming the param instead.</Param>
 <Param name="node" type="PaneNode" required>The layout node, with the full ref (`node.ref`). In the peek sheet, a node that is not in the layout.</Param>
 <Param name="paused" type="boolean" required>The pane is hidden: tabbed away, tucked, folded, or behind a maximised pane. Pause subscriptions and timers; keep state.</Param>
 <Param name="focused" type="boolean" required>The pane has workspace focus.</Param>

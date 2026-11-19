@@ -1,4 +1,4 @@
-import type { KindRegistry, Layout } from "../types";
+import type { KindRegistry, Layout, ObjectRef } from "../types";
 
 const record = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null && !Array.isArray(value);
@@ -61,10 +61,17 @@ export function validate(
         !record(ref) ||
         !record(ref.params) ||
         !Object.values(ref.params).every(
-          (p) => typeof p === "string" || (typeof p === "number" && Number.isFinite(p)),
+          (p) =>
+            typeof p === "string" ||
+            typeof p === "boolean" ||
+            (typeof p === "number" && Number.isFinite(p)),
         )
       )
         error(path, "invalid object params");
+      else if (typeof ref.kind === "string" && Object.hasOwn(kinds, ref.kind)) {
+        const problem = kinds[ref.kind]!.checkParams?.(ref.params as ObjectRef["params"]);
+        if (problem) error(path, `invalid params for ${ref.kind}: ${problem}`);
+      }
       if (
         value.linkedTo !== undefined &&
         (typeof value.linkedTo !== "string" || !value.linkedTo.length)

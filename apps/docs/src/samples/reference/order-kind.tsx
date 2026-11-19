@@ -2,7 +2,10 @@ import { useState } from "react";
 import { definePane, useActivity, useCommands, useUnsaved, type PaneProps } from "@jali/react";
 import { FileText } from "lucide-react";
 
-function OrderNote({ params, paused }: PaneProps<{ id: number }>) {
+// Declared before the component, so the component is typed from it: params is { id: number }.
+const orderNoteParams = { id: Number };
+
+function OrderNote({ params, paused }: PaneProps<typeof orderNoteParams>) {
   const [draft, setDraft] = useState("");
   // Unsaved work: closing or replacing this pane asks first while it is set.
   useUnsaved(draft && "a note that is not saved");
@@ -28,7 +31,7 @@ function OrderNote({ params, paused }: PaneProps<{ id: number }>) {
 }
 
 export const orderNoteKind = definePane("order-note", {
-  params: { id: Number },
+  params: orderNoteParams,
   title: ({ id }) => `Note on order ${id}`,
   icon: FileText,
   width: { min: 280, max: 640 },

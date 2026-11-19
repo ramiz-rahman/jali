@@ -153,7 +153,7 @@ export function TablePane(p: PaneProps<{ table: string }>) {
 
 export const tableKind = definePane("table", {
   params: { table: String },
-  title: ({ table }) => table ?? "Table",
+  title: ({ table }) => table,
   icon: Table2,
   width: { min: 440, comfortable: 560 },
   height: { min: 240 },

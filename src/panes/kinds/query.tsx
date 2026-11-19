@@ -1,5 +1,12 @@
 import { TerminalSquare } from "lucide-react";
-import { definePane, useActivity, useCommands, usePaneState, useUnsaved } from "@jali/react";
+import {
+  definePane,
+  optional,
+  useActivity,
+  useCommands,
+  usePaneState,
+  useUnsaved,
+} from "@jali/react";
 import { useEffect, useRef, useState } from "react";
 import { resultFormat } from "../../data/labels";
 import type { ResultHandle, Row } from "../../data/types";
@@ -15,8 +22,11 @@ import { keyHint } from "@jali/core";
 export const DEFAULT_SQL =
   "SELECT region, SUM(amount_cents) AS amount_cents\nFROM sample_orders\nGROUP BY region\nORDER BY amount_cents DESC";
 
-export function QueryPane({ params, paused, focused, openBeside }: PaneProps) {
-  const start = typeof params.sql === "string" ? params.sql : DEFAULT_SQL;
+/** A query may come with its SQL, and a preset may ask it to run on load. A new query has neither. */
+export const queryParams = { sql: optional(String), autorun: optional(Boolean) };
+
+export function QueryPane({ params, paused, focused, openBeside }: PaneProps<typeof queryParams>) {
+  const start = params.sql ?? DEFAULT_SQL;
   // The draft is the pane's own state: it outlives a fold, a tab switch and a reload.
   const [sql, setSql] = usePaneState("sql", start);
   const [ran, setRan] = usePaneState("ran", start);
@@ -169,6 +179,7 @@ function typeFromRows(rows: Row[], name: string) {
 
 // Every query is new: never matched against an open one, but listed in Recent.
 export const queryKind = definePane("query", {
+  params: queryParams,
   title: "Query",
   icon: TerminalSquare,
   width: { min: 400, comfortable: 560 },

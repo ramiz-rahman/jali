@@ -9,6 +9,11 @@
  *
  *   note({ id: 2 }) // the ref of note 2, to open, peek or put in a layout
  *
+ * A component written apart from its kind takes the params' declaration, declared first:
+ *
+ *   const noteParams = { id: Number, tab: optional(String) };
+ *   function NoteView({ params }: PaneProps<typeof noteParams>) { ... } // params: { id: number; tab?: string }
+ *
  * The pane contract (keys, pausing, unsaved work, commands) is in the docs: Guides, "Pane kinds".
  */
 import type { ComponentType } from "react";
@@ -29,10 +34,14 @@ import type {
 } from "@jali/core/adapter";
 import { defineKind } from "@jali/core/adapter";
 
-/** What a pane's component gets. `P` is the type of its params. */
+/** `P` as params: a declaration (`{ id: Number }`) is read as `ParamsOf` it; params' own type stays as it is. */
+export type ParamsFrom<P> = [P] extends [ParamTypes] ? ParamsOf<P> : P;
+
+/** What a pane's component gets. `P` is its params' declaration (`PaneProps<typeof orderParams>`) or their type
+ *  (`PaneProps<{ id: number }>`). */
 export interface PaneProps<P = Params> {
   /** What the pane shows, typed by the kind's `params`. */
-  params: P;
+  params: ParamsFrom<P>;
   /** The pane's node in the layout. In the peek sheet this is a node that is not in the layout. */
   node: PaneNode;
   /** Hidden (behind a tab, tucked, folded, behind a maximised pane): pause live work, keep state. */
