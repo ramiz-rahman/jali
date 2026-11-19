@@ -39,6 +39,7 @@ Sizes are a starting point. With weights, each pane first gets its kind's `width
 - `preset` is the one to open on. Without it, the first. A link with a layout in it wins over both: see [Keep the layout in the URL](/guides/url-and-routers).
 - `jali.actions.preset(id)` switches. If a pane that would go has unsaved work, the person is asked first.
 - `jali.actions.resetLayout()` rebuilds the preset in use. ⌘K "Reset layout" does the same.
+- `jali.get().presetId` is the preset in use, the last one chosen. A layout link names it (`preset=` beside `l=`), so a colleague who opens the link has the same preset marked in your menu, and Reset rebuilds it.
 
 Switching to a preset is a new step in the browser's history, so Back returns to the layout before it.
 

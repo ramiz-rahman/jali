@@ -1,5 +1,6 @@
 /**
- * URL sync, through a location port (ports.ts). Structure goes in ?l= (layout/codec); zoom and peek ride along. Deliberate structural changes push a
+ * URL sync, through a location port (ports.ts). Structure goes in ?l= (layout/codec); zoom, peek and the preset the
+ * layout came from ride along. Deliberate structural changes push a
  * history entry; resizes replace it 120ms after the last move; view changes replace immediately.
  */
 import * as core from "./layout";
@@ -62,6 +63,7 @@ export interface UrlKeys {
   item: string;
   tab: string;
   open: string;
+  preset: string;
 }
 export function urlKeys(prefix = ""): UrlKeys {
   return {
@@ -72,6 +74,7 @@ export function urlKeys(prefix = ""): UrlKeys {
     item: `${prefix}item`,
     tab: `${prefix}tab`,
     open: `${prefix}open`,
+    preset: `${prefix}preset`,
   };
 }
 
@@ -81,7 +84,7 @@ export function urlKeys(prefix = ""): UrlKeys {
  */
 function pageParams(q: URLSearchParams, s: UiState, k: UrlKeys) {
   q.delete(k.layout);
-  for (const key of [k.page, k.item, k.tab, k.open, "app", "arr"]) q.delete(key);
+  for (const key of [k.page, k.item, k.tab, k.open, k.preset, "app", "arr"]) q.delete(key);
   if (!s.page) return;
   q.set(k.page, s.page.profile);
   q.set(k.item, String(s.page.item));
@@ -95,6 +98,8 @@ export function buildSearch(search: string, s: UiState, k: UrlKeys = urlKeys()):
   const q = new URLSearchParams(search);
   pageParams(q, s, k);
   if (!s.page) q.set(k.layout, core.encode(s.layout));
+  // The preset the layout came from, so a link marks the right one and Reset rebuilds it. Only beside a layout.
+  if (!s.page && s.presetId) q.set(k.preset, s.presetId);
   if (s.view.zoomed) q.set(k.zoom, s.view.zoomed);
   else q.delete(k.zoom);
   if (s.view.peek) q.set(k.peek, encodePeek(s.view.peek));
@@ -111,9 +116,10 @@ export interface PageRead {
   item: string | undefined;
   investigation: ObjectRef[];
 }
+/** `preset`: the preset a layout link says it came from (`?preset=`), when it names one. */
 export type UrlRead =
-  | { layout: Layout; view: Partial<ViewState> }
-  | { broken: string; view: Partial<ViewState> }
+  | { layout: Layout; view: Partial<ViewState>; preset?: string }
+  | { broken: string; view: Partial<ViewState>; preset?: string }
   | { page: PageRead; view: Partial<ViewState> };
 
 export function readSearch(
@@ -137,11 +143,13 @@ export function readSearch(
     return { page: { tab: q.get(k.tab) ?? "", item, investigation }, view };
   }
   if (!code) return null;
+  const preset = q.get(k.preset) || undefined;
+  const named = preset ? { preset } : {};
   const layout = core.decode(code, kinds);
-  if (!layout) return { broken: code, view: {} };
+  if (!layout) return { broken: code, view: {}, ...named };
   const zoom = q.get(k.zoom);
   if (zoom && core.tree.panes(layout.root).some((p) => p.id === zoom)) view.zoomed = zoom;
-  return { layout, view };
+  return { layout, view, ...named };
 }
 
 /**

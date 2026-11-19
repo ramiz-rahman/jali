@@ -58,8 +58,12 @@ describe("the markets workspace", () => {
     const link = location.search();
     expect(new URLSearchParams(link).get("l")).toBeTruthy();
 
+    expect(new URLSearchParams(link).get("preset")).toBe("compare");
+
     const { jali: reader } = testJali({ search: link });
     expect(ids(reader)).toEqual(ids(jali));
+    // The link names its desk: the top bar marks Compare, and Reset rebuilds it.
+    expect(reader.get().presetId).toBe("compare");
     expect(reader.model().pane("chart-a")).toMatchObject({
       pinned: true,
       ref: chart({ symbol: "LMNA" }),

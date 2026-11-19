@@ -33,16 +33,18 @@ function arriveFromUrl(store: UiStore, url: UrlSync): ActionResult | undefined {
       }),
     );
   }
+  // A preset the link names and this workspace has; a link without one leaves the preset as it is.
+  const named = r.preset && store.env.presets.some((p) => p.id === r.preset) ? r.preset : undefined;
   if ("broken" in r) {
-    const p = presetById(store.env, store.get().presetId);
-    const done = p ? store.apply((x) => arrive(x, p.build(), r.view)) : DONE;
+    const p = presetById(store.env, named ?? store.get().presetId);
+    const done = p ? store.apply((x) => arrive(x, p.build(), r.view, p.id)) : DONE;
     url.keepBroken(r.broken);
     store.writeUrl("replace");
     store.toast(store.messages.toasts.brokenLink(p?.label));
     store.announce(store.messages.announcements.brokenLink);
     return done;
   }
-  return store.apply((x) => arrive(x, r.layout, r.view));
+  return store.apply((x) => arrive(x, r.layout, r.view, named));
 }
 
 /** The store's URL sync, when it was made with one that can also read (createUrlSync). */

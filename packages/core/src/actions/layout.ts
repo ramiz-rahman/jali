@@ -33,8 +33,14 @@ export function preset({ s, ctx, env }: Snapshot, id: string | undefined): Outco
 
 export const resetLayout = (x: Snapshot) => preset(x, x.s.presetId);
 
-/** A layout arriving from outside (link, reload, Back): keep focus where it still exists, and fit it to the window. */
-export function arrive({ s, ctx }: Snapshot, layout: Layout, arrived: Partial<ViewState>): Outcome {
+/** A layout arriving from outside (link, reload, Back): keep focus where it still exists, and fit it to the window.
+ *  `presetId`: the preset the link says the layout came from (a known one); without it the preset stays as it is. */
+export function arrive(
+  { s, ctx }: Snapshot,
+  layout: Layout,
+  arrived: Partial<ViewState>,
+  presetId?: string,
+): Outcome {
   const panes = core.tree.panes(layout.root);
   const ids = new Set(panes.map((p) => p.id));
   const history = s.view.focusHistory.filter((id) => ids.has(id));
@@ -46,7 +52,10 @@ export function arrive({ s, ctx }: Snapshot, layout: Layout, arrived: Partial<Vi
     op: "arrive",
     layout: core.refit(layout, view, ctx),
     view,
-    patch: s.page ? { page: null } : undefined,
+    patch:
+      s.page || presetId
+        ? { ...(s.page ? { page: null } : {}), ...(presetId ? { presetId } : {}) }
+        : undefined,
   };
 }
 

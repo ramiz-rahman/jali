@@ -7,7 +7,6 @@ import { toast } from "sonner";
 import { createSimulator } from "./market/simulator";
 import { createServices } from "./services";
 import { App } from "./shell/App";
-import { keepDeskInAddress } from "./desk-param";
 import { createMarketsJali } from "./workspace";
 // Styles: the layer order is declared in index.html. Then Jali's styles, its faces (Atkinson Hyperlegible Next
 // and Mono), and the app's own.
@@ -37,7 +36,6 @@ try {
   // storage blocked: dark for this visit only
 }
 
-keepDeskInAddress(jali);
 market.run();
 services.trading.connect();
 
