@@ -118,7 +118,7 @@ The workspace's chrome grows only when there is something to arrange. While one 
 
 ## Maximise and full screen
 
-Maximise lets one pane cover the workspace, with the others kept behind it (⇧⌘↵, or the button in its header). Full screen goes further: the pane covers the whole screen, the browser's own bars included, for a chart, a document or a presentation. Its button sits beside Maximise; ⌘K has "Full screen, or exit full screen", and `jali.actions.toggleFullScreen(pane)` does it from your code. Escape, the button again, or leaving the browser's full screen puts everything back as it was. ⌘K and Jali's dialogs still open over it. Where the browser has no full screen, as on an iPhone, the pane still covers the page.
+Maximise lets one pane cover the workspace, with the others kept behind it (⇧⌘↵, or the button in its header). Full screen goes further: the pane covers the whole screen, the browser's own bars included, for a chart, a document or a presentation. Its button sits beside Maximise; ⌘K has "Full screen pane, or exit full screen", and `jali.actions.toggleFullScreen(pane)` does it from your code. Escape, the button again, or leaving the browser's full screen puts everything back as it was. ⌘K and Jali's dialogs still open over it. Where the browser has no full screen, as on an iPhone, the pane still covers the page.
 
 The pane is placed over the window, so an element of yours around the workspace that is its own stacking context (a `transform`, a `filter`, `isolation: isolate`) keeps it inside that element.
 

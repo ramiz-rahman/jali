@@ -211,7 +211,7 @@ const commands = {
   focusDirection: (direction: ScreenDirection) => `Focus pane ${direction}`,
   focusIndex: (n: number) => `Focus pane ${n}`,
   zoom: "Maximise or restore pane",
-  fullScreen: "Full screen, or exit full screen",
+  fullScreen: "Full screen pane, or exit full screen",
   tuck: "Tuck pane into its neighbour",
   putBack: "Put back tucked pane",
   revealFromShelf: "Show a pane from the shelf",
