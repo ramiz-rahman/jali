@@ -1,6 +1,6 @@
 /*
  * The theme, after Nava's ("energetic editorial"): neon coral on zinc neutrals, Satoshi for text, Bricolage
- * Grotesque for display, Chivo Mono for numbers, generous radii. Set on Jali's own tokens so every part of Jali
+ * Grotesque for display, Satoshi's tabular figures for numbers, generous radii. Set on Jali's own tokens so every part of Jali
  * follows, on the same scopes Jali uses for light and dark (see the Theming guide), unlayered, so they win.
  *
  * The app's own tokens are --t-*: Nava's coral scale, the day colours (keep them in step with ui/colors.ts, which
@@ -31,7 +31,7 @@
   --t-radius-pill: 999px;
 
   --jali-font: "Satoshi", system-ui, -apple-system, "Segoe UI", sans-serif;
-  --jali-font-mono: "Chivo Mono Variable", ui-monospace, "SF Mono", monospace;
+  --jali-font-mono: ui-monospace, "SF Mono", Menlo, monospace;
   --jali-radius: 14px;
   --jali-radius-control: 10px;
   --jali-radius-menu: 12px;

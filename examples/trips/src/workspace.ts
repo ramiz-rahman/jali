@@ -4,6 +4,7 @@
  * Jali's usual options, so a test can give it a memory address, memory storage and a fixed size.
  */
 import { createJali, type Command, type Jali, type JaliOptions } from "@jali/core";
+import { unstable_popOut } from "@jali/react";
 import { makerCommand } from "../../shared/src/maker/maker";
 import { selectPlace, showDay } from "./actions";
 import { budget } from "./panes/budget";
@@ -132,6 +133,13 @@ export function createTripsJali(services: Services, options: Options = {}): Jali
       run: () => resetPlan(services),
     },
     {
+      // Jali's Pop out prototype (Document Picture-in-Picture: Chrome and Edge on desktop).
+      id: "trips.pop_out",
+      title: "Pop out pane (experimental)",
+      group: "Pane",
+      run: (jali) => void unstable_popOut(jali),
+    },
+    {
       id: "trips.theme",
       title: "Switch between light and dark",
       group: "Settings",
@@ -159,6 +167,10 @@ export function createTripsJali(services: Services, options: Options = {}): Jali
     // Days lays out seven days, the map and the place: nine panes. Jali's default cap of 8 would fold one even on a
     // screen with room for all of them, so the trip starts with 10 (a person can change it in Settings).
     settings: { paneCap: 10 },
+    // Pop out a pane into its own window: a day beside the map on a second screen. Jali leaves it off until an
+    // app turns it on; the button goes before Close in each header (the rest is in the pane's ⋯ menu).
+    allow: { popOut: true },
+    buttons: (defaults) => [...defaults.filter((b) => b !== "close"), "popOut", "close"],
     ...options,
   });
 }

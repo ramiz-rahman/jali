@@ -1,0 +1,42 @@
+---
+/**
+ * One static HTML file per page under src/docs: the shell and the page's content prerendered, then hydrated.
+ * Pages whose file starts with "_" (test pages) exist in dev only and are never indexed.
+ */
+import Document from "../layouts/Document.astro";
+import Site from "../shell/Site";
+import { seedPage } from "../shell/App";
+import { pages } from "../site/pages";
+import { sectionOf, sources } from "../site/sources";
+import { SITE_NAME } from "../site/config";
+
+export function getStaticPaths() {
+  return Object.values(sources)
+    .filter((p) => import.meta.env.DEV || !p.file.split("/").some((s) => s.startsWith("_")))
+    .map((p) => ({ params: { slug: p.path === "/" ? undefined : p.path.slice(1) } }));
+}
+
+const path = Astro.params.slug ? `/${Astro.params.slug}` : "/";
+const page = sources[path]!;
+seedPage(path, await pages[path]!());
+
+const title = path === "/" ? `${SITE_NAME}: ${page.summary}` : `${page.title} · ${SITE_NAME}`;
+const section = sectionOf(path);
+const draft = page.file.split("/").some((s) => s.startsWith("_"));
+---
+
+<Document
+  title={title}
+  description={page.summary}
+  path={path}
+  noindex={draft}
+  breadcrumbs={path === "/"
+    ? undefined
+    : [
+        { name: SITE_NAME, path: "/" },
+        ...(section ? [{ name: section, path: "" }] : []),
+        { name: page.title, path },
+      ]}
+>
+  <Site client:load path={path} />
+</Document>

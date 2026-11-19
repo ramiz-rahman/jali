@@ -15,6 +15,7 @@ import { JaliRoot, JaliView, Shelf, useJaliModel } from "@jali/react";
 import { buildDemoLayout, type DemoLayoutId } from "./demo";
 import { demoKinds } from "./kinds";
 import "./live.css";
+import { ClientOnly } from "./ClientOnly";
 
 /**
  * A store for one figure. Stable across renders; its id is safe in DOM ids and the same on server and client.
@@ -107,10 +108,12 @@ export function LiveWorkspace({
       ref={setRef}
       style={{ height }}
     >
-      <JaliRoot jali={store.jali} className="live-jali" settings={false}>
-        <JaliView />
-        {status ? <LiveStatus /> : null}
-      </JaliRoot>
+      <ClientOnly>
+        <JaliRoot jali={store.jali} className="live-jali" settings={false}>
+          <JaliView />
+          {status ? <LiveStatus /> : null}
+        </JaliRoot>
+      </ClientOnly>
       {overlay}
     </div>
   );

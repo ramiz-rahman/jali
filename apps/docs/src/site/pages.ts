@@ -1,6 +1,6 @@
 /**
- * Every page on the site: the MDX files under src/pages, keyed by their path. `pages/index.mdx` is "/",
- * `pages/learn/layout-tree.mdx` is "/learn/layout-tree". Each page's frontmatter has `title` and `summary`.
+ * Every page on the site: the MDX files under src/docs, keyed by their path. `docs/index.mdx` is "/",
+ * `docs/learn/layout-tree.mdx` is "/learn/layout-tree". Each page's frontmatter has `title` and `summary`.
  */
 import type { ComponentType } from "react";
 
@@ -14,11 +14,11 @@ export interface PageModule {
   frontmatter: Frontmatter;
 }
 
-const modules = import.meta.glob<PageModule>("../pages/**/*.mdx");
+const modules = import.meta.glob<PageModule>("../docs/**/*.mdx");
 
 export const pathOf = (file: string) =>
   file
-    .replace(/^\.\.\/pages/, "")
+    .replace(/^\.\.\/docs/, "")
     .replace(/\.mdx$/, "")
     .replace(/\/index$/, "") || "/";
 

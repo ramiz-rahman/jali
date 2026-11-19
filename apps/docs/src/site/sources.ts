@@ -6,7 +6,7 @@ import { jsxToMarkdown, type MarkdownOptions } from "./jsx-markdown";
 import { NAV, type NavSection } from "./nav";
 import { pathOf } from "./pages";
 
-const rawModules = import.meta.glob<unknown>("../pages/**/*.mdx", {
+const rawModules = import.meta.glob<unknown>("../docs/**/*.mdx", {
   query: "?raw",
   import: "default",
   eager: true,
@@ -42,7 +42,7 @@ const samples = import.meta.glob<string>("../samples/**/*", {
 
 export interface PageSource {
   path: string;
-  /** The file under src/pages, e.g. "get-started/introduction.mdx". */
+  /** The file under src/docs, e.g. "get-started/introduction.mdx". */
   file: string;
   title: string;
   summary: string;
@@ -79,7 +79,7 @@ export const sources: Record<string, PageSource> = Object.fromEntries(
       path,
       {
         path,
-        file: file.replace(/^\.\.\/pages\//, ""),
+        file: file.replace(/^\.\.\/docs\//, ""),
         title: data.title ?? titleFromPath(path),
         summary: data.summary ?? "",
         headings,
@@ -137,7 +137,7 @@ export const sectionOf = (path: string) =>
 
 function resolveImport(pageFile: string, spec: string): string | undefined {
   const clean = spec.replace(/\?raw$/, "");
-  const parts = ["..", "pages", ...pageFile.split("/").slice(0, -1)];
+  const parts = ["..", "docs", ...pageFile.split("/").slice(0, -1)];
   for (const seg of clean.split("/")) {
     if (seg === "..") parts.pop();
     else if (seg !== ".") parts.push(seg);

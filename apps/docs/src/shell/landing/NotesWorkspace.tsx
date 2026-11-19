@@ -11,6 +11,7 @@ import { JaliRoot } from "@jali/react";
 import { note } from "../../samples/concepts/quickstart/note-open-beside";
 import { demoKinds } from "../../live/kinds";
 import { buildDemoLayout, type DemoLayoutId } from "../../live/demo";
+import { ClientOnly } from "../../live/ClientOnly";
 
 export interface LandingApp {
   store: Jali;
@@ -91,7 +92,9 @@ export function LandingWorkspace({
       style={{ margin: 0, height: height === "100%" ? "100%" : undefined }}
     >
       <div className="live-ws landing-ws-box" style={{ height }}>
-        <JaliRoot jali={app.store} className="live-jali" settings={false} />
+        <ClientOnly>
+          <JaliRoot jali={app.store} className="live-jali" settings={false} />
+        </ClientOnly>
       </div>
     </div>
   );

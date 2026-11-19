@@ -2,7 +2,13 @@
  * The top bar, inside <JaliRoot>: the four layouts (Jali's presets), the trip, search, copy link, the theme and ⌘K.
  * Marked `data-jali-chrome`, so Jali leaves keyboard focus here after a layout change.
  */
-import { CommandIcon, LinkSimpleIcon, MagnifyingGlassIcon, MoonIcon, SunIcon } from "@phosphor-icons/react";
+import {
+  CommandIcon,
+  LinkSimpleIcon,
+  MagnifyingGlassIcon,
+  MoonIcon,
+  SunIcon,
+} from "@phosphor-icons/react";
 import { copyLink, keyHint, runCommand } from "@jali/core";
 import { useJali, useJaliState, useShortcut, useTheme } from "@jali/react";
 
@@ -66,18 +72,24 @@ export function TopBar() {
           className="icon-btn"
           aria-label={theme === "dark" ? "Use the light theme" : "Use the dark theme"}
           title={theme === "dark" ? "Light theme" : "Dark theme"}
-          onClick={() => jali.actions.changeSettings({ theme: theme === "dark" ? "light" : "dark" })}
+          onClick={() =>
+            jali.actions.changeSettings({ theme: theme === "dark" ? "light" : "dark" })
+          }
         >
-          {theme === "dark" ? <SunIcon size={18} aria-hidden /> : <MoonIcon size={18} aria-hidden />}
+          {theme === "dark" ? (
+            <SunIcon size={18} aria-hidden />
+          ) : (
+            <MoonIcon size={18} aria-hidden />
+          )}
         </button>
         <button
           type="button"
-          className="icon-btn icon-btn-wide"
+          className="icon-btn commands-btn"
           aria-label="Commands"
-          title={`Commands ${palette}`}
+          title="Commands"
           onClick={() => jali.actions.openPalette()}
         >
-          <CommandIcon size={18} aria-hidden />
+          <CommandIcon size={18} className="commands-icon" aria-hidden />
           <kbd>{palette || keyHint("Mod+K")}</kbd>
         </button>
       </div>

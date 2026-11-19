@@ -8,7 +8,14 @@ test("a plan saved by the old Lisbon version doesn't break the app", async ({ pa
   await page.evaluate(() =>
     localStorage.setItem(
       "trips:plan",
-      JSON.stringify({ version: 1, city: "Lisbon", budget: 950, hotel: "h-ribeira", days: [], modes: {} }),
+      JSON.stringify({
+        version: 1,
+        city: "Lisbon",
+        budget: 950,
+        hotel: "h-ribeira",
+        days: [],
+        modes: {},
+      }),
     ),
   );
   // A Lisbon link, too: its place is not in this trip.
@@ -28,11 +35,75 @@ test("the map renders, and a pin selects its place everywhere", async ({ page })
   await expect(pane(page, "map").locator("canvas.maplibregl-canvas")).toBeVisible();
   await page.locator('.pin[aria-label="Day 1, stop 4: Wat Pho"]').click();
   await expect(pane(page, "place").locator(".place-name")).toHaveText("Wat Pho");
-  await expect(pane(page, "map").locator(".map-card-name")).toHaveText("Wat Pho");
-  await expect(pane(page, "day").locator(".stop-item[data-current] .stop-name")).toHaveText("Wat Pho");
+  await expect(pane(page, "day").locator(".stop-item[data-current] .stop-name")).toHaveText(
+    "Wat Pho",
+  );
+  // The place pane beside the map shows it, so the map keeps clear of its own card; the pin wears the photo.
+  await expect(pane(page, "map").locator(".pin[data-selected]")).toHaveAttribute(
+    "aria-label",
+    /Wat Pho/,
+  );
+  await expect(pane(page, "map").locator(".map-card")).toHaveCount(0);
 });
 
-test("the overview drives the day and the map; arrow keys pan the map and F6 still moves focus", async ({ page }) => {
+/** Panes whose Jali wrapper scrolls by itself: then the pane can slide off its content, leaving it blank. */
+const wrappersThatScroll = (page: Page) =>
+  page.evaluate(() =>
+    [...document.querySelectorAll<HTMLElement>(".jali-pane-content-inner")]
+      .filter((el) => el.clientHeight && el.scrollHeight > el.clientHeight + 1)
+      .map((el) => el.closest(".jali-pane")?.getAttribute("data-kind") ?? "?"),
+  );
+
+test("no pane can scroll off its content, in any layout", async ({ page }) => {
+  for (const name of ["Plan", "Days", "Stay", "Budget"]) {
+    await layout(page, name).click();
+    await expect(layout(page, name)).toHaveAttribute("aria-pressed", "true");
+    expect(await wrappersThatScroll(page), name).toEqual([]);
+  }
+  await layout(page, "Days").click();
+  await pane(page, "day-1").locator(".day-more-add").first().click();
+  expect(await wrappersThatScroll(page), "after adding a stop").toEqual([]);
+});
+
+test("the foot of a day offers what is close to it, one press from being on it", async ({
+  page,
+}) => {
+  const day = pane(page, "day");
+  const more = day.getByRole("region", { name: "Close to this day" });
+  const first = more.locator(".day-more-name").first();
+  const name = (await first.textContent())!;
+  await more.getByRole("button", { name: `Add ${name} to Day 1` }).click();
+  await expect(day.locator(".stop-name").last()).toHaveText(name);
+  await expect(more.locator(".day-more-name").first()).not.toHaveText(name);
+});
+
+test("a place shows its photo, credited; a made-up hotel's says it is a stand-in", async ({
+  page,
+}) => {
+  await page.locator('.pin[aria-label="Day 1, stop 4: Wat Pho"]').click();
+  const hero = pane(page, "place").locator(".place-hero img");
+  await expect(hero).toHaveAttribute("alt", /Reclining Buddha/);
+  await expect
+    .poll(() => hero.evaluate((img: HTMLImageElement) => img.naturalWidth))
+    .toBeGreaterThan(0);
+  await expect(pane(page, "place").locator(".place-standin")).toHaveCount(0);
+  await pane(page, "place").getByRole("button", { name: "Photo credit" }).click();
+  await expect(pane(page, "place").locator(".photo-credit")).toContainText("Wikimedia Commons");
+  // The selected pin wears the place's photo.
+  await expect(pane(page, "map").locator(".pin-photo img")).toHaveAttribute(
+    "src",
+    /wat-pho-s\.webp$/,
+  );
+
+  await pane(page, "overview")
+    .getByRole("button", { name: /Riverside Teak House/ })
+    .click();
+  await expect(page.locator(".place-standin").first()).toHaveText("Stand-in photo");
+});
+
+test("the overview drives the day and the map; arrow keys pan the map and F6 still moves focus", async ({
+  page,
+}) => {
   const days = page.getByRole("listbox", { name: "Days" });
   await days.getByRole("option", { name: /Chinatown, silk and the park/ }).click();
   await expect(pane(page, "day").locator(".day-title")).toHaveText("Chinatown, silk and the park");
@@ -49,9 +120,9 @@ test("the overview drives the day and the map; arrow keys pan the map and F6 sti
 test("optimise a day, then undo it", async ({ page }) => {
   const day = pane(page, "day");
   const first = await day.locator(".stop-name").allTextContents();
-  await day.getByRole("button", { name: /Optimise order, save/ }).click();
+  await day.getByRole("button", { name: /Optimise the order to save/ }).click();
   await expect(page.getByText(/Day 1: \d+ min less travel/)).toBeVisible();
-  await expect(day.getByRole("button", { name: "In its quickest order" })).toBeDisabled();
+  await expect(day.getByText("In its quickest order")).toBeVisible();
   await page.getByRole("button", { name: "Undo" }).first().click();
   await expect(day.locator(".stop-name")).toHaveText(first);
 });
@@ -69,7 +140,9 @@ async function dragStop(page: Page, from: string, to: string) {
   await page.mouse.up();
 }
 
-test("drag a stop from one Phuket day to another; a Bangkok stop can't go to Phuket", async ({ page }) => {
+test("drag a stop from one Phuket day to another; a Bangkok stop can't go to Phuket", async ({
+  page,
+}) => {
   await layout(page, "Days").click();
   await expect(pane(page, "day-7")).toBeVisible();
   await dragStop(page, "day-6", "day-7");
@@ -82,21 +155,33 @@ test("drag a stop from one Phuket day to another; a Bangkok stop can't go to Phu
 });
 
 test("the transfer day starts in Bangkok, flies, and goes on in Phuket", async ({ page }) => {
-  await page.getByRole("listbox", { name: "Days" }).getByRole("option", { name: /Fly to Phuket/ }).click();
+  await page
+    .getByRole("listbox", { name: "Days" })
+    .getByRole("option", { name: /Fly to Phuket/ })
+    .click();
   const day = pane(page, "day");
   await expect(day.locator(".day-title")).toHaveText("Fly to Phuket");
   await expect(day.locator(".endpoint-label").first()).toHaveText("Leave Riverside Teak House");
   await expect(day.locator(".leg-flight")).toContainText("1h 25m flight");
-  await expect(day.locator(".endpoint-label").last()).toHaveText("Check in at Kata Hillside Bungalows");
+  await expect(day.locator(".endpoint-label").last()).toHaveText(
+    "Check in at Kata Hillside Bungalows",
+  );
 });
 
-test("a layout switches, and a reload keeps it and the place compared from the address", async ({ page }) => {
+test("a layout switches, and a reload keeps it and the place compared from the address", async ({
+  page,
+}) => {
   await layout(page, "Stay").click();
   const results = page.getByRole("listbox", { name: "Places" });
   await results.getByRole("option", { name: /Sukhumvit Bamboo Rooms/ }).click();
   await expect(pane(page, "place").locator(".place-name")).toHaveText("Sukhumvit Bamboo Rooms");
   // The kept hotel stays for comparing.
   await expect(pane(page, "place-kept").locator(".place-name")).toHaveText("Riverside Teak House");
+  // …and the one beside it is read against it.
+  await expect(pane(page, "place").locator(".place-compare")).toHaveText(
+    "Compared with Riverside Teak House, kept beside",
+  );
+  await expect(pane(page, "place").locator(".delta").first()).toHaveText("\u2212$15");
   expect(new URL(page.url()).searchParams.get("l")).toBeTruthy();
 
   await page.reload();
@@ -104,7 +189,10 @@ test("a layout switches, and a reload keeps it and the place compared from the a
   await expect(pane(page, "place").locator(".place-name")).toHaveText("Sukhumvit Bamboo Rooms");
   await expect(pane(page, "place-kept").locator(".place-name")).toHaveText("Riverside Teak House");
   // The map starts on the place its place pane shows (the selection itself is not in the address).
-  await expect(pane(page, "map").locator(".map-card-name")).toHaveText("Sukhumvit Bamboo Rooms");
+  await expect(pane(page, "map").locator(".pin[data-selected]")).toHaveAttribute(
+    "aria-label",
+    /Sukhumvit Bamboo Rooms/,
+  );
 });
 
 test("⌘K: Go to place… asks in Jali's chooser and shows the place", async ({ page }) => {
@@ -118,7 +206,11 @@ test("⌘K: Go to place… asks in Jali's chooser and shows the place", async ({
 });
 
 test("on a phone: the map, a pin, and the place under the map", async ({ browser }) => {
-  const ctx = await browser.newContext({ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true });
+  const ctx = await browser.newContext({
+    viewport: { width: 390, height: 844 },
+    hasTouch: true,
+    isMobile: true,
+  });
   const page = await ctx.newPage();
   await page.goto("/");
   await page.locator(".jali-switcher").getByText("Map of Day 1").tap();

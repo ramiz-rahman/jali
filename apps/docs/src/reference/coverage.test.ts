@@ -1,7 +1,7 @@
 /**
  * The reference stays true (docs/DOCS-PLAN.md): every name @jali/core and @jali/react export has an entry, and so does
  * every command, default key binding and public token. An entry is an <Entry name="…"> or <Member name="…"> in an MDX
- * page under src/pages/reference. A new export, command or token fails here until it is written up; a removed one
+ * page under src/docs/reference. A new export, command or token fails here until it is written up; a removed one
  * fails until its entry goes.
  */
 import { readdirSync, readFileSync, statSync } from "node:fs";
@@ -15,7 +15,7 @@ import { COMMANDS, REFUSED, displayId } from "./command-data";
 import { TOKEN_PURPOSE, publicTokensOf } from "./token-data";
 
 const here = dirname(fileURLToPath(import.meta.url));
-const pagesDir = join(here, "../pages/reference");
+const pagesDir = join(here, "../docs/reference");
 const packages = join(here, "../../../../packages");
 
 function mdxFiles(dir: string): string[] {
