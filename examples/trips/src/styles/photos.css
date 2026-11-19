@@ -102,6 +102,52 @@
       aspect-ratio: 16 / 10;
     }
   }
+  /*
+   * A wide place pane (maximised, or a broad column): the photo on the left, tall and held in view as the details
+   * scroll beside it at a readable width, instead of a thin strip over facts stretched across the screen.
+   */
+  @container (min-width: 720px) {
+    .place-layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1.2fr) minmax(320px, 560px);
+      column-gap: clamp(28px, 4cqi, 56px);
+      align-items: start;
+      max-width: 1320px;
+      margin-inline: auto;
+      padding: 20px 8px 8px;
+    }
+    .place-layout > * {
+      grid-column: 2;
+    }
+    .place-hero {
+      grid-column: 1;
+      grid-row: 1 / span 12;
+      position: sticky;
+      top: 20px;
+      margin: 0;
+    }
+    /* As tall as the pane allows, so the photo fills its column beside the details. */
+    .place-hero .photo {
+      aspect-ratio: auto;
+      height: clamp(360px, calc(100dvh - 200px), 820px);
+      max-height: none;
+      border-radius: 20px;
+    }
+    .place-head {
+      padding-top: 8px;
+    }
+    .place-name {
+      font-size: 40px;
+    }
+    .place-notes {
+      font-size: 15.5px;
+    }
+  }
+  @container (min-width: 1100px) {
+    .place-layout {
+      grid-template-columns: minmax(0, 1.4fr) minmax(360px, 560px);
+    }
+  }
   .place-standin {
     position: absolute;
     left: 12px;

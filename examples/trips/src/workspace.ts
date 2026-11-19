@@ -4,6 +4,7 @@
  * Jali's usual options, so a test can give it a memory address, memory storage and a fixed size.
  */
 import { createJali, type Command, type Jali, type JaliOptions } from "@jali/core";
+import { unstable_popOut } from "@jali/react";
 import { selectPlace, showDay } from "./actions";
 import { budget } from "./panes/budget";
 import { day } from "./panes/day";
@@ -22,7 +23,10 @@ import * as f from "./ui/format";
 
 export const kinds = [trip, map, day, place, explore, budget];
 
-type Options = Pick<JaliOptions, "url" | "storage" | "size" | "moveFocus" | "preset" | "keymapOptions">;
+type Options = Pick<
+  JaliOptions,
+  "url" | "storage" | "size" | "moveFocus" | "preset" | "keymapOptions"
+>;
 
 export function createTripsJali(services: Services, options: Options = {}): Jali {
   const placeHint = (p: Place) => {
@@ -30,7 +34,12 @@ export function createTripsJali(services: Services, options: Options = {}): Jali
     return `${CATEGORY_ONE[p.category]}, ${p.area}, ${CITY_NAME[p.city]}${on ? `, Day ${on.n}` : ""}`;
   };
   /** Ask for a place (type a name, an area or "food"). */
-  const pickPlace = (jali: Jali, title: string, onPick: (p: Place) => void, only?: (p: Place) => boolean) =>
+  const pickPlace = (
+    jali: Jali,
+    title: string,
+    onPick: (p: Place) => void,
+    only?: (p: Place) => boolean,
+  ) =>
     jali.actions.choose({
       title,
       items: PLACES.filter((p) => !only || only(p)),
@@ -46,7 +55,12 @@ export function createTripsJali(services: Services, options: Options = {}): Jali
       title: "Go to place…",
       group: "Trip",
       run: (jali) =>
-        pickPlace(jali, "Go to place…", (p) => selectPlace(jali, p.id, { open: true }), (p) => p.category !== "airport"),
+        pickPlace(
+          jali,
+          "Go to place…",
+          (p) => selectPlace(jali, p.id, { open: true }),
+          (p) => p.category !== "airport",
+        ),
     },
     {
       id: "trips.add",
@@ -59,7 +73,9 @@ export function createTripsJali(services: Services, options: Options = {}): Jali
           (p) =>
             p.category === "stay"
               ? stayAt(services, p.id)
-              : chooseDay(jali, services, `Add ${p.name} to…`, (n) => addToDay(services, p.id, n), { city: p.city }),
+              : chooseDay(jali, services, `Add ${p.name} to…`, (n) => addToDay(services, p.id, n), {
+                  city: p.city,
+                }),
           (p) => p.category !== "airport",
         ),
     },
@@ -95,7 +111,13 @@ export function createTripsJali(services: Services, options: Options = {}): Jali
       id: "trips.stay",
       title: "Stay at…",
       group: "Trip",
-      run: (jali) => pickPlace(jali, "Stay at…", (p) => stayAt(services, p.id), (p) => p.category === "stay"),
+      run: (jali) =>
+        pickPlace(
+          jali,
+          "Stay at…",
+          (p) => stayAt(services, p.id),
+          (p) => p.category === "stay",
+        ),
     },
     {
       id: "trips.undo",
@@ -108,6 +130,13 @@ export function createTripsJali(services: Services, options: Options = {}): Jali
       title: "Reset the trip to the bundled plan",
       group: "Trip",
       run: () => resetPlan(services),
+    },
+    {
+      // Jali's Pop out prototype (Document Picture-in-Picture: Chrome and Edge on desktop).
+      id: "trips.pop_out",
+      title: "Pop out pane (experimental)",
+      group: "Pane",
+      run: (jali) => void unstable_popOut(jali),
     },
     {
       id: "trips.theme",
@@ -137,6 +166,10 @@ export function createTripsJali(services: Services, options: Options = {}): Jali
     // Days lays out seven days, the map and the place: nine panes. Jali's default cap of 8 would fold one even on a
     // screen with room for all of them, so the trip starts with 10 (a person can change it in Settings).
     settings: { paneCap: 10 },
+    // Pop out a pane into its own window: a day beside the map on a second screen. Jali leaves it off until an
+    // app turns it on; the button goes before Close in each header (the rest is in the pane's ⋯ menu).
+    allow: { popOut: true },
+    buttons: (defaults) => [...defaults.filter((b) => b !== "close"), "popOut", "close"],
     ...options,
   });
 }

@@ -386,12 +386,9 @@
   .pin:hover {
     transform: scale(1.12);
   }
+  /* The photo above it marks the selected pin; the pin itself only grows. */
   .pin[data-selected] {
     transform: scale(1.22);
-    box-shadow:
-      0 0 0 2.5px var(--t-pin-ring),
-      0 0 0 6px var(--jali-accent),
-      var(--t-shadow-pin);
     opacity: 1;
   }
   /* A place not on a day keeps its ring when picked, so a picked hotel still reads as a hotel. */
@@ -400,14 +397,12 @@
     box-shadow:
       inset 0 0 0 3.5px var(--t-ink),
       0 0 0 2px var(--t-pin-ring),
-      0 0 0 4.5px var(--jali-accent),
       var(--t-shadow-pin);
   }
   .pin[data-role="candidate"][data-category="stay"][data-selected] {
     box-shadow:
       inset 0 0 0 3.5px var(--t-coral-600),
       0 0 0 2px var(--t-pin-ring),
-      0 0 0 4.5px var(--jali-accent),
       var(--t-shadow-pin);
   }
   .pin:focus-visible {

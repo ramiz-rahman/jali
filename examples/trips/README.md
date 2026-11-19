@@ -40,6 +40,8 @@ Build it as a static site with `pnpm exec vp build` in this folder, and serve `d
 - Choose **Days** in the top bar: every day side by side. Drag a stop by its handle from one day to another of the same city, or onto a day in the overview. A Bangkok stop dropped on a Phuket day is refused, with a note. Narrow the window: days fold into tabs, and come back as it widens.
 - Choose **Stay**: two Bangkok hotels side by side. The left one is kept (Keep, in its header). Pick another hotel in the list and the right one shows it, read against the kept one: a night, the nights in the city, and the average trip to your stops, each with its difference. Switch the list to Phuket to choose there.
 - Press Space on a stop or a result to peek at it. Press / or ⌘K ⌘P for "Go to place…", or ⌘K for "Add to day…" and "Optimise day…".
+- Maximise a pane (its header's maximise button, or ⌘⇧Enter). A place opens on a tall photo held beside its details; a day, Explore and the budget keep a readable width in the middle.
+- Pop a pane out into its own window (the pop-out button in its header, or "Pop out pane" in ⌘K; Chrome and Edge on desktop, experimental in Jali): a day on a second screen beside the map, still changing with the plan.
 - Copy the link (the link button in the top bar) and open it in another window: the same layout, day and place.
 - Make the window phone-sized. One pane at a time, with a switcher; open a place and it sits under the map it follows.
 

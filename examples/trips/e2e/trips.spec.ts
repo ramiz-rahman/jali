@@ -46,6 +46,25 @@ test("the map renders, and a pin selects its place everywhere", async ({ page })
   await expect(pane(page, "map").locator(".map-card")).toHaveCount(0);
 });
 
+/** Panes whose Jali wrapper scrolls by itself: then the pane can slide off its content, leaving it blank. */
+const wrappersThatScroll = (page: Page) =>
+  page.evaluate(() =>
+    [...document.querySelectorAll<HTMLElement>(".jali-pane-content-inner")]
+      .filter((el) => el.clientHeight && el.scrollHeight > el.clientHeight + 1)
+      .map((el) => el.closest(".jali-pane")?.getAttribute("data-kind") ?? "?"),
+  );
+
+test("no pane can scroll off its content, in any layout", async ({ page }) => {
+  for (const name of ["Plan", "Days", "Stay", "Budget"]) {
+    await layout(page, name).click();
+    await expect(layout(page, name)).toHaveAttribute("aria-pressed", "true");
+    expect(await wrappersThatScroll(page), name).toEqual([]);
+  }
+  await layout(page, "Days").click();
+  await pane(page, "day-1").locator(".day-more-add").first().click();
+  expect(await wrappersThatScroll(page), "after adding a stop").toEqual([]);
+});
+
 test("the foot of a day offers what is close to it, one press from being on it", async ({
   page,
 }) => {

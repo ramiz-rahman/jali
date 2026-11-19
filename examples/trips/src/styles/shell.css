@@ -281,6 +281,95 @@
     }
   }
 
+  /*
+   * ---------- Jali's list dialogs: ⌘K, and the chooser ("Add to day…", "Go to place…") ----------
+   * In the app's own look: a large rounded sheet, a roomy search field (the caret is its focus, so no outline
+   * bars), and rows that grow with their text, so a long day name never runs into the next row.
+   */
+  .jali-palette {
+    border-radius: 18px;
+    border-color: var(--jali-border);
+    box-shadow:
+      0 24px 64px -20px rgb(0 0 0 / 0.45),
+      0 0 0 1px rgb(0 0 0 / 0.04);
+  }
+  .jali-palette-input {
+    height: 56px;
+    padding: 0 20px;
+    font-size: 16px;
+    font-weight: 500;
+  }
+  .jali-palette-input::placeholder {
+    color: var(--jali-text-faint);
+  }
+  .jali-palette-input:focus-visible {
+    outline: none;
+  }
+  .jali-palette-list {
+    padding: 8px;
+    max-height: min(26rem, 60vh);
+  }
+  .jali-palette-item {
+    height: auto;
+    min-height: 36px;
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-size: 14px;
+  }
+  .jali-palette-item .palette-title {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .jali-palette-item.is-selected {
+    background: var(--jali-accent-soft);
+  }
+  .jali-palette-group,
+  .jali-palette-item kbd {
+    white-space: nowrap;
+  }
+  /* The chooser: its question as a heading, and each choice as a name with its detail under it. */
+  .jali-chooser {
+    width: min(32rem, calc(100vw - 2rem));
+  }
+  .jali-chooser-head {
+    padding: 18px 20px 4px;
+    font-family: var(--t-font-display);
+    font-size: 16px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    color: var(--jali-text);
+  }
+  .jali-chooser .jali-palette-input {
+    height: 48px;
+    font-size: 15px;
+  }
+  .jali-chooser .jali-palette-item {
+    grid-template-columns: minmax(0, 1fr);
+    align-content: center;
+    gap: 1px;
+    min-height: 52px;
+    padding: 7px 12px;
+  }
+  .jali-chooser .jali-palette-item.jali-chooser-item {
+    grid-template-columns: 16px minmax(0, 1fr);
+    column-gap: 10px;
+  }
+  .jali-chooser-item .jali-chooser-icon {
+    grid-row: span 2;
+  }
+  .jali-chooser .palette-title {
+    font-weight: 650;
+  }
+  .jali-chooser .jali-palette-id {
+    font-size: 12.5px;
+    color: var(--jali-text-subtle);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
   /* ---------- toasts ---------- */
   .toast {
     font-family: var(--jali-font) !important;

@@ -92,10 +92,16 @@ function PlaceBody({
   const kept = p.category === "stay" && keptId ? mustPlace(keptId) : null;
   const toStops = p.category === "stay" ? meanToStops(plan, p) : null;
   const add = () =>
-    chooseDay(jali, services, `Add ${p.name} to…`, (n) => addToDay(services, p.id, n), {
-      city: p.city,
-      except: planned?.n,
-    });
+    chooseDay(
+      jali,
+      services,
+      planned ? `Move ${p.name} to…` : `Add ${p.name} to…`,
+      (n) => addToDay(services, p.id, n),
+      {
+        city: p.city,
+        except: planned?.n,
+      },
+    );
 
   useCommands(
     inPeek
@@ -129,168 +135,170 @@ function PlaceBody({
 
   return (
     <article className="pane-body place" aria-label={p.name}>
-      <figure className="place-hero">
-        <Photo id={p.id} size="large" alt={photoOf(p.id)?.alt ?? ""} credit eager />
-        {photoOf(p.id)?.standIn ? (
-          <figcaption className="place-standin" title={photoOf(p.id)!.standIn}>
-            Stand-in photo
-          </figcaption>
-        ) : null}
-      </figure>
-      <header className="place-head">
-        <p className="place-kind">
-          <Icon size={16} weight="bold" aria-hidden />
-          <span>
-            {CATEGORY_ONE[p.category]}, {p.kind.toLowerCase()}
-          </span>
-          {p.fictional ? (
-            <span className="tag" title="This business is made up for the example">
-              Made up
-            </span>
+      <div className="place-layout">
+        <figure className="place-hero">
+          <Photo id={p.id} size="large" alt={photoOf(p.id)?.alt ?? ""} credit eager />
+          {photoOf(p.id)?.standIn ? (
+            <figcaption className="place-standin" title={photoOf(p.id)!.standIn}>
+              Stand-in photo
+            </figcaption>
           ) : null}
-        </p>
-        <h3 className="place-name">{p.name}</h3>
-        <p className="place-area">
-          <MapPinIcon size={14} aria-hidden /> {p.area}, {CITY_NAME[p.city]}
-        </p>
-      </header>
-
-      <div className="place-plan" data-day={planned?.n}>
-        {p.category === "airport" ? (
-          <p className="place-plan-line">
-            <AirplaneTiltIcon size={16} weight="bold" aria-hidden /> The flight between Bangkok and
-            Phuket is on Day {plan.days.find((d) => d.from)?.n}
+        </figure>
+        <header className="place-head">
+          <p className="place-kind">
+            <Icon size={16} weight="bold" aria-hidden />
+            <span>
+              {CATEGORY_ONE[p.category]}, {p.kind.toLowerCase()}
+            </span>
+            {p.fictional ? (
+              <span className="tag" title="This business is made up for the example">
+                Made up
+              </span>
+            ) : null}
           </p>
-        ) : p.category === "stay" ? (
-          isHotel ? (
+          <h3 className="place-name">{p.name}</h3>
+          <p className="place-area">
+            <MapPinIcon size={14} aria-hidden /> {p.area}, {CITY_NAME[p.city]}
+          </p>
+        </header>
+
+        <div className="place-plan" data-day={planned?.n}>
+          {p.category === "airport" ? (
             <p className="place-plan-line">
-              <CheckIcon size={16} weight="bold" aria-hidden /> Your hotel in {CITY_NAME[p.city]}{" "}
-              for {nights} nights
+              <AirplaneTiltIcon size={16} weight="bold" aria-hidden /> The flight between Bangkok
+              and Phuket is on Day {plan.days.find((d) => d.from)?.n}
             </p>
+          ) : p.category === "stay" ? (
+            isHotel ? (
+              <p className="place-plan-line">
+                <CheckIcon size={16} weight="bold" aria-hidden /> Your hotel in {CITY_NAME[p.city]}{" "}
+                for {nights} nights
+              </p>
+            ) : (
+              <>
+                <p className="place-plan-line muted">
+                  You are staying at {hotel.name} in {CITY_NAME[p.city]}.
+                </p>
+                <button
+                  type="button"
+                  className="btn btn-primary"
+                  onClick={() => stayAt(services, p.id)}
+                >
+                  Stay here instead, {nights} nights
+                </button>
+              </>
+            )
+          ) : planned ? (
+            <>
+              <p className="place-plan-line">
+                <DayMark n={planned.n} size="sm" />
+                <span>
+                  Day {planned.n}, stop {index + 1} of {planned.stops.length}
+                  <span className="muted">, {f.day(planned.date)}</span>
+                </span>
+              </p>
+              <div className="place-actions">
+                <button type="button" className="btn" onClick={add}>
+                  Move to another day
+                </button>
+                <button
+                  type="button"
+                  className="btn btn-quiet"
+                  onClick={() => removeFromPlan(services, p.id)}
+                >
+                  Remove
+                </button>
+              </div>
+            </>
           ) : (
             <>
               <p className="place-plan-line muted">
-                You are staying at {hotel.name} in {CITY_NAME[p.city]}.
+                Not in the plan yet. Add it to a day in {CITY_NAME[p.city]}:
               </p>
-              <button
-                type="button"
-                className="btn btn-primary"
-                onClick={() => stayAt(services, p.id)}
-              >
-                Stay here instead, {nights} nights
-              </button>
+              <div className="day-buttons" role="group" aria-label={`Add ${p.name} to a day`}>
+                {cityDays.map((d) => (
+                  <button
+                    key={d.n}
+                    type="button"
+                    data-day={d.n}
+                    title={`Add to Day ${d.n}: ${d.title}`}
+                    onClick={() => addToDay(services, p.id, d.n)}
+                  >
+                    <PlusIcon size={12} weight="bold" aria-hidden />
+                    <span className="sr-only">Add to Day </span>
+                    {d.n}
+                  </button>
+                ))}
+              </div>
             </>
-          )
-        ) : planned ? (
-          <>
-            <p className="place-plan-line">
-              <DayMark n={planned.n} size="sm" />
-              <span>
-                Day {planned.n}, stop {index + 1} of {planned.stops.length}
-                <span className="muted">, {f.day(planned.date)}</span>
-              </span>
-            </p>
-            <div className="place-actions">
-              <button type="button" className="btn" onClick={add}>
-                Move to another day
-              </button>
-              <button
-                type="button"
-                className="btn btn-quiet"
-                onClick={() => removeFromPlan(services, p.id)}
-              >
-                Remove
-              </button>
-            </div>
-          </>
-        ) : (
-          <>
-            <p className="place-plan-line muted">
-              Not in the plan yet. Add it to a day in {CITY_NAME[p.city]}:
-            </p>
-            <div className="day-buttons" role="group" aria-label={`Add ${p.name} to a day`}>
-              {cityDays.map((d) => (
-                <button
-                  key={d.n}
-                  type="button"
-                  data-day={d.n}
-                  title={`Add to Day ${d.n}: ${d.title}`}
-                  onClick={() => addToDay(services, p.id, d.n)}
-                >
-                  <PlusIcon size={12} weight="bold" aria-hidden />
-                  <span className="sr-only">Add to Day </span>
-                  {d.n}
-                </button>
-              ))}
-            </div>
-          </>
-        )}
-      </div>
-
-      {kept ? (
-        <p className="place-compare">
-          Compared with <b>{kept.name}</b>, kept beside
-        </p>
-      ) : null}
-      <dl className="facts">
-        <div>
-          <dt>{p.category === "stay" ? "Check in" : "Hours"}</dt>
-          <dd>{p.category === "stay" ? p.hours.replace(/^check in /i, "") : p.hours}</dd>
+          )}
         </div>
-        {p.category !== "stay" && p.category !== "airport" ? (
-          <div>
-            <dt>Typical visit</dt>
-            <dd className="num">{f.minutes(p.visitMin)}</dd>
-          </div>
-        ) : null}
-        {p.category !== "airport" ? (
-          <div>
-            <dt>
-              {p.category === "stay"
-                ? "A night"
-                : p.category === "food"
-                  ? "A meal, each"
-                  : "Ticket"}
-            </dt>
-            <dd className="num">
-              {kept ? <Delta by={p.price - kept.price} unit="money" /> : null}
-              {f.price(p.price)}
-            </dd>
-          </div>
-        ) : null}
-        {p.category === "stay" ? (
-          <div>
-            <dt>{nights} nights</dt>
-            <dd className="num">
-              {kept ? <Delta by={(p.price - kept.price) * nights} unit="money" /> : null}
-              {f.money(p.price * nights)}
-            </dd>
-          </div>
-        ) : null}
-        {toStops !== null ? (
-          <div>
-            <dt title={`The average trip from here to each of your ${CITY_NAME[p.city]} stops`}>
-              To your stops
-            </dt>
-            <dd className="num">
-              {kept ? <Delta by={toStops - meanToStops(plan, kept)!} unit="min" /> : null}
-              {f.minutes(toStops)} on average
-            </dd>
-          </div>
-        ) : null}
-        {fromHotel ? (
-          <div>
-            <dt>From your hotel</dt>
-            <dd className="num">
-              {f.minutes(fromHotel.minutes)} {by(fromHotel)}
-            </dd>
-          </div>
-        ) : null}
-      </dl>
 
-      <p className="place-notes">{p.notes}</p>
+        {kept ? (
+          <p className="place-compare">
+            Compared with <b>{kept.name}</b>, kept beside
+          </p>
+        ) : null}
+        <dl className="facts">
+          <div>
+            <dt>{p.category === "stay" ? "Check in" : "Hours"}</dt>
+            <dd>{p.category === "stay" ? p.hours.replace(/^check in /i, "") : p.hours}</dd>
+          </div>
+          {p.category !== "stay" && p.category !== "airport" ? (
+            <div>
+              <dt>Typical visit</dt>
+              <dd className="num">{f.minutes(p.visitMin)}</dd>
+            </div>
+          ) : null}
+          {p.category !== "airport" ? (
+            <div>
+              <dt>
+                {p.category === "stay"
+                  ? "A night"
+                  : p.category === "food"
+                    ? "A meal, each"
+                    : "Ticket"}
+              </dt>
+              <dd className="num">
+                {kept ? <Delta by={p.price - kept.price} unit="money" /> : null}
+                {f.price(p.price)}
+              </dd>
+            </div>
+          ) : null}
+          {p.category === "stay" ? (
+            <div>
+              <dt>{nights} nights</dt>
+              <dd className="num">
+                {kept ? <Delta by={(p.price - kept.price) * nights} unit="money" /> : null}
+                {f.money(p.price * nights)}
+              </dd>
+            </div>
+          ) : null}
+          {toStops !== null ? (
+            <div>
+              <dt title={`The average trip from here to each of your ${CITY_NAME[p.city]} stops`}>
+                To your stops
+              </dt>
+              <dd className="num">
+                {kept ? <Delta by={toStops - meanToStops(plan, kept)!} unit="min" /> : null}
+                {f.minutes(toStops)} on average
+              </dd>
+            </div>
+          ) : null}
+          {fromHotel ? (
+            <div>
+              <dt>From your hotel</dt>
+              <dd className="num">
+                {f.minutes(fromHotel.minutes)} {by(fromHotel)}
+              </dd>
+            </div>
+          ) : null}
+        </dl>
 
-      <Nearby p={p} from={from} peek={peek} inPeek={inPeek} />
+        <p className="place-notes">{p.notes}</p>
+
+        <Nearby p={p} from={from} peek={peek} inPeek={inPeek} />
+      </div>
     </article>
   );
 }

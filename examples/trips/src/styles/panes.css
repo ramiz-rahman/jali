@@ -49,7 +49,13 @@
   }
 
   /* ---------- shared ---------- */
+  /*
+   * A pane's own scroller. Positioned, so anything absolute inside it (a screen-reader hint, a drag handle) is
+   * held by it: else that lands on Jali's wrapper outside, gives it a scroll of its own, and the whole pane can
+   * slide up off its content, leaving a blank pane.
+   */
   .pane-body {
+    position: relative;
     height: 100%;
     overflow: auto;
     box-sizing: border-box;
@@ -364,8 +370,8 @@
   .trip-day[aria-selected="true"] {
     background: var(--jali-accent-soft);
   }
-  .trip-days:focus-visible .trip-day[aria-selected="true"],
-  .trip-day[data-active] {
+  /* Selected is a soft fill; the ring is for the keyboard only, on the row the keys are on. */
+  .trip-days:focus-visible .trip-day[aria-selected="true"] {
     box-shadow: inset 0 0 0 2px var(--jali-accent);
   }
   .trip-day[data-dropping] {
@@ -565,11 +571,14 @@
   .stop-main:hover {
     background: var(--jali-hover);
   }
-  .stop[aria-current="true"] .stop-main {
+  /* The stop selected (here, on the map or in a place pane): a fill in the day's colour, no ring. */
+  .stop[aria-current="true"] .stop-main,
+  .stop-item[data-current] .stop-main {
     background: color-mix(in oklab, var(--day) 11%, var(--jali-surface));
   }
-  .stop-item[data-current] .stop-main {
-    box-shadow: inset 0 0 0 2px var(--day);
+  .stop-main:focus-visible {
+    outline: 2px solid var(--day);
+    outline-offset: -2px;
   }
   .stop-item[data-dragged] {
     opacity: 0.4;
@@ -1113,8 +1122,7 @@
   .result[aria-selected="true"] {
     background: var(--jali-accent-soft);
   }
-  .results:focus-visible .result[aria-selected="true"],
-  .result[data-active] {
+  .results:focus-visible .result[aria-selected="true"] {
     box-shadow: inset 0 0 0 2px var(--jali-accent);
   }
   .result-icon {
@@ -1417,6 +1425,24 @@
   }
   .launcher-day {
     justify-content: flex-start;
+  }
+
+  /*
+   * A pane wider than its content reads well at (maximised, or a broad column): the content keeps that width and
+   * sits in the middle, rather than putting a stop's time a screen away from its name. The padding grows instead
+   * of a wrapper, so the content's own bleeds and the drag handles in the gutter still line up.
+   */
+  .pane-body.trip {
+    padding-inline: max(20px, calc((100% - 560px) / 2));
+  }
+  .pane-body.day {
+    padding-inline: max(20px, calc((100% - 680px) / 2));
+  }
+  .pane-body.explore {
+    padding-inline: max(0px, calc((100% - 760px) / 2));
+  }
+  .pane-body.budget {
+    padding-inline: max(20px, calc((100% - 960px) / 2));
   }
 
   /* ---------- touch: bigger targets ---------- */
