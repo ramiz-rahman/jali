@@ -6,7 +6,7 @@ React for [Jali](../core) workspaces, with Jali's default theme.
 npm install @jali/core @jali/react @phosphor-icons/react
 ```
 
-React 19 is a peer dependency, and so is `@phosphor-icons/react` (optional).
+React 18.2 or later (18 or 19) is a peer dependency, and so is `@phosphor-icons/react` (optional).
 
 **Linked or in a monorepo** (`link:`, `file:`, `workspace:` or a symlinked checkout): the package can resolve its own copy of React from beside its source, and the app then bundles two Reacts, which breaks hooks ("Invalid hook call"). With Vite, tell it to use the app's: `resolve: { dedupe: ["react", "react-dom"] }` in `vite.config.ts`. With webpack, alias `react` and `react-dom` to the app's copy (`resolve.alias`).
 

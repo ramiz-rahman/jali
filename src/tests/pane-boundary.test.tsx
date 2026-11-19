@@ -5,7 +5,7 @@
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vite-plus/test";
 import { storeOf } from "@jali/core/adapter";
 import { act, cleanup, fireEvent, render, screen } from "@testing-library/react";
-import { Suspense, use, useState } from "react";
+import { Suspense, useState } from "react";
 import { createJali, listCommands, memoryLocation, memoryStorage, pane, row } from "@jali/core";
 import type { LayoutInput, PaneErrorInfo } from "@jali/core";
 import { JaliRoot, definePane, useTitle, type Pane } from "@jali/react";
@@ -130,18 +130,24 @@ describe("a pane that throws", () => {
 });
 
 describe("a pane that suspends", () => {
-  // React 19: a render that suspends must be inside an awaited act().
+  // A render that suspends must be inside an awaited act(). `read` suspends by throwing the promise until it settles:
+  // what a data library does, and the same in React 18 and 19 (`use` is 19's alone).
   function deferred() {
     let resolve!: (v: string) => void;
-    const promise = new Promise<string>((r) => (resolve = r));
-    return { promise, resolve };
+    let value: string | undefined;
+    const promise = new Promise<string>((r) => (resolve = r)).then((v) => (value = v));
+    const read = () => {
+      if (value === undefined) throw promise;
+      return value;
+    };
+    return { promise, resolve, read };
   }
 
   it("shows the default loading state, then its content", async () => {
     const d = deferred();
     const report = definePane("report", {
       title: "Report",
-      Component: () => <p>{use(d.promise)}</p>,
+      Component: () => <p>{d.read()}</p>,
     });
     const jali = make(
       [note, report],
@@ -163,7 +169,7 @@ describe("a pane that suspends", () => {
       params: { id: Number },
       title: ({ id }) => `Report ${id}`,
       Loading: ({ params }) => <p>Fetching report {params.id}</p>,
-      Component: () => <p>{use(d.promise)}</p>,
+      Component: () => <p>{d.read()}</p>,
     });
     const jali = make([report], pane(report({ id: 4 }), { id: "r" }));
     await act(async () => render(<JaliRoot jali={jali} />));
@@ -175,7 +181,7 @@ describe("a pane that suspends", () => {
   it("never reaches a Suspense boundary of the host", async () => {
     const report = definePane("report", {
       title: "Report",
-      Component: () => <p>{use(new Promise<string>(() => {}))}</p>,
+      Component: () => <p>{deferred().read()}</p>,
     });
     const jali = make([report], pane(report(), { id: "r" }));
     await act(async () =>

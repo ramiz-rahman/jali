@@ -168,7 +168,7 @@ const jali = createJali({
 });
 ```
 
-**When a component suspends** (it reads data with `use()`, or a Suspense query), the pane shows a quiet "Loading…" and its activity reads `"loading"`. Give the kind a `Loading` component to show something of your own. It gets the same props as `Component`.
+**When a component suspends** (it reads data with a Suspense query, or React 19's `use()`), the pane shows a quiet "Loading…" and its activity reads `"loading"`. Give the kind a `Loading` component to show something of your own. It gets the same props as `Component`.
 
 **To name a pane from its data,** call `useTitle(name)` in the pane. "Ada Okafor" then replaces "Customer 7" in the header, the tab, the shelf, ⌘K and announcements. The kind's `title` comes back when the component unmounts, when the pane shows another object, or when you pass `null`. The title is not saved, and the peek sheet always uses the kind's `title`.
 

@@ -11,6 +11,7 @@
     "test": "vp test run && vp test run --config apps/docs/src/reference/vitest.config.ts",
     "e2e": "playwright test",
     "test:e2e": "playwright test",
+    "test:react18": "scripts/test-react18.sh",
     "screens": "SCREENS=1 playwright test",
     "build:packages": "pnpm -r --filter \"./packages/*\" build",
     "size": "pnpm build:packages && tsc -p scripts/size && node scripts/size.mjs",

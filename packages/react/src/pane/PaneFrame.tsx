@@ -21,6 +21,7 @@ import { PaneBody, paneHost } from "./PaneBody";
 import { TabStrip } from "./TabStrip";
 import { UnsavedMark, useUnsavedOf } from "./Unsaved";
 import { RenameField, useCanRename } from "./RenameField";
+import { useInert } from "./inert";
 
 interface Props {
   frame: Frame;
@@ -38,12 +39,14 @@ export const PaneFrame = /* @__PURE__ */ memo(
     const dirty = useUnsavedOf(node.id);
     const renaming = useUi((s) => s.renaming === node.id) && !group;
     const canRename = useCanRename();
+    const coveredRef = useInert(covered);
     const isDragged = useUi((s) => s.dnd?.dragged === node.id);
     const host = useMemo(() => paneHost(store, node.id), [store, node.id]);
     const page = useUi((s) => !!s.page);
     // A curated page in Single: the page tabs name the one view and choose it, so the pane header is visually hidden
     // and offers nothing (no grip, tuck, maximise or close) that a keyboard user could land on unseen.
     const bare = useUi((s) => s.page?.mode === "single");
+    const bareRef = useInert(bare);
     const boundary = useUi((s) => s.settings.boundary);
     const env = store.env,
       profile = env.profile;
@@ -87,7 +90,7 @@ export const PaneFrame = /* @__PURE__ */ memo(
         data-origin={opened ? "opened" : role ? "role" : undefined}
         data-boundary={opened ? boundary : undefined}
         aria-hidden={covered || undefined}
-        inert={covered || undefined}
+        ref={coveredRef}
         onPointerDownCapture={() => actions.focus(node.id)}
         onFocusCapture={() => store.get().view.focused !== node.id && actions.focus(node.id)}
         className={cls}
@@ -109,7 +112,7 @@ export const PaneFrame = /* @__PURE__ */ memo(
             </span>
           ) : null}
           {group ? (
-            <div className="jali-bare-inert" inert={bare || undefined}>
+            <div className="jali-bare-inert" ref={bareRef}>
               <TabStrip group={group} owner={node.id} />
             </div>
           ) : (
