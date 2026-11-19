@@ -3,12 +3,14 @@
  * page and stays in it, so there is no free workspace to leave to.
  */
 import { createJali, type Jali, type JaliOptions } from "@jali/core";
+import { makerCommand } from "../../shared/src/maker/maker";
 import { loanReview, loanReviewKinds } from "./review";
 
 /** What Loan review's workspace is made of. */
 export const loanReviewOptions = {
   panes: loanReviewKinds,
   page: loanReview,
+  commands: [makerCommand],
   name: "Loan review",
   storage: "loan-review",
   // The app is the whole page and has no <main> of its own: the panes are it.

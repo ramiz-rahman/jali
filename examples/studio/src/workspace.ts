@@ -10,6 +10,7 @@
 import { credits } from "./panes/credits";
 import { catalogueOf } from "./sessions/catalog";
 import { copyLink, createJali, type Command, type Jali, type JaliOptions } from "@jali/core";
+import { makerCommand } from "../../shared/src/maker/maker";
 import { cue, show } from "./actions";
 import { SPEEDS } from "./audio/engine";
 import { viewOf } from "./edits";
@@ -245,7 +246,7 @@ export function createStudioJali(services: Services, options: Options = {}): Jal
     launcher,
     // Each layout comes back as the person left it; Reset builds its design again.
     presets: presets.map((p) => ({ ...p, saved: () => services.layouts.get(p.id) })),
-    commands,
+    commands: [...commands, makerCommand],
     name: "Studio",
     // Bound like Jali's own commands: ⌘K then ⌘P plays, ⌘K then ⌘J goes to a segment.
     keymap: { "studio.play": "Mod+K Mod+P", "studio.segment": "Mod+K Mod+J" },

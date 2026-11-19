@@ -4,6 +4,7 @@
  * Jali's usual options, so a test can give it a memory address, memory storage and a fixed size.
  */
 import { createJali, type Command, type Jali, type JaliOptions } from "@jali/core";
+import { makerCommand } from "../../shared/src/maker/maker";
 import { selectPlace, showDay } from "./actions";
 import { budget } from "./panes/budget";
 import { day } from "./panes/day";
@@ -22,7 +23,10 @@ import * as f from "./ui/format";
 
 export const kinds = [trip, map, day, place, explore, budget];
 
-type Options = Pick<JaliOptions, "url" | "storage" | "size" | "moveFocus" | "preset" | "keymapOptions">;
+type Options = Pick<
+  JaliOptions,
+  "url" | "storage" | "size" | "moveFocus" | "preset" | "keymapOptions"
+>;
 
 export function createTripsJali(services: Services, options: Options = {}): Jali {
   const placeHint = (p: Place) => {
@@ -30,7 +34,12 @@ export function createTripsJali(services: Services, options: Options = {}): Jali
     return `${CATEGORY_ONE[p.category]}, ${p.area}, ${CITY_NAME[p.city]}${on ? `, Day ${on.n}` : ""}`;
   };
   /** Ask for a place (type a name, an area or "food"). */
-  const pickPlace = (jali: Jali, title: string, onPick: (p: Place) => void, only?: (p: Place) => boolean) =>
+  const pickPlace = (
+    jali: Jali,
+    title: string,
+    onPick: (p: Place) => void,
+    only?: (p: Place) => boolean,
+  ) =>
     jali.actions.choose({
       title,
       items: PLACES.filter((p) => !only || only(p)),
@@ -46,7 +55,12 @@ export function createTripsJali(services: Services, options: Options = {}): Jali
       title: "Go to place…",
       group: "Trip",
       run: (jali) =>
-        pickPlace(jali, "Go to place…", (p) => selectPlace(jali, p.id, { open: true }), (p) => p.category !== "airport"),
+        pickPlace(
+          jali,
+          "Go to place…",
+          (p) => selectPlace(jali, p.id, { open: true }),
+          (p) => p.category !== "airport",
+        ),
     },
     {
       id: "trips.add",
@@ -59,7 +73,9 @@ export function createTripsJali(services: Services, options: Options = {}): Jali
           (p) =>
             p.category === "stay"
               ? stayAt(services, p.id)
-              : chooseDay(jali, services, `Add ${p.name} to…`, (n) => addToDay(services, p.id, n), { city: p.city }),
+              : chooseDay(jali, services, `Add ${p.name} to…`, (n) => addToDay(services, p.id, n), {
+                  city: p.city,
+                }),
           (p) => p.category !== "airport",
         ),
     },
@@ -95,7 +111,13 @@ export function createTripsJali(services: Services, options: Options = {}): Jali
       id: "trips.stay",
       title: "Stay at…",
       group: "Trip",
-      run: (jali) => pickPlace(jali, "Stay at…", (p) => stayAt(services, p.id), (p) => p.category === "stay"),
+      run: (jali) =>
+        pickPlace(
+          jali,
+          "Stay at…",
+          (p) => stayAt(services, p.id),
+          (p) => p.category === "stay",
+        ),
     },
     {
       id: "trips.undo",
@@ -126,7 +148,7 @@ export function createTripsJali(services: Services, options: Options = {}): Jali
     panes: kinds,
     launcher,
     presets,
-    commands,
+    commands: [...commands, makerCommand],
     name: "Trip",
     keymap: { "trips.go": "Mod+K Mod+P", "trips.optimise": "Mod+K Mod+O" },
     // A new prefix for the Thailand trip, so pane state saved for the Lisbon one (a cursor on a Lisbon place) is left behind.

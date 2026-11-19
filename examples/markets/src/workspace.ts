@@ -4,6 +4,7 @@
  * memory storage and a fixed size (workspace.test.ts).
  */
 import { createJali, type Command, type Jali, type JaliOptions } from "@jali/core";
+import { makerCommand } from "../../shared/src/maker/maker";
 import { prepareTicket, show, showBlotter } from "./actions";
 import { listName } from "./lists";
 import type { AssetClass } from "./market/types";
@@ -159,7 +160,7 @@ export function createMarketsJali(services: Services, options: Options = {}): Ja
     launcher,
     // Each desk comes back as the person left it; Reset in the top bar puts them back.
     presets: presets.map((p) => ({ ...p, saved: () => desks.get(p.id) })),
-    commands,
+    commands: [...commands, makerCommand],
     name: "Markets",
     // Bound like Jali's own commands; ⌘K then ⌘O, and so on.
     keymap: { "markets.chart": "Mod+K Mod+O", "markets.blotter": "Mod+K Mod+B" },

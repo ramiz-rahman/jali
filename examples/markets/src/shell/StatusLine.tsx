@@ -3,6 +3,7 @@
  * read from the keymap so they are right on every platform and after any rebinding.
  */
 import { Shelf, useJali, useJaliModel, useJaliState } from "@jali/react";
+import { Maker } from "../../../shared/src/maker/maker";
 
 export function StatusLine() {
   const { keymap } = useJali();
@@ -30,6 +31,7 @@ export function StatusLine() {
         <span className="live-dot" aria-hidden /> Crypto live from Kraken · everything else
         simulated
       </span>
+      <Maker />
     </footer>
   );
 }

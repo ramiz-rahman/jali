@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useDataLayer } from "../data/react";
 import { useJali, useJaliModel, useJaliState, Shelf } from "@jali/react";
+import { Maker } from "../maker/maker";
 import { useShowStats } from "./stats-pref";
 
 export function StatusLine() {
@@ -61,6 +62,7 @@ export function StatusLine() {
         {hint}
       </span>
       {showStats ? <Stats /> : null}
+      <Maker />
     </footer>
   );
 }

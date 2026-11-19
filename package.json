@@ -3,6 +3,7 @@
   "version": "0.0.0",
   "private": true,
   "description": "Jali (@jali/core and @jali/react, in packages/), its docs site (apps/docs) and five example apps (examples/). See docs/BRIEF.md.",
+  "author": "Ramiz Rahman (https://ramizrahman.com/)",
   "type": "module",
   "scripts": {
     "dev": "vp dev examples/data-studio",

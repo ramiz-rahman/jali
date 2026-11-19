@@ -4,6 +4,7 @@
  * transport, with the way to every credit and licence.
  */
 import { Shelf, useJali, useJaliModel, useJaliState } from "@jali/react";
+import { Maker } from "../../../shared/src/maker/maker";
 import { show } from "../actions";
 import { useTransport } from "../audio/react";
 import { credits } from "../panes/credits";
@@ -34,7 +35,10 @@ export function StatusLine() {
       <Shelf />
       <span className="status-focus">{focused ? m.title(focused) : ""}</span>
       <span className="status-hint">{hint}</span>
-      <span className="status-credit" title={cat.notice ? `${cat.credit} ${cat.notice}` : cat.credit}>
+      <span
+        className="status-credit"
+        title={cat.notice ? `${cat.credit} ${cat.notice}` : cat.credit}
+      >
         {cat.short}
       </span>
       <button
@@ -45,6 +49,7 @@ export function StatusLine() {
       >
         Credits
       </button>
+      <Maker />
     </footer>
   );
 }
