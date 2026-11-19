@@ -30,20 +30,25 @@ export const presets: PresetOptions[] = [
     ),
   },
   {
-    // Every day side by side to balance them, with a smaller map of the whole trip. Days that don't fit fold into
-    // tabs, and come back as the window widens. Drag a stop from one day to another.
+    // The whole week, to balance the days: all seven at a comfortable width in a row that scrolls sideways (none
+    // fold), between the overview and a map of the trip with the place picked. Drag a stop from one day to another;
+    // near the strip's edge it scrolls on to the days out of view.
     id: "days",
     label: "Days",
     layout: row(
-      pane(day({ n: 1 }), { id: "day-1" }),
-      pane(day({ n: 2 }), { id: "day-2" }),
-      pane(day({ n: 3 }), { id: "day-3" }),
-      pane(day({ n: 4 }), { id: "day-4" }),
-      pane(day({ n: 5 }), { id: "day-5" }),
-      pane(day({ n: 6 }), { id: "day-6" }),
-      pane(day({ n: 7 }), { id: "day-7" }),
+      pane(trip(), { id: "overview", px: 300 }),
+      row(
+        { id: "week", scroll: "x" },
+        pane(day({ n: 1 }), { id: "day-1" }),
+        pane(day({ n: 2 }), { id: "day-2" }),
+        pane(day({ n: 3 }), { id: "day-3" }),
+        pane(day({ n: 4 }), { id: "day-4" }),
+        pane(day({ n: 5 }), { id: "day-5" }),
+        pane(day({ n: 6 }), { id: "day-6" }),
+        pane(day({ n: 7 }), { id: "day-7" }),
+      ),
       column(
-        { weight: 1.3 },
+        { px: 400 },
         pane(map({ day: 0 }), { id: "map", weight: 1.4 }),
         pane(place({ id: "grand-palace" }), { id: "place", ...followsMap }),
       ),

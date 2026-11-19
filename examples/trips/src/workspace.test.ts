@@ -99,7 +99,10 @@ describe("the trips workspace", () => {
       follows: true,
       ref: place({ id: "h-silom" }),
     });
-    expect(jali.model().pane("place")).toMatchObject({ kept: true, ref: place({ id: "grand-palace" }) });
+    expect(jali.model().pane("place")).toMatchObject({
+      kept: true,
+      ref: place({ id: "grand-palace" }),
+    });
     // The next one goes to the following pane; the kept one stays.
     selectPlace(jali, "h-kata");
     vi.advanceTimersByTime(200);
@@ -115,17 +118,30 @@ describe("the trips workspace", () => {
     expect(jali.model().pane("explore")?.ref.params).toEqual({ category: "stay" });
   });
 
-  it("lays the days side by side, folding the ones that don't fit and bringing them back with room", () => {
-    const narrow = testJali({ width: 1440 }).jali;
-    narrow.actions.preset("days");
-    const folded = narrow.model().folded;
-    expect(folded.length).toBeGreaterThan(0);
-    expect(folded.every((id) => id.startsWith("day-"))).toBe(true);
-    // A wider screen has room for every day and the map.
-    const wide = testJali({ width: 3200 }).jali;
-    wide.actions.preset("days");
-    expect(wide.model().folded).toEqual([]);
-    expect(wide.model().visible).toEqual(expect.arrayContaining(["day-1", "day-7", "map"]));
+  it("lays the whole week in a row that scrolls: no day folds, each at its comfortable width", () => {
+    for (const width of [1280, 1440, 3200]) {
+      const { jali } = testJali({ width });
+      jali.actions.preset("days");
+      const m = jali.model();
+      expect(m.folded).toEqual([]);
+      expect(m.visible).toEqual(
+        expect.arrayContaining(["overview", "day-1", "day-7", "map", "place"]),
+      );
+      const week = m.resolved.scrollers.find((s) => s.id === "week");
+      if (width < 3200) expect(week).toBeDefined();
+      for (let n = 1; n <= 7; n++)
+        expect(m.content.panes.find((b) => b.id === `day-${n}`)!.rect.width).toBeGreaterThanOrEqual(
+          360,
+        );
+    }
+  });
+
+  it("showing a day out of view focuses its pane, which the week then scrolls to (e2e)", () => {
+    const { jali } = testJali({ width: 1440 });
+    jali.actions.preset("days");
+    expect(jali.model().outOfView.has("day-7")).toBe(true);
+    showDay(jali, 7);
+    expect(jali.get().view.focused).toBe("day-7");
   });
 
   it("keeps the layout, the day and the place in the address: a link reopens them", () => {
@@ -151,7 +167,9 @@ describe("the trips workspace", () => {
     const [version, body] = params.get("l")!.split(".");
     const json = Buffer.from(body!, "base64").toString("utf8");
     expect(json).toContain('"grand-palace"');
-    const lisbon = Buffer.from(json.replace('"grand-palace"', '"castelo"'), "utf8").toString("base64").replace(/=+$/, "");
+    const lisbon = Buffer.from(json.replace('"grand-palace"', '"castelo"'), "utf8")
+      .toString("base64")
+      .replace(/=+$/, "");
     params.set("l", `${version}.${lisbon}`);
     const { jali: reader } = testJali({ search: `?${params}` });
     expect(shows(reader, "place")).toEqual({ id: "grand-palace" });
@@ -179,7 +197,10 @@ describe("the trips workspace", () => {
     const { jali } = testJali();
     const listed = listCommands(jali);
     for (const id of ["trips.go", "trips.add", "trips.optimise", "trips.undo", "trips.reset"])
-      expect(listed.some((c) => c.id === id), id).toBe(true);
+      expect(
+        listed.some((c) => c.id === id),
+        id,
+      ).toBe(true);
     expect(listed.find((c) => c.id === "trips.go")?.keys).toBe("⌘K ⌘P");
     expect(listed.some((c) => c.title === "Layout: Days")).toBe(true);
   });

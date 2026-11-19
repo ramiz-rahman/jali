@@ -140,16 +140,77 @@ async function dragStop(page: Page, from: string, to: string) {
   await page.mouse.up();
 }
 
+/** Whether a pane shows whole in the week's strip (Days), not cut by its edges. */
+const wholeInWeek = (page: Page, id: string) =>
+  page.evaluate((id) => {
+    const p = document.querySelector(`.jali-pane[data-pane="${id}"]`)!.getBoundingClientRect();
+    const s = document.querySelector('[data-strip="week"]')!.getBoundingClientRect();
+    // A frame's border sits a px outside its rect.
+    return p.left >= s.left - 3 && p.right <= s.right + 3;
+  }, id);
+
+/** Open a day from the overview: its pane in the week glides into view. */
+async function openDay(page: Page, title: RegExp) {
+  const row = page.getByRole("listbox", { name: "Days" }).getByRole("option", { name: title });
+  await row.click();
+  await row.click();
+}
+
+/** Drag a stop from `from` and hold it at the week's right edge until `to` scrolls into view, then drop it there. */
+async function dragStopAcross(page: Page, from: string, to: string) {
+  const h = (await pane(page, from).locator(".stop-handle").first().boundingBox())!;
+  const s = (await page.locator('[data-strip="week"]').boundingBox())!;
+  await page.mouse.move(h.x + h.width / 2, h.y + h.height / 2);
+  await page.mouse.down();
+  await page.mouse.move(h.x + 40, h.y + 30, { steps: 4 });
+  await page.mouse.move(s.x + s.width - 12, h.y + 30, { steps: 8 });
+  await expect.poll(() => wholeInWeek(page, to), { timeout: 8000 }).toBe(true);
+  const t = (await pane(page, to).locator(".stop-item").nth(1).boundingBox())!;
+  await page.mouse.move(t.x + 80, t.y + 8, { steps: 8 });
+  await page.mouse.up();
+}
+
+test("Days keeps the whole week at a comfortable width, in a row that scrolls", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1280, height: 800 });
+  await layout(page, "Days").click();
+  // Seven days, none folded into tabs, each at its comfortable width.
+  await expect(page.locator('.jali-pane[data-kind="day"]')).toHaveCount(7);
+  for (let n = 1; n <= 7; n++)
+    expect((await pane(page, `day-${n}`).boundingBox())!.width).toBeGreaterThanOrEqual(355);
+  await expect(page.getByText(/\d+ folded/)).toHaveCount(0);
+  expect(await wholeInWeek(page, "day-1")).toBe(true);
+  expect(await wholeInWeek(page, "day-7")).toBe(false);
+  // A sideways swipe over the week scrolls it.
+  const s = (await page.locator('[data-strip="week"]').boundingBox())!;
+  const before = (await pane(page, "day-2").boundingBox())!.x;
+  await page.mouse.move(s.x + s.width / 2, s.y + 300);
+  await page.mouse.wheel(300, 0);
+  await expect
+    .poll(async () => (await pane(page, "day-2").boundingBox())!.x)
+    .toBeLessThan(before - 200);
+  // Opening a day from the overview brings it wholly into view.
+  await openDay(page, /The north/);
+  await expect.poll(() => wholeInWeek(page, "day-7")).toBe(true);
+  await openDay(page, /Temples of the old city/);
+  await expect.poll(() => wholeInWeek(page, "day-1")).toBe(true);
+});
+
 test("drag a stop from one Phuket day to another; a Bangkok stop can't go to Phuket", async ({
   page,
 }) => {
   await layout(page, "Days").click();
-  await expect(pane(page, "day-7")).toBeVisible();
-  await dragStop(page, "day-6", "day-7");
+  // Day 6 from the overview, then its first stop held at the week's edge until Day 7 slides in.
+  await openDay(page, /Beaches of the south/);
+  await expect.poll(() => wholeInWeek(page, "day-6")).toBe(true);
+  await dragStopAcross(page, "day-6", "day-7");
   await expect(pane(page, "day-7").locator(".stop-name").nth(1)).toHaveText("Promthep Cape");
   await expect(pane(page, "day-6").locator(".stop-name")).not.toContainText(["Promthep Cape"]);
 
-  await dragStop(page, "day-1", "day-7");
+  await openDay(page, /Temples of the old city/);
+  await expect.poll(() => wholeInWeek(page, "day-1")).toBe(true);
+  await dragStopAcross(page, "day-1", "day-7");
   await expect(page.getByText("Wat Arun is in Bangkok, and Day 7 is in Phuket")).toBeVisible();
   await expect(pane(page, "day-1").locator(".stop-name").first()).toHaveText("Wat Arun");
 });
