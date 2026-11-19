@@ -153,3 +153,46 @@
   --jali-border: var(--seam-dark);
   --jali-hover: rgb(255 255 255 / 0.05);
 }
+
+/*
+ * ---------- the design system ----------
+ * Material: bead-blasted anodised aluminium, in two finishes of one object: natural silver (light) and black
+ * anodised (dark). Light falls from above and a little to the left: every highlight is on a top or left edge, every
+ * shadow falls down. Depths come from one small scale; seams are one width; spacing sits on a 4px grid.
+ */
+:root {
+  /* Grain: a fine bead-blast, drawn as SVG noise (no raster), one tile for the whole app. Dark specks on silver,
+     light specks on black. */
+  --grain-dark: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='1.15' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.075 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)'/%3E%3C/svg%3E");
+  --grain-light: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='1.15' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 0.05 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)'/%3E%3C/svg%3E");
+  --grain: var(--grain-dark);
+  /* The slab: one long body under one light, a slow falloff from left to right. */
+  --slab-1: light-dark(#ececea, #2c2c2f);
+  --slab-2: light-dark(#dededa, #202023);
+  --slab-falloff: linear-gradient(
+    90deg,
+    light-dark(rgb(255 255 255 / 0.28), rgb(255 255 255 / 0.035)),
+    transparent 45%,
+    light-dark(rgb(0 0 0 / 0.035), rgb(0 0 0 / 0.18))
+  );
+  /* The depth scale. */
+  --d-print: 1px; /* a seam, a printed rule */
+  --d-pocket: 2px; /* a pocket's wall shadow; a key's travel */
+  --d-cap: 3px; /* a key cap's side wall */
+  --d-lip: 4px; /* the slab's and a faceplate's foot */
+  --seam: 2px;
+  --grid: 4px;
+  /* Legend sizes: group labels, key legends, pane titles. */
+  --t-label: 10.5px;
+  --t-legend: 12px;
+  --t-title: 13px;
+}
+[data-theme="dark"],
+.jali-pane[data-kind="mixer"] {
+  --grain: var(--grain-light);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --grain: var(--grain-light);
+  }
+}

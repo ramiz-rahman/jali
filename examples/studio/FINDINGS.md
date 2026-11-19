@@ -164,6 +164,9 @@ The deeper restyle (one tiled top row, one set of parts for every button-like th
 20. **No figures token.** Jali's own numbers (key hints, counts like "+2") follow `--jali-font-mono`. Studio points that at its main face and keeps a separate readout face for ticking numbers; Jali has no numbers that tick, so this is fine today, but a `--jali-font-numeric` would let an app choose tabular figures for Jali's counts too.
 21. **Palette and chooser rows' parts.** A row's name wrapped in Chakra Petch; it has no public selector (`.palette-title`, without even the `jali-` prefix), so Studio keeps it on one line as `.jali-palette-item > :first-child`. Want: the row's name, hint and keys as public parts.
 
+22. **The workspace's inset can't follow the app's grid.** The top bar and the foot rail are flush to the window and sit on a 4px grid with a 20px side margin for their parts; the panes sit 6px in from the workspace's edges and 6px apart (`GAP`), so a faceplate's edge can't line up with the slab's groups above it. Want: `--jali-gap` and `--jali-inset` (item 7), read by the layout's measuring too.
+23. **Images can't follow the theme through `light-dark()`.** The grain is an SVG image; `light-dark()` takes colours only, so the app switches it with `[data-theme="dark"]` and a `prefers-color-scheme` rule, relying on Jali writing `data-theme` on `<html>`. Want: Jali's resolved theme also as an attribute on its own root and layer (`[data-jali][data-theme]`), documented, for a workspace with `pageTheme: false`.
+
 Not Jali's, for the record: making the top row one flex row of blocks meant grouping elements in `display: contents` wrappers that keep their roles (`navigation` "Layouts", `group` "Transport", "Tools"). Chrome exposes those roles; it is worth testing in other browsers before relying on it.
 
 ## What worked

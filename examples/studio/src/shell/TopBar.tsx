@@ -30,91 +30,104 @@ export function TopBar() {
   // legend centred under it at one baseline, lamp in the top right corner.
   return (
     <header className="topbar" data-jali-chrome="">
-      <div className="group group-id">
-        <a className="badge" href="./" aria-label="Studio, a Jali example: back to the Edit layout">
-          <StudioMark />
-          <span className="badge-name">studio</span>
-        </a>
+      {/* The identity, engraved straight into the slab. */}
+      <a
+        className="zone zone-id badge"
+        href="./"
+        aria-label="Studio, a Jali example: back to the Edit layout"
+      >
+        <StudioMark />
+        <span className="badge-name">studio</span>
+      </a>
+      <div className="zone zone-layouts">
+        <span className="zone-label" aria-hidden>
+          layout
+        </span>
+        <nav className="pocket group-layouts" aria-label="Layouts">
+          {jali.env.presets.map((p) => (
+            <button
+              key={p.id}
+              type="button"
+              className="key face layout-key"
+              aria-pressed={p.id === current}
+              onMouseDown={keepFocus}
+              onClick={() => jali.actions.preset(p.id)}
+            >
+              <span className="led" aria-hidden />
+              <LayoutGlyph id={p.id} />
+              <span className="face-legend">{p.label.toLowerCase()}</span>
+            </button>
+          ))}
+          {/* Narrower: the four become one key that opens a menu (a real <select> under its face). */}
+          <label className="key face layout-menu">
+            <span className="led" data-on="" aria-hidden />
+            <LayoutGlyph id={current ?? "edit"} />
+            <span className="face-legend" aria-hidden>
+              {currentLabel.toLowerCase()} ▾
+            </span>
+            <span className="sr-only">Layout</span>
+            <select value={current} onChange={(e) => jali.actions.preset(e.target.value)}>
+              {jali.env.presets.map((p) => (
+                <option key={p.id} value={p.id}>
+                  {p.label}
+                </option>
+              ))}
+            </select>
+          </label>
+        </nav>
       </div>
-      <nav className="group group-layouts" aria-label="Layouts">
-        {jali.env.presets.map((p) => (
-          <button
-            key={p.id}
-            type="button"
-            className="key face layout-key"
-            aria-pressed={p.id === current}
-            onMouseDown={keepFocus}
-            onClick={() => jali.actions.preset(p.id)}
-          >
-            <span className="led" aria-hidden />
-            <LayoutGlyph id={p.id} />
-            <span className="face-legend">{p.label.toLowerCase()}</span>
-          </button>
-        ))}
-        {/* Narrower: the four become one key that opens a menu (a real <select> under its face). */}
-        <label className="key face layout-menu">
-          <span className="led" data-on="" aria-hidden />
-          <LayoutGlyph id={current ?? "edit"} />
-          <span className="face-legend" aria-hidden>
-            {currentLabel.toLowerCase()} ▾
-          </span>
-          <span className="sr-only">Layout</span>
-          <select value={current} onChange={(e) => jali.actions.preset(e.target.value)}>
-            {jali.env.presets.map((p) => (
-              <option key={p.id} value={p.id}>
-                {p.label}
-              </option>
-            ))}
-          </select>
-        </label>
-      </nav>
       <Transport />
-      <div className="group group-tools" role="group" aria-label="Tools">
-        <button
-          type="button"
-          className="key face tool-link"
-          aria-label="Copy a link to this layout"
-          title="Copy a link to this layout"
-          onMouseDown={keepFocus}
-          onClick={() => copyLink(jali)}
-        >
-          <LinkSimpleIcon size={20} aria-hidden className="face-glyph" />
-          <span className="face-legend" aria-hidden>
-            link
-          </span>
-        </button>
-        <button
-          type="button"
-          className="key face"
-          aria-label={theme === "dark" ? "Use the light theme" : "Use the dark theme"}
-          title={theme === "dark" ? "Light theme" : "Dark theme"}
-          onMouseDown={keepFocus}
-          onClick={() =>
-            jali.actions.changeSettings({ theme: theme === "dark" ? "light" : "dark" })
-          }
-        >
-          {theme === "dark" ? (
-            <SunIcon size={20} aria-hidden className="face-glyph" />
-          ) : (
-            <MoonIcon size={20} aria-hidden className="face-glyph" />
-          )}
-          <span className="face-legend" aria-hidden>
-            {theme === "dark" ? "light" : "dark"}
-          </span>
-        </button>
-        <button
-          type="button"
-          className="key face"
-          aria-label="Commands"
-          title={`Commands ${palette}`}
-          onMouseDown={keepFocus}
-          onClick={() => jali.actions.openPalette()}
-        >
-          <CommandIcon size={20} aria-hidden className="face-glyph" />
-          <span className="face-legend" aria-hidden>
-            {palette || keyHint("Mod+K")}
-          </span>
-        </button>
+      <div className="zone zone-tools">
+        <span className="zone-label" aria-hidden>
+          tools
+        </span>
+        <div className="pocket group-tools" role="group" aria-label="Tools">
+          <button
+            type="button"
+            className="key face tool-link"
+            aria-label="Copy a link to this layout"
+            title="Copy a link to this layout"
+            onMouseDown={keepFocus}
+            onClick={() => copyLink(jali)}
+          >
+            <LinkSimpleIcon size={20} aria-hidden className="face-glyph" />
+            <span className="face-legend" aria-hidden>
+              link
+            </span>
+          </button>
+          <button
+            type="button"
+            className="key face"
+            aria-label={theme === "dark" ? "Use the light theme" : "Use the dark theme"}
+            title={theme === "dark" ? "Light theme" : "Dark theme"}
+            onMouseDown={keepFocus}
+            onClick={() =>
+              jali.actions.changeSettings({ theme: theme === "dark" ? "light" : "dark" })
+            }
+          >
+            {theme === "dark" ? (
+              <SunIcon size={20} aria-hidden className="face-glyph" />
+            ) : (
+              <MoonIcon size={20} aria-hidden className="face-glyph" />
+            )}
+            <span className="face-legend" aria-hidden>
+              {theme === "dark" ? "light" : "dark"}
+            </span>
+          </button>
+          <button
+            type="button"
+            className="key face"
+            aria-label="Commands"
+            title={`Commands ${palette}`}
+            onMouseDown={keepFocus}
+            onClick={() => jali.actions.openPalette()}
+          >
+            <CommandIcon size={20} aria-hidden className="face-glyph" />
+            <span className="face-legend" aria-hidden>
+              {palette || keyHint("Mod+K")}
+            </span>
+          </button>
+        </div>
       </div>
     </header>
   );
@@ -162,101 +175,113 @@ function Transport() {
     </button>
   );
   return (
-    <div className="group group-player" role="group" aria-label="Transport">
-      {/* The display: the session, the clock and the progress, behind one piece of glass. */}
-      <div className="screen player-display">
-        <div className="pd-line">
-          <span className="pd-show">
-            <span className="pd-title">{session.title}</span> · {session.show} · ep{" "}
-            {session.episode}
-          </span>
-          <span className="pd-state" role="status">
-            {t.status === "loading"
-              ? "loading"
-              : t.status === "error"
-                ? "no audio"
-                : t.playing
-                  ? "▶ play"
-                  : "■ stop"}
-          </span>
+    <div className="zone zone-player" role="group" aria-label="Transport">
+      <span className="zone-label" aria-hidden>
+        player
+      </span>
+      <div className="zone-row">
+        {/* The display: glass bonded flush into its own cutout. Title and series on the first line, the clock and
+          state on the second, the progress across the foot. */}
+        <div className="cutout player-cutout">
+          <div className="screen player-display">
+            <div className="pd-line">
+              <span className="pd-title">{session.title}</span>
+              <span className="pd-show">
+                {session.show} · ep {session.episode}
+              </span>
+            </div>
+            <div className="pd-time" aria-label={`${clock(pos)} of ${clock(session.duration)}`}>
+              <span className="tp-now">{clockTenths(pos)}</span>
+              <span className="pd-total">/ {clock(session.duration)}</span>
+              <span className="pd-state" role="status">
+                {t.status === "loading"
+                  ? "loading"
+                  : t.status === "error"
+                    ? "no audio"
+                    : t.playing
+                      ? "▶ play"
+                      : "■ stop"}
+                <span className="pd-rate"> · {t.rate}×</span>
+              </span>
+            </div>
+            <div className="pd-progress" aria-hidden>
+              <span style={{ width: `${(pos / session.duration) * 100}%` }} />
+            </div>
+          </div>
         </div>
-        <div className="pd-time" aria-label={`${clock(pos)} of ${clock(session.duration)}`}>
-          <span className="tp-now">{clockTenths(pos)}</span>
-          <span className="pd-total">/ {clock(session.duration)}</span>
-          <span className="pd-rate">{t.rate}×</span>
+        <div className="pocket group-transport">
+          {key("Back 5 seconds", "back", "back", () => engine.skip(-5))}
+          {key(
+            t.playing ? "Pause" : "Play",
+            t.playing ? "pause" : "play",
+            t.playing ? "pause" : "play",
+            () => engine.toggle(),
+            {
+              className: "key-accent key-play",
+              latch: true,
+              disabled: !ready,
+              on: t.playing,
+              title: `${t.playing ? "Pause" : "Play"} (Space)`,
+            },
+          )}
+          {key(
+            "Stop",
+            "stop",
+            "stop",
+            () => {
+              engine.pause();
+              engine.seek(t.loop?.start ?? 0);
+            },
+            { className: "tp-stop", title: "Stop, and go back to the start" },
+          )}
+          {key("Forward 5 seconds", "fwd", "forward", () => engine.skip(5))}
+          {key("Loop", "loop", "loop", () => runCommand(jali, "studio.loop"), {
+            className: "tp-loop",
+            latch: true,
+            pressed: !!t.loop,
+            title: t.loop
+              ? `Looping ${clock(t.loop.start)} to ${clock(t.loop.end)}: press to stop`
+              : "Loop the segment playing",
+          })}
         </div>
-        <div className="pd-progress" aria-hidden>
-          <span style={{ width: `${(pos / session.duration) * 100}%` }} />
+        <div className="pocket group-rotary">
+          <div className="face rotary tp-scrub">
+            <span className="face-glyph">
+              <Jog
+                label="Scrub"
+                value={pos}
+                min={0}
+                max={session.duration}
+                step={1}
+                degreesPerUnit={24}
+                valueText={`${clock(pos)} of ${clock(session.duration)}`}
+                onChange={(v) => engine.seek(v)}
+              />
+            </span>
+            <span className="face-legend" aria-hidden>
+              scrub
+            </span>
+          </div>
+          <div className="face rotary tp-speed">
+            <span className="face-glyph">
+              <Knob
+                label="Speed"
+                value={Math.max(0, speed)}
+                min={0}
+                max={SPEEDS.length - 1}
+                step={1}
+                reset={SPEEDS.indexOf(1)}
+                cap="graphite"
+                size={26}
+                valueText={`${t.rate} times`}
+                onChange={(i) => engine.setRate(SPEEDS[i]!)}
+              />
+            </span>
+            <span className="face-legend" aria-hidden>
+              speed
+            </span>
+          </div>
         </div>
-      </div>
-      {key("Back 5 seconds", "back", "back", () => engine.skip(-5))}
-      {key(
-        t.playing ? "Pause" : "Play",
-        t.playing ? "pause" : "play",
-        t.playing ? "pause" : "play",
-        () => engine.toggle(),
-        {
-          className: "key-accent key-play",
-          latch: true,
-          disabled: !ready,
-          on: t.playing,
-          title: `${t.playing ? "Pause" : "Play"} (Space)`,
-        },
-      )}
-      {key(
-        "Stop",
-        "stop",
-        "stop",
-        () => {
-          engine.pause();
-          engine.seek(t.loop?.start ?? 0);
-        },
-        { className: "tp-stop", title: "Stop, and go back to the start" },
-      )}
-      {key("Forward 5 seconds", "fwd", "forward", () => engine.skip(5))}
-      {key("Loop", "loop", "loop", () => runCommand(jali, "studio.loop"), {
-        className: "tp-loop",
-        latch: true,
-        pressed: !!t.loop,
-        title: t.loop
-          ? `Looping ${clock(t.loop.start)} to ${clock(t.loop.end)}: press to stop`
-          : "Loop the segment playing",
-      })}
-      <div className="face face-plate tp-scrub">
-        <span className="face-glyph">
-          <Jog
-            label="Scrub"
-            value={pos}
-            min={0}
-            max={session.duration}
-            step={1}
-            degreesPerUnit={24}
-            valueText={`${clock(pos)} of ${clock(session.duration)}`}
-            onChange={(v) => engine.seek(v)}
-          />
-        </span>
-        <span className="face-legend" aria-hidden>
-          scrub
-        </span>
-      </div>
-      <div className="face face-plate tp-speed">
-        <span className="face-glyph">
-          <Knob
-            label="Speed"
-            value={Math.max(0, speed)}
-            min={0}
-            max={SPEEDS.length - 1}
-            step={1}
-            reset={SPEEDS.indexOf(1)}
-            cap="graphite"
-            size={26}
-            valueText={`${t.rate} times`}
-            onChange={(i) => engine.setRate(SPEEDS[i]!)}
-          />
-        </span>
-        <span className="face-legend" aria-hidden>
-          speed
-        </span>
       </div>
     </div>
   );
