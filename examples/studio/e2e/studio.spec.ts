@@ -109,6 +109,10 @@ test("the scrub dial turns round its centre: a quarter turn is 2.5 seconds, and 
   page,
 }) => {
   await page.setViewportSize({ width: 1700, height: 900 });
+  // The slab re-measures what fits on the next frame: wait for it before measuring the dial.
+  await page.evaluate(
+    () => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r))),
+  );
   const dial = page.getByRole("slider", { name: "Scrub" });
   const body = (await dial.locator(".dial-body").boundingBox())!;
   const cx = body.x + body.width / 2;
@@ -142,6 +146,9 @@ test("the scrub dial turns round its centre: a quarter turn is 2.5 seconds, and 
 
 test("the speed dial snaps to its detents and resets to 1× on a double-click", async ({ page }) => {
   await page.setViewportSize({ width: 1700, height: 900 });
+  await page.evaluate(
+    () => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r))),
+  );
   const dial = page.getByRole("slider", { name: "Speed" });
   await expect(dial).toHaveAttribute("aria-valuetext", "1×");
   await dial.focus();
