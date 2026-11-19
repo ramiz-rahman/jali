@@ -1,0 +1,198 @@
+/*
+ * Studio's theme: hardware-inspired. Each pane is a device on a desk. Light: bead-blasted aluminium faceplates on a
+ * grey desk mat, the mixer in black anodised aluminium beside them. Dark: every device black anodised. Screens are
+ * black glass with light marks in both themes; the markers sit behind a grey-green reflective LCD. Spoke's signal
+ * orange (#ff4f00) stays the one strong accent; blue, green and white are encoder caps only.
+ *
+ * Jali's own tokens (--jali-*) carry the family into its chrome: panes, tabs, the shelf, ⌘K, the chooser, the peek.
+ * The app's are --body-*, --cap-*, --scr-*, --lcd-*, --paper-* and --st-*. Colours are light-dark() pairs, resolved
+ * by the color-scheme Jali sets from its theme setting. Set unlayered on :root, so they win over Jali's defaults.
+ */
+:root {
+  /* ---------- the bodies ---------- */
+  --body-1: light-dark(#f2f2f0, #2d2d30);
+  --body-2: light-dark(#e1e1de, #212124);
+  --body: light-dark(#e9e9e6, #27272a);
+  /* The lit top edge, the rim and the side wall a body shows at its foot. */
+  --body-hi: light-dark(rgb(255 255 255 / 0.95), rgb(255 255 255 / 0.09));
+  --body-rim: light-dark(rgb(0 0 0 / 0.16), rgb(0 0 0 / 0.75));
+  --body-wall: light-dark(#c2c2bd, #0b0b0c);
+  /* A seam cut into the plate: a dark line with a lit line under it. */
+  --seam-dark: light-dark(rgb(0 0 0 / 0.11), rgb(0 0 0 / 0.55));
+  --seam-lit: light-dark(rgb(255 255 255 / 0.75), rgb(255 255 255 / 0.05));
+  --ink: light-dark(#191918, #eeeeeb);
+  /* Printed legends: 5:1 or more on the plate. */
+  --legend: light-dark(#585853, #a7a7ab);
+
+  /* ---------- key caps ---------- */
+  --cap-1: light-dark(#fafaf8, #3d3d41);
+  --cap-2: light-dark(#e6e6e2, #2e2e32);
+  --cap-edge: light-dark(#afafa9, #0e0e10);
+  --cap-ink: light-dark(#191918, #eeeeeb);
+  --cap-rim: light-dark(rgb(0 0 0 / 0.14), rgb(0 0 0 / 0.7));
+  --cap-hi: light-dark(rgb(255 255 255 / 0.95), rgb(255 255 255 / 0.12));
+  --led-off: light-dark(#c9c9c4, #18181a);
+  --led-on: #ff4f00;
+
+  /* ---------- screens: black glass, light marks, in both themes ---------- */
+  --scr-glass: radial-gradient(140% 120% at 50% -10%, #1a1a1b, #070708 60%, #040405);
+  --scr-ink: #f2f2ee;
+  --scr-dim: rgb(242 242 238 / 0.64);
+  --scr-idle: rgb(242 242 238 / 0.42);
+  --scr-music: rgb(242 242 238 / 0.26);
+  --scr-line: rgb(255 255 255 / 0.09);
+  --scr-block: rgb(255 255 255 / 0.065);
+  --scr-soft: rgb(255 106 31 / 0.2);
+  --scr-hot: #ff6a1f;
+
+  /* ---------- the LCD: grey-green reflective glass, dark print ---------- */
+  --lcd-glass: linear-gradient(180deg, #a9b3a1, #bfc7b6 30%, #b8c0ae);
+  --lcd-ink: #121410;
+  --lcd-dim: rgb(18 20 16 / 0.78);
+  --lcd-ghost: rgb(18 20 16 / 0.08);
+
+  /* ---------- paper: the transcript and the notes, for long reading ---------- */
+  --paper: light-dark(#fdfdfa, #18181a);
+  --paper-ink: light-dark(#141413, #ececea);
+  --paper-dim: light-dark(#55554f, #a9a9ad);
+  --paper-rule: light-dark(rgb(0 0 0 / 0.07), rgb(255 255 255 / 0.07));
+
+  /* ---------- encoder caps ---------- */
+  --enc-orange: #ff5a12;
+  --enc-blue: #5aa6ea;
+  --enc-green: #47c07f;
+  --enc-white: #f4f4f1;
+  --enc-graphite: #4e4e53;
+
+  /* ---------- Jali's tokens ---------- */
+  --jali-canvas: light-dark(#c9c8c3, #0e0e0f);
+  --jali-surface: var(--body);
+  --jali-surface-raised: var(--body);
+  --jali-border: var(--seam-dark);
+  --jali-border-strong: light-dark(rgb(0 0 0 / 0.2), rgb(255 255 255 / 0.14));
+  --jali-control: light-dark(#85857f, #77777c);
+  --jali-text: var(--ink);
+  --jali-text-muted: light-dark(#34342f, #d4d4d1);
+  --jali-text-subtle: var(--legend);
+  --jali-text-faint: var(--legend);
+  --jali-hover: light-dark(rgb(0 0 0 / 0.045), rgb(255 255 255 / 0.05));
+  --jali-brand: #ff4f00;
+  --jali-accent: #ff4f00;
+  --jali-accent-soft: light-dark(#ffe6d9, #3a1d0e);
+  --jali-on-accent: #170a03;
+  --jali-working: #ff4f00;
+  --jali-chip: var(--ink);
+  --jali-on-chip: var(--body);
+  --jali-scrim: light-dark(rgb(40 40 38 / 0.28), rgb(0 0 0 / 0.6));
+  --jali-shadow-raised: 0 2px 0 var(--body-wall), 0 3px 3px rgb(0 0 0 / 0.16);
+  --jali-shadow-dialog:
+    inset 0 1px 0 var(--body-hi), 0 0 0 1px var(--body-rim), 0 3px 0 var(--body-wall),
+    0 14px 24px -6px rgb(0 0 0 / 0.35), 0 40px 80px -20px rgb(0 0 0 / 0.4);
+  --jali-shadow-menu:
+    inset 0 1px 0 var(--body-hi), 0 0 0 1px var(--body-rim), 0 2px 0 var(--body-wall),
+    0 12px 24px -8px rgb(0 0 0 / 0.35);
+  --jali-shadow-peek: -2px 0 0 var(--body-wall), -16px 0 40px -12px rgb(0 0 0 / 0.4);
+  --jali-shadow-zoom: 0 3px 0 var(--body-wall), 0 20px 40px -10px rgb(0 0 0 / 0.4);
+  /* One corner for everything square by nature: keys, blocks, faceplates, glass, paper, menus, dialogs. */
+  --corner: 2px;
+  --jali-radius: var(--corner);
+  /* Focus: 3:1 or more on the aluminium and on the black bodies. */
+  --focus: light-dark(#b43800, #ff7a33);
+  --jali-focus-ring: var(--focus);
+  --jali-radius-control: var(--corner);
+  --jali-radius-menu: var(--corner);
+  /* One face for everything printed: Chakra Petch. Jali's "mono" slot (its key hints) prints in it too. */
+  --jali-font: "Chakra Petch", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --jali-font-mono: var(--jali-font);
+  /* Numbers that tick (the clock, timecodes, dB) and the screens' and LCD's print: a monospaced face, because
+     Chakra Petch has no tabular figures and a running clock would jitter. */
+  --font-readout: "IBM Plex Mono", ui-monospace, "SF Mono", SFMono-Regular, Menlo, monospace;
+
+  /* ---------- the app's own ---------- */
+  --st-signal: #ff4f00;
+  --st-signal-ink: light-dark(#b43800, #ff8a52);
+  --st-signal-soft: light-dark(rgb(255 79 0 / 0.14), rgb(255 79 0 / 0.2));
+  --st-signal-line: light-dark(rgb(255 79 0 / 0.45), rgb(255 79 0 / 0.55));
+  /* The waveforms' colours, for canvases off a screen (none today, kept for paletteOf). */
+  --st-wave-idle: var(--scr-idle);
+  --st-wave-music: var(--scr-music);
+  --st-wave-marked: var(--scr-dim);
+  --st-label: 11px;
+  /* Mechanisms move, they don't spring: a short travel that stops dead. */
+  --travel: 70ms cubic-bezier(0.45, 0, 0.15, 1);
+}
+
+/*
+ * The mixer is always black anodised, as a dark desk unit beside the light ones. Tokens set on the pane itself
+ * (Jali's supported way to theme one part), so its header, tabs and legends follow too.
+ */
+.jali-pane[data-kind="mixer"],
+.dark-body {
+  color-scheme: dark;
+  --body-1: #2b2b2e;
+  --body-2: #1f1f22;
+  --body: #252528;
+  --body-hi: rgb(255 255 255 / 0.08);
+  --body-rim: rgb(0 0 0 / 0.75);
+  --body-wall: #0a0a0b;
+  --seam-dark: rgb(0 0 0 / 0.6);
+  --seam-lit: rgb(255 255 255 / 0.05);
+  --ink: #eeeeeb;
+  --legend: #a9a9ad;
+  --cap-1: #3c3c40;
+  --cap-2: #2c2c30;
+  --cap-edge: #0c0c0e;
+  --cap-ink: #eeeeeb;
+  --cap-rim: rgb(0 0 0 / 0.7);
+  --cap-hi: rgb(255 255 255 / 0.12);
+  --led-off: #151517;
+  --jali-surface: var(--body);
+  --jali-text: var(--ink);
+  --jali-text-subtle: var(--legend);
+  --jali-text-faint: var(--legend);
+  --jali-border: var(--seam-dark);
+  --jali-hover: rgb(255 255 255 / 0.05);
+}
+
+/*
+ * ---------- the design system ----------
+ * Material: bead-blasted anodised aluminium, in two finishes of one object: natural silver (light) and black
+ * anodised (dark). Light falls from above and a little to the left: every highlight is on a top or left edge, every
+ * shadow falls down. Depths come from one small scale; seams are one width; spacing sits on a 4px grid.
+ */
+:root {
+  /* Grain: a fine bead-blast, drawn as SVG noise (no raster), one tile for the whole app. Dark specks on silver,
+     light specks on black. */
+  --grain-dark: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='1.15' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.075 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)'/%3E%3C/svg%3E");
+  --grain-light: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='1.15' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 0.05 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)'/%3E%3C/svg%3E");
+  --grain: var(--grain-dark);
+  /* The slab: one long body under one light, a slow falloff from left to right. */
+  --slab-1: light-dark(#ececea, #2c2c2f);
+  --slab-2: light-dark(#dededa, #202023);
+  --slab-falloff: linear-gradient(
+    90deg,
+    light-dark(rgb(255 255 255 / 0.28), rgb(255 255 255 / 0.035)),
+    transparent 45%,
+    light-dark(rgb(0 0 0 / 0.035), rgb(0 0 0 / 0.18))
+  );
+  /* The depth scale. */
+  --d-print: 1px; /* a seam, a printed rule */
+  --d-pocket: 2px; /* a pocket's wall shadow; a key's travel */
+  --d-cap: 3px; /* a key cap's side wall */
+  --d-lip: 4px; /* the slab's and a faceplate's foot */
+  --seam: 2px;
+  --grid: 4px;
+  /* Legend sizes: group labels, key legends, pane titles. */
+  --t-label: 10.5px;
+  --t-legend: 13px;
+  --t-title: 13px;
+}
+[data-theme="dark"],
+.jali-pane[data-kind="mixer"] {
+  --grain: var(--grain-light);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --grain: var(--grain-light);
+  }
+}

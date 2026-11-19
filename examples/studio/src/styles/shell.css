@@ -1,0 +1,485 @@
+/* The page, and the app's chrome on the desk: the top row of three units on a rail, and the status line. */
+@layer base {
+  html,
+  body,
+  #root {
+    height: 100%;
+    margin: 0;
+  }
+  body {
+    font-family: var(--jali-font);
+    font-size: 14px;
+    line-height: 1.45;
+    background: var(--jali-canvas);
+    color: var(--ink);
+    -webkit-font-smoothing: antialiased;
+  }
+  button,
+  input,
+  select,
+  textarea {
+    font: inherit;
+    color: inherit;
+  }
+  ::selection {
+    background: var(--st-signal);
+    color: #170a03;
+  }
+}
+
+@layer app {
+  .app {
+    height: 100dvh;
+    display: grid;
+    grid-template-rows: auto minmax(0, 1fr) auto;
+    /* The desk mat: a soft pool of light from above, no texture. */
+    background:
+      radial-gradient(
+        120% 80% at 50% 0%,
+        light-dark(rgb(255 255 255 / 0.35), rgb(255 255 255 / 0.03)),
+        transparent 70%
+      ),
+      var(--jali-canvas);
+  }
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+  .mono {
+    font-family: var(--font-readout);
+    letter-spacing: -0.01em;
+    font-variant-numeric: tabular-nums;
+  }
+  kbd {
+    font-family: var(--jali-font-mono);
+    font-size: 10.5px;
+    color: inherit;
+    opacity: 0.75;
+  }
+  :focus-visible {
+    outline: 2px solid var(--focus);
+    outline-offset: 2px;
+  }
+
+  /*
+   * ---------- the top bar: one slab ----------
+   * A single body of bead-blasted aluminium, flush to the window's top, left and right. Only its foot is an edge: a
+   * lit chamfer, a dark arris and a contact shadow on the desk. Everything else is let into it: the name engraved,
+   * the keys standing in milled pockets, the display's glass bonded into a cutout.
+   *
+   * The grid: 4px. Slab 104px; every pocket 76px (68px keys), centred, 14px above and below. The groups stand 28px
+   * apart, so the slab itself separates them; inside the player, display, keys and the scrub and speed pocket are
+   * 8px apart.
+   */
+  .topbar {
+    position: relative;
+    z-index: 1;
+    min-width: 0;
+    background:
+      var(--grain), var(--slab-falloff), linear-gradient(180deg, var(--slab-1), var(--slab-2));
+    box-shadow:
+      inset 0 -1px 0 light-dark(rgb(255 255 255 / 0.9), rgb(255 255 255 / 0.1)),
+      inset 0 -3px 0 light-dark(rgb(0 0 0 / 0.04), rgb(0 0 0 / 0.25)),
+      0 1px 0 light-dark(rgb(0 0 0 / 0.32), #000),
+      0 2px 1px light-dark(rgb(0 0 0 / 0.12), rgb(0 0 0 / 0.5)),
+      0 10px 16px -10px rgb(0 0 0 / 0.45);
+  }
+  /* The row inside the slab: one flex row, real gaps, nothing positioned. How it gives way is measured (`useFit`
+     in TopBar.tsx), so its content always fits. */
+  .slab {
+    --key-h: 68px;
+    --cell: 62px;
+    --layout-cell: 84px;
+    --rotary: 148px;
+    --display-min: 232px;
+    --zone-gap: 28px;
+    display: flex;
+    align-items: center;
+    gap: var(--zone-gap);
+    height: 104px;
+    padding: 0 20px;
+    box-sizing: border-box;
+    min-width: 0;
+  }
+  .zone {
+    display: flex;
+    flex: none;
+    min-width: 0;
+  }
+  .zone-row {
+    display: flex;
+    gap: 8px;
+    min-width: 0;
+  }
+  /* The player grows into spare room but never shrinks below its content (the display's minimum and the keys):
+     so when room runs out the row overflows the slab, which `useFit` sees and answers, instead of the player
+     sliding under its neighbours unseen. */
+  .zone-player {
+    flex: 1 1 auto;
+    min-width: min-content;
+  }
+  .zone-player .zone-row {
+    flex: 1 1 auto;
+    min-width: min-content;
+  }
+  .pocket {
+    height: calc(var(--key-h) + 8px);
+    box-sizing: border-box;
+  }
+  .pocket > .key,
+  .pocket > .face {
+    width: var(--cell);
+    height: auto;
+    flex: none;
+    --wall: var(--d-cap);
+  }
+
+  /* The identity: the mark and the name, engraved straight into the slab. */
+  .badge {
+    flex-direction: row;
+    align-items: center;
+    gap: 12px;
+    height: calc(var(--key-h) + 8px);
+    padding: 0 0 0 2px;
+    text-decoration: none;
+    color: var(--legend);
+  }
+  .brand-mark {
+    fill: currentColor;
+    filter: drop-shadow(0 1px 0 light-dark(rgb(255 255 255 / 0.85), rgb(0 0 0 / 0.6)));
+  }
+  .brand-mark-hot {
+    fill: var(--st-signal);
+  }
+  .badge-name {
+    font-family: var(--jali-font);
+    font-weight: 600;
+    font-size: 22px;
+    letter-spacing: 0.08em;
+    color: light-dark(#4f4f4b, #a5a5aa);
+    text-shadow:
+      0 -1px 0 light-dark(rgb(0 0 0 / 0.18), rgb(0 0 0 / 0.7)),
+      0 1px 0 light-dark(rgb(255 255 255 / 0.9), rgb(255 255 255 / 0.08));
+  }
+
+  /* Layouts. */
+  .pocket > .layout-key {
+    width: var(--layout-cell);
+  }
+  .pocket > .layout-menu {
+    display: none;
+    width: 104px;
+  }
+  .layout-menu select {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    cursor: pointer;
+  }
+  .layout-menu:focus-within {
+    outline: 2px solid var(--focus);
+    outline-offset: 2px;
+  }
+
+  /* The display: the heart of the instrument. */
+  .player-cutout {
+    flex: 1 1 auto;
+    min-width: var(--display-min);
+    height: calc(var(--key-h) + 8px);
+    box-sizing: border-box;
+    container-type: inline-size;
+  }
+  .player-display {
+    height: 100%;
+    display: grid;
+    grid-template-rows: auto auto 1fr;
+    align-content: center;
+    gap: 4px;
+    padding: 9px 14px 0;
+    box-sizing: border-box;
+    border-radius: 1px;
+    font-family: var(--font-readout);
+    box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.03);
+    overflow: hidden;
+  }
+  /* A faint reflection: a soft diagonal sheen over the top of the glass. */
+  .player-display::after {
+    inset: 0;
+    border-radius: 0;
+    background: linear-gradient(
+      172deg,
+      rgb(255 255 255 / 0.07) 0%,
+      rgb(255 255 255 / 0.02) 38%,
+      transparent 39%
+    );
+  }
+  .pd-line {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+    min-width: 0;
+  }
+  .pd-title {
+    font-family: var(--jali-font);
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--scr-ink);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    min-width: 0;
+  }
+  .pd-show {
+    flex: none;
+    font-size: 10.5px;
+    color: var(--scr-dim);
+    white-space: nowrap;
+  }
+  .pd-time {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+  }
+  .tp-now {
+    font-size: 25px;
+    letter-spacing: 0.02em;
+    color: var(--scr-ink);
+    text-shadow: 0 0 10px rgb(255 255 255 / 0.18);
+  }
+  .pd-total {
+    font-size: 11px;
+    color: var(--scr-dim);
+  }
+  .pd-state {
+    margin-left: auto;
+    font-size: 11px;
+    color: var(--scr-hot);
+    white-space: nowrap;
+  }
+  .pd-rate {
+    color: var(--scr-dim);
+  }
+  .pd-progress {
+    position: relative;
+    align-self: end;
+    height: 2px;
+    margin: 0 -14px;
+    background: rgb(255 255 255 / 0.08);
+  }
+  .pd-progress span {
+    position: absolute;
+    inset: 0 auto 0 0;
+    background: var(--scr-hot);
+    box-shadow: 0 0 6px rgb(255 106 31 / 0.55);
+  }
+  /* Lay the display out for the width it has: the series goes before anything is cut. */
+  @container (max-width: 300px) {
+    .pd-show {
+      display: none;
+    }
+  }
+  @container (max-width: 270px) {
+    .pd-total,
+    .pd-rate {
+      display: none;
+    }
+  }
+  @container (max-width: 200px) {
+    .pd-state {
+      display: none;
+    }
+    .pd-title {
+      font-size: 12px;
+    }
+  }
+  @container (max-width: 140px) {
+    .pd-line {
+      display: none;
+    }
+  }
+
+  /*
+   * Scrub and speed: a matched pair of dials on caps like the keys' (the same face, rim and wall, but they don't
+   * travel), sharing a pocket, a legend and its baseline. The dial stands at the right of its cap; the left carries
+   * what it does: the jog's mapping, the selector's value. The whole cap is the control's target.
+   */
+  .pocket > .rotary {
+    width: var(--rotary);
+  }
+  .rotary {
+    border-radius: var(--corner);
+    background: linear-gradient(180deg, var(--cap-1), var(--cap-2));
+    color: var(--cap-ink);
+    box-shadow:
+      inset 0 1px 0 var(--cap-hi),
+      inset 0 0 0 1px var(--cap-rim),
+      inset 0 -2px 0 rgb(0 0 0 / 0.06),
+      0 var(--d-cap) 0 var(--cap-edge),
+      0 calc(var(--d-cap) + 2px) 4px rgb(0 0 0 / 0.24);
+  }
+  .rotary .face-legend {
+    left: 12px;
+    right: auto;
+    text-align: left;
+  }
+  .rotary-note {
+    position: absolute;
+    left: 12px;
+    top: 12px;
+    font-family: var(--font-readout);
+    font-size: 10px;
+    color: var(--legend);
+    pointer-events: none;
+    white-space: nowrap;
+  }
+  .rotary-value {
+    font-size: 17px;
+    font-weight: 500;
+    top: 10px;
+    color: var(--cap-ink);
+  }
+
+  /*
+   * How it gives way: the steps `useFit` takes (TopBar.tsx), cumulative, in order, until the content fits.
+   */
+  .slab[data-f1] {
+    --rotary: 116px;
+  }
+  .slab[data-f1] .tp-scrub .rotary-note {
+    display: none;
+  }
+  .slab[data-f2] {
+    --cell: 58px;
+    --layout-cell: 78px;
+    --zone-gap: 20px;
+    padding-inline: 16px;
+  }
+  .slab[data-f3] {
+    --display-min: 184px;
+  }
+  .slab[data-f4] .tp-speed {
+    display: none;
+  }
+  .slab[data-f5] .badge-name {
+    display: none;
+  }
+  .slab[data-f6] .pocket > .layout-key {
+    display: none;
+  }
+  .slab[data-f6] .pocket > .layout-menu {
+    display: block;
+  }
+  .slab[data-f7] .group-rotary {
+    display: none;
+  }
+  .slab[data-f8] :is(.tp-loop, .tool-link) {
+    display: none;
+  }
+  .slab[data-f8] {
+    --zone-gap: 14px;
+    --display-min: 150px;
+  }
+  .slab[data-f9] {
+    --key-h: 60px;
+    --cell: 54px;
+    --zone-gap: 12px;
+    height: 92px;
+    padding-inline: 12px;
+  }
+  .slab[data-f9] .tp-stop {
+    display: none;
+  }
+  /* Two tiers: identity, layout and tools; then the player across the full width. Still one slab. */
+  .slab[data-f10] {
+    --key-h: 58px;
+    --cell: 54px;
+    --display-min: 0px;
+    height: auto;
+    flex-wrap: wrap;
+    row-gap: 12px;
+    padding: 12px 10px 14px;
+  }
+  .slab[data-f10] .tp-stop {
+    display: block;
+  }
+  .slab[data-f10] :is(.zone-layouts, .zone-layouts .pocket, .pocket > .layout-menu) {
+    flex: 1 1 auto;
+  }
+  .slab[data-f10] .pocket > .layout-menu {
+    width: auto;
+  }
+  .slab[data-f10] .zone-player {
+    order: 3;
+    flex: 1 0 100%;
+  }
+  .slab[data-f11] .tp-stop {
+    display: none;
+  }
+
+  /*
+   * ---------- the foot rail ----------
+   * The status line as the slab's twin, flush to the bottom and sides: its top edge catches the light.
+   */
+  .status {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    min-height: 40px;
+    padding: 0 16px;
+    color: var(--legend);
+    font-family: var(--jali-font);
+    font-size: 11.5px;
+    min-width: 0;
+    background:
+      var(--grain), var(--slab-falloff), linear-gradient(180deg, var(--slab-2), var(--slab-1));
+    box-shadow:
+      inset 0 1px 0 light-dark(rgb(255 255 255 / 0.9), rgb(255 255 255 / 0.1)),
+      0 -1px 0 light-dark(rgb(0 0 0 / 0.25), #000);
+    text-shadow: 0 1px 0 light-dark(rgb(255 255 255 / 0.8), rgb(0 0 0 / 0.6));
+  }
+  .status-focus {
+    color: var(--ink);
+    font-weight: 500;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .status-hint {
+    margin-left: auto;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .status-note {
+    white-space: nowrap;
+    padding-left: 16px;
+    border-left: 1px solid var(--seam-dark);
+    box-shadow: -1px 0 0 var(--seam-lit);
+  }
+  @media (max-width: 1100px) {
+    .status-note {
+      display: none;
+    }
+  }
+  @media (max-width: 760px) {
+    .status-hint,
+    .status-focus {
+      display: none;
+    }
+  }
+
+  .toast {
+    font-family: var(--jali-font) !important;
+    border-radius: var(--corner);
+  }
+}
