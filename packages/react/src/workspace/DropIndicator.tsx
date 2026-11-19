@@ -1,4 +1,4 @@
-import type { Edge, Rect } from "@jali/core/adapter";
+import type { Edge, Rect } from "@jali/core";
 import { dropText, zoneRect } from "@jali/core/adapter";
 import { useJaliIcons } from "../icons/context";
 import type { JaliIconName } from "../icons/types";

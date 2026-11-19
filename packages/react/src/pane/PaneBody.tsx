@@ -1,13 +1,6 @@
+import type { NodeId, ObjectRef, PaneNode, PaneActivity, PaneCommand } from "@jali/core";
 import { memo, useMemo } from "react";
-import type {
-  NodeId,
-  ObjectRef,
-  PaneNode,
-  Actions,
-  PaneActivity,
-  PaneCommand,
-  UiStore,
-} from "@jali/core/adapter";
+import type { Actions, UiStore } from "@jali/core/adapter";
 import { parseKeys } from "@jali/core/adapter";
 import type { PaneProps } from "../define";
 import { PaneContext, type PaneHost } from "./context";

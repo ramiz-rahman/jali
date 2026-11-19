@@ -1,4 +1,5 @@
-import { listCommands, type ListedCommand } from "@jali/core/adapter";
+import type { ListedCommand } from "@jali/core";
+import { listCommands } from "@jali/core/adapter";
 import { useModel, useStore, useUi } from "../state/react";
 import { ListDialog } from "./ListDialog";
 

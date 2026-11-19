@@ -1,12 +1,7 @@
 /** The pane a component is inside, for the hooks that act for it (usePane, useCommands, usePaneState, ...). */
+import type { NodeId, ObjectRef, PaneActivity, PaneCommand } from "@jali/core";
 import { createContext, useContext } from "react";
-import type {
-  NodeId,
-  ObjectRef,
-  PaneActivity,
-  PaneAttributes,
-  PaneCommand,
-} from "@jali/core/adapter";
+import type { PaneAttributes } from "@jali/core/adapter";
 import type { PaneProps } from "../define";
 
 /** What a pane's content can ask of the workspace. */

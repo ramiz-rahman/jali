@@ -1,6 +1,7 @@
 /** `<JaliRoot>` and `<JaliProvider>` as `@jali/react` exports them: Phosphor's icons, with the host's `icons` over them. */
+import type { Jali } from "@jali/core";
 import { useMemo, type ReactNode } from "react";
-import type { Jali } from "@jali/core/adapter";
+
 import { BareJaliProvider, BareJaliRoot, type JaliRootOptions } from "./JaliRoot";
 import { phosphorIcons } from "./icons/phosphor";
 import type { JaliIcons } from "./icons/types";

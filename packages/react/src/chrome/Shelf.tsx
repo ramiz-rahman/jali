@@ -1,6 +1,7 @@
+import type { ShelfEntry, JaliModel, PaneActivity } from "@jali/core";
 import { useEffect, useLayoutEffect, useMemo, useRef, useState, type KeyboardEvent } from "react";
 import { useJaliIcons } from "../icons/context";
-import type { ShelfEntry, JaliModel, PaneActivity } from "@jali/core/adapter";
+
 import { useShortcut } from "../commands/react";
 import { flashTab, inlineStep, observeResize, scrolledFromStart } from "@jali/core/adapter";
 import { Activity, shelfActivity } from "../pane/Activity";

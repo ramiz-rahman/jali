@@ -1,3 +1,4 @@
+import type { JaliModel } from "@jali/core";
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import {
   besidePreview,
@@ -16,7 +17,7 @@ import { PaneSwitcher } from "../chrome/PaneSwitcher";
 import { Peek } from "../chrome/Peek";
 import { DividerLayer } from "../dividers/DividerLayer";
 import { PaneFrame } from "../pane/PaneFrame";
-import type { JaliModel, UiStore } from "@jali/core/adapter";
+import type { UiStore } from "@jali/core/adapter";
 import { useModel, useStore, useUi } from "../state/react";
 import { DropIndicator } from "./DropIndicator";
 import { useSingleView } from "./useSingleView";

@@ -1,5 +1,6 @@
+import type { ListedCommand } from "@jali/core";
 import { useMemo } from "react";
-import { listCommands, type ListedCommand } from "@jali/core/adapter";
+import { listCommands } from "@jali/core/adapter";
 import { useModel, useStore, useUi } from "../state/react";
 
 /** A command's keys in this workspace's keymap, for a tooltip ("⌘K ⌘[" / "Ctrl+K Ctrl+["); "" when unbound. */

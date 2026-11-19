@@ -1,18 +1,9 @@
 /** React access to the store: one provider, and hooks that subscribe to exactly what a component reads. */
+import type { Jali, JaliState, PaneNode, JaliModel, NodeId, Messages, Theme } from "@jali/core";
 import { createContext, Fragment, useContext, useSyncExternalStore, type ReactNode } from "react";
-import type {
-  Actions,
-  Jali,
-  JaliState,
-  PaneNode,
-  JaliModel,
-  NodeId,
-  PaneAttributes,
-  UiState,
-  UiStore,
-} from "@jali/core/adapter";
+import type { Actions, PaneAttributes, UiState, UiStore } from "@jali/core/adapter";
 import type { ReactEnv, Page } from "../define";
-import { resolveTheme, titleOf, type Messages, type Theme } from "@jali/core/adapter";
+import { resolveTheme, titleOf } from "@jali/core/adapter";
 
 const StoreContext = createContext<UiStore | null>(null);
 

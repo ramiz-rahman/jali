@@ -1,7 +1,8 @@
+import type { NodeId } from "@jali/core";
 import { useEffect, useLayoutEffect, useRef, useState, type KeyboardEvent } from "react";
 import { useJaliIcons } from "../icons/context";
 import { createPortal } from "react-dom";
-import type { NodeId, Tab } from "@jali/core/adapter";
+import type { Tab } from "@jali/core/adapter";
 import { roleOf, titleOf } from "@jali/core/adapter";
 import { useStore } from "../state/react";
 import { useUi } from "../state/react";

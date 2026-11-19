@@ -2,7 +2,8 @@
  * Linked selection in a detail's header (actions/follow.ts): the Pin toggle, and a note when the list's filter no
  * longer shows the item the detail follows.
  */
-import type { PaneNode } from "@jali/core/adapter";
+
+import type { PaneNode } from "@jali/core";
 import { useJaliIcons } from "../icons/context";
 import { sameRef } from "@jali/core/adapter";
 import { useMessages, useStore, useUi } from "../state/react";

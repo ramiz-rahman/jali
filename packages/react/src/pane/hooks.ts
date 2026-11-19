@@ -8,14 +8,9 @@
  *   useTitle(query.data?.name);
  *   usePaneAttributes({ "data-connection": connection.kind });
  */
+import type { ObjectRef, PaneActivity, PaneCommand, Params } from "@jali/core";
 import { useEffect, useMemo, useRef } from "react";
-import type {
-  ObjectRef,
-  PaneActivity,
-  PaneAttributes,
-  PaneCommand,
-  Params,
-} from "@jali/core/adapter";
+import type { PaneAttributes } from "@jali/core/adapter";
 import { openPaneFor } from "@jali/core/adapter";
 import type { PaneProps } from "../define";
 import { useModel, useUi } from "../state/react";

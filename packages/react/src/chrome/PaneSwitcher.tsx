@@ -1,4 +1,4 @@
-import type { PaneNode } from "@jali/core/adapter";
+import type { PaneNode } from "@jali/core";
 import { inlineStep, paneDomId, titleOf } from "@jali/core/adapter";
 import { Activity } from "../pane/Activity";
 import { KindIcon } from "../pane/icons";
