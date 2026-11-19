@@ -4,6 +4,7 @@ import {
   paneDomId,
   paneTitleId,
   roleOf,
+  shownTitle,
   titleOf,
   startPaneDrag,
   sameFrame,
@@ -43,7 +44,9 @@ export const PaneFrame = memo(
     const role = page && node.role && profile ? roleOf(profile, node.role) : undefined;
     // In a curated workspace, a pane without a role was opened by following a link: it belongs to the investigation.
     const opened = page && !node.role;
-    const title = titleOf(env, node);
+    const titles = useUi((s) => s.titles);
+    const title = titleOf(env, node, titles);
+    const shows = shownTitle(env, node, titles);
     const style: CSSProperties = {
       left: rect.x,
       top: rect.y,
@@ -108,9 +111,7 @@ export const PaneFrame = memo(
                 <KindIcon kind={node.ref.kind} />
               )}
               <h2 id={paneTitleId(store.dom.id, node.id)}>{title}</h2>
-              {role && env.kinds.title(node.ref) !== title ? (
-                <span className="jali-pane-sub">{env.kinds.title(node.ref)}</span>
-              ) : null}
+              {role && shows !== title ? <span className="jali-pane-sub">{shows}</span> : null}
               <Activity a={activity} />
               {bare ? null : <FollowControl node={node} title={title} />}
               {opened && boundary === "tint" ? (

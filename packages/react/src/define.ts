@@ -66,6 +66,9 @@ export interface PaneOptionsReact<P = Params> extends PaneOptions<P> {
   /** For the header, tab and shelf: any 16px icon component. Default: a plain square. */
   icon?: IconComponent;
   Component: ComponentType<PaneProps<P>>;
+  /** Shown while `Component` suspends (it awaits data with `use()` or a Suspense query). Default: a quiet
+   *  "Loading". The pane's activity reads "loading" meanwhile. */
+  Loading?: ComponentType<PaneProps<P>>;
 }
 
 /** A kind as a React workspace keeps it. */
@@ -74,6 +77,8 @@ export interface PaneKindDef extends PaneKindBase {
   // Each kind's component takes its own params; the workspace passes the ones it read for it.
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   Component: ComponentType<PaneProps<any>>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  Loading?: ComponentType<PaneProps<any>>;
 }
 
 /** A pane kind, defined. Call it with params to name one of its objects. `Pane` alone is any kind, for lists. */

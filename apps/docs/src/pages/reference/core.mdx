@@ -67,6 +67,7 @@ The address.
 <Param name="size" type="{ width: number; height: number }">A fixed size instead of the window's, for tests and server rendering. `<JaliRoot>` measures the real one once it renders.</Param>
 <Param name="moveFocus" type="boolean" default="true">`false` leaves DOM focus alone: for tests and a workspace that is never shown.</Param>
 <Param name="onUnstable" type="(op: string, before: string, after: string) => void" default="console.error in development">Called when a focus or swap action moved a pane on screen, which it never should.</Param>
+<Param name="onPaneError" type="(error: unknown, info: PaneErrorInfo) => void" default="console.error in development">Called when a pane's component throws. That pane shows a failed state with Retry and Close, and the other panes carry on. `info` says which pane (<Ref to="PaneErrorInfo" page="/reference/core/types" />). Send it to your error reporting.</Param>
 </ChildParams>
 </Param>
 </Params>

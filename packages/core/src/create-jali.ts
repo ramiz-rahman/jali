@@ -13,7 +13,12 @@ import { boot } from "./boot";
 import type { KeymapOptions, KeymapOverrides, KeyString } from "./commands/keymap";
 import type { Command } from "./commands/registry";
 import { toLayout, type LayoutInput } from "./layout/build";
-import { createPaneKinds, type PaneKindBase, type PaneKinds } from "./pane-kinds";
+import {
+  createPaneKinds,
+  type PaneErrorInfo,
+  type PaneKindBase,
+  type PaneKinds,
+} from "./pane-kinds";
 import { browserStorage, memoryStorage, type StoragePort } from "./ports";
 import type { Preset, ProfileBase } from "./profile";
 import { createUiStore, type UiStore, type UiStoreDeps, type UrlWriter } from "./state/store";
@@ -81,6 +86,10 @@ export interface JaliOptions<D extends PaneKindBase = PaneKindBase> {
   moveFocus?: boolean;
   /** Called when a focus or swap moved panes it should not have. Default: reported in development. */
   onUnstable?: (op: string, before: string, after: string) => void;
+  /** Called when a pane's component throws. The pane shows a failed state with Retry and Close; the other panes
+   *  carry on. `pane` is the pane's id (null in the peek sheet), `ref` what it was showing. Default: `console.error`
+   *  in development. */
+  onPaneError?: (error: unknown, info: PaneErrorInfo) => void;
 }
 
 /** A workspace: its state, its actions (`jali.actions.openBeside(...)`) and what it was made with. */
@@ -137,6 +146,7 @@ export function createJali<D extends PaneKindBase>(options: JaliOptions<D>): Jal
     },
     palette: options.palette,
     unstable: options.onUnstable,
+    onPaneError: options.onPaneError,
     initial: {
       ...(layout ? { layout: toLayout(layout) } : {}),
       ...(size ? { area: size } : {}),

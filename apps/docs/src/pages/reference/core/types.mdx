@@ -321,6 +321,12 @@ What a pane reports about itself (`useActivity`), shown in its header, its tab, 
 
 </Entry>
 
+<Entry name="PaneErrorInfo" kind="type" from="@jali/core" signature={`interface PaneErrorInfo { pane: NodeId | null; ref: ObjectRef }`} compact>
+
+Which pane failed, for `createJali({ onPaneError })`: its id (`null` in the peek sheet) and the ref it was showing.
+
+</Entry>
+
 <Entry name="ProfileBase" kind="type" from="@jali/core" signature={`interface ProfileBase<R extends RoleBase = RoleBase, I extends ItemId = ItemId>`} compact>
 
 A curated page about one item (a loan application), framework-free. In React, `definePage` makes a `Page`, which adds the rail and header.
@@ -433,6 +439,7 @@ Everything a workspace holds. Read it with `jali.get()` or `useJaliState(select)
 <Param name="unsaved" type="Record<NodeId, string>" required>Panes with unsaved work, and what it is.</Param>
 <Param name="confirm" type="{ panes: NodeId[]; change } | null" required>A change held until the person discards their work or keeps editing.</Param>
 <Param name="paneCommands" type="Record<NodeId, PaneCommand[]>" required>Each pane's palette commands.</Param>
+<Param name="titles" type="Record<NodeId, string>" required>Titles panes set from their data (`useTitle`), in place of their kind's title. Not saved. A pane that shows another object loses its title.</Param>
 <Param name="paneState" type="Record<NodeId, Record<string, unknown>>" required>Each pane's own state (`usePaneState`), saved in storage.</Param>
 <Param name="announcement" type="{ text: string; seq: number }" required>The live region's text; `seq` makes a repeat new.</Param>
 </Params>
@@ -770,6 +777,7 @@ How a list's item ids map to refs; see <Ref to="activeItemPort" page="/reference
 <Members title="Pane content">
 <Member name="actions.setUnsaved" signature="setUnsaved(id: NodeId, what: string | null)">Report unsaved work, or `null` when it is saved (`useUnsaved` calls it).</Member>
 <Member name="actions.setPaneCommands" signature="setPaneCommands(id: NodeId, commands: PaneCommand[] | null)">A pane's palette commands (`useCommands` calls it).</Member>
+<Member name="actions.setTitle" signature="setTitle(id: NodeId, title: string | null)">A pane's title from its data, or `null` for its kind's title (`useTitle` calls it).</Member>
 <Member name="actions.setPaneState" signature="setPaneState(id: NodeId, key: string, value: unknown)">One value of a pane's own state. JSON only.</Member>
 <Member name="actions.discardAndContinue" signature="discardAndContinue()">Forget the held panes' unsaved work and make the held change.</Member>
 <Member name="actions.keepEditing" signature="keepEditing()">Drop the held change.</Member>

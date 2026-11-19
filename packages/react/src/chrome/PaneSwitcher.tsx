@@ -6,6 +6,7 @@ import { useActions, useModel, useStore, useUi } from "../state/react";
 
 function Item({ node, selected }: { node: PaneNode; selected: boolean }) {
   const activity = useUi((s) => s.activity[node.id]);
+  const titles = useUi((s) => s.titles);
   const tucked = !!useModel().tuckOf(node.id);
   const actions = useActions();
   const store = useStore();
@@ -22,7 +23,7 @@ function Item({ node, selected }: { node: PaneNode; selected: boolean }) {
       }
     >
       <KindIcon kind={node.ref.kind} size={14} />
-      <span className="jali-switch-title">{titleOf(store.env, node)}</span>
+      <span className="jali-switch-title">{titleOf(store.env, node, titles)}</span>
       <Activity a={activity} />
     </button>
   );

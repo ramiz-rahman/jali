@@ -12,7 +12,7 @@ import type {
   UndoEntry,
   ViewState,
 } from "../layout/types";
-import type { PaneActivity, PaneCommand, PaneKinds } from "../pane-kinds";
+import type { PaneActivity, PaneCommand, PaneErrorInfo, PaneKinds } from "../pane-kinds";
 import { GAP, initialArea } from "../tokens";
 import { toLayout } from "../layout/build";
 import { bindActions, type Actions } from "../actions";
@@ -125,6 +125,9 @@ export interface UiState {
   confirm: ConfirmState | null;
   /** Each pane's commands for ⌘K (useCommands). */
   paneCommands: Record<NodeId, PaneCommand[]>;
+  /** Titles panes set from their data (useTitle), in place of their kind's title. Not saved; a pane that shows
+   *  another object loses its title until it sets one again. */
+  titles: Record<NodeId, string>;
   /** Each pane's own state (usePaneState): JSON values, kept through folds, tabs and reloads, dropped on close. */
   paneState: Record<NodeId, Record<string, unknown>>;
   /** The live region's text; `seq` makes a repeat a new announcement. */
@@ -180,6 +183,8 @@ export interface UiStoreDeps {
   keymapOptions?: KeymapOptions;
   /** `false`: the host has its own command menu. Jali renders no palette and its key is unbound. Default true. */
   palette?: boolean;
+  /** A pane's content threw while rendering. Default: reported in development. */
+  onPaneError?: (error: unknown, info: PaneErrorInfo) => void;
 }
 
 export interface UiStore {
@@ -262,6 +267,13 @@ export function createUiStore(deps: UiStoreDeps): UiStore {
     palette: deps.palette !== false,
     name: deps.name ?? "Workspace",
   };
+  const onPaneError =
+    deps.onPaneError ??
+    (DEV
+      ? (error: unknown, { pane, ref }: PaneErrorInfo) =>
+          console.error(`Jali: pane ${pane ?? "peek"} (${ref.kind}) failed`, error)
+      : undefined);
+  if (onPaneError) env.onPaneError = onPaneError;
   if (deps.launcher) env.launcher = deps.launcher;
   const focusOf =
     deps.focusPane === undefined
@@ -305,6 +317,7 @@ export function createUiStore(deps: UiStoreDeps): UiStore {
     unsaved: {},
     confirm: null,
     paneCommands: {},
+    titles: {},
     paneState: loadPaneState(storage),
     ...deps.initial,
   };
@@ -364,7 +377,14 @@ export function createUiStore(deps: UiStoreDeps): UiStore {
       return () => subs.delete(fn);
     },
     model: () =>
-      models({ layout: state.layout, view: state.view, area: state.area, ctx: ctx(), env }),
+      models({
+        layout: state.layout,
+        view: state.view,
+        area: state.area,
+        ctx: ctx(),
+        env,
+        titles: state.titles,
+      }),
     ctx,
     snapshot: () => ({ s: state, m: store.model(), ctx: ctx(), env }),
     apply: (o) => apply(io, o),

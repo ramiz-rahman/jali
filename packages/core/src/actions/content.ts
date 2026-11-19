@@ -31,6 +31,15 @@ export function setPaneCommands(
   };
 }
 
+/** The pane's title from its data (useTitle), in place of its kind's; `null` goes back to the kind's. */
+export function setTitle({ s, m }: Snapshot, id: NodeId, title: string | null): Outcome {
+  if (!m.pane(id) || (s.titles[id] ?? null) === title) return null;
+  return {
+    op: "patch",
+    patch: { titles: title ? { ...s.titles, [id]: title } : without(s.titles, [id]) },
+  };
+}
+
 /** One value of a pane's own state. JSON only: it is saved with the person's settings. */
 export function setPaneState({ s, m }: Snapshot, id: NodeId, key: string, value: unknown): Outcome {
   if (!m.pane(id) || Object.is(s.paneState[id]?.[key], value)) return null;

@@ -37,6 +37,7 @@ import {
   keepEditing,
   setPaneCommands,
   setPaneState,
+  setTitle,
   setUnsaved,
 } from "./content";
 import {
@@ -104,6 +105,7 @@ export const ACTIONS = {
   setUnsaved,
   setPaneCommands,
   setPaneState,
+  setTitle,
   discardAndContinue,
   keepEditing,
   openPage,

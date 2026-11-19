@@ -21,6 +21,7 @@ export {
   useActivity,
   useUnsaved,
   useCommands,
+  useTitle,
   useLauncher,
   type LauncherSources,
 } from "./pane/hooks";

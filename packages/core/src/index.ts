@@ -28,6 +28,7 @@ export type {
   PaneKinds,
   PaneCommand,
   PaneActivity,
+  PaneErrorInfo,
   Params,
   ParamValue,
   ParamType,

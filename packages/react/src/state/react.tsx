@@ -39,7 +39,8 @@ export const useProfile = (): Page | null => useEnv().profile;
 /** A pane's name: its role's label in a curated page, else its kind's title for what it shows. */
 export function useTitleOf(): (node: PaneNode) => string {
   const env = useEnv();
-  return (node) => titleOf(env, node);
+  const titles = useUi((s) => s.titles);
+  return (node) => titleOf(env, node, titles);
 }
 
 // ---------- the public names ----------
