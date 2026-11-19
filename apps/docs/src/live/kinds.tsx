@@ -30,7 +30,9 @@ import {
  * a neutral circle.
  */
 function circled(Icon: PhosphorIcon) {
-  return function CircledIcon({ size = 16 }: { size?: number }) {
+  return function CircledIcon({ size: given = 16 }: { size?: number | string }) {
+    // Jali passes a number; a string such as "16" or "16px" is read as pixels.
+    const size = typeof given === "number" ? given : parseFloat(given) || 16;
     return (
       <span className="live-kind" style={{ width: size + 8, height: size + 8 }} aria-hidden>
         <Icon size={size - 2} aria-hidden />
