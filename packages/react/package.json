@@ -33,14 +33,17 @@
     },
     "./styles.css": {
       "source": "./src/styles/index.css",
+      "style": "./src/styles/index.css",
       "default": "./dist/styles.css"
     },
     "./theme.css": {
       "source": "./src/styles/jali-theme.css",
+      "style": "./src/styles/jali-theme.css",
       "default": "./dist/theme.css"
     },
     "./tailwind.css": {
       "source": "./src/styles/jali-tailwind.css",
+      "style": "./src/styles/jali-tailwind.css",
       "default": "./dist/tailwind.css"
     },
     "./package.json": "./package.json"

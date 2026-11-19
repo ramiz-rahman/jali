@@ -37,6 +37,7 @@ export type {
   OptionalParam,
   OneOf,
   ParamProblem,
+  FollowParams,
 } from "./pane-kinds";
 export { optional, oneOf } from "./pane-kinds";
 export type { RoleBase, ProfileBase, ViewMode, Preset, Env, ItemId } from "./profile";
@@ -73,6 +74,7 @@ export { sameRef } from "./actions/follow";
 // ---------- the instance: actions, results, events ----------
 export type { JaliEvents, JaliState } from "./state/instance";
 export type { JaliActions, PaneTarget, OpenPageOptions } from "./actions/public";
+export type { ChooseOptions } from "./actions/choose";
 export type {
   ActionResult,
   Refusal,

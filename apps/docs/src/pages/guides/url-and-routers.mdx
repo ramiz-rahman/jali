@@ -29,6 +29,7 @@ Jali writes only its own search params and keeps every other part of the address
 | Param | Holds |
 |---|---|
 | `l` | The layout. |
+| `preset` | The preset the layout came from, in a workspace with presets. A link opens with that preset marked, and Reset layout rebuilds it. A link without it opens on the first preset, as links did before. |
 | `zoom` | The maximised pane, if any. |
 | `peek` | The object in the peek sheet, if any. |
 | `page`, `item`, `tab`, `open` | A curated page: which one, its item, the view in use, and panes opened from it. |
@@ -123,7 +124,7 @@ const location = routerLocation({
 export const jali = createJali({ panes, presets, url: { location } });
 ```
 
-If a route validates its search params, let unknown keys through: Jali's keys (`l`, `zoom`, `peek`, and the page keys) are not in your schema.
+If a route validates its search params, let unknown keys through: Jali's keys (`l`, `preset`, `zoom`, `peek`, and the page keys) are not in your schema.
 
 ## In tests and dialogs
 

@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="description"
+      content="A market terminal built with Jali: watchlists, charts, quotes, order books and a blotter in panes that fit the screen. Simulated data."
+    />
+    <meta name="color-scheme" content="dark light" />
+    <title>Markets · a Jali example</title>
+    <link rel="icon" href="./favicon.svg" type="image/svg+xml" />
+    <!-- The layer order, before any stylesheet: resets (base) below Jali's styles (jali), the app's (app) above. -->
+    <style>
+      @layer base, jali, app;
+    </style>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="./src/main.tsx"></script>
+  </body>
+</html>

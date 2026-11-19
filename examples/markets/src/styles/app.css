@@ -1,0 +1,9 @@
+/*
+ * The app's styles. The cascade layer order (base, jali, app) is declared in index.html, before any stylesheet
+ * loads: page resets (base) lose to Jali's styles (jali), and the app's own rules (app) win over Jali's without
+ * !important. Jali's styles come first, imported from CSS; main.tsx imports the faces, then this file.
+ */
+@import "@jali/react/styles.css";
+@import "./tokens.css";
+@import "./shell.css";
+@import "./panes.css";

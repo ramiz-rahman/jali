@@ -34,6 +34,10 @@ The rule has two exceptions. A [pinned](/get-started/key-concepts#linked) pane i
 
 If the object is already open in another pane, that pane is focused instead, and nothing opens twice. If this pane has [unsaved work](/get-started/key-concepts#unsaved-work), the person is asked before it is replaced.
 
+## Open as a tab
+
+`jali.actions.addTab(pane, ref)` shows an object as a new tab of a pane, in that pane's place, and focuses it: a second chart beside the first, behind one tab strip. It is one step, so Back undoes it in one, and since the tab takes the pane's slot, nothing else on screen folds or moves. If the object is already open, that pane is shown instead.
+
 ## Peek
 
 `peek(ref)` shows the object in a sheet over the right of the workspace, without adding a pane or changing the layout. `peek(null)` closes it. In a list, Space usually opens it; Esc closes it.

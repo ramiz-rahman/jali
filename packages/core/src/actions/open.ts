@@ -32,7 +32,8 @@ export function openPaneFor(m: JaliModel, ref: ObjectRef, except?: NodeId): Pane
 /**
  * Focus stays in the source. Opening the source's selected item (a list's row) links the new pane
  * to the selection: it follows it, or, when the list already has a following detail, it opens pinned beside it for
- * comparison (layout/ops/follow.ts). Any other link opens a plain linked pane.
+ * comparison (layout/ops/follow.ts). The selected item is the selected object itself or, for another kind, what that
+ * kind's `follow` shows for it (a chart for a watchlist's selected quote). Any other link opens a plain linked pane.
  */
 export function openBeside(x: Snapshot, source: NodeId, ref: ObjectRef): Outcome {
   const { s, m, ctx } = x;
@@ -59,7 +60,8 @@ export function openBeside(x: Snapshot, source: NodeId, ref: ObjectRef): Outcome
   const page =
     s.page && !investigation(m.panes).length ? { page: { ...s.page, before: s.layout } } : {};
   // In a curated page nothing the person placed gives way for an opened pane: short of room, it opens as a tab.
-  const fromSelection = sameRef(s.selection[source]?.ref, ref);
+  const selected = s.selection[source]?.ref;
+  const fromSelection = !!selected && sameRef(m.env.kinds.follow(ref.kind, selected), ref);
   // The list already has a following detail: opening its row pins that detail in place when it shows the row (keep
   // it, browse on: the next open makes a new follower), or shows the row there now. Never a second copy of a row.
   const showing = fromSelection ? core.follower(s.layout, source, ref.kind) : undefined;
@@ -68,7 +70,7 @@ export function openBeside(x: Snapshot, source: NodeId, ref: ObjectRef): Outcome
       ? setPinned(x, showing.id, true)
       : [
           { op: "select", defer: followLater(source, null) },
-          (y: Snapshot) => follow(y, source, ref),
+          (y: Snapshot) => follow(y, source, selected!),
         ];
   // A detail of this list already shows the row (one pinned earlier, with no follower now): show that one, focus stays.
   const kept = fromSelection

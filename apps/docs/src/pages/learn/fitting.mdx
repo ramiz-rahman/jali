@@ -16,7 +16,7 @@ Each [kind](/get-started/key-concepts#kind) can give three widths. Each has one 
 
 <Code code={ticket} filename="ticket.tsx" highlight="8-12" />
 
-- **`width.min`** is the narrowest the content still works at, once it adapts to a narrow box (with container queries, for example). It is the only width that decides folding: a pane folds when the minimums of what is shown don't fit, never because it would be below its comfortable width.
+- **`width.min`** is the narrowest the content still works at, once it adapts to a narrow box (with container queries, for example). It is the only width that decides folding: a pane folds when the minimums of what is shown don't fit, never because it would be below its comfortable width. A tab group's minimum is its widest tab's: every tab must fit when it is chosen, and choosing a tab never resizes the group.
 - **`width.comfortable`** is where spare room takes the pane first. It defaults to the minimum.
 - **`width.max`** is the widest the content usefully uses. It is soft: spare room past it goes to neighbours that can still use it, and only when every neighbour is at its maximum does the pane grow on. A split never leaves an empty gap. Leave it out for content that can use any width, such as tables and charts.
 

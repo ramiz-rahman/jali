@@ -9,6 +9,7 @@ import editor from "../../samples/guides/keys/editor-pane.tsx?raw";
 import hostCommands from "../../samples/guides/keys/host-commands.ts?raw";
 import hostKeys from "../../samples/guides/keys/host-keys.ts?raw";
 import hostMenu from "../../samples/guides/keys/host-menu.tsx?raw";
+import askCommand from "../../samples/guides/keys/ask-command.ts?raw";
 import orders from "../../samples/guides/pane-kinds/orders.tsx?raw";
 
 Every workspace action is a command with an id, such as `pane.close` or `pane.zoom`. ⌘K opens the palette, which lists them all. A keymap binds ids to keys, and each workspace has its own.
@@ -96,6 +97,17 @@ Commands that belong to your app rather than to one pane, such as "Refresh order
 <Code code={hostCommands} filename="src/workspace.ts" />
 
 Give them ids of your own (`orders.refresh`), not one of Jali's prefixes. If an id repeats one of Jali's, Jali's wins.
+
+### Commands that ask for something
+
+Some commands need an argument first: "Open chart for…", "Open latest order for…". Call `jali.actions.choose` in the command's `run`, with the items to choose from. Jali's chooser opens over the workspace, the same dialog as "Add to tabs of…": the person types to filter, moves with the arrow keys, presses Enter to choose and Esc to close. Screen readers hear a field over a list of choices, as in ⌘K.
+
+<Code code={askCommand} filename="src/commands.ts" />
+
+- `label` names each item in the list, and `hint` adds words beside it. Typing matches both, and items whose label starts with the text come first.
+- `onChoose` gets the chosen item once the chooser has closed and focus is back in the pane it came from. Esc, or a click outside, chooses nothing.
+- `title` names the dialog and its field. The title, labels, hints and `placeholder` are your words. Jali's own (the default placeholder, the list's name for screen readers, and "Nothing matches") are `messages.chooser`, so they follow your translation; see [Translate Jali](/guides/translating).
+- A key or button of your own can run the same command: `runCommand(jali, "orders.latest-for")`.
 
 ## Inside an app with its own ⌘K and keys
 

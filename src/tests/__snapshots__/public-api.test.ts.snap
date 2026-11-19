@@ -17,6 +17,7 @@ exports[`public API > the layout namespace is the pure tree API 1`] = `
   "focusDirection",
   "follow",
   "follower",
+  "followers",
   "hide",
   "minSize",
   "moveDirection",

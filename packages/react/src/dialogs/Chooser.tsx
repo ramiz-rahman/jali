@@ -3,16 +3,78 @@ import { useJaliIcons } from "../icons/context";
 import { mergeTargets, type MergeTarget } from "@jali/core/adapter";
 import { KindIcon } from "../pane/icons";
 import { bold, Parts, useModel, useStore, useUi } from "../state/react";
-import type { ChooserState } from "@jali/core/adapter";
+import type { ChooseOptions, ChooserState } from "@jali/core/adapter";
 import { ListDialog } from "./ListDialog";
 
-/** ⌘K "Add to tabs of…" (⌘K ⌘G): pick a visible pane or stack by title; the focused pane joins it as a tab. */
+/**
+ * Jali's chooser. ⌘K "Add to tabs of…" (⌘K ⌘G): pick a visible pane or stack by title; the focused pane joins it as a
+ * tab. And `jali.actions.choose`: pick one of the app's items for a command that asks for one ("Open chart for…").
+ */
 export function Chooser() {
   const chooser = useUi((s) => s.chooser);
-  return chooser ? <ChooserDialog chooser={chooser} /> : null;
+  if (!chooser) return null;
+  return chooser.kind === "merge" ? (
+    <MergeDialog chooser={chooser} />
+  ) : (
+    <ChooseDialog request={chooser.request} />
+  );
 }
 
-function ChooserDialog({ chooser }: { chooser: ChooserState }) {
+/** One of the app's items, with its words read once when the chooser opens. */
+interface Choice {
+  item: unknown;
+  index: number;
+  label: string;
+  hint: string;
+}
+
+function ChooseDialog({ request }: { request: ChooseOptions<unknown> }) {
+  const store = useStore();
+  const all = useMemo(
+    (): Choice[] =>
+      request.items.map((item, index) => ({
+        item,
+        index,
+        label: request.label(item),
+        hint: request.hint?.(item) ?? "",
+      })),
+    [request],
+  );
+  const close = () => store.set({ chooser: null });
+  const t = store.messages.chooser;
+  return (
+    <ListDialog<Choice>
+      className="jali-chooser"
+      label={request.title}
+      head={<div className="jali-chooser-head">{request.title}</div>}
+      placeholder={request.placeholder ?? t.choosePlaceholder}
+      inputLabel={request.title}
+      idPrefix={`${store.dom.id}-choose-`}
+      listId={`${store.dom.id}-choose-list`}
+      listLabel={t.chooseListLabel}
+      items={all}
+      keyOf={(c) => String(c.index)}
+      matches={(c, q) => c.label.toLowerCase().includes(q) || c.hint.toLowerCase().includes(q)}
+      rank={(c, q) => (c.label.toLowerCase().startsWith(q) ? 0 : 1)}
+      itemClass="jali-palette-item"
+      render={(c) => (
+        <>
+          <span className="palette-title">{c.label}</span>
+          <span className="jali-palette-id">{c.hint}</span>
+        </>
+      )}
+      onChoose={(c) => {
+        close();
+        // After the dialog unmounts and focus is back where it was, as a command run from ⌘K.
+        setTimeout(() => request.onChoose(c.item), 0);
+      }}
+      onClose={close}
+      empty={t.chooseEmpty}
+    />
+  );
+}
+
+function MergeDialog({ chooser }: { chooser: Extract<ChooserState, { kind: "merge" }> }) {
   const icon = useJaliIcons();
   const store = useStore();
   const m = useModel();

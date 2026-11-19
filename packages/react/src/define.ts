@@ -17,6 +17,7 @@
  * The pane contract (keys, pausing, unsaved work, commands) is in the docs: Guides, "Pane kinds".
  */
 import type {
+  ActionResult,
   ObjectRef,
   PaneDefinition,
   PaneKindBase,
@@ -53,15 +54,17 @@ export interface PaneProps<P = Params> {
   /** Rendered in the peek sheet rather than a pane. */
   inPeek: boolean;
   /** Open `ref` beside this pane. The selected item opens a following detail; another link replaces this pane's
-   *  earlier link of the same kind. Focus stays here. */
-  openBeside: (ref: ObjectRef) => void;
-  /** Show `ref` in this pane instead. If it is open elsewhere, that pane is focused. */
-  openHere: (ref: ObjectRef) => void;
+   *  earlier link of the same kind. Focus stays here. Returns what `jali.actions.openBeside` does: `pane` is the pane
+   *  that shows `ref`. */
+  openBeside: (ref: ObjectRef) => ActionResult;
+  /** Show `ref` in this pane instead. If it is open elsewhere, that pane is focused. In the peek sheet:
+   *  `reason: "unavailable"`. */
+  openHere: (ref: ObjectRef) => ActionResult;
   /** Open the peek sheet on `ref`, or close it with `null`. */
-  peek: (ref: ObjectRef | null) => void;
+  peek: (ref: ObjectRef | null) => ActionResult;
   /** Report the item a list is on: an open peek and this pane's following detail follow it. `{ inResults: false }`:
    *  the filter no longer shows it, and the detail keeps it, noted. */
-  select: (ref: ObjectRef | null, options?: { inResults?: boolean }) => void;
+  select: (ref: ObjectRef | null, options?: { inResults?: boolean }) => ActionResult;
   /** Close this pane quietly, with no undo: for the launcher. */
   dismiss: () => void;
 }

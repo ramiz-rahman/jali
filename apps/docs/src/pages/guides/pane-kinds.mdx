@@ -43,7 +43,7 @@ With `params`, the component and `title` get `id` as a number, and `orderKind({ 
 </Step>
 <Step title="Say how narrow it can go">
 
-`width.min` is the narrowest the content still works at. When the panes on screen need more room than there is, a pane folds into a tab of its neighbour instead of being squeezed. It comes back when there is room again. `height.min` is the same for height, in a column. The defaults are 240 and 160.
+`width.min` is the narrowest the content still works at. When the panes on screen need more room than there is, a pane folds into a tab of its neighbour instead of being squeezed. It comes back when there is room again. In a tab group the widest tab's `width.min` holds for the whole group, so a wide kind makes its tab group wide. `height.min` is the same for height, in a column. The defaults are 240 and 160.
 
 Two more widths say where spare room goes:
 
@@ -75,6 +75,7 @@ Two more options:
 
 - `holdWhileResizing: true` keeps the content as it is while a divider is dragged, and reflows it once on release. Use it for long lists and grids.
 - `inRecent: false` keeps the kind out of Recent. It can also be a function of the params.
+- `follow` says what a following pane of this kind shows when its list selects an object of another kind: `follow: (selected) => ({ symbol: selected.params.symbol })` lets a chart follow a watchlist of quotes. See [Following a list](/learn/following#followers-of-other-kinds).
 
 ## Params
 
@@ -140,6 +141,8 @@ Jali passes these to `Component`:
 | `peek(ref)` | Show an object in the peek sheet; `peek(null)` closes it. |
 | `dismiss()` | Close this pane quietly, with no undo toast. For the launcher. |
 
+`openBeside`, `openHere`, `peek` and `select` return what the same `jali.actions` return, an `ActionResult`: `openBeside(ref).pane` is the pane that shows the object, and `ok: false` comes with a `reason` when nothing happened.
+
 A component deeper inside the pane reads the same props with `usePane()`, so you don't have to pass them down.
 
 ## What a pane reports
@@ -191,7 +194,7 @@ With TanStack Query, pass `enabled: !paused` or `subscribed: !paused`.
 
 A list pane tells the workspace where its cursor is with `select(ref)`. Call it as the cursor moves. Then:
 
-- a detail pane that follows this list shows the item once the cursor rests;
+- the detail panes that follow this list show the item once the cursor rests, each one of its own kind if the kind has `follow`;
 - Space can call `peek(ref)` to show it in a sheet;
 - Alt+Enter can call `openBeside(ref)` to open it in a pane of its own.
 

@@ -1,0 +1,63 @@
+/*
+ * The terminal's theme, set on Jali's own tokens so every part of Jali follows: a deeper dark ground, tighter
+ * corners, and Nil (Jali's indigo) as the only accent. Light mode keeps Jali's stone. Tokens are set on the same
+ * scopes Jali uses for light and dark (see the Theming guide), unlayered, so they win.
+ *
+ * The app's own tokens are --mk-*: the up and down colours (tuned to 6:1 or more on their surfaces) and their
+ * tints. Up and down are never shown by colour alone: a sign and an arrow go with them.
+ */
+:root,
+.light,
+[data-theme="light"] {
+  --jali-radius: 6px;
+  --jali-radius-control: 4px;
+  --jali-radius-menu: 6px;
+
+  --mk-up: #087047;
+  --mk-down: #b42a26;
+  --mk-on-signal: #ffffff;
+  --mk-grid: color-mix(in srgb, var(--jali-text) 7%, transparent);
+  --mk-axis: var(--jali-text-subtle);
+  --mk-row-h: 26px;
+}
+
+.dark,
+[data-theme="dark"] {
+  --jali-canvas: #0b0a09;
+  --jali-surface: #141311;
+  --jali-surface-raised: #1c1a17;
+  --jali-border: #24211d;
+  --jali-border-strong: #36322c;
+  --jali-hover: #1d1b18;
+  /* Faint text Jali draws (counts, hints) at 4.5:1 on the surface. */
+  --jali-text-faint: #8a8274;
+
+  --mk-up: #3fbf80;
+  --mk-down: #f26d6d;
+  --mk-on-signal: #0b0a09;
+  --mk-grid: color-mix(in srgb, var(--jali-text) 6%, transparent);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not(.light, [data-theme="light"]) {
+    --jali-canvas: #0b0a09;
+    --jali-surface: #141311;
+    --jali-surface-raised: #1c1a17;
+    --jali-border: #24211d;
+    --jali-border-strong: #36322c;
+    --jali-hover: #1d1b18;
+    --jali-text-faint: #8a8274;
+
+    --mk-up: #3fbf80;
+    --mk-down: #f26d6d;
+    --mk-on-signal: #0b0a09;
+    --mk-grid: color-mix(in srgb, var(--jali-text) 6%, transparent);
+  }
+}
+
+:root {
+  --mk-up-soft: color-mix(in srgb, var(--mk-up) 14%, transparent);
+  --mk-down-soft: color-mix(in srgb, var(--mk-down) 14%, transparent);
+  --mk-up-flash: color-mix(in srgb, var(--mk-up) 24%, transparent);
+  --mk-down-flash: color-mix(in srgb, var(--mk-down) 24%, transparent);
+}

@@ -2,10 +2,23 @@ import * as core from "../layout";
 import type { Edge, NodeId, ViewState } from "../layout/types";
 import { refuse, type Outcome, type Snapshot } from "../state/apply";
 import { say } from "../state/messages";
+import { reveal } from "./tuck";
 
 export function focus({ s, ctx }: Snapshot, id: NodeId): Outcome {
   if (s.view.focused === id && s.view.focusHistory[0] === id) return null;
   return { op: "focus", view: core.focus(s.view, id, ctx) };
+}
+
+/**
+ * `jali.actions.focus`: focus a pane and show it. A pane behind a tab (folded, tucked or a tab of a group) has its tab
+ * chosen, a swap: nothing else moves (reveal). While another pane is maximised, this one is maximised instead, as the
+ * focus keys do.
+ */
+export function focusShown(x: Snapshot, id: NodeId): Outcome {
+  const box = x.m.resolved.panes.find((b) => b.id === id);
+  if (box?.hidden && box.stackId) return reveal(x, id);
+  if (x.s.view.focused === id && x.s.view.focusHistory[0] === id) return null;
+  return focusMoved(x, core.focus(x.s.view, id, x.ctx));
 }
 
 /** A focus key moved focus. While zoomed, focus keys switch which pane is zoomed (herdr). */

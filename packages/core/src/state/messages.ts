@@ -277,6 +277,11 @@ const chooser = {
   stackHint: (count: number) => `${count} tabs`,
   /** The hint beside a pane that is still choosing what to show (the launcher). */
   newPaneHint: "new pane",
+  /** `jali.actions.choose`, when the app asks for an item: the field's placeholder (unless the app gives one), the
+   *  list's name for screen readers, and what it says when nothing matches. The title is the app's. */
+  choosePlaceholder: "Type to search",
+  chooseListLabel: "Choices",
+  chooseEmpty: (query: string) => `Nothing matches “${query}”.`,
 };
 
 /** "Discard unsaved changes?" */

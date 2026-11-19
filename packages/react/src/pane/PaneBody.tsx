@@ -1,6 +1,6 @@
 import type { NodeId, ObjectRef, PaneNode, PaneActivity, PaneCommand } from "@jali/core";
 import { memo, useMemo } from "react";
-import type { Actions, UiStore } from "@jali/core/adapter";
+import type { ActionResult, UiStore } from "@jali/core/adapter";
 import { parseKeys } from "@jali/core/adapter";
 import type { PaneProps } from "../define";
 import { PaneContext, type PaneHost } from "./context";
@@ -9,28 +9,37 @@ import { DefaultLoading, PaneBoundary } from "./PaneBoundary";
 
 export type { PaneHost };
 
-export const paneHost = (actions: Actions, id: NodeId): PaneHost => ({
-  openBeside: (ref) => actions.openBeside(id, ref),
-  peek: (ref) => actions.peek(ref, id),
-  select: (ref, opts) => actions.select(id, ref, opts),
-  openHere: (ref) => actions.openHere(id, ref),
-  dismiss: () => actions.dismiss(id),
-  setActivity: (a: PaneActivity) => actions.setActivity(id, a),
-  setUnsaved: (what: string | null) => actions.setUnsaved(id, what),
-  setCommands: (commands: PaneCommand[] | null) => actions.setPaneCommands(id, commands),
-  setTitle: (title: string | null) => actions.setTitle(id, title),
-  setAttributes: (attributes) => actions.setPaneAttributes(id, attributes),
-});
+/** What pane `id`'s content can ask. Opening, peeking and selecting are `jali.actions`, so they return its result. */
+export function paneHost(store: UiStore, id: NodeId): PaneHost {
+  const { actions } = store,
+    app = store.jali.actions;
+  return {
+    openBeside: (ref) => app.openBeside(id, ref),
+    peek: (ref) => (ref ? app.peek(id, ref) : app.closePeek()),
+    select: (ref, opts) => app.select(id, ref, opts),
+    openHere: (ref) => app.openHere(id, ref),
+    dismiss: () => actions.dismiss(id),
+    setActivity: (a: PaneActivity) => actions.setActivity(id, a),
+    setUnsaved: (what: string | null) => actions.setUnsaved(id, what),
+    setCommands: (commands: PaneCommand[] | null) => actions.setPaneCommands(id, commands),
+    setTitle: (title: string | null) => actions.setTitle(id, title),
+    setAttributes: (attributes) => actions.setPaneAttributes(id, attributes),
+  };
+}
+
+/** The peek sheet has no pane of its own to show something else in. */
+const noPlace: ActionResult = { ok: false, reason: "unavailable" };
 
 /** The peek sheet acts for the pane it came from, and has no place of its own to fill, close or report on. */
 export function peekHost(store: UiStore): PaneHost {
   const source = () => store.get().peekSource ?? store.get().view.focused ?? "";
   const none = () => {};
+  const app = store.jali.actions;
   return {
-    openBeside: (ref: ObjectRef) => store.actions.openBeside(source(), ref),
-    peek: (ref: ObjectRef | null) => store.actions.peek(ref, source()),
-    select: (ref: ObjectRef | null) => store.actions.select(source(), ref),
-    openHere: none,
+    openBeside: (ref: ObjectRef) => app.openBeside(source(), ref),
+    peek: (ref: ObjectRef | null) => (ref ? app.peek(source(), ref) : app.closePeek()),
+    select: (ref: ObjectRef | null) => app.select(source(), ref),
+    openHere: () => noPlace,
     dismiss: none,
     setActivity: none,
     setUnsaved: none,

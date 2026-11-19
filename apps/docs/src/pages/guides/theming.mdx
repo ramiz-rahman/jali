@@ -20,7 +20,7 @@ Everything Jali draws reads `--jali-*` CSS variables, called tokens. Change a to
 import "@jali/react/styles.css";
 ```
 
-This brings Jali's default theme and the workspace's styles. It is plain CSS: no Tailwind or build step needed.
+This brings Jali's default theme and the workspace's styles. It is plain CSS: no Tailwind or build step needed. From a stylesheet, `@import "@jali/react/styles.css";` does the same, as the next section does; it works in Vite and any bundler that reads a package's `exports`. `theme.css` and `tailwind.css` import the same way.
 
 ## The layer line
 
@@ -76,6 +76,8 @@ A theme scope switches only Jali's defaults. A token you set yourself, on `:root
 Jali also has its own theme setting (System, Light or Dark, in its settings panel), and a started workspace writes the result to `data-theme` on `<html>` (unless it was made with `pageTheme: false`). If your app has its own light and dark switch, either pass the choice to Jali as well, so the two never disagree, or make the workspace with `pageTheme: false` so it never writes `data-theme` and follows your scopes:
 
 <Code code={dark} filename="src/theme.ts" />
+
+For a dark-first app, give the workspace its first theme with `createJali({ settings: { theme: "dark" } })`. A person who has never chosen gets it; once they choose a theme in the settings panel, their choice is saved and wins.
 
 ## From your Tailwind theme
 
