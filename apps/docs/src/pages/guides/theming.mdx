@@ -75,6 +75,8 @@ Jali also has its own theme setting (System, Light or Dark, in its settings pane
 
 <Code code={dark} filename="src/theme.ts" />
 
+For a dark-first app, give the workspace its first theme with `createJali({ settings: { theme: "dark" } })`. A person who has never chosen gets it; once they choose a theme in the settings panel, their choice is saved and wins.
+
 ## From your Tailwind theme
 
 If your app uses Tailwind, import the bridge after Jali's styles. It points Jali's tokens at your theme's variables:

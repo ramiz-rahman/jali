@@ -26,16 +26,6 @@ const market = createSimulator({
 const services = createServices(market);
 const jali = createMarketsJali(services, { notify: (text) => toast(text) });
 
-// Dark first: until the person picks a theme, a terminal is dark. (Jali's own default follows the system.)
-try {
-  if (!localStorage.getItem("markets:theme-chosen")) {
-    jali.actions.changeSettings({ theme: "dark" });
-    localStorage.setItem("markets:theme-chosen", "1");
-  }
-} catch {
-  // storage blocked: dark for this visit only
-}
-
 market.run();
 services.trading.connect();
 

@@ -196,6 +196,8 @@ export interface UiStoreDeps {
   palette?: boolean;
   /** The host's close guard: asked before a change removes panes or points them at another object (state/apply.ts). */
   beforeClose?: BeforeClose;
+  /** Settings for a person who has none saved yet (`createJali({ settings })`). Saved settings win. */
+  settings?: Partial<Settings>;
   /** Words to use instead of Jali's English ones (state/messages.ts). Default: English. */
   messages?: MessageOverrides;
   /** A pane's content threw while rendering. Default: reported in development. */
@@ -328,7 +330,7 @@ export function createUiStore(deps: UiStoreDeps): UiStore {
     prefs: loadPrefs(storage, env.profile?.id, env.kinds.registry()),
     view: { focusHistory: [] },
     presetId: start?.id,
-    settings: loadSettings(storage),
+    settings: loadSettings(storage, deps.settings),
     systemDark: systemPrefersDark(),
     undoStack: [],
     activity: {},

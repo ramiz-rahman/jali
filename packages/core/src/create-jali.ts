@@ -27,6 +27,7 @@ import type { Jali } from "./state/instance";
 import { createUiStore, type UiStoreDeps, type UrlWriter } from "./state/store";
 import { createUrlSync, type UrlSyncOptions } from "./url";
 import type { MessageOverrides } from "./state/messages";
+import type { Settings } from "./state/settings";
 
 /** A layout the person can switch to from ⌘K ("Layout: Triage"), and "Reset layout" rebuilds. */
 export interface PresetOptions {
@@ -101,6 +102,9 @@ export interface JaliOptions<D extends PaneKindBase = PaneKindBase> {
    * changes?" comes after a yes, when a pane still reports unsaved work (`useUnsaved`).
    */
   beforeClose?: BeforeClose;
+  /** Settings for a person who has none saved on this device yet: `{ theme: "dark" }` for a dark-first app. Settings
+   *  the person changes are saved and win from then on. Default: Jali's (`theme: "system"`, `paneCap: 8`, ...). */
+  settings?: Partial<Settings>;
   /** Jali's words in your language, or your own wording: any keys of `Messages`, by area. The rest stay English
    *  (`en`). `{ commands: { close: "Fermer le volet" }, palette: { placeholder: "Rechercher…" } }`. */
   messages?: MessageOverrides;
@@ -163,6 +167,7 @@ export function createJali<D extends PaneKindBase>(options: JaliOptions<D>): Jal
     },
     palette: options.palette,
     messages: options.messages,
+    ...(options.settings ? { settings: options.settings } : {}),
     ...(options.dir ? { dir: options.dir } : {}),
     unstable: options.onUnstable,
     onPaneError: options.onPaneError,

@@ -20,21 +20,29 @@ export const DEFAULT_SETTINGS: Settings = {
 };
 const KEY = "settings";
 
-/** Saved settings over the defaults. Keys from older builds (the divider adapter, the lab's showStats) are dropped. */
-export function loadSettings(storage: StoragePort): Settings {
+/** Saved settings over the defaults (Jali's, with the app's `defaults` over them: `createJali({ settings })`). Keys
+ *  from older builds (the divider adapter, the lab's showStats) are dropped. */
+export function loadSettings(storage: StoragePort, defaults: Partial<Settings> = {}): Settings {
+  const base = { ...DEFAULT_SETTINGS, ...defaults };
   try {
     const saved = JSON.parse(storage.get(KEY) ?? "{}") as Partial<Settings> & {
       adapter?: unknown;
       showStats?: unknown;
     };
     const { adapter: _dropped, showStats: _lab, ...known } = saved;
-    const s: Settings = { ...DEFAULT_SETTINGS, ...known };
-    if (s.theme !== "light" && s.theme !== "dark") s.theme = "system";
-    if (s.boundary !== "none") s.boundary = "tint";
-    return s;
+    const s: Settings = { ...base, ...known };
+    return valid(s);
   } catch {
-    return { ...DEFAULT_SETTINGS };
+    return valid(base);
   }
+}
+
+/** `s` with a theme or boundary Jali doesn't know put back to the default. */
+function valid(s: Settings): Settings {
+  const out = { ...s };
+  if (out.theme !== "light" && out.theme !== "dark") out.theme = "system";
+  if (out.boundary !== "none") out.boundary = "tint";
+  return out;
 }
 
 export function saveSettings(storage: StoragePort, s: Settings) {
