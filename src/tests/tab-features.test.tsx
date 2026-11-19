@@ -2,7 +2,7 @@
  * Tab features for apps with documents (Data Studio's request, 19 Nov 2026): the unsaved mark on a tab and wherever
  * else the pane is named, middle-click to close, and `confirmDiscard: false` for an app that asks itself.
  */
-import { afterEach, beforeAll, describe, expect, it } from "vite-plus/test";
+import { afterEach, beforeAll, describe, expect, it, vi } from "vite-plus/test";
 import { act, cleanup, fireEvent, render, screen, within } from "@testing-library/react";
 import { createJali, memoryLocation, memoryStorage, pane, row, runCommand, tabs } from "@jali/core";
 import { storeOf } from "@jali/core/adapter";
@@ -232,5 +232,132 @@ describe("reordering tabs", () => {
     expect(own.keymap.label("tab.move.left")).toMatch(/J/);
     expect(own.keymap.sequences("tab.move.right")).toHaveLength(1);
     expect(own.keymap.sequences("tab.move.right")[0]!).toHaveLength(1);
+  });
+});
+
+describe("a tab's menu", () => {
+  const group = (options: Partial<JaliOptions> = {}) =>
+    make(
+      row(
+        tabs(
+          pane(note({ id: 1 }), { id: "a" }),
+          pane(note({ id: 2 }), { id: "b" }),
+          pane(note({ id: 3 }), { id: "c" }),
+        ),
+        pane(note({ id: 9 }), { id: "z" }),
+      ),
+      options,
+    );
+  const items = () =>
+    screen
+      .getAllByRole("menuitem")
+      .map((i) => i.querySelector(".jali-tab-menu-title")!.textContent);
+
+  it("opens on right-click with Jali's items for that tab, after a separator the app's", () => {
+    const jali = group({
+      tabMenu: ({ id }) =>
+        id === "b"
+          ? [
+              { id: "dup", title: "Duplicate", run: () => {} },
+              { id: "pin", title: "Pin tab", checked: false, run: () => {} },
+            ]
+          : undefined,
+    });
+    render(<JaliRoot jali={jali} />);
+    fireEvent.contextMenu(tab("Note 2").parentElement!, { clientX: 100, clientY: 40 });
+    const menu = screen.getByRole("menu", { name: "Note 2 tab" });
+    expect(items()).toEqual([
+      "Close",
+      "Close other tabs",
+      "Close tabs to the right",
+      "Move tab left",
+      "Move tab right",
+      "Move out of tabs",
+      "Maximise",
+      "Duplicate",
+    ]);
+    expect(
+      within(menu)
+        .getByRole("menuitemcheckbox", { name: /Pin tab/ })
+        .getAttribute("aria-checked"),
+    ).toBe("false");
+    expect(within(menu).getAllByRole("separator").length).toBeGreaterThan(0);
+  });
+
+  it("has no app group for a pane the app returns nothing for", () => {
+    const jali = group({ tabMenu: () => [] });
+    render(<JaliRoot jali={jali} />);
+    fireEvent.contextMenu(tab("Note 3").parentElement!);
+    expect(items().at(-1)).toBe("Maximise");
+    // The last tab has nothing after it.
+    expect(
+      screen
+        .getByRole("menuitem", { name: /Close tabs to the right/ })
+        .getAttribute("aria-disabled"),
+    ).toBe("true");
+  });
+
+  it("opens from the keyboard and Esc returns focus to the tab", () => {
+    const jali = group();
+    render(<JaliRoot jali={jali} />);
+    const t = tab("Note 1");
+    t.focus();
+    fireEvent.keyDown(t, { key: "F10", shiftKey: true });
+    expect(screen.getByRole("menu")).toBeTruthy();
+    expect(document.activeElement?.getAttribute("data-menu-item")).toBe("close");
+    fireEvent.keyDown(document.activeElement!, { key: "ArrowDown" });
+    expect(document.activeElement?.getAttribute("data-menu-item")).toBe("close-others");
+    fireEvent.keyDown(document.activeElement!, { key: "Escape" });
+    expect(screen.queryByRole("menu")).toBeNull();
+    expect(document.activeElement).toBe(t);
+  });
+
+  it("closes the other tabs as one change: beforeClose asked once, listing them all", () => {
+    const asked: string[][] = [];
+    const jali = group({ beforeClose: (r) => (asked.push(r.panes.map((p) => p.pane)), true) });
+    render(<JaliRoot jali={jali} />);
+    fireEvent.contextMenu(tab("Note 2").parentElement!);
+    act(() => void fireEvent.click(screen.getByRole("menuitem", { name: "Close other tabs" })));
+    expect(asked).toEqual([["a", "c"]]);
+    expect(
+      jali
+        .model()
+        .panes.map((p) => p.id)
+        .sort(),
+    ).toEqual(["b", "z"]);
+  });
+
+  it("closes the tabs after one, and Undo brings them back", () => {
+    const jali = group();
+    expect(jali.actions.closeTabs("a", "after")).toMatchObject({ ok: true });
+    expect(
+      jali
+        .model()
+        .panes.map((p) => p.id)
+        .sort(),
+    ).toEqual(["a", "z"]);
+    jali.actions.undo();
+    expect(
+      jali
+        .model()
+        .panes.map((p) => p.id)
+        .sort(),
+    ).toEqual(["a", "b", "c", "z"]);
+    expect(jali.actions.closeTabs("z", "others")).toMatchObject({
+      ok: false,
+      reason: "nothing-to-do",
+    });
+  });
+
+  it("does nothing for a disabled item", () => {
+    const run = vi.fn();
+    const jali = group({ tabMenu: () => [{ id: "x", title: "Not now", disabled: "Saving", run }] });
+    render(<JaliRoot jali={jali} />);
+    fireEvent.contextMenu(tab("Note 1").parentElement!);
+    const item = screen.getByRole("menuitem", { name: "Not now" });
+    expect(item.getAttribute("aria-description")).toBe("Saving");
+    fireEvent.click(item);
+    expect(run).not.toHaveBeenCalled();
+    expect(screen.getByRole("menu")).toBeTruthy();
   });
 });

@@ -9,6 +9,7 @@
  * The workspace reads its address, fits its first layout and is ready before the first render. `<JaliRoot>` (or
  * `jali.start()` without React) starts its keys, Back and Forward, theme and saving.
  */
+import type { TabMenu } from "./commands/tab-menu";
 import { boot } from "./boot";
 import type { KeymapOptions, KeymapOverrides, KeyString } from "./commands/keymap";
 import type { Command } from "./commands/registry";
@@ -114,6 +115,12 @@ export interface JaliOptions<D extends PaneKindBase = PaneKindBase> {
    * unload. Default true.
    */
   confirmDiscard?: boolean;
+  /**
+   * Your items for a tab's menu (right-click, Shift+F10 or the menu key on a tab), after Jali's own (close, move,
+   * split, maximise). Called as the menu opens, with the tab's pane; return `undefined` or `[]` for none.
+   * `(pane) => [{ id: "duplicate", title: "Duplicate", run: () => duplicate(pane.ref) }]`.
+   */
+  tabMenu?: TabMenu;
   /** Settings for a person who has none saved on this device yet: `{ theme: "dark" }` for a dark-first app. Settings
    *  the person changes are saved and win from then on. Default: Jali's (`theme: "system"`, `paneCap: 8`, ...). */
   settings?: Partial<Settings>;
@@ -185,6 +192,7 @@ export function createJali<D extends PaneKindBase>(options: JaliOptions<D>): Jal
     unstable: options.onUnstable,
     onPaneError: options.onPaneError,
     ...(options.confirmDiscard === false ? { confirmDiscard: false } : {}),
+    ...(options.tabMenu ? { tabMenu: options.tabMenu } : {}),
     initial: {
       ...(layout ? { layout: toLayout(layout) } : {}),
       ...(size ? { area: size } : {}),

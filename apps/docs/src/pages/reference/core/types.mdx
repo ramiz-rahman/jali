@@ -652,6 +652,18 @@ One entry of a command menu, from <Ref to="listCommands" page="/reference/core" 
 
 </Entry>
 
+<Entry name="TabMenu" kind="type" from="@jali/core" signature={`type TabMenu = (pane: { id: NodeId; ref: ObjectRef }) => readonly TabMenuItem[] | undefined`} compact>
+
+Your items for a tab's menu, from `createJali({ tabMenu })`. Called each time a tab's menu opens (right-click, Shift+F10 or the menu key on the tab), with that tab's pane. They come after Jali's own, after a separator. Return `undefined` or `[]` for a pane that has none.
+
+</Entry>
+
+<Entry name="TabMenuItem" kind="type" from="@jali/core" signature={`interface TabMenuItem {\n  id: string; title: string; run(): void;\n  disabled?: boolean | string; checked?: boolean; keys?: string;\n}`} compact>
+
+One item in a tab's menu. `disabled` greys it out but keeps it reachable from the keyboard; give a reason as text and screen readers read it. `checked` makes it a checkbox item, ticked when true. `keys` is a hint shown beside the title, such as `keyHint("Mod+D")`; the key itself is yours to handle. The menu closes, and focus returns to the tab, before `run` runs.
+
+</Entry>
+
 <Entry name="Command" kind="type" from="@jali/core" signature={`interface Command {\n  id: string; title: string;\n  group: "Focus" | "Pane" | "Move" | "Tabs" | "Layout" | "Peek" | "Settings";\n  run: (jali: Jali) => void;\n}`} compact>
 
 A workspace command. `run` gets the workspace. Your own commands go in `createJali({ commands })`, with a group of your own if you like. Whether one of Jali's can run now is in <Ref to="listCommands" page="/reference/core" /> (`disabled`, `reason`).
@@ -803,6 +815,7 @@ A pane that is not there gives `reason: "not-found"`. What a refusal reads out t
 <Member name="actions.swapWithNext" signature="swapWithNext(pane?: PaneTarget)">Swap with the next pane on screen (or the previous, for the last).</Member>
 <Member name="actions.mergeInto" signature="mergeInto(pane: PaneTarget, target: PaneTarget)">`pane` joins `target`'s tab group.</Member>
 <Member name="actions.unmerge" signature="unmerge(pane?: PaneTarget)">Move a tab out of its group, to the right of it.</Member>
+<Member name="actions.closeTabs" signature={`closeTabs(pane: PaneTarget, which: "others" | "after")`}>Close the other tabs of `pane`'s group, or the tabs after it in reading order (to its right, or its left right to left). One change: `beforeClose` is asked once, listing them all, and one Undo brings them back. Refused with `"nothing-to-do"` when there are none. The tab menu's Close other tabs and Close tabs to the right.</Member>
 <Member name="actions.moveTab" signature="moveTab(pane: PaneTarget, index: number)">Move a tab to position `index` (from 0) among its group's tabs, clamped to the group; the group keeps its place and size, and its shown tab. Announced as "Orders moved to position 2 of 4". Refused with `"nothing-to-do"` for a pane that is not a tab in a group the person or the app made (a folded or tucked tab is placed by the layout).</Member>
 </Members>
 

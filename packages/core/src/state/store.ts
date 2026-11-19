@@ -219,6 +219,8 @@ export interface UiStoreDeps {
   landmark?: "region" | "main";
   /** `false`: the app asks about unsaved work itself; Jali never does. Default true. */
   confirmDiscard?: boolean;
+  /** The app's items for a tab's menu, after Jali's. */
+  tabMenu?: import("../commands/tab-menu").TabMenu;
 }
 
 export interface UiStore {
@@ -330,6 +332,7 @@ export function createUiStore(deps: UiStoreDeps): UiStore {
   if (deps.dir) env.dir = deps.dir;
   if (deps.landmark === "main") env.landmark = "main";
   if (deps.confirmDiscard === false) env.confirmDiscard = false;
+  if (deps.tabMenu) env.tabMenu = deps.tabMenu;
   const focusOf =
     deps.focusPane === undefined
       ? typeof document === "undefined"

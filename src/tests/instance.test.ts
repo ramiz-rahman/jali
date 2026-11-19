@@ -91,6 +91,7 @@ describe("the instance", () => {
         "remove",
         "close",
         "closeOthers",
+        "closeTabs",
         "undo",
         "tuck",
         "putBack",

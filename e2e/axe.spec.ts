@@ -8,7 +8,13 @@ import { test, expect } from "./fixtures/lab";
 
 /** What Jali renders: the panes (or a curated page's tabs and panes), the shelf and the dialog layer. The lab's top bar
  *  and status line sit inside the root but are the lab's, and a pane's content is the app's. */
-const JALI = [".jali-workspace", ".jali-page-tabs", "[data-shelf]", "[data-jali-layer]"];
+const JALI = [
+  ".jali-workspace",
+  ".jali-page-tabs",
+  "[data-shelf]",
+  "[data-jali-layer]",
+  ".jali-tab-menu",
+];
 
 async function axe(page: Page) {
   let b = new AxeBuilder({ page }).withTags([
@@ -39,6 +45,21 @@ test.describe("axe", () => {
     await expect(page.locator('[role="tab"][data-tucked]')).toHaveCount(1);
     await expect(lab.shelf()).toBeVisible();
     expect(await axe(page)).toEqual([]);
+  });
+
+  test("a tab's menu, opened from the keyboard", async ({ lab, page }) => {
+    await lab.open();
+    await lab.tuck("customer").click();
+    const t = page.locator('[role="tab"][data-tucked]');
+    await t.focus();
+    await page.keyboard.press("Shift+F10");
+    const menu = page.getByRole("menu");
+    await expect(menu).toBeVisible();
+    await expect(menu.getByRole("menuitem").first()).toBeFocused();
+    expect(await axe(page)).toEqual([]);
+    await page.keyboard.press("Escape");
+    await expect(menu).toHaveCount(0);
+    await expect(t).toBeFocused();
   });
 
   test("the palette", async ({ lab, page }) => {

@@ -114,6 +114,7 @@ export {
   type Command,
   type ListedCommand,
 } from "./commands/registry";
+export type { TabMenu, TabMenuItem } from "./commands/tab-menu";
 export {
   DEFAULT_KEYMAP,
   type Keymap,

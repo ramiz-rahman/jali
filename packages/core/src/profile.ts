@@ -104,6 +104,8 @@ export interface Env {
   landmark?: "region" | "main";
   /** `false` when the app asks about unsaved work itself (`createJali({ confirmDiscard })`). */
   confirmDiscard?: false;
+  /** The app's items for a tab's menu (`createJali({ tabMenu })`). */
+  tabMenu?: import("./commands/tab-menu").TabMenu;
 }
 
 export const presetById = (env: Pick<Env, "presets">, id: string | undefined): Preset | undefined =>

@@ -74,6 +74,41 @@ export function closeOthers(x: Snapshot, id = x.s.view.focused): Outcome {
   };
 }
 
+/**
+ * Close several tabs of `id`'s group at once: the others, or those after it in reading order. One change, so the
+ * host's `beforeClose` is asked once, listing them all, and one Undo brings them back.
+ */
+export function closeTabs(x: Snapshot, id: NodeId, which: "others" | "after"): Outcome {
+  const { s, ctx } = x;
+  const closing = tabsToClose(x, id, which);
+  if (!closing.length) return refuse("nothing-to-do", say(x).noTabsToClose);
+  const before = { layout: s.layout, view: s.view };
+  let layout = s.layout,
+    view = unzoomed(s.view);
+  for (const tab of closing) ({ layout, view } = core.close(layout, view, tab, ctx));
+  return {
+    op: "closeOthers",
+    layout,
+    view: core.focus(view, id, ctx),
+    msg: say(x).tabsClosed(closing.length),
+    toast: messagesOf(x).toasts.tabsClosed(closing.length),
+    undo: pushUndo(s.undoStack, {
+      kind: "closeOthers",
+      before: { layout: core.tree.clone(before.layout), view: core.tree.clone(before.view) },
+    }),
+    patch: s.peekSource && closing.includes(s.peekSource) ? { peekSource: undefined } : undefined,
+    result: id,
+  };
+}
+
+/** The tabs `closeTabs` would close: of `id`'s group, the others or those after it. */
+export function tabsToClose({ m }: Snapshot, id: NodeId, which: "others" | "after"): NodeId[] {
+  const st = m.stackOf(id);
+  if (!st) return [];
+  const at = st.children.findIndex((c) => c.id === id);
+  return st.children.filter((_, i) => (which === "others" ? i !== at : i > at)).map((c) => c.id);
+}
+
 export const checkUndo = ({ s, env }: Snapshot) =>
   s.undoStack.length ? undefined : refuse("nothing-to-do", say(env).nothingToRestore);
 

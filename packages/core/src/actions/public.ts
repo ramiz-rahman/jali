@@ -15,7 +15,7 @@ import type { Edge, NodeId, ObjectRef } from "../layout/types";
 import type { ItemId, ViewMode } from "../profile";
 import { refuse, type ActionResult, type Outcome, type Snapshot } from "../state/apply";
 import type { Settings } from "../state/settings";
-import { close, closeOthers, remove, undo } from "./close";
+import { close, closeOthers, closeTabs, remove, undo } from "./close";
 import { focusShown, toggleZoom } from "./focus";
 import { sameRef, setPinned } from "./follow";
 import {
@@ -89,6 +89,8 @@ export interface JaliActions {
   close(pane?: PaneTarget): ActionResult;
   /** Close every pane but `pane` (default: the focused one). */
   closeOthers(pane?: PaneTarget): ActionResult;
+  /** Close the other tabs of `pane`'s group, or the tabs after it in reading order: one change, one Undo. */
+  closeTabs(pane: PaneTarget, which: "others" | "after"): ActionResult;
   /** Undo the last close or tuck. */
   undo(): ActionResult;
   /** Remove a pane whose object the app closed elsewhere: quietly, with no undo, and without asking (`beforeClose`
@@ -219,6 +221,7 @@ export function publicActions(run: Run): JaliActions {
     close: (pane) =>
       opt(pane, (x, id) => ((id ?? x.s.view.focused) ? close(x, id) : refuse("not-found"))),
     closeOthers: (pane) => opt(pane, (x, id) => closeOthers(x, id)),
+    closeTabs: (pane, which) => on(pane, (x, id) => closeTabs(x, id, which)),
     undo: () => run(undo),
     remove: (pane) => on(pane, remove),
 

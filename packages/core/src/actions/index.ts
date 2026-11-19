@@ -7,7 +7,7 @@ import type { NodeId } from "../layout/types";
 import type { ActionResult, Outcome, Snapshot } from "../state/apply";
 import { focus, focusCycle, focusDirection, focusEnd, focusIndex, toggleZoom } from "./focus";
 import { dismiss, newTab, noteOpen, openBeside, openHere, split, splitAuto } from "./open";
-import { close, closeOthers, undo } from "./close";
+import { close, closeOthers, closeTabs, undo } from "./close";
 import { putBack, reveal, tuck } from "./tuck";
 import { drop, moveDirection, swapWithNext } from "./move";
 import { mergeInto, moveTab, moveTabToward, setActiveTab, unmerge } from "./tabs";
@@ -72,6 +72,7 @@ export const ACTIONS = {
   noteOpen,
   close,
   closeOthers,
+  closeTabs,
   undo,
   tuck,
   putBack,

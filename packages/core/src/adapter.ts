@@ -24,6 +24,7 @@ export * from "./commands/keyboard";
 export * from "./commands/keymap";
 export * from "./commands/regions";
 export * from "./commands/registry";
+export * from "./commands/tab-menu";
 export * from "./contracts/active-item";
 export * from "./dividers/drag";
 export * from "./dividers/resize";

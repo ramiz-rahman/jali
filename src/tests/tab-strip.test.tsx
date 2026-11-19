@@ -63,7 +63,7 @@ describe("a tab strip", () => {
     for (const t of screen.getAllByRole("tab")) {
       expect(t.querySelector("button, [tabindex]")).toBeNull();
       expect(t.parentElement!.getAttribute("role")).toBe("presentation");
-      expect(t.getAttribute("aria-keyshortcuts")).toBe("Delete Backspace");
+      expect(t.getAttribute("aria-keyshortcuts")).toBe("Delete Backspace Shift+F10");
       expect(t.getAttribute("aria-description")).toBe("Delete closes it.");
     }
     const item = within(tab("Note 2").parentElement!);

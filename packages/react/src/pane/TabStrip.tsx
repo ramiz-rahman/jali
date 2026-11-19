@@ -1,5 +1,5 @@
 import type { NodeId, PaneNode } from "@jali/core";
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { useJaliIcons } from "../icons/context";
 import type { Frame, Tab } from "@jali/core/adapter";
 import {
@@ -15,6 +15,7 @@ import {
 import { useEnv, useStore, useUi } from "../state/react";
 import { Activity } from "./Activity";
 import { KindIcon } from "./icons";
+import { TabMenu, type TabMenuAt } from "./TabMenu";
 import { TabOverflow } from "./TabOverflow";
 import { UnsavedMark } from "./Unsaved";
 
@@ -58,6 +59,7 @@ export function TabStrip({ group, owner }: { group: NonNullable<Frame["group"]>;
   const unsaved = useUi((s) => s.unsaved);
   // A tab dragged over this strip: the line shows where it would go.
   const dropAt = useUi((s) => s.dnd?.tabAt);
+  const dir = useUi((s) => s.dir);
   // No launcher kind, no "+": there is nothing to open in the new tab.
   // A curated page's views live in the page tabs, so a pane's strip lists a page view only while it is shown: never a
   // repeat. The exception is a group of page views, which only a centre drop ("Add as tab") makes: you asked for
@@ -73,6 +75,15 @@ export function TabStrip({ group, owner }: { group: NonNullable<Frame["group"]>;
   const folded = tabs.filter((t) => t.folded);
 
   const strip = useRef<HTMLDivElement>(null);
+  const [menu, setMenu] = useState<TabMenuAt | null>(null);
+  const closeMenu = useCallback(
+    (refocus: boolean) => {
+      setMenu(null);
+      if (menu && refocus)
+        strip.current?.querySelector<HTMLElement>(`[data-tab="${menu.pane}"]`)?.focus();
+    },
+    [menu],
+  );
   const [hiddenCount, setHiddenCount] = useState(0);
   const measure = () => {
     const el = strip.current;
@@ -129,6 +140,10 @@ export function TabStrip({ group, owner }: { group: NonNullable<Frame["group"]>;
           e.preventDefault();
           actions.close(t.id);
         }}
+        onContextMenu={(e) => {
+          e.preventDefault();
+          setMenu({ pane: t.id, x: e.clientX, y: e.clientY });
+        }}
       >
         <div
           {...marks[t.id]}
@@ -140,7 +155,8 @@ export function TabStrip({ group, owner }: { group: NonNullable<Frame["group"]>;
           data-unsaved={dirty || undefined}
           aria-label={title}
           aria-description={dirty ? `${words.pane.unsaved}. ${description}` : description}
-          aria-keyshortcuts="Delete Backspace"
+          aria-keyshortcuts="Delete Backspace Shift+F10"
+          aria-haspopup="menu"
           title={isFolded ? tw.foldedTitle(title) : title}
           role="tab"
           aria-selected={active}
@@ -153,6 +169,11 @@ export function TabStrip({ group, owner }: { group: NonNullable<Frame["group"]>;
             if (e.key === "Enter" || e.key === " ") {
               e.preventDefault();
               actions.setActiveTab(group.id, t.id);
+            } else if (e.key === "ContextMenu" || (e.key === "F10" && e.shiftKey)) {
+              // The tab's menu from the keyboard: under the tab, at its start.
+              e.preventDefault();
+              const r = e.currentTarget.getBoundingClientRect();
+              setMenu({ pane: t.id, x: dir === "rtl" ? r.right : r.left, y: r.bottom + 2 });
             } else if (
               (e.key === "Delete" || e.key === "Backspace") &&
               !(e.metaKey || e.ctrlKey || e.altKey || e.shiftKey)
@@ -218,6 +239,7 @@ export function TabStrip({ group, owner }: { group: NonNullable<Frame["group"]>;
         {folded.length && mine.length ? <span className="jali-tab-sep" aria-hidden /> : null}
         {folded.map(renderTab)}
       </div>
+      {menu ? <TabMenu at={menu} onClose={closeMenu} /> : null}
       {overflowing ? (
         <TabOverflow
           tabs={[...mine, ...folded]}

@@ -67,6 +67,9 @@ const announcements = {
   noOtherPanes: "There are no other panes to close",
   closed: (pane: string) => `${pane} closed · Undo available`,
   othersClosed: "Other panes closed · Undo available",
+  /** Tabs closed together from a tab's menu (Close other tabs, Close tabs to the right). */
+  tabsClosed: (count: number) => `${count} ${count === 1 ? "tab" : "tabs"} closed · Undo available`,
+  noTabsToClose: "There are no tabs to close",
   nothingToRestore: "Nothing to restore",
   undone: (kind: "close" | "closeOthers") => `${kind === "close" ? "Pane" : "Panes"} restored`,
 
@@ -160,6 +163,10 @@ const announcements = {
 const toasts = {
   closed: (pane: string): Toast => ({ title: "Pane closed", description: pane, undo: true }),
   othersClosed: (): Toast => ({ title: "Other panes closed", undo: true }),
+  tabsClosed: (count: number): Toast => ({
+    title: `${count} ${count === 1 ? "tab" : "tabs"} closed`,
+    undo: true,
+  }),
   backToPage: (page: string, count: number): Toast => ({
     title: `Back to ${page}`,
     description: `${count} opened ${panes(count)} closed`,
@@ -366,6 +373,18 @@ const tabs = {
   /** The overflow button's text: how many tabs are out of view. */
   moreCount: (count: number) => `+${count}`,
   menuLabel: "Tabs in this group",
+  /** A tab's own menu (right-click, Shift+F10 or the menu key on a tab). */
+  tabMenuLabel: (pane: string) => `${pane} tab`,
+  closeTab: "Close",
+  closeOtherTabs: "Close other tabs",
+  /** The tabs after this one: to its right, or its left when the strip reads right to left. */
+  closeTabsAfter: (side: "left" | "right") => `Close tabs to the ${side}`,
+  moveTab: (side: "left" | "right") => `Move tab ${side}`,
+  moveOutOfTabs: "Move out of tabs",
+  splitRight: "Split right",
+  splitDown: "Split down",
+  maximise: "Maximise",
+  restore: "Restore",
 };
 
 /** The shelf: tucked and folded panes as chips. */
