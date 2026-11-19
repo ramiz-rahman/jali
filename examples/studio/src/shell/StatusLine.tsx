@@ -35,8 +35,7 @@ export function StatusLine() {
       <span className="status-focus">{focused ? m.title(focused) : ""}</span>
       <span className="status-hint">{hint}</span>
       <span className="status-credit" title={cat.notice ? `${cat.credit} ${cat.notice}` : cat.credit}>
-        {cat.credit}
-        {cat.notice ? ` ${cat.notice}` : ""}
+        {cat.short}
       </span>
       <button
         type="button"

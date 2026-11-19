@@ -4,6 +4,7 @@ import { storeOf } from "@jali/core/adapter";
 import { openFollowing, sessionInLayout } from "./actions";
 import { clip } from "./panes/clip";
 import { transcript } from "./panes/transcript";
+import { audible, channelOf } from "./edits";
 import { createServices } from "./services";
 import { sessionById, wordsFor, type SegmentData } from "./sessions/sessions";
 import { slashForSearch, spaceForTransport } from "./shell/keys";
@@ -313,6 +314,53 @@ describe("the transport", () => {
     engine.play(20);
     engine.load(DINNER);
     expect(engine.get()).toMatchObject({ session: DINNER, playing: false, at: 0 });
+  });
+});
+
+describe("sessions of three, eight and four tracks", () => {
+  afterEach(() => vi.useRealTimers());
+  const SONG = "light-caught-by-the-stone";
+
+  it("starts each session's mix from the catalogue, and solo counts only that session's tracks", () => {
+    const { services } = testJali();
+    const { edits } = services;
+    expect(channelOf(edits.of(APOLLO), "pao").gain).toBe(-12);
+    expect(channelOf(edits.of(DINNER), "p05").pan).toBeLessThan(0);
+    expect(channelOf(edits.of(DINNER), "p08").pan).toBeGreaterThan(0);
+    const song = sessionById(SONG)!;
+    edits.setChannel(SONG, "bass", { solo: true });
+    expect(audible(edits.of(SONG), "bass", song.tracks)).toBe(true);
+    expect(audible(edits.of(SONG), "drums", song.tracks)).toBe(false);
+    // A solo in the song mutes nothing in the landing.
+    expect(audible(edits.of(APOLLO), "air-ground", sessionById(APOLLO)!.tracks)).toBe(true);
+  });
+
+  it("moves every layout between the sessions: every follower of the library goes along", () => {
+    vi.useFakeTimers();
+    const { jali } = testJali();
+    for (const preset of ["edit", "mix", "review", "compare"]) {
+      jali.actions.preset(preset);
+      for (const id of [SONG, DINNER, APOLLO]) {
+        jali.actions.select("library", transcript({ session: id }));
+        vi.advanceTimersByTime(200);
+        for (const p of jali.model().panes)
+          if (p.linkedTo === "library" && p.follows)
+            expect(p.ref.params.session, `${preset} ${p.id}`).toBe(id);
+      }
+      expect(jali.model().folded, preset).toEqual([]);
+    }
+  });
+
+  it("names the song's detail a line and its transcript Lyrics", () => {
+    vi.useFakeTimers();
+    const { jali } = testJali();
+    expect(jali.model().title("transcript")).toMatch(/^Transcript · /);
+    jali.actions.select("library", transcript({ session: SONG }));
+    vi.advanceTimersByTime(200);
+    jali.actions.select("transcript", clip({ session: SONG, segment: "s03" }));
+    vi.advanceTimersByTime(200);
+    expect(jali.model().title("transcript")).toMatch(/^Lyrics · /);
+    expect(jali.model().title("clip")).toBe("Line 3");
   });
 });
 

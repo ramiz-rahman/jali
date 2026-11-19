@@ -43,6 +43,8 @@ export interface Catalogue {
   licence: Licence;
   /** The attribution to display, as CREDITS.md words it. */
   credit: string;
+  /** The same in a few words, for the status line: what a licence asks to be seen first. */
+  short: string;
   /** A notice the licence asks for: files changed (CDLA 3.1(b)). */
   notice?: string;
   /** The transcript pane's name, and what one of its rows is called. */
@@ -62,6 +64,7 @@ export const CATALOGUE: Record<string, Catalogue> = {
     },
     credit:
       "Apollo 11 audio and transcripts: NASA (Johnson Space Center, Houston Audio Control Room), via the Internet Archive (archive.org/details/Apollo11Audio). Public domain. Use does not imply endorsement by NASA.",
+    short: "Audio: NASA, via the Internet Archive. Public domain. No endorsement by NASA implied.",
     words: { transcript: "Transcript", segment: "segment", segments: "segments" },
     colours: { "air-ground": "blue", "flight-loop": "white", pao: "green" },
     mix: {
@@ -81,6 +84,7 @@ export const CATALOGUE: Record<string, Catalogue> = {
     },
     credit:
       "“The Light caught by the Stone” by Pablo Carlos Budassi / Awe Plant, performed by Nueve Millas. Licensed CC BY 4.0 (creativecommons.org/licenses/by/4.0). Source: archive.org/details/thelightmasters. Excerpt, stems grouped and re-encoded.",
+    short: "“The Light caught by the Stone”, Pablo C. Budassi / Awe Plant, CC BY 4.0. Excerpt, stems grouped.",
     words: { transcript: "Lyrics", segment: "line", segments: "lines" },
     colours: {
       drums: "white",
@@ -116,6 +120,7 @@ export const CATALOGUE: Record<string, Catalogue> = {
       "Conversation audio and transcript: DiPCo, Dinner Party Corpus, Amazon (zenodo.org/record/8122551), licensed under the Community Data License Agreement, Permissive 1.0 (cdla.dev/permissive-1-0).",
     notice:
       "These files are modified from the original data: excerpted, filtered, gated, levelled and re-encoded.",
+    short: "Modified from DiPCo (Amazon). CDLA-Permissive 1.0.",
     words: { transcript: "Transcript", segment: "segment", segments: "segments" },
     colours: { p05: "blue", p06: "green", p07: "yellow", p08: "violet" },
     // Around the table, left to right.
@@ -133,6 +138,7 @@ const FALLBACK: Catalogue = {
   source: "",
   licence: { name: "", short: "", url: "" },
   credit: "",
+  short: "",
   words: { transcript: "Transcript", segment: "segment", segments: "segments" },
   colours: {},
   mix: {},
