@@ -1,8 +1,8 @@
 /**
- * The status line: one quiet line of print along the edge, like the line on the back of a device. What this is on
- * the left ("Example app built with Jali"), who made it on the right, and between them only what the moment needs:
- * Jali's shelf (tucked panes, as chips), a word when a pane is maximised, and the way to every credit and licence.
- * The keys are not listed here: ⌘K lists every command with its key.
+ * The status line: one quiet line of print set straight on the desk. Jali's lockup and a line saying what this is
+ * on the left, who made it on the right, and between them only what the moment needs: Jali's shelf (tucked panes,
+ * as chips), a word when a pane is maximised, and the way to every credit and licence. The keys are not listed
+ * here: ⌘K lists every command with its key.
  */
 import { Shelf, useJali, useJaliState } from "@jali/react";
 import { BuiltWithJali, Maker } from "../../../shared/src/maker/maker";

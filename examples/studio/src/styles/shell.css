@@ -442,50 +442,36 @@
   }
 
   /*
-   * ---------- the edge rail ----------
-   * The status line: the slab's twin on the opposite edge, flush to it and the sides, and slim. One line of fine
-   * print engraved in the metal, as on the back of a device: what this is at one end, who made it at the other,
-   * the marks in the ink of the keys' legends and the words a shade quieter. No caps, no seams, no keys: the rail
-   * is the quietest thing on the desk.
+   * ---------- the status line ----------
+   * No rail: one line of fine print set straight on the desk, under (or over) the panes. Jali's lockup and a line
+   * saying what this is at one end, who made it at the other, the marks in ink and the words a shade quieter. The
+   * slab is the only body on the desk besides the panes; this is the print on the mat.
    */
   .status {
     --maker-ink: var(--ink);
-    --maker-lockup: 17px;
-    --maker-mark: 15px;
+    --maker-lockup: 21px;
+    --maker-mark: 18px;
     position: relative;
     display: flex;
     align-items: center;
     gap: 28px;
-    min-height: 34px;
+    min-height: 40px;
     padding: 0 20px;
     color: var(--legend);
     font-family: var(--jali-font);
-    font-size: 11px;
-    letter-spacing: 0.035em;
+    font-size: 13px;
+    letter-spacing: 0.02em;
     min-width: 0;
-    background:
-      var(--grain), var(--slab-falloff), linear-gradient(180deg, var(--slab-2), var(--slab-1));
-    box-shadow:
-      inset 0 1px 0 light-dark(rgb(255 255 255 / 0.9), rgb(255 255 255 / 0.1)),
-      0 -1px 0 light-dark(rgb(0 0 0 / calc(0.25 * var(--sh))), #000);
-    text-shadow: 0 1px 0 light-dark(rgb(255 255 255 / 0.8), rgb(0 0 0 / calc(0.6 * var(--sh))));
   }
   .status :is(.maker, .built-with) {
-    gap: 8px;
+    gap: 10px;
   }
   .status .maker-name {
     font-weight: 500;
   }
-  /* The engraving catches the light on its lower edge, the marks as the print does. */
-  .status :is(.brand-lockup, .maker-mark) {
-    filter: drop-shadow(
-      0 1px 0 light-dark(rgb(255 255 255 / 0.8), rgb(0 0 0 / calc(0.6 * var(--sh))))
-    );
-  }
-  /* Tucked panes wait here as small keys; they are the only things on the rail that stand up from it. */
+  /* Tucked panes wait here as small keys: the only things on the line that stand up from the desk. */
   .status .jali-shelf-chip {
-    height: 24px;
-    font-size: 10.5px;
+    height: 26px;
   }
   .status-note {
     white-space: nowrap;
@@ -503,7 +489,6 @@
     font: inherit;
     letter-spacing: inherit;
     color: inherit;
-    text-shadow: inherit;
     cursor: pointer;
   }
   .status-credits:hover {
@@ -540,9 +525,8 @@
   /*
    * ---------- the controls along the bottom ----------
    * `data-controls="bottom"` (ui/controlsPlace.ts): the slab stands on the window's bottom edge, like a console's
-   * front panel under the work, and the status line moves up to be the head rail. The light still comes from above,
-   * so each part's edges swap: the slab's top edge is now the one that shows (a lit chamfer over a dark seam, no
-   * shadow thrown down), and the rail's lower edge is the one that meets the desk.
+   * front panel under the work, and the status line moves up to the top. The light still comes from above, so the slab's
+   * edges swap: its top edge is now the one that shows (a lit chamfer over a dark seam, no shadow thrown down).
    */
   [data-controls="bottom"] .app > .topbar {
     order: 1;
@@ -554,12 +538,5 @@
   }
   [data-controls="bottom"] .app > .status {
     order: -1;
-    background:
-      var(--grain), var(--slab-falloff), linear-gradient(180deg, var(--slab-1), var(--slab-2));
-    box-shadow:
-      inset 0 -1px 0 light-dark(rgb(255 255 255 / 0.9), rgb(255 255 255 / 0.1)),
-      0 1px 0 light-dark(rgb(0 0 0 / calc(0.32 * var(--sh))), #000),
-      0 6px 10px -8px rgb(0 0 0 / calc(0.4 * var(--sh)));
-    z-index: 1;
   }
 }

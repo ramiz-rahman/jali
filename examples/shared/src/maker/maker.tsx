@@ -1,5 +1,5 @@
 /**
- * What this is and who made it, the same in every example: "Example app built with Jali" beside Jali's lockup, and
+ * What this is and who made it, the same in every example: Jali's lockup with a line saying this is an example, and
  * the maker's mark and name. One place for the words, the marks and the links: each app's status line starts with
  * `<BuiltWithJali />` and ends with `<Maker />`, and `makerCommand` is in ⌘K.
  *
@@ -18,7 +18,7 @@ export const MAKER = {
 
 export const JALI = {
   url: "https://jali.ramizrahman.com/",
-  line: "Example app built with",
+  line: "An example app, built to show what Jali can do",
 } as const;
 
 /** The monogram (docs/brand/ramiz_rahman_personal_brand/Logo), in currentColor. */
@@ -43,7 +43,7 @@ export function MakerMark({ size = 14 }: { size?: number }) {
 
 /**
  * The mark and the name, linking to the maker's site. For a status line or a footer. With `words`, "Designed and
- * built by" is printed before them, to mirror "Example app built with Jali" at the other end of a line.
+ * built by" is printed before them, to mirror the line beside Jali's lockup at the other end.
  */
 export function Maker({ words = false }: { words?: boolean }) {
   return (
@@ -62,7 +62,7 @@ export function Maker({ words = false }: { words?: boolean }) {
   );
 }
 
-/** "Example app built with Jali": the words and Jali's lockup, linking to Jali's site. */
+/** Jali's lockup, then a line saying what this app is, linking to Jali's site. */
 export function BuiltWithJali() {
   return (
     <a
@@ -70,10 +70,10 @@ export function BuiltWithJali() {
       href={JALI.url}
       target="_blank"
       rel="noopener"
-      aria-label={`${JALI.line} Jali`}
+      aria-label={`Jali. ${JALI.line}.`}
     >
-      <span className="maker-words">{JALI.line}</span>
       <JaliLockup />
+      <span className="maker-words">{JALI.line}</span>
     </a>
   );
 }
