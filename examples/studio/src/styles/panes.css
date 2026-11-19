@@ -1123,7 +1123,7 @@
   .clip-range,
   .clip-stats,
   .mx-db,
-  .jali-scrim [role="combobox"] {
+  .jali-palette-input {
     font-family: var(--font-readout);
   }
 }

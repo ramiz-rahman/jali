@@ -102,6 +102,7 @@
   --jali-focus-ring: var(--focus);
   --jali-radius-control: var(--corner);
   --jali-radius-menu: var(--corner);
+  --jali-radius-chip: var(--corner);
   /* One face for everything printed: Chakra Petch. Jali's "mono" slot (its key hints) prints in it too. */
   --jali-font: "Chakra Petch", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
   --jali-font-mono: var(--jali-font);

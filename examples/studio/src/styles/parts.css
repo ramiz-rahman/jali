@@ -24,8 +24,7 @@
     .jali-pane,
     .jali-peek,
     .jali-tab-menu,
-    .jali-scrim > [role="dialog"],
-    .jali-scrim > [role="alertdialog"]
+    .jali-dialog
   ) {
     background:
       var(--grain), var(--slab-falloff), linear-gradient(180deg, var(--body-1), var(--body-2));
@@ -77,7 +76,7 @@
     .jali-shelf-chip,
     .jali-switch-item,
     .jali-follow-toggle,
-    .jali-scrim [role="alertdialog"] button
+    .jali-dialog-button
   ) {
     --wall: 3px;
     --press: 0px;
@@ -175,7 +174,7 @@
       .jali-shelf-chip,
       .jali-switch-item,
       .jali-follow-toggle,
-      .jali-scrim [role="alertdialog"] button
+      .jali-dialog-button
     ):active:not(:disabled) {
     --press: var(--wall);
   }
@@ -388,7 +387,7 @@
   }
 
   /* ---------- readout: black glass ---------- */
-  :where(.screen, .mx-db, .mx-meter, .jali-scrim [role="combobox"]) {
+  :where(.screen, .mx-db, .mx-meter, .jali-palette-input) {
     position: relative;
     background: var(--scr-glass);
     color: var(--scr-ink);
