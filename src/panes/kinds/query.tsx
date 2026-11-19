@@ -1,4 +1,4 @@
-import { TerminalSquare } from "lucide-react";
+import { TerminalWindowIcon } from "@phosphor-icons/react";
 import { definePane, useActivity, useCommands, usePaneState, useUnsaved } from "@jali/react";
 import { useEffect, useRef, useState } from "react";
 import { resultFormat } from "../../data/labels";
@@ -170,7 +170,7 @@ function typeFromRows(rows: Row[], name: string) {
 // Every query is new: never matched against an open one, but listed in Recent.
 export const queryKind = definePane("query", {
   title: "Query",
-  icon: TerminalSquare,
+  icon: TerminalWindowIcon,
   width: { min: 400, comfortable: 560 },
   height: { min: 280 },
   scratch: true,

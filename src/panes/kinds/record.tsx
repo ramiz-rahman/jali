@@ -1,4 +1,4 @@
-import { FileText } from "lucide-react";
+import { FileTextIcon } from "@phosphor-icons/react";
 import { definePane, useActivity } from "@jali/react";
 import { copyRaw } from "../shared/copyRaw";
 import { useState } from "react";
@@ -289,7 +289,7 @@ function RelationLink({ rel, openBeside }: { rel: Relation; openBeside: PaneProp
 export const recordKind = definePane("record", {
   params: { table: String },
   title: ({ table, id }) => `${singular(table ?? "record")} ${id ?? ""}`.trim(),
-  icon: FileText,
+  icon: FileTextIcon,
   width: { min: 360, comfortable: 440, max: 600 },
   height: { min: 240 },
   Component: RecordPane,

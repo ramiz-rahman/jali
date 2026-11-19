@@ -1,4 +1,4 @@
-import { BarChart3 } from "lucide-react";
+import { ChartBarIcon } from "@phosphor-icons/react";
 import { definePane } from "@jali/react";
 import type { Row } from "../../data/types";
 import { useMemo, useState } from "react";
@@ -136,7 +136,7 @@ export function ChartPane({ params, paused }: PaneProps<{ runId: string }>) {
 export const chartKind = definePane("chart", {
   params: { runId: String },
   title: "Chart",
-  icon: BarChart3,
+  icon: ChartBarIcon,
   width: { min: 360, comfortable: 480 },
   height: { min: 220 },
   inRecent: ({ runId }) => !!runId,

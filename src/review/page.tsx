@@ -1,6 +1,6 @@
 /** The loan-review page around the panes: the queue at the left and the application's header above the tabs. */
 import { useEffect, useMemo, useRef, useState } from "react";
-import { ListFilter, X } from "lucide-react";
+import { FunnelSimpleIcon, XIcon } from "@phosphor-icons/react";
 import { useJali } from "@jali/react";
 import { isLoading, useRows } from "../data/hooks";
 import { formatTimestamp } from "../panes/format";
@@ -150,8 +150,8 @@ function QueueSheet({ item }: { item: number }) {
         aria-expanded={open}
         onClick={() => setOpen(true)}
       >
-        <ListFilter size={14} strokeWidth={1.5} aria-hidden />{" "}
-        <span className="pk-mono">{waiting}</span> waiting
+        <FunnelSimpleIcon size={14} aria-hidden /> <span className="pk-mono">{waiting}</span>{" "}
+        waiting
       </button>
       {open ? (
         <div
@@ -172,7 +172,7 @@ function QueueSheet({ item }: { item: number }) {
             onClick={close}
             autoFocus
           >
-            <X size={16} strokeWidth={1.5} aria-hidden />
+            <XIcon size={16} aria-hidden />
           </button>
           <QueueRail
             item={item}

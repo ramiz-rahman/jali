@@ -1,4 +1,4 @@
-import { FileText, LayoutDashboard, Link2 } from "lucide-react";
+import { FileTextIcon, LayoutIcon, LinkSimpleHorizontalIcon } from "@phosphor-icons/react";
 import { definePane } from "@jali/react";
 import { singular } from "../panes/shared/refs";
 import { OverviewPane } from "./overview";
@@ -8,7 +8,7 @@ import { ReviewRelatedPane } from "./lists";
 export const overviewKind = definePane("review-overview", {
   params: { item: Number },
   title: ({ item }) => `Application #${item} overview`,
-  icon: LayoutDashboard,
+  icon: LayoutIcon,
   width: { min: 360 },
   height: { min: 240 },
   inRecent: false,
@@ -37,7 +37,7 @@ const recordTitle = (table: string, id: unknown) => {
 export const reviewRecordKind = definePane("review-record", {
   params: { table: String },
   title: ({ table, id }) => recordTitle(table ?? "", id),
-  icon: FileText,
+  icon: FileTextIcon,
   width: { min: 380 },
   height: { min: 240 },
   shows: "record",
@@ -46,7 +46,7 @@ export const reviewRecordKind = definePane("review-record", {
 
 export const reviewRelatedKind = definePane("review-related", {
   title: ({ label }) => String(label ?? "Related"),
-  icon: Link2,
+  icon: LinkSimpleHorizontalIcon,
   width: { min: 360 },
   height: { min: 240 },
   shows: "related",

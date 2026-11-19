@@ -3,7 +3,14 @@
  * then tabs (Overview, Application, Borrower, Loan history, Group, Field officer). Split view starts from
  * Overview's sections as panes: the application, with the borrower and their loan history beside it.
  */
-import { Briefcase, FileText, History, LayoutDashboard, UserRound, UsersRound } from "lucide-react";
+import {
+  BriefcaseIcon,
+  ClockCounterClockwiseIcon,
+  FileTextIcon,
+  LayoutIcon,
+  UserIcon,
+  UsersIcon,
+} from "@phosphor-icons/react";
 import { column, pane, row, type ObjectRef } from "@jali/core";
 import { definePage, type PageView } from "@jali/react";
 import { applicationFacts } from "../data/sample-sql";
@@ -11,12 +18,12 @@ import { overviewKind, reviewRecordKind, reviewRelatedKind } from "./kinds";
 import { ApplicationHeader, QueueRail } from "./page";
 
 const ROLES: PageView[] = [
-  { id: "overview", label: "Overview", priority: "supporting", icon: LayoutDashboard },
-  { id: "application", label: "Application", priority: "primary", icon: FileText },
-  { id: "borrower", label: "Borrower", priority: "supporting", icon: UserRound },
-  { id: "history", label: "Loan history", priority: "supporting", icon: History },
-  { id: "group", label: "Group", priority: "supporting", icon: UsersRound },
-  { id: "officer", label: "Field officer", priority: "supporting", icon: Briefcase },
+  { id: "overview", label: "Overview", priority: "supporting", icon: LayoutIcon },
+  { id: "application", label: "Application", priority: "primary", icon: FileTextIcon },
+  { id: "borrower", label: "Borrower", priority: "supporting", icon: UserIcon },
+  { id: "history", label: "Loan history", priority: "supporting", icon: ClockCounterClockwiseIcon },
+  { id: "group", label: "Group", priority: "supporting", icon: UsersIcon },
+  { id: "officer", label: "Field officer", priority: "supporting", icon: BriefcaseIcon },
 ];
 
 const record = (table: string, id: number) => reviewRecordKind({ table, id });

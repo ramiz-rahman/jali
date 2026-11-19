@@ -1,4 +1,4 @@
-import { ListTree } from "lucide-react";
+import { TreeViewIcon } from "@phosphor-icons/react";
 import { definePane } from "@jali/react";
 import type { TableName } from "../../data/types";
 import { useCatalog } from "../../data/hooks";
@@ -100,7 +100,7 @@ export function StructurePane({ params, paused, openBeside }: PaneProps<{ table:
 export const structureKind = definePane("structure", {
   params: { table: String },
   title: ({ table }) => `${table ?? ""} structure`.trim(),
-  icon: ListTree,
+  icon: TreeViewIcon,
   width: { min: 380, comfortable: 440, max: 720 },
   height: { min: 240 },
   Component: StructurePane,

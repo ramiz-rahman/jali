@@ -2,7 +2,7 @@
  * The loan-review list views: a borrower's loan history (or an officer's loans), and the members, applications and
  * groups that records link to. Reviewer tables, not grids: the columns a decision needs first, the rest as the view widens.
  */
-import { AlertTriangle } from "lucide-react";
+import { WarningIcon } from "@phosphor-icons/react";
 import type { PaneProps } from "@jali/react";
 import { useActivity, useJaliState } from "@jali/react";
 import { isLoading, useRows } from "../data/hooks";
@@ -185,7 +185,7 @@ function LoanList({ rows: loans, column, label, open, paused }: ListProps) {
       </dl>
       {overdue.length && !byOfficer ? (
         <p className="rv-alert" role="note">
-          <AlertTriangle size={14} strokeWidth={2} aria-hidden />
+          <WarningIcon size={14} aria-hidden />
           Cycle {String(overdue[0]!.cycle)} is overdue: {taka(overdue[0]!.outstanding_cents)}{" "}
           outstanding
           {pay.ready && paid.missed ? `, ${plural(paid.missed, "instalment")} missed` : ""}.
