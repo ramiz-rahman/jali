@@ -14,7 +14,10 @@ function distMaps(): Plugin {
   return {
     name: "size-dist-maps",
     load(id) {
-      if (!/[\\/]packages[\\/](core|react)[\\/]dist[\\/].*\.js$/.test(id) || !existsSync(`${id}.map`))
+      if (
+        !/[\\/]packages[\\/](core|react)[\\/]dist[\\/].*\.js$/.test(id) ||
+        !existsSync(`${id}.map`)
+      )
         return;
       return { code: readFileSync(id, "utf8"), map: readFileSync(`${id}.map`, "utf8") };
     },
@@ -36,11 +39,16 @@ export default defineConfig({
       input: { [scenario]: `${import.meta.dirname}/${entry}` },
       output: {
         codeSplitting: {
+          // Higher priority first, so a package's own dependencies (Phosphor, React) aren't counted in its chunk.
           groups: [
-            { name: "jali-core", test: /packages[\\/]core[\\/]dist/ },
-            { name: "jali-react", test: /packages[\\/]react[\\/]dist/ },
-            { name: "react", test: /node_modules[\\/](react|react-dom|scheduler)[\\/]/ },
-            { name: "lucide", test: /node_modules[\\/]lucide-react[\\/]/ },
+            {
+              name: "react",
+              priority: 3,
+              test: /node_modules[\\/](react|react-dom|scheduler)[\\/]/,
+            },
+            { name: "phosphor", priority: 3, test: /node_modules[\\/]@phosphor-icons[\\/]/ },
+            { name: "jali-core", priority: 2, test: /packages[\\/]core[\\/]dist/ },
+            { name: "jali-react", priority: 1, test: /packages[\\/]react[\\/]dist/ },
           ],
         },
       },

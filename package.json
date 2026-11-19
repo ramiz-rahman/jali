@@ -13,6 +13,7 @@
     "test:e2e": "playwright test",
     "screens": "SCREENS=1 playwright test",
     "build:packages": "pnpm -r --filter \"./packages/*\" build",
+    "size": "pnpm build:packages && tsc -p scripts/size && node scripts/size.mjs",
     "example:minimal": "vp dev --config examples/minimal/vite.config.ts --port 5310",
     "example:bare-icons": "vp dev --config examples/bare-icons/vite.config.ts --port 5311"
   },

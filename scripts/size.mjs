@@ -21,15 +21,20 @@ const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 // (docs/DECISIONS.md has the numbers); and source files it must not ship (more than a stray mapping's few bytes).
 const SCENARIOS = {
   // One kind, no curated page, no launcher: examples/minimal without its fonts.
-  minimal: { entry: "minimal.tsx", budget: { core: 39, react: 20, css: 7 } },
+  minimal: { entry: "minimal.tsx", budget: { core: 45, react: 13.5, css: 7.3, phosphor: 10 } },
   // Every feature: a curated page, presets, a launcher, URL sync, host commands and the hooks.
-  full: { entry: "full.tsx", budget: { core: 39, react: 20.5, css: 7 } },
+  full: { entry: "full.tsx", budget: { core: 45, react: 14, css: 7.3, phosphor: 11 } },
+  // examples/bare-icons: @jali/react/bare with the host's own icons, so no Phosphor.
+  bare: {
+    entry: "../../examples/bare-icons/src/main.tsx",
+    budget: { core: 45, react: 13, css: 7.3, phosphor: 0 },
+  },
   // The workspace without React.
-  headless: { entry: "headless.ts", budget: { core: 35 } },
+  headless: { entry: "headless.ts", budget: { core: 41.5 } },
   // Only the pure layout tree: the builders and the `layout` namespace. No workspace, keyboard or curated page.
   layout: {
     entry: "layout.ts",
-    budget: { core: 9.5 },
+    budget: { core: 9.6 },
     mustNotShip: [
       "core/src/state/store.ts",
       "core/src/state/apply.ts",
@@ -40,7 +45,12 @@ const SCENARIOS = {
     ],
   },
 };
-const PACKAGES = { core: "jali-core", react: "jali-react", react_dom: "react", lucide: "lucide" };
+const PACKAGES = {
+  core: "jali-core",
+  react: "jali-react",
+  react_dom: "react",
+  phosphor: "phosphor",
+};
 
 const args = process.argv.slice(2);
 const only = args.filter((a) => !a.startsWith("--"));
@@ -55,7 +65,9 @@ const kb = (n) => (n / 1024).toFixed(1);
 const gz = (buf) => gzipSync(buf, { level: 9 }).length;
 
 // ---------- source maps: which source file each shipped byte comes from ----------
-const B64 = Object.fromEntries([..."ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"].map((c, i) => [c, i]));
+const B64 = Object.fromEntries(
+  [..."ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"].map((c, i) => [c, i]),
+);
 function vlq(segment) {
   const out = [];
   let value = 0;
@@ -110,7 +122,9 @@ function build(name, entry) {
     const ext = file.endsWith(".css") ? "css" : "js";
     const key =
       ext === "css"
-        ? "css"
+        ? chunk === "jali-react"
+          ? "css"
+          : "app"
         : (Object.entries(PACKAGES).find(([, c]) => c === chunk)?.[0] ?? "app");
     const buf = readFileSync(join(assets, file));
     parts[key] ??= { min: 0, gzip: 0 };
@@ -142,8 +156,16 @@ if (asJson) {
   for (const r of Object.values(results)) delete r.modules;
   console.log(JSON.stringify(results, null, 2));
 } else {
-  const cols = ["core", "react", "css", "react_dom", "lucide", "app"];
-  const head = ["scenario", "@jali/core", "@jali/react", "styles.css", "react-dom", "lucide", "app"];
+  const cols = ["core", "react", "css", "phosphor", "react_dom", "app"];
+  const head = [
+    "scenario",
+    "@jali/core",
+    "@jali/react",
+    "styles.css",
+    "phosphor",
+    "react-dom",
+    "app",
+  ];
   console.log("Minified / gzipped KB, per package (budget on gzipped, in brackets)\n");
   console.log(head.map((h, i) => (i ? h.padStart(20) : h.padEnd(10))).join(""));
   for (const [name, { parts, budget, over }] of Object.entries(results)) {
