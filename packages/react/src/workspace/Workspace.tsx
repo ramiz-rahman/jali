@@ -230,9 +230,12 @@ function useFullScreen(store: UiStore, m: JaliModel) {
   const asked = useRef(false);
   useEffect(() => {
     if (typeof document === "undefined") return;
-    if (full && !document.fullscreenElement && document.documentElement.requestFullscreen) {
+    // The pane itself is the browser's full-screen element: the browser then shows only it, over anything the host
+    // draws (a sticky top bar of any z-index). Jali's dialogs move inside it meanwhile (JaliRoot).
+    const el = full ? store.dom.pane(full) : null;
+    if (el && !document.fullscreenElement && el.requestFullscreen) {
       asked.current = true;
-      document.documentElement.requestFullscreen().catch(() => (asked.current = false));
+      el.requestFullscreen().catch(() => (asked.current = false));
     } else if (!full && asked.current) {
       asked.current = false;
       if (document.fullscreenElement) document.exitFullscreen?.().catch(() => {});

@@ -23,6 +23,14 @@ test("a pane goes full screen from its header and comes back with Escape, exactl
     page.getByRole("button", { name: `Exit full screen ${name}`, exact: true }),
   ).toHaveAttribute("aria-pressed", "true");
 
+  // The pane itself is the browser's full-screen element, and Jali's dialogs open inside it.
+  expect(await page.evaluate(() => document.fullscreenElement?.matches("section[data-pane]"))).toBe(
+    true,
+  );
+  await page.keyboard.press("ControlOrMeta+k");
+  await expect(page.locator(":fullscreen").getByRole("dialog", { name: "Commands" })).toBeVisible();
+  await page.keyboard.press("Escape");
+
   await page.keyboard.press("Escape");
   await expect.poll(() => page.evaluate(() => !!document.fullscreenElement)).toBe(false);
   await expect(page.locator("section[data-full-screen]")).toHaveCount(0);

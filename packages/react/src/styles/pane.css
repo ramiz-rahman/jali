@@ -132,8 +132,12 @@
     background: none;
     color: var(--jali-text-subtle);
   }
+  /* On the whole screen, the way out always shows. */
+  .jali-pane[data-full-screen] .jali-pane-actions .jali-icon-btn.jali-act-fullscreen {
+    opacity: 1;
+  }
   /* A lone pane is quiet: its Full screen button shows on hover or focus inside it. */
-  .jali-pane.is-alone:not(:hover):not(:focus-within) .jali-act-fullscreen {
+  .jali-pane.is-alone:not([data-full-screen]):not(:hover):not(:focus-within) .jali-act-fullscreen {
     opacity: 0;
   }
   .jali-pane:not(.is-focused):not(:hover) .jali-act-zoom,

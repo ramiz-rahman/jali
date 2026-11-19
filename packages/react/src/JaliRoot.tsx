@@ -18,7 +18,14 @@
  * Icons: Jali's own (`defaultIcons`), with the host's `icons` over them by name.
  */
 import type { Jali } from "@jali/core";
-import { useEffect, useMemo, type HTMLAttributes, type ReactNode } from "react";
+import {
+  useEffect,
+  useMemo,
+  useSyncExternalStore,
+  type HTMLAttributes,
+  type ReactNode,
+} from "react";
+import { createPortal } from "react-dom";
 import { storeOf } from "@jali/core/adapter";
 import { Announcer } from "./chrome/Announcer";
 import { CuratedPage } from "./chrome/PageBar";
@@ -61,24 +68,29 @@ export function JaliRoot({
 }: JaliRootProps) {
   const store = storeOf(jali);
   useEffect(() => store.start(), [store]);
+  const host = useFullScreenPane(store);
+  const inside = (layer: ReactNode) => (host ? createPortal(layer, host) : layer);
   return (
     <JaliProvider jali={jali} icons={icons}>
       <div {...rest} dir={store.env.dir ?? rest.dir} data-jali="" ref={store.dom.attach}>
         {children}
       </div>
-      {/* The dialogs render outside the root but are this workspace's: keys pressed in them count as its own. */}
-      <div
-        data-jali-layer=""
-        dir={store.env.dir}
-        ref={store.dom.attachLayer}
-        style={{ display: "contents" }}
-      >
-        <Announcer />
-        {store.env.palette === false ? null : <Palette />}
-        {settings ? <SettingsPanel>{settingsExtra}</SettingsPanel> : null}
-        <Chooser />
-        <ConfirmDiscard />
-      </div>
+      {/* The dialogs render outside the root but are this workspace's: keys pressed in them count as its own. While a
+          pane is the browser's full-screen element, they render inside it, the only part of the page on screen. */}
+      {inside(
+        <div
+          data-jali-layer=""
+          dir={store.env.dir}
+          ref={store.dom.attachLayer}
+          style={{ display: "contents" }}
+        >
+          <Announcer />
+          {store.env.palette === false ? null : <Palette />}
+          {settings ? <SettingsPanel>{settingsExtra}</SettingsPanel> : null}
+          <Chooser />
+          <ConfirmDiscard />
+        </div>,
+      )}
       {overlays}
     </JaliProvider>
   );
@@ -98,6 +110,23 @@ export function JaliProvider({
     <StoreProvider store={storeOf(jali)}>
       <IconsProvider icons={useIcons(icons)}>{children}</IconsProvider>
     </StoreProvider>
+  );
+}
+
+const onFullScreen = (l: () => void) => {
+  document.addEventListener("fullscreenchange", l);
+  return () => document.removeEventListener("fullscreenchange", l);
+};
+
+/** This workspace's pane that is the browser's full-screen element, if one is. */
+function useFullScreenPane(store: ReturnType<typeof storeOf>): HTMLElement | null {
+  return useSyncExternalStore(
+    onFullScreen,
+    () => {
+      const el = document.fullscreenElement;
+      return el instanceof HTMLElement && el.id.startsWith(`${store.dom.id}-pane-`) ? el : null;
+    },
+    () => null,
   );
 }
 
