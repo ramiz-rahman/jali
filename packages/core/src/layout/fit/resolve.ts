@@ -1,7 +1,15 @@
-import type { Axis, DividerBox, Layout, LayoutContext, Rect, ResolvedLayout, ScrollerBox } from "../types";
+import type {
+  Axis,
+  DividerBox,
+  Layout,
+  LayoutContext,
+  Rect,
+  ResolvedLayout,
+  ScrollerBox,
+} from "../types";
 import type { ViewState } from "../types";
 import { shares } from "../geometry/shares";
-import { extentAlong } from "../geometry/extent";
+import { extentIn } from "../geometry/extent";
 import { mirrorRect } from "../geometry/direction";
 import { noFocus, panes } from "../tree/tree";
 import { allPanes, choose, foldSlot, overlayOf, replay, type Projected } from "./overlay";
@@ -32,8 +40,8 @@ export function resolve(layout: Layout, view: ViewState, ctx: LayoutContext): Re
     function allocate(n: Projected): void {
       if (n.type !== "row" && n.type !== "column") return;
       for (const child of n.children) {
-        const extent = extentAlong(
-          reference.panes,
+        const extent = extentIn(
+          reference,
           allPanes(child).map((p) => p.id),
           n.type,
         );
@@ -121,20 +129,22 @@ export function resolve(layout: Layout, view: ViewState, ctx: LayoutContext): Re
         )
       : [];
     const overflows = scrolls && own.reduce((a, b) => a + b, 0) > available;
-    const lengths = overflows ? own : shares(
-      n.children.map((c, i) =>
-        horizontal
-          ? {
-              size: c.size,
-              min: mins[i]!,
-              comfortable: c.bounds.comfortable,
-              max: c.bounds.maxWidth,
-            }
-          : { size: c.size, min: mins[i]! },
-      ),
-      available,
-      mode,
-    );
+    const lengths = overflows
+      ? own
+      : shares(
+          n.children.map((c, i) =>
+            horizontal
+              ? {
+                  size: c.size,
+                  min: mins[i]!,
+                  comfortable: c.bounds.comfortable,
+                  max: c.bounds.maxWidth,
+                }
+              : { size: c.size, min: mins[i]! },
+          ),
+          available,
+          mode,
+        );
     let strip = scroller;
     if (scrolls) {
       strip = {

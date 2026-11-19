@@ -143,6 +143,35 @@ describe("a row that scrolls sideways", () => {
     expect(rect(narrow, "d1").width).toBe(300);
   });
 
+  it("a divider beside a strip shares out its window with the pane beside it; the days keep their width", () => {
+    const layout = toLayout(
+      row(
+        { id: "outer" },
+        paneOf({ kind: "list", params: {} }, { id: "overview" }),
+        strip(7),
+        paneOf({ kind: "map", params: {} }, { id: "map" }),
+      ),
+    );
+    const before = place(layout);
+    const window0 = before.scrollers[0]!.rect.width;
+    const overview0 = rect(before, "overview").width;
+    const map0 = rect(before, "map").width;
+    const divider = before.dividers.find((d) => d.parentId === "outer" && d.index === 0)!;
+    expect(divider.value).toBeCloseTo(overview0);
+    // Its max leaves the strip one whole day: the strip's own minimum.
+    expect(divider.max).toBeCloseTo(overview0 + window0 - 360);
+    const after = place(core.resizeDivider(layout, "outer", 0, 60, ctx()));
+    expect(rect(after, "overview").width).toBeCloseTo(overview0 + 60);
+    expect(after.scrollers[0]!.rect.width).toBeCloseTo(window0 - 60);
+    expect(rect(after, "map").width).toBeCloseTo(map0);
+    expect(rect(after, "d1").width).toBe(360);
+    // And the other way, on the map's side.
+    const wider = place(core.resizeDivider(layout, "outer", 1, -80, ctx()));
+    expect(wider.scrollers[0]!.rect.width).toBeCloseTo(window0 - 80);
+    expect(rect(wider, "map").width).toBeCloseTo(map0 + 80);
+    expect(rect(wider, "overview").width).toBeCloseTo(overview0);
+  });
+
   it("right to left, a strip starts at its right edge", () => {
     const r = place(toLayout(strip(7)), ctx(1440, 900, 10, "rtl"));
     const s = r.scrollers[0]!;

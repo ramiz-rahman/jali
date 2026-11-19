@@ -383,6 +383,14 @@ How far the shown boxes among `ids` reach along `axis`, gaps included. `0` when 
 
 </Entry>
 
+<Entry name="layout.extentIn" kind="function" from="@jali/core" signature={`layout.extentIn(resolved: ResolvedLayout, ids: readonly string[], axis: Axis): number`} compact>
+
+As <Ref to="layout.extentAlong" />, but a row that scrolls counts as its window: when every pane of a strip is among `ids`, the strip takes the room its window does, not the length of its content. What a divider beside a strip measures.
+
+<Returns type="number" />
+
+</Entry>
+
 <Entry name="layout.scrolled" kind="function" from="@jali/core" signature={`layout.scrolled(resolved: ResolvedLayout, offsets: Offsets, dir?: "ltr" | "rtl"): ResolvedLayout`} compact>
 
 The resolved layout with each row that scrolls at its offset (`offsets`, by the row's id, in px along its content): its panes and dividers moved, and given `clip`, the strip's window. Right to left, an offset moves the content right. The model applies it with `view.scroll`.

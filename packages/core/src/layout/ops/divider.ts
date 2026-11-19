@@ -2,7 +2,7 @@ import type { Layout, LayoutContext, LayoutNode } from "../types";
 import { clone, find, isSplit, panes, noFocus } from "../tree/tree";
 import { sameSize } from "../tree/size";
 import { resolve } from "../fit/resolve";
-import { extentAlong } from "../geometry/extent";
+import { extentIn } from "../geometry/extent";
 export function resizeDivider(
   layout: Layout,
   parentId: string,
@@ -33,7 +33,7 @@ export function resizeDivider(
     }
     return next;
   }
-  const secondExtent = extentAlong(resolved.panes, rightIds, owner.type);
+  const secondExtent = extentIn(resolved, rightIds, owner.type);
   const total = divider.value + secondExtent;
   const value = Math.max(divider.min, Math.min(divider.max, divider.value + deltaPx));
   if (Math.abs(value - divider.value) < 1e-9) return layout;
@@ -41,8 +41,8 @@ export function resizeDivider(
   // so the split still fills its space after a close, a minimise or a window resize. Every sibling is
   // re-expressed in the same units from its current extent, so untouched siblings keep their share.
   const extentOf = (child: LayoutNode) =>
-    extentAlong(
-      resolved.panes,
+    extentIn(
+      resolved,
       panes(child).map((p) => p.id),
       owner.type,
     );

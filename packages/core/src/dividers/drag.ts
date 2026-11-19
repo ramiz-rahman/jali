@@ -44,8 +44,9 @@ export function startDividerDrag(
   const sepEl = e.currentTarget as HTMLElement | null;
   const s0 = store.get();
   if (!sepEl || s0.view.zoomed) return;
+  // The layout as drawn: a row that scrolls draws its panes at their place along its content, unscrolled.
   const m0 = store.model(),
-    r0 = m0.resolved,
+    r0 = m0.content,
     ctx0 = store.ctx();
   const d0 = r0.dividers.find((d) => d.parentId === parentId && d.index === index);
   const g0 = d0 && geometryFor(m0, d0, r0);
@@ -80,6 +81,10 @@ export function startDividerDrag(
     .root()
     .querySelectorAll<HTMLElement>(".jali-divider-layer [data-divider]"))
     dividerEls.set(el.dataset.divider!, el);
+  // Rows that scroll: their windows (and the content inside) move with a divider beside them.
+  const strips = new Map<string, HTMLElement>();
+  for (const el of store.dom.root().querySelectorAll<HTMLElement>(".jali-strip[data-strip]"))
+    strips.set(el.dataset.strip!, el);
   const neighbours = new Set([
     ...(d0.neighbours?.[0] ?? g0.a.ids),
     ...(d0.neighbours?.[1] ?? g0.b.ids),
@@ -168,6 +173,20 @@ export function startDividerDrag(
         place(el, d.rect);
         written.add(k);
       }
+    }
+    for (const s of r.scrollers) {
+      const el = strips.get(s.id);
+      const content = el?.querySelector<HTMLElement>(
+        ":scope > .jali-strip-viewport > .jali-strip-content",
+      );
+      if (!el || !content) continue;
+      place(el, s.rect);
+      place(content, {
+        x: -s.rect.x,
+        y: -s.rect.y,
+        width: s.rect.x + s.contentWidth,
+        height: s.rect.y + s.rect.height,
+      });
     }
   };
 

@@ -14,6 +14,7 @@ exports[`public API > the layout namespace is the pure tree API 1`] = `
   "drop",
   "encode",
   "extentAlong",
+  "extentIn",
   "focus",
   "focusCycle",
   "focusDirection",
