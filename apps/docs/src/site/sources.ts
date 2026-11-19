@@ -2,6 +2,7 @@
  * Every page's MDX source, read as text. The source gives each page's title and summary without loading its module
  * (nav, search, previous and next), and is what "Copy page" and "View as Markdown" hand to readers and agents.
  */
+import { jsxToMarkdown, type MarkdownOptions } from "./jsx-markdown";
 import { NAV, type NavSection } from "./nav";
 import { pathOf } from "./pages";
 
@@ -153,7 +154,7 @@ const attr = (attrs: string, name: string) =>
  * The page as plain Markdown: a title and summary instead of frontmatter, no imports, and the docs components that
  * carry text (Code, Install, Callout) written as Markdown. Live parts and other components stay as tags.
  */
-export function toMarkdown(page: PageSource): string {
+export function toMarkdown(page: PageSource, opts?: MarkdownOptions): string {
   const { body } = frontmatterOf(page.source);
   const vars: Record<string, string> = {};
   let text = body.replace(
@@ -191,7 +192,7 @@ export function toMarkdown(page: PageSource): string {
         .join("\n");
     },
   );
-  text = text.replace(/\n{3,}/g, "\n\n").trim();
+  text = jsxToMarkdown(text, opts);
   return `# ${page.title}\n\n${page.summary}\n\n${text}\n`;
 }
 

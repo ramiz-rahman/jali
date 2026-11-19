@@ -56,3 +56,7 @@ Everything Jali draws reads `--jali-*` tokens and sits in the `jali` cascade lay
 - **Parts** carry their state as attributes (`data-pane`, `data-kind`, `data-focused`, `aria-selected`, `data-drop-zone`) and every class is `jali-*`. Parts take no `className`: style them with your own rule on those classes and attributes (`.jali-pane[data-focused] { … }`, or in Tailwind `@apply` inside such a rule). Since Jali's rules are in the `jali` layer, yours win without `!important`. `<JaliRoot className>` styles the root.
 
 See `examples/minimal` for the smallest working app.
+
+## Docs, here too
+
+The docs for the installed version, as Markdown, are in `@jali/core`: `node_modules/@jali/core/docs/README.md` lists every page.

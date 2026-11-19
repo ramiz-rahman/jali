@@ -9,9 +9,11 @@ import paused from "../../samples/concepts/support/paused.tsx?raw";
 
 Jali does a lot for a pane: it places it, folds it, keeps its state and asks before it loses work. It can only do that if the pane's content follows a few rules. This page lists them, with the reason for each. Give it to your agent along with the task.
 
-<Callout type="tip" title="Every page is Markdown too">
-Each page of these docs is also available as Markdown, from the buttons under its title. Paste this page, [Key concepts](/get-started/key-concepts) and the [Quickstart](/get-started/quickstart) into an agent's context before it writes Jali code.
+<Callout type="tip" title="The docs come with the package">
+Every page of these docs is in `@jali/core` as Markdown, for the version you installed: `node_modules/@jali/core/docs/README.md` lists them, and this page is `docs/get-started/coding-agents.md`. An agent that reads them there works from docs that match its code. Each page here is also Markdown from the buttons under its title.
 </Callout>
+
+To give an agent the workflow as well, add Jali's skill, `skills/jali` in Jali's repository. It tells the agent to read these rules and the installed docs first, and to check its work against them.
 
 ## The rules
 

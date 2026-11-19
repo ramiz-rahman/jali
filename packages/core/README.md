@@ -21,3 +21,7 @@ jali.actions.openBeside("orders", order({ id: 2 }));
 More than one workspace on a page: give each its own `id` (DOM ids and saved keys), URL `prefix` (`url: { prefix: "n." }`) and `keys: "scoped"`. A workspace inside a page with its own theme passes `pageTheme: false`.
 
 Render it with [`@jali/react`](../react). Framework adapters import `@jali/core/adapter`.
+
+## Docs, here too
+
+`docs/` in this package holds the docs for the installed version, as Markdown: `node_modules/@jali/core/docs/README.md` lists every page. A coding agent should read `docs/get-started/coding-agents.md` before writing Jali code.

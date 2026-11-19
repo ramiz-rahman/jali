@@ -10,6 +10,7 @@ import {
   PencilSimpleIcon,
 } from "@phosphor-icons/react";
 import { editUrl } from "../site/config";
+import { MARKDOWN_TABLES } from "../site/markdown-tables";
 import { markdownUrl, neighbours, sectionOf, sources, toMarkdown } from "../site/sources";
 import { copyText } from "./mdx";
 
@@ -30,7 +31,9 @@ function PageActions({ path, title }: { path: string; title: string }) {
       <button
         type="button"
         className="page-action"
-        onClick={async () => setCopied(await copyText(toMarkdown(page)))}
+        onClick={async () =>
+          setCopied(await copyText(toMarkdown(page, { tables: MARKDOWN_TABLES })))
+        }
       >
         {copied ? <CheckIcon aria-hidden size={15} /> : <CopyIcon aria-hidden size={15} />}
         <span aria-live="polite">{copied ? "Copied" : "Copy page"}</span>

@@ -13,6 +13,7 @@ import {
 import { MDXProvider } from "@mdx-js/react";
 import { pages, type Frontmatter } from "../site/pages";
 import { usePath, useLinkInterception } from "../site/router";
+import { MARKDOWN_TABLES } from "../site/markdown-tables";
 import { sources, toMarkdown } from "../site/sources";
 import { SITE_NAME } from "../site/config";
 import { mdxComponents } from "./mdx";
@@ -70,7 +71,7 @@ function MarkdownView({ path }: { path: string }) {
     document.title = `${page?.title ?? "Not found"}.md · ${SITE_NAME}`;
   }, [page]);
   if (!page) return <NotFound path={`${path}.md`} />;
-  return <pre className="markdown-view">{toMarkdown(page)}</pre>;
+  return <pre className="markdown-view">{toMarkdown(page, { tables: MARKDOWN_TABLES })}</pre>;
 }
 
 export function App() {
