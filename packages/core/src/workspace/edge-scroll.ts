@@ -73,7 +73,8 @@ export function edgeScroll(jali: Jali, onScroll?: () => void): EdgeScroll {
       if (!pull || maxOffset(s) <= 0) return;
       // The strip's scrolling element (Scroller in @jali/react): scrolling it is the browser's work, and the strip
       // tells the view state where it got to. Moving towards the edge the pointer is at, whichever way text runs.
-      const el = store.dom.pane(s.paneIds[0]!)?.closest<HTMLElement>(".jali-strip-viewport");
+      const pane = store.dom.pane(s.paneIds[0]!);
+      const el = pane && store.dom.port.stripScroller(pane);
       if (!el) return;
       const before = el.scrollLeft;
       el.scrollLeft = before + Math.max(-1, Math.min(1, pull)) * SPEED;

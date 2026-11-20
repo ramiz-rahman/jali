@@ -75,22 +75,19 @@ export function tabDropAt(
   clientX: number,
   clientY: number,
 ): TabDrop | undefined {
-  // The tab's own box, or its close button beside it (both sit in the tab's item).
-  const el = document
-    .elementFromPoint?.(clientX, clientY)
-    ?.closest(".jali-tab-item")
-    ?.querySelector<HTMLElement>("[data-tab]");
-  const over = el?.dataset.tab;
+  // The tab's own box, or what sits beside it in the tab (its close button): the adapter knows which.
+  const at = store.dom.port.tabAt(clientX, clientY);
   const stack = store.model().stackOf(paneId);
-  if (!el || !over || !stack) return undefined;
-  const at = stack.children.findIndex((c) => c.id === over);
-  if (at < 0) return undefined;
+  if (!at || !stack) return undefined;
+  const { el, pane: over } = at;
+  const place = stack.children.findIndex((c) => c.id === over);
+  if (place < 0) return undefined;
   const r = el.getBoundingClientRect();
   const rtl = getComputedStyle(el).direction === "rtl";
   const firstHalf = rtl ? clientX > r.left + r.width / 2 : clientX < r.left + r.width / 2;
   const side = firstHalf ? "before" : "after";
   const from = stack.children.findIndex((c) => c.id === paneId);
-  let index = side === "before" ? at : at + 1;
+  let index = side === "before" ? place : place + 1;
   if (from < index) index--;
   return { tab: over, side, index };
 }
@@ -133,9 +130,7 @@ function startDrag(
   if (e.button !== 0) return handle;
   // A pane the app doesn't let move never starts a drag (from outside, the dragged thing isn't a pane yet).
   if (!fromOutside && !allows(store.snapshot(), paneId, "move")) return handle;
-  const workspace =
-    (e.currentTarget as HTMLElement).closest<HTMLElement>(".jali-workspace") ??
-    store.dom.root().querySelector<HTMLElement>(".jali-workspace");
+  const workspace = store.dom.port.panes(store.dom.root(), e.currentTarget as Element | null);
   const sx = e.clientX,
     sy = e.clientY;
 
@@ -161,7 +156,7 @@ function startDrag(
       if (Math.hypot(ev.clientX - sx, ev.clientY - sy) < DRAG_THRESHOLD) return;
       if (store.get().view.zoomed || (!fromOutside && m.panes.length < 2)) return cleanup();
       started = true;
-      document.body.classList.add("jali-pane-dragging");
+      store.dom.setDragging("pane");
       window.getSelection()?.removeAllRanges();
     }
     last = { x: ev.clientX, y: ev.clientY };
@@ -251,7 +246,7 @@ function startDrag(
     window.removeEventListener("pointermove", move);
     window.removeEventListener("pointerup", up);
     window.removeEventListener("keydown", key, true);
-    document.body.classList.remove("jali-pane-dragging");
+    if (started) store.dom.setDragging(null);
     if (store.get().dnd) store.set({ dnd: null });
   }
   document.addEventListener("selectstart", noSelect, true);

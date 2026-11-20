@@ -28,7 +28,7 @@ export function cycleRegions(store: UiStore, back: boolean): void {
           {
             el: shelf,
             enter: () => {
-              focusShelf(shelf);
+              focusShelf(store.dom, shelf);
               store.announce(store.messages.announcements.shelf);
             },
           },

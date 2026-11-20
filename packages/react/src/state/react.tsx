@@ -12,10 +12,14 @@ import {
 import type { Actions, PaneAttributes, UiState, UiStore } from "@jali/core/adapter";
 import type { ReactEnv, Page } from "../define";
 import { resolveTheme, titleOf } from "@jali/core/adapter";
+import { reactDom } from "../dom";
 
 const StoreContext = /* @__PURE__ */ createContext<UiStore | null>(null);
 
 export function StoreProvider({ store, children }: { store: UiStore; children?: ReactNode }) {
+  // The core finds React's elements through this port (dom.ts). Giving it is idempotent, so it is safe in render, and
+  // it is in place before any effect or event of the workspace runs.
+  store.dom.use(reactDom);
   return <StoreContext.Provider value={store}>{children}</StoreContext.Provider>;
 }
 

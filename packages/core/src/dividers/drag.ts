@@ -10,12 +10,14 @@
  */
 import * as core from "../layout";
 import type { Layout, NodeId, PaneBox, Rect } from "../layout/types";
-import type { UiStore } from "../state/store";
+import type { JaliDom, UiStore } from "../state/store";
 import { clampSize, dividerKey, geometryFor, snap } from "./resize";
 
-/** True while a pointer drag is in progress (keyboard resizes wait). The body class is the drag's only state. */
-export const isDividerDragging = () =>
-  typeof document !== "undefined" && document.body.classList.contains("jali-resizing");
+/** True while a divider is dragged by pointer in this workspace (keyboard resizes wait). */
+export const isDividerDragging = (dom: Pick<JaliDom, "dragging">) => {
+  const d = dom.dragging();
+  return d === "row" || d === "column";
+};
 
 const sameRect = (a: Rect, b: Rect) =>
   a.x === b.x && a.y === b.y && a.width === b.width && a.height === b.height;
@@ -26,10 +28,9 @@ function place(el: HTMLElement, r: Rect) {
   el.style.height = `${r.height}px`;
 }
 
-/** `overlay` is the drag line DividerLayer renders (hidden until a drag). */
+/** The adapter draws the drag line (`DomPort.dividerLine`); the divider is `e.currentTarget`. */
 export function startDividerDrag(
   store: UiStore,
-  overlay: HTMLElement | null,
   e: {
     pointerId: number;
     button: number;
@@ -40,7 +41,7 @@ export function startDividerDrag(
   parentId: NodeId,
   index: number,
 ) {
-  if (e.button !== 0 || isDividerDragging()) return;
+  if (e.button !== 0 || store.dom.dragging()) return;
   const sepEl = e.currentTarget as HTMLElement | null;
   const s0 = store.get();
   if (!sepEl || s0.view.zoomed) return;
@@ -76,22 +77,19 @@ export function startDividerDrag(
     const el = store.dom.pane(b.id);
     if (el) frames.set(b.id, el);
   }
-  const dividerEls = new Map<string, HTMLElement>();
-  for (const el of store.dom
-    .root()
-    .querySelectorAll<HTMLElement>(".jali-divider-layer [data-divider]"))
-    dividerEls.set(el.dataset.divider!, el);
+  const { port } = store.dom;
+  const dividerEls = new Map(port.dividers(store.dom.root()));
   // Rows that scroll: their windows (and the content inside) move with a divider beside them.
-  const strips = new Map<string, HTMLElement>();
-  for (const el of store.dom.root().querySelectorAll<HTMLElement>(".jali-strip[data-strip]"))
-    strips.set(el.dataset.strip!, el);
+  const strips = new Map(
+    [...port.strips(store.dom.root())].map(([id, frame, content]) => [id, { frame, content }]),
+  );
   const neighbours = new Set([
     ...(d0.neighbours?.[0] ?? g0.a.ids),
     ...(d0.neighbours?.[1] ?? g0.b.ids),
   ]);
 
   // Heavy panes hold their content at its current size; the frame around it still moves with the pointer.
-  const held: { content: HTMLElement; inner: HTMLElement }[] = [];
+  const held: (() => void)[] = [];
   for (const id of neighbours) {
     const box = before.get(id),
       frame = frames.get(id);
@@ -104,25 +102,13 @@ export function startDividerDrag(
       !store.env.kinds.get(node.ref.kind)?.holdWhileResizing
     )
       continue;
-    const content = frame.querySelector<HTMLElement>(":scope > .jali-pane-content");
-    const inner = content?.querySelector<HTMLElement>(":scope > .jali-pane-content-inner");
-    if (!content || !inner || content.hidden) continue;
-    const r = content.getBoundingClientRect();
-    inner.style.width = `${r.width}px`;
-    inner.style.height = `${r.height}px`;
-    content.dataset.holding = "";
-    held.push({ content, inner });
+    const release = port.hold(frame);
+    if (release) held.push(release);
   }
 
-  const axisCls = row ? "jali-resizing-row" : "jali-resizing-column";
-  document.body.classList.add("jali-resizing", axisCls);
-  sepEl.classList.add("is-dragging");
-  const tick = overlay?.querySelector<HTMLElement>(".jali-divider-tick") ?? null;
-  if (overlay) {
-    overlay.className = `jali-divider-visual jali-divider-${g0.axis}`;
-    place(overlay, d0.rect);
-    overlay.hidden = false;
-  }
+  store.dom.setDragging(g0.axis, sepEl);
+  const line = port.dividerLine(sepEl);
+  line?.show(g0.axis, d0.rect);
 
   let pointer = start;
   let snapped = false;
@@ -139,8 +125,7 @@ export function startDividerDrag(
       snapped = s.snapped;
       if (snapped) size = s.size;
     } else snapped = false;
-    if (tick) tick.hidden = !snapped;
-    overlay?.classList.toggle("is-snapped", snapped);
+    line?.snap(snapped);
     if (Math.abs(size - shownSize) < 0.01) return;
     shownSize = size;
 
@@ -166,7 +151,7 @@ export function startDividerDrag(
       const el = dividerEls.get(k),
         w = was.get(k);
       if (k === dividerKey(d0)) {
-        if (overlay) place(overlay, d.rect);
+        line?.place(d.rect);
         continue;
       }
       if (el && w && (!sameRect(w, d.rect) || written.has(k))) {
@@ -175,10 +160,7 @@ export function startDividerDrag(
       }
     }
     for (const s of r.scrollers) {
-      const el = strips.get(s.id);
-      const content = el?.querySelector<HTMLElement>(
-        ":scope > .jali-strip-viewport > .jali-strip-content",
-      );
+      const { frame: el, content } = strips.get(s.id) ?? {};
       if (!el || !content) continue;
       place(el, s.rect);
       place(content, {
@@ -214,14 +196,9 @@ export function startDividerDrag(
     } catch {
       /* already released */
     }
-    document.body.classList.remove("jali-resizing", axisCls);
-    sepEl.classList.remove("is-dragging");
-    if (overlay) overlay.hidden = true;
-    for (const h of held) {
-      h.inner.style.width = "";
-      h.inner.style.height = "";
-      delete h.content.dataset.holding;
-    }
+    store.dom.setDragging(null, sepEl);
+    line?.hide();
+    for (const release of held) release();
     // One commit, one URL write (120ms after the drag settles). React re-renders only the frames whose rect changed,
     // with the values already on screen.
     if (commitIt && preview !== layout0 && store.get().layout === layout0)

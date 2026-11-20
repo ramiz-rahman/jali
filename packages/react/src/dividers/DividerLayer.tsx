@@ -2,7 +2,7 @@
  * The dividers. The pointer drag is ours (`drag.ts`: pointer capture, one rAF per frame, direct DOM writes, one
  * commit on release); keys commit per keypress; double-click resets; the URL is written 120ms after the last change.
  */
-import { memo, useRef } from "react";
+import { memo } from "react";
 import type { ScrollerBox } from "@jali/core";
 import {
   paneDomId,
@@ -26,8 +26,6 @@ export const DividerLayer = /* @__PURE__ */ memo(function DividerLayer({
   const m = useModel();
   const zoomed = useUi((s) => s.view.zoomed);
   const rtl = useUi((s) => s.dir === "rtl");
-  // The line shown while dragging: drawn by drag.ts straight onto the DOM, never by React.
-  const line = useRef<HTMLDivElement>(null);
   if (zoomed) return null;
   const { actions } = store;
   return (
@@ -57,21 +55,17 @@ export const DividerLayer = /* @__PURE__ */ memo(function DividerLayer({
             labelB={g.b.label}
             controls={g.a.ids.map((id) => paneDomId(store.dom.id, id)).join(" ")}
             rtl={rtl && g.axis === "row"}
-            onDragStart={(e) => startDividerDrag(store, line.current, e, d.parentId, d.index)}
+            onDragStart={(e) => startDividerDrag(store, e, d.parentId, d.index)}
             setSizeA={(size) =>
-              isDividerDragging() || actions.setDividerSize(d.parentId, d.index, size)
+              isDividerDragging(store.dom) || actions.setDividerSize(d.parentId, d.index, size)
             }
             onReset={() => actions.resetDivider(d.parentId, d.index)}
           />
         );
       })}
-      <div
-        ref={line}
-        className="jali-divider-visual"
-        data-testid="divider-preview"
-        hidden
-        aria-hidden
-      >
+      {/* The line shown while dragging: drawn by drag.ts straight onto the DOM (reactDom.dividerLine), never by
+          React. */}
+      <div className="jali-divider-visual" data-testid="divider-preview" hidden aria-hidden>
         <span className="jali-divider-line" />
         <span className="jali-divider-tick" hidden />
       </div>

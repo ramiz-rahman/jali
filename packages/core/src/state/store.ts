@@ -58,6 +58,7 @@ import {
 import { browserStorage, type StoragePort } from "../ports";
 import { focusPane } from "../dom/focus";
 import { cssString, paneDomId } from "../dom/ids";
+import { noDom, type DomPort, type DragKind } from "../dom/port";
 import { pageDirection } from "../dom/direction";
 import { loadPaneState, loadPaneStateOwners } from "./pane-state";
 import { startUi } from "../boot";
@@ -321,11 +322,20 @@ export interface UiStore {
 }
 
 /**
- * A workspace's place in the DOM: the id prefix of its elements, and the element that holds it (its app shell), set
- * by the component that renders it. DOM lookups (focus, drag, F6 regions) search inside `root()` only.
+ * A workspace's place in the DOM: the id prefix of its elements, the element that holds it (its app shell), set
+ * by the component that renders it, and the adapter's `DomPort`, which finds the adapter's own elements in it. DOM
+ * lookups (focus, drag, F6 regions) search inside `root()` only.
  */
 export interface JaliDom {
   id: string;
+  /** The adapter's markup, as the core needs to find it (dom/port.ts). `noDom` until the adapter gives one. */
+  readonly port: DomPort;
+  /** Give the workspace the adapter's port. The adapter calls it before it renders the workspace. */
+  use(port: DomPort): void;
+  /** What is being dragged by pointer now: a pane (or a page tab), a divider of a row or a column; null when nothing. */
+  dragging(): DragKind | null;
+  /** A drag starts or ends: kept here, and told to the port for the page's styles. */
+  setDragging(what: DragKind | null, divider?: HTMLElement): void;
   /** The workspace's root element; the document until one is attached. */
   root(): ParentNode;
   attach(el: Element | null): void;
@@ -339,10 +349,23 @@ export interface JaliDom {
 
 function createDom(id: string): JaliDom {
   let el: Element | null = null,
-    layer: Element | null = null;
+    layer: Element | null = null,
+    port: DomPort = noDom,
+    drag: DragKind | null = null;
   const root = (): ParentNode => el ?? document;
   return {
     id,
+    get port() {
+      return port;
+    },
+    use: (next) => {
+      port = next;
+    },
+    dragging: () => drag,
+    setDragging: (what, divider) => {
+      drag = what;
+      port.dragging(what, divider);
+    },
     root,
     attach: (next) => {
       el = next;

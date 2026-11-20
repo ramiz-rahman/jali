@@ -160,7 +160,7 @@ function buildCommands(env: Env): CommandDef[] {
       title: t.putBack,
       group: g.pane,
       check: checkPutBack,
-      run: (u) => u.actions.putBack(undefined, activeTabId()),
+      run: (u) => u.actions.putBack(undefined, activeTabId(u.dom)),
     },
     {
       id: "shelf.reveal",

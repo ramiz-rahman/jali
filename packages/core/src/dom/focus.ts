@@ -1,13 +1,14 @@
 /** Every DOM focus move the workspace makes, in one place. The store asks for them; it never touches the DOM. */
 import type { NodeId } from "../layout/types";
 import type { JaliDom } from "../state/store";
-import { cssString } from "./ids";
 
 /**
- * Focus here is the workspace's own overlays (`[data-jali-layer]`: its dialogs and menus) or any dialog: the workspace
- * never pulls it into a pane.
+ * Focus here is in the workspace's own overlays (its layer: its dialogs and menus) or any dialog: the workspace never
+ * pulls it into a pane.
  */
-const OVERLAY = "[data-jali-layer], [role=dialog], [role=alertdialog], dialog";
+const DIALOG = "[role=dialog], [role=alertdialog], dialog";
+const inOverlay = (dom: JaliDom, el: Element) =>
+  !!dom.layer()?.contains(el) || !!el.closest(DIALOG);
 
 /** The element a pane's focus lands on: its autofocus target, else its grid (so J/K and Space keep working), else itself. */
 function paneTarget(el: HTMLElement) {
@@ -22,7 +23,12 @@ function paneTarget(el: HTMLElement) {
 export function focusPane(dom: JaliDom, id: NodeId) {
   if (typeof document === "undefined" || typeof requestAnimationFrame === "undefined") return;
   requestAnimationFrame(() => {
-    if (document.activeElement?.closest?.(`[role=separator], .jali-divider, ${OVERLAY}`)) return;
+    const active = document.activeElement;
+    if (
+      active?.closest &&
+      (active.closest("[role=separator]") || dom.port.inDivider(active) || inOverlay(dom, active))
+    )
+      return;
     const el = dom.pane(id);
     if (el) paneTarget(el).focus({ preventScroll: true });
   });
@@ -45,26 +51,29 @@ export function keepPaneFocus(
   const active = document.activeElement;
   if (!el) return;
   const inPane = !!active && el.contains(active);
-  const inOtherPane = !!active?.closest?.("[data-pane]") && !inPane;
+  const inOtherPane = !!active?.closest && dom.port.inPane(active) && !inPane;
   const root = dom.root();
   const outside =
     !!active && active !== document.body && root !== document && !root.contains(active);
-  const inChrome = outside || !!active?.closest?.(`${OVERLAY}, [data-jali-chrome], .jali-divider`);
+  const inChrome =
+    outside ||
+    (!!active?.closest &&
+      (inOverlay(dom, active) ||
+        !!active.closest("[data-jali-chrome]") ||
+        dom.port.inDivider(active)));
   if (!inPane && !inChrome && (inOtherPane || (fromBody && (!active || active === document.body))))
     paneTarget(el).focus({ preventScroll: true });
 }
 
 /** The tab (pane id) that holds DOM focus, if any. */
-export function activeTabId(): NodeId | undefined {
-  if (typeof document === "undefined") return undefined;
-  return (document.activeElement as HTMLElement | null)?.closest?.<HTMLElement>("[data-tab]")
-    ?.dataset.tab;
+export function activeTabId(dom: JaliDom): NodeId | undefined {
+  if (typeof document === "undefined" || !document.activeElement) return undefined;
+  return dom.port.tabOf(document.activeElement);
 }
 
 /** The shelf, when it is on screen (on a phone it folds into the pane switcher). */
 export function shownShelf(dom: JaliDom): HTMLElement | null {
-  const shelf =
-    typeof document !== "undefined" ? dom.root().querySelector<HTMLElement>("[data-shelf]") : null;
+  const shelf = typeof document !== "undefined" ? dom.port.shelf(dom.root()) : null;
   return shelf && shelf.getClientRects().length > 0 ? shelf : null;
 }
 
@@ -72,33 +81,23 @@ export const focusInShelf = (shelf: HTMLElement) =>
   !!document.activeElement && shelf.contains(document.activeElement);
 
 /** F6 into the shelf: its roving chip, else the region. */
-export function focusShelf(shelf: HTMLElement) {
-  (shelf.querySelector<HTMLElement>('.jali-shelf-chip-main[tabindex="0"]') ?? shelf).focus();
+export function focusShelf(dom: JaliDom, shelf: HTMLElement) {
+  (dom.port.shelfChip(shelf) ?? shelf).focus();
 }
 
 /** ⌘K "Show a pane from the shelf" with several panes: focus the first chip (the shelf need not be on screen). */
 export function focusShelfChip(dom: JaliDom): boolean {
-  const chip =
-    typeof document !== "undefined"
-      ? dom
-          .root()
-          .querySelector<HTMLElement>(
-            '[data-shelf] .jali-shelf-chip-main[tabindex="0"], [data-shelf] .jali-shelf-chip-main',
-          )
-      : null;
+  const shelf = typeof document !== "undefined" ? dom.port.shelf(dom.root()) : null;
+  const chip = shelf && dom.port.shelfChip(shelf);
   chip?.focus();
   return !!chip;
 }
 
-/** A 600ms highlight on a tab, so the eye finds where a revealed pane went. Skipped under reduced motion. */
+/** A highlight on a tab, so the eye finds where a revealed pane went. Skipped under reduced motion. */
 export function flashTab(dom: JaliDom, paneId: NodeId) {
   if (window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) return;
   requestAnimationFrame(() => {
-    const el = dom.root().querySelector<HTMLElement>(`[role="tab"][data-tab=${cssString(paneId)}]`);
-    if (!el) return;
-    el.classList.remove("is-flash");
-    void el.offsetWidth;
-    el.classList.add("is-flash");
-    setTimeout(() => el.classList.remove("is-flash"), 600);
+    const el = dom.port.tab(dom.root(), paneId);
+    if (el) dom.port.flash(el);
   });
 }
