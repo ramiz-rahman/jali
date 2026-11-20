@@ -230,6 +230,20 @@ export function fitProblems(page: Page, ignore: readonly string[] = []) {
       const x = (Math.max(left, r.left) + Math.min(right, r.right)) / 2;
       const y = (Math.max(top, r.top) + Math.min(bottom, r.bottom)) / 2;
       const hit = document.elementFromPoint(x, y);
+      // Scrolled under something pinned in the same scrolling box (a sticky header, a mixer's master): it scrolls
+      // back out, so it is not covered.
+      let pinned = false;
+      for (let a = hit; a && !pinned; a = a.parentElement)
+        if (getComputedStyle(a).position === "sticky") {
+          let box = a.parentElement;
+          while (
+            box &&
+            !(scrolls(box, getComputedStyle(box), "x") || scrolls(box, getComputedStyle(box), "y"))
+          )
+            box = box.parentElement;
+          pinned = !!box?.contains(el);
+        }
+      if (pinned) continue;
       // Its own content, or a box round it that takes the click for it (a label, a row), is fine. So is a toast, and
       // Jali's dividers: their 44px touch target reaches over the panes' edges on purpose (DECISIONS, stacked view).
       if (
