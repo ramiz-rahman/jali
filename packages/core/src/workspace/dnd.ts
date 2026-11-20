@@ -6,7 +6,7 @@
 import { allows } from "../actions/allow";
 import { edgeScroll } from "./edge-scroll";
 import type { Edge, Rect } from "../layout/types";
-import type { UiStore } from "../state/store";
+import type { DndState, UiStore } from "../state/store";
 
 export const DRAG_THRESHOLD = 4;
 
@@ -149,6 +149,12 @@ function startDrag(
   // the panes slide past.
   let last = { x: sx, y: sy };
   const edge = edgeScroll(store.jali, () => started && aim(last.x, last.y));
+  // One `dnd` write per frame, however often the pointer reports: the latest point wins.
+  let frame = 0;
+  const aimLast = () => {
+    frame = 0;
+    aim(last.x, last.y);
+  };
   const move = (ev: PointerEvent) => {
     const m = store.model();
     if (!started) {
@@ -159,8 +165,15 @@ function startDrag(
       window.getSelection()?.removeAllRanges();
     }
     last = { x: ev.clientX, y: ev.clientY };
-    aim(ev.clientX, ev.clientY);
+    if (typeof requestAnimationFrame !== "function") aimLast();
+    else frame ||= requestAnimationFrame(aimLast);
     edge.move(ev.clientX, ev.clientY);
+  };
+  /** A pending frame's aim, now: a release or a key acts on where the pointer last was. */
+  const settle = () => {
+    if (!frame) return;
+    cancelAnimationFrame(frame);
+    aimLast();
   };
   /** What a drop at this point (client coordinates) would do, into `dnd`. */
   const aim = (cx: number, cy: number) => {
@@ -169,7 +182,7 @@ function startDrag(
     // Over its own strip, a tab reorders: a line between tabs, never a split.
     const tabAt = reorder ? tabDropAt(store, paneId, cx, cy) : undefined;
     if (tabAt) {
-      store.set({ dnd: { dragged: paneId, x: p.x, y: p.y, ...(label ? { label } : {}), tabAt } });
+      put({ dragged: paneId, x: p.x, y: p.y, ...(label ? { label } : {}), tabAt });
       return;
     }
     // A pane in a row that scrolls is where the page shows it: the model hears where a strip is only once it rests,
@@ -191,17 +204,32 @@ function startDrag(
       zone === "centre"
     )
       zone = undefined;
-    store.set({
-      dnd: {
-        dragged: paneId,
-        x: p.x,
-        y: p.y,
-        ...(label ? { label } : {}),
-        ...(target && zone ? { target: target.id, zone } : {}),
-      },
+    put({
+      dragged: paneId,
+      x: p.x,
+      y: p.y,
+      ...(label ? { label } : {}),
+      ...(target && zone ? { target: target.id, zone } : {}),
     });
   };
+  /** Into `dnd`, unless it says what `dnd` already says. */
+  const put = (next: DndState) => {
+    const d = store.get().dnd;
+    const same =
+      d &&
+      d.dragged === next.dragged &&
+      d.x === next.x &&
+      d.y === next.y &&
+      d.label === next.label &&
+      d.target === next.target &&
+      d.zone === next.zone &&
+      d.tabAt?.tab === next.tabAt?.tab &&
+      d.tabAt?.side === next.tabAt?.side &&
+      d.tabAt?.index === next.tabAt?.index;
+    if (!same) store.set({ dnd: next });
+  };
   const up = () => {
+    settle();
     const d = store.get().dnd;
     cleanup();
     if (started && d?.tabAt) store.actions.moveTab(paneId, d.tabAt.index);
@@ -216,6 +244,8 @@ function startDrag(
   // A grip or tab held down never starts a text selection: crossing a pane would otherwise select its text.
   const noSelect = (ev: Event) => ev.preventDefault();
   function cleanup() {
+    if (frame) cancelAnimationFrame(frame);
+    frame = 0;
     edge.stop();
     document.removeEventListener("selectstart", noSelect, true);
     window.removeEventListener("pointermove", move);

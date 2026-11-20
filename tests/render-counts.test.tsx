@@ -1,11 +1,11 @@
 /**
  * Render counts: the memoisation DECISIONS relies on (17 Nov, WP3: a keyboard resize re-renders only the frames either
- * side of the divider), held by tests. Each pane frame, pane body, the workspace (`Panes`) and the divider layer are
- * wrapped in a `<Profiler>` with the component's own memo rule, so a count is a commit of that part of the tree: the
- * component itself, or anything inside it re-rendering from its own subscription (a frame's header actions, its tab
- * strip).
+ * side of the divider), held by tests. Each pane frame, pane body and divider layer is wrapped in a `<Profiler>` with
+ * the component's own memo rule, so a count is a commit of that part of the tree: the component itself, or anything
+ * inside it re-rendering from its own subscription (a frame's header actions, its tab strip). The workspace (`Panes`)
+ * is counted by its calls of `frames`, which it makes once per render.
  */
-import { act, cleanup, render } from "@testing-library/react";
+import { act, cleanup, fireEvent, render } from "@testing-library/react";
 import { type ComponentType } from "react";
 import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from "vite-plus/test";
 import { column, createJali, memoryLocation, memoryStorage, row } from "@jali/core";
@@ -65,10 +65,16 @@ vi.mock("../packages/react/src/dividers/DividerLayer", async (original) => {
   const React = await import("react");
   return { ...mod, DividerLayer: profiled(React, mod.DividerLayer, () => counts.dividers++) };
 });
-vi.mock("../packages/react/src/workspace/Workspace", async (original) => {
-  const mod = await original<typeof import("../packages/react/src/workspace/Workspace")>();
-  const React = await import("react");
-  return { ...mod, Panes: profiled(React, mod.Panes, () => counts.panes++) };
+// The workspace (`Panes`) places every frame on each render it does: one call of `frames` is one render of it.
+vi.mock("../packages/core/src/workspace/frames", async (original) => {
+  const mod = await original<typeof import("../packages/core/src/workspace/frames")>();
+  return {
+    ...mod,
+    frames: (...args: Parameters<typeof mod.frames>) => {
+      counts.panes++;
+      return mod.frames(...args);
+    },
+  };
 });
 
 const note = definePane("note", {
@@ -118,6 +124,56 @@ const reset = () => {
 const frame = () => new Promise<void>((done) => requestAnimationFrame(() => done()));
 
 describe("render counts", () => {
+  it("a drag writes dnd at most once a frame, and a release lands where the pointer last was", async () => {
+    const jali = make();
+    const { container } = render(<JaliRoot jali={jali} />);
+    const store = storeOf(jali);
+    const header = container.querySelector<HTMLElement>(
+      `[data-pane="${jali.model().visible[0]}"] .jali-pane-header`,
+    )!;
+    let writes = 0;
+    let last = store.get().dnd;
+    const off = store.subscribe(() => {
+      if (store.get().dnd !== last) writes++;
+      last = store.get().dnd;
+    });
+    await act(async () => {
+      fireEvent.pointerDown(header, { button: 0, clientX: 20, clientY: 20, pointerId: 1 });
+    });
+    // Ten moves inside one frame: one write.
+    await act(async () => {
+      for (let i = 0; i < 10; i++)
+        window.dispatchEvent(
+          new MouseEvent("pointermove", { clientX: 100 + i * 10, clientY: 250 }),
+        );
+      await frame();
+    });
+    expect(writes).toBe(1);
+    // The same point again writes nothing.
+    await act(async () => {
+      window.dispatchEvent(new MouseEvent("pointermove", { clientX: 190, clientY: 250 }));
+      await frame();
+    });
+    expect(writes).toBe(1);
+    // Moved onto another column's pane and released before the frame: the drop is there.
+    const layouts: unknown[] = [];
+    const offLayout = jali.on("layout", (e) => void layouts.push(e));
+    const target = jali.model().resolved.panes.find((b) => b.id === jali.model().visible[6])!;
+    await act(async () => {
+      window.dispatchEvent(
+        new MouseEvent("pointermove", {
+          clientX: target.rect.x + target.rect.width / 2,
+          clientY: target.rect.y + target.rect.height / 2,
+        }),
+      );
+      window.dispatchEvent(new MouseEvent("pointerup", {}));
+    });
+    expect(layouts).toHaveLength(1);
+    expect(store.get().dnd).toBeNull();
+    off();
+    offLayout();
+  });
+
   it("a pane's live title doesn't resolve the layout again", () => {
     const jali = make();
     render(<JaliRoot jali={jali} />);
