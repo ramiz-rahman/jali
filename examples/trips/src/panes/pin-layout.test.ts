@@ -1,4 +1,4 @@
-import { layoutPins, overlaps, PIN_GAP, type PinBox } from "./pin-layout";
+import { layoutPins, overlaps, pileMark, PIN_GAP, type PinBox } from "./pin-layout";
 
 const view = { left: 0, top: 0, right: 400, bottom: 300 };
 const pin = (id: string, x: number, y: number, rank = 1, size = 30): PinBox => ({
@@ -102,5 +102,21 @@ describe("layoutPins", () => {
     ]);
     expect(shown.size).toBe(0);
     expect([...off]).toEqual(["city"]);
+  });
+});
+
+describe("pileMark", () => {
+  const stop = (order: number, day = 7) => ({ day, order });
+
+  it("gives a pile of one day's stops their numbers, runs joined", () => {
+    expect(pileMark(stop(1), [stop(2)])).toBe("2");
+    expect(pileMark(stop(3), [stop(5), stop(4)])).toBe("4–5");
+    expect(pileMark(stop(1), [stop(2), stop(3), stop(5)])).toBe("2–3,5");
+  });
+
+  it("counts a mixed pile: under a hotel, with another day's stop, or with a place that isn't a stop", () => {
+    expect(pileMark({}, [stop(2), stop(3)])).toBe("+2");
+    expect(pileMark(stop(1), [stop(2), stop(3, 6)])).toBe("+2");
+    expect(pileMark(stop(1), [stop(2), {}])).toBe("+2");
   });
 });

@@ -53,13 +53,23 @@ test("pins that would cover each other make one pile, which names them and opens
   // Budget's small map frames Day 7, which spans the north of Phuket: its stops crowd at that zoom.
   await layout(page, "Budget").click();
   const map = pane(page, "map");
+  // A pile of the day's own stops says their numbers; the hotel's, with other days' stops in it, how many.
+  const hotel = map.locator('.pin[data-role="hotel"][data-more]');
+  await expect(hotel).toHaveAttribute("data-more", /^\+\d+$/);
+  const hotelName = (await hotel.getAttribute("aria-label")) ?? "";
+  expect(hotelName.split("; ")).toHaveLength(
+    Number((await hotel.getAttribute("data-more"))!.slice(1)),
+  );
   const pile = map.locator('.pin[data-role="stop"][data-more]').first();
   await expect(pile).toBeVisible();
   const name = (await pile.getAttribute("aria-label")) ?? "";
-  const more = Number((await pile.getAttribute("data-more"))?.slice(1));
-  // It says how many it stands for, and names each, so a screen reader hears what the eye can't see.
+  // It names each place it stands for, so a screen reader hears what the eye can't see; the badge reads their
+  // stop numbers, as the eye would find them in the day.
   const hidden = /Also here: (.+)\. Press to zoom in to them\.$/.exec(name)?.[1]?.split("; ") ?? [];
-  expect(hidden).toHaveLength(more);
+  const numbers = hidden.map((h) => Number(/^Day 7, stop (\d+):/.exec(h)?.[1]));
+  expect(numbers.length).toBeGreaterThan(0);
+  const [lo, hi] = [Math.min(...numbers), Math.max(...numbers)];
+  await expect(pile).toHaveAttribute("data-more", lo === hi ? String(lo) : `${lo}–${hi}`);
   const first = map.locator(`.pin[data-label="${hidden[0]}"]`);
   await expect(first).toBeHidden();
   await pile.click();

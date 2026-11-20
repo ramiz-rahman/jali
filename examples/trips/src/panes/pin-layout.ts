@@ -4,8 +4,8 @@
  *
  * Pins are placed in order of importance (the selected place, then the day's stops in order, the hotel, the airport,
  * candidates, other days' stops). A pin shows only where it shows whole: inside the map, clear of the floating
- * controls. A pin that would overlap one already placed joins it instead: that pin says "+N" and names the others,
- * and pressing it zooms in until they part. So every pin on screen is a whole target of at least 24px with room
+ * controls. A pin that would overlap one already placed joins it instead: that pin says "+N" (or, for a pile of one
+ * day's stops, their numbers) and names the others, and pressing it zooms in until they part. So every pin on screen is a whole target of at least 24px with room
  * around it, at any width and zoom, and nothing that was on the map is silently lost from a pile.
  *
  * A city badge labels a whole city, not a point, so it may move: it goes after the pins, which mark exact spots, and
@@ -123,4 +123,31 @@ export function layoutPins(
     shown.set(p.id, []);
   }
   return { shown, off, moved };
+}
+
+/** A pin as a pile's badge reads it: its day and stop number, for one of the day's stops; nothing for any other. */
+export interface PileStop {
+  day?: number;
+  order?: number;
+}
+
+/**
+ * What a pile's badge says: when the pile is all one day's stops, the numbers of those it stands for ("2", "4–5",
+ * "2–3,5"); else how many places it stands for ("+3").
+ */
+export function pileMark(head: PileStop, more: readonly PileStop[]): string {
+  const oneDay =
+    head.day !== undefined &&
+    head.order !== undefined &&
+    more.every((m) => m.day === head.day && m.order !== undefined);
+  if (!oneDay) return `+${more.length}`;
+  const ns = [...new Set(more.map((m) => m.order!))].sort((a, b) => a - b);
+  const runs: string[] = [];
+  for (let i = 0; i < ns.length;) {
+    let j = i;
+    while (j + 1 < ns.length && ns[j + 1] === ns[j]! + 1) j++;
+    runs.push(i === j ? String(ns[i]) : `${ns[i]}–${ns[j]}`);
+    i = j + 1;
+  }
+  return runs.join(",");
 }

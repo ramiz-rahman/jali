@@ -59,7 +59,14 @@ import { CATEGORY_ICON, DayMark, Segmented } from "../ui/parts";
 import { Photo, photoSrc } from "../ui/photo";
 import { photoOf } from "../trip/photos";
 import { repairStyle } from "./map-style";
-import { layoutPins, overlaps, type PinBox, type Rect } from "./pin-layout";
+import {
+  layoutPins,
+  overlaps,
+  pileMark,
+  type PileStop,
+  type PinBox,
+  type Rect,
+} from "./pin-layout";
 
 setWorkerUrl(mapWorkerUrl);
 
@@ -751,6 +758,10 @@ const photoBox = (x: number, y: number) => ({
   bottom: y - 34 + 10,
 });
 
+/** A pin as a pile's badge reads it: the day and number of one of the days' stops shown, nothing for the rest. */
+const pileStop = (pin: Pin): PileStop =>
+  pin.role === "stop" ? { day: pin.day, order: pin.order } : {};
+
 /** A city badge's id in the layout, beside the places'. */
 const badgeId = (city: CityId) => `city:${city}`;
 
@@ -778,7 +789,7 @@ function floating(el: HTMLElement): Rect[] {
 
 /**
  * Places the pins and the city badges (pin-layout.ts) and shows the result: a pin off the open map or in a pile is
- * hidden, and a pin that stands for others says "+N" and names them. A badge moves to the clear spot nearest its city,
+ * hidden, and a pin that stands for others says "+N" (or their stop numbers) and names them. A badge moves to the clear spot nearest its city,
  * or hides if there is none. The selected pin's photo shows only where it covers nothing. Returns the piles.
  */
 function placePins(
@@ -832,7 +843,14 @@ function placePins(
     const wrap = marker.getElement();
     wrap.toggleAttribute("data-hidden", !pile);
     if (pile?.length) {
-      button.dataset.more = `+${pile.length}`;
+      // A pile of the day's own stops says which ("4–5"); any other pile says how many it holds.
+      button.dataset.more = pileMark(
+        pileStop(pin),
+        pile.map((other) => {
+          const p = all.find((m) => m.pin.p.id === other)?.pin;
+          return p ? pileStop(p) : {};
+        }),
+      );
       button.setAttribute(
         "aria-label",
         `${label(id)}. Also here: ${pile.map(label).join("; ")}. Press to zoom in to them.`,
