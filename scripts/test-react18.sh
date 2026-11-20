@@ -3,7 +3,8 @@
 # react, react-dom and their types to 18 there, and runs the typecheck and the unit tests. Run from the repo root:
 #   pnpm test:react18
 set -euo pipefail
-dir=.claude/worktrees/react18-check
+# A directory of its own per run, so two checks (two sessions, or verify beside a manual run) never share one.
+dir=.claude/worktrees/react18-check-$$
 git worktree add -q --detach "$dir" HEAD
 trap 'git worktree remove --force "$dir"' EXIT
 cd "$dir"
