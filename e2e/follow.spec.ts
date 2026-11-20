@@ -21,7 +21,10 @@ test.describe("A list's detail follows its selection", () => {
     await app.expectSnap(before, "follow is a swap");
     await expect(app.pane("orders")).toHaveAttribute("data-focused", "true");
     expect(await page.evaluate(() => history.length)).toBe(entries);
-    await expect.poll(() => page.url()).toContain("5");
+    // The link names the order now shown (the layout in ?l= is base64url JSON), not merely any "5" in the URL.
+    await expect
+      .poll(() => page.evaluate(linkLayout))
+      .toMatch(/"record",\{"table":"orders","id":"?5"?\}/);
     await page.keyboard.press("k");
     await expect(app.heading("order")).toHaveText("order 4");
     await expect(app.announcer()).toHaveText("Showing order 4");
@@ -143,3 +146,17 @@ test.describe("A list's detail follows its selection", () => {
     );
   });
 });
+
+/** The layout in the address's `?l=` link, as JSON text ("" when there is none). Runs in the page. */
+function linkLayout(): string {
+  const l = new URLSearchParams(location.search).get("l") ?? "";
+  const b64 = l
+    .slice(l.indexOf(".") + 1)
+    .replace(/-/g, "+")
+    .replace(/_/g, "/");
+  try {
+    return new TextDecoder().decode(Uint8Array.from(atob(b64), (c) => c.charCodeAt(0)));
+  } catch {
+    return "";
+  }
+}
