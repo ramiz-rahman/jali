@@ -9,7 +9,7 @@
  * page it came from navigates away.
  */
 import type { Jali, NodeId } from "@jali/core";
-import { allows, storeOf, type UiStore } from "@jali/core/adapter";
+import { allows, setPopOutPort, storeOf, type UiStore } from "@jali/core/adapter";
 import { useSyncExternalStore } from "react";
 
 interface DocumentPictureInPicture {
@@ -131,6 +131,9 @@ export function bringBack() {
   changed();
   was?.win.close();
 }
+
+// Jali's "Pop out pane" command (`pane.pop_out`) opens the focused pane here.
+setPopOutPort({ can: canPopOut, run: (jali, pane) => popOut(jali, pane) });
 
 const subscribe = (l: () => void) => {
   listeners.add(l);

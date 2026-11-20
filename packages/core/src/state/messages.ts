@@ -227,6 +227,7 @@ const commands = {
   focusIndex: (n: number) => `Focus pane ${n}`,
   zoom: "Maximise or restore pane",
   fullScreen: "Full screen pane, or exit full screen",
+  popOut: "Pop out pane",
   tuck: "Tuck pane into its neighbour",
   putBack: "Put back tucked pane",
   revealFromShelf: "Show a pane from the shelf",

@@ -5,7 +5,7 @@
  * binding names (and says a refusal's reason); tooltips print `store.keymap.label(id)`.
  */
 import { notAllowed, type PaneControl } from "../actions/allow";
-import type { Edge } from "../layout/types";
+import type { Edge, NodeId } from "../layout/types";
 import { checkUndo } from "../actions/close";
 import { checkZoom } from "../actions/focus";
 import { checkPeek } from "../actions/peek";
@@ -35,6 +35,21 @@ export interface CommandDef extends Omit<Command, "run"> {
   check?: (x: Snapshot) => RefusalStep | undefined;
   run: (store: UiStore) => void;
 }
+
+/**
+ * How the framework adapter pops a pane out into a floating window (@jali/react's, set as it loads): `can` says
+ * whether this browser can, `run` opens the pane. Core has no window of its own to open, so without one `pane.pop_out`
+ * can't run.
+ */
+export interface PopOutPort {
+  can(): boolean;
+  run(jali: Jali, pane: NodeId): unknown;
+}
+let popOutPort: PopOutPort | null = null;
+/** Set (or clear) the adapter's way to pop a pane out (adapters). */
+export const setPopOutPort = (port: PopOutPort | null) => {
+  popOutPort = port;
+};
 
 /** `check`, then the app's `allow` for the focused pane (a command for something it doesn't allow is greyed out,
  *  saying why). Leaving maximise or full screen is always allowed. */
@@ -115,6 +130,24 @@ function buildCommands(env: Env): CommandDef[] {
       ),
       run: (u) => u.actions.toggleFullScreen(),
     },
+    // Only where the app turns pop out on (`allow: { popOut: true }`): the pane menu's Pop out, from ⌘K or a key.
+    ...(env.allow?.popOut === true
+      ? [
+          {
+            id: "pane.pop_out",
+            title: t.popOut,
+            group: g.pane,
+            check: also(
+              (x) => needFocus(x) ?? (popOutPort?.can() ? undefined : refuse("unavailable")),
+              "popOut",
+            ),
+            run: (u: UiStore) => {
+              const id = u.get().view.focused;
+              if (id) void popOutPort?.run(u.jali, id);
+            },
+          },
+        ]
+      : []),
     {
       id: "pane.tuck",
       title: t.tuck,
