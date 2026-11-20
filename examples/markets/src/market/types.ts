@@ -38,6 +38,9 @@ export interface Instrument {
 
 /** One instrument's latest prices. A new object every time something in it changes. */
 export interface Quote {
+  /** No price has come yet (a live feed before its first quote): every number below is a placeholder 0 that is
+   *  never shown or traded on. Absent on a real quote. */
+  pending?: true;
   symbol: string;
   bid: number;
   ask: number;

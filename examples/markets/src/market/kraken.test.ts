@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { createKrakenMarket, type SocketLike } from "./kraken";
+import { createKrakenMarket, HISTORY_RETRY_MS, type SocketLike } from "./kraken";
 import { createSimulator } from "./simulator";
 
 /** A websocket that opens at once and records what is sent; `push` plays a message from Kraken. */
@@ -37,9 +37,9 @@ const ticker = (symbol: string, last: number, change = -100) => ({
   ask_qty: 0.25,
   last,
   volume: 4600.5,
-  vwap: last - 50,
-  low: last - 500,
-  high: last + 300,
+  vwap: last * 0.999,
+  low: last * 0.99,
+  high: last * 1.005,
   change,
   change_pct: (change / (last - change)) * 100,
   timestamp: "2026-11-19T11:59:59Z",
@@ -185,5 +185,122 @@ describe("the Kraken market", () => {
   it("has no news of its own for a coin", async () => {
     const { market } = await setup();
     expect(market.snapshot({ channel: "news", symbol: "BTCUSD" })).toEqual([]);
+  });
+});
+
+describe("what comes from Kraken is parsed, not trusted", () => {
+  it("says a price is not known yet before the first quote, rather than 0", async () => {
+    const { market } = await setup();
+    expect(market.snapshot({ channel: "quote", symbol: "ETHUSD" }).pending).toBe(true);
+  });
+
+  it("drops text that isn't JSON, and messages of a shape it doesn't know", async () => {
+    const { market, ws } = await setup();
+    const seen = vi.fn();
+    market.subscribe({ channel: "quote", symbol: "BTCUSD" }, seen);
+    for (const data of ["{not json", "null", "42", '{"channel":"ticker","type":"update"}'])
+      expect(() => ws.onmessage?.({ data })).not.toThrow();
+    ws.push("ticker", "update", [null, "BTC/USD", 7]);
+    ws.push("heartbeat", "update", []);
+    expect(seen).not.toHaveBeenCalled();
+    expect(market.snapshot({ channel: "quote", symbol: "BTCUSD" }).pending).toBe(true);
+  });
+
+  it("drops a ticker whose prices aren't finite numbers above zero, and keeps the good ones beside it", async () => {
+    const { market, ws } = await setup();
+    ws.push("ticker", "update", [
+      { ...ticker("BTC/USD", 63760), last: "NaN" },
+      { ...ticker("BTC/USD", 63760), bid: null },
+      { ...ticker("BTC/USD", 63760), ask: -1 },
+      { ...ticker("BTC/USD", 63760), change: Infinity },
+      ticker("ETH/USD", 3120),
+    ]);
+    expect(market.snapshot({ channel: "quote", symbol: "BTCUSD" }).pending).toBe(true);
+    expect(market.snapshot({ channel: "quote", symbol: "ETHUSD" })).toMatchObject({ last: 3120 });
+    expect(market.instrument("BTCUSD")?.prevClose).toBe(0);
+  });
+
+  it("drops book levels and trades that don't parse", async () => {
+    const { market, ws } = await setup();
+    market.subscribe({ channel: "book", symbol: "SOLUSD" }, () => {});
+    market.subscribe({ channel: "trades", symbol: "SOLUSD" }, () => {});
+    ws.push("book", "snapshot", [
+      {
+        symbol: "SOL/USD",
+        bids: [{ price: 140, qty: 1 }, { price: "x", qty: 1 }, { price: 139, qty: -2 }, "?"],
+        asks: { price: 141, qty: 1 },
+      },
+    ]);
+    const b = market.snapshot({ channel: "book", symbol: "SOLUSD" });
+    expect(b.bids).toEqual([{ price: 140, size: 1, orders: 0 }]);
+    expect(b.asks).toEqual([]);
+    const good = { symbol: "SOL/USD", side: "buy", price: 140, qty: 1, trade_id: 1 };
+    ws.push("trade", "snapshot", [
+      good,
+      { ...good, trade_id: 2, side: "short" },
+      { ...good, trade_id: 3, price: Number.NaN },
+      { ...good, trade_id: 4.5 },
+    ]);
+    expect(market.snapshot({ channel: "trades", symbol: "SOLUSD" }).map((t) => t.id)).toEqual([1]);
+  });
+
+  it("keeps price history rows that parse, and waits longer after each failed call", async () => {
+    let clock = NOW;
+    const calls: string[] = [];
+    let answer: unknown = { error: ["EService:Unavailable"] };
+    const fetch = vi.fn(async (url: string) => {
+      calls.push(url);
+      return { ok: true, json: async () => answer };
+    });
+    const market = createKrakenMarket(createSimulator({ seed: 3 }), {
+      WebSocket: FakeSocket,
+      fetch,
+      now: () => clock,
+    });
+    const bars = () => market.snapshot({ channel: "bars", symbol: "BTCUSD", range: "1D" });
+    const settle = () => vi.waitFor(() => expect(fetch).toHaveBeenCalledTimes(calls.length));
+    bars();
+    await settle();
+    await new Promise((r) => setTimeout(r));
+    // A chart asks again on every tick: none of those calls go out until the wait is over.
+    for (let i = 0; i < 5; i++) bars();
+    expect(calls).toHaveLength(1);
+    clock += HISTORY_RETRY_MS;
+    bars();
+    await new Promise((r) => setTimeout(r));
+    expect(calls).toHaveLength(2);
+    // The second failure waits twice as long.
+    clock += HISTORY_RETRY_MS;
+    bars();
+    expect(calls).toHaveLength(2);
+    clock += HISTORY_RETRY_MS;
+    answer = {
+      error: [],
+      result: {
+        "BTC/USD": [
+          [(NOW - 60_000) / 1000, "100", "102", "99", "101", "100.5", "3.5", 10],
+          [(NOW - 30_000) / 1000, "NaN", "102", "99", "101", "100.5", "3.5", 10],
+          "broken",
+        ],
+      },
+    };
+    bars();
+    await vi.waitFor(() => expect(bars()).toHaveLength(1));
+    expect(bars()[0]).toMatchObject({ open: 100, close: 101 });
+  });
+
+  it("says whether the feed is live, and when it is lost", async () => {
+    const { market, ws } = await setup();
+    const changes = vi.fn();
+    market.feed.subscribe(changes);
+    expect(market.feed.get()).toBe("live");
+    vi.useFakeTimers();
+    ws.onclose?.();
+    expect(market.feed.get()).toBe("down");
+    expect(changes).toHaveBeenCalledTimes(1);
+    vi.advanceTimersByTime(1000);
+    await vi.waitFor(() => expect(market.feed.get()).toBe("live"));
+    vi.useRealTimers();
+    market.close();
   });
 });
