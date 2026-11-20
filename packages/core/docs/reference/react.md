@@ -331,7 +331,7 @@ Recent (newest first), whether an object is already open in another pane, and an
 *hook*, from `@jali/react`
 
 ```ts
-usePaneState<T>(key: string, initial: T): [T, (next: T | ((prev: T) => T)) => void]
+usePaneState<T>(key: string, initial: T, options?: PaneStateOptions<T>): [T, (next: T | ((prev: T) => T)) => void]
 ```
 
 State the workspace keeps for a pane: it survives the pane being tabbed, folded, tucked or moved, and a reload (saved on this device 400 ms after it changes). It is dropped when the pane closes for good or shows another object. Use it for what a person expects back (a sort, a draft, a scroll position) and React state for the rest.
@@ -342,9 +342,23 @@ In the peek sheet there is no pane, so the state is local and goes with the shee
 
 - **`key`** (`string`, required): The value's name within the pane.
 
-- **`initial`** (`T`, required): Used until a value is set. Read once, as with `useState`. Must be JSON.
+- **`initial`** (`T`, required): Used until a value is set. Read once, as with `useState`: a new object on each render doesn't change the value, and an updater's `prev` is the first `initial` while nothing is stored. Must be JSON.
+
+- **`options`** (`PaneStateOptions<T>`): `parse`, to check what was stored before it is used as `T`.
 
 **Returns** `[T, (next: T | ((prev: T) => T)) => void]`: The value, and a setter that takes a value or an updater. Values must be JSON.
+
+### PaneStateOptions
+
+*type*, from `@jali/react`
+
+```ts
+interface PaneStateOptions<T> {
+  parse?: (stored: unknown) => T | undefined;
+}
+```
+
+How `usePaneState` reads a stored value. Stored state was written by an earlier version of the app, or edited by hand, so it isn't trusted as `T`: `parse` gets what storage held and returns the value to use, or `undefined` to use `initial`. A parse that throws counts as `undefined`. A rejected value stays stored until the pane sets its own. Each stored value is parsed once, so a parse that builds a new object still gives the same value on every render.
 
 ### useActiveItemPort
 

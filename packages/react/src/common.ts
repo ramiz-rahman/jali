@@ -27,7 +27,7 @@ export {
 } from "./pane/hooks";
 // Declaring a kind's params: `params: { id: Number, tab: optional(String) }` (from @jali/core).
 export { optional, oneOf } from "@jali/core/adapter";
-export { usePaneState } from "./pane/usePaneState";
+export { usePaneState, type PaneStateOptions } from "./pane/usePaneState";
 export { useActiveItemPort } from "./pane/useActiveItemPort";
 
 // ---------- the workspace in React ----------
