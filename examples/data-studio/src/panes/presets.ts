@@ -4,7 +4,7 @@ import { auditKind } from "./kinds/audit";
 import { catalogKind } from "./kinds/catalog";
 import { chartKind } from "./kinds/chart";
 import { erKind } from "./kinds/er";
-import { queryKind } from "./kinds/query";
+import { ORDERS_BY_STATUS_SQL, queryKind } from "./kinds/query";
 import { recordKind } from "#shared/panes/kinds/record";
 import { relatedKind } from "#shared/panes/kinds/related";
 import { structureKind } from "./kinds/structure";
@@ -12,9 +12,6 @@ import { tableKind } from "#shared/panes/kinds/table";
 
 const table = (name: string) => tableKind({ table: name });
 const record = (name: string, id: number) => recordKind({ table: name, id });
-
-const SQL =
-  "SELECT status, count(*)::int AS orders, sum(total_cents)::int AS total_cents\nFROM orders\nGROUP BY status\nORDER BY orders DESC";
 
 // Ids are spelled out: links and saved layouts name panes by id.
 export const dataStudioPresets: PresetOptions[] = [
@@ -47,7 +44,7 @@ export const dataStudioPresets: PresetOptions[] = [
         { id: "r" },
         column(
           { id: "c", weight: 1.6 },
-          pane(queryKind({ sql: SQL, autorun: true }), { id: "query" }),
+          pane(queryKind({ sql: ORDERS_BY_STATUS_SQL, autorun: true }), { id: "query" }),
           pane(chartKind({ runId: "" }), { id: "chart", linkedTo: "query" }),
         ),
         pane(structureKind({ table: "sample_orders" }), { id: "inspector" }),

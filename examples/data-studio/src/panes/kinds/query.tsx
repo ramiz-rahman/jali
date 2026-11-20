@@ -21,12 +21,25 @@ import { keyHint } from "@jali/core";
 
 export const DEFAULT_SQL =
   "SELECT region, SUM(amount_cents) AS amount_cents\nFROM sample_orders\nGROUP BY region\nORDER BY amount_cents DESC";
+/** The "Query + chart + inspector" preset's query. */
+export const ORDERS_BY_STATUS_SQL =
+  "SELECT status, count(*)::int AS orders, sum(total_cents)::int AS total_cents\nFROM orders\nGROUP BY status\nORDER BY orders DESC";
+
+/**
+ * The only SQL that runs without a press of Run: the app's own. A pane's params come from links as well as from
+ * presets, and a link can carry any SQL and `autorun`; run on load, one link could hang the tab or show the reader
+ * a result that isn't what it says. So `autorun` runs the app's own queries only, and any other SQL waits, shown,
+ * for the person to read and run.
+ */
+const OWN_SQL: ReadonlySet<string> = new Set([DEFAULT_SQL, ORDERS_BY_STATUS_SQL]);
 
 /** A query may come with its SQL, and a preset may ask it to run on load. A new query has neither. */
 export const queryParams = { sql: optional(String), autorun: optional(Boolean) };
 
 export function QueryPane({ params, paused, focused, openBeside }: PaneProps<typeof queryParams>) {
   const start = params.sql ?? DEFAULT_SQL;
+  // Asked to run on load, with SQL that isn't the app's own: it came with a link, and waits for Run.
+  const held = !!params.autorun && !OWN_SQL.has(start);
   // The draft is the pane's own state: it outlives a fold, a tab switch and a reload.
   const [sql, setSql] = usePaneState("sql", start);
   const [ran, setRan] = usePaneState("ran", start);
@@ -68,10 +81,10 @@ export function QueryPane({ params, paused, focused, openBeside }: PaneProps<typ
     },
   ]);
 
-  // Presets can ask the query to run on load and hand its result handle to the linked chart.
+  // A preset can ask its own query to run on load and hand its result to the linked chart (OWN_SQL above).
   const autorun = useRef(false);
   useEffect(() => {
-    if (!params.autorun || autorun.current) return;
+    if (!params.autorun || held || autorun.current) return;
     autorun.current = true;
     exec(true);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -128,6 +141,11 @@ export function QueryPane({ params, paused, focused, openBeside }: PaneProps<typ
         <Loading />
       ) : handle ? (
         <ResultGrid handle={handle} paused={paused} focused={focused} />
+      ) : held && ran === start ? (
+        <Empty
+          title="This query came with the link, and hasn't run"
+          hint={`Read it above, then press Run (${keyHint("Mod+Enter")}) if it is what you want.`}
+        />
       ) : (
         <Empty title="No results yet" hint={`Press ${keyHint("Mod+Enter")} to run the query.`} />
       )}
