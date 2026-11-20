@@ -1105,3 +1105,16 @@ app, which has a page, grew by those lookups and by `appOnly`.
 - **Fonts:** the four faces the first screen uses are preloaded, so text isn't redrawn when they arrive (that was a CLS of 0.2 on `/reference/react` once JS no longer delayed the first paint).
 - **Measured** (`apps/docs/scripts/measure.mjs`, production build, phone = 390×844, 4× CPU, 150 ms RTT, 1.6 Mbps): see QUALITY-REVIEW, Progress, phase 3.
 - **Tests:** `e2e/hydration.spec.ts` (each island keeps its prerendered nodes on a Mac and a Windows reader; a page without live parts loads no React), `e2e/smoke.spec.ts` (every sitemap page, every island hydrated, no console error), `e2e/site.spec.ts` (search, tabs, copy, theme, heading names, CLS under 0.1 on a phone, and axe on five page types in light and dark).
+
+## 21 Nov 2026 · Size budgets reset to what ships, plus 5% (QUALITY-REVIEW P3)
+
+After the opt-in page, what a minimal app ships is code it runs: the English messages, the command registry, `apply`, the URL code, the store; in React the default icons, the tab strip, the workspace and the pane frame (see "Size after the opt-in page"). Cutting further means making Settings, the chooser and pop out opt-in for about 4–5 KB of React, still short of the old budget. The owner chose to reset the budgets instead.
+
+| Scenario | core | react | css |
+| --- | --- | --- | --- |
+| minimal, own-icons | 52.4 → budget 55 | 24.6 → 25.8 | 8.2 → 8.6 |
+| full | 57.5 → 60.4 | 26.4 → 27.7 | 8.2 → 8.6 |
+| headless | 46.9 → 49.2 | – | – |
+| layout | 10.2 → 10.7 | – | – |
+
+Gzipped KB, measured on master `ea3ac83` after `pnpm build:packages`. The `mustNotShip` lists stay: a page module in a page-less app still fails the gate whatever its size. The 5% is deliberately tight; growth past it is a decision, not drift.
