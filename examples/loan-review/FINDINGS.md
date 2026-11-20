@@ -20,6 +20,8 @@ Loan review is the curated-page example: one application at a time, with its vie
 
 **Suggested change.** Put the page bar in a named landmark (a `navigation` for the views, or inside the page's region).
 
+**Now.** The view tabs are in a `nav` landmark named "Loan review views" (21 Nov 2026). The scan's `region` exception is gone (`e2e/quality.spec.ts`).
+
 ## 3. The page's root is not a part
 
 **Wanted.** Style the curated page's frame (its background and spacing) to match the app.

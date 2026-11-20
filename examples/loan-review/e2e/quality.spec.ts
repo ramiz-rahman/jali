@@ -4,14 +4,6 @@ import { openReview, VIEWS } from "./open";
 
 qualitySuite({
   storage: "loan-review",
-  axeKnown: [
-    {
-      rule: "region",
-      target: ".jali-page-tabs",
-      reason:
-        "Jali renders a curated page's view tabs outside every landmark (loan-review/FINDINGS.md)",
-    },
-  ],
   layouts: [
     ...Object.entries(VIEWS).map(([tab, name]) => ({
       name,
