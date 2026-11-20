@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
-import { useStore } from "../state/react";
+import { useLayoutEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { ModalDialog } from "../a11y/ModalDialog";
 
 interface Props<T> {
   /** The dialog's class (with `jali-palette`) and accessible name. */
@@ -33,20 +33,12 @@ interface Props<T> {
 }
 
 /** A modal combobox over a filtered list: type to filter, arrows to move, Enter to choose, Escape to close. Focus
- *  goes to the field on open and back to where it was on close, unless the store holds focus (`focusHeld`). */
+ *  goes to the field on open and back to where it was on close (ModalDialog). The selected option stays in view. */
 export function ListDialog<T>(p: Props<T>) {
   const [q, setQ] = useState("");
   const [i, setI] = useState(() => Math.max(0, p.initial ? p.items.indexOf(p.initial) : 0));
   const input = useRef<HTMLInputElement>(null);
-  const restore = useRef<Element | null>(document.activeElement);
-  const store = useStore();
-  useEffect(() => {
-    if (!store.focusHeld) input.current?.focus();
-    const back = restore.current;
-    return () => {
-      if (!store.focusHeld) (back as HTMLElement | null)?.focus?.({ preventScroll: true });
-    };
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  const list = useRef<HTMLUListElement>(null);
   const items = useMemo(() => {
     const t = q.trim().toLowerCase();
     const found = p.items.filter((it) => !t || p.matches(it, t));
@@ -58,70 +50,82 @@ export function ListDialog<T>(p: Props<T>) {
       .map((e) => e.it);
   }, [p.items, q]); // eslint-disable-line react-hooks/exhaustive-deps
   const sel = items[Math.min(i, items.length - 1)];
+  // The selected option scrolls into the list's view, and only the list scrolls.
+  useLayoutEffect(() => {
+    const ul = list.current,
+      li = ul?.querySelector('[aria-selected="true"]');
+    if (!ul || !li) return;
+    const r = li.getBoundingClientRect(),
+      l = ul.getBoundingClientRect();
+    if (r.top < l.top) ul.scrollTop -= l.top - r.top;
+    else if (r.bottom > l.bottom) ul.scrollTop += r.bottom - l.bottom;
+  }, [sel]);
   return (
-    <div className="jali-scrim" onPointerDown={(e) => e.target === e.currentTarget && p.onClose()}>
-      <div
-        className={`jali-dialog jali-palette${p.className ? ` ${p.className}` : ""}`}
-        data-dialog={p.dialog}
-        role="dialog"
-        aria-modal="true"
-        aria-label={p.label}
+    <ModalDialog
+      scrim="jali-scrim"
+      onClose={p.onClose}
+      initialFocus={input}
+      className={`jali-dialog jali-palette${p.className ? ` ${p.className}` : ""}`}
+      data-dialog={p.dialog}
+      role="dialog"
+      aria-label={p.label}
+    >
+      {p.head}
+      <input
+        ref={input}
+        className="jali-palette-input"
+        placeholder={p.placeholder}
+        role="combobox"
+        aria-label={p.inputLabel}
+        aria-expanded="true"
+        aria-controls={p.listId}
+        aria-activedescendant={sel ? `${p.idPrefix}${p.keyOf(sel)}` : undefined}
+        value={q}
+        onChange={(e) => {
+          setQ(e.target.value);
+          setI(0);
+        }}
+        onKeyDown={(e) => {
+          if (e.key === "ArrowDown") {
+            e.preventDefault();
+            setI((n) => Math.min(n + 1, items.length - 1));
+          } else if (e.key === "ArrowUp") {
+            e.preventDefault();
+            setI((n) => Math.max(n - 1, 0));
+          } else if (e.key === "Enter" && sel) {
+            e.preventDefault();
+            p.onChoose(sel);
+          }
+        }}
+      />
+      <ul
+        ref={list}
+        className="jali-palette-list"
+        id={p.listId}
+        role="listbox"
+        aria-label={p.listLabel}
       >
-        {p.head}
-        <input
-          ref={input}
-          className="jali-palette-input"
-          placeholder={p.placeholder}
-          role="combobox"
-          aria-label={p.inputLabel}
-          aria-expanded="true"
-          aria-controls={p.listId}
-          aria-activedescendant={sel ? `${p.idPrefix}${p.keyOf(sel)}` : undefined}
-          value={q}
-          onChange={(e) => {
-            setQ(e.target.value);
-            setI(0);
-          }}
-          onKeyDown={(e) => {
-            if (e.key === "ArrowDown") {
-              e.preventDefault();
-              setI((n) => Math.min(n + 1, items.length - 1));
-            } else if (e.key === "ArrowUp") {
-              e.preventDefault();
-              setI((n) => Math.max(n - 1, 0));
-            } else if (e.key === "Enter" && sel) {
-              e.preventDefault();
-              p.onChoose(sel);
-            } else if (e.key === "Escape") {
-              e.preventDefault();
-              e.stopPropagation();
-              p.onClose();
-            }
-          }}
-        />
-        <ul className="jali-palette-list" id={p.listId} role="listbox" aria-label={p.listLabel}>
-          {items.map((it, n) => {
-            const disabled = p.disabled?.(it) ?? false;
-            const k = p.keyOf(it);
-            return (
-              <li
-                key={k}
-                id={`${p.idPrefix}${k}`}
-                {...p.itemProps?.(it)}
-                role="option"
-                aria-selected={it === sel}
-                aria-disabled={disabled || undefined}
-                className={`${p.itemClass}${it === sel ? " is-selected" : ""}${disabled ? " is-disabled" : ""}`}
-                onPointerMove={() => setI(n)}
-                onClick={() => !disabled && p.onChoose(it)}
-              >
-                {p.render(it)}
-              </li>
-            );
-          })}
-          {!items.length ? <li className="jali-palette-empty">{p.empty(q)}</li> : null}
-        </ul>
-      </div>
-    </div>
+        {items.map((it, n) => {
+          const disabled = p.disabled?.(it) ?? false;
+          const k = p.keyOf(it);
+          return (
+            <li
+              key={k}
+              id={`${p.idPrefix}${k}`}
+              {...p.itemProps?.(it)}
+              role="option"
+              aria-selected={it === sel}
+              aria-disabled={disabled || undefined}
+              className={`${p.itemClass}${it === sel ? " is-selected" : ""}${disabled ? " is-disabled" : ""}`}
+              onPointerMove={() => setI(n)}
+              onClick={() => !disabled && p.onChoose(it)}
+            >
+              {p.render(it)}
+            </li>
+          );
+        })}
+        {!items.length ? <li className="jali-palette-empty">{p.empty(q)}</li> : null}
+      </ul>
+    </ModalDialog>
   );
 }

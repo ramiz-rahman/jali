@@ -1,5 +1,6 @@
 import type { Settings as S, ThemeChoice } from "@jali/core";
-import { useEffect, useRef, type ReactNode } from "react";
+import { useRef, type ReactNode } from "react";
+import { ModalDialog } from "../a11y/ModalDialog";
 import { useJaliIcons } from "../icons/context";
 
 import { useStore, useUi } from "../state/react";
@@ -24,137 +25,125 @@ export function SettingsPanel({ children }: { children?: ReactNode } = {}) {
   const full = viewerLabel(profile, true, store.messages.page);
   const limited = viewerLabel(profile, false, store.messages.page);
   const first = useRef<HTMLInputElement>(null);
-  useEffect(() => {
-    if (open) first.current?.focus();
-  }, [open]);
   if (!open) return null;
   const set = (patch: Partial<S>) => store.actions.changeSettings(patch);
   const close = () => store.actions.closeSettings();
   return (
-    <div
-      className="jali-scrim jali-scrim-light"
-      onPointerDown={(e) => e.target === e.currentTarget && close()}
+    <ModalDialog
+      scrim="jali-scrim jali-scrim-light"
+      onClose={close}
+      initialFocus={first}
+      className="jali-dialog jali-settings"
+      data-dialog="settings"
+      role="dialog"
+      aria-labelledby={`${id}-settings-title`}
     >
-      <div
-        className="jali-dialog jali-settings"
-        data-dialog="settings"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby={`${id}-settings-title`}
-        onKeyDown={(e) => {
-          if (e.key === "Escape") {
-            e.stopPropagation();
-            close();
-          }
-        }}
-      >
-        <header>
-          <h2 id={`${id}-settings-title`}>{t.title}</h2>
-          <button className="jali-icon-btn" onClick={close} aria-label={t.close}>
-            <icon.close size={14} aria-hidden />
-          </button>
-        </header>
+      <header>
+        <h2 id={`${id}-settings-title`}>{t.title}</h2>
+        <button className="jali-icon-btn" onClick={close} aria-label={t.close}>
+          <icon.close size={14} aria-hidden />
+        </button>
+      </header>
+      <fieldset>
+        <legend>{t.theme}</legend>
+        {THEMES.map((theme, n) => (
+          <label key={theme.id} className="jali-radio">
+            <input
+              ref={n === 0 ? first : undefined}
+              type="radio"
+              name={`${id}-theme`}
+              checked={settings.theme === theme.id}
+              onChange={() => set({ theme: theme.id })}
+            />
+            <span>{t[theme.label]}</span>
+          </label>
+        ))}
+      </fieldset>
+      <fieldset>
+        <legend>{t.centreDrop}</legend>
+        <label className="jali-radio">
+          <input
+            type="radio"
+            name={`${id}-centre`}
+            checked={settings.centreDrop === "swap"}
+            onChange={() => set({ centreDrop: "swap" })}
+          />
+          <span>{t.centreDropSwap}</span>
+        </label>
+        <label className="jali-radio">
+          <input
+            type="radio"
+            name={`${id}-centre`}
+            checked={settings.centreDrop === "tab"}
+            onChange={() => set({ centreDrop: "tab" })}
+          />
+          <span>{t.centreDropTab}</span>
+        </label>
+      </fieldset>
+      <fieldset>
+        <legend>{t.paneCap}</legend>
+        <label className="jali-row-field">
+          <input
+            type="number"
+            min={2}
+            max={16}
+            value={settings.paneCap}
+            onChange={(e) =>
+              set({ paneCap: Math.max(2, Math.min(16, Number(e.target.value) || 8)) })
+            }
+          />
+          <span>{t.paneCapHelp}</span>
+        </label>
+      </fieldset>
+      {profile ? (
         <fieldset>
-          <legend>{t.theme}</legend>
-          {THEMES.map((theme, n) => (
-            <label key={theme.id} className="jali-radio">
-              <input
-                ref={n === 0 ? first : undefined}
-                type="radio"
-                name={`${id}-theme`}
-                checked={settings.theme === theme.id}
-                onChange={() => set({ theme: theme.id })}
-              />
-              <span>{t[theme.label]}</span>
-            </label>
-          ))}
-        </fieldset>
-        <fieldset>
-          <legend>{t.centreDrop}</legend>
+          <legend>{t.openedPanes(profile.name)}</legend>
           <label className="jali-radio">
             <input
               type="radio"
-              name={`${id}-centre`}
-              checked={settings.centreDrop === "swap"}
-              onChange={() => set({ centreDrop: "swap" })}
+              name={`${id}-boundary`}
+              checked={settings.boundary === "tint"}
+              onChange={() => set({ boundary: "tint" })}
             />
-            <span>{t.centreDropSwap}</span>
+            <span>{t.boundaryTint}</span>
           </label>
           <label className="jali-radio">
             <input
               type="radio"
-              name={`${id}-centre`}
-              checked={settings.centreDrop === "tab"}
-              onChange={() => set({ centreDrop: "tab" })}
+              name={`${id}-boundary`}
+              checked={settings.boundary === "none"}
+              onChange={() => set({ boundary: "none" })}
             />
-            <span>{t.centreDropTab}</span>
+            <span>{t.boundaryNone}</span>
           </label>
         </fieldset>
+      ) : null}
+      {page ? (
         <fieldset>
-          <legend>{t.paneCap}</legend>
-          <label className="jali-row-field">
+          <legend>{t.viewingAs(profile?.name ?? "")}</legend>
+          <label className="jali-radio">
             <input
-              type="number"
-              min={2}
-              max={16}
-              value={settings.paneCap}
-              onChange={(e) =>
-                set({ paneCap: Math.max(2, Math.min(16, Number(e.target.value) || 8)) })
-              }
+              type="radio"
+              name={`${id}-viewer`}
+              checked={page.canInvestigate}
+              onChange={() => store.actions.setCanInvestigate(true)}
             />
-            <span>{t.paneCapHelp}</span>
+            <span>{t.viewerFull(full)}</span>
+          </label>
+          <label className="jali-radio">
+            <input
+              type="radio"
+              name={`${id}-viewer`}
+              checked={!page.canInvestigate}
+              onChange={() => store.actions.setCanInvestigate(false)}
+            />
+            <span>{t.viewerLimited(limited)}</span>
           </label>
         </fieldset>
-        {profile ? (
-          <fieldset>
-            <legend>{t.openedPanes(profile.name)}</legend>
-            <label className="jali-radio">
-              <input
-                type="radio"
-                name={`${id}-boundary`}
-                checked={settings.boundary === "tint"}
-                onChange={() => set({ boundary: "tint" })}
-              />
-              <span>{t.boundaryTint}</span>
-            </label>
-            <label className="jali-radio">
-              <input
-                type="radio"
-                name={`${id}-boundary`}
-                checked={settings.boundary === "none"}
-                onChange={() => set({ boundary: "none" })}
-              />
-              <span>{t.boundaryNone}</span>
-            </label>
-          </fieldset>
-        ) : null}
-        {page ? (
-          <fieldset>
-            <legend>{t.viewingAs(profile?.name ?? "")}</legend>
-            <label className="jali-radio">
-              <input
-                type="radio"
-                name={`${id}-viewer`}
-                checked={page.canInvestigate}
-                onChange={() => store.actions.setCanInvestigate(true)}
-              />
-              <span>{t.viewerFull(full)}</span>
-            </label>
-            <label className="jali-radio">
-              <input
-                type="radio"
-                name={`${id}-viewer`}
-                checked={!page.canInvestigate}
-                onChange={() => store.actions.setCanInvestigate(false)}
-              />
-              <span>{t.viewerLimited(limited)}</span>
-            </label>
-          </fieldset>
-        ) : null}
-        <KeyboardList />
-        {children}
-      </div>
-    </div>
+      ) : null}
+      <KeyboardList />
+      {children}
+    </ModalDialog>
   );
 }
 
