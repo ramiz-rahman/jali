@@ -1261,3 +1261,9 @@ Gzipped KB, measured on master `ea3ac83` after `pnpm build:packages`. The `mustN
 - **Why:** a free layout arriving from the address takes back the params the address doesn't hold (`appOnly`, `link: false`) from panes still on screen (`keepOwnParams`, 20 Nov). A curated page's opened panes didn't: Back and Forward rebuilt them from the address's stripped refs, so the same pane, still open, lost its `autorun` or its `link: false` value.
 - **Now:** `openPage`, arriving from the address, gives each opened pane's ref the params it lacks from a pane on screen of the same kind showing the same object apart from them (`keepOwnRef`, the ref-level half of `keepOwnParams`, which now uses it). Only the workspace's own panes are read, and only an exact match takes anything, so a link still can't set one.
 - **Tests:** `tests/app-only-params.test.ts`: an opened pane with `autorun` keeps it through Back to an address that holds it without.
+
+## 21 Nov 2026 · An action a listener runs doesn't rename the event it heard (Codex review)
+
+- **Why:** a batch's ops, action name and input were the store's own variables, read by `told` as it told the app. A listener that acted (`setPinned` inside a `close` listener) started a batch of its own, which reset them; the close's `layout` event, told after, then named `setPinned`.
+- **Now:** `told` takes the ending batch's ops, name and input as arguments, read when it ends. The listener's change is told inside the close's telling, as before, with its own name; the close's own `layout` event names `close`.
+- **Tests:** `tests/instance.test.ts`: a `setPinned` from a `close` listener gives `layout` events named `setPinned` then `close`.

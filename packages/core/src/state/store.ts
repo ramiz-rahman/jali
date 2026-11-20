@@ -601,7 +601,14 @@ export function createUiStore(deps: UiStoreDeps): UiStore {
   let ops: Op[] = [];
   /** The first public action that committed a layout op in this batch. */
   let named: ActionName | undefined;
-  const told = (before: UiState) => {
+  /** Tells the app what a batch changed: its own `ops`, `named` and `input`, read as it ended. A listener that acts
+   *  starts a batch of its own, which must not rename this one's `layout` event. */
+  const told = (
+    before: UiState,
+    ops: readonly Op[],
+    named: ActionName | undefined,
+    input: JaliInput,
+  ) => {
     const after = state;
     if (after.layout !== before.layout) {
       const was = new Map(core.tree.panes(before.layout.root).map((p) => [p.id, p.ref]));
@@ -643,7 +650,7 @@ export function createUiStore(deps: UiStoreDeps): UiStore {
     try {
       return run();
     } finally {
-      if (--depth === 0 && handlers.size) told(from);
+      if (--depth === 0 && handlers.size) told(from, ops, named, input);
     }
   };
 

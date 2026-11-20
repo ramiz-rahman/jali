@@ -348,6 +348,26 @@ describe("events", () => {
     expect(heard).toEqual(["closeOthers"]);
   });
 
+  it("an action a listener runs names its own layout event, and leaves the one it heard alone", () => {
+    const jali = make({
+      layout: row(
+        list(),
+        tabs({ id: "group" }, order({ id: 5 }), order({ id: 6 })),
+        order({ id: 1 }),
+      ),
+    });
+    const [, five, , one] = jali.model().panes;
+    expect(five!.ref).toEqual(order({ id: 5 }));
+    expect(one!.ref).toEqual(order({ id: 1 }));
+    const heard: unknown[] = [];
+    jali.on("layout", (e) => heard.push(e.action));
+    jali.on("close", () => void jali.actions.setPinned(five!.id, true));
+    jali.actions.close(one!.id);
+    // The listener's change is told first, inside the close's telling; then the close's own.
+    expect(heard).toEqual(["setPinned", "close"]);
+    expect(jali.model().pane(five!.id)?.pinned).toBe(true);
+  });
+
   it("layout names no action for a gesture or the address", () => {
     const jali = make();
     const heard: unknown[] = [];
