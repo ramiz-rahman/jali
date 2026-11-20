@@ -240,6 +240,9 @@
   .jali-activity-working {
     background: var(--jali-working);
   }
+  .jali-activity-live {
+    background: var(--jali-live);
+  }
   .jali-activity-needs-you {
     background: var(--jali-blocked);
   }

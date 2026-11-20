@@ -162,8 +162,11 @@ export interface PaneCommand {
   disabled?: string | false;
 }
 
-/** What a pane reports about itself; shown in its header, its tab, the shelf and the status line. */
-export type PaneActivity = "idle" | "loading" | "working" | "needs-you" | "error";
+/**
+ * What a pane reports about itself; shown in its header, its tab, the shelf and the status line. `"working"` is busy
+ * work the person waits for; `"live"` is ongoing, healthy work that is meant to go on (recording, streaming, playback).
+ */
+export type PaneActivity = "idle" | "loading" | "working" | "live" | "needs-you" | "error";
 
 /** `data-*` attributes a pane sets from its data (usePaneAttributes), such as `{ "data-connection": "production" }`. */
 export type PaneAttributes = Record<`data-${string}`, string>;

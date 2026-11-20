@@ -1,7 +1,8 @@
 /** A folded pane goes on working: the "N folded" chip says so, and its menu marks the pane that is. */
 import { afterEach, beforeAll, describe, expect, it } from "vite-plus/test";
 import { act, cleanup, render } from "@testing-library/react";
-import { createJali, memoryLocation, memoryStorage, pane, row } from "@jali/core";
+import { createJali, memoryLocation, memoryStorage, optional, pane, row } from "@jali/core";
+import type { PaneActivity } from "@jali/core";
 import { storeOf } from "@jali/core/adapter";
 import { JaliRoot, JaliView, definePane, useActivity } from "@jali/react";
 
@@ -36,10 +37,22 @@ const job = definePane("job", {
   },
 });
 
-const make = (busy: boolean) => {
+/** A job that reports the activity its link names. */
+const task = definePane("task", {
+  params: { does: optional(String) },
+  title: ({ does }) => `Task ${does ?? "idle"}`,
+  Component: ({ params }) => {
+    useActivity(params.does as PaneActivity | undefined);
+    return <p>task</p>;
+  },
+});
+
+const make = (busy: boolean | (PaneActivity | undefined)[]) => {
   const jali = createJali({
-    panes: [job],
-    layout: row(pane(job({ busy }), { id: "a" }), pane(job({ busy }), { id: "b" })),
+    panes: [job, task],
+    layout: Array.isArray(busy)
+      ? row(...busy.map((does, i) => pane(task(does ? { does } : {}), { id: `t${i}` })))
+      : row(pane(job({ busy }), { id: "a" }), pane(job({ busy }), { id: "b" })),
     url: { location: memoryLocation() },
     storage: memoryStorage(),
     size: { width: 1200, height: 600 },
@@ -70,6 +83,25 @@ describe("a folded pane's activity", () => {
     act(() => chip.click());
     const item = document.querySelector<HTMLElement>('[role="menuitem"][data-item]')!;
     expect(item.querySelector<HTMLElement>(".jali-activity")!.dataset.activity).toBe("working");
+  });
+
+  it("live work shows a dot, not the ring, and reads as live", () => {
+    const chip = make(["live", "live"]);
+    expect(chip.dataset.activity).toBe("live");
+    expect(chip.getAttribute("aria-label")).toMatch(/1 folded pane, live/);
+    const shape = chip.querySelector<HTMLElement>(".jali-activity-shape")!;
+    expect(shape.dataset.activity).toBe("live");
+    expect(shape.dataset.shape).toBe("dot");
+    act(() => chip.click());
+    const dot = document.querySelector<HTMLElement>('[role="menuitem"][data-item] .jali-activity')!;
+    expect(dot.dataset.activity).toBe("live");
+    expect(dot.getAttribute("aria-label")).toBe("Live");
+  });
+
+  it("live is the least pressing: a working pane behind the chip says so first", () => {
+    const chip = make([undefined, "live", "working"]);
+    expect(chip.dataset.activity).toBe("working");
+    expect(chip.getAttribute("aria-label")).toMatch(/2 folded panes, working/);
   });
 
   it("shows nothing for folded panes that are idle", () => {

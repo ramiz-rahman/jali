@@ -212,6 +212,14 @@
     border-top-color: var(--jali-working);
     animation: ra-spin 0.9s linear infinite;
   }
+  /* Live: a dot in a soft halo, breathing slowly; still under reduced motion. */
+  .jali-ra-dot {
+    border: 2px solid color-mix(in srgb, var(--jali-live) 30%, transparent);
+    background: var(--jali-live);
+    background-clip: content-box;
+    padding: 1px;
+    animation: ra-breathe 2.4s ease-in-out infinite;
+  }
   .jali-ra-need {
     background: var(--jali-blocked);
     color: var(--jali-on-status);
@@ -225,11 +233,19 @@
       transform: rotate(360deg);
     }
   }
+  @keyframes ra-breathe {
+    50% {
+      opacity: 0.55;
+    }
+  }
   @media (prefers-reduced-motion: reduce) {
     .jali-ra-ring {
       animation: none;
       border-color: var(--jali-working);
       border-top-color: transparent;
+    }
+    .jali-ra-dot {
+      animation: none;
     }
     .jali-shelf-fade {
       transition: none;

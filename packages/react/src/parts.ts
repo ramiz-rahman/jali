@@ -186,7 +186,7 @@ export const parts = {
     attributes: [
       {
         name: "data-activity",
-        means: "`loading`, `working`, `needs-you` or `error`.",
+        means: "`loading`, `working`, `live`, `needs-you` or `error`.",
       },
     ],
   },
@@ -367,7 +367,7 @@ export const parts = {
       {
         name: "data-activity",
         means:
-          "The most pressing activity of the panes behind it (`useActivity`): `working` (loading too), `needs-you` or `failed`; absent when all are idle. The chip shows the shelf's shape for it (`activityShape`).",
+          "The most pressing activity of the panes behind it (`useActivity`): most pressing first, `failed`, `needs-you`, `working` (loading too), then `live`; absent when all are idle. The chip shows the shelf's shape for it (`activityShape`).",
       },
       pressed,
     ],
@@ -390,7 +390,7 @@ export const parts = {
       {
         name: "data-activity",
         means:
-          "The pane's activity (`useActivity`): `idle`, `working` (loading too), `needs-you` or `failed`.",
+          "The pane's activity (`useActivity`): `idle`, `working` (loading too), `live`, `needs-you` or `failed`.",
       },
       unsaved,
     ],
@@ -399,16 +399,16 @@ export const parts = {
     selector: ".jali-activity-shape",
     element: "span",
     area: "Shelf",
-    what: 'A pane\'s activity as a shape as well as a colour, never colour alone: in a shelf chip, the shelf\'s menu and the "N folded" chip. Absent while idle. Jali draws the ring with a border and a spin, "!" as text and the cross with the `activityError` icon (both in `currentColor`); its `::before` and `::after` are yours. To draw your own, clear Jali\'s (`border: 0; animation: none; background: none; color: transparent`) and draw in `::before`.',
+    what: 'A pane\'s activity as a shape as well as a colour, never colour alone: in a shelf chip, the shelf\'s menu and the "N folded" chip. Absent while idle. Jali draws the ring with a border and a spin, the live dot with a border and a background that breathe, "!" as text and the cross with the `activityError` icon (both in `currentColor`); its `::before` and `::after` are yours. To draw your own, clear Jali\'s (`border: 0; animation: none; background: none; color: transparent`) and draw in `::before`.',
     attributes: [
       {
         name: "data-activity",
         means:
-          '`working` (loading too), `needs-you` or `failed`, as on the shelf chip and the "N folded" chip.',
+          '`working` (loading too), `live`, `needs-you` or `failed`, as on the shelf chip and the "N folded" chip.',
       },
       {
         name: "data-shape",
-        means: 'Jali\'s shape for it: `ring`, `need` ("!") or `fail` (a cross).',
+        means: 'Jali\'s shape for it: `ring`, `dot` (live), `need` ("!") or `fail` (a cross).',
       },
     ],
   },

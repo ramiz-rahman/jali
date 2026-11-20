@@ -11,8 +11,9 @@ import { Activity, shelfActivity } from "./Activity";
 import type { PaneActivity } from "@jali/core";
 import { ICON } from "../icons/sized";
 
-/** Most pressing first: what the folded chip shows for the panes behind it. */
-const URGENCY: PaneActivity[] = ["error", "needs-you", "working", "loading"];
+/** Most pressing first: what the folded chip shows for the panes behind it. Live work is healthy and meant to go on,
+ *  so it is the least pressing: a pane that is working or waiting for the person says so first. */
+const URGENCY: PaneActivity[] = ["error", "needs-you", "working", "loading", "live"];
 const mostPressing = (all: (PaneActivity | undefined)[]) => URGENCY.find((a) => all.includes(a));
 
 /**

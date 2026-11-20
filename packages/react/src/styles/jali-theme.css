@@ -57,6 +57,8 @@
     --jali-default-on-accent: light-dark(#ffffff, #0e0d0b);
     /* Pane activity: teal for working, apart from the indigo of focus. */
     --jali-default-working: light-dark(#0e7490, #22d3ee);
+    /* Live work (recording, playback): a green apart from the teal of working. */
+    --jali-default-live: light-dark(#15803d, #4ade80);
     --jali-default-blocked: light-dark(#d97706, #fbbf24);
     --jali-default-done: light-dark(#059669, #34d399);
     --jali-default-failed: light-dark(#dc2626, #f87171);
@@ -92,6 +94,7 @@
     --jali-done: var(--jali-default-done);
     --jali-failed: var(--jali-default-failed);
     --jali-hover: var(--jali-default-hover);
+    --jali-live: var(--jali-default-live);
     --jali-on-accent: var(--jali-default-on-accent);
     --jali-on-chip: var(--jali-default-on-chip);
     --jali-on-status: var(--jali-default-on-status);

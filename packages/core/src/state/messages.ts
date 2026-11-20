@@ -392,11 +392,13 @@ const tabs = {
     const word =
       activity === "loading" || activity === "working"
         ? "working"
-        : activity === "needs-you"
-          ? "one needs you"
-          : activity === "error"
-            ? "one failed"
-            : "";
+        : activity === "live"
+          ? "live"
+          : activity === "needs-you"
+            ? "one needs you"
+            : activity === "error"
+              ? "one failed"
+              : "";
     return `${count} folded ${count === 1 ? "pane" : "panes"}${word ? `, ${word}` : ""}`;
   },
   foldedChipTip: "Folded: not enough room to show these side by side",
@@ -459,11 +461,13 @@ const shelf = {
     const word =
       c.activity === "loading" || c.activity === "working"
         ? "working"
-        : c.activity === "needs-you"
-          ? "needs you"
-          : c.activity === "error"
-            ? "failed"
-            : "";
+        : c.activity === "live"
+          ? "live"
+          : c.activity === "needs-you"
+            ? "needs you"
+            : c.activity === "error"
+              ? "failed"
+              : "";
     const where = c.reason === "folded" ? "folded" : `behind ${c.home}`;
     const keys = c.reason === "tucked" ? ", Shift+Enter puts it back" : "";
     return `${c.pane}${word ? `, ${word}` : ""}, ${where}. Enter shows it${keys}`;
@@ -519,6 +523,7 @@ const pane = {
     `The next link from ${list} shows here. Click to keep this one and open the next beside it`,
   loading: "Loading",
   working: "Working",
+  live: "Live",
   needsYou: "Needs you",
   error: "Error",
   unknownKind: (kind: string) => `Unknown pane kind “${kind}”.`,
