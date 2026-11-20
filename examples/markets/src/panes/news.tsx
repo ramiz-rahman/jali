@@ -29,6 +29,8 @@ function News({ params, paused, node, openBeside }: PaneProps<typeof newsParams>
     parse: oneOf(["instrument", "all"]),
   });
   const only = symbol && scope === "instrument" ? symbol : undefined;
+  // Where a coin's real prices come from: it has no news feed of its own.
+  const source = only ? market.instrument(only)?.source : undefined;
   const headlines = useTopic({ channel: "news", symbol: only }, paused).slice(0, 60);
   const [open, setOpen] = useState<number | null>(null);
   const [at, setAt] = useState(0);
@@ -121,10 +123,10 @@ function News({ params, paused, node, openBeside }: PaneProps<typeof newsParams>
             );
           })}
         </ul>
-      ) : only && market.instrument(only)?.source ? (
+      ) : only && source ? (
         <Empty icon={<NewspaperIcon size={20} aria-hidden />} title={`No news feed for ${only}`}>
-          Its prices are real, from {market.instrument(only)!.source}, but there is no free news
-          feed tagged by coin. All markets shows the simulated headlines.
+          Its prices are real, from {source}, but there is no free news feed tagged by coin. All
+          markets shows the simulated headlines.
         </Empty>
       ) : (
         <Empty icon={<NewspaperIcon size={20} aria-hidden />} title={`No news about ${only} today`}>

@@ -80,7 +80,11 @@ function Watchlist({
 
   // Sorted by what the person chose; the cursor stays on the same instrument, not the same position.
   const rows = useMemo(() => {
-    const out = symbols.map((s, i) => ({ inst: market.instrument(s)!, q: quotes.get(s), i }));
+    // Only what this market has: a kept list is checked (lists.ts), and a live feed may be missing.
+    const out = symbols.flatMap((s, i) => {
+      const inst = market.instrument(s);
+      return inst ? [{ inst, q: quotes.get(s), i }] : [];
+    });
     if (sort.by === "list") return out;
     const key = (r: (typeof out)[number]): number | string =>
       sort.by === "symbol"

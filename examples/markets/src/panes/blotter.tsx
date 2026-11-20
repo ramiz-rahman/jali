@@ -394,7 +394,8 @@ function Orders() {
         </thead>
         <tbody>
           {orders.slice(0, 50).map((o) => {
-            const inst = market.instrument(o.symbol)!;
+            const inst = market.instrument(o.symbol);
+            if (!inst) return null;
             return (
               <tr key={o.id}>
                 <td className="t-time">{f.time(o.time)}</td>
@@ -432,6 +433,11 @@ function Orders() {
 function Fills() {
   const { trading, market } = useServices();
   const fills = useStore(trading, (b) => b.fills);
+  /** A fill's price as its instrument shows prices; plain, for one this market no longer has. */
+  const price = (symbol: string, p: number) => {
+    const inst = market.instrument(symbol);
+    return inst ? f.price(inst, p) : String(p);
+  };
   if (!fills.length) return <Empty title="No fills yet" />;
   return (
     <Scroller className="table-scroll" label="Fills">
@@ -463,7 +469,7 @@ function Fills() {
                 <b>{fl.symbol}</b>
               </td>
               <td className="num">{f.size(fl.qty)}</td>
-              <td className="num">{f.price(market.instrument(fl.symbol)!, fl.price)}</td>
+              <td className="num">{price(fl.symbol, fl.price)}</td>
             </tr>
           ))}
         </tbody>

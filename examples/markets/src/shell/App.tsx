@@ -46,7 +46,8 @@ function Toasts() {
   useEffect(
     () =>
       trading.onFill((fill) => {
-        const inst = market.instrument(fill.symbol)!;
+        const inst = market.instrument(fill.symbol);
+        if (!inst) return;
         toast(
           `${fill.side === "buy" ? "Bought" : "Sold"} ${f.size(fill.qty)} ${fill.symbol} at ${f.price(inst, fill.price)}`,
         );
