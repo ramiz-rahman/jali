@@ -19,6 +19,8 @@ import type {
 import {
   linkLayout,
   linkView,
+  rereadLayout,
+  rereadRef,
   type PaneActivity,
   type PaneAttributes,
   type PaneCommand,
@@ -495,7 +497,10 @@ export function createUiStore(deps: UiStoreDeps): UiStore {
   const notify = () => {
     for (const fn of subs) fn();
   };
-  const offKinds = env.kinds.onChange(notify);
+  const offKinds = env.kinds.onChange(() => {
+    rereadLinks();
+    notify();
+  });
   let destroyed = false;
   const toastFns = new Set<(t: Toast) => void>();
   const pendingToasts: Toast[] = [];
@@ -544,6 +549,37 @@ export function createUiStore(deps: UiStoreDeps): UiStore {
     }
     state = next;
     notify();
+  };
+
+  /**
+   * A kind registered after a link gave refs of it: those refs drop the app-only params the link carried, wherever
+   * the workspace keeps them (the layout, the peek, Recent, Undo, the page's way back). A link never sets one.
+   */
+  const rereadLinks = () => {
+    const kinds = env.kinds.registry();
+    const layout = (l: Layout) => rereadLayout(kinds, l);
+    const view = (v: ViewState) => {
+      const peek = v.peek && rereadRef(kinds, v.peek);
+      return peek === v.peek ? v : { ...v, peek };
+    };
+    const patch: Partial<UiState> = {};
+    const l = layout(state.layout);
+    if (l !== state.layout) patch.layout = l;
+    const v = view(state.view);
+    if (v !== state.view) patch.view = v;
+    const recent = state.recent.map((r) => rereadRef(kinds, r));
+    if (recent.some((r, i) => r !== state.recent[i])) patch.recent = recent;
+    const undo = state.undoStack.map((e) => {
+      const bl = layout(e.before.layout),
+        bv = view(e.before.view);
+      return bl === e.before.layout && bv === e.before.view
+        ? e
+        : { ...e, before: { layout: bl, view: bv } };
+    });
+    if (undo.some((e, i) => e !== state.undoStack[i])) patch.undoStack = undo;
+    const back = state.page?.before && layout(state.page.before);
+    if (state.page && back !== state.page.before) patch.page = { ...state.page, before: back };
+    if (Object.keys(patch).length) write(patch);
   };
 
   // Events: changes are gathered while a commit runs (apply, set, and anything they call) and told once it ends.

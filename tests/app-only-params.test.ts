@@ -10,9 +10,10 @@ import {
   memoryLocation,
   memoryStorage,
   row,
+  toLayout,
   type ParamsOf,
 } from "@jali/core";
-import { encodePeek } from "@jali/core/adapter";
+import { encodePeek, storeOf } from "@jali/core/adapter";
 import { definePane } from "@jali/react";
 
 const queryParams = { sql: String, autorun: appOnly(Boolean) };
@@ -66,6 +67,36 @@ describe("a param only the app sets", () => {
     for (const ref of refs(jali)) expect(ref.params).not.toHaveProperty("autorun");
     expect(refs(jali).some((r) => r.params.sql === "drop table")).toBe(true);
     expect(jali.get().view.peek?.params).toEqual({ sql: "peeked" });
+  });
+
+  it("is dropped from a peek's ref once its kind is registered, if it wasn't when the link was read", () => {
+    const peek = encodeURIComponent(encodePeek(query({ sql: "peeked", autorun: true })));
+    const lists = layout.encode(toLayout(row(list())));
+    // A workspace whose query kind arrives later (a lazily loaded module): the link is read without it.
+    const jali = createJali({
+      panes: [list],
+      layout: row(list()),
+      url: { location: memoryLocation(`?l=${lists}&peek=${peek}`) },
+      storage: memoryStorage(),
+      size: { width: 1600, height: 900 },
+      moveFocus: false,
+    });
+    // Kept whole meanwhile (the sheet says its kind is missing): which param only the app sets isn't known yet.
+    expect(jali.get().view.peek?.params).toEqual({ sql: "peeked", autorun: true });
+
+    storeOf(jali).env.kinds.register({ kind: "query", title: "Query", params: queryParams });
+    expect(jali.get().view.peek?.params).toEqual({ sql: "peeked" });
+    // Opened full, its pane doesn't get it either.
+    storeOf(jali).actions.openPeekFull();
+    expect(refs(jali).find((r) => r.kind === "query")?.params).toEqual({ sql: "peeked" });
+  });
+
+  it("set by the app on a kind registered later is kept: only a link's refs are read again", () => {
+    const { jali } = make();
+    const peekRef = query({ sql: "mine", autorun: true });
+    jali.actions.peek(jali.model().panes[0]!.id, peekRef);
+    storeOf(jali).env.kinds.register({ kind: "other", title: "Other" });
+    expect(jali.get().view.peek?.params).toEqual({ sql: "mine", autorun: true });
   });
 
   it("doesn't break a link that holds a value it can't read: the link opens, without it", () => {

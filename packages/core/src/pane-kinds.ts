@@ -122,10 +122,31 @@ export function linkLayout(kinds: KindRegistry, layout: Layout): Layout {
   return mapRefs(layout, (ref) => linkRef(kinds, ref));
 }
 
+/**
+ * Refs a link gave for a kind not registered when it was read. Which of their params only the app sets can't be known
+ * yet, so they are kept whole (the pane says its kind is missing) and read again once the kind is registered
+ * (`rereadRef`): a link must never set an app-only param, whenever its kind arrives.
+ */
+const unreadRefs = /* @__PURE__ */ new WeakSet<ObjectRef>();
+
 /** `ref` as read from a link: without app-only params, which a link never sets. A `link: false` param it carries is
- *  kept. */
+ *  kept. A ref of a kind not registered yet is kept as it is, and read again when the kind is (`rereadRef`). */
 export function readRef(kinds: KindRegistry, ref: ObjectRef): ObjectRef {
+  if (!Object.hasOwn(kinds, ref.kind)) unreadRefs.add(ref);
   return dropParams(kinds, ref, (k) => k.appOnly);
+}
+
+/** `ref` read again, if a link gave it before its kind was registered and the kind is now: without its app-only
+ *  params. Any other ref, the same ref. */
+export function rereadRef(kinds: KindRegistry, ref: ObjectRef): ObjectRef {
+  return unreadRefs.has(ref) && Object.hasOwn(kinds, ref.kind)
+    ? dropParams(kinds, ref, (k) => k.appOnly)
+    : ref;
+}
+
+/** `layout` with every pane's ref as `rereadRef` gives it. The same layout when none changes. */
+export function rereadLayout(kinds: KindRegistry, layout: Layout): Layout {
+  return mapRefs(layout, (ref) => rereadRef(kinds, ref));
 }
 
 /** `layout` as read from a link: every pane's ref as `readRef` gives it. */
