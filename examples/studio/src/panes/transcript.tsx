@@ -110,9 +110,19 @@ function TranscriptBody({
     segs.findIndex((s) => s.id === (selected ?? cursor)),
   );
   const current = segs[at]!;
-  const changed = Object.keys(draft).filter(
-    (id) => draft[id] !== view.textOf(segmentById(session, id)!),
+  // The draft's lines that differ from what is saved, for segments this session has: a draft read back from storage
+  // may name segments it doesn't (an older build, a hand edit), and those are no work of this session's.
+  const lines = useMemo(
+    () =>
+      Object.fromEntries(
+        Object.entries(draft).filter(([id, text]) => {
+          const seg = segmentById(session, id);
+          return seg !== undefined && text !== view.textOf(seg);
+        }),
+      ),
+    [draft, session, view],
   );
+  const changed = Object.keys(lines);
   const count = changed.length;
 
   // The words Jali shows in "Discard unsaved changes?".
@@ -198,7 +208,7 @@ function TranscriptBody({
     engine.setLoop({ start: seg.start, end: seg.end, segment: seg.id });
   };
   const save = () => {
-    edits.saveCorrections(session.id, Object.fromEntries(changed.map((id) => [id, draft[id]!])));
+    edits.saveCorrections(session.id, lines);
     setDraft({});
     setEditing(null);
   };

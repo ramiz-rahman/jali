@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vite-plus/test";
 import { listCommands, memoryLocation, memoryStorage, type Jali } from "@jali/core";
-import { storeOf } from "@jali/core/adapter";
+import { paneStateFor, storeOf } from "@jali/core/adapter";
 import { openFollowing, sessionInLayout } from "./actions";
 import { clip } from "./panes/clip";
 import { transcript } from "./panes/transcript";
@@ -201,6 +201,27 @@ describe("the studio workspace", () => {
     // Saved (or discarded): it catches up with the library at once.
     storeOf(jali).actions.setUnsaved("transcript", null);
     expect(shown(jali, "transcript")?.session).toBe(DINNER);
+  });
+
+  it("leaves a session's draft behind when the transcript moves on to another session", () => {
+    vi.useFakeTimers();
+    const { jali } = testJali();
+    const store = storeOf(jali);
+    const draft = () => {
+      const s = store.get();
+      return paneStateFor(s, store.env.kinds, "transcript", jali.model().pane("transcript")!.ref)
+        ?.draft;
+    };
+    // A correction in the landing's first line, the way the transcript keeps it (panes/transcript.tsx).
+    store.actions.setPaneState("transcript", "draft", { s01: "Houston, Tranquility Base." });
+    store.actions.setUnsaved("transcript", "1 unsaved correction");
+    jali.actions.select("library", transcript({ session: DINNER }));
+    vi.advanceTimersByTime(200);
+    expect(draft()).toEqual({ s01: "Houston, Tranquility Base." });
+    // Discarded: the transcript catches up with the dinner, and the dinner's s01 is not given the landing's words.
+    store.actions.setUnsaved("transcript", null);
+    expect(shown(jali, "transcript")?.session).toBe(DINNER);
+    expect(draft()).toBeUndefined();
   });
 
   it("lists the app's commands in ⌘K, with their keys", () => {

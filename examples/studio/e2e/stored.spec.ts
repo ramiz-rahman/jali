@@ -117,7 +117,8 @@ test("damaged pane state gives each pane its own defaults", async ({ page }) => 
       id,
       {
         ...Object.fromEntries(Object.keys(s).map((k, j) => [k, values[(i + j) % values.length]])),
-        draft: { s01: 7, s02: null },
+        // Lines of the wrong type, and one for a segment this session has never had.
+        draft: { s01: 7, s02: null, s999: "A line from nowhere" },
         follow: "yes",
         get: 1,
         note: 3,
@@ -129,6 +130,8 @@ test("damaged pane state gives each pane its own defaults", async ({ page }) => 
     v: JSON.stringify(damaged),
   });
   await page.reload();
+  // The line from nowhere is no unsaved work.
+  await expect(page.locator(".tr-unsaved")).toHaveCount(0);
   await expectWorking(page);
   expect(seen).toEqual([]);
 });
