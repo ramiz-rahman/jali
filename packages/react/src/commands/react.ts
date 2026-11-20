@@ -1,22 +1,38 @@
 import type { ListedCommand } from "@jali/core";
-import { useMemo } from "react";
 import { listCommands } from "@jali/core/adapter";
-import { useModel, useStore, useUi } from "../state/react";
+import { useDerived, useStore } from "../state/react";
 
 /** A command's keys in this workspace's keymap, for a tooltip ("⌘K ⌘[" / "Ctrl+K Ctrl+["); "" when unbound. */
 export const useShortcut = (id: string) => useStore().keymap.label(id);
 
+/** The same list as far as a menu shows it. A workspace command's `run` runs it by id, so any copy does; a pane's own
+ *  `run` is the pane's, so it must be the same one. */
+const sameCommands = (a: ListedCommand[], b: ListedCommand[]) =>
+  a.length === b.length &&
+  a.every((c, i) => {
+    const d = b[i]!;
+    return (
+      c.key === d.key &&
+      c.id === d.id &&
+      c.title === d.title &&
+      c.group === d.group &&
+      c.keys === d.keys &&
+      c.disabled === d.disabled &&
+      c.reason === d.reason &&
+      (c.id !== undefined || c.run === d.run)
+    );
+  });
+
 /**
  * Jali's commands for your own command menu (cmdk, kbar, …), when the workspace is made with `palette: false`:
  * the focused pane's own commands first, then the workspace's and yours, each with its title, group, keys label,
- * whether it can run now and why not, and `run`. Re-renders when the list can change.
+ * whether it can run now and why not, and `run`. The same array until something it lists changes, so a menu that
+ * registers its actions from it does so only then.
  *
  *   const commands = useJaliCommands();
  *   <Command.Item disabled={c.disabled} onSelect={() => { close(); c.run(); }}>{c.title}</Command.Item>
  */
 export function useJaliCommands(): ListedCommand[] {
   const store = useStore();
-  const state = useUi((s) => s);
-  const model = useModel();
-  return useMemo(() => listCommands(store.jali), [store, state, model]);
+  return useDerived(() => listCommands(store.jali), sameCommands, [store]);
 }

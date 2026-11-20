@@ -10,7 +10,7 @@ import { type ComponentType } from "react";
 import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from "vite-plus/test";
 import { column, createJali, memoryLocation, memoryStorage, row } from "@jali/core";
 import { storeOf } from "@jali/core/adapter";
-import { JaliRoot, definePane } from "@jali/react";
+import { JaliRoot, JaliView, definePane, useJaliCommands } from "@jali/react";
 
 const counts = vi.hoisted(() => ({
   frame: [] as string[],
@@ -265,5 +265,52 @@ describe("render counts", () => {
     expect(after.groups).toBe(before.groups);
     // And a model asked for again is the same object.
     expect(store.model()).toBe(after);
+  });
+
+  it("useJaliCommands keeps its array while nothing a command shows changes", async () => {
+    const seen: unknown[] = [];
+    function Probe() {
+      seen.push(useJaliCommands());
+      return null;
+    }
+    const jali = make();
+    const { container } = render(
+      <JaliRoot jali={jali}>
+        <JaliView />
+        <Probe />
+      </JaliRoot>,
+    );
+    const store = storeOf(jali);
+    const first = seen.at(-1);
+    // A drag across the panes: dnd changes on every move.
+    const header = container.querySelector<HTMLElement>(
+      `[data-pane="${jali.model().visible[0]}"] .jali-pane-header`,
+    )!;
+    await act(async () => {
+      fireEvent.pointerDown(header, { button: 0, clientX: 20, clientY: 20, pointerId: 1 });
+    });
+    for (let i = 0; i < 20; i++)
+      await act(async () => {
+        window.dispatchEvent(new MouseEvent("pointermove", { clientX: 40 + i * 50, clientY: 250 }));
+        await frame();
+      });
+    await act(async () => {
+      window.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape" }));
+    });
+    expect(new Set(seen.slice(seen.indexOf(first))).size).toBe(1);
+    // A divider moved and focus moved, in this even layout: nothing listed changes.
+    act(() => void store.actions.focus(jali.model().visible[3]!));
+    const d = jali.model().resolved.dividers[0]!;
+    act(() => void store.actions.setDividerSize(d.parentId, d.index, 300));
+    expect(seen.at(-1)).toBe(first);
+    // The focused pane lists a command of its own: a new list.
+    act(
+      () =>
+        void store.actions.setPaneCommands(jali.model().visible[3]!, [
+          { id: "refresh", title: "Refresh", run: () => {} },
+        ]),
+    );
+    expect(seen.at(-1)).not.toBe(first);
+    expect((seen.at(-1) as { title: string }[])[0]!.title).toBe("Refresh");
   });
 });
