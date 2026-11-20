@@ -9,6 +9,7 @@ import { UnsavedMark } from "../pane/Unsaved";
 import { useStore, useUi } from "../state/react";
 import { useKeymap } from "../state/hydrated";
 import { ICON } from "../icons/sized";
+import { landmarkName } from "../a11y/landmark";
 
 export const PEEK_WIDTH = 480;
 
@@ -98,7 +99,7 @@ export function Peek({ presentation }: { presentation: Presentation }) {
       className={`jali-peek${openedBy.current === "pointer" ? " is-animated" : ""}`}
       style={{ width: presentation === "single" ? "100%" : Math.min(PEEK_WIDTH, areaW) }}
       role="complementary"
-      aria-label={t.label(title)}
+      aria-label={landmarkName(store, t.label(title))}
       data-testid="peek"
     >
       <header className="jali-peek-header">

@@ -539,6 +539,8 @@ const workspace = {
   /** The free workspace's name when `createJali({ name })` gives none. */
   name: "Workspace",
   label: "Panes",
+  /** A landmark of a workspace the host named (`createJali({ label })`): a pane, the shelf, the switcher, the peek. */
+  within: (landmark: string, workspace: string) => `${landmark}, ${workspace}`,
   switcher: "Panes",
   switcherList: (count: number) => `Panes: ${count}`,
   /** The panes on one side of a divider: up to three titles, then a count. */

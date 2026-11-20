@@ -107,6 +107,12 @@ export interface JaliOptions<D extends PaneKindBase = PaneKindBase> {
    */
   landmark?: "region" | "main";
   /**
+   * The workspace's name for assistive technology, when a page has more than one workspace: its landmark is named
+   * this instead of "Panes", and each of Jali's landmarks inside it adds it ("Orders, Sales"), so no two workspaces
+   * repeat a landmark. Default: none, and the names are Jali's own.
+   */
+  label?: string;
+  /**
    * The gap between panes, in CSS pixels. Default 6 (`GAP`). The layout measures with it, and `<JaliRoot>` writes it
    * on its root as `--jali-gap`, so styles that read the variable agree with where the panes are.
    */
@@ -235,6 +241,7 @@ export function createJali<D extends PaneKindBase>(options: JaliOptions<D>): Jal
     ...(options.settings ? { settings: options.settings } : {}),
     ...(options.dir ? { dir: options.dir } : {}),
     ...(options.landmark ? { landmark: options.landmark } : {}),
+    ...(options.label ? { label: options.label } : {}),
     unstable: options.onUnstable,
     onPaneError: options.onPaneError,
     ...(options.confirmDiscard === false ? { confirmDiscard: false } : {}),

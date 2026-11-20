@@ -181,6 +181,8 @@ export interface Env {
   dir?: Direction;
   /** `"main"` when the panes are the page's main content (`createJali({ landmark })`); unset, a labelled region. */
   landmark?: "region" | "main";
+  /** The workspace's name for assistive technology (`createJali({ label })`): its landmarks are named with it. */
+  label?: string;
   /** `false` when the page keeps its own theme (`createJali({ pageTheme })`): Jali writes no `data-theme`. */
   pageTheme?: false;
   /** `false` when the app asks about unsaved work itself (`createJali({ confirmDiscard })`). */

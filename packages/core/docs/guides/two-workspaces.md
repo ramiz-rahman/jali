@@ -21,6 +21,7 @@ import { ticketNote } from "../unsaved/note-editor";
 // and its localStorage keys ("orders:…").
 const orders = createJali({
   id: "orders",
+  label: "Orders", // its landmark's name, and part of each pane's, for screen readers
   keys: "scoped", // only keys pressed inside it and its dialogs, or on the page body after it was used last
   panes: orderKinds,
   presets,
@@ -30,6 +31,7 @@ const orders = createJali({
 // The orders workspace sets the page's theme; this one leaves it alone.
 const notes = createJali({
   id: "notes",
+  label: "Notes",
   keys: "scoped",
   pageTheme: false,
   panes: [ticketNote],
@@ -48,6 +50,10 @@ createRoot(document.getElementById("root")!).render(
 ## Its own name in the DOM
 
 `id` prefixes the workspace's element ids (`orders-pane-…` and `notes-pane-…`, and its dialogs' ids) and its saved keys. The default is `"jali"`, so give each workspace its own. Focus, dragging and F6 already look only inside their own workspace's root.
+
+## Its own name for screen readers
+
+`label` names the workspace for assistive technology. Its landmark is called "Orders" instead of "Panes", and each of Jali's landmarks inside it adds the name: the pane "Order 7, Orders", the shelf "Shelf, Orders", and the switcher, the peek and a page's views the same way. Without it, both workspaces would have a "Panes" region, and a pane titled the same in each would repeat a name, so a screen-reader user moving by landmarks couldn't tell them apart.
 
 ## Its own params in the address
 

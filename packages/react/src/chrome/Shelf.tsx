@@ -20,6 +20,7 @@ import { KindIcon } from "../pane/icons";
 import { UnsavedMark } from "../pane/Unsaved";
 import { useActions, useMessages, useModel, useStore, useUi } from "../state/react";
 import { ICON } from "../icons/sized";
+import { landmarkName } from "../a11y/landmark";
 
 function label(m: JaliModel, it: ShelfEntry, a: PaneActivity | undefined) {
   const node = m.pane(it.paneId);
@@ -193,7 +194,13 @@ export function Shelf() {
 
   const hidden = items.filter((i) => hiddenIds.includes(i.paneId));
   return (
-    <div className="jali-shelf" role="region" aria-label={t.label} tabIndex={-1} data-shelf>
+    <div
+      className="jali-shelf"
+      role="region"
+      aria-label={landmarkName(store, t.label)}
+      tabIndex={-1}
+      data-shelf
+    >
       <div className="jali-shelf-bar" ref={bar}>
         <span className="jali-shelf-fade jali-shelf-fade-l" aria-hidden />
         <div

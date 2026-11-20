@@ -271,6 +271,8 @@ export interface UiStoreDeps {
   dir?: Direction;
   /** `"main"`: the panes are the page's main landmark. Default `"region"`, a labelled section. */
   landmark?: "region" | "main";
+  /** The workspace's name for assistive technology: its landmark's, and part of each of Jali's landmarks in it. */
+  label?: string;
   /** `false`: the app asks about unsaved work itself; Jali never does. Default true. */
   confirmDiscard?: boolean;
   /** The app's items for a tab's menu, after Jali's. */
@@ -429,6 +431,7 @@ export function createUiStore(deps: UiStoreDeps): UiStore {
   if (deps.launcher) env.launcher = deps.launcher;
   if (deps.dir) env.dir = deps.dir;
   if (deps.landmark === "main") env.landmark = "main";
+  if (typeof deps.label === "string" && deps.label.trim()) env.label = deps.label.trim();
   if (deps.confirmDiscard === false) env.confirmDiscard = false;
   if (deps.pageTheme === false) env.pageTheme = false;
   if (deps.tabMenu) env.tabMenu = deps.tabMenu;

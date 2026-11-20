@@ -30,6 +30,7 @@ import { RenameField, useCanRename } from "./RenameField";
 import { useInert } from "./inert";
 import { ICON } from "../icons/sized";
 import { createHeaderSlot, useHasHeaderControls, useNarrowHeader } from "./header";
+import { landmarkName } from "../a11y/landmark";
 
 interface Props {
   frame: Frame;
@@ -108,7 +109,10 @@ export const PaneFrame = /* @__PURE__ */ memo(
         {...marks}
         id={paneDomId(store.dom.id, node.id)}
         role="region"
-        aria-labelledby={paneTitleId(store.dom.id, node.id)}
+        // Named by its title; in a workspace the host named, by its title and the workspace's name.
+        {...(env.label
+          ? { "aria-label": landmarkName(store, title) }
+          : { "aria-labelledby": paneTitleId(store.dom.id, node.id) })}
         tabIndex={-1}
         data-pane={node.id}
         data-kind={node.ref.kind}

@@ -331,7 +331,7 @@ export function Panes() {
         .filter(Boolean)
         .join(" ")}
       ref={ref}
-      aria-label={store.messages.workspace.label}
+      aria-label={store.env.label ?? store.messages.workspace.label}
       data-single={single ? "" : undefined}
       data-stacked={stacked ? "" : undefined}
       data-fold={stacked ? m.stacked?.hinge?.axis : undefined}

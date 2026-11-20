@@ -6,15 +6,9 @@ import { useRovingKeys } from "../a11y/roving";
 import { Activity } from "../pane/Activity";
 import { KindIcon } from "../pane/icons";
 import { UnsavedMark, useUnsavedOf } from "../pane/Unsaved";
-import {
-  useActions,
-  useMessages,
-  useModelValue,
-  usePaneAttributesOf,
-  useStore,
-  useUi,
-} from "../state/react";
+import { useActions, useModelValue, usePaneAttributesOf, useStore, useUi } from "../state/react";
 import { ICON } from "../icons/sized";
+import { landmarkName } from "../a11y/landmark";
 
 /**
  * Scrolls the switcher's own list so the selected entry is in it, and nothing else: `scrollIntoView` would also scroll
@@ -72,7 +66,8 @@ export function PaneSwitcher({
   /** Stacked view: both panes on screen, the current one among them. */
   inView?: string[];
 }) {
-  const t = useMessages().workspace;
+  const store = useStore();
+  const t = store.messages.workspace;
   const list = useRef<HTMLDivElement>(null);
   // ← → Home End move focus along the panes, wrapping both ways; Enter, Space or a click switches (manual activation:
   // switching moves focus into the pane, which would end the walk after one step).
@@ -80,7 +75,7 @@ export function PaneSwitcher({
     ...(list.current?.querySelectorAll<HTMLElement>('[role="tab"]') ?? []),
   ]);
   return (
-    <nav className="jali-switcher" aria-label={t.switcher}>
+    <nav className="jali-switcher" aria-label={landmarkName(store, t.switcher)}>
       <div
         className="jali-switch-list"
         role="tablist"

@@ -10,6 +10,7 @@ import { ticketNote } from "../unsaved/note-editor";
 // and its localStorage keys ("orders:…").
 const orders = createJali({
   id: "orders",
+  label: "Orders", // its landmark's name, and part of each pane's, for screen readers
   keys: "scoped", // only keys pressed inside it and its dialogs, or on the page body after it was used last
   panes: orderKinds,
   presets,
@@ -19,6 +20,7 @@ const orders = createJali({
 // The orders workspace sets the page's theme; this one leaves it alone.
 const notes = createJali({
   id: "notes",
+  label: "Notes",
   keys: "scoped",
   pageTheme: false,
   panes: [ticketNote],

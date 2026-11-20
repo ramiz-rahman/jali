@@ -16,6 +16,7 @@ import { useRovingKeys } from "../a11y/roving";
 import { bold, Parts, useModel, useStore, useUi, useProfile } from "../state/react";
 import { useKeymap } from "../state/hydrated";
 import { Panes } from "../workspace/Workspace";
+import { landmarkName } from "../a11y/landmark";
 
 /**
  * A curated page's controls in the top bar: the mode (Single or Split view), the investigation (panes opened from
@@ -129,7 +130,7 @@ function PageTabs() {
   ]);
   // A landmark of its own, so a screen-reader user who moves by landmarks reaches the views.
   return (
-    <nav className="jali-page-nav" aria-label={t.tabsLabel(p.name)}>
+    <nav className="jali-page-nav" aria-label={landmarkName(store, t.tabsLabel(p.name))}>
       <div
         className="jali-page-tabs"
         role="tablist"

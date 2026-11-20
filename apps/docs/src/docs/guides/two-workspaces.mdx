@@ -15,6 +15,10 @@ This page puts an orders workspace beside a notes workspace.
 
 `id` prefixes the workspace's element ids (`orders-pane-…` and `notes-pane-…`, and its dialogs' ids) and its saved keys. The default is `"jali"`, so give each workspace its own. Focus, dragging and F6 already look only inside their own workspace's root.
 
+## Its own name for screen readers
+
+`label` names the workspace for assistive technology. Its landmark is called "Orders" instead of "Panes", and each of Jali's landmarks inside it adds the name: the pane "Order 7, Orders", the shelf "Shelf, Orders", and the switcher, the peek and a page's views the same way. Without it, both workspaces would have a "Panes" region, and a pane titled the same in each would repeat a name, so a screen-reader user moving by landmarks couldn't tell them apart.
+
 ## Its own params in the address
 
 `url: { prefix: "n." }` writes the notes workspace's params as `n.l`, `n.zoom` and `n.peek`. The orders workspace keeps the plain names. Each reads and writes only its own, and every other param is left alone, so one link reopens both, and Back and Forward step each one through its own changes.
