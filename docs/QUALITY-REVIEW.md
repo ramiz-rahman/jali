@@ -6,6 +6,27 @@
 >
 > Nothing was changed. This file is the list to fix from.
 
+## Progress
+
+**Phase 1, done 20 Nov 2026 (master `364e253`):**
+
+- **Fixed:** C1–C7 and P17 (one input layer, 55 hostile-input tests); C8–C10 (a held question holds the action and answers against the workspace as it is then); C14, C15 and the docs correctness items in P24; P1 (fitting).
+- **Repo:** `pnpm verify` runs every gate. Browser suites start their own server on a strict port. Docs tests run against the built site on a Mac and a Windows reader. The repo is formatted.
+- **Measured after:**
+
+  | What                             | Before                   | After                                                      |
+  | -------------------------------- | ------------------------ | ---------------------------------------------------------- |
+  | Refit, 64 panes (Node)           | 7.5 s                    | 6.6 ms                                                     |
+  | Refit, 200 panes (Node)          | —                        | 17–26 ms                                                   |
+  | Mount, 48 panes (Chrome, 4x CPU) | 8.7 s                    | 2.6 s                                                      |
+  | Mount, 48 panes (unthrottled)    | 2.2 s                    | 0.66 s; what is left is rendering the harness's 1,920 rows |
+  | Resize step, 24 panes            | p50 686 ms, p95 1,168 ms | p50 397 ms, p95 658 ms                                     |
+
+- **Gates:** every gate in `pnpm verify` passes except **size**, which needs the owner's decision (the numbers are under P3).
+- **Found while fixing:**
+  - `e2e/follow.spec.ts` only passed on ports containing a 5; it is fixed.
+  - `@jali/core`'s `commands/format.ts:13-20` reads `navigator` when the module loads, so a prerendered keymap label depends on the build machine. That goes into phase 2.
+
 ## Verdict
 
 The architecture is sound and some of it is excellent:
