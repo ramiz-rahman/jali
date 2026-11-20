@@ -4,6 +4,7 @@ import { allows } from "@jali/core/adapter";
 import { useJaliIcons } from "../icons/context";
 import { useDerived, useStore, useUi } from "../state/react";
 import { bringBack, popOut, useCanPopOut, usePopOutTarget } from "./PopOut";
+import { useKeymap } from "../state/hydrated";
 import type { Chrome } from "@jali/core/adapter";
 import { ICON } from "../icons/sized";
 import type { NarrowLevel } from "./header";
@@ -64,13 +65,15 @@ export function HeaderActions({ id, title, zoomed, chrome, tabs, narrow = 0, onM
   const full = useUi((s) => s.fullScreen === id);
   const popped = !!usePopOutTarget(store, id);
   const pop = useCanPopOut();
+  // Key labels as the server printed them until hydration, then the reader's own.
+  const keymap = useKeymap();
   const { home, tuckLabel, closeHint, buttons, menuMore } = useDerived(
     (): Plan => {
       const x = store.snapshot();
       const home = tuckHome(x, id);
       // When tuck is refused, the button says why in the announcer's own words (state/messages.ts).
       const tuckLabel = home
-        ? keys.withKeys(t.tuckInto(x.m.title(home)), store.keymap.label("pane.tuck"))
+        ? keys.withKeys(t.tuckInto(x.m.title(home)), keymap.label("pane.tuck"))
         : (checkTuck(x, id)?.msg ?? t.cantTuck(title));
       // A curated page's view closes back into the tabs above.
       const closeHint = x.s.page && x.m.pane(id)?.role ? t.closeViewTip : t.closeTip;
@@ -93,7 +96,7 @@ export function HeaderActions({ id, title, zoomed, chrome, tabs, narrow = 0, onM
       };
     },
     samePlan,
-    [store, id, title, zoomed, chrome, tabs, narrow, full, pop],
+    [store, id, title, zoomed, chrome, tabs, narrow, full, pop, keymap],
   );
   // With the app's controls hidden too, the menu lists the pane's commands in their place.
   const commands = useUi((s) => (narrow === 2 ? (own(s.paneCommands, id)?.length ?? 0) : 0));
@@ -142,7 +145,7 @@ export function HeaderActions({ id, title, zoomed, chrome, tabs, narrow = 0, onM
             data-action="close"
             onClick={() => actions.close(id)}
             aria-label={t.close(title)}
-            title={keys.withKeys(closeHint, store.keymap.label("pane.close"))}
+            title={keys.withKeys(closeHint, keymap.label("pane.close"))}
           >
             <icon.close {...ICON.header} aria-hidden />
           </button>
@@ -181,7 +184,8 @@ export function HeaderActions({ id, title, zoomed, chrome, tabs, narrow = 0, onM
 
 function ZoomButton({ id, title, zoomed }: { id: string; title: string; zoomed: boolean }) {
   const icon = useJaliIcons();
-  const { actions, keymap, messages } = useStore();
+  const { actions, messages } = useStore();
+  const keymap = useKeymap();
   const { pane: t, keys } = messages;
   return (
     <button
@@ -206,7 +210,8 @@ function ZoomButton({ id, title, zoomed }: { id: string; title: string; zoomed: 
 
 function FullScreenButton({ id, title }: { id: string; title: string }) {
   const icon = useJaliIcons();
-  const { actions, keymap, messages } = useStore();
+  const { actions, messages } = useStore();
+  const keymap = useKeymap();
   const full = useUi((s) => s.fullScreen === id);
   const { pane: t, keys } = messages;
   return (
