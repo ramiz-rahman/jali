@@ -5,6 +5,9 @@
   "description": "Jali (@jali/core and @jali/react, in packages/), its docs site (apps/docs) and five example apps (examples/). See docs/BRIEF.md.",
   "author": "Ramiz Rahman (https://ramizrahman.com/)",
   "type": "module",
+  "imports": {
+    "#shared/*": "./examples/shared/src/*"
+  },
   "scripts": {
     "dev": "vp dev examples/data-studio",
     "build": "tsc -b && vp build examples/data-studio && vp build examples/loan-review",
