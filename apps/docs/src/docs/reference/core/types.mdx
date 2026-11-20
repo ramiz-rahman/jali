@@ -722,6 +722,17 @@ The options of `actions.openPage`: the item to show (default: the last one, else
 
 </Entry>
 
+<Entry name="OpenBesideOptions" kind="type" from="@jali/core" signature={`interface OpenBesideOptions { edge?: Edge }`} compact>
+
+The options of `actions.openBeside` and a pane's `openBeside`. `edge` is the side of the source pane the new pane opens on: `"left"`, `"right"`, `"top"` or `"bottom"`. Default: after the source in reading order (its right, or its left right to left).
+
+- It is a side on screen, as for `move` and `split`: `"right"` is the right in either reading direction.
+- It only places a new pane. Everything else is as without it: the new pane is linked to its source, focus stays in the source, it is one history entry and it is announced the same way. A link that replaces the source's earlier link of the same kind shows in that pane, where it is; an object already open is shown where it is.
+- With no room on that edge, the new pane becomes a tab of its source, as without one. On a phone it goes on that edge in the layout, which shows one pane at a time until the screen is wider.
+- On a curated page, panes opened from the page's views stay in the investigation, after the views. The first one starts it there whatever the edge; later ones open on that edge of the investigation's last column. A pane opened from an opened pane opens on that edge of it. In Single view a link peeks, as always.
+
+</Entry>
+
 <Entry name="Group" kind="type" from="@jali/core" signature={`interface Group { id: NodeId; kind: "stack" | "fold" | "tuck"; tabs: PaneNode[]; active: NodeId }`} compact>
 
 A tab group as the model sees it (`model().groups`): a stack in the tree, or one the fit made by folding or tucking, with its tabs and the shown one.
@@ -742,6 +753,30 @@ The `url` option of `createJali`: `location` (a <Ref to="LocationPort" />, defau
 What a layout link carries about sizes. `"local"` (the default): the layout as designed, with the sizes the person dragged kept on their device (for up to 12 layouts), so a colleague opens the link at the designed proportions. `"link"`: everything, so the link reopens exactly.
 
 </Entry>
+
+<Entry name="JaliLink" kind="type" from="@jali/core" signature={`type JaliLink = PageLink | LayoutLink`} compact>What <Ref to="linkSearch" page="/reference/core" /> builds a link to: a curated page or a free workspace's layout.</Entry>
+
+<Entry name="PageLink" kind="type" from="@jali/core" signature={`interface PageLink { page: string; item?: ItemId; tab?: string; open?: readonly ObjectRef[]; peek?: ObjectRef }`} compact>
+
+A link to a curated page, for <Ref to="linkSearch" page="/reference/core" />.
+
+<Params>
+<Param name="page" type="string" required>The page's id (its profile's `id`).</Param>
+<Param name="item" type="ItemId">The item it shows. Default: the one the reader saw last, else the page's `firstItem`.</Param>
+<Param name="tab" type="string">The view in use (a role id). Default: the one the reader used last, else the home view.</Param>
+<Param name="open" type="readonly ObjectRef[]">Panes opened from the page's views, in order. A link with any opens in Split view. A workspace opens each object once, and at most 32.</Param>
+<Param name="peek" type="ObjectRef">The object in the peek sheet.</Param>
+</Params>
+
+</Entry>
+
+<Entry name="LayoutLink" kind="type" from="@jali/core" signature={`interface LayoutLink { layout: LayoutInput; preset?: string; zoom?: NodeId; peek?: ObjectRef }`} compact>
+
+A link to a free workspace's layout, for <Ref to="linkSearch" page="/reference/core" />: the layout (`row(…)` and the other builders, or a <Ref to="Layout" />), the preset it came from, the maximised pane's id and the object in the peek sheet.
+
+</Entry>
+
+<Entry name="LinkSearchOptions" kind="type" from="@jali/core" signature={`interface LinkSearchOptions { prefix?: string; search?: string }`} compact>The options of <Ref to="linkSearch" page="/reference/core" />: the workspace's `url.prefix`, and a search string whose other params are kept.</Entry>
 
 <Entry name="LocationPort" kind="type" from="@jali/core" signature={`interface LocationPort {\n  search(): string;\n  href(): string;\n  navigate(search: string, mode: NavigateMode): void;\n  subscribe(fn: () => void): () => void;\n}`} compact>
 
@@ -910,7 +945,7 @@ A pane that is not there gives `reason: "not-found"`. What a refusal reads out t
 </Members>
 
 <Members title="Open">
-<Member name="actions.openBeside" signature="openBeside(pane: PaneTarget, ref: ObjectRef)">Open `ref` beside `pane`; focus stays in `pane`. `pane`'s selected item opens a following detail (kept if one already follows). A link never copies a pane of its own chain: when `ref`'s object is `pane` itself, a pane `pane` was opened from (up the chain), or one it opened, that pane is shown instead (`pane` in the result), focus stays, and it is announced "Already open". Outside a curated page, another chain may still show the same object. In a curated page: a peek in Single view or for a limited viewer, and an object already on the page is focused instead. `pane` in the result is the pane that shows `ref`.</Member>
+<Member name="actions.openBeside" signature="openBeside(pane: PaneTarget, ref: ObjectRef, options?: OpenBesideOptions)">Open `ref` beside `pane`; focus stays in `pane`. `{ edge: "bottom" }` opens it below `pane` (see <Ref to="OpenBesideOptions" />); by default it opens after `pane`. `pane`'s selected item opens a following detail (kept if one already follows). A link never copies a pane of its own chain: when `ref`'s object is `pane` itself, a pane `pane` was opened from (up the chain), or one it opened, that pane is shown instead (`pane` in the result), focus stays, and it is announced "Already open". Outside a curated page, another chain may still show the same object. In a curated page: a peek in Single view or for a limited viewer, and an object already on the page is focused instead. `pane` in the result is the pane that shows `ref`.</Member>
 <Member name="actions.openHere" signature="openHere(pane: PaneTarget, ref: ObjectRef)">Show `ref` in `pane`. If it is open elsewhere, focus that pane (and close `pane` when it is a launcher).</Member>
 <Member name="actions.peek" signature="peek(pane: PaneTarget, ref: ObjectRef)">Show `ref` in the peek sheet, for `pane`. When `pane`'s following detail of that kind is on screen, the detail shows `ref` instead.</Member>
 <Member name="actions.closePeek" signature="closePeek()">Close the peek sheet.</Member>

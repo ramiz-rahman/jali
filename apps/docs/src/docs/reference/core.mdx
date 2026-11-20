@@ -91,7 +91,7 @@ The address.
 
 </Entry>
 
-<Entry name="actions" kind="namespace" from="@jali/core (jali.actions)" note="A member of the workspace, not an import" signature={`jali.actions.openBeside(pane: PaneTarget, ref: ObjectRef): ActionResult`} example={readCode} exampleFile="actions.ts">
+<Entry name="actions" kind="namespace" from="@jali/core (jali.actions)" note="A member of the workspace, not an import" signature={`jali.actions.openBeside(pane: PaneTarget, ref: ObjectRef, options?: OpenBesideOptions): ActionResult`} example={readCode} exampleFile="actions.ts">
 
 What an app asks the workspace to do. Each action reads the current state, makes its change once (layout, focus, address, announcement, toast) and returns what happened: `{ ok: true, pane }`, or `{ ok: false, reason }` with the reason it did not.
 
@@ -254,6 +254,19 @@ Storage in a `Map`, for tests, server rendering and embedded workspaces.
 </Params>
 
 <Returns type="StoragePort" />
+
+</Entry>
+
+<Entry name="linkSearch" kind="function" from="@jali/core" signature={`linkSearch(link: JaliLink, options?: LinkSearchOptions): string`} compact>
+
+The search string that opens a workspace on `link`, written as the workspace itself writes it: `linkSearch({ page: "visit", item: 7, open: [call({ slug: "demra" })] })` is `"?page=visit&item=7&open=call~slug=demra"`. Reading it back gives exactly that page, item, view, opened panes and peek, or that layout. It needs no workspace and no pane kinds, so a server, an email or another app can build links. Put it after the path the workspace is on: `` `/visits${linkSearch(link)}` ``.
+
+<Params>
+<Param name="link" type="JaliLink" required>A <Ref to="PageLink" page="/reference/core/types" /> (a curated page: `page`, and optionally `item`, `tab`, `open` and `peek`) or a <Ref to="LayoutLink" page="/reference/core/types" /> (a free workspace: `layout`, and optionally `preset`, `zoom` and `peek`).</Param>
+<Param name="options" type="LinkSearchOptions">`prefix`: the workspace's `url.prefix`, when it has one. `search`: a search string whose other params (your app's own) are kept; any workspace params in it are replaced.</Param>
+</Params>
+
+<Returns type="string">`"?…"`, or `""` when there is nothing to write.</Returns>
 
 </Entry>
 
