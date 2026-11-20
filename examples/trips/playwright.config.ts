@@ -1,7 +1,8 @@
 import { defineConfig } from "@playwright/test";
+import { devServer } from "../../e2e/fixtures/server";
 
-// The trips example's own smoke test, against its own server (never another example's). Port 5340 by default; another
-// session may hold it, so TRIPS_URL points at whichever port `vp dev examples/trips` printed.
+// The trips example's own smoke test, against a server it starts itself on :5340, or on TRIPS_URL's port. It never
+// reuses a server it didn't start unless REUSE_SERVER=1 (e2e/fixtures/server.ts).
 // Run from the repository root: `pnpm exec playwright test -c examples/trips`.
 const URL = process.env.TRIPS_URL ?? "http://localhost:5340";
 
@@ -10,13 +11,7 @@ export default defineConfig({
   timeout: 60_000,
   workers: 1,
   reporter: [["list"]],
-  webServer: {
-    command: "vp dev examples/trips",
-    cwd: "../..",
-    url: URL,
-    reuseExistingServer: true,
-    timeout: 60_000,
-  },
+  webServer: devServer("examples/trips", URL),
   use: {
     channel: "chrome",
     baseURL: URL,

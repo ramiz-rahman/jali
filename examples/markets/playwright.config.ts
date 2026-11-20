@@ -1,6 +1,8 @@
 import { defineConfig } from "@playwright/test";
+import { devServer } from "../../e2e/fixtures/server";
 
-// The markets example's own smoke test, against its own server on :5320 (never another example's).
+// The markets example's own smoke test, against a server it starts itself on :5320, or on MARKETS_URL's port. It never
+// reuses a server it didn't start unless REUSE_SERVER=1 (e2e/fixtures/server.ts).
 // Run from the repository root: `pnpm exec playwright test -c examples/markets`.
 const URL = process.env.MARKETS_URL ?? "http://localhost:5320";
 
@@ -9,13 +11,7 @@ export default defineConfig({
   timeout: 60_000,
   workers: 1,
   reporter: [["list"]],
-  webServer: {
-    command: "vp dev examples/markets --strictPort",
-    cwd: "../..",
-    url: URL,
-    reuseExistingServer: true,
-    timeout: 60_000,
-  },
+  webServer: devServer("examples/markets", URL),
   use: {
     channel: "chrome",
     baseURL: URL,
