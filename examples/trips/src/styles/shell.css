@@ -8,8 +8,8 @@
   }
   body {
     font-family: var(--jali-font);
-    font-size: 14px;
-    line-height: 1.45;
+    font-size: var(--type-body);
+    line-height: var(--lead-body);
     background: var(--jali-canvas);
     color: var(--jali-text);
     -webkit-font-smoothing: antialiased;
@@ -51,7 +51,7 @@
     color: var(--jali-text-subtle);
   }
   .small {
-    font-size: 12.5px;
+    font-size: var(--type-meta);
   }
   /* Figures: the text face's own tabular numbers, so columns of times and prices line up without a typewriter. */
   .num {
@@ -59,7 +59,7 @@
   }
   kbd {
     font-family: var(--jali-font);
-    font-size: 11.5px;
+    font-size: var(--type-caption);
     color: var(--jali-text-subtle);
   }
   :focus-visible {
@@ -93,13 +93,13 @@
   }
   .brand-name {
     font-family: var(--t-font-display);
-    font-size: 21px;
+    font-size: var(--type-title);
     font-weight: 700;
-    letter-spacing: -0.02em;
+    letter-spacing: var(--track-title);
   }
   .brand-sub {
     color: var(--jali-text-faint);
-    font-size: 13px;
+    font-size: var(--type-meta);
     padding-top: 3px;
   }
   .presets {
@@ -188,7 +188,7 @@
     background: var(--jali-surface);
   }
   .commands-btn kbd {
-    font-size: 12.5px;
+    font-size: var(--type-meta);
     font-weight: 600;
     color: var(--jali-text-muted);
   }
@@ -240,7 +240,7 @@
       padding: 0 6px 0 10px;
     }
     .brand-name {
-      font-size: 19px;
+      font-size: var(--type-title);
     }
     .topbar-end {
       gap: 0;
@@ -255,7 +255,7 @@
     min-height: 34px;
     padding: 0 16px;
     color: var(--jali-text-faint);
-    font-size: 12.5px;
+    font-size: var(--type-meta);
     min-width: 0;
   }
   .status-hint {
@@ -296,7 +296,7 @@
   .jali-palette-input {
     height: 56px;
     padding: 0 20px;
-    font-size: 16px;
+    font-size: var(--type-subhead);
     font-weight: 500;
   }
   .jali-palette-input::placeholder {
@@ -314,7 +314,7 @@
     min-height: 36px;
     padding: 4px 12px;
     border-radius: 12px;
-    font-size: 14px;
+    font-size: var(--type-body);
   }
   .jali-palette-item .palette-title {
     min-width: 0;
@@ -336,14 +336,14 @@
   .jali-chooser-head {
     padding: 18px 20px 4px;
     font-family: var(--t-font-display);
-    font-size: 16px;
+    font-size: var(--type-subhead);
     font-weight: 700;
-    letter-spacing: -0.01em;
+    letter-spacing: var(--track-heading);
     color: var(--jali-text);
   }
   .jali-chooser .jali-palette-input {
     height: 48px;
-    font-size: 15px;
+    font-size: var(--type-item);
   }
   .jali-chooser .jali-palette-item {
     grid-template-columns: minmax(0, 1fr);
@@ -360,10 +360,10 @@
     grid-row: span 2;
   }
   .jali-chooser .palette-title {
-    font-weight: 650;
+    font-weight: 600;
   }
   .jali-chooser .jali-palette-id {
-    font-size: 12.5px;
+    font-size: var(--type-meta);
     color: var(--jali-text-subtle);
     white-space: nowrap;
     overflow: hidden;
@@ -396,7 +396,7 @@
   }
   .drag-ghost-to {
     font-weight: 500;
-    font-size: 12px;
+    font-size: var(--type-caption);
     opacity: 0.75;
   }
   body.is-dragging-stop,

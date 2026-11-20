@@ -65,7 +65,7 @@ Build it as a static site with `pnpm exec vp build` in this folder, and serve `d
 | `src/presets.ts`        | The four layouts (Plan, Days with the week in a row that scrolls, Stay, Budget); place panes follow the map, the day and the map follow the overview.                        |
 | `src/workspace.ts`      | `createJali`: the kinds, presets, launcher, and the app's ⌘K commands, which ask with `jali.actions.choose`.                                                                 |
 | `src/shell/`            | The app's chrome inside `<JaliRoot>`: the top bar, the status line with Jali's `<Shelf />`, "/" and ⌘Z, the drag ghost, toasts.                                              |
-| `src/styles/tokens.css` | The theme, after Nava: coral on zinc, set on Jali's `--jali-*` tokens, plus the day colours.                                                                                 |
+| `src/styles/tokens.css` | The theme, after Nava: coral on zinc, set on Jali's `--jali-*` tokens, plus the day colours and the type scale (`--type-*`, `--lead-*`, `--track-*`, named for their use).   |
 
 Day colours are never the only signal: every pin and every list names its day's number. A day over its share of the budget says so in words, with an icon.
 
@@ -75,6 +75,8 @@ Day colours are never the only signal: every pin and every list names its day's 
 
 - `src/trip/trip.test.ts`: travel times and fares per city, the ferry and the flight, routes from and to each city's hotel and the transfer day, the optimiser (it saves time, keeps the flight first, is stable), changes to the plan (never across cities) and their undo, reading an old Lisbon plan or a damaged one, and the budget.
 - `src/trip/photos.test.ts`: every place and both city covers have a photo in both widths, each credited under a licence that allows reuse, and a made-up business's photo is always a stand-in that says so.
+- `src/styles/styles.test.ts`: every size, leading and tracking in the stylesheets is a token from the type scale, every weight is 500, 600 or 700, and nothing is smaller than 11px.
+- `src/ui/drag.test.tsx`: a stop drag renders only what it changes, counted: moves within one place render nothing, and moving on to another day renders the two days and the overview once each.
 - `src/workspace.test.ts`: a workspace made with the app's kinds and presets, in memory: following, selecting a place everywhere, comparing two places, folding, presets and links, the ⌘K commands, and refusing a place on a day in the other city.
 - `e2e/trips.spec.ts`: a Playwright smoke test against this app's own server: the map, pins, the keys, optimise and undo, dragging a stop between days (and a refused drop across cities), the flight day, a reload, ⌘K, a phone, and an old saved Lisbon plan. Run it from the repository's root with `pnpm exec playwright test -c examples/trips` (set `TRIPS_URL` if the server is on another port).
 - `e2e/stored.spec.ts`: what is kept on this device is never trusted. It seeds damaged plans (`modes: null`, days of nulls, a stop that isn't a place, text that isn't JSON) and damaged pane state (the cursors, Explore's filters, the budget's view), loads the app and uses every layout, with nothing thrown or logged.

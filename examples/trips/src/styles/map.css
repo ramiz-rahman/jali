@@ -70,7 +70,7 @@
     border-radius: 50%;
     font-family: var(--jali-font);
     font-variant-numeric: tabular-nums;
-    font-size: 12px;
+    font-size: var(--type-caption);
     color: var(--day);
   }
   .map-days button[aria-pressed="true"] .map-day-opt {
@@ -87,13 +87,13 @@
     border-radius: 14px;
     background: color-mix(in oklab, var(--jali-surface) 92%, transparent);
     box-shadow: var(--t-shadow-float);
-    font-size: 12.5px;
+    font-size: var(--type-meta);
     color: var(--jali-text-subtle);
     max-width: 100%;
   }
   .map-summary b {
     font-family: var(--t-font-display);
-    font-size: 14px;
+    font-size: var(--type-body);
     color: var(--jali-text);
     white-space: nowrap;
     overflow: hidden;
@@ -116,7 +116,7 @@
     list-style: none;
     border-radius: var(--t-radius-pill);
     background: color-mix(in oklab, var(--jali-surface) 90%, transparent);
-    font-size: 12px;
+    font-size: var(--type-caption);
     font-weight: 600;
     color: var(--jali-text-subtle);
     pointer-events: none;
@@ -198,7 +198,7 @@
     display: flex;
     align-items: center;
     gap: 5px;
-    font-size: 12px;
+    font-size: var(--type-caption);
     font-weight: 700;
     color: var(--t-primary-text);
     white-space: nowrap;
@@ -206,9 +206,9 @@
   }
   .map-card-name {
     font-family: var(--t-font-display);
-    font-size: 18px;
+    font-size: var(--type-subhead);
     font-weight: 700;
-    letter-spacing: -0.015em;
+    letter-spacing: var(--track-heading);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -217,7 +217,7 @@
     display: flex;
     align-items: center;
     gap: 6px;
-    font-size: 12.5px;
+    font-size: var(--type-meta);
     color: var(--jali-text-subtle);
   }
   .map-card-meta .num {
@@ -246,7 +246,7 @@
       display: none;
     }
     .map-card-name {
-      font-size: 15.5px;
+      font-size: var(--type-item);
     }
     .map-card-actions {
       flex-direction: row;
@@ -294,7 +294,7 @@
   }
   .maplibregl-ctrl-attrib {
     font-family: var(--jali-font);
-    font-size: 11px;
+    font-size: var(--type-micro);
     background: color-mix(in oklab, var(--jali-surface) 85%, transparent);
     color: var(--jali-text-subtle);
     border-radius: 8px 0 0 0;
@@ -334,7 +334,7 @@
     border-radius: 50%;
     background: var(--day);
     color: #fff;
-    font-size: 13px;
+    font-size: var(--type-meta);
     box-shadow:
       0 0 0 2.5px var(--t-pin-ring),
       var(--t-shadow-pin);
@@ -439,11 +439,11 @@
   }
   .city-badge b {
     font-family: var(--t-font-display);
-    font-size: 18px;
-    letter-spacing: -0.01em;
+    font-size: var(--type-subhead);
+    letter-spacing: var(--track-heading);
   }
   .city-badge span {
-    font-size: 12px;
+    font-size: var(--type-caption);
     opacity: 0.8;
   }
   .city-badge:hover {

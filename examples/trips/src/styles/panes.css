@@ -7,9 +7,9 @@
   }
   .jali-pane-title h2 {
     font-family: var(--t-font-display);
-    font-size: 14.5px;
-    font-weight: 650;
-    letter-spacing: -0.01em;
+    font-size: var(--type-item);
+    font-weight: 600;
+    letter-spacing: var(--track-heading);
   }
   .jali-pane[data-kind="map"] .jali-pane-header {
     border-bottom-color: var(--jali-border);
@@ -106,7 +106,7 @@
     border-radius: var(--t-radius-pill);
     background: var(--jali-hover);
     color: var(--jali-text-subtle);
-    font-size: 11.5px;
+    font-size: var(--type-caption);
     font-weight: 600;
     white-space: nowrap;
   }
@@ -135,7 +135,7 @@
   .select {
     display: grid;
     gap: 4px;
-    font-size: 12px;
+    font-size: var(--type-caption);
     font-weight: 600;
     color: var(--jali-text-subtle);
     min-width: 0;
@@ -146,7 +146,7 @@
     border-radius: 10px;
     border: 1px solid var(--jali-border-strong);
     background: var(--jali-surface);
-    font-size: 13.5px;
+    font-size: var(--type-meta);
     font-weight: 500;
     color: var(--jali-text);
     min-width: 0;
@@ -163,7 +163,7 @@
     font-family: var(--jali-font);
     font-variant-numeric: tabular-nums;
     font-weight: 700;
-    font-size: 13px;
+    font-size: var(--type-meta);
   }
   [data-theme="dark"] .day-mark {
     color: #111114;
@@ -171,12 +171,12 @@
   .day-mark[data-size="sm"] {
     width: 22px;
     height: 22px;
-    font-size: 11px;
+    font-size: var(--type-micro);
   }
   .day-mark[data-size="lg"] {
     width: 46px;
     height: 46px;
-    font-size: 19px;
+    font-size: var(--type-title);
   }
   .empty {
     display: grid;
@@ -207,7 +207,7 @@
     border-inline-start: 1px solid var(--jali-border);
   }
   .stat dt {
-    font-size: 12px;
+    font-size: var(--type-caption);
     font-weight: 600;
     color: var(--jali-text-subtle);
     white-space: nowrap;
@@ -220,16 +220,16 @@
   }
   .stat-value {
     font-family: var(--t-font-display);
-    font-size: 20px;
-    line-height: 1.2;
-    font-weight: 650;
-    letter-spacing: -0.02em;
+    font-size: var(--type-title);
+    line-height: var(--lead-snug);
+    font-weight: 600;
+    letter-spacing: var(--track-title);
     white-space: nowrap;
   }
   .stat-sub {
     display: block;
     margin-top: 1px;
-    font-size: 12px;
+    font-size: var(--type-caption);
     color: var(--jali-text-subtle);
   }
   .stat[data-tone="over"] .stat-value,
@@ -274,10 +274,10 @@
   }
   .trip-city {
     font-family: var(--t-font-display);
-    font-size: 44px;
+    font-size: var(--type-hero);
     line-height: 1;
-    font-weight: 750;
-    letter-spacing: -0.035em;
+    font-weight: 700;
+    letter-spacing: var(--track-hero);
     margin-top: 6px;
   }
   .trip-dates {
@@ -293,7 +293,7 @@
   .trip-city-head {
     margin: 10px 10px 2px;
     font-family: var(--t-font-display);
-    font-size: 15px;
+    font-size: var(--type-item);
     font-weight: 700;
     color: var(--jali-text-subtle);
   }
@@ -323,14 +323,14 @@
     text-overflow: ellipsis;
   }
   .trip-hotel .muted {
-    font-size: 12.5px;
+    font-size: var(--type-meta);
   }
   .trip-budget {
     display: grid;
     gap: 8px;
   }
   .trip-budget .big {
-    font-size: 20px;
+    font-size: var(--type-title);
     font-weight: 600;
   }
   .meter {
@@ -384,7 +384,7 @@
     flex: 1;
   }
   .trip-day-date {
-    font-size: 12px;
+    font-size: var(--type-caption);
     font-weight: 600;
     color: var(--jali-text-subtle);
   }
@@ -395,14 +395,14 @@
     text-overflow: ellipsis;
   }
   .trip-day-meta {
-    font-size: 12.5px;
+    font-size: var(--type-meta);
     color: var(--jali-text-subtle);
   }
   .trip-day-cost {
     display: inline-flex;
     align-items: center;
     gap: 4px;
-    font-size: 13px;
+    font-size: var(--type-meta);
   }
   .trip-day-cost[data-over] {
     color: var(--t-over);
@@ -425,16 +425,16 @@
     min-width: 0;
   }
   .day-date {
-    font-size: 12.5px;
+    font-size: var(--type-meta);
     font-weight: 600;
     color: var(--jali-text-subtle);
   }
   .day-title {
     font-family: var(--t-font-display);
-    font-size: 22px;
-    line-height: 1.15;
+    font-size: var(--type-heading);
+    line-height: var(--lead-display);
     font-weight: 700;
-    letter-spacing: -0.02em;
+    letter-spacing: var(--track-title);
   }
   /* "Optimise the order": the day's one suggestion, so it reads as one, in the day's colour. */
   .day-optimise {
@@ -468,7 +468,7 @@
     gap: 6px;
     margin: 14px 0 4px;
     min-height: 40px;
-    font-size: 13px;
+    font-size: var(--type-meta);
     font-weight: 600;
     color: var(--jali-text-subtle);
   }
@@ -500,7 +500,7 @@
     grid-template-columns: 36px minmax(0, 1fr) auto;
     min-height: 40px;
     color: var(--jali-text-subtle);
-    font-size: 13px;
+    font-size: var(--type-meta);
     font-weight: 600;
   }
   .endpoint-mark {
@@ -595,7 +595,7 @@
     border-radius: 50%;
     background: var(--day);
     color: #fff;
-    font-size: 13px;
+    font-size: var(--type-meta);
     font-weight: 700;
     font-variant-numeric: tabular-nums;
     box-shadow: 0 0 0 3px var(--jali-surface);
@@ -611,8 +611,8 @@
   /* A name wraps (two lines at most) rather than lose its end: "Tha Tien Riverside" matters more than its row height. */
   .stop-name {
     font-weight: 700;
-    font-size: 14.5px;
-    line-height: 1.25;
+    font-size: var(--type-item);
+    line-height: var(--lead-snug);
     display: -webkit-box;
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
@@ -620,8 +620,8 @@
     overflow-wrap: anywhere;
   }
   .stop-meta {
-    font-size: 12.5px;
-    line-height: 1.35;
+    font-size: var(--type-meta);
+    line-height: var(--lead-compact);
     color: var(--jali-text-subtle);
     display: -webkit-box;
     -webkit-line-clamp: 2;
@@ -635,12 +635,12 @@
   .stop-time {
     display: grid;
     justify-items: end;
-    font-size: 13px;
+    font-size: var(--type-meta);
     font-weight: 600;
     color: var(--jali-text);
   }
   .stop-until {
-    font-size: 12px;
+    font-size: var(--type-caption);
     font-weight: 500;
     color: var(--jali-text-faint);
   }
@@ -653,7 +653,7 @@
   }
   .day-more h4 {
     font-family: var(--t-font-display);
-    font-size: 15px;
+    font-size: var(--type-item);
     font-weight: 700;
     margin-bottom: 6px;
   }
@@ -695,13 +695,13 @@
     min-width: 0;
   }
   .day-more-name {
-    font-weight: 650;
+    font-weight: 600;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
   }
   .day-more-meta {
-    font-size: 12px;
+    font-size: var(--type-caption);
     color: var(--jali-text-subtle);
     display: -webkit-box;
     -webkit-line-clamp: 2;
@@ -805,7 +805,7 @@
     display: flex;
     flex-wrap: wrap;
     gap: 0 8px;
-    font-size: 12.5px;
+    font-size: var(--type-meta);
     min-width: 0;
   }
   .leg-time {
@@ -873,15 +873,15 @@
     gap: 6px;
     color: var(--t-primary-text);
     font-weight: 700;
-    font-size: 13px;
+    font-size: var(--type-meta);
   }
   .place-name {
     margin-top: 8px;
     font-family: var(--t-font-display);
-    font-size: 28px;
-    line-height: 1.08;
+    font-size: var(--type-display);
+    line-height: var(--lead-display);
     font-weight: 700;
-    letter-spacing: -0.025em;
+    letter-spacing: var(--track-display);
     text-wrap: balance;
   }
   .place-area {
@@ -960,12 +960,12 @@
   }
   .place-compare {
     margin: 0 0 2px;
-    font-size: 12.5px;
+    font-size: var(--type-meta);
     color: var(--jali-text-subtle);
   }
   .place-compare b {
     color: var(--jali-text);
-    font-weight: 650;
+    font-weight: 600;
   }
   /* The difference from the kept place, before the figure: red when it costs more or takes longer. */
   .delta {
@@ -973,7 +973,7 @@
     margin-right: 8px;
     padding: 1px 7px;
     border-radius: var(--t-radius-pill);
-    font-size: 12px;
+    font-size: var(--type-caption);
     font-weight: 700;
     vertical-align: 1px;
   }
@@ -991,8 +991,8 @@
   }
   .place-notes {
     margin: 16px 0 0;
-    font-size: 14.5px;
-    line-height: 1.55;
+    font-size: var(--type-item);
+    line-height: var(--lead-read);
     max-width: 60ch;
     color: var(--jali-text-muted);
   }
@@ -1001,12 +1001,12 @@
   }
   .nearby h4 {
     font-family: var(--t-font-display);
-    font-size: 17px;
+    font-size: var(--type-subhead);
     font-weight: 700;
   }
   .nearby-group h5 {
     margin: 14px 0 4px;
-    font-size: 12.5px;
+    font-size: var(--type-meta);
     font-weight: 700;
     color: var(--jali-text-subtle);
   }
@@ -1044,7 +1044,7 @@
     text-overflow: ellipsis;
   }
   .nearby-dist {
-    font-size: 12px;
+    font-size: var(--type-caption);
     color: var(--jali-text-subtle);
     white-space: nowrap;
   }
@@ -1086,7 +1086,7 @@
     border: 0;
     outline: none;
     background: none;
-    font-size: 14.5px;
+    font-size: var(--type-item);
     color: var(--jali-text);
   }
   .explore-row {
@@ -1103,7 +1103,7 @@
     }
   }
   .explore-count {
-    font-size: 12.5px;
+    font-size: var(--type-meta);
   }
   .results {
     flex: 1;
@@ -1158,7 +1158,7 @@
     text-overflow: ellipsis;
   }
   .result-meta {
-    font-size: 12.5px;
+    font-size: var(--type-meta);
     color: var(--jali-text-subtle);
     white-space: nowrap;
     overflow: hidden;
@@ -1169,22 +1169,22 @@
     align-items: center;
     gap: 8px;
     flex: none;
-    font-size: 13px;
+    font-size: var(--type-meta);
   }
   .result-yours {
-    font-weight: 650;
+    font-weight: 600;
     color: var(--jali-text);
   }
   .result-price {
     display: grid;
     justify-items: end;
-    line-height: 1.2;
+    line-height: var(--lead-snug);
   }
   .result-price .num {
-    font-weight: 650;
+    font-weight: 600;
   }
   .result-per {
-    font-size: 11.5px;
+    font-size: var(--type-caption);
     color: var(--jali-text-faint);
   }
   /* Your hotel already: a filled check where the others have +. */
@@ -1214,14 +1214,14 @@
     gap: 16px;
   }
   .budget-total {
-    font-size: 36px;
+    font-size: var(--type-figure);
     line-height: 1;
     font-weight: 500;
   }
   .budget-input {
     display: grid;
     gap: 4px;
-    font-size: 12px;
+    font-size: var(--type-caption);
     font-weight: 600;
     color: var(--jali-text-subtle);
   }
@@ -1247,7 +1247,7 @@
     background: none;
     font-family: var(--jali-font);
     font-variant-numeric: tabular-nums;
-    font-size: 15px;
+    font-size: var(--type-item);
   }
   .budget-toolbar {
     display: flex;
@@ -1264,7 +1264,7 @@
     margin: 0;
     padding: 0;
     list-style: none;
-    font-size: 12.5px;
+    font-size: var(--type-meta);
     color: var(--jali-text-subtle);
   }
   .budget-key li::before {
@@ -1325,10 +1325,10 @@
   }
   .budget-day-label > span {
     display: grid;
-    line-height: 1.2;
+    line-height: var(--lead-snug);
   }
   .budget-day-label .muted {
-    font-size: 12px;
+    font-size: var(--type-caption);
   }
   .bar {
     position: relative;
@@ -1363,7 +1363,7 @@
   .budget-day-total {
     display: grid;
     justify-items: end;
-    font-size: 13.5px;
+    font-size: var(--type-meta);
   }
   .budget-day[data-over] .budget-day-total {
     color: var(--t-over);
@@ -1394,7 +1394,7 @@
     gap: 6px;
     margin-top: 18px;
     max-width: 62ch;
-    line-height: 1.5;
+    line-height: var(--lead-read);
   }
   @container (max-width: 400px) {
     .budget-day {
@@ -1422,7 +1422,7 @@
   }
   .launcher h3 {
     font-family: var(--t-font-display);
-    font-size: 16px;
+    font-size: var(--type-subhead);
     margin-bottom: 8px;
   }
   .launcher-grid {

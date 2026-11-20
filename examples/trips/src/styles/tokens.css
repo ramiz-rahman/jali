@@ -18,6 +18,33 @@
   --t-coral-900: oklch(0.36 0.08 28);
 
   --t-font-display: "Bricolage Grotesque Variable", "Figtree Variable", system-ui, sans-serif;
+
+  /*
+   * The type scale: every size, leading and tracking in the stylesheets is one of these, named for what the text
+   * is for (styles.test.ts holds the rule). Nothing is smaller than 11px. Weights are 500, 600 and 700.
+   */
+  --type-micro: 11px; /* the map's attribution, a small day mark */
+  --type-caption: 12px; /* labels, dates, tags, keys, a photo's credit */
+  --type-meta: 13px; /* a line under a name: kind, area, time, fare; the status line */
+  --type-body: 14px; /* running text, menu items */
+  --type-item: 15px; /* a name in a list, a pane's title, a field */
+  --type-subhead: 17px; /* a section's heading, a card's name, ⌘K's field */
+  --type-title: 20px; /* a figure in a stat, the app's name, a large day mark */
+  --type-heading: 22px; /* a day's title */
+  --type-display: 28px; /* a place's name */
+  --type-figure: 36px; /* the budget's total */
+  --type-hero: 40px; /* the trip's city, a place's name maximised */
+
+  --lead-display: 1.1;
+  --lead-snug: 1.2;
+  --lead-compact: 1.35;
+  --lead-body: 1.45;
+  --lead-read: 1.55; /* a place's notes, paragraphs read through */
+
+  --track-hero: -0.035em;
+  --track-display: -0.025em;
+  --track-title: -0.02em;
+  --track-heading: -0.01em;
   --t-radius-card: 16px;
   --t-radius-pill: 999px;
 
