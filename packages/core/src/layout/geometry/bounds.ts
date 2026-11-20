@@ -96,7 +96,7 @@ export function bounds(node: LayoutNode, kinds: KindRegistry, gap: number): Boun
       0,
       node.type === "row" && node.scroll === "x",
     );
-  const kind = kinds[node.ref.kind];
+  const kind = Object.hasOwn(kinds, node.ref.kind) ? kinds[node.ref.kind] : undefined;
   if (!kind) throw new Error(`Unknown pane kind: ${node.ref.kind}`);
   const comfortable = Math.max(kind.minWidth, kind.comfortableWidth ?? kind.minWidth);
   const comfortableHeight = Math.max(kind.minHeight, kind.comfortableHeight ?? kind.minHeight);

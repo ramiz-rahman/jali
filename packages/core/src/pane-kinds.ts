@@ -3,6 +3,7 @@
  * workspace keeps of them. A framework adapter adds the view: @jali/react's `definePane` adds `Component` and `icon`.
  */
 import type { KindRegistry, NodeId, ObjectRef, PaneKind } from "./layout/types";
+import { own } from "./own";
 
 // ---------- params ----------
 
@@ -119,7 +120,7 @@ export function parseParams(
   const out: Params = { ...params };
   for (const [key, declared] of Object.entries(types)) {
     const { type, optional } = typeOf(declared);
-    const value = params[key];
+    const value = own(params, key);
     if (value === undefined) {
       if (!optional) problems.push({ param: key });
       continue;
@@ -369,7 +370,8 @@ export function createPaneKinds<D extends PaneKindBase = PaneKindBase>(
     },
     registry() {
       if (cached?.version === version) return cached.value;
-      const value: KindRegistry = {};
+      // No prototype: a kind called `constructor` or `toString` is one only if it was registered.
+      const value: KindRegistry = Object.create(null);
       for (const d of kinds.values()) {
         const k: PaneKind = {
           kind: d.kind,

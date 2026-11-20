@@ -1,3 +1,4 @@
+import { own } from "@jali/core/adapter";
 /** React access to the store: one provider, and hooks that subscribe to exactly what a component reads. */
 import type { Jali, JaliState, PaneNode, JaliModel, NodeId, Messages, Theme } from "@jali/core";
 import { createContext, Fragment, useContext, useSyncExternalStore, type ReactNode } from "react";
@@ -63,7 +64,7 @@ export function useTitleOf(): (node: PaneNode) => string {
 
 /** The `data-*` attributes a pane set from its data (usePaneAttributes), to spread on what stands for it. */
 export const usePaneAttributesOf = (id: NodeId | undefined): PaneAttributes | undefined =>
-  useUi((s) => (id ? s.paneAttributes[id] : undefined));
+  useUi((s) => own(s.paneAttributes, id));
 
 // ---------- the public names ----------
 

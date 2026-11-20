@@ -41,7 +41,7 @@ export function open(
   const { fit } = ctx;
   const original = find(layout.root, target);
   if (original?.type !== "pane") throw new Error(`Unknown source pane: ${target}`);
-  if (!fit.kinds[ref.kind]) throw new Error(`Unknown pane kind: ${ref.kind}`);
+  if (!Object.hasOwn(fit.kinds, ref.kind)) throw new Error(`Unknown pane kind: ${ref.kind}`);
   // A plain link reuses the source's earlier plain link of the same kind; followers and kept panes are never reused.
   if (linked && !opts.fromSelection) {
     const existing = panes(layout.root).find(

@@ -867,3 +867,10 @@ Data Studio's old tab strip had six features Jali lacked. Each is general, and l
 - **Not refused:** a ref of a known kind whose params its kind's types can't read (`order({ id: "lost" })`). It still opens, in the kind's `Missing` (20 Nov, "A kind's `Missing`"): that is how an app shows "this order is gone", and refusing it would take that away.
 - **The layout operations still throw** on an unknown kind (`layout.openBeside`, `addTab`, `setRef`): they are the pure API, documented to throw, and the actions now never reach them with one.
 - **Tests:** `tests/hostile-input.test.tsx` (C4); `tests/instance.test.ts` (addTab's refusal now has its message).
+
+## 20 Nov 2026 · Names on `Object.prototype` are never kinds, ids or entries (QUALITY-REVIEW C3)
+
+- **Why:** the kind registry and the per-pane records were plain objects read with `record[id]` and `id in record`. `openBeside(…, { kind: "constructor" })` passed the agent's check, a follower with id `constructor` was always "held for unsaved work", the palette crashed on `paneCommands["constructor"].map`, a pane with id `toString` took a function as its title, and `usePaneState` in a pane called `constructor` read `Object` as its stored value.
+- **Now:** `kinds.registry()` has no prototype, and every read of a record keyed by something from outside goes through `own(record, key)` (`own.ts`, in `@jali/core/adapter`), every membership test through `Object.hasOwn`: `titles`, `unsaved`, `paneCommands`, `selection`, `activity`, `paneState` (both levels), `paneAttributes`, `view.scroll`, a ref's params and the kind registry, in core and in `@jali/react`. The layout operations test a kind with `Object.hasOwn`, so a registry a host builds as a plain object is safe too. Stored pane state keeps only entries that are records.
+- **Not changed:** the records in `UiState` stay plain objects, as their type says and as a host spreads them; the reads are what make the prototype irrelevant, so a record a host or a test builds with `{}` is read safely as well. A `Map` would have changed the public state's shape.
+- **Tests:** `tests/hostile-input.test.tsx` (C3).

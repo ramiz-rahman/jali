@@ -1,3 +1,4 @@
+import { own } from "@jali/core/adapter";
 import type { NodeId, PaneNode } from "@jali/core";
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { useJaliIcons } from "../icons/context";
@@ -48,7 +49,7 @@ function revealTab(el: HTMLDivElement | null) {
 }
 
 function TabActivity({ id }: { id: NodeId }) {
-  return <Activity a={useUi((s) => s.activity[id])} />;
+  return <Activity a={useUi((s) => own(s.activity, id))} />;
 }
 
 /** A group's tabs. `owner` is the frame showing the group: the active tab's title labels its region. */
@@ -152,7 +153,7 @@ export function TabStrip({ group, owner }: { group: NonNullable<Frame["group"]>;
   const renderTab = ({ node: t, tucked, folded: isFolded }: Tab) => {
     const active = t.id === group.active;
     const title = titleOf(store.env, t, titles);
-    const dirty = !!unsaved[t.id];
+    const dirty = !!own(unsaved, t.id);
     const pinned = !!t.pinned;
     // Renaming: the field takes the tab's place until it closes.
     if (renaming === t.id)
@@ -191,7 +192,7 @@ export function TabStrip({ group, owner }: { group: NonNullable<Frame["group"]>;
         }}
       >
         <div
-          {...marks[t.id]}
+          {...own(marks, t.id)}
           ref={active ? revealTab : undefined}
           className={`jali-tab${active ? " is-active" : ""}${tucked ? " is-tucked" : ""}${isFolded ? " is-folded" : ""}`}
           data-tab={t.id}

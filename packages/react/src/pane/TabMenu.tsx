@@ -1,3 +1,4 @@
+import { own as ownOf } from "@jali/core/adapter";
 import type { NodeId } from "@jali/core";
 import { useEffect, useLayoutEffect, useMemo, useRef, useState, type KeyboardEvent } from "react";
 import { createPortal } from "react-dom";
@@ -51,7 +52,7 @@ export function TabMenu({
       else g.push([item]);
     }
     // In place of the app's controls a narrow header hid: the pane's commands, in their own group.
-    const own = commands ? (store.get().paneCommands[at.pane] ?? []) : [];
+    const own = commands ? (ownOf(store.get().paneCommands, at.pane) ?? []) : [];
     if (own.length)
       g.push(
         own.map((c) => ({

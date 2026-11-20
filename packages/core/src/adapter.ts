@@ -36,6 +36,7 @@ export * from "./dom/ids";
 export * from "./dom/input";
 export * from "./dom/resize";
 export * from "./pane-kinds";
+export * from "./own";
 export * from "./pane/activeItem";
 export * from "./pane/chrome";
 export * from "./pane/buttons";

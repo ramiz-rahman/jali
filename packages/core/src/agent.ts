@@ -19,6 +19,7 @@ import type { Layout, ObjectRef } from "./layout/types";
 import type { ActionResult } from "./state/apply";
 import type { Jali } from "./state/instance";
 import { checkRef, type OptionalParam, type ParamType } from "./pane-kinds";
+import { own } from "./own";
 
 /** What each action an agent may use does, and its arguments, for the agent to read. */
 export const AGENT_ACTIONS = {
@@ -223,10 +224,10 @@ export function createAgent(jali: Jali, options: AgentOptions = {}): JaliAgent {
             : folded.has(p.id)
               ? "folded"
               : "tab";
-      const unsaved = s.unsaved[p.id];
+      const unsaved = own(s.unsaved, p.id);
       const x = storeOf(jali).snapshot();
       const denied = PANE_CONTROLS.filter((c) => c !== "popOut" && !allows(x, p.id, c));
-      const activity = s.activity[p.id];
+      const activity = own(s.activity, p.id);
       return {
         id: p.id,
         kind: p.ref.kind,

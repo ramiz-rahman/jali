@@ -4,6 +4,7 @@ import { refuse, type Change, type Outcome, type Snapshot } from "../state/apply
 import { say } from "../state/messages";
 import { openBeside, withRecent } from "./open";
 import { follow, followerOnScreen, followLater, sameRef } from "./follow";
+import { own } from "../own";
 
 export const checkPeek = ({ s }: Snapshot) => (s.view.peek ? undefined : refuse("nothing-to-do"));
 
@@ -71,12 +72,12 @@ export function select(
   opts: { inResults?: boolean } = {},
 ): Outcome {
   if (!ref) {
-    if (!s.selection[source]) return null;
+    if (!Object.hasOwn(s.selection, source)) return null;
     const { [source]: _gone, ...selection } = s.selection;
     return { op: "select", patch: { selection }, defer: followLater(source, null) };
   }
   const inResults = opts.inResults ?? true,
-    prev = s.selection[source];
+    prev = own(s.selection, source);
   const moved = !prev || !sameRef(prev.ref, ref);
   const patch =
     moved || prev.inResults !== inResults

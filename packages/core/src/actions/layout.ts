@@ -9,6 +9,7 @@ import { say } from "../state/messages";
 import type { Settings } from "../state/settings";
 import { withRecent } from "./open";
 import { agreeWithSelection, agreeOnArrival } from "./follow";
+import { own } from "../own";
 
 /** Switch to a preset: the layout the app saved for it (`PresetOptions.saved`), if it has one this workspace can
  *  still read, else its own. `own`: always its own (Reset layout). */
@@ -141,7 +142,7 @@ export function restoreLayout(x: Snapshot, input: LayoutInput): Outcome {
 }
 
 export function setActivity({ s, m }: Snapshot, id: NodeId, a: PaneActivity): Outcome {
-  return !m.pane(id) || s.activity[id] === a
+  return !m.pane(id) || own(s.activity, id) === a
     ? null
     : { op: "patch", patch: { activity: { ...s.activity, [id]: a } } };
 }

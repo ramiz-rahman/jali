@@ -1,3 +1,4 @@
+import { own } from "@jali/core/adapter";
 import type { NodeId } from "@jali/core";
 import { useStore, useUi } from "../state/react";
 
@@ -15,4 +16,4 @@ export function UnsavedMark({ labelled = false }: { labelled?: boolean }) {
 }
 
 /** Whether pane `id` has unsaved work. */
-export const useUnsavedOf = (id: NodeId) => useUi((s) => !!s.unsaved[id]);
+export const useUnsavedOf = (id: NodeId) => useUi((s) => !!own(s.unsaved, id));

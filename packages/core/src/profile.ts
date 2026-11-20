@@ -14,6 +14,7 @@ import type { LayoutInput } from "./layout/build";
 import type { PaneErrorInfo, PaneKinds } from "./pane-kinds";
 import type { Command } from "./commands/registry";
 import { en, type Messages } from "./state/messages";
+import { own } from "./own";
 
 /** One of a curated page's views. Adapters add its icon (@jali/react: RoleDef). */
 export interface RoleBase {
@@ -70,7 +71,7 @@ export function titleOf(env: Env, node: PaneNode, titles?: Record<NodeId, string
 
 /** What a pane shows, by name: the title its content set (useTitle), else its kind's title. Ignores roles. */
 export const shownTitle = (env: Env, node: PaneNode, titles?: Record<NodeId, string>): string =>
-  titles?.[node.id] ?? env.kinds.title(node.ref);
+  own(titles, node.id) ?? env.kinds.title(node.ref);
 
 /** A layout the person can switch to from the bar or ⌘K ("Layout: One table"). `build` returns a fresh layout. */
 export interface Preset {

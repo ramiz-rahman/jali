@@ -1,3 +1,4 @@
+import { own } from "@jali/core/adapter";
 import type { PaneNode } from "@jali/core";
 import { useEffect, useMemo, useRef } from "react";
 import { useJaliIcons } from "../icons/context";
@@ -27,7 +28,7 @@ export function Peek({ presentation }: { presentation: Presentation }) {
       const p = store.model().pane(id);
       return !!p && sameRef(p.ref, ref);
     });
-    return shown ? s.paneAttributes[shown] : undefined;
+    return own(s.paneAttributes, shown);
   });
   // The same for unsaved work: the pane showing this object has some.
   const dirty = useUi((s) => {
@@ -48,7 +49,7 @@ export function Peek({ presentation }: { presentation: Presentation }) {
       const p = store.model().pane(id);
       return !!p && sameRef(p.ref, ref);
     });
-    return id ? s.titles[id] : undefined;
+    return own(s.titles, id);
   });
   const openedBy = useRef<"pointer" | "keyboard">("keyboard");
   // Observes (never takes) the last input, so only a pointer-opened peek animates.

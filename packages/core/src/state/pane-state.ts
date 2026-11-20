@@ -9,7 +9,11 @@ const PANE_STATE_KEY = "pane-state";
 export function loadPaneState(storage: StoragePort): PaneStates {
   try {
     const v = JSON.parse(storage.get(PANE_STATE_KEY) ?? "{}") as unknown;
-    return v && typeof v === "object" && !Array.isArray(v) ? (v as PaneStates) : {};
+    if (!v || typeof v !== "object" || Array.isArray(v)) return {};
+    // Only a pane's own record of values: anything else stored under a pane is left out.
+    return Object.fromEntries(
+      Object.entries(v).filter(([, s]) => !!s && typeof s === "object" && !Array.isArray(s)),
+    ) as PaneStates;
   } catch {
     return {};
   }

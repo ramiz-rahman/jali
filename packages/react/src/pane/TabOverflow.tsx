@@ -1,3 +1,4 @@
+import { own } from "@jali/core/adapter";
 import type { NodeId } from "@jali/core";
 import { useEffect, useLayoutEffect, useRef, useState, type KeyboardEvent } from "react";
 import { useJaliIcons } from "../icons/context";
@@ -50,7 +51,7 @@ export function TabOverflow({
   const marks = useUi((s) => s.paneAttributes);
   const activity = useUi((s) => s.activity);
   // A folded pane goes on working behind the chip: the chip says so, with the most pressing of its panes' activities.
-  const behind = folded ? mostPressing(tabs.map(({ node }) => activity[node.id])) : undefined;
+  const behind = folded ? mostPressing(tabs.map(({ node }) => own(activity, node.id))) : undefined;
   const dir = useUi((s) => s.dir);
 
   const close = (refocus: boolean) => {
@@ -182,7 +183,7 @@ export function TabOverflow({
                 const role = page && t.role ? roleOf(env.profile!, t.role) : undefined;
                 return (
                   <button
-                    {...marks[t.id]}
+                    {...own(marks, t.id)}
                     key={t.id}
                     role="menuitem"
                     className={`jali-tab-menu-item${t.id === active ? " is-active" : ""}`}
@@ -205,7 +206,7 @@ export function TabOverflow({
                       <KindIcon kind={t.ref.kind} {...ICON.menu} />
                     )}
                     <span className="jali-tab-menu-title">{titleOf(env, t, titles)}</span>
-                    <Activity a={activity[t.id]} />
+                    <Activity a={own(activity, t.id)} />
                     {folded && !chip ? (
                       <small className="jali-tab-menu-mark">
                         <icon.fold {...ICON.menuSmall} aria-hidden />

@@ -1,3 +1,4 @@
+import { own } from "@jali/core/adapter";
 /**
  * Linked selection in a detail's header (actions/follow.ts): the Following / Kept toggle, and a note when the list's filter no
  * longer shows the item the detail follows.
@@ -50,7 +51,7 @@ export function FollowControl({ node }: { node: PaneNode; title: string }) {
 export function NotInResults({ node }: { node: PaneNode }) {
   const store = useStore();
   const out = useUi((s) => {
-    const sel = node.follows && node.linkedTo ? s.selection[node.linkedTo] : undefined;
+    const sel = node.follows && node.linkedTo ? own(s.selection, node.linkedTo) : undefined;
     return !!sel && !sel.inResults && sameRef(sel.ref, node.ref);
   });
   if (!out || !node.linkedTo) return null;

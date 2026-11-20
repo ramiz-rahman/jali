@@ -112,6 +112,72 @@ describe("C1: ids", () => {
   });
 });
 
+describe("C3: names on Object.prototype", () => {
+  it.each(["constructor", "toString", "__proto__", "hasOwnProperty"])(
+    "%s is not a kind",
+    (kind) => {
+      const jali = make();
+      expect(jali.actions.openBeside("a", { kind, params: {} })).toMatchObject({
+        ok: false,
+        reason: "invalid",
+      });
+      expect(jali.model().panes).toHaveLength(2);
+      const agent = createAgent(jali, { actions: ["openBeside"] });
+      expect(
+        agent.act({ steps: [{ action: "openBeside", args: ["a", { kind, params: {} }] }] }).ok,
+      ).toBe(false);
+      expect(jali.model().panes).toHaveLength(2);
+    },
+  );
+
+  it.each(["constructor", "toString", "__proto__", "valueOf"])(
+    "a pane with id %s has no title, commands or work it never set",
+    (id) => {
+      const jali = make({
+        layout: row(
+          pane(note({ id: 1 }), { id: "list" }),
+          pane(note({ id: 2 }), { id, linkedTo: "list", follows: true }),
+        ),
+      });
+      const store = storeOf(jali);
+      expect(jali.model().title(id)).toBe("Note 2");
+      store.set({ view: { ...store.get().view, focused: id } });
+      expect(() => listCommands(jali)).not.toThrow();
+      // Not held for unsaved work it doesn't have: it follows its list.
+      const r = store.apply((x) => follow(x, "list", note({ id: 3 })));
+      expect(r.ok).toBe(true);
+      expect(jali.model().pane(id)?.ref).toEqual(note({ id: 3 }));
+    },
+  );
+
+  it("usePaneState in a pane with id constructor starts on its initial value", () => {
+    const seen: unknown[] = [];
+    const kept = definePane("kept", {
+      title: "Kept",
+      Component: () => {
+        const [name] = usePaneState("name", "initial");
+        const [ctor] = usePaneState("constructor", 0);
+        seen.push(name, ctor);
+        return null;
+      },
+    });
+    const jali = createJali({
+      panes: [kept],
+      layout: row(pane(kept(), { id: "constructor" }), pane(kept(), { id: "other" })),
+      url: false,
+      storage: memoryStorage(),
+      size: { width: 1200, height: 800 },
+      moveFocus: false,
+    });
+    render(<JaliRoot jali={jali} />);
+    expect(seen.length).toBeGreaterThan(0);
+    for (let i = 0; i < seen.length; i += 2) {
+      expect(seen[i]).toBe("initial");
+      expect(seen[i + 1]).toBe(0);
+    }
+  });
+});
+
 describe("C4: refs passed to public actions", () => {
   const bad: [string, unknown][] = [
     ["an unknown kind", { kind: "typo", params: {} }],

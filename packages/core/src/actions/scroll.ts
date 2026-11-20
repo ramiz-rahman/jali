@@ -5,13 +5,14 @@
 import * as core from "../layout";
 import type { NodeId } from "../layout/types";
 import type { Outcome, Snapshot } from "../state/apply";
+import { own } from "../own";
 
 /** The strip `strip` has scrolled `offset` px along its content (kept within it, to the px). At its start: none. */
 export function setScroll({ s, m }: Snapshot, strip: NodeId, offset: number): Outcome {
   const box = m.content.scrollers.find((r) => r.id === strip);
   if (!box) return null;
   const next = Math.round(core.clampOffset(box, offset));
-  if (next === Math.round(s.view.scroll?.[strip] ?? 0)) return null;
+  if (next === Math.round(own(s.view.scroll, strip) ?? 0)) return null;
   const { [strip]: _, ...others } = s.view.scroll ?? {};
   const scroll = next > 0 ? { ...others, [strip]: next } : others;
   const { scroll: __, ...rest } = s.view;

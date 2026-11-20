@@ -1,3 +1,4 @@
+import { own } from "@jali/core/adapter";
 /** The active-item port (pane/activeItem.ts) for the pane a React component renders in. */
 import type { ActiveItemPort, ActiveItemMapping } from "@jali/core";
 import { useContext, useMemo, useRef } from "react";
@@ -14,7 +15,7 @@ export function useActiveItemPort(mapping: ActiveItemMapping): ActiveItemPort | 
   const store = useStore();
   const latest = useRef(mapping);
   latest.current = mapping;
-  useUi((s) => (pane ? s.selection[pane]?.ref : undefined));
+  useUi((s) => own(s.selection, pane)?.ref);
   return useMemo(
     () =>
       pane

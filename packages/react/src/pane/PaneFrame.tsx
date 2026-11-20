@@ -1,3 +1,4 @@
+import { own } from "@jali/core/adapter";
 import { memo, useMemo, useRef, useState, type CSSProperties } from "react";
 import { TabMenu, type TabMenuAt } from "./TabMenu";
 import { createPortal } from "react-dom";
@@ -46,7 +47,7 @@ export const PaneFrame = /* @__PURE__ */ memo(
     const popTarget = usePopOutTarget(store, node.id);
     const icon = useJaliIcons();
     const { actions } = store;
-    const activity = useUi((s) => s.activity[node.id]);
+    const activity = useUi((s) => own(s.activity, node.id));
     const dirty = useUnsavedOf(node.id);
     const renaming = useUi((s) => s.renaming === node.id) && !group;
     const canRename = useCanRename();

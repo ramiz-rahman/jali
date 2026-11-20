@@ -4,6 +4,7 @@ import type { PaneAttributes, PaneCommand } from "../pane-kinds";
 import { refuse, type Change, type Outcome, type Snapshot } from "../state/apply";
 import { follow } from "./follow";
 import { say } from "../state/messages";
+import { own } from "../own";
 
 const without = <T>(r: Record<NodeId, T>, ids: readonly NodeId[]) =>
   Object.fromEntries(Object.entries(r).filter(([id]) => !ids.includes(id)));
@@ -14,12 +15,12 @@ const without = <T>(r: Record<NodeId, T>, ids: readonly NodeId[]) =>
  */
 export function setUnsaved({ s, m }: Snapshot, id: NodeId, what: string | null): Outcome {
   const p = m.pane(id);
-  if (!p || (s.unsaved[id] ?? null) === what) return null;
+  if (!p || (own(s.unsaved, id) ?? null) === what) return null;
   const change: Change = {
     op: "patch",
     patch: { unsaved: what ? { ...s.unsaved, [id]: what } : without(s.unsaved, [id]) },
   };
-  const sel = !what && p.follows && p.linkedTo ? s.selection[p.linkedTo] : undefined;
+  const sel = !what && p.follows && p.linkedTo ? own(s.selection, p.linkedTo) : undefined;
   return sel ? [change, (y: Snapshot) => follow(y, p.linkedTo!, sel.ref, id)] : change;
 }
 
@@ -28,7 +29,7 @@ export function setPaneCommands(
   id: NodeId,
   commands: PaneCommand[] | null,
 ): Outcome {
-  if (!m.pane(id) || (!commands?.length && !s.paneCommands[id])) return null;
+  if (!m.pane(id) || (!commands?.length && !Object.hasOwn(s.paneCommands, id))) return null;
   return {
     op: "patch",
     patch: {
@@ -41,7 +42,7 @@ export function setPaneCommands(
 
 /** The pane's title from its data (useTitle), in place of its kind's; `null` goes back to the kind's. */
 export function setTitle({ s, m }: Snapshot, id: NodeId, title: string | null): Outcome {
-  if (!m.pane(id) || (s.titles[id] ?? null) === title) return null;
+  if (!m.pane(id) || (own(s.titles, id) ?? null) === title) return null;
   return {
     op: "patch",
     patch: { titles: title ? { ...s.titles, [id]: title } : without(s.titles, [id]) },
@@ -102,7 +103,8 @@ export function setPaneAttributes(
     Object.entries(attributes ?? {}).filter(([k, v]) => ownName(k) && typeof v === "string"),
   ) as PaneAttributes;
   const empty = !Object.keys(next).length;
-  if (!m.pane(id) || sameAttributes(s.paneAttributes[id], empty ? undefined : next)) return null;
+  if (!m.pane(id) || sameAttributes(own(s.paneAttributes, id), empty ? undefined : next))
+    return null;
   return {
     op: "patch",
     patch: {
@@ -120,10 +122,10 @@ const sameAttributes = (a: PaneAttributes | undefined, b: PaneAttributes | undef
 
 /** One value of a pane's own state. JSON only: it is saved with the person's settings. */
 export function setPaneState({ s, m }: Snapshot, id: NodeId, key: string, value: unknown): Outcome {
-  if (!m.pane(id) || Object.is(s.paneState[id]?.[key], value)) return null;
+  if (!m.pane(id) || Object.is(own(own(s.paneState, id), key), value)) return null;
   return {
     op: "patch",
-    patch: { paneState: { ...s.paneState, [id]: { ...s.paneState[id], [key]: value } } },
+    patch: { paneState: { ...s.paneState, [id]: { ...own(s.paneState, id), [key]: value } } },
   };
 }
 

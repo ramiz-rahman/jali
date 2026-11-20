@@ -1,3 +1,4 @@
+import { own } from "@jali/core/adapter";
 import { buttonsOf, checkTuck, tabMenuOf, tuckHome, type PaneButton } from "@jali/core/adapter";
 import { allows } from "@jali/core/adapter";
 import { useJaliIcons } from "../icons/context";
@@ -65,7 +66,7 @@ export function HeaderActions({ id, title, zoomed, chrome, tabs, narrow = 0, onM
       !(narrow && MOVES.has(b) && (inMenu.has(COVERS[b]) || (b === "tuck" && !home))),
   );
   // With the app's controls hidden too, the menu lists the pane's commands in their place.
-  const commands = useUi((s) => (narrow === 2 ? (s.paneCommands[id]?.length ?? 0) : 0));
+  const commands = useUi((s) => (narrow === 2 ? (own(s.paneCommands, id)?.length ?? 0) : 0));
   // ⋯ when the menu has more than the buttons: everything allowed is always one click away, on touch too.
   const shown = new Set(buttons.map((b) => COVERS[b]));
   const more = commands > 0 || items.some((i) => !shown.has(i.id));

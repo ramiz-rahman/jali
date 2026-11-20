@@ -14,6 +14,7 @@ import type { Layout, NodeId, ObjectRef, PaneNode, ViewState } from "../layout/t
 import { refuse, type Change, type Deferred, type Outcome, type Snapshot } from "../state/apply";
 import { say } from "../state/messages";
 import type { UiState } from "../state/store";
+import { own as ownOf } from "../own";
 
 export const FOLLOW_MS = 150;
 
@@ -59,10 +60,10 @@ export function follow(
 ): Outcome {
   const moves = followMoves({ s, env }, source, selected, only);
   if (!moves.length) return null;
-  const held = moves.filter((m) => m.id in s.unsaved);
-  const going = moves.filter((m) => !(m.id in s.unsaved));
+  const held = moves.filter((m) => Object.hasOwn(s.unsaved, m.id));
+  const going = moves.filter((m) => !Object.hasOwn(s.unsaved, m.id));
   const stays = held.length
-    ? refuse("unsaved", say(env).keptUnsaved(s.unsaved[held[0]!.id]!))
+    ? refuse("unsaved", say(env).keptUnsaved(ownOf(s.unsaved, held[0]!.id)!))
     : null;
   let layout = s.layout;
   for (const { id, ref } of going) layout = core.setRef(layout, s.view, id, ref, ctx);
@@ -87,7 +88,8 @@ export const followLater = (source: NodeId, ref: ObjectRef | null): Deferred =>
     ? {
         key: key(source),
         ms: FOLLOW_MS,
-        run: (y) => (sameRef(y.s.selection[source]?.ref, ref) ? follow(y, source, ref) : null),
+        run: (y) =>
+          sameRef(ownOf(y.s.selection, source)?.ref, ref) ? follow(y, source, ref) : null,
       }
     : { key: key(source), ms: 0 };
 
@@ -104,7 +106,7 @@ export function followerOnScreen({ s, m }: Snapshot, source: NodeId, kind: strin
 export function setKept({ s, m }: Snapshot, id: NodeId, kept: boolean): Outcome {
   const p = m.pane(id);
   if (!p?.linkedTo) return null;
-  const list = p.linkedTo in s.selection;
+  const list = Object.hasOwn(s.selection, p.linkedTo);
   const layout = core.setKept(s.layout, id, kept, { follow: list });
   if (layout === s.layout) return null;
   const change: Change = {
@@ -117,7 +119,7 @@ export function setKept({ s, m }: Snapshot, id: NodeId, kept: boolean): Outcome 
         : say(m).unkept(m.title(id)),
   };
   // Following again: catch up with the list's selection now.
-  const sel = s.selection[p.linkedTo];
+  const sel = ownOf(s.selection, p.linkedTo);
   return kept || !sel ? change : [change, (y: Snapshot) => follow(y, p.linkedTo!, sel.ref, id)];
 }
 
@@ -151,7 +153,7 @@ export function agreeOnArrival(
 ): UiState["selection"] {
   let out = selection;
   for (const list of core.tree.panes(layout.root)) {
-    const sel = out[list.id];
+    const sel = ownOf(out, list.id);
     const own = sel ? core.follower(layout, list.id, sel.ref.kind) : undefined;
     const ref = sel
       ? own && !sameRef(own.ref, sel.ref)
@@ -179,7 +181,7 @@ export function agreeWithSelection(
 ): { layout: Layout; selection: UiState["selection"] } {
   let selection = s.selection;
   for (const list of core.tree.panes(layout.root)) {
-    let sel = selection[list.id];
+    let sel = ownOf(selection, list.id);
     if (!sel) {
       // Taken from the layout as it is now, so a list that follows a list starts on what the first one gave it.
       const ref = startingSelection(env, layout, list);
@@ -192,7 +194,7 @@ export function agreeWithSelection(
     if (own && !sameRef(own.ref, sel.ref))
       selection = { ...selection, [list.id]: { ref: structuredClone(own.ref), inResults: true } };
     for (const f of core.followers(layout, list.id)) {
-      if (f.id in s.unsaved) continue;
+      if (Object.hasOwn(s.unsaved, f.id)) continue;
       const ref = env.kinds.follow(f.ref.kind, target);
       if (ref && !sameRef(ref, f.ref)) layout = core.setRef(layout, view, f.id, ref, ctx);
     }

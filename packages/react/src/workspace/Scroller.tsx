@@ -1,3 +1,4 @@
+import { own } from "@jali/core/adapter";
 /**
  * Rows that scroll sideways (`row({ scroll: "x" }, …)`, docs/research/scrolling-rows.md), on screen.
  *
@@ -100,7 +101,7 @@ export function Strip({
   }, [store]);
 
   // The other way: an offset Jali set (a link, a maximised pane put back) moves the element there.
-  const offset = useUi((st) => core.clampOffset(s, st.view.scroll?.[s.id] ?? 0));
+  const offset = useUi((st) => core.clampOffset(s, own(st.view.scroll, s.id) ?? 0));
   useLayoutEffect(() => {
     const el = view.current;
     if (!el || zoomed) return;
@@ -222,7 +223,7 @@ export function useFocusIntoStrip(store: Store) {
     s && rect ? `${key} ${s.id} ${s.rect.width} ${s.contentWidth} ${rect.x} ${rect.width}` : "";
   useEffect(() => {
     if (!s || !rect) return;
-    const now = store.get().view.scroll?.[s.id] ?? 0;
+    const now = own(store.get().view.scroll, s.id) ?? 0;
     const to = core.offsetToShow(s, rect, now, dir);
     if (Math.abs(to - now) < 1) return;
     const el = store.dom.pane(s.paneIds[0]!)?.closest<HTMLElement>(`.${STRIP_VIEWPORT}`);

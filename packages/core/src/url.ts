@@ -164,7 +164,7 @@ export function readSearch(
 /** `week:732,board:40`: offsets for rows of `layout` that scroll sideways. Anything else in it is left out. */
 function readScroll(text: string | null, layout: Layout): Record<NodeId, number> | undefined {
   if (!text) return undefined;
-  const out: Record<NodeId, number> = {};
+  const out: Record<NodeId, number> = Object.create(null);
   for (const part of text.split(",")) {
     const at = part.lastIndexOf(":");
     const id = part.slice(0, at),

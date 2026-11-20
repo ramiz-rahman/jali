@@ -465,7 +465,7 @@ export function createUiStore(deps: UiStoreDeps): UiStore {
     const known = env.kinds.registry();
     if (
       (resized || recapped) &&
-      core.tree.panes(state.layout.root).every((p) => known[p.ref.kind])
+      core.tree.panes(state.layout.root).every((p) => Object.hasOwn(known, p.ref.kind))
     ) {
       const layout = core.refit(state.layout, state.view, ctx());
       if (layout !== state.layout) state = { ...state, layout };

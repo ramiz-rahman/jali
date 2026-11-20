@@ -20,6 +20,7 @@ import { messagesOf, type ScreenDirection } from "../state/messages";
 import type { UiStore } from "../state/store";
 import { storeOf, type Jali } from "../state/instance";
 import { cycleRegions } from "./regions";
+import { own as ownOf } from "../own";
 
 /** A command: one of Jali's (`commandsOf`), or the app's own (`createJali({ commands })`). */
 export interface Command {
@@ -510,7 +511,7 @@ export function listCommands(jali: Jali): ListedCommand[] {
   const store = storeOf(jali);
   const x = store.snapshot();
   const focused = x.s.view.focused;
-  const own = (focused ? x.s.paneCommands[focused] : undefined) ?? [];
+  const own = ownOf(x.s.paneCommands, focused) ?? [];
   return [
     ...own.map((c): ListedCommand => ({
       key: `pane:${c.id}`,

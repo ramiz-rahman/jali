@@ -1,3 +1,4 @@
+import { own } from "@jali/core/adapter";
 /**
  * A pane's own state, kept by the workspace: it survives the pane being tabbed, folded, tucked or moved, and a reload
  * (saved through the store's storage port). It is dropped when the pane closes for good or shows another object. Values must be JSON.
@@ -17,14 +18,14 @@ export function usePaneState<T>(
   // The peek sheet (and anything outside a pane) has no pane id: its state is local.
   const id = useContext(PaneContext)?.id ?? null;
   const store = useStore();
-  const kept = useUi((s) => (id ? s.paneState[id]?.[key] : undefined)) as T | undefined;
+  const kept = useUi((s) => own(own(s.paneState, id), key)) as T | undefined;
   // In the peek sheet (no pane), state is local and goes when the sheet does.
   const [local, setLocal] = useState(initial);
   const value = id ? (kept === undefined ? initial : kept) : local;
   const set = useCallback(
     (next: T | ((prev: T) => T)) => {
       if (!id) return setLocal(next);
-      const prev = (store.get().paneState[id]?.[key] as T | undefined) ?? initial;
+      const prev = (own(own(store.get().paneState, id), key) as T | undefined) ?? initial;
       store.actions.setPaneState(
         id,
         key,

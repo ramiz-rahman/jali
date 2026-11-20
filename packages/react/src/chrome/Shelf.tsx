@@ -1,3 +1,4 @@
+import { own } from "@jali/core/adapter";
 import type { ShelfEntry, JaliModel, PaneActivity } from "@jali/core";
 import { useEffect, useLayoutEffect, useMemo, useRef, useState, type KeyboardEvent } from "react";
 import { useJaliIcons } from "../icons/context";
@@ -132,14 +133,14 @@ export function Shelf() {
   };
 
   const chip = (it: ShelfEntry) => {
-    const L = label(m, it, activity[it.paneId]);
-    const dirty = !!unsaved[it.paneId];
+    const L = label(m, it, own(activity, it.paneId));
+    const dirty = !!own(unsaved, it.paneId);
     const description = [dirty && words.pane.unsaved, L.folded && words.tabs.foldedDescription]
       .filter(Boolean)
       .join(". ");
     return (
       <div
-        {...marks[it.paneId]}
+        {...own(marks, it.paneId)}
         className={`jali-shelf-chip${L.folded ? " is-folded" : ""}`}
         data-chip={it.paneId}
         data-reason={it.reason}
@@ -161,7 +162,7 @@ export function Shelf() {
             pane: L.title,
             home: L.home,
             reason: it.reason,
-            activity: activity[it.paneId],
+            activity: own(activity, it.paneId),
           })}
           aria-description={description || undefined}
           title={L.folded ? words.tabs.foldedTitle(L.title) : t.chipTip(L.title, L.home)}
@@ -175,7 +176,7 @@ export function Shelf() {
           ) : null}
           <span className="jali-shelf-chip-title">{L.title}</span>
           {dirty ? <UnsavedMark /> : null}
-          <Activity a={activity[it.paneId]} shape />
+          <Activity a={own(activity, it.paneId)} shape />
         </button>
         {it.reason === "tucked" ? (
           <button
@@ -241,10 +242,10 @@ export function Shelf() {
           }}
         >
           {hidden.map((it) => {
-            const L = label(m, it, activity[it.paneId]);
+            const L = label(m, it, own(activity, it.paneId));
             return (
               <button
-                {...marks[it.paneId]}
+                {...own(marks, it.paneId)}
                 className="jali-shelf-menu-item"
                 role="menuitem"
                 key={it.paneId}
@@ -255,7 +256,7 @@ export function Shelf() {
               >
                 {L.node ? <KindIcon kind={L.node.ref.kind} {...ICON.menu} /> : null}
                 <span className="jali-shelf-chip-title">{L.title}</span>
-                <Activity a={activity[it.paneId]} shape />
+                <Activity a={own(activity, it.paneId)} shape />
                 <small>{t.where(L.folded, L.home)}</small>
               </button>
             );

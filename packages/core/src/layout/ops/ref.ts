@@ -20,7 +20,7 @@ export function setRef(
 ): Layout {
   const original = find(layout.root, id);
   if (original?.type !== "pane" || equalRef(original.ref, ref)) return layout;
-  if (!ctx.fit.kinds[ref.kind]) throw new Error(`Unknown pane kind: ${ref.kind}`);
+  if (!Object.hasOwn(ctx.fit.kinds, ref.kind)) throw new Error(`Unknown pane kind: ${ref.kind}`);
   const root = map(layout.root, (n) =>
     n.id === id && n.type === "pane" ? { ...n, ref: clone(ref) } : n,
   );

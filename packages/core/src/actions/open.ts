@@ -8,6 +8,7 @@ import { goToRole, investigation, placeAfterArrangement, roleLabel, settleRoles 
 import type { JaliModel } from "../state/model";
 import { say } from "../state/messages";
 import { follow, followLater, sameRef, setKept } from "./follow";
+import { own } from "../own";
 
 /** What a new split or a stack's "+" shows until the person chooses an object: the workspace's launcher. */
 const launcherOf = (x: Snapshot): ObjectRef | undefined =>
@@ -76,7 +77,7 @@ export function openBeside(x: Snapshot, source: NodeId, ref: ObjectRef): Outcome
   const page =
     s.page && !investigation(m.panes).length ? { page: { ...s.page, before: s.layout } } : {};
   // In a curated page nothing the person placed gives way for an opened pane: short of room, it opens as a tab.
-  const selected = s.selection[source]?.ref;
+  const selected = own(s.selection, source)?.ref;
   const fromSelection = !!selected && sameRef(m.env.kinds.follow(ref.kind, selected), ref);
   // The list already has a following detail: opening its row keeps that detail in place when it shows the row (keep
   // it, browse on: the next open makes a new follower), or shows the row there now. Never a second copy of a row.
@@ -274,7 +275,7 @@ export function addTab(x: Snapshot, id: NodeId, ref: ObjectRef): Outcome {
   const { s, m, ctx } = x;
   if (s.page?.mode === "single") return refuse("single-view", say(m).singleNoLayout);
   if (!m.pane(id)) return refuse("not-found");
-  if (!ctx.fit.kinds[ref.kind]) return refuse("invalid");
+  if (!Object.hasOwn(ctx.fit.kinds, ref.kind)) return refuse("invalid");
   const dup = openPaneFor(m, ref);
   if (dup)
     return {

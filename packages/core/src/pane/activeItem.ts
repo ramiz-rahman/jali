@@ -12,6 +12,7 @@
 import type { NodeId, ObjectRef } from "../layout/types";
 import type { ActiveItemPort } from "../contracts/active-item";
 import type { Jali } from "../state/instance";
+import { own } from "../own";
 
 export interface ActiveItemMapping {
   /** The object an item id shows. */
@@ -29,7 +30,7 @@ export function activeItemPort(
 ): ActiveItemPort {
   return {
     get itemId() {
-      const ref = jali.get().selection[pane]?.ref;
+      const ref = own(jali.get().selection, pane)?.ref;
       return ref ? idOf(ref) : null;
     },
     write(itemId, action) {

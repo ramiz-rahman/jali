@@ -1,3 +1,4 @@
+import { own } from "@jali/core/adapter";
 import type { PaneNode } from "@jali/core";
 import { inlineStep, paneDomId, titleOf } from "@jali/core/adapter";
 import { Activity } from "../pane/Activity";
@@ -28,7 +29,7 @@ function revealInList(el: HTMLElement | null) {
 }
 
 function Item({ node, selected, inView }: { node: PaneNode; selected: boolean; inView?: boolean }) {
-  const activity = useUi((s) => s.activity[node.id]);
+  const activity = useUi((s) => own(s.activity, node.id));
   const dirty = useUnsavedOf(node.id);
   const titles = useUi((s) => s.titles);
   const marks = usePaneAttributesOf(node.id);

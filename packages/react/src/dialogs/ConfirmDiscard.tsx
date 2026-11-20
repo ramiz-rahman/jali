@@ -1,3 +1,4 @@
+import { own } from "@jali/core/adapter";
 import { useEffect, useRef } from "react";
 import { bold, Parts, useModel, useStore, useUi } from "../state/react";
 
@@ -43,7 +44,7 @@ export function ConfirmDiscard() {
           <ul>
             {confirm.panes.map((id) => (
               <li key={id}>
-                <Parts of={t.item(m.title(id), unsaved[id] ?? "", bold)} />
+                <Parts of={t.item(m.title(id), own(unsaved, id) ?? "", bold)} />
               </li>
             ))}
           </ul>

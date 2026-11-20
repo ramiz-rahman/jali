@@ -97,7 +97,7 @@ export function addTab(
   ctx: LayoutContext,
 ): OpenResult {
   if (find(layout.root, target)?.type !== "pane") throw new Error(`Unknown source pane: ${target}`);
-  if (!ctx.fit.kinds[ref.kind]) throw new Error(`Unknown pane kind: ${ref.kind}`);
+  if (!Object.hasOwn(ctx.fit.kinds, ref.kind)) throw new Error(`Unknown pane kind: ${ref.kind}`);
   const group = resolve(layout, noFocus(), ctx).stacks.find((s) => s.paneIds.includes(target));
   if (group) {
     const r = split(layout, unzoom(view), target, "right", ref, ctx);
