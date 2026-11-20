@@ -142,7 +142,7 @@ test.describe("A list's detail follows its selection", () => {
     await expect(note).toBeHidden();
     await expect(app.pane("orders").getByRole("row", { selected: true })).toHaveAttribute(
       "aria-rowindex",
-      "3",
+      "4",
     );
   });
 });

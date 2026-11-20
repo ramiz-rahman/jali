@@ -32,9 +32,9 @@ test.describe("Open and peek", () => {
     await expect.poll(() => app.focusIn("orders")).toBe(true);
     const selected = app.pane("orders").getByRole("row", { selected: true });
     await page.keyboard.press("j");
-    await expect(selected).toHaveAttribute("aria-rowindex", "6");
+    await expect(selected).toHaveAttribute("aria-rowindex", "7");
     await page.keyboard.press("k");
-    await expect(selected).toHaveAttribute("aria-rowindex", "5");
+    await expect(selected).toHaveAttribute("aria-rowindex", "6");
     await app.shot("01-open-beside-replaces");
   });
 

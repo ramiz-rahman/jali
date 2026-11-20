@@ -1,4 +1,8 @@
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
+/**
+ * The shared data grid: a virtual window of rows under a sticky header, with sorting, filters, a row menu and an
+ * "open beside" action. Focus stays on the grid itself; the selected row is its active descendant.
+ */
+import { useEffect, useId, useLayoutEffect, useRef, useState } from "react";
 import { copyRaw } from "../shared/copyRaw";
 import { useFocusWhen } from "../shared/useFocusWhen";
 import { useListKeys } from "../shared/useListKeys";
@@ -113,6 +117,10 @@ export function Grid(p: Props) {
 
   const [menu, setMenu] = useState<MenuState | null>(null);
   const rootRef = useFocusWhen<HTMLDivElement>(!!p.focused);
+  // Focus stays on the grid; the selected row is its active descendant, so a screen reader reads each row J, K or an
+  // arrow moves to. Row ids are this grid's own: two grids of the same table can be on screen.
+  const rowIdBase = useId();
+  const rowId = (i: number) => `${rowIdBase}-r${i}`;
 
   const refAt = (i: number) => {
     const row = p.rows[i - p.startOffset];
@@ -153,8 +161,9 @@ export function Grid(p: Props) {
     else if (e.key === " " && !e.metaKey && !e.ctrlKey && !e.altKey && cur >= 0 && p.peek)
       peekAt(cur);
     else if ((e.key === "ContextMenu" || (e.key === "F10" && e.shiftKey)) && cur >= 0) {
-      const rowEl = rootRef.current?.querySelector<HTMLElement>(`[aria-rowindex="${cur + 1}"]`);
-      const r = (rowEl ?? rootRef.current)!.getBoundingClientRect();
+      const at = document.getElementById(rowId(cur)) ?? rootRef.current;
+      if (!at) return;
+      const r = at.getBoundingClientRect();
       setMenu({ i: cur, x: r.left + 24, y: r.bottom - 4 });
     } else if (e.key === "Enter" && e.altKey && cur >= 0 && p.openBeside) openAt(cur);
     else return;
@@ -168,7 +177,11 @@ export function Grid(p: Props) {
       tabIndex={0}
       role="grid"
       aria-label={p.label}
-      aria-rowcount={p.total}
+      // The header row is row 1, so the data rows are 2 to total + 1.
+      aria-rowcount={p.total + 1}
+      aria-activedescendant={
+        cur >= first && cur < last && p.rows[cur - p.startOffset] ? rowId(cur) : undefined
+      }
       onKeyDown={onKeyDown}
       onCopy={copyRaw}
     >
@@ -181,6 +194,7 @@ export function Grid(p: Props) {
           className="pk-gh"
           ref={headerRef}
           role="row"
+          aria-rowindex={1}
           style={{ position: "sticky", top: 0, zIndex: 2, minWidth: width, maxWidth: measure }}
         >
           {p.columns.map((c) => {
@@ -227,7 +241,11 @@ export function Grid(p: Props) {
               </div>
             );
           })}
-          {p.openBeside && <div style={actionStyle} />}
+          {p.openBeside && (
+            <div role="columnheader" style={actionStyle}>
+              <span className="sr-only">Open beside</span>
+            </div>
+          )}
         </div>
         <div
           className="pk-grows"
@@ -239,8 +257,9 @@ export function Grid(p: Props) {
             return (
               <div
                 key={i}
+                id={rowId(i)}
                 role="row"
-                aria-rowindex={i + 1}
+                aria-rowindex={i + 2}
                 aria-selected={i === p.selected}
                 className="pk-row"
                 style={{ top: i * ROW_H, right: 0 }}
@@ -285,7 +304,7 @@ export function Grid(p: Props) {
                   );
                 })}
                 {p.openBeside && (
-                  <div className="pk-cell pk-act" style={actionStyle}>
+                  <div role="gridcell" className="pk-cell pk-act" style={actionStyle}>
                     <button
                       className="pk-open"
                       tabIndex={i === p.selected ? 0 : -1}
