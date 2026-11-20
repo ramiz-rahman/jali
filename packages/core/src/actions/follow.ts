@@ -16,6 +16,7 @@ import { say } from "../state/messages";
 import type { UiState } from "../state/store";
 import { own as ownOf } from "../own";
 import { sameRef } from "../layout/ops/ref";
+import { selectionFor } from "../state/pane-state";
 
 export const FOLLOW_MS = 150;
 
@@ -146,8 +147,10 @@ export function agreeOnArrival(
   env: Pick<Snapshot["env"], "kinds">,
   layout: Layout,
   selection: UiState["selection"],
+  owners?: UiState["selectionOf"],
 ): UiState["selection"] {
-  let out = selection;
+  // A selection made in another list than the one now at its id is not this list's.
+  let out = owners ? selectionFor(selection, owners, env.kinds, layout) : selection;
   for (const list of core.tree.panes(layout.root)) {
     const sel = ownOf(out, list.id);
     const own = sel ? core.follower(layout, list.id, sel.ref.kind) : undefined;
@@ -175,7 +178,8 @@ export function agreeWithSelection(
   layout: Layout,
   view: ViewState,
 ): { layout: Layout; selection: UiState["selection"] } {
-  let selection = s.selection;
+  // A list that stays is the same list: a selection made in another list under the same id is not carried over.
+  let selection = selectionFor(s.selection, s.selectionOf, env.kinds, layout);
   for (const list of core.tree.panes(layout.root)) {
     let sel = ownOf(selection, list.id);
     if (!sel) {

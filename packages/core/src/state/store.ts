@@ -58,7 +58,7 @@ import { browserStorage, type StoragePort } from "../ports";
 import { focusPane } from "../dom/focus";
 import { cssString, paneDomId } from "../dom/ids";
 import { pageDirection } from "../dom/direction";
-import { loadPaneState } from "./pane-state";
+import { loadPaneState, loadPaneStateOwners } from "./pane-state";
 import { startUi } from "../boot";
 import {
   createKeymap,
@@ -178,6 +178,11 @@ export interface UiState {
   paneReports: Record<NodeId, Record<string, PaneReport>>;
   /** Each pane's own state (usePaneState): JSON values, kept through folds, tabs and reloads, dropped on close. */
   paneState: Record<NodeId, Record<string, unknown>>;
+  /** The object (`objectKey`) each pane's state belongs to: a pane that shows another object under the same id
+   *  (a reused id, an undo, a reload) never reads it. */
+  paneStateOf: Record<NodeId, string>;
+  /** The list (`objectKey`) each selection was made in: a new list under a closed list's id starts without it. */
+  selectionOf: Record<NodeId, string>;
   /** The live region's text; `seq` makes a repeat a new announcement. */
   announcement: { text: string; seq: number };
 }
@@ -425,6 +430,8 @@ export function createUiStore(deps: UiStoreDeps): UiStore {
     paneAttributes: {},
     paneReports: {},
     paneState: loadPaneState(storage),
+    paneStateOf: loadPaneStateOwners(storage),
+    selectionOf: {},
     ...deps.initial,
   };
   const subs = new Set<() => void>();

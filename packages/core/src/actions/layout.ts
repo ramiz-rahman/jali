@@ -73,7 +73,7 @@ export function arrive(
   const view: ViewState = { focusHistory: history, ...arrived };
   if (focused) view.focused = focused;
   // The lists' selections agree with the followers the layout brings (or start on them); the layout stays as it came.
-  const selection = agreeOnArrival(env, layout, s.selection);
+  const selection = agreeOnArrival(env, layout, s.selection, s.selectionOf);
   const patch = {
     ...(s.page ? { page: null } : {}),
     ...(presetId ? { presetId } : {}),

@@ -29,6 +29,8 @@ import type { JaliModel } from "./model";
 import type { UiState } from "./store";
 import { pruneUndo } from "./undo";
 import type { PaneReport } from "../actions/content";
+import type { PaneKinds } from "../pane-kinds";
+import { ownedPaneState, ownedSelection } from "./pane-state";
 import { sameRef } from "../layout/ops/ref";
 
 /** What an action reads: the state, the model derived from it, and the core's context. */
@@ -401,10 +403,17 @@ function ask(guard: BeforeClose, request: CloseRequest): boolean | Promise<boole
 }
 
 /**
- * Per-pane records for panes still in the layout or in an undo entry (an undo brings the pane back). A pane that now
- * shows another object starts afresh: its state was about the object it showed.
+ * Per-pane records for the panes that can still use them. A pane's own state stays while a pane with its id shows
+ * its object, in the layout or an undo entry (an undo brings the pane back); a pane that now shows another object
+ * starts afresh. A list's selection stays with the list it was made in. `prior`: the state before this commit.
  */
-function prunePanes(s: UiState, layout: Layout, undo: UndoEntry[]): Partial<UiState> {
+function prunePanes(
+  s: UiState,
+  layout: Layout,
+  undo: UndoEntry[],
+  kinds: PaneKinds,
+  prior: UiState,
+): Partial<UiState> {
   const was = new Map(core.tree.panes(s.layout.root).map((p) => [p.id, p.ref]));
   const moved = new Set(
     core.tree
@@ -412,17 +421,6 @@ function prunePanes(s: UiState, layout: Layout, undo: UndoEntry[]): Partial<UiSt
       .filter((p) => was.has(p.id) && !sameRef(was.get(p.id), p.ref))
       .map((p) => p.id),
   );
-  const ids = new Set(
-    core.tree
-      .panes(layout.root)
-      .filter((p) => !moved.has(p.id))
-      .map((p) => p.id),
-  );
-  for (const e of undo) for (const p of core.tree.panes(e.before.layout.root)) ids.add(p.id);
-  const keep = <T>(r: Record<NodeId, T>) =>
-    Object.keys(r).every((id) => ids.has(id))
-      ? r
-      : Object.fromEntries(Object.entries(r).filter(([id]) => ids.has(id)));
   // Unsaved work, commands and activity belong to mounted content; state also survives in the undo stack.
   // The same content stays mounted when its object changes, so these go only with the pane.
   const live = new Set(core.tree.panes(layout.root).map((p) => p.id));
@@ -449,8 +447,15 @@ function prunePanes(s: UiState, layout: Layout, undo: UndoEntry[]): Partial<UiSt
           .map(([id, r]) => [id, moved.has(id) ? withoutNames(r) : r] as const)
           .filter(([, r]) => Object.keys(r).length),
       );
+  // A pane's own state stays while a pane with its id shows its object, here or in the undo stack; a list's selection
+  // stays with the list it was made in (state/pane-state.ts).
+  const owned = ownedPaneState(s, kinds, [layout, ...undo.map((e) => e.before.layout)]);
+  const selected = ownedSelection(prior, s.selection, kinds, layout);
   return {
-    paneState: keep(s.paneState),
+    ...(owned.paneState !== s.paneState ? owned : {}),
+    ...(selected.selection !== s.selection || selected.selectionOf !== s.selectionOf
+      ? selected
+      : {}),
     paneReports,
     unsaved: mounted(s.unsaved),
     paneCommands: mounted(s.paneCommands),
@@ -595,7 +600,12 @@ function step(c: Run, o: Outcome, f: Frame | undefined): ActionResult {
   let discarding: NodeId[] = [];
   if (p.writes === "view") {
     if (next.view !== s.view || o.patch) {
-      io.set({ view: next.view, ...o.patch });
+      const selection = o.patch?.selection;
+      const owned =
+        selection && selection !== s.selection
+          ? ownedSelection(s, selection, io.snapshot().env.kinds, s.layout)
+          : {};
+      io.set({ view: next.view, ...o.patch, ...owned });
       c.writes++;
     }
     io.url(p.history);
@@ -681,11 +691,21 @@ function step(c: Run, o: Outcome, f: Frame | undefined): ActionResult {
               Object.entries(s.unsaved).filter(([id]) => !discarding.includes(id)),
             ),
             paneReports: withoutUnsaved(s.paneReports, discarding),
+            // A draft kept in the pane's own state is discarded too: an undo must not bring it back.
+            paneState: Object.fromEntries(
+              Object.entries(s.paneState).filter(([id]) => !discarding.includes(id)),
+            ),
           }
         : {};
       if (discarding.length) io.announce(say(io.snapshot()).discarded(discarding.length));
       const pruned = layoutChanged
-        ? prunePanes({ ...s, ...kept, ...o.patch }, next.layout, undoStack)
+        ? prunePanes(
+            { ...s, ...kept, ...o.patch },
+            next.layout,
+            undoStack,
+            io.snapshot().env.kinds,
+            s,
+          )
         : {};
       c.writes++;
       io.set({

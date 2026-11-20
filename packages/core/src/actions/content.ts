@@ -11,6 +11,7 @@ import { refuse, type Change, type Outcome, type Snapshot } from "../state/apply
 import { follow } from "./follow";
 import { say } from "../state/messages";
 import { own } from "../own";
+import { objectKey, paneStateFor } from "../state/pane-state";
 
 const without = <T>(r: Record<NodeId, T>, ids: readonly NodeId[]) =>
   Object.fromEntries(Object.entries(r).filter(([id]) => !ids.includes(id)));
@@ -213,12 +214,25 @@ const sameAttributes = (a: PaneAttributes | undefined, b: PaneAttributes | undef
     Object.keys(a).length === Object.keys(b).length &&
     Object.entries(a).every(([k, v]) => b[k as keyof PaneAttributes] === v));
 
-/** One value of a pane's own state. JSON only: it is saved with the person's settings. */
-export function setPaneState({ s, m }: Snapshot, id: NodeId, key: string, value: unknown): Outcome {
-  if (!m.pane(id) || Object.is(own(own(s.paneState, id), key), value)) return null;
+/** One value of a pane's own state. JSON only: it is saved with the person's settings. It belongs to the object the
+ *  pane shows: state kept under the id for another object (one an undo could bring back) is replaced. */
+export function setPaneState(
+  { s, m, env }: Snapshot,
+  id: NodeId,
+  key: string,
+  value: unknown,
+): Outcome {
+  const p = m.pane(id);
+  if (!p) return null;
+  const of = objectKey(env.kinds, p.ref);
+  const mine = paneStateFor(s, env.kinds, id, p.ref);
+  if (mine && Object.is(own(mine, key), value)) return null;
   return {
     op: "patch",
-    patch: { paneState: { ...s.paneState, [id]: { ...own(s.paneState, id), [key]: value } } },
+    patch: {
+      paneState: { ...s.paneState, [id]: { ...mine, [key]: value } },
+      ...(own(s.paneStateOf, id) === of ? {} : { paneStateOf: { ...s.paneStateOf, [id]: of } }),
+    },
   };
 }
 

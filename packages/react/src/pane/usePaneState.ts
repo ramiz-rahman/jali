@@ -1,7 +1,9 @@
-import { own } from "@jali/core/adapter";
+import { objectKey, own } from "@jali/core/adapter";
 /**
  * A pane's own state, kept by the workspace: it survives the pane being tabbed, folded, tucked or moved, and a reload
- * (saved through the store's storage port). It is dropped when the pane closes for good or shows another object. Values must be JSON.
+ * (saved through the store's storage port). It is dropped when the pane closes for good or shows another object. It
+ * belongs to that object, not to the pane id: another object under the same id starts from `initial`. Values must be
+ * JSON.
  *
  *   const [sort, setSort] = usePaneState("sort", { column: "id", dir: "asc" });
  *
@@ -30,8 +32,12 @@ export function usePaneState<T>(
   options?: PaneStateOptions<T>,
 ): [T, (next: T | ((prev: T) => T)) => void] {
   // The peek sheet (and anything outside a pane) has no pane id: its state is local.
-  const id = useContext(PaneContext)?.id ?? null;
+  const pane = useContext(PaneContext);
+  const id = pane?.id ?? null;
   const store = useStore();
+  // The object the pane shows: state kept under its id for another object (a reused id, an undo) isn't its own.
+  const ref = pane?.props.node.ref;
+  const of = useMemo(() => (ref ? objectKey(store.env.kinds, ref) : null), [store, ref]);
   // The first `initial`, for the read and the write alike (useState's rule).
   const first = useRef(initial).current;
   const parse = useRef(options?.parse);
@@ -48,7 +54,9 @@ export function usePaneState<T>(
     },
     [first],
   );
-  const kept = useUi((s) => own(own(s.paneState, id), key));
+  const kept = useUi((s) =>
+    of !== null && own(s.paneStateOf, id) === of ? own(own(s.paneState, id), key) : undefined,
+  );
   // In the peek sheet (no pane), state is local and goes when the sheet does.
   const [local, setLocal] = useState(initial);
   // Parsed once per stored value, so a parse that builds a new object doesn't change the value every render.
@@ -57,14 +65,17 @@ export function usePaneState<T>(
   const set = useCallback(
     (next: T | ((prev: T) => T)) => {
       if (!id) return setLocal(next);
-      const prev = read(own(own(store.get().paneState, id), key));
+      const s = store.get();
+      const prev = read(
+        of !== null && own(s.paneStateOf, id) === of ? own(own(s.paneState, id), key) : undefined,
+      );
       store.actions.setPaneState(
         id,
         key,
         typeof next === "function" ? (next as (p: T) => T)(prev) : next,
       );
     },
-    [id, key, store, read],
+    [id, key, store, read, of],
   );
   return [value, set];
 }

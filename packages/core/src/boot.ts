@@ -10,7 +10,7 @@ import { applyTheme, resolveTheme, saveSettings, watchSystemTheme } from "./stat
 import type { ConfirmState, UiStore } from "./state/store";
 import { applyTokens } from "./tokens";
 import { savePrefs } from "./state/page-prefs";
-import { savePaneState } from "./state/pane-state";
+import { ownedPaneState, ownedSelection, savePaneState } from "./state/pane-state";
 import { openPage, withoutOpened } from "./actions/page";
 import { arrive } from "./actions/layout";
 import { agreeOnArrival } from "./actions/follow";
@@ -73,10 +73,14 @@ export function boot(store: UiStore, url?: UrlSync) {
   const layout = core.refit(s.layout, s.view, store.ctx());
   const first = panes()[0]?.id;
   // The lists' selections agree with what their followers show (a link has done it already).
-  const selection = agreeOnArrival(store.env, layout, s.selection);
+  const selection = agreeOnArrival(store.env, layout, s.selection, s.selectionOf);
+  // Saved pane state is only for panes that show the object it was saved for; selections belong to their lists.
+  const owned = ownedPaneState(s, store.env.kinds, [layout]);
+  const selected = ownedSelection(s, selection, store.env.kinds, layout);
   store.set({
     layout,
-    ...(selection !== s.selection ? { selection } : {}),
+    ...owned,
+    ...selected,
     ...(!s.view.focused && first
       ? { view: { ...s.view, focused: first, focusHistory: [first] } }
       : {}),
@@ -110,13 +114,16 @@ export function startUi(
   let saveTimer: ReturnType<typeof setTimeout> | undefined;
   const saveSoon = () => {
     clearTimeout(saveTimer);
-    saveTimer = setTimeout(() => savePaneState(store.storage, store.get().paneState), 400);
+    saveTimer = setTimeout(() => {
+      const s = store.get();
+      savePaneState(store.storage, s.paneState, s.paneStateOf);
+    }, 400);
   };
   if (pageTheme) applyTheme(resolveTheme(prev.settings.theme, prev.systemDark));
   const offStore = store.subscribe(() => {
     const s = store.get();
     if (s.settings !== prev.settings) saveSettings(store.storage, s.settings);
-    if (s.paneState !== prev.paneState) saveSoon();
+    if (s.paneState !== prev.paneState || s.paneStateOf !== prev.paneStateOf) saveSoon();
     // A curated page's mode and split layout are the person's: saved on this device, opened panes left out.
     const p = store.env.profile;
     const live = s.page?.mode === "split" && s.layout !== prev.layout;

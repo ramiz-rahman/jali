@@ -344,7 +344,7 @@ Recent (newest first), whether an object is already open in another pane, and an
 usePaneState<T>(key: string, initial: T, options?: PaneStateOptions<T>): [T, (next: T | ((prev: T) => T)) => void]
 ```
 
-State the workspace keeps for a pane: it survives the pane being tabbed, folded, tucked or moved, and a reload (saved on this device 400 ms after it changes). It is dropped when the pane closes for good or shows another object. Use it for what a person expects back (a sort, a draft, a scroll position) and React state for the rest.
+State the workspace keeps for a pane: it survives the pane being tabbed, folded, tucked or moved, and a reload (saved on this device 400 ms after it changes). It is dropped when the pane closes for good or shows another object, and when the person discards the pane's unsaved work. It belongs to the object the pane shows, not to the pane's id: a pane that shows another object under the same id (after a reload, or a new pane under a closed pane's id) starts from `initial`, and an undo that brings the pane back brings its state back. Use it for what a person expects back (a sort, a draft, a scroll position) and React state for the rest.
 
 In the peek sheet there is no pane, so the state is local and goes with the sheet.
 

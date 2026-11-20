@@ -7,6 +7,7 @@ import type { ObjectRef } from "../packages/core/src/layout/types";
 import { createTestStore } from "./workspace";
 import { FOLLOW_MS } from "../packages/core/src/actions/follow";
 import { memoryStorage } from "../packages/core/src/ports";
+import { savePaneState } from "../packages/core/src/state/pane-state";
 import type { UiStore } from "../packages/core/src/state/store";
 
 let store: UiStore;
@@ -107,9 +108,17 @@ describe("a pane's own state", () => {
   });
 
   it("is read back from the store's storage, so it survives a reload", () => {
-    const storage = memoryStorage({ "pane-state": JSON.stringify({ customer: { scroll: 99 } }) });
+    store.actions.setPaneState("customer", "scroll", 99);
+    const storage = memoryStorage();
+    savePaneState(storage, store.get().paneState, store.get().paneStateOf);
     const again = createTestStore({ storage, initial: { area: { width: 1600, height: 800 } } });
     expect(again.get().paneState.customer).toEqual({ scroll: 99 });
+  });
+
+  it("saved without the object it was about (before 20 Nov 2026), it is left out", () => {
+    const storage = memoryStorage({ "pane-state": JSON.stringify({ customer: { scroll: 99 } }) });
+    const again = createTestStore({ storage, initial: { area: { width: 1600, height: 800 } } });
+    expect(again.get().paneState.customer).toBeUndefined();
   });
 });
 
