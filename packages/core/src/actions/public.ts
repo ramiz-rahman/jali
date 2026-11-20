@@ -7,6 +7,9 @@
  *  - What the action uses comes next (`openBeside(pane, ref)`); options come last, in an object.
  *  - Every action returns an `ActionResult`: `{ ok: true, pane }` when it happened, or `{ ok: false, reason }` when it
  *    did not. Announcements are unchanged: a refusal that is read out today still is, and `message` is that text.
+ *  - Nothing it is given makes it throw. A ref is checked here, once, before any step sees it (`checkRef`): a kind the
+ *    workspace doesn't have, or params that aren't text, numbers or flags, is `"invalid"`, with what is wrong as
+ *    `message`. A pane named by something that is neither an id nor a ref is `"invalid"` too.
  *
  * Each action is the engine's own step (actions/*.ts), committed once. The engine's other steps (drags, keys, what a
  * pane reports) are in `@jali/core/adapter`, for adapters.
@@ -45,6 +48,8 @@ import { mergeInto, moveTab, setPinned, unmerge } from "./tabs";
 import { startRename } from "./rename";
 import { choose, type ChooseOptions } from "./choose";
 import { putBack, tuck } from "./tuck";
+import { checkRef } from "../pane-kinds";
+import { say } from "../state/messages";
 
 /** A pane, by its id or by the object it shows. */
 export type PaneTarget = NodeId | ObjectRef;
@@ -175,6 +180,7 @@ export interface JaliActions {
 export function paneFor(x: Snapshot, target: PaneTarget): NodeId | undefined {
   const { s, m } = x;
   if (typeof target === "string") return m.pane(target) ? target : undefined;
+  if (checkRef(m.env.kinds, target, { known: false })) return undefined;
   const focused = m.pane(s.view.focused);
   const shows = (ref: ObjectRef) =>
     sameRef(ref, target) ||
@@ -185,16 +191,39 @@ export function paneFor(x: Snapshot, target: PaneTarget): NodeId | undefined {
 
 type Run = (o: Outcome | ((x: Snapshot) => Outcome)) => ActionResult;
 
+/** An action that uses no ref. */
+const NO_REF: unique symbol = Symbol();
+
+/** What is wrong with `ref`, in the workspace's words; undefined when nothing is. `known: false`: any kind will do. */
+function refProblem(x: Snapshot, ref: unknown, known = true): string | undefined {
+  if (checkRef(x.env.kinds, ref, { known: false })) return say(x).invalidRef;
+  return known && checkRef(x.env.kinds, ref)
+    ? say(x).unknownKind((ref as ObjectRef).kind)
+    : undefined;
+}
+
 /** `jali.actions` for a store's `apply`. */
 export function publicActions(run: Run): JaliActions {
-  /** Run `step` on the pane `target` names; with `optional`, no target means the step's own default. */
+  /** A ref the action uses, or a pane named by something other than an id, that can't be one: refused as invalid. */
+  const invalid = (x: Snapshot, target: PaneTarget | undefined, ref?: unknown) => {
+    const problem =
+      (target !== undefined && typeof target !== "string"
+        ? refProblem(x, target, false)
+        : undefined) ?? (ref === NO_REF ? undefined : refProblem(x, ref));
+    return problem ? refuse("invalid", problem) : undefined;
+  };
+  /** Run `step` on the pane `target` names; with `optional`, no target means the step's own default. `ref`: the ref
+   *  the action uses, checked first. */
   const on = (
     target: PaneTarget | undefined,
     step: (x: Snapshot, id: NodeId) => Outcome,
     optional = false,
+    ref: unknown = NO_REF,
   ): ActionResult => {
     let acted: NodeId | undefined;
     const r = run((x) => {
+      const bad = invalid(x, target, ref);
+      if (bad) return bad;
       if (target === undefined && optional) {
         acted = x.s.view.focused;
         return step(x, undefined as unknown as NodeId);
@@ -221,11 +250,12 @@ export function publicActions(run: Run): JaliActions {
     toggleZoom: (pane) => opt(pane, (x, id) => toggleZoom(x, id)),
     toggleFullScreen: (pane) => opt(pane, (x, id) => toggleFullScreen(x, id)),
 
-    openBeside: (pane, ref) => on(pane, (x, id) => openBeside(x, id, ref)),
-    openHere: (pane, ref) => on(pane, (x, id) => openHere(x, id, ref)),
-    peek: (pane, ref) => on(pane, (x, id) => peek(x, ref, id)),
+    openBeside: (pane, ref) => on(pane, (x, id) => openBeside(x, id, ref), false, ref),
+    openHere: (pane, ref) => on(pane, (x, id) => openHere(x, id, ref), false, ref),
+    peek: (pane, ref) => on(pane, (x, id) => peek(x, ref, id), false, ref),
     closePeek: () => run((x) => (x.s.view.peek ? peek(x, null) : null)),
-    select: (pane, ref, options) => on(pane, (x, id) => select(x, id, ref, options)),
+    select: (pane, ref, options) =>
+      on(pane, (x, id) => select(x, id, ref, options), false, ref === null ? NO_REF : ref),
     setKept: (pane, kept) =>
       on(pane, (x, id) =>
         x.m.pane(id)?.linkedTo ? setKept(x, id, kept) : refuse("nothing-to-do"),
@@ -238,7 +268,7 @@ export function publicActions(run: Run): JaliActions {
         return target ? split(x, dir, target) : refuse("not-found");
       }),
     newTab: (pane) => opt(pane, (x, id) => newTab(x, id ?? x.s.view.focused)),
-    addTab: (pane, ref) => on(pane, (x, id) => addTab(x, id, ref)),
+    addTab: (pane, ref) => on(pane, (x, id) => addTab(x, id, ref), false, ref),
 
     close: (pane) =>
       opt(pane, (x, id) => ((id ?? x.s.view.focused) ? close(x, id) : refuse("not-found"))),

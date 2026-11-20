@@ -1078,7 +1078,7 @@ type RefusalReason = "not-found" | "invalid" | "unavailable" | "single-view" | "
 
 - **`not-found`**: The pane (by id or by what it shows), preset or view named is not there.
 
-- **`invalid`**: The layout given can't be shown: a pane kind the workspace doesn't have, or a malformed tree.
+- **`invalid`**: The layout or ref given can't be shown: a pane kind the workspace doesn't have, params that aren't text, numbers or flags, or a malformed tree. An action given such a ref (`openBeside`, `openHere`, `addTab`, `peek`, `select`), or a pane named by something that is neither an id nor a ref, refuses with this and says why in `message`; it never throws.
 
 - **`unavailable`**: The workspace can't do this: no launcher (split, new tab), no curated page, no free workspace to go back to.
 
@@ -1577,7 +1577,7 @@ A pane that is not there gives `reason: "not-found"`. What a refusal reads out t
 
 - **`actions.newTab`**, `newTab(pane?: PaneTarget)`: The launcher as a new tab of the pane's group. `"unavailable"` without a launcher.
 
-- **`actions.addTab`**, `addTab(pane: PaneTarget, ref: ObjectRef)`: Show `ref` as a new tab of `pane`'s group (or a new group), and focus it. It is one step: one entry in the history, and the tab takes `pane`'s slot, so nothing else folds or moves. Use it rather than `openBeside` then `mergeInto`, which is two entries and can fold other panes in between. If `ref` is already open, that pane is shown instead. `"invalid"` for a kind the workspace doesn't have.
+- **`actions.addTab`**, `addTab(pane: PaneTarget, ref: ObjectRef)`: Show `ref` as a new tab of `pane`'s group (or a new group), and focus it. It is one step: one entry in the history, and the tab takes `pane`'s slot, so nothing else folds or moves. Use it rather than `openBeside` then `mergeInto`, which is two entries and can fold other panes in between. If `ref` is already open, that pane is shown instead. `"invalid"` for a kind the workspace doesn't have, as for every action that takes a ref.
 
 - **`actions.close`**, `close(pane?: PaneTarget)`: Close a pane, with an Undo toast. The last pane stays (`"last-pane"`). A curated page's view goes back to the tabs.
 

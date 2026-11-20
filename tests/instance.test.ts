@@ -658,6 +658,7 @@ describe("keeping in step with the host's documents", () => {
     expect(jali.actions.addTab("orders", { kind: "invoice", params: {} })).toEqual({
       ok: false,
       reason: "invalid",
+      message: "There is no pane kind “invoice”",
     });
   });
 

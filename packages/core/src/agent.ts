@@ -18,7 +18,7 @@ import { storeOf } from "./state/instance";
 import type { Layout, ObjectRef } from "./layout/types";
 import type { ActionResult } from "./state/apply";
 import type { Jali } from "./state/instance";
-import type { OptionalParam, ParamType } from "./pane-kinds";
+import { checkRef, type OptionalParam, type ParamType } from "./pane-kinds";
 
 /** What each action an agent may use does, and its arguments, for the agent to read. */
 export const AGENT_ACTIONS = {
@@ -274,9 +274,8 @@ export function createAgent(jali: Jali, options: AgentOptions = {}): JaliAgent {
     const kinds = jali.model().env.kinds;
     for (const a of args) {
       if (!isRef(a)) continue;
-      if (!kinds.registry()[a.kind]) return `There is no kind "${a.kind}"`;
-      if (!a.params || typeof a.params !== "object")
-        return `A ref needs params: { kind, params: {…} }`;
+      const bad = checkRef(kinds, a);
+      if (bad) return bad;
       const problems = kinds.problems(a);
       if (problems.length) return `${a.kind}: ${problems.map((p) => JSON.stringify(p)).join("; ")}`;
     }

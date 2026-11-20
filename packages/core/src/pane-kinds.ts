@@ -430,3 +430,31 @@ export function createPaneKinds<D extends PaneKindBase = PaneKindBase>(
     isTransient: (ref) => !!kinds.get(ref.kind)?.transient,
   };
 }
+
+// ---------- refs from outside ----------
+
+const plainObject = (v: unknown): v is Record<string, unknown> =>
+  !!v &&
+  typeof v === "object" &&
+  !Array.isArray(v) &&
+  (Object.getPrototypeOf(v) === Object.prototype || Object.getPrototypeOf(v) === null);
+
+/**
+ * What is wrong with a value passed as a ref (an app's call, an agent's step), as a sentence; undefined when it is a
+ * ref of a kind `kinds` has, with params that are text, finite numbers or flags. With `known: false` the kind need not
+ * be one `kinds` has: a ref naming a pane only has to be well formed. A kind's own param types are not checked here: a
+ * ref they can't read still opens, in the kind's `Missing` (docs/DECISIONS.md, 20 Nov 2026).
+ */
+export function checkRef(
+  kinds: Pick<PaneKinds, "get">,
+  ref: unknown,
+  { known = true }: { known?: boolean } = {},
+): string | undefined {
+  if (!plainObject(ref) || typeof ref.kind !== "string" || !ref.kind)
+    return "A ref is { kind, params }, with the kind's name";
+  if (known && !kinds.get(ref.kind)) return `There is no kind "${ref.kind}"`;
+  if (!plainObject(ref.params)) return "A ref needs params: { kind, params: {…} }";
+  for (const [k, v] of Object.entries(ref.params))
+    if (!isValue(v)) return `${ref.kind}: "${k}" must be text, a finite number or true or false`;
+  return undefined;
+}

@@ -858,3 +858,12 @@ Data Studio's old tab strip had six features Jali lacked. Each is general, and l
 - **And every selector escapes:** `cssString(id)` (`dom/ids.ts`, in `@jali/core/adapter`) quotes any text for an attribute selector. It is used by `dom.pane`, `flashTab`, the tab indicator, tab strip, tab overflow, rename field and shelf. It doesn't need `CSS.escape`, so jsdom and server rendering behave as the browser does. A layout written in code isn't validated, so a quote in its ids reaches the DOM, and now finds its element.
 - **What a host notices:** a link, saved layout or `setLayout` with an id outside the shape is refused as broken (`"invalid"` for `setLayout`), where before it opened.
 - **Tests:** `tests/hostile-input.test.tsx` (C1).
+
+## 20 Nov 2026 · Public actions check the refs they are given, and never throw (QUALITY-REVIEW C4)
+
+- **Why:** `openHere(pane, { kind: "typo", params: {} })` threw `Unknown pane kind: typo` from the layout operation under it, against the `ActionResult` contract. `null`, a ref without params, or params holding an object, threw as well.
+- **Now:** `checkRef(kinds, ref)` (`pane-kinds.ts`, in `@jali/core/adapter`) is the one check, run at the public action boundary (`actions/public.ts`) before any step sees the ref: `openBeside`, `openHere`, `addTab`, `peek` and `select` refuse `"invalid"` for a kind the workspace doesn't have, and for anything that isn't `{ kind, params }` with text, finite numbers or flags. A pane named by a ref (`PaneTarget`) must be well formed too (`"invalid"`); a well-formed ref of an unknown kind names no pane (`"not-found"`). The agent bridge uses the same check, so its words are unchanged (`There is no kind "chart"`).
+- **Said:** the refusal is announced, through messages (`announcements.unknownKind`, `announcements.invalidRef`), and is the result's `message`. Before, `addTab`'s refusal of an unknown kind was silent.
+- **Not refused:** a ref of a known kind whose params its kind's types can't read (`order({ id: "lost" })`). It still opens, in the kind's `Missing` (20 Nov, "A kind's `Missing`"): that is how an app shows "this order is gone", and refusing it would take that away.
+- **The layout operations still throw** on an unknown kind (`layout.openBeside`, `addTab`, `setRef`): they are the pure API, documented to throw, and the actions now never reach them with one.
+- **Tests:** `tests/hostile-input.test.tsx` (C4); `tests/instance.test.ts` (addTab's refusal now has its message).

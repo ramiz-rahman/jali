@@ -95,6 +95,10 @@ const announcements = {
   tucked: (pane: string, home: string) => `${pane} tucked into ${home}`,
   alreadyTab: (pane: string, of: string) => `${pane} is already a tab of ${of}`,
   notOnScreen: (pane: string) => `${pane} is not on screen`,
+
+  // an app's call with a ref that can't be shown (actions/public.ts)
+  unknownKind: (kind: string) => `There is no pane kind “${kind}”`,
+  invalidRef: "That can’t be shown in a pane",
   onlyOpen: (pane: string) => `${pane} is the only open pane and can't be tucked`,
   onlyOnScreen: (pane: string) => `${pane} is the only pane on screen and can't be tucked`,
   nothingTucked: "Nothing is tucked",

@@ -111,3 +111,57 @@ describe("C1: ids", () => {
     expect(store.dom.pane('q"1')?.id).toBe('jali-pane-q"1');
   });
 });
+
+describe("C4: refs passed to public actions", () => {
+  const bad: [string, unknown][] = [
+    ["an unknown kind", { kind: "typo", params: {} }],
+    ["no params", { kind: "note" }],
+    ["params that are not values", { kind: "note", params: { id: { nested: 1 } } }],
+    ["a kind that is not text", { kind: 4, params: {} }],
+    ["null", null],
+  ];
+  it.each(bad)(
+    "%s is refused as invalid by every action that takes a ref, never thrown",
+    (_, ref) => {
+      const jali = make();
+      const r = ref as ObjectRef;
+      const results = [
+        () => jali.actions.openBeside("a", r),
+        () => jali.actions.openHere("a", r),
+        () => jali.actions.addTab("a", r),
+        () => jali.actions.peek("a", r),
+        // `select(pane, null)` clears the selection, so null is no ref there.
+        ...(r === null ? [] : [() => jali.actions.select("a", r)]),
+      ].map((run) => {
+        expect(run).not.toThrow();
+        return run();
+      });
+      for (const out of results) {
+        expect(out).toMatchObject({ ok: false, reason: "invalid" });
+        expect(out.message).toBeTruthy();
+      }
+      expect(jali.model().panes).toHaveLength(2);
+      expect(() => jali.model().resolved).not.toThrow();
+    },
+  );
+
+  it("a pane named by something that is neither an id nor a ref is refused, not thrown", () => {
+    const jali = make();
+    expect(() => jali.actions.focus({ kind: "note" } as ObjectRef)).not.toThrow();
+    expect(jali.actions.focus({ kind: "note" } as ObjectRef)).toMatchObject({
+      ok: false,
+      reason: "invalid",
+    });
+    expect(() => jali.actions.close(null as unknown as string)).not.toThrow();
+    expect(jali.actions.close(null as unknown as string)).toMatchObject({
+      ok: false,
+      reason: "invalid",
+    });
+    // A well-formed ref of a kind the workspace doesn't have names no pane.
+    expect(jali.actions.close({ kind: "typo", params: {} })).toMatchObject({
+      ok: false,
+      reason: "not-found",
+    });
+    expect(jali.model().panes).toHaveLength(2);
+  });
+});
