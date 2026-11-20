@@ -266,7 +266,11 @@ function buildCommands(env: Env): CommandDef[] {
       title: t.autoLayout,
       group: g.layout,
       check: ({ s, m }) =>
-        s.page ? refuse("unavailable") : m.panes.length < 2 ? refuse("nothing-to-do") : undefined,
+        s.page || m.single
+          ? refuse("unavailable")
+          : m.panes.length < 2
+            ? refuse("nothing-to-do")
+            : undefined,
       run: (u) => u.actions.autoLayout(),
     },
     { id: "layout.copy_link", title: t.copyLink, group: g.layout, run: (u) => copyLink(u.jali) },

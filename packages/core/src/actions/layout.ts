@@ -168,6 +168,9 @@ export const changeSettings = ({ s }: Snapshot, patch: Partial<Settings>): Outco
 export function autoLayout(x: Snapshot): Outcome {
   const { s, ctx, env } = x;
   if (s.page) return refuse("unavailable");
+  // On a phone one pane shows at a time: there is nothing to arrange, and a tree arranged for a phone's width would
+  // be a poor one when the window is wide again.
+  if (x.m.single) return refuse("unavailable");
   const panes = core.tree.panes(s.layout.root);
   if (panes.length < 2) return refuse("nothing-to-do");
   const layout = core.arrange(s.layout, ctx, { focused: s.view.focused });
