@@ -267,6 +267,52 @@ describe("render counts", () => {
     expect(store.model()).toBe(after);
   });
 
+  it("a live title commits only the frame that shows it: its own pane's, or the frame of its tab's strip", () => {
+    const jali = createJali({
+      panes: [note],
+      layout: row(
+        tabs(note({ id: 1 }), note({ id: 2 }), note({ id: 3 })),
+        note({ id: 4 }),
+        column(note({ id: 5 }), note({ id: 6 })),
+      ),
+      url: { location: memoryLocation() },
+      storage: memoryStorage(),
+      size: { width: W, height: H },
+      moveFocus: false,
+    });
+    const { container } = render(<JaliRoot jali={jali} />);
+    const store = storeOf(jali);
+    const m = jali.model();
+    const group = m.visible.find((id) => m.stackOf(id))!;
+    const behind = m.stackOf(group)!.children.find((c) => c.id !== group)!.id;
+    const [single, other] = m.visible.filter((id) => !m.stackOf(id));
+    expect(single && other && behind).toBeTruthy();
+
+    reset();
+    for (let i = 0; i < 5; i++) act(() => void store.actions.setTitle(single!, `Live ${i}`));
+    expect(container.querySelector(`[data-pane="${single}"] .jali-pane-title`)?.textContent).toBe(
+      "Live 4",
+    );
+    expect(counts.frame).toEqual(Array(5).fill(single));
+    expect(counts.body).toEqual([]);
+
+    // A tab behind in a group: the group's frame, whose strip lists it, and the tab's own frame, hidden behind, whose
+    // region is named by it. No other frame, and each once.
+    reset();
+    for (let i = 0; i < 5; i++) act(() => void store.actions.setTitle(behind, `Tab ${i}`));
+    expect(container.querySelector(`[data-tab="${behind}"]`)?.getAttribute("aria-label")).toBe(
+      "Tab 4",
+    );
+    expect(counts.frame).toEqual(Array(5).fill([group, behind]).flat());
+    expect(counts.body).toEqual([]);
+
+    // The same title again, or one cleared that was never set: nothing re-renders.
+    reset();
+    act(() => void store.actions.setTitle(single!, "Live 4"));
+    act(() => void store.actions.setTitle(other!, null));
+    expect(counts.frame).toEqual([]);
+  });
+
   it("useJaliCommands keeps its array while nothing a command shows changes", async () => {
     const seen: unknown[] = [];
     function Probe() {
@@ -338,7 +384,7 @@ describe("render counts", () => {
       const store = storeOf(jali);
       const other = jali.model().visible.find((id) => !store.model().stackOf(id))!;
       made.length = 0;
-      // Titles re-render every tab strip; a new title for the pane beside them changes nothing it measures.
+      // A new title for the pane beside the strip changes nothing it measures.
       for (let i = 0; i < 5; i++) act(() => void store.actions.setTitle(other, `Live ${i}`));
       expect(made).toEqual([]);
     } finally {

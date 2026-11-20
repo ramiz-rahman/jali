@@ -64,7 +64,11 @@ export function TabStrip({ group, owner }: { group: NonNullable<Frame["group"]>;
   const tw = words.tabs;
   // A curated page, or a workspace without a launcher: no "+" (its views come from the page's tabs).
   const page = useUi((s) => !!s.page);
-  const titles = useUi((s) => s.titles);
+  // Renders the strip again when one of its own tabs' live titles changes (read below), and for no other pane's.
+  const ownTitles = useUi((s) =>
+    JSON.stringify(group.tabs.map((t) => own(s.titles, t.node.id) ?? null)),
+  );
+  const titles = store.get().titles;
   const marks = useUi((s) => s.paneAttributes);
   // Renders the strip again when what one of its own tabs is doing changes (read below), and for no other pane.
   useUi((s) => group.tabs.map((t) => own(s.activity, t.node.id) ?? "").join());
@@ -106,6 +110,9 @@ export function TabStrip({ group, owner }: { group: NonNullable<Frame["group"]>;
     [menu],
   );
   const [hiddenCount, setHiddenCount] = useState(0);
+  // The count as last set: an unchanged count sets no state, as a functional update right after a commit renders the
+  // strip again to find it unchanged.
+  const counted = useRef(0);
   const measure = () => {
     const el = strip.current;
     if (!el) return;
@@ -122,7 +129,7 @@ export function TabStrip({ group, owner }: { group: NonNullable<Frame["group"]>;
       const r = t.getBoundingClientRect();
       if (r.left < box.left - 1 || r.right > box.right + 1) n++;
     });
-    setHiddenCount((p) => (p === n ? p : n));
+    if (counted.current !== n) setHiddenCount((counted.current = n));
     // Fade an edge that has tabs past it, so a cut-off tab reads as "more this way" (like the shelf).
     // No fade while the shown tab fills the strip: it is shortened to fit, and a fade would hide its ×.
     const fills = !!shown && want >= el.clientWidth - 1;
@@ -134,7 +141,7 @@ export function TabStrip({ group, owner }: { group: NonNullable<Frame["group"]>;
   const laidOut = `${group.active} ${tabs.map((t) => `${t.node.id}:${+!!t.node.pinned}${+t.tucked}${+t.folded}`)}`;
   useLayoutEffect(measure, [
     laidOut,
-    titles,
+    ownTitles,
     marks,
     unsaved,
     dropAt,

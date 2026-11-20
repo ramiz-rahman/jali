@@ -39,7 +39,9 @@ export function TabOverflow({
   const [open, setOpen] = useState(false);
   const btn = useRef<HTMLButtonElement>(null);
   const page = useUi((s) => !!s.page);
-  const titles = useUi((s) => s.titles);
+  // Renders again when one of its own panes' live titles changes (read below), and for no other pane's.
+  useUi((s) => JSON.stringify(tabs.map((t) => own(s.titles, t.node.id) ?? null)));
+  const titles = store.get().titles;
   const marks = useUi((s) => s.paneAttributes);
   const activity = useUi((s) => s.activity);
   // A folded pane goes on working behind the chip: the chip says so, with the most pressing of its panes' activities.

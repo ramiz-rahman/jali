@@ -1216,3 +1216,17 @@ Gzipped KB, measured on master `ea3ac83` after `pnpm build:packages`. The `mustN
 - **Not the whole page:** the native `<dialog>.showModal()` makes everything outside it inert. Jali doesn't: a host page around the workspace (its own nav, its own live regions) is the host's, and muting a host's live region would lose what it says. A toaster portalled out of `overlays` (to `body`) leaves Jali's reach; the docs say to render it in `overlays`.
 - **Size:** about 0.1 KB gzipped of React.
 - **Tests:** `tests/modal-dialog.test.tsx`, "the host's overlays": inert while Settings is open, the live region outside everything made inert and still speaking, back after Esc; inert behind the discard question, and a host's own inert overlay left inert; no element without overlays. `tests/parts.test.tsx` renders the part.
+
+## 21 Nov 2026 · A live title re-renders only the frame that shows it (QUALITY-REVIEW phase 2, open)
+
+- **Why:** `PaneFrame`, `TabStrip` and `TabOverflow` each subscribed to every pane's live title (`s.titles`), so one pane's `useTitle` re-rendered every frame and every tab strip in the workspace.
+- **Now:** a frame reads its own pane's title only (`own(s.titles, node.id)`). A tab strip and its overflow menu subscribe to their own tabs' titles, as one string, and re-render when one of those changes; they read the titles from the state as they render, as the strip already did for its tabs' activity. The strip's out-of-view count no longer sets state when it is unchanged: a functional update right after a commit rendered the strip a second time to find the same number.
+- **Measured** (`tests/render-counts.test.tsx`: a tab group of three, a pane, a column of two; five title changes each):
+
+  | Run                                      | Frame commits, before                              | after                                                  |
+  | ---------------------------------------- | -------------------------------------------------- | ------------------------------------------------------ |
+  | five new titles for a pane on its own    | 35: every one of the six frames, the group's twice | 5: that pane's                                         |
+  | five new titles for a tab behind a group | every frame, each at least five times              | 10: the group's, and the tab's own (its region's name) |
+
+- **Left:** `TabMenu` (only while open), the pane switcher, the peek and `useTitleOf` still read all titles; none is in a frame. A tab strip still subscribes to every pane's `data-*` attributes and unsaved marks.
+- **Tests:** `tests/render-counts.test.tsx`, "a live title commits only the frame that shows it".

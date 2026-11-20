@@ -76,7 +76,9 @@ export const PaneFrame = /* @__PURE__ */ memo(
     const role = page && node.role && profile ? roleOf(profile, node.role) : undefined;
     // In a curated workspace, a pane without a role was opened by following a link: it belongs to the investigation.
     const opened = page && !node.role;
-    const titles = useUi((s) => s.titles);
+    // Its own live title only: another pane's new title doesn't re-render this frame.
+    const live = useUi((s) => own(s.titles, node.id));
+    const titles = live === undefined ? undefined : { [node.id]: live };
     const marks = usePaneAttributesOf(node.id);
     const title = titleOf(env, node, titles);
     const shows = shownTitle(env, node, titles);
