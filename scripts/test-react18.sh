@@ -6,7 +6,15 @@ set -euo pipefail
 # A directory of its own per run, so two checks (two sessions, or verify beside a manual run) never share one.
 dir=.claude/worktrees/react18-check-$$
 git worktree add -q --detach "$dir" HEAD
-trap 'git worktree remove --force "$dir"' EXIT
+# git unregisters the worktree but can fail to delete it (a file written as it goes, a .DS_Store); finish the job, so
+# the exit code is the tests' and nothing is left behind.
+top=$(pwd)
+cleanup() {
+  cd "$top"
+  git worktree remove --force "$dir" 2>/dev/null || true
+  rm -rf "$dir"
+}
+trap cleanup EXIT
 cd "$dir"
 node -e '
   const fs = require("fs");
