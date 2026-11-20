@@ -43,8 +43,8 @@ export interface FakeKraken {
   /** Closes every open socket, as when the feed drops; `refuse` keeps new ones from opening until `accept()`. */
   drop(options?: { refuse?: boolean }): Promise<void>;
   accept(): void;
-  /** Price history calls so far. */
-  historyCalls(): number;
+  /** The price history calls so far, by URL. */
+  historyCalls(): string[];
   /** Makes the history calls fail (true) or answer (false). */
   failHistory(fail: boolean): void;
 }
@@ -55,7 +55,7 @@ export async function fakeKraken(
 ): Promise<FakeKraken> {
   const open = new Set<WebSocketRoute>();
   let refuse = false;
-  let history = 0;
+  const history: string[] = [];
   let historyFails = false;
 
   await page.routeWebSocket("wss://ws.kraken.com/v2", (ws) => {
@@ -114,8 +114,9 @@ export async function fakeKraken(
   });
 
   await page.route("https://api.kraken.com/0/public/OHLC**", async (route) => {
-    history++;
-    if (historyFails) return route.fulfill({ status: 503, json: { error: ["EService:Busy"] } });
+    history.push(route.request().url());
+    // As Kraken answers when it is busy: 200, with the reason in `error`.
+    if (historyFails) return route.fulfill({ json: { error: ["EService:Unavailable"] } });
     const url = new URL(route.request().url());
     const pair = url.searchParams.get("pair") ?? "";
     const interval = Number(url.searchParams.get("interval") ?? 5);
@@ -139,7 +140,7 @@ export async function fakeKraken(
       open.clear();
     },
     accept: () => void (refuse = false),
-    historyCalls: () => history,
+    historyCalls: () => [...history],
     failHistory: (fail) => void (historyFails = fail),
   };
 }
