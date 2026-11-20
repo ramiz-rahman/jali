@@ -7,9 +7,10 @@
  *   useCommands([{ id: "save", title: "Save note", run: save }]);
  *   useTitle(query.data?.name);
  *   usePaneAttributes({ "data-connection": connection.kind });
+ *   useHeaderActions(<button onClick={add}>Add</button>);
  */
 import type { ObjectRef, PaneActivity, PaneCommand, Params } from "@jali/core";
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, type ReactNode } from "react";
 import type { PaneAttributes } from "@jali/core/adapter";
 import { openPaneFor } from "@jali/core/adapter";
 import type { PaneProps } from "../define";
@@ -98,6 +99,26 @@ export function usePaneAttributes(
     host.setAttributes(shape ? (latest.current ?? null) : null);
   }, [host, shape, shows]);
   useEffect(() => () => host.setAttributes(null), [host]);
+}
+
+/**
+ * Put the pane's own controls in its header: after the title (and Following / Kept), before Jali's buttons. Pass them on
+ * every render, like any JSX; `null` takes them away, as does the component unmounting. One set per pane: the last
+ * call wins. They render inside the pane's context, so the pane's hooks work in them, as do providers above
+ * `<JaliRoot>`; a provider inside your component doesn't reach them.
+ *
+ * A narrow header gives way before its title gets shorter than a few characters: first Jali's tuck, maximise, full
+ * screen and pop out move into the pane's menu (⋯), then your controls are hidden too and the menu lists the pane's
+ * commands (useCommands) in their place. So give each control a command as well. The peek sheet has no header: there
+ * the controls aren't shown.
+ */
+export function useHeaderActions(controls: ReactNode): void {
+  const { header } = usePaneContext("useHeaderActions");
+  // Before paint, so the header never shows a frame without them.
+  useLayoutEffect(() => {
+    header?.set(controls);
+  });
+  useLayoutEffect(() => () => header?.set(null), [header]);
 }
 
 /** What a launcher chooses from: the objects opened recently, whether one is open now, and its title. */

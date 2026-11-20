@@ -3,6 +3,7 @@ import type { NodeId, ObjectRef, PaneActivity, PaneCommand } from "@jali/core";
 import { createContext, useContext } from "react";
 import type { ActionResult, PaneAttributes } from "@jali/core/adapter";
 import type { PaneProps } from "../define";
+import type { HeaderSlot } from "./header";
 
 /** What a pane's content can ask of the workspace. */
 export interface PaneHost {
@@ -23,6 +24,8 @@ export interface PaneContextValue {
   id: NodeId | null;
   host: PaneHost;
   props: PaneProps;
+  /** Where useHeaderActions puts the content's controls; absent in the peek sheet, which has no header. */
+  header?: HeaderSlot;
 }
 
 export const PaneContext = /* @__PURE__ */ createContext<PaneContextValue | null>(null);

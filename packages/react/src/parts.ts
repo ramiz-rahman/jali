@@ -126,8 +126,14 @@ export const parts = {
     selector: ".jali-pane-header",
     element: "div",
     area: "Pane",
-    what: "A pane's header: title, tabs and buttons. It is a size container named `jali-header`, public, so a narrow header can be styled with `@container jali-header (max-width: 20rem) { … }`.",
-    attributes: [],
+    what: "A pane's header, in this order: the grip, the title (or tabs) with Following / Kept, the pane's own controls (`paneTools`), then Jali's buttons (`paneActions`). It is a size container named `jali-header`, public, so a narrow header can be styled with `@container jali-header (max-width: 20rem) { … }`. A header too narrow for its title gives way before the title gets shorter than a few characters, and says so with `data-narrow`.",
+    attributes: [
+      {
+        name: "data-narrow",
+        means:
+          "`actions`: tuck, maximise, full screen and pop out moved into the pane's menu (⋯), where they keep their names; `tools`: the pane's own controls are hidden too, and the menu lists the pane's commands. Absent at normal widths.",
+      },
+    ],
   },
   paneTitle: {
     selector: ".jali-pane-title",
@@ -141,6 +147,19 @@ export const parts = {
     element: "div",
     area: "Pane",
     what: "The header's buttons (`buttons`: by default tuck, maximise, close), and ⋯ for the rest of the pane's menu.",
+    attributes: [
+      {
+        name: "data-count",
+        means:
+          "How many buttons it shows, ⋯ included, so a theme that draws them as one strip can size it: which buttons show changes from pane to pane.",
+      },
+    ],
+  },
+  paneTools: {
+    selector: ".jali-pane-tools",
+    element: "div",
+    area: "Pane",
+    what: "The pane's own controls in its header (`useHeaderActions`), after the title and before Jali's buttons. Rendered only while the content gives some; a narrow header drops it before its title gets short (`data-narrow=\"tools\"`).",
     attributes: [],
   },
   paneAction: {

@@ -66,6 +66,7 @@ describe("public API", () => {
       "useActiveItemPort",
       "useActivity",
       "useCommands",
+      "useHeaderActions",
       "useJali",
       "useJaliCommands",
       "useJaliIcons",
