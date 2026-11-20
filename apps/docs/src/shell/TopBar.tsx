@@ -13,7 +13,7 @@ import { REPO_URL } from "../site/config";
 import { setTheme, useTheme, type ThemeChoice } from "../site/theme";
 import { Lockup } from "./brand";
 import { Nav } from "./Nav";
-import { isMac } from "./Search";
+import { useIsMac } from "./Search";
 
 const THEMES: { value: ThemeChoice; label: string; Icon: typeof SunIcon }[] = [
   { value: "light", label: "Light", Icon: SunIcon },
@@ -80,6 +80,7 @@ export function TopBar({
   path: string;
   landing?: boolean;
 }) {
+  const mac = useIsMac();
   return (
     <header className="topbar">
       <div className="topbar-inner">
@@ -118,7 +119,7 @@ export function TopBar({
           >
             <MagnifyingGlassIcon aria-hidden size={16} />
             <span className="search-button-label">Search</span>
-            <kbd className="kbd search-button-kbd">{isMac() ? "⌘" : "Ctrl "}K</kbd>
+            <kbd className="kbd search-button-kbd">{mac ? "⌘" : "Ctrl "}K</kbd>
           </button>
           <ThemeToggle />
           <a

@@ -2,7 +2,14 @@
  * Search over page titles, summaries and headings, in a modal dialog. ⌘K, Ctrl+K or "/" opens it. A stand-in until
  * Pagefind searches the built pages (docs/DOCS-PLAN.md).
  */
-import { useEffect, useMemo, useRef, useState, type KeyboardEvent } from "react";
+import {
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  useSyncExternalStore,
+  type KeyboardEvent,
+} from "react";
 import {
   ArrowElbowDownLeftIcon,
   FileTextIcon,
@@ -98,9 +105,14 @@ export function useSearchShortcut(open: () => void) {
   }, [open]);
 }
 
-export const isMac = () =>
-  typeof navigator !== "undefined" &&
-  /Mac|iPhone|iPad/.test(navigator.platform || navigator.userAgent);
+const isMac = () => /Mac|iPhone|iPad/.test(navigator.platform || navigator.userAgent);
+const noSubscribe = () => () => {};
+
+/**
+ * Whether the reader is on a Mac, for the shortcut's label. The prerender and the first client render both say no,
+ * whatever machine built the site, so hydration always matches; the real answer follows right after.
+ */
+export const useIsMac = () => useSyncExternalStore(noSubscribe, isMac, () => false);
 
 export function SearchDialog({ open, onClose }: { open: boolean; onClose: () => void }) {
   const ref = useRef<HTMLDialogElement>(null);
