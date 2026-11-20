@@ -2,9 +2,9 @@
  * Watchlists: named lists of symbols. A watchlist pane shows one (`watchlist({ list: "rates" })`); the lists
  * themselves are the app's state, saved on this device, so "Add to watchlist" in one pane shows in every pane.
  */
+import { arrayOf, createKeptStore, isRecord, useStore, type Kept, type Store } from "#shared/store";
 import { CRYPTO_SYMBOLS } from "./market/crypto";
 import { INSTRUMENTS } from "./market/instruments";
-import { createStore, saved, useStore, type Store } from "./store";
 
 export interface WatchList {
   id: string;
@@ -49,15 +49,32 @@ export type Lists = Store<readonly WatchList[]> & {
   remove(listId: string, symbol: string): void;
 };
 
-const KEY = "markets:lists";
+const KNOWN = new Set([...INSTRUMENTS.map((i) => i.symbol), ...CRYPTO_SYMBOLS]);
+
+/**
+ * The lists as kept on this device (version 1; 0 is the same shape, from before versions). Each list is the default
+ * list of its id with the kept symbols: a list we don't know is dropped, so a kept list never hides a new default; a
+ * symbol this market doesn't have is dropped, and a list whose symbols aren't a list keeps its default's.
+ */
+export const KEPT_LISTS: Kept<readonly WatchList[]> = {
+  key: "markets:lists",
+  version: 1,
+  fallback: DEFAULT_LISTS,
+  parse(value, version) {
+    if (version > 1) return undefined;
+    const kept = arrayOf(value, (l) => (isRecord(l) ? l : undefined));
+    if (!kept) return undefined;
+    return DEFAULT_LISTS.map((d) => {
+      const symbols = arrayOf(kept.find((l) => l.id === d.id)?.symbols, (s) =>
+        typeof s === "string" && KNOWN.has(s) ? s : undefined,
+      );
+      return symbols ? { ...d, symbols: [...new Set(symbols)] } : d;
+    });
+  },
+};
 
 export function createLists(persist = true): Lists {
-  // Keep only lists we know, so a stored list never hides a new default.
-  const stored = persist ? saved.read<WatchList[]>(KEY, []) : [];
-  const store = createStore<readonly WatchList[]>(
-    DEFAULT_LISTS.map((d) => stored.find((s) => s.id === d.id) ?? d),
-  );
-  if (persist) store.subscribe(() => saved.write(KEY, store.get()));
+  const store = createKeptStore(KEPT_LISTS, persist);
   const change = (listId: string, fn: (symbols: string[]) => string[]) =>
     store.set((lists) =>
       lists.map((l) => (l.id === listId ? { ...l, symbols: fn(l.symbols) } : l)),

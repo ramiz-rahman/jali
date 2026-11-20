@@ -2,26 +2,60 @@
  * Each desk as the person left it, on this device. Jali asks for it when a desk is chosen (a preset's `saved`), so
  * moving to Equities and back to Rates brings Rates back as it was arranged. Reset puts every desk back to the
  * demo's own layouts (presets.ts).
+ *
+ * What is kept is only checked for its outline here (an object of layouts by desk id): Jali reads each layout itself
+ * when the desk is chosen, and builds the desk's own when it can't.
  */
-import type { Jali, Layout } from "@jali/core";
-import { saved } from "./store";
+import { layout, type Jali, type Layout } from "@jali/core";
+import { isRecord, readKept, writeKept, type Kept } from "#shared/store";
 
-const KEY = "markets.desks";
+type Layouts = Readonly<Record<string, Layout>>;
+
+/** Version 1; 0 is the same shape, from before versions. */
+export const KEPT_DESKS: Kept<Layouts> = {
+  key: "markets.desks",
+  version: 1,
+  fallback: {},
+  parse(value, version) {
+    if (version > 1 || !isRecord(value)) return undefined;
+    const out: Record<string, Layout> = {};
+    for (const [id, layout] of Object.entries(value))
+      if (isRecord(layout)) out[id] = layout as unknown as Layout;
+    return out;
+  },
+};
 
 export interface Desks {
   /** The layout a desk was left in, if it was changed. */
   get(id: string): Layout | undefined;
   /** Keep each desk's layout as it changes. Returns the stop. */
   track(jali: Jali): () => void;
-  /** Forget every desk's layout but `keep`'s. */
-  forget(keep?: string): void;
+  /**
+   * Every desk back to the demo's layout. The desk on screen goes back through Jali, which first asks about work that
+   * would be lost (a typed order); the others are forgotten only once that has happened, so "Keep editing" keeps
+   * them all.
+   */
+  resetAll(jali: Jali): void;
 }
 
+/** A layout's panes, as one string: enough to tell a desk's own layout from one the person changed. */
+const panesOf = (l: Layout) =>
+  layout.tree
+    .panes(l.root)
+    .map((p) => p.id)
+    .join(" ");
+
 export function createDesks(persist = true): Desks {
-  let layouts: Record<string, Layout> = persist ? saved.read(KEY, {}) : {};
-  const write = () => persist && saved.write(KEY, layouts);
+  let layouts: Layouts = persist ? readKept(KEPT_DESKS) : {};
+  const write = () => persist && writeKept(KEPT_DESKS, layouts);
+  /** Forget every desk's layout but `keep`'s. */
+  const forget = (keep: string | undefined) => {
+    const kept = keep !== undefined && Object.hasOwn(layouts, keep) ? layouts[keep] : undefined;
+    layouts = keep !== undefined && kept ? { [keep]: kept } : {};
+    write();
+  };
   return {
-    get: (id) => layouts[id],
+    get: (id) => (Object.hasOwn(layouts, id) ? layouts[id] : undefined),
     track: (jali) =>
       jali.on("layout", ({ layout }) => {
         const desk = jali.get().presetId;
@@ -29,9 +63,28 @@ export function createDesks(persist = true): Desks {
         layouts = { ...layouts, [desk]: layout };
         write();
       }),
-    forget(keep) {
-      layouts = keep && layouts[keep] ? { [keep]: layouts[keep] } : {};
-      write();
+    resetAll(jali) {
+      const desk = jali.get().presetId;
+      const unsaved = Object.keys(jali.get().unsaved).length;
+      const result = jali.actions.resetLayout();
+      if (result.ok) return forget(desk);
+      if (result.reason !== "unsaved") return;
+      // Jali asked. If the person discards, the reset lands as the next change: the desk's own panes, with the work
+      // gone. Any other next change (or none, after "Keep editing") forgets nothing.
+      const preset = jali.env.presets.find((p) => p.id === desk);
+      if (!preset) return;
+      const own = panesOf(preset.build());
+      const stop = jali.on("layout", ({ layout: next, source }) => {
+        stop();
+        const discarded = Object.keys(jali.get().unsaved).length < unsaved;
+        if (
+          source === "action" &&
+          jali.get().presetId === desk &&
+          discarded &&
+          panesOf(next) === own
+        )
+          forget(desk);
+      });
     },
   };
 }

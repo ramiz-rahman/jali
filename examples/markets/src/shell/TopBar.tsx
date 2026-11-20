@@ -27,11 +27,8 @@ export function TopBar() {
   const palette = useShortcut("palette.toggle");
   const { desks } = useServices();
   const search = () => runCommand(jali, "markets.chart");
-  // Every desk back to the demo's layout. This one last, through Jali, so a typed order is asked about first.
-  const reset = () => {
-    desks.forget(current);
-    jali.actions.resetLayout();
-  };
+  // Every desk back to the demo's layout, once Jali has asked about a typed order (desks.ts).
+  const reset = () => desks.resetAll(jali);
 
   return (
     <header className="topbar" data-jali-chrome="">
