@@ -63,6 +63,7 @@ describe("the instance", () => {
   it("has only what an app needs", () => {
     expect(Object.keys(make()).sort()).toEqual([
       "actions",
+      "destroy",
       "env",
       "get",
       "getLayout",

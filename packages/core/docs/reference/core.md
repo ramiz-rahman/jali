@@ -110,7 +110,7 @@ The address.
 
 - **`messages`** (`MessageOverrides`): Words to use instead of Jali's English ones, by area: `{ commands: { close: "Fermer le volet" } }`. Keys you leave out stay English. See `en` and [Translate Jali](../guides/translating.md).
 
-**Returns** `Jali`: The workspace. Its members are listed under [`Jali`](core/types.md#Jali): `actions`, `get()`, `subscribe()`, `on()`, `model()`, `getLayout()`, `setLayout()`, `keymap`, `env`, `messages`, `href()`, `onToast()` and `start()`.
+**Returns** `Jali`: The workspace. Its members are listed under [`Jali`](core/types.md#Jali): `actions`, `get()`, `subscribe()`, `on()`, `model()`, `getLayout()`, `setLayout()`, `keymap`, `env`, `messages`, `href()`, `onToast()`, `start()` and `destroy()`.
 
 ### actions
 

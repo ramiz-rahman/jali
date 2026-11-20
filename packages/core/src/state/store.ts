@@ -192,6 +192,8 @@ export interface UrlWriter {
   write(state: () => UiState, mode: HistoryMode): void;
   /** The address to share ("Copy link"). */
   href?(): string;
+  /** Drop a write still waiting (a debounced one): the workspace is going away (`jali.destroy()`). */
+  cancel?(): void;
 }
 
 export interface UiStoreDeps {
@@ -311,6 +313,10 @@ export interface UiStore {
   /** Start the page-lifetime listeners: keys, Back and Forward, theme and saving. Returns their stop. `<JaliRoot>` calls
    *  it on mount; calling it while started does nothing. */
   start(): () => void;
+  /** Stop for good (`jali.destroy()`): the listeners stop, pane state waiting to be saved is saved, deferred steps
+   *  (a follow waiting for the selection to rest) and a debounced address write are dropped, and the kind registry
+   *  is no longer listened to. Later deferred steps are dropped too. Calling it again does nothing. */
+  destroy(): void;
 }
 
 /**
@@ -438,7 +444,8 @@ export function createUiStore(deps: UiStoreDeps): UiStore {
   const notify = () => {
     for (const fn of subs) fn();
   };
-  env.kinds.onChange(notify);
+  const offKinds = env.kinds.onChange(notify);
+  let destroyed = false;
   const toastFns = new Set<(t: Toast) => void>();
   const pendingToasts: Toast[] = [];
   const models = modelCache();
@@ -446,7 +453,7 @@ export function createUiStore(deps: UiStoreDeps): UiStore {
   const defer = (d: Deferred) => {
     clearTimeout(timers.get(d.key));
     timers.delete(d.key);
-    if (!d.run) return;
+    if (!d.run || destroyed) return;
     const run = d.run;
     timers.set(
       d.key,
@@ -604,7 +611,7 @@ export function createUiStore(deps: UiStoreDeps): UiStore {
     href: () => deps.url?.href?.() ?? (typeof location === "undefined" ? "" : location.href),
     url: deps.url,
     start() {
-      if (stop) return () => {};
+      if (stop || destroyed) return () => {};
       const offInput = trackInput();
       const off = startUi(store, undefined, {
         keys: deps.keys === "scoped" ? { root: rootElement } : {},
@@ -616,6 +623,16 @@ export function createUiStore(deps: UiStoreDeps): UiStore {
         stop = null;
       };
       return stop;
+    },
+    destroy() {
+      if (destroyed) return;
+      // Stopping saves pane state still waiting to be saved; without a start, nothing saves it at all.
+      stop?.();
+      destroyed = true;
+      for (const t of timers.values()) clearTimeout(t);
+      timers.clear();
+      deps.url?.cancel?.();
+      offKinds();
     },
   };
   let stop: (() => void) | null = null;

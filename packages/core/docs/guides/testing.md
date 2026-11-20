@@ -134,7 +134,7 @@ expect(jali.model().pane("order")?.ref.params.id).toBe(5);
 
 ## Keys
 
-`jali.start()` listens on the window, so a test can fire `keydown` events at an element and check what the workspace did. Pass `keymapOptions: { platform: "mac" }` (or `"other"`) so the test means the same keys on every machine. Call the function `start` returns to remove the listeners after the test.
+`jali.start()` listens on the window, so a test can fire `keydown` events at an element and check what the workspace did. Pass `keymapOptions: { platform: "mac" }` (or `"other"`) so the test means the same keys on every machine. Call the function `start` returns to remove the listeners after the test, or `jali.destroy()` to also drop timers still waiting (a follow, a debounced address write).
 
 ## Render it
 

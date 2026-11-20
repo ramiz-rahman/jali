@@ -93,6 +93,10 @@ export interface Jali {
   onToast(fn: (toast: Toast) => void): () => void;
   /** Start its keys, Back and Forward, theme and saving; returns their stop. `<JaliRoot>` does this. */
   start(): () => void;
+  /** Stop for good, when the workspace goes away (a route change, a test's end): its listeners stop, pane state
+   *  waiting to be saved is saved, a follow waiting for the selection to rest and a pending address write are
+   *  dropped, and nothing is scheduled after. Its state can still be read. Calling it again does nothing. */
+  destroy(): void;
 }
 
 const stores = new WeakMap<Jali, UiStore>();
@@ -119,6 +123,7 @@ export function createInstance(store: UiStore): Jali {
     href: store.href,
     onToast: store.onToast,
     start: () => store.start(),
+    destroy: () => store.destroy(),
   };
   Object.freeze(jali);
   stores.set(jali, store);

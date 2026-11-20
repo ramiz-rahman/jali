@@ -1019,3 +1019,10 @@ Data Studio's old tab strip had six features Jali lacked. Each is general, and l
   - **Discard:** "Discard" also forgets the discarded panes' own state, so undoing the close doesn't bring the discarded draft back.
 - **Host-visible:** pane state saved before this has no object with it and is not read back (one reload loses a scroll position or a sort). `loadPaneState` reads only entries that have an object; `savePaneState(storage, state, owners?)` takes the owners as a new optional argument. New in `@jali/core/adapter`: `objectKey`, `paneStateFor`, `ownedPaneState`, `ownedSelection`, `selectionFor`, `loadPaneStateOwners`, `PaneOwners`; `agreeOnArrival` takes the owners as an optional fourth argument.
 - **Tests:** `tests/pane-state-identity.test.ts`; `tests/pane-contract.test.ts` saves through `savePaneState` and checks that state saved without its object is left out.
+
+## 20 Nov 2026 · `jali.destroy()` (QUALITY-REVIEW P18)
+
+- **Why:** a workspace had no teardown. A follow waiting for the selection to rest and the address's debounced write outlived `stop()` and could write onto the next route's address; the store's subscription to the kind registry was never released; and stopping dropped pane state still waiting for its 400 ms save.
+- **Now:** `jali.destroy(): void`, additive on `Jali`. It stops the listeners if started, saves pane state still waiting, clears every deferred step and drops later ones, cancels the address's pending write, and unsubscribes from the kind registry. `start()` after it does nothing; reading state still works; a second call does nothing. The stop `start()` returns now saves pending pane state instead of dropping it. `UrlWriter` gains an optional `cancel?(): void` (the built-in URL sync has it), which `destroy()` calls; a host's own writer may leave it out.
+- **Not done:** `<JaliRoot>` doesn't destroy on unmount: the host owns the workspace, which may outlive one mount (HMR, a remount under a new key). A router app calls `destroy()` where it drops the workspace.
+- **Tests:** `tests/destroy.test.ts`; `tests/instance.test.ts` and `tests/public-api.test.ts` list the new member.

@@ -94,6 +94,7 @@ describe("public API", () => {
     });
     expect(Object.keys(jali).sort()).toEqual([
       "actions",
+      "destroy",
       "env",
       "get",
       "getLayout",

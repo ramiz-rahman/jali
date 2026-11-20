@@ -371,6 +371,10 @@ export function createUrlSync({
       const joined = joinPersonalSizes(r.layout, own);
       return core.validate(joined, kinds).ok ? { ...r, layout: joined } : r;
     },
+    cancel() {
+      clearTimeout(timer);
+      timer = undefined;
+    },
     keepBroken: (code) => storage.set(`${prefix ?? ""}${BROKEN_KEY}`, code),
     onPop: (fn) => location.subscribe(fn),
     href: () => location.href(),

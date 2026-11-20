@@ -88,6 +88,12 @@ export function boot(store: UiStore, url?: UrlSync) {
   store.writeUrl("replace");
 }
 
+/** Save pane state (and the objects it belongs to) now. */
+export function flushPaneState(store: UiStore) {
+  const s = store.get();
+  savePaneState(store.storage, s.paneState, s.paneStateOf);
+}
+
 /** What `startUi` takes over: keys (all of the page's, or only the workspace's), and the page's theme. */
 export interface StartOptions {
   /** Keys: omitted, every key on the page; `{ root }`, only keys from inside the workspace and its dialogs. With a
@@ -115,8 +121,8 @@ export function startUi(
   const saveSoon = () => {
     clearTimeout(saveTimer);
     saveTimer = setTimeout(() => {
-      const s = store.get();
-      savePaneState(store.storage, s.paneState, s.paneStateOf);
+      saveTimer = undefined;
+      flushPaneState(store);
     }, 400);
   };
   if (pageTheme) applyTheme(resolveTheme(prev.settings.theme, prev.systemDark));
@@ -179,7 +185,12 @@ export function startUi(
     offTheme();
     offKeys();
     offPop();
-    clearTimeout(saveTimer);
+    // Pane state still waiting to be saved is saved now, not dropped.
+    if (saveTimer !== undefined) {
+      clearTimeout(saveTimer);
+      saveTimer = undefined;
+      flushPaneState(store);
+    }
     window.removeEventListener("beforeunload", onUnload);
   };
 }

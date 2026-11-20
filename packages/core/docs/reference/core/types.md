@@ -845,7 +845,9 @@ A workspace, from [`createJali`](../core.md#createJali). It is frozen: these mem
 
 - **`Jali.onToast`**, `onToast(fn: (t: Toast) => void): () => void`: Render toasts. Toasts sent earlier arrive at once.
 
-- **`Jali.start`**, `start(): () => void`: Starts its listeners (keys, Back and Forward, theme, saving) and returns their stop. `<JaliRoot>` calls it while mounted; calling it while started does nothing.
+- **`Jali.start`**, `start(): () => void`: Starts its listeners (keys, Back and Forward, theme, saving) and returns their stop. `<JaliRoot>` calls it while mounted; calling it while started does nothing. The stop saves pane state still waiting to be saved.
+
+- **`Jali.destroy`**, `destroy(): void`: Stops the workspace for good, when it goes away (a route change, a test's end): its listeners stop, pane state still waiting to be saved is saved, a follow waiting for the selection to rest and a debounced address write are dropped (so nothing lands on the next route's address), and the kind registry stops being listened to. Nothing is scheduled after it, and `start()` does nothing. Its state can still be read. Calling it again does nothing. `<JaliRoot>` doesn't call it: the workspace is yours, and may outlive one mount.
 
 To save a person's layout, listen for `"layout"` and store `getLayout()`. To restore it, pass it as `createJali({ layout })`: a link in the address still wins, so shared links keep working. A layout that arrives later goes through `setLayout`.
 
@@ -990,10 +992,10 @@ A list's selected item. `inResults: false`: the list's filter no longer shows it
 *type*, from `@jali/core`
 
 ```ts
-interface UrlWriter { write(state: () => JaliState, mode: HistoryMode): void; href?(): string }
+interface UrlWriter { write(state: () => JaliState, mode: HistoryMode): void; href?(): string; cancel?(): void }
 ```
 
-Where a workspace writes its address. Pass one as `url` to write it somewhere of your own. `write` gets a function, so a debounced write reads the latest state.
+Where a workspace writes its address. Pass one as `url` to write it somewhere of your own. `write` gets a function, so a debounced write reads the latest state. `cancel`, when given, drops a write still waiting: `jali.destroy()` calls it.
 
 ### JaliModel
 

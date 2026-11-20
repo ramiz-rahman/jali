@@ -510,7 +510,8 @@ A workspace, from <Ref to="createJali" page="/reference/core" />. It is frozen: 
 <Member name="Jali.env" signature="env: Env">Its kinds, presets, page, name and launcher.</Member>
 <Member name="Jali.href" signature="href(): string">The address to share: the URL writer's, else `location.href`, else `""`.</Member>
 <Member name="Jali.onToast" signature="onToast(fn: (t: Toast) => void): () => void">Render toasts. Toasts sent earlier arrive at once.</Member>
-<Member name="Jali.start" signature="start(): () => void">Starts its listeners (keys, Back and Forward, theme, saving) and returns their stop. `<JaliRoot>` calls it while mounted; calling it while started does nothing.</Member>
+<Member name="Jali.start" signature="start(): () => void">Starts its listeners (keys, Back and Forward, theme, saving) and returns their stop. `<JaliRoot>` calls it while mounted; calling it while started does nothing. The stop saves pane state still waiting to be saved.</Member>
+<Member name="Jali.destroy" signature="destroy(): void">Stops the workspace for good, when it goes away (a route change, a test's end): its listeners stop, pane state still waiting to be saved is saved, a follow waiting for the selection to rest and a debounced address write are dropped (so nothing lands on the next route's address), and the kind registry stops being listened to. Nothing is scheduled after it, and `start()` does nothing. Its state can still be read. Calling it again does nothing. `<JaliRoot>` doesn't call it: the workspace is yours, and may outlive one mount.</Member>
 </Members>
 
 To save a person's layout, listen for `"layout"` and store `getLayout()`. To restore it, pass it as `createJali({ layout })`: a link in the address still wins, so shared links keep working. A layout that arrives later goes through `setLayout`.
@@ -602,9 +603,9 @@ A list's selected item. `inResults: false`: the list's filter no longer shows it
 
 </Entry>
 
-<Entry name="UrlWriter" kind="type" from="@jali/core" signature={`interface UrlWriter { write(state: () => JaliState, mode: HistoryMode): void; href?(): string }`} compact>
+<Entry name="UrlWriter" kind="type" from="@jali/core" signature={`interface UrlWriter { write(state: () => JaliState, mode: HistoryMode): void; href?(): string; cancel?(): void }`} compact>
 
-Where a workspace writes its address. Pass one as `url` to write it somewhere of your own. `write` gets a function, so a debounced write reads the latest state.
+Where a workspace writes its address. Pass one as `url` to write it somewhere of your own. `write` gets a function, so a debounced write reads the latest state. `cancel`, when given, drops a write still waiting: `jali.destroy()` calls it.
 
 </Entry>
 
