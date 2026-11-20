@@ -197,6 +197,20 @@ test("Days keeps the whole week at a comfortable width, in a row that scrolls", 
   await expect.poll(() => wholeInWeek(page, "day-1")).toBe(true);
 });
 
+test("the week keeps its place in the link: a reload reopens where it was scrolled", async ({
+  page,
+}) => {
+  await layout(page, "Days").click();
+  const s = (await page.locator('[data-strip="week"]').boundingBox())!;
+  await page.mouse.move(s.x + s.width / 2, s.y + 300);
+  await page.mouse.wheel(500, 0);
+  await expect.poll(() => new URL(page.url()).searchParams.get("scroll")).toMatch(/^week:\d+$/);
+  const at = (await pane(page, "day-3").boundingBox())!.x;
+  await page.reload();
+  await expect(layout(page, "Days")).toHaveAttribute("aria-pressed", "true");
+  await expect.poll(async () => (await pane(page, "day-3").boundingBox())!.x).toBeCloseTo(at, 0);
+});
+
 test("a day comes out of the week by its header, onto the side of a pane beside it", async ({
   page,
 }) => {

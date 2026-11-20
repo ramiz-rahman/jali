@@ -27,11 +27,15 @@ export function edgeScroll(jali: Jali, onScroll?: () => void): EdgeScroll {
   let at: { x: number; y: number } | null = null;
   let frame = 0;
 
-  /** Where the panes' box sits on the page: a shown pane's place there, less its place in the layout. */
+  /**
+   * Where the panes' box sits on the page: a shown pane's place there, less its place in the layout. Not a pane in a
+   * strip: the model hears where a strip is only once it rests, so mid-scroll its panes' places are behind.
+   */
   const origin = () => {
     const m = jali.model();
+    const inStrip = new Set(m.content.scrollers.flatMap((s) => s.paneIds));
     for (const box of m.resolved.panes) {
-      if (box.hidden || m.outOfView.has(box.id)) continue;
+      if (box.hidden || inStrip.has(box.id)) continue;
       const el = store.dom.pane(box.id);
       if (!el) continue;
       const r = el.getBoundingClientRect();
