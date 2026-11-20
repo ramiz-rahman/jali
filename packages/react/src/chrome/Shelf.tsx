@@ -4,13 +4,8 @@ import { useEffect, useLayoutEffect, useMemo, useRef, useState, type KeyboardEve
 import { useJaliIcons } from "../icons/context";
 
 import { useShortcut } from "../commands/react";
-import {
-  cssString,
-  flashTab,
-  inlineStep,
-  observeResize,
-  scrolledFromStart,
-} from "@jali/core/adapter";
+import { cssString, flashTab, observeResize, scrolledFromStart } from "@jali/core/adapter";
+import { useRovingKeys } from "../a11y/roving";
 import { Activity, shelfActivity } from "../pane/Activity";
 import { KindIcon } from "../pane/icons";
 import { UnsavedMark } from "../pane/Unsaved";
@@ -39,7 +34,6 @@ export function Shelf() {
   const unsaved = useUi((s) => s.unsaved);
   const activity = useUi((s) => s.activity);
   const marks = useUi((s) => s.paneAttributes);
-  const dir = useUi((s) => s.dir);
   const actions = useActions();
   const store = useStore();
   const words = useMessages();
@@ -61,6 +55,11 @@ export function Shelf() {
     for (const it of tuckedItems) byHome.set(it.homeId, [...(byHome.get(it.homeId) ?? []), it]);
     return [...byHome.entries()];
   }, [tuckedItems]);
+  // ← → Home End along the chips, in the order on screen.
+  const roving = useRovingKeys(
+    () => [...(scroller.current?.querySelectorAll<HTMLElement>(".jali-shelf-chip-main") ?? [])],
+    (el) => focusChip(el.closest<HTMLElement>("[data-chip]")!.dataset.chip!),
+  );
   // Keyboard order is the order on screen (grouped by home), not the store's order.
   const ids = groups.flatMap(([, list]) => list.map((i) => i.paneId));
   const tab = focusId && ids.includes(focusId) ? focusId : ids[0];
@@ -109,18 +108,11 @@ export function Shelf() {
     });
   };
   const onKey = (e: KeyboardEvent) => {
+    roving(e);
     const cur = (e.target as HTMLElement).closest<HTMLElement>("[data-chip]")?.dataset.chip;
-    if (!cur) return;
+    if (!cur || e.defaultPrevented) return;
     const i = ids.indexOf(cur);
-    const go = (n: number) => {
-      e.preventDefault();
-      focusChip(ids[(n + ids.length) % ids.length]!);
-    };
-    const step = inlineStep(e.key, dir);
-    if (step) go(i + step);
-    else if (e.key === "Home") go(0);
-    else if (e.key === "End") go(ids.length - 1);
-    else if (e.key === "Enter" && e.shiftKey) {
+    if (e.key === "Enter" && e.shiftKey) {
       e.preventDefault();
       const next = ids[i + 1] ?? ids[i - 1];
       actions.putBack(cur);

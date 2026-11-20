@@ -1,6 +1,8 @@
 import { own } from "@jali/core/adapter";
 import type { PaneNode } from "@jali/core";
-import { inlineStep, paneDomId, titleOf } from "@jali/core/adapter";
+import { paneDomId, titleOf } from "@jali/core/adapter";
+import { useRef } from "react";
+import { useRovingKeys } from "../a11y/roving";
 import { Activity } from "../pane/Activity";
 import { KindIcon } from "../pane/icons";
 import { UnsavedMark, useUnsavedOf } from "../pane/Unsaved";
@@ -70,29 +72,21 @@ export function PaneSwitcher({
   /** Stacked view: both panes on screen, the current one among them. */
   inView?: string[];
 }) {
-  const actions = useActions();
   const t = useMessages().workspace;
-  const dir = useUi((s) => s.dir);
+  const list = useRef<HTMLDivElement>(null);
+  // ← → Home End move focus along the panes, wrapping both ways; Enter, Space or a click switches (manual activation:
+  // switching moves focus into the pane, which would end the walk after one step).
+  const keys = useRovingKeys(() => [
+    ...(list.current?.querySelectorAll<HTMLElement>('[role="tab"]') ?? []),
+  ]);
   return (
     <nav className="jali-switcher" aria-label={t.switcher}>
       <div
         className="jali-switch-list"
         role="tablist"
         aria-label={t.switcherList(panes.length)}
-        onKeyDown={(e) => {
-          const i = panes.findIndex((p) => p.id === current);
-          const step = inlineStep(e.key, dir);
-          const n = step
-            ? i + step
-            : e.key === "Home"
-              ? 0
-              : e.key === "End"
-                ? panes.length - 1
-                : -1;
-          if (n < 0 || !panes.length) return;
-          e.preventDefault();
-          actions.focus(panes[(n + panes.length) % panes.length]!.id);
-        }}
+        ref={list}
+        onKeyDown={keys}
       >
         {panes.map((p) => (
           <Item key={p.id} node={p} selected={p.id === current} inView={inView?.includes(p.id)} />

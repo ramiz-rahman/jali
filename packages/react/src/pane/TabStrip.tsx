@@ -23,6 +23,7 @@ import { TabMenu, type TabMenuAt } from "./TabMenu";
 import { TabOverflow } from "./TabOverflow";
 import { UnsavedMark } from "./Unsaved";
 import { ICON } from "../icons/sized";
+import { useRovingKeys } from "../a11y/roving";
 
 /** The edge fade's width (pane.css): a revealed tab clears it, unless it is at the strip's end. */
 const FADE = 24;
@@ -156,6 +157,10 @@ export function TabStrip({ group, owner }: { group: NonNullable<Frame["group"]>;
     return () => offs.forEach((off) => off());
   }, [group.active]);
   const overflowing = hiddenCount > 0;
+  // ← → Home End move focus along the tabs; Enter, Space or a click shows one (APG tabs, manual activation).
+  const tabKeys = useRovingKeys(() => [
+    ...(bar.current?.querySelectorAll<HTMLElement>('.jali-tablist [role="tab"]') ?? []),
+  ]);
 
   const putBackKeys = shortcutLabel(store, "pane.putBack");
   // A tab holds no controls (APG tabs, deletable tabs): its close and put back are its siblings in a presentational
@@ -312,6 +317,7 @@ export function TabStrip({ group, owner }: { group: NonNullable<Frame["group"]>;
         className="jali-tablist"
         role="tablist"
         aria-label={tw.listLabel(mine.length + folded.length)}
+        onKeyDown={tabKeys}
       >
         {pinnedTabs.length ? (
           <div className="jali-tabs-pinned">
