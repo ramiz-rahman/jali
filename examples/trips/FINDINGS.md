@@ -131,6 +131,8 @@ The trip changed from one compact city (Lisbon) to two cities 680 km apart (Bang
 
 **Suggested change.** In a row that scrolls, give the divider the first pane's `width.max` when it has one, and otherwise leave `aria-valuemax` out, so it takes ARIA's default for a separator (100).
 
+**Now.** Fixed in Jali (21 Nov 2026): a divider in a row that scrolls leaves `aria-valuemax` out. The `axeKnown` entries are gone from `e2e/quality.spec.ts`.
+
 ## Not about Jali
 
 - MapLibre 6 loads its Web Worker from beside its own module. Bundled by Vite, the worker can't be found ("Worker failed to load"). `setWorkerUrl` with a `?url` import of `maplibre-gl/dist/maplibre-gl-worker.mjs` fixes it.

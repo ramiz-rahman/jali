@@ -17,11 +17,4 @@ async function open(page: Page, name: string) {
 qualitySuite({
   storage: "trips-thailand",
   layouts: LAYOUTS.map((name) => ({ name, open: (page) => open(page, name) })),
-  // Days' week is a row that scrolls: the six dividers between its seven days.
-  axeKnown: Array.from({ length: 6 }, (_, i) => ({
-    rule: "aria-valid-attr-value",
-    target: `div[data-divider="week:${i}"]`,
-    reason:
-      'Jali gives a divider in a row that scrolls aria-valuemax="Infinity" (trips/FINDINGS.md, 12)',
-  })),
 });
