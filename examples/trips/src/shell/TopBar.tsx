@@ -23,8 +23,7 @@ export function TopBar() {
       <a className="brand" href="./" aria-label="Trips, a Jali example: back to the plan">
         <TripsMark />
         {/* The space between keeps the two words apart in the text a screen reader matches the name against. */}
-        <span className="brand-name">Trips</span>{" "}
-        <span className="brand-sub">a Jali example</span>
+        <span className="brand-name">Trips</span> <span className="brand-sub">a Jali example</span>
       </a>
       <nav className="presets" aria-label="Layouts">
         {jali.env.presets.map((p) => (
