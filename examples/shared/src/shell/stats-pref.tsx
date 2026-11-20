@@ -32,7 +32,7 @@ export function StatsSetting() {
   return (
     <fieldset>
       <legend>Status line</legend>
-      <label className="setting-check">
+      <label className="jali-setting">
         <input type="checkbox" checked={on} onChange={(e) => write(e.target.checked)} />
         <span>Show fetch stats</span>
       </label>

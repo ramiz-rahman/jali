@@ -84,17 +84,6 @@
     gap: 0.25rem;
     flex: none;
   }
-  /* The apps' own setting in Jali's Settings dialog: a checkbox and its words on one line. */
-  .setting-check {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    cursor: pointer;
-  }
-  .setting-check input {
-    margin: 0;
-    accent-color: var(--jali-accent);
-  }
   .kbd-btn {
     display: inline-flex;
     align-items: center;
