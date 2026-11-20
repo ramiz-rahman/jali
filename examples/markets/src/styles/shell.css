@@ -236,6 +236,12 @@
       gap: 8px;
     }
   }
+  /* A small phone: the clock goes too, so every control stays on screen. */
+  @media (max-width: 400px) {
+    .clock {
+      display: none;
+    }
+  }
 
   /* ---------- status line ---------- */
   .status {
