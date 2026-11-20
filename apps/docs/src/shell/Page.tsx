@@ -24,7 +24,9 @@ function PageActions({ path, title }: { path: string; title: string }) {
   }, [copied]);
   if (!page) return null;
   const md = markdownUrl(path);
-  const abs = typeof window === "undefined" ? md : new URL(md, window.location.origin).href;
+  // The site's public address, fixed at build time (astro.config.mjs `site`), so the prompt is the same in the
+  // prerendered HTML and after hydration, and Claude gets an address it can fetch.
+  const abs = new URL(md, import.meta.env.SITE).href;
   const prompt = `Read the Jali docs page "${title}" at ${abs} and help me with it. Jali is a React library for workspaces of panes. Answer from that page and the rest of the Jali docs.`;
   return (
     <div className="page-actions" role="group" aria-label="Page actions">
