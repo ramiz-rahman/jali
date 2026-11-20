@@ -9,6 +9,7 @@ import {
 } from "@jali/react";
 import { useEffect, useRef, useState } from "react";
 import { resultFormat } from "#shared/data/labels";
+import { text } from "#shared/store";
 import type { ResultHandle, Row } from "#shared/data/types";
 import { Grid, type GridColumn } from "#shared/panes/grid/Grid";
 import { errorText, useRun } from "#shared/data/hooks";
@@ -41,8 +42,8 @@ export function QueryPane({ params, paused, focused, openBeside }: PaneProps<typ
   // Asked to run on load, with SQL that isn't the app's own: it came with a link, and waits for Run.
   const held = !!params.autorun && !OWN_SQL.has(start);
   // The draft is the pane's own state: it outlives a fold, a tab switch and a reload.
-  const [sql, setSql] = usePaneState("sql", start);
-  const [ran, setRan] = usePaneState("ran", start);
+  const [sql, setSql] = usePaneState("sql", start, { parse: text });
+  const [ran, setRan] = usePaneState("ran", start, { parse: text });
   const [handle, setHandle] = useState<ResultHandle | null>(null);
   const [error, setError] = useState<string | null>(null);
   const run = useRun();
