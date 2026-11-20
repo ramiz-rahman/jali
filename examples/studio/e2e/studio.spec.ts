@@ -1,4 +1,5 @@
-import { expect, test, type Page } from "@playwright/test";
+import type { Page } from "@playwright/test";
+import { expect, test } from "../../shared/e2e/quality";
 
 const header = (page: Page, pane: string) =>
   page.locator(`.jali-pane[data-pane="${pane}"] .jali-pane-header`);

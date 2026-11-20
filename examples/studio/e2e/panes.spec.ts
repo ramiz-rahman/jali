@@ -1,4 +1,5 @@
-import { expect, test, type Page } from "@playwright/test";
+import type { Page } from "@playwright/test";
+import { expect, test } from "../../shared/e2e/quality";
 
 /*
  * Every pane holds up at every size: each layout with each session (three, eight and four tracks) at a range of

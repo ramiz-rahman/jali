@@ -1,4 +1,5 @@
-import { expect, test, type Page } from "@playwright/test";
+import type { Page } from "@playwright/test";
+import { expect, test } from "../../shared/e2e/quality";
 
 /*
  * The top slab never overflows and its parts never collide: a sweep of window widths from 360 to 2200px in 20px
