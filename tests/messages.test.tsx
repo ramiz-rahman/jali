@@ -66,9 +66,17 @@ beforeAll(() => {
 afterEach(cleanup);
 
 describe("messages", () => {
-  it("are English by default, the same object as `en`", () => {
+  it("are English by default: `en` without a curated page's words, which come with a page", () => {
     const jali = make();
-    expect(jali.messages).toBe(en);
+    const { page, ...rest } = jali.messages as Partial<Messages>;
+    expect(page).toBeUndefined();
+    for (const [area, words] of Object.entries(rest))
+      for (const [key, word] of Object.entries(words))
+        expect(word, `${area}.${key}`).toBe(
+          (en as Record<string, Record<string, unknown>>)[area]![key],
+        );
+    expect(jali.messages.announcements.pageOpened).toBeUndefined();
+    expect(jali.messages.commands.pageBack).toBeUndefined();
     const close = listCommands(jali).find((c) => c.id === "pane.close")!;
     expect(close.title).toBe("Close pane");
     expect(close.group).toBe("Pane");

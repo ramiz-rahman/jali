@@ -4,7 +4,8 @@
  * `jali.actions` (actions/public.ts): the subset an app calls, with one convention and results that say why not.
  */
 import type { NodeId } from "../layout/types";
-import type { ActionResult, Outcome, Snapshot } from "../state/apply";
+import type { PageEngine } from "../profile";
+import { refuse, type ActionResult, type Outcome, type Snapshot } from "../state/apply";
 import {
   focus,
   focusCycle,
@@ -54,22 +55,34 @@ import {
   setUnsaved,
   reportPane,
 } from "./content";
-import {
-  activate,
-  backToPage,
-  openPage,
-  hideRole,
-  leavePage,
-  openTab,
-  openTabBeside,
-  placeTab,
-  resetPage,
-  setCanInvestigate,
-  setMode,
-} from "./page";
 
 export type { PaneReport, PaneReportPatch } from "./content";
 export { mergeReports } from "./content";
+
+/** The curated page's steps (actions/page.ts), which the workspace reaches through its page's engine. */
+export type PageSteps = Pick<
+  PageEngine,
+  | "openPage"
+  | "leavePage"
+  | "setMode"
+  | "openTab"
+  | "openTabBeside"
+  | "placeTab"
+  | "resetPage"
+  | "activate"
+  | "backToPage"
+  | "hideRole"
+  | "setCanInvestigate"
+>;
+type Rest<F> = F extends (x: Snapshot, ...args: infer A) => Outcome ? A : never;
+
+/** A step of the curated page's engine, as a step of the workspace: refused (`"unavailable"`) without a page. */
+export const pageStep =
+  <K extends keyof PageSteps>(name: K) =>
+  (x: Snapshot, ...args: Rest<PageSteps[K]>): Outcome => {
+    const step = x.env.page?.[name] as ((x: Snapshot, ...a: unknown[]) => Outcome) | undefined;
+    return step ? step(x, ...args) : refuse("unavailable");
+  };
 
 export const ACTIONS = {
   focus,
@@ -137,17 +150,17 @@ export const ACTIONS = {
   reportPane,
   discardAndContinue,
   keepEditing,
-  openPage,
-  leavePage,
-  setMode,
-  openTab,
-  openTabBeside,
-  placeTab,
-  resetPage,
-  activate,
-  backToPage,
-  hideRole,
-  setCanInvestigate,
+  openPage: pageStep("openPage"),
+  leavePage: pageStep("leavePage"),
+  setMode: pageStep("setMode"),
+  openTab: pageStep("openTab"),
+  openTabBeside: pageStep("openTabBeside"),
+  placeTab: pageStep("placeTab"),
+  resetPage: pageStep("resetPage"),
+  activate: pageStep("activate"),
+  backToPage: pageStep("backToPage"),
+  hideRole: pageStep("hideRole"),
+  setCanInvestigate: pageStep("setCanInvestigate"),
 };
 
 type Bound<F> = F extends (x: Snapshot, ...args: infer A) => Outcome

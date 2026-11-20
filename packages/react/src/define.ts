@@ -36,8 +36,12 @@ import type {
 } from "@jali/core";
 import type { ComponentType } from "react";
 
-import { defineKind } from "@jali/core/adapter";
+import { defineKind, definePage as defineCorePage } from "@jali/core/adapter";
 import type { JaliIcon } from "./icons/types";
+import { pageParts, type PageParts } from "./chrome/PageBar";
+
+/** Where a page from `definePage` keeps its React parts (chrome/PageBar.tsx). */
+export const PAGE_PARTS: unique symbol = /* @__PURE__ */ Symbol.for("jali.react.page");
 
 /** `P` as params: a declaration (`{ id: Number }`) is read as `ParamsOf` it; params' own type stays as it is. */
 export type ParamsFrom<P> = [P] extends [ParamTypes] ? ParamsOf<P> : P;
@@ -131,13 +135,18 @@ export interface Page<I extends ItemId = any> extends ProfileBase<PageView, I> {
    *  about one item and has nothing to switch to: the header, tabs and panes then take the whole width. */
   Rail?: ComponentType<{ item: I; activate: (item: I) => void }>;
   Header: ComponentType<{ item: I }>;
+  /** Set by `definePage`: what the page renders. Never set it yourself. */
+  readonly [PAGE_PARTS]?: PageParts;
 }
 
-/** Gives a curated page its type: `definePage({ id, name, roles, ... })`. */
+/**
+ * Makes a curated page: `definePage({ id, name, roles, ... })`, for `createJali({ page })`. It gives the page the code
+ * that runs it (core's `definePage`) and the parts that render it, so an app that never calls it ships neither.
+ */
 export function definePage(page: Page<number>): Page<number>;
 export function definePage(page: Page<string>): Page<string>;
 export function definePage(page: Page): Page {
-  return page;
+  return { ...defineCorePage(page), [PAGE_PARTS]: pageParts };
 }
 
 /** The env as a React workspace sees it: its kinds have components, its page a rail and header. */

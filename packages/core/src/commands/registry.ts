@@ -14,7 +14,7 @@ import { checkPutBack, checkTuck } from "../actions/tuck";
 import { checkMerge, checkMoveTab, checkUnmerge } from "../actions/tabs";
 import { checkRename } from "../actions/rename";
 import { activeTabId, focusShelfChip } from "../dom/focus";
-import { viewerLabel, type Env } from "../profile";
+import type { Env } from "../profile";
 import { refuse, type RefusalStep, type Snapshot } from "../state/apply";
 import { messagesOf, type ScreenDirection } from "../state/messages";
 import type { UiStore } from "../state/store";
@@ -83,10 +83,7 @@ const DIRS: [Edge, ScreenDirection][] = [
 
 /** Every command a workspace has: the fixed set, its presets', and titles in its own words (its name, its viewers). */
 function buildCommands(env: Env): CommandDef[] {
-  const profile = env.profile;
-  const { commands: t, commandGroups: g, page: words } = messagesOf(env);
-  const full = viewerLabel(profile, true, words);
-  const limited = viewerLabel(profile, false, words);
+  const { commands: t, commandGroups: g } = messagesOf(env);
   return [
     // F6 visits the panes, then the shelf and the host's regions (commands/regions.ts).
     {
@@ -304,64 +301,8 @@ function buildCommands(env: Env): CommandDef[] {
       run: (u) => u.actions.autoLayout(),
     },
     { id: "layout.copy_link", title: t.copyLink, group: g.layout, run: (u) => copyLink(u.jali) },
-    {
-      id: "page.back",
-      title: t.pageBack(profile?.name),
-      group: g.layout,
-      check: ({ s, m }) =>
-        s.page && m.panes.some((p) => !p.role) ? undefined : refuse("unavailable"),
-      run: (u) => u.actions.backToPage(),
-    },
-    {
-      id: "page.reset",
-      title: t.pageReset,
-      group: g.layout,
-      check: ({ s }) => (s.page?.mode === "split" ? undefined : refuse("unavailable")),
-      run: (u) => u.actions.resetPage(),
-    },
-    {
-      id: "page.single",
-      title: t.pageSingle,
-      group: g.layout,
-      check: ({ s }) => (s.page?.mode === "split" ? undefined : refuse("unavailable")),
-      run: (u) => u.actions.setMode("single"),
-    },
-    {
-      id: "page.split",
-      title: t.pageSplit,
-      group: g.layout,
-      check: ({ s }) =>
-        s.page?.mode === "single" && s.page.canInvestigate ? undefined : refuse("unavailable"),
-      run: (u) => u.actions.setMode("split"),
-    },
-    {
-      id: "page.open",
-      title: t.pageOpen(profile?.name),
-      group: g.layout,
-      check: ({ s }) => (s.page || !profile ? refuse("unavailable") : undefined),
-      run: (u) => u.actions.openPage(),
-    },
-    {
-      id: "page.leave",
-      title: t.pageLeave(env.name),
-      group: g.layout,
-      check: ({ s }) => (s.page && env.presets.length ? undefined : refuse("unavailable")),
-      run: (u) => u.actions.leavePage(),
-    },
-    {
-      id: "page.as_limited",
-      title: t.viewAsLimited(limited),
-      group: g.settings,
-      check: ({ s }) => (s.page?.canInvestigate ? undefined : refuse("unavailable")),
-      run: (u) => u.actions.setCanInvestigate(false),
-    },
-    {
-      id: "page.as_full",
-      title: t.viewAsFull(full),
-      group: g.settings,
-      check: ({ s }) => (s.page && !s.page.canInvestigate ? undefined : refuse("unavailable")),
-      run: (u) => u.actions.setCanInvestigate(true),
-    },
+    // A curated page's own commands, from its engine (actions/page.ts): only a workspace with a page has them.
+    ...(env.page?.commands(env) ?? []),
 
     {
       id: "peek.close",

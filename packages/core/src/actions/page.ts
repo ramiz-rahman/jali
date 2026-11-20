@@ -2,6 +2,9 @@
  * Curated pages (profile.ts). Single mode shows one view, chosen from the tabs. Split view lays the views out
  * freely, starting from the profile's design; each view exists once, and closing one sends it back to the tabs.
  * Panes opened by following links form an investigation after the layout that "Back to <page>" clears.
+ *
+ * Opt-in: only `definePage` reaches this module. It puts the page's engine (`pageEngine`) on the page, and the
+ * workspace runs the page through `env.page`, so an app without a page ships none of it.
  */
 import * as core from "../layout";
 import { endSide, treeSide } from "../layout/geometry/direction";
@@ -18,14 +21,20 @@ import type {
 } from "../layout/types";
 import {
   asItem,
+  PAGE,
   roleOf,
-  viewerLabel,
+  type BesidePreview,
+  type Env,
   type ItemId,
+  type OpenPage,
+  type PageEngine,
   type ViewMode,
   type ProfileBase,
 } from "../profile";
+import type { CommandDef } from "../commands/registry";
 import { refuse, type Change, type Outcome, type Snapshot } from "../state/apply";
-import { messagesOf, say } from "../state/messages";
+import { messagesOf, say, type Messages } from "../state/messages";
+import { pageEn } from "../state/page-messages";
 import type { PagePrefs } from "../state/page-prefs";
 import type { PageState } from "../state/store";
 import { pushUndo } from "../state/undo";
@@ -159,13 +168,16 @@ const label = (p: ProfileBase, id: string | undefined) => roleOf(p, id)?.label ?
 /** A role's name in the page's tabs. */
 export const roleLabel = (p: ProfileBase | null, id: string) => (p ? label(p, id) : id);
 
-export interface OpenPage {
-  item?: ItemId;
-  tab?: string;
-  investigation?: ObjectRef[];
-  fromUrl?: boolean;
-  view?: Partial<ViewState>;
-}
+export type { BesidePreview, OpenPage };
+
+/** Who may open links beside (`full`) and who only peeks, in the page's words, else Jali's. */
+export const viewerLabel = (
+  profile: ProfileBase | null,
+  full: boolean,
+  words: Pick<Messages["page"], "viewerFull" | "viewerLimited">,
+) =>
+  (full ? profile?.viewers?.full : profile?.viewers?.limited) ??
+  (full ? words.viewerFull : words.viewerLimited);
 
 /** Open the curated page (or arrive at it from a link). A link with opened panes needs Split view to show them. */
 export function openPage(x: Snapshot, o: OpenPage = {}): Outcome {
@@ -402,15 +414,6 @@ function beside(x: Snapshot, role: string) {
   if (!target || target === role) return undefined;
   const placed = placeRole(base.layout, base.view, role, target, "right", x.ctx);
   return placed ? { base, target, placed } : undefined;
-}
-
-export interface BesidePreview {
-  /** Where the view opens. */
-  incoming: Rect;
-  /** Other views whose rect changes, at their new rect. */
-  moved: { id: NodeId; rect: Rect }[];
-  /** Views that leave the screen (back to the tabs, or behind a tab). */
-  leaving: NodeId[];
 }
 
 /** Where ⌥-click would put a view, and what else moves: the very placement the commit runs. Pure. */
@@ -650,4 +653,106 @@ export function setCanInvestigate(x: Snapshot, canInvestigate: boolean): Outcome
     msg,
     patch: { ...toSingle.patch, page: { ...toSingle.patch!.page!, canInvestigate } },
   };
+}
+
+/** The page's commands, in the palette after the layout commands: back to the page, its modes, opening and leaving
+ *  it, and the viewer it is seen as. */
+function pageCommands(env: Env): CommandDef[] {
+  const profile = env.profile;
+  const { commands: t, commandGroups: g, page: words } = messagesOf(env);
+  const full = viewerLabel(profile, true, words);
+  const limited = viewerLabel(profile, false, words);
+  return [
+    {
+      id: "page.back",
+      title: t.pageBack(profile?.name),
+      group: g.layout,
+      check: ({ s, m }) =>
+        s.page && m.panes.some((p) => !p.role) ? undefined : refuse("unavailable"),
+      run: (u) => u.actions.backToPage(),
+    },
+    {
+      id: "page.reset",
+      title: t.pageReset,
+      group: g.layout,
+      check: ({ s }) => (s.page?.mode === "split" ? undefined : refuse("unavailable")),
+      run: (u) => u.actions.resetPage(),
+    },
+    {
+      id: "page.single",
+      title: t.pageSingle,
+      group: g.layout,
+      check: ({ s }) => (s.page?.mode === "split" ? undefined : refuse("unavailable")),
+      run: (u) => u.actions.setMode("single"),
+    },
+    {
+      id: "page.split",
+      title: t.pageSplit,
+      group: g.layout,
+      check: ({ s }) =>
+        s.page?.mode === "single" && s.page.canInvestigate ? undefined : refuse("unavailable"),
+      run: (u) => u.actions.setMode("split"),
+    },
+    {
+      id: "page.open",
+      title: t.pageOpen(profile?.name),
+      group: g.layout,
+      check: ({ s }) => (s.page || !profile ? refuse("unavailable") : undefined),
+      run: (u) => u.actions.openPage(),
+    },
+    {
+      id: "page.leave",
+      title: t.pageLeave(env.name),
+      group: g.layout,
+      check: ({ s }) => (s.page && env.presets.length ? undefined : refuse("unavailable")),
+      run: (u) => u.actions.leavePage(),
+    },
+    {
+      id: "page.as_limited",
+      title: t.viewAsLimited(limited),
+      group: g.settings,
+      check: ({ s }) => (s.page?.canInvestigate ? undefined : refuse("unavailable")),
+      run: (u) => u.actions.setCanInvestigate(false),
+    },
+    {
+      id: "page.as_full",
+      title: t.viewAsFull(full),
+      group: g.settings,
+      check: ({ s }) => (s.page && !s.page.canInvestigate ? undefined : refuse("unavailable")),
+      run: (u) => u.actions.setCanInvestigate(true),
+    },
+  ];
+}
+
+/** The curated page's engine: what `definePage` puts on a page. */
+export const pageEngine: PageEngine = {
+  openPage,
+  leavePage,
+  setMode,
+  openTab,
+  openTabBeside,
+  placeTab,
+  activate,
+  backToPage,
+  hideRole,
+  resetPage,
+  setCanInvestigate,
+  goToRole,
+  investigation,
+  placeAfterArrangement,
+  settleRoles,
+  withoutOpened,
+  besidePreview,
+  commands: pageCommands,
+  words: pageEn,
+};
+
+/**
+ * Makes a curated page: one item at a time, its views as tabs. Pass the result to `createJali({ page })`. This is the
+ * one way in to the page's code (`pageEngine`), so an app that never calls it ships none of it. Returns a copy of
+ * `page` with its engine; the fields are `page`'s own. (@jali/react's `definePage` calls it, and types the rail and
+ * header.)
+ */
+export function definePage<P extends ProfileBase<any, any>>(page: P): P {
+  return { ...page, [PAGE]: pageEngine };
 }

@@ -41,16 +41,7 @@ import {
   split,
   type OpenBesideOptions,
 } from "./open";
-import {
-  activate,
-  backToPage,
-  leavePage,
-  openPage,
-  openTab,
-  resetPage,
-  setCanInvestigate,
-  setMode,
-} from "./page";
+import { pageStep } from "./index";
 import { peek, select } from "./peek";
 import { mergeInto, moveTab, setPinned, unmerge } from "./tabs";
 import { startRename } from "./rename";
@@ -318,14 +309,15 @@ export function publicActions(run: Run): JaliActions {
     resetLayout: () => run((x) => (x.env.presets.length ? resetLayout(x) : refuse("unavailable"))),
     autoLayout: () => run(autoLayout),
 
-    openPage: (options = {}) => run((x) => openPage(x, { item: options.item, tab: options.tab })),
-    leavePage: () => run((x) => (x.s.page ? leavePage(x) : null)),
-    setMode: (mode) => run((x) => setMode(x, mode)),
-    openTab: (tab) => run((x) => openTab(x, tab)),
-    activate: (item) => run((x) => activate(x, item)),
-    backToPage: () => run(backToPage),
-    resetPage: () => run(resetPage),
-    setCanInvestigate: (can) => run((x) => setCanInvestigate(x, can)),
+    openPage: (options = {}) =>
+      run((x) => pageStep("openPage")(x, { item: options.item, tab: options.tab })),
+    leavePage: () => run((x) => (x.s.page ? pageStep("leavePage")(x) : null)),
+    setMode: (mode) => run((x) => pageStep("setMode")(x, mode)),
+    openTab: (tab) => run((x) => pageStep("openTab")(x, tab)),
+    activate: (item) => run((x) => pageStep("activate")(x, item)),
+    backToPage: () => run(pageStep("backToPage")),
+    resetPage: () => run(pageStep("resetPage")),
+    setCanInvestigate: (can) => run((x) => pageStep("setCanInvestigate")(x, can)),
 
     choose: (options) => run((x) => choose(x, options as ChooseOptions<unknown>)),
     openPalette: () => run(openPalette()),

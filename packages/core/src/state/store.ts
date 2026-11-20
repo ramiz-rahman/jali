@@ -47,6 +47,7 @@ import { modelCache, type JaliModel } from "./model";
 import { loadSettings, systemPrefersDark, type Settings } from "./settings";
 import { loadPrefs, type PagePrefs } from "./page-prefs";
 import {
+  pageEngineOf,
   presetById,
   type Env,
   type ItemId,
@@ -360,7 +361,10 @@ function createDom(id: string): JaliDom {
 const DEV = !!(import.meta as unknown as { env?: { DEV?: boolean } }).env?.DEV;
 
 export function createUiStore(deps: UiStoreDeps): UiStore {
-  const messages = resolveMessages(deps.messages);
+  const page = pageEngineOf(deps.profile);
+  if (deps.profile && !page)
+    throw new Error("Jali: make the page with `definePage`, which gives it the code that runs it");
+  const messages = resolveMessages(deps.messages, page?.words);
   const env: Env = {
     kinds: deps.kinds,
     profile: deps.profile ?? null,
@@ -378,6 +382,7 @@ export function createUiStore(deps: UiStoreDeps): UiStore {
           console.error(`Jali: pane ${pane ?? "peek"} (${ref.kind}) failed`, error)
       : undefined);
   if (onPaneError) env.onPaneError = onPaneError;
+  if (page) env.page = page;
   if (deps.launcher) env.launcher = deps.launcher;
   if (deps.dir) env.dir = deps.dir;
   if (deps.landmark === "main") env.landmark = "main";

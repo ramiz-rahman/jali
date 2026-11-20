@@ -12,7 +12,6 @@ import type {
 import type { PaneKinds } from "../pane-kinds";
 import { refuse, type Outcome, type Snapshot } from "../state/apply";
 import { peekSheet } from "./peek";
-import { goToRole, investigation, placeAfterArrangement, roleLabel, settleRoles } from "./page";
 import type { JaliModel } from "../state/model";
 import { say } from "../state/messages";
 import { follow, followLater, sameRef, setKept } from "./follow";
@@ -66,8 +65,7 @@ export interface OpenBesideOptions {
  * (a tree side), it opens on that side of the investigation's last part; the first opened pane starts the
  * investigation after the views whatever the edge, so the views never share a column with an opened pane.
  */
-function investigationPlace(layout: Layout, edge?: Edge): core.Placement {
-  const after = placeAfterArrangement(layout);
+function investigationPlace(layout: Layout, after: core.Placement, edge?: Edge): core.Placement {
   if (!edge) return after;
   const target = core.tree.find(layout.root, after.target);
   const hasRole = (n: LayoutNode): boolean =>
@@ -95,10 +93,12 @@ export function openBeside(
     return { ...peekSheet(x, ref, source), msg: say(x).peekOnly(m.env.kinds.title(ref)) };
   if (s.page?.mode === "single")
     return { ...peekSheet(x, ref, source), msg: say(x).peekSingle(m.env.kinds.title(ref)) };
-  if (s.page) {
+  // A page is open, so the workspace has its engine (env.page).
+  const page = s.page ? x.env.page : undefined;
+  if (page) {
     // One object, one pane: a link to what is already on the page goes there (a view, whatever kind shows it).
     const dup = openPaneFor(m, ref);
-    if (dup?.role) return goToRole(x, dup.role, source);
+    if (dup?.role) return page.goToRole(x, dup.role, source);
     if (dup)
       return {
         op: "focusExisting",
@@ -111,10 +111,12 @@ export function openBeside(
   // `edge` is a screen side, as for move and split; the tree's own sides swap right to left. Default: after the source.
   const edge = opts.edge ? treeSide(opts.edge, ctx.dir) : "right";
   const place =
-    s.page && m.pane(source)?.role ? investigationPlace(s.layout, opts.edge && edge) : undefined;
+    page && m.pane(source)?.role
+      ? investigationPlace(s.layout, page.placeAfterArrangement(s.layout), opts.edge && edge)
+      : undefined;
   // The first opened pane starts an investigation: remember the layout it started from.
-  const page =
-    s.page && !investigation(m.panes).length ? { page: { ...s.page, before: s.layout } } : {};
+  const before =
+    page && !page.investigation(m.panes).length ? { page: { ...s.page!, before: s.layout } } : {};
   // In a curated page nothing the person placed gives way for an opened pane: short of room, it opens as a tab.
   const selected = own(s.selection, source)?.ref;
   const fromSelection = !!selected && sameRef(m.env.kinds.follow(ref.kind, selected), ref);
@@ -164,7 +166,7 @@ export function openBeside(
     focused: source,
     focusHistory: r.view.focusHistory.length ? r.view.focusHistory : [source],
   };
-  if (s.page && r.mode === "tab") {
+  if (page && r.mode === "tab") {
     // No room beside: a tab of the source, in the source's slot at its size, shown and focused (the source is behind
     // it now). If even that needs more room, views go back to the page tabs; they never fold into a tab group.
     const t = core.addTab(s.layout, unzoomed(s.view), source, ref, ctx);
@@ -180,7 +182,7 @@ export function openBeside(
           : n,
       ),
     };
-    ({ layout, view, sent } = settleRoles(
+    ({ layout, view, sent } = page.settleRoles(
       s.layout,
       { layout: linked, view: t.view },
       [source, t.opened],
@@ -198,10 +200,8 @@ export function openBeside(
     op: "open",
     layout,
     view,
-    msg: sent.length
-      ? say(x).both(said, say(x).sentToTabs(sent.map((id) => roleLabel(x.env.profile, id))))
-      : said,
-    patch: { recent: withRecent(m.env.kinds, s.recent, [ref]), ...page },
+    msg: sent.length ? say(x).both(said, say(x).sentToTabs(sent.map((id) => m.title(id)))) : said,
+    patch: { recent: withRecent(m.env.kinds, s.recent, [ref]), ...before },
     result: opened,
   };
 }

@@ -1,8 +1,6 @@
 import type { JaliModel } from "@jali/core";
-import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import {
-  besidePreview,
-  roleOf,
   keepPaneFocus,
   ALONE_CHROME,
   CHROME,
@@ -27,6 +25,7 @@ import type { UiStore } from "@jali/core/adapter";
 import { useModel, useStore, useUi } from "../state/react";
 import { DropIndicator } from "./DropIndicator";
 import { useSingleView } from "./useSingleView";
+import { PAGE_PARTS } from "../define";
 
 const DEV = !!(import.meta as unknown as { env?: { DEV?: boolean } }).env?.DEV;
 
@@ -143,40 +142,6 @@ function useReshapeMotion(reshapes: number): boolean {
     return () => clearTimeout(t);
   }, [reshapes, fresh]);
   return fresh || playing;
-}
-
-/** ⌥ over a page tab: a dashed outline where ⌥-click would open that view, and a fainter one for each view it moves.
- *  The preview runs the very placement the click commits (besidePreview), so the two cannot differ. */
-function Ghost({ role }: { role: string }) {
-  const store = useStore();
-  const m = useModel();
-  const preview = useMemo(() => besidePreview(store.snapshot(), role), [store, role, m]);
-  if (!preview) return null;
-  const p = store.env.profile!;
-  const name = (id: string) => roleOf(p, id)?.label ?? m.title(id);
-  const box = (r: { x: number; y: number; width: number; height: number }) => ({
-    left: r.x,
-    top: r.y,
-    width: r.width,
-    height: r.height,
-  });
-
-  return (
-    <>
-      {preview.moved.map((v) => (
-        <div
-          key={v.id}
-          className="jali-ghost jali-ghost-moved"
-          data-ghost={v.id}
-          style={box(v.rect)}
-          aria-hidden
-        />
-      ))}
-      <div className="jali-ghost" data-ghost={role} style={box(preview.incoming)} aria-hidden>
-        <span>{store.messages.page.ghost(name(role), preview.leaving.map(name))}</span>
-      </div>
-    </>
-  );
 }
 
 /**
@@ -301,6 +266,8 @@ export function Panes() {
   const dropTarget = useUi((s) => s.dnd?.target);
   const dragging = useUi((s) => !!s.dnd);
   const ghost = useUi((s) => s.ghost);
+  // A curated page's ⌥ preview, which its parts bring (definePage).
+  const Ghost = store.env.profile?.[PAGE_PARTS]?.Ghost;
   const sliding = useReshapeMotion(useUi((s) => s.reshapes));
   const ref = useMeasure(store);
   const measured = area.width > 0;
@@ -432,7 +399,7 @@ export function Panes() {
           />
         ) : null}
         {single ? null : <DragLayer m={m} />}
-        {ghost && !single && !dragging ? <Ghost role={ghost} /> : null}
+        {Ghost && ghost && !single && !dragging ? <Ghost role={ghost} /> : null}
         <Peek presentation={mode} />
       </div>
     </Landmark>

@@ -42,6 +42,8 @@ export type {
 } from "./pane-kinds";
 export { optional, oneOf } from "./pane-kinds";
 export type { RoleBase, ProfileBase, ViewMode, Preset, Env, ItemId, PhoneOptions } from "./profile";
+/** A curated page: `createJali({ page: definePage({ ... }) })`. Only an app that calls it ships the page's code. */
+export { definePage } from "./actions/page";
 
 // ---------- the layout tree (pure: every operation returns a new layout) ----------
 export type {

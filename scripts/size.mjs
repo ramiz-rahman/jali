@@ -20,8 +20,16 @@ const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 // Scenario → entry file in scripts/size/; gzipped budgets in KB, about 10% over what each shipped on 19 Nov 2026
 // (docs/DECISIONS.md has the numbers); and source files it must not ship (more than a stray mapping's few bytes).
 const SCENARIOS = {
-  // One kind, no curated page, no launcher: fixtures/minimal without its fonts.
-  minimal: { entry: "minimal.tsx", budget: { core: 49.5, react: 18.3, css: 7.8, phosphor: 0 } },
+  // One kind, no curated page, no launcher: fixtures/minimal without its fonts. The page is opt-in (definePage).
+  minimal: {
+    entry: "minimal.tsx",
+    budget: { core: 49.5, react: 18.3, css: 7.8, phosphor: 0 },
+    mustNotShip: [
+      "core/src/actions/page.ts",
+      "core/src/state/page-messages.ts",
+      "react/src/chrome/PageBar.tsx",
+    ],
+  },
   // Every feature: a curated page, presets, a launcher, URL sync, host commands and the hooks.
   full: { entry: "full.tsx", budget: { core: 49.5, react: 19, css: 7.8, phosphor: 2 } },
   // fixtures/own-icons: the host's own icon for every name.
@@ -30,7 +38,11 @@ const SCENARIOS = {
     budget: { core: 49.5, react: 18.3, css: 7.8, phosphor: 0 },
   },
   // The workspace without React.
-  headless: { entry: "headless.ts", budget: { core: 45 } },
+  headless: {
+    entry: "headless.ts",
+    budget: { core: 45 },
+    mustNotShip: ["core/src/actions/page.ts", "core/src/state/page-messages.ts"],
+  },
   // Only the pure layout tree: the builders and the `layout` namespace. No workspace, keyboard or curated page.
   layout: {
     entry: "layout.ts",

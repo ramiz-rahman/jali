@@ -1,6 +1,14 @@
 /** A workspace made with the public API alone and few options: what the docs' smallest app does must not throw. */
 import { describe, expect, it } from "vite-plus/test";
-import { createJali, memoryLocation, memoryStorage, pane, row, type JaliOptions } from "@jali/core";
+import {
+  createJali,
+  definePage,
+  memoryLocation,
+  memoryStorage,
+  pane,
+  row,
+  type JaliOptions,
+} from "@jali/core";
 import { definePane } from "@jali/react";
 import { runCommand } from "../packages/core/src/commands/registry";
 import { storeOf } from "../packages/core/src/state/instance";
@@ -56,7 +64,7 @@ describe("a workspace without a launcher (finding 4)", () => {
 });
 
 describe("a curated page whose items are string ids (finding 13)", () => {
-  const profile = {
+  const profile = definePage({
     id: "desk",
     name: "Desk",
     itemNoun: "ticket",
@@ -65,7 +73,7 @@ describe("a curated page whose items are string ids (finding 13)", () => {
     firstItem: "t-abc",
     bind: (item: string) => ({ main: ticket({ id: item }) }),
     build: (item: string) => pane(ticket({ id: item }), { id: "main", role: "main" }),
-  };
+  });
   it("opens on the first item, switches item, and a link carries it", () => {
     const store = make({ page: profile });
     store.actions.openPage();

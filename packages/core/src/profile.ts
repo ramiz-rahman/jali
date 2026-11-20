@@ -12,8 +12,11 @@
 import type { Direction, Layout, NodeId, ObjectRef, PaneNode } from "./layout/types";
 import type { LayoutInput } from "./layout/build";
 import type { PaneErrorInfo, PaneKinds } from "./pane-kinds";
-import type { Command } from "./commands/registry";
-import { en, type Messages } from "./state/messages";
+import type { Command, CommandDef } from "./commands/registry";
+import type { MessageOverrides, Messages } from "./state/messages";
+import type { Outcome, Snapshot } from "./state/apply";
+import type { Edge, LayoutContext, Rect, ViewState } from "./layout/types";
+import type { Placement } from "./layout/ops/open";
 import { own } from "./own";
 
 /** One of a curated page's views. Adapters add its icon (@jali/react: RoleDef). */
@@ -36,7 +39,14 @@ export function asItem(id: ItemId, first: ItemId): ItemId {
   return id.trim() !== "" && Number.isFinite(n) ? n : id;
 }
 
-/** A curated page, framework-free. Adapters add its rail and header (@jali/react: WorkspaceProfile). */
+/**
+ * Where a page from `definePage` keeps its engine: the code that runs a curated page. It is on the page, not in the
+ * workspace, so an app without a page never ships it.
+ */
+export const PAGE: unique symbol = /* @__PURE__ */ Symbol.for("jali.page");
+
+/** A curated page, framework-free. Adapters add its rail and header (@jali/react: Page). Make one with
+ *  `definePage`, which gives it its engine. */
 export interface ProfileBase<R extends RoleBase = RoleBase, I extends ItemId = ItemId> {
   id: string;
   name: string;
@@ -55,7 +65,71 @@ export interface ProfileBase<R extends RoleBase = RoleBase, I extends ItemId = I
   bind(item: I): Record<string, ObjectRef>;
   /** The item the page opens on. Its type (number or string) is the type of every item id the page is given. */
   firstItem: I;
+  /** Set by `definePage`: the code that runs the page. Never set it yourself. */
+  readonly [PAGE]?: PageEngine;
 }
+
+/** Where `openPage` opens the curated page, and what a link brings with it (adapters). */
+export interface OpenPage {
+  item?: ItemId;
+  tab?: string;
+  investigation?: ObjectRef[];
+  fromUrl?: boolean;
+  view?: Partial<ViewState>;
+}
+
+/** Where ⌥-click would put a view (adapters: the preview over the panes). */
+export interface BesidePreview {
+  /** Where the view opens. */
+  incoming: Rect;
+  /** Other views whose rect changes, at their new rect. */
+  moved: { id: NodeId; rect: Rect }[];
+  /** Views that leave the screen (back to the tabs, or behind a tab). */
+  leaving: NodeId[];
+}
+
+/**
+ * The curated page's code (actions/page.ts), reached only through a page made with `definePage`: its steps, what the
+ * free workspace's own steps ask of it, its commands and its English words. Adapters reach it as
+ * `store.env.page`; apps never do.
+ */
+export interface PageEngine {
+  openPage(x: Snapshot, o?: OpenPage): Outcome;
+  leavePage(x: Snapshot): Outcome;
+  setMode(x: Snapshot, mode: ViewMode): Outcome;
+  openTab(x: Snapshot, role: string): Outcome;
+  openTabBeside(x: Snapshot, role: string): Outcome;
+  placeTab(x: Snapshot, role: string, target: NodeId, zone: Edge | "centre"): Outcome;
+  activate(x: Snapshot, item: ItemId): Outcome;
+  backToPage(x: Snapshot): Outcome;
+  hideRole(x: Snapshot, id: NodeId): Outcome;
+  resetPage(x: Snapshot): Outcome;
+  setCanInvestigate(x: Snapshot, canInvestigate: boolean): Outcome;
+  /** A link to an object that is already one of the page's views goes to that view. */
+  goToRole(x: Snapshot, role: string, from?: NodeId): Outcome;
+  /** Panes the person opened by following links: everything without a role. */
+  investigation(panes: PaneNode[]): PaneNode[];
+  /** Where opened panes go: after the whole layout. */
+  placeAfterArrangement(layout: Layout): Placement;
+  /** Send role views back to the tabs until none is folded by a placement. */
+  settleRoles(
+    before: Layout,
+    placed: { layout: Layout; view: ViewState },
+    keep: readonly NodeId[],
+    ctx: LayoutContext,
+  ): { layout: Layout; view: ViewState; sent: NodeId[] };
+  /** The layout without opened panes (what is saved). */
+  withoutOpened(layout: Layout, ctx: LayoutContext): Layout;
+  besidePreview(x: Snapshot, role: string): BesidePreview | undefined;
+  /** The page's commands, listed after the layout commands. */
+  commands(env: Env): CommandDef[];
+  /** The page's English: the `page` area, and the announcements, command titles and toasts only a page uses. */
+  words: MessageOverrides;
+}
+
+/** The engine of the workspace's page, if it has one. */
+export const pageEngineOf = (p: ProfileBase | null | undefined): PageEngine | undefined =>
+  p?.[PAGE];
 
 export const roleOf = <R extends RoleBase>(
   p: ProfileBase<R, any>,
@@ -99,6 +173,8 @@ export interface Env {
   palette?: boolean;
   /** Every word the workspace shows or says (state/messages.ts). Default: English (`en`). */
   messages?: Messages;
+  /** The curated page's engine, when `profile` is set (from `definePage`). */
+  page?: PageEngine;
   /** Told when a pane's content throws while rendering (`createJali({ onPaneError })`). */
   onPaneError?: (error: unknown, info: PaneErrorInfo) => void;
   /** The reading direction it was given (`createJali({ dir })`); unset, the workspace follows its page. */
@@ -153,11 +229,3 @@ export const PHONE_BELOW = 600;
 
 export const presetById = (env: Pick<Env, "presets">, id: string | undefined): Preset | undefined =>
   env.presets.find((p) => p.id === id) ?? env.presets[0];
-
-export const viewerLabel = (
-  profile: ProfileBase | null,
-  full: boolean,
-  words: Pick<Messages["page"], "viewerFull" | "viewerLimited"> = en.page,
-) =>
-  (full ? profile?.viewers?.full : profile?.viewers?.limited) ??
-  (full ? words.viewerFull : words.viewerLimited);

@@ -8,7 +8,7 @@ export * from "./actions";
 export * from "./actions/allow";
 export * from "./index";
 // Queries the React adapter reads (what a merge, tuck or link would do); the actions themselves run through store.actions.
-export { besidePreview, investigation } from "./actions/page";
+export { besidePreview, investigation, viewerLabel, pageEngine } from "./actions/page";
 export { mergeTargets, type MergeTarget } from "./actions/tabs";
 export { sameRef } from "./actions/follow";
 export { checkTuck, tuckHome } from "./actions/tuck";

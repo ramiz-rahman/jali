@@ -11,7 +11,6 @@ import type { ConfirmState, UiStore } from "./state/store";
 import { applyTokens } from "./tokens";
 import { savePrefs } from "./state/page-prefs";
 import { ownedPaneState, ownedSelection, savePaneState } from "./state/pane-state";
-import { openPage, withoutOpened } from "./actions/page";
 import { arrive } from "./actions/layout";
 import { agreeOnArrival } from "./actions/follow";
 import { DONE, refuse, type ActionResult, type Outcome, type Snapshot } from "./state/apply";
@@ -33,9 +32,11 @@ function arriveFromUrl(
       current() ? step(x) : null;
   if ("page" in r) {
     const { tab, item, investigation } = r.page;
+    const page = store.env.page;
+    if (!page) return undefined;
     return store.apply(
       latest((x) =>
-        openPage(x, {
+        page.openPage(x, {
           tab: tab || undefined,
           item: item || undefined,
           investigation,
@@ -131,13 +132,14 @@ export function startUi(
     if (s.settings !== prev.settings) saveSettings(store.storage, s.settings);
     if (s.paneState !== prev.paneState || s.paneStateOf !== prev.paneStateOf) saveSoon();
     // A curated page's mode and split layout are the person's: saved on this device, opened panes left out.
-    const p = store.env.profile;
+    const p = store.env.profile,
+      page = store.env.page;
     const live = s.page?.mode === "split" && s.layout !== prev.layout;
-    if (p && (live || s.prefs !== prev.prefs)) {
+    if (p && page && (live || s.prefs !== prev.prefs)) {
       const layout = s.page?.mode === "split" ? s.layout : s.prefs.split;
       savePrefs(store.storage, p.id, {
         mode: s.prefs.mode,
-        split: layout ? withoutOpened(layout, store.ctx()) : null,
+        split: layout ? page.withoutOpened(layout, store.ctx()) : null,
       });
     }
     if (pageTheme && (s.settings.theme !== prev.settings.theme || s.systemDark !== prev.systemDark))

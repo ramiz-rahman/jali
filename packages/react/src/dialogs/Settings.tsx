@@ -4,7 +4,8 @@ import { ModalDialog } from "../a11y/ModalDialog";
 import { useJaliIcons } from "../icons/context";
 
 import { useStore, useUi } from "../state/react";
-import { PALETTE_ID, commandById, parseKeys, viewerLabel } from "@jali/core/adapter";
+import { PALETTE_ID, commandById, parseKeys } from "@jali/core/adapter";
+import { PAGE_PARTS } from "../define";
 
 const THEMES: { id: ThemeChoice; label: "themeSystem" | "themeLight" | "themeDark" }[] = [
   { id: "system", label: "themeSystem" },
@@ -19,11 +20,9 @@ export function SettingsPanel({ children }: { children?: ReactNode } = {}) {
   const id = store.dom.id;
   const open = useUi((s) => s.settingsOpen);
   const settings = useUi((s) => s.settings);
-  const page = useUi((s) => s.page);
-  const profile = store.env.profile;
+  // A curated page's own settings, which its parts bring (definePage).
+  const PageSettings = store.env.profile?.[PAGE_PARTS]?.Settings;
   const t = store.messages.settings;
-  const full = viewerLabel(profile, true, store.messages.page);
-  const limited = viewerLabel(profile, false, store.messages.page);
   const first = useRef<HTMLInputElement>(null);
   if (!open) return null;
   const set = (patch: Partial<S>) => store.actions.changeSettings(patch);
@@ -95,52 +94,7 @@ export function SettingsPanel({ children }: { children?: ReactNode } = {}) {
           <span>{t.paneCapHelp}</span>
         </label>
       </fieldset>
-      {profile ? (
-        <fieldset>
-          <legend>{t.openedPanes(profile.name)}</legend>
-          <label className="jali-radio">
-            <input
-              type="radio"
-              name={`${id}-boundary`}
-              checked={settings.boundary === "tint"}
-              onChange={() => set({ boundary: "tint" })}
-            />
-            <span>{t.boundaryTint}</span>
-          </label>
-          <label className="jali-radio">
-            <input
-              type="radio"
-              name={`${id}-boundary`}
-              checked={settings.boundary === "none"}
-              onChange={() => set({ boundary: "none" })}
-            />
-            <span>{t.boundaryNone}</span>
-          </label>
-        </fieldset>
-      ) : null}
-      {page ? (
-        <fieldset>
-          <legend>{t.viewingAs(profile?.name ?? "")}</legend>
-          <label className="jali-radio">
-            <input
-              type="radio"
-              name={`${id}-viewer`}
-              checked={page.canInvestigate}
-              onChange={() => store.actions.setCanInvestigate(true)}
-            />
-            <span>{t.viewerFull(full)}</span>
-          </label>
-          <label className="jali-radio">
-            <input
-              type="radio"
-              name={`${id}-viewer`}
-              checked={!page.canInvestigate}
-              onChange={() => store.actions.setCanInvestigate(false)}
-            />
-            <span>{t.viewerLimited(limited)}</span>
-          </label>
-        </fieldset>
-      ) : null}
+      {PageSettings ? <PageSettings /> : null}
       <KeyboardList />
       {children}
     </ModalDialog>

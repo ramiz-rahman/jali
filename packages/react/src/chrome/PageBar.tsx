@@ -1,6 +1,17 @@
-import { useEffect, useRef } from "react";
+/**
+ * A curated page's React parts: its view (rail, header, tabs and panes), its bar, the ⌥ preview over the panes and its
+ * settings. `definePage` puts them on the page (`pageParts`), so an app without a page ships none of them.
+ */
+import { useEffect, useMemo, useRef, type ComponentType } from "react";
+import type { Settings as S } from "@jali/core";
 import { useJaliIcons } from "../icons/context";
-import { investigation, startTabDrag } from "@jali/core/adapter";
+import {
+  besidePreview,
+  investigation,
+  roleOf,
+  startTabDrag,
+  viewerLabel,
+} from "@jali/core/adapter";
 import { useRovingKeys } from "../a11y/roving";
 import { bold, Parts, useModel, useStore, useUi, useProfile } from "../state/react";
 import { useKeymap } from "../state/hydrated";
@@ -196,3 +207,108 @@ export function CuratedPage() {
     </div>
   );
 }
+
+/** ⌥ over a page tab: a dashed outline where ⌥-click would open that view, and a fainter one for each view it moves.
+ *  The preview runs the very placement the click commits (besidePreview), so the two cannot differ. */
+function Ghost({ role }: { role: string }) {
+  const store = useStore();
+  const m = useModel();
+  const preview = useMemo(() => besidePreview(store.snapshot(), role), [store, role, m]);
+  if (!preview) return null;
+  const p = store.env.profile!;
+  const name = (id: string) => roleOf(p, id)?.label ?? m.title(id);
+  const box = (r: { x: number; y: number; width: number; height: number }) => ({
+    left: r.x,
+    top: r.y,
+    width: r.width,
+    height: r.height,
+  });
+
+  return (
+    <>
+      {preview.moved.map((v) => (
+        <div
+          key={v.id}
+          className="jali-ghost jali-ghost-moved"
+          data-ghost={v.id}
+          style={box(v.rect)}
+          aria-hidden
+        />
+      ))}
+      <div className="jali-ghost" data-ghost={role} style={box(preview.incoming)} aria-hidden>
+        <span>{store.messages.page.ghost(name(role), preview.leaving.map(name))}</span>
+      </div>
+    </>
+  );
+}
+
+/** The page's fieldsets in Settings: how opened panes are marked, and the viewer the page is seen as. */
+function PageSettings() {
+  const store = useStore();
+  const id = store.dom.id;
+  const settings = useUi((s) => s.settings);
+  const page = useUi((s) => s.page);
+  const profile = store.env.profile!;
+  const t = store.messages.settings;
+  const full = viewerLabel(profile, true, store.messages.page);
+  const limited = viewerLabel(profile, false, store.messages.page);
+  const set = (patch: Partial<S>) => store.actions.changeSettings(patch);
+  return (
+    <>
+      <fieldset>
+        <legend>{t.openedPanes(profile.name)}</legend>
+        <label className="jali-radio">
+          <input
+            type="radio"
+            name={`${id}-boundary`}
+            checked={settings.boundary === "tint"}
+            onChange={() => set({ boundary: "tint" })}
+          />
+          <span>{t.boundaryTint}</span>
+        </label>
+        <label className="jali-radio">
+          <input
+            type="radio"
+            name={`${id}-boundary`}
+            checked={settings.boundary === "none"}
+            onChange={() => set({ boundary: "none" })}
+          />
+          <span>{t.boundaryNone}</span>
+        </label>
+      </fieldset>
+      {page ? (
+        <fieldset>
+          <legend>{t.viewingAs(profile.name)}</legend>
+          <label className="jali-radio">
+            <input
+              type="radio"
+              name={`${id}-viewer`}
+              checked={page.canInvestigate}
+              onChange={() => store.actions.setCanInvestigate(true)}
+            />
+            <span>{t.viewerFull(full)}</span>
+          </label>
+          <label className="jali-radio">
+            <input
+              type="radio"
+              name={`${id}-viewer`}
+              checked={!page.canInvestigate}
+              onChange={() => store.actions.setCanInvestigate(false)}
+            />
+            <span>{t.viewerLimited(limited)}</span>
+          </label>
+        </fieldset>
+      ) : null}
+    </>
+  );
+}
+
+/** What a curated page renders, by part: put on the page by `definePage`, read by `<JaliView>`, `<Panes>` and
+ *  `<SettingsPanel>`. */
+export interface PageParts {
+  View: ComponentType;
+  Ghost: ComponentType<{ role: string }>;
+  Settings: ComponentType;
+}
+
+export const pageParts: PageParts = { View: CuratedPage, Ghost, Settings: PageSettings };

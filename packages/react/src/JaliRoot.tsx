@@ -30,7 +30,6 @@ import {
 import { createPortal } from "react-dom";
 import { spacingVars, storeOf } from "@jali/core/adapter";
 import { Announcer } from "./chrome/Announcer";
-import { CuratedPage } from "./chrome/PageBar";
 import { Chooser } from "./dialogs/Chooser";
 import { ConfirmDiscard } from "./dialogs/ConfirmDiscard";
 import { Palette } from "./dialogs/Palette";
@@ -41,6 +40,7 @@ import type { JaliIcons } from "./icons/types";
 import { installPressed } from "./pressed";
 import { StoreProvider, useStore, useTheme, useUi } from "./state/react";
 import { Panes } from "./workspace/Workspace";
+import { PAGE_PARTS } from "./define";
 
 export interface JaliRootProps extends HTMLAttributes<HTMLDivElement> {
   jali: Jali;
@@ -180,5 +180,7 @@ function useFullScreenPane(store: ReturnType<typeof storeOf>): HTMLElement | nul
 
 /** The panes, or the curated page (its rail, header and tabs around them) while one is open. */
 export function JaliView() {
-  return useUi((s) => !!s.page) ? <CuratedPage /> : <Panes />;
+  const open = useUi((s) => !!s.page);
+  const Page = useStore().env.profile?.[PAGE_PARTS]?.View;
+  return open && Page ? <Page /> : <Panes />;
 }

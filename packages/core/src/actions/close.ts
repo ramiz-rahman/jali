@@ -5,7 +5,6 @@ import { refuse, type Outcome, type Snapshot } from "../state/apply";
 import { messagesOf, say } from "../state/messages";
 import { pushUndo } from "../state/undo";
 import { putBack } from "./tuck";
-import { backToPage, hideRole } from "./page";
 
 const unzoomed = core.tree.unzoom;
 
@@ -18,7 +17,7 @@ export function close(x: Snapshot, id = x.s.view.focused): Outcome {
   if (s.page && m.pane(id)!.role)
     return s.page.mode === "single"
       ? refuse("single-view", say(x).singleNoLayout)
-      : hideRole(x, id);
+      : x.env.page!.hideRole(x, id);
   if (m.panes.length <= 1) return refuse("last-pane", say(x).lastPaneStays);
   const title = m.title(id);
   const r = core.close(s.layout, unzoomed(s.view), id, ctx);
@@ -63,7 +62,7 @@ export function remove(x: Snapshot, id: NodeId): Outcome {
 
 export function closeOthers(x: Snapshot, id = x.s.view.focused): Outcome {
   const { s, m, ctx } = x;
-  if (s.page) return backToPage(x);
+  if (s.page) return x.env.page!.backToPage(x);
   if (!id) return null;
   if (m.panes.length <= 1) return refuse("nothing-to-do", say(x).noOtherPanes);
   // Panes the app keeps (`allow: { close: false }`) stay; the rest close in one change.
