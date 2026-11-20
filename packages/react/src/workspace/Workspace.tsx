@@ -24,6 +24,8 @@ import { PaneFrame } from "../pane/PaneFrame";
 import { Strip, useFocusIntoStrip } from "./Scroller";
 import type { UiStore } from "@jali/core/adapter";
 import { useModel, useStore, useUi } from "../state/react";
+import { useHydrated } from "../state/hydrated";
+import { paneHydration } from "../state/hydration";
 import { DropIndicator } from "./DropIndicator";
 import { useSingleView } from "./useSingleView";
 import { PAGE_PARTS } from "../define";
@@ -31,14 +33,20 @@ import { PAGE_PARTS } from "../define";
 const DEV = !!(import.meta as unknown as { env?: { DEV?: boolean } }).env?.DEV;
 
 /** The workspace's usable size follows the element (minus the inset), and so does its reading direction (an
- *  ancestor's `dir`, read again when any `dir` on the page changes), unless the workspace was given one. */
+ *  ancestor's `dir`, read again when any `dir` on the page changes), unless the workspace was given one.
+ *  A workspace that hydrates a server's HTML measures once its panes have hydrated (state/hydration.ts). */
 function useMeasure(store: UiStore) {
   const ref = useRef<HTMLElement>(null);
+  // Whether this mount hydrates a server's HTML: read on the first render, and kept.
+  const hydrated = useHydrated();
+  const hydrating = useRef(!hydrated).current;
   useLayoutEffect(() => {
     const el = ref.current;
     if (!el) return;
     const { inset } = store.env.spacing;
+    let held = hydrating;
     const measure = () => {
+      if (held) return;
       const width = Math.max(0, Math.floor(el.clientWidth - inset * 2)),
         height = Math.max(0, Math.floor(el.clientHeight - inset * 2));
       const s = store.get();
@@ -55,6 +63,12 @@ function useMeasure(store: UiStore) {
       )
         store.set({ area: { width, height }, dir, hinge });
     };
+    const cancelHold = held
+      ? paneHydration(store).whenSettled(() => {
+          held = false;
+          measure();
+        })
+      : undefined;
     measure();
     if (DEV && el.clientWidth > 0 && el.clientHeight === 0)
       console.warn(
@@ -74,6 +88,7 @@ function useMeasure(store: UiStore) {
     );
     folds.forEach((q) => q?.addEventListener?.("change", measure));
     return () => {
+      cancelHold?.();
       unobserve();
       unwatch();
       window.removeEventListener("resize", measure);

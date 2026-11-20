@@ -1,9 +1,10 @@
 // @vitest-environment node
 /** A workspace renders on a server (Next.js, Astro, any renderToString): no window, no DOM, same markup to hydrate. */
 import { afterEach, describe, expect, it, vi } from "vite-plus/test";
-import { act, version } from "react";
+import { act } from "react";
 import { renderToString } from "react-dom/server";
 import { createJali, memoryLocation, memoryStorage, row, type JaliOptions } from "@jali/core";
+import { storeOf } from "@jali/core/adapter";
 import { JaliRoot, definePane, useShortcut } from "@jali/react";
 
 const note = definePane("note", {
@@ -17,9 +18,36 @@ const note = definePane("note", {
   ),
 });
 
+/** A pane whose content waits for its data in the browser (the server had it): `slow.ready()` lets it show. */
+const slow = (() => {
+  let waiting: { promise: Promise<void>; resolve: () => void } | null = null;
+  const kind = definePane("slow", {
+    params: { id: Number },
+    title: ({ id }) => `Slow ${id}`,
+    Component: () => {
+      if (waiting) throw waiting.promise;
+      return <p data-testid="slow">Slow body</p>;
+    },
+  });
+  return {
+    kind,
+    wait() {
+      let resolve = () => {};
+      const promise = new Promise<void>((r) => (resolve = r));
+      waiting = { promise, resolve };
+    },
+    ready() {
+      const was = waiting;
+      waiting = null;
+      was?.resolve();
+      return was?.promise;
+    },
+  };
+})();
+
 const make = (options: Partial<JaliOptions> = {}) =>
   createJali({
-    panes: [note],
+    panes: [note, slow.kind],
     layout: row(note({ id: 1 }), note({ id: 2 })),
     url: { location: memoryLocation() },
     storage: memoryStorage(),
@@ -101,42 +129,93 @@ describe("server rendering", () => {
     expect(html).toContain("Note 1");
   });
 
-  // React 18 can't take a store update inside a Suspense boundary that is still hydrating (each pane has one, and the
-  // workspace measures itself as it mounts), so there it client-renders the panes after hydration. React 19 can.
-  // docs/DECISIONS.md, 20 Nov 2026, "Server rendering on React 18".
-  it.skipIf(version.startsWith("18."))(
-    "hydrates in a browser without a mismatch: Pop out allowed, a keymap label rendered",
-    async () => {
-      // The build machine is a Mac (Node has a navigator too); the reader is on Windows, in a browser that can pop out.
-      vi.stubGlobal("navigator", { platform: "MacIntel", userAgent: "Node.js" });
-      const options: Partial<JaliOptions> = {
-        allow: { popOut: true },
-        buttons: (d) => [...d, "popOut"],
-      };
-      const html = renderToString(<JaliRoot jali={make(options)} />);
-      vi.unstubAllGlobals();
-      // Keys print for "other" until hydration, whatever the build machine; Pop out waits for the browser.
-      expect(html).toContain('<kbd data-testid="keys">Ctrl+K Ctrl+Backspace</kbd>');
-      expect(html).not.toContain("jali-act-popout");
+  // On React 18 too. Each pane's Suspense boundary hydrates after the rest of the page, and React 18 throws a boundary's
+  // server markup away if an update reaches it first; so the workspace measures itself once its panes have hydrated.
+  // docs/DECISIONS.md, 21 Nov 2026, "Server rendering on React 18: the panes keep the server's markup".
+  it("hydrates in a browser without a mismatch: Pop out allowed, a keymap label rendered", async () => {
+    // The build machine is a Mac (Node has a navigator too); the reader is on Windows, in a browser that can pop out.
+    vi.stubGlobal("navigator", { platform: "MacIntel", userAgent: "Node.js" });
+    const options: Partial<JaliOptions> = {
+      allow: { popOut: true },
+      buttons: (d) => [...d, "popOut"],
+    };
+    const html = renderToString(<JaliRoot jali={make(options)} />);
+    vi.unstubAllGlobals();
+    // Keys print for "other" until hydration, whatever the build machine; Pop out waits for the browser.
+    expect(html).toContain('<kbd data-testid="keys">Ctrl+K Ctrl+Backspace</kbd>');
+    expect(html).not.toContain("jali-act-popout");
 
-      const { root, restore } = await browser(html);
-      try {
-        const { hydrateRoot } = await import("react-dom/client");
-        const recoverable = vi.fn();
-        const client = make(options);
-        expect(client.keymap.platform).toBe("other");
-        await act(async () => {
-          hydrateRoot(root, <JaliRoot jali={client} />, { onRecoverableError: recoverable });
-        });
-        expect(recoverable).not.toHaveBeenCalled();
-        // After hydration, the browser's own values: the reader's keys, and Pop out.
-        expect(root.querySelector('[data-testid="keys"]')?.textContent).toBe(
-          client.keymap.label("pane.close"),
-        );
-        expect(root.querySelector(".jali-act-popout")).not.toBeNull();
-      } finally {
-        restore();
-      }
-    },
-  );
+    const { root, restore } = await browser(html);
+    try {
+      const { hydrateRoot } = await import("react-dom/client");
+      const recoverable = vi.fn();
+      const client = make(options);
+      expect(client.keymap.platform).toBe("other");
+      const serverKeys = root.querySelector('[data-testid="keys"]');
+      await act(async () => {
+        hydrateRoot(root, <JaliRoot jali={client} />, { onRecoverableError: recoverable });
+      });
+      expect(recoverable).not.toHaveBeenCalled();
+      // The server's elements, kept: React hydrated them rather than rendering the panes again.
+      expect(root.querySelector('[data-testid="keys"]')).toBe(serverKeys);
+      // After hydration, the browser's own values: the reader's keys, and Pop out.
+      expect(serverKeys?.textContent).toBe(client.keymap.label("pane.close"));
+      expect(root.querySelector(".jali-act-popout")).not.toBeNull();
+      // And the workspace measured itself: jsdom lays nothing out, so it has no room. Its second pane pauses, which
+      // is the update React 18 would have taken out on the pane's server markup.
+      expect(storeOf(client).get().area).toEqual({ width: 0, height: 0 });
+    } finally {
+      restore();
+    }
+  });
+
+  it("waits to measure while a pane's content waits for its data in the browser, then measures", async () => {
+    const options: Partial<JaliOptions> = { layout: row(note({ id: 1 }), slow.kind({ id: 2 })) };
+    const html = renderToString(<JaliRoot jali={make(options)} />);
+    expect(html).toContain("Slow body");
+
+    const { root, restore } = await browser(html);
+    try {
+      const { hydrateRoot } = await import("react-dom/client");
+      const recoverable = vi.fn();
+      const client = make(options);
+      const store = storeOf(client);
+      const serverSlow = root.querySelector('[data-testid="slow"]');
+      slow.wait();
+      await act(async () => {
+        hydrateRoot(root, <JaliRoot jali={client} />, { onRecoverableError: recoverable });
+      });
+      // The slow pane is still the server's markup, so the workspace keeps the server's size meanwhile.
+      expect(store.get().area).toEqual({ width: 1200, height: 800 });
+      expect(root.querySelector('[data-testid="slow"]')).toBe(serverSlow);
+
+      await act(async () => {
+        await slow.ready();
+      });
+      expect(recoverable).not.toHaveBeenCalled();
+      expect(root.querySelector('[data-testid="slow"]')).toBe(serverSlow);
+      expect(store.get().area).toEqual({ width: 0, height: 0 });
+    } finally {
+      slow.ready();
+      restore();
+    }
+  });
+
+  it("measures on its first commit when rendered in the browser alone", async () => {
+    const { root, restore } = await browser("");
+    try {
+      const { createRoot } = await import("react-dom/client");
+      const client = make({ layout: row(note({ id: 1 }), slow.kind({ id: 2 })) });
+      slow.wait();
+      const app = createRoot(root);
+      await act(async () => app.render(<JaliRoot jali={client} />));
+      // A pane still loading holds nothing back: there is no server markup to keep.
+      expect(root.querySelector('[data-testid="slow"]')).toBeNull();
+      expect(storeOf(client).get().area).toEqual({ width: 0, height: 0 });
+      await act(async () => app.unmount());
+    } finally {
+      slow.ready();
+      restore();
+    }
+  });
 });

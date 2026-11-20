@@ -7,6 +7,7 @@ import { Component, Fragment, Suspense, useEffect, type ReactNode } from "react"
 import type { PaneHost } from "./context";
 import { useReporter } from "./hooks";
 import { useMessages } from "../state/react";
+import type { PaneHydration } from "../state/hydration";
 
 interface BoundaryProps {
   /** What the pane shows: a new value clears a failure, as the content is now about something else. */
@@ -18,6 +19,9 @@ interface BoundaryProps {
   close: () => void;
   onError: (error: unknown) => void;
   loading: ReactNode;
+  /** The workspace's boundaries as they hydrate: one that mounts before its content holds the workspace's measuring
+   *  back until the content arrives (state/hydration.ts). */
+  hydration: PaneHydration;
   children: ReactNode;
 }
 
@@ -35,7 +39,17 @@ export class PaneBoundary extends Component<BoundaryProps, BoundaryState> {
     return { failed: true, error };
   }
 
+  override componentDidMount() {
+    this.props.hydration.wait(this);
+  }
+
+  override componentWillUnmount() {
+    this.props.hydration.arrive(this);
+  }
+
   override componentDidCatch(error: unknown) {
+    // The failed state replaces the content: nothing is left to hydrate.
+    this.props.hydration.arrive(this);
     this.props.onError(error);
   }
 
@@ -46,7 +60,7 @@ export class PaneBoundary extends Component<BoundaryProps, BoundaryState> {
   retry = () => this.setState((s) => ({ failed: false, error: undefined, attempt: s.attempt + 1 }));
 
   override render() {
-    const { host, name, close, loading, children } = this.props;
+    const { host, name, close, loading, hydration, children } = this.props;
     if (this.state.failed)
       return (
         <PaneFailed
@@ -59,10 +73,19 @@ export class PaneBoundary extends Component<BoundaryProps, BoundaryState> {
       );
     return (
       <Fragment key={this.state.attempt}>
-        <Suspense fallback={<PaneLoading host={host}>{loading}</PaneLoading>}>{children}</Suspense>
+        <Suspense fallback={<PaneLoading host={host}>{loading}</PaneLoading>}>
+          <Arrived boundary={this} hydration={hydration} />
+          {children}
+        </Suspense>
       </Fragment>
     );
   }
+}
+
+/** Mounts with the content, as one commit: when it runs, the boundary has hydrated (or its content has shown). */
+function Arrived({ boundary, hydration }: { boundary: object; hydration: PaneHydration }) {
+  useEffect(() => hydration.arrive(boundary), [boundary, hydration]);
+  return null;
 }
 
 /** While the content waits: activity "loading", back to "idle" once it shows. */

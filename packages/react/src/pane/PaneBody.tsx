@@ -4,8 +4,9 @@ import type { ActionResult, UiStore } from "@jali/core/adapter";
 import { parseKeys, sameRef } from "@jali/core/adapter";
 import type { PaneProps } from "../define";
 import { PaneContext, type PaneHost } from "./context";
-import { useEnv, useStore } from "../state/react";
+import { useEnv, useMessages, useStore } from "../state/react";
 import { useKeymap } from "../state/hydrated";
+import { paneHydration } from "../state/hydration";
 import { DefaultLoading, PaneBoundary } from "./PaneBoundary";
 import { HeaderControls, type HeaderSlot } from "./header";
 
@@ -69,7 +70,6 @@ export const PaneBody = /* @__PURE__ */ memo(
     const store = useStore();
     const { kinds } = useEnv();
     const { messages } = useStore();
-    const keymap = useKeymap();
     const def = kinds.get(node.ref.kind);
     const params = useMemo(() => kinds.params(node.ref), [kinds, node.ref]);
     const props = useMemo(
@@ -101,7 +101,7 @@ export const PaneBody = /* @__PURE__ */ memo(
       return (
         <div className="jali-pane-missing" role="alert">
           <strong>{messages.pane.unknownKind(node.ref.kind)}</strong>
-          <span>{messages.pane.unknownKindHelp(keymap.format(parseKeys("Mod+K")))}</span>
+          <UnknownKindHelp />
         </div>
       );
     }
@@ -130,6 +130,7 @@ export const PaneBody = /* @__PURE__ */ memo(
             store.env.onPaneError?.(error, { pane: inPeek ? null : node.id, ref: node.ref })
           }
           loading={Loading ? <Loading {...props} /> : <DefaultLoading />}
+          hydration={paneHydration(store)}
         >
           {Missing ? (
             <Missing {...props} problems={problems} close={close} />
@@ -151,3 +152,12 @@ export const PaneBody = /* @__PURE__ */ memo(
     a.node.kept === b.node.kept &&
     sameRef(a.node.ref, b.node.ref),
 );
+
+/**
+ * How to open what's missing, with the palette's key. A part of its own: the key's label changes once the page has
+ * hydrated, and the body around a pane's Suspense boundary must not re-render for that (state/hydration.ts).
+ */
+function UnknownKindHelp() {
+  const keymap = useKeymap();
+  return <span>{useMessages().pane.unknownKindHelp(keymap.format(parseKeys("Mod+K")))}</span>;
+}
