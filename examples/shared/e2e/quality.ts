@@ -23,16 +23,17 @@ export type Theme = "light" | "dark";
 export const THEMES: readonly Theme[] = ["light", "dark"];
 
 interface QualityOptions {
-  /** Console messages this example can't avoid, matched against the text. Keep each as narrow as the message. */
-  consoleAllow: RegExp[];
+  /** Console messages this example can't avoid, matched against the text; one pattern, as narrow as the messages
+   *  allow. (One, not a list: Playwright reads an array given to `test.use` as a value and its options.) */
+  consoleAllow: RegExp | null;
 }
 
 export const test = base.extend<QualityOptions & { consoleGuard: void }>({
-  consoleAllow: [[], { option: true }],
+  consoleAllow: [null, { option: true }],
   consoleGuard: [
     async ({ page, consoleAllow }, use, info) => {
       const heard: string[] = [];
-      const allowed = (text: string) => consoleAllow.some((re) => re.test(text));
+      const allowed = (text: string) => !!consoleAllow?.test(text);
       page.on("console", (m) => {
         const type = m.type();
         if ((type === "error" || type === "warning") && !allowed(m.text()))
