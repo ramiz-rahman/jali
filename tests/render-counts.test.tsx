@@ -6,7 +6,7 @@
  * is counted by its calls of `frames`, which it makes once per render.
  */
 import { act, cleanup, fireEvent, render } from "@testing-library/react";
-import { type ComponentType } from "react";
+import { useState, type ComponentType } from "react";
 import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from "vite-plus/test";
 import { column, createJali, memoryLocation, memoryStorage, row } from "@jali/core";
 import { storeOf } from "@jali/core/adapter";
@@ -312,5 +312,22 @@ describe("render counts", () => {
     );
     expect(seen.at(-1)).not.toBe(first);
     expect((seen.at(-1) as { title: string }[])[0]!.title).toBe("Refresh");
+  });
+
+  it("an inline icons object doesn't re-render the frames", () => {
+    const Close = () => <svg data-mine="" />;
+    const jali = make();
+    let bump = () => {};
+    function Host() {
+      const [n, setN] = useState(0);
+      bump = () => setN(n + 1);
+      return <JaliRoot jali={jali} icons={{ close: Close }} data-n={n} />;
+    }
+    const { container } = render(<Host />);
+    expect(container.querySelector("[data-mine]")).not.toBeNull();
+    reset();
+    act(() => bump());
+    act(() => bump());
+    expect(counts.frame).toEqual([]);
   });
 });

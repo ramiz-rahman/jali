@@ -21,6 +21,7 @@ import type { Jali } from "@jali/core";
 import {
   useEffect,
   useMemo,
+  useRef,
   useSyncExternalStore,
   type CSSProperties,
   type HTMLAttributes,
@@ -56,8 +57,21 @@ export interface JaliRootProps extends HTMLAttributes<HTMLDivElement> {
   icons?: Partial<JaliIcons>;
 }
 
-const useIcons = (icons: Partial<JaliIcons> | undefined): JaliIcons =>
-  useMemo(() => (icons ? { ...defaultIcons, ...icons } : defaultIcons), [icons]);
+/** The same icons, name by name: an inline `icons={{ close: MyClose }}` is a new object on every render. */
+const sameIcons = (a: Partial<JaliIcons> | undefined, b: Partial<JaliIcons> | undefined) => {
+  if (a === b) return true;
+  if (!a || !b) return false;
+  const names = Object.keys(a) as (keyof JaliIcons)[];
+  return names.length === Object.keys(b).length && names.every((n) => a[n] === b[n]);
+};
+
+/** Jali's icons with the host's over them, a new object only when one of the host's changes. */
+function useIcons(icons: Partial<JaliIcons> | undefined): JaliIcons {
+  const kept = useRef(icons);
+  if (!sameIcons(kept.current, icons)) kept.current = icons;
+  const own = kept.current;
+  return useMemo(() => (own ? { ...defaultIcons, ...own } : defaultIcons), [own]);
+}
 
 export function JaliRoot({
   jali,
