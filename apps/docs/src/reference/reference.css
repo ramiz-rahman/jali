@@ -47,11 +47,11 @@
 
   /* A section heading already draws a rule: the first entry under it doesn't repeat it. */
   :root h2 + .ref-entry,
-  :root .heading + .ref-entry {
+  :root .heading-wrap + .ref-entry {
     border-top: 0;
   }
   :root h2 + .ref-entry .ref-entry-grid,
-  :root .heading + .ref-entry .ref-entry-grid {
+  :root .heading-wrap + .ref-entry .ref-entry-grid {
     padding-top: 0.75rem;
   }
 

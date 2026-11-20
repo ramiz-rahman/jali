@@ -94,6 +94,47 @@ test("headings are read as their words, without their link", async ({ page }) =>
   await expect(page.getByRole("heading", { name: text, exact: true, level: 2 })).toHaveCount(1);
 });
 
+test("every heading's permalink is a named link the keyboard reaches, outside the heading", async ({
+  page,
+}) => {
+  await page.goto("/learn/fitting");
+  const headings = page.locator(".prose :is(h2, h3, h4).heading");
+  const n = await headings.count();
+  expect(n).toBeGreaterThan(3);
+  for (let i = 0; i < n; i++) {
+    const h = headings.nth(i);
+    const id = (await h.getAttribute("id"))!;
+    const text = (await h.textContent())!.trim();
+    const level = Number((await h.evaluate((el) => el.tagName)).slice(1));
+    // Read as its words alone, and the permalink isn't inside it.
+    await expect(page.getByRole("heading", { name: text, exact: true, level })).toHaveCount(1);
+    await expect(h.locator("a")).toHaveCount(0);
+    const link = page.getByRole("link", { name: `Link to this section: ${text}`, exact: true });
+    await expect(link).toHaveAttribute("href", `#${id}`);
+  }
+
+  // Tab reaches them in reading order, and each shows itself when it has focus.
+  await headings.first().evaluate((el) => {
+    el.setAttribute("tabindex", "-1");
+    (el as HTMLElement).focus();
+  });
+  const reached: string[] = [];
+  for (let i = 0; i < 400 && reached.length < n; i++) {
+    await page.keyboard.press("Tab");
+    const href = await page.evaluate(() =>
+      document.activeElement?.matches(".heading-anchor")
+        ? document.activeElement.getAttribute("href")
+        : null,
+    );
+    if (!href) continue;
+    reached.push(href);
+    const anchor = page.locator(":focus");
+    await expect(anchor).toBeVisible();
+    await expect(anchor).toHaveCSS("opacity", "1");
+  }
+  expect(reached).toEqual(await headings.evaluateAll((els) => els.map((el) => `#${el.id}`)));
+});
+
 test("the layout doesn't shift as a page with live parts loads, on a phone", async ({
   browser,
 }) => {
