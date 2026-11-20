@@ -1,4 +1,9 @@
-import { defineConfig, defaultClientConditions, defaultServerConditions, lazyPlugins } from "vite-plus";
+import {
+  defineConfig,
+  defaultClientConditions,
+  defaultServerConditions,
+  lazyPlugins,
+} from "vite-plus";
 import react from "@vitejs/plugin-react";
 export default defineConfig({
   // The root serves no app: each example has its own config (`vp dev examples/<name>`). This one holds the
@@ -9,7 +14,16 @@ export default defineConfig({
   ssr: { resolve: { conditions: ["source", ...defaultServerConditions] } },
   // MDX is left as written: the formatter reflows JSX children and breaks fenced code inside components. So is the
   // Markdown scripts/agent-docs.mjs writes from it, which its --check compares byte for byte.
-  fmt: { ignorePatterns: ["**/*.mdx", "packages/core/docs/**"] },
+  fmt: {
+    ignorePatterns: [
+      "**/*.mdx",
+      "packages/core/docs/**",
+      // Data kept exactly as fetched or generated: licence metadata, session transcripts, audio check reports.
+      "examples/studio/licenses/**",
+      "examples/studio/src/sessions/data/**",
+      "examples/studio/scripts/audio/checks/**",
+    ],
+  },
   // Docs samples show a value on its own line ("keymap.label(id); // \"⌘K ⌘↵\""), on purpose.
   lint: {
     overrides: [{ files: ["apps/docs/src/samples/**"], rules: { "no-unused-expressions": "off" } }],
