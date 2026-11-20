@@ -48,6 +48,11 @@ describe("buttons", () => {
     expect(buttonsOf(x, "a", { ...tiled, chrome: CHROME.single })).toEqual(["close"]);
   });
 
+  it("Pop out is one of Jali's, before Close, where allow.popOut turns it on", () => {
+    const x = storeOf(make({ allow: { popOut: true } })).snapshot();
+    expect(buttonsOf(x, "a", tiled)).toEqual(["tuck", "maximise", "popOut", "close"]);
+  });
+
   it("a workspace list replaces them, a kind's function adjusts the workspace's, and allow filters", () => {
     const x = storeOf(make({ buttons: ["maximise", "close"], allow: { popOut: true } })).snapshot();
     expect(buttonsOf(x, "a", tiled)).toEqual(["maximise", "close"]);

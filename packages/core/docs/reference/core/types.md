@@ -413,7 +413,7 @@ The same three as `width`, down a column.
 
 - **`allow`** (`PaneAllow`): What may happen to panes of this kind, for what its content can handle: `{ fullScreen: false }`. A kind can only turn controls off. See `PaneAllow`.
 
-- **`buttons`** (`PaneButtons`): The buttons in this kind's header, replacing the workspace's: a list, or a function that adjusts them (`(defaults) => [...defaults, "popOut"]`). Leave it out for the workspace's, or Jali's. See `PaneButtons`.
+- **`buttons`** (`PaneButtons`): The buttons in this kind's header, replacing the workspace's: a list, or a function that adjusts them (`(defaults) => defaults.filter((b) => b !== "tuck")`). Leave it out for the workspace's, or Jali's. See `PaneButtons`.
 
 - **`phone`** (`{ stack?: boolean; place?: "top" | "bottom" }`): Phones only, in stacked view (`createJali({ phone: { stack: true } })`). `stack: false` keeps panes of this kind out of it, so they show alone. `place` asks for the top or the bottom half; otherwise the pane others were opened from goes above.
 
@@ -747,7 +747,7 @@ A button a pane's header can show. `maximise` is Restore while the pane is maxim
 type PaneButtons = readonly PaneButton[] | ((defaults: readonly PaneButton[], ctx: ButtonsContext) => readonly PaneButton[])
 ```
 
-A header's buttons, in order: a list that replaces the defaults, or a function that adjusts them (`(defaults) => [...defaults, "popOut"]`). Jali's defaults are `["tuck", "maximise", "close"]`, with `fullScreen` in Maximise's place on a lone pane. `allow` and Jali's own rules still filter the list, and Restore and Exit full screen always show while the pane is in that state. A ⋯ button opens the pane's menu whenever it offers more than the buttons do.
+A header's buttons, in order: a list that replaces the defaults, or a function that adjusts them (`(defaults) => defaults.filter((b) => b !== "tuck")`). Jali's defaults are `["tuck", "maximise", "popOut", "close"]` (Pop out only where `allow.popOut` turns it on), with `fullScreen` in Maximise's place on a lone pane. `allow` and Jali's own rules still filter the list, and Restore and Exit full screen always show while the pane is in that state. A ⋯ button opens the pane's menu whenever it offers more than the buttons do.
 
 ### ButtonsContext
 

@@ -241,7 +241,7 @@ export interface PaneOptions<P = Params> {
    *  only turn controls off; the workspace's `allow` decides the rest. */
   allow?: import("./actions/allow").PaneAllow;
   /** The buttons in this kind's header, replacing the workspace's: a list, or a function that adjusts it
-   *  (`(defaults) => [...defaults, "popOut"]`). Leave it out for Jali's. Everything allowed is in the pane's menu. */
+   *  (`(defaults) => defaults.filter((b) => b !== "tuck")`). Leave it out for Jali's. Everything allowed is in the pane's menu. */
   buttons?: import("./pane/buttons").PaneButtons;
   /** Phones only. `stack: false` keeps this kind out of stacked view; `place` asks for its half of it. */
   phone?: { stack?: boolean; place?: "top" | "bottom" };

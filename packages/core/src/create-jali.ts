@@ -160,9 +160,9 @@ export interface JaliOptions<D extends PaneKindBase = PaneKindBase> {
   allow?: WorkspaceAllow;
   /**
    * The buttons in a pane's header, as shortcuts: everything allowed is in the pane's menu (right-click, ⋯ or
-   * Shift+F10) and ⌘K either way. Leave it out for Jali's: Tuck, Maximise and Close, with Full screen in Maximise's
+   * Shift+F10) and ⌘K either way. Leave it out for Jali's: Tuck, Maximise, Pop out (where allowed) and Close, with Full screen in Maximise's
    * place on a lone pane. A list replaces them (`["maximise", "close"]`); a function adjusts them
-   * (`(defaults) => [...defaults, "popOut"]`). A kind's own `buttons` win over these. `allow` still filters them, and
+   * (`(defaults) => defaults.filter((b) => b !== "tuck")`). A kind's own `buttons` win over these. `allow` still filters them, and
    * Restore and Exit full screen always show while a pane is maximised or full screen.
    */
   buttons?: import("./pane/buttons").PaneButtons;

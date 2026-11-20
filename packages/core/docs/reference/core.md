@@ -102,7 +102,7 @@ The address.
 
 - **`allow`** (`WorkspaceAllow`): What may happen to panes: turn controls off for the whole workspace (`{ fullScreen: false }`), turn Pop out on (`{ popOut: true }`), and `when({ action, pane, presetId, page })` to decide by context; `false` refuses. Each kind's own `allow` is asked first, and only takes away. See [Choose what people can do with panes](../guides/pane-controls.md) and [`WorkspaceAllow`](core/types.md#WorkspaceAllow).
 
-- **`buttons`** (`PaneButtons`): The buttons in a pane's header, as shortcuts: everything allowed is in the pane's menu (right-click, ⋯ or Shift+F10) and ⌘K either way. Leave it out for Jali's: Tuck, Maximise and Close, with Full screen in Maximise's place on a lone pane. A list replaces them; a function adjusts them (`(defaults) => [...defaults, "popOut"]`). A kind's own `buttons` win. See [`PaneButtons`](core/types.md#PaneButtons).
+- **`buttons`** (`PaneButtons`): The buttons in a pane's header, as shortcuts: everything allowed is in the pane's menu (right-click, ⋯ or Shift+F10) and ⌘K either way. Leave it out for Jali's: Tuck, Maximise, Pop out (where `allow.popOut` turns it on) and Close, with Full screen in Maximise's place on a lone pane. A list replaces them; a function adjusts them (`(defaults) => defaults.filter((b) => b !== "tuck")`). A kind's own `buttons` win. See [`PaneButtons`](core/types.md#PaneButtons).
 
 - **`phone`** (`PhoneOptions`): Phones: below `phone.below` pixels of workspace width (default 600) the workspace shows Single view, one pane at a time with a switcher, whatever the panes' minimums. `{ below: 0 }` switches only when even one pane can't fit. See [`PhoneOptions`](core/types.md#PhoneOptions).
 
