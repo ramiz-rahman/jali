@@ -97,10 +97,7 @@ export function buildModel({ layout, view, area, ctx, env, titles, hinge }: Mode
   const tucks = layout.overlay?.tucks ?? [];
   const tuckOf = (id: NodeId | undefined) => tucks.find((t) => t.pane === id);
   const stackOf = (id: NodeId | undefined) => (id ? core.tree.stackOf(layout.root, id) : undefined);
-  const title = (id: NodeId | undefined) => {
-    const p = id ? byId.get(id) : undefined;
-    return p ? titleOf(env, p, titles) : messagesOf(env).pane.untitled;
-  };
+  const title = titleFn(env, (id) => byId.get(id), titles);
 
   const groups = new Map<NodeId, Group>();
   for (const box of resolved.panes) {
@@ -189,9 +186,26 @@ export function buildModel({ layout, view, area, ctx, env, titles, hinge }: Mode
   return model;
 }
 
-/** A one-entry cache: the same inputs give the same model object, so components can compare by identity. */
+/** A pane's name, from the titles panes set (useTitle) over its kind's. */
+const titleFn =
+  (env: Env, pane: (id: NodeId) => PaneNode | undefined, titles: ModelInput["titles"]) =>
+  (id: NodeId | undefined) => {
+    const p = id ? pane(id) : undefined;
+    return p ? titleOf(env, p, titles) : messagesOf(env).pane.untitled;
+  };
+
+/**
+ * A one-entry cache: the same inputs give the same model object, so components can compare by identity. Titles are an
+ * overlay on the geometry: a title a pane sets (a live one too) makes a new model that shares everything resolve
+ * made, so it never resolves the layout again.
+ */
 export function modelCache() {
-  let last: { key: unknown[]; model: JaliModel } | null = null;
+  let last: {
+    key: unknown[];
+    geometry: JaliModel;
+    titles: ModelInput["titles"];
+    model: JaliModel;
+  } | null = null;
   return (input: ModelInput): JaliModel => {
     const key = [
       input.layout,
@@ -208,11 +222,18 @@ export function modelCache() {
       input.hinge?.start,
       input.hinge?.size,
       input.ctx.paneCap,
-      input.titles,
       input.ctx.dir,
     ];
-    if (last && key.every((k, i) => k === last!.key[i])) return last.model;
-    last = { key, model: buildModel(input) };
+    if (last && key.every((k, i) => k === last!.key[i])) {
+      if (last.titles !== input.titles) {
+        const { geometry } = last;
+        last.titles = input.titles;
+        last.model = { ...geometry, title: titleFn(input.env, geometry.pane, input.titles) };
+      }
+      return last.model;
+    }
+    const model = buildModel(input);
+    last = { key, geometry: model, titles: input.titles, model };
     return last.model;
   };
 }
