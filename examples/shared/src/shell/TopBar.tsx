@@ -121,7 +121,8 @@ export function TopBar() {
         <button
           className="kbd-btn"
           onClick={() => store.actions.openPalette()}
-          aria-label="Command palette"
+          // The name says the keys it shows (WCAG 2.5.3: what is seen is part of what is said).
+          aria-label={`Command palette ${paletteKeys}`.trim()}
         >
           <CommandIcon size={14} aria-hidden /> <span className="kbd-label">{paletteKeys}</span>
         </button>

@@ -171,7 +171,6 @@ export function RecordPane({ params, paused, openBeside }: PaneProps<typeof reco
                         className="pk-val"
                         tabIndex={0}
                         role="button"
-                        aria-label={`Edit ${c.name}`}
                         title="Click to edit"
                         onClick={() => {
                           setDraft(String(v ?? ""));
@@ -185,6 +184,8 @@ export function RecordPane({ params, paused, openBeside }: PaneProps<typeof reco
                           }
                         }}
                       >
+                        {/* Its name is "Edit status: shipped": what it does, then what it shows. */}
+                        <span className="sr-only">Edit {c.name}: </span>
                         {v === null ? <NullChip /> : formatCell(v, c)}
                       </span>
                     ) : kind === "json" ? (
