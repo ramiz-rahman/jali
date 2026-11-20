@@ -14,6 +14,7 @@ import {
   row,
   type PresetOptions,
 } from "@jali/core";
+import { storeOf } from "@jali/core/adapter";
 import { definePane } from "@jali/react";
 import { FOLLOW_MS } from "../packages/core/src/actions/follow";
 
@@ -253,7 +254,7 @@ describe("a layout that arrives (Back, a link, a reload) and a list with a selec
     expect(shown(jali, "chart")).toEqual(chart({ symbol: "ORBD" }));
     expect(selected(jali, "watch")).toEqual(quote({ symbol: "ORBD" }));
     // Only Back's own announcement, and no follow step after it.
-    expect(jali.get().announcement.text).toBe("Layout changed by browser history");
+    expect(storeOf(jali).get().announcement.text).toBe("Layout changed by browser history");
     vi.advanceTimersByTime(FOLLOW_MS);
     expect(layouts).toHaveLength(1);
     stop();
