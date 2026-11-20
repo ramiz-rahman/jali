@@ -62,8 +62,10 @@ function TripPane({ node, focused, select, inPeek }: PaneProps) {
     if (e.metaKey || e.ctrlKey || e.altKey) return;
     const i = plan.days.findIndex((d) => d.n === cursor);
     const k = e.key;
-    if ((k === "ArrowDown" || k === "j") && plan.days[i + 1]) moveTo(plan.days[i + 1]!.n);
-    else if ((k === "ArrowUp" || k === "k") && plan.days[i - 1]) moveTo(plan.days[i - 1]!.n);
+    const next = plan.days[i + 1];
+    const previous = plan.days[i - 1];
+    if ((k === "ArrowDown" || k === "j") && next) moveTo(next.n);
+    else if ((k === "ArrowUp" || k === "k") && previous) moveTo(previous.n);
     else if (k === "Home") moveTo(first.n);
     else if (k === "End") moveTo(last.n);
     else if (k === "Enter") showDay(jali, cursor);

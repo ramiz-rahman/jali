@@ -95,7 +95,8 @@ function BudgetPane({ inPeek }: PaneProps) {
       {view === "day" ? (
         <ol className="budget-days">
           {b.days.map((d) => {
-            const day = plan.days.find((x) => x.n === d.n)!;
+            const day = plan.days.find((x) => x.n === d.n);
+            if (!day) return null;
             return (
               <li key={d.n} className="budget-day" data-over={d.over || undefined}>
                 <button

@@ -19,4 +19,6 @@ const services = createServices({
 });
 const jali = createTripsJali(services);
 
-createRoot(document.getElementById("root")!).render(<App jali={jali} services={services} />);
+const root = document.getElementById("root");
+if (!root) throw new Error("Trips needs an element with the id “root” (index.html).");
+createRoot(root).render(<App jali={jali} services={services} />);

@@ -265,10 +265,12 @@ function MapPane({ params, paused, node, inPeek }: PaneProps<typeof mapParams>) 
   pausedRef.current = paused;
 
   // Explore's results count only while its pane is on screen; else, what is near the selected place.
-  const exploreShown =
-    !!results && model.resolved.panes.some((b) => b.id === results.pane && !b.hidden);
+  const explored =
+    results && model.resolved.panes.some((b) => b.id === results.pane && !b.hidden)
+      ? results.ids
+      : null;
   const candidates = useMemo(() => {
-    if (exploreShown) return results!.ids;
+    if (explored) return explored;
     const at = selected ? placeById(selected) : undefined;
     if (!at) return [];
     const radius = at.city === "bkk" ? 0.9 : 3;
@@ -282,7 +284,7 @@ function MapPane({ params, paused, node, inPeek }: PaneProps<typeof mapParams>) 
     )
       .slice(0, 10)
       .map((q) => q.id);
-  }, [exploreShown, results, selected, plan]);
+  }, [explored, selected, plan]);
 
   /** Run a camera move now, or when the map is next shown. */
   const whenShown = (move: () => void) => {
@@ -421,7 +423,8 @@ function MapPane({ params, paused, node, inPeek }: PaneProps<typeof mapParams>) 
         wrap.append(el);
         el.addEventListener("click", (e) => {
           e.stopPropagation();
-          selectPlace(jali, el.dataset.id!, { from: node.id });
+          const id = el.dataset.id;
+          if (id) selectPlace(jali, id, { from: node.id });
         });
         const marker = new Marker({ element: wrap, anchor: "center" })
           .setLngLat([pin.p.lng, pin.p.lat])

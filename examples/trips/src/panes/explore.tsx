@@ -91,9 +91,10 @@ function readFilters(v: unknown): Filters | undefined {
 }
 
 /** The centre of a day: the average of its stops, or its city's hotel for an empty day. */
-function dayCentre(plan: Plan, n: number): { lat: number; lng: number; city: CityId } {
-  const day = plan.days.find((d) => d.n === n) ?? plan.days[0]!;
-  const stops = day.stops.map((id) => placeById(id)!);
+function dayCentre(plan: Plan, n: number): { lat: number; lng: number; city: CityId } | null {
+  const day = plan.days.find((d) => d.n === n) ?? plan.days[0];
+  if (!day) return null;
+  const stops = day.stops.flatMap((id) => placeById(id) ?? []);
   if (!stops.length) return hotelOf(plan, day.city);
   return {
     lat: stops.reduce((s, p) => s + p.lat, 0) / stops.length,
@@ -130,12 +131,14 @@ function ExplorePane({ params, node, paused, peek, inPeek }: PaneProps<typeof ex
     const m = s.layout.root && jali.model().panes.find((p) => p.ref.kind === "map");
     return Number(m?.ref.params.day ?? 0) || 1;
   });
-  const near =
-    filters.near === "place" && current
-      ? { at: placeById(current)!, label: placeById(current)!.name }
-      : filters.near === "day"
-        ? { at: dayCentre(plan, mapDay), label: `the middle of Day ${mapDay}` }
-        : null;
+  // The selection comes from the map (and so from a link): a place this trip doesn't have is no anchor.
+  const picked = filters.near === "place" && current ? placeById(current) : undefined;
+  const centre = filters.near === "day" ? dayCentre(plan, mapDay) : null;
+  const near = picked
+    ? { at: picked, label: picked.name }
+    : centre
+      ? { at: centre, label: `the middle of Day ${mapDay}` }
+      : null;
   // Never a distance across the country: an anchor in the other city is no anchor here.
   const anchor = near && near.at.city === filters.city ? near : null;
 

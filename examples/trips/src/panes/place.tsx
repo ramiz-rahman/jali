@@ -139,7 +139,7 @@ function PlaceBody({
         <figure className="place-hero">
           <Photo id={p.id} size="large" alt={photoOf(p.id)?.alt ?? ""} credit eager />
           {photoOf(p.id)?.standIn ? (
-            <figcaption className="place-standin" title={photoOf(p.id)!.standIn}>
+            <figcaption className="place-standin" title={photoOf(p.id)?.standIn}>
               Stand-in photo
             </figcaption>
           ) : null}
