@@ -163,8 +163,8 @@ const FALLBACK: Catalogue = {
 };
 
 /** A link can name anything: only the catalogue's own entries count, never a name from Object.prototype. */
-const own = <T>(r: Record<string, T>, k: string): T | undefined => (Object.hasOwn(r, k) ? r[k] : undefined);
+const own = <T>(r: Record<string, T>, k: string): T | undefined =>
+  Object.hasOwn(r, k) ? r[k] : undefined;
 
 export const catalogueOf = (session: SessionData | string): Catalogue =>
   own(CATALOGUE, typeof session === "string" ? session : session.id) ?? FALLBACK;
-

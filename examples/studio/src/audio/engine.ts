@@ -135,7 +135,8 @@ export function createEngine({
   const now = () => (ctx ? ctx.currentTime : performance.now() / 1000);
   // The session in the transport, its data always loaded: the transport moves to a session once its data is here.
   const initial = sessionById(first);
-  if (!initial) throw new Error(`Load the session “${first}” before making the engine (loadSession).`);
+  if (!initial)
+    throw new Error(`Load the session “${first}” before making the engine (loadSession).`);
   let current: SessionData = initial;
   /** The session last asked for, so a slow load doesn't take the transport from a later choice. */
   let wanted = first;
