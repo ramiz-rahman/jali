@@ -160,7 +160,6 @@ export function createTripsJali(services: Services, options: Options = {}): Jali
     // app turns it on; the button goes before Close in each header (the rest is in the pane's ⋯ menu), and ⌘K has
     // Jali's "Pop out pane".
     allow: { popOut: true },
-    buttons: (defaults) => [...defaults.filter((b) => b !== "close"), "popOut", "close"],
     ...options,
   });
 }

@@ -21,8 +21,7 @@ export const createDataStudio = (): Jali =>
     ...dataStudioOptions,
     url: { sizes: "link" },
     allow: { popOut: true },
-    // Jali's header buttons, plus Pop out (the rest is in each pane's ⋯ menu). Pop out on also gives ⌘K Jali's
-    // "Pop out pane" (Document Picture-in-Picture; Chrome and Edge on desktop).
-    buttons: (defaults) => [...defaults.filter((b) => b !== "close"), "popOut", "close"],
+    // Pop out on puts it among Jali's header buttons, before Close, and gives ⌘K Jali's "Pop out pane" (Document
+    // Picture-in-Picture; Chrome and Edge on desktop).
     commands: [makerCommand],
   });
