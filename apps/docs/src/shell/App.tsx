@@ -40,7 +40,10 @@ export function seedPage(path: string, m: { default: ComponentType; frontmatter:
 }
 
 function useLoadedPage(path: string): Loaded | null {
-  const [loaded, setLoaded] = useState<Loaded | null>(() => cache.get(path) ?? null);
+  // An address with no page is known at once, so the prerender (the 404 file) and hydration both show Not found.
+  const [loaded, setLoaded] = useState<Loaded | null>(
+    () => cache.get(path) ?? (pages[path] ? null : { path, Component: null }),
+  );
   useEffect(() => {
     let live = true;
     const hit = cache.get(path);
