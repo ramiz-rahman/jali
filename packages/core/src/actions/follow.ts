@@ -10,7 +10,7 @@
  *  - Keep keeps a detail on its object; releasing makes it the list's follower again (and keeps the previous one).
  */
 import * as core from "../layout";
-import type { Layout, NodeId, ObjectRef, ViewState } from "../layout/types";
+import type { Layout, NodeId, ObjectRef, PaneNode, ViewState } from "../layout/types";
 import { refuse, type Change, type Deferred, type Outcome, type Snapshot } from "../state/apply";
 import { say } from "../state/messages";
 import type { UiState } from "../state/store";
@@ -122,7 +122,42 @@ export function setKept({ s, m }: Snapshot, id: NodeId, kept: boolean): Outcome 
 }
 
 /**
- * A new layout (a preset, `setLayout`) and the lists' selections agree. For each list in `layout` with a selection:
+ * What `list` starts on when it has no selection: what its follower of the kind it selects (its kind's `selects`)
+ * shows. Nothing when its kind doesn't say what it selects, or `layout` gives it no follower of that kind: a follower
+ * of another kind shows something derived from the selection (`follow`), which can't be turned back into it.
+ */
+export function startingSelection(
+  env: Pick<Snapshot["env"], "kinds">,
+  layout: Layout,
+  list: PaneNode,
+): ObjectRef | undefined {
+  const kind = env.kinds.get(list.ref.kind)?.selects;
+  const own = kind ? core.follower(layout, list.id, kind) : undefined;
+  return own ? structuredClone(own.ref) : undefined;
+}
+
+/**
+ * Each list in `layout` with no selection starts on what its follower of the selected kind shows
+ * (`startingSelection`); its followers are left as they are. For a layout that arrives as it is (start-up, a link,
+ * Back). Returns `selection` itself when no list starts on anything.
+ */
+export function startSelections(
+  env: Pick<Snapshot["env"], "kinds">,
+  layout: Layout,
+  selection: UiState["selection"],
+): UiState["selection"] {
+  let out = selection;
+  for (const list of core.tree.panes(layout.root)) {
+    if (out[list.id]) continue;
+    const ref = startingSelection(env, layout, list);
+    if (ref) out = { ...out, [list.id]: { ref, inResults: true } };
+  }
+  return out;
+}
+
+/**
+ * A new layout (a preset, `setLayout`) and the lists' selections agree. A list with no selection first starts on
+ * what its follower of the kind it selects shows (`startingSelection`). Then, for each list in `layout` with a selection:
  *  - when the layout gives it a follower of the selected object's kind, the layout's word wins: the selection becomes
  *    what that follower shows, and the list's other followers show what their kinds give for it;
  *  - with no follower of that kind, its followers follow the selection, as a follow step would.
@@ -136,8 +171,14 @@ export function agreeWithSelection(
 ): { layout: Layout; selection: UiState["selection"] } {
   let selection = s.selection;
   for (const list of core.tree.panes(layout.root)) {
-    const sel = selection[list.id];
-    if (!sel) continue;
+    let sel = selection[list.id];
+    if (!sel) {
+      // Taken from the layout as it is now, so a list that follows a list starts on what the first one gave it.
+      const ref = startingSelection(env, layout, list);
+      if (!ref) continue;
+      sel = { ref, inResults: true };
+      selection = { ...selection, [list.id]: sel };
+    }
     const own = core.follower(layout, list.id, sel.ref.kind);
     const target = own ? own.ref : sel.ref;
     if (own && !sameRef(own.ref, sel.ref))
