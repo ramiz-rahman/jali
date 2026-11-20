@@ -60,7 +60,7 @@ test("the sound goes on while the mixer is folded away", async ({ page }) => {
 // The mixer reports "working" while it plays (its hidden header carries the mark), but the folded menu doesn't draw
 // it: since 3f57a4c the shelf holds only tucked panes and the "N folded" menu lists panes without their marks. Turn
 // this on when the menu shows a folded pane's activity.
-test.fixme("a folded mixer shows that it is working", async ({ page }) => {
+test("a folded mixer shows that it is working", async ({ page }) => {
   await layout(page, "Mix").click();
   await transport(page, "Play").click();
   await page.setViewportSize({ width: 1100, height: 560 });
