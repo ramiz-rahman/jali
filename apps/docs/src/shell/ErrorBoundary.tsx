@@ -5,8 +5,16 @@
  */
 import { Component, type ReactNode } from "react";
 
-export class IslandBoundary extends Component<{ children: ReactNode }, { failed: boolean }> {
+export class IslandBoundary extends Component<
+  { children: ReactNode; onHydrated?: () => void },
+  { failed: boolean }
+> {
   state = { failed: false };
+
+  /** The browser passes `onHydrated` (src/client/islands.ts); the build doesn't, and it adds nothing to the HTML. */
+  componentDidMount() {
+    this.props.onHydrated?.();
+  }
 
   static getDerivedStateFromError() {
     return { failed: true };

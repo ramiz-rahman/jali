@@ -25,9 +25,15 @@ async function hydrate(el: HTMLElement) {
     load(),
   ]);
   const props = JSON.parse(el.dataset.props ?? "{}") as object;
+  // `data-hydrated` once React has taken the island over: what the tests wait for.
+  const onHydrated = () => el.setAttribute("data-hydrated", "");
   hydrateRoot(
     el,
-    createElement(IslandBoundary, null, createElement(Component as ComponentType<object>, props)),
+    createElement(
+      IslandBoundary,
+      { onHydrated },
+      createElement(Component as ComponentType<object>, props),
+    ),
     { identifierPrefix: islandPrefix(el.dataset.islandId ?? "0") },
   );
 }
