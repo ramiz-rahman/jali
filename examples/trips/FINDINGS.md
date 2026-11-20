@@ -123,6 +123,14 @@ The trip changed from one compact city (Lisbon) to two cities 680 km apart (Bang
 
 **A pane's own data decides what it can accept, which Jali can't see.** A place can only go on a day in its city. The app's drag, the chooser (only days in the place's city are offered) and the place pane's day buttons all apply the rule; a drop on a day of the other city is refused with a note. That is app logic, as it should be. Nothing in Jali needed to know.
 
+## 12. A divider in a row that scrolls says its maximum is infinite
+
+**Observed.** The shared quality checks (axe, 21 Nov 2026) found every divider in Days' week with `aria-valuemax="Infinity"`. A pane in a row that scrolls can grow without limit, so Jali's fit gives the divider no maximum (`packages/core/src/layout/fit/resolve.ts`, `scrolls ? Infinity : …`), and the divider writes it as a percentage. `aria-valuemax` must be a number, so axe reports `aria-valid-attr-value` (critical), and a screen reader may read nonsense or nothing for the divider's range.
+
+**Workaround.** None the app can make: the day kind already says `width.max: 480`, and the divider ignores it in a row that scrolls. `e2e/quality.spec.ts` lists the six week dividers as Jali's (`axeKnown`), so every other check still runs on them.
+
+**Suggested change.** In a row that scrolls, give the divider the first pane's `width.max` when it has one, and otherwise leave `aria-valuemax` out, so it takes ARIA's default for a separator (100).
+
 ## Not about Jali
 
 - MapLibre 6 loads its Web Worker from beside its own module. Bundled by Vite, the worker can't be found ("Worker failed to load"). `setWorkerUrl` with a `?url` import of `maplibre-gl/dist/maplibre-gl-worker.mjs` fixes it.

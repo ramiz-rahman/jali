@@ -17,17 +17,11 @@ async function open(page: Page, name: string) {
 qualitySuite({
   storage: "trips-thailand",
   layouts: LAYOUTS.map((name) => ({ name, open: (page) => open(page, name) })),
-  // Found by these checks on 20 Nov; Trips' own session is fixing them.
-  fixme: [
-    {
-      check: "axe",
-      reason:
-        "label-content-name-mismatch (.brand, .commands-btn), landmark-unique, target-size (map pins), and in Days nested-interactive and aria-valid-attr-value",
-    },
-    {
-      check: "sweep",
-      reason:
-        "map pins cover each other and the map at most widths, and a control is cut off in Budget",
-    },
-  ],
+  // Days' week is a row that scrolls: the six dividers between its seven days.
+  axeKnown: Array.from({ length: 6 }, (_, i) => ({
+    rule: "aria-valid-attr-value",
+    target: `div[data-divider="week:${i}"]`,
+    reason:
+      'Jali gives a divider in a row that scrolls aria-valuemax="Infinity" (trips/FINDINGS.md, 12)',
+  })),
 });
