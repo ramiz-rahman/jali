@@ -72,6 +72,7 @@ const DEMOS = new Set([
   "KeysDemo",
   "LinkDemo",
   "MinimalApp",
+  "QuickstartApp",
   "Proof",
 ]);
 
