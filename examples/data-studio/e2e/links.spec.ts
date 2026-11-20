@@ -62,6 +62,35 @@ test("the preset's own query runs on load, so its chart comes back after a reloa
   await expect(chart(page).getByRole("img", { name: /Bar chart/ })).toBeVisible();
 });
 
+test("an edited draft of the preset's query waits for Run after a reload, and the preset's SQL doesn't run in its place", async ({
+  page,
+}) => {
+  await openPreset(page, "Query + chart + inspector");
+  await expect(chart(page).getByRole("img", { name: /Bar chart/ })).toBeVisible();
+  const editor = query(page).getByRole("textbox", { name: "SQL" });
+  await editor.fill("SELECT 'from the draft' AS said");
+  // Pane state is saved once typing settles.
+  await expect
+    .poll(() =>
+      page.evaluate(() =>
+        Object.keys(localStorage).some((k) => localStorage.getItem(k)?.includes("from the draft")),
+      ),
+    )
+    .toBe(true);
+  await page.reload();
+  await loaded(page);
+
+  // The draft is kept, and nothing ran: not the draft, and not the preset's SQL behind it.
+  await expect(editor).toHaveValue("SELECT 'from the draft' AS said");
+  await expect(query(page)).toContainText("This query hasn't run");
+  await expect(query(page).getByRole("grid")).toHaveCount(0);
+
+  await query(page).getByRole("button", { name: /^Run/ }).click();
+  await expect(query(page).getByRole("grid", { name: "Query results" })).toContainText(
+    "from the draft",
+  );
+});
+
 test("a chart whose result is from an earlier visit says so, and how to get it back", async ({
   page,
 }) => {

@@ -39,10 +39,11 @@ export const queryParams = { sql: optional(String), autorun: appOnly(Boolean) };
 
 export function QueryPane({ params, paused, focused, openBeside }: PaneProps<typeof queryParams>) {
   const start = params.sql ?? DEFAULT_SQL;
-  // Asked to run on load, with SQL that isn't the app's own: it waits for Run.
-  const held = !!params.autorun && !OWN_SQL.has(start);
   // The draft is the pane's own state: it outlives a fold, a tab switch and a reload.
   const [sql, setSql] = usePaneState("sql", start, { parse: text });
+  // Asked to run on load, with SQL that isn't the app's own, or with a kept draft that isn't that SQL exactly (the
+  // person edited it before a reload): it waits for Run. Autorun never runs anything the app didn't write.
+  const held = !!params.autorun && (!OWN_SQL.has(start) || sql !== start);
   const [ran, setRan] = usePaneState("ran", start, { parse: text });
   const [handle, setHandle] = useState<ResultHandle | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -50,10 +51,10 @@ export function QueryPane({ params, paused, focused, openBeside }: PaneProps<typ
 
   useActivity(run.isPending ? "working" : error ? "error" : "idle");
 
-  const exec = (andChart = false) => {
+  const exec = (andChart = false, query = sql) => {
     setError(null);
-    setRan(sql);
-    run.mutate(sql, {
+    setRan(query);
+    run.mutate(query, {
       onSuccess: (h) => {
         setHandle(h);
         if (andChart) openBeside(chartRef(h.runId));
@@ -82,12 +83,13 @@ export function QueryPane({ params, paused, focused, openBeside }: PaneProps<typ
     },
   ]);
 
-  // A preset can ask its own query to run on load and hand its result to the linked chart (OWN_SQL above).
+  // A preset can ask its own query to run on load and hand its result to the linked chart (OWN_SQL above). It runs
+  // the app's SQL as written (`start`, which `held` has checked is the draft too), never whatever the editor holds.
   const autorun = useRef(false);
   useEffect(() => {
     if (!params.autorun || held || autorun.current) return;
     autorun.current = true;
-    exec(true);
+    exec(true, start);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 

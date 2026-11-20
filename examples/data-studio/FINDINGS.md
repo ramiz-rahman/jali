@@ -14,6 +14,8 @@ Data Studio is built on the public API alone (`@jali/core`, `@jali/react`). Each
 
 **Now (21 Nov 2026).** `autorun` is `appOnly(Boolean)` in `src/panes/kinds/query.tsx`, so no link carries or sets it; `OWN_SQL` is the second line. A reload still runs the preset's own query: Jali gives a pane from the address the app-only params its preset gave it, when the pane is exactly the preset's.
 
+**Also (21 Nov 2026).** The check looked at the preset's SQL but ran the kept draft, so a draft edited before a reload ran without Run. Autorun now runs the app's SQL as written, and only when the kept draft is that SQL exactly; an edited draft waits for Run.
+
 ## 2. A run id in the link doesn't survive a reload
 
 **Wanted.** A chart that follows a query shows that query's result, including after a reload.
