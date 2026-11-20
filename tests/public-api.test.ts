@@ -53,6 +53,7 @@ describe("public API", () => {
       "Chooser",
       "ConfirmDiscard",
       "CuratedPage",
+      "IconButton",
       "JaliProvider",
       "JaliRoot",
       "JaliView",

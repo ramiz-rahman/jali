@@ -627,6 +627,17 @@ export const parts = {
     what: "One of Jali's own icons; the value is its name (`close`, `pin`…). Your icons carry what you give them.",
     attributes: [],
   },
+  iconButton: {
+    selector: ".jali-icon-btn",
+    element: "button",
+    area: "Icons and your chrome",
+    what: "A button that is only an icon: each of a pane header's buttons (also `paneAction`), Reset on a curated page's bar, and the close buttons of the peek sheet and Settings. `<IconButton>` renders one for your own chrome, so your buttons match Jali's in every theme.",
+    attributes: [
+      { name: "aria-pressed", means: "On a toggle: `true` while on." },
+      { name: "disabled", means: "Flag: it can't be used now." },
+      pressed,
+    ],
+  },
   hostChrome: {
     selector: "[data-jali-chrome]",
     element: "any",

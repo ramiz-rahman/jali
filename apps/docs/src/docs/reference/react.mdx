@@ -417,6 +417,31 @@ A pane's activity mark. Renders nothing for `idle` or `undefined`.
 
 </Entry>
 
+<Entry name="IconButton" kind="component" from="@jali/react" signature={`<IconButton label="Copy link" onClick={copy}>{icon}</IconButton>`} compact>
+
+A button that is only an icon, drawn as Jali's header buttons are (the `iconButton` part, `.jali-icon-btn`): for your top bar, a pane's own controls or a sheet's close, so they match the workspace in every theme. It is held down like Jali's controls (`data-pressed`) inside a workspace.
+
+```tsx
+import { IconButton } from "@jali/react";
+import { GearSixIcon } from "@phosphor-icons/react";
+
+<IconButton label="Settings" onClick={() => jali.actions.openSettings()}>
+  <GearSixIcon size={16} aria-hidden />
+</IconButton>;
+```
+
+<Params title="Props">
+<Param name="label" type="string" required>What it does, in words: its accessible name, and its tooltip unless `title` gives another.</Param>
+<Param name="children" type="ReactNode" required>The icon, with `aria-hidden`.</Param>
+<Param name="title" type="string" default="label">The tooltip, when it should say more than the name ("Copy link (⌘L)").</Param>
+<Param name="className" type="string">Added after `jali-icon-btn`, for your own rules.</Param>
+<Param name="type" type={`"button" | "submit" | "reset"`} default={`"button"`}>The button's type.</Param>
+</Params>
+
+Every other prop of a `<button>` (`onClick`, `disabled`, `aria-pressed`, `ref`…) is passed on.
+
+</Entry>
+
 <Entry name="JaliRootProps" kind="type" from="@jali/react" signature={`interface JaliRootProps extends HTMLAttributes<HTMLDivElement> {\n  workspace: Jali; icons?: Partial<JaliIcons>; children?: ReactNode;\n  overlays?: ReactNode; settings?: boolean;\n}`} compact>
 
 The props of <Ref to="JaliRoot" />.

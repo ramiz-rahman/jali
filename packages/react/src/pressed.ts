@@ -10,6 +10,7 @@
 /** The controls that carry it: public parts (parts.ts lists `data-pressed` on each). */
 export const PRESSABLE = [
   ".jali-pane-action",
+  ".jali-icon-btn",
   ".jali-tab",
   ".jali-tab-close",
   ".jali-tab-putback",

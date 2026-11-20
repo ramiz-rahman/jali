@@ -199,4 +199,5 @@ Corners, spacing and colours are tokens, not parts: every corner reads `--jali-r
 | Part | Element | What it is | State attributes |
 | --- | --- | --- | --- |
 | `[data-jali-icon]` | `svg` | One of Jali's own icons; the value is its name (`close`, `pin`…). Your icons carry what you give them. | none |
+| `.jali-icon-btn` | `button` | A button that is only an icon: each of a pane header's buttons (also `paneAction`), Reset on a curated page's bar, and the close buttons of the peek sheet and Settings. `<IconButton>` renders one for your own chrome, so your buttons match Jali's in every theme. | `aria-pressed`: On a toggle: `true` while on.<br>`disabled`: Flag: it can't be used now.<br>`data-pressed`: Flag: held down, by the pointer or by Space or Enter while it has focus (`:active` covers only the pointer). Jali's styles don't read it. |
 | `[data-jali-chrome]` | `any` | Yours to set: your own chrome inside the root, which Jali never pulls focus out of. | none |

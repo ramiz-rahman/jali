@@ -46,6 +46,7 @@ export { Chooser } from "./dialogs/Chooser";
 export { ConfirmDiscard } from "./dialogs/ConfirmDiscard";
 export { KindIcon } from "./pane/icons";
 export { Activity } from "./pane/Activity";
+export { IconButton, type IconButtonProps } from "./chrome/IconButton";
 
 // ---------- icons ----------
 export { useJaliIcons } from "./icons/context";

@@ -1135,3 +1135,11 @@ Gzipped KB, measured on master `ea3ac83` after `pnpm build:packages`. The `mustN
 - **Not the engine's op names** (`"preset"` for both a preset and a reset, `"drop"`, `"resize"`): they are internal and would make every op a public name.
 - **Size:** about 0.3 KB gzipped of core, in every scenario (the naming table and the wrapper).
 - **Tests:** `tests/instance.test.ts` ("layout names the action that made it, whoever ran it", after Discard, after a later yes, none for a drag).
+
+## 21 Nov 2026 · `IconButton`: Jali's icon button, public (Markets, Data Studio, Loan review FINDINGS.md)
+
+- **Why:** all three apps wanted top-bar and pane buttons that look like Jali's header buttons. `.jali-icon-btn` was private, so each copied its look into its own `.icon-btn`, which drifts the moment Jali's changes.
+- **Now:** `<IconButton label onClick>{icon}</IconButton>` from `@jali/react`, and the button it renders is a public part, `iconButton` (`.jali-icon-btn`), with `aria-pressed`, `disabled` and `data-pressed`. It is the same part as each header button (also `paneAction`), Reset on a page's bar and the peek's and Settings' close. `label` is required: it is the accessible name, and the tooltip unless `title` says more, so an icon button can't be nameless. Every other `<button>` prop and a ref pass through; `type` defaults to `"button"`.
+- **Not added:** an `icon` prop naming one of Jali's icons. Children keep one way to give the icon (the app's own icon set, or `useJaliIcons()`), and keep the component a few lines.
+- **Size:** 0.1 KB gzipped of React, only in apps that import it.
+- **Tests:** `tests/icon-button.test.tsx`; `tests/parts.test.tsx` checks the part.

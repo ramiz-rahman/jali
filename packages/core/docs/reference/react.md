@@ -613,6 +613,37 @@ A pane's activity mark. Renders nothing for `idle` or `undefined`.
 
 - **`shape`** (`boolean`): `false`: a coloured dot labelled for screen readers ("Loading", "Working", "Live", "Needs you", "Error"). `true`: the shelf's mark, a shape as well as a colour (a ring for loading and working, a dot in a halo for live, breathing slowly, "!" for needs-you, a cross for error), hidden from screen readers.
 
+### IconButton
+
+*component*, from `@jali/react`
+
+```ts
+<IconButton label="Copy link" onClick={copy}>{icon}</IconButton>
+```
+
+A button that is only an icon, drawn as Jali's header buttons are (the `iconButton` part, `.jali-icon-btn`): for your top bar, a pane's own controls or a sheet's close, so they match the workspace in every theme. It is held down like Jali's controls (`data-pressed`) inside a workspace.
+
+```tsx
+
+<IconButton label="Settings" onClick={() => jali.actions.openSettings()}>
+  <GearSixIcon size={16} aria-hidden />
+</IconButton>;
+```
+
+**Props**
+
+- **`label`** (`string`, required): What it does, in words: its accessible name, and its tooltip unless `title` gives another.
+
+- **`children`** (`ReactNode`, required): The icon, with `aria-hidden`.
+
+- **`title`** (`string`): The tooltip, when it should say more than the name ("Copy link (⌘L)").
+
+- **`className`** (`string`): Added after `jali-icon-btn`, for your own rules.
+
+- **`type`** (`"button" | "submit" | "reset"`): The button's type.
+
+Every other prop of a `<button>` (`onClick`, `disabled`, `aria-pressed`, `ref`…) is passed on.
+
 ### JaliRootProps
 
 *type*, from `@jali/react`
