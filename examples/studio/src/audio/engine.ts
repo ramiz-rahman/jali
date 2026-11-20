@@ -71,8 +71,9 @@ export interface Engine extends Store<TransportState> {
   skip(seconds: number): void;
   setRate(rate: number): void;
   setLoop(loop: Loop | null): void;
-  /** A track's level now, or the master's ("master-l", "master-r"). Read only by a mixer on screen. */
-  meter(track: string): Meter;
+  /** A track's level now, or the master's ("master-l", "master-r"). Read only by a mixer on screen. The reading
+   *  is the track's own object, updated in place by the next call: read it, don't keep it. */
+  meter(track: string): Readonly<Meter>;
 }
 
 const SILENT: Meter = { rms: -60, peak: -60 };
@@ -115,6 +116,7 @@ export function createEngine({
   const strips = new Map<string, Strip>();
   const loaded = new Map<string, Loaded>();
   const loading = new Map<string, Promise<void>>();
+  const readings = new WeakMap<AnalyserNode, { buf: Float32Array<ArrayBuffer>; meter: Meter }>();
   let sources: AudioBufferSourceNode[] = [];
   let shifter: StretchNode | null = null;
   let gate: GainNode | null = null;
@@ -488,15 +490,22 @@ export function createEngine({
             ? masterR
             : (strips.get(track)?.analyser ?? null);
       if (!a || !get().playing) return SILENT;
-      const buf = new Float32Array(a.fftSize);
+      // Read every frame for every strip: each analyser keeps its own buffer and reading, so a frame allocates nothing.
+      let r = readings.get(a);
+      if (r?.buf.length !== a.fftSize)
+        readings.set(a, (r = { buf: new Float32Array(a.fftSize), meter: { rms: -60, peak: -60 } }));
+      const { buf, meter } = r;
       a.getFloatTimeDomainData(buf);
       let peak = 0;
       let sum = 0;
-      for (const v of buf) {
+      for (let i = 0; i < buf.length; i++) {
+        const v = buf[i] ?? 0;
         peak = Math.max(peak, Math.abs(v));
         sum += v * v;
       }
-      return { rms: toDb(Math.sqrt(sum / buf.length)), peak: toDb(peak) };
+      meter.rms = toDb(Math.sqrt(sum / buf.length));
+      meter.peak = toDb(peak);
+      return meter;
     },
   };
 

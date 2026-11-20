@@ -240,65 +240,88 @@ function Master({ view }: { view: SessionView }) {
 }
 
 /**
- * Every meter in the mixer, drawn in one loop while the pane is on screen: each `[data-meter]` box gets a canvas.
- * The level falls back at 24 dB a second, and the peak holds for a second.
+ * Every meter in the mixer, drawn in one loop while the pane is on screen: each `.mx-meter` box gets a canvas.
+ * The level falls back at 24 dB a second, and the peak holds for a second. It runs every frame for every strip, so a
+ * frame allocates nothing: the boxes are a live collection, each meter's record (its canvas, lamp and levels) is
+ * made once, the palette is resolved once per theme, and the engine's reading is updated in place.
  */
 /** The meters' middle zone, between the pale low cells and the orange top: an extension of the accent rules. */
 const AMBER = "#f2b33d";
+/** One LED cell's height, with a pixel between cells. */
+const CELL = 3;
+
+interface MeterRecord {
+  canvas: HTMLCanvasElement;
+  /** The master's clip lamp, for "master-l" and "master-r". */
+  lamp: HTMLElement | null;
+  level: number;
+  hold: number;
+  heldAt: number;
+  clippedAt: number;
+}
 
 function Meters({ paused, engineReady }: { paused: boolean; engineReady: boolean }) {
   const { engine } = useServices();
   const root = useRef<HTMLSpanElement>(null);
-  const state = useRef(new Map<string, { level: number; hold: number; heldAt: number }>());
+  const records = useRef(new WeakMap<HTMLElement, MeterRecord>());
+  const boxes = useRef<HTMLCollectionOf<Element> | null>(null);
   const last = useRef(0);
-  const clipped = useRef(new Map<string, number>());
   const theme = useTheme();
   const { width } = useSize(root);
   useFrame(paused, () => {
     const strips = root.current?.closest(".mixer");
     if (!strips) return;
+    // Live: it follows the strips as a session's tracks come and go.
+    boxes.current ??= strips.getElementsByClassName("mx-meter");
     const now = performance.now();
     const dt = Math.min(0.1, last.current ? (now - last.current) / 1000 : 0);
     last.current = now;
-    for (const box of strips.querySelectorAll<HTMLElement>("[data-meter]")) {
-      let canvas = box.querySelector("canvas");
-      if (!canvas) canvas = box.appendChild(document.createElement("canvas"));
+    const c = screenPaletteOf();
+    for (let i = 0; i < boxes.current.length; i++) {
+      const box = boxes.current[i];
+      if (!(box instanceof HTMLElement)) continue;
+      const id = box.dataset.meter;
+      if (!id) continue;
+      let r = records.current.get(box);
+      if (!r) {
+        r = {
+          canvas: box.querySelector("canvas") ?? box.appendChild(document.createElement("canvas")),
+          lamp: strips.querySelector<HTMLElement>(`[data-clip="${CSS.escape(id)}"]`),
+          level: -60,
+          hold: -60,
+          heldAt: 0,
+          clippedAt: -1e9,
+        };
+        records.current.set(box, r);
+      }
       const w = box.clientWidth;
       const h = box.clientHeight;
-      const g = prepare(canvas, w, h);
+      const g = prepare(r.canvas, w, h);
       if (!g) continue;
-      const c = screenPaletteOf(box);
-      const id = box.dataset.meter!;
-      const m = engine.meter(id);
-      const s = state.current.get(id) ?? { level: -60, hold: -60, heldAt: 0 };
-      s.level = Math.max(m.peak, s.level - 24 * dt);
-      if (m.peak >= s.hold || now - s.heldAt > 1000) {
-        s.hold = m.peak;
-        s.heldAt = now;
+      const peak = engine.meter(id).peak;
+      r.level = Math.max(peak, r.level - 24 * dt);
+      if (peak >= r.hold || now - r.heldAt > 1000) {
+        r.hold = peak;
+        r.heldAt = now;
       }
-      state.current.set(id, s);
       // A ladder of LED cells on the fader's scale, so a level reads against the fader beside it: pale up to
       // −12 dB, amber to −3, signal orange above. The peak holds for a second as one lit cell.
-      const y = (db: number) => h - dbToFader(db) * h;
-      const cell = 3;
-      const top = s.level > -59 ? y(s.level) : h + 1;
-      const zone = (cy: number) => (cy < y(-3) ? c.played : cy < y(-12) ? AMBER : c.text);
-      for (let cy = h - cell; cy >= 0; cy -= cell + 1) {
-        const lit = cy + cell > top;
-        g.fillStyle = lit ? zone(cy) : c.line;
-        g.fillRect(0, cy, w, cell);
+      const hot = h - dbToFader(-3) * h;
+      const warm = h - dbToFader(-12) * h;
+      const top = r.level > -59 ? h - dbToFader(r.level) * h : h + 1;
+      for (let cy = h - CELL; cy >= 0; cy -= CELL + 1) {
+        g.fillStyle = cy + CELL > top ? (cy < hot ? c.played : cy < warm ? AMBER : c.text) : c.line;
+        g.fillRect(0, cy, w, CELL);
       }
-      if (s.hold > -59) {
-        const hy = Math.max(0, Math.min(h - cell, Math.round(y(s.hold))));
-        g.fillStyle = zone(hy);
+      if (r.hold > -59) {
+        const hy = Math.max(0, Math.min(h - CELL, Math.round(h - dbToFader(r.hold) * h)));
+        g.fillStyle = hy < hot ? c.played : hy < warm ? AMBER : c.text;
         g.fillRect(0, hy, w, 2);
       }
       // The master's clip lamps: lit for two seconds after a peak within 0.5 dB of full scale.
-      if (id.startsWith("master")) {
-        const lamp = strips.querySelector<HTMLElement>(`[data-clip="${id}"]`);
-        if (m.peak > -0.5) clipped.current.set(id, now);
-        const on = now - (clipped.current.get(id) ?? -1e9) < 2000;
-        if (lamp) lamp.toggleAttribute("data-on", on);
+      if (r.lamp) {
+        if (peak > -0.5) r.clippedAt = now;
+        r.lamp.toggleAttribute("data-on", now - r.clippedAt < 2000);
       }
     }
   }, [theme, width, engineReady]);

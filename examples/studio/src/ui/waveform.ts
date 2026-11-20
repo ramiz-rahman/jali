@@ -168,16 +168,37 @@ const COLOURS = {
 } as const;
 type Palette = Record<keyof typeof COLOURS, string>;
 let probe: HTMLElement | null = null;
-let cached: { key: string; palette: Palette } | null = null;
+let dark: MediaQueryList | null = null;
+type ScreenPalette = ReturnType<typeof toScreen>;
+/** The palettes for the theme in use, resolved once per theme: canvases ask every frame, so asking allocates nothing. */
+let cached: {
+  theme: string | undefined;
+  dark: boolean;
+  palette: Palette;
+  screen: ScreenPalette;
+} | null = null;
 
 /**
  * The app's colours for drawing, from its tokens. A token holds `light-dark(…)`, which a canvas can't read, so each
  * is resolved through a hidden element's `color`, once per theme.
  */
 export function paletteOf(_el?: Element): Palette {
-  const dark = window.matchMedia?.("(prefers-color-scheme: dark)").matches;
-  const key = `${document.documentElement.dataset.theme ?? ""}|${dark}`;
-  if (cached?.key === key) return cached.palette;
+  return palettes().palette;
+}
+
+/**
+ * The same names for drawing on a screen: every waveform and meter sits behind dark glass, so its marks are light,
+ * in the light theme too.
+ */
+export function screenPaletteOf(_el?: Element): ScreenPalette {
+  return palettes().screen;
+}
+
+function palettes() {
+  dark ??= window.matchMedia?.("(prefers-color-scheme: dark)") ?? null;
+  const theme = document.documentElement.dataset.theme;
+  const isDark = !!dark?.matches;
+  if (cached && cached.theme === theme && cached.dark === isDark) return cached;
   if (!probe) {
     probe = document.createElement("span");
     probe.setAttribute("aria-hidden", "true");
@@ -189,16 +210,11 @@ export function paletteOf(_el?: Element): Palette {
     probe.style.color = `var(${token})`;
     palette[name] = getComputedStyle(probe).color;
   }
-  cached = { key, palette };
-  return palette;
+  cached = { theme, dark: isDark, palette, screen: toScreen(palette) };
+  return cached;
 }
 
-/**
- * The same names for drawing on a screen: every waveform and meter sits behind dark glass, so its marks are light,
- * in the light theme too.
- */
-export function screenPaletteOf(el?: Element) {
-  const c = paletteOf(el);
+function toScreen(c: Palette) {
   return {
     ...c,
     idle: c.scrIdle,
