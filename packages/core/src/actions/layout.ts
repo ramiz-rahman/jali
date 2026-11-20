@@ -7,7 +7,7 @@ import { toLayout, type LayoutInput } from "../layout/build";
 import { say } from "../state/messages";
 import type { Settings } from "../state/settings";
 import { withRecent } from "./open";
-import { agreeWithSelection, startSelections } from "./follow";
+import { agreeWithSelection, agreeOnArrival } from "./follow";
 
 /** Switch to a preset: the layout the app saved for it (`PresetOptions.saved`), if it has one this workspace can
  *  still read, else its own. `own`: always its own (Reset layout). */
@@ -55,7 +55,7 @@ function readLayout(input: LayoutInput, env: Snapshot["env"]): Layout | undefine
 }
 
 /** A layout arriving from outside (link, reload, Back): keep focus where it still exists, and fit it to the window.
- *  A list with no selection starts on what its follower of the kind it selects shows (`startSelections`).
+ *  The lists' selections agree with what their followers show, which stay as the layout has them (`agreeOnArrival`).
  *  `presetId`: the preset the link says the layout came from (a known one); without it the preset stays as it is. */
 export function arrive(
   { s, ctx, env }: Snapshot,
@@ -70,8 +70,8 @@ export function arrive(
     s.view.focused && ids.has(s.view.focused) ? s.view.focused : (history[0] ?? panes[0]?.id);
   const view: ViewState = { focusHistory: history, ...arrived };
   if (focused) view.focused = focused;
-  // A list with no selection starts on what its follower of the kind it selects shows; the layout stays as it came.
-  const selection = startSelections(env, layout, s.selection);
+  // The lists' selections agree with the followers the layout brings (or start on them); the layout stays as it came.
+  const selection = agreeOnArrival(env, layout, s.selection);
   const patch = {
     ...(s.page ? { page: null } : {}),
     ...(presetId ? { presetId } : {}),

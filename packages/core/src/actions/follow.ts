@@ -137,19 +137,27 @@ export function startingSelection(
 }
 
 /**
- * Each list in `layout` with no selection starts on what its follower of the selected kind shows
- * (`startingSelection`); its followers are left as they are. For a layout that arrives as it is (start-up, a link,
- * Back). Returns `selection` itself when no list starts on anything.
+ * A layout that arrives as it is (start-up, a link, a reload, Back) and the lists' selections agree, on the selection's
+ * side only: the layout's followers stay exactly as it has them. For each list in `layout`:
+ *  - with a selection, when the layout gives it a follower of the selected object's kind that shows something else,
+ *    the selection becomes what that follower shows (the layout's word wins, as after a preset);
+ *  - with none, it starts on what its follower of the kind it selects shows (`startingSelection`).
+ * Kept panes don't follow, so they never drive it. Returns `selection` itself when nothing changes.
  */
-export function startSelections(
+export function agreeOnArrival(
   env: Pick<Snapshot["env"], "kinds">,
   layout: Layout,
   selection: UiState["selection"],
 ): UiState["selection"] {
   let out = selection;
   for (const list of core.tree.panes(layout.root)) {
-    if (out[list.id]) continue;
-    const ref = startingSelection(env, layout, list);
+    const sel = out[list.id];
+    const own = sel ? core.follower(layout, list.id, sel.ref.kind) : undefined;
+    const ref = sel
+      ? own && !sameRef(own.ref, sel.ref)
+        ? structuredClone(own.ref)
+        : undefined
+      : startingSelection(env, layout, list);
     if (ref) out = { ...out, [list.id]: { ref, inResults: true } };
   }
   return out;

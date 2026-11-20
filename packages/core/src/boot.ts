@@ -13,7 +13,7 @@ import { savePrefs } from "./state/page-prefs";
 import { savePaneState } from "./state/pane-state";
 import { openPage, withoutOpened } from "./actions/page";
 import { arrive } from "./actions/layout";
-import { startSelections } from "./actions/follow";
+import { agreeOnArrival } from "./actions/follow";
 import { DONE, type ActionResult } from "./state/apply";
 import type { UrlSync } from "./url";
 
@@ -61,8 +61,8 @@ export function boot(store: UiStore, url?: UrlSync) {
   const s = store.get();
   const layout = core.refit(s.layout, s.view, store.ctx());
   const first = panes()[0]?.id;
-  // A list with no selection starts on what its follower of the kind it selects shows (a link has done it already).
-  const selection = startSelections(store.env, layout, s.selection);
+  // The lists' selections agree with what their followers show (a link has done it already).
+  const selection = agreeOnArrival(store.env, layout, s.selection);
   store.set({
     layout,
     ...(selection !== s.selection ? { selection } : {}),

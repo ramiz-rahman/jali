@@ -2,6 +2,8 @@
  * A list's first selection comes from its follower. A list whose kind says what it selects (`selects`) and has no
  * selection starts on what its follower of that kind shows: at start-up, on a link, after a preset or `setLayout`.
  * A follower of another kind gives nothing (what it shows is derived from a selection and can't be turned back).
+ * A layout that arrives (Back, a link, a reload) and a list that has a selection agree on the selection's side: the
+ * selection becomes what its follower of the selected kind shows, and the followers stay as the layout has them.
  */
 import { afterEach, beforeEach, describe, expect, it, vi } from "vite-plus/test";
 import {
@@ -226,5 +228,91 @@ describe("a list with no selection starts on what its follower shows", () => {
     jali.actions.preset("charts");
     expect(selected(jali, "watch")).toEqual(quote({ symbol: "ORBD" }));
     expect(shown(jali, "chart")).toEqual(chart({ symbol: "ORBD" }));
+  });
+});
+
+describe("a layout that arrives (Back, a link, a reload) and a list with a selection agree", () => {
+  it("Back to an older preset: the selection becomes what its follower of that kind shows", () => {
+    const { jali, location } = make({ preset: "plain" });
+    const stop = jali.start();
+    jali.actions.preset("quotes");
+    jali.actions.select("watch", quote({ symbol: "ORBD" }));
+    vi.advanceTimersByTime(FOLLOW_MS);
+    const older = location.search();
+    jali.setLayout(
+      row(
+        pane(watchlist(), { id: "watch" }),
+        pane(quote({ symbol: "KSTR" }), { id: "quote", ...follows("watch") }),
+      ),
+    );
+    expect(selected(jali, "watch")).toEqual(quote({ symbol: "KSTR" }));
+    const layouts: unknown[] = [];
+    jali.on("layout", (e) => layouts.push(e.layout));
+    location.visit(older);
+    expect(shown(jali, "quote")).toEqual(quote({ symbol: "ORBD" }));
+    expect(shown(jali, "chart")).toEqual(chart({ symbol: "ORBD" }));
+    expect(selected(jali, "watch")).toEqual(quote({ symbol: "ORBD" }));
+    // Only Back's own announcement, and no follow step after it.
+    expect(jali.get().announcement.text).toBe("Layout changed by browser history");
+    vi.advanceTimersByTime(FOLLOW_MS);
+    expect(layouts).toHaveLength(1);
+    stop();
+  });
+
+  it("a link mid-session: the selection takes the link's quote, and the followers stay as the link has them", () => {
+    const { jali: writer, location: from } = make();
+    writer.actions.select("watch", quote({ symbol: "ORBD" }));
+    vi.advanceTimersByTime(FOLLOW_MS);
+    const link = from.search();
+    const { jali, location } = make();
+    const stop = jali.start();
+    jali.actions.select("watch", quote({ symbol: "KSTR" }));
+    vi.advanceTimersByTime(FOLLOW_MS);
+    location.visit(link);
+    expect(selected(jali, "watch")).toEqual(quote({ symbol: "ORBD" }));
+    expect(shown(jali, "chart")).toEqual(chart({ symbol: "ORBD" }));
+    stop();
+  });
+
+  it("a follower of an unrelated kind changes nothing", () => {
+    const { jali: writer, location: from } = make({ preset: "charts" });
+    const link = from.search();
+    expect(writer.get().selection.watch).toBeUndefined();
+    const { jali, location } = make();
+    const stop = jali.start();
+    jali.actions.select("watch", quote({ symbol: "HRBK" }));
+    vi.advanceTimersByTime(FOLLOW_MS);
+    location.visit(link);
+    // A chart says nothing about the quote: the selection stays, and the chart stays as the link has it.
+    expect(shown(jali, "chart")).toEqual(chart({ symbol: "KSTR" }));
+    expect(selected(jali, "watch")).toEqual(quote({ symbol: "HRBK" }));
+    stop();
+  });
+
+  it("a kept detail of the selected kind doesn't drive it", () => {
+    const { jali, location } = make();
+    const stop = jali.start();
+    jali.actions.select("watch", quote({ symbol: "KSTR" }));
+    vi.advanceTimersByTime(FOLLOW_MS);
+    const { jali: writer, location: from } = make({ preset: "plain" });
+    writer.setLayout(
+      row(
+        pane(watchlist(), { id: "watch" }),
+        pane(quote({ symbol: "ORBD" }), { id: "kept", linkedTo: "watch", kept: true }),
+      ),
+    );
+    location.visit(from.search());
+    expect(shown(jali, "kept")).toEqual(quote({ symbol: "ORBD" }));
+    expect(selected(jali, "watch")).toEqual(quote({ symbol: "KSTR" }));
+    stop();
+  });
+
+  it("a reload starts the list on what its follower shows", () => {
+    const { jali, location } = make();
+    jali.actions.select("watch", quote({ symbol: "HRBK" }));
+    vi.advanceTimersByTime(FOLLOW_MS);
+    const { jali: reloaded } = make({ preset: "plain", search: location.search() });
+    expect(shown(reloaded, "quote")).toEqual(quote({ symbol: "HRBK" }));
+    expect(selected(reloaded, "watch")).toEqual(quote({ symbol: "HRBK" }));
   });
 });
