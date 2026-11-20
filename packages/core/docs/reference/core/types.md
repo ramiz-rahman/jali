@@ -612,10 +612,10 @@ A curated page's item id: a number, or a string such as a UUID or a slug. See `f
 *type*, from `@jali/core`
 
 ```ts
-type PaneActivity = "idle" | "loading" | "working" | "needs-you" | "error"
+type PaneActivity = "idle" | "loading" | "working" | "live" | "needs-you" | "error"
 ```
 
-What a pane reports about itself (`useActivity`), shown in its header, its tab, the shelf and the status line. On the shelf, loading reads as working.
+What a pane reports about itself (`useActivity`), shown in its header, its tab, the shelf and the status line. On the shelf, loading reads as working. `"live"` is ongoing, healthy work meant to go on (recording, streaming, playback): a dot rather than a spinner, read as "Live", and the least pressing on the "N folded" chip.
 
 ### PaneErrorInfo
 

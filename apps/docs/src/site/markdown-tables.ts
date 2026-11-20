@@ -3,7 +3,7 @@
  * and the Tailwind bridge. `toMarkdown(page, { tables: MARKDOWN_TABLES })`.
  */
 import { PALETTE_ID, createKeymap, formatKeys } from "@jali/core/adapter";
-import { parts } from "../../../../packages/react/src/parts";
+import { ADORNMENTS, parts } from "../../../../packages/react/src/parts";
 import { COMMANDS, REFUSED, displayId } from "../reference/command-data";
 import {
   BRIDGE,
@@ -37,7 +37,7 @@ export const MARKDOWN_TABLES: Record<string, (attrs: Record<string, string | tru
         .map((p) => [
           `\`${p.selector}\``,
           p.element.startsWith("`") ? p.element : p.element.replace(/^(\w+)/, "`$1`"),
-          p.what,
+          "adornments" in p ? `${p.what} ${ADORNMENTS}` : p.what,
           p.attributes.length
             ? p.attributes.map((a) => `\`${a.name}\`: ${a.means}`).join("<br>")
             : "none",

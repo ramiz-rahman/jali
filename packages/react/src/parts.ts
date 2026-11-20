@@ -46,6 +46,10 @@ export interface Part {
   adornments?: true;
 }
 
+/** What the reference says of a part with `adornments`. */
+export const ADORNMENTS =
+  "Its `::before` and `::after` are yours: Jali's styles never use them, so a lamp, a badge or a stripe drawn there stays.";
+
 const unsaved: PartAttribute = {
   name: "data-unsaved",
   means: "Flag: the pane reports unsaved work (`useUnsaved`).",

@@ -62,7 +62,7 @@ The address.
 
 - **`keys`** (`"page" | "scoped"`): `"page"`: every key on the page. `"scoped"`: only keys pressed inside it or in its dialogs (the palette, settings and the chooser render outside its root, so a ⌘K chord finishes there), and keys with nothing focused while it was the last one used. Use `"scoped"` for two on one page.
 
-- **`pageTheme`** (`boolean`): Set `data-theme` on `<html>` from the person's theme setting. `false` when the workspace sits in a page that has its own theme.
+- **`pageTheme`** (`boolean`): Set `data-theme` on `<html>` from the person's theme setting, and on the workspace's root and dialog layer too, for rules scoped to the workspace. `false` when the workspace sits in a page that has its own theme: then it writes none of them.
 
 - **`settings`** (`Partial<Settings>`): Settings for a person who has none saved on this device yet: `{ theme: "dark" }` for a dark-first app. They are not saved; what the person changes is, and wins from then on, setting by setting. See [`Settings`](core/types.md#Settings).
 

@@ -369,9 +369,9 @@ A curated page's item id: a number, or a string such as a UUID or a slug. See `f
 
 </Entry>
 
-<Entry name="PaneActivity" kind="type" from="@jali/core" signature={`type PaneActivity = "idle" | "loading" | "working" | "needs-you" | "error"`} compact>
+<Entry name="PaneActivity" kind="type" from="@jali/core" signature={`type PaneActivity = "idle" | "loading" | "working" | "live" | "needs-you" | "error"`} compact>
 
-What a pane reports about itself (`useActivity`), shown in its header, its tab, the shelf and the status line. On the shelf, loading reads as working.
+What a pane reports about itself (`useActivity`), shown in its header, its tab, the shelf and the status line. On the shelf, loading reads as working. `"live"` is ongoing, healthy work meant to go on (recording, streaming, playback): a dot rather than a spinner, read as "Live", and the least pressing on the "N folded" chip.
 
 </Entry>
 

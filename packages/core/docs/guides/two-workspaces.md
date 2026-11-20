@@ -67,7 +67,7 @@ Everything else a workspace starts while its `<JaliRoot>` is mounted works for e
 
 ## Inside a page with its own theme
 
-A workspace sets `data-theme` on `<html>` from its theme setting. Inside a page that has its own light and dark (a docs site, an app with its own switch), pass `pageTheme: false`, and the workspace follows the page's `.dark` and `[data-theme]` scopes instead.
+A workspace sets `data-theme` on `<html>` from its theme setting, and on its own root and dialog layer. Inside a page that has its own light and dark (a docs site, an app with its own switch), pass `pageTheme: false`, and the workspace writes none of them and follows the page's `.dark` and `[data-theme]` scopes instead.
 
 ## Focus
 

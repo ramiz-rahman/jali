@@ -69,6 +69,7 @@ Everything in <Ref to="PaneOptions" page="/reference/core/types" /> (`params`, `
 <ChildParams label="view fields">
 <Param name="Component" type="ComponentType<PaneProps<P>>" required>Renders the pane's content. It stays mounted while the pane is folded, tabbed, tucked or moved.</Param>
 <Param name="Loading" type="ComponentType<PaneProps<P>>">Shown while `Component` suspends (for example, it reads data with `use()`). It gets the same props. Default: a quiet "Loading…". The pane's activity is `"loading"` meanwhile.</Param>
+<Param name="Missing" type="ComponentType<MissingProps>">Shown in place of `Component` when the pane's params can't be read: a required one missing, or a value its type can't read. It gets <Ref to="MissingProps" />, so it can explain in the kind's own words and offer a way on. Render it from `Component` too, for params that read but name nothing. Default: Jali's own message, naming the param.</Param>
 <Param name="icon" type="JaliIcon">The kind's icon in the header, tab and shelf: any component that takes `{ size, className, "aria-hidden" }`, such as Phosphor's `FileTextIcon`, which matches Jali's own. Jali passes `size` and `aria-hidden`, never a weight, so your icon set's default or its context decides it. Without one, the `defaultKind` icon (a square).</Param>
 </ChildParams>
 
@@ -85,9 +86,22 @@ A kind made with <Ref to="definePane" />. `P` is its params' type; `Pane` alone 
 
 </Entry>
 
-<Entry name="PaneOptionsReact" kind="type" from="@jali/react" signature={`interface PaneOptionsReact<P> extends PaneOptions<P> {\n  icon?: JaliIcon;\n  Component: ComponentType<PaneProps<P>>;\n  Loading?: ComponentType<PaneProps<P>>;\n}`} compact>
+<Entry name="PaneOptionsReact" kind="type" from="@jali/react" signature={`interface PaneOptionsReact<P> extends PaneOptions<P> {\n  icon?: JaliIcon;\n  Component: ComponentType<PaneProps<P>>;\n  Loading?: ComponentType<PaneProps<P>>;\n  Missing?: ComponentType<MissingProps>;\n}`} compact>
 
 The options of <Ref to="definePane" />.
+
+</Entry>
+
+<Entry name="MissingProps" kind="type" from="@jali/react" signature={`interface MissingProps extends PaneProps<Params> {\n  problems: readonly ParamProblem[];\n  close: () => void;\n}`} compact>
+
+What a kind's `Missing` gets: everything <Ref to="PaneProps" /> has, with `params` as the ref gave them (a value Jali couldn't read stays as it came, a missing one is absent), and:
+
+<Params title="Props">
+<Param name="problems" type="readonly ParamProblem[]" required>Each param that is missing (`value` undefined) or holds a value its type can't read. Empty when your own `Component` renders `Missing` for params that read but name nothing.</Param>
+<Param name="close" type="() => void" required>Close the pane, with Undo; in the peek sheet, close the peek.</Param>
+</Params>
+
+It renders inside the pane, so the pane's hooks (`useTitle`, `useCommands`, `useActivity`) work in it.
 
 </Entry>
 
@@ -98,7 +112,7 @@ What a kind's `Component` gets. Components below it read the same with <Ref to="
 Keys: content first. Claim the keys you use with `event.preventDefault()` (J and K, Space, Enter, ⌘Z for your own undo, the first Esc) and let the rest bubble; single character keys must act only while your content has focus. Content that needs every key (an editor) marks itself `data-pane-keys="content"`; the workspace then takes only F6 and Shift+F6 there.
 
 <Params title="Props">
-<Param name="params" type="P" required>What the pane shows, read with the kind's `params` types. A ref missing a required param, or holding a value its type can't read, never gets here: its pane shows a message naming the param instead.</Param>
+<Param name="params" type="P" required>What the pane shows, read with the kind's `params` types. A ref missing a required param, or holding a value its type can't read, never gets here: its pane shows the kind's `Missing`, or a message naming the param.</Param>
 <Param name="node" type="PaneNode" required>The layout node, with the full ref (`node.ref`). In the peek sheet, a node that is not in the layout.</Param>
 <Param name="paused" type="boolean" required>The pane is hidden: tabbed away, tucked, folded, or behind a maximised pane. Pause subscriptions and timers; keep state.</Param>
 <Param name="focused" type="boolean" required>The pane has workspace focus.</Param>
@@ -152,7 +166,7 @@ Whether a key event belongs to the focused content: its target is a text field, 
 
 <Entry name="useActivity" kind="hook" from="@jali/react" signature={`useActivity(activity: PaneActivity | undefined): void`} compact>
 
-Report what the pane is doing (`"loading"`, `"working"`, `"needs-you"`, `"error"` or `"idle"`), for its header, its tab, the shelf and the status line. `undefined` clears it, the same as `"idle"`, and so does the component unmounting. Reported again whenever it changes.
+Report what the pane is doing (`"loading"`, `"working"`, `"live"`, `"needs-you"`, `"error"` or `"idle"`), for its header, its tab, the shelf and the status line. `"working"` is work the person waits for; `"live"` is ongoing, healthy work that is meant to go on, such as recording, streaming or playback, and reads "Live" rather than "Working". `undefined` clears it, the same as `"idle"`, and so does the component unmounting. Reported again whenever it changes.
 
 </Entry>
 
@@ -379,7 +393,7 @@ A pane's activity mark. Renders nothing for `idle` or `undefined`.
 
 <Params title="Props">
 <Param name="a" type="PaneActivity | undefined" required>What the pane reported.</Param>
-<Param name="shape" type="boolean" default="false">`false`: a coloured dot labelled for screen readers ("Loading", "Working", "Needs you", "Error"). `true`: the shelf's mark, a shape as well as a colour (a ring for loading and working, "!" for needs-you, a cross for error), hidden from screen readers.</Param>
+<Param name="shape" type="boolean" default="false">`false`: a coloured dot labelled for screen readers ("Loading", "Working", "Live", "Needs you", "Error"). `true`: the shelf's mark, a shape as well as a colour (a ring for loading and working, a dot in a halo for live, breathing slowly, "!" for needs-you, a cross for error), hidden from screen readers.</Param>
 </Params>
 
 </Entry>

@@ -159,7 +159,7 @@ That box is also the pane's scroller (`overflow: auto`). Content taller than the
 
 Three hooks tell the workspace about the pane they are called in:
 
-- `useActivity("loading")` shows `"loading"`, `"working"`, `"needs-you"`, `"error"` or `"idle"` in the header, tab and shelf.
+- `useActivity("loading")` shows `"loading"`, `"working"`, `"live"`, `"needs-you"`, `"error"` or `"idle"` in the header, tab and shelf. Use `"working"` for work the person waits on, and `"live"` for work that is meant to go on, such as a recording or playback: it shows a slowly breathing dot, not a spinner, and reads "Live".
 - `useUnsaved(dirty && "an unsaved note")` reports work the person would lose.
 - `useCommands([...])` adds commands to ⌘K while the pane is focused.
 
@@ -200,6 +200,36 @@ const jali = createJali({
 ```
 
 **When a component suspends** (it reads data with a Suspense query, or React 19's `use()`), the pane shows a quiet "Loading…" and its activity reads `"loading"`. Give the kind a `Loading` component to show something of your own. It gets the same props as `Component`.
+
+**When the object isn't there,** show it in the kind's own way. A ref whose params Jali can't read (a required one missing, a value of the wrong type, from a layout in code, a saved layout or an action) never reaches `Component`: Jali shows a message naming the param. Give the kind a `Missing` component to show your own instead. It gets the pane's props, with the params as they came, `problems` (what Jali couldn't read) and `close`, so it can explain and offer a way on, such as a button that shows a list in the pane with `openHere`. A link that holds such a ref is refused as broken before it opens anything.
+
+Params that read can still name nothing: a session that was deleted, an order from another account. Render the same component from `Component`, with no problems, so both cases look alike:
+
+```tsx
+function NoSession({ problems, openHere }: MissingProps) {
+  return (
+    <div role="status">
+      <p>{problems.length ? "This link can't name a session." : "This session is gone."}</p>
+      <button onClick={() => openHere(library({}))}>Show the library</button>
+    </div>
+  );
+}
+
+function SessionView(props: PaneProps<typeof sessionParams>) {
+  const jali = useJali();
+  const session = useSession(props.params.id);
+  if (!session)
+    return <NoSession {...props} problems={[]} close={() => jali.actions.close(props.node.id)} />;
+  return <Session session={session} />;
+}
+
+export const session = definePane("session", {
+  params: sessionParams,
+  title: ({ id }) => `Session ${id}`,
+  Component: SessionView,
+  Missing: NoSession,
+});
+```
 
 **To name a pane from its data,** call `useTitle(name)` in the pane. "Ada Okafor" then replaces "Customer 7" in the header, the tab, the shelf, ⌘K and announcements. The kind's `title` comes back when the component unmounts, when the pane shows another object, or when you pass `null`. The title is not saved, and the peek sheet always uses the kind's `title`.
 
@@ -263,6 +293,8 @@ useEffect(() => {
 ```
 
 With TanStack Query, pass `enabled: !paused` or `subscribed: !paused`.
+
+Some work is meant to go on while nobody looks at it: a recording, a stream, music playing. Keep that going while `paused`, stop only what draws it (meters, a moving playhead), and report `useActivity("live")`, so the pane's tab, the shelf and the "N folded" chip show that it is still running.
 
 ## Lists: select, peek and open beside
 

@@ -82,6 +82,8 @@ Everything in [`PaneOptions`](core/types.md#PaneOptions) (`params`, `title`, `wi
 
 - **`Loading`** (`ComponentType<PaneProps<P>>`): Shown while `Component` suspends (for example, it reads data with `use()`). It gets the same props. Default: a quiet "Loading…". The pane's activity is `"loading"` meanwhile.
 
+- **`Missing`** (`ComponentType<MissingProps>`): Shown in place of `Component` when the pane's params can't be read: a required one missing, or a value its type can't read. It gets `MissingProps`, so it can explain in the kind's own words and offer a way on. Render it from `Component` too, for params that read but name nothing. Default: Jali's own message, naming the param.
+
 - **`icon`** (`JaliIcon`): The kind's icon in the header, tab and shelf: any component that takes `{ size, className, "aria-hidden" }`, such as Phosphor's `FileTextIcon`, which matches Jali's own. Jali passes `size` and `aria-hidden`, never a weight, so your icon set's default or its context decides it. Without one, the `defaultKind` icon (a square).
 
 **Returns** `Pane<P>`: The kind, callable: `(params) => ObjectRef`.
@@ -108,10 +110,32 @@ interface PaneOptionsReact<P> extends PaneOptions<P> {
   icon?: JaliIcon;
   Component: ComponentType<PaneProps<P>>;
   Loading?: ComponentType<PaneProps<P>>;
+  Missing?: ComponentType<MissingProps>;
 }
 ```
 
 The options of `definePane`.
+
+### MissingProps
+
+*type*, from `@jali/react`
+
+```ts
+interface MissingProps extends PaneProps<Params> {
+  problems: readonly ParamProblem[];
+  close: () => void;
+}
+```
+
+What a kind's `Missing` gets: everything `PaneProps` has, with `params` as the ref gave them (a value Jali couldn't read stays as it came, a missing one is absent), and:
+
+**Props**
+
+- **`problems`** (`readonly ParamProblem[]`, required): Each param that is missing (`value` undefined) or holds a value its type can't read. Empty when your own `Component` renders `Missing` for params that read but name nothing.
+
+- **`close`** (`() => void`, required): Close the pane, with Undo; in the peek sheet, close the peek.
+
+It renders inside the pane, so the pane's hooks (`useTitle`, `useCommands`, `useActivity`) work in it.
 
 ### PaneProps
 
@@ -127,7 +151,7 @@ Keys: content first. Claim the keys you use with `event.preventDefault()` (J and
 
 **Props**
 
-- **`params`** (`P`, required): What the pane shows, read with the kind's `params` types. A ref missing a required param, or holding a value its type can't read, never gets here: its pane shows a message naming the param instead.
+- **`params`** (`P`, required): What the pane shows, read with the kind's `params` types. A ref missing a required param, or holding a value its type can't read, never gets here: its pane shows the kind's `Missing`, or a message naming the param.
 
 - **`node`** (`PaneNode`, required): The layout node, with the full ref (`node.ref`). In the peek sheet, a node that is not in the layout.
 
@@ -216,7 +240,7 @@ Whether a key event belongs to the focused content: its target is a text field, 
 useActivity(activity: PaneActivity | undefined): void
 ```
 
-Report what the pane is doing (`"loading"`, `"working"`, `"needs-you"`, `"error"` or `"idle"`), for its header, its tab, the shelf and the status line. `undefined` clears it, the same as `"idle"`, and so does the component unmounting. Reported again whenever it changes.
+Report what the pane is doing (`"loading"`, `"working"`, `"live"`, `"needs-you"`, `"error"` or `"idle"`), for its header, its tab, the shelf and the status line. `"working"` is work the person waits for; `"live"` is ongoing, healthy work that is meant to go on, such as recording, streaming or playback, and reads "Live" rather than "Working". `undefined` clears it, the same as `"idle"`, and so does the component unmounting. Reported again whenever it changes.
 
 ### useUnsaved
 
@@ -561,7 +585,7 @@ A pane's activity mark. Renders nothing for `idle` or `undefined`.
 
 - **`a`** (`PaneActivity | undefined`, required): What the pane reported.
 
-- **`shape`** (`boolean`): `false`: a coloured dot labelled for screen readers ("Loading", "Working", "Needs you", "Error"). `true`: the shelf's mark, a shape as well as a colour (a ring for loading and working, "!" for needs-you, a cross for error), hidden from screen readers.
+- **`shape`** (`boolean`): `false`: a coloured dot labelled for screen readers ("Loading", "Working", "Live", "Needs you", "Error"). `true`: the shelf's mark, a shape as well as a colour (a ring for loading and working, a dot in a halo for live, breathing slowly, "!" for needs-you, a cross for error), hidden from screen readers.
 
 ### JaliRootProps
 

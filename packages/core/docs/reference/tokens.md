@@ -48,6 +48,7 @@ Each row below gives the token, what it is for, and the `jali-*` classes whose r
 | Token | Used for | Light | Dark |
 | --- | --- | --- | --- |
 | `--jali-working` | A pane reporting "working": its activity dot and the shelf's spinning ring. | `#0e7490` | `#22d3ee` |
+| `--jali-live` | A pane reporting "live" (recording, streaming, playback): its activity dot and the shelf's breathing dot in a halo. | `#15803d` | `#4ade80` |
 | `--jali-blocked` | A pane reporting "needs-you": its activity dot and the shelf's "!" mark. | `#d97706` | `#fbbf24` |
 | `--jali-failed` | A pane reporting "error": its activity dot and the shelf's cross. | `#dc2626` | `#f87171` |
 | `--jali-done` | A finished state, for the host's own status marks. Part of the palette; a pane's activity has no "done". | `#059669` | `#34d399` |

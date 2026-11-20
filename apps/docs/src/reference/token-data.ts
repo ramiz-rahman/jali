@@ -136,6 +136,12 @@ export const TOKEN_PURPOSE: Record<string, TokenInfo> = {
     swatch: "color",
     purpose: 'A pane reporting "working": its activity dot and the shelf\'s spinning ring.',
   },
+  "--jali-live": {
+    group: "Status",
+    swatch: "color",
+    purpose:
+      'A pane reporting "live" (recording, streaming, playback): its activity dot and the shelf\'s breathing dot in a halo.',
+  },
   "--jali-blocked": {
     group: "Status",
     swatch: "color",

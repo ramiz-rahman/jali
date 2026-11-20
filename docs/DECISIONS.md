@@ -793,3 +793,30 @@ Data Studio's old tab strip had six features Jali lacked. Each is general, and l
 - **Unchanged:** every existing layout and fold test gives the same result. Tucks go to their recorded home as before. `replay` and the hidden-pane step moved from `fit/overlay.ts` to `fit/replay.ts`, so the lookahead can use `chooseFold` without an import cycle; `foldSlot` takes the home, and `foldHomes` lists the candidates.
 - **Studio:** Compare keeps the timeline under the transcript: at 760 it shows three panes (library, transcript, timeline), more than the old arrangement now gives safely (library and transcript, the segments and the timeline as tabs).
 - **Tests:** `layout/test/fold-home.test.ts` (the cascade at 760 with generic kinds, the rule's home at 900, the same arrangement on a round trip, a tie).
+
+## 20 Nov 2026 · A "live" activity (Studio, FINDINGS.md #6)
+
+- **Why:** the closest activity to music playing was `"working"`, a spinning ring announced as "Working", which reads as "busy, wait". Recording, streaming and playback are ongoing, healthy work that is meant to go on.
+- **Now:** `PaneActivity` has `"live"`: a dot after the pane's name in `--jali-live` (a green apart from the teal of working), and on the shelf and the "N folded" chip a dot in a soft halo (`data-shape="dot"`) that breathes slowly, still under reduced motion. It reads "Live" (`messages.pane.live`), and the shelf chip's and folded chip's names say "live". It is the least pressing on the folded chip (error, needs-you, working, loading, then live): a pane that waits for the person, or is busy, says so first.
+- **Not added:** a per-pane label for screen readers (`useActivity(a, { label })`). It would thread a label through the store, the shelf and the folded chip; an app that wants other words changes `messages.pane.live` once.
+- **Tests:** `tests/folded-activity.test.tsx`.
+
+## 20 Nov 2026 · A kind's `Missing` (Studio, FINDINGS.md, theming gap 27)
+
+- **Why:** a ref whose params Jali can't read showed Jali's own message, which an app couldn't style or give a way on. A ref that reads but names nothing (a deleted session) already reached the component, so the two looked different.
+- **Now:** `definePane(kind, { Missing })`. Jali renders it in place of `Component` when the params can't be read, inside the pane (so `useTitle` and the other hooks work), with `MissingProps`: the pane's props with the params as they came, `problems` and `close` (with Undo). A kind's `Component` renders the same component, with no problems, for params that name nothing. Without `Missing`, Jali's message as before.
+- **Where it is reached:** a layout in code, a saved layout or an action with such a ref. A link holding one is still refused as broken before it opens anything.
+- **Tests:** `tests/params.test.tsx`.
+
+## 20 Nov 2026 · `::before` and `::after` on a tab, a switcher item and the activity marks are the app's (Studio, FINDINGS.md, theming gap 10)
+
+- **Why:** a tab takes no children of the app's, so Studio draws a latched tab's lamp in `::before`. If Jali ever used it, the lamp would break.
+- **Now:** a part can promise its pseudo-elements (`adornments: true` in `parts.ts`), and the Parts reference says so on each. `tests/parts.test.tsx` reads Jali's stylesheets, nested rules and lists included, and fails if any rule draws `::before` or `::after` on such a part. Jali's own drop line is on `.jali-tab-item`, the wrapper, not on the tab.
+- **Not added:** a `tabAdornment(pane)` slot. The promise costs nothing and covers what the slot would.
+
+## 20 Nov 2026 · The theme on Jali's root and layer (Studio, FINDINGS.md, theming gap 23)
+
+- **Why:** an image can't follow the theme through `light-dark()`, so an app switches it by `data-theme`, which Jali wrote only on `<html>`.
+- **Now:** `<JaliRoot>` writes the resolved theme as `data-theme` on its root and its dialog layer too, after mount, as on `<html>`, so a rule can be scoped to the workspace. Jali's theme scopes (`jali-theme.css`, `jali-tailwind.css`) ignore the copy where it equals `<html>`'s, so whatever sits between `<html>` and the workspace still decides its colours, and the Tailwind bridge doesn't redeclare tokens on the root over a host's value set above it.
+- **Not with `pageTheme: false`,** though the finding asked for that case. There the page's own scopes decide, the setting's resolved value can disagree with them, and a `data-theme` on the root would become one more scope (Jali's `[data-theme="dark"]` and every app rule written as `[data-theme] …`), changing apps that don't ask for it. Such a page switches images on its own scope. Nor over a `data-theme` the app gives `<JaliRoot>`.
+- **Tests:** `tests/workspaces.test.tsx`.

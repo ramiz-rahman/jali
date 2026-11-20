@@ -47,6 +47,28 @@ Put your rules in a cascade layer after `jali`, as in [Theming](../guides/themin
 
 With Tailwind, the same attributes work as variants: `data-[focused]:ring-2`, or `group-data-[zoomed]:hidden` inside a pane.
 
+## Adornments
+
+A tab, a pane switcher item and the activity marks (`.jali-activity`, `.jali-activity-shape`) take no children of yours, so their `::before` and `::after` are yours instead, for a lamp, a badge or a stripe. Jali's styles never use them on these parts, and a test reads Jali's stylesheets to keep it so. Each one says so below.
+
+```css
+@layer components {
+  .jali-tab[data-recording]::before {
+    content: "";
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--jali-failed);
+  }
+}
+```
+
+Give the tab's title `min-width: 0` (`.jali-tab-title`) so it shrinks first when you add to the tab.
+
+## Theme
+
+A started workspace writes the theme in use, `light` or `dark`, as `data-theme` on `<html>`, and on its root (`[data-jali]`) and the layer that holds its dialogs (`[data-jali-layer]`) as well, so a rule can be scoped to the workspace: `[data-jali][data-theme="dark"] .grain { background-image: url(grain-dark.svg); }`. It follows the theme setting and, for System, the system's preference. The copy on the root and layer is not a theme scope of its own for Jali's styles: whatever sits between `<html>` and the workspace still decides its colours. With `createJali({ pageTheme: false })` Jali writes none of them, because the page's own theme decides: switch images on your own theme scope, or on `prefers-color-scheme` when the page has none. Nor does it write over a `data-theme` you give `<JaliRoot>`.
+
 ## Pressed
 
 Every control Jali renders carries `data-pressed` while it is held down: by the pointer, or by Space or Enter while it has focus. `:active` covers only the pointer, so a theme that shows a key going down reads `[data-pressed]` to show it from the keyboard as well. One mechanism sets it for all of them: the header's buttons, tabs and their buttons, the "+N" and "N folded" chips, shelf chips and their menu, the Following / Kept toggle, the pane switcher, a curated page's tabs, tab menu items and dialog buttons. Each lists it below. Jali's own styles don't read it.
@@ -82,7 +104,7 @@ Corners, spacing and colours are tokens, not parts: every corner reads `--jali-r
 | `.jali-pane-actions` | `div` | The header's buttons (`buttons`: by default tuck, maximise, close), and ⋯ for the rest of the pane's menu. | `data-count`: How many buttons it shows, ⋯ included, so a theme that draws them as one strip can size it: which buttons show changes from pane to pane. |
 | `.jali-pane-tools` | `div` | The pane's own controls in its header (`useHeaderActions`), after the title and before Jali's buttons. Rendered only while the content gives some; a narrow header drops it before its title gets short (`data-narrow="tools"`). | none |
 | `.jali-pane-action` | `button` | One of the header's buttons, and ⋯ for the pane's menu. Only the buttons the pane allows are rendered, so their number changes from pane to pane. | `data-action`: `tuck`, `zoom` (Maximise, or Restore while maximised: see the pane's `data-zoomed`), `fullscreen`, `popout`, `close` or `menu` (⋯).<br>`aria-pressed`: On `fullscreen` and `popout`: `true` while on.<br>`disabled`: On `tuck`: nothing to tuck behind (its tooltip says why).<br>`data-pressed`: Flag: held down, by the pointer or by Space or Enter while it has focus (`:active` covers only the pointer). Jali's styles don't read it. |
-| `.jali-activity` | `span` | A pane's activity dot (`useActivity`), after its name in a header, a tab, the pane switcher and tab menus. Absent while idle. Jali draws it with the element's size, corners and background; its `::before` and `::after` are yours, so restyle it to draw your own mark. | `data-activity`: `loading`, `working`, `needs-you` or `error`. |
+| `.jali-activity` | `span` | A pane's activity dot (`useActivity`), after its name in a header, a tab, the pane switcher and tab menus. Absent while idle. Jali draws it with the element's size, corners and background, so restyle it to draw your own mark. Its `::before` and `::after` are yours: Jali's styles never use them, so a lamp, a badge or a stripe drawn there stays. | `data-activity`: `loading`, `working`, `live`, `needs-you` or `error`. |
 | `.jali-pane-content` | `div` | Where the kind's `Component` renders. | none |
 
 ## Tabs
@@ -92,7 +114,7 @@ Corners, spacing and colours are tokens, not parts: every corner reads `--jali-r
 | `.jali-tabbar` | `div` | A tab group's strip. | none |
 | `.jali-tabs-pinned` | `div` | The strip's pinned tabs, which stay in view while the rest scroll. | none |
 | `.jali-tab-item` | `div` | One tab with its buttons. | `data-pinned`: Flag: a pinned tab.<br>`data-unsaved`: Flag: the pane reports unsaved work (`useUnsaved`).<br>`data-drop`: While a tab is dragged along the strip: `before` or `after`, where it will land.<br>`data-renaming`: Flag: the rename field has taken the tab's place. |
-| `.jali-tab` | `div` | A tab (`role="tab"`). | `data-tab`: The pane's id.<br>`aria-selected`: `true` on the shown tab.<br>`data-pinned`: Flag: a pinned tab.<br>`data-folded`: Flag: the layout folded this pane into tabs; it returns when there's room.<br>`data-tucked`: Flag: tucked; shown here until it is put back.<br>`data-unsaved`: Flag: the pane reports unsaved work (`useUnsaved`).<br>`data-pressed`: Flag: held down, by the pointer or by Space or Enter while it has focus (`:active` covers only the pointer). Jali's styles don't read it. |
+| `.jali-tab` | `div` | A tab (`role="tab"`). Its `::before` and `::after` are yours: Jali's styles never use them, so a lamp, a badge or a stripe drawn there stays. | `data-tab`: The pane's id.<br>`aria-selected`: `true` on the shown tab.<br>`data-pinned`: Flag: a pinned tab.<br>`data-folded`: Flag: the layout folded this pane into tabs; it returns when there's room.<br>`data-tucked`: Flag: tucked; shown here until it is put back.<br>`data-unsaved`: Flag: the pane reports unsaved work (`useUnsaved`).<br>`data-pressed`: Flag: held down, by the pointer or by Space or Enter while it has focus (`:active` covers only the pointer). Jali's styles don't read it. |
 | `.jali-tab-title` | `span` | A tab's name, inside `.jali-tab`. Give it `min-width: 0` to let it shrink first when you add to the tab. | none |
 | `.jali-tab-close` | `button` | A tab's close button (an unsaved dot until hovered or focused). | `data-pressed`: Flag: held down, by the pointer or by Space or Enter while it has focus (`:active` covers only the pointer). Jali's styles don't read it. |
 | `.jali-rename` | `input` | The rename field that takes a tab's (or a lone pane's title's) place while renaming (`createJali({ rename })`). | none |
@@ -100,7 +122,7 @@ Corners, spacing and colours are tokens, not parts: every corner reads `--jali-r
 | `.jali-tab-add` | `button` | A tab group's New tab button (with a `launcher`). | `data-pressed`: Flag: held down, by the pointer or by Space or Enter while it has focus (`:active` covers only the pointer). Jali's styles don't read it. |
 | `.jali-tab-more` | `button` | The "+N" button for tabs that don't fit. | `data-pressed`: Flag: held down, by the pointer or by Space or Enter while it has focus (`:active` covers only the pointer). Jali's styles don't read it. |
 | `.jali-tab-indicator` | `span` | The one underline under the shown tab. | none |
-| `.jali-tab-folded` | `button` | The "N folded" chip at the end of a tab strip: the panes the layout folded into this place, but the one it shows. Its menu lists them, each with its activity dot. | `data-activity`: The most pressing activity of the panes behind it (`useActivity`): `working` (loading too), `needs-you` or `failed`; absent when all are idle. The chip shows the shelf's shape for it (`activityShape`).<br>`data-pressed`: Flag: held down, by the pointer or by Space or Enter while it has focus (`:active` covers only the pointer). Jali's styles don't read it. |
+| `.jali-tab-folded` | `button` | The "N folded" chip at the end of a tab strip: the panes the layout folded into this place, but the one it shows. Its menu lists them, each with its activity dot. | `data-activity`: The most pressing activity of the panes behind it (`useActivity`): most pressing first, `failed`, `needs-you`, `working` (loading too), then `live`; absent when all are idle. The chip shows the shelf's shape for it (`activityShape`).<br>`data-pressed`: Flag: held down, by the pointer or by Space or Enter while it has focus (`:active` covers only the pointer). Jali's styles don't read it. |
 
 ## Dividers
 
@@ -121,8 +143,8 @@ Corners, spacing and colours are tokens, not parts: every corner reads `--jali-r
 | Part | Element | What it is | State attributes |
 | --- | --- | --- | --- |
 | `.jali-shelf` | `div` | The panes you tucked, as chips (`<Shelf />`). Folded panes wait behind their strip's `tabFolded` chip. | none |
-| `.jali-shelf-chip` | `div` | A chip on the shelf. | `data-chip`: The pane's id.<br>`data-reason`: `tucked`.<br>`data-activity`: The pane's activity (`useActivity`): `idle`, `working` (loading too), `needs-you` or `failed`.<br>`data-unsaved`: Flag: the pane reports unsaved work (`useUnsaved`). |
-| `.jali-activity-shape` | `span` | A pane's activity as a shape as well as a colour, never colour alone: in a shelf chip, the shelf's menu and the "N folded" chip. Absent while idle. Jali draws the ring with a border and a spin, "!" as text and the cross with the `activityError` icon (both in `currentColor`); its `::before` and `::after` are yours. To draw your own, clear Jali's (`border: 0; animation: none; background: none; color: transparent`) and draw in `::before`. | `data-activity`: `working` (loading too), `needs-you` or `failed`, as on the shelf chip and the "N folded" chip.<br>`data-shape`: Jali's shape for it: `ring`, `need` ("!") or `fail` (a cross). |
+| `.jali-shelf-chip` | `div` | A chip on the shelf. | `data-chip`: The pane's id.<br>`data-reason`: `tucked`.<br>`data-activity`: The pane's activity (`useActivity`): `idle`, `working` (loading too), `live`, `needs-you` or `failed`.<br>`data-unsaved`: Flag: the pane reports unsaved work (`useUnsaved`). |
+| `.jali-activity-shape` | `span` | A pane's activity as a shape as well as a colour, never colour alone: in a shelf chip, the shelf's menu and the "N folded" chip. Absent while idle. Jali draws the ring with a border and a spin, the live dot with a border and a background that breathe, "!" as text and the cross with the `activityError` icon (both in `currentColor`). To draw your own, clear Jali's (`border: 0; animation: none; background: none; color: transparent`) and draw in `::before`. Its `::before` and `::after` are yours: Jali's styles never use them, so a lamp, a badge or a stripe drawn there stays. | `data-activity`: `working` (loading too), `live`, `needs-you` or `failed`, as on the shelf chip and the "N folded" chip.<br>`data-shape`: Jali's shape for it: `ring`, `dot` (live), `need` ("!") or `fail` (a cross). |
 | `.jali-shelf-chip-main` | `button` | The chip's main button: the pane's icon, name and marks. Brings the pane back. | `data-pressed`: Flag: held down, by the pointer or by Space or Enter while it has focus (`:active` covers only the pointer). Jali's styles don't read it. |
 | `.jali-shelf-chip-title` | `span` | A pane's name, in a chip and in the shelf's menu. | none |
 | `.jali-shelf-chip-put` | `button` | A tucked chip's Put back button, shown while the chip is hovered or has focus. | `data-pressed`: Flag: held down, by the pointer or by Space or Enter while it has focus (`:active` covers only the pointer). Jali's styles don't read it. |
@@ -163,7 +185,7 @@ Corners, spacing and colours are tokens, not parts: every corner reads `--jali-r
 | `.jali-fold-line` | `div` | The hairline drawn on a fold's hinge, between the two halves. | none |
 | `.jali-stack-divider` | `div` | Stacked view's divider between the two panes on a phone (`role="separator"`); it settles on a third, a half or two thirds. | `data-dragging`: Flag: being dragged. |
 | `.jali-switcher` | `nav` | Single view's pane switcher (a tab list). | none |
-| `.jali-switch-item` | `button` | One pane in the switcher. | `aria-selected`: `true` on the pane in view.<br>`data-tucked`: Flag: a tucked pane.<br>`data-in-view`: Flag: in stacked view, the other pane on screen.<br>`data-unsaved`: Flag: the pane reports unsaved work (`useUnsaved`).<br>`data-pressed`: Flag: held down, by the pointer or by Space or Enter while it has focus (`:active` covers only the pointer). Jali's styles don't read it. |
+| `.jali-switch-item` | `button` | One pane in the switcher. Its `::before` and `::after` are yours: Jali's styles never use them, so a lamp, a badge or a stripe drawn there stays. | `aria-selected`: `true` on the pane in view.<br>`data-tucked`: Flag: a tucked pane.<br>`data-in-view`: Flag: in stacked view, the other pane on screen.<br>`data-unsaved`: Flag: the pane reports unsaved work (`useUnsaved`).<br>`data-pressed`: Flag: held down, by the pointer or by Space or Enter while it has focus (`:active` covers only the pointer). Jali's styles don't read it. |
 
 ## Curated pages
 

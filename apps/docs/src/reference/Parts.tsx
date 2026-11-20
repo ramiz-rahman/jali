@@ -3,7 +3,7 @@
  * it is, and the state attributes it carries.
  */
 import type { ReactNode } from "react";
-import { parts, type PartArea } from "../../../../packages/react/src/parts";
+import { ADORNMENTS, parts, type PartArea } from "../../../../packages/react/src/parts";
 import "./reference.css";
 
 /** Backticks in the contract's sentences as code. */
@@ -35,7 +35,10 @@ export function PartsTable({ area }: { area?: PartArea }) {
               <tr key={name} id={`part-${name}`}>
                 <td>
                   <code>{part.selector}</code>
-                  <div className="ref-cmd-title">{prose(part.what)}</div>
+                  <div className="ref-cmd-title">
+                    {prose(part.what)}
+                    {"adornments" in part ? <> {prose(ADORNMENTS)}</> : null}
+                  </div>
                 </td>
                 <td data-label="Element">{prose(element(part.element))}</td>
                 <td data-label="State attributes">
