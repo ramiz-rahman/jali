@@ -13,7 +13,7 @@ import {
 } from "@phosphor-icons/react";
 import { column, pane, row, type ObjectRef } from "@jali/core";
 import { definePage, type PageView } from "@jali/react";
-import { applicationFacts } from "#shared/data/sample-sql";
+import { factsOf } from "./facts";
 import { overviewKind, reviewRecordKind, reviewRelatedKind } from "./kinds";
 import { ApplicationHeader, QueueRail } from "./page";
 
@@ -28,9 +28,13 @@ const ROLES: PageView[] = [
 
 const record = (table: string, id: number) => reviewRecordKind({ table, id });
 
-/** What each view shows for an application. */
+/**
+ * What each view shows for an application: its own record, and the borrower, group and field officer the database
+ * says it is for (facts.ts). An application the database doesn't have (a stale link) binds its views to nothing that
+ * exists, so each says it can't be found.
+ */
 function bind(item: number): Record<string, ObjectRef> {
-  const f = applicationFacts(item);
+  const f = factsOf(item) ?? { id: item, member: 0, group: 0, officer: 0 };
   return {
     overview: overviewKind({ item: f.id }),
     application: record("loan_applications", f.id),

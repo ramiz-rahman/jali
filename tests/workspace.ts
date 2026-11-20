@@ -18,6 +18,12 @@ import {
   dataStudioPresets,
 } from "../examples/data-studio/src/panes";
 import { loanReview, loanReviewKinds } from "../examples/loan-review/src/review";
+import { setFacts } from "../examples/loan-review/src/review/facts";
+import { applicationFacts, LOAN_BOOK } from "../examples/shared/src/data/sample-sql";
+
+// Loan review binds its views from the database's facts (review/facts.ts). There is no database here, so the facts
+// are the sample's, as it is generated.
+setFacts(Array.from({ length: LOAN_BOOK.applications }, (_, i) => applicationFacts(i + 1)));
 
 export const testKinds = () =>
   createPaneKinds([

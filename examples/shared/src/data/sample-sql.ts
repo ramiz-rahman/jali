@@ -196,8 +196,8 @@ const loanBookTables = [
 export const LOAN_BOOK = { officers: 6, groups: 24, members: 300, applications: 36 } as const;
 const PRODUCTS = ["General", "Agriculture", "Small enterprise", "Seasonal"];
 
-/** Who an application is for, derived the same way the sample is generated: the review workspace binds its panes
- *  to an application without waiting for a query. */
+/** Who an application is for, as the sample is generated: the seed's own rule. Apps read it from the database
+ *  (Loan review: review/facts.ts), never from here. */
 export function applicationFacts(id: number) {
   const member = ((id * 37) % LOAN_BOOK.members) + 1;
   const group = memberGroup(member);
