@@ -1,0 +1,70 @@
+/**
+ * Images in pages (`![alt](/media/…)`), rendered at build time with their size, so nothing moves when they load,
+ * and loaded lazily. A GIF with a video beside it (`x.mp4`, and `x.webp` as its first frame) is shown as that video:
+ * about a sixth of the bytes, nothing loaded until it plays, and a pause button (src/client/enhance.ts plays it while
+ * it is on screen, unless the reader prefers reduced motion). The GIF stays for the Markdown copies.
+ * Make the video with `ffmpeg -i x.gif -movflags +faststart -pix_fmt yuv420p -c:v libx264 -crf 26 -an x.mp4`.
+ */
+import { existsSync, readFileSync } from "node:fs";
+import { join } from "node:path";
+import type { ComponentPropsWithoutRef } from "react";
+
+/** apps/docs/public: the build runs in apps/docs (pnpm --filter, Playwright's webServer, `astro build`). */
+const PUBLIC = [join(process.cwd(), "public"), join(process.cwd(), "apps/docs/public")].find(
+  existsSync,
+);
+
+const fileOf = (src: string) =>
+  PUBLIC && src.startsWith("/") && !src.includes("..") ? join(PUBLIC, src) : undefined;
+
+/** Width and height from a GIF's, PNG's or SVG's own header. */
+function sizeOf(file: string): { width: number; height: number } | undefined {
+  if (!existsSync(file)) return undefined;
+  const b = readFileSync(file);
+  if (b.toString("ascii", 0, 3) === "GIF")
+    return { width: b.readUInt16LE(6), height: b.readUInt16LE(8) };
+  if (b.toString("ascii", 1, 4) === "PNG")
+    return { width: b.readUInt32BE(16), height: b.readUInt32BE(20) };
+  if (file.endsWith(".svg")) {
+    const box = /viewBox="[\d.]+[\s,]+[\d.]+[\s,]+([\d.]+)[\s,]+([\d.]+)"/.exec(b.toString("utf8"));
+    if (box) return { width: Number(box[1]), height: Number(box[2]) };
+  }
+  return undefined;
+}
+
+export function MediaImage({ src = "", alt = "", ...rest }: ComponentPropsWithoutRef<"img">) {
+  const file = fileOf(src);
+  const size = file ? sizeOf(file) : undefined;
+  const base = src.replace(/\.gif$/, "");
+  const video = file && src.endsWith(".gif") && existsSync(file.replace(/\.gif$/, ".mp4"));
+  if (video)
+    return (
+      <video
+        className="media-video"
+        src={`${base}.mp4`}
+        poster={existsSync(file.replace(/\.gif$/, ".webp")) ? `${base}.webp` : undefined}
+        width={size?.width}
+        height={size?.height}
+        aria-label={alt}
+        controls
+        muted
+        loop
+        playsInline
+        preload="none"
+        data-autoplay=""
+      >
+        <a href={src}>{alt}</a>
+      </video>
+    );
+  return (
+    <img
+      src={src}
+      alt={alt}
+      width={size?.width}
+      height={size?.height}
+      loading="lazy"
+      decoding="async"
+      {...rest}
+    />
+  );
+}

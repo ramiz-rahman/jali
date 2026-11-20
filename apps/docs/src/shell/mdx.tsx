@@ -29,6 +29,7 @@ import {
 } from "@phosphor-icons/react";
 import { langOf, parseRanges, tokenize } from "./highlight";
 import { Collect } from "./collect";
+import { MediaImage } from "./media";
 
 // ---------- text helpers ----------
 
@@ -504,4 +505,5 @@ export const mdxComponents: MDXComponents = {
   code: InlineCode,
   table: Table,
   a: Anchor,
+  img: MediaImage as MDXComponents["img"],
 };
