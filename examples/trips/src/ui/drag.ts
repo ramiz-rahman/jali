@@ -28,7 +28,25 @@ export interface StopDrag {
 
 export const dragStore = createStore<StopDrag | null>(null);
 
+// The drag changes on every pointer move. Each reader takes only what it shows, as a plain value, so a move that
+// doesn't change it renders nothing: the ghost alone follows the pointer, and a day pane renders when the drop
+// line moves within it, not for every move anywhere.
+
+/** The whole drag, for the ghost under the pointer. */
 export const useDrag = () => useStore(dragStore, (d) => d);
+
+/** The id of the stop in hand when it was picked up from day `n`, else null: it changes when a drag starts and ends. */
+export const useDraggedFrom = (n: number) =>
+  useStore(dragStore, (d) => (d?.fromDay === n ? d.id : null));
+
+/** Where in day `n` (of `length` stops) the stop would land: its index, `length` for the end, or -1 when it isn't
+ *  over that day. */
+export const useDropIndex = (n: number, length: number) =>
+  useStore(dragStore, (d) => (d?.over?.day === n ? (d.over.index ?? length) : -1));
+
+/** The day a stop from another day is over (in the overview), or null. */
+export const useDropDay = () =>
+  useStore(dragStore, (d) => (d?.over && d.over.day !== d.fromDay ? d.over.day : null));
 
 /** Where a point is over: a day list and a place in it, or a day row of the overview. */
 export function dropAt(

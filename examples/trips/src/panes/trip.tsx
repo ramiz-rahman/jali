@@ -25,7 +25,7 @@ import { dayBudget, tripBudget } from "../trip/budget";
 import { CITY_NAME } from "../trip/places";
 import { DEFAULT_PLAN, daysIn, dayTotals, hotelOf } from "../trip/plan";
 import { intIn } from "../stored";
-import { useDrag } from "../ui/drag";
+import { useDropDay } from "../ui/drag";
 import * as f from "../ui/format";
 import { DayMark } from "../ui/parts";
 import { Photo } from "../ui/photo";
@@ -42,7 +42,7 @@ function TripPane({ node, focused, select, inPeek }: PaneProps) {
   // (`selects`), and moves it with that pane when a layout (a preset, a link, Back) gives it another day.
   const selected = useJaliState((s) => s.selection[node.id]?.ref);
   const cursor = !inPeek && selected?.kind === "day" ? Number(selected.params.n) : kept;
-  const drag = useDrag();
+  const dropDay = useDropDay();
   const listRef = useRef<HTMLDivElement>(null);
   const budget = tripBudget(plan);
   const cities = (["bkk", "hkt"] as const).map((c) => ({
@@ -172,7 +172,7 @@ function TripPane({ node, focused, select, inPeek }: PaneProps) {
         {plan.days.map((d, i) => {
           const t = dayTotals(plan, d);
           const b = dayBudget(plan, d.n);
-          const dropping = drag?.over?.day === d.n && drag.fromDay !== d.n;
+          const dropping = dropDay === d.n;
           const newCity = i === 0 || plan.days[i - 1]!.city !== d.city;
           return (
             <Fragment key={d.n}>

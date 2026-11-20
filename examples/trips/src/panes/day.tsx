@@ -59,7 +59,7 @@ import {
   type Leg,
   type Mode,
 } from "../trip/travel";
-import { startStopDrag, useDrag } from "../ui/drag";
+import { startStopDrag, useDraggedFrom, useDropIndex } from "../ui/drag";
 import * as f from "../ui/format";
 import { CATEGORY_ICON, DayMark, Empty, MODE_ICON, Stat } from "../ui/parts";
 import { Photo } from "../ui/photo";
@@ -98,7 +98,8 @@ function DayBody({
   const services = useServices();
   const [cursor, setCursor] = usePaneState<string | null>("cursor", null, { parse: idOrNull });
   const listRef = useRef<HTMLOListElement>(null);
-  const drag = useDrag();
+  const draggedId = useDraggedFrom(day.n);
+  const dropIndex = useDropIndex(day.n, day.stops.length);
   const current = useCurrent();
 
   const stops = day.stops;
@@ -200,8 +201,6 @@ function DayBody({
   );
 
   const { places, first } = totals.route;
-  const over = drag?.over?.day === day.n ? drag.over : null;
-  const dropIndex = over ? (over.index ?? stops.length) : -1;
   const end = places[places.length - 1]!;
 
   return (
@@ -292,7 +291,7 @@ function DayBody({
             {stops.map((id, i) => {
               const p = mustPlace(id);
               const Icon = CATEGORY_ICON[p.category];
-              const dragged = drag?.id === id;
+              const dragged = draggedId === id;
               return (
                 <Fragment key={id}>
                   {dropIndex === i ? <li className="drop-line" aria-hidden /> : null}
