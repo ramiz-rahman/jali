@@ -12,6 +12,7 @@
     "dev": "vp dev examples/data-studio",
     "build": "tsc -b && vp build examples/data-studio && vp build examples/loan-review",
     "typecheck": "tsc -b --noEmit && tsc --noEmit -p apps/docs",
+    "verify": "node scripts/verify.mjs",
     "test": "vp test run && vp test run --config apps/docs/src/reference/vitest.config.ts && node scripts/agent-docs.mjs --check",
     "e2e": "playwright test",
     "test:e2e": "playwright test",

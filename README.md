@@ -27,9 +27,15 @@ Data Studio and Loan review share a sample database, panes and chrome in [`examp
 
 ## Checks
 
-- `pnpm test`: the unit tests (`tests/` for the engine, plus each package's and example's own) and the agent docs check.
-- `pnpm e2e`: Jali's browser tests (`e2e/`), against Data Studio and Loan review. Set `DATA_STUDIO_URL` and `LOAN_REVIEW_URL` to run them on other ports.
-- `pnpm typecheck`, `pnpm size`.
+**Every session runs `pnpm verify` before it commits**, and says in its report which gates fail and why. It runs every gate, carries on past a failure, and ends with one line per gate; any failure exits 1. Each gate's output is in `node_modules/.verify/<gate>.log`.
+
+- `pnpm verify`: typecheck, lint, `vp fmt --check`, the unit tests, the docs reference tests, the agent docs check, the React 18 check, `size`, the docs build, and every browser suite: Jali's (`e2e/`, against Data Studio and Loan review), each example's own (Markets, Studio, Trips) and the docs site's (against the built site).
+- `pnpm verify --quick`: the same without the browser suites and the React 18 check. Enough for a small change; run the full one before a change to `packages/` or anything a browser suite covers is committed.
+- `pnpm verify lint fmt`: only the gates named.
+
+The browser suites start their own servers, each on the port its URL variable names (`DATA_STUDIO_URL`, `LOAN_REVIEW_URL`, `MARKETS_URL`, `STUDIO_URL`, `TRIPS_URL`, `DOCS_URL`; the defaults are the ports below, and the docs' is 5400), and only there. If something else holds the port, the suite stops rather than test it. `pnpm verify` picks free ports, so it runs beside other sessions' dev servers. To run a suite against a server you started yourself, set `REUSE_SERVER=1`.
+
+On its own: `pnpm test` (unit, docs reference, agent docs), `pnpm e2e` (Jali's browser tests), `pnpm exec playwright test -c examples/<name>` or `-c apps/docs`, `pnpm typecheck`, `pnpm size`, `pnpm test:react18` (the committed HEAD, with React 18).
 
 The examples are held to [docs/EXAMPLES-STANDARD.md](docs/EXAMPLES-STANDARD.md).
 
