@@ -86,8 +86,26 @@ export interface AxeViolation {
   nodes: string[];
 }
 
-/** axe on the whole page, against WCAG 2.2 A and AA and axe's best practices. `exclude` leaves selectors out. */
-export async function axe(page: Page, exclude: readonly string[] = []): Promise<AxeViolation[]> {
+/** One violation known to be Jali's, not the example's: the rule, and the node axe names, as it prints it. */
+export interface KnownViolation {
+  rule: string;
+  /** axe's selector for the node, e.g. ".jali-page-tabs". */
+  target: string;
+  /** Why, in one line: where it is recorded for Jali to fix. */
+  reason: string;
+}
+
+/**
+ * axe on the whole page, against WCAG 2.2 A and AA and axe's best practices. `exclude` leaves selectors out of every
+ * rule; `known` leaves one node out of one rule.
+ */
+export async function axe(
+  page: Page,
+  {
+    exclude = [],
+    known = [],
+  }: { exclude?: readonly string[]; known?: readonly KnownViolation[] } = {},
+): Promise<AxeViolation[]> {
   let builder = new AxeBuilder({ page }).withTags([
     "wcag2a",
     "wcag2aa",
@@ -98,12 +116,17 @@ export async function axe(page: Page, exclude: readonly string[] = []): Promise<
   ]);
   for (const s of exclude) builder = builder.exclude(s);
   const { violations } = await builder.analyze();
-  return violations.map((v) => ({
-    id: v.id,
-    impact: v.impact,
-    help: v.help,
-    nodes: v.nodes.map((n) => n.target.join(" ")).slice(0, 5),
-  }));
+  return violations
+    .map((v) => ({
+      id: v.id,
+      impact: v.impact,
+      help: v.help,
+      nodes: v.nodes
+        .map((n) => n.target.join(" "))
+        .filter((t) => !known.some((k) => k.rule === v.id && k.target === t))
+        .slice(0, 5),
+    }))
+    .filter((v) => v.nodes.length);
 }
 
 // ---------- the width sweep ----------
@@ -266,6 +289,7 @@ export function qualitySuite({
   storage,
   layouts,
   axeExclude = [],
+  axeKnown = [],
   sweepIgnore = [],
   fixme = [],
 }: {
@@ -274,6 +298,8 @@ export function qualitySuite({
   layouts: readonly Layout[];
   /** Left out of the axe scan: say why beside each. */
   axeExclude?: readonly string[];
+  /** Violations that are Jali's to fix, not the example's, each with where it is recorded. */
+  axeKnown?: readonly KnownViolation[];
   /** Left out of the width sweep: say why beside each. */
   sweepIgnore?: readonly string[];
   fixme?: readonly Known[];
@@ -297,7 +323,7 @@ export function qualitySuite({
           await layout.open(page);
           await expect(page.locator("html")).toHaveAttribute("data-theme", theme);
           await settle(page);
-          expect(await axe(page, axeExclude)).toEqual([]);
+          expect(await axe(page, { exclude: axeExclude, known: axeKnown })).toEqual([]);
         });
 
         test(`${layout.name}, ${theme}: fits from 360 to 2200px`, async ({ page }, info) => {
