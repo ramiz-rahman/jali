@@ -27,7 +27,7 @@
     background: transparent;
     color: var(--jali-text);
     height: 3rem;
-    padding: 0 1rem;
+    padding: 0 var(--jali-dialog-padding);
     border: 0;
     border-bottom: 1px solid var(--jali-border);
     font: inherit;
@@ -79,7 +79,7 @@
     width: min(30rem, calc(100vw - 2rem));
   }
   .jali-chooser-head {
-    padding: 0.75rem 1rem 0;
+    padding: 0.75rem var(--jali-dialog-padding) 0;
     font-size: var(--jali-text-sm);
     color: var(--jali-text-subtle);
   }
@@ -103,7 +103,7 @@
     border-radius: calc(var(--jali-radius) * 1.2);
     border-radius: round(down, var(--jali-radius) * 1.2, 1px);
     box-shadow: var(--jali-shadow-dialog);
-    padding: 0.25rem 1rem 1rem;
+    padding: 0.25rem var(--jali-dialog-padding) var(--jali-dialog-padding);
   }
   .jali-settings header {
     display: flex;
@@ -204,7 +204,7 @@
     border-radius: calc(var(--jali-radius) * 1.2);
     border-radius: round(down, var(--jali-radius) * 1.2, 1px);
     box-shadow: var(--jali-shadow-dialog);
-    padding: 1rem;
+    padding: var(--jali-dialog-padding);
   }
   .jali-confirm h2 {
     font-size: var(--jali-text-lg);

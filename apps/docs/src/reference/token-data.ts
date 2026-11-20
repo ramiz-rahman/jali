@@ -302,6 +302,12 @@ export const TOKEN_PURPOSE: Record<string, TokenInfo> = {
     swatch: "size",
     purpose: "Icons in a shelf chip: the pane's icon, the fold mark and Put back.",
   },
+  "--jali-dialog-padding": {
+    group: "Shape and type",
+    swatch: "size",
+    purpose:
+      "The space between a dialog's edge and its content: all round in Settings (but its top, beside the title) and the discard question; at the sides of the palette's and the chooser's field and heading. Their lists keep their rows' own inset.",
+  },
   "--jali-text-xs": {
     group: "Shape and type",
     swatch: "type",

@@ -128,6 +128,9 @@
     --jali-icon-tab: 14px;
     --jali-icon-menu: 14px;
     --jali-icon-shelf: 13px;
+    /* The space between a dialog's edge and its content: Settings and the discard question all round, the palette's
+       and the chooser's field and heading at the sides (their lists sit closer, with their rows' own inset). */
+    --jali-dialog-padding: 1rem;
     /* The type scale: every size Jali sets reads one of these (the investigation chips are sm + 0.0312rem, 12.5px). */
     --jali-text-xs: 0.6875rem;
     --jali-text-sm: 0.75rem;
