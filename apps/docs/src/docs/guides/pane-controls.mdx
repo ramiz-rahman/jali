@@ -32,7 +32,7 @@ Three levels, and each can only take away. A control is allowed when none of the
 2. **The kind**, `definePane({ allow })`, for what its content can handle.
 3. **The workspace**, `createJali({ allow })`: its defaults, and `when`, a function asked for each action, with the pane, the preset the layout came from and the curated page, if one is open.
 
-Everything is allowed by default, except `popOut`, which you turn on with `allow: { popOut: true }`.
+Everything is allowed by default, except `popOut`, which you turn on with `allow: { popOut: true }`. Turning it on also adds **Pop out pane** (`pane.pop_out`) to ⌘K, with no key until you bind one.
 
 Because the levels only take away, a workspace's `true` can't turn back on what a kind turned off. `when` is your code, not part of the layout, so the rule itself never travels in a link. What it reads can: a layout's preset and its panes come from the address. These controls shape what people are offered; they are not a security boundary. A rule that must hold, such as who may delete a record, belongs in your app's own checks too.
 

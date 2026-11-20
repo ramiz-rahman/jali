@@ -12,13 +12,15 @@ const empty = (): Layout => ({
 });
 
 /** A workspace with one preset and no curated page: what commandsOf lists for most apps. Titles in "page" words
- *  ("Back to page", "View as viewer") take the profile's name and viewers when the workspace has one. */
+ *  ("Back to page", "View as viewer") take the profile's name and viewers when the workspace has one. Pop out is
+ *  on, so the table lists `pane.pop_out`, which a workspace has only then. */
 export const SAMPLE_ENV: Env = {
   kinds: createPaneKinds([{ kind: "note", title: "Note" }]),
   profile: null,
   presets: [{ id: "orders", label: "Orders", build: empty }],
   name: "Workspace",
   spacing: spacingOf(),
+  allow: { popOut: true },
 };
 
 /** The one id per preset, shown as a pattern. */
@@ -89,6 +91,8 @@ export const REFUSED: Record<string, string> = {
   [PRESET_PATTERN]: 'Never. One command per preset, titled "Layout: <label>".',
   "pane.fullscreen":
     "On a curated page in Single view. Puts the focused pane on the whole screen, or takes it off.",
+  "pane.pop_out":
+    "Only in a workspace with allow: { popOut: true }. Silent when no pane is focused, or the browser can't pop out (Document Picture-in-Picture: Chrome and Edge on desktop). When the focused pane doesn't allow it, says so. Opens it in a floating window that stays on top.",
   "layout.reset": "Silent in a workspace without presets. Rebuilds the preset last chosen.",
   "layout.auto":
     "On a curated page, or with one pane. Arranges every pane from the room and the kinds' sizes; Back undoes it.",
