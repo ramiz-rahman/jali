@@ -235,8 +235,9 @@ test("the timeline seeks by click, drag (with pointer capture), the wheel and th
   const box = (await lanes.boundingBox())!;
   // A click a quarter of the way along: about a quarter of the session.
   await page.mouse.click(box.x + box.width / 4, box.y + box.height / 2);
+  // The clock repaints on the next frame, which can lag under load.
+  await expect.poll(() => seconds(page)).toBeGreaterThan(40);
   const quarter = await seconds(page);
-  expect(quarter).toBeGreaterThan(40);
   expect(quarter).toBeLessThan(65);
   // Drag right, and on past the pane: the playhead follows to the end.
   await page.mouse.move(box.x + box.width / 4, box.y + box.height / 2);
