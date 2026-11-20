@@ -13,8 +13,6 @@ import {
 import { MDXProvider } from "@mdx-js/react";
 import { pages, type Frontmatter } from "../site/pages";
 import { InitialPath, usePath, useLinkInterception } from "../site/router";
-import { MARKDOWN_TABLES } from "../site/markdown-tables";
-import { sources, toMarkdown } from "../site/sources";
 import { SITE_NAME } from "../site/config";
 import { mdxComponents } from "./mdx";
 import { Nav } from "./Nav";
@@ -72,27 +70,16 @@ function useLoadedPage(path: string): Loaded | null {
   return loaded;
 }
 
-/** "/get-started/introduction.md": the page's Markdown, as plain text. */
-function MarkdownView({ path }: { path: string }) {
-  const page = sources[path];
-  useEffect(() => {
-    document.title = `${page?.title ?? "Not found"}.md · ${SITE_NAME}`;
-  }, [page]);
-  if (!page) return <NotFound path={`${path}.md`} />;
-  return <pre className="markdown-view">{toMarkdown(page, { tables: MARKDOWN_TABLES })}</pre>;
-}
-
 export function App() {
   useLinkInterception();
   const path = usePath();
-  const mdMatch = /^(.*)\.md$/.exec(path);
   const [searchOpen, setSearchOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const openSearch = useCallback(() => setSearchOpen(true), []);
   const closeMenu = useCallback(() => setMenuOpen(false), []);
   useSearchShortcut(openSearch);
 
-  const loaded = useLoadedPage(mdMatch ? "\0" : path);
+  const loaded = useLoadedPage(path);
   const [article, setArticle] = useState<HTMLElement | null>(null);
   const shown = loaded?.path ?? "";
   const entries = useHeadings(article, shown);
@@ -121,8 +108,6 @@ export function App() {
       document.querySelector<HTMLElement>("[data-page-focus]")?.focus({ preventScroll: true });
     first.current = false;
   }, [loaded]);
-
-  if (mdMatch) return <MarkdownView path={mdMatch[1] || "/"} />;
 
   const isHome = shown === "/";
   // API reference entries use two columns (prose and options, then signature and example), so they take the TOC's room.

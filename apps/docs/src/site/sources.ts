@@ -7,35 +7,15 @@ import { NAV, type NavSection } from "./nav";
 import { pathOf } from "./pages";
 
 // Draft pages (`_lab` and the like) are read in dev only, as in ./pages.
-const rawModules = import.meta.env.DEV
-  ? import.meta.glob<unknown>("../docs/**/*.mdx", { query: "?raw", import: "default", eager: true })
-  : import.meta.glob<unknown>(["../docs/**/*.mdx", "!../docs/**/_*.mdx", "!../docs/**/_*/**"], {
+// The MDX plugin skips `?raw` ids (astro.config.mjs), so each import is the file's text. Draft pages (`_lab` and
+// the like) are read in dev only, as in ./pages.
+const raw: Record<string, string> = import.meta.env.DEV
+  ? import.meta.glob<string>("../docs/**/*.mdx", { query: "?raw", import: "default", eager: true })
+  : import.meta.glob<string>(["../docs/**/*.mdx", "!../docs/**/_*.mdx", "!../docs/**/_*/**"], {
       query: "?raw",
       import: "default",
       eager: true,
     });
-
-/**
- * The text of a `?raw` import of an .mdx file. Today @mdx-js/rollup also compiles `?raw` ids (it drops the query
- * before its filter), and MDX reads `export default "…"` as the page's layout: the text survives as the layout of
- * the compiled component, and calling the component (no hooks run when a layout is set) returns an element of
- * that type. Once vite.config.ts skips `?raw` ids in the MDX plugin, the import is the string itself.
- */
-function rawText(value: unknown): string {
-  if (typeof value === "string") return value;
-  if (typeof value === "function") {
-    try {
-      const el = (value as (p: object) => { type?: unknown } | null)({});
-      if (el && typeof el.type === "string") return el.type;
-    } catch {
-      /* not a layout-wrapped module */
-    }
-  }
-  return "";
-}
-const raw: Record<string, string> = Object.fromEntries(
-  Object.entries(rawModules).map(([k, v]) => [k, rawText(v)]),
-);
 /** Code samples pages import with `?raw`, so the Markdown can include them. */
 const samples = import.meta.glob<string>("../samples/**/*", {
   query: "?raw",

@@ -1,8 +1,8 @@
 /**
  * The site's theme. One mechanism, the same as @jali/core's: `data-theme` on <html> is always the resolved theme
  * ("light" or "dark"), so the --jali-* tokens and the live workspaces switch together. The reader's choice
- * (light, dark or system) is kept in `data-theme-choice` and in localStorage; index.html applies it before the
- * first paint.
+ * (light, dark or system) is kept in `data-theme-choice` and in localStorage; an inline script in
+ * src/layouts/Document.astro applies it before the first paint.
  */
 import { useEffect, useSyncExternalStore } from "react";
 import { readStored, writeStored } from "./storage";
