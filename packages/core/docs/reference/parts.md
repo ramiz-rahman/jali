@@ -170,6 +170,7 @@ Corners, spacing and colours are tokens, not parts: every corner reads `--jali-r
 | `.jali-palette-item` | `li` | A command in ⌘K, or an entry in the "Add to tabs of…" chooser. | `data-command-id`: In ⌘K: the command's id.<br>`aria-selected`: `true` on the highlighted entry.<br>`aria-disabled`: `true` when unavailable. |
 | `.jali-scrim` | `div` | A dialog's backdrop, holding the dialog (`dialogBox`): the palette, Settings, the "Add to tabs of…" chooser and the discard question. | none |
 | `.jali-dialog` | `div` (`role="dialog"`, or `"alertdialog"` for the discard question) | The dialog itself, inside its scrim. | `data-dialog`: `palette` (⌘K), `chooser` ("Add to tabs of…" and `actions.choose`), `settings` or `confirm` (the discard question). |
+| `.jali-setting` | `label` | A row in Settings: a radio or checkbox and its words on one line (`<label class="jali-setting"><input type="radio" /> <span>Dark</span></label>`). Put the class on your own fieldsets' rows (`<SettingsPanel>` children, `<JaliRoot settingsExtra>`) and they match Jali's. | none |
 | `.jali-dialog-button` | `button` | A button in a dialog's footer (the discard question's Discard and Keep editing). | `data-role`: `primary` (the safe choice, focused when it opens) or `secondary`.<br>`data-pressed`: Flag: held down, by the pointer or by Space or Enter while it has focus (`:active` covers only the pointer). Jali's styles don't read it. |
 | `.jali-palette` | `div` | The ⌘K and chooser dialog (also `.jali-dialog`): its field, then its list. | none |
 | `.jali-palette-input` | `input` (`role="combobox"`) | The palette's and the chooser's search field. | none |
@@ -191,6 +192,7 @@ Corners, spacing and colours are tokens, not parts: every corner reads `--jali-r
 
 | Part | Element | What it is | State attributes |
 | --- | --- | --- | --- |
+| `.jali-page` | `div` | A curated page's root, in the workspace's place: the page's `Rail` (when it renders one) and its main column, which holds the item's `Header`, the views' tabs and the panes. Style the page's frame here: its background, the rail's width (`grid-template-columns`), spacing. | none |
 | `.jali-page-bar` | `div` | A curated page's bar: its roles, Single view or Split view, Reset. | none |
 | `.jali-page-tab` | `button` | One role on a curated page's bar. | `data-role`: The role's id.<br>`data-state`: `focused`, `shown`, `behind` (open, not in view) or `off` (not open).<br>`data-pressed`: Flag: held down, by the pointer or by Space or Enter while it has focus (`:active` covers only the pointer). Jali's styles don't read it. |
 

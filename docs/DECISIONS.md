@@ -1143,3 +1143,10 @@ Gzipped KB, measured on master `ea3ac83` after `pnpm build:packages`. The `mustN
 - **Not added:** an `icon` prop naming one of Jali's icons. Children keep one way to give the icon (the app's own icon set, or `useJaliIcons()`), and keep the component a few lines.
 - **Size:** 0.1 KB gzipped of React, only in apps that import it.
 - **Tests:** `tests/icon-button.test.tsx`; `tests/parts.test.tsx` checks the part.
+
+## 21 Nov 2026 · Two more parts: a Settings row and the curated page's root (Data Studio, Loan review FINDINGS.md)
+
+- **`settingRow` (`.jali-setting`, a `label`):** a row in Settings, a radio or checkbox and its words on one line. It was the private `.jali-radio`, which Data Studio used until 20 Nov and then copied as `.setting-check`. The class is renamed rather than kept (it was private), and documented for the app's own rows too: `<label className="jali-setting"><input type="checkbox" /> <span>…</span></label>` in a fieldset given to `<SettingsPanel>` or `<JaliRoot settingsExtra>` matches Jali's. A class, not a component: a row is plain markup with no behaviour of its own, and a component would only rename `<label>`.
+- **`page` (`.jali-page`):** the curated page's root, in the workspace's place: its rail and its main column (header, views' tabs, panes). An app styles the page's frame there (background, the rail's width, spacing).
+- **Size:** none (a renamed class, and the parts list, which isn't shipped).
+- **Examples:** the shared Status line setting is a `.jali-setting` row; the shared `.setting-check` is gone.

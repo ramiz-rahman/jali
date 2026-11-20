@@ -492,6 +492,13 @@ export const parts = {
     what: "The peek sheet: a linked object shown over the panes.",
     attributes: [],
   },
+  page: {
+    selector: ".jali-page",
+    element: "div",
+    area: "Curated pages",
+    what: "A curated page's root, in the workspace's place: the page's `Rail` (when it renders one) and its main column, which holds the item's `Header`, the views' tabs and the panes. Style the page's frame here: its background, the rail's width (`grid-template-columns`), spacing.",
+    attributes: [],
+  },
   pageBar: {
     selector: ".jali-page-bar",
     element: "div",
@@ -564,6 +571,13 @@ export const parts = {
           '`palette` (⌘K), `chooser` ("Add to tabs of…" and `actions.choose`), `settings` or `confirm` (the discard question).',
       },
     ],
+  },
+  settingRow: {
+    selector: ".jali-setting",
+    element: "label",
+    area: "Dialogs and menus",
+    what: 'A row in Settings: a radio or checkbox and its words on one line (`<label class="jali-setting"><input type="radio" /> <span>Dark</span></label>`). Put the class on your own fieldsets\' rows (`<SettingsPanel>` children, `<JaliRoot settingsExtra>`) and they match Jali\'s.',
+    attributes: [],
   },
   dialogButton: {
     selector: ".jali-dialog-button",

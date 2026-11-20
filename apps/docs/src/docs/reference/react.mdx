@@ -40,7 +40,7 @@ Two things are yours to render. **The shelf** (tucked panes as chips): put <Ref 
 <Param name="overlays" type="ReactNode">Rendered after the root: things that must sit outside the workspace, such as a toaster. Focus is never pulled back from outside the root.</Param>
 <Param name="settings" type="boolean" default="true">`false` leaves the Settings panel out.</Param>
 <Param name="icons" type="Partial<JaliIcons>">Your own icons for any of the names Jali draws (`{ close: MyClose }`); the others stay Jali's. See [Icons](#icons).</Param>
-<Param name="settingsExtra" type="ReactNode">Your own settings, as `<fieldset>`s with a `<legend>`, shown at the end of the Settings panel. Store their values yourself.</Param>
+<Param name="settingsExtra" type="ReactNode">Your own settings, as `<fieldset>`s with a `<legend>`, shown at the end of the Settings panel. Store their values yourself. A row that is a radio or checkbox and its words matches Jali's as `<label className="jali-setting">` (the `settingRow` part).</Param>
 <Param name="...rest" type="HTMLAttributes<HTMLDivElement>">Passed to the root `<div>` (`className`, `style`, `id`). `ref` and `data-jali` are Jali's.</Param>
 </Params>
 

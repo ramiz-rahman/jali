@@ -46,7 +46,7 @@ export function SettingsPanel({ children }: { children?: ReactNode } = {}) {
       <fieldset>
         <legend>{t.theme}</legend>
         {THEMES.map((theme, n) => (
-          <label key={theme.id} className="jali-radio">
+          <label key={theme.id} className="jali-setting">
             <input
               ref={n === 0 ? first : undefined}
               type="radio"
@@ -60,7 +60,7 @@ export function SettingsPanel({ children }: { children?: ReactNode } = {}) {
       </fieldset>
       <fieldset>
         <legend>{t.centreDrop}</legend>
-        <label className="jali-radio">
+        <label className="jali-setting">
           <input
             type="radio"
             name={`${id}-centre`}
@@ -69,7 +69,7 @@ export function SettingsPanel({ children }: { children?: ReactNode } = {}) {
           />
           <span>{t.centreDropSwap}</span>
         </label>
-        <label className="jali-radio">
+        <label className="jali-setting">
           <input
             type="radio"
             name={`${id}-centre`}

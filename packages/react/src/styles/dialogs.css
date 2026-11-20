@@ -168,13 +168,14 @@
     font-size: var(--jali-text-sm);
     color: var(--jali-text-subtle);
   }
-  .jali-radio {
+  /* A row in Settings: a radio or checkbox and its words (a public part: the app's own rows use it too). */
+  .jali-setting {
     display: flex;
     align-items: center;
     gap: 0.5rem;
     cursor: pointer;
   }
-  .jali-radio input {
+  .jali-setting input {
     accent-color: var(--jali-accent);
     margin: 0;
   }

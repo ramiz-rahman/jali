@@ -257,7 +257,7 @@ function PageSettings() {
     <>
       <fieldset>
         <legend>{t.openedPanes(profile.name)}</legend>
-        <label className="jali-radio">
+        <label className="jali-setting">
           <input
             type="radio"
             name={`${id}-boundary`}
@@ -266,7 +266,7 @@ function PageSettings() {
           />
           <span>{t.boundaryTint}</span>
         </label>
-        <label className="jali-radio">
+        <label className="jali-setting">
           <input
             type="radio"
             name={`${id}-boundary`}
@@ -279,7 +279,7 @@ function PageSettings() {
       {page ? (
         <fieldset>
           <legend>{t.viewingAs(profile.name)}</legend>
-          <label className="jali-radio">
+          <label className="jali-setting">
             <input
               type="radio"
               name={`${id}-viewer`}
@@ -288,7 +288,7 @@ function PageSettings() {
             />
             <span>{t.viewerFull(full)}</span>
           </label>
-          <label className="jali-radio">
+          <label className="jali-setting">
             <input
               type="radio"
               name={`${id}-viewer`}

@@ -40,7 +40,7 @@ Two things are yours to render. **The shelf** (tucked panes as chips): put `Shel
 
 - **`icons`** (`Partial<JaliIcons>`): Your own icons for any of the names Jali draws (`{ close: MyClose }`); the others stay Jali's. See [Icons](#icons).
 
-- **`settingsExtra`** (`ReactNode`): Your own settings, as `<fieldset>`s with a `<legend>`, shown at the end of the Settings panel. Store their values yourself.
+- **`settingsExtra`** (`ReactNode`): Your own settings, as `<fieldset>`s with a `<legend>`, shown at the end of the Settings panel. Store their values yourself. A row that is a radio or checkbox and its words matches Jali's as `<label className="jali-setting">` (the `settingRow` part).
 
 - **`...rest`** (`HTMLAttributes<HTMLDivElement>`): Passed to the root `<div>` (`className`, `style`, `id`). `ref` and `data-jali` are Jali's.
 
