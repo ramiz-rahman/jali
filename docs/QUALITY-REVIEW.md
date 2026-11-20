@@ -35,16 +35,16 @@
   - P10, P11, P13, P14, P18 and P19: `usePaneState` keeps its first value and can `parse`; several callers of a pane hook merge; pane state and selection belong to the object; one `sameRef`; `jali.destroy()`; hydration-safe Pop out and key labels.
 - **Gates:** unit tests 1,131; React 18 1,128 (one test skipped, below); browser tests: Jali 142, Studio 27, Trips 19, Markets 6, docs 19. Everything passes except **size**.
 - **Open:**
-  - React 18 client-renders panes after hydrating a server-rendered workspace (DECISIONS, "Server rendering on React 18").
-  - `PaneFrame` and `TabStrip` still subscribe to all titles.
-  - Toasts aren't inert behind a modal.
+  - ~~React 18 client-renders panes after hydrating a server-rendered workspace~~ (closed 21 Nov, below).
+  - ~~`PaneFrame` and `TabStrip` still subscribe to all titles~~ (closed 21 Nov, below).
+  - ~~Toasts aren't inert behind a modal~~ (closed 21 Nov, below).
   - Saved pane state from before this change is not read back, so it is lost once.
 
 **API cleanup, done 20 Nov 2026 (master `98b5493`):**
 
 - **Fixed:** P3 in part (the curated page is opt-in through `definePage`; pure annotations), P15 (`DomPort`), P16 (a read-only `layout.tree` with deprecated draft steps, `UrlState`, an explicit adapter list), and Jali's side of C12 (`appOnly`). Jali's side of C13 (`usePaneState`'s `parse`) came with P10.
 - **Gates:** all pass but **size**: minimal core 52.3 KB (budget 49.5), React 24.5 (18.3), CSS 8.2 (7.8); headless 46.7 (45); layout 10.2 (9.6). What is left is code the apps reach (DECISIONS, "Size after the opt-in page"). The budgets are the owner's call.
-- **Open:** pop out's port is still module state. (Data Studio declares `autorun: appOnly(Boolean)` since 21 Nov 2026.)
+- **Open:** ~~pop out's port is still module state~~ (closed 21 Nov, below). (Data Studio declares `autorun: appOnly(Boolean)` since 21 Nov 2026.)
 
 **Phase 3, docs islands, done 20 Nov 2026:**
 
@@ -61,6 +61,18 @@
   Phone LCP was 0.56–0.93 s before and 0.92–1.2 s after, but the after runs were on a machine with a load average above 30 (other sessions' builds), and desktop numbers moved by 2–4× between identical runs; re-measure on a quiet machine. The four preloaded font files (about 47 KB) are what keeps CLS at 0 now that the first paint no longer waits for JS; without them `/reference/react` shifts by 0.21 on desktop.
 
 - **Open:** Several live workspaces on one page repeat Jali's landmarks (a "Panes" region per workspace, a region per pane named by its title); axe's best-practice rules skip `[data-jali]` until @jali/react lets a host name them.
+
+**Open items, closed 21 Nov 2026:**
+
+- **Fixed** (each in DECISIONS, 21 Nov 2026):
+  - React 18 keeps a server-rendered workspace's pane markup: the workspace measures once its panes' Suspense boundaries have hydrated, and the hydration test runs on React 18 too ("Server rendering on React 18: the panes keep the server's markup").
+  - Toasts are inert behind a modal: `<JaliRoot overlays>` render in `[data-jali-overlays]`, made inert with the workspace; Jali's live region still speaks.
+  - `PaneFrame`, `TabStrip` and `TabOverflow` read only their own titles: five title changes commit 5 frames, down from 35.
+  - Pop out's port is the workspace's (`DomPort.popOut`, given by `reactDom`); loading @jali/react sets no module state. `setPopOutPort` stays for adapters that use it.
+  - From a Codex review of `packages/*`: a peek read before its kind is registered loses its app-only params when the kind arrives; `linkSearch` leaves out app-only and `link: false` params (a new `panes` option covers plain refs); a host's `UrlWriter` sees `page.before` as a link carries it; Back and Forward keep a curated page's opened panes' own params; a listener's action doesn't rename the `layout` event it heard; `destroy()` settles an open discard question as kept.
+  - Pane state waiting to be saved is saved on `pagehide` and when the page is hidden, so a draft typed just before a reload is kept.
+- **Declined:** requiring `definePage`'s brand in `JaliOptions.page`'s type (Codex). `ProfileBase` and @jali/react's `Page` are public and their `[PAGE]` is optional by design, so a host that types a page with either (or React's `definePage`, which returns `Page`) would stop compiling. A plain object already fails at startup with "make the page with `definePage`".
+- **Still open:** saved pane state from before phase 2 is not read back, so it is lost once. `TabMenu` (while open), the pane switcher, the peek and `useTitleOf` still read every title, and a tab strip every pane's `data-*` attributes and unsaved marks; none of them is in the paths the render-count tests cover.
 
 ## Verdict
 
