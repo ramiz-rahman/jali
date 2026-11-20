@@ -136,7 +136,7 @@ function TripPane({ node, focused, select, inPeek }: PaneProps) {
         </div>
       </header>
 
-      <section className="trip-budget" aria-label="Budget">
+      <section className="trip-budget" aria-label="Budget summary">
         <p>
           <span className="num big">{f.moneyRound(budget.total)}</span>
           <span className="muted"> planned of {f.moneyRound(budget.budget)}</span>

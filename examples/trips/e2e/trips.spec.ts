@@ -70,7 +70,7 @@ test("the foot of a day offers what is close to it, one press from being on it",
   page,
 }) => {
   const day = pane(page, "day");
-  const more = day.getByRole("region", { name: "Close to this day" });
+  const more = day.locator("section.day-more");
   const first = more.locator(".day-more-name").first();
   const name = (await first.textContent())!;
   await more.getByRole("button", { name: `Add ${name} to Day 1` }).click();

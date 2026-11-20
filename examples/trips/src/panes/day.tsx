@@ -524,8 +524,9 @@ function Suggestions({ day, plan, from }: { day: Day; plan: Plan; from: string }
       onChoose: (q) => addToDay(services, q.id, day.n),
     });
   return (
-    <section className="day-more" aria-labelledby={`${from}-more`}>
-      <h4 id={`${from}-more`}>Close to this day</h4>
+    // Not a landmark: every day has this part, under the same heading. The heading is how a screen reader finds it.
+    <section className="day-more">
+      <h4>Close to this day</h4>
       {near.length ? (
         <ul>
           {near.map(({ q, by, way }) => {
