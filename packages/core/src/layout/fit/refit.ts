@@ -1,6 +1,15 @@
 import type { Layout, LayoutContext, ViewState } from "../types";
-import { allPanes, autos, choose, contains, overlayOf, slots, withOverlay } from "./overlay";
-import { replay } from "./replay";
+import {
+  allPanes,
+  autos,
+  choose,
+  contains,
+  overlayOf,
+  slots,
+  withOverlay,
+  type Projected,
+} from "./overlay";
+import { extend, replay, run, type Run } from "./replay";
 import { chooseFold } from "./priority";
 import { checkContext, misfit, tooSmall } from "./context";
 
@@ -13,33 +22,41 @@ interface FitPolicy {
   yields?: boolean;
 }
 
+/** The shortest prefix of the folds that fits, without tucks (one replay, carried forward fold by fold). */
 function unfoldPrefix(layout: Layout, current: string[], ctx: LayoutContext): string[] {
   const probe = { ...layout, overlay: { ...overlayOf(layout), tucks: [] } };
+  let r = run(probe, ctx.fit);
   for (let k = 0; k < current.length; k++) {
-    if (!misfit(replay(probe, current.slice(0, k), ctx.fit).root, ctx.fit, ctx.paneCap))
-      return current.slice(0, k);
+    if (!misfit(r.full.root, ctx.fit, ctx.paneCap)) return current.slice(0, k);
+    r = extend(r, current[k]!, true);
   }
   return current;
 }
 
 /** How far the projection overflows the room, in px along both axes. */
-const overflow = (root: ReturnType<typeof replay>["root"], fit: LayoutContext["fit"]) =>
+const overflow = (root: Projected, fit: LayoutContext["fit"]) =>
   Math.max(0, root.bounds.width - fit.width) + Math.max(0, root.bounds.height - fit.height);
 
+/** Fold on from `start` until the layout fits. Returns the replay of the folds it settles on. */
 function foldUntilFit(
-  layout: Layout,
   view: ViewState,
-  start: string[],
+  start: Run,
   ctx: LayoutContext,
   policy: FitPolicy,
   yields = policy.yields ?? true,
-): string[] {
+): Run {
   const { fit, paneCap } = ctx;
   const keep = new Set(policy.keep ?? []);
   let current = start,
+    owned = false,
     yielded = false;
+  // `start` is kept for a second pass; every later replay is this pass's own, so it folds on in place.
+  const add = (id: string) => {
+    current = extend(current, id, owned);
+    owned = true;
+  };
   for (;;) {
-    const { root, order } = replay(layout, current, fit);
+    const { root, order } = current.full;
     if (!misfit(root, fit, paneCap)) break;
     const displayed = slots(root);
     if (displayed.length < 2) break;
@@ -54,13 +71,13 @@ function foldUntilFit(
             !keep.has(s.id) &&
             !allPanes(s).some((p) => p.id === view.focused),
         )
-        .map((s) => ({ s, after: overflow(replay(layout, [...current, s.id], fit).root, fit) }))
+        .map((s) => ({ s, after: overflow(extend(current, s.id).full.root, fit) }))
         .filter((c) => c.after < now - 1e-7)
         .sort(
           (a, b) => a.after - b.after || (order.get(b.s.id) ?? 0) - (order.get(a.s.id) ?? 0),
         )[0];
       if (helps) {
-        current = [...current, helps.s.id];
+        add(helps.s.id);
         yielded = true;
         continue;
       }
@@ -82,22 +99,21 @@ function foldUntilFit(
     const choice =
       (tooSmall(root, fit) ? fresh : (oldest ?? fresh)) ?? chooseFold(root, view, order);
     if (!choice) break;
-    current = [...current, choice.id];
+    add(choice.id);
   }
   // Supporting panes that gave way for nothing (the fresh pane folded anyway) stay where they were.
-  if (yielded && policy.fresh && current.includes(policy.fresh))
-    return foldUntilFit(layout, view, start, ctx, policy, false);
+  if (yielded && policy.fresh && current.folds.includes(policy.fresh))
+    return foldUntilFit(view, start, ctx, policy, false);
   return current;
 }
 
+/** `root`: the fitted projection (its groups' shown tabs are chosen on it). */
 function shownTabs(
   layout: Layout,
   view: ViewState,
-  current: string[],
+  root: Projected,
   newlyFolded: boolean,
-  ctx: LayoutContext,
 ): Record<string, string> {
-  const { root } = replay(layout, current, ctx.fit);
   const present = new Set(allPanes(root).map((p) => p.id));
   // Retain choices while both panes exist, including while their group is absorbed or unfolded.
   const shown = Object.fromEntries(
@@ -131,8 +147,9 @@ export function fitLayout(
   const o = overlayOf(layout);
   const replayed = replay(layout, o.folds, ctx.fit).applied;
   const prefix = policy.mode === "fold" ? replayed : unfoldPrefix(layout, replayed, ctx);
-  const folds = foldUntilFit(layout, view, prefix, ctx, policy);
-  const shown = shownTabs(layout, view, folds, folds.length > prefix.length, ctx);
+  const fitted = foldUntilFit(view, run(layout, ctx.fit, prefix), ctx, policy);
+  const folds = fitted.folds;
+  const shown = shownTabs(layout, view, fitted.full.root, folds.length > prefix.length);
   const sameFolds = folds.length === o.folds.length && folds.every((id, i) => id === o.folds[i]);
   const sameShown =
     Object.keys(shown).length === Object.keys(o.shown).length &&

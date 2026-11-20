@@ -2,7 +2,7 @@
  * Replaying the overlay onto the projection (hides, then tucks, then folds), and where each fold goes. Pure: the
  * canonical tree never changes.
  */
-import type { FitOptions, Layout } from "../types";
+import type { FitOptions, Layout, TuckRecord } from "../types";
 import { noFocus } from "../tree/tree";
 import { tooSmall } from "./context";
 import {
@@ -11,7 +11,6 @@ import {
   foldHomes,
   foldSlot,
   homeOf,
-  overlayOf,
   project,
   refresh,
   removeSlot,
@@ -71,18 +70,15 @@ export function fold(
   return foldSlot(root, choice, fit, order, undefined, best);
 }
 
-interface Replayed {
-  root: Projected;
-  order: Map<string, number>;
-  applied: string[];
-}
 /** Hidden panes leave the projection first: no slot and no tab, and their neighbours absorb the space. */
 function withoutHidden(root: Projected, hidden: readonly string[], fit: FitOptions): Projected {
   let removed = false;
   // A row that scrolls is one slot for folding, but its children are on screen in their own right: one of them can be
   // hidden too.
   const shown = (n: Projected): Projected[] =>
-    n.type === "row" && n.scroll ? n.children.flatMap(shown) : slots(n).flatMap((s) => (s === n ? [s] : shown(s)));
+    n.type === "row" && n.scroll
+      ? n.children.flatMap(shown)
+      : slots(n).flatMap((s) => (s === n ? [s] : shown(s)));
   for (const id of hidden) {
     const displayed = shown(root);
     if (displayed.length < 2 || !displayed.some((s) => s.id === id && s.pane)) continue;
@@ -99,33 +95,103 @@ function withoutHidden(root: Projected, hidden: readonly string[], fit: FitOptio
   if (removed) remeasure(root);
   return root;
 }
-/** Replay hides, then tucks, then sticky folds, without changing the canonical tree. */
-export function replay(layout: Layout, folds: readonly string[], fit: FitOptions): Replayed {
+/** A projection with fold records replayed onto it. `applied`: the records that took effect. */
+export interface Replayed {
+  root: Projected;
+  order: Map<string, number>;
+  applied: string[];
+}
+/** The projection before any tuck or fold, hidden panes already gone. */
+function start(layout: Layout, fit: FitOptions): Replayed {
   const projected = project(layout.root, fit);
   const order = new Map(allPanes(projected).map((p, i) => [p.id, i]));
-  let root = withoutHidden(projected, layout.overlay?.hidden ?? [], fit);
-  const applied: string[] = [];
-  const tucks = layout.overlay?.tucks ?? [];
-  // A revealed tab names the same stable home as its fold. Resolve this against the canonical fold projection,
-  // then replay the tuck before those folds, so no fold record disappears when its shown tab receives a tuck.
-  const homes = tucks.length
-    ? slots(replay({ ...layout, overlay: { ...overlayOf(layout), tucks: [] } }, folds, fit).root)
-    : [];
-  for (const tuck of [...tucks].sort((a, b) => a.seq - b.seq)) {
-    const displayed = slots(root);
-    const choice = displayed.find((s) => s.id === tuck.pane);
+  return { root: withoutHidden(projected, layout.overlay?.hidden ?? [], fit), order, applied: [] };
+}
+/** A copy to fold on without touching `r`. */
+function fork(r: Replayed): Replayed {
+  return { root: copy(r.root).root, order: r.order, applied: [...r.applied] };
+}
+/** Replay one fold record onto `r` (in place). A stale record (a closed or moved pane) is skipped, and so is every
+ *  record once a single slot is left. */
+function foldOn(r: Replayed, id: string, fit: FitOptions): void {
+  const displayed = slots(r.root);
+  if (displayed.length < 2) return;
+  const choice = displayed.find((s) => s.id === id);
+  if (!choice) return;
+  r.root = fold(r.root, choice, fit, r.order);
+  r.applied.push(id);
+}
+/** A revealed tab names the same stable home as its fold: each tuck's home, resolved against the projection with the
+ *  same folds and no tucks, so no fold record disappears when its shown tab receives a tuck. */
+function tuckHomes(tucks: readonly TuckRecord[], plain: Projected): string[] {
+  const homes = slots(plain);
+  return tucks.map((tuck) => {
     const reference = homes.find((s) => contains(s, tuck.home));
-    const home = reference ? homeOf(reference) : tuck.home;
-    if (!choice || !displayed.some((s) => s !== choice && contains(s, home))) continue;
-    root = foldSlot(root, choice, fit, order, home);
+    return reference ? homeOf(reference) : tuck.home;
+  });
+}
+/** The projection with its tucks replayed, before any fold. */
+function tucked(
+  layout: Layout,
+  fit: FitOptions,
+  tucks: readonly TuckRecord[],
+  homes: readonly string[],
+): Replayed {
+  const r = start(layout, fit);
+  tucks.forEach((tuck, i) => {
+    const displayed = slots(r.root);
+    const choice = displayed.find((s) => s.id === tuck.pane);
+    const home = homes[i]!;
+    if (!choice || !displayed.some((s) => s !== choice && contains(s, home))) return;
+    r.root = foldSlot(r.root, choice, fit, r.order, home);
+  });
+  return r;
+}
+
+/**
+ * A replay that grows one fold record at a time. Replaying `[...folds, id]` is replaying `folds` and then `id`, so a
+ * fit carries the projection forward instead of replaying every earlier fold for each new one. `full` is the replay
+ * (hides, tucks, folds); `plain` the same folds without tucks, which places the tucks. Only when a new fold moves a
+ * tuck's home is `full` replayed from the start.
+ */
+export interface Run {
+  layout: Layout;
+  fit: FitOptions;
+  folds: string[];
+  tucks: readonly TuckRecord[];
+  homes: string[];
+  plain: Replayed;
+  full: Replayed;
+}
+export function run(layout: Layout, fit: FitOptions, folds: readonly string[] = []): Run {
+  const tucks = [...(layout.overlay?.tucks ?? [])].sort((a, b) => a.seq - b.seq);
+  const plain = start(layout, fit);
+  for (const id of folds) foldOn(plain, id, fit);
+  if (!tucks.length)
+    return { layout, fit, folds: [...folds], tucks, homes: [], plain, full: plain };
+  const homes = tuckHomes(tucks, plain.root);
+  const full = tucked(layout, fit, tucks, homes);
+  for (const id of folds) foldOn(full, id, fit);
+  return { layout, fit, folds: [...folds], tucks, homes, plain, full };
+}
+/** `r` with one more fold record. `inPlace`: `r` is not needed again, so its projections are folded on directly. */
+export function extend(r: Run, id: string, inPlace = false): Run {
+  const folds = [...r.folds, id];
+  const plain = inPlace ? r.plain : fork(r.plain);
+  foldOn(plain, id, r.fit);
+  if (!r.tucks.length) return { ...r, folds, plain, full: plain };
+  const homes = tuckHomes(r.tucks, plain.root);
+  let full: Replayed;
+  if (homes.every((home, i) => home === r.homes[i])) {
+    full = inPlace ? r.full : fork(r.full);
+    foldOn(full, id, r.fit);
+  } else {
+    full = tucked(r.layout, r.fit, r.tucks, homes);
+    for (const f of folds) foldOn(full, f, r.fit);
   }
-  for (const id of folds) {
-    const displayed = slots(root);
-    if (displayed.length < 2) break;
-    const choice = displayed.find((s) => s.id === id);
-    if (!choice) continue; // stale record (closed or moved pane): skip it
-    root = fold(root, choice, fit, order);
-    applied.push(id);
-  }
-  return { root, order, applied };
+  return { ...r, folds, homes, plain, full };
+}
+/** Replay hides, then tucks, then sticky folds, without changing the canonical tree. */
+export function replay(layout: Layout, folds: readonly string[], fit: FitOptions): Replayed {
+  return run(layout, fit, folds).full;
 }
