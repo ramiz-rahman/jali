@@ -20,11 +20,4 @@ async function open(page: Page, name: string) {
 qualitySuite({
   storage: "studio",
   layouts: LAYOUTS.map((name) => ({ name, open: (page) => open(page, name) })),
-  fixme: [
-    {
-      check: "axe",
-      reason:
-        "label-content-name-mismatch: the transport's \"Forward 5 seconds\" key shows text its name doesn't include",
-    },
-  ],
 });

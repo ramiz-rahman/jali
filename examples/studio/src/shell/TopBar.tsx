@@ -313,7 +313,10 @@ function Transport() {
             },
             { className: "tp-stop", title: "Stop, and go back to the start" },
           )}
-          {key("Forward 5 seconds", "fwd", "forward", () => engine.skip(5))}
+          {/* The name starts with the legend it shows, as ⌘K's does (WCAG 2.5.3: what is seen is part of what is said). */}
+          {key("fwd: forward 5 seconds", "fwd", "forward", () => engine.skip(5), {
+            title: "Forward 5 seconds",
+          })}
           {key("Loop", "loop", "loop", () => runCommand(jali, "studio.loop"), {
             className: "tp-loop",
             latch: true,
