@@ -1108,7 +1108,7 @@ type BeforeClose = (request: CloseRequest) => boolean | Promise<boolean>
 
 The host's close guard, `createJali({ beforeClose })`. Jali asks it before a change removes panes or makes a pane show another object. `true` lets the change happen; `false` keeps the panes (`reason: "kept"`). A promise holds the change (`reason: "pending"`) until it answers. If the layout changed in the meantime, the held change is dropped. A guard that throws or rejects keeps the panes.
 
-It is asked first. If it says yes and a pane still reports unsaved work (`useUnsaved`), Jali's own "Discard unsaved changes?" follows; Discard does not ask the guard again. It is not asked while the workspace is made, or for changes that remove nothing (focus, tuck, open beside). When it keeps the panes on Back or Forward, the address goes back to what is on screen.
+It is asked first. If it says yes and a pane still reports unsaved work (`useUnsaved`), Jali's own "Discard unsaved changes?" follows; Discard does not ask the guard again. It is not asked while the workspace is made, or for changes that remove nothing (focus, tuck, open beside). A later yes makes the change against the workspace as it is then; if the panes it would remove or replace are no longer the ones asked about, the guard is asked again. When Back or Forward is not made in the end (the guard keeps the panes, or the person keeps editing), the address goes back to what is on screen.
 
 ### CloseRequest
 
@@ -1631,7 +1631,7 @@ A pane that is not there gives `reason: "not-found"`. What a refusal reads out t
 
 - **`actions.resetPage`**, `resetPage()`: Split view back to the design; opened panes stay.
 
-- **`actions.setCanInvestigate`**, `setCanInvestigate(canInvestigate: boolean)`: The viewer's permission. Taking it away switches to Single view.
+- **`actions.setCanInvestigate`**, `setCanInvestigate(canInvestigate: boolean)`: The viewer's permission. Taking it away in Split view switches to Single view in the same change: held whole when a view that would go has unsaved work, so Keep editing leaves both as they were. A link or Back never opens Split view for a limited viewer.
 
 - **`actions.choose`**, `choose<T>(options: ChooseOptions<T>)`: Ask the person for one of `options.items` in Jali's chooser: type to filter, arrows, Enter, Esc. `options.onChoose(item)` runs once it has closed and focus is back. Closes ⌘K if it is open. `"invalid"` without a `title`, `items` or `label`. For a command that needs an argument; see [Commands and keys](../../guides/commands-and-keys.md#commands-that-ask-for-something).
 

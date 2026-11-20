@@ -551,7 +551,7 @@ The Settings dialog, while `settingsOpen` is set: theme, centre drop, pane cap (
 <ConfirmDiscard />
 ```
 
-"Discard unsaved changes?", while a change that would lose unsaved work is held (`confirm`). Lists each pane and its work. Keep editing is the default (focused, Esc and a click outside); Discard makes the held change as it was asked for.
+"Discard unsaved changes?", while a change that would lose unsaved work is held (`confirm`). Lists each pane and its work. Keep editing is the default (focused, Esc and a click outside); Discard makes the held change against the workspace as it is then, and asks again if more work would now be lost.
 
 ### KindIcon
 
