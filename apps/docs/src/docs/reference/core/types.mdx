@@ -117,7 +117,7 @@ What the person is looking at, apart from the layout.
 <Params title="Fields">
 <Param name="focused" type="NodeId">The pane with workspace focus (the accent edge).</Param>
 <Param name="zoomed" type="NodeId">The maximised pane. In the URL as `zoom`.</Param>
-<Param name="scroll" type="Record<NodeId, number>">How far each row that scrolls has scrolled, by the row's id, in px along its content. Focusing a pane in it sets it, so the pane shows whole.</Param>
+<Param name="scroll" type="Record<NodeId, number>">How far each row that scrolls has scrolled, by the row's id, in px along its content, set where the row comes to rest. In the URL as `scroll` (`week:732`); a strip at its start writes nothing, and scrolling replaces the history entry.</Param>
 <Param name="peek" type="ObjectRef">What the peek sheet shows. In the URL as `peek`.</Param>
 <Param name="focusHistory" type="NodeId[]" required>Panes most recently focused first.</Param>
 </Params>

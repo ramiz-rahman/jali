@@ -187,7 +187,7 @@ What the person is looking at, apart from the layout.
 
 - **`zoomed`** (`NodeId`): The maximised pane. In the URL as `zoom`.
 
-- **`scroll`** (`Record<NodeId, number>`): How far each row that scrolls has scrolled, by the row's id, in px along its content. Focusing a pane in it sets it, so the pane shows whole.
+- **`scroll`** (`Record<NodeId, number>`): How far each row that scrolls has scrolled, by the row's id, in px along its content, set where the row comes to rest. In the URL as `scroll` (`week:732`); a strip at its start writes nothing, and scrolling replaces the history entry.
 
 - **`peek`** (`ObjectRef`): What the peek sheet shows. In the URL as `peek`.
 
