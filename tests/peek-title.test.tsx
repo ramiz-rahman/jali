@@ -1,4 +1,6 @@
-/** The peek sheet names its object as a pane showing the same object does: the title from useTitle, else the kind's. */
+/**
+ * The peek sheet's title: its own content's useTitle, else that of a pane showing the same object, else the kind's.
+ */
 import { afterEach, beforeAll, describe, expect, it } from "vite-plus/test";
 import { act, cleanup, render } from "@testing-library/react";
 import { createJali, memoryLocation, memoryStorage, pane, row } from "@jali/core";
@@ -31,6 +33,18 @@ const person = definePane("person", {
   },
 });
 
+/** A call: in a pane its content names it from the layout's data; in the sheet, as "DISA — <id>". */
+const call = definePane("call", {
+  params: { id: String },
+  title: ({ id }) => `Call ${id}`,
+  Component: ({ params, inPeek, node }) => {
+    useTitle(
+      params.id === "quiet" ? undefined : inPeek ? `DISA — ${params.id}` : `Pane ${node.id}`,
+    );
+    return <p>call {params.id}</p>;
+  },
+});
+
 const peekTitle = () => document.querySelector('[data-testid="peek"] h2')?.textContent;
 
 describe("the peek sheet's title", () => {
@@ -52,5 +66,33 @@ describe("the peek sheet's title", () => {
     expect(peekTitle()).toBe("Ada Lovelace");
     act(() => void jali.actions.peek("a", person({ id: "9" })));
     expect(peekTitle()).toBe("Person 9");
+  });
+
+  it("is its own content's useTitle first, for the object it shows, and goes when the sheet closes", () => {
+    const jali = createJali({
+      panes: [person, call],
+      layout: row(pane(person({ id: "1" }), { id: "a" }), pane(call({ id: "c1" }), { id: "c" })),
+      url: { location: memoryLocation() },
+      storage: memoryStorage(),
+      size: { width: 1200, height: 600 },
+      moveFocus: false,
+    });
+    render(
+      <JaliRoot jali={jali}>
+        <JaliView />
+      </JaliRoot>,
+    );
+    // Not in the layout: only the sheet's own content can name it.
+    act(() => void jali.actions.peek("a", call({ id: "c2" })));
+    expect(peekTitle()).toBe("DISA — c2");
+    // Its own name wins over the pane's showing the same object.
+    act(() => void jali.actions.peek("a", call({ id: "c1" })));
+    expect(peekTitle()).toBe("DISA — c1");
+    // Another object, whose content gives no name: the kind's title, never the last object's name.
+    act(() => void jali.actions.peek("a", call({ id: "quiet" })));
+    expect(peekTitle()).toBe("Call quiet");
+    act(() => void jali.actions.closePeek());
+    act(() => void jali.actions.peek("a", call({ id: "c2" })));
+    expect(peekTitle()).toBe("DISA — c2");
   });
 });

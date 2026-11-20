@@ -97,7 +97,8 @@ export function useCommands(commands: readonly PaneCommand[]): void {
 /**
  * Name the pane from its data ("Acme Ltd" rather than "Customer 12"): in its header, tab, the shelf, ⌘K, the switcher
  * and announcements, in place of the kind's `title`. `null` or `undefined` goes back to the kind's title. Cleared when
- * the component unmounts or the pane shows another object; not saved. The peek sheet keeps the kind's title.
+ * the component unmounts or the pane shows another object; not saved. In the peek sheet it names the sheet, for the
+ * object it shows; a sheet whose content gives none takes the name of a pane showing the same object, else the kind's.
  */
 export function useTitle(title: string | null | undefined): void {
   const { host, props } = usePaneContext("useTitle");

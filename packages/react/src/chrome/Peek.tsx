@@ -1,8 +1,8 @@
 import { own } from "@jali/core/adapter";
 import type { PaneNode } from "@jali/core";
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useJaliIcons } from "../icons/context";
-import { sameRef, type Presentation } from "@jali/core/adapter";
+import { sameRef, type PaneReportPatch, type Presentation } from "@jali/core/adapter";
 import { KindIcon } from "../pane/icons";
 import { PaneBody, peekHost } from "../pane/PaneBody";
 import { UnsavedMark } from "../pane/Unsaved";
@@ -21,7 +21,25 @@ export function Peek({ presentation }: { presentation: Presentation }) {
   const areaW = useUi((s) => s.area.width);
   const page = useUi((s) => s.page);
   const canPin = !page || (page.canInvestigate && page.mode === "split");
-  const host = useMemo(() => peekHost(store), [store]);
+  // The sheet's own content may name its object (useTitle), for this object only: a new object starts unnamed.
+  const shows = ref ? JSON.stringify(ref) : "";
+  const [ownTitle, setOwnTitle] = useState<{ shows: string; title: string | null }>();
+  const host = useMemo(() => {
+    const base = peekHost(store);
+    const titles = new Map<string, { seq: number; title: string }>();
+    return {
+      ...base,
+      // Merged as a pane's are: the last caller in order that gives one.
+      report: (caller: string, seq: number, patch: PaneReportPatch | null) => {
+        if (patch && !Object.hasOwn(patch, "title")) return;
+        const title = patch?.title;
+        if (title) titles.set(caller, { seq: titles.get(caller)?.seq ?? seq, title });
+        else titles.delete(caller);
+        const last = [...titles.values()].sort((a, b) => a.seq - b.seq).at(-1);
+        setOwnTitle({ shows, title: last?.title ?? null });
+      },
+    };
+  }, [store, shows]);
   // The sheet stands for a pane while it shows that pane's object: it carries the pane's data-* attributes.
   const marks = useUi((s) => {
     if (!s.view.peek) return undefined;
@@ -43,7 +61,8 @@ export function Peek({ presentation }: { presentation: Presentation }) {
       })
     );
   });
-  // And for its title: a pane showing this object may have named it from its data (useTitle).
+  // And for its title: a pane showing this object may have named it from its data (useTitle), when the sheet's own
+  // content has not.
   const named = useUi((s) => {
     const ref = s.view.peek;
     if (!ref) return undefined;
@@ -68,7 +87,9 @@ export function Peek({ presentation }: { presentation: Presentation }) {
   if (!ref) return null;
   // The sheet's content is not a pane in the layout: it has a node of its own, outside the tree.
   const node: PaneNode = { id: "peek", type: "pane", size: { weight: 1 }, ref };
-  const title = named ?? store.env.kinds.title(ref);
+  // Its own content's useTitle first, then a pane's showing the same object, then the kind's.
+  const title =
+    (ownTitle?.shows === shows ? ownTitle.title : null) ?? named ?? store.env.kinds.title(ref);
   const { actions } = store;
   const t = store.messages.peek;
   return (
