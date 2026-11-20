@@ -97,7 +97,11 @@ function BudgetPane({ inPeek }: PaneProps) {
             const day = plan.days.find((x) => x.n === d.n)!;
             return (
               <li key={d.n} className="budget-day" data-over={d.over || undefined}>
-                <button type="button" className="budget-day-label" onClick={() => showDay(jali, d.n)}>
+                <button
+                  type="button"
+                  className="budget-day-label"
+                  onClick={() => showDay(jali, d.n)}
+                >
                   <DayMark n={d.n} size="sm" />
                   <span>
                     <b>Day {d.n}</b>
@@ -110,14 +114,24 @@ function BudgetPane({ inPeek }: PaneProps) {
                   aria-label={`Day ${d.n}: ${f.money(d.total)} of a ${f.money(d.allowance)} share${d.over ? ", over" : ""}. ${BUDGET_CATEGORIES.map((c) => `${BUDGET_LABEL[c]} ${f.money(d.byCategory[c])}`).join(", ")}.`}
                 >
                   {BUDGET_CATEGORIES.map((c) => (
-                    <span key={c} data-cat={c} style={{ width: `${(d.byCategory[c] / scale) * 100}%` }} />
+                    <span
+                      key={c}
+                      data-cat={c}
+                      style={{ width: `${(d.byCategory[c] / scale) * 100}%` }}
+                    />
                   ))}
-                  <i className="bar-share" style={{ left: `${(d.allowance / scale) * 100}%` }} aria-hidden />
+                  <i
+                    className="bar-share"
+                    style={{ left: `${(d.allowance / scale) * 100}%` }}
+                    aria-hidden
+                  />
                 </div>
                 <span className="budget-day-total num">
                   {d.over ? <WarningIcon size={14} weight="bold" aria-hidden /> : null}
                   {f.money(d.total)}
-                  {d.over ? <span className="over-text small">{f.money(d.total - d.allowance)} over</span> : null}
+                  {d.over ? (
+                    <span className="over-text small">{f.money(d.total - d.allowance)} over</span>
+                  ) : null}
                 </span>
               </li>
             );
@@ -128,20 +142,30 @@ function BudgetPane({ inPeek }: PaneProps) {
           {BUDGET_CATEGORIES.map((c: BudgetCategory) => (
             <li key={c} className="budget-cat">
               <span className="budget-cat-label">{BUDGET_LABEL[c]}</span>
-              <div className="bar" role="img" aria-label={`${BUDGET_LABEL[c]}: ${f.money(b.byCategory[c])}`}>
-                <span data-cat={c} style={{ width: `${(b.byCategory[c] / Math.max(b.budget, b.total)) * 100}%` }} />
+              <div
+                className="bar"
+                role="img"
+                aria-label={`${BUDGET_LABEL[c]}: ${f.money(b.byCategory[c])}`}
+              >
+                <span
+                  data-cat={c}
+                  style={{ width: `${(b.byCategory[c] / Math.max(b.budget, b.total)) * 100}%` }}
+                />
               </div>
               <span className="num">{f.money(b.byCategory[c])}</span>
-              <span className="muted small num">{Math.round((b.byCategory[c] / b.total) * 100)}%</span>
+              <span className="muted small num">
+                {Math.round((b.byCategory[c] / b.total) * 100)}%
+              </span>
             </li>
           ))}
         </ul>
       )}
 
       <p className="budget-note muted small">
-        <WalletIcon size={14} aria-hidden /> Each day's share is {f.money(b.days[0]?.allowance ?? 0)}: the budget
-        over {plan.days.length} days. Transport is the sum of the day's legs, so a scooter instead of a taxi in Phuket shows here; the flight is its own line.
-        Every price in this example is made up.
+        <WalletIcon size={14} aria-hidden /> Each day's share is{" "}
+        {f.money(b.days[0]?.allowance ?? 0)}: the budget over {plan.days.length} days. Transport is
+        the sum of the day's legs, so a scooter instead of a taxi in Phuket shows here; the flight
+        is its own line. Every price in this example is made up.
       </p>
     </div>
   );

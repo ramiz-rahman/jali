@@ -29,7 +29,11 @@ export const clock = (m: number) =>
 
 /** "1.4 km", "650 m". */
 export const distance = (km: number) =>
-  km < 1 ? `${Math.round((km * 1000) / 10) * 10} m` : km < 100 ? `${km.toFixed(1)} km` : `${Math.round(km)} km`;
+  km < 1
+    ? `${Math.round((km * 1000) / 10) * 10} m`
+    : km < 100
+      ? `${km.toFixed(1)} km`
+      : `${Math.round(km)} km`;
 
 /** "Thu 15 Apr", from an ISO date (read as a calendar date, not a moment). */
 export function day(iso: string): string {

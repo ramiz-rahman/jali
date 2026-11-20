@@ -8,7 +8,13 @@ import { mustPlace } from "./places";
 
 export type BudgetCategory = "stay" | "sights" | "food" | "transport" | "flight";
 
-export const BUDGET_CATEGORIES: readonly BudgetCategory[] = ["stay", "sights", "food", "transport", "flight"];
+export const BUDGET_CATEGORIES: readonly BudgetCategory[] = [
+  "stay",
+  "sights",
+  "food",
+  "transport",
+  "flight",
+];
 
 export const BUDGET_LABEL: Record<BudgetCategory, string> = {
   stay: "Stay",

@@ -59,7 +59,10 @@ describe("travel", () => {
     // A mode the city doesn't have is ignored.
     const kata = mustPlace("kata-beach");
     const town = mustPlace("old-town");
-    expect(leg(kata, town, { [legKey(kata.id, town.id)]: "transit" })).toMatchObject({ mode: "taxi", chosen: false });
+    expect(leg(kata, town, { [legKey(kata.id, town.id)]: "transit" })).toMatchObject({
+      mode: "taxi",
+      chosen: false,
+    });
     expect(modesFor(kata, town)).toEqual(["walk", "taxi", "scooter"]);
     expect(legKey("a", "b")).toBe(legKey("b", "a"));
   });
@@ -73,7 +76,11 @@ describe("travel", () => {
 
   it("flies between the airports, and never takes any other leg across the country", () => {
     const f = leg(mustPlace(AIRPORT.bkk), mustPlace(AIRPORT.hkt));
-    expect(f).toMatchObject({ mode: "flight", cost: FLIGHT.cost, minutes: FLIGHT.airMin + FLIGHT.airportMin });
+    expect(f).toMatchObject({
+      mode: "flight",
+      cost: FLIGHT.cost,
+      minutes: FLIGHT.airMin + FLIGHT.airportMin,
+    });
     expect(() => leg(mustPlace("grand-palace"), mustPlace("kata-beach"))).toThrow();
   });
 
@@ -92,7 +99,11 @@ describe("travel", () => {
       }
     }
     // Every business is made up; every sight is real.
-    expect(PLACES.filter((p) => p.category === "food" || p.category === "stay").every((p) => p.fictional)).toBe(true);
+    expect(
+      PLACES.filter((p) => p.category === "food" || p.category === "stay").every(
+        (p) => p.fictional,
+      ),
+    ).toBe(true);
     expect(PLACES.filter((p) => p.category === "sight").some((p) => p.fictional)).toBe(false);
   });
 });
@@ -112,7 +123,11 @@ describe("a day's route and totals", () => {
   it("begins the transfer day at the Bangkok hotel, flies, and ends at the Phuket hotel", () => {
     const d = day(DEFAULT_PLAN, 4);
     const route = routeOf(DEFAULT_PLAN, d);
-    expect(route.places.map((p) => p.id).slice(0, 3)).toEqual([DEFAULT_PLAN.hotels.bkk, AIRPORT.bkk, AIRPORT.hkt]);
+    expect(route.places.map((p) => p.id).slice(0, 3)).toEqual([
+      DEFAULT_PLAN.hotels.bkk,
+      AIRPORT.bkk,
+      AIRPORT.hkt,
+    ]);
     expect(route.first).toBe(3);
     expect(route.places.at(-1)!.id).toBe(DEFAULT_PLAN.hotels.hkt);
     const t = dayTotals(DEFAULT_PLAN, d);
@@ -157,10 +172,17 @@ describe("optimise", () => {
   });
 
   it("keeps the transfer day's flight first, and orders only what comes after it", () => {
-    const d = { ...day(DEFAULT_PLAN, 4), stops: ["promthep", "karon-beach", "f-katagrill", "big-buddha"] };
+    const d = {
+      ...day(DEFAULT_PLAN, 4),
+      stops: ["promthep", "karon-beach", "f-katagrill", "big-buddha"],
+    };
     const r = optimiseDay(DEFAULT_PLAN, d);
     const route = routeOf(DEFAULT_PLAN, d, r.stops);
-    expect(route.places.slice(0, 3).map((p) => p.id)).toEqual([DEFAULT_PLAN.hotels.bkk, AIRPORT.bkk, AIRPORT.hkt]);
+    expect(route.places.slice(0, 3).map((p) => p.id)).toEqual([
+      DEFAULT_PLAN.hotels.bkk,
+      AIRPORT.bkk,
+      AIRPORT.hkt,
+    ]);
     expect([...r.stops].sort()).toEqual([...d.stops].sort());
     expect(r.afterMin).toBeLessThanOrEqual(r.beforeMin);
   });
@@ -170,7 +192,9 @@ describe("optimise", () => {
     const twice = optimiseDay(DEFAULT_PLAN, day(DEFAULT_PLAN, 2), once.stops);
     expect(twice.savedMin).toBe(0);
     expect(twice.stops).toEqual(once.stops);
-    expect(optimiseDay(DEFAULT_PLAN, day(DEFAULT_PLAN, 3))).toEqual(optimiseDay(DEFAULT_PLAN, day(DEFAULT_PLAN, 3)));
+    expect(optimiseDay(DEFAULT_PLAN, day(DEFAULT_PLAN, 3))).toEqual(
+      optimiseDay(DEFAULT_PLAN, day(DEFAULT_PLAN, 3)),
+    );
   });
 
   it("handles tiny days", () => {
@@ -223,9 +247,18 @@ describe("changing the plan", () => {
 
   it("reads back only a plan it understands: an old Lisbon plan gives the bundled trip", () => {
     expect(readPlan(null)).toBe(DEFAULT_PLAN);
-    const lisbon = { version: 1, city: "Lisbon", budget: 950, hotel: "h-ribeira", days: [], modes: {} };
+    const lisbon = {
+      version: 1,
+      city: "Lisbon",
+      budget: 950,
+      hotel: "h-ribeira",
+      days: [],
+      modes: {},
+    };
     expect(readPlan(lisbon)).toBe(DEFAULT_PLAN);
-    expect(readPlan({ ...DEFAULT_PLAN, hotels: { bkk: "h-kata", hkt: "h-kata" } })).toBe(DEFAULT_PLAN);
+    expect(readPlan({ ...DEFAULT_PLAN, hotels: { bkk: "h-kata", hkt: "h-kata" } })).toBe(
+      DEFAULT_PLAN,
+    );
     const changed = moveStop(DEFAULT_PLAN, "wat-pho", 2);
     expect(readPlan(JSON.parse(JSON.stringify(changed)))).toEqual(changed);
   });
@@ -239,7 +272,9 @@ describe("budget", () => {
     expect(d.byCategory.food).toBe(2.5 + 14);
     expect(d.byCategory.transport).toBe(dayTotals(DEFAULT_PLAN, day(DEFAULT_PLAN, 1)).transport);
     expect(d.byCategory.flight).toBe(0);
-    expect(dayBudget(DEFAULT_PLAN, 6).byCategory.stay).toBe(mustPlace(DEFAULT_PLAN.hotels.hkt).price);
+    expect(dayBudget(DEFAULT_PLAN, 6).byCategory.stay).toBe(
+      mustPlace(DEFAULT_PLAN.hotels.hkt).price,
+    );
     expect(d.allowance).toBeCloseTo(DEFAULT_PLAN.budget / 7, 2);
   });
 
@@ -250,7 +285,10 @@ describe("budget", () => {
 
   it("adds up to the trip and marks the days over their share", () => {
     const b = tripBudget(DEFAULT_PLAN);
-    expect(b.total).toBeCloseTo(b.days.reduce((s, d) => s + d.total, 0), 2);
+    expect(b.total).toBeCloseTo(
+      b.days.reduce((s, d) => s + d.total, 0),
+      2,
+    );
     expect(b.left).toBeCloseTo(b.budget - b.total, 2);
     // The bundled trip fits the budget, but the flight day and two days of Phuket taxis are over their share.
     expect(b.left).toBeGreaterThan(0);

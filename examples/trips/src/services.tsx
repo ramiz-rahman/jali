@@ -3,7 +3,14 @@
  * workspace's commands get them when it is made (workspace.ts).
  */
 import { createContext, useContext, type ReactNode } from "react";
-import { createPlanStore, createStore, useStore, type PlanStore, type Results, type Store } from "./store";
+import {
+  createPlanStore,
+  createStore,
+  useStore,
+  type PlanStore,
+  type Results,
+  type Store,
+} from "./store";
 import type { Plan } from "./trip/plan";
 
 export interface Services {
@@ -28,7 +35,13 @@ export function createServices({
 
 const ServicesContext = createContext<Services | null>(null);
 
-export function ServicesProvider({ services, children }: { services: Services; children: ReactNode }) {
+export function ServicesProvider({
+  services,
+  children,
+}: {
+  services: Services;
+  children: ReactNode;
+}) {
   return <ServicesContext.Provider value={services}>{children}</ServicesContext.Provider>;
 }
 

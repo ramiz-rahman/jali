@@ -6,7 +6,16 @@ import type { Jali } from "@jali/core";
 import type { Services } from "./services";
 import { optimiseDay, type Optimised } from "./trip/optimise";
 import { CITY_NAME, mustPlace, placeById, type CityId } from "./trip/places";
-import { canPlan, dayOf, dayWith, isHotel, moveStop, removeStop, setHotel, setStops } from "./trip/plan";
+import {
+  canPlan,
+  dayOf,
+  dayWith,
+  isHotel,
+  moveStop,
+  removeStop,
+  setHotel,
+  setStops,
+} from "./trip/plan";
 import * as f from "./ui/format";
 
 const undo = (services: Services) => () => {
@@ -41,7 +50,9 @@ export function addToDay(services: Services, id: string, n: number, index?: numb
   if (!p || !day || p.category === "stay" || p.category === "airport") return;
   if (!canPlan(plan, id, n)) {
     // Never a cross-country leg: a place goes only on a day in its own city.
-    services.notify(`${p.name} is in ${CITY_NAME[p.city]}, and Day ${n} is in ${CITY_NAME[day.city]}`);
+    services.notify(
+      `${p.name} is in ${CITY_NAME[p.city]}, and Day ${n} is in ${CITY_NAME[day.city]}`,
+    );
     return;
   }
   const was = dayWith(plan, id);
@@ -50,7 +61,9 @@ export function addToDay(services: Services, id: string, n: number, index?: numb
     return;
   }
   const label = was && was.n !== n ? `Moved ${p.name} to Day ${n}` : `Added ${p.name} to Day ${n}`;
-  services.plan.change(was?.n === n ? `Moved ${p.name}` : label, (plan) => moveStop(plan, id, n, index));
+  services.plan.change(was?.n === n ? `Moved ${p.name}` : label, (plan) =>
+    moveStop(plan, id, n, index),
+  );
   if (was?.n !== n) services.notify(label, { undo: undo(services) });
 }
 
@@ -66,9 +79,12 @@ export function stayAt(services: Services, id: string) {
   const p = mustPlace(id);
   if (isHotel(services.plan.get(), id)) return;
   services.plan.change(`Stay at ${p.name}`, (plan) => setHotel(plan, id));
-  services.notify(`Staying at ${p.name}. Every day in ${CITY_NAME[p.city]} now starts and ends there.`, {
-    undo: undo(services),
-  });
+  services.notify(
+    `Staying at ${p.name}. Every day in ${CITY_NAME[p.city]} now starts and ends there.`,
+    {
+      undo: undo(services),
+    },
+  );
 }
 
 /** Reorder day `n` to the quickest order found, and say what it saved. */
@@ -83,8 +99,14 @@ export function optimise(services: Services, n: number): Optimised | null {
   }
   services.plan.change(`Optimised Day ${n}`, (p) => setStops(p, n, r.stops));
   const cost =
-    r.savedCost > 0 ? ` and ${f.money(r.savedCost)}` : r.savedCost < 0 ? `, for ${f.money(-r.savedCost)} more` : "";
-  services.notify(`Day ${n}: ${f.minutes(r.savedMin)} less travel${cost}`, { undo: undo(services) });
+    r.savedCost > 0
+      ? ` and ${f.money(r.savedCost)}`
+      : r.savedCost < 0
+        ? `, for ${f.money(-r.savedCost)} more`
+        : "";
+  services.notify(`Day ${n}: ${f.minutes(r.savedMin)} less travel${cost}`, {
+    undo: undo(services),
+  });
   return r;
 }
 

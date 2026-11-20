@@ -22,12 +22,21 @@ function Launcher({ openHere, dismiss }: PaneProps) {
     }
   };
   return (
-    <nav className="pane-body launcher" aria-label="Choose what this pane shows" onKeyDown={onKeyDown}>
+    <nav
+      className="pane-body launcher"
+      aria-label="Choose what this pane shows"
+      onKeyDown={onKeyDown}
+    >
       <section>
         <h3>A day</h3>
         <div className="launcher-grid">
           {plan.days.map((d) => (
-            <button key={d.n} type="button" className="btn launcher-day" onClick={() => go(day({ n: d.n }))}>
+            <button
+              key={d.n}
+              type="button"
+              className="btn launcher-day"
+              onClick={() => go(day({ n: d.n }))}
+            >
               <DayMark n={d.n} size="sm" />
               {d.title}
             </button>
@@ -59,7 +68,12 @@ function Launcher({ openHere, dismiss }: PaneProps) {
           <h3>Recent</h3>
           <div className="launcher-grid">
             {recent.map((ref) => (
-              <button key={JSON.stringify(ref)} type="button" className="btn" onClick={() => go(ref)}>
+              <button
+                key={JSON.stringify(ref)}
+                type="button"
+                className="btn"
+                onClick={() => go(ref)}
+              >
                 {titleOf(ref)}
               </button>
             ))}

@@ -51,21 +51,47 @@ export const DEFAULT_PLAN: Plan = {
       title: "Temples of the old city",
       city: "bkk",
       // A first draft, not yet in the best order: "Optimise order" has something to do.
-      stops: ["wat-arun", "grand-palace", "f-khaomangai", "wat-pho", "museum-siam", "pak-khlong", "f-thatien"],
+      stops: [
+        "wat-arun",
+        "grand-palace",
+        "f-khaomangai",
+        "wat-pho",
+        "museum-siam",
+        "pak-khlong",
+        "f-thatien",
+      ],
     },
     {
       n: 2,
       date: "2027-02-12",
       title: "Chinatown, silk and the park",
       city: "bkk",
-      stops: ["wat-traimit", "talat-noi", "f-coffee", "jim-thompson", "erawan", "lumphini", "yaowarat", "f-noodle"],
+      stops: [
+        "wat-traimit",
+        "talat-noi",
+        "f-coffee",
+        "jim-thompson",
+        "erawan",
+        "lumphini",
+        "yaowarat",
+        "f-noodle",
+      ],
     },
     {
       n: 3,
       date: "2027-02-13",
       title: "Markets and the Golden Mount",
       city: "bkk",
-      stops: ["chatuchak", "f-coconut", "marble-temple", "golden-mount", "f-goldenmount", "giant-swing", "khao-san", "f-phraathit"],
+      stops: [
+        "chatuchak",
+        "f-coconut",
+        "marble-temple",
+        "golden-mount",
+        "f-goldenmount",
+        "giant-swing",
+        "khao-san",
+        "f-phraathit",
+      ],
     },
     {
       n: 4,
@@ -80,7 +106,15 @@ export const DEFAULT_PLAN: Plan = {
       date: "2027-02-15",
       title: "Old Town and the temples",
       city: "hkt",
-      stops: ["old-town", "f-dimsum", "khao-rang", "f-rang", "wat-chalong", "big-buddha", "f-chalong"],
+      stops: [
+        "old-town",
+        "f-dimsum",
+        "khao-rang",
+        "f-rang",
+        "wat-chalong",
+        "big-buddha",
+        "f-chalong",
+      ],
     },
     {
       n: 6,
@@ -94,7 +128,16 @@ export const DEFAULT_PLAN: Plan = {
       date: "2027-02-17",
       title: "The north: a waterfall and quiet bays",
       city: "hkt",
-      stops: ["bang-pae", "f-bangpae", "surin", "kamala", "f-surin", "patong", "bangla", "f-patong"],
+      stops: [
+        "bang-pae",
+        "f-bangpae",
+        "surin",
+        "kamala",
+        "f-surin",
+        "patong",
+        "bangla",
+        "f-patong",
+      ],
     },
   ],
   modes: {},
@@ -127,7 +170,10 @@ export function routeOf(plan: Plan, day: Day, stops: readonly string[] = day.sto
   const start = day.from
     ? [hotelOf(plan, day.from), mustPlace(AIRPORT[day.from]), mustPlace(AIRPORT[day.city])]
     : [hotelOf(plan, day.city)];
-  return { places: [...start, ...stops.map(mustPlace), hotelOf(plan, day.city)], first: start.length };
+  return {
+    places: [...start, ...stops.map(mustPlace), hotelOf(plan, day.city)],
+    first: start.length,
+  };
 }
 
 export interface DayTotals {
@@ -167,7 +213,17 @@ export function dayTotals(plan: Plan, day: Day, stops: readonly string[] = day.s
     arrive.push(clock);
     clock += i + 1 >= route.first && i + 1 < places.length - 1 ? p.visitMin : 0;
   });
-  return { route, legs, travelMin, transport, flight, visitMin, spend, arrive, endsAt: arrive[arrive.length - 1]! };
+  return {
+    route,
+    legs,
+    travelMin,
+    transport,
+    flight,
+    visitMin,
+    spend,
+    arrive,
+    endsAt: arrive[arrive.length - 1]!,
+  };
 }
 
 export const round2 = (n: number) => Math.round(n * 100) / 100;
@@ -200,7 +256,10 @@ export function canPlan(plan: Plan, id: string, n: number): boolean {
 /** Move `id` to day `toDay` at `index` (default: the end), from whichever day had it. Refused across cities. */
 export function moveStop(plan: Plan, id: string, toDay: number, index?: number): Plan {
   if (!canPlan(plan, id, toDay)) return plan;
-  const removed = { ...plan, days: plan.days.map((d) => ({ ...d, stops: d.stops.filter((s) => s !== id) })) };
+  const removed = {
+    ...plan,
+    days: plan.days.map((d) => ({ ...d, stops: d.stops.filter((s) => s !== id) })),
+  };
   return withDay(removed, toDay, (s) => {
     const out = s.slice();
     out.splice(index === undefined ? out.length : Math.max(0, Math.min(out.length, index)), 0, id);
@@ -216,7 +275,8 @@ export const removeStop = (plan: Plan, id: string): Plan => ({
   days: plan.days.map((d) => ({ ...d, stops: d.stops.filter((s) => s !== id) })),
 });
 
-export const setStops = (plan: Plan, n: number, stops: string[]): Plan => withDay(plan, n, () => stops);
+export const setStops = (plan: Plan, n: number, stops: string[]): Plan =>
+  withDay(plan, n, () => stops);
 
 export function setMode(plan: Plan, key: string, mode: Mode | null): Plan {
   const modes = { ...plan.modes };

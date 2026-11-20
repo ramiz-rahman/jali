@@ -31,7 +31,9 @@ export function optimiseDay(plan: Plan, day: Day, stops: readonly string[] = day
   const end = route.places[route.places.length - 1]!;
   const places = [start, ...stops.map(mustPlace), end];
   const ids = places.map((p) => p.id);
-  const cost = places.map((a, i) => places.map((b, j) => (i === j ? 0 : leg(a, b, plan.modes).minutes)));
+  const cost = places.map((a, i) =>
+    places.map((b, j) => (i === j ? 0 : leg(a, b, plan.modes).minutes)),
+  );
   const length = (order: number[]) => {
     let total = 0;
     let at = 0;
@@ -61,7 +63,11 @@ export function optimiseDay(plan: Plan, day: Day, stops: readonly string[] = day
     improved = false;
     for (let i = 0; i < n - 1; i++) {
       for (let j = i + 1; j < n; j++) {
-        const next = [...order.slice(0, i), ...order.slice(i, j + 1).reverse(), ...order.slice(j + 1)];
+        const next = [
+          ...order.slice(0, i),
+          ...order.slice(i, j + 1).reverse(),
+          ...order.slice(j + 1),
+        ];
         const len = length(next);
         if (len < best) {
           order.splice(0, n, ...next);
@@ -74,7 +80,13 @@ export function optimiseDay(plan: Plan, day: Day, stops: readonly string[] = day
 
   const candidate = order.map((i) => ids[i]!);
   // Keep the person's order unless the new one is really quicker.
-  return result(plan, day, stops, dayTotals(plan, day, candidate).travelMin < before.travelMin ? candidate : stops, before);
+  return result(
+    plan,
+    day,
+    stops,
+    dayTotals(plan, day, candidate).travelMin < before.travelMin ? candidate : stops,
+    before,
+  );
 }
 
 function result(

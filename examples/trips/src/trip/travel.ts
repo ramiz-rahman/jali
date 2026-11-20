@@ -50,14 +50,29 @@ export const RULES: Record<CityId, Partial<Record<Mode, ModeRule>>> = {
       fare: (km) => Math.min(1.8, cents(0.5 + 0.1 * km)),
     },
     // Traffic in town; the expressway beyond about 10 km.
-    taxi: { detour: 1.35, kmh: (km) => (km < 10 ? 14 : 32), fixedMin: 6, fare: (km) => cents(1 + 0.25 * km) },
+    taxi: {
+      detour: 1.35,
+      kmh: (km) => (km < 10 ? 14 : 32),
+      fixedMin: 6,
+      fare: (km) => cents(1 + 0.25 * km),
+    },
   },
   hkt: {
     walk: { detour: 1.3, kmh: 4.5, fixedMin: 0, fare: () => 0 },
     // Phuket's roads are slow through the towns and quicker along the main road up the island.
-    taxi: { detour: 1.4, kmh: (km) => (km < 15 ? 30 : 40), fixedMin: 8, fare: (km) => cents(3 + 0.8 * km) },
+    taxi: {
+      detour: 1.4,
+      kmh: (km) => (km < 15 ? 30 : 40),
+      fixedMin: 8,
+      fare: (km) => cents(3 + 0.8 * km),
+    },
     // A hired scooter: fuel and a share of the day's hire, by the km.
-    scooter: { detour: 1.4, kmh: (km) => (km < 15 ? 28 : 36), fixedMin: 3, fare: (km) => cents(0.12 * km) },
+    scooter: {
+      detour: 1.4,
+      kmh: (km) => (km < 15 ? 28 : 36),
+      fixedMin: 3,
+      fare: (km) => cents(0.12 * km),
+    },
   },
 };
 
@@ -74,20 +89,26 @@ export const WALK_UP_TO_KM: Record<CityId, number> = { bkk: 1.0, hkt: 0.7 };
 export const NEARBY_KM: Record<CityId, number> = { bkk: 1.2, hkt: 4 };
 
 /** The great-circle distance between two points, in km. */
-export function haversineKm(a: { lat: number; lng: number }, b: { lat: number; lng: number }): number {
+export function haversineKm(
+  a: { lat: number; lng: number },
+  b: { lat: number; lng: number },
+): number {
   const R = 6371;
   const rad = (d: number) => (d * Math.PI) / 180;
   const dLat = rad(b.lat - a.lat);
   const dLng = rad(b.lng - a.lng);
-  const h = Math.sin(dLat / 2) ** 2 + Math.cos(rad(a.lat)) * Math.cos(rad(b.lat)) * Math.sin(dLng / 2) ** 2;
+  const h =
+    Math.sin(dLat / 2) ** 2 + Math.cos(rad(a.lat)) * Math.cos(rad(b.lat)) * Math.sin(dLng / 2) ** 2;
   return 2 * R * Math.asin(Math.min(1, Math.sqrt(h)));
 }
 
 /** A leg that crosses the Chao Phraya to or from the Thonburi bank. */
-export const crossesRiver = (a: Place, b: Place) => a.city === "bkk" && b.city === "bkk" && !!a.acrossRiver !== !!b.acrossRiver;
+export const crossesRiver = (a: Place, b: Place) =>
+  a.city === "bkk" && b.city === "bkk" && !!a.acrossRiver !== !!b.acrossRiver;
 
 /** The flight between the two airports. */
-export const isFlight = (a: Place, b: Place) => a.city !== b.city && a.id === AIRPORT[a.city] && b.id === AIRPORT[b.city];
+export const isFlight = (a: Place, b: Place) =>
+  a.city !== b.city && a.id === AIRPORT[a.city] && b.id === AIRPORT[b.city];
 
 /** The modes a person can choose between for this leg. */
 export function modesFor(a: Place, b: Place): readonly Mode[] {
@@ -117,7 +138,8 @@ export interface Trip {
 
 /** How long one trip of `km` (straight line) takes and what it costs, by `mode`, in `city`. */
 export function travel(km: number, mode: Mode, city: CityId, { ferry = false } = {}): Trip {
-  if (mode === "flight") return { mode, km, minutes: FLIGHT.airMin + FLIGHT.airportMin, cost: FLIGHT.cost };
+  if (mode === "flight")
+    return { mode, km, minutes: FLIGHT.airMin + FLIGHT.airportMin, cost: FLIGHT.cost };
   const rule = ferry && mode === "transit" ? FERRY : RULES[city][mode];
   if (!rule) throw new Error(`No ${mode} in ${city}`);
   if (km === 0) return { mode, km: 0, minutes: 0, cost: 0 };
@@ -145,7 +167,8 @@ export interface Leg extends Trip {
 export function leg(a: Place, b: Place, modes: Readonly<Record<string, Mode>> = {}): Leg {
   const km = haversineKm(a, b);
   const options = modesFor(a, b);
-  if (!options.length) throw new Error(`No way from ${a.id} in one city to ${b.id} in another but the flight`);
+  if (!options.length)
+    throw new Error(`No way from ${a.id} in one city to ${b.id} in another but the flight`);
   const wanted = modes[legKey(a.id, b.id)];
   const chosen = wanted && options.includes(wanted) ? wanted : undefined;
   const mode = chosen ?? autoMode(a, b, km);

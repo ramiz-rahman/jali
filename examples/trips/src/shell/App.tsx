@@ -87,7 +87,11 @@ function DragGhost() {
   const drag = useDrag();
   if (!drag) return null;
   return createPortal(
-    <div className="drag-ghost" style={{ transform: `translate(${drag.x + 12}px, ${drag.y + 8}px)` }} aria-hidden>
+    <div
+      className="drag-ghost"
+      style={{ transform: `translate(${drag.x + 12}px, ${drag.y + 8}px)` }}
+      aria-hidden
+    >
       <span>{drag.label}</span>
       <span className="drag-ghost-to">
         {drag.over ? `to Day ${drag.over.day}` : "Drop on a day"}

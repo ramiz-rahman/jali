@@ -69,7 +69,9 @@ const KEY = "trips:plan:v2";
 const HISTORY = 40;
 
 export function createPlanStore(persist = true, initial?: Plan): PlanStore {
-  const store = createStore<Plan>(initial ?? (persist ? readPlan(saved.read(KEY, null)) : DEFAULT_PLAN));
+  const store = createStore<Plan>(
+    initial ?? (persist ? readPlan(saved.read(KEY, null)) : DEFAULT_PLAN),
+  );
   if (persist) store.subscribe(() => saved.write(KEY, store.get()));
   const history: { label: string; plan: Plan }[] = [];
 
