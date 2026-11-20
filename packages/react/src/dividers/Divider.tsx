@@ -85,7 +85,8 @@ export const Divider = /* @__PURE__ */ memo(
         aria-orientation={row ? "vertical" : "horizontal"}
         aria-valuenow={pct(p.sizeA, p.total)}
         aria-valuemin={pct(p.minA, p.total)}
-        aria-valuemax={pct(p.maxA, p.total)}
+        // In a row that scrolls a divider has no upper bound (the content grows): it states none.
+        aria-valuemax={Number.isFinite(p.maxA) ? pct(p.maxA, p.total) : undefined}
         aria-valuetext={t.dividerValue(p.labelA, Math.round(p.sizeA), p.labelB, restB)}
         aria-controls={p.controls}
         aria-label={t.divider(p.labelA, p.labelB)}
