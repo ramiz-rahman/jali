@@ -1,7 +1,6 @@
 /** Data Studio's workspace: a database browser where the person builds the layout from its pane kinds and presets. */
 import { createJali, type Jali, type JaliOptions } from "@jali/core";
 import { makerCommand } from "../../shared/src/maker/maker";
-import { unstable_popOut } from "@jali/react";
 import { DEFAULT_PRESET, dataStudioKinds, dataStudioLauncher, dataStudioPresets } from "./panes";
 
 /** What Data Studio's workspace is made of. */
@@ -22,16 +21,8 @@ export const createDataStudio = (): Jali =>
     ...dataStudioOptions,
     url: { sizes: "link" },
     allow: { popOut: true },
-    // Jali's header buttons, plus Pop out (the rest is in each pane's ⋯ menu).
+    // Jali's header buttons, plus Pop out (the rest is in each pane's ⋯ menu). Pop out on also gives ⌘K Jali's
+    // "Pop out pane" (Document Picture-in-Picture; Chrome and Edge on desktop).
     buttons: (defaults) => [...defaults.filter((b) => b !== "close"), "popOut", "close"],
-    // The Pop out prototype (Document Picture-in-Picture; Chrome and Edge on desktop).
-    commands: [
-      {
-        id: "app.pop_out",
-        title: "Pop out pane (experimental)",
-        group: "Pane",
-        run: (jali) => void unstable_popOut(jali),
-      },
-      makerCommand,
-    ],
+    commands: [makerCommand],
   });
