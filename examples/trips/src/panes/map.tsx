@@ -58,6 +58,7 @@ import * as f from "../ui/format";
 import { CATEGORY_ICON, DayMark, Segmented } from "../ui/parts";
 import { Photo, photoSrc } from "../ui/photo";
 import { photoOf } from "../trip/photos";
+import { repairStyle } from "./map-style";
 
 setWorkerUrl(mapWorkerUrl);
 
@@ -299,6 +300,8 @@ function MapPane({ params, paused, node, inPeek }: PaneProps<typeof mapParams>) 
     const map = new MapLibre({
       container: el,
       style: STYLE[themeRef.current],
+      // Mends what in the base styles would log a warning; theme switches use it too.
+      transformStyle: repairStyle,
       center: TRIP.center,
       zoom: TRIP.zoom,
       minZoom: 4,

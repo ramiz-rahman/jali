@@ -1,9 +1,6 @@
 /** The standard's checks on every layout, in both themes: axe and the width sweep; the console guard runs in each. */
 import { expect, type Page } from "@playwright/test";
-import { qualitySuite, test } from "../../shared/e2e/quality";
-import { MAP_STYLE_WARNINGS } from "./known";
-
-test.use({ consoleAllow: MAP_STYLE_WARNINGS });
+import { qualitySuite } from "../../shared/e2e/quality";
 
 const LAYOUTS = ["Plan", "Days", "Stay", "Budget"];
 
