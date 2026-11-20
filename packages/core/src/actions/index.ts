@@ -17,7 +17,7 @@ import {
 import { dismiss, newTab, noteOpen, openBeside, openHere, split, splitAuto } from "./open";
 import { close, closeOthers, closeTabs, undo } from "./close";
 import { putBack, reveal, tuck } from "./tuck";
-import { drop, moveDirection, swapWithNext } from "./move";
+import { drop, moveDirection, moveOutOfRow, swapWithNext } from "./move";
 import { mergeInto, moveTab, moveTabToward, setActiveTab, setPinned, unmerge } from "./tabs";
 import {
   commitDividerDrag,
@@ -89,6 +89,7 @@ export const ACTIONS = {
   putBack,
   reveal,
   moveDirection,
+  moveOutOfRow,
   drop,
   swapWithNext,
   mergeInto,

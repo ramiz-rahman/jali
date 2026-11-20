@@ -48,6 +48,7 @@ The titles below are for a workspace with no curated page. With a curated page, 
 | `pane.move.right` | Move pane right | ⌘K ⇧⌘→ | Ctrl+K Ctrl+Shift+Right | Silent when no pane is focused or only one pane is open. With no pane to that side: "… can't move right". |
 | `pane.move.up` | Move pane up | ⌘K ⇧⌘↑ | Ctrl+K Ctrl+Shift+Up | Silent when no pane is focused or only one pane is open. With no pane to that side: "… can't move up". |
 | `pane.move.down` | Move pane down | ⌘K ⇧⌘↓ | Ctrl+K Ctrl+Shift+Down | Silent when no pane is focused or only one pane is open. With no pane to that side: "… can't move down". |
+| `pane.move.out` | Move pane out of the row | none | none | Silent unless the focused pane is in a row that scrolls sideways (`row({ scroll: "x" }, …)`). Takes it out beside the row, on the side it is nearer on screen: "… moved out of the row". |
 | `pane.swap` | Swap with next pane | none | none | Silent when no pane is focused or only one pane is open. |
 | `pane.merge` | Add to tabs of… | ⌘K ⌘G | Ctrl+K Ctrl+G | Silent when no pane is focused, or there is no other pane or stack on screen to join. Opens the "Add to tabs of…" chooser. |
 | `pane.unmerge` | Move out of tabs | ⌘K ⇧⌘G | Ctrl+K Ctrl+Shift+G | Silent unless the focused pane is in a tab group made by the person (not one the layout folded). |

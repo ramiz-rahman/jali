@@ -107,6 +107,7 @@ const announcements = {
   // move and tabs
   cantMove: (pane: string, edge: Edge) => `${pane} can't move ${dirWord(edge)}`,
   moved: (pane: string, edge: Edge) => `${pane} moved ${dirWord(edge)}`,
+  movedOutOfRow: (pane: string) => `${pane} moved out of the row`,
   swapped: (a: string, b: string) => `${a} swapped with ${b}`,
   addedToTabsOf: (a: string, b: string) => `${a} added to the tabs of ${b}`,
   addedToTabsWith: (a: string, b: string) => `${a} added to tabs with ${b}`,
@@ -238,6 +239,7 @@ const commands = {
   splitAuto: "Split auto (new pane, by shape)",
   moveDirection: (direction: ScreenDirection) => `Move pane ${direction}`,
   swap: "Swap with next pane",
+  moveOutOfRow: "Move pane out of the row",
   merge: "Add to tabs of…",
   unmerge: "Move out of tabs",
   moveTab: (direction: "left" | "right") => `Move tab ${direction}`,
@@ -425,6 +427,8 @@ const tabs = {
   closeTabsAfter: (side: "left" | "right") => `Close tabs to the ${side}`,
   moveTab: (side: "left" | "right") => `Move tab ${side}`,
   moveOutOfTabs: "Move out of tabs",
+  /** A pane in a row that scrolls sideways: out of it, beside it. */
+  moveOutOfRow: "Move out of the row",
   pinTab: "Pin tab",
   rename: "Rename…",
   /** A pinned tab's description starts with this. */

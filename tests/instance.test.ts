@@ -103,6 +103,7 @@ describe("the instance", () => {
         "putBack",
         "move",
         "swapWithNext",
+        "moveOutOfRow",
         "mergeInto",
         "unmerge",
         "moveTab",

@@ -28,7 +28,7 @@ import {
   resetLayout,
   autoLayout,
 } from "./layout";
-import { moveDirection, swapWithNext } from "./move";
+import { moveDirection, moveOutOfRow, swapWithNext } from "./move";
 import { addTab, newTab, openBeside, openHere, openPaneFor, split } from "./open";
 import {
   activate,
@@ -113,6 +113,11 @@ export interface JaliActions {
   move(pane: PaneTarget, direction: Edge): ActionResult;
   /** Swap a pane (default: the focused one) with the next pane on screen. */
   swapWithNext(pane?: PaneTarget): ActionResult;
+  /**
+   * Take a pane (default: the focused one) out of the row that scrolls holding it, beside the row on the side the
+   * pane is nearer on screen. Nothing happens for a pane in no such row.
+   */
+  moveOutOfRow(pane?: PaneTarget): ActionResult;
   /** Make `pane` a tab of `target` (or of `target`'s tabs). */
   mergeInto(pane: PaneTarget, target: PaneTarget): ActionResult;
   /** Move a tab (default: the focused pane) out of its tabs, to their right. */
@@ -246,6 +251,7 @@ export function publicActions(run: Run): JaliActions {
     putBack: (pane) => opt(pane, (x, id) => putBack(x, id)),
     move: (pane, direction) => on(pane, (x, id) => moveDirection(x, direction, id)),
     swapWithNext: (pane) => opt(pane, (x, id) => swapWithNext(x, id)),
+    moveOutOfRow: (pane) => opt(pane, (x, id) => moveOutOfRow(x, id)),
     mergeInto: (pane, target) => both(pane, target, mergeInto),
     unmerge: (pane) => opt(pane, (x, id) => unmerge(x, id)),
     moveTab: (pane, index) => on(pane, (x, id) => moveTab(x, id, index)),

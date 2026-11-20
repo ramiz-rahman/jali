@@ -1587,6 +1587,8 @@ A pane that is not there gives `reason: "not-found"`. What a refusal reads out t
 
 - **`actions.unmerge`**, `unmerge(pane?: PaneTarget)`: Move a tab out of its group, to the right of it.
 
+- **`actions.moveOutOfRow`**, `moveOutOfRow(pane?: PaneTarget)`: Take a pane (default: the focused one) out of the row that scrolls sideways holding it, beside the row on the side the pane is nearer on screen. Also in the pane's menu and ⌘K ("Move out of the row"). Nothing happens for a pane in no such row.
+
 - **`actions.closeTabs`**, `closeTabs(pane: PaneTarget, which: "others" | "after")`: Close the other tabs of `pane`'s group, or the tabs after it in reading order (to its right, or its left right to left). One change: `beforeClose` is asked once, listing them all, and one Undo brings them back. Refused with `"nothing-to-do"` when there are none. The tab menu's Close other tabs and Close tabs to the right.
 
 - **`actions.setPinned`**, `setPinned(pane: PaneTarget, pinned: boolean)`: Pin a pane's tab, or unpin it. A pinned tab goes to the end of its group's pinned tabs, at the start of the group; unpinned, it goes to the start of the rest. Close other tabs and Close tabs to the right leave it open; Close, middle-click and ⌘W still close it. Already as asked: nothing happens, with no `pin` event and no history entry. Each change fires `pin`.

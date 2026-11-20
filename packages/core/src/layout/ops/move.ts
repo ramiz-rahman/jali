@@ -135,7 +135,7 @@ export function moveDirection(
 /**
  * Take `pane` out of the row that scrolls `stripId`, beside the strip on `side` (a tree side), when it is the
  * strip's first child and `side` is its start, or its last and `side` its end. Else undefined: a pane inside a strip
- * moves past its neighbours, not out. A strip left with one child becomes that child, and the pane goes beside it.
+ * moves past its neighbours, not out.
  */
 function leaveStrip(
   layout: Layout,
@@ -150,16 +150,41 @@ function leaveStrip(
   if (!strip || strip.type !== "row") return undefined;
   const at = strip.children.findIndex((c) => nodes(c).some((n) => n.id === pane));
   if (at !== (side === "left" ? 0 : strip.children.length - 1)) return undefined;
-  const others = strip.children.filter((_, i) => i !== at).map((c) => c.id);
+  const r = moveOutOfStrip(layout, view, pane, side, ctx);
+  return r.layout === layout ? undefined : r;
+}
+
+/**
+ * Take `pane` out of the row that scrolls holding it, from wherever it is in the strip, and put it beside the strip
+ * on `side` (a tree side: before or after it). A pane in a column in the strip comes out on its own. A strip left
+ * with one child becomes that child, and the pane goes beside it. Unchanged when the pane is in no strip.
+ */
+export function moveOutOfStrip(
+  layout: Layout,
+  view: ViewState,
+  pane: string,
+  side: "left" | "right",
+  ctx: LayoutContext,
+) {
+  const strip = nodes(layout.root).find(
+    (n) =>
+      n.type === "row" &&
+      n.scroll === "x" &&
+      nodes(n).some((c) => c.id === pane && c.type === "pane"),
+  );
+  if (!strip || strip.type !== "row") return { layout, view };
+  const others = strip.children
+    .filter((c) => !nodes(c).some((n) => n.id === pane))
+    .map((c) => c.id);
   const next = clone(layout);
   const moved = clone(find(next.root, pane) as PaneNode);
   // A deliberate move ends a tuck, as a drop does.
   next.root = remove(next.root, pane)!;
   forget(next, [pane]);
-  const anchor = find(next.root, stripId) ? stripId : others.find((id) => find(next.root, id));
-  if (!anchor) return undefined;
+  const anchor = find(next.root, strip.id) ? strip.id : others.find((id) => find(next.root, id));
+  if (!anchor) return { layout, view };
   beside(next, anchor, side, moved);
   activate(next, pane);
-  const nextView = focus(view, pane, ctx);
+  const nextView = focus(unzoom(view), pane, ctx);
   return { layout: fitLayout(next, nextView, ctx), view: nextView };
 }

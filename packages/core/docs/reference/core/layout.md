@@ -552,6 +552,18 @@ How far the shown boxes among `ids` reach along `axis`, gaps included. `0` when 
 
 **Returns** `number`:
 
+### layout.moveOutOfStrip
+
+*function*, from `@jali/core`
+
+```ts
+layout.moveOutOfStrip(layout, view, pane, side: "left" | "right", ctx): { layout; view }
+```
+
+Takes `pane` out of the row that scrolls holding it, from anywhere in the row, and puts it beside the row on `side`, a tree side (before or after it). A pane in a column in the row comes out alone; a row left with one child becomes that child. Unchanged for a pane in no such row.
+
+**Returns** `{ layout: Layout; view: ViewState }`:
+
 ### layout.extentIn
 
 *function*, from `@jali/core`

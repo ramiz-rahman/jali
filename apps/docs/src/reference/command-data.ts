@@ -73,6 +73,8 @@ export const REFUSED: Record<string, string> = {
   "pane.move.down":
     'Silent when no pane is focused or only one pane is open. With no pane to that side: "… can\'t move down".',
   "pane.swap": "Silent when no pane is focused or only one pane is open.",
+  "pane.move.out":
+    'Silent unless the focused pane is in a row that scrolls sideways (`row({ scroll: "x" }, …)`). Takes it out beside the row, on the side it is nearer on screen: "… moved out of the row".',
   "pane.merge":
     'Silent when no pane is focused, or there is no other pane or stack on screen to join. Opens the "Add to tabs of…" chooser.',
   "pane.unmerge":

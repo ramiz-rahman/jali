@@ -383,6 +383,14 @@ How far the shown boxes among `ids` reach along `axis`, gaps included. `0` when 
 
 </Entry>
 
+<Entry name="layout.moveOutOfStrip" kind="function" from="@jali/core" signature={`layout.moveOutOfStrip(layout, view, pane, side: "left" | "right", ctx): { layout; view }`} compact>
+
+Takes `pane` out of the row that scrolls holding it, from anywhere in the row, and puts it beside the row on `side`, a tree side (before or after it). A pane in a column in the row comes out alone; a row left with one child becomes that child. Unchanged for a pane in no such row.
+
+<Returns type="{ layout: Layout; view: ViewState }" />
+
+</Entry>
+
 <Entry name="layout.extentIn" kind="function" from="@jali/core" signature={`layout.extentIn(resolved: ResolvedLayout, ids: readonly string[], axis: Axis): number`} compact>
 
 As <Ref to="layout.extentAlong" />, but a row that scrolls counts as its window: when every pane of a strip is among `ids`, the strip takes the room its window does, not the length of its content. What a divider beside a strip measures.

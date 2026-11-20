@@ -3,7 +3,7 @@ export type * from "./types";
 export * as tree from "./tree/tree";
 export { open, openBeside, split, type Placement, type OpenOptions } from "./ops/open";
 export { close, closeOthers } from "./ops/close";
-export { swap, drop, moveDirection } from "./ops/move";
+export { swap, drop, moveDirection, moveOutOfStrip } from "./ops/move";
 export { resizeDivider, resetDivider } from "./ops/divider";
 export { canTuck, tuck, putBack, putBackEdge } from "./ops/tuck";
 export { hide, show } from "./ops/hide";

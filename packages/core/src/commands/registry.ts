@@ -50,6 +50,11 @@ const also =
 const needFocus = ({ s }: Snapshot) => (s.view.focused ? undefined : refuse("unavailable"));
 const needLauncher = (x: Snapshot) =>
   x.s.view.focused && x.env.launcher ? undefined : refuse("unavailable");
+const inStrip = (x: Snapshot) =>
+  needFocus(x) ??
+  (x.m.resolved.scrollers.some((r) => r.paneIds.includes(x.s.view.focused!))
+    ? undefined
+    : refuse("unavailable"));
 const needOthers = (x: Snapshot) =>
   needFocus(x) ?? (x.m.panes.length > 1 ? undefined : refuse("unavailable"));
 const DIRS: [Edge, ScreenDirection][] = [
@@ -190,6 +195,14 @@ function buildCommands(env: Env): CommandDef[] {
       check: also(needOthers, "move"),
       run: (u) => u.actions.moveDirection(d),
     })),
+    // Out of a row that scrolls sideways, beside it: without dragging, and from the middle of the row in one step.
+    {
+      id: "pane.move.out",
+      title: t.moveOutOfRow,
+      group: g.move,
+      check: also(inStrip, "move"),
+      run: (u) => u.actions.moveOutOfRow(),
+    },
     {
       id: "pane.swap",
       title: t.swap,
