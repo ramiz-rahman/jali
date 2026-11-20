@@ -160,6 +160,46 @@ describe("C2: stored settings", () => {
   });
 });
 
+describe("C2b: stored sizes", () => {
+  it("stored sizes that are null, wrong or carry other fields are left out", () => {
+    const code = twoPanes();
+    const l = layout.decode(code, registry)!;
+    const sizes = {
+      a: null,
+      b: { size: { px: -4 }, ref: { kind: "constructor", params: {} }, type: "row", children: [] },
+      row: { size: { weight: 2 }, userSized: "yes" },
+    };
+    const storage = memoryStorage({ sizes: JSON.stringify([[structureKey(l), sizes]]) });
+    const sync = createUrlSync({ location: memoryLocation(`?l=${code}`), storage });
+    let read: ReturnType<typeof sync.read> = null;
+    expect(() => (read = sync.read(registry))).not.toThrow();
+    expect(read).toHaveProperty("layout");
+    const got = (read as unknown as { layout: Layout }).layout;
+    expect(layout.validate(got, registry)).toEqual({ ok: true });
+    expect(layout.tree.panes(got.root).map((p) => p.ref)).toEqual([
+      note({ id: 1 }),
+      note({ id: 2 }),
+    ]);
+    // The good part of an entry is kept.
+    expect(got.root.size).toEqual({ weight: 2 });
+    expect(() => make({ url: { location: memoryLocation(`?l=${code}`) }, storage })).not.toThrow();
+  });
+
+  it.each([[null], ["text"], [[1, 2]]])(
+    "a stored entry of %j for the layout opens the link as it is",
+    (entry) => {
+      const code = twoPanes();
+      const l = layout.decode(code, registry)!;
+      const storage = memoryStorage({ sizes: JSON.stringify([[structureKey(l), entry]]) });
+      let jali: Jali | undefined;
+      expect(
+        () => (jali = make({ url: { location: memoryLocation(`?l=${code}`) }, storage })),
+      ).not.toThrow();
+      expect(jali!.model().panes.map((p) => p.id)).toEqual(["a", "b"]);
+    },
+  );
+});
+
 describe("C3: names on Object.prototype", () => {
   it.each(["constructor", "toString", "__proto__", "hasOwnProperty"])(
     "%s is not a kind",

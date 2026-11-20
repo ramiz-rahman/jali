@@ -59,7 +59,7 @@ Deliberate changes (opening, closing, moving, choosing a preset) add a history e
 
 Choose `"local"` when a link means "look at this": the sender's proportions are rarely right on the reader's screen. Choose `"link"` when the arrangement itself is the work, and a colleague should see it to the pixel.
 
-With `"local"`, sizes are kept in the workspace's `storage`, for the last 12 layouts.
+With `"local"`, sizes are kept in the workspace's `storage`, for the last 12 layouts. Only sizes are read back from there, and only values a size can hold; if what is kept would make the layout invalid, the link opens as it is.
 
 ## Two workspaces in one address
 

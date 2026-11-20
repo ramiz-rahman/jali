@@ -15,6 +15,7 @@ import type {
 import type { HistoryMode } from "./state/apply";
 import type { UiState, UrlWriter } from "./state/store";
 import { browserLocation, browserStorage, type LocationPort, type StoragePort } from "./ports";
+import { own as ownOf } from "./own";
 
 export const PERSIST_MS = 120;
 const BROKEN_KEY = "broken-layout";
@@ -189,7 +190,7 @@ export type PersonalSizes = Record<NodeId, Pick<LayoutNode, "size" | "base" | "u
 
 /** The layout with every divider the person moved put back (each node's `base`, else an equal share), and those sizes. */
 export function splitPersonalSizes(layout: Layout): { layout: Layout; sizes: PersonalSizes } {
-  const sizes: PersonalSizes = {};
+  const sizes: PersonalSizes = Object.create(null);
   const strip = (n: LayoutNode): LayoutNode => {
     const out = { ...n } as LayoutNode;
     if (n.base !== undefined || n.userSized) {
@@ -211,10 +212,30 @@ export function splitPersonalSizes(layout: Layout): { layout: Layout; sizes: Per
   return { layout: { ...layout, root: strip(layout.root) }, sizes };
 }
 
-/** `layout` with the person's sizes put back on the nodes that still exist. */
+/** One positive px or weight, as a node's size holds it. */
+const isSize = (v: unknown): v is LayoutNode["size"] => {
+  if (!v || typeof v !== "object" || Array.isArray(v) || Object.keys(v).length !== 1) return false;
+  const n = (v as { px?: unknown; weight?: unknown }).px ?? (v as { weight?: unknown }).weight;
+  return typeof n === "number" && Number.isFinite(n) && n > 0;
+};
+
+/** The part of a stored entry that is a node's sizes: `size` and `base` that are sizes, and `userSized: true`.
+ *  Anything else in it (a `ref`, `children`, another type) is left out; undefined when nothing is left. */
+function sizesOf(entry: unknown): PersonalSizes[NodeId] | undefined {
+  if (!entry || typeof entry !== "object") return undefined;
+  const e = entry as Record<string, unknown>;
+  const out: PersonalSizes[NodeId] = {} as PersonalSizes[NodeId];
+  if (isSize(e.size)) out.size = { ...e.size };
+  if (isSize(e.base)) out.base = { ...e.base };
+  if (e.userSized === true) out.userSized = true;
+  return Object.keys(out).length ? out : undefined;
+}
+
+/** `layout` with the person's sizes put back on the nodes that still exist. Only sizes are taken from `sizes`, and
+ *  only values a size can hold; anything else stored there is left out. */
 export function joinPersonalSizes(layout: Layout, sizes: PersonalSizes): Layout {
   const put = (n: LayoutNode): LayoutNode => {
-    const own = sizes[n.id];
+    const own = sizesOf(ownOf(sizes, n.id));
     const out = (own ? { ...n, ...own } : { ...n }) as LayoutNode;
     if (out.type !== "pane")
       (out as Exclude<LayoutNode, { type: "pane" }>).children = (
@@ -267,8 +288,12 @@ export function createUrlSync({
   // "local": the sizes the person dragged, per layout structure (a few layouts, most recent first).
   const loadSizes = (): [string, PersonalSizes][] => {
     try {
-      const v = JSON.parse(storage.get(sizesKey) ?? "[]");
-      return Array.isArray(v) ? v : [];
+      const v: unknown = JSON.parse(storage.get(sizesKey) ?? "[]");
+      if (!Array.isArray(v)) return [];
+      return v.filter(
+        (e): e is [string, PersonalSizes] =>
+          Array.isArray(e) && typeof e[0] === "string" && !!e[1] && typeof e[1] === "object",
+      );
     } catch {
       return [];
     }
@@ -302,7 +327,10 @@ export function createUrlSync({
       const r = readSearch(location.search(), kinds, keys);
       if (sizes !== "local" || !r || !("layout" in r)) return r;
       const own = loadSizes().find(([k]) => k === structureKey(r.layout))?.[1];
-      return own ? { ...r, layout: joinPersonalSizes(r.layout, own) } : r;
+      if (!own) return r;
+      // The person's sizes are checked as the link was: a layout they would break opens as the link has it.
+      const joined = joinPersonalSizes(r.layout, own);
+      return core.validate(joined, kinds).ok ? { ...r, layout: joined } : r;
     },
     keepBroken: (code) => storage.set(`${prefix ?? ""}${BROKEN_KEY}`, code),
     onPop: (fn) => location.subscribe(fn),

@@ -883,3 +883,9 @@ Data Studio's old tab strip had six features Jali lacked. Each is general, and l
 - **Why 64:** fitting needs at least 1, and the dialog offers 2 to 16. An app may default higher (Trips once wanted 10), but past 64 the fitting cost (QUALITY-REVIEW P1) makes a cap meaningless, and nothing a person sets reaches it.
 - **The store's raw write** computes the whole next state, refit included, before putting it in place (`write` in `state/store.ts`), so a refit that throws leaves the state as it was.
 - **Tests:** `tests/hostile-input.test.tsx` (C2).
+
+## 20 Nov 2026 · Sizes kept on the device are read as sizes only (QUALITY-REVIEW C2)
+
+- **Why:** with `sizes: "local"`, the sizes a person dragged were spread onto the link's nodes as stored (`joinPersonalSizes`). A `null` entry stopped startup, and an entry holding anything else (a `ref`, `children`, a negative px) reached the layout unchecked, after the link itself had been validated.
+- **Now:** only `size` and `base` that are one positive finite px or weight, and `userSized: true`, are taken from an entry; the rest is left out, and an entry that isn't an object is skipped. Entries in the store that aren't `[key, sizes]` pairs are ignored. The joined layout is validated with the link's kinds; if it fails, the link opens as it is, with the designed proportions. Kept sizes are read through `own`, so a pane called `constructor` has none it didn't save.
+- **Tests:** `tests/hostile-input.test.tsx` (C2b).
