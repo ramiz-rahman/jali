@@ -21,6 +21,20 @@ const PAIRS = [
   ["DOT/USD", 5.4321],
 ] as const;
 
+/** Kraken's internal names for the pairs, as its REST API keys them when not asked for display names. */
+const INTERNAL: Record<string, string> = {
+  "BTC/USD": "XXBTZUSD",
+  "ETH/USD": "XETHZUSD",
+  "SOL/USD": "SOLUSD",
+  "XRP/USD": "XXRPZUSD",
+  "ADA/USD": "ADAUSD",
+  "DOGE/USD": "XDGUSD",
+  "LTC/USD": "XLTCZUSD",
+  "LINK/USD": "LINKUSD",
+  "AVAX/USD": "AVAXUSD",
+  "DOT/USD": "DOTUSD",
+};
+
 export const ticker = (symbol: string, last: number) => ({
   symbol,
   bid: last * 0.9999,
@@ -129,7 +143,10 @@ export async function fakeKraken(
         j === 0 || j === 7 ? v : String(v),
       );
     });
-    await route.fulfill({ json: { error: [], result: { [pair]: rows } } });
+    // As Kraken keys the rows: by the pair's display name only when asked with assetVersion=1, else by its internal
+    // name, with the `last` cursor beside them (https://docs.kraken.com/api-reference/market-data/get-ohlc-data).
+    const key = url.searchParams.get("assetVersion") === "1" ? pair : (INTERNAL[pair] ?? pair);
+    await route.fulfill({ json: { error: [], result: { [key]: rows, last: rows.at(-1)?.[0] } } });
   });
 
   return {

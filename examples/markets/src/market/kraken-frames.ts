@@ -142,11 +142,20 @@ export function parseFrame(text: unknown): KrakenFrame | undefined {
   return { channel: m.channel, type: m.type, data } as KrakenFrame;
 }
 
-/** The bars in a REST OHLC answer for `pair`: rows of time (s), open, high, low, close, vwap, volume, count. Rows that
- *  don't parse are dropped, and so is an answer with none. */
+/**
+ * The bars in a REST OHLC answer for `pair` ("BTC/USD"): rows of time (s), open, high, low, close, vwap, volume, count.
+ * Rows that don't parse are dropped, and so is an answer with none.
+ *
+ * Kraken keys the rows by the pair's display name ("BTC/USD") only when asked with `assetVersion=1` (the request does,
+ * `ohlcUrl`), and by its internal name ("XXBTZUSD") otherwise, beside a `last` cursor. A call asks for one pair, so an
+ * answer without `pair` is read from its one series, whatever its key.
+ * https://docs.kraken.com/api-reference/market-data/get-ohlc-data
+ */
 export function parseBars(body: unknown, pair: string): Bar[] | undefined {
   if (!isObject(body) || !isObject(body.result)) return undefined;
-  const rows = body.result[pair];
+  const series = Object.entries(body.result).filter(([k, v]) => k !== "last" && Array.isArray(v));
+  const rows =
+    pair in body.result ? body.result[pair] : series.length === 1 ? series[0]![1] : undefined;
   if (!Array.isArray(rows)) return undefined;
   const bars = rows.flatMap((row): Bar[] => {
     if (!Array.isArray(row)) return [];
@@ -157,6 +166,10 @@ export function parseBars(body: unknown, pair: string): Bar[] | undefined {
   });
   return bars.length ? bars : undefined;
 }
+
+/** The REST call for `pair`'s bars of `interval` minutes, asking for display names so the answer is keyed by `pair`. */
+export const ohlcUrl = (rest: string, pair: string, interval: number) =>
+  `${rest}/0/public/OHLC?pair=${encodeURIComponent(pair)}&interval=${interval}&assetVersion=1`;
 
 /** Kraken's own error text in a REST answer, if it gave one. */
 export const restError = (body: unknown) =>

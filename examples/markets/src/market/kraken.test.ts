@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import { createKrakenMarket, HISTORY_RETRY_MS, type SocketLike } from "./kraken";
 import { createSimulator } from "./simulator";
+import { ohlcUrl, parseBars } from "./kraken-frames";
 
 /** A websocket that opens at once and records what is sent; `push` plays a message from Kraken. */
 class FakeSocket implements SocketLike {
@@ -159,9 +160,17 @@ describe("the Kraken market", () => {
       const t = (NOW - (399 - i) * 5 * minute) / 1000;
       return [t, "100", "102", "99", "101", "100.5", "3.5", 10];
     });
-    const fetch = vi.fn(async () => ({
+    // As Kraken answers: the pair's key is its display name ("BTC/USD") only when asked with assetVersion=1, and its
+    // internal name ("XXBTZUSD") otherwise, with `last` beside it.
+    const fetch = vi.fn(async (url: string) => ({
       ok: true,
-      json: async () => ({ error: [], result: { "BTC/USD": rows } }),
+      json: async () => ({
+        error: [],
+        result: {
+          [new URL(url).searchParams.get("assetVersion") === "1" ? "BTC/USD" : "XXBTZUSD"]: rows,
+          last: rows.at(-1)?.[0],
+        },
+      }),
     }));
     const { market, ws } = await setup(fetch);
     const seen = vi.fn();
@@ -169,7 +178,7 @@ describe("the Kraken market", () => {
     expect(market.snapshot({ channel: "bars", symbol: "BTCUSD", range: "1D" })).toEqual([]);
     await vi.waitFor(() => expect(seen).toHaveBeenCalled());
     expect(fetch).toHaveBeenCalledWith(
-      "https://api.kraken.com/0/public/OHLC?pair=BTC%2FUSD&interval=5",
+      "https://api.kraken.com/0/public/OHLC?pair=BTC%2FUSD&interval=5&assetVersion=1",
     );
     const bars = market.snapshot({ channel: "bars", symbol: "BTCUSD", range: "1D" });
     // The last 24 hours of 5-minute bars.
@@ -302,5 +311,35 @@ describe("what comes from Kraken is parsed, not trusted", () => {
     await vi.waitFor(() => expect(market.feed.get()).toBe("live"));
     vi.useRealTimers();
     market.close();
+  });
+});
+
+describe("Kraken's price history", () => {
+  const row = [1688671200, "30306.1", "30306.2", "30305.7", "30305.7", "30306.1", "3.39243896", 23];
+
+  it("asks for display names, so the answer is keyed by the pair the app knows", () => {
+    expect(ohlcUrl("https://api.kraken.com", "BTC/USD", 60)).toBe(
+      "https://api.kraken.com/0/public/OHLC?pair=BTC%2FUSD&interval=60&assetVersion=1",
+    );
+    const body = { error: [], result: { "BTC/USD": [row], last: 1688672160 } };
+    expect(parseBars(body, "BTC/USD")).toEqual([
+      {
+        time: 1688671200_000,
+        open: 30306.1,
+        high: 30306.2,
+        low: 30305.7,
+        close: 30305.7,
+        volume: 3.39243896,
+      },
+    ]);
+  });
+
+  it("reads an answer keyed by Kraken's internal name, and never takes `last` for a series", () => {
+    const internal = { error: [], result: { XXBTZUSD: [row], last: 1688672160 } };
+    expect(parseBars(internal, "BTC/USD")).toHaveLength(1);
+    expect(parseBars({ error: [], result: { last: 1688672160 } }, "BTC/USD")).toBeUndefined();
+    // Two series and neither is the pair: which one is meant isn't known, so neither is used.
+    const two = { error: [], result: { XXBTZUSD: [row], XETHZUSD: [row] } };
+    expect(parseBars(two, "BTC/USD")).toBeUndefined();
   });
 });

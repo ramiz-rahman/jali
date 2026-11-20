@@ -55,6 +55,22 @@ test("a frame that isn't a price never reaches the page, and a good one beside i
   await expect(btc).not.toContainText("NaN");
 });
 
+test("Kraken's price history draws the chart, and is asked for once", async ({ page }) => {
+  const kraken = await fakeKraken(page);
+  await page.goto("/");
+  await desk(page, "Crypto").click();
+  const chart = page.locator('.jali-pane[data-pane="chart"]');
+  // The readout shows a bar's open, high, low and close: there are bars to show.
+  await expect(chart.locator(".readout")).toContainText("Vol");
+  for (let i = 0; i < 20; i++)
+    kraken.send({ channel: "ticker", type: "update", data: [ticker("BTC/USD", 63_760 + i)] });
+  await expect(chart.locator(".readout")).toContainText("Vol");
+  const calls = kraken.historyCalls();
+  expect(calls.length).toBeGreaterThan(0);
+  expect(calls.length).toBe(new Set(calls).size);
+  for (const call of calls) expect(new URL(call).searchParams.get("assetVersion")).toBe("1");
+});
+
 test("a failed price history isn't asked for again on every tick", async ({ page }) => {
   const kraken = await fakeKraken(page);
   kraken.failHistory(true);

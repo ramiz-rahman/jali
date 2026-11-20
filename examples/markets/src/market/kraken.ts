@@ -18,6 +18,7 @@
 import { MINUTE } from "./history";
 import { cryptoInstruments, krakenPair } from "./crypto";
 import {
+  ohlcUrl,
   parseBars,
   parseFrame,
   restError,
@@ -367,9 +368,7 @@ export function createKrakenMarket(base: MarketData, options: KrakenOptions = {}
     loading.add(key);
     queue = queue
       .then(async () => {
-        const res = await get(
-          `${rest}/0/public/OHLC?pair=${encodeURIComponent(p.pair)}&interval=${interval}`,
-        );
+        const res = await get(ohlcUrl(rest, p.pair, interval));
         const body: unknown = await res.json();
         const parsed = res.ok ? parseBars(body, p.pair) : undefined;
         if (!parsed) throw new Error(restError(body) || "no bars");
