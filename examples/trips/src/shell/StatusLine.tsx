@@ -3,7 +3,7 @@
  * and a plain note that the businesses and prices are made up.
  */
 import { Shelf, useJali, useJaliState } from "@jali/react";
-import { BuiltWithJali, Maker } from "../../../shared/src/maker/maker";
+import { BuiltWithJali, Maker } from "#shared/maker/maker";
 
 export function StatusLine() {
   const { keymap } = useJali();
