@@ -1249,3 +1249,9 @@ Gzipped KB, measured on master `ea3ac83` after `pnpm build:packages`. The `mustN
 - **Why:** `linkSearch` wrote every param of the refs it was given. A share link built from a live layout or peek (`jali.getLayout()`), or from a ref the app made with `autorun: true`, carried what a workspace never writes. It needs no workspace, so it didn't know which params those were.
 - **Now:** a kind's call (`defineKind`, so `definePane`) remembers, for each ref it builds, the params a link leaves out (a `WeakMap`, nothing on the object). `linkSearch` leaves them out of the layout, the opened panes and the peek. A new optional `LinkSearchOptions.panes` (the workspace's kinds, as given to `createJali`) covers any ref, such as a live layout's plain objects. Without it, a plain object of a kind it can't know is written as it is: there is no way to tell, and the docs say to pass `panes`.
 - **Tests:** `tests/link-search.test.ts`, "a link built with no workspace": a kind-built ref's app-only and `link: false` params stay out of a page link and a layout link while the ref keeps them; with `panes`, a live layout's and peek's plain refs lose them too.
+
+## 21 Nov 2026 · A writer of the host's own sees the page's way back as a link carries it (Codex review)
+
+- **Why:** the store hands a host's `UrlWriter` the address's share of the state with app-only and `link: false` params removed from the layout and the peek, but `page.before` (the split layout "Back to …" returns to, set when the first investigation pane opens) went out as it was, refs and all.
+- **Now:** `writeUrl` passes `page.before` through `linkLayout` too. Jali's own address never wrote `before`; the workspace keeps its own copy whole, so Back to the page's layout is still exact.
+- **Tests:** `tests/app-only-params.test.ts`: after an investigation pane opens, neither the written layout nor the written `page.before` holds the role pane's `autorun`, and the workspace's own `page.before` still does.

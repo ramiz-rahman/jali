@@ -686,7 +686,14 @@ export function createUiStore(deps: UiStoreDeps): UiStore {
       deps.url?.write(() => {
         const { layout, view, presetId, page } = store.get();
         const kinds = env.kinds.registry();
-        return { layout: linkLayout(kinds, layout), view: linkView(kinds, view), presetId, page };
+        // The page's way back holds refs too: a writer of the host's own sees it as a link carries it.
+        const before = page?.before && linkLayout(kinds, page.before);
+        return {
+          layout: linkLayout(kinds, layout),
+          view: linkView(kinds, view),
+          presetId,
+          page: page && before !== page.before ? { ...page, before } : page,
+        };
       }, mode),
     toast: (t) => (toastFns.size ? toastFns.forEach((fn) => fn(t)) : pendingToasts.push(t)),
     onToast(fn) {

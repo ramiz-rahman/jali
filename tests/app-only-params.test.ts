@@ -6,12 +6,15 @@ import { describe, expect, expectTypeOf, it } from "vite-plus/test";
 import {
   appOnly,
   createJali,
+  definePage,
   layout,
   memoryLocation,
   memoryStorage,
+  pane,
   row,
   toLayout,
   type ParamsOf,
+  type UrlState,
 } from "@jali/core";
 import { encodePeek, storeOf } from "@jali/core/adapter";
 import { definePane } from "@jali/react";
@@ -97,6 +100,46 @@ describe("a param only the app sets", () => {
     jali.actions.peek(jali.model().panes[0]!.id, peekRef);
     storeOf(jali).env.kinds.register({ kind: "other", title: "Other" });
     expect(jali.get().view.peek?.params).toEqual({ sql: "mine", autorun: true });
+  });
+
+  it("is kept from a writer of the host's own: not in the page's way back either", () => {
+    const visit = definePane("visit", {
+      params: { id: Number, autorun: appOnly(Boolean) },
+      title: ({ id }) => `Visit ${id}`,
+      width: { min: 200 },
+      Component: () => null,
+    });
+    const page = definePage({
+      id: "visit",
+      name: "Visit",
+      itemNoun: "visit",
+      home: "summary",
+      roles: [{ id: "summary", label: "Summary", priority: "primary" as const }],
+      firstItem: 1,
+      bind: (item: number) => ({ summary: visit({ id: item, autorun: true }) }),
+      build: (item: number) =>
+        pane(visit({ id: item, autorun: true }), { id: "summary", role: "summary" }),
+    });
+    const written: UrlState[] = [];
+    const jali = createJali({
+      panes: [visit, query],
+      page,
+      url: { write: (state) => void written.push(state()) },
+      storage: memoryStorage(),
+      size: { width: 2000, height: 800 },
+      moveFocus: false,
+    });
+    expect(layout.tree.panes(jali.getLayout().root)[0]!.ref.params).toHaveProperty("autorun");
+    storeOf(jali).actions.setMode("split");
+    jali.actions.openBeside("summary", query({ sql: "select 1", autorun: true }));
+    const last = written.at(-1)!;
+    expect(last.page?.before).toBeDefined();
+    for (const l of [last.layout, last.page!.before!])
+      for (const p of layout.tree.panes(l.root)) expect(p.ref.params).not.toHaveProperty("autorun");
+    // The workspace itself keeps them: Back to the page's layout is exact.
+    expect(layout.tree.panes(storeOf(jali).get().page!.before!.root)[0]!.ref.params).toHaveProperty(
+      "autorun",
+    );
   });
 
   it("doesn't break a link that holds a value it can't read: the link opens, without it", () => {
