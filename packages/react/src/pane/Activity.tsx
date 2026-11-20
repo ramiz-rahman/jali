@@ -4,7 +4,8 @@ import { useJaliIcons } from "../icons/context";
 
 /**
  * One activity model. Headers, tabs and the switcher show a dot with a label; the shelf shows a shape as well as a
- * colour (ring, "!", cross), never colour alone. Loading reads as working on the shelf.
+ * colour (ring, "!", cross), never colour alone. Loading reads as working on the shelf. Both are public parts
+ * (`.jali-activity`, `.jali-activity-shape`), each with its `data-activity`, so an app can draw its own marks.
  */
 const ACTIVITY: Record<
   PaneActivity,
@@ -32,6 +33,7 @@ export function Activity({ a, shape = false }: { a: PaneActivity | undefined; sh
     return (
       <span
         className={`jali-activity jali-activity-${a}`}
+        data-activity={a}
         title={label}
         aria-label={label}
         role="img"
@@ -39,15 +41,32 @@ export function Activity({ a, shape = false }: { a: PaneActivity | undefined; sh
     );
   const s = ACTIVITY[a].shelf!;
   if (s.shape === "ring")
-    return <span className="jali-ra jali-ra-ring" data-shape="ring" aria-hidden />;
+    return (
+      <span
+        className="jali-activity-shape jali-ra jali-ra-ring"
+        data-shape="ring"
+        data-activity={s.state}
+        aria-hidden
+      />
+    );
   if (s.shape === "need")
     return (
-      <span className="jali-ra jali-ra-need" data-shape="need" aria-hidden>
+      <span
+        className="jali-activity-shape jali-ra jali-ra-need"
+        data-shape="need"
+        data-activity={s.state}
+        aria-hidden
+      >
         !
       </span>
     );
   return (
-    <span className="jali-ra jali-ra-fail" data-shape="fail" aria-hidden>
+    <span
+      className="jali-activity-shape jali-ra jali-ra-fail"
+      data-shape="fail"
+      data-activity={s.state}
+      aria-hidden
+    >
       <icon.activityError size={8} aria-hidden />
     </span>
   );

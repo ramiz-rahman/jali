@@ -159,6 +159,18 @@ export const parts = {
       pressed,
     ],
   },
+  activity: {
+    selector: ".jali-activity",
+    element: "span",
+    area: "Pane",
+    what: "A pane's activity dot (`useActivity`), after its name in a header, a tab, the pane switcher and tab menus. Absent while idle. Jali draws it with the element's size, corners and background; its `::before` and `::after` are yours, so restyle it to draw your own mark.",
+    attributes: [
+      {
+        name: "data-activity",
+        means: "`loading`, `working`, `needs-you` or `error`.",
+      },
+    ],
+  },
   paneContent: {
     selector: ".jali-pane-content",
     element: "div",
@@ -336,7 +348,7 @@ export const parts = {
       {
         name: "data-activity",
         means:
-          "The most pressing activity of the panes behind it (`useActivity`): `working` (loading too), `needs-you` or `failed`; absent when all are idle. The chip shows the shelf's shape for it.",
+          "The most pressing activity of the panes behind it (`useActivity`): `working` (loading too), `needs-you` or `failed`; absent when all are idle. The chip shows the shelf's shape for it (`activityShape`).",
       },
       pressed,
     ],
@@ -362,6 +374,23 @@ export const parts = {
           "The pane's activity (`useActivity`): `idle`, `working` (loading too), `needs-you` or `failed`.",
       },
       unsaved,
+    ],
+  },
+  activityShape: {
+    selector: ".jali-activity-shape",
+    element: "span",
+    area: "Shelf",
+    what: 'A pane\'s activity as a shape as well as a colour, never colour alone: in a shelf chip, the shelf\'s menu and the "N folded" chip. Absent while idle. Jali draws the ring with a border and a spin, "!" as text and the cross with the `activityError` icon (both in `currentColor`); its `::before` and `::after` are yours. To draw your own, clear Jali\'s (`border: 0; animation: none; background: none; color: transparent`) and draw in `::before`.',
+    attributes: [
+      {
+        name: "data-activity",
+        means:
+          '`working` (loading too), `needs-you` or `failed`, as on the shelf chip and the "N folded" chip.',
+      },
+      {
+        name: "data-shape",
+        means: 'Jali\'s shape for it: `ring`, `need` ("!") or `fail` (a cross).',
+      },
     ],
   },
   shelfChipMain: {

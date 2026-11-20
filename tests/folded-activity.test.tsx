@@ -64,17 +64,19 @@ describe("a folded pane's activity", () => {
     const chip = make(true);
     expect(chip.dataset.activity).toBe("working");
     expect(chip.getAttribute("aria-label")).toMatch(/1 folded pane, working/);
-    expect(chip.querySelector(".jali-ra-ring")).toBeTruthy();
+    const shape = chip.querySelector<HTMLElement>(".jali-activity-shape")!;
+    expect(shape.dataset.activity).toBe("working");
+    expect(shape.dataset.shape).toBe("ring");
     act(() => chip.click());
     const item = document.querySelector<HTMLElement>('[role="menuitem"][data-item]')!;
-    expect(item.querySelector(".jali-activity-working")).toBeTruthy();
+    expect(item.querySelector<HTMLElement>(".jali-activity")!.dataset.activity).toBe("working");
   });
 
   it("shows nothing for folded panes that are idle", () => {
     const chip = make(false);
     expect(chip.dataset.activity).toBeUndefined();
     expect(chip.getAttribute("aria-label")).toBe("1 folded pane");
-    expect(chip.querySelector(".jali-ra")).toBeNull();
+    expect(chip.querySelector(".jali-activity-shape")).toBeNull();
     act(() => chip.click());
     expect(document.querySelector('[role="menuitem"] .jali-activity')).toBeNull();
   });

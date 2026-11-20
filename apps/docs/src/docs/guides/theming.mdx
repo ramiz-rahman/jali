@@ -48,7 +48,7 @@ The tokens you are most likely to change:
 | `--jali-border`, `--jali-border-strong`, `--jali-control` | Lines between things; the edges of buttons and inputs |
 | `--jali-text`, `--jali-text-muted`, `--jali-text-subtle`, `--jali-text-faint` | Text, from strongest to faintest |
 | `--jali-pane-border`, `--jali-pane-border-focused`, `--jali-pane-shadow`, `--jali-pane-shadow-focused` | A pane's edge and shadow, at rest and focused. Set them once and the focused pane, a maximised one and a drag follow, with no rule for `[data-focused]` of your own |
-| `--jali-working`, `--jali-blocked`, `--jali-done`, `--jali-failed` | A pane's activity marks |
+| `--jali-working`, `--jali-blocked`, `--jali-done`, `--jali-failed` | A pane's activity marks. To draw marks of your own, style the parts `.jali-activity` and `.jali-activity-shape` by their `data-activity` ([Parts](/reference/parts)) |
 | `--jali-radius`, `--jali-radius-control`, `--jali-radius-menu`, `--jali-radius-chip` | Corners of panes, controls, menus and the small things in headers, tabs and chips. Every corner reads one of them (a dialog is 1.2 × `--jali-radius`, rounded to a whole pixel), so setting all four to `0` or `2px` squares the whole workspace |
 | `--jali-font`, `--jali-font-mono` | Type |
 | `--jali-text-xs`, `--jali-text-sm`, `--jali-text-md`, `--jali-text-lg`, `--jali-tracking` | The type scale every part reads (11, 12, 13 and 14px by default), and letter spacing. A wider face needs only these, not a size per part |
