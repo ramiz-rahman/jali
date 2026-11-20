@@ -236,7 +236,7 @@ Report unsaved work in words (`"an unsaved query"`), or a falsy value once it is
 useTitle(title: string | null | undefined): void
 ```
 
-Name the pane from its data: `useTitle(customer.data?.name)` shows "Acme Ltd" rather than the kind's "Customer 12". While set, it replaces the kind's `title` in the header, the tab, the shelf, the palette, the switcher, announcements and `jali.model().title(id)`. In a curated page, the view's label still names the pane, and this title is shown beside it. `null` or `undefined` goes back to the kind's title.
+Name the pane from its data: `useTitle(customer.data?.name)` shows "Acme Ltd" rather than the kind's "Customer 12". While set, it replaces the kind's `title` in the header, the tab, the shelf, the palette, the switcher, announcements and `jali.model().title(id)`, and the peek sheet while it shows the same object. In a curated page, the view's label still names the pane, and this title is shown beside it. `null` or `undefined` goes back to the kind's title.
 
 It is cleared when the component unmounts and when the pane shows another object, then set again from the next render. It is not saved, so a reload shows the kind's title until the data loads. The peek sheet keeps the kind's title.
 
