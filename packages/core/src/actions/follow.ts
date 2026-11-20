@@ -77,10 +77,18 @@ export function follow(
   return stays ? [change, stays] : change;
 }
 
-/** The deferred step that makes `source`'s detail follow `ref`, or a cancellation (`ref` null). */
+/**
+ * The deferred step that makes `source`'s detail follow `ref`, or a cancellation (`ref` null). When it fires it does
+ * nothing if the list's selection has moved on meanwhile: a preset or `setLayout` that reset it (the layout's word
+ * wins) must not be undone by a step scheduled before it.
+ */
 export const followLater = (source: NodeId, ref: ObjectRef | null): Deferred =>
   ref
-    ? { key: key(source), ms: FOLLOW_MS, run: (y) => follow(y, source, ref) }
+    ? {
+        key: key(source),
+        ms: FOLLOW_MS,
+        run: (y) => (sameRef(y.s.selection[source]?.ref, ref) ? follow(y, source, ref) : null),
+      }
     : { key: key(source), ms: 0 };
 
 /** `source`'s following detail of `kind`, when it is on screen (not behind a tab, folded, tucked or zoomed past). */

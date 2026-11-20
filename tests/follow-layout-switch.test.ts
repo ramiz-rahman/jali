@@ -122,6 +122,19 @@ describe("a layout switch beside a list with a selection", () => {
     expect(storeOf(jali).get().confirm?.panes).toEqual(["chart"]);
   });
 
+  it("is not undone by a follow step scheduled before the switch", () => {
+    const jali = make();
+    jali.actions.preset("quotes");
+    // A selection whose follow step is still waiting when the layout changes.
+    jali.actions.select("watch", quote({ symbol: "ORBD" }));
+    jali.actions.preset("both");
+    expect(selected(jali)).toEqual(quote({ symbol: "KSTR" }));
+    vi.advanceTimersByTime(FOLLOW_MS);
+    expect(selected(jali)).toEqual(quote({ symbol: "KSTR" }));
+    expect(shown(jali, "quote")).toEqual(quote({ symbol: "KSTR" }));
+    expect(shown(jali, "chart")).toEqual(chart({ symbol: "KSTR" }));
+  });
+
   it("changes nothing for a list with no selection", () => {
     const jali = make();
     jali.actions.preset("both");
