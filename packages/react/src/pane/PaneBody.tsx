@@ -16,7 +16,7 @@ export function paneHost(store: UiStore, id: NodeId): PaneHost {
   const { actions } = store,
     app = store.jali.actions;
   return {
-    openBeside: (ref) => app.openBeside(id, ref),
+    openBeside: (ref, options) => app.openBeside(id, ref, options),
     peek: (ref) => (ref ? app.peek(id, ref) : app.closePeek()),
     select: (ref, opts) => app.select(id, ref, opts),
     openHere: (ref) => app.openHere(id, ref),
@@ -39,7 +39,7 @@ export function peekHost(store: UiStore): PaneHost {
   const none = () => {};
   const app = store.jali.actions;
   return {
-    openBeside: (ref: ObjectRef) => app.openBeside(source(), ref),
+    openBeside: (ref, options) => app.openBeside(source(), ref, options),
     peek: (ref: ObjectRef | null) => (ref ? app.peek(source(), ref) : app.closePeek()),
     select: (ref: ObjectRef | null) => app.select(source(), ref),
     openHere: () => noPlace,

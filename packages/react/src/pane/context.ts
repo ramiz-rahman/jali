@@ -1,5 +1,5 @@
 /** The pane a component is inside, for the hooks that act for it (usePane, useCommands, usePaneState, ...). */
-import type { NodeId, ObjectRef, PaneActivity, PaneCommand } from "@jali/core";
+import type { NodeId, ObjectRef, OpenBesideOptions, PaneActivity, PaneCommand } from "@jali/core";
 import { createContext, useContext } from "react";
 import type { ActionResult, PaneAttributes, PaneReportPatch } from "@jali/core/adapter";
 import type { PaneProps } from "../define";
@@ -7,7 +7,7 @@ import type { HeaderSlot } from "./header";
 
 /** What a pane's content can ask of the workspace. */
 export interface PaneHost {
-  openBeside(ref: ObjectRef): ActionResult;
+  openBeside(ref: ObjectRef, options?: OpenBesideOptions): ActionResult;
   peek(ref: ObjectRef | null): ActionResult;
   select(ref: ObjectRef | null, opts?: { inResults?: boolean }): ActionResult;
   openHere(ref: ObjectRef): ActionResult;

@@ -59,6 +59,22 @@ describe("a pane's actions return results", () => {
     expect(jali.model().pane(r!.pane!)?.ref).toEqual(order({ id: 5 }));
   });
 
+  it("openBeside takes an edge, as jali.actions.openBeside does", () => {
+    const jali = mount();
+    let r: ActionResult | undefined;
+    act(() => {
+      r = props["order-1"]!.openBeside(order({ id: 6 }), { edge: "bottom" });
+    });
+    expect(r?.ok).toBe(true);
+    const parent = jali.model().layout.root;
+    const column =
+      parent.type === "pane" ? undefined : parent.children.find((c) => c.type === "column");
+    expect(column?.type === "column" && column.children.map((c) => c.id)).toEqual([
+      "order",
+      r!.pane,
+    ]);
+  });
+
   it("openHere, select and peek give their results too", () => {
     const jali = mount();
     let r: ActionResult | undefined;

@@ -1,6 +1,14 @@
 import * as core from "../layout";
 import { treeSide } from "../layout/geometry/direction";
-import type { NodeId, ObjectRef, PaneNode, ViewState } from "../layout/types";
+import type {
+  Edge,
+  Layout,
+  LayoutNode,
+  NodeId,
+  ObjectRef,
+  PaneNode,
+  ViewState,
+} from "../layout/types";
 import type { PaneKinds } from "../pane-kinds";
 import { refuse, type Outcome, type Snapshot } from "../state/apply";
 import { peekSheet } from "./peek";
@@ -46,13 +54,41 @@ function chainPaneFor({ m }: Snapshot, source: NodeId, ref: ObjectRef): NodeId |
   return m.panes.find((p) => p.linkedTo === source && shows(p.id))?.id;
 }
 
+/** Where `openBeside` puts the new pane. */
+export interface OpenBesideOptions {
+  /** The side of the source the new pane opens on, as on screen: "right" is the right in either reading direction.
+   *  Default: after the source in reading order (the right, or the left right to left). */
+  edge?: Edge;
+}
+
+/**
+ * A pane opened from one of a curated page's views goes to the investigation, after the page's views. With an `edge`
+ * (a tree side), it opens on that side of the investigation's last part; the first opened pane starts the
+ * investigation after the views whatever the edge, so the views never share a column with an opened pane.
+ */
+function investigationPlace(layout: Layout, edge?: Edge): core.Placement {
+  const after = placeAfterArrangement(layout);
+  if (!edge) return after;
+  const target = core.tree.find(layout.root, after.target);
+  const hasRole = (n: LayoutNode): boolean =>
+    n.type === "pane" ? !!n.role : n.children.some(hasRole);
+  return target && !hasRole(target) ? { target: after.target, edge } : after;
+}
+
 /**
  * Focus stays in the source. Opening the source's selected item (a list's row) links the new pane
  * to the selection: it follows it, or, when the list already has a following detail, it opens kept beside it for
  * comparison (layout/ops/follow.ts). The selected item is the selected object itself or, for another kind, what that
  * kind's `follow` shows for it (a chart for a watchlist's selected quote). Any other link opens a plain linked pane.
+ * `edge` only says where a new pane goes: a link that replaces the source's earlier one, or shows a pane already open,
+ * leaves that pane where it is.
  */
-export function openBeside(x: Snapshot, source: NodeId, ref: ObjectRef): Outcome {
+export function openBeside(
+  x: Snapshot,
+  source: NodeId,
+  ref: ObjectRef,
+  opts: OpenBesideOptions = {},
+): Outcome {
   const { s, m, ctx } = x;
   // A curated page: in Single mode, or for a role that may not investigate, a link peeks. Opened panes gather after the layout.
   if (s.page && !s.page.canInvestigate)
@@ -72,7 +108,10 @@ export function openBeside(x: Snapshot, source: NodeId, ref: ObjectRef): Outcome
         result: dup.id,
       };
   }
-  const place = s.page && m.pane(source)?.role ? placeAfterArrangement(s.layout) : undefined;
+  // `edge` is a screen side, as for move and split; the tree's own sides swap right to left. Default: after the source.
+  const edge = opts.edge ? treeSide(opts.edge, ctx.dir) : "right";
+  const place =
+    s.page && m.pane(source)?.role ? investigationPlace(s.layout, opts.edge && edge) : undefined;
   // The first opened pane starts an investigation: remember the layout it started from.
   const page =
     s.page && !investigation(m.panes).length ? { page: { ...s.page, before: s.layout } } : {};
@@ -113,7 +152,7 @@ export function openBeside(x: Snapshot, source: NodeId, ref: ObjectRef): Outcome
       ? { op: "focus", msg, result: inChain }
       : { op: "focusExisting", layout: revealed, view: s.view, msg, result: inChain };
   }
-  const r = core.openBeside(s.layout, unzoomed(s.view), source, ref, ctx, place, {
+  const r = core.open(s.layout, unzoomed(s.view), source, edge, ref, ctx, true, place, {
     ...(s.page ? { yields: false } : {}),
     ...(fromSelection ? { fromSelection } : {}),
   });

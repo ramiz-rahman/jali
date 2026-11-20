@@ -26,7 +26,7 @@ export const AGENT_ACTIONS = {
   focus: "focus(pane): focus a pane and show it, choosing its tab if it is behind one",
   toggleZoom: "toggleZoom(pane?): maximise a pane (default: the focused one), or restore it",
   openBeside:
-    "openBeside(pane, ref): open the object `ref` beside `pane`; an open object is shown instead",
+    'openBeside(pane, ref, { edge? }?): open the object `ref` beside `pane`, on its "left" | "right" | "top" | "bottom" edge if given; an open object is shown instead',
   openHere: "openHere(pane, ref): show `ref` in `pane`, in place",
   peek: "peek(pane, ref): show `ref` in the peek sheet, for `pane`",
   closePeek: "closePeek(): close the peek sheet",

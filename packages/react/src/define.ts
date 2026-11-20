@@ -19,6 +19,7 @@
 import type {
   ActionResult,
   ObjectRef,
+  OpenBesideOptions,
   PaneDefinition,
   PaneKindBase,
   PaneKinds,
@@ -56,8 +57,8 @@ export interface PaneProps<P = Params> {
   inPeek: boolean;
   /** Open `ref` beside this pane. The selected item opens a following detail; another link replaces this pane's
    *  earlier link of the same kind. Focus stays here. Returns what `jali.actions.openBeside` does: `pane` is the pane
-   *  that shows `ref`. */
-  openBeside: (ref: ObjectRef) => ActionResult;
+   *  that shows `ref`. `{ edge: "bottom" }` opens it below this pane (any edge, as on screen); default: after it. */
+  openBeside: (ref: ObjectRef, options?: OpenBesideOptions) => ActionResult;
   /** Show `ref` in this pane instead. If it is open elsewhere, that pane is focused. In the peek sheet:
    *  `reason: "unavailable"`. */
   openHere: (ref: ObjectRef) => ActionResult;

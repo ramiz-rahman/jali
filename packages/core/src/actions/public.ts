@@ -32,7 +32,15 @@ import {
   autoLayout,
 } from "./layout";
 import { moveDirection, moveOutOfRow, swapWithNext } from "./move";
-import { addTab, newTab, openBeside, openHere, openPaneFor, split } from "./open";
+import {
+  addTab,
+  newTab,
+  openBeside,
+  openHere,
+  openPaneFor,
+  split,
+  type OpenBesideOptions,
+} from "./open";
 import {
   activate,
   backToPage,
@@ -75,8 +83,9 @@ export interface JaliActions {
   toggleFullScreen(pane?: PaneTarget): ActionResult;
 
   // ---------- open ----------
-  /** Open `ref` beside `pane`. Focus stays in `pane`. If `ref` is already open, that pane is shown instead. */
-  openBeside(pane: PaneTarget, ref: ObjectRef): ActionResult;
+  /** Open `ref` beside `pane`. Focus stays in `pane`. If `ref` is already open, that pane is shown instead.
+   *  `edge`: the side of `pane` it opens on, as on screen (`"bottom"`: below it). Default: after `pane`. */
+  openBeside(pane: PaneTarget, ref: ObjectRef, options?: OpenBesideOptions): ActionResult;
   /** Show `ref` in `pane`, in place. If `ref` is open elsewhere, that pane is focused instead. */
   openHere(pane: PaneTarget, ref: ObjectRef): ActionResult;
   /** Show `ref` in the peek sheet, for `pane`. Its following detail shows it instead, when one is on screen. */
@@ -202,6 +211,13 @@ function refProblem(x: Snapshot, ref: unknown, known = true): string | undefined
     : undefined;
 }
 
+const EDGES: readonly unknown[] = ["left", "right", "top", "bottom"];
+/** An `edge` that was given and is not one. */
+const badEdge = (edge: unknown) => edge !== undefined && !EDGES.includes(edge);
+/** Only the options openBeside reads, whatever else came with them. */
+const edgeOf = (options?: OpenBesideOptions): OpenBesideOptions =>
+  options?.edge ? { edge: options.edge } : {};
+
 /** `jali.actions` for a store's `apply`. */
 export function publicActions(run: Run): JaliActions {
   /** A ref the action uses, or a pane named by something other than an id, that can't be one: refused as invalid. */
@@ -250,7 +266,10 @@ export function publicActions(run: Run): JaliActions {
     toggleZoom: (pane) => opt(pane, (x, id) => toggleZoom(x, id)),
     toggleFullScreen: (pane) => opt(pane, (x, id) => toggleFullScreen(x, id)),
 
-    openBeside: (pane, ref) => on(pane, (x, id) => openBeside(x, id, ref), false, ref),
+    openBeside: (pane, ref, options) =>
+      badEdge(options?.edge)
+        ? run(() => refuse("invalid"))
+        : on(pane, (x, id) => openBeside(x, id, ref, edgeOf(options)), false, ref),
     openHere: (pane, ref) => on(pane, (x, id) => openHere(x, id, ref), false, ref),
     peek: (pane, ref) => on(pane, (x, id) => peek(x, ref, id), false, ref),
     closePeek: () => run((x) => (x.s.view.peek ? peek(x, null) : null)),
