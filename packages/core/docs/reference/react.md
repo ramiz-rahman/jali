@@ -179,7 +179,7 @@ Keys: content first. Claim the keys you use with `event.preventDefault()` (J and
 definePage(page: Page): Page
 ```
 
-Defines a curated page: one item at a time (a loan application, a customer), its views as tabs, a list of items at the left (`Rail`, which calls `activate(item)` to show another) and the item's header above the tabs (`Header`). Pass it to `createJali({ page })`. It returns `page` as it is; it is there for the types.
+Defines a curated page: one item at a time (a loan application, a customer), its views as tabs, the item's header above the tabs (`Header`) and, optionally, a list of items at the left (`Rail`, which calls `activate(item)` to show another). Pass it to `createJali({ page })`. It returns `page` as it is; it is there for the types.
 
 **Returns** `Page`:
 
@@ -189,12 +189,12 @@ Defines a curated page: one item at a time (a loan application, a customer), its
 
 ```ts
 interface Page<I extends ItemId = any> extends ProfileBase<PageView, I> {
-  Rail: ComponentType<{ item: I; activate: (item: I) => void }>;
+  Rail?: ComponentType<{ item: I; activate: (item: I) => void }>;
   Header: ComponentType<{ item: I }>;
 }
 ```
 
-A curated page for React: [`ProfileBase`](core/types.md#ProfileBase) with its rail and header. `I` is the item id's type, `number` or `string`, as in `firstItem`.
+A curated page for React: [`ProfileBase`](core/types.md#ProfileBase) with its header and, if it has one, its rail. Without a `Rail`, the header, tabs and panes take the whole width. `I` is the item id's type, `number` or `string`, as in `firstItem`.
 
 ### PageView
 
@@ -505,7 +505,7 @@ The panes: frames, dividers, drop zones, the drag chip, the peek sheet and (on a
 <CuratedPage />
 ```
 
-A curated page: the page's `Rail` at the left; its `Header`, the page tabs and `<Panes>` at the right. Renders only while a page is open (it reads it without checking).
+A curated page: the page's `Rail` at the left, when it has one; its `Header`, the page tabs and `<Panes>` beside it, or across the whole width without a rail. Renders only while a page is open (it reads it without checking).
 
 ### PageBar
 

@@ -92,7 +92,7 @@ export const customerPage = definePage({
 - **`bind(item)`** says what each view shows for one item. Choosing another item from the list swaps every view's object in place.
 - **`build(item)`** is the designed layout for Split view. Every role is in it; the ones that should not show at first are listed in `overlay.hidden`.
 - **`home`** is the view Single mode opens on.
-- **`Rail`** is the list of items at the left, and **`Header`** sits above the tabs. Both are your components. `Rail` gets `activate(item)` to switch items.
+- **`Header`** sits above the tabs, and **`Rail`**, optional, is the list of items at the left. Both are your components. `Rail` gets `activate(item)` to switch items. Leave it out when the page has nothing to list, such as a report reached by a link: the header, tabs and panes then take the whole width.
 - **`viewers`** names the two kinds of person who use the page (below).
 
 Items are numbers: `item` is the id a link carries.
