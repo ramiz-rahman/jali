@@ -265,10 +265,32 @@
     overflow: hidden;
     text-overflow: ellipsis;
   }
+  .status-note {
+    display: inline-flex;
+    align-items: center;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  /* The feed is down: its dot goes grey, so the green never says "live" when it isn't. */
+  .status-note[data-feed="connecting"] .live-dot,
+  .status-note[data-feed="down"] .live-dot {
+    background: var(--jali-text-faint);
+  }
+  .status-note[data-feed="down"] {
+    color: var(--jali-text);
+  }
+  .note-short {
+    display: none;
+  }
   @media (max-width: 820px) {
     .status-hint,
-    .status-note {
+    .status-focus,
+    .note-long {
       display: none;
+    }
+    .note-short {
+      display: inline;
     }
     /* With the hint gone, the maker's mark still stands in the right corner. */
     .status > .maker {

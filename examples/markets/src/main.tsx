@@ -31,7 +31,7 @@ async function start() {
   // The first quote of every pair, so nothing opens at zero; past a few seconds, open anyway and fill in.
   if (!(await market.ready()))
     setTimeout(() => toast("Kraken is slow to answer: crypto prices fill in as they arrive."), 500);
-  const services = createServices(market);
+  const services = createServices(market, { feed: market.feed });
   const jali = createMarketsJali(services, { notify: (text) => toast(text) });
   services.trading.connect();
   createRoot(document.getElementById("root")!).render(<App jali={jali} services={services} />);

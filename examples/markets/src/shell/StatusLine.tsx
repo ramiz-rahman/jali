@@ -4,6 +4,8 @@
  */
 import { Shelf, useJali, useJaliModel, useJaliState } from "@jali/react";
 import { BuiltWithJali, Maker } from "#shared/maker/maker";
+import type { FeedState } from "../market/kraken";
+import { useFeed } from "../services";
 
 export function StatusLine() {
   const { keymap } = useJali();
@@ -28,11 +30,39 @@ export function StatusLine() {
       <Shelf />
       <span className="status-focus">{focused ? m.title(focused) : ""}</span>
       <span className="status-hint">{hint}</span>
-      <span className="status-note">
-        <span className="live-dot" aria-hidden /> Crypto live from Kraken · everything else
-        simulated
-      </span>
+      <Source />
       <Maker />
     </footer>
+  );
+}
+
+const SAY: Record<FeedState, { long: string; short: string }> = {
+  connecting: { long: "Connecting to Kraken for crypto prices", short: "Connecting to Kraken" },
+  live: { long: "Crypto live from Kraken", short: "Crypto live" },
+  down: {
+    long: "Kraken can't be reached, trying again: crypto prices may be old",
+    short: "Kraken offline",
+  },
+};
+
+/**
+ * Where the prices come from, at every width: everything but crypto is made up, and crypto is live only while the
+ * feed is. A change of the feed's state is announced.
+ */
+function Source() {
+  const feed = useFeed();
+  const say = feed ? SAY[feed] : undefined;
+  return (
+    <span className="status-note" data-feed={feed} role="status">
+      {say ? (
+        <>
+          <span className="live-dot" aria-hidden />
+          <span className="note-long">{say.long} · every other market is simulated</span>
+          <span className="note-short">{say.short} · rest simulated</span>
+        </>
+      ) : (
+        "Simulated market: every company and price is made up"
+      )}
+    </span>
   );
 }
