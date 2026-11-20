@@ -37,6 +37,7 @@ import { SettingsPanel } from "./dialogs/Settings";
 import { IconsProvider } from "./icons/context";
 import { defaultIcons } from "./icons/default";
 import type { JaliIcons } from "./icons/types";
+import { installPressed } from "./pressed";
 import { StoreProvider, useUi } from "./state/react";
 import { Panes } from "./workspace/Workspace";
 
@@ -69,6 +70,8 @@ export function JaliRoot({
 }: JaliRootProps) {
   const store = storeOf(jali);
   useEffect(() => store.start(), [store]);
+  // data-pressed on Jali's controls while held, by pointer or key (pressed.ts).
+  useEffect(installPressed, []);
   const host = useFullScreenPane(store);
   const inside = (layer: ReactNode) => (host ? createPortal(layer, host) : layer);
   // The spacing the layout measures with, as --jali-gap and --jali-inset, so styles that read them agree with it.

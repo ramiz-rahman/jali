@@ -48,6 +48,12 @@ const unsaved: PartAttribute = {
   means: "Flag: the pane reports unsaved work (`useUnsaved`).",
 };
 const pinnedTab: PartAttribute = { name: "data-pinned", means: "Flag: a pinned tab." };
+/** On every control Jali renders (pressed.ts keeps the list). */
+const pressed: PartAttribute = {
+  name: "data-pressed",
+  means:
+    "Flag: held down, by the pointer or by Space or Enter while it has focus (`:active` covers only the pointer). Jali's styles don't read it.",
+};
 
 /** Every public part, by a stable name. */
 export const parts = {
@@ -150,6 +156,7 @@ export const parts = {
       },
       { name: "aria-pressed", means: "On `fullscreen` and `popout`: `true` while on." },
       { name: "disabled", means: "On `tuck`: nothing to tuck behind (its tooltip says why)." },
+      pressed,
     ],
   },
   paneContent: {
@@ -203,6 +210,7 @@ export const parts = {
       },
       { name: "data-tucked", means: "Flag: tucked; shown here until it is put back." },
       unsaved,
+      pressed,
     ],
   },
   tabTitle: {
@@ -217,7 +225,7 @@ export const parts = {
     element: "button",
     area: "Tabs",
     what: "A tab's close button (an unsaved dot until hovered or focused).",
-    attributes: [],
+    attributes: [pressed],
   },
   rename: {
     selector: ".jali-rename",
@@ -231,21 +239,21 @@ export const parts = {
     element: "button",
     area: "Tabs",
     what: "A tucked tab's Put back button.",
-    attributes: [],
+    attributes: [pressed],
   },
   tabAdd: {
     selector: ".jali-tab-add",
     element: "button",
     area: "Tabs",
     what: "A tab group's New tab button (with a `launcher`).",
-    attributes: [],
+    attributes: [pressed],
   },
   tabMore: {
     selector: ".jali-tab-more",
     element: "button",
     area: "Tabs",
     what: 'The "+N" button for tabs that don\'t fit.',
-    attributes: [],
+    attributes: [pressed],
   },
   tabIndicator: {
     selector: ".jali-tab-indicator",
@@ -269,6 +277,7 @@ export const parts = {
     attributes: [
       { name: "aria-checked", means: "On a checkbox item: `true` or `false`." },
       { name: "aria-disabled", means: "`true` when unavailable." },
+      pressed,
     ],
   },
   divider: {
@@ -329,6 +338,7 @@ export const parts = {
         means:
           "The most pressing activity of the panes behind it (`useActivity`): `working` (loading too), `needs-you` or `failed`; absent when all are idle. The chip shows the shelf's shape for it.",
       },
+      pressed,
     ],
   },
   shelf: {
@@ -359,7 +369,7 @@ export const parts = {
     element: "button",
     area: "Shelf",
     what: "The chip's main button: the pane's icon, name and marks. Brings the pane back.",
-    attributes: [],
+    attributes: [pressed],
   },
   shelfChipTitle: {
     selector: ".jali-shelf-chip-title",
@@ -373,14 +383,14 @@ export const parts = {
     element: "button",
     area: "Shelf",
     what: "A tucked chip's Put back button, shown while the chip is hovered or has focus.",
-    attributes: [],
+    attributes: [pressed],
   },
   shelfMore: {
     selector: ".jali-shelf-more",
     element: "button",
     area: "Shelf",
     what: "The \"+N\" button for chips that don't fit; it opens the shelf's menu.",
-    attributes: [{ name: "aria-expanded", means: "`true` while its menu is open." }],
+    attributes: [{ name: "aria-expanded", means: "`true` while its menu is open." }, pressed],
   },
   shelfMenu: {
     selector: ".jali-shelf-menu",
@@ -394,7 +404,7 @@ export const parts = {
     element: 'button (`role="menuitem"`)',
     area: "Shelf",
     what: "One pane in the shelf's menu.",
-    attributes: [],
+    attributes: [pressed],
   },
   switcher: {
     selector: ".jali-switcher",
@@ -413,6 +423,7 @@ export const parts = {
       { name: "data-tucked", means: "Flag: a tucked pane." },
       { name: "data-in-view", means: "Flag: in stacked view, the other pane on screen." },
       unsaved,
+      pressed,
     ],
   },
   peek: {
@@ -440,6 +451,7 @@ export const parts = {
         name: "data-state",
         means: "`focused`, `shown`, `behind` (open, not in view) or `off` (not open).",
       },
+      pressed,
     ],
   },
   followToggle: {
@@ -447,7 +459,7 @@ export const parts = {
     element: "button",
     area: "Linked panes",
     what: "A linked pane's one Following / Kept toggle (a button, not a container): a click switches. Its word is `followLabel`.",
-    attributes: [{ name: "data-follow", means: "`following`, `kept` or `plain`." }],
+    attributes: [{ name: "data-follow", means: "`following`, `kept` or `plain`." }, pressed],
   },
   followLabel: {
     selector: ".jali-follow-label",
@@ -504,6 +516,7 @@ export const parts = {
         name: "data-role",
         means: "`primary` (the safe choice, focused when it opens) or `secondary`.",
       },
+      pressed,
     ],
   },
   palette: {

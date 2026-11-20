@@ -48,6 +48,19 @@ Put your rules in a cascade layer after `jali`, as in [Theming](/guides/theming#
 
 With Tailwind, the same attributes work as variants: `data-[focused]:ring-2`, or `group-data-[zoomed]:hidden` inside a pane.
 
+## Pressed
+
+Every control Jali renders carries `data-pressed` while it is held down: by the pointer, or by Space or Enter while it has focus. `:active` covers only the pointer, so a theme that shows a key going down reads `[data-pressed]` to show it from the keyboard as well. One mechanism sets it for all of them: the header's buttons, tabs and their buttons, the "+N" and "N folded" chips, shelf chips and their menu, the Following / Kept toggle, the pane switcher, a curated page's tabs, tab menu items and dialog buttons. Each lists it below. Jali's own styles don't read it.
+
+```css
+@layer components {
+  .jali-pane-action[data-pressed],
+  .jali-tab[data-pressed] {
+    translate: 0 1px;
+  }
+}
+```
+
 Attributes a pane sets with `usePaneAttributes` appear on everything that stands for it (its section, tab, shelf chip and switcher entry), alongside these.
 
 Corners, spacing and colours are tokens, not parts: every corner reads `--jali-radius`, `--jali-radius-control`, `--jali-radius-menu` or `--jali-radius-chip`, and the space between panes is `createJali({ gap, inset })`, which Jali writes as `--jali-gap` and `--jali-inset`.
