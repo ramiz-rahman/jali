@@ -226,6 +226,7 @@ export {
 } from "./workspace/dnd";
 export {
   STACK_GAP,
+  stackGap,
   currentPane,
   frames,
   sameFrame,

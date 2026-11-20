@@ -3,7 +3,6 @@ import type { NodeId, PaneNode, Rect, ViewState } from "../layout/types";
 import type { JaliModel } from "../state/model";
 import type { Presentation } from "../pane/chrome";
 import { stackShare, type Hinge } from "./stack";
-import { GAP } from "../tokens";
 import { sameRef } from "../layout/ops/ref";
 
 /**
@@ -64,9 +63,11 @@ function acrossFold(
   ];
 }
 
-/** Room between the two panes of stacked view by default: the divider's line sits in it. A workspace's own is its
- *  gap (`createJali({ gap })`). */
-export const STACK_GAP = GAP;
+/** The least room between the two panes of stacked view, in px. The divider's whole touch target is this room, so it
+ *  never covers a row or a control of either pane, and is still 24px tall (WCAG 2.5.8). */
+export const STACK_GAP = 24;
+/** The room between stacked view's two panes in a workspace with this gap: the gap, or STACK_GAP if that is more. */
+export const stackGap = (gap: number) => Math.max(gap, STACK_GAP);
 
 export function frames(
   m: JaliModel,
@@ -85,18 +86,19 @@ export function frames(
     const ratio =
       stack === false
         ? 0.5
-        : (stack ?? stackShare(m.env, m.pane(top), m.pane(bottom), size.height, gap));
+        : (stack ?? stackShare(m.env, m.pane(top), m.pane(bottom), size.height, stackGap(gap)));
     const rects = hinge
       ? acrossFold(hinge, size, origin)
       : (() => {
-          const topH = Math.round((size.height - gap) * ratio);
+          const room = stackGap(gap);
+          const topH = Math.round((size.height - room) * ratio);
           return [
             { x: 0, y: 0, width: size.width, height: topH },
             {
               x: 0,
-              y: topH + gap,
+              y: topH + room,
               width: size.width,
-              height: size.height - topH - gap,
+              height: size.height - topH - room,
             },
           ] as const;
         })();

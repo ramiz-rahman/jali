@@ -12,6 +12,7 @@ import {
   directionOf,
   frames,
   stackShare,
+  stackGap,
   observeResize,
   watchDirection,
 } from "@jali/core/adapter";
@@ -391,7 +392,7 @@ export function Panes() {
                 m.pane(m.stacked.top),
                 m.pane(m.stacked.bottom),
                 inner.height,
-                store.env.spacing.gap,
+                stackGap(store.env.spacing.gap),
               )
             }
             setRatio={setStackRatio}

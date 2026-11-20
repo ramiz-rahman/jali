@@ -5,7 +5,7 @@
 import { act, cleanup, fireEvent, render } from "@testing-library/react";
 import { afterAll, afterEach, beforeAll, describe, expect, it } from "vite-plus/test";
 import { createJali, memoryLocation, memoryStorage, type PhoneOptions } from "@jali/core";
-import { frames } from "@jali/core/adapter";
+import { STACK_GAP, frames } from "@jali/core/adapter";
 import { JaliRoot, definePane } from "@jali/react";
 
 const list = definePane("list", {
@@ -112,6 +112,20 @@ describe("stacked view, drawn", () => {
     expect(divider.getAttribute("aria-valuenow")).toBe("33");
     expect(container.querySelector(".jali-switch-item[data-in-view]")).not.toBeNull();
   });
+
+  it("is the room between the panes, all of it, so it covers neither pane", () => {
+    const { jali } = make();
+    const { container } = render(<JaliRoot jali={jali} />);
+    const [above, below] = [...container.querySelectorAll<HTMLElement>(".jali-pane")].filter(
+      (p) => p.style.display !== "none",
+    );
+    const divider = container.querySelector<HTMLElement>(".jali-stack-divider")!;
+    const px = (v: string) => Number(v.replace("px", ""));
+    const aboveEnd = px(above!.style.top) + px(above!.style.height);
+    expect(px(divider.style.top)).toBe(aboveEnd);
+    expect(px(divider.style.height)).toBe(STACK_GAP);
+    expect(px(divider.style.top) + px(divider.style.height)).toBe(px(below!.style.top));
+  });
 });
 
 describe("stacked view, from the kinds' heights", () => {
@@ -146,12 +160,14 @@ describe("stacked view, from the kinds' heights", () => {
     expect(jali.model().pane(jali.model().stacked!.top)!.ref.kind).toBe("strip");
     expect(tops(jali)).toBe(260);
     // The person's choice wins, as a divider drag may pass a max.
-    expect(tops(jali, 0.5)).toBe(Math.round((760 - 6) / 2));
+    expect(tops(jali, 0.5)).toBe(Math.round((760 - STACK_GAP) / 2));
   });
 
   it("is a half when neither kind gives a comfortable or max height", () => {
     const { jali } = make();
-    expect(tops(jali as unknown as ReturnType<typeof setup>)).toBe(Math.round((760 - 6) / 2));
+    expect(tops(jali as unknown as ReturnType<typeof setup>)).toBe(
+      Math.round((760 - STACK_GAP) / 2),
+    );
   });
 
   it("starts the divider there, and its keys move on from it", () => {

@@ -181,11 +181,11 @@
   }
 
   /* Stacked view's divider: a 44px touch target around the 6px gap, with a grabber in the middle. */
+  /* Stacked view's divider: the room between the two panes (its height is set inline), so its touch target never
+     covers a row of either pane. */
   .jali-stack-divider {
     position: absolute;
     inset-inline: 0;
-    height: 2.75rem;
-    transform: translateY(-50%);
     z-index: 6;
     cursor: row-resize;
     touch-action: none;

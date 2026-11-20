@@ -350,7 +350,7 @@ export const parts = {
     selector: ".jali-stack-divider",
     element: "div",
     area: "Small screens",
-    what: 'Stacked view\'s divider between the two panes on a phone (`role="separator"`); it settles on a third, a half or two thirds.',
+    what: 'Stacked view\'s divider between the two panes on a phone (`role="separator"`): the whole room between them, at least 24px tall, so it never covers either pane. It settles on a third, a half or two thirds.',
     attributes: [{ name: "data-dragging", means: "Flag: being dragged." }],
   },
   dropZone: {

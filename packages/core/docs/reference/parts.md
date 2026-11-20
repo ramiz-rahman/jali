@@ -184,7 +184,7 @@ Corners, spacing and colours are tokens, not parts: every corner reads `--jali-r
 | Part | Element | What it is | State attributes |
 | --- | --- | --- | --- |
 | `.jali-fold-line` | `div` | The hairline drawn on a fold's hinge, between the two halves. | none |
-| `.jali-stack-divider` | `div` | Stacked view's divider between the two panes on a phone (`role="separator"`); it settles on a third, a half or two thirds. | `data-dragging`: Flag: being dragged. |
+| `.jali-stack-divider` | `div` | Stacked view's divider between the two panes on a phone (`role="separator"`): the whole room between them, at least 24px tall, so it never covers either pane. It settles on a third, a half or two thirds. | `data-dragging`: Flag: being dragged. |
 | `.jali-switcher` | `nav` | Single view's pane switcher (a tab list). | none |
 | `.jali-switch-item` | `button` | One pane in the switcher. Its `::before` and `::after` are yours: Jali's styles never use them, so a lamp, a badge or a stripe drawn there stays. | `aria-selected`: `true` on the pane in view.<br>`data-tucked`: Flag: a tucked pane.<br>`data-in-view`: Flag: in stacked view, the other pane on screen.<br>`data-unsaved`: Flag: the pane reports unsaved work (`useUnsaved`).<br>`data-pressed`: Flag: held down, by the pointer or by Space or Enter while it has focus (`:active` covers only the pointer). Jali's styles don't read it. |
 
