@@ -4,7 +4,14 @@
  */
 import { useEffect, useMemo, useRef, type KeyboardEvent } from "react";
 import { ListBulletsIcon } from "@phosphor-icons/react";
-import { definePane, useCommands, useJali, usePaneState, type PaneProps } from "@jali/react";
+import {
+  definePane,
+  useCommands,
+  useJali,
+  useJaliState,
+  usePaneState,
+  type PaneProps,
+} from "@jali/react";
 import { keyHint } from "@jali/core";
 import { DEFAULT_LISTS, listName, useList } from "../lists";
 import { useMarket, useQuotes } from "../market/react";
@@ -54,7 +61,11 @@ function Watchlist({
   );
   const quotes = useQuotes(symbols, paused);
   const [sort, setSort] = usePaneState<Sort>("sort", { by: "list", dir: 1 });
-  const [cursor, setCursor] = usePaneState<string | null>("cursor", null);
+  const [kept, setCursor] = usePaneState<string | null>("cursor", null);
+  // The cursor is on the instrument Jali has selected: it starts this list on what its following quote shows
+  // (`selects`), and moves it with that quote when a layout (a desk, a link, Back) gives it another.
+  const selected = useJaliState((s) => s.selection[node.id]?.ref);
+  const cursor = selected?.kind === "quote" ? String(selected.params.symbol) : kept;
   const listRef = useRef<HTMLDivElement>(null);
 
   // Sorted by what the person chose; the cursor stays on the same instrument, not the same position.
@@ -79,20 +90,14 @@ function Watchlist({
     select(quote({ symbol }));
   };
 
-  // On first show, start on the instrument this list's followers already show, so nothing jumps.
+  // With nothing selected on this list (no following quote, or another list chosen), start on the first row.
+  const start = cursor && symbols.includes(cursor) ? cursor : symbols[0];
+  const unselected = selected?.kind !== "quote" || selected.params.symbol !== start;
   useEffect(() => {
-    const follower = jali.model().panes.find((p) => p.linkedTo === node.id && p.follows);
-    const shown = follower?.ref.params.symbol;
-    const start =
-      cursor && symbols.includes(cursor)
-        ? cursor
-        : typeof shown === "string" && symbols.includes(shown)
-          ? shown
-          : symbols[0];
-    if (start) moveTo(start);
-    // Once per list: later moves come from the person.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [params.list]);
+    if (!start || !unselected) return;
+    setCursor(start);
+    select(quote({ symbol: start }));
+  }, [start, unselected, select, setCursor]);
 
   useEffect(() => scrollRowIntoView(listRef.current, at), [at]);
 
@@ -309,5 +314,7 @@ export const watchlist = definePane("watchlist", {
   width: { min: 280, comfortable: 380 },
   height: { min: 220 },
   holdWhileResizing: true,
+  // It reports select(quote(...)): with nothing selected, it starts on what its following quote shows.
+  selects: "quote",
   Component: Watchlist,
 });
