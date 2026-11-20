@@ -336,7 +336,12 @@
       margin: -2px 0 -2px -8px;
     }
   }
+  /* Decoration: clicks pass through it to the map, and it gives way to anything it would cover (map.tsx). */
+  .pin-wrap[data-photo-off] .pin-photo {
+    display: none;
+  }
   .pin-photo {
+    pointer-events: none;
     position: absolute;
     bottom: calc(50% + 34px);
     left: 50%;

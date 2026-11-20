@@ -59,6 +59,7 @@ import { CATEGORY_ICON, DayMark, Segmented } from "../ui/parts";
 import { Photo, photoSrc } from "../ui/photo";
 import { photoOf } from "../trip/photos";
 import { repairStyle } from "./map-style";
+import { layoutPins, overlaps, type PinBox, type Rect } from "./pin-layout";
 
 setWorkerUrl(mapWorkerUrl);
 
@@ -251,7 +252,11 @@ function MapPane({ params, paused, node, inPeek }: PaneProps<typeof mapParams>) 
   const results = useStore(services.results, (r) => r);
   const box = useRef<HTMLDivElement>(null);
   const mapRef = useRef<MapLibre | null>(null);
-  const markers = useRef(new Map<string, { marker: Marker; el: HTMLButtonElement }>());
+  const markers = useRef(new Map<string, PinMarker>());
+  /** The pins each pin that shows stands for too, from the last layout (pin-layout.ts). */
+  const piles = useRef(new Map<string, string[]>());
+  /** Lays the pins out on screen again (set further down, where it can see the markers). */
+  const layoutRef = useRef(() => {});
   const pausedRef = useRef(paused);
   /** The map shows the day as framed (not moved by the person since). */
   const framed = useRef(true);
@@ -327,9 +332,22 @@ function MapPane({ params, paused, node, inPeek }: PaneProps<typeof mapParams>) 
       if (!map.isStyleLoaded() || status === undefined || status >= 400)
         setFailed(!map.isStyleLoaded());
     });
-    // The canvas is the keyboard's way in: name it, so a screen reader says what it is and what the keys do.
-    map.getCanvas().setAttribute("aria-label", "Map. Arrow keys pan, plus and minus zoom.");
+    // The keyboard's way in is the box that holds the canvas and the pins, not the canvas MapLibre picks: focus then
+    // sits round everything on the map, and a pin over the canvas's middle is inside it, not over it. MapLibre
+    // listens for its keys on that box, so the arrows still pan. Named, so a screen reader says what the keys do.
+    const canvas = map.getCanvas();
+    for (const a of ["tabindex", "role", "aria-label"]) canvas.removeAttribute(a);
+    const surface = map.getCanvasContainer();
+    surface.tabIndex = 0;
+    surface.setAttribute("role", "region");
+    surface.setAttribute("aria-label", "Map. Arrow keys pan, plus and minus zoom.");
     mapRef.current = map;
+
+    // The pins are laid out again whenever the map moves or changes size: what overlaps changes with the zoom, and
+    // what is under the floating controls with the pan.
+    const relayout = () => layoutRef.current();
+    map.on("move", relayout);
+    map.on("resize", relayout);
 
     // A pan or zoom by the person ends the framing; the map stays where they put it.
     const moved = (e: { originalEvent?: unknown }) => {
@@ -404,7 +422,7 @@ function MapPane({ params, paused, node, inPeek }: PaneProps<typeof mapParams>) 
     src?.setData(routesFor(plan, params.day, theme));
   }, [plan, params.day, theme, styleTick]);
 
-  // The pins: DOM markers, so each is a real button with a name, and big enough for a finger.
+  // The pins: DOM markers, so each is a real button with a name, and a whole target of at least 24px.
   const pins = useMemo(
     () => pinsFor(plan, params.day, candidates, selected),
     [plan, params.day, candidates, selected],
@@ -427,14 +445,23 @@ function MapPane({ params, paused, node, inPeek }: PaneProps<typeof mapParams>) 
         el.addEventListener("click", (e) => {
           e.stopPropagation();
           const id = el.dataset.id;
-          if (id) selectPlace(jali, id, { from: node.id });
+          if (!id) return;
+          // A pin that stands for others too opens the pile first: the map zooms in until they part. Pressed when
+          // the map is as close as it goes, it picks its own place, like any pin.
+          const pile = piles.current.get(id);
+          if (pile?.length && openPile(map, [id, ...pile])) {
+            framed.current = false;
+            return;
+          }
+          selectPlace(jali, id, { from: node.id });
         });
         const marker = new Marker({ element: wrap, anchor: "center" })
           .setLngLat([pin.p.lng, pin.p.lat])
           .addTo(map);
-        m = { marker, el };
+        m = { marker, el, pin };
         markers.current.set(pin.p.id, m);
       }
+      m.pin = pin;
       paintPin(m.el, pin, pin.p.id === selected);
     }
     for (const [id, m] of markers.current)
@@ -442,7 +469,18 @@ function MapPane({ params, paused, node, inPeek }: PaneProps<typeof mapParams>) 
         m.marker.remove();
         markers.current.delete(id);
       }
+    layoutRef.current();
   }, [pins, selected, jali, node.id, styleTick]);
+
+  // Lays the pins out on screen (pin-layout.ts): none covers another, none hides under the controls over the map.
+  layoutRef.current = () => {
+    const map = mapRef.current;
+    const el = box.current;
+    if (!map || !el || el.hasAttribute("data-far") || !el.clientWidth || !el.clientHeight) return;
+    piles.current = placePins(map, el, Array.from(markers.current.values()));
+  };
+  // After every render too: the card under the map, and the summary over it, come and go with the selection.
+  useEffect(() => layoutRef.current());
 
   // A badge for each city, shown when the whole country is in view: its name and its days. A click frames it.
   const badges = useRef(new Map<CityId, Marker>());
@@ -675,6 +713,135 @@ function framePadding(map: MapLibre) {
   };
 }
 
+/** A pin on the map: MapLibre's marker, the button in it, and what it shows. */
+interface PinMarker {
+  marker: Marker;
+  el: HTMLButtonElement;
+  pin: Pin;
+}
+
+/** Which pins go first when they would overlap: the selected place, the day's stops in order, then the rest. */
+const RANK: Record<Pin["role"], number> = {
+  stop: 1,
+  hotel: 2,
+  airport: 3,
+  candidate: 4,
+  "other-day": 5,
+};
+
+/** Each pin's target, as map.css draws it: a selected stop, hotel or airport grows by 1.22. */
+function pinSize({ role }: Pin, selected: boolean) {
+  const size = { stop: 30, hotel: 32, airport: 26, candidate: 24, "other-day": 24 }[role];
+  return selected && size > 24 ? size * 1.22 : size;
+}
+
+/** The selected pin's photo stands above it (photos.css): 64px round, 34px up, with a point toward the pin. */
+const photoBox = (x: number, y: number) => ({
+  left: x - 35,
+  right: x + 35,
+  top: y - 34 - 67,
+  bottom: y - 34 + 10,
+});
+
+/**
+ * What floats over the map (the days and the summary on top, the route key, the card, MapLibre's buttons and its
+ * attribution), as rectangles in the map's own coordinates.
+ */
+function floating(el: HTMLElement): Rect[] {
+  const origin = el.getBoundingClientRect();
+  const root = el.parentElement ?? el;
+  return Array.from(
+    root.querySelectorAll<HTMLElement>(
+      ".map-top > *, .map-legend, .map-card, .map-failed, .maplibregl-ctrl",
+    ),
+  )
+    .map((f) => f.getBoundingClientRect())
+    .filter((r) => r.width > 0 && r.height > 0)
+    .map((r) => ({
+      left: r.left - origin.left,
+      top: r.top - origin.top,
+      right: r.right - origin.left,
+      bottom: r.bottom - origin.top,
+    }));
+}
+
+/**
+ * Places the pins (pin-layout.ts) and shows the result: a pin off the open map or in a pile is hidden, and a pin that
+ * stands for others says "+N" and names them. The selected pin's photo shows only where it covers nothing. Returns
+ * the piles.
+ */
+function placePins(map: MapLibre, el: HTMLElement, all: PinMarker[]) {
+  const view = { left: 0, top: 0, right: el.clientWidth, bottom: el.clientHeight };
+  const blocked = floating(el);
+  const at = new Map<string, { x: number; y: number }>();
+  const boxes: PinBox[] = all.map(({ pin, el: button }) => {
+    const { x, y } = map.project([pin.p.lng, pin.p.lat]);
+    at.set(pin.p.id, { x, y });
+    const selected = button.hasAttribute("data-selected");
+    return {
+      id: pin.p.id,
+      x,
+      y,
+      size: pinSize(pin, selected),
+      rank: selected ? 0 : RANK[pin.role] + (pin.order ?? 0) / 100,
+    };
+  });
+  const { shown } = layoutPins(boxes, view, blocked);
+  const label = (id: string) => all.find((m) => m.pin.p.id === id)?.el.dataset.label ?? "";
+  for (const { pin, el: button, marker } of all) {
+    const id = pin.p.id;
+    const pile = shown.get(id);
+    const wrap = marker.getElement();
+    wrap.toggleAttribute("data-hidden", !pile);
+    if (pile?.length) {
+      button.dataset.more = `+${pile.length}`;
+      button.setAttribute(
+        "aria-label",
+        `${label(id)}. Also here: ${pile.map(label).join("; ")}. Press to zoom in to them.`,
+      );
+    } else {
+      delete button.dataset.more;
+      button.setAttribute("aria-label", label(id));
+    }
+    // The photo is decoration: it gives way to any pin, control or edge it would cover.
+    if (pile && button.hasAttribute("data-selected")) {
+      const { x, y } = at.get(id)!;
+      const photo = photoBox(x, y);
+      const clear =
+        photo.top >= 0 &&
+        photo.left >= 0 &&
+        photo.right <= view.right &&
+        !blocked.some((b) => overlaps(photo, b)) &&
+        boxes.every(
+          (b) =>
+            b.id === id ||
+            !shown.has(b.id) ||
+            !overlaps(photo, {
+              left: b.x - b.size / 2,
+              right: b.x + b.size / 2,
+              top: b.y - b.size / 2,
+              bottom: b.y + b.size / 2,
+            }),
+        );
+      wrap.toggleAttribute("data-photo-off", !clear);
+    } else wrap.removeAttribute("data-photo-off");
+  }
+  return shown;
+}
+
+/** Zooms in on a pile of pins until they part, unless the map is already as close as it goes. Says if it did. */
+function openPile(map: MapLibre, ids: string[]): boolean {
+  const b = new LngLatBounds();
+  for (const id of ids) {
+    const p = placeById(id);
+    if (p) b.extend([p.lng, p.lat]);
+  }
+  const camera = map.cameraForBounds(b, { padding: framePadding(map), maxZoom: 18 });
+  if (!camera?.zoom || camera.zoom <= map.getZoom() + 0.1) return false;
+  map.easeTo({ ...camera, duration: reducedMotion() ? 0 : 600 });
+  return true;
+}
+
 function paintPin(el: HTMLButtonElement, pin: Pin, selected: boolean) {
   const { p, role, day, order } = pin;
   el.dataset.id = p.id;
@@ -685,10 +852,10 @@ function paintPin(el: HTMLButtonElement, pin: Pin, selected: boolean) {
   el.toggleAttribute("data-selected", selected);
   // The day's stops and the hotel are in the Tab order; other pins are reached by pointer or by the lists.
   el.tabIndex = role === "stop" || role === "hotel" ? 0 : -1;
-  const text = role === "stop" ? String(order) : role === "other-day" ? "" : "";
+  const text = role === "stop" ? String(order) : "";
   if (el.textContent !== text) el.textContent = text;
-  el.setAttribute(
-    "aria-label",
+  // Its own name; the layout adds the pins it stands for (placePins).
+  el.dataset.label =
     role === "stop"
       ? `Day ${day}, stop ${order}: ${p.name}`
       : role === "hotel"
@@ -697,8 +864,8 @@ function paintPin(el: HTMLButtonElement, pin: Pin, selected: boolean) {
           ? p.name
           : role === "other-day"
             ? `${p.name}, on Day ${day}`
-            : `${p.name}, not planned`,
-  );
+            : `${p.name}, not planned`;
+  el.setAttribute("aria-label", el.dataset.label);
   el.title = p.name;
   el.parentElement!.style.zIndex = selected
     ? "5"

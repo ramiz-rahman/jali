@@ -47,6 +47,25 @@ test("the map renders, and a pin selects its place everywhere", async ({ page })
   await expect(pane(page, "map").locator(".map-card")).toHaveCount(0);
 });
 
+test("pins that would cover each other make one pile, which names them and opens when pressed", async ({
+  page,
+}) => {
+  // Budget's small map frames Day 7, which spans the north of Phuket: its stops crowd at that zoom.
+  await layout(page, "Budget").click();
+  const map = pane(page, "map");
+  const pile = map.locator('.pin[data-role="stop"][data-more]').first();
+  await expect(pile).toBeVisible();
+  const name = (await pile.getAttribute("aria-label")) ?? "";
+  const more = Number((await pile.getAttribute("data-more"))?.slice(1));
+  // It says how many it stands for, and names each, so a screen reader hears what the eye can't see.
+  const hidden = /Also here: (.+)\. Press to zoom in to them\.$/.exec(name)?.[1]?.split("; ") ?? [];
+  expect(hidden).toHaveLength(more);
+  const first = map.locator(`.pin[data-label="${hidden[0]}"]`);
+  await expect(first).toBeHidden();
+  await pile.click();
+  await expect(first).toBeVisible();
+});
+
 /** Panes whose Jali wrapper scrolls by itself: then the pane can slide off its content, leaving it blank. */
 const wrappersThatScroll = (page: Page) =>
   page.evaluate(() =>
@@ -110,7 +129,7 @@ test("the overview drives the day and the map; arrow keys pan the map and F6 sti
   await expect(pane(page, "day").locator(".day-title")).toHaveText("Chinatown, silk and the park");
   await expect(pane(page, "map").locator(".jali-pane-header")).toContainText("Map of Day 2");
 
-  const canvas = pane(page, "map").locator("canvas.maplibregl-canvas");
+  const canvas = pane(page, "map").getByRole("region", { name: /^Map\. Arrow keys pan/ });
   await canvas.focus();
   await page.keyboard.press("ArrowRight");
   await expect(canvas).toBeFocused();
