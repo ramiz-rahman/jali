@@ -374,21 +374,12 @@ function MapPane({ params, paused, node, inPeek }: PaneProps<typeof mapParams>) 
     mapRef.current?.setStyle(STYLE[theme], { diff: false });
   }, [theme]);
 
-  // As a list does on first show: start on what the place pane beside it shows, so nothing jumps. (After a preset
-  // or a link, Jali itself makes this pane's selection agree with the place pane the layout brought.)
-  const follower = model.panes.find(
-    (p) => p.linkedTo === node.id && p.follows && p.ref.kind === "place",
-  );
-  const quietSelection = useRef<string | null>(null);
-  const followerShows = follower ? String(follower.ref.params.id) : null;
-  useEffect(() => {
-    if (inPeek || !follower || followerShows === selected) return;
-    // Taken from the layout, not picked by the person: the map keeps its framing rather than fly to it.
-    quietSelection.current = followerShows;
-    jali.actions.select(node.id, follower.ref);
-    // Only when the place pane's object changes by layout; a selection the person makes reaches it a moment later.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [followerShows]);
+  // What the place pane that follows this map shows. Jali starts the map's selection there (`selects`), and keeps
+  // the two agreeing when a layout (a preset, a link, Back) brings that pane another place.
+  const followerShows =
+    model.panes
+      .filter((p) => p.linkedTo === node.id && p.follows && p.ref.kind === "place")
+      .map((p) => String(p.ref.params.id))[0] ?? null;
 
   // The routes.
   useEffect(() => {
@@ -513,15 +504,18 @@ function MapPane({ params, paused, node, inPeek }: PaneProps<typeof mapParams>) 
 
   // A place selected anywhere: bring it into view, gently, unless it is already well inside. Not on the map's first
   // show, which frames the day instead (the selection may be in the other city), and not when a layout brought it:
-  // a preset agrees this pane's selection with its place pane in the same step, and the map keeps the day framed.
+  // Jali agrees this pane's selection with its place pane in the same step, and the map keeps the day framed.
   const firstSelection = useRef(true);
   const presetId = useJaliState((s) => s.presetId);
   const lastPreset = useRef(presetId);
+  const lastShown = useRef(followerShows);
   useEffect(() => {
     const byLayout = lastPreset.current !== presetId;
-    if (firstSelection.current || byLayout || quietSelection.current === selected) {
+    // Brought by a layout: the place pane that was there already shows it in the same step (a place the person picks
+    // reaches it a moment later, and a place pane opened for it wasn't there before).
+    const fromLayout = !!selected && selected === followerShows && lastShown.current !== null;
+    if (firstSelection.current || byLayout || fromLayout) {
       firstSelection.current = false;
-      quietSelection.current = null;
       return;
     }
     if (!selected) return;
@@ -553,6 +547,9 @@ function MapPane({ params, paused, node, inPeek }: PaneProps<typeof mapParams>) 
   useEffect(() => {
     lastPreset.current = presetId;
   }, [presetId]);
+  useEffect(() => {
+    lastShown.current = followerShows;
+  }, [followerShows]);
 
   const showDay = (n: number) => jali.actions.openHere(node.id, mapRef_(n));
   useCommands(
@@ -788,6 +785,8 @@ function PlaceCard({ p, dayN, plan, from }: { p: Place; dayN: number; plan: Plan
 
 export const map = definePane("map", {
   params: mapParams,
+  // A list of places: with none selected, it starts on the one its following place pane shows.
+  selects: "place",
   // The overview selects a day; the map that follows it shows that day.
   follow: (selected) => (selected.kind === "day" ? { day: Number(selected.params.n) } : undefined),
   title: ({ day }) => (day ? `Map of Day ${day}` : "Trip map"),

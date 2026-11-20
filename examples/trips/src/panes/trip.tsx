@@ -3,7 +3,7 @@
  * the rest: moving through it (J/K or the arrows) selects a day, and the day plan and the map that follow it show
  * that day. A stop dragged onto a day here moves to the end of that day.
  */
-import { Fragment, useEffect, useRef, type KeyboardEvent } from "react";
+import { Fragment, useRef, type KeyboardEvent } from "react";
 import {
   AirplaneTiltIcon,
   ArrowCounterClockwiseIcon,
@@ -14,7 +14,7 @@ import {
   definePane,
   useCommands,
   useJali,
-  useJaliModel,
+  useJaliState,
   usePaneState,
   type PaneProps,
 } from "@jali/react";
@@ -34,7 +34,11 @@ function TripPane({ node, focused, select, inPeek }: PaneProps) {
   const jali = useJali();
   const services = useServices();
   const plan = usePlan();
-  const [cursor, setCursor] = usePaneState<number>("cursor", 1);
+  const [kept, setCursor] = usePaneState<number>("cursor", 1);
+  // The cursor is on the day Jali has selected: it starts this list on the day its following day plan shows
+  // (`selects`), and moves it with that pane when a layout (a preset, a link, Back) gives it another day.
+  const selected = useJaliState((s) => s.selection[node.id]?.ref);
+  const cursor = !inPeek && selected?.kind === "day" ? Number(selected.params.n) : kept;
   const drag = useDrag();
   const listRef = useRef<HTMLDivElement>(null);
   const budget = tripBudget(plan);
@@ -50,23 +54,6 @@ function TripPane({ node, focused, select, inPeek }: PaneProps) {
     setCursor(n);
     select(dayKind({ n }));
   };
-
-  // Start on the day the panes that follow this list show, and stay with them when a layout (a preset, a link,
-  // Back) gives them another day: Jali keeps this list's selection across a preset switch, while the new preset's
-  // followers arrive showing their own day (FINDINGS.md).
-  const model = useJaliModel();
-  const followers = model.panes.filter((p) => p.linkedTo === node.id && p.follows);
-  const lead =
-    followers.find((p) => p.ref.kind === "day") ?? followers.find((p) => p.ref.kind === "map");
-  const shown = lead
-    ? Number(lead.ref.kind === "day" ? lead.ref.params.n : lead.ref.params.day)
-    : 0;
-  useEffect(() => {
-    if (inPeek) return;
-    moveTo(shown > 0 ? shown : cursor);
-    // When what the followers show changes, not on every move of the cursor (they catch up a moment later).
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [shown]);
 
   const onKeyDown = (e: KeyboardEvent) => {
     if (e.metaKey || e.ctrlKey || e.altKey) return;
@@ -259,6 +246,8 @@ function DayStrip({ stops }: { stops: readonly string[] }) {
 export const trip = definePane("trip", {
   title: "Trip",
   icon: SuitcaseRollingIcon,
+  // A list of days: with no day selected, it starts on the one its following day plan shows.
+  selects: "day",
   width: { min: 260, comfortable: 300, max: 360 },
   height: { min: 360 },
   Component: TripPane,
