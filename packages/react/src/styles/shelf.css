@@ -7,7 +7,7 @@
     align-items: center;
     height: 100%;
     min-width: 7.5rem;
-    font-size: 0.75rem;
+    font-size: var(--jali-text-sm);
   }
   .jali-shelf-bar {
     position: relative;
@@ -184,7 +184,7 @@
     margin-inline-start: auto;
     color: var(--jali-text-subtle);
     white-space: nowrap;
-    font-size: 0.6875rem;
+    font-size: var(--jali-text-xs);
   }
   .jali-shelf-menu .jali-shelf-chip-title {
     flex: 1;
@@ -203,7 +203,7 @@
     height: 0.75rem;
     box-sizing: border-box;
     border-radius: 50%;
-    font-size: 0.5625rem;
+    font-size: 0.5625rem; /* the "!" drawn inside the 0.75rem mark: part of the mark, not the type scale */
     font-weight: 700;
     line-height: 1;
   }

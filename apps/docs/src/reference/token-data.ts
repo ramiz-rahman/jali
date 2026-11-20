@@ -25,7 +25,16 @@ export type TokenGroup =
   | "Overlays and shadows"
   | "Shape and type"
   | "Derived";
-export type SwatchKind = "color" | "text" | "shadow" | "scrim" | "radius" | "font" | "size";
+export type SwatchKind =
+  | "color"
+  | "text"
+  | "shadow"
+  | "scrim"
+  | "radius"
+  | "font"
+  | "size"
+  | "type"
+  | "tracking";
 
 export interface TokenInfo {
   group: TokenGroup;
@@ -292,6 +301,35 @@ export const TOKEN_PURPOSE: Record<string, TokenInfo> = {
     group: "Shape and type",
     swatch: "size",
     purpose: "Icons in a shelf chip: the pane's icon, the fold mark and Put back.",
+  },
+  "--jali-text-xs": {
+    group: "Shape and type",
+    swatch: "type",
+    purpose:
+      'The smallest type: key hints, the Following / Kept toggle, badges, the "+N" and "N folded" chips, menu marks, the peek\'s label and Settings\' legends.',
+  },
+  "--jali-text-sm": {
+    group: "Shape and type",
+    swatch: "type",
+    purpose:
+      "Small type: the shelf, tab menus, palette groups, the chooser's heading, notes in a pane, the drag chip and a divider's size tip. The investigation chips on a curated page are this + 0.0312rem (12.5px).",
+  },
+  "--jali-text-md": {
+    group: "Shape and type",
+    swatch: "type",
+    purpose: "A pane's title, the phone's pane switcher and a popped-out pane's note.",
+  },
+  "--jali-text-lg": {
+    group: "Shape and type",
+    swatch: "type",
+    purpose:
+      "The palette's field, the titles of Settings and the discard question, and the drop label.",
+  },
+  "--jali-tracking": {
+    group: "Shape and type",
+    swatch: "tracking",
+    purpose:
+      "Letter spacing for the workspace and its dialogs (a length, such as `0.01em`). Read in place with no default: until you set it, they inherit yours. Settings' small capitals keep their own 0.04em.",
   },
   "--jali-font": {
     group: "Shape and type",

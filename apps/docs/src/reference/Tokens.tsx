@@ -49,6 +49,18 @@ function Swatch({
         );
       case "size":
         return <span className="ref-swatch-size" style={{ width: v, height: v }} />;
+      case "type":
+        return (
+          <span className="ref-swatch-font" style={{ fontSize: v }}>
+            Ag 12
+          </span>
+        );
+      case "tracking":
+        return (
+          <span className="ref-swatch-font" style={{ letterSpacing: v, fontSize: "0.875rem" }}>
+            Tracking
+          </span>
+        );
       case "font":
         return (
           <span className="ref-swatch-font" style={{ fontFamily: v }}>

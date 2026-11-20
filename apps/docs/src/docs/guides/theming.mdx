@@ -51,6 +51,7 @@ The tokens you are most likely to change:
 | `--jali-working`, `--jali-blocked`, `--jali-done`, `--jali-failed` | A pane's activity marks |
 | `--jali-radius`, `--jali-radius-control`, `--jali-radius-menu`, `--jali-radius-chip` | Corners of panes, controls, menus and the small things in headers, tabs and chips. Every corner reads one of them (a dialog is 1.2 × `--jali-radius`, rounded to a whole pixel), so setting all four to `0` or `2px` squares the whole workspace |
 | `--jali-font`, `--jali-font-mono` | Type |
+| `--jali-text-xs`, `--jali-text-sm`, `--jali-text-md`, `--jali-text-lg`, `--jali-tracking` | The type scale every part reads (11, 12, 13 and 14px by default), and letter spacing. A wider face needs only these, not a size per part |
 | `--jali-icon-header`, `--jali-icon-tab`, `--jali-icon-menu`, `--jali-icon-shelf` | Icon sizes by place: a pane's header, a tab, menus, shelf chips. They size your own `icons` too, as long as your icon applies the `className` Jali passes it (Phosphor's, Lucide's and most sets' do) |
 
 Every token, with its light and dark values, is in the [Tokens reference](/reference/tokens).

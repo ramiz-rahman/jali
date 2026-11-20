@@ -128,6 +128,11 @@
     --jali-icon-tab: 14px;
     --jali-icon-menu: 14px;
     --jali-icon-shelf: 13px;
+    /* The type scale: every size Jali sets reads one of these (the investigation chips are sm + 0.0312rem, 12.5px). */
+    --jali-text-xs: 0.6875rem;
+    --jali-text-sm: 0.75rem;
+    --jali-text-md: 0.8125rem;
+    --jali-text-lg: 0.875rem;
     /* Jali's faces: Atkinson Hyperlegible Next and Mono (load them from @fontsource or your own files); system faces
        stand in when they are not loaded. */
     --jali-font:
@@ -149,6 +154,9 @@
    *   --jali-pane-border-focused: var(--jali-accent);
    *   --jali-pane-shadow: none;
    *   --jali-pane-shadow-focused: 0 0 0 0.5px var(--jali-accent);
+   *   --jali-tracking: (none);
+   *
+   * --jali-tracking has no default: until it is set, the workspace and its dialogs inherit their letter spacing.
    */
 
   /*

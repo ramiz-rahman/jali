@@ -31,7 +31,7 @@
     border: 0;
     border-bottom: 1px solid var(--jali-border);
     font: inherit;
-    font-size: 0.875rem;
+    font-size: var(--jali-text-lg);
     outline: none;
   }
   .jali-palette-list {
@@ -59,16 +59,16 @@
     cursor: default;
   }
   .jali-palette-group {
-    font-size: 0.75rem;
+    font-size: var(--jali-text-sm);
     color: var(--jali-text-subtle);
   }
   .jali-palette-id {
-    font-size: 0.6875rem;
+    font-size: var(--jali-text-xs);
     color: var(--jali-text-subtle);
   }
   .jali-palette-item kbd {
     justify-self: end;
-    font-size: 0.6875rem;
+    font-size: var(--jali-text-xs);
     color: var(--jali-text-muted);
   }
   .jali-palette-empty {
@@ -80,7 +80,7 @@
   }
   .jali-chooser-head {
     padding: 0.75rem 1rem 0;
-    font-size: 0.75rem;
+    font-size: var(--jali-text-sm);
     color: var(--jali-text-subtle);
   }
   .jali-chooser-head b {
@@ -112,7 +112,7 @@
     height: 2.75rem;
   }
   .jali-settings h2 {
-    font-size: 0.875rem;
+    font-size: var(--jali-text-lg);
     font-weight: 600;
     margin: 0;
   }
@@ -126,7 +126,7 @@
   }
   .jali-settings legend {
     padding: 0;
-    font-size: 0.6875rem;
+    font-size: var(--jali-text-xs);
     font-weight: 600;
     color: var(--jali-text-subtle);
     text-transform: uppercase;
@@ -159,13 +159,13 @@
     flex: none;
   }
   .jali-keys-row kbd {
-    font-size: 0.6875rem;
+    font-size: var(--jali-text-xs);
     color: var(--jali-text);
     white-space: nowrap;
   }
   .jali-keys-note {
     margin: 0.25rem 0 0;
-    font-size: 0.75rem;
+    font-size: var(--jali-text-sm);
     color: var(--jali-text-subtle);
   }
   .jali-radio {
@@ -207,7 +207,7 @@
     padding: 1rem;
   }
   .jali-confirm h2 {
-    font-size: 0.875rem;
+    font-size: var(--jali-text-lg);
     font-weight: 600;
     margin: 0 0 0.5rem;
   }

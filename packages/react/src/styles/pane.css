@@ -90,7 +90,7 @@
   }
   .jali-pane-title h2 {
     margin: 0;
-    font-size: 0.8125rem;
+    font-size: var(--jali-text-md);
     font-weight: 500;
     color: var(--jali-text);
     white-space: nowrap;
@@ -98,7 +98,7 @@
     text-overflow: ellipsis;
   }
   .jali-badge {
-    font-size: 0.6875rem;
+    font-size: var(--jali-text-xs);
     color: var(--jali-text-subtle);
     border: 1px solid var(--jali-border);
     border-radius: var(--jali-radius-chip);
@@ -622,7 +622,7 @@
     background: none;
     color: var(--jali-text-muted);
     font: inherit;
-    font-size: 0.6875rem;
+    font-size: var(--jali-text-xs);
     font-variant-numeric: tabular-nums;
     line-height: 1;
     cursor: pointer;
@@ -646,7 +646,7 @@
     background: none;
     color: var(--jali-text-muted);
     font: inherit;
-    font-size: 0.6875rem;
+    font-size: var(--jali-text-xs);
     font-variant-numeric: tabular-nums;
     line-height: 1;
     white-space: nowrap;
@@ -690,7 +690,7 @@
     border: 1px solid var(--jali-border-strong);
     border-radius: var(--jali-radius-menu);
     box-shadow: var(--jali-shadow-menu);
-    font-size: 0.75rem;
+    font-size: var(--jali-text-sm);
   }
   .jali-tab-menu-item {
     all: unset;
@@ -739,7 +739,7 @@
     gap: 0.1875rem;
     flex: none;
     color: var(--jali-text-muted);
-    font-size: 0.6875rem;
+    font-size: var(--jali-text-xs);
   }
   /* A tab's own menu: groups between hairlines, key hints at the end, disabled items reachable but quiet. */
   .jali-tab-actions-menu {
@@ -782,7 +782,7 @@
 
   /* ---------- curated workspaces: role panes name their role; opened panes carry the investigation's tint ---------- */
   .jali-pane-sub {
-    font-size: 0.75rem;
+    font-size: var(--jali-text-sm);
     color: var(--jali-text-subtle);
     white-space: nowrap;
     overflow: hidden;
@@ -820,7 +820,7 @@
     gap: 0.5rem;
     background: var(--jali-surface);
     color: var(--jali-text-subtle);
-    font-size: 0.8125rem;
+    font-size: var(--jali-text-md);
   }
   /* The floating window's own page: the pane's content fills it. */
   .jali-popout {
@@ -831,6 +831,7 @@
     background: var(--jali-surface);
     color: var(--jali-text);
     font-family: var(--jali-font);
+    letter-spacing: var(--jali-tracking);
   }
   .jali-popout > .jali-pane-content-inner {
     flex: 1;

@@ -56,10 +56,12 @@
     overflow: hidden;
     isolation: isolate;
   }
-  /* What Jali draws is set in Jali's face: the workspace, and its dialogs (which render outside it). */
+  /* What Jali draws is set in Jali's face: the workspace, and its dialogs (which render outside it). Its tracking is
+     a token read in place with no default, so until it is set the letter spacing is inherited, as before. */
   .jali-workspace,
   .jali-scrim {
     font-family: var(--jali-font);
+    letter-spacing: var(--jali-tracking);
   }
   .jali-workspace-inner {
     position: absolute;
@@ -120,7 +122,7 @@
     border-radius: var(--jali-radius-menu);
     background: var(--jali-accent);
     color: var(--jali-on-accent);
-    font-size: 0.875rem;
+    font-size: var(--jali-text-lg);
     font-weight: 500;
     line-height: 1.25rem;
     box-shadow: var(--jali-shadow-chip);
@@ -136,7 +138,7 @@
     border-radius: var(--jali-radius-control);
     background: var(--jali-chip);
     color: var(--jali-on-chip);
-    font-size: 0.75rem;
+    font-size: var(--jali-text-sm);
     white-space: nowrap;
   }
   body.jali-pane-dragging,
