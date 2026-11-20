@@ -16,12 +16,14 @@ import type {
   UndoEntry,
   ViewState,
 } from "../layout/types";
-import type {
-  PaneActivity,
-  PaneAttributes,
-  PaneCommand,
-  PaneErrorInfo,
-  PaneKinds,
+import {
+  linkLayout,
+  linkView,
+  type PaneActivity,
+  type PaneAttributes,
+  type PaneCommand,
+  type PaneErrorInfo,
+  type PaneKinds,
 } from "../pane-kinds";
 import { initialArea, spacingOf } from "../tokens";
 import { toLayout } from "../layout/build";
@@ -631,11 +633,13 @@ export function createUiStore(deps: UiStoreDeps): UiStore {
     snapshot: () => ({ s: state, m: store.model(), ctx: ctx(), env }),
     apply: (o) => batch(() => apply(io, o)),
     announce: (text) => store.set({ announcement: { text, seq: state.announcement.seq + 1 } }),
-    // The writer reads the address's share of the state only (UrlState), when it writes.
+    // The writer reads the address's share of the state only (UrlState), when it writes, and as a link carries it:
+    // without params only the app sets (`appOnly`).
     writeUrl: (mode) =>
       deps.url?.write(() => {
         const { layout, view, presetId, page } = store.get();
-        return { layout, view, presetId, page };
+        const kinds = env.kinds.registry();
+        return { layout: linkLayout(kinds, layout), view: linkView(kinds, view), presetId, page };
       }, mode),
     toast: (t) => (toastFns.size ? toastFns.forEach((fn) => fn(t)) : pendingToasts.push(t)),
     onToast(fn) {

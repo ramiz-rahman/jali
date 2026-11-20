@@ -107,6 +107,8 @@ export interface PaneKind {
   /** What is wrong with a ref's params for this kind (a required param missing, a value its type can't read), or
    *  undefined when nothing is. A layout holding such a ref is invalid, so a link to it opens as broken. */
   checkParams?(params: ObjectRef["params"]): string | undefined;
+  /** Params only the app sets (`appOnly`): links never carry them. */
+  appOnly?: readonly string[];
 }
 export type KindRegistry = Record<string, PaneKind>;
 export interface Rect {

@@ -2,7 +2,8 @@
  * Pane kinds: what an app says about each kind of pane (its params, title, sizes and identity), and the registry a
  * workspace keeps of them. A framework adapter adds the view: @jali/react's `definePane` adds `Component` and `icon`.
  */
-import type { KindRegistry, NodeId, ObjectRef, PaneKind } from "./layout/types";
+import type { KindRegistry, Layout, NodeId, ObjectRef, PaneKind, ViewState } from "./layout/types";
+import { map } from "./layout/tree/tree";
 import { own } from "./own";
 
 // ---------- params ----------
@@ -29,6 +30,59 @@ export type ParamTypes = Record<string, ParamType | OptionalParam>;
 /** A param a ref may leave out: `params: { id: Number, tab: optional(String) }` gives `{ id: number; tab?: string }`. */
 export function optional<T extends ParamType>(type: T): OptionalParam<T> {
   return { optional: type };
+}
+
+/** A param only the app sets: `appOnly(Boolean)`. Links never carry it (see `appOnly`). */
+export interface AppOnlyParam<T extends ParamType = ParamType> extends OptionalParam<T> {
+  readonly appOnly: true;
+}
+
+/**
+ * A param only the app sets, never a link: `params: { sql: String, autorun: appOnly(Boolean) }`. Jali leaves it out
+ * of every link it writes (the address, Copy link, Back and Forward) and drops it from every link it reads, so a link
+ * can't set it: a query that runs as it opens, an edit mode, a permission. It is optional, since a pane opened from a
+ * link has none, and it is not part of what the pane shows: two refs that differ only in it are the same object.
+ */
+export function appOnly<T extends ParamType>(type: T): AppOnlyParam<T> {
+  return { optional: type, appOnly: true };
+}
+
+const isAppOnly = (t: ParamType | OptionalParam): boolean =>
+  typeof t !== "function" && (t as Partial<AppOnlyParam>).appOnly === true;
+
+/** The params of `types` that only the app sets (`appOnly`). */
+export const appOnlyParams = (types: ParamTypes | undefined): string[] =>
+  types ? Object.keys(types).filter((k) => isAppOnly(types[k]!)) : [];
+
+/** `params` without those named in `drop`; the same object when it has none of them. */
+function without(params: Params, drop: readonly string[] | undefined): Params {
+  if (!drop?.some((k) => Object.hasOwn(params, k))) return params;
+  const out: Params = { ...params };
+  for (const k of drop) delete out[k];
+  return out;
+}
+
+/** `ref` as a link carries it: without its kind's app-only params. The same ref when it has none. */
+export function linkRef(kinds: KindRegistry, ref: ObjectRef): ObjectRef {
+  const drop = Object.hasOwn(kinds, ref.kind) ? kinds[ref.kind]!.appOnly : undefined;
+  const params = without(ref.params, drop);
+  return params === ref.params ? ref : { ...ref, params };
+}
+
+/** `layout` as a link carries it: every pane's ref without app-only params. The same layout when none has any. */
+export function linkLayout(kinds: KindRegistry, layout: Layout): Layout {
+  const root = map(layout.root, (n) => {
+    if (n.type !== "pane") return n;
+    const ref = linkRef(kinds, n.ref);
+    return ref === n.ref ? n : { ...n, ref };
+  });
+  return root === layout.root ? layout : { ...layout, root };
+}
+
+/** `view` as a link carries it: its peek without app-only params. */
+export function linkView(kinds: KindRegistry, view: ViewState): ViewState {
+  const peek = view.peek && linkRef(kinds, view.peek);
+  return peek === view.peek ? view : { ...view, peek };
 }
 
 /** A param that is one of a few values: `oneOf("open", "closed")` gives `"open" | "closed"`. */
@@ -364,7 +418,9 @@ export function createPaneKinds<D extends PaneKindBase = PaneKindBase>(
     const def = kinds.get(ref.kind);
     if (def?.scratch) return undefined;
     const identity = def?.identity as Fn<unknown>;
-    if (!identity || problems(ref).length) return asText(ref.params);
+    // An app-only param says how the pane opens, not what it shows.
+    if (!identity || problems(ref).length)
+      return asText(without(ref.params, appOnlyParams(def?.params)));
     const id = identity(params(ref));
     return id === undefined ? undefined : JSON.stringify(id);
   };
@@ -399,7 +455,14 @@ export function createPaneKinds<D extends PaneKindBase = PaneKindBase>(
         if (d.height?.max !== undefined) k.maxHeight = d.height.max;
         if (d.height?.comfortable !== undefined) k.comfortableHeight = d.height.comfortable;
         const types = d.params;
-        if (types) k.checkParams = (p) => describeProblems(parseParams(types, p).problems);
+        const local = appOnlyParams(types);
+        if (local.length) k.appOnly = local;
+        // A link drops app-only params once read, so a value of one it can't read doesn't break the link.
+        if (types)
+          k.checkParams = (p) =>
+            describeProblems(
+              parseParams(types, p).problems.filter((pr) => !local.includes(pr.param)),
+            );
         value[d.kind] = k;
       }
       cached = { version, value };
