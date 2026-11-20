@@ -36,6 +36,7 @@ export type {
   ParamTypes,
   ParamsOf,
   OptionalParam,
+  ParamOptions,
   AppOnlyParam,
   OneOf,
   ParamProblem,

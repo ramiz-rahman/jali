@@ -133,7 +133,7 @@ What a kind's refs hold, in its `params`: `Number`, `String`, `Boolean`, `oneOf(
 *function*, from `@jali/core, @jali/react`
 
 ```ts
-optional<T extends ParamType>(type: T): OptionalParam<T>
+optional<T extends ParamType>(type: T, options?: ParamOptions): OptionalParam<T>
 ```
 
 A param a ref may leave out. The kind's code sees it as optional (`tab?: string`), and its ref maker takes it or not. An optional param given as `undefined` is left out of the ref, as a link would leave it.
@@ -141,6 +141,8 @@ A param a ref may leave out. The kind's code sees it as optional (`tab?: string`
 **Parameters**
 
 - **`type`** (`ParamType`, required): How to read it when it is there: `Number`, `String`, `Boolean`, `oneOf(...)` or a function.
+
+- **`options.link`** (`false`): The param is the pane's own state for this page load, and stays out of the address: `runId: optional(String, { link: false })`. Jali leaves it out of every link it writes (the address bar, Copy link, Back and Forward). Unlike `appOnly`, it is part of what the pane shows (`chart({ runId: "a" })` and `chart({ runId: "b" })` are two objects), and a link that does carry it still sets it. Back and Forward keep it on a pane that is still open; after a reload the pane has none, unless the preset the address names gave it one. Use it for a value that means nothing in another tab: a run id, a key into memory.
 
 **Returns** `OptionalParam<T>`:
 
@@ -152,7 +154,7 @@ A param a ref may leave out. The kind's code sees it as optional (`tab?: string`
 appOnly<T extends ParamType>(type: T): AppOnlyParam<T>
 ```
 
-A param only your app sets, never a link: `params: { sql: String, autorun: appOnly(Boolean) }`. Use it for anything a link must not be able to turn on, such as a query that runs as it opens. Jali leaves it out of every address it writes (the address bar, Copy link, Back and Forward) and drops it from every link it reads, even when the link holds a value it can't read. It is optional, since a pane opened from a link has none, and it is not part of what the pane shows: `query({ sql, autorun: true })` and `query({ sql })` are the same object.
+A param only your app sets, never a link: `params: { sql: String, autorun: appOnly(Boolean) }`. Use it for anything a link must not be able to turn on, such as a query that runs as it opens. Jali leaves it out of every address it writes (the address bar, Copy link, Back and Forward) and drops it from every link it reads, even when the link holds a value it can't read. What the app gave stays where the app gave it: Back and Forward keep it on a pane that is still open, and a reload keeps what the preset the address names gave a pane, when the pane is exactly the preset's (the same id, showing the same object). A link that changes the pane gets none. It is optional, since a pane opened from a link has none, and it is not part of what the pane shows: `query({ sql, autorun: true })` and `query({ sql })` are the same object.
 
 **Parameters**
 

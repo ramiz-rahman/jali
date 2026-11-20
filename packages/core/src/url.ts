@@ -16,7 +16,7 @@ import type { HistoryMode } from "./state/apply";
 import type { ItemId } from "./profile";
 import { toLayout, type LayoutInput } from "./layout/build";
 import type { UrlState, UrlWriter } from "./state/store";
-import { linkLayout, linkRef } from "./pane-kinds";
+import { readLayout, readRef } from "./pane-kinds";
 import { browserLocation, browserStorage, type LocationPort, type StoragePort } from "./ports";
 import { own as ownOf } from "./own";
 
@@ -229,7 +229,7 @@ export function readSearch(
   const peek = q.get(k.peek);
   // A link never sets a param only the app sets (`appOnly`): every ref read from it is without them.
   const ref = peek ? decodePeek(peek) : null;
-  if (ref && readable(kinds, ref)) view.peek = linkRef(kinds, ref);
+  if (ref && readable(kinds, ref)) view.peek = readRef(kinds, ref);
   // `?app=review` is the old combined lab app's form from before pages had ids (19 Nov 2026).
   if (q.get(k.page) || (legacyKeys(k) && q.get("app") === "review")) {
     const item = q.get(k.item) || undefined;
@@ -240,7 +240,7 @@ export function readSearch(
       if (investigation.length >= OPEN_MAX) break;
       const read = decodePeek(text);
       if (!read || !Object.hasOwn(kinds, read.kind) || !readable(kinds, read)) continue;
-      const r = linkRef(kinds, read);
+      const r = readRef(kinds, read);
       const key = JSON.stringify([
         r.kind,
         Object.entries(r.params).sort(([a], [b]) => (a < b ? -1 : 1)),
@@ -256,7 +256,7 @@ export function readSearch(
   const named = preset ? { preset } : {};
   const decoded = core.decode(code, kinds);
   if (!decoded) return { broken: code, view: {}, ...named };
-  const layout = linkLayout(kinds, decoded);
+  const layout = readLayout(kinds, decoded);
   const zoom = q.get(k.zoom);
   // Only a pane on screen can be maximised: one the layout hides is left unzoomed.
   if (

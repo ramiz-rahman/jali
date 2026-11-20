@@ -109,6 +109,9 @@ export interface PaneKind {
   checkParams?(params: ObjectRef["params"]): string | undefined;
   /** Params only the app sets (`appOnly`): links never carry them. */
   appOnly?: readonly string[];
+  /** Params kept out of the address (`optional(type, { link: false })`): links Jali writes leave them out, a link that
+   *  carries one still sets it. */
+  unlinked?: readonly string[];
 }
 export type KindRegistry = Record<string, PaneKind>;
 export interface Rect {

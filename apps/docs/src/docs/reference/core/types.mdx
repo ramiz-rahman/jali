@@ -305,9 +305,15 @@ How to read one param back: `Number`, `String`, `Boolean`, <Ref to="oneOf" page=
 
 <Entry name="ParamTypes" kind="type" from="@jali/core" signature={`type ParamTypes = Record<string, ParamType | OptionalParam>`} compact>A kind's `params`.</Entry>
 
-<Entry name="OptionalParam" kind="type" from="@jali/core" signature={`interface OptionalParam<T extends ParamType = ParamType> { readonly optional: T }`} compact>
+<Entry name="OptionalParam" kind="type" from="@jali/core" signature={`interface OptionalParam<T extends ParamType = ParamType> { readonly optional: T; readonly link?: false }`} compact>
 
-A param a ref may leave out, made by <Ref to="optional" page="/reference/core" />.
+A param a ref may leave out, made by <Ref to="optional" page="/reference/core" />. `link: false` when it stays out of the address.
+
+</Entry>
+
+<Entry name="ParamOptions" kind="type" from="@jali/core" signature={`interface ParamOptions { link?: false }`} compact>
+
+How an optional param travels, the second argument of <Ref to="optional" page="/reference/core" />. `link: false` keeps it out of the address while it stays part of what the pane shows.
 
 </Entry>
 

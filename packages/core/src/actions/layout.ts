@@ -1,6 +1,6 @@
 import * as core from "../layout";
 import type { Layout, NodeId, ViewState } from "../layout/types";
-import type { PaneActivity } from "../pane-kinds";
+import { keepOwnParams, type PaneActivity } from "../pane-kinds";
 import { presetById } from "../profile";
 import { refuse, type Outcome, type RefusalStep, type Snapshot } from "../state/apply";
 import { notAllowed } from "./allow";
@@ -61,10 +61,16 @@ function readLayout(input: LayoutInput, env: Snapshot["env"]): Layout | undefine
  *  `presetId`: the preset the link says the layout came from (a known one); without it the preset stays as it is. */
 export function arrive(
   { s, ctx, env }: Snapshot,
-  layout: Layout,
+  from: Layout,
   arrived: Partial<ViewState>,
   presetId?: string,
 ): Outcome {
+  // What the address doesn't hold (`appOnly` and `link: false` params) stays on a pane that is still open, or comes
+  // from the preset the link names.
+  const layout = keepOwnParams(env.kinds.registry(), from, [
+    s.layout,
+    presetId ? presetById(env, presetId)?.build() : undefined,
+  ]);
   const panes = core.tree.panes(layout.root);
   const ids = new Set(panes.map((p) => p.id));
   const history = s.view.focusHistory.filter((id) => ids.has(id));

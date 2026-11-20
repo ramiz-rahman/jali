@@ -506,10 +506,20 @@ A kind's `params`.
 *type*, from `@jali/core`
 
 ```ts
-interface OptionalParam<T extends ParamType = ParamType> { readonly optional: T }
+interface OptionalParam<T extends ParamType = ParamType> { readonly optional: T; readonly link?: false }
 ```
 
-A param a ref may leave out, made by [`optional`](../core.md#optional).
+A param a ref may leave out, made by [`optional`](../core.md#optional). `link: false` when it stays out of the address.
+
+### ParamOptions
+
+*type*, from `@jali/core`
+
+```ts
+interface ParamOptions { link?: false }
+```
+
+How an optional param travels, the second argument of [`optional`](../core.md#optional). `link: false` keeps it out of the address while it stays part of what the pane shows.
 
 ### AppOnlyParam
 

@@ -22,14 +22,31 @@ export type ParamType = (value: ParamValue) => ParamValue | undefined;
 /** A param a ref may leave out: `optional(String)`. The kind's code sees it as `T | undefined`. */
 export interface OptionalParam<T extends ParamType = ParamType> {
   readonly optional: T;
+  /** `false`: the pane's own, kept out of the address (`optional(String, { link: false })`). */
+  readonly link?: false;
+}
+
+/** How an optional param travels: `optional(String, { link: false })`. */
+export interface ParamOptions {
+  /**
+   * `false`: the param is the pane's own state for this page load, and stays out of the address. Jali leaves it out
+   * of every link it writes (the address, Copy link, Back and Forward), as for `appOnly`; unlike `appOnly`, it is part
+   * of what the pane shows (two refs that differ in it are two objects), and a link that does carry it still sets it.
+   * Back and Forward keep it on a pane that is still open: a run id, a draft's key, a value that means nothing in
+   * another tab. Default: the param is in the link.
+   */
+  link?: false;
 }
 
 /** A kind's `params`: how each is read, and whether a ref may leave it out. */
 export type ParamTypes = Record<string, ParamType | OptionalParam>;
 
-/** A param a ref may leave out: `params: { id: Number, tab: optional(String) }` gives `{ id: number; tab?: string }`. */
-export function optional<T extends ParamType>(type: T): OptionalParam<T> {
-  return { optional: type };
+/**
+ * A param a ref may leave out: `params: { id: Number, tab: optional(String) }` gives `{ id: number; tab?: string }`.
+ * `{ link: false }` keeps it out of the address (`ParamOptions`).
+ */
+export function optional<T extends ParamType>(type: T, options?: ParamOptions): OptionalParam<T> {
+  return options?.link === false ? { optional: type, link: false } : { optional: type };
 }
 
 /** A param only the app sets: `appOnly(Boolean)`. Links never carry it (see `appOnly`). */
@@ -54,6 +71,15 @@ const isAppOnly = (t: ParamType | OptionalParam): boolean =>
 export const appOnlyParams = (types: ParamTypes | undefined): string[] =>
   types ? Object.keys(types).filter((k) => isAppOnly(types[k]!)) : [];
 
+/** The params of `types` kept out of the address but not out of what the pane shows (`link: false`). */
+export const unlinkedParams = (types: ParamTypes | undefined): string[] =>
+  types
+    ? Object.keys(types).filter((k) => {
+        const t = types[k]!;
+        return typeof t !== "function" && t.link === false && !isAppOnly(t);
+      })
+    : [];
+
 /** `params` without those named in `drop`; the same object when it has none of them. */
 function without(params: Params, drop: readonly string[] | undefined): Params {
   if (!drop?.some((k) => Object.hasOwn(params, k))) return params;
@@ -62,21 +88,88 @@ function without(params: Params, drop: readonly string[] | undefined): Params {
   return out;
 }
 
-/** `ref` as a link carries it: without its kind's app-only params. The same ref when it has none. */
-export function linkRef(kinds: KindRegistry, ref: ObjectRef): ObjectRef {
-  const drop = Object.hasOwn(kinds, ref.kind) ? kinds[ref.kind]!.appOnly : undefined;
-  const params = without(ref.params, drop);
+/** `ref` without the params `drop` names for its kind; the same ref when it has none. */
+function dropParams(
+  kinds: KindRegistry,
+  ref: ObjectRef,
+  drop: (k: PaneKind) => readonly string[] | undefined,
+): ObjectRef {
+  const kind = Object.hasOwn(kinds, ref.kind) ? kinds[ref.kind]! : undefined;
+  const names = kind ? drop(kind) : undefined;
+  const params = without(ref.params, names);
   return params === ref.params ? ref : { ...ref, params };
 }
 
-/** `layout` as a link carries it: every pane's ref without app-only params. The same layout when none has any. */
-export function linkLayout(kinds: KindRegistry, layout: Layout): Layout {
+/** Every pane's ref in `layout` through `fn`; the same layout when none changes. */
+function mapRefs(layout: Layout, fn: (ref: ObjectRef, id: string) => ObjectRef): Layout {
   const root = map(layout.root, (n) => {
     if (n.type !== "pane") return n;
-    const ref = linkRef(kinds, n.ref);
+    const ref = fn(n.ref, n.id);
     return ref === n.ref ? n : { ...n, ref };
   });
   return root === layout.root ? layout : { ...layout, root };
+}
+
+const written = (k: PaneKind) => (k.unlinked ? [...(k.appOnly ?? []), ...k.unlinked] : k.appOnly);
+
+/** `ref` as a link carries it: without its kind's app-only and `link: false` params. The same ref when it has none. */
+export function linkRef(kinds: KindRegistry, ref: ObjectRef): ObjectRef {
+  return dropParams(kinds, ref, written);
+}
+
+/** `layout` as a link carries it: every pane's ref as `linkRef` gives it. The same layout when none has any. */
+export function linkLayout(kinds: KindRegistry, layout: Layout): Layout {
+  return mapRefs(layout, (ref) => linkRef(kinds, ref));
+}
+
+/** `ref` as read from a link: without app-only params, which a link never sets. A `link: false` param it carries is
+ *  kept. */
+export function readRef(kinds: KindRegistry, ref: ObjectRef): ObjectRef {
+  return dropParams(kinds, ref, (k) => k.appOnly);
+}
+
+/** `layout` as read from a link: every pane's ref as `readRef` gives it. */
+export function readLayout(kinds: KindRegistry, layout: Layout): Layout {
+  return mapRefs(layout, (ref) => readRef(kinds, ref));
+}
+
+/**
+ * `layout` from the address, with the params the address doesn't hold (`appOnly` and `link: false`) put back from the
+ * app's own layouts: a pane that has none of them takes them from the first of `from` with a pane of the same id and
+ * kind showing the same object apart from them. `from` is the layout on screen (so Back and Forward keep them on a
+ * pane that is still open), then the preset the link names (so a reload keeps what the preset gave its panes). Only
+ * the app's layouts are read, and only an exact match takes anything, so a link still can't set an app-only param.
+ */
+export function keepOwnParams(
+  kinds: KindRegistry,
+  layout: Layout,
+  from: readonly (Layout | undefined)[],
+): Layout {
+  const owners = from.map((l) => {
+    const refs = new Map<string, ObjectRef>();
+    if (l)
+      map(l.root, (n) => {
+        if (n.type === "pane") refs.set(n.id, n.ref);
+        return n;
+      });
+    return refs;
+  });
+  return mapRefs(layout, (ref, id) => {
+    const kind = Object.hasOwn(kinds, ref.kind) ? kinds[ref.kind]! : undefined;
+    const names = kind && written(kind);
+    if (!names?.length || names.some((k) => Object.hasOwn(ref.params, k))) return ref;
+    for (const refs of owners) {
+      const before = refs.get(id);
+      if (!before || before.kind !== ref.kind) continue;
+      if (asText(without(before.params, names)) !== asText(ref.params)) continue;
+      const kept = names.filter((k) => Object.hasOwn(before.params, k));
+      if (!kept.length) return ref;
+      const params = { ...ref.params };
+      for (const k of kept) params[k] = before.params[k]!;
+      return { ...ref, params };
+    }
+    return ref;
+  });
 }
 
 /** `view` as a link carries it: its peek without app-only params. */
@@ -457,6 +550,8 @@ export function createPaneKinds<D extends PaneKindBase = PaneKindBase>(
         const types = d.params;
         const local = appOnlyParams(types);
         if (local.length) k.appOnly = local;
+        const unlinked = unlinkedParams(types);
+        if (unlinked.length) k.unlinked = unlinked;
         // A link drops app-only params once read, so a value of one it can't read doesn't break the link.
         if (types)
           k.checkParams = (p) =>
