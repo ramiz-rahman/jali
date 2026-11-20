@@ -264,7 +264,7 @@ test("a layout's own selection keeps the map framed on the day; a place the pers
   expect(await stopPinsInView(page)).toBe(7);
   // Picking a hotel across town brings it into view.
   await pane(page, "explore")
-    .getByRole("option", { name: /Ari Garden Loft/ })
+    .getByRole("button", { name: /^Ari Garden Loft/ })
     .click();
   await expect
     .poll(() =>
@@ -353,8 +353,8 @@ test("a layout switches, and a reload keeps it and the place compared from the a
   page,
 }) => {
   await layout(page, "Stay").click();
-  const results = page.getByRole("listbox", { name: "Places" });
-  await results.getByRole("option", { name: /Sukhumvit Bamboo Rooms/ }).click();
+  const results = page.getByRole("list", { name: "Places" });
+  await results.getByRole("button", { name: /^Sukhumvit Bamboo Rooms/ }).click();
   await expect(pane(page, "place").locator(".place-name")).toHaveText("Sukhumvit Bamboo Rooms");
   // The kept hotel stays for comparing.
   await expect(pane(page, "place-kept").locator(".place-name")).toHaveText("Riverside Teak House");

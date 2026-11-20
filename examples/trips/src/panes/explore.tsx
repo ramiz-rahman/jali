@@ -102,14 +102,7 @@ function dayCentre(plan: Plan, n: number): { lat: number; lng: number; city: Cit
   };
 }
 
-function ExplorePane({
-  params,
-  node,
-  paused,
-  focused,
-  peek,
-  inPeek,
-}: PaneProps<typeof exploreParams>) {
+function ExplorePane({ params, node, paused, peek, inPeek }: PaneProps<typeof exploreParams>) {
   const jali = useJali();
   const services = useServices();
   const plan = usePlan();
@@ -129,7 +122,7 @@ function ExplorePane({
     { parse: readFilters },
   );
   const [cursor, setCursor] = usePaneState<string | null>("cursor", null, { parse: idOrNull });
-  const listRef = useRef<HTMLDivElement>(null);
+  const listRef = useRef<HTMLUListElement>(null);
   const set = (patch: Partial<Filters>) => setFilters((x) => ({ ...x, ...patch }));
 
   // The day the map shows, for "near the day's centre".
@@ -171,13 +164,20 @@ function ExplorePane({
   }, [ids, paused, node.id, services, inPeek]);
 
   const at = rows.findIndex((r) => r.p.id === cursor);
-  const cur = at >= 0 ? rows[at]!.p : null;
+  const cur = rows[at]?.p ?? null;
   const moveTo = (id: string) => {
     setCursor(id);
     selectPlace(jali, id, { from: node.id });
   };
+  // The cursor's row in view, and focused when the keyboard is in the list (it moved there by a key).
   useEffect(() => {
-    listRef.current?.querySelector(`[data-row="${cursor}"]`)?.scrollIntoView({ block: "nearest" });
+    if (cursor === null) return;
+    const row = listRef.current?.querySelector<HTMLElement>(
+      `[data-row="${CSS.escape(cursor)}"] .result-main`,
+    );
+    if (!row) return;
+    row.scrollIntoView({ block: "nearest" });
+    if (listRef.current?.contains(document.activeElement)) row.focus();
   }, [cursor]);
 
   const add = (p: Place) =>
@@ -185,17 +185,21 @@ function ExplorePane({
       ? stayAt(services, p.id)
       : chooseDay(jali, services, `Add ${p.name} to…`, (n) => addToDay(services, p.id, n));
 
-  const onKeyDown = (e: KeyboardEvent) => {
-    if (e.metaKey || e.ctrlKey || e.altKey || !rows.length) return;
+  /** The keys on a result: move between results, peek, open, add. Anything else goes on to the workspace. */
+  const onKeyDown = (e: KeyboardEvent, i: number, p: Place) => {
+    if (e.metaKey || e.ctrlKey || e.altKey) return;
     const k = e.key;
-    const go = (i: number) => moveTo(rows[Math.max(0, Math.min(rows.length - 1, i))]!.p.id);
-    if (k === "ArrowDown" || k === "j") go(at + 1);
-    else if (k === "ArrowUp" || k === "k") go(at - 1);
+    const go = (to: number) => {
+      const row = rows[Math.max(0, Math.min(rows.length - 1, to))];
+      if (row) moveTo(row.p.id);
+    };
+    if (k === "ArrowDown" || k === "j") go(i + 1);
+    else if (k === "ArrowUp" || k === "k") go(i - 1);
     else if (k === "Home") go(0);
     else if (k === "End") go(rows.length - 1);
-    else if (k === " " && cur) peek(place({ id: cur.id }));
-    else if (k === "Enter" && cur) selectPlace(jali, cur.id, { from: node.id, open: true });
-    else if ((k === "a" || k === "A") && cur) add(cur);
+    else if (k === " ") peek(place({ id: p.id }));
+    else if (k === "Enter") selectPlace(jali, p.id, { from: node.id, open: true });
+    else if (k === "a" || k === "A") add(p);
     else return;
     e.preventDefault();
   };
@@ -258,11 +262,12 @@ function ExplorePane({
             placeholder="Name, area or kind"
             onChange={(e) => set({ text: e.target.value })}
             onKeyDown={(e) => {
-              if (e.key === "ArrowDown" && rows.length) {
-                e.preventDefault();
-                moveTo(rows[0]!.p.id);
-                listRef.current?.focus();
-              }
+              // Down from the field to the first result (focusing it moves the cursor there).
+              if (e.key !== "ArrowDown") return;
+              const first = listRef.current?.querySelector<HTMLElement>(".result-main");
+              if (!first) return;
+              e.preventDefault();
+              first.focus();
             }}
           />
         </label>
@@ -332,86 +337,94 @@ function ExplorePane({
         </p>
       </div>
       {rows.length ? (
-        <div
+        // A list of results, each a button with the add button beside it, never inside it: one Tab stop for the
+        // list (the cursor's row), the arrows and J/K between rows, and A to add (the + is for the pointer).
+        <ul
           ref={listRef}
           className="results"
-          role="listbox"
           aria-label="Places"
-          tabIndex={0}
-          aria-activedescendant={cur ? `${node.id}-${cur.id}` : undefined}
-          onKeyDown={onKeyDown}
+          aria-describedby={`${node.id}-hint`}
         >
-          {rows.map(({ p, km }) => {
+          {rows.map(({ p, km }, i) => {
             const Icon = CATEGORY_ICON[p.category];
             const on = dayWith(plan, p.id);
+            const yours = isHotel(plan, p.id);
             const walk =
               km !== null && km <= WALK_UP_TO_KM[p.city] * 1.5
                 ? travel(km, "walk", p.city).minutes
                 : null;
             return (
-              <div
+              <li
                 key={p.id}
-                id={`${node.id}-${p.id}`}
                 data-row={p.id}
-                role="option"
-                aria-selected={p.id === cursor}
-                data-active={(p.id === cursor && focused) || undefined}
+                aria-current={p.id === cursor ? "true" : undefined}
                 data-current={p.id === current || undefined}
                 className="result"
-                onClick={() =>
-                  p.id === cursor
-                    ? selectPlace(jali, p.id, { from: node.id, open: true })
-                    : moveTo(p.id)
-                }
               >
-                <span className="result-photo">
-                  <Photo id={p.id} />
-                  <span className="result-cat" data-category={p.category}>
-                    <Icon size={11} weight="bold" aria-hidden />
+                <button
+                  type="button"
+                  className="result-main"
+                  tabIndex={i === Math.max(0, at) ? 0 : -1}
+                  onClick={() =>
+                    p.id === cursor
+                      ? selectPlace(jali, p.id, { from: node.id, open: true })
+                      : moveTo(p.id)
+                  }
+                  onFocus={() => p.id !== cursor && moveTo(p.id)}
+                  onKeyDown={(e) => onKeyDown(e, i, p)}
+                >
+                  <span className="result-photo">
+                    <Photo id={p.id} />
+                    <span className="result-cat" data-category={p.category}>
+                      <Icon size={11} weight="bold" aria-hidden />
+                    </span>
                   </span>
-                </span>
-                <span className="result-text">
-                  <span className="result-name">{p.name}</span>
-                  <span className="result-meta">
-                    {isHotel(plan, p.id) ? <b className="result-yours">Your hotel, </b> : null}
-                    {p.kind}, {p.area}
-                    {km !== null ? `, ${walk !== null ? `${walk} min walk` : f.distance(km)}` : ""}
+                  <span className="result-text">
+                    <span className="result-name">{p.name}</span>
+                    <span className="result-meta">
+                      {yours ? <b className="result-yours">Your hotel, </b> : null}
+                      {p.kind}, {p.area}
+                      {km !== null
+                        ? `, ${walk !== null ? `${walk} min walk` : f.distance(km)}`
+                        : ""}
+                    </span>
                   </span>
-                </span>
-                <span className="result-end">
-                  {on ? <DayMark n={on.n} size="sm" /> : null}
-                  <span className="result-price">
-                    <span className="num">{f.price(p.price)}</span>
-                    {p.category === "stay" ? <span className="result-per">a night</span> : null}
+                  <span className="result-end">
+                    {on ? <DayMark n={on.n} size="sm" /> : null}
+                    <span className="result-price">
+                      <span className="num">{f.price(p.price)}</span>
+                      {p.category === "stay" ? <span className="result-per">a night</span> : null}
+                    </span>
                   </span>
-                  <button
-                    type="button"
-                    className="icon-btn result-add"
-                    tabIndex={-1}
-                    aria-label={
-                      p.category === "stay" ? `Stay at ${p.name}` : `Add ${p.name} to a day`
-                    }
-                    title={p.category === "stay" ? "Stay here" : "Add to a day (A)"}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      add(p);
-                    }}
-                    disabled={isHotel(plan, p.id)}
-                  >
-                    {isHotel(plan, p.id) ? (
-                      <CheckIcon size={16} weight="bold" aria-hidden />
-                    ) : (
-                      <PlusIcon size={16} weight="bold" aria-hidden />
-                    )}
-                  </button>
-                </span>
-              </div>
+                </button>
+                <button
+                  type="button"
+                  className="icon-btn result-add"
+                  tabIndex={-1}
+                  aria-label={
+                    p.category === "stay" ? `Stay at ${p.name}` : `Add ${p.name} to a day`
+                  }
+                  title={p.category === "stay" ? "Stay here (A)" : "Add to a day (A)"}
+                  onClick={() => add(p)}
+                  disabled={yours}
+                >
+                  {yours ? (
+                    <CheckIcon size={16} weight="bold" aria-hidden />
+                  ) : (
+                    <PlusIcon size={16} weight="bold" aria-hidden />
+                  )}
+                </button>
+              </li>
             );
           })}
-        </div>
+        </ul>
       ) : (
         <Empty title="Nothing matches">Try a wider distance, any price, or another category.</Empty>
       )}
+      <p id={`${node.id}-hint`} className="sr-only">
+        Up and down arrows move between places. A adds the place to a day, or stays there. Enter
+        opens it. Space peeks.
+      </p>
     </div>
   );
 }
