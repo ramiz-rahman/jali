@@ -12,11 +12,13 @@ import { keyHint } from "@jali/core";
 import {
   definePane,
   useCommands,
+  useJaliState,
   usePaneState,
   useTitle,
   useUnsaved,
   type PaneProps,
 } from "@jali/react";
+import { toast } from "sonner";
 import { cue } from "../actions";
 import { useFrame, useTransport } from "../audio/react";
 import { useSessionView, type SessionView } from "../edits";
@@ -46,6 +48,7 @@ function Clip(props: PaneProps<typeof clipParams>) {
 function ClipBody({
   paused,
   inPeek,
+  node,
   view,
   seg,
 }: PaneProps<typeof clipParams> & { view: SessionView; seg: SegmentData }) {
@@ -68,6 +71,12 @@ function ClipBody({
 
   useTitle(`${Word} ${n} · ${view.speakerName(speaker)}`);
   useUnsaved(dirty && `an unsaved note on ${word} ${n}`);
+  // Jali keeps a follower where it is while it has unsaved work, and its header still reads Following
+  // (FINDINGS.md, 1). So the pane says it is held, and what lets it go.
+  const listed = useJaliState((s) =>
+    node.linkedTo ? s.selection[node.linkedTo]?.ref.params.segment : undefined,
+  );
+  const held = dirty && node.follows && typeof listed === "string" && listed !== seg.id;
 
   const play = () => {
     if (playing && engine.position() >= seg.start && engine.position() < seg.end)
@@ -109,6 +118,11 @@ function ClipBody({
         </span>
       </header>
       {!inTransport && !inPeek ? <NotInTransport session={session.id} /> : null}
+      {held ? (
+        <div className="not-live" role="status">
+          <span>Held here by its unsaved note. Save or revert the note to follow again.</span>
+        </div>
+      ) : null}
       <MiniWave seg={seg} view={view} paused={paused} />
       {/* The keys and the speaker/track LCD on one row when there is room; stacked when narrow. */}
       <div className="clip-row">
@@ -149,7 +163,16 @@ function ClipBody({
               <select
                 aria-label={`Who says this ${word}`}
                 value={speaker}
-                onChange={(e) => edits.setSegmentSpeaker(session.id, seg.id, e.target.value)}
+                onChange={(e) => {
+                  const to = e.target.value;
+                  edits.setSegmentSpeaker(session.id, seg.id, to);
+                  toast(`${Word} ${n} is now ${view.speakerName(to)}'s`, {
+                    action: {
+                      label: "Undo",
+                      onClick: () => edits.setSegmentSpeaker(session.id, seg.id, speaker),
+                    },
+                  });
+                }}
               >
                 {session.speakers.map((p) => (
                   <option key={p.id} value={p.id}>

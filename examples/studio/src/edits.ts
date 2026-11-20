@@ -63,6 +63,10 @@ export type Edits = Store<Readonly<Record<string, SessionEdits>>> & {
   addMarker(session: string, time: number, label?: string): MarkerData;
   renameMarker(session: string, id: string, label: string): void;
   removeMarker(session: string, id: string): void;
+  /** Put a removed marker back as it was. */
+  restoreMarker(session: string, marker: MarkerData): void;
+  /** Back to the markers the session came with. */
+  resetMarkers(session: string): void;
   setChannel(session: string, track: string, patch: Partial<Channel>): void;
   setMasterGain(session: string, gain: number): void;
   resetMix(session: string): void;
@@ -120,6 +124,13 @@ export function createEdits(persist = true): Edits {
       })),
     removeMarker: (session, id) =>
       change(session, () => ({ markers: markersOf(session).filter((m) => m.id !== id) })),
+    restoreMarker: (session, marker) =>
+      change(session, () => ({
+        markers: [...markersOf(session).filter((m) => m.id !== marker.id), marker].sort(
+          (a, b) => a.time - b.time,
+        ),
+      })),
+    resetMarkers: (session) => change(session, () => ({ markers: null })),
     setChannel: (session, track, patch) =>
       change(session, (e) => ({
         mix: { ...e.mix, [track]: { ...channelOf(e, track), ...patch } },
@@ -133,7 +144,11 @@ export const channelOf = (e: SessionEdits, track: string): Channel =>
   e.mix[track] ?? DEFAULT_CHANNEL[track] ?? { gain: 0, pan: 0, mute: false, solo: false };
 
 /** Whether a track is heard: not muted, and soloed if anything is (among the session's `tracks`). */
-export function audible(e: SessionEdits, track: string, tracks: readonly { id: string }[]): boolean {
+export function audible(
+  e: SessionEdits,
+  track: string,
+  tracks: readonly { id: string }[],
+): boolean {
   const ch = channelOf(e, track);
   const anySolo = tracks.some((t) => channelOf(e, t.id).solo);
   return !ch.mute && (!anySolo || ch.solo);

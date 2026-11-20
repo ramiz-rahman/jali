@@ -118,10 +118,17 @@
     color: var(--legend);
     min-width: 0;
   }
-  .lib-meta > span:last-child {
+  .lib-meta > span {
     white-space: nowrap;
+  }
+  .lib-meta > span:last-child {
     overflow: hidden;
     text-overflow: ellipsis;
+  }
+  /* While it plays, the printed word takes the place of the track count, so the cartridge keeps its height and
+     its licence stays in full. */
+  .lib-row[data-live] .lib-tracks {
+    display: none;
   }
   .dot {
     width: 2px;

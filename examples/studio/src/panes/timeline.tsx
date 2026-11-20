@@ -96,17 +96,20 @@ function TimelineBody({ paused, view }: PaneProps<typeof timelineParams> & { vie
       // row below them.
       g.font = `500 11px ${getComputedStyle(canvas.current!).getPropertyValue("--font-readout")}`;
       g.textBaseline = "middle";
-      const every = width / session.duration < 9 ? 20 : 10;
+      // A timecode needs about 52px (its five characters and a gap): the step between labels is the smallest
+      // round number of seconds that gives it that.
+      const perSec = width / session.duration;
+      const every = [5, 10, 20, 30, 60, 120, 300].find((s) => s * perSec >= 52) ?? 600;
       const perSecond = width / session.duration >= 6;
       for (let t = 0; t <= session.duration; t += 1) {
         const major = t % every === 0;
-        const mid = t % 5 === 0;
+        const mid = t % (every >= 60 ? 10 : 5) === 0;
         if (!major && !mid && !perSecond) continue;
         g.fillStyle = major ? c.lineStrong : c.line;
         const top = major ? 2 : mid ? RULER - 8 : RULER - 4;
         g.fillRect(Math.round(x(t)), top, 1, major ? 12 : RULER - top);
         if (major) g.fillRect(Math.round(x(t)), RULER - 8, 1, 8);
-        if (major && x(t) < width - 34) {
+        if (major && x(t) < width - 40) {
           g.fillStyle = c.subtle;
           g.fillText(clock(t), Math.round(x(t)) + 4, 8);
         }

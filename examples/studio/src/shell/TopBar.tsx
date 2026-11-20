@@ -258,7 +258,7 @@ function Transport() {
                 <span className="pd-title">{session.title}</span>
               ) : (
                 <span className="pd-title pd-alert">
-                  {t.status === "loading" ? "loading…" : "no audio"}
+                  {t.status === "loading" ? "loading…" : "audio didn't load"}
                 </span>
               )}
               {/* The mission clock where the session has one (Apollo's GET), else where it came from. */}
@@ -313,7 +313,7 @@ function Transport() {
             },
             { className: "tp-stop", title: "Stop, and go back to the start" },
           )}
-          {key("Fwd: forward 5 seconds", "fwd", "forward", () => engine.skip(5))}
+          {key("Forward 5 seconds", "fwd", "forward", () => engine.skip(5))}
           {key("Loop", "loop", "loop", () => runCommand(jali, "studio.loop"), {
             className: "tp-loop",
             latch: true,

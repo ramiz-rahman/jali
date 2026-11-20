@@ -6,6 +6,7 @@ import { useEffect, useRef, useState, type KeyboardEvent } from "react";
 import { BookmarkSimpleIcon, PencilSimpleIcon, PlusIcon, XIcon } from "@phosphor-icons/react";
 import { keyHint } from "@jali/core";
 import { definePane, useCommands, usePaneState, type PaneProps } from "@jali/react";
+import { toast } from "sonner";
 import { cue } from "../actions";
 import { usePosition, useTransport } from "../audio/react";
 import { useSessionView } from "../edits";
@@ -46,10 +47,17 @@ function Markers({ params, paused, node, focused, openHere }: PaneProps<typeof m
     setRenaming(m.id);
   };
   const remove = (id: string) => {
+    const gone = markers.find((m) => m.id === id);
     const next = markers[at + 1] ?? markers[at - 1];
     edits.removeMarker(params.session, id);
     if (id === cursor) setCursor(next?.id ?? null);
+    // A delete is one key: it can be taken back.
+    if (gone)
+      toast(`Deleted “${gone.label}”`, {
+        action: { label: "Undo", onClick: () => edits.restoreMarker(params.session, gone) },
+      });
   };
+  const changed = view?.edits.markers != null;
 
   const onKeyDown = (e: KeyboardEvent) => {
     if ((e.target as HTMLElement).closest("input")) return;
@@ -87,6 +95,12 @@ function Markers({ params, paused, node, focused, openHere }: PaneProps<typeof m
       keys: keyHint("Delete"),
       disabled: current ? false : "Nothing selected",
       run: () => current && remove(current.id),
+    },
+    {
+      id: "restore",
+      title: "Restore the session's own markers",
+      disabled: changed ? false : "They are as the session came",
+      run: () => edits.resetMarkers(params.session),
     },
   ]);
 

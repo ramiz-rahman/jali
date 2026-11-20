@@ -40,15 +40,17 @@ export function trackName(
   session?: SessionData,
 ): string {
   if (track.speaker) return speakerName(track.speaker);
+  // A mix of stems is named for what it is (Drums, Vocal 1), in every pane, not for who is heard on it.
+  if (track.stems?.length) return track.label;
   if (session) {
     const heard = [
       ...new Set(session.segments.filter((s) => s.track === track.id).map((s) => s.speaker)),
     ];
     const people = heard.map((id) => session.speakers.find((p) => p.id === id));
-    if (people.length && people.every((p) => p?.code)) return people.map((p) => p!.code).join(" · ");
+    if (people.length && people.every((p) => p?.code))
+      return people.map((p) => p!.code).join(" · ");
     if (people.length) return heard.map(speakerName).join(", ");
   }
-  if (track.stems?.length) return track.label;
   return "no transcript";
 }
 

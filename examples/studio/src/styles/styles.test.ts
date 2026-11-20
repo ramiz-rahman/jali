@@ -48,9 +48,9 @@ describe("the stylesheets use the tokens", () => {
   });
 
   it("corners: one radius, or a circle", () => {
-    expect(offenders((t) => /^border-radius: (?!var\(--corner\);|50%;|0;|1px;)/.test(t))).toEqual(
-      [],
-    );
+    expect(
+      offenders((t) => /^border-radius: (?!var\(--corner\)( !important)?;|50%;|0;|1px;)/.test(t)),
+    ).toEqual([]);
   });
 
   it("motion: every transition uses the travel tokens", () => {

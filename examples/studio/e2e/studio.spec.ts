@@ -333,3 +333,49 @@ test("the landing: callsigns, a loop with no transcript, and the mission clock",
   await page.getByRole("button", { name: "GET" }).click();
   await expect(page.locator(".tr-time").first()).toHaveText("102:42:42");
 });
+
+test("a layout shows the session being worked on, not the one it was left with", async ({
+  page,
+}) => {
+  const list = page.getByRole("listbox", { name: "Sessions" });
+  await list.getByRole("option", { name: /The Light caught by the Stone/ }).click();
+  for (const name of ["Mix", "Review", "Compare"]) {
+    await layout(page, name).click();
+    // Every pane that names a session names this one, and none waits to be loaded.
+    for (const title of await page.locator(".jali-pane-title h2").allTextContents())
+      expect(title).not.toContain("The Eagle has landed");
+    await expect(page.locator(".not-live")).toHaveCount(0);
+  }
+});
+
+test("Home and End in the correction field move the caret, not the transcript", async ({
+  page,
+}) => {
+  const rows = page.locator(".tr-rows");
+  await rows.focus();
+  await page.keyboard.press("j");
+  await page.keyboard.press("e");
+  const field = page.getByRole("textbox", { name: "Correct the segment's text" });
+  await expect(field).toBeFocused();
+  for (const key of ["End", "Home", "PageDown", "End"]) await page.keyboard.press(key);
+  expect(await rows.evaluate((el) => el.scrollTop)).toBe(0);
+  expect(
+    await field.evaluate((el: HTMLTextAreaElement) => el.selectionStart === el.value.length),
+  ).toBe(true);
+});
+
+test("a deleted marker can be taken back, and the session's own restored", async ({ page }) => {
+  await layout(page, "Mix").click();
+  const rows = page.locator(".mk-row");
+  await expect(rows).toHaveCount(5);
+  await rows.first().click();
+  await page.keyboard.press("Delete");
+  await expect(rows).toHaveCount(4);
+  await page.locator("[data-sonner-toast] button", { hasText: "Undo" }).click();
+  await expect(rows).toHaveCount(5);
+  await page.keyboard.press("Delete");
+  await page.keyboard.press("Meta+k");
+  await page.keyboard.type("Restore the session");
+  await page.keyboard.press("Enter");
+  await expect(rows).toHaveCount(5);
+});

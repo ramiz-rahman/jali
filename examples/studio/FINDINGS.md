@@ -235,3 +235,9 @@ With two tabs in a narrow pane (Library and Markers at about 335px), Jali keeps 
 ## An app has nowhere to keep its own preferences
 
 Studio has three device preferences of its own (the header-button treatment, key and dial sounds, the controls at the top or the bottom). Each is a hand-written module: a storage key, a getter and setter, an attribute on `<html>`, and a command in ⌘K. Jali already stores and applies one such setting, the theme, through `changeSettings`. Letting an app add its own entries to that store (typed, remembered with the rest, listed in Settings) would remove the repetition. A convenience, not a blocker.
+
+## Found by the bug hunt (worked round in Studio; Jali's to fix)
+
+- **A layout's followers show what the layout was left with, not what the list has selected.** The wider form of finding 4: pick the song in Edit, switch to Mix, and Mix's timeline, mixer and markers still show the first session, each marked Following. Studio's library now points every follower at the session in the transport on a layout switch (`panes/library.tsx`), with `openHere`, because selecting the same object again does nothing.
+- **A follower held by unsaved work still reads "Following".** Finding 1's visible half: the segment detail with an unsaved note stays where it is while the transcript moves on, and its header key says Following. Studio's detail prints "Held here by its unsaved note" itself. The toggle could say Held, or Jali could say why in the header.
+- **⌘K ranks a command that does not contain the typed word first.** Typing `reset` puts "Layout: Edit" above "Reset layout", so Enter switches layout. And an app cannot replace or hide a built-in command, so Studio's "Reset this layout to its design" (which also forgets the saved copy) sits beside Jali's "Reset layout" and a dimmed "Reset layout to its design".

@@ -342,7 +342,7 @@ for (const dark of [false, true]) {
     await page.setViewportSize({ width: 1440, height: 900 });
     await page.route("**/*.mp3", (r) => r.abort());
     await page.goto("/");
-    await expect(page.locator(".pd-alert")).toHaveText("no audio");
+    await expect(page.locator(".pd-alert")).toHaveText("audio didn't load");
     await page
       .locator(".topbar")
       .screenshot({ path: shot(`state-no-audio${dark ? "-dark" : ""}`) });

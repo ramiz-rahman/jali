@@ -195,8 +195,15 @@ export function createEngine({
       if (!res.ok) throw new Error(`${url}: ${res.status}`);
       return c.decodeAudioData(await res.arrayBuffer());
     };
+    // A failure names the track, so the message can say what did not arrive.
     const buffers = await Promise.all(
-      s.tracks.map(async (t) => [t.id, await decode(t.file)] as const),
+      s.tracks.map(async (t) => {
+        try {
+          return [t.id, await decode(t.file)] as const;
+        } catch {
+          throw new Error(t.label);
+        }
+      }),
     );
     loaded.set(id, new Map(buffers));
   }

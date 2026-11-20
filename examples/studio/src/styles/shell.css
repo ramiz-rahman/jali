@@ -488,7 +488,7 @@
   }
   .toast {
     font-family: var(--jali-font) !important;
-    border-radius: var(--corner);
+    border-radius: var(--corner) !important; /* Sonner sets its own, inline */
   }
   .pd-title.pd-alert {
     color: var(--scr-hot);

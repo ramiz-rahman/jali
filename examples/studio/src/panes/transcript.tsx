@@ -206,6 +206,18 @@ function TranscriptBody({
     rowAt(listRef.current, speaking)?.scrollIntoView({ block: "nearest", behavior: "smooth" });
   }, [speaking, paused, follow, editing]);
 
+  // When the pane comes on screen or a layout opens, the cursor's row is in view. A layout can move the cursor a
+  // moment after it opens (the effect above adopts its follower's segment), so the row is shown for the cursor's
+  // moves during that moment too; after it, only the keys and the playhead move the list.
+  const showUntil = useRef(0);
+  useLayoutEffect(() => {
+    if (!paused) showUntil.current = performance.now() + 500;
+  }, [paused, presetId, session.id]);
+  useLayoutEffect(() => {
+    if (!paused && performance.now() < showUntil.current)
+      rowAt(listRef.current, at)?.scrollIntoView({ block: "nearest" });
+  }, [at, paused, presetId, session.id]);
+
   const playFrom = (seg: SegmentData) => cue(engine, session.id, seg.start, true);
   const openDetail = (seg: SegmentData) => {
     if (seg.id !== cursor) moveTo(seg.id);
@@ -680,6 +692,27 @@ function Editor({
       onClick={(e) => e.stopPropagation()}
       onBlur={onDone}
       onKeyDown={(e) => {
+        // The field grows with its text and never scrolls, so Home, End and the Page keys would go on to scroll
+        // the list round it and throw the row out of view. Here they are the caret's alone: Home and End take it
+        // to the start and the end of the text (Shift extends the selection), and the Page keys do nothing.
+        if (["Home", "End", "PageUp", "PageDown"].includes(e.key) && !e.metaKey && !e.ctrlKey) {
+          e.preventDefault();
+          e.stopPropagation();
+          const el = e.currentTarget;
+          if (e.key === "Home" || e.key === "End") {
+            const to = e.key === "Home" ? 0 : el.value.length;
+            const anchor =
+              el.selectionDirection === "backward" ? el.selectionEnd : el.selectionStart;
+            if (e.shiftKey)
+              el.setSelectionRange(
+                Math.min(anchor, to),
+                Math.max(anchor, to),
+                to < anchor ? "backward" : "forward",
+              );
+            else el.setSelectionRange(to, to);
+          }
+          return;
+        }
         if (e.key === "Escape" || (e.key === "Enter" && (e.metaKey || e.ctrlKey))) {
           e.preventDefault(); // ours: the first Esc leaves the field, not Jali's peek or maximise
           onDone();

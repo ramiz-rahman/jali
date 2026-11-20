@@ -19,7 +19,13 @@ import { useFrame, useTransport } from "../audio/react";
 import { useSessionView } from "../edits";
 import { useServices } from "../services";
 import { catalogueOf } from "../sessions/catalog";
-import { clock, SESSIONS, spokenDuration, type SessionData } from "../sessions/sessions";
+import {
+  clock,
+  sessionById,
+  SESSIONS,
+  spokenDuration,
+  type SessionData,
+} from "../sessions/sessions";
 import {
   drawBars,
   loudest,
@@ -65,6 +71,32 @@ function Library({ node, select, focused, paused, peek }: PaneProps) {
     // Once: later moves come from the person.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // A layout brings its own followers, showing the session they were built or left with. The session being worked
+  // on is the one in the transport, so each follower that shows another is pointed at it. Selecting the same
+  // session again would not do it: Jali follows a selection only when it changes (FINDINGS.md, 4).
+  const presetId = useJaliState((s) => s.presetId);
+  const firstPreset = useRef(presetId);
+  useEffect(() => {
+    if (presetId === firstPreset.current) return;
+    firstPreset.current = presetId;
+    const session = typeof selected === "string" ? selected : cursor;
+    if (!session) return;
+    for (const p of jali.model().panes) {
+      if (p.linkedTo !== node.id || !p.follows) continue;
+      if (typeof p.ref.params.session === "string" && p.ref.params.session !== session)
+        jali.actions.openHere(p.id, { kind: p.ref.kind, params: { session } });
+    }
+    // A layout's kept segment (Compare keeps one beside the one that follows) is a segment of the session the
+    // layout was designed on. On another session it would be a dead pane, so it takes this session's first.
+    const first = sessionById(session)?.segments[0];
+    for (const p of jali.model().panes) {
+      if (p.ref.kind !== "clip" || p.follows || p.ref.params.session === session || !first)
+        continue;
+      jali.actions.openHere(p.id, { kind: "clip", params: { session, segment: first.id } });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [presetId]);
 
   useEffect(() => scrollRowIntoView(listRef.current, at), [at]);
 
@@ -179,8 +211,8 @@ function Row({
       <Thumbnail session={session} paused={paused} inTransport={inTransport} />
       <div className="lib-meta">
         <span className="mono">{clock(session.duration)}</span>
-        <span className="dot" aria-hidden />
-        <span>{tracks}</span>
+        <span className="dot lib-tracks" aria-hidden />
+        <span className="lib-tracks">{tracks}</span>
         <span className="dot" aria-hidden />
         <span className="lib-licence" title={cat.licence.name}>
           {cat.licence.short}
