@@ -165,6 +165,27 @@ Three hooks tell the workspace about the pane they are called in:
 
 The last two are covered in [Unsaved work and pane state](unsaved-work-and-pane-state.md).
 
+## Controls in the header
+
+A control that acts on the whole pane, such as Add, Refresh or a view switch, can sit in the pane's header rather than in a toolbar of your own. Call `useHeaderActions` with the controls, and Jali places them after the title and Following / Kept, before its own buttons:
+
+```tsx
+function Notes() {
+  const add = useAddNote();
+  useCommands([{ id: "add", title: "Add a note", keys: "N", run: add }]);
+  useHeaderActions(
+    <button type="button" className="notes-add" aria-label="Add a note" onClick={add}>
+      <PlusIcon aria-hidden />
+    </button>,
+  );
+  return <NoteList />;
+}
+```
+
+Jali gives the controls no style: they sit in `.jali-pane-tools`, so your CSS sizes them to the header. Pass them on every render, and pass `null` to take them away.
+
+A header has little room, and the title comes first. In a narrow header, Jali's tuck, maximise and full screen buttons move into the pane's menu (⋯) first. If the title is still cut below a few characters, your controls are hidden too, and the menu lists the pane's commands in their place. That is why the example also gives Add as a command: every control should have one, so that a narrow pane, ⌘K and the keyboard all reach it. Keep the header for a few controls that act on the pane. Controls for the selected row belong with the rows.
+
 ## Failures, loading and titles
 
 Each pane's component renders inside its own error boundary and its own Suspense boundary. One pane that throws or waits for data never blanks the others.

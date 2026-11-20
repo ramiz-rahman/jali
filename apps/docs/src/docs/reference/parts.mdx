@@ -27,6 +27,8 @@ One more name is public: the pane header is a size container named `jali-header`
 }
 ```
 
+A narrow header also gives way on its own, before its title (or the shown tab's) gets shorter than a few characters: first tuck, maximise, full screen and pop out move into the pane's menu (⋯), where they keep their names and keys; then the pane's own controls (`useHeaderActions`) are hidden and the menu lists the pane's commands in their place. Close and ⋯ stay. Jali measures the title rather than a width, and takes the buttons back once there is room for both. `data-narrow` on `.jali-pane-header` says how far (`actions`, then `tools`), and is absent at normal widths. The number of buttons a header shows changes from pane to pane, so `.jali-pane-actions` carries `data-count`, ⋯ included, for a theme that draws them as one strip.
+
 Put your rules in a cascade layer after `jali`, as in [Theming](/guides/theming#the-layer-line), so they win without `!important`.
 
 ```css
