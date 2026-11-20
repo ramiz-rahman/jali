@@ -22,7 +22,7 @@ The framework-free part of Jali: the workspace, the layouts it shows, the addres
 npm install @jali/core
 ```
 
-Framework adapters import `@jali/core/adapter`, which exports everything inside the package. Apps need only what is on this page.
+Framework adapters import `@jali/core/adapter`: everything on this page, and, by name, what an adapter needs from inside the package, such as the `DomPort` through which the core finds the adapter's elements. Apps need only what is on this page.
 
 ## The workspace
 
@@ -43,7 +43,7 @@ Its listeners (keys, Back and Forward, theme and saving) start with `jali.start(
 <Param name="presets" type="readonly PresetOptions[]" default="[]">Layouts to start from, in menu order, each `{ id, label, layout }`. Each gets a `layout.preset.<id>` command, titled "Layout: label", and "Reset layout" rebuilds the one in use. `layout` may be a function, to build a fresh one each time. `saved` gives back the layout the person left a preset in.</Param>
 <Param name="preset" type="string" default="the first preset">The preset it opens on when no link says otherwise. An id that is not in `presets` also gives the first.</Param>
 <Param name="launcher" type="PaneKindBase">What Split and "New tab here" open until the person chooses what to show. It closes quietly and its component reads `useLauncher()`. Without one, those commands and the tab strip's "+" are not offered.</Param>
-<Param name="page" type="Page | null" default="null">A curated page this workspace can show, from `definePage`.</Param>
+<Param name="page" type="Page | null" default="null">A curated page this workspace can show, from `definePage`. A page made any other way is refused: `definePage` gives it the code that runs it, which an app without a page never ships.</Param>
 <Param name="name" type="string" default={`"Workspace"`}>The free workspace's name, in command titles such as "Open Workspace".</Param>
 <Param name="url" type="boolean | UrlSyncOptions" default="true in a browser">
 
@@ -101,7 +101,7 @@ The pane comes first, by its id or by the object it shows: `close("order")` and 
 
 ## Pane params
 
-What a kind's refs hold, in its `params`: `Number`, `String`, `Boolean`, `oneOf(...)` or your own function, each required unless wrapped in `optional`. The [Pane kinds guide](/guides/pane-kinds#params) explains what happens to a ref that is missing a required param. Both are also exported from `@jali/react`.
+What a kind's refs hold, in its `params`: `Number`, `String`, `Boolean`, `oneOf(...)` or your own function, each required unless wrapped in `optional` or `appOnly`. The [Pane kinds guide](/guides/pane-kinds#params) explains what happens to a ref that is missing a required param. All three are also exported from `@jali/react`.
 
 <Entry name="optional" kind="function" from="@jali/core, @jali/react" signature={`optional<T extends ParamType>(type: T): OptionalParam<T>`} example={paramsCode} exampleFile="ticket.tsx">
 
@@ -112,6 +112,18 @@ A param a ref may leave out. The kind's code sees it as optional (`tab?: string`
 </Params>
 
 <Returns type="OptionalParam<T>" />
+
+</Entry>
+
+<Entry name="appOnly" kind="function" from="@jali/core, @jali/react" signature={`appOnly<T extends ParamType>(type: T): AppOnlyParam<T>`} compact>
+
+A param only your app sets, never a link: `params: { sql: String, autorun: appOnly(Boolean) }`. Use it for anything a link must not be able to turn on, such as a query that runs as it opens. Jali leaves it out of every address it writes (the address bar, Copy link, Back and Forward) and drops it from every link it reads, even when the link holds a value it can't read. It is optional, since a pane opened from a link has none, and it is not part of what the pane shows: `query({ sql, autorun: true })` and `query({ sql })` are the same object.
+
+<Params>
+<Param name="type" type="ParamType" required>How to read it when your app gives it: `Number`, `String`, `Boolean`, `oneOf(...)` or a function.</Param>
+</Params>
+
+<Returns type="AppOnlyParam<T>" />
 
 </Entry>
 
@@ -390,7 +402,7 @@ A binding string printed for the platform: `keyHint("Alt+Enter")` is "⌥↵" on
 
 <Entry name="en" kind="constant" from="@jali/core" signature={`const en: Messages`} example={messagesCode} exampleFile="messages.ts">
 
-Jali's English messages: every word it shows or says, by area (`announcements`, `toasts`, `commands`, `commandGroups`, `keys`, `palette`, `chooser`, `confirmDiscard`, `settings`, `tabs`, `shelf`, `pane`, `peek`, `workspace`, `page`, `drop`). A workspace made without `messages` uses this object as is (`jali.messages === en`). Spread it to start a translation. A message that needs values is a function, such as `en.announcements.closed(pane)`; a message with a bold part takes `bold` and returns its parts in order.
+Jali's English messages: every word it shows or says, by area (`announcements`, `toasts`, `commands`, `commandGroups`, `keys`, `palette`, `chooser`, `confirmDiscard`, `settings`, `tabs`, `shelf`, `pane`, `peek`, `workspace`, `page`, `drop`). A workspace made without `messages` says these words. A curated page's own words (the `page` area, and the announcements, commands and toast only a page uses) come with the page from `definePage`, so a workspace without a page has none of them in `jali.messages`, and an app that doesn't import `en` doesn't ship them. Spread it to start a translation. A message that needs values is a function, such as `en.announcements.closed(pane)`; a message with a bold part takes `bold` and returns its parts in order.
 
 </Entry>
 

@@ -311,6 +311,12 @@ A param a ref may leave out, made by <Ref to="optional" page="/reference/core" /
 
 </Entry>
 
+<Entry name="AppOnlyParam" kind="type" from="@jali/core" signature={`interface AppOnlyParam<T extends ParamType = ParamType> extends OptionalParam<T> { readonly appOnly: true }`} compact>
+
+A param only your app sets, from <Ref to="appOnly" page="/reference/core" />: optional, and never carried or set by a link.
+
+</Entry>
+
 <Entry name="OneOf" kind="type" from="@jali/core" signature={`type OneOf<V extends string | number> = ((value: ParamValue) => V | undefined) & { readonly values: readonly V[] }`} compact>
 
 A param that is one of a few values, made by <Ref to="oneOf" page="/reference/core" />.
@@ -506,7 +512,7 @@ A workspace, from <Ref to="createJali" page="/reference/core" />. It is frozen: 
 <Member name="Jali.getLayout" signature="getLayout(): Layout">The layout on screen, to save. It is plain JSON.</Member>
 <Member name="Jali.setLayout" signature="setLayout(layout: LayoutInput): ActionResult">Show a layout: anything `createJali({ layout })` takes. It is fitted to the room, focus stays on a pane that is still there, and the address gets a new entry, so Back returns to the layout before. A curated page that is open closes. Refused with `"invalid"` for a pane kind the workspace doesn't have; held with `"unsaved"` when a pane that would go has unsaved work; asks `beforeClose` like a close.</Member>
 <Member name="Jali.keymap" signature="keymap: Keymap">This workspace's keys: `label(id)` for a tooltip, `sequences(id)`, `platform`.</Member>
-<Member name="Jali.messages" signature="messages: Messages">Every word it shows or says: `en` with `createJali({ messages })` over it. Use it for your own UI in the same language.</Member>
+<Member name="Jali.messages" signature="messages: Messages">Every word it shows or says: `en` with `createJali({ messages })` over it. Use it for your own UI in the same language. A curated page's own words (the `page` area, and the announcements, commands and toast only a page uses) are there when the workspace has a page.</Member>
 <Member name="Jali.env" signature="env: Env">Its kinds, presets, page, name and launcher.</Member>
 <Member name="Jali.href" signature="href(): string">The address to share: the URL writer's, else `location.href`, else `""`.</Member>
 <Member name="Jali.onToast" signature="onToast(fn: (t: Toast) => void): () => void">Render toasts. Toasts sent earlier arrive at once.</Member>
@@ -603,9 +609,15 @@ A list's selected item. `inResults: false`: the list's filter no longer shows it
 
 </Entry>
 
-<Entry name="UrlWriter" kind="type" from="@jali/core" signature={`interface UrlWriter { write(state: () => JaliState, mode: HistoryMode): void; href?(): string; cancel?(): void }`} compact>
+<Entry name="UrlWriter" kind="type" from="@jali/core" signature={`interface UrlWriter { write(state: () => UrlState, mode: HistoryMode): void; href?(): string; cancel?(): void }`} compact>
 
-Where a workspace writes its address. Pass one as `url` to write it somewhere of your own. `write` gets a function, so a debounced write reads the latest state. `cancel`, when given, drops a write still waiting: `jali.destroy()` calls it.
+Where a workspace writes its address. Pass one as `url` to write it somewhere of your own. `write` gets a function, so a debounced write reads the latest state: the address's share of it (<Ref to="UrlState" />), as a link carries it, without params only your app sets (`appOnly`). `cancel`, when given, drops a write still waiting: `jali.destroy()` calls it.
+
+</Entry>
+
+<Entry name="UrlState" kind="type" from="@jali/core" signature={`interface UrlState { layout: Layout; view: ViewState; presetId: string | undefined; page: PageState | null }`} compact>
+
+What a <Ref to="UrlWriter" /> reads: the layout on screen, the view (focus, the maximised pane, the peek, where rows that scroll came to rest), the preset the layout came from, and the curated page open, if any. Refs in it are as a link carries them: without `appOnly` params.
 
 </Entry>
 

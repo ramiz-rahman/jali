@@ -511,6 +511,16 @@ interface OptionalParam<T extends ParamType = ParamType> { readonly optional: T 
 
 A param a ref may leave out, made by [`optional`](../core.md#optional).
 
+### AppOnlyParam
+
+*type*, from `@jali/core`
+
+```ts
+interface AppOnlyParam<T extends ParamType = ParamType> extends OptionalParam<T> { readonly appOnly: true }
+```
+
+A param only your app sets, from [`appOnly`](../core.md#appOnly): optional, and never carried or set by a link.
+
 ### OneOf
 
 *type*, from `@jali/core`
@@ -837,7 +847,7 @@ A workspace, from [`createJali`](../core.md#createJali). It is frozen: these mem
 
 - **`Jali.keymap`**, `keymap: Keymap`: This workspace's keys: `label(id)` for a tooltip, `sequences(id)`, `platform`.
 
-- **`Jali.messages`**, `messages: Messages`: Every word it shows or says: `en` with `createJali({ messages })` over it. Use it for your own UI in the same language.
+- **`Jali.messages`**, `messages: Messages`: Every word it shows or says: `en` with `createJali({ messages })` over it. Use it for your own UI in the same language. A curated page's own words (the `page` area, and the announcements, commands and toast only a page uses) are there when the workspace has a page.
 
 - **`Jali.env`**, `env: Env`: Its kinds, presets, page, name and launcher.
 
@@ -992,10 +1002,20 @@ A list's selected item. `inResults: false`: the list's filter no longer shows it
 *type*, from `@jali/core`
 
 ```ts
-interface UrlWriter { write(state: () => JaliState, mode: HistoryMode): void; href?(): string; cancel?(): void }
+interface UrlWriter { write(state: () => UrlState, mode: HistoryMode): void; href?(): string; cancel?(): void }
 ```
 
-Where a workspace writes its address. Pass one as `url` to write it somewhere of your own. `write` gets a function, so a debounced write reads the latest state. `cancel`, when given, drops a write still waiting: `jali.destroy()` calls it.
+Where a workspace writes its address. Pass one as `url` to write it somewhere of your own. `write` gets a function, so a debounced write reads the latest state: the address's share of it (`UrlState`), as a link carries it, without params only your app sets (`appOnly`). `cancel`, when given, drops a write still waiting: `jali.destroy()` calls it.
+
+### UrlState
+
+*type*, from `@jali/core`
+
+```ts
+interface UrlState { layout: Layout; view: ViewState; presetId: string | undefined; page: PageState | null }
+```
+
+What a `UrlWriter` reads: the layout on screen, the view (focus, the maximised pane, the peek, where rows that scroll came to rest), the preset the layout came from, and the curated page open, if any. Refs in it are as a link carries them: without `appOnly` params.
 
 ### JaliModel
 

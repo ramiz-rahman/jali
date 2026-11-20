@@ -4,19 +4,30 @@
  * in packages/core/src/commands/registry.ts and the action it runs. The coverage test checks that every command id
  * has a note here, and no note names a command that is gone.
  */
-import { commandsOf, createPaneKinds, spacingOf, type Env, type Layout } from "@jali/core/adapter";
+import {
+  commandsOf,
+  createPaneKinds,
+  en,
+  pageEngine,
+  spacingOf,
+  type Env,
+  type Layout,
+} from "@jali/core/adapter";
 
 const empty = (): Layout => ({
   version: 1,
   root: { id: "a", type: "pane", size: { weight: 1 }, ref: { kind: "note", params: { id: 1 } } },
 });
 
-/** A workspace with one preset and no curated page: what commandsOf lists for most apps. Titles in "page" words
- *  ("Back to page", "View as viewer") take the profile's name and viewers when the workspace has one. Pop out is
- *  on, so the table lists `pane.pop_out`, which a workspace has only then. */
+/** A workspace with one preset, and a curated page's engine and words so the table lists the page's commands too
+ *  (a workspace has them only with a page from `definePage`). With no profile, titles in "page" words read "Back to
+ *  page" and "View as viewer"; a real page puts its name and viewers there. Pop out is on, so the table lists
+ *  `pane.pop_out`, which a workspace has only then. */
 export const SAMPLE_ENV: Env = {
   kinds: createPaneKinds([{ kind: "note", title: "Note" }]),
   profile: null,
+  page: pageEngine,
+  messages: en,
   presets: [{ id: "orders", label: "Orders", build: empty }],
   name: "Workspace",
   spacing: spacingOf(),

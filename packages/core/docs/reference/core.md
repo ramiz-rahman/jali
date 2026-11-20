@@ -8,7 +8,7 @@ The framework-free part of Jali: the workspace, the layouts it shows, the addres
 npm install @jali/core
 ```
 
-Framework adapters import `@jali/core/adapter`, which exports everything inside the package. Apps need only what is on this page.
+Framework adapters import `@jali/core/adapter`: everything on this page, and, by name, what an adapter needs from inside the package, such as the `DomPort` through which the core finds the adapter's elements. Apps need only what is on this page.
 
 ## The workspace
 
@@ -42,7 +42,7 @@ Its listeners (keys, Back and Forward, theme and saving) start with `jali.start(
 
 - **`launcher`** (`PaneKindBase`): What Split and "New tab here" open until the person chooses what to show. It closes quietly and its component reads `useLauncher()`. Without one, those commands and the tab strip's "+" are not offered.
 
-- **`page`** (`Page | null`): A curated page this workspace can show, from `definePage`.
+- **`page`** (`Page | null`): A curated page this workspace can show, from `definePage`. A page made any other way is refused: `definePage` gives it the code that runs it, which an app without a page never ships.
 
 - **`name`** (`string`): The free workspace's name, in command titles such as "Open Workspace".
 
@@ -126,7 +126,7 @@ The pane comes first, by its id or by the object it shows: `close("order")` and 
 
 ## Pane params
 
-What a kind's refs hold, in its `params`: `Number`, `String`, `Boolean`, `oneOf(...)` or your own function, each required unless wrapped in `optional`. The [Pane kinds guide](../guides/pane-kinds.md#params) explains what happens to a ref that is missing a required param. Both are also exported from `@jali/react`.
+What a kind's refs hold, in its `params`: `Number`, `String`, `Boolean`, `oneOf(...)` or your own function, each required unless wrapped in `optional` or `appOnly`. The [Pane kinds guide](../guides/pane-kinds.md#params) explains what happens to a ref that is missing a required param. All three are also exported from `@jali/react`.
 
 ### optional
 
@@ -143,6 +143,22 @@ A param a ref may leave out. The kind's code sees it as optional (`tab?: string`
 - **`type`** (`ParamType`, required): How to read it when it is there: `Number`, `String`, `Boolean`, `oneOf(...)` or a function.
 
 **Returns** `OptionalParam<T>`:
+
+### appOnly
+
+*function*, from `@jali/core, @jali/react`
+
+```ts
+appOnly<T extends ParamType>(type: T): AppOnlyParam<T>
+```
+
+A param only your app sets, never a link: `params: { sql: String, autorun: appOnly(Boolean) }`. Use it for anything a link must not be able to turn on, such as a query that runs as it opens. Jali leaves it out of every address it writes (the address bar, Copy link, Back and Forward) and drops it from every link it reads, even when the link holds a value it can't read. It is optional, since a pane opened from a link has none, and it is not part of what the pane shows: `query({ sql, autorun: true })` and `query({ sql })` are the same object.
+
+**Parameters**
+
+- **`type`** (`ParamType`, required): How to read it when your app gives it: `Number`, `String`, `Boolean`, `oneOf(...)` or a function.
+
+**Returns** `AppOnlyParam<T>`:
 
 ### oneOf
 
@@ -525,7 +541,7 @@ A binding string printed for the platform: `keyHint("Alt+Enter")` is "⌥↵" on
 const en: Messages
 ```
 
-Jali's English messages: every word it shows or says, by area (`announcements`, `toasts`, `commands`, `commandGroups`, `keys`, `palette`, `chooser`, `confirmDiscard`, `settings`, `tabs`, `shelf`, `pane`, `peek`, `workspace`, `page`, `drop`). A workspace made without `messages` uses this object as is (`jali.messages === en`). Spread it to start a translation. A message that needs values is a function, such as `en.announcements.closed(pane)`; a message with a bold part takes `bold` and returns its parts in order.
+Jali's English messages: every word it shows or says, by area (`announcements`, `toasts`, `commands`, `commandGroups`, `keys`, `palette`, `chooser`, `confirmDiscard`, `settings`, `tabs`, `shelf`, `pane`, `peek`, `workspace`, `page`, `drop`). A workspace made without `messages` says these words. A curated page's own words (the `page` area, and the announcements, commands and toast only a page uses) come with the page from `definePage`, so a workspace without a page has none of them in `jali.messages`, and an app that doesn't import `en` doesn't ship them. Spread it to start a translation. A message that needs values is a function, such as `en.announcements.closed(pane)`; a message with a bold part takes `bold` and returns its parts in order.
 
 ## Lists and their detail
 

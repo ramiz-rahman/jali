@@ -179,7 +179,7 @@ Keys: content first. Claim the keys you use with `event.preventDefault()` (J and
 definePage(page: Page): Page
 ```
 
-Defines a curated page: one item at a time (a loan application, a customer), its views as tabs, the item's header above the tabs (`Header`) and, optionally, a list of items at the left (`Rail`, which calls `activate(item)` to show another). Pass it to `createJali({ page })`. It returns `page` as it is; it is there for the types.
+Defines a curated page: one item at a time (a loan application, a customer), its views as tabs, the item's header above the tabs (`Header`) and, optionally, a list of items at the left (`Rail`, which calls `activate(item)` to show another). Pass it to `createJali({ page })`. It returns a copy of `page` that carries the code that runs a page and the parts that draw it. That code comes only with `definePage`, so an app without a curated page ships none of it. (`@jali/core` exports a `definePage` too, for a page without React; this one calls it.)
 
 **Returns** `Page`:
 

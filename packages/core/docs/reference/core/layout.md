@@ -676,7 +676,7 @@ Pixels from the centre at which a snapped divider lets go.
 layout.tree.panes(layout.root)
 ```
 
-Helpers for walking and editing the tree. The ones that edit (`replace`, `balance`, `remove`, `activate`) change the node they are given: use them on a copy (`clone`).
+Helpers for reading the tree. Each one leaves the tree it is given as it is; `map` returns a new tree. To change a layout, use the operations on this page or `jali.actions`. Four older members edit a tree in place (`replace`, `balance`, `remove`, `activate`), and `parentOf` is a second name for `parent`: they are deprecated and will go.
 
 - **`layout.tree.clone`**, `clone<T>(value: T): T`: A deep copy (`structuredClone`).
 
@@ -690,17 +690,17 @@ Helpers for walking and editing the tree. The ones that edit (`replace`, `balanc
 
 - **`layout.tree.parent`**, `parent(root, id): SplitNode | StackNode | undefined`: The node that holds `id`.
 
-- **`layout.tree.parentOf`**, `parentOf(root, id)`: Another name for `parent`.
+- **`layout.tree.parentOf`**, `parentOf(root, id)`: Deprecated: use `parent`. Another name for it.
 
 - **`layout.tree.stackOf`**, `stackOf(root, id): StackNode | undefined`: The tab group (stack in the tree) that holds `id`.
 
-- **`layout.tree.replace`**, `replace(root, id, replacement): LayoutNode`: Puts `replacement` in place of node `id`, in place. Inside a stack only a pane can replace a pane.
+- **`layout.tree.replace`**, `replace(root, id, replacement): LayoutNode`: Deprecated: it changes `root` in place. Use `map(root, (n) => (n.id === id ? replacement : n))`, which returns a new tree.
 
-- **`layout.tree.balance`**, `balance(node: LayoutNode): void`: Gives the children of a split that nobody sized an equal share, in place.
+- **`layout.tree.balance`**, `balance(node: LayoutNode): void`: Deprecated: it changes `node` in place. The layout operations balance the children nobody sized for you.
 
-- **`layout.tree.remove`**, `remove(root, id): LayoutNode | undefined`: Removes node `id` in place; a container left with one child is replaced by it, keeping the outer size. `undefined` when nothing is left.
+- **`layout.tree.remove`**, `remove(root, id): LayoutNode | undefined`: Deprecated: it changes `root` in place. Use `layout.close`, which returns a new layout, fitted.
 
-- **`layout.tree.activate`**, `activate(layout: Layout, id: NodeId): void`: Makes `id` the active tab of its stack, in place.
+- **`layout.tree.activate`**, `activate(layout: Layout, id: NodeId): void`: Deprecated: it changes `layout` in place. Use `layout.setActiveTab`, which returns a new layout.
 
 - **`layout.tree.newId`**, `newId(root, prefix = "pane"): NodeId`: The first free id of the form `prefix-1`, `prefix-2`, …
 
