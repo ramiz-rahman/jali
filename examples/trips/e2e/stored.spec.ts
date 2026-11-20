@@ -108,7 +108,19 @@ async function damagePaneState(page: Page) {
       (k) => JSON.parse(localStorage.getItem(k) ?? "{}") as Record<string, Record<string, unknown>>,
       PANE_STATE,
     );
-  await expect.poll(async () => Object.keys(await stored()).length).toBeGreaterThan(0);
+  // Jali saves 400 ms after the last change: two reads 500 ms apart that agree mean nothing is waiting.
+  let last = "";
+  await expect
+    .poll(
+      async () => {
+        const now = JSON.stringify(await stored());
+        const settled = now === last && now !== "{}";
+        last = now;
+        return settled;
+      },
+      { intervals: [500] },
+    )
+    .toBe(true);
   // A number for a cursor or a view, a half-filter, a filter from another city, a list, a flag.
   const values = [42, { city: "lisbon" }, ["day"], { within: "far" }, true];
   const damaged = Object.fromEntries(
@@ -117,7 +129,9 @@ async function damagePaneState(page: Page) {
       Object.fromEntries(Object.keys(s).map((k, j) => [k, values[(i + j) % values.length]])),
     ]),
   );
-  await page.evaluate(({ k, v }) => localStorage.setItem(k, v), {
+  // Written as the reloaded page starts, not before it: the page being left saves its pane state as it goes
+  // (pagehide), which would write over it.
+  await page.addInitScript(({ k, v }) => localStorage.setItem(k, v), {
     k: PANE_STATE,
     v: JSON.stringify(damaged),
   });
