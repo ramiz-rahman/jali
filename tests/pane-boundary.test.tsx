@@ -256,11 +256,11 @@ describe("useTitle", () => {
     expect(storeOf(jali).get().titles).toEqual({});
   });
 
-  it("is ignored by the peek sheet", () => {
+  it("in the peek sheet names the sheet only, and no pane", () => {
     const jali = make([note, customer], pane(note({ id: 1 }), { id: "a" }));
     render(<JaliRoot jali={jali} />);
     act(() => jali.actions.peek("a", customer({ id: 1 })));
-    expect(screen.getByTestId("peek").getAttribute("aria-label")).toBe("Peek: Customer 1");
+    expect(screen.getByTestId("peek").getAttribute("aria-label")).toBe("Peek: Acme Ltd");
     expect(storeOf(jali).get().titles).toEqual({});
   });
 });
