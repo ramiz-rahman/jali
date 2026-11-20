@@ -14,7 +14,10 @@ export interface PageModule {
   frontmatter: Frontmatter;
 }
 
-const modules = import.meta.glob<PageModule>("../docs/**/*.mdx");
+// Draft pages (a file or folder starting with "_", like `_lab`) exist in dev only: the built site never ships them.
+const modules = import.meta.env.DEV
+  ? import.meta.glob<PageModule>("../docs/**/*.mdx")
+  : import.meta.glob<PageModule>(["../docs/**/*.mdx", "!../docs/**/_*.mdx", "!../docs/**/_*/**"]);
 
 export const pathOf = (file: string) =>
   file

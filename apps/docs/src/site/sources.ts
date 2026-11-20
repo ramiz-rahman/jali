@@ -6,11 +6,14 @@ import { jsxToMarkdown, type MarkdownOptions } from "./jsx-markdown";
 import { NAV, type NavSection } from "./nav";
 import { pathOf } from "./pages";
 
-const rawModules = import.meta.glob<unknown>("../docs/**/*.mdx", {
-  query: "?raw",
-  import: "default",
-  eager: true,
-});
+// Draft pages (`_lab` and the like) are read in dev only, as in ./pages.
+const rawModules = import.meta.env.DEV
+  ? import.meta.glob<unknown>("../docs/**/*.mdx", { query: "?raw", import: "default", eager: true })
+  : import.meta.glob<unknown>(["../docs/**/*.mdx", "!../docs/**/_*.mdx", "!../docs/**/_*/**"], {
+      query: "?raw",
+      import: "default",
+      eager: true,
+    });
 
 /**
  * The text of a `?raw` import of an .mdx file. Today @mdx-js/rollup also compiles `?raw` ids (it drops the query
