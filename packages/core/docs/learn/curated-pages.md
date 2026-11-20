@@ -97,6 +97,27 @@ export const customerPage = definePage({
 
 Items are numbers: `item` is the id a link carries.
 
+### When a view's object comes from your data
+
+`bind` answers at once: it runs inside every page action (choosing an item, Reset, a link arriving, Back), and each of those returns its result and writes the address straight away. So `bind` names objects; it doesn't fetch them. Most views need only the item's id (`orderList({ customer: item })`), and each pane loads its own data, with its own loading and error states.
+
+When a view shows another object that only your data knows (the borrower of an application, say), read those ids before you make the workspace, keep them, and let `bind` look them up:
+
+```ts
+await loadBorrowers(api); // fills a Map from application id to borrower id
+
+const page = definePage({
+  ...profile,
+  bind: (item: number) => ({
+    application: application({ id: item }),
+    borrower: member({ id: borrowerOf(item) }),
+  }),
+});
+const jali = createJali({ panes, page });
+```
+
+Until they are read, show your own loading screen in place of `<JaliRoot>`. If the list of items grows while the page is open, read the new ids before you call `activate`. Loan review, among the examples, does this.
+
 ## Opening the page
 
 While a page is open, `<JaliView>` renders it: your rail, your header, the tabs, and the panes. `<PageBar>` holds the mode switch, the investigation and Reset; put it in your own top bar.

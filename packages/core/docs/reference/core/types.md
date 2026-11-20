@@ -675,7 +675,7 @@ A curated page about one item (a loan application), framework-free. In React, `d
 
 - **`build`** (`(item: I) => LayoutInput`, required): Split view's designed layout. Every role is in the tree, as a pane whose `id` and `role` are the role's id; those not shown at first are `hidden`.
 
-- **`bind`** (`(item: I) => Record<string, ObjectRef>`, required): What each role shows for an item. Another item swaps these in place.
+- **`bind`** (`(item: I) => Record<string, ObjectRef>`, required): What each role shows for an item. Another item swaps these in place. It runs inside every page action, so it answers at once: it names objects, and their panes load them. Ids only your data knows are read before `createJali` (see [Curated pages](../../learn/curated-pages.md#when-a-views-object-comes-from-your-data)).
 
 - **`firstItem`** (`I`, required): The item the page opens on. Its type (number or string) is the type of every item id the page is given: a link's `"4"` comes back as `4` when `firstItem` is a number.
 
