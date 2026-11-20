@@ -17,6 +17,10 @@
     min-width: 0;
   }
 
+  /* The tabs' landmark: as narrow as the column, so the tabs scroll inside it rather than widen the page. */
+  .jali-page-nav {
+    min-width: 0;
+  }
   /* The page's tabs. Single: one selected. Split view: focused (accent underline), on screen (grey underline, 3:1 or more), behind
    another tab (dotted), not on screen (plain, muted). Marks are colour and underline only: a tab never changes width. */
   .jali-page-tabs {

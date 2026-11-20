@@ -127,67 +127,70 @@ function PageTabs() {
   const keys = useRovingKeys(() => [
     ...(strip.current?.querySelectorAll<HTMLElement>("[role=tab]") ?? []),
   ]);
+  // A landmark of its own, so a screen-reader user who moves by landmarks reaches the views.
   return (
-    <div
-      className="jali-page-tabs"
-      role="tablist"
-      aria-label={t.tabsLabel(p.name)}
-      ref={strip}
-      onKeyDown={keys}
-    >
-      {p.roles.map((r) => {
-        const st = state(r.id);
-        const Icon = r.icon;
-        return (
-          <button
-            key={r.id}
-            role="tab"
-            className="jali-page-tab"
-            data-role={r.id}
-            data-state={st}
-            aria-selected={r.id === selected}
-            tabIndex={r.id === selected ? 0 : -1}
-            aria-description={
-              multi
-                ? st === "off"
-                  ? t.tabOff
-                  : st === "behind"
-                    ? t.tabBehind
-                    : t.tabOn
-                : undefined
-            }
-            title={
-              multi
-                ? st === "off"
-                  ? t.tabTipOff(r.label, altClick)
-                  : t.tabTipFocus(r.label)
-                : t.tabTipSingle(r.label, altClick)
-            }
-            onPointerDown={(e) => {
-              drag.current = startTabDrag(store, e, r.id, r.label);
-            }}
-            onPointerEnter={(e) => {
-              hovered.current = r.id;
-              ghost(e.altKey);
-            }}
-            onPointerLeave={() => {
-              hovered.current = null;
-              ghost(false);
-            }}
-            onClick={(e) => {
-              if (drag.current?.dragged()) return;
-              if (e.altKey) {
-                store.set({ ghost: null });
-                actions.openTabBeside(r.id);
-              } else actions.openTab(r.id);
-            }}
-          >
-            <Icon size={14} aria-hidden />
-            <span>{r.label}</span>
-          </button>
-        );
-      })}
-    </div>
+    <nav className="jali-page-nav" aria-label={t.tabsLabel(p.name)}>
+      <div
+        className="jali-page-tabs"
+        role="tablist"
+        aria-label={t.tabsLabel(p.name)}
+        ref={strip}
+        onKeyDown={keys}
+      >
+        {p.roles.map((r) => {
+          const st = state(r.id);
+          const Icon = r.icon;
+          return (
+            <button
+              key={r.id}
+              role="tab"
+              className="jali-page-tab"
+              data-role={r.id}
+              data-state={st}
+              aria-selected={r.id === selected}
+              tabIndex={r.id === selected ? 0 : -1}
+              aria-description={
+                multi
+                  ? st === "off"
+                    ? t.tabOff
+                    : st === "behind"
+                      ? t.tabBehind
+                      : t.tabOn
+                  : undefined
+              }
+              title={
+                multi
+                  ? st === "off"
+                    ? t.tabTipOff(r.label, altClick)
+                    : t.tabTipFocus(r.label)
+                  : t.tabTipSingle(r.label, altClick)
+              }
+              onPointerDown={(e) => {
+                drag.current = startTabDrag(store, e, r.id, r.label);
+              }}
+              onPointerEnter={(e) => {
+                hovered.current = r.id;
+                ghost(e.altKey);
+              }}
+              onPointerLeave={() => {
+                hovered.current = null;
+                ghost(false);
+              }}
+              onClick={(e) => {
+                if (drag.current?.dragged()) return;
+                if (e.altKey) {
+                  store.set({ ghost: null });
+                  actions.openTabBeside(r.id);
+                } else actions.openTab(r.id);
+              }}
+            >
+              <Icon size={14} aria-hidden />
+              <span>{r.label}</span>
+            </button>
+          );
+        })}
+      </div>
+    </nav>
   );
 }
 

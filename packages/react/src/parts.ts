@@ -496,7 +496,7 @@ export const parts = {
     selector: ".jali-page",
     element: "div",
     area: "Curated pages",
-    what: "A curated page's root, in the workspace's place: the page's `Rail` (when it renders one) and its main column, which holds the item's `Header`, the views' tabs and the panes. Style the page's frame here: its background, the rail's width (`grid-template-columns`), spacing.",
+    what: "A curated page's root, in the workspace's place: the page's `Rail` (when it renders one) and its main column, which holds the item's `Header`, the views' tabs (in a `nav` landmark named for the page, \"Loan review views\") and the panes. Style the page's frame here: its background, the rail's width (`grid-template-columns`), spacing.",
     attributes: [],
   },
   pageBar: {

@@ -1150,3 +1150,9 @@ Gzipped KB, measured on master `ea3ac83` after `pnpm build:packages`. The `mustN
 - **`page` (`.jali-page`):** the curated page's root, in the workspace's place: its rail and its main column (header, views' tabs, panes). An app styles the page's frame there (background, the rail's width, spacing).
 - **Size:** none (a renamed class, and the parts list, which isn't shipped).
 - **Examples:** the shared Status line setting is a `.jali-setting` row; the shared `.setting-check` is gone.
+
+## 21 Nov 2026 · A curated page's view tabs are in a `nav` landmark (Loan review FINDINGS.md #2)
+
+- **Why:** axe's `region` rule failed on every curated page: the view tabs (`.jali-page-tabs`) sat outside every landmark, so a screen-reader user moving by landmarks skipped them. Loan review's scan left the rule out for them.
+- **Now:** the tablist is inside `<nav class="jali-page-nav" aria-label="{page} views">`, between the item's header and the panes' region. A `nav`, not a region around the whole page: the tabs choose what the page shows, which is navigation, and a region around the page would hold the workspace, which is the page's `<main>` with `landmark: "main"` (a `main` inside a region fails axe). The tablist keeps its own name. `.jali-page-nav` has `min-width: 0` so the tabs still scroll inside the column instead of widening the page.
+- **Tests:** `tests/landmarks.test.tsx`; Loan review's quality scan runs with no known violations, and Jali's own axe test (`e2e/axe.spec.ts`) judges the landmark.

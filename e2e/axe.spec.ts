@@ -10,7 +10,7 @@ import { test, expect, review } from "./fixtures/app";
  *  and status line sit inside the root but are the app's, and a pane's content is the app's. */
 const JALI = [
   ".jali-workspace",
-  ".jali-page-tabs",
+  ".jali-page-nav",
   "[data-shelf]",
   "[data-jali-layer]",
   ".jali-tab-menu",

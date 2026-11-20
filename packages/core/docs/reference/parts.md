@@ -192,7 +192,7 @@ Corners, spacing and colours are tokens, not parts: every corner reads `--jali-r
 
 | Part | Element | What it is | State attributes |
 | --- | --- | --- | --- |
-| `.jali-page` | `div` | A curated page's root, in the workspace's place: the page's `Rail` (when it renders one) and its main column, which holds the item's `Header`, the views' tabs and the panes. Style the page's frame here: its background, the rail's width (`grid-template-columns`), spacing. | none |
+| `.jali-page` | `div` | A curated page's root, in the workspace's place: the page's `Rail` (when it renders one) and its main column, which holds the item's `Header`, the views' tabs (in a `nav` landmark named for the page, "Loan review views") and the panes. Style the page's frame here: its background, the rail's width (`grid-template-columns`), spacing. | none |
 | `.jali-page-bar` | `div` | A curated page's bar: its roles, Single view or Split view, Reset. | none |
 | `.jali-page-tab` | `button` | One role on a curated page's bar. | `data-role`: The role's id.<br>`data-state`: `focused`, `shown`, `behind` (open, not in view) or `off` (not open).<br>`data-pressed`: Flag: held down, by the pointer or by Space or Enter while it has focus (`:active` covers only the pointer). Jali's styles don't read it. |
 
