@@ -405,3 +405,37 @@ describe("C7: the address", () => {
     expect(calls).toHaveLength(1);
   });
 });
+
+describe("P17: what a link carries reads back as written", () => {
+  it.each(["#123", "!true", "!false", "a~b", "a=b", "%", "50%25", "~", "#", "!", "%7E", ""])(
+    "a text value %j",
+    (text) => {
+      const ref = { kind: "note", params: { id: 1, text } };
+      expect(decodePeek(encodePeek(ref))).toEqual(ref);
+    },
+  );
+  it("a key with ~ = # ! %", () => {
+    const ref = {
+      kind: "note",
+      params: { "a~b": 1, "c=d": "e", "#f": true, "!g": "h", "%i": "j" },
+    };
+    expect(decodePeek(encodePeek(ref))).toEqual(ref);
+  });
+  it("links from before still read the same", () => {
+    expect(decodePeek("order~id=#42~tab=lines~draft=!true")).toEqual({
+      kind: "order",
+      params: { id: 42, tab: "lines", draft: true },
+    });
+    expect(encodePeek({ kind: "order", params: { id: 4, tab: "lines", draft: true } })).toBe(
+      "order~id=#4~tab=lines~draft=!true",
+    );
+  });
+  it("a page link's open= and a peek= carry such text through the address", () => {
+    const ref = { kind: "note", params: { id: 1, text: "#123~!true" } };
+    const q = new URLSearchParams({ page: "p", item: "1", peek: encodePeek(ref) });
+    q.append("open", encodePeek(ref));
+    const read = readSearch(`?${q}`, registry);
+    expect(read && "page" in read && read.page.investigation).toEqual([ref]);
+    expect(read?.view.peek).toEqual(ref);
+  });
+});

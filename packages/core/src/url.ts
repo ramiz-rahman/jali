@@ -22,32 +22,44 @@ const BROKEN_KEY = "broken-layout";
 /** The most panes a page link opens (`open=`); the rest are left out. docs/DECISIONS.md, 20 Nov 2026. */
 export const OPEN_MAX = 32;
 
+/** The characters the ref text gives a meaning to, written `%XX` inside a kind, a key or a text value. */
+const escape = (text: string) =>
+  text.replace(/[%~=#!]/g, (c) => `%${c.charCodeAt(0).toString(16).toUpperCase()}`);
+const unescape = (text: string) =>
+  text.replace(/%(25|7E|3D|23|21)/gi, (_, hex: string) => String.fromCharCode(parseInt(hex, 16)));
+
 /**
  * A ref as text, for `peek=` and a page's `open=`: `record~table=orders~id=#42~draft=!true`. A number is marked `#`
- * and a flag `!`, so both come back as they went; text is written as it is.
+ * and a flag `!`, so both come back as they went. In a kind, a key or a text value, `%`, `~`, `=`, `#` and `!` are
+ * written `%25`, `%7E`, `%3D`, `%23` and `%21`, so any text comes back as it went (`"#123"` stays text). Text
+ * without them is written as it is, so links from before read the same.
  */
 export function encodePeek(ref: ObjectRef): string {
   const params = Object.entries(ref.params).map(
-    ([k, v]) => `${k}=${typeof v === "number" ? `#${v}` : typeof v === "boolean" ? `!${v}` : v}`,
+    ([k, v]) =>
+      `${escape(k)}=${typeof v === "number" ? `#${v}` : typeof v === "boolean" ? `!${v}` : escape(v)}`,
   );
-  return [ref.kind, ...params].join("~");
+  return [escape(ref.kind), ...params].join("~");
 }
 export function decodePeek(text: string): ObjectRef | null {
   const [kind, ...rest] = text.split("~");
   if (!kind) return null;
-  const params: ObjectRef["params"] = {};
+  const params: [string, ObjectRef["params"][string]][] = [];
   for (const p of rest) {
     const i = p.indexOf("=");
     if (i < 1) return null;
     const v = p.slice(i + 1);
-    params[p.slice(0, i)] =
+    params.push([
+      unescape(p.slice(0, i)),
       v.startsWith("#") && v.length > 1 && !Number.isNaN(Number(v.slice(1)))
         ? Number(v.slice(1))
         : v === "!true" || v === "!false"
           ? v === "!true"
-          : v;
+          : unescape(v),
+    ]);
   }
-  return { kind, params };
+  // Own keys only: a key such as `__proto__` is a param like any other.
+  return { kind: unescape(kind), params: Object.fromEntries(params) };
 }
 
 /** A ref from a link that its kind can read; an unknown kind is kept (the pane says so), unreadable params are not. */

@@ -910,3 +910,11 @@ Data Studio's old tab strip had six features Jali lacked. Each is general, and l
 - **Why:** `browserLocation().navigate` wrote `pathname + search + hash`. On a page whose path starts with `//` (`https://app.test//evil.com/x?l=…`), that relative URL names another host, so `replaceState` threw a SecurityError in `boot` and the workspace never started.
 - **Now:** it takes `location.href`, sets its search and writes the whole URL, so it always stays on the page's own origin and path. Nothing is written when the address would not change, as before. Router adapters are unchanged: they navigate by search alone.
 - **Tests:** `tests/hostile-input.test.tsx` (C7).
+
+## 20 Nov 2026 · A ref in `peek=` and `open=` reads back as written (QUALITY-REVIEW P17)
+
+- **Why:** the ref text (`order~id=#42~draft=!true`) wrote text values as they were, so text that looked like a mark changed on the way back: `"#123"` came back as the number 123, `"!true"` as `true`, and a value or key holding `~` or `=` was dropped or broke the ref.
+- **Now:** in a kind, a key or a text value, `%`, `~`, `=`, `#` and `!` are written `%25`, `%7E`, `%3D`, `%23` and `%21` (`encodePeek`), and read back (`decodePeek`), so any text comes back as it went. Numbers and flags are marked as before. Text without those characters is written exactly as before, so a link from before reads the same and a ref without them gives the same text.
+- **The one change for old links:** text written before this that held `%25`, `%7E`, `%3D`, `%23` or `%21` literally now reads as the character. Such text was rare (it only arises from a value that already contained a percent escape), and the old encoder couldn't round-trip it either.
+- **Keys** are collected with `Object.fromEntries`, so a key such as `__proto__` is a param like any other.
+- **Tests:** `tests/hostile-input.test.tsx` (P17).
