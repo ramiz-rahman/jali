@@ -29,11 +29,10 @@ async function hydrate(el: HTMLElement) {
   const onHydrated = () => el.setAttribute("data-hydrated", "");
   hydrateRoot(
     el,
-    createElement(
-      IslandBoundary,
-      { onHydrated },
-      createElement(Component as ComponentType<object>, props),
-    ),
+    createElement(IslandBoundary, {
+      onHydrated,
+      children: createElement(Component as ComponentType<object>, props),
+    }),
     { identifierPrefix: islandPrefix(el.dataset.islandId ?? "0") },
   );
 }
