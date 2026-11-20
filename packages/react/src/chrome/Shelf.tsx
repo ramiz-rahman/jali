@@ -1,11 +1,20 @@
 import { own } from "@jali/core/adapter";
 import type { ShelfEntry, JaliModel, PaneActivity } from "@jali/core";
-import { useEffect, useLayoutEffect, useMemo, useRef, useState, type KeyboardEvent } from "react";
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+  type KeyboardEvent,
+} from "react";
 import { useJaliIcons } from "../icons/context";
 
 import { useShortcut } from "../commands/react";
 import { cssString, flashTab, observeResize, scrolledFromStart } from "@jali/core/adapter";
 import { useRovingKeys } from "../a11y/roving";
+import { Menu } from "../a11y/Menu";
 import { Activity, shelfActivity } from "../pane/Activity";
 import { KindIcon } from "../pane/icons";
 import { UnsavedMark } from "../pane/Unsaved";
@@ -86,14 +95,11 @@ export function Shelf() {
     const sc = scroller.current;
     return sc ? observeResize(sc, measure) : undefined;
   }, [items.length]);
-  useEffect(() => {
-    if (!menu) return;
-    const off = (e: MouseEvent) => {
-      if (!(e.target as HTMLElement).closest(".jali-shelf-menu, .jali-shelf-more")) setMenu(false);
-    };
-    document.addEventListener("pointerdown", off);
-    return () => document.removeEventListener("pointerdown", off);
-  }, [menu]);
+  const more = useRef<HTMLButtonElement>(null);
+  const closeMenu = useCallback((refocus: boolean) => {
+    setMenu(false);
+    if (refocus) more.current?.focus();
+  }, []);
 
   if (!items.length) return null;
 
@@ -215,6 +221,7 @@ export function Shelf() {
       </div>
       {hidden.length ? (
         <button
+          ref={more}
           className="jali-shelf-more"
           aria-haspopup="menu"
           aria-expanded={menu}
@@ -225,13 +232,11 @@ export function Shelf() {
         </button>
       ) : null}
       {menu ? (
-        <div
+        <Menu
           className="jali-shelf-menu"
-          role="menu"
           aria-label={t.menuMore}
-          onKeyDown={(e) => {
-            if (e.key === "Escape") setMenu(false);
-          }}
+          onClose={closeMenu}
+          trigger={more}
         >
           {hidden.map((it) => {
             const L = label(m, it, own(activity, it.paneId));
@@ -240,6 +245,7 @@ export function Shelf() {
                 {...own(marks, it.paneId)}
                 className="jali-shelf-menu-item"
                 role="menuitem"
+                tabIndex={-1}
                 key={it.paneId}
                 onClick={() => {
                   setMenu(false);
@@ -253,7 +259,7 @@ export function Shelf() {
               </button>
             );
           })}
-        </div>
+        </Menu>
       ) : null}
     </div>
   );

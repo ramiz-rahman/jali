@@ -1,5 +1,5 @@
 import { own } from "@jali/core/adapter";
-import { memo, useMemo, useRef, useState, type CSSProperties } from "react";
+import { memo, useMemo, useRef, useState, type CSSProperties, type SyntheticEvent } from "react";
 import { TabMenu, type TabMenuAt } from "./TabMenu";
 import { createPortal } from "react-dom";
 import { bringBack, usePopOutTarget } from "./PopOut";
@@ -36,6 +36,9 @@ interface Props {
   chrome: Chrome;
   dropTarget: boolean;
 }
+
+/** The event happened in the element's own DOM, not in something a control in it portalled elsewhere. */
+const inHeader = (e: SyntheticEvent) => e.currentTarget.contains(e.target as Node);
 
 export const PaneFrame = /* @__PURE__ */ memo(
   function PaneFrame({ frame, chrome, dropTarget }: Props) {
@@ -148,20 +151,26 @@ export const PaneFrame = /* @__PURE__ */ memo(
           className="jali-pane-header"
           data-narrow={narrow === 2 ? "tools" : narrow === 1 ? "actions" : undefined}
           // Right-click on the header (not a tab: its strip has its own) opens the pane's menu. The content below is
-          // the app's, so its right-click stays the app's.
+          // the app's, so its right-click stays the app's. Each handler takes only events from inside the header's
+          // DOM: React also passes up events from what a header control portalled elsewhere (a menu, an app's
+          // popover), and a press there must not drag the pane, nor a double-click maximise it.
           onContextMenu={(e) => {
             if (
               bare ||
               group ||
+              !inHeader(e) ||
               (e.target as HTMLElement).closest("input, textarea, [contenteditable]")
             )
               return;
             e.preventDefault();
             setMenu({ pane: node.id, x: e.clientX, y: e.clientY });
           }}
-          onPointerDown={draggable ? (e) => startPaneDrag(store, e, node.id) : undefined}
+          onPointerDown={
+            draggable ? (e) => inHeader(e) && startPaneDrag(store, e, node.id) : undefined
+          }
           onDoubleClick={(e) => {
-            if (bare || !chrome.zoomable || (e.target as HTMLElement).closest("button")) return;
+            if (bare || !chrome.zoomable || !inHeader(e)) return;
+            if ((e.target as HTMLElement).closest("button")) return;
             actions.toggleZoom(node.id);
           }}
         >

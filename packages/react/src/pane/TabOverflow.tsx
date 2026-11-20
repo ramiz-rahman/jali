@@ -1,8 +1,8 @@
 import { own } from "@jali/core/adapter";
 import type { NodeId } from "@jali/core";
-import { useEffect, useLayoutEffect, useRef, useState, type KeyboardEvent } from "react";
+import { useCallback, useRef, useState } from "react";
 import { useJaliIcons } from "../icons/context";
-import { createPortal } from "react-dom";
+import { Menu } from "../a11y/Menu";
 import type { Tab } from "@jali/core/adapter";
 import { cssString, roleOf, titleOf } from "@jali/core/adapter";
 import { useStore } from "../state/react";
@@ -43,9 +43,7 @@ export function TabOverflow({
   const chip = folded;
   const icon = useJaliIcons();
   const [open, setOpen] = useState(false);
-  const [pos, setPos] = useState<{ left: number; top: number } | null>(null);
   const btn = useRef<HTMLButtonElement>(null);
-  const menu = useRef<HTMLDivElement>(null);
   const page = useUi((s) => !!s.page);
   const titles = useUi((s) => s.titles);
   const marks = useUi((s) => s.paneAttributes);
@@ -54,61 +52,14 @@ export function TabOverflow({
   const behind = folded ? mostPressing(tabs.map(({ node }) => own(activity, node.id))) : undefined;
   const dir = useUi((s) => s.dir);
 
-  const close = (refocus: boolean) => {
+  const close = useCallback((refocus: boolean) => {
     setOpen(false);
     if (refocus) btn.current?.focus();
-  };
-
-  useLayoutEffect(() => {
-    if (!open || !btn.current) return;
-    const r = btn.current.getBoundingClientRect();
-    const w = 280;
-    // Under the button, lined up with its end side: its right edge, or its left edge right to left.
-    const left = dir === "rtl" ? r.left : r.right - w;
-    setPos({
-      left: Math.max(8, Math.min(left, window.innerWidth - w - 8)),
-      top: r.bottom + 4,
-    });
-  }, [open, dir]);
-  useEffect(() => {
-    if (!open || !pos) return;
-    const items = menu.current?.querySelectorAll<HTMLElement>('[role="menuitem"]');
-    const cur = [...(items ?? [])].find((el) => el.dataset.item === active) ?? items?.[0];
-    cur?.focus();
-  }, [open, pos, active]);
-  useEffect(() => {
-    if (!open) return;
-    const off = (e: PointerEvent) => {
-      const t = e.target as Node;
-      if (!menu.current?.contains(t) && !btn.current?.contains(t)) setOpen(false);
-    };
-    document.addEventListener("pointerdown", off, true);
-    return () => document.removeEventListener("pointerdown", off, true);
-  }, [open]);
-
-  const onKey = (e: KeyboardEvent) => {
-    // Keys here belong to the menu: nothing else in the app may act on them.
-    const items = [...(menu.current?.querySelectorAll<HTMLElement>('[role="menuitem"]') ?? [])];
-    const i = items.indexOf(document.activeElement as HTMLElement);
-    const go = (n: number) => {
-      e.preventDefault();
-      items[(n + items.length) % items.length]?.focus();
-    };
-    let used = true;
-    if (e.key === "ArrowDown") go(i + 1);
-    else if (e.key === "ArrowUp") go(i - 1);
-    else if (e.key === "Home") go(0);
-    else if (e.key === "End") go(items.length - 1);
-    else if (e.key === "Escape") {
-      e.preventDefault();
-      close(true);
-    } else if (e.key === "Tab") {
-      setOpen(false);
-    } else if (e.key === "Enter" || e.key === " ") {
-      e.preventDefault();
-      (document.activeElement as HTMLElement | null)?.click();
-    } else used = false;
-    if (used) e.nativeEvent.stopImmediatePropagation();
+  }, []);
+  // Under the button, lined up with its end side: its right edge, or its left edge right to left.
+  const at = () => {
+    const r = btn.current!.getBoundingClientRect();
+    return { x: dir === "rtl" ? r.left : r.right, y: r.bottom + 4, end: true };
   };
   const choose = (id: NodeId) => {
     setOpen(false);
@@ -161,71 +112,67 @@ export function TabOverflow({
           </>
         )}
       </button>
-      {open
-        ? createPortal(
-            <div
-              ref={menu}
-              className="jali-tab-menu"
-              role="menu"
-              dir={dir}
-              aria-label={folded ? words.shelf.menuFolded : tw.menuLabel}
-              aria-description={folded ? tw.foldedNote : undefined}
-              style={pos ? { left: pos.left, top: pos.top } : { visibility: "hidden" }}
-              onKeyDown={onKey}
-            >
-              {folded ? (
-                <p className="jali-tab-menu-note" aria-hidden>
-                  {tw.foldedNote}
-                </p>
-              ) : null}
-              {tabs.map(({ node: t, tucked, folded: isFolded }) => {
-                const folded = isFolded;
-                const role = page && t.role ? roleOf(env.profile!, t.role) : undefined;
-                return (
-                  <button
-                    {...own(marks, t.id)}
-                    key={t.id}
-                    role="menuitem"
-                    className={`jali-tab-menu-item${t.id === active ? " is-active" : ""}`}
-                    data-item={t.id}
-                    data-folded={(folded && !chip) || undefined}
-                    data-tucked={tucked || undefined}
-                    aria-current={t.id === active || undefined}
-                    aria-description={
-                      folded ? tw.foldedDescription : tucked ? tw.tuckedDescription : undefined
-                    }
-                    tabIndex={-1}
-                    onClick={() => choose(t.id)}
-                  >
-                    <span className="jali-tab-menu-check" aria-hidden>
-                      {t.id === active ? <icon.current {...ICON.menuMark} /> : null}
-                    </span>
-                    {role ? (
-                      <role.icon {...ICON.menu} aria-hidden />
-                    ) : (
-                      <KindIcon kind={t.ref.kind} {...ICON.menu} />
-                    )}
-                    <span className="jali-tab-menu-title">{titleOf(env, t, titles)}</span>
-                    <Activity a={own(activity, t.id)} />
-                    {folded && !chip ? (
-                      <small className="jali-tab-menu-mark">
-                        <icon.fold {...ICON.menuSmall} aria-hidden />
-                        {tw.folded}
-                      </small>
-                    ) : null}
-                    {tucked ? (
-                      <small className="jali-tab-menu-mark">
-                        <icon.putBack {...ICON.menuSmall} aria-hidden />
-                        {tw.tucked}
-                      </small>
-                    ) : null}
-                  </button>
-                );
-              })}
-            </div>,
-            store.dom.layer() ?? document.body,
-          )
-        : null}
+      {open ? (
+        <Menu
+          at={at()}
+          onClose={close}
+          trigger={btn}
+          initial={(items) => items.find((el) => el.dataset.item === active)}
+          className="jali-tab-menu"
+          aria-label={folded ? words.shelf.menuFolded : tw.menuLabel}
+          aria-description={folded ? tw.foldedNote : undefined}
+        >
+          {folded ? (
+            <p className="jali-tab-menu-note" aria-hidden>
+              {tw.foldedNote}
+            </p>
+          ) : null}
+          {tabs.map(({ node: t, tucked, folded: isFolded }) => {
+            const folded = isFolded;
+            const role = page && t.role ? roleOf(env.profile!, t.role) : undefined;
+            return (
+              <button
+                {...own(marks, t.id)}
+                key={t.id}
+                role="menuitem"
+                className={`jali-tab-menu-item${t.id === active ? " is-active" : ""}`}
+                data-item={t.id}
+                data-folded={(folded && !chip) || undefined}
+                data-tucked={tucked || undefined}
+                aria-current={t.id === active || undefined}
+                aria-description={
+                  folded ? tw.foldedDescription : tucked ? tw.tuckedDescription : undefined
+                }
+                tabIndex={-1}
+                onClick={() => choose(t.id)}
+              >
+                <span className="jali-tab-menu-check" aria-hidden>
+                  {t.id === active ? <icon.current {...ICON.menuMark} /> : null}
+                </span>
+                {role ? (
+                  <role.icon {...ICON.menu} aria-hidden />
+                ) : (
+                  <KindIcon kind={t.ref.kind} {...ICON.menu} />
+                )}
+                <span className="jali-tab-menu-title">{titleOf(env, t, titles)}</span>
+                <Activity a={own(activity, t.id)} />
+                {folded && !chip ? (
+                  <small className="jali-tab-menu-mark">
+                    <icon.fold {...ICON.menuSmall} aria-hidden />
+                    {tw.folded}
+                  </small>
+                ) : null}
+                {tucked ? (
+                  <small className="jali-tab-menu-mark">
+                    <icon.putBack {...ICON.menuSmall} aria-hidden />
+                    {tw.tucked}
+                  </small>
+                ) : null}
+              </button>
+            );
+          })}
+        </Menu>
+      ) : null}
     </>
   );
 }
