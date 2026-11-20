@@ -104,6 +104,8 @@ export interface Env {
   dir?: Direction;
   /** `"main"` when the panes are the page's main content (`createJali({ landmark })`); unset, a labelled region. */
   landmark?: "region" | "main";
+  /** `false` when the page keeps its own theme (`createJali({ pageTheme })`): Jali writes no `data-theme`. */
+  pageTheme?: false;
   /** `false` when the app asks about unsaved work itself (`createJali({ confirmDiscard })`). */
   confirmDiscard?: false;
   /** The app's items for a tab's menu (`createJali({ tabMenu })`). */

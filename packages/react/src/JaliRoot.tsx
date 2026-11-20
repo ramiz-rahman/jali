@@ -38,7 +38,7 @@ import { IconsProvider } from "./icons/context";
 import { defaultIcons } from "./icons/default";
 import type { JaliIcons } from "./icons/types";
 import { installPressed } from "./pressed";
-import { StoreProvider, useUi } from "./state/react";
+import { StoreProvider, useStore, useTheme, useUi } from "./state/react";
 import { Panes } from "./workspace/Workspace";
 
 export interface JaliRootProps extends HTMLAttributes<HTMLDivElement> {
@@ -103,9 +103,31 @@ export function JaliRoot({
           <ConfirmDiscard />
         </div>,
       )}
+      {store.env.pageTheme === false ||
+      (rest as Record<string, unknown>)["data-theme"] !== undefined ? null : (
+        <ThemeOnRoot layer={host} />
+      )}
       {overlays}
     </JaliProvider>
   );
+}
+
+/**
+ * The resolved theme on the root and the layer too, as on <html>, for styles scoped to the workspace. Not with
+ * pageTheme: false, where the page's own scopes decide (a data-theme here would become one of them), nor over a
+ * data-theme the app gave the root. Written after mount, as on <html>, so a server render never disagrees with it.
+ */
+function ThemeOnRoot({ layer }: { layer: unknown }) {
+  const store = useStore();
+  const theme = useTheme();
+  useEffect(() => {
+    const els = [store.dom.root(), store.dom.layer()].filter((el) => el instanceof Element);
+    for (const el of els) el.setAttribute("data-theme", theme);
+    return () => {
+      for (const el of els) el.removeAttribute("data-theme");
+    };
+  }, [store, theme, layer]);
+  return null;
 }
 
 /** Provides a workspace and its icons to the hooks and parts below it. `<JaliRoot>` does this; use it to render Jali's parts on their own. */

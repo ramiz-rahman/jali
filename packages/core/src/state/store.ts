@@ -356,6 +356,7 @@ export function createUiStore(deps: UiStoreDeps): UiStore {
   if (deps.dir) env.dir = deps.dir;
   if (deps.landmark === "main") env.landmark = "main";
   if (deps.confirmDiscard === false) env.confirmDiscard = false;
+  if (deps.pageTheme === false) env.pageTheme = false;
   if (deps.tabMenu) env.tabMenu = deps.tabMenu;
   if (deps.rename) env.rename = deps.rename;
   if (deps.phone) env.phone = deps.phone;

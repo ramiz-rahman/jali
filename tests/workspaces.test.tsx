@@ -185,6 +185,32 @@ describe("startUi for one of several workspaces (9, 10, 11): StartOptions { keys
     expect(document.documentElement.getAttribute("data-theme")).toBe("dark");
     off();
   });
+  it("<JaliRoot> writes the theme on its root and layer too, as on <html>, and follows the setting", () => {
+    const s = make();
+    const { container } = render(<JaliRoot jali={s.jali} />);
+    const root = container.querySelector("[data-jali]")!;
+    const layer = document.querySelector("[data-jali-layer]")!;
+    act(() => s.set({ settings: { ...s.get().settings, theme: "dark" } }));
+    for (const el of [document.documentElement, root, layer])
+      expect(el.getAttribute("data-theme")).toBe("dark");
+    act(() => s.set({ settings: { ...s.get().settings, theme: "light" } }));
+    for (const el of [document.documentElement, root, layer])
+      expect(el.getAttribute("data-theme")).toBe("light");
+  });
+  it("with pageTheme: false, or a data-theme the app gave the root, it writes none of its own", () => {
+    const s = make({ pageTheme: false });
+    const { container, unmount } = render(<JaliRoot jali={s.jali} />);
+    act(() => s.set({ settings: { ...s.get().settings, theme: "dark" } }));
+    expect(container.querySelector("[data-jali]")!.hasAttribute("data-theme")).toBe(false);
+    expect(document.querySelector("[data-jali-layer]")!.hasAttribute("data-theme")).toBe(false);
+    expect(document.documentElement.hasAttribute("data-theme")).toBe(false);
+    unmount();
+    const t = make();
+    const r = render(<JaliRoot jali={t.jali} data-theme="light" />);
+    act(() => t.set({ settings: { ...t.get().settings, theme: "dark" } }));
+    expect(r.container.querySelector("[data-jali]")!.getAttribute("data-theme")).toBe("light");
+    expect(document.querySelector("[data-jali-layer]")!.hasAttribute("data-theme")).toBe(false);
+  });
   it("root scopes its keys, and settings still save", () => {
     const a = make({ id: "a" }),
       b = make({ id: "b" });

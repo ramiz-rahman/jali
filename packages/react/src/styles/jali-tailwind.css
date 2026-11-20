@@ -19,9 +19,18 @@
  * In the "jali" layer, after jali-theme.css, so it wins over Jali's defaults and a host's own --jali-* (unlayered,
  * or in a later layer) still wins over it on the same element. Unlike jali-theme.css, it declares the tokens again on
  * every theme scope, so it follows a theme variable that a .dark scope sets again: theme through those variables.
+ * The data-theme <JaliRoot> copies from <html> onto its root and layer is not a theme scope, so it declares nothing.
  */
 @layer jali {
-  :where(:root, .light, .dark, [data-theme]) {
+  :where(
+    :root,
+    .light,
+    .dark,
+    [data-theme]:not(
+      :root[data-theme="light"] :is([data-jali], [data-jali-layer])[data-theme="light"],
+      :root[data-theme="dark"] :is([data-jali], [data-jali-layer])[data-theme="dark"]
+    )
+  ) {
     --jali-canvas: var(--color-background, var(--jali-default-canvas));
     --jali-surface: var(--color-card, var(--jali-default-surface));
     --jali-surface-raised: var(

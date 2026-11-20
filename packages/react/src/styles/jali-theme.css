@@ -10,7 +10,8 @@
  * is light-dark(light, dark), which the browser resolves where it is used, by that element's color-scheme. Jali sets
  * color-scheme light on the root, dark under prefers-color-scheme: dark, dark inside a .dark or [data-theme="dark"]
  * scope, and light inside a .light or [data-theme="light"] scope (which keeps light when the system is dark). So a
- * .dark subtree gets the dark defaults, and a token the host set above it still wins there.
+ * .dark subtree gets the dark defaults, and a token the host set above it still wins there. The data-theme <JaliRoot>
+ * copies from <html> onto its root and layer is not a scope of its own: whatever sits between keeps deciding.
  *
  * To retheme from a Tailwind theme, import jali-tailwind.css after this file. To retheme by hand, set the public
  * --jali-* tokens on your root (or any scope); the derived ones follow. The --jali-default-* names are internal.
@@ -19,7 +20,11 @@
  */
 @layer jali {
   /* ---------- which palette a scope uses: its color-scheme ---------- */
-  :where(:root, .light, [data-theme="light"]) {
+  :where(
+    :root,
+    .light,
+    [data-theme="light"]:not(:root[data-theme="light"] :is([data-jali], [data-jali-layer]))
+  ) {
     color-scheme: light;
   }
   @media (prefers-color-scheme: dark) {
@@ -27,7 +32,10 @@
       color-scheme: dark;
     }
   }
-  :where(.dark, [data-theme="dark"]) {
+  :where(
+    .dark,
+    [data-theme="dark"]:not(:root[data-theme="dark"] :is([data-jali], [data-jali-layer]))
+  ) {
     color-scheme: dark;
   }
 
