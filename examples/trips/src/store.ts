@@ -34,15 +34,21 @@ export function useStore<T, S>(store: Store<T>, select: (value: T) => S): S {
   return useSyncExternalStore(store.subscribe, () => select(store.get()));
 }
 
-/** JSON in localStorage, never throwing: a private window or blocked storage keeps nothing. */
+/**
+ * JSON in localStorage, never throwing: a private window or blocked storage keeps nothing. What is read is never
+ * trusted: `parse` gets the stored value (`undefined` when there is none, or it isn't JSON) and returns the value to
+ * use, its default for anything it doesn't recognise (`readPlan`).
+ */
 export const saved = {
-  read<T>(key: string, fallback: T): T {
+  read<T>(key: string, parse: (stored: unknown) => T): T {
+    let stored: unknown;
     try {
       const raw = localStorage.getItem(key);
-      return raw === null ? fallback : (JSON.parse(raw) as T);
+      stored = raw === null ? undefined : JSON.parse(raw);
     } catch {
-      return fallback;
+      stored = undefined;
     }
+    return parse(stored);
   },
   write(key: string, value: unknown) {
     try {
@@ -69,9 +75,7 @@ const KEY = "trips:plan:v2";
 const HISTORY = 40;
 
 export function createPlanStore(persist = true, initial?: Plan): PlanStore {
-  const store = createStore<Plan>(
-    initial ?? (persist ? readPlan(saved.read(KEY, null)) : DEFAULT_PLAN),
-  );
+  const store = createStore<Plan>(initial ?? (persist ? saved.read(KEY, readPlan) : DEFAULT_PLAN));
   if (persist) store.subscribe(() => saved.write(KEY, store.get()));
   const history: { label: string; plan: Plan }[] = [];
 
