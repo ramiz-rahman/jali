@@ -6,6 +6,7 @@ import type { PaneProps } from "../define";
 import { PaneContext, type PaneHost } from "./context";
 import { useEnv, useStore } from "../state/react";
 import { DefaultLoading, PaneBoundary } from "./PaneBoundary";
+import { HeaderControls, type HeaderSlot } from "./header";
 
 export type { PaneHost };
 
@@ -55,11 +56,13 @@ interface BodyProps {
   paused: boolean;
   focused: boolean;
   inPeek?: boolean;
+  /** The header's slot for the content's own controls (useHeaderActions). */
+  header?: HeaderSlot;
 }
 
 /** The pane's content. Memoised on what the kind actually sees, so divider drags don't re-render content. */
 export const PaneBody = /* @__PURE__ */ memo(
-  function PaneBody({ node, host, paused, focused, inPeek = false }: BodyProps) {
+  function PaneBody({ node, host, paused, focused, inPeek = false, header }: BodyProps) {
     const store = useStore();
     const { kinds } = useEnv();
     const { keymap, messages } = useStore();
@@ -82,8 +85,13 @@ export const PaneBody = /* @__PURE__ */ memo(
     );
     // The peek sheet shows a node that is not in the layout: it has no state of its own to keep.
     const context = useMemo(
-      () => ({ id: inPeek ? null : node.id, host, props }),
-      [inPeek, node.id, host, props],
+      () => ({
+        id: inPeek ? null : node.id,
+        host,
+        props,
+        ...(header && !inPeek ? { header } : {}),
+      }),
+      [inPeek, node.id, host, props, header],
     );
     if (!def) {
       return (
@@ -119,11 +127,13 @@ export const PaneBody = /* @__PURE__ */ memo(
         >
           <C {...props} />
         </PaneBoundary>
+        {header && !inPeek ? <HeaderControls slot={header} /> : null}
       </PaneContext.Provider>
     );
   },
   (a, b) =>
     a.host === b.host &&
+    a.header === b.header &&
     a.node.id === b.node.id &&
     a.paused === b.paused &&
     a.focused === b.focused &&

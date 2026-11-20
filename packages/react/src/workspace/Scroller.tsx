@@ -81,10 +81,8 @@ export function Strip({
       clearTimeout(timer);
       timer = 0;
       const { s } = geometry.current;
-      const offset = core.clampOffset(s, fromDom(el.scrollLeft));
-      const v = store.get().view;
-      if (Math.abs((v.scroll?.[s.id] ?? 0) - offset) < 0.5) return;
-      store.set({ view: { ...v, scroll: { ...v.scroll, [s.id]: offset } } });
+      // Into the view state and the link (history replaced): a reload or a shared link reopens here.
+      store.actions.setScroll(s.id, fromDom(el.scrollLeft));
     };
     const onScroll = () => {
       paint();

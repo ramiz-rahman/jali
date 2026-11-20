@@ -5,6 +5,7 @@ import { useModel, useStore, useUi } from "../state/react";
 import { bringBack, canPopOut, popOut, usePopOutTarget } from "./PopOut";
 import type { Chrome } from "@jali/core/adapter";
 import { ICON } from "../icons/sized";
+import type { NarrowLevel } from "./header";
 
 interface P {
   id: string;
@@ -13,6 +14,8 @@ interface P {
   chrome: Chrome;
   /** The header shows a tab strip. */
   tabs: boolean;
+  /** How far a narrow header has given way (header.ts): 1 or more, the buttons the menu also offers move into it. */
+  narrow?: NarrowLevel;
   /** Open the pane's menu, from the ⋯ button. */
   onMenu: (at: { x: number; y: number; end: boolean }) => void;
 }
@@ -26,11 +29,14 @@ const COVERS: Record<PaneButton, string> = {
   popOut: "pop-out",
 };
 
+/** What a narrow header moves into ⋯; Close and ⋯ itself stay. */
+const MOVES: ReadonlySet<PaneButton> = new Set(["tuck", "maximise", "fullScreen", "popOut"]);
+
 /**
  * The header's buttons (`buttons`: Jali's choice unless the app's), then ⋯ for the rest of the pane's menu: 26px
  * targets, 4px apart. Tuck is a plain minus: it puts the pane behind the pane it would join.
  */
-export function HeaderActions({ id, title, zoomed, chrome, tabs, onMenu }: P) {
+export function HeaderActions({ id, title, zoomed, chrome, tabs, narrow = 0, onMenu }: P) {
   const icon = useJaliIcons();
   const store = useStore();
   const m = useModel();
@@ -49,14 +55,20 @@ export function HeaderActions({ id, title, zoomed, chrome, tabs, onMenu }: P) {
   const full = useUi((s) => s.fullScreen === id);
   const popped = !!usePopOutTarget(store, id);
   const pop = canPopOut();
-  const buttons = buttonsOf(x, id, { chrome, zoomed, full, tabs }).filter(
-    (b) => b !== "popOut" || pop,
-  );
-  // ⋯ when the menu has more than the buttons: everything allowed is always one click away, on touch too.
-  const shown = new Set(buttons.map((b) => COVERS[b]));
   const items = tabMenuOf(store, id).flat();
   if (pop && allows(x, id, "popOut")) items.push({ id: "pop-out", title: "", run: () => {} });
-  const more = items.some((i) => !shown.has(i.id));
+  // A narrow header keeps its title: what the menu also offers moves into it, and a tuck that can't happen goes.
+  const inMenu = new Set(items.map((i) => i.id));
+  const buttons = buttonsOf(x, id, { chrome, zoomed, full, tabs }).filter(
+    (b) =>
+      (b !== "popOut" || pop) &&
+      !(narrow && MOVES.has(b) && (inMenu.has(COVERS[b]) || (b === "tuck" && !home))),
+  );
+  // With the app's controls hidden too, the menu lists the pane's commands in their place.
+  const commands = useUi((s) => (narrow === 2 ? (s.paneCommands[id]?.length ?? 0) : 0));
+  // ⋯ when the menu has more than the buttons: everything allowed is always one click away, on touch too.
+  const shown = new Set(buttons.map((b) => COVERS[b]));
+  const more = commands > 0 || items.some((i) => !shown.has(i.id));
   if (!buttons.length && !more) return null;
   const button = (b: PaneButton) => {
     switch (b) {
@@ -130,7 +142,11 @@ export function HeaderActions({ id, title, zoomed, chrome, tabs, onMenu }: P) {
       </button>,
     );
   }
-  return <div className="jali-pane-actions">{all}</div>;
+  return (
+    <div className="jali-pane-actions" data-count={all.length}>
+      {all}
+    </div>
+  );
 }
 
 function ZoomButton({ id, title, zoomed }: { id: string; title: string; zoomed: boolean }) {

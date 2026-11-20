@@ -186,10 +186,15 @@ export interface PaneWidth {
   max?: number;
 }
 
-/** Heights in px. */
+/** Heights in px, with the same rules as widths, down a column. A pane folds into a tab rather than go below its
+ *  minimum. */
 export interface PaneHeight {
   /** The shortest the content still works at. Default 160. */
   min?: number;
+  /** Where spare height takes the pane first, before any pane above or below grows past its own. Default: `min`. */
+  comfortable?: number;
+  /** The tallest the content usefully uses: spare height past it goes to the neighbours first. Default: none. */
+  max?: number;
 }
 
 export const DEFAULT_MIN_WIDTH = 240;
@@ -365,6 +370,8 @@ export function createPaneKinds<D extends PaneKindBase = PaneKindBase>(
         };
         if (d.width?.max !== undefined) k.maxWidth = d.width.max;
         if (d.width?.comfortable !== undefined) k.comfortableWidth = d.width.comfortable;
+        if (d.height?.max !== undefined) k.maxHeight = d.height.max;
+        if (d.height?.comfortable !== undefined) k.comfortableHeight = d.height.comfortable;
         const types = d.params;
         if (types) k.checkParams = (p) => describeProblems(parseParams(types, p).problems);
         value[d.kind] = k;

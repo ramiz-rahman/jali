@@ -20,6 +20,7 @@ export {
   useCommands,
   useTitle,
   usePaneAttributes,
+  useHeaderActions,
   useLauncher,
   type LauncherSources,
 } from "./pane/hooks";

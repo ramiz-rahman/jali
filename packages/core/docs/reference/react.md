@@ -252,6 +252,20 @@ Mark the pane from its data with `data-*` attributes, so your styles can tell it
 
 Only `data-*` names are kept, and not the ones Jali's own parts use (`data-pane`, `data-tab`, `data-focused`, `data-jali-*` and the rest). `null` or `undefined` clears them. They are cleared when the component unmounts and when the pane closes or shows another object, then set again from the next render. They are not saved. The peek sheet's own content can't set them.
 
+### useHeaderActions
+
+*hook*, from `@jali/react`
+
+```ts
+useHeaderActions(controls: ReactNode): void
+```
+
+Put the pane's own controls in its header. Jali places them in `.jali-pane-tools`, in this order: the grip, the title (or tabs), Following / Kept, your controls, then Jali's buttons. Pass them on every render, like any JSX. `null` takes them away, as does the component unmounting. Each pane has one set, and the last call wins.
+
+They render inside the pane's context, so the pane's hooks work in them, as do providers above `<JaliRoot>`. A provider inside your own component doesn't reach them.
+
+A narrow header gives way before its title gets shorter than a few characters: first Jali's tuck, maximise, full screen and pop out move into the pane's menu, then your controls are hidden too (`data-narrow="tools"`) and the menu lists the pane's commands (`useCommands`) in their place. So give each control a command as well, or it can't be reached in a very narrow pane. The peek sheet has no header, so the controls aren't shown there.
+
 ### useCommands
 
 *hook*, from `@jali/react`

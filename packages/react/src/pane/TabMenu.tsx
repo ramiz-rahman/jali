@@ -21,7 +21,16 @@ export interface TabMenuAt {
  * A tab's own menu (APG menu): Jali's items for that tab, then the app's, in groups. Arrows move, Enter or Space
  * chooses, Esc closes and returns focus to the tab; a disabled item can be reached and says why, but does nothing.
  */
-export function TabMenu({ at, onClose }: { at: TabMenuAt; onClose: (refocus: boolean) => void }) {
+export function TabMenu({
+  at,
+  onClose,
+  commands = false,
+}: {
+  at: TabMenuAt;
+  onClose: (refocus: boolean) => void;
+  /** Also list the pane's commands (useCommands), last: its header is too narrow for the app's controls. */
+  commands?: boolean;
+}) {
   const store = useStore();
   const icon = useJaliIcons();
   const dir = useUi((s) => s.dir);
@@ -41,8 +50,20 @@ export function TabMenu({ at, onClose }: { at: TabMenuAt; onClose: (refocus: boo
       if (near) near.push(item);
       else g.push([item]);
     }
+    // In place of the app's controls a narrow header hid: the pane's commands, in their own group.
+    const own = commands ? (store.get().paneCommands[at.pane] ?? []) : [];
+    if (own.length)
+      g.push(
+        own.map((c) => ({
+          id: `command:${c.id}`,
+          title: c.title,
+          run: c.run,
+          ...(c.keys ? { keys: c.keys } : {}),
+          ...(c.disabled ? { disabled: c.disabled } : {}),
+        })),
+      );
     return g;
-  }, [store, at.pane]);
+  }, [store, at.pane, commands]);
   const node = store.model().pane(at.pane);
   const [pos, setPos] = useState<{ left: number; top: number } | null>(null);
 

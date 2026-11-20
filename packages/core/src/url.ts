@@ -64,6 +64,7 @@ export interface UrlKeys {
   tab: string;
   open: string;
   preset: string;
+  scroll: string;
 }
 export function urlKeys(prefix = ""): UrlKeys {
   return {
@@ -75,6 +76,7 @@ export function urlKeys(prefix = ""): UrlKeys {
     tab: `${prefix}tab`,
     open: `${prefix}open`,
     preset: `${prefix}preset`,
+    scroll: `${prefix}scroll`,
   };
 }
 
@@ -104,6 +106,11 @@ export function buildSearch(search: string, s: UiState, k: UrlKeys = urlKeys()):
   else q.delete(k.zoom);
   if (s.view.peek) q.set(k.peek, encodePeek(s.view.peek));
   else q.delete(k.peek);
+  // Rows that scroll sideways, where each came to rest: `week:732`, comma-separated. None at their start.
+  const scroll = Object.entries(s.view.scroll ?? {}).filter(([, v]) => Math.round(v) > 0);
+  if (!s.page && scroll.length)
+    q.set(k.scroll, scroll.map(([id, v]) => `${id}:${Math.round(v)}`).join(","));
+  else q.delete(k.scroll);
   const text = q.toString();
   return text ? `?${text}` : "";
 }
@@ -149,7 +156,25 @@ export function readSearch(
   if (!layout) return { broken: code, view: {}, ...named };
   const zoom = q.get(k.zoom);
   if (zoom && core.tree.panes(layout.root).some((p) => p.id === zoom)) view.zoomed = zoom;
+  const scroll = readScroll(q.get(k.scroll), layout);
+  if (scroll) view.scroll = scroll;
   return { layout, view, ...named };
+}
+
+/** `week:732,board:40`: offsets for rows of `layout` that scroll sideways. Anything else in it is left out. */
+function readScroll(text: string | null, layout: Layout): Record<NodeId, number> | undefined {
+  if (!text) return undefined;
+  const out: Record<NodeId, number> = {};
+  for (const part of text.split(",")) {
+    const at = part.lastIndexOf(":");
+    const id = part.slice(0, at),
+      value = Number(part.slice(at + 1));
+    const node = at > 0 ? core.tree.find(layout.root, id) : undefined;
+    if (node?.type !== "row" || node.scroll !== "x" || !Number.isFinite(value) || value < 0)
+      continue;
+    out[id] = Math.round(value);
+  }
+  return Object.keys(out).length ? out : undefined;
 }
 
 /**

@@ -4,7 +4,7 @@
  */
 import type { Layout, LayoutNode, ObjectRef, PaneNode } from "@jali/core";
 
-export type DemoLayoutId = "two" | "chain" | "nested" | "stack" | "strip" | "crowded";
+export type DemoLayoutId = "two" | "chain" | "nested" | "stack" | "strip" | "crowded" | "board";
 export const demoLayouts: Record<DemoLayoutId, string> = {
   two: "Two panes side by side",
   chain: "A list, its detail, and a related record",
@@ -12,6 +12,7 @@ export const demoLayouts: Record<DemoLayoutId, string> = {
   stack: "Tabs: a stack of three panes",
   strip: "One group of four tabs, the first pinned",
   crowded: "More panes than fit, so some fold",
+  board: "A list beside a row of six orders that scrolls sideways",
 };
 
 const ref = (kind: string, params: ObjectRef["params"] = {}): ObjectRef => ({ kind, params });
@@ -69,6 +70,21 @@ const builders: Record<DemoLayoutId, () => LayoutNode> = {
       activity(),
     ],
   }),
+  // The list stays put; six orders, each at its comfortable width, in a row that scrolls: for the scrolling rows guide.
+  board: () =>
+    split("row", "root", [
+      orders({ size: { px: 240 } }),
+      {
+        ...split(
+          "row",
+          "board",
+          [1041, 1042, 1043, 1044, 1045, 1046].map((id) =>
+            pane(`order-${id}`, ref("order", { id })),
+          ),
+        ),
+        scroll: "x",
+      } as LayoutNode,
+    ]),
   crowded: () =>
     split("row", "root", [
       orders(),

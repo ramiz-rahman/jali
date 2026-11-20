@@ -1,4 +1,4 @@
-import { memo, useMemo, useState, type CSSProperties } from "react";
+import { memo, useMemo, useRef, useState, type CSSProperties } from "react";
 import { TabMenu, type TabMenuAt } from "./TabMenu";
 import { createPortal } from "react-dom";
 import { bringBack, usePopOutTarget } from "./PopOut";
@@ -28,6 +28,7 @@ import { UnsavedMark, useUnsavedOf } from "./Unsaved";
 import { RenameField, useCanRename } from "./RenameField";
 import { useInert } from "./inert";
 import { ICON } from "../icons/sized";
+import { createHeaderSlot, useHasHeaderControls, useNarrowHeader } from "./header";
 
 interface Props {
   frame: Frame;
@@ -52,6 +53,11 @@ export const PaneFrame = /* @__PURE__ */ memo(
     const coveredRef = useInert(covered);
     const isDragged = useUi((s) => s.dnd?.dragged === node.id);
     const host = useMemo(() => paneHost(store, node.id), [store, node.id]);
+    // The content's own controls (useHeaderActions), and how far a narrow header has given way to keep its title.
+    const header = useMemo(createHeaderSlot, []);
+    const tools = useHasHeaderControls(header);
+    const headerRef = useRef<HTMLDivElement>(null);
+    const narrow = useNarrowHeader(headerRef, tools ? 2 : 1);
     const page = useUi((s) => !!s.page);
     // A curated page in Single: the page tabs name the one view and choose it, so the pane header is visually hidden
     // and offers nothing (no grip, tuck, maximise or close) that a keyboard user could land on unseen.
@@ -137,7 +143,9 @@ export const PaneFrame = /* @__PURE__ */ memo(
         style={style}
       >
         <div
+          ref={headerRef}
           className="jali-pane-header"
+          data-narrow={narrow === 2 ? "tools" : narrow === 1 ? "actions" : undefined}
           // Right-click on the header (not a tab: its strip has its own) opens the pane's menu. The content below is
           // the app's, so its right-click stays the app's.
           onContextMenu={(e) => {
@@ -188,6 +196,9 @@ export const PaneFrame = /* @__PURE__ */ memo(
               ) : null}
             </div>
           )}
+          {tools && !bare && narrow < 2 ? (
+            <div className="jali-pane-tools" ref={header.target} />
+          ) : null}
           {bare ? null : (
             <HeaderActions
               id={node.id}
@@ -195,6 +206,7 @@ export const PaneFrame = /* @__PURE__ */ memo(
               zoomed={zoomed}
               chrome={chrome}
               tabs={!!group}
+              narrow={narrow}
               onMenu={(at) => setMenu({ pane: node.id, ...at })}
             />
           )}
@@ -202,6 +214,7 @@ export const PaneFrame = /* @__PURE__ */ memo(
         {menu ? (
           <TabMenu
             at={menu}
+            commands={narrow === 2}
             onClose={(refocus) => {
               setMenu(null);
               if (refocus) store.dom.pane(node.id)?.focus({ preventScroll: true });
@@ -222,7 +235,13 @@ export const PaneFrame = /* @__PURE__ */ memo(
           {popTarget ? (
             createPortal(
               <div className="jali-pane-content-inner">
-                <PaneBody node={node} host={host} paused={false} focused={focused} />
+                <PaneBody
+                  node={node}
+                  host={host}
+                  header={header}
+                  paused={false}
+                  focused={focused}
+                />
               </div>,
               popTarget,
             )
@@ -231,6 +250,7 @@ export const PaneFrame = /* @__PURE__ */ memo(
               <PaneBody
                 node={node}
                 host={host}
+                header={header}
                 paused={hidden || covered || !!frame.outOfView}
                 focused={focused}
               />

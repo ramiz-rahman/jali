@@ -50,6 +50,8 @@ Two more widths say where spare room goes:
 - `width.comfortable`: spare room brings the pane up to this first. Default: `width.min`.
 - `width.max`: the widest the content usefully uses. Past it, spare room goes to the neighbours first. It is soft: when every pane is at its max, they all grow on, so a split never leaves an empty gap. A person dragging a divider can pass it too.
 
+`height.comfortable` and `height.max` do the same down a column. A short, wide pane, such as a timeline under a document, says `height: { min: 160, comfortable: 200, max: 240 }` and stays about that tall in any window, while the pane above takes the rest.
+
 Leave `width.max` out for content that uses any width, such as tables and charts. Set it for forms and records, so a field does not stretch across a wide screen.
 
 </Step>
@@ -160,6 +162,27 @@ Three hooks tell the workspace about the pane they are called in:
 - `useCommands([...])` adds commands to ⌘K while the pane is focused.
 
 The last two are covered in [Unsaved work and pane state](/guides/unsaved-work-and-pane-state).
+
+## Controls in the header
+
+A control that acts on the whole pane, such as Add, Refresh or a view switch, can sit in the pane's header rather than in a toolbar of your own. Call `useHeaderActions` with the controls, and Jali places them after the title and Following / Kept, before its own buttons:
+
+```tsx
+function Notes() {
+  const add = useAddNote();
+  useCommands([{ id: "add", title: "Add a note", keys: "N", run: add }]);
+  useHeaderActions(
+    <button type="button" className="notes-add" aria-label="Add a note" onClick={add}>
+      <PlusIcon aria-hidden />
+    </button>,
+  );
+  return <NoteList />;
+}
+```
+
+Jali gives the controls no style: they sit in `.jali-pane-tools`, so your CSS sizes them to the header. Pass them on every render, and pass `null` to take them away.
+
+A header has little room, and the title comes first. In a narrow header, Jali's tuck, maximise and full screen buttons move into the pane's menu (⋯) first. If the title is still cut below a few characters, your controls are hidden too, and the menu lists the pane's commands in their place. That is why the example also gives Add as a command: every control should have one, so that a narrow pane, ⌘K and the keyboard all reach it. Keep the header for a few controls that act on the pane. Controls for the selected row belong with the rows.
 
 ## Failures, loading and titles
 

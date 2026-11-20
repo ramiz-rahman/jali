@@ -2,7 +2,7 @@
 import type { NodeId, PaneNode, Rect, ViewState } from "../layout/types";
 import type { JaliModel } from "../state/model";
 import type { Presentation } from "../pane/chrome";
-import type { Hinge } from "./stack";
+import { stackShare, type Hinge } from "./stack";
 import { GAP } from "../tokens";
 
 /**
@@ -72,18 +72,22 @@ export function frames(
   view: ViewState,
   mode: Presentation,
   size: { width: number; height: number },
-  /** Stacked view: the top pane's share of the height (0 to 1), or `false` to show one pane (the keyboard is up). */
-  stack: number | false = 0.5,
+  /** Stacked view: the top pane's share of the height (0 to 1), or `false` to show one pane (the keyboard is up).
+   *  Left out, the kinds' heights decide it (`stackShare`): a half unless one gives a comfortable or max height. */
+  stack?: number | false,
   /** Where this box sits in the workspace, which a fold's hinge is measured in. */
   origin: { x: number; y: number } = { x: 0, y: 0 },
 ): Frame[] {
   if (mode === "single" && m.stacked && (stack !== false || m.stacked.hinge)) {
     const { top, bottom, hinge } = m.stacked;
-    const ratio = stack === false ? 0.5 : stack;
+    const { gap } = m.env.spacing;
+    const ratio =
+      stack === false
+        ? 0.5
+        : (stack ?? stackShare(m.env, m.pane(top), m.pane(bottom), size.height, gap));
     const rects = hinge
       ? acrossFold(hinge, size, origin)
       : (() => {
-          const { gap } = m.env.spacing;
           const topH = Math.round((size.height - gap) * ratio);
           return [
             { x: 0, y: 0, width: size.width, height: topH },

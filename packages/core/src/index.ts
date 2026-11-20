@@ -147,7 +147,7 @@ export {
 // ---------- geometry ----------
 /** The gap between panes and the workspace's inset, in px: for a host that measures around a workspace. */
 export { GAP } from "./tokens";
-/** Scroll a row that scrolls sideways while a drag is held near its edge, for an app's own drag. */
+/** Scroll a row that scrolls sideways while a drag is held near its edge, for an app's own drag (Jali's does it). */
 export { edgeScroll, type EdgeScroll } from "./workspace/edge-scroll";
 
 // ---------- contracts with other libraries ----------

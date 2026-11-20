@@ -1,14 +1,26 @@
 import type { Axis, KindRegistry, LayoutNode } from "../types";
 /**
  * What a slot needs and can use. `width`/`height`: minimums (the fit step folds below them). `comfortable` and
- * `maxWidth`: the share rule's targets along a row (see PaneKind); `maxWidth` is soft, never a hard cap.
+ * `maxWidth`: the share rule's targets along a row (see PaneKind); `comfortableHeight` and `maxHeight` the same down
+ * a column. The maximums are soft, never a hard cap.
  */
 export interface Bounds {
   width: number;
   height: number;
   comfortable: number;
   maxWidth: number;
+  comfortableHeight: number;
+  maxHeight: number;
 }
+/** A slot with no needs: what a split measures as before its children are combined. */
+export const NO_BOUNDS: Bounds = {
+  width: 0,
+  height: 0,
+  comfortable: 0,
+  maxWidth: Infinity,
+  comfortableHeight: 0,
+  maxHeight: Infinity,
+};
 /** `home`: for a tab group, the index of the child the slot belongs to (a stack's first tab, a fold's home pane). */
 export function combineBounds(
   type: string,
@@ -23,6 +35,13 @@ export function combineBounds(
     heights = children.map((c) => c.height);
   const comfortable = children.map((c) => c.comfortable),
     maxima = children.map((c) => c.maxWidth);
+  const comfortableHeights = children.map((c) => c.comfortableHeight),
+    maxHeights = children.map((c) => c.maxHeight);
+  // Heights mirror widths: down a column they add up, across a row the slot takes the most any child needs or uses.
+  const across = {
+    comfortableHeight: Math.max(...comfortableHeights),
+    maxHeight: Math.max(...maxHeights),
+  };
   // Side by side, needs add up. Stacked, the slot can use what any of its panes can. Tabbed, every tab must fit (the
   // minimums), and the slot is measured as its home: a fold of tables into a record's slot is still a record's slot,
   // and choosing a tab never resizes it.
@@ -35,6 +54,7 @@ export function combineBounds(
       height: Math.max(...heights),
       comfortable: sum(comfortable),
       maxWidth: sum(maxima),
+      ...across,
     };
   if (type === "row")
     return {
@@ -42,6 +62,7 @@ export function combineBounds(
       height: Math.max(...heights),
       comfortable: sum(comfortable),
       maxWidth: sum(maxima),
+      ...across,
     };
   const width = Math.max(...widths);
   if (type === "column")
@@ -50,14 +71,20 @@ export function combineBounds(
       height: sum(heights),
       comfortable: Math.max(...comfortable),
       maxWidth: Math.max(...maxima),
+      comfortableHeight: sum(comfortableHeights),
+      maxHeight: sum(maxHeights),
     };
   const own = children[home] ?? children[0]!;
   const comfort = Math.max(width, own.comfortable);
+  const height = Math.max(...heights);
+  const comfortHeight = Math.max(height, own.comfortableHeight);
   return {
     width,
-    height: Math.max(...heights),
+    height,
     comfortable: comfort,
     maxWidth: Math.max(comfort, own.maxWidth),
+    comfortableHeight: comfortHeight,
+    maxHeight: Math.max(comfortHeight, own.maxHeight),
   };
 }
 export function bounds(node: LayoutNode, kinds: KindRegistry, gap: number): Bounds {
@@ -72,11 +99,14 @@ export function bounds(node: LayoutNode, kinds: KindRegistry, gap: number): Boun
   const kind = kinds[node.ref.kind];
   if (!kind) throw new Error(`Unknown pane kind: ${node.ref.kind}`);
   const comfortable = Math.max(kind.minWidth, kind.comfortableWidth ?? kind.minWidth);
+  const comfortableHeight = Math.max(kind.minHeight, kind.comfortableHeight ?? kind.minHeight);
   return {
     width: kind.minWidth,
     height: kind.minHeight,
     comfortable,
     maxWidth: Math.max(comfortable, kind.maxWidth ?? Infinity),
+    comfortableHeight,
+    maxHeight: Math.max(comfortableHeight, kind.maxHeight ?? Infinity),
   };
 }
 export function minSize(node: LayoutNode, kinds: KindRegistry, gap: number, axis: Axis): number {

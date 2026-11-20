@@ -78,6 +78,17 @@ describe("definePane", () => {
   it("gives sizes defaults, so a kind only states what it needs", () => {
     const kind = make().env.kinds.registry().note!;
     expect([kind.minWidth, kind.minHeight, kind.maxWidth]).toEqual([240, 160, 600]);
+    expect([kind.comfortableHeight, kind.maxHeight]).toEqual([undefined, undefined]);
+  });
+
+  it("passes a comfortable and a max height on to the layout, as for widths", () => {
+    const band = definePane("band", {
+      title: () => "Band",
+      height: { min: 120, comfortable: 200, max: 260 },
+      Component: () => null,
+    });
+    const kind = make({ panes: [note, band] }).env.kinds.registry().band!;
+    expect([kind.minHeight, kind.comfortableHeight, kind.maxHeight]).toEqual([120, 200, 260]);
   });
 
   it("knows scratch kinds are never the same object and stay out of Recent by default", () => {

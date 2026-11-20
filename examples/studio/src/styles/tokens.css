@@ -137,7 +137,6 @@
   --jali-accent: var(--st-signal);
   --jali-accent-soft: light-dark(#ffe6d9, #3a1d0e);
   --jali-on-accent: var(--on-signal);
-  --jali-working: var(--st-signal);
   --jali-chip: var(--ink);
   --jali-on-chip: var(--body);
   --jali-scrim: light-dark(rgb(40 40 38 / 0.28), rgb(0 0 0 / 0.6));

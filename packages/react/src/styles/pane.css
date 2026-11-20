@@ -105,6 +105,15 @@
     padding: 0 0.25rem;
   }
 
+  /* The pane's own controls (useHeaderActions): after the title and Following / Kept, before Jali's buttons. Drawn only
+   when the content gives some, so an empty slot adds no gap. A narrow header drops it before its title gets short. */
+  .jali-pane-tools {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    flex: none;
+  }
+
   /* Header actions: tuck, maximise, close; 26px targets, 4px apart. Tuck and maximise show on the focused or hovered pane. */
   .jali-pane-actions {
     display: flex;

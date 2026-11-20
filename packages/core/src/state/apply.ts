@@ -57,6 +57,7 @@ export interface Deferred {
 export type Op =
   | "focus"
   | "zoom"
+  | "scroll"
   | "peek"
   | "select"
   | "patch"
@@ -251,6 +252,8 @@ export const POLICY: Record<Op, Policy> = {
   focus: view("none"),
   patch: view("none"),
   zoom: view("replace", "reshape"),
+  // Where a row that scrolls sideways came to rest: in the link, but Back doesn't step through every swipe.
+  scroll: view("replace"),
   peek: view("replace"),
   select: view("replace"),
   permission: view("none"),

@@ -55,7 +55,7 @@ import {
 import { Missing, NotInTransport } from "../ui/parts";
 import { clip } from "./clip";
 import { followSession } from "./follow";
-import { listMove } from "./keys";
+import { listMove, showRow } from "./keys";
 
 const transcriptParams = { session: String };
 
@@ -168,7 +168,7 @@ function TranscriptBody({
   const speaking = inTransport ? segmentIndexAt(session, playhead) : -1;
   useLayoutEffect(() => {
     if (paused || !follow || speaking < 0 || editing) return;
-    rowAt(listRef.current, speaking)?.scrollIntoView({ block: "nearest", behavior: "smooth" });
+    showRow(listRef.current, rowAt(listRef.current, speaking), true);
   }, [speaking, paused, follow, editing]);
 
   // When the pane comes on screen or a layout opens, the cursor's row is in view. A layout can move the cursor a
@@ -181,7 +181,7 @@ function TranscriptBody({
   }, [paused, presetId, session.id]);
   useLayoutEffect(() => {
     if (!paused && performance.now() < showUntil.current)
-      rowAt(listRef.current, at)?.scrollIntoView({ block: "nearest" });
+      showRow(listRef.current, rowAt(listRef.current, at));
   }, [at, paused, presetId, session.id]);
 
   const playFrom = (seg: SegmentData) => cue(engine, session.id, seg.start, true);
@@ -213,7 +213,7 @@ function TranscriptBody({
     const to = listMove(e, at, segs.length);
     if (to !== null) {
       moveTo(segs[to]!.id);
-      rowAt(listRef.current, to)?.scrollIntoView({ block: "nearest" });
+      showRow(listRef.current, rowAt(listRef.current, to));
     } else if (e.key === "Enter" && e.altKey) openDetail(current);
     else if (e.key === "Enter" && !e.metaKey && !e.ctrlKey) playFrom(current);
     else if ((e.key === "e" || e.key === "E") && !e.metaKey && !e.ctrlKey) edit(current);

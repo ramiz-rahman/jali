@@ -93,3 +93,7 @@ definePane("chart", { buttons: (defaults) => [...defaults, "popOut"], /* ... */ 
 ```
 
 `allow` still filters the list: a button for something that isn't allowed isn't drawn. And the way out of a state always shows, whatever the list says: Restore while a pane is maximised, Exit full screen while it is full screen.
+
+In a narrow pane, the title comes first. Before it gets shorter than a few characters, Tuck, Maximise, Full screen and Pop out move from the header into the pane's menu, where they keep their names and keys. Close and ⋯ stay. The header takes them back once there is room. `data-narrow` on the header and `data-count` on its buttons let a theme follow this (see [Parts](../reference/parts.md)).
+
+A header holds, in order: the grip, the title (or tabs), Following / Kept, the pane's own controls, and these buttons. A pane's content puts its own controls there with `useHeaderActions` (see [Controls in the header](pane-kinds.md#controls-in-the-header)).

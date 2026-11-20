@@ -20,7 +20,7 @@ Each [kind](/get-started/key-concepts#kind) can give three widths. Each has one 
 - **`width.comfortable`** is where spare room takes the pane first. It defaults to the minimum.
 - **`width.max`** is the widest the content usefully uses. It is soft: spare room past it goes to neighbours that can still use it, and only when every neighbour is at its maximum does the pane grow on. A split never leaves an empty gap. Leave it out for content that can use any width, such as tables and charts.
 
-`height.min` works like `width.min`, for columns. Jali checks both after every fold.
+Heights have the same three, down a column: `height.min` decides folding as `width.min` does (Jali checks both after every fold), and `height.comfortable` and `height.max` say where spare height goes. A timeline that is right at about 200 pixels says `height: { min: 160, comfortable: 200, max: 240 }`, and the pane above it takes the rest of a tall window, with no weights to tune. Across a row, a row is as tall as the tallest its panes can use; a tab group is measured as its first tab, as for widths.
 
 **Why a minimum, not a percentage:** a ticket at 200px is broken whatever the window. A width the content needs is a fact about the content, so the kind says it once, and every layout respects it.
 
@@ -28,9 +28,9 @@ Each [kind](/get-started/key-concepts#kind) can give three widths. Each has one 
 
 In a split nobody has resized, every pane starts at its minimum. Spare room brings each up to its comfortable width, evenly. Then it brings them toward their maximums, in proportion to their weights, and past that, still by weight.
 
-With no comfortable or maximum width declared, this is simply a split by weight.
+With no comfortable or maximum width declared, this is simply a split by weight. A column shares its height the same way, by the panes' heights.
 
-Once the person drags a divider, that split keeps their proportions exactly at any width, and comfortable and maximum widths no longer apply to it. Double-click the divider to hand it back.
+Once the person drags a divider, that split keeps their proportions exactly at any width, and comfortable and maximum sizes no longer apply to it. A drag can take a pane past its maximum. Double-click the divider to hand it back.
 
 ## What folds first
 
@@ -58,6 +58,8 @@ Within one of those steps, ties are broken in this order:
 ## Where a folded pane goes
 
 A folded pane becomes a tab of the pane it was opened from, so a ticket folds behind the list it came from, not behind something unrelated. If that pane is folded too, it joins the same group. A pane with no link joins its nearest neighbour.
+
+A tab group is as wide as its widest tab needs, so a fold can make the group it joins wider, and that can push the next pane out too: a wide chart folding behind a narrow list makes the list's group as wide as the chart, and the pane beside it no longer fits. So when that home would still leave the panes too wide for the room, Jali also tries the pane's other links and its neighbours, follows each through to a fit, and puts it where the most panes stay on screen. The pane it was opened from wins every tie, and whenever its fold already fits, so most layouts never see the difference. The choice depends on the room, so between two widths a folded tab can move from one group to another; the same width always gives the same arrangement.
 
 <Spotlight layout="crowded" target="folded" height={300} caption="Folded panes wait behind one chip at the end of the tab strip: the layout put them there, and they return on their own." />
 
@@ -101,7 +103,7 @@ On a phone, a workspace narrower than 600 pixels shows a single view: one pane f
 
 ### Two panes, stacked
 
-A list and its detail often work best together, even on a phone. With `createJali({ phone: { stack: true } })`, a portrait phone shows the focused pane together with the pane it was opened from, one above the other, instead of one at a time. A divider between them, a 44 pixel touch target, settles on a third, a half or two thirds of the height, by drag or arrow keys. The switcher marks both panes.
+A list and its detail often work best together, even on a phone. With `createJali({ phone: { stack: true } })`, a portrait phone shows the focused pane together with the pane it was opened from, one above the other, instead of one at a time. The two share the height as a column does: half each, unless a kind gives a comfortable or maximum height, so a short timeline stays short above its list. A divider between them, a 44 pixel touch target, settles on a third, a half or two thirds of the height, by drag or arrow keys, and from then on the person's choice holds. The switcher marks both panes.
 
 Stacking happens only when both panes have room: the workspace at least 480 pixels tall, each pane at least 200 (`stackFloor`) and at least its kind's minimum height. It never stacks more than two. Held sideways, the phone is wide enough for the normal layout. While the on-screen keyboard is up, the pane you're typing in shows alone, so the keyboard doesn't cover it. A kind can stay out with `phone: { stack: false }`, or ask for its half with `phone: { place: "top" }`.
 
