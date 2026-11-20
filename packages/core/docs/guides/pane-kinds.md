@@ -185,7 +185,7 @@ function Notes() {
 
 Jali gives the controls no style: they sit in `.jali-pane-tools`, so your CSS sizes them to the header. Pass them on every render, and pass `null` to take them away.
 
-A header has little room, and the title comes first. In a narrow header, Jali's tuck, maximise and full screen buttons move into the pane's menu (⋯) first. If the title is still cut below a few characters, your controls are hidden too, and the menu lists the pane's commands in their place. That is why the example also gives Add as a command: every control should have one, so that a narrow pane, ⌘K and the keyboard all reach it. Keep the header for a few controls that act on the pane. Controls for the selected row belong with the rows.
+A header has little room, and the title comes first. In a narrow header, Jali's tuck, maximise and full screen buttons move into the pane's menu (⋯) first. If the title is still cut below a few characters, your controls are hidden too, and the menu lists the pane's commands in their place. That is why the example also gives Add as a command: every control should have one, so that a narrow pane, ⌘K and the keyboard all reach it. Keep the header for a few controls that act on the pane. Controls for the selected row belong with the rows. Keep titles short too: a title from `useTitle` that names a long record takes the header's room, and in an ordinary layout of four or five panes the controls move into ⋯. Put the detail in the pane, and keep the title to what tells the panes apart.
 
 ## Failures, loading and titles
 
