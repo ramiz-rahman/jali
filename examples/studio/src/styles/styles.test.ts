@@ -3,11 +3,12 @@
  * spacing off the scale or a control height of its own fails here, so the look stays one system as it grows.
  * tokens.css is where values are defined, so it is not checked.
  */
-import { readFileSync } from "node:fs";
+import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 
-const FILES = ["parts.css", "chrome.css", "panes.css", "shell.css"];
+const panes = readdirSync(join(import.meta.dirname, "panes")).map((f) => `panes/${f}`);
+const FILES = ["parts.css", "chrome.css", "shell.css", ...panes];
 const SPACE = new Set([0, 1, 2, 4, 6, 8, 10, 12, 16, 20, 24, 28]);
 
 const lines = FILES.flatMap((file) =>
@@ -20,10 +21,12 @@ const offenders = (test: (text: string) => boolean) =>
   lines.filter((l) => test(l.text)).map((l) => `${l.at}  ${l.text}`);
 
 describe("the stylesheets use the tokens", () => {
-  it("no raw colours: every colour is a token (shadows and seams may use black or white with an alpha)", () => {
+  it("no raw colours: every colour, shadow and highlight is a token", () => {
     // The header-button comparison switch is temporary (ui/headerButtons.ts) and goes with it.
     const temporary = /light-dark\(#d9d9d5, #1d1d20\)/;
     expect(offenders((t) => /#[0-9a-f]{3,8}\b/i.test(t) && !temporary.test(t))).toEqual([]);
+    // Shadows and highlights too: the shade and lit ladders, never an rgb() written in a rule.
+    expect(offenders((t) => /\brgba?\(/.test(t))).toEqual([]);
   });
 
   it("type: every size, tracking and leading is a token", () => {

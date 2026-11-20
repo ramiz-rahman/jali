@@ -1,0 +1,315 @@
+/*
+ * The transcript: paper set into the faceplate, its control row in one tray, and its three kinds of material.
+ */
+@layer app {
+  .transcript {
+    container-type: inline-size;
+  }
+  .tr-rows {
+    /* The column the times stand in; the words, names and headings start 12px after it. */
+    --gutter: 44px;
+    flex: 1;
+    min-height: 0;
+    overflow: auto;
+    padding: 12px 0 40vh;
+    scroll-padding: 48px 0;
+    margin: 0 12px 12px;
+    background:
+      linear-gradient(
+        90deg,
+        transparent 77px,
+        var(--paper-rule) 77px,
+        var(--paper-rule) 78px,
+        transparent 78px
+      ),
+      var(--paper);
+    box-shadow:
+      inset 0 0 0 1px light-dark(var(--shade-3), var(--shade-7)),
+      inset 0 2px 4px var(--shade-3),
+      0 0 0 3px var(--body-wall),
+      0 1px 0 3px var(--seam-lit);
+  }
+  .tr-seg {
+    position: relative;
+    margin: 0 10px;
+    padding: 6px 12px 8px 16px;
+    border-radius: var(--corner);
+  }
+  .tr-seg::before {
+    content: "";
+    position: absolute;
+    left: 4px;
+    top: 8px;
+    bottom: 8px;
+    width: 3px;
+    border-radius: var(--corner);
+    background: transparent;
+  }
+  /*
+   * Selection, keyboard focus and playing are three marks that never stack (the rule for every list in the app):
+   *  - selected: the orange side bar and a slightly raised tint;
+   *  - keyboard focus (only from the keyboard, `:focus-visible` on the list): a thin neutral inner outline;
+   *  - playing: the word's underline and tint, and the timecode lit.
+   */
+  .tr-seg[aria-selected="true"]::before {
+    background: var(--st-signal);
+  }
+  .tr-seg[aria-selected="true"] {
+    background: light-dark(var(--shade-1), var(--lit-1));
+  }
+  .tr-rows:focus-visible .tr-seg[aria-selected="true"] {
+    box-shadow: inset 0 0 0 1.5px var(--paper-dim);
+  }
+  .tr-speaker {
+    padding: 12px 0 4px calc(var(--gutter) + 12px);
+  }
+  .tr-seg:first-child .tr-speaker {
+    padding-top: 2px;
+  }
+  .tr-speaker-name {
+    padding: 0;
+    border: 0;
+    background: none;
+    font-family: var(--jali-font-mono);
+    font-size: var(--type-legend);
+    font-weight: 500;
+    letter-spacing: var(--track-print);
+    color: var(--paper-dim);
+    cursor: text;
+  }
+  .tr-seg[data-channel] .tr-speaker-name::before {
+    content: "";
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    margin-right: 8px;
+    border-radius: 50%;
+    background: var(--chan);
+    box-shadow: inset 0 0 0 1px var(--shade-4);
+    vertical-align: -0.5px;
+  }
+  .tr-speaker-name:hover {
+    color: var(--st-signal-ink);
+  }
+  .tr-line {
+    display: grid;
+    grid-template-columns: var(--gutter) minmax(0, 1fr) auto;
+    gap: 12px;
+    align-items: start;
+    /* A line that starts while another is still going (people talking over each other): a short rule in its
+     track's colour between the time and the words, so overlaps read at a glance. */
+    position: relative;
+  }
+  .tr-time {
+    padding: 5px 0 0; /* optical: the time sits on the first line's baseline */
+    border: 0;
+    background: none;
+    color: var(--paper-dim);
+    font-family: var(--font-readout);
+    text-align: right;
+    cursor: pointer;
+    font-size: var(--type-legend);
+    padding-top: 6px;
+  }
+  .tr-time:hover,
+  .tr-seg[data-speaking] .tr-time {
+    color: var(--st-signal-ink);
+  }
+  .tr-text {
+    margin: 0;
+    color: var(--paper-ink);
+    text-wrap: pretty;
+    /* The transcript's segment keys: three keysets with gutters between them. */
+    /* Long reading in Chakra Petch: a little larger and looser than the Plex it replaced. */
+    font-size: var(--type-large);
+    line-height: var(--lead-read);
+    letter-spacing: var(--track-print);
+    max-width: 66ch;
+  }
+  .w {
+    cursor: pointer;
+    border-radius: var(--corner);
+  }
+  .w:hover {
+    text-decoration: underline;
+    text-decoration-color: var(--st-signal-line);
+    text-underline-offset: 3px;
+  }
+  /* In the segment being spoken, the words still to come print a shade lighter (7:1 on the paper). */
+  .tr-seg[data-speaking] .w:not([data-state]) {
+    color: var(--paper-dim);
+  }
+  .w[data-state="now"] {
+    background: var(--st-signal-soft);
+    box-shadow:
+      -2px 0 0 var(--st-signal-soft),
+      2px 0 0 var(--st-signal-soft);
+    text-decoration: underline;
+    text-decoration-color: var(--st-signal);
+    text-decoration-thickness: 2px;
+    text-underline-offset: 4px;
+  }
+  .tr-marks {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding-top: 4px;
+    min-height: 26px;
+  }
+  @container (max-width: 460px) {
+    .tr-line {
+      grid-template-columns: minmax(0, 1fr) auto;
+    }
+    .tr-time {
+      display: none;
+    }
+    .tr-speaker {
+      padding-left: 0;
+    }
+  }
+  /* A narrow transcript keeps every segment key and drops their words; their titles and the key's text (kept for
+     screen readers) still name them. */
+  @container (max-width: 560px) {
+    .tr-tray .key-word {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip-path: inset(50%);
+    }
+    .tr-tray .tr-group:not(:first-child) .key-s {
+      width: 34px;
+      padding: 0;
+    }
+  }
+  /* While a line is being corrected, its field carries the focus ring: the row's own ring steps back. */
+  .tr-rows:focus-visible .tr-seg:has(.tr-editor) {
+    box-shadow: none;
+  }
+  /*
+   * ---------- transcript: a reading surface set into the faceplate ----------
+   * One control row above it (the follow latch, the segment counter on a small LCD, the segment's keysets, the
+   * save keys when there are corrections), wrapping in a narrow pane. The sheet sits in a frame: a black bezel and a
+   * ruled gutter down its left for the timecodes, so the text column starts on one line and reads at about 65
+   * characters a line.
+   */
+  .tr-controls {
+    flex-wrap: wrap;
+    row-gap: 8px;
+    gap: 10px;
+    padding-block: 8px;
+    align-items: flex-start;
+    padding: 8px 12px;
+    min-height: 0;
+  }
+  .tr-controls .toolbar-end:empty {
+    display: none;
+  }
+  @container (max-width: 460px) {
+    .tr-rows {
+      background: var(--paper);
+    }
+  }
+  .tr-tray {
+    flex: 1 1 auto;
+    flex-wrap: wrap;
+    gap: 6px 12px;
+    padding: 4px;
+  }
+  .tr-group {
+    display: inline-flex;
+    gap: var(--seam);
+  }
+  .tr-tray .key,
+  .tr-tray .lcd {
+    height: var(--h-key-s);
+    box-sizing: border-box;
+  }
+  .tr-tray .key-latch:first-child {
+    min-width: 88px;
+  }
+  .tr-tray .lcd.tr-counter {
+    display: inline-flex;
+    align-items: center;
+    gap: 0;
+    padding: 0 10px;
+    font-family: var(--font-readout);
+    font-size: var(--type-legend);
+    line-height: 1;
+    color: var(--lcd-dim);
+    box-shadow:
+      inset 0 1px 2px var(--shade-5),
+      inset 0 0 0 1px var(--shade-4);
+  }
+  .tr-tray .lcd.tr-counter b {
+    font-size: var(--type-legend);
+    font-weight: 500;
+    color: var(--lcd-ink);
+  }
+  .tr-tray .lcd.tr-unsaved {
+    color: var(--lcd-ink);
+  }
+  .tr-corrections {
+    margin-left: auto;
+  }
+  /*
+   * ---------- the transcript, for three kinds of material ----------
+   * A marker prints as a heading on the paper over the first line after it: a song's sections, a dinner's topics,
+   * the landing's moments. Engraved small caps with a rule, quieter than a line, never a row.
+   */
+  .tr-section {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    /* The heading starts where the words do: the row's own margin and padding, then the gutter and its gap. */
+    margin: 12px 10px 2px;
+    padding-left: calc(16px + var(--gutter) + 12px);
+    font-family: var(--jali-font);
+    font-size: var(--type-fine);
+    font-weight: 600;
+    letter-spacing: var(--track-legend);
+    color: var(--paper-dim);
+  }
+  .tr-section::after {
+    content: "";
+    flex: 1;
+    height: 1px;
+    background: var(--paper-rule);
+  }
+  .tr-section:first-child {
+    margin-top: 4px;
+  }
+  /* A callsign before the name (CDR, CC): printed as the transcript prints it, in the readout face. */
+  .tr-code {
+    margin-right: 6px;
+    font-family: var(--font-readout);
+    font-weight: 600;
+    letter-spacing: var(--track-legend);
+    text-transform: none;
+    color: var(--paper-ink);
+  }
+  /* A sound, not a word ([laugh], [noise]): quiet italic in the dim ink, never lit. */
+  .w-tag {
+    font-size: 0.82em;
+    font-style: italic;
+    color: var(--paper-dim);
+  }
+  .tr-seg[data-overlap] .tr-line::before {
+    content: "";
+    position: absolute;
+    left: calc(var(--gutter) + 5px);
+    top: 7px;
+    width: 2px;
+    height: 12px;
+    border-radius: 1px;
+    background: var(--chan);
+    opacity: 0.8;
+  }
+  /* The mission clock is wider than mm:ss: the gutter grows to hold it, and the names and headings move with it. */
+  .tr-rows:has(.tr-time[data-wide]) {
+    --gutter: 64px;
+  }
+  .tr-rows:has(.tr-time[data-wide]) .tr-line {
+    grid-template-columns: var(--gutter) minmax(0, 1fr) auto;
+  }
+}

@@ -1,0 +1,72 @@
+/*
+ * The launcher: a selector panel.
+ */
+@layer app {
+  .launcher {
+    gap: 16px;
+    padding: 16px;
+    overflow: auto;
+  }
+  .launcher section {
+    display: grid;
+    gap: 10px;
+    justify-items: start;
+  }
+  .launcher section:first-child {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px 12px;
+  }
+  .launcher section:first-child h3 {
+    flex-basis: 100%;
+  }
+  .launcher-keys {
+    flex: 0 1 auto;
+    flex-wrap: wrap;
+    max-width: 100%;
+    box-sizing: border-box;
+    /* The keys fill the pocket in whole keys: never an empty tray beside them. */
+    display: grid;
+    grid-template-columns: repeat(auto-fit, 84px);
+    width: max-content;
+  }
+  .launcher-keys .key {
+    width: 84px;
+  }
+  .launcher-recent {
+    display: grid;
+    gap: 0;
+    width: 100%;
+    max-width: 420px;
+    margin: 0;
+    padding: 4px;
+    list-style: none;
+    box-sizing: border-box;
+  }
+  .launcher-recent button {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    width: 100%;
+    padding: 8px 10px;
+    border: 0;
+    border-radius: var(--corner);
+    background: none;
+    color: var(--lcd-ink);
+    font-family: var(--font-readout);
+    font-size: var(--type-control);
+    text-align: left;
+    cursor: pointer;
+  }
+  .launcher-recent button:hover,
+  .launcher-recent button:focus-visible {
+    background: var(--lcd-ink);
+    color: var(--lcd-paper);
+  }
+  .launcher-open {
+    color: var(--lcd-dim);
+  }
+  .launcher-recent button:hover .launcher-open {
+    color: var(--lcd-paper);
+  }
+}

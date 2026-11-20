@@ -3,7 +3,7 @@
  *
  *   housing     a raised body: a device, a pane's faceplate, a dialog, a menu
  *   tray        a recessed well a row of keys sits in
- *   key         sizes: transport (.key-l), unit (.key-m), standard (.key), small (.key-s)
+ *   key         sizes: big (.key-m, the launcher), standard (.key), small (.key-s); the slab sizes its own
  *   latch       a key that stays down when on (aria-pressed, or a selected tab or row), with its lamp lit
  *   lamp        .led, or a pseudo-element on Jali's parts that take no children
  *   knob, jog   rotary controls (ui/Knob.tsx)
@@ -14,7 +14,7 @@
  *   legend      printed lower-case mono type
  *
  * Each rule lists the app's classes and Jali's public parts together, inside :where() so a part's own layout rules
- * (in panes.css, chrome.css) override it at any specificity. State is never shown by depth alone: a latched key
+ * (in panes/, chrome.css) override it at any specificity. State is never shown by depth alone: a latched key
  * also lights its lamp, and the selected tab also prints its legend in bold.
  */
 @layer app {
@@ -34,18 +34,17 @@
     box-shadow:
       inset 0 1.5px 0 var(--body-hi),
       inset 0 0 0 1px var(--body-rim),
-      inset 0 -2px 0 rgb(0 0 0 / calc(0.07 * var(--sh))),
+      inset 0 -2px 0 var(--shade-2),
       0 3px 0 var(--body-wall),
-      0 4px 1px rgb(0 0 0 / calc(0.2 * var(--sh))),
-      0 10px 14px -4px rgb(0 0 0 / calc(0.2 * var(--sh))),
-      0 22px 30px -14px rgb(0 0 0 / calc(0.35 * var(--sh)));
+      0 4px 1px var(--shade-4),
+      0 10px 14px -4px var(--shade-4),
+      0 22px 30px -14px var(--shade-5);
   }
   /* The focused device is told by the lamp in its header alone (chrome.css): no ring, so the plates stay clean.
      Keyboard focus inside it still shows on the control that has it. */
   .jali-pane:focus-visible {
     outline: none;
   }
-
   /* ---------- tray ---------- */
   :where(.tray) {
     display: flex;
@@ -53,16 +52,12 @@
     gap: 8px;
     padding: 8px 8px 8px;
     border-radius: var(--corner);
-    background: light-dark(
-      rgb(0 0 0 / calc(0.075 * var(--sh))),
-      rgb(0 0 0 / calc(0.42 * var(--sh)))
-    );
+    background: light-dark(var(--shade-2), var(--shade-5));
     box-shadow:
-      inset 0 2px 3px rgb(0 0 0 / calc(0.22 * var(--sh))),
-      inset 0 0 0 1px rgb(0 0 0 / calc(0.08 * var(--sh))),
+      inset 0 2px 3px var(--shade-4),
+      inset 0 0 0 1px var(--shade-2),
       0 1px 0 var(--seam-lit);
   }
-
   /* ---------- key ---------- */
   :where(
     .key,
@@ -100,10 +95,9 @@
     box-shadow:
       inset 0 1px 0 var(--cap-hi),
       inset 0 0 0 1px var(--cap-rim),
-      inset 0 -2px 0 rgb(0 0 0 / calc(0.06 * var(--sh))),
+      inset 0 -2px 0 var(--shade-1),
       0 calc(var(--wall) - var(--press)) 0 var(--cap-edge),
-      0 calc(var(--wall) + 2px - var(--press)) calc(4px - var(--press))
-        rgb(0 0 0 / calc(0.24 * var(--sh)));
+      0 calc(var(--wall) + 2px - var(--press)) calc(4px - var(--press)) var(--shade-4);
     transition:
       translate var(--travel),
       box-shadow var(--travel),
@@ -135,31 +129,12 @@
     min-width: 48px;
     border-radius: var(--corner);
   }
-  :where(.key-l) {
-    --wall: 4px;
-    width: 54px;
-    height: var(--h-key-m);
-    padding: 0;
-    border-radius: var(--corner);
-  }
   :where(.key-square) {
     width: var(--key-size, auto);
     aspect-ratio: 1;
     padding: 0;
     flex-direction: column;
     gap: 4px;
-  }
-  /* A legend printed at the key's foot, its lamp in the corner: the top row's layout keys. */
-  :where(.key-legend) {
-    justify-content: flex-start;
-    align-items: flex-end;
-    min-width: 76px;
-    padding: 0 10px 8px;
-  }
-  :where(.key-sub) {
-    font-size: var(--type-fine);
-    letter-spacing: var(--track-legend);
-    color: var(--legend);
   }
   /* Pressed: down by the height of its wall. */
   :where(
@@ -190,7 +165,6 @@
     cursor: default;
     color: color-mix(in srgb, var(--cap-ink) 42%, transparent);
   }
-
   /* ---------- latch ---------- */
   :where(
     .key[aria-pressed="true"],
@@ -209,14 +183,13 @@
       color-mix(in srgb, var(--cap-2) 86%, var(--black))
     );
     box-shadow:
-      inset 0 2px 3px rgb(0 0 0 / calc(0.24 * var(--sh))),
+      inset 0 2px 3px var(--shade-4),
       inset 0 0 0 1px var(--cap-rim),
       0 1px 0 var(--cap-edge);
   }
   :where(.jali-tab[aria-selected="true"], .jali-switch-item[aria-selected="true"]) {
     font-weight: 600;
   }
-
   /* ---------- lamp ---------- */
   :where(.led),
   :where(.jali-tab, .jali-switch-item, .jali-follow-toggle)::before {
@@ -225,12 +198,12 @@
     height: var(--lamp);
     border-radius: 50%;
     background: var(--led-off);
-    box-shadow: inset 0 1px 1px rgb(0 0 0 / calc(0.35 * var(--sh)));
+    box-shadow: var(--lamp-socket);
   }
   :where(.jali-tab, .jali-switch-item, .jali-follow-toggle)::before {
     content: "";
   }
-  :where(.key-m, .key-l, .lib-row) :where(.led) {
+  :where(.key-m, .lib-row) :where(.led) {
     position: absolute;
     top: 8px;
     right: 8px;
@@ -244,18 +217,17 @@
   )::before {
     background: var(--led-on);
     box-shadow:
-      0 0 0 1px rgb(255 79 0 / 0.25),
+      0 0 0 1px var(--lamp-ring),
       var(--lamp-glow);
   }
-
   /* ---------- the orange cap and the play legend ---------- */
   :where(.key-accent) {
     --cap-1: var(--cap-signal-1);
     --cap-2: var(--cap-signal-2);
     --cap-edge: var(--cap-signal-edge);
     --cap-ink: var(--on-signal);
-    --cap-rim: rgb(120 30 0 / 0.35);
-    --cap-hi: rgb(255 255 255 / 0.45);
+    --cap-rim: var(--cap-signal-rim);
+    --cap-hi: var(--lit-5);
   }
   :where(.key-accent):disabled {
     --cap-1: var(--cap-signal-off-1);
@@ -267,7 +239,6 @@
     fill: var(--st-signal);
     color: var(--st-signal);
   }
-
   /*
    * ---------- fader: a long-throw slide (ui/Fader.tsx) ----------
    * A milled slot with real depth, a shaped cap with grip ribs and a centre line, a 0 dB mark across the slot. The
@@ -290,6 +261,26 @@
   /* A hand on the cap: it darkens a touch, as a cap does under a finger. */
   .fader-cap {
     transition: filter var(--travel);
+    /* The cap: a shaped block that straddles the slot, grip ribs top and bottom, a centre line across. */
+    position: absolute;
+    left: 50%;
+    bottom: calc(var(--pos) * 100%);
+    width: 36px;
+    height: var(--cap-h);
+    translate: -50% 50%;
+    border-radius: var(--corner);
+    background:
+      repeating-linear-gradient(180deg, transparent 0 3px, var(--shade-3) 3px 4px) 0 4px / 100% 9px
+        no-repeat,
+      repeating-linear-gradient(180deg, transparent 0 3px, var(--shade-3) 3px 4px) 0
+        calc(100% - 4px) / 100% 9px no-repeat,
+      var(--mat-cap-silver);
+    box-shadow:
+      inset 0 1px 0 var(--white),
+      inset 0 -1px 0 var(--shade-4),
+      0 0 0 1px var(--shade-6),
+      0 3px 0 var(--mat-wall),
+      0 6px 6px var(--shade-6);
   }
   .fader[data-dragging] .fader-cap {
     filter: brightness(0.93);
@@ -316,10 +307,10 @@
     border-radius: var(--corner);
     background: var(--mat-slot);
     box-shadow:
-      inset 0 3px 3px rgb(0 0 0 / calc(0.9 * var(--sh))),
-      inset 1px 0 0 rgb(0 0 0 / calc(0.8 * var(--sh))),
+      inset 0 3px 3px var(--shade-8),
+      inset 1px 0 0 var(--shade-8),
       0 1px 0 var(--seam-lit),
-      -1px 0 0 rgb(0 0 0 / calc(0.4 * var(--sh)));
+      -1px 0 0 var(--shade-5);
   }
   .fader-zero {
     position: absolute;
@@ -329,36 +320,6 @@
     height: 1px;
     translate: -50% 0.5px;
     background: var(--legend);
-  }
-  /* The cap: a shaped block that straddles the slot, grip ribs top and bottom, a centre line across. */
-  .fader-cap {
-    position: absolute;
-    left: 50%;
-    bottom: calc(var(--pos) * 100%);
-    width: 36px;
-    height: var(--cap-h);
-    translate: -50% 50%;
-    border-radius: var(--corner);
-    background:
-      repeating-linear-gradient(
-          180deg,
-          transparent 0 3px,
-          rgb(0 0 0 / calc(0.16 * var(--sh))) 3px 4px
-        )
-        0 4px / 100% 9px no-repeat,
-      repeating-linear-gradient(
-          180deg,
-          transparent 0 3px,
-          rgb(0 0 0 / calc(0.16 * var(--sh))) 3px 4px
-        )
-        0 calc(100% - 4px) / 100% 9px no-repeat,
-      var(--mat-cap-silver);
-    box-shadow:
-      inset 0 1px 0 var(--white),
-      inset 0 -1px 0 rgb(0 0 0 / calc(0.2 * var(--sh))),
-      0 0 0 1px rgb(0 0 0 / calc(0.55 * var(--sh))),
-      0 3px 0 var(--mat-wall),
-      0 6px 6px rgb(0 0 0 / calc(0.5 * var(--sh)));
   }
   .fader-line {
     position: absolute;
@@ -373,16 +334,16 @@
   .fader-master .fader-cap {
     width: 44px;
     background:
-      repeating-linear-gradient(180deg, transparent 0 3px, rgb(255 255 255 / 0.07) 3px 4px) 0 4px /
-        100% 9px no-repeat,
-      repeating-linear-gradient(180deg, transparent 0 3px, rgb(255 255 255 / 0.07) 3px 4px) 0
+      repeating-linear-gradient(180deg, transparent 0 3px, var(--lit-2) 3px 4px) 0 4px / 100% 9px
+        no-repeat,
+      repeating-linear-gradient(180deg, transparent 0 3px, var(--lit-2) 3px 4px) 0
         calc(100% - 4px) / 100% 9px no-repeat,
       var(--mat-cap-graphite);
     box-shadow:
-      inset 0 1px 0 rgb(255 255 255 / 0.2),
+      inset 0 1px 0 var(--lit-4),
       0 0 0 1px var(--black),
       0 3px 0 var(--black),
-      0 6px 6px rgb(0 0 0 / calc(0.6 * var(--sh)));
+      0 6px 6px var(--shade-7);
   }
   .fader-master .fader-line {
     background: var(--st-signal);
@@ -396,7 +357,6 @@
       0 0 0 5px var(--st-signal-soft),
       0 3px 0 var(--mat-wall);
   }
-
   /* ---------- readout: black glass ---------- */
   :where(.screen, .mx-db, .mx-meter, .jali-scrim [role="combobox"]) {
     position: relative;
@@ -405,9 +365,9 @@
     border: 0;
     border-radius: var(--corner);
     box-shadow:
-      inset 0 0 0 1px rgb(0 0 0 / calc(0.9 * var(--sh))),
-      inset 0 2px 4px rgb(0 0 0 / calc(0.7 * var(--sh))),
-      0 0 0 2px light-dark(rgb(0 0 0 / calc(0.06 * var(--sh))), rgb(0 0 0 / calc(0.3 * var(--sh)))),
+      inset 0 0 0 1px var(--shade-8),
+      inset 0 2px 4px var(--shade-7),
+      0 0 0 2px light-dark(var(--shade-1), var(--shade-5)),
       0 1px 0 2px var(--seam-lit);
   }
   .screen::after {
@@ -415,22 +375,20 @@
     position: absolute;
     inset: 1px 1px 55% 1px;
     border-radius: var(--corner);
-    background: linear-gradient(180deg, rgb(255 255 255 / 0.045), transparent);
+    background: linear-gradient(180deg, var(--lit-1), transparent);
     pointer-events: none;
   }
-
   /* ---------- lcd ---------- */
   :where(.lcd, .clip-fields) {
     background: var(--lcd-glass);
     color: var(--lcd-ink);
     border-radius: var(--corner);
     box-shadow:
-      inset 0 1px 3px rgb(0 0 0 / calc(0.3 * var(--sh))),
-      inset 0 0 0 1px rgb(0 0 0 / calc(0.22 * var(--sh))),
-      0 0 0 2px light-dark(rgb(0 0 0 / calc(0.05 * var(--sh))), rgb(0 0 0 / calc(0.3 * var(--sh)))),
+      inset 0 1px 3px var(--shade-5),
+      inset 0 0 0 1px var(--shade-4),
+      0 0 0 2px light-dark(var(--shade-1), var(--shade-5)),
       0 1px 0 2px var(--seam-lit);
   }
-
   /* ---------- paper ---------- */
   :where(.paper, .tr-rows, .clip-text, .clip-note textarea) {
     background: var(--paper);
@@ -438,12 +396,10 @@
     border: 0;
     border-radius: var(--corner);
     box-shadow:
-      inset 0 1px 3px rgb(0 0 0 / calc(0.14 * var(--sh))),
-      inset 0 0 0 1px
-        light-dark(rgb(0 0 0 / calc(0.1 * var(--sh))), rgb(0 0 0 / calc(0.6 * var(--sh)))),
+      inset 0 1px 3px var(--shade-3),
+      inset 0 0 0 1px light-dark(var(--shade-2), var(--shade-7)),
       0 1px 0 var(--seam-lit);
   }
-
   /* ---------- legend ---------- */
   :where(.legend, .pane-label) {
     font-family: var(--jali-font-mono);
@@ -455,23 +411,16 @@
     white-space: nowrap;
     user-select: none;
   }
-
   @media (prefers-reduced-motion: reduce) {
     :where(.key, .lib-row, .jali-tab, .jali-shelf-chip),
     .dial-body {
       transition: none;
     }
   }
-}
-
-@layer app {
   /* A key's glyph keeps its size when the key is squeezed. */
   :where(.key) :where(svg) {
     flex: none;
   }
-}
-
-@layer app {
   /*
    * ---------- the key face: one layout for every key with a glyph ----------
    * The glyph sits centred, its middle 8px above the key's middle; the legend is centred under it on one baseline,
@@ -523,10 +472,10 @@
       var(--cap-2)
     );
     box-shadow:
-      inset 0 2px 4px rgb(0 0 0 / calc(0.22 * var(--sh))),
+      inset 0 2px 4px var(--shade-4),
       inset 0 0 0 1px var(--cap-rim),
       0 var(--wall) 0 var(--cap-edge),
-      0 calc(var(--wall) + 2px) 4px rgb(0 0 0 / calc(0.24 * var(--sh)));
+      0 calc(var(--wall) + 2px) 4px var(--shade-4);
   }
   :where(.face):active:not(:disabled) {
     --press: 1px;
@@ -534,27 +483,10 @@
   :where(.face) :where(.glyph) {
     fill: currentColor;
   }
-  /* A plate: a cell with the key's face but no travel, for the knob and the jog wheel. */
-  :where(.face-plate) {
-    position: relative;
-    border-radius: var(--corner);
-    background: linear-gradient(180deg, var(--cap-2), var(--cap-1));
-    color: var(--cap-ink);
-    box-shadow:
-      inset 0 1px 2px rgb(0 0 0 / calc(0.12 * var(--sh))),
-      inset 0 0 0 1px var(--cap-rim),
-      0 3px 0 var(--cap-edge);
-  }
-  :where(.face-plate) :where(.face-legend) {
-    color: var(--cap-ink);
-  }
   /* The play key's cap is orange; its glyph and legend print dark on it. */
   :where(.key-play) :where(.glyph) {
     fill: var(--on-signal);
   }
-}
-
-@layer app {
   /*
    * ---------- keyset: related keys in one bezel ----------
    * The same grouping as the top row, at the panes' scale: keys meet at a 2px seam inside a recessed bezel; two
@@ -562,21 +494,18 @@
    * and each mixer strip's mute and solo.
    */
   :where(.keyset) {
-    display: inline-flex;
     align-items: stretch;
     gap: 2px;
     padding: var(--lip) var(--lip) var(--lip-foot);
     border-radius: var(--corner);
     background: var(--pocket-floor);
     box-shadow:
-      inset 0 1px 2px rgb(0 0 0 / calc(0.25 * var(--sh))),
-      inset 0 0 0 1px rgb(0 0 0 / calc(0.14 * var(--sh))),
+      inset 0 1px 2px var(--shade-4),
+      inset 0 0 0 1px var(--shade-3),
       0 1px 0 var(--seam-lit);
+    display: inline-flex;
     flex: none;
   }
-}
-
-@layer app {
   /*
    * ---------- pocket: a recess milled into the material ----------
    * The floor is the material, a shade darker; the wall throws a shadow from the top edge (light from above) and
@@ -589,16 +518,12 @@
     gap: var(--seam);
     padding: var(--lip) var(--lip) var(--lip-foot);
     border-radius: var(--corner);
-    background: light-dark(rgb(0 0 0 / calc(0.1 * var(--sh))), rgb(0 0 0 / calc(0.45 * var(--sh))));
+    background: light-dark(var(--shade-2), var(--shade-6));
     box-shadow:
-      inset 0 var(--d-pocket) 2px rgb(0 0 0 / calc(0.32 * var(--sh))),
-      inset 1px 0 0 rgb(0 0 0 / calc(0.12 * var(--sh))),
-      inset 0 0 0 1px rgb(0 0 0 / calc(0.1 * var(--sh))),
-      0 1px 0 light-dark(rgb(255 255 255 / 0.85), rgb(255 255 255 / 0.07));
-  }
-  :where(.keyset) {
-    display: inline-flex;
-    flex: none;
+      inset 0 var(--d-pocket) 2px var(--shade-5),
+      inset 1px 0 0 var(--shade-3),
+      inset 0 0 0 1px var(--shade-2),
+      0 1px 0 light-dark(var(--lit-6), var(--lit-2));
   }
   /* The glass: a cutout with a thin black bezel, the glass bonded flush. */
   :where(.cutout) {
@@ -606,12 +531,9 @@
     border-radius: var(--corner);
     background: var(--black);
     box-shadow:
-      inset 0 1px 1px rgb(0 0 0 / calc(0.6 * var(--sh))),
-      0 1px 0 light-dark(rgb(255 255 255 / 0.85), rgb(255 255 255 / 0.07));
+      inset 0 1px 1px var(--shade-7),
+      0 1px 0 light-dark(var(--lit-6), var(--lit-2));
   }
-}
-
-@layer app {
   /*
    * ---------- dial: the jog and the speed selector share one dial ----------
    * A knurled aluminium skirt standing in a counterbore, a machined top face catching the light from above, and a
@@ -635,10 +557,10 @@
   .dial[data-dragging] .dial-body {
     filter: brightness(0.95);
     box-shadow:
-      0 0 0 1px light-dark(rgb(0 0 0 / calc(0.4 * var(--sh))), var(--black)),
-      0 0 0 3px light-dark(rgb(0 0 0 / calc(0.14 * var(--sh))), rgb(0 0 0 / calc(0.6 * var(--sh)))),
+      0 0 0 1px light-dark(var(--shade-5), var(--black)),
+      0 0 0 3px light-dark(var(--shade-3), var(--shade-7)),
       0 0 0 4px var(--cap-hi),
-      0 1px 2px rgb(0 0 0 / calc(0.4 * var(--sh)));
+      0 1px 2px var(--shade-5);
   }
   .dial-body {
     position: absolute;
@@ -655,10 +577,10 @@
       var(--mat-knurl-2) 4deg 8deg
     );
     box-shadow:
-      0 0 0 1px light-dark(rgb(0 0 0 / calc(0.35 * var(--sh))), var(--black)),
-      0 0 0 3px light-dark(rgb(0 0 0 / calc(0.1 * var(--sh))), rgb(0 0 0 / calc(0.5 * var(--sh)))),
+      0 0 0 1px light-dark(var(--shade-5), var(--black)),
+      0 0 0 3px light-dark(var(--shade-2), var(--shade-6)),
       0 0 0 4px var(--cap-hi),
-      0 3px 4px rgb(0 0 0 / calc(0.35 * var(--sh)));
+      0 3px 4px var(--shade-5);
     rotate: var(--angle);
   }
   .dial-face {
@@ -666,17 +588,12 @@
     inset: 6px;
     border-radius: 50%;
     background:
-      radial-gradient(
-        circle at 50% 50%,
-        transparent 58%,
-        rgb(0 0 0 / calc(0.06 * var(--sh))) 59%,
-        transparent 61%
-      ),
+      radial-gradient(circle at 50% 50%, transparent 58%, var(--shade-1) 59%, transparent 61%),
       var(--mat-dial-face);
     box-shadow:
-      inset 0 1px 0 light-dark(var(--white), rgb(255 255 255 / 0.25)),
-      inset 0 -1px 1px rgb(0 0 0 / calc(0.3 * var(--sh))),
-      0 0 0 1px rgb(0 0 0 / calc(0.35 * var(--sh)));
+      inset 0 1px 0 light-dark(var(--white), var(--lit-4)),
+      inset 0 -1px 1px var(--shade-5),
+      0 0 0 1px var(--shade-5);
   }
   /* The jog's finger dimple, near the edge: it travels as the dial turns. */
   .dial-dimple {
@@ -689,8 +606,8 @@
     border-radius: 50%;
     background: var(--mat-dimple);
     box-shadow:
-      inset 0 1.5px 2px rgb(0 0 0 / calc(0.45 * var(--sh))),
-      0 1px 0 light-dark(rgb(255 255 255 / 0.9), rgb(255 255 255 / 0.15));
+      inset 0 1.5px 2px var(--shade-6),
+      0 1px 0 light-dark(var(--lit-6), var(--lit-3));
   }
   /* The selector's pointer: an orange line from the edge towards the centre. */
   .dial-pointer {
@@ -701,7 +618,7 @@
     height: 13px;
     translate: -50% 0;
     background: var(--st-signal);
-    box-shadow: 0 0 0 0.5px rgb(120 30 0 / 0.5);
+    box-shadow: 0 0 0 0.5px var(--cap-signal-seam);
   }
   /* The jog's index: a fixed orange tick on the cap at 12 o'clock, where the dimple starts. */
   .jog-dial::after {
@@ -746,15 +663,9 @@
       transition: rotate var(--travel-detent);
     }
   }
-}
-
-@layer app {
   .rotary .face-legend {
     pointer-events: none;
   }
-}
-
-@layer app {
   /* A channel's colour: one custom property, `--chan`, set by the colour's name wherever a track is drawn (a mixer
      module, a track header, a transcript row, a pan dial). Eight colours (catalog.ts). */
   :where([data-channel="blue"], [data-cap="blue"]) {
@@ -785,12 +696,9 @@
   .pan-dial[data-cap] .dial-face {
     box-shadow:
       inset 0 0 0 3px var(--chan),
-      inset 0 1px 0 rgb(255 255 255 / 0.25),
-      0 0 0 1px rgb(0 0 0 / calc(0.35 * var(--sh)));
+      inset 0 1px 0 var(--lit-4),
+      0 0 0 1px var(--shade-5);
   }
-}
-
-@layer app {
   /*
    * ---------- field: one inset field for every text input, textarea and select ----------
    * A recess in the plate with a paper floor, the wall's shadow from above and a lit lower lip; focus brings an
@@ -808,15 +716,14 @@
     font: inherit;
     outline: none;
     box-shadow:
-      inset 0 2px 3px rgb(0 0 0 / calc(0.16 * var(--sh))),
-      inset 0 0 0 1px
-        light-dark(rgb(0 0 0 / calc(0.16 * var(--sh))), rgb(0 0 0 / calc(0.65 * var(--sh)))),
+      inset 0 2px 3px var(--shade-3),
+      inset 0 0 0 1px light-dark(var(--shade-3), var(--shade-7)),
       0 1px 0 var(--seam-lit);
     transition: box-shadow var(--travel);
   }
   :where(.field, .tr-editor, .clip-note textarea, .tr-speaker-field, .mk-field):focus {
     box-shadow:
-      inset 0 2px 3px rgb(0 0 0 / calc(0.12 * var(--sh))),
+      inset 0 2px 3px var(--shade-3),
       inset 0 0 0 2px var(--focus),
       0 0 0 4px var(--st-signal-soft);
   }
@@ -839,6 +746,7 @@
   }
   .mk-field {
     min-width: 0;
+    font-family: var(--font-readout);
     background: var(--lcd-field);
     color: var(--lcd-ink);
   }

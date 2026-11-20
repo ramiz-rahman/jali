@@ -36,12 +36,16 @@
   /* Every lamp: one size, and one glow when lit. */
   --lamp: 6px;
   --lamp-glow: 0 0 7px rgb(255 79 0 / 0.8);
+  --lamp-glow-low: 0 0 2px rgb(255 79 0 / 0.4);
+  --lamp-ring: rgb(255 79 0 / 0.25);
 
   /* The one orange cap (Play, Save, a dialog's main action), and the same cap with nothing to do. */
   --cap-signal-1: #ff6a26;
   --cap-signal-2: #f24a00;
   --cap-signal-edge: #a83300;
   --on-signal: #170a03;
+  --cap-signal-rim: rgb(120 30 0 / 0.35);
+  --cap-signal-seam: rgb(120 30 0 / 0.5);
   --cap-signal-off-1: light-dark(#f3d3c3, #4a2a1c);
   --cap-signal-off-2: light-dark(#ecc6b3, #3e2316);
   --cap-signal-off-edge: light-dark(#cfa894, #20120b);
@@ -88,6 +92,7 @@
   --scr-soft: rgb(255 106 31 / 0.2);
   --scr-hot: #ff6a1f;
   --scr-led-off: #1a1a1c;
+  --scr-glow: 0 0 6px rgb(255 106 31 / 0.55);
 
   /* ---------- the LCD: grey-green reflective glass, dark print ---------- */
   --lcd-glass: linear-gradient(180deg, #a9b3a1, #bfc7b6 30%, #b8c0ae);
@@ -282,6 +287,40 @@
 [data-theme="light"] .jali-pane[data-kind="mixer"],
 .jali-pane[data-kind="mixer"] * {
   --sh: 1;
+}
+:root,
+[data-theme],
+.jali-pane[data-kind="mixer"],
+.dark-body {
+  /*
+   * ---------- light and shade ----------
+   * Depth is drawn with black and white at a few strengths, never a colour of its own. Every shadow, recess, rim
+   * and seam in the rules is built from these steps; `--sh` scales the shade for the finish, the lit steps are
+   * the same on both. They are declared on every element that sets `--sh` (a custom property that reads another is
+   * worked out where it is declared, so on the root alone the light theme's black mixer would get the silver
+   * finish's shade). A part's own stack (how many layers, how far they fall) stays with the part.
+   *   shade  1 a hairline on a face   2 a rim   3 a light recess   4 a pocket's wall, a pressed face
+   *          5 a body's cast shadow   6 a deep slot or a hard edge   7 a wall in shadow   8 the dark of a groove
+   *   lit    1 grain   2 a seam's lit side   3 an edge on a dark body   4 a chamfer   5 a bright lip   6 a polished edge
+   */
+  --shade-1: rgb(0 0 0 / calc(0.04 * var(--sh)));
+  --shade-2: rgb(0 0 0 / calc(0.08 * var(--sh)));
+  --shade-3: rgb(0 0 0 / calc(0.14 * var(--sh)));
+  --shade-4: rgb(0 0 0 / calc(0.22 * var(--sh)));
+  --shade-5: rgb(0 0 0 / calc(0.35 * var(--sh)));
+  --shade-6: rgb(0 0 0 / calc(0.5 * var(--sh)));
+  --shade-7: rgb(0 0 0 / calc(0.7 * var(--sh)));
+  --shade-8: rgb(0 0 0 / calc(0.9 * var(--sh)));
+  --lit-1: rgb(255 255 255 / 0.03);
+  --lit-2: rgb(255 255 255 / 0.07);
+  --lit-3: rgb(255 255 255 / 0.12);
+  --lit-4: rgb(255 255 255 / 0.25);
+  --lit-5: rgb(255 255 255 / 0.45);
+  --lit-6: rgb(255 255 255 / 0.9);
+  /* A lamp that is off sits in its socket. */
+  --lamp-socket: inset 0 1px 1px var(--shade-5);
+  /* A face pressed in: a latched row, a key held down. */
+  --sunk: inset 0 2px 3px var(--shade-4);
 }
 
 /*

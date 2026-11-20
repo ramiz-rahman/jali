@@ -1,0 +1,80 @@
+/*
+ * The credits: one paper sheet a session.
+ */
+@layer app {
+  .credits {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    min-height: 0;
+  }
+  .cr-sheets {
+    display: grid;
+    gap: 12px;
+    padding-bottom: 12px;
+    overflow: auto;
+    min-height: 0;
+  }
+  .cr-sheet {
+    padding: 12px 16px;
+    font-size: var(--type-body);
+    line-height: var(--lead-body);
+  }
+  .cr-head {
+    display: grid;
+    gap: 2px;
+    margin-bottom: 8px;
+  }
+  .cr-head h3 {
+    margin: 0;
+    font-size: var(--type-title);
+    font-weight: 600;
+  }
+  .cr-source {
+    font-size: var(--type-legend);
+    color: var(--paper-dim);
+  }
+  .cr-credit,
+  .cr-notice {
+    margin: 0 0 8px;
+    max-width: 72ch;
+  }
+  .cr-notice {
+    padding-left: 10px;
+    border-left: 2px solid var(--st-signal);
+  }
+  .cr-fields {
+    display: grid;
+    gap: 4px;
+    margin: 0;
+  }
+  .cr-fields > div {
+    display: grid;
+    grid-template-columns: 72px minmax(0, 1fr);
+    gap: 8px;
+  }
+  .cr-fields dt {
+    font-size: var(--type-fine);
+    font-weight: 600;
+    letter-spacing: var(--track-legend);
+    color: var(--paper-dim);
+    padding-top: 2px;
+  }
+  .cr-fields dd {
+    display: grid;
+    gap: 2px;
+    margin: 0;
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+  .cr-fields a {
+    color: var(--paper-ink);
+    text-decoration-color: var(--st-signal-line);
+    text-underline-offset: 3px;
+  }
+  .cr-foot {
+    margin: 0;
+    font-size: var(--type-legend);
+    color: var(--legend);
+  }
+}

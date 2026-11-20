@@ -23,7 +23,7 @@
     margin-top: calc(var(--lamp) / -2);
     border-radius: 50%;
     background: var(--led-off);
-    box-shadow: inset 0 1px 1px rgb(0 0 0 / calc(0.35 * var(--sh)));
+    box-shadow: var(--lamp-socket);
   }
   .jali-pane[data-focused] .jali-pane-header::before {
     background: var(--led-on);
@@ -78,7 +78,6 @@
       height: 36px;
     }
   }
-
   /* A: printed glyphs. Nothing at rest but the print; a shallow key rises on hover, sinks on press. */
   :root:not([data-header-buttons]) .jali-pane-actions button:hover,
   [data-header-buttons="printed"] .jali-pane-actions button:hover {
@@ -90,36 +89,28 @@
   }
   :root:not([data-header-buttons]) .jali-pane-actions button:active,
   [data-header-buttons="printed"] .jali-pane-actions button:active {
-    background: light-dark(rgb(0 0 0 / calc(0.08 * var(--sh))), rgb(0 0 0 / calc(0.4 * var(--sh))));
-    box-shadow: inset 0 1px 3px rgb(0 0 0 / calc(0.3 * var(--sh)));
+    background: light-dark(var(--shade-2), var(--shade-5));
+    box-shadow: inset 0 1px 3px var(--shade-5);
   }
-
   /* B: recessed wells. Small flush buttons sunk into the plate, the plate's own tone. */
   [data-header-buttons="wells"] .jali-pane-actions button {
     width: 28px;
     min-width: 28px;
     height: 28px;
-    background: light-dark(
-      rgb(0 0 0 / calc(0.035 * var(--sh))),
-      rgb(0 0 0 / calc(0.22 * var(--sh)))
-    );
+    background: light-dark(var(--shade-1), var(--shade-4));
     box-shadow:
-      inset 0 1px 2px rgb(0 0 0 / calc(0.2 * var(--sh))),
-      inset 0 0 0 1px rgb(0 0 0 / calc(0.08 * var(--sh))),
+      inset 0 1px 2px var(--shade-4),
+      inset 0 0 0 1px var(--shade-2),
       0 1px 0 var(--seam-lit);
   }
   [data-header-buttons="wells"] .jali-pane-actions button:hover {
-    background: light-dark(
-      rgb(0 0 0 / calc(0.06 * var(--sh))),
-      rgb(0 0 0 / calc(0.32 * var(--sh)))
-    );
+    background: light-dark(var(--shade-1), var(--shade-5));
   }
   [data-header-buttons="wells"] .jali-pane-actions button:active {
     box-shadow:
-      inset 0 2px 4px rgb(0 0 0 / calc(0.35 * var(--sh))),
-      inset 0 0 0 1px rgb(0 0 0 / calc(0.12 * var(--sh)));
+      inset 0 2px 4px var(--shade-5),
+      inset 0 0 0 1px var(--shade-3);
   }
-
   /* C: one low strip. The buttons joined in a thin cap, divided by hairline seams. Each button paints its own
      part of the strip, so a button Jali hides (visibility) leaves no empty segment. */
   [data-header-buttons="strip"] .jali-pane-actions {
@@ -145,9 +136,8 @@
   }
   [data-header-buttons="strip"] .jali-pane-actions button:active {
     background: light-dark(#d9d9d5, #1d1d20);
-    box-shadow: inset 0 1px 3px rgb(0 0 0 / calc(0.28 * var(--sh)));
+    box-shadow: inset 0 1px 3px var(--shade-4);
   }
-
   /* D: small round push-buttons. A round cap in the middle of the hit area, the glyph printed on it. */
   [data-header-buttons="round"] .jali-pane-actions button::before {
     content: "";
@@ -159,7 +149,7 @@
     box-shadow:
       inset 0 0 0 1px var(--cap-rim),
       0 1.5px 0 var(--cap-edge),
-      0 2px 2px rgb(0 0 0 / calc(0.18 * var(--sh)));
+      0 2px 2px var(--shade-3);
   }
   [data-header-buttons="round"] .jali-pane-actions svg {
     width: 12px;
@@ -168,10 +158,9 @@
   [data-header-buttons="round"] .jali-pane-actions button:active::before {
     translate: 0 1px;
     box-shadow:
-      inset 0 1px 2px rgb(0 0 0 / calc(0.3 * var(--sh))),
+      inset 0 1px 2px var(--shade-5),
       inset 0 0 0 1px var(--cap-rim);
   }
-
   /*
    * Following or Kept: Jali's one toggle (`.jali-follow-toggle`, its state in `data-follow`), as one small latch key:
    * its word printed, its lamp off while it follows and lit when kept, the key sunk when kept. Jali's link and anchor
@@ -197,7 +186,6 @@
       font-size: 0;
     }
   }
-
   /* ---------- tabs ---------- */
   .jali-tabbar {
     gap: 6px;
@@ -207,6 +195,9 @@
     gap: 8px;
     margin-block: 0;
     padding-inline: 8px 8px;
+    /* The tab's lamp takes room from its title, not from the close button's place: the title shrinks first. Reached
+     through `.jali-tab`, as `.jali-tab-title` is not a public part. */
+    overflow: hidden;
   }
   /* A narrow header gives its "+" key away first, so the shown tab keeps a little more of its name. Uses Jali's
      internal header container name (FINDINGS.md). */
@@ -224,16 +215,14 @@
      the shown tab only where there is a choice. */
   .jali-tabs:not(:has(.jali-tab-item + .jali-tab-item)) .jali-tab::before {
     background: var(--led-off);
-    box-shadow: inset 0 1px 1px rgb(0 0 0 / calc(0.35 * var(--sh)));
+    box-shadow: var(--lamp-socket);
   }
   /* A tab's item is as tall as its key, so its close button centres on the key, not on the strip. */
   .jali-tab-item {
     align-self: center;
-  }
-  /* Tabs share a short strip before any of them scrolls out of it: each gives up some of its title (down to a few
+    /* Tabs share a short strip before any of them scrolls out of it: each gives up some of its title (down to a few
      letters and its close button), so two or three tabs in a narrow pane all stay in view and the "+N" key shows
      only when there really are more than fit. Jali's own tabs keep their width and scroll instead. */
-  .jali-tab-item {
     flex: 0 1 auto;
     min-width: 5.25rem;
   }
@@ -250,7 +239,6 @@
     outline: 1px dashed var(--legend);
     outline-offset: -4px;
   }
-
   /* ---------- the shelf ---------- */
   .jali-shelf {
     gap: 8px;
@@ -258,19 +246,16 @@
   .jali-shelf-chip {
     height: var(--h-key-s);
   }
-
   /* ---------- drop zones ---------- */
   [data-drop-zone] {
     background: var(--st-signal-soft);
     border: 2px dashed var(--st-signal);
     border-radius: var(--corner);
   }
-
   /* ---------- the peek ---------- */
   .jali-peek {
     border-radius: var(--corner);
   }
-
   /* ---------- dialogs: ⌘K, the chooser, Settings, "Discard unsaved changes?" ---------- */
   .jali-scrim {
     backdrop-filter: blur(2px);
@@ -287,7 +272,7 @@
     padding: 0 16px;
     box-sizing: border-box;
     caret-color: var(--scr-hot);
-    font-family: var(--jali-font-mono);
+    font-family: var(--font-readout);
     font-size: var(--type-body);
   }
   .jali-scrim [role="combobox"]::placeholder {
@@ -311,14 +296,11 @@
     margin-top: calc(var(--lamp) / -2);
     border-radius: 50%;
     background: var(--led-off);
-    box-shadow: inset 0 1px 1px rgb(0 0 0 / calc(0.35 * var(--sh)));
+    box-shadow: var(--lamp-socket);
   }
   .jali-palette-item[aria-selected="true"] {
-    background: light-dark(
-      rgb(0 0 0 / calc(0.075 * var(--sh))),
-      rgb(0 0 0 / calc(0.42 * var(--sh)))
-    );
-    box-shadow: inset 0 2px 3px rgb(0 0 0 / calc(0.2 * var(--sh)));
+    background: light-dark(var(--shade-2), var(--shade-5));
+    box-shadow: var(--sunk);
   }
   .jali-palette-item[aria-selected="true"]::before {
     background: var(--led-on);
@@ -339,7 +321,6 @@
     height: var(--h-key);
     padding: 0 16px;
   }
-
   /* ---------- the drag chip ---------- */
   .jali-drag-chip {
     border-radius: var(--corner);
@@ -347,9 +328,6 @@
     color: var(--cap-ink);
     font-family: var(--jali-font-mono);
   }
-}
-
-@layer app {
   /* Not a public part: which of the dialog's buttons is the primary one. Only its order says so (it comes last):
      the orange cap, as in the parts' .key-accent. */
   .jali-scrim [role="alertdialog"] button:last-of-type {
@@ -357,12 +335,9 @@
     --cap-2: var(--cap-signal-2);
     --cap-edge: var(--cap-signal-edge);
     --cap-ink: var(--on-signal);
-    --cap-rim: rgb(120 30 0 / 0.35);
-    --cap-hi: rgb(255 255 255 / 0.45);
+    --cap-rim: var(--cap-signal-rim);
+    --cap-hi: var(--lit-5);
   }
-}
-
-@layer app {
   /*
    * Square corners on Jali's parts that don't read the radius tokens: the dialogs (palette, Settings, confirm),
    * the Following toggle, the tab's close button, tab menu items, the rename field, and the shelf's chips, "more"
@@ -375,9 +350,6 @@
   .jali-scrim > * {
     border-radius: var(--corner);
   }
-}
-
-@layer app {
   /* A row's name stays on one line (Chakra Petch runs wide); reached as its first child, which has no public
      selector. */
   .jali-palette-item > :first-child {
@@ -417,22 +389,11 @@
   .jali-palette-item:not([aria-selected="true"])::before {
     display: none;
   }
-}
-
-@layer app {
-  /* The tab's lamp takes room from its title, not from the close button's place: the title shrinks first. Reached
-     through `.jali-tab`, as `.jali-tab-title` is not a public part. */
-  .jali-tab {
-    overflow: hidden;
-  }
   .jali-tab .jali-tab-title {
     min-width: 0;
     overflow: hidden;
     text-overflow: ellipsis;
   }
-}
-
-@layer app {
   /*
    * The "N folded" chip at the end of a tab strip (`.jali-tab-folded`): a small key with a dashed rim, so it reads
    * as the layout's, not the person's, tab.
@@ -468,14 +429,13 @@
       color-mix(in srgb, var(--cap-2) 86%, var(--black))
     );
     box-shadow:
-      inset 0 2px 4px rgb(0 0 0 / calc(0.3 * var(--sh))),
+      inset 0 2px 4px var(--shade-5),
       inset 0 0 0 1px var(--cap-rim);
   }
   .jali-tab-folded:focus-visible {
     outline: 2px solid var(--focus);
     outline-offset: 2px;
   }
-
   /*
    * The pane's menu and a tab's menu (`.jali-tab-menu`): a small device panel. Its items (`[data-menu-item]`) are
    * printed rows; the one under the pointer or the keyboard is latched into a tray with its lamp lit; key hints
@@ -510,8 +470,8 @@
     background: var(--led-off);
   }
   .jali-tab-menu [data-menu-item]:is(:hover, :focus-visible) {
-    background: light-dark(rgb(0 0 0 / calc(0.07 * var(--sh))), rgb(0 0 0 / 0.42));
-    box-shadow: inset 0 2px 3px rgb(0 0 0 / calc(0.2 * var(--sh)));
+    background: light-dark(var(--shade-2), var(--shade-6));
+    box-shadow: var(--sunk);
     outline: none;
   }
   .jali-tab-menu [data-menu-item]:is(:hover, :focus-visible)::before {

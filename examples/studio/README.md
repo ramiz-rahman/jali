@@ -113,7 +113,9 @@ One slab, flush to the window's top, left and right, 104px tall on a 4px grid, w
 
 ### One system, checked
 
-Everything the styles use is named in `src/styles/tokens.css`: colours and materials (bodies, key caps, the orange cap, screens, the LCD, paper, the machined dials and fader caps), type, the spacing scale (2, 4, 6, 8, 10, 12, 16, 20, 24, 28), the control heights (24, 30, 38 and 48px keys, 36px list rows, 48px bars), one corner, one lamp (6px, one glow), and the travel of a mechanism. `src/styles/styles.test.ts` fails if a rule uses a raw colour, a type size, a spacing off the scale, another radius or a transition of its own, so the look stays one system as it grows.
+Everything the styles use is named in `src/styles/tokens.css`: colours and materials (bodies, key caps, the orange cap, screens, the LCD, paper, the machined dials and fader caps), type, the spacing scale (2, 4, 6, 8, 10, 12, 16, 20, 24, 28), the control heights (24, 30, 38 and 48px keys, 36px list rows, 48px bars), one corner, one lamp (6px, one glow), and the travel of a mechanism. Depth is drawn from two short ladders, eight strengths of shade and six of light, which every shadow, recess, rim and seam is built from. `src/styles/styles.test.ts` fails if a rule uses a raw colour or shadow strength, a type size, a spacing off the scale, another radius or a transition of its own, so the look stays one system as it grows.
+
+The styles are laid out like the code: `tokens.css` (every value), `parts.css` (the shared parts: housing, keys, lamps, dials, faders, glass, fields), `shell.css` (the control slab and the status line), `chrome.css` (Jali's own parts, dressed), and `panes/` with one file a pane. Each file is one block in the `app` layer, and no selector is written twice.
 
 ### Type
 

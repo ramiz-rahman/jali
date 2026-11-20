@@ -26,7 +26,6 @@
     color: var(--on-signal);
   }
 }
-
 @layer app {
   .app {
     height: 100dvh;
@@ -34,11 +33,7 @@
     grid-template-rows: auto minmax(0, 1fr) auto;
     /* The desk mat: a soft pool of light from above, no texture. */
     background:
-      radial-gradient(
-        120% 80% at 50% 0%,
-        light-dark(rgb(255 255 255 / 0.35), rgb(255 255 255 / 0.03)),
-        transparent 70%
-      ),
+      radial-gradient(120% 80% at 50% 0%, light-dark(var(--lit-4), var(--lit-1)), transparent 70%),
       var(--jali-canvas);
   }
   .sr-only {
@@ -64,7 +59,6 @@
     outline: 2px solid var(--focus);
     outline-offset: 2px;
   }
-
   /*
    * ---------- the top bar: one slab ----------
    * A single body of bead-blasted aluminium, flush to the window's top, left and right. Only its foot is an edge: a
@@ -82,12 +76,11 @@
     background:
       var(--grain), var(--slab-falloff), linear-gradient(180deg, var(--slab-1), var(--slab-2));
     box-shadow:
-      inset 0 -1px 0 light-dark(rgb(255 255 255 / 0.9), rgb(255 255 255 / 0.1)),
-      inset 0 -3px 0
-        light-dark(rgb(0 0 0 / calc(0.04 * var(--sh))), rgb(0 0 0 / calc(0.25 * var(--sh)))),
-      0 1px 0 light-dark(rgb(0 0 0 / calc(0.32 * var(--sh))), var(--black)),
-      0 2px 1px light-dark(rgb(0 0 0 / calc(0.12 * var(--sh))), rgb(0 0 0 / calc(0.5 * var(--sh)))),
-      0 10px 16px -10px rgb(0 0 0 / calc(0.45 * var(--sh)));
+      inset 0 -1px 0 light-dark(var(--lit-6), var(--lit-3)),
+      inset 0 -3px 0 light-dark(var(--shade-1), var(--shade-4)),
+      0 1px 0 light-dark(var(--shade-5), var(--black)),
+      0 2px 1px light-dark(var(--shade-3), var(--shade-6)),
+      0 10px 16px -10px var(--shade-6);
   }
   /* The row inside the slab: one flex row, real gaps, nothing positioned. How it gives way is measured (`useFit`
      in TopBar.tsx), so its content always fits. */
@@ -138,7 +131,6 @@
     flex: none;
     --wall: var(--d-cap);
   }
-
   /* The identity: the mark and the name, engraved straight into the slab. */
   .badge {
     flex-direction: row;
@@ -151,9 +143,7 @@
   }
   .brand-mark {
     fill: currentColor;
-    filter: drop-shadow(
-      0 1px 0 light-dark(rgb(255 255 255 / 0.85), rgb(0 0 0 / calc(0.6 * var(--sh))))
-    );
+    filter: drop-shadow(0 1px 0 light-dark(var(--lit-6), var(--shade-7)));
   }
   .brand-mark-hot {
     fill: var(--st-signal);
@@ -165,10 +155,9 @@
     letter-spacing: var(--track-wide);
     color: var(--legend);
     text-shadow:
-      0 -1px 0 light-dark(rgb(0 0 0 / calc(0.18 * var(--sh))), rgb(0 0 0 / calc(0.7 * var(--sh)))),
-      0 1px 0 light-dark(rgb(255 255 255 / 0.9), rgb(255 255 255 / 0.08));
+      0 -1px 0 light-dark(var(--shade-3), var(--shade-7)),
+      0 1px 0 light-dark(var(--lit-6), var(--lit-2));
   }
-
   /* Layouts. */
   .pocket > .layout-key {
     width: var(--layout-cell);
@@ -189,7 +178,6 @@
     outline: 2px solid var(--focus);
     outline-offset: 2px;
   }
-
   /* The display: the heart of the instrument. */
   .player-cutout {
     flex: 1 1 auto;
@@ -208,19 +196,14 @@
     box-sizing: border-box;
     border-radius: 1px;
     font-family: var(--font-readout);
-    box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.03);
+    box-shadow: inset 0 0 0 1px var(--lit-1);
     overflow: hidden;
   }
   /* A faint reflection: a soft diagonal sheen over the top of the glass. */
   .player-display::after {
     inset: 0;
     border-radius: 0;
-    background: linear-gradient(
-      172deg,
-      rgb(255 255 255 / 0.07) 0%,
-      rgb(255 255 255 / 0.02) 38%,
-      transparent 39%
-    );
+    background: linear-gradient(172deg, var(--lit-2) 0%, var(--lit-1) 38%, transparent 39%);
   }
   .pd-line {
     display: flex;
@@ -256,7 +239,7 @@
     font-size: var(--type-display);
     letter-spacing: var(--track-print);
     color: var(--scr-ink);
-    text-shadow: 0 0 10px rgb(255 255 255 / 0.18);
+    text-shadow: 0 0 10px var(--lit-3);
   }
   .pd-total {
     font-size: var(--type-legend);
@@ -276,13 +259,13 @@
     align-self: end;
     height: 2px;
     margin: 0 -12px;
-    background: rgb(255 255 255 / 0.08);
+    background: var(--lit-2);
   }
   .pd-progress span {
     position: absolute;
     inset: 0 auto 0 0;
     background: var(--scr-hot);
-    box-shadow: 0 0 6px rgb(255 106 31 / 0.55);
+    box-shadow: var(--scr-glow);
   }
   /* Lay the display out for the width it has: the series goes before anything is cut. */
   @container (max-width: 300px) {
@@ -313,7 +296,6 @@
       display: none;
     }
   }
-
   /*
    * Scrub and speed: a matched pair of dials on caps like the keys' (the same face, rim and wall, but they don't
    * travel), sharing a pocket, a legend and its baseline. The dial stands at the right of its cap; the left carries
@@ -329,9 +311,9 @@
     box-shadow:
       inset 0 1px 0 var(--cap-hi),
       inset 0 0 0 1px var(--cap-rim),
-      inset 0 -2px 0 rgb(0 0 0 / calc(0.06 * var(--sh))),
+      inset 0 -2px 0 var(--shade-1),
       0 var(--d-cap) 0 var(--cap-edge),
-      0 calc(var(--d-cap) + 2px) 4px rgb(0 0 0 / calc(0.24 * var(--sh)));
+      0 calc(var(--d-cap) + 2px) 4px var(--shade-4);
   }
   /* The legend keeps its own room left of the dial: never under it. */
   .rotary .face-legend {
@@ -356,7 +338,6 @@
     top: 10px;
     color: var(--cap-ink);
   }
-
   /*
    * How it gives way: the steps `useFit` takes (TopBar.tsx), cumulative, in order, until the content fits.
    */
@@ -440,7 +421,6 @@
   .slab[data-f11] .tp-stop {
     display: none;
   }
-
   /*
    * ---------- the status line ----------
    * No rail: one line of fine print set straight on the desk, under (or over) the panes. Jali's lockup and a line
@@ -506,22 +486,15 @@
       padding: 0 12px;
     }
   }
-
   .toast {
     font-family: var(--jali-font) !important;
     border-radius: var(--corner);
   }
-}
-
-@layer app {
   .pd-title.pd-alert {
     color: var(--scr-hot);
     font-family: var(--font-readout);
     font-size: var(--type-control);
   }
-}
-
-@layer app {
   /*
    * ---------- the controls along the bottom ----------
    * `data-controls="bottom"` (ui/controlsPlace.ts): the slab stands on the window's bottom edge, like a console's
@@ -531,10 +504,10 @@
   [data-controls="bottom"] .app > .topbar {
     order: 1;
     box-shadow:
-      inset 0 1px 0 light-dark(rgb(255 255 255 / 0.9), rgb(255 255 255 / 0.12)),
-      inset 0 3px 0 light-dark(rgb(255 255 255 / 0.35), rgb(255 255 255 / 0.03)),
-      0 -1px 0 light-dark(rgb(0 0 0 / calc(0.32 * var(--sh))), var(--black)),
-      0 -8px 14px -10px rgb(0 0 0 / calc(0.35 * var(--sh)));
+      inset 0 1px 0 light-dark(var(--lit-6), var(--lit-3)),
+      inset 0 3px 0 light-dark(var(--lit-4), var(--lit-1)),
+      0 -1px 0 light-dark(var(--shade-5), var(--black)),
+      0 -8px 14px -10px var(--shade-5);
   }
   [data-controls="bottom"] .app > .status {
     order: -1;

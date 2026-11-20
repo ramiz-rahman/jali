@@ -39,7 +39,7 @@ async function openSession(page: Page, title: string) {
 }
 const SCROLLERS = ".mx-modules, .tr-rows, .lib-rows, .mk-rows, .clip";
 const LEGENDS =
-  ".face-legend, .legend, .pane-label, .toolbar-note, .mx-pan-legend, .mx-db, .mx-label, .clip-stats, .clip-range, .mk-time, .tl-track, .lib-show, .lib-meta > span:first-child, .tr-time, .tr-speaker-name, .key";
+  ".face-legend, .legend, .pane-label, .mx-pan-legend, .mx-db, .mx-label, .clip-stats, .clip-range, .mk-time, .tl-track, .lib-show, .lib-meta > span:first-child, .tr-time, .tr-speaker-name, .key";
 
 async function check(page: Page) {
   return page.evaluate(
