@@ -61,7 +61,8 @@ function LayoutsMenu() {
         aria-controls="layouts-menu"
         onClick={() => setOpen((o) => !o)}
       >
-        <SquaresFourIcon size={14} aria-hidden /> Layouts <CaretDownIcon size={14} aria-hidden />
+        <SquaresFourIcon size={14} aria-hidden /> <span className="layouts-label">Layouts</span>{" "}
+        <CaretDownIcon size={14} aria-hidden />
       </button>
       {open ? (
         <div id="layouts-menu" className="layouts-menu" role="group" aria-label="Layout presets">
@@ -86,6 +87,13 @@ export function TopBar() {
       <div className="brand">
         <JaliLockup />
         <span className="brand-name">{store.env.name}</span>
+        {/* The people, shops and loans are generated: said at every width, so no one takes them for real. */}
+        <span
+          className="sample-note"
+          title="Every person, business, order and loan here is made up"
+        >
+          Made-up data
+        </span>
       </div>
       {page ? (
         <PageBar />
@@ -99,7 +107,7 @@ export function TopBar() {
       )}
       <div className="topbar-right">
         <button
-          className="jali-icon-btn"
+          className="icon-btn"
           onClick={() => copyLink(store)}
           aria-label={
             page
@@ -111,7 +119,7 @@ export function TopBar() {
           <LinkSimpleHorizontalIcon size={16} aria-hidden />
         </button>
         <button
-          className="jali-icon-btn"
+          className="icon-btn"
           onClick={() => store.actions.openSettings()}
           aria-label="Settings"
           title="Settings"

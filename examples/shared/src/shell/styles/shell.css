@@ -6,7 +6,9 @@
     grid-template-rows: var(--topbar-h) minmax(0, 1fr) var(--status-h);
     height: 100%;
   }
-  .app > .jali-workspace {
+  /* What Jali renders between them, a workspace or a curated page, takes the middle row: placed by what it is
+     not, since a page's root is no public part. */
+  .app > :not(.topbar, .status) {
     grid-row: 2;
   }
   .app > .status {
@@ -39,6 +41,14 @@
   .brand-name {
     font-weight: 600;
     letter-spacing: -0.005em;
+  }
+  .sample-note {
+    padding: 1px 6px;
+    border: 1px solid var(--jali-border);
+    border-radius: var(--jali-radius-control);
+    color: var(--jali-text-muted);
+    font-size: var(--type-caption);
+    white-space: nowrap;
   }
   .presets {
     display: flex;
@@ -74,6 +84,34 @@
     gap: 0.25rem;
     flex: none;
   }
+  /* The apps' own icon button (copy link, settings, close a sheet), drawn like Jali's from its tokens. */
+  .icon-btn {
+    display: inline-grid;
+    place-items: center;
+    width: 1.75rem;
+    height: 1.75rem;
+    padding: 0;
+    border: 0;
+    border-radius: var(--jali-radius-control);
+    background: none;
+    color: var(--jali-text-subtle);
+    cursor: pointer;
+  }
+  .icon-btn:hover {
+    background: var(--jali-hover);
+    color: var(--jali-text);
+  }
+  /* The apps' own setting in Jali's Settings dialog: a checkbox and its words on one line. */
+  .setting-check {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    cursor: pointer;
+  }
+  .setting-check input {
+    margin: 0;
+    accent-color: var(--jali-accent);
+  }
   .kbd-btn {
     display: inline-flex;
     align-items: center;
@@ -93,7 +131,7 @@
   }
   .kbd-btn span {
     font-family: var(--jali-font-mono);
-    font-size: 0.75rem;
+    font-size: var(--type-meta);
   }
   .kbd-label {
     display: inline;
@@ -171,6 +209,19 @@
     .kbd-label {
       display: none;
     }
+    /* A phone: Jali's lockup stays in the status line only, and the Layouts button keeps its name for a screen reader
+       and shows its icon, so the note that the data is made up keeps its place beside the app's name. */
+    .topbar .brand-lockup {
+      display: none;
+    }
+    .layouts-label {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip-path: inset(50%);
+      white-space: nowrap;
+    }
   }
 
   /* ---------- status line: 12px; one message left, hint and stats right ---------- */
@@ -181,7 +232,7 @@
     padding: 0 0.75rem;
     height: var(--status-h);
     min-width: 0;
-    font-size: 0.75rem;
+    font-size: var(--type-meta);
     color: var(--jali-text-subtle);
     background: var(--jali-surface);
     border-top: 1px solid var(--jali-border);
@@ -208,7 +259,7 @@
   }
   .status-stats {
     font-family: var(--jali-font-mono);
-    font-size: 0.6875rem;
+    font-size: var(--type-caption);
     color: var(--jali-text-muted);
   }
   .status-stats b {

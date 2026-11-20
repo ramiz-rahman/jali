@@ -167,7 +167,7 @@ function QueueSheet({ item }: { item: number }) {
           }}
         >
           <button
-            className="jali-icon-btn queue-sheet-close"
+            className="icon-btn queue-sheet-close"
             aria-label="Close queue"
             onClick={close}
             autoFocus
