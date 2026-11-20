@@ -68,6 +68,50 @@ test.describe("axe", () => {
     expect(await axe(page)).toEqual([]);
   });
 
+  test("Settings: Tab stays inside, and Esc gives focus back to what opened it", async ({
+    app,
+    page,
+  }) => {
+    await app.open();
+    const opener = page.getByRole("button", { name: "Settings" });
+    await opener.click();
+    const dialog = page.getByRole("dialog", { name: "Settings" });
+    await expect(dialog).toBeVisible();
+    expect(await axe(page)).toEqual([]);
+    const inside = () => dialog.evaluate((d) => d.contains(document.activeElement));
+    for (let n = 0; n < 12; n++) {
+      await page.keyboard.press(n % 3 ? "Tab" : "Shift+Tab");
+      expect(await inside()).toBe(true);
+    }
+    // Behind it, the workspace is inert.
+    expect(await page.locator("[data-jali]").evaluate((r) => (r as HTMLElement).inert)).toBe(true);
+    await page.keyboard.press("Escape");
+    await expect(dialog).toBeHidden();
+    await expect(opener).toBeFocused();
+  });
+
+  test("the discard question: Tab stays inside, and Keep editing gives focus back", async ({
+    app,
+    page,
+  }) => {
+    await app.open();
+    await app.preset("Query + chart + inspector");
+    await expect(app.grid("query")).toBeVisible({ timeout: 20_000 });
+    await app.pane("query").getByRole("textbox", { name: "SQL" }).fill("SELECT 1 AS one");
+    const close = app.pane("query").getByRole("button", { name: /^Close / });
+    await close.click();
+    const dialog = page.getByRole("alertdialog", { name: "Discard unsaved changes?" });
+    await expect(dialog).toBeVisible();
+    expect(await axe(page)).toEqual([]);
+    for (let n = 0; n < 5; n++) {
+      await page.keyboard.press("Tab");
+      expect(await dialog.evaluate((d) => d.contains(document.activeElement))).toBe(true);
+    }
+    await page.keyboard.press("Escape");
+    await expect(dialog).toBeHidden();
+    await expect(close).toBeFocused();
+  });
+
   test("a curated page's tabs", async ({ app, page }) => {
     await app.open({ path: review("?page=loan-review&item=4&tab=borrower") });
     await expect(page.getByRole("tablist", { name: "Loan review views" })).toBeVisible();

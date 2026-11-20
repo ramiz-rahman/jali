@@ -80,4 +80,28 @@ test.describe("Accessibility", () => {
     console.log("divider focus style:", outline);
     expect(outline).not.toBe("none|0px|none");
   });
+
+  test("forced colours keep the shown tab's underline and the focused pane's ring", async ({
+    app,
+    page,
+  }) => {
+    await page.emulateMedia({ forcedColors: "active" });
+    await app.open();
+    await app.tuck("customer").click();
+    await expect(page.locator('[role="tab"][data-tucked]')).toHaveCount(1);
+    // Forced colours drop backgrounds and shadows: the underline keeps a system colour, the focused pane an outline.
+    const underline = page.locator(".jali-tab-indicator").first();
+    await expect(underline).toBeVisible();
+    const highlight = await page.evaluate(() => {
+      const probe = document.body.appendChild(document.createElement("div"));
+      probe.style.cssText = "background: Highlight; forced-color-adjust: none";
+      const c = getComputedStyle(probe).backgroundColor;
+      probe.remove();
+      return c;
+    });
+    await expect(underline).toHaveCSS("background-color", highlight);
+    const focused = page.locator("section[data-pane].is-focused").first();
+    await expect(focused).toHaveCSS("outline-style", "solid");
+    await page.screenshot({ path: test.info().outputPath("forced-colors.png") });
+  });
 });
