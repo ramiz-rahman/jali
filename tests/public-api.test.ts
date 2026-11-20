@@ -14,6 +14,7 @@ describe("public API", () => {
       "DEFAULT_KEYMAP",
       "GAP",
       "activeItemPort",
+      "altClick",
       "browserLocation",
       "browserStorage",
       "column",

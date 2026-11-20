@@ -138,6 +138,7 @@ export {
 export {
   keyHint,
   formatKeys,
+  altClick,
   type Platform,
   type KeyWords,
   type Chord,

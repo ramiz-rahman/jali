@@ -464,6 +464,20 @@ A key sequence as people read it: "⌘K ⌘M" on a Mac, "Ctrl+K Ctrl+M" elsewher
 
 **Returns** `string`:
 
+### altClick
+
+*function*, from `@jali/core`
+
+```ts
+altClick(platform?: Platform): string
+```
+
+The words for Jali's modifier-click, for hints in your own text: "⌥-click" on a Mac and "Alt-click" elsewhere, as in `` `${altClick()} a tab to open it beside` ``.
+
+**Parameters**
+
+- **`platform`** (`Platform`):
+
 ### keyHint
 
 *function*, from `@jali/core`
