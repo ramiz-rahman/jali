@@ -13,7 +13,7 @@ import { expect, test } from "./platform";
  * any other error still fails, and the test fails once they stop happening, so this allowance is removed with the fix.
  * Set to true (or delete the allowance) when C14 lands.
  */
-const C14_FIXED = false;
+const C14_FIXED = true;
 
 /** What React says about a mismatch: in development, and as the production build's minified errors. */
 const HYDRATION =
