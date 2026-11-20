@@ -1200,6 +1200,21 @@ interface OpenPageOptions { item?: ItemId; tab?: string }
 
 The options of `actions.openPage`: the item to show (default: the last one, else the page's `firstItem`) and the view Single view shows (a role id; default: the last one, else the home view).
 
+### OpenBesideOptions
+
+*type*, from `@jali/core`
+
+```ts
+interface OpenBesideOptions { edge?: Edge }
+```
+
+The options of `actions.openBeside` and a pane's `openBeside`. `edge` is the side of the source pane the new pane opens on: `"left"`, `"right"`, `"top"` or `"bottom"`. Default: after the source in reading order (its right, or its left right to left).
+
+- It is a side on screen, as for `move` and `split`: `"right"` is the right in either reading direction.
+- It only places a new pane. Everything else is as without it: the new pane is linked to its source, focus stays in the source, it is one history entry and it is announced the same way. A link that replaces the source's earlier link of the same kind shows in that pane, where it is; an object already open is shown where it is.
+- With no room on that edge, the new pane becomes a tab of its source, as without one. On a phone it goes on that edge in the layout, which shows one pane at a time until the screen is wider.
+- On a curated page, panes opened from the page's views stay in the investigation, after the views. The first one starts it there whatever the edge; later ones open on that edge of the investigation's last column. A pane opened from an opened pane opens on that edge of it. In Single view a link peeks, as always.
+
 ### Group
 
 *type*, from `@jali/core`
@@ -1231,6 +1246,58 @@ type LinkSizes = "link" | "local"
 ```
 
 What a layout link carries about sizes. `"local"` (the default): the layout as designed, with the sizes the person dragged kept on their device (for up to 12 layouts), so a colleague opens the link at the designed proportions. `"link"`: everything, so the link reopens exactly.
+
+### JaliLink
+
+*type*, from `@jali/core`
+
+```ts
+type JaliLink = PageLink | LayoutLink
+```
+
+What [`linkSearch`](../core.md#linkSearch) builds a link to: a curated page or a free workspace's layout.
+
+### PageLink
+
+*type*, from `@jali/core`
+
+```ts
+interface PageLink { page: string; item?: ItemId; tab?: string; open?: readonly ObjectRef[]; peek?: ObjectRef }
+```
+
+A link to a curated page, for [`linkSearch`](../core.md#linkSearch).
+
+**Parameters**
+
+- **`page`** (`string`, required): The page's id (its profile's `id`).
+
+- **`item`** (`ItemId`): The item it shows. Default: the one the reader saw last, else the page's `firstItem`.
+
+- **`tab`** (`string`): The view in use (a role id). Default: the one the reader used last, else the home view.
+
+- **`open`** (`readonly ObjectRef[]`): Panes opened from the page's views, in order. A link with any opens in Split view. A workspace opens each object once, and at most 32.
+
+- **`peek`** (`ObjectRef`): The object in the peek sheet.
+
+### LayoutLink
+
+*type*, from `@jali/core`
+
+```ts
+interface LayoutLink { layout: LayoutInput; preset?: string; zoom?: NodeId; peek?: ObjectRef }
+```
+
+A link to a free workspace's layout, for [`linkSearch`](../core.md#linkSearch): the layout (`row(…)` and the other builders, or a `Layout`), the preset it came from, the maximised pane's id and the object in the peek sheet.
+
+### LinkSearchOptions
+
+*type*, from `@jali/core`
+
+```ts
+interface LinkSearchOptions { prefix?: string; search?: string }
+```
+
+The options of [`linkSearch`](../core.md#linkSearch): the workspace's `url.prefix`, and a search string whose other params are kept.
 
 ### LocationPort
 
@@ -1563,7 +1630,7 @@ A pane that is not there gives `reason: "not-found"`. What a refusal reads out t
 
 - **`actions.toggleZoom`**, `toggleZoom(pane?: PaneTarget)`: Maximise or restore. Refused with `"single-view"` in a curated page's Single view, and with `"blocked"` for a pane the layout hides (it has no place on screen to fill); nothing with one pane.
 
-- **`actions.openBeside`**, `openBeside(pane: PaneTarget, ref: ObjectRef)`: Open `ref` beside `pane`; focus stays in `pane`. `pane`'s selected item opens a following detail (kept if one already follows). A link never copies a pane of its own chain: when `ref`'s object is `pane` itself, a pane `pane` was opened from (up the chain), or one it opened, that pane is shown instead (`pane` in the result), focus stays, and it is announced "Already open". Outside a curated page, another chain may still show the same object. In a curated page: a peek in Single view or for a limited viewer, and an object already on the page is focused instead. `pane` in the result is the pane that shows `ref`.
+- **`actions.openBeside`**, `openBeside(pane: PaneTarget, ref: ObjectRef, options?: OpenBesideOptions)`: Open `ref` beside `pane`; focus stays in `pane`. `{ edge: "bottom" }` opens it below `pane` (see `OpenBesideOptions`); by default it opens after `pane`. `pane`'s selected item opens a following detail (kept if one already follows). A link never copies a pane of its own chain: when `ref`'s object is `pane` itself, a pane `pane` was opened from (up the chain), or one it opened, that pane is shown instead (`pane` in the result), focus stays, and it is announced "Already open". Outside a curated page, another chain may still show the same object. In a curated page: a peek in Single view or for a limited viewer, and an object already on the page is focused instead. `pane` in the result is the pane that shows `ref`.
 
 - **`actions.openHere`**, `openHere(pane: PaneTarget, ref: ObjectRef)`: Show `ref` in `pane`. If it is open elsewhere, focus that pane (and close `pane` when it is a launcher).
 

@@ -161,7 +161,7 @@ Keys: content first. Claim the keys you use with `event.preventDefault()` (J and
 
 - **`inPeek`** (`boolean`, required): Rendered in the peek sheet rather than a pane.
 
-- **`openBeside`** (`(ref: ObjectRef) => ActionResult`, required): Open `ref` beside this pane; focus stays here. The selected item opens a following detail (kept if one already follows); another link replaces this pane's earlier plain link of the same kind. Returns what `jali.actions.openBeside` does: `pane` is the pane that shows `ref`.
+- **`openBeside`** (`(ref: ObjectRef, options?: OpenBesideOptions) => ActionResult`, required): Open `ref` beside this pane; focus stays here. The selected item opens a following detail (kept if one already follows); another link replaces this pane's earlier plain link of the same kind. `{ edge: "bottom" }` opens it below this pane; any edge, as on screen (see [`OpenBesideOptions`](core/types.md#OpenBesideOptions)). Returns what `jali.actions.openBeside` does: `pane` is the pane that shows `ref`.
 
 - **`openHere`** (`(ref: ObjectRef) => ActionResult`, required): Show `ref` in this pane. If it is open elsewhere, that pane is focused instead. In the peek sheet, which has no pane of its own, `{ ok: false, reason: "unavailable" }`.
 
@@ -268,7 +268,9 @@ Name the pane from its data: `useTitle(customer.data?.name)` shows "Acme Ltd" ra
 
 When several components in a pane set a title, the innermost one wins (after the first mount, the one mounted last); one unmounting goes back to the next.
 
-It is cleared when the component unmounts and when the pane shows another object, then set again from the next render. It is not saved, so a reload shows the kind's title until the data loads. The peek sheet keeps the kind's title.
+It is cleared when the component unmounts and when the pane shows another object, then set again from the next render. It is not saved, so a reload shows the kind's title until the data loads.
+
+In the peek sheet's own content, it names the sheet, for the object the sheet shows: on a curated page in Single view, where links peek, the sheet says "Acme Ltd" rather than "Customer 12" even when no pane shows that customer. The sheet takes, in order: its own content's `useTitle`, then that of a pane in the layout showing the same object, then the kind's `title`. Its own name goes when the sheet closes or shows another object.
 
 ### usePaneAttributes
 

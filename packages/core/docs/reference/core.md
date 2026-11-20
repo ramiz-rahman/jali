@@ -117,7 +117,7 @@ The address.
 *namespace*, from `@jali/core (jali.actions)`
 
 ```ts
-jali.actions.openBeside(pane: PaneTarget, ref: ObjectRef): ActionResult
+jali.actions.openBeside(pane: PaneTarget, ref: ObjectRef, options?: OpenBesideOptions): ActionResult
 ```
 
 What an app asks the workspace to do. Each action reads the current state, makes its change once (layout, focus, address, announcement, toast) and returns what happened: `{ ok: true, pane }`, or `{ ok: false, reason }` with the reason it did not.
@@ -338,6 +338,24 @@ Storage in a `Map`, for tests, server rendering and embedded workspaces.
 - **`initial`** (`Record<string, string>`): Keys to start with (`settings`, `pane-state`, …).
 
 **Returns** `StoragePort`:
+
+### linkSearch
+
+*function*, from `@jali/core`
+
+```ts
+linkSearch(link: JaliLink, options?: LinkSearchOptions): string
+```
+
+The search string that opens a workspace on `link`, written as the workspace itself writes it: `linkSearch({ page: "visit", item: 7, open: [call({ slug: "demra" })] })` is `"?page=visit&item=7&open=call~slug=demra"`. Reading it back gives exactly that page, item, view, opened panes and peek, or that layout. It needs no workspace and no pane kinds, so a server, an email or another app can build links. Put it after the path the workspace is on: `` `/visits${linkSearch(link)}` ``.
+
+**Parameters**
+
+- **`link`** (`JaliLink`, required): A [`PageLink`](core/types.md#PageLink) (a curated page: `page`, and optionally `item`, `tab`, `open` and `peek`) or a [`LayoutLink`](core/types.md#LayoutLink) (a free workspace: `layout`, and optionally `preset`, `zoom` and `peek`).
+
+- **`options`** (`LinkSearchOptions`): `prefix`: the workspace's `url.prefix`, when it has one. `search`: a search string whose other params (your app's own) are kept; any workspace params in it are replaced.
+
+**Returns** `string`: `"?…"`, or `""` when there is nothing to write.
 
 ## Commands and keys
 

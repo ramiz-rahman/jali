@@ -48,7 +48,30 @@ Jali writes only its own search params and keeps every other part of the address
 | `peek` | The object in the peek sheet, if any. |
 | `page`, `item`, `tab`, `open` | A curated page: which one, its item, the view in use, and panes opened from it. |
 
+A page link writes each object (`open`, `peek`) as its kind and params: `call~slug=demra~t=#12` is a `call` with `slug: "demra"` and `t: 12`. You don't need to write this yourself; build links with `linkSearch`, below.
+
 Deliberate changes (opening, closing, moving, choosing a preset) add a history entry. A detail following a list replaces the entry, so Back skips the rows passed through. A divider drag replaces it once the drag settles.
+
+## Build a link from outside the workspace
+
+Your app often needs a link to something before any workspace shows it: a row in a search result, an email, a page on the server. `linkSearch` builds the same search string the workspace would write, with no workspace running:
+
+```ts
+
+// A curated page: its item, the view in use, a pane opened from it and the peek.
+const href = `/customers${linkSearch({
+  page: "customer",
+  item: 7,
+  tab: "orders",
+  open: [order({ id: 1041 })],
+  peek: order({ id: 1042 }),
+})}`;
+
+// A free workspace: a layout, and what rides with it.
+const layoutHref = `/desk${linkSearch({ layout: row(order({ id: 1041 }), customer({ id: 7 })) })}`;
+```
+
+Reading the link gives exactly what you built it from. A page link may leave out `item` and `tab`, and the reader gets the item and view they saw last. With `prefix`, it writes a prefixed workspace's params; with `search`, it keeps your own params from that search string. Pane kinds are not needed: each object is written from its kind's name and params.
 
 ## Sizes: "local" or "link"
 
