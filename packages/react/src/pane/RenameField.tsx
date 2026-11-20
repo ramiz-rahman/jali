@@ -1,6 +1,6 @@
 import type { NodeId } from "@jali/core";
 import { useLayoutEffect, useRef, useState } from "react";
-import { canRename, paneDomId } from "@jali/core/adapter";
+import { canRename, cssString, paneDomId } from "@jali/core/adapter";
 import { useStore } from "../state/react";
 
 /** Whether pane `id` can be renamed now (`createJali({ rename })`), for a double-click to ask. */
@@ -36,7 +36,7 @@ export function RenameField({ pane, title }: { pane: NodeId; title: string }) {
     requestAnimationFrame(() => {
       const root = store.dom.root();
       (
-        root.querySelector<HTMLElement>(`[role="tab"][data-tab="${pane}"]`) ??
+        root.querySelector<HTMLElement>(`[role="tab"][data-tab=${cssString(pane)}]`) ??
         document.getElementById(paneDomId(store.dom.id, pane))
       )?.focus({ preventScroll: true });
     });

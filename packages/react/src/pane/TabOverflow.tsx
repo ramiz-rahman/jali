@@ -3,7 +3,7 @@ import { useEffect, useLayoutEffect, useRef, useState, type KeyboardEvent } from
 import { useJaliIcons } from "../icons/context";
 import { createPortal } from "react-dom";
 import type { Tab } from "@jali/core/adapter";
-import { roleOf, titleOf } from "@jali/core/adapter";
+import { cssString, roleOf, titleOf } from "@jali/core/adapter";
 import { useStore } from "../state/react";
 import { useUi } from "../state/react";
 import { KindIcon } from "./icons";
@@ -115,7 +115,7 @@ export function TabOverflow({
     requestAnimationFrame(() =>
       store.dom
         .root()
-        .querySelector<HTMLElement>(`[role="tab"][data-tab="${id}"]`)
+        .querySelector<HTMLElement>(`[role="tab"][data-tab=${cssString(id)}]`)
         ?.focus({ preventScroll: true }),
     );
   };

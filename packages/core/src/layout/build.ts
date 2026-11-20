@@ -7,7 +7,16 @@
  * first when there are any: `row({ weight: 2 }, a, b)`. Nodes without an `id` get one from what they hold ("orders",
  * "row", then "orders-2"); give an `id` to a pane that another one links to.
  */
-import type { Axis, Layout, LayoutNode, NodeId, ObjectRef, PaneNode, Size, SplitNode } from "./types";
+import type {
+  Axis,
+  Layout,
+  LayoutNode,
+  NodeId,
+  ObjectRef,
+  PaneNode,
+  Size,
+  SplitNode,
+} from "./types";
 
 /** How much of its parent a node takes: a share (`weight`, default 1) or a fixed length in px. */
 export interface SizeOptions {
@@ -110,7 +119,15 @@ export function toLayout(input: LayoutInput): Layout {
   given(root);
   const name = (d: Draft): NodeId => {
     if (d.options.id) return d.options.id;
-    const base = d.type === "pane" ? d.ref.kind : d.type === "stack" ? "tabs" : d.type;
+    // Named after the kind, kept to the characters an id may hold (layout/codec/validate.ts).
+    const base =
+      d.type === "pane"
+        ? String(d.ref.kind)
+            .replace(/[^\w.:-]/g, "-")
+            .slice(0, 100) || "pane"
+        : d.type === "stack"
+          ? "tabs"
+          : d.type;
     let id = base;
     for (let i = 2; taken.has(id); i++) id = `${base}-${i}`;
     taken.add(id);

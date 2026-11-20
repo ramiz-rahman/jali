@@ -1,7 +1,15 @@
 import type { KindRegistry, Layout, ObjectRef } from "../types";
+import { AUTO_PREFIX } from "../fit/overlay";
 
 const record = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null && !Array.isArray(value);
+/**
+ * A node id: letters, digits, `_`, `.`, `:` and `-`, 1 to 128 of them. Every id Jali makes (`pane-3`, `split-1`, a
+ * builder's `orders-2`) fits, and so does any id written into a DOM attribute or a CSS selector without escaping.
+ */
+export const NODE_ID = /^[\w.:-]{1,128}$/;
+const nodeId = (value: unknown): value is string =>
+  typeof value === "string" && NODE_ID.test(value);
 const positive = (value: unknown): value is number =>
   typeof value === "number" && Number.isFinite(value) && value > 0;
 export function validate(
@@ -27,8 +35,7 @@ export function validate(
       return;
     }
     seen.add(value);
-    if (typeof value.id !== "string" || !value.id.length)
-      error(path, "id must be a non-empty string");
+    if (!nodeId(value.id)) error(path, "id must be 1 to 128 letters, digits, _ . : or -");
     else if (ids.has(value.id)) error(path, `duplicate id ${value.id}`);
     else ids.add(value.id);
     if (
@@ -72,11 +79,7 @@ export function validate(
         const problem = kinds[ref.kind]!.checkParams?.(ref.params as ObjectRef["params"]);
         if (problem) error(path, `invalid params for ${ref.kind}: ${problem}`);
       }
-      if (
-        value.linkedTo !== undefined &&
-        (typeof value.linkedTo !== "string" || !value.linkedTo.length)
-      )
-        error(path, "invalid linkedTo");
+      if (value.linkedTo !== undefined && !nodeId(value.linkedTo)) error(path, "invalid linkedTo");
       if (value.kept !== undefined && typeof value.kept !== "boolean")
         error(path, "kept must be boolean");
       if (value.pinned !== undefined && typeof value.pinned !== "boolean")
@@ -132,7 +135,10 @@ export function validate(
   if (record(layout)) visit(layout.root, "root", 0);
   if (record(layout) && layout.overlay !== undefined) {
     const o: unknown = layout.overlay;
-    const text = (v: unknown) => typeof v === "string" && v.length > 0 && v.length < 512;
+    // A fold may name the automatic group it made (`@auto:<home>`).
+    const text = (v: unknown) =>
+      nodeId(v) ||
+      (typeof v === "string" && v.startsWith(AUTO_PREFIX) && nodeId(v.slice(AUTO_PREFIX.length)));
     if (!record(o)) error("overlay", "expected overlay");
     else {
       if (!Array.isArray(o.folds) || o.folds.length > 2048 || !o.folds.every(text))

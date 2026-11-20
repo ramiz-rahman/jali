@@ -3,7 +3,13 @@ import { useEffect, useLayoutEffect, useMemo, useRef, useState, type KeyboardEve
 import { useJaliIcons } from "../icons/context";
 
 import { useShortcut } from "../commands/react";
-import { flashTab, inlineStep, observeResize, scrolledFromStart } from "@jali/core/adapter";
+import {
+  cssString,
+  flashTab,
+  inlineStep,
+  observeResize,
+  scrolledFromStart,
+} from "@jali/core/adapter";
 import { Activity, shelfActivity } from "../pane/Activity";
 import { KindIcon } from "../pane/icons";
 import { UnsavedMark } from "../pane/Unsaved";
@@ -95,7 +101,7 @@ export function Shelf() {
     setFocusId(id);
     requestAnimationFrame(() => {
       const el = scroller.current?.querySelector<HTMLElement>(
-        `[data-chip="${id}"] .jali-shelf-chip-main`,
+        `[data-chip=${cssString(id)}] .jali-shelf-chip-main`,
       );
       el?.focus();
       el?.scrollIntoView({ inline: "nearest", block: "nearest" });

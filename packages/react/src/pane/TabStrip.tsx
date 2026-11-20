@@ -2,7 +2,7 @@ import type { NodeId, PaneNode } from "@jali/core";
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { useJaliIcons } from "../icons/context";
 import type { Frame, Tab } from "@jali/core/adapter";
-import { allows } from "@jali/core/adapter";
+import { allows, cssString } from "@jali/core/adapter";
 import {
   shortcutLabel,
   paneDomId,
@@ -97,7 +97,7 @@ export function TabStrip({ group, owner }: { group: NonNullable<Frame["group"]>;
     (refocus: boolean) => {
       setMenu(null);
       if (menu && refocus)
-        bar.current?.querySelector<HTMLElement>(`[data-tab="${menu.pane}"]`)?.focus();
+        bar.current?.querySelector<HTMLElement>(`[data-tab=${cssString(menu.pane)}]`)?.focus();
     },
     [menu],
   );

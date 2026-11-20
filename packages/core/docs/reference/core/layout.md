@@ -524,7 +524,7 @@ Reads `encode`'s text back. `null` for anything malformed, over 1,000,000 charac
 layout.validate(layout: Layout, kinds: KindRegistry): { ok: true } | { ok: false; errors: string[] }
 ```
 
-Checks a layout from outside: version 1; unique non-empty ids; exactly one positive `px` or `weight` per size; known kinds and string or finite number params; stacks of panes only, with an `active` child; at most 2,048 nodes and 128 levels; a well-formed overlay. Each error is `path: message`.
+Checks a layout from outside: version 1; unique ids of 1 to 128 letters, digits, `_`, `.`, `:` or `-`; exactly one positive `px` or `weight` per size; known kinds and string or finite number params; stacks of panes only, with an `active` child; at most 2,048 nodes and 128 levels; a well-formed overlay. Each error is `path: message`.
 
 **Returns** `{ ok: true } | { ok: false; errors: string[] }`:
 

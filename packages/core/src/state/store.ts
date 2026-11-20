@@ -55,6 +55,7 @@ import {
 } from "../profile";
 import { browserStorage, type StoragePort } from "../ports";
 import { focusPane } from "../dom/focus";
+import { cssString, paneDomId } from "../dom/ids";
 import { pageDirection } from "../dom/direction";
 import { loadPaneState } from "./pane-state";
 import { startUi } from "../boot";
@@ -337,7 +338,7 @@ function createDom(id: string): JaliDom {
     pane: (pane) =>
       typeof document === "undefined"
         ? null
-        : root().querySelector<HTMLElement>(`[id="${id}-pane-${pane}"]`),
+        : root().querySelector<HTMLElement>(`[id=${cssString(paneDomId(id, pane))}]`),
   };
 }
 

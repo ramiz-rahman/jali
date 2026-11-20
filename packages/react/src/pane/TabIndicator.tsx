@@ -1,6 +1,6 @@
 import type { NodeId } from "@jali/core";
 import { useLayoutEffect, useRef, useState, type CSSProperties } from "react";
-import { observeResize } from "@jali/core/adapter";
+import { cssString, observeResize } from "@jali/core/adapter";
 
 /**
  * The strip's one underline, under the shown tab: a single element, so it runs unbroken under the tab and its close
@@ -15,7 +15,7 @@ export function TabIndicator({ active, hidden }: { active: NodeId; hidden: boole
     const el = line.current?.parentElement;
     if (!el || hidden) return setBox(null);
     const measure = () => {
-      const tab = el.querySelector<HTMLElement>(`[role="tab"][data-tab="${active}"]`);
+      const tab = el.querySelector<HTMLElement>(`[role="tab"][data-tab=${cssString(active)}]`);
       if (!tab) return setBox(null);
       const rects = [tab.getBoundingClientRect()];
       const close = tab.parentElement?.querySelector<HTMLElement>(".jali-tab-close");

@@ -1,6 +1,7 @@
 /** Every DOM focus move the workspace makes, in one place. The store asks for them; it never touches the DOM. */
 import type { NodeId } from "../layout/types";
 import type { JaliDom } from "../state/store";
+import { cssString } from "./ids";
 
 /** The element a pane's focus lands on: its autofocus target, else its grid (so J/K and Space keep working), else itself. */
 function paneTarget(el: HTMLElement) {
@@ -88,7 +89,7 @@ export function focusShelfChip(dom: JaliDom): boolean {
 export function flashTab(dom: JaliDom, paneId: NodeId) {
   if (window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) return;
   requestAnimationFrame(() => {
-    const el = dom.root().querySelector<HTMLElement>(`[role="tab"][data-tab="${paneId}"]`);
+    const el = dom.root().querySelector<HTMLElement>(`[role="tab"][data-tab=${cssString(paneId)}]`);
     if (!el) return;
     el.classList.remove("is-flash");
     void el.offsetWidth;

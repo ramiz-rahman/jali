@@ -109,7 +109,7 @@ A share of a split (`weight`, relative to the siblings) or a fixed length in pix
 type NodeId = string
 ```
 
-A node's id.
+A node's id: 1 to 128 letters, digits, `_`, `.`, `:` or `-` (`orders`, `pane-3`, `detail:7`). Every id Jali and the builders make fits; a layout from outside with any other id is refused.
 
 ### ObjectRef
 
