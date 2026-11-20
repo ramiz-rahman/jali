@@ -30,22 +30,21 @@ function copy(root: Projected): { root: Projected; of: Map<Projected, Projected>
   return { root: walk(root), of };
 }
 
-/** How many slots stay on screen once `root` folds on, by the focus-free rule, until it fits the room. */
-function shownWhenFitted(root: Projected, fit: FitOptions, order: Map<string, number>): number {
-  while (tooSmall(root, fit)) {
-    const choice = chooseFold(root, noFocus(), order);
-    if (!choice) break;
-    root = foldSlot(root, choice, fit, order);
-  }
-  return slots(root).length;
-}
+/** Done folding on: the projection fits the room, or a single slot is left. */
+const settled = (root: Projected, fit: FitOptions) =>
+  !tooSmall(root, fit) || slots(root).length < 2;
 
 /**
  * Fold `choice` into its home. A tab group needs the room of its widest (and tallest) tab, so a fold can raise the
  * minimum of the group it joins, and that can fold the next slot too: a wide pane folding behind a narrow list. So
  * when the rule's home (`foldHomes`) still leaves the projection too big for the room, the other places the slot
- * could go are tried as well, each followed through to a fit, and the one that leaves more slots on screen wins.
- * The rule's home wins every tie, and whenever its fold fits, so layouts that fit after it never change.
+ * could go are tried as well, each followed through to a fit by the focus-free rule, and the one that leaves more
+ * slots on screen wins. The rule's home wins every tie, and whenever its fold fits, so layouts that fit after it never
+ * change.
+ *
+ * Every fold takes exactly one slot off screen, so the trial that leaves the most slots is the one that fits after
+ * the fewest further folds. The trials therefore advance together, one fold each per round, and the first to settle
+ * wins (the earliest in `homes` among those settling in the same round): no trial is followed further than the winner.
  */
 export function fold(
   root: Projected,
@@ -60,14 +59,16 @@ export function fold(
     return foldSlot(trial.root, trial.of.get(choice)!, fit, order, undefined, trial.of.get(home)!);
   };
   const first = tryAt(homes[0]!);
-  if (!tooSmall(first, fit)) return foldSlot(root, choice, fit, order, undefined, homes[0]);
-  let best = homes[0]!,
-    most = shownWhenFitted(first, fit, order);
-  for (const home of homes.slice(1)) {
-    const shown = shownWhenFitted(tryAt(home), fit, order);
-    if (shown > most) [best, most] = [home, shown];
+  if (!tooSmall(first, fit)) return first;
+  const trials = [first, ...homes.slice(1).map(tryAt)];
+  for (;;) {
+    const best = trials.findIndex((t) => settled(t, fit));
+    if (best >= 0) return foldSlot(root, choice, fit, order, undefined, homes[best]);
+    for (let i = 0; i < trials.length; i++) {
+      const t = trials[i]!;
+      trials[i] = foldSlot(t, chooseFold(t, noFocus(), order)!, fit, order);
+    }
   }
-  return foldSlot(root, choice, fit, order, undefined, best);
 }
 
 /** Hidden panes leave the projection first: no slot and no tab, and their neighbours absorb the space. */
