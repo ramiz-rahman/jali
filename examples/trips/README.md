@@ -88,5 +88,7 @@ Day colours are never the only signal: every pin and every list names its day's 
 - **No routing service.** Routes are drawn as straight lines between stops (the flight as an arc), and travel times come from the rules in `src/trip/travel.ts`. They are estimates for the example, not directions or timetables. The map's labels are OpenStreetMap's, so many are in Thai with a Latin form.
 - **Businesses and prices:** every hotel, restaurant and price is made up, in US dollars. The sights are real places; their hours, visit lengths and ticket prices here are invented for the example, as are the fares and the flight.
 - **Map library:** [MapLibre GL JS](https://maplibre.org), BSD-3-Clause.
-- **Fonts:** Bricolage Grotesque and Chivo Mono come from Fontsource (`@fontsource-variable/*`), under the SIL Open Font License. Satoshi (`public/fonts/satoshi/`) was copied from the Nava repository, with its licence, Fontshare's Free Font EULA (`FFL.txt`). That licence limits redistribution of the font files, so check it, or replace Satoshi, before this example is published.
+- **Fonts:** Figtree for text (its tabular figures for numbers) and Bricolage Grotesque for display, both from Fontsource (`@fontsource-variable/*`) under the SIL Open Font License, which lets them ship with the app.
 - **Design:** the look follows Nava's design tokens (coral on zinc, its radii and status colours). The app's name and mark are its own.
+
+`licenses/` holds the licence of everything Trips ships that someone else made: the two faces, MapLibre, and the Creative Commons legal code for each licence its photos come under.

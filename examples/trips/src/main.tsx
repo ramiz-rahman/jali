@@ -7,8 +7,9 @@ import { toast } from "sonner";
 import { createServices } from "./services";
 import { App } from "./shell/App";
 import { createTripsJali } from "./workspace";
-// Styles: the layer order is declared in index.html. Then the faces (Bricolage Grotesque from Fontsource;
-// Satoshi from public/fonts), and the app's own, which import Jali's styles first.
+// Styles: the layer order is declared in index.html. Then the faces (Figtree for text and Bricolage Grotesque for
+// display, both from Fontsource under the SIL Open Font License), and the app's own, which import Jali's first.
+import "@fontsource-variable/figtree/index.css";
 import "@fontsource-variable/bricolage-grotesque/index.css";
 import "./styles/app.css";
 

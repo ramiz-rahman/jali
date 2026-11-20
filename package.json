@@ -32,6 +32,7 @@
   },
   "dependencies": {
     "@electric-sql/pglite": "^0.5.16",
+    "@fontsource-variable/figtree": "5.3.0",
     "@jali/core": "workspace:*",
     "@jali/react": "workspace:*",
     "@phosphor-icons/react": "^2.1.10",

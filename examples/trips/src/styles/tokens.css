@@ -1,20 +1,11 @@
 /*
- * The theme, after Nava's ("energetic editorial"): neon coral on zinc neutrals, Satoshi for text, Bricolage
- * Grotesque for display, Satoshi's tabular figures for numbers, generous radii. Set on Jali's own tokens so every part of Jali
+ * The theme, after Nava's ("energetic editorial"): neon coral on zinc neutrals, Figtree for text and its tabular
+ * figures for numbers, Bricolage Grotesque for display, generous radii. Set on Jali's own tokens so every part of Jali
  * follows, on the same scopes Jali uses for light and dark (see the Theming guide), unlayered, so they win.
  *
  * The app's own tokens are --t-*: Nava's coral scale, the day colours (keep them in step with ui/colors.ts, which
  * the map reads), the budget's category colours, and the floating shadow for things over the map.
  */
-@font-face {
-  font-family: "Satoshi";
-  /* From Nava's repository (Fontshare's free licence, FFL.txt beside it). Check the licence before publishing. */
-  src: url("/fonts/satoshi/Satoshi-Variable.woff2") format("woff2");
-  font-display: swap;
-  font-style: normal;
-  font-weight: 300 900;
-}
-
 :root {
   --t-coral-100: oklch(0.96 0.03 28);
   --t-coral-200: oklch(0.92 0.06 28);
@@ -26,11 +17,11 @@
   --t-coral-800: oklch(0.44 0.12 28);
   --t-coral-900: oklch(0.36 0.08 28);
 
-  --t-font-display: "Bricolage Grotesque Variable", "Satoshi", system-ui, sans-serif;
+  --t-font-display: "Bricolage Grotesque Variable", "Figtree Variable", system-ui, sans-serif;
   --t-radius-card: 16px;
   --t-radius-pill: 999px;
 
-  --jali-font: "Satoshi", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --jali-font: "Figtree Variable", system-ui, -apple-system, "Segoe UI", sans-serif;
   --jali-font-mono: ui-monospace, "SF Mono", Menlo, monospace;
   --jali-radius: 14px;
   --jali-radius-control: 10px;
