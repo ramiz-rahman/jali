@@ -10,6 +10,6 @@ Not an app. [Data Studio](../data-studio) and [Loan review](../loan-review) both
 
 And, for every example:
 
-- `src/store.ts`: a small external store, and what a store keeps on this device, with a version and a check when it is read back (Markets uses it).
+- `src/store.ts`: a small external store, and what a store keeps on this device, with a version and a check when it is read back (Markets uses both; Studio the store, with its own versioned keys).
 - `src/theme.ts`: ⌘K's "Switch between light and dark".
 - `e2e/quality.ts`: the standard's checks for each example's browser tests: an axe scan per layout and theme, a 360–2200px width sweep (nothing scrolls sideways, is off screen, cut off or covered), and a console guard that fails a test on any error or warning. A spec imports `test` and `expect` from it and calls `qualitySuite` with its layouts.

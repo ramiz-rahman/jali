@@ -23,7 +23,7 @@
 import { audible, channelOf, type Edits } from "../edits";
 import { isSession, loadSession, sessionById, type SessionData } from "../sessions/sessions";
 import { catalogueOf } from "../sessions/catalog";
-import { createStore, type Store } from "../store";
+import { createStore, type Store } from "#shared/store";
 import type { StretchNode } from "signalsmith-stretch";
 
 export const SPEEDS = [0.75, 1, 1.25, 1.5, 2] as const;

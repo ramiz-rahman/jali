@@ -1,34 +1,10 @@
-/** A very small external store, for the app's own state beside Jali's (the edits, the transport), and what it keeps on this device. */
-import { useSyncExternalStore } from "react";
-
-export interface Store<T> {
-  get(): T;
-  set(next: T | ((prev: T) => T)): void;
-  subscribe(listener: () => void): () => void;
-}
-
-export function createStore<T>(initial: T): Store<T> {
-  let value = initial;
-  const listeners = new Set<() => void>();
-  return {
-    get: () => value,
-    set(next) {
-      const v = typeof next === "function" ? (next as (prev: T) => T)(value) : next;
-      if (Object.is(v, value)) return;
-      value = v;
-      // A copy: a listener may unsubscribe while being called.
-      for (const l of Array.from(listeners)) l();
-    },
-    subscribe(l) {
-      listeners.add(l);
-      return () => listeners.delete(l);
-    },
-  };
-}
-
-export function useStore<T, S>(store: Store<T>, select: (value: T) => S): S {
-  return useSyncExternalStore(store.subscribe, () => select(store.get()));
-}
+/**
+ * What the app keeps on this device. The store itself is the examples' shared one (`#shared/store`).
+ *
+ * Studio keeps its own reading and writing rather than the shared `readKept`: its stores carry their version in the
+ * key (`studio:edits:v1`), move a value kept under an earlier key across on first read, and keep the plain JSON people
+ * already have saved, which the shared `{ v, data }` envelope would read as a version-0 value instead.
+ */
 
 /** What is kept under `key`, parsed; `undefined` for nothing, text that isn't JSON, or storage that is blocked. */
 function stored(key: string): unknown {

@@ -14,7 +14,8 @@ import {
   type SessionData,
   type WordTime,
 } from "./sessions/sessions";
-import { createStore, saved, useStore, type Store } from "./store";
+import { createStore, useStore, type Store } from "#shared/store";
+import { saved } from "./store";
 import { asString, isNumber, isRecord, recordOf } from "./stored";
 
 export interface Channel {

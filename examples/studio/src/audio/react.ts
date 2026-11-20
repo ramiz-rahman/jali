@@ -6,7 +6,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useTheme } from "@jali/react";
 import { useServices } from "../services";
-import { useStore } from "../store";
+import { useStore } from "#shared/store";
 import type { TransportState } from "./engine";
 
 export function useTransport<T>(select: (s: TransportState) => T): T {
