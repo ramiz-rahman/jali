@@ -41,9 +41,13 @@ test.describe("A list's detail follows its selection", () => {
     await expect(pane.locator(".jali-act-zoom")).toBeHidden();
     const h2 = pane.locator("h2");
     expect(await h2.evaluate((e) => e.scrollWidth <= e.clientWidth)).toBe(true);
-    // Focused, the buttons are back.
+    // Focused, the buttons would cut the title short at this width, so they wait in the pane's menu instead.
     await pane.click({ position: { x: 100, y: 120 } });
-    await expect(pane.locator(".jali-act-zoom")).toBeVisible();
+    await expect(pane.locator(".jali-pane-header")).toHaveAttribute("data-narrow", "actions");
+    expect(await h2.evaluate((e) => e.scrollWidth <= e.clientWidth)).toBe(true);
+    await pane.locator('.jali-pane-action[data-action="menu"]').click();
+    await expect(page.getByRole("menuitem", { name: /Maximi[sz]e/ })).toBeVisible();
+    await page.keyboard.press("Escape");
   });
 
   test("holding J doesn't follow every row: only where the selection rests", async ({
