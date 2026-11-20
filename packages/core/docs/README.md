@@ -26,6 +26,7 @@ Written from the docs site by scripts/agent-docs.mjs; don't edit these files.
 - [Keep the layout in the URL](guides/url-and-routers.md): Put the layout in the address so links reopen it and Back steps through it, with or without a router.
 - [Unsaved work and pane state](guides/unsaved-work-and-pane-state.md): Ask before a pane's unsaved work is lost, keep what a person expects back, and add a pane's commands to ⌘K.
 - [Tabs](guides/tabs.md): Let people reorder, pin, rename and close tabs, and add your own items to a tab's menu.
+- [Rows that scroll sideways](guides/scrolling-rows.md): Keep a sequence of panes at a width you can read, a board's stages or a week of days, in a row that scrolls instead of folding.
 - [Choose what people can do with panes](guides/pane-controls.md): Turn a pane's controls on or off, close, tuck, maximise, full screen, move, resize, pin and pop out, for a kind, a whole workspace, or a layout.
 - [Commands and keys](guides/commands-and-keys.md): Rebind the workspace's keys, share ⌘K and the keyboard with your app, let your content keep the keys it needs, and show the right shortcut.
 - [Theming](guides/theming.md): Make the workspace match your app by setting a few tokens, mapping them from your Tailwind theme, or styling its parts.
