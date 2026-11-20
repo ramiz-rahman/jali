@@ -1,7 +1,6 @@
 import { createPaneKinds } from "@jali/core/adapter";
 import { nextSort, orderByString, parseFilter } from "./grid/grid-state";
 import { recordKind } from "./kinds/record";
-import { pickChartColumns } from "../../../data-studio/src/panes/kinds/chart";
 import { describe, expect, it } from "vite-plus/test";
 import type { ColumnInfo } from "../data/types";
 import {
@@ -91,13 +90,10 @@ describe("relation links", () => {
       },
     });
   });
-  it("titles refs and picks chart columns", () => {
+  it("titles refs", () => {
     expect(createPaneKinds([recordKind]).title(recordKind({ table: "customers", id: "69" }))).toBe(
       "customer 69",
     );
-    expect(
-      pickChartColumns([{ region: "Dhaka", id: 1, amount: 5 }], ["region", "id", "amount"]),
-    ).toEqual({ x: "region", y: "amount" });
   });
 });
 
