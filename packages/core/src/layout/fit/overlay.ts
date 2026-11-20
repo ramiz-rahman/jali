@@ -124,21 +124,16 @@ export function links(root: Projected): (pane: Projected) => string | undefined 
   const ids = new Set(allPanes(root).map((p) => p.id));
   return (p) => (p.pane!.linkedTo && ids.has(p.pane!.linkedTo) ? p.pane!.linkedTo : undefined);
 }
-export function foldSlot(
-  root: Projected,
-  choice: Projected,
-  fit: FitOptions,
-  order: Map<string, number>,
-  explicitHome?: string,
-): Projected {
+/**
+ * Where a folded slot may go, best first. First the rule's home: the slot it was opened from, else a slot opened from
+ * it, else (unlinked) its nearest neighbour, preferring an automatic group. After it, the other places it could
+ * reasonably join: its other links, then its neighbours in reading order. Fitting tries those only when the first
+ * would fold more (`fit/replay.ts`).
+ */
+export function foldHomes(root: Projected, choice: Projected): Projected[] {
   const displayed = slots(root);
   const panes = allPanes(root);
   const linkOf = links(root);
-  function owner(n: Projected): Projected | undefined {
-    if (n.type !== "row" && n.type !== "column") return undefined;
-    return n.children.includes(choice) ? n : n.children.map(owner).find(Boolean);
-  }
-  const parent = owner(root)!;
   const members = new Set(allPanes(choice).map((p) => p.id));
   const outside = (id: string | undefined) =>
     id && !members.has(id) ? displayed.find((s) => s !== choice && contains(s, id)) : undefined;
@@ -148,9 +143,33 @@ export function foldSlot(
   const details = panes
     .filter((p) => !members.has(p.id) && members.has(linkOf(p) ?? ""))
     .map((p) => displayed.find((s) => contains(s, p.id))!);
-  let home = explicitHome ? outside(explicitHome) : (sources[0] ?? details[0]);
+  // Unlinked (or only linked within itself): nearest neighbour, preferring an existing automatic stack.
+  const at = displayed.indexOf(choice);
+  const near = [displayed[at - 1], displayed[at + 1]].filter((n): n is Projected => !!n);
+  const nearest = [...near].sort((a, b) => Number(b.type === "auto") - Number(a.type === "auto"));
+  return [...new Set([...sources, ...details, ...nearest, ...near])];
+}
+export function foldSlot(
+  root: Projected,
+  choice: Projected,
+  fit: FitOptions,
+  order: Map<string, number>,
+  explicitHome?: string,
+  /** The slot to join, one of `foldHomes`; default the first. */
+  to?: Projected,
+): Projected {
+  const displayed = slots(root);
+  function owner(n: Projected): Projected | undefined {
+    if (n.type !== "row" && n.type !== "column") return undefined;
+    return n.children.includes(choice) ? n : n.children.map(owner).find(Boolean);
+  }
+  const parent = owner(root)!;
+  const members = new Set(allPanes(choice).map((p) => p.id));
+  const outside = (id: string | undefined) =>
+    id && !members.has(id) ? displayed.find((s) => s !== choice && contains(s, id)) : undefined;
+  let home = explicitHome ? outside(explicitHome) : (to ?? foldHomes(root, choice)[0]);
   if (!home) {
-    // Unlinked (or only linked within itself): nearest neighbour, preferring an existing automatic stack.
+    // A tuck whose home is gone: the nearest neighbour, preferring an existing automatic stack.
     const at = displayed.indexOf(choice);
     const near = [displayed[at - 1], displayed[at + 1]].filter((n): n is Projected => !!n);
     near.sort((a, b) => Number(b.type === "auto") - Number(a.type === "auto"));
@@ -177,61 +196,6 @@ export function foldSlot(
     return n;
   }
   return replace(root);
-}
-
-interface Replayed {
-  root: Projected;
-  order: Map<string, number>;
-  applied: string[];
-}
-/** Hidden panes leave the projection first: no slot and no tab, and their neighbours absorb the space. */
-function withoutHidden(root: Projected, hidden: readonly string[], fit: FitOptions): Projected {
-  let removed = false;
-  for (const id of hidden) {
-    const displayed = slots(root);
-    if (displayed.length < 2 || !displayed.some((s) => s.id === id && s.pane)) continue;
-    root = removeSlot(root, id)!;
-    removed = true;
-  }
-  // The minimums of what is left: a hidden pane needs no room.
-  const remeasure = (n: Projected): void => {
-    if (!n.pane) {
-      n.children.forEach(remeasure);
-      refresh(n, fit);
-    }
-  };
-  if (removed) remeasure(root);
-  return root;
-}
-/** Replay hides, then tucks, then sticky folds, without changing the canonical tree. */
-export function replay(layout: Layout, folds: readonly string[], fit: FitOptions): Replayed {
-  const projected = project(layout.root, fit);
-  const order = new Map(allPanes(projected).map((p, i) => [p.id, i]));
-  let root = withoutHidden(projected, layout.overlay?.hidden ?? [], fit);
-  const applied: string[] = [];
-  const tucks = layout.overlay?.tucks ?? [];
-  // A revealed tab names the same stable home as its fold. Resolve this against the canonical fold projection,
-  // then replay the tuck before those folds, so no fold record disappears when its shown tab receives a tuck.
-  const homes = tucks.length
-    ? slots(replay({ ...layout, overlay: { ...overlayOf(layout), tucks: [] } }, folds, fit).root)
-    : [];
-  for (const tuck of [...tucks].sort((a, b) => a.seq - b.seq)) {
-    const displayed = slots(root);
-    const choice = displayed.find((s) => s.id === tuck.pane);
-    const reference = homes.find((s) => contains(s, tuck.home));
-    const home = reference ? homeOf(reference) : tuck.home;
-    if (!choice || !displayed.some((s) => s !== choice && contains(s, home))) continue;
-    root = foldSlot(root, choice, fit, order, home);
-  }
-  for (const id of folds) {
-    const displayed = slots(root);
-    if (displayed.length < 2) break;
-    const choice = displayed.find((s) => s.id === id);
-    if (!choice) continue; // stale record (closed or moved pane): skip it
-    root = foldSlot(root, choice, fit, order);
-    applied.push(id);
-  }
-  return { root, order, applied };
 }
 
 export function choose(root: Projected, active: Record<string, string> | undefined): void {

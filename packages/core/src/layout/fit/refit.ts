@@ -1,14 +1,6 @@
 import type { Layout, LayoutContext, ViewState } from "../types";
-import {
-  allPanes,
-  autos,
-  choose,
-  contains,
-  overlayOf,
-  replay,
-  slots,
-  withOverlay,
-} from "./overlay";
+import { allPanes, autos, choose, contains, overlayOf, slots, withOverlay } from "./overlay";
+import { replay } from "./replay";
 import { chooseFold } from "./priority";
 import { checkContext, misfit, tooSmall } from "./context";
 

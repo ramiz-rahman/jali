@@ -12,7 +12,8 @@ import { shares } from "../geometry/shares";
 import { extentIn } from "../geometry/extent";
 import { mirrorRect } from "../geometry/direction";
 import { noFocus, panes } from "../tree/tree";
-import { allPanes, choose, foldSlot, overlayOf, replay, type Projected } from "./overlay";
+import { allPanes, choose, overlayOf, type Projected } from "./overlay";
+import { fold, replay } from "./replay";
 import { chooseFold } from "./priority";
 import { checkContext, misfit } from "./context";
 function build(layout: Layout, ctx: LayoutContext): Projected {
@@ -21,7 +22,7 @@ function build(layout: Layout, ctx: LayoutContext): Projected {
   while (misfit(root, fit, paneCap)) {
     const choice = chooseFold(root, noFocus(), order);
     if (!choice) break;
-    root = foldSlot(root, choice, fit, order);
+    root = fold(root, choice, fit, order);
   }
   choose(root, layout.overlay?.shown);
   return root;
