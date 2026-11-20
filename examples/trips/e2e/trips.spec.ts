@@ -211,6 +211,29 @@ test("the week keeps its place in the link: a reload reopens where it was scroll
   await expect.poll(async () => (await pane(page, "day-3").boundingBox())!.x).toBeCloseTo(at, 0);
 });
 
+test("a day dragged by its header and held at the week's edge scrolls on, and drops on a day out of view", async ({
+  page,
+}) => {
+  await layout(page, "Days").click();
+  const h = (await pane(page, "day-1").locator(".jali-pane-header").boundingBox())!;
+  const s = (await page.locator('[data-strip="week"]').boundingBox())!;
+  await page.mouse.move(h.x + 60, h.y + h.height / 2);
+  await page.mouse.down();
+  await page.mouse.move(h.x + 90, h.y + 30, { steps: 5 });
+  await page.mouse.move(s.x + s.width - 12, s.y + 200, { steps: 8 });
+  await expect.poll(() => wholeInWeek(page, "day-7"), { timeout: 8000 }).toBe(true);
+  // Onto Day 7's left half: Day 1 goes just before it.
+  const t = (await pane(page, "day-7").boundingBox())!;
+  await page.mouse.move(t.x + 30, t.y + t.height / 2, { steps: 6 });
+  await page.mouse.up();
+  await expect
+    .poll(async () => {
+      const x = async (id: string) => (await pane(page, id).boundingBox())!.x;
+      return (await x("day-6")) < (await x("day-1")) && (await x("day-1")) < (await x("day-7"));
+    })
+    .toBe(true);
+});
+
 test("a day comes out of the week by its header, onto the side of a pane beside it", async ({
   page,
 }) => {

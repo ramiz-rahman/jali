@@ -294,7 +294,7 @@ Runs a command by id if its check passes. A refusal is not announced here (the k
 
 <Entry name="edgeScroll" kind="function" from="@jali/core" signature={`edgeScroll(jali: Jali, onScroll?: () => void): EdgeScroll`} compact>
 
-Scrolls a row that scrolls sideways while a drag is held within 56px of its left or right edge, faster the closer it is, so a drag can reach a pane out of view. For an app's own drag: Jali's pane drag (by a header) doesn't use it yet. Call `move` on every pointer move and `stop` when the drag ends. `onScroll` runs after each step, so the drag can find what is under the pointer again as the panes slide past.
+Scrolls a row that scrolls sideways while a drag is held within 56px of its left or right edge, faster the closer it is, so a drag can reach a pane out of view. For an app's own drag; Jali's pane drag (by a header) already does this. Call `move` on every pointer move and `stop` when the drag ends. `onScroll` runs after each step, so the drag can find what is under the pointer again as the panes slide past.
 
 <Params>
 <Param name="jali" type="Jali" required />

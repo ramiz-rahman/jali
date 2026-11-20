@@ -4,6 +4,7 @@
  * The drag lives in this closure and in `dnd` state; there is no module state.
  */
 import { allows } from "../actions/allow";
+import { edgeScroll } from "./edge-scroll";
 import type { Edge, Rect } from "../layout/types";
 import type { UiStore } from "../state/store";
 
@@ -144,6 +145,10 @@ function startDrag(
     return { x: cx - (b?.left ?? 0) - inset, y: cy - (b?.top ?? 0) - inset };
   };
 
+  // Held at the edge of a row that scrolls, the drag scrolls it on, and finds what is under the pointer again as
+  // the panes slide past.
+  let last = { x: sx, y: sy };
+  const edge = edgeScroll(store.jali, () => started && aim(last.x, last.y));
   const move = (ev: PointerEvent) => {
     const m = store.model();
     if (!started) {
@@ -153,18 +158,29 @@ function startDrag(
       document.body.classList.add("jali-pane-dragging");
       window.getSelection()?.removeAllRanges();
     }
-    const p = local(ev.clientX, ev.clientY);
+    last = { x: ev.clientX, y: ev.clientY };
+    aim(ev.clientX, ev.clientY);
+    edge.move(ev.clientX, ev.clientY);
+  };
+  /** What a drop at this point (client coordinates) would do, into `dnd`. */
+  const aim = (cx: number, cy: number) => {
+    const m = store.model();
+    const p = local(cx, cy);
     // Over its own strip, a tab reorders: a line between tabs, never a split.
-    const tabAt = reorder ? tabDropAt(store, paneId, ev.clientX, ev.clientY) : undefined;
+    const tabAt = reorder ? tabDropAt(store, paneId, cx, cy) : undefined;
     if (tabAt) {
       store.set({ dnd: { dragged: paneId, x: p.x, y: p.y, ...(label ? { label } : {}), tabAt } });
       return;
     }
-    const boxes = m.resolved.panes;
+    // A pane in a row that scrolls is where the page shows it: the model hears where a strip is only once it rests,
+    // which lags behind a scroll that is still going.
+    const boxes = m.resolved.panes.map((b) => {
+      const el = b.clip && !b.hidden ? store.dom.pane(b.id) : null;
+      return el ? { ...b, rect: { ...b.rect, x: local(el.getBoundingClientRect().left, 0).x } } : b;
+    });
     const inside = (r: { x: number; y: number; width: number; height: number }) =>
       p.x >= r.x && p.x <= r.x + r.width && p.y >= r.y && p.y <= r.y + r.height;
-    // A pane in a row that scrolls is there only within the strip's window: past its edge it is hidden, and the
-    // pointer is over whatever is beside the strip.
+    // And only within the strip's window: past its edge it is hidden, and the pointer is over whatever is beside it.
     const hit = boxes.find((b) => !b.hidden && inside(b.rect) && (!b.clip || inside(b.clip)));
     const target = hit && hit.id !== paneId ? hit : undefined;
     let zone: Edge | "centre" | undefined = target ? zoneFor(target.rect, p.x, p.y) : undefined;
@@ -200,6 +216,7 @@ function startDrag(
   // A grip or tab held down never starts a text selection: crossing a pane would otherwise select its text.
   const noSelect = (ev: Event) => ev.preventDefault();
   function cleanup() {
+    edge.stop();
     document.removeEventListener("selectstart", noSelect, true);
     window.removeEventListener("pointermove", move);
     window.removeEventListener("pointerup", up);

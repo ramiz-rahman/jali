@@ -1,6 +1,6 @@
 /**
  * Scrolling a row that scrolls sideways while something is dragged near its edge, so a drag can reach a pane out of
- * view, for an app's own drag (Trips drags a day's stop to another day); Jali's pane drag doesn't use it yet. Hold the pointer
+ * view: Jali's pane drag uses it, and so can an app's own (Trips drags a day's stop to another day). Hold the pointer
  * within `EDGE` px of a strip's left or right edge and it scrolls that way, faster the closer the pointer is.
  *
  *   const edge = edgeScroll(jali, () => updateDropTarget());
@@ -26,6 +26,7 @@ export function edgeScroll(jali: Jali, onScroll?: () => void): EdgeScroll {
   const store = storeOf(jali);
   let at: { x: number; y: number } | null = null;
   let frame = 0;
+  let steps = 0;
 
   /**
    * Where the panes' box sits on the page: a shown pane's place there, less its place in the layout. Not a pane in a
@@ -77,6 +78,12 @@ export function edgeScroll(jali: Jali, onScroll?: () => void): EdgeScroll {
       const before = el.scrollLeft;
       el.scrollLeft = before + Math.max(-1, Math.min(1, pull)) * SPEED;
       if (Math.abs(el.scrollLeft - before) < 0.5) return;
+      // Keep the model roughly in step while the hold goes on (its drop highlight reads it), every few frames
+      // rather than every one: the strip tells it exactly once it rests.
+      if (++steps % 6 === 0) {
+        const left = el.scrollLeft;
+        store.actions.setScroll(s.id, store.get().dir === "rtl" ? maxOffset(s) - left : left);
+      }
       onScroll?.();
       frame = requestAnimationFrame(step);
       return;
