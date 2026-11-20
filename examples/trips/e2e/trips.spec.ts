@@ -1,4 +1,9 @@
-import { expect, test, type Page } from "@playwright/test";
+import type { Page } from "@playwright/test";
+import { expect, test } from "../../shared/e2e/quality";
+import { MAP_STYLE_WARNINGS } from "./known";
+
+// FIXME(trips): the map style warns in the console (known.ts); the guard allows only those messages.
+test.use({ consoleAllow: MAP_STYLE_WARNINGS });
 
 const pane = (page: Page, id: string) => page.locator(`.jali-pane[data-pane="${id}"]`);
 const layout = (page: Page, name: string) =>
