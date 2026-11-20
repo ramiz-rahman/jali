@@ -40,11 +40,27 @@
   - Toasts aren't inert behind a modal.
   - Saved pane state from before this change is not read back, so it is lost once.
 
-**API cleanup, 20 Nov 2026 (branch, not merged):**
+**API cleanup, done 20 Nov 2026 (master `98b5493`):**
 
 - **Fixed:** P3 in part (the curated page is opt-in through `definePage`; pure annotations), P15 (`DomPort`), P16 (a read-only `layout.tree` with deprecated draft steps, `UrlState`, an explicit adapter list), and Jali's side of C12 (`appOnly`). Jali's side of C13 (`usePaneState`'s `parse`) came with P10.
 - **Gates:** all pass but **size**: minimal core 52.3 KB (budget 49.5), React 24.5 (18.3), CSS 8.2 (7.8); headless 46.7 (45); layout 10.2 (9.6). What is left is code the apps reach (DECISIONS, "Size after the opt-in page"). The budgets are the owner's call.
 - **Open:** Data Studio declares `autorun: appOnly(Boolean)` (its own file); pop out's port is still module state.
+
+**Phase 3, docs islands, done 20 Nov 2026:**
+
+- **Fixed:** P4 (static pages; only search, the page tools and the live parts run in the browser; code highlighted once, at build; a 9 KB search index instead of the sources; normal page loads with prefetch) and the rest of P24 (breadcrumb URL, a head per page, one frontmatter parser, no client router, unique SVG ids, heading names, GIFs as videos, Install panels, search finds reference entries, `/llms.txt`, the Quickstart's own app as its preview). `MarkdownView`, `rawText` and `shell/home.tsx` were already gone. DECISIONS, "Docs: static pages with islands".
+- **Measured after** (`apps/docs/scripts/measure.mjs`, production build; phone = 390×844, 4× CPU, 150 ms RTT, 1.6 Mbps). JS is every script the page loads by the time it is quiet, gzipped, live parts near the top included:
+
+  | Page               | JS before | JS after | CLS phone before | after | TBT phone before | after  |
+  | ------------------ | --------- | -------- | ---------------- | ----- | ---------------- | ------ |
+  | `/`                | 485 KB    | 184 KB   | 0.019            | 0.000 | 345 ms           | 229 ms |
+  | `/learn/fitting`   | 467 KB    | 164 KB   | 0.388            | 0.000 | 258 ms           | 222 ms |
+  | `/guides/theming`  | 499 KB    | 5.9 KB   | 0.133            | 0.000 | 382 ms           | 0 ms   |
+  | `/reference/react` | 476 KB    | 5.9 KB   | 0.028            | 0.000 | 553 ms           | 0 ms   |
+
+  Phone LCP was 0.56–0.93 s before and 0.92–1.2 s after, but the after runs were on a machine with a load average above 30 (other sessions' builds), and desktop numbers moved by 2–4× between identical runs; re-measure on a quiet machine. The four preloaded font files (about 47 KB) are what keeps CLS at 0 now that the first paint no longer waits for JS; without them `/reference/react` shifts by 0.21 on desktop.
+
+- **Open:** Several live workspaces on one page repeat Jali's landmarks (a "Panes" region per workspace, a region per pane named by its title); axe's best-practice rules skip `[data-jali]` until @jali/react lets a host name them.
 
 ## Verdict
 
