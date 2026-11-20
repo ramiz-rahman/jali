@@ -99,7 +99,7 @@ export interface Jali {
   destroy(): void;
 }
 
-const stores = new WeakMap<Jali, UiStore>();
+const stores = /* @__PURE__ */ new WeakMap<Jali, UiStore>();
 
 /** The store behind a workspace, for adapters (`@jali/core/adapter`). */
 export function storeOf(jali: Jali): UiStore {

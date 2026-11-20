@@ -55,7 +55,7 @@ export type AllowRule = (ctx: AllowContext) => boolean | undefined | void;
 export type WorkspaceAllow = PaneAllow & { when?: AllowRule };
 
 /** Off until the app turns them on, at the workspace (`createJali({ allow: { popOut: true } })`). */
-const OFF_BY_DEFAULT = new Set<PaneControl>(["popOut"]);
+const OFF_BY_DEFAULT = /* @__PURE__ */ new Set<PaneControl>(["popOut"]);
 
 /** Whether `action` may happen to pane `id`. */
 export function allows(

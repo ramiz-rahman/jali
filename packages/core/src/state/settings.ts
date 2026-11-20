@@ -31,7 +31,7 @@ const CHECKS: { [K in keyof Settings]: (v: unknown) => boolean } = {
   theme: (v) => v === "system" || v === "light" || v === "dark",
   boundary: (v) => v === "tint" || v === "none",
 };
-const KEYS = Object.keys(CHECKS) as (keyof Settings)[];
+const KEYS = /* @__PURE__ */ Object.keys(CHECKS) as (keyof Settings)[];
 
 /** Each field of `value` that the setting can take, over `base`; a field it can't take keeps `base`'s. */
 function checked(base: Settings, value: unknown): Settings {

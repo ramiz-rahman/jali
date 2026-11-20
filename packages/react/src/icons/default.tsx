@@ -26,7 +26,7 @@ function svgIcon(name: JaliIconName, d: string, mirrored: boolean): JaliIcon {
 }
 
 /** Jali's icon for every name it draws. Spread it under your own: `{ ...defaultIcons, close: MyClose }`. */
-export const defaultIcons = Object.fromEntries(
+export const defaultIcons = /* @__PURE__ */ Object.fromEntries(
   Object.entries(defaultIconPaths).map(([name, path]) => {
     const [d, mirrored] = typeof path === "string" ? [path, false] : [path[0], true];
     return [name, svgIcon(name as JaliIconName, d, mirrored)];

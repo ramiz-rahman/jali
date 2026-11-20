@@ -144,8 +144,8 @@ export function setTitle({ s, m }: Snapshot, id: NodeId, title: string | null): 
 }
 
 /** The data-* names Jali's own parts carry or look for: a pane's attributes never take them. */
-const JALI_DATA = new Set(
-  [
+const JALI_DATA = /* @__PURE__ */ new Set(
+  /* @__PURE__ */ [
     "activity",
     "autofocus",
     "boundary",

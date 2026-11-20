@@ -227,7 +227,7 @@ export interface Refusal {
 /** What every public action returns. */
 export type ActionResult = Done | Refusal;
 
-export const DONE: Done = Object.freeze({ ok: true }) as Done;
+export const DONE: Done = /* @__PURE__ */ Object.freeze({ ok: true }) as Done;
 const refused = (reason: RefusalReason, message?: string): Refusal =>
   message === undefined ? { ok: false, reason } : { ok: false, reason, message };
 

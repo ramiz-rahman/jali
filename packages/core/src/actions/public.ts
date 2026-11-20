@@ -192,7 +192,7 @@ export function paneFor(x: Snapshot, target: PaneTarget): NodeId | undefined {
 type Run = (o: Outcome | ((x: Snapshot) => Outcome)) => ActionResult;
 
 /** An action that uses no ref. */
-const NO_REF: unique symbol = Symbol();
+const NO_REF: unique symbol = /* @__PURE__ */ Symbol();
 
 /** What is wrong with `ref`, in the workspace's words; undefined when nothing is. `known: false`: any kind will do. */
 function refProblem(x: Snapshot, ref: unknown, known = true): string | undefined {

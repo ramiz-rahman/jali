@@ -354,7 +354,7 @@ interface Built {
   byId: Map<string, CommandDef>;
   commands: Command[];
 }
-const built = new WeakMap<Env, Built>();
+const built = /* @__PURE__ */ new WeakMap<Env, Built>();
 const forEnv = (env: Env) => {
   let b = built.get(env);
   if (!b) {

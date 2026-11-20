@@ -32,7 +32,7 @@ const COVERS: Record<PaneButton, string> = {
 };
 
 /** What a narrow header moves into ⋯; Close and ⋯ itself stay. */
-const MOVES: ReadonlySet<PaneButton> = new Set(["tuck", "maximise", "fullScreen", "popOut"]);
+const MOVES: ReadonlySet<PaneButton> = /* @__PURE__ */ new Set(["tuck", "maximise", "fullScreen", "popOut"]);
 
 /**
  * The header's buttons (`buttons`: Jali's choice unless the app's), then ⋯ for the rest of the pane's menu: 26px
