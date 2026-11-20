@@ -15,7 +15,7 @@ import {
   observeResize,
 } from "@jali/core/adapter";
 import { useEnv, useStore, useUi } from "../state/react";
-import { Activity } from "./Activity";
+import { Activity, activityLabel } from "./Activity";
 import { KindIcon } from "./icons";
 import { RenameField, useCanRename } from "./RenameField";
 import { TabIndicator } from "./TabIndicator";
@@ -66,6 +66,8 @@ export function TabStrip({ group, owner }: { group: NonNullable<Frame["group"]>;
   const page = useUi((s) => !!s.page);
   const titles = useUi((s) => s.titles);
   const marks = useUi((s) => s.paneAttributes);
+  // Renders the strip again when what one of its own tabs is doing changes (read below), and for no other pane.
+  useUi((s) => group.tabs.map((t) => own(s.activity, t.node.id) ?? "").join());
   const unsaved = useUi((s) => s.unsaved);
   // A tab dragged over this strip: the line shows where it would go.
   const dropAt = useUi((s) => s.dnd?.tabAt);
@@ -173,6 +175,8 @@ export function TabStrip({ group, owner }: { group: NonNullable<Frame["group"]>;
     const title = titleOf(store.env, t, titles);
     const dirty = !!own(unsaved, t.id);
     const pinned = !!t.pinned;
+    // A tab behind says what its pane is doing ("Working"), as its dot shows; the shown tab's pane says it itself.
+    const busy = active ? undefined : activityLabel(words.pane, own(store.get().activity, t.id));
     // Renaming: the field takes the tab's place until it closes.
     if (renaming === t.id)
       return (
@@ -219,7 +223,7 @@ export function TabStrip({ group, owner }: { group: NonNullable<Frame["group"]>;
           data-unsaved={dirty || undefined}
           aria-label={title}
           data-pinned={pinned || undefined}
-          aria-description={[pinned && tw.pinned, dirty && words.pane.unsaved, description]
+          aria-description={[busy, pinned && tw.pinned, dirty && words.pane.unsaved, description]
             .filter(Boolean)
             .join(". ")}
           aria-keyshortcuts="Delete Backspace Shift+F10"

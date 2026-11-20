@@ -157,3 +157,16 @@ describe("the pane switcher's keys", () => {
     expect(storeOf(jali).get().view.focused).toBe("b");
   });
 });
+
+describe("a tab behind", () => {
+  it("says what its pane is doing in its description, as its dot shows", () => {
+    const jali = make(three());
+    render(<JaliRoot jali={jali} />);
+    act(() => storeOf(jali).set({ activity: { a: "working", b: "needs-you" } }));
+    expect(tab("Note 2").getAttribute("aria-description")).toBe("Needs you. Delete closes it.");
+    // The shown tab's pane says it itself.
+    expect(tab("Note 1").getAttribute("aria-description")).toBe("Delete closes it.");
+    act(() => storeOf(jali).set({ activity: { a: "working" } }));
+    expect(tab("Note 2").getAttribute("aria-description")).toBe("Delete closes it.");
+  });
+});

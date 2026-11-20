@@ -1,4 +1,4 @@
-import type { PaneActivity } from "@jali/core";
+import type { Messages, PaneActivity } from "@jali/core";
 import { useMessages } from "../state/react";
 import { useJaliIcons } from "../icons/context";
 
@@ -22,14 +22,18 @@ const ACTIVITY: Record<
   error: { label: "error", shelf: { shape: "fail", state: "failed" } },
 };
 
+/** What an activity says ("Working", "Needs you"); idle says nothing. */
+export const activityLabel = (words: Messages["pane"], a: PaneActivity | undefined) =>
+  a && a !== "idle" ? words[ACTIVITY[a].label!] : undefined;
+
 /** The shelf's shape and state for an activity: "working", "live", "needs-you", "failed"; idle has none. */
 export const shelfActivity = (a: PaneActivity | undefined) => (a ? ACTIVITY[a].shelf : undefined);
 
 export function Activity({ a, shape = false }: { a: PaneActivity | undefined; shape?: boolean }) {
   const words = useMessages().pane;
   const icon = useJaliIcons();
-  if (!a || a === "idle") return null;
-  const label = words[ACTIVITY[a].label!];
+  const label = activityLabel(words, a);
+  if (!a || !label) return null;
   if (!shape)
     return (
       <span

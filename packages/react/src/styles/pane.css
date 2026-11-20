@@ -223,7 +223,8 @@
   }
   .jali-pane-loading {
     padding: 1rem;
-    color: var(--jali-text-faint);
+    /* Text people read: 4.5:1 or more on the pane (faint is for marks, not words). */
+    color: var(--jali-text-subtle);
   }
 
   /* Activity dot (header, tab, switcher). The shelf's shapes are in shelf.css. */
@@ -849,5 +850,22 @@
     flex: 1;
     min-height: 0;
     overflow: auto;
+  }
+
+  /* Forced colours (Windows High Contrast) drop backgrounds and shadows: the shown tab's underline, the focused
+     pane's ring and the activity dots would vanish. Each is drawn in a system colour instead. */
+  @media (forced-colors: active) {
+    .jali-tab-indicator {
+      forced-color-adjust: none;
+      background: Highlight;
+    }
+    .jali-activity {
+      forced-color-adjust: none;
+      background: CanvasText;
+    }
+    .jali-pane.is-focused {
+      outline: 2px solid Highlight;
+      outline-offset: -2px;
+    }
   }
 }
