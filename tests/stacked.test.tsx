@@ -5,6 +5,7 @@
 import { act, cleanup, fireEvent, render } from "@testing-library/react";
 import { afterAll, afterEach, beforeAll, describe, expect, it } from "vite-plus/test";
 import { createJali, memoryLocation, memoryStorage, type PhoneOptions } from "@jali/core";
+import { frames } from "@jali/core/adapter";
 import { JaliRoot, definePane } from "@jali/react";
 
 const list = definePane("list", {
@@ -110,5 +111,57 @@ describe("stacked view, drawn", () => {
     act(() => void fireEvent.keyDown(divider, { key: "Home" }));
     expect(divider.getAttribute("aria-valuenow")).toBe("33");
     expect(container.querySelector(".jali-switch-item[data-in-view]")).not.toBeNull();
+  });
+});
+
+describe("stacked view, from the kinds' heights", () => {
+  // A short pane: comfortable at 200, never usefully taller than 260.
+  const strip = definePane("strip", {
+    title: () => "Strip",
+    width: { min: 280 },
+    height: { min: 120, comfortable: 200, max: 260 },
+    Component: () => null,
+  });
+  const setup = () => {
+    const jali = createJali({
+      panes: [strip, order],
+      layout: strip(),
+      url: { location: memoryLocation() },
+      storage: memoryStorage(),
+      size: { width: 378, height: 760 },
+      moveFocus: false,
+      phone: { stack: true },
+    });
+    jali.actions.openBeside(jali.model().visible[0]!, order({ id: 7 }));
+    return jali;
+  };
+  const tops = (jali: ReturnType<typeof setup>, stack?: number) => {
+    const m = jali.model();
+    const placed = frames(m, jali.get().view, "single", { width: 378, height: 760 }, stack);
+    return placed.find((f) => f.node.id === m.stacked!.top)!.rect.height;
+  };
+
+  it("gives the top pane its max until the person moves the divider; the other pane takes the rest", () => {
+    const jali = setup();
+    expect(jali.model().pane(jali.model().stacked!.top)!.ref.kind).toBe("strip");
+    expect(tops(jali)).toBe(260);
+    // The person's choice wins, as a divider drag may pass a max.
+    expect(tops(jali, 0.5)).toBe(Math.round((760 - 6) / 2));
+  });
+
+  it("is a half when neither kind gives a comfortable or max height", () => {
+    const { jali } = make();
+    expect(tops(jali as unknown as ReturnType<typeof setup>)).toBe(Math.round((760 - 6) / 2));
+  });
+
+  it("starts the divider there, and its keys move on from it", () => {
+    const jali = setup();
+    const { container } = render(<JaliRoot jali={jali} />);
+    const divider = container.querySelector<HTMLElement>(".jali-stack-divider")!;
+    const top = container.querySelector<HTMLElement>('.jali-pane[data-kind="strip"]')!;
+    expect(top.style.height).toBe("260px");
+    expect(Number(divider.getAttribute("aria-valuenow"))).toBeLessThan(40);
+    act(() => void fireEvent.keyDown(divider, { key: "ArrowDown" }));
+    expect(divider.getAttribute("aria-valuenow")).toBe("50");
   });
 });

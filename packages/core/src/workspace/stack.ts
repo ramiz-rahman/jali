@@ -9,6 +9,7 @@ import type { NodeId, PaneNode, ViewState } from "../layout/types";
 import { DEFAULT_MIN_HEIGHT } from "../pane-kinds";
 import type { Env } from "../profile";
 import { SWITCHER_H } from "../tokens";
+import { shares } from "../layout/geometry/shares";
 
 /** Below this workspace height, never stacked (Android's compact height: a phone held sideways). */
 export const STACK_MIN_HEIGHT = 480;
@@ -99,6 +100,35 @@ export function stackPair(input: {
   let [top, bottom] = source ? [partner, pane] : [pane, partner];
   if (hint(top)?.place === "bottom" || hint(bottom)?.place === "top") [top, bottom] = [bottom, top];
   return { top: top.id, bottom: bottom.id };
+}
+
+/**
+ * The top pane's share of stacked view's height (0 to 1) until the person moves the divider: the two panes share the
+ * height as a column does, from each kind's `height` (its minimum, or the floor, then its comfortable height, then
+ * its max; spare room past a max goes to the other pane). With neither kind giving a comfortable or max height, a
+ * half.
+ */
+export function stackShare(
+  env: Env,
+  top: PaneNode | undefined,
+  bottom: PaneNode | undefined,
+  height: number,
+  gap: number,
+): number {
+  const room = height - gap;
+  if (room <= 0) return 0.5;
+  const floor = env.phone?.stackFloor ?? STACK_FLOOR;
+  const item = (p: PaneNode | undefined) => {
+    const h = p ? env.kinds.get(p.ref.kind)?.height : undefined;
+    return {
+      size: { weight: 1 },
+      min: Math.max(floor, h?.min ?? DEFAULT_MIN_HEIGHT),
+      comfortable: h?.comfortable,
+      max: h?.max,
+    };
+  };
+  const [above] = shares([item(top), item(bottom)], room);
+  return Math.min(1, Math.max(0, above! / room));
 }
 
 type Box = { left: number; top: number; right: number; bottom: number };

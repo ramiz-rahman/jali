@@ -13,6 +13,7 @@ import {
   currentPane,
   directionOf,
   frames,
+  stackShare,
   observeResize,
   watchDirection,
 } from "@jali/core/adapter";
@@ -321,7 +322,8 @@ export function Panes() {
     : inner;
   // Stacked view (a portrait phone, phone.stack): two linked panes, unless the keyboard is up.
   const keyboardUp = useKeyboardUp();
-  const [stackRatio, setStackRatio] = useState(0.5);
+  // The top pane's share once the person moves the divider; until then the kinds' heights decide it.
+  const [stackRatio, setStackRatio] = useState<number | undefined>(undefined);
   // Across a fold the two halves stay whatever the keyboard does: they are two screens.
   const stacked = single && !page && !!m.stacked && (!keyboardUp || !!m.stacked.hinge);
   useStackAnnouncement(store, m, stacked);
@@ -396,8 +398,22 @@ export function Panes() {
               </Strip>
             ))}
         {stacked && m.stacked?.hinge ? <FoldLine hinge={m.stacked.hinge} origin={inner} /> : null}
-        {stacked && !m.stacked?.hinge ? (
-          <StackDivider m={m} ratio={stackRatio} setRatio={setStackRatio} height={inner.height} />
+        {stacked && m.stacked && !m.stacked.hinge ? (
+          <StackDivider
+            m={m}
+            ratio={
+              stackRatio ??
+              stackShare(
+                m.env,
+                m.pane(m.stacked.top),
+                m.pane(m.stacked.bottom),
+                inner.height,
+                store.env.spacing.gap,
+              )
+            }
+            setRatio={setStackRatio}
+            height={inner.height}
+          />
         ) : null}
         {dropBox && dnd?.zone ? <DropIndicator rect={dropBox.rect} zone={dnd.zone} /> : null}
         {dnd && !single ? (
