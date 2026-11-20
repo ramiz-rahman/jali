@@ -32,6 +32,25 @@ function unfoldPrefix(layout: Layout, current: string[], ctx: LayoutContext): st
   }
   return current;
 }
+/**
+ * Where fitting starts: the recorded folds that took effect, or (`unfold`) the shortest prefix of them that fits, as
+ * a replay to fold on from. Without tucks that is one replay, stopped at the first prefix that fits. A tuck's home
+ * depends on every fold, so with tucks the prefix is found without them and replayed again.
+ */
+function startFrom(layout: Layout, ctx: LayoutContext, unfold: boolean): Run {
+  const o = overlayOf(layout);
+  if (o.tucks.length) {
+    const replayed = replay(layout, o.folds, ctx.fit).applied;
+    return run(layout, ctx.fit, unfold ? unfoldPrefix(layout, replayed, ctx) : replayed);
+  }
+  let r = run(layout, ctx.fit);
+  for (const id of o.folds) {
+    // A stale record leaves the replay as it was, so checking again changes nothing.
+    if (unfold && !misfit(r.full.root, ctx.fit, ctx.paneCap)) break;
+    r = extend(r, id, true);
+  }
+  return { ...r, folds: [...r.full.applied] };
+}
 
 /** How far the projection overflows the room, in px along both axes. */
 const overflow = (root: Projected, fit: LayoutContext["fit"]) =>
@@ -145,11 +164,11 @@ export function fitLayout(
 ): Layout {
   ctx = checkContext(ctx);
   const o = overlayOf(layout);
-  const replayed = replay(layout, o.folds, ctx.fit).applied;
-  const prefix = policy.mode === "fold" ? replayed : unfoldPrefix(layout, replayed, ctx);
-  const fitted = foldUntilFit(view, run(layout, ctx.fit, prefix), ctx, policy);
+  const start = startFrom(layout, ctx, policy.mode !== "fold");
+  const prefix = start.folds.length;
+  const fitted = foldUntilFit(view, start, ctx, policy);
   const folds = fitted.folds;
-  const shown = shownTabs(layout, view, fitted.full.root, folds.length > prefix.length);
+  const shown = shownTabs(layout, view, fitted.full.root, folds.length > prefix);
   const sameFolds = folds.length === o.folds.length && folds.every((id, i) => id === o.folds[i]);
   const sameShown =
     Object.keys(shown).length === Object.keys(o.shown).length &&
