@@ -52,9 +52,10 @@ function escape(store: UiStore): boolean {
   return true;
 }
 
+/** One of the workspace's dialogs is open (the palette, settings, the chooser or the discard question): it owns the keys. */
 const dialogOpen = (store: UiStore) => {
   const s = store.get();
-  return s.paletteOpen || s.settingsOpen || !!s.chooser;
+  return s.paletteOpen || s.settingsOpen || !!s.chooser || !!s.confirm;
 };
 
 const contentOwnsKeys = (t: EventTarget | null) =>

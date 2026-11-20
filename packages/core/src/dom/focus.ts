@@ -3,6 +3,12 @@ import type { NodeId } from "../layout/types";
 import type { JaliDom } from "../state/store";
 import { cssString } from "./ids";
 
+/**
+ * Focus here is the workspace's own overlays (`[data-jali-layer]`: its dialogs and menus) or any dialog: the workspace
+ * never pulls it into a pane.
+ */
+const OVERLAY = "[data-jali-layer], [role=dialog], [role=alertdialog], dialog";
+
 /** The element a pane's focus lands on: its autofocus target, else its grid (so J/K and Space keep working), else itself. */
 function paneTarget(el: HTMLElement) {
   return (
@@ -16,7 +22,7 @@ function paneTarget(el: HTMLElement) {
 export function focusPane(dom: JaliDom, id: NodeId) {
   if (typeof document === "undefined" || typeof requestAnimationFrame === "undefined") return;
   requestAnimationFrame(() => {
-    if (document.activeElement?.closest?.("[role=separator], .jali-divider, [role=dialog]")) return;
+    if (document.activeElement?.closest?.(`[role=separator], .jali-divider, ${OVERLAY}`)) return;
     const el = dom.pane(id);
     if (el) paneTarget(el).focus({ preventScroll: true });
   });
@@ -43,8 +49,7 @@ export function keepPaneFocus(
   const root = dom.root();
   const outside =
     !!active && active !== document.body && root !== document && !root.contains(active);
-  const inChrome =
-    outside || !!active?.closest?.("[role=dialog], [data-jali-chrome], .jali-divider");
+  const inChrome = outside || !!active?.closest?.(`${OVERLAY}, [data-jali-chrome], .jali-divider`);
   if (!inPane && !inChrome && (inOtherPane || (fromBody && (!active || active === document.body))))
     paneTarget(el).focus({ preventScroll: true });
 }
