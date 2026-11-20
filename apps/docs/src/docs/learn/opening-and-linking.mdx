@@ -20,6 +20,14 @@ The new pane is linked to the one it came from (`linkedTo`). The link is what le
 
 <Frame layout="chain" width={1100} height={320} caption="A list, its detail, and a related record: each opened beside the one before." />
 
+### On another edge
+
+Some objects belong below their source rather than beside it: a recording's transcript under its video, a chart's data under the chart. Pass the edge: `openBeside(transcript({ id }), { edge: "bottom" })`. The edges are `"left"`, `"right"`, `"top"` and `"bottom"`, as on screen, so `"right"` is the right in a right-to-left page too. Without one, the pane opens after its source in reading order.
+
+The edge only says where a new pane goes. The new pane is linked and announced the same way, and focus stays where it was. A link that replaces an earlier one shows in that pane, wherever it is. With no room on that edge, the pane opens as a tab of its source, as it would beside it.
+
+On a [curated page](/learn/curated-pages), opened panes stay together after the page's views. The first one opened from a view starts that group at the end whatever the edge; later ones go on that edge of the group's last column, and a pane opened from an opened pane goes on that edge of it. In Single view a link still peeks.
+
 ## A plain link replaces the last one
 
 When a pane opens an object of the same kind as a link it opened before, the new object replaces the earlier one, in the same pane, at the same size. Click three orders in a row from one customer's list of orders and you see one order pane, showing the last one.
