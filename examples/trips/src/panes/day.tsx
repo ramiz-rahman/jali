@@ -29,6 +29,7 @@ import {
   type PaneProps,
 } from "@jali/react";
 import { selectPlace } from "../actions";
+import { idOrNull } from "../stored";
 import { addToDay, chooseDay, optimise, removeFromPlan } from "../planning";
 import { usePlan, useServices } from "../services";
 import { useCurrent } from "../selection";
@@ -95,7 +96,7 @@ function DayBody({
 }: PaneProps<typeof dayParams> & { day: Day; plan: Plan }) {
   const jali = useJali();
   const services = useServices();
-  const [cursor, setCursor] = usePaneState<string | null>("cursor", null);
+  const [cursor, setCursor] = usePaneState<string | null>("cursor", null, { parse: idOrNull });
   const listRef = useRef<HTMLOListElement>(null);
   const drag = useDrag();
   const current = useCurrent();

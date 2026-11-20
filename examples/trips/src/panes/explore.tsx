@@ -17,6 +17,7 @@ import {
   type PaneProps,
 } from "@jali/react";
 import { selectPlace } from "../actions";
+import { idOrNull, isNumber, isRecord, stringIn } from "../stored";
 import { addToDay, chooseDay, stayAt } from "../planning";
 import { usePlan, useServices } from "../services";
 import { useCurrent } from "../selection";
@@ -65,6 +66,8 @@ const WITHIN: Record<CityId, { value: number; label: string }[]> = {
     { value: 0, label: "Any" },
   ],
 };
+/** "Nearby" in each city: the distance a filter starts on (the second choice above). */
+const NEARBY: Record<CityId, number> = { bkk: 1.2, hkt: 5 };
 const PRICES = [
   { value: -1, label: "Any" },
   { value: 0, label: "Free" },
@@ -73,6 +76,19 @@ const PRICES = [
   { value: 60, label: "Up to $60" },
   { value: 100, label: "Up to $100" },
 ];
+
+/** Filters read back from storage: each field one the pane offers, or the whole set starts afresh. */
+function readFilters(v: unknown): Filters | undefined {
+  if (!isRecord(v)) return undefined;
+  const city = stringIn<CityId>("bkk", "hkt")(v.city);
+  const category = stringIn<Filters["category"]>("all", "sight", "food", "stay")(v.category);
+  const near = stringIn<Near>("place", "day", "anywhere")(v.near);
+  const { text, within, maxPrice } = v;
+  if (!city || !category || !near || typeof text !== "string") return undefined;
+  if (!isNumber(within) || !WITHIN[city].some((w) => w.value === within)) return undefined;
+  if (!isNumber(maxPrice) || !PRICES.some((p) => p.value === maxPrice)) return undefined;
+  return { city, category, near, text, within, maxPrice };
+}
 
 /** The centre of a day: the average of its stops, or its city's hotel for an empty day. */
 function dayCentre(plan: Plan, n: number): { lat: number; lng: number; city: CityId } {
@@ -100,15 +116,19 @@ function ExplorePane({
   const current = useCurrent();
   // Start in the city of whatever is selected, else Bangkok.
   const startCity = (current && placeById(current)?.city) || "bkk";
-  const [filters, setFilters] = usePaneState<Filters>("filters", {
-    city: startCity,
-    category: params.category ?? "all",
-    text: "",
-    near: params.category === "stay" ? "anywhere" : "place",
-    within: params.category === "stay" ? 0 : WITHIN[startCity][1]!.value,
-    maxPrice: -1,
-  });
-  const [cursor, setCursor] = usePaneState<string | null>("cursor", null);
+  const [filters, setFilters] = usePaneState<Filters>(
+    "filters",
+    {
+      city: startCity,
+      category: params.category ?? "all",
+      text: "",
+      near: params.category === "stay" ? "anywhere" : "place",
+      within: params.category === "stay" ? 0 : NEARBY[startCity],
+      maxPrice: -1,
+    },
+    { parse: readFilters },
+  );
+  const [cursor, setCursor] = usePaneState<string | null>("cursor", null, { parse: idOrNull });
   const listRef = useRef<HTMLDivElement>(null);
   const set = (patch: Partial<Filters>) => setFilters((x) => ({ ...x, ...patch }));
 
@@ -210,8 +230,7 @@ function ExplorePane({
           {
             id: "food",
             title: "Explore food nearby",
-            run: () =>
-              set({ category: "food", near: "place", within: WITHIN[filters.city][1]!.value }),
+            run: () => set({ category: "food", near: "place", within: NEARBY[filters.city] }),
           },
           {
             id: "city",
@@ -250,7 +269,7 @@ function ExplorePane({
         <Segmented
           label="City"
           value={filters.city}
-          onChange={(city) => set({ city, within: filters.within ? WITHIN[city][1]!.value : 0 })}
+          onChange={(city) => set({ city, within: filters.within ? NEARBY[city] : 0 })}
           options={[
             { value: "bkk", label: CITY_NAME.bkk },
             { value: "hkt", label: CITY_NAME.hkt },

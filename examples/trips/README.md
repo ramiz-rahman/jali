@@ -57,6 +57,7 @@ Build it as a static site with `pnpm exec vp build` in this folder, and serve `d
 | `src/trip/budget.ts`    | Spend by day and by category (stay, sights, food, transport, flight) against an even share of the budget.                                                                    |
 | `src/trip/plan.ts`      | The plan as plain JSON (two hotels, each day's city, the transfer day), its routes, and the pure changes to it.                                                              |
 | `src/store.ts`          | The plan's store, saved on this device, with its own undo history.                                                                                                           |
+| `src/stored.ts`         | Checks for what comes back from storage: the plan (`readPlan`) and each pane's own state (`usePaneState`'s `parse`). A damaged value gives the default.                      |
 | `src/panes/*.tsx`       | The six pane kinds (trip, map, day, place, explore, budget) and the launcher, each `definePane` with params, a title and widths.                                             |
 | `src/panes/map.tsx`     | MapLibre in a pane: honest widths, `map.resize()` from a ResizeObserver, nothing done while `paused`, pins as real buttons, a badge per city when zoomed out to the country. |
 | `src/actions.ts`        | `selectPlace`: one place selected everywhere, through Jali's selection and the map's followers.                                                                              |
@@ -72,10 +73,11 @@ Day colours are never the only signal: every pin and every list names its day's 
 
 ## Tests
 
-- `src/trip/trip.test.ts`: travel times and fares per city, the ferry and the flight, routes from and to each city's hotel and the transfer day, the optimiser (it saves time, keeps the flight first, is stable), changes to the plan (never across cities) and their undo, reading an old Lisbon plan, and the budget.
+- `src/trip/trip.test.ts`: travel times and fares per city, the ferry and the flight, routes from and to each city's hotel and the transfer day, the optimiser (it saves time, keeps the flight first, is stable), changes to the plan (never across cities) and their undo, reading an old Lisbon plan or a damaged one, and the budget.
 - `src/trip/photos.test.ts`: every place and both city covers have a photo in both widths, each credited under a licence that allows reuse, and a made-up business's photo is always a stand-in that says so.
 - `src/workspace.test.ts`: a workspace made with the app's kinds and presets, in memory: following, selecting a place everywhere, comparing two places, folding, presets and links, the ⌘K commands, and refusing a place on a day in the other city.
 - `e2e/trips.spec.ts`: a Playwright smoke test against this app's own server: the map, pins, the keys, optimise and undo, dragging a stop between days (and a refused drop across cities), the flight day, a reload, ⌘K, a phone, and an old saved Lisbon plan. Run it from the repository's root with `pnpm exec playwright test -c examples/trips` (set `TRIPS_URL` if the server is on another port).
+- `e2e/stored.spec.ts`: what is kept on this device is never trusted. It seeds damaged plans (`modes: null`, days of nulls, a stop that isn't a place, text that isn't JSON) and damaged pane state (the cursors, Explore's filters, the budget's view), loads the app and uses every layout, with nothing thrown or logged.
 
 `screens/` holds screenshots of each layout at 1440, 1024 and 390 pixels wide, and two in dark.
 

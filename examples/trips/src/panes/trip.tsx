@@ -23,7 +23,8 @@ import { resetPlan } from "../planning";
 import { usePlan, useServices } from "../services";
 import { dayBudget, tripBudget } from "../trip/budget";
 import { CITY_NAME } from "../trip/places";
-import { daysIn, dayTotals, hotelOf } from "../trip/plan";
+import { DEFAULT_PLAN, daysIn, dayTotals, hotelOf } from "../trip/plan";
+import { intIn } from "../stored";
 import { useDrag } from "../ui/drag";
 import * as f from "../ui/format";
 import { DayMark } from "../ui/parts";
@@ -34,7 +35,9 @@ function TripPane({ node, focused, select, inPeek }: PaneProps) {
   const jali = useJali();
   const services = useServices();
   const plan = usePlan();
-  const [kept, setCursor] = usePaneState<number>("cursor", 1);
+  const [kept, setCursor] = usePaneState<number>("cursor", 1, {
+    parse: intIn(1, DEFAULT_PLAN.days.length),
+  });
   // The cursor is on the day Jali has selected: it starts this list on the day its following day plan shows
   // (`selects`), and moves it with that pane when a layout (a preset, a link, Back) gives it another day.
   const selected = useJaliState((s) => s.selection[node.id]?.ref);

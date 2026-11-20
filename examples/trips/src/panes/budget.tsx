@@ -10,6 +10,7 @@ import { showDay } from "../actions";
 import { usePlan, useServices } from "../services";
 import { BUDGET_CATEGORIES, BUDGET_LABEL, tripBudget, type BudgetCategory } from "../trip/budget";
 import { setBudget } from "../trip/plan";
+import { stringIn } from "../stored";
 import * as f from "../ui/format";
 import { DayMark, Segmented } from "../ui/parts";
 
@@ -19,7 +20,7 @@ function BudgetPane({ inPeek }: PaneProps) {
   const jali = useJali();
   const services = useServices();
   const plan = usePlan();
-  const [view, setView] = usePaneState<View>("view", "day");
+  const [view, setView] = usePaneState<View>("view", "day", { parse: stringIn("day", "category") });
   const b = tripBudget(plan);
   const [draft, setDraft] = useState<string | null>(null);
   // The scale: the dearest day or the day's share, whichever is more, so the share mark always fits.

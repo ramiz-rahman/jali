@@ -262,6 +262,54 @@ describe("changing the plan", () => {
     const changed = moveStop(DEFAULT_PLAN, "wat-pho", 2);
     expect(readPlan(JSON.parse(JSON.stringify(changed)))).toEqual(changed);
   });
+
+  it("gives the bundled plan for a damaged one, and never throws", () => {
+    const days = (fn: (d: unknown, i: number) => unknown) => ({
+      ...DEFAULT_PLAN,
+      days: DEFAULT_PLAN.days.map(fn),
+    });
+    const hostile: unknown[] = [
+      undefined,
+      0,
+      "plan",
+      [],
+      { ...DEFAULT_PLAN, modes: null },
+      { ...DEFAULT_PLAN, modes: [] },
+      { ...DEFAULT_PLAN, hotels: null },
+      { ...DEFAULT_PLAN, hotels: { bkk: 7, hkt: {} } },
+      { ...DEFAULT_PLAN, hotels: { bkk: "wat-pho", hkt: "h-kata" } },
+      { ...DEFAULT_PLAN, budget: "1150" },
+      { ...DEFAULT_PLAN, budget: -5 },
+      { ...DEFAULT_PLAN, budget: null },
+      { ...DEFAULT_PLAN, days: null },
+      { ...DEFAULT_PLAN, days: {} },
+      { ...DEFAULT_PLAN, days: DEFAULT_PLAN.days.slice(1) },
+      days(() => null),
+      days((d) => ({ ...(d as object), stops: null })),
+      days((d) => ({ ...(d as object), stops: [42] })),
+      days((d) => ({ ...(d as object), stops: ["nowhere"] })),
+      // A stop planned twice, and a stop on a day in the other city.
+      days((d, i) => (i === 1 ? { ...(d as object), stops: ["wat-arun"] } : d)),
+      days((d, i) => (i === 0 ? { ...(d as object), stops: ["patong"] } : d)),
+    ];
+    for (const raw of hostile) expect(readPlan(raw)).toBe(DEFAULT_PLAN);
+  });
+
+  it("keeps what the person planned, and the trip's own days, whatever else was stored", () => {
+    const read = readPlan({
+      ...DEFAULT_PLAN,
+      name: 42,
+      budget: 990.4,
+      days: DEFAULT_PLAN.days.map((d) => ({ ...d, n: "x", title: null, city: "lisbon" })),
+      modes: { "wat-arun|wat-pho": "taxi", "a|b": "teleport", "c|d": null },
+    });
+    expect(read.name).toBe(DEFAULT_PLAN.name);
+    expect(read.budget).toBe(990);
+    expect(read.days).toEqual(DEFAULT_PLAN.days);
+    expect(read.modes).toEqual({ "wat-arun|wat-pho": "taxi" });
+    // Every day's totals can be worked out from it.
+    for (const d of read.days) expect(() => dayTotals(read, d)).not.toThrow();
+  });
 });
 
 describe("budget", () => {

@@ -11,6 +11,7 @@
  */
 import { leg, type Leg, type Mode } from "./travel";
 import { AIRPORT, mustPlace, placeById, type CityId, type Place } from "./places";
+import { isRecord } from "../stored";
 
 export interface Day {
   /** 1 to 7. */
@@ -246,11 +247,16 @@ export function reorder(plan: Plan, n: number, from: number, to: number): Plan {
   });
 }
 
+/** Whether `id` is a sight or a meal in `city`: what a day there may hold. */
+function canPlanIn(id: string, city: CityId): boolean {
+  const p = placeById(id);
+  return !!p && (p.category === "sight" || p.category === "food") && p.city === city;
+}
+
 /** Whether `id` may go on day `n`: a sight or a meal in that day's city. */
 export function canPlan(plan: Plan, id: string, n: number): boolean {
-  const p = placeById(id);
   const day = dayOf(plan, n);
-  return !!p && !!day && (p.category === "sight" || p.category === "food") && p.city === day.city;
+  return !!day && canPlanIn(id, day.city);
 }
 
 /** Move `id` to day `toDay` at `index` (default: the end), from whichever day had it. Refused across cities. */
@@ -295,26 +301,52 @@ export const setBudget = (plan: Plan, budget: number): Plan =>
   Number.isFinite(budget) && budget > 0 ? { ...plan, budget: Math.round(budget) } : plan;
 
 /**
- * A stored plan we can still read: this version, every place known and in its day's city, a hotel in each city.
- * Anything else (an older plan, such as the Lisbon one, or a damaged one) gives the bundled plan.
+ * A stored plan, checked: storage holds whatever an older version of the app, another tab or a hand edit left there,
+ * so nothing in it is trusted. A plan of this version, with a hotel in each city and every day's stops known places
+ * in that day's city, each planned once, is read back; anything else (an older plan, such as the Lisbon one, or a
+ * damaged one) gives the bundled plan. The days' numbers, dates, titles and cities are the trip's, not the person's,
+ * so they come from the bundled plan whatever was stored. A chosen mode that isn't a mode is dropped: that leg goes
+ * back to its usual mode.
  */
 export function readPlan(raw: unknown): Plan {
-  const p = raw as Plan | null;
-  const ok =
-    p?.version === 2 &&
-    typeof p.budget === "number" &&
-    placeById(p.hotels?.bkk)?.city === "bkk" &&
-    placeById(p.hotels?.bkk)?.category === "stay" &&
-    placeById(p.hotels?.hkt)?.city === "hkt" &&
-    placeById(p.hotels?.hkt)?.category === "stay" &&
-    Array.isArray(p.days) &&
-    p.days.length === DEFAULT_PLAN.days.length &&
-    p.days.every(
-      (d, i) =>
-        d.city === DEFAULT_PLAN.days[i]!.city &&
-        Array.isArray(d.stops) &&
-        d.stops.every((s) => placeById(s)?.city === d.city),
-    ) &&
-    typeof p.modes === "object";
-  return ok ? p : DEFAULT_PLAN;
+  if (!isRecord(raw) || raw.version !== 2) return DEFAULT_PLAN;
+  const { name, budget, hotels, days, modes } = raw;
+  if (typeof budget !== "number" || !Number.isFinite(budget) || budget <= 0) return DEFAULT_PLAN;
+  if (!isRecord(hotels) || !isRecord(modes)) return DEFAULT_PLAN;
+  const bkk = hotelIn(hotels.bkk, "bkk");
+  const hkt = hotelIn(hotels.hkt, "hkt");
+  if (!bkk || !hkt) return DEFAULT_PLAN;
+  if (!Array.isArray(days) || days.length !== DEFAULT_PLAN.days.length) return DEFAULT_PLAN;
+  const planned = new Set<string>();
+  const read: Day[] = [];
+  for (const [i, bundled] of DEFAULT_PLAN.days.entries()) {
+    const stops = isRecord(days[i]) ? days[i].stops : undefined;
+    if (!Array.isArray(stops)) return DEFAULT_PLAN;
+    for (const s of stops) {
+      if (typeof s !== "string" || planned.has(s) || !canPlanIn(s, bundled.city))
+        return DEFAULT_PLAN;
+      planned.add(s);
+    }
+    read.push({ ...bundled, stops: stops as string[] });
+  }
+  return {
+    version: 2,
+    name: typeof name === "string" && name.trim() ? name : DEFAULT_PLAN.name,
+    budget: Math.round(budget),
+    hotels: { bkk, hkt },
+    days: read,
+    modes: Object.fromEntries(
+      Object.entries(modes).filter(
+        (e): e is [string, Mode] => typeof e[1] === "string" && MODES.has(e[1] as Mode),
+      ),
+    ),
+  };
+}
+
+const MODES = new Set<Mode>(["walk", "transit", "taxi", "scooter", "flight"]);
+
+/** `id` when it names a hotel in `city`. */
+function hotelIn(id: unknown, city: CityId): string | undefined {
+  const p = typeof id === "string" ? placeById(id) : undefined;
+  return p?.category === "stay" && p.city === city ? p.id : undefined;
 }
