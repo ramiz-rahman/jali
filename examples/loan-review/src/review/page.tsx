@@ -223,7 +223,7 @@ export function ApplicationHeader({ item }: { item: number }) {
       ]
     : [];
   return (
-    <header className="item-head" aria-label={`Application ${item}`}>
+    <section className="item-head" aria-label={`Application ${item}`}>
       <div className="item-id">
         <span className="item-avatar" aria-hidden>
           {initials}
@@ -255,6 +255,6 @@ export function ApplicationHeader({ item }: { item: number }) {
           </div>
         ))}
       </dl>
-    </header>
+    </section>
   );
 }

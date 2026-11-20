@@ -53,7 +53,7 @@ function Section({
           aria-label={`Open ${title}`}
           title={`Open the full view · ${altClick()} a tab to open it beside`}
         >
-          <span className="ov-go-text">View</span> <ArrowRightIcon size={13} aria-hidden />
+          <span className="ov-go-text">Open</span> <ArrowRightIcon size={13} aria-hidden />
         </button>
       </header>
       {lead ? <p className={warn ? "ov-lead is-warn" : "ov-lead"}>{lead}</p> : null}

@@ -77,7 +77,7 @@ export function Sec({
   className?: string;
 }) {
   return (
-    <section className={`rv-sec${className ? ` ${className}` : ""}`} aria-label={title}>
+    <section className={`rv-sec${className ? ` ${className}` : ""}`}>
       {title ? (
         <div className="rv-sec-head">
           <h4>{title}</h4>
