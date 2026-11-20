@@ -339,3 +339,77 @@
     text-overflow: ellipsis;
   }
 }
+
+/*
+ * The activity marks, drawn as the family's lamps on Jali's public parts (.jali-activity after a pane's name, in a tab
+ * and in menus; .jali-activity-shape on the shelf and the "N folded" chip), keyed by data-activity. Nothing is
+ * stripped: Jali's size, circle and flex rules stay, and the lamp's lens is the part's ::after. Colour comes from the
+ * same lamp parts as everything else: lit orange while working (it pulses, as the playing session's lamp does), amber
+ * for needs-you, red for an error, an unlit lamp while loading.
+ */
+@layer app {
+  .jali-activity {
+    position: relative;
+    width: 7px;
+    height: 7px;
+    background: var(--led-off);
+    box-shadow: inset 0 1px 1px rgb(0 0 0 / calc(0.35 * var(--sh)));
+  }
+  .jali-activity[data-activity="working"] {
+    background: var(--led-on);
+    box-shadow:
+      0 0 0 1px rgb(255 79 0 / 0.25),
+      0 0 7px rgb(255 79 0 / 0.8);
+  }
+  .jali-activity[data-activity="needs-you"] {
+    background: var(--jali-blocked);
+    box-shadow:
+      0 0 0 1px color-mix(in srgb, var(--jali-blocked) 25%, transparent),
+      0 0 7px color-mix(in srgb, var(--jali-blocked) 80%, transparent);
+  }
+  .jali-activity[data-activity="error"] {
+    background: var(--jali-failed);
+    box-shadow:
+      0 0 0 1px color-mix(in srgb, var(--jali-failed) 25%, transparent),
+      0 0 7px color-mix(in srgb, var(--jali-failed) 80%, transparent);
+  }
+  /* The lens: a small highlight on a lit lamp's upper left. */
+  .jali-activity:not([data-activity="loading"])::after {
+    content: "";
+    position: absolute;
+    top: 1px;
+    left: 1.5px;
+    width: 2px;
+    height: 1.5px;
+    border-radius: 50%;
+    background: rgb(255 255 255 / 0.55);
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .jali-activity[data-activity="working"] {
+      animation: lamp-live 1.4s ease-in-out infinite;
+    }
+  }
+
+  /* The shelf's shapes keep their meaning by shape: "!" and the cross stay as Jali draws them, in the status
+     colours. Working is a lamp, drawn in ::before, in place of Jali's spinning ring. */
+  .jali-activity-shape[data-activity="working"] {
+    border: 0;
+    animation: none;
+    background: none;
+  }
+  .jali-activity-shape[data-activity="working"]::before {
+    content: "";
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--led-on);
+    box-shadow:
+      0 0 0 1px rgb(255 79 0 / 0.25),
+      0 0 7px rgb(255 79 0 / 0.8);
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .jali-activity-shape[data-activity="working"]::before {
+      animation: lamp-live 1.4s ease-in-out infinite;
+    }
+  }
+}
