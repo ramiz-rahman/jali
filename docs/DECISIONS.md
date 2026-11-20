@@ -970,6 +970,7 @@ Data Studio's old tab strip had six features Jali lacked. Each is general, and l
 
 - **Size:** @jali/core +0.2 KB gzip, @jali/react +0.6 KB gzip (full scenario: 55.0 and 24.7 KB, from 54.8 and 24.1).
 - **Tests:** `tests/render-counts.test.tsx`. A keyboard resize commits only the two neighbouring frames and no body. A pane drag commits no frame per move, only on a change of target, and no divider layer or body. `dnd` is written at most once a frame, and a release lands where the pointer last was. A live title keeps the resolved geometry. `useJaliCommands` keeps its array through a drag, a focus move and a divider move. The tab underline observes no new elements when titles change. An inline `icons` object re-renders no frame.
+
 ## 20 Nov 2026 · One set of keyboard and focus primitives: a roving row, a modal dialog and a menu (QUALITY-REVIEW P5, P6, P7, P8)
 
 - **Why:** each part did its own keys, and each copy had its own gaps. A pane's tab strip had no arrow keys, so only the shown tab could be reached; the pane switcher couldn't wrap backwards; Settings and the discard question dropped focus on `<body>` when they closed, and Tab walked behind their scrim; the discard question didn't count as a dialog, so F6 and ⌘\ acted behind it; the tab menu and the strip's lists were near copies, and the shelf's **+N** list was `role="menu"` with no menu keys. Menus portalled from a pane's header still sent their React events up through it: a press in a menu dragged the pane, a double-click maximised it.
