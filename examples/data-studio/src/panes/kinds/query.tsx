@@ -8,14 +8,14 @@ import {
   useUnsaved,
 } from "@jali/react";
 import { useEffect, useRef, useState } from "react";
-import { resultFormat } from "../../../../shared/src/data/labels";
-import type { ResultHandle, Row } from "../../../../shared/src/data/types";
-import { Grid, type GridColumn } from "../../../../shared/src/panes/grid/Grid";
-import { errorText, useRun } from "../../../../shared/src/data/hooks";
-import { formatCount, formatMs } from "../../../../shared/src/panes/format";
-import { chartRef } from "../../../../shared/src/panes/shared/refs";
-import { Empty, ErrorState, Loading, Shell } from "../../../../shared/src/panes/shared/states";
-import { useResultWindow } from "../../../../shared/src/panes/grid/useWindow";
+import { resultFormat } from "#shared/data/labels";
+import type { ResultHandle, Row } from "#shared/data/types";
+import { Grid, type GridColumn } from "#shared/panes/grid/Grid";
+import { errorText, useRun } from "#shared/data/hooks";
+import { formatCount, formatMs } from "#shared/panes/format";
+import { chartRef } from "#shared/panes/shared/refs";
+import { Empty, ErrorState, Loading, Shell } from "#shared/panes/shared/states";
+import { useResultWindow } from "#shared/panes/grid/useWindow";
 import type { PaneProps } from "@jali/react";
 import { keyHint } from "@jali/core";
 

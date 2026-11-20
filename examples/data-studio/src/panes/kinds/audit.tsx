@@ -1,10 +1,10 @@
 import { ClockCounterClockwiseIcon } from "@phosphor-icons/react";
 import { definePane } from "@jali/react";
-import type { Row } from "../../../../shared/src/data/types";
-import { entityTable } from "../../../../shared/src/data/tables";
+import type { Row } from "#shared/data/types";
+import { entityTable } from "#shared/data/tables";
 import type { PaneProps } from "@jali/react";
-import { recordRef } from "../../../../shared/src/panes/shared/refs";
-import { TableGrid } from "../../../../shared/src/panes/kinds/table";
+import { recordRef } from "#shared/panes/shared/refs";
+import { TableGrid } from "#shared/panes/kinds/table";
 
 const COLUMNS = ["id", "entity_type", "entity_id", "action", "changed_at"];
 function target(row: Row) {

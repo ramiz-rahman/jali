@@ -1,11 +1,11 @@
 import { TreeViewIcon } from "@phosphor-icons/react";
 import { definePane } from "@jali/react";
-import type { TableName } from "../../../../shared/src/data/types";
-import { useCatalog } from "../../../../shared/src/data/hooks";
-import { formatCount } from "../../../../shared/src/panes/format";
-import { erRef, tableInfoOf, tableRef } from "../../../../shared/src/panes/shared/refs";
-import { NullChip, Shell } from "../../../../shared/src/panes/shared/states";
-import { PaneGate } from "../../../../shared/src/panes/shared/PaneGate";
+import type { TableName } from "#shared/data/types";
+import { useCatalog } from "#shared/data/hooks";
+import { formatCount } from "#shared/panes/format";
+import { erRef, tableInfoOf, tableRef } from "#shared/panes/shared/refs";
+import { NullChip, Shell } from "#shared/panes/shared/states";
+import { PaneGate } from "#shared/panes/shared/PaneGate";
 import type { PaneProps } from "@jali/react";
 
 export function StructurePane({ params, paused, openBeside }: PaneProps<{ table: string }>) {

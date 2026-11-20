@@ -1,13 +1,13 @@
 import { DatabaseIcon } from "@phosphor-icons/react";
 import { definePane } from "@jali/react";
 import { useState } from "react";
-import { PaneGate } from "../../../../shared/src/panes/shared/PaneGate";
-import { useFocusWhen } from "../../../../shared/src/panes/shared/useFocusWhen";
-import { useListKeys } from "../../../../shared/src/panes/shared/useListKeys";
-import { useCatalog, isLoading } from "../../../../shared/src/data/hooks";
-import { formatCount } from "../../../../shared/src/panes/format";
-import { tableRef } from "../../../../shared/src/panes/shared/refs";
-import { Shell, Empty } from "../../../../shared/src/panes/shared/states";
+import { PaneGate } from "#shared/panes/shared/PaneGate";
+import { useFocusWhen } from "#shared/panes/shared/useFocusWhen";
+import { useListKeys } from "#shared/panes/shared/useListKeys";
+import { useCatalog, isLoading } from "#shared/data/hooks";
+import { formatCount } from "#shared/panes/format";
+import { tableRef } from "#shared/panes/shared/refs";
+import { Shell, Empty } from "#shared/panes/shared/states";
 import type { PaneProps } from "@jali/react";
 
 export function CatalogPane({ paused, focused, openBeside, peek }: PaneProps) {

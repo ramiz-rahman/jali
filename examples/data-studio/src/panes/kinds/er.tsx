@@ -1,10 +1,10 @@
 import { GitForkIcon } from "@phosphor-icons/react";
 import { definePane } from "@jali/react";
-import type { TableName } from "../../../../shared/src/data/types";
-import { useCatalog } from "../../../../shared/src/data/hooks";
-import { erRef, tableInfoOf } from "../../../../shared/src/panes/shared/refs";
-import { Shell } from "../../../../shared/src/panes/shared/states";
-import { PaneGate } from "../../../../shared/src/panes/shared/PaneGate";
+import type { TableName } from "#shared/data/types";
+import { useCatalog } from "#shared/data/hooks";
+import { erRef, tableInfoOf } from "#shared/panes/shared/refs";
+import { Shell } from "#shared/panes/shared/states";
+import { PaneGate } from "#shared/panes/shared/PaneGate";
 import type { PaneProps } from "@jali/react";
 
 const BW = 150,

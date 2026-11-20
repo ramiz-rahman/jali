@@ -1,8 +1,8 @@
 import type { Pane } from "@jali/react";
 import { catalogKind } from "./kinds/catalog";
-import { tableKind } from "../../../shared/src/panes/kinds/table";
-import { recordKind } from "../../../shared/src/panes/kinds/record";
-import { relatedKind } from "../../../shared/src/panes/kinds/related";
+import { tableKind } from "#shared/panes/kinds/table";
+import { recordKind } from "#shared/panes/kinds/record";
+import { relatedKind } from "#shared/panes/kinds/related";
 import { queryKind } from "./kinds/query";
 import { chartKind } from "./kinds/chart";
 import { structureKind } from "./kinds/structure";
