@@ -159,10 +159,17 @@ function fillOf(v: unknown): Fill | undefined {
   return Object.values(f).some((x) => x === undefined) ? undefined : (f as Fill);
 }
 
+/** The rows, without any whose id an earlier row has: the first of each id is kept. */
+function firstOfEachId<T extends { id: number }>(rows: T[] | undefined): T[] | undefined {
+  const seen = new Set<number>();
+  return rows?.filter((r) => !seen.has(r.id) && !!seen.add(r.id));
+}
+
 /**
  * The paper book as kept on this device (version 1; 0 is the same shape, from before versions). A position, order or
- * fill that doesn't read (a NaN price from an older build, a missing field) is dropped and the rest kept; the next id
- * is past every id in the book. Anything that isn't a book at all is the demo's starting book.
+ * fill that doesn't read (a NaN price from an older build, a missing field) is dropped and the rest kept, and so is
+ * a second order or fill with an id already read (two working orders of one id would both fill on one tick); the next
+ * id is past every id in the book. Anything that isn't a book at all is the demo's starting book.
  */
 export const KEPT_BOOK: Kept<Book> = {
   key: "markets:book",
@@ -171,8 +178,8 @@ export const KEPT_BOOK: Kept<Book> = {
   parse(value, version) {
     if (version > 1 || !isRecord(value)) return undefined;
     const positions = arrayOf(value.positions, position);
-    const orders = arrayOf(value.orders, order);
-    const fills = arrayOf(value.fills, fillOf);
+    const orders = firstOfEachId(arrayOf(value.orders, order));
+    const fills = firstOfEachId(arrayOf(value.fills, fillOf));
     if (!positions || !orders || !fills) return undefined;
     const ids = [...orders.map((o) => o.id), ...fills.map((f) => f.id)];
     const nextId = Math.max(wholeId(value.nextId) ?? 1, ...ids.map((id) => id + 1));
