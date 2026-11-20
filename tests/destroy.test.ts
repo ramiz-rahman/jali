@@ -82,6 +82,39 @@ describe("jali.destroy()", () => {
     }
   });
 
+  it("saves pane state waiting to be saved when the page goes away or is hidden", () => {
+    vi.useFakeTimers();
+    try {
+      for (const leave of ["pagehide", "hidden"] as const) {
+        const storage = memoryStorage();
+        const jali = make({ url: false, storage });
+        const stop = jali.start();
+        storeOf(jali).actions.setPaneState("detail", "draft", "Dear");
+        // Typed just now: the 400 ms save hasn't run.
+        expect(storage.get("pane-state")).toBeNull();
+        if (leave === "pagehide") window.dispatchEvent(new Event("pagehide"));
+        else {
+          // Shown again first: nothing to save yet is no reason to save.
+          document.dispatchEvent(new Event("visibilitychange"));
+          expect(storage.get("pane-state")).toBeNull();
+          Object.defineProperty(document, "visibilityState", {
+            value: "hidden",
+            configurable: true,
+          });
+          document.dispatchEvent(new Event("visibilitychange"));
+        }
+        expect(JSON.parse(storage.get("pane-state") ?? "{}")).toEqual({
+          detail: { draft: "Dear" },
+        });
+        stop();
+        jali.destroy();
+      }
+    } finally {
+      // jsdom's own "visible" again.
+      Reflect.deleteProperty(document, "visibilityState");
+    }
+  });
+
   it("can be called twice, and a start after it does nothing", () => {
     const jali = make({ url: false });
     jali.destroy();

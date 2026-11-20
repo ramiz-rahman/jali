@@ -1273,3 +1273,9 @@ Gzipped KB, measured on master `ea3ac83` after `pnpm build:packages`. The `mustN
 - **Why:** a workspace destroyed while "Discard unsaved changes?" was open left the held action's `settled` promise pending for good: nothing could answer the question any more, and a host awaiting `settled` waited forever.
 - **Now:** `destroy()` clears the question and settles it as `{ ok: false, reason: "kept" }`, as a newer question already ends one left unanswered. The panes stay as they were. "kept" rather than a new reason, so the `RefusalReason` union a host switches on is unchanged.
 - **Tests:** `tests/destroy.test.ts`: destroying with the question open resolves `settled` as kept and keeps the pane.
+
+## 21 Nov 2026 · Pane state waiting to be saved is saved when the page goes away
+
+- **Why:** pane state (`usePaneState`: a draft, a scroll position) is saved 400 ms after it stops changing (`startUi`, boot.ts). A reload or a closed tab within those 400 ms dropped it, so a draft typed just before a reload was lost. `destroy()` and the stop `start()` returns already saved it; leaving the page didn't.
+- **Now:** a save still waiting is made at once on `pagehide` and when the page becomes hidden (`visibilitychange`): a phone switching apps may never bring the page back to run the timer. Nothing is written when nothing waits.
+- **Tests:** `tests/destroy.test.ts`: a draft set just before `pagehide`, or before the page is hidden, is in storage; a `visibilitychange` to visible saves nothing.

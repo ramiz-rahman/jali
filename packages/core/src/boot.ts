@@ -152,6 +152,19 @@ export function startUi(
       e.preventDefault();
   };
   window.addEventListener("beforeunload", onUnload);
+  // A save still waiting when the page goes away (a reload, a closed tab, a phone switching apps) is made now, so a
+  // draft typed just before is kept. `pagehide` is the page leaving; a hidden page may never come back to run a timer.
+  const saveNow = () => {
+    if (saveTimer === undefined) return;
+    clearTimeout(saveTimer);
+    saveTimer = undefined;
+    flushPaneState(store);
+  };
+  const onHidden = () => {
+    if (document.visibilityState === "hidden") saveNow();
+  };
+  window.addEventListener("pagehide", saveNow);
+  document.addEventListener("visibilitychange", onHidden);
   const offTheme = watchSystemTheme((systemDark) => store.set({ systemDark }));
   const offKeys = installKeyboard(store, keys);
   // Back and Forward. One that waits for an answer (the host's beforeClose, or "Discard unsaved changes?") keeps
@@ -188,11 +201,9 @@ export function startUi(
     offKeys();
     offPop();
     // Pane state still waiting to be saved is saved now, not dropped.
-    if (saveTimer !== undefined) {
-      clearTimeout(saveTimer);
-      saveTimer = undefined;
-      flushPaneState(store);
-    }
+    saveNow();
+    window.removeEventListener("pagehide", saveNow);
+    document.removeEventListener("visibilitychange", onHidden);
     window.removeEventListener("beforeunload", onUnload);
   };
 }
