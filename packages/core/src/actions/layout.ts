@@ -6,7 +6,7 @@ import { refuse, type Outcome, type RefusalStep, type Snapshot } from "../state/
 import { notAllowed } from "./allow";
 import { toLayout, type LayoutInput } from "../layout/build";
 import { say } from "../state/messages";
-import type { Settings } from "../state/settings";
+import { settingsWith, type Settings } from "../state/settings";
 import { withRecent } from "./open";
 import { agreeWithSelection, agreeOnArrival } from "./follow";
 import { own } from "../own";
@@ -157,10 +157,13 @@ export const openSettings = (): Outcome => ({ op: "patch", patch: { settingsOpen
 export const closeSettings = (): Outcome => ({ op: "patch", patch: { settingsOpen: false } });
 
 /** Change the person's settings (theme, pane cap, ...): saved on this device, and the layout refits to a new cap. */
-export const changeSettings = ({ s }: Snapshot, patch: Partial<Settings>): Outcome => ({
-  op: "patch",
-  patch: { settings: { ...s.settings, ...patch } },
-});
+/** The person's settings with `patch` over them; `"invalid"` when any value is one the setting can't take (a
+ *  `paneCap` that isn't a whole number from 1 to 64, a `centreDrop` other than "swap" or "tab", ...). Keys that
+ *  aren't settings are left out. */
+export function changeSettings({ s }: Snapshot, patch: Partial<Settings>): Outcome {
+  const settings = settingsWith(s.settings, patch);
+  return settings ? { op: "patch", patch: { settings } } : refuse("invalid");
+}
 
 /**
  * `jali.actions.autoLayout()`: arrange every pane in the free workspace from the room there is and the kinds' size

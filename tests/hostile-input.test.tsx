@@ -112,6 +112,54 @@ describe("C1: ids", () => {
   });
 });
 
+describe("C2: stored settings", () => {
+  it.each([["8"], [0], [1e9], [1.5], [null], [-3]])(
+    "a stored paneCap of %j starts with the default",
+    (cap) => {
+      const storage = memoryStorage({ settings: JSON.stringify({ paneCap: cap, theme: "dark" }) });
+      let jali: Jali | undefined;
+      expect(() => (jali = make({ storage }))).not.toThrow();
+      expect(jali!.get().settings.paneCap).toBe(8);
+      // The fields that were fine are kept.
+      expect(jali!.get().settings.theme).toBe("dark");
+      expect(() => jali!.model().resolved).not.toThrow();
+    },
+  );
+
+  it("a stored centreDrop Jali doesn't know is the default", () => {
+    const storage = memoryStorage({ settings: JSON.stringify({ centreDrop: "explode" }) });
+    expect(make({ storage }).get().settings.centreDrop).toBe("swap");
+  });
+
+  it("changeSettings refuses a value it can't use, and the workspace keeps working", () => {
+    const jali = make();
+    for (const patch of [
+      { paneCap: 0 },
+      { paneCap: "8" },
+      { paneCap: 1e9 },
+      { centreDrop: "x" },
+      { theme: 3 },
+    ])
+      expect(jali.actions.changeSettings(patch as never)).toMatchObject({
+        ok: false,
+        reason: "invalid",
+      });
+    expect(jali.get().settings.paneCap).toBe(8);
+    expect(() => jali.model().resolved).not.toThrow();
+    expect(jali.actions.changeSettings({ paneCap: 4 })).toMatchObject({ ok: true });
+    expect(jali.get().settings.paneCap).toBe(4);
+  });
+
+  it("a raw state write whose refit throws leaves the state as it was", () => {
+    const jali = make();
+    const store = storeOf(jali);
+    const before = store.get();
+    expect(() => store.set({ settings: { ...before.settings, paneCap: 0 } })).toThrow();
+    expect(store.get()).toBe(before);
+    expect(() => jali.model().resolved).not.toThrow();
+  });
+});
+
 describe("C3: names on Object.prototype", () => {
   it.each(["constructor", "toString", "__proto__", "hasOwnProperty"])(
     "%s is not a kind",

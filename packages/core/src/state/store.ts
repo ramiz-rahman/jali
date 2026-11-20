@@ -449,27 +449,30 @@ export function createUiStore(deps: UiStoreDeps): UiStore {
     const el = dom.root();
     return el instanceof Element ? el : null;
   };
-  const ctx = (): LayoutContext => ({
-    fit: { ...state.area, gap: env.spacing.gap, kinds: env.kinds.registry() },
-    paneCap: state.settings.paneCap,
-    ...(state.dir === "rtl" ? { dir: state.dir } : {}),
+  const ctxOf = (s: UiState): LayoutContext => ({
+    fit: { ...s.area, gap: env.spacing.gap, kinds: env.kinds.registry() },
+    paneCap: s.settings.paneCap,
+    ...(s.dir === "rtl" ? { dir: s.dir } : {}),
   });
+  const ctx = () => ctxOf(state);
 
   /** A raw write. Size and cap changes come from outside the layout, so they refit it. Link arrivals refit where
-   *  they land. */
+   *  they land. The next state is computed whole before it is put in place, so a refit that throws leaves the
+   *  state as it was. */
   const write = (patch: Partial<UiState>) => {
     const prev = state;
-    state = { ...state, ...patch };
-    const resized = prev.area.width !== state.area.width || prev.area.height !== state.area.height;
-    const recapped = prev.settings.paneCap !== state.settings.paneCap;
+    let next = { ...state, ...patch };
+    const resized = prev.area.width !== next.area.width || prev.area.height !== next.area.height;
+    const recapped = prev.settings.paneCap !== next.settings.paneCap;
     const known = env.kinds.registry();
     if (
       (resized || recapped) &&
-      core.tree.panes(state.layout.root).every((p) => Object.hasOwn(known, p.ref.kind))
+      core.tree.panes(next.layout.root).every((p) => Object.hasOwn(known, p.ref.kind))
     ) {
-      const layout = core.refit(state.layout, state.view, ctx());
-      if (layout !== state.layout) state = { ...state, layout };
+      const layout = core.refit(next.layout, next.view, ctxOf(next));
+      if (layout !== next.layout) next = { ...next, layout };
     }
+    state = next;
     notify();
   };
 

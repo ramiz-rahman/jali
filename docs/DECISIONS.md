@@ -874,3 +874,12 @@ Data Studio's old tab strip had six features Jali lacked. Each is general, and l
 - **Now:** `kinds.registry()` has no prototype, and every read of a record keyed by something from outside goes through `own(record, key)` (`own.ts`, in `@jali/core/adapter`), every membership test through `Object.hasOwn`: `titles`, `unsaved`, `paneCommands`, `selection`, `activity`, `paneState` (both levels), `paneAttributes`, `view.scroll`, a ref's params and the kind registry, in core and in `@jali/react`. The layout operations test a kind with `Object.hasOwn`, so a registry a host builds as a plain object is safe too. Stored pane state keeps only entries that are records.
 - **Not changed:** the records in `UiState` stay plain objects, as their type says and as a host spreads them; the reads are what make the prototype irrelevant, so a record a host or a test builds with `{}` is read safely as well. A `Map` would have changed the public state's shape.
 - **Tests:** `tests/hostile-input.test.tsx` (C3).
+
+## 20 Nov 2026 · Every setting is checked on its own, and a bad one can't break a running workspace (QUALITY-REVIEW C2)
+
+- **Why:** `loadSettings` checked only `theme` and `boundary`. A stored `paneCap: "8"` made `createJali` throw a RangeError on every load until the person cleared their site data, and `changeSettings({ paneCap: 0 })` broke a running workspace, because the store set the state before the refit that threw.
+- **Now:** each setting has its check (`state/settings.ts`): `centreDrop` `"swap" | "tab"`, `theme` `"system" | "light" | "dark"`, `boundary` `"tint" | "none"`, `paneCap` a whole number from 1 to 64 (`PANE_CAP_MAX`). Loading falls back field by field: a bad saved `paneCap` takes the default (the app's `settings`, else Jali's), and a good saved theme beside it is kept. A bad app default falls back to Jali's. Keys that aren't settings are dropped, as the old ones were.
+- **`changeSettings`** refuses `"invalid"`, silently and changing nothing, when any value in the patch is one its setting can't take; keys that aren't settings are left out.
+- **Why 64:** fitting needs at least 1, and the dialog offers 2 to 16. An app may default higher (Trips once wanted 10), but past 64 the fitting cost (QUALITY-REVIEW P1) makes a cap meaningless, and nothing a person sets reaches it.
+- **The store's raw write** computes the whole next state, refit included, before putting it in place (`write` in `state/store.ts`), so a refit that throws leaves the state as it was.
+- **Tests:** `tests/hostile-input.test.tsx` (C2).

@@ -1162,7 +1162,7 @@ interface Settings
 
 - **`centreDrop`** (`"swap" | "tab"`, required): What a drop on a pane's centre does.
 
-- **`paneCap`** (`number`, required): The most panes on screen; past it the oldest pane that is not kept or focused folds. Settings allows 2 to 16.
+- **`paneCap`** (`number`, required): The most panes on screen; past it the oldest pane that is not kept or focused folds. A whole number from 1 to 64; the Settings dialog offers 2 to 16.
 
 - **`theme`** (`"system" | "light" | "dark"`, required): The theme choice.
 
@@ -1643,6 +1643,6 @@ A pane that is not there gives `reason: "not-found"`. What a refusal reads out t
 
 - **`actions.closeSettings`**, `closeSettings()`: Close it.
 
-- **`actions.changeSettings`**, `changeSettings(patch: Partial<Settings>)`: Change the person's settings. They are saved on this device; a new theme is applied and a new pane cap refits the layout.
+- **`actions.changeSettings`**, `changeSettings(patch: Partial<Settings>)`: Change the person's settings. They are saved on this device; a new theme is applied and a new pane cap refits the layout. `"invalid"`, changing nothing, when a value is one its setting can't take (a `paneCap` that isn't a whole number from 1 to 64, a `theme` or `centreDrop` it doesn't know). A saved value like that is never used either: that one setting starts on its default.
 
 What drags, keys and panes report (dividers, drops, focus keys, `useUnsaved`, `useCommands`, `usePaneState`, the discard dialog) runs through the engine's own steps, which are not part of `jali.actions`.

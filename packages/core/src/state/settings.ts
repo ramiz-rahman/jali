@@ -20,28 +20,56 @@ export const DEFAULT_SETTINGS: Settings = {
 };
 const KEY = "settings";
 
-/** Saved settings over the defaults (Jali's, with the app's `defaults` over them: `createJali({ settings })`). Keys
- *  from older builds (the divider adapter, the example apps' showStats) are dropped. */
+/** The most panes on screen a person can ask for. The settings dialog offers 2 to 16; an app's default or a saved
+ *  value may go to this. */
+export const PANE_CAP_MAX = 64;
+
+/** What each setting may hold. Anything else, from storage or a call, is not used. */
+const CHECKS: { [K in keyof Settings]: (v: unknown) => boolean } = {
+  centreDrop: (v) => v === "swap" || v === "tab",
+  paneCap: (v) => Number.isInteger(v) && (v as number) >= 1 && (v as number) <= PANE_CAP_MAX,
+  theme: (v) => v === "system" || v === "light" || v === "dark",
+  boundary: (v) => v === "tint" || v === "none",
+};
+const KEYS = Object.keys(CHECKS) as (keyof Settings)[];
+
+/** Each field of `value` that the setting can take, over `base`; a field it can't take keeps `base`'s. */
+function checked(base: Settings, value: unknown): Settings {
+  const out = { ...base };
+  if (!value || typeof value !== "object" || Array.isArray(value)) return out;
+  for (const k of KEYS) {
+    const v = Object.hasOwn(value, k) ? (value as Record<string, unknown>)[k] : undefined;
+    if (CHECKS[k](v)) (out as Record<string, unknown>)[k] = v;
+  }
+  return out;
+}
+
+/**
+ * Saved settings over the defaults (Jali's, with the app's `defaults` over them: `createJali({ settings })`). Each
+ * field is checked on its own: a saved value the setting can't take (`paneCap: "8"`, `0`, `1e9`) falls back to the
+ * default for that field alone, and the others are kept. Keys that aren't settings (the divider adapter and the
+ * example apps' showStats from older builds) are dropped.
+ */
 export function loadSettings(storage: StoragePort, defaults: Partial<Settings> = {}): Settings {
-  const base = { ...DEFAULT_SETTINGS, ...defaults };
+  const base = checked(DEFAULT_SETTINGS, defaults);
   try {
-    const saved = JSON.parse(storage.get(KEY) ?? "{}") as Partial<Settings> & {
-      adapter?: unknown;
-      showStats?: unknown;
-    };
-    const { adapter: _dropped, showStats: _lab, ...known } = saved;
-    const s: Settings = { ...base, ...known };
-    return valid(s);
+    return checked(base, JSON.parse(storage.get(KEY) ?? "{}"));
   } catch {
-    return valid(base);
+    return base;
   }
 }
 
-/** `s` with a theme or boundary Jali doesn't know put back to the default. */
-function valid(s: Settings): Settings {
-  const out = { ...s };
-  if (out.theme !== "light" && out.theme !== "dark") out.theme = "system";
-  if (out.boundary !== "none") out.boundary = "tint";
+/** `settings` with `patch` over them, or undefined when `patch` holds a value its setting can't take. Keys that aren't
+ *  settings are left out. */
+export function settingsWith(settings: Settings, patch: Partial<Settings>): Settings | undefined {
+  if (!patch || typeof patch !== "object") return undefined;
+  const out = { ...settings };
+  for (const k of KEYS) {
+    if (!Object.hasOwn(patch, k)) continue;
+    const v = (patch as Record<string, unknown>)[k];
+    if (!CHECKS[k](v)) return undefined;
+    (out as Record<string, unknown>)[k] = v;
+  }
   return out;
 }
 

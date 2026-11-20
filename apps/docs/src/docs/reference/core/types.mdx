@@ -704,7 +704,7 @@ How a change reaches the address: a new entry, in place, in place 120 ms after t
 
 <Params title="Fields">
 <Param name="centreDrop" type={`"swap" | "tab"`} default={`"swap"`} required>What a drop on a pane's centre does.</Param>
-<Param name="paneCap" type="number" default="8" required>The most panes on screen; past it the oldest pane that is not kept or focused folds. Settings allows 2 to 16.</Param>
+<Param name="paneCap" type="number" default="8" required>The most panes on screen; past it the oldest pane that is not kept or focused folds. A whole number from 1 to 64; the Settings dialog offers 2 to 16.</Param>
 <Param name="theme" type={`"system" | "light" | "dark"`} default={`"system"`} required>The theme choice.</Param>
 <Param name="boundary" type={`"tint" | "none"`} default={`"tint"`} required>How a curated page marks panes opened while investigating.</Param>
 </Params>
@@ -965,7 +965,7 @@ A pane that is not there gives `reason: "not-found"`. What a refusal reads out t
 <Member name="actions.closePalette" signature="closePalette()">Close it.</Member>
 <Member name="actions.openSettings" signature="openSettings()">Open Settings.</Member>
 <Member name="actions.closeSettings" signature="closeSettings()">Close it.</Member>
-<Member name="actions.changeSettings" signature="changeSettings(patch: Partial<Settings>)">Change the person's settings. They are saved on this device; a new theme is applied and a new pane cap refits the layout.</Member>
+<Member name="actions.changeSettings" signature="changeSettings(patch: Partial<Settings>)">Change the person's settings. They are saved on this device; a new theme is applied and a new pane cap refits the layout. `"invalid"`, changing nothing, when a value is one its setting can't take (a `paneCap` that isn't a whole number from 1 to 64, a `theme` or `centreDrop` it doesn't know). A saved value like that is never used either: that one setting starts on its default.</Member>
 </Members>
 
 What drags, keys and panes report (dividers, drops, focus keys, `useUnsaved`, `useCommands`, `usePaneState`, the discard dialog) runs through the engine's own steps, which are not part of `jali.actions`.
