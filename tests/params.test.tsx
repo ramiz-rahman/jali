@@ -3,7 +3,7 @@
  * that every new value goes through every place a ref is written down (?l=, peek=, open=, saved layouts), with links
  * made before the change still opening as they did.
  */
-import { cleanup, render, screen } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { storeOf } from "@jali/core/adapter";
 import { afterEach, beforeAll, describe, expect, expectTypeOf, it } from "vite-plus/test";
 import {
@@ -29,7 +29,14 @@ import {
   readSearch,
   savePrefs,
 } from "@jali/core/adapter";
-import { JaliRoot, definePane, type PaneProps } from "@jali/react";
+import {
+  JaliRoot,
+  definePane,
+  useJali,
+  useTitle,
+  type MissingProps,
+  type PaneProps,
+} from "@jali/react";
 
 // A kind with every param type, declared first so its component is typed from it.
 const orderParams = {
@@ -197,6 +204,108 @@ describe("a ref its kind can't read", () => {
     // Its title is the kind's name, and it stays out of Recent.
     expect(jali.model().title("broken")).toBe("order");
     expect(jali.env.kinds.isRecordable({ kind: "order", params: {} })).toBe(false);
+  });
+
+  it("shows the kind's Missing instead, with the params as they came, the problems and a close", () => {
+    const seen: MissingProps[] = [];
+    function NoOrder(props: MissingProps) {
+      seen.push(props);
+      useTitle("No such order");
+      return (
+        <div role="note">
+          <p>No order {String(props.params.id)}</p>
+          <button type="button" onClick={props.close}>
+            Close
+          </button>
+          <button type="button" onClick={() => props.openHere(order({ id: 7 }))}>
+            Order 7
+          </button>
+        </div>
+      );
+    }
+    const kept = definePane("order", {
+      params: orderParams,
+      title: ({ id }) => `Order ${id}`,
+      Component: OrderView,
+      Missing: NoOrder,
+    });
+    const jali = createJali({
+      panes: [kept],
+      layout: row(
+        pane({ kind: "order", params: { id: "lost", tab: "lines" } }, { id: "broken" }),
+        order({ id: 2 }),
+      ),
+      url: false,
+      storage: memoryStorage(),
+      size: { width: 1200, height: 800 },
+      moveFocus: false,
+    });
+    render(<JaliRoot jali={jali} />);
+    expect(screen.queryByRole("alert")).toBeNull();
+    expect(screen.getByRole("note").textContent).toContain("No order lost");
+    const props = seen.at(-1)!;
+    expect(props.params).toEqual({ id: "lost", tab: "lines" });
+    expect(props.problems).toEqual([{ param: "id", value: "lost" }]);
+    expect(props.node.id).toBe("broken");
+    // It is inside the pane: the pane's hooks work there.
+    expect(jali.model().title("broken")).toBe("No such order");
+    // A way on: show another order here, then the next one closes.
+    act(() => fireEvent.click(screen.getByRole("button", { name: "Order 7" })));
+    expect(screen.getAllByRole("heading", { level: 3 }).map((h) => h.textContent)).toContain(
+      "Order 7 summary any",
+    );
+    act(() => void jali.actions.openHere("broken", { kind: "order", params: {} }));
+    expect(screen.getByRole("note")).toBeTruthy();
+    expect(seen.at(-1)!.problems).toEqual([{ param: "id" }]);
+    act(() => fireEvent.click(screen.getByRole("button", { name: "Close" })));
+    expect(jali.model().pane("broken")).toBeUndefined();
+  });
+
+  it("is the same component a kind's own Component renders for params that read but name nothing", () => {
+    const known = new Set(["a"]);
+    function NoSession({ params, problems }: MissingProps) {
+      return (
+        <p role="note">
+          No session {String(params.id)}
+          {problems.length ? " (unreadable)" : ""}
+        </p>
+      );
+    }
+    const sessionParams = { id: String };
+    function SessionView(props: PaneProps<typeof sessionParams>) {
+      const jali = useJali();
+      if (!known.has(props.params.id))
+        return (
+          <NoSession {...props} problems={[]} close={() => jali.actions.close(props.node.id)} />
+        );
+      return <h3>Session {props.params.id}</h3>;
+    }
+    const session = definePane("session", {
+      params: sessionParams,
+      title: ({ id }) => `Session ${id}`,
+      Component: SessionView,
+      Missing: NoSession,
+    });
+    const jali = createJali({
+      panes: [session],
+      layout: row(
+        pane(session({ id: "a" }), { id: "a" }),
+        pane(session({ id: "gone" }), { id: "gone" }),
+        pane({ kind: "session", params: {} }, { id: "none" }),
+      ),
+      url: false,
+      storage: memoryStorage(),
+      size: { width: 1200, height: 800 },
+      moveFocus: false,
+      phone: { below: 0 },
+    });
+    render(<JaliRoot jali={jali} />);
+    // Every pane stays mounted, shown or folded (jsdom lays nothing out).
+    expect(document.querySelector("h3")!.textContent).toBe("Session a");
+    expect([...document.querySelectorAll('[role="note"]')].map((n) => n.textContent)).toEqual([
+      "No session gone",
+      "No session undefined (unreadable)",
+    ]);
   });
 
   it("makes a layout link holding it broken", () => {

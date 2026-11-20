@@ -101,9 +101,12 @@ export const PaneBody = /* @__PURE__ */ memo(
         </div>
       );
     }
-    // A ref its kind can't read (a required param missing, a value of the wrong type) never reaches the component.
+    // A ref its kind can't read (a required param missing, a value of the wrong type) never reaches the component:
+    // the kind's Missing shows instead, or Jali's own message.
     const problems = kinds.problems(node.ref);
-    if (problems.length) {
+    const close = () => (inPeek ? store.actions.peek(null) : store.actions.close(node.id));
+    const Missing = problems.length ? def.Missing : undefined;
+    if (problems.length && !Missing) {
       return (
         <div className="jali-pane-missing" role="alert">
           <strong>{messages.pane.cantOpen(node.ref.kind)}</strong>
@@ -111,7 +114,6 @@ export const PaneBody = /* @__PURE__ */ memo(
         </div>
       );
     }
-    const C = def.Component;
     const Loading = def.Loading;
     return (
       <PaneContext.Provider value={context}>
@@ -119,13 +121,17 @@ export const PaneBody = /* @__PURE__ */ memo(
           resetKey={JSON.stringify(node.ref)}
           host={host}
           name={kinds.title(node.ref)}
-          close={() => (inPeek ? store.actions.peek(null) : store.actions.close(node.id))}
+          close={close}
           onError={(error) =>
             store.env.onPaneError?.(error, { pane: inPeek ? null : node.id, ref: node.ref })
           }
           loading={Loading ? <Loading {...props} /> : <DefaultLoading />}
         >
-          <C {...props} />
+          {Missing ? (
+            <Missing {...props} problems={problems} close={close} />
+          ) : (
+            <def.Component {...props} />
+          )}
         </PaneBoundary>
         {header && !inPeek ? <HeaderControls slot={header} /> : null}
       </PaneContext.Provider>

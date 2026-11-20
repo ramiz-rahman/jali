@@ -24,6 +24,7 @@ import type {
   PaneKinds,
   PaneNode,
   PaneOptions,
+  ParamProblem,
   Params,
   ParamsOf,
   ParamTypes,
@@ -69,6 +70,18 @@ export interface PaneProps<P = Params> {
   dismiss: () => void;
 }
 
+/**
+ * What a kind's `Missing` gets: everything a pane's component does, with the params as the link gave them (a value
+ * Jali couldn't read stays as it came), what was wrong with them, and a way to close the pane.
+ */
+export interface MissingProps extends PaneProps<Params> {
+  /** Each param the link is missing (`value` undefined) or holds a value its type can't read. Empty when your own
+   *  component renders `Missing` for params that read but name nothing. */
+  problems: readonly ParamProblem[];
+  /** Close the pane, with undo; in the peek sheet, close the peek. */
+  close: () => void;
+}
+
 /** A pane kind for React: the options of any kind, plus its icon and component. */
 export interface PaneOptionsReact<P = Params> extends PaneOptions<P> {
   /** For the header, tab and shelf: a Phosphor icon, or any `JaliIcon`. Default: the workspace's `defaultKind` icon. */
@@ -77,6 +90,10 @@ export interface PaneOptionsReact<P = Params> extends PaneOptions<P> {
   /** Shown while `Component` suspends (it awaits data with `use()` or a Suspense query). Default: a quiet
    *  "Loading". The pane's activity reads "loading" meanwhile. */
   Loading?: ComponentType<PaneProps<P>>;
+  /** Shown in place of `Component` when the link's params can't be read (a required one missing, a value of the
+   *  wrong type), so the kind can explain in its own words and offer a way on (`openHere`, `close`). Render it from
+   *  `Component` too, for params that read but name nothing. Default: Jali's own message. */
+  Missing?: ComponentType<MissingProps>;
 }
 
 /** A kind as a React workspace keeps it. */
@@ -87,6 +104,7 @@ export interface PaneKindDef extends PaneKindBase {
   Component: ComponentType<PaneProps<any>>;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   Loading?: ComponentType<PaneProps<any>>;
+  Missing?: ComponentType<MissingProps>;
 }
 
 /** A pane kind, defined. Call it with params to name one of its objects. `Pane` alone is any kind, for lists. */

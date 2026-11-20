@@ -8,6 +8,7 @@ export {
   type Pane,
   type PaneProps,
   type PaneOptionsReact,
+  type MissingProps,
   type Page,
   type PageView,
 } from "./define";
