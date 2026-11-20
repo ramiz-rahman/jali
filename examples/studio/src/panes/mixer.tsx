@@ -14,7 +14,7 @@ import { useFrame, useTransport } from "../audio/react";
 import { channelOf, useSessionView, type SessionView } from "../edits";
 import { useServices } from "../services";
 import { colourOf, sessionById, trackInput, trackName, type Track } from "../sessions/sessions";
-import { Empty, Missing, SessionMissing, NotInTransport } from "../ui/parts";
+import { Missing, SessionMissing, NotInTransport } from "../ui/parts";
 import { dbToFader, Fader } from "../ui/Fader";
 import { PanDial } from "../ui/Knob";
 import { screenPaletteOf, prepare, useSize } from "../ui/waveform";

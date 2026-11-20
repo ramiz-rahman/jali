@@ -67,7 +67,6 @@ function Transcript(props: PaneProps<typeof transcriptParams>) {
 }
 
 function TranscriptBody({
-  params,
   node,
   paused,
   focused,

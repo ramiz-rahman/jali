@@ -10,7 +10,7 @@
 import { credits } from "./panes/credits";
 import { catalogueOf } from "./sessions/catalog";
 import { copyLink, createJali, type Command, type Jali, type JaliOptions } from "@jali/core";
-import { makerCommand } from "../../shared/src/maker/maker";
+import { makerCommand } from "#shared/maker/maker";
 import { cue, show } from "./actions";
 import { SPEEDS } from "./audio/engine";
 import { viewOf } from "./edits";
