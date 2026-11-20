@@ -32,6 +32,8 @@ Data Studio is built on the public API alone (`@jali/core`, `@jali/react`). Each
 
 **Suggested change.** Export a settings row part and an `IconButton` from `@jali/react`.
 
+**Now.** Both are public (21 Nov 2026): `IconButton` (part `iconButton`, `.jali-icon-btn`) and the Settings row part `settingRow` (`.jali-setting`). The shared top bar's Copy link and Settings are `IconButton`s, and the Status line setting is a `.jali-setting` row; the shared `.icon-btn` and `.setting-check` are gone.
+
 ## 4. The grid's active-descendant pattern belongs in the docs
 
 **What happened.** The shared grid's `role="grid"` didn't announce row changes to screen readers (QUALITY-REVIEW P9).

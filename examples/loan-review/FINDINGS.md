@@ -28,6 +28,8 @@ Loan review is the curated-page example: one application at a time, with its vie
 
 **Suggested change.** Make the page root a part, like the panes' parts.
 
+**Now.** `.jali-page` is the public part `page` (21 Nov 2026), documented in the Parts reference.
+
 ## 4. There is no public icon button
 
 As in Markets and Data Studio: the app has its own `.icon-btn` because `.jali-icon-btn` is private. **Suggested change:** export an `IconButton`.
