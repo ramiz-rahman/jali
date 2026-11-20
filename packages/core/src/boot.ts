@@ -7,45 +7,56 @@ import { installKeyboard, type KeyboardScope } from "./commands/keyboard";
 import { presetById } from "./profile";
 
 import { applyTheme, resolveTheme, saveSettings, watchSystemTheme } from "./state/settings";
-import type { UiStore } from "./state/store";
+import type { ConfirmState, UiStore } from "./state/store";
 import { applyTokens } from "./tokens";
 import { savePrefs } from "./state/page-prefs";
 import { savePaneState } from "./state/pane-state";
 import { openPage, withoutOpened } from "./actions/page";
 import { arrive } from "./actions/layout";
 import { agreeOnArrival } from "./actions/follow";
-import { DONE, type ActionResult } from "./state/apply";
+import { DONE, refuse, type ActionResult, type Outcome, type Snapshot } from "./state/apply";
 import type { UrlSync } from "./url";
 
 /** Apply the URL to the store (first load, Back/Forward). A link that can't be read opens the current preset.
- *  Undefined when the address holds no layout. */
-function arriveFromUrl(store: UiStore, url: UrlSync): ActionResult | undefined {
+ *  Undefined when the address holds no layout. `current`: whether this arrival is still the latest; one held for an
+ *  answer (beforeClose, "Discard unsaved changes?") does nothing if a newer Back or Forward came meanwhile. */
+function arriveFromUrl(
+  store: UiStore,
+  url: UrlSync,
+  current: () => boolean = () => true,
+): ActionResult | undefined {
   const r = url.read(store.env.kinds.registry());
   if (!r) return undefined;
+  const latest =
+    (step: (x: Snapshot) => Outcome) =>
+    (x: Snapshot): Outcome =>
+      current() ? step(x) : null;
   if ("page" in r) {
     const { tab, item, investigation } = r.page;
-    return store.apply((x) =>
-      openPage(x, {
-        tab: tab || undefined,
-        item: item || undefined,
-        investigation,
-        fromUrl: true,
-        view: r.view,
-      }),
+    return store.apply(
+      latest((x) =>
+        openPage(x, {
+          tab: tab || undefined,
+          item: item || undefined,
+          investigation,
+          fromUrl: true,
+          view: r.view,
+        }),
+      ),
     );
   }
   // A preset the link names and this workspace has; a link without one leaves the preset as it is.
   const named = r.preset && store.env.presets.some((p) => p.id === r.preset) ? r.preset : undefined;
   if ("broken" in r) {
     const p = presetById(store.env, named ?? store.get().presetId);
-    const done = p ? store.apply((x) => arrive(x, p.build(), r.view, p.id)) : DONE;
+    const done = p ? store.apply(latest((x) => arrive(x, p.build(), r.view, p.id))) : DONE;
     url.keepBroken(r.broken);
     store.writeUrl("replace");
     store.toast(store.messages.toasts.brokenLink(p?.label));
     store.announce(store.messages.announcements.brokenLink);
     return done;
   }
-  return store.apply((x) => arrive(x, r.layout, r.view, named));
+  return store.apply(latest((x) => arrive(x, r.layout, r.view, named)));
 }
 
 /** The store's URL sync, when it was made with one that can also read (createUrlSync). */
@@ -128,15 +139,31 @@ export function startUi(
   window.addEventListener("beforeunload", onUnload);
   const offTheme = watchSystemTheme((systemDark) => store.set({ systemDark }));
   const offKeys = installKeyboard(store, keys);
+  // Back and Forward. One that waits for an answer (the host's beforeClose, or "Discard unsaved changes?") keeps
+  // its navigation with the question: if the layout doesn't change in the end, the address goes back to what is on
+  // screen, so a reload or a copied link never opens what the person said no to. A newer Back or Forward takes the
+  // place of an older one still waiting: its question closes, and its answer no longer changes anything.
+  let nav = 0;
+  let asking: ConfirmState | null = null;
   const offPop = sync
     ? sync.onPop(() => {
-        const r = arriveFromUrl(store, sync);
-        // The host's beforeClose kept the panes: the address goes back to what is on screen.
-        if (r && !r.ok && r.reason === "kept") store.writeUrl("replace");
-        if (r && !r.ok && r.reason === "pending")
-          void r.settled?.then((end) => {
-            if (!end.ok) store.writeUrl("replace");
-          });
+        const mine = ++nav;
+        const held = store.get().confirm;
+        if (held && held === asking)
+          store.apply([
+            { op: "patch", patch: { confirm: null } },
+            { op: "answer", intent: () => refuse("kept"), agreed: {}, settle: held.settle },
+          ]);
+        const settle = (end: ActionResult | undefined) => {
+          if (mine !== nav || !end || end.ok) return;
+          if (end.reason === "pending") return void end.settled?.then(settle);
+          if (end.reason === "unsaved") {
+            asking = store.get().confirm;
+            return void asking?.settled.then(settle);
+          }
+          store.writeUrl("replace");
+        };
+        settle(arriveFromUrl(store, sync, () => mine === nav));
         store.announce(store.messages.announcements.historyChanged);
       })
     : () => {};

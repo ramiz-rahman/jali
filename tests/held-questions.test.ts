@@ -161,3 +161,98 @@ describe("beforeClose: a later yes meets the state of the moment", () => {
     expect(ids(jali)).not.toContain("order-2");
   });
 });
+
+/** Let held answers settle (they resolve through promises). */
+const settle = () => new Promise((r) => setTimeout(r, 0));
+
+describe("Back and Forward keep their navigation with the question (C9)", () => {
+  /** A workspace with history: the first address, then one pane opened (with unsaved work), then another. */
+  function history(options: Partial<JaliOptions> = {}) {
+    const location = memoryLocation();
+    const jali = make({ url: { location }, ...options });
+    const stop = jali.start();
+    const first = location.search();
+    const seven = jali.actions.openBeside("orders", order({ id: 7 })).pane!;
+    const second = location.search();
+    storeOf(jali).actions.setUnsaved(seven, "a draft");
+    return { jali, store: storeOf(jali), location, stop, first, second, seven };
+  }
+
+  it("Keep editing puts the address back on what is on screen", async () => {
+    const { jali, store, location, stop, first, second } = history();
+    location.visit(first);
+    expect(store.get().confirm).not.toBeNull();
+    store.actions.keepEditing();
+    await settle();
+    expect(shows(jali, "order")).toBe(1);
+    expect(jali.model().panes.some((p) => p.ref.params.id === 7)).toBe(true);
+    expect(location.search()).toBe(second);
+    stop();
+  });
+
+  it("Discard makes the arrival, and the address stays where Back went", async () => {
+    const { jali, store, location, stop, first } = history();
+    location.visit(first);
+    store.actions.discardAndContinue();
+    await settle();
+    expect(jali.model().panes.some((p) => p.ref.params.id === 7)).toBe(false);
+    expect(location.search()).toBe(first);
+    expect(store.get().unsaved).toEqual({});
+    stop();
+  });
+
+  it("a second Back takes the place of the first while it waits", async () => {
+    const { jali, store, location, stop, first, second } = history();
+    jali.actions.openBeside("orders", order({ id: 8 }));
+    const third = location.search();
+    location.visit(second);
+    const asked = store.get().confirm;
+    expect(asked).not.toBeNull();
+    location.visit(first);
+    expect(store.get().confirm).not.toBe(asked);
+    store.actions.discardAndContinue();
+    await settle();
+    expect(jali.model().panes.map((p) => p.ref.params.id)).not.toContain(7);
+    expect(jali.model().panes.map((p) => p.ref.params.id)).not.toContain(8);
+    expect(location.search()).toBe(first);
+    expect(third).not.toBe(first);
+    stop();
+  });
+
+  it("a second Back closes the first one's question when it loses nothing", async () => {
+    const { jali, store, location, stop, first, second } = history();
+    location.visit(first);
+    expect(store.get().confirm).not.toBeNull();
+    // Forward again, to what is on screen: nothing is lost, so nothing is asked.
+    location.visit(second);
+    await settle();
+    expect(store.get().confirm).toBeNull();
+    expect(jali.model().panes.some((p) => p.ref.params.id === 7)).toBe(true);
+    expect(location.search()).toBe(second);
+    stop();
+  });
+
+  it("an older Back's later yes changes nothing once a newer one came", async () => {
+    const answers: ((yes: boolean) => void)[] = [];
+    let wait = false;
+    const { jali, location, stop, first, second, store, seven } = history({
+      beforeClose: () => !wait || new Promise<boolean>((r) => answers.push(r)),
+    });
+    store.actions.setUnsaved(seven, null);
+    expect(jali.actions.openBeside("orders", order({ id: 8 })).ok).toBe(true);
+    wait = true;
+    location.visit(second);
+    location.visit(first);
+    expect(answers).toHaveLength(2);
+    answers[0]!(true);
+    await settle();
+    // The older Back (to `second`) would have kept 7: it no longer happens.
+    expect(jali.model().panes.map((p) => p.ref.params.id)).toContain(8);
+    answers[1]!(true);
+    await settle();
+    expect(jali.model().panes.map((p) => p.ref.params.id)).not.toContain(7);
+    expect(jali.model().panes.map((p) => p.ref.params.id)).not.toContain(8);
+    expect(location.search()).toBe(first);
+    stop();
+  });
+});
