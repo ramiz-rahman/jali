@@ -177,23 +177,55 @@ export function Strip({
 
 /**
  * Focus brings the focused pane wholly into view in its strip, with the least movement: a click, F6, a link, an
- * undo. The browser glides there (at once with reduced motion).
+ * undo. A pane that joins a strip (opened beside a pane in it, or dropped there) comes into view too, with the
+ * focused pane when both fit, else on its own. The browser glides there (at once with reduced motion).
  */
 export function useFocusIntoStrip(store: Store) {
   const m = useModel();
   const focused = useUi((s) => s.view.focused);
   const dir = useUi((s) => s.dir) === "rtl" ? "rtl" : "ltr";
-  const s = focused ? m.content.scrollers.find((x) => x.paneIds.includes(focused)) : undefined;
-  const box = s ? m.content.panes.find((b) => b.id === focused && !b.hidden) : undefined;
+  const boxOf = (id: string | undefined) =>
+    id ? m.content.panes.find((b) => b.id === id && !b.hidden) : undefined;
+
+  // The panes each strip held last time: a pane not among them has just joined it.
+  const seen = useRef(new Map<string, ReadonlySet<string>>());
+  let joined: { strip: ScrollerBox; id: string } | undefined;
+  for (const strip of m.content.scrollers) {
+    const was = seen.current.get(strip.id);
+    if (was) for (const id of strip.paneIds) if (!was.has(id)) joined = { strip, id };
+  }
+  useEffect(() => {
+    seen.current = new Map(m.content.scrollers.map((x) => [x.id, new Set(x.paneIds)]));
+  });
+
+  // What to show: the pane that joined (and the focused pane beside it, when both fit), else the focused pane.
+  let s = focused ? m.content.scrollers.find((x) => x.paneIds.includes(focused)) : undefined;
+  let rect = s ? boxOf(focused)?.rect : undefined;
+  let key = "focus";
+  const joinedBox = joined ? boxOf(joined.id) : undefined;
+  if (joined && joinedBox) {
+    s = joined.strip;
+    const source = focused && s.paneIds.includes(focused) ? boxOf(focused) : undefined;
+    const left = Math.min(joinedBox.rect.x, source?.rect.x ?? Infinity);
+    const right = Math.max(
+      joinedBox.rect.x + joinedBox.rect.width,
+      source ? source.rect.x + source.rect.width : -Infinity,
+    );
+    rect =
+      source && right - left <= s.rect.width
+        ? { ...joinedBox.rect, x: left, width: right - left }
+        : joinedBox.rect;
+    key = `joined ${joined.id}`;
+  }
   // Keyed on the strip's shape, not the model, which changes as the strip scrolls.
   const shape =
-    s && box ? `${s.id} ${s.rect.width} ${s.contentWidth} ${box.rect.x} ${box.rect.width}` : "";
+    s && rect ? `${key} ${s.id} ${s.rect.width} ${s.contentWidth} ${rect.x} ${rect.width}` : "";
   useEffect(() => {
-    if (!s || !box) return;
+    if (!s || !rect) return;
     const now = store.get().view.scroll?.[s.id] ?? 0;
-    const to = core.offsetToShow(s, box.rect, now, dir);
+    const to = core.offsetToShow(s, rect, now, dir);
     if (Math.abs(to - now) < 1) return;
-    const el = store.dom.pane(box.id)?.closest<HTMLElement>(`.${STRIP_VIEWPORT}`);
+    const el = store.dom.pane(s.paneIds[0]!)?.closest<HTMLElement>(`.${STRIP_VIEWPORT}`);
     if (!el) return;
     el.scrollTo({
       left: dir === "rtl" ? core.maxOffset(s) - to : to,

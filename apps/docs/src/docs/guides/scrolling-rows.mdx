@@ -37,7 +37,7 @@ Make the whole workspace scroll by making the row at its root scroll. Mix the tw
 
 The browser scrolls the row, so it feels like any page: a trackpad swipe with its momentum, Shift and the wheel, and a thin scrollbar in the gap under the panes. A swipe past the end stops there, rather than going back a page. The edges fade where there is more to see.
 
-Moving focus brings the pane wholly into view, scrolling as little as it can: a click, F6, ⌘K and an arrow, a link, or opening a pane. So a keyboard user never lands on a pane they can't see. Panes scrolled out of view stay mounted and stay in the focus order, and they're `paused`, so a long row costs about what the few panes on screen do.
+Moving focus brings the pane wholly into view, scrolling as little as it can: a click, F6, ⌘K and an arrow, a link, or opening a pane. So a keyboard user never lands on a pane they can't see. A pane opened beside one in the row goes right after it, and comes into view with it, even though focus stays at the pane it came from. When both don't fit, the new pane shows whole. Panes scrolled out of view stay mounted and stay in the focus order, and they're `paused`, so a long row costs about what the few panes on screen do.
 
 Where the row came to rest is in the link: `?scroll=pipeline:732`, by the row's id. A reload or a shared link reopens there. Scrolling replaces the history entry, so Back doesn't step through every swipe. A row at its start adds nothing to the link.
 

@@ -234,6 +234,21 @@ test("a day dragged by its header and held at the week's edge scrolls on, and dr
     .toBe(true);
 });
 
+test("a pane split off a day at the week's edge scrolls into view", async ({ page }) => {
+  await layout(page, "Days").click();
+  // Day 2 ends at the week's right edge; a pane opened beside it lands past the edge, so the week scrolls to it.
+  await pane(page, "day-2")
+    .locator(".jali-pane-header")
+    .click({ position: { x: 120, y: 20 } });
+  await page.keyboard.press("ControlOrMeta+k");
+  await page.keyboard.type("Split right");
+  await page.keyboard.press("Enter");
+  const opened = page.locator('.jali-strip .jali-pane[data-kind="launcher"]');
+  await expect(opened).toHaveCount(1);
+  const id = (await opened.getAttribute("data-pane"))!;
+  await expect.poll(() => wholeInWeek(page, id)).toBe(true);
+});
+
 test("a day comes out of the week by its header, onto the side of a pane beside it", async ({
   page,
 }) => {
