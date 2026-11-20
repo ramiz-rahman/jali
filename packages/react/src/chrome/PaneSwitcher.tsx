@@ -7,7 +7,7 @@ import { UnsavedMark, useUnsavedOf } from "../pane/Unsaved";
 import {
   useActions,
   useMessages,
-  useModel,
+  useModelValue,
   usePaneAttributesOf,
   useStore,
   useUi,
@@ -33,7 +33,7 @@ function Item({ node, selected, inView }: { node: PaneNode; selected: boolean; i
   const dirty = useUnsavedOf(node.id);
   const titles = useUi((s) => s.titles);
   const marks = usePaneAttributesOf(node.id);
-  const tucked = !!useModel().tuckOf(node.id);
+  const tucked = useModelValue((m) => !!m.tuckOf(node.id));
   const actions = useActions();
   const store = useStore();
   return (

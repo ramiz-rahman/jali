@@ -124,6 +124,38 @@ const reset = () => {
 const frame = () => new Promise<void>((done) => requestAnimationFrame(() => done()));
 
 describe("render counts", () => {
+  it("a keyboard resize commits only the two frames either side of the divider, and no pane body", () => {
+    const jali = make();
+    const { container } = render(<JaliRoot jali={jali} />);
+    expect(jali.model().visible).toHaveLength(10);
+    // The divider inside the first column: its neighbours are that column's two panes.
+    const first = jali.model().resolved.dividers.find((d) => d.neighbours?.[0]?.length === 1)!;
+    const [[a], [b]] = first.neighbours!;
+    const handle = container.querySelector<HTMLElement>(
+      `[data-divider="${first.parentId}:${first.index}"] [role="separator"], [role="separator"][data-divider="${first.parentId}:${first.index}"]`,
+    )!;
+    expect(handle).not.toBeNull();
+    const key = first.rect.width > first.rect.height ? "ArrowDown" : "ArrowRight";
+    const before = jali.model().resolved;
+    const steps: string[][] = [];
+    const total = { frame: 0, panes: 0, dividers: 0 };
+    for (let i = 0; i < 10; i++) {
+      reset();
+      act(() => void fireEvent.keyDown(handle, { key }));
+      steps.push([...new Set(counts.frame)].sort());
+      total.frame += counts.frame.length;
+      total.panes += counts.panes;
+      total.dividers += counts.dividers;
+      expect(counts.body).toEqual([]);
+    }
+    // eslint-disable-next-line no-console
+    console.info(
+      `keyboard resize, 10 steps: Panes ${total.panes}, DividerLayer ${total.dividers}, PaneFrame ${total.frame}`,
+    );
+    expect(jali.model().resolved).not.toBe(before);
+    for (const ids of steps) expect(ids).toEqual([a, b].sort());
+  });
+
   it("a pane drag commits no pane frame or body per pointermove: only where it would land changes them", async () => {
     const jali = make();
     const { container } = render(<JaliRoot jali={jali} />);

@@ -1,7 +1,14 @@
 import { own } from "@jali/core/adapter";
 /** React access to the store: one provider, and hooks that subscribe to exactly what a component reads. */
 import type { Jali, JaliState, PaneNode, JaliModel, NodeId, Messages, Theme } from "@jali/core";
-import { createContext, Fragment, useContext, useSyncExternalStore, type ReactNode } from "react";
+import {
+  createContext,
+  Fragment,
+  useContext,
+  useRef,
+  useSyncExternalStore,
+  type ReactNode,
+} from "react";
 import type { Actions, PaneAttributes, UiState, UiStore } from "@jali/core/adapter";
 import type { ReactEnv, Page } from "../define";
 import { resolveTheme, titleOf } from "@jali/core/adapter";
@@ -32,6 +39,51 @@ export function useUi<T>(select: (s: UiState) => T): T {
 export function useModel(): JaliModel {
   const store = useStore();
   return useSyncExternalStore(store.subscribe, store.model, store.model);
+}
+
+/** One value read from the model (a title, whether a pane is tucked): re-renders only when it changes. Return a
+ *  primitive, or an object the model keeps; a new object each time re-renders on every change. */
+export function useModelValue<T>(select: (m: JaliModel) => T): T {
+  const store = useStore();
+  const read = () => select(store.model());
+  return useSyncExternalStore(store.subscribe, read, read);
+}
+
+/** The two states differ only in a drag's pointer (`dnd`), which nothing worked out from the rest reads. */
+function onlyDrag(a: UiState, b: UiState): boolean {
+  const ka = Object.keys(a) as (keyof UiState)[];
+  if (ka.length !== Object.keys(b).length) return false;
+  return ka.every((k) => k === "dnd" || a[k] === b[k]);
+}
+
+/**
+ * A value worked out from the whole workspace (a pane's menu and buttons, the command list) that re-renders only when
+ * it changes by `same`. It is worked out again when `deps` change or the state does, but not when only a drag's pointer
+ * moved: a drag writes the state every frame.
+ */
+export function useDerived<T>(
+  derive: () => T,
+  same: (a: T, b: T) => boolean,
+  deps: readonly unknown[],
+): T {
+  const store = useStore();
+  const last = useRef<{ s: UiState; deps: readonly unknown[]; value: T } | null>(null);
+  const read = () => {
+    const s = store.get();
+    const was = last.current;
+    if (
+      was &&
+      was.deps.length === deps.length &&
+      was.deps.every((d, i) => Object.is(d, deps[i])) &&
+      (was.s === s || onlyDrag(was.s, s))
+    )
+      return was.value;
+    const next = derive();
+    const value = was && same(was.value, next) ? was.value : next;
+    last.current = { s, deps, value };
+    return value;
+  };
+  return useSyncExternalStore(store.subscribe, read, read);
 }
 
 export const useActions = (): Actions => useStore().actions;

@@ -2,7 +2,7 @@ import { own } from "@jali/core/adapter";
 import { buttonsOf, checkTuck, tabMenuOf, tuckHome, type PaneButton } from "@jali/core/adapter";
 import { allows } from "@jali/core/adapter";
 import { useJaliIcons } from "../icons/context";
-import { useModel, useStore, useUi } from "../state/react";
+import { useDerived, useStore, useUi } from "../state/react";
 import { bringBack, canPopOut, popOut, usePopOutTarget } from "./PopOut";
 import type { Chrome } from "@jali/core/adapter";
 import { ICON } from "../icons/sized";
@@ -37,39 +37,68 @@ const MOVES: ReadonlySet<PaneButton> = new Set(["tuck", "maximise", "fullScreen"
  * The header's buttons (`buttons`: Jali's choice unless the app's), then ⋯ for the rest of the pane's menu: 26px
  * targets, 4px apart. Tuck is a plain minus: it puts the pane behind the pane it would join.
  */
+/** What the header shows, worked out from the whole workspace: compared by value, so a change elsewhere (a divider
+ *  moved, another pane's title) doesn't re-render every pane's header. */
+interface Plan {
+  home: boolean;
+  tuckLabel: string;
+  closeHint: string;
+  buttons: PaneButton[];
+  /** The menu offers something no button does. */
+  menuMore: boolean;
+}
+const samePlan = (a: Plan, b: Plan) =>
+  a.home === b.home &&
+  a.tuckLabel === b.tuckLabel &&
+  a.closeHint === b.closeHint &&
+  a.menuMore === b.menuMore &&
+  a.buttons.length === b.buttons.length &&
+  a.buttons.every((x, i) => x === b.buttons[i]);
+
 export function HeaderActions({ id, title, zoomed, chrome, tabs, narrow = 0, onMenu }: P) {
   const icon = useJaliIcons();
   const store = useStore();
-  const m = useModel();
   const { pane: t, keys } = store.messages;
-  const x = store.snapshot();
-  const home = tuckHome(x, id);
-  // When tuck is refused, the button says why in the announcer's own words (state/messages.ts).
-  const tuckLabel = home
-    ? keys.withKeys(t.tuckInto(m.title(home)), store.keymap.label("pane.tuck"))
-    : (checkTuck(x, id)?.msg ?? t.cantTuck(title));
   const { actions } = store;
-  const node = m.pane(id);
-  // A curated page's view closes back into the tabs above.
-  const closeHint = store.get().page && node?.role ? t.closeViewTip : t.closeTip;
   // On the whole screen, the way back is Exit full screen; Maximise's Restore would leave half of it.
   const full = useUi((s) => s.fullScreen === id);
   const popped = !!usePopOutTarget(store, id);
   const pop = canPopOut();
-  const items = tabMenuOf(store, id).flat();
-  if (pop && allows(x, id, "popOut")) items.push({ id: "pop-out", title: "", run: () => {} });
-  // A narrow header keeps its title: what the menu also offers moves into it, and a tuck that can't happen goes.
-  const inMenu = new Set(items.map((i) => i.id));
-  const buttons = buttonsOf(x, id, { chrome, zoomed, full, tabs }).filter(
-    (b) =>
-      (b !== "popOut" || pop) &&
-      !(narrow && MOVES.has(b) && (inMenu.has(COVERS[b]) || (b === "tuck" && !home))),
+  const { home, tuckLabel, closeHint, buttons, menuMore } = useDerived(
+    (): Plan => {
+      const x = store.snapshot();
+      const home = tuckHome(x, id);
+      // When tuck is refused, the button says why in the announcer's own words (state/messages.ts).
+      const tuckLabel = home
+        ? keys.withKeys(t.tuckInto(x.m.title(home)), store.keymap.label("pane.tuck"))
+        : (checkTuck(x, id)?.msg ?? t.cantTuck(title));
+      // A curated page's view closes back into the tabs above.
+      const closeHint = x.s.page && x.m.pane(id)?.role ? t.closeViewTip : t.closeTip;
+      const items = tabMenuOf(store, id).flat();
+      if (pop && allows(x, id, "popOut")) items.push({ id: "pop-out", title: "", run: () => {} });
+      // A narrow header keeps its title: what the menu also offers moves into it, and a tuck that can't happen goes.
+      const inMenu = new Set(items.map((i) => i.id));
+      const buttons = buttonsOf(x, id, { chrome, zoomed, full, tabs }).filter(
+        (b) =>
+          (b !== "popOut" || pop) &&
+          !(narrow && MOVES.has(b) && (inMenu.has(COVERS[b]) || (b === "tuck" && !home))),
+      );
+      const shown = new Set(buttons.map((b) => COVERS[b]));
+      return {
+        home: !!home,
+        tuckLabel,
+        closeHint,
+        buttons,
+        menuMore: items.some((i) => !shown.has(i.id)),
+      };
+    },
+    samePlan,
+    [store, id, title, zoomed, chrome, tabs, narrow, full, pop],
   );
   // With the app's controls hidden too, the menu lists the pane's commands in their place.
   const commands = useUi((s) => (narrow === 2 ? (own(s.paneCommands, id)?.length ?? 0) : 0));
   // ⋯ when the menu has more than the buttons: everything allowed is always one click away, on touch too.
-  const shown = new Set(buttons.map((b) => COVERS[b]));
-  const more = commands > 0 || items.some((i) => !shown.has(i.id));
+  const more = commands > 0 || menuMore;
   if (!buttons.length && !more) return null;
   const button = (b: PaneButton) => {
     switch (b) {
