@@ -38,8 +38,9 @@ function copy(root: Projected): { root: Projected; of: Map<Projected, Projected>
 export interface Lookahead {
   left: number;
 }
-/** A replay's lookahead budget. A workspace of up to about 15 slots never runs out; one of hundreds searches its
- *  first folds and then folds by the rule alone. */
+/** A replay's lookahead budget. Every layout in the tests and in the generated corpus of `fit-equivalence.test.ts`
+ *  (up to 17 panes) fits exactly as it did with no limit; a quarter of this already changes one of them. A workspace
+ *  of hundreds of panes searches its first folds and then folds by the rule alone. */
 export const LOOKAHEAD = 8192;
 
 /** Done folding on: the projection fits the room, or a single slot is left. */
