@@ -8,7 +8,9 @@
  */
 import { Children, isValidElement, type ReactNode } from "react";
 import { ArrowRightIcon, GithubLogoIcon } from "@phosphor-icons/react";
+import { formatKeys } from "@jali/core";
 import { PALETTE_ID, runCommand } from "@jali/core/adapter";
+import { useHydrated } from "../../live/ClientOnly";
 import { REPO_URL } from "../../site/config";
 import { Lattice } from "../brand";
 import { Code, Install, Tab, Tabs } from "../mdx";
@@ -200,6 +202,15 @@ export function KeysDemo() {
     if (id === PALETTE_ID) app.store.actions.openPalette();
     else runCommand(app.store, id);
   };
+  // The keymap reads the platform from `navigator`, which the build machine has too. Until the page hydrates, the
+  // keys are written for Windows and Linux on every machine, so the prerender and hydration match; then for the
+  // reader's own platform.
+  const hydrated = useHydrated();
+  const label = (id: string) => {
+    if (hydrated) return app.store.keymap.label(id);
+    const seq = app.store.keymap.sequences(id)[0];
+    return seq ? formatKeys(seq, "other") : "";
+  };
   return (
     <div className="landing-keys-demo">
       <LandingWorkspace
@@ -214,7 +225,7 @@ export function KeysDemo() {
         {KEYS.map((k) => (
           <li key={k.id}>
             <button type="button" className="landing-key" onClick={() => run(k.id)}>
-              <kbd>{app.store.keymap.label(k.id)}</kbd>
+              <kbd>{label(k.id)}</kbd>
               <span>{k.text}</span>
             </button>
           </li>
