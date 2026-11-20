@@ -1,13 +1,13 @@
-import { expect, test, type Page } from "@playwright/test";
+/** A smoke test of the app's main paths, on the stand-in Kraken (kraken.ts), with the console guard on. */
+import type { Page } from "@playwright/test";
+import { expect, test } from "../../shared/e2e/quality";
+import { desk, openDesk } from "./open";
 
 const title = (page: Page, pane: string) =>
   page.locator(`.jali-pane[data-pane="${pane}"] .jali-pane-header`);
-const desk = (page: Page, name: string) =>
-  page.getByRole("navigation", { name: "Desks" }).getByRole("button", { name });
 
 test.beforeEach(async ({ page }) => {
-  await page.goto("/");
-  await expect(page.getByRole("listbox", { name: "Equities" })).toBeVisible();
+  await openDesk(page);
 });
 
 test("moving through the watchlist moves the chart and the quote", async ({ page }) => {
