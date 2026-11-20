@@ -40,22 +40,27 @@ export function useTopic<T extends Topic>(topic: T, paused = false): TopicData<T
   return state.key === key ? state.data : market.snapshot(topic);
 }
 
-/** Quotes for several instruments at once (a watchlist, a blotter), in one state update a tick. */
+/** `symbol`'s quote as a map entry, or none when there is no such instrument or its price is not known yet. */
+function known(market: MarketData, symbol: string): [string, Quote][] {
+  if (!market.instrument(symbol)) return [];
+  const q = market.snapshot({ channel: "quote", symbol });
+  return q.pending ? [] : [[symbol, q]];
+}
+
+/**
+ * Quotes for several instruments at once (a watchlist, a blotter), in one state update a tick. An instrument whose
+ * price is not known yet (`pending`) has no entry, so a caller shows "not known yet" rather than a price of 0.
+ */
 export function useQuotes(symbols: readonly string[], paused = false): ReadonlyMap<string, Quote> {
   const market = useMarket();
   const key = symbols.join(",");
-  const read = () =>
-    new Map(
-      symbols.flatMap((s) =>
-        market.instrument(s) ? [[s, market.snapshot({ channel: "quote", symbol: s })]] : [],
-      ),
-    );
+  const read = () => new Map(symbols.flatMap((s) => known(market, s)));
   const [state, setState] = useState(() => ({ key, quotes: read() }));
 
   useEffect(() => {
     if (paused) return;
     const list = key ? key.split(",").filter((s) => market.instrument(s)) : [];
-    const quotes = new Map(list.map((s) => [s, market.snapshot({ channel: "quote", symbol: s })]));
+    const quotes = new Map(list.flatMap((s) => known(market, s)));
     setState({ key, quotes });
     // Collect a tick's changes and apply them together on the next frame.
     let frame = 0;
@@ -65,6 +70,7 @@ export function useQuotes(symbols: readonly string[], paused = false): ReadonlyM
     };
     const stops = list.map((symbol) =>
       market.subscribe({ channel: "quote", symbol }, (q) => {
+        if (q.pending) return;
         quotes.set(symbol, q);
         frame ||= requestAnimationFrame(flush);
       }),

@@ -304,7 +304,10 @@ function Row({
               <Sparkline symbol={inst.symbol} prevClose={inst.prevClose} paused={paused} />
             </span>
           </>
-        ) : null}
+        ) : (
+          // A live price before its first quote: said, not shown as 0.
+          <span className="c-pending">Not known yet</span>
+        )}
       </div>
     </>
   );

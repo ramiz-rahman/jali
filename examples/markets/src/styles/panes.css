@@ -377,6 +377,12 @@
   .wl-rows:focus-visible {
     box-shadow: inset 0 0 0 2px var(--jali-focus-ring);
   }
+  /* A live price before its first quote, across the number columns. */
+  .c-pending {
+    grid-column: 2 / -1;
+    justify-self: end;
+    color: var(--jali-text-subtle);
+  }
   .wl-row {
     height: var(--mk-row-h);
     border-bottom: 1px solid color-mix(in srgb, var(--jali-border) 60%, transparent);

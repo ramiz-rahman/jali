@@ -5,9 +5,9 @@ import { definePane, useCommands, useJali, type PaneProps } from "@jali/react";
 import { prepareTicket } from "../actions";
 import { useMarket, useTopic } from "../market/react";
 import type { Instrument, Quote } from "../market/types";
-import { useServices } from "../services";
+import { useFeed, useServices } from "../services";
 import * as f from "../ui/format";
-import { Delta, Figures, Flash, Known } from "../ui/parts";
+import { Delta, Empty, Figures, Flash, Known } from "../ui/parts";
 import { chart } from "./chart";
 
 /** What a quote pane shows; its component and `definePane` share it. */
@@ -45,6 +45,7 @@ function QuoteBody({
   const tradable = inst.assetClass !== "index";
   const trade = (side: "buy" | "sell") => prepareTicket(jali, services, inst.symbol, side, from);
   const isBond = q.yield !== undefined;
+  const feed = useFeed();
 
   useCommands([
     {
@@ -71,12 +72,56 @@ function QuoteBody({
         </div>
         <span className="chip">{CLASS[inst.assetClass]}</span>
         {inst.source ? (
-          <span className="chip chip-live" title={`Real prices from ${inst.source}`}>
-            Live · {inst.source}
-          </span>
+          feed === "down" ? (
+            <span className="chip" title={`${inst.source} can't be reached; trying again`}>
+              Offline · {inst.source}
+            </span>
+          ) : (
+            <span className="chip chip-live" title={`Real prices from ${inst.source}`}>
+              Live · {inst.source}
+            </span>
+          )
         ) : null}
       </header>
 
+      {q.pending ? (
+        <Empty title={`${inst.symbol}'s price is not known yet`}>
+          {feed === "down"
+            ? `${inst.source ?? "The feed"} can't be reached. Prices fill in when it answers again.`
+            : `Waiting for the first quote from ${inst.source ?? "the feed"}.`}
+        </Empty>
+      ) : (
+        <QuoteNumbers
+          inst={inst}
+          q={q}
+          isBond={isBond}
+          tradable={tradable}
+          trade={trade}
+          openChart={openChart}
+        />
+      )}
+    </div>
+  );
+}
+
+/** The quote's numbers: the price and change, the touch, the actions, the day's range and the figures. */
+function QuoteNumbers({
+  inst,
+  q,
+  isBond,
+  tradable,
+  trade,
+  openChart,
+}: {
+  inst: Instrument;
+  q: Quote;
+  isBond: boolean;
+  tradable: boolean;
+  trade: (side: "buy" | "sell") => void;
+  openChart: () => void;
+}) {
+  return (
+    <>
       <div className="quote-price">
         <span className="quote-last">
           <Flash value={q.last} dir={q.tickDir}>
@@ -122,7 +167,7 @@ function QuoteBody({
       )}
       <DayRange inst={inst} q={q} />
       <Figures rows={figures(inst, q, useYearRange(inst))} />
-    </div>
+    </>
   );
 }
 

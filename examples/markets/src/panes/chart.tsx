@@ -114,7 +114,9 @@ function ChartBody({ inst, paused }: { inst: Instrument; paused: boolean }) {
     cursor !== null && cursor > 0
       ? bars[cursor - 1]!.close
       : view.range === "1D"
-        ? q.prevClose
+        ? q.pending
+          ? bars[0]?.open
+          : q.prevClose
         : bars[0]?.open;
   const intraday = view.range === "1D" || view.range === "5D";
 
@@ -193,8 +195,9 @@ function ChartBody({ inst, paused }: { inst: Instrument; paused: boolean }) {
             slots={slots}
             width={size.width}
             height={size.height}
-            last={q.last}
-            prevClose={intraday ? q.prevClose : undefined}
+            // Before the first live quote, the latest bar's close stands in: never a placeholder 0.
+            last={q.pending ? (bars.at(-1)?.close ?? 0) : q.last}
+            prevClose={intraday && !q.pending ? q.prevClose : undefined}
             cursor={cursor}
             setCursor={setCursor}
           />
