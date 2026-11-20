@@ -2,7 +2,7 @@ import { TABLES, singular } from "./tables";
 import { keys } from "./keys";
 import { ident, condition, idFields } from "./sql";
 import type { DataLayer, EntityKey, Relation, Row, TableInfo, TableName } from "./types";
-import type { createResultStore } from "./result-store";
+import { UnknownRun, type createResultStore } from "./result-store";
 
 export function createEntities(
   info: (table: TableName) => Promise<TableInfo>,
@@ -57,6 +57,9 @@ export function createDataApi(deps: {
     deps;
   const names: readonly TableName[] = TABLES;
   let nextRun = 0;
+  // Results live in memory for this visit. A run id names its visit too, so an id from an earlier visit (in a link,
+  // after a reload) never names a result of this one.
+  const visit = Math.random().toString(36).slice(2, 8);
   return {
     ready,
     catalog,
@@ -149,7 +152,7 @@ export function createDataApi(deps: {
       await ready();
       const start = performance.now();
       const result = await call<Row>(sql);
-      const runId = String(++nextRun);
+      const runId = `${visit}-${++nextRun}`;
       const match = /^\s*select\s+[\s\S]+?\s+from\s+"?(\w+)"?(?:\s|;|$)/i.exec(sql);
       const table = match && names.find((n) => n === match[1]?.toLowerCase());
       results.set(runId, { rows: result.rows, table: table || undefined });
@@ -164,7 +167,7 @@ export function createDataApi(deps: {
     },
     resultRows(runId, offset, limit) {
       const result = results.get(runId);
-      if (!result) throw new Error(`Unknown run: ${runId}`);
+      if (!result) throw new UnknownRun(runId);
       onCacheHit();
       return result.rows.slice(offset, offset + limit);
     },

@@ -3,6 +3,7 @@ import { definePane } from "@jali/react";
 import type { Row } from "#shared/data/types";
 import { useMemo, useState } from "react";
 import { isLoading } from "#shared/data/hooks";
+import { UnknownRun } from "#shared/data/result-store";
 import { formatCompact, formatCount } from "#shared/panes/format";
 import { Empty, Shell } from "#shared/panes/shared/states";
 import { PaneGate } from "#shared/panes/shared/PaneGate";
@@ -27,6 +28,17 @@ export function ChartPane({ params, paused }: PaneProps<typeof chartParams>) {
   const x = xSel ?? auto.x,
     y = ySel ?? auto.y;
 
+  // A run id from an earlier visit (a link, a reload): its result is gone. Say so, and how to get it back, rather than
+  // an error.
+  if (q.error instanceof UnknownRun)
+    return (
+      <Shell>
+        <Empty
+          title="This chart's result is from an earlier visit"
+          hint="Results are kept only while the page is open. Run its query again, then choose Chart this result."
+        />
+      </Shell>
+    );
   if (isLoading(q) || q.isError || !runId) {
     return <PaneGate queries={[q]} gone={!runId ? "This result" : undefined} />;
   }
