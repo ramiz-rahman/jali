@@ -126,7 +126,9 @@ export interface PageView extends RoleBase {
 /** A curated page: one item at a time, with a list beside it (the rail) and the item's header above its tabs. `I` is
  *  the item id's type (`number` or `string`), as in `firstItem`. */
 export interface Page<I extends ItemId = any> extends ProfileBase<PageView, I> {
-  Rail: ComponentType<{ item: I; activate: (item: I) => void }>;
+  /** The list of items at the left, which calls `activate(item)` to show another. Leave it out for a page that is
+   *  about one item and has nothing to switch to: the header, tabs and panes then take the whole width. */
+  Rail?: ComponentType<{ item: I; activate: (item: I) => void }>;
   Header: ComponentType<{ item: I }>;
 }
 

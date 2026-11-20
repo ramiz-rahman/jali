@@ -190,7 +190,7 @@ export function CuratedPage() {
   const { actions } = useStore();
   return (
     <div className="jali-page">
-      <p.Rail item={item} activate={actions.activate} />
+      {p.Rail && <p.Rail item={item} activate={actions.activate} />}
       <div className="jali-page-main">
         <p.Header item={item} />
         <PageTabs />

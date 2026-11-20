@@ -6,6 +6,10 @@
     min-height: 0;
     min-width: 0;
   }
+  /* No rail (a page about one item, or a Rail that renders nothing): the main column takes the whole width. */
+  .jali-page:has(> .jali-page-main:first-child) {
+    grid-template-columns: minmax(0, 1fr);
+  }
   .jali-page-main {
     display: grid;
     grid-template-rows: auto auto minmax(0, 1fr);
