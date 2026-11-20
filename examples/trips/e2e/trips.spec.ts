@@ -260,7 +260,12 @@ test("a layout's own selection keeps the map framed on the day; a place the pers
     /Silom/,
   );
   await expect(pane(page, "place").locator(".place-name")).toHaveText("Silom Lantern Hotel");
-  await page.waitForTimeout(1200);
+  // The map would move in the frames after the selection (the tests run with reduced motion, so a move is a jump):
+  // let them pass, then check it stayed on the day.
+  await page.evaluate(
+    () =>
+      new Promise((done) => requestAnimationFrame(() => requestAnimationFrame(() => done(null)))),
+  );
   expect(await stopPinsInView(page)).toBe(7);
   // Picking a hotel across town brings it into view.
   await pane(page, "explore")

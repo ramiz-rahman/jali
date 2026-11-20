@@ -54,8 +54,7 @@ test("the sound goes on while the mixer is folded away", async ({ page }) => {
   await expect(page.getByRole("menuitem", { name: /Mixer/ })).toBeVisible();
   await page.keyboard.press("Escape");
   const before = await seconds(page);
-  await page.waitForTimeout(1500);
-  expect(await seconds(page)).toBeGreaterThan(before + 1);
+  await expect.poll(() => seconds(page), { timeout: 5000 }).toBeGreaterThan(before + 1);
   await transport(page, "Pause").click();
 });
 

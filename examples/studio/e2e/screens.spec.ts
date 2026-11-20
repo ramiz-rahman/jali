@@ -15,6 +15,21 @@ const SIZES = [
 ] as const;
 const LAYOUTS = ["edit", "mix", "review", "compare"] as const;
 
+/** The page at rest: its fonts loaded and two frames drawn since the last change (the tests run with reduced
+ *  motion, so nothing is mid-animation after that). */
+async function settled(page: Page) {
+  await page.evaluate(async () => {
+    await document.fonts.ready;
+    await new Promise((done) => requestAnimationFrame(() => requestAnimationFrame(done)));
+  });
+}
+
+/** The transport's clock, in seconds. */
+async function clockAt(page: Page) {
+  const [m = "0", s = "0"] = ((await page.locator(".tp-now").textContent()) ?? "").split(":");
+  return Number(m) * 60 + Number(s);
+}
+
 /** Open a layout and a session, go somewhere in the middle and play a moment: every pane following it. */
 /** Which session, and where in it: the landing at contact light, the song a minute in (its Mix desk), dinner at the
  *  orange. The song is reached by the timeline's keys, not by searching its words. */
@@ -48,7 +63,7 @@ async function stage(
       .locator("button")
       .nth(LAYOUTS.indexOf(preset as (typeof LAYOUTS)[number]))
       .click();
-  await page.waitForTimeout(300);
+  await settled(page);
   if (session !== "apollo") {
     await page.keyboard.press("ControlOrMeta+k");
     await page.locator(".jali-scrim").getByRole("combobox").fill("Open session");
@@ -68,8 +83,11 @@ async function stage(
       .fill(session === "apollo" ? "CONTACT LIGHT" : "met somebody recently");
     await page.keyboard.press("Enter");
   }
+  // Play a couple of seconds, so the playhead, the lit words and the meters are mid-way.
+  const from = await clockAt(page);
   await page.locator("body").press("Space");
-  await page.waitForTimeout(2600);
+  await expect.poll(() => clockAt(page), { timeout: 10_000 }).toBeGreaterThanOrEqual(from + 2);
+  await settled(page);
 }
 
 for (const dark of [false, true])
@@ -110,7 +128,7 @@ for (const dark of [false, true])
     await page.locator(".status-credits").click();
     const pane = page.locator('.jali-pane[data-kind="credits"]');
     await expect(pane).toBeVisible();
-    await page.waitForTimeout(300);
+    await settled(page);
     await page.screenshot({ path: shot(`credits${dark ? "-dark" : ""}`) });
     await pane.screenshot({ path: shot(`credits-pane${dark ? "-dark" : ""}`) });
   });
@@ -356,7 +374,7 @@ test("light finish after", async ({ page }) => {
     .getByRole("navigation", { name: "Layouts" })
     .getByRole("button", { name: "Compare" })
     .click();
-  await page.waitForTimeout(600);
+  await settled(page);
   await page.screenshot({ path: shot("light-shadows-after") });
 });
 for (const dark of [false, true]) {
@@ -371,16 +389,19 @@ for (const dark of [false, true]) {
     const page = await context.newPage();
     await page.goto("/");
     await expect(page.locator(".tr-controls")).toBeVisible();
-    await page.waitForTimeout(800);
+    await settled(page);
     await page.locator(".tr-controls").screenshot({ path: shot(`transcript-controls${d}`) });
     await page
       .getByRole("navigation", { name: "Layouts" })
       .getByRole("button", { name: "Review" })
       .click();
-    await page.waitForTimeout(600);
+    await expect(page.locator(".clip-wave")).toBeVisible();
+    await settled(page);
     await page.locator(".clip-wave").screenshot({ path: shot(`display-segment${d}`) });
+    const from = await clockAt(page);
     await page.getByRole("button", { name: /Play segment/ }).click();
-    await page.waitForTimeout(1800);
+    await expect.poll(() => clockAt(page), { timeout: 10_000 }).toBeGreaterThanOrEqual(from + 1);
+    await settled(page);
     await page.locator(".clip-wave").screenshot({ path: shot(`display-segment-playing${d}`) });
     await page.locator(".tl-body").screenshot({ path: shot(`timeline-selected${d}`) });
     await context.close();
@@ -394,6 +415,6 @@ test("timeline labels when short", async ({ page }) => {
     .getByRole("navigation", { name: "Layouts" })
     .getByRole("button", { name: "Edit" })
     .click();
-  await page.waitForTimeout(600);
+  await settled(page);
   await page.locator(".tl-body").screenshot({ path: shot("timeline-labels") });
 });
