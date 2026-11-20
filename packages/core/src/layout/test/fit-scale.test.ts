@@ -45,17 +45,23 @@ describe("fitting scales", () => {
   it.each([
     ["a flat row", flat],
     ["nested rows of linked panes", nested],
-  ] as const)("refits %s of 200 panes inside the budget", (_, make) => {
-    cost(make, 32); // warm up
-    const [, n32, n64, n128, n200] = [16, 32, 64, 128, 200].map((n) => cost(make, n));
-    expect(n200!.refit).toBeLessThan(50 * SLACK);
-    expect(n200!.step).toBeLessThan(100 * SLACK);
-    // Doubling the panes may cost about four times as much (quadratic), never eight (cubic).
-    for (const key of ["refit", "step"] as const) {
-      expect(ratio(n128![key], n64![key])).toBeLessThan(4 * SLACK);
-      expect(ratio(n200![key], n32![key])).toBeLessThan((200 / 32) ** 2 * SLACK);
-    }
-  });
+  ] as const)(
+    "refits %s of 200 panes inside the budget",
+    (_, make) => {
+      cost(make, 32); // warm up
+      const [, n32, n64, n128, n200] = [16, 32, 64, 128, 200].map((n) => cost(make, n));
+      expect(n200!.refit).toBeLessThan(50 * SLACK);
+      expect(n200!.step).toBeLessThan(100 * SLACK);
+      // Doubling the panes may cost about four times as much (quadratic), never eight (cubic).
+      for (const key of ["refit", "step"] as const) {
+        expect(ratio(n128![key], n64![key])).toBeLessThan(4 * SLACK);
+        expect(ratio(n200![key], n32![key])).toBeLessThan((200 / 32) ** 2 * SLACK);
+      }
+      // Timing several sizes, best of several runs each, outlasts vitest's 5 s default on a loaded machine; the budget is
+      // in the assertions above, not in how long the test may take.
+    },
+    60_000,
+  );
 
   it("folds 200 panes down to the cap and keeps the focused pane on screen", () => {
     const ctx = context(fit(), 8);
