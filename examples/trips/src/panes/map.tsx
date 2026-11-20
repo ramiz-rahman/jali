@@ -816,14 +816,14 @@ function placePins(
   for (const [city, marker] of badges) {
     const { x, y } = map.project(marker.getLngLat());
     const button = marker.getElement().firstElementChild as HTMLElement;
-    // 4px clear all round, so it can grow a little on hover and still cover nothing.
+    // Room for it to grow on hover (by 1.04) and still cover nothing.
     boxes.push({
       id: badgeId(city),
       x,
       y,
       size: 0,
-      width: button.offsetWidth + 8,
-      height: button.offsetHeight + 8,
+      width: Math.ceil(button.offsetWidth * 1.04),
+      height: Math.ceil(button.offsetHeight * 1.04),
       rank: 0,
       moves: true,
     });
