@@ -56,6 +56,15 @@
 }
 
 :root {
+  /* The type scale: every size the terminal sets is one of these, named for what the text is for. Nothing is
+     smaller than 11px. The faces are Jali's (main.tsx loads them). */
+  --mk-type-caption: 11px; /* keys, chips, the smallest labels */
+  --mk-type-meta: 12px; /* figures, table text, toolbars, the status line */
+  --mk-type-body: 13px; /* the page's text */
+  --mk-type-name: 14px; /* the brand, a quote's change, a ticket's total */
+  --mk-type-title: 15px; /* a quote's symbol, and its bid and ask */
+  --mk-type-display: 26px; /* the quote's price */
+
   --mk-up-soft: color-mix(in srgb, var(--mk-up) 14%, transparent);
   --mk-down-soft: color-mix(in srgb, var(--mk-down) 14%, transparent);
   --mk-up-flash: color-mix(in srgb, var(--mk-up) 24%, transparent);

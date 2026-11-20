@@ -34,7 +34,7 @@
   .toolbar-note {
     margin-left: auto;
     color: var(--jali-text-subtle);
-    font-size: 12px;
+    font-size: var(--mk-type-meta);
   }
   .segmented {
     display: inline-flex;
@@ -53,7 +53,7 @@
     border-radius: 3px;
     background: none;
     color: var(--jali-text-muted);
-    font-size: 12px;
+    font-size: var(--mk-type-meta);
     cursor: pointer;
   }
   .segmented button:hover {
@@ -77,7 +77,7 @@
     background: var(--jali-canvas);
     color: var(--jali-text);
     font: inherit;
-    font-size: 12px;
+    font-size: var(--mk-type-meta);
     font-weight: 600;
     white-space: nowrap;
     cursor: pointer;
@@ -104,7 +104,7 @@
     box-shadow: var(--jali-shadow-menu);
     color: var(--jali-text);
     font-family: var(--jali-font);
-    font-size: 12px;
+    font-size: var(--mk-type-meta);
     transform-origin: var(--radix-select-content-transform-origin);
     animation: select-in 120ms ease-out;
   }
@@ -150,7 +150,7 @@
     background: var(--jali-canvas);
     border: 1px solid var(--jali-border);
     color: var(--jali-text-muted);
-    font-size: 12px;
+    font-size: var(--mk-type-meta);
     white-space: nowrap;
   }
   .chip-link {
@@ -220,7 +220,7 @@
   .btn-small {
     height: 24px;
     padding: 0 8px;
-    font-size: 12px;
+    font-size: var(--mk-type-meta);
   }
   .empty {
     /* Its padding inside its height, so an empty pane never scrolls. */
@@ -243,7 +243,7 @@
   .empty-body {
     margin: 0;
     max-width: 32ch;
-    font-size: 12px;
+    font-size: var(--mk-type-meta);
   }
   .note {
     display: flex;
@@ -252,7 +252,7 @@
     margin: 0;
     padding: 8px 12px;
     color: var(--jali-text-subtle);
-    font-size: 12px;
+    font-size: var(--mk-type-meta);
   }
 
   /* ---------- up and down ---------- */
@@ -335,7 +335,7 @@
     height: 26px;
     border-bottom: 1px solid var(--jali-border);
     color: var(--jali-text-subtle);
-    font-size: 12px;
+    font-size: var(--mk-type-meta);
   }
   .wl-head button {
     padding: 0;
@@ -411,7 +411,7 @@
   }
   .wl-sub {
     color: var(--jali-text-subtle);
-    font-size: 12px;
+    font-size: var(--mk-type-meta);
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -424,7 +424,7 @@
     background: var(--jali-surface);
     border-bottom: 1px solid var(--jali-border);
     color: var(--jali-text-subtle);
-    font-size: 12px;
+    font-size: var(--mk-type-meta);
     font-weight: 600;
   }
   .spark {
@@ -479,7 +479,7 @@
     gap: 10px;
     margin-left: auto;
     font-family: var(--jali-font-mono);
-    font-size: 12px;
+    font-size: var(--mk-type-meta);
     color: var(--jali-text-muted);
     overflow: hidden;
   }
@@ -525,7 +525,7 @@
   .axis-label {
     fill: var(--mk-axis);
     font-family: var(--jali-font-mono);
-    font-size: 11px;
+    font-size: var(--mk-type-caption);
   }
   .axis-time {
     text-anchor: middle;
@@ -600,7 +600,7 @@
   .last-tag text,
   .crosshair text {
     font-family: var(--jali-font-mono);
-    font-size: 11px;
+    font-size: var(--mk-type-caption);
     fill: var(--mk-on-signal);
   }
   .crosshair line {
@@ -636,11 +636,11 @@
   .quote-id b {
     font-family: var(--jali-font-mono);
     font-weight: 500;
-    font-size: 15px;
+    font-size: var(--mk-type-title);
   }
   .quote-id span {
     color: var(--jali-text-subtle);
-    font-size: 12px;
+    font-size: var(--mk-type-meta);
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -689,20 +689,20 @@
   }
   .quote-last {
     font-family: var(--jali-font-mono);
-    font-size: 26px;
+    font-size: var(--mk-type-display);
     line-height: 1.1;
     letter-spacing: -0.01em;
   }
   .quote-change {
     display: inline-flex;
     gap: 10px;
-    font-size: 14px;
+    font-size: var(--mk-type-name);
   }
   .quote-sub {
     flex-basis: 100%;
     color: var(--jali-text-subtle);
     font-family: var(--jali-font-mono);
-    font-size: 12px;
+    font-size: var(--mk-type-meta);
   }
   .touch {
     display: grid;
@@ -723,27 +723,27 @@
   .touch-label {
     font-family: var(--jali-font);
     color: var(--jali-text-subtle);
-    font-size: 12px;
+    font-size: var(--mk-type-meta);
   }
   .touch-price {
-    font-size: 15px;
+    font-size: var(--mk-type-title);
   }
   .touch-size {
     color: var(--jali-text-muted);
-    font-size: 12px;
+    font-size: var(--mk-type-meta);
   }
   .touch-spread {
     display: grid;
     justify-items: center;
     font-family: var(--jali-font-mono);
-    font-size: 12px;
+    font-size: var(--mk-type-meta);
     color: var(--jali-text-muted);
   }
   .range-labels {
     display: flex;
     justify-content: space-between;
     color: var(--jali-text-subtle);
-    font-size: 12px;
+    font-size: var(--mk-type-meta);
     font-family: var(--jali-font-mono);
   }
   .range-labels span:nth-child(2) {
@@ -787,7 +787,7 @@
   }
   .figures dt {
     color: var(--jali-text-subtle);
-    font-size: 12px;
+    font-size: var(--mk-type-meta);
   }
   .figures dd {
     margin: 0;
@@ -833,7 +833,7 @@
     background: var(--jali-surface);
     border-bottom: 1px solid var(--jali-border);
     color: var(--jali-text-subtle);
-    font-size: 12px;
+    font-size: var(--mk-type-meta);
     font-weight: 400;
     text-align: left;
   }
@@ -881,7 +881,7 @@
     height: 24px;
     text-align: center;
     font-family: var(--jali-font);
-    font-size: 12px;
+    font-size: var(--mk-type-meta);
     color: var(--jali-text-muted);
     border-block: 1px solid var(--jali-border);
     background: var(--jali-canvas);
@@ -898,7 +898,7 @@
     margin-top: auto;
     padding: 8px 10px;
     border-top: 1px solid var(--jali-border);
-    font-size: 12px;
+    font-size: var(--mk-type-meta);
     color: var(--jali-text-muted);
     white-space: nowrap;
   }
@@ -1013,7 +1013,7 @@
   .news-time {
     font-family: var(--jali-font-mono);
     color: var(--jali-text-subtle);
-    font-size: 12px;
+    font-size: var(--mk-type-meta);
     padding-top: 1px;
   }
   .news-list li[data-fresh] .news-time {
@@ -1029,7 +1029,7 @@
   .news-body {
     margin: 0;
     color: var(--jali-text-muted);
-    font-size: 12px;
+    font-size: var(--mk-type-meta);
   }
   .news-source {
     color: var(--jali-text-subtle);
@@ -1049,7 +1049,7 @@
     display: inline-flex;
     gap: 6px;
     color: var(--jali-text-subtle);
-    font-size: 12px;
+    font-size: var(--mk-type-meta);
   }
   .legend {
     display: inline-flex;
@@ -1057,7 +1057,7 @@
     gap: 6px;
     margin-left: auto;
     color: var(--jali-text-subtle);
-    font-size: 12px;
+    font-size: var(--mk-type-meta);
   }
   .key {
     display: inline-block;
@@ -1127,7 +1127,7 @@
   }
   .curve-table .sub {
     color: var(--jali-text-subtle);
-    font-size: 12px;
+    font-size: var(--mk-type-meta);
   }
   .curve-table tbody {
     outline: none;
@@ -1206,7 +1206,7 @@
     display: grid;
     gap: 3px;
     color: var(--jali-text-subtle);
-    font-size: 12px;
+    font-size: var(--mk-type-meta);
   }
   .ticket input,
   .launcher-symbol input {
@@ -1217,7 +1217,7 @@
     background: var(--jali-surface);
     color: var(--jali-text);
     font-family: var(--jali-font-mono);
-    font-size: 13px;
+    font-size: var(--mk-type-body);
     min-width: 0;
   }
   .ticket input:focus-visible,
@@ -1233,7 +1233,7 @@
   .ticket-est {
     flex: 1 1 100%;
     color: var(--jali-text-subtle);
-    font-size: 12px;
+    font-size: var(--mk-type-meta);
     font-family: var(--jali-font-mono);
     overflow: hidden;
     text-overflow: ellipsis;
@@ -1246,7 +1246,7 @@
   }
   .ticket-result {
     margin: 0;
-    font-size: 12px;
+    font-size: var(--mk-type-meta);
     color: var(--mk-down);
   }
   .ticket-result[data-ok] {
@@ -1265,14 +1265,14 @@
   }
   .summary span:first-child {
     color: var(--jali-text-subtle);
-    font-size: 12px;
+    font-size: var(--mk-type-meta);
   }
   .summary .delta,
   .summary b {
     justify-content: flex-start;
     font-family: var(--jali-font-mono);
     font-weight: 500;
-    font-size: 14px;
+    font-size: var(--mk-type-name);
   }
   .table-scroll {
     flex: 1;
@@ -1301,14 +1301,14 @@
   }
   .launcher h3 {
     margin: 0 0 8px;
-    font-size: 12px;
+    font-size: var(--mk-type-meta);
     font-weight: 600;
     color: var(--jali-text-subtle);
   }
   .launcher-name {
     margin: 4px 0 8px;
     color: var(--jali-text-muted);
-    font-size: 12px;
+    font-size: var(--mk-type-meta);
   }
   .launcher-grid {
     display: flex;
