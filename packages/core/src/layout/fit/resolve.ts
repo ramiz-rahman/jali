@@ -67,7 +67,7 @@ export function resolve(layout: Layout, view: ViewState, ctx: LayoutContext): Re
     isFolded = false,
     scroller?: ScrollerBox,
   ): void {
-    // maxWidth is soft: a slot fills what it is given, so no void opens beside it.
+    // maxWidth and maxHeight are soft: a slot fills what it is given, so no void opens beside it.
     const rect = {
       ...input,
       width: Math.max(n.bounds.width, input.width),
@@ -140,7 +140,12 @@ export function resolve(layout: Layout, view: ViewState, ctx: LayoutContext): Re
                   comfortable: c.bounds.comfortable,
                   max: c.bounds.maxWidth,
                 }
-              : { size: c.size, min: mins[i]! },
+              : {
+                  size: c.size,
+                  min: mins[i]!,
+                  comfortable: c.bounds.comfortableHeight,
+                  max: c.bounds.maxHeight,
+                },
           ),
           available,
           mode,

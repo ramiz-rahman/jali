@@ -87,7 +87,8 @@ export interface PaneKind {
   kind: string;
   title(ref: ObjectRef): string;
   /**
-   * Pane sizing: minimum, comfortable, max. Widths are px along a row.
+   * Pane sizing: minimum, comfortable, max. Widths are px along a row; heights, px down a column, follow the same
+   * rules (`minHeight`, `comfortableHeight`, `maxHeight`).
    * - `minWidth`: the narrowest the content still works at. Below it the pane folds into a tab; never shrunk past it.
    * - `comfortableWidth`: where spare space takes the pane first, before any sibling grows past its own. Default: min.
    * - `maxWidth`: the widest the content usefully uses. Spare space past it goes to siblings that can still use it;
@@ -99,6 +100,10 @@ export interface PaneKind {
   minHeight: number;
   comfortableWidth?: number;
   maxWidth?: number;
+  /** Down a column, as `comfortableWidth` along a row. Default: `minHeight`. */
+  comfortableHeight?: number;
+  /** Down a column, as `maxWidth` along a row. Default: unbounded. */
+  maxHeight?: number;
   /** What is wrong with a ref's params for this kind (a required param missing, a value its type can't read), or
    *  undefined when nothing is. A layout holding such a ref is invalid, so a link to it opens as broken. */
   checkParams?(params: ObjectRef["params"]): string | undefined;

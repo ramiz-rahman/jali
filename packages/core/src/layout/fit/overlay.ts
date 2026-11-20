@@ -1,6 +1,6 @@
 import type { FitOptions, Layout, LayoutNode, PaneNode, Size } from "../types";
 import { combined } from "../tree/size";
-import { bounds, combineBounds, type Bounds } from "../geometry/bounds";
+import { bounds, combineBounds, NO_BOUNDS, type Bounds } from "../geometry/bounds";
 export interface Projected {
   id: string;
   type: LayoutNode["type"] | "auto";
@@ -48,7 +48,7 @@ export function project(node: LayoutNode, fit: FitOptions): Projected {
     active: node.type === "stack" ? node.active : undefined,
     scroll: node.type === "row" && node.scroll === "x" ? true : undefined,
     children: node.children.map((c) => project(c, fit)),
-    bounds: { width: 0, height: 0, comfortable: 0, maxWidth: Infinity },
+    bounds: { ...NO_BOUNDS },
   };
   refresh(result, fit);
   return result;
@@ -92,7 +92,7 @@ export function auto(
     userSized: children.some((c) => c.userSized) || undefined,
     // The home stays the shown tab: a fold never changes what the receiving slot displays.
     active: children.find((c) => c.id === fallback)?.id ?? children[0]!.id,
-    bounds: { width: 0, height: 0, comfortable: 0, maxWidth: Infinity },
+    bounds: { ...NO_BOUNDS },
   };
   refresh(result, fit);
   return result;
