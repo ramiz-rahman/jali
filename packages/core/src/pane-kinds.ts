@@ -231,6 +231,12 @@ export interface PaneOptions<P = Params> {
    * shows that object. Params left `undefined` are left out, and params its kind can't read keep the pane as it is.
    */
   follow?: (selected: ObjectRef) => FollowParams<P> | undefined;
+  /**
+   * For a list: the kind of the objects it selects (`"quote"` for a watchlist that calls `select(quote(...))`). A pane
+   * of this kind with no selection yet starts on what its follower of that kind shows, when the layout gives it one:
+   * at start-up, on a link, after a preset or `setLayout`. Read the selection back to put the cursor there.
+   */
+  selects?: string;
   /** What may happen to panes of this kind: `{ fullScreen: false }` for content that can't fill a screen. A kind can
    *  only turn controls off; the workspace's `allow` decides the rest. */
   allow?: import("./actions/allow").PaneAllow;
