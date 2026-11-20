@@ -40,12 +40,16 @@ function ChooseDialog({ request }: { request: ChooseOptions<unknown> }) {
       })),
     [request],
   );
+  const hasCurrent = "current" in request && request.current !== undefined;
+  const isCurrent = (c: Choice) => hasCurrent && Object.is(c.item, request.current);
   const close = () => store.set({ chooser: null });
   const t = store.messages.chooser;
   return (
     <ListDialog<Choice>
       className="jali-chooser"
       dialog="chooser"
+      initial={all.find(isCurrent)}
+      itemProps={(c) => (isCurrent(c) ? { "data-current": "", "aria-current": "true" } : {})}
       label={request.title}
       head={<div className="jali-chooser-head">{request.title}</div>}
       placeholder={request.placeholder ?? t.choosePlaceholder}
@@ -62,6 +66,11 @@ function ChooseDialog({ request }: { request: ChooseOptions<unknown> }) {
         <>
           <span className="palette-title jali-palette-name">{c.label}</span>
           <span className="jali-palette-id jali-palette-hint">{c.hint}</span>
+          {isCurrent(c) ? (
+            <span className="jali-palette-current" aria-hidden>
+              ✓
+            </span>
+          ) : null}
         </>
       )}
       onChoose={(c) => {

@@ -1509,7 +1509,7 @@ A pane, by its id or by the object it shows. A ref means the pane showing that o
 *type*, from `@jali/core`
 
 ```ts
-interface ChooseOptions<T> { title: string; items: readonly T[]; label(item: T): string; hint?(item: T): string; placeholder?: string; onChoose(item: T): void }
+interface ChooseOptions<T> { title: string; items: readonly T[]; label(item: T): string; hint?(item: T): string; current?: T; placeholder?: string; onChoose(item: T): void }
 ```
 
 What `JaliActions` `choose` asks the person for. `T` is whatever your items are.
@@ -1523,6 +1523,8 @@ What `JaliActions` `choose` asks the person for. `T` is whatever your items are.
 - **`label`** (`(item: T) => string`, required): An item's name in the list.
 
 - **`hint`** (`(item: T) => string`): Words beside the name, matched too.
+
+- **`current`** (`T`): The item in use. The chooser opens with it selected, and its row is marked (`data-current`, `aria-current="true"` and a tick). Compared with `Object.is`: pass one of `items` itself.
 
 - **`placeholder`** (`string`): The field's placeholder.
 

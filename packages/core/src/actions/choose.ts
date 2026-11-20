@@ -17,6 +17,9 @@ export interface ChooseOptions<T> {
   label: (item: T) => string;
   /** Words beside the name, matched too ("Lumina Corp · Equity"). */
   hint?: (item: T) => string;
+  /** The item in use: the chooser opens with it selected, and its row is marked (`data-current`, `aria-current`, a
+   *  tick). Compared with `Object.is`, so pass one of `items` itself (for objects, the same reference). */
+  current?: T;
   /** The field's placeholder. Default: `messages.chooser.choosePlaceholder`. */
   placeholder?: string;
   /** The chosen item, once the chooser has closed and focus is back where it was. Esc or a click outside chooses

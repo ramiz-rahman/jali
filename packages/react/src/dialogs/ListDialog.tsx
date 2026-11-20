@@ -28,13 +28,15 @@ interface Props<T> {
   onChoose(item: T): void;
   onClose(): void;
   empty(query: string): ReactNode;
+  /** The item selected when the dialog opens. Default: the first. */
+  initial?: T;
 }
 
 /** A modal combobox over a filtered list: type to filter, arrows to move, Enter to choose, Escape to close. Focus
  *  goes to the field on open and back to where it was on close, unless the store holds focus (`focusHeld`). */
 export function ListDialog<T>(p: Props<T>) {
   const [q, setQ] = useState("");
-  const [i, setI] = useState(0);
+  const [i, setI] = useState(() => Math.max(0, p.initial ? p.items.indexOf(p.initial) : 0));
   const input = useRef<HTMLInputElement>(null);
   const restore = useRef<Element | null>(document.activeElement);
   const store = useStore();

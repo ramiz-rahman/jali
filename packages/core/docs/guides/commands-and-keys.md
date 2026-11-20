@@ -390,6 +390,7 @@ export const openLatestOrder: Command = {
 
 - `label` names each item in the list, and `hint` adds words beside it. Typing matches both, and items whose label starts with the text come first.
 - `onChoose` gets the chosen item once the chooser has closed and focus is back in the pane it came from. Esc, or a click outside, chooses nothing.
+- `current` is the item in use, one of `items` itself (compared with `Object.is`). The chooser opens with it selected and marks its row with `data-current`, `aria-current="true"` and a tick.
 - `title` names the dialog and its field. The title, labels, hints and `placeholder` are your words. Jali's own (the default placeholder, the list's name for screen readers, and "Nothing matches") are `messages.chooser`, so they follow your translation; see [Translate Jali](translating.md).
 - A key or button of your own can run the same command: `runCommand(jali, "orders.latest-for")`.
 

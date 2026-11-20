@@ -867,7 +867,7 @@ A pane, by its id or by the object it shows. A ref means the pane showing that o
 
 </Entry>
 
-<Entry name="ChooseOptions" kind="type" from="@jali/core" signature={`interface ChooseOptions<T> { title: string; items: readonly T[]; label(item: T): string; hint?(item: T): string; placeholder?: string; onChoose(item: T): void }`} compact>
+<Entry name="ChooseOptions" kind="type" from="@jali/core" signature={`interface ChooseOptions<T> { title: string; items: readonly T[]; label(item: T): string; hint?(item: T): string; current?: T; placeholder?: string; onChoose(item: T): void }`} compact>
 
 What <Ref to="JaliActions" /> `choose` asks the person for. `T` is whatever your items are.
 
@@ -876,6 +876,7 @@ What <Ref to="JaliActions" /> `choose` asks the person for. `T` is whatever your
 <Param name="items" type="readonly T[]" required>What to choose from, in order. Typing keeps the items whose label or hint has the text, labels that start with it first.</Param>
 <Param name="label" type="(item: T) => string" required>An item's name in the list.</Param>
 <Param name="hint" type="(item: T) => string">Words beside the name, matched too.</Param>
+<Param name="current" type="T">The item in use. The chooser opens with it selected, and its row is marked (`data-current`, `aria-current="true"` and a tick). Compared with `Object.is`: pass one of `items` itself.</Param>
 <Param name="placeholder" type="string" default="messages.chooser.choosePlaceholder">The field's placeholder.</Param>
 <Param name="onChoose" type="(item: T) => void" required>Gets the chosen item once the chooser has closed and focus is back where it was. Not called when the person closes it with Esc or a click outside.</Param>
 </Params>
