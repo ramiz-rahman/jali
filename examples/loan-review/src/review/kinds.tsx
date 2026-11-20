@@ -1,9 +1,9 @@
 import { FileTextIcon, LayoutIcon, LinkSimpleHorizontalIcon } from "@phosphor-icons/react";
 import { definePane } from "@jali/react";
-import { singular } from "../../../shared/src/panes/shared/refs";
+import { singular } from "#shared/panes/shared/refs";
 import { OverviewPane } from "./overview";
 import { ReviewRecordPane } from "./records";
-import { recordParams } from "../../../shared/src/panes/kinds/record";
+import { recordParams } from "#shared/panes/kinds/record";
 import { ReviewRelatedPane } from "./lists";
 
 export const overviewKind = definePane("review-overview", {

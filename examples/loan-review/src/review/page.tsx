@@ -2,11 +2,11 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { FunnelSimpleIcon, XIcon } from "@phosphor-icons/react";
 import { useJali } from "@jali/react";
-import { isLoading, useRows } from "../../../shared/src/data/hooks";
-import { formatTimestamp } from "../../../shared/src/panes/format";
-import type { Row } from "../../../shared/src/data/types";
-import { applicationFacts } from "../../../shared/src/data/sample-sql";
-import "../../../shared/src/panes/panes.css";
+import { isLoading, useRows } from "#shared/data/hooks";
+import { formatTimestamp } from "#shared/panes/format";
+import type { Row } from "#shared/data/types";
+import { applicationFacts } from "#shared/data/sample-sql";
+import "#shared/panes/panes.css";
 import "./review.css";
 
 const STATUS_ORDER: Record<string, number> = { pending: 0, returned: 1, approved: 2 };

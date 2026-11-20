@@ -7,7 +7,7 @@ import type { ReactNode } from "react";
 import { ArrowRightIcon } from "@phosphor-icons/react";
 import type { PaneProps } from "@jali/react";
 import { useJali } from "@jali/react";
-import { Loading } from "../../../shared/src/panes/shared/states";
+import { Loading } from "#shared/panes/shared/states";
 import { day, taka, useApplication } from "./page";
 import {
   book,
@@ -22,7 +22,7 @@ import {
 import { Ladder, Standing } from "./records";
 import { signals } from "./signals";
 import { Facts, Instalments, StatusMark, Table, ToneIcon, View } from "./ui";
-import { altClick } from "@jali/core/adapter";
+import { altClick } from "@jali/core";
 
 const n = (v: unknown) => Number(v ?? 0);
 

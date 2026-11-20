@@ -8,10 +8,10 @@ import {
   WarningOctagonIcon,
 } from "@phosphor-icons/react";
 import type { ObjectRef } from "@jali/core";
-import type { Row } from "../../../shared/src/data/types";
+import type { Row } from "#shared/data/types";
 import type { PaneProps } from "@jali/react";
 import { useJaliState } from "@jali/react";
-import { Shell } from "../../../shared/src/panes/shared/states";
+import { Shell } from "#shared/panes/shared/states";
 import { statusLabel } from "./data";
 import type { Tone } from "./signals";
 import "./views.css";

@@ -13,7 +13,7 @@ import {
 } from "@phosphor-icons/react";
 import { column, pane, row, type ObjectRef } from "@jali/core";
 import { definePage, type PageView } from "@jali/react";
-import { applicationFacts } from "../../../shared/src/data/sample-sql";
+import { applicationFacts } from "#shared/data/sample-sql";
 import { overviewKind, reviewRecordKind, reviewRelatedKind } from "./kinds";
 import { ApplicationHeader, QueueRail } from "./page";
 
