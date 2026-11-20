@@ -77,6 +77,31 @@ for (const platform of PLATFORMS) {
   });
 }
 
+test("a demo whose code fails to load says so, and Try again loads it", async ({ page }) => {
+  // The islands' own code (the error boundary is one of their chunks), failing as on a dropped connection.
+  let failing = true;
+  await page.route(/\/_astro\/ErrorBoundary\.[^/]+\.js$/, (route) =>
+    failing ? route.abort("internetdisconnected") : route.continue(),
+  );
+  await page.goto("/learn/fitting");
+  const island = page.locator("[data-island]").first();
+  await island.evaluate((el) => (el.firstElementChild ?? el).scrollIntoView());
+  const alert = page.getByRole("alert").filter({ hasText: "This demo didn't load" }).first();
+  await expect(alert).toBeVisible();
+  await expect(island).not.toHaveAttribute("data-hydrated");
+
+  // A try that fails again says so again, on the same button.
+  const retry = alert.getByRole("button", { name: "Try again" });
+  await retry.click();
+  await expect(retry).toBeVisible();
+  await expect(island).not.toHaveAttribute("data-hydrated");
+
+  failing = false;
+  await retry.click();
+  await expect(island).toHaveAttribute("data-hydrated", "", { timeout: 15_000 });
+  await expect(page.getByRole("alert").filter({ hasText: "This demo didn't load" })).toHaveCount(0);
+});
+
 test("Open in Claude sends the page's full Markdown address", async ({ page }) => {
   await page.goto("/learn/fitting");
   const href = await page.getByRole("link", { name: "Open in Claude" }).getAttribute("href");

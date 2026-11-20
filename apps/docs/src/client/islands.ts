@@ -15,15 +15,35 @@ const REGISTRY = {
   KeysDemo: () => import("../shell/landing/demos").then((m) => m.KeysDemo),
 } satisfies Record<IslandName, () => Promise<ComponentType<never>>>;
 
+/** Islands whose code is loading now, so a second ask (Try again pressed twice) doesn't load it twice. */
+const loading = new WeakSet<HTMLElement>();
+
+/**
+ * Load an island's code and hydrate it. Code that fails to load (a dropped connection, a deploy that replaced the
+ * chunks) happens before React and its error boundary exist, so it is shown here: a note after the island, which keeps
+ * its prerendered HTML, with Try again. The note sits outside the island so hydration still finds the HTML as built.
+ */
 async function hydrate(el: HTMLElement) {
   const load = REGISTRY[el.dataset.island as IslandName];
-  if (!load) return;
-  const [{ createElement }, { hydrateRoot }, { IslandBoundary }, Component] = await Promise.all([
-    import("react"),
-    import("react-dom/client"),
-    import("../shell/ErrorBoundary"),
-    load(),
-  ]);
+  if (!load || loading.has(el)) return;
+  loading.add(el);
+  let modules;
+  try {
+    modules = await Promise.all([
+      import("react"),
+      import("react-dom/client"),
+      import("../shell/ErrorBoundary"),
+      load(),
+    ]);
+  } catch (error) {
+    console.error(error);
+    failed(el);
+    return;
+  } finally {
+    loading.delete(el);
+  }
+  failedNote(el)?.remove();
+  const [{ createElement }, { hydrateRoot }, { IslandBoundary }, Component] = modules;
   const props = JSON.parse(el.dataset.props ?? "{}") as object;
   // `data-hydrated` once React has taken the island over: what the tests wait for.
   const onHydrated = () => el.setAttribute("data-hydrated", "");
@@ -35,6 +55,34 @@ async function hydrate(el: HTMLElement) {
     }),
     { identifierPrefix: islandPrefix(el.dataset.islandId ?? "0") },
   );
+}
+
+const failedNote = (el: HTMLElement) =>
+  el.nextElementSibling?.matches(".island-error[data-island-note]") ? el.nextElementSibling : null;
+
+/** Say an island's code didn't load, after the island, with a button that tries again. A try that fails again keeps
+ *  the note and its button (and so the reader's focus), and only puts the button's words back. */
+function failed(el: HTMLElement) {
+  const shown = failedNote(el)?.querySelector("button");
+  if (shown) {
+    shown.textContent = "Try again";
+    return;
+  }
+  const note = document.createElement("p");
+  note.className = "island-error";
+  note.setAttribute("role", "alert");
+  note.setAttribute("data-island-note", "");
+  const retry = document.createElement("button");
+  retry.type = "button";
+  retry.className = "page-action";
+  retry.textContent = "Try again";
+  // Not disabled while it loads, so focus stays on it; `loading` keeps a second press from loading twice.
+  retry.addEventListener("click", () => {
+    retry.textContent = "Loading";
+    void hydrate(el);
+  });
+  note.append("This demo didn't load. ", retry);
+  el.after(note);
 }
 
 export function hydrateIslands() {
