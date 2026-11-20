@@ -442,6 +442,12 @@ Every other prop of a `<button>` (`onClick`, `disabled`, `aria-pressed`, `ref`â€
 
 </Entry>
 
+<Entry name="IconButtonProps" kind="type" from="@jali/react" signature={`interface IconButtonProps extends Omit<ButtonHTMLAttributes<HTMLButtonElement>, "aria-label" | "children"> { label: string; children: ReactNode }`} compact>
+
+The props of <Ref to="IconButton" />.
+
+</Entry>
+
 <Entry name="JaliRootProps" kind="type" from="@jali/react" signature={`interface JaliRootProps extends HTMLAttributes<HTMLDivElement> {\n  workspace: Jali; icons?: Partial<JaliIcons>; children?: ReactNode;\n  overlays?: ReactNode; settings?: boolean;\n}`} compact>
 
 The props of <Ref to="JaliRoot" />.

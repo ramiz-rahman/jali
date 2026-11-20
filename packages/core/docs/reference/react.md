@@ -644,6 +644,16 @@ A button that is only an icon, drawn as Jali's header buttons are (the `iconButt
 
 Every other prop of a `<button>` (`onClick`, `disabled`, `aria-pressed`, `ref`…) is passed on.
 
+### IconButtonProps
+
+*type*, from `@jali/react`
+
+```ts
+interface IconButtonProps extends Omit<ButtonHTMLAttributes<HTMLButtonElement>, "aria-label" | "children"> { label: string; children: ReactNode }
+```
+
+The props of `IconButton`.
+
 ### JaliRootProps
 
 *type*, from `@jali/react`
