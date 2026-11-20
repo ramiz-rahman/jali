@@ -312,7 +312,7 @@ Jali's commands for your app's own command menu, when the workspace is made with
 
 <Entry name="useShortcut" kind="hook" from="@jali/react" signature={`useShortcut(id: string): string`} compact>
 
-A command's keys in this workspace's keymap, for a tooltip ("⌘K ⌘[" or "Ctrl+K Ctrl+["); `""` when unbound.
+A command's keys in this workspace's keymap, for a tooltip ("⌘K ⌘[" or "Ctrl+K Ctrl+["); `""` when unbound. Safe to prerender: on a server and while the page hydrates it prints keys for `"other"` ("Ctrl+K Ctrl+["), since a server can't know the reader's platform, then React renders it again with the reader's. A page rendered only in the browser gets the reader's keys on its first render.
 
 <Params>
 <Param name="id" type="string" required>A command id.</Param>

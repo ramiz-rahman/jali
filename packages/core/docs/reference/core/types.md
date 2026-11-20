@@ -1340,7 +1340,7 @@ A workspace command. `run` gets the workspace. Your own commands go in `createJa
 interface Keymap
 ```
 
-A workspace's resolved keys (`jali.keymap`): the defaults with its `keymap` overrides applied, with `platform`, `entries`, `sequences(id)`, `label(id)`, `format(seq)`, `find(match, prefix?)` and `isPrefix(match)`. `label` and `format` print keys in the workspace's words (`messages.keys`).
+A workspace's resolved keys (`jali.keymap`): the defaults with its `keymap` overrides applied, with `platform`, `entries`, `sequences(id)`, `label(id)`, `format(seq)`, `find(match, prefix?)`, `isPrefix(match)` and `forPlatform(platform)`. `label` and `format` print keys in the workspace's words (`messages.keys`). `forPlatform` gives the same bindings matched and printed for another platform (the same object for its own), for labels a server prerenders: `@jali/react` prints `"other"` until the page has hydrated.
 
 ### KeymapOverrides
 

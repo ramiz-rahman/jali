@@ -10,13 +10,19 @@
 /** The platform shortcuts are matched and printed for. Pass it explicitly in tests and on the server. */
 export type Platform = "mac" | "other";
 
+/** The platform printed before a page has hydrated: a server (Node has `navigator` too) can't know the reader's. */
+export const SERVER_PLATFORM: Platform = "other";
+
+/** The running platform, read when called (never when the module loads). */
 export const detectPlatform = (): Platform =>
   typeof navigator !== "undefined" &&
   /Mac|iPhone|iPad/.test(navigator.platform || navigator.userAgent)
     ? "mac"
     : "other";
 
-/** @deprecated read `store.keymap.platform`; kept for code that has no store at hand (content-level hints). */
+/** @deprecated read `store.keymap.platform`, or call `detectPlatform()`; kept for code that has no store at hand.
+ *  It is read when the module loads, so on a server it is the build machine's: never print from it before
+ *  hydration. Nothing in Jali reads it. */
 export const isMac = /* @__PURE__ */ detectPlatform() === "mac";
 
 export interface Chord {

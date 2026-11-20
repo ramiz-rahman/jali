@@ -103,6 +103,10 @@ export interface Keymap {
   find(match: (c: Chord) => boolean, prefix?: Chord): string | undefined;
   /** Whether some binding starts with a chord matching `match` and has a second step. */
   isPrefix(match: (c: Chord) => boolean): Chord | undefined;
+  /** The same bindings, matched and printed for `platform`: a server and a browser print the same labels
+   *  until the page has hydrated (`@jali/react` prints "other" first). The same object for this keymap's own
+   *  platform; refused bindings are not reported again. */
+  forPlatform(platform: Platform): Keymap;
 }
 
 const sameChord = (a: Chord, b: Chord) =>
@@ -176,7 +180,8 @@ export function createKeymap(overrides: KeymapOverrides = {}, opts: KeymapOption
     if (seqs.length) entries.push([id, seqs]);
   }
   const byId = new Map(entries);
-  return {
+  const others = new Map<Platform, Keymap>();
+  const keymap: Keymap = {
     platform,
     entries,
     sequences: (id) => byId.get(id) ?? [],
@@ -202,5 +207,15 @@ export function createKeymap(overrides: KeymapOverrides = {}, opts: KeymapOption
         for (const s of seqs) if (s.length === 2 && match(s[0]!)) return s[0];
       return undefined;
     },
+    forPlatform(p) {
+      if (p === platform) return keymap;
+      let other = others.get(p);
+      if (!other) {
+        other = createKeymap(overrides, { ...opts, platform: p, onInvalid: () => {} });
+        others.set(p, other);
+      }
+      return other;
+    },
   };
+  return keymap;
 }

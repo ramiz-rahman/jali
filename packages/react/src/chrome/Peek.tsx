@@ -7,6 +7,7 @@ import { KindIcon } from "../pane/icons";
 import { PaneBody, peekHost } from "../pane/PaneBody";
 import { UnsavedMark } from "../pane/Unsaved";
 import { useStore, useUi } from "../state/react";
+import { useKeymap } from "../state/hydrated";
 import { ICON } from "../icons/sized";
 
 export const PEEK_WIDTH = 480;
@@ -15,6 +16,7 @@ export const PEEK_WIDTH = 480;
 export function Peek({ presentation }: { presentation: Presentation }) {
   const icon = useJaliIcons();
   const store = useStore();
+  const keymap = useKeymap();
   const ref = useUi((s) => s.view.peek);
   const areaW = useUi((s) => s.area.width);
   const page = useUi((s) => s.page);
@@ -109,7 +111,7 @@ export function Peek({ presentation }: { presentation: Presentation }) {
             className="jali-icon-btn"
             onClick={() => actions.peek(null)}
             aria-label={t.close}
-            title={t.closeTip(store.keymap.format([{ key: "Escape" }]))}
+            title={t.closeTip(keymap.format([{ key: "Escape" }]))}
           >
             <icon.close {...ICON.header} aria-hidden />
           </button>

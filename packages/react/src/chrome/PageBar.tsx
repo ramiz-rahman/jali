@@ -3,6 +3,7 @@ import { useJaliIcons } from "../icons/context";
 import { investigation, startTabDrag } from "@jali/core/adapter";
 import { useRovingKeys } from "../a11y/roving";
 import { bold, Parts, useModel, useStore, useUi, useProfile } from "../state/react";
+import { useKeymap } from "../state/hydrated";
 import { Panes } from "../workspace/Workspace";
 
 /**
@@ -76,7 +77,8 @@ function PageTabs() {
   const store = useStore();
   const { actions } = store;
   const t = store.messages.page;
-  const altClick = store.messages.keys.altClick(store.keymap.platform);
+  const keymap = useKeymap();
+  const altClick = store.messages.keys.altClick(keymap.platform);
   const page = useUi((s) => s.page)!;
   const focused = useUi((s) => s.view.focused);
   const m = useModel();

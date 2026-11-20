@@ -140,6 +140,12 @@ const subscribe = (l: () => void) => {
   return () => listeners.delete(l);
 };
 
+const noSubscribe = () => () => {};
+
+/** `canPopOut()` for rendering: false on a server and while hydrating, so the first render matches the server's. */
+export const useCanPopOut = (): boolean =>
+  useSyncExternalStore(noSubscribe, canPopOut, () => false);
+
 /** Where pane `pane`'s content renders while popped out from `store`'s workspace, else null. */
 export function usePopOutTarget(store: UiStore, pane: NodeId): HTMLElement | null {
   return useSyncExternalStore(

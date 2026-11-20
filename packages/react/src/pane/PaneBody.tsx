@@ -5,6 +5,7 @@ import { parseKeys, sameRef } from "@jali/core/adapter";
 import type { PaneProps } from "../define";
 import { PaneContext, type PaneHost } from "./context";
 import { useEnv, useStore } from "../state/react";
+import { useKeymap } from "../state/hydrated";
 import { DefaultLoading, PaneBoundary } from "./PaneBoundary";
 import { HeaderControls, type HeaderSlot } from "./header";
 
@@ -67,7 +68,8 @@ export const PaneBody = /* @__PURE__ */ memo(
   function PaneBody({ node, host, paused, focused, inPeek = false, header }: BodyProps) {
     const store = useStore();
     const { kinds } = useEnv();
-    const { keymap, messages } = useStore();
+    const { messages } = useStore();
+    const keymap = useKeymap();
     const def = kinds.get(node.ref.kind);
     const params = useMemo(() => kinds.params(node.ref), [kinds, node.ref]);
     const props = useMemo(

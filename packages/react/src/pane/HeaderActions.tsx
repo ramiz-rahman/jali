@@ -3,7 +3,7 @@ import { buttonsOf, checkTuck, tabMenuOf, tuckHome, type PaneButton } from "@jal
 import { allows } from "@jali/core/adapter";
 import { useJaliIcons } from "../icons/context";
 import { useDerived, useStore, useUi } from "../state/react";
-import { bringBack, canPopOut, popOut, usePopOutTarget } from "./PopOut";
+import { bringBack, popOut, useCanPopOut, usePopOutTarget } from "./PopOut";
 import type { Chrome } from "@jali/core/adapter";
 import { ICON } from "../icons/sized";
 import type { NarrowLevel } from "./header";
@@ -63,7 +63,7 @@ export function HeaderActions({ id, title, zoomed, chrome, tabs, narrow = 0, onM
   // On the whole screen, the way back is Exit full screen; Maximise's Restore would leave half of it.
   const full = useUi((s) => s.fullScreen === id);
   const popped = !!usePopOutTarget(store, id);
-  const pop = canPopOut();
+  const pop = useCanPopOut();
   const { home, tuckLabel, closeHint, buttons, menuMore } = useDerived(
     (): Plan => {
       const x = store.snapshot();
