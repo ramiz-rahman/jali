@@ -51,7 +51,7 @@ import {
   type CityId,
   type Place,
 } from "../trip/places";
-import { daysIn, dayTotals, dayWith, isHotel, routeOf, type Plan } from "../trip/plan";
+import { daysIn, dayTotals, dayWith, isHotel, routeOf, type Day, type Plan } from "../trip/plan";
 import { haversineKm } from "../trip/travel";
 import { dayColor } from "../ui/colors";
 import * as f from "../ui/format";
@@ -159,6 +159,18 @@ function routesFor(plan: Plan, dayN: number, theme: Theme) {
       }),
     );
   return { type: "FeatureCollection" as const, features };
+}
+
+/** A city's part of the trip: its hotel and every stop on its days. */
+const cityPoints = (plan: Plan, city: CityId): Place[] =>
+  [plan.hotels[city], ...daysIn(plan, city).flatMap((d) => d.stops)].map(mustPlace);
+
+/** "Days 1 to 3", "Day 4". */
+function dayRange(days: readonly Day[]): string {
+  const first = days[0];
+  const last = days[days.length - 1];
+  if (!first || !last) return "No days";
+  return first === last ? `Day ${first.n}` : `Days ${first.n} to ${last.n}`;
 }
 
 /** The places to frame for a day: its own city's part of the route (on the transfer day, from the landing). */
@@ -433,12 +445,16 @@ function MapPane({ params, paused, node, inPeek }: PaneProps<typeof mapParams>) 
     badges.current.clear();
     return all;
   };
+  // The badges' click handlers outlive this render: they read the plan as it is when clicked, so a new hotel or a
+  // moved stop is framed, not the plan the badge was made with.
+  const planRef = useRef(plan);
+  planRef.current = plan;
   useEffect(() => {
     const map = mapRef.current;
     if (!map) return;
     for (const city of ["bkk", "hkt"] as const) {
       const days = daysIn(plan, city);
-      const pts = [plan.hotels[city], ...days.flatMap((d) => d.stops)].map(mustPlace);
+      const pts = cityPoints(plan, city);
       const lat = pts.reduce((s, p) => s + p.lat, 0) / pts.length;
       const lng = pts.reduce((s, p) => s + p.lng, 0) / pts.length;
       let m = badges.current.get(city);
@@ -450,12 +466,8 @@ function MapPane({ params, paused, node, inPeek }: PaneProps<typeof mapParams>) 
         el.className = "city-badge";
         wrap.append(el);
         el.addEventListener("click", () => {
-          const all = [
-            plan.hotels[city],
-            ...daysIn(planRef.current, city).flatMap((d) => d.stops),
-          ].map(mustPlace);
           const b = new LngLatBounds();
-          for (const p of all) b.extend([p.lng, p.lat]);
+          for (const p of cityPoints(planRef.current, city)) b.extend([p.lng, p.lat]);
           map.fitBounds(b, {
             padding: framePadding(map),
             maxZoom: 15,
@@ -467,8 +479,7 @@ function MapPane({ params, paused, node, inPeek }: PaneProps<typeof mapParams>) 
       }
       m.setLngLat([lng, lat]);
       const el = m.getElement().firstElementChild as HTMLButtonElement;
-      const range =
-        days.length > 1 ? `Days ${days[0]!.n} to ${days[days.length - 1]!.n}` : `Day ${days[0]?.n}`;
+      const range = dayRange(days);
       el.innerHTML = "";
       const name = document.createElement("b");
       name.textContent = CITY_NAME[city];
@@ -478,8 +489,6 @@ function MapPane({ params, paused, node, inPeek }: PaneProps<typeof mapParams>) 
       el.setAttribute("aria-label", `${CITY_NAME[city]}: ${range}. Show it on the map.`);
     }
   }, [plan, styleTick]);
-  const planRef = useRef(plan);
-  planRef.current = plan;
 
   // A new day: frame its stops and its hotel, in its own city. "All" frames both cities.
   const frame = (animate = true) => {

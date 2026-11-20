@@ -376,6 +376,49 @@ test("a layout switches, and a reload keeps it and the place compared from the a
   );
 });
 
+test("a city's badge frames the hotel the person stays at now, not the one the badge was made with", async ({
+  page,
+}) => {
+  // Bangkok's days without stops, so its badge frames the hotel alone: the plan as the app saves it (after a
+  // change), with those days emptied.
+  await pane(page, "day")
+    .getByRole("button", { name: /Optimise the order to save/ })
+    .click();
+  await page.evaluate(() => {
+    const plan = JSON.parse(localStorage.getItem("trips:plan:v2") ?? "{}");
+    for (const d of plan.days) if (d.city === "bkk") d.stops = [];
+    localStorage.setItem("trips:plan:v2", JSON.stringify(plan));
+  });
+  await page.reload();
+  // The whole trip: a badge for each city.
+  const map = pane(page, "map");
+  await map.getByRole("button", { name: "All", exact: true }).click();
+  const badge = map.getByRole("button", { name: /^Bangkok: Days 1 to 3/ });
+  await expect(badge).toBeVisible();
+  // Move to a hotel in the north of Bangkok, far from the old one, with the map on screen throughout.
+  await page.getByRole("listbox", { name: "Days" }).focus();
+  await page.keyboard.press("/");
+  await page.getByRole("combobox", { name: "Go to place…" }).fill("Ari Garden");
+  await page.keyboard.press("Enter");
+  await pane(page, "place")
+    .getByRole("button", { name: /Stay here instead/ })
+    .click();
+  // The map flew to the hotel; back to the whole trip.
+  await map.getByRole("button", { name: "1", exact: true }).click();
+  await map.getByRole("button", { name: "All", exact: true }).click();
+  await badge.click();
+  const hotel = map.locator('.pin[data-role="hotel"][data-id="h-ari"]');
+  await expect
+    .poll(() =>
+      hotel.evaluate((pin) => {
+        const m = pin.closest(".map-canvas")?.getBoundingClientRect();
+        const r = pin.getBoundingClientRect();
+        return !!m && r.left > m.left && r.right < m.right && r.top > m.top && r.bottom < m.bottom;
+      }),
+    )
+    .toBe(true);
+});
+
 test("⌘K: Go to place… asks in Jali's chooser and shows the place", async ({ page }) => {
   await page.getByRole("listbox", { name: "Days" }).focus();
   await page.keyboard.press("/");
