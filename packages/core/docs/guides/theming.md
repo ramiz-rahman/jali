@@ -57,9 +57,13 @@ The tokens you are most likely to change:
 | `--jali-surface`, `--jali-surface-raised` | Panes; menus and dialogs |
 | `--jali-border`, `--jali-border-strong`, `--jali-control` | Lines between things; the edges of buttons and inputs |
 | `--jali-text`, `--jali-text-muted`, `--jali-text-subtle`, `--jali-text-faint` | Text, from strongest to faintest |
-| `--jali-working`, `--jali-blocked`, `--jali-done`, `--jali-failed` | A pane's activity marks |
+| `--jali-pane-border`, `--jali-pane-border-focused`, `--jali-pane-shadow`, `--jali-pane-shadow-focused` | A pane's edge and shadow, at rest and focused. Set them once and the focused pane, a maximised one and a drag follow, with no rule for `[data-focused]` of your own |
+| `--jali-working`, `--jali-blocked`, `--jali-done`, `--jali-failed` | A pane's activity marks. To draw marks of your own, style the parts `.jali-activity` and `.jali-activity-shape` by their `data-activity` ([Parts](../reference/parts.md)) |
 | `--jali-radius`, `--jali-radius-control`, `--jali-radius-menu`, `--jali-radius-chip` | Corners of panes, controls, menus and the small things in headers, tabs and chips. Every corner reads one of them (a dialog is 1.2 × `--jali-radius`, rounded to a whole pixel), so setting all four to `0` or `2px` squares the whole workspace |
+| `--jali-dialog-padding` | The space inside a dialog, between its edge and its content |
 | `--jali-font`, `--jali-font-mono` | Type |
+| `--jali-text-xs`, `--jali-text-sm`, `--jali-text-md`, `--jali-text-lg`, `--jali-tracking` | The type scale every part reads (11, 12, 13 and 14px by default), and letter spacing. A wider face needs only these, not a size per part |
+| `--jali-icon-header`, `--jali-icon-tab`, `--jali-icon-menu`, `--jali-icon-shelf` | Icon sizes by place: a pane's header, a tab, menus, shelf chips. They size your own `icons` too, as long as your icon applies the `className` Jali passes it (Phosphor's, Lucide's and most sets' do) |
 
 Every token, with its light and dark values, is in the [Tokens reference](../reference/tokens.md).
 
@@ -193,7 +197,7 @@ With Tailwind, put rules like these in your stylesheet, in a layer after `jali`.
 
 ## Your own icons
 
-Jali comes with its own icons, so you install no icon library for them. They are [Phosphor's](https://phosphoricons.com) in the regular weight, copied into the package. To use your app's own, pass `icons` to `<JaliRoot>`, by name: `close`, `maximise`, `tuck`, `fold` and the rest ([every name](../reference/react.md#icons)). Each is a component that takes `size`, `className` and `aria-hidden`; an icon from Phosphor, Lucide or most other React sets is one. Names you leave out stay Jali's.
+Jali comes with its own icons, so you install no icon library for them. They are [Phosphor's](https://phosphoricons.com) in the regular weight, copied into the package. To use your app's own, pass `icons` to `<JaliRoot>`, by name: `close`, `maximise`, `tuck`, `fold` and the rest ([every name](../reference/react.md#icons)). Each is a component that takes `size`, `className` and `aria-hidden`; an icon from Phosphor, Lucide or most other React sets is one. Names you leave out stay Jali's. Put `className` on the icon's own element: it carries the size for the icon's place, so the `--jali-icon-*` tokens size your icons as they do Jali's (`size` is the default size, for an icon that ignores `className`).
 
 `src/App.tsx`
 

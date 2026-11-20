@@ -529,7 +529,9 @@ A kind's icon at `size`, `aria-hidden`; the `defaultKind` icon (a square unless 
 
 - **`kind`** (`string`, required): The kind's name.
 
-- **`size`** (`number`): Pixels.
+- **`size`** (`number`): Pixels. Left out, the icon is sized as a pane title's, from `--jali-icon-header` + 2px (16px by default).
+
+- **`className`** (`string`): Passed to the icon.
 
 ### Activity
 
@@ -675,7 +677,7 @@ interface JaliIconProps {
 }
 ```
 
-What Jali passes an icon: its size in pixels, sometimes a class, and `aria-hidden` (a label always sits beside it, or on its button).
+What Jali passes an icon: its default size in pixels, the class that sizes it from its place's token (`--jali-icon-header`, `-tab`, `-menu` or `-shelf`; put it on the icon's element), and `aria-hidden` (a label always sits beside it, or on its button).
 
 ### defaultIcons
 

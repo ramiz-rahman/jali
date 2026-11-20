@@ -4,7 +4,7 @@ Every public --jali-* token, what reads it, its light and dark values, and how t
 
 Jali's styles read only `--jali-*` custom properties. Set any of them on `:root` or on a subtree to retheme; the derived tokens follow the accent. Names starting `--jali-default-` are the theme's internal palette: don't set or read them. The theme is in the `jali` layer, so set tokens outside any layer or in a layer after `jali`.
 
-Every token is declared once, on the root, inside `:where()`, so your own declaration wins at any specificity and in any import order, wherever you set it: on `:root`, on any element around a workspace, or on its root (`[data-jali]`), with any theme scope in between. Jali's defaults are `light-dark()` pairs, resolved by the `color-scheme` where they are used: dark under `prefers-color-scheme: dark` and inside a `.dark` or `[data-theme="dark"]` scope, light inside `.light` or `[data-theme="light"]`. A started workspace sets `data-theme` on `<html>` from the theme setting, unless it was made with `pageTheme: false`.
+Every token but the few read in place (below) is declared once, on the root, inside `:where()`, so your own declaration wins at any specificity and in any import order, wherever you set it: on `:root`, on any element around a workspace, or on its root (`[data-jali]`), with any theme scope in between. Jali's defaults are `light-dark()` pairs, resolved by the `color-scheme` where they are used: dark under `prefers-color-scheme: dark` and inside a `.dark` or `[data-theme="dark"]` scope, light inside `.light` or `[data-theme="light"]`. A started workspace sets `data-theme` on `<html>` from the theme setting, unless it was made with `pageTheme: false`.
 
 ```css
 :root { --jali-accent: #0f766e; }                  /* the whole page */
@@ -53,6 +53,25 @@ Each row below gives the token, what it is for, and the `jali-*` classes whose r
 | `--jali-done` | A finished state, for the host's own status marks. Part of the palette; a pane's activity has no "done". | `#059669` | `#34d399` |
 | `--jali-on-status` | The "!" and cross drawn on the shelf's status marks. | `#ffffff` | `#0e0d0b` |
 
+## Panes
+
+A pane's edge and shadow, at rest and focused. These are read in place: Jali doesn't declare them on the root, its pane styles read each with its default (`var(--jali-pane-border, var(--jali-border))`), so a default that names another token follows that token wherever you set it. Set them like any other token, once, and the focused pane, a maximised one and a drag all follow, with no rule for `[data-focused]` of your own:
+
+```css
+.jali-pane {
+  --jali-pane-border: transparent;
+  --jali-pane-shadow: 0 1px 2px rgb(0 0 0 / 0.12);
+  --jali-pane-shadow-focused: 0 0 0 2px var(--jali-accent), 0 1px 2px rgb(0 0 0 / 0.12);
+}
+```
+
+| Token | Used for | Light | Dark |
+| --- | --- | --- | --- |
+| `--jali-pane-border` | The colour of a pane's 1px edge. Read in place, defaulting to `--jali-border`. An opened pane with the tint boundary uses `--jali-opened-line` instead. | `var(--jali-border)` | `var(--jali-border)` |
+| `--jali-pane-border-focused` | The focused pane's edge. Read in place, defaulting to `--jali-accent`. | `var(--jali-accent)` | `var(--jali-accent)` |
+| `--jali-pane-shadow` | A pane's shadow at rest, and the focused pane's while a pane is dragged. Read in place, defaulting to `none`. A lone pane and Single view draw no shadow or edge. | `none` | `none` |
+| `--jali-pane-shadow-focused` | The focused pane's shadow, which is also its focus ring: a 0.5px accent ring by default. A maximised pane draws it under `--jali-shadow-zoom`, so give it a list of shadows (`0 0 #0000` for none), not `none`. | `0 0 0 0.5px var(--jali-accent)` | `0 0 0 0.5px var(--jali-accent)` |
+
 ## Opened panes
 
 Panes opened by following links in a curated page.
@@ -89,6 +108,16 @@ One set for both themes.
 | `--jali-radius-control` | Corners of buttons, inputs, palette rows, the drag chip and the tab preview's label. | `0.375rem` | `0.375rem` |
 | `--jali-radius-menu` | Corners of menus and the drop label. | `0.5rem` | `0.5rem` |
 | `--jali-radius-chip` | Corners of small things inside a header, tab or chip: the Following / Kept toggle, a tab's close button, the rename field, the Kept badge and the peek's label. Shelf chips and their buttons, the shelf's "more" and its items, and tab menu items are 1.25 × this; investigation chips 1.75 ×, each rounded down to a whole pixel. | `0.25rem` | `0.25rem` |
+| `--jali-icon-header` | Icons in a pane's header: its buttons, its grip and the peek's buttons. A pane's title icon is this + 2px, the Following / Kept toggle's icon this − 2px. | `14px` | `14px` |
+| `--jali-icon-tab` | Icons in a tab: its kind's icon, close, put back, New tab, and the pane switcher's icons. A folded tab's mark is this − 1px; a pinned tab's pin and the "+N" and "N folded" chips' icons this − 2px. | `14px` | `14px` |
+| `--jali-icon-menu` | A pane's icon in a tab menu, the "+N" menu and the shelf's menu. The check mark is this − 1px, a folded or tucked mark this − 2px. | `14px` | `14px` |
+| `--jali-icon-shelf` | Icons in a shelf chip: the pane's icon, the fold mark and Put back. | `13px` | `13px` |
+| `--jali-dialog-padding` | The space between a dialog's edge and its content: all round in Settings (but its top, beside the title) and the discard question; at the sides of the palette's and the chooser's field and heading. Their lists keep their rows' own inset. | `1rem` | `1rem` |
+| `--jali-text-xs` | The smallest type: key hints, the Following / Kept toggle, badges, the "+N" and "N folded" chips, menu marks, the peek's label and Settings' legends. | `0.6875rem` | `0.6875rem` |
+| `--jali-text-sm` | Small type: the shelf, tab menus, palette groups, the chooser's heading, notes in a pane, the drag chip and a divider's size tip. The investigation chips on a curated page are this + 0.0312rem (12.5px). | `0.75rem` | `0.75rem` |
+| `--jali-text-md` | A pane's title, the phone's pane switcher and a popped-out pane's note. | `0.8125rem` | `0.8125rem` |
+| `--jali-text-lg` | The palette's field, the titles of Settings and the discard question, and the drop label. | `0.875rem` | `0.875rem` |
+| `--jali-tracking` | Letter spacing for the workspace and its dialogs (a length, such as `0.01em`). Read in place with no default: until you set it, they inherit yours. Settings' small capitals keep their own 0.04em. | `inherited` | `inherited` |
 | `--jali-font` | The workspace's typeface: the workspace and its dialogs set font-family from it. | `"Atkinson Hyperlegible Next", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif` | `"Atkinson Hyperlegible Next", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif` |
 | `--jali-font-mono` | Monospace: the pane cap input in Settings. | `"Atkinson Hyperlegible Mono", ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace` | `"Atkinson Hyperlegible Mono", ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace` |
 
