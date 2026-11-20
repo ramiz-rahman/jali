@@ -11,6 +11,7 @@ import { credits } from "./panes/credits";
 import { catalogueOf } from "./sessions/catalog";
 import { copyLink, createJali, type Command, type Jali, type JaliOptions } from "@jali/core";
 import { makerCommand } from "#shared/maker/maker";
+import { themeCommand } from "#shared/theme";
 import { cue, show } from "./actions";
 import { SPEEDS } from "./audio/engine";
 import { viewOf } from "./edits";
@@ -215,17 +216,7 @@ export function createStudioJali(services: Services, options: Options = {}): Jal
         notify(feelSounds() ? "Key and dial sounds are on" : "Key and dial sounds are off");
       },
     },
-    {
-      id: "studio.theme",
-      title: "Switch between light and dark",
-      group: "Settings",
-      run: (jali) => {
-        const { theme } = jali.get().settings;
-        const systemDark = !!window.matchMedia?.("(prefers-color-scheme: dark)").matches;
-        const dark = theme === "dark" || (theme === "system" && systemDark);
-        jali.actions.changeSettings({ theme: dark ? "light" : "dark" });
-      },
-    },
+    themeCommand("studio.theme"),
   ];
 
   const jali = createJali({
