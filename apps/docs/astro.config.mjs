@@ -62,6 +62,10 @@ export default defineConfig({
   vite: {
     // Each dev server gets its own dependency cache (JALI_DOCS_CACHE), so several can run at once.
     cacheDir: process.env.JALI_DOCS_CACHE ?? "node_modules/.vite",
+    // A server takes the port it was given or stops: never the next one, where a test or a reader would miss it.
+    // (`astro dev` and `astro preview` take no --strictPort flag.)
+    server: { strictPort: true },
+    preview: { strictPort: true },
     plugins: [{ enforce: "pre", ...mdxPlugin }, sourceCondition],
   },
 });

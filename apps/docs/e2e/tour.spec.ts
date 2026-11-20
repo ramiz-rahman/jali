@@ -96,6 +96,8 @@ test("with reduced motion it doesn't play by itself, and Play cuts between steps
   const context = await browser.newContext({ reducedMotion: "reduce" });
   const page = await context.newPage();
   await page.goto("/");
+  // The hero mounts in the browser only: compare from its first layout, not from before it shows.
+  await expect.poll(async () => (await snapshot(page)).panes.length).toBeGreaterThan(0);
   const before = await snapshot(page);
   await page.waitForTimeout(3000);
   await expect(hero(page)).toHaveAttribute("data-tour", "idle");
