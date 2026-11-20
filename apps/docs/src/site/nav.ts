@@ -36,6 +36,7 @@ export const NAV: NavSection[] = [
     items: [
       { path: "/guides/pane-kinds" },
       { path: "/guides/presets" },
+      { path: "/guides/auto-layout" },
       { path: "/guides/url-and-routers" },
       { path: "/guides/unsaved-work-and-pane-state" },
       { path: "/guides/tabs" },

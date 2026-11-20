@@ -180,7 +180,7 @@ Without presets, ⌘K "Reset layout" is unavailable.
 
 ## Let Jali arrange the panes
 
-When the panes a person opened have piled up, `jali.actions.autoLayout()` arranges them from the room there is and each kind's size hints, with no layout to write. It puts as many panes side by side as fit at their comfortable widths and adds a second row when the height allows. The rest become tabs beside the pane they were opened from, so a detail stays with its list. It keeps the same panes, so nothing reloads, and Back returns to the arrangement before. People find it in ⌘K as "Arrange panes automatically".
+When the panes a person opened have piled up, `jali.actions.autoLayout()` arranges them from the room there is and each kind's size hints, with no layout to write. It puts as many panes side by side as fit, linked panes next to each other, and adds a second row only for what doesn't fit across. The rest become tabs of the pane they were opened from, so a detail stays with its list. It keeps the same panes, so nothing reloads, and Back returns to the arrangement before. People find it in ⌘K as "Arrange panes automatically". See [Auto layout](auto-layout.md) for how it decides.
 
 ```tsx
 <button onClick={() => jali.actions.autoLayout()}>Tidy up</button>

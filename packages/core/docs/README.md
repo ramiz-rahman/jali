@@ -23,6 +23,7 @@ Written from the docs site by scripts/agent-docs.mjs; don't edit these files.
 
 - [Define a pane kind](guides/pane-kinds.md): Describe one kind of pane, what it shows, how narrow it can go, and the component that draws it.
 - [Start from presets](guides/presets.md): Give the workspace named layouts to open on and switch between.
+- [Auto layout](guides/auto-layout.md): Let Jali arrange the panes on screen from the room there is and each kind's size hints, when they have piled up.
 - [Keep the layout in the URL](guides/url-and-routers.md): Put the layout in the address so links reopen it and Back steps through it, with or without a router.
 - [Unsaved work and pane state](guides/unsaved-work-and-pane-state.md): Ask before a pane's unsaved work is lost, keep what a person expects back, and add a pane's commands to ⌘K.
 - [Tabs](guides/tabs.md): Let people reorder, pin, rename and close tabs, and add your own items to a tab's menu.

@@ -38,7 +38,7 @@ Steps stop at the first refusal. The result says, for each step, whether it ran,
 
 - **`actions`:** which actions the agent may use, by name. The default is every action that reads or arranges: focus, open, peek, select, tabs, tuck, move, pin, presets, auto layout and the curated page. Removing panes without asking, renaming, dialogs and the person's settings are never offered.
 - **`allow`:** asked before each step, with the action and its arguments. Return `false` or a reason to refuse it; the agent hears the reason.
-- **`arrange`:** `"when-asked"` (the default) arranges only when the agent runs `autoLayout`. `"after-changes"` also arranges after every turn that opened or closed panes, so the agent can add what it needs and leave the placing to Jali ([auto layout](/guides/presets#let-jali-arrange-the-panes)).
+- **`arrange`:** `"when-asked"` (the default) arranges only when the agent runs `autoLayout`. `"after-changes"` also arranges after every turn that opened or closed panes, so the agent can add what it needs and leave the placing to Jali ([auto layout](/guides/auto-layout)). Choosing it is your permission for that step, whatever `actions` lists, but `allow` is still asked about it (as `autoLayout`, with no arguments). It is skipped when the agent chose the layout itself in that turn (a preset, `setLayout` or its own `autoLayout`), and quietly where there is nothing to arrange, as on a phone.
 
 Every change the agent makes carries `input: "agent"` in Jali's events, so your app can tell it from the person's:
 

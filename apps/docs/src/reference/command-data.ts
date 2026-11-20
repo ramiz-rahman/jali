@@ -95,7 +95,7 @@ export const REFUSED: Record<string, string> = {
     "Only in a workspace with allow: { popOut: true }. Silent when no pane is focused, or the browser can't pop out (Document Picture-in-Picture: Chrome and Edge on desktop). When the focused pane doesn't allow it, says so. Opens it in a floating window that stays on top.",
   "layout.reset": "Silent in a workspace without presets. Rebuilds the preset last chosen.",
   "layout.auto":
-    "On a curated page, or with one pane. Arranges every pane from the room and the kinds' sizes; Back undoes it.",
+    "On a curated page, on a phone (one pane at a time), or with one pane. Arranges every pane from the room and the kinds' sizes; Back undoes it.",
   "layout.copy_link":
     'Never. Copies store.href() and says "Link copied", or "Couldn\'t copy the link" when the clipboard refuses; says nothing where there is no clipboard API.',
   "page.back": "Silent unless a curated page is open and has panes opened from links.",

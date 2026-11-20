@@ -59,7 +59,7 @@ The titles below are for a workspace with no curated page. With a curated page, 
 | `stack.new-tab` | New tab here | none | none | Silent when no pane is focused, or the workspace has no launcher kind. |
 | `layout.preset.<id>` | Layout: Orders | none | none | Never. One command per preset, titled "Layout: <label>". |
 | `layout.reset` | Reset layout | none | none | Silent in a workspace without presets. Rebuilds the preset last chosen. |
-| `layout.auto` | Arrange panes automatically | none | none | On a curated page, or with one pane. Arranges every pane from the room and the kinds' sizes; Back undoes it. |
+| `layout.auto` | Arrange panes automatically | none | none | On a curated page, on a phone (one pane at a time), or with one pane. Arranges every pane from the room and the kinds' sizes; Back undoes it. |
 | `layout.copy_link` | Copy link to this layout | none | none | Never. Copies store.href() and says "Link copied", or "Couldn't copy the link" when the clipboard refuses; says nothing where there is no clipboard API. |
 | `page.back` | Back to page (close opened panes) | none | none | Silent unless a curated page is open and has panes opened from links. |
 | `page.reset` | Reset layout to its design | none | none | Silent unless a curated page is open in Split view. |
