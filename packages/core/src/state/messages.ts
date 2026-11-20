@@ -385,7 +385,18 @@ const tabs = {
   foldedDescription: "Folded: returns when there's room",
   /** The chip at the end of a strip for the panes the layout folded into it (not the one it shows). */
   foldedChip: (count: number) => `${count} folded`,
-  foldedChipLabel: (count: number) => `${count} folded ${count === 1 ? "pane" : "panes"}`,
+  /** `activity` is the most pressing of the folded panes' (`useActivity`), so the chip can say one is working. */
+  foldedChipLabel: (count: number, activity?: PaneActivity) => {
+    const word =
+      activity === "loading" || activity === "working"
+        ? "working"
+        : activity === "needs-you"
+          ? "one needs you"
+          : activity === "error"
+            ? "one failed"
+            : "";
+    return `${count} folded ${count === 1 ? "pane" : "panes"}${word ? `, ${word}` : ""}`;
+  },
   foldedChipTip: "Folded: not enough room to show these side by side",
   /** Atop the folded chip's menu. */
   foldedNote: "No room to show these side by side. Widen the window, or pick one to show it here.",

@@ -7,6 +7,12 @@ import { roleOf, titleOf } from "@jali/core/adapter";
 import { useStore } from "../state/react";
 import { useUi } from "../state/react";
 import { KindIcon } from "./icons";
+import { Activity, shelfActivity } from "./Activity";
+import type { PaneActivity } from "@jali/core";
+
+/** Most pressing first: what the folded chip shows for the panes behind it. */
+const URGENCY: PaneActivity[] = ["error", "needs-you", "working", "loading"];
+const mostPressing = (all: (PaneActivity | undefined)[]) => URGENCY.find((a) => all.includes(a));
 
 /**
  * The "+N" at the end of a tab strip that overflows: opens a menu of every tab in the group, marks included. With
@@ -40,6 +46,9 @@ export function TabOverflow({
   const page = useUi((s) => !!s.page);
   const titles = useUi((s) => s.titles);
   const marks = useUi((s) => s.paneAttributes);
+  const activity = useUi((s) => s.activity);
+  // A folded pane goes on working behind the chip: the chip says so, with the most pressing of its panes' activities.
+  const behind = folded ? mostPressing(tabs.map(({ node }) => activity[node.id])) : undefined;
   const dir = useUi((s) => s.dir);
 
   const close = (refocus: boolean) => {
@@ -116,10 +125,13 @@ export function TabOverflow({
         className={folded ? "jali-tab-folded" : "jali-tab-more"}
         aria-haspopup="menu"
         aria-expanded={open}
-        aria-label={folded ? tw.foldedChipLabel(tabs.length) : tw.all(tabs.length, hiddenCount)}
+        aria-label={
+          folded ? tw.foldedChipLabel(tabs.length, behind) : tw.all(tabs.length, hiddenCount)
+        }
         aria-description={folded ? tw.foldedDescription : undefined}
         title={folded ? tw.foldedChipTip : tw.allTip}
         data-hidden-count={folded ? undefined : hiddenCount}
+        data-activity={shelfActivity(behind)?.state}
         onPointerDown={(e) => e.stopPropagation()}
         onClick={(e) => {
           e.stopPropagation();
@@ -137,6 +149,7 @@ export function TabOverflow({
           <>
             <icon.fold size={12} aria-hidden />
             <span>{tw.foldedChip(tabs.length)}</span>
+            <Activity a={behind} shape />
           </>
         ) : (
           <>
@@ -190,6 +203,7 @@ export function TabOverflow({
                       <KindIcon kind={t.ref.kind} size={14} />
                     )}
                     <span className="jali-tab-menu-title">{titleOf(env, t, titles)}</span>
+                    <Activity a={activity[t.id]} />
                     {folded && !chip ? (
                       <small className="jali-tab-menu-mark">
                         <icon.fold size={12} aria-hidden />

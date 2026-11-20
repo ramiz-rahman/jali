@@ -322,8 +322,14 @@ export const parts = {
     selector: ".jali-tab-folded",
     element: "button",
     area: "Tabs",
-    what: 'The "N folded" chip at the end of a tab strip: the panes the layout folded into this place, but the one it shows. Its menu lists them.',
-    attributes: [],
+    what: 'The "N folded" chip at the end of a tab strip: the panes the layout folded into this place, but the one it shows. Its menu lists them, each with its activity dot.',
+    attributes: [
+      {
+        name: "data-activity",
+        means:
+          "The most pressing activity of the panes behind it (`useActivity`): `working` (loading too), `needs-you` or `failed`; absent when all are idle. The chip shows the shelf's shape for it.",
+      },
+    ],
   },
   shelf: {
     selector: ".jali-shelf",
