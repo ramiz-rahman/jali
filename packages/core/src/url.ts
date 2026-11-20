@@ -15,7 +15,7 @@ import type {
 import type { HistoryMode } from "./state/apply";
 import type { ItemId } from "./profile";
 import { toLayout, type LayoutInput } from "./layout/build";
-import type { UiState, UrlWriter } from "./state/store";
+import type { UrlState, UrlWriter } from "./state/store";
 import { browserLocation, browserStorage, type LocationPort, type StoragePort } from "./ports";
 import { own as ownOf } from "./own";
 
@@ -108,7 +108,7 @@ const legacyKeys = (k: UrlKeys) => k.layout === "l";
  * A curated page's link carries content only: the item, the view in use and the panes opened while investigating.
  * The mode and the split layout are the reader's own, so the same link opens in each person's way of working.
  */
-function pageParams(q: URLSearchParams, s: UiState, k: UrlKeys) {
+function pageParams(q: URLSearchParams, s: UrlState, k: UrlKeys) {
   q.delete(k.layout);
   for (const key of [k.page, k.item, k.tab, k.open, k.preset]) q.delete(key);
   if (legacyKeys(k)) for (const key of ["app", "arr"]) q.delete(key);
@@ -184,7 +184,7 @@ export function linkSearch(link: JaliLink, options: LinkSearchOptions = {}): str
 }
 
 /** The search string for `s`, keeping every param of `search` that is not the workspace's. */
-export function buildSearch(search: string, s: UiState, k: UrlKeys = urlKeys()): string {
+export function buildSearch(search: string, s: UrlState, k: UrlKeys = urlKeys()): string {
   const q = new URLSearchParams(search);
   pageParams(q, s, k);
   if (!s.page) q.set(k.layout, core.encode(s.layout));
@@ -408,7 +408,7 @@ export function createUrlSync({
     const next = Object.keys(own).length ? [[key, own] as [string, PersonalSizes], ...rest] : rest;
     storage.set(sizesKey, JSON.stringify(next.slice(0, 12)));
   };
-  const write = (s0: UiState, push: boolean) => {
+  const write = (s0: UrlState, push: boolean) => {
     let s = s0;
     if (sizes === "local" && !s.page) {
       const split = splitPersonalSizes(s.layout);
@@ -421,7 +421,7 @@ export function createUrlSync({
   };
   return {
     // A debounced write reads the state when it fires, so it writes the latest sizes.
-    write(state: () => UiState, mode: HistoryMode) {
+    write(state: () => UrlState, mode: HistoryMode) {
       if (mode === "none") return;
       clearTimeout(timer);
       if (mode === "debounce") timer = setTimeout(() => write(state(), false), PERSIST_MS);

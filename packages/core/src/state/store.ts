@@ -190,8 +190,22 @@ export interface UiState {
 }
 
 /** The URL sink: writes the state (read when the write happens) to the address bar in a history mode. */
+/** The share of the workspace's state an address holds: what a URL writer reads. */
+export interface UrlState {
+  /** The layout on screen. */
+  layout: Layout;
+  /** Focus, the maximised pane, the peek and where rows that scroll came to rest. */
+  view: ViewState;
+  /** The preset the layout came from, if any. */
+  presetId: string | undefined;
+  /** The curated page open, if any: a page link carries its item and view, not the layout. */
+  page: PageState | null;
+}
+
+/** Writes the workspace to an address: `createJali({ url })` takes one for a router of the host's own. */
 export interface UrlWriter {
-  write(state: () => UiState, mode: HistoryMode): void;
+  /** `state` reads the workspace when the write happens (a debounced write reads it late, so it writes the latest). */
+  write(state: () => UrlState, mode: HistoryMode): void;
   /** The address to share ("Copy link"). */
   href?(): string;
   /** Drop a write still waiting (a debounced one): the workspace is going away (`jali.destroy()`). */
@@ -617,7 +631,12 @@ export function createUiStore(deps: UiStoreDeps): UiStore {
     snapshot: () => ({ s: state, m: store.model(), ctx: ctx(), env }),
     apply: (o) => batch(() => apply(io, o)),
     announce: (text) => store.set({ announcement: { text, seq: state.announcement.seq + 1 } }),
-    writeUrl: (mode) => deps.url?.write(store.get, mode),
+    // The writer reads the address's share of the state only (UrlState), when it writes.
+    writeUrl: (mode) =>
+      deps.url?.write(() => {
+        const { layout, view, presetId, page } = store.get();
+        return { layout, view, presetId, page };
+      }, mode),
     toast: (t) => (toastFns.size ? toastFns.forEach((fn) => fn(t)) : pendingToasts.push(t)),
     onToast(fn) {
       toastFns.add(fn);

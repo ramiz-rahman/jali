@@ -100,7 +100,7 @@ export type {
 } from "./state/apply";
 
 // ---------- the workspace's state ----------
-export type { PageState, Selection, UrlWriter } from "./state/store";
+export type { PageState, Selection, UrlState, UrlWriter } from "./state/store";
 export type { JaliModel, Group } from "./state/model";
 export type { Settings, ThemeChoice, Theme } from "./state/settings";
 

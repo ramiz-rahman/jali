@@ -2,7 +2,7 @@
  * The packages' public entry points. A change to what "@jali/core", "@jali/react", "@jali/react/icons" or "@jali/core/agent" exports fails here, so it is made
  * on purpose: update the list, and the docs and changelog with it. "@jali/core/adapter" is for adapters and unchecked.
  */
-import { describe, expect, it } from "vite-plus/test";
+import { describe, expect, expectTypeOf, it } from "vite-plus/test";
 import * as core from "@jali/core";
 import * as react from "@jali/react";
 import * as icons from "@jali/react/icons";
@@ -123,5 +123,22 @@ describe("public API", () => {
 
   it("the layout namespace is the pure tree API", () => {
     expect(Object.keys(core.layout).sort()).toMatchSnapshot();
+  });
+
+  it("a URL writer reads the address's share of the state, not the workspace's whole state", () => {
+    expectTypeOf<Parameters<core.UrlWriter["write"]>[0]>().toEqualTypeOf<() => core.UrlState>();
+    expectTypeOf<keyof core.UrlState>().toEqualTypeOf<"layout" | "view" | "presetId" | "page">();
+    const seen: string[][] = [];
+    const jali = core.createJali({
+      panes: [{ kind: "note", title: "Note" }],
+      layout: { kind: "note", params: {} },
+      url: { write: (state, mode) => mode !== "none" && seen.push(Object.keys(state())) },
+      storage: core.memoryStorage(),
+      size: { width: 800, height: 600 },
+      moveFocus: false,
+    });
+    jali.actions.toggleZoom();
+    expect(seen.length).toBeGreaterThan(0);
+    for (const keys of seen) expect(keys.sort()).toEqual(["layout", "page", "presetId", "view"]);
   });
 });
