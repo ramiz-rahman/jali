@@ -3,16 +3,28 @@
  * on whatever Jali does with them: a mixer folded into a tab, a tucked timeline or a maximised transcript changes
  * nothing here. Panes only read it (`position()`, the meters) while Jali says they are on screen.
  *
- * The graph, one strip a track: clips → gain (fader, mute, solo) → pan → analyser (the meter) → master → speakers.
- * Voice clips are scheduled at their times on the session's clock; the bed and the sting are rendered once
- * (synth.ts). Seeking, a new speed or a loop's restart stops every source and schedules them again from there.
+ * The graph, one strip a track of the session in the transport: the track's file → gain (fader, mute, solo) → pan →
+ * analyser (the meter) → master → speakers. Every track is one continuous recording from time 0, so playing from a
+ * point starts each file at that offset. Seeking, a new speed or a loop's restart stops every source and starts
+ * them again from there. A session with another set of tracks gets its own strips when it is loaded.
+ *
+ * Speed plays the files faster, which on its own raises their pitch like a record spun fast. So at any speed but 1×
+ * the master goes through a pitch shifter that puts the pitch back: master → shifter → gate → speakers. The shifter
+ * holds the sound for a moment (`lag`), so the playhead waits that long too, and the gate shuts while what is left
+ * inside it from before a seek or a pause drains.
+ *
+ * Scrubbing is heard: each move of the hand plays a short grain of every track from where the playhead now is,
+ * backwards when the hand moves back (a grain played backwards is a reversed copy of its samples). Grains overlap,
+ * so a steady turn is a steady sound. Every grain plays as recorded, so the pitch stays put however fast the hand
+ * moves: a fast turn skips more between grains. They skip the shifter, which has nothing to put back.
  *
  * Without Web Audio (tests, a browser that refuses it) the engine is a silent clock with the same API.
  */
 import { audible, channelOf, type Edits } from "../edits";
-import { sessionById, trackOf, TRACKS, type SessionData } from "../sessions/sessions";
+import { sessionById, type SessionData } from "../sessions/sessions";
+import { catalogueOf } from "../sessions/catalog";
 import { createStore, type Store } from "../store";
-import { peaksOf, renderBed, renderSting } from "./synth";
+import type { StretchNode } from "signalsmith-stretch";
 
 export const SPEEDS = [0.75, 1, 1.25, 1.5, 2] as const;
 
@@ -32,8 +44,6 @@ export interface TransportState {
   loop: Loop | null;
   /** The position when the state last changed (a seek, a pause). The live one is `engine.position()`. */
   at: number;
-  /** Sessions whose music has been rendered: their bed and sting have peaks to draw. */
-  rendered: readonly string[];
   error?: string;
 }
 
@@ -53,11 +63,14 @@ export interface Engine extends Store<TransportState> {
   pause(): void;
   toggle(): void;
   seek(time: number): void;
+  /**
+   * Move the playhead by hand, as on a jog wheel: the sound follows the hand, forwards or backwards, at its own
+   * pitch. Once the hand rests, playback carries on from there if it was playing.
+   */
+  scrub(time: number): void;
   skip(seconds: number): void;
   setRate(rate: number): void;
   setLoop(loop: Loop | null): void;
-  /** The music's envelope (50 a second), once rendered. Voices draw from the session's own peaks. */
-  musicPeaks(session: string, track: "bed" | "sting"): Float32Array | null;
   /** A track's level now, or the master's ("master-l", "master-r"). Read only by a mixer on screen. */
   meter(track: string): Meter;
 }
@@ -66,11 +79,8 @@ const SILENT: Meter = { rms: -60, peak: -60 };
 const dbToGain = (db: number) => (db <= -60 ? 0 : 10 ** (db / 20));
 const toDb = (v: number) => (v <= 0.001 ? -60 : Math.max(-60, 20 * Math.log10(v)));
 
-interface Loaded {
-  clips: Map<string, AudioBuffer>;
-  bed: AudioBuffer;
-  sting: AudioBuffer;
-}
+/** A session's decoded tracks, by track id. */
+type Loaded = Map<string, AudioBuffer>;
 
 interface Strip {
   gain: GainNode;
@@ -94,7 +104,6 @@ export function createEngine({
     rate: 1,
     loop: null,
     at: 0,
-    rendered: [],
   });
   const get = () => store.get();
   const set = (patch: Partial<TransportState>) => store.set((s) => ({ ...s, ...patch }));
@@ -105,9 +114,18 @@ export function createEngine({
   let masterR: AnalyserNode | null = null;
   const strips = new Map<string, Strip>();
   const loaded = new Map<string, Loaded>();
-  const music = new Map<string, { bed: Float32Array; sting: Float32Array }>();
   const loading = new Map<string, Promise<void>>();
   let sources: AudioBufferSourceNode[] = [];
+  let shifter: StretchNode | null = null;
+  let gate: GainNode | null = null;
+  let shifterAsked = false;
+  /** The master is going through the shifter. */
+  let shifting = false;
+  /** Seconds the shifter holds the sound. */
+  let lag = 0;
+  /** A hand is moving the playhead: where it last was, and whether to play on once it rests. */
+  let hand: { pos: number; resume: boolean; rest: ReturnType<typeof setTimeout> } | null = null;
+  let lastGrain = 0;
   let anchorPos = 0;
   let anchorTime = 0;
   let watchdog: ReturnType<typeof setInterval> | 0 = 0;
@@ -130,7 +148,16 @@ export function createEngine({
     master.connect(split);
     split.connect(masterL, 0);
     split.connect(masterR, 1);
-    for (const t of TRACKS) {
+    stripsFor(session());
+    applyMix(true);
+    return ctx;
+  }
+
+  /** A strip for each of the session's tracks that has none yet. Track ids are unique across the library. */
+  function stripsFor(s: SessionData) {
+    if (!ctx || !master) return;
+    for (const t of s.tracks) {
+      if (strips.has(t.id)) continue;
       const gain = ctx.createGain();
       const pan = ctx.createStereoPanner();
       const analyser = ctx.createAnalyser();
@@ -138,8 +165,6 @@ export function createEngine({
       gain.connect(pan).connect(analyser).connect(master);
       strips.set(t.id, { gain, pan, analyser });
     }
-    applyMix(true);
-    return ctx;
   }
 
   /** The faders, pans, mutes and solos of the session in the transport, onto the graph. */
@@ -149,10 +174,12 @@ export function createEngine({
     const at = ctx.currentTime;
     const to = (p: AudioParam, v: number) =>
       immediate ? p.setValueAtTime(v, at) : p.setTargetAtTime(v, at, 0.015);
-    for (const t of TRACKS) {
+    const tracks = session().tracks;
+    stripsFor(session());
+    for (const t of tracks) {
       const s = strips.get(t.id)!;
       const ch = channelOf(e, t.id);
-      to(s.gain.gain, audible(e, t.id) ? dbToGain(ch.gain) : 0);
+      to(s.gain.gain, audible(e, t.id, tracks) ? dbToGain(ch.gain) : 0);
       to(s.pan.pan, ch.pan);
     }
     to(master.gain, dbToGain(e.masterGain));
@@ -168,17 +195,61 @@ export function createEngine({
       if (!res.ok) throw new Error(`${url}: ${res.status}`);
       return c.decodeAudioData(await res.arrayBuffer());
     };
-    const [clips, bed, sting] = await Promise.all([
-      Promise.all(s.segments.map(async (seg) => [seg.id, await decode(seg.clip)] as const)),
-      renderBed(s),
-      renderSting(s),
-    ]);
-    loaded.set(id, { clips: new Map(clips), bed, sting });
-    music.set(id, { bed: peaksOf(bed), sting: stingTrackPeaks(s, peaksOf(sting)) });
-    set({ rendered: [...get().rendered, id] });
+    // A failure names the track, so the message can say what did not arrive.
+    const buffers = await Promise.all(
+      s.tracks.map(async (t) => {
+        try {
+          return [t.id, await decode(t.file)] as const;
+        } catch {
+          throw new Error(t.label);
+        }
+      }),
+    );
+    loaded.set(id, new Map(buffers));
+  }
+
+  /** The pitch back where it was at this speed. The shifter is fetched the first time a speed needs it. */
+  function pitch() {
+    const c = ctx;
+    if (!c || !master) return;
+    const rate = get().rate;
+    if (rate !== 1 && !shifterAsked) {
+      shifterAsked = true;
+      import("signalsmith-stretch")
+        .then(async ({ default: create }) => {
+          const node = await create(c);
+          const out = c.createGain();
+          node.connect(out).connect(c.destination);
+          lag = await node.latency();
+          shifter = node;
+          gate = out;
+          if (get().playing) restart(engine.position());
+          else pitch();
+        })
+        .catch(() => {
+          // no worklet here: speed keeps its raised pitch
+        });
+    }
+    const on = rate !== 1 && !!shifter && !hand;
+    if (on !== shifting) {
+      master.disconnect(on ? c.destination : shifter!);
+      master.connect(on ? shifter! : c.destination);
+      shifting = on;
+    }
+    if (on) void shifter!.schedule({ active: true, semitones: -12 * Math.log2(rate) });
+  }
+
+  /** Shut now; open again when sound that goes into the shifter at `from` comes out of it. */
+  function shut(from?: number) {
+    if (!ctx || !gate) return;
+    const g = gate.gain;
+    g.cancelScheduledValues(ctx.currentTime);
+    g.setValueAtTime(0, ctx.currentTime);
+    if (from !== undefined) g.setTargetAtTime(1, from + lag - 0.01, 0.004);
   }
 
   function stopSources() {
+    shut();
     for (const src of sources) {
       try {
         src.stop();
@@ -198,6 +269,8 @@ export function createEngine({
     const s = session();
     const rate = get().rate;
     const t0 = c.currentTime + 0.04;
+    pitch();
+    shut(t0);
     anchorPos = pos;
     anchorTime = t0;
     const place = (buffer: AudioBuffer, at: number, track: string) => {
@@ -210,20 +283,66 @@ export function createEngine({
       src.start(t0 + Math.max(0, at - pos) / rate, Math.max(0, pos - at));
       sources.push(src);
     };
-    for (const seg of s.segments) {
-      const clip = data.clips.get(seg.id);
-      if (clip) place(clip, seg.start, trackOf(seg));
+    stripsFor(s);
+    for (const t of s.tracks) {
+      const buffer = data.get(t.id);
+      if (buffer) place(buffer, 0, t.id);
     }
-    place(data.bed, 0, "bed");
-    place(data.sting, 0, "sting");
-    place(data.sting, s.outro, "sting");
+  }
+
+  const GRAIN = 0.09;
+  /** A grain of every track at `pos`, as recorded, backwards if `back`. */
+  function grain(pos: number, back: boolean) {
+    const c = ctx;
+    const data = loaded.get(get().session);
+    if (!c || !data || c.state !== "running") return;
+    const t = c.currentTime + 0.005;
+    const span = GRAIN;
+    for (const [track, buffer] of data) {
+      const strip = strips.get(track);
+      const from = back ? pos - span : pos;
+      if (!strip || from < 0 || from + span > buffer.duration) continue;
+      const src = c.createBufferSource();
+      if (back) {
+        const n = Math.floor(span * buffer.sampleRate);
+        const start = Math.floor(from * buffer.sampleRate);
+        const rev = c.createBuffer(buffer.numberOfChannels, n, buffer.sampleRate);
+        for (let ch = 0; ch < buffer.numberOfChannels; ch++)
+          rev.getChannelData(ch).set(
+            buffer
+              .getChannelData(ch)
+              .subarray(start, start + n)
+              .reverse(),
+          );
+        src.buffer = rev;
+      } else src.buffer = buffer;
+      const env = c.createGain();
+      env.gain.setValueAtTime(0, t);
+      env.gain.linearRampToValueAtTime(0.8, t + 0.02);
+      env.gain.setValueAtTime(0.8, t + GRAIN - 0.03);
+      env.gain.linearRampToValueAtTime(0, t + GRAIN);
+      src.connect(env).connect(strip.gain);
+      if (back) src.start(t);
+      else src.start(t, from, span);
+      src.stop(t + GRAIN);
+      src.onended = () => env.disconnect();
+    }
+  }
+
+  /** The hand is off the playhead. */
+  function letGo() {
+    if (!hand) return false;
+    clearTimeout(hand.rest);
+    const resume = hand.resume;
+    hand = null;
+    return resume;
   }
 
   function startWatchdog() {
     if (watchdog) return;
     watchdog = setInterval(() => {
       const { loop, playing } = get();
-      if (!playing) return;
+      if (!playing || hand) return;
       const pos = engine.position();
       if (loop && pos >= loop.end) restart(loop.start);
       else if (pos >= session().duration) {
@@ -255,8 +374,9 @@ export function createEngine({
     audio,
     session,
     position() {
-      if (!get().playing) return anchorPos;
-      return clamp(anchorPos + Math.max(0, now() - anchorTime) * get().rate);
+      if (!get().playing || hand) return anchorPos;
+      const heard = now() - anchorTime - (shifting ? lag : 0);
+      return clamp(anchorPos + Math.max(0, heard) * get().rate);
     },
     load(id) {
       if (!sessionById(id)) return;
@@ -289,6 +409,7 @@ export function createEngine({
       if (s.status !== "ready") return;
       let pos = from ?? engine.position();
       if (pos >= session().duration - 0.05) pos = s.loop?.start ?? 0;
+      letGo();
       stopSources();
       anchorPos = pos;
       anchorTime = now();
@@ -303,6 +424,7 @@ export function createEngine({
       if (c.state === "running") schedule(pos);
     },
     pause() {
+      letGo();
       if (!get().playing) return;
       const pos = engine.position();
       stopSources();
@@ -313,10 +435,35 @@ export function createEngine({
     toggle: () => (get().playing ? engine.pause() : engine.play()),
     seek(time) {
       const pos = clamp(time);
+      letGo();
       if (get().playing) restart(pos);
       else {
         anchorPos = pos;
         set({ at: pos });
+      }
+    },
+    scrub(time) {
+      const pos = clamp(time);
+      const c = graph();
+      if (c && c.state !== "running") void c.resume();
+      const at = performance.now() / 1000;
+      const resume = hand ? hand.resume : get().playing;
+      const moved = pos - (hand ? hand.pos : anchorPos);
+      if (hand) clearTimeout(hand.rest);
+      else {
+        stopSources();
+        hand = { pos, resume, rest: 0 as never };
+        pitch();
+      }
+      hand.pos = pos;
+      hand.rest = setTimeout(() => {
+        if (letGo() && get().playing) restart(anchorPos);
+      }, 180);
+      anchorPos = pos;
+      set({ at: pos });
+      if (moved && at - lastGrain >= GRAIN / 2) {
+        lastGrain = at;
+        grain(pos, moved < 0);
       }
     },
     skip: (seconds) => engine.seek(engine.position() + seconds),
@@ -324,6 +471,7 @@ export function createEngine({
       const pos = engine.position();
       set({ rate });
       if (get().playing) restart(pos);
+      else pitch();
     },
     setLoop(loop) {
       set({ loop });
@@ -332,7 +480,6 @@ export function createEngine({
         if (pos < loop.start || pos >= loop.end) engine.seek(loop.start);
       }
     },
-    musicPeaks: (id, track) => music.get(id)?.[track] ?? null,
     meter(track) {
       const a =
         track === "master-l"
@@ -357,16 +504,6 @@ export function createEngine({
   return engine;
 }
 
-/** The sting's envelope where it plays: at the start and at the outro. */
-function stingTrackPeaks(s: SessionData, one: Float32Array): Float32Array {
-  const out = new Float32Array(Math.ceil(s.duration * 50));
-  for (const at of [0, s.outro]) {
-    const from = Math.round(at * 50);
-    for (let i = 0; i < one.length && from + i < out.length; i++) out[from + i] = one[i]!;
-  }
-  return out;
-}
-
 /** The keyboard's and the system's media keys play and pause too. */
 function mediaKeys(engine: Engine) {
   const ms = typeof navigator !== "undefined" ? navigator.mediaSession : undefined;
@@ -383,6 +520,10 @@ function mediaKeys(engine: Engine) {
     const s = engine.session();
     ms.playbackState = engine.get().playing ? "playing" : "paused";
     if (ms.metadata?.title !== s.title && typeof MediaMetadata !== "undefined")
-      ms.metadata = new MediaMetadata({ title: s.title, artist: s.show, album: "Studio" });
+      ms.metadata = new MediaMetadata({
+        title: s.title,
+        artist: catalogueOf(s).source,
+        album: "Studio",
+      });
   });
 }

@@ -6,6 +6,7 @@
  * - `JogDial`: a knurled dial with a dimple, turned round its centre, for scrubbing.
  * - `SelectorDial`: the same dial with a pointer, snapping to a few detents, for speed.
  */
+import type { ChannelColour } from "../sessions/catalog";
 import { useEffect, useRef, type CSSProperties, type RefObject } from "react";
 
 export const clamp = (v: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, v));
@@ -51,8 +52,8 @@ export const turnBy = (from: number, to: number) => ((to - from + 540) % 360) - 
  * all the way round. The mouse wheel or a trackpad turns it too (100 of delta is one second), and the arrow keys
  * step a second (Shift: five), Page Up and Down ten, Home and End go to the ends.
  *
- * `onStart` and `onEnd` bracket a gesture (a turn, or a run of wheel events), so the app can hold playback while
- * the person scrubs and carry on afterwards.
+ * `onStart` and `onEnd` bracket a gesture (a turn, or a run of wheel events). `onTurn` gives each move of a turn as
+ * a distance, for a value that moves on its own while the hand is on the dial (a playhead that is playing).
  */
 export function JogDial(p: {
   label: string;
@@ -61,6 +62,8 @@ export function JogDial(p: {
   max: number;
   onChange(value: number): void;
   onStart?(): void;
+  /** While a hand turns the dial: how far it just turned, in the value's units. Without it, `onChange` gets the value. */
+  onTurn?(by: number): void;
   onEnd?(): void;
   valueText?: string;
   secondsPerTurn?: number;
@@ -130,9 +133,11 @@ export function JogDial(p: {
         const t = turn.current;
         if (!t || !dial.current) return;
         const a = angleOf(dial.current, e.clientX, e.clientY);
-        t.value += (turnBy(t.angle, a) / 360) * perTurn;
+        const by = (turnBy(t.angle, a) / 360) * perTurn;
+        t.value += by;
         t.angle = a;
-        set(t.value);
+        if (latest.current.onTurn) latest.current.onTurn(by);
+        else set(t.value);
       }}
       onPointerUp={(e) => end(e.currentTarget)}
       onPointerCancel={(e) => end(e.currentTarget)}
@@ -292,7 +297,7 @@ export function PanDial(p: {
   value: number;
   onChange(value: number): void;
   valueText?: string;
-  cap?: "blue" | "green" | "white" | "orange";
+  cap?: ChannelColour;
   className?: string;
 }) {
   const ref = useRef<HTMLDivElement>(null);

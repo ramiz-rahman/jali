@@ -1,0 +1,141 @@
+/*
+ * The timeline: an instrument display, with a label strip a track.
+ */
+@layer app {
+  /*
+   * ---------- timeline: an instrument display ----------
+   * Track headers are the mixer's scribble strips (the same LCD, the channel's lamp, the input and the name), in
+   * the mixer's order, with its mute and solo lamps mirrored. The lanes, the ruler, the flags and the playhead sit
+   * behind one long piece of glass.
+   */
+  .tl-body {
+    flex: 1;
+    min-height: 0;
+    display: grid;
+    grid-template-columns: 148px minmax(0, 1fr);
+    grid-template-rows: minmax(0, 1fr);
+    padding: 6px 12px 12px;
+  }
+  .tl-labels {
+    margin: 0;
+    padding: 0 8px 0 0;
+    list-style: none;
+    overflow: hidden;
+  }
+  .tl-labels li {
+    position: relative;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-rows: auto auto;
+    align-content: center;
+    column-gap: 6px;
+    padding: 0 6px 0 20px;
+    box-sizing: border-box;
+    min-height: 0;
+    overflow: hidden;
+    border: 2px solid transparent;
+    border-left-width: 0;
+    border-right-width: 0;
+    background: var(--lcd-glass) padding-box;
+    color: var(--lcd-ink);
+    border-radius: var(--corner);
+    box-shadow:
+      inset 0 1px 3px var(--shade-5),
+      inset 0 0 0 1px var(--shade-4);
+  }
+  .tl-labels li .mx-lamp {
+    left: 6px;
+    top: 50%;
+    margin-top: calc(var(--lamp) / -2);
+  }
+  .tl-labels li[data-silent] {
+    opacity: var(--silent);
+  }
+  .tl-track {
+    grid-column: 1;
+    font-family: var(--jali-font);
+    font-size: var(--type-fine);
+    font-weight: 600;
+    letter-spacing: var(--track-legend);
+    text-transform: lowercase;
+    color: var(--lcd-dim);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    min-width: 0;
+  }
+  .tl-who {
+    grid-column: 1;
+    font-size: var(--type-legend);
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .tl-labels li[data-short] {
+    grid-template-rows: auto;
+  }
+  .tl-labels li[data-short] .tl-track {
+    display: none;
+  }
+  /* Compact: one line a track (the lamp, then the name, legible), no LCD frame; the M and S lamps go. */
+  .tl-labels li[data-compact] {
+    background: none;
+    box-shadow: none;
+    padding-left: 16px;
+    color: var(--ink);
+  }
+  .tl-labels li[data-compact] .tl-who {
+    font-size: var(--type-legend);
+    line-height: var(--lead-tight);
+  }
+  .tl-labels li[data-compact] .tl-ms {
+    display: none;
+  }
+  .tl-ms {
+    grid-column: 2;
+    grid-row: 1 / -1;
+    align-self: center;
+    display: flex;
+    gap: 2px;
+  }
+  .tl-m,
+  .tl-s {
+    display: grid;
+    place-items: center;
+    width: 14px;
+    height: 14px;
+    border-radius: var(--corner);
+    font-family: var(--jali-font);
+    font-size: var(--type-fine);
+    font-weight: 600;
+    color: var(--lcd-dim);
+    box-shadow: inset 0 0 0 1px var(--lcd-ghost);
+  }
+  .tl-m[data-on],
+  .tl-s[data-on] {
+    background: var(--lcd-ink);
+    color: var(--lcd-paper);
+  }
+  .tl-lanes {
+    min-width: 0;
+    min-height: 0;
+    padding: 0 6px;
+    cursor: text;
+    touch-action: none;
+  }
+  .tl-lanes:focus-visible {
+    outline-offset: 3px;
+  }
+  @container timeline (max-width: 520px) {
+    .tl-body {
+      grid-template-columns: 112px minmax(0, 1fr);
+    }
+    .tl-ms {
+      display: none;
+    }
+  }
+  .timeline {
+    container: timeline / inline-size;
+  }
+}

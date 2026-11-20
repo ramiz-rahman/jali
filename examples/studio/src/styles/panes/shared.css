@@ -1,0 +1,156 @@
+/*
+ * What every pane's body shares: its frame, labels, control rows, tags, and the empty and missing states.
+ */
+@layer app {
+  .pane-body {
+    box-sizing: border-box;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    background: transparent;
+    color: var(--ink);
+  }
+  .pane-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0;
+    font-family: var(--jali-font-mono);
+    font-size: var(--type-legend);
+    font-weight: 500;
+    letter-spacing: var(--track-legend);
+    text-transform: lowercase;
+    color: var(--legend);
+  }
+  .pane-body > .pane-label {
+    padding: 12px 16px 6px;
+  }
+  .pane-label-count {
+    color: var(--legend);
+  }
+  .toolbar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-height: var(--h-bar);
+    padding: 0 12px;
+    flex: none;
+    min-width: 0;
+  }
+  .toolbar-end {
+    margin-left: auto;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .tag {
+    display: inline-flex;
+    align-items: center;
+    height: 18px;
+    padding: 0 6px;
+    border-radius: var(--corner);
+    font-family: var(--jali-font-mono);
+    font-size: var(--type-fine);
+    text-transform: lowercase;
+    white-space: nowrap;
+    color: var(--paper-dim);
+    box-shadow: inset 0 0 0 1px var(--paper-rule);
+  }
+  .tag-signal {
+    color: var(--st-signal-ink);
+    box-shadow: inset 0 0 0 1px var(--st-signal-line);
+  }
+  .tag-unsaved {
+    color: var(--st-signal-ink);
+    box-shadow: inset 0 0 0 1px var(--st-signal-line);
+  }
+  .tag-unsaved::before {
+    content: "";
+    width: 5px;
+    height: 5px;
+    margin-right: 6px;
+    border-radius: 50%;
+    background: var(--st-signal);
+  }
+  .not-live {
+    display: flex;
+    align-items: center;
+    margin: 0 10px 8px;
+    border-radius: var(--corner);
+    font-family: var(--jali-font-mono);
+    font-size: var(--type-legend);
+    color: var(--legend);
+    background: light-dark(var(--shade-1), var(--shade-5));
+    box-shadow: inset 0 1px 2px var(--shade-3);
+    flex: none;
+    /* "Not loaded": a quiet one-line note, never clipped; its key loads the session. */
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 6px 10px;
+    padding: 4px 4px 4px 12px;
+  }
+  .not-live span {
+    min-width: 0;
+    text-overflow: ellipsis;
+    flex: 1 1 auto;
+    white-space: normal;
+    overflow: visible;
+  }
+  [role="listbox"]:focus-visible {
+    outline: none;
+  }
+  .segmented {
+    display: inline-flex;
+    gap: 4px;
+  }
+  .empty {
+    display: grid;
+    justify-items: center;
+    align-content: center;
+    gap: 8px;
+    height: 100%;
+    min-height: 160px;
+    padding: 20px;
+    box-sizing: border-box;
+    text-align: center;
+    color: var(--legend);
+  }
+  .empty-screen {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    font-family: var(--font-readout);
+    font-size: var(--type-control);
+    color: var(--scr-dim);
+  }
+  .empty-screen .led {
+    background: var(--scr-led-off);
+  }
+  .empty[data-kind="missing"] .empty-code {
+    color: var(--scr-hot);
+  }
+  .empty-title {
+    font-size: var(--type-body);
+    font-weight: 600;
+    color: var(--ink);
+  }
+  .empty p {
+    max-width: 34ch;
+    margin: 0;
+    font-size: var(--type-control);
+    line-height: var(--lead-body);
+  }
+  /*
+   * One control height in every control row: a bare key, an LCD readout and a keyset (a 30px key in its pocket's
+   * 3px and 5px lips) all stand 38px tall, top and bottom aligned.
+   */
+  :root {
+    --row-control: var(--h-key);
+  }
+  /* A legend that is an abbreviation keeps its capitals (GET). */
+  .key.key-caps {
+    text-transform: none;
+  }
+}

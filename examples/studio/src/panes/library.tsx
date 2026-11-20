@@ -18,7 +18,14 @@ import { openFollowing } from "../actions";
 import { useFrame, useTransport } from "../audio/react";
 import { useSessionView } from "../edits";
 import { useServices } from "../services";
-import { clock, SESSIONS, spokenDuration, type SessionData } from "../sessions/sessions";
+import { catalogueOf } from "../sessions/catalog";
+import {
+  clock,
+  sessionById,
+  SESSIONS,
+  spokenDuration,
+  type SessionData,
+} from "../sessions/sessions";
 import {
   drawBars,
   loudest,
@@ -64,6 +71,28 @@ function Library({ node, select, focused, paused, peek }: PaneProps) {
     // Once: later moves come from the person.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // A layout brings its own followers, showing the session they were built or left with, and Jali settles the
+  // library's selection on what they show (the layout's word wins). In Studio the session being worked on is the
+  // one in the transport, so after a layout opens the library selects that one again and its followers come to it.
+  const presetId = useJaliState((s) => s.presetId);
+  const firstPreset = useRef(presetId);
+  useEffect(() => {
+    if (presetId === firstPreset.current) return;
+    firstPreset.current = presetId;
+    const session = engine.get().session;
+    setCursor(session);
+    select(transcript({ session }));
+    // A layout's kept segment (Compare keeps one beside the one that follows) is a segment of the session the
+    // layout was designed on. On another session it would be a dead pane, so it takes this session's first.
+    const first = sessionById(session)?.segments[0];
+    for (const p of jali.model().panes) {
+      if (p.ref.kind !== "clip" || p.follows || p.ref.params.session === session || !first)
+        continue;
+      jali.actions.openHere(p.id, { kind: "clip", params: { session, segment: first.id } });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [presetId]);
 
   useEffect(() => scrollRowIntoView(listRef.current, at), [at]);
 
@@ -153,7 +182,8 @@ function Row({
   const view = useSessionView(edits, session.id);
   const corrected = Object.keys(view?.edits.corrections ?? {}).length;
   const notes = Object.keys(view?.edits.notes ?? {}).length;
-  const speakers = session.speakers.map((p) => view?.speakerName(p.id) ?? p.name);
+  const cat = catalogueOf(session);
+  const tracks = `${session.tracks.length} tracks`;
   return (
     <div
       id={id}
@@ -164,22 +194,25 @@ function Row({
       data-live={live ? "" : undefined}
       className="lib-row"
       onClick={onSelect}
-      aria-label={`${session.title}, ${session.show} episode ${session.episode}, ${spokenDuration(session.duration)}`}
+      // Named by what it shows (WCAG 2.5.3: the name contains the visible words); the running time spoken in full.
+      aria-description={spokenDuration(session.duration)}
     >
-      {/* A cartridge: a paper label with the show and the title, a lamp; a window onto the tape (the waveform);
-          the running time and the voices printed on its foot. */}
+      {/* A cartridge: a paper label with the source and the title, a lamp; a window onto the tape (every track's
+          loudest at each moment); the running time, the track count and the licence printed on its foot. */}
       <span className="lib-lamp" aria-hidden />
       <div className="lib-label">
-        <span className="lib-show">
-          {session.show} · ep {session.episode}
-        </span>
+        <span className="lib-show">{cat.source}</span>
         <b className="lib-title">{session.title}</b>
       </div>
       <Thumbnail session={session} paused={paused} inTransport={inTransport} />
       <div className="lib-meta">
         <span className="mono">{clock(session.duration)}</span>
+        <span className="dot lib-tracks" aria-hidden />
+        <span className="lib-tracks">{tracks}</span>
         <span className="dot" aria-hidden />
-        <span>{speakers.join(" & ")}</span>
+        <span className="lib-licence" title={cat.licence.name}>
+          {cat.licence.short}
+        </span>
       </div>
       {live ? <span className="lib-live">playing</span> : null}
       {corrected || notes ? (

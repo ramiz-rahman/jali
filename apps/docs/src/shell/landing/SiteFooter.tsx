@@ -7,6 +7,7 @@ import { ArrowUpRightIcon } from "@phosphor-icons/react";
 import { REPO_URL } from "../../site/config";
 import { resolvedNav } from "../../site/sources";
 import { Lattice, Lockup } from "../brand";
+import { Maker } from "../../../../../examples/shared/src/maker/maker";
 
 const titleOf = (path: string, fallback: string) =>
   resolvedNav()
@@ -88,7 +89,12 @@ export function SiteFooter() {
             </div>
           ))}
         </nav>
-        <p className="site-footer-legal">Licence to come.</p>
+        <p className="site-footer-legal">
+          <span>
+            Designed and built by <Maker />
+          </span>
+          <span>Licence to come.</span>
+        </p>
       </div>
     </footer>
   );

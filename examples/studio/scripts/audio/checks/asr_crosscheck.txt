@@ -1,0 +1,6 @@
+{"session": "apollo11-landing", "track": "air-ground", "matched_words": 124, "median_abs_ms": 100, "p90_abs_ms": 340, "median_signed_ms": -90}
+{"session": "apollo11-landing", "track": "pao", "matched_words": 6, "median_abs_ms": 90, "p90_abs_ms": 200, "median_signed_ms": -90}
+{"session": "dinner-party", "track": "p05", "matched_words": 38, "median_abs_ms": 60, "p90_abs_ms": 265, "median_signed_ms": -45}
+{"session": "dinner-party", "track": "p06", "matched_words": 52, "median_abs_ms": 50, "p90_abs_ms": 177, "median_signed_ms": -45}
+{"session": "dinner-party", "track": "p08", "matched_words": 32, "median_abs_ms": 80, "p90_abs_ms": 412, "median_signed_ms": -65}
+{"session": "dinner-party", "track": "p07", "matched_words": 78, "median_abs_ms": 70, "p90_abs_ms": 362, "median_signed_ms": -60}

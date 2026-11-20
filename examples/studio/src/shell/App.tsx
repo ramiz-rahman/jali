@@ -7,6 +7,7 @@ import { Toaster, toast } from "sonner";
 import { runCommand, type Jali } from "@jali/core";
 import { JaliRoot, JaliView, useJali, useTheme } from "@jali/react";
 import { ServicesProvider, useServices, type Services } from "../services";
+import { useControlsPlace } from "../ui/controlsPlace";
 import { slashForSearch, spaceForTransport } from "./keys";
 import { StatusLine } from "./StatusLine";
 import { TopBar } from "./TopBar";
@@ -40,11 +41,29 @@ function Toasts() {
       ),
     [jali],
   );
+  // Clear of whatever stands along the bottom: the status line (40px), or the control slab (104px).
+  const bottom = useControlsPlace() === "bottom" ? 116 : 52;
+  // Audio that did not load: say which session and track, and offer the one thing that helps.
+  const { engine } = useServices();
+  useEffect(() => {
+    let told: string | undefined;
+    return engine.subscribe(() => {
+      const t = engine.get();
+      if (t.status !== "error") return void (told = undefined);
+      if (told === t.session) return;
+      told = t.session;
+      toast.error(`The audio for “${engine.session().title}” didn't load`, {
+        description: `${(t.error ?? "").replace(/^Error: /, "")} did not arrive. Check the connection, then try again.`,
+        duration: Infinity,
+        action: { label: "Try again", onClick: () => engine.load(t.session) },
+      });
+    });
+  }, [engine]);
   return (
     <Toaster
       theme={theme}
       position="bottom-right"
-      offset={{ bottom: 40, right: 12 }}
+      offset={{ bottom, right: 12 }}
       toastOptions={{ className: "toast" }}
     />
   );

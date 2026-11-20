@@ -1,0 +1,166 @@
+/*
+ * The library: each session a cartridge.
+ */
+@layer app {
+  /*
+   * ---------- library: each session a cartridge ----------
+   * A raised key of its own (the shared key part): a paper label with the show and the title, a lamp in the corner,
+   * a glass window onto the tape (the waveform), the running time and the voices printed on its foot. The chosen
+   * cartridge sits latched with its lamp lit; the one in the transport says "playing" while it plays. In a wide pane
+   * the cartridges stand side by side.
+   */
+  .library {
+    container: library / inline-size;
+  }
+  .lib-rows {
+    flex: 1;
+    min-height: 0;
+    overflow: auto;
+    padding: 4px 12px 16px;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(232px, 1fr));
+    align-content: start;
+    gap: 12px;
+  }
+  .lib-row {
+    --wall: 4px;
+    position: relative;
+    display: grid;
+    justify-content: stretch;
+    align-items: stretch;
+    gap: 8px;
+    height: auto;
+    padding: 10px 10px 12px;
+    border-radius: var(--corner);
+    white-space: normal;
+    font-family: var(--jali-font);
+    font-size: var(--type-body);
+    text-align: left;
+  }
+  /* Three states, three marks: the chosen cartridge is latched with its lamp steady; the one playing pulses its
+     lamp and prints "playing"; the keyboard's place is the focus ring, only while the list has keyboard focus. */
+  .lib-rows:focus-visible .lib-row[aria-selected="true"] {
+    outline: 1.5px solid var(--legend);
+    outline-offset: 3px;
+  }
+  /* The label: a printed paper sticker on the cartridge. */
+  .lib-label {
+    display: grid;
+    gap: 2px;
+    padding: 8px 28px 8px 10px;
+    border-radius: var(--corner);
+    background: var(--paper);
+    color: var(--paper-ink);
+    box-shadow:
+      inset 0 0 0 1px light-dark(var(--shade-2), var(--shade-6)),
+      0 1px 0 var(--cap-hi);
+  }
+  .lib-lamp {
+    position: absolute;
+    top: 18px;
+    right: 18px;
+    z-index: 1;
+    width: var(--lamp);
+    height: var(--lamp);
+    border-radius: 50%;
+    background: var(--led-off);
+    box-shadow: var(--lamp-socket);
+  }
+  .lib-row[aria-selected="true"] .lib-lamp {
+    background: var(--led-on);
+    box-shadow: var(--lamp-glow);
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .lib-row[data-live] .lib-lamp {
+      animation: lamp-live 1.4s ease-in-out infinite;
+    }
+  }
+  @keyframes lamp-live {
+    50% {
+      box-shadow: var(--lamp-glow-low);
+    }
+  }
+  .lib-show {
+    font-family: var(--jali-font);
+    font-size: var(--type-legend);
+    font-weight: 500;
+    letter-spacing: var(--track-legend);
+    color: var(--paper-dim);
+    line-height: var(--lead-tight);
+    text-wrap: balance;
+  }
+  /* A session's name is never cut: it takes a second line when the pane is narrow. */
+  .lib-title {
+    font-weight: 600;
+    font-size: var(--type-title);
+    line-height: var(--lead-tight);
+    text-wrap: balance;
+  }
+  .lib-wave {
+    height: var(--h-key-s);
+    margin: 0;
+    padding: 0 8px;
+  }
+  .lib-wave canvas,
+  .clip-wave canvas,
+  .tl-lanes canvas {
+    position: relative;
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+  .lib-meta {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 0 2px;
+    font-size: var(--type-control);
+    color: var(--legend);
+    min-width: 0;
+  }
+  .lib-meta > span {
+    white-space: nowrap;
+  }
+  .lib-meta > span:last-child {
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  /* While it plays, the printed word takes the place of the track count, so the cartridge keeps its height and
+     its licence stays in full. */
+  .lib-row[data-live] .lib-tracks {
+    display: none;
+  }
+  .dot {
+    width: 2px;
+    height: 2px;
+    border-radius: 50%;
+    background: currentColor;
+    flex: none;
+  }
+  .lib-live {
+    position: absolute;
+    right: 12px;
+    bottom: 11px;
+    font-family: var(--jali-font);
+    font-size: var(--type-legend);
+    font-weight: 600;
+    color: var(--st-signal-ink);
+    background: inherit;
+  }
+  .lib-tags {
+    display: flex;
+    gap: 4px;
+  }
+  .lib-tags .tag {
+    color: var(--legend);
+    box-shadow: inset 0 0 0 1px var(--seam-dark);
+  }
+  /* The printed "playing" sits at the cartridge's foot: the voices' line makes room for it. */
+  .lib-row[data-live] .lib-meta {
+    --playing: 58px; /* the width of the printed word and its lamp */
+    padding-right: var(--playing);
+  }
+  .lib-licence {
+    font-family: var(--jali-font);
+  }
+}

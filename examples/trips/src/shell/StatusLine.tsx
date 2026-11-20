@@ -3,11 +3,13 @@
  * and a plain note that the businesses and prices are made up.
  */
 import { Shelf, useJali, useJaliState } from "@jali/react";
+import { BuiltWithJali, Maker } from "../../../shared/src/maker/maker";
 
 export function StatusLine() {
   const { keymap } = useJali();
   const zoomed = useJaliState((s) => !!s.view.zoomed);
-  const keys = (id: string, what: string) => (keymap.label(id) ? `${keymap.label(id)} ${what}` : "");
+  const keys = (id: string, what: string) =>
+    keymap.label(id) ? `${keymap.label(id)} ${what}` : "";
   const hint = zoomed
     ? "Maximised. Esc to restore."
     : ["/ find a place", keys("palette.toggle", "commands"), keys("pane.focus.next", "next pane")]
@@ -15,9 +17,13 @@ export function StatusLine() {
         .join(", ");
   return (
     <footer className="status" aria-label="Status">
+      <BuiltWithJali />
       <Shelf />
       <span className="status-hint">{hint}</span>
-      <span className="status-note">Hotels, restaurants and every price (in US dollars) are made up</span>
+      <span className="status-note">
+        Hotels, restaurants and every price (in US dollars) are made up
+      </span>
+      <Maker />
     </footer>
   );
 }

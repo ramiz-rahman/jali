@@ -1,5 +1,5 @@
 /**
- * The timeline: the session's four tracks as waveforms on one time axis, with the markers on a ruler and the
+ * The timeline: the session's tracks (three, four or eight) as waveforms on one time axis, with the markers on a ruler and the
  * playhead across them all. Click or drag to seek; with focus, the arrows step a second (Shift: five), Home and End go
  * to the ends. A short, wide pane: it is built to sit under or over something.
  *
@@ -13,7 +13,15 @@ import { cue } from "../actions";
 import { useFrame, useTransport } from "../audio/react";
 import { audible, channelOf, useSessionView, type SessionView } from "../edits";
 import { useServices } from "../services";
-import { CHANNEL, clock, sessionById, trackName, trackOf, TRACKS } from "../sessions/sessions";
+import {
+  clock,
+  colourOf,
+  hasTranscript,
+  sessionById,
+  trackInput,
+  trackName,
+  trackOf,
+} from "../sessions/sessions";
 import { Missing, NotInTransport } from "../ui/parts";
 import { drawBars, loudest, screenPaletteOf, prepare, trackPeaks, useSize } from "../ui/waveform";
 import { followSession } from "./follow";
@@ -21,8 +29,9 @@ import { followSession } from "./follow";
 const timelineParams = { session: String };
 /** The ruler: a row of timecodes over a row of flags. */
 const RULER = 36;
-/** Each lane's share of the height: the voices first, the sting smallest. */
-const LANE_WEIGHT: Record<string, number> = { "mic-a": 1.2, "mic-b": 1.2, bed: 1, sting: 0.9 };
+/** Each lane's share of the height: a track with words in the transcript a little more than one without. */
+const laneWeight = (withWords: boolean) => (withWords ? 1.25 : 1);
+const pad = (h: number) => Math.max(1.5, Math.min(5, h * 0.12));
 
 function Timeline(props: PaneProps<typeof timelineParams>) {
   const { edits } = useServices();
@@ -40,7 +49,6 @@ function TimelineBody({ paused, view }: PaneProps<typeof timelineParams> & { vie
   const [hover, setHover] = useState<number | null>(null);
   const inTransport = useTransport((s) => s.session === session.id);
   const loading = useTransport((s) => s.session === session.id && s.status === "loading");
-  const rendered = useTransport((s) => s.rendered.includes(session.id));
   const loop = useTransport((s) => (s.session === session.id ? s.loop : null));
   const theme = useTheme();
   const at = useTransport((s) => s.at);
@@ -60,15 +68,16 @@ function TimelineBody({ paused, view }: PaneProps<typeof timelineParams> & { vie
   useActivity(loading ? "loading" : undefined);
 
   const lanes = useMemo(() => {
-    const total = TRACKS.reduce((s, t) => s + LANE_WEIGHT[t.id]!, 0);
+    const weights = session.tracks.map((t) => laneWeight(hasTranscript(session, t.id)));
+    const total = weights.reduce((a, b) => a + b, 0);
     let y = RULER;
-    return TRACKS.map((t) => {
-      const h = ((height - RULER) * LANE_WEIGHT[t.id]!) / total;
+    return session.tracks.map((t, i) => {
+      const h = ((height - RULER) * weights[i]!) / total;
       const lane = { track: t, y, h };
       y += h;
       return lane;
     });
-  }, [height]);
+  }, [height, session]);
 
   const timeAt = (x: number) =>
     Math.max(0, Math.min(session.duration, (x / width) * session.duration));
@@ -84,19 +93,22 @@ function TimelineBody({ paused, view }: PaneProps<typeof timelineParams> & { vie
 
       // The ruler: timecodes printed on its top row, a long tick for each and a short one every second; the flags'
       // row below them.
-      g.font = `500 10px ${getComputedStyle(canvas.current!).getPropertyValue("--font-readout")}`;
+      g.font = `500 11px ${getComputedStyle(canvas.current!).getPropertyValue("--font-readout")}`;
       g.textBaseline = "middle";
-      const every = width / session.duration < 9 ? 20 : 10;
+      // A timecode needs about 52px (its five characters and a gap): the step between labels is the smallest
+      // round number of seconds that gives it that.
+      const perSec = width / session.duration;
+      const every = [5, 10, 20, 30, 60, 120, 300].find((s) => s * perSec >= 52) ?? 600;
       const perSecond = width / session.duration >= 6;
       for (let t = 0; t <= session.duration; t += 1) {
         const major = t % every === 0;
-        const mid = t % 5 === 0;
+        const mid = t % (every >= 60 ? 10 : 5) === 0;
         if (!major && !mid && !perSecond) continue;
         g.fillStyle = major ? c.lineStrong : c.line;
         const top = major ? 2 : mid ? RULER - 8 : RULER - 4;
         g.fillRect(Math.round(x(t)), top, 1, major ? 12 : RULER - top);
         if (major) g.fillRect(Math.round(x(t)), RULER - 8, 1, 8);
-        if (major && x(t) < width - 34) {
+        if (major && x(t) < width - 40) {
           g.fillStyle = c.subtle;
           g.fillText(clock(t), Math.round(x(t)) + 4, 8);
         }
@@ -113,7 +125,7 @@ function TimelineBody({ paused, view }: PaneProps<typeof timelineParams> & { vie
       }
 
       for (const { track, y, h } of lanes) {
-        const live = audible(view.edits, track.id);
+        const live = audible(view.edits, track.id, session.tracks);
         g.globalAlpha = live ? 1 : 0.35;
         if (track.kind === "voice") {
           for (const seg of session.segments) {
@@ -136,15 +148,16 @@ function TimelineBody({ paused, view }: PaneProps<typeof timelineParams> & { vie
             }
           }
         }
-        const peaks = trackPeaks(engine, session, track.id);
-        if (peaks) {
+        const peaks = trackPeaks(session, track.id);
+        {
           drawBars(
             g,
             peaks,
-            { x: 0, y: y + 5, w: width, h: h - 10 },
+            // A lane keeps 5px of glass above and below its bars, less when eight tracks share a short pane.
+            { x: 0, y: y + pad(h), w: width, h: h - 2 * pad(h) },
             { from: 0, to: session.duration },
             {
-              idle: track.kind === "voice" ? c.idle : c.music,
+              idle: hasTranscript(session, track.id) ? c.idle : c.music,
               played: c.played,
               bar: 2,
               gap: 1,
@@ -153,9 +166,6 @@ function TimelineBody({ paused, view }: PaneProps<typeof timelineParams> & { vie
             null,
             0.95 / loudest(peaks),
           );
-        } else {
-          g.fillStyle = c.faint;
-          g.fillText(loading ? "Rendering…" : "", 8, y + h / 2);
         }
         g.globalAlpha = 1;
         g.fillStyle = c.line;
@@ -219,28 +229,26 @@ function TimelineBody({ paused, view }: PaneProps<typeof timelineParams> & { vie
         g.fillRect(px - 5, 2, 10, 1);
       }
     },
-    [width, height, lanes, selected, loop, theme, rendered, hover, view, inTransport, at],
+    [width, height, lanes, selected, loop, theme, hover, view, inTransport, at],
   );
 
-  // Drag to scrub: the sound pauses while the pointer is down and plays on from where it lets go.
-  const drag = useRef<{ wasPlaying: boolean } | null>(null);
+  // Drag to scrub: the sound follows the pointer, and plays on from where it rests.
+  const drag = useRef(false);
   const onPointerDown = (e: PointerEvent<HTMLDivElement>) => {
     if (e.button !== 0) return;
     e.currentTarget.setPointerCapture(e.pointerId);
     const t = timeAt(e.clientX - e.currentTarget.getBoundingClientRect().left);
     if (!inTransport) return cue(engine, session.id, t);
-    drag.current = { wasPlaying: engine.get().playing };
-    engine.pause();
-    engine.seek(t);
+    drag.current = true;
+    engine.scrub(t);
   };
   const onPointerMove = (e: PointerEvent<HTMLDivElement>) => {
     const px = e.clientX - e.currentTarget.getBoundingClientRect().left;
     setHover(px);
-    if (drag.current) engine.seek(timeAt(px));
+    if (drag.current) engine.scrub(timeAt(px));
   };
   const onPointerUp = () => {
-    if (drag.current?.wasPlaying) engine.play();
-    drag.current = null;
+    drag.current = false;
   };
   const onKeyDown = (e: KeyboardEvent) => {
     if (e.metaKey || e.ctrlKey || e.altKey) return;
@@ -273,7 +281,8 @@ function TimelineBody({ paused, view }: PaneProps<typeof timelineParams> & { vie
       if (e.ctrlKey) return; // pinch-zoom is the browser's
       e.preventDefault();
       const d = Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.deltaY;
-      cue(engine, session.id, engine.position() + d / 100, inTransport && engine.get().playing);
+      if (inTransport) engine.scrub(engine.position() + d / 100);
+      else cue(engine, session.id, engine.position() + d / 100);
     };
     el.addEventListener("wheel", on, { passive: false });
     return () => el.removeEventListener("wheel", on);
@@ -294,15 +303,15 @@ function TimelineBody({ paused, view }: PaneProps<typeof timelineParams> & { vie
               <li
                 key={track.id}
                 style={{ height: h }}
-                data-channel={CHANNEL[track.id]}
-                data-silent={audible(view.edits, track.id) ? undefined : ""}
+                data-channel={colourOf(session, track.id)}
+                data-silent={audible(view.edits, track.id, session.tracks) ? undefined : ""}
                 data-short={h < 38 ? "" : undefined}
                 data-compact={compact ? "" : undefined}
-                title={`${track.label}: ${trackName(track, view.speakerName)}`}
+                title={`${trackInput(track)}: ${trackName(track, view.speakerName, view.session)}`}
               >
                 <span className="mx-lamp" />
-                <span className="tl-track">{track.label}</span>
-                <span className="tl-who">{trackName(track, view.speakerName)}</span>
+                <span className="tl-track">{trackInput(track)}</span>
+                <span className="tl-who">{trackName(track, view.speakerName, view.session)}</span>
                 <span className="tl-ms">
                   <span className="tl-m" data-on={ch.mute ? "" : undefined}>
                     M

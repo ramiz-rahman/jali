@@ -1,0 +1,149 @@
+{
+ "apollo11-landing": {
+  "tracks": {
+   "air-ground": {
+    "bytes": 1278548,
+    "samples": 6816000,
+    "seconds": 213.0,
+    "peak_dbfs": -4.28,
+    "clipped_samples": 0
+   },
+   "flight-loop": {
+    "bytes": 1278548,
+    "samples": 6816000,
+    "seconds": 213.0,
+    "peak_dbfs": -1.51,
+    "clipped_samples": 0
+   },
+   "pao": {
+    "bytes": 1278548,
+    "samples": 6816000,
+    "seconds": 213.0,
+    "peak_dbfs": -5.65,
+    "clipped_samples": 0
+   }
+  },
+  "problems": [],
+  "same_length": true,
+  "decoded_seconds": 213.0,
+  "json_duration": 213.0,
+  "bytes_total": 3940944,
+  "segments": 48,
+  "words": 270,
+  "text_matches_source": true,
+  "energy_checked_words": 254,
+  "energy_suspect_words": []
+ },
+ "dinner-party": {
+  "tracks": {
+   "p05": {
+    "bytes": 637964,
+    "samples": 4080000,
+    "seconds": 127.5,
+    "peak_dbfs": -1.48,
+    "clipped_samples": 0
+   },
+   "p06": {
+    "bytes": 637964,
+    "samples": 4080000,
+    "seconds": 127.5,
+    "peak_dbfs": -1.41,
+    "clipped_samples": 0
+   },
+   "p07": {
+    "bytes": 637964,
+    "samples": 4080000,
+    "seconds": 127.5,
+    "peak_dbfs": -1.47,
+    "clipped_samples": 0
+   },
+   "p08": {
+    "bytes": 637964,
+    "samples": 4080000,
+    "seconds": 127.5,
+    "peak_dbfs": -1.46,
+    "clipped_samples": 0
+   }
+  },
+  "problems": [],
+  "same_length": true,
+  "decoded_seconds": 127.5,
+  "json_duration": 127.5,
+  "bytes_total": 2632553,
+  "segments": 37,
+  "words": 316,
+  "text_matches_source": true,
+  "energy_checked_words": 297,
+  "energy_suspect_words": []
+ },
+ "light-caught-by-the-stone": {
+  "tracks": {
+   "drums": {
+    "bytes": 797230,
+    "samples": 6458034,
+    "seconds": 146.4407,
+    "peak_dbfs": -2.65,
+    "clipped_samples": 0
+   },
+   "bass": {
+    "bytes": 584006,
+    "samples": 6458034,
+    "seconds": 146.4407,
+    "peak_dbfs": -4.45,
+    "clipped_samples": 0
+   },
+   "guitars": {
+    "bytes": 615622,
+    "samples": 6458034,
+    "seconds": 146.4407,
+    "peak_dbfs": -16.36,
+    "clipped_samples": 0
+   },
+   "keys": {
+    "bytes": 759429,
+    "samples": 6458034,
+    "seconds": 146.4407,
+    "peak_dbfs": -9.85,
+    "clipped_samples": 0
+   },
+   "horns": {
+    "bytes": 655568,
+    "samples": 6458034,
+    "seconds": 146.4407,
+    "peak_dbfs": -4.45,
+    "clipped_samples": 0
+   },
+   "vox1": {
+    "bytes": 778795,
+    "samples": 6458034,
+    "seconds": 146.4407,
+    "peak_dbfs": -15.28,
+    "clipped_samples": 0
+   },
+   "vox2": {
+    "bytes": 730588,
+    "samples": 6458034,
+    "seconds": 146.4407,
+    "peak_dbfs": -17.11,
+    "clipped_samples": 0
+   },
+   "chorus": {
+    "bytes": 742296,
+    "samples": 6458034,
+    "seconds": 146.4407,
+    "peak_dbfs": -9.09,
+    "clipped_samples": 0
+   }
+  },
+  "problems": [],
+  "same_length": true,
+  "decoded_seconds": 146.4407,
+  "json_duration": 146.441,
+  "bytes_total": 5812818,
+  "segments": 25,
+  "words": 135,
+  "text_matches_source": true,
+  "energy_checked_words": 133,
+  "energy_suspect_words": []
+ }
+}

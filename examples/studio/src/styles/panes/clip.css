@@ -1,0 +1,231 @@
+/*
+ * The segment detail: one small device, with its waveform, its fields and the note.
+ */
+@layer app {
+  .clip {
+    overflow: auto;
+    gap: 12px;
+    padding: 0 0 16px;
+    container: clip / inline-size;
+  }
+  .clip > * {
+    flex: none;
+    margin-inline: 12px;
+  }
+  .clip > .not-live {
+    margin-inline: 10px;
+  }
+  .clip-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 8px;
+    padding-top: 12px;
+  }
+  .clip-range {
+    font-size: var(--type-legend);
+    color: var(--legend);
+    font-family: var(--font-readout);
+  }
+  .clip-wave {
+    padding: 0 8px;
+    cursor: pointer;
+    touch-action: none;
+    height: 96px;
+  }
+  .clip-controls {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: stretch;
+    gap: 10px;
+  }
+  .clip-stats {
+    margin-left: auto;
+    font-size: var(--type-legend);
+    color: var(--legend);
+    font-family: var(--font-readout);
+  }
+  /* Speaker and track: an LCD window. */
+  .clip-fields {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 0;
+    margin-block: 0;
+    padding: 8px 4px;
+    font-family: var(--font-readout);
+  }
+  .clip-fields > div {
+    display: grid;
+    gap: 2px;
+    padding: 0 10px;
+    /* A long name (a duo, "Speaker 1 (P05)") shortens in its field; the track keeps its own room. */
+    min-width: 0;
+  }
+  .clip-fields > div + div {
+    border-left: 1px solid var(--lcd-ghost);
+  }
+  .clip-fields dt {
+    font-family: var(--font-readout);
+    font-size: var(--type-fine);
+    text-transform: lowercase;
+    color: var(--lcd-dim);
+  }
+  .clip-fields dd {
+    margin: 0;
+    font-family: var(--font-readout);
+    font-size: var(--type-body);
+    min-width: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .clip-fields select {
+    max-width: 100%;
+    text-overflow: ellipsis;
+    margin-left: -4px;
+    padding: 2px;
+    border: 0;
+    border-radius: var(--corner);
+    background: none;
+    color: var(--lcd-ink);
+    font-family: var(--font-readout);
+    font-weight: 500;
+    cursor: pointer;
+  }
+  .clip-fields select:hover {
+    background: var(--lcd-ghost);
+  }
+  .clip-text {
+    margin-block: 0;
+    padding: 12px 16px;
+    border-left: 3px solid transparent;
+    line-height: var(--lead-read);
+    font-size: var(--type-title);
+  }
+  .clip-text[data-corrected] {
+    border-left-color: var(--st-signal);
+  }
+  .clip-text footer {
+    margin-top: 6px;
+    font-size: var(--type-control);
+    color: var(--paper-dim);
+  }
+  .clip-note {
+    display: grid;
+    gap: 6px;
+  }
+  .clip-controls .keyset .key {
+    height: var(--h-key);
+  }
+  .clip-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: stretch;
+  }
+  .clip-row > .clip-controls {
+    flex: none;
+  }
+  .clip-row > .clip-fields {
+    flex: 1 1 220px;
+    margin: 0;
+  }
+  .clip-row .keyset {
+    height: 100%;
+    box-sizing: border-box;
+  }
+  :is(.toolbar, .clip-row) > :is(.key, .lcd, .tr-counter, .keyset, select),
+  .toolbar > .toolbar-end > :is(.key, .keyset) {
+    height: var(--row-control);
+    box-sizing: border-box;
+  }
+  :is(.toolbar, .clip-row) .keyset > .key {
+    height: 100%;
+    min-height: 0;
+  }
+  :is(.toolbar, .clip-row) .keyset > .key-square {
+    width: 30px;
+    aspect-ratio: auto;
+  }
+  /*
+   * ---------- the segment's note: one recess ----------
+   * The page and its row of keys stand in one pocket, a seam apart, so the note reads as one part: write on the
+   * page, and the row under it says whether that is saved and holds the two keys that act on it. The page is flush
+   * in the pocket (no recess of its own) and grows with what is written. Focus is one orange line round the page.
+   */
+  .notepad {
+    flex-direction: column;
+  }
+  .notepad textarea {
+    display: block;
+    width: 100%;
+    min-height: 76px;
+    max-height: 240px;
+    field-sizing: content;
+    resize: none;
+    padding: 8px 12px;
+    font-size: var(--type-body);
+    line-height: var(--lead-body);
+    outline: none;
+    box-shadow: inset 0 0 0 1px var(--paper-rule);
+  }
+  .notepad textarea:focus,
+  .notepad textarea:focus-visible {
+    outline: none;
+    box-shadow: inset 0 0 0 2px var(--focus);
+  }
+  .notepad-keys {
+    display: flex;
+    align-items: stretch;
+    gap: var(--seam);
+    height: var(--h-key-s);
+  }
+  .notepad-keys > .key {
+    height: 100%;
+    min-height: 0;
+    padding-inline: 12px;
+    white-space: nowrap;
+  }
+  .notepad-keys kbd {
+    margin-left: 6px;
+    text-transform: none;
+  }
+  /* Nothing to save: the orange key goes grey with its neighbour, so orange here always means "press me". */
+  .notepad-keys > .key-accent:disabled {
+    filter: saturate(0);
+  }
+  /* The state: a plain plate with a lamp, lit while the page holds something not saved. */
+  .notepad-state {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding-inline: 10px;
+    border-radius: var(--corner);
+    background: light-dark(var(--lit-5), var(--lit-1));
+    font-family: var(--jali-font-mono);
+    font-size: var(--type-legend);
+    color: var(--legend);
+    white-space: nowrap;
+    overflow: hidden;
+  }
+  .notepad[data-dirty] .notepad-state {
+    color: var(--ink);
+  }
+  /* A narrow pane: the state takes its own line above the keys. */
+  @container clip (width < 300px) {
+    .notepad-keys {
+      height: auto;
+      flex-wrap: wrap;
+    }
+    .notepad-state {
+      flex: 1 0 100%;
+      height: var(--h-key-s);
+    }
+    .notepad-keys > .key {
+      flex: 1;
+      height: var(--h-key-s);
+    }
+  }
+}

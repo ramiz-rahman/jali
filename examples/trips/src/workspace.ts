@@ -5,6 +5,7 @@
  */
 import { createJali, type Command, type Jali, type JaliOptions } from "@jali/core";
 import { unstable_popOut } from "@jali/react";
+import { makerCommand } from "../../shared/src/maker/maker";
 import { selectPlace, showDay } from "./actions";
 import { budget } from "./panes/budget";
 import { day } from "./panes/day";
@@ -155,7 +156,7 @@ export function createTripsJali(services: Services, options: Options = {}): Jali
     panes: kinds,
     launcher,
     presets,
-    commands,
+    commands: [...commands, makerCommand],
     name: "Trip",
     keymap: { "trips.go": "Mod+K Mod+P", "trips.optimise": "Mod+K Mod+O" },
     // A new prefix for the Thailand trip, so pane state saved for the Lisbon one (a cursor on a Lisbon place) is left behind.

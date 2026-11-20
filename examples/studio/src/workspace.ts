@@ -7,7 +7,10 @@
  * so nothing of Jali's needs moving; the app takes Space itself (shell/keys.ts) and names it in `reservedKeys`, so a
  * later Jali binding on Space would be refused at start-up rather than fight the transport.
  */
+import { credits } from "./panes/credits";
+import { catalogueOf } from "./sessions/catalog";
 import { copyLink, createJali, type Command, type Jali, type JaliOptions } from "@jali/core";
+import { makerCommand } from "../../shared/src/maker/maker";
 import { cue, show } from "./actions";
 import { SPEEDS } from "./audio/engine";
 import { viewOf } from "./edits";
@@ -21,9 +24,11 @@ import { transcript } from "./panes/transcript";
 import { presets } from "./presets";
 import type { Services } from "./services";
 import { clock, opening, SESSIONS, sessionById } from "./sessions/sessions";
+import { controlsPlace, setControlsPlace } from "./ui/controlsPlace";
+import { feelSounds, setFeelSounds } from "./ui/feel";
 import { HEADER_BUTTONS, headerButtons, setHeaderButtons } from "./ui/headerButtons";
 
-export const kinds = [library, transcript, timeline, mixer, markers, clip];
+export const kinds = [library, transcript, timeline, mixer, markers, clip, credits];
 
 type Options = Pick<
   JaliOptions,
@@ -32,6 +37,14 @@ type Options = Pick<
   /** A short message for the person ("Marker added at 00:42"). */
   notify?: (text: string) => void;
 };
+
+/** The layout in use back to its design: forget how it was left, then let Jali rebuild it (it asks about unsaved
+ *  work first). */
+export function resetLayout(jali: Jali, services: Services) {
+  const id = jali.get().presetId;
+  if (id) services.layouts.forget(id);
+  return jali.actions.resetLayout();
+}
 
 export function createStudioJali(services: Services, options: Options = {}): Jali {
   const { notify = () => {}, ...jaliOptions } = options;
@@ -79,7 +92,8 @@ export function createStudioJali(services: Services, options: Options = {}): Jal
           title: "Go to segment…",
           items: v.session.segments,
           label: (seg) => opening(v.textOf(seg), 9),
-          hint: (seg) => `${clock(seg.start)} · ${v.speakerName(v.speakerOf(seg))}`,
+          // Who, then when: the list sets hints flush right, so the times line up down its edge.
+          hint: (seg) => `${v.speakerName(v.speakerOf(seg))}  ${clock(seg.start)}`,
           placeholder: "A word, a name or a time",
           onChoose: (seg) => {
             cue(engine, v.session.id, seg.start, engine.get().playing);
@@ -149,7 +163,7 @@ export function createStudioJali(services: Services, options: Options = {}): Jal
           title: "Open session…",
           items: SESSIONS,
           label: (s) => s.title,
-          hint: (s) => `${s.show} · Ep ${s.episode}`,
+          hint: (s) => `${catalogueOf(s).source} · ${s.tracks.length} tracks`,
           onChoose: (s) => {
             const lib = jali.model().panes.find((p) => p.ref.kind === "library");
             if (lib) jali.actions.select(lib.id, transcript({ session: s.id }));
@@ -168,6 +182,18 @@ export function createStudioJali(services: Services, options: Options = {}): Jal
       title: "Show the markers",
       group: "Studio",
       run: (jali) => show(jali, markers({ session: engine.get().session })),
+    },
+    {
+      id: "studio.credits",
+      title: "Credits and licences",
+      group: "Studio",
+      run: (jali) => show(jali, credits()),
+    },
+    {
+      id: "studio.reset",
+      title: "Reset this layout to its design",
+      group: "Studio",
+      run: (jali) => resetLayout(jali, services),
     },
     {
       id: "studio.copy-link",
@@ -190,6 +216,21 @@ export function createStudioJali(services: Services, options: Options = {}): Jal
         }),
     },
     {
+      id: "studio.controls-place",
+      title: "Controls: move to the bottom / top",
+      group: "Settings",
+      run: () => setControlsPlace(controlsPlace() === "top" ? "bottom" : "top"),
+    },
+    {
+      id: "studio.feel-sounds",
+      title: "Key and dial sounds: turn on or off",
+      group: "Settings",
+      run: () => {
+        setFeelSounds(!feelSounds());
+        notify(feelSounds() ? "Key and dial sounds are on" : "Key and dial sounds are off");
+      },
+    },
+    {
       id: "studio.theme",
       title: "Switch between light and dark",
       group: "Settings",
@@ -202,18 +243,24 @@ export function createStudioJali(services: Services, options: Options = {}): Jal
     },
   ];
 
-  return createJali({
+  const jali = createJali({
     panes: kinds,
     launcher,
-    presets,
-    commands,
+    // Each layout comes back as the person left it; Reset builds its design again.
+    presets: presets.map((p) => ({ ...p, saved: () => services.layouts.get(p.id) })),
+    commands: [...commands, makerCommand],
     name: "Studio",
     // Bound like Jali's own commands: ⌘K then ⌘P plays, ⌘K then ⌘J goes to a segment.
     keymap: { "studio.play": "Mod+K Mod+P", "studio.segment": "Mod+K Mod+J" },
     // Space is the transport's (shell/keys.ts). Jali binds nothing to it; this keeps it that way.
     reservedKeys: ["Space"],
+    // Header shortcuts: Maximise and Close. Tuck, Full screen and Pop out are in the pane's ⋯ menu (and ⌘K), so a
+    // header carries two keys and the pane's name stays its strongest mark.
+    buttons: (defaults) => defaults.filter((b) => b !== "tuck"),
     storage: "studio",
     phone: { stack: true },
     ...jaliOptions,
   });
+  services.layouts.track(jali);
+  return jali;
 }

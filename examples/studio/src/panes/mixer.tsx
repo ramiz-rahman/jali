@@ -13,7 +13,7 @@ import { definePane, useActivity, useCommands, useTheme, type PaneProps } from "
 import { useFrame, useTransport } from "../audio/react";
 import { channelOf, useSessionView, type SessionView } from "../edits";
 import { useServices } from "../services";
-import { CHANNEL, sessionById, TRACKS, trackName, type Track } from "../sessions/sessions";
+import { colourOf, sessionById, trackInput, trackName, type Track } from "../sessions/sessions";
 import { Empty, Missing, NotInTransport } from "../ui/parts";
 import { dbToFader, Fader } from "../ui/Fader";
 import { PanDial } from "../ui/Knob";
@@ -49,7 +49,9 @@ function Mixer({ params, paused, openHere }: PaneProps<typeof mixerParams>) {
       id: "unmute",
       title: "Unmute and unsolo every track",
       run: () =>
-        TRACKS.forEach((t) => edits.setChannel(params.session, t.id, { mute: false, solo: false })),
+        sessionById(params.session)?.tracks.forEach((t) =>
+          edits.setChannel(params.session, t.id, { mute: false, solo: false }),
+        ),
     },
   ]);
 
@@ -57,8 +59,13 @@ function Mixer({ params, paused, openHere }: PaneProps<typeof mixerParams>) {
   return (
     <div className="pane-body mixer">
       {!inTransport ? <NotInTransport session={params.session} /> : null}
-      <div className="mx-modules" role="group" aria-label={`Mixer for ${view.session.title}`}>
-        {TRACKS.map((t) => (
+      <div
+        className="mx-modules"
+        role="group"
+        aria-label={`Mixer for ${view.session.title}`}
+        data-count={view.session.tracks.length}
+      >
+        {view.session.tracks.map((t) => (
           <Strip key={t.id} track={t} view={view} />
         ))}
         <Master view={view} />
@@ -67,8 +74,6 @@ function Mixer({ params, paused, openHere }: PaneProps<typeof mixerParams>) {
     </div>
   );
 }
-
-const CAPS = CHANNEL;
 
 /** The printed scale beside every fader and meter: its ticks sit where the cap's centre line sits for that dB. */
 const TICKS = [6, 0, -6, -12, -24, -48];
@@ -82,7 +87,8 @@ function Scale() {
           data-zero={db === 0 ? "" : undefined}
           style={{ bottom: `${dbToFader(db) * 100}%` }}
         >
-          <span>{db > 0 ? `+${db}` : db}</span>
+          {/* As a console prints it: +6 above the line, plain numbers below. A minus beside each tick reads as two. */}
+          <span>{db > 0 ? `+${db}` : Math.abs(db)}</span>
         </li>
       ))}
     </ol>
@@ -98,19 +104,19 @@ function Strip({ track, view }: { track: Track; view: SessionView }) {
   const { edits } = useServices();
   const ch = channelOf(view.edits, track.id);
   const session = view.session.id;
-  const name = trackName(track, view.speakerName);
-  const anySolo = TRACKS.some((t) => channelOf(view.edits, t.id).solo);
+  const name = trackName(track, view.speakerName, view.session);
+  const anySolo = view.session.tracks.some((t) => channelOf(view.edits, t.id).solo);
   const silent = ch.mute || (anySolo && !ch.solo);
   return (
     <section
       className="mx-module"
-      data-channel={CAPS[track.id]}
+      data-channel={colourOf(view.session, track.id)}
       data-silent={silent ? "" : undefined}
       aria-label={`${track.label}, ${name}`}
     >
       <header className="mx-scribble">
         <span className="mx-lamp" aria-hidden />
-        <span className="mx-label">{track.label}</span>
+        <span className="mx-label">{trackInput(track)}</span>
         <span className="mx-name" title={name}>
           {name}
         </span>
@@ -119,7 +125,7 @@ function Strip({ track, view }: { track: Track; view: SessionView }) {
         <PanDial
           label={`Pan for ${track.label}`}
           value={Math.round(ch.pan * 100)}
-          cap={CAPS[track.id]}
+          cap={colourOf(view.session, track.id)}
           valueText={panText(ch.pan)}
           onChange={(v: number) => edits.setChannel(session, track.id, { pan: v / 100 })}
         />
@@ -153,7 +159,10 @@ function Strip({ track, view }: { track: Track; view: SessionView }) {
           onClick={() => edits.setChannel(session, track.id, { mute: !ch.mute })}
         >
           <span className="led" aria-hidden />
-          mute
+          <span className="mx-word">mute</span>
+          <span className="mx-short" aria-hidden>
+            M
+          </span>
         </button>
         <button
           type="button"
@@ -166,7 +175,10 @@ function Strip({ track, view }: { track: Track; view: SessionView }) {
           onClick={() => edits.setChannel(session, track.id, { solo: !ch.solo })}
         >
           <span className="led" aria-hidden />
-          solo
+          <span className="mx-word">solo</span>
+          <span className="mx-short" aria-hidden>
+            S
+          </span>
         </button>
       </div>
     </section>

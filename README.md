@@ -31,4 +31,8 @@ Data Studio and Loan review share a sample database, panes and chrome in [`examp
 - `pnpm e2e`: Jali's browser tests (`e2e/`), against Data Studio and Loan review. Set `DATA_STUDIO_URL` and `LOAN_REVIEW_URL` to run them on other ports.
 - `pnpm typecheck`, `pnpm size`.
 
+The examples are held to [docs/EXAMPLES-STANDARD.md](docs/EXAMPLES-STANDARD.md).
+
+Jali and its example apps are designed and built by [Ramiz Rahman](https://ramizrahman.com/).
+
 See [docs/BRIEF.md](docs/BRIEF.md) for how it came to be, and [docs/DECISIONS.md](docs/DECISIONS.md) for every decision since.

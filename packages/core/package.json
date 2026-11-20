@@ -2,6 +2,7 @@
   "name": "@jali/core",
   "version": "0.0.0",
   "description": "Jali's framework-free core: a layout tree of panes that fits the space it has, a workspace store with undo, focus and follow, keyboard commands, and ports for the URL and storage.",
+  "author": "Ramiz Rahman (https://ramizrahman.com/)",
   "license": "Apache-2.0",
   "files": [
     "dist",

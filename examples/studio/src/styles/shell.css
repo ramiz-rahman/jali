@@ -8,8 +8,8 @@
   }
   body {
     font-family: var(--jali-font);
-    font-size: 14px;
-    line-height: 1.45;
+    font-size: var(--type-body);
+    line-height: var(--lead-body);
     background: var(--jali-canvas);
     color: var(--ink);
     -webkit-font-smoothing: antialiased;
@@ -23,10 +23,9 @@
   }
   ::selection {
     background: var(--st-signal);
-    color: #170a03;
+    color: var(--on-signal);
   }
 }
-
 @layer app {
   .app {
     height: 100dvh;
@@ -34,11 +33,7 @@
     grid-template-rows: auto minmax(0, 1fr) auto;
     /* The desk mat: a soft pool of light from above, no texture. */
     background:
-      radial-gradient(
-        120% 80% at 50% 0%,
-        light-dark(rgb(255 255 255 / 0.35), rgb(255 255 255 / 0.03)),
-        transparent 70%
-      ),
+      radial-gradient(120% 80% at 50% 0%, light-dark(var(--lit-4), var(--lit-1)), transparent 70%),
       var(--jali-canvas);
   }
   .sr-only {
@@ -51,12 +46,12 @@
   }
   .mono {
     font-family: var(--font-readout);
-    letter-spacing: -0.01em;
+    letter-spacing: var(--track-readout);
     font-variant-numeric: tabular-nums;
   }
   kbd {
     font-family: var(--jali-font-mono);
-    font-size: 10.5px;
+    font-size: var(--type-fine);
     color: inherit;
     opacity: 0.75;
   }
@@ -64,7 +59,6 @@
     outline: 2px solid var(--focus);
     outline-offset: 2px;
   }
-
   /*
    * ---------- the top bar: one slab ----------
    * A single body of bead-blasted aluminium, flush to the window's top, left and right. Only its foot is an edge: a
@@ -82,12 +76,11 @@
     background:
       var(--grain), var(--slab-falloff), linear-gradient(180deg, var(--slab-1), var(--slab-2));
     box-shadow:
-      inset 0 -1px 0 light-dark(rgb(255 255 255 / 0.9), rgb(255 255 255 / 0.1)),
-      inset 0 -3px 0
-        light-dark(rgb(0 0 0 / calc(0.04 * var(--sh))), rgb(0 0 0 / calc(0.25 * var(--sh)))),
-      0 1px 0 light-dark(rgb(0 0 0 / calc(0.32 * var(--sh))), #000),
-      0 2px 1px light-dark(rgb(0 0 0 / calc(0.12 * var(--sh))), rgb(0 0 0 / calc(0.5 * var(--sh)))),
-      0 10px 16px -10px rgb(0 0 0 / calc(0.45 * var(--sh)));
+      inset 0 -1px 0 light-dark(var(--lit-6), var(--lit-3)),
+      inset 0 -3px 0 light-dark(var(--shade-1), var(--shade-4)),
+      0 1px 0 light-dark(var(--shade-5), var(--black)),
+      0 2px 1px light-dark(var(--shade-3), var(--shade-6)),
+      0 10px 16px -10px var(--shade-6);
   }
   /* The row inside the slab: one flex row, real gaps, nothing positioned. How it gives way is measured (`useFit`
      in TopBar.tsx), so its content always fits. */
@@ -138,7 +131,6 @@
     flex: none;
     --wall: var(--d-cap);
   }
-
   /* The identity: the mark and the name, engraved straight into the slab. */
   .badge {
     flex-direction: row;
@@ -151,9 +143,7 @@
   }
   .brand-mark {
     fill: currentColor;
-    filter: drop-shadow(
-      0 1px 0 light-dark(rgb(255 255 255 / 0.85), rgb(0 0 0 / calc(0.6 * var(--sh))))
-    );
+    filter: drop-shadow(0 1px 0 light-dark(var(--lit-6), var(--shade-7)));
   }
   .brand-mark-hot {
     fill: var(--st-signal);
@@ -161,14 +151,13 @@
   .badge-name {
     font-family: var(--jali-font);
     font-weight: 600;
-    font-size: 22px;
-    letter-spacing: 0.08em;
-    color: light-dark(#4f4f4b, #a5a5aa);
+    font-size: var(--type-display-small);
+    letter-spacing: var(--track-wide);
+    color: var(--legend);
     text-shadow:
-      0 -1px 0 light-dark(rgb(0 0 0 / calc(0.18 * var(--sh))), rgb(0 0 0 / calc(0.7 * var(--sh)))),
-      0 1px 0 light-dark(rgb(255 255 255 / 0.9), rgb(255 255 255 / 0.08));
+      0 -1px 0 light-dark(var(--shade-3), var(--shade-7)),
+      0 1px 0 light-dark(var(--lit-6), var(--lit-2));
   }
-
   /* Layouts. */
   .pocket > .layout-key {
     width: var(--layout-cell);
@@ -189,7 +178,6 @@
     outline: 2px solid var(--focus);
     outline-offset: 2px;
   }
-
   /* The display: the heart of the instrument. */
   .player-cutout {
     flex: 1 1 auto;
@@ -204,23 +192,18 @@
     grid-template-rows: auto auto 1fr;
     align-content: center;
     gap: 4px;
-    padding: 9px 14px 0;
+    padding: 8px 12px 0;
     box-sizing: border-box;
     border-radius: 1px;
     font-family: var(--font-readout);
-    box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.03);
+    box-shadow: inset 0 0 0 1px var(--lit-1);
     overflow: hidden;
   }
   /* A faint reflection: a soft diagonal sheen over the top of the glass. */
   .player-display::after {
     inset: 0;
     border-radius: 0;
-    background: linear-gradient(
-      172deg,
-      rgb(255 255 255 / 0.07) 0%,
-      rgb(255 255 255 / 0.02) 38%,
-      transparent 39%
-    );
+    background: linear-gradient(172deg, var(--lit-2) 0%, var(--lit-1) 38%, transparent 39%);
   }
   .pd-line {
     display: flex;
@@ -231,7 +214,7 @@
   }
   .pd-title {
     font-family: var(--jali-font);
-    font-size: 14px;
+    font-size: var(--type-body);
     font-weight: 500;
     color: var(--scr-ink);
     white-space: nowrap;
@@ -241,7 +224,7 @@
   }
   .pd-show {
     flex: none;
-    font-size: 10.5px;
+    font-size: var(--type-fine);
     color: var(--scr-dim);
     white-space: nowrap;
   }
@@ -253,18 +236,18 @@
     font-variant-numeric: tabular-nums;
   }
   .tp-now {
-    font-size: 25px;
-    letter-spacing: 0.02em;
+    font-size: var(--type-display);
+    letter-spacing: var(--track-print);
     color: var(--scr-ink);
-    text-shadow: 0 0 10px rgb(255 255 255 / 0.18);
+    text-shadow: 0 0 10px var(--lit-3);
   }
   .pd-total {
-    font-size: 11px;
+    font-size: var(--type-legend);
     color: var(--scr-dim);
   }
   .pd-state {
     margin-left: auto;
-    font-size: 11px;
+    font-size: var(--type-legend);
     color: var(--scr-hot);
     white-space: nowrap;
   }
@@ -275,14 +258,14 @@
     position: relative;
     align-self: end;
     height: 2px;
-    margin: 0 -14px;
-    background: rgb(255 255 255 / 0.08);
+    margin: 0 -12px;
+    background: var(--lit-2);
   }
   .pd-progress span {
     position: absolute;
     inset: 0 auto 0 0;
     background: var(--scr-hot);
-    box-shadow: 0 0 6px rgb(255 106 31 / 0.55);
+    box-shadow: var(--scr-glow);
   }
   /* Lay the display out for the width it has: the series goes before anything is cut. */
   @container (max-width: 300px) {
@@ -297,7 +280,7 @@
       display: none;
     }
     .tp-now {
-      font-size: 21px;
+      font-size: var(--type-display-small);
     }
   }
   @container (max-width: 176px) {
@@ -305,7 +288,7 @@
       display: none;
     }
     .pd-title {
-      font-size: 12px;
+      font-size: var(--type-legend);
     }
   }
   @container (max-width: 140px) {
@@ -313,7 +296,6 @@
       display: none;
     }
   }
-
   /*
    * Scrub and speed: a matched pair of dials on caps like the keys' (the same face, rim and wall, but they don't
    * travel), sharing a pocket, a legend and its baseline. The dial stands at the right of its cap; the left carries
@@ -329,9 +311,9 @@
     box-shadow:
       inset 0 1px 0 var(--cap-hi),
       inset 0 0 0 1px var(--cap-rim),
-      inset 0 -2px 0 rgb(0 0 0 / calc(0.06 * var(--sh))),
+      inset 0 -2px 0 var(--shade-1),
       0 var(--d-cap) 0 var(--cap-edge),
-      0 calc(var(--d-cap) + 2px) 4px rgb(0 0 0 / calc(0.24 * var(--sh)));
+      0 calc(var(--d-cap) + 2px) 4px var(--shade-4);
   }
   /* The legend keeps its own room left of the dial: never under it. */
   .rotary .face-legend {
@@ -345,18 +327,17 @@
     left: 12px;
     top: 12px;
     font-family: var(--font-readout);
-    font-size: 10px;
+    font-size: var(--type-fine);
     color: var(--legend);
     pointer-events: none;
     white-space: nowrap;
   }
   .rotary-value {
-    font-size: 17px;
+    font-size: var(--type-large);
     font-weight: 500;
     top: 10px;
     color: var(--cap-ink);
   }
-
   /*
    * How it gives way: the steps `useFit` takes (TopBar.tsx), cumulative, in order, until the content fits.
    */
@@ -377,6 +358,10 @@
   }
   .slab[data-f3] {
     --display-min: 184px;
+  }
+  /* Reset is in ⌘K too, so it goes before the speed dial. */
+  .slab[data-f3] .tool-reset {
+    display: none;
   }
   .slab[data-f4] .tp-speed {
     display: none;
@@ -418,7 +403,7 @@
     height: auto;
     flex-wrap: wrap;
     row-gap: 12px;
-    padding: 12px 10px 14px;
+    padding: 12px 10px 12px;
   }
   .slab[data-f10] .tp-stop {
     display: block;
@@ -436,70 +421,95 @@
   .slab[data-f11] .tp-stop {
     display: none;
   }
-
   /*
-   * ---------- the foot rail ----------
-   * The status line as the slab's twin, flush to the bottom and sides: its top edge catches the light.
+   * ---------- the status line ----------
+   * No rail: one line of fine print set straight on the desk, under (or over) the panes. Jali's lockup and a line
+   * saying what this is at one end, who made it at the other, the marks in ink and the words a shade quieter. The
+   * slab is the only body on the desk besides the panes; this is the print on the mat.
    */
   .status {
+    --maker-ink: var(--ink);
+    --maker-lockup: 21px;
+    --maker-mark: 18px;
     position: relative;
     display: flex;
     align-items: center;
-    gap: 16px;
+    gap: 28px;
     min-height: 40px;
-    padding: 0 16px;
+    padding: 0 20px;
     color: var(--legend);
     font-family: var(--jali-font);
-    font-size: 11.5px;
+    font-size: var(--type-body);
+    letter-spacing: var(--track-print);
     min-width: 0;
-    background:
-      var(--grain), var(--slab-falloff), linear-gradient(180deg, var(--slab-2), var(--slab-1));
-    box-shadow:
-      inset 0 1px 0 light-dark(rgb(255 255 255 / 0.9), rgb(255 255 255 / 0.1)),
-      0 -1px 0 light-dark(rgb(0 0 0 / calc(0.25 * var(--sh))), #000);
-    text-shadow: 0 1px 0 light-dark(rgb(255 255 255 / 0.8), rgb(0 0 0 / calc(0.6 * var(--sh))));
   }
-  .status-focus {
-    color: var(--ink);
+  .status :is(.maker, .built-with) {
+    gap: 10px;
+  }
+  .status .maker-name {
     font-weight: 500;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
   }
-  .status-hint {
-    margin-left: auto;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+  /* Tucked panes wait here as small keys: the only things on the line that stand up from the desk. */
+  .status .jali-shelf-chip {
+    height: var(--h-key-s);
   }
   .status-note {
     white-space: nowrap;
-    padding-left: 16px;
-    border-left: 1px solid var(--seam-dark);
-    box-shadow: -1px 0 0 var(--seam-lit);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    min-width: 0;
   }
-  @media (max-width: 1100px) {
-    .status-note {
-      display: none;
-    }
+  /* Credits: print too, pushed to the maker's end. It is a button, and says so only under the pointer or focus. */
+  .status-credits {
+    flex: none;
+    margin-left: auto;
+    padding: 4px 0;
+    border: 0;
+    background: none;
+    font: inherit;
+    letter-spacing: inherit;
+    color: inherit;
+    cursor: pointer;
+  }
+  .status-credits:hover {
+    color: var(--ink);
+    text-decoration: underline;
+    text-underline-offset: 0.25em;
+  }
+  .status-credits:focus-visible {
+    outline: 2px solid var(--focus);
+    outline-offset: 3px;
   }
   @media (max-width: 760px) {
-    .status-hint,
-    .status-focus {
-      display: none;
+    .status {
+      gap: 16px;
+      padding: 0 12px;
     }
   }
-
   .toast {
     font-family: var(--jali-font) !important;
-    border-radius: var(--corner);
+    border-radius: var(--corner) !important; /* Sonner sets its own, inline */
   }
-}
-
-@layer app {
   .pd-title.pd-alert {
     color: var(--scr-hot);
     font-family: var(--font-readout);
-    font-size: 12px;
+    font-size: var(--type-control);
+  }
+  /*
+   * ---------- the controls along the bottom ----------
+   * `data-controls="bottom"` (ui/controlsPlace.ts): the slab stands on the window's bottom edge, like a console's
+   * front panel under the work, and the status line moves up to the top. The light still comes from above, so the slab's
+   * edges swap: its top edge is now the one that shows (a lit chamfer over a dark seam, no shadow thrown down).
+   */
+  [data-controls="bottom"] .app > .topbar {
+    order: 1;
+    box-shadow:
+      inset 0 1px 0 light-dark(var(--lit-6), var(--lit-3)),
+      inset 0 3px 0 light-dark(var(--lit-4), var(--lit-1)),
+      0 -1px 0 light-dark(var(--shade-5), var(--black)),
+      0 -8px 14px -10px var(--shade-5);
+  }
+  [data-controls="bottom"] .app > .status {
+    order: -1;
   }
 }

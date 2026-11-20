@@ -1,34 +1,36 @@
 /**
- * The status line: Jali's shelf (tucked and folded panes, as chips), what has focus, and the keys worth knowing,
- * read from the keymap so they are right on every platform and after any rebinding.
+ * The status line: one quiet line of print set straight on the desk. Jali's lockup and a line saying what this is
+ * on the left, who made it on the right, and between them only what the moment needs: Jali's shelf (tucked panes,
+ * as chips), a word when a pane is maximised, and the way to every credit and licence. The keys are not listed
+ * here: ⌘K lists every command with its key.
  */
-import { Shelf, useJali, useJaliModel, useJaliState } from "@jali/react";
+import { Shelf, useJali, useJaliState } from "@jali/react";
+import { BuiltWithJali, Maker } from "../../../shared/src/maker/maker";
+import { show } from "../actions";
+import { useTransport } from "../audio/react";
+import { credits } from "../panes/credits";
+import { catalogueOf } from "../sessions/catalog";
 
 export function StatusLine() {
-  const { keymap } = useJali();
-  const m = useJaliModel();
-  const focused = useJaliState((s) => s.view.focused);
+  const jali = useJali();
+  const loaded = useTransport((s) => s.session);
+  const cat = catalogueOf(loaded);
   const zoomed = useJaliState((s) => !!s.view.zoomed);
-  const keys = (id: string, what: string) =>
-    keymap.label(id) ? `${keymap.label(id)} ${what}` : "";
-  const hint = zoomed
-    ? "Maximised · Esc to restore"
-    : [
-        "Space play",
-        "/ go to segment",
-        keys("palette.toggle", "commands"),
-        keys("pane.focus.next", "next pane"),
-      ]
-        .filter(Boolean)
-        .join(" · ");
   return (
     <footer className="status" aria-label="Status">
+      <BuiltWithJali />
       <Shelf />
-      <span className="status-focus">{focused ? m.title(focused) : ""}</span>
-      <span className="status-hint">{hint}</span>
-      <span className="status-note" title="The voices are macOS system voices, a placeholder.">
-        Placeholder voices · synthesised music
-      </span>
+      {zoomed ? <span className="status-note">Maximised. Esc restores the layout.</span> : null}
+      <button
+        type="button"
+        className="status-credits"
+        title={`${cat.short}\nEvery credit and licence.`}
+        onMouseDown={(e) => e.preventDefault()}
+        onClick={() => show(jali, credits())}
+      >
+        Credits
+      </button>
+      <Maker words />
     </footer>
   );
 }

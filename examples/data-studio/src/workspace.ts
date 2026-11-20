@@ -1,5 +1,6 @@
 /** Data Studio's workspace: a database browser where the person builds the layout from its pane kinds and presets. */
 import { createJali, type Jali, type JaliOptions } from "@jali/core";
+import { makerCommand } from "../../shared/src/maker/maker";
 import { unstable_popOut } from "@jali/react";
 import { DEFAULT_PRESET, dataStudioKinds, dataStudioLauncher, dataStudioPresets } from "./panes";
 
@@ -31,5 +32,6 @@ export const createDataStudio = (): Jali =>
         group: "Pane",
         run: (jali) => void unstable_popOut(jali),
       },
+      makerCommand,
     ],
   });

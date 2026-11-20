@@ -1,0 +1,379 @@
+/*
+ * The mixer: black anodised; one module a channel, and the master.
+ */
+@layer app {
+  /*
+   * ---------- mixer: black anodised; one module a channel ----------
+   * Each channel is a module: a raised plate of its own, a seam either side, sharing the pane's width (96 to 156px)
+   * and its height (the fader's throw grows with it). Rows line up across modules: the scribble strip, the pan dial,
+   * the meter, scale and fader, the readout, the keys. When the pane is narrower than the modules, they scroll
+   * sideways and the master stays pinned at the right.
+   */
+  .mixer {
+    container: mixer / size;
+  }
+  .mx-modules {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    justify-content: safe center;
+    gap: 6px;
+    padding: 12px 0 12px 12px;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+  }
+  .mx-module {
+    --mx-dial: 46px;
+    position: relative;
+    flex: 1 1 0;
+    min-width: 96px;
+    max-width: 156px;
+    display: grid;
+    grid-template-rows: auto auto minmax(0, 1fr) auto auto;
+    justify-items: center;
+    gap: 10px;
+    padding: 8px 8px 10px;
+    border-radius: var(--corner);
+    background: var(--grain), linear-gradient(180deg, var(--module-1), var(--module-2));
+    box-shadow:
+      inset 0 1px 0 var(--lit-2),
+      inset 0 0 0 1px var(--shade-7),
+      0 3px 0 var(--mat-wall),
+      0 5px 6px var(--shade-5);
+  }
+  .mx-module > * {
+    min-width: 0;
+    max-width: 100%;
+  }
+  /* Seven or eight channels (a song's groups): narrower modules and tighter seams, so the whole desk fits a Mix
+     layout at 1440 wide; below that it scrolls under the pinned master. */
+  .mx-modules:is([data-count="7"], [data-count="8"]) {
+    gap: 4px;
+  }
+  .mx-modules:is([data-count="7"], [data-count="8"]) .mx-module:not(.mx-master) {
+    min-width: 66px;
+    padding-inline: 6px;
+  }
+  .mx-master {
+    flex: 1.3 1 0;
+    min-width: 132px;
+    max-width: 196px;
+    margin-left: 6px;
+    background:
+      var(--grain), linear-gradient(180deg, var(--module-master-1), var(--module-master-2));
+    margin-right: 12px;
+  }
+  @supports (position: sticky) {
+    .mx-master {
+      position: sticky;
+      right: 12px;
+      z-index: 1;
+    }
+  }
+  /* When the channels scroll under it, the master stands proud of them. */
+  @container mixer (max-width: 760px) {
+    .mx-master {
+      box-shadow:
+        inset 0 1px 0 var(--lit-2),
+        inset 0 0 0 1px var(--shade-7),
+        0 3px 0 var(--mat-wall),
+        -10px 0 14px -6px var(--shade-7),
+        12px 0 0 0 var(--body);
+    }
+  }
+  /* A muted or soloed-away channel: its readout and fader dim, its keys say why. */
+  .mx-module[data-silent] .mx-fader-row,
+  .mx-module[data-silent] .mx-db {
+    opacity: var(--silent);
+  }
+  /* The scribble strip: a small LCD at the module's head, the channel's lamp in its corner. */
+  .mx-scribble {
+    position: relative;
+    display: grid;
+    gap: 1px;
+    width: 100%;
+    padding: 6px 8px 6px 20px;
+    box-sizing: border-box;
+    background: var(--lcd-glass);
+    color: var(--lcd-ink);
+    border-radius: var(--corner);
+    box-shadow:
+      inset 0 1px 3px var(--shade-5),
+      inset 0 0 0 1px var(--shade-5),
+      0 1px 0 var(--lit-2);
+    text-align: left;
+    height: 46px;
+  }
+  .mx-lamp {
+    position: absolute;
+    left: 7px;
+    top: 9px;
+    width: var(--lamp);
+    height: var(--lamp);
+    border-radius: 50%;
+    background: var(--chan, var(--st-signal));
+    box-shadow: 0 0 0 1px var(--shade-5);
+  }
+  .mx-label {
+    font-family: var(--jali-font);
+    font-size: var(--type-fine);
+    font-weight: 600;
+    letter-spacing: var(--track-legend);
+    text-transform: lowercase;
+    color: var(--lcd-dim);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .mx-name {
+    font-size: var(--type-legend);
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  /* Every row has one height in every module, so the faders' scales line up across the mixer. */
+  .mx-pan {
+    --pan-h: calc(var(--mx-dial) + 24px + 15px);
+    display: grid;
+    justify-items: center;
+    align-content: start;
+    gap: 2px;
+    height: var(--pan-h);
+    /* Clear of the scale's top number, which stands just under it. */
+    margin-bottom: 4px;
+  }
+  .mx-pan .pan-dial {
+    --dial: var(--mx-dial);
+    position: relative;
+    width: calc(var(--mx-dial) + 24px);
+    height: calc(var(--mx-dial) + 24px);
+  }
+  .mx-pan .dial-body,
+  .mx-pan .dial-ticks {
+    right: 12px;
+  }
+  .mx-pan-legend {
+    font-family: var(--jali-font);
+    font-size: var(--type-legend);
+    color: var(--legend);
+    white-space: nowrap;
+  }
+  .mx-pan-legend b {
+    font-family: var(--font-readout);
+    font-weight: 500;
+    color: var(--ink);
+  }
+  /* The master's clip lamps, in place of a pan dial: the lamps where the dial is, the word where "pan" is. */
+  .mx-clips {
+    grid-template-columns: auto auto;
+    grid-template-rows: calc(var(--mx-dial) + 24px) auto;
+    justify-content: center;
+    align-items: center;
+    column-gap: 12px;
+  }
+  .mx-clips .mx-pan-legend {
+    grid-column: 1 / -1;
+  }
+  .mx-clip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-family: var(--font-readout);
+    font-size: var(--type-legend);
+    color: var(--legend);
+  }
+  .mx-clip[data-on] .led {
+    background: var(--led-on);
+    box-shadow: var(--lamp-glow);
+  }
+  .mx-clip[data-on] {
+    color: var(--ink);
+  }
+  /* Meter, scale and fader: one box, one travel. The travel's inset is the fader's own (half its cap, and the
+     slot's 4px end), set here once so the meter's column and the scale's marks start and stop where the cap does. */
+  .mx-fader-row {
+    --cap-h: 34px;
+    --travel-inset: calc(var(--cap-h) / 2 + 4px);
+    position: relative;
+    display: flex;
+    justify-content: center;
+    gap: 4px;
+    height: 100%;
+    min-height: 0;
+    width: 100%;
+  }
+  .mx-meter {
+    width: 9px;
+    height: 100%;
+    flex: none;
+    padding: var(--travel-inset) 2px;
+    box-sizing: border-box;
+    border-radius: var(--corner);
+  }
+  .mx-meter canvas {
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+  .mx-scale {
+    position: relative;
+    width: 22px;
+    margin: var(--travel-inset) 0;
+    padding: 0;
+    list-style: none;
+    flex: none;
+  }
+  .mx-scale li {
+    position: absolute;
+    right: 0;
+    left: 0;
+    height: 0;
+    border-top: 1px solid var(--legend);
+    border-top-width: 1px;
+    border: 0;
+  }
+  .mx-scale li span {
+    position: absolute;
+    right: 6px;
+    translate: 0 -50%;
+    font-family: var(--font-readout);
+    font-size: var(--type-fine);
+    line-height: 1;
+    color: var(--legend);
+  }
+  .mx-scale li::after {
+    content: none;
+  }
+  .mx-scale li::before {
+    content: "";
+    position: absolute;
+    right: 0;
+    width: 4px;
+    height: 1px;
+    background: var(--legend);
+  }
+  .mx-scale li[data-zero]::before {
+    width: 6px;
+    background: var(--ink);
+  }
+  .mx-scale li[data-zero] span {
+    color: var(--ink);
+    font-weight: 600;
+  }
+  /* The readout is as wide as the label strip above and the keys below: three blocks, one column. */
+  .mx-db {
+    width: 100%;
+    padding: 6px 8px;
+    box-sizing: border-box;
+    font-family: var(--font-readout);
+    font-size: var(--type-body);
+    text-align: center;
+    white-space: nowrap;
+  }
+  .mx-db small {
+    font-size: var(--type-fine);
+    color: var(--scr-dim);
+  }
+  .mx-keys {
+    width: 100%;
+    box-sizing: border-box;
+  }
+  .mx-keys .mx-btn {
+    flex: 1 1 0;
+    min-width: 0;
+    height: var(--h-key-s);
+    padding: 0 6px;
+    gap: 6px;
+    font-size: var(--type-legend);
+  }
+  .mx-keys .mx-btn-wide {
+    flex: 1;
+  }
+  .mx-meters-anchor {
+    display: none;
+  }
+  /* Short: a smaller dial, a one-line scribble strip; the fader keeps what height is left. */
+  @container mixer (max-height: 470px) {
+    .mx-module {
+      --mx-dial: 36px;
+      gap: 8px;
+    }
+    .mx-label {
+      display: none;
+    }
+    .mx-pan-legend {
+      display: none;
+    }
+    .mx-pan {
+      --pan-h: calc(var(--mx-dial) + 24px);
+    }
+    .mx-scribble {
+      height: var(--h-key-s);
+      padding-block: 6px;
+    }
+    .mx-keys .mx-btn {
+      height: var(--h-key-s);
+    }
+    .mx-db {
+      padding-block: 4px;
+    }
+  }
+  /* Very short: the scale keeps +6, 0 and −48, so its numbers never touch. */
+  @container mixer (max-height: 380px) {
+    .mx-scale li[data-db="-24"] span {
+      display: none;
+    }
+  }
+  @container mixer (max-height: 420px) {
+    .mx-module {
+      --mx-dial: 34px;
+      gap: 6px;
+    }
+    /* A small dial keeps one mark: the pointer. The channel's colour moves to the scribble strip's lamp. */
+    .mx-module .pan-dial[data-cap] .dial-face {
+      box-shadow:
+        inset 0 1px 0 var(--lit-4),
+        0 0 0 1px var(--shade-5);
+    }
+    .pan-dial .dial-tick:not([data-reset]) {
+      display: none;
+    }
+    /* The scale keeps every number that has room: −48 goes first (its gap is the smallest), then −24. */
+    .mx-scale li[data-db="-48"] span {
+      display: none;
+    }
+  }
+  /* Slim: modules narrower than about 110px drop the words on their keys. */
+  @container mixer (max-width: 620px) {
+    .mx-keys .mx-btn {
+      font-size: 0;
+      gap: 0;
+      text-transform: none;
+    }
+    .mx-keys .mx-btn::after {
+      font-size: var(--type-legend);
+    }
+    .mx-keys .mx-btn[data-role="mute"]::after {
+      content: "M";
+    }
+    .mx-keys .mx-btn[data-role="solo"]::after {
+      content: "S";
+    }
+    .mx-keys .mx-btn-wide {
+      font-size: var(--type-legend);
+    }
+  }
+  /* Mute and solo print their words; on a desk of seven or eight narrow modules, their initials. */
+  .mx-short {
+    display: none;
+    /* Initials keep their capitals, as GET does. */
+    text-transform: none;
+  }
+  .mx-modules:is([data-count="7"], [data-count="8"]) .mx-word {
+    display: none;
+  }
+  .mx-modules:is([data-count="7"], [data-count="8"]) .mx-short {
+    display: inline;
+  }
+}

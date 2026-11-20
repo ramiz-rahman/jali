@@ -1,0 +1,69 @@
+/*
+ * The markers: dark print behind the LCD.
+ */
+@layer app {
+  .mk-rows {
+    flex: 1;
+    min-height: 0;
+    overflow: auto;
+    margin: 0 10px 10px;
+    padding: 6px;
+    font-family: var(--font-readout);
+  }
+  .mk-row {
+    position: relative;
+    display: grid;
+    grid-template-columns: 52px minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 8px;
+    min-height: var(--h-row);
+    padding: 0 4px 0 16px;
+    border-radius: var(--corner);
+    cursor: pointer;
+  }
+  .mk-row:hover {
+    background: var(--lcd-ghost);
+  }
+  /* The cursor's row prints inverted, as a segment display does. */
+  .mk-row[aria-selected="true"] {
+    background: var(--lcd-ink);
+    color: var(--lcd-paper);
+  }
+  .mk-row[aria-selected="true"] .mk-time {
+    color: var(--lcd-paper);
+  }
+  .mk-time {
+    font-size: var(--type-control);
+    color: var(--lcd-dim);
+  }
+  /* The marker just passed: an arrow before it, and bold. */
+  .mk-row[data-passed] .mk-label {
+    font-weight: 600;
+  }
+  .mk-row[data-passed]::after {
+    content: "";
+    position: absolute;
+    left: 5px;
+    top: 50%;
+    border-block: 4px solid transparent;
+    border-left: 6px solid currentColor;
+    translate: 0 -50%;
+  }
+  .mk-label {
+    font-size: var(--type-body);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .mk-rows + .empty,
+  .markers .empty {
+    margin: 0 12px 12px;
+    height: auto;
+    flex: 1;
+  }
+  /* The markers' selected row prints inverted; keyboard focus adds a thin outline outside it, in the LCD's ink. */
+  .mk-rows:focus-visible .mk-row[aria-selected="true"] {
+    outline: 1.5px solid var(--lcd-ink);
+    outline-offset: 2px;
+  }
+}

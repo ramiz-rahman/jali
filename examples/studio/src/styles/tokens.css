@@ -32,8 +32,54 @@
   --cap-rim: light-dark(rgb(0 0 0 / 0.11), rgb(0 0 0 / 0.7));
   --cap-hi: light-dark(rgb(255 255 255 / 0.95), rgb(255 255 255 / 0.12));
   --led-off: light-dark(#c9c9c4, #18181a);
-  --led-on: #ff4f00;
+  --led-on: var(--st-signal);
+  /* Every lamp: one size, and one glow when lit. */
+  --lamp: 6px;
+  --lamp-glow: 0 0 7px rgb(255 79 0 / 0.8);
+  --lamp-glow-low: 0 0 2px rgb(255 79 0 / 0.4);
+  --lamp-ring: rgb(255 79 0 / 0.25);
 
+  /* The one orange cap (Play, Save, a dialog's main action), and the same cap with nothing to do. */
+  --cap-signal-1: #ff6a26;
+  --cap-signal-2: #f24a00;
+  --cap-signal-edge: #a83300;
+  --on-signal: #170a03;
+  --cap-signal-rim: rgb(120 30 0 / 0.35);
+  --cap-signal-seam: rgb(120 30 0 / 0.5);
+  --cap-signal-off-1: light-dark(#f3d3c3, #4a2a1c);
+  --cap-signal-off-2: light-dark(#ecc6b3, #3e2316);
+  --cap-signal-off-edge: light-dark(#cfa894, #20120b);
+  --cap-signal-off-ink: light-dark(#6e4430, #c49a83);
+  /* The floor of a pocket milled for keys. */
+  --pocket-floor: light-dark(#e2e2de, #070708);
+  --black: #000;
+  --white: #fff;
+  /* ---------- machined parts: dials and fader caps ---------- */
+  --mat-knurl-1: light-dark(#9d9d98, #141416);
+  --mat-knurl-2: light-dark(#f1f1ee, #4a4a4f);
+  --mat-dial-face: conic-gradient(
+    from 200deg,
+    light-dark(#ffffff, #5a5a60),
+    light-dark(#d6d6d2, #2f2f33) 25%,
+    light-dark(#f7f7f5, #4c4c51) 50%,
+    light-dark(#cfcfcb, #2a2a2e) 75%,
+    light-dark(#ffffff, #5a5a60)
+  );
+  --mat-dimple: radial-gradient(
+    circle at 50% 70%,
+    light-dark(#f4f4f1, #57575c),
+    light-dark(#9e9e99, #1b1b1d)
+  );
+  --mat-slot: linear-gradient(90deg, #000, #0d0d0f 40%, #050506);
+  --mat-cap-silver: linear-gradient(180deg, #fbfbf9, #e2e2de 48%, #cfcfca 52%, #e8e8e4);
+  --mat-cap-graphite: linear-gradient(180deg, #5b5b61, #3c3c41 48%, #303034 52%, #424247);
+  --mat-cap-line: #18181a;
+  --mat-wall: #0a0a0b;
+  /* The mixer's modules: a channel strip, and the master a shade darker. */
+  --module-1: #2f2f33;
+  --module-2: #252528;
+  --module-master-1: #232326;
+  --module-master-2: #19191b;
   /* ---------- screens: black glass, light marks, in both themes ---------- */
   --scr-glass: radial-gradient(140% 120% at 50% -10%, #1a1a1b, #070708 60%, #040405);
   --scr-ink: #f2f2ee;
@@ -45,12 +91,17 @@
   --scr-block: rgb(255 255 255 / 0.065);
   --scr-soft: rgb(255 106 31 / 0.2);
   --scr-hot: #ff6a1f;
+  --scr-led-off: #1a1a1c;
+  --scr-glow: 0 0 6px rgb(255 106 31 / 0.55);
 
   /* ---------- the LCD: grey-green reflective glass, dark print ---------- */
   --lcd-glass: linear-gradient(180deg, #a9b3a1, #bfc7b6 30%, #b8c0ae);
   --lcd-ink: #121410;
   --lcd-dim: rgb(18 20 16 / 0.78);
   --lcd-ghost: rgb(18 20 16 / 0.08);
+  /* The glass's own light, for print on a row shown inverted, and a field let into the glass. */
+  --lcd-paper: #c2cab9;
+  --lcd-field: #e6ebdd;
 
   /* ---------- paper: the transcript and the notes, for long reading ---------- */
   --paper: light-dark(#fdfdfa, #18181a);
@@ -63,6 +114,11 @@
   --enc-blue: #5aa6ea;
   --enc-green: #47c07f;
   --enc-white: #f4f4f1;
+  /* Four more channel colours, so a session of eight tracks has eight distinct strips. */
+  --enc-violet: #a688f0;
+  --enc-yellow: #e8cc4a;
+  --enc-cyan: #4ec9d0;
+  --enc-rose: #ee7aa6;
   --enc-graphite: #4e4e53;
 
   /* ---------- Jali's tokens ---------- */
@@ -77,10 +133,10 @@
   --jali-text-subtle: var(--legend);
   --jali-text-faint: var(--legend);
   --jali-hover: light-dark(rgb(0 0 0 / 0.045), rgb(255 255 255 / 0.05));
-  --jali-brand: #ff4f00;
-  --jali-accent: #ff4f00;
+  --jali-brand: var(--st-signal);
+  --jali-accent: var(--st-signal);
   --jali-accent-soft: light-dark(#ffe6d9, #3a1d0e);
-  --jali-on-accent: #170a03;
+  --jali-on-accent: var(--on-signal);
   --jali-chip: var(--ink);
   --jali-on-chip: var(--body);
   --jali-scrim: light-dark(rgb(40 40 38 / 0.28), rgb(0 0 0 / 0.6));
@@ -121,9 +177,66 @@
   --st-wave-idle: var(--scr-idle);
   --st-wave-music: var(--scr-music);
   --st-wave-marked: var(--scr-dim);
-  --st-label: 11px;
+
+  /*
+   * ---------- type ----------
+   * Two faces (above): Chakra Petch for everything printed, IBM Plex Mono for numbers that tick and for the
+   * screens. Every size, tracking and leading in the app is one of these; nothing sets a size of its own.
+   *
+   * Sizes, by what the text is for:
+   *   fine           the smallest print: a scale's numbers, a second legend on a key, a tag
+   *   legend         what a control or a group is called: key legends, pane labels, field labels, hints
+   *   control        what a control says or shows: a key's word, a readout's value, a list's second line
+   *   body           what is read in a list or a form: rows, pane titles, fields, notes
+   *   title          what a thing is named: a session, a segment's text, a heading
+   *   large          the transcript, set to be read; and a dial's value
+   *   display-small  the name on the slab, and the clock when its glass is narrow
+   *   display        the clock
+   * Weights: 400 for reading, 500 for print on controls, 600 for names and what is selected. No others.
+   * Tracking: print is opened a little (Chakra Petch is tight when small), legends a little more, the few
+   * spaced-out words most; the monospaced readouts are closed up a touch.
+   * Leading: 1 on a control's single line, tight for a name, body for lists and forms, read for the transcript.
+   */
+  --type-fine: 11px;
+  --type-legend: 12px;
+  --type-control: 13px;
+  --type-body: 14px;
+  --type-title: 16px;
+  --type-large: 17px;
+  --type-display-small: 22px;
+  --type-display: 24px;
+  --track-print: 0.02em;
+  --track-legend: 0.04em;
+  --track-wide: 0.08em;
+  --track-readout: -0.01em;
+  --lead-tight: 1.2;
+  --lead-body: 1.5;
+  --lead-read: 1.6;
+
+  /*
+   * ---------- measure ----------
+   * Space between and inside things is one of: 2, 4, 6, 8, 10, 12, 16, 20, 24, 28 (px). A rule writes the number;
+   * styles.test.ts fails on any other. Two exceptions with names: the lips of a pocket (a wall's thickness, more at
+   * the foot where the light catches it), and a line marked "optical" where type has to sit on a baseline.
+   * Controls come in these heights, and no others.
+   */
+  --lip: 3px;
+  --lip-foot: 5px;
+  --h-key-xs: 24px; /* the Following and Kept toggle in a header */
+  --h-key-s: 30px; /* small keys: toolbars inside panes, tabs, chips, header buttons */
+  --h-key: 38px; /* the unit key, and every control in a pane's control row */
+  --h-key-m: 48px; /* the launcher's big keys */
+  --h-row: 36px; /* a row in a list: markers, ⌘K, the chooser, menus */
+  --h-bar: 48px; /* a pane's header, a toolbar, a dialog's field */
+
   /* Mechanisms move, they don't spring: a short travel that stops dead. */
-  --travel: 70ms cubic-bezier(0.45, 0, 0.15, 1);
+  --ease: cubic-bezier(0.45, 0, 0.15, 1);
+  --travel: 70ms var(--ease);
+  /* A key goes down faster than it comes back; a selector takes a moment longer to reach its detent. */
+  --travel-press: 35ms;
+  --travel-detent: 90ms var(--ease);
+  /* A muted channel's print and readout, in the mixer and on the timeline. */
+  --silent: 0.55;
 }
 
 /*
@@ -178,6 +291,40 @@
 .jali-pane[data-kind="mixer"] * {
   --sh: 1;
 }
+:root,
+[data-theme],
+.jali-pane[data-kind="mixer"],
+.dark-body {
+  /*
+   * ---------- light and shade ----------
+   * Depth is drawn with black and white at a few strengths, never a colour of its own. Every shadow, recess, rim
+   * and seam in the rules is built from these steps; `--sh` scales the shade for the finish, the lit steps are
+   * the same on both. They are declared on every element that sets `--sh` (a custom property that reads another is
+   * worked out where it is declared, so on the root alone the light theme's black mixer would get the silver
+   * finish's shade). A part's own stack (how many layers, how far they fall) stays with the part.
+   *   shade  1 a hairline on a face   2 a rim   3 a light recess   4 a pocket's wall, a pressed face
+   *          5 a body's cast shadow   6 a deep slot or a hard edge   7 a wall in shadow   8 the dark of a groove
+   *   lit    1 grain   2 a seam's lit side   3 an edge on a dark body   4 a chamfer   5 a bright lip   6 a polished edge
+   */
+  --shade-1: rgb(0 0 0 / calc(0.04 * var(--sh)));
+  --shade-2: rgb(0 0 0 / calc(0.08 * var(--sh)));
+  --shade-3: rgb(0 0 0 / calc(0.14 * var(--sh)));
+  --shade-4: rgb(0 0 0 / calc(0.22 * var(--sh)));
+  --shade-5: rgb(0 0 0 / calc(0.35 * var(--sh)));
+  --shade-6: rgb(0 0 0 / calc(0.5 * var(--sh)));
+  --shade-7: rgb(0 0 0 / calc(0.7 * var(--sh)));
+  --shade-8: rgb(0 0 0 / calc(0.9 * var(--sh)));
+  --lit-1: rgb(255 255 255 / 0.03);
+  --lit-2: rgb(255 255 255 / 0.07);
+  --lit-3: rgb(255 255 255 / 0.12);
+  --lit-4: rgb(255 255 255 / 0.25);
+  --lit-5: rgb(255 255 255 / 0.45);
+  --lit-6: rgb(255 255 255 / 0.9);
+  /* A lamp that is off sits in its socket. */
+  --lamp-socket: inset 0 1px 1px var(--shade-5);
+  /* A face pressed in: a latched row, a key held down. */
+  --sunk: inset 0 2px 3px var(--shade-4);
+}
 
 /*
  * ---------- the design system ----------
@@ -209,7 +356,6 @@
   --grid: 4px;
   /* Legend sizes: group labels, key legends, pane titles. */
   --t-label: 10.5px;
-  --t-legend: 13px;
   --t-title: 13px;
 }
 [data-theme="dark"],

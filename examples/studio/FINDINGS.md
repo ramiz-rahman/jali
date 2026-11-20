@@ -2,13 +2,48 @@
 
 Studio is built on `@jali/core` and `@jali/react` alone, with no change to `packages/`. Most of what it needed was there and fit well (see "What worked" at the end). These are the places where the API fell short, was awkward, or did something unexpected. Each has what we wanted, what happened, the workaround in the app, and a suggested change. The most important come first.
 
+## Status on the latest Jali (after merging master)
+
+Jali since these were written: a menu on every pane header (⋯, Shift+F10, right-click) with Full screen, Tuck and Pop out; header buttons as shortcuts chosen with `buttons`; Following and Keep as one toggle; folded panes behind one "N folded" chip in the tab strip, the shelf for tucked panes only; presets' `saved` and Reset; a covered pane marked `data-covered`. Item by item:
+
+| Item                                                    | Status   | Note                                                                                                                                                                                                                  |
+| ------------------------------------------------------- | -------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1. One follower's unsaved work stops every follower     | Open     | Unchanged. The workaround stands; the person now sees the header say Kept.                                                                                                                                            |
+| 2. `useActivity(undefined)`                             | Open     | The hook still sets only a truthy value. Studio still passes `"idle"`.                                                                                                                                                |
+| 3. Space for an app command                             | Open     | Unchanged.                                                                                                                                                                                                            |
+| 4. A layout switch leaves list and follower disagreeing | Open     | Unchanged. Saved layouts make it rarer (a layout comes back with its own follower state), not gone.                                                                                                                   |
+| 5. `light-dark()` tokens on canvas                      | Open     | Unchanged.                                                                                                                                                                                                            |
+| 6. No "live" activity                                   | Open     | Unchanged.                                                                                                                                                                                                            |
+| 7. Heights have only a minimum                          | Open     | `PaneHeight` is still `min` only.                                                                                                                                                                                     |
+| 8. A narrow header keeps all its buttons                | Resolved | The header carries shortcuts; the rest is in the ⋯ menu. Studio chose Maximise and Close (`buttons` in `workspace.ts`). `allow: { fullScreen: false }` on the lists stays, as a list has nothing to show full screen. |
+| 9. A wide pane folded into a narrow one                 | Open     | Studio's layouts still avoid it. Folded panes now wait behind a chip, so the result is easier to read, but the fitting rule is the same.                                                                              |
+| 10. Smaller things                                      | Partly   | "Keep is what the brief called pinning": the toggle now says Following or Kept, which reads as the state, so a reader finds it. The rest are open.                                                                    |
+| Theming 1. Header buttons                               | Partly   | `.jali-pane-actions` is public and the set is chosen with `buttons`; each button still has only private classes (`.jali-act-*`).                                                                                      |
+| Theming 2. Keep and Following                           | Resolved | One public part, `.jali-follow-toggle[data-follow]`. Studio's narrow-header hack and its `.jali-follow-status` rules are gone.                                                                                        |
+| Theming 11. Shelf chip internals                        | Partly   | The folded case moved to the public `.jali-tab-folded`; the shelf's own inner buttons are still private. Studio's folded shelf-chip rule is gone.                                                                     |
+| Theming 15. Folded tabs                                 | Partly   | Folded panes are now a chip, not italic tabs; a folded tab still shown carries `data-folded`.                                                                                                                         |
+| Theming 16. Header buttons come and go                  | Resolved | `buttons` fixes the set. Panes in Studio's layouts show the same two keys, so the four temporary header treatments line up from pane to pane.                                                                         |
+| Theming 18. The header's layout is fixed                | Partly   | The order is now documented (grip, title, toggle, shortcuts). No slot for app controls yet.                                                                                                                           |
+| Others (3 to 7, 9, 10, 12 to 14, 17, 19 to 29)          | Open     | Unchanged.                                                                                                                                                                                                            |
+
+New, from adopting it:
+
+- **The menu's parts.** `.jali-tab-menu` and `[data-menu-item]` are public, and so is the ⋯ button's place in `.jali-pane-actions`. The key hint in a menu row (`.jali-menu-keys`), the check and the separator are private; Studio reaches them as `kbd` and `[role="separator"]`. Want: listed as parts.
+- **The follow toggle's icon.** The toggle draws a link or an anchor icon before its word. Studio hides it (`svg`) and lights a lamp instead. A documented slot or attribute for the mark would be cleaner than hiding Jali's icon.
+- **Saved layouts are the app's job to store.** `saved` asks the app; the app keeps a layout per preset and forgets it on Reset. That is the right split, but every app writes the same twenty lines (`src/layouts.ts`, like Markets' desks). A small helper (`savedLayouts(storage)`) would do.
+
+New, from the three real sessions:
+
+- **A kind's size can't depend on the object.** The mixer needs about 90px a channel: 3 channels at the landing, 8 for the song. `width` is fixed per kind, so Mix is laid out for one desk and the song's desk is made to fit by narrower modules and M/S legends instead. Want: a size hint per object (`width: (params) => …`), or `useSize`-style hints a pane can raise while it is open.
+- **Titles that need the app's data.** A song's detail is "Line 3", a speech's "Segment 3"; the kind's `title` can read the bundled session, so it works here, but only because the data is in the bundle. The same gap as item 10's.
+
 ## 1. One follower's unsaved work stops every follower of the list
 
 **Wanted.** The library drives four followers: the transcript, the timeline, the mixer and the markers. With unsaved corrections in the transcript, moving the library should keep the transcript on its session (the guide says "a following detail with unsaved work keeps its object") and move the others.
 
 **Happened.** Nothing moves. The follow step is one change for all followers, and the workspace refuses the whole change when any of them would lose work (an `op: "follow"` with unsaved work is refused with "The detail stays put"). The timeline and the mixer, which have nothing unsaved, stay on the old session too. The transport has meanwhile loaded the new one, so every pane says "Not in the transport". `workspace.test.ts` pins this down ("holds every follower of the library while one of them has unsaved work").
 
-**Workaround.** While the transcript has unsaved corrections it keeps itself (`jali.actions.setKept(node.id, true)`), and lets go when they are saved or discarded, which makes it catch up at once (`panes/transcript.tsx`). The person sees Keep pressed in its header. A Keep the person pressed is left alone.
+**Workaround.** While the transcript has unsaved corrections it keeps itself (`jali.actions.setKept(node.id, true)`), and lets go when they are saved or discarded, which makes it catch up at once (`panes/transcript.tsx`). The person sees Kept in its header. A Kept the person chose is left alone.
 
 **Suggestion.** Hold only the follower with unsaved work and move the rest in the same change, with the same "stays put" announcement. If holding them all is deliberate, say so in the Following guide, and let the follow step report what it held (an event, or the refusal in `select`'s result).
 
@@ -204,3 +239,21 @@ Not Jali's, for the record: making the top row one flex row of blocks meant grou
 - **Commands.** `createJali({ commands, keymap })` and `jali.actions.choose` made "Go to segment…", "Jump to marker…" and "Playback speed…" a few lines each, searchable by any word of the line.
 - **Fit or fold.** Honest minimum widths, and `priority: "supporting"` on the markers in Review, were enough for every layout to fold sensibly down to a phone, where `phone: { stack: true }` shows the library over the transcript.
 - **Theming.** The hardware look came from Jali's tokens and the public part selectors, with no `!important` (see above for the few rules that reached further).
+
+## The chooser's rows can't be laid out by an app
+
+`jali.actions.choose` rows share the palette's row: a fixed 2rem height and three columns (name, hint, 72px for a key hint a chooser row never has). A long hint wraps inside the fixed height and prints over the next row ("Go to segment…" with a long speaker name). Studio fixes it by reaching `.jali-chooser` and `.jali-palette-id`, which are not public parts. Jali could give chooser rows two columns and one line by default (name cut with an ellipsis, hint never wrapping), make the chooser's parts public, and let `choose` take a `render` for a row.
+
+## A short tab strip scrolls a tab away before it shortens any
+
+With two tabs in a narrow pane (Library and Markers at about 335px), Jali keeps the shown tab at its full title width, scrolls the other partly out of view and shows "+1", although both would fit with their titles cut. It reads as if a third tab existed. Studio lets tab items shrink (`.jali-tab-item`, `.jali-tab`, with a minimum) so tabs share the strip first and "+N" shows only when there are more than fit. Jali could do this by default, or offer it as an option: shorten titles down to a minimum before scrolling.
+
+## An app has nowhere to keep its own preferences
+
+Studio has three device preferences of its own (the header-button treatment, key and dial sounds, the controls at the top or the bottom). Each is a hand-written module: a storage key, a getter and setter, an attribute on `<html>`, and a command in ⌘K. Jali already stores and applies one such setting, the theme, through `changeSettings`. Letting an app add its own entries to that store (typed, remembered with the rest, listed in Settings) would remove the repetition. A convenience, not a blocker.
+
+## Found by the bug hunt (worked round in Studio; Jali's to fix)
+
+- **After a layout opens, the layout's word wins, which is the wrong word for an app with one global subject.** Jali now settles a list and its followers on what the layout's followers show. In Studio the session being worked on is the one in the transport: pick the song in Edit, switch to Mix, and Mix would show the first session with the library's selection moved back to it, while the transport plays the song. Studio's library selects the transport's session again after every layout switch (`panes/library.tsx`), and re-points a layout's kept segment. A preset option to say which side wins (the layout, or the list's selection before the switch) would remove this.
+- **A follower held by unsaved work still reads "Following".** Finding 1's visible half: the segment detail with an unsaved note stays where it is while the transcript moves on, and its header key says Following. Studio's detail prints "Held here by its unsaved note" itself. The toggle could say Held, or Jali could say why in the header.
+- **⌘K ranks a command that does not contain the typed word first.** Typing `reset` puts "Layout: Edit" above "Reset layout", so Enter switches layout. And an app cannot replace or hide a built-in command, so Studio's "Reset this layout to its design" (which also forgets the saved copy) sits beside Jali's "Reset layout" and a dimmed "Reset layout to its design".

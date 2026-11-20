@@ -6,15 +6,23 @@
  * playhead every pane follows. A screen with the time, four big square keys, a loop latch, a jog wheel to scrub and
  * a speed knob.
  */
-import { CommandIcon, LinkSimpleIcon, MoonIcon, SunIcon } from "@phosphor-icons/react";
+import {
+  ArrowCounterClockwiseIcon,
+  CommandIcon,
+  LinkSimpleIcon,
+  MoonIcon,
+  SunIcon,
+} from "@phosphor-icons/react";
 import { copyLink, keyHint, runCommand } from "@jali/core";
 import { useLayoutEffect, useRef } from "react";
 import { useJali, useJaliState, useShortcut, useTheme } from "@jali/react";
 import { SPEEDS } from "../audio/engine";
 import { usePosition, useTransport } from "../audio/react";
 import { useServices } from "../services";
-import { clock, clockTenths, sessionById } from "../sessions/sessions";
+import { clock, clockTenths, missionTime, sessionById } from "../sessions/sessions";
 import { JogDial, SelectorDial } from "../ui/Knob";
+import { resetLayout } from "../workspace";
+import { catalogueOf } from "../sessions/catalog";
 
 /** Keys don't keep focus after a click, so Space goes on playing and pausing. */
 const keepFocus = (e: React.MouseEvent) => e.preventDefault();
@@ -24,6 +32,7 @@ export function TopBar() {
   const current = useJaliState((s) => s.presetId);
   const theme = useTheme();
   const palette = useShortcut("palette.toggle");
+  const services = useServices();
   const slab = useFit();
   const currentLabel = jali.env.presets.find((p) => p.id === current)?.label ?? "";
 
@@ -81,6 +90,19 @@ export function TopBar() {
           <div className="pocket group-tools" role="group" aria-label="Tools">
             <button
               type="button"
+              className="key face tool-reset"
+              aria-label="Reset this layout to its design"
+              title="Reset this layout to its design"
+              onMouseDown={keepFocus}
+              onClick={() => void resetLayout(jali, services)}
+            >
+              <ArrowCounterClockwiseIcon size={22} aria-hidden className="face-glyph" />
+              <span className="face-legend" aria-hidden>
+                reset
+              </span>
+            </button>
+            <button
+              type="button"
               className="key face tool-link"
               aria-label="Copy a link to this layout"
               title="Copy a link to this layout"
@@ -114,7 +136,7 @@ export function TopBar() {
             <button
               type="button"
               className="key face"
-              aria-label="Commands"
+              aria-label="⌘K: commands"
               title={`Commands ${palette}`}
               onMouseDown={keepFocus}
               onClick={() => jali.actions.openPalette()}
@@ -190,17 +212,6 @@ function Transport() {
   const session = sessionById(t.session)!;
   const pos = usePosition(false, 0.05);
   const ready = t.status === "ready";
-  // Scrubbing holds playback while the hand is on the wheel, and carries on from where it lets go: no audio restarts
-  // on every pixel of the drag.
-  const wasPlaying = useRef(false);
-  const startScrub = () => {
-    wasPlaying.current = engine.get().playing;
-    engine.pause();
-  };
-  const endScrub = () => {
-    if (wasPlaying.current) engine.play();
-    wasPlaying.current = false;
-  };
   const key = (
     label: string,
     legend: string,
@@ -247,11 +258,14 @@ function Transport() {
                 <span className="pd-title">{session.title}</span>
               ) : (
                 <span className="pd-title pd-alert">
-                  {t.status === "loading" ? "loading…" : "no audio"}
+                  {t.status === "loading" ? "loading…" : "audio didn't load"}
                 </span>
               )}
+              {/* The mission clock where the session has one (Apollo's GET), else where it came from. */}
               <span className="pd-show">
-                {session.show} · ep {session.episode}
+                {missionTime(session, pos)
+                  ? `GET ${missionTime(session, pos)}`
+                  : catalogueOf(session).source}
               </span>
             </div>
             <div className="pd-time" aria-label={`${clock(pos)} of ${clock(session.duration)}`}>
@@ -318,9 +332,8 @@ function Transport() {
               max={session.duration}
               secondsPerTurn={10}
               valueText={`${clock(pos)} of ${clock(session.duration)}`}
-              onStart={startScrub}
-              onChange={(v) => engine.seek(v)}
-              onEnd={endScrub}
+              onChange={(v) => engine.scrub(v)}
+              onTurn={(by) => engine.scrub(engine.position() + by)}
               className="rotary-control"
             />
             <span className="rotary-note" aria-hidden>

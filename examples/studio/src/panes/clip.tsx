@@ -1,22 +1,24 @@
 /**
  * One segment in detail: its own waveform, play and loop, who says it, and a note. It follows the transcript's
- * selection. Keep it (the anchor in its header) and select another segment, then open that one's detail: two
+ * selection. Click Following in its header to make it Kept, select another segment, then open that one's detail: two
  * segments side by side, to compare a take or a correction.
  *
  * The note is the pane's work: a draft in pane state until saved, reported with `useUnsaved`. While it has one, the
  * detail stays on its segment when the transcript moves on, and Jali says why.
  */
-import { useRef, useState, type KeyboardEvent, type PointerEvent } from "react";
+import { useId, useRef, useState, type KeyboardEvent, type PointerEvent } from "react";
 import { PauseIcon, PlayIcon, WaveformIcon } from "@phosphor-icons/react";
 import { keyHint } from "@jali/core";
 import {
   definePane,
   useCommands,
+  useJaliState,
   usePaneState,
   useTitle,
   useUnsaved,
   type PaneProps,
 } from "@jali/react";
+import { toast } from "sonner";
 import { cue } from "../actions";
 import { useFrame, useTransport } from "../audio/react";
 import { useSessionView, type SessionView } from "../edits";
@@ -25,10 +27,11 @@ import {
   clockTenths,
   segmentById,
   sessionById,
+  trackById,
   trackOf,
-  TRACKS,
   type SegmentData,
 } from "../sessions/sessions";
+import { catalogueOf } from "../sessions/catalog";
 import { Missing, NotInTransport } from "../ui/parts";
 import { drawBars, loudest, screenPaletteOf, prepare, useSize, voicePeaks } from "../ui/waveform";
 
@@ -45,12 +48,16 @@ function Clip(props: PaneProps<typeof clipParams>) {
 function ClipBody({
   paused,
   inPeek,
+  node,
   view,
   seg,
 }: PaneProps<typeof clipParams> & { view: SessionView; seg: SegmentData }) {
   const { engine, edits } = useServices();
   const { session } = view;
   const n = session.segments.indexOf(seg) + 1;
+  // "Segment 8", or "Line 8" in a song's lyrics.
+  const word = catalogueOf(session).words.segment;
+  const Word = word[0]!.toUpperCase() + word.slice(1);
   const speaker = view.speakerOf(seg);
   const inTransport = useTransport((s) => s.session === session.id);
   const playing = useTransport((s) => s.playing && s.session === session.id);
@@ -60,9 +67,16 @@ function ClipBody({
   const [note, setNote] = usePaneState<string | null>("note", null);
   const text = view.textOf(seg);
   const dirty = note !== null && note !== saved;
+  const noteId = useId();
 
-  useTitle(`Segment ${n} · ${view.speakerName(speaker)}`);
-  useUnsaved(dirty && `an unsaved note on segment ${n}`);
+  useTitle(`${Word} ${n} · ${view.speakerName(speaker)}`);
+  useUnsaved(dirty && `an unsaved note on ${word} ${n}`);
+  // Jali keeps a follower where it is while it has unsaved work, and its header still reads Following
+  // (FINDINGS.md, 1). So the pane says it is held, and what lets it go.
+  const listed = useJaliState((s) =>
+    node.linkedTo ? s.selection[node.linkedTo]?.ref.params.segment : undefined,
+  );
+  const held = dirty && node.follows && typeof listed === "string" && listed !== seg.id;
 
   const play = () => {
     if (playing && engine.position() >= seg.start && engine.position() < seg.end)
@@ -80,8 +94,8 @@ function ClipBody({
   };
 
   useCommands([
-    { id: "play", title: `Play segment ${n}`, run: play },
-    { id: "loop", title: looping ? "Stop looping" : `Loop segment ${n}`, run: toggleLoop },
+    { id: "play", title: `Play ${word} ${n}`, run: play },
+    { id: "loop", title: looping ? "Stop looping" : `Loop ${word} ${n}`, run: toggleLoop },
     {
       id: "save-note",
       title: "Save the note",
@@ -97,13 +111,18 @@ function ClipBody({
     <div className="pane-body clip">
       <header className="clip-head">
         <span className="pane-label">
-          Segment {String(n).padStart(2, "0")} of {session.segments.length}
+          {Word} {String(n).padStart(2, "0")} of {session.segments.length}
         </span>
         <span className="clip-range mono">
           {clockTenths(seg.start)} – {clockTenths(seg.end)}
         </span>
       </header>
       {!inTransport && !inPeek ? <NotInTransport session={session.id} /> : null}
+      {held ? (
+        <div className="not-live" role="status">
+          <span>Held here by its unsaved note. Save or revert the note to follow again.</span>
+        </div>
+      ) : null}
       <MiniWave seg={seg} view={view} paused={paused} />
       {/* The keys and the speaker/track LCD on one row when there is room; stacked when narrow. */}
       <div className="clip-row">
@@ -112,7 +131,7 @@ function ClipBody({
             <button
               type="button"
               className="key key-square key-play"
-              aria-label={playing ? "Pause" : `Play segment ${n}`}
+              aria-label={playing ? "Pause" : `Play ${word} ${n}`}
               onMouseDown={(e) => e.preventDefault()}
               onClick={play}
             >
@@ -142,9 +161,18 @@ function ClipBody({
             <dt>Speaker</dt>
             <dd>
               <select
-                aria-label="Who says this segment"
+                aria-label={`Who says this ${word}`}
                 value={speaker}
-                onChange={(e) => edits.setSegmentSpeaker(session.id, seg.id, e.target.value)}
+                onChange={(e) => {
+                  const to = e.target.value;
+                  edits.setSegmentSpeaker(session.id, seg.id, to);
+                  toast(`${Word} ${n} is now ${view.speakerName(to)}'s`, {
+                    action: {
+                      label: "Undo",
+                      onClick: () => edits.setSegmentSpeaker(session.id, seg.id, speaker),
+                    },
+                  });
+                }}
               >
                 {session.speakers.map((p) => (
                   <option key={p.id} value={p.id}>
@@ -156,7 +184,7 @@ function ClipBody({
           </div>
           <div>
             <dt>Track</dt>
-            <dd>{TRACKS.find((t) => t.id === trackOf(seg))?.label}</dd>
+            <dd>{trackById(session, trackOf(seg))?.label}</dd>
           </div>
         </dl>
       </div>
@@ -164,34 +192,37 @@ function ClipBody({
         {text}
         {text !== seg.text ? <footer>Corrected. Recorded as: “{seg.text}”</footer> : null}
       </blockquote>
-      <label className="clip-note">
-        <span className="pane-label">Note</span>
-        <textarea
-          value={note ?? saved}
-          placeholder="A note for the edit: a retake, a cut, a fact to check."
-          onChange={(e) => setNote(e.target.value)}
-          onKeyDown={(e: KeyboardEvent) => {
-            if (e.key === "s" && (e.metaKey || e.ctrlKey)) {
-              e.preventDefault();
-              if (dirty) saveNote();
-            }
-          }}
-        />
-      </label>
-      <div className="clip-note-foot">
-        {dirty ? (
-          <span className="unsaved-note">Not saved</span>
-        ) : saved ? (
-          <span className="toolbar-note">Saved</span>
-        ) : null}
-        <span className="keyset">
-          <button type="button" className="key" disabled={!dirty} onClick={() => setNote(null)}>
-            Revert
-          </button>
-          <button type="button" className="key key-accent" disabled={!dirty} onClick={saveNote}>
-            Save note
-          </button>
-        </span>
+      <div className="clip-note">
+        <label className="pane-label" htmlFor={noteId}>
+          Note
+        </label>
+        {/* One recess: the page, and under it a row with the state and the two keys. */}
+        <div className="pocket notepad" data-dirty={dirty ? "" : undefined}>
+          <textarea
+            id={noteId}
+            value={note ?? saved}
+            placeholder="A note for the edit: a retake, a cut, a fact to check."
+            onChange={(e) => setNote(e.target.value)}
+            onKeyDown={(e: KeyboardEvent) => {
+              if ((e.key === "s" || e.key === "Enter") && (e.metaKey || e.ctrlKey)) {
+                e.preventDefault();
+                if (dirty) saveNote();
+              }
+            }}
+          />
+          <div className="notepad-keys">
+            <span className="notepad-state" role="status">
+              <span className="led" data-on={dirty ? "" : undefined} aria-hidden />
+              {dirty ? "Not saved" : saved ? "Saved" : "No note"}
+            </span>
+            <button type="button" className="key" disabled={!dirty} onClick={() => setNote(null)}>
+              Revert
+            </button>
+            <button type="button" className="key key-accent" disabled={!dirty} onClick={saveNote}>
+              Save note <kbd aria-hidden>⌘S</kbd>
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   );
@@ -287,7 +318,8 @@ export const clip = definePane("clip", {
   title: ({ session, segment }) => {
     const s = sessionById(session);
     const n = s ? s.segments.findIndex((x) => x.id === segment) + 1 : 0;
-    return n ? `Segment ${n}` : "Segment";
+    const Word = s?.id && catalogueOf(s).words.segment === "line" ? "Line" : "Segment";
+    return n ? `${Word} ${n}` : Word;
   },
   icon: WaveformIcon,
   width: { min: 300, comfortable: 380, max: 560 },
