@@ -10,7 +10,6 @@ import { createServices } from "./services";
 import { App } from "./shell/App";
 import { applyControlsPlace } from "./ui/controlsPlace";
 import { installFeel } from "./ui/feel";
-import { applyHeaderButtons } from "./ui/headerButtons";
 import { createStudioJali } from "./workspace";
 // Styles: the layer order is declared in index.html. Then the faces: Chakra Petch for everything, and IBM Plex Mono
 // only for the numbers that tick (Chakra Petch has no tabular figures); then the app's own, which import Jali's first.
@@ -21,7 +20,6 @@ import "@fontsource/ibm-plex-mono/latin-400.css";
 import "@fontsource/ibm-plex-mono/latin-500.css";
 import "./styles/app.css";
 
-applyHeaderButtons();
 applyControlsPlace();
 installFeel();
 const services = createServices();

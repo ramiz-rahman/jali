@@ -22,9 +22,7 @@ const offenders = (test: (text: string) => boolean) =>
 
 describe("the stylesheets use the tokens", () => {
   it("no raw colours: every colour, shadow and highlight is a token", () => {
-    // The header-button comparison switch is temporary (ui/headerButtons.ts) and goes with it.
-    const temporary = /light-dark\(#d9d9d5, #1d1d20\)/;
-    expect(offenders((t) => /#[0-9a-f]{3,8}\b/i.test(t) && !temporary.test(t))).toEqual([]);
+    expect(offenders((t) => /#[0-9a-f]{3,8}\b/i.test(t))).toEqual([]);
     // Shadows and highlights too: the shade and lit ladders, never an rgb() written in a rule.
     expect(offenders((t) => /\brgba?\(/.test(t))).toEqual([]);
   });

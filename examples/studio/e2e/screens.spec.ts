@@ -185,41 +185,6 @@ for (const [name, width, height, dark] of [
   });
 }
 
-// The header-button treatments (a temporary comparison switch, ui/headerButtons.ts), each light and dark: the
-// headers of the first three panes, with the pointer over the transcript's close button.
-for (const [letter, variant] of [
-  ["a", "printed"],
-  ["b", "wells"],
-  ["c", "strip"],
-  ["d", "round"],
-] as const) {
-  for (const dark of [false, true]) {
-    test(`header buttons ${variant}${dark ? " dark" : ""}`, async ({ page }) => {
-      await page.setViewportSize({ width: 1100, height: 700 });
-      await page.emulateMedia({
-        colorScheme: dark ? "dark" : "light",
-        reducedMotion: "reduce",
-      });
-      await page.addInitScript(
-        (v) => localStorage.setItem("studio:header-buttons", JSON.stringify(v)),
-        variant,
-      );
-      await page.goto("/");
-      await expect(page.locator(".jali-pane").first()).toBeVisible();
-      await page.waitForTimeout(800);
-      const box = (await page.locator(".jali-pane").first().boundingBox())!;
-      await page
-        .locator('.jali-pane[data-pane="transcript"] .jali-pane-actions button')
-        .last()
-        .hover();
-      await page.screenshot({
-        path: shot(`header-buttons-${letter}${dark ? "-dark" : ""}`),
-        clip: { x: 0, y: box.y - 4, width: 1100, height: 60 },
-      });
-    });
-  }
-}
-
 // The top bar at 2x device scale, light and dark: the slab's edges, grain and pockets at full resolution.
 for (const dark of [false, true]) {
   test(`toprow-wide@2x${dark ? " dark" : ""}`, async ({ browser, baseURL }) => {
