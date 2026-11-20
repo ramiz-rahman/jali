@@ -4,6 +4,7 @@ import { createTestStore } from "./workspace";
 import { memoryLocation, memoryStorage } from "../packages/core/src/ports";
 import { createUrlSync } from "../packages/core/src/url";
 import { decode } from "../packages/core/src/layout";
+import { linkLayout } from "../packages/core/src/pane-kinds";
 
 const area = { width: 1600, height: 900 };
 
@@ -23,13 +24,17 @@ describe("the location port", () => {
     expect(store.href()).toBe(location.href());
   });
 
-  it("reads back what it wrote: the same layout from the same address", () => {
+  it("reads back what it wrote: the same layout from the same address, as a link carries it", () => {
     const location = memoryLocation();
     const url = createUrlSync({ location, storage: memoryStorage() });
     const a = createTestStore({ url, storage: memoryStorage(), initial: { area } });
     a.actions.preset("query-chart");
-    const read = url.read(a.env.kinds.registry());
-    expect(read && "layout" in read && read.layout.root).toEqual(a.get().layout.root);
+    const kinds = a.env.kinds.registry();
+    const read = url.read(kinds);
+    // The query's `autorun` (app-only) and the chart's `runId` (`link: false`) stay out of the address.
+    expect(read && "layout" in read && read.layout.root).toEqual(
+      linkLayout(kinds, a.get().layout).root,
+    );
   });
 
   it("two workspaces share one address under their own prefixes", () => {

@@ -1,6 +1,6 @@
 /**
- * What a link can and can't do to the query and chart panes: a link's SQL never runs by itself, the app's own preset
- * query does, and a chart whose result is from an earlier visit says so.
+ * What a link can and can't do to the query and chart panes: a link's SQL never runs by itself (`autorun` is app-only,
+ * so no link carries it), the app's own preset query does, and a chart whose result is from an earlier visit says so.
  */
 import type { Page } from "@playwright/test";
 import { expect, test } from "../../shared/e2e/quality";
@@ -42,7 +42,7 @@ test("a link's own SQL is shown, not run, even when the link asks for it to run"
   await expect(query(page).getByRole("textbox", { name: "SQL" })).toHaveValue(
     "SELECT 'from a link' AS said",
   );
-  await expect(query(page)).toContainText("This query came with the link, and hasn't run");
+  await expect(query(page)).toContainText("No results yet");
   await expect(query(page).getByRole("grid")).toHaveCount(0);
 
   // The person reads it and runs it.
@@ -67,9 +67,11 @@ test("a chart whose result is from an earlier visit says so, and how to get it b
 }) => {
   await openPreset(page, "Query + chart + inspector");
   await expect(chart(page).getByRole("img", { name: /Bar chart/ })).toBeVisible();
-  // The same layout, but the query waits: nothing makes a new result for the chart.
+  // A link that carries a run id (the address no longer does, but an old link may), and a query that isn't the
+  // preset's own, so it waits: nothing makes a new result for the chart.
   const link = relink(page, (n) => {
-    if (n.r?.[0] === "query") delete n.r[1].autorun;
+    if (n.r?.[0] === "query") n.r[1] = { sql: "SELECT 1 AS one" };
+    if (n.r?.[0] === "chart") n.r[1] = { runId: "an-earlier-visit-1" };
   });
   await page.goto(link);
   await loaded(page);

@@ -1,5 +1,5 @@
 import { ChartBarIcon } from "@phosphor-icons/react";
-import { definePane } from "@jali/react";
+import { definePane, optional } from "@jali/react";
 import type { Row } from "#shared/data/types";
 import { useMemo, useState } from "react";
 import { isLoading } from "#shared/data/hooks";
@@ -13,12 +13,15 @@ import type { PaneProps } from "@jali/react";
 const MAX_BARS = 20;
 
 /** A bar chart of the same result handle the grid reads (same cache key, so no second fetch). */
-/** The result handle to chart; empty until the linked query has run. */
-export const chartParams = { runId: String };
+/**
+ * The result handle to chart; none until the linked query has run. Results live only while the page is open, so the
+ * run id stays out of the address (`link: false`): Back and Forward keep it, a reload starts without it.
+ */
+export const chartParams = { runId: optional(String, { link: false }) };
 
 export function ChartPane({ params, paused }: PaneProps<typeof chartParams>) {
   const runId = params.runId;
-  const w = useResultWindow(runId, 0, paused);
+  const w = useResultWindow(runId ?? "", 0, paused);
   const q = w.q;
   const rows = w.rows;
   const columns = useMemo(() => Object.keys(rows[0] ?? {}), [rows]);

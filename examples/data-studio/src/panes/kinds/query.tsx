@@ -1,5 +1,6 @@
 import { TerminalWindowIcon } from "@phosphor-icons/react";
 import {
+  appOnly,
   definePane,
   optional,
   useActivity,
@@ -27,19 +28,18 @@ export const ORDERS_BY_STATUS_SQL =
   "SELECT status, count(*)::int AS orders, sum(total_cents)::int AS total_cents\nFROM orders\nGROUP BY status\nORDER BY orders DESC";
 
 /**
- * The only SQL that runs without a press of Run: the app's own. A pane's params come from links as well as from
- * presets, and a link can carry any SQL and `autorun`; run on load, one link could hang the tab or show the reader
- * a result that isn't what it says. So `autorun` runs the app's own queries only, and any other SQL waits, shown,
- * for the person to read and run.
+ * The only SQL that runs without a press of Run: the app's own. `autorun` is app-only (`appOnly`), so a link never
+ * carries or sets it: only a preset or the app's own code asks a query to run as it opens. This check is a second line
+ * behind that: `autorun` runs the app's own queries only, and any other SQL waits, shown, for the person to run.
  */
 const OWN_SQL: ReadonlySet<string> = new Set([DEFAULT_SQL, ORDERS_BY_STATUS_SQL]);
 
-/** A query may come with its SQL, and a preset may ask it to run on load. A new query has neither. */
-export const queryParams = { sql: optional(String), autorun: optional(Boolean) };
+/** A query may come with its SQL, and a preset may ask it to run on load (never a link). A new query has neither. */
+export const queryParams = { sql: optional(String), autorun: appOnly(Boolean) };
 
 export function QueryPane({ params, paused, focused, openBeside }: PaneProps<typeof queryParams>) {
   const start = params.sql ?? DEFAULT_SQL;
-  // Asked to run on load, with SQL that isn't the app's own: it came with a link, and waits for Run.
+  // Asked to run on load, with SQL that isn't the app's own: it waits for Run.
   const held = !!params.autorun && !OWN_SQL.has(start);
   // The draft is the pane's own state: it outlives a fold, a tab switch and a reload.
   const [sql, setSql] = usePaneState("sql", start, { parse: text });
@@ -144,7 +144,7 @@ export function QueryPane({ params, paused, focused, openBeside }: PaneProps<typ
         <ResultGrid handle={handle} paused={paused} focused={focused} />
       ) : held && ran === start ? (
         <Empty
-          title="This query came with the link, and hasn't run"
+          title="This query hasn't run"
           hint={`Read it above, then press Run (${keyHint("Mod+Enter")}) if it is what you want.`}
         />
       ) : (

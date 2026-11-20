@@ -12,6 +12,8 @@ Data Studio is built on the public API alone (`@jali/core`, `@jali/react`). Each
 
 **Now.** Jali has `appOnly(type)` (20 Nov 2026): a param that links never carry or set. Declaring `autorun: appOnly(Boolean)` would make the app's check a second line of defence, not the only one.
 
+**Now (21 Nov 2026).** `autorun` is `appOnly(Boolean)` in `src/panes/kinds/query.tsx`, so no link carries or sets it; `OWN_SQL` is the second line. A reload still runs the preset's own query: Jali gives a pane from the address the app-only params its preset gave it, when the pane is exactly the preset's.
+
 ## 2. A run id in the link doesn't survive a reload
 
 **Wanted.** A chart that follows a query shows that query's result, including after a reload.
@@ -21,6 +23,8 @@ Data Studio is built on the public API alone (`@jali/core`, `@jali/react`). Each
 **Workaround.** A run id now names its visit. A chart from an earlier visit says so and how to get the result back. The preset's query and chart come back after a reload, because the preset runs its own query again.
 
 **Suggested change.** A param that is the pane's own state but stays out of the address (`link: false`), for values that mean nothing outside this page load. It is different from `appOnly`, which also keeps a value from being set by a link.
+
+**Now.** `optional(type, { link: false })` (21 Nov 2026). The chart's `runId` is `optional(String, { link: false })`: no address holds it, Back and Forward keep it on a chart still open, and a reload starts the chart without one until its query runs. A chart from an old link that still carries a run id says it is from an earlier visit, as before.
 
 ## 3. Settings rows and icon buttons are private
 
