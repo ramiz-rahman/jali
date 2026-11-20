@@ -19,7 +19,9 @@ export const OUT = join(root, "packages/core/docs");
 /** Every file to write, by path under docs/: README.md plus one per page. */
 export async function render() {
   const server = await createServer({
-    configFile: join(docsApp, "vite.config.ts"),
+    // The site is Astro now and has no vite.config. The sources are plain modules (the pages are read as text with
+    // `?raw`), so no MDX or Astro plugin is needed here.
+    configFile: false,
     root: docsApp,
     logLevel: "silent",
     server: { middlewareMode: true, hmr: false, ws: false },

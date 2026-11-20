@@ -6,6 +6,7 @@ import { KindIcon } from "../pane/icons";
 import { PaneBody, peekHost } from "../pane/PaneBody";
 import { UnsavedMark } from "../pane/Unsaved";
 import { useStore, useUi } from "../state/react";
+import { ICON } from "../icons/sized";
 
 export const PEEK_WIDTH = 480;
 
@@ -39,6 +40,16 @@ export function Peek({ presentation }: { presentation: Presentation }) {
       })
     );
   });
+  // And for its title: a pane showing this object may have named it from its data (useTitle).
+  const named = useUi((s) => {
+    const ref = s.view.peek;
+    if (!ref) return undefined;
+    const id = Object.keys(s.titles).find((id) => {
+      const p = store.model().pane(id);
+      return !!p && sameRef(p.ref, ref);
+    });
+    return id ? s.titles[id] : undefined;
+  });
   const openedBy = useRef<"pointer" | "keyboard">("keyboard");
   // Observes (never takes) the last input, so only a pointer-opened peek animates.
   useEffect(() => {
@@ -54,7 +65,7 @@ export function Peek({ presentation }: { presentation: Presentation }) {
   if (!ref) return null;
   // The sheet's content is not a pane in the layout: it has a node of its own, outside the tree.
   const node: PaneNode = { id: "peek", type: "pane", size: { weight: 1 }, ref };
-  const title = store.env.kinds.title(ref);
+  const title = named ?? store.env.kinds.title(ref);
   const { actions } = store;
   const t = store.messages.peek;
   return (
@@ -81,7 +92,7 @@ export function Peek({ presentation }: { presentation: Presentation }) {
               onClick={() => actions.openPeekBeside()}
               title={t.openBeside}
             >
-              <icon.openBeside size={14} aria-hidden /> {t.openBeside}
+              <icon.openBeside {...ICON.header} aria-hidden /> {t.openBeside}
             </button>
           ) : null}
           {page ? null : (
@@ -90,7 +101,7 @@ export function Peek({ presentation }: { presentation: Presentation }) {
               onClick={() => actions.openPeekFull()}
               title={t.openFull}
             >
-              <icon.openFull size={14} aria-hidden /> {t.openFull}
+              <icon.openFull {...ICON.header} aria-hidden /> {t.openFull}
             </button>
           )}
           <button
@@ -99,7 +110,7 @@ export function Peek({ presentation }: { presentation: Presentation }) {
             aria-label={t.close}
             title={t.closeTip(store.keymap.format([{ key: "Escape" }]))}
           >
-            <icon.close size={14} aria-hidden />
+            <icon.close {...ICON.header} aria-hidden />
           </button>
         </div>
       </header>

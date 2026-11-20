@@ -4,6 +4,7 @@ import { useJaliIcons } from "../icons/context";
 import { useModel, useStore, useUi } from "../state/react";
 import { bringBack, canPopOut, popOut, usePopOutTarget } from "./PopOut";
 import type { Chrome } from "@jali/core/adapter";
+import { ICON } from "../icons/sized";
 
 interface P {
   id: string;
@@ -63,13 +64,14 @@ export function HeaderActions({ id, title, zoomed, chrome, tabs, onMenu }: P) {
         return (
           <button
             key={b}
-            className="jali-icon-btn jali-act-tuck"
+            className="jali-icon-btn jali-act-tuck jali-pane-action"
+            data-action="tuck"
             aria-label={home ? tuckLabel : t.tuck(title)}
             title={tuckLabel}
             disabled={!home}
             onClick={() => actions.tuck(id)}
           >
-            <icon.tuck size={14} aria-hidden />
+            <icon.tuck {...ICON.header} aria-hidden />
           </button>
         );
       case "maximise":
@@ -80,25 +82,27 @@ export function HeaderActions({ id, title, zoomed, chrome, tabs, onMenu }: P) {
         return (
           <button
             key={b}
-            className="jali-icon-btn jali-act-popout"
+            className="jali-icon-btn jali-act-popout jali-pane-action"
+            data-action="popout"
             aria-label={popped ? t.bringBackPane(title) : t.popOut(title)}
             aria-pressed={popped}
             title={popped ? t.bringBack : t.popOutTip}
             onClick={() => (popped ? bringBack() : void popOut(store.jali, id))}
           >
-            <icon.popOut size={14} aria-hidden />
+            <icon.popOut {...ICON.header} aria-hidden />
           </button>
         );
       case "close":
         return (
           <button
             key={b}
-            className="jali-icon-btn jali-act-close"
+            className="jali-icon-btn jali-act-close jali-pane-action"
+            data-action="close"
             onClick={() => actions.close(id)}
             aria-label={t.close(title)}
             title={keys.withKeys(closeHint, store.keymap.label("pane.close"))}
           >
-            <icon.close size={14} aria-hidden />
+            <icon.close {...ICON.header} aria-hidden />
           </button>
         );
     }
@@ -112,7 +116,8 @@ export function HeaderActions({ id, title, zoomed, chrome, tabs, onMenu }: P) {
       0,
       <button
         key="menu"
-        className="jali-icon-btn jali-act-menu"
+        className="jali-icon-btn jali-act-menu jali-pane-action"
+        data-action="menu"
         aria-label={t.menu(title)}
         aria-haspopup="menu"
         title={keys.withKeys(t.menuTip, "Shift+F10")}
@@ -121,7 +126,7 @@ export function HeaderActions({ id, title, zoomed, chrome, tabs, onMenu }: P) {
           onMenu({ x: store.get().dir === "rtl" ? r.left : r.right, y: r.bottom + 2, end: true });
         }}
       >
-        <icon.menu size={14} aria-hidden />
+        <icon.menu {...ICON.header} aria-hidden />
       </button>,
     );
   }
@@ -134,7 +139,8 @@ function ZoomButton({ id, title, zoomed }: { id: string; title: string; zoomed: 
   const { pane: t, keys } = messages;
   return (
     <button
-      className="jali-icon-btn jali-act-zoom"
+      className="jali-icon-btn jali-act-zoom jali-pane-action"
+      data-action="zoom"
       onClick={() => actions.toggleZoom(id)}
       aria-label={zoomed ? t.restore(title) : t.maximise(title)}
       title={
@@ -143,7 +149,11 @@ function ZoomButton({ id, title, zoomed }: { id: string; title: string; zoomed: 
           : keys.withKeys(t.maximiseTip, keymap.label("pane.zoom"))
       }
     >
-      {zoomed ? <icon.restore size={14} aria-hidden /> : <icon.maximise size={14} aria-hidden />}
+      {zoomed ? (
+        <icon.restore {...ICON.header} aria-hidden />
+      ) : (
+        <icon.maximise {...ICON.header} aria-hidden />
+      )}
     </button>
   );
 }
@@ -155,7 +165,8 @@ function FullScreenButton({ id, title }: { id: string; title: string }) {
   const { pane: t, keys } = messages;
   return (
     <button
-      className="jali-icon-btn jali-act-fullscreen"
+      className="jali-icon-btn jali-act-fullscreen jali-pane-action"
+      data-action="fullscreen"
       onClick={() => actions.toggleFullScreen(id)}
       aria-label={full ? t.exitFullScreen(title) : t.fullScreen(title)}
       aria-pressed={full}
@@ -166,9 +177,9 @@ function FullScreenButton({ id, title }: { id: string; title: string }) {
       }
     >
       {full ? (
-        <icon.exitFullScreen size={14} aria-hidden />
+        <icon.exitFullScreen {...ICON.header} aria-hidden />
       ) : (
-        <icon.fullScreen size={14} aria-hidden />
+        <icon.fullScreen {...ICON.header} aria-hidden />
       )}
     </button>
   );

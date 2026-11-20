@@ -176,7 +176,7 @@ What sits on top of the tree. Written by the operations; read it, don't write it
 *type*, from `@jali/core`
 
 ```ts
-interface ViewState { focused?: NodeId; zoomed?: NodeId; peek?: ObjectRef; focusHistory: NodeId[] }
+interface ViewState { focused?: NodeId; zoomed?: NodeId; scroll?: Record<NodeId, number>; peek?: ObjectRef; focusHistory: NodeId[] }
 ```
 
 What the person is looking at, apart from the layout.
@@ -186,6 +186,8 @@ What the person is looking at, apart from the layout.
 - **`focused`** (`NodeId`): The pane with workspace focus (the accent edge).
 
 - **`zoomed`** (`NodeId`): The maximised pane. In the URL as `zoom`.
+
+- **`scroll`** (`Record<NodeId, number>`): How far each row that scrolls has scrolled, by the row's id, in px along its content. Focusing a pane in it sets it, so the pane shows whole.
 
 - **`peek`** (`ObjectRef`): What the peek sheet shows. In the URL as `peek`.
 
@@ -246,7 +248,7 @@ A box in pixels, relative to the workspace's inner area.
 *type*, from `@jali/core`
 
 ```ts
-interface ResolvedLayout { panes: PaneBox[]; dividers: DividerBox[]; stacks; shelf }
+interface ResolvedLayout { panes: PaneBox[]; dividers: DividerBox[]; stacks; shelf; scrollers: ScrollerBox[] }
 ```
 
 What `layout.resolve` returns: `panes` and `dividers` with their rects; `stacks`, the groups made by folding and tucking (`{ id, kind: "fold" | "tuck", homeId, paneIds }`); and `shelf`, every pane behind a tab with why (`{ paneId, homeId, stackId, reason: "tucked" | "folded" | "tab" }`).
@@ -256,7 +258,7 @@ What `layout.resolve` returns: `panes` and `dividers` with their rects; `stacks`
 *type*, from `@jali/core`
 
 ```ts
-interface PaneBox { id: NodeId; rect: Rect; stackId?: NodeId; hidden?: "tab" | "zoom" | "off" }
+interface PaneBox { id: NodeId; rect: Rect; stackId?: NodeId; hidden?: "tab" | "zoom" | "off"; clip?: Rect }
 ```
 
 A pane's place. `hidden`: behind another tab, behind a maximised pane, or `"off"` (hidden by the overlay, with an empty rect).
@@ -274,6 +276,16 @@ interface DividerBox {
 ```
 
 A divider between child `index` and `index + 1` of split `parentId`. `value` is the first side's length now; `min` and `max` are how far a drag can take it; `neighbours` are the panes on each side.
+
+### ScrollerBox
+
+*type*, from `@jali/core`
+
+```ts
+interface ScrollerBox { id: NodeId; rect: Rect; contentWidth: number; paneIds: NodeId[] }
+```
+
+A row that scrolls sideways (`row({ scroll: "x" }, …)`), as drawn. `rect` is its window on screen; its panes are laid along its content, `contentWidth` long, from `rect.x`. Once scrolled (`layout.scrolled`), a strip's panes and dividers carry `clip`: the window they are cut to.
 
 ### ResolvedStack
 
@@ -306,6 +318,16 @@ type LayoutInput = Layout | Draft | ObjectRef
 ```
 
 Anything that stands for a layout: a builder's result (`row(...)`), a single ref (a one-pane layout), or a whole `Layout`. `createJali({ layout })`, a preset's `layout` and a page's `build` all take one.
+
+### RowOptions
+
+*type*, from `@jali/core`
+
+```ts
+interface RowOptions extends SizeOptions { scroll?: "x" }
+```
+
+A row's options. `scroll: "x"` makes a row that scrolls sideways: each child keeps its own width (its comfortable width until the person sizes it) and the row scrolls to the rest, so nothing folds. To its parent it needs one child's room; to the pane cap it is one slot. Focusing a pane in it scrolls it into view.
 
 ### SizeOptions
 
@@ -973,7 +995,11 @@ What is on screen, derived once per change (`jali.model()`, `useJaliModel()`).
 
 **Fields**
 
-- **`resolved`** (`ResolvedLayout`, required): Boxes, dividers, groups and shelf, with the maximise applied.
+- **`resolved`** (`ResolvedLayout`, required): Boxes, dividers, groups and shelf, with the maximise applied and each row that scrolls at its scroll position.
+
+- **`content`** (`ResolvedLayout`, required): The same, unscrolled: each strip's panes along its content.
+
+- **`outOfView`** (`ReadonlySet<NodeId>`, required): Panes in a row that scrolls, scrolled out of its window. They stay mounted and in the focus order, and are `paused`.
 
 - **`flat`** (`ResolvedLayout`, required): The same as if nothing were maximised.
 
@@ -1483,7 +1509,7 @@ A pane, by its id or by the object it shows. A ref means the pane showing that o
 *type*, from `@jali/core`
 
 ```ts
-interface ChooseOptions<T> { title: string; items: readonly T[]; label(item: T): string; hint?(item: T): string; placeholder?: string; onChoose(item: T): void }
+interface ChooseOptions<T> { title: string; items: readonly T[]; label(item: T): string; hint?(item: T): string; current?: T; placeholder?: string; onChoose(item: T): void }
 ```
 
 What `JaliActions` `choose` asks the person for. `T` is whatever your items are.
@@ -1497,6 +1523,8 @@ What `JaliActions` `choose` asks the person for. `T` is whatever your items are.
 - **`label`** (`(item: T) => string`, required): An item's name in the list.
 
 - **`hint`** (`(item: T) => string`): Words beside the name, matched too.
+
+- **`current`** (`T`): The item in use. The chooser opens with it selected, and its row is marked (`data-current`, `aria-current="true"` and a tick). Compared with `Object.is`: pass one of `items` itself.
 
 - **`placeholder`** (`string`): The field's placeholder.
 
@@ -1558,6 +1586,8 @@ A pane that is not there gives `reason: "not-found"`. What a refusal reads out t
 - **`actions.mergeInto`**, `mergeInto(pane: PaneTarget, target: PaneTarget)`: `pane` joins `target`'s tab group.
 
 - **`actions.unmerge`**, `unmerge(pane?: PaneTarget)`: Move a tab out of its group, to the right of it.
+
+- **`actions.moveOutOfRow`**, `moveOutOfRow(pane?: PaneTarget)`: Take a pane (default: the focused one) out of the row that scrolls sideways holding it, beside the row on the side the pane is nearer on screen. Also in the pane's menu and ⌘K ("Move out of the row"). Nothing happens for a pane in no such row.
 
 - **`actions.closeTabs`**, `closeTabs(pane: PaneTarget, which: "others" | "after")`: Close the other tabs of `pane`'s group, or the tabs after it in reading order (to its right, or its left right to left). One change: `beforeClose` is asked once, listing them all, and one Undo brings them back. Refused with `"nothing-to-do"` when there are none. The tab menu's Close other tabs and Close tabs to the right.
 

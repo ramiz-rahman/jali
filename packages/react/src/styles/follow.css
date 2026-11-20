@@ -8,11 +8,11 @@
     height: 1.25rem;
     padding: 0 0.375rem;
     font: inherit;
-    font-size: 0.6875rem;
+    font-size: var(--jali-text-xs);
     color: var(--jali-text-subtle);
     background: none;
     border: 1px solid var(--jali-border);
-    border-radius: 4px;
+    border-radius: var(--jali-radius-chip);
     cursor: pointer;
   }
   .jali-follow-toggle:hover {
@@ -54,7 +54,7 @@
     flex: none;
     margin: 0;
     padding: 0.375rem 0.75rem;
-    font-size: 0.75rem;
+    font-size: var(--jali-text-sm);
     color: var(--jali-text-subtle);
     border-bottom: 1px solid var(--jali-border);
     background: var(--jali-hover);

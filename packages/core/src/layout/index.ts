@@ -3,7 +3,7 @@ export type * from "./types";
 export * as tree from "./tree/tree";
 export { open, openBeside, split, type Placement, type OpenOptions } from "./ops/open";
 export { close, closeOthers } from "./ops/close";
-export { swap, drop, moveDirection } from "./ops/move";
+export { swap, drop, moveDirection, moveOutOfStrip } from "./ops/move";
 export { resizeDivider, resetDivider } from "./ops/divider";
 export { canTuck, tuck, putBack, putBackEdge } from "./ops/tuck";
 export { hide, show } from "./ops/hide";
@@ -14,8 +14,16 @@ export { follow, follower, followers, selectionLink, setKept } from "./ops/follo
 export { addTab, moveTab, reveal, setActiveTab, setPinned, resetLayout } from "./ops/tabs";
 export { focus, focusCycle, focusDirection, toggleZoom } from "./ops/focus";
 export { snapToCentre, SNAP_IN, SNAP_OUT } from "./geometry/snap";
-export { extentAlong } from "./geometry/extent";
+export { extentAlong, extentIn } from "./geometry/extent";
 export { minSize } from "./geometry/bounds";
+export {
+  scrolled,
+  offsetToShow,
+  clampOffset,
+  maxOffset,
+  inWindow,
+  type Offsets,
+} from "./geometry/scroll";
 export { resolve } from "./fit/resolve";
 export { refit } from "./fit/refit";
 export { encode, decode } from "./codec/codec";

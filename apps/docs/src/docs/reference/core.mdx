@@ -69,6 +69,8 @@ The address.
 <Param name="palette" type="boolean" default="true">`false`: your app's own command menu lists Jali's commands (<Ref to="useJaliCommands" page="/reference/react" />, <Ref to="listCommands" />). `<JaliRoot>` renders no palette, and its key is unbound unless `keymap` binds `"palette.toggle"`.</Param>
 <Param name="landmark" type={`"region" | "main"`} default={`"region"`}>What the panes are to screen readers. `"region"`: a `<section>` labelled "Panes", which sits inside your page's own `<main>` and adds no second one. `"main"`: the panes render as the page's `<main>`. Use it when Jali is the whole app and the page has no `<main>` of its own.</Param>
 <Param name="dir" type="Direction" default="the page's">The reading direction. By default the workspace reads its page's: the computed `direction` where it renders, so `<html dir="rtl">` is enough, and it follows a later change of `dir`. Give one to fix it; `<JaliRoot>` then sets `dir` on its elements, so the styles agree. Right to left, a row starts at the right, and every left and right a key, command, drop zone or message names is still the screen's. The layout and its links are the same in both. See <Ref to="Direction" page="/reference/core/types" />.</Param>
+<Param name="gap" type="number" default="6 (GAP)">The space between panes, in CSS pixels. The layout measures with it (splits, rows that scroll, the stacked view), and `<JaliRoot>` writes it on its root and its layer as `--jali-gap`, so a style that reads the variable agrees with where the panes are.</Param>
+<Param name="inset" type="number" default="the gap">The space between the workspace's edges and its panes, in CSS pixels, written as `--jali-inset`. Set it apart from the gap to line the panes up with your own bars.</Param>
 <Param name="size" type="{ width: number; height: number }">A fixed size instead of the window's, for tests and server rendering. `<JaliRoot>` measures the real one once it renders.</Param>
 <Param name="moveFocus" type="boolean" default="true">`false` leaves DOM focus alone: for tests and a workspace that is never shown.</Param>
 <Param name="onUnstable" type="(op: string, before: string, after: string) => void" default="console.error in development">Called when a focus or swap action moved a pane on screen, which it never should.</Param>
@@ -93,7 +95,7 @@ The address.
 
 What an app asks the workspace to do. Each action reads the current state, makes its change once (layout, focus, address, announcement, toast) and returns what happened: `{ ok: true, pane }`, or `{ ok: false, reason }` with the reason it did not.
 
-The pane comes first, by its id or by the object it shows: `close("order")` and `close(orderKind({ id: 7 }))` both work. An action that would remove or replace a pane with unsaved work is held instead (`reason: "unsaved"`), and "Discard unsaved changes?" opens. A following detail with unsaved work keeps its object and says so. Every action is listed under <Ref to="JaliActions" page="/reference/core/types" />.
+The pane comes first, by its id or by the object it shows: `close("order")` and `close(orderKind({ id: 7 }))` both work. An action that would remove or replace a pane with unsaved work is held instead (`reason: "unsaved"`), and "Discard unsaved changes?" opens. A following detail with unsaved work keeps its object and says so, while the list's other followers move on. Every action is listed under <Ref to="JaliActions" page="/reference/core/types" />.
 
 </Entry>
 
@@ -127,14 +129,14 @@ A param that is one of a few values: `oneOf("open", "closed")` gives `"open" | "
 
 ## Layouts
 
-<Entry name="row" kind="function" from="@jali/core" signature={`row(options?: SizeOptions, ...children: (Draft | ObjectRef)[]): Draft`} example={builderCode} exampleFile="layouts.ts">
+<Entry name="row" kind="function" from="@jali/core" signature={`row(options?: RowOptions, ...children: (Draft | ObjectRef)[]): Draft`} example={builderCode} exampleFile="layouts.ts">
 
 Children side by side. A child is a ref (a pane showing it), a `pane(ref, options)`, or another `row`, `column` or `tabs`. Options come first when there are any: `row({ weight: 2 }, a, b)`.
 
 Nodes without an `id` are named after what they hold: `"row"`, `"column"`, `"tabs"`, or the pane's kind, then `"order-2"` and so on. Give an `id` to a pane another one links to, or that your code names.
 
 <Params>
-<Param name="options" type="SizeOptions">`id`; `weight` (its share of the parent, default 1) or `px` (a fixed length).</Param>
+<Param name="options" type="RowOptions">`id`; `weight` (its share of the parent, default 1) or `px` (a fixed length); `scroll: "x"` for a row that scrolls sideways, its children at their own widths, instead of sharing its width and folding what doesn't fit.</Param>
 <Param name="children" type="(Draft | ObjectRef)[]" required />
 </Params>
 
@@ -290,6 +292,25 @@ Runs a command by id if its check passes. A refusal is not announced here (the k
 
 </Entry>
 
+<Entry name="edgeScroll" kind="function" from="@jali/core" signature={`edgeScroll(jali: Jali, onScroll?: () => void): EdgeScroll`} compact>
+
+Scrolls a row that scrolls sideways while a drag is held within 56px of its left or right edge, faster the closer it is, so a drag can reach a pane out of view. For an app's own drag: Jali's pane drag (by a header) doesn't use it yet. Call `move` on every pointer move and `stop` when the drag ends. `onScroll` runs after each step, so the drag can find what is under the pointer again as the panes slide past.
+
+<Params>
+<Param name="jali" type="Jali" required />
+<Param name="onScroll" type="() => void">After each step of scrolling.</Param>
+</Params>
+
+<Returns type="EdgeScroll" />
+
+</Entry>
+
+<Entry name="EdgeScroll" kind="type" from="@jali/core" signature={`interface EdgeScroll { move(clientX: number, clientY: number): void; stop(): void }`} compact>
+
+What <Ref to="edgeScroll" /> returns: tell it where the pointer is, and when the drag ends.
+
+</Entry>
+
 <Entry name="copyLink" kind="function" from="@jali/core" signature={`copyLink(jali: Jali): void`} compact>
 
 Writes `jali.href()` to the clipboard and announces "Link copied", or "Couldn't copy the link" when the browser refuses. Where `navigator.clipboard` is missing it does nothing. The `layout.copy_link` command runs it.
@@ -379,7 +400,7 @@ Lets a list inside a pane keep its current item through the workspace, so the pa
 
 <Entry name="GAP" kind="constant" from="@jali/core" signature={`const GAP: number`} compact>
 
-The gap between panes and the workspace's inset, in pixels (6). For measuring a workspace from outside: its usable area is its element's size minus `GAP * 2`.
+The default gap between panes and inset from the workspace's edges, in pixels (6); a workspace's own are `createJali({ gap, inset })`. For measuring a workspace from outside: its usable area is its element's size minus twice its inset (`GAP * 2` by default).
 
 </Entry>
 

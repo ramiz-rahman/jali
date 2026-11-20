@@ -3,7 +3,7 @@
  * height the top one takes, and whether the on-screen keyboard is up (then the focused pane shows alone, so a field
  * in the lower pane isn't under the keyboard).
  */
-import { STACK_GAP, type UiStore } from "@jali/core/adapter";
+import type { UiStore } from "@jali/core/adapter";
 import type { JaliModel } from "@jali/core";
 import { useEffect, useRef, useState, type KeyboardEvent, type PointerEvent } from "react";
 import { useStore } from "../state/react";
@@ -60,7 +60,8 @@ export function StackDivider({
   const drag = useRef<{ startY: number; start: number } | null>(null);
   const [live, setLive] = useState<number | null>(null);
   const shown = live ?? ratio;
-  const y = Math.round((height - STACK_GAP) * shown);
+  const { gap } = store.env.spacing;
+  const y = Math.round((height - gap) * shown);
   const top = m.title(pair.top);
   const bottom = m.title(pair.bottom);
   const onKey = (e: KeyboardEvent) => {
@@ -101,7 +102,7 @@ export function StackDivider({
       aria-valuetext={t.stackValue(top, Math.round(shown * 100))}
       tabIndex={0}
       data-dragging={live !== null || undefined}
-      style={{ top: y + STACK_GAP / 2 }}
+      style={{ top: y + gap / 2 }}
       onKeyDown={onKey}
       onPointerDown={(e) => {
         e.currentTarget.setPointerCapture?.(e.pointerId);

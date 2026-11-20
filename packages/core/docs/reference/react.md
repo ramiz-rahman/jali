@@ -141,7 +141,7 @@ Keys: content first. Claim the keys you use with `event.preventDefault()` (J and
 
 - **`openHere`** (`(ref: ObjectRef) => ActionResult`, required): Show `ref` in this pane. If it is open elsewhere, that pane is focused instead. In the peek sheet, which has no pane of its own, `{ ok: false, reason: "unavailable" }`.
 
-- **`peek`** (`(ref: ObjectRef | null) => ActionResult`, required): Open or move the peek sheet; `null` closes it.
+- **`peek`** (`(ref: ObjectRef | null) => ActionResult`, required): Open or move the peek sheet; `null` closes it. When this pane has a following detail of the ref's kind on screen, the detail shows the item instead of the peek sheet, and no sheet opens (see [`JaliActions`](core/types.md#JaliActions)).
 
 - **`select`** (`(ref: ObjectRef | null, options?: { inResults?: boolean }) => ActionResult`, required): Report the item a list is on. An open peek from this pane follows it at once; this pane's following detail once it rests. `{ inResults: false }`: the filter no longer shows `ref`. Report the selection before opening it, so the opened pane is linked to it.
 
@@ -198,6 +198,16 @@ The pane's `PaneProps`, for components below the kind's own: `const { params, op
 
 **Returns** `PaneProps<P>`:
 
+### keyBelongsToContent
+
+*function*, from `@jali/react`
+
+```ts
+keyBelongsToContent(event: KeyboardEvent): boolean
+```
+
+Whether a key event belongs to the focused content: its target is a text field, a contenteditable region, a combobox or search box, inside a dialog, or a control that Space presses (a button, link, tab, checkbox, switch, radio or menu item). Use it in a window-level `keydown` handler that wants a single key such as Space. See [Space in lists](../guides/commands-and-keys.md).
+
 ### useActivity
 
 *hook*, from `@jali/react`
@@ -206,7 +216,7 @@ The pane's `PaneProps`, for components below the kind's own: `const { params, op
 useActivity(activity: PaneActivity | undefined): void
 ```
 
-Report what the pane is doing (`"loading"`, `"working"`, `"needs-you"`, `"error"` or `"idle"`), for its header, its tab, the shelf and the status line. `undefined` reports nothing. Reported again whenever it changes.
+Report what the pane is doing (`"loading"`, `"working"`, `"needs-you"`, `"error"` or `"idle"`), for its header, its tab, the shelf and the status line. `undefined` clears it, the same as `"idle"`, and so does the component unmounting. Reported again whenever it changes.
 
 ### useUnsaved
 
@@ -226,7 +236,7 @@ Report unsaved work in words (`"an unsaved query"`), or a falsy value once it is
 useTitle(title: string | null | undefined): void
 ```
 
-Name the pane from its data: `useTitle(customer.data?.name)` shows "Acme Ltd" rather than the kind's "Customer 12". While set, it replaces the kind's `title` in the header, the tab, the shelf, the palette, the switcher, announcements and `jali.model().title(id)`. In a curated page, the view's label still names the pane, and this title is shown beside it. `null` or `undefined` goes back to the kind's title.
+Name the pane from its data: `useTitle(customer.data?.name)` shows "Acme Ltd" rather than the kind's "Customer 12". While set, it replaces the kind's `title` in the header, the tab, the shelf, the palette, the switcher, announcements and `jali.model().title(id)`, and the peek sheet while it shows the same object. In a curated page, the view's label still names the pane, and this title is shown beside it. `null` or `undefined` goes back to the kind's title.
 
 It is cleared when the component unmounts and when the pane shows another object, then set again from the next render. It is not saved, so a reload shows the kind's title until the data loads. The peek sheet keeps the kind's title.
 
@@ -519,7 +529,9 @@ A kind's icon at `size`, `aria-hidden`; the `defaultKind` icon (a square unless 
 
 - **`kind`** (`string`, required): The kind's name.
 
-- **`size`** (`number`): Pixels.
+- **`size`** (`number`): Pixels. Left out, the icon is sized as a pane title's, from `--jali-icon-header` + 2px (16px by default).
+
+- **`className`** (`string`): Passed to the icon.
 
 ### Activity
 
@@ -665,7 +677,7 @@ interface JaliIconProps {
 }
 ```
 
-What Jali passes an icon: its size in pixels, sometimes a class, and `aria-hidden` (a label always sits beside it, or on its button).
+What Jali passes an icon: its default size in pixels, the class that sizes it from its place's token (`--jali-icon-header`, `-tab`, `-menu` or `-shelf`; put it on the icon's element), and `aria-hidden` (a label always sits beside it, or on its button).
 
 ### defaultIcons
 

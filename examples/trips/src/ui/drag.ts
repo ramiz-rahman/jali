@@ -6,6 +6,7 @@
  * Drop targets are marked in the DOM: `data-drop-day="2"` on a day's list (its rows carry `data-stop-index`), or on
  * an overview row, which takes the stop at the end of that day.
  */
+import { edgeScroll, type Jali } from "@jali/core";
 import type { PointerEvent as ReactPointerEvent } from "react";
 import { createStore, useStore } from "../store";
 
@@ -30,7 +31,11 @@ export const dragStore = createStore<StopDrag | null>(null);
 export const useDrag = () => useStore(dragStore, (d) => d);
 
 /** Where a point is over: a day list and a place in it, or a day row of the overview. */
-export function dropAt(x: number, y: number, drag: Pick<StopDrag, "fromDay" | "fromIndex">): Drop | null {
+export function dropAt(
+  x: number,
+  y: number,
+  drag: Pick<StopDrag, "fromDay" | "fromIndex">,
+): Drop | null {
   const el = document.elementFromPoint(x, y)?.closest<HTMLElement>("[data-drop-day]");
   if (!el) return null;
   const day = Number(el.dataset.dropDay);
@@ -60,6 +65,7 @@ export function startStopDrag(
   e: ReactPointerEvent,
   stop: { id: string; day: number; index: number; label: string },
   onDrop: (id: string, drop: Drop) => void,
+  jali?: Jali,
 ) {
   if (e.button !== 0) return;
   const target = e.currentTarget as HTMLElement;
@@ -67,6 +73,13 @@ export function startStopDrag(
   let active = false;
   target.setPointerCapture?.(e.pointerId);
 
+  const from = { fromDay: stop.day, fromIndex: stop.index };
+  let last = start;
+  const place = (x: number, y: number) =>
+    dragStore.set({ id: stop.id, ...from, label: stop.label, x, y, over: dropAt(x, y, from) });
+  // Held near the edge of the week's strip (Days), it scrolls on to the days out of view; the day under the
+  // pointer is found again as they slide past.
+  const edge = jali ? edgeScroll(jali, () => place(last.x, last.y)) : null;
   const move = (ev: PointerEvent) => {
     if (!active && Math.hypot(ev.clientX - start.x, ev.clientY - start.y) < THRESHOLD) return;
     if (!active) {
@@ -74,17 +87,12 @@ export function startStopDrag(
       document.body.classList.add("is-dragging-stop");
     }
     ev.preventDefault();
-    const from = { fromDay: stop.day, fromIndex: stop.index };
-    dragStore.set({
-      id: stop.id,
-      ...from,
-      label: stop.label,
-      x: ev.clientX,
-      y: ev.clientY,
-      over: dropAt(ev.clientX, ev.clientY, from),
-    });
+    last = { x: ev.clientX, y: ev.clientY };
+    place(ev.clientX, ev.clientY);
+    edge?.move(ev.clientX, ev.clientY);
   };
   const end = (drop: boolean) => {
+    edge?.stop();
     const d = dragStore.get();
     window.removeEventListener("pointermove", move);
     window.removeEventListener("pointerup", up);

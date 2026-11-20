@@ -22,7 +22,7 @@ import type {
   PaneErrorInfo,
   PaneKinds,
 } from "../pane-kinds";
-import { GAP, initialArea } from "../tokens";
+import { initialArea, spacingOf } from "../tokens";
 import { toLayout } from "../layout/build";
 import { bindActions, type Actions } from "../actions";
 import {
@@ -240,6 +240,10 @@ export interface UiStoreDeps {
   allow?: import("../actions/allow").WorkspaceAllow;
   /** The buttons in a pane's header. */
   buttons?: import("../pane/buttons").PaneButtons;
+  /** The gap between panes, in px. Default 6 (`GAP`). */
+  gap?: number;
+  /** The inset from the workspace's edges to the panes, in px. Default: the gap. */
+  inset?: number;
 }
 
 export interface UiStore {
@@ -339,6 +343,7 @@ export function createUiStore(deps: UiStoreDeps): UiStore {
     palette: deps.palette !== false,
     name: deps.name ?? messages.workspace.name,
     messages,
+    spacing: spacingOf(deps),
   };
   const onPaneError =
     deps.onPaneError ??
@@ -392,7 +397,7 @@ export function createUiStore(deps: UiStoreDeps): UiStore {
     chooser: null,
     renaming: null,
     recent: [],
-    area: initialArea(),
+    area: initialArea(env.spacing.inset),
     dir: deps.dir ?? pageDirection(),
     announcement: { text: "", seq: 0 },
     reshapes: 0,
@@ -433,7 +438,7 @@ export function createUiStore(deps: UiStoreDeps): UiStore {
     return el instanceof Element ? el : null;
   };
   const ctx = (): LayoutContext => ({
-    fit: { ...state.area, gap: GAP, kinds: env.kinds.registry() },
+    fit: { ...state.area, gap: env.spacing.gap, kinds: env.kinds.registry() },
     paneCap: state.settings.paneCap,
     ...(state.dir === "rtl" ? { dir: state.dir } : {}),
   });

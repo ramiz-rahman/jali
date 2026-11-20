@@ -99,6 +99,10 @@ When the selection moves, every follower of the list that can show it moves, tog
 
 Opening a chart for the selected quote counts as opening the selection, so the new chart follows the list, or opens kept beside the list's following chart, just as a second quote would.
 
+## Chains: list, list, detail
+
+A list can follow another list. Library, then transcript, then segment detail: the transcript is a follower of the library, and the detail is a follower of the transcript. When the library moves on, the transcript shows the new session. The detail follows only when the transcript, now showing something else, reports its new selection with `select`, so each list in a chain must report its new selection when its own object changes (in an effect on its params), including `select(null)` if it has no row selected. A list that doesn't leaves the detail on the old row.
+
 ## It waits for the selection to rest
 
 The detail changes once the selection has rested for 150ms. Holding J to run down the list moves the cursor through every row but loads only the one it stops on. A screen reader hears one "Showing Ticket 104", not one per row.
@@ -106,6 +110,8 @@ The detail changes once the selection has rested for 150ms. Holding J to run dow
 Opening a row (⌥↵, or a row's open button) while that wait is running shows the row in the detail at once.
 
 ## Pinning
+
+"Keep" is what other tools call pinning a follower; in Jali, "pin" is for tabs.
 
 To keep a ticket on screen and go on browsing, the person keeps the detail: click **Following** in its header (it turns to **Kept**), or open the row the detail already shows.
 
@@ -119,6 +125,15 @@ With a following detail on screen, Space on a row shows that row in the detail, 
 
 With no following detail, or one that is out of sight (folded, behind a tab, tucked), Space opens the peek sheet as usual.
 
+## A new layout beside a list
+
+A list keeps its selection through a preset or `setLayout` when it is in the new layout too (the same `id`). The new layout may put a follower beside it that shows something else. The list and its followers agree as soon as the layout changes, in the same change, and the layout's word wins:
+
+- When the layout gives the list a follower of the selected item's kind, the list's selection becomes what that follower shows. The list's other followers show what their kinds give for it.
+- When it gives none of that kind, the list's followers follow its selection, as they would when the selection moves.
+
+A list that keeps its cursor only in its own state won't see this. To move the cursor with it, read the selection back from the workspace, `useJaliState((s) => s.selection[node.id])`, and put the cursor on that item. A kept detail keeps the object the layout gives it. A follower with unsaved work does too: if the layout shows another object in it, the person is asked first, as for any change that would lose the work.
+
 ## Not in the current results
 
 If the person filters the list and the followed row is no longer in it, the detail keeps showing it, with a note: "Not in the current results of Tickets". The detail doesn't go blank under them because of a filter.
@@ -130,6 +145,10 @@ A list should keep its selection on the same item, not the same position, when i
 ## Unsaved work in the detail
 
 If the following detail has [unsaved work](../get-started/key-concepts.md#unsaved-work), it stays on its object while the list moves on, and the workspace says why: "The detail stays put: it has an unsaved reply". Asking on every row would be worse than a detail that waits.
+
+Only the detail with unsaved work is held. When a list has several followers, the others move as usual, in the same change. The announcement is about the one that stayed.
+
+Once its work is saved or discarded (the pane reports no unsaved work), the held detail catches up with the list's selection at once. It is still following throughout: nothing is kept, and the header still says **Following**.
 
 ## Links that are not the selection
 

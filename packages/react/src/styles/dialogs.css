@@ -17,7 +17,8 @@
     width: min(40rem, calc(100vw - 2rem));
     background: var(--jali-surface-raised);
     border: 1px solid var(--jali-border);
-    border-radius: 12px;
+    border-radius: calc(var(--jali-radius) * 1.2);
+    border-radius: round(down, var(--jali-radius) * 1.2, 1px);
     box-shadow: var(--jali-shadow-dialog);
     overflow: hidden;
   }
@@ -26,11 +27,11 @@
     background: transparent;
     color: var(--jali-text);
     height: 3rem;
-    padding: 0 1rem;
+    padding: 0 var(--jali-dialog-padding);
     border: 0;
     border-bottom: 1px solid var(--jali-border);
     font: inherit;
-    font-size: 0.875rem;
+    font-size: var(--jali-text-lg);
     outline: none;
   }
   .jali-palette-list {
@@ -58,16 +59,16 @@
     cursor: default;
   }
   .jali-palette-group {
-    font-size: 0.75rem;
+    font-size: var(--jali-text-sm);
     color: var(--jali-text-subtle);
   }
   .jali-palette-id {
-    font-size: 0.6875rem;
+    font-size: var(--jali-text-xs);
     color: var(--jali-text-subtle);
   }
   .jali-palette-item kbd {
     justify-self: end;
-    font-size: 0.6875rem;
+    font-size: var(--jali-text-xs);
     color: var(--jali-text-muted);
   }
   .jali-palette-empty {
@@ -78,8 +79,8 @@
     width: min(30rem, calc(100vw - 2rem));
   }
   .jali-chooser-head {
-    padding: 0.75rem 1rem 0;
-    font-size: 0.75rem;
+    padding: 0.75rem var(--jali-dialog-padding) 0;
+    font-size: var(--jali-text-sm);
     color: var(--jali-text-subtle);
   }
   .jali-chooser-head b {
@@ -99,9 +100,10 @@
     width: min(26.25rem, calc(100vw - 2rem));
     background: var(--jali-surface-raised);
     border: 1px solid var(--jali-border);
-    border-radius: 12px;
+    border-radius: calc(var(--jali-radius) * 1.2);
+    border-radius: round(down, var(--jali-radius) * 1.2, 1px);
     box-shadow: var(--jali-shadow-dialog);
-    padding: 0.25rem 1rem 1rem;
+    padding: 0.25rem var(--jali-dialog-padding) var(--jali-dialog-padding);
   }
   .jali-settings header {
     display: flex;
@@ -110,7 +112,7 @@
     height: 2.75rem;
   }
   .jali-settings h2 {
-    font-size: 0.875rem;
+    font-size: var(--jali-text-lg);
     font-weight: 600;
     margin: 0;
   }
@@ -124,7 +126,7 @@
   }
   .jali-settings legend {
     padding: 0;
-    font-size: 0.6875rem;
+    font-size: var(--jali-text-xs);
     font-weight: 600;
     color: var(--jali-text-subtle);
     text-transform: uppercase;
@@ -157,13 +159,13 @@
     flex: none;
   }
   .jali-keys-row kbd {
-    font-size: 0.6875rem;
+    font-size: var(--jali-text-xs);
     color: var(--jali-text);
     white-space: nowrap;
   }
   .jali-keys-note {
     margin: 0.25rem 0 0;
-    font-size: 0.75rem;
+    font-size: var(--jali-text-sm);
     color: var(--jali-text-subtle);
   }
   .jali-radio {
@@ -199,12 +201,13 @@
     width: min(26.25rem, calc(100vw - 2rem));
     background: var(--jali-surface-raised);
     border: 1px solid var(--jali-border);
-    border-radius: 12px;
+    border-radius: calc(var(--jali-radius) * 1.2);
+    border-radius: round(down, var(--jali-radius) * 1.2, 1px);
     box-shadow: var(--jali-shadow-dialog);
-    padding: 1rem;
+    padding: var(--jali-dialog-padding);
   }
   .jali-confirm h2 {
-    font-size: 0.875rem;
+    font-size: var(--jali-text-lg);
     font-weight: 600;
     margin: 0 0 0.5rem;
   }

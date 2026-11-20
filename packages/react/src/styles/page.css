@@ -74,7 +74,7 @@
   }
   .jali-ghost span {
     padding: 0.375rem 0.625rem;
-    border-radius: 0.375rem;
+    border-radius: var(--jali-radius-control);
     background: var(--jali-surface);
     color: var(--jali-accent);
     font-weight: 500;
@@ -97,8 +97,8 @@
     clip: rect(0 0 0 0);
   }
   .jali-workspace[data-page="single"] .jali-pane.is-focused {
-    border-color: var(--jali-border);
-    box-shadow: none;
+    border-color: var(--jali-pane-border, var(--jali-border));
+    box-shadow: var(--jali-pane-shadow, none);
   }
 
   .jali-mode-switch .jali-seg-btn {

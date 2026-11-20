@@ -22,11 +22,12 @@ import {
   useEffect,
   useMemo,
   useSyncExternalStore,
+  type CSSProperties,
   type HTMLAttributes,
   type ReactNode,
 } from "react";
 import { createPortal } from "react-dom";
-import { storeOf } from "@jali/core/adapter";
+import { spacingVars, storeOf } from "@jali/core/adapter";
 import { Announcer } from "./chrome/Announcer";
 import { CuratedPage } from "./chrome/PageBar";
 import { Chooser } from "./dialogs/Chooser";
@@ -36,6 +37,7 @@ import { SettingsPanel } from "./dialogs/Settings";
 import { IconsProvider } from "./icons/context";
 import { defaultIcons } from "./icons/default";
 import type { JaliIcons } from "./icons/types";
+import { installPressed } from "./pressed";
 import { StoreProvider, useUi } from "./state/react";
 import { Panes } from "./workspace/Workspace";
 
@@ -68,11 +70,21 @@ export function JaliRoot({
 }: JaliRootProps) {
   const store = storeOf(jali);
   useEffect(() => store.start(), [store]);
+  // data-pressed on Jali's controls while held, by pointer or key (pressed.ts).
+  useEffect(installPressed, []);
   const host = useFullScreenPane(store);
   const inside = (layer: ReactNode) => (host ? createPortal(layer, host) : layer);
+  // The spacing the layout measures with, as --jali-gap and --jali-inset, so styles that read them agree with it.
+  const spacing = spacingVars(store.env.spacing) as CSSProperties;
   return (
     <JaliProvider jali={jali} icons={icons}>
-      <div {...rest} dir={store.env.dir ?? rest.dir} data-jali="" ref={store.dom.attach}>
+      <div
+        {...rest}
+        style={{ ...spacing, ...rest.style }}
+        dir={store.env.dir ?? rest.dir}
+        data-jali=""
+        ref={store.dom.attach}
+      >
         {children}
       </div>
       {/* The dialogs render outside the root but are this workspace's: keys pressed in them count as its own. While a
@@ -82,7 +94,7 @@ export function JaliRoot({
           data-jali-layer=""
           dir={store.env.dir}
           ref={store.dom.attachLayer}
-          style={{ display: "contents" }}
+          style={{ ...spacing, display: "contents" }}
         >
           <Announcer />
           {store.env.palette === false ? null : <Palette />}

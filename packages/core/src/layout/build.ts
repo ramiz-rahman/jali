@@ -7,7 +7,7 @@
  * first when there are any: `row({ weight: 2 }, a, b)`. Nodes without an `id` get one from what they hold ("orders",
  * "row", then "orders-2"); give an `id` to a pane that another one links to.
  */
-import type { Axis, Layout, LayoutNode, NodeId, ObjectRef, PaneNode, Size } from "./types";
+import type { Axis, Layout, LayoutNode, NodeId, ObjectRef, PaneNode, Size, SplitNode } from "./types";
 
 /** How much of its parent a node takes: a share (`weight`, default 1) or a fixed length in px. */
 export interface SizeOptions {
@@ -30,7 +30,11 @@ export interface TabsOptions extends SizeOptions {
 }
 
 export type PaneDraft = { type: "pane"; ref: ObjectRef; options: PaneNodeOptions };
-export type SplitDraft = { type: Axis; options: SizeOptions; children: Draft[] };
+/** A row's options: its size, and `scroll: "x"` for a row that scrolls sideways instead of folding. */
+export interface RowOptions extends SizeOptions {
+  scroll?: "x";
+}
+export type SplitDraft = { type: Axis; options: RowOptions; children: Draft[] };
 export type TabsDraft = { type: "stack"; options: TabsOptions; children: PaneDraft[] };
 export type Draft = PaneDraft | SplitDraft | TabsDraft;
 
@@ -58,11 +62,14 @@ export function pane(ref: ObjectRef, options: PaneNodeOptions = {}): PaneDraft {
   return { type: "pane", ref, options };
 }
 
-/** Children side by side. */
+/**
+ * Children side by side. `row({ scroll: "x" }, …)` scrolls sideways: each child keeps its own width (its
+ * comfortable width until the person sizes it) and the row scrolls to the rest, so nothing folds.
+ */
 export function row(...children: Child[]): SplitDraft;
-export function row(options: SizeOptions, ...children: Child[]): SplitDraft;
+export function row(options: RowOptions, ...children: Child[]): SplitDraft;
 export function row(...args: unknown[]): SplitDraft {
-  const [options, children] = parts<SizeOptions>(args);
+  const [options, children] = parts<RowOptions>(args);
   return { type: "row", options, children: children.map(asDraft) };
 }
 
@@ -142,7 +149,9 @@ export function toLayout(input: LayoutInput): Layout {
         origin: "user",
       };
     }
-    return { id, type: d.type, size, children: d.children.map(build) };
+    const split: SplitNode = { id, type: d.type, size, children: d.children.map(build) };
+    if (d.type === "row" && d.options.scroll === "x") split.scroll = "x";
+    return split;
   };
 
   const layout: Layout = { version: 1, root: build(root) };

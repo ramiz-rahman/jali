@@ -57,11 +57,19 @@ The tokens you are most likely to change:
 | `--jali-surface`, `--jali-surface-raised` | Panes; menus and dialogs |
 | `--jali-border`, `--jali-border-strong`, `--jali-control` | Lines between things; the edges of buttons and inputs |
 | `--jali-text`, `--jali-text-muted`, `--jali-text-subtle`, `--jali-text-faint` | Text, from strongest to faintest |
-| `--jali-working`, `--jali-blocked`, `--jali-done`, `--jali-failed` | A pane's activity marks |
-| `--jali-radius`, `--jali-radius-control`, `--jali-radius-menu` | Corners of panes, controls and menus |
+| `--jali-pane-border`, `--jali-pane-border-focused`, `--jali-pane-shadow`, `--jali-pane-shadow-focused` | A pane's edge and shadow, at rest and focused. Set them once and the focused pane, a maximised one and a drag follow, with no rule for `[data-focused]` of your own |
+| `--jali-working`, `--jali-blocked`, `--jali-done`, `--jali-failed` | A pane's activity marks. To draw marks of your own, style the parts `.jali-activity` and `.jali-activity-shape` by their `data-activity` ([Parts](../reference/parts.md)) |
+| `--jali-radius`, `--jali-radius-control`, `--jali-radius-menu`, `--jali-radius-chip` | Corners of panes, controls, menus and the small things in headers, tabs and chips. Every corner reads one of them (a dialog is 1.2 × `--jali-radius`, rounded to a whole pixel), so setting all four to `0` or `2px` squares the whole workspace |
+| `--jali-dialog-padding` | The space inside a dialog, between its edge and its content |
 | `--jali-font`, `--jali-font-mono` | Type |
+| `--jali-text-xs`, `--jali-text-sm`, `--jali-text-md`, `--jali-text-lg`, `--jali-tracking` | The type scale every part reads (11, 12, 13 and 14px by default), and letter spacing. A wider face needs only these, not a size per part |
+| `--jali-icon-header`, `--jali-icon-tab`, `--jali-icon-menu`, `--jali-icon-shelf` | Icon sizes by place: a pane's header, a tab, menus, shelf chips. They size your own `icons` too, as long as your icon applies the `className` Jali passes it (Phosphor's, Lucide's and most sets' do) |
 
 Every token, with its light and dark values, is in the [Tokens reference](../reference/tokens.md).
+
+## Spacing
+
+The space between panes, and between the workspace's edges and its panes, are options, because the layout measures with them: `createJali({ gap: 3, inset: 20 })`. The gap defaults to 6px and the inset to the gap. Jali writes them on its root as `--jali-gap` and `--jali-inset`, so your own bars can line up with the panes (`padding-inline: var(--jali-inset)`).
 
 The accent's tints (`--jali-accent-weak`, `--jali-accent-mid`, `--jali-drop` and the focus ring) are mixed from `--jali-accent` on each workspace. Change the accent and they follow, on the whole page or on one workspace. For one workspace, set it on an element around `<JaliRoot>`: the palette, the other dialogs and the tab menus render in a layer beside the workspace's root (`[data-jali-layer]`), not inside it, so an accent set on the root itself reaches the panes but not them.
 
@@ -152,14 +160,14 @@ The bridge reads these names, each falling back to Jali's own value when your th
 | `--color-primary`, `--color-primary-subtle`, `--color-primary-foreground` | `--jali-accent`, `--jali-accent-soft`, `--jali-on-accent` |
 | `--color-destructive` | `--jali-failed` |
 | `--color-ring`, `--color-focus-ring` | the focus ring |
-| `--radius-card`, `--radius-control`, `--radius-md`, `--radius-lg` | the radii |
+| `--radius-card`, `--radius-control`, `--radius-sm`, `--radius-md`, `--radius-lg` | the radii |
 | `--font-sans`, `--font-mono` | `--jali-font`, `--jali-font-mono` |
 
 Your theme's variables switch with your dark mode, so Jali follows. To follow a variable your theme sets again inside a `.dark` element, the bridge declares Jali's tokens again on each theme scope (`.light`, `.dark`, `[data-theme]`). So with the bridge, theme Jali through your theme's variables, or set a `--jali-*` token on the scope element itself. Tailwind drops theme variables that nothing uses; the bridge uses these, so keep it in the stylesheet Tailwind builds, or mark the theme `@theme static`.
 
 ## Style the parts
 
-Every class Jali renders starts with `jali-`, so none collide with yours. The parts you may rely on, and the attributes that carry their state, are listed in [Parts](../reference/parts.md): a pane is `.jali-pane` with `data-kind` and `data-focused`, a tab is `.jali-tab` with `aria-selected`, `data-pinned` and `data-folded`, and so on. State is always an attribute, never a class. Anything not listed there is Jali's own and may change.
+Every class Jali renders starts with `jali-`, so none collide with yours. The parts you may rely on, and the attributes that carry their state, are listed in [Parts](../reference/parts.md): a pane is `.jali-pane` with `data-kind` and `data-focused`, a tab is `.jali-tab` with `aria-selected`, `data-pinned` and `data-folded`, and so on. State is always an attribute, never a class. Only the listed parts and the tokens are stable: anything not listed there, including the elements inside a part (`.jali-pane-actions button`), is Jali's own and may change.
 
 `src/parts.css`
 
@@ -189,7 +197,7 @@ With Tailwind, put rules like these in your stylesheet, in a layer after `jali`.
 
 ## Your own icons
 
-Jali comes with its own icons, so you install no icon library for them. They are [Phosphor's](https://phosphoricons.com) in the regular weight, copied into the package. To use your app's own, pass `icons` to `<JaliRoot>`, by name: `close`, `maximise`, `tuck`, `fold` and the rest ([every name](../reference/react.md#icons)). Each is a component that takes `size`, `className` and `aria-hidden`; an icon from Phosphor, Lucide or most other React sets is one. Names you leave out stay Jali's.
+Jali comes with its own icons, so you install no icon library for them. They are [Phosphor's](https://phosphoricons.com) in the regular weight, copied into the package. To use your app's own, pass `icons` to `<JaliRoot>`, by name: `close`, `maximise`, `tuck`, `fold` and the rest ([every name](../reference/react.md#icons)). Each is a component that takes `size`, `className` and `aria-hidden`; an icon from Phosphor, Lucide or most other React sets is one. Names you leave out stay Jali's. Put `className` on the icon's own element: it carries the size for the icon's place, so the `--jali-icon-*` tokens size your icons as they do Jali's (`size` is the default size, for an icon that ignores `className`).
 
 `src/App.tsx`
 
@@ -288,6 +296,23 @@ Right to left, the workspace is the mirror of the same layout:
 To fix the direction instead of reading it, pass `createJali({ dir: "rtl" })`. `<JaliRoot>` then sets `dir` on its own elements, so the styles agree.
 
 Jali's styles use logical properties (`margin-inline-start`, `inset-inline-end`), so they flip with the direction. If you style the parts yourself, do the same.
+
+## Drawing with the tokens on a canvas
+
+A custom property keeps its `light-dark()` pair unresolved: `getComputedStyle(el).getPropertyValue("--jali-text")` returns the string `light-dark(…)`, and a canvas ignores a `fillStyle` it can't parse. To get a colour a canvas can use, let the browser resolve it. Set `color: var(--jali-text)` on an element inside the workspace and read its computed `color`:
+
+```ts
+function resolve(el: HTMLElement, token: string): string {
+  const probe = document.createElement("span");
+  probe.style.color = `var(${token})`;
+  el.appendChild(probe);
+  const colour = getComputedStyle(probe).color;
+  probe.remove();
+  return colour;
+}
+```
+
+Resolve again, and redraw, whenever `useTheme()` changes, because the result depends on the theme in force.
 
 ## Next
 

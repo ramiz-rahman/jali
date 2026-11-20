@@ -36,7 +36,8 @@ export function SettingsPanel({ children }: { children?: ReactNode } = {}) {
       onPointerDown={(e) => e.target === e.currentTarget && close()}
     >
       <div
-        className="jali-settings"
+        className="jali-dialog jali-settings"
+        data-dialog="settings"
         role="dialog"
         aria-modal="true"
         aria-labelledby={`${id}-settings-title`}

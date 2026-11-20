@@ -2,7 +2,7 @@ import type { Layout, LayoutContext, LayoutNode } from "../types";
 import { clone, find, isSplit, panes, noFocus } from "../tree/tree";
 import { sameSize } from "../tree/size";
 import { resolve } from "../fit/resolve";
-import { extentAlong } from "../geometry/extent";
+import { extentIn } from "../geometry/extent";
 export function resizeDivider(
   layout: Layout,
   parentId: string,
@@ -21,7 +21,19 @@ export function resizeDivider(
   const first = owner.children.filter((c) => panes(c).some((p) => leftIds.includes(p.id)));
   const second = owner.children.filter((c) => panes(c).some((p) => rightIds.includes(p.id)));
   if (!first.length || !second.length) return layout;
-  const secondExtent = extentAlong(resolved.panes, rightIds, owner.type);
+  // In a row that scrolls, the child before the divider takes the new width, in px, and the rest keep theirs: the
+  // content gets longer or shorter, so nothing is taken from a neighbour.
+  if (owner.type === "row" && owner.scroll === "x") {
+    const value = Math.max(divider.min, divider.value + deltaPx);
+    if (Math.abs(value - divider.value) < 1e-9) return layout;
+    for (const child of first) {
+      child.base ??= clone(child.size);
+      child.size = { px: Math.round(value / first.length) };
+      child.userSized = true;
+    }
+    return next;
+  }
+  const secondExtent = extentIn(resolved, rightIds, owner.type);
   const total = divider.value + secondExtent;
   const value = Math.max(divider.min, Math.min(divider.max, divider.value + deltaPx));
   if (Math.abs(value - divider.value) < 1e-9) return layout;
@@ -29,8 +41,8 @@ export function resizeDivider(
   // so the split still fills its space after a close, a minimise or a window resize. Every sibling is
   // re-expressed in the same units from its current extent, so untouched siblings keep their share.
   const extentOf = (child: LayoutNode) =>
-    extentAlong(
-      resolved.panes,
+    extentIn(
+      resolved,
       panes(child).map((p) => p.id),
       owner.type,
     );

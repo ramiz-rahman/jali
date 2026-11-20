@@ -87,7 +87,7 @@ describe("buttons, drawn", () => {
   it("draws the buttons in order, then ⋯ before Close, which opens the pane's menu", () => {
     const { container } = render(<JaliRoot jali={make()} />);
     const a = container.querySelector('section[data-pane="a"] .jali-pane-actions')!;
-    expect([...a.children].map((b) => b.className.replace("jali-icon-btn jali-act-", ""))).toEqual([
+    expect([...a.children].map((b) => (b as HTMLElement).dataset.action)).toEqual([
       "tuck",
       "zoom",
       "menu",

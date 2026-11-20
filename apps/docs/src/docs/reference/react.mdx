@@ -105,7 +105,7 @@ Keys: content first. Claim the keys you use with `event.preventDefault()` (J and
 <Param name="inPeek" type="boolean" required>Rendered in the peek sheet rather than a pane.</Param>
 <Param name="openBeside" type="(ref: ObjectRef) => ActionResult" required>Open `ref` beside this pane; focus stays here. The selected item opens a following detail (kept if one already follows); another link replaces this pane's earlier plain link of the same kind. Returns what `jali.actions.openBeside` does: `pane` is the pane that shows `ref`.</Param>
 <Param name="openHere" type="(ref: ObjectRef) => ActionResult" required>Show `ref` in this pane. If it is open elsewhere, that pane is focused instead. In the peek sheet, which has no pane of its own, `{ ok: false, reason: "unavailable" }`.</Param>
-<Param name="peek" type="(ref: ObjectRef | null) => ActionResult" required>Open or move the peek sheet; `null` closes it.</Param>
+<Param name="peek" type="(ref: ObjectRef | null) => ActionResult" required>Open or move the peek sheet; `null` closes it. When this pane has a following detail of the ref's kind on screen, the detail shows the item instead of the peek sheet, and no sheet opens (see <Ref to="JaliActions" page="/reference/core/types" />).</Param>
 <Param name="select" type="(ref: ObjectRef | null, options?: { inResults?: boolean }) => ActionResult" required>Report the item a list is on. An open peek from this pane follows it at once; this pane's following detail once it rests. `{ inResults: false }`: the filter no longer shows `ref`. Report the selection before opening it, so the opened pane is linked to it.</Param>
 <Param name="dismiss" type="() => void" required>Close this pane quietly, with no undo toast: for the launcher.</Param>
 </Params>
@@ -144,9 +144,15 @@ The pane's <Ref to="PaneProps" />, for components below the kind's own: `const {
 
 </Entry>
 
+<Entry name="keyBelongsToContent" kind="function" from="@jali/react" signature={`keyBelongsToContent(event: KeyboardEvent): boolean`} compact>
+
+Whether a key event belongs to the focused content: its target is a text field, a contenteditable region, a combobox or search box, inside a dialog, or a control that Space presses (a button, link, tab, checkbox, switch, radio or menu item). Use it in a window-level `keydown` handler that wants a single key such as Space. See [Space in lists](/guides/commands-and-keys).
+
+</Entry>
+
 <Entry name="useActivity" kind="hook" from="@jali/react" signature={`useActivity(activity: PaneActivity | undefined): void`} compact>
 
-Report what the pane is doing (`"loading"`, `"working"`, `"needs-you"`, `"error"` or `"idle"`), for its header, its tab, the shelf and the status line. `undefined` reports nothing. Reported again whenever it changes.
+Report what the pane is doing (`"loading"`, `"working"`, `"needs-you"`, `"error"` or `"idle"`), for its header, its tab, the shelf and the status line. `undefined` clears it, the same as `"idle"`, and so does the component unmounting. Reported again whenever it changes.
 
 </Entry>
 
@@ -158,7 +164,7 @@ Report unsaved work in words (`"an unsaved query"`), or a falsy value once it is
 
 <Entry name="useTitle" kind="hook" from="@jali/react" signature={`useTitle(title: string | null | undefined): void`} compact>
 
-Name the pane from its data: `useTitle(customer.data?.name)` shows "Acme Ltd" rather than the kind's "Customer 12". While set, it replaces the kind's `title` in the header, the tab, the shelf, the palette, the switcher, announcements and `jali.model().title(id)`. In a curated page, the view's label still names the pane, and this title is shown beside it. `null` or `undefined` goes back to the kind's title.
+Name the pane from its data: `useTitle(customer.data?.name)` shows "Acme Ltd" rather than the kind's "Customer 12". While set, it replaces the kind's `title` in the header, the tab, the shelf, the palette, the switcher, announcements and `jali.model().title(id)`, and the peek sheet while it shows the same object. In a curated page, the view's label still names the pane, and this title is shown beside it. `null` or `undefined` goes back to the kind's title.
 
 It is cleared when the component unmounts and when the pane shows another object, then set again from the next render. It is not saved, so a reload shows the kind's title until the data loads. The peek sheet keeps the kind's title.
 
@@ -351,7 +357,8 @@ A kind's icon at `size`, `aria-hidden`; the `defaultKind` icon (a square unless 
 
 <Params title="Props">
 <Param name="kind" type="string" required>The kind's name.</Param>
-<Param name="size" type="number" default="16">Pixels.</Param>
+<Param name="size" type="number" default="16">Pixels. Left out, the icon is sized as a pane title's, from `--jali-icon-header` + 2px (16px by default).</Param>
+<Param name="className" type="string">Passed to the icon.</Param>
 </Params>
 
 </Entry>
@@ -437,7 +444,7 @@ An icon Jali can draw: any component that takes <Ref to="JaliIconProps" />. Also
 
 <Entry name="JaliIconProps" kind="type" from="@jali/react" signature={`interface JaliIconProps {\n  size?: number;\n  className?: string;\n  "aria-hidden"?: boolean;\n}`} compact>
 
-What Jali passes an icon: its size in pixels, sometimes a class, and `aria-hidden` (a label always sits beside it, or on its button).
+What Jali passes an icon: its default size in pixels, the class that sizes it from its place's token (`--jali-icon-header`, `-tab`, `-menu` or `-shelf`; put it on the icon's element), and `aria-hidden` (a label always sits beside it, or on its button).
 
 </Entry>
 

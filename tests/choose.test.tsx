@@ -166,6 +166,27 @@ describe("choose, in the chooser", () => {
     expect(charts(jali)).toEqual(["ORBD"]);
   });
 
+  it("starts on the current item and marks it", () => {
+    vi.useFakeTimers();
+    const jali = make();
+    render(<JaliRoot jali={jali} />);
+    act(() => {
+      jali.actions.choose({
+        title: "Pick",
+        items: INSTRUMENTS,
+        label: (i) => i.symbol,
+        current: INSTRUMENTS[2],
+        onChoose: () => {},
+      });
+    });
+    const options = screen.getAllByRole("option");
+    expect(options[2]!.getAttribute("aria-selected")).toBe("true");
+    expect(options[2]!.getAttribute("aria-current")).toBe("true");
+    expect(options[2]!.hasAttribute("data-current")).toBe(true);
+    expect(options.filter((o) => o.hasAttribute("data-current"))).toHaveLength(1);
+    expect(screen.getByRole("combobox").getAttribute("aria-activedescendant")).toBe(options[2]!.id);
+  });
+
   it("says nothing matches in the workspace's words", () => {
     vi.useFakeTimers();
     const jali = make({

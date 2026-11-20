@@ -115,10 +115,27 @@
     --jali-text-subtle: var(--jali-default-text-subtle);
     --jali-working: var(--jali-default-working);
 
-    /* Shape and type: one set for both themes. */
+    /* Shape and type: one set for both themes. Every corner Jali draws reads one of the four radii; a few are drawn
+       a little larger, scaled from one (a dialog is 1.2 × --jali-radius) and rounded down to a whole pixel, so radii set
+       to 2px make them 2px too. */
     --jali-radius: 0.625rem;
     --jali-radius-control: 0.375rem;
     --jali-radius-menu: 0.5rem;
+    --jali-radius-chip: 0.25rem;
+    /* Icon sizes by place: the header's buttons, a tab's, menus and shelf chips. A few icons sit a step from their
+       place's size (a pane's title icon is the header's + 2px; small marks 1 or 2px less). */
+    --jali-icon-header: 14px;
+    --jali-icon-tab: 14px;
+    --jali-icon-menu: 14px;
+    --jali-icon-shelf: 13px;
+    /* The space between a dialog's edge and its content: Settings and the discard question all round, the palette's
+       and the chooser's field and heading at the sides (their lists sit closer, with their rows' own inset). */
+    --jali-dialog-padding: 1rem;
+    /* The type scale: every size Jali sets reads one of these (the investigation chips are sm + 0.0312rem, 12.5px). */
+    --jali-text-xs: 0.6875rem;
+    --jali-text-sm: 0.75rem;
+    --jali-text-md: 0.8125rem;
+    --jali-text-lg: 0.875rem;
     /* Jali's faces: Atkinson Hyperlegible Next and Mono (load them from @fontsource or your own files); system faces
        stand in when they are not loaded. */
     --jali-font:
@@ -128,6 +145,22 @@
       "Atkinson Hyperlegible Mono", ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas,
       monospace;
   }
+
+  /*
+   * ---------- read in place ----------
+   * Read in place: these tokens are not declared on the root. The parts read each with its default where it is used,
+   * because the default names another token and must resolve there (an accent or border set around one workspace
+   * reaches its panes). Set one anywhere, as any other token. A shadow token is a list of shadows; for none in a list,
+   * use `0 0 #0000`. The docs' Tokens page reads this list, and its test checks every part reads the same default.
+   *
+   *   --jali-pane-border: var(--jali-border);
+   *   --jali-pane-border-focused: var(--jali-accent);
+   *   --jali-pane-shadow: none;
+   *   --jali-pane-shadow-focused: 0 0 0 0.5px var(--jali-accent);
+   *   --jali-tracking: (none);
+   *
+   * --jali-tracking has no default: until it is set, the workspace and its dialogs inherit their letter spacing.
+   */
 
   /*
    * ---------- derived from the accent ----------

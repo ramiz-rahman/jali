@@ -1,7 +1,15 @@
-import type { Axis, Layout, LayoutContext, Rect, ResolvedLayout } from "../types";
+import type {
+  Axis,
+  DividerBox,
+  Layout,
+  LayoutContext,
+  Rect,
+  ResolvedLayout,
+  ScrollerBox,
+} from "../types";
 import type { ViewState } from "../types";
 import { shares } from "../geometry/shares";
-import { extentAlong } from "../geometry/extent";
+import { extentIn } from "../geometry/extent";
 import { mirrorRect } from "../geometry/direction";
 import { noFocus, panes } from "../tree/tree";
 import { allPanes, choose, foldSlot, overlayOf, replay, type Projected } from "./overlay";
@@ -32,8 +40,8 @@ export function resolve(layout: Layout, view: ViewState, ctx: LayoutContext): Re
     function allocate(n: Projected): void {
       if (n.type !== "row" && n.type !== "column") return;
       for (const child of n.children) {
-        const extent = extentAlong(
-          reference.panes,
+        const extent = extentIn(
+          reference,
           allPanes(child).map((p) => p.id),
           n.type,
         );
@@ -47,14 +55,17 @@ export function resolve(layout: Layout, view: ViewState, ctx: LayoutContext): Re
     }
     allocate(root);
   }
-  const result: ResolvedLayout = { panes: [], dividers: [], stacks: [], shelf: [] };
+  const result: ResolvedLayout = { panes: [], dividers: [], stacks: [], shelf: [], scrollers: [] };
   const folded = new Set<string>();
+  // What each row that scrolls holds, so right to left can mirror it within its own content.
+  const inScroller = new Map<object, ScrollerBox>();
   function draw(
     n: Projected,
     input: Rect,
     stackId?: string,
     hidden = false,
     isFolded = false,
+    scroller?: ScrollerBox,
   ): void {
     // maxWidth is soft: a slot fills what it is given, so no void opens beside it.
     const rect = {
@@ -64,11 +75,16 @@ export function resolve(layout: Layout, view: ViewState, ctx: LayoutContext): Re
     };
     if (n.pane) {
       if (isFolded) folded.add(n.id);
-      result.panes.push({
+      const box = {
         id: n.id,
         rect,
-        ...(stackId ? { stackId, hidden: hidden ? "tab" : undefined } : {}),
-      });
+        ...(stackId ? { stackId, hidden: hidden ? ("tab" as const) : undefined } : {}),
+      };
+      result.panes.push(box);
+      if (scroller) {
+        inScroller.set(box, scroller);
+        scroller.paneIds.push(n.id);
+      }
       return;
     }
     if (n.type === "stack" || n.type === "auto") {
@@ -89,6 +105,7 @@ export function resolve(layout: Layout, view: ViewState, ctx: LayoutContext): Re
           stackId ?? n.id,
           hidden || c !== selected,
           isFolded || (n.kind === "fold" && c !== selected),
+          scroller,
         ),
       );
       return;
@@ -100,34 +117,59 @@ export function resolve(layout: Layout, view: ViewState, ctx: LayoutContext): Re
     const available = length - fit.gap * (n.children.length - 1);
     // The share rule for splits nobody has sized; exact proportions once the person sized one of its children.
     const mode = n.children.some((c) => c.userSized) ? "weights" : "flex";
-    const lengths = shares(
-      n.children.map((c, i) =>
-        horizontal
-          ? {
-              size: c.size,
-              min: mins[i]!,
-              comfortable: c.bounds.comfortable,
-              max: c.bounds.maxWidth,
-            }
-          : { size: c.size, min: mins[i]! },
-      ),
-      available,
-      mode,
-    );
+    // A row that scrolls (not one inside another: that is a plain row) lays each child at its own width: a person's
+    // px size, else its comfortable width, within its min and max. Only when they don't fill the row do they share
+    // it out as any row does, so no void opens at its end.
+    const scrolls = horizontal && !!n.scroll && !scroller;
+    const own = scrolls
+      ? n.children.map((c, i) =>
+          "px" in c.size
+            ? Math.max(c.size.px, mins[i]!)
+            : Math.min(Math.max(c.bounds.comfortable, mins[i]!), c.bounds.maxWidth),
+        )
+      : [];
+    const overflows = scrolls && own.reduce((a, b) => a + b, 0) > available;
+    const lengths = overflows
+      ? own
+      : shares(
+          n.children.map((c, i) =>
+            horizontal
+              ? {
+                  size: c.size,
+                  min: mins[i]!,
+                  comfortable: c.bounds.comfortable,
+                  max: c.bounds.maxWidth,
+                }
+              : { size: c.size, min: mins[i]! },
+          ),
+          available,
+          mode,
+        );
+    let strip = scroller;
+    if (scrolls) {
+      strip = {
+        id: n.id,
+        rect: { ...input },
+        contentWidth: lengths.reduce((a, b) => a + b, 0) + fit.gap * (n.children.length - 1),
+        paneIds: [],
+      };
+      result.scrollers.push(strip);
+    }
     let offset = horizontal ? rect.x : rect.y;
     n.children.forEach((child, index) => {
       const extent = lengths[index]!;
       const childRect = horizontal
         ? { x: offset, y: rect.y, width: extent, height: rect.height }
         : { x: rect.x, y: offset, width: rect.width, height: extent };
-      draw(child, childRect, stackId, hidden, isFolded);
+      draw(child, childRect, stackId, hidden, isFolded, strip);
       offset += extent;
       if (index < n.children.length - 1) {
         // A drag may take a pane past its max: the person's size wins over the kind's preference.
+        // In a row that scrolls, a divider widens only the child before it: the content grows, so no max.
         const total = extent + lengths[index + 1]!;
         const min = mins[index]!;
-        const max = total - mins[index + 1]!;
-        result.dividers.push({
+        const max = scrolls ? Infinity : total - mins[index + 1]!;
+        const divider: DividerBox = {
           parentId: n.id,
           index,
           axis,
@@ -141,7 +183,9 @@ export function resolve(layout: Layout, view: ViewState, ctx: LayoutContext): Re
           rect: horizontal
             ? { x: offset, y: rect.y, width: fit.gap, height: rect.height }
             : { x: rect.x, y: offset, width: rect.width, height: fit.gap },
-        });
+        };
+        result.dividers.push(divider);
+        if (strip) inScroller.set(divider, strip);
         offset += fit.gap;
       }
     });
@@ -149,9 +193,18 @@ export function resolve(layout: Layout, view: ViewState, ctx: LayoutContext): Re
   const width = Math.max(fit.width, root.bounds.width);
   draw(root, { x: 0, y: 0, width, height: Math.max(fit.height, root.bounds.height) });
   // Right to left, a row starts at the right: the same layout, mirrored. Rects are screen coordinates either way.
+  // A row that scrolls is mirrored as a window, and its content within itself, so it starts at its right edge.
   if (ctx.dir === "rtl") {
-    for (const b of result.panes) b.rect = mirrorRect(b.rect, width);
-    for (const d of result.dividers) d.rect = mirrorRect(d.rect, width);
+    const before = new Map(result.scrollers.map((s) => [s, s.rect]));
+    for (const s of result.scrollers) s.rect = mirrorRect(s.rect, width);
+    const place = (item: { rect: Rect }) => {
+      const s = inScroller.get(item);
+      if (!s) return mirrorRect(item.rect, width);
+      const along = item.rect.x - before.get(s)!.x;
+      return { ...item.rect, x: s.rect.x + s.contentWidth - along - item.rect.width };
+    };
+    for (const b of result.panes) b.rect = place(b);
+    for (const d of result.dividers) d.rect = place(d);
   }
   // Hidden panes keep a box (so their content can stay mounted and paused) with no size and no group.
   const drawn = new Set(result.panes.map((b) => b.id)),

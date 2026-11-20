@@ -6,7 +6,6 @@ import {
   keepPaneFocus,
   ALONE_CHROME,
   CHROME,
-  GAP,
   SWITCHER_H,
   hingeOf,
   type Hinge,
@@ -22,6 +21,7 @@ import { PaneSwitcher } from "../chrome/PaneSwitcher";
 import { Peek } from "../chrome/Peek";
 import { DividerLayer } from "../dividers/DividerLayer";
 import { PaneFrame } from "../pane/PaneFrame";
+import { Strip, useFocusIntoStrip } from "./Scroller";
 import type { UiStore } from "@jali/core/adapter";
 import { useModel, useStore, useUi } from "../state/react";
 import { DropIndicator } from "./DropIndicator";
@@ -36,9 +36,10 @@ function useMeasure(store: UiStore) {
   useLayoutEffect(() => {
     const el = ref.current;
     if (!el) return;
+    const { inset } = store.env.spacing;
     const measure = () => {
-      const width = Math.max(0, Math.floor(el.clientWidth - GAP * 2)),
-        height = Math.max(0, Math.floor(el.clientHeight - GAP * 2));
+      const width = Math.max(0, Math.floor(el.clientWidth - inset * 2)),
+        height = Math.max(0, Math.floor(el.clientHeight - inset * 2));
       const s = store.get();
       const dir = directionOf(store.env.dir, el);
       // A fold across the workspace, from the browser's viewport segments (Chrome and Edge 138+; none elsewhere).
@@ -301,21 +302,22 @@ export function Panes() {
   const mode = single ? "single" : "tiled";
   // On a phone the page tabs already choose the view, so a curated page has no pane switcher under them.
   const switcherH = page ? 0 : SWITCHER_H;
+  const { inset } = store.env.spacing;
   const inner = single
     ? {
         left: 0,
         top: switcherH,
-        width: area.width + GAP * 2,
-        height: Math.max(0, area.height + GAP * 2 - switcherH),
+        width: area.width + inset * 2,
+        height: Math.max(0, area.height + inset * 2 - switcherH),
       }
-    : { left: GAP, top: GAP, width: area.width, height: area.height };
+    : { left: inset, top: inset, width: area.width, height: area.height };
   // One pane on screen, tiled: full-bleed and quiet, as a plain tab strip would be (ALONE_CHROME). Not a maximised
   // pane: the others are behind it, and it needs its Restore.
   const alone =
     !single && !page && !view.zoomed && m.resolved.panes.filter((b) => !b.hidden).length === 1;
   const chrome = single ? CHROME.single : alone ? ALONE_CHROME : CHROME.tiled;
   const bleed = alone
-    ? { left: 0, top: 0, width: area.width + GAP * 2, height: area.height + GAP * 2 }
+    ? { left: 0, top: 0, width: area.width + inset * 2, height: area.height + inset * 2 }
     : inner;
   // Stacked view (a portrait phone, phone.stack): two linked panes, unless the keyboard is up.
   const keyboardUp = useKeyboardUp();
@@ -325,6 +327,15 @@ export function Panes() {
   useStackAnnouncement(store, m, stacked);
   const dropBox =
     !single && dnd?.target ? m.resolved.panes.find((b) => b.id === dnd.target) : undefined;
+  const placed = frames(
+    m,
+    view,
+    mode,
+    { width: inner.width, height: inner.height },
+    stacked ? stackRatio : false,
+    { x: inner.left, y: inner.top },
+  );
+  useFocusIntoStrip(store);
 
   // A labelled region inside the host's page, or the page's main landmark when the host says Jali is the whole app.
   const Landmark = store.env.landmark === "main" ? "main" : "section";
@@ -351,26 +362,39 @@ export function Panes() {
         />
       ) : null}
       <div className="jali-workspace-inner" style={bleed}>
-        {frames(
-          m,
-          view,
-          mode,
-          { width: inner.width, height: inner.height },
-          stacked ? stackRatio : false,
-          { x: inner.left, y: inner.top },
-        ).map((f) => (
-          <PaneFrame
-            key={f.node.id}
-            frame={
-              alone && !f.hidden
-                ? { ...f, rect: { x: 0, y: 0, width: bleed.width, height: bleed.height } }
-                : f
-            }
-            chrome={chrome}
-            dropTarget={!single && dnd?.target === f.node.id}
-          />
-        ))}
+        {placed
+          .filter((f) => !f.strip)
+          .map((f) => (
+            <PaneFrame
+              key={f.node.id}
+              frame={
+                alone && !f.hidden
+                  ? { ...f, rect: { x: 0, y: 0, width: bleed.width, height: bleed.height } }
+                  : f
+              }
+              chrome={chrome}
+              dropTarget={!single && dnd?.target === f.node.id}
+            />
+          ))}
         {single ? null : <DividerLayer />}
+        {/* Rows that scroll sideways: their panes and dividers inside an element the browser scrolls. */}
+        {single
+          ? null
+          : m.content.scrollers.map((s) => (
+              <Strip key={s.id} strip={s} zoomed={!!view.zoomed && s.paneIds.includes(view.zoomed)}>
+                {placed
+                  .filter((f) => f.strip === s.id)
+                  .map((f) => (
+                    <PaneFrame
+                      key={f.node.id}
+                      frame={f}
+                      chrome={chrome}
+                      dropTarget={dnd?.target === f.node.id}
+                    />
+                  ))}
+                <DividerLayer strip={s} />
+              </Strip>
+            ))}
         {stacked && m.stacked?.hinge ? <FoldLine hinge={m.stacked.hinge} origin={inner} /> : null}
         {stacked && !m.stacked?.hinge ? (
           <StackDivider m={m} ratio={stackRatio} setRatio={setStackRatio} height={inner.height} />

@@ -1,20 +1,43 @@
 ---
 title: Parts
-summary: Every part of the workspace you can style, its selector, and the attributes that carry its state.
+summary: Every part of the workspace you can style, its element, its selector, and the attributes that carry its state.
 ---
 
 import { PartsTable } from "../../reference";
 
-These are the parts of what Jali renders that your styles may rely on. Each has one selector, a `jali-` class or a `data-` attribute, and carries its state in attributes, never in classes: select `.jali-pane[data-focused]`, `.jali-tab[aria-selected="true"]` or `.jali-shelf-chip[data-reason="folded"]`.
+These are the parts of what Jali renders that your styles may rely on. Each has one selector, a `jali-` class or a `data-` attribute, is one kind of element, and carries its state in attributes, never in classes: select `.jali-pane[data-focused]`, `.jali-tab[aria-selected="true"]` or `.jali-pane-action[data-action="close"]`.
 
-Everything on this page is public, and changes only in a major version. Other `jali-*` classes, any `is-*` class, and attributes not listed are Jali's own and may change in any release. Put your rules in a cascade layer after `jali`, as in [Theming](/guides/theming#the-layer-line), so they win without `!important`.
+## What is stable
+
+Only what this page lists, and the `--jali-*` tokens in [Tokens](/reference/tokens), are public. They change only in a major version. Everything else is Jali's own and may change in any release:
+
+- any other `jali-*` class, and any `is-*` class;
+- any attribute a part doesn't list here;
+- the elements inside a part that are not parts themselves. `.jali-pane-actions button`, `.jali-scrim [role="combobox"]` or `.jali-palette-item kbd` depend on markup that can change. Use `.jali-pane-action`, `.jali-palette-input` and `.jali-palette-keys` instead.
+
+One more name is public: the pane header is a size container named `jali-header`. A narrow header can be styled by its own width, whatever the pane's:
+
+```css
+@layer components {
+  @container jali-header (max-width: 20rem) {
+    .jali-follow-label {
+      display: none;
+    }
+  }
+}
+```
+
+Put your rules in a cascade layer after `jali`, as in [Theming](/guides/theming#the-layer-line), so they win without `!important`.
 
 ```css
 @layer components {
   .jali-pane[data-kind="ticket"][data-focused] {
     box-shadow: 0 0 0 2px var(--jali-accent);
   }
-  .jali-tab[data-pinned] {
+  .jali-pane-action[data-action="close"]:hover {
+    color: var(--jali-failed);
+  }
+  .jali-dialog-button[data-role="primary"] {
     font-weight: 600;
   }
   .jali-shelf-chip[data-activity="needs-you"] {
@@ -25,6 +48,63 @@ Everything on this page is public, and changes only in a major version. Other `j
 
 With Tailwind, the same attributes work as variants: `data-[focused]:ring-2`, or `group-data-[zoomed]:hidden` inside a pane.
 
+## Pressed
+
+Every control Jali renders carries `data-pressed` while it is held down: by the pointer, or by Space or Enter while it has focus. `:active` covers only the pointer, so a theme that shows a key going down reads `[data-pressed]` to show it from the keyboard as well. One mechanism sets it for all of them: the header's buttons, tabs and their buttons, the "+N" and "N folded" chips, shelf chips and their menu, the Following / Kept toggle, the pane switcher, a curated page's tabs, tab menu items and dialog buttons. Each lists it below. Jali's own styles don't read it.
+
+```css
+@layer components {
+  .jali-pane-action[data-pressed],
+  .jali-tab[data-pressed] {
+    translate: 0 1px;
+  }
+}
+```
+
 Attributes a pane sets with `usePaneAttributes` appear on everything that stands for it (its section, tab, shelf chip and switcher entry), alongside these.
 
-<PartsTable />
+Corners, spacing and colours are tokens, not parts: every corner reads `--jali-radius`, `--jali-radius-control`, `--jali-radius-menu` or `--jali-radius-chip`, and the space between panes is `createJali({ gap, inset })`, which Jali writes as `--jali-gap` and `--jali-inset`.
+
+## Workspace
+
+<PartsTable area="Workspace" />
+
+## Pane
+
+<PartsTable area="Pane" />
+
+## Tabs
+
+<PartsTable area="Tabs" />
+
+## Dividers
+
+<PartsTable area="Dividers" />
+
+## Drag and drop
+
+<PartsTable area="Drag and drop" />
+
+## Shelf
+
+<PartsTable area="Shelf" />
+
+## Linked panes
+
+<PartsTable area="Linked panes" />
+
+## Dialogs and menus
+
+<PartsTable area="Dialogs and menus" />
+
+## Small screens
+
+<PartsTable area="Small screens" />
+
+## Curated pages
+
+<PartsTable area="Curated pages" />
+
+## Icons and your chrome
+
+<PartsTable area="Icons and your chrome" />

@@ -8,6 +8,7 @@ import { Activity, shelfActivity } from "../pane/Activity";
 import { KindIcon } from "../pane/icons";
 import { UnsavedMark } from "../pane/Unsaved";
 import { useActions, useMessages, useModel, useStore, useUi } from "../state/react";
+import { ICON } from "../icons/sized";
 
 function label(m: JaliModel, it: ShelfEntry, a: PaneActivity | undefined) {
   const node = m.pane(it.paneId);
@@ -162,9 +163,9 @@ export function Shelf() {
           onClick={() => doReveal(it)}
         >
           {L.folded ? (
-            <icon.fold size={13} aria-hidden />
+            <icon.fold {...ICON.shelf} aria-hidden />
           ) : L.node ? (
-            <KindIcon kind={L.node.ref.kind} size={13} />
+            <KindIcon kind={L.node.ref.kind} {...ICON.shelf} />
           ) : null}
           <span className="jali-shelf-chip-title">{L.title}</span>
           {dirty ? <UnsavedMark /> : null}
@@ -178,7 +179,7 @@ export function Shelf() {
             title={words.keys.withKeys(t.putBackTip, putBackKeys)}
             onClick={() => actions.putBack(it.paneId)}
           >
-            <icon.putBack size={13} aria-hidden />
+            <icon.putBack {...ICON.shelf} aria-hidden />
           </button>
         ) : null}
       </div>
@@ -238,6 +239,7 @@ export function Shelf() {
             return (
               <button
                 {...marks[it.paneId]}
+                className="jali-shelf-menu-item"
                 role="menuitem"
                 key={it.paneId}
                 onClick={() => {
@@ -245,7 +247,7 @@ export function Shelf() {
                   doReveal(it);
                 }}
               >
-                {L.node ? <KindIcon kind={L.node.ref.kind} size={14} /> : null}
+                {L.node ? <KindIcon kind={L.node.ref.kind} {...ICON.menu} /> : null}
                 <span className="jali-shelf-chip-title">{L.title}</span>
                 <Activity a={activity[it.paneId]} shape />
                 <small>{t.where(L.folded, L.home)}</small>

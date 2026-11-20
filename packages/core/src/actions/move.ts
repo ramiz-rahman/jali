@@ -18,6 +18,28 @@ export function moveDirection(x: Snapshot, dir: Edge, id = x.s.view.focused): Ou
   return { op: "move", layout: r.layout, view: r.view, msg: say(m).moved(m.title(id), dir) };
 }
 
+/**
+ * Take a pane out of the row that scrolls holding it, beside the strip on the side it is nearer on screen: a pane in
+ * the strip's left half goes before the strip, one in its right half after. Silent for a pane in no strip.
+ */
+export function moveOutOfRow(x: Snapshot, id = x.s.view.focused): Outcome {
+  const { s, m, ctx } = x;
+  const denied = notAllowed(x, id, "move");
+  if (denied) return denied;
+  const strip = id ? m.resolved.scrollers.find((r) => r.paneIds.includes(id)) : undefined;
+  const box = id ? m.resolved.panes.find((b) => b.id === id) : undefined;
+  if (!id || !strip || !box) return null;
+  const clip = box.clip ?? strip.rect;
+  // The part of the pane in view, so a pane half scrolled out counts by what shows of it.
+  const from = Math.max(box.rect.x, clip.x),
+    to = Math.min(box.rect.x + box.rect.width, clip.x + clip.width);
+  const screen: Edge = (from + to) / 2 < clip.x + clip.width / 2 ? "left" : "right";
+  const side = treeSide(screen, ctx.dir) as "left" | "right";
+  const r = core.moveOutOfStrip(s.layout, unzoomed(s.view), id, side, ctx);
+  if (r.layout === s.layout) return null;
+  return { op: "move", layout: r.layout, view: r.view, msg: say(m).movedOutOfRow(m.title(id)) };
+}
+
 /** A pointer drop on `zone`, a side of the screen. Dragging a tucked tab out of its home on the side it came from is a
  *  put back (exact slot and size). */
 export function drop(x: Snapshot, dragged: NodeId, target: NodeId, zone: Edge | "centre"): Outcome {

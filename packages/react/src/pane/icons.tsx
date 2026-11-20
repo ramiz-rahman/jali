@@ -1,9 +1,23 @@
 import { useJaliIcons } from "../icons/context";
 import { useEnv } from "../state/react";
+import { ICON } from "../icons/sized";
 
-/** The kind's icon, or the workspace's `defaultKind` icon (a square) for an unknown kind or one without an icon. */
-export function KindIcon({ kind, size = 16 }: { kind: string; size?: number }) {
+/**
+ * The kind's icon, or the workspace's `defaultKind` icon (a square) for an unknown kind or one without an icon. By
+ * default it is a pane title's icon, sized by `--jali-icon-header` + 2px; pass `size` and `className` to draw it
+ * elsewhere.
+ */
+export function KindIcon({
+  kind,
+  size,
+  className,
+}: {
+  kind: string;
+  size?: number;
+  className?: string;
+}) {
   const { defaultKind } = useJaliIcons();
   const Icon = useEnv().kinds.get(kind)?.icon ?? defaultKind;
-  return <Icon size={size} aria-hidden />;
+  const at = size === undefined ? ICON.title : { size, className: undefined };
+  return <Icon size={at.size} className={className ?? at.className} aria-hidden />;
 }

@@ -48,13 +48,28 @@ test("the sound goes on while the mixer is folded away", async ({ page }) => {
   await layout(page, "Mix").click();
   await expect(page.locator('.jali-pane[data-pane="mixer"]')).toBeVisible();
   await transport(page, "Play").click();
-  // A short window: the mixer folds into a tab rather than squeeze, and waits behind its strip's "N folded" chip.
+  // A short window: the mixer folds into a tab rather than squeeze, and waits behind its place's "N folded" chip.
   await page.setViewportSize({ width: 1100, height: 560 });
-  await expect(page.locator(".jali-tab-folded").first()).toBeVisible();
-  await expect(page.locator('.jali-pane[data-kind="mixer"]')).toBeHidden();
+  await page.getByRole("button", { name: /\d+ folded panes?/ }).click();
+  await expect(page.getByRole("menuitem", { name: /Mixer/ })).toBeVisible();
+  await page.keyboard.press("Escape");
   const before = await seconds(page);
   await page.waitForTimeout(1500);
   expect(await seconds(page)).toBeGreaterThan(before + 1);
+  await transport(page, "Pause").click();
+});
+
+// The mixer reports "working" while it plays (its hidden header carries the mark), but the folded menu doesn't draw
+// it: since 3f57a4c the shelf holds only tucked panes and the "N folded" menu lists panes without their marks. Turn
+// this on when the menu shows a folded pane's activity.
+test("a folded mixer shows that it is working", async ({ page }) => {
+  await layout(page, "Mix").click();
+  await transport(page, "Play").click();
+  await page.setViewportSize({ width: 1100, height: 560 });
+  await page.getByRole("button", { name: /\d+ folded panes?/ }).click();
+  const entry = page.getByRole("menuitem", { name: /Mixer/ });
+  await expect(entry.locator("[class*=jali-ra], [class*=jali-activity]")).toBeVisible();
+  await page.keyboard.press("Escape");
   await transport(page, "Pause").click();
 });
 
@@ -179,11 +194,12 @@ test("a mixer fader drags without jumping, settles at 0 dB, and a pan dial turns
   await page.mouse.move(x, cap.y + cap.height / 2 + 6);
   await page.mouse.down();
   await expect(fader).toHaveAttribute("aria-valuetext", "−12.0 dB");
-  // Up to just short of the 0 dB mark: into its detent, wherever the pointer drifts sideways (pointer capture).
-  const travel = (await fader.locator(".fader-travel").boundingBox())!;
-  const from = cap.y + cap.height / 2;
-  const to = travel.y + (1 - 0.7079) * travel.height + 2; // 2px short of the mark, as a hand would stop
-  for (let i = 1; i <= 8; i++) await page.mouse.move(x + i * 30, from + 6 + ((to - from) * i) / 8);
+  // Up to the 0 dB mark, wherever the pointer drifts sideways (pointer capture): into the detent. The slot's
+  // height follows the layout, so the distance is read from the marks, not counted in pixels.
+  const zero = (await fader.locator(".fader-zero").boundingBox())!;
+  const dy = zero.y + zero.height / 2 - (cap.y + cap.height / 2);
+  for (let i = 1; i <= 8; i++)
+    await page.mouse.move(x + i * 30, cap.y + cap.height / 2 + 6 + (dy * i) / 8);
   await page.mouse.up();
   await expect(fader).toHaveAttribute("aria-valuenow", "0");
   await fader.focus();
@@ -341,10 +357,15 @@ test("a layout shows the session being worked on, not the one it was left with",
   await list.getByRole("option", { name: /The Light caught by the Stone/ }).click();
   for (const name of ["Mix", "Review", "Compare"]) {
     await layout(page, name).click();
-    // Every pane that names a session names this one, and none waits to be loaded.
-    for (const title of await page.locator(".jali-pane-title h2").allTextContents())
-      expect(title).not.toContain("The Eagle has landed");
+    // Every pane that names a session names this one, and none waits to be loaded (once Jali's follow step,
+    // a moment after the layout opens, has run).
+    await expect
+      .poll(async () => (await page.locator(".jali-pane-title h2").allTextContents()).join(" | "))
+      .not.toContain("The Eagle has landed");
     await expect(page.locator(".not-live")).toHaveCount(0);
+    await expect(
+      page.getByRole("listbox", { name: "Sessions" }).getByRole("option", { selected: true }),
+    ).toContainText("The Light caught by the Stone");
   }
 });
 

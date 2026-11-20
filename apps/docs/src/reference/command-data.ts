@@ -4,7 +4,7 @@
  * in packages/core/src/commands/registry.ts and the action it runs. The coverage test checks that every command id
  * has a note here, and no note names a command that is gone.
  */
-import { commandsOf, createPaneKinds, type Env, type Layout } from "@jali/core/adapter";
+import { commandsOf, createPaneKinds, spacingOf, type Env, type Layout } from "@jali/core/adapter";
 
 const empty = (): Layout => ({
   version: 1,
@@ -18,6 +18,7 @@ export const SAMPLE_ENV: Env = {
   profile: null,
   presets: [{ id: "orders", label: "Orders", build: empty }],
   name: "Workspace",
+  spacing: spacingOf(),
 };
 
 /** The one id per preset, shown as a pattern. */
@@ -72,6 +73,8 @@ export const REFUSED: Record<string, string> = {
   "pane.move.down":
     'Silent when no pane is focused or only one pane is open. With no pane to that side: "… can\'t move down".',
   "pane.swap": "Silent when no pane is focused or only one pane is open.",
+  "pane.move.out":
+    'Silent unless the focused pane is in a row that scrolls sideways (`row({ scroll: "x" }, …)`). Takes it out beside the row, on the side it is nearer on screen: "… moved out of the row".',
   "pane.merge":
     'Silent when no pane is focused, or there is no other pane or stack on screen to join. Opens the "Add to tabs of…" chooser.',
   "pane.unmerge":

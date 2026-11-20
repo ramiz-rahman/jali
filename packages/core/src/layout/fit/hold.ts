@@ -1,6 +1,6 @@
 import type { Layout, LayoutContext, LayoutNode, ResolvedLayout } from "../types";
 import { clone, find, isSplit, nodes, noFocus, panes } from "../tree/tree";
-import { extentAlong } from "../geometry/extent";
+import { extentIn } from "../geometry/extent";
 import { resolve } from "./resolve";
 
 /** The rects on screen, whoever fills them (the same measure as the UI's stability check). */
@@ -37,8 +37,8 @@ export function holdGeometry(before: Layout, after: Layout, ctx: LayoutContext):
     )
       continue;
     const extent = (r: ResolvedLayout, c: LayoutNode) =>
-      extentAlong(
-        r.panes,
+      extentIn(
+        r,
         panes(c).map((p) => p.id),
         node.type,
       );

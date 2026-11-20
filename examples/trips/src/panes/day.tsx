@@ -310,6 +310,7 @@ function DayBody({
                             e,
                             { id, day: day.n, index: i, label: p.name },
                             (sid, drop) => addToDay(services, sid, drop.day, drop.index),
+                            jali,
                           )
                         }
                       >

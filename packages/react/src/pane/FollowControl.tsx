@@ -7,6 +7,7 @@ import type { PaneNode } from "@jali/core";
 import { useJaliIcons } from "../icons/context";
 import { sameRef } from "@jali/core/adapter";
 import { useMessages, useStore, useUi } from "../state/react";
+import { ICON } from "../icons/sized";
 
 /**
  * One toggle on any linked pane, naming what the pane does now: **Following** (it changes with its list's selection,
@@ -19,7 +20,8 @@ export function FollowControl({ node }: { node: PaneNode; title: string }) {
   const store = useStore();
   const t = useMessages().pane;
   const list = useUi(() => (node.linkedTo ? store.model().title(node.linkedTo) : ""));
-  if (!node.linkedTo) return node.kept ? <span className="jali-badge">{t.kept}</span> : null;
+  if (!node.linkedTo)
+    return node.kept ? <span className="jali-badge jali-kept-badge">{t.kept}</span> : null;
   const kept = !!node.kept;
   const hint = kept ? t.keptTip(list) : node.follows ? t.followingTip(list) : t.plainTip(list);
   return (
@@ -32,8 +34,14 @@ export function FollowControl({ node }: { node: PaneNode; title: string }) {
       title={hint}
       onClick={() => store.actions.setKept(node.id, !kept)}
     >
-      {kept ? <icon.keep size={12} aria-hidden /> : <icon.follow size={12} aria-hidden />}
-      <span aria-hidden>{kept ? t.kept : t.following}</span>
+      {kept ? (
+        <icon.keep {...ICON.headerSmall} aria-hidden />
+      ) : (
+        <icon.follow {...ICON.headerSmall} aria-hidden />
+      )}
+      <span className="jali-follow-label" aria-hidden>
+        {kept ? t.kept : t.following}
+      </span>
     </button>
   );
 }

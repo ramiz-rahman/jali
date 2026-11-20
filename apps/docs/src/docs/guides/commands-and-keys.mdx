@@ -75,6 +75,20 @@ So claim the keys you use and let the rest through. The orders list in [Define a
 
 Single character keys (J, K, Space) must act only while your content has focus. Put the handler on the focused element, as above, not on `window`.
 
+### Space in lists
+
+Jali binds no single keys. By convention its lists use Space or Shift+Space to peek, each in its own `onKeyDown`. An app that wants Space for itself (play and pause, say) should listen on `window` in the bubble phase, so content has had its turn, and skip the key when `keyBelongsToContent(event)` is true. That check is true in text fields, editable regions, comboboxes, dialogs, and on buttons, tabs and other controls that Space presses.
+
+```ts
+import { keyBelongsToContent } from "@jali/react";
+
+window.addEventListener("keydown", (e) => {
+  if (e.key === " " && !e.defaultPrevented && !keyBelongsToContent(e)) togglePlayback();
+});
+```
+
+If a list in your app should keep peek, move the app's key to another one, as Studio does with Shift+Space for peek.
+
 ## Content that needs every key
 
 An editor or a terminal needs every key, ⌘K included. Mark it `data-pane-keys="content"`. Inside it, the workspace takes only F6 and ⇧F6, so a keyboard user can always move focus out.
@@ -108,6 +122,7 @@ Some commands need an argument first: "Open chart for…", "Open latest order fo
 
 - `label` names each item in the list, and `hint` adds words beside it. Typing matches both, and items whose label starts with the text come first.
 - `onChoose` gets the chosen item once the chooser has closed and focus is back in the pane it came from. Esc, or a click outside, chooses nothing.
+- `current` is the item in use, one of `items` itself (compared with `Object.is`). The chooser opens with it selected and marks its row with `data-current`, `aria-current="true"` and a tick.
 - `title` names the dialog and its field. The title, labels, hints and `placeholder` are your words. Jali's own (the default placeholder, the list's name for screen readers, and "Nothing matches") are `messages.chooser`, so they follow your translation; see [Translate Jali](/guides/translating).
 - A key or button of your own can run the same command: `runCommand(jali, "orders.latest-for")`.
 

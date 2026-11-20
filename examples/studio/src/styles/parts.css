@@ -19,31 +19,34 @@
  */
 @layer app {
   /* ---------- housing ---------- */
-  :where(
-    .device,
-    .jali-pane,
-    .jali-peek,
-    .jali-tab-menu,
-    .jali-scrim > [role="dialog"],
-    .jali-scrim > [role="alertdialog"]
-  ) {
+  :where(.device, .jali-pane, .jali-peek, .jali-tab-menu, .jali-dialog) {
+    /* Declared on each housing, so its own --body-* and --sh (the mixer's are darker) are the ones it reads. */
+    --housing-shadow:
+      inset 0 1.5px 0 var(--body-hi), inset 0 0 0 1px var(--body-rim),
+      inset 0 -2px 0 var(--shade-2), 0 3px 0 var(--body-wall), 0 4px 1px var(--shade-4),
+      0 10px 14px -4px var(--shade-4), 0 22px 30px -14px var(--shade-5);
     background:
       var(--grain), var(--slab-falloff), linear-gradient(180deg, var(--body-1), var(--body-2));
     border: 0;
     border-radius: var(--corner);
-    box-shadow:
-      inset 0 1.5px 0 var(--body-hi),
-      inset 0 0 0 1px var(--body-rim),
-      inset 0 -2px 0 var(--shade-2),
-      0 3px 0 var(--body-wall),
-      0 4px 1px var(--shade-4),
-      0 10px 14px -4px var(--shade-4),
-      0 22px 30px -14px var(--shade-5);
   }
-  /* The focused device is told by the lamp in its header alone (chrome.css): no ring, so the plates stay clean.
-     Keyboard focus inside it still shows on the control that has it. */
+  :where(.device, .jali-peek, .jali-tab-menu, .jali-dialog) {
+    box-shadow: var(--housing-shadow);
+  }
+  /* A pane's faceplate: Jali draws it from its pane tokens. The focused one is told by the lamp in its header
+     alone (chrome.css), so its shadow is the same as at rest: no ring, and the plates stay clean. Keyboard focus
+     inside it still shows on the control that has it. */
+  :where(.jali-pane) {
+    --jali-pane-shadow: var(--housing-shadow);
+    --jali-pane-shadow-focused: var(--housing-shadow);
+  }
   .jali-pane:focus-visible {
     outline: none;
+  }
+  /* On a phone (Single and stacked view) and alone, Jali draws a pane full-bleed with no shadow; a faceplate keeps
+     its housing there too. */
+  :where([data-single] .jali-pane, .jali-pane[data-alone]) {
+    box-shadow: var(--jali-pane-shadow);
   }
   /* ---------- tray ---------- */
   :where(.tray) {
@@ -68,7 +71,7 @@
     .jali-shelf-chip,
     .jali-switch-item,
     .jali-follow-toggle,
-    .jali-scrim [role="alertdialog"] button
+    .jali-dialog-button
   ) {
     --wall: 3px;
     --press: 0px;
@@ -136,7 +139,8 @@
     flex-direction: column;
     gap: 4px;
   }
-  /* Pressed: down by the height of its wall. */
+  /* Pressed: down by the height of its wall. Jali's controls carry data-pressed while held by the pointer or by Space
+     or Enter, so they travel from the keyboard too; the app's keys follow :active. */
   :where(
       .key,
       .lib-row,
@@ -146,8 +150,17 @@
       .jali-shelf-chip,
       .jali-switch-item,
       .jali-follow-toggle,
-      .jali-scrim [role="alertdialog"] button
-    ):active:not(:disabled) {
+      .jali-dialog-button
+    ):active:not(:disabled),
+  :where(
+    .jali-tab,
+    .jali-tab-add,
+    .jali-tab-more,
+    .jali-switch-item,
+    .jali-follow-toggle,
+    .jali-dialog-button
+  )[data-pressed],
+  :where(.jali-shelf-chip):has(> [data-pressed]) {
     --press: var(--wall);
     /* Down fast, like a switch going over centre; the way back up is the slower `--travel` on the key itself. */
     transition-duration: var(--travel-press);
@@ -358,7 +371,7 @@
       0 3px 0 var(--mat-wall);
   }
   /* ---------- readout: black glass ---------- */
-  :where(.screen, .mx-db, .mx-meter, .jali-scrim [role="combobox"]) {
+  :where(.screen, .mx-db, .mx-meter, .jali-palette-input) {
     position: relative;
     background: var(--scr-glass);
     color: var(--scr-ink);

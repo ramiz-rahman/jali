@@ -107,6 +107,7 @@ const announcements = {
   // move and tabs
   cantMove: (pane: string, edge: Edge) => `${pane} can't move ${dirWord(edge)}`,
   moved: (pane: string, edge: Edge) => `${pane} moved ${dirWord(edge)}`,
+  movedOutOfRow: (pane: string) => `${pane} moved out of the row`,
   swapped: (a: string, b: string) => `${a} swapped with ${b}`,
   addedToTabsOf: (a: string, b: string) => `${a} added to the tabs of ${b}`,
   addedToTabsWith: (a: string, b: string) => `${a} added to tabs with ${b}`,
@@ -238,6 +239,7 @@ const commands = {
   splitAuto: "Split auto (new pane, by shape)",
   moveDirection: (direction: ScreenDirection) => `Move pane ${direction}`,
   swap: "Swap with next pane",
+  moveOutOfRow: "Move pane out of the row",
   merge: "Add to tabs of…",
   unmerge: "Move out of tabs",
   moveTab: (direction: "left" | "right") => `Move tab ${direction}`,
@@ -385,7 +387,18 @@ const tabs = {
   foldedDescription: "Folded: returns when there's room",
   /** The chip at the end of a strip for the panes the layout folded into it (not the one it shows). */
   foldedChip: (count: number) => `${count} folded`,
-  foldedChipLabel: (count: number) => `${count} folded ${count === 1 ? "pane" : "panes"}`,
+  /** `activity` is the most pressing of the folded panes' (`useActivity`), so the chip can say one is working. */
+  foldedChipLabel: (count: number, activity?: PaneActivity) => {
+    const word =
+      activity === "loading" || activity === "working"
+        ? "working"
+        : activity === "needs-you"
+          ? "one needs you"
+          : activity === "error"
+            ? "one failed"
+            : "";
+    return `${count} folded ${count === 1 ? "pane" : "panes"}${word ? `, ${word}` : ""}`;
+  },
   foldedChipTip: "Folded: not enough room to show these side by side",
   /** Atop the folded chip's menu. */
   foldedNote: "No room to show these side by side. Widen the window, or pick one to show it here.",
@@ -414,6 +427,8 @@ const tabs = {
   closeTabsAfter: (side: "left" | "right") => `Close tabs to the ${side}`,
   moveTab: (side: "left" | "right") => `Move tab ${side}`,
   moveOutOfTabs: "Move out of tabs",
+  /** A pane in a row that scrolls sideways: out of it, beside it. */
+  moveOutOfRow: "Move out of the row",
   pinTab: "Pin tab",
   rename: "Rename…",
   /** A pinned tab's description starts with this. */

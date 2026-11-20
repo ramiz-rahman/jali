@@ -36,6 +36,13 @@ async function openSession(page: Page, title: string) {
     await page.keyboard.press("Enter");
   }
   await expect(page.locator(".pd-title")).toHaveText(title, { timeout: 20_000 });
+  // The panes follow a moment later (Jali's follow step): wait until none still names another session.
+  await expect
+    .poll(async () => {
+      const titles = await page.locator(".jali-pane-title h2").allTextContents();
+      return titles.filter((t) => SESSIONS.some((s) => s !== title && t.includes(s))).length;
+    })
+    .toBe(0);
 }
 const SCROLLERS = ".mx-modules, .tr-rows, .lib-rows, .mk-rows, .clip";
 const LEGENDS =

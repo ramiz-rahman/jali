@@ -140,12 +140,18 @@ Jali passes these to `Component`:
 | `openBeside(ref)` | Open an object beside this pane. Focus stays here. A pane this one opened earlier for the same kind shows the new object instead. |
 | `openHere(ref)` | Show another object in this same pane. If it is open elsewhere, that pane is focused instead. |
 | `select(ref)` | Report the item a list is on. A detail that follows this list shows it once the cursor rests. |
-| `peek(ref)` | Show an object in the peek sheet; `peek(null)` closes it. |
+| `peek(ref)` | Show an object in the peek sheet; `peek(null)` closes it. With a following detail of that kind on screen, the detail shows the object instead and no sheet opens. |
 | `dismiss()` | Close this pane quietly, with no undo toast. For the launcher. |
 
 `openBeside`, `openHere`, `peek` and `select` return what the same `jali.actions` return, an `ActionResult`: `openBeside(ref).pane` is the pane that shows the object, and `ok: false` comes with a `reason` when nothing happened.
 
 A component deeper inside the pane reads the same props with `usePane()`, so you don't have to pass them down.
+
+## The size of the content, and what scrolls
+
+`Component` renders into a box that fills the pane under its header and has a definite width and height, so `height: 100%` works and container queries on size do too: give your root `container-type: size` (with `height: 100%`) and lay out by `@container (max-height: 300px)`. The box follows the pane as it is resized, folded or maximised.
+
+That box is also the pane's scroller (`overflow: auto`). Content taller than the pane scrolls it, and the pane's header stays put. For `position: sticky`, this means an element sticks to that scroller, with nothing between if your content is its direct child. If your content scrolls itself, give your root `height: 100%` and `overflow: auto`, and put the sticky element inside it: the outer box then has nothing to scroll and your root is the scroller the element sticks to. The peek sheet has the same box.
 
 ## What a pane reports
 

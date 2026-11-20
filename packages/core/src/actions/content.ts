@@ -1,18 +1,26 @@
 /** What a pane's content reports to the workspace: unsaved work, its ⌘K commands and its own state. */
 import type { NodeId } from "../layout/types";
 import type { PaneAttributes, PaneCommand } from "../pane-kinds";
-import type { Outcome, Snapshot } from "../state/apply";
+import type { Change, Outcome, Snapshot } from "../state/apply";
+import { follow } from "./follow";
 import { say } from "../state/messages";
 
 const without = <T>(r: Record<NodeId, T>, ids: readonly NodeId[]) =>
   Object.fromEntries(Object.entries(r).filter(([id]) => !ids.includes(id)));
 
+/**
+ * The pane's unsaved work (useUnsaved), or `null` once it is saved or discarded. A following detail held on its
+ * object by its work (actions/follow.ts) catches up with its list's selection as soon as the work is gone.
+ */
 export function setUnsaved({ s, m }: Snapshot, id: NodeId, what: string | null): Outcome {
-  if (!m.pane(id) || (s.unsaved[id] ?? null) === what) return null;
-  return {
+  const p = m.pane(id);
+  if (!p || (s.unsaved[id] ?? null) === what) return null;
+  const change: Change = {
     op: "patch",
     patch: { unsaved: what ? { ...s.unsaved, [id]: what } : without(s.unsaved, [id]) },
   };
+  const sel = !what && p.follows && p.linkedTo ? s.selection[p.linkedTo] : undefined;
+  return sel ? [change, (y: Snapshot) => follow(y, p.linkedTo!, sel.ref, id)] : change;
 }
 
 export function setPaneCommands(

@@ -21,12 +21,15 @@ export function usePane<P = Params>(): PaneProps<P> {
   return usePaneContext("usePane").props as PaneProps<P>;
 }
 
-/** Report what the pane is doing, for its header, tab, the shelf and the status line. `undefined` reports nothing. */
+/**
+ * Report what the pane is doing, for its header, tab, the shelf and the status line. `undefined` clears it (the same
+ * as `"idle"`: nothing is shown), as does the component unmounting.
+ */
 export function useActivity(activity: PaneActivity | undefined): void {
   const { host } = usePaneContext("useActivity");
-  useEffect(() => {
-    if (activity) host.setActivity(activity);
-  }, [host, activity]);
+  const now = activity || "idle";
+  useEffect(() => host.setActivity(now), [host, now]);
+  useEffect(() => () => host.setActivity("idle"), [host]);
 }
 
 /**

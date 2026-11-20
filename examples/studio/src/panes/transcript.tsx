@@ -4,7 +4,8 @@
  *
  * Corrections are the pane's work. They are a draft in pane state (kept through folds, tabs and reloads) until the
  * person saves them, and while there are some the pane reports unsaved work, so closing it, a preset without it, or
- * the library moving on asks first (or, for a following pane, keeps it on its session and says why).
+ * the library moving on asks first (or, for a following pane, keeps it on its session and says why, while the
+ * library's other followers move on; once saved or discarded it catches up).
  *
  * Keys, while the transcript has focus: J/K or the arrows move, Enter plays from the segment, ⌥Enter opens its detail,
  * E edits it, L loops it, ⇧Space peeks it, ⌘S saves. Space is the transport's.
@@ -117,24 +118,6 @@ function TranscriptBody({
       `${count} unsaved ${count === 1 ? "correction" : "corrections"} in “${session.title}”`,
   );
 
-  // Jali holds a whole follow step when one follower has unsaved work, so unsaved corrections here would stop the
-  // timeline, the mixer and the markers following the library too (FINDINGS.md). While there are some, the
-  // transcript keeps itself on its session instead (Keep, in its header), and lets go once they are saved or
-  // discarded, catching up with the library at once. A Keep the person pressed is theirs: it is left alone.
-  const keptForWork = useRef(false);
-  const hasWork = count > 0;
-  useEffect(() => {
-    const me = jali.model().pane(node.id);
-    if (!me) return; // the peek sheet: not in the layout
-    if (hasWork && me.follows && !me.kept) {
-      keptForWork.current = true;
-      jali.actions.setKept(node.id, true);
-    } else if (!hasWork && keptForWork.current) {
-      keptForWork.current = false;
-      if (me.kept) jali.actions.setKept(node.id, false);
-    }
-  }, [hasWork, jali, node.id]);
-
   // Tell Jali which segment is selected: the detail that follows the transcript shows it.
   const moveTo = (id: string) => {
     setCursor(id);
@@ -158,24 +141,6 @@ function TranscriptBody({
 
   const cursorRef = useRef(cursor);
   cursorRef.current = current.id;
-  // A new layout may bring a follower showing another segment (Compare starts on segments 4 and 6): the cursor takes
-  // the layout's word for it, so the list and its detail agree.
-  const presetId = useJaliState((s) => s.presetId);
-  const firstPreset = useRef(presetId);
-  useEffect(() => {
-    if (presetId === firstPreset.current) return;
-    firstPreset.current = presetId;
-    const follower = jali.model().panes.find((p) => p.linkedTo === node.id && p.follows);
-    const shown = follower?.ref.params.segment;
-    if (
-      follower?.ref.params.session === session.id &&
-      typeof shown === "string" &&
-      shown !== current.id
-    )
-      moveTo(shown);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [presetId]);
-
   // Following playback: while the transport plays this session, the cursor (and so the detail) moves with the
   // segment being spoken. This runs while the pane is hidden too: it is a few checks a second, not drawing.
   useEffect(() => {
@@ -207,8 +172,9 @@ function TranscriptBody({
   }, [speaking, paused, follow, editing]);
 
   // When the pane comes on screen or a layout opens, the cursor's row is in view. A layout can move the cursor a
-  // moment after it opens (the effect above adopts its follower's segment), so the row is shown for the cursor's
+  // moment after it opens (Jali settles the list's selection on what the layout's follower shows), so the row is shown for the cursor's
   // moves during that moment too; after it, only the keys and the playhead move the list.
+  const presetId = useJaliState((s) => s.presetId);
   const showUntil = useRef(0);
   useLayoutEffect(() => {
     if (!paused) showUntil.current = performance.now() + 500;

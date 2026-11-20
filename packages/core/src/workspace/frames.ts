@@ -3,6 +3,7 @@ import type { NodeId, PaneNode, Rect, ViewState } from "../layout/types";
 import type { JaliModel } from "../state/model";
 import type { Presentation } from "../pane/chrome";
 import type { Hinge } from "./stack";
+import { GAP } from "../tokens";
 
 /**
  * Why a pane is a tab. Made by the person: a tab they merged or opened (neither flag), or one they tucked (`tucked`).
@@ -25,6 +26,13 @@ export interface Frame {
   covered: boolean;
   /** The tab strip of the group this pane shows for, when it is in one and on screen. */
   group?: { id: NodeId; tabs: Tab[]; active: NodeId };
+  /**
+   * In a row that scrolls: the row's id. The frame is drawn inside the row's scrolling element, which the browser
+   * scrolls, so its `rect` is its place along the row's content (unscrolled), in workspace coordinates.
+   */
+  strip?: NodeId;
+  /** In a row that scrolls, and scrolled out of its window: mounted and in the focus order, but paused. */
+  outOfView?: boolean;
 }
 
 /** The pane single view shows: the focused one, else the first. */
@@ -55,8 +63,9 @@ function acrossFold(
   ];
 }
 
-/** Room between the two panes of stacked view: the divider's line sits in it. */
-export const STACK_GAP = 6;
+/** Room between the two panes of stacked view by default: the divider's line sits in it. A workspace's own is its
+ *  gap (`createJali({ gap })`). */
+export const STACK_GAP = GAP;
 
 export function frames(
   m: JaliModel,
@@ -74,14 +83,15 @@ export function frames(
     const rects = hinge
       ? acrossFold(hinge, size, origin)
       : (() => {
-          const topH = Math.round((size.height - STACK_GAP) * ratio);
+          const { gap } = m.env.spacing;
+          const topH = Math.round((size.height - gap) * ratio);
           return [
             { x: 0, y: 0, width: size.width, height: topH },
             {
               x: 0,
-              y: topH + STACK_GAP,
+              y: topH + gap,
               width: size.width,
-              height: size.height - topH - STACK_GAP,
+              height: size.height - topH - gap,
             },
           ] as const;
         })();
@@ -107,6 +117,10 @@ export function frames(
       covered: false,
     }));
   }
+  const stripOf = new Map(
+    m.content.scrollers.flatMap((s) => s.paneIds.map((id) => [id, s.id] as const)),
+  );
+  const along = new Map(m.content.panes.map((b) => [b.id, b.rect]));
   return m.resolved.panes.flatMap((box): Frame[] => {
     const node = m.pane(box.id);
     if (!node) return [];
@@ -115,7 +129,14 @@ export function frames(
     return [
       {
         node,
-        rect: zoomed ? { x: 0, y: 0, ...size } : box.rect,
+        rect: zoomed
+          ? { x: 0, y: 0, ...size }
+          : stripOf.has(box.id)
+            ? along.get(box.id)!
+            : box.rect,
+        ...(stripOf.has(box.id)
+          ? { strip: stripOf.get(box.id)!, outOfView: m.outOfView.has(box.id) }
+          : {}),
         hidden: !!box.hidden,
         focused: view.focused === box.id,
         zoomed,
@@ -168,5 +189,7 @@ export const sameFrame = (a: Frame, b: Frame) =>
   a.focused === b.focused &&
   a.zoomed === b.zoomed &&
   a.covered === b.covered &&
+  a.outOfView === b.outOfView &&
+  a.strip === b.strip &&
   sameNode(a.node, b.node) &&
   sameGroup(a.group, b.group);

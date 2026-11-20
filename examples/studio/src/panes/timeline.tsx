@@ -65,8 +65,7 @@ function TimelineBody({ paused, view }: PaneProps<typeof timelineParams> & { vie
     [selection, session.id],
   );
 
-  // "idle", not undefined: undefined leaves "loading" standing once the tracks have decoded (FINDINGS.md).
-  useActivity(loading ? "loading" : "idle");
+  useActivity(loading ? "loading" : undefined);
 
   const lanes = useMemo(() => {
     const weights = session.tracks.map((t) => laneWeight(hasTranscript(session, t.id)));

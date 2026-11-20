@@ -82,6 +82,10 @@ The address.
 
 - **`dir`** (`Direction`): The reading direction. By default the workspace reads its page's: the computed `direction` where it renders, so `<html dir="rtl">` is enough, and it follows a later change of `dir`. Give one to fix it; `<JaliRoot>` then sets `dir` on its elements, so the styles agree. Right to left, a row starts at the right, and every left and right a key, command, drop zone or message names is still the screen's. The layout and its links are the same in both. See [`Direction`](core/types.md#Direction).
 
+- **`gap`** (`number`): The space between panes, in CSS pixels. The layout measures with it (splits, rows that scroll, the stacked view), and `<JaliRoot>` writes it on its root and its layer as `--jali-gap`, so a style that reads the variable agrees with where the panes are.
+
+- **`inset`** (`number`): The space between the workspace's edges and its panes, in CSS pixels, written as `--jali-inset`. Set it apart from the gap to line the panes up with your own bars.
+
 - **`size`** (`{ width: number; height: number }`): A fixed size instead of the window's, for tests and server rendering. `<JaliRoot>` measures the real one once it renders.
 
 - **`moveFocus`** (`boolean`): `false` leaves DOM focus alone: for tests and a workspace that is never shown.
@@ -118,7 +122,7 @@ jali.actions.openBeside(pane: PaneTarget, ref: ObjectRef): ActionResult
 
 What an app asks the workspace to do. Each action reads the current state, makes its change once (layout, focus, address, announcement, toast) and returns what happened: `{ ok: true, pane }`, or `{ ok: false, reason }` with the reason it did not.
 
-The pane comes first, by its id or by the object it shows: `close("order")` and `close(orderKind({ id: 7 }))` both work. An action that would remove or replace a pane with unsaved work is held instead (`reason: "unsaved"`), and "Discard unsaved changes?" opens. A following detail with unsaved work keeps its object and says so. Every action is listed under [`JaliActions`](core/types.md#JaliActions).
+The pane comes first, by its id or by the object it shows: `close("order")` and `close(orderKind({ id: 7 }))` both work. An action that would remove or replace a pane with unsaved work is held instead (`reason: "unsaved"`), and "Discard unsaved changes?" opens. A following detail with unsaved work keeps its object and says so, while the list's other followers move on. Every action is listed under [`JaliActions`](core/types.md#JaliActions).
 
 ## Pane params
 
@@ -163,7 +167,7 @@ A param that is one of a few values: `oneOf("open", "closed")` gives `"open" | "
 *function*, from `@jali/core`
 
 ```ts
-row(options?: SizeOptions, ...children: (Draft | ObjectRef)[]): Draft
+row(options?: RowOptions, ...children: (Draft | ObjectRef)[]): Draft
 ```
 
 Children side by side. A child is a ref (a pane showing it), a `pane(ref, options)`, or another `row`, `column` or `tabs`. Options come first when there are any: `row({ weight: 2 }, a, b)`.
@@ -172,7 +176,7 @@ Nodes without an `id` are named after what they hold: `"row"`, `"column"`, `"tab
 
 **Parameters**
 
-- **`options`** (`SizeOptions`): `id`; `weight` (its share of the parent, default 1) or `px` (a fixed length).
+- **`options`** (`RowOptions`): `id`; `weight` (its share of the parent, default 1) or `px` (a fixed length); `scroll: "x"` for a row that scrolls sideways, its children at their own widths, instead of sharing its width and folding what doesn't fit.
 
 - **`children`** (`(Draft | ObjectRef)[]`, required):
 
@@ -382,6 +386,33 @@ Runs a command by id if its check passes. A refusal is not announced here (the k
 
 **Returns** `boolean`: Whether it ran: `false` for an unknown id or a refused check.
 
+### edgeScroll
+
+*function*, from `@jali/core`
+
+```ts
+edgeScroll(jali: Jali, onScroll?: () => void): EdgeScroll
+```
+
+Scrolls a row that scrolls sideways while a drag is held within 56px of its left or right edge, faster the closer it is, so a drag can reach a pane out of view. For an app's own drag: Jali's pane drag (by a header) doesn't use it yet. Call `move` on every pointer move and `stop` when the drag ends. `onScroll` runs after each step, so the drag can find what is under the pointer again as the panes slide past.
+
+**Parameters**
+
+- **`jali`** (`Jali`, required):
+- **`onScroll`** (`() => void`): After each step of scrolling.
+
+**Returns** `EdgeScroll`:
+
+### EdgeScroll
+
+*type*, from `@jali/core`
+
+```ts
+interface EdgeScroll { move(clientX: number, clientY: number): void; stop(): void }
+```
+
+What `edgeScroll` returns: tell it where the pointer is, and when the drag ends.
+
 ### copyLink
 
 *function*, from `@jali/core`
@@ -503,7 +534,7 @@ Lets a list inside a pane keep its current item through the workspace, so the pa
 const GAP: number
 ```
 
-The gap between panes and the workspace's inset, in pixels (6). For measuring a workspace from outside: its usable area is its element's size minus `GAP * 2`.
+The default gap between panes and inset from the workspace's edges, in pixels (6); a workspace's own are `createJali({ gap, inset })`. For measuring a workspace from outside: its usable area is its element's size minus twice its inset (`GAP * 2` by default).
 
 ## The layout namespace
 

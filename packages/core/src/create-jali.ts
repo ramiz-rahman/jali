@@ -106,6 +106,14 @@ export interface JaliOptions<D extends PaneKindBase = PaneKindBase> {
    * page has no `<main>` of its own (a page should have one).
    */
   landmark?: "region" | "main";
+  /**
+   * The gap between panes, in CSS pixels. Default 6 (`GAP`). The layout measures with it, and `<JaliRoot>` writes it
+   * on its root as `--jali-gap`, so styles that read the variable agree with where the panes are.
+   */
+  gap?: number;
+  /** The space between the workspace's edges and its panes, in CSS pixels. Default: the gap. Written as
+   *  `--jali-inset`. */
+  inset?: number;
   /** A fixed size instead of the window's (tests, server rendering). */
   size?: { width: number; height: number };
   /** `false` leaves DOM focus alone (tests, a workspace that is never shown). Default true. */
@@ -235,6 +243,8 @@ export function createJali<D extends PaneKindBase>(options: JaliOptions<D>): Jal
     ...(options.phone ? { phone: options.phone } : {}),
     ...(options.allow ? { allow: options.allow } : {}),
     ...(options.buttons ? { buttons: options.buttons } : {}),
+    ...(options.gap !== undefined ? { gap: options.gap } : {}),
+    ...(options.inset !== undefined ? { inset: options.inset } : {}),
     initial: {
       ...(layout ? { layout: toLayout(layout) } : {}),
       ...(size ? { area: size } : {}),

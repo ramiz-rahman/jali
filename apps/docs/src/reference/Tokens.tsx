@@ -7,6 +7,7 @@ import {
   BRIDGE,
   PUBLIC_TOKENS,
   TOKEN_PURPOSE,
+  inPlaceDefault,
   partsReading,
   valuesOf,
   type SwatchKind,
@@ -25,7 +26,9 @@ function Swatch({
   theme: "light" | "dark";
   value: string;
 }) {
-  const v = `var(${token})`;
+  // A token read in place isn't declared on the root, so the swatch gives it its default the same way.
+  const fallback = inPlaceDefault(token);
+  const v = fallback ? `var(${token}, ${fallback})` : `var(${token})`;
   const inner = (() => {
     switch (kind) {
       case "color":
@@ -43,6 +46,20 @@ function Swatch({
       case "radius":
         return (
           <span className="ref-swatch-radius" style={{ borderTopLeftRadius: v } as CSSProperties} />
+        );
+      case "size":
+        return <span className="ref-swatch-size" style={{ width: v, height: v }} />;
+      case "type":
+        return (
+          <span className="ref-swatch-font" style={{ fontSize: v }}>
+            Ag 12
+          </span>
+        );
+      case "tracking":
+        return (
+          <span className="ref-swatch-font" style={{ letterSpacing: v, fontSize: "0.875rem" }}>
+            Tracking
+          </span>
         );
       case "font":
         return (

@@ -96,7 +96,8 @@ describe("the studio workspace", () => {
     expect(shown(jali, "mixer")?.session).toBe(APOLLO);
     vi.advanceTimersByTime(200);
     // The timeline, the mixer and the markers all show the selected session (their kinds' `follow`).
-    for (const id of ["timeline", "mixer", "markers"]) expect(shown(jali, id)?.session).toBe(DINNER);
+    for (const id of ["timeline", "mixer", "markers"])
+      expect(shown(jali, id)?.session).toBe(DINNER);
   });
 
   it("follows a segment: the transcript selects it, and the detail shows it", () => {
@@ -137,6 +138,17 @@ describe("the studio workspace", () => {
     expect(shown(jali, "clip-a")?.segment).toBe("s39");
   });
 
+  it("switching from Edit to Compare, the transcript's cursor takes Compare's segment (the layout's word wins)", () => {
+    vi.useFakeTimers();
+    const { jali } = testJali();
+    jali.actions.select("transcript", clip({ session: APOLLO, segment: "s05" }));
+    vi.advanceTimersByTime(200);
+    jali.actions.preset("compare");
+    expect(shown(jali, "clip-a")).toEqual({ session: APOLLO, segment: "s39" });
+    expect(shown(jali, "clip")).toEqual({ session: APOLLO, segment: "s47" });
+    expect(jali.get().selection.transcript?.ref).toEqual(clip({ session: APOLLO, segment: "s47" }));
+  });
+
   it("keeps the layout in the address: a link opens the same arrangement and session", () => {
     vi.useFakeTimers();
     const { jali, location } = testJali();
@@ -173,30 +185,21 @@ describe("the studio workspace", () => {
     expect(jali.get().unsaved.transcript).toBeTruthy();
   });
 
-  it("holds every follower of the library while one of them has unsaved work (Jali's rule, FINDINGS.md)", () => {
+  it("holds only the transcript while it has unsaved corrections: the other followers move on", () => {
     vi.useFakeTimers();
     const { jali } = testJali();
+    // What the transcript's `useUnsaved` reports while its draft has corrections (panes/transcript.tsx).
     storeOf(jali).actions.setUnsaved("transcript", "1 unsaved correction");
-    jali.actions.select("library", transcript({ session: DINNER }));
-    vi.advanceTimersByTime(200);
-    expect(shown(jali, "transcript")?.session).toBe(APOLLO);
-    // The timeline has nothing unsaved, and still stays.
-    expect(shown(jali, "timeline")?.session).toBe(APOLLO);
-  });
-
-  it("so a transcript with unsaved corrections keeps itself, and the other followers move on", () => {
-    vi.useFakeTimers();
-    const { jali } = testJali();
-    // What the transcript does when its draft has corrections (panes/transcript.tsx).
-    storeOf(jali).actions.setUnsaved("transcript", "1 unsaved correction");
-    jali.actions.setKept("transcript", true);
     jali.actions.select("library", transcript({ session: DINNER }));
     vi.advanceTimersByTime(200);
     expect(shown(jali, "transcript")?.session).toBe(APOLLO);
     expect(shown(jali, "timeline")?.session).toBe(DINNER);
-    // Saved: it lets go, and catches up with the library at once.
+    // It still follows, nothing is kept for it, and the workspace says why it stayed.
+    expect(jali.model().pane("transcript")).toMatchObject({ follows: true });
+    expect(jali.model().pane("transcript")?.kept).toBeFalsy();
+    expect(storeOf(jali).get().announcement.text).toMatch(/stays put/);
+    // Saved (or discarded): it catches up with the library at once.
     storeOf(jali).actions.setUnsaved("transcript", null);
-    jali.actions.setKept("transcript", false);
     expect(shown(jali, "transcript")?.session).toBe(DINNER);
   });
 

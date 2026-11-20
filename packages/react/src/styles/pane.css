@@ -6,19 +6,22 @@
     flex-direction: column;
     overflow: hidden;
     background: var(--jali-surface);
-    border: 1px solid var(--jali-border);
+    /* The pane's surface tokens are read here with their defaults, not declared on the root: a value set anywhere
+       wins, and the colours they default to resolve on the pane (an accent set around one workspace reaches it). */
+    border: 1px solid var(--jali-pane-border, var(--jali-border));
     border-radius: var(--jali-radius);
+    box-shadow: var(--jali-pane-shadow, none);
     outline: none;
   }
   .jali-pane.is-focused {
-    box-shadow: 0 0 0 0.5px var(--jali-accent);
-    border-color: var(--jali-accent);
+    box-shadow: var(--jali-pane-shadow-focused, 0 0 0 0.5px var(--jali-accent));
+    border-color: var(--jali-pane-border-focused, var(--jali-accent));
   }
+  /* Maximised: the focused surface, lifted. */
   .jali-pane.is-zoomed {
     z-index: 20;
     box-shadow:
-      0 0 0 0.5px var(--jali-accent),
-      var(--jali-shadow-zoom);
+      var(--jali-pane-shadow-focused, 0 0 0 0.5px var(--jali-accent)), var(--jali-shadow-zoom);
   }
   .jali-pane.is-dragged {
     opacity: 0.55;
@@ -26,8 +29,8 @@
   /* During a drag the only accent ring is the drop's: the pane in hand is dimmed, and the focused pane (often the
    target of a page tab) drops its focus ring until the drag ends. */
   body.jali-pane-dragging .jali-pane.is-focused {
-    border-color: var(--jali-border);
-    box-shadow: none;
+    border-color: var(--jali-pane-border, var(--jali-border));
+    box-shadow: var(--jali-pane-shadow, none);
   }
   /* A pane under a maximised or lifted one. Keyed on Jali's own mark, not aria-hidden: a modal popup from any
    library (Radix, React Aria, Headless UI) sets aria-hidden on everything outside it, and the panes must stay. */
@@ -87,7 +90,7 @@
   }
   .jali-pane-title h2 {
     margin: 0;
-    font-size: 0.8125rem;
+    font-size: var(--jali-text-md);
     font-weight: 500;
     color: var(--jali-text);
     white-space: nowrap;
@@ -95,10 +98,10 @@
     text-overflow: ellipsis;
   }
   .jali-badge {
-    font-size: 0.6875rem;
+    font-size: var(--jali-text-xs);
     color: var(--jali-text-subtle);
     border: 1px solid var(--jali-border);
-    border-radius: 4px;
+    border-radius: var(--jali-radius-chip);
     padding: 0 0.25rem;
   }
 
@@ -423,7 +426,7 @@
     height: 1.5rem;
     padding: 0;
     border: 0;
-    border-radius: 4px;
+    border-radius: var(--jali-radius-chip);
     background: none;
     color: var(--jali-text-faint);
     cursor: pointer;
@@ -486,7 +489,7 @@
     color: var(--jali-text);
     background: var(--jali-surface);
     border: 1px solid var(--jali-border-strong);
-    border-radius: 4px;
+    border-radius: var(--jali-radius-chip);
     outline: none;
   }
   .jali-rename:focus-visible {
@@ -619,7 +622,7 @@
     background: none;
     color: var(--jali-text-muted);
     font: inherit;
-    font-size: 0.6875rem;
+    font-size: var(--jali-text-xs);
     font-variant-numeric: tabular-nums;
     line-height: 1;
     cursor: pointer;
@@ -643,7 +646,7 @@
     background: none;
     color: var(--jali-text-muted);
     font: inherit;
-    font-size: 0.6875rem;
+    font-size: var(--jali-text-xs);
     font-variant-numeric: tabular-nums;
     line-height: 1;
     white-space: nowrap;
@@ -687,7 +690,7 @@
     border: 1px solid var(--jali-border-strong);
     border-radius: var(--jali-radius-menu);
     box-shadow: var(--jali-shadow-menu);
-    font-size: 0.75rem;
+    font-size: var(--jali-text-sm);
   }
   .jali-tab-menu-item {
     all: unset;
@@ -699,7 +702,8 @@
     height: 1.875rem;
     padding-block: 0;
     padding-inline: 0.25rem 0.5rem;
-    border-radius: 5px;
+    border-radius: calc(var(--jali-radius-chip) * 1.25);
+    border-radius: round(down, var(--jali-radius-chip) * 1.25, 1px);
     cursor: pointer;
     color: var(--jali-text);
   }
@@ -735,7 +739,7 @@
     gap: 0.1875rem;
     flex: none;
     color: var(--jali-text-muted);
-    font-size: 0.6875rem;
+    font-size: var(--jali-text-xs);
   }
   /* A tab's own menu: groups between hairlines, key hints at the end, disabled items reachable but quiet. */
   .jali-tab-actions-menu {
@@ -778,7 +782,7 @@
 
   /* ---------- curated workspaces: role panes name their role; opened panes carry the investigation's tint ---------- */
   .jali-pane-sub {
-    font-size: 0.75rem;
+    font-size: var(--jali-text-sm);
     color: var(--jali-text-subtle);
     white-space: nowrap;
     overflow: hidden;
@@ -797,7 +801,7 @@
     border-color: var(--jali-opened-line);
   }
   .jali-pane[data-boundary="tint"].is-focused {
-    border-color: var(--jali-accent);
+    border-color: var(--jali-pane-border-focused, var(--jali-accent));
   }
   .jali-badge-opened {
     color: var(--jali-opened-ink);
@@ -816,7 +820,7 @@
     gap: 0.5rem;
     background: var(--jali-surface);
     color: var(--jali-text-subtle);
-    font-size: 0.8125rem;
+    font-size: var(--jali-text-md);
   }
   /* The floating window's own page: the pane's content fills it. */
   .jali-popout {
@@ -827,6 +831,7 @@
     background: var(--jali-surface);
     color: var(--jali-text);
     font-family: var(--jali-font);
+    letter-spacing: var(--jali-tracking);
   }
   .jali-popout > .jali-pane-content-inner {
     flex: 1;

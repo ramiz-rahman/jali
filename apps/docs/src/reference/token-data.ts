@@ -13,17 +13,28 @@ import chrome from "../../../../packages/react/src/styles/chrome.css?raw";
 import page from "../../../../packages/react/src/styles/page.css?raw";
 import dialogs from "../../../../packages/react/src/styles/dialogs.css?raw";
 import follow from "../../../../packages/react/src/styles/follow.css?raw";
+import icons from "../../../../packages/react/src/styles/icons.css?raw";
 
 export type TokenGroup =
   | "Surfaces"
   | "Text"
   | "Accent"
   | "Status"
+  | "Panes"
   | "Opened panes"
   | "Overlays and shadows"
   | "Shape and type"
   | "Derived";
-export type SwatchKind = "color" | "text" | "shadow" | "scrim" | "radius" | "font";
+export type SwatchKind =
+  | "color"
+  | "text"
+  | "shadow"
+  | "scrim"
+  | "radius"
+  | "font"
+  | "size"
+  | "type"
+  | "tracking";
 
 export interface TokenInfo {
   group: TokenGroup;
@@ -147,6 +158,30 @@ export const TOKEN_PURPOSE: Record<string, TokenInfo> = {
     purpose: 'The "!" and cross drawn on the shelf\'s status marks.',
   },
 
+  "--jali-pane-border": {
+    group: "Panes",
+    swatch: "color",
+    purpose:
+      "The colour of a pane's 1px edge. Read in place, defaulting to `--jali-border`. An opened pane with the tint boundary uses `--jali-opened-line` instead.",
+  },
+  "--jali-pane-border-focused": {
+    group: "Panes",
+    swatch: "color",
+    purpose: "The focused pane's edge. Read in place, defaulting to `--jali-accent`.",
+  },
+  "--jali-pane-shadow": {
+    group: "Panes",
+    swatch: "shadow",
+    purpose:
+      "A pane's shadow at rest, and the focused pane's while a pane is dragged. Read in place, defaulting to `none`. A lone pane and Single view draw no shadow or edge.",
+  },
+  "--jali-pane-shadow-focused": {
+    group: "Panes",
+    swatch: "shadow",
+    purpose:
+      "The focused pane's shadow, which is also its focus ring: a 0.5px accent ring by default. A maximised pane draws it under `--jali-shadow-zoom`, so give it a list of shadows (`0 0 #0000` for none), not `none`.",
+  },
+
   "--jali-opened-bg": {
     group: "Opened panes",
     swatch: "color",
@@ -225,17 +260,82 @@ export const TOKEN_PURPOSE: Record<string, TokenInfo> = {
   "--jali-radius": {
     group: "Shape and type",
     swatch: "radius",
-    purpose: "Corners of panes, the peek sheet, the drop indicator and the tab-preview outline.",
+    purpose:
+      "Corners of panes, the peek sheet, the drop indicator and the tab-preview outline. Dialogs (the palette, the chooser, Settings and the discard question) are 1.2 × this, rounded down to a whole pixel.",
   },
   "--jali-radius-control": {
     group: "Shape and type",
     swatch: "radius",
-    purpose: "Corners of buttons, inputs, palette rows and the drag chip.",
+    purpose: "Corners of buttons, inputs, palette rows, the drag chip and the tab preview's label.",
   },
   "--jali-radius-menu": {
     group: "Shape and type",
     swatch: "radius",
     purpose: "Corners of menus and the drop label.",
+  },
+  "--jali-radius-chip": {
+    group: "Shape and type",
+    swatch: "radius",
+    purpose:
+      "Corners of small things inside a header, tab or chip: the Following / Kept toggle, a tab's close button, the rename field, the Kept badge and the peek's label. Shelf chips and their buttons, the shelf's \"more\" and its items, and tab menu items are 1.25 × this; investigation chips 1.75 ×, each rounded down to a whole pixel.",
+  },
+  "--jali-icon-header": {
+    group: "Shape and type",
+    swatch: "size",
+    purpose:
+      "Icons in a pane's header: its buttons, its grip and the peek's buttons. A pane's title icon is this + 2px, the Following / Kept toggle's icon this − 2px.",
+  },
+  "--jali-icon-tab": {
+    group: "Shape and type",
+    swatch: "size",
+    purpose:
+      "Icons in a tab: its kind's icon, close, put back, New tab, and the pane switcher's icons. A folded tab's mark is this − 1px; a pinned tab's pin and the \"+N\" and \"N folded\" chips' icons this − 2px.",
+  },
+  "--jali-icon-menu": {
+    group: "Shape and type",
+    swatch: "size",
+    purpose:
+      "A pane's icon in a tab menu, the \"+N\" menu and the shelf's menu. The check mark is this − 1px, a folded or tucked mark this − 2px.",
+  },
+  "--jali-icon-shelf": {
+    group: "Shape and type",
+    swatch: "size",
+    purpose: "Icons in a shelf chip: the pane's icon, the fold mark and Put back.",
+  },
+  "--jali-dialog-padding": {
+    group: "Shape and type",
+    swatch: "size",
+    purpose:
+      "The space between a dialog's edge and its content: all round in Settings (but its top, beside the title) and the discard question; at the sides of the palette's and the chooser's field and heading. Their lists keep their rows' own inset.",
+  },
+  "--jali-text-xs": {
+    group: "Shape and type",
+    swatch: "type",
+    purpose:
+      'The smallest type: key hints, the Following / Kept toggle, badges, the "+N" and "N folded" chips, menu marks, the peek\'s label and Settings\' legends.',
+  },
+  "--jali-text-sm": {
+    group: "Shape and type",
+    swatch: "type",
+    purpose:
+      "Small type: the shelf, tab menus, palette groups, the chooser's heading, notes in a pane, the drag chip and a divider's size tip. The investigation chips on a curated page are this + 0.0312rem (12.5px).",
+  },
+  "--jali-text-md": {
+    group: "Shape and type",
+    swatch: "type",
+    purpose: "A pane's title, the phone's pane switcher and a popped-out pane's note.",
+  },
+  "--jali-text-lg": {
+    group: "Shape and type",
+    swatch: "type",
+    purpose:
+      "The palette's field, the titles of Settings and the discard question, and the drop label.",
+  },
+  "--jali-tracking": {
+    group: "Shape and type",
+    swatch: "tracking",
+    purpose:
+      "Letter spacing for the workspace and its dialogs (a length, such as `0.01em`). Read in place with no default: until you set it, they inherit yours. Settings' small capitals keep their own 0.04em.",
   },
   "--jali-font": {
     group: "Shape and type",
@@ -316,8 +416,8 @@ function side(value: string, which: 0 | 1): string {
 const ROOT = block(theme, ":where(:root)");
 const DERIVED = block(theme, ":where(:root, [data-jali], .jali-scrim)");
 
-/** Every public token a theme file declares (the --jali-default-* palette is internal). */
-export function publicTokensOf(css: string): string[] {
+/** Every token a theme file declares on the root (the --jali-default-* palette is internal). */
+function declaredTokensOf(css: string): string[] {
   const all = [":where(:root)", ":where(:root, [data-jali], .jali-scrim)"].flatMap((sel) =>
     Object.keys(block(css, sel)),
   );
@@ -325,16 +425,71 @@ export function publicTokensOf(css: string): string[] {
     (t) => t.startsWith("--jali-") && !t.startsWith("--jali-default-"),
   );
 }
-export const PUBLIC_TOKENS: string[] = publicTokensOf(theme);
 
-/** A token's value in light and in dark: the default palette entry for palette tokens, the declaration otherwise. */
+/**
+ * The tokens read in place: not declared on the root, but read by the parts with their default where they are used
+ * (`var(--jali-pane-border, var(--jali-border))`), so a default that names another token resolves on the part. The
+ * theme lists them in a comment that starts "Read in place", one `--jali-name: default;` a line, the default `(none)`
+ * when there is none (the property then inherits). The coverage test checks the parts read each with exactly this default.
+ */
+export function inPlaceTokensOf(css: string): Record<string, string> {
+  const list = /Read in place[\s\S]*?\*\//.exec(css)?.[0] ?? "";
+  const out: Record<string, string> = {};
+  for (const m of list.matchAll(/^\s*\*?\s*(--jali-[a-z0-9-]+):\s*([^;]+);/gm))
+    out[m[1]!] = m[2]!.trim().replace(/\s+/g, " ");
+  return out;
+}
+
+/**
+ * Every `var(--jali-…)` in some CSS, each with its fallback: the text after the comma, or `(none)` when it has none.
+ */
+export function readsOf(css: string): { token: string; fallback: string }[] {
+  const text = bare(css);
+  const out: { token: string; fallback: string }[] = [];
+  for (const m of text.matchAll(/var\((--jali-[a-z0-9-]+)\s*([,)])/g)) {
+    if (m[2] === ")") {
+      out.push({ token: m[1]!, fallback: "(none)" });
+      continue;
+    }
+    let depth = 1,
+      i = m.index! + m[0].length;
+    const start = i;
+    for (; i < text.length; i++) {
+      if (text[i] === "(") depth++;
+      else if (text[i] === ")" && --depth === 0) break;
+    }
+    out.push({ token: m[1]!, fallback: text.slice(start, i).trim().replace(/\s+/g, " ") });
+  }
+  return out;
+}
+
+/** Every public token a theme file names: declared on the root, or read in place. */
+export function publicTokensOf(css: string): string[] {
+  return [...new Set([...declaredTokensOf(css), ...Object.keys(inPlaceTokensOf(css))])];
+}
+export const PUBLIC_TOKENS: string[] = publicTokensOf(theme);
+const IN_PLACE = inPlaceTokensOf(theme);
+
+/** A token read in place: its default there, for `var(token, default)` in a swatch; undefined for a declared one. */
+export const inPlaceDefault = (token: string): string | undefined =>
+  IN_PLACE[token] && IN_PLACE[token] !== "(none)" ? IN_PLACE[token] : undefined;
+
+/**
+ * A token's value in light and in dark: the default palette entry for palette tokens, the declaration otherwise, and
+ * for a token read in place, its default there ("inherited" when it has none).
+ */
 export function valuesOf(token: string): { light: string; dark: string } {
+  const inPlace = IN_PLACE[token] === "(none)" ? "inherited" : IN_PLACE[token];
   const value =
-    ROOT[`--jali-default-${token.slice("--jali-".length)}`] ?? ROOT[token] ?? DERIVED[token] ?? "";
+    ROOT[`--jali-default-${token.slice("--jali-".length)}`] ??
+    ROOT[token] ??
+    DERIVED[token] ??
+    inPlace ??
+    "";
   return { light: side(value, 0), dark: side(value, 1) };
 }
 
-const PARTS_CSS = { workspace, pane, dividers, shelf, chrome, page, dialogs, follow };
+const PARTS_CSS = { workspace, pane, dividers, shelf, chrome, page, dialogs, follow, icons };
 
 /** The jali-* classes whose rules read `token` (from the package's styles), deduplicated, in file order. */
 export function partsReading(token: string): string[] {

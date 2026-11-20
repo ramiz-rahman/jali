@@ -118,7 +118,19 @@ export function tabMenuOf(store: UiStore, id: NodeId): TabMenuItem[][] {
           },
         ]
       : [];
+  // A pane in a row that scrolls sideways can leave it from here, whichever pane of the row it is.
+  const inStrip = m.resolved.scrollers.some((r) => r.paneIds.includes(id));
   const arrange: TabMenuItem[] = [
+    ...(inStrip && may("move")
+      ? [
+          {
+            id: "move-out-of-row",
+            title: t.moveOutOfRow,
+            keys: keys("pane.move.out"),
+            run: () => void a.moveOutOfRow(id),
+          },
+        ]
+      : []),
     ...(env.launcher && !s.page
       ? [
           {

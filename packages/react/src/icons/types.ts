@@ -1,9 +1,10 @@
 import type { ComponentType } from "react";
 
-/** What Jali passes an icon: a pixel size, sometimes a class, and `aria-hidden` (a label always sits beside it). */
+/** What Jali passes an icon: a pixel size, a class, and `aria-hidden` (a label always sits beside it). */
 export interface JaliIconProps {
-  /** Jali passes a number of pixels. A string is allowed so icon sets that take one (such as Phosphor) fit in React 18's types. */
+  /** Jali passes a number of pixels: the default for the icon's place. A string is allowed so icon sets that take one (such as Phosphor) fit in React 18's types. */
   size?: number | string;
+  /** The class that sizes the icon from its place's token (`--jali-icon-header`…). Put it on the icon's element. */
   className?: string;
   "aria-hidden"?: boolean | "true" | "false";
 }

@@ -133,6 +133,50 @@ describe("one selection, followers of every kind", () => {
     expect(jali.model().pane("chart")).toMatchObject({ follows: true });
   });
 
+  it("holds only a follower with unsaved work: the others move in the same change, and it says why", () => {
+    const jali = make();
+    const layouts: unknown[] = [];
+    jali.on("layout", (e) => layouts.push(e.layout));
+    storeOf(jali).actions.setUnsaved("chart", "an unsaved drawing");
+    jali.actions.select("watch", quote({ symbol: "ORBD" }));
+    vi.advanceTimersByTime(FOLLOW_MS);
+    expect(shown(jali, "chart")).toEqual(chart({ symbol: "LMNA" }));
+    expect(shown(jali, "quote")).toEqual(quote({ symbol: "ORBD" }));
+    expect(shown(jali, "news")).toEqual(news({ symbol: "ORBD" }));
+    expect(layouts).toHaveLength(1);
+    // Nothing asks: the held one stays, and the workspace says why.
+    expect(storeOf(jali).get().confirm).toBeNull();
+    expect(storeOf(jali).get().announcement.text).toBe(
+      "The detail stays put: it has an unsaved drawing",
+    );
+    expect(storeOf(jali).get().unsaved.chart).toBe("an unsaved drawing");
+    // Saved: it catches up with the list's selection at once.
+    storeOf(jali).actions.setUnsaved("chart", null);
+    expect(shown(jali, "chart")).toEqual(chart({ symbol: "ORBD" }));
+  });
+
+  it("holds every follower with unsaved work, and moves nothing when all of them have some", () => {
+    const jali = make(
+      row(
+        pane(watchlist(), { id: "watch" }),
+        pane(quote({ symbol: "LMNA" }), { id: "quote", ...follows }),
+        pane(chart({ symbol: "LMNA" }), { id: "chart", ...follows }),
+      ),
+    );
+    const store = storeOf(jali);
+    store.actions.setUnsaved("quote", "an unsaved order");
+    store.actions.setUnsaved("chart", "an unsaved drawing");
+    const before = jali.getLayout();
+    jali.actions.select("watch", quote({ symbol: "ORBD" }));
+    vi.advanceTimersByTime(FOLLOW_MS);
+    expect(jali.getLayout()).toEqual(before);
+    expect(store.get().announcement.text).toMatch(/^The detail stays put/);
+    // One saved: it alone catches up; the other is still held.
+    store.actions.setUnsaved("chart", null);
+    expect(shown(jali, "chart")).toEqual(chart({ symbol: "ORBD" }));
+    expect(shown(jali, "quote")).toEqual(quote({ symbol: "LMNA" }));
+  });
+
   it("opening a chart for the selected quote is opening the selection: it follows, or keeps to compare", () => {
     const jali = make(
       row(

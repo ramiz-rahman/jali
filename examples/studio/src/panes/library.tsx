@@ -72,21 +72,17 @@ function Library({ node, select, focused, paused, peek }: PaneProps) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // A layout brings its own followers, showing the session they were built or left with. The session being worked
-  // on is the one in the transport, so each follower that shows another is pointed at it. Selecting the same
-  // session again would not do it: Jali follows a selection only when it changes (FINDINGS.md, 4).
+  // A layout brings its own followers, showing the session they were built or left with, and Jali settles the
+  // library's selection on what they show (the layout's word wins). In Studio the session being worked on is the
+  // one in the transport, so after a layout opens the library selects that one again and its followers come to it.
   const presetId = useJaliState((s) => s.presetId);
   const firstPreset = useRef(presetId);
   useEffect(() => {
     if (presetId === firstPreset.current) return;
     firstPreset.current = presetId;
-    const session = typeof selected === "string" ? selected : cursor;
-    if (!session) return;
-    for (const p of jali.model().panes) {
-      if (p.linkedTo !== node.id || !p.follows) continue;
-      if (typeof p.ref.params.session === "string" && p.ref.params.session !== session)
-        jali.actions.openHere(p.id, { kind: p.ref.kind, params: { session } });
-    }
+    const session = engine.get().session;
+    setCursor(session);
+    select(transcript({ session }));
     // A layout's kept segment (Compare keeps one beside the one that follows) is a segment of the session the
     // layout was designed on. On another session it would be a dead pane, so it takes this session's first.
     const first = sessionById(session)?.segments[0];

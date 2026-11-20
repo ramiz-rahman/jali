@@ -15,7 +15,7 @@ import { focus } from "./focus";
 import { fitLayout } from "../fit/refit";
 import { resolve } from "../fit/resolve";
 import { forget } from "../fit/overlay";
-import { extentAlong } from "../geometry/extent";
+import { extentIn } from "../geometry/extent";
 function cleanLinks(layout: Layout): void {
   const ids = new Set(panes(layout.root).map((p) => p.id));
   for (const pane of panes(layout.root))
@@ -40,9 +40,9 @@ export function close(layout: Layout, view: ViewState, target: string, ctx: Layo
       const victimFixed = "px" in victim.size;
       const mixed = victimFixed !== "px" in recipient.size;
       if (mixed && fit) {
-        const boxes = resolve(layout, noFocus(), ctx).panes;
+        const boxes = resolve(layout, noFocus(), ctx);
         const extent = (n: LayoutNode) =>
-          extentAlong(
+          extentIn(
             boxes,
             panes(n).map((p) => p.id),
             container.type,

@@ -383,6 +383,62 @@ How far the shown boxes among `ids` reach along `axis`, gaps included. `0` when 
 
 </Entry>
 
+<Entry name="layout.moveOutOfStrip" kind="function" from="@jali/core" signature={`layout.moveOutOfStrip(layout, view, pane, side: "left" | "right", ctx): { layout; view }`} compact>
+
+Takes `pane` out of the row that scrolls holding it, from anywhere in the row, and puts it beside the row on `side`, a tree side (before or after it). A pane in a column in the row comes out alone; a row left with one child becomes that child. Unchanged for a pane in no such row.
+
+<Returns type="{ layout: Layout; view: ViewState }" />
+
+</Entry>
+
+<Entry name="layout.extentIn" kind="function" from="@jali/core" signature={`layout.extentIn(resolved: ResolvedLayout, ids: readonly string[], axis: Axis): number`} compact>
+
+As <Ref to="layout.extentAlong" />, but a row that scrolls counts as its window: when every pane of a strip is among `ids`, the strip takes the room its window does, not the length of its content. What a divider beside a strip measures.
+
+<Returns type="number" />
+
+</Entry>
+
+<Entry name="layout.scrolled" kind="function" from="@jali/core" signature={`layout.scrolled(resolved: ResolvedLayout, offsets: Offsets, dir?: "ltr" | "rtl"): ResolvedLayout`} compact>
+
+The resolved layout with each row that scrolls at its offset (`offsets`, by the row's id, in px along its content): its panes and dividers moved, and given `clip`, the strip's window. Right to left, an offset moves the content right. The model applies it with `view.scroll`.
+
+<Returns type="ResolvedLayout" />
+
+</Entry>
+
+<Entry name="layout.offsetToShow" kind="function" from="@jali/core" signature={`layout.offsetToShow(strip: ScrollerBox, rect: Rect, offset: number, dir?: "ltr" | "rtl"): number`} compact>
+
+The offset that shows the whole of `rect` (a pane in the strip, unscrolled) with the least movement from `offset`; `offset` itself when it already shows. A pane wider than the window shows from its start.
+
+<Returns type="number" />
+
+</Entry>
+
+<Entry name="layout.clampOffset" kind="function" from="@jali/core" signature={`layout.clampOffset(strip: ScrollerBox, offset: number): number`} compact>
+
+An offset kept between 0 and <Ref to="layout.maxOffset" />.
+
+<Returns type="number" />
+
+</Entry>
+
+<Entry name="layout.maxOffset" kind="function" from="@jali/core" signature={`layout.maxOffset(strip: ScrollerBox): number`} compact>
+
+How far a strip scrolls: its content past its window, or 0.
+
+<Returns type="number" />
+
+</Entry>
+
+<Entry name="layout.inWindow" kind="function" from="@jali/core" signature={`layout.inWindow(rect: Rect, clip: Rect): boolean`} compact>
+
+Whether a scrolled pane shows at all in its strip's window.
+
+<Returns type="boolean" />
+
+</Entry>
+
 <Entry name="layout.snapToCentre" kind="function" from="@jali/core" signature={`layout.snapToCentre(value: number, centre: number, wasSnapped: boolean): number`} compact>
 
 A divider's centre snap with hysteresis: `centre` when `value` is within `SNAP_IN` px of it (within `SNAP_OUT` px if it was already snapped), else `value`.

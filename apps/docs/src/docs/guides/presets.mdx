@@ -37,6 +37,8 @@ Give a pane the same `id` in two presets, showing the same object, and it is the
 
 If the other preset has that id showing another object, or doesn't have it, the switch asks first when the pane has unsaved work, and the pane starts afresh there.
 
+A list that is in both presets keeps its selection. When the new preset puts a follower beside it, the list and the follower agree, and the preset's word wins: a follower of the selected item's kind resets the list's selection to what the preset gives it. The person sees the item the preset names. If the preset gives the list no follower of that kind, its followers show the list's selection. See [A new layout beside a list](/learn/following#a-new-layout-beside-a-list).
+
 ## Give them to the workspace
 
 <Code code={storeCode} filename="src/workspace.ts" />

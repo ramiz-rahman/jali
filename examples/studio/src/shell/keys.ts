@@ -13,10 +13,10 @@
  * Jali binds no single keys, so nothing of Jali's has to move; `reservedKeys: ["Space"]` (workspace.ts) keeps it so.
  * The peek, which Jali's lists put on Space by convention, moved to Shift+Space in Studio's lists.
  */
+import { keyBelongsToContent } from "@jali/react";
+
 const TYPING =
   'input:not([type="range"]), textarea, select, [contenteditable=""], [contenteditable="true"], [role="textbox"], [role="combobox"], [role="searchbox"]';
-const PRESSABLE =
-  'button, a[href], summary, [role="button"], [role="tab"], [role="checkbox"], [role="switch"], [role="radio"], [role="menuitem"], [role="menuitemcheckbox"], [role="menuitemradio"]';
 const DIALOG = 'dialog, [role="dialog"], [role="alertdialog"]';
 
 const plain = (e: KeyboardEvent) => !e.metaKey && !e.ctrlKey && !e.altKey;
@@ -24,8 +24,7 @@ const plain = (e: KeyboardEvent) => !e.metaKey && !e.ctrlKey && !e.altKey;
 /** Whether this keydown should play or pause the transport. */
 export function spaceForTransport(e: KeyboardEvent): boolean {
   if (e.key !== " " || e.defaultPrevented || !plain(e) || e.shiftKey || e.repeat) return false;
-  const t = e.target instanceof Element ? e.target : null;
-  return !t?.closest(`${TYPING}, ${PRESSABLE}, ${DIALOG}`);
+  return !keyBelongsToContent(e);
 }
 
 /** Whether this keydown should open "Go to segment…". */
