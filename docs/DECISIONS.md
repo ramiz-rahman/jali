@@ -1127,3 +1127,11 @@ Gzipped KB, measured on master `ea3ac83` after `pnpm build:packages`. The `mustN
 - **Not done:** a following detail that keeps its object because of its unsaved work refuses `"unsaved"` without asking; it has no `settled`, as nothing is asked. `Refusal` stays an interface with `settled?` (a union keyed by `reason` would break hosts that extend or build it).
 - **Markets:** `resetAll` (`src/desks.ts`) forgets the other desks when `settled` resolves ok; its inference from the next `layout` event is gone.
 - **Tests:** `tests/held-questions.test.ts` ("`settled` says how the question ended").
+
+## 21 Nov 2026 · The `layout` event names the action that made it (Markets, FINDINGS.md #2)
+
+- **Why:** `on("layout")` said whether a change came from an action or the address, not which action, so an app couldn't react to a reset, a preset or a close in particular.
+- **Now:** `layout` carries `action?: ActionName`, where `ActionName` (new, from `@jali/core`) is `keyof JaliActions | "setLayout"`: one vocabulary, the one the app already calls. Whoever ran it counts: `jali.actions.resetLayout()` and the person's "Reset layout" in ⌘K both say `"resetLayout"`. Jali's own steps that are a form of a public action say that action (a click on a tab and F6's cycling say `"focus"`, Split's auto direction `"split"`, the launcher's dismissal `"close"`, ⌥-click on a page tab `"openTab"`); the table is `NAMED_AS` in `actions/index.ts`, and a type check fails the build if an engine step is neither listed nor a public action's name. A change made after a question names the action that asked: the held action's name travels with it (`Run.action`, `AnswerStep.action`, `ConfirmState.action`), so Discard and a later `beforeClose` yes both say `"resetLayout"`. Undefined for what no action names: a drag, a divider, a linked pane following its list, what a pane reports, and the address (`source: "address"`).
+- **Not the engine's op names** (`"preset"` for both a preset and a reset, `"drop"`, `"resize"`): they are internal and would make every op a public name.
+- **Size:** about 0.3 KB gzipped of core, in every scenario (the naming table and the wrapper).
+- **Tests:** `tests/instance.test.ts` ("layout names the action that made it, whoever ran it", after Discard, after a later yes, none for a drag).

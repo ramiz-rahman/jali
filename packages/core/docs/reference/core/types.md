@@ -887,7 +887,13 @@ jali.on("close", ({ pane, input }) => track("pane closed", { pane, by: input }))
 
 - **`focus`** (`{ pane: NodeId | undefined; previous: NodeId | undefined }`, required): Another pane is focused.
 
-- **`layout`** (`{ layout: Layout; source: "action" | "address" }`, required): The layout changed. `"action"`: an action, a gesture, a key or `setLayout`. `"address"`: Back, Forward or a link. Fitting to a new window size does not fire it.
+- **`layout`** (`{ layout: Layout; source: "action" | "address"; action?: ActionName }`, required): The layout changed. `"action"`: an action, a gesture, a key or `setLayout`. `"address"`: Back, Forward or a link. Fitting to a new window size does not fire it. `action` names the action that made it (`ActionName`), whoever ran it: your code, or the person from Jali's buttons, menus, keys or ⌘K. A change made after a question (Discard, or a later yes from `beforeClose`) names the action that asked. It is undefined for a change no action names: a drag, a divider, a linked pane following its list, and anything from the address.
+
+```ts
+jali.on("layout", ({ action }) => {
+  if (action === "resetLayout") forgetSavedLayouts();
+});
+```
 
 ### JaliEventBase
 
@@ -1612,6 +1618,16 @@ type PaneTarget = NodeId | ObjectRef
 ```
 
 A pane, by its id or by the object it shows. A ref means the pane showing that object: the focused pane if it does, else the first in the layout. `close(order({ id: 7 }))` closes the pane showing order 7, whatever its id.
+
+### ActionName
+
+*type*, from `@jali/core`
+
+```ts
+type ActionName = keyof JaliActions | "setLayout"
+```
+
+An action by its name in `JaliActions` (`"openBeside"`, `"resetLayout"`), or `"setLayout"`. The `layout` event names the action that made a change with it. A person's click, key or ⌘K command counts as the action it is a form of: a click on a tab is `"focus"`, Split is `"split"`, Close on a tab is `"close"`.
 
 ### ChooseOptions
 

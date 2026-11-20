@@ -27,6 +27,7 @@ import type {
 } from "../layout/types";
 import type { JaliModel } from "./model";
 import type { UiState } from "./store";
+import type { ActionName } from "../actions/public";
 import { pruneUndo } from "./undo";
 import type { PaneReport } from "../actions/content";
 import type { PaneKinds } from "../pane-kinds";
@@ -190,6 +191,8 @@ export interface AnswerStep {
   intent: Intent;
   agreed: Agreed;
   settle?: (r: ActionResult | Promise<ActionResult>) => void;
+  /** The action that was held, which the `layout` event names when the answer makes it. */
+  action?: ActionName;
   msg?: undefined;
 }
 
@@ -361,8 +364,9 @@ export interface ApplyIO {
   defer?(d: Deferred): void;
   /** A focus or swap op that moved something: development reports it. */
   unstable?(op: Op, before: string, after: string): void;
-  /** A layout change was committed by `op` (the store's events say so once the commit ends). */
-  committed?(op: Op): void;
+  /** A layout change was committed by `op`, for `action` when one is named (the store's events say so once the
+   *  commit ends). */
+  committed?(op: Op, action?: ActionName): void;
   /** The host's close guard (`createJali({ beforeClose })`). */
   beforeClose?: BeforeClose;
   /** Commit an outcome later, from the top (a change `beforeClose` allowed after a while). */
@@ -535,6 +539,8 @@ interface Run {
   agreed: Agreed;
   writes: number;
   hold?: Hold;
+  /** The public action being made, if one is: the `layout` event names it. */
+  action?: ActionName;
 }
 
 const sameAsked = (a: Asked[number], b: Asked[number]) =>
@@ -558,8 +564,8 @@ function holdFor(c: Run, f: Frame | undefined, o: Change, from: Layout): Hold {
  * Commit an outcome. Returns what happened: the last step's `result` as `pane`, or the first refusal among the steps
  * (later steps still run, unless a step is held: then they wait with it).
  */
-export function apply(io: ApplyIO, o: Outcome): ActionResult {
-  return step({ io, agreed: {}, writes: 0 }, o, undefined);
+export function apply(io: ApplyIO, o: Outcome, action?: ActionName): ActionResult {
+  return step({ io, agreed: {}, writes: 0, action }, o, undefined);
 }
 
 function step(c: Run, o: Outcome, f: Frame | undefined): ActionResult {
@@ -595,7 +601,7 @@ function step(c: Run, o: Outcome, f: Frame | undefined): ActionResult {
     return refused(o.reason, o.msg);
   }
   if (o.op === "answer") {
-    const inner: Run = { io, agreed: o.agreed, writes: 0 };
+    const inner: Run = { io, agreed: o.agreed, writes: 0, action: o.action };
     const r = step(inner, o.intent, undefined);
     c.writes += inner.writes;
     // Asked again: this question ends as that one does.
@@ -637,7 +643,12 @@ function step(c: Run, o: Outcome, f: Frame | undefined): ActionResult {
         // Allowed later: the intent runs again then, and asks again if it would now remove something else.
         const hold = holdFor(c, f, o, s.layout),
           agreed = { ...c.agreed, host };
-        const again: AnswerStep = { op: "answer", intent: (x) => hold.intent(x), agreed };
+        const again: AnswerStep = {
+          op: "answer",
+          intent: (x) => hold.intent(x),
+          agreed,
+          action: c.action,
+        };
         const settled = answer.then((yes): ActionResult | Promise<ActionResult> => {
           if (!yes) return refused("kept");
           const r = io.later ? io.later(again) : apply(io, again);
@@ -674,6 +685,7 @@ function step(c: Run, o: Outcome, f: Frame | undefined): ActionResult {
               panes: losing,
               asked,
               agreed: c.agreed,
+              action: c.action,
               intent: (x) => hold.intent(x),
               settled,
               settle,
@@ -724,7 +736,7 @@ function step(c: Run, o: Outcome, f: Frame | undefined): ActionResult {
         ...pruned,
         undoStack,
       });
-      if (layoutChanged) io.committed?.(o.op);
+      if (layoutChanged) io.committed?.(o.op, c.action);
       if (check !== null) {
         const after = geometryOf(io.snapshot().m);
         if (after !== check) io.unstable!(o.op, check, after);

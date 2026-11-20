@@ -8,7 +8,7 @@ import type { LayoutInput } from "../layout/build";
 import type { Keymap } from "../commands/keymap";
 import type { Env } from "../profile";
 import type { Messages } from "./messages";
-import { publicActions, type JaliActions } from "../actions/public";
+import { publicActions, type ActionName, type JaliActions } from "../actions/public";
 import { restoreLayout } from "../actions/layout";
 import type { ActionResult, Toast } from "./apply";
 import type { JaliModel } from "./model";
@@ -36,9 +36,15 @@ export interface JaliEvents {
   pin: JaliEventBase & { pane: NodeId; pinned: boolean };
   /** Another pane is focused (`pane` undefined: none). */
   focus: JaliEventBase & { pane: NodeId | undefined; previous: NodeId | undefined };
-  /** The layout changed: by an action, a gesture, a key or `setLayout` ("action"), or by Back, Forward or a link
-   *  ("address"). Fitting to a new window size is not a change. */
-  layout: JaliEventBase & { layout: Layout; source: "action" | "address" };
+  /**
+   * The layout changed: by an action, a gesture, a key or `setLayout` ("action"), or by Back, Forward or a link
+   * ("address"). Fitting to a new window size is not a change. `action` names the action that made it, as
+   * `jali.actions` names it (`"resetLayout"`, `"openBeside"`) or `"setLayout"`, whoever ran it: the app, or the person
+   * from Jali's buttons, menus, keys or ⌘K. A change made after a question (Discard, or `beforeClose`'s later yes) names
+   * the action that asked. Undefined for a change no action names: a drag, a divider, a linked pane following its list,
+   * and anything from the address.
+   */
+  layout: JaliEventBase & { layout: Layout; source: "action" | "address"; action?: ActionName };
 }
 
 export type JaliEvent = keyof JaliEvents;
@@ -116,7 +122,7 @@ export function createInstance(store: UiStore): Jali {
     model: store.model,
     on: store.on,
     getLayout: () => store.get().layout,
-    setLayout: (layout) => store.apply((x) => restoreLayout(x, layout)),
+    setLayout: (layout) => store.apply((x) => restoreLayout(x, layout), "setLayout"),
     keymap: store.keymap,
     env: store.env,
     messages: store.messages,

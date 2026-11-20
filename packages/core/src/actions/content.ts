@@ -251,6 +251,7 @@ export function discardAndContinue({ s }: Snapshot): Outcome {
       intent: c.intent,
       agreed: { ...c.agreed, discard: [...(c.agreed.discard ?? []), ...c.asked] },
       settle: c.settle,
+      action: c.action,
     },
   ];
 }

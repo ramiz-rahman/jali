@@ -539,8 +539,14 @@ jali.on("close", ({ pane, input }) => track("pane closed", { pane, by: input }))
 <Param name="close" type="{ pane: NodeId; ref: ObjectRef }" required>A pane left the layout. A tucked, folded or tabbed pane is still in it.</Param>
 <Param name="pin" type="{ pane: NodeId; pinned: boolean }" required>A pane's tab was pinned or unpinned, however it happened: the tab menu, `setPinned`, `setLayout`, Back or a link. Not for a pane that arrives pinned, which is an `open`. Pinning a pinned tab is no change, so it says nothing.</Param>
 <Param name="focus" type="{ pane: NodeId | undefined; previous: NodeId | undefined }" required>Another pane is focused.</Param>
-<Param name="layout" type={`{ layout: Layout; source: "action" | "address" }`} required>The layout changed. `"action"`: an action, a gesture, a key or `setLayout`. `"address"`: Back, Forward or a link. Fitting to a new window size does not fire it.</Param>
+<Param name="layout" type={`{ layout: Layout; source: "action" | "address"; action?: ActionName }`} required>The layout changed. `"action"`: an action, a gesture, a key or `setLayout`. `"address"`: Back, Forward or a link. Fitting to a new window size does not fire it. `action` names the action that made it (<Ref to="ActionName" />), whoever ran it: your code, or the person from Jali's buttons, menus, keys or ⌘K. A change made after a question (Discard, or a later yes from `beforeClose`) names the action that asked. It is undefined for a change no action names: a drag, a divider, a linked pane following its list, and anything from the address.</Param>
 </Params>
+
+```ts
+jali.on("layout", ({ action }) => {
+  if (action === "resetLayout") forgetSavedLayouts();
+});
+```
 
 </Entry>
 
@@ -931,6 +937,12 @@ How a list's item ids map to refs; see <Ref to="activeItemPort" page="/reference
 <Entry name="PaneTarget" kind="type" from="@jali/core" signature={`type PaneTarget = NodeId | ObjectRef`} compact>
 
 A pane, by its id or by the object it shows. A ref means the pane showing that object: the focused pane if it does, else the first in the layout. `close(order({ id: 7 }))` closes the pane showing order 7, whatever its id.
+
+</Entry>
+
+<Entry name="ActionName" kind="type" from="@jali/core" signature={`type ActionName = keyof JaliActions | "setLayout"`} compact>
+
+An action by its name in <Ref to="JaliActions" /> (`"openBeside"`, `"resetLayout"`), or `"setLayout"`. The `layout` event names the action that made a change with it. A person's click, key or ⌘K command counts as the action it is a form of: a click on a tab is `"focus"`, Split is `"split"`, Close on a tab is `"close"`.
 
 </Entry>
 

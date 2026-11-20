@@ -28,6 +28,7 @@ import {
 import { initialArea, spacingOf } from "../tokens";
 import { toLayout } from "../layout/build";
 import { bindActions, type Actions } from "../actions";
+import type { ActionName } from "../actions/public";
 import {
   apply,
   type ActionResult,
@@ -94,6 +95,8 @@ export interface ConfirmState {
   asked: Asked;
   /** What was agreed before the question (the host's `beforeClose` yes). */
   agreed: Agreed;
+  /** The public action held, which the `layout` event names when Discard makes it. */
+  action?: ActionName;
   intent: Intent;
   /** How the question ended: what the answer did, or `"kept"` (Keep editing, or a newer question took its place). */
   settled: Promise<ActionResult>;
@@ -294,8 +297,9 @@ export interface UiStore {
   model(): JaliModel;
   ctx(): LayoutContext;
   snapshot(): Snapshot;
-  /** Commit an outcome (or a step of the snapshot), and say what happened. Events go out once it is done. */
-  apply(o: Outcome): ActionResult;
+  /** Commit an outcome (or a step of the snapshot), and say what happened. Events go out once it is done; `action`
+   *  is the public action it makes, which the `layout` event names. */
+  apply(o: Outcome, action?: ActionName): ActionResult;
   /** The app's events (instance.ts). */
   on<E extends JaliEvent>(event: E, handler: (event: JaliEvents[E]) => void): () => void;
   /** The workspace as an app sees it: what `createJali` returns. */
@@ -556,6 +560,8 @@ export function createUiStore(deps: UiStoreDeps): UiStore {
   let input: JaliInput = "code";
   /** Layout ops committed in this batch: a refit alone is not a layout change. */
   let ops: Op[] = [];
+  /** The first public action that committed a layout op in this batch. */
+  let named: ActionName | undefined;
   const told = (before: UiState) => {
     const after = state;
     if (after.layout !== before.layout) {
@@ -584,6 +590,7 @@ export function createUiStore(deps: UiStoreDeps): UiStore {
       emit("layout", {
         layout: after.layout,
         source: ops.includes("arrive") ? "address" : "action",
+        ...(named && !ops.includes("arrive") ? { action: named } : {}),
         input,
       });
   };
@@ -591,6 +598,7 @@ export function createUiStore(deps: UiStoreDeps): UiStore {
     if (depth++ === 0) {
       from = state;
       ops = [];
+      named = undefined;
       input = currentInput();
     }
     try {
@@ -631,7 +639,7 @@ export function createUiStore(deps: UiStoreDeps): UiStore {
       }),
     ctx,
     snapshot: () => ({ s: state, m: store.model(), ctx: ctx(), env }),
-    apply: (o) => batch(() => apply(io, o)),
+    apply: (o, action) => batch(() => apply(io, o, action)),
     announce: (text) => store.set({ announcement: { text, seq: state.announcement.seq + 1 } }),
     // The writer reads the address's share of the state only (UrlState), when it writes, and as a link carries it:
     // without params only the app sets (`appOnly`).
@@ -690,7 +698,10 @@ export function createUiStore(deps: UiStoreDeps): UiStore {
   const io = {
     get: store.get,
     set: write,
-    committed: (op: Op) => ops.push(op),
+    committed: (op: Op, action?: ActionName) => {
+      ops.push(op);
+      named ??= action;
+    },
     get beforeClose() {
       return store.guard;
     },

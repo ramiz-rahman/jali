@@ -176,6 +176,12 @@ export interface JaliActions {
   changeSettings(patch: Partial<Settings>): ActionResult;
 }
 
+/**
+ * An action by its name in `jali.actions` (`"resetLayout"`), or `"setLayout"`. The `layout` event names the one that
+ * made a change, whether the app called it or the person ran it from Jali's buttons, menus, keys or ⌘K.
+ */
+export type ActionName = keyof JaliActions | "setLayout";
+
 /** The pane `target` names: an id of a pane in the layout, or the pane showing that object (the focused one first). */
 export function paneFor(x: Snapshot, target: PaneTarget): NodeId | undefined {
   const { s, m } = x;
@@ -189,7 +195,7 @@ export function paneFor(x: Snapshot, target: PaneTarget): NodeId | undefined {
   return (openPaneFor(m, target) ?? m.panes.find((p) => sameRef(p.ref, target)))?.id;
 }
 
-type Run = (o: Outcome | ((x: Snapshot) => Outcome)) => ActionResult;
+type Run = (o: Outcome | ((x: Snapshot) => Outcome), action?: ActionName) => ActionResult;
 
 /** An action that uses no ref. */
 const NO_REF: unique symbol = /* @__PURE__ */ Symbol();
@@ -209,8 +215,10 @@ const badEdge = (edge: unknown) => edge !== undefined && !EDGES.includes(edge);
 const edgeOf = (options?: OpenBesideOptions): OpenBesideOptions =>
   options?.edge ? { edge: options.edge } : {};
 
-/** `jali.actions` for a store's `apply`. */
-export function publicActions(run: Run): JaliActions {
+/** `jali.actions` for a store's `apply`. Each action's commit carries its name, for the `layout` event. */
+export function publicActions(apply: Run): JaliActions {
+  let current: ActionName | undefined;
+  const run: Run = (o) => apply(o, current);
   /** A ref the action uses, or a pane named by something other than an id, that can't be one: refused as invalid. */
   const invalid = (x: Snapshot, target: PaneTarget | undefined, ref?: unknown) => {
     const problem =
@@ -261,7 +269,7 @@ export function publicActions(run: Run): JaliActions {
       return other ? step(x, id, other) : refuse("not-found");
     });
 
-  return {
+  const actions: JaliActions = {
     focus: (pane) => on(pane, focusShown),
     toggleZoom: (pane) => opt(pane, (x, id) => toggleZoom(x, id)),
     toggleFullScreen: (pane) => opt(pane, (x, id) => toggleFullScreen(x, id)),
@@ -335,4 +343,17 @@ export function publicActions(run: Run): JaliActions {
     closeSettings: () => run(closeSettings()),
     changeSettings: (patch) => run((x) => changeSettings(x, patch)),
   };
+  for (const name of Object.keys(actions) as (keyof JaliActions)[]) {
+    const act = actions[name] as (...args: unknown[]) => ActionResult;
+    (actions as unknown as Record<string, typeof act>)[name] = (...args) => {
+      const outer = current;
+      current = name;
+      try {
+        return act(...args);
+      } finally {
+        current = outer;
+      }
+    };
+  }
+  return actions;
 }

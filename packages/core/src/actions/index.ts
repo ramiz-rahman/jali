@@ -6,6 +6,7 @@
 import type { NodeId } from "../layout/types";
 import type { PageEngine } from "../profile";
 import { refuse, type ActionResult, type Outcome, type Snapshot } from "../state/apply";
+import type { ActionName } from "./public";
 import {
   focus,
   focusCycle,
@@ -163,6 +164,55 @@ export const ACTIONS = {
   setCanInvestigate: pageStep("setCanInvestigate"),
 };
 
+/**
+ * What the `layout` event calls an engine step: the public action it is a form of (a click on a tab is `focus`), or
+ * `null` for a step no action names (a drag, a divider, a list's detail following it, what a pane reports). A step not
+ * listed has its public action's name.
+ */
+const NAMED_AS = {
+  focusCycle: "focus",
+  focusDirection: "focus",
+  focusIndex: "focus",
+  focusEnd: "focus",
+  reveal: "focus",
+  setActiveTab: "focus",
+  splitAuto: "split",
+  dismiss: "close",
+  moveDirection: "move",
+  moveTabToward: "moveTab",
+  openPeekBeside: "openBeside",
+  openTabBeside: "openTab",
+  hideRole: "close",
+  noteOpen: null,
+  setScroll: null,
+  drop: null,
+  endRename: null,
+  resizeDivider: null,
+  setDividerSize: null,
+  nudgeDivider: null,
+  commitDividerDrag: null,
+  resetDivider: null,
+  enterResizeMode: null,
+  leaveResizeMode: null,
+  openPeekFull: null,
+  follow: null,
+  arrive: null,
+  setActivity: null,
+  setUnsaved: null,
+  setPaneCommands: null,
+  setPaneState: null,
+  setTitle: null,
+  setPaneAttributes: null,
+  reportPane: null,
+  discardAndContinue: null,
+  keepEditing: null,
+  placeTab: null,
+} as const satisfies Partial<Record<keyof typeof ACTIONS, ActionName | null>>;
+/** Every engine step NAMED_AS leaves out is a public action of the same name. */
+type Unnamed = Exclude<keyof typeof ACTIONS, keyof typeof NAMED_AS>;
+const _sameNames: Unnamed extends ActionName ? true : never = true;
+void _sameNames;
+
 type Bound<F> = F extends (x: Snapshot, ...args: infer A) => Outcome
   ? (...args: A) => NodeId | undefined
   : never;
@@ -170,7 +220,7 @@ export type Actions = { [K in keyof typeof ACTIONS]: Bound<(typeof ACTIONS)[K]> 
 
 export function bindActions(store: {
   snapshot(): Snapshot;
-  apply(o: Outcome): ActionResult;
+  apply(o: Outcome, action?: ActionName): ActionResult;
 }): Actions {
   const out = {} as Record<string, (...args: unknown[]) => NodeId | undefined>;
   for (const [name, fn] of Object.entries(ACTIONS) as [
@@ -178,7 +228,10 @@ export function bindActions(store: {
     (x: Snapshot, ...a: unknown[]) => Outcome,
   ][]) {
     // As a step, so a change held for an answer is the action itself, run again when the answer comes.
-    out[name] = (...args) => store.apply((x) => fn(x, ...args)).pane;
+    const as = Object.hasOwn(NAMED_AS, name)
+      ? (NAMED_AS[name as keyof typeof NAMED_AS] ?? undefined)
+      : (name as ActionName);
+    out[name] = (...args) => store.apply((x) => fn(x, ...args), as).pane;
   }
   return out as unknown as Actions;
 }

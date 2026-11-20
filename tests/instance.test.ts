@@ -297,8 +297,64 @@ describe("events", () => {
     const r = jali.actions.openBeside("orders", order({ id: 7 }));
     expect(heard).toEqual([
       ["open", { pane: r.pane, ref: order({ id: 7 }) }],
-      ["layout", { layout: jali.getLayout(), source: "action" }],
+      ["layout", { layout: jali.getLayout(), source: "action", action: "openBeside" }],
     ]);
+  });
+
+  it("layout names the action that made it, whoever ran it", () => {
+    const jali = make({
+      layout: undefined,
+      presets: [
+        { id: "a", label: "A", layout: () => row(list(), order({ id: 1 })) },
+        { id: "b", label: "B", layout: () => row(list(), order({ id: 2 }), order({ id: 3 })) },
+      ],
+    });
+    const actions: unknown[] = [];
+    jali.on("layout", (e) => actions.push(e.action));
+    jali.actions.preset("b");
+    jali.actions.resetLayout();
+    // The person: ⌘K's "Close pane", and a click on a tab (a form of focus).
+    jali.actions.focus("order-2");
+    runCommand(jali, "pane.close");
+    jali.setLayout(row(list(), tabs({ id: "group" }, order({ id: 5 }), order({ id: 6 }))));
+    const [, , second] = jali.model().panes;
+    storeOf(jali).actions.setActiveTab("group", second!.id);
+    expect(actions).toEqual(["preset", "resetLayout", "close", "setLayout", "focus"]);
+  });
+
+  it("a change made after Discard names the action that asked", () => {
+    const jali = make({
+      layout: undefined,
+      presets: [{ id: "a", label: "A", layout: () => row(list(), order({ id: 1 })) }],
+    });
+    const opened = jali.actions.openBeside("orders", order({ id: 2 })).pane!;
+    storeOf(jali).actions.setUnsaved(opened, "a draft");
+    const heard: unknown[] = [];
+    jali.on("layout", (e) => heard.push([e.source, e.action]));
+    expect(jali.actions.resetLayout().reason).toBe("unsaved");
+    expect(heard).toEqual([]);
+    storeOf(jali).actions.discardAndContinue();
+    expect(heard).toEqual([["action", "resetLayout"]]);
+  });
+
+  it("a change made after beforeClose's later yes names the action that asked", async () => {
+    let answer!: (yes: boolean) => void;
+    const jali = make({ beforeClose: () => new Promise<boolean>((r) => (answer = r)) });
+    const heard: unknown[] = [];
+    jali.on("layout", (e) => heard.push(e.action));
+    const r = jali.actions.closeOthers("orders");
+    answer(true);
+    expect((await r.settled)?.ok).toBe(true);
+    expect(heard).toEqual(["closeOthers"]);
+  });
+
+  it("layout names no action for a gesture or the address", () => {
+    const jali = make();
+    const heard: unknown[] = [];
+    jali.on("layout", (e) => heard.push(e.action));
+    storeOf(jali).actions.drop("order-2", "orders", "left");
+    expect(heard.length).toBe(1);
+    expect(heard[0]).toBeUndefined();
   });
 
   it("close fires for the pane that left, and focus for the pane that took over", () => {

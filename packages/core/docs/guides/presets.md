@@ -130,7 +130,7 @@ jali.on("layout", ({ layout, source }) => {
 });
 ```
 
-- `"layout"` fires once per change. `source` is `"action"` for the person's own changes and `"address"` for Back, Forward or a link. Fitting to a new window size does not fire it.
+- `"layout"` fires once per change. `source` is `"action"` for the person's own changes and `"address"` for Back, Forward or a link. `action` names the action that made it (`"resetLayout"`, `"preset"`), when one did. Fitting to a new window size does not fire it.
 - `jali.getLayout()` is the layout on screen, as JSON, at any time.
 - A link in the address still wins over `layout`, so a shared link opens what was shared.
 - A layout that arrives after the workspace is made goes through `jali.setLayout(saved)`. It fits the layout to the room, asks before losing unsaved work, and adds a history entry, so Back returns. It returns `{ ok: false, reason: "invalid" }` for a layout with a pane kind the workspace no longer has.
