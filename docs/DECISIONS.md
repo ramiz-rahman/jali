@@ -996,3 +996,16 @@ Data Studio's old tab strip had six features Jali lacked. Each is general, and l
 - **Now:** the first `initial` is kept (a ref) for both the read and the setter's `prev`, as `useState` does. New, additive: a third argument, `usePaneState(key, initial, { parse })`, with `PaneStateOptions<T>` exported from `@jali/react`. `parse(stored: unknown): T | undefined` turns what was stored into the value, or `undefined` (or a throw) to use `initial`. It runs once per stored value, so a parse that copies doesn't make a new value each render. A rejected value stays stored until the pane sets its own: the pane may be an older build than the one that wrote it.
 - **Why not a validate-only option:** `parse` also lets an app migrate an old shape (`{ col }` to `{ column }`) without a separate step.
 - **Tests:** `tests/use-pane-state.test.tsx`.
+
+## 20 Nov 2026 · The pane hooks hold one report per call (QUALITY-REVIEW P11)
+
+- **Why:** `useCommands`, `useUnsaved`, `useActivity`, `useTitle` and `usePaneAttributes` each wrote one slot per pane. The last caller won, and any caller unmounting cleared the slot for all: a child editor unmounting cleared its parent's unsaved guard, and a list's commands vanished when its toolbar re-mounted. The boundary's loading and failed states overwrote the content's activity and commands the same way.
+- **Now:** each hook call reports under its own `useId()`, with its render order, and core keeps every caller's report (`paneReports`, `reportPane` in `actions/content.ts`) and merges them into the pane's `paneCommands`, `unsaved`, `activity`, `titles` and `paneAttributes`, which every reader already uses:
+  - commands: concatenated in render order (a parent's before its children's, an earlier mount before a later one); a repeated id keeps the first;
+  - unsaved: the pane has work while any caller has some; the text is every distinct text, joined with ", " ("an unsaved note, a draft reply");
+  - activity: the most pressing (`ACTIVITY_URGENCY`: error, needs you, working, loading, live), moved from `TabOverflow.tsx` to core with `mostPressing`;
+  - title and attributes: the last caller in render order that gives one, which is the innermost component on a first mount and the latest mounted after that.
+    The boundary's loading and failed states are callers like any other. A caller unmounting removes only its own report. A pane that shows another object loses its callers' titles and attributes, as before; Discard clears its callers' unsaved texts with the merged one.
+- **Unchanged:** the hooks' signatures, and `store.actions.setUnsaved` and its siblings, which still set the merged value directly.
+- **New in `@jali/core/adapter`** (adapters only): `reportPane`, `mergeReports`, `PaneReport`, `PaneReportPatch`, `ACTIVITY_URGENCY`, `mostPressing`, and `PaneHost.report(caller, seq, patch)` in `@jali/react`'s internals.
+- **Tests:** `tests/pane-hook-callers.test.tsx`.

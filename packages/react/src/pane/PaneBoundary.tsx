@@ -5,6 +5,7 @@
  */
 import { Component, Fragment, Suspense, useEffect, type ReactNode } from "react";
 import type { PaneHost } from "./context";
+import { useReporter } from "./hooks";
 import { useMessages } from "../state/react";
 
 interface BoundaryProps {
@@ -66,10 +67,12 @@ export class PaneBoundary extends Component<BoundaryProps, BoundaryState> {
 
 /** While the content waits: activity "loading", back to "idle" once it shows. */
 function PaneLoading({ host, children }: { host: PaneHost; children: ReactNode }) {
+  // A caller of its own, like any component's useActivity: it neither overwrites nor clears the content's.
+  const report = useReporter(host);
   useEffect(() => {
-    host.setActivity("loading");
-    return () => host.setActivity("idle");
-  }, [host]);
+    report({ activity: "loading" });
+    return () => report(null);
+  }, [report]);
   return <>{children}</>;
 }
 
@@ -100,14 +103,11 @@ function PaneFailed({
   close: () => void;
 }) {
   const t = useMessages().pane;
+  const report = useReporter(host);
   useEffect(() => {
-    host.setActivity("error");
-    host.setCommands([{ id: "retry", title: t.retryCommand, run: retry }]);
-    return () => {
-      host.setCommands(null);
-      host.setActivity("idle");
-    };
-  }, [host, retry, t]);
+    report({ activity: "error", commands: [{ id: "retry", title: t.retryCommand, run: retry }] });
+    return () => report(null);
+  }, [report, retry, t]);
   const message = messageOf(error);
   return (
     <div className="jali-pane-failed" role="alert">

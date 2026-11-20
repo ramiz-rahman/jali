@@ -28,6 +28,7 @@ import type {
 import type { JaliModel } from "./model";
 import type { UiState } from "./store";
 import { pruneUndo } from "./undo";
+import type { PaneReport } from "../actions/content";
 import { sameRef } from "../layout/ops/ref";
 
 /** What an action reads: the state, the model derived from it, and the core's context. */
@@ -438,14 +439,52 @@ function prunePanes(s: UiState, layout: Layout, undo: UndoEntry[]): Partial<UiSt
     : Object.fromEntries(
         Object.entries(s.paneAttributes).filter(([id]) => live.has(id) && !moved.has(id)),
       );
+  // Each caller's reports go with the pane; a title or attributes it gave go when the pane shows another object.
+  const reports = Object.entries(s.paneReports);
+  const paneReports = reports.every(([id]) => live.has(id) && !moved.has(id))
+    ? s.paneReports
+    : Object.fromEntries(
+        reports
+          .filter(([id]) => live.has(id))
+          .map(([id, r]) => [id, moved.has(id) ? withoutNames(r) : r] as const)
+          .filter(([, r]) => Object.keys(r).length),
+      );
   return {
     paneState: keep(s.paneState),
+    paneReports,
     unsaved: mounted(s.unsaved),
     paneCommands: mounted(s.paneCommands),
     activity: mounted(s.activity),
     titles: named,
     paneAttributes: marked,
   };
+}
+
+/** A pane's reports without the titles and attributes its callers gave, which were about the object it showed. */
+function withoutNames(reports: Record<string, PaneReport>): Record<string, PaneReport> {
+  const out: Record<string, PaneReport> = {};
+  for (const [caller, { title: _t, attributes: _a, ...rest }] of Object.entries(reports))
+    if (Object.keys(rest).some((k) => k !== "seq")) out[caller] = rest;
+  return out;
+}
+
+/** The reports of `panes` without the unsaved work their callers gave: the person discarded it. */
+function withoutUnsaved(
+  all: UiState["paneReports"],
+  panes: readonly NodeId[],
+): UiState["paneReports"] {
+  const out: UiState["paneReports"] = {};
+  for (const [id, reports] of Object.entries(all)) {
+    if (!panes.includes(id)) {
+      out[id] = reports;
+      continue;
+    }
+    const kept: Record<string, PaneReport> = {};
+    for (const [caller, { unsaved: _u, ...rest }] of Object.entries(reports))
+      if (Object.keys(rest).some((k) => k !== "seq")) kept[caller] = rest;
+    if (Object.keys(kept).length) out[id] = kept;
+  }
+  return out;
 }
 
 const sameView = (a: ViewState, b: ViewState) =>
@@ -641,6 +680,7 @@ function step(c: Run, o: Outcome, f: Frame | undefined): ActionResult {
             unsaved: Object.fromEntries(
               Object.entries(s.unsaved).filter(([id]) => !discarding.includes(id)),
             ),
+            paneReports: withoutUnsaved(s.paneReports, discarding),
           }
         : {};
       if (discarding.length) io.announce(say(io.snapshot()).discarded(discarding.length));

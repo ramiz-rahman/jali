@@ -52,6 +52,7 @@ import {
   setPaneState,
   setTitle,
   setUnsaved,
+  reportPane,
 } from "./content";
 import {
   activate,
@@ -66,6 +67,9 @@ import {
   setCanInvestigate,
   setMode,
 } from "./page";
+
+export type { PaneReport, PaneReportPatch } from "./content";
+export { mergeReports } from "./content";
 
 export const ACTIONS = {
   focus,
@@ -130,6 +134,7 @@ export const ACTIONS = {
   setPaneState,
   setTitle,
   setPaneAttributes,
+  reportPane,
   discardAndContinue,
   keepEditing,
   openPage,

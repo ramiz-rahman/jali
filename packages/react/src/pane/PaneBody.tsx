@@ -25,6 +25,7 @@ export function paneHost(store: UiStore, id: NodeId): PaneHost {
     setCommands: (commands: PaneCommand[] | null) => actions.setPaneCommands(id, commands),
     setTitle: (title: string | null) => actions.setTitle(id, title),
     setAttributes: (attributes) => actions.setPaneAttributes(id, attributes),
+    report: (caller, seq, patch) => actions.reportPane(id, caller, seq, patch),
   };
 }
 
@@ -47,6 +48,7 @@ export function peekHost(store: UiStore): PaneHost {
     setCommands: none,
     setTitle: none,
     setAttributes: none,
+    report: none,
   };
 }
 

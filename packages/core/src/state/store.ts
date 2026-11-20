@@ -1,5 +1,6 @@
 import type { Hinge } from "../workspace/stack";
 import type { Rename } from "../actions/rename";
+import type { PaneReport } from "../actions/content";
 /**
  * The workspace: state, one derived model, and apply(). Layout and view come from the layout ops; actions are pure
  * (actions/) and the store only commits them. Effects leave through sinks given at creation (URL, DOM focus) and
@@ -172,6 +173,9 @@ export interface UiState {
   /** `data-*` attributes panes set from their data (usePaneAttributes), put on everything that stands for the pane.
    *  Not saved; cleared, like a title, when the pane closes or shows another object. */
   paneAttributes: Record<NodeId, PaneAttributes>;
+  /** What each caller of the pane hooks reports, per pane and caller; merged into `activity`, `unsaved`,
+   *  `paneCommands`, `titles` and `paneAttributes` (actions/content.ts `reportPane`). */
+  paneReports: Record<NodeId, Record<string, PaneReport>>;
   /** Each pane's own state (usePaneState): JSON values, kept through folds, tabs and reloads, dropped on close. */
   paneState: Record<NodeId, Record<string, unknown>>;
   /** The live region's text; `seq` makes a repeat a new announcement. */
@@ -419,6 +423,7 @@ export function createUiStore(deps: UiStoreDeps): UiStore {
     paneCommands: {},
     titles: {},
     paneAttributes: {},
+    paneReports: {},
     paneState: loadPaneState(storage),
     ...deps.initial,
   };

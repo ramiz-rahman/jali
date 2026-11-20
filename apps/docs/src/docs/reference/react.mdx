@@ -168,17 +168,23 @@ Whether a key event belongs to the focused content: its target is a text field, 
 
 Report what the pane is doing (`"loading"`, `"working"`, `"live"`, `"needs-you"`, `"error"` or `"idle"`), for its header, its tab, the shelf and the status line. `"working"` is work the person waits for; `"live"` is ongoing, healthy work that is meant to go on, such as recording, streaming or playback, and reads "Live" rather than "Working". `undefined` clears it, the same as `"idle"`, and so does the component unmounting. Reported again whenever it changes.
 
+Several components in a pane may each report: the pane shows the most pressing (error, needs you, working, loading, live), and one unmounting clears only its own.
+
 </Entry>
 
 <Entry name="useUnsaved" kind="hook" from="@jali/react" signature={`useUnsaved(what: string | null | false | undefined): void`} compact>
 
 Report unsaved work in words (`"an unsaved query"`), or a falsy value once it is saved, so `useUnsaved(dirty && "an unsaved note")` works. While a pane has some, closing it, closing others, a preset or showing another object in it asks first; a following detail keeps its object. Moving, tabbing, folding and tucking never ask. Cleared when the component unmounts.
 
+Several components in a pane may each report: the pane has unsaved work while any of them has some, and the question lists every distinct text. One saving or unmounting clears only its own.
+
 </Entry>
 
 <Entry name="useTitle" kind="hook" from="@jali/react" signature={`useTitle(title: string | null | undefined): void`} compact>
 
 Name the pane from its data: `useTitle(customer.data?.name)` shows "Acme Ltd" rather than the kind's "Customer 12". While set, it replaces the kind's `title` in the header, the tab, the shelf, the palette, the switcher, announcements and `jali.model().title(id)`, and the peek sheet while it shows the same object. In a curated page, the view's label still names the pane, and this title is shown beside it. `null` or `undefined` goes back to the kind's title.
+
+When several components in a pane set a title, the innermost one wins (after the first mount, the one mounted last); one unmounting goes back to the next.
 
 It is cleared when the component unmounts and when the pane shows another object, then set again from the next render. It is not saved, so a reload shows the kind's title until the data loads. The peek sheet keeps the kind's title.
 
@@ -187,6 +193,8 @@ It is cleared when the component unmounts and when the pane shows another object
 <Entry name="usePaneAttributes" kind="hook" from="@jali/react" signature={`usePaneAttributes(attributes: Record<\`data-\${string}\`, string> | null | undefined): void`} compact>
 
 Mark the pane from its data with `data-*` attributes, so your styles can tell it apart: `usePaneAttributes({ "data-connection": "production" })` on a query pane connected to production. Jali puts them on everything that stands for the pane: its section, its tab in any strip (folded and tucked too), its shelf chip, its entry in the phone's pane switcher, the tab and shelf menus, and the peek sheet while it shows the pane's object. Jali gives them no style of its own.
+
+When several components in a pane set attributes, the innermost one's are used (after the first mount, the one mounted last); one unmounting goes back to the next.
 
 Only `data-*` names are kept, and not the ones Jali's own parts use (`data-pane`, `data-tab`, `data-focused`, `data-jali-*` and the rest). `null` or `undefined` clears them. They are cleared when the component unmounts and when the pane closes or shows another object, then set again from the next render. They are not saved. The peek sheet's own content can't set them.
 
@@ -205,6 +213,8 @@ A narrow header gives way before its title gets shorter than a few characters: f
 <Entry name="useCommands" kind="hook" from="@jali/react" signature={`useCommands(commands: readonly PaneCommand[]): void`} compact>
 
 The commands this pane lists first in the palette while it is focused. Pass them on every render: they are listed again only when an id, title, keys label or disabled reason changes, and each runs the latest `run` it was given, so `run` can close over current state. Removed when the component unmounts.
+
+Several components in a pane may each add commands: they are listed in render order (a parent's before its children's), the first of a repeated id kept, and one unmounting removes only its own.
 
 </Entry>
 

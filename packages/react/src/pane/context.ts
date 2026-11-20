@@ -1,7 +1,7 @@
 /** The pane a component is inside, for the hooks that act for it (usePane, useCommands, usePaneState, ...). */
 import type { NodeId, ObjectRef, PaneActivity, PaneCommand } from "@jali/core";
 import { createContext, useContext } from "react";
-import type { ActionResult, PaneAttributes } from "@jali/core/adapter";
+import type { ActionResult, PaneAttributes, PaneReportPatch } from "@jali/core/adapter";
 import type { PaneProps } from "../define";
 import type { HeaderSlot } from "./header";
 
@@ -17,6 +17,9 @@ export interface PaneHost {
   setCommands(commands: PaneCommand[] | null): void;
   setTitle(title: string | null): void;
   setAttributes(attributes: PaneAttributes | null): void;
+  /** One caller's report (the pane hooks): `caller` is the hook call's own id, `seq` its order among the pane's
+   *  callers, `null` when it unmounts. The workspace merges every caller's (actions/content.ts `reportPane`). */
+  report(caller: string, seq: number, patch: PaneReportPatch | null): void;
 }
 
 export interface PaneContextValue {

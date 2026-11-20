@@ -1,6 +1,12 @@
 /** What a pane's content reports to the workspace: unsaved work, its ⌘K commands and its own state. */
 import type { NodeId } from "../layout/types";
-import type { PaneAttributes, PaneCommand } from "../pane-kinds";
+import {
+  mostPressing,
+  type PaneActivity,
+  type PaneAttributes,
+  type PaneCommand,
+} from "../pane-kinds";
+import { setActivity } from "./layout";
 import { refuse, type Change, type Outcome, type Snapshot } from "../state/apply";
 import { follow } from "./follow";
 import { say } from "../state/messages";
@@ -22,6 +28,93 @@ export function setUnsaved({ s, m }: Snapshot, id: NodeId, what: string | null):
   };
   const sel = !what && p.follows && p.linkedTo ? own(s.selection, p.linkedTo) : undefined;
   return sel ? [change, (y: Snapshot) => follow(y, p.linkedTo!, sel.ref, id)] : change;
+}
+
+/**
+ * What one caller of the pane hooks reports (useActivity, useUnsaved, useCommands, useTitle, usePaneAttributes).
+ * A pane's content may call each hook from several components; the workspace keeps each caller's report and merges
+ * them, so one caller never overwrites or clears another's.
+ */
+export interface PaneReport {
+  /** Order among the pane's callers: render order when each mounted, so a parent before its children and an earlier
+   *  mount before a later one. */
+  seq: number;
+  activity?: PaneActivity;
+  unsaved?: string;
+  commands?: PaneCommand[];
+  title?: string;
+  attributes?: PaneAttributes;
+}
+
+/** The fields a report can carry; `undefined` (or `null`) takes the caller's value away. */
+export type PaneReportPatch = {
+  [K in Exclude<keyof PaneReport, "seq">]?: PaneReport[K] | null;
+};
+
+type Field = keyof PaneReportPatch;
+const FIELDS: readonly Field[] = ["activity", "unsaved", "commands", "title", "attributes"];
+
+/**
+ * A pane's callers merged: commands in caller order (an id listed twice keeps its first); unsaved work while any caller
+ * has some, every distinct text kept; the most pressing activity; the title and attributes of the last caller in
+ * order that gives one (the innermost component on a first mount, else the latest mounted).
+ */
+export function mergeReports(reports: readonly PaneReport[]) {
+  const ordered = [...reports].sort((a, b) => a.seq - b.seq);
+  const ids = new Set<string>();
+  const commands = ordered
+    .flatMap((r) => r.commands ?? [])
+    .filter((c) => !ids.has(c.id) && !!ids.add(c.id));
+  const texts = [...new Set(ordered.flatMap((r) => (r.unsaved ? [r.unsaved] : [])))];
+  const last = <K extends Field>(k: K) => ordered.findLast((r) => r[k] !== undefined)?.[k];
+  return {
+    activity: mostPressing(ordered.map((r) => r.activity)) ?? ("idle" as PaneActivity),
+    unsaved: texts.length ? texts.join(", ") : null,
+    commands: commands.length ? commands : null,
+    title: last("title") ?? null,
+    attributes: last("attributes") ?? null,
+  };
+}
+
+/**
+ * One caller's report for pane `id` (`patch: null` when the caller unmounts): kept per caller, then merged into the
+ * pane's activity, unsaved work, commands, title and attributes. Only the fields the report touches are merged again.
+ */
+export function reportPane(
+  x: Snapshot,
+  id: NodeId,
+  caller: string,
+  seq: number,
+  patch: PaneReportPatch | null,
+): Outcome {
+  const { s, m } = x;
+  if (!m.pane(id)) return null;
+  const all = own(s.paneReports, id) ?? {};
+  const mine = own(all, caller);
+  if (!mine && !patch) return null;
+  const next: PaneReport = { ...mine, seq: mine?.seq ?? seq };
+  const touched = patch ? FIELDS.filter((k) => Object.hasOwn(patch, k)) : FIELDS;
+  for (const k of touched) {
+    const v = patch?.[k];
+    if (v === undefined || v === null) delete next[k];
+    else (next as unknown as Record<Field, unknown>)[k] = v;
+  }
+  const keep = FIELDS.some((k) => next[k] !== undefined);
+  const pane = Object.fromEntries(Object.entries(all).filter(([c]) => c !== caller));
+  if (keep) pane[caller] = next;
+  const paneReports = Object.fromEntries(Object.entries(s.paneReports).filter(([p]) => p !== id));
+  if (Object.keys(pane).length) paneReports[id] = pane;
+  const merged = mergeReports(Object.values(pane));
+  const steps: Outcome[] = [{ op: "patch", patch: { paneReports } }];
+  for (const k of touched) {
+    if (k === "activity") steps.push((y: Snapshot) => setActivity(y, id, merged.activity));
+    if (k === "unsaved") steps.push((y: Snapshot) => setUnsaved(y, id, merged.unsaved));
+    if (k === "commands") steps.push((y: Snapshot) => setPaneCommands(y, id, merged.commands));
+    if (k === "title") steps.push((y: Snapshot) => setTitle(y, id, merged.title));
+    if (k === "attributes")
+      steps.push((y: Snapshot) => setPaneAttributes(y, id, merged.attributes));
+  }
+  return steps;
 }
 
 export function setPaneCommands(

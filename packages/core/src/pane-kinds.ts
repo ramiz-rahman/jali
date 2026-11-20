@@ -169,6 +169,21 @@ export interface PaneCommand {
  */
 export type PaneActivity = "idle" | "loading" | "working" | "live" | "needs-you" | "error";
 
+/** Activities, most pressing first; `"idle"` is none of them. Live work is healthy and meant to go on, so it is the
+ *  least pressing: a pane that is working or waiting for the person says so first. */
+export const ACTIVITY_URGENCY: readonly PaneActivity[] = [
+  "error",
+  "needs-you",
+  "working",
+  "loading",
+  "live",
+];
+
+/** The most pressing of several activities (a folded strip's tabs, a pane's several reporters), or undefined. */
+export const mostPressing = (
+  all: readonly (PaneActivity | undefined)[],
+): PaneActivity | undefined => ACTIVITY_URGENCY.find((a) => all.includes(a));
+
 /** `data-*` attributes a pane sets from its data (usePaneAttributes), such as `{ "data-connection": "production" }`. */
 export type PaneAttributes = Record<`data-${string}`, string>;
 

@@ -4,18 +4,12 @@ import { useCallback, useRef, useState } from "react";
 import { useJaliIcons } from "../icons/context";
 import { Menu } from "../a11y/Menu";
 import type { Tab } from "@jali/core/adapter";
-import { cssString, roleOf, titleOf } from "@jali/core/adapter";
+import { cssString, mostPressing, roleOf, titleOf } from "@jali/core/adapter";
 import { useStore } from "../state/react";
 import { useUi } from "../state/react";
 import { KindIcon } from "./icons";
 import { Activity, shelfActivity } from "./Activity";
-import type { PaneActivity } from "@jali/core";
 import { ICON } from "../icons/sized";
-
-/** Most pressing first: what the folded chip shows for the panes behind it. Live work is healthy and meant to go on,
- *  so it is the least pressing: a pane that is working or waiting for the person says so first. */
-const URGENCY: PaneActivity[] = ["error", "needs-you", "working", "loading", "live"];
-const mostPressing = (all: (PaneActivity | undefined)[]) => URGENCY.find((a) => all.includes(a));
 
 /**
  * The "+N" at the end of a tab strip that overflows: opens a menu of every tab in the group, marks included. With

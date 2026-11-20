@@ -8,10 +8,25 @@
  *   useTitle(query.data?.name);
  *   usePaneAttributes({ "data-connection": connection.kind });
  *   useHeaderActions(<button onClick={add}>Add</button>);
+ *
+ * Any number of components in a pane may call the reporting hooks: each call is reported on its own and the workspace
+ * merges them. Commands are listed in render order (a parent's before its children's); the pane has unsaved work while
+ * any call reports some; its activity is the most pressing reported; its title and attributes are the innermost
+ * call's (on a first mount; after that, the latest mounted). A call that unmounts takes only its own report away.
  */
 import type { ObjectRef, PaneActivity, PaneCommand, Params } from "@jali/core";
-import { useEffect, useLayoutEffect, useMemo, useRef, type ReactNode } from "react";
-import type { PaneAttributes } from "@jali/core/adapter";
+import {
+  useCallback,
+  useEffect,
+  useId,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+  type ReactNode,
+} from "react";
+import type { PaneAttributes, PaneReportPatch } from "@jali/core/adapter";
+import type { PaneHost } from "./context";
 import { openPaneFor } from "@jali/core/adapter";
 import type { PaneProps } from "../define";
 import { useModel, useUi } from "../state/react";
@@ -22,15 +37,29 @@ export function usePane<P = Params>(): PaneProps<P> {
   return usePaneContext("usePane").props as PaneProps<P>;
 }
 
+/** Render order across every pane: a parent renders (and so mounts) before its children. */
+let order = 0;
+
+/** This hook call's report to `host`, kept apart from every other call's in the pane. Stable while `host` is. */
+export function useReporter(host: PaneHost): (patch: PaneReportPatch | null) => void {
+  const caller = useId();
+  const [seq] = useState(() => ++order);
+  return useCallback(
+    (patch: PaneReportPatch | null) => host.report(caller, seq, patch),
+    [host, caller, seq],
+  );
+}
+
 /**
  * Report what the pane is doing, for its header, tab, the shelf and the status line. `undefined` clears it (the same
  * as `"idle"`: nothing is shown), as does the component unmounting.
  */
 export function useActivity(activity: PaneActivity | undefined): void {
   const { host } = usePaneContext("useActivity");
-  const now = activity || "idle";
-  useEffect(() => host.setActivity(now), [host, now]);
-  useEffect(() => () => host.setActivity("idle"), [host]);
+  const report = useReporter(host);
+  const now = activity && activity !== "idle" ? activity : null;
+  useEffect(() => report({ activity: now }), [report, now]);
+  useEffect(() => () => report(null), [report]);
 }
 
 /**
@@ -39,9 +68,10 @@ export function useActivity(activity: PaneActivity | undefined): void {
  */
 export function useUnsaved(what: string | null | false | undefined): void {
   const { host } = usePaneContext("useUnsaved");
+  const report = useReporter(host);
   const text = what || null;
-  useEffect(() => host.setUnsaved(text), [host, text]);
-  useEffect(() => () => host.setUnsaved(null), [host]);
+  useEffect(() => report({ unsaved: text }), [report, text]);
+  useEffect(() => () => report(null), [report]);
 }
 
 /**
@@ -50,6 +80,7 @@ export function useUnsaved(what: string | null | false | undefined): void {
  */
 export function useCommands(commands: readonly PaneCommand[]): void {
   const { host } = usePaneContext("useCommands");
+  const report = useReporter(host);
   const latest = useRef(commands);
   latest.current = commands;
   const shape = JSON.stringify(commands.map(({ run: _run, ...rest }) => rest));
@@ -58,9 +89,9 @@ export function useCommands(commands: readonly PaneCommand[]): void {
       ...c,
       run: () => latest.current.find((l) => l.id === c.id)?.run(),
     }));
-    host.setCommands(listed.length ? listed : null);
-  }, [host, shape]);
-  useEffect(() => () => host.setCommands(null), [host]);
+    report({ commands: listed.length ? listed : null });
+  }, [report, shape]);
+  useEffect(() => () => report(null), [report]);
 }
 
 /**
@@ -70,13 +101,14 @@ export function useCommands(commands: readonly PaneCommand[]): void {
  */
 export function useTitle(title: string | null | undefined): void {
   const { host, props } = usePaneContext("useTitle");
+  const report = useReporter(host);
   const text = title || null;
   // The workspace drops a title when the pane shows another object; this sets the new object's again.
   const shows = JSON.stringify(props.node.ref);
   useEffect(() => {
-    host.setTitle(text);
-  }, [host, text, shows]);
-  useEffect(() => () => host.setTitle(null), [host]);
+    report({ title: text });
+  }, [report, text, shows]);
+  useEffect(() => () => report(null), [report]);
 }
 
 /**
@@ -90,15 +122,16 @@ export function usePaneAttributes(
   attributes: Record<`data-${string}`, string> | null | undefined,
 ): void {
   const { host, props } = usePaneContext("usePaneAttributes");
+  const report = useReporter(host);
   const shape = attributes ? JSON.stringify(attributes) : null;
   const latest = useRef<PaneAttributes | null | undefined>(attributes);
   latest.current = attributes;
   // As with a title: the workspace drops them when the pane shows another object; this sets the new object's again.
   const shows = JSON.stringify(props.node.ref);
   useEffect(() => {
-    host.setAttributes(shape ? (latest.current ?? null) : null);
-  }, [host, shape, shows]);
-  useEffect(() => () => host.setAttributes(null), [host]);
+    report({ attributes: shape ? (latest.current ?? null) : null });
+  }, [report, shape, shows]);
+  useEffect(() => () => report(null), [report]);
 }
 
 /**
