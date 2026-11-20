@@ -808,7 +808,7 @@ A link to a free workspace's layout, for <Ref to="linkSearch" page="/reference/c
 
 </Entry>
 
-<Entry name="LinkSearchOptions" kind="type" from="@jali/core" signature={`interface LinkSearchOptions { prefix?: string; search?: string }`} compact>The options of <Ref to="linkSearch" page="/reference/core" />: the workspace's `url.prefix`, and a search string whose other params are kept.</Entry>
+<Entry name="LinkSearchOptions" kind="type" from="@jali/core" signature={`interface LinkSearchOptions { prefix?: string; search?: string; panes?: readonly PaneKindBase[] }`} compact>The options of <Ref to="linkSearch" page="/reference/core" />: the workspace's `url.prefix`, a search string whose other params are kept, and the workspace's pane kinds. A link never carries a param only the app sets (`appOnly`) or one kept out of the address (`link: false`): `linkSearch` leaves them out of each ref a kind's call built (`query({ sql, autorun: true })`), and, given `panes`, out of any ref, such as those of a live layout or peek.</Entry>
 
 <Entry name="LocationPort" kind="type" from="@jali/core" signature={`interface LocationPort {\n  search(): string;\n  href(): string;\n  navigate(search: string, mode: NavigateMode): void;\n  subscribe(fn: () => void): () => void;\n}`} compact>
 

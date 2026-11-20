@@ -16,7 +16,14 @@ import type { HistoryMode } from "./state/apply";
 import type { ItemId } from "./profile";
 import { toLayout, type LayoutInput } from "./layout/build";
 import type { UrlState, UrlWriter } from "./state/store";
-import { readLayout, readRef } from "./pane-kinds";
+import {
+  createPaneKinds,
+  linkLayoutAlone,
+  linkRefAlone,
+  readLayout,
+  readRef,
+  type PaneKindBase,
+} from "./pane-kinds";
 import { browserLocation, browserStorage, type LocationPort, type StoragePort } from "./ports";
 import { own as ownOf } from "./own";
 
@@ -162,24 +169,32 @@ export interface LinkSearchOptions {
   /** A search string whose other params are kept (your app's own): `"?filter=open"`. Its workspace params are
    *  replaced. Default: none. */
   search?: string;
+  /** The workspace's pane kinds (what you pass `createJali({ panes })`), so the link leaves out the params a link
+   *  never carries (`appOnly`, `link: false`) of any ref, a live layout's or peek's included. Without them, it leaves
+   *  out those of each ref a kind's call built (`order({ id: 1 })`), and writes a plain object's params as they are. */
+  panes?: readonly PaneKindBase[];
 }
 
 /**
  * The search string (`"?page=visit&item=7&open=call~slug=x"`) that opens a workspace on `link`, as the workspace
  * itself would write it: reading it back gives exactly that page, item, view, opened panes and peek, or that layout.
  * Needs no workspace, so a server, an email or another app can build one. Put it after the path the workspace is at.
+ * Like the workspace, it never writes a param only the app sets (`appOnly`) or one kept out of the address
+ * (`link: false`); give it the workspace's `panes` for refs a kind's call didn't build.
  */
 export function linkSearch(link: JaliLink, options: LinkSearchOptions = {}): string {
   const k = urlKeys(options.prefix);
   const q = new URLSearchParams(options.search ?? "");
+  const kinds = options.panes && createPaneKinds(options.panes).registry();
+  const out = (ref: ObjectRef) => linkRefAlone(ref, kinds);
   for (const key of Object.values(k)) q.delete(key);
-  if ("page" in link) setPage(q, k, link);
+  if ("page" in link) setPage(q, k, link.open ? { ...link, open: link.open.map(out) } : link);
   else {
-    q.set(k.layout, core.encode(toLayout(link.layout)));
+    q.set(k.layout, core.encode(linkLayoutAlone(toLayout(link.layout), kinds)));
     if (link.preset) q.set(k.preset, link.preset);
     if (link.zoom) q.set(k.zoom, link.zoom);
   }
-  if (link.peek) q.set(k.peek, encodePeek(link.peek));
+  if (link.peek) q.set(k.peek, encodePeek(out(link.peek)));
   const text = q.toString();
   return text ? `?${text}` : "";
 }

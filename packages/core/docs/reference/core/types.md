@@ -1338,10 +1338,10 @@ A link to a free workspace's layout, for [`linkSearch`](../core.md#linkSearch): 
 *type*, from `@jali/core`
 
 ```ts
-interface LinkSearchOptions { prefix?: string; search?: string }
+interface LinkSearchOptions { prefix?: string; search?: string; panes?: readonly PaneKindBase[] }
 ```
 
-The options of [`linkSearch`](../core.md#linkSearch): the workspace's `url.prefix`, and a search string whose other params are kept.
+The options of [`linkSearch`](../core.md#linkSearch): the workspace's `url.prefix`, a search string whose other params are kept, and the workspace's pane kinds. A link never carries a param only the app sets (`appOnly`) or one kept out of the address (`link: false`): `linkSearch` leaves them out of each ref a kind's call built (`query({ sql, autorun: true })`), and, given `panes`, out of any ref, such as those of a live layout or peek.
 
 ### LocationPort
 

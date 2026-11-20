@@ -373,7 +373,7 @@ The search string that opens a workspace on `link`, written as the workspace its
 
 - **`link`** (`JaliLink`, required): A [`PageLink`](core/types.md#PageLink) (a curated page: `page`, and optionally `item`, `tab`, `open` and `peek`) or a [`LayoutLink`](core/types.md#LayoutLink) (a free workspace: `layout`, and optionally `preset`, `zoom` and `peek`).
 
-- **`options`** (`LinkSearchOptions`): `prefix`: the workspace's `url.prefix`, when it has one. `search`: a search string whose other params (your app's own) are kept; any workspace params in it are replaced.
+- **`options`** (`LinkSearchOptions`): `prefix`: the workspace's `url.prefix`, when it has one. `search`: a search string whose other params (your app's own) are kept; any workspace params in it are replaced. `panes`: the workspace's pane kinds, as you pass `createJali({ panes })`. A link never carries a param only the app sets (`appOnly`) or one kept out of the address (`link: false`); `linkSearch` leaves them out of each ref a kind's call built, and, given `panes`, out of any ref, such as those of a live layout (`jali.getLayout()`) or peek.
 
 **Returns** `string`: `"?…"`, or `""` when there is nothing to write.
 

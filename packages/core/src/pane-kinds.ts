@@ -448,14 +448,38 @@ export type PaneDefinition<P = Params, D extends PaneKindBase = PaneKindBase> = 
 
 /** Gives a kind the call that builds its refs. Framework adapters build `definePane` on this. */
 export function defineKind<P, D extends PaneKindBase>(def: D): PaneDefinition<P, D> {
+  const unwritten = [...appOnlyParams(def.params), ...unlinkedParams(def.params)];
   // An optional param given as `undefined` is left out, as a link would leave it.
-  const ref = (params: Record<string, ParamValue | undefined> = {}): ObjectRef => ({
-    kind: def.kind,
-    params: Object.fromEntries(
-      Object.entries(params).filter((e): e is [string, ParamValue] => e[1] !== undefined),
-    ),
-  });
+  const ref = (params: Record<string, ParamValue | undefined> = {}): ObjectRef => {
+    const made = {
+      kind: def.kind,
+      params: Object.fromEntries(
+        Object.entries(params).filter((e): e is [string, ParamValue] => e[1] !== undefined),
+      ),
+    };
+    if (unwritten.length) unwrittenOf.set(made, unwritten);
+    return made;
+  };
   return Object.assign(ref, def) as unknown as PaneDefinition<P, D>;
+}
+
+/** The params a link leaves out (`appOnly`, `link: false`) of each ref a kind's call built, so a link built with no
+ *  workspace (`linkSearch`) still leaves them out. */
+const unwrittenOf = /* @__PURE__ */ new WeakMap<ObjectRef, readonly string[]>();
+
+/**
+ * `ref` as a link carries it, with no workspace at hand: by its kind in `kinds` when that has it, else by the kind
+ * whose call built it. A ref that is neither (a plain object of a kind `kinds` lacks) is the same ref.
+ */
+export function linkRefAlone(ref: ObjectRef, kinds?: KindRegistry): ObjectRef {
+  if (kinds && Object.hasOwn(kinds, ref.kind)) return linkRef(kinds, ref);
+  const params = without(ref.params, unwrittenOf.get(ref));
+  return params === ref.params ? ref : { ...ref, params };
+}
+
+/** `layout` with every pane's ref as `linkRefAlone` gives it. */
+export function linkLayoutAlone(layout: Layout, kinds?: KindRegistry): Layout {
+  return mapRefs(layout, (ref) => linkRefAlone(ref, kinds));
 }
 
 // ---------- the registry ----------

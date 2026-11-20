@@ -4,11 +4,13 @@
  */
 import { describe, expect, it } from "vite-plus/test";
 import {
+  appOnly,
   createJali,
   definePage,
   linkSearch,
   memoryLocation,
   memoryStorage,
+  optional,
   pane,
   row,
   toLayout,
@@ -135,5 +137,39 @@ describe("a layout link", () => {
       ["b", visit({ id: 3 })],
     ]);
     expect(jali.get().view.peek).toEqual(visit({ id: 2 }));
+  });
+});
+
+describe("a link built with no workspace", () => {
+  const query = definePane("query", {
+    params: { sql: String, autorun: appOnly(Boolean), cursor: optional(Number, { link: false }) },
+    title: ({ sql }) => `Query ${sql}`,
+    Component: () => null,
+  });
+  const params = (search: string, key: string) => new URLSearchParams(search).getAll(key).join(" ");
+
+  it("leaves out app-only and link: false params of refs a kind's call built", () => {
+    const ref = query({ sql: "select 1", autorun: true, cursor: 4 });
+    const pageLink = linkSearch({ page: "visit", open: [ref], peek: ref });
+    for (const key of ["open", "peek"]) {
+      expect(params(pageLink, key)).toBe("query~sql=select 1");
+    }
+    const layoutLink = linkSearch({ layout: row(ref), peek: ref });
+    expect(params(layoutLink, "peek")).toBe("query~sql=select 1");
+    expect(layoutLink).not.toMatch(/autorun|cursor/);
+    // The ref itself keeps them: they are the app's.
+    expect(ref.params).toEqual({ sql: "select 1", autorun: true, cursor: 4 });
+  });
+
+  it("leaves them out of a live layout's and peek's refs when given the workspace's panes", () => {
+    // Refs as a workspace holds them: plain objects, not built by the kind's call.
+    const plain = { kind: "query", params: { sql: "select 1", autorun: true, cursor: 4 } };
+    const live = { kind: "query", params: { ...plain.params } };
+    expect(linkSearch({ layout: row(live), peek: plain }, { panes: [query] })).not.toMatch(
+      /autorun|cursor/,
+    );
+    expect(params(linkSearch({ page: "visit", open: [plain] }, { panes: [query] }), "open")).toBe(
+      "query~sql=select 1",
+    );
   });
 });
