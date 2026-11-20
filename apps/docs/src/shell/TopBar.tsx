@@ -92,15 +92,18 @@ export function TopBar({ path, landing }: { path: string; landing?: boolean }) {
           <button
             type="button"
             className="search-button"
-            aria-label="Search the docs"
             aria-keyshortcuts="Meta+K Control+K /"
             aria-haspopup="dialog"
             data-search-open=""
           >
             <MagnifyingGlassIcon aria-hidden size={16} />
+            {/* The name is the words on it, "Search", plus what it searches; the key is announced by aria-keyshortcuts. */}
             <span className="search-button-label">Search</span>
+            <span className="visually-hidden"> the docs</span>
             {/* Written for Windows and Linux; the browser says ⌘K on a Mac. */}
-            <kbd className="kbd search-button-kbd">Ctrl K</kbd>
+            <kbd className="kbd search-button-kbd" aria-hidden>
+              Ctrl K
+            </kbd>
           </button>
           <ThemeToggle />
           <a

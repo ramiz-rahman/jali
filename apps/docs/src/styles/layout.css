@@ -444,9 +444,17 @@
       background: none;
       color: var(--jali-text-muted);
     }
-    .search-button-label,
     .search-button-kbd {
       display: none;
+    }
+    /* An icon button here, still named "Search the docs". */
+    .search-button-label {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip: rect(0 0 0 0);
+      white-space: nowrap;
     }
     .main {
       padding: 32px 16px 88px;

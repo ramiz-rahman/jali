@@ -117,7 +117,7 @@ export function Entry({
         {aside ? (
           <div className="ref-entry-aside">
             {signature ? (
-              <pre className="ref-signature" aria-label="Signature">
+              <pre className="ref-signature" aria-label="Signature" tabIndex={0}>
                 <code>{signature}</code>
               </pre>
             ) : null}

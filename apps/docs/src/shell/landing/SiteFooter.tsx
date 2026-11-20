@@ -66,7 +66,7 @@ export function SiteFooter() {
             come back when there is room.
           </p>
         </div>
-        <nav className="site-footer-nav" aria-label="Site">
+        <nav className="site-footer-nav" aria-label="Footer">
           {columns().map((c) => (
             <div key={c.title} className="site-footer-col">
               <p className="site-footer-heading" id={`footer-${c.title.toLowerCase()}`}>

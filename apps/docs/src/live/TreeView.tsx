@@ -201,7 +201,12 @@ export function TreeView({
   ) : null;
   const h = typeof height === "number" ? `${height}px` : height;
   const mapPanel = (
-    <section className="live-panel" data-panel="map" aria-label="Layout tree, drawn as a map">
+    <section
+      className="live-panel"
+      data-panel="map"
+      role="group"
+      aria-label="Layout tree, drawn as a map"
+    >
       <header className="live-panel-head">
         <span className="live-panel-title">
           <b>Layout tree</b>
@@ -227,7 +232,12 @@ export function TreeView({
     </section>
   );
   const jsonPanel = (
-    <section className="live-panel" data-panel="json" aria-label="Layout tree, as JSON">
+    <section
+      className="live-panel"
+      data-panel="json"
+      role="group"
+      aria-label="Layout tree, as JSON"
+    >
       <header className="live-panel-head">
         <span className="live-panel-title">
           <b>{both ? "JSON" : "Layout tree"}</b>
@@ -306,7 +316,11 @@ export function TreeView({
             <ClientOnly>
               <JaliProvider jali={store.jali}>
                 <PreviewRects.Provider value={preview}>
-                  <section className="live-panel live-side" aria-label="The layout tree">
+                  <section
+                    className="live-panel live-side"
+                    role="group"
+                    aria-label="The layout tree"
+                  >
                     <header className="live-panel-head">
                       <span className="live-panel-title">
                         <b>Layout tree</b>
