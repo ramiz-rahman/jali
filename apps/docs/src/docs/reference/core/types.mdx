@@ -124,7 +124,7 @@ What the person is looking at, apart from the layout.
 
 </Entry>
 
-<Entry name="PaneKind" kind="type" from="@jali/core" signature={`interface PaneKind { kind; title(ref); minWidth; minHeight; comfortableWidth?; maxWidth?; checkParams? }`} compact>
+<Entry name="PaneKind" kind="type" from="@jali/core" signature={`interface PaneKind { kind; title(ref); minWidth; minHeight; comfortableWidth?; maxWidth?; comfortableHeight?; maxHeight?; checkParams? }`} compact>
 
 The part of a kind the layout operations read, from `kinds.registry()`. The sizes are explained under <Ref to="PaneKindBase" />. `checkParams(params)`, set for a kind that declares `params`, says what is wrong with a ref's params (a required param missing, a value its type can't read), or returns `undefined`; <Ref to="layout.validate" page="/reference/core/layout" /> rejects a layout holding such a ref, so a link to it opens as broken.
 
@@ -240,7 +240,17 @@ What a kind says about itself, apart from how it renders. In React, `definePane(
 </ChildParams>
 
 </Param>
-<Param name="height" type="PaneHeight" default="{ min: 160 }">`min`: the shortest the content works at.</Param>
+<Param name="height" type="PaneHeight" default="{ min: 160 }">
+
+The same three as `width`, down a column.
+
+<ChildParams label="height">
+<Param name="min" type="number" default="160">The shortest the content works at. Below it the pane folds into a tab.</Param>
+<Param name="comfortable" type="number" default="min">Where spare height takes the pane first, before any pane above or below grows past its own.</Param>
+<Param name="max" type="number" default="none">The tallest the content usefully uses. Spare height past it goes to the panes above and below first; only when every one is at its maximum does the pane grow on. A short, wide pane such as a timeline sets it.</Param>
+</ChildParams>
+
+</Param>
 <Param name="shows" type="string" default="the kind">The type of object shown, shared by kinds that show the same objects differently. Two panes show the same object when this and their identities match.</Param>
 <Param name="identity" type="(params: P) => unknown" default="every param, compared as text">What makes two panes of this kind the same object (one object, one pane). `1` and `"1"` are the same by default.</Param>
 <Param name="scratch" type="boolean">Every pane is new (a scratch note, a launcher): never matched against an open pane, and left out of Recent unless `inRecent` says otherwise.</Param>
@@ -260,9 +270,9 @@ A kind's widths in px; see `width` under <Ref to="PaneOptions" />.
 
 </Entry>
 
-<Entry name="PaneHeight" kind="type" from="@jali/core" signature={`interface PaneHeight { min?: number }`} compact>
+<Entry name="PaneHeight" kind="type" from="@jali/core" signature={`interface PaneHeight { min?: number; comfortable?: number; max?: number }`} compact>
 
-A kind's height in px; see `height` under <Ref to="PaneOptions" />.
+A kind's heights in px; see `height` under <Ref to="PaneOptions" />.
 
 </Entry>
 

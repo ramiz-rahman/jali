@@ -198,7 +198,7 @@ What the person is looking at, apart from the layout.
 *type*, from `@jali/core`
 
 ```ts
-interface PaneKind { kind; title(ref); minWidth; minHeight; comfortableWidth?; maxWidth?; checkParams? }
+interface PaneKind { kind; title(ref); minWidth; minHeight; comfortableWidth?; maxWidth?; comfortableHeight?; maxHeight?; checkParams? }
 ```
 
 The part of a kind the layout operations read, from `kinds.registry()`. The sizes are explained under `PaneKindBase`. `checkParams(params)`, set for a kind that declares `params`, says what is wrong with a ref's params (a required param missing, a value its type can't read), or returns `undefined`; [`layout.validate`](layout.md#layout.validate) rejects a layout holding such a ref, so a link to it opens as broken.
@@ -389,7 +389,17 @@ What a kind says about itself, apart from how it renders. In React, `definePane(
 
 - **`max`** (`number`): The widest the content usefully uses. Spare space past it goes to siblings that can use it; only when every sibling is at its maximum does the pane grow on, and the content keeps its measure. Leave it out for tables and charts.
 
-- **`height`** (`PaneHeight`): `min`: the shortest the content works at.
+- **`height`** (`PaneHeight`):
+
+The same three as `width`, down a column.
+
+**height**
+
+- **`min`** (`number`): The shortest the content works at. Below it the pane folds into a tab.
+
+- **`comfortable`** (`number`): Where spare height takes the pane first, before any pane above or below grows past its own.
+
+- **`max`** (`number`): The tallest the content usefully uses. Spare height past it goes to the panes above and below first; only when every one is at its maximum does the pane grow on. A short, wide pane such as a timeline sets it.
 
 - **`shows`** (`string`): The type of object shown, shared by kinds that show the same objects differently. Two panes show the same object when this and their identities match.
 
@@ -424,10 +434,10 @@ A kind's widths in px; see `width` under `PaneOptions`.
 *type*, from `@jali/core`
 
 ```ts
-interface PaneHeight { min?: number }
+interface PaneHeight { min?: number; comfortable?: number; max?: number }
 ```
 
-A kind's height in px; see `height` under `PaneOptions`.
+A kind's heights in px; see `height` under `PaneOptions`.
 
 ### PaneDefinition
 

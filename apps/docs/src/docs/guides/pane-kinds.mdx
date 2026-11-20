@@ -50,6 +50,8 @@ Two more widths say where spare room goes:
 - `width.comfortable`: spare room brings the pane up to this first. Default: `width.min`.
 - `width.max`: the widest the content usefully uses. Past it, spare room goes to the neighbours first. It is soft: when every pane is at its max, they all grow on, so a split never leaves an empty gap. A person dragging a divider can pass it too.
 
+`height.comfortable` and `height.max` do the same down a column. A short, wide pane, such as a timeline under a document, says `height: { min: 160, comfortable: 200, max: 240 }` and stays about that tall in any window, while the pane above takes the rest.
+
 Leave `width.max` out for content that uses any width, such as tables and charts. Set it for forms and records, so a field does not stretch across a wide screen.
 
 </Step>
