@@ -419,6 +419,8 @@ The same three as `width`, down a column.
 
 - **`follow`** (`(selected: ObjectRef) => FollowParams<P> | undefined`): What a following pane of this kind shows when its list selects an object of another kind: the params for it, or `undefined` to keep what it shows. `follow: (selected) => ({ symbol: selected.params.symbol })` lets a chart follow a watchlist that selects quotes. A follower of the selected object's own kind shows that object without it. Params given as `undefined` are left out; if the kind can't read the result (a required param missing), the pane keeps what it shows. See [Following a list](../../learn/following.md#followers-of-other-kinds).
 
+- **`selects`** (`string`): For a list: the kind of the objects it selects (`"quote"` for a watchlist that reports `select(quote(...))`). A pane of this kind with no selection starts on what its follower of that kind shows, when the layout gives it one: at start-up, on a link, after a preset or `setLayout`, in the same change. A follower of another kind gives nothing. See [Following a list](../../learn/following.md#where-a-list-starts).
+
 ### PaneWidth
 
 *type*, from `@jali/core`

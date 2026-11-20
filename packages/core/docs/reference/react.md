@@ -74,7 +74,7 @@ The result is also how you name an object of the kind: `orderKind({ id: 1041 })`
 
 - **`options`** (`PaneOptionsReact`, required):
 
-Everything in [`PaneOptions`](core/types.md#PaneOptions) (`params`, `title`, `width`, `height`, `shows`, `identity`, `scratch`, `inRecent`, `holdWhileResizing`, `follow`), and:
+Everything in [`PaneOptions`](core/types.md#PaneOptions) (`params`, `title`, `width`, `height`, `shows`, `identity`, `scratch`, `inRecent`, `holdWhileResizing`, `follow`, `selects`), and:
 
 **view fields**
 

@@ -125,6 +125,23 @@ With a following detail on screen, Space on a row shows that row in the detail, 
 
 With no following detail, or one that is out of sight (folded, behind a tab, tucked), Space opens the peek sheet as usual.
 
+## Where a list starts
+
+A list with no selection yet, beside a follower that already shows something, would otherwise start on its first row and move the follower straight away. Say what the list selects with `selects`, and it starts on what its follower of that kind shows instead:
+
+```tsx
+const watchlist = definePane("watchlist", {
+  title: "Watchlist",
+  // It reports select(quote({ symbol })): with no selection, it starts on what its following quote shows.
+  selects: "quote",
+  Component: Watchlist,
+});
+```
+
+This happens when the workspace starts, when a link arrives, and after a preset or `setLayout`, in the same change: nothing moves and there is no step to undo. Only a follower of the kind the list selects counts. A follower of another kind, such as a chart beside a watchlist of quotes, shows what its `follow` gives for a selection, and that can't be turned back into the selection, so the list starts on nothing. In a chain, the first list starts first, so a list that follows it starts from the layout as the first one leaves it. A list that already has a selection keeps it ([A new layout beside a list](#a-new-layout-beside-a-list)).
+
+Read the selection back to put the cursor there, `useJaliState((s) => s.selection[node.id])`, and report a selection of your own only when there is none (no follower of that kind).
+
 ## A new layout beside a list
 
 A list keeps its selection through a preset or `setLayout` when it is in the new layout too (the same `id`). The new layout may put a follower beside it that shows something else. The list and its followers agree as soon as the layout changes, in the same change, and the layout's word wins:

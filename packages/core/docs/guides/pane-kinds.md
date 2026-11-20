@@ -66,6 +66,7 @@ Two more options:
 - `holdWhileResizing: true` keeps the content as it is while a divider is dragged, and reflows it once on release. Use it for long lists and grids.
 - `inRecent: false` keeps the kind out of Recent. It can also be a function of the params.
 - `follow` says what a following pane of this kind shows when its list selects an object of another kind: `follow: (selected) => ({ symbol: selected.params.symbol })` lets a chart follow a watchlist of quotes. See [Following a list](../learn/following.md#followers-of-other-kinds).
+- `selects` says, for a list, the kind of the objects it selects: `selects: "quote"` for a watchlist that reports `select(quote(...))`. With no selection yet, the list starts on what its follower of that kind shows. See [Following a list](../learn/following.md#where-a-list-starts).
 
 ## Params
 
