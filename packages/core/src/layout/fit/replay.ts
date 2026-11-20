@@ -30,6 +30,18 @@ function copy(root: Projected): { root: Projected; of: Map<Projected, Projected>
   return { root: walk(root), of };
 }
 
+/**
+ * What the search for a better home (`fold`) may still spend, in slots: each trial copied or folded on costs the slots
+ * it has. One budget serves a whole replay, the recorded folds and every fold after them, so the same folds always
+ * spend it the same way: deterministic, and the same on every machine.
+ */
+export interface Lookahead {
+  left: number;
+}
+/** A replay's lookahead budget. A workspace of up to about 15 slots never runs out; one of hundreds searches its
+ *  first folds and then folds by the rule alone. */
+export const LOOKAHEAD = 8192;
+
 /** Done folding on: the projection fits the room, or a single slot is left. */
 const settled = (root: Projected, fit: FitOptions) =>
   !tooSmall(root, fit) || slots(root).length < 2;
@@ -45,25 +57,36 @@ const settled = (root: Projected, fit: FitOptions) =>
  * Every fold takes exactly one slot off screen, so the trial that leaves the most slots is the one that fits after
  * the fewest further folds. The trials therefore advance together, one fold each per round, and the first to settle
  * wins (the earliest in `homes` among those settling in the same round): no trial is followed further than the winner.
+ *
+ * The search spends from `budget`. When a round would cost more than is left, the slot goes to the rule's home, as it
+ * did before the search existed.
  */
 export function fold(
   root: Projected,
   choice: Projected,
   fit: FitOptions,
   order: Map<string, number>,
+  budget: Lookahead,
 ): Projected {
   const homes = foldHomes(root, choice);
-  if (homes.length < 2) return foldSlot(root, choice, fit, order);
+  const count = slots(root).length;
+  if (homes.length < 2 || homes.length * count > budget.left)
+    return foldSlot(root, choice, fit, order, undefined, homes[0]);
   const tryAt = (home: Projected) => {
     const trial = copy(root);
     return foldSlot(trial.root, trial.of.get(choice)!, fit, order, undefined, trial.of.get(home)!);
   };
   const first = tryAt(homes[0]!);
+  budget.left -= count;
   if (!tooSmall(first, fit)) return first;
   const trials = [first, ...homes.slice(1).map(tryAt)];
+  budget.left -= (homes.length - 1) * count;
   for (;;) {
     const best = trials.findIndex((t) => settled(t, fit));
     if (best >= 0) return foldSlot(root, choice, fit, order, undefined, homes[best]);
+    const cost = trials.length * slots(trials[0]!).length;
+    if (cost > budget.left) return foldSlot(root, choice, fit, order, undefined, homes[0]);
+    budget.left -= cost;
     for (let i = 0; i < trials.length; i++) {
       const t = trials[i]!;
       trials[i] = foldSlot(t, chooseFold(t, noFocus(), order)!, fit, order);
@@ -101,16 +124,27 @@ export interface Replayed {
   root: Projected;
   order: Map<string, number>;
   applied: string[];
+  budget: Lookahead;
 }
 /** The projection before any tuck or fold, hidden panes already gone. */
 function start(layout: Layout, fit: FitOptions): Replayed {
   const projected = project(layout.root, fit);
   const order = new Map(allPanes(projected).map((p, i) => [p.id, i]));
-  return { root: withoutHidden(projected, layout.overlay?.hidden ?? [], fit), order, applied: [] };
+  return {
+    root: withoutHidden(projected, layout.overlay?.hidden ?? [], fit),
+    order,
+    applied: [],
+    budget: { left: LOOKAHEAD },
+  };
 }
 /** A copy to fold on without touching `r`. */
 function fork(r: Replayed): Replayed {
-  return { root: copy(r.root).root, order: r.order, applied: [...r.applied] };
+  return {
+    root: copy(r.root).root,
+    order: r.order,
+    applied: [...r.applied],
+    budget: { ...r.budget },
+  };
 }
 /** Replay one fold record onto `r` (in place). A stale record (a closed or moved pane) is skipped, and so is every
  *  record once a single slot is left. */
@@ -119,7 +153,7 @@ function foldOn(r: Replayed, id: string, fit: FitOptions): void {
   if (displayed.length < 2) return;
   const choice = displayed.find((s) => s.id === id);
   if (!choice) return;
-  r.root = fold(r.root, choice, fit, r.order);
+  r.root = fold(r.root, choice, fit, r.order, r.budget);
   r.applied.push(id);
 }
 /** A revealed tab names the same stable home as its fold: each tuck's home, resolved against the projection with the

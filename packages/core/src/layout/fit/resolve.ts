@@ -18,11 +18,12 @@ import { chooseFold } from "./priority";
 import { checkContext, misfit } from "./context";
 function build(layout: Layout, ctx: LayoutContext): Projected {
   const { fit, paneCap } = ctx;
-  let { root, order } = replay(layout, layout.overlay?.folds ?? [], fit);
+  const replayed = replay(layout, layout.overlay?.folds ?? [], fit);
+  let { root } = replayed;
   while (misfit(root, fit, paneCap)) {
-    const choice = chooseFold(root, noFocus(), order);
+    const choice = chooseFold(root, noFocus(), replayed.order);
     if (!choice) break;
-    root = fold(root, choice, fit, order);
+    root = fold(root, choice, fit, replayed.order, replayed.budget);
   }
   choose(root, layout.overlay?.shown);
   return root;
