@@ -41,13 +41,15 @@ import { installPressed } from "./pressed";
 import { StoreProvider, useStore, useTheme, useUi } from "./state/react";
 import { Panes } from "./workspace/Workspace";
 import { PAGE_PARTS } from "./define";
+import { overlaysDomId } from "./a11y/ModalDialog";
 
 export interface JaliRootProps extends HTMLAttributes<HTMLDivElement> {
   jali: Jali;
   /** What goes inside the workspace's root. Default: `<JaliView />`. */
   children?: ReactNode;
   /** Rendered after the root, inside the provider: things that must sit outside the workspace, such as a toaster
-   *  (focus is never pulled back from outside the root). */
+   *  (focus is never pulled back from outside the root). Inert, like the workspace, while one of Jali's dialogs is
+   *  open; they sit in an element of their own (`data-jali-overlays`, `display: contents`) for that. */
   overlays?: ReactNode;
   /** Include the settings panel (opened from ⌘K). Default true. */
   settings?: boolean;
@@ -121,7 +123,16 @@ export function JaliRoot({
       (rest as Record<string, unknown>)["data-theme"] !== undefined ? null : (
         <ThemeOnRoot layer={host} />
       )}
-      {overlays}
+      {overlays == null ? null : (
+        <div
+          data-jali-overlays=""
+          id={overlaysDomId(store.dom.id)}
+          dir={store.env.dir}
+          style={{ display: "contents" }}
+        >
+          {overlays}
+        </div>
+      )}
     </JaliProvider>
   );
 }

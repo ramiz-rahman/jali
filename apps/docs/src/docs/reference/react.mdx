@@ -37,7 +37,7 @@ Two things are yours to render. **The shelf** (tucked panes as chips): put <Ref 
 <Params title="Props">
 <Param name="workspace" type="Jali" required>From `createJali`.</Param>
 <Param name="children" type="ReactNode" default="<JaliView />">Rendered inside the root: `<JaliView>` and your chrome.</Param>
-<Param name="overlays" type="ReactNode">Rendered after the root: things that must sit outside the workspace, such as a toaster. Focus is never pulled back from outside the root.</Param>
+<Param name="overlays" type="ReactNode">Rendered after the root: things that must sit outside the workspace, such as a toaster. Focus is never pulled back from outside the root. While one of Jali's dialogs is open they are inert, as the workspace behind it is, so a toast's Undo can't be reached until it closes; Jali's own announcements are still heard. They sit in an element of their own (`[data-jali-overlays]`, `display: contents`), so a toaster lays out as it would without it.</Param>
 <Param name="settings" type="boolean" default="true">`false` leaves the Settings panel out.</Param>
 <Param name="icons" type="Partial<JaliIcons>">Your own icons for any of the names Jali draws (`{ close: MyClose }`); the others stay Jali's. See [Icons](#icons).</Param>
 <Param name="settingsExtra" type="ReactNode">Your own settings, as `<fieldset>`s with a `<legend>`, shown at the end of the Settings panel. Store their values yourself. A row that is a radio or checkbox and its words matches Jali's as `<label className="jali-setting">` (the `settingRow` part).</Param>

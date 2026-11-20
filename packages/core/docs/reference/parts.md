@@ -92,6 +92,7 @@ Corners, spacing and colours are tokens, not parts: every corner reads `--jali-r
 | --- | --- | --- | --- |
 | `[data-jali]` | `div` | The workspace's root: the element `<JaliRoot>` renders, with your `className`. | none |
 | `[data-jali-layer]` | `div` | Beside the root (`display: contents`), holding everything that overlays the workspace: the palette, Settings, the chooser, the discard question, tab menus and the live region. Tokens set on an element around `<JaliRoot>` reach it; tokens set on the root itself don't. | none |
+| `[data-jali-overlays]` | `div` | Beside the root and the layer (`display: contents`), holding what you pass `<JaliRoot overlays>`, such as a toaster; only when you pass some. Inert while one of Jali's dialogs is open, as the workspace is. | none |
 | `.jali-workspace` | `section` (`main` with `createJali({ landmark: "main" })`) | The area the panes are laid out in. | `data-single`: Flag: Single view (one pane at a time, with the switcher).<br>`data-stacked`: Flag: stacked view, two panes one above the other (a phone with `phone.stack`), or a pane each side of a fold.<br>`data-fold`: Across a fold: `row` (the halves side by side) or `column` (one above the other).<br>`data-zoomed`: Flag: a pane is maximised.<br>`data-full-screen`: Flag: a pane is on the whole screen.<br>`data-alone`: Flag: one pane on screen, shown full-bleed with no tuck, maximise or drag.<br>`data-page`: On a curated page: `split` or `single`, the page's mode. |
 
 ## Pane

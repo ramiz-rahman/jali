@@ -34,7 +34,7 @@ Two things are yours to render. **The shelf** (tucked panes as chips): put `Shel
 
 - **`children`** (`ReactNode`): Rendered inside the root: `<JaliView>` and your chrome.
 
-- **`overlays`** (`ReactNode`): Rendered after the root: things that must sit outside the workspace, such as a toaster. Focus is never pulled back from outside the root.
+- **`overlays`** (`ReactNode`): Rendered after the root: things that must sit outside the workspace, such as a toaster. Focus is never pulled back from outside the root. While one of Jali's dialogs is open they are inert, as the workspace behind it is, so a toast's Undo can't be reached until it closes; Jali's own announcements are still heard. They sit in an element of their own (`[data-jali-overlays]`, `display: contents`), so a toaster lays out as it would without it.
 
 - **`settings`** (`boolean`): `false` leaves the Settings panel out.
 

@@ -212,3 +212,76 @@ describe("the chooser", () => {
     expect(document.activeElement).toBe(from);
   });
 });
+
+describe("the host's overlays", () => {
+  /** Inert itself or inside something inert: out of the tab order, the accessibility tree and the pointer. */
+  const inert = (el: Element | null) => {
+    for (let at = el; at; at = at.parentElement) if ((at as HTMLElement).inert) return true;
+    return false;
+  };
+  const toaster = (
+    <section aria-label="Notifications" aria-live="polite">
+      <p>Note 2 closed</p>
+      <button type="button">Undo</button>
+    </section>
+  );
+
+  it("are inert while a dialog is open, and Jali's announcements are still heard", async () => {
+    const jali = make(row(pane(note({ id: 1 }), { id: "a" }), pane(note({ id: 2 }), { id: "b" })));
+    render(<JaliRoot jali={jali} overlays={toaster} />);
+    const undo = screen.getByRole("button", { name: "Undo" });
+    expect(inert(undo)).toBe(false);
+    // In an element of their own that takes no box: the toaster lays out as if it were the provider's child.
+    const wrap = document.querySelector<HTMLElement>("[data-jali-overlays]")!;
+    expect(wrap.contains(undo)).toBe(true);
+    expect(wrap.style.display).toBe("contents");
+
+    act(() => storeOf(jali).set({ settingsOpen: true }));
+    expect(screen.getByRole("dialog", { name: "Settings" })).toBeTruthy();
+    expect(inert(undo)).toBe(true);
+    expect(inert(root())).toBe(true);
+    // The live region is outside everything made inert, and still speaks.
+    const announcer = screen.getByTestId("announcer");
+    expect(inert(announcer)).toBe(false);
+    act(() => storeOf(jali).announce("Theme: dark"));
+    await act(() => new Promise((r) => setTimeout(r, 50)));
+    expect(announcer.textContent).toBe("Theme: dark");
+
+    act(() => void press("Escape"));
+    expect(inert(undo)).toBe(false);
+  });
+
+  it("are inert behind the discard question too, and an overlay the host made inert stays inert", () => {
+    const jali = make(row(pane(note({ id: 1 }), { id: "a" }), pane(draft({ id: 2 }), { id: "b" })));
+    render(
+      <JaliRoot
+        jali={jali}
+        overlays={
+          <>
+            {toaster}
+            <aside
+              ref={(el) => {
+                if (el) el.inert = true;
+              }}
+            >
+              <button type="button">Host's own</button>
+            </aside>
+          </>
+        }
+      />,
+    );
+    const own = screen.getByRole("button", { name: "Host's own", hidden: true });
+    act(() => void jali.actions.close("b"));
+    expect(screen.getByRole("alertdialog")).toBeTruthy();
+    expect(inert(screen.getByRole("button", { name: "Undo", hidden: true }))).toBe(true);
+    act(() => void press("Escape"));
+    expect(screen.queryByRole("alertdialog")).toBeNull();
+    expect(inert(screen.getByRole("button", { name: "Undo" }))).toBe(false);
+    expect(inert(own)).toBe(true);
+  });
+
+  it("add no element when there are none", () => {
+    render(<JaliRoot jali={make(row(pane(note({ id: 1 }), { id: "a" })))} />);
+    expect(document.querySelector("[data-jali-overlays]")).toBeNull();
+  });
+});

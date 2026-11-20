@@ -78,6 +78,13 @@ export const parts = {
     what: "Beside the root (`display: contents`), holding everything that overlays the workspace: the palette, Settings, the chooser, the discard question, tab menus and the live region. Tokens set on an element around `<JaliRoot>` reach it; tokens set on the root itself don't.",
     attributes: [],
   },
+  overlays: {
+    selector: "[data-jali-overlays]",
+    element: "div",
+    area: "Workspace",
+    what: "Beside the root and the layer (`display: contents`), holding what you pass `<JaliRoot overlays>`, such as a toaster; only when you pass some. Inert while one of Jali's dialogs is open, as the workspace is.",
+    attributes: [],
+  },
   workspace: {
     selector: ".jali-workspace",
     element: 'section (`main` with `createJali({ landmark: "main" })`)',

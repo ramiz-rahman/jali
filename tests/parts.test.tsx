@@ -169,7 +169,7 @@ describe("styling contract", () => {
       moveFocus: false,
     });
     const { container } = render(
-      <JaliRoot jali={jali}>
+      <JaliRoot jali={jali} overlays={<div />}>
         <JaliView />
         <Shelf />
       </JaliRoot>,
@@ -177,6 +177,7 @@ describe("styling contract", () => {
     const rendered: PartName[] = [
       "root",
       "layer",
+      "overlays",
       "workspace",
       "pane",
       "paneHeader",
