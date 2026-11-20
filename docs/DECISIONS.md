@@ -1255,3 +1255,9 @@ Gzipped KB, measured on master `ea3ac83` after `pnpm build:packages`. The `mustN
 - **Why:** the store hands a host's `UrlWriter` the address's share of the state with app-only and `link: false` params removed from the layout and the peek, but `page.before` (the split layout "Back to …" returns to, set when the first investigation pane opens) went out as it was, refs and all.
 - **Now:** `writeUrl` passes `page.before` through `linkLayout` too. Jali's own address never wrote `before`; the workspace keeps its own copy whole, so Back to the page's layout is still exact.
 - **Tests:** `tests/app-only-params.test.ts`: after an investigation pane opens, neither the written layout nor the written `page.before` holds the role pane's `autorun`, and the workspace's own `page.before` still does.
+
+## 21 Nov 2026 · Back and Forward keep a curated page's opened panes' own params (Codex review)
+
+- **Why:** a free layout arriving from the address takes back the params the address doesn't hold (`appOnly`, `link: false`) from panes still on screen (`keepOwnParams`, 20 Nov). A curated page's opened panes didn't: Back and Forward rebuilt them from the address's stripped refs, so the same pane, still open, lost its `autorun` or its `link: false` value.
+- **Now:** `openPage`, arriving from the address, gives each opened pane's ref the params it lacks from a pane on screen of the same kind showing the same object apart from them (`keepOwnRef`, the ref-level half of `keepOwnParams`, which now uses it). Only the workspace's own panes are read, and only an exact match takes anything, so a link still can't set one.
+- **Tests:** `tests/app-only-params.test.ts`: an opened pane with `autorun` keeps it through Back to an address that holds it without.

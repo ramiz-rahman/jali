@@ -175,22 +175,38 @@ export function keepOwnParams(
       });
     return refs;
   });
-  return mapRefs(layout, (ref, id) => {
-    const kind = Object.hasOwn(kinds, ref.kind) ? kinds[ref.kind]! : undefined;
-    const names = kind && written(kind);
-    if (!names?.length || names.some((k) => Object.hasOwn(ref.params, k))) return ref;
-    for (const refs of owners) {
-      const before = refs.get(id);
-      if (!before || before.kind !== ref.kind) continue;
-      if (asText(without(before.params, names)) !== asText(ref.params)) continue;
-      const kept = names.filter((k) => Object.hasOwn(before.params, k));
-      if (!kept.length) return ref;
-      const params = { ...ref.params };
-      for (const k of kept) params[k] = before.params[k]!;
-      return { ...ref, params };
-    }
-    return ref;
-  });
+  return mapRefs(layout, (ref, id) =>
+    keepOwnRef(
+      kinds,
+      ref,
+      owners.map((refs) => refs.get(id)),
+    ),
+  );
+}
+
+/**
+ * `ref` from the address, with the params the address doesn't hold (`appOnly` and `link: false`) put back from the
+ * first of `owners` (the app's own refs) of the same kind showing the same object apart from them; else `ref`. A ref
+ * that holds any of those params already is left as it is.
+ */
+export function keepOwnRef(
+  kinds: KindRegistry,
+  ref: ObjectRef,
+  owners: Iterable<ObjectRef | undefined>,
+): ObjectRef {
+  const kind = Object.hasOwn(kinds, ref.kind) ? kinds[ref.kind]! : undefined;
+  const names = kind && written(kind);
+  if (!names?.length || names.some((k) => Object.hasOwn(ref.params, k))) return ref;
+  for (const before of owners) {
+    if (!before || before.kind !== ref.kind) continue;
+    if (asText(without(before.params, names)) !== asText(ref.params)) continue;
+    const kept = names.filter((k) => Object.hasOwn(before.params, k));
+    if (!kept.length) return ref;
+    const params = { ...ref.params };
+    for (const k of kept) params[k] = before.params[k]!;
+    return { ...ref, params };
+  }
+  return ref;
 }
 
 /** `view` as a link carries it: its peek without app-only params. */

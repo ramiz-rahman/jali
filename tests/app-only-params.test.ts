@@ -142,6 +142,48 @@ describe("a param only the app sets", () => {
     );
   });
 
+  it("is kept by Back and Forward on a curated page's opened pane that is still open", () => {
+    const visit = definePane("visit", {
+      params: { id: Number },
+      title: ({ id }) => `Visit ${id}`,
+      width: { min: 200 },
+      Component: () => null,
+    });
+    const page = definePage({
+      id: "visit",
+      name: "Visit",
+      itemNoun: "visit",
+      home: "summary",
+      roles: [{ id: "summary", label: "Summary", priority: "primary" as const }],
+      firstItem: 1,
+      bind: (item: number) => ({ summary: visit({ id: item }) }),
+      build: (item: number) => pane(visit({ id: item }), { id: "summary", role: "summary" }),
+    });
+    const location = memoryLocation();
+    const jali = createJali({
+      panes: [visit, query],
+      page,
+      url: { location },
+      storage: memoryStorage(),
+      size: { width: 2400, height: 800 },
+      moveFocus: false,
+    });
+    const stop = jali.start();
+    storeOf(jali).actions.setMode("split");
+    jali.actions.openBeside("summary", query({ sql: "select 1", autorun: true }));
+    const opened = () => refs(jali).filter((r) => r.kind === "query");
+    expect(opened()).toEqual([query({ sql: "select 1", autorun: true })]);
+    const before = location.search();
+    expect(before).not.toContain("autorun");
+    const first = layout.tree.panes(jali.getLayout().root).find((p) => p.ref.kind === "query")!;
+    jali.actions.openBeside(first.id, query({ sql: "select 2" }));
+    expect(opened()).toHaveLength(2);
+    // Back: the address holds the first opened pane without autorun; the pane on screen keeps it.
+    location.visit(before);
+    expect(opened()).toEqual([query({ sql: "select 1", autorun: true })]);
+    stop();
+  });
+
   it("doesn't break a link that holds a value it can't read: the link opens, without it", () => {
     const { jali: writer } = make();
     const crafted = layout.encode({

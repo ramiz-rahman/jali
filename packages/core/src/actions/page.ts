@@ -38,6 +38,7 @@ import { pageEn } from "../state/page-messages";
 import type { PagePrefs } from "../state/page-prefs";
 import type { PageState } from "../state/store";
 import { pushUndo } from "../state/undo";
+import { keepOwnRef } from "../pane-kinds";
 import { preset } from "./layout";
 
 const unzoomed = core.tree.unzoom;
@@ -185,8 +186,13 @@ export function openPage(x: Snapshot, o: OpenPage = {}): Outcome {
   if (!p) return refuse("unavailable");
   const prev = x.s.page;
   const canInvestigate = prev?.canInvestigate ?? true;
-  // A limited viewer works in Single only, whatever the link or Back brings: its opened panes are left out.
-  const opened = canInvestigate ? (o.investigation ?? []) : [];
+  // A limited viewer works in Single only, whatever the link or Back brings: its opened panes are left out. What the
+  // address doesn't hold (`appOnly` and `link: false` params) stays on an opened pane that is still on screen.
+  const kinds = x.env.kinds.registry();
+  const onScreen = core.tree.panes(x.s.layout.root).map((n) => n.ref);
+  const opened = canInvestigate
+    ? (o.investigation ?? []).map((ref) => (o.fromUrl ? keepOwnRef(kinds, ref, onScreen) : ref))
+    : [];
   const page: PageState = {
     profile: p.id,
     before: undefined,
