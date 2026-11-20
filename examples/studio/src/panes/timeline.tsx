@@ -22,7 +22,7 @@ import {
   trackName,
   trackOf,
 } from "../sessions/sessions";
-import { Missing, NotInTransport } from "../ui/parts";
+import { Missing, SessionMissing, NotInTransport } from "../ui/parts";
 import { drawBars, loudest, screenPaletteOf, prepare, trackPeaks, useSize } from "../ui/waveform";
 import { followSession } from "./follow";
 
@@ -358,4 +358,5 @@ export const timeline = definePane("timeline", {
   height: { min: 230, comfortable: 240, max: 260 },
   follow: followSession,
   Component: Timeline,
+  Missing: SessionMissing,
 });

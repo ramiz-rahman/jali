@@ -59,16 +59,19 @@ test("the sound goes on while the mixer is folded away", async ({ page }) => {
   await transport(page, "Pause").click();
 });
 
-// The mixer reports "working" while it plays (its hidden header carries the mark), but the folded menu doesn't draw
-// it: since 3f57a4c the shelf holds only tucked panes and the "N folded" menu lists panes without their marks. Turn
-// this on when the menu shows a folded pane's activity.
-test("a folded mixer shows that it is working", async ({ page }) => {
+// The mixer reports "live" while it plays: the "N folded" chip says so, and the mixer's entry in its menu carries the
+// mark, drawn as Studio's lamp on Jali's public part.
+test("a folded mixer shows that it is live", async ({ page }) => {
   await layout(page, "Mix").click();
   await transport(page, "Play").click();
   await page.setViewportSize({ width: 1100, height: 560 });
-  await page.getByRole("button", { name: /\d+ folded panes?/ }).click();
+  const chip = page.getByRole("button", { name: /\d+ folded panes?, live/ });
+  await expect(chip).toHaveAttribute("data-activity", "live");
+  await chip.click();
   const entry = page.getByRole("menuitem", { name: /Mixer/ });
-  await expect(entry.locator("[class*=jali-ra], [class*=jali-activity]")).toBeVisible();
+  const mark = entry.locator('.jali-activity[data-activity="live"]');
+  await expect(mark).toBeVisible();
+  await expect(mark).toHaveAttribute("aria-label", "Live");
   await page.keyboard.press("Escape");
   await transport(page, "Pause").click();
 });

@@ -12,7 +12,7 @@ import { usePosition, useTransport } from "../audio/react";
 import { useSessionView } from "../edits";
 import { useServices } from "../services";
 import { clock, markerIndexAt, sessionById } from "../sessions/sessions";
-import { Empty, Missing } from "../ui/parts";
+import { Empty, Missing, SessionMissing } from "../ui/parts";
 import { followSession } from "./follow";
 import { listMove, scrollRowIntoView } from "./keys";
 
@@ -236,4 +236,5 @@ export const markers = definePane("markers", {
   follow: followSession,
   allow: { fullScreen: false },
   Component: Markers,
+  Missing: SessionMissing,
 });

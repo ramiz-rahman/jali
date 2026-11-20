@@ -1,6 +1,7 @@
 /** Small parts the panes share. */
 import type { ReactNode } from "react";
 import type { ObjectRef } from "@jali/core";
+import type { MissingProps } from "@jali/react";
 import { PlayIcon } from "@phosphor-icons/react";
 import { cue } from "../actions";
 import { useServices } from "../services";
@@ -48,7 +49,11 @@ export function NotInTransport({ session }: { session: string }) {
   const { engine } = useServices();
   const playing = useTransport((s) => sessionById(s.session)?.title);
   return (
-    <div className="not-live" role="note" title={playing ? `The transport has “${playing}”.` : undefined}>
+    <div
+      className="not-live"
+      role="note"
+      title={playing ? `The transport has “${playing}”.` : undefined}
+    >
       <span>Not loaded.</span>
       <button type="button" className="key key-s" onClick={() => cue(engine, session, 0)}>
         <PlayIcon size={12} weight="fill" aria-hidden /> load
@@ -107,3 +112,14 @@ export function Missing({
     </Empty>
   );
 }
+
+/**
+ * The same "no signal", as a kind's `Missing`: Jali shows it when a link's params can't be read (no session, say), as
+ * the panes show it themselves for a session or segment that no longer exists.
+ */
+export const SessionMissing = ({ openHere }: MissingProps) => (
+  <Missing what="session" openHere={openHere} />
+);
+export const SegmentMissing = ({ openHere }: MissingProps) => (
+  <Missing what="segment" openHere={openHere} />
+);

@@ -481,8 +481,9 @@
    * The activity marks, drawn as the family's lamps on Jali's public parts (.jali-activity after a pane's name, in a tab
    * and in menus; .jali-activity-shape on the shelf and the "N folded" chip), keyed by data-activity. Nothing is
    * stripped: Jali's size, circle and flex rules stay, and the lamp's lens is the part's ::after. Colour comes from the
-   * same lamp parts as everything else: lit orange while working (it pulses, as the playing session's lamp does), amber
-   * for needs-you, red for an error, an unlit lamp while loading.
+   * same lamp parts as everything else: lit orange while live (it pulses, as the playing session's lamp does: the
+   * mixer is live while it plays) and lit steady while working, amber for needs-you, red for an error, an unlit lamp
+   * while loading.
    */
   .jali-activity {
     position: relative;
@@ -491,7 +492,7 @@
     background: var(--led-off);
     box-shadow: var(--lamp-socket);
   }
-  .jali-activity[data-activity="working"] {
+  .jali-activity:is([data-activity="working"], [data-activity="live"]) {
     background: var(--led-on);
     box-shadow:
       0 0 0 1px var(--lamp-ring),
@@ -521,19 +522,20 @@
     background: var(--lit-5);
   }
   @media (prefers-reduced-motion: no-preference) {
-    .jali-activity[data-activity="working"] {
+    .jali-activity[data-activity="live"] {
       animation: lamp-live 1.4s ease-in-out infinite;
     }
   }
 
   /* The shelf's shapes keep their meaning by shape: "!" and the cross stay as Jali draws them, in the status
-     colours. Working is a lamp, drawn in ::before, in place of Jali's spinning ring. */
-  .jali-activity-shape[data-activity="working"] {
+     colours. Working and live are a lamp, drawn in ::before, in place of Jali's spinning ring and breathing dot. */
+  .jali-activity-shape:is([data-activity="working"], [data-activity="live"]) {
     border: 0;
+    padding: 0;
     animation: none;
     background: none;
   }
-  .jali-activity-shape[data-activity="working"]::before {
+  .jali-activity-shape:is([data-activity="working"], [data-activity="live"])::before {
     content: "";
     width: var(--lamp);
     height: var(--lamp);
@@ -544,7 +546,7 @@
       var(--lamp-glow);
   }
   @media (prefers-reduced-motion: no-preference) {
-    .jali-activity-shape[data-activity="working"]::before {
+    .jali-activity-shape[data-activity="live"]::before {
       animation: lamp-live 1.4s ease-in-out infinite;
     }
   }

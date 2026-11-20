@@ -52,7 +52,7 @@ import {
   wordIndexAt,
   type SegmentData,
 } from "../sessions/sessions";
-import { Missing, NotInTransport } from "../ui/parts";
+import { Missing, SessionMissing, NotInTransport } from "../ui/parts";
 import { clip } from "./clip";
 import { followSession } from "./follow";
 import { listMove, showRow } from "./keys";
@@ -735,4 +735,5 @@ export const transcript = definePane("transcript", {
   height: { min: 240 },
   follow: followSession,
   Component: Transcript,
+  Missing: SessionMissing,
 });

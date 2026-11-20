@@ -32,7 +32,7 @@ import {
   type SegmentData,
 } from "../sessions/sessions";
 import { catalogueOf } from "../sessions/catalog";
-import { Missing, NotInTransport } from "../ui/parts";
+import { Missing, SegmentMissing, NotInTransport } from "../ui/parts";
 import { drawBars, loudest, screenPaletteOf, prepare, useSize, voicePeaks } from "../ui/waveform";
 
 const clipParams = { session: String, segment: String };
@@ -325,4 +325,5 @@ export const clip = definePane("clip", {
   width: { min: 300, comfortable: 380, max: 560 },
   height: { min: 280 },
   Component: Clip,
+  Missing: SegmentMissing,
 });
