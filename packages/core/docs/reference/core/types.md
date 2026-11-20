@@ -1086,7 +1086,15 @@ What every action and `setLayout` return. `ok: true` when it happened, or when w
 interface Refusal { ok: false; reason: RefusalReason; message?: string; settled?: Promise<ActionResult> }
 ```
 
-An action that did not happen. `message` is what Jali read out to screen readers, when it said anything; a refusal it did not say is silent, as before. With `reason: "pending"`, `settled` gives the result once `beforeClose` has answered.
+An action that did not happen. `message` is what Jali read out to screen readers, when it said anything; a refusal it did not say is silent, as before.
+
+A refusal that asks a question carries `settled`, a promise of how the question ended: with `reason: "unsaved"`, once the person answers "Discard unsaved changes?"; with `reason: "pending"`, once `beforeClose` answers. It resolves with `{ ok: true, pane }` when the action went ahead, or with a refusal when it didn't (`"kept"` after Keep editing, or when a newer question took its place). It never rejects. A host's yes that leads to Jali's own question resolves with that `"unsaved"` refusal, whose `settled` says how the person answered.
+
+```ts
+const result = jali.actions.resetLayout();
+if (result.ok) forgetSavedLayouts();
+else void result.settled?.then((end) => end.ok && forgetSavedLayouts());
+```
 
 ### RefusalReason
 
@@ -1114,9 +1122,9 @@ type RefusalReason = "not-found" | "invalid" | "unavailable" | "single-view" | "
 
 - **`nothing-to-do`**: Nothing to undo, put back, close, resize or unmerge.
 
-- **`unsaved`**: A pane that would go has unsaved work. Jali asks the person ("Discard unsaved changes?") and makes the change if they discard.
+- **`unsaved`**: A pane that would go has unsaved work. Jali asks the person ("Discard unsaved changes?") and makes the change if they discard. See `settled`. (A linked detail that keeps its object because of its unsaved work doesn't ask, and has no `settled`.)
 
-- **`kept`**: `beforeClose` kept the panes.
+- **`kept`**: `beforeClose` kept the panes, or the person chose Keep editing.
 
 - **`pending`**: `beforeClose` has not answered yet. See `settled`.
 

@@ -25,6 +25,14 @@ While a pane has unsaved work, any change that would remove it or show another o
 
 That covers every way a pane can go: closing it, closing the others, choosing a preset, Back and Forward, and showing another object in it. You don't handle any of them yourself.
 
+An action held this way returns `{ ok: false, reason: "unsaved", settled }`. `settled` is a promise of how the question ended: `{ ok: true, pane }` once the person discards and the change is made, or `{ ok: false, reason: "kept" }` when they keep editing. Use it when your app does more after the action, but only if it happens:
+
+```ts
+const result = jali.actions.resetLayout();
+if (result.ok) forgetSavedLayouts();
+else void result.settled?.then((end) => end.ok && forgetSavedLayouts());
+```
+
 Some changes never ask, because the pane stays mounted and its work with it: moving it, putting it in tabs, folding it, tucking it and maximising another pane. Choosing a preset that has the same pane (the same `id`, showing the same object) doesn't ask either: the pane, its state and its unsaved work come along. See [A pane in more than one preset](/guides/presets#a-pane-in-more-than-one-preset).
 
 Two more cases:
@@ -80,7 +88,7 @@ const jali = createJali({
 ```
 
 - Return `true` to let the change happen, `false` to keep the panes. A promise holds the change until it answers. A yes makes it against the workspace as it is then, so a resize or another pane changing meanwhile does not undo the yes. If the panes it would now remove or replace are not the ones you were asked about (one shows another object by then), you are asked again.
-- The action returns `{ ok: false, reason: "kept" }`, or `reason: "pending"` with `settled`, a promise of the final result.
+- The action returns `{ ok: false, reason: "kept" }`, or `reason: "pending"` with `settled`, a promise of what happened once you answer. After a yes that meets Jali's own question, it resolves with that `"unsaved"` refusal, and its `settled` says how the person answered.
 - Your answer comes first. After a yes, a pane that still reports unsaved work gets Jali's own "Discard unsaved changes?".
 - If it throws or rejects, the panes stay.
 
@@ -104,7 +112,7 @@ The rules can be tested without rendering. What `useUnsaved` reports from a rend
 
 ```ts
 storeOf(jali).actions.setUnsaved("note", "an unsaved note");
-expect(jali.actions.close("note")).toEqual({ ok: false, reason: "unsaved" });
+expect(jali.actions.close("note")).toMatchObject({ ok: false, reason: "unsaved" });
 ```
 
 See [Test a workspace](/guides/testing).

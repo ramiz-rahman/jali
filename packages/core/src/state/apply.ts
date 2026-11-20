@@ -134,8 +134,10 @@ export interface Change {
  *  - "last-pane": the last pane, or a page's last view on screen, stays.
  *  - "blocked": the pane can't go there (move past the edge, tuck the only pane, tuck a tab).
  *  - "nothing-to-do": nothing to undo, put back, close, resize or unmerge.
- *  - "unsaved": it would lose unsaved work, so Jali asks the person ("Discard unsaved changes?") and holds it.
- *  - "kept": the host's `beforeClose` kept the panes.
+ *  - "unsaved": it would lose unsaved work, so Jali asks the person ("Discard unsaved changes?") and holds it;
+ *    `settled` says how the question ended. (A following detail with unsaved work doesn't ask: it keeps its object,
+ *    and that refusal has no `settled`.)
+ *  - "kept": the host's `beforeClose` kept the panes, or the person chose Keep editing.
  *  - "pending": the host's `beforeClose` is still deciding; `settled` says what happened in the end.
  */
 export type RefusalReason =
@@ -220,7 +222,13 @@ export interface Refusal {
   message?: string;
   /** Always undefined, so `result.pane` reads without checking `ok` first. */
   pane?: undefined;
-  /** With "pending": what happened once the host's `beforeClose` answered. */
+  /**
+   * On a refusal that asks ("unsaved": Jali asks the person; "pending": the host's `beforeClose` is deciding): how the
+   * question ended. It resolves with `{ ok: true, pane }` when the action went ahead, or with a refusal when it didn't
+   * (`"kept"` after Keep editing, or when a newer question took its place). It resolves when this question is
+   * answered, so a yes that leads to the other question (the host says yes, then a pane still has unsaved work)
+   * resolves with that `"unsaved"` refusal, whose own `settled` says how the person answered. It never rejects.
+   */
   settled?: Promise<ActionResult>;
 }
 
@@ -671,7 +679,7 @@ function step(c: Run, o: Outcome, f: Frame | undefined): ActionResult {
               settle,
             },
           });
-          return refused("unsaved");
+          return { ok: false, reason: "unsaved", settled };
         }
       }
     }

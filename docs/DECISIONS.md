@@ -1110,11 +1110,20 @@ app, which has a page, grew by those lookups and by `appOnly`.
 
 After the opt-in page, what a minimal app ships is code it runs: the English messages, the command registry, `apply`, the URL code, the store; in React the default icons, the tab strip, the workspace and the pane frame (see "Size after the opt-in page"). Cutting further means making Settings, the chooser and pop out opt-in for about 4–5 KB of React, still short of the old budget. The owner chose to reset the budgets instead.
 
-| Scenario | core | react | css |
-| --- | --- | --- | --- |
+| Scenario           | core             | react       | css       |
+| ------------------ | ---------------- | ----------- | --------- |
 | minimal, own-icons | 52.4 → budget 55 | 24.6 → 25.8 | 8.2 → 8.6 |
-| full | 57.5 → 60.4 | 26.4 → 27.7 | 8.2 → 8.6 |
-| headless | 46.9 → 49.2 | – | – |
-| layout | 10.2 → 10.7 | – | – |
+| full               | 57.5 → 60.4      | 26.4 → 27.7 | 8.2 → 8.6 |
+| headless           | 46.9 → 49.2      | –           | –         |
+| layout             | 10.2 → 10.7      | –           | –         |
 
 Gzipped KB, measured on master `ea3ac83` after `pnpm build:packages`. The `mustNotShip` lists stay: a page module in a page-less app still fails the gate whatever its size. The 5% is deliberately tight; growth past it is a decision, not drift.
+
+## 21 Nov 2026 · A refusal that asks says how the question ended: `settled` on "unsaved" (Markets, FINDINGS.md #1)
+
+- **Why:** with unsaved work in a pane, an action returned `{ ok: false, reason: "unsaved" }` and Jali asked the person, but the app couldn't learn the answer. Markets' Reset inferred it from the next `layout` event and four signals.
+- **Now:** every refusal that asks carries `settled: Promise<ActionResult>`. "pending" already had it; "unsaved" now has it too. It resolves with `{ ok: true, pane }` when the action went ahead (the same `pane` the action would have returned, for the actions that name one), or with a refusal when it didn't (`"kept"`: Keep editing, or a newer question took its place). It never rejects. Jali's question asked again (more work at stake by the answer) is the same question, so `settled` waits for its end. A host's yes that meets Jali's question resolves with that `"unsaved"` refusal, whose own `settled` says how the person answered: each promise ends when its own question is answered, as `pending`'s always did.
+- **Not `Promise<Change | null>`,** as the finding suggested: `Change` is the engine's step, not public, and every action already speaks `ActionResult`. One field, one type, on both asking reasons; `end.ok` reads the same as the action's own `result.ok`.
+- **Not done:** a following detail that keeps its object because of its unsaved work refuses `"unsaved"` without asking; it has no `settled`, as nothing is asked. `Refusal` stays an interface with `settled?` (a union keyed by `reason` would break hosts that extend or build it).
+- **Markets:** `resetAll` (`src/desks.ts`) forgets the other desks when `settled` resolves ok; its inference from the next `layout` event is gone.
+- **Tests:** `tests/held-questions.test.ts` ("`settled` says how the question ended").

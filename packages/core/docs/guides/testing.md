@@ -49,7 +49,7 @@ describe("the orders workspace", () => {
     expect(jali.actions.close("invoices")).toEqual({ ok: false, reason: "not-found" });
     // What useUnsaved reports from a rendered pane, reported by hand (the engine's own step).
     storeOf(jali).actions.setUnsaved("order", "an unsaved note");
-    expect(jali.actions.close("order")).toEqual({ ok: false, reason: "unsaved" });
+    expect(jali.actions.close("order")).toMatchObject({ ok: false, reason: "unsaved" });
     expect(ids(jali)).toContain("order");
   });
 

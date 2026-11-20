@@ -283,7 +283,7 @@ describe("results", () => {
   it("say a change is held for unsaved work", () => {
     const jali = make();
     storeOf(jali).actions.setUnsaved("order", "a draft");
-    expect(jali.actions.close("order")).toEqual({ ok: false, reason: "unsaved" });
+    expect(jali.actions.close("order")).toMatchObject({ ok: false, reason: "unsaved" });
     expect(storeOf(jali).get().confirm?.panes).toEqual(["order"]);
     expect(ids(jali)).toContain("order");
   });
@@ -453,7 +453,7 @@ describe("getLayout and setLayout", () => {
     const jali = make();
     storeOf(jali).actions.setUnsaved("order-2", "a draft");
     const before = jali.getLayout();
-    expect(jali.setLayout(row(list()))).toEqual({ ok: false, reason: "unsaved" });
+    expect(jali.setLayout(row(list()))).toMatchObject({ ok: false, reason: "unsaved" });
     expect(jali.getLayout()).toBe(before);
     storeOf(jali).actions.discardAndContinue();
     expect(ids(jali)).toEqual(["orders"]);
@@ -546,7 +546,7 @@ describe("beforeClose: the host is asked before panes go", () => {
     expect(ids(jali)).toContain("order-2");
     expect(heard).toEqual([]);
     answer(true);
-    expect(await r.settled).toEqual({ ok: true });
+    expect(await r.settled).toEqual({ ok: true, pane: "order-2" });
     expect(ids(jali)).not.toContain("order-2");
     expect(heard.filter(([n]) => n === "close")).toHaveLength(1);
     expect(said(jali)).toBe("Order 2 closed · Undo available");
@@ -581,7 +581,7 @@ describe("beforeClose: the host is asked before panes go", () => {
     const r = jali.actions.close("order-2");
     jali.actions.openBeside("orders", order({ id: 7 }));
     answer(true);
-    expect(await r.settled).toEqual({ ok: true });
+    expect(await r.settled).toEqual({ ok: true, pane: "order-2" });
     expect(ids(jali)).not.toContain("order-2");
     expect(jali.model().panes.some((p) => p.ref.params.id === 7)).toBe(true);
   });
@@ -590,7 +590,7 @@ describe("beforeClose: the host is asked before panes go", () => {
     const order_: string[] = [];
     const jali = make({ beforeClose: () => (order_.push("host"), true) });
     storeOf(jali).actions.setUnsaved("order-2", "a draft");
-    expect(jali.actions.close("order-2")).toEqual({ ok: false, reason: "unsaved" });
+    expect(jali.actions.close("order-2")).toMatchObject({ ok: false, reason: "unsaved" });
     expect(order_).toEqual(["host"]);
     // Discard makes the change without asking the host again.
     storeOf(jali).actions.discardAndContinue();
@@ -607,7 +607,7 @@ describe("beforeClose: the host is asked before panes go", () => {
     const jali = make({ beforeClose: () => Promise.resolve(true) });
     storeOf(jali).actions.setUnsaved("order-2", "a draft");
     const r = jali.actions.close("order-2");
-    expect(await r.settled).toEqual({ ok: false, reason: "unsaved" });
+    expect(await r.settled).toMatchObject({ ok: false, reason: "unsaved" });
     expect(storeOf(jali).get().confirm?.panes).toEqual(["order-2"]);
   });
 

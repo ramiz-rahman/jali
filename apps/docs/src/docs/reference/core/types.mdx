@@ -658,7 +658,15 @@ What every action and `setLayout` return. `ok: true` when it happened, or when w
 
 <Entry name="Refusal" kind="type" from="@jali/core" signature={`interface Refusal { ok: false; reason: RefusalReason; message?: string; settled?: Promise<ActionResult> }`} compact>
 
-An action that did not happen. `message` is what Jali read out to screen readers, when it said anything; a refusal it did not say is silent, as before. With `reason: "pending"`, `settled` gives the result once `beforeClose` has answered.
+An action that did not happen. `message` is what Jali read out to screen readers, when it said anything; a refusal it did not say is silent, as before.
+
+A refusal that asks a question carries `settled`, a promise of how the question ended: with `reason: "unsaved"`, once the person answers "Discard unsaved changes?"; with `reason: "pending"`, once `beforeClose` answers. It resolves with `{ ok: true, pane }` when the action went ahead, or with a refusal when it didn't (`"kept"` after Keep editing, or when a newer question took its place). It never rejects. A host's yes that leads to Jali's own question resolves with that `"unsaved"` refusal, whose `settled` says how the person answered.
+
+```ts
+const result = jali.actions.resetLayout();
+if (result.ok) forgetSavedLayouts();
+else void result.settled?.then((end) => end.ok && forgetSavedLayouts());
+```
 
 </Entry>
 
@@ -673,8 +681,8 @@ An action that did not happen. `message` is what Jali read out to screen readers
 <Param name="last-pane" type="">The last pane, or a page's last view on screen, stays.</Param>
 <Param name="blocked" type="">The pane can't go there: past the edge, tucking the only pane or a tab.</Param>
 <Param name="nothing-to-do" type="">Nothing to undo, put back, close, resize or unmerge.</Param>
-<Param name="unsaved" type="">A pane that would go has unsaved work. Jali asks the person ("Discard unsaved changes?") and makes the change if they discard.</Param>
-<Param name="kept" type="">`beforeClose` kept the panes.</Param>
+<Param name="unsaved" type="">A pane that would go has unsaved work. Jali asks the person ("Discard unsaved changes?") and makes the change if they discard. See `settled`. (A linked detail that keeps its object because of its unsaved work doesn't ask, and has no `settled`.)</Param>
+<Param name="kept" type="">`beforeClose` kept the panes, or the person chose Keep editing.</Param>
 <Param name="pending" type="">`beforeClose` has not answered yet. See `settled`.</Param>
 </Params>
 

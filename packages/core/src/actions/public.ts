@@ -238,7 +238,16 @@ export function publicActions(run: Run): JaliActions {
       acted = target === undefined ? undefined : paneFor(x, target);
       return acted ? step(x, acted) : refuse("not-found");
     });
-    return r.ok && r.pane === undefined && acted ? { ok: true, pane: acted } : r;
+    // The pane it acted on, now or once a question it asked is answered.
+    const named = (r: ActionResult): ActionResult =>
+      r.ok
+        ? r.pane === undefined && acted
+          ? { ok: true, pane: acted }
+          : r
+        : r.settled
+          ? { ...r, settled: r.settled.then(named) }
+          : r;
+    return named(r);
   };
   const opt = (target: PaneTarget | undefined, step: (x: Snapshot, id?: NodeId) => Outcome) =>
     on(target, step, true);

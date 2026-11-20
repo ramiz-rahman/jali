@@ -113,6 +113,52 @@ describe("Discard unsaved changes?: the answer meets the state of the moment", (
   });
 });
 
+describe("Discard unsaved changes?: `settled` says how the question ended", () => {
+  it("resolves with the change once the person discards", async () => {
+    const jali = make();
+    storeOf(jali).actions.setUnsaved("order", "a draft");
+    const r = jali.actions.openHere("order", order({ id: 5 }));
+    expect(r.reason).toBe("unsaved");
+    storeOf(jali).actions.discardAndContinue();
+    expect(await r.settled).toEqual({ ok: true, pane: "order" });
+    expect(shows(jali, "order")).toBe(5);
+  });
+
+  it("resolves with kept after Keep editing, and nothing changes", async () => {
+    const jali = make();
+    storeOf(jali).actions.setUnsaved("order", "a draft");
+    const before = jali.getLayout();
+    const r = jali.actions.closeOthers("orders");
+    const close_ = jali.actions.close("order");
+    // The newer question takes the older one's place: the older ends as kept.
+    expect(await r.settled).toEqual({ ok: false, reason: "kept" });
+    storeOf(jali).actions.keepEditing();
+    expect(await close_.settled).toEqual({ ok: false, reason: "kept" });
+    expect(jali.getLayout()).toBe(before);
+  });
+
+  it("ends as the question asked again ends", async () => {
+    const jali = make();
+    const store = storeOf(jali);
+    store.actions.setUnsaved("order", "a draft");
+    const r = jali.actions.closeOthers("orders");
+    store.actions.setUnsaved("order-2", "another draft");
+    store.actions.discardAndContinue();
+    expect(store.get().confirm?.panes).toEqual(["order", "order-2"]);
+    store.actions.discardAndContinue();
+    expect(await r.settled).toEqual({ ok: true, pane: "orders" });
+  });
+
+  it("is on setLayout's refusal too", async () => {
+    const jali = make();
+    storeOf(jali).actions.setUnsaved("order-2", "a draft");
+    const r = jali.setLayout(row(list()));
+    storeOf(jali).actions.discardAndContinue();
+    expect((await r.settled)?.ok).toBe(true);
+    expect(ids(jali)).toEqual(["orders"]);
+  });
+});
+
 describe("beforeClose: a later yes meets the state of the moment", () => {
   it("still closes after the window is resized while the host decides", async () => {
     let answer!: (yes: boolean) => void;
@@ -123,7 +169,7 @@ describe("beforeClose: a later yes meets the state of the moment", () => {
     storeOf(jali).set({ area: { width: 700, height: 800 } });
     expect(jali.getLayout()).not.toBe(before);
     answer(true);
-    expect(await r.settled).toEqual({ ok: true });
+    expect(await r.settled).toEqual({ ok: true, pane: "order-2" });
     expect(ids(jali)).not.toContain("order-2");
   });
 
@@ -139,7 +185,7 @@ describe("beforeClose: a later yes meets the state of the moment", () => {
     const r = jali.actions.close("order-2");
     expect(jali.actions.openHere("order-2", order({ id: 9 })).ok).toBe(true);
     answer(true);
-    expect(await r.settled).toEqual({ ok: true });
+    expect(await r.settled).toEqual({ ok: true, pane: "order-2" });
     expect(asked.at(-1)).toEqual({
       panes: [{ pane: "order-2", ref: order({ id: 9 }) }],
       reason: "close",
@@ -154,7 +200,7 @@ describe("beforeClose: a later yes meets the state of the moment", () => {
     const store = storeOf(jali);
     store.actions.setUnsaved("order-2", "a draft");
     const r = jali.actions.close("order-2");
-    expect(await r.settled).toEqual({ ok: false, reason: "unsaved" });
+    expect(await r.settled).toMatchObject({ ok: false, reason: "unsaved" });
     store.set({ area: { width: 1300, height: 800 } });
     store.actions.discardAndContinue();
     expect(calls).toBe(1);
