@@ -745,6 +745,13 @@ export function createUiStore(deps: UiStoreDeps): UiStore {
       timers.clear();
       deps.url?.cancel?.();
       offKinds();
+      // A question still open can never be answered now: the action it held ends as kept, so `settled` resolves.
+      const asking = state.confirm;
+      if (asking) {
+        state = { ...state, confirm: null };
+        notify();
+        asking.settle({ ok: false, reason: "kept" });
+      }
     },
   };
   let stop: (() => void) | null = null;

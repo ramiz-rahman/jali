@@ -1267,3 +1267,9 @@ Gzipped KB, measured on master `ea3ac83` after `pnpm build:packages`. The `mustN
 - **Why:** a batch's ops, action name and input were the store's own variables, read by `told` as it told the app. A listener that acted (`setPinned` inside a `close` listener) started a batch of its own, which reset them; the close's `layout` event, told after, then named `setPinned`.
 - **Now:** `told` takes the ending batch's ops, name and input as arguments, read when it ends. The listener's change is told inside the close's telling, as before, with its own name; the close's own `layout` event names `close`.
 - **Tests:** `tests/instance.test.ts`: a `setPinned` from a `close` listener gives `layout` events named `setPinned` then `close`.
+
+## 21 Nov 2026 · `destroy()` ends an open discard question as kept (Codex review)
+
+- **Why:** a workspace destroyed while "Discard unsaved changes?" was open left the held action's `settled` promise pending for good: nothing could answer the question any more, and a host awaiting `settled` waited forever.
+- **Now:** `destroy()` clears the question and settles it as `{ ok: false, reason: "kept" }`, as a newer question already ends one left unanswered. The panes stay as they were. "kept" rather than a new reason, so the `RefusalReason` union a host switches on is unchanged.
+- **Tests:** `tests/destroy.test.ts`: destroying with the question open resolves `settled` as kept and keeps the pane.
