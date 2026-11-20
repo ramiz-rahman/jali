@@ -1,7 +1,7 @@
 /** What a pane's content reports to the workspace: unsaved work, its ⌘K commands and its own state. */
 import type { NodeId } from "../layout/types";
 import type { PaneAttributes, PaneCommand } from "../pane-kinds";
-import type { Change, Outcome, Snapshot } from "../state/apply";
+import { refuse, type Change, type Outcome, type Snapshot } from "../state/apply";
 import { follow } from "./follow";
 import { say } from "../state/messages";
 
@@ -127,20 +127,31 @@ export function setPaneState({ s, m }: Snapshot, id: NodeId, key: string, value:
   };
 }
 
-/** "Discard": forget the held panes' unsaved work, then make the change that was held. */
-export function discardAndContinue({ s, env }: Snapshot): Outcome {
+/**
+ * "Discard": the held action runs again against the state now. If it still loses only the work asked about, it is
+ * made, and that work is forgotten in the same commit; if it would now lose other work, the question is asked again.
+ * Nothing is forgotten when it no longer happens.
+ */
+export function discardAndContinue({ s }: Snapshot): Outcome {
   const c = s.confirm;
   if (!c) return null;
   return [
+    { op: "patch", patch: { confirm: null } },
     {
-      op: "patch",
-      patch: { confirm: null, unsaved: without(s.unsaved, c.panes) },
-      msg: say(env).discarded(c.panes.length),
+      op: "answer",
+      intent: c.intent,
+      agreed: { ...c.agreed, discard: [...(c.agreed.discard ?? []), ...c.asked] },
+      settle: c.settle,
     },
-    c.change,
   ];
 }
 
-/** "Keep editing": drop the held change. */
-export const keepEditing = ({ s, env }: Snapshot): Outcome =>
-  s.confirm ? { op: "patch", patch: { confirm: null }, msg: say(env).keptEditing } : null;
+/** "Keep editing": drop the held action. */
+export function keepEditing({ s, env }: Snapshot): Outcome {
+  const c = s.confirm;
+  if (!c) return null;
+  return [
+    { op: "patch", patch: { confirm: null }, msg: say(env).keptEditing },
+    { op: "answer", intent: () => refuse("kept"), agreed: {}, settle: c.settle },
+  ];
+}

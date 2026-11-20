@@ -161,10 +161,38 @@ export const refuse = (reason: RefusalReason, msg?: string): RefusalStep => ({
 export const isRefusal = (o: Outcome): o is RefusalStep =>
   !!o && typeof o === "object" && "op" in o && o.op === "refused";
 
-/** A change, a refusal, nothing, a step computed from the state the previous step left, or several in order. */
+/** An action as it was asked for: run again against the state of the moment when a held question is answered. */
+export type Intent = (x: Snapshot) => Outcome;
+
+/** What a question about leaving named: each pane and the object it showed when it was asked. */
+export type Asked = CloseRequest["panes"];
+
+/** What has been agreed to already: panes the host's `beforeClose` let go, and panes whose unsaved work the person
+ *  discarded. Each counts only while the pane still shows the object it showed when asked. */
+export interface Agreed {
+  host?: Asked;
+  discard?: Asked;
+}
+
+/**
+ * The answer to a held question: the intent runs again against the state now, with what was agreed. If it would
+ * still remove or replace only what the question named, it is made; if more is at stake now, the question is asked
+ * again. `settle` hears how it ended.
+ */
+export interface AnswerStep {
+  op: "answer";
+  intent: Intent;
+  agreed: Agreed;
+  settle?: (r: ActionResult | Promise<ActionResult>) => void;
+  msg?: undefined;
+}
+
+/** A change, a refusal, nothing, a step computed from the state the previous step left, the answer to a held
+ *  question, or several in order. */
 export type Outcome =
   | Change
   | RefusalStep
+  | AnswerStep
   | null
   | undefined
   | ((x: Snapshot) => Outcome)
@@ -423,17 +451,89 @@ const sameView = (a: ViewState, b: ViewState) =>
   a.focused === b.focused && a.zoomed === b.zoomed && a.peek === b.peek;
 
 /**
+ * Held questions (C8–C10 in docs/QUALITY-REVIEW.md). A change that waits for an answer (the host's `beforeClose`, or
+ * "Discard unsaved changes?") is not kept as the change it computed: that change is about the state when the question
+ * opened. What waits is the intent: the step `(x) => Outcome` that produced it, while nothing it began has been
+ * committed (the outermost such step, so a public action re-reads its target too), plus the steps after it in any
+ * sequence outside that step. The answer runs the intent again against the state of that moment (an `AnswerStep`):
+ * if what it would remove or replace is still only what was asked about (the same panes, showing the same objects),
+ * the fresh result is made; if more is at stake, the question is asked again. A held step stops its sequence: what
+ * follows it waits with it.
+ */
+interface Hold {
+  intent: Intent;
+  /** The depth of the step the intent runs again from; sequences outside it carry their remaining steps along. */
+  depth: number;
+  /** How the question ends, once it has been put. */
+  settled?: Promise<ActionResult>;
+}
+
+/** A step `(x) => Outcome` being run: `mark` is how many writes the run had made when it started. */
+interface Frame {
+  fn: Intent;
+  mark: number;
+  depth: number;
+  up?: Frame;
+}
+
+/** One commit: what was agreed already, the writes made so far, and the step held, if one was. */
+interface Run {
+  io: ApplyIO;
+  agreed: Agreed;
+  writes: number;
+  hold?: Hold;
+}
+
+const sameAsked = (a: Asked[number], b: Asked[number]) =>
+  a.pane === b.pane && JSON.stringify(a.ref) === JSON.stringify(b.ref);
+/** Every pane is one that was agreed to, still showing the object it showed then. */
+const covered = (panes: Asked, agreed?: Asked) =>
+  !!agreed && panes.every((p) => agreed.some((a) => sameAsked(a, p)));
+
+/** Hold `o`: its intent is the outermost step around it that has committed nothing yet. A change with no such step
+ *  (an outcome computed outside a step) is held as it is, and made only on the layout it was computed from. */
+function holdFor(c: Run, f: Frame | undefined, o: Change, from: Layout): Hold {
+  let pick: Frame | undefined;
+  for (let g = f; g && g.mark === c.writes; g = g.up) pick = g;
+  c.hold = pick
+    ? { intent: pick.fn, depth: pick.depth }
+    : { intent: (x) => (x.s.layout === from ? o : refuse("kept")), depth: Infinity };
+  return c.hold;
+}
+
+/**
  * Commit an outcome. Returns what happened: the last step's `result` as `pane`, or the first refusal among the steps
- * (later steps still run, as before).
+ * (later steps still run, unless a step is held: then they wait with it).
  */
 export function apply(io: ApplyIO, o: Outcome): ActionResult {
+  return step({ io, agreed: {}, writes: 0 }, o, undefined);
+}
+
+function step(c: Run, o: Outcome, f: Frame | undefined): ActionResult {
+  const io = c.io;
   if (!o) return DONE;
-  if (typeof o === "function") return apply(io, o(io.snapshot()));
+  if (typeof o === "function")
+    return step(c, o(io.snapshot()), {
+      fn: o,
+      mark: c.writes,
+      depth: (f?.depth ?? -1) + 1,
+      up: f,
+    });
   if (Array.isArray(o)) {
     let out: ActionResult = DONE;
-    for (const step of o) {
-      const r = apply(io, step);
+    for (let i = 0; i < o.length; i++) {
+      const before = c.hold;
+      const r = step(c, o[i], f);
       if (out.ok) out = r;
+      if (c.hold !== before) {
+        const hold = c.hold!,
+          rest = o.slice(i + 1);
+        if ((f?.depth ?? -1) < hold.depth && rest.length) {
+          const held = hold.intent;
+          hold.intent = () => [held, ...rest];
+        }
+        break;
+      }
     }
     return out;
   }
@@ -441,11 +541,23 @@ export function apply(io: ApplyIO, o: Outcome): ActionResult {
     if (o.msg) io.announce(o.msg);
     return refused(o.reason, o.msg);
   }
+  if (o.op === "answer") {
+    const inner: Run = { io, agreed: o.agreed, writes: 0 };
+    const r = step(inner, o.intent, undefined);
+    c.writes += inner.writes;
+    // Asked again: this question ends as that one does.
+    o.settle?.(inner.hold?.settled ?? r);
+    return r;
+  }
   const s = io.get(),
     p = POLICY[o.op];
   const next = { layout: o.layout ?? s.layout, view: o.view ?? s.view };
+  let discarding: NodeId[] = [];
   if (p.writes === "view") {
-    if (next.view !== s.view || o.patch) io.set({ view: next.view, ...o.patch });
+    if (next.view !== s.view || o.patch) {
+      io.set({ view: next.view, ...o.patch });
+      c.writes++;
+    }
     io.url(p.history);
     if (o.msg) io.announce(o.msg);
   } else {
@@ -456,32 +568,61 @@ export function apply(io: ApplyIO, o: Outcome): ActionResult {
     // The host is asked first (beforeClose); its yes still meets Jali's own question about unsaved work.
     const leaving =
       layoutChanged && io.beforeClose && !o.allowed ? leavingPanes(s, next.layout) : [];
-    if (leaving.length) {
+    if (leaving.length && !covered(leaving, c.agreed.host)) {
       const answer = ask(io.beforeClose!, {
         panes: leaving,
         reason: CLOSE_REASON[o.op] ?? "layout",
       });
       if (answer === false) return refused("kept");
+      const host = [...(c.agreed.host ?? []), ...leaving];
       if (answer !== true) {
-        const from = s.layout;
-        // Allowed later: the change is made if nothing has changed the layout meanwhile, else it is dropped.
-        const settled = answer.then((yes): ActionResult => {
+        // Allowed later: the intent runs again then, and asks again if it would now remove something else.
+        const hold = holdFor(c, f, o, s.layout),
+          agreed = { ...c.agreed, host };
+        const again: AnswerStep = { op: "answer", intent: (x) => hold.intent(x), agreed };
+        const settled = answer.then((yes): ActionResult | Promise<ActionResult> => {
           if (!yes) return refused("kept");
-          if (io.get().layout !== from) return refused("kept");
-          return io.later ? io.later({ ...o, allowed: true }) : apply(io, { ...o, allowed: true });
+          const r = io.later ? io.later(again) : apply(io, again);
+          return r.reason === "pending" && r.settled ? r.settled : r;
         });
+        hold.settled = settled;
         return { ok: false, reason: "pending", settled };
       }
+      c.agreed = { ...c.agreed, host };
     }
     // A pane the host removed has no work left to keep: its object is gone.
     const losing = layoutChanged && o.op !== "remove" ? wouldLoseWork(s, next.layout) : [];
     if (losing.length) {
       if (o.op === "follow")
-        return apply(io, refuse("unsaved", say(io.snapshot()).keptUnsaved(s.unsaved[losing[0]!]!)));
+        return step(
+          c,
+          refuse("unsaved", say(io.snapshot()).keptUnsaved(s.unsaved[losing[0]!]!)),
+          f,
+        );
       // `confirmDiscard: false`: the app asked already (beforeClose), so its yes stands.
       if (io.snapshot().env.confirmDiscard !== false) {
-        io.set({ confirm: { panes: losing, change: { ...o, allowed: true } } });
-        return refused("unsaved");
+        const refs = new Map(core.tree.panes(s.layout.root).map((n) => [n.id, n.ref]));
+        const asked = losing.map((pane) => ({ pane, ref: refs.get(pane)! }));
+        if (covered(asked, c.agreed.discard)) discarding = losing;
+        else {
+          const hold = holdFor(c, f, o, s.layout);
+          let settle!: (r: ActionResult | Promise<ActionResult>) => void;
+          const settled = new Promise<ActionResult>((r) => (settle = r));
+          hold.settled = settled;
+          // A newer question takes the place of one not answered: that one ends as kept.
+          s.confirm?.settle(refused("kept"));
+          io.set({
+            confirm: {
+              panes: losing,
+              asked,
+              agreed: c.agreed,
+              intent: (x) => hold.intent(x),
+              settled,
+              settle,
+            },
+          });
+          return refused("unsaved");
+        }
       }
     }
     const geometry = o.geometry ?? p.geometry;
@@ -493,7 +634,19 @@ export function apply(io: ApplyIO, o: Outcome): ActionResult {
       // A reshape is counted, so the workspace can let panes slide to their new place.
       const motion = layoutChanged && geometry === "reshape" ? { reshapes: s.reshapes + 1 } : {};
       const undoStack = pruneUndo(o.undo ?? s.undoStack, next.layout);
-      const pruned = layoutChanged ? prunePanes({ ...s, ...o.patch }, next.layout, undoStack) : {};
+      // The work the person discarded goes in this commit, never before it: an answer that changes nothing keeps it.
+      const kept = discarding.length
+        ? {
+            unsaved: Object.fromEntries(
+              Object.entries(s.unsaved).filter(([id]) => !discarding.includes(id)),
+            ),
+          }
+        : {};
+      if (discarding.length) io.announce(say(io.snapshot()).discarded(discarding.length));
+      const pruned = layoutChanged
+        ? prunePanes({ ...s, ...kept, ...o.patch }, next.layout, undoStack)
+        : {};
+      c.writes++;
       io.set({
         layout: next.layout,
         view: layoutChanged || viewChanged ? next.view : s.view,

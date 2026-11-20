@@ -106,9 +106,7 @@ describe("dialog ids (2)", () => {
     );
     for (const s of [a, b]) act(() => s.set({ settingsOpen: true }));
     for (const s of [a, b])
-      act(() =>
-        s.set({ confirm: { panes: [s.get().view.focused!], change: { kind: "close" } as never } }),
-      );
+      act(() => s.set({ confirm: { panes: [s.get().view.focused!] } as never }));
     let ids = [...document.querySelectorAll("[id]")].map((e) => e.id);
     expect(ids.length).toBeGreaterThan(0);
     expect(new Set(ids).size).toBe(ids.length);

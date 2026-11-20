@@ -503,7 +503,8 @@ export function goToRole(x: Snapshot, role: string, from?: NodeId): Outcome {
     return (y: Snapshot) => prefix(apply1(placeTab(y, role, from, endSide(y.ctx.dir)), y));
   }
   const o = openTab(x, role);
-  if (!o || typeof o !== "object" || Array.isArray(o) || o.op === "refused") return o;
+  if (!o || typeof o !== "object" || Array.isArray(o) || o.op === "refused" || o.op === "answer")
+    return o;
   const t = label(p, role);
   return {
     ...o,

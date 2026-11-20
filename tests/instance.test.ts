@@ -570,7 +570,7 @@ describe("beforeClose: the host is asked before panes go", () => {
     expect(throwing.actions.close("order-2")).toEqual({ ok: false, reason: "kept" });
   });
 
-  it("drops a change the layout has moved on from by the time the answer comes", async () => {
+  it("makes the change against the layout of the moment when what it asked about is still there", async () => {
     let answer!: (yes: boolean) => void;
     let first = true;
     const jali = make({
@@ -580,8 +580,9 @@ describe("beforeClose: the host is asked before panes go", () => {
     const r = jali.actions.close("order-2");
     jali.actions.openBeside("orders", order({ id: 7 }));
     answer(true);
-    expect(await r.settled).toEqual({ ok: false, reason: "kept" });
-    expect(ids(jali)).toContain("order-2");
+    expect(await r.settled).toEqual({ ok: true });
+    expect(ids(jali)).not.toContain("order-2");
+    expect(jali.model().panes.some((p) => p.ref.params.id === 7)).toBe(true);
   });
 
   it("comes before Jali's own question about unsaved work", async () => {

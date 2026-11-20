@@ -159,7 +159,8 @@ export function bindActions(store: {
     string,
     (x: Snapshot, ...a: unknown[]) => Outcome,
   ][]) {
-    out[name] = (...args) => store.apply(fn(store.snapshot(), ...args)).pane;
+    // As a step, so a change held for an answer is the action itself, run again when the answer comes.
+    out[name] = (...args) => store.apply((x) => fn(x, ...args)).pane;
   }
   return out as unknown as Actions;
 }

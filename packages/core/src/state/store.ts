@@ -28,9 +28,11 @@ import { bindActions, type Actions } from "../actions";
 import {
   apply,
   type ActionResult,
+  type Agreed,
+  type Asked,
   type BeforeClose,
-  type Change,
   type Deferred,
+  type Intent,
   type HistoryMode,
   type Op,
   type Outcome,
@@ -78,10 +80,18 @@ export interface DndState {
   /** Over its own tab strip: where the tab would go (workspace/dnd.ts). */
   tabAt?: import("../workspace/dnd").TabDrop;
 }
-/** "Discard unsaved changes?": the panes that would lose work and the change, applied as is on Discard. */
+/** "Discard unsaved changes?": the panes that would lose work, and the action held (state/apply.ts, held questions).
+ *  Discard runs the action again: made if it still loses only the work asked about, else asked again. */
 export interface ConfirmState {
   panes: NodeId[];
-  change: Change;
+  /** The panes asked about, with the objects they showed. */
+  asked: Asked;
+  /** What was agreed before the question (the host's `beforeClose` yes). */
+  agreed: Agreed;
+  intent: Intent;
+  /** How the question ended: what the answer did, or `"kept"` (Keep editing, or a newer question took its place). */
+  settled: Promise<ActionResult>;
+  settle(r: ActionResult | Promise<ActionResult>): void;
 }
 /** A chooser dialog: ⌘K "Add to tabs of…" (`merge`), or an item asked for by the app (`choose`, actions/choose.ts). */
 export type ChooserState =
@@ -429,7 +439,7 @@ export function createUiStore(deps: UiStoreDeps): UiStore {
       d.key,
       setTimeout(() => {
         timers.delete(d.key);
-        store.apply(run(store.snapshot()));
+        store.apply(run);
       }, d.ms),
     );
   };
