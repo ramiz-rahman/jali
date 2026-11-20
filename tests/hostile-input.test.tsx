@@ -185,19 +185,22 @@ describe("C2b: stored sizes", () => {
     expect(() => make({ url: { location: memoryLocation(`?l=${code}`) }, storage })).not.toThrow();
   });
 
-  it.each([[null], ["text"], [[1, 2]]])(
-    "a stored entry of %j for the layout opens the link as it is",
-    (entry) => {
-      const code = twoPanes();
-      const l = layout.decode(code, registry)!;
-      const storage = memoryStorage({ sizes: JSON.stringify([[structureKey(l), entry]]) });
-      let jali: Jali | undefined;
-      expect(
-        () => (jali = make({ url: { location: memoryLocation(`?l=${code}`) }, storage })),
-      ).not.toThrow();
-      expect(jali!.model().panes.map((p) => p.id)).toEqual(["a", "b"]);
-    },
-  );
+  it.each([
+    [{ a: { size: null } }],
+    [{ a: { size: { px: "wide" } } }],
+    [{ a: { size: { weight: 1, px: 2 } } }],
+    [{ a: { base: { weight: -1 }, userSized: true } }],
+  ])("stored sizes %j open the link as it is", (entry) => {
+    const code = twoPanes();
+    const l = layout.decode(code, registry)!;
+    const storage = memoryStorage({ sizes: JSON.stringify([[structureKey(l), entry]]) });
+    let jali: Jali | undefined;
+    expect(
+      () => (jali = make({ url: { location: memoryLocation(`?l=${code}`) }, storage })),
+    ).not.toThrow();
+    expect(jali!.model().panes.map((p) => p.id)).toEqual(["a", "b"]);
+    expect(layout.validate(jali!.getLayout(), registry)).toEqual({ ok: true });
+  });
 });
 
 describe("C3: names on Object.prototype", () => {
