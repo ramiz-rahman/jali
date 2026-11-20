@@ -2,7 +2,7 @@
  * The dividers. The pointer drag is ours (`drag.ts`: pointer capture, one rAF per frame, direct DOM writes, one
  * commit on release); keys commit per keypress; double-click resets; the URL is written 120ms after the last change.
  */
-import { useRef } from "react";
+import { memo, useRef } from "react";
 import type { ScrollerBox } from "@jali/core";
 import {
   paneDomId,
@@ -15,8 +15,13 @@ import {
 import { useModel, useStore, useUi } from "../state/react";
 import { Divider } from "./Divider";
 
-/** The workspace's dividers, or with `strip`, the ones inside that row that scrolls (drawn in it, by Scroller). */
-export function DividerLayer({ strip }: { strip?: ScrollerBox } = {}) {
+/**
+ * The workspace's dividers, or with `strip`, the ones inside that row that scrolls (drawn in it, by Scroller).
+ * Memoised: it reads the model itself, so the workspace re-rendering (a drag's target changing) leaves it alone.
+ */
+export const DividerLayer = /* @__PURE__ */ memo(function DividerLayer({
+  strip,
+}: { strip?: ScrollerBox } = {}) {
   const store = useStore();
   const m = useModel();
   const zoomed = useUi((s) => s.view.zoomed);
@@ -72,4 +77,4 @@ export function DividerLayer({ strip }: { strip?: ScrollerBox } = {}) {
       </div>
     </div>
   );
-}
+});

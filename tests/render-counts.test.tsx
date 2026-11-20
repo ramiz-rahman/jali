@@ -124,6 +124,50 @@ const reset = () => {
 const frame = () => new Promise<void>((done) => requestAnimationFrame(() => done()));
 
 describe("render counts", () => {
+  it("a pane drag commits no pane frame or body per pointermove: only where it would land changes them", async () => {
+    const jali = make();
+    const { container } = render(<JaliRoot jali={jali} />);
+    const m = jali.model();
+    const dragged = m.visible[0]!;
+    const header = container.querySelector<HTMLElement>(
+      `[data-pane="${dragged}"] .jali-pane-header`,
+    )!;
+    await act(async () => {
+      fireEvent.pointerDown(header, { button: 0, clientX: 20, clientY: 20, pointerId: 1 });
+    });
+    reset();
+    const targets: (string | undefined)[] = [];
+    let moves = 0;
+    let workspaceCommits = 0;
+    for (let i = 0; i < 60; i++) {
+      // Across the top row, left to right.
+      const x = 40 + (i * (W - 80)) / 59,
+        y = 250 + (i % 3);
+      await act(async () => {
+        window.dispatchEvent(new MouseEvent("pointermove", { clientX: x, clientY: y }));
+        await frame();
+      });
+      moves++;
+      const d = storeOf(jali).get().dnd;
+      targets.push(d?.target && `${d.target}:${d.zone}`);
+    }
+    workspaceCommits = counts.panes;
+    const changes = targets.filter((t, i) => t !== targets[i - 1]).length;
+    // eslint-disable-next-line no-console
+    console.info(
+      `pane drag, ${moves} moves, ${changes} changes of target: Panes ${workspaceCommits}, DividerLayer ${counts.dividers}, PaneFrame ${counts.frame.length}, PaneBody ${counts.body.length}`,
+    );
+    expect(counts.body).toEqual([]);
+    expect(counts.dividers).toBe(0);
+    // The workspace and frames hear only the drag starting and a change of target pane.
+    expect(workspaceCommits).toBeLessThanOrEqual(changes + 1);
+    expect(counts.frame.length).toBeLessThanOrEqual(2 * changes + 1);
+    await act(async () => {
+      window.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape" }));
+    });
+    expect(storeOf(jali).get().dnd).toBeNull();
+  });
+
   it("a drag writes dnd at most once a frame, and a release lands where the pointer last was", async () => {
     const jali = make();
     const { container } = render(<JaliRoot jali={jali} />);

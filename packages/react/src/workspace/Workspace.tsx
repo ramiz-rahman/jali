@@ -223,6 +223,23 @@ function DragChip({ x, y, label, rtl }: { x: number; y: number; label: string; r
 }
 
 /**
+ * What a pane drag draws over the panes: the drop indicator on the target and the chip at the pointer. The one part
+ * that hears every move of the drag (`dnd`); the workspace and its frames hear only where it would land.
+ */
+function DragLayer({ m }: { m: JaliModel }) {
+  const dnd = useUi((s) => s.dnd);
+  const rtl = useUi((s) => s.dir === "rtl");
+  if (!dnd) return null;
+  const dropBox = dnd.target ? m.resolved.panes.find((b) => b.id === dnd.target) : undefined;
+  return (
+    <>
+      {dropBox && dnd.zone ? <DropIndicator rect={dropBox.rect} zone={dnd.zone} /> : null}
+      <DragChip x={dnd.x} y={dnd.y} label={dnd.label ?? m.title(dnd.dragged)} rtl={rtl} />
+    </>
+  );
+}
+
+/**
  * Full screen: while a pane is on the whole screen (`actions.toggleFullScreen`), the page is in the browser's full
  * screen, so the pane (fixed over the window) covers the display. Leaving the browser's full screen (Escape, the
  * browser's own controls) leaves Jali's too. Where the browser can't (an iPhone), the pane still covers the page.
@@ -280,9 +297,10 @@ export function Panes() {
   const m = useModel();
   const view = useUi((s) => s.view);
   const area = useUi((s) => s.area);
-  const dnd = useUi((s) => s.dnd);
+  // Where a drag would land, not where its pointer is: the pointer is DragLayer's.
+  const dropTarget = useUi((s) => s.dnd?.target);
+  const dragging = useUi((s) => !!s.dnd);
   const ghost = useUi((s) => s.ghost);
-  const dir = useUi((s) => s.dir);
   const sliding = useReshapeMotion(useUi((s) => s.reshapes));
   const ref = useMeasure(store);
   const measured = area.width > 0;
@@ -327,8 +345,6 @@ export function Panes() {
   // Across a fold the two halves stay whatever the keyboard does: they are two screens.
   const stacked = single && !page && !!m.stacked && (!keyboardUp || !!m.stacked.hinge);
   useStackAnnouncement(store, m, stacked);
-  const dropBox =
-    !single && dnd?.target ? m.resolved.panes.find((b) => b.id === dnd.target) : undefined;
   const placed = frames(
     m,
     view,
@@ -375,7 +391,7 @@ export function Panes() {
                   : f
               }
               chrome={chrome}
-              dropTarget={!single && dnd?.target === f.node.id}
+              dropTarget={!single && dropTarget === f.node.id}
             />
           ))}
         {single ? null : <DividerLayer />}
@@ -391,7 +407,7 @@ export function Panes() {
                       key={f.node.id}
                       frame={f}
                       chrome={chrome}
-                      dropTarget={dnd?.target === f.node.id}
+                      dropTarget={dropTarget === f.node.id}
                     />
                   ))}
                 <DividerLayer strip={s} />
@@ -415,16 +431,8 @@ export function Panes() {
             height={inner.height}
           />
         ) : null}
-        {dropBox && dnd?.zone ? <DropIndicator rect={dropBox.rect} zone={dnd.zone} /> : null}
-        {dnd && !single ? (
-          <DragChip
-            x={dnd.x}
-            y={dnd.y}
-            label={dnd.label ?? m.title(dnd.dragged)}
-            rtl={dir === "rtl"}
-          />
-        ) : null}
-        {ghost && !single && !dnd ? <Ghost role={ghost} /> : null}
+        {single ? null : <DragLayer m={m} />}
+        {ghost && !single && !dragging ? <Ghost role={ghost} /> : null}
         <Peek presentation={mode} />
       </div>
     </Landmark>
