@@ -21,7 +21,7 @@
  * Without Web Audio (tests, a browser that refuses it) the engine is a silent clock with the same API.
  */
 import { audible, channelOf, type Edits } from "../edits";
-import { sessionById, type SessionData } from "../sessions/sessions";
+import { isSession, loadSession, sessionById, type SessionData } from "../sessions/sessions";
 import { catalogueOf } from "../sessions/catalog";
 import { createStore, type Store } from "../store";
 import type { StretchNode } from "signalsmith-stretch";
@@ -133,7 +133,13 @@ export function createEngine({
   let watchdog: ReturnType<typeof setInterval> | 0 = 0;
 
   const now = () => (ctx ? ctx.currentTime : performance.now() / 1000);
-  const session = () => sessionById(get().session)!;
+  // The session in the transport, its data always loaded: the transport moves to a session once its data is here.
+  const initial = sessionById(first);
+  if (!initial) throw new Error(`Load the session “${first}” before making the engine (loadSession).`);
+  let current: SessionData = initial;
+  /** The session last asked for, so a slow load doesn't take the transport from a later choice. */
+  let wanted = first;
+  const session = () => current;
 
   function graph(): AudioContext | null {
     if (ctx || !audio) return ctx;
@@ -381,10 +387,21 @@ export function createEngine({
       return clamp(anchorPos + Math.max(0, heard) * get().rate);
     },
     load(id) {
-      if (!sessionById(id)) return;
+      wanted = id;
+      const s = sessionById(id);
+      if (!s) {
+        // Its data first; a failed load leaves the transport where it is (the panes say what failed).
+        if (isSession(id))
+          loadSession(id).then(
+            () => wanted === id && engine.load(id),
+            () => {},
+          );
+        return;
+      }
       if (id !== get().session) {
         engine.pause();
         anchorPos = 0;
+        current = s;
         set({ session: id, at: 0, loop: null });
         applyMix(true);
       }

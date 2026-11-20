@@ -23,7 +23,7 @@ import { timeline } from "./panes/timeline";
 import { transcript } from "./panes/transcript";
 import { presets } from "./presets";
 import type { Services } from "./services";
-import { clock, opening, SESSIONS, sessionById } from "./sessions/sessions";
+import { clock, opening, SESSION_IDS } from "./sessions/sessions";
 import { controlsPlace, setControlsPlace } from "./ui/controlsPlace";
 import { feelSounds, setFeelSounds } from "./ui/feel";
 
@@ -49,7 +49,7 @@ export function createStudioJali(services: Services, options: Options = {}): Jal
   const { notify = () => {}, ...jaliOptions } = options;
   const { engine, edits } = services;
   const now = () => {
-    const s = sessionById(engine.get().session)!;
+    const s = engine.session();
     return viewOf(s, edits.of(s.id));
   };
 
@@ -160,13 +160,13 @@ export function createStudioJali(services: Services, options: Options = {}): Jal
       run: (jali) =>
         jali.actions.choose({
           title: "Open session…",
-          items: SESSIONS,
-          label: (s) => s.title,
-          hint: (s) => `${catalogueOf(s).source} · ${s.tracks.length} tracks`,
+          items: [...SESSION_IDS],
+          label: (s) => catalogueOf(s).title,
+          hint: (s) => `${catalogueOf(s).source} · ${catalogueOf(s).tracks} tracks`,
           onChoose: (s) => {
             const lib = jali.model().panes.find((p) => p.ref.kind === "library");
-            if (lib) jali.actions.select(lib.id, transcript({ session: s.id }));
-            engine.load(s.id);
+            if (lib) jali.actions.select(lib.id, transcript({ session: s }));
+            engine.load(s);
           },
         }),
     },

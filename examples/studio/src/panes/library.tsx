@@ -3,7 +3,7 @@
  * follow it show that session; the transport loads it. Enter opens its transcript. Space is the transport's (play and
  * pause), so the peek moved to Shift+Space.
  */
-import { useEffect, useRef, type KeyboardEvent } from "react";
+import { Suspense, useEffect, useMemo, useRef, type KeyboardEvent } from "react";
 import { BooksIcon } from "@phosphor-icons/react";
 import { keyHint } from "@jali/core";
 import {
@@ -16,16 +16,16 @@ import {
 } from "@jali/react";
 import { openFollowing } from "../actions";
 import { useFrame, useTransport } from "../audio/react";
-import { useSessionView } from "../edits";
 import { useServices } from "../services";
+import { useStore } from "../store";
 import { stringOrNull } from "../stored";
 import { catalogueOf } from "../sessions/catalog";
 import {
   clock,
-  sessionById,
-  SESSIONS,
+  FIRST_SESSION,
+  SESSION_IDS,
   spokenDuration,
-  type SessionData,
+  useSession,
 } from "../sessions/sessions";
 import {
   drawBars,
@@ -48,8 +48,9 @@ function Library({ node, select, focused, paused, peek }: PaneProps) {
   const listRef = useRef<HTMLDivElement>(null);
   // The cursor is the library's selection in Jali, so a command ("Open session…") can move it too.
   const selected = useJaliState((s) => s.selection[node.id]?.ref.params.session);
-  const at = SESSIONS.findIndex((s) => s.id === (typeof selected === "string" ? selected : cursor));
-  const current = at >= 0 ? SESSIONS[at] : undefined;
+  const at = SESSION_IDS.indexOf(typeof selected === "string" ? selected : (cursor ?? ""));
+  const current = at >= 0 ? SESSION_IDS[at] : undefined;
+  const title = current ? catalogueOf(current).title : undefined;
 
   // Tell Jali what is selected: the panes that follow the library show it. The transport takes it at once.
   const moveTo = (id: string) => {
@@ -63,11 +64,11 @@ function Library({ node, select, focused, paused, peek }: PaneProps) {
     const follower = jali.model().panes.find((p) => p.linkedTo === node.id && p.follows);
     const shown = follower?.ref.params.session;
     const start =
-      cursor && SESSIONS.some((s) => s.id === cursor)
+      cursor && SESSION_IDS.includes(cursor)
         ? cursor
         : typeof shown === "string"
           ? shown
-          : SESSIONS[0]!.id;
+          : FIRST_SESSION;
     moveTo(start);
     // Once: later moves come from the person.
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -86,7 +87,7 @@ function Library({ node, select, focused, paused, peek }: PaneProps) {
     select(transcript({ session }));
     // A layout's kept segment (Compare keeps one beside the one that follows) is a segment of the session the
     // layout was designed on. On another session it would be a dead pane, so it takes this session's first.
-    const first = sessionById(session)?.segments[0];
+    const first = engine.session().segments[0];
     for (const p of jali.model().panes) {
       if (p.ref.kind !== "clip" || p.follows || p.ref.params.session === session || !first)
         continue;
@@ -103,10 +104,11 @@ function Library({ node, select, focused, paused, peek }: PaneProps) {
   };
 
   const onKeyDown = (e: KeyboardEvent) => {
-    const to = listMove(e, at, SESSIONS.length);
-    if (to !== null) moveTo(SESSIONS[to]!.id);
-    else if (e.key === "Enter" && !e.metaKey && !e.ctrlKey && current) open(current.id);
-    else if (e.key === " " && e.shiftKey && current) peek(transcript({ session: current.id }));
+    const to = listMove(e, at, SESSION_IDS.length);
+    const next = to === null ? undefined : SESSION_IDS[to];
+    if (next) moveTo(next);
+    else if (e.key === "Enter" && !e.metaKey && !e.ctrlKey && current) open(current);
+    else if (e.key === " " && e.shiftKey && current) peek(transcript({ session: current }));
     else return; // not ours (Space among them): let it bubble to the workspace and the transport
     e.preventDefault();
   };
@@ -114,16 +116,16 @@ function Library({ node, select, focused, paused, peek }: PaneProps) {
   useCommands([
     {
       id: "open",
-      title: current ? `Open the transcript of “${current.title}”` : "Open transcript",
+      title: title ? `Open the transcript of “${title}”` : "Open transcript",
       keys: keyHint("Enter"),
       disabled: current ? false : "Nothing selected",
-      run: () => current && open(current.id),
+      run: () => current && open(current),
     },
     {
       id: "mixer",
       title: "Open the mixer for this session",
       disabled: current ? false : "Nothing selected",
-      run: () => current && openFollowing(jali, node.id, mixer({ session: current.id })),
+      run: () => current && openFollowing(jali, node.id, mixer({ session: current })),
     },
   ]);
 
@@ -131,7 +133,7 @@ function Library({ node, select, focused, paused, peek }: PaneProps) {
     <div className="pane-body library">
       <div className="pane-label">
         <span>Sessions</span>
-        <span className="pane-label-count">{SESSIONS.length}</span>
+        <span className="pane-label-count">{SESSION_IDS.length}</span>
       </div>
       <div
         ref={listRef}
@@ -139,20 +141,20 @@ function Library({ node, select, focused, paused, peek }: PaneProps) {
         role="listbox"
         aria-label="Sessions"
         tabIndex={0}
-        aria-activedescendant={current ? `${node.id}-${current.id}` : undefined}
+        aria-activedescendant={current ? `${node.id}-${current}` : undefined}
         onKeyDown={onKeyDown}
       >
-        {SESSIONS.map((s, i) => (
+        {SESSION_IDS.map((s, i) => (
           <Row
-            key={s.id}
-            id={`${node.id}-${s.id}`}
+            key={s}
+            id={`${node.id}-${s}`}
             session={s}
             selected={i === at}
             active={focused && i === at}
-            live={s.id === inTransport && playing}
-            inTransport={s.id === inTransport}
+            live={s === inTransport && playing}
+            inTransport={s === inTransport}
             paused={paused}
-            onSelect={() => (i === at ? open(s.id) : moveTo(s.id))}
+            onSelect={() => (i === at ? open(s) : moveTo(s))}
           />
         ))}
       </div>
@@ -171,7 +173,7 @@ function Row({
   onSelect,
 }: {
   id: string;
-  session: SessionData;
+  session: string;
   selected: boolean;
   active: boolean;
   live: boolean;
@@ -180,11 +182,13 @@ function Row({
   onSelect: () => void;
 }) {
   const { edits } = useServices();
-  const view = useSessionView(edits, session.id);
-  const corrected = Object.keys(view?.edits.corrections ?? {}).length;
-  const notes = Object.keys(view?.edits.notes ?? {}).length;
+  // The card is drawn from the catalogue, so it shows before the session's data has loaded; only the tape's window
+  // waits for it.
+  const mine = useStore(edits, (all) => (Object.hasOwn(all, session) ? all[session] : undefined));
+  const corrected = Object.keys(mine?.corrections ?? {}).length;
+  const notes = Object.keys(mine?.notes ?? {}).length;
   const cat = catalogueOf(session);
-  const tracks = `${session.tracks.length} tracks`;
+  const tracks = `${cat.tracks} tracks`;
   return (
     <div
       id={id}
@@ -196,18 +200,20 @@ function Row({
       className="lib-row"
       onClick={onSelect}
       // Named by what it shows (WCAG 2.5.3: the name contains the visible words); the running time spoken in full.
-      aria-description={spokenDuration(session.duration)}
+      aria-description={spokenDuration(cat.duration)}
     >
       {/* A cartridge: a paper label with the source and the title, a lamp; a window onto the tape (every track's
           loudest at each moment); the running time, the track count and the licence printed on its foot. */}
       <span className="lib-lamp" aria-hidden />
       <div className="lib-label">
         <span className="lib-show">{cat.source}</span>
-        <b className="lib-title">{session.title}</b>
+        <b className="lib-title">{cat.title}</b>
       </div>
-      <Thumbnail session={session} paused={paused} inTransport={inTransport} />
+      <Suspense fallback={<div className="lib-wave screen" aria-hidden />}>
+        <Thumbnail session={session} paused={paused} inTransport={inTransport} />
+      </Suspense>
       <div className="lib-meta">
-        <span className="mono">{clock(session.duration)}</span>
+        <span className="mono">{clock(cat.duration)}</span>
         <span className="dot lib-tracks" aria-hidden />
         <span className="lib-tracks">{tracks}</span>
         <span className="dot" aria-hidden />
@@ -232,25 +238,27 @@ function Row({
 
 /** The session's speech as a strip of bars; the session in the transport shows how far it has played. */
 function Thumbnail({
-  session,
+  session: id,
   paused,
   inTransport,
 }: {
-  session: SessionData;
+  session: string;
   paused: boolean;
   inTransport: boolean;
 }) {
+  // Suspends until the session's data has loaded; the card around it shows meanwhile (Row's Suspense).
+  const session = useSession(id);
   const box = useRef<HTMLDivElement>(null);
   const canvas = useRef<HTMLCanvasElement>(null);
   const { width, height } = useSize(box);
-  const peaks = overviewPeaks(session);
+  const peaks = useMemo(() => (session ? overviewPeaks(session) : []), [session]);
   const scale = 1 / loudest(peaks);
   useFrame(
     paused,
     (pos) => {
       const g = prepare(canvas.current, width, height);
-      if (!g) return;
-      const c = screenPaletteOf(canvas.current!);
+      if (!g || !session) return;
+      const c = screenPaletteOf();
       drawBars(
         g,
         peaks,

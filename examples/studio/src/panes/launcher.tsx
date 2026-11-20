@@ -11,7 +11,7 @@ import {
 import type { ObjectRef } from "@jali/core";
 import { definePane, useLauncher, type PaneProps } from "@jali/react";
 import { useTransport } from "../audio/react";
-import { sessionById } from "../sessions/sessions";
+import { catalogueOf } from "../sessions/catalog";
 import { library } from "./library";
 import { markers } from "./markers";
 import { mixer } from "./mixer";
@@ -46,7 +46,7 @@ function Launcher({ openHere, dismiss }: PaneProps) {
       onKeyDown={onKeyDown}
     >
       <section>
-        <h3 className="pane-label">{sessionById(session)?.title}</h3>
+        <h3 className="pane-label">{catalogueOf(session).title}</h3>
         <div className="keyset launcher-keys">
           {VIEWS.map((v, i) => (
             <button

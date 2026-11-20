@@ -9,19 +9,29 @@ import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vite-plus/test";
 import { catalogueOf, CATALOGUE, PALETTE } from "./catalog";
 import {
+  loadSessions,
   missionTime,
   segmentIndexAt,
   segmentsAt,
-  SESSIONS,
   trackInput,
   trackName,
 } from "./sessions";
+
+// Loaded as the app loads them, one chunk each (load.ts).
+const SESSIONS = await loadSessions();
 
 const PUBLIC = join(dirname(fileURLToPath(import.meta.url)), "../../public");
 const at = (file: string) => join(PUBLIC, file);
 const PEAKS = 50;
 
 describe("every session", () => {
+  it("has its title, running time and track count in the catalogue, for before its data loads", () => {
+    for (const s of SESSIONS) {
+      const c = catalogueOf(s);
+      expect([c.title, c.duration, c.tracks]).toEqual([s.title, s.duration, s.tracks.length]);
+    }
+  });
+
   it("is the three the library shows, Apollo first", () => {
     expect(SESSIONS.map((s) => s.id)).toEqual([
       "apollo11-landing",

@@ -10,9 +10,10 @@ import { toast } from "sonner";
 import { cue } from "../actions";
 import { usePosition, useTransport } from "../audio/react";
 import { useSessionView } from "../edits";
+import { catalogueOf } from "../sessions/catalog";
 import { useServices } from "../services";
 import { stringOrNull } from "../stored";
-import { clock, markerIndexAt, sessionById } from "../sessions/sessions";
+import { clock, markerIndexAt } from "../sessions/sessions";
 import { Empty, Missing, SessionMissing } from "../ui/parts";
 import { followSession } from "./follow";
 import { listMove, scrollRowIntoView } from "./keys";
@@ -230,7 +231,7 @@ function MarkerField({ label, onDone }: { label: string; onDone(label: string | 
 
 export const markers = definePane("markers", {
   params: markersParams,
-  title: ({ session }) => `Markers · ${sessionById(session)?.title ?? session}`,
+  title: ({ session }) => `Markers · ${catalogueOf(session).title || session}`,
   icon: BookmarkSimpleIcon,
   width: { min: 240, comfortable: 290, max: 400 },
   height: { min: 170 },

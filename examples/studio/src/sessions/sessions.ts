@@ -1,15 +1,21 @@
 /**
- * The sessions and what the app derives from them: tracks, the segment or word at a time, and word times for a
- * corrected line. Plain functions of the bundled data, so pane titles, commands and tests can use them too.
+ * What the app derives from a session: tracks, the segment or word at a time, and word times for a corrected line.
+ * Plain functions of a session's data, so commands and tests can use them too. The data loads when it is first
+ * wanted (load.ts).
  */
-import apollo from "./data/apollo11-landing.json";
-import dinner from "./data/dinner-party.json";
-import song from "./data/light-caught-by-the-stone.json";
 import { catalogueOf, PALETTE, type ChannelColour } from "./catalog";
 import type { MarkerData, SegmentData, SessionData, TrackData, WordTime } from "./types";
 
-/** The library, in its order: the landing first (the session a first visit opens on), then the song, then dinner. */
-export const SESSIONS: readonly SessionData[] = [apollo, song, dinner] as unknown as SessionData[];
+export {
+  FIRST_SESSION,
+  isSession,
+  loadSession,
+  loadSessions,
+  SESSION_IDS,
+  sessionById,
+  useSession,
+  useSessions,
+} from "./load";
 
 export type { MarkerData, SegmentData, SessionData, TrackData, WordTime };
 export type Track = TrackData;
@@ -69,9 +75,6 @@ export const trackOf = (segment: SegmentData) => segment.track;
 /** Whether a track has words in the transcript (the Flight Director's loop has none). */
 export const hasTranscript = (session: SessionData, track: string) =>
   session.segments.some((s) => s.track === track);
-
-export const sessionById = (id: string): SessionData | undefined =>
-  SESSIONS.find((s) => s.id === id);
 
 export const segmentById = (session: SessionData | undefined, id: string) =>
   session?.segments.find((s) => s.id === id);

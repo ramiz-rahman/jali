@@ -19,7 +19,7 @@ import { useJali, useJaliState, useShortcut, useTheme } from "@jali/react";
 import { SPEEDS } from "../audio/engine";
 import { usePosition, useTransport } from "../audio/react";
 import { useServices } from "../services";
-import { clock, clockTenths, missionTime, sessionById } from "../sessions/sessions";
+import { clock, clockTenths, missionTime } from "../sessions/sessions";
 import { JogDial, SelectorDial } from "../ui/Knob";
 import { resetLayout } from "../workspace";
 import { catalogueOf } from "../sessions/catalog";
@@ -209,7 +209,7 @@ function Transport() {
   const { engine } = useServices();
   const jali = useJali();
   const t = useTransport((s) => s);
-  const session = sessionById(t.session)!;
+  const session = engine.session();
   const pos = usePosition(false, 0.05);
   const ready = t.status === "ready";
   const key = (

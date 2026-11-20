@@ -6,7 +6,7 @@ import { clip } from "./panes/clip";
 import { transcript } from "./panes/transcript";
 import { audible, channelOf } from "./edits";
 import { createServices } from "./services";
-import { sessionById, wordsFor, type SegmentData } from "./sessions/sessions";
+import { loadSessions, sessionById, wordsFor, type SegmentData } from "./sessions/sessions";
 import { slashForSearch, spaceForTransport } from "./shell/keys";
 import { createStudioJali, kinds } from "./workspace";
 
@@ -37,6 +37,9 @@ const run = (jali: Jali, id: string) =>
 
 const ids = (jali: Jali) => jali.model().panes.map((p) => p.id);
 const shown = (jali: Jali, id: string) => jali.model().pane(id)?.ref.params;
+// The sessions' data loads on demand in the app; here, all of it first.
+await loadSessions();
+
 const APOLLO = "apollo11-landing";
 const DINNER = "dinner-party";
 

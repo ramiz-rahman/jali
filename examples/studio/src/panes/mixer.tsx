@@ -12,6 +12,7 @@ import { SlidersHorizontalIcon } from "@phosphor-icons/react";
 import { definePane, useActivity, useCommands, useTheme, type PaneProps } from "@jali/react";
 import { useFrame, useTransport } from "../audio/react";
 import { channelOf, useSessionView, type SessionView } from "../edits";
+import { catalogueOf } from "../sessions/catalog";
 import { useServices } from "../services";
 import { colourOf, sessionById, trackInput, trackName, type Track } from "../sessions/sessions";
 import { Missing, SessionMissing, NotInTransport } from "../ui/parts";
@@ -330,7 +331,7 @@ function Meters({ paused, engineReady }: { paused: boolean; engineReady: boolean
 
 export const mixer = definePane("mixer", {
   params: mixerParams,
-  title: ({ session }) => `Mixer · ${sessionById(session)?.title ?? session}`,
+  title: ({ session }) => `Mixer · ${catalogueOf(session).title || session}`,
   icon: SlidersHorizontalIcon,
   width: { min: 420, comfortable: 640 },
   height: { min: 340 },

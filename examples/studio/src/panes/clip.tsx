@@ -319,7 +319,7 @@ export const clip = definePane("clip", {
   title: ({ session, segment }) => {
     const s = sessionById(session);
     const n = s ? s.segments.findIndex((x) => x.id === segment) + 1 : 0;
-    const Word = s?.id && catalogueOf(s).words.segment === "line" ? "Line" : "Segment";
+    const Word = catalogueOf(session).words.segment === "line" ? "Line" : "Segment";
     return n ? `${Word} ${n}` : Word;
   },
   icon: WaveformIcon,

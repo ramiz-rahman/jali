@@ -12,12 +12,12 @@ import { definePane, useActivity, useJaliState, useTheme, type PaneProps } from 
 import { cue } from "../actions";
 import { useFrame, useTransport } from "../audio/react";
 import { audible, channelOf, useSessionView, type SessionView } from "../edits";
+import { catalogueOf } from "../sessions/catalog";
 import { useServices } from "../services";
 import {
   clock,
   colourOf,
   hasTranscript,
-  sessionById,
   trackInput,
   trackName,
   trackOf,
@@ -350,7 +350,7 @@ function TimelineBody({ paused, view }: PaneProps<typeof timelineParams> & { vie
 
 export const timeline = definePane("timeline", {
   params: timelineParams,
-  title: ({ session }) => `Timeline · ${sessionById(session)?.title ?? session}`,
+  title: ({ session }) => `Timeline · ${catalogueOf(session).title || session}`,
   icon: WaveSineIcon,
   width: { min: 440, comfortable: 760 },
   // Room for four legible lanes under the ruler, with the "not loaded" note, and about that at any window height: a

@@ -9,17 +9,19 @@
 import { ScrollIcon } from "@phosphor-icons/react";
 import { definePane } from "@jali/react";
 import { catalogueOf } from "../sessions/catalog";
-import { clock, SESSIONS } from "../sessions/sessions";
+import { clock, SESSION_IDS, useSessions } from "../sessions/sessions";
 
 function Credits() {
+  // Every session's credits: the pane waits (Jali's loading state) until all three have loaded.
+  const sessions = useSessions();
   return (
     <div className="pane-body credits">
       <div className="pane-label">
         <span>Credits and licences</span>
-        <span className="pane-label-count">{SESSIONS.length}</span>
+        <span className="pane-label-count">{SESSION_IDS.length}</span>
       </div>
       <div className="cr-sheets">
-        {SESSIONS.map((s) => {
+        {sessions.map((s) => {
           const c = catalogueOf(s);
           return (
             <article key={s.id} className="cr-sheet paper" aria-labelledby={`credits-${s.id}`}>

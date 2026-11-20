@@ -7,6 +7,7 @@ import { useMemo } from "react";
 import { CATALOGUE } from "./sessions/catalog";
 import {
   sessionById,
+  useSession,
   wordsFor,
   type MarkerData,
   type SegmentData,
@@ -245,11 +246,13 @@ export function viewOf(session: SessionData, edits: SessionEdits): SessionView {
   };
 }
 
-/** The session with its edits, kept up to date. `undefined` for a session that doesn't exist. */
+/** The session with its edits, kept up to date. `undefined` for a session that doesn't exist; while its data loads,
+ *  the component suspends (sessions/load.ts). */
 export function useSessionView(edits: Edits, id: string): SessionView | undefined {
-  const mine = useStore(edits, (all) => all[id]);
-  return useMemo(() => {
-    const session = sessionById(id);
-    return session ? viewOf(session, { ...empty(), ...mine }) : undefined;
-  }, [id, mine]);
+  const session = useSession(id);
+  const mine = useStore(edits, (all) => (Object.hasOwn(all, id) ? all[id] : undefined));
+  return useMemo(
+    () => (session ? viewOf(session, { ...empty(), ...mine }) : undefined),
+    [session, mine],
+  );
 }

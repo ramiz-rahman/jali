@@ -15,7 +15,7 @@ import { mixer } from "./panes/mixer";
 import { timeline } from "./panes/timeline";
 import { transcript } from "./panes/transcript";
 
-export const FIRST_SESSION = "apollo11-landing";
+import { FIRST_SESSION } from "./sessions/sessions";
 const session = FIRST_SESSION;
 const followsLibrary = { linkedTo: "library", follows: true } as const;
 const followsTranscript = { linkedTo: "transcript", follows: true } as const;

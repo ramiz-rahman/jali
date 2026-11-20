@@ -37,6 +37,11 @@ export interface Licence {
 }
 
 export interface Catalogue {
+  /** What the library and every pane title show before the session's data has loaded: its title, running time in
+   *  seconds and number of tracks, as in its data (sessions.test.ts checks they agree). */
+  title: string;
+  duration: number;
+  tracks: number;
   material: Material;
   /** Under the title in the library: who made it and when. */
   source: string;
@@ -55,6 +60,9 @@ export interface Catalogue {
 
 export const CATALOGUE: Record<string, Catalogue> = {
   "apollo11-landing": {
+    title: "The Eagle has landed",
+    duration: 213,
+    tracks: 3,
     material: "radio",
     source: "NASA · 20 July 1969",
     licence: {
@@ -75,6 +83,9 @@ export const CATALOGUE: Record<string, Catalogue> = {
     },
   },
   "light-caught-by-the-stone": {
+    title: "The Light caught by the Stone",
+    duration: 146.441,
+    tracks: 8,
     material: "song",
     source: "Awe Plant · Pablo C. Budassi · 2016",
     licence: {
@@ -110,6 +121,9 @@ export const CATALOGUE: Record<string, Catalogue> = {
     },
   },
   "dinner-party": {
+    title: "Never had an orange",
+    duration: 127.5,
+    tracks: 4,
     material: "conversation",
     source: "DiPCo · Amazon · session S02",
     licence: {
@@ -135,6 +149,9 @@ export const CATALOGUE: Record<string, Catalogue> = {
 };
 
 const FALLBACK: Catalogue = {
+  title: "",
+  duration: 0,
+  tracks: 0,
   material: "radio",
   source: "",
   licence: { name: "", short: "", url: "" },
@@ -145,5 +162,9 @@ const FALLBACK: Catalogue = {
   mix: {},
 };
 
+/** A link can name anything: only the catalogue's own entries count, never a name from Object.prototype. */
+const own = <T>(r: Record<string, T>, k: string): T | undefined => (Object.hasOwn(r, k) ? r[k] : undefined);
+
 export const catalogueOf = (session: SessionData | string): Catalogue =>
-  CATALOGUE[typeof session === "string" ? session : session.id] ?? FALLBACK;
+  own(CATALOGUE, typeof session === "string" ? session : session.id) ?? FALLBACK;
+

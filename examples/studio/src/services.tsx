@@ -6,7 +6,7 @@ import { createContext, useContext, type ReactNode } from "react";
 import { createEngine, type Engine } from "./audio/engine";
 import { createEdits, type Edits } from "./edits";
 import { createLayouts, type Layouts } from "./layouts";
-import { SESSIONS } from "./sessions/sessions";
+import { FIRST_SESSION } from "./sessions/sessions";
 
 export interface Services {
   engine: Engine;
@@ -18,7 +18,7 @@ export interface Services {
 export function createServices({
   persist = true,
   audio,
-  session = SESSIONS[0]!.id,
+  session = FIRST_SESSION,
 }: { persist?: boolean; audio?: boolean; session?: string } = {}): Services {
   const edits = createEdits(persist);
   return {

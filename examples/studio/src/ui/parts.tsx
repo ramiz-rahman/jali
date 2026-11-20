@@ -5,7 +5,7 @@ import type { MissingProps } from "@jali/react";
 import { PlayIcon } from "@phosphor-icons/react";
 import { cue } from "../actions";
 import { useServices } from "../services";
-import { sessionById } from "../sessions/sessions";
+import { catalogueOf } from "../sessions/catalog";
 import { useTransport } from "../audio/react";
 
 /**
@@ -47,7 +47,7 @@ export function Empty({
  */
 export function NotInTransport({ session }: { session: string }) {
   const { engine } = useServices();
-  const playing = useTransport((s) => sessionById(s.session)?.title);
+  const playing = useTransport((s) => catalogueOf(s.session).title);
   return (
     <div
       className="not-live"

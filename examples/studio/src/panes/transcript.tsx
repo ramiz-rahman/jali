@@ -49,7 +49,6 @@ import {
   segmentById,
   segmentIndexAt,
   segmentIndexNear,
-  sessionById,
   wordIndexAt,
   type SegmentData,
 } from "../sessions/sessions";
@@ -740,8 +739,8 @@ function SpeakerField({ name, onDone }: { name: string; onDone(name: string | nu
 export const transcript = definePane("transcript", {
   params: transcriptParams,
   title: ({ session }) => {
-    const s = sessionById(session);
-    return `${s ? catalogueOf(s).words.transcript : "Transcript"} · ${s?.title ?? session}`;
+    const c = catalogueOf(session);
+    return `${c.words.transcript} · ${c.title || session}`;
   },
   icon: TextAlignLeftIcon,
   width: { min: 380, comfortable: 560 },
