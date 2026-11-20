@@ -110,3 +110,40 @@ describe("pure operations", () => {
     expect(core.reveal(home, "a", ctx)).toBe(home);
   });
 });
+
+describe("layout.tree", () => {
+  // Its deprecated draft steps change what they are given; everything else only reads (QUALITY-REVIEW P16).
+  const DRAFT_STEPS = ["replace", "balance", "remove", "activate", "parentOf"];
+
+  it("is pure but for its deprecated draft steps: every reader works on a frozen tree", () => {
+    const tree = freeze(layout(pane("a"), pane("b")));
+    const t = core.tree;
+    expect(t.panes(tree.root).map((p) => p.id)).toEqual(["a", "b"]);
+    expect(t.nodes(tree.root)).toHaveLength(3);
+    expect(t.find(tree.root, "b")?.id).toBe("b");
+    expect(t.parent(tree.root, "a")).toBe(tree.root);
+    expect(t.stackOf(tree.root, "a")).toBeUndefined();
+    expect(t.newId(tree.root)).toBe("pane-1");
+    expect(t.shape(tree.root)).toBe(t.shape(t.clone(tree).root));
+    expect(t.map(tree.root, (n) => n)).toBe(tree.root);
+    expect(t.map(tree.root, (n) => (n.id === "a" ? { ...n, id: "c" } : n))).not.toBe(tree.root);
+    expect(t.clone(tree)).toEqual(tree);
+    expect(Object.keys(t).sort()).toEqual(
+      [
+        ...DRAFT_STEPS,
+        "clone",
+        "find",
+        "isSplit",
+        "map",
+        "newId",
+        "noFocus",
+        "nodes",
+        "panes",
+        "parent",
+        "shape",
+        "stackOf",
+        "unzoom",
+      ].sort(),
+    );
+  });
+});
