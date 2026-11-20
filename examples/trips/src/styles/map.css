@@ -465,6 +465,10 @@
   .map-canvas:not([data-far]) .city-badge-wrap {
     display: none;
   }
+  /* With nowhere clear to go (pin-layout.ts). Hidden, not gone: the layout still measures it. */
+  .city-badge-wrap[data-hidden] {
+    visibility: hidden;
+  }
   .city-badge {
     display: grid;
     gap: 1px;

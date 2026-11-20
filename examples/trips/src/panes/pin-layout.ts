@@ -1,20 +1,30 @@
 /**
- * Where the map's pins go on screen, so no two cover each other and none hides under what floats over the map.
+ * Where the map's pins and city badges go on screen, so nothing covers anything else and nothing hides under what
+ * floats over the map.
  *
  * Pins are placed in order of importance (the selected place, then the day's stops in order, the hotel, the airport,
  * candidates, other days' stops). A pin shows only where it shows whole: inside the map, clear of the floating
  * controls. A pin that would overlap one already placed joins it instead: that pin says "+N" and names the others,
  * and pressing it zooms in until they part. So every pin on screen is a whole target of at least 24px with room
  * around it, at any width and zoom, and nothing that was on the map is silently lost from a pile.
+ *
+ * A city badge labels a whole city, not a point, so it may move: it goes after the pins, which mark exact spots, and
+ * takes the nearest spot to its city that is clear of the controls, of every pin, and of the other badge.
  */
 
-/** A pin to place: its centre on screen, the size of its target, and how important it is (lower goes first). */
+/** Something to place: its centre on screen, its target's size, and how important it is (lower goes first). */
 export interface PinBox {
   id: string;
   x: number;
   y: number;
+  /** A square target's side. */
   size: number;
+  /** A box that isn't square (a city badge): its width and height, in place of `size`. */
+  width?: number;
+  height?: number;
   rank: number;
+  /** It may move off its point to a clear spot nearby, rather than join a pile (a city badge). */
+  moves?: boolean;
 }
 
 export interface Rect {
@@ -25,18 +35,36 @@ export interface Rect {
 }
 
 export interface PinLayout {
-  /** The pins that show, each with the ids of the pins it stands for too, most important first. */
+  /** What shows, each with the ids of the pins it stands for too, most important first. */
   shown: Map<string, string[]>;
-  /** The pins that are off the open map: past its edge, or under a control floating over it. */
+  /** What is off the open map: past its edge, under a control floating over it, or with nowhere clear to move. */
   off: Set<string>;
+  /** How far each box that moved went from its point. */
+  moved: Map<string, { dx: number; dy: number }>;
 }
 
-/** Room kept between two pins that show. */
+/** Room kept between two things that show. */
 export const PIN_GAP = 4;
 
-const boxOf = (p: PinBox, pad = 0): Rect => {
-  const half = p.size / 2 + pad;
-  return { left: p.x - half, top: p.y - half, right: p.x + half, bottom: p.y + half };
+/** How far a badge may move from its point, and in what steps. */
+const REACH = 240;
+const STEP = 4;
+let offsets: [number, number][] | null = null;
+/** Every offset within reach, nearest first: where a badge looks for room. */
+function nearestFirst() {
+  if (offsets) return offsets;
+  const all: [number, number][] = [];
+  for (let dx = -REACH; dx <= REACH; dx += STEP)
+    for (let dy = -REACH; dy <= REACH; dy += STEP)
+      if (dx * dx + dy * dy <= REACH * REACH) all.push([dx, dy]);
+  offsets = all.sort((a, b) => a[0] ** 2 + a[1] ** 2 - (b[0] ** 2 + b[1] ** 2));
+  return offsets;
+}
+
+const boxOf = (p: PinBox, pad = 0, dx = 0, dy = 0): Rect => {
+  const w = (p.width ?? p.size) / 2 + pad;
+  const h = (p.height ?? p.size) / 2 + pad;
+  return { left: p.x + dx - w, top: p.y + dy - h, right: p.x + dx + w, bottom: p.y + dy + h };
 };
 
 export const overlaps = (a: Rect, b: Rect) =>
@@ -53,9 +81,33 @@ export function layoutPins(
 ): PinLayout {
   const shown = new Map<string, string[]>();
   const off = new Set<string>();
+  const moved = new Map<string, { dx: number; dy: number }>();
   const placed: { id: string; box: Rect }[] = [];
-  const order = pins.map((p, i) => ({ p, i })).sort((a, b) => a.p.rank - b.p.rank || a.i - b.i);
+  // What can't move goes first: a pin marks its spot, and a badge finds room around it.
+  const order = pins
+    .map((p, i) => ({ p, i }))
+    .sort((a, b) => +!!a.p.moves - +!!b.p.moves || a.p.rank - b.p.rank || a.i - b.i);
   for (const { p } of order) {
+    if (p.moves) {
+      const spot = nearestFirst().find(([dx, dy]) => {
+        const box = boxOf(p, 0, dx, dy);
+        const near = boxOf(p, PIN_GAP, dx, dy);
+        return (
+          inside(box, view) &&
+          !blocked.some((b) => overlaps(box, b)) &&
+          !placed.some((q) => overlaps(near, q.box))
+        );
+      });
+      if (!spot) {
+        off.add(p.id);
+        continue;
+      }
+      const [dx, dy] = spot;
+      if (dx || dy) moved.set(p.id, { dx, dy });
+      placed.push({ id: p.id, box: boxOf(p, 0, dx, dy) });
+      shown.set(p.id, []);
+      continue;
+    }
     const box = boxOf(p);
     if (!inside(box, view) || blocked.some((b) => overlaps(box, b))) {
       off.add(p.id);
@@ -70,5 +122,5 @@ export function layoutPins(
     placed.push({ id: p.id, box });
     shown.set(p.id, []);
   }
-  return { shown, off };
+  return { shown, off, moved };
 }

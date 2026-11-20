@@ -62,4 +62,45 @@ describe("layoutPins", () => {
     const counted = [...shown].reduce((n, [, more]) => n + 1 + more.length, 0);
     expect(counted).toBe(crowd.length);
   });
+
+  it("moves a badge to the nearest spot clear of the controls and the pins, after the pins", () => {
+    const badge: PinBox = {
+      id: "city",
+      x: 200,
+      y: 270,
+      size: 0,
+      width: 120,
+      height: 50,
+      rank: 0,
+      moves: true,
+    };
+    const key = { left: 0, top: 260, right: 400, bottom: 300 };
+    const { shown, moved, off } = layoutPins([badge, pin("stop", 200, 200)], view, [key]);
+    expect([...shown.keys()]).toEqual(["stop", "city"]);
+    expect(shown.get("stop")).toEqual([]);
+    expect(off.size).toBe(0);
+    const { dx, dy } = moved.get("city")!;
+    const box = { left: 140 + dx, right: 260 + dx, top: 245 + dy, bottom: 295 + dy };
+    expect(overlaps(box, key)).toBe(false);
+    expect(overlaps(box, { left: 185, right: 215, top: 185, bottom: 215 })).toBe(false);
+    expect(box.top).toBeGreaterThanOrEqual(0);
+  });
+
+  it("leaves a badge with nowhere clear to go off the map", () => {
+    const badge: PinBox = {
+      id: "city",
+      x: 200,
+      y: 150,
+      size: 0,
+      width: 120,
+      height: 50,
+      rank: 0,
+      moves: true,
+    };
+    const { shown, off } = layoutPins([badge], view, [
+      { left: 0, top: 0, right: 400, bottom: 280 },
+    ]);
+    expect(shown.size).toBe(0);
+    expect([...off]).toEqual(["city"]);
+  });
 });

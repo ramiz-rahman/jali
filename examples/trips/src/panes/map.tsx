@@ -261,8 +261,8 @@ function MapPane({ params, paused, node, inPeek }: PaneProps<typeof mapParams>) 
   /** The map shows the day as framed (not moved by the person since). */
   const framed = useRef(true);
   const frameRef = useRef<(animate?: boolean) => void>(() => {});
-  // The city badges, for the clean-up of the map effect (declared further down).
-  const badgeList = useRef<() => Marker[]>(() => []);
+  // A badge for each city, shown when the whole country is in view: its name and its days. A click frames it.
+  const badges = useRef(new Map<CityId, Marker>());
   const pending = useRef<(() => void) | null>(null);
   const [styleTick, setStyleTick] = useState(0);
   const [failed, setFailed] = useState(false);
@@ -362,10 +362,8 @@ function MapPane({ params, paused, node, inPeek }: PaneProps<typeof mapParams>) 
     map.on("zoomstart", moved);
     map.on("rotatestart", moved);
 
-    // Zoomed out to the whole country, each city is one badge; zoomed in, its pins.
-    const far = () => el.toggleAttribute("data-far", map.getZoom() < CITY_ZOOM);
-    map.on("zoom", far);
-    far();
+    // Zoomed out to the whole country, each city is one badge; zoomed in, its pins (the layout says which).
+    relayout();
 
     // It resizes with its box, unless it is out of sight (then it catches up when shown).
     let frame = 0;
@@ -386,7 +384,8 @@ function MapPane({ params, paused, node, inPeek }: PaneProps<typeof mapParams>) 
       cancelAnimationFrame(frame);
       for (const m of markers.current.values()) m.marker.remove();
       markers.current.clear();
-      for (const b of badgeList.current()) b.remove();
+      for (const b of badges.current.values()) b.remove();
+      badges.current.clear();
       map.remove();
       mapRef.current = null;
     };
@@ -477,23 +476,25 @@ function MapPane({ params, paused, node, inPeek }: PaneProps<typeof mapParams>) 
     layoutRef.current();
   }, [pins, selected, jali, node.id, styleTick]);
 
-  // Lays the pins out on screen (pin-layout.ts): none covers another, none hides under the controls over the map.
+  // Lays out what the zoom shows (pin-layout.ts): zoomed out to the whole country, a badge per city; else the pins.
+  // Nothing covers anything else, and nothing hides under the controls over the map.
   layoutRef.current = () => {
     const map = mapRef.current;
     const el = box.current;
-    if (!map || !el || el.hasAttribute("data-far") || !el.clientWidth || !el.clientHeight) return;
-    piles.current = placePins(map, el, Array.from(markers.current.values()));
+    if (!map || !el) return;
+    const far = map.getZoom() < CITY_ZOOM;
+    el.toggleAttribute("data-far", far);
+    if (!el.clientWidth || !el.clientHeight) return;
+    piles.current = placePins(
+      map,
+      el,
+      far ? [] : Array.from(markers.current.values()),
+      far ? badges.current : new Map(),
+    );
   };
   // After every render too: the card under the map, and the summary over it, come and go with the selection.
   useEffect(() => layoutRef.current());
 
-  // A badge for each city, shown when the whole country is in view: its name and its days. A click frames it.
-  const badges = useRef(new Map<CityId, Marker>());
-  badgeList.current = () => {
-    const all = Array.from(badges.current.values());
-    badges.current.clear();
-    return all;
-  };
   // The badges' click handlers outlive this render: they read the plan as it is when clicked, so a new hotel or a
   // moved stop is framed, not the plan the badge was made with.
   const planRef = useRef(plan);
@@ -540,6 +541,8 @@ function MapPane({ params, paused, node, inPeek }: PaneProps<typeof mapParams>) 
       el.append(name, " ", sub);
       el.setAttribute("aria-label", `${CITY_NAME[city]}, ${stops}. Show it on the map.`);
     }
+    // Their text may have changed their size, and they move to stay clear.
+    layoutRef.current();
   }, [plan, styleTick]);
 
   // A new day: frame its stops and its hotel, in its own city. "All" frames both cities.
@@ -748,6 +751,9 @@ const photoBox = (x: number, y: number) => ({
   bottom: y - 34 + 10,
 });
 
+/** A city badge's id in the layout, beside the places'. */
+const badgeId = (city: CityId) => `city:${city}`;
+
 /**
  * What floats over the map (the days and the summary on top, the route key, the card, MapLibre's buttons and its
  * attribution), as rectangles in the map's own coordinates.
@@ -771,11 +777,16 @@ function floating(el: HTMLElement): Rect[] {
 }
 
 /**
- * Places the pins (pin-layout.ts) and shows the result: a pin off the open map or in a pile is hidden, and a pin that
- * stands for others says "+N" and names them. The selected pin's photo shows only where it covers nothing. Returns
- * the piles.
+ * Places the pins and the city badges (pin-layout.ts) and shows the result: a pin off the open map or in a pile is
+ * hidden, and a pin that stands for others says "+N" and names them. A badge moves to the clear spot nearest its city,
+ * or hides if there is none. The selected pin's photo shows only where it covers nothing. Returns the piles.
  */
-function placePins(map: MapLibre, el: HTMLElement, all: PinMarker[]) {
+function placePins(
+  map: MapLibre,
+  el: HTMLElement,
+  all: PinMarker[],
+  badges: ReadonlyMap<CityId, Marker>,
+) {
   const view = { left: 0, top: 0, right: el.clientWidth, bottom: el.clientHeight };
   const blocked = floating(el);
   const at = new Map<string, { x: number; y: number }>();
@@ -791,7 +802,29 @@ function placePins(map: MapLibre, el: HTMLElement, all: PinMarker[]) {
       rank: selected ? 0 : RANK[pin.role] + (pin.order ?? 0) / 100,
     };
   });
-  const { shown } = layoutPins(boxes, view, blocked);
+  for (const [city, marker] of badges) {
+    const { x, y } = map.project(marker.getLngLat());
+    const button = marker.getElement().firstElementChild as HTMLElement;
+    // 4px clear all round, so it can grow a little on hover and still cover nothing.
+    boxes.push({
+      id: badgeId(city),
+      x,
+      y,
+      size: 0,
+      width: button.offsetWidth + 8,
+      height: button.offsetHeight + 8,
+      rank: 0,
+      moves: true,
+    });
+  }
+  const { shown, moved } = layoutPins(boxes, view, blocked);
+  for (const [city, marker] of badges) {
+    const id = badgeId(city);
+    marker.getElement().toggleAttribute("data-hidden", !shown.has(id));
+    const { dx, dy } = moved.get(id) ?? { dx: 0, dy: 0 };
+    const at = marker.getOffset();
+    if (at.x !== dx || at.y !== dy) marker.setOffset([dx, dy]);
+  }
   const label = (id: string) => all.find((m) => m.pin.p.id === id)?.el.dataset.label ?? "";
   for (const { pin, el: button, marker } of all) {
     const id = pin.p.id;
