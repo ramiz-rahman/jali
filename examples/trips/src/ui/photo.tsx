@@ -8,7 +8,7 @@ import { InfoIcon, XIcon } from "@phosphor-icons/react";
 import { photoOf, type PhotoInfo } from "../trip/photos";
 
 // Vite's base ("./"), so the photos load from any path the built site is served at.
-const base = (import.meta as unknown as { env?: { BASE_URL?: string } }).env?.BASE_URL ?? "./";
+const base = import.meta.env.BASE_URL;
 const src = (p: PhotoInfo, size: "large" | "small") =>
   `${base}photos/${p.file}${size === "small" ? "-s" : ""}.webp`;
 /** A place's photo's address, for code that draws outside React (the map's pins). */

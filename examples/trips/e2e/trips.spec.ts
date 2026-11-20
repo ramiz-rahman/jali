@@ -253,9 +253,13 @@ test("a layout's own selection keeps the map framed on the day; a place the pers
   page,
 }) => {
   await expect.poll(() => stopPinsInView(page)).toBe(7);
-  // Stay's place pane follows the map; whichever place they settle on, it comes from the layout, not a pick.
+  // Stay brings its own hotel into the place pane, and Jali selects it on the map: the layout's word, not a pick.
   await layout(page, "Stay").click();
-  await expect(pane(page, "map").locator(".pin[data-selected]")).toHaveCount(1);
+  await expect(pane(page, "map").locator(".pin[data-selected]")).toHaveAttribute(
+    "aria-label",
+    /Silom/,
+  );
+  await expect(pane(page, "place").locator(".place-name")).toHaveText("Silom Lantern Hotel");
   await page.waitForTimeout(1200);
   expect(await stopPinsInView(page)).toBe(7);
   // Picking a hotel across town brings it into view.
