@@ -13,6 +13,8 @@ import type {
   ViewState,
 } from "./layout/types";
 import type { HistoryMode } from "./state/apply";
+import type { ItemId } from "./profile";
+import { toLayout, type LayoutInput } from "./layout/build";
 import type { UiState, UrlWriter } from "./state/store";
 import { browserLocation, browserStorage, type LocationPort, type StoragePort } from "./ports";
 import { own as ownOf } from "./own";
@@ -111,11 +113,74 @@ function pageParams(q: URLSearchParams, s: UiState, k: UrlKeys) {
   for (const key of [k.page, k.item, k.tab, k.open, k.preset]) q.delete(key);
   if (legacyKeys(k)) for (const key of ["app", "arr"]) q.delete(key);
   if (!s.page) return;
-  q.set(k.page, s.page.profile);
-  q.set(k.item, String(s.page.item));
   const focused = core.tree.panes(s.layout.root).find((p) => p.id === s.view.focused)?.role;
-  q.set(k.tab, s.page.mode === "single" ? s.page.tab : (focused ?? s.page.tab));
-  for (const p of core.tree.panes(s.layout.root)) if (!p.role) q.append(k.open, encodePeek(p.ref));
+  setPage(q, k, {
+    page: s.page.profile,
+    item: s.page.item,
+    tab: s.page.mode === "single" ? s.page.tab : (focused ?? s.page.tab),
+    open: core.tree.panes(s.layout.root).flatMap((p) => (p.role ? [] : [p.ref])),
+  });
+}
+
+/** A page link's params, in the order a workspace writes them. */
+function setPage(q: URLSearchParams, k: UrlKeys, link: PageLink) {
+  q.set(k.page, link.page);
+  if (link.item !== undefined) q.set(k.item, String(link.item));
+  if (link.tab !== undefined) q.set(k.tab, link.tab);
+  for (const ref of link.open ?? []) q.append(k.open, encodePeek(ref));
+}
+
+/** A link to a curated page: which page, its item, the view in use, panes opened from it and the peek. */
+export interface PageLink {
+  /** The page's id (its profile's `id`). */
+  page: string;
+  /** The item it shows. Default: the one the reader saw last, else the page's first. */
+  item?: ItemId;
+  /** The view in use (a role id). Default: the one the reader used last, else the page's home view. */
+  tab?: string;
+  /** Panes opened from the page's views, in order. A link with any opens in Split view. */
+  open?: readonly ObjectRef[];
+  /** The object in the peek sheet. */
+  peek?: ObjectRef;
+}
+/** A link to a free workspace's layout: the layout (`row(...)` and the rest, or a layout), and what rides with it. */
+export interface LayoutLink {
+  layout: LayoutInput;
+  /** The preset it came from, so the link marks it and Reset layout rebuilds it. */
+  preset?: string;
+  /** The maximised pane's id. */
+  zoom?: NodeId;
+  /** The object in the peek sheet. */
+  peek?: ObjectRef;
+}
+export type JaliLink = PageLink | LayoutLink;
+
+export interface LinkSearchOptions {
+  /** The workspace's `url.prefix`, when it has one. */
+  prefix?: string;
+  /** A search string whose other params are kept (your app's own): `"?filter=open"`. Its workspace params are
+   *  replaced. Default: none. */
+  search?: string;
+}
+
+/**
+ * The search string (`"?page=visit&item=7&open=call~slug=x"`) that opens a workspace on `link`, as the workspace
+ * itself would write it: reading it back gives exactly that page, item, view, opened panes and peek, or that layout.
+ * Needs no workspace, so a server, an email or another app can build one. Put it after the path the workspace is at.
+ */
+export function linkSearch(link: JaliLink, options: LinkSearchOptions = {}): string {
+  const k = urlKeys(options.prefix);
+  const q = new URLSearchParams(options.search ?? "");
+  for (const key of Object.values(k)) q.delete(key);
+  if ("page" in link) setPage(q, k, link);
+  else {
+    q.set(k.layout, core.encode(toLayout(link.layout)));
+    if (link.preset) q.set(k.preset, link.preset);
+    if (link.zoom) q.set(k.zoom, link.zoom);
+  }
+  if (link.peek) q.set(k.peek, encodePeek(link.peek));
+  const text = q.toString();
+  return text ? `?${text}` : "";
 }
 
 /** The search string for `s`, keeping every param of `search` that is not the workspace's. */

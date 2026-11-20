@@ -108,6 +108,13 @@ export { en, type Messages, type MessageOverrides, type ScreenDirection } from "
 // ---------- the address and what a person keeps ----------
 export type { UrlSyncOptions, LinkSizes } from "./url";
 export {
+  linkSearch,
+  type JaliLink,
+  type PageLink,
+  type LayoutLink,
+  type LinkSearchOptions,
+} from "./url";
+export {
   browserLocation,
   memoryLocation,
   browserStorage,

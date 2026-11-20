@@ -26,6 +26,7 @@ describe("public API", () => {
       "formatKeys",
       "keyHint",
       "layout",
+      "linkSearch",
       "listCommands",
       "memoryLocation",
       "memoryStorage",
