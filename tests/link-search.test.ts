@@ -5,6 +5,7 @@
 import { describe, expect, it } from "vite-plus/test";
 import {
   createJali,
+  definePage,
   linkSearch,
   memoryLocation,
   memoryStorage,
@@ -28,7 +29,7 @@ const call = definePane("call", {
   width: { min: 200 },
   Component: () => null,
 });
-const page = {
+const page = definePage({
   id: "visit",
   name: "Visit",
   itemNoun: "visit",
@@ -37,7 +38,7 @@ const page = {
   firstItem: 1,
   bind: (item: number) => ({ summary: visit({ id: item }) }),
   build: (item: number) => pane(visit({ id: item }), { id: "summary", role: "summary" }),
-};
+});
 const at = (search: string, options: Partial<JaliOptions> = {}) =>
   createJali({
     panes: [visit, call],
