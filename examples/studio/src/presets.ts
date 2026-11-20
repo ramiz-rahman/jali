@@ -21,10 +21,9 @@ const followsLibrary = { linkedTo: "library", follows: true } as const;
 const followsTranscript = { linkedTo: "transcript", follows: true } as const;
 
 const lib = () => pane(library(), { id: "library", weight: 0.8 });
-const tr = (weight: number) =>
+const tr = (weight = 1) =>
   pane(transcript({ session }), { id: "transcript", ...followsLibrary, weight });
-const tl = (weight: number) =>
-  pane(timeline({ session }), { id: "timeline", ...followsLibrary, weight });
+const tl = () => pane(timeline({ session }), { id: "timeline", ...followsLibrary });
 
 export const presets: PresetOptions[] = [
   {
@@ -33,7 +32,7 @@ export const presets: PresetOptions[] = [
     label: "Edit",
     layout: row(
       lib(),
-      column({ weight: 2.6 }, tr(2.6), tl(1)),
+      column({ weight: 2.6 }, tr(), tl()),
       pane(clip({ session, segment: "s01" }), { id: "clip", ...followsTranscript, weight: 1.1 }),
     ),
   },
@@ -45,9 +44,9 @@ export const presets: PresetOptions[] = [
       lib(),
       column(
         { weight: 2.6 },
-        // The timeline needs a few lanes' height; the mixer's faders want all the throw they can get.
-        tl(1),
-        pane(mixer({ session }), { id: "mixer", ...followsLibrary, weight: 2.6 }),
+        // The timeline takes its few lanes' height; the mixer's faders get all the rest of the throw.
+        tl(),
+        pane(mixer({ session }), { id: "mixer", ...followsLibrary }),
       ),
       pane(markers({ session }), { id: "markers", ...followsLibrary, weight: 0.9 }),
     ),
@@ -58,7 +57,6 @@ export const presets: PresetOptions[] = [
     label: "Review",
     layout: column(
       row(
-        { weight: 3 },
         lib(),
         tr(1.7),
         column(
@@ -77,7 +75,7 @@ export const presets: PresetOptions[] = [
           }),
         ),
       ),
-      tl(1),
+      tl(),
     ),
   },
   {
@@ -87,7 +85,7 @@ export const presets: PresetOptions[] = [
     label: "Compare",
     layout: row(
       pane(library(), { id: "library", weight: 0.7 }),
-      column({ weight: 1.5 }, tr(2), tl(1.3)),
+      column({ weight: 1.5 }, tr(), tl()),
       pane(clip({ session, segment: "s04" }), {
         id: "clip-a",
         linkedTo: "transcript",

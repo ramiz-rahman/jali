@@ -344,8 +344,9 @@ export const timeline = definePane("timeline", {
   title: ({ session }) => `Timeline · ${sessionById(session)?.title ?? session}`,
   icon: WaveSineIcon,
   width: { min: 440, comfortable: 760 },
-  // Room for four legible lanes under the ruler, with the "not loaded" note.
-  height: { min: 230 },
+  // Room for four legible lanes under the ruler, with the "not loaded" note, and about that at any window height: a
+  // tall window gives the rest to the pane above or below it.
+  height: { min: 230, comfortable: 240, max: 260 },
   follow: followSession,
   Component: Timeline,
 });

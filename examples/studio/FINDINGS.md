@@ -87,6 +87,8 @@ Studio is built on `@jali/core` and `@jali/react` alone, with no change to `pack
 
 **Suggestion.** `height.comfortable` and `height.max`, with the same rules as width: spare room past `max` goes to the neighbours first.
 
+**Fixed in Jali:** `height: { min, comfortable, max }`, with width's rules down a column: spare height brings each pane to its comfortable height, then toward its max by weight, and past a max goes to the neighbours first (only when every pane is at its max does it grow on). A row is as tall as its children can use, a tab group is measured as its first tab, a divider drag can pass a max, and stacked view on a phone shares its height the same way until the person moves the divider. The timeline says `height: { min: 230, comfortable: 240, max: 260 }` (240 rather than 200: its four lanes need 230), and the per-layout weights between it and the pane above or below are gone from `presets.ts`. It stays 254 to 260 high from a 600 to a 1200 pixel window in every layout.
+
 ## 8. A narrow pane with folded tabs keeps all its header buttons
 
 **Wanted.** At 760 pixels the library holds the folded markers as a tab, which is fine.
@@ -106,6 +108,8 @@ Studio is built on `@jali/core` and `@jali/react` alone, with no change to `pack
 **Workaround.** Compare now puts the timeline under the transcript, so a fold never sends a wide pane into the library (`presets.ts`). At 760 it shows the library, the transcript and the timeline, with the two segments as tabs of the transcript.
 
 **Suggestion.** When choosing where a folded pane goes, prefer a group whose minimum it doesn't raise, or let fitting compare the outcome of folding into the source against folding into a neighbour.
+
+**Fixed in Jali:** when folding into the pane's source still leaves the panes too wide for the room, fitting also tries the pane's other links and its neighbours, follows each through to a fit, and keeps the one that shows the most panes; the source wins ties and whenever its fold already fits. "A group whose minimum it doesn't raise" alone would not have helped here: the library's group and the transcript's both grow (by 200 and by 60). The first Compare at 760 now shows the library and the transcript, with the two segments and the timeline as the transcript's tabs, as wanted. Compare keeps its current arrangement anyway: at 760 it shows three panes (the timeline too).
 
 ## 10. Smaller things
 
