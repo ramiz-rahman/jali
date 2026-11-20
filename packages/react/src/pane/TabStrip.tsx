@@ -127,7 +127,20 @@ export function TabStrip({ group, owner }: { group: NonNullable<Frame["group"]>;
     el.toggleAttribute(rtl ? "data-fade-r" : "data-fade-l", !fills && pos > 1);
     el.toggleAttribute(rtl ? "data-fade-l" : "data-fade-r", !fills && pos < max - 1);
   };
-  useLayoutEffect(measure);
+  // Measured again when what the strip lays out changes, not on every render (a resize of the frame is the observer's).
+  const laidOut = `${group.active} ${tabs.map((t) => `${t.node.id}:${+!!t.node.pinned}${+t.tucked}${+t.folded}`)}`;
+  useLayoutEffect(measure, [
+    laidOut,
+    titles,
+    marks,
+    unsaved,
+    dropAt,
+    dir,
+    renaming,
+    page,
+    canRename,
+    hiddenCount,
+  ]);
   useEffect(() => {
     const el = strip.current;
     if (!el) return undefined;

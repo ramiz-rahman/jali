@@ -8,7 +8,7 @@
 import { act, cleanup, fireEvent, render } from "@testing-library/react";
 import { useState, type ComponentType } from "react";
 import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from "vite-plus/test";
-import { column, createJali, memoryLocation, memoryStorage, row } from "@jali/core";
+import { column, createJali, memoryLocation, memoryStorage, row, tabs } from "@jali/core";
 import { storeOf } from "@jali/core/adapter";
 import { JaliRoot, JaliView, definePane, useJaliCommands } from "@jali/react";
 
@@ -312,6 +312,38 @@ describe("render counts", () => {
     );
     expect(seen.at(-1)).not.toBe(first);
     expect((seen.at(-1) as { title: string }[])[0]!.title).toBe("Refresh");
+  });
+
+  it("a tab strip's underline observes its tabs once, not again on every render", () => {
+    const made: Element[] = [];
+    const Before = globalThis.ResizeObserver;
+    globalThis.ResizeObserver = class {
+      observe(el: Element) {
+        made.push(el);
+      }
+      unobserve() {}
+      disconnect() {}
+    } as unknown as typeof ResizeObserver;
+    try {
+      const jali = createJali({
+        panes: [note],
+        layout: row(tabs(note({ id: 1 }), note({ id: 2 }), note({ id: 3 })), note({ id: 4 })),
+        url: { location: memoryLocation() },
+        storage: memoryStorage(),
+        size: { width: W, height: H },
+        moveFocus: false,
+      });
+      const { container } = render(<JaliRoot jali={jali} />);
+      expect(container.querySelector(".jali-tab-indicator")).not.toBeNull();
+      const store = storeOf(jali);
+      const other = jali.model().visible.find((id) => !store.model().stackOf(id))!;
+      made.length = 0;
+      // Titles re-render every tab strip; a new title for the pane beside them changes nothing it measures.
+      for (let i = 0; i < 5; i++) act(() => void store.actions.setTitle(other, `Live ${i}`));
+      expect(made).toEqual([]);
+    } finally {
+      globalThis.ResizeObserver = Before;
+    }
   });
 
   it("an inline icons object doesn't re-render the frames", () => {
