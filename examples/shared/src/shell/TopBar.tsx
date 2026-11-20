@@ -6,7 +6,7 @@ import {
   LinkSimpleHorizontalIcon,
   SquaresFourIcon,
 } from "@phosphor-icons/react";
-import { useShortcut, useJali, useJaliState, PageBar } from "@jali/react";
+import { IconButton, useShortcut, useJali, useJaliState, PageBar } from "@jali/react";
 import { copyLink } from "@jali/core";
 import { JaliLockup } from "./JaliLockup";
 
@@ -106,10 +106,9 @@ export function TopBar() {
         </>
       )}
       <div className="topbar-right">
-        <button
-          className="icon-btn"
+        <IconButton
           onClick={() => copyLink(store)}
-          aria-label={
+          label={
             page
               ? `Copy link to this ${store.env.profile?.itemNoun ?? "item"}`
               : "Copy link to this layout"
@@ -117,15 +116,10 @@ export function TopBar() {
           title="Copy link"
         >
           <LinkSimpleHorizontalIcon size={16} aria-hidden />
-        </button>
-        <button
-          className="icon-btn"
-          onClick={() => store.actions.openSettings()}
-          aria-label="Settings"
-          title="Settings"
-        >
+        </IconButton>
+        <IconButton onClick={() => store.actions.openSettings()} label="Settings">
           <GearSixIcon size={16} aria-hidden />
-        </button>
+        </IconButton>
         <button
           className="kbd-btn"
           onClick={() => store.actions.openPalette()}

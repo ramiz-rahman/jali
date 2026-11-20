@@ -84,23 +84,6 @@
     gap: 0.25rem;
     flex: none;
   }
-  /* The apps' own icon button (copy link, settings, close a sheet), drawn like Jali's from its tokens. */
-  .icon-btn {
-    display: inline-grid;
-    place-items: center;
-    width: 1.75rem;
-    height: 1.75rem;
-    padding: 0;
-    border: 0;
-    border-radius: var(--jali-radius-control);
-    background: none;
-    color: var(--jali-text-subtle);
-    cursor: pointer;
-  }
-  .icon-btn:hover {
-    background: var(--jali-hover);
-    color: var(--jali-text);
-  }
   /* The apps' own setting in Jali's Settings dialog: a checkbox and its words on one line. */
   .setting-check {
     display: flex;

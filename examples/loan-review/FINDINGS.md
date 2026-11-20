@@ -31,3 +31,5 @@ Loan review is the curated-page example: one application at a time, with its vie
 ## 4. There is no public icon button
 
 As in Markets and Data Studio: the app has its own `.icon-btn` because `.jali-icon-btn` is private. **Suggested change:** export an `IconButton`.
+
+**Now.** `IconButton` is in `@jali/react` (21 Nov 2026). The queue sheet's close and the shared top bar's Copy link and Settings use it; the shared `.icon-btn` is gone.

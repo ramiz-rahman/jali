@@ -1,7 +1,7 @@
 /** The loan-review page around the panes: the queue at the left and the application's header above the tabs. */
 import { useEffect, useMemo, useRef, useState } from "react";
 import { FunnelSimpleIcon, XIcon } from "@phosphor-icons/react";
-import { useJali } from "@jali/react";
+import { IconButton, useJali } from "@jali/react";
 import { isLoading, useRows } from "#shared/data/hooks";
 import { formatTimestamp } from "#shared/panes/format";
 import type { Row } from "#shared/data/types";
@@ -166,14 +166,9 @@ function QueueSheet({ item }: { item: number }) {
             }
           }}
         >
-          <button
-            className="icon-btn queue-sheet-close"
-            aria-label="Close queue"
-            onClick={close}
-            autoFocus
-          >
+          <IconButton className="queue-sheet-close" label="Close queue" onClick={close} autoFocus>
             <XIcon size={16} aria-hidden />
-          </button>
+          </IconButton>
           <QueueRail
             item={item}
             activate={(i) => {

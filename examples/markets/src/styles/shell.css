@@ -130,8 +130,10 @@
     gap: 6px;
     flex: none;
   }
+  /* Jali's icon button (a public part), drawn in the bar's outlined style, like search and ⌘K. */
   .search,
-  .icon-btn {
+  .topbar .jali-icon-btn,
+  .palette-btn {
     display: inline-flex;
     align-items: center;
     gap: 6px;
@@ -153,18 +155,15 @@
     border-radius: 3px;
   }
   .search:hover,
-  .icon-btn:hover {
+  .topbar .jali-icon-btn:hover,
+  .palette-btn:hover {
     color: var(--jali-text);
     border-color: var(--jali-control);
   }
-  .icon-btn {
+  .topbar .jali-icon-btn {
     width: 28px;
     justify-content: center;
     padding: 0;
-  }
-  .icon-btn-wide {
-    width: auto;
-    padding: 0 8px;
   }
   .clock {
     display: inline-flex;
@@ -229,7 +228,7 @@
   }
   @media (max-width: 480px) {
     .brand span,
-    .icon-btn-wide kbd {
+    .palette-btn kbd {
       display: none;
     }
     .topbar {

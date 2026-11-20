@@ -34,6 +34,8 @@ Markets is built on the public API alone (`@jali/core`, `@jali/react`). Each fin
 
 **Suggested change.** Export an `IconButton` from `@jali/react`, or make the icon button a documented part with its states.
 
+**Now.** `@jali/react` has `IconButton`, and its button is a public part, `iconButton` (`.jali-icon-btn`), 21 Nov 2026. Reset and the theme toggle are `IconButton`s; the top bar draws the part in its outlined style (`.topbar .jali-icon-btn`), so the app's `.icon-btn` copy is gone. The ⌘K button shows its key as well as an icon, so it stays the app's own (`.palette-btn`).
+
 ## 4. The stacked view's divider target covers the pane above it
 
 **What happened.** In the stacked view, a divider's 44px touch target overlaps the last row of the pane above it, so a tap there can start a resize instead of choosing the row.

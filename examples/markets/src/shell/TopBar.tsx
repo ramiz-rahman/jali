@@ -10,7 +10,7 @@ import {
   SunIcon,
 } from "@phosphor-icons/react";
 import { keyHint, runCommand } from "@jali/core";
-import { useJali, useJaliState, useShortcut, useTheme } from "@jali/react";
+import { IconButton, useJali, useJaliState, useShortcut, useTheme } from "@jali/react";
 import { useQuotes, useTopic } from "../market/react";
 import { useServices } from "../services";
 import * as f from "../ui/format";
@@ -62,15 +62,9 @@ export function TopBar() {
           </SelectContent>
         </Select>
       </div>
-      <button
-        type="button"
-        className="icon-btn reset"
-        aria-label="Reset every desk to the demo layout"
-        title="Reset every desk to the demo layout"
-        onClick={reset}
-      >
+      <IconButton label="Reset every desk to the demo layout" onClick={reset}>
         <ArrowCounterClockwiseIcon size={15} aria-hidden />
-      </button>
+      </IconButton>
       <Strip />
       <div className="topbar-end">
         <button type="button" className="search" onClick={search} aria-label="Search instruments">
@@ -79,10 +73,8 @@ export function TopBar() {
           <kbd>/</kbd>
         </button>
         <Clock />
-        <button
-          type="button"
-          className="icon-btn"
-          aria-label={theme === "dark" ? "Use the light theme" : "Use the dark theme"}
+        <IconButton
+          label={theme === "dark" ? "Use the light theme" : "Use the dark theme"}
           title={theme === "dark" ? "Light theme" : "Dark theme"}
           onClick={() =>
             jali.actions.changeSettings({ theme: theme === "dark" ? "light" : "dark" })
@@ -93,10 +85,10 @@ export function TopBar() {
           ) : (
             <MoonIcon size={16} aria-hidden />
           )}
-        </button>
+        </IconButton>
         <button
           type="button"
-          className="icon-btn icon-btn-wide"
+          className="palette-btn"
           // The name says the key it shows (WCAG 2.5.3: what is seen is part of what is said).
           aria-label={`Commands ${palette || keyHint("Mod+K")}`}
           title={`Commands ${palette}`}
