@@ -93,7 +93,8 @@
     inset 0 1px 0 var(--body-hi), 0 0 0 1px var(--body-rim), 0 2px 0 var(--body-wall),
     0 12px 24px -8px rgb(0 0 0 / 0.35);
   --jali-shadow-peek: -2px 0 0 var(--body-wall), -16px 0 40px -12px rgb(0 0 0 / 0.4);
-  --jali-shadow-zoom: 0 3px 0 var(--body-wall), 0 20px 40px -10px rgb(0 0 0 / 0.4);
+  /* A maximised faceplate keeps its own shadow (--jali-pane-shadow-focused, parts.css) and gets no lift under it. */
+  --jali-shadow-zoom: 0 0 #0000;
   /* One corner for everything square by nature: keys, blocks, faceplates, glass, paper, menus, dialogs. */
   --corner: 2px;
   --jali-radius: var(--corner);
@@ -106,6 +107,8 @@
   /* One face for everything printed: Chakra Petch. Jali's "mono" slot (its key hints) prints in it too. */
   --jali-font: "Chakra Petch", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
   --jali-font-mono: var(--jali-font);
+  /* A pane's title in the wider face: the type scale's middle step (Jali's 13px). */
+  --jali-text-md: 12.5px;
   /* Numbers that tick (the clock, timecodes, dB) and the screens' and LCD's print: a monospaced face, because
      Chakra Petch has no tabular figures and a running clock would jitter. */
   --font-readout: "IBM Plex Mono", ui-monospace, "SF Mono", SFMono-Regular, Menlo, monospace;

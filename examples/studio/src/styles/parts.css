@@ -19,34 +19,37 @@
  */
 @layer app {
   /* ---------- housing ---------- */
-  :where(
-    .device,
-    .jali-pane,
-    .jali-peek,
-    .jali-tab-menu,
-    .jali-dialog
-  ) {
+  :where(.device, .jali-pane, .jali-peek, .jali-tab-menu, .jali-dialog) {
+    /* Declared on each housing, so its own --body-* and --sh (the mixer's are darker) are the ones it reads. */
+    --housing-shadow:
+      inset 0 1.5px 0 var(--body-hi), inset 0 0 0 1px var(--body-rim),
+      inset 0 -2px 0 rgb(0 0 0 / calc(0.07 * var(--sh))), 0 3px 0 var(--body-wall),
+      0 4px 1px rgb(0 0 0 / calc(0.2 * var(--sh))),
+      0 10px 14px -4px rgb(0 0 0 / calc(0.2 * var(--sh))),
+      0 22px 30px -14px rgb(0 0 0 / calc(0.35 * var(--sh)));
     background:
       var(--grain), var(--slab-falloff), linear-gradient(180deg, var(--body-1), var(--body-2));
     border: 0;
     border-radius: var(--corner);
-    box-shadow:
-      inset 0 1.5px 0 var(--body-hi),
-      inset 0 0 0 1px var(--body-rim),
-      inset 0 -2px 0 rgb(0 0 0 / calc(0.07 * var(--sh))),
-      0 3px 0 var(--body-wall),
-      0 4px 1px rgb(0 0 0 / calc(0.2 * var(--sh))),
-      0 10px 14px -4px rgb(0 0 0 / calc(0.2 * var(--sh))),
-      0 22px 30px -14px rgb(0 0 0 / calc(0.35 * var(--sh)));
   }
-  /* The focused device: a ring round the plate (a lamp lights in its header too, chrome.css). */
-  .jali-pane[data-focused] {
-    box-shadow:
-      inset 0 1.5px 0 var(--body-hi),
-      inset 0 0 0 1px var(--body-rim),
-      0 0 0 1.5px var(--focus),
-      0 3px 0 1.5px var(--body-wall),
-      0 22px 30px -14px rgb(0 0 0 / calc(0.35 * var(--sh)));
+  :where(.device, .jali-peek, .jali-tab-menu, .jali-dialog) {
+    box-shadow: var(--housing-shadow);
+  }
+  /* A pane's faceplate: Jali draws it from its pane tokens, at rest and focused (a ring round the plate; a lamp
+     lights in its header too, chrome.css), and a maximised one with --jali-shadow-zoom under it. */
+  :where(.jali-pane) {
+    --jali-pane-shadow: var(--housing-shadow);
+    --jali-pane-shadow-focused:
+      inset 0 1.5px 0 var(--body-hi), inset 0 0 0 1px var(--body-rim), 0 0 0 1.5px var(--focus),
+      0 3px 0 1.5px var(--body-wall), 0 22px 30px -14px rgb(0 0 0 / calc(0.35 * var(--sh)));
+  }
+  /* On a phone (Single and stacked view) and alone, Jali draws a pane full-bleed with no shadow; a faceplate keeps
+     its housing there too. */
+  :where([data-single] .jali-pane, .jali-pane[data-alone]) {
+    box-shadow: var(--jali-pane-shadow);
+  }
+  :where([data-single] .jali-pane[data-focused], .jali-pane[data-alone][data-focused]) {
+    box-shadow: var(--jali-pane-shadow-focused);
   }
 
   /* ---------- tray ---------- */
@@ -164,7 +167,8 @@
     letter-spacing: 0.04em;
     color: var(--legend);
   }
-  /* Pressed: down by the height of its wall. */
+  /* Pressed: down by the height of its wall. Jali's controls carry data-pressed while held by the pointer or by Space
+     or Enter, so they travel from the keyboard too; the app's keys follow :active. */
   :where(
       .key,
       .lib-row,
@@ -175,7 +179,16 @@
       .jali-switch-item,
       .jali-follow-toggle,
       .jali-dialog-button
-    ):active:not(:disabled) {
+    ):active:not(:disabled),
+  :where(
+    .jali-tab,
+    .jali-tab-add,
+    .jali-tab-more,
+    .jali-switch-item,
+    .jali-follow-toggle,
+    .jali-dialog-button
+  )[data-pressed],
+  :where(.jali-shelf-chip):has(> [data-pressed]) {
     --press: var(--wall);
   }
   :where(.key, .jali-tab):hover:not(:disabled) {
