@@ -26,7 +26,7 @@ Every workspace action is a command with an id, such as `pane.close` or `pane.zo
 
 Every command and its id is in the [Commands reference](../reference/commands.md). Esc closes the peek sheet, then restores a maximised pane, once the content has had its turn.
 
-A focused tab takes two keys of its own: Delete or Backspace closes it, and on a tucked tab ⌘K ⌘] puts that tab back. Closing this way asks about unsaved work, as the close button does. A tab's close and put back buttons are for the pointer: they are not in the Tab order, and screen readers hear the keys in the tab's description instead.
+In a tab strip, ← and → move focus between the tabs (Home and End to the ends) and Enter or Space shows the focused one. A focused tab takes two keys of its own: Delete or Backspace closes it, and on a tucked tab ⌘K ⌘] puts that tab back. Closing this way asks about unsaved work, as the close button does. A tab's close and put back buttons are for the pointer: they are not in the Tab order, and screen readers hear the keys in the tab's description instead.
 
 ## Rebind and unbind
 
