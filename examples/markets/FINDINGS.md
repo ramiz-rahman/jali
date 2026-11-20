@@ -22,6 +22,8 @@ Markets is built on the public API alone (`@jali/core`, `@jali/react`). Each fin
 
 **Suggested change.** Add the action's name (`"resetLayout"`, `"openBeside"`, …) to the event.
 
+**Now.** The event carries `action?: ActionName` (21 Nov 2026), the name `jali.actions` uses, whether the app or the person ran it; a change made after Discard names the action that asked. Markets' Reset no longer needs it (finding 1's `settled` says whether the reset landed).
+
 ## 3. There is no public icon button
 
 **Wanted.** Buttons in the top bar and panes that look and behave like Jali's own header buttons.
