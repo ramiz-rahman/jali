@@ -19,6 +19,8 @@ npm install @jali/core @jali/react
 ```
 
 > **Warning: Linked or in a monorepo.** If your app gets Jali through `link:`, `file:` or `workspace:`, or from a symlinked checkout, Jali can find its own copy of React beside its source. The app then bundles two Reacts, and hooks fail with "Invalid hook call". With Vite, add `resolve: { dedupe: ["react", "react-dom"] }` to `vite.config.ts` so there is one. With webpack, alias `react` and `react-dom` to your app's copy.
+>
+> A linked Jali also resolves to its built files in `dist/` by default, and they don't rebuild when its source changes: run `vp pack` in the Jali packages, or read the source directly. With Vite, add the `"source"` condition: `resolve: { conditions: ["source", ...defaultClientConditions] }`. Vitest runs tests in Node through Vite's server side, which reads `ssr.resolve.conditions` and not `resolve.conditions`, so for tests add `ssr: { resolve: { conditions: ["source", ...defaultServerConditions] } }` too. Both defaults come from `vite`. Without it, tests get the built Jali while the app gets the source, and the two can disagree.
 
 ### Define a pane
 
