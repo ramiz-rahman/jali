@@ -5,7 +5,7 @@ import { definePane, type PaneProps } from "@jali/react";
 import { useTopic } from "../market/react";
 import type { Instrument } from "../market/types";
 import * as f from "../ui/format";
-import { Arrow, Empty, Known } from "../ui/parts";
+import { Arrow, Empty, Known, Scroller } from "../ui/parts";
 import { followSymbol } from "./follow";
 
 const ROWS = 80;
@@ -40,7 +40,7 @@ function TapeBody({ inst, paused }: { inst: Instrument; paused: boolean }) {
 
   if (!shown.length) return <Empty title="No trades yet">They appear here as they print.</Empty>;
   return (
-    <div className="pane-body tape">
+    <Scroller className="pane-body tape" label={`Trades in ${inst.symbol}`}>
       <table className="tape-table">
         <caption className="sr-only">Trades in {inst.symbol}, newest first</caption>
         <thead>
@@ -71,7 +71,7 @@ function TapeBody({ inst, paused }: { inst: Instrument; paused: boolean }) {
           ))}
         </tbody>
       </table>
-    </div>
+    </Scroller>
   );
 }
 

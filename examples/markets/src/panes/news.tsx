@@ -1,6 +1,10 @@
 /**
  * Headlines, about one instrument (`news({ symbol: "LMNA" })`, which can follow a watchlist) or the whole market
  * (`news()`). J/K move, Enter opens a headline, and a symbol on it opens that instrument's quote.
+ *
+ * A list of headlines, each a button that shows or hides its story (a disclosure), with its symbols as buttons beside
+ * it, never inside it: one control can't hold another. One headline is in the Tab order at a time, and J/K and the
+ * arrows move between them.
  */
 import { useRef, useState, type KeyboardEvent } from "react";
 import { NewspaperIcon } from "@phosphor-icons/react";
@@ -30,15 +34,15 @@ function News({ params, paused, node, openBeside }: PaneProps<typeof newsParams>
 
   const onKeyDown = (e: KeyboardEvent) => {
     const to = listMove(e, at, headlines.length);
-    if (to !== null) {
-      setAt(to);
-      scrollRowIntoView(listRef.current, to);
-    } else if (e.key === "Enter" && headlines[at]) {
-      const id = headlines[at]!.id;
-      setOpen((o) => (o === id ? null : id));
-    } else return;
+    if (to === null) return; // Enter and Space are the headline button's own
     e.preventDefault();
+    setAt(to);
+    scrollRowIntoView(listRef.current, to);
+    listRef.current?.querySelectorAll<HTMLElement>(".news-head")[to]?.focus();
   };
+  const toggle = (id: number) => setOpen((o) => (o === id ? null : id));
+  // Only the current headline and its symbols are in the Tab order.
+  const current = Math.min(at, headlines.length - 1);
 
   return (
     <div className="pane-body news">
@@ -59,54 +63,60 @@ function News({ params, paused, node, openBeside }: PaneProps<typeof newsParams>
         <ul
           ref={listRef}
           className="news-list"
-          role="listbox"
           aria-label={only ? `News about ${only}` : "Market news"}
-          tabIndex={0}
-          aria-activedescendant={headlines[at] ? `${node.id}-n${headlines[at]!.id}` : undefined}
           onKeyDown={onKeyDown}
         >
-          {headlines.map((h, i) => (
-            <li
-              key={h.id}
-              id={`${node.id}-n${h.id}`}
-              data-row=""
-              role="option"
-              aria-selected={i === at}
-              aria-expanded={open === h.id}
-              data-fresh={now - h.time < FRESH_MS ? "" : undefined}
-              onClick={() => {
-                setAt(i);
-                setOpen((o) => (o === h.id ? null : h.id));
-              }}
-            >
-              <span className="news-time">{f.hhmm(h.time)}</span>
-              <span className="news-title">{h.title}</span>
-              {open === h.id ? (
-                <span className="news-body">
-                  {h.body} <span className="news-source">{h.source}</span>
-                </span>
-              ) : null}
-              {h.symbols.some((s) => s !== only) ? (
-                <span className="news-tags">
-                  {h.symbols
-                    .filter((s) => s !== only)
-                    .map((s) => (
-                      <button
-                        key={s}
-                        type="button"
-                        className="chip chip-link"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          openBeside(quote({ symbol: s }));
-                        }}
-                      >
-                        {s}
-                      </button>
-                    ))}
-                </span>
-              ) : null}
-            </li>
-          ))}
+          {headlines.map((h, i) => {
+            const story = `${node.id}-story-${h.id}`;
+            const tab = i === current ? 0 : -1;
+            return (
+              <li
+                key={h.id}
+                data-row=""
+                data-current={i === current ? "" : undefined}
+                data-fresh={now - h.time < FRESH_MS ? "" : undefined}
+              >
+                <button
+                  type="button"
+                  className="news-head"
+                  aria-expanded={open === h.id}
+                  aria-controls={open === h.id ? story : undefined}
+                  tabIndex={tab}
+                  onFocus={() => setAt(i)}
+                  onClick={() => {
+                    setAt(i);
+                    toggle(h.id);
+                  }}
+                >
+                  <span className="news-time">{f.hhmm(h.time)}</span>
+                  <span className="news-title">{h.title}</span>
+                </button>
+                {open === h.id ? (
+                  <p className="news-body" id={story}>
+                    {h.body} <span className="news-source">{h.source}</span>
+                  </p>
+                ) : null}
+                {h.symbols.some((s) => s !== only) ? (
+                  <span className="news-tags">
+                    {h.symbols
+                      .filter((s) => s !== only)
+                      .map((s) => (
+                        <button
+                          key={s}
+                          type="button"
+                          className="chip chip-link"
+                          tabIndex={tab}
+                          aria-label={`${s} quote`}
+                          onClick={() => openBeside(quote({ symbol: s }))}
+                        >
+                          {s}
+                        </button>
+                      ))}
+                  </span>
+                ) : null}
+              </li>
+            );
+          })}
         </ul>
       ) : only && market.instrument(only)?.source ? (
         <Empty icon={<NewspaperIcon size={20} aria-hidden />} title={`No news feed for ${only}`}>

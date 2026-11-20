@@ -100,7 +100,8 @@ export function TopBar() {
         <button
           type="button"
           className="icon-btn icon-btn-wide"
-          aria-label="Commands"
+          // The name says the key it shows (WCAG 2.5.3: what is seen is part of what is said).
+          aria-label={`Commands ${palette || keyHint("Mod+K")}`}
           title={`Commands ${palette}`}
           onClick={() => jali.actions.openPalette()}
         >

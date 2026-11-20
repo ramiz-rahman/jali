@@ -223,6 +223,8 @@
     font-size: 12px;
   }
   .empty {
+    /* Its padding inside its height, so an empty pane never scrolls. */
+    box-sizing: border-box;
     display: grid;
     justify-items: center;
     align-content: center;
@@ -976,10 +978,6 @@
     padding: 0;
     list-style: none;
     overflow: auto;
-    outline: none;
-  }
-  .news-list:focus-visible {
-    box-shadow: inset 0 0 0 2px var(--jali-focus-ring);
   }
   .news-list li {
     display: grid;
@@ -987,14 +985,24 @@
     gap: 2px 8px;
     padding: 7px 10px;
     border-bottom: 1px solid color-mix(in srgb, var(--jali-border) 60%, transparent);
-    cursor: default;
   }
   .news-list li:hover {
     background: var(--jali-hover);
   }
-  .news-list li[aria-selected="true"] {
+  .news-list li[data-current] {
     background: var(--jali-accent-weak);
     box-shadow: inset 2px 0 0 var(--jali-accent);
+  }
+  /* The headline: a button across both columns, with the time and the title in them. */
+  .news-head {
+    grid-column: 1 / -1;
+    display: grid;
+    grid-template-columns: subgrid;
+    padding: 0;
+    border: 0;
+    background: none;
+    text-align: start;
+    cursor: pointer;
   }
   .news-time {
     font-family: var(--jali-font-mono);
@@ -1013,6 +1021,7 @@
     grid-column: 2;
   }
   .news-body {
+    margin: 0;
     color: var(--jali-text-muted);
     font-size: 12px;
   }

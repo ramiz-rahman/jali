@@ -20,7 +20,7 @@ import { useServices } from "../services";
 import { useStore } from "../store";
 import { inUsd, notional, unrealized, type Side } from "../trading/trading";
 import * as f from "../ui/format";
-import { Delta, Empty, Segmented } from "../ui/parts";
+import { Delta, Empty, Scroller, Segmented } from "../ui/parts";
 import { quote } from "./quote";
 
 interface Draft {
@@ -312,7 +312,7 @@ function Positions({ paused, onOpen }: { paused: boolean; onOpen: (symbol: strin
   if (!open.length)
     return <Empty title="No open positions">Orders you send from the ticket show here.</Empty>;
   return (
-    <div className="table-scroll">
+    <Scroller className="table-scroll" label="Open positions">
       <table className="grid-table">
         <caption className="sr-only">Open positions</caption>
         <thead>
@@ -355,7 +355,7 @@ function Positions({ paused, onOpen }: { paused: boolean; onOpen: (symbol: strin
           })}
         </tbody>
       </table>
-    </div>
+    </Scroller>
   );
 }
 
@@ -364,7 +364,7 @@ function Orders() {
   const orders = useStore(trading, (b) => b.orders);
   if (!orders.length) return <Empty title="No orders yet">Send one from the ticket.</Empty>;
   return (
-    <div className="table-scroll">
+    <Scroller className="table-scroll" label="Orders">
       <table className="grid-table">
         <caption className="sr-only">Orders, newest first</caption>
         <thead>
@@ -410,7 +410,7 @@ function Orders() {
           })}
         </tbody>
       </table>
-    </div>
+    </Scroller>
   );
 }
 
@@ -419,7 +419,7 @@ function Fills() {
   const fills = useStore(trading, (b) => b.fills);
   if (!fills.length) return <Empty title="No fills yet" />;
   return (
-    <div className="table-scroll">
+    <Scroller className="table-scroll" label="Fills">
       <table className="grid-table">
         <caption className="sr-only">Fills, newest first</caption>
         <thead>
@@ -453,7 +453,7 @@ function Fills() {
           ))}
         </tbody>
       </table>
-    </div>
+    </Scroller>
   );
 }
 

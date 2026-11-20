@@ -7,7 +7,7 @@ import { definePane, type PaneProps } from "@jali/react";
 import { useTopic } from "../market/react";
 import type { BookLevel, Instrument } from "../market/types";
 import * as f from "../ui/format";
-import { Empty, Known } from "../ui/parts";
+import { Empty, Known, Scroller } from "../ui/parts";
 import { followSymbol } from "./follow";
 
 /** What a book pane shows; its component and `definePane` share it. */
@@ -61,7 +61,7 @@ function BookBody({ inst, paused }: { inst: Instrument; paused: boolean }) {
   );
 
   return (
-    <div className="pane-body book">
+    <Scroller className="pane-body book" label={`${inst.symbol} order book`}>
       <table className="ladder">
         <caption className="sr-only">
           {inst.symbol} order book: asks, then the spread, then bids
@@ -105,7 +105,7 @@ function BookBody({ inst, paused }: { inst: Instrument; paused: boolean }) {
         </div>
         <span>Asks {100 - Math.round(bidShare * 100)}%</span>
       </div>
-    </div>
+    </Scroller>
   );
 }
 

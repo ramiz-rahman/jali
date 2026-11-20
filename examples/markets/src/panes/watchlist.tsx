@@ -183,19 +183,22 @@ function Watchlist({
         <span className="toolbar-note">{rows.length} instruments</span>
       </div>
       <div className="wl-head" role="presentation">
-        {COLUMNS.map((c) => (
-          <button
-            key={c.by}
-            type="button"
-            className={c.className}
-            aria-label={`Sort by ${c.label.toLowerCase()}`}
-            aria-pressed={sort.by === c.by}
-            data-dir={sort.by === c.by ? (sort.dir === 1 ? "asc" : "desc") : undefined}
-            onClick={() => sortBy(c.by)}
-          >
-            {c.by === "last" && yields ? "Yield" : c.label}
-          </button>
-        ))}
+        {COLUMNS.map((c) => {
+          const label = c.by === "last" && yields ? "Yield" : c.label;
+          return (
+            <button
+              key={c.by}
+              type="button"
+              className={c.className}
+              aria-label={`Sort by ${label.toLowerCase()}`}
+              aria-pressed={sort.by === c.by}
+              data-dir={sort.by === c.by ? (sort.dir === 1 ? "asc" : "desc") : undefined}
+              onClick={() => sortBy(c.by)}
+            >
+              {label}
+            </button>
+          );
+        })}
         <span className="c-num c-bid">Bid</span>
         <span className="c-num c-ask">Ask</span>
         <span className="c-spark">Today</span>
