@@ -1,7 +1,7 @@
 // @vitest-environment node
 /** A workspace renders on a server (Next.js, Astro, any renderToString): no window, no DOM, same markup to hydrate. */
 import { afterEach, describe, expect, it, vi } from "vite-plus/test";
-import { act } from "react";
+import { act, version } from "react";
 import { renderToString } from "react-dom/server";
 import { createJali, memoryLocation, memoryStorage, row, type JaliOptions } from "@jali/core";
 import { JaliRoot, definePane, useShortcut } from "@jali/react";
@@ -101,36 +101,42 @@ describe("server rendering", () => {
     expect(html).toContain("Note 1");
   });
 
-  it("hydrates in a browser without a mismatch: Pop out allowed, a keymap label rendered", async () => {
-    // The build machine is a Mac (Node has a navigator too); the reader is on Windows, in a browser that can pop out.
-    vi.stubGlobal("navigator", { platform: "MacIntel", userAgent: "Node.js" });
-    const options: Partial<JaliOptions> = {
-      allow: { popOut: true },
-      buttons: (d) => [...d, "popOut"],
-    };
-    const html = renderToString(<JaliRoot jali={make(options)} />);
-    vi.unstubAllGlobals();
-    // Keys print for "other" until hydration, whatever the build machine; Pop out waits for the browser.
-    expect(html).toContain('<kbd data-testid="keys">Ctrl+K Ctrl+Backspace</kbd>');
-    expect(html).not.toContain("jali-act-popout");
+  // React 18 can't take a store update inside a Suspense boundary that is still hydrating (each pane has one, and the
+  // workspace measures itself as it mounts), so there it client-renders the panes after hydration. React 19 can.
+  // docs/DECISIONS.md, 20 Nov 2026, "Server rendering on React 18".
+  it.skipIf(version.startsWith("18."))(
+    "hydrates in a browser without a mismatch: Pop out allowed, a keymap label rendered",
+    async () => {
+      // The build machine is a Mac (Node has a navigator too); the reader is on Windows, in a browser that can pop out.
+      vi.stubGlobal("navigator", { platform: "MacIntel", userAgent: "Node.js" });
+      const options: Partial<JaliOptions> = {
+        allow: { popOut: true },
+        buttons: (d) => [...d, "popOut"],
+      };
+      const html = renderToString(<JaliRoot jali={make(options)} />);
+      vi.unstubAllGlobals();
+      // Keys print for "other" until hydration, whatever the build machine; Pop out waits for the browser.
+      expect(html).toContain('<kbd data-testid="keys">Ctrl+K Ctrl+Backspace</kbd>');
+      expect(html).not.toContain("jali-act-popout");
 
-    const { root, restore } = await browser(html);
-    try {
-      const { hydrateRoot } = await import("react-dom/client");
-      const recoverable = vi.fn();
-      const client = make(options);
-      expect(client.keymap.platform).toBe("other");
-      await act(async () => {
-        hydrateRoot(root, <JaliRoot jali={client} />, { onRecoverableError: recoverable });
-      });
-      expect(recoverable).not.toHaveBeenCalled();
-      // After hydration, the browser's own values: the reader's keys, and Pop out.
-      expect(root.querySelector('[data-testid="keys"]')?.textContent).toBe(
-        client.keymap.label("pane.close"),
-      );
-      expect(root.querySelector(".jali-act-popout")).not.toBeNull();
-    } finally {
-      restore();
-    }
-  });
+      const { root, restore } = await browser(html);
+      try {
+        const { hydrateRoot } = await import("react-dom/client");
+        const recoverable = vi.fn();
+        const client = make(options);
+        expect(client.keymap.platform).toBe("other");
+        await act(async () => {
+          hydrateRoot(root, <JaliRoot jali={client} />, { onRecoverableError: recoverable });
+        });
+        expect(recoverable).not.toHaveBeenCalled();
+        // After hydration, the browser's own values: the reader's keys, and Pop out.
+        expect(root.querySelector('[data-testid="keys"]')?.textContent).toBe(
+          client.keymap.label("pane.close"),
+        );
+        expect(root.querySelector(".jali-act-popout")).not.toBeNull();
+      } finally {
+        restore();
+      }
+    },
+  );
 });
