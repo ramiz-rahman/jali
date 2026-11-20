@@ -9,7 +9,7 @@ import { act, cleanup, fireEvent, render } from "@testing-library/react";
 import { afterAll, afterEach, beforeAll, describe, expect, it } from "vite-plus/test";
 import { createJali, memoryLocation, memoryStorage, pane, row, tabs } from "@jali/core";
 import { JaliRoot, JaliView, Shelf, definePane } from "@jali/react";
-import { parts, type PartName } from "../packages/react/src/parts";
+import { parts, type Part, type PartName } from "../packages/react/src/parts";
 
 const src = join(__dirname, "../packages/react/src");
 const files = (dir: string): string[] =>
@@ -31,6 +31,71 @@ const token = (selector: string) =>
     .match(/^\.([\w-]+)$|^\[([\w-]+)\]$/)!
     .slice(1)
     .find(Boolean)!;
+
+/** Split at top-level commas. */
+const splitList = (list: string) => {
+  const out: string[] = [];
+  let depth = 0,
+    from = 0;
+  for (let i = 0; i < list.length; i++) {
+    if (list[i] === "(") depth++;
+    else if (list[i] === ")") depth--;
+    else if (list[i] === "," && !depth) {
+      out.push(list.slice(from, i));
+      from = i + 1;
+    }
+  }
+  return [...out, list.slice(from)].map((s) => s.trim()).filter(Boolean);
+};
+
+/** The element a selector styles: its last compound, after the last top-level combinator. */
+const subjectOf = (sel: string) => {
+  let depth = 0;
+  for (let i = sel.length - 1; i >= 0; i--) {
+    if (sel[i] === ")") depth++;
+    else if (sel[i] === "(") depth--;
+    else if (!depth && /[\s>+~]/.test(sel[i]!)) return sel.slice(i + 1);
+  }
+  return sel;
+};
+
+/** Every rule's subject that draws a ::before or ::after, with nested rules (`&`) resolved against their parents. */
+function pseudoSubjects(css: string): string[] {
+  const text = css.replace(/\/\*[\s\S]*?\*\//g, "");
+  const stack: string[][] = [[]];
+  const out: string[] = [];
+  let from = 0;
+  for (let i = 0; i < text.length; i++) {
+    const c = text[i];
+    if (c === ";") from = i + 1;
+    else if (c === "}") {
+      stack.pop();
+      from = i + 1;
+    } else if (c === "{") {
+      const prelude = text.slice(from, i).trim();
+      const parents = stack.at(-1)!;
+      let mine: string[];
+      if (prelude.startsWith("@")) mine = parents;
+      else {
+        const own = splitList(prelude);
+        mine = parents.length
+          ? parents.flatMap((p) =>
+              own.map((s) => (s.includes("&") ? s.replaceAll("&", `:is(${p})`) : `${p} ${s}`)),
+            )
+          : own;
+        for (const sel of mine) {
+          const subject = subjectOf(sel);
+          // A subject that is :is(parent) plus a pseudo-element draws on the parent's subject.
+          const expanded = subject.replace(/:is\((.*)\)/, (_, p: string) => subjectOf(p));
+          if (/::?(before|after)\b/.test(subject)) out.push(expanded);
+        }
+      }
+      stack.push(mine);
+      from = i + 1;
+    }
+  }
+  return out;
+}
 
 const note = definePane("note", {
   params: { id: Number },
@@ -60,6 +125,32 @@ describe("styling contract", () => {
     for (const [name, part] of Object.entries(parts)) {
       expect(token(part.selector), name).toBeTruthy();
       if (name !== "hostChrome") expect(code, part.selector).toContain(token(part.selector));
+    }
+  });
+
+  it("a part whose ::before and ::after are the app's: no rule in Jali's styles draws either on it", () => {
+    const stylesDir = join(src, "styles");
+    const css = readdirSync(stylesDir)
+      .filter((f) => f.endsWith(".css"))
+      .map((f) => readFileSync(join(stylesDir, f), "utf8"))
+      .join("\n");
+    // The check finds a pseudo-element however the rule is written: plain, in a list, or nested.
+    const sample =
+      ".a, .jali-tab:hover::after {} .b { & .jali-tab::before {} } .jali-tab { &[x]::after {} }";
+    expect(pseudoSubjects(sample).filter((c) => /\.jali-tab(?![\w-])/.test(c))).toHaveLength(3);
+
+    const drawn = pseudoSubjects(css);
+    expect(drawn.length, "the check sees Jali's own pseudo-elements").toBeGreaterThan(0);
+    const adorned = Object.entries(parts).filter(([, p]) => (p as Part).adornments);
+    expect(adorned.map(([n]) => n)).toEqual(
+      expect.arrayContaining(["tab", "switcherItem", "activity", "activityShape"]),
+    );
+    for (const [name, part] of adorned) {
+      const own = new RegExp(`${part.selector.replace(/[.[\]]/g, "\\$&")}(?![\\w-])`);
+      expect(
+        drawn.filter((c) => own.test(c)),
+        name,
+      ).toEqual([]);
     }
   });
 

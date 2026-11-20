@@ -41,6 +41,9 @@ export interface Part {
   what: string;
   /** Its state attributes. */
   attributes: readonly PartAttribute[];
+  /** Its `::before` and `::after` are the app's, for a lamp, a badge or a stripe: Jali's styles never use them (a
+   *  test reads the stylesheets), and Jali puts no content of its own there. */
+  adornments?: true;
 }
 
 const unsaved: PartAttribute = {
@@ -182,13 +185,14 @@ export const parts = {
     selector: ".jali-activity",
     element: "span",
     area: "Pane",
-    what: "A pane's activity dot (`useActivity`), after its name in a header, a tab, the pane switcher and tab menus. Absent while idle. Jali draws it with the element's size, corners and background; its `::before` and `::after` are yours, so restyle it to draw your own mark.",
+    what: "A pane's activity dot (`useActivity`), after its name in a header, a tab, the pane switcher and tab menus. Absent while idle. Jali draws it with the element's size, corners and background, so restyle it to draw your own mark.",
     attributes: [
       {
         name: "data-activity",
         means: "`loading`, `working`, `live`, `needs-you` or `error`.",
       },
     ],
+    adornments: true,
   },
   paneContent: {
     selector: ".jali-pane-content",
@@ -243,6 +247,7 @@ export const parts = {
       unsaved,
       pressed,
     ],
+    adornments: true,
   },
   tabTitle: {
     selector: ".jali-tab-title",
@@ -399,7 +404,7 @@ export const parts = {
     selector: ".jali-activity-shape",
     element: "span",
     area: "Shelf",
-    what: 'A pane\'s activity as a shape as well as a colour, never colour alone: in a shelf chip, the shelf\'s menu and the "N folded" chip. Absent while idle. Jali draws the ring with a border and a spin, the live dot with a border and a background that breathe, "!" as text and the cross with the `activityError` icon (both in `currentColor`); its `::before` and `::after` are yours. To draw your own, clear Jali\'s (`border: 0; animation: none; background: none; color: transparent`) and draw in `::before`.',
+    what: 'A pane\'s activity as a shape as well as a colour, never colour alone: in a shelf chip, the shelf\'s menu and the "N folded" chip. Absent while idle. Jali draws the ring with a border and a spin, the live dot with a border and a background that breathe, "!" as text and the cross with the `activityError` icon (both in `currentColor`). To draw your own, clear Jali\'s (`border: 0; animation: none; background: none; color: transparent`) and draw in `::before`.',
     attributes: [
       {
         name: "data-activity",
@@ -411,6 +416,7 @@ export const parts = {
         means: 'Jali\'s shape for it: `ring`, `dot` (live), `need` ("!") or `fail` (a cross).',
       },
     ],
+    adornments: true,
   },
   shelfChipMain: {
     selector: ".jali-shelf-chip-main",
@@ -473,6 +479,7 @@ export const parts = {
       unsaved,
       pressed,
     ],
+    adornments: true,
   },
   peek: {
     selector: ".jali-peek",
