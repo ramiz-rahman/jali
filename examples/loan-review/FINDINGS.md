@@ -12,6 +12,8 @@ Loan review is the curated-page example: one application at a time, with its vie
 
 **Suggested change.** Let `bind` return a promise, with the page showing its loading state until it settles, or document "load before `createJali`" as the pattern.
 
+**Now.** "Load before `createJali`" is the documented pattern (21 Nov 2026; DECISIONS says why `bind` stays synchronous: it runs inside every page step, each of which answers and writes the address at once). The Curated pages guide shows it, as `src/review/facts.ts` does it.
+
 ## 2. A page's view tabs sit outside every landmark
 
 **What happened.** axe's `region` rule fails on a curated page: the view tabs (`.jali-page-tabs`) aren't inside any landmark, so a screen-reader user who moves by landmarks skips them.
