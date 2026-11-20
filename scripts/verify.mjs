@@ -145,7 +145,7 @@ const GATES = [
     cmd: ["pnpm", "exec", "playwright", "test"],
     detail: playwright,
   },
-  ...["data-studio", "markets", "studio", "trips"].map((name) => ({
+  ...["data-studio", "loan-review", "markets", "studio", "trips"].map((name) => ({
     name: `e2e-${name}`,
     full: true,
     browser: true,
