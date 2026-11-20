@@ -490,9 +490,12 @@ function MapPane({ params, paused, node, inPeek }: PaneProps<typeof mapParams>) 
       const name = document.createElement("b");
       name.textContent = CITY_NAME[city];
       const sub = document.createElement("span");
-      sub.textContent = `${range}, ${days.reduce((s, d) => s + d.stops.length, 0)} stops`;
-      el.append(name, sub);
-      el.setAttribute("aria-label", `${CITY_NAME[city]}: ${range}. Show it on the map.`);
+      const stops = `${range}, ${days.reduce((s, d) => s + d.stops.length, 0)} stops`;
+      sub.textContent = stops;
+      // The space keeps the two lines apart in the text a screen reader matches the name against; the name says all
+      // the badge shows, then what it does (WCAG 2.5.3).
+      el.append(name, " ", sub);
+      el.setAttribute("aria-label", `${CITY_NAME[city]}, ${stops}. Show it on the map.`);
     }
   }, [plan, styleTick]);
 

@@ -22,7 +22,8 @@ export function TopBar() {
     <header className="topbar" data-jali-chrome="">
       <a className="brand" href="./" aria-label="Trips, a Jali example: back to the plan">
         <TripsMark />
-        <span className="brand-name">Trips</span>
+        {/* The space between keeps the two words apart in the text a screen reader matches the name against. */}
+        <span className="brand-name">Trips</span>{" "}
         <span className="brand-sub">a Jali example</span>
       </a>
       <nav className="presets" aria-label="Layouts">
@@ -85,7 +86,8 @@ export function TopBar() {
         <button
           type="button"
           className="icon-btn commands-btn"
-          aria-label="Commands"
+          // The name says the key it shows (WCAG 2.5.3: what is seen is part of what is said).
+          aria-label={`Commands ${palette || keyHint("Mod+K")}`}
           title="Commands"
           onClick={() => jali.actions.openPalette()}
         >

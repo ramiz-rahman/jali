@@ -399,7 +399,7 @@ test("a city's badge frames the hotel the person stays at now, not the one the b
   // The whole trip: a badge for each city.
   const map = pane(page, "map");
   await map.getByRole("button", { name: "All", exact: true }).click();
-  const badge = map.getByRole("button", { name: /^Bangkok: Days 1 to 3/ });
+  const badge = map.getByRole("button", { name: /^Bangkok, Days 1 to 3/ });
   await expect(badge).toBeVisible();
   // Move to a hotel in the north of Bangkok, far from the old one, with the map on screen throughout.
   await page.getByRole("listbox", { name: "Days" }).focus();
