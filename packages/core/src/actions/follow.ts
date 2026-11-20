@@ -15,16 +15,12 @@ import { refuse, type Change, type Deferred, type Outcome, type Snapshot } from 
 import { say } from "../state/messages";
 import type { UiState } from "../state/store";
 import { own as ownOf } from "../own";
+import { sameRef } from "../layout/ops/ref";
 
 export const FOLLOW_MS = 150;
 
-/** Exactly the same object reference (kind and every param). */
-export const sameRef = (a: ObjectRef | undefined, b: ObjectRef | undefined) =>
-  !!a &&
-  !!b &&
-  a.kind === b.kind &&
-  Object.keys(a.params).length === Object.keys(b.params).length &&
-  Object.entries(a.params).every(([k, v]) => b.params[k] === v);
+/** Exactly the same object reference (kind and every param, in any key order): defined once, in the layout. */
+export { sameRef };
 
 const key = (source: NodeId) => `follow:${source}`;
 

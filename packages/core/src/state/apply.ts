@@ -28,6 +28,7 @@ import type {
 import type { JaliModel } from "./model";
 import type { UiState } from "./store";
 import { pruneUndo } from "./undo";
+import { sameRef } from "../layout/ops/ref";
 
 /** What an action reads: the state, the model derived from it, and the core's context. */
 export interface Snapshot {
@@ -369,7 +370,7 @@ export function wouldLoseWork(s: UiState, next: Layout): NodeId[] {
   return dirty.filter((id) => {
     const a = before.get(id),
       b = after.get(id);
-    return !!a && (!b || JSON.stringify(a.ref) !== JSON.stringify(b.ref));
+    return !!a && (!b || !sameRef(a.ref, b.ref));
   });
 }
 
@@ -381,7 +382,7 @@ export function leavingPanes(s: UiState, next: Layout): CloseRequest["panes"] {
     .panes(s.layout.root)
     .filter((a) => {
       const b = after.get(a.id);
-      return !b || JSON.stringify(a.ref) !== JSON.stringify(b.ref);
+      return !b || !sameRef(a.ref, b.ref);
     })
     .map((p) => ({ pane: p.id, ref: p.ref }));
 }
@@ -403,11 +404,11 @@ function ask(guard: BeforeClose, request: CloseRequest): boolean | Promise<boole
  * shows another object starts afresh: its state was about the object it showed.
  */
 function prunePanes(s: UiState, layout: Layout, undo: UndoEntry[]): Partial<UiState> {
-  const was = new Map(core.tree.panes(s.layout.root).map((p) => [p.id, JSON.stringify(p.ref)]));
+  const was = new Map(core.tree.panes(s.layout.root).map((p) => [p.id, p.ref]));
   const moved = new Set(
     core.tree
       .panes(layout.root)
-      .filter((p) => was.has(p.id) && was.get(p.id) !== JSON.stringify(p.ref))
+      .filter((p) => was.has(p.id) && !sameRef(was.get(p.id), p.ref))
       .map((p) => p.id),
   );
   const ids = new Set(
@@ -485,7 +486,7 @@ interface Run {
 }
 
 const sameAsked = (a: Asked[number], b: Asked[number]) =>
-  a.pane === b.pane && JSON.stringify(a.ref) === JSON.stringify(b.ref);
+  a.pane === b.pane && sameRef(a.ref, b.ref);
 /** Every pane is one that was agreed to, still showing the object it showed then. */
 const covered = (panes: Asked, agreed?: Asked) =>
   !!agreed && panes.every((p) => agreed.some((a) => sameAsked(a, p)));

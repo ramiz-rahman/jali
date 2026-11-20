@@ -262,7 +262,7 @@ The plain layout tree a builder's result stands for, with an id on every node: w
 sameRef(a: ObjectRef | undefined, b: ObjectRef | undefined): boolean
 ```
 
-Whether two refs are exactly the same: the same kind and the same params, compared with `===`. `1` and `"1"` differ here; to ask whether two refs show the same object, use `kinds.sameObject`.
+Whether two refs are exactly the same: the same kind and the same params, compared with `===`, in any key order (a layout read back from Postgres `jsonb` shows the same objects). Jali compares refs with this everywhere. `1` and `"1"` differ here; to ask whether two refs show the same object, use `kinds.sameObject`.
 
 **Parameters**
 

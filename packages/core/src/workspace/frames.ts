@@ -4,6 +4,7 @@ import type { JaliModel } from "../state/model";
 import type { Presentation } from "../pane/chrome";
 import { stackShare, type Hinge } from "./stack";
 import { GAP } from "../tokens";
+import { sameRef } from "../layout/ops/ref";
 
 /**
  * Why a pane is a tab. Made by the person: a tab they merged or opened (neither flag), or one they tucked (`tucked`).
@@ -171,7 +172,7 @@ export const sameNode = (a: PaneNode, b: PaneNode) =>
     a.linkedTo === b.linkedTo &&
     a.kept === b.kept &&
     a.pinned === b.pinned &&
-    JSON.stringify(a.ref) === JSON.stringify(b.ref));
+    sameRef(a.ref, b.ref));
 const sameGroup = (a: Frame["group"], b: Frame["group"]) =>
   a === b ||
   (!!a &&
