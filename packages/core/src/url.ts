@@ -19,6 +19,8 @@ import { own as ownOf } from "./own";
 
 export const PERSIST_MS = 120;
 const BROKEN_KEY = "broken-layout";
+/** The most panes a page link opens (`open=`); the rest are left out. docs/DECISIONS.md, 20 Nov 2026. */
+export const OPEN_MAX = 32;
 
 /**
  * A ref as text, for `peek=` and a page's `open=`: `record~table=orders~id=#42~draft=!true`. A number is marked `#`
@@ -144,10 +146,21 @@ export function readSearch(
   // `?app=review` is the old combined lab app's form from before pages had ids (19 Nov 2026).
   if (q.get(k.page) || q.get("app") === "review") {
     const item = q.get(k.item) || undefined;
-    const investigation = q
-      .getAll(k.open)
-      .map(decodePeek)
-      .filter((r): r is ObjectRef => !!r && Object.hasOwn(kinds, r.kind) && readable(kinds, r));
+    // Each object once, in the link's order, and at most OPEN_MAX: every one is a full open and fit.
+    const investigation: ObjectRef[] = [];
+    const seen = new Set<string>();
+    for (const text of q.getAll(k.open)) {
+      if (investigation.length >= OPEN_MAX) break;
+      const r = decodePeek(text);
+      if (!r || !Object.hasOwn(kinds, r.kind) || !readable(kinds, r)) continue;
+      const key = JSON.stringify([
+        r.kind,
+        Object.entries(r.params).sort(([a], [b]) => (a < b ? -1 : 1)),
+      ]);
+      if (seen.has(key)) continue;
+      seen.add(key);
+      investigation.push(r);
+    }
     return { page: { tab: q.get(k.tab) ?? "", item, investigation }, view };
   }
   if (!code) return null;

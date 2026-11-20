@@ -8,6 +8,8 @@ const record = (value: unknown): value is Record<string, unknown> =>
  * builder's `orders-2`) fits, and so does any id written into a DOM attribute or a CSS selector without escaping.
  */
 export const NODE_ID = /^[\w.:-]{1,128}$/;
+/** The most nodes a layout from outside may hold (panes, rows, columns and tab groups). docs/DECISIONS.md, 20 Nov 2026. */
+export const MAX_NODES = 256;
 const nodeId = (value: unknown): value is string =>
   typeof value === "string" && NODE_ID.test(value);
 const positive = (value: unknown): value is number =>
@@ -22,7 +24,7 @@ export function validate(
   let count = 0;
   const error = (path: string, message: string) => errors.push(`${path}: ${message}`);
   function visit(value: unknown, path: string, depth: number, inStack = false): void {
-    if (++count > 2048 || depth > 128) {
+    if (++count > MAX_NODES || depth > 128) {
       error(path, "tree is too large or deep");
       return;
     }
@@ -141,24 +143,24 @@ export function validate(
       (typeof v === "string" && v.startsWith(AUTO_PREFIX) && nodeId(v.slice(AUTO_PREFIX.length)));
     if (!record(o)) error("overlay", "expected overlay");
     else {
-      if (!Array.isArray(o.folds) || o.folds.length > 2048 || !o.folds.every(text))
+      if (!Array.isArray(o.folds) || o.folds.length > MAX_NODES || !o.folds.every(text))
         error("overlay", "folds must be ids");
       if (
         !record(o.shown) ||
-        Object.keys(o.shown).length > 2048 ||
+        Object.keys(o.shown).length > MAX_NODES ||
         !Object.entries(o.shown).every(([k, v]) => text(k) && text(v))
       )
         error("overlay", "shown must map ids to ids");
       if (
         o.hidden !== undefined &&
         (!Array.isArray(o.hidden) ||
-          o.hidden.length > 2048 ||
+          o.hidden.length > MAX_NODES ||
           !o.hidden.every(text) ||
           new Set(o.hidden).size !== o.hidden.length)
       )
         error("overlay", "hidden must be distinct ids");
       const tucked = new Set<string>();
-      if (!Array.isArray(o.tucks) || o.tucks.length > 2048)
+      if (!Array.isArray(o.tucks) || o.tucks.length > MAX_NODES)
         error("overlay", "tucks must be records");
       else
         for (const t of o.tucks) {

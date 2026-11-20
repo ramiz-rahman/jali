@@ -355,3 +355,23 @@ describe("C5: maximising a pane that is not on screen", () => {
     expect(read!.view.zoomed).toBeUndefined();
   });
 });
+
+describe("C6: limits on what a link opens", () => {
+  it("a page link's open= is capped and de-duplicated", () => {
+    const q = new URLSearchParams({ page: "p", item: "1" });
+    for (let i = 0; i < 10_000; i++) q.append("open", encodePeek(note({ id: i % 50 })));
+    q.append("open", encodePeek(note({ id: 1 })));
+    const read = readSearch(`?${q}`, registry);
+    const opened = read && "page" in read ? read.page.investigation : [];
+    expect(opened.length).toBeLessThanOrEqual(32);
+    expect(new Set(opened.map((r) => encodePeek(r))).size).toBe(opened.length);
+    expect(opened[0]).toEqual(note({ id: 0 }));
+  });
+
+  it("a layout of more than 256 nodes is refused", () => {
+    const many = toLayout(row(...Array.from({ length: 300 }, (_, i) => note({ id: i }))));
+    expect(layout.validate(many, registry).ok).toBe(false);
+    const fine = toLayout(row(...Array.from({ length: 100 }, (_, i) => note({ id: i }))));
+    expect(layout.validate(fine, registry).ok).toBe(true);
+  });
+});

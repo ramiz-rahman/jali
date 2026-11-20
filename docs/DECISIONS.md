@@ -896,3 +896,11 @@ Data Studio's old tab strip had six features Jali lacked. Each is general, and l
 - **Refuse, not reveal:** the hidden pane has no slot to come back to on its own: on a curated page it is a view the person turned off, and bringing it back is the page's `openTab`, a deliberate choice with its own history entry. Revealing it as a side effect of "maximise" would undo that choice silently, so `toggleZoom` and `toggleFullScreen` refuse `"blocked"` and say "<pane> is not on screen", as `tuck` does for the same pane. Restoring is never refused. A pane behind a tab (folded, tucked, a tab of a group) is drawn, so it can still be maximised as before.
 - **And nothing assumes a drawn pane:** `resolve` (`fit/resolve.ts`) ignores a zoom on a pane it did not draw instead of reading its bounds; the focus keys move a zoom only to a pane on screen; `readSearch` drops a `zoom=` for a pane the link's layout hides.
 - **Tests:** `tests/hostile-input.test.tsx` (C5).
+
+## 20 Nov 2026 · What a link can open is limited (QUALITY-REVIEW C6)
+
+- **Why:** a page link's `open=` repeated N times ran N full opens and fits, and with fitting's cost (QUALITY-REVIEW P1) a few hundred entries froze the tab. `validate` let a layout link hold 2,048 nodes, which no fit finishes in time either.
+- **Page links:** `readSearch` reads `open=` in the link's order, keeps each object once (the same kind and params, in any order) and stops at 32 (`OPEN_MAX`, `url.ts`). The rest are left out, without a word: the link still opens, with the first 32. Why 32: the settings dialog offers a pane cap of up to 16, so an investigation of more than 32 opened panes is two screens of folded tabs; nothing a person opens by hand comes near it, and 32 fits stay well under a second.
+- **Layout links:** `validate` takes at most 256 nodes (`MAX_NODES`, `layout/codec/validate.ts`), and the overlay's lists the same. A layout of 256 nodes is about 128 panes with their rows, columns and groups, eight times the largest pane cap the dialog offers and twice `PANE_CAP_MAX`. The depth limit (128) is unchanged.
+- **What a host notices:** a link or saved layout with more than 256 nodes is refused as broken (`setLayout`: `"invalid"`).
+- **Tests:** `tests/hostile-input.test.tsx` (C6).
