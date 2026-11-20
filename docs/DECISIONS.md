@@ -889,3 +889,10 @@ Data Studio's old tab strip had six features Jali lacked. Each is general, and l
 - **Why:** with `sizes: "local"`, the sizes a person dragged were spread onto the link's nodes as stored (`joinPersonalSizes`). A `null` entry stopped startup, and an entry holding anything else (a `ref`, `children`, a negative px) reached the layout unchecked, after the link itself had been validated.
 - **Now:** only `size` and `base` that are one positive finite px or weight, and `userSized: true`, are taken from an entry; the rest is left out, and an entry that isn't an object is skipped. Entries in the store that aren't `[key, sizes]` pairs are ignored. The joined layout is validated with the link's kinds; if it fails, the link opens as it is, with the designed proportions. Kept sizes are read through `own`, so a pane called `constructor` has none it didn't save.
 - **Tests:** `tests/hostile-input.test.tsx` (C2b).
+
+## 20 Nov 2026 · Only a pane on screen can be maximised (QUALITY-REVIEW C5)
+
+- **Why:** `toggleZoom("a")` on a pane the layout hides (`overlay.hidden`: a curated page's hidden view, a builder's `hidden: true`) returned `ok: true`, and every model read after it threw (`resolve` assumed the zoomed pane was drawn). A link's `zoom=` naming such a pane did the same.
+- **Refuse, not reveal:** the hidden pane has no slot to come back to on its own: on a curated page it is a view the person turned off, and bringing it back is the page's `openTab`, a deliberate choice with its own history entry. Revealing it as a side effect of "maximise" would undo that choice silently, so `toggleZoom` and `toggleFullScreen` refuse `"blocked"` and say "<pane> is not on screen", as `tuck` does for the same pane. Restoring is never refused. A pane behind a tab (folded, tucked, a tab of a group) is drawn, so it can still be maximised as before.
+- **And nothing assumes a drawn pane:** `resolve` (`fit/resolve.ts`) ignores a zoom on a pane it did not draw instead of reading its bounds; the focus keys move a zoom only to a pane on screen; `readSearch` drops a `zoom=` for a pane the link's layout hides.
+- **Tests:** `tests/hostile-input.test.tsx` (C5).

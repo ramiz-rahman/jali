@@ -156,7 +156,13 @@ export function readSearch(
   const layout = core.decode(code, kinds);
   if (!layout) return { broken: code, view: {}, ...named };
   const zoom = q.get(k.zoom);
-  if (zoom && core.tree.panes(layout.root).some((p) => p.id === zoom)) view.zoomed = zoom;
+  // Only a pane on screen can be maximised: one the layout hides is left unzoomed.
+  if (
+    zoom &&
+    core.tree.panes(layout.root).some((p) => p.id === zoom) &&
+    !layout.overlay?.hidden?.includes(zoom)
+  )
+    view.zoomed = zoom;
   const scroll = readScroll(q.get(k.scroll), layout);
   if (scroll) view.scroll = scroll;
   return { layout, view, ...named };

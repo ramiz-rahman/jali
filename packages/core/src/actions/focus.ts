@@ -22,9 +22,18 @@ export function focusShown(x: Snapshot, id: NodeId): Outcome {
   return focusMoved(x, core.focus(x.s.view, id, x.ctx));
 }
 
-/** A focus key moved focus. While zoomed, focus keys switch which pane is zoomed (herdr). */
+/** A pane that is in the layout but has no place on screen (hidden: no slot, no tab). */
+const offScreen = (m: Snapshot["m"], id: NodeId) =>
+  m.resolved.panes.some((b) => b.id === id && b.hidden === "off");
+
+/** A focus key moved focus. While zoomed, focus keys switch which pane is zoomed (herdr), to a pane on screen. */
 export function focusMoved({ s, m }: Snapshot, view: ViewState): Outcome {
-  if (s.view.zoomed && view.focused && view.focused !== s.view.zoomed) {
+  if (
+    s.view.zoomed &&
+    view.focused &&
+    view.focused !== s.view.zoomed &&
+    !offScreen(m, view.focused)
+  ) {
     return {
       op: "zoom",
       view: { ...view, zoomed: view.focused },
@@ -60,8 +69,9 @@ export function toggleZoom(x: Snapshot, id = x.s.view.focused): Outcome {
   const { s, m, ctx } = x;
   if (s.page?.mode === "single") return refuse("single-view", say(m).singleNoLayout);
   if (!id) return null;
-  // Restoring is always allowed: only maximising can be turned off.
+  // Restoring is always allowed: only maximising can be turned off, and only a pane on screen can be maximised.
   if (s.view.zoomed !== id) {
+    if (offScreen(m, id)) return refuse("blocked", say(m).notOnScreen(m.title(id)));
     const denied = notAllowed(x, id, "maximise");
     if (denied) return denied;
   }
@@ -94,6 +104,7 @@ export function toggleFullScreen(x: Snapshot, id = x.s.view.focused): Outcome {
   }
   if (s.page?.mode === "single") return refuse("single-view", say(m).singleNoLayout);
   if (!id || !m.pane(id)) return refuse("not-found");
+  if (offScreen(m, id)) return refuse("blocked", say(m).notOnScreen(m.title(id)));
   const denied = notAllowed(x, id, "fullScreen");
   if (denied) return denied;
   const focused = core.focus(s.view, id, ctx);

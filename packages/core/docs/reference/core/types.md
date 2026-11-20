@@ -1559,7 +1559,7 @@ A pane that is not there gives `reason: "not-found"`. What a refusal reads out t
 
 - **`actions.focus`**, `focus(pane: PaneTarget)`: Focus a pane and show it. A pane that is folded, tucked or behind another tab has its tab chosen; nothing else on screen moves. While another pane is maximised, this one is maximised instead.
 
-- **`actions.toggleZoom`**, `toggleZoom(pane?: PaneTarget)`: Maximise or restore. Refused with `"single-view"` in a curated page's Single view; nothing with one pane.
+- **`actions.toggleZoom`**, `toggleZoom(pane?: PaneTarget)`: Maximise or restore. Refused with `"single-view"` in a curated page's Single view, and with `"blocked"` for a pane the layout hides (it has no place on screen to fill); nothing with one pane.
 
 - **`actions.openBeside`**, `openBeside(pane: PaneTarget, ref: ObjectRef)`: Open `ref` beside `pane`; focus stays in `pane`. `pane`'s selected item opens a following detail (kept if one already follows). A link never copies a pane of its own chain: when `ref`'s object is `pane` itself, a pane `pane` was opened from (up the chain), or one it opened, that pane is shown instead (`pane` in the result), focus stays, and it is announced "Already open". Outside a curated page, another chain may still show the same object. In a curated page: a peek in Single view or for a limited viewer, and an object already on the page is focused instead. `pane` in the result is the pane that shows `ref`.
 
@@ -1611,7 +1611,7 @@ A pane that is not there gives `reason: "not-found"`. What a refusal reads out t
 
 - **`actions.preset`**, `preset(id: string)`: Switch to a preset. `"not-found"` for an id the workspace doesn't have.
 
-- **`actions.toggleFullScreen`**, `toggleFullScreen(pane?)`: Put a pane (default: the focused one) on the whole screen: maximised, with the page in the browser's full screen. Again, Escape, or leaving the browser's full screen puts it back as it was. Where the browser has no full screen (an iPhone), the pane still covers the page. ⌘K: "Full screen pane, or exit full screen".
+- **`actions.toggleFullScreen`**, `toggleFullScreen(pane?)`: Put a pane (default: the focused one) on the whole screen: maximised, with the page in the browser's full screen. Again, Escape, or leaving the browser's full screen puts it back as it was. Where the browser has no full screen (an iPhone), the pane still covers the page. `"blocked"` for a pane the layout hides. ⌘K: "Full screen pane, or exit full screen".
 
 - **`actions.resetLayout`**, `resetLayout()`: Rebuild the preset last chosen.
 

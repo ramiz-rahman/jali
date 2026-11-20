@@ -319,3 +319,39 @@ describe("C4: refs passed to public actions", () => {
     expect(jali.model().panes).toHaveLength(2);
   });
 });
+
+describe("C5: maximising a pane that is not on screen", () => {
+  const hidden = () =>
+    make({
+      layout: row(
+        pane(note({ id: 1 }), { id: "a" }),
+        pane(note({ id: 2 }), { id: "b" }),
+        pane(note({ id: 3 }), { id: "c", hidden: true }),
+      ),
+    });
+
+  it("toggleZoom and toggleFullScreen refuse a hidden pane", () => {
+    const jali = hidden();
+    expect(jali.actions.toggleZoom("c")).toMatchObject({ ok: false, reason: "blocked" });
+    expect(() => jali.model().resolved).not.toThrow();
+    expect(jali.actions.toggleFullScreen("c")).toMatchObject({ ok: false, reason: "blocked" });
+    expect(() => jali.model().resolved).not.toThrow();
+    expect(jali.get().view.zoomed).toBeUndefined();
+  });
+
+  it("a zoomed view on a hidden pane resolves", () => {
+    const jali = hidden();
+    const store = storeOf(jali);
+    store.set({ view: { ...store.get().view, zoomed: "c" } });
+    expect(() => jali.model().resolved).not.toThrow();
+  });
+
+  it("a link zooming a hidden pane opens unzoomed", () => {
+    const l = toLayout(
+      row(pane(note({ id: 1 }), { id: "a" }), pane(note({ id: 2 }), { id: "c", hidden: true })),
+    );
+    const read = readSearch(`?l=${layout.encode(l)}&zoom=c`, registry);
+    expect(read).toHaveProperty("layout");
+    expect(read!.view.zoomed).toBeUndefined();
+  });
+});

@@ -230,9 +230,10 @@ export function resolve(layout: Layout, view: ViewState, ctx: LayoutContext): Re
     });
   }
   // Zoom overlays geometry; the canonical tree and all split sizes remain intact.
+  // Only a pane the projection drew can cover the rest: a zoom on one that is off screen (hidden) is ignored.
   const zoom = result.panes.find((p) => p.id === view.zoomed);
-  if (zoom) {
-    const selected = allPanes(root).find((p) => p.id === zoom.id)!;
+  const selected = zoom && allPanes(root).find((p) => p.id === zoom.id);
+  if (zoom && selected) {
     for (const p of result.panes)
       p.hidden = p === zoom ? undefined : p.hidden === "off" ? "off" : "zoom";
     zoom.rect = {
