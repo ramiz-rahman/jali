@@ -946,3 +946,27 @@ Data Studio's old tab strip had six features Jali lacked. Each is general, and l
 
 - **Unchanged:** every fit and resolve gives the old engine's result. `layout/test/legacy-fit/` keeps a frozen copy of the old engine, and `layout/test/fit-equivalence.test.ts` compares the two over a generated corpus (layouts, overlays with stale folds, hides and tucks, rooms, caps, views, every fit policy, then a second refit at another width); `JALI_FIT_CORPUS=full` runs the whole corpus. No public API changed; the engine stays pure.
 - **Tests:** `layout/test/fit-equivalence.test.ts`, `layout/test/fit-scale.test.ts` (200 panes under 50 ms, with slack for CI, and no worse than quadratic growth).
+
+## 20 Nov 2026 · Subscriptions read only what they show, and render counts are tested (QUALITY-REVIEW P2, P23)
+
+- **Why:** the memoisation of 17 Nov (WP3: "a keyboard resize re-renders only the frames on either side of that divider") had been undone, and nothing tested it. A pane drag set the whole `dnd` on every pointermove and the workspace subscribed to all of it, so each move re-ran `frames()` and re-rendered every divider layer. Every pane's header actions subscribed to the whole model and rebuilt the pane's menu, so a keyboard resize re-rendered every frame. `useJaliCommands` returned a new array on every store change, so a host's kbar or cmdk re-registered its actions on every pointermove. A pane's live title re-ran the layout resolve. An inline `icons={{…}}` re-rendered every icon user, and the tab underline re-created its ResizeObservers on every render.
+- **Now:**
+  - **Drag:** core writes `dnd` at most once a frame, and only when it changed (`workspace/dnd.ts`). A release or Escape uses the pointer's last point. A `DragLayer` (`Workspace.tsx`) is the only part that subscribes to the whole `dnd` and draws the drop indicator and the chip. The workspace subscribes to the target pane and to whether a drag is on, and `DividerLayer` is memoised.
+  - **Header actions:** worked out with `useDerived` (`state/react.tsx`) and compared by value (`samePlan`). It is worked out again when the state changes, but not when only `dnd` changes. The pane switcher's tucked mark and the drop label's title read one value each from the model (`useModelValue`).
+  - **Commands:** `useJaliCommands` keeps the same array until a listed command's title, group, keys, disabled state or reason changes, or a pane's own `run` changes.
+  - **Titles:** the model cache (`state/model.ts`) is keyed on geometry. A new title gives a new model that shares `resolved`, `content`, `flat` and `groups` with the old one and swaps only `title`.
+  - **Icons:** `icons` are compared name by name.
+  - **Tab measuring:** the tab underline observes the strip part and each tab once per shown tab, and observes again only when tabs are added, closed or moved (a MutationObserver). `TabStrip` measures when what it lays out changes, not on every render.
+- **Measured** (`tests/render-counts.test.tsx`, jsdom, 10 panes in five columns of two at 2400×1000; commits counted with a `<Profiler>` around each frame, body and divider layer; workspace renders counted as `frames()` calls):
+
+  | Run                                                                 | Workspace renders | DividerLayer | PaneFrame | PaneBody |
+  | ------------------------------------------------------------------- | ----------------- | ------------ | --------- | -------- |
+  | 60-move pane drag across the top row (12 changes of target), before | 60                | 60           | 16        | 0        |
+  | the same, after                                                     | 5                 | 0            | 16        | 0        |
+  | 10-step keyboard resize of one divider, before                      | 10                | 10           | 100       | 0        |
+  | the same, after                                                     | 10                | 10           | 20        | 0        |
+
+  The 16 frame commits in a drag are changes of target: a frame gains or loses its drop-target mark or its zone label. Pointer moves within one zone commit no frame. Ten pointer moves inside one frame used to make ten `dnd` writes and now make one.
+
+- **Size:** @jali/core +0.2 KB gzip, @jali/react +0.6 KB gzip (full scenario: 55.0 and 24.7 KB, from 54.8 and 24.1).
+- **Tests:** `tests/render-counts.test.tsx`. A keyboard resize commits only the two neighbouring frames and no body. A pane drag commits no frame per move, only on a change of target, and no divider layer or body. `dnd` is written at most once a frame, and a release lands where the pointer last was. A live title keeps the resolved geometry. `useJaliCommands` keeps its array through a drag, a focus move and a divider move. The tab underline observes no new elements when titles change. An inline `icons` object re-renders no frame.
