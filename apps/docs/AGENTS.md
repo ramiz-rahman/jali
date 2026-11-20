@@ -4,7 +4,7 @@ Read first: `docs/DOCS-PLAN.md` (what the site holds), `docs/research/docs-sites
 
 ## Run it
 
-- `cd apps/docs && JALI_DOCS_CACHE=node_modules/.vite-<you> pnpm exec astro dev --port <your port> --strictPort`. Your own cache directory and port, always: two dev servers sharing a cache break each other.
+- `cd apps/docs && JALI_DOCS_CACHE=node_modules/.vite-<you> pnpm exec astro dev --port <your port> --ignore-lock`. Your own cache directory and port, always: two dev servers sharing a cache break each other. `--ignore-lock` keeps the server in the foreground (Astro starts it in the background when a coding agent runs it); strict ports come from astro.config.mjs, since Astro ignores `--strictPort`.
 - Ports: 5400 lead, 5401 shell, 5402 live, 5403 concepts, 5404 reference, 5405 guides. The example apps' servers are 5300 (Data Studio) and 5350 (Loan review); leave them alone.
 - The site is Astro (`astro.config.mjs`): `pnpm build` prerenders every page to static HTML in `dist/` (with sitemap, robots.txt and a `.md` copy of each page); a page that fails to prerender fails the build. Live workspaces render in the browser only (`src/live/ClientOnly.tsx`).
 - `npx tsc --noEmit -p apps/docs` must pass. Check your pages in a real browser (Playwright, `channel: "chrome"`), at 1440 and 390 wide, light and dark.
