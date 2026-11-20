@@ -341,6 +341,11 @@ function MapPane({ params, paused, node, inPeek }: PaneProps<typeof mapParams>) 
     surface.tabIndex = 0;
     surface.setAttribute("role", "region");
     surface.setAttribute("aria-label", "Map. Arrow keys pan, plus and minus zoom.");
+    // Busy while tiles load, until everything in view is drawn (or failed to load: the map says so).
+    surface.setAttribute("aria-busy", "true");
+    map.on("dataloading", () => surface.setAttribute("aria-busy", "true"));
+    map.on("idle", () => surface.removeAttribute("aria-busy"));
+    map.on("error", () => surface.removeAttribute("aria-busy"));
     mapRef.current = map;
 
     // The pins are laid out again whenever the map moves or changes size: what overlaps changes with the zoom, and
