@@ -133,7 +133,7 @@ function stageDrop(store: UiStore, step: number) {
 }
 
 export function Spotlight({ layout, target, height = 320, caption, label }: SpotlightProps) {
-  const store = useLiveStore(layout);
+  const store = useLiveStore(layout, caption ?? demoLayouts[layout]);
   const stage = useRef<HTMLDivElement>(null);
   const [box, setBox] = useState<Box | null>(null);
   const [at, setAt] = useState<Place | null>(null);

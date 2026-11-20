@@ -136,11 +136,8 @@ for (const path of PAGE_TYPES)
         .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"])
         .analyze();
       expect(said(wcag.violations)).toEqual([]);
-      // Best practice on the site's own markup. A live workspace's landmarks are Jali's (a "Panes" region, and a
-      // region per pane named by its title), so two demos on one page repeat them: that is @jali/react's to change.
-      const best = await new AxeBuilder({ page })
-        .withTags(["best-practice"])
-        .exclude("[data-jali]")
-        .analyze();
+      // Best practice too, the live workspaces included: each is named (`createJali({ label })`), so two demos on one
+      // page never repeat a landmark.
+      const best = await new AxeBuilder({ page }).withTags(["best-practice"]).analyze();
       expect(said(best.violations)).toEqual([]);
     });

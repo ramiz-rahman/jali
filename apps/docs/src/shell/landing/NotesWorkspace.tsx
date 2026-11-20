@@ -10,7 +10,7 @@ import { createJali, memoryLocation, memoryStorage, row, type Jali } from "@jali
 import { JaliRoot } from "@jali/react";
 import { note } from "../../samples/concepts/quickstart/note-open-beside";
 import { demoKinds } from "../../live/kinds";
-import { buildDemoLayout, type DemoLayoutId } from "../../live/demo";
+import { buildDemoLayout, demoLayouts, type DemoLayoutId } from "../../live/demo";
 import { ClientOnly } from "../../live/ClientOnly";
 
 export interface LandingApp {
@@ -34,12 +34,15 @@ function makeApp(source: Source, id: string): LandingApp {
           panes: [note],
           layout: row(note({ id: 1 }), note({ id: 2 })),
           name: "Notes",
+          // Its landmarks are named for it, so another workspace on the page never repeats one.
+          label: "Notes app",
         })
       : createJali({
           ...embedded,
           panes: demoKinds,
           layout: buildDemoLayout(source.layout),
           name: "Shop",
+          label: demoLayouts[source.layout],
         });
   let last = { search: location.search(), entries: location.entries.length };
   const address = () => {

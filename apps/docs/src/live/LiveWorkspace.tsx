@@ -18,9 +18,14 @@ import { ClientOnly } from "./ClientOnly";
 
 /**
  * A store for one figure. Stable across renders; its id is safe in DOM ids and the same on server and client.
+ * `label` names the workspace's landmarks (the figure's caption), so figures on one page never repeat one.
  * `centreDrop` is what a drop on a pane's middle does here (Jali's default swaps; the hero adds it as a tab).
  */
-export function useLiveStore(layoutId: DemoLayoutId, centreDrop?: "swap" | "tab"): UiStore {
+export function useLiveStore(
+  layoutId: DemoLayoutId,
+  label: string,
+  centreDrop?: "swap" | "tab",
+): UiStore {
   const raw = useId();
   const [store] = useState(() =>
     createUiStore({
@@ -29,6 +34,7 @@ export function useLiveStore(layoutId: DemoLayoutId, centreDrop?: "swap" | "tab"
       storage: memoryStorage(),
       id: `live-${layoutId}-${raw.replace(/[^a-zA-Z0-9]/g, "")}`,
       name: "Shop",
+      label,
       // A figure on a docs page: only its own keys, and the site keeps its theme.
       keys: "scoped",
       pageTheme: false,

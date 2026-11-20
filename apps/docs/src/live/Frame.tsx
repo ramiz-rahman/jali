@@ -60,7 +60,7 @@ function foldMarks(store: UiStore, base: Layout, inset: number, min: number, max
 }
 
 export function Frame({ layout, width, minWidth = 260, height = 320, caption }: FrameProps) {
-  const store = useLiveStore(layout);
+  const store = useLiveStore(layout, caption ?? demoLayouts[layout]);
   const m = useSyncExternalStore(store.subscribe, store.model, store.model);
   const track = useRef<HTMLDivElement>(null);
   const box = useRef<HTMLDivElement>(null);
