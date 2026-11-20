@@ -300,3 +300,15 @@ describe("moving a pane out of a strip", () => {
     expect(core.tree.panes(after.root).map((p) => p.id)).toEqual(["d1", "d2"]);
   });
 });
+
+describe("a hidden pane inside a row that scrolls", () => {
+  it("is not drawn, and its neighbours close up", () => {
+    const layout = toLayout(row(paneOf({ kind: "day", params: { n: 0 } }, { id: "list" }), strip(4)));
+    const hid: Layout = { ...layout, overlay: { tucks: [], folds: [], shown: {}, ...layout.overlay, hidden: ["d2"] } };
+    const r = place(hid);
+    const shown = r.panes.filter((p) => !p.hidden).map((p) => p.id);
+    expect(shown).not.toContain("d2");
+    expect(shown).toEqual(expect.arrayContaining(["list", "d1", "d3", "d4"]));
+    expect(rect(r, "d3").x).toBeLessThan(rect(place(layout), "d3").x);
+  });
+});

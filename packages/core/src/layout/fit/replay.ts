@@ -79,8 +79,12 @@ interface Replayed {
 /** Hidden panes leave the projection first: no slot and no tab, and their neighbours absorb the space. */
 function withoutHidden(root: Projected, hidden: readonly string[], fit: FitOptions): Projected {
   let removed = false;
+  // A row that scrolls is one slot for folding, but its children are on screen in their own right: one of them can be
+  // hidden too.
+  const shown = (n: Projected): Projected[] =>
+    n.type === "row" && n.scroll ? n.children.flatMap(shown) : slots(n).flatMap((s) => (s === n ? [s] : shown(s)));
   for (const id of hidden) {
-    const displayed = slots(root);
+    const displayed = shown(root);
     if (displayed.length < 2 || !displayed.some((s) => s.id === id && s.pane)) continue;
     root = removeSlot(root, id)!;
     removed = true;
