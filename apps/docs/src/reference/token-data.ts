@@ -13,6 +13,7 @@ import chrome from "../../../../packages/react/src/styles/chrome.css?raw";
 import page from "../../../../packages/react/src/styles/page.css?raw";
 import dialogs from "../../../../packages/react/src/styles/dialogs.css?raw";
 import follow from "../../../../packages/react/src/styles/follow.css?raw";
+import icons from "../../../../packages/react/src/styles/icons.css?raw";
 
 export type TokenGroup =
   | "Surfaces"
@@ -24,7 +25,7 @@ export type TokenGroup =
   | "Overlays and shadows"
   | "Shape and type"
   | "Derived";
-export type SwatchKind = "color" | "text" | "shadow" | "scrim" | "radius" | "font";
+export type SwatchKind = "color" | "text" | "shadow" | "scrim" | "radius" | "font" | "size";
 
 export interface TokenInfo {
   group: TokenGroup;
@@ -269,6 +270,29 @@ export const TOKEN_PURPOSE: Record<string, TokenInfo> = {
     purpose:
       "Corners of small things inside a header, tab or chip: the Following / Kept toggle, a tab's close button, the rename field, the Kept badge and the peek's label. Shelf chips and their buttons, the shelf's \"more\" and its items, and tab menu items are 1.25 × this; investigation chips 1.75 ×, each rounded down to a whole pixel.",
   },
+  "--jali-icon-header": {
+    group: "Shape and type",
+    swatch: "size",
+    purpose:
+      "Icons in a pane's header: its buttons, its grip and the peek's buttons. A pane's title icon is this + 2px, the Following / Kept toggle's icon this − 2px.",
+  },
+  "--jali-icon-tab": {
+    group: "Shape and type",
+    swatch: "size",
+    purpose:
+      "Icons in a tab: its kind's icon, close, put back, New tab, and the pane switcher's icons. A folded tab's mark is this − 1px; a pinned tab's pin and the \"+N\" and \"N folded\" chips' icons this − 2px.",
+  },
+  "--jali-icon-menu": {
+    group: "Shape and type",
+    swatch: "size",
+    purpose:
+      "A pane's icon in a tab menu, the \"+N\" menu and the shelf's menu. The check mark is this − 1px, a folded or tucked mark this − 2px.",
+  },
+  "--jali-icon-shelf": {
+    group: "Shape and type",
+    swatch: "size",
+    purpose: "Icons in a shelf chip: the pane's icon, the fold mark and Put back.",
+  },
   "--jali-font": {
     group: "Shape and type",
     swatch: "font",
@@ -421,8 +445,7 @@ export function valuesOf(token: string): { light: string; dark: string } {
   return { light: side(value, 0), dark: side(value, 1) };
 }
 
-const PARTS_CSS = { workspace, pane, dividers, shelf, chrome, page, dialogs, follow };
-
+const PARTS_CSS = { workspace, pane, dividers, shelf, chrome, page, dialogs, follow, icons };
 
 /** The jali-* classes whose rules read `token` (from the package's styles), deduplicated, in file order. */
 export function partsReading(token: string): string[] {

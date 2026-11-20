@@ -9,6 +9,7 @@ import { useUi } from "../state/react";
 import { KindIcon } from "./icons";
 import { Activity, shelfActivity } from "./Activity";
 import type { PaneActivity } from "@jali/core";
+import { ICON } from "../icons/sized";
 
 /** Most pressing first: what the folded chip shows for the panes behind it. */
 const URGENCY: PaneActivity[] = ["error", "needs-you", "working", "loading"];
@@ -147,14 +148,14 @@ export function TabOverflow({
       >
         {folded ? (
           <>
-            <icon.fold size={12} aria-hidden />
+            <icon.fold {...ICON.tabSmall} aria-hidden />
             <span>{tw.foldedChip(tabs.length)}</span>
             <Activity a={behind} shape />
           </>
         ) : (
           <>
             <span className="tab-more-n">{tw.moreCount(hiddenCount)}</span>
-            <icon.more size={12} aria-hidden />
+            <icon.more {...ICON.tabSmall} aria-hidden />
           </>
         )}
       </button>
@@ -195,24 +196,24 @@ export function TabOverflow({
                     onClick={() => choose(t.id)}
                   >
                     <span className="jali-tab-menu-check" aria-hidden>
-                      {t.id === active ? <icon.current size={13} /> : null}
+                      {t.id === active ? <icon.current {...ICON.menuMark} /> : null}
                     </span>
                     {role ? (
-                      <role.icon size={14} aria-hidden />
+                      <role.icon {...ICON.menu} aria-hidden />
                     ) : (
-                      <KindIcon kind={t.ref.kind} size={14} />
+                      <KindIcon kind={t.ref.kind} {...ICON.menu} />
                     )}
                     <span className="jali-tab-menu-title">{titleOf(env, t, titles)}</span>
                     <Activity a={activity[t.id]} />
                     {folded && !chip ? (
                       <small className="jali-tab-menu-mark">
-                        <icon.fold size={12} aria-hidden />
+                        <icon.fold {...ICON.menuSmall} aria-hidden />
                         {tw.folded}
                       </small>
                     ) : null}
                     {tucked ? (
                       <small className="jali-tab-menu-mark">
-                        <icon.putBack size={12} aria-hidden />
+                        <icon.putBack {...ICON.menuSmall} aria-hidden />
                         {tw.tucked}
                       </small>
                     ) : null}

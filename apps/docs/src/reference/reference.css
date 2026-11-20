@@ -445,6 +445,13 @@
     font-size: 1.25rem;
     color: var(--jali-text);
   }
+  :root .ref-swatch-size {
+    position: absolute;
+    inset: 0;
+    margin: auto;
+    border-radius: 2px;
+    background: var(--jali-text-muted);
+  }
   :root .ref-swatch-scrim {
     position: absolute;
     inset: 0;

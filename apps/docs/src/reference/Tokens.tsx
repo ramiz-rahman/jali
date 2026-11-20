@@ -47,6 +47,8 @@ function Swatch({
         return (
           <span className="ref-swatch-radius" style={{ borderTopLeftRadius: v } as CSSProperties} />
         );
+      case "size":
+        return <span className="ref-swatch-size" style={{ width: v, height: v }} />;
       case "font":
         return (
           <span className="ref-swatch-font" style={{ fontFamily: v }}>

@@ -60,6 +60,23 @@ describe("icons", () => {
     expect(isJali(close.querySelector("svg"))).toBe(true);
   });
 
+  it("a host's icon gets the class that sizes it by place, and the place's default size", () => {
+    const seen: JaliIconProps[] = [];
+    const Spy = (props: JaliIconProps) => {
+      seen.push(props);
+      return <svg className={props.className} width={props.size} />;
+    };
+    render(<JaliRoot jali={make()} icons={{ close: Spy, tuck: Spy, defaultKind: Spy }} />);
+    // The header's buttons read --jali-icon-header (14px by default); a pane's title icon is 2px larger.
+    expect(seen).toContainEqual(
+      expect.objectContaining({ className: "jali-icon-header", size: 14 }),
+    );
+    expect(seen).toContainEqual(
+      expect.objectContaining({ className: "jali-icon-header-lg", size: 16 }),
+    );
+    expect(seen.every((p) => typeof p.className === "string")).toBe(true);
+  });
+
   it("a full set of the host's draws no icon of Jali's", () => {
     const own = Object.fromEntries(Object.keys(defaultIcons).map((k) => [k, HostClose]));
     const { container } = render(<JaliRoot jali={make()} icons={own} />);

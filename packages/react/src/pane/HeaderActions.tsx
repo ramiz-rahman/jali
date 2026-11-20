@@ -4,6 +4,7 @@ import { useJaliIcons } from "../icons/context";
 import { useModel, useStore, useUi } from "../state/react";
 import { bringBack, canPopOut, popOut, usePopOutTarget } from "./PopOut";
 import type { Chrome } from "@jali/core/adapter";
+import { ICON } from "../icons/sized";
 
 interface P {
   id: string;
@@ -70,7 +71,7 @@ export function HeaderActions({ id, title, zoomed, chrome, tabs, onMenu }: P) {
             disabled={!home}
             onClick={() => actions.tuck(id)}
           >
-            <icon.tuck size={14} aria-hidden />
+            <icon.tuck {...ICON.header} aria-hidden />
           </button>
         );
       case "maximise":
@@ -88,7 +89,7 @@ export function HeaderActions({ id, title, zoomed, chrome, tabs, onMenu }: P) {
             title={popped ? t.bringBack : t.popOutTip}
             onClick={() => (popped ? bringBack() : void popOut(store.jali, id))}
           >
-            <icon.popOut size={14} aria-hidden />
+            <icon.popOut {...ICON.header} aria-hidden />
           </button>
         );
       case "close":
@@ -101,7 +102,7 @@ export function HeaderActions({ id, title, zoomed, chrome, tabs, onMenu }: P) {
             aria-label={t.close(title)}
             title={keys.withKeys(closeHint, store.keymap.label("pane.close"))}
           >
-            <icon.close size={14} aria-hidden />
+            <icon.close {...ICON.header} aria-hidden />
           </button>
         );
     }
@@ -125,7 +126,7 @@ export function HeaderActions({ id, title, zoomed, chrome, tabs, onMenu }: P) {
           onMenu({ x: store.get().dir === "rtl" ? r.left : r.right, y: r.bottom + 2, end: true });
         }}
       >
-        <icon.menu size={14} aria-hidden />
+        <icon.menu {...ICON.header} aria-hidden />
       </button>,
     );
   }
@@ -148,7 +149,11 @@ function ZoomButton({ id, title, zoomed }: { id: string; title: string; zoomed: 
           : keys.withKeys(t.maximiseTip, keymap.label("pane.zoom"))
       }
     >
-      {zoomed ? <icon.restore size={14} aria-hidden /> : <icon.maximise size={14} aria-hidden />}
+      {zoomed ? (
+        <icon.restore {...ICON.header} aria-hidden />
+      ) : (
+        <icon.maximise {...ICON.header} aria-hidden />
+      )}
     </button>
   );
 }
@@ -172,9 +177,9 @@ function FullScreenButton({ id, title }: { id: string; title: string }) {
       }
     >
       {full ? (
-        <icon.exitFullScreen size={14} aria-hidden />
+        <icon.exitFullScreen {...ICON.header} aria-hidden />
       ) : (
-        <icon.fullScreen size={14} aria-hidden />
+        <icon.fullScreen {...ICON.header} aria-hidden />
       )}
     </button>
   );

@@ -21,6 +21,7 @@ import { TabIndicator } from "./TabIndicator";
 import { TabMenu, type TabMenuAt } from "./TabMenu";
 import { TabOverflow } from "./TabOverflow";
 import { UnsavedMark } from "./Unsaved";
+import { ICON } from "../icons/sized";
 
 /** The edge fade's width (pane.css): a revealed tab clears it, unless it is at the strip's end. */
 const FADE = 24;
@@ -233,7 +234,7 @@ export function TabStrip({ group, owner }: { group: NonNullable<Frame["group"]>;
         >
           {pinned ? (
             <span className="jali-tab-pin" aria-hidden>
-              <icon.pin size={12} />
+              <icon.pin {...ICON.tabSmall} />
             </span>
           ) : null}
           <TabIcon node={t} />
@@ -246,7 +247,7 @@ export function TabStrip({ group, owner }: { group: NonNullable<Frame["group"]>;
           <TabActivity id={t.id} />
           {isFolded ? (
             <span className="jali-tab-fold-mark" aria-hidden>
-              <icon.fold size={13} />
+              <icon.fold {...ICON.tabMark} />
             </span>
           ) : null}
           {tucked ? <span className="jali-tab-space" aria-hidden /> : null}
@@ -262,7 +263,7 @@ export function TabStrip({ group, owner }: { group: NonNullable<Frame["group"]>;
               onPointerDown={(e) => e.stopPropagation()}
               onClick={() => actions.putBack(t.id)}
             >
-              <icon.putBack size={14} aria-hidden />
+              <icon.putBack {...ICON.tab} aria-hidden />
             </button>
           ) : null}
           {closable(t.id) ? (
@@ -272,7 +273,7 @@ export function TabStrip({ group, owner }: { group: NonNullable<Frame["group"]>;
               aria-label={tw.close(title)}
               onClick={() => actions.close(t.id)}
             >
-              <icon.close size={14} aria-hidden />
+              <icon.close {...ICON.tab} aria-hidden />
               {dirty ? <UnsavedMark /> : null}
             </button>
           ) : dirty ? (
@@ -338,7 +339,7 @@ export function TabStrip({ group, owner }: { group: NonNullable<Frame["group"]>;
             actions.newTab(group.active);
           }}
         >
-          <icon.newTab size={14} aria-hidden />
+          <icon.newTab {...ICON.tab} aria-hidden />
         </button>
       )}
     </div>
@@ -350,5 +351,9 @@ function TabIcon({ node }: { node: PaneNode }) {
   const { profile } = useEnv();
   const role =
     useUi((s) => !!s.page) && node.role && profile ? roleOf(profile, node.role) : undefined;
-  return role ? <role.icon size={14} aria-hidden /> : <KindIcon kind={node.ref.kind} size={14} />;
+  return role ? (
+    <role.icon {...ICON.tab} aria-hidden />
+  ) : (
+    <KindIcon kind={node.ref.kind} {...ICON.tab} />
+  );
 }

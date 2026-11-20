@@ -27,6 +27,7 @@ import { TabStrip } from "./TabStrip";
 import { UnsavedMark, useUnsavedOf } from "./Unsaved";
 import { RenameField, useCanRename } from "./RenameField";
 import { useInert } from "./inert";
+import { ICON } from "../icons/sized";
 
 interface Props {
   frame: Frame;
@@ -157,7 +158,7 @@ export const PaneFrame = /* @__PURE__ */ memo(
         >
           {draggable ? (
             <span className="jali-grip" aria-hidden>
-              <icon.grip size={14} />
+              <icon.grip {...ICON.header} />
             </span>
           ) : null}
           {group ? (
@@ -166,7 +167,7 @@ export const PaneFrame = /* @__PURE__ */ memo(
             </div>
           ) : (
             <div className="jali-pane-title">
-              {role ? <role.icon size={16} aria-hidden /> : <KindIcon kind={node.ref.kind} />}
+              {role ? <role.icon {...ICON.title} aria-hidden /> : <KindIcon kind={node.ref.kind} />}
               <h2
                 id={paneTitleId(store.dom.id, node.id)}
                 onDoubleClick={(e) => {

@@ -6,6 +6,7 @@ import { KindIcon } from "../pane/icons";
 import { PaneBody, peekHost } from "../pane/PaneBody";
 import { UnsavedMark } from "../pane/Unsaved";
 import { useStore, useUi } from "../state/react";
+import { ICON } from "../icons/sized";
 
 export const PEEK_WIDTH = 480;
 
@@ -81,7 +82,7 @@ export function Peek({ presentation }: { presentation: Presentation }) {
               onClick={() => actions.openPeekBeside()}
               title={t.openBeside}
             >
-              <icon.openBeside size={14} aria-hidden /> {t.openBeside}
+              <icon.openBeside {...ICON.header} aria-hidden /> {t.openBeside}
             </button>
           ) : null}
           {page ? null : (
@@ -90,7 +91,7 @@ export function Peek({ presentation }: { presentation: Presentation }) {
               onClick={() => actions.openPeekFull()}
               title={t.openFull}
             >
-              <icon.openFull size={14} aria-hidden /> {t.openFull}
+              <icon.openFull {...ICON.header} aria-hidden /> {t.openFull}
             </button>
           )}
           <button
@@ -99,7 +100,7 @@ export function Peek({ presentation }: { presentation: Presentation }) {
             aria-label={t.close}
             title={t.closeTip(store.keymap.format([{ key: "Escape" }]))}
           >
-            <icon.close size={14} aria-hidden />
+            <icon.close {...ICON.header} aria-hidden />
           </button>
         </div>
       </header>

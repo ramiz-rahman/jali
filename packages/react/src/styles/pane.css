@@ -21,8 +21,7 @@
   .jali-pane.is-zoomed {
     z-index: 20;
     box-shadow:
-      var(--jali-pane-shadow-focused, 0 0 0 0.5px var(--jali-accent)),
-      var(--jali-shadow-zoom);
+      var(--jali-pane-shadow-focused, 0 0 0 0.5px var(--jali-accent)), var(--jali-shadow-zoom);
   }
   .jali-pane.is-dragged {
     opacity: 0.55;

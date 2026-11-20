@@ -6,6 +6,7 @@ import { canPopOut, popOut } from "./PopOut";
 import { tabMenuOf, titleOf, type TabMenuItem } from "@jali/core/adapter";
 import { useJaliIcons } from "../icons/context";
 import { useStore, useUi } from "../state/react";
+import { ICON } from "../icons/sized";
 
 /** Where a tab's menu opens: at the pointer, or under the tab from the keyboard. */
 export interface TabMenuAt {
@@ -123,7 +124,7 @@ export function TabMenu({ at, onClose }: { at: TabMenuAt; onClose: (refocus: boo
                 onClick={() => choose(item)}
               >
                 <span className="jali-tab-menu-check" aria-hidden>
-                  {item.checked ? <icon.current size={13} /> : null}
+                  {item.checked ? <icon.current {...ICON.menuMark} /> : null}
                 </span>
                 <span className="jali-tab-menu-title">{item.title}</span>
                 {item.keys ? <kbd className="jali-menu-keys">{item.keys}</kbd> : null}

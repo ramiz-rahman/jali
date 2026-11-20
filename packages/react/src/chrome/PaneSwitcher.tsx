@@ -11,6 +11,7 @@ import {
   useStore,
   useUi,
 } from "../state/react";
+import { ICON } from "../icons/sized";
 
 /**
  * Scrolls the switcher's own list so the selected entry is in it, and nothing else: `scrollIntoView` would also scroll
@@ -49,7 +50,7 @@ function Item({ node, selected, inView }: { node: PaneNode; selected: boolean; i
       onClick={() => actions.focus(node.id)}
       ref={selected ? revealInList : undefined}
     >
-      <KindIcon kind={node.ref.kind} size={14} />
+      <KindIcon kind={node.ref.kind} {...ICON.tab} />
       <span className="jali-switch-title">{titleOf(store.env, node, titles)}</span>
       {dirty ? <UnsavedMark /> : null}
       <Activity a={activity} />

@@ -7,6 +7,7 @@ import type { PaneNode } from "@jali/core";
 import { useJaliIcons } from "../icons/context";
 import { sameRef } from "@jali/core/adapter";
 import { useMessages, useStore, useUi } from "../state/react";
+import { ICON } from "../icons/sized";
 
 /**
  * One toggle on any linked pane, naming what the pane does now: **Following** (it changes with its list's selection,
@@ -33,7 +34,11 @@ export function FollowControl({ node }: { node: PaneNode; title: string }) {
       title={hint}
       onClick={() => store.actions.setKept(node.id, !kept)}
     >
-      {kept ? <icon.keep size={12} aria-hidden /> : <icon.follow size={12} aria-hidden />}
+      {kept ? (
+        <icon.keep {...ICON.headerSmall} aria-hidden />
+      ) : (
+        <icon.follow {...ICON.headerSmall} aria-hidden />
+      )}
       <span className="jali-follow-label" aria-hidden>
         {kept ? t.kept : t.following}
       </span>

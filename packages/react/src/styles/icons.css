@@ -1,0 +1,46 @@
+@layer jali {
+  /*
+   * Icon sizes by place (icons/sized.ts). Each icon Jali draws carries one of these classes, and gets its size as a
+   * prop too, so an icon that ignores className keeps the default. A few sit a step from their place's size.
+   */
+  .jali-icon-header {
+    width: var(--jali-icon-header);
+    height: var(--jali-icon-header);
+  }
+  .jali-icon-header-lg {
+    width: calc(var(--jali-icon-header) + 2px);
+    height: calc(var(--jali-icon-header) + 2px);
+  }
+  .jali-icon-header-sm {
+    width: calc(var(--jali-icon-header) - 2px);
+    height: calc(var(--jali-icon-header) - 2px);
+  }
+  .jali-icon-tab {
+    width: var(--jali-icon-tab);
+    height: var(--jali-icon-tab);
+  }
+  .jali-icon-tab-mark {
+    width: calc(var(--jali-icon-tab) - 1px);
+    height: calc(var(--jali-icon-tab) - 1px);
+  }
+  .jali-icon-tab-sm {
+    width: calc(var(--jali-icon-tab) - 2px);
+    height: calc(var(--jali-icon-tab) - 2px);
+  }
+  .jali-icon-menu {
+    width: var(--jali-icon-menu);
+    height: var(--jali-icon-menu);
+  }
+  .jali-icon-menu-mark {
+    width: calc(var(--jali-icon-menu) - 1px);
+    height: calc(var(--jali-icon-menu) - 1px);
+  }
+  .jali-icon-menu-sm {
+    width: calc(var(--jali-icon-menu) - 2px);
+    height: calc(var(--jali-icon-menu) - 2px);
+  }
+  .jali-icon-shelf {
+    width: var(--jali-icon-shelf);
+    height: var(--jali-icon-shelf);
+  }
+}

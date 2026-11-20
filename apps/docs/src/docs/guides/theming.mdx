@@ -51,6 +51,7 @@ The tokens you are most likely to change:
 | `--jali-working`, `--jali-blocked`, `--jali-done`, `--jali-failed` | A pane's activity marks |
 | `--jali-radius`, `--jali-radius-control`, `--jali-radius-menu`, `--jali-radius-chip` | Corners of panes, controls, menus and the small things in headers, tabs and chips. Every corner reads one of them (a dialog is 1.2 × `--jali-radius`, rounded to a whole pixel), so setting all four to `0` or `2px` squares the whole workspace |
 | `--jali-font`, `--jali-font-mono` | Type |
+| `--jali-icon-header`, `--jali-icon-tab`, `--jali-icon-menu`, `--jali-icon-shelf` | Icon sizes by place: a pane's header, a tab, menus, shelf chips. They size your own `icons` too, as long as your icon applies the `className` Jali passes it (Phosphor's, Lucide's and most sets' do) |
 
 Every token, with its light and dark values, is in the [Tokens reference](/reference/tokens).
 
@@ -116,7 +117,7 @@ With Tailwind, put rules like these in your stylesheet, in a layer after `jali`.
 
 ## Your own icons
 
-Jali comes with its own icons, so you install no icon library for them. They are [Phosphor's](https://phosphoricons.com) in the regular weight, copied into the package. To use your app's own, pass `icons` to `<JaliRoot>`, by name: `close`, `maximise`, `tuck`, `fold` and the rest ([every name](/reference/react#icons)). Each is a component that takes `size`, `className` and `aria-hidden`; an icon from Phosphor, Lucide or most other React sets is one. Names you leave out stay Jali's.
+Jali comes with its own icons, so you install no icon library for them. They are [Phosphor's](https://phosphoricons.com) in the regular weight, copied into the package. To use your app's own, pass `icons` to `<JaliRoot>`, by name: `close`, `maximise`, `tuck`, `fold` and the rest ([every name](/reference/react#icons)). Each is a component that takes `size`, `className` and `aria-hidden`; an icon from Phosphor, Lucide or most other React sets is one. Names you leave out stay Jali's. Put `className` on the icon's own element: it carries the size for the icon's place, so the `--jali-icon-*` tokens size your icons as they do Jali's (`size` is the default size, for an icon that ignores `className`).
 
 <Code code={ownIcons} filename="src/App.tsx" />
 
