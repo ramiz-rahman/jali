@@ -15,9 +15,8 @@ export function NotFound({ path }: { path: string }) {
         There is no page here
       </h1>
       <p className="page-summary">
-        Nothing lives at{" "}
-        {hydrated ? <code className="inline-code">{path}</code> : "this address"}. It may have
-        moved, or it may not be written yet.
+        Nothing lives at {hydrated ? <code className="inline-code">{path}</code> : "this address"}.
+        It may have moved, or it may not be written yet.
       </p>
       <ul className="not-found-links">
         <li>

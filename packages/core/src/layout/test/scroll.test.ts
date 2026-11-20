@@ -303,8 +303,13 @@ describe("moving a pane out of a strip", () => {
 
 describe("a hidden pane inside a row that scrolls", () => {
   it("is not drawn, and its neighbours close up", () => {
-    const layout = toLayout(row(paneOf({ kind: "day", params: { n: 0 } }, { id: "list" }), strip(4)));
-    const hid: Layout = { ...layout, overlay: { tucks: [], folds: [], shown: {}, ...layout.overlay, hidden: ["d2"] } };
+    const layout = toLayout(
+      row(paneOf({ kind: "day", params: { n: 0 } }, { id: "list" }), strip(4)),
+    );
+    const hid: Layout = {
+      ...layout,
+      overlay: { tucks: [], folds: [], shown: {}, ...layout.overlay, hidden: ["d2"] },
+    };
     const r = place(hid);
     const shown = r.panes.filter((p) => !p.hidden).map((p) => p.id);
     expect(shown).not.toContain("d2");

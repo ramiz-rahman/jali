@@ -20,7 +20,9 @@ export class ErrorBoundary extends Component<{ children: ReactNode }, { failed: 
     return (
       <main className="main" role="alert" style={{ padding: "4rem 1.5rem", maxWidth: "40rem" }}>
         <h1 className="page-title">This page didn't load</h1>
-        <p className="page-summary">Something went wrong while showing it. Reloading usually fixes it.</p>
+        <p className="page-summary">
+          Something went wrong while showing it. Reloading usually fixes it.
+        </p>
         <p>
           <button type="button" className="page-action" onClick={() => window.location.reload()}>
             Reload the page

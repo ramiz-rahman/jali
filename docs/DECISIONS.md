@@ -851,6 +851,7 @@ Data Studio's old tab strip had six features Jali lacked. Each is general, and l
 - **Adapter types:** `ConfirmState` holds `{ panes, asked, agreed, intent, settled, settle }` in place of `change`. `Outcome` gains `AnswerStep`; `Intent`, `Asked` and `Agreed` are new types in `state/apply.ts`.
 - **Replaces** "Discard applies the held change exactly" (Unsaved work, above) and "unless the layout changed meanwhile (then dropped, `"kept"`)" (Host close guard, above).
 - **Tests:** `tests/held-questions.test.ts` (an intervening `openHere`, more work at stake by the answer, a held action gone by the answer, a sequence's later steps, a resize during an async `beforeClose`, a pane showing another object by the yes, Back then Keep editing, Back then Discard, two Backs while the dialog waits, two Backs then Keep editing, Forward to what is on screen, two Backs while the host decides), `tests/viewer-downgrade.test.ts` (held then kept, held then discarded, one announcement, Back to an investigation as a limited viewer). One case in `tests/instance.test.ts` changed with its reason: a later yes after an unrelated pane opened now closes the pane it asked about.
+
 ## 20 Nov 2026 · Node ids have a safe shape, and every selector escapes them (QUALITY-REVIEW C1)
 
 - **Why:** `validate` took any string as an id, and ids went into CSS selectors as written. A link holding a pane id with `"` crashed the workspace on mount (`SyntaxError: Invalid selector`).
@@ -925,6 +926,7 @@ Data Studio's old tab strip had six features Jali lacked. Each is general, and l
 - **Now:** the old lab's page params are the unprefixed workspace's only (`legacyKeys`, `url.ts`). It still reads `?app=review` as its page and clears `app` and `arr` when it writes one, as kept on 20 Nov ("Jali and five example apps"), because those links were written by an unprefixed workspace. A workspace with a `prefix` neither reads nor clears them.
 - **Not added:** an option to turn the alias off for the unprefixed workspace too. A host whose own `app` param could be `review` should give its workspace a prefix, which it needs anyway to keep its params apart.
 - **Tests:** `tests/hostile-input.test.tsx` (P17b).
+
 ## 20 Nov 2026 · Fitting carries the projection forward (QUALITY-REVIEW P1)
 
 - **Why:** fitting cost grew far faster than the panes. Each new fold replayed every earlier fold from scratch, each candidate fold ("which supporting pane helps?") replayed them again, finding the folds to undo replayed every prefix, and each fold followed every alternative home through to a fit. Inside all of that, `allPanes` rebuilt pane lists for every `contains` and `orderOf`, and fold priority measured link distance with a loop over every pane per step. In Node, a refit of one row of 200 px panes at 1400 px (cap 8) took 25 ms at 16 panes, 0.96 s at 32 and 7.5 s at 64.

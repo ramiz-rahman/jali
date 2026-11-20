@@ -55,10 +55,7 @@ export default defineConfig({
   site: SITE_URL,
   trailingSlash: "never",
   build: { format: "file" },
-  integrations: [
-    react(),
-    sitemap({ filter: (page) => !/\/_[^/]*$/.test(new URL(page).pathname) }),
-  ],
+  integrations: [react(), sitemap({ filter: (page) => !/\/_[^/]*$/.test(new URL(page).pathname) })],
   vite: {
     // Each dev server gets its own dependency cache (JALI_DOCS_CACHE), so several can run at once.
     cacheDir: process.env.JALI_DOCS_CACHE ?? "node_modules/.vite",

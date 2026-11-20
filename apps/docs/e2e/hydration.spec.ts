@@ -40,7 +40,11 @@ async function hydrated(page: Page) {
 const sameNode = (page: Page) =>
   page.evaluate(() => {
     const before = (window as { prerendered?: Element | null }).prerendered;
-    return !!before && before.isConnected && before === document.querySelector("#content > article.article, #content .not-found");
+    return (
+      !!before &&
+      before.isConnected &&
+      before === document.querySelector("#content > article.article, #content .not-found")
+    );
   });
 
 for (const platform of PLATFORMS) {

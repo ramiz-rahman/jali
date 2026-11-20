@@ -28,23 +28,23 @@ The examples are ambitious, but none of them yet meets `docs/EXAMPLES-STANDARD.m
 
 ## Gates
 
-| Gate | Result |
-|---|---|
-| typecheck, lint | pass |
-| unit (999 tests), docs unit (14), agent-docs, React 18 | pass |
-| browser tests: Jali 139, Studio 27, Trips 19, Markets 6 | pass (on frozen-copy servers, ports 5601–5605) |
-| `vp fmt --check` | **fail**: 31 files unformatted, including `packages/core/src/layout/fit/replay.ts` and both packages' `package.json` |
-| `pnpm size` | **fail**: every package over budget (below) |
-| docs build | pass (33 pages) |
-| docs browser tests | **fail**: `astro dev` starts in the background when no terminal is attached, so Playwright sees it exit at once (`apps/docs/playwright.config.ts:15`) |
+| Gate                                                    | Result                                                                                                                                                |
+| ------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
+| typecheck, lint                                         | pass                                                                                                                                                  |
+| unit (999 tests), docs unit (14), agent-docs, React 18  | pass                                                                                                                                                  |
+| browser tests: Jali 139, Studio 27, Trips 19, Markets 6 | pass (on frozen-copy servers, ports 5601–5605)                                                                                                        |
+| `vp fmt --check`                                        | **fail**: 31 files unformatted, including `packages/core/src/layout/fit/replay.ts` and both packages' `package.json`                                  |
+| `pnpm size`                                             | **fail**: every package over budget (below)                                                                                                           |
+| docs build                                              | pass (33 pages)                                                                                                                                       |
+| docs browser tests                                      | **fail**: `astro dev` starts in the background when no terminal is attached, so Playwright sees it exit at once (`apps/docs/playwright.config.ts:15`) |
 
 **Size**, gzipped KB, minimal app:
 
-| Package | 19 Nov baseline | Budget | Now |
-|---|---|---|---|
-| `@jali/react` | 16.6 | 18.3 | **23.5 (+42%)** |
-| `@jali/core` | 45.2 | 49.5 | **52.3** |
-| CSS | — | 7.8 | **8.2** |
+| Package       | 19 Nov baseline | Budget | Now             |
+| ------------- | --------------- | ------ | --------------- |
+| `@jali/react` | 16.6            | 18.3   | **23.5 (+42%)** |
+| `@jali/core`  | 45.2            | 49.5   | **52.3**        |
+| CSS           | —               | 7.8    | **8.2**         |
 
 The minimal app has no curated page, but it ships `core/src/actions/page.ts` (9.5 KB minified) and all of `messages.ts` (15 KB).
 
@@ -54,16 +54,16 @@ The minimal app has no curated page, but it ships `core/src/actions/page.ts` (9.
 
 The harness is a production build of a workspace with N panes, each rendering 40 rows. Chrome, CPU slowed 4x, unless marked otherwise.
 
-| What | Result | Read |
-|---|---|---|
-| Mount, 4 / 12 / 24 / 48 panes | 78 / 118 / 556 / **8,682 ms** | 4x the panes costs 74x the time. Unthrottled, 48 panes take 2.2 s. |
-| Where the 48-pane time goes | `allPanes` 758 ms, `slots` 194, `chooseFold` 188, `score` 119 (unthrottled profile) | `allPanes` (`layout/fit/overlay.ts:56`) is a fresh `flatMap` called inside per-pane loops (`contains`, `orderOf`, `homeOf`), and fold replay repeats all earlier folds |
-| Refit of a flat row (Codex, Node) | 16 → 25 ms, 32 → 336 ms, **64 → 7.3 s** | Matches the profile |
-| Resize step, 24 panes | p50 686 ms, p95 1,168 ms | Janky above about 16 panes. With 12 panes unthrottled, it is about 2 frames, which is fine. |
-| Divider drag, 12 panes | 16.7 ms frames, 2 commits for 60 moves, no long tasks | Excellent. Keep this design. |
-| Follow a list, 12 panes | 162 ms (includes Jali's 150 ms deliberate delay) | Fine |
-| Leaks, 160 mount/unmount cycles | Heap levels off at 4.6 MB; DOM nodes and listeners unchanged | No leak |
-| Docs, phone profile (Lighthouse mobile: 4x CPU, 150 ms RTT, 1.6 Mbps) | FCP and LCP 0.6–1.0 s; **TBT 250–750 ms**; **CLS 0.377** on `/learn/fitting`; **1.6–1.8 MB JS** (uncompressed) on every page | Prerendering pays off. The shift and blocking come from hydrating everything (D1, D4). |
+| What                                                                  | Result                                                                                                                       | Read                                                                                                                                                                   |
+| --------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Mount, 4 / 12 / 24 / 48 panes                                         | 78 / 118 / 556 / **8,682 ms**                                                                                                | 4x the panes costs 74x the time. Unthrottled, 48 panes take 2.2 s.                                                                                                     |
+| Where the 48-pane time goes                                           | `allPanes` 758 ms, `slots` 194, `chooseFold` 188, `score` 119 (unthrottled profile)                                          | `allPanes` (`layout/fit/overlay.ts:56`) is a fresh `flatMap` called inside per-pane loops (`contains`, `orderOf`, `homeOf`), and fold replay repeats all earlier folds |
+| Refit of a flat row (Codex, Node)                                     | 16 → 25 ms, 32 → 336 ms, **64 → 7.3 s**                                                                                      | Matches the profile                                                                                                                                                    |
+| Resize step, 24 panes                                                 | p50 686 ms, p95 1,168 ms                                                                                                     | Janky above about 16 panes. With 12 panes unthrottled, it is about 2 frames, which is fine.                                                                            |
+| Divider drag, 12 panes                                                | 16.7 ms frames, 2 commits for 60 moves, no long tasks                                                                        | Excellent. Keep this design.                                                                                                                                           |
+| Follow a list, 12 panes                                               | 162 ms (includes Jali's 150 ms deliberate delay)                                                                             | Fine                                                                                                                                                                   |
+| Leaks, 160 mount/unmount cycles                                       | Heap levels off at 4.6 MB; DOM nodes and listeners unchanged                                                                 | No leak                                                                                                                                                                |
+| Docs, phone profile (Lighthouse mobile: 4x CPU, 150 ms RTT, 1.6 Mbps) | FCP and LCP 0.6–1.0 s; **TBT 250–750 ms**; **CLS 0.377** on `/learn/fitting`; **1.6–1.8 MB JS** (uncompressed) on every page | Prerendering pays off. The shift and blocking come from hydrating everything (D1, D4).                                                                                 |
 
 ## Findings
 
@@ -109,6 +109,7 @@ Ranked. P0 means fix before anything ships: crashes, data loss, security. P1 mea
   - `useJaliCommands` subscribes to the whole state (`commands/react.ts:17-22`).
 
   The model cache is keyed on `titles`, so a live title re-runs the layout resolve (`state/model.ts:196-213`). **Fix:** narrow selectors; a `DragLayer`; at most one `dnd` update per frame; split the model cache. Add a `<Profiler>` render-count test, because nothing guards these properties today.
+
 - **P3. Bundle growth.** [measured] React grew 42% in a day without the budget moving, and curated-page code ships to apps without a page. Find why `page.ts` isn't tree-shaken, and decide which budgets to raise and which code to cut.
 - **P4. The docs hydrate the whole site as one island on every page.** [both · measured]
   - **What ships:** about 369 KB gzip of static JS. That includes the landing page's live workspaces, which come in through the `./landing` barrel import of `SiteFooter`; every MDX source and sample as text (`site/sources.ts:9-41`), drafts included; and the token reference data.

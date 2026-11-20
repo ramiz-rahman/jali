@@ -2,11 +2,11 @@
 
 These three real multitrack sessions replace the placeholder voices and synthesised music in the Studio example. Each session has a `session.json` in the shape of the app's `SessionData`, extended with real tracks. It comes with one MP3 file per track, a time-aligned transcript and markers. Credits and licences are in `CREDITS.md`, and saved licence texts are in `licenses/`.
 
-| id | What it is | Length | Tracks | Segments / words | Size |
-|---|---|---|---|---|---|
-| `apollo11-landing` | Apollo 11 final descent and landing, 20 July 1969 | 3:33.000 | 3 (air-to-ground, Flight Director loop, public affairs) | 48 / 270 | 3.94 MB |
-| `light-caught-by-the-stone` | "The Light caught by the Stone", Pablo C. Budassi (Awe Plant), multitrack masters | 2:26.441 | 8 stem groups | 25 lyric lines / 135 | 5.81 MB |
-| `dinner-party` | DiPCo session S02: four people chatting at dinner, one close-talk mic each | 2:07.500 | 4 close-talk mics | 37 utterances / 316 | 2.63 MB |
+| id                          | What it is                                                                        | Length   | Tracks                                                  | Segments / words     | Size    |
+| --------------------------- | --------------------------------------------------------------------------------- | -------- | ------------------------------------------------------- | -------------------- | ------- |
+| `apollo11-landing`          | Apollo 11 final descent and landing, 20 July 1969                                 | 3:33.000 | 3 (air-to-ground, Flight Director loop, public affairs) | 48 / 270             | 3.94 MB |
+| `light-caught-by-the-stone` | "The Light caught by the Stone", Pablo C. Budassi (Awe Plant), multitrack masters | 2:26.441 | 8 stem groups                                           | 25 lyric lines / 135 | 5.81 MB |
+| `dinner-party`              | DiPCo session S02: four people chatting at dinner, one close-talk mic each        | 2:07.500 | 4 close-talk mics                                       | 37 utterances / 316  | 2.63 MB |
 
 The total is 12.4 MB, against a budget of 18 MB. Sizes include `session.json`, which holds the waveform peaks.
 
@@ -106,14 +106,15 @@ The loader must change in these places. I changed none of them:
 - **Flight Director loop:** NASA did not transcribe it, so it has **no transcript segments**. I did not create any from speech recognition. Its "Low level" call (CONTROL) is a marker only. I located it with Whisper word times at 115.14 s (`scripts/find_low_level.py`), and the ASR heard "Low level? ... Low level."
 - **Speakers:**
 
-  | Code | Name |
-  |---|---|
-  | CDR | Neil A. Armstrong |
-  | LMP | Edwin E. "Buzz" Aldrin Jr. |
-  | CC | Charles M. Duke Jr., CAPCOM |
-  | PAO | Public Affairs Officer |
+  | Code | Name                        |
+  | ---- | --------------------------- |
+  | CDR  | Neil A. Armstrong           |
+  | LMP  | Edwin E. "Buzz" Aldrin Jr.  |
+  | CC   | Charles M. Duke Jr., CAPCOM |
+  | PAO  | Public Affairs Officer      |
 
   The transcript prints only the codes; the names are historical record. The PAO's name is not given in the transcript and I left it unnamed, so it is unconfirmed.
+
 - **Segment times** are exact: the first spoken word's start to the last spoken word's end.
 - **Word times** come from forced alignment. The method is in "Alignment" below. Then:
   - One hand correction: "Watch your" (line 04 06 44 04). The aligner put "Watch" on an earlier, untranscribed burst ("60", heard by ASR). The waveform shows silence from 81.6 to 84.5 s and speech from 84.6 s, so "Watch" was set to 84.56 to 84.70 s and "your" to 84.70 to 84.78 s.
@@ -121,13 +122,13 @@ The loader must change in these places. I changed none of them:
   - Whisper's own timestamps put "Houston" about 2 s later, in silence, so I did not use them.
 - **Markers:**
 
-  | Time | Marker | Note |
-  |---|---|---|
-  | 18.06 | 1202 alarm | CC "Roger. 1202. We copy it." |
-  | 115.14 | Low level | FD loop |
-  | 141.52 | 60 seconds | |
-  | 179.22 | Contact light | |
-  | 203.62 | The Eagle has landed | |
+  | Time   | Marker               | Note                          |
+  | ------ | -------------------- | ----------------------------- |
+  | 18.06  | 1202 alarm           | CC "Roger. 1202. We copy it." |
+  | 115.14 | Low level            | FD loop                       |
+  | 141.52 | 60 seconds           |                               |
+  | 179.22 | Contact light        |                               |
+  | 203.62 | The Eagle has landed |                               |
 
 ### Levels
 
@@ -147,16 +148,16 @@ The brief asks for the 1202 alarm, the low-level call, contact light and the lan
   - Fades: 30 ms in and 750 ms out. The fades are identical on every track.
 - **Stems summed into 8 groups.** Each group is a plain sum at unity, then one common gain (−3.9 dB) so the sum of all groups peaks at −1 dBFS. This keeps the masters' own balance.
 
-  | Group | Masters |
-  |---|---|
-  | drums | BD, SN, HH, TOM1ohL, TOM2ohR, TOM3, PERC1pand, PERC2binghi |
-  | bass | BASS |
-  | guitars | GT1skank, GT2solo |
-  | keys | MELODICA, KEY1piano, KEY2wacu, KEY3hmnd, KEY4clav, KEY5fx |
-  | horns | TRP1-3, SAX1-3, TBN |
-  | vox1 | ENG_VOX1 |
-  | vox2 | ENG_VOX2 |
-  | chorus | ENG_CORO1, ENG_CORO2 |
+  | Group   | Masters                                                    |
+  | ------- | ---------------------------------------------------------- |
+  | drums   | BD, SN, HH, TOM1ohL, TOM2ohR, TOM3, PERC1pand, PERC2binghi |
+  | bass    | BASS                                                       |
+  | guitars | GT1skank, GT2solo                                          |
+  | keys    | MELODICA, KEY1piano, KEY2wacu, KEY3hmnd, KEY4clav, KEY5fx  |
+  | horns   | TRP1-3, SAX1-3, TBN                                        |
+  | vox1    | ENG_VOX1                                                   |
+  | vox2    | ENG_VOX2                                                   |
+  | chorus  | ENG_CORO1, ENG_CORO2                                       |
 
 - **Check against the published mix:**
   - The mix lines up with our stem sum at exactly the same offset (3.70 s), and the envelope correlation is 0.67.
@@ -172,14 +173,14 @@ The brief asks for the 1202 alarm, the low-level call, contact light and the lan
   - Word times inside sung lines are rougher than for speech, because the acoustic model was trained on read speech.
 - **Markers** are measured from the stems:
 
-  | Time | Marker | Measured from |
-  |---|---|---|
-  | 0 | Intro: horns | |
-  | 18.30 | Groove | the horns stop |
-  | 36.88 | Vocals | |
-  | 97.25 | Break: no kick | kick silent from 100.95 to 108.81 s of the masters |
-  | 105.11 | Full band | |
-  | 137.84 | Last line | |
+  | Time   | Marker         | Measured from                                      |
+  | ------ | -------------- | -------------------------------------------------- |
+  | 0      | Intro: horns   |                                                    |
+  | 18.30  | Groove         | the horns stop                                     |
+  | 36.88  | Vocals         |                                                    |
+  | 97.25  | Break: no kick | kick silent from 100.95 to 108.81 s of the masters |
+  | 105.11 | Full band      |                                                    |
+  | 137.84 | Last line      |                                                    |
 
 ## Session 3: Dinner party (`dinner-party`)
 
@@ -199,6 +200,7 @@ The brief asks for the 1202 alarm, the low-level call, contact light and the lan
   It names no private person. People are referred to only as "somebody" or "she was from michigan".
   - **For you to judge:** one speaker jokes that their manager said to take just one orange ("frugality ... or being greedy").
   - An alternative window, about vegetarian cheese, jello and Oreos, is S02 132 to 256 s; set `CUT` in `scripts/build_dipco.py` to use it.
+
 - **Processing, per microphone, all cut at identical sample positions:**
   - A 70 Hz high-pass.
   - A gentle **gate driven by the corpus's own utterance times** for that mic's wearer: −14 dB outside the wearer's utterances, which are padded by 0.25 s, with 80 ms ramps. It tames the other speakers' bleed and never cuts transcribed speech. The gates are open 20 to 30 % of the time.
@@ -224,13 +226,13 @@ The brief asks for the 1202 alarm, the low-level call, contact light and the lan
   - Energy spot-check: every spoken word's span, 684 words in all, is louder than its track's quiet floor by at least 6 dB. One word failed and was fixed (above).
   - Independent second opinion: faster-whisper `small.en` word timestamps against ours, for matching words (`checks/asr_crosscheck.txt`). Whisper's timestamps are themselves approximate, and they run consistently 45 to 90 ms earlier than ours.
 
-    | Track | Words matched | Median difference | 90th percentile |
-    |---|---|---|---|
-    | Apollo air-to-ground | 124 | 100 ms | 340 ms |
-    | DiPCo P05 | 38 | 60 ms | 265 ms |
-    | DiPCo P06 | 52 | 50 ms | 177 ms |
-    | DiPCo P07 | 78 | 70 ms | 362 ms |
-    | DiPCo P08 | 32 | 80 ms | 412 ms |
+    | Track                | Words matched | Median difference | 90th percentile |
+    | -------------------- | ------------- | ----------------- | --------------- |
+    | Apollo air-to-ground | 124           | 100 ms            | 340 ms          |
+    | DiPCo P05            | 38            | 60 ms             | 265 ms          |
+    | DiPCo P06            | 52            | 50 ms             | 177 ms          |
+    | DiPCo P07            | 78            | 70 ms             | 362 ms          |
+    | DiPCo P08            | 32            | 80 ms             | 412 ms          |
 
 - **Expected quality:**
   - About 0.1 s for most words in clean speech, good enough to highlight words as they play.

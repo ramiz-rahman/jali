@@ -11,13 +11,13 @@ Read first: `docs/DOCS-PLAN.md` (what the site holds), `docs/research/docs-sites
 
 ## Who owns what (edit only your files)
 
-| Area                | Files                                                                                                                                               |
-| ------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Area                | Files                                                                                                                                                                                                   |
+| ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Shell and design    | `src/shell/**`, `src/styles/**`, `src/site/**`, `src/layouts/**`, `src/pages/**` (Astro routes), `astro.config.mjs`, `src/docs/index.mdx`, `src/docs/get-started/introduction.mdx`, `src/docs/_lab.mdx` |
-| Live parts          | `src/live/**`, `src/docs/_live.mdx` (a test page)                                                                                                  |
-| Concepts            | `src/docs/get-started/{quickstart,key-concepts,coding-agents}.mdx`, `src/docs/learn/**`, `src/samples/concepts/**`                                |
-| Reference           | `src/docs/reference/**`, `src/reference/**`, `src/samples/reference/**`                                                                            |
-| Guides and examples | `src/docs/guides/**`, `src/docs/examples/**`, `src/samples/guides/**`                                                                             |
+| Live parts          | `src/live/**`, `src/docs/_live.mdx` (a test page)                                                                                                                                                       |
+| Concepts            | `src/docs/get-started/{quickstart,key-concepts,coding-agents}.mdx`, `src/docs/learn/**`, `src/samples/concepts/**`                                                                                      |
+| Reference           | `src/docs/reference/**`, `src/reference/**`, `src/samples/reference/**`                                                                                                                                 |
+| Guides and examples | `src/docs/guides/**`, `src/docs/examples/**`, `src/samples/guides/**`                                                                                                                                   |
 
 Never edit `packages/**`, the example apps (`examples/`) or another area's files. If the packages are wrong, unclear or missing something, say so in your report with the file and line; don't work around it in the docs.
 

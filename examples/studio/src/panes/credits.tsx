@@ -59,8 +59,8 @@ function Credits() {
           );
         })}
         <p className="cr-foot">
-          The full credits, the licence texts and the scripts that built these sessions are in the example's
-          CREDITS.md, licenses/ and scripts/audio/.
+          The full credits, the licence texts and the scripts that built these sessions are in the
+          example's CREDITS.md, licenses/ and scripts/audio/.
         </p>
       </div>
     </div>

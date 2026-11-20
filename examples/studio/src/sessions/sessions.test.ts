@@ -43,8 +43,15 @@ describe("every session", () => {
           expect(existsSync(at(t.file)), t.file).toBe(true);
           // One envelope value per 20 ms, across the whole session.
           expect(Math.abs(t.peaks.length - s.duration * PEAKS), t.id).toBeLessThanOrEqual(1);
-          expect(t.peaks.every((v) => v >= 0 && v <= 99), t.id).toBe(true);
-          if (t.speaker) expect(s.speakers.some((p) => p.id === t.speaker), t.id).toBe(true);
+          expect(
+            t.peaks.every((v) => v >= 0 && v <= 99),
+            t.id,
+          ).toBe(true);
+          if (t.speaker)
+            expect(
+              s.speakers.some((p) => p.id === t.speaker),
+              t.id,
+            ).toBe(true);
         }
       });
 
@@ -53,8 +60,14 @@ describe("every session", () => {
         s.segments.forEach((seg, i) => {
           const where = `${s.id}/${seg.id}`;
           if (i) expect(seg.start, where).toBeGreaterThanOrEqual(s.segments[i - 1]!.start);
-          expect(s.tracks.some((t) => t.id === seg.track), where).toBe(true);
-          expect(s.speakers.some((p) => p.id === seg.speaker), where).toBe(true);
+          expect(
+            s.tracks.some((t) => t.id === seg.track),
+            where,
+          ).toBe(true);
+          expect(
+            s.speakers.some((p) => p.id === seg.speaker),
+            where,
+          ).toBe(true);
           expect(seg.start, where).toBeLessThan(seg.end);
           expect(seg.end, where).toBeLessThanOrEqual(s.duration);
           expect(seg.words.map((w) => w[0]).join(" "), where).toBe(
@@ -105,9 +118,7 @@ describe("every session", () => {
     expect(dinner.notice).toMatch(/modified/);
     expect(dinner.short).toMatch(/^Modified from DiPCo/);
     expect(dinner.licence.url).toBe("https://cdla.dev/permissive-1-0/");
-    expect(readFileSync(at("audio/dinner-party/NOTICE.txt"), "utf8")).toMatch(
-      /modified/,
-    );
+    expect(readFileSync(at("audio/dinner-party/NOTICE.txt"), "utf8")).toMatch(/modified/);
   });
 });
 
@@ -118,7 +129,9 @@ const dinner = SESSIONS[2]!;
 describe("reading the sessions", () => {
   it("finds every segment under the playhead when people talk over each other, and the one started last", () => {
     // The dinner party's lines overlap; find a moment inside two of them.
-    const i = dinner.segments.findIndex((seg, k) => k > 0 && seg.start < dinner.segments[k - 1]!.end);
+    const i = dinner.segments.findIndex(
+      (seg, k) => k > 0 && seg.start < dinner.segments[k - 1]!.end,
+    );
     expect(i).toBeGreaterThan(0);
     const a = dinner.segments[i - 1]!;
     const b = dinner.segments[i]!;
@@ -147,7 +160,11 @@ describe("reading the sessions", () => {
   });
 
   it("names a song's rows lines and its transcript lyrics", () => {
-    expect(catalogueOf(song).words).toEqual({ transcript: "Lyrics", segment: "line", segments: "lines" });
+    expect(catalogueOf(song).words).toEqual({
+      transcript: "Lyrics",
+      segment: "line",
+      segments: "lines",
+    });
     expect(catalogueOf(apollo).words.segment).toBe("segment");
   });
 

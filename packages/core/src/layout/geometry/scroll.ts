@@ -17,7 +17,11 @@ export const clampOffset = (s: ScrollerBox, offset: number) =>
   Math.min(maxOffset(s), Math.max(0, Number.isFinite(offset) ? offset : 0));
 
 /** The resolved layout with each strip at its offset: its panes and dividers moved, and cut to its window. */
-export function scrolled(resolved: ResolvedLayout, offsets: Offsets, dir: "ltr" | "rtl" = "ltr"): ResolvedLayout {
+export function scrolled(
+  resolved: ResolvedLayout,
+  offsets: Offsets,
+  dir: "ltr" | "rtl" = "ltr",
+): ResolvedLayout {
   if (!resolved.scrollers.length) return resolved;
   const strips = new Map<NodeId, { s: ScrollerBox; shift: number }>();
   for (const s of resolved.scrollers) {
@@ -47,9 +51,15 @@ export const inWindow = (rect: Rect, clip: Rect) =>
  * The offset that shows the whole of `rect` (a pane in the strip, unscrolled) with the least movement from
  * `offset`, or `offset` itself when it already shows. A pane wider than the window shows from its start.
  */
-export function offsetToShow(s: ScrollerBox, rect: Rect, offset: number, dir: "ltr" | "rtl" = "ltr"): number {
+export function offsetToShow(
+  s: ScrollerBox,
+  rect: Rect,
+  offset: number,
+  dir: "ltr" | "rtl" = "ltr",
+): number {
   // Where the pane starts along the content, in reading order.
-  const start = dir === "rtl" ? s.rect.x + s.contentWidth - (rect.x + rect.width) : rect.x - s.rect.x;
+  const start =
+    dir === "rtl" ? s.rect.x + s.contentWidth - (rect.x + rect.width) : rect.x - s.rect.x;
   const end = start + rect.width;
   const view = s.rect.width;
   let next = offset;

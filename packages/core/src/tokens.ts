@@ -29,7 +29,10 @@ export function spacingOf(o: { gap?: number; inset?: number } = {}): Spacing {
 }
 
 /** The spacing as CSS variables, for an element's style. */
-export const spacingVars = ({ gap, inset }: Spacing): Record<"--jali-gap" | "--jali-inset", string> => ({
+export const spacingVars = ({
+  gap,
+  inset,
+}: Spacing): Record<"--jali-gap" | "--jali-inset", string> => ({
   "--jali-gap": `${gap}px`,
   "--jali-inset": `${inset}px`,
 });

@@ -303,61 +303,63 @@ export function TreeView({
             )}
           </div>
           {open ? (
-            <ClientOnly><JaliProvider jali={store.jali}>
-              <PreviewRects.Provider value={preview}>
-                <section className="live-panel live-side" aria-label="The layout tree">
-                  <header className="live-panel-head">
-                    <span className="live-panel-title">
-                      <b>Layout tree</b>
-                    </span>
-                    <span className="live-panel-tools">
-                      {side !== "json" ? (
+            <ClientOnly>
+              <JaliProvider jali={store.jali}>
+                <PreviewRects.Provider value={preview}>
+                  <section className="live-panel live-side" aria-label="The layout tree">
+                    <header className="live-panel-head">
+                      <span className="live-panel-title">
+                        <b>Layout tree</b>
+                      </span>
+                      <span className="live-panel-tools">
+                        {side !== "json" ? (
+                          <button
+                            type="button"
+                            className="live-toggle"
+                            aria-pressed={sizes}
+                            onClick={() => setSizes((v) => !v)}
+                          >
+                            Sizes
+                          </button>
+                        ) : null}
+                        {seg}
+                        {reset}
                         <button
                           type="button"
-                          className="live-toggle"
-                          aria-pressed={sizes}
-                          onClick={() => setSizes((v) => !v)}
+                          className="live-icon-btn"
+                          aria-label="Close the layout tree"
+                          title="Close"
+                          onClick={() => {
+                            setSide("closed");
+                            setHover(null);
+                          }}
                         >
-                          Sizes
+                          <XIcon size={15} aria-hidden />
                         </button>
+                      </span>
+                    </header>
+                    <div className="live-side-body" data-view={side}>
+                      {side !== "json" ? (
+                        <div className="live-panel-body">
+                          <LayoutMap hover={hover} setHover={setHover} sizes={sizes} />
+                        </div>
                       ) : null}
-                      {seg}
-                      {reset}
-                      <button
-                        type="button"
-                        className="live-icon-btn"
-                        aria-label="Close the layout tree"
-                        title="Close"
-                        onClick={() => {
-                          setSide("closed");
-                          setHover(null);
-                        }}
-                      >
-                        <XIcon size={15} aria-hidden />
-                      </button>
-                    </span>
-                  </header>
-                  <div className="live-side-body" data-view={side}>
-                    {side !== "json" ? (
-                      <div className="live-panel-body">
-                        <LayoutMap hover={hover} setHover={setHover} sizes={sizes} />
-                      </div>
-                    ) : null}
-                    {side !== "map" ? (
-                      <div className="live-panel-body is-json">
-                        <JsonView
-                          value={m.layout}
-                          hover={hover}
-                          setHover={setHover}
-                          label="The layout as JSON"
-                          compact
-                        />
-                      </div>
-                    ) : null}
-                  </div>
-                </section>
-              </PreviewRects.Provider>
-            </JaliProvider></ClientOnly>
+                      {side !== "map" ? (
+                        <div className="live-panel-body is-json">
+                          <JsonView
+                            value={m.layout}
+                            hover={hover}
+                            setHover={setHover}
+                            label="The layout as JSON"
+                            compact
+                          />
+                        </div>
+                      ) : null}
+                    </div>
+                  </section>
+                </PreviewRects.Provider>
+              </JaliProvider>
+            </ClientOnly>
           ) : null}
         </div>
         {caption ? <figcaption className="live-caption">{caption}</figcaption> : null}
@@ -393,27 +395,29 @@ export function TreeView({
         >
           <LiveWorkspace store={store} height={h} wrapRef={wrap} />
         </div>
-        <ClientOnly><JaliProvider jali={store.jali}>
-          <PreviewRects.Provider value={preview}>
-            {both ? (
-              three ? (
-                <>
-                  {mapPanel}
-                  {jsonPanel}
-                </>
-              ) : (
-                <div className="live-panels">
-                  {mapPanel}
-                  {jsonPanel}
-                </div>
-              )
-            ) : showMap ? (
-              mapPanel
-            ) : showJsonPanel ? (
-              jsonPanel
-            ) : null}
-          </PreviewRects.Provider>
-        </JaliProvider></ClientOnly>
+        <ClientOnly>
+          <JaliProvider jali={store.jali}>
+            <PreviewRects.Provider value={preview}>
+              {both ? (
+                three ? (
+                  <>
+                    {mapPanel}
+                    {jsonPanel}
+                  </>
+                ) : (
+                  <div className="live-panels">
+                    {mapPanel}
+                    {jsonPanel}
+                  </div>
+                )
+              ) : showMap ? (
+                mapPanel
+              ) : showJsonPanel ? (
+                jsonPanel
+              ) : null}
+            </PreviewRects.Provider>
+          </JaliProvider>
+        </ClientOnly>
       </div>
       {caption ? <figcaption className="live-caption">{caption}</figcaption> : null}
     </figure>

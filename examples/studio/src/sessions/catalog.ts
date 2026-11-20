@@ -84,7 +84,8 @@ export const CATALOGUE: Record<string, Catalogue> = {
     },
     credit:
       "“The Light caught by the Stone” by Pablo Carlos Budassi / Awe Plant, performed by Nueve Millas. Licensed CC BY 4.0 (creativecommons.org/licenses/by/4.0). Source: archive.org/details/thelightmasters. Excerpt, stems grouped and re-encoded.",
-    short: "“The Light caught by the Stone”, Pablo C. Budassi / Awe Plant, CC BY 4.0. Excerpt, stems grouped.",
+    short:
+      "“The Light caught by the Stone”, Pablo C. Budassi / Awe Plant, CC BY 4.0. Excerpt, stems grouped.",
     words: { transcript: "Lyrics", segment: "line", segments: "lines" },
     colours: {
       drums: "white",

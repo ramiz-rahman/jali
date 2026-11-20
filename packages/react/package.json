@@ -2,8 +2,8 @@
   "name": "@jali/react",
   "version": "0.0.0",
   "description": "React components and hooks for Jali workspaces, with Jali's default theme and a bridge to a Tailwind theme.",
-  "author": "Ramiz Rahman (https://ramizrahman.com/)",
   "license": "Apache-2.0",
+  "author": "Ramiz Rahman (https://ramizrahman.com/)",
   "files": [
     "dist",
     "README.md",

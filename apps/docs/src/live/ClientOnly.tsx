@@ -15,6 +15,12 @@ export const useHydrated = () =>
     () => false,
   );
 
-export function ClientOnly({ children, fallback = null }: { children: ReactNode; fallback?: ReactNode }) {
+export function ClientOnly({
+  children,
+  fallback = null,
+}: {
+  children: ReactNode;
+  fallback?: ReactNode;
+}) {
   return useHydrated() ? children : fallback;
 }

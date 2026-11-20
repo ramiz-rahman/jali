@@ -50,7 +50,9 @@ export function useLinkInterception() {
       if (
         url.origin !== window.location.origin ||
         !pages[path] ||
-        (url.pathname === window.location.pathname && url.search === window.location.search && url.hash)
+        (url.pathname === window.location.pathname &&
+          url.search === window.location.search &&
+          url.hash)
       )
         return;
       e.preventDefault();
