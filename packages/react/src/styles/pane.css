@@ -6,18 +6,22 @@
     flex-direction: column;
     overflow: hidden;
     background: var(--jali-surface);
-    border: 1px solid var(--jali-border);
+    /* The pane's surface tokens are read here with their defaults, not declared on the root: a value set anywhere
+       wins, and the colours they default to resolve on the pane (an accent set around one workspace reaches it). */
+    border: 1px solid var(--jali-pane-border, var(--jali-border));
     border-radius: var(--jali-radius);
+    box-shadow: var(--jali-pane-shadow, none);
     outline: none;
   }
   .jali-pane.is-focused {
-    box-shadow: 0 0 0 0.5px var(--jali-accent);
-    border-color: var(--jali-accent);
+    box-shadow: var(--jali-pane-shadow-focused, 0 0 0 0.5px var(--jali-accent));
+    border-color: var(--jali-pane-border-focused, var(--jali-accent));
   }
+  /* Maximised: the focused surface, lifted. */
   .jali-pane.is-zoomed {
     z-index: 20;
     box-shadow:
-      0 0 0 0.5px var(--jali-accent),
+      var(--jali-pane-shadow-focused, 0 0 0 0.5px var(--jali-accent)),
       var(--jali-shadow-zoom);
   }
   .jali-pane.is-dragged {
@@ -26,8 +30,8 @@
   /* During a drag the only accent ring is the drop's: the pane in hand is dimmed, and the focused pane (often the
    target of a page tab) drops its focus ring until the drag ends. */
   body.jali-pane-dragging .jali-pane.is-focused {
-    border-color: var(--jali-border);
-    box-shadow: none;
+    border-color: var(--jali-pane-border, var(--jali-border));
+    box-shadow: var(--jali-pane-shadow, none);
   }
   /* A pane under a maximised or lifted one. Keyed on Jali's own mark, not aria-hidden: a modal popup from any
    library (Radix, React Aria, Headless UI) sets aria-hidden on everything outside it, and the panes must stay. */
@@ -798,7 +802,7 @@
     border-color: var(--jali-opened-line);
   }
   .jali-pane[data-boundary="tint"].is-focused {
-    border-color: var(--jali-accent);
+    border-color: var(--jali-pane-border-focused, var(--jali-accent));
   }
   .jali-badge-opened {
     color: var(--jali-opened-ink);

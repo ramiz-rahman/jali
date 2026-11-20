@@ -133,6 +133,19 @@
   }
 
   /*
+   * ---------- read in place ----------
+   * Read in place: these tokens are not declared on the root. The parts read each with its default where it is used,
+   * because the default names another token and must resolve there (an accent or border set around one workspace
+   * reaches its panes). Set one anywhere, as any other token. A shadow token is a list of shadows; for none in a list,
+   * use `0 0 #0000`. The docs' Tokens page reads this list, and its test checks every part reads the same default.
+   *
+   *   --jali-pane-border: var(--jali-border);
+   *   --jali-pane-border-focused: var(--jali-accent);
+   *   --jali-pane-shadow: none;
+   *   --jali-pane-shadow-focused: 0 0 0 0.5px var(--jali-accent);
+   */
+
+  /*
    * ---------- derived from the accent ----------
    * Declared on the root and again on each Jali root ([data-jali]) and dialog (.jali-scrim, which renders beside the
    * root), so an accent set on a subtree, or on the Jali root itself, gets matching tints there, not the root's.

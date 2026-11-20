@@ -12,7 +12,7 @@ import * as core from "@jali/core";
 import * as react from "@jali/react";
 import * as icons from "@jali/react/icons";
 import { COMMANDS, REFUSED, displayId } from "./command-data";
-import { TOKEN_PURPOSE, publicTokensOf } from "./token-data";
+import { TOKEN_PURPOSE, inPlaceTokensOf, publicTokensOf, readsOf } from "./token-data";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const pagesDir = join(here, "../docs/reference");
@@ -134,5 +134,22 @@ describe("the tokens page covers every public token", () => {
     expect(PUBLIC_TOKENS.length).toBeGreaterThan(30);
     expect(PUBLIC_TOKENS.filter((t) => !TOKEN_PURPOSE[t])).toEqual([]);
     expect(Object.keys(TOKEN_PURPOSE).filter((t) => !PUBLIC_TOKENS.includes(t))).toEqual([]);
+  });
+
+  it("every token read in place is read by the parts, each time with the default the theme lists", () => {
+    const theme = readFileSync(join(packages, "react/src/styles/jali-theme.css"), "utf8");
+    const stylesDir = join(packages, "react/src/styles");
+    const styles = readdirSync(stylesDir)
+      .filter((f) => f.endsWith(".css") && !/theme|tailwind/.test(f))
+      .map((f) => readFileSync(join(stylesDir, f), "utf8"))
+      .join("\n");
+    const inPlace = inPlaceTokensOf(theme);
+    expect(Object.keys(inPlace).length).toBeGreaterThan(0);
+    const reads = readsOf(styles);
+    for (const [token, fallback] of Object.entries(inPlace)) {
+      const mine = reads.filter((r) => r.token === token);
+      expect(mine.length, token).toBeGreaterThan(0);
+      for (const r of mine) expect(r.fallback, token).toBe(fallback);
+    }
   });
 });

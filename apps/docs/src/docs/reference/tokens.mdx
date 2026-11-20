@@ -7,7 +7,7 @@ import { TokenTable, BridgeTable } from "../../reference";
 
 Jali's styles read only `--jali-*` custom properties. Set any of them on `:root` or on a subtree to retheme; the derived tokens follow the accent. Names starting `--jali-default-` are the theme's internal palette: don't set or read them. The theme is in the `jali` layer, so set tokens outside any layer or in a layer after `jali`.
 
-Every token is declared once, on the root, inside `:where()`, so your own declaration wins at any specificity and in any import order, wherever you set it: on `:root`, on any element around a workspace, or on its root (`[data-jali]`), with any theme scope in between. Jali's defaults are `light-dark()` pairs, resolved by the `color-scheme` where they are used: dark under `prefers-color-scheme: dark` and inside a `.dark` or `[data-theme="dark"]` scope, light inside `.light` or `[data-theme="light"]`. A started workspace sets `data-theme` on `<html>` from the theme setting, unless it was made with `pageTheme: false`.
+Every token but the few read in place (below) is declared once, on the root, inside `:where()`, so your own declaration wins at any specificity and in any import order, wherever you set it: on `:root`, on any element around a workspace, or on its root (`[data-jali]`), with any theme scope in between. Jali's defaults are `light-dark()` pairs, resolved by the `color-scheme` where they are used: dark under `prefers-color-scheme: dark` and inside a `.dark` or `[data-theme="dark"]` scope, light inside `.light` or `[data-theme="light"]`. A started workspace sets `data-theme` on `<html>` from the theme setting, unless it was made with `pageTheme: false`.
 
 ```css
 :root { --jali-accent: #0f766e; }                  /* the whole page */
@@ -31,6 +31,20 @@ Each row below gives the token, what it is for, and the `jali-*` classes whose r
 ## Status
 
 <TokenTable group="Status" />
+
+## Panes
+
+A pane's edge and shadow, at rest and focused. These are read in place: Jali doesn't declare them on the root, its pane styles read each with its default (`var(--jali-pane-border, var(--jali-border))`), so a default that names another token follows that token wherever you set it. Set them like any other token, once, and the focused pane, a maximised one and a drag all follow, with no rule for `[data-focused]` of your own:
+
+```css
+.jali-pane {
+  --jali-pane-border: transparent;
+  --jali-pane-shadow: 0 1px 2px rgb(0 0 0 / 0.12);
+  --jali-pane-shadow-focused: 0 0 0 2px var(--jali-accent), 0 1px 2px rgb(0 0 0 / 0.12);
+}
+```
+
+<TokenTable group="Panes" />
 
 ## Opened panes
 
