@@ -8,7 +8,7 @@ You need a React app on React 18.2 or later. Any bundler that handles CSS import
 
 Jali runs in browsers from 2024 on ([Baseline 2024](https://web.dev/baseline)): Chrome and Edge 123, Firefox 120, Safari 17.5, and Electron 30. Its colours are `light-dark()` pairs, the newest thing it needs. Older browsers show the workspace without its colours.
 
-*Live demo on the site: What you are building: two panes in a row. Drag the divider, or narrow the frame, and watch the tree.*
+*Live demo on the site: What you are building, running: two notes side by side. Drag the line between them, or click a note's button to open the next note beside it.*
 
 ### Install the packages
 
