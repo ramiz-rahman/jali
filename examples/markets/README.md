@@ -9,7 +9,7 @@ vp dev examples/markets # http://localhost:5320, or the next free port
 
 ### Live prices
 
-Ten crypto pairs stream from [Kraken](https://docs.kraken.com/api/docs/websocket-v2/ticker)'s public API, with no key and no backend. On the Crypto desk, the quote, chart (up to a year), order book and trades are all real. A green dot marks them in the top bar, the quote says "Live · Kraken", and the status line says the rest is simulated. If Kraken can't be reached, the app opens anyway and the crypto prices fill in when they arrive.
+Ten crypto pairs stream from [Kraken](https://docs.kraken.com/api/docs/websocket-v2/ticker)'s public API, with no key and no backend. On the Crypto desk, the quote, chart (up to a year), order book and trades are all real. A green dot marks them in the top bar, the quote says "Live · Kraken", and the status line says the rest is simulated. If Kraken can't be reached, the app opens anyway: a crypto price says it is not known yet (and a market order in it is refused), the status line says Kraken is offline, and the prices fill in when it answers again.
 
 There is no live news: no free news feed tagged by coin works from a browser. Shares, bonds and currencies stay simulated because no free source gives real-time quotes with an order book. Before putting the example on a public site, read Kraken's terms on showing its data.
 
@@ -49,4 +49,5 @@ Up and down are always shown three ways at once: the sign, an arrow and a colour
 
 - `src/market/simulator.test.ts`: the simulator is deterministic for a seed, and its quotes, bars, book and bonds hold together.
 - `src/workspace.test.ts`: a workspace made with the app's kinds and presets, in memory: following, pinning, links, folding, unsaved work and commands.
-- `e2e/markets.spec.ts`: a Playwright smoke test against this app's own server. Run it from the repository's root with `pnpm exec playwright test -c examples/markets`.
+- `src/market/kraken.test.ts`, `src/trading/trading.test.ts`, `src/kept.test.ts`: Kraken's frames are parsed, not trusted; the paper book trades only on real prices; kept data that is wrong falls back and never crashes.
+- `e2e/`: Playwright tests against this app's own server, on a stand-in Kraken (`e2e/kraken.ts`), so they never need the network: a smoke test, the live feed (a price not known yet, a dropped feed, a bad frame, failing history), and the shared quality checks on every desk in both themes (axe, a 360–2200px width sweep, nothing in the console; `examples/shared/e2e/quality.ts`). Run them from the repository's root with `pnpm exec playwright test -c examples/markets`.
