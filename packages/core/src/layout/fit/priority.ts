@@ -1,5 +1,5 @@
 import type { ViewState } from "../types";
-import { allPanes, links, orderOf, slots, type Projected } from "./overlay";
+import { allPanes, links, slots, type Projected } from "./overlay";
 const cmp = (a: number, b: number) => (a === b ? 0 : a < b ? -1 : 1);
 /**
  * Which displayed slot to fold next. Runs only when a fold is needed (structural or size change), never on focus.
@@ -34,23 +34,37 @@ export function chooseFold(
   // Undirected link distance from the focused pane; unreachable chains are infinitely far.
   const distance = new Map<string, number>();
   if (focused) {
+    const near = new Map<string, string[]>();
+    const join = (a: string, b: string) => {
+      const list = near.get(a);
+      if (list) list.push(b);
+      else near.set(a, [b]);
+    };
+    for (const p of panes) {
+      const source = linkOf(p);
+      if (source) {
+        join(source, p.id);
+        join(p.id, source);
+      }
+    }
     distance.set(focused, 0);
-    for (let queue = [focused]; queue.length;) {
-      const id = queue.shift()!;
-      for (const p of panes) {
-        const near = linkOf(p) === id ? p.id : p.id === id ? linkOf(p) : undefined;
-        if (near && !distance.has(near)) {
-          distance.set(near, distance.get(id)! + 1);
-          queue.push(near);
+    const queue = [focused];
+    for (let head = 0; head < queue.length; head++) {
+      const id = queue[head]!;
+      for (const next of near.get(id) ?? []) {
+        if (!distance.has(next)) {
+          distance.set(next, distance.get(id)! + 1);
+          queue.push(next);
         }
       }
     }
   }
   const linkedIds = new Set(panes.flatMap((p) => (linkOf(p) ? [p.id, linkOf(p)!] : [])));
-  const rank = (id: string) => {
-    const i = view.focusHistory.indexOf(id);
-    return i < 0 ? Infinity : i;
-  };
+  const recency = new Map<string, number>();
+  view.focusHistory.forEach((id, i) => {
+    if (!recency.has(id)) recency.set(id, i);
+  });
+  const rank = (id: string) => recency.get(id) ?? Infinity;
   const score = (slot: Projected) => {
     const members = allPanes(slot);
     const kept = members.some((p) => p.pane!.kept);
@@ -72,7 +86,7 @@ export function chooseFold(
       depth: Math.max(...members.map((p) => distance.get(p.id) ?? Infinity)),
       recent: Math.min(...members.map((p) => rank(p.id))),
       width: slot.bounds.width,
-      order: orderOf(slot, order),
+      order: Math.min(...members.map((p) => order.get(p.id) ?? Infinity)),
     };
   };
   const ranked = displayed

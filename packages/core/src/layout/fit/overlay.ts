@@ -53,8 +53,17 @@ export function project(node: LayoutNode, fit: FitOptions): Projected {
   refresh(result, fit);
   return result;
 }
-export const allPanes = (n: Projected): Projected[] =>
-  n.pane ? [n] : n.children.flatMap(allPanes);
+/** The panes under `n`, in reading order. */
+export function allPanes(n: Projected): Projected[] {
+  if (n.pane) return [n];
+  const out: Projected[] = [];
+  const walk = (m: Projected) => {
+    if (m.pane) out.push(m);
+    else for (const c of m.children) walk(c);
+  };
+  walk(n);
+  return out;
+}
 export const contains = (n: Projected, id?: string): boolean =>
   !!id && allPanes(n).some((p) => p.id === id);
 /**
@@ -79,9 +88,9 @@ export function auto(
   const preferred = children.find((c) => c.id === fallback);
   if (preferred?.type === "auto") fallback = preferred.active;
   // Keep one tab group when a later fold grows an automatic stack; tabs stay in reading order.
-  children = children
-    .flatMap((c) => (c.type === "auto" ? c.children : [c]))
-    .sort((a, b) => orderOf(a, order) - orderOf(b, order));
+  children = children.flatMap((c) => (c.type === "auto" ? c.children : [c]));
+  const at = new Map(children.map((c) => [c, orderOf(c, order)]));
+  children.sort((a, b) => at.get(a)! - at.get(b)!);
   const result: Projected = {
     id: `${AUTO_PREFIX}${homeId}`,
     type: "auto",
@@ -99,9 +108,19 @@ export function auto(
 }
 /** The slots the fit folds among. A row that scrolls is one: its children are never folded to make room. */
 export function slots(root: Projected): Projected[] {
-  return (root.type === "row" && !root.scroll) || root.type === "column"
-    ? root.children.flatMap(slots)
-    : [root];
+  const out: Projected[] = [];
+  const walk = (n: Projected) => {
+    if ((n.type === "row" && !n.scroll) || n.type === "column") for (const c of n.children) walk(c);
+    else out.push(n);
+  };
+  walk(root);
+  return out;
+}
+/** The displayed slot each pane is in (the slots split the panes between them). */
+function slotOf(displayed: readonly Projected[]): Map<string, Projected> {
+  const of = new Map<string, Projected>();
+  for (const s of displayed) for (const p of allPanes(s)) of.set(p.id, s);
+  return of;
 }
 export function autos(root: Projected): Projected[] {
   return root.type === "auto" ? [root] : root.pane ? [] : root.children.flatMap(autos);
@@ -134,15 +153,17 @@ export function foldHomes(root: Projected, choice: Projected): Projected[] {
   const displayed = slots(root);
   const panes = allPanes(root);
   const linkOf = links(root);
-  const members = new Set(allPanes(choice).map((p) => p.id));
-  const outside = (id: string | undefined) =>
-    id && !members.has(id) ? displayed.find((s) => s !== choice && contains(s, id)) : undefined;
-  const sources = allPanes(choice)
-    .map((p) => outside(linkOf(p)))
-    .filter((s): s is Projected => !!s);
+  const slotFor = slotOf(displayed);
+  const own = allPanes(choice);
+  const members = new Set(own.map((p) => p.id));
+  const outside = (id: string | undefined) => {
+    const s = id && !members.has(id) ? slotFor.get(id) : undefined;
+    return s !== choice ? s : undefined;
+  };
+  const sources = own.map((p) => outside(linkOf(p))).filter((s): s is Projected => !!s);
   const details = panes
     .filter((p) => !members.has(p.id) && members.has(linkOf(p) ?? ""))
-    .map((p) => displayed.find((s) => contains(s, p.id))!);
+    .map((p) => slotFor.get(p.id)!);
   // Unlinked (or only linked within itself): nearest neighbour, preferring an existing automatic stack.
   const at = displayed.indexOf(choice);
   const near = [displayed[at - 1], displayed[at + 1]].filter((n): n is Projected => !!n);
