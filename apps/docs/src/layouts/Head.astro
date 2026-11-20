@@ -1,8 +1,11 @@
 ---
 /**
  * Everything a search engine or a link preview reads: the title, description, canonical address, social card and
- * structured data. The shell keeps title and description current as readers move between pages in place.
+ * structured data. Each page is its own HTML file, so all of it is right for the page it is in. A page that isn't
+ * indexed (the 404, a draft) has no canonical address and no Markdown copy.
  */
+import { markdownUrl } from "../site/sources";
+
 interface Props {
   title: string;
   description: string;
@@ -48,14 +51,11 @@ const ld = [
 ];
 ---
 
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>{title}</title>
 <meta name="description" content={description} />
-<link rel="canonical" href={canonical} />
-{noindex ? <meta name="robots" content="noindex" /> : null}
+{noindex ? <meta name="robots" content="noindex" /> : <link rel="canonical" href={canonical} />}
 <link rel="sitemap" href="/sitemap-index.xml" />
-{path !== "/" ? <link rel="alternate" type="text/markdown" href={`${path}.md`} title="This page as Markdown" /> : <link rel="alternate" type="text/markdown" href="/index.md" title="This page as Markdown" />}
+{noindex ? null : <link rel="alternate" type="text/markdown" href={markdownUrl(path)} title="This page as Markdown" />}
 <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
 <link rel="icon" href="/favicon-32.png" type="image/png" sizes="32x32" />
 <link rel="apple-touch-icon" href="/apple-touch-icon.png" />

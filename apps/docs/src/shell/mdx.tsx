@@ -1,22 +1,20 @@
 /**
  * Components MDX pages use without importing them. The names and props are the contract with every page
  * (apps/docs/AGENTS.md); the shell agent owns the implementations and may restyle freely, never rename.
+ *
+ * They render static HTML at build time, code already highlighted. What they do in the browser (copy, wrap lines,
+ * switch tabs) is src/client/enhance.ts, which finds them by their data attributes.
  */
 import {
   Children,
   isValidElement,
-  useEffect,
+  useContext,
   useId,
-  useRef,
-  useState,
-  useSyncExternalStore,
   type ComponentPropsWithoutRef,
   type CSSProperties,
-  type KeyboardEvent,
   type ReactElement,
   type ReactNode,
 } from "react";
-import { flushSync } from "react-dom";
 import type { MDXComponents } from "mdx/types";
 import type { ThemedToken } from "shiki/core";
 import {
@@ -30,7 +28,7 @@ import {
   WarningIcon,
 } from "@phosphor-icons/react";
 import { langOf, parseRanges, tokenize } from "./highlight";
-import { readStored, writeStored } from "../site/storage";
+import { Collect } from "./collect";
 
 // ---------- text helpers ----------
 
@@ -50,83 +48,26 @@ export const slugify = (text: string) =>
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-+|-+$/g, "");
 
-// ---------- copy ----------
+/** An id from React's `useId` that is a plain word, for `id` and `aria-controls`. */
+const usePlainId = () => useId().replace(/[^\w-]/g, "");
 
-export async function copyText(text: string): Promise<boolean> {
-  try {
-    await navigator.clipboard.writeText(text);
-    return true;
-  } catch {
-    try {
-      const area = document.createElement("textarea");
-      area.value = text;
-      area.setAttribute("readonly", "");
-      area.style.position = "fixed";
-      area.style.opacity = "0";
-      document.body.append(area);
-      area.select();
-      const ok = document.execCommand("copy");
-      area.remove();
-      return ok;
-    } catch {
-      return false;
-    }
-  }
-}
+// ---------- tools ----------
 
-function CopyButton({ text, label = "Copy code" }: { text: string; label?: string }) {
-  const [copied, setCopied] = useState(false);
-  useEffect(() => {
-    if (!copied) return;
-    const t = setTimeout(() => setCopied(false), 1600);
-    return () => clearTimeout(t);
-  }, [copied]);
+function CopyButton({ label = "Copy code" }: { label?: string }) {
   return (
     <button
       type="button"
       className="code-tool code-copy"
-      aria-label={copied ? "Copied" : label}
-      title={copied ? "Copied" : label}
-      data-copied={copied || undefined}
-      onClick={async () => setCopied(await copyText(text))}
+      aria-label={label}
+      title={label}
+      data-copy-code=""
     >
-      {copied ? <CheckIcon aria-hidden size={15} /> : <CopyIcon aria-hidden size={15} />}
-      <span className="visually-hidden" aria-live="polite">
-        {copied ? "Copied" : ""}
-      </span>
+      <CopyIcon aria-hidden size={15} className="icon-idle" />
+      <CheckIcon aria-hidden size={15} className="icon-done" />
+      <span className="visually-hidden" aria-live="polite"></span>
     </button>
   );
 }
-
-// ---------- wrap ----------
-
-/** Wrapping long lines is one choice for the whole site: remembered, and shared by every block on the page. */
-const WRAP_KEY = "jali-docs-code-wrap";
-const wrapListeners = new Set<() => void>();
-let wrapValue: boolean | null = null;
-
-const readWrap = () => (wrapValue ??= readStored(WRAP_KEY) === "1");
-function setWrap(on: boolean) {
-  wrapValue = on;
-  writeStored(WRAP_KEY, on ? "1" : "0");
-  for (const l of wrapListeners) l();
-}
-function subscribeWrap(l: () => void) {
-  wrapListeners.add(l);
-  // Another tab changed it: follow along.
-  const onStorage = (e: StorageEvent) => {
-    if (e.key === WRAP_KEY) {
-      wrapValue = e.newValue === "1";
-      l();
-    }
-  };
-  window.addEventListener("storage", onStorage);
-  return () => {
-    wrapListeners.delete(l);
-    window.removeEventListener("storage", onStorage);
-  };
-}
-const useWrap = () => useSyncExternalStore(subscribeWrap, readWrap, () => false);
 
 /**
  * Wrap lines: the editors' glyph (a line that runs on, hooks round and returns under itself, then a short line).
@@ -150,23 +91,16 @@ function WrapIcon({ size = 16 }: { size?: number }) {
   );
 }
 
+/** Wrapping long lines is one choice for the whole site: `data-code-wrap` on <html>, remembered. */
 function WrapButton() {
-  const wrap = useWrap();
   return (
     <button
       type="button"
       className="code-tool code-wrap"
       aria-label="Wrap lines"
       title="Wrap lines"
-      aria-pressed={wrap}
-      onClick={(e) => {
-        // Blocks above change height; keep the button where the reader's pointer is.
-        const el = e.currentTarget,
-          top = el.getBoundingClientRect().top;
-        flushSync(() => setWrap(!wrap));
-        const moved = el.getBoundingClientRect().top - top;
-        if (Math.abs(moved) > 1) window.scrollBy({ top: moved, behavior: "instant" });
-      }}
+      aria-pressed={false}
+      data-wrap-toggle=""
     >
       <WrapIcon size={15} />
     </button>
@@ -175,24 +109,7 @@ function WrapButton() {
 
 // ---------- code ----------
 
-function useTokens(code: string, lang: string) {
-  const [tokens, setTokens] = useState<ThemedToken[][] | null>(null);
-  useEffect(() => {
-    let live = true;
-    tokenize(code, lang).then(
-      (t) => {
-        if (live) setTokens(t);
-      },
-      () => {},
-    );
-    return () => {
-      live = false;
-    };
-  }, [code, lang]);
-  return tokens;
-}
-
-const fontStyleOf = (t: ThemedToken) => {
+const fontStyleOf = (t: ThemedToken): CSSProperties | undefined => {
   const f = t.fontStyle ?? 0;
   return f > 0
     ? { fontStyle: f & 1 ? "italic" : undefined, fontWeight: f & 2 ? 600 : undefined }
@@ -224,7 +141,7 @@ function CodeBody({
   numbers: boolean;
 }) {
   const text = trimCode(code);
-  const tokens = useTokens(text, lang);
+  const tokens = tokenize(text, lang);
   const lit = parseRanges(highlight);
   const lines = tokens ?? text.split("\n").map((l) => [{ content: l, offset: 0 } as ThemedToken]);
   const digits = String(lines.length).length;
@@ -258,7 +175,7 @@ function CodeBody({
                         {t.content}
                       </span>
                     ))
-                  : "\u200b"}
+                  : "​"}
               </span>
             </span>
           );
@@ -285,11 +202,10 @@ export function Code({
   highlight?: string;
   numbers?: boolean;
 }) {
-  const wrap = useWrap();
   const tools = (
     <>
       <WrapButton />
-      <CopyButton text={code} />
+      <CopyButton />
     </>
   );
   return (
@@ -298,7 +214,6 @@ export function Code({
       data-code=""
       data-lang={lang}
       data-has-header={filename ? "" : undefined}
-      data-wrap={wrap || undefined}
     >
       {filename ? (
         <figcaption className="code-header">
@@ -327,11 +242,9 @@ function Pre(props: ComponentPropsWithoutRef<"pre"> & Record<string, unknown>) {
   const className = isValidElement<{ className?: string }>(child)
     ? (child.props.className ?? "")
     : "";
-  const lang =
-    /language-([\w-]+)/.exec(className)?.[1] ??
-    (typeof props["data-language"] === "string" ? props["data-language"] : "text");
-  const filename = (props["data-filename"] ?? props.filename ?? props.title) as string | undefined;
-  const highlight = (props["data-highlight"] ?? props.highlight) as string | undefined;
+  const lang = /language-([\w-]+)/.exec(className)?.[1] ?? "text";
+  const filename = props["data-filename"] as string | undefined;
+  const highlight = props["data-highlight"] as string | undefined;
   return (
     <Code code={textOf(props.children)} lang={lang} filename={filename} highlight={highlight} />
   );
@@ -343,17 +256,21 @@ function InlineCode(props: ComponentPropsWithoutRef<"code">) {
 
 // ---------- headings ----------
 
+/**
+ * A heading with an id and a link to itself. The link is hidden from screen readers and the Tab order, so the
+ * heading is read as its words alone; "On this page" links to the same sections. h2 and h3 are collected for the
+ * TOC and search while the page is built.
+ */
 function heading(level: 2 | 3 | 4) {
   const Tag = `h${level}` as const;
   return function Heading({ id, children, ...rest }: ComponentPropsWithoutRef<"h2">) {
-    const slug = id ?? slugify(textOf(children));
+    const text = textOf(children);
+    const slug = id ?? slugify(text);
+    const collect = useContext(Collect);
+    if (collect && level !== 4) collect.headings.push({ id: slug, text: text.trim(), level });
     return (
       <Tag id={slug} className="heading" {...rest}>
-        <a
-          className="heading-anchor"
-          href={`#${slug}`}
-          aria-label={`Link to this section: ${textOf(children)}`}
-        >
+        <a className="heading-anchor" href={`#${slug}`} aria-hidden="true" tabIndex={-1}>
           <LinkIcon aria-hidden size={14} />
         </a>
         {children}
@@ -415,130 +332,77 @@ export function Step({ title, children }: { title: string; children?: ReactNode 
 
 // ---------- tabs ----------
 
-const groupListeners = new Set<() => void>();
-const groupValues = new Map<string, string>();
-const groupKey = (g: string) => `jali-docs-tab:${g}`;
-
-function readGroup(group: string): string | null {
-  if (!groupValues.has(group)) {
-    const stored = typeof window === "undefined" ? null : readStored(groupKey(group));
-    if (stored) groupValues.set(group, stored);
-  }
-  return groupValues.get(group) ?? null;
-}
-function writeGroup(group: string, value: string) {
-  groupValues.set(group, value);
-  writeStored(groupKey(group), value);
-  for (const l of groupListeners) l();
-}
-
-/** The chosen label, remembered across the site for a `group`, local to the block without one. */
-function useTabChoice(group: string | undefined, labels: string[]) {
-  const [local, setLocal] = useState<string | null>(null);
-  const remembered = useSyncExternalStore(
-    (l) => {
-      groupListeners.add(l);
-      return () => groupListeners.delete(l);
-    },
-    () => (group ? readGroup(group) : null),
-    () => null,
-  );
-  const chosen = (group ? remembered : local) ?? local;
-  const value = chosen && labels.includes(chosen) ? chosen : (labels[0] ?? "");
-  const choose = (v: string) => {
-    setLocal(v);
-    if (group) writeGroup(group, v);
-  };
-  return [value, choose] as const;
-}
-
-function TabStrip({
-  labels,
-  value,
-  onChoose,
-  idBase,
+/**
+ * A tab strip and one panel per tab, the first shown. In the browser, enhance.ts switches them (click, arrows, Home,
+ * End) and, for a `group`, remembers the choice across the site.
+ */
+function TabSet({
   label,
+  tabs,
+  panelClass,
+  render,
 }: {
-  labels: string[];
-  value: string;
-  onChoose: (v: string) => void;
-  idBase: string;
   label: string;
+  tabs: { label: string; panel: ReactNode }[];
+  panelClass?: string;
+  /** Lays out the strip and the panels; the element holding both carries `data-tabs`. */
+  render: (strip: ReactNode, panels: ReactNode) => ReactNode;
 }) {
-  const refs = useRef<(HTMLButtonElement | null)[]>([]);
-  const onKey = (e: KeyboardEvent<HTMLButtonElement>, i: number) => {
-    const n = labels.length;
-    const to =
-      e.key === "ArrowRight"
-        ? (i + 1) % n
-        : e.key === "ArrowLeft"
-          ? (i - 1 + n) % n
-          : e.key === "Home"
-            ? 0
-            : e.key === "End"
-              ? n - 1
-              : -1;
-    if (to < 0) return;
-    e.preventDefault();
-    onChoose(labels[to]!);
-    refs.current[to]?.focus();
-  };
-  return (
+  const idBase = usePlainId();
+  const strip = (
     <div className="tab-strip" role="tablist" aria-label={label}>
-      {labels.map((l, i) => (
+      {tabs.map((t, i) => (
         <button
-          key={l}
-          ref={(el) => {
-            refs.current[i] = el;
-          }}
+          key={t.label}
           type="button"
           role="tab"
           id={`${idBase}-tab-${i}`}
-          aria-selected={l === value}
+          aria-selected={i === 0}
           aria-controls={`${idBase}-panel-${i}`}
-          tabIndex={l === value ? 0 : -1}
+          tabIndex={i === 0 ? 0 : -1}
           className="tab"
-          onClick={() => onChoose(l)}
-          onKeyDown={(e) => onKey(e, i)}
+          data-tab-label={t.label}
         >
-          {l}
+          {t.label}
         </button>
       ))}
     </div>
   );
+  const panels = tabs.map((t, i) => (
+    <div
+      key={t.label}
+      role="tabpanel"
+      id={`${idBase}-panel-${i}`}
+      aria-labelledby={`${idBase}-tab-${i}`}
+      hidden={i !== 0}
+      className={panelClass}
+    >
+      {t.panel}
+    </div>
+  ));
+  return render(strip, panels);
 }
 
 /** Tabs. `group` remembers the choice across the site ("pm" for package managers, "framework"). */
 export function Tabs({ group, children }: { group?: string; children?: ReactNode }) {
-  const tabs = Children.toArray(children).filter(
-    (c): c is ReactElement<{ label: string; children?: ReactNode }> =>
-      isValidElement<{ label?: string }>(c) && typeof c.props.label === "string",
-  );
-  const labels = tabs.map((t) => t.props.label);
-  const [value, choose] = useTabChoice(group, labels);
-  const idBase = useId().replace(/:/g, "");
+  const tabs = Children.toArray(children)
+    .filter(
+      (c): c is ReactElement<{ label: string; children?: ReactNode }> =>
+        isValidElement<{ label?: string }>(c) && typeof c.props.label === "string",
+    )
+    .map((t) => ({ label: t.props.label, panel: t.props.children }));
   return (
-    <div className="tabs" data-tabs={group ?? ""}>
-      <TabStrip
-        labels={labels}
-        value={value}
-        onChoose={choose}
-        idBase={idBase}
-        label={group === "pm" ? "Package manager" : "Choose one"}
-      />
-      {tabs.map((t, i) => (
-        <div
-          key={t.props.label}
-          role="tabpanel"
-          id={`${idBase}-panel-${i}`}
-          aria-labelledby={`${idBase}-tab-${i}`}
-          hidden={t.props.label !== value}
-          className="tab-panel"
-        >
-          {t.props.children}
+    <TabSet
+      label={group === "pm" ? "Package manager" : "Choose one"}
+      tabs={tabs}
+      panelClass="tab-panel"
+      render={(strip, panels) => (
+        <div className="tabs" data-tabs={group ?? ""}>
+          {strip}
+          {panels}
         </div>
-      ))}
-    </div>
+      )}
+    />
   );
 }
 export function Tab({ children }: { label: string; children?: ReactNode }) {
@@ -556,35 +420,25 @@ const MANAGERS = [
   { label: "vp", cmd: "vp add" },
 ];
 
-/** Install commands for npm, pnpm, yarn and bun, in a remembered "pm" tab group. */
+/** Install commands for npm, pnpm, yarn, bun and vp, in the remembered "pm" tab group: one panel per manager. */
 export function Install({ packages }: { packages: string }) {
-  const labels = MANAGERS.map((m) => m.label);
-  const [value, choose] = useTabChoice("pm", labels);
-  const idBase = useId().replace(/:/g, "");
-  const i = Math.max(0, labels.indexOf(value));
-  const command = `${MANAGERS[i]!.cmd} ${packages}`;
-  const wrap = useWrap();
   return (
-    <figure
-      className="code install"
-      data-install=""
-      data-has-header=""
-      data-wrap={wrap || undefined}
-    >
-      <div className="code-header">
-        <TabStrip
-          labels={labels}
-          value={value}
-          onChoose={choose}
-          idBase={idBase}
-          label="Package manager"
-        />
-        <CopyButton text={command} label="Copy command" />
-      </div>
-      <div role="tabpanel" id={`${idBase}-panel-${i}`} aria-labelledby={`${idBase}-tab-${i}`}>
-        <CodeBody code={command} lang="sh" numbers={false} />
-      </div>
-    </figure>
+    <TabSet
+      label="Package manager"
+      tabs={MANAGERS.map((m) => ({
+        label: m.label,
+        panel: <CodeBody code={`${m.cmd} ${packages}`} lang="sh" numbers={false} />,
+      }))}
+      render={(strip, panels) => (
+        <figure className="code install" data-install="" data-has-header="" data-tabs="pm">
+          <div className="code-header">
+            {strip}
+            <CopyButton label="Copy command" />
+          </div>
+          {panels}
+        </figure>
+      )}
+    />
   );
 }
 

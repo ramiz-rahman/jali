@@ -4,7 +4,6 @@
  */
 import type { ReactNode } from "react";
 import { ADORNMENTS, parts, type PartArea } from "../../../../packages/react/src/parts";
-import "./reference.css";
 
 /** Backticks in the contract's sentences as code. */
 function prose(text: string): ReactNode[] {

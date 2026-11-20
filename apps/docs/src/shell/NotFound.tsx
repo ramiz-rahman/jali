@@ -1,22 +1,19 @@
-/** The page for an address with no page. */
+/** The page for an address with no page: the 404 file hosts serve for any unknown address. */
 import { ArrowRightIcon } from "@phosphor-icons/react";
-import { useHydrated } from "../live/ClientOnly";
 import { Lattice } from "./brand";
 
-export function NotFound({ path }: { path: string }) {
-  // The prerendered 404 file doesn't know which address it will be served for: it says "this address" until the
-  // page hydrates, then names it.
-  const hydrated = useHydrated();
+export function NotFound() {
   return (
     <section className="not-found" aria-labelledby="not-found-title">
       <Lattice className="not-found-lattice" />
       <p className="page-eyebrow">404</p>
-      <h1 className="page-title" id="not-found-title" tabIndex={-1} data-page-focus="">
+      <h1 className="page-title" id="not-found-title">
         There is no page here
       </h1>
       <p className="page-summary">
-        Nothing lives at {hydrated ? <code className="inline-code">{path}</code> : "this address"}.
-        It may have moved, or it may not be written yet.
+        {/* The file doesn't know which address it is served for: the browser names it (src/client/enhance.ts). */}
+        Nothing lives at <span data-not-found-path="">this address</span>. It may have moved, or it
+        may not be written yet.
       </p>
       <ul className="not-found-links">
         <li>

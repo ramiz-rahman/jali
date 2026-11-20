@@ -6,9 +6,9 @@
  * The coverage test (coverage.test.ts) reads `name="…"` from <Entry> and <Member> in the MDX sources, so every
  * exported name needs one of the two.
  */
-import { Children as ReactChildren, isValidElement, type ReactNode } from "react";
+import { Children as ReactChildren, isValidElement, useContext, type ReactNode } from "react";
 import { useMDXComponents } from "@mdx-js/react";
-import "./reference.css";
+import { Collect } from "../shell/collect";
 
 export type EntryKind =
   | "function"
@@ -84,6 +84,8 @@ export function Entry({
   const Code = useCode();
   const id = anchorOf(name);
   const shown = kind === "component" ? `<${name}>` : name;
+  // For "On this page" and search, while the page is built.
+  useContext(Collect)?.headings.push({ id, text: shown, level: 3, entry: true });
   const aside = signature || example;
   // The first paragraph is the one line on what it does: it sits under the title, before the example.
   const [lead, ...rest] = ReactChildren.toArray(children);

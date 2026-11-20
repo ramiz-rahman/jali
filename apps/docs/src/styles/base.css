@@ -100,6 +100,19 @@
 }
 
 @layer docs {
+  /* Images and videos in pages carry their width and height (src/shell/media.tsx), to hold their room as they load. */
+  .prose :is(img, video) {
+    height: auto;
+  }
+  /* An island's wrapper (src/shell/island.tsx) adds no box of its own. */
+  [data-island] {
+    display: contents;
+  }
+  .island-error {
+    margin: 2rem 0;
+    color: var(--jali-text-subtle);
+  }
+
   .visually-hidden {
     position: absolute !important;
     width: 1px;

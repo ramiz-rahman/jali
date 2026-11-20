@@ -13,7 +13,6 @@ import {
   type SwatchKind,
   type TokenGroup,
 } from "./token-data";
-import "./reference.css";
 
 function Swatch({
   token,

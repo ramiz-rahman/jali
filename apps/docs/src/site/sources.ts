@@ -72,9 +72,11 @@ export const sources: Record<string, PageSource> = Object.fromEntries(
   }),
 );
 
+/** A draft page (a file or folder starting with "_", like `_lab`): in dev only, never built or indexed. */
+export const isDraft = (p: PageSource) => p.file.split("/").some((s) => s.startsWith("_"));
+
 /** Pages a reader can find: written ones, not drafts like `_lab`. */
-export const publicPages = () =>
-  Object.values(sources).filter((p) => !p.file.split("/").some((s) => s.startsWith("_")));
+export const publicPages = () => Object.values(sources).filter((p) => !isDraft(p));
 
 // ---------- the nav, resolved ----------
 
@@ -115,6 +117,16 @@ export function neighbours(path: string): { prev?: ResolvedItem; next?: Resolved
 
 export const sectionOf = (path: string) =>
   resolvedNav().find((s) => s.items.some((i) => i.path === path))?.title;
+
+/**
+ * A page's section as a breadcrumb: its name, and the address of its first written page (the sections have no
+ * pages of their own), so every item but the last has a URL, as search engines expect.
+ */
+export function sectionLink(path: string): { name: string; path: string } | undefined {
+  const section = resolvedNav().find((s) => s.items.some((i) => i.path === path));
+  const first = section?.items.find((i) => i.exists);
+  return section && first ? { name: section.title, path: first.path } : undefined;
+}
 
 // ---------- the page as Markdown ----------
 

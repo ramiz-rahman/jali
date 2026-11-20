@@ -1,8 +1,11 @@
 ---
+/** The file hosts serve for an unknown address: the site around "There is no page here". Static, like every page. */
 import Document from "../layouts/Document.astro";
-import NotFoundSite from "../shell/NotFoundSite";
+import { renderShell } from "../shell/render";
+
+const body = renderShell({ kind: "not-found" });
 ---
 
 <Document title="Not found · Jali" description="There is no page at this address." path="/404" noindex>
-  <NotFoundSite client:load />
+  <Fragment set:html={body} />
 </Document>

@@ -14,7 +14,6 @@ import {
 import { JaliRoot, JaliView, Shelf, useJaliModel } from "@jali/react";
 import { buildDemoLayout, type DemoLayoutId } from "./demo";
 import { demoKinds } from "./kinds";
-import "./live.css";
 import { ClientOnly } from "./ClientOnly";
 
 /**

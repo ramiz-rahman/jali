@@ -111,13 +111,13 @@
   }
 
   /* Wrapped: long lines break, and their rest hangs two columns in from the line's own indent. */
-  .code[data-wrap] .code-pre > code {
+  :root[data-code-wrap] .code .code-pre > code {
     display: block;
   }
-  .code[data-wrap] .code-line {
+  :root[data-code-wrap] .code .code-line {
     white-space: normal;
   }
-  .code[data-wrap] .code-text {
+  :root[data-code-wrap] .code .code-text {
     --code-hang: min(calc(var(--code-indent, 0ch) + 2ch), 24ch);
     display: block;
     white-space: pre-wrap;
@@ -158,11 +158,16 @@
   .code-copy[data-copied] {
     color: var(--jali-accent);
   }
-  .code-wrap[aria-pressed="true"] {
+  /* Copy buttons hold both icons; the check shows once copied. */
+  [data-copied] > .icon-idle,
+  :not([data-copied]) > .icon-done {
+    display: none;
+  }
+  :root[data-code-wrap] .code-wrap {
     color: var(--jali-accent);
     background: color-mix(in srgb, var(--jali-accent) 10%, transparent);
   }
-  .code-wrap[aria-pressed="true"]:hover {
+  :root[data-code-wrap] .code-wrap:hover {
     background: color-mix(in srgb, var(--jali-accent) 16%, transparent);
   }
   .code > .code-tools-float {

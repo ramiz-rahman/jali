@@ -133,7 +133,10 @@
   .theme-toggle button:hover {
     color: var(--jali-text);
   }
-  .theme-toggle button[aria-checked="true"] {
+  /* The chosen button, from <html>'s data-theme-choice, which is set before the first paint. */
+  :root[data-theme-choice="light"] .theme-toggle [data-choice="light"],
+  :root[data-theme-choice="dark"] .theme-toggle [data-choice="dark"],
+  :root[data-theme-choice="system"] .theme-toggle [data-choice="system"] {
     background: var(--jali-surface-raised);
     color: var(--jali-text);
     box-shadow:
@@ -196,10 +199,6 @@
   .layout[data-wide] .toc-disclosure {
     display: block;
   }
-  .focus-target:focus {
-    outline: none;
-  }
-
   .toc-column {
     min-width: 0;
   }

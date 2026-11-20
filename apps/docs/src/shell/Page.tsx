@@ -1,5 +1,4 @@
-/** A page's header (section, title, summary, actions) and footer (previous and next, edit). */
-import { useEffect, useState } from "react";
+/** A page's header (section, title, summary, actions) and footer (previous and next, edit). Static HTML. */
 import {
   ArrowLeftIcon,
   ArrowRightIcon,
@@ -10,35 +9,21 @@ import {
   PencilSimpleIcon,
 } from "@phosphor-icons/react";
 import { editUrl } from "../site/config";
-import { MARKDOWN_TABLES } from "../site/markdown-tables";
-import { markdownUrl, neighbours, sectionOf, sources, toMarkdown } from "../site/sources";
-import { copyText } from "./mdx";
+import { markdownUrl, neighbours, sectionOf, sources } from "../site/sources";
 
 function PageActions({ path, title }: { path: string; title: string }) {
-  const page = sources[path];
-  const [copied, setCopied] = useState(false);
-  useEffect(() => {
-    if (!copied) return;
-    const t = setTimeout(() => setCopied(false), 1800);
-    return () => clearTimeout(t);
-  }, [copied]);
-  if (!page) return null;
+  if (!sources[path]) return null;
   const md = markdownUrl(path);
-  // The site's public address, fixed at build time (astro.config.mjs `site`), so the prompt is the same in the
-  // prerendered HTML and after hydration, and Claude gets an address it can fetch.
+  // The site's public address, fixed at build time (astro.config.mjs `site`), so Claude gets an address it can fetch.
   const abs = new URL(md, import.meta.env.SITE).href;
   const prompt = `Read the Jali docs page "${title}" at ${abs} and help me with it. Jali is a React library for workspaces of panes. Answer from that page and the rest of the Jali docs.`;
   return (
     <div className="page-actions" role="group" aria-label="Page actions">
-      <button
-        type="button"
-        className="page-action"
-        onClick={async () =>
-          setCopied(await copyText(toMarkdown(page, { tables: MARKDOWN_TABLES })))
-        }
-      >
-        {copied ? <CheckIcon aria-hidden size={15} /> : <CopyIcon aria-hidden size={15} />}
-        <span aria-live="polite">{copied ? "Copied" : "Copy page"}</span>
+      {/* Copies the page's Markdown copy (src/client/enhance.ts). */}
+      <button type="button" className="page-action" data-copy-page={md}>
+        <CopyIcon aria-hidden size={15} className="icon-idle" />
+        <CheckIcon aria-hidden size={15} className="icon-done" />
+        <span aria-live="polite">Copy page</span>
       </button>
       <a className="page-action" href={md} target="_blank" rel="noreferrer">
         <FileTextIcon aria-hidden size={15} />

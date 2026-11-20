@@ -10,7 +10,6 @@ import {
   type Command,
 } from "@jali/core/adapter";
 import { COMMANDS, REFUSED, displayId } from "./command-data";
-import "./reference.css";
 
 const MAC = createKeymap({}, { platform: "mac" });
 const OTHER = createKeymap({}, { platform: "other" });
