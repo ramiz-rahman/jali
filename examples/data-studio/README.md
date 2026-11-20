@@ -21,4 +21,9 @@ vp dev examples/data-studio  # http://localhost:5300, or the next free port
 - `src/panes/`: Data Studio's own pane kinds (catalog, query, chart, structure, entity diagram, audit, launcher) and its presets.
 - The table, record and related panes, the data layer and the top bar come from [`examples/shared`](../shared), which Loan review uses too.
 
-Jali's own browser tests (`e2e/` at the repository's root) run against this app and Loan review.
+The people, shops and orders are made up, and the top bar says so.
+
+## Tests
+
+- `e2e/`: Data Studio's own browser tests, on their own server: the shared quality checks on every preset in both themes (axe, a 360–2200px width sweep, nothing in the console; `examples/shared/e2e/quality.ts`), and what a link can and can't do to a query and a chart. Run them from the repository's root with `pnpm exec playwright test -c examples/data-studio`.
+- Jali's own browser tests (`e2e/` at the repository's root) also run against this app and Loan review.
