@@ -16,12 +16,22 @@ import { ChartLineIcon } from "@phosphor-icons/react";
 import { definePane, useCommands, usePaneState, type PaneProps } from "@jali/react";
 import { aggregate, MINUTE } from "../market/history";
 import { useTopic } from "../market/react";
+import { isRecord, oneOf } from "#shared/store";
 import { RANGES, type Bar, type Instrument, type Range } from "../market/types";
 import * as f from "../ui/format";
 import { Delta, Known, Segmented } from "../ui/parts";
 import { followSymbol } from "./follow";
 
 type Style = "candles" | "line";
+const range = oneOf(RANGES);
+const style = oneOf<Style>(["candles", "line"]);
+/** The view kept in pane state, as read back: both fields, or the default. */
+const parseView = (v: unknown): View | undefined => {
+  if (!isRecord(v)) return undefined;
+  const r = range(v.range);
+  const s = style(v.style);
+  return r && s ? { range: r, style: s } : undefined;
+};
 interface View {
   range: Range;
   style: Style;
@@ -50,7 +60,11 @@ function Chart({ params, paused }: PaneProps<typeof chartParams>) {
 }
 
 function ChartBody({ inst, paused }: { inst: Instrument; paused: boolean }) {
-  const [view, setView] = usePaneState<View>("view", { range: "1D", style: "candles" });
+  const [view, setView] = usePaneState<View>(
+    "view",
+    { range: "1D", style: "candles" },
+    { parse: parseView },
+  );
   const raw = useTopic({ channel: "bars", symbol: inst.symbol, range: view.range }, paused);
   const q = useTopic({ channel: "quote", symbol: inst.symbol }, paused);
   const [cursor, setCursor] = useState<number | null>(null);

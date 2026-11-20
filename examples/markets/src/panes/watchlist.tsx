@@ -13,6 +13,7 @@ import {
   type PaneProps,
 } from "@jali/react";
 import { keyHint } from "@jali/core";
+import { isRecord, oneOf, text } from "#shared/store";
 import { DEFAULT_LISTS, listName, useList } from "../lists";
 import { useMarket, useQuotes } from "../market/react";
 import type { Instrument, Quote } from "../market/types";
@@ -31,6 +32,15 @@ interface Sort {
   by: SortBy;
   dir: 1 | -1;
 }
+/** The sort kept in pane state, as read back, or list order. */
+const parseSort = (v: unknown): Sort | undefined => {
+  if (!isRecord(v)) return undefined;
+  const by = oneOf<SortBy>(["list", "symbol", "last", "changePct", "volume"])(v.by);
+  const dir = oneOf<1 | -1>([1, -1])(v.dir);
+  return by && dir ? { by, dir } : undefined;
+};
+/** The kept cursor: a symbol, or none. */
+const parseCursor = (v: unknown): string | null | undefined => (v === null ? null : text(v));
 
 const COLUMNS: { by: SortBy; label: string; className: string }[] = [
   { by: "symbol", label: "Instrument", className: "c-name" },
@@ -60,8 +70,8 @@ function Watchlist({
     [list, market],
   );
   const quotes = useQuotes(symbols, paused);
-  const [sort, setSort] = usePaneState<Sort>("sort", { by: "list", dir: 1 });
-  const [kept, setCursor] = usePaneState<string | null>("cursor", null);
+  const [sort, setSort] = usePaneState<Sort>("sort", { by: "list", dir: 1 }, { parse: parseSort });
+  const [kept, setCursor] = usePaneState<string | null>("cursor", null, { parse: parseCursor });
   // The cursor is on the instrument Jali has selected: it starts this list on what its following quote shows
   // (`selects`), and moves it with that quote when a layout (a desk, a link, Back) gives it another.
   const selected = useJaliState((s) => s.selection[node.id]?.ref);

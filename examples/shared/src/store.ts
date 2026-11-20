@@ -100,6 +100,15 @@ export const isRecord = (v: unknown): v is Record<string, unknown> =>
 export const finite = (v: unknown): number | undefined =>
   typeof v === "number" && Number.isFinite(v) ? v : undefined;
 
+/** A reader for one of `values` (a tab, a sort, a side), for `parse`. */
+export const oneOf =
+  <T extends string | number>(values: readonly T[]) =>
+  (v: unknown): T | undefined =>
+    values.includes(v as T) ? (v as T) : undefined;
+
+/** A reader for text, for `parse`. */
+export const text = (v: unknown): string | undefined => (typeof v === "string" ? v : undefined);
+
 /** The entries of an array that `item` can read; undefined when `v` is not an array. */
 export function arrayOf<T>(v: unknown, item: (x: unknown) => T | undefined): T[] | undefined {
   if (!Array.isArray(v)) return undefined;

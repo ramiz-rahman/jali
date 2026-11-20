@@ -17,7 +17,7 @@ import {
 import { useMarket, useQuotes } from "../market/react";
 import type { Instrument } from "../market/types";
 import { useServices } from "../services";
-import { useStore } from "#shared/store";
+import { finite, isRecord, oneOf, text, useStore } from "#shared/store";
 import { inUsd, notional, unrealized, type Side } from "../trading/trading";
 import * as f from "../ui/format";
 import { Delta, Empty, Scroller, Segmented } from "../ui/parts";
@@ -32,10 +32,23 @@ interface Draft {
 }
 const BLANK: Draft = { symbol: "", side: "buy", qty: "", type: "market", limit: "" };
 type Tab = "positions" | "orders" | "fills";
+const tabOf = oneOf<Tab>(["positions", "orders", "fills"]);
+/** A draft kept in pane state, as read back: every field of the right kind, or a blank ticket. */
+const parseDraft = (v: unknown): Draft | undefined => {
+  if (!isRecord(v)) return undefined;
+  const d = {
+    symbol: text(v.symbol),
+    side: oneOf<Side>(["buy", "sell"])(v.side),
+    qty: text(v.qty),
+    type: oneOf<Draft["type"]>(["market", "limit"])(v.type),
+    limit: text(v.limit),
+  };
+  return Object.values(d).every((x) => x !== undefined) ? (d as Draft) : undefined;
+};
 
 function Blotter({ paused, openBeside }: PaneProps) {
   const services = useServices();
-  const [tab, setTab] = usePaneState<Tab>("tab", "positions");
+  const [tab, setTab] = usePaneState<Tab>("tab", "positions", { parse: tabOf });
   const book = useStore(services.trading, (b) => b);
   const working = book.orders.filter((o) => o.status === "working").length;
 
@@ -74,8 +87,8 @@ function Blotter({ paused, openBeside }: PaneProps) {
 /** The order ticket. ⌘↵ sends it. */
 function Ticket() {
   const { trading, ticket, market } = useServices();
-  const [draft, setDraft] = usePaneState<Draft>("draft", BLANK);
-  const [applied, setApplied] = usePaneState("applied", 0);
+  const [draft, setDraft] = usePaneState<Draft>("draft", BLANK, { parse: parseDraft });
+  const [applied, setApplied] = usePaneState("applied", 0, { parse: finite });
   const [result, setResult] = useState<{ ok: boolean; text: string } | null>(null);
   const qtyRef = useRef<HTMLInputElement>(null);
   const request = useStore(ticket, (r) => r);

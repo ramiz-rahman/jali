@@ -9,6 +9,7 @@
 import { useRef, useState, type KeyboardEvent } from "react";
 import { NewspaperIcon } from "@phosphor-icons/react";
 import { definePane, optional, usePaneState, type PaneProps } from "@jali/react";
+import { oneOf } from "#shared/store";
 import { useMarket, useTopic } from "../market/react";
 import * as f from "../ui/format";
 import { Empty, Segmented } from "../ui/parts";
@@ -24,7 +25,9 @@ const newsParams = { symbol: optional(String) };
 function News({ params, paused, node, openBeside }: PaneProps<typeof newsParams>) {
   const symbol = params.symbol || undefined;
   const market = useMarket();
-  const [scope, setScope] = usePaneState<"instrument" | "all">("scope", "instrument");
+  const [scope, setScope] = usePaneState<"instrument" | "all">("scope", "instrument", {
+    parse: oneOf(["instrument", "all"]),
+  });
   const only = symbol && scope === "instrument" ? symbol : undefined;
   const headlines = useTopic({ channel: "news", symbol: only }, paused).slice(0, 60);
   const [open, setOpen] = useState<number | null>(null);
