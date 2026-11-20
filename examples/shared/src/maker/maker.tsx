@@ -55,8 +55,8 @@ export function Maker({ words = false }: { words?: boolean }) {
       title={MAKER.credit}
       aria-label={words ? MAKER.credit : MAKER.name}
     >
-      {words ? <span className="maker-words">Designed and built by</span> : null}
-      <MakerMark />
+      {/* The space keeps the words apart when the text is read as one name (WCAG 2.5.3 compares it with the label). */}
+      {words ? <span className="maker-words">Designed and built by</span> : null} <MakerMark />
       <span className="maker-name">{MAKER.name}</span>
     </a>
   );
