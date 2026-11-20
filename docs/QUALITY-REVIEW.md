@@ -44,7 +44,7 @@
 
 - **Fixed:** P3 in part (the curated page is opt-in through `definePage`; pure annotations), P15 (`DomPort`), P16 (a read-only `layout.tree` with deprecated draft steps, `UrlState`, an explicit adapter list), and Jali's side of C12 (`appOnly`). Jali's side of C13 (`usePaneState`'s `parse`) came with P10.
 - **Gates:** all pass but **size**: minimal core 52.3 KB (budget 49.5), React 24.5 (18.3), CSS 8.2 (7.8); headless 46.7 (45); layout 10.2 (9.6). What is left is code the apps reach (DECISIONS, "Size after the opt-in page"). The budgets are the owner's call.
-- **Open:** Data Studio declares `autorun: appOnly(Boolean)` (its own file); pop out's port is still module state.
+- **Open:** pop out's port is still module state. (Data Studio declares `autorun: appOnly(Boolean)` since 21 Nov 2026.)
 
 **Phase 3, docs islands, done 20 Nov 2026:**
 
