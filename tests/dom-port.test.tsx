@@ -7,7 +7,14 @@ import { readdirSync, readFileSync, statSync } from "node:fs";
 import { join, relative } from "node:path";
 import { cleanup, render } from "@testing-library/react";
 import { afterEach, beforeAll, describe, expect, it, vi } from "vite-plus/test";
-import { createJali, memoryLocation, memoryStorage, row } from "@jali/core";
+import {
+  createJali,
+  listCommands,
+  memoryLocation,
+  memoryStorage,
+  row,
+  type JaliOptions,
+} from "@jali/core";
 import {
   activeTabId,
   flashTab,
@@ -27,8 +34,9 @@ const note = definePane("note", {
   title: ({ id }) => `Note ${id}`,
   Component: ({ params }) => <p>Note {params.id}</p>,
 });
-const make = () =>
+const make = (options: Partial<JaliOptions> = {}) =>
   createJali({
+    ...options,
     panes: [note],
     layout: row(note({ id: 1 }), note({ id: 2 })),
     url: { location: memoryLocation() },
@@ -157,5 +165,31 @@ describe("a workspace's DomPort", () => {
     expect(document.body.classList.contains("jali-resizing-column")).toBe(true);
     reactDom.dragging(null);
     expect(document.body.className).not.toMatch(/jali-/);
+  });
+
+  it("carries @jali/react's pop out: given to each workspace it renders, never set for all as @jali/react loads", () => {
+    const options = { allow: { popOut: true } } as const;
+    const pop = (jali: ReturnType<typeof make>) =>
+      listCommands(jali).find((c) => c.id === "pane.pop_out");
+    // A browser that can pop out: Document Picture-in-Picture, on a secure page.
+    vi.stubGlobal("documentPictureInPicture", { requestWindow: async () => window, window: null });
+    const secure = Object.getOwnPropertyDescriptor(window, "isSecureContext");
+    Object.defineProperty(window, "isSecureContext", { value: true, configurable: true });
+    try {
+      // @jali/react is loaded (this file imports it), but a workspace it hasn't rendered has no way to pop out.
+      const headless = make(options);
+      headless.actions.focus(headless.model().panes[0]!.id);
+      expect(pop(headless)).toMatchObject({ disabled: true });
+
+      const jali = make(options);
+      render(<JaliRoot jali={jali} />);
+      expect(storeOf(jali).dom.port.popOut).toBe(reactDom.popOut);
+      jali.actions.focus(jali.model().panes[0]!.id);
+      expect(pop(jali)).toMatchObject({ disabled: false });
+    } finally {
+      vi.unstubAllGlobals();
+      if (secure) Object.defineProperty(window, "isSecureContext", secure);
+      else Reflect.deleteProperty(window, "isSecureContext");
+    }
   });
 });

@@ -1,7 +1,8 @@
 /**
  * "Pop out pane" (`pane.pop_out`): the pane menu's Pop out, from ⌘K or a key the app binds. Only in a workspace that
- * turns pop out on (`allow: { popOut: true }`); it runs where the adapter can pop out (@jali/react's floating window,
- * through `setPopOutPort`) and the focused pane allows it. No default key.
+ * turns pop out on (`allow: { popOut: true }`); it runs where the workspace's adapter can pop out (@jali/react's
+ * floating window, given with its DOM port as `DomPort.popOut`; or the older `setPopOutPort`, for every workspace) and
+ * the focused pane allows it. No default key.
  */
 import { afterEach, describe, expect, it } from "vite-plus/test";
 import {
@@ -13,7 +14,7 @@ import {
   row,
   runCommand,
 } from "@jali/core";
-import { setPopOutPort, storeOf } from "@jali/core/adapter";
+import { noDom, setPopOutPort, storeOf } from "@jali/core/adapter";
 
 const note = { kind: "note", title: "Note" };
 const fixed = { kind: "fixed", title: "Fixed", allow: { popOut: false } };
@@ -76,5 +77,31 @@ describe("the Pop out pane command", () => {
     expect(listed(jali)?.reason).toBeTruthy();
     expect(runCommand(jali, "pane.pop_out")).toBe(false);
     expect(ran).toEqual([]);
+  });
+
+  it("uses the workspace's own port, from its adapter's DOM port: one workspace's never runs another's", () => {
+    const mine = make({ popOut: true }),
+      other = make({ popOut: true });
+    storeOf(mine).dom.use({ ...noDom, popOut: port(true) });
+    for (const jali of [mine, other]) jali.actions.focus("a");
+    expect(listed(mine)?.disabled).toBe(false);
+    expect(listed(other)?.disabled).toBe(true);
+    expect(runCommand(other, "pane.pop_out")).toBe(false);
+    expect(runCommand(mine, "pane.pop_out")).toBe(true);
+    expect(ran).toEqual(["a"]);
+  });
+
+  it("prefers the workspace's own port to the one set for every workspace", () => {
+    const shared: string[] = [];
+    setPopOutPort({ can: () => true, run: (_, id) => shared.push(id) });
+    const jali = make({ popOut: true });
+    jali.actions.focus("a");
+    storeOf(jali).dom.use({ ...noDom, popOut: port(false) });
+    expect(listed(jali)?.disabled).toBe(true);
+    expect(runCommand(jali, "pane.pop_out")).toBe(false);
+    storeOf(jali).dom.use({ ...noDom, popOut: port(true) });
+    expect(runCommand(jali, "pane.pop_out")).toBe(true);
+    expect(ran).toEqual(["a"]);
+    expect(shared).toEqual([]);
   });
 });

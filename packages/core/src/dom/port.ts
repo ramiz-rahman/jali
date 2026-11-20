@@ -9,6 +9,7 @@
  * (`data-jali-chrome`, `data-pane-region`, `data-no-drag`, `data-drag-ok`, `data-autofocus`).
  */
 import type { Axis, NodeId, Rect } from "../layout/types";
+import type { PopOutPort } from "../commands/registry";
 
 /** The line drawn along a divider while it is dragged, as the adapter renders it. */
 export interface DividerLine {
@@ -59,6 +60,9 @@ export interface DomPort {
   dragging(what: DragKind | null, divider?: HTMLElement): void;
   /** A brief highlight on a tab, so the eye finds where a pane went. */
   flash(tab: HTMLElement): void;
+  /** How this adapter pops a pane out into a floating window, where it can (`pane.pop_out`). Optional: without it
+   *  (and without the older `setPopOutPort`), the command can't run. */
+  popOut?: PopOutPort;
 }
 
 /** The port before an adapter gives one: nothing found, nothing marked. */

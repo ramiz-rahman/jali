@@ -33,36 +33,42 @@ export interface Command {
 
 /** A command as the registry holds it (adapters): with its check, run on the store. */
 export interface CommandDef extends Omit<Command, "run"> {
-  /** Why the command can't run now (silent without a message); undefined when it can. */
-  check?: (x: Snapshot) => RefusalStep | undefined;
+  /** Why the command can't run now (silent without a message); undefined when it can. `store` is the workspace the
+   *  snapshot is of: a check that asks the workspace's adapter (Pop out) needs it, and can't run without it. */
+  check?: (x: Snapshot, store?: UiStore) => RefusalStep | undefined;
   run: (store: UiStore) => void;
 }
 
 /**
- * How the framework adapter pops a pane out into a floating window (@jali/react's, set as it loads): `can` says
- * whether this browser can, `run` opens the pane. Core has no window of its own to open, so without one `pane.pop_out`
- * can't run.
+ * How the framework adapter pops a pane out into a floating window: `can` says whether this browser can, `run` opens
+ * the pane. Core has no window of its own to open, so without one `pane.pop_out` can't run. An adapter gives it to
+ * each workspace with its DOM port (`DomPort.popOut`, through `store.dom.use`); @jali/react's `reactDom` has one.
  */
 export interface PopOutPort {
   can(): boolean;
   run(jali: Jali, pane: NodeId): unknown;
 }
 let popOutPort: PopOutPort | null = null;
-/** Set (or clear) the adapter's way to pop a pane out (adapters). */
+/**
+ * Set (or clear) a way to pop a pane out for every workspace that has none of its own (adapters). The older way, kept
+ * for adapters that use it: a workspace's own `DomPort.popOut` comes first. @jali/react no longer calls it.
+ */
 export const setPopOutPort = (port: PopOutPort | null) => {
   popOutPort = port;
 };
+/** The way to pop a pane out of `store`'s workspace: its adapter's own, else the one set for every workspace. */
+const popOutOf = (store: Pick<UiStore, "dom"> | undefined) => store?.dom.port.popOut ?? popOutPort;
 
 /** `check`, then the app's `allow` for the focused pane (a command for something it doesn't allow is greyed out,
  *  saying why). Leaving maximise or full screen is always allowed. */
 const also =
-  (check: (x: Snapshot) => RefusalStep | undefined, control: PaneControl) =>
-  (x: Snapshot): RefusalStep | undefined => {
+  (check: (x: Snapshot, store?: UiStore) => RefusalStep | undefined, control: PaneControl) =>
+  (x: Snapshot, store?: UiStore): RefusalStep | undefined => {
     const id = x.s.view.focused;
     const leaving =
       (control === "maximise" && x.s.view.zoomed === id) ||
       (control === "fullScreen" && x.s.fullScreen === id);
-    return check(x) ?? (leaving ? undefined : notAllowed(x, id, control));
+    return check(x, store) ?? (leaving ? undefined : notAllowed(x, id, control));
   };
 const needFocus = ({ s }: Snapshot) => (s.view.focused ? undefined : refuse("unavailable"));
 const needLauncher = (x: Snapshot) =>
@@ -137,12 +143,13 @@ function buildCommands(env: Env): CommandDef[] {
             title: t.popOut,
             group: g.pane,
             check: also(
-              (x) => needFocus(x) ?? (popOutPort?.can() ? undefined : refuse("unavailable")),
+              (x, store) =>
+                needFocus(x) ?? (popOutOf(store)?.can() ? undefined : refuse("unavailable")),
               "popOut",
             ),
             run: (u: UiStore) => {
               const id = u.get().view.focused;
-              if (id) void popOutPort?.run(u.jali, id);
+              if (id) void popOutOf(u)?.run(u.jali, id);
             },
           },
         ]
@@ -384,7 +391,7 @@ export const commandDefsOf = (store: Pick<UiStore, "env">): readonly CommandDef[
 
 function run(store: UiStore, id: string): boolean {
   const c = forEnv(store.env).byId.get(id);
-  if (!c || c.check?.(store.snapshot())) return false;
+  if (!c || c.check?.(store.snapshot(), store)) return false;
   c.run(store);
   return true;
 }
@@ -464,7 +471,7 @@ export function listCommands(jali: Jali): ListedCommand[] {
       run: c.run,
     })),
     ...commandDefsOf(store).map((c): ListedCommand => {
-      const refused = c.check?.(x);
+      const refused = c.check?.(x, store);
       return {
         key: c.id,
         id: c.id,

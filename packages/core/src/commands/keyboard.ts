@@ -69,7 +69,7 @@ function run(store: UiStore, id: string): boolean {
   }
   const command = commandById(store, id);
   if (!command) return false;
-  const refusal = command.check?.(store.snapshot());
+  const refusal = command.check?.(store.snapshot(), store);
   if (refusal?.msg) store.announce(refusal.msg);
   if (!refusal) command.run(store);
   return true;
