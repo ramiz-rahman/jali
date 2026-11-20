@@ -46,7 +46,12 @@ const explore = definePane("explore", {
     const [filters, set] = usePaneState<Filters>(
       "filters",
       { q: "", seed: ++seed },
-      { parse: (v) => (isFilters(v) ? { ...v } : undefined) },
+      {
+        parse: (v) => {
+          if (isFilters(v) && v.q === "throw") throw new Error("a parse that throws");
+          return isFilters(v) ? { ...v } : undefined;
+        },
+      },
     );
     rerender = useReducer((n: number) => n + 1, 0)[1];
     update = set;
@@ -94,6 +99,12 @@ describe("usePaneState", () => {
     expect(seen.at(-1)).toEqual({ q: "", seed: 1 });
     act(() => update((prev) => ({ ...prev, q: "faro" })));
     expect(seen.at(-1)).toEqual({ q: "faro", seed: 1 });
+  });
+
+  it("starts from initial when parse throws, and keeps what was stored until the pane sets its own", () => {
+    const store = mount({ q: "throw", seed: 9 });
+    expect(seen.at(-1)).toEqual({ q: "", seed: 1 });
+    expect(store.get().paneState.x?.filters).toEqual({ q: "throw", seed: 9 });
   });
 
   it("gives the same value across renders when parse builds a new object", () => {
