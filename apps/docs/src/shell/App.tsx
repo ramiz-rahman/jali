@@ -70,6 +70,15 @@ function useLoadedPage(path: string): Loaded | null {
   return loaded;
 }
 
+/** The address's #section as an id. A malformed one ("#%") is used as it stands rather than throwing. */
+function decodeHash(hash: string): string {
+  try {
+    return decodeURIComponent(hash);
+  } catch {
+    return hash;
+  }
+}
+
 export function App() {
   useLinkInterception();
   const path = usePath();
@@ -102,7 +111,7 @@ export function App() {
       const canonical = document.querySelector<HTMLLinkElement>('link[rel="canonical"]');
       if (canonical) canonical.href = new URL(loaded.path, canonical.href).href;
     }
-    const hash = decodeURIComponent(window.location.hash.slice(1));
+    const hash = decodeHash(window.location.hash.slice(1));
     if (hash) document.getElementById(hash)?.scrollIntoView();
     if (!first.current && !hash)
       document.querySelector<HTMLElement>("[data-page-focus]")?.focus({ preventScroll: true });

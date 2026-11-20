@@ -3,6 +3,7 @@
  * (top-level await), so the first client render matches the prerendered HTML.
  */
 import { App, seedPage } from "./App";
+import { ErrorBoundary } from "./ErrorBoundary";
 import { pages } from "../site/pages";
 import { InitialPath, currentPath } from "../site/router";
 import "@jali/react/styles.css";
@@ -23,7 +24,9 @@ if (typeof window !== "undefined") {
 export default function Site({ path }: { path: string }) {
   return (
     <InitialPath.Provider value={path}>
-      <App />
+      <ErrorBoundary>
+        <App />
+      </ErrorBoundary>
     </InitialPath.Provider>
   );
 }
