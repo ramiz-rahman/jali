@@ -6,7 +6,7 @@
  * What is kept is only checked for its outline here (an object of layouts by desk id): Jali reads each layout itself
  * when the desk is chosen, and builds the desk's own when it can't.
  */
-import { layout, type Jali, type Layout } from "@jali/core";
+import type { Jali, Layout } from "@jali/core";
 import { isRecord, readKept, writeKept, type Kept } from "#shared/store";
 
 type Layouts = Readonly<Record<string, Layout>>;
@@ -38,13 +38,6 @@ export interface Desks {
   resetAll(jali: Jali): void;
 }
 
-/** A layout's panes, as one string: enough to tell a desk's own layout from one the person changed. */
-const panesOf = (l: Layout) =>
-  layout.tree
-    .panes(l.root)
-    .map((p) => p.id)
-    .join(" ");
-
 export function createDesks(persist = true): Desks {
   let layouts: Layouts = persist ? readKept(KEPT_DESKS) : {};
   const write = () => persist && writeKept(KEPT_DESKS, layouts);
@@ -65,26 +58,10 @@ export function createDesks(persist = true): Desks {
       }),
     resetAll(jali) {
       const desk = jali.get().presetId;
-      const unsaved = Object.keys(jali.get().unsaved).length;
       const result = jali.actions.resetLayout();
       if (result.ok) return forget(desk);
-      if (result.reason !== "unsaved") return;
-      // Jali asked. If the person discards, the reset lands as the next change: the desk's own panes, with the work
-      // gone. Any other next change (or none, after "Keep editing") forgets nothing.
-      const preset = jali.env.presets.find((p) => p.id === desk);
-      if (!preset) return;
-      const own = panesOf(preset.build());
-      const stop = jali.on("layout", ({ layout: next, source }) => {
-        stop();
-        const discarded = Object.keys(jali.get().unsaved).length < unsaved;
-        if (
-          source === "action" &&
-          jali.get().presetId === desk &&
-          discarded &&
-          panesOf(next) === own
-        )
-          forget(desk);
-      });
+      // Jali asked about unsaved work: forget the other desks only if the person discards and the reset lands.
+      void result.settled?.then((end) => end.ok && forget(desk));
     },
   };
 }

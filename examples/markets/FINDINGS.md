@@ -12,6 +12,8 @@ Markets is built on the public API alone (`@jali/core`, `@jali/react`). Each fin
 
 **Suggested change.** Give a refusal that asks a question a `settled: Promise<Change | null>`, resolving with the change when the person goes ahead and `null` when they don't.
 
+**Now.** An "unsaved" refusal carries `settled: Promise<ActionResult>` (21 Nov 2026), as "pending" did: `{ ok: true, pane }` when the person discards and the action is made, a refusal (`"kept"`) when not. `resetAll` forgets the other desks when it resolves ok; the inference is gone.
+
 ## 2. The `layout` event doesn't say which action caused it
 
 **Wanted.** Tell a reset apart from any other change that happens to land next (finding 1), and generally react to particular actions.
