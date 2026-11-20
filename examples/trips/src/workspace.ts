@@ -164,9 +164,6 @@ export function createTripsJali(services: Services, options: Options = {}): Jali
     // On a portrait phone: a pane with the one it follows, one above the other. The place shows under the map it
     // follows, and the day under the overview, instead of one at a time.
     phone: { stack: true },
-    // Days lays out seven days, the map and the place: nine panes. Jali's default cap of 8 would fold one even on a
-    // screen with room for all of them, so the trip starts with 10 (a person can change it in Settings).
-    settings: { paneCap: 10 },
     // Pop out a pane into its own window: a day beside the map on a second screen. Jali leaves it off until an
     // app turns it on; the button goes before Close in each header (the rest is in the pane's ⋯ menu).
     allow: { popOut: true },

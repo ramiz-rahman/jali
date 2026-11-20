@@ -121,6 +121,10 @@ function DayBody({
     if (!inPeek) selectPlace(jali, id, { from: node.id });
     else select(place({ id }));
   };
+  /** The cursor to a stop, if there is one there (the first or last stop has nothing past it). */
+  const moveCursorTo = (id: string | undefined) => {
+    if (id) moveCursor(id);
+  };
   const shift = (from: number, to: number) => {
     if (to < 0 || to >= stops.length) return;
     const p = mustPlace(stops[from]!);
@@ -140,10 +144,10 @@ function DayBody({
     if (e.altKey && (k === "ArrowUp" || k === "ArrowDown"))
       shift(i, k === "ArrowUp" ? i - 1 : i + 1);
     else if (e.altKey) return;
-    else if (k === "ArrowDown" || k === "j") stops[i + 1] && moveCursor(stops[i + 1]!);
-    else if (k === "ArrowUp" || k === "k") stops[i - 1] && moveCursor(stops[i - 1]!);
-    else if (k === "Home") stops[0] && moveCursor(stops[0]);
-    else if (k === "End") stops.length && moveCursor(stops[stops.length - 1]!);
+    else if (k === "ArrowDown" || k === "j") moveCursorTo(stops[i + 1]);
+    else if (k === "ArrowUp" || k === "k") moveCursorTo(stops[i - 1]);
+    else if (k === "Home") moveCursorTo(stops[0]);
+    else if (k === "End") moveCursorTo(stops[stops.length - 1]);
     else if (k === " ") peek(place({ id }));
     else if (k === "Enter") selectPlace(jali, id, { from: node.id, open: true });
     else if (k === "m" || k === "M") moveToDay(id);

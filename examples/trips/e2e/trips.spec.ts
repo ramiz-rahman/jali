@@ -128,18 +128,6 @@ test("optimise a day, then undo it", async ({ page }) => {
 });
 
 /** Drag the first stop of `from` onto the second stop of `to`, by its handle, as a person would. */
-async function dragStop(page: Page, from: string, to: string) {
-  const handle = pane(page, from).locator(".stop-handle").first();
-  const target = pane(page, to).locator(".stop-item").nth(1);
-  const h = (await handle.boundingBox())!;
-  const t = (await target.boundingBox())!;
-  await page.mouse.move(h.x + h.width / 2, h.y + h.height / 2);
-  await page.mouse.down();
-  await page.mouse.move(h.x + 40, h.y + 30, { steps: 4 });
-  await page.mouse.move(t.x + 80, t.y + 8, { steps: 8 });
-  await page.mouse.up();
-}
-
 /** Whether a pane shows whole in the week's strip (Days), not cut by its edges. */
 const wholeInWeek = (page: Page, id: string) =>
   page.evaluate((id) => {
@@ -247,6 +235,44 @@ test("a pane split off a day at the week's edge scrolls into view", async ({ pag
   await expect(opened).toHaveCount(1);
   const id = (await opened.getAttribute("data-pane"))!;
   await expect.poll(() => wholeInWeek(page, id)).toBe(true);
+});
+
+/** The day's stop pins inside the map's box. */
+const stopPinsInView = (page: Page) =>
+  page.evaluate(() => {
+    const m = document
+      .querySelector('.jali-pane[data-kind="map"] .map-canvas')!
+      .getBoundingClientRect();
+    return [...document.querySelectorAll(".pin[data-role=stop]")].filter((e) => {
+      const r = e.getBoundingClientRect();
+      return r.left > m.left && r.right < m.right && r.top > m.top && r.bottom < m.bottom;
+    }).length;
+  });
+
+test("a layout's own selection keeps the map framed on the day; a place the person picks flies there", async ({
+  page,
+}) => {
+  await expect.poll(() => stopPinsInView(page)).toBe(7);
+  // Stay's place pane follows the map; whichever place they settle on, it comes from the layout, not a pick.
+  await layout(page, "Stay").click();
+  await expect(pane(page, "map").locator(".pin[data-selected]")).toHaveCount(1);
+  await page.waitForTimeout(1200);
+  expect(await stopPinsInView(page)).toBe(7);
+  // Picking a hotel across town brings it into view.
+  await pane(page, "explore")
+    .getByRole("option", { name: /Ari Garden Loft/ })
+    .click();
+  await expect
+    .poll(() =>
+      page.evaluate(() => {
+        const m = document
+          .querySelector('.jali-pane[data-kind="map"] .map-canvas')!
+          .getBoundingClientRect();
+        const r = document.querySelector(".pin[data-selected]")!.getBoundingClientRect();
+        return r.left > m.left && r.right < m.right && r.top > m.top && r.bottom < m.bottom;
+      }),
+    )
+    .toBe(true);
 });
 
 test("a day comes out of the week by its header, onto the side of a pane beside it", async ({

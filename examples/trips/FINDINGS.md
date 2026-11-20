@@ -1,6 +1,8 @@
 # Findings: what building Trips taught us about Jali's public API
 
-Trips is built on the public API alone (`@jali/core`, `@jali/react`, and `storeOf` from `@jali/core/adapter` in tests only). Nothing under `packages/` was changed. Each finding says what the app wanted, what happened, what the app does instead, and a suggested change. The most important come first.
+Trips is built on the public API alone (`@jali/core`, `@jali/react`, and `storeOf` from `@jali/core/adapter` in tests only). Each finding says what the app wanted, what happened, what the app does instead, and a suggested change. The most important come first.
+
+**Status, 20 Nov 2026.** Since these were written, Jali has fixed finding 2 (a preset makes a list's selection agree with its followers), finding 8 (Following shows as an icon in a narrow header), and the folding behind findings 6 and 11 for Days, which is now a row that scrolls sideways (`row({ scroll: "x" }, …)`). Trips dropped the workarounds those made unnecessary. Each finding below says where it stands.
 
 ## 1. A map-first app wants one selected place; Jali has one selection per list
 
@@ -23,6 +25,8 @@ It works, and it still runs through Jali's own selection and followers (the rest
 **Workaround.** The overview and the map watch their followers' refs (`useJaliModel`) and, when a layout change gives a follower another object, select that object (`src/panes/trip.tsx`, `src/panes/map.tsx`). Moving the cursor still drives the followers; the watch only fires when a follower's object changes.
 
 **Suggested change.** When a layout replaces a follower's ref (a preset, `setLayout`, Back, a link), set the source's selection to it, or drop the source's selection so a list's "start on what the follower shows" logic runs again. Either way, say which in the Following guide.
+
+**Now.** Fixed in Jali: after a preset or `setLayout`, a list that stays and its followers agree, and the layout's word wins. Trips' watches remain only for a list's first show, when it has no selection yet to agree with. One consequence: the map can no longer tell that selection from a person's pick, so it compares the preset id (finding 11, "A selection can't say where it came from").
 
 ## 3. The selection is not in the link
 
@@ -66,6 +70,8 @@ What doesn't work: a day folded into a tab can't be a drop target. Its pane is m
 
 **Suggested change.** Show a tab's pane when an outside drag rests on its tab for a moment, as browsers do with tabs, or expose a "drag hover" hook on `.jali-tab` so the app can call `focus`.
 
+**Now.** Days no longer folds: the week is a row that scrolls, and a stop held at its edge scrolls on to a day out of view (`edgeScroll`). A drop onto a folded tab is still not possible elsewhere.
+
 ## 7. "Is that other pane on screen?" takes a model lookup
 
 **Wanted.** The map shows Explore's results while Explore is visible, and the place's neighbours otherwise.
@@ -86,6 +92,8 @@ What doesn't work: a day folded into a tab can't be a drop target. Its pane is m
 
 **Suggested change.** Below a header width, show Following and Keep as icons, with their names as labels, as pinned tabs already do.
 
+**Now.** Fixed in Jali for narrow headers. Trips goes further in its own styles: Following is an icon until the header is hovered or focused, at any width.
+
 ## 9. A pane in two presets showing different objects kept its component mounted
 
 **Observed.** The Plan, Days, Stay and Budget layouts each have a pane `map`, showing different days. The presets guide says such a pane "starts afresh". In the browser the MapLibre canvas was the same element across every preset switch, and when the map followed the overview to another day. For a WebGL map that is what the app wants: no context rebuilt, no tiles fetched again.
@@ -94,7 +102,7 @@ What doesn't work: a day folded into a tab can't be a drop target. Its pane is m
 
 ## 10. What worked as hoped
 
-- **A pane that wants the room.** `width: { min: 360, comfortable: 640 }` on the map and smaller minimums elsewhere: at 1440 pixels Plan fits four panes; at 1024 the place folds behind the map it follows; on Days, the seven days fold into tabs and come back as the window widens. A ResizeObserver calling `map.resize()` kept the canvas the size of its box through divider drags and folds.
+- **A pane that wants the room.** `width: { min: 360, comfortable: 640 }` on the map and smaller minimums elsewhere: at 1440 pixels Plan fits four panes; at 1024 the place folds behind the map it follows; on Days, the seven days keep their width in a row that scrolls sideways between the overview and the map. A ResizeObserver calling `map.resize()` kept the canvas the size of its box through divider drags and folds.
 - **Pause.** `paused` stops camera moves and resizes while the map is behind a tab, folded, or on another phone screen; the last move asked for runs when it is shown again. The map stays mounted, so its WebGL context survives.
 - **A follower of another kind.** The map follows the overview with `follow: (selected) => ({ day: selected.params.n })`. The day plan and the map move together, as one change.
 - **Keep to compare.** Keep a place pane, select another hotel, and a second place pane opens beside it. Stay opens that way from its preset (`kept: true`).
@@ -107,7 +115,7 @@ What doesn't work: a day folded into a tab can't be a drop target. Its pane is m
 
 The trip changed from one compact city (Lisbon) to two cities 680 km apart (Bangkok, then Phuket, with a flight between). Most of that was the app's own model: a city on every place, each day's city and hotel, per-city travel rules, a transfer day that starts with the flight. Jali needed nothing new for it. These are what it showed about Jali.
 
-**The default pane cap folds a preset on a screen with room.** Days lays out seven days, the map and the place: nine panes. Jali's default cap is 8, so one day folded even at 3200 pixels wide. The workspace test caught it, not the eye: the folded tab looked like any fold for room. The app passes `settings: { paneCap: 10 }`, but that is only the default for a person with no saved settings, and a preset can't say "I am nine panes". Suggested change: let a preset raise the cap while it is in use (`{ id, label, layout, paneCap }`), and say in the shelf when a pane folded for the cap rather than for room.
+**The default pane cap folds a preset on a screen with room.** Days lays out seven days, the map and the place: nine panes. Jali's default cap is 8, so one day folded even at 3200 pixels wide. The workspace test caught it, not the eye: the folded tab looked like any fold for room. The app passed `settings: { paneCap: 10 }`, but that is only the default for a person with no saved settings, and a preset can't say "I am nine panes". Suggested change: let a preset raise the cap while it is in use (`{ id, label, layout, paneCap }`), and say in the shelf when a pane folded for the cap rather than for room. Now: Days is a row that scrolls, which the cap counts as one pane, so Trips keeps Jali's default.
 
 **A selection can't say where it came from.** The map flies to a place when the person picks it, but must not fly when the app sets the map's selection to match a place pane the layout brought (finding 2's watch): on a Phuket day it would fly to a Bangkok place. Jali's events carry `input` (person, code, agent), but a selection fires no event and records no source. The map remembers the one selection it set itself and skips it (`quietSelection` in `src/panes/map.tsx`). Suggested change: a `select` event with `input`, or `select(ref, { quiet: true })` for selections the app makes that should not count as the person's.
 

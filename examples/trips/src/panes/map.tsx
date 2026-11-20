@@ -33,6 +33,7 @@ import {
   useCommands,
   useJali,
   useJaliModel,
+  useJaliState,
   useTheme,
   type PaneProps,
 } from "@jali/react";
@@ -373,9 +374,8 @@ function MapPane({ params, paused, node, inPeek }: PaneProps<typeof mapParams>) 
     mapRef.current?.setStyle(STYLE[theme], { diff: false });
   }, [theme]);
 
-  // As a list does on first show: start on what the place pane beside it shows, so nothing jumps. And again when a
-  // layout (a preset, a link, Back) puts another place in that pane: Jali keeps this pane's selection across a
-  // preset switch, but the new preset's place pane arrives with its own place (FINDINGS.md).
+  // As a list does on first show: start on what the place pane beside it shows, so nothing jumps. (After a preset
+  // or a link, Jali itself makes this pane's selection agree with the place pane the layout brought.)
   const follower = model.panes.find(
     (p) => p.linkedTo === node.id && p.follows && p.ref.kind === "place",
   );
@@ -512,10 +512,14 @@ function MapPane({ params, paused, node, inPeek }: PaneProps<typeof mapParams>) 
   }, [params.day]);
 
   // A place selected anywhere: bring it into view, gently, unless it is already well inside. Not on the map's first
-  // show, which frames the day instead (the selection may be in the other city).
+  // show, which frames the day instead (the selection may be in the other city), and not when a layout brought it:
+  // a preset agrees this pane's selection with its place pane in the same step, and the map keeps the day framed.
   const firstSelection = useRef(true);
+  const presetId = useJaliState((s) => s.presetId);
+  const lastPreset = useRef(presetId);
   useEffect(() => {
-    if (firstSelection.current || quietSelection.current === selected) {
+    const byLayout = lastPreset.current !== presetId;
+    if (firstSelection.current || byLayout || quietSelection.current === selected) {
       firstSelection.current = false;
       quietSelection.current = null;
       return;
@@ -545,6 +549,10 @@ function MapPane({ params, paused, node, inPeek }: PaneProps<typeof mapParams>) 
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selected]);
+  // After the effect above, so that in a step where the preset and the selection change together it sees the old one.
+  useEffect(() => {
+    lastPreset.current = presetId;
+  }, [presetId]);
 
   const showDay = (n: number) => jali.actions.openHere(node.id, mapRef_(n));
   useCommands(
