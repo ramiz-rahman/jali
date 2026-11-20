@@ -27,6 +27,19 @@
   - `e2e/follow.spec.ts` only passed on ports containing a 5; it is fixed.
   - `@jali/core`'s `commands/format.ts:13-20` reads `navigator` when the module loads, so a prerendered keymap label depends on the build machine. That goes into phase 2.
 
+**Phase 2, done 20 Nov 2026 (master `ab47134`):**
+
+- **Fixed:**
+  - P2: narrow subscriptions, with render-count tests. A keyboard resize commits 20 frames over 10 steps, down from 100. A 60-move pane drag runs `frames()` 5 times, down from 60, and the divider layer 0 times.
+  - P5–P8: one roving-keys hook, one `ModalDialog` and one `Menu`, built in `packages/react/src/a11y` with no new dependency; plus forced colours, readable Loading text, and the discard question holding the keymap.
+  - P10, P11, P13, P14, P18 and P19: `usePaneState` keeps its first value and can `parse`; several callers of a pane hook merge; pane state and selection belong to the object; one `sameRef`; `jali.destroy()`; hydration-safe Pop out and key labels.
+- **Gates:** unit tests 1,131; React 18 1,128 (one test skipped, below); browser tests: Jali 142, Studio 27, Trips 19, Markets 6, docs 19. Everything passes except **size**.
+- **Open:**
+  - React 18 client-renders panes after hydrating a server-rendered workspace (DECISIONS, "Server rendering on React 18").
+  - `PaneFrame` and `TabStrip` still subscribe to all titles.
+  - Toasts aren't inert behind a modal.
+  - Saved pane state from before this change is not read back, so it is lost once.
+
 ## Verdict
 
 The architecture is sound and some of it is excellent:
