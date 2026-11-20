@@ -5,6 +5,7 @@
  */
 import { createJali, type Command, type Jali, type JaliOptions } from "@jali/core";
 import { makerCommand } from "#shared/maker/maker";
+import { themeCommand } from "#shared/theme";
 import { prepareTicket, show, showBlotter } from "./actions";
 import { listName } from "./lists";
 import type { AssetClass } from "./market/types";
@@ -142,17 +143,7 @@ export function createMarketsJali(services: Services, options: Options = {}): Ja
       group: "Trading",
       run: (jali) => showBlotter(jali),
     },
-    {
-      id: "markets.theme",
-      title: "Switch between light and dark",
-      group: "Settings",
-      run: (jali) => {
-        const { theme } = jali.get().settings;
-        const systemDark = !!window.matchMedia?.("(prefers-color-scheme: dark)").matches;
-        const dark = theme === "dark" || (theme === "system" && systemDark);
-        jali.actions.changeSettings({ theme: dark ? "light" : "dark" });
-      },
-    },
+    themeCommand("markets.theme"),
   ];
 
   const jali = createJali({
