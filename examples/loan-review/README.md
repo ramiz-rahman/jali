@@ -19,4 +19,12 @@ vp dev examples/loan-review  # http://localhost:5350, or the next free port
 - `src/workspace.ts`: the workspace is the page and nothing else (`page`, with no layout or presets), so Jali opens on the page and stays in it.
 - `src/review/profile.ts`: the page (`definePage`): its views, how each binds to an application, and Split view's starting layout.
 - `src/review/`: the queue, the header, the Overview and the views' panes.
+- `src/review/facts.ts`: who each application is for, read from the database before the page opens; the page binds its views from it.
 - The data layer, the record and related panes it builds on, and the top bar come from [`examples/shared`](../shared).
+
+The borrowers, groups, officers and loans are made up, and the top bar says so.
+
+## Tests
+
+- `e2e/`: Loan review's own browser tests, on their own server: the shared quality checks on every view and in Split view, in both themes (axe, a 360–2200px width sweep, nothing in the console; `examples/shared/e2e/quality.ts`). Run them from the repository's root with `pnpm exec playwright test -c examples/loan-review`.
+- Jali's own browser tests (`e2e/` at the repository's root) also run against this app.
