@@ -17,7 +17,7 @@ import {
 import { useMarket, useQuotes } from "../market/react";
 import type { Instrument } from "../market/types";
 import { useServices } from "../services";
-import { useStore } from "../store";
+import { useStore } from "#shared/store";
 import { inUsd, notional, unrealized, type Side } from "../trading/trading";
 import * as f from "../ui/format";
 import { Delta, Empty, Scroller, Segmented } from "../ui/parts";
@@ -240,6 +240,8 @@ function Ticket() {
               {f.price(inst, draft.side === "buy" ? q.ask : q.bid)}
               {value ? <> · about ${f.int(value)}</> : null}
             </>
+          ) : inst ? (
+            `${inst.name} · price not known yet`
           ) : (
             "Choose an instrument"
           )}

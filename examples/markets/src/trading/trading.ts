@@ -1,9 +1,13 @@
 /**
  * A paper-trading book: positions, orders and fills against the simulated market. Market orders fill at the touch
  * (a buy at the ask, a sell at the bid); limit orders work until the market reaches them.
+ *
+ * Only real prices are traded on: an order fills at a finite price above zero, and a market order is refused while
+ * the instrument has no live bid and ask (a live feed before its first quote). The book kept on this device is read
+ * back through `KEPT_BOOK`, which drops anything that isn't a finite number where one belongs.
  */
+import { arrayOf, createKeptStore, finite, isRecord, type Kept, type Store } from "#shared/store";
 import type { Instrument, MarketData, Quote } from "../market/types";
-import { createStore, saved, type Store } from "../store";
 
 export type Side = "buy" | "sell";
 
@@ -70,9 +74,16 @@ export const notional = (inst: Instrument, qty: number, price: number) =>
 export const inUsd = (inst: Instrument, amount: number, price: number) =>
   inst.assetClass === "fx" && !inst.symbol.endsWith("USD") ? amount / price : amount;
 
-/** Unrealised P&L in USD at the market's mid. */
+/** A quote's bid and ask, when they are real prices: both finite and above zero, and not a placeholder. */
+export function touch(q: Quote | undefined): { bid: number; ask: number } | undefined {
+  if (!q || q.pending) return undefined;
+  const ok = (n: number) => Number.isFinite(n) && n > 0;
+  return ok(q.bid) && ok(q.ask) ? { bid: q.bid, ask: q.ask } : undefined;
+}
+
+/** Unrealised P&L in USD at the market's mid; 0 while there is no live price. */
 export function unrealized(inst: Instrument, p: Position, q: Quote | undefined): number {
-  if (!q || !p.qty) return 0;
+  if (!touch(q) || !q || !p.qty) return 0;
   const mark = (q.bid + q.ask) / 2;
   return inUsd(inst, notional(inst, p.qty, mark - p.avgPrice), mark);
 }
@@ -92,15 +103,91 @@ const START: Book = {
   nextId: 1,
 };
 
-const KEY = "markets:book";
+const SIDES: readonly string[] = ["buy", "sell"];
+const STATUSES: readonly string[] = ["working", "filled", "cancelled"];
+const text = (v: unknown) => (typeof v === "string" && v ? v : undefined);
+const above0 = (v: unknown) => {
+  const n = finite(v);
+  return n !== undefined && n > 0 ? n : undefined;
+};
+const wholeId = (v: unknown) => {
+  const n = finite(v);
+  return n !== undefined && Number.isInteger(n) && n > 0 ? n : undefined;
+};
+
+function position(v: unknown): Position | undefined {
+  if (!isRecord(v)) return undefined;
+  const symbol = text(v.symbol);
+  const qty = finite(v.qty);
+  const avgPrice = finite(v.avgPrice);
+  const realized = finite(v.realized);
+  return symbol &&
+    qty !== undefined &&
+    avgPrice !== undefined &&
+    avgPrice >= 0 &&
+    realized !== undefined
+    ? { symbol, qty, avgPrice, realized }
+    : undefined;
+}
+function order(v: unknown): Order | undefined {
+  if (!isRecord(v)) return undefined;
+  const o = {
+    id: wholeId(v.id),
+    symbol: text(v.symbol),
+    side: SIDES.includes(v.side as string) ? (v.side as Side) : undefined,
+    qty: above0(v.qty),
+    type: v.type === "market" || v.type === "limit" ? v.type : undefined,
+    status: STATUSES.includes(v.status as string) ? (v.status as Order["status"]) : undefined,
+    time: finite(v.time),
+  };
+  if (Object.values(o).some((x) => x === undefined)) return undefined;
+  const limit = above0(v.limit);
+  if (o.type === "limit" && limit === undefined) return undefined;
+  return { ...(o as Omit<Order, "limit">), ...(o.type === "limit" ? { limit } : {}) };
+}
+function fillOf(v: unknown): Fill | undefined {
+  if (!isRecord(v)) return undefined;
+  const f = {
+    id: wholeId(v.id),
+    orderId: wholeId(v.orderId),
+    symbol: text(v.symbol),
+    side: SIDES.includes(v.side as string) ? (v.side as Side) : undefined,
+    qty: above0(v.qty),
+    price: above0(v.price),
+    time: finite(v.time),
+  };
+  return Object.values(f).some((x) => x === undefined) ? undefined : (f as Fill);
+}
+
+/**
+ * The paper book as kept on this device (version 1; 0 is the same shape, from before versions). A position, order or
+ * fill that doesn't read (a NaN price from an older build, a missing field) is dropped and the rest kept; the next id
+ * is past every id in the book. Anything that isn't a book at all is the demo's starting book.
+ */
+export const KEPT_BOOK: Kept<Book> = {
+  key: "markets:book",
+  version: 1,
+  fallback: START,
+  parse(value, version) {
+    if (version > 1 || !isRecord(value)) return undefined;
+    const positions = arrayOf(value.positions, position);
+    const orders = arrayOf(value.orders, order);
+    const fills = arrayOf(value.fills, fillOf);
+    if (!positions || !orders || !fills) return undefined;
+    const ids = [...orders.map((o) => o.id), ...fills.map((f) => f.id)];
+    const nextId = Math.max(wholeId(value.nextId) ?? 1, ...ids.map((id) => id + 1));
+    return { positions, orders, fills, nextId };
+  },
+};
 
 export function createTrading(market: MarketData, persist = true): Trading {
-  const store = createStore<Book>(persist ? saved.read(KEY, START) : START);
-  if (persist) store.subscribe(() => saved.write(KEY, store.get()));
+  const store = createKeptStore(KEPT_BOOK, persist);
   const fillListeners = new Set<(f: Fill) => void>();
 
+  /** Fills `order` at `price`: never at a price that isn't real, and never into a position that wouldn't be. */
   function fill(order: Order, price: number) {
-    const inst = market.instrument(order.symbol)!;
+    const inst = market.instrument(order.symbol);
+    if (!inst || !Number.isFinite(price) || price <= 0) return;
     const signed = order.side === "buy" ? order.qty : -order.qty;
     store.set((book) => {
       const fillRow: Fill = {
@@ -114,6 +201,7 @@ export function createTrading(market: MarketData, persist = true): Trading {
       };
       const old = book.positions.find((p) => p.symbol === order.symbol);
       const next = applyFill(inst, old, signed, price);
+      if (![next.qty, next.avgPrice, next.realized].every(Number.isFinite)) return book;
       const positions = old
         ? book.positions.map((p) => (p === old ? next : p))
         : [...book.positions, next];
@@ -131,12 +219,15 @@ export function createTrading(market: MarketData, persist = true): Trading {
     });
   }
 
-  /** A limit order fills once the touch reaches it, at the touch. */
+  /** A market order fills at the touch; a limit order once the touch reaches it, at the touch. Without a live bid and
+   *  ask, nothing fills: it waits. */
   function tryFill(order: Order) {
-    const q = market.snapshot({ channel: "quote", symbol: order.symbol });
-    if (order.type === "market") return fill(order, order.side === "buy" ? q.ask : q.bid);
-    if (order.side === "buy" && q.ask <= order.limit!) fill(order, q.ask);
-    if (order.side === "sell" && q.bid >= order.limit!) fill(order, q.bid);
+    const t = touch(market.snapshot({ channel: "quote", symbol: order.symbol }));
+    if (!t) return;
+    const at = order.side === "buy" ? t.ask : t.bid;
+    if (order.type === "market") return fill(order, at);
+    const limit = order.limit ?? NaN;
+    if (order.side === "buy" ? at <= limit : at >= limit) fill(order, at);
   }
 
   return {
@@ -148,8 +239,15 @@ export function createTrading(market: MarketData, persist = true): Trading {
         return { error: "Indices can't be traded here: trade their members." };
       if (!(request.qty > 0) || !Number.isFinite(request.qty))
         return { error: "Enter a quantity above zero." };
-      if (request.type === "limit" && !(request.limit! > 0))
+      if (request.type === "limit" && !(Number.isFinite(request.limit) && (request.limit ?? 0) > 0))
         return { error: "Enter a limit price above zero." };
+      if (
+        request.type === "market" &&
+        !touch(market.snapshot({ channel: "quote", symbol: request.symbol }))
+      )
+        return {
+          error: `${request.symbol}'s price is not known yet, so a market order can't be filled. Wait for its quote, or send a limit order.`,
+        };
       const order: Order = {
         ...request,
         id: store.get().nextId,
@@ -158,7 +256,7 @@ export function createTrading(market: MarketData, persist = true): Trading {
       };
       store.set((b) => ({ ...b, orders: [order, ...b.orders], nextId: b.nextId + 1 }));
       tryFill(order);
-      return store.get().orders.find((o) => o.id === order.id)!;
+      return store.get().orders.find((o) => o.id === order.id) ?? order;
     },
     cancel(orderId) {
       store.set((b) => ({
