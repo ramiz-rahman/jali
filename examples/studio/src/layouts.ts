@@ -5,8 +5,16 @@
  */
 import type { Jali, Layout } from "@jali/core";
 import { saved } from "./store";
+import { isRecord, recordOf } from "./stored";
 
-const KEY = "studio:layouts";
+const KEY = "studio:layouts:v1";
+/** Where they were kept before the key had a version: the same shape. */
+const UNVERSIONED = "studio:layouts";
+
+/** The kept layouts, by preset id. Only an object can be a layout; Jali checks the rest of its shape before it uses
+ *  one (a preset's `saved`), and builds the preset afresh from its design when it can't read it. */
+export const readLayouts = (v: unknown): Record<string, Layout> =>
+  recordOf(v, (l) => (isRecord(l) ? (l as unknown as Layout) : undefined));
 
 export interface Layouts {
   get(id: string): Layout | undefined;
@@ -17,10 +25,10 @@ export interface Layouts {
 }
 
 export function createLayouts(persist = true): Layouts {
-  let layouts: Record<string, Layout> = persist ? saved.read(KEY, {}) : {};
+  let layouts = persist ? saved.readVersioned(KEY, UNVERSIONED, readLayouts) : {};
   const write = () => persist && saved.write(KEY, layouts);
   return {
-    get: (id) => layouts[id],
+    get: (id) => (Object.hasOwn(layouts, id) ? layouts[id] : undefined),
     track: (jali) =>
       jali.on("layout", ({ layout }) => {
         const id = jali.get().presetId;

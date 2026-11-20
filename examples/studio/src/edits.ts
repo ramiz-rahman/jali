@@ -14,6 +14,7 @@ import {
   type WordTime,
 } from "./sessions/sessions";
 import { createStore, saved, useStore, type Store } from "./store";
+import { asString, isNumber, isRecord, recordOf } from "./stored";
 
 export interface Channel {
   /** The fader, in dB: -60 is silence. */
@@ -72,14 +73,72 @@ export type Edits = Store<Readonly<Record<string, SessionEdits>>> & {
   resetMix(session: string): void;
 };
 
-const KEY = "studio:edits";
+const KEY = "studio:edits:v1";
+/** Where they were kept before the key had a version: the same shape. */
+const UNVERSIONED = "studio:edits";
+
+const clamp = (n: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, n));
+
+/** A fader in dB, from silence (-60) to +6, as the fader can set it. */
+const readGain = (v: unknown) => (isNumber(v) ? clamp(v, -60, 6) : undefined);
+
+function readChannel(v: unknown): Channel | undefined {
+  if (!isRecord(v)) return undefined;
+  const gain = readGain(v.gain);
+  const { pan, mute, solo } = v;
+  if (
+    gain === undefined ||
+    !isNumber(pan) ||
+    typeof mute !== "boolean" ||
+    typeof solo !== "boolean"
+  )
+    return undefined;
+  return { gain, pan: clamp(pan, -1, 1), mute, solo };
+}
+
+function readMarker(v: unknown): MarkerData | undefined {
+  if (!isRecord(v)) return undefined;
+  const { id, time, label } = v;
+  return typeof id === "string" && isNumber(time) && time >= 0 && typeof label === "string"
+    ? { id, time, label }
+    : undefined;
+}
+
+/** One session's edits, field by field: a field of the wrong shape is the session's own (none), the rest kept. */
+function readSessionEdits(v: unknown): SessionEdits {
+  const e = isRecord(v) ? v : {};
+  const markers = Array.isArray(e.markers) ? e.markers.map(readMarker) : null;
+  return {
+    corrections: recordOf(e.corrections, asString),
+    speakerNames: recordOf(e.speakerNames, asString),
+    segmentSpeaker: recordOf(e.segmentSpeaker, asString),
+    notes: recordOf(e.notes, asString),
+    // A list with one bad marker is no list the person made: the session's own come back.
+    markers: markers?.every((m): m is MarkerData => m !== undefined)
+      ? markers.sort((a, b) => a.time - b.time)
+      : null,
+    mix: recordOf(e.mix, readChannel),
+    masterGain: readGain(e.masterGain) ?? 0,
+  };
+}
+
+/** The edits kept on this device, checked: only sessions in the library, each read field by field. */
+export const readEdits = (v: unknown): Record<string, SessionEdits> =>
+  Object.fromEntries(
+    Object.entries(recordOf(v, (e) => e))
+      .filter(([id]) => Object.hasOwn(CATALOGUE, id))
+      .map(([id, e]) => [id, readSessionEdits(e)]),
+  );
 
 export function createEdits(persist = true): Edits {
   const store = createStore<Readonly<Record<string, SessionEdits>>>(
-    persist ? saved.read<Record<string, SessionEdits>>(KEY, {}) : {},
+    persist ? saved.readVersioned(KEY, UNVERSIONED, readEdits) : {},
   );
   if (persist) store.subscribe(() => saved.write(KEY, store.get()));
-  const of = (session: string): SessionEdits => ({ ...empty(), ...store.get()[session] });
+  const of = (session: string): SessionEdits => ({
+    ...empty(),
+    ...(Object.hasOwn(store.get(), session) ? store.get()[session] : undefined),
+  });
   const change = (session: string, fn: (e: SessionEdits) => Partial<SessionEdits>) =>
     store.set((all) => ({ ...all, [session]: { ...of(session), ...fn(of(session)) } }));
   const markersOf = (session: string) => of(session).markers ?? sessionById(session)?.markers ?? [];

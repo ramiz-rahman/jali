@@ -40,6 +40,7 @@ import { cue, openFollowing } from "../actions";
 import { usePosition, useTransport } from "../audio/react";
 import { useSessionView, type SessionView } from "../edits";
 import { useServices } from "../services";
+import { asBoolean, asString, recordOf, stringOrNull } from "../stored";
 import { catalogueOf } from "../sessions/catalog";
 import {
   clock,
@@ -59,6 +60,9 @@ import { listMove, showRow } from "./keys";
 
 const transcriptParams = { session: String };
 
+/** Corrections not yet saved, by segment id, as kept in pane state: only text. */
+const readDraft = (v: unknown) => recordOf(v, asString);
+
 function Transcript(props: PaneProps<typeof transcriptParams>) {
   const { edits } = useServices();
   const view = useSessionView(edits, props.params.session);
@@ -77,11 +81,11 @@ function TranscriptBody({
   const { engine, edits } = useServices();
   const jali = useJali();
   const { session } = view;
-  const [draft, setDraft] = usePaneState<Record<string, string>>("draft", {});
-  const [cursor, setCursor] = usePaneState<string | null>("cursor", null);
-  const [follow, setFollow] = usePaneState("follow", true);
+  const [draft, setDraft] = usePaneState<Record<string, string>>("draft", {}, { parse: readDraft });
+  const [cursor, setCursor] = usePaneState<string | null>("cursor", null, { parse: stringOrNull });
+  const [follow, setFollow] = usePaneState("follow", true, { parse: asBoolean });
   // Apollo's lines can be timed on the mission clock (GET), as NASA's transcript prints them.
-  const [onGet, setOnGet] = usePaneState("get", false);
+  const [onGet, setOnGet] = usePaneState("get", false, { parse: asBoolean });
   const hasGet = !!session.clock;
   const cat = catalogueOf(session);
   const word = cat.words.segment;

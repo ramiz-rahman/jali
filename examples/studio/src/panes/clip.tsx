@@ -23,6 +23,7 @@ import { cue } from "../actions";
 import { useFrame, useTransport } from "../audio/react";
 import { useSessionView, type SessionView } from "../edits";
 import { useServices } from "../services";
+import { stringOrNull } from "../stored";
 import {
   clockTenths,
   segmentById,
@@ -64,7 +65,7 @@ function ClipBody({
   const loop = useTransport((s) => s.loop);
   const looping = inTransport && loop?.segment === seg.id;
   const saved = view.edits.notes[seg.id] ?? "";
-  const [note, setNote] = usePaneState<string | null>("note", null);
+  const [note, setNote] = usePaneState<string | null>("note", null, { parse: stringOrNull });
   const text = view.textOf(seg);
   const dirty = note !== null && note !== saved;
   const noteId = useId();

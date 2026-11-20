@@ -18,7 +18,8 @@ const KEY = "studio:feel-sounds";
 const KEYS =
   'button, [role="button"], [role="tab"], [role="option"], [role="menuitem"], [role="switch"], .key, .lib-row';
 
-let on = saved.read<boolean>(KEY, true);
+// On unless the person turned it off.
+let on = saved.read(KEY, (v) => v !== false);
 export const feelSounds = () => on;
 export function setFeelSounds(v: boolean) {
   on = v;

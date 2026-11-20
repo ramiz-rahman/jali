@@ -18,6 +18,7 @@ import { openFollowing } from "../actions";
 import { useFrame, useTransport } from "../audio/react";
 import { useSessionView } from "../edits";
 import { useServices } from "../services";
+import { stringOrNull } from "../stored";
 import { catalogueOf } from "../sessions/catalog";
 import {
   clock,
@@ -41,7 +42,7 @@ import { transcript } from "./transcript";
 function Library({ node, select, focused, paused, peek }: PaneProps) {
   const { engine } = useServices();
   const jali = useJali();
-  const [cursor, setCursor] = usePaneState<string | null>("cursor", null);
+  const [cursor, setCursor] = usePaneState<string | null>("cursor", null, { parse: stringOrNull });
   const inTransport = useTransport((s) => s.session);
   const playing = useTransport((s) => s.playing);
   const listRef = useRef<HTMLDivElement>(null);

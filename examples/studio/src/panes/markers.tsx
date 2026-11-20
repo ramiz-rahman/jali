@@ -11,6 +11,7 @@ import { cue } from "../actions";
 import { usePosition, useTransport } from "../audio/react";
 import { useSessionView } from "../edits";
 import { useServices } from "../services";
+import { stringOrNull } from "../stored";
 import { clock, markerIndexAt, sessionById } from "../sessions/sessions";
 import { Empty, Missing, SessionMissing } from "../ui/parts";
 import { followSession } from "./follow";
@@ -21,7 +22,7 @@ const markersParams = { session: String };
 function Markers({ params, paused, node, focused, openHere }: PaneProps<typeof markersParams>) {
   const { engine, edits } = useServices();
   const view = useSessionView(edits, params.session);
-  const [cursor, setCursor] = usePaneState<string | null>("cursor", null);
+  const [cursor, setCursor] = usePaneState<string | null>("cursor", null, { parse: stringOrNull });
   const [renaming, setRenaming] = useState<string | null>(null);
   const inTransport = useTransport((s) => s.session === params.session);
   const playing = useTransport((s) => s.playing);

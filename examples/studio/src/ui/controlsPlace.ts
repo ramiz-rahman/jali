@@ -12,7 +12,7 @@ const KEY = "studio:controls";
 const listeners = new Set<() => void>();
 
 export function controlsPlace(): ControlsPlace {
-  return saved.read<string>(KEY, "top") === "bottom" ? "bottom" : "top";
+  return saved.read(KEY, (v) => (v === "bottom" ? "bottom" : "top"));
 }
 
 export function setControlsPlace(v: ControlsPlace) {
