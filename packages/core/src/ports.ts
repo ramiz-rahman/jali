@@ -39,11 +39,13 @@ export function browserLocation(win: Window = window): LocationPort {
     search: () => win.location.search,
     href: () => win.location.href,
     navigate(search, mode) {
-      const { pathname, hash } = win.location;
-      const url = `${pathname}${search}${hash}`;
-      if (url === pathname + win.location.search + hash) return;
-      if (mode === "push") win.history.pushState(null, "", url);
-      else win.history.replaceState(null, "", url);
+      // From the whole address, not the path: a path that starts with `//` (`//evil.com/x`) would read as another
+      // host, and the history would refuse to go there.
+      const url = new URL(win.location.href);
+      url.search = search;
+      if (url.href === win.location.href) return;
+      if (mode === "push") win.history.pushState(null, "", url.href);
+      else win.history.replaceState(null, "", url.href);
     },
     subscribe(fn) {
       win.addEventListener("popstate", fn);

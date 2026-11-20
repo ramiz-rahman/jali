@@ -375,3 +375,33 @@ describe("C6: limits on what a link opens", () => {
     expect(layout.validate(fine, registry).ok).toBe(true);
   });
 });
+
+describe("C7: the address", () => {
+  it("a path that starts with // stays on this origin", () => {
+    const calls: string[] = [];
+    const win = {
+      location: {
+        href: "https://app.test//evil.com/x?l=1#top",
+        pathname: "//evil.com/x",
+        search: "?l=1",
+        hash: "#top",
+        origin: "https://app.test",
+      },
+      history: {
+        replaceState: (_: unknown, __: string, url: string) => void calls.push(url),
+        pushState: (_: unknown, __: string, url: string) => void calls.push(url),
+      },
+      addEventListener() {},
+      removeEventListener() {},
+    } as unknown as Window;
+    browserLocation(win).navigate("?l=2", "replace");
+    expect(calls).toHaveLength(1);
+    const url = new URL(calls[0]!, win.location.href);
+    expect(url.origin).toBe("https://app.test");
+    expect(url.pathname).toBe("//evil.com/x");
+    expect(url.search).toBe("?l=2");
+    expect(url.hash).toBe("#top");
+    browserLocation(win).navigate("?l=1", "replace");
+    expect(calls).toHaveLength(1);
+  });
+});

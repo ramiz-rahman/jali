@@ -904,3 +904,9 @@ Data Studio's old tab strip had six features Jali lacked. Each is general, and l
 - **Layout links:** `validate` takes at most 256 nodes (`MAX_NODES`, `layout/codec/validate.ts`), and the overlay's lists the same. A layout of 256 nodes is about 128 panes with their rows, columns and groups, eight times the largest pane cap the dialog offers and twice `PANE_CAP_MAX`. The depth limit (128) is unchanged.
 - **What a host notices:** a link or saved layout with more than 256 nodes is refused as broken (`setLayout`: `"invalid"`).
 - **Tests:** `tests/hostile-input.test.tsx` (C6).
+
+## 20 Nov 2026 · The browser's address is written from the whole address (QUALITY-REVIEW C7)
+
+- **Why:** `browserLocation().navigate` wrote `pathname + search + hash`. On a page whose path starts with `//` (`https://app.test//evil.com/x?l=…`), that relative URL names another host, so `replaceState` threw a SecurityError in `boot` and the workspace never started.
+- **Now:** it takes `location.href`, sets its search and writes the whole URL, so it always stays on the page's own origin and path. Nothing is written when the address would not change, as before. Router adapters are unchanged: they navigate by search alone.
+- **Tests:** `tests/hostile-input.test.tsx` (C7).
