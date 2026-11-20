@@ -5,6 +5,12 @@ import { storeOf } from "@jali/core/adapter";
 import { createDataLayer } from "./data";
 import type { DataLayer } from "./data/types";
 import { App } from "./shell/App";
+// Jali's faces, which these apps use as their own (tokens.css), then the shell's styles and Jali's.
+import "@fontsource/atkinson-hyperlegible-next/latin-400.css";
+import "@fontsource/atkinson-hyperlegible-next/latin-500.css";
+import "@fontsource/atkinson-hyperlegible-next/latin-600.css";
+import "@fontsource/atkinson-hyperlegible-mono/latin-400.css";
+import "@fontsource/atkinson-hyperlegible-mono/latin-500.css";
 import "./shell/styles/index.css";
 import "@jali/react/styles.css";
 

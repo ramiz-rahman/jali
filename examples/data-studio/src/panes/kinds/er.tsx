@@ -73,8 +73,8 @@ export function ErPane({ params, paused, openBeside }: PaneProps<{ table: string
           y={15}
           style={{
             fill: "var(--er-label)",
-            fontFamily: "IBM Plex Sans",
-            fontSize: 12,
+            fontFamily: "var(--sans)",
+            fontSize: "var(--type-meta)",
             fontWeight: 500,
           }}
         >
@@ -114,7 +114,7 @@ export function ErPane({ params, paused, openBeside }: PaneProps<{ table: string
           aria-label={`Relations around ${table}`}
           style={{ maxWidth: W * 1.4 }}
         >
-          <style>{`.er text{font-family:"IBM Plex Mono",monospace;font-size:10px;fill:var(--z500)}`}</style>
+          <style>{`.er text{font-family:var(--mono);font-size:var(--type-caption);fill:var(--z500)}`}</style>
           <g className="er">
             {L.map((p) => link(BW, p.y + p.h / 2, cx, cy + centerH / 2, "l" + p.n))}
             {R.map((p) => link(cx + BW, cy + centerH / 2, BW * 2 + 80, p.y + p.h / 2, "r" + p.n))}

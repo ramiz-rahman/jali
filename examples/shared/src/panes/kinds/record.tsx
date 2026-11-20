@@ -84,17 +84,7 @@ export function RecordPane({ params, paused, openBeside }: PaneProps<typeof reco
     <Shell>
       <div className="pk-bar">
         <div className="grow">
-          <div
-            style={{
-              fontWeight: 500,
-              fontSize: 14,
-              overflow: "hidden",
-              textOverflow: "ellipsis",
-              whiteSpace: "nowrap",
-            }}
-          >
-            {heading}
-          </div>
+          <div className="pk-name pk-ellipsis">{heading}</div>
           <div className="pk-meta">
             <button className="pk-link" onClick={() => openBeside(tableRef(table))}>
               {table}

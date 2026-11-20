@@ -18,7 +18,7 @@ export function StructurePane({ params, paused, openBeside }: PaneProps<{ table:
     <Shell>
       <div className="pk-bar">
         <div className="grow">
-          <div style={{ fontWeight: 500, fontSize: 14 }}>{info.name}</div>
+          <div className="pk-name">{info.name}</div>
           <div className="pk-meta">
             <span className="pk-mono">{formatCount(info.rowCount)}</span> rows ·{" "}
             {info.columns.length} columns

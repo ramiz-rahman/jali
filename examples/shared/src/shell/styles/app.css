@@ -12,7 +12,7 @@
   }
   body {
     font-family: var(--jali-font);
-    font-size: 13px;
+    font-size: var(--type-body);
     line-height: 1.4;
     color: var(--jali-text);
     background: var(--jali-canvas);
