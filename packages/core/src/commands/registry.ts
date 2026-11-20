@@ -4,6 +4,7 @@
  * The palette lists every command (disabled while the check refuses) with its keys; the keyboard runs the command a
  * binding names (and says a refusal's reason); tooltips print `store.keymap.label(id)`.
  */
+import { checkAutoLayout } from "../actions/layout";
 import { notAllowed, type PaneControl } from "../actions/allow";
 import type { Edge, NodeId } from "../layout/types";
 import { checkUndo } from "../actions/close";
@@ -298,12 +299,7 @@ function buildCommands(env: Env): CommandDef[] {
       id: "layout.auto",
       title: t.autoLayout,
       group: g.layout,
-      check: ({ s, m }) =>
-        s.page || m.single
-          ? refuse("unavailable")
-          : m.panes.length < 2
-            ? refuse("nothing-to-do")
-            : undefined,
+      check: checkAutoLayout,
       run: (u) => u.actions.autoLayout(),
     },
     { id: "layout.copy_link", title: t.copyLink, group: g.layout, run: (u) => copyLink(u.jali) },

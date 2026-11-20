@@ -330,9 +330,17 @@ export function createAgent(jali: Jali, options: AgentOptions = {}): JaliAgent {
       }
       steps.push({ action, ok: true });
     }
-    if (arrange === "after-changes" && paneIds(jali.getLayout()) !== before) {
+    // After the turn, when it opened or closed panes: not when the agent chose the layout itself (a preset, a
+    // layout or an arrange of its own), and only as far as the app's `allow` lets it, as for any step.
+    const placed = (request.steps ?? []).some((s) =>
+      ["preset", "setLayout", "resetLayout", "autoLayout"].includes(String(s.action)),
+    );
+    const verdict = options.allow?.({ action: "autoLayout", args: [] });
+    const vetoed = verdict === false || typeof verdict === "string";
+    if (arrange === "after-changes" && !placed && !vetoed && paneIds(jali.getLayout()) !== before) {
       const r = withInput("agent", () => jali.actions.autoLayout());
-      if (r.ok || r.reason !== "nothing-to-do")
+      // Nothing to arrange, or nothing arrangeable here (a phone shows one pane): not a failure, so not reported.
+      if (r.ok || (r.reason !== "nothing-to-do" && r.reason !== "unavailable"))
         steps.push({
           action: "autoLayout",
           ok: r.ok,

@@ -2,7 +2,8 @@ import * as core from "../layout";
 import type { Layout, NodeId, ViewState } from "../layout/types";
 import type { PaneActivity } from "../pane-kinds";
 import { presetById } from "../profile";
-import { refuse, type Outcome, type Snapshot } from "../state/apply";
+import { refuse, type Outcome, type RefusalStep, type Snapshot } from "../state/apply";
+import { notAllowed } from "./allow";
 import { toLayout, type LayoutInput } from "../layout/build";
 import { say } from "../state/messages";
 import type { Settings } from "../state/settings";
@@ -167,19 +168,36 @@ export const changeSettings = ({ s }: Snapshot, patch: Partial<Settings>): Outco
  */
 export function autoLayout(x: Snapshot): Outcome {
   const { s, ctx, env } = x;
-  if (s.page) return refuse("unavailable");
-  // On a phone one pane shows at a time: there is nothing to arrange, and a tree arranged for a phone's width would
-  // be a poor one when the window is wide again.
-  if (x.m.single) return refuse("unavailable");
-  const panes = core.tree.panes(s.layout.root);
-  if (panes.length < 2) return refuse("nothing-to-do");
+  const cannot = checkAutoLayout(x);
+  if (cannot) return cannot;
   const layout = core.arrange(s.layout, ctx, { focused: s.view.focused });
+  // Already arranged so: no new layout, and no history entry.
+  if (layout === s.layout) return refuse("nothing-to-do");
   const view: ViewState = { ...s.view, zoomed: undefined };
   return {
     op: "setLayout",
     layout: core.refit(layout, view, ctx),
     view,
-    msg: say(env).arranged(panes.length),
-    patch: { peekSource: undefined, resizeMode: null },
+    msg: say(env).arranged(core.tree.panes(layout.root).length),
+    // The same panes: a peek keeps following the pane it came from.
+    patch: { resizeMode: null },
   };
+}
+
+/** Why auto layout can't run now, for the action and its command alike; undefined when it can. */
+export function checkAutoLayout(x: Snapshot): RefusalStep | undefined {
+  const { s, m } = x;
+  if (s.page) return refuse("unavailable");
+  // On a phone one pane shows at a time: there is nothing to arrange, and a tree arranged for a phone's width would
+  // be a poor one when the window is wide again.
+  if (m.single) return refuse("unavailable");
+  const hidden = new Set(s.layout.overlay?.hidden ?? []);
+  const panes = core.tree.panes(s.layout.root).filter((p) => !hidden.has(p.id));
+  if (panes.length < 2) return refuse("nothing-to-do");
+  // It moves every pane: a pane the app doesn't let move keeps the layout as it is.
+  for (const p of panes) {
+    const denied = notAllowed(x, p.id, "move");
+    if (denied) return denied;
+  }
+  return undefined;
 }
