@@ -172,17 +172,22 @@ export function openPage(x: Snapshot, o: OpenPage = {}): Outcome {
   const p = x.env.profile;
   if (!p) return refuse("unavailable");
   const prev = x.s.page;
-  const opened = o.investigation ?? [];
+  const canInvestigate = prev?.canInvestigate ?? true;
+  // A limited viewer works in Single only, whatever the link or Back brings: its opened panes are left out.
+  const opened = canInvestigate ? (o.investigation ?? []) : [];
   const page: PageState = {
     profile: p.id,
     before: undefined,
     item: o.item !== undefined ? asItem(o.item, p.firstItem) : (prev?.item ?? p.firstItem),
     tab: roleOf(p, o.tab)?.id ?? prev?.tab ?? p.home,
-    mode: opened.length ? "split" : (prev?.mode ?? x.s.prefs.mode),
-    canInvestigate: prev?.canInvestigate ?? true,
+    mode: !canInvestigate ? "single" : opened.length ? "split" : (prev?.mode ?? x.s.prefs.mode),
+    canInvestigate,
   };
   // Opened panes need Split view, but that is the link's need, not the person's choice: their mode stays theirs.
-  const prefs = { ...keep(x, page.mode), mode: opened.length ? x.s.prefs.mode : page.mode };
+  const prefs = {
+    ...keep(x, page.mode),
+    mode: opened.length || !canInvestigate ? x.s.prefs.mode : page.mode,
+  };
   const y = { ...x, s: { ...x.s, prefs } };
   const base =
     page.mode === "single"
@@ -631,16 +636,18 @@ export function setCanInvestigate(x: Snapshot, canInvestigate: boolean): Outcome
   const { s } = x;
   if (!s.page) return refuse("unavailable");
   if (s.page.canInvestigate === canInvestigate) return null;
-  const toSingle = !canInvestigate && s.page.mode === "split" ? setMode(x, "single") : null;
-  return [
-    toSingle,
-    (y: Snapshot) => ({
-      op: "permission",
-      msg: say(x).permission(
-        viewerLabel(x.env.profile, canInvestigate, messagesOf(x).page),
-        canInvestigate,
-      ),
-      patch: { page: { ...y.s.page!, canInvestigate } },
-    }),
-  ];
+  const msg = say(x).permission(
+    viewerLabel(x.env.profile, canInvestigate, messagesOf(x).page),
+    canInvestigate,
+  );
+  if (canInvestigate || s.page.mode === "single")
+    return { op: "permission", msg, patch: { page: { ...s.page, canInvestigate } } };
+  // From Split view: the switch to Single and the permission are one change, so a switch held for unsaved work
+  // holds the permission too, and Keep editing leaves both as they were.
+  const toSingle = setMode(x, "single") as Change;
+  return {
+    ...toSingle,
+    msg,
+    patch: { ...toSingle.patch, page: { ...toSingle.patch!.page!, canInvestigate } },
+  };
 }
