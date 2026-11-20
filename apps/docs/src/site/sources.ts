@@ -1,12 +1,12 @@
 /**
- * Every page's MDX source, read as text. The source gives each page's title and summary without loading its module
- * (nav, search, previous and next), and is what "Copy page" and "View as Markdown" hand to readers and agents.
+ * Every page's MDX source, read as text, at build time. The source gives each page's title and summary (the page,
+ * the nav, search, previous and next), and is what the Markdown copies ("View as Markdown", "Copy page", the
+ * packages' docs/) are made from. Nothing here runs in the browser.
  */
 import { jsxToMarkdown, type MarkdownOptions } from "./jsx-markdown";
 import { NAV, type NavSection } from "./nav";
 import { pathOf } from "./pages";
 
-// Draft pages (`_lab` and the like) are read in dev only, as in ./pages.
 // The MDX plugin skips `?raw` ids (astro.config.mjs), so each import is the file's text. Draft pages (`_lab` and
 // the like) are read in dev only, as in ./pages.
 const raw: Record<string, string> = import.meta.env.DEV
@@ -29,19 +29,37 @@ export interface PageSource {
   file: string;
   title: string;
   summary: string;
-  /** The page's h2 and h3 headings, for search. */
-  headings: string[];
   /** The MDX text, frontmatter and all. */
   source: string;
 }
 
-function frontmatterOf(source: string): { data: Record<string, string>; body: string } {
+/**
+ * The site's one frontmatter parser: `key: value` lines, the value plain, "double-quoted" (JSON escapes) or
+ * 'single-quoted' ('' for a quote). Every title and summary on the site, in the HTML, the search index, the nav and
+ * the Markdown copies, comes from here; the MDX compiler only strips the block. A line it can't read fails the
+ * build, as does a plain value containing ": " (quote it), so a page never ships with half a summary.
+ */
+export function frontmatterOf(
+  source: string,
+  file = "page",
+): { data: Record<string, string>; body: string } {
   const m = /^---\r?\n([\s\S]*?)\r?\n---\r?\n?/.exec(source);
   if (!m) return { data: {}, body: source };
   const data: Record<string, string> = {};
   for (const line of m[1]!.split(/\r?\n/)) {
-    const kv = /^([A-Za-z0-9_-]+):\s*(.*)$/.exec(line);
-    if (kv) data[kv[1]!] = kv[2]!.trim().replace(/^(["'])(.*)\1$/, "$2");
+    if (!line.trim() || line.trimStart().startsWith("#")) continue;
+    const kv = /^([A-Za-z0-9_-]+):\s*(.*?)\s*$/.exec(line);
+    if (!kv) throw new Error(`${file}: frontmatter line not understood: ${line}`);
+    const raw = kv[2]!;
+    let value: string;
+    if (raw.startsWith('"')) value = JSON.parse(raw) as string;
+    else if (/^'(?:[^']|'')*'$/.test(raw)) value = raw.slice(1, -1).replace(/''/g, "'");
+    else if (/: |\s#/.test(raw) || /^[[{&*!|>%@`]/.test(raw))
+      throw new Error(
+        `${file}: quote the value of "${kv[1]}" (it holds ": ", " #" or starts with a YAML sign)`,
+      );
+    else value = raw;
+    data[kv[1]!] = value;
   }
   return { data, body: source.slice(m[0].length) };
 }
@@ -56,8 +74,7 @@ export const titleFromPath = (path: string) => {
 export const sources: Record<string, PageSource> = Object.fromEntries(
   Object.entries(raw).map(([file, source]) => {
     const path = pathOf(file);
-    const { data, body } = frontmatterOf(source);
-    const headings = [...body.matchAll(/^#{2,3}\s+(.+)$/gm)].map((h) => h[1]!.trim());
+    const { data } = frontmatterOf(source, file);
     return [
       path,
       {
@@ -65,7 +82,6 @@ export const sources: Record<string, PageSource> = Object.fromEntries(
         file: file.replace(/^\.\.\/docs\//, ""),
         title: data.title ?? titleFromPath(path),
         summary: data.summary ?? "",
-        headings,
         source,
       },
     ];

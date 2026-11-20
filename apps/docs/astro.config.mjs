@@ -8,7 +8,6 @@ import { defaultClientConditions, defaultServerConditions } from "vite";
 import mdx from "@mdx-js/rollup";
 import remarkGfm from "remark-gfm";
 import remarkFrontmatter from "remark-frontmatter";
-import remarkMdxFrontmatter from "remark-mdx-frontmatter";
 import { SITE_URL } from "./src/site/site-url.mjs";
 
 /**
@@ -33,7 +32,8 @@ function rehypeCodeMeta() {
 // (the page's source, for the Markdown copies).
 const mdxPlugin = mdx({
   providerImportSource: "@mdx-js/react",
-  remarkPlugins: [remarkGfm, remarkFrontmatter, [remarkMdxFrontmatter, { name: "frontmatter" }]],
+  // remark-frontmatter only strips the block: src/site/sources.ts is the one parser of titles and summaries.
+  remarkPlugins: [remarkGfm, remarkFrontmatter],
   rehypePlugins: [rehypeCodeMeta],
 });
 const transform = mdxPlugin.transform;

@@ -1,17 +1,12 @@
 /**
  * Every page on the site: the MDX files under src/docs, keyed by their path. `docs/index.mdx` is "/",
- * `docs/learn/layout-tree.mdx` is "/learn/layout-tree". Each page's frontmatter has `title` and `summary`.
+ * `docs/learn/layout-tree.mdx` is "/learn/layout-tree". A page's title and summary come from its frontmatter, read
+ * by ./sources.ts; the compiled module is only the content.
  */
 import type { ComponentType } from "react";
 
-export interface Frontmatter {
-  title: string;
-  /** One line under the title, and the page's description for search and agents. */
-  summary: string;
-}
 export interface PageModule {
   default: ComponentType;
-  frontmatter: Frontmatter;
 }
 
 // Draft pages (a file or folder starting with "_", like `_lab`) exist in dev only: the built site never ships them.
