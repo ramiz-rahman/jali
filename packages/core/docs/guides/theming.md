@@ -293,6 +293,23 @@ To fix the direction instead of reading it, pass `createJali({ dir: "rtl" })`. `
 
 Jali's styles use logical properties (`margin-inline-start`, `inset-inline-end`), so they flip with the direction. If you style the parts yourself, do the same.
 
+## Drawing with the tokens on a canvas
+
+A custom property keeps its `light-dark()` pair unresolved: `getComputedStyle(el).getPropertyValue("--jali-text")` returns the string `light-dark(…)`, and a canvas ignores a `fillStyle` it can't parse. To get a colour a canvas can use, let the browser resolve it. Set `color: var(--jali-text)` on an element inside the workspace and read its computed `color`:
+
+```ts
+function resolve(el: HTMLElement, token: string): string {
+  const probe = document.createElement("span");
+  probe.style.color = `var(${token})`;
+  el.appendChild(probe);
+  const colour = getComputedStyle(probe).color;
+  probe.remove();
+  return colour;
+}
+```
+
+Resolve again, and redraw, whenever `useTheme()` changes, because the result depends on the theme in force.
+
 ## Next
 
 - [Tokens reference](../reference/tokens.md)

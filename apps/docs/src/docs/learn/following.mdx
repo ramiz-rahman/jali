@@ -46,6 +46,10 @@ When the selection moves, every follower of the list that can show it moves, tog
 
 Opening a chart for the selected quote counts as opening the selection, so the new chart follows the list, or opens kept beside the list's following chart, just as a second quote would.
 
+## Chains: list, list, detail
+
+A list can follow another list. Library, then transcript, then segment detail: the transcript is a follower of the library, and the detail is a follower of the transcript. When the library moves on, the transcript shows the new session. The detail follows only when the transcript, now showing something else, reports its new selection with `select`, so each list in a chain must report its new selection when its own object changes (in an effect on its params), including `select(null)` if it has no row selected. A list that doesn't leaves the detail on the old row.
+
 ## It waits for the selection to rest
 
 The detail changes once the selection has rested for 150ms. Holding J to run down the list moves the cursor through every row but loads only the one it stops on. A screen reader hears one "Showing Ticket 104", not one per row.
@@ -53,6 +57,8 @@ The detail changes once the selection has rested for 150ms. Holding J to run dow
 Opening a row (⌥↵, or a row's open button) while that wait is running shows the row in the detail at once.
 
 ## Pinning
+
+"Keep" is what other tools call pinning a follower; in Jali, "pin" is for tabs.
 
 To keep a ticket on screen and go on browsing, the person keeps the detail: click **Following** in its header (it turns to **Kept**), or open the row the detail already shows.
 

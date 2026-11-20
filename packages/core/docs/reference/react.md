@@ -141,7 +141,7 @@ Keys: content first. Claim the keys you use with `event.preventDefault()` (J and
 
 - **`openHere`** (`(ref: ObjectRef) => ActionResult`, required): Show `ref` in this pane. If it is open elsewhere, that pane is focused instead. In the peek sheet, which has no pane of its own, `{ ok: false, reason: "unavailable" }`.
 
-- **`peek`** (`(ref: ObjectRef | null) => ActionResult`, required): Open or move the peek sheet; `null` closes it.
+- **`peek`** (`(ref: ObjectRef | null) => ActionResult`, required): Open or move the peek sheet; `null` closes it. When this pane has a following detail of the ref's kind on screen, the detail shows the item instead of the peek sheet, and no sheet opens (see [`JaliActions`](core/types.md#JaliActions)).
 
 - **`select`** (`(ref: ObjectRef | null, options?: { inResults?: boolean }) => ActionResult`, required): Report the item a list is on. An open peek from this pane follows it at once; this pane's following detail once it rests. `{ inResults: false }`: the filter no longer shows `ref`. Report the selection before opening it, so the opened pane is linked to it.
 
