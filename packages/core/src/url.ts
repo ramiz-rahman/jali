@@ -96,12 +96,20 @@ export function urlKeys(prefix = ""): UrlKeys {
 }
 
 /**
+ * The old lab's page params (`?app=review`, `arr`, from before pages had ids, 19 Nov 2026) are read and cleared only by
+ * the workspace without a prefix: links from then never had one, and beside a prefixed workspace `app` and `arr` are
+ * the host's.
+ */
+const legacyKeys = (k: UrlKeys) => k.layout === "l";
+
+/**
  * A curated page's link carries content only: the item, the view in use and the panes opened while investigating.
  * The mode and the split layout are the reader's own, so the same link opens in each person's way of working.
  */
 function pageParams(q: URLSearchParams, s: UiState, k: UrlKeys) {
   q.delete(k.layout);
-  for (const key of [k.page, k.item, k.tab, k.open, k.preset, "app", "arr"]) q.delete(key);
+  for (const key of [k.page, k.item, k.tab, k.open, k.preset]) q.delete(key);
+  if (legacyKeys(k)) for (const key of ["app", "arr"]) q.delete(key);
   if (!s.page) return;
   q.set(k.page, s.page.profile);
   q.set(k.item, String(s.page.item));
@@ -156,7 +164,7 @@ export function readSearch(
   const ref = peek ? decodePeek(peek) : null;
   if (ref && readable(kinds, ref)) view.peek = ref;
   // `?app=review` is the old combined lab app's form from before pages had ids (19 Nov 2026).
-  if (q.get(k.page) || q.get("app") === "review") {
+  if (q.get(k.page) || (legacyKeys(k) && q.get("app") === "review")) {
     const item = q.get(k.item) || undefined;
     // Each object once, in the link's order, and at most OPEN_MAX: every one is a full open and fit.
     const investigation: ObjectRef[] = [];

@@ -918,3 +918,10 @@ Data Studio's old tab strip had six features Jali lacked. Each is general, and l
 - **The one change for old links:** text written before this that held `%25`, `%7E`, `%3D`, `%23` or `%21` literally now reads as the character. Such text was rare (it only arises from a value that already contained a percent escape), and the old encoder couldn't round-trip it either.
 - **Keys** are collected with `Object.fromEntries`, so a key such as `__proto__` is a param like any other.
 - **Tests:** `tests/hostile-input.test.tsx` (P17).
+
+## 20 Nov 2026 · A prefixed workspace leaves the host's `app` and `arr` alone (QUALITY-REVIEW P17)
+
+- **Why:** every workspace deleted `app` and `arr` from the address when it wrote a page link, and read `?app=review` as its page, prefix or not. Beside a host that uses `?app=billing`, a prefixed workspace erased the host's param, against "Jali writes only its own params" (18 Nov, the location port).
+- **Now:** the old lab's page params are the unprefixed workspace's only (`legacyKeys`, `url.ts`). It still reads `?app=review` as its page and clears `app` and `arr` when it writes one, as kept on 20 Nov ("Jali and five example apps"), because those links were written by an unprefixed workspace. A workspace with a `prefix` neither reads nor clears them.
+- **Not added:** an option to turn the alias off for the unprefixed workspace too. A host whose own `app` param could be `review` should give its workspace a prefix, which it needs anyway to keep its params apart.
+- **Tests:** `tests/hostile-input.test.tsx` (P17b).

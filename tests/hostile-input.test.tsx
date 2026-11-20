@@ -439,3 +439,18 @@ describe("P17: what a link carries reads back as written", () => {
     expect(read?.view.peek).toEqual(ref);
   });
 });
+
+describe("P17b: the host's params beside a prefixed workspace", () => {
+  it("a prefixed workspace keeps the host's app and arr, and reads no ?app=review", () => {
+    const jali = make();
+    const s = storeOf(jali).get();
+    const search = buildSearch("?app=billing&arr=3", s, urlKeys("w."));
+    const q = new URLSearchParams(search);
+    expect(q.get("app")).toBe("billing");
+    expect(q.get("arr")).toBe("3");
+    expect(q.get("w.l")).toBeTruthy();
+    expect(readSearch("?app=review&item=1", registry, urlKeys("w."))).toBeNull();
+    // The workspace without a prefix still reads the old form.
+    expect(readSearch("?app=review&item=1", registry)).toHaveProperty("page");
+  });
+});
