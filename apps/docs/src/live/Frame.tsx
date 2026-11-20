@@ -150,7 +150,12 @@ export function Frame({ layout, width, minWidth = 260, height = 320, caption }: 
           <span>px wide</span>
         </div>
         <div className="live-frame-folds" aria-live="polite">
-          {m.single ? (
+          {!max ? (
+            // Not measured yet (the prerender, and hydration): one quiet line, so the bar keeps its height.
+            <span className="live-frame-note" aria-hidden>
+              {" "}
+            </span>
+          ) : m.single ? (
             <span className="live-frame-note">
               One pane at a time: even one pane no longer fits beside another
             </span>
