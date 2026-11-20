@@ -44,6 +44,8 @@ Markets is built on the public API alone (`@jali/core`, `@jali/react`). Each fin
 
 **Suggested change.** Keep the touch target inside the gap, or let a pane's own controls win the overlap.
 
+**Now.** The divider is the room between the two panes, 24px at the default gap, and covers neither (21 Nov 2026). The shared width sweep checks stacked view's divider like any other element now; only a tiled layout's divider, whose hit area reaches 3px over the panes' edges, is still excused.
+
 ## 5. Kept stores are checked; preset layouts already were
 
 **What happened.** Markets kept its watchlists, paper book and desk layouts in local storage and trusted what it read back: `markets:lists = {}` crashed the watchlist (C13).

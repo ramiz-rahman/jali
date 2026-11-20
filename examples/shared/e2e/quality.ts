@@ -246,12 +246,13 @@ export function fitProblems(page: Page, ignore: readonly string[] = []) {
         }
       if (pinned) continue;
       // Its own content, or a box round it that takes the click for it (a label, a row), is fine. So is a toast, and
-      // Jali's dividers: their 44px touch target reaches over the panes' edges on purpose (DECISIONS, stacked view).
+      // a tiled layout's divider, whose hit area reaches 3px over the panes' edges. Stacked view's divider stays in
+      // the room between its panes, so it covers nothing.
       if (
         hit &&
         !el.contains(hit) &&
         !hit.contains(el) &&
-        !hit.closest('[data-sonner-toaster], [role="separator"]')
+        !hit.closest("[data-sonner-toaster], .jali-divider")
       )
         out.push({ problem: "covered", what: `${name(el)}, by ${name(hit)}` });
     }
