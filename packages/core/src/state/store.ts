@@ -65,7 +65,7 @@ import { focusPane } from "../dom/focus";
 import { cssString, paneDomId } from "../dom/ids";
 import { noDom, type DomPort, type DragKind } from "../dom/port";
 import { pageDirection } from "../dom/direction";
-import { loadPaneState, loadPaneStateOwners } from "./pane-state";
+import { readPaneState } from "./pane-state";
 import { startUi } from "../boot";
 import {
   createKeymap,
@@ -488,8 +488,7 @@ export function createUiStore(deps: UiStoreDeps): UiStore {
     titles: {},
     paneAttributes: {},
     paneReports: {},
-    paneState: loadPaneState(storage),
-    paneStateOf: loadPaneStateOwners(storage),
+    ...readPaneState(storage),
     selectionOf: {},
     ...deps.initial,
   };

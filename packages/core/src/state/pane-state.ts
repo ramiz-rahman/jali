@@ -42,25 +42,54 @@ const records = (raw: string | null): Record<string, unknown> => {
   }
 };
 
+const ownersFrom = (raw: string | null): PaneOwners =>
+  Object.fromEntries(
+    Object.entries(records(raw)).filter(([, of]) => typeof of === "string"),
+  ) as PaneOwners;
+
+// Only a pane's own record of values, for a pane whose object was saved with it: anything else is left out.
+const statesFrom = (raw: string | null, owners: PaneOwners): PaneStates =>
+  Object.fromEntries(
+    Object.entries(records(raw)).filter(
+      ([id, s]) => Object.hasOwn(owners, id) && !!s && typeof s === "object" && !Array.isArray(s),
+    ),
+  ) as PaneStates;
+
 /** Which object each pane's saved state belongs to. */
 export function loadPaneStateOwners(storage: StoragePort): PaneOwners {
-  return Object.fromEntries(
-    Object.entries(records(storage.get(PANE_STATE_OF_KEY))).filter(
-      ([, of]) => typeof of === "string",
-    ),
-  ) as PaneOwners;
+  return ownersFrom(storage.get(PANE_STATE_OF_KEY));
 }
 
 /** Saved pane state, only for panes whose object was saved with it: state that can't say what it was about is
  *  left out, so it never reattaches to whatever a reused id shows now. */
 export function loadPaneState(storage: StoragePort): PaneStates {
-  const owners = loadPaneStateOwners(storage);
-  // Only a pane's own record of values: anything else stored under a pane is left out.
-  return Object.fromEntries(
-    Object.entries(records(storage.get(PANE_STATE_KEY))).filter(
-      ([id, s]) => Object.hasOwn(owners, id) && !!s && typeof s === "object" && !Array.isArray(s),
-    ),
-  ) as PaneStates;
+  return statesFrom(storage.get(PANE_STATE_KEY), loadPaneStateOwners(storage));
+}
+
+/**
+ * Saved pane state and the objects it belongs to, as a workspace starts. What `loadPaneState` leaves out is taken out
+ * of storage too, at once, so it is gone after one read: state saved before 20 Nov 2026 under a pane id alone (it
+ * says nothing of the object it was about, so it can't be tied to one safely: DECISIONS, 21 Nov 2026), and anything
+ * stored that isn't a pane's record of values. Nothing is written when storage holds nothing else.
+ */
+export function readPaneState(storage: StoragePort): {
+  paneState: PaneStates;
+  paneStateOf: PaneOwners;
+} {
+  const rawState = storage.get(PANE_STATE_KEY),
+    rawOwners = storage.get(PANE_STATE_OF_KEY);
+  const owners = ownersFrom(rawOwners);
+  const paneState = statesFrom(rawState, owners);
+  const paneStateOf = Object.fromEntries(
+    Object.entries(owners).filter(([id]) => Object.hasOwn(paneState, id)),
+  ) as PaneOwners;
+  // Written back as savePaneState writes it, so what it wrote reads as unchanged.
+  if (
+    (rawState !== null && rawState !== JSON.stringify(paneState)) ||
+    (rawOwners !== null && rawOwners !== JSON.stringify(paneStateOf))
+  )
+    savePaneState(storage, paneState, paneStateOf);
+  return { paneState, paneStateOf };
 }
 
 export const savePaneState = (storage: StoragePort, state: PaneStates, owners: PaneOwners = {}) => {
