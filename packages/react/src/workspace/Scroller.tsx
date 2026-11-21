@@ -20,7 +20,7 @@ import {
   type ReactNode,
 } from "react";
 import { layout as core, type ScrollerBox } from "@jali/core";
-import { useModel, useStore, useUi } from "../state/react";
+import { useGeometry, useStore, useUi } from "../state/react";
 
 type Store = ReturnType<typeof useStore>;
 
@@ -182,7 +182,7 @@ export function Strip({
  * focused pane when both fit, else on its own. The browser glides there (at once with reduced motion).
  */
 export function useFocusIntoStrip(store: Store) {
-  const m = useModel();
+  const m = useGeometry();
   const focused = useUi((s) => s.view.focused);
   const dir = useUi((s) => s.dir) === "rtl" ? "rtl" : "ltr";
   const boxOf = (id: string | undefined) =>

@@ -18,7 +18,7 @@ import { Menu } from "../a11y/Menu";
 import { Activity, shelfActivity } from "../pane/Activity";
 import { KindIcon } from "../pane/icons";
 import { UnsavedMark } from "../pane/Unsaved";
-import { useActions, useMessages, useModel, useStore, useUi } from "../state/react";
+import { useActions, useEntriesOf, useMessages, useModelValue, useStore } from "../state/react";
 import { ICON } from "../icons/sized";
 import { landmarkName } from "../a11y/landmark";
 
@@ -38,14 +38,21 @@ function label(m: JaliModel, it: ShelfEntry, a: PaneActivity | undefined) {
 
 export function Shelf() {
   const icon = useJaliIcons();
-  const m = useModel();
-  const tuckedItems = m.shelf;
-  const items = tuckedItems;
-  const unsaved = useUi((s) => s.unsaved);
-  const activity = useUi((s) => s.activity);
-  const marks = useUi((s) => s.paneAttributes);
-  const actions = useActions();
   const store = useStore();
+  // What it lists: the tucked panes (the model keeps the list until the layout changes), and their names and their
+  // homes'. It renders again when one of those changes, never for another pane's title; the model is read as it renders.
+  const tuckedItems = useModelValue((m) => m.shelf);
+  useModelValue((m) =>
+    JSON.stringify(m.shelf.map((it) => [m.title(it.paneId), m.title(it.homeId)])),
+  );
+  const m = store.model();
+  const items = tuckedItems;
+  // And what its chips' panes report: unsaved marks, what they are doing, data-* attributes.
+  const chips = tuckedItems.map((it) => it.paneId);
+  const unsaved = useEntriesOf((s) => s.unsaved, chips);
+  const activity = useEntriesOf((s) => s.activity, chips);
+  const marks = useEntriesOf((s) => s.paneAttributes, chips);
+  const actions = useActions();
   const words = useMessages();
   const t = words.shelf;
   const putBackKeys = useShortcut("pane.putBack");
@@ -57,6 +64,7 @@ export function Shelf() {
   // The +N list: chips scrolled out of view.
   const [menu, setMenu] = useState(false);
   const [hiddenIds, setHiddenIds] = useState<string[]>([]);
+  const hiddenKey = useRef("[]");
   const scroller = useRef<HTMLDivElement>(null);
   const bar = useRef<HTMLDivElement>(null);
 
@@ -89,7 +97,12 @@ export function Shelf() {
       const cr = c.getBoundingClientRect();
       if (cr.left < box.left - 1 || cr.right > box.right + 1) out.push(c.dataset.chip!);
     });
-    setHiddenIds((p) => (p.join() === out.join() ? p : out));
+    // Set only when it changed: a functional update right after a commit renders the shelf again to find it the same.
+    const key = JSON.stringify(out);
+    if (hiddenKey.current !== key) {
+      hiddenKey.current = key;
+      setHiddenIds(out);
+    }
   };
   useLayoutEffect(measure);
   useEffect(() => {

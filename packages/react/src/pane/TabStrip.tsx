@@ -14,7 +14,7 @@ import {
   scrolledFromStart,
   observeResize,
 } from "@jali/core/adapter";
-import { useEnv, useStore, useUi } from "../state/react";
+import { useEntriesOf, useEnv, useStore, useUi } from "../state/react";
 import { Activity, activityLabel } from "./Activity";
 import { KindIcon } from "./icons";
 import { RenameField, useCanRename } from "./RenameField";
@@ -64,15 +64,6 @@ export function TabStrip({ group, owner }: { group: NonNullable<Frame["group"]>;
   const tw = words.tabs;
   // A curated page, or a workspace without a launcher: no "+" (its views come from the page's tabs).
   const page = useUi((s) => !!s.page);
-  // Renders the strip again when one of its own tabs' live titles changes (read below), and for no other pane's.
-  const ownTitles = useUi((s) =>
-    JSON.stringify(group.tabs.map((t) => own(s.titles, t.node.id) ?? null)),
-  );
-  const titles = store.get().titles;
-  const marks = useUi((s) => s.paneAttributes);
-  // Renders the strip again when what one of its own tabs is doing changes (read below), and for no other pane.
-  useUi((s) => group.tabs.map((t) => own(s.activity, t.node.id) ?? "").join());
-  const unsaved = useUi((s) => s.unsaved);
   // A tab dragged over this strip: the line shows where it would go.
   const dropAt = useUi((s) => s.dnd?.tabAt);
   const dir = useUi((s) => s.dir);
@@ -97,6 +88,13 @@ export function TabStrip({ group, owner }: { group: NonNullable<Frame["group"]>;
   const scrolling = mine.filter((t) => !t.node.pinned);
   const folded = tabs.filter((t) => t.folded && t.node.id === group.active);
   const foldedAway = tabs.filter((t) => t.folded && t.node.id !== group.active);
+  // What its own tabs' panes report (live titles, data-* attributes, unsaved marks, what they are doing): the strip
+  // renders again when one of those changes, and for no other pane's.
+  const ids = tabs.map((t) => t.node.id);
+  const titles = useEntriesOf((s) => s.titles, ids);
+  const marks = useEntriesOf((s) => s.paneAttributes, ids);
+  const unsaved = useEntriesOf((s) => s.unsaved, ids);
+  const activity = useEntriesOf((s) => s.activity, ids);
 
   const strip = useRef<HTMLDivElement>(null);
   const bar = useRef<HTMLDivElement>(null);
@@ -141,7 +139,7 @@ export function TabStrip({ group, owner }: { group: NonNullable<Frame["group"]>;
   const laidOut = `${group.active} ${tabs.map((t) => `${t.node.id}:${+!!t.node.pinned}${+t.tucked}${+t.folded}`)}`;
   useLayoutEffect(measure, [
     laidOut,
-    ownTitles,
+    titles,
     marks,
     unsaved,
     dropAt,
@@ -183,7 +181,7 @@ export function TabStrip({ group, owner }: { group: NonNullable<Frame["group"]>;
     const dirty = !!own(unsaved, t.id);
     const pinned = !!t.pinned;
     // A tab behind says what its pane is doing ("Working"), as its dot shows; the shown tab's pane says it itself.
-    const busy = active ? undefined : activityLabel(words.pane, own(store.get().activity, t.id));
+    const busy = active ? undefined : activityLabel(words.pane, own(activity, t.id));
     // Renaming: the field takes the tab's place until it closes.
     if (renaming === t.id)
       return (

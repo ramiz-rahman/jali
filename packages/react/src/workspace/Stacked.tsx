@@ -6,7 +6,7 @@
 import { stackGap, type UiStore } from "@jali/core/adapter";
 import type { JaliModel } from "@jali/core";
 import { useEffect, useRef, useState, type KeyboardEvent, type PointerEvent } from "react";
-import { useStore } from "../state/react";
+import { useModelValue, useStore } from "../state/react";
 
 /** The heights the top pane snaps to, as a share of the stack. */
 const SNAPS = [1 / 3, 1 / 2, 2 / 3];
@@ -63,8 +63,8 @@ export function StackDivider({
   // The divider is the room between the panes, all of it and no more: it never covers either pane's rows.
   const room = stackGap(store.env.spacing.gap);
   const y = Math.round((height - room) * shown);
-  const top = m.title(pair.top);
-  const bottom = m.title(pair.bottom);
+  const top = useModelValue((x) => x.title(pair.top));
+  const bottom = useModelValue((x) => x.title(pair.bottom));
   const onKey = (e: KeyboardEvent) => {
     const i = SNAPS.indexOf(nearest(ratio));
     const next =

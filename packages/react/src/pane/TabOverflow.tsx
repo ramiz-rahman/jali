@@ -5,8 +5,7 @@ import { useJaliIcons } from "../icons/context";
 import { Menu } from "../a11y/Menu";
 import type { Tab } from "@jali/core/adapter";
 import { cssString, mostPressing, roleOf, titleOf } from "@jali/core/adapter";
-import { useStore } from "../state/react";
-import { useUi } from "../state/react";
+import { useEntriesOf, useStore, useUi } from "../state/react";
 import { KindIcon } from "./icons";
 import { Activity, shelfActivity } from "./Activity";
 import { ICON } from "../icons/sized";
@@ -39,11 +38,12 @@ export function TabOverflow({
   const [open, setOpen] = useState(false);
   const btn = useRef<HTMLButtonElement>(null);
   const page = useUi((s) => !!s.page);
-  // Renders again when one of its own panes' live titles changes (read below), and for no other pane's.
-  useUi((s) => JSON.stringify(tabs.map((t) => own(s.titles, t.node.id) ?? null)));
-  const titles = store.get().titles;
-  const marks = useUi((s) => s.paneAttributes);
-  const activity = useUi((s) => s.activity);
+  // Its own panes' live titles, data-* attributes and activity: it renders again when one of those changes, and for no
+  // other pane's.
+  const ids = tabs.map((t) => t.node.id);
+  const titles = useEntriesOf((s) => s.titles, ids);
+  const marks = useEntriesOf((s) => s.paneAttributes, ids);
+  const activity = useEntriesOf((s) => s.activity, ids);
   // A folded pane goes on working behind the chip: the chip says so, with the most pressing of its panes' activities.
   const behind = folded ? mostPressing(tabs.map(({ node }) => own(activity, node.id))) : undefined;
   const dir = useUi((s) => s.dir);

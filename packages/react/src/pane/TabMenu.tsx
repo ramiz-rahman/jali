@@ -4,9 +4,9 @@ import { useMemo } from "react";
 import { allows } from "@jali/core/adapter";
 import { Menu, type MenuAt } from "../a11y/Menu";
 import { canPopOut, popOut } from "./PopOut";
-import { tabMenuOf, titleOf, type TabMenuItem } from "@jali/core/adapter";
+import { tabMenuOf, type TabMenuItem } from "@jali/core/adapter";
 import { useJaliIcons } from "../icons/context";
-import { useStore, useUi } from "../state/react";
+import { useModelValue, useStore } from "../state/react";
 import { ICON } from "../icons/sized";
 
 /** Where a tab's menu opens: at the pointer, or under the tab from the keyboard. */
@@ -30,7 +30,6 @@ export function TabMenu({
 }) {
   const store = useStore();
   const icon = useJaliIcons();
-  const titles = useUi((s) => s.titles);
   // Built once as the menu opens: what the tab could do then.
   const groups = useMemo(() => {
     const g = tabMenuOf(store, at.pane);
@@ -60,6 +59,8 @@ export function TabMenu({
     return g;
   }, [store, at.pane, commands]);
   const node = store.model().pane(at.pane);
+  // Its own tab's name only: another pane's title never re-renders an open menu.
+  const title = useModelValue((m) => m.title(at.pane));
 
   const choose = (item: TabMenuItem) => {
     if (item.disabled) return;
@@ -72,7 +73,7 @@ export function TabMenu({
       at={at}
       onClose={onClose}
       className="jali-tab-menu jali-tab-actions-menu"
-      aria-label={store.messages.tabs.tabMenuLabel(titleOf(store.env, node, titles))}
+      aria-label={store.messages.tabs.tabMenuLabel(title)}
     >
       {groups.map((group, g) => (
         <div key={g} role="group">

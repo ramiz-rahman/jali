@@ -1,7 +1,7 @@
-import { own } from "@jali/core/adapter";
+import { own, type ConfirmState } from "@jali/core/adapter";
 import { useRef } from "react";
 import { ModalDialog } from "../a11y/ModalDialog";
-import { bold, Parts, useModel, useStore, useUi } from "../state/react";
+import { bold, Parts, useEntriesOf, useModelValue, useStore, useUi } from "../state/react";
 
 /**
  * "Discard unsaved changes?": a change would close or replace panes with unsaved work. Keep editing is the default
@@ -9,12 +9,17 @@ import { bold, Parts, useModel, useStore, useUi } from "../state/react";
  */
 export function ConfirmDiscard() {
   const confirm = useUi((s) => s.confirm);
-  const unsaved = useUi((s) => s.unsaved);
-  const m = useModel();
+  return confirm ? <DiscardDialog confirm={confirm} /> : null;
+}
+
+/** The question while it is open: it hears the panes it lists (their names and unsaved work), and no other. */
+function DiscardDialog({ confirm }: { confirm: ConfirmState }) {
   const store = useStore();
+  const unsaved = useEntriesOf((s) => s.unsaved, confirm.panes);
+  const names = useModelValue((m) => JSON.stringify(confirm.panes.map((id) => m.title(id))));
+  const titles = JSON.parse(names) as string[];
   const id = store.dom.id;
   const keep = useRef<HTMLButtonElement>(null);
-  if (!confirm) return null;
   const stay = () => store.actions.keepEditing();
   const t = store.messages.confirmDiscard;
   return (
@@ -32,9 +37,9 @@ export function ConfirmDiscard() {
       <div id={`${id}-confirm-body`}>
         <p>{t.body(confirm.panes.length)}</p>
         <ul>
-          {confirm.panes.map((id) => (
+          {confirm.panes.map((id, i) => (
             <li key={id}>
-              <Parts of={t.item(m.title(id), own(unsaved, id) ?? "", bold)} />
+              <Parts of={t.item(titles[i]!, own(unsaved, id) ?? "", bold)} />
             </li>
           ))}
         </ul>

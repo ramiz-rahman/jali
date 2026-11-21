@@ -1,59 +1,9 @@
-import { own } from "@jali/core/adapter";
 import type { PaneNode } from "@jali/core";
-import { paneDomId, titleOf } from "@jali/core/adapter";
 import { useRef } from "react";
 import { useRovingKeys } from "../a11y/roving";
-import { Activity } from "../pane/Activity";
-import { KindIcon } from "../pane/icons";
-import { UnsavedMark, useUnsavedOf } from "../pane/Unsaved";
-import { useActions, useModelValue, usePaneAttributesOf, useStore, useUi } from "../state/react";
-import { ICON } from "../icons/sized";
+import { useStore } from "../state/react";
 import { landmarkName } from "../a11y/landmark";
-
-/**
- * Scrolls the switcher's own list so the selected entry is in it, and nothing else: `scrollIntoView` would also scroll
- * the page to this workspace, pulling the reader away from wherever they are (a docs page with several workspaces).
- */
-function revealInList(el: HTMLElement | null) {
-  const list = el?.parentElement;
-  if (!el || !list) return;
-  // By the boxes on screen, so it reads the same right to left, where scrollLeft counts down from 0.
-  const r = el.getBoundingClientRect();
-  const l = list.getBoundingClientRect();
-  if (r.left < l.left) list.scrollLeft -= l.left - r.left;
-  else if (r.right > l.right) list.scrollLeft += r.right - l.right;
-}
-
-function Item({ node, selected, inView }: { node: PaneNode; selected: boolean; inView?: boolean }) {
-  const activity = useUi((s) => own(s.activity, node.id));
-  const dirty = useUnsavedOf(node.id);
-  const titles = useUi((s) => s.titles);
-  const marks = usePaneAttributesOf(node.id);
-  const tucked = useModelValue((m) => !!m.tuckOf(node.id));
-  const actions = useActions();
-  const store = useStore();
-  return (
-    <button
-      {...marks}
-      role="tab"
-      className={`jali-switch-item${selected ? " is-active" : ""}${tucked ? " is-tucked" : ""}`}
-      aria-selected={selected}
-      aria-controls={paneDomId(store.dom.id, node.id)}
-      tabIndex={selected ? 0 : -1}
-      data-tucked={tucked || undefined}
-      data-in-view={inView || undefined}
-      data-unsaved={dirty || undefined}
-      aria-description={dirty ? store.messages.pane.unsaved : undefined}
-      onClick={() => actions.focus(node.id)}
-      ref={selected ? revealInList : undefined}
-    >
-      <KindIcon kind={node.ref.kind} {...ICON.tab} />
-      <span className="jali-switch-title">{titleOf(store.env, node, titles)}</span>
-      {dirty ? <UnsavedMark /> : null}
-      <Activity a={activity} />
-    </button>
-  );
-}
+import { SwitcherItem } from "./SwitcherItem";
 
 /** Single view's pane switcher: every pane and tab, the current one selected. */
 export function PaneSwitcher({
@@ -84,7 +34,12 @@ export function PaneSwitcher({
         onKeyDown={keys}
       >
         {panes.map((p) => (
-          <Item key={p.id} node={p} selected={p.id === current} inView={inView?.includes(p.id)} />
+          <SwitcherItem
+            key={p.id}
+            node={p}
+            selected={p.id === current}
+            inView={inView?.includes(p.id)}
+          />
         ))}
       </div>
     </nav>

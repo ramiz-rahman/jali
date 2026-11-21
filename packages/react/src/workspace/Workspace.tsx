@@ -23,7 +23,7 @@ import { DividerLayer } from "../dividers/DividerLayer";
 import { PaneFrame } from "../pane/PaneFrame";
 import { Strip, useFocusIntoStrip } from "./Scroller";
 import type { UiStore } from "@jali/core/adapter";
-import { useModel, useStore, useUi } from "../state/react";
+import { useGeometry, useModelValue, useStore, useUi } from "../state/react";
 import { useHydrated } from "../state/hydrated";
 import { paneHydration } from "../state/hydration";
 import { DropIndicator } from "./DropIndicator";
@@ -210,12 +210,13 @@ function DragChip({ x, y, label, rtl }: { x: number; y: number; label: string; r
 function DragLayer({ m }: { m: JaliModel }) {
   const dnd = useUi((s) => s.dnd);
   const rtl = useUi((s) => s.dir === "rtl");
+  const name = useModelValue((x) => (dnd ? x.title(dnd.dragged) : ""));
   if (!dnd) return null;
   const dropBox = dnd.target ? m.resolved.panes.find((b) => b.id === dnd.target) : undefined;
   return (
     <>
       {dropBox && dnd.zone ? <DropIndicator rect={dropBox.rect} zone={dnd.zone} /> : null}
-      <DragChip x={dnd.x} y={dnd.y} label={dnd.label ?? m.title(dnd.dragged)} rtl={rtl} />
+      <DragChip x={dnd.x} y={dnd.y} label={dnd.label ?? name} rtl={rtl} />
     </>
   );
 }
@@ -275,7 +276,8 @@ function FoldLine({ hinge, origin }: { hinge: Hinge; origin: { left: number; top
 /** The panes: the layout, its dividers, tabs, the shelf, the peek sheet and drop previews. */
 export function Panes() {
   const store = useStore();
-  const m = useModel();
+  // Not for a live title: each frame, tab and the drag chip reads its own.
+  const m = useGeometry();
   const view = useUi((s) => s.view);
   const area = useUi((s) => s.area);
   // Where a drag would land, not where its pointer is: the pointer is DragLayer's.

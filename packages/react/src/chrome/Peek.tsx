@@ -1,12 +1,12 @@
 import { own } from "@jali/core/adapter";
-import type { PaneNode } from "@jali/core";
+import type { NodeId, PaneNode } from "@jali/core";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useJaliIcons } from "../icons/context";
 import { sameRef, type PaneReportPatch, type Presentation } from "@jali/core/adapter";
 import { KindIcon } from "../pane/icons";
 import { PaneBody, peekHost } from "../pane/PaneBody";
 import { UnsavedMark } from "../pane/Unsaved";
-import { useStore, useUi } from "../state/react";
+import { useEntriesOf, useModelValue, useStore, useUi } from "../state/react";
 import { useKeymap } from "../state/hydrated";
 import { ICON } from "../icons/sized";
 import { landmarkName } from "../a11y/landmark";
@@ -41,38 +41,26 @@ export function Peek({ presentation }: { presentation: Presentation }) {
       },
     };
   }, [store, shows]);
-  // The sheet stands for a pane while it shows that pane's object: it carries the pane's data-* attributes.
-  const marks = useUi((s) => {
-    if (!s.view.peek) return undefined;
-    const ref = s.view.peek;
-    const shown = Object.keys(s.paneAttributes).find((id) => {
-      const p = store.model().pane(id);
-      return !!p && sameRef(p.ref, ref);
-    });
-    return own(s.paneAttributes, shown);
-  });
-  // The same for unsaved work: the pane showing this object has some.
-  const dirty = useUi((s) => {
-    const ref = s.view.peek;
-    return (
-      !!ref &&
-      Object.keys(s.unsaved).some((id) => {
-        const p = store.model().pane(id);
-        return !!p && sameRef(p.ref, ref);
-      })
+  // The panes showing the sheet's object, in tree order: it stands for them, and hears what they report and no other
+  // pane's. As text, so the list is the same value until a pane starts or stops showing it.
+  const showing = useModelValue((m) =>
+    ref ? JSON.stringify(m.panes.filter((p) => sameRef(p.ref, ref)).map((p) => p.id)) : "[]",
+  );
+  const ids = useMemo(() => JSON.parse(showing) as NodeId[], [showing]);
+  const attributes = useEntriesOf((s) => s.paneAttributes, ids);
+  const unsaved = useEntriesOf((s) => s.unsaved, ids);
+  const titles = useEntriesOf((s) => s.titles, ids);
+  const first = <T,>(record: Readonly<Record<NodeId, T>>) =>
+    own(
+      record,
+      ids.find((id) => Object.hasOwn(record, id)),
     );
-  });
-  // And for its title: a pane showing this object may have named it from its data (useTitle), when the sheet's own
-  // content has not.
-  const named = useUi((s) => {
-    const ref = s.view.peek;
-    if (!ref) return undefined;
-    const id = Object.keys(s.titles).find((id) => {
-      const p = store.model().pane(id);
-      return !!p && sameRef(p.ref, ref);
-    });
-    return own(s.titles, id);
-  });
+  // It carries the data-* attributes of the first of them that set some;
+  const marks = first(attributes);
+  // has unsaved work while one of them does;
+  const dirty = ids.some((id) => Object.hasOwn(unsaved, id));
+  // and is named by the first that named it from its data (useTitle), when the sheet's own content has not.
+  const named = first(titles);
   const openedBy = useRef<"pointer" | "keyboard">("keyboard");
   // Observes (never takes) the last input, so only a pointer-opened peek animates.
   useEffect(() => {

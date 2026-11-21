@@ -10,13 +10,15 @@ import { useState, type ComponentType } from "react";
 import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from "vite-plus/test";
 import { column, createJali, memoryLocation, memoryStorage, row, tabs } from "@jali/core";
 import { storeOf } from "@jali/core/adapter";
-import { JaliRoot, JaliView, definePane, useJaliCommands } from "@jali/react";
+import { JaliRoot, JaliView, Shelf, definePane, useJaliCommands } from "@jali/react";
 
 const counts = vi.hoisted(() => ({
   frame: [] as string[],
   body: [] as string[],
   panes: 0,
   dividers: 0,
+  /** Commits of the parts outside a frame: `item:<pane>` (a switcher entry), `tabMenu`, `peek`, `shelf`, `confirm`. */
+  chrome: [] as string[],
 }));
 
 /** The same component, memoised by the same rule, with a Profiler inside that counts its commits. */
@@ -64,6 +66,39 @@ vi.mock("../packages/react/src/dividers/DividerLayer", async (original) => {
   const mod = await original<typeof import("../packages/react/src/dividers/DividerLayer")>();
   const React = await import("react");
   return { ...mod, DividerLayer: profiled(React, mod.DividerLayer, () => counts.dividers++) };
+});
+vi.mock("../packages/react/src/chrome/SwitcherItem", async (original) => {
+  const mod = await original<typeof import("../packages/react/src/chrome/SwitcherItem")>();
+  const React = await import("react");
+  return {
+    ...mod,
+    SwitcherItem: profiled(React, mod.SwitcherItem, (p) =>
+      counts.chrome.push(`item:${(p.node as { id: string }).id}`),
+    ),
+  };
+});
+vi.mock("../packages/react/src/pane/TabMenu", async (original) => {
+  const mod = await original<typeof import("../packages/react/src/pane/TabMenu")>();
+  const React = await import("react");
+  return { ...mod, TabMenu: profiled(React, mod.TabMenu, () => counts.chrome.push("tabMenu")) };
+});
+vi.mock("../packages/react/src/chrome/Peek", async (original) => {
+  const mod = await original<typeof import("../packages/react/src/chrome/Peek")>();
+  const React = await import("react");
+  return { ...mod, Peek: profiled(React, mod.Peek, () => counts.chrome.push("peek")) };
+});
+vi.mock("../packages/react/src/chrome/Shelf", async (original) => {
+  const mod = await original<typeof import("../packages/react/src/chrome/Shelf")>();
+  const React = await import("react");
+  return { ...mod, Shelf: profiled(React, mod.Shelf, () => counts.chrome.push("shelf")) };
+});
+vi.mock("../packages/react/src/dialogs/ConfirmDiscard", async (original) => {
+  const mod = await original<typeof import("../packages/react/src/dialogs/ConfirmDiscard")>();
+  const React = await import("react");
+  return {
+    ...mod,
+    ConfirmDiscard: profiled(React, mod.ConfirmDiscard, () => counts.chrome.push("confirm")),
+  };
 });
 // The workspace (`Panes`) places every frame on each render it does: one call of `frames` is one render of it.
 vi.mock("../packages/core/src/workspace/frames", async (original) => {
@@ -120,6 +155,7 @@ const reset = () => {
   counts.body.length = 0;
   counts.panes = 0;
   counts.dividers = 0;
+  counts.chrome.length = 0;
 };
 const frame = () => new Promise<void>((done) => requestAnimationFrame(() => done()));
 
@@ -295,6 +331,8 @@ describe("render counts", () => {
     );
     expect(counts.frame).toEqual(Array(5).fill(single));
     expect(counts.body).toEqual([]);
+    // Nor the workspace: it draws no title (it rendered once a title before 21 Nov).
+    expect(counts.panes).toBe(0);
 
     // A tab behind in a group: the group's frame, whose strip lists it, and the tab's own frame, hidden behind, whose
     // region is named by it. No other frame, and each once.
@@ -407,5 +445,160 @@ describe("render counts", () => {
     act(() => bump());
     act(() => bump());
     expect(counts.frame).toEqual([]);
+  });
+
+  /** A tab group of three, a pane, and a column of two: a frame per pane, one with a tab strip. */
+  const grouped = (more: Partial<Parameters<typeof createJali>[0]> = {}) => {
+    const jali = createJali({
+      panes: [note],
+      layout: row(
+        tabs(note({ id: 1 }), note({ id: 2 }), note({ id: 3 })),
+        note({ id: 4 }),
+        column(note({ id: 5 }), note({ id: 6 })),
+      ),
+      url: { location: memoryLocation() },
+      storage: memoryStorage(),
+      size: { width: W, height: H },
+      moveFocus: false,
+      ...more,
+    });
+    const m = jali.model();
+    const group = m.visible.find((id) => m.stackOf(id))!;
+    const behind = m.stackOf(group)!.children.find((c) => c.id !== group)!.id;
+    const [single, other] = m.visible.filter((id) => !m.stackOf(id)) as [string, string];
+    return { jali, store: storeOf(jali), group, behind, single, other };
+  };
+  /** Five changes to one pane's data-* attributes, then five to its unsaved mark (on, off, on, off, on). */
+  const markFive = (store: ReturnType<typeof storeOf>, id: string) => {
+    for (let i = 0; i < 5; i++)
+      act(() => void store.actions.setPaneAttributes(id, { "data-status": `s${i}` }));
+    for (let i = 0; i < 5; i++)
+      act(() => void store.actions.setUnsaved(id, i % 2 ? null : "a draft"));
+  };
+  const chrome = (part: string) => counts.chrome.filter((c) => c === part).length;
+
+  it("a pane's data-* attributes and unsaved mark commit only the frame that shows it", () => {
+    const { jali, store, group, behind, single } = grouped();
+    const { container } = render(<JaliRoot jali={jali} />);
+
+    reset();
+    markFive(store, single);
+    expect(container.querySelector(`[data-pane="${single}"]`)?.getAttribute("data-status")).toBe(
+      "s4",
+    );
+    // eslint-disable-next-line no-console
+    console.info(`a pane's 10 marks: PaneFrame ${counts.frame.length}`);
+    expect(counts.frame).toEqual(Array(10).fill(single));
+    expect(counts.body).toEqual([]);
+    // Nothing outside the frames hears it: the closed discard question, the peek with nothing in it.
+    expect(counts.chrome).toEqual([]);
+
+    // A tab behind in a group: the group's frame, whose strip shows the tab and its marks, and the tab's own frame,
+    // hidden behind, which carries them.
+    reset();
+    markFive(store, behind);
+    const tab = container.querySelector(`[data-tab="${behind}"]`);
+    expect(tab?.getAttribute("data-status")).toBe("s4");
+    expect(tab?.hasAttribute("data-unsaved")).toBe(true);
+    // eslint-disable-next-line no-console
+    console.info(`a tab behind's 10 marks: PaneFrame ${counts.frame.length}`);
+    expect([...counts.frame].sort()).toEqual(
+      [...Array(10).fill(group), ...Array(10).fill(behind)].sort(),
+    );
+    expect(counts.chrome).toEqual([]);
+  });
+
+  it("an open tab menu re-renders for its own tab only", () => {
+    const { jali, store, behind, single } = grouped();
+    const { container } = render(<JaliRoot jali={jali} />);
+    act(() => void fireEvent.contextMenu(container.querySelector(`[data-tab="${behind}"]`)!));
+    const menu = () => document.querySelector(".jali-tab-actions-menu");
+    expect(menu()).not.toBeNull();
+
+    // Another pane's title and marks: the menu doesn't hear them.
+    reset();
+    for (let i = 0; i < 5; i++) act(() => void store.actions.setTitle(single, `Live ${i}`));
+    markFive(store, single);
+    // eslint-disable-next-line no-console
+    console.info(`open tab menu, 15 changes to another pane: TabMenu ${chrome("tabMenu")}`);
+    expect(chrome("tabMenu")).toBe(0);
+
+    // Its own tab's title names it.
+    reset();
+    for (let i = 0; i < 5; i++) act(() => void store.actions.setTitle(behind, `Tab ${i}`));
+    expect(menu()?.getAttribute("aria-label")).toContain("Tab 4");
+    expect(chrome("tabMenu")).toBe(5);
+  });
+
+  it("single view's switcher re-renders only the entry of the pane that changed", () => {
+    const { jali, store, single } = grouped({ phone: { below: W + 1 } });
+    const { container } = render(<JaliRoot jali={jali} />);
+    expect(store.model().single).toBe(true);
+    const entries = [...container.querySelectorAll(".jali-switch-item")];
+    expect(entries).toHaveLength(6);
+
+    reset();
+    for (let i = 0; i < 5; i++) act(() => void store.actions.setTitle(single, `Live ${i}`));
+    markFive(store, single);
+    const entry = entries.find((e) => e.textContent?.includes("Live 4"));
+    expect(entry?.getAttribute("data-status")).toBe("s4");
+    const items = counts.chrome.filter((c) => c.startsWith("item:"));
+    // eslint-disable-next-line no-console
+    console.info(
+      `switcher, 15 changes to one pane: SwitcherItem ${items.length}, Panes ${counts.panes}`,
+    );
+    expect(items).toEqual(Array(15).fill(`item:${single}`));
+    expect(counts.chrome.filter((c) => !c.startsWith("item:"))).toEqual([]);
+    // The workspace itself draws no title: it doesn't render again for one.
+    expect(counts.panes).toBe(0);
+  });
+
+  it("the peek re-renders for the pane showing its object, and for no other", () => {
+    const { jali, store, single, other } = grouped();
+    const { container } = render(<JaliRoot jali={jali} />);
+    // The peek shows the object `single` shows.
+    act(() => void store.actions.peek(store.model().pane(single)!.ref));
+    const peek = () => container.querySelector("[data-testid=peek]");
+    expect(peek()?.querySelector("h2")?.textContent).toBe("Note 4");
+
+    reset();
+    for (let i = 0; i < 5; i++) act(() => void store.actions.setTitle(other, `Live ${i}`));
+    markFive(store, other);
+    // eslint-disable-next-line no-console
+    console.info(`peek, 15 changes to a pane showing another object: Peek ${chrome("peek")}`);
+    expect(chrome("peek")).toBe(0);
+
+    reset();
+    for (let i = 0; i < 5; i++) act(() => void store.actions.setTitle(single, `Live ${i}`));
+    markFive(store, single);
+    expect(peek()?.querySelector("h2")?.textContent).toBe("Live 4");
+    expect(peek()?.getAttribute("data-status")).toBe("s4");
+    expect(chrome("peek")).toBe(15);
+  });
+
+  it("the shelf re-renders for its own chips' panes, and for no other", () => {
+    const { jali, store, single, other } = grouped();
+    const { container } = render(
+      <JaliRoot jali={jali}>
+        <JaliView />
+        <Shelf />
+      </JaliRoot>,
+    );
+    act(() => void store.actions.tuck(other));
+    const chip = () => container.querySelector(`[data-chip="${other}"]`);
+    expect(chip()).not.toBeNull();
+
+    reset();
+    for (let i = 0; i < 5; i++) act(() => void store.actions.setTitle(single, `Live ${i}`));
+    markFive(store, single);
+    // eslint-disable-next-line no-console
+    console.info(`shelf, 15 changes to a pane not on it: Shelf ${chrome("shelf")}`);
+    expect(chrome("shelf")).toBe(0);
+
+    reset();
+    for (let i = 0; i < 5; i++) act(() => void store.actions.setTitle(other, `Tucked ${i}`));
+    markFive(store, other);
+    expect(chip()?.textContent).toContain("Tucked 4");
+    expect(chrome("shelf")).toBe(15);
   });
 });

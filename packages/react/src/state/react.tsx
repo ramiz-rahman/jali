@@ -1,6 +1,6 @@
 import { own } from "@jali/core/adapter";
 /** React access to the store: one provider, and hooks that subscribe to exactly what a component reads. */
-import type { Jali, JaliState, PaneNode, JaliModel, NodeId, Messages, Theme } from "@jali/core";
+import type { Jali, JaliState, JaliModel, NodeId, Messages, Theme } from "@jali/core";
 import {
   createContext,
   Fragment,
@@ -11,7 +11,7 @@ import {
 } from "react";
 import type { Actions, PaneAttributes, UiState, UiStore } from "@jali/core/adapter";
 import type { ReactEnv, Page } from "../define";
-import { resolveTheme, titleOf } from "@jali/core/adapter";
+import { resolveTheme } from "@jali/core/adapter";
 import { reactDom } from "../dom";
 
 const StoreContext = /* @__PURE__ */ createContext<UiStore | null>(null);
@@ -43,6 +43,16 @@ export function useUi<T>(select: (s: UiState) => T): T {
 export function useModel(): JaliModel {
   const store = useStore();
   return useSyncExternalStore(store.subscribe, store.model, store.model);
+}
+
+/** The model, re-rendering only when its geometry changes: a pane's live title makes a new model that shares the
+ *  geometry (state/model.ts), and doesn't re-render this. For a part that reads no title as it renders; a title it
+ *  shows is a `useModelValue` of its own. */
+export function useGeometry(): JaliModel {
+  const store = useStore();
+  const read = () => store.model().resolved;
+  useSyncExternalStore(store.subscribe, read, read);
+  return store.model();
 }
 
 /** One value read from the model (a title, whether a pane is tucked): re-renders only when it changes. Return a
@@ -111,11 +121,34 @@ export const Parts = ({ of }: { of: ReactNode[] }) => (
 export const useEnv = (): ReactEnv => useStore().env;
 /** The curated page profile, when the workspace has one. */
 export const useProfile = (): Page | null => useEnv().profile;
-/** A pane's name: its role's label in a curated page, else its kind's title for what it shows. */
-export function useTitleOf(): (node: PaneNode) => string {
-  const env = useEnv();
-  const titles = useUi((s) => s.titles);
-  return (node) => titleOf(env, node, titles);
+/**
+ * The entries of `ids` in one of the state's per-pane records (`titles`, `unsaved`, `paneAttributes`, `activity`), as a
+ * record of those panes only. Re-renders when one of their entries changes, and for no other pane's. The record keeps
+ * its identity until then, so it can be an effect's dependency; read it with `own`.
+ */
+export function useEntriesOf<T>(
+  record: (s: UiState) => Readonly<Record<NodeId, T>>,
+  ids: readonly NodeId[],
+): Readonly<Record<NodeId, T>> {
+  const store = useStore();
+  const last = useRef<Record<NodeId, T> | null>(null);
+  const read = () => {
+    const all = record(store.get());
+    const was = last.current;
+    const next: Record<NodeId, T> = {};
+    let same = !!was;
+    let n = 0;
+    for (const id of ids) {
+      if (!Object.hasOwn(all, id) || Object.hasOwn(next, id)) continue;
+      const v = all[id]!;
+      next[id] = v;
+      n++;
+      if (same && !(Object.hasOwn(was!, id) && Object.is(was![id], v))) same = false;
+    }
+    if (same && Object.keys(was!).length === n) return was!;
+    return (last.current = next);
+  };
+  return useSyncExternalStore(store.subscribe, read, read);
 }
 
 /** The `data-*` attributes a pane set from its data (usePaneAttributes), to spread on what stands for it. */
