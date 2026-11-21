@@ -60,6 +60,17 @@
 
   Phone LCP was 0.56–0.93 s before and 0.92–1.2 s after, but the after runs were on a machine with a load average above 30 (other sessions' builds), and desktop numbers moved by 2–4× between identical runs; re-measure on a quiet machine. The four preloaded font files (about 47 KB) are what keeps CLS at 0 now that the first paint no longer waits for JS; without them `/reference/react` shifts by 0.21 on desktop.
 
+  **Re-measured 21 Nov 2026 on a quiet machine** (load average 3–4, master `d096b32`, two runs within 30 ms of each other):
+
+  | Page               | JS     | Phone LCP | Phone CLS | Phone TBT | Desktop LCP | Desktop CLS |
+  | ------------------ | ------ | --------- | --------- | --------- | ----------- | ----------- |
+  | `/`                | 182 KB | 784 ms    | 0.000     | 41 ms     | 92 ms       | 0.007       |
+  | `/learn/fitting`   | 163 KB | 792 ms    | 0.000     | 52 ms     | 48 ms       | 0.000       |
+  | `/guides/theming`  | 6.2 KB | 780 ms    | 0.000     | 0 ms      | 36 ms       | 0.000       |
+  | `/reference/react` | 6.2 KB | 860 ms    | 0.000     | 0 ms      | 52 ms       | 0.000       |
+
+  Phone LCP is 0.78–0.87 s, inside the 0.56–0.93 s range from before the rewrite and well under 2.5 s; it is now set by round trips and the preloaded fonts, not by JS. Phone blocking time on the pages with live parts is 41–52 ms (it was 258–345 ms before, and the 222–229 ms "after" figures were load). Closed.
+
 - **Open:** Several live workspaces on one page repeat Jali's landmarks (a "Panes" region per workspace, a region per pane named by its title); axe's best-practice rules skip `[data-jali]` until @jali/react lets a host name them.
 
 **Open items, closed 21 Nov 2026:**
