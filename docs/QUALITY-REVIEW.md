@@ -38,7 +38,7 @@
   - ~~React 18 client-renders panes after hydrating a server-rendered workspace~~ (closed 21 Nov, below).
   - ~~`PaneFrame` and `TabStrip` still subscribe to all titles~~ (closed 21 Nov, below).
   - ~~Toasts aren't inert behind a modal~~ (closed 21 Nov, below).
-  - Saved pane state from before this change is not read back, so it is lost once.
+  - ~~Saved pane state from before this change is not read back, so it is lost once~~ (closed 21 Nov, below: it can't be tied to an object safely, so it is dropped from storage on the first read).
 
 **API cleanup, done 20 Nov 2026 (master `98b5493`):**
 
@@ -71,8 +71,11 @@
   - Pop out's port is the workspace's (`DomPort.popOut`, given by `reactDom`); loading @jali/react sets no module state. `setPopOutPort` stays for adapters that use it.
   - From a Codex review of `packages/*`: a peek read before its kind is registered loses its app-only params when the kind arrives; `linkSearch` leaves out app-only and `link: false` params (a new `panes` option covers plain refs); a host's `UrlWriter` sees `page.before` as a link carries it; Back and Forward keep a curated page's opened panes' own params; a listener's action doesn't rename the `layout` event it heard; `destroy()` settles an open discard question as kept.
   - Pane state waiting to be saved is saved on `pagehide` and when the page is hidden, so a draft typed just before a reload is kept.
+  - Pane state saved before phase 2, under a pane id alone, is taken out of storage on the first read, along with bad data stored beside it ("Pane state saved under a pane id alone is dropped at once, never adopted"). It is not adopted. The old format held no object, and no layout was saved beside it, so no rule (the saved layout, an unambiguous pane, a reload) can tie it to the object it was about. Adopting it would bring back the P13 bug.
+  - A pane's title, `data-*` attributes and unsaved mark re-render only what shows that pane: the tab strip and its overflow menu, an open tab menu, each switcher entry, the peek, the shelf, and the discard question (nothing while closed). The workspace no longer renders for a live title. For one pane's 15 changes in single view, the switcher went from 40 entry commits to 15 and the workspace from 5 renders to 0. A closed discard question went from 5 commits to 0, and the shelf from 30 to 0 for a pane not on it.
+- **Found while fixing:** pane state's values and owners are two storage keys. A tab of a build from before 20 Nov, open beside a newer one, can overwrite the values under the newer owners (DECISIONS). Only during an upgrade with both tabs open. The fix is one key per pane, which changes the stored format again.
 - **Declined:** requiring `definePage`'s brand in `JaliOptions.page`'s type (Codex). `ProfileBase` and @jali/react's `Page` are public and their `[PAGE]` is optional by design, so a host that types a page with either (or React's `definePage`, which returns `Page`) would stop compiling. A plain object already fails at startup with "make the page with `definePage`".
-- **Still open:** saved pane state from before phase 2 is not read back, so it is lost once. `TabMenu` (while open), the pane switcher, the peek and `useTitleOf` still read every title, and a tab strip every pane's `data-*` attributes and unsaved marks; none of them is in the paths the render-count tests cover.
+- **Still open:** ~~saved pane state from before phase 2 is lost once~~ and ~~the tab menu, switcher, peek, `useTitleOf` and tab strips read every pane's title, attributes or unsaved marks~~, both closed 21 Nov (above). The divider layer still re-renders once for any title, because its labels name the panes on either side.
 
 ## Verdict
 

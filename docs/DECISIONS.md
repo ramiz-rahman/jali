@@ -1279,3 +1279,63 @@ Gzipped KB, measured on master `ea3ac83` after `pnpm build:packages`. The `mustN
 - **Why:** pane state (`usePaneState`: a draft, a scroll position) is saved 400 ms after it stops changing (`startUi`, boot.ts). A reload or a closed tab within those 400 ms dropped it, so a draft typed just before a reload was lost. `destroy()` and the stop `start()` returns already saved it; leaving the page didn't.
 - **Now:** a save still waiting is made at once on `pagehide` and when the page becomes hidden (`visibilitychange`): a phone switching apps may never bring the page back to run the timer. Nothing is written when nothing waits.
 - **Tests:** `tests/destroy.test.ts`: a draft set just before `pagehide`, or before the page is hidden, is in storage; a `visibilitychange` to visible saves nothing.
+
+## 21 Nov 2026 · Pane state saved under a pane id alone is dropped at once, never adopted (QUALITY-REVIEW phase 2, open)
+
+- **Why:** since P13, pane state belongs to the object a pane shows (`pane-state-of`). State saved before it is not read back, but it stayed in storage until the next save. The question was whether it could be adopted instead.
+- **What the old format held:** the same `pane-state` key, `{ [paneId]: { [key]: value } }`: the values of the panes in the layout and the undo stack when it was saved, and nothing else. No object, no kind, and no layout saved with it.
+- **Why nothing is adopted:** no case can be tied to an object safely, so adopting any of it would bring back the bug P13 fixed.
+  - "Adopt it when the pane shows the object that id showed in the saved layout": no layout was saved with it. A free layout lived in the address, and the reader may arrive by another link, a bookmark, or a second tab that shares the storage. Adopting whatever the address now shows at that id is the pre-P13 behaviour. A curated page's split layout (`review:<page>`) is another key, written by whichever tab wrote last, and its views are bound again to the item in the address.
+  - "Adopt it for an unambiguous pane" (one pane, one entry, or a kind with one object): the entry may be another kind's. `pane-1` showed an order and now shows a customer. Nothing in the data rules that out.
+  - A reload check (the navigation's type) proves the address, not that this tab wrote the state.
+  - What is lost is a scroll position, a sort or a draft, once. Adopting it could put one customer's draft reply in another customer's pane.
+- **Now:** `readPaneState` (`state/pane-state.ts`) reads saved pane state as a workspace starts. Anything `loadPaneState` leaves out is taken out of storage at once, so it is gone after one read: state without an object, an entry that isn't a record of values, an owner that isn't text or has no state, and text that isn't JSON. Good state is read as before, and nothing is written when storage holds nothing else. Old values never reach `usePaneState`, so its `parse` never sees them. Entries are still read through `own`, and a `__proto__` entry is an own key, never the prototype.
+- **Unchanged:** `loadPaneState`, `loadPaneStateOwners` and `savePaneState` (`@jali/core/adapter`). `readPaneState` is internal.
+- **Found, not fixed:** values and owners are two keys. A tab running a build from before 20 Nov, still open beside a newer one, saves `pane-state` and leaves the newer build's `pane-state-of` in place. The newer build could then read the old tab's values as belonging to the objects it saved last. This can happen only while an old build's tab is open. The fix is one key holding each pane's values with their object, which changes the stored format again.
+- **Size:** @jali/core +0.1 KB gzipped.
+- **Tests:** `tests/pane-state-legacy.test.ts`: old state is never attached, whatever the pane under its id shows, and a write starts the object's own state. It is gone from storage after one read, and the next start writes nothing. Owned state stored beside it is read back and kept. Bad entries and prototype names are dropped. Text that isn't JSON is replaced. Clean storage is never rewritten. `tests/pane-contract.test.ts` still checks that state saved without its object is left out.
+
+## 21 Nov 2026 · A pane's title, data-* attributes and unsaved mark re-render only what shows that pane (QUALITY-REVIEW phase 2, open)
+
+- **Why:** after "A live title re-renders only the frame that shows it", some parts still subscribed to every pane:
+  - an open tab menu, each entry of the single view switcher, and the peek subscribed to every pane's title;
+  - a tab strip and its overflow menu subscribed to every pane's `data-*` attributes and unsaved marks (the overflow menu to every pane's activity too);
+  - the shelf subscribed to the whole model and to all three records;
+  - the discard question subscribed to every unsaved mark and to the whole model while closed.
+    The workspace (`Panes`) re-rendered on each live title as well, through `useModel` (directly and in `useFocusIntoStrip`), and so did every switcher entry and the peek under it. `useTitleOf` read every title and was used nowhere.
+- **Now:**
+  - **Hooks** (`state/react.tsx`, internal):
+    - `useEntriesOf(record, ids)` gives the entries of `ids` in one per-pane record (`titles`, `unsaved`, `paneAttributes`, `activity`), as a record of those panes only. It keeps the same object until one of their entries changes.
+    - `useGeometry()` gives the model, but re-renders only when its geometry changes (`m.resolved`): a live title makes a new model that shares the geometry.
+    - `useTitleOf` is gone.
+  - **Tab strip and overflow menu:** they read their own tabs' titles, attributes, unsaved marks and activity through `useEntriesOf`. These are also the strip's measure dependencies.
+  - **Tab menu, switcher entry:** each reads one title (`useModelValue((m) => m.title(id))`). The switcher's entry is its own module (`chrome/SwitcherItem.tsx`), so a test can count it. The switcher is always on screen in single view, and each entry shows one pane, so it never needs every title.
+  - **Peek:** it finds the panes showing its object (`useModelValue`, as text) and reads only their entries. It still takes the first one, now in tree order rather than the order the records' keys were added.
+  - **Shelf:** it reads the shelf list from the model (`useModelValue`), its chips' and homes' names as one string, and its chips' entries. Its out-of-view list is set only when it changes: a functional update right after a commit rendered it a second time, as the strip's count did.
+  - **Discard question:** it subscribes to nothing but `confirm` while closed. Open, it reads the panes it lists.
+  - **Workspace and the curated page's bar:** they use `useGeometry`, and so does `useFocusIntoStrip`. Neither shows a title. The drag chip (`DragLayer`) and the stacked view's divider read their own titles.
+- **Measured** (`tests/render-counts.test.tsx`: the tab group of three, a pane and a column of two; the switcher in single view; commits counted with a `<Profiler>`):
+
+  | Run                                                               | Before                                        | After            |
+  | ----------------------------------------------------------------- | --------------------------------------------- | ---------------- |
+  | 5 attribute and 5 unsaved changes to a pane on its own            | 20 frame commits (its own and the group's)    | 10 (its own)     |
+  | the same, closed discard question                                 | 5 commits                                     | 0                |
+  | open tab menu, 15 changes to another pane                         | 15 menu commits                               | 0                |
+  | single view, 5 title, 5 attribute and 5 unsaved changes to a pane | 40 switcher entry commits (all six per title) | 15 (that pane's) |
+  | the same, workspace renders (`frames()` calls)                    | 5                                             | 0                |
+  | peek, 15 changes to a pane showing another object                 | 5 commits                                     | 0                |
+  | shelf, 15 changes to a pane not on it                             | 30 commits                                    | 0                |
+  | shelf, 15 changes to its own chip's pane                          | 30 commits                                    | 15               |
+
+  A tab behind in a group still commits its group's frame and its own hidden frame for each change: the strip shows it, and its own frame carries its attributes.
+
+- **Not narrowed:** the divider layer. Each divider's label names the panes on either side ("Resize Order 1 and Order 2"), so a title re-renders it once. The curated page's ⌥ preview (`Ghost`, only while ⌥ is held) and ⌘K (only while open) still read the whole model.
+- **Size:** @jali/react +0.2 KB gzipped (minimal 25.1 → 25.3, full 26.9 → 27.1).
+- **Tests:** `tests/render-counts.test.tsx`:
+  - attributes and unsaved marks commit only the frame that shows them, and nothing outside the frames;
+  - an open tab menu re-renders for its own tab only;
+  - the switcher re-renders only the changed pane's entry, and the workspace doesn't render at all;
+  - the peek re-renders for the panes showing its object;
+  - the shelf re-renders for its chips' panes.
+
+  The live-title test now also checks that the workspace doesn't render.
