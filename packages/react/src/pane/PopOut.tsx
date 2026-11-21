@@ -7,6 +7,10 @@
  * A prototype: the content remounts when it moves, so its own `useState` starts again (`usePaneState` and the app's
  * data cache carry over); Jali's keys don't work inside the floating window yet; and the window closes when the
  * page it came from navigates away.
+ *
+ * The browser's rules: Chrome keeps one floating window across all its tabs (another one closes this, and `pagehide`
+ * brings the pane back), and on macOS the window doesn't appear over a full-screen app's Space. A bare Document
+ * Picture-in-Picture window does the same (21 Nov 2026); a page can't change either.
  */
 import type { Jali, NodeId } from "@jali/core";
 import { allows, storeOf, type PopOutPort, type UiStore } from "@jali/core/adapter";

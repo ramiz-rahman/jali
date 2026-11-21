@@ -822,6 +822,8 @@ The pane keeps its place in the layout, which says "Popped out into its own wind
 
 Known limits: the content remounts as it moves, so its own `useState` starts again (`usePaneState` and your data cache carry over); Jali's keys don't work inside the window yet; and the window closes when the page that opened it navigates away.
 
+The window is the browser's, so the browser's rules apply. Chrome keeps one floating window at a time across all its tabs: opening another (a video call's, another page's) closes this one, and the pane comes back. On macOS the window stays over other apps on the same desktop, follows you to another Space, and survives Show Desktop, but it doesn't appear over an app in full screen, because a full-screen app has a Space of its own. A bare Document Picture-in-Picture window behaves the same (checked 21 Nov 2026); a page can't change either.
+
 ### unstable_bringBack
 
 *function*, from `@jali/react`
