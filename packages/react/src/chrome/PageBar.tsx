@@ -13,7 +13,7 @@ import {
   viewerLabel,
 } from "@jali/core/adapter";
 import { useRovingKeys } from "../a11y/roving";
-import { bold, Parts, useModel, useStore, useUi, useProfile } from "../state/react";
+import { bold, Parts, useGeometry, useModel, useStore, useUi, useProfile } from "../state/react";
 import { useKeymap } from "../state/hydrated";
 import { Panes } from "../workspace/Workspace";
 import { landmarkName } from "../a11y/landmark";
@@ -25,7 +25,7 @@ import { landmarkName } from "../a11y/landmark";
 export function PageBar() {
   const icon = useJaliIcons();
   const page = useUi((s) => s.page);
-  const m = useModel();
+  const m = useGeometry();
   const { actions, messages } = useStore();
   const t = messages.page;
   const profile = useProfile();
@@ -93,7 +93,7 @@ function PageTabs() {
   const altClick = store.messages.keys.altClick(keymap.platform);
   const page = useUi((s) => s.page)!;
   const focused = useUi((s) => s.view.focused);
-  const m = useModel();
+  const m = useGeometry();
   const strip = useRef<HTMLDivElement>(null);
   // The drag a pointer-down started: a click that ends a drag is not a click.
   const drag = useRef<{ dragged(): boolean } | null>(null);
