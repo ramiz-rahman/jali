@@ -190,6 +190,12 @@ A pane that is not on screen, listed on the shelf: tucked, folded by the fit, or
 
 </Entry>
 
+<Entry name="TuckedEntry" kind="type" from="jali" signature={`type TuckedEntry = ShelfEntry & { reason: "tucked" }`} compact>
+
+A pane the person tucked, as the model's `shelf` lists it. Folded panes are never on it: they wait behind their strip's "N folded" chip.
+
+</Entry>
+
 ## Writing a layout
 
 <Entry name="LayoutInput" kind="type" from="jali" signature={`type LayoutInput = Layout | Draft | ObjectRef`} compact>
@@ -701,7 +707,7 @@ What is on screen, derived once per change (`jali.model()`, `useJaliModel()`).
 <Param name="stackOf" type="(id) => StackNode | undefined" required>The person's tab group holding a pane.</Param>
 <Param name="tuckOf" type="(id) => { pane; home; seq } | undefined" required>A pane's tuck.</Param>
 <Param name="shownWith" type="(id: NodeId) => NodeId" required>The pane on screen in the same group (itself when shown).</Param>
-<Param name="shelf" type="ShelfEntry[]" required>Tucked panes in tree order, with the pane each sits behind.</Param>
+<Param name="shelf" type="TuckedEntry[]" required>Tucked panes in tree order, with the pane each sits behind.</Param>
 <Param name="folded" type="NodeId[]" required>Panes folded for room.</Param>
 <Param name="off" type="NodeId[]" required>Panes hidden by the overlay.</Param>
 <Param name="onScreen" type="PaneNode[]" required>Every pane except hidden ones: what the phone's switcher lists.</Param>

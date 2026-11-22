@@ -307,6 +307,16 @@ interface ShelfEntry { paneId: NodeId; homeId: NodeId; stackId: NodeId; reason: 
 
 A pane that is not on screen, listed on the shelf: tucked, folded by the fit, or a background tab of a tucked or folded group. `homeId` is where it shows when put back.
 
+### TuckedEntry
+
+*type*, from `jali`
+
+```ts
+type TuckedEntry = ShelfEntry & { reason: "tucked" }
+```
+
+A pane the person tucked, as the model's `shelf` lists it. Folded panes are never on it: they wait behind their strip's "N folded" chip.
+
 ## Writing a layout
 
 ### LayoutInput
@@ -1159,7 +1169,7 @@ What is on screen, derived once per change (`jali.model()`, `useJaliModel()`).
 
 - **`shownWith`** (`(id: NodeId) => NodeId`, required): The pane on screen in the same group (itself when shown).
 
-- **`shelf`** (`ShelfEntry[]`, required): Tucked panes in tree order, with the pane each sits behind.
+- **`shelf`** (`TuckedEntry[]`, required): Tucked panes in tree order, with the pane each sits behind.
 
 - **`folded`** (`NodeId[]`, required): Panes folded for room.
 
