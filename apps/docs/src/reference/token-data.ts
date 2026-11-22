@@ -192,7 +192,7 @@ export const TOKEN_PURPOSE: Record<string, TokenInfo> = {
     group: "Opened panes",
     swatch: "color",
     purpose:
-      'In a curated page, the header of a pane opened while investigating (with the "tint" boundary setting), and the opened panes group in the page bar.',
+      'In a curated page, the header of a pane opened from a link (with the "tint" boundary setting), and the opened panes group in the page bar.',
   },
   "--jali-opened-line": {
     group: "Opened panes",

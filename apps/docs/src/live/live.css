@@ -978,7 +978,7 @@
   .live-ruler-mark[data-passed] {
     background: var(--jali-accent);
   }
-  .live-ruler-mark[data-single] {
+  .live-ruler-mark[data-one-pane] {
     border-radius: 50%;
     transform: none;
   }

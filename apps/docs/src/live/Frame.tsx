@@ -205,7 +205,7 @@ export function Frame({ layout, width, minWidth = 260, height = 320, caption }: 
             <span
               key={k.width}
               className="live-ruler-mark"
-              data-single={k.single || undefined}
+              data-one-pane={k.single || undefined}
               data-passed={k.width > cur || undefined}
               style={{ left: k.width }}
               title={

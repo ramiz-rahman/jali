@@ -79,7 +79,7 @@ Panes opened by following links in a curated page.
 
 | Token | Used for | Light | Dark |
 | --- | --- | --- | --- |
-| `--jali-opened-bg` | In a curated page, the header of a pane opened while investigating (with the "tint" boundary setting), and the opened panes group in the page bar. | `#fbf8f1` | `#211d15` |
+| `--jali-opened-bg` | In a curated page, the header of a pane opened from a link (with the "tint" boundary setting), and the opened panes group in the page bar. | `#fbf8f1` | `#211d15` |
 | `--jali-opened-line` | The edge and header line of an opened pane, its "Opened" tag and the opened panes group. | `#eadfc8` | `#3d3424` |
 | `--jali-opened-mark` | The small square in the page bar's opened panes group. | `#c08a2e` | `#d9a648` |
 | `--jali-opened-ink` | The text of an opened pane's "Opened" tag. | `#8a6420` | `#e2bd78` |
