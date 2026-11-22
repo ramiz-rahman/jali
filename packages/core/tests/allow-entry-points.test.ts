@@ -6,7 +6,6 @@
 import { describe, expect, it } from "vite-plus/test";
 import {
   createJali,
-  definePage,
   layout as L,
   memoryStorage,
   pane,
@@ -14,6 +13,7 @@ import {
   type JaliOptions,
   type Layout,
 } from "@jali/core";
+import { definePageEngine as definePage } from "@jali/core/adapter";
 import { storeOf } from "@jali/core/adapter";
 
 const free = { kind: "free", title: "Free", params: { id: Number }, width: { min: 400 } };

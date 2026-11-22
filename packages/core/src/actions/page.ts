@@ -767,11 +767,10 @@ export const pageEngine: PageEngine = {
 };
 
 /**
- * Makes a curated page: one item at a time, its views as tabs. Pass the result to `createJali({ page })`. This is the
- * one way in to the page's code (`pageEngine`), so an app that never calls it ships none of it. Returns a copy of
- * `page` with its engine; the fields are `page`'s own. (@jali/react's `definePage` calls it, and types the rail and
- * header.)
+ * Gives a curated page its engine, the code that runs it, for a framework adapter's own `definePage` (@jali/react's
+ * calls it, and adds the parts that render the page). Apps use their adapter's `definePage`: a page made with this
+ * alone renders no rail, header or tabs. Returns a copy of `page`; the fields are `page`'s own.
  */
-export function definePage<P extends ProfileBase<any, any>>(page: P): P {
+export function definePageEngine<P extends ProfileBase<any, any>>(page: P): P {
   return { ...page, [PAGE]: pageEngine };
 }

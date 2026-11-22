@@ -6,7 +6,6 @@ import { describe, expect, expectTypeOf, it } from "vite-plus/test";
 import {
   appOnly,
   createJali,
-  definePage,
   layout,
   memoryLocation,
   memoryStorage,
@@ -17,6 +16,7 @@ import {
   type ParamsOf,
   type UrlState,
 } from "@jali/core";
+import { definePageEngine as definePage } from "@jali/core/adapter";
 import { encodePeek, storeOf } from "@jali/core/adapter";
 import { definePane } from "@jali/react";
 

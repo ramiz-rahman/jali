@@ -3,7 +3,8 @@
  * workspace and comes back is still limited. Before, leaving dropped the page's state, and with it the policy.
  */
 import { describe, expect, it } from "vite-plus/test";
-import { createJali, definePage, memoryLocation, memoryStorage, pane } from "@jali/core";
+import { createJali, memoryLocation, memoryStorage, pane } from "@jali/core";
+import { definePageEngine as definePage } from "@jali/core/adapter";
 
 const ticket = { kind: "ticket", title: "Ticket", params: { id: String }, width: { min: 200 } };
 const note = { kind: "note", title: "Note", width: { min: 200 } };

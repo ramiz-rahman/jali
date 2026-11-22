@@ -1,7 +1,7 @@
 /**
  * "Pop out pane" (`pane.pop_out`): the pane menu's Pop out, from ⌘K or a key the app binds. Only in a workspace that
  * turns pop out on (`allow: { popOut: true }`); it runs where the workspace's adapter can pop out (@jali/react's
- * floating window, given with its DOM port as `DomPort.popOut`; or the older `setPopOutPort`, for every workspace) and
+ * floating window, given with its DOM port as `DomPort.popOut`) and
  * the focused pane allows it. No default key.
  */
 import { afterEach, describe, expect, it } from "vite-plus/test";
@@ -14,7 +14,7 @@ import {
   row,
   runCommand,
 } from "@jali/core";
-import { noDom, setPopOutPort, storeOf } from "@jali/core/adapter";
+import { noDom, storeOf } from "@jali/core/adapter";
 
 const note = { kind: "note", title: "Note" };
 const fixed = { kind: "fixed", title: "Fixed", allow: { popOut: false } };
@@ -37,9 +37,11 @@ const listed = (jali: ReturnType<typeof make>) =>
   listCommands(jali).find((c) => c.id === "pane.pop_out");
 
 afterEach(() => {
-  setPopOutPort(null);
   ran.length = 0;
 });
+/** The workspace's own way to pop a pane out, as its adapter's DOM port gives it. */
+const usePort = (jali: ReturnType<typeof make>, p: ReturnType<typeof port> | undefined) =>
+  storeOf(jali).dom.use({ ...noDom, ...(p ? { popOut: p } : {}) });
 
 describe("the Pop out pane command", () => {
   it("isn't there in a workspace that leaves pop out off", () => {
@@ -48,8 +50,8 @@ describe("the Pop out pane command", () => {
   });
 
   it("pops the focused pane out, with no key of its own", () => {
-    setPopOutPort(port(true));
     const jali = make({ popOut: true });
+    usePort(jali, port(true));
     expect(commandsOf(jali).find((c) => c.id === "pane.pop_out")?.title).toBe("Pop out pane");
     jali.actions.focus("a");
     expect(listed(jali)).toMatchObject({ group: "Pane", keys: "", disabled: false });
@@ -59,19 +61,19 @@ describe("the Pop out pane command", () => {
   });
 
   it("can't run where the adapter can't pop out, or with no pane focused", () => {
-    setPopOutPort(port(false));
     const jali = make({ popOut: true });
+    usePort(jali, port(false));
     jali.actions.focus("a");
     expect(listed(jali)?.disabled).toBe(true);
     expect(runCommand(jali, "pane.pop_out")).toBe(false);
-    setPopOutPort(null);
+    usePort(jali, undefined);
     expect(runCommand(jali, "pane.pop_out")).toBe(false);
     expect(ran).toEqual([]);
   });
 
   it("says why for a pane whose kind doesn't allow it", () => {
-    setPopOutPort(port(true));
     const jali = make({ popOut: true });
+    usePort(jali, port(true));
     jali.actions.focus("b");
     expect(listed(jali)).toMatchObject({ disabled: true });
     expect(listed(jali)?.reason).toBeTruthy();
@@ -89,19 +91,5 @@ describe("the Pop out pane command", () => {
     expect(runCommand(other, "pane.pop_out")).toBe(false);
     expect(runCommand(mine, "pane.pop_out")).toBe(true);
     expect(ran).toEqual(["a"]);
-  });
-
-  it("prefers the workspace's own port to the one set for every workspace", () => {
-    const shared: string[] = [];
-    setPopOutPort({ can: () => true, run: (_, id) => shared.push(id) });
-    const jali = make({ popOut: true });
-    jali.actions.focus("a");
-    storeOf(jali).dom.use({ ...noDom, popOut: port(false) });
-    expect(listed(jali)?.disabled).toBe(true);
-    expect(runCommand(jali, "pane.pop_out")).toBe(false);
-    storeOf(jali).dom.use({ ...noDom, popOut: port(true) });
-    expect(runCommand(jali, "pane.pop_out")).toBe(true);
-    expect(ran).toEqual(["a"]);
-    expect(shared).toEqual([]);
   });
 });

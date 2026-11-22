@@ -48,17 +48,8 @@ export interface PopOutPort {
   can(): boolean;
   run(jali: Jali, pane: NodeId): unknown;
 }
-let popOutPort: PopOutPort | null = null;
-/**
- * Set (or clear) a way to pop a pane out for every workspace that has none of its own (adapters). The older way, kept
- * for adapters that use it: a workspace's own `DomPort.popOut` comes first. @jali/react no longer calls it.
- */
-export const setPopOutPort = (port: PopOutPort | null) => {
-  popOutPort = port;
-};
-/** The way to pop a pane out of `store`'s workspace: its adapter's own, else the one set for every workspace. */
-const popOutOf = (store: Pick<JaliStore, "dom"> | undefined) =>
-  store?.dom.port.popOut ?? popOutPort;
+/** The way to pop a pane out of `store`'s workspace: its adapter's own (its DOM port's). */
+const popOutOf = (store: Pick<JaliStore, "dom"> | undefined) => store?.dom.port.popOut;
 
 /** `check`, then the app's `allow` for the focused pane (a command for something it doesn't allow is greyed out,
  *  saying why). Leaving maximise or full screen is always allowed. */

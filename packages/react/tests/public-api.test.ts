@@ -25,7 +25,6 @@ describe("public API", () => {
       "commandsOf",
       "copyLink",
       "createJali",
-      "definePage",
       "edgeScroll",
       "en",
       "formatKeys",

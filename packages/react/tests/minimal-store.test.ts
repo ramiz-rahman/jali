@@ -1,14 +1,7 @@
 /** A workspace made with the public API alone and few options: what the docs' smallest app does must not throw. */
 import { describe, expect, it } from "vite-plus/test";
-import {
-  createJali,
-  definePage,
-  memoryLocation,
-  memoryStorage,
-  pane,
-  row,
-  type JaliOptions,
-} from "@jali/core";
+import { createJali, memoryLocation, memoryStorage, pane, row, type JaliOptions } from "@jali/core";
+import { definePageEngine as definePage } from "@jali/core/adapter";
 import { definePane } from "@jali/react";
 import { runCommand } from "../../core/src/commands/registry";
 import { storeOf } from "../../core/src/state/instance";

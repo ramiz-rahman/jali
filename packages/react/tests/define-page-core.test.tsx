@@ -1,16 +1,11 @@
 /**
- * A page made with @jali/core's `definePage` has no React parts, so `<JaliView>` can't render it (react-opus
+ * A page made with only an engine (@jali/core/adapter's `definePageEngine`) has no React parts, so `<JaliView>` can't render it (react-opus
  * REACT-13). In development Jali says so, naming the fix, instead of silently showing bare panes.
  */
 import { cleanup, render } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vite-plus/test";
-import {
-  createJali,
-  definePage as defineCorePage,
-  memoryLocation,
-  memoryStorage,
-  pane,
-} from "@jali/core";
+import { createJali, memoryLocation, memoryStorage, pane } from "@jali/core";
+import { definePageEngine as defineCorePage } from "@jali/core/adapter";
 import { JaliRoot, definePage, definePane } from "@jali/react";
 
 afterEach(cleanup);

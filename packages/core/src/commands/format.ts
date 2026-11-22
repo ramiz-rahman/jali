@@ -20,11 +20,6 @@ export const detectPlatform = (): Platform =>
     ? "mac"
     : "other";
 
-/** @deprecated read `store.keymap.platform`, or call `detectPlatform()`; kept for code that has no store at hand.
- *  It is read when the module loads, so on a server it is the build machine's: never print from it before
- *  hydration. Nothing in Jali reads it. */
-export const isMac = /* @__PURE__ */ detectPlatform() === "mac";
-
 export interface Chord {
   /** `KeyboardEvent.code` ("KeyM", "Digit1", "Backslash") or, for named keys, `KeyboardEvent.key` ("ArrowLeft", "F6"). */
   key: string;

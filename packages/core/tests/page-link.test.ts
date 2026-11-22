@@ -3,7 +3,8 @@
  * its `bind` as text, and a link to another page doesn't open this one with that link's item.
  */
 import { describe, expect, it } from "vite-plus/test";
-import { createJali, definePage, memoryLocation, memoryStorage, pane } from "@jali/core";
+import { createJali, memoryLocation, memoryStorage, pane } from "@jali/core";
+import { definePageEngine as definePage } from "@jali/core/adapter";
 
 const loan = { kind: "loan", title: "Loan", params: { id: Number }, width: { min: 200 } };
 const bound: unknown[] = [];

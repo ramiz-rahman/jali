@@ -6,7 +6,6 @@ import { describe, expect, it } from "vite-plus/test";
 import {
   appOnly,
   createJali,
-  definePage,
   linkSearch,
   memoryLocation,
   memoryStorage,
@@ -16,6 +15,7 @@ import {
   toLayout,
   type JaliOptions,
 } from "@jali/core";
+import { definePageEngine as definePage } from "@jali/core/adapter";
 import { definePane } from "@jali/react";
 import { readSearch } from "../../core/src/url";
 

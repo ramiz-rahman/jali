@@ -36,7 +36,7 @@ import type {
 } from "@jali/core";
 import type { ComponentType } from "react";
 
-import { defineKind, definePage as defineCorePage } from "@jali/core/adapter";
+import { defineKind, definePageEngine } from "@jali/core/adapter";
 import type { JaliIcon } from "./icons/types";
 import { pageParts, type PageParts } from "./chrome/PageBar";
 
@@ -148,12 +148,12 @@ export interface Page<I extends ItemId = any> extends ProfileBase<PageView, I> {
 
 /**
  * Makes a curated page: `definePage({ id, name, roles, ... })`, for `createJali({ page })`. It gives the page the code
- * that runs it (core's `definePage`) and the parts that render it, so an app that never calls it ships neither.
+ * that runs it (core's `definePageEngine`) and the parts that render it, so an app that never calls it ships neither.
  */
 export function definePage(page: Page<number>): Page<number>;
 export function definePage(page: Page<string>): Page<string>;
 export function definePage(page: Page): Page {
-  return { ...defineCorePage(page), [PAGE_PARTS]: pageParts };
+  return { ...definePageEngine(page), [PAGE_PARTS]: pageParts };
 }
 
 /** The env as a React workspace sees it: its kinds have components, its page a rail and header. */

@@ -61,7 +61,7 @@ export interface DomPort {
   /** A brief highlight on a tab, so the eye finds where a pane went. */
   flash(tab: HTMLElement): void;
   /** How this adapter pops a pane out into a floating window, where it can (`pane.pop_out`). Optional: without it
-   *  (and without the older `setPopOutPort`), the command can't run. */
+   *  the command can't run. */
   popOut?: PopOutPort;
 }
 

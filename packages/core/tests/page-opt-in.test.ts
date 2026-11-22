@@ -6,7 +6,6 @@
 import { describe, expect, it } from "vite-plus/test";
 import {
   createJali,
-  definePage,
   en,
   listCommands,
   memoryLocation,
@@ -14,6 +13,7 @@ import {
   pane,
   type JaliOptions,
 } from "@jali/core";
+import { definePageEngine as definePage } from "@jali/core/adapter";
 import { storeOf } from "@jali/core/adapter";
 
 const ticket = { kind: "ticket", title: "Ticket", params: { id: String } };
