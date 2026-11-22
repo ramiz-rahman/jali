@@ -1,7 +1,7 @@
 /** One instrument's key figures: the price and today's change, the touch, the day's range, and what it is. */
 import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { InfoIcon } from "@phosphor-icons/react";
-import { definePane, useCommands, useJali, type PaneProps } from "@jali/react";
+import { definePane, useCommands, useJali, type PaneProps } from "jali/react";
 import { prepareTicket } from "../actions";
 import { useMarket, useTopic } from "../market/react";
 import type { Instrument, Quote } from "../market/types";

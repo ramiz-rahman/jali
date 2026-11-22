@@ -6,8 +6,8 @@ import {
   LinkSimpleHorizontalIcon,
   SquaresFourIcon,
 } from "@phosphor-icons/react";
-import { IconButton, useJaliShortcut, useJali, useJaliState, PageBar } from "@jali/react";
-import { copyLink } from "@jali/core";
+import { IconButton, useJaliShortcut, useJali, useJaliState, PageBar } from "jali/react";
+import { copyLink } from "jali";
 import { JaliLockup } from "./JaliLockup";
 
 /** The presets as toggle buttons: in the bar on desktop, in the Layouts menu below 768px. */

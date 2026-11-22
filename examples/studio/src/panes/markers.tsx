@@ -4,8 +4,8 @@
  */
 import { useEffect, useRef, useState, type KeyboardEvent } from "react";
 import { BookmarkSimpleIcon, PencilSimpleIcon, PlusIcon, XIcon } from "@phosphor-icons/react";
-import { keyHint } from "@jali/core";
-import { definePane, useCommands, usePaneState, type PaneProps } from "@jali/react";
+import { keyHint } from "jali";
+import { definePane, useCommands, usePaneState, type PaneProps } from "jali/react";
 import { toast } from "sonner";
 import { cue } from "../actions";
 import { usePosition, useTransport } from "../audio/react";

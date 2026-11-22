@@ -1,7 +1,10 @@
 /** Data Studio's workspace: a database browser where the person builds the layout from its pane kinds and presets. */
-import { createJali, type Jali, type JaliOptions } from "@jali/core";
+import { createJali, type Jali, type JaliOptions } from "jali";
 import { makerCommand } from "@jali-examples/shared/maker/maker";
 import { DEFAULT_PRESET, dataStudioKinds, dataStudioLauncher, dataStudioPresets } from "./panes";
+import { defaultFeatures } from "jali/features";
+import { popOut } from "jali/pop-out";
+import { urlSync } from "jali/url";
 
 /** What Data Studio's workspace is made of. */
 export const dataStudioOptions = {
@@ -19,9 +22,8 @@ export const dataStudioOptions = {
 export const createDataStudio = (): Jali =>
   createJali({
     ...dataStudioOptions,
-    url: { sizes: "link" },
-    allow: { popOut: true },
-    // Pop out on puts it among Jali's header buttons, before Close, and gives ⌘K Jali's "Pop out pane" (Document
-    // Picture-in-Picture; Chrome and Edge on desktop).
+    // Jali's usual features, links with every size, and Pop out: among Jali's header buttons, before Close, and
+    // Jali's "Pop out pane" in ⌘K (Document Picture-in-Picture; Chrome and Edge on desktop).
+    features: [...defaultFeatures(), urlSync({ sizes: "link" }), popOut()],
     commands: [makerCommand],
   });

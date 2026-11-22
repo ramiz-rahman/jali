@@ -4,7 +4,7 @@
  * not theirs to stop: it lives in the engine.
  */
 import { useEffect, useRef, useState } from "react";
-import { useJaliTheme } from "@jali/react";
+import { useJaliTheme } from "jali/react";
 import { useServices } from "../services";
 import { useStore } from "@jali-examples/shared/store";
 import type { TransportState } from "./engine";

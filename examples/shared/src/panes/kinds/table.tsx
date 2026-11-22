@@ -1,5 +1,6 @@
 import { TableIcon } from "@phosphor-icons/react";
-import { definePane } from "@jali/react";
+import { definePane, type PaneProps } from "jali/react";
+import { keyHint } from "jali";
 import { useMemo, useState } from "react";
 import type { ObjectRef, Row, TableName, ColumnInfo } from "../../data/types";
 import { Grid, type GridColumn } from "../grid/Grid";
@@ -11,8 +12,6 @@ import { useWindowRows } from "../grid/useWindow";
 import { nextSort, orderByString, parseFilter, type SortState } from "../grid/grid-state";
 import { PaneGate } from "../shared/PaneGate";
 import { useSelectionAcrossResults } from "../grid/useSelectionAcrossResults";
-import type { PaneProps } from "@jali/react";
-import { keyHint } from "@jali/core";
 
 /** A grid over one table, optionally pre-filtered by a relation (used by RelatedPane). */
 export function TableGrid({

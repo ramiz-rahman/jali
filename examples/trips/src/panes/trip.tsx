@@ -17,7 +17,7 @@ import {
   useJaliState,
   usePaneState,
   type PaneProps,
-} from "@jali/react";
+} from "jali/react";
 import { selectPlace, showDay } from "../actions";
 import { resetPlan } from "../planning";
 import { usePlan, useServices } from "../services";

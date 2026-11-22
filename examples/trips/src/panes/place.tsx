@@ -11,7 +11,7 @@ import {
   PlusIcon,
   QuestionIcon,
 } from "@phosphor-icons/react";
-import { definePane, useCommands, useJali, useJaliModel, type PaneProps } from "@jali/react";
+import { definePane, useCommands, useJali, useJaliModel, type PaneProps } from "jali/react";
 import { selectPlace } from "../actions";
 import { addToDay, chooseDay, removeFromPlan, stayAt } from "../planning";
 import { usePlan, useServices } from "../services";

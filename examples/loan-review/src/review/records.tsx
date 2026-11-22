@@ -10,12 +10,11 @@ import {
   UserIcon,
   UsersIcon,
 } from "@phosphor-icons/react";
-import type { PaneProps } from "@jali/react";
+import { useActivity, useJaliState, type PaneProps } from "jali/react";
 import { recordParams } from "@jali-examples/shared/panes/kinds/record";
 import { isLoading, useRecord, useRows } from "@jali-examples/shared/data/hooks";
 import type { TableName } from "@jali-examples/shared/data/types";
 import { applicationFacts } from "@jali-examples/shared/data/sample-sql";
-import { useActivity, useJaliState } from "@jali/react";
 import { PaneGate } from "@jali-examples/shared/panes/shared/PaneGate";
 import { RecordPane } from "@jali-examples/shared/panes/kinds/record";
 import { day, taka } from "./page";

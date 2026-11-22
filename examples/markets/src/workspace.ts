@@ -3,7 +3,7 @@
  * `createMarketsJali` takes the app's services and Jali's usual options, so a test can give it a memory address,
  * memory storage and a fixed size (workspace.test.ts).
  */
-import { createJali, type Command, type Jali, type JaliOptions } from "@jali/core";
+import { createJali, type Command, type Jali, type JaliOptions } from "jali";
 import { makerCommand } from "@jali-examples/shared/maker/maker";
 import { themeCommand } from "@jali-examples/shared/theme";
 import { prepareTicket, show, showBlotter } from "./actions";
@@ -20,10 +20,14 @@ import { tape } from "./panes/tape";
 import { watchlist } from "./panes/watchlist";
 import { presets } from "./presets";
 import type { Services } from "./services";
+import { defaultFeatures } from "jali/features";
 
 export const kinds = [watchlist, chart, quote, book, tape, news, curve, blotter];
 
-type Options = Pick<JaliOptions, "url" | "storage" | "size" | "moveFocus" | "preset"> & {
+type Options = Pick<
+  JaliOptions,
+  "features" | "storage" | "size" | "moveFocus" | "preset" | "keyboard"
+> & {
   /** A short message for the person ("LMNA added to Core"). */
   notify?: (text: string) => void;
 };
@@ -153,14 +157,19 @@ export function createMarketsJali(services: Services, options: Options = {}): Ja
     presets: presets.map((p) => ({ ...p, saved: () => desks.get(p.id) })),
     commands: [...commands, makerCommand],
     name: "Markets",
-    // Bound like Jali's own commands; ⌘K then ⌘O, and so on.
-    keyboard: { keymap: { "markets.chart": "Mod+K Mod+O", "markets.blotter": "Mod+K Mod+B" } },
     storage: "markets",
     // Dark first: until the person picks a theme, a terminal is dark. (Jali's own default follows the system.)
     settings: { theme: "dark" },
     // On a portrait phone: the watchlist above the chart it opened, rather than one at a time.
     phone: { stack: true },
     ...jaliOptions,
+    keyboard: {
+      ...jaliOptions.keyboard,
+      // Bound like Jali's own commands; ⌘K then ⌘O, and so on.
+      keymap: { "markets.chart": "Mod+K Mod+O", "markets.blotter": "Mod+K Mod+B" },
+    },
+    // Jali's usual features; a test's own (its address in memory) take their places.
+    features: [...defaultFeatures(), ...(jaliOptions.features ?? [])],
   });
   desks.track(jali);
   return jali;

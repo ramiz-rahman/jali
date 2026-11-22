@@ -7,7 +7,7 @@
  * The transcript is a list too: it selects a segment (`clip({ session, segment })`), and the segment detail that
  * follows the transcript shows it.
  */
-import type { ObjectRef } from "@jali/core";
+import type { ObjectRef } from "jali";
 
 /** A kind's `follow`: the selected object's session, if it names one. */
 export const followSession = (selected: ObjectRef) =>

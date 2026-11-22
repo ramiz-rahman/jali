@@ -1,5 +1,5 @@
 /** The app's own moves, shared by panes and ⌘K commands: on the transport, and on the workspace. */
-import type { Jali, NodeId, ObjectRef } from "@jali/core";
+import type { Jali, NodeId, ObjectRef } from "jali";
 import type { Engine } from "./audio/engine";
 
 /**

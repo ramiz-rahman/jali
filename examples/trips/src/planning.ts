@@ -2,7 +2,7 @@
  * Changes to the plan that panes, the map and ⌘K share. Each one goes through the plan's undo history and says
  * what it did, with Undo, in a toast.
  */
-import type { Jali } from "@jali/core";
+import type { Jali } from "jali";
 import type { Services } from "./services";
 import { optimiseDay, type Optimised } from "./trip/optimise";
 import { CITY_NAME, mustPlace, placeById, type CityId } from "./trip/places";

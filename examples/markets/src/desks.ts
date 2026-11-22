@@ -6,7 +6,7 @@
  * What is kept is only checked for its outline here (an object of layouts by desk id): Jali reads each layout itself
  * when the desk is chosen, and builds the desk's own when it can't.
  */
-import type { DeepReadonly, Jali, Layout } from "@jali/core";
+import type { DeepReadonly, Jali, Layout } from "jali";
 import { isRecord, readKept, writeKept, type Kept } from "@jali-examples/shared/store";
 
 type Layouts = Readonly<Record<string, DeepReadonly<Layout>>>;

@@ -2,7 +2,7 @@
  * The place selected on the map, for any component to read and mark ("the place"): the map pane's selection in
  * Jali's state, so it changes with every pin, stop or result the person picks (actions.ts, `selectPlace`).
  */
-import { useJali, useJaliState } from "@jali/react";
+import { useJali, useJaliState } from "jali/react";
 
 export function useCurrent(): string | null {
   const jali = useJali();

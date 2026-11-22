@@ -3,7 +3,7 @@
  * loads: page resets (base) lose to Jali's styles (jali), and the app's own rules (app) win over Jali's without
  * !important. Jali's styles come first, imported from CSS; main.tsx imports the faces, then this file.
  */
-@import "@jali/react/styles.css";
+@import "jali/styles.css";
 @import "./tokens.css";
 @import "./parts.css";
 @import "./shell.css";

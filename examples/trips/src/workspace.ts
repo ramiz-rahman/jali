@@ -3,7 +3,7 @@
  * "…" commands ask for a place or a day with `jali.actions.choose`. `createTripsJali` takes the app's services and
  * Jali's usual options, so a test can give it a memory address, memory storage and a fixed size.
  */
-import { createJali, type Command, type Jali, type JaliOptions } from "@jali/core";
+import { createJali, type Command, type Jali, type JaliOptions } from "jali";
 import { makerCommand } from "@jali-examples/shared/maker/maker";
 import { selectPlace, showDay } from "./actions";
 import { budget } from "./panes/budget";
@@ -20,10 +20,15 @@ import { CATEGORY_ONE, CITY_NAME, PLACES, type Place } from "./trip/places";
 import { dayWith } from "./trip/plan";
 import { optimiseDay } from "./trip/optimise";
 import * as f from "./ui/format";
+import { defaultFeatures } from "jali/features";
+import { popOut } from "jali/pop-out";
 
 export const kinds = [trip, map, day, place, explore, budget];
 
-type Options = Pick<JaliOptions, "url" | "storage" | "size" | "moveFocus" | "preset" | "keyboard">;
+type Options = Pick<
+  JaliOptions,
+  "features" | "storage" | "size" | "moveFocus" | "preset" | "keyboard"
+>;
 
 export function createTripsJali(services: Services, options: Options = {}): Jali {
   const placeHint = (p: Place) => {
@@ -152,11 +157,11 @@ export function createTripsJali(services: Services, options: Options = {}): Jali
     // On a portrait phone: a pane with the one it follows, one above the other. The place shows under the map it
     // follows, and the day under the overview, instead of one at a time.
     phone: { stack: true },
-    // Pop out a pane into its own window: a day beside the map on a second screen. Jali leaves it off until an
-    // app turns it on; the button goes before Close in each header (the rest is in the pane's ⋯ menu), and ⌘K has
-    // Jali's "Pop out pane".
-    allow: { popOut: true },
     ...options,
+    // Jali's usual features, and Pop out: a day beside the map on a second screen. Its button goes before Close in
+    // each header (the rest is in the pane's ⋯ menu), and ⌘K has Jali's "Pop out pane". A test's own features (its
+    // address in memory) take their places.
+    features: [...defaultFeatures(), popOut(), ...(options.features ?? [])],
     keyboard: {
       ...options.keyboard,
       keymap: { "trips.go": "Mod+K Mod+P", "trips.optimise": "Mod+K Mod+O" },

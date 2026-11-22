@@ -5,8 +5,8 @@
  */
 import type { ReactNode } from "react";
 import { ArrowRightIcon } from "@phosphor-icons/react";
-import type { PaneProps } from "@jali/react";
-import { useJali } from "@jali/react";
+import { useJali, type PaneProps } from "jali/react";
+import { altClick } from "jali";
 import { Loading } from "@jali-examples/shared/panes/shared/states";
 import { day, taka, useApplication } from "./page";
 import {
@@ -22,7 +22,6 @@ import {
 import { Ladder, Standing } from "./records";
 import { signals } from "./signals";
 import { Facts, Instalments, StatusMark, Table, ToneIcon, View } from "./ui";
-import { altClick } from "@jali/core";
 
 const n = (v: unknown) => Number(v ?? 0);
 

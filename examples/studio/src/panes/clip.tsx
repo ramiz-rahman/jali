@@ -8,7 +8,7 @@
  */
 import { useId, useRef, useState, type KeyboardEvent, type PointerEvent } from "react";
 import { PauseIcon, PlayIcon, WaveformIcon } from "@phosphor-icons/react";
-import { keyHint } from "@jali/core";
+import { keyHint } from "jali";
 import {
   definePane,
   useCommands,
@@ -17,7 +17,7 @@ import {
   useTitle,
   useUnsaved,
   type PaneProps,
-} from "@jali/react";
+} from "jali/react";
 import { toast } from "sonner";
 import { cue } from "../actions";
 import { useFrame, useTransport } from "../audio/react";

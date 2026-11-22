@@ -5,7 +5,7 @@
  */
 import { useEffect, useMemo, useRef, useState, type FormEvent, type KeyboardEvent } from "react";
 import { BriefcaseIcon } from "@phosphor-icons/react";
-import { keyHint } from "@jali/core";
+import { keyHint } from "jali";
 import {
   definePane,
   useCommands,
@@ -13,7 +13,7 @@ import {
   usePaneState,
   useUnsaved,
   type PaneProps,
-} from "@jali/react";
+} from "jali/react";
 import { useMarket, useQuotes } from "../market/react";
 import type { Instrument } from "../market/types";
 import { useServices } from "../services";

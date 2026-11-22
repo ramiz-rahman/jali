@@ -5,8 +5,8 @@
 import { useEffect } from "react";
 import { createPortal } from "react-dom";
 import { Toaster, toast } from "sonner";
-import { runCommand, type Jali } from "@jali/core";
-import { JaliRoot, JaliView, useJali, useJaliTheme, useJaliEvent } from "@jali/react";
+import { runCommand, type Jali } from "jali";
+import { JaliRoot, JaliView, useJali, useJaliTheme, useJaliEvent } from "jali/react";
 import { ServicesProvider, type Services } from "../services";
 import { useDrag } from "../ui/drag";
 import { StatusLine } from "./StatusLine";

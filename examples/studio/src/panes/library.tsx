@@ -5,7 +5,7 @@
  */
 import { Suspense, useEffect, useMemo, useRef, type KeyboardEvent } from "react";
 import { BooksIcon } from "@phosphor-icons/react";
-import { keyHint } from "@jali/core";
+import { keyHint } from "jali";
 import {
   definePane,
   useCommands,
@@ -13,7 +13,7 @@ import {
   useJaliState,
   usePaneState,
   type PaneProps,
-} from "@jali/react";
+} from "jali/react";
 import { openFollowing } from "../actions";
 import { useFrame, useTransport } from "../audio/react";
 import { useServices } from "../services";

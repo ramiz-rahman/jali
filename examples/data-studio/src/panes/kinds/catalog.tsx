@@ -1,5 +1,5 @@
 import { DatabaseIcon } from "@phosphor-icons/react";
-import { definePane } from "@jali/react";
+import { definePane, type PaneProps } from "jali/react";
 import { useState } from "react";
 import { PaneGate } from "@jali-examples/shared/panes/shared/PaneGate";
 import { useFocusWhen } from "@jali-examples/shared/panes/shared/useFocusWhen";
@@ -8,7 +8,6 @@ import { useCatalog, isLoading } from "@jali-examples/shared/data/hooks";
 import { formatCount } from "@jali-examples/shared/panes/format";
 import { tableRef } from "@jali-examples/shared/panes/shared/refs";
 import { Shell, Empty } from "@jali-examples/shared/panes/shared/states";
-import type { PaneProps } from "@jali/react";
 
 export function CatalogPane({ paused, focused, openBeside, peek }: PaneProps) {
   const q = useCatalog({ paused });

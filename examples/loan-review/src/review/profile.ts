@@ -11,8 +11,8 @@ import {
   UserIcon,
   UsersIcon,
 } from "@phosphor-icons/react";
-import { column, pane, row, type ObjectRef } from "@jali/core";
-import { definePage, type PageView } from "@jali/react";
+import { column, pane, row, type ObjectRef } from "jali";
+import { definePage, type PageView } from "jali/page";
 import { factsOf } from "./facts";
 import { overviewKind, reviewRecordKind, reviewRelatedKind } from "./kinds";
 import { ApplicationHeader, QueueRail } from "./page";

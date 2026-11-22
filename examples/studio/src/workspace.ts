@@ -9,7 +9,7 @@
  */
 import { credits } from "./panes/credits";
 import { catalogueOf } from "./sessions/catalog";
-import { copyLink, createJali, type Command, type Jali, type JaliOptions } from "@jali/core";
+import { copyLink, createJali, type Command, type Jali, type JaliOptions } from "jali";
 import { makerCommand } from "@jali-examples/shared/maker/maker";
 import { themeCommand } from "@jali-examples/shared/theme";
 import { cue, show } from "./actions";
@@ -27,12 +27,13 @@ import type { Services } from "./services";
 import { clock, opening, SESSION_IDS } from "./sessions/sessions";
 import { controlsPlace, setControlsPlace } from "./ui/controlsPlace";
 import { feelSounds, setFeelSounds } from "./ui/feel";
+import { defaultFeatures } from "jali/features";
 
 export const kinds = [library, transcript, timeline, mixer, markers, clip, credits];
 
 type Options = Pick<
   JaliOptions,
-  "url" | "storage" | "size" | "moveFocus" | "preset" | "keyboard"
+  "features" | "storage" | "size" | "moveFocus" | "preset" | "keyboard"
 > & {
   /** A short message for the person ("Marker added at 00:42"). */
   notify?: (text: string) => void;
@@ -232,6 +233,8 @@ export function createStudioJali(services: Services, options: Options = {}): Jal
     storage: "studio",
     phone: { stack: true },
     ...jaliOptions,
+    // Jali's usual features; a test's own (its address in memory) take their places.
+    features: [...defaultFeatures(), ...(jaliOptions.features ?? [])],
     keyboard: {
       ...jaliOptions.keyboard,
       // Bound like Jali's own commands: ⌘K then ⌘P plays, ⌘K then ⌘J goes to a segment.

@@ -90,4 +90,4 @@ export interface DataLayer {
 }
 
 /** Shared object reference used by pane consumers. */
-export type { ObjectRef } from "@jali/core";
+export type { ObjectRef } from "jali";

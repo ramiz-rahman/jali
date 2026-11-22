@@ -1,9 +1,8 @@
 import { LinkSimpleHorizontalIcon } from "@phosphor-icons/react";
-import { definePane } from "@jali/react";
+import { definePane, type PaneProps } from "jali/react";
 import { useMemo } from "react";
 import type { TableName } from "../../data/types";
 import { TableGrid } from "./table";
-import type { PaneProps } from "@jali/react";
 
 export function RelatedPane(p: PaneProps) {
   const { table, column, value, label } = p.params;

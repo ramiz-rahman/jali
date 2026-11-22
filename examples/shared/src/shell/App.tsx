@@ -6,8 +6,8 @@ import { DataLayerProvider } from "../data/react";
 import { TopBar } from "./TopBar";
 import { StatusLine } from "./StatusLine";
 import { StatsSetting } from "./stats-pref";
-import { JaliRoot, JaliView, useJaliTheme, useJali, useJaliState, useJaliEvent } from "@jali/react";
-import type { Jali } from "@jali/core";
+import { JaliRoot, JaliView, useJaliTheme, useJali, useJaliState, useJaliEvent } from "jali/react";
+import type { Jali } from "jali";
 
 export const UNDO_MS = 8000;
 

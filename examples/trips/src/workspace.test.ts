@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vite-plus/test";
-import { listCommands, memoryLocation, memoryStorage, type Jali } from "@jali/core";
-import { storeOf } from "@jali/core/adapter";
+import { listCommands, type Jali } from "jali";
+import { chooserRequest, testJaliOptions } from "jali/testing";
 import { currentPlace, selectPlace, showDay } from "./actions";
 import { day } from "./panes/day";
 import { place } from "./panes/place";
@@ -13,22 +13,16 @@ import { createTripsJali, kinds } from "./workspace";
 function testJali({ search = "", width = 1440, height = 900 } = {}) {
   const notes: string[] = [];
   const services = createServices({ persist: false, notify: (t) => notes.push(t) });
-  const location = memoryLocation(search);
-  const jali = createTripsJali(services, {
-    url: { location },
-    storage: memoryStorage(),
-    size: { width, height },
-    moveFocus: false,
-    keyboard: { platform: "mac" },
-  });
+  const { options, location } = testJaliOptions({ search, size: { width, height } });
+  const jali = createTripsJali(services, options);
   return { jali, location, services, notes };
 }
 
 /** What the chooser was asked (the engine's state: what Jali's chooser dialog renders). */
 const chooser = (jali: Jali) => {
-  const c = storeOf(jali).get().chooser;
-  if (c?.kind !== "choose") throw new Error("the chooser is not asking");
-  return c.request;
+  const request = chooserRequest(jali);
+  if (!request) throw new Error("the chooser is not asking");
+  return request;
 };
 const choose = (jali: Jali, label: string | RegExp, title: string) => {
   const request = chooser(jali);

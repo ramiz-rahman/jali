@@ -5,17 +5,15 @@
  */
 import { useEffect, useMemo, useRef, type KeyboardEvent } from "react";
 import { MagnifyingGlassIcon, CheckIcon, PlusIcon } from "@phosphor-icons/react";
-import { keyHint } from "@jali/core";
+import { keyHint, oneOf, optional } from "jali";
 import {
   definePane,
-  oneOf,
-  optional,
   useCommands,
   useJali,
   useJaliState,
   usePaneState,
   type PaneProps,
-} from "@jali/react";
+} from "jali/react";
 import { selectPlace } from "../actions";
 import { idOrNull, isNumber, isRecord, stringIn } from "../stored";
 import { addToDay, chooseDay, stayAt } from "../planning";

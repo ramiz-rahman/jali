@@ -5,7 +5,7 @@
  */
 import { useState } from "react";
 import { WalletIcon, WarningIcon } from "@phosphor-icons/react";
-import { definePane, useJali, usePaneState, type PaneProps } from "@jali/react";
+import { definePane, useJali, usePaneState, type PaneProps } from "jali/react";
 import { showDay } from "../actions";
 import { usePlan, useServices } from "../services";
 import { BUDGET_CATEGORIES, BUDGET_LABEL, tripBudget, type BudgetCategory } from "../trip/budget";

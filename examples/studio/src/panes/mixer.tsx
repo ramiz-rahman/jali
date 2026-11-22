@@ -9,7 +9,7 @@
  */
 import { useRef } from "react";
 import { SlidersHorizontalIcon } from "@phosphor-icons/react";
-import { definePane, useActivity, useCommands, useJaliTheme, type PaneProps } from "@jali/react";
+import { definePane, useActivity, useCommands, useJaliTheme, type PaneProps } from "jali/react";
 import { useFrame, useTransport } from "../audio/react";
 import { channelOf, useSessionView, type SessionView } from "../edits";
 import { catalogueOf } from "../sessions/catalog";

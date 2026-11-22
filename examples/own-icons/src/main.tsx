@@ -4,10 +4,11 @@
  * an app's icon set. The bundle test (packages/react/src/bundle.test.ts) builds this app.
  */
 import { createRoot } from "react-dom/client";
-import { createJali, row } from "@jali/core";
-import { JaliRoot, definePane, type JaliIconProps, type JaliIcons } from "@jali/react";
+import { createJali, row } from "jali";
+import { JaliRoot, definePane, type JaliIconProps, type JaliIcons } from "jali/react";
 import "./app.css";
-import "@jali/react/styles.css";
+import "jali/styles.css";
+import { defaultFeatures } from "jali/features";
 
 /** One stroked icon from a path on a 16px grid. */
 const stroke = (d: string) =>
@@ -86,6 +87,7 @@ const jali = createJali({
   panes: [note],
   layout: row(note({ id: 1 }), note({ id: 2 })),
   landmark: "main",
+  features: defaultFeatures(),
 });
 
 createRoot(document.getElementById("root")!).render(

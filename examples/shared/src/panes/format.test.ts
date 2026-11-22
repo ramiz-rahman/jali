@@ -1,4 +1,4 @@
-import { createPaneKinds } from "@jali/core/adapter";
+import { createTestJali } from "jali/testing";
 import { nextSort, orderByString, parseFilter } from "./grid/grid-state";
 import { recordKind } from "./kinds/record";
 import { describe, expect, it } from "vite-plus/test";
@@ -91,9 +91,11 @@ describe("relation links", () => {
     });
   });
   it("titles refs", () => {
-    expect(createPaneKinds([recordKind]).title(recordKind({ table: "customers", id: "69" }))).toBe(
-      "customer 69",
-    );
+    const { jali } = createTestJali({
+      panes: [recordKind],
+      layout: recordKind({ table: "customers", id: "69" }),
+    });
+    expect(jali.model().title(jali.model().panes[0]!.id)).toBe("customer 69");
   });
 });
 

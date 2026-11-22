@@ -7,7 +7,7 @@
  * link, the credit to its provider, and the notice that the files were modified.
  */
 import { ScrollIcon } from "@phosphor-icons/react";
-import { definePane } from "@jali/react";
+import { definePane } from "jali/react";
 import { catalogueOf } from "../sessions/catalog";
 import { clock, SESSION_IDS, useSessions } from "../sessions/sessions";
 

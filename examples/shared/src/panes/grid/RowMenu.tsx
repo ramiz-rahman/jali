@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import type { MenuState } from "./Grid";
-import { keyHint } from "@jali/core";
+import { keyHint } from "jali";
 
 export function RowMenu({
   menu,

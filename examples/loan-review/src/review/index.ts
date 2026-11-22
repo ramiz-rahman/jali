@@ -1,4 +1,4 @@
-import type { Pane } from "@jali/react";
+import type { Pane } from "jali/react";
 import { overviewKind, reviewRecordKind, reviewRelatedKind } from "./kinds";
 import { loanReview } from "./profile";
 

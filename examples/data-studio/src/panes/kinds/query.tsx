@@ -1,13 +1,13 @@
 import { TerminalWindowIcon } from "@phosphor-icons/react";
+import { appOnly, optional, keyHint } from "jali";
 import {
-  appOnly,
   definePane,
-  optional,
   useActivity,
   useCommands,
   usePaneState,
   useUnsaved,
-} from "@jali/react";
+  type PaneProps,
+} from "jali/react";
 import { useEffect, useRef, useState } from "react";
 import { resultFormat } from "@jali-examples/shared/data/labels";
 import { text } from "@jali-examples/shared/store";
@@ -18,8 +18,6 @@ import { formatCount, formatMs } from "@jali-examples/shared/panes/format";
 import { chartRef } from "@jali-examples/shared/panes/shared/refs";
 import { Empty, ErrorState, Loading, Shell } from "@jali-examples/shared/panes/shared/states";
 import { useResultWindow } from "@jali-examples/shared/panes/grid/useWindow";
-import type { PaneProps } from "@jali/react";
-import { keyHint } from "@jali/core";
 
 export const DEFAULT_SQL =
   "SELECT region, SUM(amount_cents) AS amount_cents\nFROM sample_orders\nGROUP BY region\nORDER BY amount_cents DESC";

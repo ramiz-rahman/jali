@@ -13,9 +13,9 @@ import {
   MoonIcon,
   SunIcon,
 } from "@phosphor-icons/react";
-import { copyLink, keyHint, runCommand } from "@jali/core";
+import { copyLink, keyHint, runCommand } from "jali";
+import { useJali, useJaliState, useJaliShortcut, useJaliTheme } from "jali/react";
 import { useLayoutEffect, useRef } from "react";
-import { useJali, useJaliState, useJaliShortcut, useJaliTheme } from "@jali/react";
 import { SPEEDS } from "../audio/engine";
 import { usePosition, useTransport } from "../audio/react";
 import { useServices } from "../services";

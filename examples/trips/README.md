@@ -1,6 +1,6 @@
 # Trips: a Jali example
 
-A map-first trip planner for a week in Thailand, built on `@jali/core` and `@jali/react` alone: three days in Bangkok, a day that flies to Phuket, and three days in Phuket. A big map sits in the middle; around it are the days, each day's stops and the travel between them, the place you picked, hotels to compare, and the budget. It is one convincing slice of the job, not a product: plan the days to keep travel short and cheap, find somewhere to stay and eat nearby, and watch the money.
+A map-first trip planner for a week in Thailand, built on `jali` alone: three days in Bangkok, a day that flies to Phuket, and three days in Phuket. A big map sits in the middle; around it are the days, each day's stops and the travel between them, the place you picked, hotels to compare, and the budget. It is one convincing slice of the job, not a product: plan the days to keep travel short and cheap, find somewhere to stay and eat nearby, and watch the money.
 
 The sights, beaches and airports are real places at their real coordinates. Every hotel and restaurant is made up, with an invented name at an invented spot, and every price (tickets, meals, nights, fares, the flight) is made up too, in US dollars at levels plausible for Thailand. The app says so in its status line and marks each made-up business "Made up".
 

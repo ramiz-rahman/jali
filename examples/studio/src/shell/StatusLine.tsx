@@ -4,7 +4,7 @@
  * as chips), a word when a pane is maximised, and the way to every credit and licence. The keys are not listed
  * here: ⌘K lists every command with its key.
  */
-import { Shelf, useJali, useJaliState } from "@jali/react";
+import { Shelf, useJali, useJaliState } from "jali/react";
 import { BuiltWithJali, Maker } from "@jali-examples/shared/maker/maker";
 import { show } from "../actions";
 import { useTransport } from "../audio/react";

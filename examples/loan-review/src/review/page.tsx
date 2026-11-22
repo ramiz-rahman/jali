@@ -1,7 +1,7 @@
 /** The loan-review page around the panes: the queue at the left and the application's header above the tabs. */
 import { useEffect, useMemo, useRef, useState } from "react";
 import { FunnelSimpleIcon, XIcon } from "@phosphor-icons/react";
-import { IconButton, useJali } from "@jali/react";
+import { IconButton, useJali } from "jali/react";
 import { isLoading, useRows } from "@jali-examples/shared/data/hooks";
 import { formatTimestamp } from "@jali-examples/shared/panes/format";
 import type { Row } from "@jali-examples/shared/data/types";

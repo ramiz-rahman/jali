@@ -1,5 +1,5 @@
 import { FileTextIcon, LayoutIcon, LinkSimpleHorizontalIcon } from "@phosphor-icons/react";
-import { definePane } from "@jali/react";
+import { definePane } from "jali/react";
 import { singular } from "@jali-examples/shared/panes/shared/refs";
 import { OverviewPane } from "./overview";
 import { ReviewRecordPane } from "./records";

@@ -9,8 +9,8 @@ import {
   MoonIcon,
   SunIcon,
 } from "@phosphor-icons/react";
-import { keyHint, runCommand } from "@jali/core";
-import { IconButton, useJali, useJaliState, useJaliShortcut, useJaliTheme } from "@jali/react";
+import { keyHint, runCommand } from "jali";
+import { IconButton, useJali, useJaliState, useJaliShortcut, useJaliTheme } from "jali/react";
 import { useQuotes, useTopic } from "../market/react";
 import { useServices } from "../services";
 import * as f from "../ui/format";

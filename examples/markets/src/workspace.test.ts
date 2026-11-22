@@ -1,6 +1,12 @@
 import { afterEach, describe, expect, it, vi } from "vite-plus/test";
-import { listCommands, memoryLocation, memoryStorage, type Jali } from "@jali/core";
-import { storeOf } from "@jali/core/adapter";
+import { listCommands, type Jali } from "jali";
+import {
+  answerDiscard,
+  chooserRequest,
+  discardQuestion,
+  reportUnsaved,
+  testJaliOptions,
+} from "jali/testing";
 import { openFollowing, show } from "./actions";
 import { createSimulator } from "./market/simulator";
 import { chart } from "./panes/chart";
@@ -12,21 +18,16 @@ import { createMarketsJali, kinds } from "./workspace";
 function testJali({ search = "", width = 1440, height = 900 } = {}) {
   const market = createSimulator({ seed: 3, start: new Date(2026, 10, 19, 11, 45).getTime() });
   const services = createServices(market, { persist: false });
-  const location = memoryLocation(search);
-  const jali = createMarketsJali(services, {
-    url: { location },
-    storage: memoryStorage(),
-    size: { width, height },
-    moveFocus: false,
-  });
+  const { options, location } = testJaliOptions({ search, size: { width, height } });
+  const jali = createMarketsJali(services, options);
   return { jali, location, services };
 }
 
 /** What the chooser was asked (the engine's state: what Jali's chooser dialog renders). */
 const chooser = (jali: Jali) => {
-  const c = storeOf(jali).get().chooser;
-  if (c?.kind !== "choose") throw new Error("the chooser is not asking");
-  return c.request;
+  const request = chooserRequest(jali);
+  if (!request) throw new Error("the chooser is not asking");
+  return request;
 };
 /** Choose the item labelled `label`, as the person would in the chooser titled `title`. */
 const choose = (jali: Jali, label: string, title: string) => {
@@ -108,12 +109,11 @@ describe("the markets workspace", () => {
     const { jali } = testJali();
     jali.actions.preset("fx");
     // What the blotter's `useUnsaved` reports, and the Discard button: the engine's steps, as React calls them.
-    const store = storeOf(jali);
-    store.actions.setUnsaved("blotter", "an unsent order to buy 100 LMNA");
+    reportUnsaved(jali, "blotter", "an unsent order to buy 100 LMNA");
     expect(jali.actions.preset("rates")).toMatchObject({ ok: false, reason: "unsaved" });
-    expect(store.get().confirm?.panes).toEqual(["blotter"]);
+    expect(discardQuestion(jali)?.panes).toEqual(["blotter"]);
     expect(jali.get().presetId).toBe("fx");
-    store.actions.discardAndContinue();
+    answerDiscard(jali, "discard");
     expect(jali.get().presetId).toBe("rates");
   });
 

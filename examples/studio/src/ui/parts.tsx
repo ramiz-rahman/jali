@@ -1,7 +1,7 @@
 /** Small parts the panes share. */
 import type { ReactNode } from "react";
-import type { ObjectRef } from "@jali/core";
-import type { MissingProps } from "@jali/react";
+import type { ObjectRef } from "jali";
+import type { MissingProps } from "jali/react";
 import { PlayIcon } from "@phosphor-icons/react";
 import { cue } from "../actions";
 import { useServices } from "../services";

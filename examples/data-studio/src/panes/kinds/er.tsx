@@ -1,11 +1,10 @@
 import { GitForkIcon } from "@phosphor-icons/react";
-import { definePane } from "@jali/react";
+import { definePane, type PaneProps } from "jali/react";
 import type { TableName } from "@jali-examples/shared/data/types";
 import { useCatalog } from "@jali-examples/shared/data/hooks";
 import { erRef, tableInfoOf } from "@jali-examples/shared/panes/shared/refs";
 import { Shell } from "@jali-examples/shared/panes/shared/states";
 import { PaneGate } from "@jali-examples/shared/panes/shared/PaneGate";
-import type { PaneProps } from "@jali/react";
 
 const BW = 150,
   GAPY = 12,

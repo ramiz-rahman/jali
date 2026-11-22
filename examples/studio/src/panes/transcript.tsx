@@ -26,7 +26,7 @@ import {
   TextAlignLeftIcon,
   UserIcon,
 } from "@phosphor-icons/react";
-import { keyHint } from "@jali/core";
+import { keyHint } from "jali";
 import {
   definePane,
   useCommands,
@@ -35,7 +35,7 @@ import {
   usePaneState,
   useUnsaved,
   type PaneProps,
-} from "@jali/react";
+} from "jali/react";
 import { cue, openFollowing } from "../actions";
 import { usePosition, useTransport } from "../audio/react";
 import { useSessionView, type SessionView } from "../edits";

@@ -19,7 +19,7 @@ import {
   SparkleIcon,
   WarningIcon,
 } from "@phosphor-icons/react";
-import { keyHint } from "@jali/core";
+import { keyHint } from "jali";
 import {
   definePane,
   useCommands,
@@ -27,7 +27,7 @@ import {
   useJaliModel,
   usePaneState,
   type PaneProps,
-} from "@jali/react";
+} from "jali/react";
 import { selectPlace } from "../actions";
 import { idOrNull } from "../stored";
 import { addToDay, chooseDay, optimise, removeFromPlan } from "../planning";

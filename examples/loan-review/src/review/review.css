@@ -1,5 +1,5 @@
 /* ---------- the loan review page: its queue (the rail) and the application's header. Jali lays out the page
-   (@jali/react page.css); these style what the profile renders into it. ---------- */
+   (jali's page.css); these style what the profile renders into it. ---------- */
 .rail {
   display: flex;
   flex-direction: column;

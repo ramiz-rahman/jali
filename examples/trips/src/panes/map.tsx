@@ -27,7 +27,7 @@ import {
 // bundler copies the file and gives its URL.
 import mapWorkerUrl from "maplibre-gl/dist/maplibre-gl-worker.mjs?url";
 import { MapTrifoldIcon, WarningCircleIcon, XIcon } from "@phosphor-icons/react";
-import type { ObjectRef } from "@jali/core";
+import type { ObjectRef } from "jali";
 import {
   definePane,
   useCommands,
@@ -36,7 +36,7 @@ import {
   useJaliState,
   useJaliTheme,
   type PaneProps,
-} from "@jali/react";
+} from "jali/react";
 import { selectPlace } from "../actions";
 import { addToDay } from "../planning";
 import { usePlan, useServices } from "../services";

@@ -1,8 +1,7 @@
 import { ClockCounterClockwiseIcon } from "@phosphor-icons/react";
-import { definePane } from "@jali/react";
+import { definePane, type PaneProps } from "jali/react";
 import type { Row } from "@jali-examples/shared/data/types";
 import { entityTable } from "@jali-examples/shared/data/tables";
-import type { PaneProps } from "@jali/react";
 import { recordRef } from "@jali-examples/shared/panes/shared/refs";
 import { TableGrid } from "@jali-examples/shared/panes/kinds/table";
 

@@ -1,5 +1,5 @@
 /** The app's own moves on the workspace, shared by panes and ⌘K commands. */
-import type { Jali, NodeId, ObjectRef } from "@jali/core";
+import type { Jali, NodeId, ObjectRef } from "jali";
 import type { Services } from "./services";
 import type { Side } from "./trading/trading";
 import { blotter } from "./panes/blotter";

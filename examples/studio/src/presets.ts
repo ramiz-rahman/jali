@@ -7,7 +7,7 @@
  * segment, for comparing. A pane with the same id in two layouts keeps its state across a switch, so a half-done
  * correction comes along from Edit to Review.
  */
-import { column, pane, row, type PresetOptions } from "@jali/core";
+import { column, pane, row, type PresetOptions } from "jali";
 import { clip } from "./panes/clip";
 import { library } from "./panes/library";
 import { markers } from "./panes/markers";

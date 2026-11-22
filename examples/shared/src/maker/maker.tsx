@@ -6,7 +6,7 @@
  * The styles here only lay the mark out. It takes its colour and its type from where it stands (`currentColor`,
  * `font: inherit`), so each app's own theme dresses it.
  */
-import type { Command } from "@jali/core";
+import type { Command } from "jali";
 import { JaliLockup } from "../shell/JaliLockup";
 import "./maker.css";
 

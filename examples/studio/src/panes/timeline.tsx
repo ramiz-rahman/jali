@@ -8,7 +8,7 @@
  */
 import { useEffect, useMemo, useRef, useState, type KeyboardEvent, type PointerEvent } from "react";
 import { WaveSineIcon } from "@phosphor-icons/react";
-import { definePane, useActivity, useJaliState, useJaliTheme, type PaneProps } from "@jali/react";
+import { definePane, useActivity, useJaliState, useJaliTheme, type PaneProps } from "jali/react";
 import { cue } from "../actions";
 import { useFrame, useTransport } from "../audio/react";
 import { audible, channelOf, useSessionView, type SessionView } from "../edits";

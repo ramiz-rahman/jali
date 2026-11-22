@@ -1,6 +1,15 @@
 import { afterEach, describe, expect, it, vi } from "vite-plus/test";
-import { listCommands, memoryLocation, memoryStorage, type Jali } from "@jali/core";
-import { paneStateFor, storeOf } from "@jali/core/adapter";
+import { listCommands, type Jali } from "jali";
+import {
+  answerDiscard,
+  chooserRequest,
+  discardQuestion,
+  lastAnnouncement,
+  paneStateOf,
+  reportPaneState,
+  reportUnsaved,
+  testJaliOptions,
+} from "jali/testing";
 import { openFollowing, sessionInLayout } from "./actions";
 import { clip } from "./panes/clip";
 import { transcript } from "./panes/transcript";
@@ -13,22 +22,16 @@ import { createStudioJali, kinds } from "./workspace";
 /** The app's workspace with nothing shared: a memory address and storage, a fixed size, no DOM focus, no sound. */
 function testJali({ search = "", width = 1440, height = 808 } = {}) {
   const services = createServices({ persist: false, audio: false });
-  const location = memoryLocation(search);
-  const jali = createStudioJali(services, {
-    url: { location },
-    storage: memoryStorage(),
-    size: { width, height },
-    moveFocus: false,
-    keyboard: { platform: "mac" },
-  });
+  const { options, location } = testJaliOptions({ search, size: { width, height } });
+  const jali = createStudioJali(services, options);
   return { jali, location, services };
 }
 
 /** What the chooser was asked (the engine's state: what Jali's chooser dialog renders). */
 const chooser = (jali: Jali) => {
-  const c = storeOf(jali).get().chooser;
-  if (c?.kind !== "choose") throw new Error("the chooser is not asking");
-  return c.request;
+  const request = chooserRequest(jali);
+  if (!request) throw new Error("the chooser is not asking");
+  return request;
 };
 const run = (jali: Jali, id: string) =>
   listCommands(jali)
@@ -172,18 +175,17 @@ describe("the studio workspace", () => {
   it("asks before a layout without the transcript loses its unsaved corrections", () => {
     const { jali } = testJali();
     // What the transcript's `useUnsaved` reports, and the Discard button: the engine's steps, as React calls them.
-    const store = storeOf(jali);
-    store.actions.setUnsaved("transcript", "2 unsaved corrections in “The Eagle has landed”");
+    reportUnsaved(jali, "transcript", "2 unsaved corrections in “The Eagle has landed”");
     expect(jali.actions.preset("mix")).toMatchObject({ ok: false, reason: "unsaved" });
-    expect(store.get().confirm?.panes).toEqual(["transcript"]);
+    expect(discardQuestion(jali)?.panes).toEqual(["transcript"]);
     expect(jali.get().presetId).toBe("edit");
-    store.actions.discardAndContinue();
+    answerDiscard(jali, "discard");
     expect(jali.get().presetId).toBe("mix");
   });
 
   it("moves to a layout that has the transcript without asking: the pane and its draft come along", () => {
     const { jali } = testJali();
-    storeOf(jali).actions.setUnsaved("transcript", "1 unsaved correction");
+    reportUnsaved(jali, "transcript", "1 unsaved correction");
     expect(jali.actions.preset("review")).toMatchObject({ ok: true });
     expect(jali.get().unsaved.transcript).toBeTruthy();
   });
@@ -192,7 +194,7 @@ describe("the studio workspace", () => {
     vi.useFakeTimers();
     const { jali } = testJali();
     // What the transcript's `useUnsaved` reports while its draft has corrections (panes/transcript.tsx).
-    storeOf(jali).actions.setUnsaved("transcript", "1 unsaved correction");
+    reportUnsaved(jali, "transcript", "1 unsaved correction");
     jali.actions.select("library", transcript({ session: DINNER }));
     vi.advanceTimersByTime(200);
     expect(shown(jali, "transcript")?.session).toBe(APOLLO);
@@ -200,29 +202,24 @@ describe("the studio workspace", () => {
     // It still follows, nothing is kept for it, and the workspace says why it stayed.
     expect(jali.model().pane("transcript")).toMatchObject({ follows: true });
     expect(jali.model().pane("transcript")?.kept).toBeFalsy();
-    expect(storeOf(jali).get().announcement.text).toMatch(/stays put/);
+    expect(lastAnnouncement(jali)).toMatch(/stays put/);
     // Saved (or discarded): it catches up with the library at once.
-    storeOf(jali).actions.setUnsaved("transcript", null);
+    reportUnsaved(jali, "transcript", null);
     expect(shown(jali, "transcript")?.session).toBe(DINNER);
   });
 
   it("leaves a session's draft behind when the transcript moves on to another session", () => {
     vi.useFakeTimers();
     const { jali } = testJali();
-    const store = storeOf(jali);
-    const draft = () => {
-      const s = store.get();
-      return paneStateFor(s, store.env.kinds, "transcript", jali.model().pane("transcript")!.ref)
-        ?.draft;
-    };
+    const draft = () => paneStateOf(jali, "transcript")?.draft;
     // A correction in the landing's first line, the way the transcript keeps it (panes/transcript.tsx).
-    store.actions.setPaneState("transcript", "draft", { s01: "Houston, Tranquility Base." });
-    store.actions.setUnsaved("transcript", "1 unsaved correction");
+    reportPaneState(jali, "transcript", "draft", { s01: "Houston, Tranquility Base." });
+    reportUnsaved(jali, "transcript", "1 unsaved correction");
     jali.actions.select("library", transcript({ session: DINNER }));
     vi.advanceTimersByTime(200);
     expect(draft()).toEqual({ s01: "Houston, Tranquility Base." });
     // Discarded: the transcript catches up with the dinner, and the dinner's s01 is not given the landing's words.
-    store.actions.setUnsaved("transcript", null);
+    reportUnsaved(jali, "transcript", null);
     expect(shown(jali, "transcript")?.session).toBe(DINNER);
     expect(draft()).toBeUndefined();
   });

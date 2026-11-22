@@ -1,5 +1,6 @@
 import { FileTextIcon } from "@phosphor-icons/react";
-import { definePane, useActivity } from "@jali/react";
+import { definePane, useActivity, type PaneProps } from "jali/react";
+import type { ParamValue } from "jali";
 import { copyRaw } from "../shared/copyRaw";
 import { useState } from "react";
 import type { ColumnInfo, Relation, Row, TableName } from "../../data/types";
@@ -23,8 +24,6 @@ import {
 import { foreignKeyRef, relationRef, singular, tableRef } from "../shared/refs";
 import { ErrorState, Loading, NullChip, Shell } from "../shared/states";
 import { PaneGate } from "../shared/PaneGate";
-import type { PaneProps } from "@jali/react";
-import type { ParamValue } from "@jali/core";
 
 /** A record's id: a number, or text (a composite key is joined with ":"). Links keep whichever it was. */
 const rowKey = (v: ParamValue): string | number => (typeof v === "number" ? v : String(v));

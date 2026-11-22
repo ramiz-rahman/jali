@@ -1,7 +1,7 @@
 import { defineConfig, defaultClientConditions } from "vite-plus";
 import react from "@vitejs/plugin-react";
 
-// Resolves @jali/* to the packages' source ("source" condition), as the other examples do.
+// Resolves jali to the packages' source ("source" condition), as the other examples do.
 export default defineConfig({
   root: __dirname,
   // "./": every asset is linked relative to the page, the audio clips too, so the built site works from any path.

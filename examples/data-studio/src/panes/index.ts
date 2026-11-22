@@ -1,4 +1,4 @@
-import type { Pane } from "@jali/react";
+import type { Pane } from "jali/react";
 import { catalogKind } from "./kinds/catalog";
 import { tableKind } from "@jali-examples/shared/panes/kinds/table";
 import { recordKind } from "@jali-examples/shared/panes/kinds/record";

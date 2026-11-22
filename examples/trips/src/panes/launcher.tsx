@@ -1,8 +1,8 @@
 /** What Split (⌘\) and a tab strip's "+" open: choose what this pane shows. */
 import type { KeyboardEvent } from "react";
 import { PlusIcon } from "@phosphor-icons/react";
-import type { ObjectRef } from "@jali/core";
-import { definePane, useLauncher, type PaneProps } from "@jali/react";
+import type { ObjectRef } from "jali";
+import { definePane, useLauncher, type PaneProps } from "jali/react";
 import { usePlan } from "../services";
 import { DayMark } from "../ui/parts";
 import { budget } from "./budget";

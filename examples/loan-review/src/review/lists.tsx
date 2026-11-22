@@ -3,8 +3,7 @@
  * groups that records link to. Reviewer tables, not grids: the columns a decision needs first, the rest as the view widens.
  */
 import { WarningIcon } from "@phosphor-icons/react";
-import type { PaneProps } from "@jali/react";
-import { useActivity, useJaliState } from "@jali/react";
+import { useActivity, useJaliState, type PaneProps } from "jali/react";
 import { isLoading, useRows } from "@jali-examples/shared/data/hooks";
 import type { TableName } from "@jali-examples/shared/data/types";
 import { PaneGate } from "@jali-examples/shared/panes/shared/PaneGate";

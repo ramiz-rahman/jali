@@ -1,12 +1,11 @@
 import { TreeViewIcon } from "@phosphor-icons/react";
-import { definePane } from "@jali/react";
+import { definePane, type PaneProps } from "jali/react";
 import type { TableName } from "@jali-examples/shared/data/types";
 import { useCatalog } from "@jali-examples/shared/data/hooks";
 import { formatCount } from "@jali-examples/shared/panes/format";
 import { erRef, tableInfoOf, tableRef } from "@jali-examples/shared/panes/shared/refs";
 import { NullChip, Shell } from "@jali-examples/shared/panes/shared/states";
 import { PaneGate } from "@jali-examples/shared/panes/shared/PaneGate";
-import type { PaneProps } from "@jali/react";
 
 export function StructurePane({ params, paused, openBeside }: PaneProps<{ table: string }>) {
   const table = params.table as TableName;

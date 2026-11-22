@@ -4,8 +4,8 @@
  */
 import { useEffect } from "react";
 import { Toaster, toast } from "sonner";
-import { runCommand, type Jali } from "@jali/core";
-import { JaliRoot, JaliView, useJali, useJaliTheme, useJaliEvent } from "@jali/react";
+import { runCommand, type Jali } from "jali";
+import { JaliRoot, JaliView, useJali, useJaliTheme, useJaliEvent } from "jali/react";
 import { ServicesProvider, useServices, type Services } from "../services";
 import * as f from "../ui/format";
 import { StatusLine } from "./StatusLine";

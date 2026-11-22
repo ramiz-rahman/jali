@@ -10,8 +10,7 @@
     "preview": "vp preview"
   },
   "dependencies": {
-    "@jali/core": "workspace:*",
-    "@jali/react": "workspace:*",
+    "jali": "workspace:*",
     "react": "^19.3.1",
     "react-dom": "^19.3.1"
   },

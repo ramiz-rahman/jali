@@ -13,7 +13,7 @@
  * Jali binds no single keys, so nothing of Jali's has to move; `keyboard: { reserved: ["Space"] }` (workspace.ts) keeps it so.
  * The peek, which Jali's lists put on Space by convention, moved to Shift+Space in Studio's lists.
  */
-import { keyBelongsToContent } from "@jali/react";
+import { keyBelongsToContent } from "jali";
 
 const TYPING =
   'input:not([type="range"]), textarea, select, [contenteditable=""], [contenteditable="true"], [role="textbox"], [role="combobox"], [role="searchbox"]';

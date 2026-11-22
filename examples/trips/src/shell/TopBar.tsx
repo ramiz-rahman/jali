@@ -9,8 +9,8 @@ import {
   MoonIcon,
   SunIcon,
 } from "@phosphor-icons/react";
-import { copyLink, keyHint, runCommand } from "@jali/core";
-import { useJali, useJaliState, useJaliShortcut, useJaliTheme } from "@jali/react";
+import { copyLink, keyHint, runCommand } from "jali";
+import { useJali, useJaliState, useJaliShortcut, useJaliTheme } from "jali/react";
 
 export function TopBar() {
   const jali = useJali();

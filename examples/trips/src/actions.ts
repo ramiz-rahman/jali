@@ -6,7 +6,7 @@
  * an Explore list reports its own selection as usual (Space, peek) and also hands it to the map with
  * `jali.actions.select`, so the place pane and the map's pins move whichever list the person used. See FINDINGS.md.
  */
-import type { Jali, NodeId, ObjectRef, PaneNode } from "@jali/core";
+import type { Jali, NodeId, ObjectRef, PaneNode } from "jali";
 import { day } from "./panes/day";
 import { place } from "./panes/place";
 

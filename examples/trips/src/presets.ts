@@ -6,7 +6,7 @@
  * The layout, the day each pane shows and the place in the place pane are all in the address, so a copied link
  * reopens the same arrangement.
  */
-import { column, pane, row, type PresetOptions } from "@jali/core";
+import { column, pane, row, type PresetOptions } from "jali";
 import { budget } from "./panes/budget";
 import { day } from "./panes/day";
 import { explore } from "./panes/explore";

@@ -3,7 +3,7 @@
  * depth to that level, so a wall of orders shows at a glance.
  */
 import { StackIcon } from "@phosphor-icons/react";
-import { definePane, type PaneProps } from "@jali/react";
+import { definePane, type PaneProps } from "jali/react";
 import { useTopic } from "../market/react";
 import type { BookLevel, Instrument } from "../market/types";
 import * as f from "../ui/format";
