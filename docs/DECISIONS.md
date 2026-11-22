@@ -1533,3 +1533,49 @@ The decisions behind the phase 2 fixes of `docs/reviews/2026-11-22/react-opus.md
 - **@jali/core:** +0.5 KB gzipped in every scenario that has a core budget except layout-only: minimal and own-icons 55 → 55.5, full 60.4 → 60.9, headless 49.2 → 49.7. Phase 1 shipped minimal 55.2, headless 49.6 and full 60.4. Layout-only stays at 10.7 (it ships 10.3).
 - **@jali/react:** the phase 2 budgets stand (minimal and own-icons 28, full 29.9), as the owner accepted.
 - **Why raise them rather than cut now:** both phases fixed correctness bugs, and a size gate that already fails hides the next regression. The API phase's opt-in features (docs/API-REVIEW.md, section 2) are the planned way down: about 25–30 KB for core and 17–18 KB for React, both still estimates. Its budgets will be set again from what it measures.
+
+## 22 Nov 2026 · API phase 3a: types from the registered kinds (API-REVIEW section 3)
+
+- **`Ref<K, P>`:** `definePane` takes the kind as a literal (`const K`) and its call returns `Ref<K, P>`: `{ readonly kind: K; readonly params: P }`. It is structurally an `ObjectRef`, so links, agents and every function that takes the wide type keep taking it.
+- **No runtime brand.** The review said "branded"; a literal `kind` is the discriminant that does the work (narrowing, refusing `"ordr"`), and a phantom brand would either reject plain refs from links (`{ kind: "order", params: { id: 7 } }`) or reject nothing. So `Ref` is structural; the only cost is types.
+- **`createJali<const D, const L, const P>`:** `D` from `panes`, `L` from `launcher` (its own parameter, so a launcher of another kind widens the union instead of failing inference), `P` from `page`. It returns `Jali<RefOf<D | L>, PageOf<P>>`; `RefOf` gives `ObjectRef` for a kind without a call (a plain `PaneKindBase`), so untyped kinds stay as wide as before.
+- **`Jali<R, P>` defaults** to `Jali<ObjectRef, JaliPage | undefined>`, so every existing `jali: Jali` annotation still accepts a typed workspace. `AnyJali` is for functions that take any.
+- **Read-only snapshots (core-codex CORE-10):** `JaliState`, `getLayout()`, the model and events are `DeepReadonly`. The engine's own layout types stay mutable: its operations clone and edit drafts (97 sites), and making the source types read-only would have rewritten the engine for no behaviour. Instead the read-only view is what the public API returns, `LayoutInput` takes it back, and `layout.tree`, `encode`, `validate` and `resolve` take it too. The core reads the draft-typed tree through `layout/engine.ts`.
+- **`Register`:** `interface Register {}` in `@jali/core`; `RegisteredJali` reads it. The React hooks default their workspace type to it and take it explicitly too (`useJali<typeof jali>()`), because in this repo every example is one TypeScript program and two `Register` declarations would conflict. Its type test has a program of its own (`packages/react/type-tests`, in the typecheck gate).
+- **`usePane(kind)`** types params from the kind, with a development error when the pane is of another kind; `usePane()` with no kind gives plain `Params`, for a component several kinds render.
+- **Type tests first:** `packages/react/tests/types.test.tsx` (quickstart, curated page, custom chrome, negatives) and `type-tests/register.test.tsx`. Both failed to compile before the types (commit a5c8167c) and pass after.
+
+## 22 Nov 2026 · API phase 3a: one action path (API-REVIEW section 5, core-opus CORE-7, core-codex CORE-14)
+
+- **One table, `STEPS`** (actions/index.ts). A step written on its own is the public action of its name; a grouped name (`"page.showView"`, `"dialogs.openPalette"`) is that group's; `[step, name]` is a form of action `name`, or of none (`null`). A type check makes the plain public steps and `ActionName` the same set. `NAMED_AS`, `bindActions` and `publicActions` are gone.
+- **`store.run(name, ...args)`** is the one way a step is made, for the app (`jali.actions`, `jali.page`, `jali.dialogs` are built from the table), adapters (`store.actions` is the same steps through `run`), keys, commands and the agent. Adapters now get the `ActionResult`, refusals included.
+- **Where engine and public steps shared a name, the public one won** (`focus` shows the pane, `peek(pane, ref)`, `split(pane, direction)`): one meaning per name. The engine-only forms an adapter needs keep names of their own (`focusCycle`, `moveDirection`, `showViewBeside`, `arrivePage`).
+- **The pane an action acted on** is put on the outcome (`withPane`), so a held action's `settled` resolves with it too, as before.
+- **`jali.page` only with a page:** the key is absent without one, and its type is `undefined`. The page's state field `tab` and `open({ tab })` keep their names: `OpenPage.view` is already a view state internally, and `showView` names the verb, which was the ambiguity.
+- **`setLinkMode("open" | "peek")`** replaces `setCanInvestigate(boolean)`, and the state field is `linkMode`. The initial value at creation (moved from phase 1) is `createJali({ linkMode })`, top level rather than inside `page`, since `page` is the page's design and the link mode is the viewer's.
+- **`jali.dialogs.choose`:** the chooser is a dialog, so `choose` moved with the palette and settings.
+- **Agent:** its page actions are named as the instance names them (`page.showView`).
+
+## 22 Nov 2026 · API phase 3a: listening, options, the root, names, lifecycle (API-REVIEW sections 6 to 10)
+
+- **`on("toast")`** replaces `onToast`; toasts still go out at once (not with the batch's events) and are kept until a listener comes. `useJaliEvent` keeps the latest handler in a ref and resubscribes only when the event name or store changes.
+- **`keyboard: { scope, keymap, prefix, reserved, platform, onInvalid, words }`.** `palette` stays a top-level option: it is more than a key (it decides whether a dialog renders), and phase 3b turns it into a feature, so moving it into `keyboard` now would move it twice.
+- **`resolveOptions`:** `JaliOptions` is resolved once into `JaliConfig`; options with the same name and meaning pass through by a rest spread (no field-by-field copy), and the store builds its env by spreading the config's shared fields. The option docs live once, on `JaliOptions`. Normalisation (`label` trimmed, `landmark`, `confirmDiscard`, `pageTheme`) moved there.
+- **No default name.** `createJali({ name })` has no default. The page's leave command reads "Open <name>" with one and "Leave <page>" without; a failed root says the label, the name, or "Panes". Development messages say "Jali" and "panes".
+- **One root:** `JaliProvider`, `Panes`, `Palette`, `SettingsPanel`, `Chooser`, `ConfirmDiscard` and `Announcer` are internal. The docs site's layout-tree panels read the live workspace beside its root, so they import the provider from source (the docs live in this repo); no app needs it.
+- **`definePage` is React's only.** Core's is the adapter's `definePageEngine`, so an app can't make a page that renders nothing; phase 3b moves React's to `jali/page`.
+- **Removed:** `layout.tree`'s draft aliases, `isMac`, `setPopOutPort` (its test now uses the DOM port), `onToast`. Internal `UiStore`/`createUiStore` are `JaliStore`/`createJaliStore`.
+- **Lifecycle:** already true in behaviour; now tested (`lifecycle.test.tsx`): `<JaliRoot>` starts and stops (StrictMode too), `start()` returns `stop` and starts again, starting twice listens once, `destroy()` stops and refuses everything after.
+- **Hydration bootstrap snapshot (react-codex REACT-4):** left moved. It needs a serialisable snapshot of layout, view, settings, direction and size from core's boot and a server snapshot for every selector; it is its own change, not part of the lifecycle's.
+
+## 22 Nov 2026 · A → B → Undo keeps A's pane state (core-codex CORE-1, rest)
+
+Writing state for object B under a pane id that holds object A's state no longer replaces A's: A's is held (`paneStateHeld`, in memory, never saved) while an undo could bring A back, and comes back with it. The layout's prune drops a held entry once no layout in the undo stack shows its object under its id. Test: `pane-state-identity.test.ts`.
+
+## 22 Nov 2026 · The full-screen ⌘K flake was a focus race
+
+`e2e/fullscreen.spec.ts` "⌘K runs Full screen, and running it again exits" failed about half the time in the full suite. The second ⌘K could open the palette just before `fullscreenchange`; the dialog layer then mounted again inside the full-screen pane, the new dialog's effect could run before the old one's cleanup, its focus landed in a root still inert, and the cleanup put focus back on the pane, so the typed "full screen" went to the pane (a space peeked a row). The dialog now checks that focus came in, and if not, focuses again once both effects are done (a microtask). No retries were added. Under load: 2 failures in 30 runs before, 0 in 200 after.
+
+## 22 Nov 2026 · Phase 3a's size
+
+Core gzipped, before → after (`pnpm size`): minimal 55.2 → 55.0, full 60.4 → 60.2, headless 49.6 → 49.4, layout 10.3 → 10.3. The one action table and the resolved options removed more than the typed API, `jali.page`/`jali.dialogs` and the held pane state added. @jali/react: minimal 27.4 → 27.4, full 29.3 → 29.3.
