@@ -5,31 +5,28 @@ summary: Build the smallest Jali app, two notes side by side, then open a third 
 
 import { QuickstartApp } from "../../live";
 import note from "../../samples/concepts/quickstart/note.tsx?raw";
-import workspace from "../../samples/concepts/quickstart/workspace.ts?raw";
+import jaliCode from "../../samples/concepts/quickstart/jali.ts?raw";
 import main from "../../samples/concepts/quickstart/main.tsx?raw";
 import css from "../../samples/concepts/quickstart/app.css?raw";
 import openBeside from "../../samples/concepts/quickstart/note-open-beside.tsx?raw";
 
-This page builds the app in `examples/minimal`, one file at a time. At the end you have a workspace with two notes in it. A button in each note opens the next note beside it.
+This page builds a small app, one file at a time: two notes side by side, each with a button that opens the next note beside it. The finished app is [`examples/minimal`](https://github.com/ramiz-rahman/jali/tree/master/examples/minimal) in the repo, which adds a launcher and makes the panes the page's `<main>`.
 
-You need a React app on React 18.2 or later. Any bundler that handles CSS imports works; the example uses Vite.
+You need Node 20 or later. Start from a new React app, or skip this step and use your own:
 
-Jali runs in browsers from 2024 on ([Baseline 2024](https://web.dev/baseline)): Chrome and Edge 123, Firefox 120, Safari 17.5, and Electron 30. Its colours are `light-dark()` pairs, the newest thing it needs. Older browsers show the workspace without its colours.
+```sh
+npm create vite@latest notes -- --template react-ts
+cd notes
+```
 
 <QuickstartApp height={280} caption="What you are building, running: two notes side by side. Drag the line between them, or click a note's button to open the next note beside it." />
 
 <Steps>
-<Step title="Install the packages">
-
-`jali` holds the model: the layout, the workspace and its commands. It doesn't depend on React. `jali/react` renders it, with a default theme and its own icons.
+<Step title="Install Jali">
 
 <Install packages="jali" />
 
-<Callout type="warning" title="Linked or in a monorepo">
-If your app gets Jali through `link:`, `file:` or `workspace:`, or from a symlinked checkout, Jali can find its own copy of React beside its source. The app then bundles two Reacts, and hooks fail with "Invalid hook call". With Vite, add `resolve: { dedupe: ["react", "react-dom"] }` to `vite.config.ts` so there is one. With webpack, alias `react` and `react-dom` to your app's copy.
-
-A linked Jali also resolves to its built files in `dist/` by default, and they don't rebuild when its source changes: run `vp pack` in the Jali packages, or read the source directly. With Vite, add the `"source"` condition: `resolve: { conditions: ["source", ...defaultClientConditions] }`. Vitest runs tests in Node through Vite's server side, which reads `ssr.resolve.conditions` and not `resolve.conditions`, so for tests add `ssr: { resolve: { conditions: ["source", ...defaultServerConditions] } }` too. Both defaults come from `vite`. Without it, tests get the built Jali while the app gets the source, and the two can disagree.
-</Callout>
+One package: `jali` holds the model (the layout, the panes and their commands) and has no framework; `jali/react` renders it. If your app links Jali from a checkout or a monorepo, see [Installation](/get-started/installation#linked-or-in-a-monorepo).
 
 </Step>
 <Step title="Define a pane">
@@ -46,31 +43,31 @@ A [pane kind](/get-started/key-concepts#kind) says what one kind of pane shows a
 `note` is now also how you name a note: `note({ id: 1 })` is the [ref](/get-started/key-concepts#ref) of note 1, `{ kind: "note", params: { id: 1 } }`. You use refs to open panes and to write layouts.
 
 </Step>
-<Step title="Create the workspace">
+<Step title="Create the instance">
 
-The [workspace](/get-started/key-concepts#store) holds the panes, focus, history and settings. It takes the kinds it can show and the [layout](/get-started/key-concepts#layout-tree) it opens on.
+`createJali` makes the [instance](/get-started/key-concepts#instance): it holds the panes, focus, history and settings. It takes the kinds it can show and the [layout](/get-started/key-concepts#layout-tree) it opens on.
 
-<Code code={workspace} filename="workspace.ts" />
+<Code code={jaliCode} filename="jali.ts" />
 
 `row(...)` puts panes side by side; `column(...)` puts them one above the other. These two share the width equally.
 
-`features` turns on what the workspace does beyond laying out panes. `defaultFeatures()` is Jali's usual set: the layout in the address bar, the ⌘K palette, Settings and the chooser. Reload the page and the layout comes back; Back and Forward step through changes. If the address already holds a layout, that one opens instead. An app that wants less picks each feature from its own entry, and ships only those: see [Features](/reference/features).
+`features` turns on what Jali does beyond laying out panes. `defaultFeatures()` is Jali's usual set: the layout in the address bar, the ⌘K palette, Settings and the chooser. Reload the page and the layout comes back; Back and Forward step through changes. If the address already holds a layout, that one opens instead. An app that wants less picks each feature from its own entry, and ships only those: see [Features](/reference/features).
 
 </Step>
 <Step title="Render it">
 
-`<JaliRoot>` draws the workspace and its features' dialogs, such as the ⌘K palette. While it is on the page, it also turns on the keyboard, Back and Forward, the theme and saving.
+`<JaliRoot>` draws the panes and the features' dialogs, such as the ⌘K palette. While it is on the page, it also turns on the keyboard, Back and Forward, the theme and saving.
 
 <Code code={main} filename="main.tsx" />
 
-The workspace fills the box you give it, so that box needs a height: here `html`, `body` and `#root` are the full window. To add your own top bar or sidebar, put it inside `<JaliRoot>` with `<JaliView />` where the panes go: the panes take the room it leaves. If the box has no height, the panes have none either, and a warning in the console says so while you develop.
+The panes fill the box you give them, so that box needs a height: here `html`, `body` and `#root` are the full window. To add your own top bar or sidebar, put it inside `<JaliRoot>` with `<JaliView />` where the panes go: the panes take the room it leaves. If the box has no height, the panes have none either, and a warning in the console says so while you develop.
 
 Screen readers meet the panes as a region named "Panes", inside your page's own `<main>`. When Jali is the whole page and it has no `<main>` of its own, pass `landmark: "main"` to `createJali` so the panes are the page's `<main>`.
 
 </Step>
 <Step title="Add the styles and the layer line">
 
-`jali/styles.css` is Jali's default theme and the workspace's layout. Every rule in it sits in a CSS cascade layer named `jali`.
+`jali/styles.css` is Jali's default theme and the panes' layout. Every rule in it sits in a CSS cascade layer named `jali`.
 
 <Code code={css} lang="css" filename="app.css" highlight="2" />
 
@@ -85,7 +82,7 @@ A pane opens another with `openBeside`. Pass it the ref of what to open.
 
 <Code code={openBeside} filename="note.tsx" highlight="7,10-12" />
 
-Click the button in note 1. Note 2 opens to its right, and focus stays in note 1, so you can keep working where you were.
+Click the button in note 2. Note 3 opens to its right, and focus stays in note 2, so you can keep working where you were.
 
 Keep clicking the button in the newest note. Each click opens the next note beside the one you clicked in. When the panes no longer fit at their minimum width, some fold into tabs, and the note you are working in stays on screen. Widen the window and they come back. [How a layout fits](/learn/fitting) explains the order, and [Opening and linking](/learn/opening-and-linking) explains what `openBeside` does when a pane opens several links.
 

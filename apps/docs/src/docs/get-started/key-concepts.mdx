@@ -9,7 +9,7 @@ import ticket from "../../samples/concepts/support/ticket.tsx?raw";
 import workspaceCode from "../../samples/concepts/support/store.ts?raw";
 import actions from "../../samples/concepts/support/actions.ts?raw";
 
-Jali gives an app a workspace of panes: lists, records and editors side by side, which the person can open, move, resize and close. This page names the parts. Each term has its own link, and other pages link here the first time they use a word.
+Jali lays out an app's panes: lists, records and editors side by side, which the person can open, move, resize and close. This page names the parts. Each term has its own link, and other pages link here the first time they use a word.
 
 The examples use a support desk: a list of tickets, a ticket, the customer who sent it, and their orders.
 
@@ -17,7 +17,7 @@ The examples use a support desk: a list of tickets, a ticket, the customer who s
 
 <h3 id="pane">Pane</h3>
 
-A pane is one box in the workspace that shows one object, such as a ticket or a customer.
+A pane is one box in the layout that shows one object, such as a ticket or a customer.
 
 It has a header with its title, and it can be focused, moved, resized, put in tabs and closed. What is inside is your component.
 
@@ -27,14 +27,14 @@ A kind is one sort of pane: its name, what it shows, its title, the smallest siz
 
 <Code code={ticket} filename="ticket.tsx" highlight="5-13" />
 
-A kind is data plus a component. Each workspace has its own list of kinds (`createJali({ panes })`), so two workspaces on one page never share them.
+A kind is data plus a component. Each instance has its own list of kinds (`createJali({ panes })`), so two instances on one page never share them.
 
 <h3 id="ref">Ref</h3>
 
 A ref is what a pane shows: a kind and a few params, small enough to put in a link. The kind makes its refs:
 
 ```ts
-ticket({ id: 101 }) // { kind: "ticket", params: { id: 101 } }
+ticket({ id: 101 }); // { kind: "ticket", params: { id: 101 } }
 ```
 
 Params are text, numbers and `true`/`false` only. Two refs show the same object when their kind and params match, with ids compared as text, so `101` and `"101"` are the same ticket. A kind can change that rule with `identity`, or say that two kinds show the same objects with `shows`.
@@ -69,9 +69,9 @@ Folded panes wait behind one **N folded** chip at the end of the tab strip, neve
 
 The pane cap is the most panes shown at once, 8 by default. Past it, the oldest pane that is not kept or focused becomes a tab, even when there is room.
 
-<h3 id="single-view">Single view</h3>
+<h3 id="one-at-a-time">One pane at a time</h3>
 
-When even one pane is too wide for the workspace at its minimum, as on a phone, the workspace shows one pane at a time with a switcher at the top. The layout itself is kept, and widening restores it.
+On a phone, or whenever even one pane can't fit at its minimum, Jali shows one pane at a time with a switcher at the top. The layout itself is kept, and widening restores it. (This is not the curated page's [Single view](#single-and-split), which is a choice the person makes.)
 
 <h3 id="tuck">Tuck and the shelf</h3>
 
@@ -83,13 +83,13 @@ A tucked tab has a **Put back** button that restores its slot. The shelf, `<Shel
 
 <h3 id="focus">Focus</h3>
 
-One pane at a time holds workspace focus, marked by an accent edge. Keys and commands act on it.
+One pane at a time has focus, marked by an accent edge. Keys and commands act on it.
 
 F6 and Shift+F6 move focus between panes. Opening a pane beside keeps focus where it was, so the person keeps working in the list they opened from.
 
 <h3 id="peek">Peek</h3>
 
-A peek is a sheet over the right of the workspace that shows an object without adding a pane. It is not part of the layout.
+A peek is a sheet over the right of the panes that shows an object without adding a pane. It is not part of the layout.
 
 In a list, Space usually opens it. From the sheet, **Open beside** opens the object as a pane and **Open full** makes it the only pane. Esc closes it.
 
@@ -107,56 +107,61 @@ A kept pane stays on its object: it never follows and is never reused for anothe
 
 ## Curated pages
 
-<h3 id="curated-page">Curated page and profile</h3>
+<h3 id="curated-page">Curated page</h3>
 
-A curated page is a designed workspace about one item, such as a customer: a list of items at the left, a header, and tabs of views. A profile describes it: its views, what each shows for an item, and its designed layout.
+A curated page is a designed layout about one item, such as a customer: a list of items at the left, a header, and tabs of views. You describe it with `definePage` (from `jali/page`): its views, what each shows for an item, and its designed layout.
 
-Without a profile, the person builds the layout. With one, the page's design leads and the person adjusts it. [Curated pages](/learn/curated-pages) builds one.
+Without a curated page, the person builds the layout. With one, the page's design leads and the person adjusts it. [Curated pages](/learn/curated-pages) builds one.
 
-<h3 id="role">Role</h3>
+<h3 id="role">View</h3>
 
-A role is one view of a curated page, such as Orders, and a tab in its tab strip. A role is **primary** or **supporting**; supporting views give way first when room runs out.
+A view is one tab of a curated page, such as Orders. In code, a view is a **role** (`roles` in `definePage`). A view is **primary** or **supporting**; supporting views give way first when room runs out.
 
-<h3 id="single-and-split">Single and Split view</h3>
+<h3 id="single-and-split">Single view and Split view</h3>
 
-**Single** shows one view at a time, chosen from the tabs, and links open as a peek. **Split view** lets the person lay views out side by side, starting from the profile's design. The person chooses; the mode and their layout stay on their device.
+**Single view** shows one view at a time, chosen from the tabs, and links open as a peek. **Split view** lets the person lay views out side by side, starting from the page's design. The person chooses; the mode and their layout stay on their device.
 
-<h3 id="investigation">Investigation</h3>
+<h3 id="investigation">Opened panes</h3>
 
-In Split view, following a link opens an **opened** pane after the page's views. The opened panes together are the investigation. **Back to** the page closes them and returns the layout to how it was before the first link.
+In Split view, following a link opens a pane after the page's views, marked **Opened**. **Back to** the page closes the opened panes and returns the layout to how it was before the first link.
 
-<h3 id="viewers">Viewers</h3>
+<h3 id="viewers">Link mode</h3>
 
-A profile can name two kinds of viewer. One has full access: they may work in Split view and open links beside. The other works in Single and opens links as a peek.
+What following a link on a curated page does: `"open"` opens a pane beside the views, and `"peek"` only peeks, in Single view, for a person who may look but not rearrange. Set it with `createJali({ linkMode })` and change it with `jali.page.setLinkMode`.
 
-## The workspace and its ports
+## The instance and its ports
 
-<h3 id="store">Workspace and actions</h3>
+<h3 id="instance">Instance and actions</h3>
 
-A workspace holds its layout, focus, selection, settings and history. You make it with `createJali`, and everything it does is an action on it.
+<span id="store" />
+
+The instance holds the layout, focus, selection, settings and history. You make it with `createJali`, and every change is an action on it: `jali.actions` for panes and layouts, `jali.page` for a curated page, and `jali.dialogs` for the palette, Settings and the chooser.
 
 <Code code={actions} filename="actions.ts" />
 
-Every action is a pure function from one state to the next; the workspace commits the result, writes the address and announces the change to screen readers.
+Every action is a pure function from one state to the next. Jali commits the result, writes the address and announces the change to screen readers. An action that can't happen returns why, such as `{ ok: false, reason: "unsaved" }`, instead of throwing.
 
 <h3 id="presets">Presets</h3>
 
 A preset is a layout the person can switch to, by id and label. The first opens by default, ⌘K lists them as "Layout: …", and Reset layout rebuilds the last one chosen.
 
 ```ts
-presets: [{ id: "triage", label: "Triage", layout: triage }]
+import { createJali, row } from "jali";
+
+const triage = row(ticket({ id: 101 }), customer({ id: 7 }));
+const jali = createJali({ panes, presets: [{ id: "triage", label: "Triage", layout: triage }] });
 ```
 
 <h3 id="ports">Ports: the address and storage</h3>
 
-A port is a small interface for something outside the workspace, so your app or a test can own it.
+A port is a small interface for something outside Jali, so your app or a test can own it.
 
 - The **location** port is the address. Jali reads and writes only its own search params and keeps every other param as it is. The default is the browser's history; an app with a router passes a small adapter.
 - The **storage** port is what one person keeps on one device: settings, pane state, a curated page's mode. The default is `localStorage` under a prefix.
 
-<Code code={workspaceCode} filename="workspace.ts" highlight="15-16" />
+<Code code={workspaceCode} filename="jali.ts" highlight="15-16" />
 
-`urlSync({ location: memoryLocation() })` and `storage: memoryStorage()` keep both in memory, for tests and for a workspace that must not touch the page's address.
+`urlSync({ location: memoryLocation() })` and `storage: memoryStorage()` keep both in memory, for tests and for panes that must not touch the page's address. The location port is only read with the `urlSync()` [feature](/guides/features).
 
 <h3 id="sizes-in-links">Sizes in links</h3>
 
@@ -172,10 +177,15 @@ Moving, tabbing, folding and tucking never ask: the pane's content stays mounted
 
 <h3 id="pane-state">Pane state</h3>
 
-`usePaneState(key, initial)` is like `useState`, but the workspace keeps the value through folds, tabs, tucks and reloads. It goes when the pane closes for good or shows another object. Values must be JSON.
+`usePaneState(key, initial)` is like `useState`, but Jali keeps the value through folds, tabs, tucks and reloads. It goes when the pane closes for good or shows another object. Values must be JSON.
 
 ```tsx
-const [sort, setSort] = usePaneState("sort", { column: "id", dir: "asc" });
+import { usePaneState } from "jali/react";
+
+function OrderList() {
+  const [sort, setSort] = usePaneState("sort", { column: "id", dir: "asc" });
+  return <button onClick={() => setSort({ ...sort, dir: "desc" })}>Sort by {sort.column}</button>;
+}
 ```
 
 <h3 id="paused">Paused</h3>
@@ -184,10 +194,10 @@ A pane gets `paused: true` while it is out of sight: behind a tab, tucked, folde
 
 <h3 id="commands">Commands and the keymap</h3>
 
-A command is something the workspace can do, with an id such as `pane.close`. The keymap binds keys to commands; ⌘K (Ctrl+K) opens the command palette and starts a two-key chord, such as ⌘K ⌘Z to restore a closed pane.
+A command is something Jali can do, with an id such as `pane.close`. The keymap binds keys to commands. ⌘K (Ctrl+K) starts a two-key chord, such as ⌘K ⌘Z to restore a closed pane, and opens the command palette when the `palette()` feature is on.
 
-Each workspace has its own keymap. Rebind or unbind a command with `createJali({ keymap: { "pane.zoom": null } })`. Your app adds its own commands with `createJali({ commands })`, and a pane adds its own to ⌘K with `useCommands`.
+Each instance has its own keymap. Rebind or unbind a command with `createJali({ keyboard: { keymap: { "pane.zoom": null } } })`. Your app adds its own commands with `createJali({ commands })`, and a pane adds its own to ⌘K with `useCommands`.
 
 <h3 id="content-first">Content first</h3>
 
-Keys go to the pane's content first. Content claims a key with `event.preventDefault()`, and the workspace leaves it alone; every key the content does not claim bubbles to the workspace. Single letter keys, Enter, Space and the first Esc belong to the content.
+Keys go to the pane's content first. Content claims a key with `event.preventDefault()`, and Jali leaves it alone; every key the content does not claim bubbles to Jali. Single letter keys, Enter, Space and the first Esc belong to the content.

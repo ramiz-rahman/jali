@@ -17,7 +17,7 @@ function PageActions({ path, title }: { path: string; title: string }) {
   const md = markdownUrl(path);
   // The site's public address, fixed at build time (astro.config.mjs `site`), so Claude gets an address it can fetch.
   const abs = new URL(md, import.meta.env.SITE).href;
-  const prompt = `Read the Jali docs page "${title}" at ${abs} and help me with it. Jali is a React library for workspaces of panes. Answer from that page and the rest of the Jali docs.`;
+  const prompt = `Read the Jali docs page "${title}" at ${abs} and help me with it. Jali is a layout library of panes for React apps. Answer from that page and the rest of the Jali docs.`;
   return (
     <div className="page-actions" role="group" aria-label="Page actions">
       {/* Copies the page's Markdown copy (src/client/enhance.ts). */}

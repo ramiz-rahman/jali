@@ -14,7 +14,7 @@ export function LinkDemo() {
   const query = decodeURIComponent(search);
   return (
     <div className="landing-link-demo">
-      <div className="landing-address" role="group" aria-label="The address this workspace writes">
+      <div className="landing-address" role="group" aria-label="The address these panes write">
         <span className="landing-address-dots" aria-hidden>
           <i />
           <i />
@@ -69,7 +69,7 @@ export function KeysDemo() {
       />
       <ul
         className="landing-keys"
-        aria-label="Keys from this workspace's keymap; each can be clicked"
+        aria-label="Keys from this keymap; each can be clicked"
       >
         {KEYS.map((k) => (
           <li key={k.id}>

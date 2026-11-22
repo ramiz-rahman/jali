@@ -421,11 +421,9 @@ const MANAGERS = [
   { label: "pnpm", cmd: "pnpm add" },
   { label: "yarn", cmd: "yarn add" },
   { label: "bun", cmd: "bun add" },
-  // Vite+ (vite-plus): `vp add <packages>`, from its CLI help and docs/guide/package-management.
-  { label: "vp", cmd: "vp add" },
 ];
 
-/** Install commands for npm, pnpm, yarn, bun and vp, in the remembered "pm" tab group: one panel per manager. */
+/** Install commands for npm, pnpm, yarn and bun, in the remembered "pm" tab group: one panel per manager. */
 export function Install({ packages }: { packages: string }) {
   return (
     <TabSet

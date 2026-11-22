@@ -126,7 +126,7 @@ export function TreeView({
   tour = false,
 }: TreeViewProps) {
   // Named for the figure, so two on one page never repeat a landmark; the tour is the landing's own.
-  const name = caption ?? (tour ? "Tour of a live workspace" : demoLayouts[layout]);
+  const name = caption ?? (tour ? "A tour of live panes" : demoLayouts[layout]);
   // The hero's tour drops a pane on another to make tabs: a reader's own drop there does the same.
   const store = useLiveStore(layout, name, tour ? "tab" : undefined);
   const m = useSyncExternalStore(store.subscribe, store.model, store.model);

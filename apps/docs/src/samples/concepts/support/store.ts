@@ -5,7 +5,7 @@ import { ticket } from "./ticket";
 import { ticketList } from "./ticket-list";
 
 export const jali = createJali({
-  // The kinds of pane this workspace can show. Each workspace has its own.
+  // The kinds of pane it can show. Each instance has its own.
   panes: [ticketList, ticket, customer, customerOrders, order],
   // Layouts to start from, in ⌘K as "Layout: Triage". The first opens when no link says otherwise.
   presets: [

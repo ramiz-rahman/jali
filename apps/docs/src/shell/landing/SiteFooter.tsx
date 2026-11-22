@@ -62,8 +62,8 @@ export function SiteFooter() {
             <Lockup className="site-footer-lockup" />
           </a>
           <p className="site-footer-line">
-            Workspaces of panes for React. Panes fold into tabs when the window is too small, and
-            come back when there is room.
+            Split views for React. Panes fold into tabs when the window is too small, and come
+            back when there is room.
           </p>
         </div>
         <nav className="site-footer-nav" aria-label="Footer">

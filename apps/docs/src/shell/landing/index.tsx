@@ -15,7 +15,7 @@ import { island } from "../island";
 import { Code, Install, Tab, Tabs } from "../mdx";
 import { KeysDemo as KeysDemoPart, LinkDemo as LinkDemoPart } from "./demos";
 import noteCode from "../../samples/concepts/quickstart/note-open-beside.tsx?raw";
-import workspaceCode from "../../samples/concepts/quickstart/workspace.ts?raw";
+import jaliCode from "../../samples/concepts/quickstart/jali.ts?raw";
 import mainCode from "../../samples/concepts/quickstart/main.tsx?raw";
 
 export { SiteFooter } from "./SiteFooter";
@@ -104,8 +104,8 @@ export function MinimalApp() {
           <Tab label="note.tsx">
             <Code code={noteCode} lang="tsx" />
           </Tab>
-          <Tab label="workspace.ts">
-            <Code code={workspaceCode} lang="ts" />
+          <Tab label="jali.ts">
+            <Code code={jaliCode} lang="ts" />
           </Tab>
           <Tab label="main.tsx">
             <Code code={mainCode} lang="tsx" />

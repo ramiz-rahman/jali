@@ -59,7 +59,7 @@ test("package-manager tabs: arrows switch, each tab has its panel, and the choic
 test("copy buttons copy the code as written", async ({ page, context }) => {
   await context.grantPermissions(["clipboard-read", "clipboard-write"]);
   await page.goto("/get-started/quickstart");
-  const block = page.locator("figure.code", { hasText: "workspace.ts" }).first();
+  const block = page.locator("figure.code", { hasText: "jali.ts" }).first();
   await block.hover();
   await block.getByRole("button", { name: "Copy code" }).click();
   await expect(block.getByRole("button", { name: "Copied" })).toBeVisible();
