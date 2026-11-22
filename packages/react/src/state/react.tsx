@@ -158,7 +158,7 @@ export function useGeometry(): ModelGeometry {
   return store.model();
 }
 
-/** The two states differ only in a drag's pointer (`dnd`), which nothing worked out from the rest reads. */
+/** The two states differ only in a drag's pointer (`dnd`). */
 function onlyDrag(a: UiState, b: UiState): boolean {
   const ka = Object.keys(a) as (keyof UiState)[];
   if (ka.length !== Object.keys(b).length) return false;
@@ -167,8 +167,8 @@ function onlyDrag(a: UiState, b: UiState): boolean {
 
 /**
  * A value worked out from the whole instance (a pane's menu and buttons, the command list) that re-renders only when
- * it changes by `same`. It is worked out again when `deps` change or the state does, but not when only a drag's pointer
- * moved: a drag writes the state every frame.
+ * it changes by `same`. It is worked out again when `deps` change or the state does, except when only a drag's pointer
+ * moved: a drag writes the state every frame. So `derive` must not read `dnd`; development checks that it doesn't.
  */
 export function useDerived<T>(
   derive: () => T,
@@ -180,13 +180,20 @@ export function useDerived<T>(
   const read = () => {
     const s = store.get();
     const was = last.current;
-    if (
-      was &&
-      was.deps.length === deps.length &&
-      was.deps.every((d, i) => Object.is(d, deps[i])) &&
-      (was.s === s || onlyDrag(was.s, s))
-    )
-      return was.value;
+    if (was && was.deps.length === deps.length && was.deps.every((d, i) => Object.is(d, deps[i]))) {
+      if (was.s === s) return was.value;
+      if (onlyDrag(was.s, s)) {
+        try {
+          if (process.env.NODE_ENV !== "production" && !same(was.value, derive()))
+            console.error(
+              "Jali: a useDerived value changed when only a drag's pointer moved; its derive must not read `dnd`.",
+            );
+        } catch {
+          /* no `process`: production */
+        }
+        return was.value;
+      }
+    }
     const next = derive();
     const value = was && same(was.value, next) ? was.value : next;
     last.current = { s, deps, value };
