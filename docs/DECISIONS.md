@@ -1339,3 +1339,16 @@ Gzipped KB, measured on master `ea3ac83` after `pnpm build:packages`. The `mustN
   - the shelf re-renders for its chips' panes.
 
   The live-title test now also checks that the workspace doesn't render.
+
+## 22 Nov 2026 · The repo's folders: packages, apps, examples as packages, tooling
+
+The layout agreed with the owner. Nothing in `@jali/core` or `@jali/react` changed: same paths (`packages/core`, `packages/react`), same exports, same `dist/` entries.
+
+- **`tooling/`** is what `scripts/` was: verify, size (and its scenarios in `tooling/size/`), agent docs, icons, the React 18 check. It is a private workspace package (`jali-tooling`) so the size scenarios and the icon script have their own dependencies (React, Phosphor) instead of the root's.
+- **`examples/<name>/`**, each a workspace package (`@jali-examples/<name>`) with its own `package.json` declaring only what it imports, plus `vp dev`, `vp build` and `vp preview` scripts. `fixtures/minimal` and `fixtures/own-icons` moved to `examples/minimal` and `examples/own-icons`; they are still not example apps (no standard, no browser suite), only the quickstart's and the size checks' apps.
+- **`@jali-examples/shared`** replaces the root `#shared/*` import alias and the tsconfig `paths` behind it. Its `exports` lists each module an example imports, by its path under `src/` without the extension (`@jali-examples/shared/data/hooks`), so TypeScript and Vite resolve them without an alias.
+- **The root `package.json`** has no dependencies, only dev tooling: TypeScript, Vite+, Vitest, jsdom, Playwright and axe, the React plugin, and the React types (the root tsconfig checks every package, the docs site's included, with one set). `@testing-library/react` moved to the packages that use it (`@jali/react`, Studio, Trips); `@jali/react` has React as a dev dependency for its own tests. `@fontsource-variable/chivo-mono` was imported nowhere and is gone.
+- **Tests.** The root `tests/` split by what each file imports: a test that renders, or defines a pane with `@jali/react`, is in `packages/react/tests` (80 files); one that imports `@jali/core` alone is in `packages/core/tests` (3 files). The engine tests that run against Data Studio's and Loan review's kinds (`tests/workspace.ts`) define their panes with `@jali/react`, so they are React's. The layout tree's own tests stay beside its source (`packages/core/src/layout/test/`). Each package has a `vitest.config.ts`; the root config's `test.projects` runs `core`, `react` and `examples`, so `vp test run` still runs everything.
+- **`e2e/` stays at the root.** Its specs test Jali itself through two apps (Data Studio, the free workspace; Loan review, the curated page) and one page object, and `e2e/fixtures/server.ts` is the dev server every Playwright config uses, the examples' and the docs site's too. It belongs to neither app, so it doesn't move beside one.
+- **Dated reports** (`QUALITY-REVIEW.md`, `ARCHITECTURE-REVIEW.md`, `FINDINGS.md`, `FINDINGS-FROM-DOCS.md`) moved to `docs/reviews/`. Older entries above cite them at their old paths; those entries are left as written.
+- **`archive/`** stays where it is: it is code kept for reference, not docs, and nothing builds from it. It is a candidate for deletion (git keeps its history).

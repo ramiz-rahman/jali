@@ -12,6 +12,7 @@ vp dev examples/data-studio   # or any example below
 - `packages/core`: `@jali/core`, no framework. The layout, the workspace store, actions, commands and keys, the URL and storage ports.
 - `packages/react`: `@jali/react`. The workspace, panes and tabs, dividers, peek, the shelf, curated pages, the palette and settings, and their styles.
 - `apps/docs`: the docs site (`pnpm --filter @jali/docs dev`, on :5400). `pnpm agent-docs` writes its pages into `packages/core/docs`.
+- `tooling/`: the repo's checks and generators (`pnpm verify`, `pnpm size`, `pnpm agent-docs`, `pnpm icons`, `pnpm test:react18`).
 
 ## The example apps
 
