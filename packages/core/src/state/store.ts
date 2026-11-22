@@ -51,7 +51,7 @@ import {
   type Toast,
 } from "./apply";
 import { createInstance, type Jali, type JaliEvent, type JaliEvents } from "./instance";
-import { trackInput } from "../dom/input";
+import { currentInput, trackInput, withInput } from "../dom/input";
 import { modelCache, type Model } from "./model";
 import type { Settings } from "./settings";
 import type { PagePrefs } from "./page-prefs";
@@ -648,8 +648,9 @@ export function createJaliStore(deps: JaliConfig): JaliStore {
   function wait(o: Outcome, action?: ActionName): ActionResult {
     let settle!: (r: ActionResult | Promise<ActionResult>) => void;
     const settled = new Promise<ActionResult>((r) => (settle = r));
+    const input = currentInput();
     waiting.push(() => {
-      const r = commit(o, action);
+      const r = withInput(input, () => commit(o, action));
       settle(r.reason === "pending" && r.settled ? r.settled : r);
     });
     return { ok: false, reason: "pending", settled };

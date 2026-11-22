@@ -108,12 +108,13 @@ export interface Jali<
   readonly dialogs: JaliDialogs;
   /** The state now, read-only. */
   get(): JaliState<R>;
-  /** Called after every change of state. Use `on` to hear what changed. */
+  /** Called once after each change of state, before its events. Use `on` to hear what changed. One that throws is
+   *  reported, and the others and the action carry on. */
   subscribe(fn: () => void): () => void;
   /** The layout as it is on screen: panes, their boxes and titles, the shelf. Read-only. */
   model(): JaliModel<R>;
   /** Hear one kind of change (`jali.on("open", ({ pane, ref }) => …)`, `jali.on("toast", show)`). Returns the
-   *  unsubscribe. */
+   *  unsubscribe. A change's events come once it is done: close, open, pin, focus, layout, then its toasts. */
   on<E extends JaliEvent>(event: E, handler: (event: JaliEvents<R>[E]) => void): () => void;
   /** The layout on screen, to save. `setLayout` and `createJali({ layout })` take it back. */
   getLayout(): DeepReadonly<Layout>;

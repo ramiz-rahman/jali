@@ -929,11 +929,11 @@ An instance, from [`createJali`](../core.md#createjali). It is frozen: these mem
 
 - **`Jali.get`**, `get(): JaliState<R>`: The state now, read-only.
 
-- **`Jali.subscribe`**, `subscribe(fn: () => void): () => void`: Called after every change of state. Returns the unsubscribe. To hear what changed, use `on`.
+- **`Jali.subscribe`**, `subscribe(fn: () => void): () => void`: Called once after each change of state, before the change's events. Returns the unsubscribe. To hear what changed, use `on`. A subscriber that throws is reported with `console.error`; the others, and the action that made the change, carry on.
 
 - **`Jali.model`**, `model(): JaliModel<R>`: The derived model, read-only; the same object while nothing it depends on changed.
 
-- **`Jali.on`**, `on(event: keyof JaliEvents, handler: (e) => void): () => void`: Hear one kind of change: `"open"`, `"close"`, `"pin"`, `"focus"`, `"layout"` or `"toast"`. Returns the unsubscribe. See `JaliEvents`.
+- **`Jali.on`**, `on(event: keyof JaliEvents, handler: (e) => void): () => void`: Hear one kind of change: `"open"`, `"close"`, `"pin"`, `"focus"`, `"layout"` or `"toast"`. Returns the unsubscribe. A change's events come once it is done, in this order: `close`, `open`, `pin`, `focus`, `layout`, then its toasts. A handler that throws is reported with `console.error` and the others still hear it. See `JaliEvents`.
 
 - **`Jali.getLayout`**, `getLayout(): DeepReadonly<Layout>`: The layout on screen, to save. It is plain JSON, read-only; `layout.tree.clone` gives a copy to edit.
 

@@ -12,6 +12,7 @@ import {
   type DeepReadonly,
   type Layout,
 } from "@jali/core";
+import { createAgent } from "@jali/core/agent";
 import { urlSync } from "../src/features/url-sync";
 
 const item = { kind: "item", title: "Item", params: { id: Number }, width: { min: 200 } };
@@ -87,5 +88,68 @@ describe("events in the order changes were made", () => {
     const before = location.entries.length;
     jali.actions.openBeside(ids(jali)[0]!, ref(3));
     expect(seen).toEqual([before + 1]);
+  });
+});
+
+/**
+ * One completed batch, told in one order, each listener on its own (core review 22 Nov 2026, #5). Before, a close
+ * told its toast first (inline, during the commit), and a subscriber that threw made the action throw after the pane
+ * had closed, with the close event left waiting for a later action.
+ */
+describe("a batch's events", () => {
+  it("are close, layout, then the toast", () => {
+    const jali = make();
+    const order: string[] = [];
+    jali.on("toast", () => order.push("toast"));
+    jali.on("close", () => order.push("close"));
+    jali.on("layout", () => order.push("layout"));
+    jali.actions.close(ids(jali)[1]!);
+    expect(order).toEqual(["close", "layout", "toast"]);
+  });
+
+  it("still reach everyone when a subscriber throws, and the action returns what it did", () => {
+    const jali = make();
+    const order: string[] = [];
+    jali.on("close", () => order.push("close"));
+    jali.on("layout", () => order.push("layout"));
+    jali.subscribe(() => {
+      throw new Error("a subscriber's bug");
+    });
+    let after = 0;
+    jali.subscribe(() => after++);
+    const error = console.error;
+    const reported: unknown[] = [];
+    console.error = (e: unknown) => reported.push(e);
+    try {
+      expect(jali.actions.close(ids(jali)[1]!).ok).toBe(true);
+    } finally {
+      console.error = error;
+    }
+    expect(order).toEqual(["close", "layout"]);
+    expect(after).toBe(1);
+    expect(reported).toHaveLength(1);
+  });
+});
+
+describe("a change made on a later yes", () => {
+  it("carries the input of whoever asked for it", async () => {
+    let answer!: (yes: boolean) => void;
+    const jali = createJali({
+      panes: [item],
+      layout: row(ref(1), ref(2)),
+      storage: memoryStorage(),
+      size: { width: 1400, height: 800 },
+      moveFocus: false,
+      beforeClose: () => new Promise<boolean>((r) => (answer = r)),
+    });
+    const inputs: string[] = [];
+    jali.on("close", (e) => inputs.push(e.input));
+    jali.on("layout", (e) => inputs.push(e.input));
+    const agent = createAgent(jali);
+    agent.act({ steps: [{ action: "close", args: [ids(jali)[1]!] }] });
+    answer(true);
+    await new Promise((r) => setTimeout(r, 0));
+    expect(jali.model().panes).toHaveLength(1);
+    expect(inputs).toEqual(["agent", "agent"]);
   });
 });

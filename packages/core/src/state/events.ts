@@ -1,7 +1,8 @@
 /**
  * Who hears what an instance did, and when. Changes are gathered while a commit runs (an action, a raw write, and
  * anything they call) and told once it ends: subscribers once, then the app's events (`jali.on`) in the order the
- * batches ended. A listener that acts ends a batch of its own while one is being told: its events wait behind that
+ * batches ended. A batch's events go in one order: close, open, pin, focus, layout, then its toasts. Each listener
+ * and subscriber is called on its own: one that throws is reported, and the others still hear the batch. A listener that acts ends a batch of its own while one is being told: its events wait behind that
  * one's, so the app hears changes in the order they were made, and the last `layout` event is the layout now.
  *
  * The store owns the state; this owns batching, the queue of batches to tell, and turning two states into events.
@@ -27,7 +28,8 @@ export interface CommitEvents {
   committed(op: Op, action?: ActionName): void;
   /** The state the running batch started from, or undefined outside a batch. */
   batchStart(): UiState | undefined;
-  /** A toast, for whoever listens to `on("toast")`; kept until someone does. */
+  /** A toast, for whoever listens to `on("toast")`; kept until someone does. Sent in a batch, it is told with the
+   *  batch's other events, after them. */
   toast(t: Omit<JaliEvents["toast"], "input">): void;
 }
 
@@ -36,15 +38,21 @@ export function createEvents(read: () => UiState): CommitEvents {
   const handlers = new Map<JaliEvent, Set<(e: never) => void>>();
   const subs = new Set<() => void>();
   const pendingToasts: JaliEvents["toast"][] = [];
-  const emit = <E extends JaliEvent>(event: E, e: JaliEvents[E]) => {
-    for (const fn of handlers.get(event) ?? []) {
-      try {
-        (fn as (e: JaliEvents[E]) => void)(e);
-      } catch (err) {
-        console.error(err);
-      }
+  /** Call host code on its own: a throw is reported, never passed to the commit that told it. */
+  const isolated = (fn: () => void) => {
+    try {
+      fn();
+    } catch (err) {
+      console.error(err);
     }
   };
+  const emit = <E extends JaliEvent>(event: E, e: JaliEvents[E]) => {
+    for (const fn of handlers.get(event) ?? [])
+      isolated(() => (fn as (e: JaliEvents[E]) => void)(e));
+  };
+  /** A toast now, or kept for the first `on("toast")`. */
+  const tellToast = (e: JaliEvents["toast"]) =>
+    handlers.has("toast") ? emit("toast", e) : void pendingToasts.push(e);
 
   let depth = 0;
   /** The state changed in this batch: subscribers hear it once, when the batch ends. */
@@ -56,6 +64,7 @@ export function createEvents(read: () => UiState): CommitEvents {
     ops: Op[];
     named?: ActionName;
     input: JaliInput;
+    toasts: JaliEvents["toast"][];
   }[] = [];
   let telling = false;
   let from: UiState = read();
@@ -65,6 +74,8 @@ export function createEvents(read: () => UiState): CommitEvents {
   let ops: Op[] = [];
   /** The first public action that committed a layout op in this batch. */
   let named: ActionName | undefined;
+  /** Toasts sent in this batch: told after its other events. */
+  let toasts: JaliEvents["toast"][] = [];
 
   /** Tells the app what a batch changed: its own `ops`, `named` and `input`, read as it ended. A listener that acts
    *  starts a batch of its own, which must not rename this one's `layout` event. */
@@ -74,6 +85,7 @@ export function createEvents(read: () => UiState): CommitEvents {
     ops: readonly Op[],
     named: ActionName | undefined,
     input: JaliInput,
+    toasts: readonly JaliEvents["toast"][],
   ) => {
     if (after.layout !== before.layout) {
       const was = new Map(core.tree.panes(before.layout.root).map((p) => [p.id, p.ref]));
@@ -104,6 +116,7 @@ export function createEvents(read: () => UiState): CommitEvents {
         ...(named && !ops.includes("arrive") ? { action: named } : {}),
         input,
       });
+    for (const t of toasts) tellToast(t);
   };
 
   return {
@@ -126,6 +139,7 @@ export function createEvents(read: () => UiState): CommitEvents {
         from = read();
         ops = [];
         named = undefined;
+        toasts = [];
         input = currentInput();
       }
       try {
@@ -135,16 +149,17 @@ export function createEvents(read: () => UiState): CommitEvents {
           // Everything the batch did is in place (state, address, announcement) before anyone hears of it:
           // subscribers once, then the events, in the order batches ended.
           const state = read();
-          if (handlers.size && from !== state)
-            queue.push({ before: from, after: state, ops, named, input });
+          if ((handlers.size && from !== state) || toasts.length)
+            queue.push({ before: from, after: state, ops, named, input, toasts });
           if (changed) {
             changed = false;
-            for (const fn of subs) fn();
+            for (const fn of subs) isolated(fn);
           }
           if (!telling) {
             telling = true;
             try {
-              for (let e; (e = queue.shift());) told(e.before, e.after, e.ops, e.named, e.input);
+              for (let e; (e = queue.shift());)
+                told(e.before, e.after, e.ops, e.named, e.input, e.toasts);
             } finally {
               telling = false;
             }
@@ -161,9 +176,8 @@ export function createEvents(read: () => UiState): CommitEvents {
     },
     batchStart: () => (depth ? from : undefined),
     toast(t) {
-      const e = { ...t, input: currentInput() };
-      if (handlers.has("toast")) emit("toast", e);
-      else pendingToasts.push(e);
+      if (depth) toasts.push({ ...t, input });
+      else tellToast({ ...t, input: currentInput() });
     },
   };
 }

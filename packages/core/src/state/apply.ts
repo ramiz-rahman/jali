@@ -38,6 +38,7 @@ import { discardedReports, prunedReports, withMaps } from "./reports";
 import type { PaneKinds } from "../pane-kinds";
 import { ownedPaneState, ownedSelection } from "./pane-state";
 import { sameRef } from "../layout/ops/ref";
+import { currentInput, withInput } from "../dom/input";
 import { MAX_NODES } from "../layout/codec/validate";
 
 /** A change that would make a layout hold more nodes than a link can (`MAX_NODES`): its address would be one no
@@ -739,13 +740,15 @@ function step(c: Run, o: Outcome): Res {
           action: c.action,
         };
         // The instance's end settles it as kept at once; a promise settles once, so a later answer changes nothing.
-        const signal = io.signal;
+        // The change made on a yes is still the one asked for, by whoever asked: its events carry that input.
+        const signal = io.signal,
+          input = currentInput();
         const settled = new Promise<ActionResult>((resolve) => {
           const kept = () => resolve(refused("kept"));
           signal?.addEventListener("abort", kept);
           void answer.then((yes) => {
             if (signal?.aborted || !yes) return kept();
-            const r = io.later ? io.later(again) : apply(io, again);
+            const r = withInput(input, () => (io.later ? io.later(again) : apply(io, again)));
             resolve(r.reason === "pending" && r.settled ? r.settled : r);
           });
         });
