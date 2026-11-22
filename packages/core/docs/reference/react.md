@@ -42,6 +42,12 @@ Two things are yours to render. **The shelf** (tucked panes as chips): put `Shel
 
 - **`settingsExtra`** (`ReactNode`): Your own settings, as `<fieldset>`s with a `<legend>`, shown at the end of the Settings panel. Store their values yourself. A row that is a radio or checkbox and its words matches Jali's as `<label className="jali-setting">` (the `settingRow` part).
 
+- **`aria-label`** (`string`): The workspace's name, over `createJali({ label })`, read at every render. It names the workspace landmark, and each landmark inside carries it.
+
+- **`aria-labelledby`** (`string`): The id of a visible heading that names the workspace; the landmarks inside carry its text.
+
+- **`onError`** (`(error: unknown) => void`): Hears a throw in your code inside the root or in Jali's own parts. The root shows "… could not be shown" with Retry in place of what failed, and your app around it stays. A pane's own failures go to `onPaneError`.
+
 - **`...rest`** (`HTMLAttributes<HTMLDivElement>`): Passed to the root `<div>` (`className`, `style`, `id`). `ref` and `data-jali` are Jali's.
 
 ### JaliView
@@ -407,14 +413,16 @@ The workspace from the nearest `<JaliRoot>`: its `actions`, `on`, `getLayout` an
 *hook*, from `@jali/react`
 
 ```ts
-useJaliState<T>(select: (s: JaliState) => T): T
+useJaliState<T>(select: (s: JaliState) => T, isEqual?: (a: T, b: T) => boolean): T
 ```
 
-Subscribes to one value of the state. The component re-renders when that value changes (compared with `Object.is`), so return a field or a primitive, not a new object each time.
+Subscribes to one value of the state. The component re-renders when that value changes, compared with `isEqual` (`Object.is` unless given). A selector may return a new object or array; pass `shallow` to re-render only when one of its values changed.
 
 **Parameters**
 
 - **`select`** (`(s: JaliState) => T`, required): Picks the value.
+
+- **`isEqual`** (`(a: T, b: T) => boolean`): Whether two picks are the same. Default `Object.is`.
 
 **Returns** `T`:
 
@@ -424,11 +432,22 @@ Subscribes to one value of the state. The component re-renders when that value c
 
 ```ts
 useJaliModel(): JaliModel
+useJaliModel<T>(select: (m: JaliModel) => T, isEqual?: (a: T, b: T) => boolean): T
 ```
 
-The workspace as it is on screen, subscribed: the panes, their boxes and titles, the groups, the shelf. A new object only when something it depends on changed (the layout, the maximised pane, the area, the kinds, the page or the pane cap); focus alone does not change it.
+The workspace as it is on screen, subscribed: the panes, their boxes and titles, the groups, the shelf. A new object only when something it depends on changed (the layout, the maximised pane, the area, the kinds, the page or the pane cap); focus alone does not change it. With a selector, only what it picks, re-rendering when that changes by `isEqual`.
 
 **Returns** `JaliModel`:
+
+### shallow
+
+*function*, from `@jali/react`
+
+```ts
+shallow<T>(a: T, b: T): boolean
+```
+
+The same keys (or items) with the same values by `Object.is`, one level deep: the equality for a selector that picks several values, `useJaliState((s) => ({ focused: s.view.focused, cap: s.settings.paneCap }), shallow)`.
 
 ### useTheme
 
