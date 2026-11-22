@@ -13,7 +13,7 @@ import {
   type PaneProps,
 } from "@jali/react";
 import { keyHint } from "@jali/core";
-import { isRecord, oneOf, text } from "#shared/store";
+import { isRecord, oneOf, text } from "@jali-examples/shared/store";
 import { DEFAULT_LISTS, listName, useList } from "../lists";
 import { useMarket, useQuotes } from "../market/react";
 import type { Instrument, Quote } from "../market/types";

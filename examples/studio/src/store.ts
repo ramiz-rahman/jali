@@ -1,5 +1,5 @@
 /**
- * What the app keeps on this device. The store itself is the examples' shared one (`#shared/store`).
+ * What the app keeps on this device. The store itself is the examples' shared one (`@jali-examples/shared/store`).
  *
  * Studio keeps its own reading and writing rather than the shared `readKept`: its stores carry their version in the
  * key (`studio:edits:v1`), move a value kept under an earlier key across on first read, and keep the plain JSON people

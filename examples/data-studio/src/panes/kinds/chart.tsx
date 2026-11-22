@@ -1,13 +1,13 @@
 import { ChartBarIcon } from "@phosphor-icons/react";
 import { definePane, optional } from "@jali/react";
-import type { Row } from "#shared/data/types";
+import type { Row } from "@jali-examples/shared/data/types";
 import { useMemo, useState } from "react";
-import { isLoading } from "#shared/data/hooks";
-import { UnknownRun } from "#shared/data/result-store";
-import { formatCompact, formatCount } from "#shared/panes/format";
-import { Empty, Shell } from "#shared/panes/shared/states";
-import { PaneGate } from "#shared/panes/shared/PaneGate";
-import { useResultWindow } from "#shared/panes/grid/useWindow";
+import { isLoading } from "@jali-examples/shared/data/hooks";
+import { UnknownRun } from "@jali-examples/shared/data/result-store";
+import { formatCompact, formatCount } from "@jali-examples/shared/panes/format";
+import { Empty, Shell } from "@jali-examples/shared/panes/shared/states";
+import { PaneGate } from "@jali-examples/shared/panes/shared/PaneGate";
+import { useResultWindow } from "@jali-examples/shared/panes/grid/useWindow";
 import type { PaneProps } from "@jali/react";
 
 const MAX_BARS = 20;

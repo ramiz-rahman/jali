@@ -7,7 +7,7 @@
  * when the desk is chosen, and builds the desk's own when it can't.
  */
 import type { Jali, Layout } from "@jali/core";
-import { isRecord, readKept, writeKept, type Kept } from "#shared/store";
+import { isRecord, readKept, writeKept, type Kept } from "@jali-examples/shared/store";
 
 type Layouts = Readonly<Record<string, Layout>>;
 

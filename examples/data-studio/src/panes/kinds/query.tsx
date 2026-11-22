@@ -9,15 +9,15 @@ import {
   useUnsaved,
 } from "@jali/react";
 import { useEffect, useRef, useState } from "react";
-import { resultFormat } from "#shared/data/labels";
-import { text } from "#shared/store";
-import type { ResultHandle, Row } from "#shared/data/types";
-import { Grid, type GridColumn } from "#shared/panes/grid/Grid";
-import { errorText, useRun } from "#shared/data/hooks";
-import { formatCount, formatMs } from "#shared/panes/format";
-import { chartRef } from "#shared/panes/shared/refs";
-import { Empty, ErrorState, Loading, Shell } from "#shared/panes/shared/states";
-import { useResultWindow } from "#shared/panes/grid/useWindow";
+import { resultFormat } from "@jali-examples/shared/data/labels";
+import { text } from "@jali-examples/shared/store";
+import type { ResultHandle, Row } from "@jali-examples/shared/data/types";
+import { Grid, type GridColumn } from "@jali-examples/shared/panes/grid/Grid";
+import { errorText, useRun } from "@jali-examples/shared/data/hooks";
+import { formatCount, formatMs } from "@jali-examples/shared/panes/format";
+import { chartRef } from "@jali-examples/shared/panes/shared/refs";
+import { Empty, ErrorState, Loading, Shell } from "@jali-examples/shared/panes/shared/states";
+import { useResultWindow } from "@jali-examples/shared/panes/grid/useWindow";
 import type { PaneProps } from "@jali/react";
 import { keyHint } from "@jali/core";
 

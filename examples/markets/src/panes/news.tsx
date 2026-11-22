@@ -9,7 +9,7 @@
 import { useRef, useState, type KeyboardEvent } from "react";
 import { NewspaperIcon } from "@phosphor-icons/react";
 import { definePane, optional, usePaneState, type PaneProps } from "@jali/react";
-import { oneOf } from "#shared/store";
+import { oneOf } from "@jali-examples/shared/store";
 import { useMarket, useTopic } from "../market/react";
 import * as f from "../ui/format";
 import { Empty, Segmented } from "../ui/parts";

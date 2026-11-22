@@ -3,7 +3,7 @@
  * read from the keymap so they are right on every platform and after any rebinding.
  */
 import { Shelf, useJali, useJaliModel, useJaliState } from "@jali/react";
-import { BuiltWithJali, Maker } from "#shared/maker/maker";
+import { BuiltWithJali, Maker } from "@jali-examples/shared/maker/maker";
 import type { FeedState } from "../market/kraken";
 import { useFeed } from "../services";
 

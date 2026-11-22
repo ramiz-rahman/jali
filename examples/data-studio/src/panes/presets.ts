@@ -5,10 +5,10 @@ import { catalogKind } from "./kinds/catalog";
 import { chartKind } from "./kinds/chart";
 import { erKind } from "./kinds/er";
 import { ORDERS_BY_STATUS_SQL, queryKind } from "./kinds/query";
-import { recordKind } from "#shared/panes/kinds/record";
-import { relatedKind } from "#shared/panes/kinds/related";
+import { recordKind } from "@jali-examples/shared/panes/kinds/record";
+import { relatedKind } from "@jali-examples/shared/panes/kinds/related";
 import { structureKind } from "./kinds/structure";
-import { tableKind } from "#shared/panes/kinds/table";
+import { tableKind } from "@jali-examples/shared/panes/kinds/table";
 
 const table = (name: string) => tableKind({ table: name });
 const record = (name: string, id: number) => recordKind({ table: name, id });

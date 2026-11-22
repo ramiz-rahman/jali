@@ -4,8 +4,8 @@
  * memory storage and a fixed size (workspace.test.ts).
  */
 import { createJali, type Command, type Jali, type JaliOptions } from "@jali/core";
-import { makerCommand } from "#shared/maker/maker";
-import { themeCommand } from "#shared/theme";
+import { makerCommand } from "@jali-examples/shared/maker/maker";
+import { themeCommand } from "@jali-examples/shared/theme";
 import { prepareTicket, show, showBlotter } from "./actions";
 import { listName } from "./lists";
 import type { AssetClass } from "./market/types";

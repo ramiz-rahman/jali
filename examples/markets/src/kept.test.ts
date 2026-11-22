@@ -1,6 +1,6 @@
 /** What the app keeps on this device is read back through each store's check: bad data falls back, never crashes. */
 import { afterEach, describe, expect, it } from "vitest";
-import { readKept, writeKept } from "#shared/store";
+import { readKept, writeKept } from "@jali-examples/shared/store";
 import { createDesks, KEPT_DESKS } from "./desks";
 import { createLists, DEFAULT_LISTS, KEPT_LISTS } from "./lists";
 import { createSimulator } from "./market/simulator";

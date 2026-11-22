@@ -17,7 +17,7 @@ import {
 import { useMarket, useQuotes } from "../market/react";
 import type { Instrument } from "../market/types";
 import { useServices } from "../services";
-import { finite, isRecord, oneOf, text, useStore } from "#shared/store";
+import { finite, isRecord, oneOf, text, useStore } from "@jali-examples/shared/store";
 import { inUsd, notional, unrealized, type Side } from "../trading/trading";
 import * as f from "../ui/format";
 import { Delta, Empty, Scroller, Segmented } from "../ui/parts";

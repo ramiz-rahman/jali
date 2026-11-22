@@ -4,7 +4,7 @@
  * Jali's usual options, so a test can give it a memory address, memory storage and a fixed size.
  */
 import { createJali, type Command, type Jali, type JaliOptions } from "@jali/core";
-import { makerCommand } from "#shared/maker/maker";
+import { makerCommand } from "@jali-examples/shared/maker/maker";
 import { selectPlace, showDay } from "./actions";
 import { budget } from "./panes/budget";
 import { day } from "./panes/day";

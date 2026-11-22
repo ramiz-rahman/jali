@@ -1,0 +1,24 @@
+{
+  "name": "@jali-examples/data-studio",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Jali example: a database browser where the person builds the layout.",
+  "type": "module",
+  "scripts": {
+    "dev": "vp dev",
+    "build": "vp build",
+    "preview": "vp preview"
+  },
+  "dependencies": {
+    "@jali-examples/shared": "workspace:*",
+    "@jali/core": "workspace:*",
+    "@jali/react": "workspace:*",
+    "@phosphor-icons/react": "^2.1.10",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^6.3.0",
+    "vite-plus": "catalog:"
+  }
+}

@@ -17,7 +17,7 @@ import {
 import { openFollowing } from "../actions";
 import { useFrame, useTransport } from "../audio/react";
 import { useServices } from "../services";
-import { useStore } from "#shared/store";
+import { useStore } from "@jali-examples/shared/store";
 import { stringOrNull } from "../stored";
 import { catalogueOf } from "../sessions/catalog";
 import {

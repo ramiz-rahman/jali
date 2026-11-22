@@ -2,7 +2,14 @@
  * Watchlists: named lists of symbols. A watchlist pane shows one (`watchlist({ list: "rates" })`); the lists
  * themselves are the app's state, saved on this device, so "Add to watchlist" in one pane shows in every pane.
  */
-import { arrayOf, createKeptStore, isRecord, useStore, type Kept, type Store } from "#shared/store";
+import {
+  arrayOf,
+  createKeptStore,
+  isRecord,
+  useStore,
+  type Kept,
+  type Store,
+} from "@jali-examples/shared/store";
 import { CRYPTO_SYMBOLS } from "./market/crypto";
 import { INSTRUMENTS } from "./market/instruments";
 

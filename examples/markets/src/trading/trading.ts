@@ -6,7 +6,14 @@
  * the instrument has no live bid and ask (a live feed before its first quote). The book kept on this device is read
  * back through `KEPT_BOOK`, which drops anything that isn't a finite number where one belongs.
  */
-import { arrayOf, createKeptStore, finite, isRecord, type Kept, type Store } from "#shared/store";
+import {
+  arrayOf,
+  createKeptStore,
+  finite,
+  isRecord,
+  type Kept,
+  type Store,
+} from "@jali-examples/shared/store";
 import type { Instrument, MarketData, Quote } from "../market/types";
 
 export type Side = "buy" | "sell";

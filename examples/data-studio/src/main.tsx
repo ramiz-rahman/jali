@@ -1,4 +1,4 @@
-import { start } from "#shared/start";
+import { start } from "@jali-examples/shared/start";
 import { createDataStudio } from "./workspace";
 
 start(createDataStudio());

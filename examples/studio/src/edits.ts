@@ -14,7 +14,7 @@ import {
   type SessionData,
   type WordTime,
 } from "./sessions/sessions";
-import { createStore, useStore, type Store } from "#shared/store";
+import { createStore, useStore, type Store } from "@jali-examples/shared/store";
 import { saved } from "./store";
 import { asString, isNumber, isRecord, recordOf } from "./stored";
 

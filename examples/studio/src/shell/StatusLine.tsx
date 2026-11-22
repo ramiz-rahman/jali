@@ -5,7 +5,7 @@
  * here: ⌘K lists every command with its key.
  */
 import { Shelf, useJali, useJaliState } from "@jali/react";
-import { BuiltWithJali, Maker } from "#shared/maker/maker";
+import { BuiltWithJali, Maker } from "@jali-examples/shared/maker/maker";
 import { show } from "../actions";
 import { useTransport } from "../audio/react";
 import { credits } from "../panes/credits";

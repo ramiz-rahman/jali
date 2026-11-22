@@ -7,7 +7,7 @@ import type { ReactNode } from "react";
 import { ArrowRightIcon } from "@phosphor-icons/react";
 import type { PaneProps } from "@jali/react";
 import { useJali } from "@jali/react";
-import { Loading } from "#shared/panes/shared/states";
+import { Loading } from "@jali-examples/shared/panes/shared/states";
 import { day, taka, useApplication } from "./page";
 import {
   book,

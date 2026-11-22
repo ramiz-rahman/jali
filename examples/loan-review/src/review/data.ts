@@ -1,8 +1,8 @@
 /** What the loan-review views read, beyond one application (useApplication in page.tsx): counts, repayments, standing. */
 import { useQueries } from "@tanstack/react-query";
-import { useRows } from "#shared/data/hooks";
-import { useDataLayer } from "#shared/data/react";
-import type { Row, RowsQuery, TableName } from "#shared/data/types";
+import { useRows } from "@jali-examples/shared/data/hooks";
+import { useDataLayer } from "@jali-examples/shared/data/react";
+import type { Row, RowsQuery, TableName } from "@jali-examples/shared/data/types";
 
 export type { Row };
 const n = (v: unknown) => Number(v ?? 0);

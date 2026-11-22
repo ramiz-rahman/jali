@@ -5,11 +5,11 @@
 import { WarningIcon } from "@phosphor-icons/react";
 import type { PaneProps } from "@jali/react";
 import { useActivity, useJaliState } from "@jali/react";
-import { isLoading, useRows } from "#shared/data/hooks";
-import type { TableName } from "#shared/data/types";
-import { PaneGate } from "#shared/panes/shared/PaneGate";
-import { Empty } from "#shared/panes/shared/states";
-import { RelatedPane } from "#shared/panes/kinds/related";
+import { isLoading, useRows } from "@jali-examples/shared/data/hooks";
+import type { TableName } from "@jali-examples/shared/data/types";
+import { PaneGate } from "@jali-examples/shared/panes/shared/PaneGate";
+import { Empty } from "@jali-examples/shared/panes/shared/states";
+import { RelatedPane } from "@jali-examples/shared/panes/kinds/related";
 import { day, taka } from "./page";
 import { book, instalments, plural, useMemberNames, useRepayments, type Row } from "./data";
 import { Instalments, recordRef, RefLink, StatusMark, Table, View, ViewHead, type Col } from "./ui";

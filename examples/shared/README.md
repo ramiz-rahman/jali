@@ -1,6 +1,9 @@
 # Shared: what Data Studio and Loan review are built on
 
-Not an app. [Data Studio](../data-studio) and [Loan review](../loan-review) both import from here:
+Not an app. [Data Studio](../data-studio) and [Loan review](../loan-review) both import from here. It is the workspace
+package `@jali-examples/shared`: an example that uses it lists it in its `package.json` and imports a module by its path
+under `src/`, such as `@jali-examples/shared/data/hooks`. Each module an example imports is listed in this package's
+`exports`; add one there when an example needs another.
 
 - `src/data/`: the sample database (shop orders and microloans in PGlite, in the browser), its SQL and its React hooks (`useRows`, `useRecord`, ...).
 - `src/panes/`: the table, record and related panes, the grid, and the small parts they share (loading and empty states, refs, formatting), with their styles.

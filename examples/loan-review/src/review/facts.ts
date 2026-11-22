@@ -4,7 +4,7 @@
  * up front rather than per view. The sample is the review's own and nothing in Loan review edits it, so what is read
  * at the start stays true for the visit.
  */
-import type { DataApi } from "#shared/data/types";
+import type { DataApi } from "@jali-examples/shared/data/types";
 
 export interface Facts {
   id: number;

@@ -3,7 +3,7 @@
  * the desks' layouts. Panes read them from context; commands get them when the workspace is made (workspace.ts).
  */
 import { createContext, useContext, useSyncExternalStore, type ReactNode } from "react";
-import { createStore, type Store } from "#shared/store";
+import { createStore, type Store } from "@jali-examples/shared/store";
 import { createDesks, type Desks } from "./desks";
 import { createLists, type Lists } from "./lists";
 import type { FeedState, FeedStatus } from "./market/kraken";

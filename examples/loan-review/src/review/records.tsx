@@ -11,13 +11,13 @@ import {
   UsersIcon,
 } from "@phosphor-icons/react";
 import type { PaneProps } from "@jali/react";
-import { recordParams } from "#shared/panes/kinds/record";
-import { isLoading, useRecord, useRows } from "#shared/data/hooks";
-import type { TableName } from "#shared/data/types";
-import { applicationFacts } from "#shared/data/sample-sql";
+import { recordParams } from "@jali-examples/shared/panes/kinds/record";
+import { isLoading, useRecord, useRows } from "@jali-examples/shared/data/hooks";
+import type { TableName } from "@jali-examples/shared/data/types";
+import { applicationFacts } from "@jali-examples/shared/data/sample-sql";
 import { useActivity, useJaliState } from "@jali/react";
-import { PaneGate } from "#shared/panes/shared/PaneGate";
-import { RecordPane } from "#shared/panes/kinds/record";
+import { PaneGate } from "@jali-examples/shared/panes/shared/PaneGate";
+import { RecordPane } from "@jali-examples/shared/panes/kinds/record";
 import { day, taka } from "./page";
 import {
   book,

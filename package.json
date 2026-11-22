@@ -2,12 +2,9 @@
   "name": "jali",
   "version": "0.0.0",
   "private": true,
-  "description": "Jali (@jali/core and @jali/react, in packages/), its docs site (apps/docs) and five example apps (examples/). See docs/BRIEF.md.",
+  "description": "Jali's workspace root: @jali/core and @jali/react (packages/), the docs site (apps/docs), the example apps (examples/) and the repo's tooling (tooling/). See docs/BRIEF.md.",
   "author": "Ramiz Rahman (https://ramizrahman.com/)",
   "type": "module",
-  "imports": {
-    "#shared/*": "./examples/shared/src/*"
-  },
   "scripts": {
     "dev": "vp dev examples/data-studio",
     "build": "tsc -b && vp build examples/data-studio && vp build examples/loan-review",
@@ -30,30 +27,9 @@
     "minimal": "vp dev examples/minimal",
     "own-icons": "vp dev examples/own-icons"
   },
-  "dependencies": {
-    "@electric-sql/pglite": "^0.5.16",
-    "@fontsource-variable/figtree": "5.3.0",
-    "@jali/core": "workspace:*",
-    "@jali/react": "workspace:*",
-    "@phosphor-icons/react": "^2.1.10",
-    "@tanstack/react-query": "^5.107.1",
-    "maplibre-gl": "^6.19.0",
-    "radix-ui": "^1.8.1",
-    "react": "^19.3.1",
-    "react-dom": "^19.3.1",
-    "signalsmith-stretch": "1.3.2",
-    "sonner": "^2.0.8"
-  },
   "devDependencies": {
     "@axe-core/playwright": "^4.14.0",
-    "@fontsource-variable/bricolage-grotesque": "^5.3.0",
-    "@fontsource-variable/chivo-mono": "^5.3.0",
-    "@fontsource/atkinson-hyperlegible-mono": "^5.3.0",
-    "@fontsource/atkinson-hyperlegible-next": "^5.3.0",
-    "@fontsource/chakra-petch": "^5.3.0",
-    "@fontsource/ibm-plex-mono": "^5.3.0",
     "@playwright/test": "^1.65.1",
-    "@testing-library/react": "^16.3.3",
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
     "@vitejs/plugin-react": "^6.3.0",

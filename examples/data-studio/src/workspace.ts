@@ -1,6 +1,6 @@
 /** Data Studio's workspace: a database browser where the person builds the layout from its pane kinds and presets. */
 import { createJali, type Jali, type JaliOptions } from "@jali/core";
-import { makerCommand } from "#shared/maker/maker";
+import { makerCommand } from "@jali-examples/shared/maker/maker";
 import { DEFAULT_PRESET, dataStudioKinds, dataStudioLauncher, dataStudioPresets } from "./panes";
 
 /** What Data Studio's workspace is made of. */

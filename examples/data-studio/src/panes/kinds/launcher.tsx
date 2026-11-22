@@ -1,11 +1,11 @@
 import { KindIcon, definePane, useLauncher } from "@jali/react";
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { MagnifyingGlassIcon, PlusIcon, TableIcon } from "@phosphor-icons/react";
-import type { ObjectRef, TableInfo } from "#shared/data/types";
-import { useFocusWhen } from "#shared/panes/shared/useFocusWhen";
-import { useCatalog } from "#shared/data/hooks";
-import { formatCount } from "#shared/panes/format";
-import { recordRef, singular, tableRef } from "#shared/panes/shared/refs";
+import type { ObjectRef, TableInfo } from "@jali-examples/shared/data/types";
+import { useFocusWhen } from "@jali-examples/shared/panes/shared/useFocusWhen";
+import { useCatalog } from "@jali-examples/shared/data/hooks";
+import { formatCount } from "@jali-examples/shared/panes/format";
+import { recordRef, singular, tableRef } from "@jali-examples/shared/panes/shared/refs";
 import type { PaneProps } from "@jali/react";
 
 /** One choosable row. `open` marks an object already on screen: choosing it focuses that pane. */
