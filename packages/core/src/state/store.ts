@@ -67,7 +67,7 @@ import { focusPane } from "../dom/focus";
 import { cssString, paneDomId } from "../dom/ids";
 import { noDom, type DomPort, type DragKind } from "../dom/port";
 import { pageDirection } from "../dom/direction";
-import { paneStateSync, type PaneStateSync } from "./pane-state";
+import { paneStateSync, type HeldStates, type PaneStateSync } from "./pane-state";
 
 declare const process: { env: { NODE_ENV?: string } };
 import { startUi } from "../boot";
@@ -192,6 +192,9 @@ export interface UiState {
   /** The object (`objectKey`) each pane's state belongs to: a pane that shows another object under the same id
    *  (a reused id, an undo, a reload) never reads it. */
   paneStateOf: Record<NodeId, string>;
+  /** Pane state an undo could still bring back, by pane id and object (`objectKey`): another object's state under the
+   *  same id took its place (A, then B in its pane, then Undo brings A back with A's state). Not saved. */
+  paneStateHeld: HeldStates;
   /** The list (`objectKey`) each selection was made in: a new list under a closed list's id starts without it. */
   selectionOf: Record<NodeId, string>;
   /** The live region's text; `seq` makes a repeat a new announcement. */
@@ -498,6 +501,7 @@ export function createJaliStore(deps: JaliConfig): JaliStore {
     paneAttributes: {},
     paneReports: {},
     ...paneStates.read(),
+    paneStateHeld: {},
     selectionOf: {},
     ...initial,
     // The layout given, once checked (`firstLayout`), or what took its place.

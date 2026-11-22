@@ -231,11 +231,23 @@ export function setPaneState(
   if (ref && objectKey(env.kinds, ref) !== of) return null;
   const mine = paneStateFor(s, env.kinds, id, p.ref);
   if (mine && Object.is(own(mine, key), value)) return null;
+  // Another object's state under this id is one an undo could still bring back (the layout prunes it once none can):
+  // it is held for it, not lost.
+  const was = own(s.paneStateOf, id),
+    other = was !== undefined && was !== of ? own(s.paneState, id) : undefined;
   return {
     op: "patch",
     patch: {
       paneState: { ...s.paneState, [id]: { ...mine, [key]: value } },
-      ...(own(s.paneStateOf, id) === of ? {} : { paneStateOf: { ...s.paneStateOf, [id]: of } }),
+      ...(was === of ? {} : { paneStateOf: { ...s.paneStateOf, [id]: of } }),
+      ...(other
+        ? {
+            paneStateHeld: {
+              ...s.paneStateHeld,
+              [id]: { ...own(s.paneStateHeld, id), [was!]: other },
+            },
+          }
+        : {}),
     },
   };
 }

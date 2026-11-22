@@ -492,7 +492,7 @@ function prunePanes(
   const owned = ownedPaneState(s, kinds, [layout, ...undo.map((e) => e.before.layout)]);
   const selected = ownedSelection(prior, s.selection, kinds, layout);
   return {
-    ...(owned.paneState !== s.paneState ? owned : {}),
+    ...(owned.paneState !== s.paneState || owned.paneStateHeld !== s.paneStateHeld ? owned : {}),
     ...(selected.selection !== s.selection || selected.selectionOf !== s.selectionOf
       ? selected
       : {}),

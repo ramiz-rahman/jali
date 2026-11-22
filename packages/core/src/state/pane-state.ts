@@ -12,6 +12,8 @@ import { own } from "../own";
 export type PaneStates = Record<NodeId, Record<string, unknown>>;
 /** For each pane id, the object (`objectKey`) its records belong to. */
 export type PaneOwners = Record<NodeId, string>;
+/** Pane state kept for an undo, by pane id, then object. */
+export type HeldStates = Record<NodeId, Record<string, Record<string, unknown>>>;
 
 /**
  * Where pane state is kept: one record per pane, `{ v: 2, panes: { [paneId]: { of, values, at } } }`. The object
@@ -229,10 +231,11 @@ export function paneStateFor(
  * `layouts` (the layout, and the undo stack's, so an undo brings it back). Returns the same objects when nothing goes.
  */
 export function ownedPaneState(
-  s: { paneState: PaneStates; paneStateOf: PaneOwners },
+  s: { paneState: PaneStates; paneStateOf: PaneOwners; paneStateHeld?: HeldStates },
   kinds: Pick<PaneKinds, "identityOf">,
   layouts: readonly Layout[],
-): { paneState: PaneStates; paneStateOf: PaneOwners } {
+): { paneState: PaneStates; paneStateOf: PaneOwners; paneStateHeld: HeldStates } {
+  const held = s.paneStateHeld ?? {};
   const shown = new Map<NodeId, Set<string>>();
   for (const l of layouts)
     for (const p of core.tree.panes(l.root)) {
@@ -240,17 +243,43 @@ export function ownedPaneState(
       if (!keys) shown.set(p.id, (keys = new Set()));
       keys.add(objectKey(kinds, p.ref));
     }
+  // A pane back on screen with an object whose state was held for it (an undo) has that state again; the state it
+  // replaces is held in turn, while an undo could bring its object back.
+  let paneState = s.paneState,
+    paneStateOf = s.paneStateOf,
+    nextHeld = held;
+  for (const p of layouts[0] ? core.tree.panes(layouts[0].root) : []) {
+    const of = objectKey(kinds, p.ref),
+      back = own(own(nextHeld, p.id), of);
+    if (!back || own(paneStateOf, p.id) === of) continue;
+    const { [of]: _back, ...rest } = own(nextHeld, p.id)!;
+    const was = own(paneStateOf, p.id),
+      values = own(paneState, p.id);
+    nextHeld = { ...nextHeld, [p.id]: was && values ? { ...rest, [was]: values } : rest };
+    paneState = { ...paneState, [p.id]: back };
+    paneStateOf = { ...paneStateOf, [p.id]: of };
+  }
   const keeps = (id: string) => {
-    const of = own(s.paneStateOf, id);
+    const of = own(paneStateOf, id);
     return of !== undefined && !!shown.get(id)?.has(of);
   };
-  const ids = Object.keys(s.paneState);
-  if (ids.every(keeps) && Object.keys(s.paneStateOf).every((id) => Object.hasOwn(s.paneState, id)))
-    return { paneState: s.paneState, paneStateOf: s.paneStateOf };
+  // Held state goes once no layout an undo could bring back shows its object under its id.
+  const heldKept: HeldStates = {};
+  let dropped = false;
+  for (const [id, byObject] of Object.entries(nextHeld)) {
+    const kept = Object.entries(byObject).filter(([of]) => shown.get(id)?.has(of));
+    if (kept.length !== Object.keys(byObject).length) dropped = true;
+    if (kept.length) heldKept[id] = Object.fromEntries(kept);
+  }
+  if (dropped) nextHeld = heldKept;
+  const ids = Object.keys(paneState);
+  if (ids.every(keeps) && Object.keys(paneStateOf).every((id) => Object.hasOwn(paneState, id)))
+    return { paneState, paneStateOf, paneStateHeld: nextHeld };
   const kept = ids.filter(keeps);
   return {
-    paneState: Object.fromEntries(kept.map((id) => [id, s.paneState[id]!])),
-    paneStateOf: Object.fromEntries(kept.map((id) => [id, s.paneStateOf[id]!])),
+    paneState: Object.fromEntries(kept.map((id) => [id, paneState[id]!])),
+    paneStateOf: Object.fromEntries(kept.map((id) => [id, paneStateOf[id]!])),
+    paneStateHeld: nextHeld,
   };
 }
 
