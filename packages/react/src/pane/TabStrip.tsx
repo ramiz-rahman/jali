@@ -1,26 +1,16 @@
-import { own } from "@jali/core/adapter";
-import { panelId, tabId, titleId } from "../ids";
-import type { NodeId, PaneNode } from "@jali/core";
+import { cssString } from "@jali/core/adapter";
+import type { NodeId } from "@jali/core";
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { useJaliIcons } from "../icons/context";
 import type { Frame, Tab } from "@jali/core/adapter";
-import { allows, cssString } from "@jali/core/adapter";
-import {
-  shortcutLabel,
-  roleOf,
-  titleOf,
-  startPaneDrag,
-  scrolledFromStart,
-  observeResize,
-} from "@jali/core/adapter";
-import { useEntriesOf, useEnv, useStore, useUi } from "../state/react";
-import { Activity, activityLabel } from "./Activity";
-import { KindIcon } from "./icons";
-import { renameFieldOf, useCanRename } from "./rename";
+import { scrolledFromStart, observeResize } from "@jali/core/adapter";
+import { useStore, useUi } from "../state/react";
+import { useCanRename } from "./rename";
 import { TabIndicator } from "./TabIndicator";
+import { TabItem } from "./TabItem";
+import { tabGroups } from "./tabGroups";
 import { TabMenu, type TabMenuAt } from "./TabMenu";
 import { TabOverflow } from "./TabOverflow";
-import { UnsavedMark } from "./Unsaved";
 import { ICON } from "../icons/sized";
 import { useRovingKeys } from "../a11y/roving";
 
@@ -48,19 +38,12 @@ function revealTab(el: HTMLDivElement | null) {
   else if (end > pos + view) scrollTo(end - view + FADE);
 }
 
-function TabActivity({ id }: { id: NodeId }) {
-  return <Activity activity={useUi((s) => own(s.activity, id))} />;
-}
-
 /** A group's tabs. `owner` is the frame showing the group: the active tab's title labels its region. */
 export function TabStrip({ group, owner }: { group: NonNullable<Frame["group"]>; owner: NodeId }) {
   const icon = useJaliIcons();
   const store = useStore();
-  // A tab the app keeps open (`allow: { close: false }`) has no ×.
-  const closable = (id: string) => allows(store.snapshot(), id, "close");
   const { actions, env } = store;
-  const words = store.messages;
-  const tw = words.tabs;
+  const tw = store.messages.tabs;
   // A curated page, or an instance without a launcher: no "+" (its views come from the page's tabs).
   const page = useUi((s) => !!s.page);
   // A tab dragged over this strip: the line shows where it would go.
@@ -68,32 +51,17 @@ export function TabStrip({ group, owner }: { group: NonNullable<Frame["group"]>;
   const dir = useUi((s) => s.dir);
   const renaming = useUi((s) => s.renaming);
   const canRename = useCanRename();
-  // No launcher kind, no "+": there is nothing to open in the new tab.
-  // A curated page's views live in the page tabs, so a pane's strip lists a page view only while it is shown: never a
-  // repeat. The exception is a group of page views, which only a centre drop ("Add as tab") makes: you asked for
-  // those tabs, so it lists each view you put there (not ones the layout folded in).
-  const placed = group.tabs.filter((t) => t.node.role && !t.folded);
-  const tabs = !page
-    ? group.tabs
-    : group.tabs.filter(
-        (t) => !t.node.role || t.node.id === group.active || (placed.length > 1 && !t.folded),
-      );
-  // Made by you first, made by the layout (folded) after a hairline: the second kind returns by itself.
-  const mine = tabs.filter((t) => !t.folded);
-  // The strip is for your tabs: of the panes the layout folded here, only the one shown is a tab; the rest wait behind
-  // one "N folded" chip, so yours and the layout's never blend.
-  // Pinned tabs stay in view at the strip's start, as in a browser: only the rest scroll.
-  const pinnedTabs = mine.filter((t) => t.node.pinned);
-  const scrolling = mine.filter((t) => !t.node.pinned);
-  const folded = tabs.filter((t) => t.folded && t.node.id === group.active);
-  const foldedAway = tabs.filter((t) => t.folded && t.node.id !== group.active);
-  // What its own tabs' panes report (live titles, data-* attributes, unsaved marks, what they are doing): the strip
-  // renders again when one of those changes, and for no other pane's.
-  const ids = tabs.map((t) => t.node.id);
-  const titles = useEntriesOf((s) => s.titles, ids);
-  const marks = useEntriesOf((s) => s.paneAttributes, ids);
-  const unsaved = useEntriesOf((s) => s.unsaved, ids);
-  const activity = useEntriesOf((s) => s.activity, ids);
+  // Made by you first, made by the layout (folded) after a hairline: the second kind returns by itself. Each tab hears
+  // what its own pane reports (TabItem); the strip renders again for none of it.
+  const {
+    listed: tabs,
+    mine,
+    pinned,
+    scrolling,
+    shownFolded: folded,
+    foldedAway,
+    activeIn,
+  } = tabGroups(group, page);
 
   const strip = useRef<HTMLDivElement>(null);
   const bar = useRef<HTMLDivElement>(null);
@@ -136,18 +104,7 @@ export function TabStrip({ group, owner }: { group: NonNullable<Frame["group"]>;
   };
   // Measured again when what the strip lays out changes, not on every render (a resize of the frame is the observer's).
   const laidOut = `${group.active} ${tabs.map((t) => `${t.node.id}:${+!!t.node.pinned}${+t.tucked}${+t.folded}`)}`;
-  useLayoutEffect(measure, [
-    laidOut,
-    titles,
-    marks,
-    unsaved,
-    dropAt,
-    dir,
-    renaming,
-    page,
-    canRename,
-    hiddenCount,
-  ]);
+  useLayoutEffect(measure, [laidOut, dropAt, dir, renaming, page, canRename, hiddenCount]);
   useEffect(() => {
     const el = strip.current;
     if (!el) return undefined;
@@ -168,156 +125,24 @@ export function TabStrip({ group, owner }: { group: NonNullable<Frame["group"]>;
     ...(bar.current?.querySelectorAll<HTMLElement>('.jali-tablist [role="tab"]') ?? []),
   ]);
 
-  const putBackKeys = shortcutLabel(store, "pane.putBack");
-  // A tab holds no controls (APG tabs, deletable tabs): its close and put back are its siblings in a presentational
-  // wrapper. They are for the pointer: out of the tab order, and hidden from assistive technology, since a tablist may
-  // own only tabs. The tab says what they do instead: Delete or Backspace closes it, and on a tucked tab the put back
-  // command (which acts on a focused tucked tab) puts it back. Spacers inside the tab keep the buttons' room, so the
-  // tab's box is as it was and the buttons sit on it.
-  const renderTab = ({ node: t, tucked, folded: isFolded }: Tab) => {
-    const active = t.id === group.active;
-    const title = titleOf(store.env, t, titles);
-    const dirty = !!own(unsaved, t.id);
-    const pinned = !!t.pinned;
-    // A tab behind says what its pane is doing ("Working"), as its dot shows; the shown tab's pane says it itself.
-    const busy = active ? undefined : activityLabel(words.pane, own(activity, t.id));
-    // Renaming: the field takes the tab's place until it closes.
-    const RenameField = renameFieldOf(store);
-    if (renaming === t.id && RenameField)
-      return (
-        <div key={t.id} className="jali-tab-item is-renaming" role="presentation" data-renaming>
-          <RenameField pane={t.id} title={title} />
-        </div>
-      );
-    const description = tw.description(
-      isFolded ? "folded" : tucked ? "tucked" : undefined,
-      tucked ? putBackKeys : "",
-    );
-    return (
-      <div
-        key={t.id}
-        className="jali-tab-item"
-        role="presentation"
-        data-drag-ok
-        data-unsaved={dirty || undefined}
-        data-drop={dropAt?.tab === t.id ? dropAt.side : undefined}
-        data-pinned={pinned || undefined}
-        onPointerDown={(e) => {
-          e.stopPropagation();
-          startPaneDrag(store, e, t.id);
-        }}
-        // The middle button closes a tab, as in a browser: the same close as its ×. Its press would start autoscroll.
-        onMouseDown={(e) => e.button === 1 && e.preventDefault()}
-        onAuxClick={(e) => {
-          if (e.button !== 1) return;
-          e.preventDefault();
-          actions.close(t.id);
-        }}
-        onContextMenu={(e) => {
-          e.preventDefault();
-          setMenu({ pane: t.id, x: e.clientX, y: e.clientY });
-        }}
-      >
-        <div
-          {...own(marks, t.id)}
-          ref={active ? revealTab : undefined}
-          className={`jali-tab${active ? " is-active" : ""}${tucked ? " is-tucked" : ""}${isFolded ? " is-folded" : ""}`}
-          data-tab={t.id}
-          data-tucked={tucked || undefined}
-          data-folded={isFolded || undefined}
-          data-unsaved={dirty || undefined}
-          aria-label={title}
-          data-pinned={pinned || undefined}
-          aria-description={[busy, pinned && tw.pinned, dirty && words.pane.unsaved, description]
-            .filter(Boolean)
-            .join(". ")}
-          aria-keyshortcuts="Delete Backspace Shift+F10"
-          aria-haspopup="menu"
-          title={isFolded ? tw.foldedTitle(title) : title}
-          role="tab"
-          id={tabId(store.dom.id, t.id)}
-          aria-selected={active}
-          aria-controls={panelId(store.dom.id, t.id)}
-          tabIndex={active ? 0 : -1}
-          onClick={() => actions.setActiveTab(group.id, t.id)}
-          onDoubleClick={() => canRename(t.id) && actions.startRename(t.id)}
-          // Focus scrolls the strip by the browser's rule (a tab wider than the strip shows its end); put it right.
-          onFocus={(e) => revealTab(e.currentTarget)}
-          onKeyDown={(e) => {
-            if (e.key === "Enter" || e.key === " ") {
-              e.preventDefault();
-              actions.setActiveTab(group.id, t.id);
-            } else if (e.key === "ContextMenu" || (e.key === "F10" && e.shiftKey)) {
-              // The tab's menu from the keyboard: under the tab, at its start.
-              e.preventDefault();
-              const r = e.currentTarget.getBoundingClientRect();
-              setMenu({ pane: t.id, x: dir === "rtl" ? r.right : r.left, y: r.bottom + 2 });
-            } else if (
-              (e.key === "Delete" || e.key === "Backspace") &&
-              !(e.metaKey || e.ctrlKey || e.altKey || e.shiftKey)
-            ) {
-              e.preventDefault();
-              actions.close(t.id);
-            }
-          }}
-        >
-          {pinned ? (
-            <span className="jali-tab-pin" aria-hidden>
-              <icon.pin {...ICON.tabSmall} />
-            </span>
-          ) : null}
-          <TabIcon node={t} />
-          <span className="jali-tab-title" id={active ? titleId(store.dom.id, owner) : undefined}>
-            {title}
-          </span>
-          <TabActivity id={t.id} />
-          {isFolded ? (
-            <span className="jali-tab-fold-mark" aria-hidden>
-              <icon.fold {...ICON.tabMark} />
-            </span>
-          ) : null}
-          {tucked ? <span className="jali-tab-space" aria-hidden /> : null}
-          <span className="jali-tab-space" aria-hidden />
-        </div>
-        <span className="jali-tab-actions" aria-hidden>
-          {tucked ? (
-            <button
-              type="button"
-              className="jali-tab-putback"
-              tabIndex={-1}
-              aria-label={tw.putBack(title)}
-              title={words.keys.withKeys(tw.putBackTip, putBackKeys)}
-              onPointerDown={(e) => e.stopPropagation()}
-              onClick={() => actions.putBack(t.id)}
-            >
-              <icon.putBack {...ICON.tab} aria-hidden />
-            </button>
-          ) : null}
-          {closable(t.id) ? (
-            <button
-              type="button"
-              className="jali-tab-close"
-              tabIndex={-1}
-              aria-label={tw.close(title)}
-              onClick={() => actions.close(t.id)}
-            >
-              <icon.close {...ICON.tab} aria-hidden />
-              {dirty ? <UnsavedMark /> : null}
-            </button>
-          ) : dirty ? (
-            <UnsavedMark />
-          ) : null}
-        </span>
-      </div>
-    );
-  };
+  const renderTab = (tab: Tab) => (
+    <TabItem
+      key={tab.node.id}
+      tab={tab}
+      group={group.id}
+      active={tab.node.id === group.active}
+      owner={owner}
+      renaming={renaming === tab.node.id}
+      drop={dropAt?.tab === tab.node.id ? dropAt.side : undefined}
+      canRename={canRename}
+      dir={dir}
+      reveal={revealTab}
+      onMenu={setMenu}
+      onLaidOut={measure}
+    />
+  );
 
   // One underline per strip, in the part that holds the shown tab; none while it is renamed.
-  const activeIn = pinnedTabs.some((t) => t.node.id === group.active)
-    ? "pinned"
-    : tabs.some((t) => t.node.id === group.active)
-      ? "scrolling"
-      : null;
   const indicator = <TabIndicator active={group.active} hidden={renaming === group.active} />;
 
   return (
@@ -328,9 +153,9 @@ export function TabStrip({ group, owner }: { group: NonNullable<Frame["group"]>;
         aria-label={tw.listLabel(mine.length + folded.length)}
         onKeyDown={tabKeys}
       >
-        {pinnedTabs.length ? (
+        {pinned.length ? (
           <div className="jali-tabs-pinned">
-            {pinnedTabs.map(renderTab)}
+            {pinned.map(renderTab)}
             {activeIn === "pinned" ? indicator : null}
           </div>
         ) : null}
@@ -358,6 +183,7 @@ export function TabStrip({ group, owner }: { group: NonNullable<Frame["group"]>;
           onChoose={(id) => actions.setActiveTab(group.id, id)}
         />
       ) : null}
+      {/* No launcher kind, no "+": there is nothing to open in the new tab. */}
       {page || !env.launcher ? null : (
         <button
           type="button"
@@ -373,17 +199,5 @@ export function TabStrip({ group, owner }: { group: NonNullable<Frame["group"]>;
         </button>
       )}
     </div>
-  );
-}
-
-/** A role tab shows its role's icon; anything else its kind's. */
-function TabIcon({ node }: { node: PaneNode }) {
-  const { profile } = useEnv();
-  const role =
-    useUi((s) => !!s.page) && node.role && profile ? roleOf(profile, node.role) : undefined;
-  return role ? (
-    <role.icon {...ICON.tab} aria-hidden />
-  ) : (
-    <KindIcon kind={node.ref.kind} {...ICON.tab} />
   );
 }

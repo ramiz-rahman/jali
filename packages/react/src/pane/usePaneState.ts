@@ -1,4 +1,5 @@
 import { objectKey, own } from "@jali/core/adapter";
+import type { UiState } from "@jali/core/adapter";
 /**
  * A pane's own state, kept by the instance: it survives the pane being tabbed, folded, tucked or moved, and a reload
  * (saved through the store's storage port). It is dropped when the pane closes for good or shows another object. It
@@ -26,6 +27,16 @@ export interface PaneStateOptions<T> {
   parse?: (stored: unknown) => T | undefined;
 }
 
+/** What pane `id` keeps under `key` for object `of`, or undefined when there is no pane or the state is another
+ *  object's (a reused id, an undo). */
+const keptFor = (
+  s: Pick<UiState, "paneState" | "paneStateOf">,
+  id: string | null,
+  of: string | null,
+  key: string,
+): unknown =>
+  of !== null && own(s.paneStateOf, id) === of ? own(own(s.paneState, id), key) : undefined;
+
 export function usePaneState<T>(
   key: string,
   initial: T,
@@ -47,16 +58,16 @@ export function usePaneState<T>(
       if (raw === undefined) return first;
       if (!parse.current) return raw as T;
       try {
-        return parse.current(raw) ?? first;
+        // Only `undefined` means "use initial": a parser may return `null` as a value of its own.
+        const parsed = parse.current(raw);
+        return parsed === undefined ? first : parsed;
       } catch {
         return first;
       }
     },
     [first],
   );
-  const kept = useUi((s) =>
-    of !== null && own(s.paneStateOf, id) === of ? own(own(s.paneState, id), key) : undefined,
-  );
+  const kept = useUi((s) => keptFor(s, id, of, key));
   // In the peek sheet (no pane), state is local and goes when the sheet does.
   const [local, setLocal] = useState(initial);
   // Parsed once per stored value, so a parse that builds a new object doesn't change the value every render.
@@ -66,9 +77,7 @@ export function usePaneState<T>(
     (next: T | ((prev: T) => T)) => {
       if (!id) return setLocal(next);
       const s = store.get();
-      const prev = read(
-        of !== null && own(s.paneStateOf, id) === of ? own(own(s.paneState, id), key) : undefined,
-      );
+      const prev = read(keptFor(s, id, of, key));
       // With the object this hook saw: a setter kept after the pane moved to another object writes nothing.
       store.actions.setPaneState(
         id,

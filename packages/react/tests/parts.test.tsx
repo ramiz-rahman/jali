@@ -26,6 +26,46 @@ const code = files(src)
   .map((f) => readFileSync(f, "utf8"))
   .join("\n");
 
+/** The source without its comments, so an attribute named in prose doesn't count as set. */
+const live = code.replace(/\/\*[\s\S]*?\*\//g, "").replace(/^\s*\/\/.*$/gm, "");
+
+/**
+ * The attributes Jali's source puts on elements: in JSX (`<button aria-disabled={…}>`, a bare `data-renaming`), where
+ * a plain name counts only on an element (`<ListDialog disabled={…}>` is a prop) but a `data-` or `aria-` name on a
+ * component too (`<Landmark data-one-pane>`, which passes it on); through `setAttribute` and its kin; as a quoted key of
+ * an object spread onto an element; or through `dataset`.
+ */
+function attributesSet(text: string): Set<string> {
+  const out = new Set<string>();
+  for (const m of text.matchAll(/<([a-zA-Z][\w.-]*)(?=[\s>/])/g)) {
+    const element = /^[a-z]/.test(m[1]!);
+    // The tag's own text up to its closing `>`, without strings and `{…}` expressions.
+    let depth = 0,
+      own = "";
+    for (let i = m.index + m[0].length; i < text.length; i++) {
+      const c = text[i]!;
+      if (c === '"' || c === "'" || (c === "`" && depth)) {
+        const end = text.indexOf(c, i + 1);
+        if (end < 0) break;
+        i = end;
+        own += " ";
+      } else if (c === "{") depth++;
+      else if (c === "}") depth--;
+      else if (!depth && c === ">") break;
+      else if (!depth) own += c;
+    }
+    for (const [, name] of own.matchAll(/(?:^|\s)([a-zA-Z][\w:-]*)(?=\s*=|\s|\/|$)/g))
+      if (element || /^(data|aria)-/.test(name!)) out.add(name!);
+  }
+  for (const [, name] of text.matchAll(/(?:set|toggle)Attribute\(\s*["']([\w-]+)["']/g))
+    out.add(name!);
+  for (const [, name] of text.matchAll(/["']([a-z]+-[\w-]+)["']\s*:/g)) out.add(name!);
+  for (const [, name] of text.matchAll(/\.dataset\.(\w+)/g))
+    out.add("data-" + name!.replace(/[A-Z]/g, (c) => "-" + c.toLowerCase()));
+  return out;
+}
+const set = attributesSet(live);
+
 /** The class or attribute a selector names. */
 const token = (selector: string) =>
   selector
@@ -155,9 +195,52 @@ describe("styling contract", () => {
     }
   });
 
-  it("every attribute is set by Jali's source", () => {
+  it("every attribute is set by Jali's source, as an attribute of its own", () => {
+    // The check reads attributes, not text: `aria-disabled` doesn't stand for `disabled`, nor a component's prop.
+    const sample = attributesSet(
+      '<button aria-disabled={!home || undefined} title="a > b" data-x={{ a: 1 }} data-flag>' +
+        '<ListDialog disabled={(c) => c.disabled} data-y /> el.setAttribute("data-held", ""); el.dataset.dropTarget = "";',
+    );
+    expect([...sample].sort()).toEqual(
+      [
+        "aria-disabled",
+        "data-drop-target",
+        "data-flag",
+        "data-held",
+        "data-x",
+        "data-y",
+        "title",
+      ].sort(),
+    );
     for (const part of Object.values(parts))
-      for (const a of part.attributes) expect(code, `${part.selector} ${a.name}`).toContain(a.name);
+      for (const a of part.attributes)
+        expect(set.has(a.name), `${part.selector} ${a.name}`).toBe(true);
+  });
+
+  it("a tuck with nothing to tuck behind is aria-disabled, as the contract says, and not disabled", () => {
+    const jali = createJali({
+      panes: [note],
+      layout: row(...[1, 2, 3].map((id) => pane(note({ id }), { id: `n${id}` }))),
+      features: [...defaultFeatures(), urlSync({ location: memoryLocation() })],
+      storage: memoryStorage(),
+      size: { width: 1600, height: 800 },
+      moveFocus: false,
+    });
+    render(<JaliRoot jali={jali} />);
+    // A pane that holds a tucked tab can't tuck itself.
+    act(() => void jali.actions.tuck("n1"));
+    const names = (n: PartName) => (parts[n] as Part).attributes.map((a) => a.name);
+    expect(names("paneAction")).toContain("aria-disabled");
+    expect(names("iconButton")).toContain("aria-disabled");
+    expect(names("paneAction")).not.toContain("disabled");
+    const off = [
+      ...document.querySelectorAll(`${parts.paneAction.selector}[data-action="tuck"]`),
+    ].filter((el) => el.getAttribute("aria-disabled") === "true");
+    expect(off.length).toBeGreaterThan(0);
+    for (const el of off) {
+      expect(el.matches(parts.iconButton.selector)).toBe(true);
+      expect(el.hasAttribute("disabled")).toBe(false);
+    }
   });
 
   it("a layout with a pane, a tab group with a pinned tab, then a tucked pane, renders its parts", () => {

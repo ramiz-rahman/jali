@@ -188,7 +188,11 @@ export const parts = {
           "`tuck`, `zoom` (Maximise, or Restore while maximised: see the pane's `data-zoomed`), `fullscreen`, `popout`, `close` or `menu` (⋯).",
       },
       { name: "aria-pressed", means: "On `fullscreen` and `popout`: `true` while on." },
-      { name: "disabled", means: "On `tuck`: nothing to tuck behind (its tooltip says why)." },
+      {
+        name: "aria-disabled",
+        means:
+          "On `tuck`: `true` when there is nothing to tuck behind. It stays reachable, so its tooltip can say why.",
+      },
       pressed,
     ],
   },
@@ -655,7 +659,11 @@ export const parts = {
     what: "A button that is only an icon: each of a pane header's buttons (also `paneAction`), Reset on a curated page's bar, and the close buttons of the peek sheet and Settings. `<IconButton>` renders one for your own chrome, so your buttons match Jali's in every theme.",
     attributes: [
       { name: "aria-pressed", means: "On a toggle: `true` while on." },
-      { name: "disabled", means: "Flag: it can't be used now." },
+      {
+        name: "aria-disabled",
+        means:
+          "`true` when it can't be used now (a tuck with nothing to tuck behind); it stays reachable, so its name and tooltip can say why.",
+      },
       pressed,
     ],
   },
