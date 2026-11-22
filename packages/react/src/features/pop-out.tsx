@@ -63,7 +63,8 @@ interface Session {
 }
 
 /** An instance's place in this feature: started (a request that resolves after its instance stopped is dropped),
- *  its latest request (a newer one makes an older one stale), and its window, if one is open. */
+ *  its latest request (a newer one, or the instance stopping, makes an older one stale), and its window, if one is
+ *  open. */
 interface Slot {
   on: boolean;
   asked: number;
@@ -129,7 +130,10 @@ function createWindow(): ReactPopOut & { started(store: JaliStore): () => void }
     started(store: JaliStore) {
       slot(store).on = true;
       return () => {
-        slot(store).on = false;
+        const x = slot(store);
+        x.on = false;
+        // A request still waiting on the browser is stale, even if the instance starts again before it answers.
+        x.asked++;
         self.close(store);
       };
     },
