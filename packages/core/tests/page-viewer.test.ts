@@ -36,13 +36,13 @@ describe("a limited viewer", () => {
       size: { width: 1400, height: 800 },
       moveFocus: false,
     });
-    expect(jali.actions.openPage().ok).toBe(true);
-    expect(jali.actions.setCanInvestigate(false).ok).toBe(true);
-    expect(jali.actions.setMode("split").reason).toBe("not-allowed");
-    expect(jali.actions.leavePage().ok).toBe(true);
-    expect(jali.actions.openPage().ok).toBe(true);
-    expect(jali.get().page?.canInvestigate).toBe(false);
-    expect(jali.actions.setMode("split").reason).toBe("not-allowed");
+    expect(jali.page!.open().ok).toBe(true);
+    expect(jali.page!.setLinkMode("peek").ok).toBe(true);
+    expect(jali.page!.setMode("split").reason).toBe("not-allowed");
+    expect(jali.page!.leave().ok).toBe(true);
+    expect(jali.page!.open().ok).toBe(true);
+    expect(jali.get().page?.linkMode).toBe("peek");
+    expect(jali.page!.setMode("split").reason).toBe("not-allowed");
   });
 
   it("can be set before the page opens", () => {
@@ -55,8 +55,8 @@ describe("a limited viewer", () => {
       size: { width: 1400, height: 800 },
       moveFocus: false,
     });
-    expect(jali.actions.setCanInvestigate(false).ok).toBe(true);
-    jali.actions.openPage();
-    expect(jali.get().page?.canInvestigate).toBe(false);
+    expect(jali.page!.setLinkMode("peek").ok).toBe(true);
+    jali.page!.open();
+    expect(jali.get().page?.linkMode).toBe("peek");
   });
 });

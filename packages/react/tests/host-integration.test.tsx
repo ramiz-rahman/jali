@@ -91,7 +91,7 @@ describe("palette: false", () => {
   it("renders no palette", () => {
     const jali = make({ palette: false });
     const { container } = render(<JaliRoot jali={jali} />);
-    act(() => jali.actions.openPalette());
+    act(() => jali.dialogs.openPalette());
     expect(document.querySelector(".jali-palette")).toBeNull();
     expect(container.querySelector("[data-jali]")).toBeTruthy();
   });

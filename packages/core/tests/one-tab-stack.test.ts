@@ -28,7 +28,7 @@ describe("a stack with one tab", () => {
   it("hides, and shows again", () => {
     const jali = make();
     const ctx = storeOf(jali).ctx();
-    const hidden = L.hide(jali.getLayout(), jali.get().view, "lone", ctx);
+    const hidden = L.hide(storeOf(jali).get().layout, storeOf(jali).get().view, "lone", ctx);
     expect(hidden.ok).toBe(true);
     if (!hidden.ok) return;
     expect(hidden.layout.overlay?.hidden).toEqual(["lone"]);

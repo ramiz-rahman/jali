@@ -158,7 +158,7 @@ describe("split opens a launcher", () => {
   it("choosing fills the same node in place", () => {
     actions.preset("one-table");
     actions.focus("orders");
-    const id = actions.split("right")!;
+    const id = actions.split(undefined, "right").pane!;
     actions.openHere(id, { kind: "table", params: { table: "customers" } });
     const p = findPane(id)!;
     expect(p.ref).toEqual({ kind: "table", params: { table: "customers" } });
@@ -168,10 +168,10 @@ describe("split opens a launcher", () => {
   it("an object already open is focused, not duplicated, and the launcher goes", () => {
     actions.preset("one-table");
     actions.focus("catalog");
-    const id = actions.split("right")!;
+    const id = actions.split(undefined, "right").pane!;
     const n = allPanes().length;
     const got = actions.openHere(id, { kind: "table", params: { table: "orders" } });
-    expect(got).toBe("orders");
+    expect(got.pane).toBe("orders");
     expect(findPane(id)).toBeUndefined();
     expect(allPanes()).toHaveLength(n - 1);
     expect(getState().view.focused).toBe("orders");
@@ -193,14 +193,14 @@ describe("split opens a launcher", () => {
     expect(
       openPaneFor(store.model(), { kind: "query", params: { sql: "x", autorun: 1 } }),
     ).toBeUndefined();
-    const id = actions.split("right", "query")!;
+    const id = actions.split("query", "right").pane!;
     actions.openHere(id, { kind: "query", params: {} });
     expect(findPane(id)?.ref.kind).toBe("query");
   });
   it("dismiss closes an untouched launcher and returns focus to its source", () => {
     actions.preset("one-table");
     actions.focus("orders");
-    const id = actions.split("right")!;
+    const id = actions.split(undefined, "right").pane!;
     actions.dismiss(id);
     expect(findPane(id)).toBeUndefined();
     expect(getState().view.focused).toBe("orders");
@@ -261,7 +261,7 @@ describe("new tab here", () => {
     actions.preset("order-chain");
     actions.mergeInto("customer", "orders");
     const st = stackOf("orders")!;
-    const id = actions.newTab("orders")!;
+    const id = actions.newTab("orders").pane!;
     const after = stackOf(id)!;
     expect(after.id).toBe(st.id);
     expect(after.children).toHaveLength(3);

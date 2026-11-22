@@ -18,10 +18,11 @@ import {
   type Jali,
   type LayoutInput,
   type ObjectRef,
+  type PaneKindBase,
 } from "@jali/core";
 import { storeOf } from "@jali/core/adapter";
 
-const kinds = [
+const kinds: PaneKindBase[] = [
   { kind: "list", title: "List", width: { min: 260, comfortable: 360 }, selects: "item" },
   { kind: "item", title: "Item", params: { id: Number }, width: { min: 320, max: 700 } },
   { kind: "wide", title: "Wide", width: { min: 520 }, height: { min: 300 } },

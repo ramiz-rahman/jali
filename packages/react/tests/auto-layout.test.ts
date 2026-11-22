@@ -8,6 +8,7 @@ import {
   pane,
   row,
   tabs,
+  type DeepReadonly,
   type Layout,
 } from "@jali/core";
 import { definePane } from "@jali/react";
@@ -36,8 +37,8 @@ const make = (l: Parameters<typeof createJali>[0]["layout"], width = 1600, heigh
   });
 
 /** The tree's shape: types down from the root, panes by id. */
-const shape = (l: Layout): unknown => {
-  const walk = (n: Layout["root"]): unknown =>
+const shape = (l: DeepReadonly<Layout>): unknown => {
+  const walk = (n: DeepReadonly<Layout>["root"]): unknown =>
     n.type === "pane" ? n.id : { [n.type]: n.children.map(walk) };
   return walk(l.root);
 };
@@ -73,7 +74,7 @@ describe("auto layout", () => {
     jali.actions.focus(last);
     jali.actions.autoLayout();
     const stacks: string[] = [];
-    const walk = (n: Layout["root"]) => {
+    const walk = (n: DeepReadonly<Layout>["root"]) => {
       if (n.type === "stack") stacks.push(n.active);
       else if (n.type !== "pane") n.children.forEach(walk);
     };

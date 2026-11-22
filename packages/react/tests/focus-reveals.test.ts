@@ -42,12 +42,12 @@ describe("focus shows the pane", () => {
       ),
     );
     expect(visible(jali, "b")).toBe(false);
-    const before = geometryOf(jali.model());
+    const before = geometryOf(storeOf(jali).model());
     const r = jali.actions.focus("b");
     expect(r).toEqual({ ok: true, pane: "b" });
     expect(visible(jali, "b")).toBe(true);
     expect(jali.get().view.focused).toBe("b");
-    expect(geometryOf(jali.model())).toBe(before);
+    expect(geometryOf(storeOf(jali).model())).toBe(before);
     expect(breaches).toEqual([]);
     expect(storeOf(jali).get().announcement.text).toMatch(/Order 2/);
   });

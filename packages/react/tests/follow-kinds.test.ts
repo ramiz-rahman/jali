@@ -4,7 +4,16 @@
  * `follow`. A follower whose kind has no `follow` keeps what it shows, as before.
  */
 import { afterEach, beforeEach, describe, expect, it, vi } from "vite-plus/test";
-import { createJali, memoryLocation, memoryStorage, optional, pane, row, column } from "@jali/core";
+import {
+  createJali,
+  memoryLocation,
+  memoryStorage,
+  optional,
+  pane,
+  row,
+  column,
+  type AnyJali,
+} from "@jali/core";
 import { storeOf } from "@jali/core/adapter";
 import { definePane } from "@jali/react";
 import { FOLLOW_MS } from "../../core/src/actions/follow";
@@ -71,12 +80,12 @@ beforeEach(() => {
 });
 afterEach(() => vi.useRealTimers());
 
-const shown = (jali: ReturnType<typeof make>, id: string) => jali.model().pane(id)?.ref;
+const shown = (jali: AnyJali, id: string) => jali.model().pane(id)?.ref;
 
 describe("one selection, followers of every kind", () => {
   it("moves every follower that can show it, together, once the selection rests, in place", () => {
     const jali = make();
-    const before = geometryOf(jali.model());
+    const before = geometryOf(storeOf(jali).model());
     const layouts: unknown[] = [];
     jali.on("layout", (e) => layouts.push(e.layout));
     jali.actions.select("watch", quote({ symbol: "ORBD" }));
@@ -91,7 +100,7 @@ describe("one selection, followers of every kind", () => {
     expect(shown(jali, "note")).toEqual(note({ id: 1 }));
     // One change: one layout event, and nothing moved on screen.
     expect(layouts).toHaveLength(1);
-    expect(geometryOf(jali.model())).toBe(before);
+    expect(geometryOf(storeOf(jali).model())).toBe(before);
     expect(breaches).toEqual([]);
     // Said once, with the title of the follower of the selected kind.
     expect(storeOf(jali).get().announcement.text).toBe("Showing HRBK quote");

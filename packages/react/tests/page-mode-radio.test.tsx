@@ -37,7 +37,7 @@ describe("the view mode switch", () => {
       size: { width: 1200, height: 800 },
       moveFocus: false,
     });
-    jali.actions.openPage();
+    jali.page!.open();
     const { getAllByRole } = render(
       <JaliRoot jali={jali}>
         <JaliView />
@@ -47,7 +47,7 @@ describe("the view mode switch", () => {
     expect([single!.tabIndex, split!.tabIndex]).toEqual([0, -1]);
     single!.focus();
     act(() => void fireEvent.keyDown(single!, { key: "ArrowRight" }));
-    const can = jali.get().page!.canInvestigate;
+    const can = jali.get().page!.linkMode === "open";
     if (can) {
       expect(jali.get().page!.mode).toBe("split");
       expect(document.activeElement).toBe(split);

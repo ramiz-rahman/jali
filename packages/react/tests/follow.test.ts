@@ -72,7 +72,7 @@ describe("a list's detail follows its selection", () => {
     store.actions.select("orders", order(7));
     vi.advanceTimersByTime(FOLLOW_MS);
     expect(node("order").ref).toEqual(order(6));
-    const next = store.actions.openBeside("orders", order(7))!;
+    const next = store.actions.openBeside("orders", order(7)).pane!;
     expect(node(next)).toMatchObject({ linkedTo: "orders", follows: true, ref: order(7) });
     store.actions.select("orders", order(8));
     vi.advanceTimersByTime(FOLLOW_MS);
@@ -100,7 +100,7 @@ describe("a list's detail follows its selection", () => {
     const panes = store.model().panes.length;
     const got = store.actions.openBeside("orders", order(6));
     expect(store.model().panes).toHaveLength(panes);
-    expect(got).toBe("order");
+    expect(got.pane).toBe("order");
     expect(store.get().view.focused).toBe("orders");
   });
 
@@ -110,7 +110,7 @@ describe("a list's detail follows its selection", () => {
     const opened = store.actions.openBeside("orders", {
       kind: "record",
       params: { table: "customers", id: 3 },
-    })!;
+    }).pane!;
     expect(node(opened).follows).toBeUndefined();
     expect(node(opened).kept).toBeUndefined();
     expect(node("order").ref).toEqual(order(2));
@@ -118,12 +118,12 @@ describe("a list's detail follows its selection", () => {
 
   it("Space with the detail on screen shows the row there, not in a peek sheet; no detail: the sheet", () => {
     const before = geometryOf(store.model());
-    store.actions.peek(order(8), "orders");
+    store.actions.peek("orders", order(8));
     expect(store.get().view.peek).toBeUndefined();
     expect(node("order").ref).toEqual(order(8));
     expect(geometryOf(store.model())).toBe(before);
     store.actions.close("order");
-    store.actions.peek(order(9), "orders");
+    store.actions.peek("orders", order(9));
     expect(store.get().view.peek).toEqual(order(9));
   });
 

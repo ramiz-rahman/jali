@@ -71,7 +71,7 @@ describe("sameRef", () => {
     store.actions.setPaneState("b", "sort", "row");
     const opened = vi.fn();
     jali.on("open", opened);
-    const r = jali.setLayout(reordered(jali.getLayout()));
+    const r = jali.setLayout(reordered(storeOf(jali).get().layout));
     expect(r.ok).toBe(true);
     expect(store.get().confirm).toBeNull();
     expect(beforeClose).not.toHaveBeenCalled();

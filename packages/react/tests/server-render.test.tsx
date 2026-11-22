@@ -5,7 +5,7 @@ import { act } from "react";
 import { renderToString } from "react-dom/server";
 import { createJali, memoryLocation, memoryStorage, row, type JaliOptions } from "@jali/core";
 import { storeOf } from "@jali/core/adapter";
-import { JaliRoot, definePane, useShortcut } from "@jali/react";
+import { JaliRoot, definePane, useJaliShortcut } from "@jali/react";
 
 const note = definePane("note", {
   params: { id: Number },
@@ -13,7 +13,7 @@ const note = definePane("note", {
   Component: ({ params }) => (
     <p>
       Body of note {params.id}. Close it with{" "}
-      <kbd data-testid="keys">{useShortcut("pane.close")}</kbd>
+      <kbd data-testid="keys">{useJaliShortcut("pane.close")}</kbd>
     </p>
   ),
 });

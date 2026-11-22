@@ -163,7 +163,7 @@ describe("reordering tabs", () => {
     );
   const order = (jali: ReturnType<typeof make>) =>
     (
-      jali.getLayout().root as { children: { children?: { id: string }[] }[] }
+      jali.getLayout().root as unknown as { children: { children?: { id: string }[] }[] }
     ).children[0]!.children!.map((c) => c.id);
   const said = (jali: ReturnType<typeof make>) => storeOf(jali).get().announcement.text;
 
@@ -182,7 +182,7 @@ describe("reordering tabs", () => {
     const jali = three();
     jali.actions.focus("b");
     const active = () =>
-      (jali.getLayout().root as { children: { active?: string }[] }).children[0]!.active;
+      (jali.getLayout().root as unknown as { children: { active?: string }[] }).children[0]!.active;
     const before = active();
     jali.actions.moveTab("a", 1);
     expect(active()).toBe(before);
@@ -214,7 +214,7 @@ describe("reordering tabs", () => {
     runCommand(jali, "tab.move.left");
     expect(
       (
-        jali.getLayout().root as { children: { children: { id: string }[] }[] }
+        jali.getLayout().root as unknown as { children: { children: { id: string }[] }[] }
       ).children[0]!.children.map((c) => c.id),
     ).toEqual(["b", "a"]);
   });
@@ -377,7 +377,7 @@ describe("pinned tabs", () => {
     );
   const order = (jali: ReturnType<typeof make>) =>
     (
-      jali.getLayout().root as { children: { children?: { id: string }[] }[] }
+      jali.getLayout().root as unknown as { children: { children?: { id: string }[] }[] }
     ).children[0]!.children!.map((c) => c.id);
 
   it("go first in their group, in the order they were pinned", () => {

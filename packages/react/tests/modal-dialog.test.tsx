@@ -198,7 +198,7 @@ describe("the chooser", () => {
     act(() => from.focus());
     act(
       () =>
-        void jali.actions.choose({
+        void jali.dialogs.choose({
           title: "Pick",
           items: [1, 2],
           label: String,

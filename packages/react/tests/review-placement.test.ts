@@ -11,8 +11,8 @@ let store: UiStore;
 beforeEach(() => {
   localStorage.clear();
   store = createTestStore({ initial: { area: { width: 1156, height: 644 } } }); // the workspace at 1440×900
-  store.actions.openPage({ item: 4, tab: "application" });
-  store.actions.setMode("split");
+  store.run("page.open", { item: 4, tab: "application" });
+  store.run("page.setMode", "split");
 });
 const m = () => store.model();
 const shown = () => m().visible;
@@ -26,8 +26,8 @@ const said = () => store.get().announcement.text;
 const member149 = { kind: "record", params: { table: "members", id: "149" } };
 /** The reviewer's path: Overview ⌥-clicked beside Application, then Field officer beside Overview. */
 function arranged() {
-  store.actions.openTabBeside("overview");
-  store.actions.openTabBeside("officer");
+  store.actions.showViewBeside("overview");
+  store.actions.showViewBeside("officer");
 }
 
 describe("a link to a view already on the page", () => {
@@ -74,7 +74,7 @@ describe("a link to a view already on the page", () => {
   it("an opened pane already showing it is focused, not opened again", () => {
     store.set({ area: { width: 1800, height: 644 } });
     const ref = { kind: "record", params: { table: "loans", id: "30" } };
-    const id = store.actions.openBeside("borrower", ref)!;
+    const id = store.actions.openBeside("borrower", ref).pane!;
     const n = m().panes.length;
     store.actions.openBeside("application", ref);
     expect(m().panes).toHaveLength(n);
@@ -89,7 +89,7 @@ describe("an opened pane never pushes the person's views aside", () => {
     const before = shown(),
       at = rects();
     const loan30 = { kind: "review-record", params: { table: "loans", id: 30 } };
-    const id = store.actions.openBeside("application", loan30)!;
+    const id = store.actions.openBeside("application", loan30).pane!;
     // Nothing the person placed folded, moved or left; the opened pane is on screen, in Application's place.
     expect(shown()).toEqual(before.map((v) => (v === "application" ? id : v)));
     expect(rects()[id]).toEqual(at.application);
@@ -109,7 +109,7 @@ describe("an opened pane never pushes the person's views aside", () => {
     const id = store.actions.openBeside("application", {
       kind: "table",
       params: { table: "loans" },
-    })!;
+    }).pane!;
     expect(shown()).toEqual([id, "officer"]);
     expect(m().off).toContain("overview");
     expect(m().folded).toEqual([]);
@@ -126,7 +126,7 @@ describe("an opened pane never pushes the person's views aside", () => {
     const id = store.actions.openBeside("application", {
       kind: "table",
       params: { table: "loans" },
-    })!;
+    }).pane!;
     expect(shown()).toEqual([id, "borrower", "history"]);
   });
 
@@ -135,7 +135,7 @@ describe("an opened pane never pushes the person's views aside", () => {
     const id = store.actions.openBeside("application", {
       kind: "record",
       params: { table: "loans", id: "30" },
-    })!;
+    }).pane!;
     expect(shown()).toEqual(["application", "borrower", "history", id]);
   });
 });
@@ -156,7 +156,7 @@ describe("placing a view (⌥-click, drag)", () => {
       const before = rects();
       const p = besidePreview(store.snapshot(), role)!;
       expect(p).toBeDefined();
-      store.actions.openTabBeside(role);
+      store.actions.showViewBeside(role);
       const after = rects();
       expect(after[role]).toEqual(p.incoming);
       const moved = Object.entries(after).filter(
@@ -177,10 +177,10 @@ describe("placing a view (⌥-click, drag)", () => {
   });
 
   it("from Single, the preview is the split layout the click switches to", () => {
-    store.actions.setMode("single");
-    store.actions.openTab("borrower");
+    store.run("page.setMode", "single");
+    store.run("page.showView", "borrower");
     const p = besidePreview(store.snapshot(), "group")!;
-    store.actions.openTabBeside("group");
+    store.actions.showViewBeside("group");
     expect(store.get().page?.mode).toBe("split");
     expect(rects().group).toEqual(p.incoming);
   });
@@ -189,7 +189,7 @@ describe("placing a view (⌥-click, drag)", () => {
 describe("a link with opened panes", () => {
   it("opens in Split view, and leaves the person's own mode as it was", () => {
     const reader = createTestStore({ initial: { area: { width: 1156, height: 644 } } });
-    reader.actions.openPage({
+    reader.run("arrivePage", {
       item: 4,
       tab: "application",
       investigation: [member149],

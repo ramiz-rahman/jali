@@ -28,7 +28,7 @@ function open() {
     moveFocus: false,
   });
   const r = render(<JaliRoot jali={jali} />);
-  act(() => void jali.actions.openSettings());
+  act(() => void jali.dialogs.openSettings());
   const input = r.getByRole("spinbutton") as HTMLInputElement;
   return { jali, input };
 }

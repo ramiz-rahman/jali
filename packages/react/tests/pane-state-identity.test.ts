@@ -63,7 +63,7 @@ describe("pane state is the object's, not the id's", () => {
     store.actions.setPaneState("pane-2", "scroll", 240);
     store.actions.close("pane-2");
     const opened = store.actions.openBeside("pane-1", order({ id: 9 }));
-    expect(opened).toBe("pane-2");
+    expect(opened.pane).toBe("pane-2");
     expect(stateOf(store, "pane-2")).toBeUndefined();
     // Writing it starts the new object's own state.
     store.actions.setPaneState("pane-2", "sort", "date");
@@ -114,7 +114,7 @@ describe("a list's selection is the list's, not the id's", () => {
     expect(store.get().selection["pane-1"]?.ref).toEqual(order({ id: 3 }));
     store.actions.close("pane-1");
     const opened = store.actions.openBeside("detail", orders({ region: "south" }));
-    expect(opened).toBe("pane-1");
+    expect(opened.pane).toBe("pane-1");
     expect(store.get().selection["pane-1"]).toBeUndefined();
   });
 

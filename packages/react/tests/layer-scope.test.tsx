@@ -36,7 +36,7 @@ describe("the dialog layer", () => {
         }}
       />,
     );
-    act(() => void jali.actions.openSettings());
+    act(() => void jali.dialogs.openSettings());
     const layer = document.querySelector<HTMLElement>("[data-jali-layer]")!;
     expect(layer.getAttribute("dir")).toBe("rtl");
     expect(layer.getAttribute("data-theme")).toBe("dark");

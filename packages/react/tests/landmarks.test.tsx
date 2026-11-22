@@ -38,7 +38,7 @@ describe("a curated page's landmarks", () => {
       size: { width: 1200, height: 800 },
       moveFocus: false,
     });
-    jali.actions.openPage();
+    jali.page!.open();
     const { getByRole } = render(
       <JaliRoot jali={jali}>
         <JaliView />

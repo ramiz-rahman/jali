@@ -25,7 +25,7 @@ describe("one owner for Jali's dialogs", () => {
   it("with settings={false}, openSettings leaves nothing open", () => {
     const jali = make();
     render(<JaliRoot jali={jali} settings={false} />);
-    act(() => void jali.actions.openSettings());
+    act(() => void jali.dialogs.openSettings());
     expect(jali.get().settingsOpen).toBe(false);
     expect(modals()).toBe(0);
   });
@@ -33,10 +33,10 @@ describe("one owner for Jali's dialogs", () => {
   it("shows one modal at a time: the chooser over Settings, and Settings again after", () => {
     const jali = make();
     render(<JaliRoot jali={jali} />);
-    act(() => void jali.actions.openSettings());
+    act(() => void jali.dialogs.openSettings());
     act(
       () =>
-        void jali.actions.choose({
+        void jali.dialogs.choose({
           title: "Pick",
           items: ["x"],
           label: String,
@@ -70,7 +70,7 @@ describe("one owner for Jali's dialogs", () => {
         }
       />,
     );
-    act(() => void jali.actions.openSettings());
+    act(() => void jali.dialogs.openSettings());
     const last = [...document.querySelectorAll("button")].find((b) => b.textContent === "Last")!;
     last.focus();
     fireEvent.keyDown(last, { key: "Tab" });

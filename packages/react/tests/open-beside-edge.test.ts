@@ -133,8 +133,8 @@ describe("openBeside with an edge, on a curated page", () => {
   beforeEach(() => {
     localStorage.clear();
     store = createTestStore({ initial: { area: { width: 2400, height: 900 } } });
-    store.actions.openPage({ item: 4, tab: "application" });
-    store.actions.setMode("split");
+    store.run("page.open", { item: 4, tab: "application" });
+    store.run("page.setMode", "split");
   });
   const loan = (id: string) => ({ kind: "record", params: { table: "loans", id } });
   const rect = (id: string) => store.model().resolved.panes.find((b) => b.id === id)!.rect;
@@ -170,7 +170,7 @@ describe("openBeside with an edge, on a curated page", () => {
   });
 
   it("in Single view, peeks, as a link there always does", () => {
-    store.actions.setMode("single");
+    store.run("page.setMode", "single");
     const n = store.model().panes.length;
     store.jali.actions.openBeside("application", loan("30"), { edge: "bottom" });
     expect(store.get().view.peek).toEqual(loan("30"));

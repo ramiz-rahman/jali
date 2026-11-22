@@ -17,7 +17,7 @@ import {
   allows,
   commandDefsOf,
   dividerAllowed,
-  ACTIONS,
+  STEPS,
   storeOf,
   tabMenuOf,
 } from "@jali/core/adapter";
@@ -84,7 +84,7 @@ describe("allow", () => {
   it("maximise can be turned off, but a maximised pane can always be restored", () => {
     const jali = make({ when: ({ action }) => action !== "maximise" });
     expect(jali.actions.toggleZoom("a")).toMatchObject({ reason: "not-allowed" });
-    storeOf(jali).set({ view: { ...jali.get().view, zoomed: "a" } });
+    storeOf(jali).set({ view: { ...storeOf(jali).get().view, zoomed: "a" } });
     expect(jali.actions.toggleZoom("a")).toMatchObject({ ok: true });
   });
 
@@ -108,7 +108,7 @@ describe("allow", () => {
     const x = storeOf(jali).snapshot();
     const root = jali.getLayout().root.id;
     expect(dividerAllowed(x, root, 0)).toBe(false);
-    expect(ACTIONS.resizeDivider(x, root, 0, 40)).toMatchObject({ reason: "not-allowed" });
+    expect(STEPS.resizeDivider[0](x, root, 0, 40)).toMatchObject({ reason: "not-allowed" });
     expect(dividerAllowed(storeOf(make()).snapshot(), root, 0)).toBe(true);
   });
 });

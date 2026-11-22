@@ -254,7 +254,7 @@ describe("a ref its kind can't read", () => {
     expect(screen.getAllByRole("heading", { level: 3 }).map((h) => h.textContent)).toContain(
       "Order 7 summary any",
     );
-    act(() => void jali.actions.openHere("broken", { kind: "order", params: {} }));
+    act(() => void jali.actions.openHere("broken", { kind: "order", params: {} } as never));
     expect(screen.getByRole("note")).toBeTruthy();
     expect(seen.at(-1)!.problems).toEqual([{ param: "id" }]);
     act(() => fireEvent.click(screen.getByRole("button", { name: "Close" })));

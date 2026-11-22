@@ -93,7 +93,7 @@ describe("a curated page's tabs", () => {
       storage: memoryStorage(),
       moveFocus: false,
     });
-    jali.actions.openPage();
+    jali.page!.open();
     const add = vi.spyOn(window, "addEventListener");
     const { JaliView } = await import("@jali/react");
     render(

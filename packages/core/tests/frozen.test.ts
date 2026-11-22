@@ -4,7 +4,7 @@
  * commit is the workspace's own.
  */
 import { describe, expect, it } from "vite-plus/test";
-import { createJali, memoryStorage, row, type Layout } from "@jali/core";
+import { createJali, memoryStorage, row, type DeepReadonly, type Layout } from "@jali/core";
 
 const item = { kind: "item", title: "Item", params: { id: Number }, width: { min: 200 } };
 const ref = (id: number) => ({ kind: "item", params: { id } });
@@ -25,7 +25,7 @@ describe("public snapshots", () => {
     const root = layout.root as unknown as { children: unknown[] };
     expect(() => root.children.pop()).toThrow(TypeError);
     expect(() => ((jali.get().view as { focused?: string }).focused = "nope")).toThrow(TypeError);
-    let heard: Layout | undefined;
+    let heard: DeepReadonly<Layout> | undefined;
     jali.on("layout", (e) => (heard = e.layout));
     jali.actions.openBeside(jali.model().resolved.panes[0]!.id, ref(3));
     expect(Object.isFrozen(heard!.root)).toBe(true);

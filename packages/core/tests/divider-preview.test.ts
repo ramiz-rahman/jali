@@ -29,7 +29,7 @@ describe("a divider drag's frames", () => {
       get: (t, k, r) => (lookups++, Reflect.get(t, k, r)),
     });
     const counted = { ...ctx, fit: { ...ctx.fit, kinds } };
-    const layout = jali.getLayout();
+    const layout = storeOf(jali).get().layout;
     const d = jali.model().resolved.dividers[10]!;
     const committed = L.resolve(layout, L.tree.noFocus(), counted);
     lookups = 0;

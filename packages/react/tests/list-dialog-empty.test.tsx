@@ -22,7 +22,7 @@ describe("an empty ⌘K list", () => {
       moveFocus: false,
     });
     const { getByRole } = render(<JaliRoot jali={jali} />);
-    act(() => void jali.actions.openPalette());
+    act(() => void jali.dialogs.openPalette());
     const input = getByRole("combobox");
     expect(input.getAttribute("aria-autocomplete")).toBe("list");
     fireEvent.change(input, { target: { value: "zzzz nothing" } });

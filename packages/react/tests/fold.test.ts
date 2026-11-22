@@ -59,12 +59,16 @@ const make = (fold?: boolean) => {
 describe("across a fold", () => {
   it("shows the focused pane and the next one, a half each, none across the hinge", () => {
     const jali = make();
-    const m = jali.model();
+    const m = storeOf(jali).model();
     expect(m.single).toBe(true);
     expect(m.stacked).toMatchObject({ axis: "row", top: m.panes[0]!.id, bottom: m.panes[1]!.id });
-    const shown = frames(m, jali.get().view, "single", { width: 690, height: 760 }, 0.5).filter(
-      (f) => !f.hidden,
-    );
+    const shown = frames(
+      m,
+      storeOf(jali).get().view,
+      "single",
+      { width: 690, height: 760 },
+      0.5,
+    ).filter((f) => !f.hidden);
     expect(shown.map((f) => [f.rect.x, f.rect.width])).toEqual([
       [0, 345],
       [345, 345],

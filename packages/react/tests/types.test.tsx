@@ -110,22 +110,26 @@ describe("the quickstart", () => {
   });
 
   it("refuses what is not a ref of its kinds", () => {
-    // @ts-expect-error there is no kind "ordr"
-    jali.actions.openBeside("p", { kind: "ordr", params: {} });
-    // @ts-expect-error an order's id is a number
-    jali.actions.openBeside("p", order({ id: "7" }));
-    // @ts-expect-error an order's id is a number
-    jali.actions.openHere("p", { kind: "order", params: { id: "7" } });
-    // @ts-expect-error a note needs its id
-    note({});
-    // @ts-expect-error the page's actions are only there with a page
-    jali.page.showView("summary");
-    // @ts-expect-error the old name of `jali.dialogs.openPalette`
-    jali.actions.openPalette();
-    // @ts-expect-error a snapshot is read-only
-    jali.get().layout.version = 1;
-    // @ts-expect-error a snapshot is read-only
-    jali.model().panes.push(jali.model().panes[0]!);
+    // Never run: these lines only have to fail to compile.
+    const never = () => {
+      // @ts-expect-error there is no kind "ordr"
+      jali.actions.openBeside("p", { kind: "ordr", params: {} });
+      // @ts-expect-error an order's id is a number
+      jali.actions.openBeside("p", order({ id: "7" }));
+      // @ts-expect-error an order's id is a number
+      jali.actions.openHere("p", { kind: "order", params: { id: "7" } });
+      // @ts-expect-error a note needs its id
+      note({});
+      // @ts-expect-error the page's actions are only there with a page
+      jali.page.showView("summary");
+      // @ts-expect-error the old name of `jali.dialogs.openPalette`
+      jali.actions.openPalette();
+      // @ts-expect-error a snapshot is read-only
+      jali.get().layout.version = 1;
+      // @ts-expect-error a snapshot is read-only
+      jali.model().panes.push(jali.model().panes[0]!);
+    };
+    expectTypeOf(never).toBeFunction();
   });
 });
 
@@ -164,14 +168,18 @@ describe("a curated page", () => {
   });
 
   it("refuses what the page doesn't take", () => {
-    // @ts-expect-error the page's items are numbers
-    reviewing.page.showItem("four");
-    // @ts-expect-error a link opens beside, or only peeks
-    reviewing.page.setLinkMode("investigate");
-    // @ts-expect-error the old name of `jali.page.showView`
-    reviewing.actions.openTab("borrower");
-    // @ts-expect-error a borrower is the only kind here
-    reviewing.actions.peek("borrower", note({ id: 1 }));
+    // Never run: these lines only have to fail to compile.
+    const never = () => {
+      // @ts-expect-error the page's items are numbers
+      reviewing.page.showItem("four");
+      // @ts-expect-error a link opens beside, or only peeks
+      reviewing.page.setLinkMode("investigate");
+      // @ts-expect-error the old name of `jali.page.showView`
+      reviewing.actions.openTab("borrower");
+      // @ts-expect-error a borrower is the only kind here
+      reviewing.actions.peek("borrower", note({ id: 1 }));
+    };
+    expectTypeOf(never).toBeFunction();
   });
 });
 

@@ -48,11 +48,16 @@ describe("a workspace without a curated page", () => {
     expect((jali.messages as { page?: unknown }).page).toBeUndefined();
   });
 
-  it("refuses the page's actions as unavailable, and doesn't throw", () => {
-    expect(jali.actions.openPage()).toMatchObject({ ok: false, reason: "unavailable" });
-    expect(jali.actions.setMode("split")).toMatchObject({ ok: false, reason: "unavailable" });
-    expect(jali.actions.backToPage()).toMatchObject({ ok: false, reason: "unavailable" });
-    expect(storeOf(jali).actions.placeTab("main", "x", "left")).toBeUndefined();
+  it("has no page actions, and its engine's page steps are refused as unavailable", () => {
+    expect(jali.page).toBeUndefined();
+    expect(storeOf(jali).run("page.open")).toMatchObject({ ok: false, reason: "unavailable" });
+    expect(storeOf(jali).run("page.setMode", "split")).toMatchObject({
+      ok: false,
+      reason: "unavailable",
+    });
+    expect(storeOf(jali).actions.placeTab("main", "x", "left")).toMatchObject({
+      reason: "unavailable",
+    });
   });
 
   it("ignores a page link", () => {

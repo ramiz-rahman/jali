@@ -12,6 +12,7 @@ import {
   pane,
   row,
   type JaliOptions,
+  type Layout,
 } from "@jali/core";
 import { storeOf } from "@jali/core/adapter";
 
@@ -65,7 +66,7 @@ describe("a pane that may not be resized", () => {
     const layout = jali.getLayout();
     const d = jali.model().resolved.dividers[0]!;
     // What a drag would preview, made without the check.
-    const preview = L.resizeDivider(layout, d.parentId, d.index, 60, store.ctx());
+    const preview = L.resizeDivider(layout as Layout, d.parentId, d.index, 60, store.ctx());
     store.actions.commitDividerDrag(preview, d.parentId, d.index);
     expect(jali.getLayout()).toBe(layout);
   });
@@ -85,10 +86,10 @@ describe("Back to the page", () => {
         pane({ kind: "free", params: { id: item } }, { id: "main", role: "main" }),
     });
     const jali = make({ page, size: { width: 1600, height: 800 } });
-    jali.actions.setMode("split");
+    jali.page!.setMode("split");
     expect(jali.actions.openBeside("main", { kind: "fixed", params: {} }).ok).toBe(true);
     const layout = jali.getLayout();
-    expect(jali.actions.backToPage()).toMatchObject({ ok: false, reason: "not-allowed" });
+    expect(jali.page!.back()).toMatchObject({ ok: false, reason: "not-allowed" });
     expect(jali.getLayout()).toBe(layout);
   });
 });

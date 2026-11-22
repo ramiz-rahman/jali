@@ -105,7 +105,7 @@ describe("messages", () => {
   it("replace the palette's words", () => {
     const jali = make({ messages: french });
     render(<JaliRoot jali={jali} />);
-    act(() => void jali.actions.openPalette());
+    act(() => void jali.dialogs.openPalette());
     const input = screen.getByRole("combobox");
     expect(input.getAttribute("placeholder")).toBe("Tapez une commande…");
     expect(screen.getByText("Fermer le volet")).toBeTruthy();

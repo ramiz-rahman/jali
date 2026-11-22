@@ -224,7 +224,7 @@ describe("styling contract", () => {
       expect(find(n), n).not.toBeNull();
 
     // ⌘K: the dialog, its field and its rows' parts.
-    act(() => void jali.actions.openPalette());
+    act(() => void jali.dialogs.openPalette());
     expect(
       document.querySelector('.jali-dialog.jali-palette[data-dialog="palette"]'),
     ).not.toBeNull();

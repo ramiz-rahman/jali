@@ -5,7 +5,7 @@
  */
 import { act, cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vite-plus/test";
-import { createJali, memoryLocation, memoryStorage, pane, row } from "@jali/core";
+import { createJali, memoryLocation, memoryStorage, pane, row, type AnyJali } from "@jali/core";
 import { JaliRoot, JaliView, definePage, definePane, useHeaderActions } from "@jali/react";
 
 beforeEach(() => {
@@ -34,7 +34,7 @@ const iconic = definePane("iconic", {
   Component: () => <p>iconic body</p>,
 });
 
-const make = (opts: Record<string, unknown> = {}) =>
+const make = (opts: Record<string, unknown> = {}): AnyJali =>
   createJali({
     panes: [note, iconic],
     layout: row(pane(note({ id: 1 }), { id: "a" }), pane(note({ id: 2 }), { id: "b" })),
@@ -103,7 +103,7 @@ describe("boundaries around the host's code in Jali's chrome", () => {
         <JaliRoot jali={jali} settingsExtra={<Boom />} />
       </App>,
     );
-    act(() => void jali.actions.openSettings());
+    act(() => void jali.dialogs.openSettings());
     expect(screen.getByRole("dialog", { name: "Settings" })).toBeTruthy();
     expect(screen.getByText("note body 1")).toBeTruthy();
   });
@@ -130,7 +130,7 @@ describe("boundaries around the host's code in Jali's chrome", () => {
         </JaliRoot>
       </App>,
     );
-    act(() => void jali.actions.openPage());
+    act(() => void jali.page!.open());
     expect(screen.getByRole("tablist", { name: "Visit views" })).toBeTruthy();
     expect(screen.getByText("note body 1")).toBeTruthy();
   });

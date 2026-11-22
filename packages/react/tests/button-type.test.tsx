@@ -63,13 +63,13 @@ describe("Jali's buttons inside a host's form", () => {
       if (!b.closest("[data-action=close]") && !b.closest(".jali-tab-close")) fireEvent.click(b);
     expect(submit).not.toHaveBeenCalled();
 
-    act(() => void jali.actions.openPalette());
+    act(() => void jali.dialogs.openPalette());
     expect(untyped()).toEqual([]);
-    act(() => void jali.actions.closePalette());
-    act(() => void jali.actions.openSettings());
+    act(() => void jali.dialogs.closePalette());
+    act(() => void jali.dialogs.openSettings());
     expect(untyped()).toEqual([]);
-    act(() => void jali.actions.closeSettings());
-    act(() => void jali.actions.openPage());
+    act(() => void jali.dialogs.closeSettings());
+    act(() => void jali.page!.open());
     expect(untyped()).toEqual([]);
   });
 

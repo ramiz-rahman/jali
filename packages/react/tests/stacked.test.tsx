@@ -5,7 +5,7 @@
 import { act, cleanup, fireEvent, render } from "@testing-library/react";
 import { afterAll, afterEach, beforeAll, describe, expect, it } from "vite-plus/test";
 import { createJali, memoryLocation, memoryStorage, type PhoneOptions } from "@jali/core";
-import { STACK_GAP, frames } from "@jali/core/adapter";
+import { STACK_GAP, frames, storeOf } from "@jali/core/adapter";
 import { JaliRoot, definePane } from "@jali/react";
 
 const list = definePane("list", {
@@ -43,7 +43,7 @@ const make = (size = { width: 378, height: 760 }, phone: PhoneOptions = { stack:
 describe("stacked view", () => {
   it("puts the pane it was opened from above it", () => {
     const { jali, orders } = make();
-    const m = jali.model();
+    const m = storeOf(jali).model();
     expect(m.single).toBe(true);
     expect(m.stacked).toEqual({
       top: orders,
@@ -184,8 +184,14 @@ describe("stacked view, from the kinds' heights", () => {
     return jali;
   };
   const tops = (jali: ReturnType<typeof setup>, stack?: number) => {
-    const m = jali.model();
-    const placed = frames(m, jali.get().view, "single", { width: 378, height: 760 }, stack);
+    const m = storeOf(jali).model();
+    const placed = frames(
+      m,
+      storeOf(jali).get().view,
+      "single",
+      { width: 378, height: 760 },
+      stack,
+    );
     return placed.find((f) => f.node.id === m.stacked!.top)!.rect.height;
   };
 

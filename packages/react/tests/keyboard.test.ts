@@ -114,7 +114,7 @@ describe("the Esc ladder", () => {
   it("content's Esc first; then the peek; then maximise; then nothing", () => {
     const id = store.get().view.focused!;
     store.actions.toggleZoom(id);
-    store.actions.peek(peekRef);
+    store.actions.peek(store.get().view.focused!, peekRef);
     expect(store.get().view.peek).toBeTruthy();
     // 1. Content uses its Esc (clears a search, cancels an edit): nothing else moves.
     const once = (e: KeyboardEvent) => {
@@ -137,7 +137,7 @@ describe("the Esc ladder", () => {
   });
 
   it("a drag in progress takes Esc before content and before the peek", () => {
-    store.actions.peek(peekRef);
+    store.set({ view: { ...store.get().view, peek: peekRef } });
     const cancel = vi.fn((e: KeyboardEvent) => {
       e.preventDefault();
       e.stopPropagation();

@@ -100,7 +100,7 @@ describe("a curated page's tabs", () => {
       size: { width: 1200, height: 800 },
       moveFocus: false,
     });
-    jali.actions.openPage();
+    jali.page!.open();
     render(
       <JaliRoot jali={jali}>
         <JaliView />

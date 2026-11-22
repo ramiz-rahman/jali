@@ -13,6 +13,7 @@ import {
   pane,
   row,
   toLayout,
+  type AnyJali,
   type ParamsOf,
   type UrlState,
 } from "@jali/core";
@@ -39,8 +40,7 @@ const make = (search = "") => {
   });
   return { jali, location };
 };
-const refs = (jali: ReturnType<typeof make>["jali"]) =>
-  layout.tree.panes(jali.getLayout().root).map((p) => p.ref);
+const refs = (jali: AnyJali) => layout.tree.panes(jali.getLayout().root).map((p) => p.ref);
 
 describe("a param only the app sets", () => {
   it("is optional in the kind's params", () => {
@@ -130,7 +130,7 @@ describe("a param only the app sets", () => {
       moveFocus: false,
     });
     expect(layout.tree.panes(jali.getLayout().root)[0]!.ref.params).toHaveProperty("autorun");
-    storeOf(jali).actions.setMode("split");
+    storeOf(jali).run("page.setMode", "split");
     jali.actions.openBeside("summary", query({ sql: "select 1", autorun: true }));
     const last = written.at(-1)!;
     expect(last.page?.before).toBeDefined();
@@ -169,7 +169,7 @@ describe("a param only the app sets", () => {
       moveFocus: false,
     });
     const stop = jali.start();
-    storeOf(jali).actions.setMode("split");
+    storeOf(jali).run("page.setMode", "split");
     jali.actions.openBeside("summary", query({ sql: "select 1", autorun: true }));
     const opened = () => refs(jali).filter((r) => r.kind === "query");
     expect(opened()).toEqual([query({ sql: "select 1", autorun: true })]);

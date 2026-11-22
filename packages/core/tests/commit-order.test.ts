@@ -4,7 +4,14 @@
  * listener's own change was told before the change it heard, so the last `layout` event was older than the layout.
  */
 import { describe, expect, it } from "vite-plus/test";
-import { createJali, memoryLocation, memoryStorage, row, type Layout } from "@jali/core";
+import {
+  createJali,
+  memoryLocation,
+  memoryStorage,
+  row,
+  type DeepReadonly,
+  type Layout,
+} from "@jali/core";
 
 const item = { kind: "item", title: "Item", params: { id: Number }, width: { min: 200 } };
 const ref = (id: number) => ({ kind: "item", params: { id } });
@@ -41,14 +48,14 @@ describe("one notification per action", () => {
     expect(heard[0]).toBe(jali.getLayout());
   });
 });
-const heard: Layout[] = [];
+const heard: DeepReadonly<Layout>[] = [];
 
 describe("events in the order changes were made", () => {
   it("a listener's change is told after the change it heard, and the last layout is the layout now", () => {
     const jali = make();
     const [a, b, c] = ids(jali);
     const order: string[] = [];
-    const layouts: Layout[] = [];
+    const layouts: DeepReadonly<Layout>[] = [];
     jali.on("close", () => {
       order.push("close");
       void jali.actions.setPinned(c!, true);

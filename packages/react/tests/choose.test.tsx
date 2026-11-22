@@ -55,7 +55,7 @@ const chartFor: Command = {
   title: "Open chart for…",
   group: "Markets",
   run: (jali) =>
-    jali.actions.choose({
+    jali.dialogs.choose({
       title: "Open chart for…",
       items: INSTRUMENTS,
       label: (i) => i.symbol,
@@ -84,9 +84,9 @@ const charts = (jali: Jali) =>
 describe("choose, headless", () => {
   it("opens the chooser and closes ⌘K", () => {
     const jali = make();
-    jali.actions.openPalette();
+    jali.dialogs.openPalette();
     const onChoose = vi.fn();
-    const r = jali.actions.choose({ title: "Pick", items: [1, 2], label: String, onChoose });
+    const r = jali.dialogs.choose({ title: "Pick", items: [1, 2], label: String, onChoose });
     expect(r).toEqual({ ok: true });
     expect(jali.get().paletteOpen).toBe(false);
     expect(storeOf(jali).get().chooser).toMatchObject({ kind: "choose" });
@@ -95,7 +95,7 @@ describe("choose, headless", () => {
   it("refuses options it can't show", () => {
     const jali = make();
     const bad = { title: "", items: [], label: String, onChoose: () => {} };
-    expect(jali.actions.choose(bad)).toEqual({ ok: false, reason: "invalid" });
+    expect(jali.dialogs.choose(bad)).toEqual({ ok: false, reason: "invalid" });
     expect(storeOf(jali).get().chooser).toBeNull();
   });
 });
@@ -171,7 +171,7 @@ describe("choose, in the chooser", () => {
     const jali = make();
     render(<JaliRoot jali={jali} />);
     act(() => {
-      jali.actions.choose({
+      jali.dialogs.choose({
         title: "Pick",
         items: INSTRUMENTS,
         label: (i) => i.symbol,

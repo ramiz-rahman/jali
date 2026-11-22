@@ -44,7 +44,7 @@ const make = (location = memoryLocation()): Jali => {
 };
 /** The outer row's children, and the week's, by id. */
 const shape = (jali: Jali) => {
-  const outer = jali.model().layout.root as {
+  const outer = jali.model().layout.root as unknown as {
     children: { id: string; children?: { id: string }[] }[];
   };
   return outer.children.map((c) =>

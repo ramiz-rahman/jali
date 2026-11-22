@@ -64,6 +64,7 @@ describe("the instance", () => {
     expect(Object.keys(make()).sort()).toEqual([
       "actions",
       "destroy",
+      "dialogs",
       "env",
       "get",
       "getLayout",
@@ -72,7 +73,6 @@ describe("the instance", () => {
       "messages",
       "model",
       "on",
-      "onToast",
       "setLayout",
       "start",
       "subscribe",
@@ -113,21 +113,11 @@ describe("the instance", () => {
         "preset",
         "resetLayout",
         "autoLayout",
-        "openPage",
-        "leavePage",
-        "setMode",
-        "openTab",
-        "activate",
-        "backToPage",
-        "resetPage",
-        "setCanInvestigate",
-        "choose",
-        "openPalette",
-        "closePalette",
-        "openSettings",
-        "closeSettings",
         "changeSettings",
       ].sort(),
+    );
+    expect(Object.keys(make().dialogs).sort()).toEqual(
+      ["choose", "closePalette", "closeSettings", "openPalette", "openSettings"].sort(),
     );
     for (const step of [
       "commitDividerDrag",
@@ -231,7 +221,7 @@ describe("results", () => {
     expect(said(jali)).toBe("Nothing to restore");
     expect(jali.actions.split()).toEqual({ ok: false, reason: "unavailable" });
     expect(jali.actions.preset("triage")).toEqual({ ok: false, reason: "unavailable" });
-    expect(jali.actions.openPage()).toEqual({ ok: false, reason: "unavailable" });
+    expect(jali.page).toBeUndefined();
   });
 
   it("name a preset that is not there", () => {
@@ -420,7 +410,7 @@ describe("events", () => {
     const jali = make();
     const heard = record(jali);
     jali.actions.select("orders", order({ id: 3 }));
-    jali.actions.openPalette();
+    jali.dialogs.openPalette();
     jali.actions.close("nope");
     storeOf(jali).actions.setActivity("orders", "working");
     storeOf(jali).set({ area: { width: 500, height: 800 } });
@@ -716,7 +706,7 @@ describe("keeping in step with the host's documents", () => {
     const jali = make({ url: { location }, size: { width: 1000, height: 800 } });
     const entries = location.entries.length;
     const folded = jali.model().folded;
-    const geometry = geometryOf(jali.model());
+    const geometry = geometryOf(storeOf(jali).model());
     const heard = record(jali);
     const r = jali.actions.addTab("order", order({ id: 9 }));
     expect(r.ok).toBe(true);
@@ -724,7 +714,7 @@ describe("keeping in step with the host's documents", () => {
     expect(heard.filter(([name]) => name === "layout")).toHaveLength(1);
     expect(jali.model().folded).toEqual(folded);
     // The tab takes the pane's slot: every rect on screen is where it was.
-    expect(geometryOf(jali.model())).toBe(geometry);
+    expect(geometryOf(storeOf(jali).model())).toBe(geometry);
     expect(jali.get().view.focused).toBe(r.pane);
   });
 
@@ -753,7 +743,7 @@ describe("keeping in step with the host's documents", () => {
     const location = memoryLocation();
     const jali = make({ beforeClose, url: { location } });
     const toasts = vi.fn();
-    jali.onToast(toasts);
+    jali.on("toast", toasts);
     storeOf(jali).actions.setUnsaved("order-2", "a draft");
     const entries = location.entries.length;
     const heard = record(jali);

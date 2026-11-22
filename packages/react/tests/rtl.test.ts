@@ -107,7 +107,7 @@ describe("right to left: drops", () => {
 describe("right to left: commands that say a side", () => {
   it("Split right opens the new pane on the screen's right", () => {
     store.actions.focus("order");
-    store.actions.split("right");
+    store.actions.split(undefined, "right");
     const opened = store.get().view.focused!;
     const order = rect("order");
     expect(rect(opened).x).toBeGreaterThan(order.x);

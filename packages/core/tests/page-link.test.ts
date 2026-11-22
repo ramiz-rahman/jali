@@ -50,7 +50,7 @@ describe("a page link", () => {
 
   it("an app's call with an item the page can't take is refused", () => {
     const jali = make("");
-    expect(jali.actions.activate("abc").reason).toBe("invalid");
-    expect(jali.actions.openPage({ item: "abc" } as never).reason).toBe("invalid");
+    expect(jali.page!.showItem("abc" as never).reason).toBe("invalid");
+    expect(jali.page!.open({ item: "abc" } as never).reason).toBe("invalid");
   });
 });

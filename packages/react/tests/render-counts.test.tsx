@@ -557,7 +557,7 @@ describe("render counts", () => {
     const { jali, store, single, other } = grouped();
     const { container } = render(<JaliRoot jali={jali} />);
     // The peek shows the object `single` shows.
-    act(() => void store.actions.peek(store.model().pane(single)!.ref));
+    act(() => void store.actions.peek(other, store.model().pane(single)!.ref));
     const peek = () => container.querySelector("[data-testid=peek]");
     expect(peek()?.querySelector("h2")?.textContent).toBe("Note 4");
 
