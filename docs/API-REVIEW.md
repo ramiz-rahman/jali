@@ -8,7 +8,7 @@
 > - The Effect research in `research/effect.md`.
 > - The naming decisions of 19 Nov in DECISIONS.
 >
-> **Checked against:** the five examples (Data Studio, Loan review, Markets, Studio, Trips), the minimal app, Data Studio in `sixface/products/data-studio`, and the research portal.
+> **Checked against:** the five examples (Data Studio, Loan review, Markets, Studio, Trips), the minimal app, Data Studio (in its own repository), and the research portal.
 
 ## What stays
 

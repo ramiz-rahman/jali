@@ -1,6 +1,6 @@
 import { it } from "vitest";
-import { createJali, row, memoryStorage } from "/Users/ramizrahman/Projects/jali/.claude/worktrees/review-93526af/packages/core/src/index.ts";
-import { storeOf, flushPaneState } from "/Users/ramizrahman/Projects/jali/.claude/worktrees/review-93526af/packages/core/src/adapter.ts";
+import { createJali, row, memoryStorage } from "packages/core/src/index.ts";
+import { storeOf, flushPaneState } from "packages/core/src/adapter.ts";
 const kinds = [{ kind: "doc", title: "Doc", params: { id: Number }, width: { min: 200 } }];
 it("two tabs of the same build share one pane-state key", () => {
   const storage = memoryStorage();

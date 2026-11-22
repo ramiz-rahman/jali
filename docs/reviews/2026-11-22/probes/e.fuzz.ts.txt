@@ -1,6 +1,6 @@
 import { it } from "vitest";
-import { createJali, row, column, tabs, memoryStorage, memoryLocation, layout as L } from "/Users/ramizrahman/Projects/jali/.claude/worktrees/review-93526af/packages/core/src/index.ts";
-import { storeOf } from "/Users/ramizrahman/Projects/jali/.claude/worktrees/review-93526af/packages/core/src/adapter.ts";
+import { createJali, row, column, tabs, memoryStorage, memoryLocation, layout as L } from "packages/core/src/index.ts";
+import { storeOf } from "packages/core/src/adapter.ts";
 
 const kinds = [
   { kind: "list", title: "List", width: { min: 260, comfortable: 360 }, selects: "item" },

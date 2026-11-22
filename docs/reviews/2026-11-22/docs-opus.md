@@ -1,6 +1,6 @@
 # Jali documentation review (Opus)
 
-Repo: `/Users/ramizrahman/Projects/jali/.claude/worktrees/review-93526af` at `93526af`. Read-only. Checks I ran: `pnpm exec tsc --noEmit -p apps/docs` (passes), the docs reference tests `src/reference/{coverage,markdown}.test.ts` (14/14 pass), `pnpm --filter @jali/docs build` (34 pages, passes). I also took screenshots of 8 pages at 1440 and 390 px from `astro preview` on port 5461, then stopped the server.
+Repo: `<repo>` at `93526af`. Read-only. Checks I ran: `pnpm exec tsc --noEmit -p apps/docs` (passes), the docs reference tests `src/reference/{coverage,markdown}.test.ts` (14/14 pass), `pnpm --filter @jali/docs build` (34 pages, passes). I also took screenshots of 8 pages at 1440 and 390 px from `astro preview` on port 5461, then stopped the server.
 
 ## Verdict
 
@@ -251,7 +251,7 @@ Contributing (repo)       CONTRIBUTING.md, ARCHITECTURE.md, docs/AGENTS.md; hist
 **DOCS-15 · P1 · The contributor docs are an internal log, with private paths and Sixface framing. CONTRIBUTING, ARCHITECTURE and LICENSE are missing.**
 
 - **Evidence:**
-  - docs/BRIEF.md:3 "a throwaway spike that proves the shared Sixface pane system". :7-9 give absolute paths under `/Users/ramizrahman/Projects/Sixface-Initiate/…`. :26-30 still describe react-resizable-panels and Ark adapters that are gone.
+  - docs/BRIEF.md:3 "a throwaway spike that proves the shared Sixface pane system". :7-9 give absolute paths on the author's machine. :26-30 still describe react-resizable-panels and Ark adapters that are gone.
   - docs/DECISIONS.md is 1,341 append-only lines that open with dead names (`registerPaneKind`, `layout-core`, `PaneComponentProps`). It is valuable history but useless for onboarding.
   - Sixface also appears in FINDINGS.md and research/docs-sites.md. This goes against the brand rule that Jali has its own identity.
   - There is no root LICENSE, but packages/*/package.json:5 say `Apache-2.0`. The site footer says "Licence to come." (apps/docs/src/shell/landing/SiteFooter.tsx:96) and links to a missing `/blob/main/LICENSE` (:45).
