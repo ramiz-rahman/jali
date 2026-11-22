@@ -40,6 +40,7 @@ import type { PageState } from "../state/store";
 import { pushUndo } from "../state/undo";
 import { keepOwnRef } from "../pane-kinds";
 import { preset } from "./layout";
+import { notAllowed } from "./allow";
 
 const unzoomed = core.tree.unzoom;
 
@@ -578,6 +579,11 @@ export function backToPage(x: Snapshot): Outcome {
   const name = x.env.profile?.name ?? "page";
   const opened = investigation(x.m.panes);
   if (!opened.length) return refuse("nothing-to-do", say(x).notInvestigating);
+  // It closes every opened pane: one the app keeps (`allow` close false) keeps the investigation, as `close` would.
+  for (const p of opened) {
+    const denied = notAllowed(x, p.id, "close");
+    if (denied) return denied;
+  }
   const view = unzoomed(x.s.view);
   const plain = withoutOpened(x.s.layout, x.ctx);
   // Exactly as before the investigation, unless the views were rearranged meanwhile (then: as they are now).

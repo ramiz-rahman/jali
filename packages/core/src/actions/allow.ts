@@ -88,8 +88,11 @@ export function notAllowed(
     : refuse("not-allowed", say(x).notAllowed(action, x.m.title(id)));
 }
 
-/** Whether a divider may move: every pane on both sides allows `resize`. */
+/** Whether a divider may move: every pane on both sides allows `resize`. The sides are the divider's on screen (a
+ *  fold can put another pane beside it than the split's next child), whatever moves it: a drag, a key, a reset. */
 export function dividerAllowed(x: Snapshot, parentId: NodeId, index: number): boolean {
+  const shown = x.m.resolved.dividers.find((d) => d.parentId === parentId && d.index === index);
+  if (shown?.neighbours) return shown.neighbours.flat().every((id) => allows(x, id, "resize"));
   const parent = core.tree.find(x.s.layout.root, parentId);
   if (!parent || parent.type === "pane" || parent.type === "stack") return true;
   const sides = [parent.children[index], parent.children[index + 1]];
