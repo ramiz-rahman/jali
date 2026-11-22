@@ -1,6 +1,6 @@
 import { own } from "@jali/core/adapter";
-import type { ShelfEntry, PaneActivity } from "@jali/core";
-import type { Model } from "@jali/core/adapter";
+import type { PaneActivity } from "@jali/core";
+import type { Model, TuckedEntry } from "@jali/core/adapter";
 import {
   useCallback,
   useEffect,
@@ -31,12 +31,11 @@ import {
 import { ICON } from "../icons/sized";
 import { useLandmarkName } from "../a11y/landmark";
 
-function label(m: Model, it: ShelfEntry, a: PaneActivity | undefined) {
+function label(m: Model, it: TuckedEntry, a: PaneActivity | undefined) {
   const node = m.pane(it.paneId);
   const title = m.title(it.paneId);
   const home = m.title(it.homeId);
-  const folded = it.reason === "folded";
-  return { node, title, home, folded, state: shelfActivity(a)?.state ?? "idle" };
+  return { node, title, home, state: shelfActivity(a)?.state ?? "idle" };
 }
 
 /**
@@ -72,7 +71,7 @@ function ShelfBar() {
   const words = useMessages();
   const t = words.shelf;
   const putBackKeys = useJaliShortcut("pane.putBack");
-  const doReveal = (it: ShelfEntry) => {
+  const doReveal = (it: TuckedEntry) => {
     actions.reveal(it.paneId);
     flashTab(store.dom, it.paneId);
   };
@@ -85,7 +84,7 @@ function ShelfBar() {
   const bar = useRef<HTMLDivElement>(null);
 
   const groups = useMemo(() => {
-    const byHome = new Map<string, ShelfEntry[]>();
+    const byHome = new Map<string, TuckedEntry[]>();
     for (const it of tuckedItems) byHome.set(it.homeId, [...(byHome.get(it.homeId) ?? []), it]);
     return [...byHome.entries()];
   }, [tuckedItems]);
@@ -159,16 +158,14 @@ function ShelfBar() {
     }
   };
 
-  const chip = (it: ShelfEntry) => {
+  const chip = (it: TuckedEntry) => {
     const L = label(m, it, own(activity, it.paneId));
     const dirty = !!own(unsaved, it.paneId);
-    const description = [dirty && words.pane.unsaved, L.folded && words.tabs.foldedDescription]
-      .filter(Boolean)
-      .join(". ");
+    const description = dirty ? words.pane.unsaved : "";
     return (
       <div
         {...own(marks, it.paneId)}
-        className={`jali-shelf-chip${L.folded ? " is-folded" : ""}`}
+        className="jali-shelf-chip"
         data-chip={it.paneId}
         data-reason={it.reason}
         data-activity={L.state}
@@ -193,31 +190,25 @@ function ShelfBar() {
             activity: own(activity, it.paneId),
           })}
           aria-description={description || undefined}
-          title={L.folded ? words.tabs.foldedTitle(L.title) : t.chipTip(L.title, L.home)}
+          title={t.chipTip(L.title, L.home)}
           onFocus={() => setFocusId(it.paneId)}
           onClick={() => doReveal(it)}
         >
-          {L.folded ? (
-            <icon.fold {...ICON.shelf} aria-hidden />
-          ) : L.node ? (
-            <KindIcon kind={L.node.ref.kind} {...ICON.shelf} />
-          ) : null}
+          {L.node ? <KindIcon kind={L.node.ref.kind} {...ICON.shelf} /> : null}
           <span className="jali-shelf-chip-title">{L.title}</span>
           {dirty ? <UnsavedMark /> : null}
           <Activity activity={own(activity, it.paneId)} shape />
         </button>
-        {it.reason === "tucked" ? (
-          <button
-            type="button"
-            className="jali-shelf-chip-put"
-            tabIndex={-1}
-            aria-label={t.putBack(L.title)}
-            title={words.keys.withKeys(t.putBackTip, putBackKeys)}
-            onClick={() => actions.putBack(it.paneId)}
-          >
-            <icon.putBack {...ICON.shelf} aria-hidden />
-          </button>
-        ) : null}
+        <button
+          type="button"
+          className="jali-shelf-chip-put"
+          tabIndex={-1}
+          aria-label={t.putBack(L.title)}
+          title={words.keys.withKeys(t.putBackTip, putBackKeys)}
+          onClick={() => actions.putBack(it.paneId)}
+        >
+          <icon.putBack {...ICON.shelf} aria-hidden />
+        </button>
       </div>
     );
   };
@@ -294,7 +285,7 @@ function ShelfBar() {
                 {L.node ? <KindIcon kind={L.node.ref.kind} {...ICON.menu} /> : null}
                 <span className="jali-shelf-chip-title">{L.title}</span>
                 <Activity activity={own(activity, it.paneId)} shape />
-                <small>{t.where(L.folded, L.home)}</small>
+                <small>{t.where(false, L.home)}</small>
               </button>
             );
           })}

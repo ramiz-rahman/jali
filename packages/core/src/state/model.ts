@@ -78,8 +78,9 @@ export interface Model {
   tuckOf(id: NodeId | undefined): TuckRecord | undefined;
   /** The pane on screen in the same group as `id` (itself when shown), ignoring zoom. */
   shownWith(id: NodeId): NodeId;
-  /** Tucked panes in tree order, each with the pane it sits behind: what the shelf lists. */
-  shelf: ShelfEntry[];
+  /** Tucked panes in tree order, each with the pane it sits behind: what the shelf lists. Folded panes are never
+   *  here: they wait behind their strip's "N folded" chip. */
+  shelf: TuckedEntry[];
   folded: NodeId[];
   /** Panes hidden by the overlay: no slot and no tab (a curated page's hidden roles). */
   off: NodeId[];
@@ -90,6 +91,9 @@ export interface Model {
   /** One pane at a time on a portrait phone with `phone.stack`: the two linked panes shown one above the other. */
   stacked?: StackPair;
 }
+
+/** A tucked pane on the shelf. */
+export type TuckedEntry = ShelfEntry & { reason: "tucked" };
 
 /** The model without its titles: where everything is. A pane's live title makes a new model that shares it, so what
  *  reads only this needn't hear a title change (`useGeometry`). */
@@ -148,7 +152,7 @@ export function buildModel({ layout, view, area, ctx, env, titles, hinge }: Mode
   }
 
   const offscreen = new Map(resolved.shelf.map((e) => [e.paneId, e]));
-  const shelf = panes.flatMap((p): ShelfEntry[] => {
+  const shelf = panes.flatMap((p): TuckedEntry[] => {
     const t = tuckOf(p.id);
     if (!t) return [];
     const e = offscreen.get(p.id);

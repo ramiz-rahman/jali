@@ -252,29 +252,7 @@
     }
   }
 
-  /* Folded chips (made by the layout): dotted border, italic, fold icon; the same marks the tab strip uses. */
-  .jali-shelf-group.is-folded:not(:first-child) {
-    position: relative;
-    padding-inline-start: 0.875rem;
-  }
-  .jali-shelf-group.is-folded:not(:first-child)::before {
-    content: "";
-    position: absolute;
-    inset-inline-start: 0;
-    top: 0.25rem;
-    bottom: 0.25rem;
-    width: 1px;
-    background: var(--jali-text-subtle);
-  }
   .jali-shelf-home svg {
     vertical-align: -2px;
   }
-  .jali-shelf-chip.is-folded {
-    border-style: dotted;
-    border-color: var(--jali-text-subtle);
-  }
-  .jali-shelf-chip.is-folded .jali-shelf-chip-title {
-    font-style: italic;
-    padding-right: 2px; /* italics lean right in either direction */
-  } /* italics lean past the box; room so the last letter is not clipped */
 }

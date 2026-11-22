@@ -67,6 +67,7 @@ export {
   modelCache,
   type Model,
   type ModelGeometry,
+  type TuckedEntry,
   type ModelInput,
 } from "./state/model";
 export { UNDO_MAX, forgetTuck, pruneUndo, pushUndo, tuckOrder } from "./state/undo";
