@@ -19,6 +19,24 @@ test.describe("Move: drag by the grip", () => {
     await expect.poll(() => app.visibleIds()).toEqual(["customer", "order", "orders"]);
   });
 
+  test("a drag the browser cancels drops nothing, even on the next release", async ({
+    app,
+    page,
+  }) => {
+    // Architecture review 22 Nov 2026: a cancelled pointer (a touch that became a scroll, the system taking the
+    // gesture) left the drag live, and the next release dropped the pane where the pointer last was.
+    await app.open();
+    const before = await app.visibleIds();
+    await app.drag("customer", "orders", "left", { release: false });
+    await expect(app.dragChip()).toBeVisible();
+    await page.evaluate(() =>
+      window.dispatchEvent(new PointerEvent("pointercancel", { bubbles: true })),
+    );
+    await expect(app.dragChip()).toHaveCount(0);
+    await page.mouse.up();
+    expect(await app.visibleIds()).toEqual(before);
+  });
+
   test("a drag selects no text in the panes it crosses", async ({ app, page }) => {
     await app.open();
     await app.drag("customer", "orders", "centre", { release: false });
