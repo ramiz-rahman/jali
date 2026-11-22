@@ -145,7 +145,9 @@ export interface JaliOptions<
    * Asked before a change removes panes or makes them show another object: a close, close others, a preset,
    * `setLayout`, Back and Forward, a pane showing something else. `true` lets it happen, `false` keeps the panes; a
    * promise holds the change until it answers (the action returns `reason: "pending"`). Jali's own "Discard unsaved
-   * changes?" comes after a yes, when a pane still reports unsaved work (`useUnsaved`).
+   * changes?" comes after a yes, when a pane still reports unsaved work (`useUnsaved`). An action the guard runs while
+   * it answers at once waits for the change being decided, then runs (it returns `"pending"`; `settled` says how it
+   * went); unsaved work it reports meanwhile is asked about.
    */
   beforeClose?: BeforeClose;
   /**

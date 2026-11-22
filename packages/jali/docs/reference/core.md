@@ -135,7 +135,7 @@ Jali's keys, in one place. See [`KeyboardOptions`](core/types.md#keyboardoptions
 
 - **`onUnstable`** (`(op: string, before: string, after: string) => void`): Called when a focus or swap action moved a pane on screen, which it never should.
 
-- **`beforeClose`** (`BeforeClose`): Asked before a change removes panes or makes a pane show another object: a close, close others, a preset, `setLayout`, Back and Forward, `openHere`. Return `true` to let it happen or `false` to keep the panes, or a promise of either for a check that takes time. Jali's own "Discard unsaved changes?" follows a yes when a pane still reports unsaved work. See [`BeforeClose`](core/types.md#beforeclose).
+- **`beforeClose`** (`BeforeClose`): Asked before a change removes panes or makes a pane show another object: a close, close others, a preset, `setLayout`, Back and Forward, `openHere`. Return `true` to let it happen or `false` to keep the panes, or a promise of either for a check that takes time. Jali's own "Discard unsaved changes?" follows a yes when a pane still reports unsaved work, including work reported while the guard decided. An action your guard runs while it answers at once waits for the change being decided, then runs: it returns `reason: "pending"`, and its `settled` says how it went. See [`BeforeClose`](core/types.md#beforeclose).
 
 - **`confirmDiscard`** (`boolean`): `false`: your app asks about unsaved work itself, from `beforeClose`. Panes still report it with `useUnsaved` and show the unsaved mark, but Jali never asks "Discard unsaved changes?" and doesn't hold the page's unload. A following detail with unsaved work still keeps its object.
 

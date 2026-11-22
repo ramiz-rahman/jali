@@ -426,6 +426,9 @@ export interface ApplyIO {
   committed?(op: Op, action?: ActionName): void;
   /** The host's close guard (`createJali({ beforeClose })`). */
   beforeClose?: BeforeClose;
+  /** Run host code inside this commit (`beforeClose`). A commit the host makes meanwhile waits until this one ends
+   *  (the store's `apply`), so this commit's reading of the state stays true. */
+  host?<T>(call: () => T): T;
   /** Commit an outcome later, from the top (a change `beforeClose` allowed after a while). */
   later?(o: Outcome): ActionResult;
   /** The instance's lifetime. Once it ends (`destroy()`), a held host answer settles as `"kept"` at once, and its
@@ -553,10 +556,10 @@ const ok = (r: ActionResult): Res => ({ r, settled: false });
  */
 interface Transaction {
   io: ApplyIO;
-  /** Where the commit is now: a state and how many effects wait. */
-  mark(): { state: UiState; effects: number };
-  /** Back to `mark`: its state, and only the effects that waited then. */
-  restore(at: { state: UiState; effects: number }): void;
+  /** Where the commit is now: a state, how many effects wait, and how many writes it made. */
+  mark(): { state: UiState; effects: number; writes: number };
+  /** Back to `mark`: its state (when it wrote since), and only the effects that waited then. */
+  restore(at: { state: UiState; effects: number; writes: number }): void;
   /** Tell the world: every effect that waits, in order. */
   flush(): void;
 }
@@ -567,9 +570,11 @@ function transaction(io: ApplyIO): Transaction {
     <A extends unknown[]>(fn: ((...a: A) => void) | undefined) =>
     (...a: A) =>
       void (fn && effects.push(() => fn(...a)));
+  /** How many writes this commit made: a restore puts back only its own, never what host code wrote meanwhile. */
+  let writes = 0;
   const tx: ApplyIO = {
     get: () => io.get(),
-    set: (patch) => io.set(patch),
+    set: (patch) => (writes++, io.set(patch)),
     restore: (state) => io.restore(state),
     snapshot: () => io.snapshot(),
     url: later((m) => io.url(m)),
@@ -582,14 +587,15 @@ function transaction(io: ApplyIO): Transaction {
     get beforeClose() {
       return io.beforeClose;
     },
+    host: io.host && ((call) => io.host!(call)),
     later: io.later && ((o) => io.later!(o)),
     signal: io.signal,
   };
   return {
     io: tx,
-    mark: () => ({ state: io.get(), effects: effects.length }),
+    mark: () => ({ state: io.get(), effects: effects.length, writes }),
     restore(at) {
-      if (io.get() !== at.state) io.restore(at.state);
+      if (writes !== at.writes && io.get() !== at.state) io.restore(at.state);
       effects.length = at.effects;
     },
     flush() {
@@ -692,8 +698,8 @@ function step(c: Run, o: Outcome): Res {
     if (inner.hold) c.hold = inner.hold;
     return res;
   }
-  const s = io.get(),
-    p = POLICY[o.op];
+  let s = io.get();
+  const p = POLICY[o.op];
   const next = { layout: o.layout ?? s.layout, view: o.view ?? s.view };
   let discarding: NodeId[] = [];
   if (p.writes === "view") {
@@ -717,10 +723,9 @@ function step(c: Run, o: Outcome): Res {
     const leaving =
       layoutChanged && io.beforeClose && !o.allowed ? leavingPanes(s, next.layout) : [];
     if (leaving.length && !covered(leaving, c.agreed.host)) {
-      const answer = ask(io.beforeClose!, {
-        panes: leaving,
-        reason: CLOSE_REASON[o.op] ?? "layout",
-      });
+      const request: CloseRequest = { panes: leaving, reason: CLOSE_REASON[o.op] ?? "layout" };
+      const guard = io.beforeClose!;
+      const answer = io.host ? io.host(() => ask(guard, request)) : ask(guard, request);
       if (answer === false) return ok(refused("kept"));
       const host = [...(c.agreed.host ?? []), ...leaving];
       if (answer !== true) {
@@ -748,6 +753,14 @@ function step(c: Run, o: Outcome): Res {
         return ok({ ok: false, reason: "pending", settled });
       }
       c.agreed = { ...c.agreed, host };
+      // The host's code may have reported on its panes while it decided (unsaved work, say): what follows reads the
+      // state as it is now. Its commits waited (the store's `apply`), so the layout is the one this change was made
+      // from; if it isn't, the change no longer fits it and is kept back.
+      const now = io.get();
+      if (now !== s) {
+        if (now.layout !== s.layout || now.view !== s.view) return ok(refused("kept"));
+        s = now;
+      }
     }
     // A pane the host removed has no work left to keep: its object is gone.
     const losing = layoutChanged && o.op !== "remove" ? wouldLoseWork(s, next.layout) : [];

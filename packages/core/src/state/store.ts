@@ -28,7 +28,14 @@ import {
   type PaneKinds,
 } from "../pane-kinds";
 import { spacingOf } from "../tokens";
-import { bindSteps, stepOf, type Actions, type StepArgs, type StepName } from "../actions";
+import {
+  bindSteps,
+  REPORT_STEPS,
+  stepOf,
+  type Actions,
+  type StepArgs,
+  type StepName,
+} from "../actions";
 import type { ActionName } from "../actions/public";
 import {
   apply,
@@ -278,7 +285,9 @@ export interface JaliStore {
   ctx(): LayoutContext;
   snapshot(): Snapshot;
   /** Commit an outcome (or a step of the snapshot), and say what happened. Events go out once it is done; `action`
-   *  is the public action it makes, which the `layout` event names. */
+   *  is the public action it makes, which the `layout` event names. Made from host code a commit is running (its
+   *  `beforeClose` answering at once), it waits for that commit to end, then runs against the state then: it returns
+   *  `"pending"`, and `settled` says what happened. */
   apply(o: Outcome, action?: ActionName): ActionResult;
   /** The app's events (instance.ts). */
   on<E extends JaliEvent>(event: E, handler: (event: JaliEvents[E]) => void): () => void;
@@ -534,9 +543,7 @@ export function createJaliStore(deps: JaliConfig): JaliStore {
         env,
       };
     },
-    // A destroyed instance changes nothing more: a late answer, a timer or a caller that kept a handle is refused.
-    apply: (o, action) =>
-      life.ended() ? { ok: false, reason: "unavailable" } : batch(() => apply(io, o, action)),
+    apply: (o, action) => (hosting ? wait(o, action) : commit(o, action)),
     // Two things said in one action ("1 change discarded", then "Order 1 closed") are one announcement: subscribers
     // hear an action once it is done, so the live region reads both.
     announce: (text) => {
@@ -570,8 +577,11 @@ export function createJaliStore(deps: JaliConfig): JaliStore {
     toast: events.toast,
     run: (name, ...args) => {
       const [step, as] = stepOf(name);
-      // As a step, so a change held for an answer is the action itself, run again when the answer comes.
-      return store.apply((x) => step(x, ...args), as);
+      // As a step, so a change held for an answer is the action itself, run again when the answer comes. A pane's
+      // report lands at once even while host code decides: the commit asking reads it again (unsaved work is asked
+      // about), and it never changes the layout that commit was made from.
+      const o = (x: Snapshot) => step(x, ...args);
+      return REPORT_STEPS.has(name) ? commit(o, as) : store.apply(o, as);
     },
     actions: undefined as unknown as Actions,
     keymap: createKeymap(
@@ -620,12 +630,38 @@ export function createJaliStore(deps: JaliConfig): JaliStore {
       const asking = state.confirm;
       if (asking) store.set({ confirm: null });
       life.end();
+      // Commits host code made that still wait are refused now, so their `settled` resolves.
+      for (const w of waiting.splice(0)) w();
       url?.cancel?.();
       offKinds();
       asking?.settle({ ok: false, reason: "kept" });
     },
   };
   let stop: (() => void) | null = null;
+  /**
+   * Host code a commit is running now (`beforeClose` answering at once). A commit it makes can't land in the middle:
+   * the commit asking has read the state, and would write over it. So it waits, and runs once that commit ends,
+   * against the state then, as a held action does (state/apply.ts, "Held questions").
+   */
+  let hosting = 0;
+  const waiting: (() => void)[] = [];
+  function wait(o: Outcome, action?: ActionName): ActionResult {
+    let settle!: (r: ActionResult | Promise<ActionResult>) => void;
+    const settled = new Promise<ActionResult>((r) => (settle = r));
+    waiting.push(() => {
+      const r = commit(o, action);
+      settle(r.reason === "pending" && r.settled ? r.settled : r);
+    });
+    return { ok: false, reason: "pending", settled };
+  }
+  // A destroyed instance changes nothing more: a late answer, a timer or a caller that kept a handle is refused.
+  function commit(o: Outcome, action?: ActionName): ActionResult {
+    if (life.ended()) return { ok: false, reason: "unavailable" };
+    const r = batch(() => apply(io, o, action));
+    // Commits host code made while this one asked it, in the order it made them: each its own batch, after this.
+    while (!hosting && waiting.length) waiting.shift()!();
+    return r;
+  }
   const io = {
     get: store.get,
     set: write,
@@ -637,6 +673,14 @@ export function createJaliStore(deps: JaliConfig): JaliStore {
     committed: events.committed,
     get beforeClose() {
       return store.guard;
+    },
+    host<T>(call: () => T): T {
+      hosting++;
+      try {
+        return call();
+      } finally {
+        hosting--;
+      }
     },
     later: (o: Outcome) => store.apply(o),
     signal: life.signal,
