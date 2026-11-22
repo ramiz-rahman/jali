@@ -164,6 +164,7 @@ export {
   type Keymap,
   type KeymapOverrides,
   type KeymapOptions,
+  type KeyboardOptions,
   type DefaultKeymapId,
   type KeyString,
 } from "./commands/keymap";
