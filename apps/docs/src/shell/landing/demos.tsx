@@ -67,10 +67,7 @@ export function KeysDemo() {
         height={340}
         label="A customer beside a stack of tabs, to try the keys in"
       />
-      <ul
-        className="landing-keys"
-        aria-label="Keys from this keymap; each can be clicked"
-      >
+      <ul className="landing-keys" aria-label="Keys from this keymap; each can be clicked">
         {KEYS.map((k) => (
           <li key={k.id}>
             <button type="button" className="landing-key" onClick={() => run(k.id)}>

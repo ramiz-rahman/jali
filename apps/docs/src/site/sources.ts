@@ -171,11 +171,14 @@ export function toMarkdown(page: PageSource, opts?: MarkdownOptions): string {
   // The page's own imports go; an `import` inside a fenced code block is part of the code, and stays.
   let text = outsideFences(body, (part) =>
     part
-      .replace(/^import\s+(\w+)\s+from\s+["']([^"']+)["'];?[ \t]*$/gm, (_, name: string, spec: string) => {
-        const content = spec.endsWith("?raw") ? resolveImport(page.file, spec) : undefined;
-        if (content !== undefined) vars[name] = content;
-        return "";
-      })
+      .replace(
+        /^import\s+(\w+)\s+from\s+["']([^"']+)["'];?[ \t]*$/gm,
+        (_, name: string, spec: string) => {
+          const content = spec.endsWith("?raw") ? resolveImport(page.file, spec) : undefined;
+          if (content !== undefined) vars[name] = content;
+          return "";
+        },
+      )
       .replace(/^import\s+[^;]*?from\s+["'][^"']+["'];?[ \t]*$/gm, ""),
   );
 

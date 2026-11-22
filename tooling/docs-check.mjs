@@ -73,7 +73,10 @@ for (const page of pages) {
     const file = join(out, "samples", name);
     // Every block is a module of its own, so two blocks' names never meet. A relative import names a module of the
     // reader's app (`./panes`, `./chart-view`): it resolves to apps/docs/src/samples/app.ts, a stand-in for one.
-    const appModule = relative(join(out, "samples"), join(docsApp, "src/samples/app")).replace(/\\/g, "/");
+    const appModule = relative(join(out, "samples"), join(docsApp, "src/samples/app")).replace(
+      /\\/g,
+      "/",
+    );
     writeFileSync(
       file,
       `${code.replace(/(from\s+["'])\.\.?\/[^"']+(["'])/g, `$1${appModule}$2`)}\nexport {};\n`,
@@ -293,7 +296,9 @@ for (const page of pages.filter((p) => relative(pagesDir, p).startsWith("referen
     } else {
       // A type: its keys, or for a union of strings, its members.
       const base = `${type}${TYPE_ARGS[t.entry] ?? ""}`;
-      const of = FIELD_VALUES[t.entry] ? `NonNullable<${base}[${JSON.stringify(FIELD_VALUES[t.entry])}]>` : base;
+      const of = FIELD_VALUES[t.entry]
+        ? `NonNullable<${base}[${JSON.stringify(FIELD_VALUES[t.entry])}]>`
+        : base;
       const beyond = BEYOND[t.entry];
       const keys = beyond ? `Exclude<Keys<${of}>, Keys<${beyond}>>` : `Keys<${of}>`;
       const literal = `${of} extends string ? ${of} : ${keys}`;
@@ -332,11 +337,15 @@ writeFileSync(
 );
 let output = "";
 try {
-  execFileSync(join(root, "node_modules/.bin/tsc"), ["--noEmit", "-p", join(out, "tsconfig.json")], {
-    cwd: out,
-    encoding: "utf8",
-    stdio: "pipe",
-  });
+  execFileSync(
+    join(root, "node_modules/.bin/tsc"),
+    ["--noEmit", "-p", join(out, "tsconfig.json")],
+    {
+      cwd: out,
+      encoding: "utf8",
+      stdio: "pipe",
+    },
+  );
 } catch (e) {
   output = `${e.stdout ?? ""}${e.stderr ?? ""}`;
 }
@@ -345,7 +354,8 @@ try {
 const errors = [];
 for (const l of output.split("\n")) {
   const m = /^(.+?)\((\d+),\d+\): error (TS\d+): (.*)$/.exec(l);
-  if (m) errors.push({ file: relative(out, resolve(out, m[1])), line: +m[2], code: m[3], text: [m[4]] });
+  if (m)
+    errors.push({ file: relative(out, resolve(out, m[1])), line: +m[2], code: m[3], text: [m[4]] });
   else if (l.trim() && errors.length) errors.at(-1).text.push(l.trim());
 }
 for (const e of errors) {

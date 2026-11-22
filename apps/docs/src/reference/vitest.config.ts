@@ -10,5 +10,8 @@ import { defineConfig, defaultClientConditions } from "vite-plus";
 export default defineConfig({
   root: fileURLToPath(new URL("../../../..", import.meta.url)),
   resolve: { conditions: ["source", ...defaultClientConditions] },
-  test: { include: ["apps/docs/src/reference/**/*.test.ts", "apps/docs/src/samples/**/*.test.ts"], environment: "jsdom" },
+  test: {
+    include: ["apps/docs/src/reference/**/*.test.ts", "apps/docs/src/samples/**/*.test.ts"],
+    environment: "jsdom",
+  },
 } as never);

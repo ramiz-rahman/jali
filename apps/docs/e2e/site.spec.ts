@@ -42,7 +42,7 @@ test("package-manager tabs: arrows switch, each tab has its panel, and the choic
   await page.goto("/get-started/quickstart");
   const install = page.locator("[data-install]").first();
   const tabs = install.getByRole("tab");
-  await expect(tabs).toHaveCount(5);
+  await expect(tabs).toHaveCount(4); // npm, pnpm, yarn, bun
   for (const tab of await tabs.all()) {
     const panel = await tab.getAttribute("aria-controls");
     await expect(page.locator(`#${panel}`)).toHaveCount(1);
