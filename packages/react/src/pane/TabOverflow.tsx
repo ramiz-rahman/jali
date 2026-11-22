@@ -100,7 +100,7 @@ export function TabOverflow({
           <>
             <icon.fold {...ICON.tabSmall} aria-hidden />
             <span>{tw.foldedChip(tabs.length)}</span>
-            <Activity a={behind} shape />
+            <Activity activity={behind} shape />
           </>
         ) : (
           <>
@@ -153,7 +153,7 @@ export function TabOverflow({
                   <KindIcon kind={t.ref.kind} {...ICON.menu} />
                 )}
                 <span className="jali-tab-menu-title">{titleOf(env, t, titles)}</span>
-                <Activity a={own(activity, t.id)} />
+                <Activity activity={own(activity, t.id)} />
                 {folded && !chip ? (
                   <small className="jali-tab-menu-mark">
                     <icon.fold {...ICON.menuSmall} aria-hidden />

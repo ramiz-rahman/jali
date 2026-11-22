@@ -8,7 +8,7 @@ export function OpenPanes() {
     <ul>
       {m.panes.map((p) => (
         <li key={p.id}>
-          <KindIcon kind={p.ref.kind} size={14} /> {m.title(p.id)} <Activity a={activity[p.id]} />
+          <KindIcon kind={p.ref.kind} size={14} /> {m.title(p.id)} <Activity activity={activity[p.id]} />
         </li>
       ))}
     </ul>

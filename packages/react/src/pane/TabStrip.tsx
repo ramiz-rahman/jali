@@ -49,7 +49,7 @@ function revealTab(el: HTMLDivElement | null) {
 }
 
 function TabActivity({ id }: { id: NodeId }) {
-  return <Activity a={useUi((s) => own(s.activity, id))} />;
+  return <Activity activity={useUi((s) => own(s.activity, id))} />;
 }
 
 /** A group's tabs. `owner` is the frame showing the group: the active tab's title labels its region. */

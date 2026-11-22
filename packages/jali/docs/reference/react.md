@@ -701,7 +701,7 @@ export function OpenPanes() {
     <ul>
       {m.panes.map((p) => (
         <li key={p.id}>
-          <KindIcon kind={p.ref.kind} size={14} /> {m.title(p.id)} <Activity a={activity[p.id]} />
+          <KindIcon kind={p.ref.kind} size={14} /> {m.title(p.id)} <Activity activity={activity[p.id]} />
         </li>
       ))}
     </ul>
@@ -826,7 +826,7 @@ export function OpenPanes() {
     <ul>
       {m.panes.map((p) => (
         <li key={p.id}>
-          <KindIcon kind={p.ref.kind} size={14} /> {m.title(p.id)} <Activity a={activity[p.id]} />
+          <KindIcon kind={p.ref.kind} size={14} /> {m.title(p.id)} <Activity activity={activity[p.id]} />
         </li>
       ))}
     </ul>
@@ -849,14 +849,14 @@ A kind's icon at `size`, `aria-hidden`; the `defaultKind` icon (a square unless 
 *component*, from `jali/react`
 
 ```ts
-<Activity a={activity} shape? />
+<Activity activity={activity} shape? />
 ```
 
 A pane's activity mark. Renders nothing for `idle` or `undefined`.
 
 **Props**
 
-- **`a`** (`PaneActivity | undefined`, required): What the pane reported.
+- **`activity`** (`PaneActivity | undefined`, required): What the pane reported (`useActivity`).
 
 - **`shape`** (`boolean`): `false`: a coloured dot labelled for screen readers ("Loading", "Working", "Live", "Needs you", "Error"). `true`: the shelf's mark, a shape as well as a colour (a ring for loading and working, a dot in a halo for live, breathing slowly, "!" for needs-you, a cross for error), hidden from screen readers.
 

@@ -1,6 +1,9 @@
 import type { Messages, PaneActivity } from "@jali/core";
+import { warnUnknown } from "@jali/core/adapter";
 import { useMessages } from "../state/react";
 import { useJaliIcons } from "../icons/context";
+
+declare const process: { env: { NODE_ENV?: string } };
 
 /**
  * One activity model. Headers, tabs and the switcher show a dot with a label; the shelf shows a shape as well as a
@@ -29,7 +32,14 @@ export const activityLabel = (words: Messages["pane"], a: PaneActivity | undefin
 /** The shelf's shape and state for an activity: "working", "live", "needs-you", "failed"; idle has none. */
 export const shelfActivity = (a: PaneActivity | undefined) => (a ? ACTIVITY[a].shelf : undefined);
 
-export function Activity({ a, shape = false }: { a: PaneActivity | undefined; shape?: boolean }) {
+/** A pane's activity mark: `activity` is what the pane reported (`useActivity`); `shape` draws the shelf's mark. */
+export function Activity(props: { activity: PaneActivity | undefined; shape?: boolean }) {
+  try {
+    if (process.env.NODE_ENV !== "production") warnUnknown("Activity", props);
+  } catch {
+    /* no `process`: production */
+  }
+  const { activity: a, shape = false } = props;
   const words = useMessages().pane;
   const icon = useJaliIcons();
   const label = activityLabel(words, a);

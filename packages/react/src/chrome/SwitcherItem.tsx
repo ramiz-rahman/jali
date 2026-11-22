@@ -60,7 +60,7 @@ export function SwitcherItem({
       <KindIcon kind={node.ref.kind} {...ICON.tab} />
       <span className="jali-switch-title">{title}</span>
       {dirty ? <UnsavedMark /> : null}
-      <Activity a={activity} />
+      <Activity activity={activity} />
     </button>
   );
 }

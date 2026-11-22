@@ -191,7 +191,7 @@ export function Shelf() {
           ) : null}
           <span className="jali-shelf-chip-title">{L.title}</span>
           {dirty ? <UnsavedMark /> : null}
-          <Activity a={own(activity, it.paneId)} shape />
+          <Activity activity={own(activity, it.paneId)} shape />
         </button>
         {it.reason === "tucked" ? (
           <button
@@ -280,7 +280,7 @@ export function Shelf() {
               >
                 {L.node ? <KindIcon kind={L.node.ref.kind} {...ICON.menu} /> : null}
                 <span className="jali-shelf-chip-title">{L.title}</span>
-                <Activity a={own(activity, it.paneId)} shape />
+                <Activity activity={own(activity, it.paneId)} shape />
                 <small>{t.where(L.folded, L.home)}</small>
               </button>
             );

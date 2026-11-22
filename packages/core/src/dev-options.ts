@@ -28,6 +28,7 @@ const MOVED: Record<string, Record<string, string>> = {
     comfortableHeight: "comfortableHeight moved to height: { comfortable }",
   },
   definePage: {},
+  Activity: { a: "a is activity (<Activity activity={…} />)" },
 };
 
 /** Message areas and keys renamed in 3c (`createJali({ messages })`), and their new names. */
@@ -111,13 +112,14 @@ const KNOWN: Record<string, readonly string[]> = {
     "Rail",
     "Header",
   ],
+  Activity: ["activity", "shape"],
 };
 
 const said = new Set<string>();
 
 /** Warns once (per call site and option) about each option `what` doesn't take, naming its replacement if it moved. */
 export function warnUnknown(
-  what: "createJali" | "definePane" | "definePage",
+  what: "createJali" | "definePane" | "definePage" | "Activity",
   options: object | null | undefined,
   allowed: (key: string, value: unknown) => boolean = () => false,
 ): void {
@@ -135,7 +137,7 @@ export function warnUnknown(
     if (said.has(id)) continue;
     said.add(id);
     console.warn(
-      `Jali: ${what} has no option "${key}"${moved ? `: ${moved}` : ", and ignores it"}`,
+      `Jali: ${what} has no ${what === "Activity" ? "prop" : "option"} "${key}"${moved ? `: ${moved}` : ", and ignores it"}`,
     );
   }
 }

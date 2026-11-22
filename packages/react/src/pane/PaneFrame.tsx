@@ -226,7 +226,7 @@ export const PaneFrame = /* @__PURE__ */ memo(
               </h2>
               {role && shows !== title ? <span className="jali-pane-sub">{shows}</span> : null}
               {dirty ? <UnsavedMark labelled /> : null}
-              <Activity a={activity} />
+              <Activity activity={activity} />
               {bare ? null : <FollowControl node={node} title={title} />}
               {opened && boundary === "tint" ? (
                 <span className="jali-badge jali-badge-opened">{store.messages.pane.opened}</span>

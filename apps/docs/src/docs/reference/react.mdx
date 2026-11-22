@@ -368,12 +368,12 @@ A kind's icon at `size`, `aria-hidden`; the `defaultKind` icon (a square unless 
 
 </Entry>
 
-<Entry name="Activity" kind="component" from="jali/react" signature={`<Activity a={activity} shape? />`} compact>
+<Entry name="Activity" kind="component" from="jali/react" signature={`<Activity activity={activity} shape? />`} compact>
 
 A pane's activity mark. Renders nothing for `idle` or `undefined`.
 
 <Params title="Props">
-<Param name="a" type="PaneActivity | undefined" required>What the pane reported.</Param>
+<Param name="activity" type="PaneActivity | undefined" required>What the pane reported (`useActivity`).</Param>
 <Param name="shape" type="boolean" default="false">`false`: a coloured dot labelled for screen readers ("Loading", "Working", "Live", "Needs you", "Error"). `true`: the shelf's mark, a shape as well as a colour (a ring for loading and working, a dot in a halo for live, breathing slowly, "!" for needs-you, a cross for error), hidden from screen readers.</Param>
 </Params>
 

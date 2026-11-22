@@ -6,7 +6,7 @@
 import { cleanup, render } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vite-plus/test";
 import { createJali, en, memoryStorage, row, type JaliOptions } from "@jali/core";
-import { JaliRoot, JaliView, definePane } from "@jali/react";
+import { Activity, JaliRoot, JaliView, definePane } from "@jali/react";
 
 const note = definePane("note", { params: { id: Number }, title: "Note", Component: () => null });
 const warned = () => vi.mocked(console.warn).mock.calls.map((c) => String(c[0]));
@@ -120,5 +120,21 @@ describe("one pane at a time, in the model and the DOM", () => {
       delete proto.clientWidth;
       delete proto.clientHeight;
     }
+  });
+});
+
+describe("<Activity>", () => {
+  it("takes activity, and warns in development about a", () => {
+    vi.spyOn(console, "warn").mockImplementation(() => {});
+    const { container } = render(
+      <JaliRoot jali={make({})}>
+        <Activity activity="working" />
+        <Activity {...({ a: "live" } as unknown as { activity: undefined })} />
+      </JaliRoot>,
+    );
+    expect(container.querySelector("[data-activity=working]")).not.toBeNull();
+    expect(warned()).toEqual([
+      'Jali: Activity has no prop "a": a is activity (<Activity activity={…} />)',
+    ]);
   });
 });
