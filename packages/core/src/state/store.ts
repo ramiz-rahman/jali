@@ -543,6 +543,16 @@ export function createUiStore(deps: UiStoreDeps): UiStore {
     ...(s.dir === "rtl" ? { dir: s.dir } : {}),
   });
   const ctx = () => ctxOf(state);
+  const modelOf = (s: UiState) =>
+    models({
+      layout: s.layout,
+      view: s.view,
+      area: s.area,
+      ctx: ctxOf(s),
+      env,
+      titles: s.titles,
+      ...(s.hinge ? { hinge: s.hinge } : {}),
+    });
 
   /** A raw write. Size and cap changes come from outside the layout, so they refit it. Link arrivals refit where
    *  they land. The next state is computed whole before it is put in place, so a refit that throws leaves the
@@ -721,18 +731,22 @@ export function createUiStore(deps: UiStoreDeps): UiStore {
       subs.add(fn);
       return () => subs.delete(fn);
     },
-    model: () =>
-      models({
-        layout: state.layout,
-        view: state.view,
-        area: state.area,
-        ctx: ctx(),
-        env,
-        titles: state.titles,
-        ...(state.hinge ? { hinge: state.hinge } : {}),
-      }),
+    model: () => modelOf(state),
     ctx,
-    snapshot: () => ({ s: state, m: store.model(), ctx: ctx(), env }),
+    // The model is built when a step reads it, for the state the snapshot was taken of: `apply` takes snapshots to
+    // read the kinds or the words, and resolving the layout it just wrote was work nobody used.
+    snapshot: () => {
+      const s = state;
+      let m: JaliModel | undefined;
+      return {
+        s,
+        get m() {
+          return (m ??= modelOf(s));
+        },
+        ctx: ctxOf(s),
+        env,
+      };
+    },
     // A destroyed workspace changes nothing more: a late answer, a timer or a caller that kept a handle is refused.
     apply: (o, action) =>
       destroyed ? { ok: false, reason: "unavailable" } : batch(() => apply(io, o, action)),
