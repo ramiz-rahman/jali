@@ -3,9 +3,9 @@
  * reports any focus or swap op whose rects changed; the test also compares the geometry itself.
  */
 import { beforeEach, describe, expect, it } from "vite-plus/test";
-import { geometryOf } from "../../../core/src/state/apply";
-import { createTestStore } from "./fixture";
-import type { JaliStore } from "../../../core/src/state/store";
+import { geometryOf } from "../src/state/apply";
+import { createTestStore } from "./fixtures/workspace";
+import type { JaliStore } from "../src/state/store";
 
 let store: JaliStore;
 let breaches: string[];

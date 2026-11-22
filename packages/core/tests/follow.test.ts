@@ -3,11 +3,11 @@
  * (a swap: no rect changes), with the URL replaced; a kept detail stays; Space shows the row in the detail.
  */
 import { afterEach, beforeEach, describe, expect, it, vi } from "vite-plus/test";
-import type { ObjectRef, PaneNode } from "../../../core/src/layout/types";
-import { FOLLOW_MS } from "../../../core/src/actions/follow";
-import { geometryOf, type HistoryMode } from "../../../core/src/state/apply";
-import { createTestStore } from "./fixture";
-import type { JaliStore } from "../../../core/src/state/store";
+import type { ObjectRef, PaneNode } from "../src/layout/types";
+import { FOLLOW_MS } from "../src/actions/follow";
+import { geometryOf, type HistoryMode } from "../src/state/apply";
+import { createTestStore } from "./fixtures/workspace";
+import type { JaliStore } from "../src/state/store";
 
 let store: JaliStore;
 let breaches: string[];

@@ -1,10 +1,10 @@
 /** The location and storage ports: a router owns the address, and Jali keeps to its own params. */
 import { describe, expect, it, vi } from "vite-plus/test";
-import { createTestStore } from "./fixture";
-import { memoryLocation, memoryStorage } from "../../../core/src/ports";
-import { createUrlSync } from "../../../core/src/url";
-import { decode } from "../../../core/src/layout";
-import { linkLayout } from "../../../core/src/pane-kinds";
+import { createTestStore } from "./fixtures/workspace";
+import { memoryLocation, memoryStorage } from "../src/ports";
+import { createUrlSync } from "../src/url";
+import { decode } from "../src/layout";
+import { linkLayout } from "../src/pane-kinds";
 
 const area = { width: 1600, height: 900 };
 

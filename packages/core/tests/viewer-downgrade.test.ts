@@ -4,11 +4,11 @@
  * work. A layout that arrives (a link, Back) never puts a limited viewer in Split view.
  */
 import { beforeEach, describe, expect, it } from "vite-plus/test";
-import { memoryLocation, memoryStorage } from "../../../core/src/ports";
-import { createUrlSync } from "../../../core/src/url";
-import { setLinkMode } from "../../../core/src/actions/page";
-import type { JaliStore } from "../../../core/src/state/store";
-import { createTestStore } from "./fixture";
+import { memoryLocation, memoryStorage } from "../src/ports";
+import { createUrlSync } from "../src/url";
+import { setLinkMode } from "../src/actions/page";
+import type { JaliStore } from "../src/state/store";
+import { createTestStore } from "./fixtures/workspace";
 
 const area = { width: 1156, height: 644 };
 let store: JaliStore;

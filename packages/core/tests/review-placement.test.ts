@@ -3,9 +3,9 @@
  * pane never pushes the person's views aside; a view never folds into a tab group; the ⌥ preview is the commit.
  */
 import { beforeEach, describe, expect, it } from "vite-plus/test";
-import { besidePreview } from "../../../core/src/actions/page";
-import { createTestStore } from "./fixture";
-import type { JaliStore } from "../../../core/src/state/store";
+import { besidePreview } from "../src/actions/page";
+import { createTestStore } from "./fixtures/workspace";
+import type { JaliStore } from "../src/state/store";
 
 let store: JaliStore;
 beforeEach(() => {

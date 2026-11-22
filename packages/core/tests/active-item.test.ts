@@ -1,12 +1,12 @@
 /** The active-item contract: a collection's cursor, through Jali's port, drives the list's following detail. */
 import { afterEach, beforeEach, describe, expect, it, vi } from "vite-plus/test";
-import type { ActiveItemPort } from "../../../core/src/contracts/active-item";
-import type { ObjectRef } from "../../../core/src/layout/types";
-import { createTestStore } from "./fixture";
-import { FOLLOW_MS } from "../../../core/src/actions/follow";
-import { activeItemPort } from "../../../core/src/pane/activeItem";
-import { memoryStorage } from "../../../core/src/ports";
-import type { JaliStore } from "../../../core/src/state/store";
+import type { ActiveItemPort } from "../src/contracts/active-item";
+import type { ObjectRef } from "../src/layout/types";
+import { createTestStore } from "./fixtures/workspace";
+import { FOLLOW_MS } from "../src/actions/follow";
+import { activeItemPort } from "../src/pane/activeItem";
+import { memoryStorage } from "../src/ports";
+import type { JaliStore } from "../src/state/store";
 
 let store: JaliStore;
 let port: ActiveItemPort;

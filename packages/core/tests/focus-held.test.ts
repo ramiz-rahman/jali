@@ -3,8 +3,8 @@
  * docs' hero tour), Jali moves no DOM focus of its own, so their keyboard focus stays where they left it.
  */
 import { describe, expect, it, vi } from "vite-plus/test";
-import { memoryStorage } from "../../../core/src/ports";
-import { createTestStore } from "./fixture";
+import { memoryStorage } from "../src/ports";
+import { createTestStore } from "./fixtures/workspace";
 
 const make = () => {
   const focusPane = vi.fn();

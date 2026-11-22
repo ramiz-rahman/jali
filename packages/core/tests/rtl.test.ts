@@ -3,13 +3,13 @@
  * (a key, a command, a drop zone, a message) is the screen's; the tree and the link are the same in both directions.
  */
 import { beforeEach, describe, expect, it } from "vite-plus/test";
-import { nearestDivider } from "../../../core/src/dividers/resize";
-import { zoneFor, zoneRect } from "../../../core/src/workspace/dnd";
-import { inlineStep } from "../../../core/src/dom/direction";
-import { encode } from "../../../core/src/layout";
-import type { Direction } from "../../../core/src/layout/types";
-import type { JaliStore } from "../../../core/src/state/store";
-import { createTestStore } from "./fixture";
+import { nearestDivider } from "../src/dividers/resize";
+import { zoneFor, zoneRect } from "../src/workspace/dnd";
+import { inlineStep } from "../src/dom/direction";
+import { encode } from "../src/layout";
+import type { Direction } from "../src/layout/types";
+import type { JaliStore } from "../src/state/store";
+import { createTestStore } from "./fixtures/workspace";
 
 const area = { width: 1600, height: 900 };
 const make = (dir: Direction) => {
