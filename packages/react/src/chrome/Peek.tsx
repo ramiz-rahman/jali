@@ -6,7 +6,7 @@ import { sameRef, type PaneReportPatch, type Presentation } from "@jali/core/ada
 import { KindIcon } from "../pane/icons";
 import { PaneBody, peekHost } from "../pane/PaneBody";
 import { UnsavedMark } from "../pane/Unsaved";
-import { shallow, useEntriesOf, useJaliModel, useStore, useUi } from "../state/react";
+import { useDerived, useEntriesOf, useStore, useUi } from "../state/react";
 import { useKeymap } from "../state/hydrated";
 import { ICON } from "../icons/sized";
 import { useLandmarkName } from "../a11y/landmark";
@@ -14,6 +14,8 @@ import { useLandmarkName } from "../a11y/landmark";
 export const PEEK_WIDTH = 480;
 
 const NONE: NodeId[] = [];
+const sameIds = (a: NodeId[], b: NodeId[]) =>
+  a.length === b.length && a.every((id, i) => id === b[i]);
 
 /**
  * Which object the sheet shows, as a number that changes only when it shows another one by `sameRef` (a ref read back
@@ -60,9 +62,16 @@ export function Peek({ presentation }: { presentation: Presentation }) {
   }, [store, shows]);
   // The panes showing the sheet's object, in tree order: it stands for them, and hears what they report and no other
   // pane's. Compared item by item, so the list is the same value until a pane starts or stops showing it.
-  const ids = useJaliModel(
-    (m): NodeId[] => (ref ? m.panes.filter((p) => sameRef(p.ref, ref)).map((p) => p.id) : NONE),
-    shallow,
+  const ids = useDerived(
+    (): NodeId[] =>
+      ref
+        ? store
+            .model()
+            .panes.filter((p) => sameRef(p.ref, ref))
+            .map((p) => p.id)
+        : NONE,
+    sameIds,
+    [store, ref],
   );
   const attributes = useEntriesOf((s) => s.paneAttributes, ids);
   const unsaved = useEntriesOf((s) => s.unsaved, ids);
