@@ -259,7 +259,7 @@ function createWindow(): ReactPopOut & { started(store: JaliStore): () => void }
 export function popOut(): Feature {
   const win = createWindow();
   return {
-    ...popOutFeature(win, { popOut: win } satisfies Partial<ReactParts>),
+    ...popOutFeature(win, { popOut: win } satisfies Pick<ReactParts, "popOut">),
     start: win.started,
   };
 }

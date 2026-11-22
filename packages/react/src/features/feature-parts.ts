@@ -1,7 +1,8 @@
 /**
  * What React's features render for the instance, by name: the one map their parts are read through. Each feature puts
- * its part in `parts` under one of these names (`palette()` gives `{ palette: Palette }`), and the root, the pane chrome
- * and Pop out read it back with `partOf`, typed by this map. Type-only imports: a feature's code still reaches an app
+ * its part in `parts` under its own name, checked against this map (`palette()` gives `{ palette: Palette }`, which
+ * `satisfies Pick<ReactParts, "palette">`), and the root, the pane chrome and Pop out read it back with `partOf`, typed
+ * by this map. Type-only imports: a feature's code still reaches an app
  * only through its own entry.
  */
 import type { ComponentType, ReactNode } from "react";

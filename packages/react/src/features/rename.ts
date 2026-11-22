@@ -10,4 +10,4 @@ import { RenameField } from "../pane/RenameField";
 import type { ReactParts } from "./feature-parts";
 
 export const rename = (options: Rename): Feature =>
-  renameFeature(options, { renameField: RenameField } satisfies Partial<ReactParts>);
+  renameFeature(options, { renameField: RenameField } satisfies Pick<ReactParts, "renameField">);

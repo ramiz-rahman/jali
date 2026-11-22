@@ -11,13 +11,13 @@ import type { ReactParts } from "./feature-parts";
 /** ⌘K, Jali's command palette. Leave it out when your app's own command menu lists Jali's commands
  *  (`useJaliCommands`): the palette's key is then yours, unless `keyboard.keymap` binds "palette.toggle". */
 export const palette = (): Feature =>
-  paletteFeature({ palette: Palette } satisfies Partial<ReactParts>);
+  paletteFeature({ palette: Palette } satisfies Pick<ReactParts, "palette">);
 
 /** The settings panel (theme, centre drop, pane cap, keys), opened from ⌘K. `<JaliRoot settingsExtra>` adds your
  *  own fieldsets to it. */
 export const settings = (): Feature =>
-  settingsFeature({ settings: SettingsPanel } satisfies Partial<ReactParts>);
+  settingsFeature({ settings: SettingsPanel } satisfies Pick<ReactParts, "settings">);
 
 /** The chooser: "Add to tabs of…" (⌘K ⌘G), and `jali.dialogs.choose` for an item your command asks for. */
 export const chooser = (): Feature =>
-  chooserFeature({ chooser: Chooser } satisfies Partial<ReactParts>);
+  chooserFeature({ chooser: Chooser } satisfies Pick<ReactParts, "chooser">);
