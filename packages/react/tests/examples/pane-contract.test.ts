@@ -3,12 +3,12 @@
  * by the workspace, and a pane's commands live and die with it.
  */
 import { afterEach, beforeEach, describe, expect, it, vi } from "vite-plus/test";
-import type { ObjectRef } from "../../core/src/layout/types";
-import { createTestStore } from "./workspace";
-import { FOLLOW_MS } from "../../core/src/actions/follow";
-import { memoryStorage } from "../../core/src/ports";
-import { savePaneState } from "../../core/src/state/pane-state";
-import type { JaliStore } from "../../core/src/state/store";
+import type { ObjectRef } from "../../../core/src/layout/types";
+import { createTestStore } from "./fixture";
+import { FOLLOW_MS } from "../../../core/src/actions/follow";
+import { memoryStorage } from "../../../core/src/ports";
+import { savePaneState } from "../../../core/src/state/pane-state";
+import type { JaliStore } from "../../../core/src/state/store";
 
 let store: JaliStore;
 const order = (id: number): ObjectRef => ({ kind: "record", params: { table: "orders", id } });

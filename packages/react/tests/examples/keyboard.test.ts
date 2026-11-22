@@ -3,11 +3,11 @@
  * ladder runs content → drag → peek → maximise; the keymap is per store, overridable, and refuses bare character keys.
  */
 import { afterEach, beforeEach, describe, expect, it, vi } from "vite-plus/test";
-import { installKeyboard } from "../../core/src/commands/keyboard";
-import { createKeymap } from "../../core/src/commands/keymap";
-import { formatKeys, parseKeys, type Chord } from "../../core/src/commands/format";
-import { createTestStore } from "./workspace";
-import type { JaliStore } from "../../core/src/state/store";
+import { installKeyboard } from "../../../core/src/commands/keyboard";
+import { createKeymap } from "../../../core/src/commands/keymap";
+import { formatKeys, parseKeys, type Chord } from "../../../core/src/commands/format";
+import { createTestStore } from "./fixture";
+import type { JaliStore } from "../../../core/src/state/store";
 
 let store: JaliStore;
 let off: () => void;

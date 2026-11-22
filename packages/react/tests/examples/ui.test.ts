@@ -1,15 +1,15 @@
 import { describe, expect, it } from "vite-plus/test";
-import { clampSize, snap, SNAP_IN, SNAP_OUT } from "../../core/src/dividers/resize";
-import { zoneFor, EDGE_ZONE } from "../../core/src/workspace/dnd";
-import { decodePeek, encodePeek } from "../../core/src/url";
-import { createKeyHandler } from "../../core/src/commands/keyboard";
-import { commandsOf, runCommand } from "../../core/src/commands/registry";
-import { formatChord, parseKeys } from "../../core/src/commands/format";
-import { mergeTargets } from "../../core/src/actions/tabs";
-import { openPaneFor } from "../../core/src/actions/open";
-import { dropText } from "../../core/src/state/messages";
-import { POLICY } from "../../core/src/state/apply";
-import { createTestStore } from "./workspace";
+import { clampSize, snap, SNAP_IN, SNAP_OUT } from "../../../core/src/dividers/resize";
+import { zoneFor, EDGE_ZONE } from "../../../core/src/workspace/dnd";
+import { decodePeek, encodePeek } from "../../../core/src/url";
+import { createKeyHandler } from "../../../core/src/commands/keyboard";
+import { commandsOf, runCommand } from "../../../core/src/commands/registry";
+import { formatChord, parseKeys } from "../../../core/src/commands/format";
+import { mergeTargets } from "../../../core/src/actions/tabs";
+import { openPaneFor } from "../../../core/src/actions/open";
+import { dropText } from "../../../core/src/state/messages";
+import { POLICY } from "../../../core/src/state/apply";
+import { createTestStore } from "./fixture";
 
 const store = createTestStore();
 const { actions } = store;

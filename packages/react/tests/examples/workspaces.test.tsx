@@ -5,8 +5,8 @@
  */
 import { afterEach, describe, expect, it, vi } from "vite-plus/test";
 import { act, cleanup, render } from "@testing-library/react";
-import shelfCss from "../src/styles/shelf.css?raw";
-import chromeCss from "../src/styles/chrome.css?raw";
+import shelfCss from "../../src/styles/shelf.css?raw";
+import chromeCss from "../../src/styles/chrome.css?raw";
 import * as core from "@jali/core/adapter";
 import {
   createUrlSync,
@@ -17,9 +17,9 @@ import {
 } from "@jali/core/adapter";
 import { createJali, row } from "@jali/core";
 import { JaliRoot, definePane } from "@jali/react";
-import { parseKeys } from "../../core/src/commands/format";
-import { createTestStore } from "./workspace";
-import { noUrl } from "./features";
+import { parseKeys } from "../../../core/src/commands/format";
+import { createTestStore } from "./fixture";
+import { noUrl } from "../features";
 
 const area = { width: 1600, height: 900 };
 const make = (deps: Parameters<typeof createTestStore>[0] = {}) => {

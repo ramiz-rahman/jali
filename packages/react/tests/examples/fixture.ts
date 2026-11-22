@@ -1,7 +1,8 @@
 /**
- * The engine tests' workspace: Data Studio's kinds, presets and launcher, with Loan review's kinds and page beside
- * them, so one store covers the free workspace, the curated page and moving between them. The example apps each run
- * one of the two; only these tests hold both.
+ * The examples suite's fixture: Data Studio's kinds, presets and launcher, with Loan review's kinds and page beside
+ * them, so one store covers the free layout, the curated page and moving between them. The example apps each run one
+ * of the two; only these tests hold both. A failure here is the engine against a real app's kinds; the package's own
+ * units are tested with small kinds of their own, outside this folder.
  */
 import {
   browserStorage,
@@ -16,27 +17,34 @@ import {
   dataStudioKinds,
   dataStudioLauncher,
   dataStudioPresets,
-} from "../../../examples/data-studio/src/panes";
-import { loanReview, loanReviewKinds } from "../../../examples/loan-review/src/review";
-import { setFacts } from "../../../examples/loan-review/src/review/facts";
-import { applicationFacts, LOAN_BOOK } from "../../../examples/shared/src/data/sample-sql";
+} from "../../../../examples/data-studio/src/panes";
+import { loanReview, loanReviewKinds } from "../../../../examples/loan-review/src/review";
+import { setFacts } from "../../../../examples/loan-review/src/review/facts";
+import { applicationFacts, LOAN_BOOK } from "../../../../examples/shared/src/data/sample-sql";
+import { defaultFeatures } from "../../src/features/defaults";
 
 // Loan review binds its views from the database's facts (review/facts.ts). There is no database here, so the facts
-// are the sample's, as it is generated.
-setFacts(Array.from({ length: LOAN_BOOK.applications }, (_, i) => applicationFacts(i + 1)));
+// are the sample's, as it is generated: set the first time a store needs them, not when this module loads.
+let facts = false;
+function sampleFacts() {
+  if (facts) return;
+  facts = true;
+  setFacts(Array.from({ length: LOAN_BOOK.applications }, (_, i) => applicationFacts(i + 1)));
+}
 
-export const testKinds = () =>
-  createPaneKinds([
+export const testKinds = () => {
+  sampleFacts();
+  return createPaneKinds([
     ...dataStudioKinds,
     ...loanReviewKinds,
     { ...dataStudioLauncher, transient: true },
   ]);
+};
 
 /**
  * The store before it boots, with nothing outside it (no address, no DOM focus unless given). `deps` adds or
  * overrides the rest (tests pass `initial`, `url`, ...).
  */
-import { defaultFeatures } from "../src/features/defaults";
 
 export function createTestStore(deps: Partial<JaliConfig> = {}): JaliStore {
   return createJaliStore({
