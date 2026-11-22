@@ -1,14 +1,14 @@
 import type { WorkspaceAllow } from "./actions/allow";
 import type { PhoneOptions } from "./profile";
 /**
- * `createJali`: one call from pane kinds and a layout to a workspace that is ready to render.
+ * `createJali`: one call from pane kinds and a layout to an instance that is ready to render.
  *
  *   const jali = createJali({
  *     panes: [orders, order, customer],
  *     layout: row(orders(), order({ id: 1 })),
  *   });
  *
- * The workspace reads its address, fits its first layout and is ready before the first render. `<JaliRoot>` (or
+ * The instance reads its address, fits its first layout and is ready before the first render. `<JaliRoot>` (or
  * `jali.start()` without React) starts its keys, Back and Forward, theme and saving.
  */
 import type { TabMenu } from "./commands/tab-menu";
@@ -44,7 +44,7 @@ export interface PresetOptions {
   /**
    * The layout the person left this preset in, if the app kept one (from `getLayout()`, or `on("layout")`).
    * Choosing the preset, from a button, ⌘K or a key, shows it instead of `layout`, so each preset comes back as it
-   * was arranged. "Reset layout" (`resetLayout`) builds `layout`. A saved layout that names a kind this workspace
+   * was arranged. "Reset layout" (`resetLayout`) builds `layout`. A saved layout that names a kind this instance
    * no longer has is ignored.
    */
   saved?: () => LayoutInput | undefined;
@@ -55,7 +55,7 @@ export interface JaliOptions<
   L extends PaneKindBase = D,
   P extends ProfileBase<any, any> | null | undefined = ProfileBase | null | undefined, // eslint-disable-line @typescript-eslint/no-explicit-any
 > {
-  /** The kinds of pane this workspace can show. */
+  /** The kinds of pane this instance can show. */
   panes: readonly D[] | PaneKinds<D>;
   /** The layout it opens on. Give this or `presets`. */
   layout?: LayoutInput;
@@ -65,7 +65,7 @@ export interface JaliOptions<
   preset?: string;
   /** What Split and "New tab here" open until the person chooses what to show. Without one there is no Split. */
   launcher?: L;
-  /** A curated page this workspace can show (one item, with its views as tabs): `jali.page` then has its actions. */
+  /** A curated page this instance can show (one item, with its views as tabs): `jali.page` then has its actions. */
   page?: P;
   /** What following a link on the curated page does at first: `"open"` (the default) opens a pane beside the views,
    *  `"peek"` only peeks, in Single view, for a viewer who may look but not rearrange. `jali.page.setLinkMode` changes
@@ -75,7 +75,7 @@ export interface JaliOptions<
    *  on a curated page. Default: none, and the command says "Leave Loan review" instead. */
   name?: string;
   /**
-   * What the workspace does beyond laying out panes, each a value from its own module, so an app ships only what it
+   * What the instance does beyond laying out panes, each a value from its own module, so an app ships only what it
    * uses: `[urlSync(), palette(), settings(), chooser(), rename({ run })]`, or `defaultFeatures()` from
    * `jali/features` for all of Jali's usual ones at once. Default: none (no address, no palette, no Settings).
    */
@@ -84,13 +84,13 @@ export interface JaliOptions<
    *  back. Most apps give `urlSync({ location })` instead. */
   url?: UrlWriter;
   /** What a person keeps on this device (settings, pane state, sizes): localStorage under this prefix, or a port.
-   *  Default: the workspace's `id` ("jali") in a browser, so two workspaces never overwrite each other; memory
+   *  Default: the instance's `id` ("jali") in a browser, so two instances never overwrite each other; memory
    *  elsewhere. */
   storage?: string | StoragePort;
-  /** Prefix for DOM ids. Give each workspace on one page its own. Default "jali". */
+  /** Prefix for DOM ids. Give each instance on one page its own. Default "jali". */
   id?: string;
   /** Set the page's theme (`data-theme` on `<html>`) from the person's setting. Default true; false when the
-   *  workspace sits inside a page that has its own theme. */
+   *  instance sits inside a page that has its own theme. */
   pageTheme?: boolean;
   /** Your own commands: listed in ⌘K after Jali's, and bindable in `keymap` like Jali's
    *  (`{ id: "app.refresh", title: "Refresh data", group: "App", run: () => refetch() }`). A Jali id wins. */
@@ -109,7 +109,7 @@ export interface JaliOptions<
    *    `console.warn`), and the words printed keys use.
    */
   keyboard?: KeyboardOptions;
-  /** The reading direction. Default: the page's (the computed `direction` where the workspace is rendered, so
+  /** The reading direction. Default: the page's (the computed `direction` where the instance is rendered, so
    *  `<html dir="rtl">` is enough), followed when it changes. Give one to fix it: `<JaliRoot>` then sets `dir` on its
    *  elements, so the styles agree. Right to left, a row starts at the right; the layout and its links are the same. */
   dir?: Direction;
@@ -120,8 +120,8 @@ export interface JaliOptions<
    */
   landmark?: "region" | "main";
   /**
-   * The workspace's name for assistive technology, when a page has more than one workspace: its landmark is named
-   * this instead of "Panes", and each of Jali's landmarks inside it adds it ("Orders, Sales"), so no two workspaces
+   * The instance's name for assistive technology, when a page has more than one instance: its landmark is named
+   * this instead of "Panes", and each of Jali's landmarks inside it adds it ("Orders, Sales"), so no two instances
    * repeat a landmark. Default: none, and the names are Jali's own.
    */
   label?: string;
@@ -130,12 +130,12 @@ export interface JaliOptions<
    * on its root as `--jali-gap`, so styles that read the variable agree with where the panes are.
    */
   gap?: number;
-  /** The space between the workspace's edges and its panes, in CSS pixels. Default: the gap. Written as
+  /** The space between the instance's edges and its panes, in CSS pixels. Default: the gap. Written as
    *  `--jali-inset`. */
   inset?: number;
   /** A fixed size instead of the window's (tests, server rendering). */
   size?: { width: number; height: number };
-  /** `false` leaves DOM focus alone (tests, a workspace that is never shown). Default true. */
+  /** `false` leaves DOM focus alone (tests, an instance that is never shown). Default true. */
   moveFocus?: boolean;
   /** Called when an action that never moves anything (choosing, moving or pinning a tab, revealing or keeping a
    *  pane) moved panes: a bug. Default: reported in development. */
@@ -160,7 +160,7 @@ export interface JaliOptions<
    */
   tabMenu?: TabMenu;
   /**
-   * Phones: below `phone.below` pixels of workspace width (default 600), the workspace shows one pane at a time,
+   * Phones: below `phone.below` pixels of instance width (default 600), the instance shows one pane at a time,
    * with a switcher, whatever the panes' minimums. Its layout, address and history don't change; widen it and the
    * arrangement comes back. `{ below: 0 }` switches only when even one pane can't fit.
    */
@@ -268,7 +268,7 @@ export function resolveOptions(options: JaliOptions): JaliConfig {
 }
 
 /**
- * A workspace from its kinds and a layout. Its type comes from them: `jali.actions` takes refs of these kinds only,
+ * An instance from its kinds and a layout. Its type comes from them: `jali.actions` takes refs of these kinds only,
  * events and the model say which kind, and `jali.page` is there only with a page.
  */
 export function createJali<

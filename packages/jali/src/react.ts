@@ -27,7 +27,7 @@ export {
 export { usePaneState, type PaneStateOptions } from "@jali/react/internal";
 export { useActiveItemPort } from "@jali/react/internal";
 
-// ---------- the workspace in React ----------
+// ---------- the instance in React ----------
 export {
   useJali,
   useJaliState,
