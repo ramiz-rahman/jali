@@ -23,7 +23,7 @@ vp dev examples/data-studio   # or any example below
 | [Studio](examples/studio)           | An audio session editor that follows one playhead | `pnpm studio`      | 5330 |
 | [Trips](examples/trips)             | A map-first trip planner                          | `pnpm trips`       | 5340 |
 
-Data Studio and Loan review share a sample database, panes and chrome in [`examples/shared`](examples/shared). [`fixtures/`](fixtures) holds the quickstart's minimal app and the bundle-size checks' apps.
+Data Studio and Loan review share a sample database, panes and chrome in [`examples/shared`](examples/shared). [`examples/minimal`](examples/minimal) and [`examples/own-icons`](examples/own-icons) are not example apps: they are the quickstart's app and the bundle-size checks' apps.
 
 ## Checks
 

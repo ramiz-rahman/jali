@@ -15,5 +15,5 @@
     // The examples' shared module, as package.json "imports" names it for Vite (TypeScript doesn't add extensions there).
     "paths": { "#shared/*": ["./examples/shared/src/*"] }
   },
-  "include": ["tests", "e2e", "packages/*/src", "examples/*/src", "fixtures/*/src"]
+  "include": ["tests", "e2e", "packages/*/src", "examples/*/src"]
 }

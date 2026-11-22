@@ -2,7 +2,7 @@
 
 Build the smallest Jali app, two notes side by side, then open a third from a button.
 
-This page builds the app in `fixtures/minimal`, one file at a time. At the end you have a workspace with two notes in it. A button in each note opens the next note beside it.
+This page builds the app in `examples/minimal`, one file at a time. At the end you have a workspace with two notes in it. A button in each note opens the next note beside it.
 
 You need a React app on React 18.2 or later. Any bundler that handles CSS imports works; the example uses Vite.
 

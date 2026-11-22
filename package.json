@@ -27,8 +27,8 @@
     "markets": "vp dev examples/markets",
     "studio": "vp dev examples/studio",
     "trips": "vp dev examples/trips",
-    "minimal": "vp dev fixtures/minimal",
-    "own-icons": "vp dev fixtures/own-icons"
+    "minimal": "vp dev examples/minimal",
+    "own-icons": "vp dev examples/own-icons"
   },
   "dependencies": {
     "@electric-sql/pglite": "^0.5.16",

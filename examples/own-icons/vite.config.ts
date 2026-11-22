@@ -5,7 +5,7 @@ import react from "@vitejs/plugin-react";
 export default defineConfig({
   root: __dirname,
   // Its own dependency cache, so it can run beside the example apps' dev servers without invalidating that one's.
-  cacheDir: "../../node_modules/.vite-fixture-own-icons",
+  cacheDir: "../../node_modules/.vite-example-own-icons",
   plugins: [react()],
   resolve: { conditions: ["source", ...defaultClientConditions] },
   server: { port: 5311 },

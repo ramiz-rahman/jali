@@ -86,10 +86,10 @@ It serves on [localhost:5340](http://localhost:5340). The README in that folder 
 
 ## Smaller: the quickstart app
 
-The smallest Jali app, on the public API alone, is not an example app but a fixture the [quickstart](get-started/quickstart.md) builds and the bundle-size checks use: `fixtures/minimal`.
+The smallest Jali app, on the public API alone, is not one of the example apps above but a small app the [quickstart](get-started/quickstart.md) builds and the bundle-size checks use: `examples/minimal`.
 
 ```sh
-vp dev fixtures/minimal
+vp dev examples/minimal
 ```
 
 It serves on [localhost:5310](http://localhost:5310). It shows:
@@ -101,7 +101,7 @@ It serves on [localhost:5310](http://localhost:5310). It shows:
 - the layout kept in the address, the default, so reloading and Back and Forward work;
 - the default theme from `@jali/react/styles.css`, with the layer order declared in `index.html` before any stylesheet, and the workspace filling the window.
 
-The app is one file, `fixtures/minimal/src/main.tsx`, with a few lines of CSS. Start here, then read [Define a pane kind](guides/pane-kinds.md) to add your own.
+The app is one file, `examples/minimal/src/main.tsx`, with a few lines of CSS. Start here, then read [Define a pane kind](guides/pane-kinds.md) to add your own.
 
 ## Coming
 

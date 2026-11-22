@@ -50,7 +50,7 @@ examples/          five example apps, each with `vp dev examples/<name>`:
   shared/          not an app: what Data Studio and Loan review share. data/ (PGlite + sample + TanStack Query
                    keys + entity invalidation + result store, no layout knowledge), the table, record and related
                    panes and the grid, and shell/ (top bar, status line, toasts with Sonner)
-fixtures/          minimal and own-icons: the quickstart's app and the bundle-size checks' apps
+  minimal/ own-icons/   not example apps: the quickstart's app and the bundle-size checks' apps
 tests/             engine tests that run against Data Studio's and Loan review's kinds in one store
 e2e/               Playwright demo script that walks every interaction and asserts the key behaviours, against
                    Data Studio (:5300) and Loan review (:5350)

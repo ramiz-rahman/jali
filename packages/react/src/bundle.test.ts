@@ -1,7 +1,7 @@
 // @vitest-environment node
 /**
- * Jali ships its own default icons, so no app bundles an icon library for them. Builds fixtures/minimal (Jali's icons)
- * and fixtures/own-icons (the host's for every name) and checks neither has Phosphor in it, and that the minimal one
+ * Jali ships its own default icons, so no app bundles an icon library for them. Builds examples/minimal (Jali's icons)
+ * and examples/own-icons (the host's for every name) and checks neither has Phosphor in it, and that the minimal one
  * has Jali's icons. Both build from the packages' source, and again from dist when `pnpm build:packages` has made it
  * (what a `link:` host gets).
  */
@@ -14,11 +14,11 @@ import react from "@vitejs/plugin-react";
 const repo = fileURLToPath(new URL("../../..", import.meta.url));
 const hasDist = existsSync(`${repo}/packages/react/dist/icons.js`);
 
-/** All the JavaScript a production build of the fixture emits. */
+/** All the JavaScript a production build of the app emits. */
 async function bundle(example: string, from: "source" | "dist"): Promise<string> {
   const out = await build({
     configFile: false,
-    root: `${repo}/fixtures/${example}`,
+    root: `${repo}/examples/${example}`,
     logLevel: "silent",
     plugins: [react()],
     resolve: {
