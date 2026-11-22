@@ -146,8 +146,9 @@ describe("one selection, followers of every kind", () => {
     expect(layouts).toHaveLength(1);
     // Nothing asks: the held one stays, and the workspace says why.
     expect(storeOf(jali).get().confirm).toBeNull();
-    expect(storeOf(jali).get().announcement.text).toBe(
-      "The detail stays put: it has an unsaved drawing",
+    // Said after what moved, in the one announcement of the change.
+    expect(storeOf(jali).get().announcement.text).toMatch(
+      /The detail stays put: it has an unsaved drawing$/,
     );
     expect(storeOf(jali).get().unsaved.chart).toBe("an unsaved drawing");
     // Saved: it catches up with the list's selection at once.

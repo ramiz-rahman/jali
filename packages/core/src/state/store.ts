@@ -505,10 +505,13 @@ export function createUiStore(deps: UiStoreDeps): UiStore {
   const notify = () => {
     for (const fn of subs) fn();
   };
-  const offKinds = env.kinds.onChange(() => {
-    rereadLinks();
-    notify();
-  });
+  const offKinds = env.kinds.onChange(() =>
+    batch(() => {
+      rereadLinks();
+      // A kind registered changes titles and sizes even when no ref is read again.
+      changed = true;
+    }),
+  );
   let destroyed = false;
   // The workspace's lifetime: `destroy()` ends it, and whatever still waits on it (a host's answer) ends with it.
   const life = new AbortController();
@@ -563,7 +566,7 @@ export function createUiStore(deps: UiStoreDeps): UiStore {
     // the person made.
     if (next.layout !== patch.layout && next.layout !== prev.layout && (resized || recapped))
       store.writeUrl("debounce");
-    notify();
+    changed = true;
   };
 
   /**
@@ -609,6 +612,19 @@ export function createUiStore(deps: UiStoreDeps): UiStore {
     }
   };
   let depth = 0;
+  /** The state changed in this batch: subscribers hear it once, when the batch ends. */
+  let changed = false;
+  /** Batches that ended and are still to be told, oldest first. A listener that acts ends a batch while one is being
+   *  told: its events wait behind that one's, so the app hears changes in the order they were made, and the last
+   *  `layout` event is the layout now. */
+  const queue: {
+    before: UiState;
+    after: UiState;
+    ops: Op[];
+    named?: ActionName;
+    input: JaliInput;
+  }[] = [];
+  let telling = false;
   let from: UiState = state;
   /** Where this batch's change came from, read when it starts. */
   let input: JaliInput = "code";
@@ -620,11 +636,11 @@ export function createUiStore(deps: UiStoreDeps): UiStore {
    *  starts a batch of its own, which must not rename this one's `layout` event. */
   const told = (
     before: UiState,
+    after: UiState,
     ops: readonly Op[],
     named: ActionName | undefined,
     input: JaliInput,
   ) => {
-    const after = state;
     if (after.layout !== before.layout) {
       const was = new Map(core.tree.panes(before.layout.root).map((p) => [p.id, p.ref]));
       const pinnedBefore = new Map(
@@ -665,7 +681,24 @@ export function createUiStore(deps: UiStoreDeps): UiStore {
     try {
       return run();
     } finally {
-      if (--depth === 0 && handlers.size) told(from, ops, named, input);
+      if (--depth === 0) {
+        // Everything the batch did is in place (state, address, announcement) before anyone hears of it: subscribers
+        // once, then the events, in the order batches ended.
+        if (handlers.size && from !== state)
+          queue.push({ before: from, after: state, ops, named, input });
+        if (changed) {
+          changed = false;
+          notify();
+        }
+        if (!telling) {
+          telling = true;
+          try {
+            for (let e; (e = queue.shift());) told(e.before, e.after, e.ops, e.named, e.input);
+          } finally {
+            telling = false;
+          }
+        }
+      }
     }
   };
 
@@ -703,7 +736,18 @@ export function createUiStore(deps: UiStoreDeps): UiStore {
     // A destroyed workspace changes nothing more: a late answer, a timer or a caller that kept a handle is refused.
     apply: (o, action) =>
       destroyed ? { ok: false, reason: "unavailable" } : batch(() => apply(io, o, action)),
-    announce: (text) => store.set({ announcement: { text, seq: state.announcement.seq + 1 } }),
+    // Two things said in one action ("1 change discarded", then "Order 1 closed") are one announcement: subscribers
+    // hear an action once it is done, so the live region reads both.
+    announce: (text) =>
+      store.set({
+        announcement: {
+          text:
+            depth && state.announcement.seq !== from.announcement.seq
+              ? `${state.announcement.text}${/[.!?…]$/.test(state.announcement.text) ? "" : "."} ${text}`
+              : text,
+          seq: state.announcement.seq + 1,
+        },
+      }),
     // The writer reads the address's share of the state only (UrlState), when it writes, and as a link carries it:
     // without params only the app sets (`appOnly`).
     writeUrl: (mode) =>
@@ -767,8 +811,7 @@ export function createUiStore(deps: UiStoreDeps): UiStore {
       // A question still open can never be answered now: the action it held ends as kept, so `settled` resolves.
       const asking = state.confirm;
       if (asking) {
-        state = { ...state, confirm: null };
-        notify();
+        store.set({ confirm: null });
         asking.settle({ ok: false, reason: "kept" });
       }
     },

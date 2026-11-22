@@ -363,8 +363,8 @@ describe("events", () => {
     jali.on("layout", (e) => heard.push(e.action));
     jali.on("close", () => void jali.actions.setPinned(five!.id, true));
     jali.actions.close(one!.id);
-    // The listener's change is told first, inside the close's telling; then the close's own.
-    expect(heard).toEqual(["setPinned", "close"]);
+    // The close is told first; the listener's change, made after it, is told after it (core-codex CORE-12).
+    expect(heard).toEqual(["close", "setPinned"]);
     expect(jali.model().pane(five!.id)?.pinned).toBe(true);
   });
 

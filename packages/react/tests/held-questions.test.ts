@@ -91,8 +91,10 @@ describe("Discard unsaved changes?: the answer meets the state of the moment", (
       seq = a.seq;
     });
     store.actions.discardAndContinue();
+    // One announcement for the one action, saying both (core-opus CORE-16: one notification per action).
+    expect(said.length).toBe(1);
     expect(said[0]).toMatch(/discarded/i);
-    expect(said.at(-1)).toBe("Order 1 closed · Undo available");
+    expect(said[0]).toMatch(/Order 1 closed · Undo available$/);
   });
 
   it("holds a sequence's later steps with the held step", () => {
