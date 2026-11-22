@@ -89,7 +89,7 @@ export function openBeside(
 ): Outcome {
   const { s, m, ctx } = x;
   // A curated page: in Single mode, or for a role that may not investigate, a link peeks. Opened panes gather after the layout.
-  if (s.page?.linkMode === "peek")
+  if (s.page && s.linkMode === "peek")
     return { ...peekSheet(x, ref, source), msg: say(x).peekOnly(m.env.kinds.title(ref)) };
   if (s.page?.mode === "single")
     return { ...peekSheet(x, ref, source), msg: say(x).peekSingle(m.env.kinds.title(ref)) };

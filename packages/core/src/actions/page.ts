@@ -190,7 +190,7 @@ export function openPage(x: Snapshot, o: OpenPage = {}): Outcome {
   // An item the page can't take: a link's falls back to the item before (or the first); an app's call is refused.
   const item = o.item === undefined ? undefined : readItem(o.item, p.firstItem);
   if (o.item !== undefined && item === undefined && !o.fromUrl) return refuse("invalid");
-  const opens = (prev?.linkMode ?? x.s.linkMode) !== "peek";
+  const opens = x.s.linkMode !== "peek";
   // A limited viewer works in Single only, whatever the link or Back brings: its opened panes are left out. What the
   // address doesn't hold (`appOnly` and `link: false` params) stays on an opened pane that is still on screen.
   const kinds = x.env.kinds.registry();
@@ -204,7 +204,6 @@ export function openPage(x: Snapshot, o: OpenPage = {}): Outcome {
     item: item ?? prev?.item ?? p.firstItem,
     tab: roleOf(p, o.tab)?.id ?? prev?.tab ?? p.home,
     mode: !opens ? "single" : opened.length ? "split" : (prev?.mode ?? x.s.prefs.mode),
-    linkMode: opens ? "open" : "peek",
   };
   // Opened panes need Split view, but that is the link's need, not the person's choice: their mode stays theirs.
   const prefs = {
@@ -254,7 +253,7 @@ export function setMode(x: Snapshot, mode: ViewMode): Outcome {
       undo: [],
     };
   }
-  if (r.linkMode === "peek") return refuse("not-allowed", say(x).singleOnly);
+  if (x.s.linkMode === "peek") return refuse("not-allowed", say(x).singleOnly);
   const { layout, view } = split(x, p, r.item, r.tab, true);
   return {
     op: "mode",
@@ -416,7 +415,7 @@ function besideTarget(layout: Layout, view: ViewState, ctx: LayoutContext): Node
 function beside(x: Snapshot, role: string) {
   const p = x.env.profile,
     r = x.s.page;
-  if (!p || !r || r.linkMode === "peek" || !roleOf(p, role)) return undefined;
+  if (!p || !r || x.s.linkMode === "peek" || !roleOf(p, role)) return undefined;
   const base =
     r.mode === "single"
       ? split(x, p, r.item, r.tab, true)
@@ -482,7 +481,7 @@ export function placeTab(
     };
   };
   if (r.mode === "single")
-    return r.linkMode === "open"
+    return x.s.linkMode === "open"
       ? [setMode(x, "split"), place]
       : refuse("not-allowed", say(x).singleOnly);
   return place(x);
@@ -495,7 +494,7 @@ export function openTabBeside(x: Snapshot, role: string): Outcome {
   const target = (y: Snapshot) =>
     besideTarget(y.s.layout, unzoomed(y.s.view), y.ctx) ?? y.s.page!.tab;
   if (r.mode === "single")
-    return r.linkMode === "open"
+    return x.s.linkMode === "open"
       ? [setMode(x, "split"), (y: Snapshot) => placeTab(y, role, target(y), endSide(y.ctx.dir))]
       : refuse("not-allowed", say(x).singleOnly);
   return placeTab(x, role, target(x), endSide(x.ctx.dir));
@@ -652,23 +651,16 @@ export function resetPage(x: Snapshot): Outcome {
  *  works in Single only; one whose links open (a credit reviewer) may multiplex. The profile names both (`viewers`). */
 export function setLinkMode(x: Snapshot, linkMode: LinkMode): Outcome {
   const { s } = x;
-  if (linkMode !== "open" && linkMode !== "peek") return refuse("invalid");
+  if (s.linkMode === linkMode) return null;
   // No page open: the policy waits for the next one (leaving a page never widens what its viewer may do).
-  if (!s.page)
-    return (s.linkMode ?? "open") === linkMode ? null : { op: "permission", patch: { linkMode } };
-  if (s.page.linkMode === linkMode) return null;
+  if (!s.page) return { op: "permission", patch: { linkMode } };
   const opens = linkMode === "open";
   const msg = say(x).permission(viewerLabel(x.env.profile, opens, messagesOf(x).page), opens);
-  if (opens || s.page.mode === "single")
-    return { op: "permission", msg, patch: { page: { ...s.page, linkMode }, linkMode } };
+  if (opens || s.page.mode === "single") return { op: "permission", msg, patch: { linkMode } };
   // From Split view: the switch to Single and the permission are one change, so a switch held for unsaved work
   // holds the permission too, and Keep editing leaves both as they were.
   const toSingle = setMode(x, "single") as Change;
-  return {
-    ...toSingle,
-    msg,
-    patch: { ...toSingle.patch, page: { ...toSingle.patch!.page!, linkMode }, linkMode },
-  };
+  return { ...toSingle, msg, patch: { ...toSingle.patch, linkMode } };
 }
 
 /** The page's commands, in the palette after the layout commands: back to the page, its modes, opening and leaving
@@ -706,7 +698,7 @@ function pageCommands(env: Env): CommandDef[] {
       title: t.pageSplit,
       group: g.layout,
       check: ({ s }) =>
-        s.page?.mode === "single" && s.page.linkMode === "open" ? undefined : refuse("unavailable"),
+        s.page?.mode === "single" && s.linkMode === "open" ? undefined : refuse("unavailable"),
       run: (u) => u.run("page.setMode", "split"),
     },
     {
@@ -727,14 +719,14 @@ function pageCommands(env: Env): CommandDef[] {
       id: "page.as_limited",
       title: t.viewAsLimited(limited),
       group: g.settings,
-      check: ({ s }) => (s.page?.linkMode === "open" ? undefined : refuse("unavailable")),
+      check: ({ s }) => (s.page && s.linkMode === "open" ? undefined : refuse("unavailable")),
       run: (u) => u.run("page.setLinkMode", "peek"),
     },
     {
       id: "page.as_full",
       title: t.viewAsFull(full),
       group: g.settings,
-      check: ({ s }) => (s.page?.linkMode === "peek" ? undefined : refuse("unavailable")),
+      check: ({ s }) => (s.page && s.linkMode === "peek" ? undefined : refuse("unavailable")),
       run: (u) => u.run("page.setLinkMode", "open"),
     },
   ];

@@ -634,6 +634,7 @@ What an instance holds that an app reads, read-only. Read it with `jali.get()` o
 <Param name="layout" type="Layout" required>The arrangement.</Param>
 <Param name="view" type="ViewState" required>Focus, maximise, peek.</Param>
 <Param name="page" type="PageState | null" required>The curated page in use, or `null` for the free layout.</Param>
+<Param name="linkMode" type={`"open" | "peek"`} required>What following a link on the curated page does for this person: open a pane beside the views, or only peek. The instance's policy, kept while no page is open, so leaving the page and coming back never widens it. See <Ref to="LinkMode" />.</Param>
 <Param name="presetId" type="string | undefined" required>The preset last chosen; "Reset layout" rebuilds it.</Param>
 <Param name="peekSource" type="NodeId">The pane the peek acts for.</Param>
 <Param name="resizeMode" type="NodeId | null" required>The pane in keyboard resize mode.</Param>
@@ -660,7 +661,6 @@ A curated page in use.
 <Param name="mode" type="ViewMode" required>Single or Split view.</Param>
 <Param name="tab" type="string" required>The view Single shows (in Split view, the last role focused).</Param>
 <Param name="before" type="Layout">The Split view layout just before the first opened pane; "Back to …" returns to it.</Param>
-<Param name="linkMode" type={`"open" | "peek"`} required>What following a link does: open a pane beside the views, or only peek. See <Ref to="LinkMode" />.</Param>
 </Params>
 
 </Entry>

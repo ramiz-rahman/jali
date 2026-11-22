@@ -43,7 +43,7 @@ describe("a limited viewer", () => {
     expect(jali.page!.setMode("split").reason).toBe("not-allowed");
     expect(jali.page!.leave().ok).toBe(true);
     expect(jali.page!.open().ok).toBe(true);
-    expect(jali.get().page?.linkMode).toBe("peek");
+    expect(jali.get().linkMode).toBe("peek");
     expect(jali.page!.setMode("split").reason).toBe("not-allowed");
   });
 
@@ -58,6 +58,6 @@ describe("a limited viewer", () => {
     });
     expect(jali.page!.setLinkMode("peek").ok).toBe(true);
     jali.page!.open();
-    expect(jali.get().page?.linkMode).toBe("peek");
+    expect(jali.get().linkMode).toBe("peek");
   });
 });

@@ -29,6 +29,7 @@ import { revealInList } from "./SwitcherItem";
 export function PageBar() {
   const icon = useJaliIcons();
   const page = useUi((s) => s.page);
+  const linkMode = useUi((s) => s.linkMode);
   const m = useGeometry();
   const store = useStore();
   const { messages } = store;
@@ -37,7 +38,7 @@ export function PageBar() {
   if (!profile || !page) return null;
   const opened = investigation(m.panes).length;
   const multi = page.mode === "split";
-  const opens = page.linkMode === "open";
+  const opens = linkMode === "open";
   return (
     <div className="jali-page-bar">
       {/* APG radio group: one tab stop (the checked mode), and the arrow keys move to the other and check it. Split
@@ -298,6 +299,7 @@ function PageSettings() {
   const id = store.dom.id;
   const settings = useUi((s) => s.settings);
   const page = useUi((s) => s.page);
+  const linkMode = useUi((s) => s.linkMode);
   const profile = store.env.profile!;
   const t = store.messages.settings;
   const full = viewerLabel(profile, true, store.messages.page);
@@ -333,7 +335,7 @@ function PageSettings() {
             <input
               type="radio"
               name={`${id}-viewer`}
-              checked={page.linkMode === "open"}
+              checked={linkMode === "open"}
               onChange={() => store.run("page.setLinkMode", "open")}
             />
             <span>{t.viewerFull(full)}</span>
@@ -342,7 +344,7 @@ function PageSettings() {
             <input
               type="radio"
               name={`${id}-viewer`}
-              checked={page.linkMode === "peek"}
+              checked={linkMode === "peek"}
               onChange={() => store.run("page.setLinkMode", "peek")}
             />
             <span>{t.viewerLimited(limited)}</span>

@@ -1043,6 +1043,8 @@ What an instance holds that an app reads, read-only. Read it with `jali.get()` o
 
 - **`page`** (`PageState | null`, required): The curated page in use, or `null` for the free layout.
 
+- **`linkMode`** (`"open" | "peek"`, required): What following a link on the curated page does for this person: open a pane beside the views, or only peek. The instance's policy, kept while no page is open, so leaving the page and coming back never widens it. See `LinkMode`.
+
 - **`presetId`** (`string | undefined`, required): The preset last chosen; "Reset layout" rebuilds it.
 
 - **`peekSource`** (`NodeId`): The pane the peek acts for.
@@ -1088,8 +1090,6 @@ A curated page in use.
 - **`tab`** (`string`, required): The view Single shows (in Split view, the last role focused).
 
 - **`before`** (`Layout`): The Split view layout just before the first opened pane; "Back to …" returns to it.
-
-- **`linkMode`** (`"open" | "peek"`, required): What following a link does: open a pane beside the views, or only peek. See `LinkMode`.
 
 ### Selection
 

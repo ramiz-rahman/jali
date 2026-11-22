@@ -119,8 +119,6 @@ export interface PageState {
   tab: string;
   /** The split layout just before the first opened pane: "Back to …" returns to it exactly. */
   before?: Layout;
-  /** What following a link does for this person: opens a pane beside the views, or only peeks (`setLinkMode`). */
-  linkMode: LinkMode;
 }
 
 /** A list's selected item, as its pane reported it (`select`). `inResults: false`: the list's filter no longer shows it. */
@@ -133,9 +131,10 @@ export interface UiState {
   layout: Layout;
   /** Null in the free layout, where the person builds the layout. */
   page: PageState | null;
-  /** The host's viewer policy for the curated page (`jali.page.setLinkMode`, `createJali({ linkMode })`), kept while
-   *  no page is open, so leaving the page and coming back never widens it. Undefined: links open. */
-  linkMode?: LinkMode;
+  /** What following a link on the curated page does for this person (`jali.page.setLinkMode`, `createJali({
+   *  linkMode })`): opens a pane beside the views, or only peeks. The instance's policy, kept whether or not a page is
+   *  open, so leaving the page and coming back never widens it. */
+  linkMode: LinkMode;
   /** The person's mode and split layout (while Split view is on screen, the live layout is the truth). */
   prefs: PagePrefs;
   view: ViewState;
@@ -505,6 +504,7 @@ export function createJaliStore(deps: JaliConfig): JaliStore {
     area: initialArea(env.spacing.inset),
     dir: deps.dir ?? pageDirection(),
     announcement: { text: "", seq: 0 },
+    linkMode: "open",
     reshapes: 0,
     ghost: null,
     unsaved: {},

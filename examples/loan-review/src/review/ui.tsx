@@ -111,7 +111,7 @@ export function Facts({ rows, cols }: { rows: (Fact | null | false)[]; cols?: 1 
 /** How a link is followed here: a peek in Single (and for roles that only peek), beside in Split view. */
 function useLinkVerb() {
   return useJaliState((s) =>
-    s.page && (s.page.mode === "single" || s.page.linkMode === "peek") ? "peek" : "beside",
+    s.page && (s.page.mode === "single" || s.linkMode === "peek") ? "peek" : "beside",
   );
 }
 

@@ -31,15 +31,18 @@ describe('setLinkMode("peek") from Split view', () => {
 
   it("is held whole for unsaved work: Keep editing leaves the mode and the permission", () => {
     expect(downgrade().reason).toBe("unsaved");
-    expect(page()).toMatchObject({ mode: "split", linkMode: "open" });
+    expect(page()).toMatchObject({ mode: "split" });
+    expect(store.get().linkMode).toBe("open");
     store.actions.keepEditing();
-    expect(page()).toMatchObject({ mode: "split", linkMode: "open" });
+    expect(page()).toMatchObject({ mode: "split" });
+    expect(store.get().linkMode).toBe("open");
   });
 
   it("is made whole on Discard: Single view and the limited permission", () => {
     expect(downgrade().reason).toBe("unsaved");
     store.actions.discardAndContinue();
-    expect(page()).toMatchObject({ mode: "single", linkMode: "peek" });
+    expect(page()).toMatchObject({ mode: "single" });
+    expect(store.get().linkMode).toBe("peek");
     expect(store.get().unsaved).toEqual({});
   });
 
@@ -47,7 +50,8 @@ describe('setLinkMode("peek") from Split view', () => {
     store.actions.setUnsaved("borrower", null);
     const seq = store.get().announcement.seq;
     expect(downgrade().ok).toBe(true);
-    expect(page()).toMatchObject({ mode: "single", linkMode: "peek" });
+    expect(page()).toMatchObject({ mode: "single" });
+    expect(store.get().linkMode).toBe("peek");
     expect(store.get().announcement.seq).toBe(seq + 1);
   });
 });
@@ -68,7 +72,8 @@ describe("a limited viewer and a layout that arrives", () => {
     expect(investigating).toContain("open");
     expect(downgrade().ok).toBe(true);
     location.visit(investigating);
-    expect(page()).toMatchObject({ mode: "single", linkMode: "peek" });
+    expect(page()).toMatchObject({ mode: "single" });
+    expect(store.get().linkMode).toBe("peek");
     expect(store.model().panes.every((p) => p.role)).toBe(true);
     stop();
   });

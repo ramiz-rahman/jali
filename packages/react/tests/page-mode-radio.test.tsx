@@ -48,7 +48,7 @@ describe("the view mode switch", () => {
     expect([single!.tabIndex, split!.tabIndex]).toEqual([0, -1]);
     single!.focus();
     act(() => void fireEvent.keyDown(single!, { key: "ArrowRight" }));
-    const can = jali.get().page!.linkMode === "open";
+    const can = jali.get().linkMode === "open";
     if (can) {
       expect(jali.get().page!.mode).toBe("split");
       expect(document.activeElement).toBe(split);
