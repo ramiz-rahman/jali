@@ -246,7 +246,9 @@ export function createAgent(jali: AnyJali, options: AgentOptions = {}): JaliAgen
         id: p.id,
         kind: p.ref.kind,
         title: m.title(p.id),
-        params: p.ref.params,
+        // A copy: the ref is the instance's own (refs aren't frozen, since they may be the app's objects), and an
+        // agent's runtime that edits what it read must not change the workspace behind its back.
+        params: { ...p.ref.params },
         state,
         ...(s.view.focused === p.id ? { focused: true as const } : {}),
         ...(s.view.zoomed === p.id ? { zoomed: true as const } : {}),

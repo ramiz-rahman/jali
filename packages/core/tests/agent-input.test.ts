@@ -112,3 +112,13 @@ describe("the app's allow, for arranging", () => {
     expect(r.steps.map((s) => s.action)).toEqual(["openBeside"]);
   });
 });
+
+describe("a snapshot", () => {
+  it("is the agent's to edit: changing a pane's params changes nothing in the workspace", () => {
+    const jali = make();
+    const snap = createAgent(jali).snapshot();
+    (snap.panes[0]!.params as { id: number }).id = 99;
+    expect(jali.model().panes[0]!.ref.params).toEqual({ id: 1 });
+    expect(createAgent(jali).snapshot().panes[0]!.params).toEqual({ id: 1 });
+  });
+});
