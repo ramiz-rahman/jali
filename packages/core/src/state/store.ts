@@ -55,6 +55,7 @@ import { loadPrefs, type PagePrefs } from "./page-prefs";
 import {
   pageEngineOf,
   presetById,
+  PHONE_BELOW,
   type Env,
   type ItemId,
   type Preset,
@@ -606,7 +607,13 @@ export function createUiStore(deps: UiStoreDeps): UiStore {
     // A refit's folds are part of what is on screen, so the address follows (a replace, once the size rests): a
     // link copied, or a reload at this size, reopens it. No history entry and no `layout` event: it is no change
     // the person made.
-    if (next.layout !== patch.layout && next.layout !== prev.layout && (resized || recapped))
+    // On a phone (Single view) the address stays as it was: widen, and the arrangement comes back (19 Nov 2026).
+    if (
+      next.layout !== patch.layout &&
+      next.layout !== prev.layout &&
+      (resized || recapped) &&
+      next.area.width >= (env.phone?.below ?? PHONE_BELOW)
+    )
       store.writeUrl("debounce");
     changed = true;
   };
