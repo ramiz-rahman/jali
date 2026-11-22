@@ -110,7 +110,7 @@ How one step went.
 The layout as data, as `snapshot()` and the `jali_snapshot` tool return it.
 
 <Params title="Fields">
-<Param name="workspace" type={`{ width: number; height: number; view: "single" | "split"; focused?: string; page?: { mode: string; tab?: string } | null }`} required>The size of Jali's root, its view (`"single"` while a phone shows one pane at a time, else `"split"`), the focused pane, and the curated page's mode and view when one is open.</Param>
+<Param name="layout" type={`{ width: number; height: number; view: "one-at-a-time" | "side-by-side"; focused?: string; page?: { mode: string; tab?: string } | null }`} required>The size of Jali's root, how the panes are shown (`"one-at-a-time"` while a phone shows one pane at a time, else `"side-by-side"`), the focused pane, and the curated page's mode and view when one is open.</Param>
 <Param name="panes" type="AgentPane[]" required>Every pane. See <Ref to="AgentPane" />.</Param>
 <Param name="kinds" type="AgentKind[]" required>The kinds of pane the app can open. See <Ref to="AgentKind" />.</Param>
 <Param name="presets" type="{ id: string; label: string }[]" required>The presets, in menu order.</Param>
@@ -157,8 +157,7 @@ A kind of pane, as the agent sees it.
 <Params title="Fields">
 <Param name="kind" type="string" required>Its name.</Param>
 <Param name="params" type="Record<string, string>" required>Each param: `number`, `string`, `boolean` or `one of: a, b`, with `?` when a ref may leave it out. A kind whose params are a Standard Schema is one entry, `params`, "an object (vendor schema)".</Param>
-<Param name="minWidth" type="number" required>Its `width.min`.</Param>
-<Param name="comfortableWidth" type="number">Its `width.comfortable`, when it has one.</Param>
+<Param name="width" type="{ min: number; comfortable?: number }" required>Its widths in CSS pixels, as the kind gives them in `definePane({ width })`: `min`, and `comfortable` when it has one.</Param>
 </Params>
 
 </Entry>

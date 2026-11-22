@@ -1,5 +1,5 @@
 /**
- * @jali/core/agent: lets an AI agent read a workspace and use it, through the same actions a person's clicks and keys
+ * @jali/core/agent: lets an AI agent read an instance's layout and change it, through the same actions a person's clicks and keys
  * run (learned from ui-sdk.dev's agent bridge). An entry of its own, so an app that has no agent ships none of it.
  *
  *   const agent = createAgent(jali, { allow: (step) => step.action !== "close" || "Ask before closing" });
@@ -9,7 +9,7 @@
  *   agent.registerTools();                                   // offered to the browser's agent (WebMCP)
  *
  * Every change an agent makes carries `input: "agent"` in Jali's events. The app decides what the agent may do:
- * which actions (`actions`), each step (`allow`), and whether the workspace rearranges itself after the agent opens
+ * which actions (`actions`), each step (`allow`), and whether the layout rearranges itself after the agent opens
  * or closes panes (`arrange`). A close that would lose unsaved work still asks the person.
  */
 import { withInput } from "./dom/input";
@@ -49,7 +49,7 @@ export const AGENT_ACTIONS = {
   unmerge: "unmerge(pane?): move a tab out of its tabs, to their right",
   moveTab: "moveTab(pane, index): move a tab to position `index` (from 0) in its group",
   setPinned: "setPinned(pane, pinned): pin or unpin a pane's tab",
-  preset: "preset(id): switch to one of the workspace's preset layouts",
+  preset: "preset(id): switch to one of the app's preset layouts",
   resetLayout: "resetLayout(): rebuild the preset last chosen",
   autoLayout:
     "autoLayout(): arrange every pane from the room there is and each kind's size hints (side by side, a second row when there is height, the rest as tabs beside the pane they came from)",
@@ -74,7 +74,7 @@ export interface AgentOptions {
   /** Asked before each step: `false`, or a reason, refuses it (the agent hears the reason); anything else allows it. */
   allow?: (step: AgentStep) => boolean | string | void;
   /**
-   * Whether the workspace rearranges itself after the agent's changes. `"when-asked"` (default): only when the agent
+   * Whether the layout rearranges itself after the agent's changes. `"when-asked"` (default): only when the agent
    * runs `autoLayout`. `"after-changes"`: also after every `act` that opened or closed panes, so the agent can add and
    * remove panes and leave the arranging to Jali.
    */
@@ -111,16 +111,18 @@ export interface AgentKind {
   kind: string;
   /** Its params: `number`, `string`, `boolean` or `one of: a, b`, with `?` when a ref may leave it out. */
   params: Record<string, string>;
-  minWidth: number;
-  comfortableWidth?: number;
+  /** Its widths in CSS pixels, as the kind gives them (`definePane({ width })`): the least it needs, and the width it
+   *  is comfortable at when it says one. */
+  width: { min: number; comfortable?: number };
 }
 
 export interface AgentSnapshot {
-  workspace: {
+  /** The room the panes have, and how they are shown. */
+  layout: {
     width: number;
     height: number;
-    /** `single`: one pane at a time (a phone); `split`: panes side by side. */
-    view: "single" | "split";
+    /** `one-at-a-time`: one pane at a time (a phone); `side-by-side`: panes side by side. */
+    view: "one-at-a-time" | "side-by-side";
     focused?: string;
     page?: { mode: string; tab?: string } | null;
   };
@@ -146,7 +148,7 @@ export interface AgentResult {
   /** Every step ran. Steps stop at the first refusal. */
   ok: boolean;
   steps: AgentStepResult[];
-  /** The workspace after. */
+  /** The layout after. */
   snapshot: AgentSnapshot;
 }
 
@@ -260,10 +262,10 @@ export function createAgent(jali: AnyJali, options: AgentOptions = {}): JaliAgen
     });
     const registry = kinds.registry();
     return {
-      workspace: {
+      layout: {
         width: s.area.width,
         height: s.area.height,
-        view: m.single ? "single" : "split",
+        view: m.single ? "one-at-a-time" : "side-by-side",
         ...(s.view.focused ? { focused: s.view.focused } : {}),
         page: s.page ? { mode: s.page.mode, ...(s.page.tab ? { tab: s.page.tab } : {}) } : null,
       },
@@ -271,8 +273,10 @@ export function createAgent(jali: AnyJali, options: AgentOptions = {}): JaliAgen
       kinds: Object.values(registry).map((k) => ({
         kind: k.kind,
         params: Object.fromEntries(paramEntries(kinds.get(k.kind)?.params)),
-        minWidth: k.minWidth,
-        ...(k.comfortableWidth !== undefined ? { comfortableWidth: k.comfortableWidth } : {}),
+        width: {
+          min: k.minWidth,
+          ...(k.comfortableWidth !== undefined ? { comfortable: k.comfortableWidth } : {}),
+        },
       })),
       presets: m.env.presets.map((p) => ({ id: p.id, label: p.label })),
       actions: Object.fromEntries([...allowed].map((a) => [a, AGENT_ACTIONS[a]])),
@@ -395,13 +399,13 @@ export function createAgent(jali: AnyJali, options: AgentOptions = {}): JaliAgen
       {
         name: "jali_snapshot",
         description:
-          "Read the workspace: its panes (id, kind, title, params, where each is: shown, tab, folded, tucked or hidden; links, pins, unsaved work), the kinds of pane it can open and their params, its presets, and the actions you may use. Call it before acting.",
+          "Read the layout: its panes (id, kind, title, params, where each is: shown, tab, folded, tucked or hidden; links, pins, unsaved work), the kinds of pane it can open and their params, its presets, and the actions you may use. Call it before acting.",
         inputSchema: { type: "object", properties: {}, additionalProperties: false },
         execute: async () => text(snapshot()),
       },
       {
         name: "jali_act",
-        description: `Change the workspace with one or more steps, in order; they stop at the first refusal, and the result says why and gives the workspace after. A pane argument is a pane id from jali_snapshot, or the ref of the object it shows. A ref is { "kind": "...", "params": { ... } }, with the params its kind lists.${arrange === "after-changes" ? " After steps that open or close panes, the workspace arranges itself." : ""}\n\nActions:\n${list}`,
+        description: `Change the layout with one or more steps, in order; they stop at the first refusal, and the result says why and gives the layout after. A pane argument is a pane id from jali_snapshot, or the ref of the object it shows. A ref is { "kind": "...", "params": { ... } }, with the params its kind lists.${arrange === "after-changes" ? " After steps that open or close panes, the layout arranges itself." : ""}\n\nActions:\n${list}`,
         inputSchema: {
           type: "object",
           properties: {

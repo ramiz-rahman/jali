@@ -205,7 +205,7 @@ The layout as data, as `snapshot()` and the `jali_snapshot` tool return it.
 
 **Fields**
 
-- **`workspace`** (`{ width: number; height: number; view: "single" | "split"; focused?: string; page?: { mode: string; tab?: string } | null }`, required): The size of Jali's root, its view (`"single"` while a phone shows one pane at a time, else `"split"`), the focused pane, and the curated page's mode and view when one is open.
+- **`layout`** (`{ width: number; height: number; view: "one-at-a-time" | "side-by-side"; focused?: string; page?: { mode: string; tab?: string } | null }`, required): The size of Jali's root, how the panes are shown (`"one-at-a-time"` while a phone shows one pane at a time, else `"side-by-side"`), the focused pane, and the curated page's mode and view when one is open.
 
 - **`panes`** (`AgentPane[]`, required): Every pane. See `AgentPane`.
 
@@ -285,9 +285,7 @@ A kind of pane, as the agent sees it.
 
 - **`params`** (`Record<string, string>`, required): Each param: `number`, `string`, `boolean` or `one of: a, b`, with `?` when a ref may leave it out. A kind whose params are a Standard Schema is one entry, `params`, "an object (vendor schema)".
 
-- **`minWidth`** (`number`, required): Its `width.min`.
-
-- **`comfortableWidth`** (`number`): Its `width.comfortable`, when it has one.
+- **`width`** (`{ min: number; comfortable?: number }`, required): Its widths in CSS pixels, as the kind gives them in `definePane({ width })`: `min`, and `comfortable` when it has one.
 
 ## Tools
 

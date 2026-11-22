@@ -1,4 +1,4 @@
-/** The agent bridge (@jali/core/agent): an agent reads the workspace and acts through Jali's own actions. */
+/** The agent bridge (@jali/core/agent): an agent reads the layout and acts through Jali's own actions. */
 import { describe, expect, it, vi } from "vite-plus/test";
 import { createJali, memoryLocation, memoryStorage, row, type JaliInput } from "@jali/core";
 import { createAgent } from "@jali/core/agent";
@@ -38,11 +38,29 @@ describe("agent bridge", () => {
     expect(snap.kinds.find((k) => k.kind === "order")).toEqual({
       kind: "order",
       params: { id: "number", tab: "one of: lines, history?" },
-      minWidth: 360,
-      comfortableWidth: 480,
+      width: { min: 360, comfortable: 480 },
     });
+    expect(snap.kinds.find((k) => k.kind === "list")?.width).toEqual({ min: 320 });
     expect(Object.keys(snap.actions)).toEqual(["openBeside", "close"]);
-    expect(snap.workspace.view).toBe("split");
+    expect(snap.layout).toMatchObject({ width: 1600, height: 900, view: "side-by-side" });
+    expect("workspace" in snap).toBe(false);
+  });
+
+  it("says one pane at a time on a phone, and never workspace in what it tells the model", () => {
+    const jali = createJali({
+      panes: [list, order],
+      layout: row(list(), order({ id: 1 })),
+      storage: memoryStorage(),
+      size: { width: 390, height: 844 },
+      moveFocus: false,
+    });
+    const agent = createAgent(jali);
+    expect(agent.snapshot().layout.view).toBe("one-at-a-time");
+    const told = JSON.stringify([
+      agent.snapshot().actions,
+      agent.tools().map((t) => t.description),
+    ]);
+    expect(told).not.toMatch(/workspace/i);
   });
 
   it("acts through Jali's actions, and its changes say input agent", () => {
