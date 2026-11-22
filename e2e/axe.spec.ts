@@ -68,6 +68,19 @@ test.describe("axe", () => {
     expect(await axe(page)).toEqual([]);
   });
 
+  test("the palette with nothing found: no option-less list item, and the empty state is a status", async ({
+    app,
+    page,
+  }) => {
+    await app.open();
+    await app.pane("orders").click({ position: { x: 100, y: 10 } });
+    await page.keyboard.press("ControlOrMeta+k");
+    const input = page.getByRole("combobox");
+    await input.fill("zzzz nothing matches this");
+    await expect(page.getByRole("status").filter({ hasText: /zzzz/ })).toBeVisible();
+    expect(await axe(page)).toEqual([]);
+  });
+
   test("Settings: Tab stays inside, and Esc gives focus back to what opened it", async ({
     app,
     page,

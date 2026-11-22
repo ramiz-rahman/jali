@@ -76,6 +76,7 @@ export function ListDialog<T>(p: Props<T>) {
         className="jali-palette-input"
         placeholder={p.placeholder}
         role="combobox"
+        aria-autocomplete="list"
         aria-label={p.inputLabel}
         aria-expanded="true"
         aria-controls={p.listId}
@@ -124,8 +125,12 @@ export function ListDialog<T>(p: Props<T>) {
             </li>
           );
         })}
-        {!items.length ? <li className="jali-palette-empty">{p.empty(q)}</li> : null}
       </ul>
+      {/* Nothing found: said as a status, outside the list (a listbox holds options only). Always there, so it is
+          a live region before its words arrive. */}
+      <div role="status" className={items.length ? undefined : "jali-palette-empty"}>
+        {items.length ? null : p.empty(q)}
+      </div>
     </ModalDialog>
   );
 }

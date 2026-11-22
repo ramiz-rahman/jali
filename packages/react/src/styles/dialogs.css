@@ -71,7 +71,12 @@
     font-size: var(--jali-text-xs);
     color: var(--jali-text-muted);
   }
+  /* An empty list keeps its top padding; the message below it stands where its first row would. */
+  .jali-palette-list:empty {
+    padding-bottom: 0;
+  }
   .jali-palette-empty {
+    margin: 0 0.375rem 0.375rem;
     padding: 0.75rem 0.625rem;
     color: var(--jali-text-subtle);
   }
