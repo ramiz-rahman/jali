@@ -18,23 +18,24 @@ import { gzipSync } from "node:zlib";
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 
 // Gzipped KB budgets per scenario and package: about 5% over what each shipped after phase 3b, and never above the
-// budget the same app had before it (minimal, full, own-icons, layout: the owner's, 22 Nov 2026). docs/DECISIONS.md,
-// "Phase 3b's size", has the numbers and what each feature adds over the floor.
+// budget the same app had before it (minimal, full, own-icons, layout: the owner's, 22 Nov 2026). The core review's
+// fixes raised minimal, full, own-icons, +url and +defaults core by 0.6-0.7 KB (the owner's call, 23 Nov 2026).
+// docs/DECISIONS.md, "Phase 3b's size", has the numbers and what each feature adds over the floor.
 const BUDGETS = {
   bare: { core: 54.5, react: 24.7, css: 8.6, phosphor: 0 },
-  minimal: { core: 55.5, react: 24.7, css: 8.6, phosphor: 0 },
-  full: { core: 62.1, react: 30.3, css: 8.6, phosphor: 1.7 },
-  "own-icons": { core: 56.7, react: 27.5, css: 8.6, phosphor: 0 },
+  minimal: { core: 56.2, react: 24.7, css: 8.6, phosphor: 0 },
+  full: { core: 62.7, react: 30.3, css: 8.6, phosphor: 1.7 },
+  "own-icons": { core: 57.3, react: 27.5, css: 8.6, phosphor: 0 },
   headless: { core: 48.7 },
   layout: { core: 10.7 },
-  "+url": { core: 55.5, react: 24.7 },
+  "+url": { core: 56.2, react: 24.7 },
   "+palette": { core: 54.7, react: 25.7 },
   "+settings": { core: 55, react: 25.6 },
   "+chooser": { core: 54.7, react: 26 },
   "+rename": { core: 54.6, react: 25.1 },
   "+popOut": { core: 54.6, react: 25.9 },
   "+pressed": { core: 54.5, react: 25.1 },
-  "+defaults": { core: 56.7, react: 27.5 },
+  "+defaults": { core: 57.3, react: 27.5 },
   "+page": { core: 59.7, react: 25.9 },
 };
 
