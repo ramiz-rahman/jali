@@ -1,21 +1,23 @@
 ---
 title: Commands
-summary: Every workspace command, its default keys on a Mac and on Windows and Linux, and when it is refused.
+summary: Every command, its default keys on a Mac and on Windows and Linux, and when it is refused.
 ---
 
 import { CommandTable } from "../../reference";
 
-Every command has a stable id. The palette lists them all (greyed while refused); the keyboard runs the one a binding names; `runCommand(jali, id)` runs one from code. Rebind or unbind any of them with the workspace's `keymap` option:
+Every command has a stable id. The palette lists them all (greyed while refused); the keyboard runs the one a binding names; `runCommand(jali, id)` runs one from code. Rebind or unbind any of them with `createJali({ keyboard: { keymap } })`:
 
 ```ts
-createJali({ panes, layout, keymap: { "pane.close": "Mod+K Mod+W", "pane.split.down": null } });
+import { createJali } from "jali";
+
+createJali({ panes, layout, keyboard: { keymap: { "pane.close": "Mod+K Mod+X", "pane.split.down": null } } });
 ```
 
-`Mod` is ⌘ on a Mac and Ctrl on Windows and Linux. A key written after a space is a second step: for ⌘K ⌘M, hold ⌘, press K, then M, keeping ⌘ held. ⌘K on its own opens the palette.
+`Mod` is ⌘ on a Mac and Ctrl on Windows and Linux. A key written after a space is a second step: for ⌘K ⌘M, hold ⌘, press K, then M, keeping ⌘ held. ⌘K on its own opens the palette, with the `palette()` feature.
 
 When a command is refused, its key is still taken. If the refusal has a reason, it is announced in the live region; "silent" below means it is not. While the palette, Settings or the chooser is open, only the palette's key works.
 
-The titles below are for a workspace with no curated page. With a curated page, "page" becomes the page's name and "viewer" and "investigator" its viewers' words; "Open Workspace" uses the workspace's `name`.
+The titles below are for an instance with no curated page. With a curated page, "page" becomes the page's name and "viewer" its viewers' words; "Open …" uses `createJali({ name })`, and without a name the command reads "Leave" and the page's name.
 
 <CommandTable />
 
@@ -23,5 +25,5 @@ The titles below are for a workspace with no curated page. With a curated page, 
 
 - **Esc**, after the focused content has had it: closes the peek, else leaves maximise.
 - **Resize mode** (`pane.resize_mode`): the arrows move the divider nearest the pane on that side, Shift for bigger steps; Esc or Enter leaves.
-- **In content marked `data-pane-keys="content"`** (an editor), the workspace takes only F6 and Shift+F6, so focus can always leave.
+- **In content marked `data-pane-keys="content"`** (an editor), the instance takes only F6 and Shift+F6, so focus can always leave.
 - Single character keys, ⌘Z or Ctrl+Z, Enter, Space and the first Esc belong to the focused content. A binding of a single character key with no Mod, Ctrl or Alt is refused when the keymap is made.

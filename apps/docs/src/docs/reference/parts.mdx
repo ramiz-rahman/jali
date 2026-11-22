@@ -1,6 +1,6 @@
 ---
 title: Parts
-summary: Every part of the workspace you can style, its element, its selector, and the attributes that carry its state.
+summary: Every part of Jali you can style, its element, its selector, and the attributes that carry its state.
 ---
 
 import { PartsTable } from "../../reference";
@@ -70,7 +70,7 @@ Give the tab's title `min-width: 0` (`.jali-tab-title`) so it shrinks first when
 
 ## Theme
 
-A started workspace writes the theme in use, `light` or `dark`, as `data-theme` on `<html>`, and on its root (`[data-jali]`) and the layer that holds its dialogs (`[data-jali-layer]`) as well, so a rule can be scoped to the workspace: `[data-jali][data-theme="dark"] .grain { background-image: url(grain-dark.svg); }`. It follows the theme setting and, for System, the system's preference. The copy on the root and layer is not a theme scope of its own for Jali's styles: whatever sits between `<html>` and the workspace still decides its colours. With `createJali({ pageTheme: false })` Jali writes none of them, because the page's own theme decides: switch images on your own theme scope, or on `prefers-color-scheme` when the page has none. Nor does it write over a `data-theme` you give `<JaliRoot>`.
+A started instance writes the theme in use, `light` or `dark`, as `data-theme` on `<html>`, and on its root (`[data-jali]`) and the layer that holds its dialogs (`[data-jali-layer]`) as well, so a rule can be scoped to the instance: `[data-jali][data-theme="dark"] .grain { background-image: url(grain-dark.svg); }`. It follows the theme setting and, for System, the system's preference. The copy on the root and layer is not a theme scope of its own for Jali's styles: whatever sits between `<html>` and the instance still decides its colours. With `createJali({ pageTheme: false })` Jali writes none of them, because the page's own theme decides: switch images on your own theme scope, or on `prefers-color-scheme` when the page has none. Nor does it write over a `data-theme` you give `<JaliRoot>`.
 
 ## Pressed
 
@@ -89,9 +89,9 @@ Attributes a pane sets with `usePaneAttributes` appear on everything that stands
 
 Corners, spacing and colours are tokens, not parts: every corner reads `--jali-radius`, `--jali-radius-control`, `--jali-radius-menu` or `--jali-radius-chip`, and the space between panes is `createJali({ gap, inset })`, which Jali writes as `--jali-gap` and `--jali-inset`.
 
-## Workspace
+## Instance
 
-<PartsTable area="Workspace" />
+<PartsTable area="Instance" />
 
 ## Pane
 

@@ -21,6 +21,7 @@ import * as chooser from "jali/chooser";
 import * as rename from "jali/rename";
 import * as popOut from "jali/pop-out";
 import * as pressed from "jali/pressed";
+import * as agent from "jali/agent";
 import { COMMANDS, REFUSED, displayId } from "./command-data";
 import { TOKEN_PURPOSE, inPlaceTokensOf, publicTokensOf, readsOf } from "./token-data";
 
@@ -46,7 +47,7 @@ const documented = (() => {
   return names;
 })();
 
-/** Type-only exports of an entry file: every `type X` inside `export { … }` and every name in `export type { … }`. */
+/** Type-only exports of an entry file: every `type X` inside `export { … }`, every name in `export type { … }`, and every `export interface` or `export type` declared in it. */
 function typeExports(file: string): string[] {
   const src = readFileSync(file, "utf8")
     .replace(/\/\*[\s\S]*?\*\//g, "")
@@ -69,6 +70,8 @@ function typeExports(file: string): string[] {
       else if (t) out.push(t[1]!);
     }
   }
+  // Declared in place: `export interface X` and `export type X =` (jali/agent's own file).
+  for (const m of src.matchAll(/^export\s+(?:interface|type)\s+(\w+)/gm)) out.push(m[1]!);
   return out;
 }
 
@@ -87,10 +90,10 @@ describe("the reference covers the public API", () => {
     expect(missing(names)).toEqual([]);
   });
 
-  it("every value jali/react, jali/page, jali/icons and jali/testing export has an entry", () => {
-    expect(missing([react, page, icons, testing].flatMap((entry) => Object.keys(entry)))).toEqual(
-      [],
-    );
+  it("every value jali/react, jali/page, jali/icons, jali/testing and jali/agent export has an entry", () => {
+    expect(
+      missing([react, page, icons, testing, agent].flatMap((entry) => Object.keys(entry))),
+    ).toEqual([]);
   });
 
   it("every feature has an entry", () => {
@@ -105,6 +108,7 @@ describe("the reference covers the public API", () => {
   it("every type an app's entries export has an entry", () => {
     const types = [
       ...typeExports(join(packages, "core/src/index.ts")),
+      ...typeExports(join(packages, "core/src/agent.ts")),
       ...["react", "page", "icons", "testing", "url"].flatMap((e) =>
         typeExports(join(packages, `jali/src/${e}.ts`)),
       ),

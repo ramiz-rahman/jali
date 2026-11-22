@@ -86,14 +86,14 @@ export const REFUSED: Record<string, string> = {
   "pane.resize_mode":
     'Silent when no pane is focused. When the pane has no divider, the action says "Nothing to resize: this pane has no divider".',
   "pane.close":
-    'Silent when no pane is focused or only one pane is open (so always in a curated page\'s Single). In Split view a view is never closed: it goes back to the page tabs, refused with "… is the only view on screen" for the last one.',
+    'Silent when no pane is focused or only one pane is open (so always in a curated page\'s Single view). In Split view a view is never closed: it goes back to the page tabs, refused with "… is the only view on screen" for the last one.',
   "pane.close_others":
     'Silent when no pane is focused or only one pane is open. In a curated page it means Back to the page, refused with "Nothing opened beyond the page" when nothing was opened.',
   "pane.undo_close":
     '"Nothing to restore" when the undo stack is empty. Undoes the last close, close others or tuck.',
-  "pane.split.right": "Silent when no pane is focused, or the workspace has no launcher kind.",
-  "pane.split.down": "Silent when no pane is focused, or the workspace has no launcher kind.",
-  "pane.split.auto": "Silent when no pane is focused, or the workspace has no launcher kind.",
+  "pane.split.right": "Silent when no pane is focused, or there is no launcher.",
+  "pane.split.down": "Silent when no pane is focused, or there is no launcher.",
+  "pane.split.auto": "Silent when no pane is focused, or there is no launcher.",
   "pane.move.left":
     'Silent when no pane is focused or only one pane is open. With no pane to that side: "… can\'t move left".',
   "pane.move.right":
@@ -106,7 +106,7 @@ export const REFUSED: Record<string, string> = {
   "pane.move.out":
     'Silent unless the focused pane is in a row that scrolls sideways (`row({ scroll: "x" }, …)`). Takes it out beside the row, on the side it is nearer on screen: "… moved out of the row".',
   "pane.merge":
-    'Only in a workspace with the chooser() feature (jali/chooser). Silent when no pane is focused, or there is no other pane or stack on screen to join. Opens the "Add to tabs of…" chooser.',
+    'Only with the chooser() feature (jali/chooser). Silent when no pane is focused, or there is no other pane or stack on screen to join. Opens the "Add to tabs of…" chooser.',
   "pane.unmerge":
     "Silent unless the focused pane is in a tab group made by the person (not one the layout folded).",
   "tab.move.left":
@@ -114,14 +114,14 @@ export const REFUSED: Record<string, string> = {
   "tab.move.right":
     'Silent unless the focused pane is a tab in a group made by the person or the app. At the end of the strip: "… is already the last tab".',
   "pane.rename":
-    "Only in a workspace with the rename() feature (jali/rename). Silent unless its `can` allows the focused pane. Opens the rename field on its tab or title.",
-  "stack.new-tab": "Silent when no pane is focused, or the workspace has no launcher kind.",
+    "Only with the rename() feature (jali/rename). Silent unless its `can` allows the focused pane. Opens the rename field on its tab or title.",
+  "stack.new-tab": "Silent when no pane is focused, or there is no launcher.",
   [PRESET_PATTERN]: 'Never. One command per preset, titled "Layout: <label>".',
   "pane.fullscreen":
     "On a curated page in Single view. Puts the focused pane on the whole screen, or takes it off.",
   "pane.pop_out":
-    "Only in a workspace with the popOut() feature (jali/pop-out). Silent when no pane is focused, or the browser can't pop out (Document Picture-in-Picture: Chrome and Edge on desktop). When the focused pane doesn't allow it, says so. Opens it in a floating window that stays on top.",
-  "layout.reset": "Silent in a workspace without presets. Rebuilds the preset last chosen.",
+    "Only with the popOut() feature (jali/pop-out). Silent when no pane is focused, or the browser can't pop out (Document Picture-in-Picture: Chrome and Edge on desktop). When the focused pane doesn't allow it, says so. Opens it in a floating window that stays on top.",
+  "layout.reset": "Silent without presets. Rebuilds the preset last chosen.",
   "layout.auto":
     "On a curated page, on a phone (one pane at a time), or with one pane. Arranges every pane from the room and the kinds' sizes; Back undoes it.",
   "layout.copy_link":
@@ -130,7 +130,7 @@ export const REFUSED: Record<string, string> = {
   "page.reset": "Silent unless a curated page is open in Split view.",
   "page.single": "Silent unless a curated page is open in Split view.",
   "page.split": "Silent unless a curated page is open in Single and the viewer may investigate.",
-  "page.open": "Silent while the page is open, or when the workspace has no profile.",
+  "page.open": "Silent while the page is open, or when there is no curated page.",
   "page.leave": "Silent unless a curated page is open, and in a page-only app (no presets).",
   "page.as_limited": "Silent unless a curated page is open and the viewer may investigate.",
   "page.as_full": "Silent unless a curated page is open and the viewer may not investigate.",
@@ -138,6 +138,6 @@ export const REFUSED: Record<string, string> = {
   "peek.open_beside": "Silent when no peek is open.",
   "peek.open_full": "Silent when no peek is open.",
   "settings.open":
-    "Only in a workspace with the settings() feature (jali/settings). Never refused there.",
+    "Only with the settings() feature (jali/settings). Never refused there.",
   "settings.centre_drop.toggle": "Never.",
 };

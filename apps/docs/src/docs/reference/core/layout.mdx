@@ -6,7 +6,7 @@ summary: The pure layout operations of jali, each taking a layout and returning 
 import { Entry, Params, Param, Returns, Values, Value, Members, Member, Ref } from "../../../reference";
 import layoutCode from "../../../samples/reference/layout-ops.ts?raw";
 
-`layout` is a namespace export of `jali`. Every member is pure: the layout you pass is never changed, an operation that does nothing returns the same object, and the workspace's actions are built from these. To write a layout, use the builders (`row`, `column`, `tabs`, `pane`); these work on one. Types such as `layout.OpenResult` and `layout.UndoEntry` are reachable through it as well.
+`layout` is a namespace export of `jali`. Every member is pure: the layout you pass is never changed, an operation that does nothing returns the same object, and the instance's actions are built from these. To write a layout, use the builders (`row`, `column`, `tabs`, `pane`); these work on one. Types such as `layout.OpenResult` and `layout.UndoEntry` are reachable through it as well.
 
 <Entry name="layout.open" kind="function" from="jali" signature={`layout.open(
   layout: Layout, view: ViewState, target: string, edge: Edge,
@@ -70,7 +70,7 @@ Opens `ref` as a new tab of `target`'s tab group (a new group when `target` has 
 
 Removes a pane. Its space goes to the pane it was opened from when that is a sibling, else the next sibling, else the previous. Links to it are dropped. When it had focus, focus goes to the most recently focused pane still open. The last pane is never closed: the same layout comes back.
 
-<Returns type="{ layout; view; undo }">`undo` holds the layout and view before, for the workspace's undo.</Returns>
+<Returns type="{ layout; view; undo }">`undo` holds the layout and view before, for the instance's undo.</Returns>
 
 </Entry>
 
@@ -461,7 +461,7 @@ Pixels from the centre at which a snapped divider lets go.
 
 <Entry name="layout.tree" kind="namespace" from="jali" signature={`layout.tree.panes(layout.root)`} compact>
 
-Helpers for reading the tree. Each one leaves the tree it is given as it is; `map` returns a new tree. To change a layout, use the operations on this page or `jali.actions`. Each takes a tree a workspace gave (read-only) as well as one of your own; `clone` gives a copy to edit.
+Helpers for reading the tree. Each one leaves the tree it is given as it is; `map` returns a new tree. To change a layout, use the operations on this page or `jali.actions`. Each takes a tree an instance gave (read-only) as well as one of your own; `clone` gives a copy to edit.
 
 <Members>
 <Member name="layout.tree.clone" signature="clone<T>(value: T): T">A deep copy (`structuredClone`).</Member>

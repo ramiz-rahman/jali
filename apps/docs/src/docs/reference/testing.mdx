@@ -1,11 +1,11 @@
 ---
 title: "jali/testing"
-summary: A workspace for tests, keys, and what a rendered pane would report, without the adapter's internals.
+summary: An instance for tests, keys, and what a rendered pane would report, without the adapter's internals.
 ---
 
 import { Entry, Params, Param, Ref } from "../../reference";
 
-What your app's own tests need. See [Test a workspace](/guides/testing).
+What your app's own tests need. See [Test an instance](/guides/testing).
 
 <Entry name="createTestJali" kind="function" from="jali/testing" signature={`createTestJali(options: TestJaliOptions): { jali: Jali; location: TestLocation }`}>
 
@@ -15,7 +15,7 @@ What your app's own tests need. See [Test a workspace](/guides/testing).
 
 <Entry name="testJaliOptions" kind="function" from="jali/testing" signature={`testJaliOptions(options?: { search?: string; size?: { width: number; height: number } }): { options: Partial<JaliOptions>; location: TestLocation }`}>
 
-The same options, for an app that makes its workspace in a function of its own: pass `options` to it, and put your own features before its `features` (`[...defaultFeatures(), ...(options.features ?? [])]`), so its memory address takes the place of `urlSync()`.
+The same options, for an app that makes its instance in a function of its own: pass `options` to it, and put your own features before its `features` (`[...defaultFeatures(), ...(options.features ?? [])]`), so its memory address takes the place of `urlSync()`.
 
 </Entry>
 
@@ -57,19 +57,19 @@ What `jali.dialogs.choose` is asking the person now, or `null`. Choose by callin
 
 <Entry name="lastAnnouncement" kind="function" from="jali/testing" signature={`lastAnnouncement(jali: AnyJali): string`} compact>
 
-The last thing the workspace said to assistive technology.
+The last thing the instance said to assistive technology.
 
 </Entry>
 
 <Entry name="pressKeys" kind="function" from="jali/testing" signature={`pressKeys(keys: string, options?: { target?: EventTarget; platform?: "mac" | "other" }): boolean`} compact>
 
-Presses keys as a person would: `"Mod+K Mod+W"` is ⌘K then ⌘W on a Mac (the default) and Ctrl elsewhere, dispatched at `target` (default: the focused element). A started workspace hears them. Returns whether the last was taken.
+Presses keys as a person would: `"Mod+K Mod+X"` is ⌘K then ⌘X on a Mac (the default) and Ctrl elsewhere, dispatched at `target` (default: the focused element). A started instance hears them. Returns whether the last was taken.
 
 </Entry>
 
 <Entry name="TestJaliOptions" kind="type" from="jali/testing" signature={`interface TestJaliOptions extends JaliOptions { search?: string }`} compact>
 
-`createTestJali`'s options: a workspace's, and the link it opens on.
+`createTestJali`'s options: an instance's, and the link it opens on.
 
 </Entry>
 

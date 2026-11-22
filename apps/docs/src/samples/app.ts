@@ -53,3 +53,5 @@ export const forgetSavedLayouts = (): void => {};
 export const drafts = { for: async (_refs: unknown[]): Promise<string[]> => [] };
 export const askToSave = async (_panes: unknown[]): Promise<boolean> => true;
 export { stageKind as stage } from "./guides/scrolling-rows/board";
+export const analytics = { track: (_event: string, _data: object): void => {} };
+export const saveName = async (_ref: unknown, _name: string): Promise<void> => {};

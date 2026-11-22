@@ -16,5 +16,5 @@ export const store = createJali({
     },
   ],
   name: "Sales desk",
-  keyboard: { keymap: { "pane.close": "Mod+K Mod+W", "pane.split.down": null } },
+  keyboard: { keymap: { "pane.close": "Mod+K Mod+X", "pane.split.down": null } },
 });

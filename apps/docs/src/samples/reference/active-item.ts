@@ -2,7 +2,7 @@ import { activeItemPort } from "jali";
 import { orderKind } from "./kinds";
 import { store } from "./store";
 
-// A list in pane "orders" keeps its current row through the port; the workspace follows it.
+// A list in pane "orders" keeps its current row through the port; Jali follows it.
 const port = activeItemPort(store, "orders", {
   toRef: (itemId) => orderKind({ id: Number(itemId) }),
   idOf: (ref) => (ref.kind === "order" ? String(ref.params.id) : null),

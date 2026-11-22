@@ -11,7 +11,7 @@ export const jali = createJali({
   features: [urlSync({ prefix: "a.", sizes: "link" }), palette()], // each a value from its own module
   storage: "sales", // localStorage keys "sales:…", or a StoragePort
   id: "sales", // DOM ids "sales-pane-…"
-  keyboard: { scope: "local", keymap: { "pane.close": "Mod+K Mod+W" } }, // only keys pressed inside it
+  keyboard: { scope: "local", keymap: { "pane.close": "Mod+K Mod+X" } }, // only keys pressed inside it
   pageTheme: false, // leave data-theme on <html> to the page
 });
 
@@ -26,5 +26,5 @@ export const inMemory = createJali({
   moveFocus: false,
 });
 
-location.entries; // every address the workspace pushed or replaced
-location.visit("?tab=2"); // navigation from outside: the workspace hears it, as it hears Back and Forward
+location.entries; // every address Jali pushed or replaced
+location.visit("?tab=2"); // navigation from outside: Jali hears it, as it hears Back and Forward

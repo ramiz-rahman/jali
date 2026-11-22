@@ -7,11 +7,11 @@ import { TokenTable, BridgeTable } from "../../reference";
 
 Jali's styles read only `--jali-*` custom properties. Set any of them on `:root` or on a subtree to retheme; the derived tokens follow the accent. Names starting `--jali-default-` are the theme's internal palette: don't set or read them. The theme is in the `jali` layer, so set tokens outside any layer or in a layer after `jali`.
 
-Every token but the few read in place (below) is declared once, on the root, inside `:where()`, so your own declaration wins at any specificity and in any import order, wherever you set it: on `:root`, on any element around a workspace, or on its root (`[data-jali]`), with any theme scope in between. Jali's defaults are `light-dark()` pairs, resolved by the `color-scheme` where they are used: dark under `prefers-color-scheme: dark` and inside a `.dark` or `[data-theme="dark"]` scope, light inside `.light` or `[data-theme="light"]`. A started workspace sets `data-theme` on `<html>` from the theme setting, unless it was made with `pageTheme: false`.
+Every token but the few read in place (below) is declared once, on the root, inside `:where()`, so your own declaration wins at any specificity and in any import order, wherever you set it: on `:root`, on any element around Jali's root, or on the root itself (`[data-jali]`), with any theme scope in between. Jali's defaults are `light-dark()` pairs, resolved by the `color-scheme` where they are used: dark under `prefers-color-scheme: dark` and inside a `.dark` or `[data-theme="dark"]` scope, light inside `.light` or `[data-theme="light"]`. A started instance sets `data-theme` on `<html>` from the theme setting, unless it was made with `pageTheme: false`.
 
 ```css
 :root { --jali-accent: #0f766e; }                  /* the whole page */
-.orders-workspace { --jali-radius: 0.25rem; }      /* one workspace */
+.orders { --jali-radius: 0.25rem; }                 /* one instance, around its <JaliRoot> */
 ```
 
 Each row below gives the token, what it is for, and the `jali-*` classes whose rules read it (taken from the package's styles). Its swatches are drawn from the variable itself, in a light and a dark scope.
@@ -69,7 +69,7 @@ Written by Jali, not set by you. The layout measures in pixels, so the space bet
 | Token | What it is | Default |
 |---|---|---|
 | `--jali-gap` | The space between panes, and the gutter a strip's scrollbar sits in (`createJali({ gap })`). | `6px` |
-| `--jali-inset` | The space between the workspace's edges and its panes (`createJali({ inset })`, else the gap). | the gap |
+| `--jali-inset` | The space between the edges of Jali's root and its panes (`createJali({ inset })`, else the gap). | the gap |
 
 ## Derived
 

@@ -48,7 +48,7 @@ export const TOKEN_PURPOSE: Record<string, TokenInfo> = {
     group: "Surfaces",
     swatch: "color",
     purpose:
-      "The ground behind the panes. Jali paints nothing with it except the selected button of the Single / Split view switch; give your page this background to match.",
+      "The ground behind the panes. Jali paints nothing with it except the selected button of the Single view / Split view switch; give your page this background to match.",
   },
   "--jali-surface": {
     group: "Surfaces",
@@ -341,12 +341,12 @@ export const TOKEN_PURPOSE: Record<string, TokenInfo> = {
     group: "Shape and type",
     swatch: "tracking",
     purpose:
-      "Letter spacing for the workspace and its dialogs (a length, such as `0.01em`). Read in place with no default: until you set it, they inherit yours. Settings' small capitals keep their own 0.04em.",
+      "Letter spacing for Jali's panes and dialogs (a length, such as `0.01em`). Read in place with no default: until you set it, they inherit yours. Settings' small capitals keep their own 0.04em.",
   },
   "--jali-font": {
     group: "Shape and type",
     swatch: "font",
-    purpose: "The workspace's typeface: the workspace and its dialogs set font-family from it.",
+    purpose: "Jali's typeface: the panes and dialogs set font-family from it.",
   },
   "--jali-font-mono": {
     group: "Shape and type",

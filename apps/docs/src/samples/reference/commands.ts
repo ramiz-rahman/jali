@@ -1,7 +1,7 @@
 import { commandsOf, copyLink, listCommands, runCommand } from "jali";
 import { store } from "./store";
 
-// A toolbar button that runs a workspace command and shows its keys.
+// A toolbar button that runs one of Jali's commands and shows its keys.
 const zoom = commandsOf(store).find((c) => c.id === "pane.zoom")!;
 const disabled = listCommands(store).find((c) => c.id === "pane.zoom")!.disabled;
 const tooltip = `${zoom.title} · ${store.keymap.label(zoom.id)}`; // "Maximise or restore pane · ⇧⌘↵"
