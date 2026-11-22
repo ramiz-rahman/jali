@@ -28,7 +28,8 @@ import {
   type PaneKinds,
 } from "../pane-kinds";
 import { initialArea, spacingOf } from "../tokens";
-import { toLayout } from "../layout/build";
+import { toLayout, type LayoutInput } from "../layout/build";
+import { readLayout } from "../actions/layout";
 import { bindActions, type Actions } from "../actions";
 import type { ActionName } from "../actions/public";
 import {
@@ -66,7 +67,8 @@ import { cssString, paneDomId } from "../dom/ids";
 import { noDom, type DomPort, type DragKind } from "../dom/port";
 import { pageDirection } from "../dom/direction";
 import { paneStateSync, type PaneStateSync } from "./pane-state";
-import { isDev } from "../dev";
+
+declare const process: { env: { NODE_ENV?: string } };
 import { startUi } from "../boot";
 import {
   createKeymap,
@@ -424,7 +426,31 @@ export function createUiStore(deps: UiStoreDeps): UiStore {
   if (deps.profile && !page)
     throw new Error("Jali: make the page with `definePage`, which gives it the code that runs it");
   const messages = resolveMessages(deps.messages, page?.words);
-  const DEV = isDev();
+  // Development-only defaults and checks, behind a literal `process.env.NODE_ENV` test: a production build replaces
+  // it with `false` and drops all of it, messages included; an unbundled page, which has no `process`, lands in the
+  // catch and is production (dev.ts).
+  let DEV = false;
+  let devPaneError: ((error: unknown, info: PaneErrorInfo) => void) | undefined;
+  let devUnstable: ((op: string) => void) | undefined;
+  try {
+    if (process.env.NODE_ENV !== "production") {
+      DEV = true;
+      devPaneError = (error, { pane, ref }) =>
+        console.error(`Jali: pane ${pane ?? "peek"} (${ref.kind}) failed`, error);
+      devUnstable = (op) =>
+        console.error(`Layout stability: "${op}" never moves anything, but moved panes`);
+      const presets = deps.presets ?? [];
+      if (deps.keys !== undefined && deps.keys !== "page" && deps.keys !== "scoped")
+        console.error(`Jali: keys is "page" or "scoped", not ${JSON.stringify(deps.keys)}`);
+      for (const [i, p] of presets.entries())
+        if (presets.findIndex((q) => q.id === p.id) !== i)
+          console.error(`Jali: two presets have the id "${p.id}"`);
+      if (deps.preset !== undefined && !presets.some((p) => p.id === deps.preset))
+        console.error(`Jali: there is no preset "${deps.preset}"`);
+    }
+  } catch {
+    /* no `process`: production */
+  }
   const env: Env = {
     kinds: deps.kinds,
     profile: deps.profile ?? null,
@@ -435,12 +461,7 @@ export function createUiStore(deps: UiStoreDeps): UiStore {
     messages,
     spacing: spacingOf(deps),
   };
-  const onPaneError =
-    deps.onPaneError ??
-    (DEV
-      ? (error: unknown, { pane, ref }: PaneErrorInfo) =>
-          console.error(`Jali: pane ${pane ?? "peek"} (${ref.kind}) failed`, error)
-      : undefined);
+  const onPaneError = deps.onPaneError ?? devPaneError;
   if (onPaneError) env.onPaneError = onPaneError;
   if (page) env.page = page;
   if (deps.launcher) env.launcher = deps.launcher;
@@ -464,16 +485,6 @@ export function createUiStore(deps: UiStoreDeps): UiStore {
   // The id is the prefix: two workspaces with their own ids never overwrite each other ("jali" stays "jali").
   const storage = deps.storage ?? browserStorage(deps.id ?? "jali");
   const paneStates = paneStateSync(storage);
-  if (DEV && deps.keys !== undefined && deps.keys !== "page" && deps.keys !== "scoped")
-    console.error(
-      `Jali: keys is "page" or "scoped", not ${JSON.stringify(deps.keys)}; it is taken as "scoped"`,
-    );
-  if (DEV)
-    for (const [i, p] of env.presets.entries())
-      if (env.presets.findIndex((q) => q.id === p.id) !== i)
-        console.error(`Jali: two presets have the id "${p.id}"; only the first can be chosen`);
-  if (DEV && deps.preset !== undefined && !env.presets.some((p) => p.id === deps.preset))
-    console.error(`Jali: there is no preset "${deps.preset}"; the workspace opens on the first`);
   const start = presetById(env, deps.preset);
   // A page-only app (a page, no presets or layout) starts on its page.
   const pageOnly = !deps.initial?.layout && !start && !!env.profile;
@@ -871,12 +882,7 @@ export function createUiStore(deps: UiStoreDeps): UiStore {
     toast: store.toast,
     focus: (id: NodeId) => (store.focusHeld || destroyed ? undefined : focusOf?.(dom, id)),
     defer,
-    unstable:
-      deps.unstable ??
-      (DEV
-        ? (op: string) =>
-            console.error(`Layout stability: "${op}" never moves anything, but moved panes`)
-        : undefined),
+    unstable: deps.unstable ?? devUnstable,
   };
   store.actions = bindActions(store);
   store.jali = createInstance(store);
@@ -910,55 +916,26 @@ function firstLayout(
   start: Preset | undefined,
   dev: boolean,
 ): { layout: Layout; preset?: Preset; page?: true } {
-  const kinds = env.kinds.registry();
-  const problems: string[] = [];
-  const check = (what: string, build: () => Layout | undefined): Layout | undefined => {
-    try {
-      const layout = build();
-      if (!layout) return undefined;
-      // A ref its kind's params can't read still opens, in the kind's `Missing`, as an app's layout always has.
-      const r = core.validate(layout, kinds, { params: false });
-      if (r.ok) return layout;
-      problems.push(`${what}: ${r.errors.slice(0, 3).join("; ")}`);
-    } catch (e) {
-      problems.push(`${what}: ${e instanceof Error ? e.message : String(e)}`);
-    }
-    return undefined;
+  // A copy (the app's own object is never frozen or kept). A ref its kind's params can't read still opens, in the
+  // kind's `Missing`, as an app's layout always has.
+  const read = (input: LayoutInput | (() => LayoutInput)) => readLayout(input, env, false);
+  // Why the layout given can't be shown, for development and for the error when nothing can be.
+  const why = () => (given ? core.validate(given, env.kinds.registry(), { params: false }) : null);
+  const done = (r: { layout: Layout; preset?: Preset; page?: true }) => {
+    if (dev && given) console.error("Jali: the layout given can't be shown", why());
+    return r;
   };
-  const report = () => {
-    if (dev && problems.length)
-      console.error(`Jali: a layout to start from can't be shown\n  ${problems.join("\n  ")}`);
-  };
-  // A copy: the app's own object (a layout it saved) is never frozen or kept.
-  const ok = given && check("layout", () => structuredClone(given));
-  if (ok) return { layout: ok };
-  for (const p of start ? [start, ...env.presets.filter((q) => q !== start)] : env.presets) {
-    const layout = check(`preset "${p.id}"`, p.build);
-    if (layout) {
-      report();
-      return { layout, preset: p };
-    }
-  }
-  if (env.profile) {
-    const profile = env.profile;
-    const layout = check(`page "${profile.id}"`, () => toLayout(profile.build(profile.firstItem)));
-    if (layout) {
-      report();
-      // The page's layout opens the page, as a page-only workspace does.
-      return { layout, page: true };
-    }
-  }
-  if (env.launcher) {
-    const launcher = env.launcher;
-    const layout = check("launcher", () => toLayout({ kind: launcher, params: {} }));
-    if (layout) {
-      report();
-      return { layout };
-    }
-  }
+  let layout = given && read(given);
+  if (layout) return { layout };
+  for (const p of start ? [start, ...env.presets.filter((q) => q !== start)] : env.presets)
+    if ((layout = read(p.build))) return done({ layout, preset: p });
+  const p = env.profile,
+    launcher = env.launcher;
+  // The page's layout opens the page, as a page-only workspace does.
+  if (p && (layout = read(() => p.build(p.firstItem)))) return done({ layout, page: true });
+  if (launcher && (layout = read({ kind: launcher, params: {} }))) return done({ layout });
+  const r = why();
   throw new Error(
-    problems.length
-      ? `Jali: no layout to start from can be shown\n  ${problems.join("\n  ")}`
-      : "Jali: give the workspace a `layout`, `presets` or a `page` to start from",
+    `Jali: no layout to start from can be shown${r && !r.ok ? `: ${r.errors[0]}` : ""}`,
   );
 }

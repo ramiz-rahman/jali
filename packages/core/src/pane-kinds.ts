@@ -5,7 +5,8 @@
 import type { KindRegistry, Layout, NodeId, ObjectRef, PaneKind, ViewState } from "./layout/types";
 import { map } from "./layout/tree/tree";
 import { own } from "./own";
-import { isDev } from "./dev";
+
+declare const process: { env: { NODE_ENV?: string } };
 
 // ---------- params ----------
 
@@ -550,7 +551,8 @@ type Fn<R> = ((params: Params) => R) | undefined;
 
 /**
  * A kind's sizes as the layout can use them. A size that isn't a finite number of at least 0 (`NaN`, a string, -10)
- * is left out, so the default stands; a max below the min, or a comfortable size outside them, is left out too.
+ * is left out, so the default stands; a max below the min is left out too (a comfortable size outside them is
+ * clamped to them, as before).
  * Each is a development error: before, `min: NaN` put panes at NaN px.
  */
 function sizesOf(
@@ -562,10 +564,12 @@ function sizesOf(
   const out: { min?: number; comfortable?: number; max?: number } = {};
   if (!given || typeof given !== "object") return out;
   const bad = (what: string, value: unknown) => {
-    if (dev)
-      console.error(
-        `Jali: kind "${kind}": ${axis}.${what} ${value} can't be used, and is left out`,
-      );
+    try {
+      if (process.env.NODE_ENV !== "production" && dev)
+        console.error(`Jali: kind "${kind}": ${axis}.${what} ${value} is left out`);
+    } catch {
+      /* no `process`: production */
+    }
   };
   for (const key of ["min", "comfortable", "max"] as const) {
     const v = given[key as keyof PaneWidth] as unknown;
@@ -577,29 +581,26 @@ function sizesOf(
     bad("max", `${out.max} (below its min ${out.min})`);
     delete out.max;
   }
-  const c = out.comfortable;
-  if (
-    c !== undefined &&
-    ((out.min !== undefined && c < out.min) || (out.max !== undefined && c > out.max))
-  ) {
-    bad("comfortable", `${c} (outside its min and max)`);
-    delete out.comfortable;
-  }
   return out;
 }
 
 export function createPaneKinds<D extends PaneKindBase = PaneKindBase>(
   defs: readonly D[] = [],
 ): PaneKinds<D> {
-  const dev = isDev();
-  // Two definitions of one kind: the last wins, as it always has, and development says so.
-  if (dev) {
-    const seen = new Set<string>();
-    for (const d of defs) {
-      if (seen.has(d.kind))
-        console.error(`Jali: kind "${d.kind}" is defined twice; the last one is used`);
-      seen.add(d.kind);
+  // Two definitions of one kind: the last wins, as it always has, and development says so. Behind a literal
+  // `NODE_ENV` test, so a production build drops it (dev.ts).
+  let dev = false;
+  try {
+    if (process.env.NODE_ENV !== "production") {
+      dev = true;
+      const seen = new Set<string>();
+      for (const d of defs) {
+        if (seen.has(d.kind)) console.error(`Jali: kind "${d.kind}" is defined twice`);
+        seen.add(d.kind);
+      }
     }
+  } catch {
+    /* no `process`: production */
   }
   // Copies, so the registry holds plain data rather than each definition's call.
   const kinds = new Map<string, D>(defs.map((d) => [d.kind, { ...d }]));

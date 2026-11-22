@@ -33,27 +33,14 @@ import type { PaneReport } from "../actions/content";
 import type { PaneKinds } from "../pane-kinds";
 import { ownedPaneState, ownedSelection } from "./pane-state";
 import { sameRef } from "../layout/ops/ref";
-import { MAX_DEPTH, MAX_NODES } from "../layout/codec/validate";
+import { MAX_NODES } from "../layout/codec/validate";
 
-/** How many nodes a layout has, and how deep it goes. */
-function sizeOf(root: Layout["root"]): { nodes: number; depth: number } {
-  let nodes = 0,
-    depth = 0;
-  const walk = (n: Layout["root"], d: number) => {
-    nodes++;
-    if (d > depth) depth = d;
-    if (n.type !== "pane") for (const c of n.children) walk(c, d + 1);
-  };
-  walk(root, 0);
-  return { nodes, depth };
-}
-/** A change that would make a layout bigger than a link can hold (`MAX_NODES`, `MAX_DEPTH`): its address would be
- *  one no workspace reopens. A layout already that big may still shrink. */
+/** A change that would make a layout hold more nodes than a link can (`MAX_NODES`): its address would be one no
+ *  workspace reopens. A layout already that big may still shrink. (Ops never nest a split in a split of one, so a
+ *  layout within the node limit is within the depth limit too.) */
 function pastLinks(from: Layout, to: Layout): boolean {
-  const next = sizeOf(to.root);
-  if (next.nodes <= MAX_NODES && next.depth <= MAX_DEPTH) return false;
-  const now = sizeOf(from.root);
-  return next.nodes > now.nodes || next.depth > now.depth;
+  const next = core.tree.nodes(to.root).length;
+  return next > MAX_NODES && next > core.tree.nodes(from.root).length;
 }
 
 /** What an action reads: the state, the model derived from it, and the core's context. */
@@ -691,13 +678,12 @@ function step(c: Run, o: Outcome, f: Frame | undefined): ActionResult {
           agreed,
           action: c.action,
         };
+        // The workspace's end settles it as kept at once; a promise settles once, so a later answer changes nothing.
         const signal = io.signal;
         const settled = new Promise<ActionResult>((resolve) => {
           const kept = () => resolve(refused("kept"));
-          if (signal?.aborted) return kept();
-          signal?.addEventListener("abort", kept, { once: true });
+          signal?.addEventListener("abort", kept);
           void answer.then((yes) => {
-            signal?.removeEventListener("abort", kept);
             if (signal?.aborted || !yes) return kept();
             const r = io.later ? io.later(again) : apply(io, again);
             resolve(r.reason === "pending" && r.settled ? r.settled : r);

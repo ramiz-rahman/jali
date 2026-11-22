@@ -60,7 +60,7 @@ describe("the layout a workspace starts from", () => {
     });
     expect(kindsOf(jali)).toEqual(["list", "item"]);
     expect(jali.get().presetId).toBe("home");
-    expect(String(errors.mock.calls[0]?.[0])).toMatch(/unknown pane kind/);
+    expect(JSON.stringify(errors.mock.calls[0])).toMatch(/unknown pane kind/);
   });
 
   it("two panes with one id never reach the screen", () => {

@@ -4,6 +4,10 @@
  * test runners have. Not `import.meta.env.DEV`, which only Vite defines: under any other bundler the development
  * checks were silently off. Where nothing defines it (a page that loads the package unbundled), reading `process`
  * throws and Jali is in production. Read when a workspace is made, so a test can switch it.
+ *
+ * Jali's own development-only code doesn't call this: it tests the literal inside a `try`
+ * (`try { if (process.env.NODE_ENV !== "production") … } catch {}`), so a production build replaces the test with
+ * `false` and drops the code and its messages, and an unbundled page lands in the catch.
  */
 declare const process: { env: { NODE_ENV?: string } };
 

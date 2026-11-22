@@ -206,7 +206,7 @@ export function startDividerDrag(
     // One commit, one URL write (120ms after the drag settles). React re-renders only the frames whose rect changed,
     // with the values already on screen.
     if (commitIt && preview !== layout0 && store.get().layout === layout0)
-      store.actions.commitDividerDrag(preview);
+      store.actions.commitDividerDrag(preview, parentId, index);
   };
   const onUp = () => finish(true);
   const onCancel = () => finish(false);

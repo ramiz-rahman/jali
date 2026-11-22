@@ -109,45 +109,16 @@ export function browserStorage(prefix: string): StoragePort {
         /* nothing saved */
       }
     },
-    remove(key) {
-      try {
-        localStorage.removeItem(`${prefix}:${key}`);
-      } catch {
-        /* nothing removed */
-      }
-    },
     subscribe(key, fn) {
-      if (typeof window === "undefined") return () => {};
-      const on = (e: StorageEvent) => {
-        // `key` null: another tab cleared storage.
-        if (e.key === null || e.key === `${prefix}:${key}`) fn();
-      };
-      window.addEventListener("storage", on);
-      return () => window.removeEventListener("storage", on);
+      // `key` null: another tab cleared storage.
+      const on = (e: StorageEvent) => (e.key === null || e.key === `${prefix}:${key}`) && fn();
+      addEventListener("storage", on);
+      return () => removeEventListener("storage", on);
     },
   };
 }
 
-/** Storage in memory. Two workspaces given the same one share it as two tabs share localStorage: each hears the
- *  other's writes (`subscribe`). */
 export function memoryStorage(initial: Record<string, string> = {}): StoragePort {
   const m = new Map(Object.entries(initial));
-  const fns = new Map<string, Set<() => void>>();
-  const tell = (k: string) => fns.get(k)?.forEach((fn) => fn());
-  return {
-    get: (k) => m.get(k) ?? null,
-    set: (k, v) => {
-      m.set(k, v);
-      tell(k);
-    },
-    remove: (k) => {
-      if (m.delete(k)) tell(k);
-    },
-    subscribe(k, fn) {
-      let set = fns.get(k);
-      if (!set) fns.set(k, (set = new Set()));
-      set.add(fn);
-      return () => set.delete(fn);
-    },
-  };
+  return { get: (k) => m.get(k) ?? null, set: (k, v) => void m.set(k, v) };
 }

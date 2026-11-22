@@ -29,24 +29,34 @@ const order = { kind: "order", title: "Order", params: { id: Number }, width: { 
 const ref = (id: number) => ({ kind: "order", params: { id } });
 const KEY = "pane-state@2";
 
-/** Storage that notes its writes of pane state. */
-const counted = (initial: Record<string, string> = {}) => {
-  const storage = memoryStorage(initial);
+/** Storage two workspaces share as two tabs share localStorage: each hears the other's writes (`subscribe`), as the
+ *  `storage` event tells a tab. It notes its writes of pane state. */
+const shared = (initial: Record<string, string> = {}) => {
+  const m = new Map(Object.entries(initial));
+  const fns = new Map<string, Set<() => void>>();
   const writes: string[] = [];
-  const port: StoragePort = {
-    get: (k) => storage.get(k),
+  const tell = (k: string) => fns.get(k)?.forEach((fn) => fn());
+  const port: Required<StoragePort> = {
+    get: (k) => m.get(k) ?? null,
     set: (k, v) => {
       if (k.startsWith("pane-state")) writes.push(k);
-      storage.set(k, v);
+      m.set(k, v);
+      tell(k);
     },
     remove: (k) => {
       writes.push(`-${k}`);
-      storage.remove!(k);
+      if (m.delete(k)) tell(k);
     },
-    subscribe: (k, fn) => storage.subscribe!(k, fn),
+    subscribe: (k, fn) => {
+      let set = fns.get(k);
+      if (!set) fns.set(k, (set = new Set()));
+      set.add(fn);
+      return () => set.delete(fn);
+    },
   };
   return { port, writes };
 };
+const counted = shared;
 
 const tab = (layout: LayoutInput, storage: StoragePort) =>
   storeOf(
@@ -90,7 +100,7 @@ describe("two tabs of one build", () => {
   });
 
   it("a draft typed in one tab shows in the other, for the same object under the same pane", () => {
-    const storage = memoryStorage();
+    const storage = shared().port;
     const a = tab(two, storage);
     const b = tab(two, storage);
     storeOf(a.jali).jali.start();
@@ -103,7 +113,7 @@ describe("two tabs of one build", () => {
   });
 
   it("another tab's record for another object is never taken in, and never removed", () => {
-    const storage = memoryStorage();
+    const storage = shared().port;
     const a = tab(one(1), storage);
     const b = tab(one(9), storage);
     b.jali.start();
@@ -168,17 +178,23 @@ describe("pane state from before 22 Nov 2026", () => {
 });
 
 describe("what is stored", () => {
-  it("drops bad records, keeps prototype names as pane ids, and replaces text that isn't JSON", () => {
+  it("leaves bad records out, keeps prototype names as pane ids, and drops both at the next write", () => {
     const of = JSON.stringify(["order", JSON.stringify("1")]);
     const storage = memoryStorage({
       [KEY]: `{"v":2,"panes":{"a":[1],"b":{"of":7,"values":{},"at":1},"__proto__":{"of":${JSON.stringify(of)},"values":{"x":1},"at":2}}}`,
     });
     const t = tab(two, storage);
     expect(Object.getPrototypeOf(t.get().paneState)).toBe(Object.prototype);
-    expect(Object.keys(JSON.parse(storage.get(KEY)!).panes)).toEqual(["__proto__"]);
+    expect(stateOf(t, "a")).toBeUndefined();
+    t.actions.setPaneState("a", "scroll", 1);
+    flushPaneState(t);
+    expect(Object.keys(JSON.parse(storage.get(KEY)!).panes).sort()).toEqual(["__proto__", "a"]);
     const broken = memoryStorage({ [KEY]: "{not json" });
-    tab(two, broken);
-    expect(JSON.parse(broken.get(KEY)!)).toEqual({ v: 2, panes: {} });
+    const u = tab(two, broken);
+    expect(u.get().paneState).toEqual({});
+    u.actions.setPaneState("a", "scroll", 1);
+    flushPaneState(u);
+    expect(Object.keys(JSON.parse(broken.get(KEY)!).panes)).toEqual(["a"]);
   });
 
   it("good storage is read back and never rewritten", () => {

@@ -2,7 +2,7 @@ import * as core from "../layout";
 import type { Layout, NodeId } from "../layout/types";
 import { refuse, type Outcome, type Snapshot } from "../state/apply";
 import { say } from "../state/messages";
-import { allows, dividerAllowed } from "./allow";
+import { dividerAllowed } from "./allow";
 import { clampSize, geometryFor, nearestDivider } from "../dividers/resize";
 
 /** Sizes do not change minimums, so a divider never changes what fits: no refit. The URL follows 120ms later. */
@@ -49,16 +49,15 @@ export function nudgeDivider(
   return d ? resizeDivider(x, d.parentId, d.index, rtl ? -deltaPx : deltaPx) : null;
 }
 
-/** End of a pointer drag: the layout the drag previewed, committed once. Checked again as it lands: a pane whose
- *  size it would change must still allow `resize` (the app's `allow` may have changed during the drag). */
-export function commitDividerDrag(x: Snapshot, layout: Layout): Outcome {
-  if (layout === x.s.layout) return null;
-  const before = new Map(x.m.resolved.panes.map((b) => [b.id, b.rect]));
-  const moved = core.resolve(layout, x.s.view, x.ctx).panes.filter((b) => {
-    const r = before.get(b.id);
-    return !r || r.width !== b.rect.width || r.height !== b.rect.height;
-  });
-  if (moved.some((b) => !allows(x, b.id, "resize"))) return refuse("not-allowed");
+/** End of a pointer drag: the layout the drag previewed, committed once. Checked again as it lands, when the drag
+ *  says which divider it moved: its panes must still allow `resize` (the app's `allow` may have changed meanwhile). */
+export function commitDividerDrag(
+  x: Snapshot,
+  layout: Layout,
+  parentId?: NodeId,
+  index = 0,
+): Outcome {
+  if (parentId !== undefined && !dividerAllowed(x, parentId, index)) return refuse("not-allowed");
   return { op: "resize", layout };
 }
 

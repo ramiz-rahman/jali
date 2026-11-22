@@ -235,21 +235,17 @@ export function choose(root: Projected, active: Record<string, string> | undefin
 /**
  * A tab group the person made has a new first tab (a tab moved or pinned to the front): its fold records and its shown
  * tab are keyed by its first tab (`homeOf`), so they move to the new one. Without it, the records go stale, the folds
- * replay differently, and panes move on a change that never moves anything. The same layout when nothing names `from`.
+ * replay differently, and panes move on a change that never moves anything.
  */
 export function rekey(layout: Layout, from: string, to: string): Layout {
   const o = layout.overlay;
   if (!o || from === to) return layout;
-  const auto = `${AUTO_PREFIX}${from}`;
-  const named = o.folds.includes(auto) || Object.hasOwn(o.shown, from);
-  if (!named) return layout;
-  const shown = Object.fromEntries(
-    Object.entries(o.shown).map(([home, pane]) => [home === from ? to : home, pane]),
-  );
+  const key = (id: string) =>
+    id === from ? to : id === AUTO_PREFIX + from ? AUTO_PREFIX + to : id;
   return withOverlay(layout, {
     ...o,
-    folds: o.folds.map((id) => (id === auto ? `${AUTO_PREFIX}${to}` : id)),
-    shown,
+    folds: o.folds.map(key),
+    shown: Object.fromEntries(Object.entries(o.shown).map(([home, pane]) => [key(home), pane])),
   });
 }
 export function withOverlay(layout: Layout, overlay: import("../types").Overlay): Layout {

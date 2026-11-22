@@ -28,7 +28,8 @@ import {
 import { browserLocation, browserStorage, type LocationPort, type StoragePort } from "./ports";
 import { own as ownOf } from "./own";
 import { sameRef } from "./layout/ops/ref";
-import { isDev } from "./dev";
+
+declare const process: { env: { NODE_ENV?: string } };
 
 export const PERSIST_MS = 120;
 const BROKEN_KEY = "broken-layout";
@@ -193,10 +194,14 @@ export function linkSearch(link: JaliLink, options: LinkSearchOptions = {}): str
   // Without `panes`, only a ref a kind's call built says which of its params a link leaves out: a plain object or a
   // copy (structuredClone, JSON) would carry its app-only params. Development says so.
   const plain = (ref: ObjectRef) => {
-    if (!kinds && !madeByKind(ref) && isDev())
-      console.warn(
-        `Jali: linkSearch was given a ${ref.kind} ref that no kind's call built; give it \`panes\` so the link never carries params only the app sets`,
-      );
+    try {
+      if (process.env.NODE_ENV !== "production" && !kinds && !madeByKind(ref))
+        console.warn(
+          `Jali: linkSearch was given a ${ref.kind} ref no kind's call built; give it \`panes\``,
+        );
+    } catch {
+      /* no `process`: production */
+    }
     return ref;
   };
   const out = (ref: ObjectRef) => linkRefAlone(plain(ref), kinds);

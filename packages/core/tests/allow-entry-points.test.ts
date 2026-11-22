@@ -66,7 +66,7 @@ describe("a pane that may not be resized", () => {
     const d = jali.model().resolved.dividers[0]!;
     // What a drag would preview, made without the check.
     const preview = L.resizeDivider(layout, d.parentId, d.index, 60, store.ctx());
-    store.actions.commitDividerDrag(preview);
+    store.actions.commitDividerDrag(preview, d.parentId, d.index);
     expect(jali.getLayout()).toBe(layout);
   });
 });

@@ -54,10 +54,11 @@ export const resetLayout = (x: Snapshot) => preset(x, x.s.presetId, true);
 export function readLayout(
   input: LayoutInput | (() => LayoutInput),
   env: Pick<Snapshot["env"], "kinds">,
+  params?: boolean,
 ): Layout | undefined {
   try {
     const layout = structuredClone(toLayout(typeof input === "function" ? input() : input));
-    return core.validate(layout, env.kinds.registry()).ok ? layout : undefined;
+    return core.validate(layout, env.kinds.registry(), { params }).ok ? layout : undefined;
   } catch {
     return undefined;
   }
