@@ -212,7 +212,7 @@ export interface Env {
   /** How the workspace behaves on a phone (`createJali({ phone })`). */
   phone?: PhoneOptions;
   /** What may happen to panes (`createJali({ allow })`). */
-  allow?: import("./actions/allow").WorkspaceAllow;
+  allow?: import("./actions/allow").Allow;
   /** The buttons in a pane's header (`createJali({ buttons })`). */
   buttons?: import("./pane/buttons").PaneButtons;
   /** The gap between panes and the inset from the workspace's edges, in px (`createJali({ gap, inset })`). */

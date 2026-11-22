@@ -257,7 +257,7 @@ export interface JaliConfig {
   tabMenu?: import("../commands/tab-menu").TabMenu;
   rename?: Rename;
   phone?: import("../profile").PhoneOptions;
-  allow?: import("../actions/allow").WorkspaceAllow;
+  allow?: import("../actions/allow").Allow;
   buttons?: import("../pane/buttons").PaneButtons;
   onPaneError?: (error: unknown, info: PaneErrorInfo) => void;
   gap?: number;

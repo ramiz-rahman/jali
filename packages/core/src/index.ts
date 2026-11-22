@@ -95,11 +95,11 @@ export type {
 } from "./state/instance";
 export type { JaliInput } from "./dom/input";
 export type {
+  Allow,
   AllowContext,
   AllowRule,
   PaneAllow,
   PaneControl,
-  WorkspaceAllow,
 } from "./actions/allow";
 export type { PaneButton, PaneButtons, ButtonsContext } from "./pane/buttons";
 export type {

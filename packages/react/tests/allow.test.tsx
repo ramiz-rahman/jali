@@ -11,7 +11,7 @@ import {
   pane,
   row,
   tabs,
-  type WorkspaceAllow,
+  type Allow,
 } from "@jali/core";
 import type { Feature } from "@jali/core";
 import {
@@ -36,7 +36,7 @@ const board = definePane("board", {
   Component: () => null,
 });
 
-const make = (allow?: WorkspaceAllow, more: Feature[] = []) =>
+const make = (allow?: Allow, more: Feature[] = []) =>
   createJali({
     panes: [note, board],
     layout: row(

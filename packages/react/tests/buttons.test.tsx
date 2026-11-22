@@ -11,7 +11,7 @@ import {
   pane,
   row,
   type PaneButtons,
-  type WorkspaceAllow,
+  type Allow,
 } from "@jali/core";
 import { ALONE_CHROME, CHROME, buttonsOf, storeOf } from "@jali/core/adapter";
 import { JaliRoot, definePane } from "@jali/react";
@@ -28,7 +28,7 @@ const chart = definePane("chart", {
   Component: () => null,
 });
 
-const make = (opts: { buttons?: PaneButtons; allow?: WorkspaceAllow; pop?: boolean } = {}) =>
+const make = (opts: { buttons?: PaneButtons; allow?: Allow; pop?: boolean } = {}) =>
   createJali({
     panes: [note, chart],
     layout: row(pane(note({ id: 1 }), { id: "a" }), pane(chart(), { id: "c" })),

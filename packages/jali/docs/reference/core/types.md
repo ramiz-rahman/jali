@@ -749,12 +749,12 @@ type PaneAllow = Partial<Record<PaneControl, boolean>>
 
 Controls turned off with `false`. Leaving one out, or `true`, leaves it to the other levels. A kind's `allow` and an instance's are both one.
 
-### WorkspaceAllow
+### Allow
 
 *type*, from `jali`
 
 ```ts
-type WorkspaceAllow = PaneAllow & { when?: AllowRule }
+type Allow = PaneAllow & { when?: AllowRule }
 ```
 
 `createJali({ allow })`: the instance's defaults, and `when` for rules that depend on context. `popOut` is off until this says `true`.

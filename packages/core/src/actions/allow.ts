@@ -3,7 +3,7 @@
  * ⌘K, a tab's menu, a drag, the agent bridge) obeys the same answer, and the chrome only draws what is allowed.
  *
  * Each level can only take away: Jali's own rules (a lone pane has no maximise, a phone no drag), then the kind
- * (`definePane({ allow })`, what its content can handle), then the workspace (`createJali({ allow })`: defaults, or a
+ * (`definePane({ allow })`, what its content can handle), then the instance (`createJali({ allow })`: defaults, or a
  * function for "it depends"). Everything is allowed by default; `popOut` needs its feature, `popOut()`.
  */
 import * as core from "../layout/engine";
@@ -38,7 +38,7 @@ export const PANE_CONTROLS: readonly PaneControl[] = [
 /** `false` turns a control off; `true` (or leaving it out) leaves it to the other levels. */
 export type PaneAllow = Partial<Record<PaneControl, boolean>>;
 
-/** What a workspace's `allow` function is asked about. */
+/** What an instance's `allow` function is asked about. */
 export interface AllowContext {
   action: PaneControl;
   pane: PaneNode;
@@ -48,11 +48,11 @@ export interface AllowContext {
   page?: { mode: ViewMode; item?: string } | null;
 }
 
-/** A workspace's rule: `false` refuses; `true` or nothing leaves it to the other levels. */
+/** An instance's rule: `false` refuses; `true` or nothing leaves it to the other levels. */
 export type AllowRule = (ctx: AllowContext) => boolean | undefined | void;
 
-/** A workspace's `allow`: its defaults, and `when` for "it depends" (a preset, a curated page, a role). */
-export type WorkspaceAllow = PaneAllow & { when?: AllowRule };
+/** An instance's `allow`: its defaults, and `when` for "it depends" (a preset, a curated page, a role). */
+export type Allow = PaneAllow & { when?: AllowRule };
 
 /** Whether `action` may happen to pane `id`. */
 export function allows(

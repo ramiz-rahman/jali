@@ -1,4 +1,4 @@
-import type { WorkspaceAllow } from "./actions/allow";
+import type { Allow } from "./actions/allow";
 import type { PhoneOptions } from "./profile";
 /**
  * `createJali`: one call from pane kinds and a layout to an instance that is ready to render.
@@ -171,7 +171,7 @@ export interface JaliOptions<
    * !(presetId === "review" && action === "close")`. The actions obey it, whatever asks (a button, a key, ⌘K, a drag,
    * an agent), and the chrome draws only what is allowed. Default: everything (Pop out with its feature).
    */
-  allow?: WorkspaceAllow;
+  allow?: Allow;
   /**
    * The buttons in a pane's header, as shortcuts: everything allowed is in the pane's menu (right-click, ⋯ or
    * Shift+F10) and ⌘K either way. Leave it out for Jali's: Tuck, Maximise, Pop out (where allowed) and Close, with Full screen in Maximise's
