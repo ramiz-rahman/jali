@@ -1,10 +1,10 @@
-/** Size scenario: every feature. A curated page, presets, a launcher, commands, hooks and the parts. */
+/** Size scenario: every feature. `defaultFeatures()`, rename and pop out, a curated page, presets, a launcher,
+ *  commands, hooks and the parts. */
 import { createRoot } from "react-dom/client";
 import { FileTextIcon, UserIcon } from "@phosphor-icons/react";
-import { createJali, pane, row, column, tabs, keyHint } from "@jali/core";
+import { createJali, pane, row, column, tabs, keyHint } from "jali";
 import {
   JaliRoot,
-  definePage,
   definePane,
   useActivity,
   useCommands,
@@ -15,8 +15,12 @@ import {
   useJaliCommands,
   useJaliShortcut,
   useJaliTheme,
-} from "@jali/react";
-import "@jali/react/styles.css";
+} from "jali/react";
+import { definePage } from "jali/page";
+import { defaultFeatures } from "jali/features";
+import { rename } from "jali/rename";
+import { popOut } from "jali/pop-out";
+import "jali/styles.css";
 
 const borrower = definePane("borrower", {
   params: { application: Number },
@@ -108,7 +112,7 @@ const jali = createJali({
       layout: () => column(tabs(documents({ application: 2 })), borrower({ application: 2 })),
     },
   ],
-  url: true,
+  features: [...defaultFeatures(), rename({ run: () => {} }), popOut()],
   commands: [{ id: "host.hello", title: "Hello", group: "Host", run: () => {} }],
   keyboard: { prefix: "Mod+J" },
 });

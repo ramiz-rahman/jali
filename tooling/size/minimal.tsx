@@ -1,8 +1,10 @@
-/** Size scenario: the smallest app. One kind of pane, a starting layout, no curated page, no launcher. */
+/** Size scenario: examples/minimal without its fonts. One kind of pane, a starting layout, the address
+ *  (`urlSync()`), no curated page, no launcher. */
 import { createRoot } from "react-dom/client";
-import { createJali, row } from "@jali/core";
-import { JaliRoot, definePane } from "@jali/react";
-import "@jali/react/styles.css";
+import { createJali, row } from "jali";
+import { JaliRoot, definePane } from "jali/react";
+import { urlSync } from "jali/url";
+import "jali/styles.css";
 
 const note = definePane("note", {
   params: { id: Number },
@@ -12,6 +14,10 @@ const note = definePane("note", {
   ),
 });
 
-const jali = createJali({ panes: [note], layout: row(note({ id: 1 }), note({ id: 2 })) });
+const jali = createJali({
+  panes: [note],
+  layout: row(note({ id: 1 }), note({ id: 2 })),
+  features: [urlSync()],
+});
 
 createRoot(document.getElementById("root")!).render(<JaliRoot jali={jali} />);

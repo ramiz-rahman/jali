@@ -5,9 +5,8 @@
   "description": "Jali's repo tooling: verify, the bundle-size scenarios, the agent docs, the default icons and the React 18 check.",
   "type": "module",
   "dependencies": {
-    "@jali/core": "workspace:*",
-    "@jali/react": "workspace:*",
     "@phosphor-icons/react": "^2.1.10",
+    "jali": "workspace:*",
     "react": "^19.3.1",
     "react-dom": "^19.3.1"
   }
