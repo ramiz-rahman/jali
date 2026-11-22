@@ -1,10 +1,9 @@
 import { own as ownOf } from "@jali/core/adapter";
 import type { NodeId } from "@jali/core";
 import { useMemo } from "react";
-import { allows } from "@jali/core/adapter";
 import { Menu, type MenuAt } from "../a11y/Menu";
-import { popOutOf } from "./popped";
-import { tabMenuOf, type TabMenuItem } from "@jali/core/adapter";
+import { paneActionsOf } from "./actions";
+import type { TabMenuItem } from "@jali/core/adapter";
 import { useJaliIcons } from "../icons/context";
 import { useModelValue, useStore } from "../state/react";
 import { ICON } from "../icons/sized";
@@ -32,19 +31,7 @@ export function TabMenu({
   const icon = useJaliIcons();
   // Built once as the menu opens: what the tab could do then.
   const groups = useMemo(() => {
-    const g = tabMenuOf(store, at.pane);
-    // Pop out, where the browser can and the app allows it: beside Maximise and Full screen.
-    const w = popOutOf(store);
-    if (w?.can() && allows(store.snapshot(), at.pane, "popOut")) {
-      const item: TabMenuItem = {
-        id: "pop-out",
-        title: store.messages.tabs.popOut,
-        run: () => void w.open(store, at.pane),
-      };
-      const near = g.find((group) => group.some((i) => i.id === "full-screen" || i.id === "zoom"));
-      if (near) near.push(item);
-      else g.push([item]);
-    }
+    const g = paneActionsOf(store, at.pane);
     // In place of the app's controls a narrow header hid: the pane's commands, in their own group.
     const own = commands ? (ownOf(store.get().paneCommands, at.pane) ?? []) : [];
     if (own.length)

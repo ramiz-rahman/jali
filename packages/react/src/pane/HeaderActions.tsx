@@ -1,9 +1,9 @@
 import { own } from "@jali/core/adapter";
-import { buttonsOf, checkTuck, tabMenuOf, tuckHome, type PaneButton } from "@jali/core/adapter";
-import { allows } from "@jali/core/adapter";
+import { buttonsOf, checkTuck, tuckHome, type PaneButton } from "@jali/core/adapter";
 import { useJaliIcons } from "../icons/context";
 import { useDerived, useStore, useUi } from "../state/react";
 import { popOutOf, useCanPopOut, usePoppedOut } from "./popped";
+import { paneActionsOf } from "./actions";
 import { useKeymap } from "../state/hydrated";
 import type { Chrome } from "@jali/core/adapter";
 import { ICON } from "../icons/sized";
@@ -82,8 +82,8 @@ export function HeaderActions({ id, title, zoomed, chrome, tabs, narrow = 0, onM
         : (checkTuck(x, id)?.msg ?? t.cantTuck(title));
       // A curated page's view closes back into the tabs above.
       const closeHint = x.s.page && x.m.pane(id)?.role ? t.closeViewTip : t.closeTip;
-      const items = tabMenuOf(store, id).flat();
-      if (pop && allows(x, id, "popOut")) items.push({ id: "pop-out", title: "", run: () => {} });
+      // The menu's items as it will build them (pane/actions.ts): Pop out or Bring back, as the button is now.
+      const items = paneActionsOf(store, id, pop).flat();
       // A narrow header keeps its title: what the menu also offers moves into it, and a tuck that can't happen goes.
       const inMenu = new Set(items.map((i) => i.id));
       const buttons = buttonsOf(x, id, { chrome, zoomed, full, tabs }).filter(
@@ -101,7 +101,7 @@ export function HeaderActions({ id, title, zoomed, chrome, tabs, narrow = 0, onM
       };
     },
     samePlan,
-    [store, id, title, zoomed, chrome, tabs, narrow, full, pop, keymap],
+    [store, id, title, zoomed, chrome, tabs, narrow, full, pop, popped, keymap],
   );
   // With the app's controls hidden too, the menu lists the pane's commands in their place.
   const commands = useUi((s) => (narrow === 2 ? (own(s.paneCommands, id)?.length ?? 0) : 0));
