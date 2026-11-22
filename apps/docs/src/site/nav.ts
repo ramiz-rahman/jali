@@ -52,7 +52,7 @@ export const NAV: NavSection[] = [
       { path: "/guides/translating" },
       { path: "/guides/chakni" },
       { path: "/guides/testing" },
-      { path: "/guides/two-workspaces" },
+      { path: "/guides/two-instances" },
       { path: "/guides/agents" },
       { path: "/guides/troubleshooting" },
     ],

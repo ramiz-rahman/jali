@@ -113,7 +113,7 @@ With `"local"`, sizes are kept in `storage`, for the last 12 layouts. Only sizes
 
 ## Two instances in one address
 
-`prefix` names one instance's params apart from another's. `urlSync({ prefix: "n." })` writes `n.l`, `n.zoom` and so on. See [Two workspaces on one page](two-workspaces.md).
+`prefix` names one instance's params apart from another's. `urlSync({ prefix: "n." })` writes `n.l`, `n.zoom` and so on. See [Two instances on one page](two-instances.md).
 
 ## With a router
 
@@ -237,4 +237,4 @@ If the instance belongs to one route, and your app drops it for good when the pe
 ## Next
 
 - [Unsaved work and pane state](unsaved-work-and-pane-state.md): Back and Forward ask before losing work too.
-- [Two instances on one page](two-workspaces.md)
+- [Two instances on one page](two-instances.md)

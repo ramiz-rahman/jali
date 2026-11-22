@@ -24,10 +24,10 @@ const empty = (): Layout => ({
   root: { id: "a", type: "pane", size: { weight: 1 }, ref: { kind: "note", params: { id: 1 } } },
 });
 
-/** A workspace with one preset, and a curated page's engine and words so the table lists the page's commands too
- *  (a workspace has them only with a page from `definePage`). With no profile, titles in "page" words read "Back to
+/** An instance with one preset, and a curated page's engine and words so the table lists the page's commands too
+ *  (an instance has them only with a page from `definePage`). With no profile, titles in "page" words read "Back to
  *  page" and "View as viewer"; a real page puts its name and viewers there. Every feature that brings a command is
- *  on (the palette, Settings, the chooser, rename, pop out), so the table lists the commands a workspace has only
+ *  on (the palette, Settings, the chooser, rename, pop out), so the table lists the commands an instance has only
  *  with them. */
 export const SAMPLE_ENV: Env = {
   kinds: createPaneKinds([{ kind: "note", title: "Note" }]),
@@ -35,7 +35,7 @@ export const SAMPLE_ENV: Env = {
   page: pageEngine,
   messages: en,
   presets: [{ id: "orders", label: "Orders", build: empty }],
-  name: "Workspace",
+  name: "Notes",
   spacing: spacingOf(),
   features: [
     paletteFeature(),

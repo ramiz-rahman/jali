@@ -50,7 +50,7 @@ Each problem below starts with what you see, then says why and how to fix it. Ja
 
 ## With two instances, keys act on the wrong one
 
-**Fix:** give each `keyboard: { scope: "local" }`, its own `id` and `label`, and a `prefix` for one of their `urlSync()`. See [Two instances on one page](two-workspaces.md).
+**Fix:** give each `keyboard: { scope: "local" }`, its own `id` and `label`, and a `prefix` for one of their `urlSync()`. See [Two instances on one page](two-instances.md).
 
 ## Every pane is folded into tabs in my tests
 

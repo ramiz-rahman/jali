@@ -502,5 +502,5 @@ A pane can add its own commands to ⌘K while it is focused, such as "Save note"
 
 ## Next
 
-- [Two instances on one page](two-workspaces.md): keep each one's keys inside it.
+- [Two instances on one page](two-instances.md): keep each one's keys inside it.
 - [Commands reference](../reference/commands.md)

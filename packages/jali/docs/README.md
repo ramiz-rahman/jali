@@ -39,7 +39,7 @@ Written from the docs site by tooling/agent-docs.mjs; don't edit these files.
 - [Translate Jali](guides/translating.md): Show and announce Jali's words in your app's language, or in your own wording, with English as the default.
 - [Use Jali with Chakni](guides/chakni.md): Let a list inside a pane drive the pane's following detail through the active-item port, and share one theme.
 - [Test your layouts](guides/testing.md): Test your layouts and pane rules without a browser, by running Jali's actions and reading its state with jali/testing.
-- [Two instances on one page](guides/two-workspaces.md): Put two sets of panes side by side, or one in a dialog, without their links, saved settings or keys getting mixed up.
+- [Two instances on one page](guides/two-instances.md): Put two sets of panes side by side, or one in a dialog, without their links, saved settings or keys getting mixed up.
 - [Let an agent arrange panes](guides/agents.md): Give an AI agent your panes as tools, so it can read what is open and open, arrange and pin panes through Jali's own actions, within the limits your app sets.
 - [Troubleshooting and FAQ](guides/troubleshooting.md): Fixes for the problems people meet first, Jali's development warnings, and answers to common questions.
 
