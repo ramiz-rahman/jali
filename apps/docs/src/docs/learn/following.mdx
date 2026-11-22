@@ -14,7 +14,7 @@ The most common shape in a layout is a list and its detail: tickets on the left,
 
 The selection is the one item the list's cursor is on: what J and K, or the arrow keys, move. It is not focus, and it is not a set of checked rows. A list reports it with `select(ref)` every time it moves, and `select(null)` when nothing is selected.
 
-<Code code={list} filename="ticket-list.tsx" highlight="11-15,17-20" />
+<Code code={list} filename="ticket-list.tsx" highlight="11-16,17-21" />
 
 Opening a row selects it first. That order matters: when `openBeside` is called with the list's selected item, Jali knows the new pane came from the selection.
 

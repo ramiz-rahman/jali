@@ -2,7 +2,7 @@ import type { ActiveItemPort } from "jali";
 import { useActiveItemPort } from "jali/react";
 import { orderKind } from "./kinds";
 
-// Any list that keeps its current item through an ActiveItemPort (Chakni's collections do).
+// Any list that keeps its current item through an ActiveItemPort.
 declare function OrderList(props: { activeItem: ActiveItemPort | null }): React.ReactNode;
 
 export function OrdersPane() {

@@ -1,7 +1,7 @@
 import { definePane } from "jali/react";
 
 /**
- * An editor needs every key, so it marks itself: inside it, the workspace takes only F6 and Shift+F6, so focus can
+ * An editor needs every key, so it marks itself: inside it, Jali takes only F6 and Shift+F6, so focus can
  * always leave. Here ⌘K goes to the editor and does not open the palette.
  */
 export const replyKind = definePane("reply", {

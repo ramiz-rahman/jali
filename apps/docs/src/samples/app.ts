@@ -30,7 +30,11 @@ export const customer = definePane("customer", {
 export const orderKinds = kinds;
 export const panes = [...kinds, customer];
 export const presets: readonly PresetOptions[] = orderPresets;
-export const launcher = definePane("launcher", { title: "New pane", scratch: true, Component: view });
+export const launcher = definePane("launcher", {
+  title: "New pane",
+  scratch: true,
+  Component: view,
+});
 
 export const OrderDetail: ComponentType<PaneProps<{ id: number }>> = view;
 export { orderKind } from "./guides/pane-kinds/orders";
@@ -45,3 +49,7 @@ export const api = {
   loadLayout: async (_user: string): Promise<LayoutInput | null> => null,
   saveLayout: async (_user: string, _layout: unknown): Promise<void> => {},
 };
+export const forgetSavedLayouts = (): void => {};
+export const drafts = { for: async (_refs: unknown[]): Promise<string[]> => [] };
+export const askToSave = async (_panes: unknown[]): Promise<boolean> => true;
+export { stageKind as stage } from "./guides/scrolling-rows/board";

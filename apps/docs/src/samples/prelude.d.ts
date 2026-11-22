@@ -24,5 +24,5 @@ declare global {
   function saveReportName(ref: ObjectRef, name: string): Promise<void>;
   function exportCsv(ref: ObjectRef): void;
   function share(): void;
-  function reportToTelemetry(error: unknown, context?: object): void;
+  function togglePlayback(): void;
 }

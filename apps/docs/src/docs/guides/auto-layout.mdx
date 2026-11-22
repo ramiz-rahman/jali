@@ -3,7 +3,7 @@ title: Auto layout
 summary: Let Jali arrange the panes on screen from the room there is and each kind's size hints, when they have piled up.
 ---
 
-After a while of opening things, a workspace collects panes in whatever order the person opened them. `jali.actions.autoLayout()` arranges them again: the same panes, in a fresh layout built from the room there is and what each kind says about its size. Nothing reloads, because every pane stays the same pane, with its state, its link and its pin. People find it in ⌘K as **Arrange panes automatically**.
+After a while of opening things, a layout collects panes in whatever order the person opened them. `jali.actions.autoLayout()` arranges them again: the same panes, in a fresh layout built from the room there is and what each kind says about its size. Nothing reloads, because every pane stays the same pane, with its state, its link and its pin. People find it in ⌘K as **Arrange panes automatically**.
 
 ```tsx
 <button onClick={() => jali.actions.autoLayout()}>Tidy up</button>
@@ -34,21 +34,21 @@ What it doesn't keep is the shape: sizes the person dragged, fixed `px` widths, 
 
 ## What to expect
 
-- **Running it again changes nothing.** Arranging an arranged workspace gives the same layout, and the action returns `"nothing-to-do"` without a new history entry.
+- **Running it again changes nothing.** Arranging an arranged layout gives the same layout, and the action returns `"nothing-to-do"` without a new history entry.
 - **Every pane comes out once.** Auto layout never loses or copies a pane: if it ever would, it leaves the layout as it is.
 - **The tabs it makes are tabs.** They stay when the window grows, as tabs the person made do. Arrange again in the bigger window to spread them out. Panes that are only folded for room, by the fit, come back on their own as before.
 - **Back returns** to the arrangement before, as after choosing a preset.
 - **A narrower window** gets a second row before any tabs, and tabs before any pane is squeezed below its minimum.
-- **On a phone** it does nothing: the workspace shows one pane at a time there, and a layout arranged for a phone's width would be a poor one when the window is wide again. The command is unavailable, and the action returns `{ ok: false, reason: "unavailable" }`.
+- **On a phone** it does nothing: Jali shows one pane at a time there, and a layout arranged for a phone's width would be a poor one when the window is wide again. The command is unavailable, and the action returns `{ ok: false, reason: "unavailable" }`.
 - **On a curated page** it's unavailable too: a page's arrangement is the page's.
 - **With one pane**, it returns `"nothing-to-do"`.
 - **A pane your app doesn't let move** (`allow: { move: false }`, for any pane on screen) keeps the layout as it is: auto layout moves every pane, so it returns `"not-allowed"`.
 
 ## From your code
 
-- `jali.actions.autoLayout()` arranges the workspace, as the command does.
+- `jali.actions.autoLayout()` arranges the panes, as the command does.
 - `layout.arrange(layout, ctx, { focused, maxColumns, maxRows })` is the pure step, for a layout you hold: it returns a new layout and changes nothing. Run `layout.refit` on the result before showing it, as `autoLayout` does.
-- An agent can call it, or have the workspace arrange itself after each of its turns that opened or closed panes (`arrange: "after-changes"`). That step asks your `allow` like any other and is skipped when the agent chose the layout itself: see [Let an agent use the workspace](/guides/agents).
+- An agent can call it, or have Jali arrange the panes after each of its turns that opened or closed panes (`arrange: "after-changes"`). That step asks your `allow` like any other and is skipped when the agent chose the layout itself: see [Let an agent arrange panes](/guides/agents).
 
 ## Next
 

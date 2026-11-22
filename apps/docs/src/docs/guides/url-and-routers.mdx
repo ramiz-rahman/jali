@@ -6,45 +6,62 @@ summary: Put the layout in the address so links reopen it and Back steps through
 import urlSync from "../../samples/guides/url/url-sync.ts?raw";
 import routerLocation from "../../samples/guides/url/router-location.ts?raw";
 
-With the layout in the address, a person can send a link to what they are looking at, reload without losing it, and use Back and Forward to step through their changes. A workspace does this by default.
+With the layout in the address, a person can send a link to what they are looking at, reload without losing it, and use Back and Forward to step through their changes. The `urlSync()` feature does this. Without it, Jali leaves the address alone.
 
-## It is on by default
+## Turn it on
 
-In a browser, `createJali` keeps the layout in the address with no options at all. Its `url` option configures how:
+Pass `urlSync()`, from `jali/url`, in `features`. It is in `defaultFeatures()` too.
 
-<Code code={urlSync} filename="src/workspace.ts" />
+<Code code={urlSync} filename="src/jali.ts" />
 
-The workspace reads the address when it is made, so the first render already shows the linked layout, and follows Back and Forward while its `<JaliRoot>` is mounted. That is the `urlSync()` feature (`jali/url`); a workspace without it leaves the address alone.
+`createJali` reads the address before it returns, so the first render already shows the linked layout. Jali follows Back and Forward while its `<JaliRoot>` is mounted.
 
 When the page opens:
 
-- an address with a layout opens that layout, fitted to the window;
-- an address without one opens the preset;
-- a link that can't be read (damaged, or naming a kind this app doesn't have) opens the preset instead. Jali keeps a copy of the code in storage and tells the person, with a screen reader announcement and a toast for your app to show (`jali.onToast`).
+- an address with a layout opens that layout, fitted to this window;
+- an address without one opens the preset, or the starting `layout`;
+- a link that can't be read (damaged, or naming a kind this app doesn't have) opens the preset instead. Jali keeps a copy of the code in storage and tells the person, with a screen reader announcement and a `toast` event for your app to show (`jali.on("toast", show)`).
 
 ## What goes in the address
 
-Jali writes only its own search params and keeps every other part of the address as it is. Your own params, the path and the hash are left alone.
+Jali writes only its own search params. Your own params, the path and the hash are left alone. (One exception, for links from before pages had ids: without a `prefix`, `?app=review` and its `arr` are read as a page link and cleared.)
 
 | Param | Holds |
 |---|---|
 | `l` | The layout. |
-| `preset` | The preset the layout came from, in a workspace with presets. A link opens with that preset marked, and Reset layout rebuilds it. A link without it opens on the first preset, as links did before. |
+| `preset` | The preset the layout came from. A link opens with that preset marked, and Reset layout rebuilds it. |
 | `zoom` | The maximised pane, if any. |
 | `peek` | The object in the peek sheet, if any. |
-| `page`, `item`, `tab`, `open` | A curated page: which one, its item, the view in use, and panes opened from it. |
+| `scroll` | Where each [row that scrolls sideways](/guides/scrolling-rows) came to rest, when it isn't at its start. |
+| `page`, `item`, `tab`, `open` | A curated page: which one, its item, the view in use, and the panes opened from it. |
 
-A page link writes each object (`open`, `peek`) as its kind and params: `call~slug=demra~t=#12` is a `call` with `slug: "demra"` and `t: 12`. You don't need to write this yourself; build links with `linkSearch`, below.
+A page link writes each object (`open`, `peek`) as its kind and params: `call~slug=demra~t=#12` is a `call` with `slug: "demra"` and `t: 12`. You don't write this yourself: build links with `linkSearch`, below.
 
 Deliberate changes (opening, closing, moving, choosing a preset) add a history entry. A detail following a list replaces the entry, so Back skips the rows passed through. A divider drag replaces it once the drag settles.
 
-## Build a link from outside the workspace
+## What a link brings back, and what it doesn't
 
-Your app often needs a link to something before any workspace shows it: a row in a search result, an email, a page on the server. `linkSearch` builds the same search string the workspace would write, with no workspace running:
+A link reopens the same panes, showing the same objects, in the same arrangement. Some things are the reader's, not the sender's:
+
+| | Comes from the link | Stays the reader's |
+|---|---|---|
+| Panes, their objects and the tree | Yes | |
+| The maximised pane, the peek, the preset | Yes | |
+| Sizes the sender dragged | Only with `sizes: "link"` | With `"local"` (the default), the reader's own |
+| How the layout fits | | Refitted to the reader's window: panes may fold |
+| A curated page's mode (Single view, Split view) and split layout | | Yes: the reader's own, from their device |
+| A curated page's item and view, when the link leaves them out | | The reader's last, else `firstItem` and `home` |
+| Params a kind keeps out of links (`appOnly`, `link: false`) | Never written | Your app sets them again |
+
+**Copy link** (in ⌘K, and `copyLink(jali)` from `jali`) copies the address as Jali writes it, so it follows these rules already.
+
+## Build a link from outside
+
+Your app often needs a link before any pane shows it: a row in a search result, an email, a page on the server. `linkSearch` builds the same search string Jali would write, with nothing running:
 
 ```ts
-import { linkSearch, row, createJali } from "jali";
-import { order, customer } from "./panes";
+import { linkSearch, row } from "jali";
+import { order, customer, panes } from "./panes";
 
 // A curated page: its item, the view in use, a pane opened from it and the peek.
 const href = `/customers${linkSearch({
@@ -55,32 +72,37 @@ const href = `/customers${linkSearch({
   peek: order({ id: 1042 }),
 })}`;
 
-// A free workspace: a layout, and what rides with it.
+// A free layout: the layout, and what rides with it.
 const layoutHref = `/desk${linkSearch({ layout: row(order({ id: 1041 }), customer({ id: 7 })) })}`;
+
+// The layout on screen now. Give `panes`, so params a link never carries are left out of plain refs.
+const nowHref = `/desk${linkSearch({ layout: jali.getLayout() }, { panes })}`;
 ```
 
-Reading the link gives exactly what you built it from. A page link may leave out `item` and `tab`, and the reader gets the item and view they saw last. With `prefix`, it writes a prefixed workspace's params; with `search`, it keeps your own params from that search string. Pane kinds are not needed: each object is written from its kind's name and params.
+Reading the link gives what you built it from, refitted to the reader's window. A page link may leave out `item` and `tab`: the reader then gets the item and view they saw last in this instance, else the page's `firstItem` and `home`. With `prefix`, it writes a prefixed instance's params; with `search`, it keeps your own params from that search string.
+
+Refs a kind's call built (`order({ id: 1 })`) carry their kind, so `linkSearch` leaves out their `appOnly` and `link: false` params without help. A plain `{ kind, params }` object, such as one read from `jali.getLayout()`, doesn't: pass `{ panes }` as above.
 
 ## Sizes: "local" or "link"
 
 `sizes` says what a link carries about the sizes a person dragged.
 
-- **`"local"`** (the default): the address holds the layout as designed. Every divider the person moved is put back in the link, and their sizes are kept on their device, keyed by the layout's shape. Their own reloads and Back and Forward keep their sizes. A colleague opening the link sees the designed proportions.
+- **`"local"`** (the default): the address holds the layout as designed, without the sizes the person dragged. Those sizes are kept on their device instead, keyed by the layout's shape. Their own reloads and Back and Forward keep their sizes. A colleague opening the link sees the designed proportions.
 - **`"link"`**: the address holds every size, so a link reopens exactly as it was sent.
 
 Choose `"local"` when a link means "look at this": the sender's proportions are rarely right on the reader's screen. Choose `"link"` when the arrangement itself is the work, and a colleague should see it to the pixel.
 
-With `"local"`, sizes are kept in the workspace's `storage`, for the last 12 layouts. Only sizes are read back from there, and only values a size can hold; if what is kept would make the layout invalid, the link opens as it is.
+With `"local"`, sizes are kept in `storage`, for the last 12 layouts. Only sizes are read back from there, and only values a size can hold; if what is kept would make the layout invalid, the link opens as it is.
 
-## Two workspaces in one address
+## Two instances in one address
 
-`prefix` names one workspace's params apart from another's. `urlSync({ prefix: "n." })` writes `n.l`, `n.zoom` and so on. See [Two workspaces on one page](/guides/two-workspaces).
+`prefix` names one instance's params apart from another's. `urlSync({ prefix: "n." })` writes `n.l`, `n.zoom` and so on. See [Two workspaces on one page](/guides/two-workspaces).
 
 ## With a router
 
-By default the workspace uses the browser's history. An app with a router should let the router own the address, so its guards, scroll restoration and typed search params keep working. Pass `urlSync({ location })`: a port of four functions.
+By default `urlSync()` uses the browser's history. An app with a router should let the router own the address, so its guards, scroll restoration and typed search params keep working. Pass `urlSync({ location })`: a port of four functions.
 
-```ts
+```ts nocheck
 interface LocationPort {
   search(): string;                                         // "?a=1" or ""
   href(): string;                                           // the whole address, for "Copy link"
@@ -89,21 +111,21 @@ interface LocationPort {
 }
 ```
 
-`subscribe` must report only changes Jali did not make: Back, Forward, a router link. Most routers report every navigation, Jali's own included, so a small wrapper skips those. It works with any router:
+`subscribe` must report only changes Jali did not make: Back, Forward, a router link. Most routers report every navigation, Jali's own included, so a small wrapper skips those. It skips only the one write Jali is waiting for: any other change of the search, including a write the router blocked or replaced, clears it and is reported. It works with any router, and its test covers a blocked write, a later visit to the same address, and Back and Forward:
 
 <Code code={routerLocation} filename="src/router-location.ts" />
 
-Pass the router's location when you create the workspace, so the first render already shows the linked layout.
+Pass the router's location to `urlSync` when you call `createJali`, so the first render already shows the linked layout.
 
 <Callout type="warning" title="Check these against your router's version">
-The two adapters below are written against each router's public API, but this site doesn't install either router, so they are not compiled here. Check them against the version you use.
+The two adapters below are written against each router's public API (React Router 7, TanStack Router 1), but this site doesn't install either router, so their code is not compiled here. Check them against the version you use.
 </Callout>
 
 ### React Router
 
 With a data router (`createBrowserRouter`), the router object can read, navigate and subscribe outside components:
 
-```ts
+```ts nocheck
 import { createBrowserRouter } from "react-router";
 import { routerLocation } from "./router-location";
 
@@ -127,7 +149,7 @@ export const jali = createJali({ panes, presets, features: [urlSync({ location }
 
 TanStack Router keeps its history object public. Writing through it keeps the router in step:
 
-```ts
+```ts nocheck
 import { createRouter } from "@tanstack/react-router";
 import { routerLocation } from "./router-location";
 
@@ -151,9 +173,13 @@ If a route validates its search params, let unknown keys through: Jali's keys (`
 
 ## In tests and dialogs
 
-`urlSync({ location: memoryLocation() })` is an address that lives in memory. Use it in tests, on the server, and for a workspace in a dialog that must not touch the page's address. See [Test a workspace](/guides/testing).
+`urlSync({ location: memoryLocation() })` is an address that lives in memory. Use it in tests, on the server, and for panes in a dialog that must not touch the page's address. See [Test your layouts](/guides/testing).
+
+## When the route goes away
+
+If the instance belongs to one route, and your app drops it for good when the person leaves that route (outside React, or in a router's loader cache), call `jali.destroy()`. It cancels every pending question, timer and listener. Inside React, `<JaliRoot>` stops the listeners on unmount, so an instance made in a component needs nothing more.
 
 ## Next
 
 - [Unsaved work and pane state](/guides/unsaved-work-and-pane-state): Back and Forward ask before losing work too.
-- [Two workspaces on one page](/guides/two-workspaces)
+- [Two instances on one page](/guides/two-workspaces)

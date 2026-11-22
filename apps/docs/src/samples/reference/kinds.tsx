@@ -6,17 +6,18 @@ export const ordersKind = definePane("orders", {
   width: { min: 320 },
   height: { min: 200 },
 
+  // A native list of buttons: Tab reaches each order, Enter or a click selects it, and a double-click opens it.
   Component: ({ select, openBeside }) => (
-    <ul role="listbox" aria-label="Orders">
+    <ul aria-label="Orders">
       {[1041, 1042, 1043].map((id) => (
-        <li
-          key={id}
-          role="option"
-          aria-selected={false}
-          onClick={() => select(orderKind({ id }))}
-          onDoubleClick={() => openBeside(orderKind({ id }))}
-        >
-          Order {id}
+        <li key={id}>
+          <button
+            type="button"
+            onClick={() => select(orderKind({ id }))}
+            onDoubleClick={() => openBeside(orderKind({ id }))}
+          >
+            Order {id}
+          </button>
         </li>
       ))}
     </ul>
@@ -32,7 +33,7 @@ export const orderKind = definePane("order", {
   Component: ({ params }) => <article>Order {params.id}</article>,
 });
 
-// What Split and "New tab here" open until the person chooses: the workspace's `launcher`.
+// What Split and "New tab here" open until the person chooses: the `launcher`.
 export const launcherKind = definePane("launcher", {
   title: "New pane",
   scratch: true,

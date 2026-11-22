@@ -1,0 +1,23 @@
+/* Two instances side by side. Each fills the box it is given, so each box needs a definite height. */
+@layer base, jali;
+
+@layer base {
+  html,
+  body,
+  #root {
+    height: 100%;
+    margin: 0;
+  }
+}
+
+.page {
+  height: 100%;
+  display: grid;
+  grid-template-columns: 3fr 2fr;
+  gap: 12px;
+}
+/* A grid item's height comes from its row; min-height: 0 lets it shrink below its content. */
+.orders,
+.notes {
+  min-height: 0;
+}

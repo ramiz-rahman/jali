@@ -9,8 +9,7 @@ import { note } from "./note-open-beside";
 
 const start = () =>
   createTestJali({ panes: [note], layout: row(note({ id: 1 }), note({ id: 2 })) }).jali;
-const notes = (jali: ReturnType<typeof start>) =>
-  jali.model().panes.map((p) => p.ref.params.id);
+const notes = (jali: ReturnType<typeof start>) => jali.model().panes.map((p) => p.ref.params.id);
 
 describe("the Quickstart", () => {
   it("starts with notes 1 and 2 side by side", () => {

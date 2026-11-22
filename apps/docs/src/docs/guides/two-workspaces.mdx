@@ -1,53 +1,58 @@
 ---
-title: Two workspaces on one page
-summary: Put two workspaces side by side, or one in a dialog, without their links, saved settings or keys getting mixed up.
+title: Two instances on one page
+summary: Put two sets of panes side by side, or one in a dialog, without their links, saved settings or keys getting mixed up.
 ---
 
 import two from "../../samples/guides/two-workspaces/two.tsx?raw";
+import css from "../../samples/guides/two-workspaces/page.css?raw";
 
-Two workspaces on one page share nothing, except three things that belong to the page: the address, the browser's storage and the keyboard. Give each workspace its own share of those, and they work side by side.
+Two instances of Jali on one page share nothing, except three things that belong to the page: the address, the browser's storage and the keyboard. Give each one its own share of those, and they work side by side.
 
-This page puts an orders workspace beside a notes workspace.
+This page puts orders beside notes, each its own instance.
 
 <Code code={two} filename="src/main.tsx" />
 
+Each `<JaliRoot>` fills the box it is given, so each box needs a definite height:
+
+<Code code={css} lang="css" filename="src/page.css" />
+
 ## Its own name in the DOM
 
-`id` prefixes the workspace's element ids (`orders-pane-…` and `notes-pane-…`, and its dialogs' ids) and its saved keys. The default is `"jali"`, so give each workspace its own. Focus, dragging and F6 already look only inside their own workspace's root.
+`id` prefixes the instance's element ids (`orders-pane-…` and `notes-pane-…`, and its dialogs' ids) and its saved keys. The default is `"jali"`, so give each instance its own. Focus, dragging and F6 already look only inside their own root.
 
 ## Its own name for screen readers
 
-`label` names the workspace for assistive technology. Its landmark is called "Orders" instead of "Panes", and each of Jali's landmarks inside it adds the name: the pane "Order 7, Orders", the shelf "Shelf, Orders", and the switcher, the peek and a page's views the same way. Without it, both workspaces would have a "Panes" region, and a pane titled the same in each would repeat a name, so a screen-reader user moving by landmarks couldn't tell them apart.
+`label` names the instance for assistive technology. Its landmark is called "Orders" instead of "Panes", and each of Jali's landmarks inside it adds the name: the pane "Order 7, Orders", the shelf "Shelf, Orders", and the switcher, the peek and a page's views the same way. Without it, both would have a "Panes" region, and a pane titled the same in each would repeat a name, so a screen-reader user moving by landmarks couldn't tell them apart.
 
 ## Its own params in the address
 
-`urlSync({ prefix: "n." })` writes the notes workspace's params as `n.l`, `n.zoom` and `n.peek`. The orders workspace keeps the plain names. Each reads and writes only its own, and every other param is left alone, so one link reopens both, and Back and Forward step each one through its own changes.
+`urlSync({ prefix: "n." })` writes the notes instance's params as `n.l`, `n.zoom` and `n.peek`. Orders keeps the plain names. Each reads and writes only its own, and every other param is left alone, so one link reopens both, and Back and Forward step each one through its own changes.
 
-A workspace that must not touch the address at all, such as one in a dialog, leaves `urlSync()` out of its features.
+An instance that must not touch the address at all, such as one in a dialog, leaves `urlSync()` out of its features.
 
 ## Its own storage
 
-A workspace saves its settings and pane state to `localStorage` under its `id` by default: `orders:settings`, `notes:pane-state`. Each URL sync keeps its own keys under its `prefix`. So two workspaces with their own ids and prefixes never overwrite each other. Pass `storage` for somewhere else: another prefix (`storage: "my-app"`) or a port such as `memoryStorage()`.
+An instance saves its settings and pane state to `localStorage` under its `id` by default: `orders:settings`, `notes:pane-state`. Each URL sync keeps its own keys under its `prefix`. So two instances with their own ids and prefixes never overwrite each other. Pass `storage` for somewhere else: another prefix (`storage: "my-app"`) or a port such as `memoryStorage()`.
 
 ## Its own keys and start-up
 
-`keyboard: { scope: "local" }` makes a workspace take only keys from inside its own root and its dialogs, plus keys pressed with nothing focused, when it was the last one used. So F6 in the notes moves between notes panes, and ⌘K then ⌘M maximises a notes pane. The palette renders outside the root, but it is the workspace's own, so the chord finishes there. The default, `"page"`, takes every key on the page: right for one workspace, wrong for two.
+`keyboard: { scope: "local" }` makes an instance take only keys from inside its own root and its dialogs, plus keys pressed with nothing focused, when it was the last one used. So F6 in the notes moves between notes panes, and ⌘K then ⌘M maximises a notes pane. The palette renders outside the root, but it is the instance's own, so the chord finishes there. The default, `"page"`, takes every key on the page: right for one instance, wrong for two.
 
-Everything else a workspace starts while its `<JaliRoot>` is mounted works for each one: saving settings and pane state, Back and Forward, and the browser's prompt when the page closes with unsaved work.
+Everything else an instance starts while its `<JaliRoot>` is mounted works for each one: saving settings and pane state, Back and Forward, and the browser's prompt when the page closes with unsaved work.
 
 ## Inside a page with its own theme
 
-A workspace sets `data-theme` on `<html>` from its theme setting, and on its own root and dialog layer. Inside a page that has its own light and dark (a docs site, an app with its own switch), pass `pageTheme: false`, and the workspace writes none of them and follows the page's `.dark` and `[data-theme]` scopes instead.
+An instance sets `data-theme` on `<html>` from its theme setting, and on its own root and dialog layer. Inside a page that has its own light and dark (a docs site, an app with its own switch), pass `pageTheme: false`, and it writes none of them and follows the page's `.dark` and `[data-theme]` scopes instead.
 
 ## Focus
 
-Mounting a workspace never takes the page's focus. A page with three workspaces, or one below the fold, keeps its place. A workspace moves focus into its panes once the person is in it: when they click or tab into it, or run one of its commands.
+Mounting `<JaliRoot>` never takes the page's focus. A page with three instances, or one below the fold, keeps its place. Jali moves focus into its panes once the person is in it: when they click or tab into it, or run one of its commands.
 
 ## Its own look
 
-To give one workspace its own accent, set `--jali-accent` on an element around its `<JaliRoot>`. See [Theming](/guides/theming).
+To give one instance its own accent, set `--jali-accent` on an element around its `<JaliRoot>`. See [Theming](/guides/theming).
 
 ## Next
 
 - [Keep the layout in the URL](/guides/url-and-routers)
-- [Test a workspace](/guides/testing): each test is a workspace of its own.
+- [Test your layouts](/guides/testing): each test makes an instance of its own.

@@ -20,7 +20,7 @@ export const jali = createJali({
     { id: "free", label: "Free", layout: () => row(report({ id: 1 }), report({ id: 2 })) },
   ],
   allow: {
-    // For the whole workspace: maximise, but not full screen.
+    // For every pane: maximise, but not full screen.
     fullScreen: false,
     // It depends: on the Review layout, people arrange panes as they like but never remove one.
     when: ({ action, presetId }) =>

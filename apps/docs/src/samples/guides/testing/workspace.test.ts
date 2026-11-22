@@ -4,13 +4,13 @@ import { createTestJali, reportUnsaved, type TestLocation } from "jali/testing";
 import { orderKind, orderKinds } from "../pane-kinds/orders";
 import { presets } from "../presets/layouts";
 
-/** A workspace with nothing shared: its own address, its own storage, a fixed size, no DOM focus. */
+/** An instance with nothing shared: its own address, its own storage, a fixed size, no DOM focus. */
 const testJali = (search = "", size = { width: 1440, height: 900 }) =>
   createTestJali({ panes: orderKinds, presets, preset: "triage", search, size });
 
 const ids = (jali: Jali) => jali.model().panes.map((p) => p.id);
 
-describe("the orders workspace", () => {
+describe("the orders app", () => {
   let jali: Jali;
   let location: TestLocation;
   beforeEach(() => ({ jali, location } = testJali()));

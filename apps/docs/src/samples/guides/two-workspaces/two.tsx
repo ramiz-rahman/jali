@@ -2,12 +2,13 @@ import { createRoot } from "react-dom/client";
 import { createJali } from "jali";
 import { JaliRoot } from "jali/react";
 import "jali/styles.css";
+import "./page.css";
 import { orderKinds } from "../pane-kinds/orders";
 import { presets } from "../presets/layouts";
 import { ticketNote } from "../unsaved/note-editor";
 import { urlSync } from "jali/url";
 
-// The orders workspace: the address's plain params (l, zoom, peek). Its id names its DOM ids ("orders-pane-…")
+// Orders: the address's plain params (l, zoom, peek). Its id names its DOM ids ("orders-pane-…")
 // and its localStorage keys ("orders:…").
 const orders = createJali({
   id: "orders",
@@ -15,10 +16,11 @@ const orders = createJali({
   keyboard: { scope: "local" }, // only keys pressed inside it and its dialogs, or on the page body after it was used last
   panes: orderKinds,
   presets,
+  features: [urlSync()],
 });
 
-// The notes workspace: params "n.l", "n.zoom", "n.peek", DOM ids "notes-pane-…", localStorage keys "notes:…".
-// The orders workspace sets the page's theme; this one leaves it alone.
+// Notes: params "n.l", "n.zoom", "n.peek", DOM ids "notes-pane-…", localStorage keys "notes:…".
+// Orders sets the page's theme; notes leaves it alone.
 const notes = createJali({
   id: "notes",
   label: "Notes",

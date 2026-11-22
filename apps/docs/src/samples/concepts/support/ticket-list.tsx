@@ -3,11 +3,12 @@ import { definePane, type PaneProps } from "jali/react";
 import { tickets } from "./data";
 import { ticket } from "./ticket";
 
-function TicketList({ select, peek, openBeside }: PaneProps) {
+function TicketList({ node, select, peek, openBeside }: PaneProps) {
   const [index, setIndex] = useState<number | null>(null);
   const current = index === null ? undefined : tickets[index];
+  const optionId = (id: number) => `${node.id}-ticket-${id}`; // unique per pane
 
-  // Move the cursor and tell the workspace what is selected. A following detail shows it once it rests.
+  // Move the cursor and tell Jali what is selected. A following detail shows it once it rests.
   const selectAt = (i: number) => {
     const next = Math.max(0, Math.min(tickets.length - 1, i));
     setIndex(next);
@@ -20,20 +21,28 @@ function TicketList({ select, peek, openBeside }: PaneProps) {
   };
 
   const onKeyDown = (e: KeyboardEvent) => {
-    if (e.metaKey || e.ctrlKey) return; // ⌘K and the workspace's keys bubble on
+    if (e.metaKey || e.ctrlKey) return; // ⌘K and Jali's keys bubble on
     if ((e.key === "j" || e.key === "ArrowDown") && !e.altKey) selectAt((index ?? -1) + 1);
     else if ((e.key === "k" || e.key === "ArrowUp") && !e.altKey) selectAt((index ?? 1) - 1);
     else if (e.key === " " && current) peek(ticket({ id: current.id }));
     else if (e.key === "Enter" && e.altKey && index !== null) openAt(index);
     else return; // not ours: let it bubble
-    e.preventDefault(); // claimed: the workspace leaves this key alone
+    e.preventDefault(); // claimed: Jali leaves this key alone
   };
 
   return (
-    <ul role="listbox" aria-label="Tickets" tabIndex={0} onKeyDown={onKeyDown}>
+    // One tab stop; the cursor is the active option, which screen readers follow (aria-activedescendant).
+    <ul
+      role="listbox"
+      aria-label="Tickets"
+      tabIndex={0}
+      aria-activedescendant={current ? optionId(current.id) : undefined}
+      onKeyDown={onKeyDown}
+    >
       {tickets.map((t, i) => (
         <li
           key={t.id}
+          id={optionId(t.id)}
           role="option"
           aria-selected={i === index}
           onClick={() => selectAt(i)}

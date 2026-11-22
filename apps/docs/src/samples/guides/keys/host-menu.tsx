@@ -2,11 +2,12 @@ import { useState } from "react";
 import { useJaliCommands } from "jali/react";
 
 /**
- * Jali's commands inside your app's own command menu. This is a plain list; with cmdk, each entry becomes a
- * <Command.Item> and `run` goes in `onSelect`. Render it inside <JaliRoot>, next to your app's own commands.
+ * Jali's commands inside your app's own command menu: a field and a list of buttons, which Tab and Enter reach with
+ * no extra roles. With cmdk, each entry becomes a <Command.Item> and `run` goes in `onSelect`; cmdk then provides the
+ * combobox's keys and roles. Render it inside <JaliRoot>, next to your app's own commands.
  */
 export function HostCommandMenu({ onClose }: { onClose: () => void }) {
-  const commands = useJaliCommands(); // the focused pane's own first, then the workspace's
+  const commands = useJaliCommands(); // the focused pane's own first, then Jali's
   const [query, setQuery] = useState("");
   const shown = commands.filter((c) =>
     `${c.title} ${c.group}`.toLowerCase().includes(query.toLowerCase()),
@@ -19,17 +20,13 @@ export function HostCommandMenu({ onClose }: { onClose: () => void }) {
         value={query}
         onChange={(e) => setQuery(e.target.value)}
       />
-      <ul role="listbox" aria-label="Commands">
+      <ul aria-label="Commands">
         {shown.map((c) => (
-          <li
-            key={c.key}
-            role="option"
-            aria-selected={false}
-            aria-disabled={c.disabled}
-            title={c.reason}
-          >
+          <li key={c.key}>
             <button
+              type="button"
               disabled={c.disabled}
+              title={c.reason}
               onClick={() => {
                 onClose(); // close first: some commands move focus into a pane
                 c.run();
