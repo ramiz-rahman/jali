@@ -135,7 +135,7 @@ describe("the instance", () => {
     expect(Object.isFrozen(jali)).toBe(true);
     expect("set" in jali).toBe(false);
     expect(storeOf(jali).jali).toBe(jali);
-    expect(() => storeOf({} as never)).toThrow(/not a workspace/);
+    expect(() => storeOf({} as never)).toThrow(/not an instance/);
   });
 });
 

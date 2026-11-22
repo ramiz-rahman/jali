@@ -52,7 +52,7 @@ export function SwitcherItem({
       data-in-view={inView || undefined}
       data-unsaved={dirty || undefined}
       aria-description={dirty ? store.messages.pane.unsaved : undefined}
-      onClick={() => actions.focus(node.id)}
+      onClick={() => actions.focusPane(node.id)}
       ref={selected ? revealInList : undefined}
       // An arrow key's focus too: it moves with preventScroll, so it comes into the list here.
       onFocus={(e) => revealInList(e.currentTarget)}

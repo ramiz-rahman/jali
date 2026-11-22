@@ -38,10 +38,10 @@ export function useContentHosts(store: JaliStore, on: boolean) {
         el.className = "jali-pane-content-inner";
         // The frame's own handlers don't hear what happens in content rendered elsewhere: a press or focus in it
         // focuses the pane, as a press anywhere in the frame does.
-        el.addEventListener("pointerdown", () => store.actions.focus(id), true);
+        el.addEventListener("pointerdown", () => store.actions.focusPane(id), true);
         el.addEventListener(
           "focusin",
-          () => store.get().view.focused !== id && store.actions.focus(id),
+          () => store.get().view.focused !== id && store.actions.focusPane(id),
           true,
         );
         all.set(id, (h = { el, header: createHeaderSlot(), host: paneHost(store, id) }));

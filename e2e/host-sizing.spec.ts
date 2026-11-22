@@ -44,7 +44,7 @@ test.describe("the root sizes the panes", () => {
     await page.goto("/");
     await expect(page.locator(".jali-workspace")).toHaveCount(1);
     await expect
-      .poll(() => warnings.some((w) => w.startsWith("Jali: the workspace measures 0 pixels high")))
+      .poll(() => warnings.some((w) => w.startsWith("Jali: the panes measure 0 pixels high")))
       .toBe(true);
   });
 });

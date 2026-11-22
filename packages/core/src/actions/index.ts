@@ -19,6 +19,7 @@ import {
   focusDirection,
   focusEnd,
   focusIndex,
+  focus,
   focusShown,
   toggleFullScreen,
   toggleZoom,
@@ -247,6 +248,8 @@ export const STEPS = {
   "dialogs.closeSettings": closeSettings,
 
   // ---------- adapters: forms of a public action ----------
+  /** Focus only, as a click in a pane does: no tab is chosen, so nothing in the address changes. */
+  focusPane: [focus, "focus"],
   focusCycle: [focusCycle, "focus"],
   focusDirection: [focusDirection, "focus"],
   focusIndex: [focusIndex, "focus"],

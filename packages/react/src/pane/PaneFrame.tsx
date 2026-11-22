@@ -150,8 +150,8 @@ export const PaneFrame = /* @__PURE__ */ memo(
         data-covered={covered || undefined}
         aria-hidden={covered || undefined}
         ref={coveredRef}
-        onPointerDownCapture={() => actions.focus(node.id)}
-        onFocusCapture={() => store.get().view.focused !== node.id && actions.focus(node.id)}
+        onPointerDownCapture={() => actions.focusPane(node.id)}
+        onFocusCapture={() => store.get().view.focused !== node.id && actions.focusPane(node.id)}
         // The pane's menu from the keyboard (Shift+F10 or the menu key), on the pane or its header: a tab opens its
         // own, and the content's keys are the app's.
         onKeyDown={(e) => {
