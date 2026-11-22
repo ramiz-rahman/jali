@@ -31,6 +31,10 @@ function Note({ id }: { id: string }) {
       <button type="button" data-beside={id} onClick={() => openBeside(note({ n: 9 }))}>
         Open beside
       </button>
+      {/* One of Jali's controls, used in the pane's own content. */}
+      <button type="button" className="jali-icon-btn" data-control={id}>
+        Act
+      </button>
     </>
   );
 }
@@ -262,6 +266,23 @@ describe("data-pressed", () => {
     expect(hold(close("data-on"))).toBe(true);
     expect(hold(close("data-off"))).toBe(false);
     expect(hold(container.querySelector<HTMLElement>("[data-app]")!)).toBe(false);
+  });
+
+  it("is on its controls in a popped-out pane too, in the floating window's own document", async () => {
+    const jali = make();
+    const { container } = render(<JaliRoot jali={jali} />);
+    await act(async () => void (await jali.actions.focus("a")));
+    await act(async () => {
+      fireEvent.click(container.querySelector('[aria-label="Pop out Note 1"]')!);
+      await new Promise((r) => setTimeout(r, 0));
+    });
+    const [win] = open();
+    const control = win!.document.querySelector<HTMLElement>('[data-control="a"]')!;
+    expect(control).toBeTruthy();
+    act(() => void fireEvent.pointerDown(control, { button: 0, isPrimary: true }));
+    expect(control.hasAttribute("data-pressed")).toBe(true);
+    act(() => void fireEvent.pointerUp(control, { button: 0, isPrimary: true }));
+    expect(control.hasAttribute("data-pressed")).toBe(false);
   });
 
   it("is not on the controls of an instance without it, nested in the root of one with it", () => {

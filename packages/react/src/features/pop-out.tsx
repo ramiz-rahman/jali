@@ -227,6 +227,9 @@ function createWindow(): ReactPopOut & { started(store: JaliStore): () => void }
     // Jali's keys, and a person's input, in the window too: every key pressed there is this instance's.
     const offKeys = installKeyboard(store, { target: win, root: () => html });
     const offInput = trackInput(doc);
+    // The window is one of the instance's surfaces: what is in it is the instance's, and features that listen on each
+    // surface's window (pressed()) listen there too.
+    const offSurface = store.dom.addSurface(root);
     // The pane leaving the instance closes its window; its title, theme and settings follow.
     const offStore = store.subscribe(() => (store.model().pane(pane) ? sync() : self.close(store)));
     const s: Session = {
@@ -235,6 +238,7 @@ function createWindow(): ReactPopOut & { started(store: JaliStore): () => void }
       root,
       moved,
       off: () => {
+        offSurface();
         offStore();
         offKeys();
         offInput();

@@ -96,22 +96,30 @@ function useMeasure(store: JaliStore) {
   return ref;
 }
 
-/** Whether the person was last in this instance (focus or a press inside its root or its dialogs), not elsewhere on
- *  the page. Starts false: mounting an instance is not the person going there. */
+/** Whether the person was last in this instance (focus or a press inside its root, its dialogs or a surface such as Pop
+ *  out's window), not elsewhere on the page. Starts false: mounting an instance is not the person going there. */
 function useEngaged(store: JaliStore) {
   const engaged = useRef(false);
   useEffect(() => {
     const on = (e: Event) => {
       const t = e.target as Node | null;
-      const root = store.dom.root();
-      engaged.current =
-        !!t && ((root !== document && root.contains(t)) || !!store.dom.layer()?.contains(t));
+      engaged.current = !!t && store.dom.contains(t);
     };
-    document.addEventListener("focusin", on, true);
-    document.addEventListener("pointerdown", on, true);
+    const listen = (doc: Document) => {
+      doc.addEventListener("focusin", on, true);
+      doc.addEventListener("pointerdown", on, true);
+      return () => {
+        doc.removeEventListener("focusin", on, true);
+        doc.removeEventListener("pointerdown", on, true);
+      };
+    };
+    const offPage = listen(document);
+    const offSurfaces = store.dom.eachSurface((el) =>
+      el.ownerDocument !== document ? listen(el.ownerDocument) : undefined,
+    );
     return () => {
-      document.removeEventListener("focusin", on, true);
-      document.removeEventListener("pointerdown", on, true);
+      offSurfaces();
+      offPage();
     };
   }, [store]);
   return engaged;

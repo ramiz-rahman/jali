@@ -30,6 +30,16 @@ export interface JaliDom {
    *  root; null until one is attached. Keys pressed there count as the instance's. */
   layer(): Element | null;
   attachLayer(el: Element | null): void;
+  /** Show the instance in another element too, outside the root and the layer (Pop out's window); returns the undo.
+   *  Features attached to every surface (`eachSurface`) attach to it, and leave it when it goes. */
+  addSurface(el: HTMLElement): () => void;
+  /** Whether `el` is one of the instance's own elements: its root, its layer or a surface. */
+  isOwn(el: Element): boolean;
+  /** Whether `node` is inside the instance: in its root, its layer or a surface. */
+  contains(node: Node): boolean;
+  /** Runs `attach` for each surface, now and to come; what it returns runs when that surface goes, or on the stop
+   *  this returns. For listeners a surface's own window needs (its keys, its presses). */
+  eachSurface(attach: (el: HTMLElement) => (() => void) | void): () => void;
   /** The element with this instance's pane id `id`, if rendered. */
   pane(id: NodeId): HTMLElement | null;
 }
@@ -40,6 +50,13 @@ export function createDom(id: string): JaliDom {
     port: DomPort = noDom,
     drag: DragKind | null = null;
   const root = (): ParentNode => el ?? document;
+  /** Each surface, with what each attached feature left to undo there. */
+  const surfaces = new Map<HTMLElement, Map<object, () => void>>();
+  const attached = new Set<(el: HTMLElement) => (() => void) | void>();
+  const join = (s: HTMLElement, attach: (el: HTMLElement) => (() => void) | void) => {
+    const undo = attach(s);
+    if (undo) surfaces.get(s)!.set(attach, undo);
+  };
   const dom: JaliDom = {
     id,
     get port() {
@@ -60,6 +77,32 @@ export function createDom(id: string): JaliDom {
     layer: () => layer,
     attachLayer: (next) => {
       layer = next;
+    },
+    addSurface: (s) => {
+      if (surfaces.has(s)) return () => {};
+      surfaces.set(s, new Map());
+      for (const attach of attached) join(s, attach);
+      return () => {
+        const undo = surfaces.get(s);
+        surfaces.delete(s);
+        for (const fn of undo?.values() ?? []) fn();
+      };
+    },
+    isOwn: (x) => x === el || x === layer || surfaces.has(x as HTMLElement),
+    contains: (node) =>
+      (!!el && el.contains(node)) ||
+      (!!layer && layer.contains(node)) ||
+      [...surfaces.keys()].some((s) => s.contains(node)),
+    eachSurface: (attach) => {
+      attached.add(attach);
+      for (const s of surfaces.keys()) join(s, attach);
+      return () => {
+        attached.delete(attach);
+        for (const undo of surfaces.values()) {
+          undo.get(attach)?.();
+          undo.delete(attach);
+        }
+      };
     },
     pane: (pane) =>
       typeof document === "undefined"
