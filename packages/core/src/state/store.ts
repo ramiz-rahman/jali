@@ -593,14 +593,18 @@ export function createJaliStore(deps: JaliConfig): JaliStore {
         keys: (keyboard.scope ?? "page") === "page" ? {} : { root: rootElement },
         pageTheme: deps.pageTheme,
       });
-      stop = () => {
+      // Each start's stop is its own: once it has run, or once another start has taken over, calling it again does
+      // nothing, so a stale handle never stops (or forgets) a later start's listeners.
+      const mine = () => {
+        if (stop !== mine) return;
+        stop = null;
         // A drag still going has listeners of its own on the window: it ends with the listeners it began under.
         life.cancelGestures();
         off();
         offInput();
-        stop = null;
       };
-      return stop;
+      stop = mine;
+      return mine;
     },
     gesture: (cancel) => life.gesture(cancel),
     destroy() {

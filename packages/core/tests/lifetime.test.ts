@@ -97,3 +97,49 @@ describe("destroy() ends everything pending", () => {
     expect(jali.getLayout()).toBe(layout);
   });
 });
+
+describe("a start's stop", () => {
+  /** A location that counts who listens to it now. */
+  function counted() {
+    const location = memoryLocation();
+    let listening = 0;
+    const subscribe = location.subscribe.bind(location);
+    location.subscribe = (fn) => {
+      listening++;
+      const off = subscribe(fn);
+      return () => {
+        listening--;
+        off();
+      };
+    };
+    return { location, listening: () => listening };
+  }
+
+  it("is its own start's: a stale handle called again leaves a later start running (core review 22 Nov 2026, #4)", () => {
+    const { location, listening } = counted();
+    const jali = make({ features: [urlSync({ location })] });
+    const stopA = jali.start();
+    stopA();
+    expect(listening()).toBe(0);
+    jali.start();
+    expect(listening()).toBe(1);
+    stopA();
+    expect(listening()).toBe(1);
+    // Still started: another start does nothing, so no second listener.
+    jali.start();
+    expect(listening()).toBe(1);
+    jali.destroy();
+    expect(listening()).toBe(0);
+  });
+
+  it("runs once", () => {
+    const { location, listening } = counted();
+    const jali = make({ features: [urlSync({ location })] });
+    const stop = jali.start();
+    stop();
+    stop();
+    expect(listening()).toBe(0);
+    jali.start();
+    expect(listening()).toBe(1);
+  });
+});
