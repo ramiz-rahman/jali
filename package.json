@@ -19,6 +19,7 @@
     "agent-docs": "node tooling/agent-docs.mjs",
     "icons": "node tooling/icons.mjs && vp fmt packages/react/src/icons/default-paths.ts",
     "size": "pnpm build:packages && tsc -p tooling/size && node tooling/size.mjs",
+    "pack-check": "node tooling/pack-check.mjs",
     "data-studio": "vp dev examples/data-studio",
     "loan-review": "vp dev examples/loan-review",
     "markets": "vp dev examples/markets",

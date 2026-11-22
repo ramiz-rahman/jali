@@ -134,6 +134,11 @@ const GATES = [
     },
   },
   {
+    name: "pack",
+    cmd: ["node", "tooling/pack-check.mjs"],
+    detail: (log) => lastMatch(log, /^pack-check: \d+ problems?/),
+  },
+  {
     name: "docs-build",
     cmd: ["pnpm", "--filter", "@jali/docs", "build"],
     detail: (log) => lastMatch(log, /page\(s\) built/)?.replace(/^\S+ \[build\] /, ""),
