@@ -38,7 +38,7 @@ const rectEq = (a: Rect, b: Rect) =>
 export const Divider = /* @__PURE__ */ memo(
   function Divider(p: DividerProps) {
     const row = p.axis === "row";
-    const t = useMessages().workspace;
+    const t = useMessages().panes;
     // The arrow that shrinks the first neighbour, and the one that grows it: the divider moves the way it points.
     const [less, more] = !row
       ? ["ArrowUp", "ArrowDown"]

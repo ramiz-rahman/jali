@@ -55,7 +55,7 @@ export function StackDivider({
   height: number;
 }) {
   const store = useStore();
-  const t = store.messages.workspace;
+  const t = store.messages.panes;
   const pair = m.stacked!;
   const drag = useRef<{ startY: number; start: number } | null>(null);
   const [live, setLive] = useState<number | null>(null);

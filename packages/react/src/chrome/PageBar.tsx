@@ -82,10 +82,10 @@ export function PageBar() {
         </button>
       </div>
       {multi && opened ? (
-        <div className="jali-inv" role="group" aria-label={t.investigation}>
+        <div className="jali-inv" role="group" aria-label={t.openedLabel}>
           <span className="jali-inv-mark" aria-hidden />
           <span className="jali-inv-text">
-            <Parts of={t.investigating(opened, bold)} />
+            <Parts of={t.openedCount(opened, bold)} />
           </span>
           <button type="button" className="jali-inv-back" onClick={() => store.run("page.back")}>
             <icon.back size={13} aria-hidden /> {t.backTo(profile.name)}

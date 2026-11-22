@@ -30,6 +30,16 @@ const MOVED: Record<string, Record<string, string>> = {
   definePage: {},
 };
 
+/** Message areas and keys renamed in 3c (`createJali({ messages })`), and their new names. */
+const MOVED_MESSAGES: Record<string, string> = {
+  workspace: "panes",
+  "announcements.singleOn": "announcements.onePaneOn",
+  "announcements.singleOff": "announcements.onePaneOff",
+  "announcements.notInvestigating": "announcements.nothingOpened",
+  "page.investigation": "page.openedLabel",
+  "page.investigating": "page.openedCount",
+};
+
 /** Every option each one takes. */
 const KNOWN: Record<string, readonly string[]> = {
   createJali: [
@@ -115,6 +125,10 @@ export function warnUnknown(
   for (const [key, value] of Object.entries(options)) {
     if (value === undefined) continue;
     if (allowed(key, value)) continue;
+    if (what === "createJali" && key === "messages" && value && typeof value === "object") {
+      warnMessages(value as Record<string, unknown>);
+      continue;
+    }
     const moved = MOVED[what]![key];
     if (!moved && KNOWN[what]!.includes(key)) continue;
     const id = `${what}.${key}`;
@@ -123,5 +137,20 @@ export function warnUnknown(
     console.warn(
       `Jali: ${what} has no option "${key}"${moved ? `: ${moved}` : ", and ignores it"}`,
     );
+  }
+}
+
+/** `createJali({ messages })`: warns once about each area or key that was renamed, naming the new one. */
+function warnMessages(messages: Record<string, unknown>): void {
+  const names = Object.entries(messages).flatMap(([area, words]) => [
+    area,
+    ...(words && typeof words === "object" ? Object.keys(words).map((k) => `${area}.${k}`) : []),
+  ]);
+  for (const name of names) {
+    const to = MOVED_MESSAGES[name];
+    const id = `createJali.messages.${name}`;
+    if (!to || said.has(id)) continue;
+    said.add(id);
+    console.warn(`Jali: createJali has no option "messages.${name}": moved to messages.${to}`);
   }
 }

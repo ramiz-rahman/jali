@@ -134,7 +134,7 @@ export const PaneFrame = /* @__PURE__ */ memo(
         role="region"
         // Named by its title; in a workspace the host named, by its title and the workspace's name.
         {...(named.label
-          ? { "aria-label": store.messages.workspace.within(title, named.label) }
+          ? { "aria-label": store.messages.panes.within(title, named.label) }
           : { "aria-labelledby": titleId(store.dom.id, node.id) })}
         tabIndex={-1}
         data-pane={node.id}

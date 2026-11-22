@@ -69,7 +69,7 @@ The titles below are for an instance with no curated page. With a curated page, 
 | `page.split` | Split view: views side by side | none | none | Silent unless a curated page is open in Single and the viewer may investigate. |
 | `page.open` | Open page | none | none | Silent while the page is open, or when there is no curated page. |
 | `page.leave` | Open Workspace | none | none | Silent unless a curated page is open, and in a page-only app (no presets). |
-| `page.as_limited` | View as viewer (Single only, links peek) | none | none | Silent unless a curated page is open and the viewer may investigate. |
+| `page.as_limited` | View as viewer (Single view only, links peek) | none | none | Silent unless a curated page is open and the viewer may investigate. |
 | `page.as_full` | View as investigator (links open beside) | none | none | Silent unless a curated page is open and the viewer may not investigate. |
 | `peek.close` | Close peek | none | none | Silent when no peek is open. |
 | `peek.open_beside` | Open peek beside | none | none | Silent when no peek is open. |

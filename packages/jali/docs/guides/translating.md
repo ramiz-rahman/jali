@@ -35,7 +35,7 @@ The words are grouped by area. The type lists every key, so your editor complete
 | `commands`, `commandGroups` | Command titles and the groups they are listed under, in ⌘K and `listCommands` |
 | `palette`, `chooser`, `confirmDiscard`, `settings` | The command palette, the chooser ("Add to tabs of…", and the words around your items in `jali.dialogs.choose`), "Discard unsaved changes?" and the settings panel |
 | `pane`, `tabs`, `shelf`, `peek` | A pane's header, its tabs and their menu, the shelf, the peek sheet |
-| `workspace`, `page`, `drop` | The panes' region and its dividers, a curated page's bar and tabs, the label shown while dragging |
+| `panes`, `page`, `drop` | The panes' region, the pane switcher and the dividers, a curated page's bar and tabs, the label shown while dragging |
 | `keys` | Words in printed keys ("Ctrl", "Esc", "Alt-click"), and how a tooltip shows its shortcut |
 
 ## Write a full translation

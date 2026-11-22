@@ -579,7 +579,7 @@ export function backToPage(x: Snapshot): Outcome {
   if (!r) return refuse("unavailable");
   const name = x.env.profile?.name ?? "page";
   const opened = investigation(x.m.panes);
-  if (!opened.length) return refuse("nothing-to-do", say(x).notInvestigating);
+  if (!opened.length) return refuse("nothing-to-do", say(x).nothingOpened);
   // It closes every opened pane: one the app keeps (`allow` close false) keeps the investigation, as `close` would.
   for (const p of opened) {
     const denied = notAllowed(x, p.id, "close");

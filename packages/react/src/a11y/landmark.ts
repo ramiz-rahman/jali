@@ -21,5 +21,5 @@ export function useWorkspaceLabel(): { label?: string; by?: string } {
 export function useLandmarkName(): (name: string) => string {
   const store = useStore();
   const { label } = useWorkspaceLabel();
-  return (name) => (label ? store.messages.workspace.within(name, label) : name);
+  return (name) => (label ? store.messages.panes.within(name, label) : name);
 }

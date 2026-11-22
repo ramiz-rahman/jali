@@ -10,7 +10,7 @@ const pageTab = (page: Page, name: string) =>
   page.getByRole("tablist", { name: "Loan review views" }).getByRole("tab", { name, exact: true });
 const mode = (page: Page, name: "Single" | "Split view") =>
   page.getByRole("radiogroup", { name: "View mode" }).getByRole("radio", { name });
-const investigation = (page: Page) => page.getByRole("group", { name: "Investigation" });
+const investigation = (page: Page) => page.getByRole("group", { name: "Opened panes" });
 const opened = (page: Page) => page.locator('section[data-origin="opened"]');
 const groupLink = (app: App, from: string) =>
   app.pane(from).locator('button[data-ref="lending_groups 5"]');
@@ -263,7 +263,7 @@ test.describe("Loan review: Split view", () => {
 });
 
 test.describe("Loan review: roles and what a link carries", () => {
-  test("a loan officer works in Single only, and links peek", async ({ app, page }) => {
+  test("a loan officer works in Single view only, and links peek", async ({ app, page }) => {
     await app.open({ path: at("application"), size: { width: 1440, height: 900 } });
     await mode(page, "Split view").click();
     await app.setting(/Loan officer/);

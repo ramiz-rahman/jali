@@ -76,7 +76,7 @@ const settings = {
   boundaryNone: "No marking",
   viewingAs: (page: string) => `${page}: viewing as`,
   viewerFull: (viewer: string) => `${cap(viewer)}: links open beside`,
-  viewerLimited: (viewer: string) => `${cap(viewer)}: Single only, links open as a peek`,
+  viewerLimited: (viewer: string) => `${cap(viewer)}: Single view only, links open as a peek`,
   keyboard: "Keyboard",
   keyboardLabel: "Keyboard shortcuts",
   paletteKey: "Command palette (then a second key for a chord)",

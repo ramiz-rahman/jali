@@ -61,7 +61,7 @@ export function geometryFor(
   const byId = new Map(r.panes.filter((b) => !b.hidden).map((b) => [b.id, b.rect]));
   const rects = (ids: NodeId[]) => ids.flatMap((id) => byId.get(id) ?? []);
   if (!union(rects(idsA)) || !union(rects(idsB))) return null;
-  const label = (ids: NodeId[]) => messagesOf(m).workspace.dividerSide(ids.map((i) => m.title(i)));
+  const label = (ids: NodeId[]) => messagesOf(m).panes.dividerSide(ids.map((i) => m.title(i)));
   const sa = core.extentIn(r, idsA, d.axis),
     sb = core.extentIn(r, idsB, d.axis);
   return {

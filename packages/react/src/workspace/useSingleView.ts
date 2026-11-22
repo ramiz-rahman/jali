@@ -20,7 +20,7 @@ export function useSingleView(store: JaliStore, m: Model, view: ViewState, measu
         frozen.current = null;
       }
       const said = store.messages.announcements;
-      store.announce(m.single ? said.singleOn : said.singleOff);
+      store.announce(m.single ? said.onePaneOn : said.onePaneOff);
     }
     was.current = m.single;
   }, [m.single, store]);

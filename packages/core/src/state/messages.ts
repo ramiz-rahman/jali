@@ -151,16 +151,16 @@ const announcements = {
   linkNotCopied: "Couldn't copy the link",
   centreDrop: (mode: "swap" | "tab") => `Centre drop: ${mode === "swap" ? "swap" : "add as tab"}`,
 
-  // inside a curated page: what the workspace's own steps say there (the page's own words are in page-messages.ts)
+  // inside a curated page: what the layout's own steps say there (the page's own words are in page-messages.ts)
   sentToTabs: (views: string[]) => `${views.join(", ")} went back to the tabs: not enough room`,
   singleNoLayout:
-    "Single shows one view: choose it from the tabs. Switch to Split view to arrange views",
+    "Single view shows one view: choose it from the tabs. Switch to Split view to arrange views",
   peekOnly: (pane: string) => `Peek: ${pane} · your role opens links as a peek`,
   peekSingle: (pane: string) => `Peek: ${pane} · switch to Split view to open links beside`,
 
-  // what the workspace did on its own
-  singleOn: "Single view: one pane at a time. Use the pane switcher at the top.",
-  singleOff: "Single view ended: full layout restored",
+  // what Jali did on its own: one pane at a time on a narrow screen (a phone), and back
+  onePaneOn: "One pane at a time: choose one from the switcher at the top",
+  onePaneOff: "Panes side by side again: layout restored",
   /** Stacked view on a phone: two linked panes, one above the other. */
   stacked: (top: string, bottom: string) => `Two panes stacked: ${top} above, ${bottom} below`,
   /** A folding screen: a pane each side of the fold. */
@@ -458,11 +458,11 @@ const peek = {
   closeTip: (keys: string) => `Close (${keys})`,
 };
 
-/** The panes region, Single view's pane switcher, and the dividers between panes. */
-const workspace = {
+/** The panes region, the pane switcher (one pane at a time, on a phone), and the dividers between panes. */
+const panesArea = {
   label: "Panes",
-  /** A landmark of a workspace the host named (`createJali({ label })`): a pane, the shelf, the switcher, the peek. */
-  within: (landmark: string, workspace: string) => `${landmark}, ${workspace}`,
+  /** A landmark of an instance the host named (`createJali({ label })`): a pane, the shelf, the switcher, the peek. */
+  within: (landmark: string, label: string) => `${landmark}, ${label}`,
   switcher: "Panes",
   switcherList: (count: number) => `Panes: ${count}`,
   /** The panes on one side of a divider: up to three titles, then a count. */
@@ -479,7 +479,7 @@ const workspace = {
   dividerTip: (side: string, px: number) => `${side} · ${px}px`,
 };
 
-/** English for every workspace, without a curated page's words (those come with `definePage`; page-messages.ts) or a
+/** English for every instance, without a curated page's words (those come with `definePage`; page-messages.ts) or a
  *  feature's (each feature brings its own; feature-messages.ts). */
 export const baseEn = {
   announcements,
@@ -493,7 +493,7 @@ export const baseEn = {
   shelf,
   pane,
   peek,
-  workspace,
+  panes: panesArea,
 };
 
 /** `base` with `more` over it, area by area. */
@@ -546,7 +546,7 @@ export const resolveMessages = (
     baseEn,
   ) as Messages;
 
-/** The messages of the workspace an env, snapshot or model belongs to (English when it was made without any). */
+/** The messages of the instance an env, snapshot or model belongs to (English when it was made without any). */
 export const messagesOf = (from: Env | { env: Env }): Messages =>
   ("kinds" in from ? from : from.env).messages ?? (baseEn as Messages);
 

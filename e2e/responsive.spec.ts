@@ -75,7 +75,7 @@ test("responsive: single view has a pane switcher that switches panes and restor
   const sw = page.getByRole("navigation", { name: "Panes" });
   await expect(sw).toBeVisible();
   await expect(app.main().getByRole("separator")).toHaveCount(0);
-  await expect(app.announcer()).toContainText("Single view");
+  await expect(app.announcer()).toContainText("One pane at a time");
   const tabs = sw.getByRole("tab");
   expect(await tabs.count()).toBeGreaterThan(5);
   await expect(sw.getByRole("tab", { selected: true })).toHaveCount(1);

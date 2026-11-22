@@ -17,7 +17,7 @@ export function PaneSwitcher({
   inView?: string[];
 }) {
   const store = useStore();
-  const t = store.messages.workspace;
+  const t = store.messages.panes;
   const list = useRef<HTMLDivElement>(null);
   const landmarkName = useLandmarkName();
   // ← → Home End move focus along the panes, wrapping both ways; Enter, Space or a click switches (manual activation:

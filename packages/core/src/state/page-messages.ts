@@ -1,7 +1,7 @@
 /**
  * A curated page's English (`definePage`): the words only a page shows or says. They live apart from the rest of
  * `en` so that an app without a page doesn't ship them; a page's engine (actions/page.ts) adds them to the
- * workspace's messages, under any translation's. `en` (state/messages.ts) has them too, for translators.
+ * instance's messages, under any translation's. `en` (state/messages.ts) has them too, for translators.
  */
 import type { Toast } from "./apply";
 
@@ -11,7 +11,7 @@ const panes = (n: number) => (n === 1 ? "pane" : "panes");
 const announcements = {
   pageOpened: (page: string, mode: "single" | "split") =>
     `${page} · ${mode === "single" ? "Single view: one view at a time" : "Split view: views side by side"}`,
-  modeSingle: (view: string) => `Single: showing ${view}. Your split layout is kept.`,
+  modeSingle: (view: string) => `Single view: showing ${view}. Your split layout is kept.`,
   modeSplit: "Split view: drag tabs into the layout to see views side by side",
   viewing: (view: string) => `Showing ${view}`,
   pageReset: "Layout reset to its design",
@@ -24,19 +24,19 @@ const announcements = {
   replacedNeedsRoom: (view: string, was: string) =>
     `${view} in place of ${was} · it needed more room, so the layout adjusted`,
   alreadyView: (view: string) => `${view} is already a view on this page`,
-  notInvestigating: "Nothing opened beyond the page",
+  nothingOpened: "Nothing opened beyond the page",
   backToPage: (page: string, count: number) =>
     `Back to ${page} · ${count} opened ${panes(count)} closed · Undo available`,
   permission: (viewer: string, canInvestigate: boolean) =>
     canInvestigate
       ? `Viewing as ${viewer}: Split view available, links open beside`
-      : `Viewing as ${viewer}: Single only, links open as a peek`,
-  singleOnly: "Your role works in Single: one view at a time",
+      : `Viewing as ${viewer}: Single view only, links open as a peek`,
+  singleOnly: "Your role works in Single view: one view at a time",
 };
 
 /** The page's commands, in ⌘K and the keyboard list. */
 const commands = {
-  /** `page` is the curated page's name; undefined in a workspace without one. */
+  /** `page` is the curated page's name; undefined in an instance without one. */
   pageBack: (page: string | undefined) => `Back to ${page ?? "page"} (close opened panes)`,
   pageReset: "Reset layout to its design",
   pageSingle: "Single view: one view at a time",
@@ -45,7 +45,7 @@ const commands = {
   /** `app` is the app's name for the free layout (`createJali({ name })`), when it gave one; `page` is the page's. */
   pageLeave: (app: string | undefined, page: string | undefined) =>
     app ? `Open ${app}` : `Leave ${page ?? "the page"}`,
-  viewAsLimited: (viewer: string) => `View as ${viewer} (Single only, links peek)`,
+  viewAsLimited: (viewer: string) => `View as ${viewer} (Single view only, links peek)`,
   viewAsFull: (viewer: string) => `View as ${viewer} (links open beside)`,
 };
 
@@ -68,12 +68,12 @@ const page = {
   singleTip: "One view at a time",
   split: "Split view",
   splitTip: "Views side by side: drag tabs into the layout",
-  splitTipLimited: "Your role works in Single",
-  investigation: "Investigation",
-  investigating: <T>(count: number, bold: (text: string) => T): (string | T)[] => [
-    "Investigating · ",
+  splitTipLimited: "Your role works in Single view",
+  /** The page bar's group for the panes opened from links, and its count: "**2** opened panes". */
+  openedLabel: "Opened panes",
+  openedCount: <T>(count: number, bold: (text: string) => T): (string | T)[] => [
     bold(String(count)),
-    " opened",
+    ` opened ${panes(count)}`,
   ],
   backTo: (page: string) => `Back to ${page}`,
   reset: "Reset layout to its design",

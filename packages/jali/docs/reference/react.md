@@ -793,7 +793,7 @@ A curated page: the page's `Rail` at the left, when it has one; its `Header`, th
 <PageBar />
 ```
 
-A curated page's controls, for your top bar: the Single / Split view switch (Split view disabled for a limited viewer), in Split view the "Investigating · N opened" group with Back to the page, and Reset. Renders nothing while no page is open.
+A curated page's controls, for your top bar: the Single / Split view switch (Split view disabled for a limited viewer), in Split view the "N opened panes" group with Back to the page, and Reset. Renders nothing while no page is open.
 
 ### Shelf
 

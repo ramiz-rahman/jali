@@ -382,7 +382,7 @@ export function Panes() {
     ? placed.map((f) => <PaneContent key={f.node.id} frame={f} at={hosts.get!(f.node.id)} />)
     : null;
   const named = useWorkspaceLabel();
-  const name = named.by ? undefined : (named.label ?? store.messages.workspace.label);
+  const name = named.by ? undefined : (named.label ?? store.messages.panes.label);
   useUniqueName(named.by ?? name!);
   return (
     <ContentHosts.Provider value={hosts.get}>
