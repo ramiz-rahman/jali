@@ -11,4 +11,4 @@ export const jali = createJali({
 });
 
 // A link with ?page=customer opens the page. Open it from code, a menu or ⌘K ("Open Customer") otherwise.
-if (!jali.get().page) jali.actions.openPage({ item: 7 });
+if (!jali.get().page) jali.page.open({ item: 7 });

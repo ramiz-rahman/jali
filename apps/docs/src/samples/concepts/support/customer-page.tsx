@@ -37,11 +37,11 @@ const build = (id: number) => {
 };
 
 // The list beside the page, and the header above its tabs.
-function Rail({ item, activate }: { item: number; activate: (item: number) => void }) {
+function Rail({ item, showItem }: { item: number; showItem: (item: number) => void }) {
   return (
     <nav aria-label="Customers">
       {customers.map((c) => (
-        <button key={c.id} aria-current={c.id === item} onClick={() => activate(c.id)}>
+        <button key={c.id} aria-current={c.id === item} onClick={() => showItem(c.id)}>
           {c.name}
         </button>
       ))}

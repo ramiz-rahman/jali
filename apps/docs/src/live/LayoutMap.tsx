@@ -216,7 +216,7 @@ export function LayoutMap({
         if (!e.currentTarget.contains(e.relatedTarget as Node | null)) setHover(null);
       }}
     >
-      <MapNode node={m.layout.root} c={{ m, hover, setHover, sizes }} />
+      <MapNode node={m.layout.root as LayoutNode} c={{ m, hover, setHover, sizes }} />
     </div>
   );
 }

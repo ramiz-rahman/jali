@@ -17,7 +17,7 @@ import {
   TreeStructureIcon,
   XIcon,
 } from "@phosphor-icons/react";
-import { layout as jl, type Rect, type JaliModel } from "@jali/core/adapter";
+import { layout as jl, type LayoutNode, type Rect, type JaliModel } from "@jali/core/adapter";
 import { JaliProvider } from "@jali/react";
 import type { DemoLayoutId } from "./demo";
 import { demoLayouts } from "./demo";
@@ -162,7 +162,7 @@ export function TreeView({
   const lit = useMemo(() => {
     if (!hover) return null;
     const node = jl.tree.find(m.layout.root, hover.id);
-    return node ? panesUnder(node) : null;
+    return node ? panesUnder(node as LayoutNode) : null;
   }, [hover, m.layout.root]);
   useLitPanes(wrap, hover?.from === "tree" ? lit : null, true, m);
   usePaneColours(wrap, colourOf, m);

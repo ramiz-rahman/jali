@@ -101,7 +101,7 @@ Your keymap may differ from the defaults, and the keys print differently on each
 
 <Code code={label} filename="src/CloseButton.tsx" />
 
-- `useShortcut(id)` gives "⌘K ⌘⌫" on a Mac and "Ctrl+K Ctrl+Backspace" elsewhere, or `""` when the command is unbound.
+- `useJaliShortcut(id)` gives "⌘K ⌘⌫" on a Mac and "Ctrl+K Ctrl+Backspace" elsewhere, or `""` when the command is unbound.
 - Outside React, `jali.keymap.label(id)` does the same.
 
 For keys your content handles itself, `keyHint("Mod+Enter")` prints them the same way ("⌘↵" or "Ctrl+Enter").

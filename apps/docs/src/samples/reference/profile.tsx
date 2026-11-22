@@ -44,10 +44,10 @@ export const loanReview = definePage({
         priority: "supporting",
       }),
     ),
-  Rail: ({ item, activate }) => (
+  Rail: ({ item, showItem }) => (
     <nav aria-label="Applications">
       {[1, 2, 3].map((n) => (
-        <button key={n} aria-current={n === item} onClick={() => activate(n)}>
+        <button key={n} aria-current={n === item} onClick={() => showItem(n)}>
           Application {n}
         </button>
       ))}

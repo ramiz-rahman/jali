@@ -15,7 +15,7 @@ export const openLatestOrder: Command = {
   title: "Open latest order for…",
   group: "Orders",
   run: (jali) =>
-    jali.actions.choose({
+    jali.dialogs.choose({
       title: "Open latest order for…",
       items: customers,
       label: (c) => c.name,

@@ -7,7 +7,7 @@ const ctx: LayoutContext = {
   fit: { ...store.get().area, gap: GAP, kinds: store.env.kinds.registry() },
   paneCap: store.get().settings.paneCap,
 };
-const start: Layout = store.getLayout();
+const start: Layout = layout.tree.clone(store.getLayout());
 const view: ViewState = { focused: "orders", focusHistory: ["orders"] };
 
 const opened = layout.openBeside(start, view, "orders", orderKind({ id: 1043 }), ctx);

@@ -34,7 +34,7 @@ export function setTheme(next: ThemeChoice) {
   for (const l of listeners) l();
 }
 
-export function useTheme(): ThemeChoice {
+export function useJaliTheme(): ThemeChoice {
   useEffect(() => {
     apply();
     const q = query();

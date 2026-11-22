@@ -48,7 +48,7 @@ const KEYS: { id: string; text: string }[] = [
 export function KeysDemo() {
   const app = useLandingApp({ app: "demo", layout: "stack" });
   const run = (id: string) => {
-    if (id === PALETTE_ID) app.store.actions.openPalette();
+    if (id === PALETTE_ID) app.store.dialogs.openPalette();
     else runCommand(app.store, id);
   };
   // The keymap reads the platform from `navigator`, which the build machine has too. Until the page hydrates, the
