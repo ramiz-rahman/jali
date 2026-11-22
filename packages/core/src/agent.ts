@@ -329,13 +329,20 @@ export function createAgent(jali: AnyJali, options: AgentOptions = {}): JaliAgen
         ok = false;
         break;
       }
-      ran.push((step as AgentStep).action);
       const action = (step as AgentStep).action;
-      const args = Array.isArray((step as AgentStep).args) ? (step as AgentStep).args! : [];
+      const given = (step as AgentStep).args;
       const refuse = (reason: string, message?: string) => {
         steps.push({ action, ok: false, reason, ...(message ? { message } : {}) });
         ok = false;
       };
+      // Left out, the arguments are none (`close()` closes the focused pane). Given as anything but a list, they are
+      // a mistake, refused: never read as none, which would act on another pane than the one meant.
+      if (given !== undefined && !Array.isArray(given)) {
+        refuse("invalid", 'A step\'s "args" is a list: [...]');
+        break;
+      }
+      ran.push(action);
+      const args: unknown[] = given ?? [];
       if (!allowed.has(action)) {
         refuse("not-allowed", `This agent may not use ${String(action)}`);
         break;
@@ -373,9 +380,12 @@ export function createAgent(jali: AnyJali, options: AgentOptions = {}): JaliAgen
     const placed = ran.some((a) =>
       ["preset", "setLayout", "resetLayout", "autoLayout"].includes(String(a)),
     );
-    const verdict = options.allow?.({ action: "autoLayout", args: [] });
+    // The app's `allow` is asked only when Jali would arrange: never for a turn that arranges nothing.
+    const arranging =
+      arrange === "after-changes" && !placed && paneIds(jali.getLayout()) !== before;
+    const verdict = arranging ? options.allow?.({ action: "autoLayout", args: [] }) : undefined;
     const vetoed = verdict === false || typeof verdict === "string";
-    if (arrange === "after-changes" && !placed && !vetoed && paneIds(jali.getLayout()) !== before) {
+    if (arranging && !vetoed) {
       const r = withInput("agent", () => jali.actions.autoLayout());
       // Nothing to arrange, or nothing arrangeable here (a phone shows one pane): not a failure, so not reported.
       if (r.ok || (r.reason !== "nothing-to-do" && r.reason !== "unavailable"))
