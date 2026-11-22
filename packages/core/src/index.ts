@@ -128,7 +128,7 @@ export type {
 // ---------- the instance's state ----------
 export type { PageState, Selection, UrlState, UrlWriter } from "./state/store";
 export type { Feature, FeatureId } from "./features/feature";
-export type { JaliModel, PaneOf, Group } from "./state/model";
+export type { JaliModel, PaneOf, Group, TuckedEntry } from "./state/model";
 export type { StackPair, Hinge } from "./workspace/stack";
 export type { Settings, ThemeChoice, Theme } from "./state/settings";
 
