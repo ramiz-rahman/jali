@@ -92,8 +92,19 @@
     font-weight: 500;
     color: var(--jali-text);
   }
-  .jali-chooser-item {
-    grid-template-columns: 16px 1fr auto;
+  /* A chooser's name and hint shrink and are cut short, never painting over the row beside or below; the option
+     keeps their whole text for assistive technology. The name keeps at least 40% of the row. */
+  .jali-chooser .jali-palette-item {
+    grid-template-columns: minmax(40%, 1fr) minmax(0, max-content) 72px;
+  }
+  .jali-chooser .jali-chooser-item {
+    grid-template-columns: 16px minmax(40%, 1fr) minmax(0, max-content);
+  }
+  .jali-chooser :is(.jali-palette-name, .jali-palette-hint) {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
   .jali-chooser-icon {
     display: grid;

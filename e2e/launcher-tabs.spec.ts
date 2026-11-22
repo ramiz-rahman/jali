@@ -87,6 +87,34 @@ test.describe("Launcher and tabs", () => {
     await expect(app.announcer()).toContainText("customer 1 moved out of tabs");
   });
 
+  test("a chooser row keeps a long name and hint inside it, cut short", async ({ app, page }) => {
+    // react-codex REACT-17: a long hint painted over the next row.
+    await app.open();
+    await app.heading("customer").click();
+    await page.keyboard.press("ControlOrMeta+k");
+    await page.keyboard.type("add to tabs");
+    await page.keyboard.press("Enter");
+    const chooser = page.getByRole("dialog", { name: "Add customer 1 to tabs of" });
+    const row = chooser.getByRole("option").first();
+    await expect(row).toBeVisible();
+    const box = await row.evaluate((r) => {
+      const long = "A very long hint that goes on and on past the edge of the dialog ".repeat(3);
+      r.querySelector(".jali-palette-hint")!.textContent = long;
+      r.querySelector(".jali-palette-name")!.textContent = long;
+      const inside = (el: Element) => {
+        const a = el.getBoundingClientRect(),
+          b = r.getBoundingClientRect();
+        return a.left >= b.left - 0.5 && a.right <= b.right + 0.5 && a.bottom <= b.bottom + 0.5;
+      };
+      return {
+        hint: inside(r.querySelector(".jali-palette-hint")!),
+        name: inside(r.querySelector(".jali-palette-name")!),
+        height: r.getBoundingClientRect().height,
+      };
+    });
+    expect(box).toEqual({ hint: true, name: true, height: 32 });
+  });
+
   test("merge and unmerge by shortcut (⌘K ⌘G, ⌘K ⇧⌘G)", async ({ app, page }) => {
     await app.open();
     await app.heading("customer").click();
