@@ -21,8 +21,9 @@ export function hide(
   if (find(layout.root, pane)?.type !== "pane") return { ok: false, reason: "missing" };
   if (hiddenOf(layout).includes(pane)) return { ok: false, reason: "hidden" };
   const owner = parent(layout.root, pane);
-  if (owner?.type === "stack")
-    layout = liftOut(layout, pane, owner.children.find((c) => c.id !== pane)!.id);
+  // A stack of one is a slot of its own: there is no group to lift it out beside.
+  const sibling = owner?.type === "stack" ? owner.children.find((c) => c.id !== pane) : undefined;
+  if (sibling) layout = liftOut(layout, pane, sibling.id);
   const shown = resolve(layout, noFocus(), ctx).panes.filter((b) => !b.hidden);
   if (!shown.some((b) => b.id !== pane)) return { ok: false, reason: "last" };
   const o = overlayOf(layout);

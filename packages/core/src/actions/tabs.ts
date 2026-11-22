@@ -58,17 +58,21 @@ export function mergeInto(x: Snapshot, source: NodeId, target: NodeId): Outcome 
   return { op: "merge", layout: r.layout, view: core.focus(r.view, source, ctx), msg: text };
 }
 
+/** A tab to move out: one of a stack with another tab beside it (a stack of one is the pane alone). */
+const otherTab = (m: Snapshot["m"], id: NodeId | undefined) =>
+  m.stackOf(id)?.children.find((c) => c.id !== id);
+
 export const checkUnmerge = ({ s, m }: Snapshot) =>
-  m.stackOf(s.view.focused) ? undefined : refuse("nothing-to-do");
+  otherTab(m, s.view.focused) ? undefined : refuse("nothing-to-do");
 
 /** Move a tab out of its stack, to the right of the stack. Same op as dragging the tab to the right edge. */
 export function unmerge(x: Snapshot, id = x.s.view.focused): Outcome {
   const { s, m, ctx } = x;
   const denied = notAllowed(x, id, "move");
   if (denied) return denied;
-  const st = m.stackOf(id);
-  if (!id || !st) return refuse("nothing-to-do", say(m).notInTabs(m.title(id)));
-  const other = st.children.find((c) => c.id !== id)!;
+  const st = m.stackOf(id),
+    other = otherTab(m, id);
+  if (!id || !st || !other) return refuse("nothing-to-do", say(m).notInTabs(m.title(id)));
   // To the right on screen, as the message says, in either reading direction.
   const r = core.drop(
     s.layout,
