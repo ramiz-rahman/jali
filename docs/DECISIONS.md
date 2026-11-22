@@ -1374,3 +1374,156 @@ The decisions behind the phase 2 fixes of `docs/reviews/2026-11-22/react-opus.md
   - **The `is-*` state classes** beside the public attributes (react-opus REACT-19): a host stylesheet may select them (Data Studio's, outside this repo). Removing them waits for the API phase.
   - **`palette-title` and `tab-more-n`** (unprefixed, react-opus REACT-21): Trips styles `.palette-title`. Renamed in the API phase.
 - **Size:** @jali/react +2.1 KB gzipped (minimal 25.3 → 27.4, full 27.1 → 29.3). The most, in minified bytes: the root's dialog owner, boundaries, names and layer scope (+1.8 KB), content hosts (+0.8 KB), the workspace's names and reshape fix (+0.6 KB), selectors and DOM scope (+0.6 KB), the pane cap field (+0.4 KB), the frame (+0.4 KB), `Guard` (+0.3 KB). Budgets move to about 2% over what it ships now: minimal and own-icons 25.8 → 28, full 27.7 → 29.9. The cuts that would win it back (opt-in Settings, chooser, pop out and scroll rows as modules) are the API phase's (react-opus REACT-16).
+
+## 22 Nov 2026 · Development checks follow `NODE_ENV` (core-opus CORE-10)
+
+- **Why:** dev mode was `import.meta.env.DEV`, which only Vite defines. Under webpack, Next.js, esbuild or Node, the stability check, the default `onPaneError` and every dev warning were off.
+- **Now:** `process.env.NODE_ENV !== "production"`, as React reads it. Every bundler writes that in, and Node and the test runners have it.
+  - Jali's development-only code tests the literal inside a `try`: `try { if (process.env.NODE_ENV !== "production") … } catch {}`. A production build replaces the test with `false` and drops the code and its messages, as `import.meta.env.DEV` let Vite do. A page that loads the package unbundled has no `process`, lands in the catch, and runs as production.
+  - It is read when a workspace is made, so a test can switch it.
+  - `<Workspace>`'s zero-height warning uses the same pattern (a few lines in `@jali/react`).
+  - `isDev()` (`dev.ts`, in `@jali/core/adapter`, additive) gives the same answer, for an adapter's own checks.
+- **Tests:** `packages/core/tests/dev.test.ts`.
+
+## 22 Nov 2026 · `destroy()` is the end: one lifetime for everything pending (core-opus CORE-3, core-codex CORE-5)
+
+- **Why:** `destroy()` cleared timers and an open Discard question, but a host's pending `beforeClose` still answered later. Its yes committed and pushed history onto whatever route showed next. A cancelled URL sync still wrote, and an arrival waiting for an answer survived `stop()`.
+- **Now:** the store has one lifetime, an `AbortController` (no new dependency, no Effect: docs/research/effect.md). `destroy()` aborts it.
+  - A held host answer's `settled` resolves as `"kept"` at once, and its later yes changes nothing.
+  - `store.apply` refuses every commit as `"unavailable"` after it, whoever calls: a late answer, a timer, an app that kept a handle.
+  - The address is never written after it.
+  - `UrlWriter.cancel()` now also closes the built-in URL sync, so a later write is dropped.
+  - The stop `start()` returns makes an arrival still waiting for an answer stale.
+- **Tests:** `packages/core/tests/lifetime.test.ts`.
+
+## 22 Nov 2026 · Every layout to start from is checked like a link (core-opus CORE-1)
+
+- **Why:** DECISIONS (19 Nov, "Save and restore") tells hosts to pass a saved layout back as `createJali({ layout })`. A deploy that removed a kind then crashed start-up for everyone who had saved one ("Unknown pane kind"). A raw layout with two panes sharing one id was accepted, while `setLayout` refused the same input.
+- **Now:** the layout given, each preset's layout (at start, when chosen, and for a broken link) and the page's go through `core.validate`, as links and `setLayout` do.
+  - Order of fallback: the layout given, the preset it opens on, the other presets, the curated page, then a lone launcher. Development says what was wrong.
+  - It throws only when nothing can be shown, and the message names the problem.
+  - A ref whose params its kind can't read still opens in the kind's `Missing`, as before. `validate` gained `{ params: false }` (additive) for that.
+  - The given layout is copied, never kept. Choosing a preset that can't be shown is refused as `"invalid"`.
+- **Tests:** `packages/core/tests/ingress.test.ts`. Two React tests changed: a store made with no kinds now gets the kinds its layout names, and a layout with quotes in its ids is refused at start.
+
+## 22 Nov 2026 · Kinds and options are checked as they are given (core-opus CORE-12, core-codex CORE-18)
+
+- **Sizes:** a size that isn't a finite number of at least 0 is left out, and the default stands. `width: { min: NaN }` had put panes at NaN px. So is a max below its min, and a comfortable size outside its min and max. Each is a development error, once per definition.
+- **Names given twice:** two kinds with one name, and two presets with one id, are development errors. As before, the last kind wins and the first preset can be chosen. An unknown `preset` is a development error, and the workspace opens on the first.
+- **`keys`:** the docs said `"workspace"`; the value is `"scoped"`. Any other value is now a development error and is taken as scoped, so a misspelling never widens the keys a workspace takes.
+- **Tests:** `packages/core/tests/kind-options.test.ts`, `url-port.test.ts`.
+
+## 22 Nov 2026 · Layouts validation accepts always lay out (core-codex CORE-3, CORE-4, CORE-9)
+
+- **A tab group of one** (`tabs(pane)` is valid): Unmerge has nothing to do, and Hide treats it as a slot of its own. Both used to read the missing sibling's id and throw.
+- **Huge sizes:** a fixed px is taken as at most 10,000,000. Weights above 2^500 are scaled down by a power of two, which is exact, so ordinary weights give exactly the rects they gave before. Weights of 1e308 had overflowed to NaN rects.
+- **A layout bigger than a link holds:** a change that would pass 256 nodes or 128 levels (`MAX_NODES`, and the new `MAX_DEPTH`) is refused as `"blocked"`. Its address would have been one `decode` refuses. A layout already that big may still shrink.
+- **Tests:** `one-tab-stack.test.ts`, `extreme-sizes.test.ts`, `link-budget.test.ts` (packages/core/tests).
+
+## 22 Nov 2026 · The address follows every refit (core-opus CORE-4)
+
+- **Why:** a resize or a new pane cap refitted the layout in memory only, so Copy link and a reload at the same size opened another arrangement. An arrival from Back or a link had the same gap: it was fitted to this window, but its entry kept the writer's folds.
+- **Now:** a refit for a new size or cap writes the address as a debounced replace. An arrival that went ahead replaces its own entry with what it was fitted to. Neither adds history or a `layout` event.
+- **Focus on arrival:** an arrival with no focus to keep (a reload, a fresh link) is fitted without one, and then focuses the first pane on screen, not the first in the tree. The tree's first pane may be behind a tab, and focusing it changed which tab a fold group showed, so a reload showed something else.
+- **Tests:** `address-after-refit.test.ts`. The fuzz (below) reopens the address after random steps.
+
+## 22 Nov 2026 · One notification per action, after it is done; events in the order changes were made (core-opus CORE-16, core-codex CORE-12)
+
+- **Why:** a close notified subscribers twice in the middle of its batch: once for the layout, again for the announcement. A listener that acted had its events told before the change it heard, so the last `layout` event could be older than `getLayout()`.
+- **Now:**
+  - Subscribers hear a batch once, when it ends, after the address and the announcement are written.
+  - Batches are told FIFO. A listener's own change waits behind the change it heard, so the close is told, then the listener's pin. This supersedes the order in "An action a listener runs doesn't rename the event it heard" (21 Nov); the names are still right.
+  - Two things said in one action are one announcement ("1 change discarded. Order 1 closed · Undo available"), so the live region reads both. Before, it read only the last.
+- **Tests:** `commit-order.test.ts`. `instance.test.ts`, `held-questions.test.ts` and `follow-kinds.test.ts` in @jali/react were updated to the new order and the joined announcement.
+
+## 22 Nov 2026 · A snapshot builds the model only when read (core-opus CORE-17)
+
+`store.snapshot().m` is a lazy getter for the state the snapshot was taken of. `apply` takes snapshots to read the kinds and the words, and each of them used to resolve the layout it had just written. An `openBeside` now builds the model once instead of three times. Test: `lazy-model.test.ts`.
+
+## 22 Nov 2026 · Host callbacks and ref equality, one way each (core-opus CORE-18, CORE-19, CORE-20, CORE-21)
+
+- **The agent bridge** refuses `null`, steps that aren't a list, and a step that isn't one as `"invalid"`. It used to throw. (`agent-input.test.ts`)
+- **A kind's `identity` that throws** is guarded like `title` and `follow`: the pane is then the object its params name. (`host-callbacks.test.ts`)
+- **Refs:** `readSearch` dedupes `open=` with `sameRef`. `structureKey` hashes params in key order, so a layout read back from `jsonb` keeps the person's local sizes. A layout whose params were stored in another order loses those sizes once.
+- **`linkSearch`** reads each ref before the layout builders copy it. The copy had dropped the "built by a kind's call" mark, so `linkSearch({ layout: doc({ id, draft }) })` wrote the app-only `draft`. Without `panes`, a plain or copied ref is a development warning. Input tracking per document waits for Pop out (phase 4). (`link-search-plain.test.ts`)
+- **`files`** no longer lists a LICENSE the package doesn't have. The licence itself is still open. (`package-files.test.ts`)
+
+## 22 Nov 2026 · Pane state: one record per pane, under `pane-state@2` (core-opus CORE-2, core-codex CORE-1, react-codex REACT-1)
+
+- **Why:**
+  - Pane state was two keys (values, owners), and every tab overwrote both whole on save. A second tab of the same build erased the first one's drafts.
+  - An old build's tab could pair its values with a newer tab's owners (found, not fixed, 21 Nov).
+  - A `usePaneState` setter kept after `openHere` wrote its value into the next object's state.
+- **Stored format:** `{ v: 2, panes: { [paneId]: { of, values, at } } }` under the new key `pane-state@2`. The object and its values are one record, so they can never disagree. It is a new key, not only a new shape, so an old tab writing the old keys can't touch it.
+- **Migration:** none. The old keys (`pane-state`, `pane-state-of`) are never read, in both the pre-20 Nov and the 20 Nov form. They are cleared at start: removed through `StoragePort.remove` where a port has it, else written as `{}`, which an old build reads as empty. The 21 Nov reasoning applies to the owned form too: a matching layout can't prove that the values and owners were written together, so adopting them could attach one customer's draft to another. What is lost is one scroll position, sort or draft, once.
+- **Writing:** each workspace writes only what it changed since its last write, over what is stored now (`paneStateSync`). It never writes when it changed nothing. A pane closed for good takes its record out only if no other tab has written it since. At most 200 records are kept, newest first.
+- **Other tabs:** `StoragePort.subscribe` (optional; `browserStorage` backs it with the `storage` event) brings in what other tabs write, for an object this tab shows under that pane id, unless this tab has a change of its own waiting. Records for other objects are never taken in, and never removed. A record that isn't one is left out, and goes at the next write.
+- **Stale setters:** `setPaneState` takes the object the writer saw (`ref`, a fifth argument), and `usePaneState` passes it (a few lines in `@jali/react`). A value for an object the pane no longer shows is dropped.
+- **Unchanged in memory:** `UiState.paneState` and `paneStateOf`, and `paneStateFor`, `ownedPaneState`, `loadPaneState`, `loadPaneStateOwners` and `savePaneState` (which now merges over what is stored).
+- **New in `@jali/core/adapter`:** `paneStateSync`, `PaneStateSync`, `HeldPaneState`, `PANE_STATE_KEY`, `PANE_STATE_MAX`. New on `StoragePort`: optional `remove` and `subscribe`. New on `UiStore`: `paneStates`.
+- **Not done:** state for object A and then object B under one pane id is still one record, so an undo back to A starts it afresh (core-codex CORE-1's third case). One record per pane and object is for the API phase.
+- **Tests:** `packages/core/tests/pane-state.test.ts` replaces `pane-state-legacy.test.ts`. Also `use-pane-state.test.tsx` (a stale setter), `destroy.test.ts`, and `e2e/pane-contract.spec.ts` (the key name).
+
+## 22 Nov 2026 · A pane's node reaches its component whole (react-codex REACT-7)
+
+`sameNode` (core, `workspace/frames.ts`) compared a hand-picked list of fields. A `setLayout` that changed a pane's `role` or `follows` with the same geometry never re-rendered it. It now compares every field but the size (`size`, `base`, `userSized`), which the frame's rect carries. `PaneBody`'s memo uses it (one line in `@jali/react`). Render counts are unchanged. Test: `packages/react/tests/pane-node-fresh.test.tsx`.
+
+## 22 Nov 2026 · Layout stability, enforced rather than approximated (core-opus CORE-5, core-codex CORE-6)
+
+- **Why:** a 400-seed fuzz found about 200 "Layout stability" reports, and the reviewers disagreed on the cause. Both causes were real.
+  - A deliberate tab group was measured as its first tab (17 Nov), so moving or pinning a tab resized it: 60 breaches in a sweep, reproduced here at widths above 1,100 px with no fold at all.
+  - Its fold records and shown tab were keyed by its first tab, so moving that tab left them stale.
+  - Swap ops whose rects depend on what they show (`swap`, `openHere`, `focusExisting`) were declared as never moving anything. They jumped instead of sliding.
+- **Now:**
+  - **A tab group the person made is measured by all its tabs alike.** It is comfortable for its most demanding tab, and grows no further than its most limited tab uses (a record in a group keeps the slot a record's). Its tab order says nothing about its size. A fold group is still measured as its home. This supersedes "a tab group is measured as its home (a stack's first tab)" (17 Nov) for deliberate groups. A group of mixed kinds may sit at a different width than before.
+  - **Ops own their overlay:** a new first tab (moved or pinned) carries the group's fold records and shown tab with it (`rekey`).
+  - **Geometry is measured.** For a focus or swap op, `apply` compares the rects before and after. Rects that moved are counted as a reshape, so panes slide there. Only ops that never move anything by contract report a breach (`STABLE`: focus, tab, reveal, moveTab, pinTab, keep). The message says so.
+- **Not reproduced:** fold destination following tab order (core-codex CORE-6, part). It didn't show after the sizing fix, in a sweep of 256 kind combinations × 44 widths.
+- **Tests:** `tab-order.test.ts` (sweep and slide), `heights.test.ts` and `sizing.test.ts` (renamed and updated), and the frozen engine (`legacy-fit/overlay.ts`), which checks folding, not sizing.
+
+## 22 Nov 2026 · A seeded fuzz over the public actions (core-opus CORE-15, part)
+
+- **What:** `packages/core/tests/fuzz.test.ts` runs 300 seeds × 40 random steps (about 1.5 s) on core's own kinds. The steps are every public action, resizes, Back, and a reload from the address.
+- **Checked after every step:**
+  - nothing threw, and the layout validates;
+  - focus and zoom are on panes that exist;
+  - rects are finite and inside the room;
+  - no breach of an op that never moves anything;
+  - a reload at the same size shows what is on screen.
+- **Knobs:** `FUZZ_SEEDS`, `FUZZ_LIMIT` and `FUZZ_DEBUG` widen it.
+- **Found, moved:** at 2,000 seeds, 4 of 80,000 steps reopen with other widths after tucks and folds combine (seeds 1289, 1403, 1421, 1571). It is the same panes, at other sizes. Moved to a later phase.
+
+## 22 Nov 2026 · The address port, read-only snapshots, a page's viewer and its links (core-codex CORE-2, CORE-8, CORE-10, CORE-15)
+
+- **Address port:** `browserLocation().navigate(…, "replace")` keeps the entry's `history.state` (a router's). The unprefixed workspace clears `app` and `arr` only when they are an old lab link's (`app=review`), not when they are the host's own. (`url-port.test.ts`)
+- **Snapshots:** in development, the committed layout and view are frozen, and so are what `get()`, `getLayout()` and events hand out. An app that edits them fails at once, instead of changing the workspace behind its back (no history, no event, a stale model cache). Only what is new in a commit is walked. Refs are left alone, as they may be the app's own objects. No type changed. A deeply readonly type is for the API phase. (`frozen.test.ts`)
+- **Viewer:** the page's viewer policy (`setCanInvestigate`) is kept in `UiState.canInvestigate` too, so leaving the page and coming back never widens it. It can be set before a page opens, and that call used to be refused as "unavailable". An initial value at creation waits for the API phase's naming. (`page-viewer.test.ts`)
+- **Page links:** a page link's item is read as the page's type (`readItem`). A numbered page never gets `"abc"`: the link falls back to the item before, and an app's call is refused as `"invalid"`. A link to another page (`?page=other`) doesn't open this one with its item. `PageRead` gained `page` (additive). (`page-link.test.ts`)
+
+## 22 Nov 2026 · What a pane allows holds whatever asks (core-codex CORE-7)
+
+- **Dividers:** a divider's sides are the panes beside it on screen (the resolved divider's `neighbours`), not the split's next two children. A fold can put another pane there.
+- **Reset and drag:** a reset is checked like a key. A drag's commit is checked again as it lands (`commitDividerDrag` takes the divider it moved, additive): its panes must still allow `resize`.
+- **Back to the page:** it keeps the investigation while an opened pane may not close (`not-allowed`), as `close` refuses it.
+- **Tests:** `allow-entry-points.test.ts`.
+
+## 22 Nov 2026 · A divider drag resolves the committed layout once (core-codex CORE-16, part)
+
+`layout.resizeDivider` takes an optional sixth argument: the committed layout, resolved. The drag makes it at pointer down, so each frame resolves only its preview, which halves the work per frame. A full resize plan (reallocating the affected split without resolving) is moved to a later phase. Test: `divider-preview.test.ts`.
+
+## 22 Nov 2026 · Phase 1's size: over budget, and by how much
+
+- **Measured** with `pnpm size`, core gzipped, master against this branch:
+  - minimal 53.6 → 55.2 KB (budget 55);
+  - full 58.7 → 60.4 (budget 60.4);
+  - headless 48.0 → 49.6 (budget 49.2);
+  - layout 10.2 → 10.3 (budget 10.7).
+- **@jali/react:** unchanged (25.3 minimal, 27.1 full).
+- **Where the bytes are, minified, for headless:**
+  - the store: the event queue, the lifetime, the checked first layout and the lazy snapshot, about 1.0 KB;
+  - pane state's sync, about 1.0 KB;
+  - the storage port's `subscribe`, 0.2 KB;
+  - the rest spread over about 20 fixes of 0.1 KB or less.
+- **Already won back:** development-only code is dropped from production builds again (about 0.6 KB gzipped). It had been since `import.meta.env.DEV`, and the first `NODE_ENV` version lost that.
+- **Over budget:** minimal and own-icons by 0.2 KB, headless by 0.4 KB. The size gate fails on core for those three.
+- **Not done:** the budgets were not raised here. That is the owner's call. The opt-in feature split of the API phase (API-REVIEW.md, change 2) is the planned way back under.

@@ -18,6 +18,52 @@ The plan that follows from them:
 
 Effect was considered for the packages and not taken: [../../research/effect.md](../../research/effect.md).
 
+## Phase 1, 22 Nov 2026: core correctness
+
+Branch `core-correctness`. Each finding was first reproduced as a failing test in `packages/core/tests/` (or beside the code it covers). Then it was fixed, and the test passed. The reasons are in [DECISIONS](../../DECISIONS.md), 22 Nov 2026.
+
+| Finding                                                                              | Outcome                                                                                                  | Commit             |
+| ------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------- | ------------------ |
+| core-opus CORE-1 (first layouts checked, duplicate ids, removed kinds)               | Fixed                                                                                                    | 688ca013           |
+| core-opus CORE-2 (pane state as one record per pane, merge on write, cross-tab sync) | Fixed: `pane-state@2`, old keys dropped                                                                  | 5c624894           |
+| core-opus CORE-3 (`destroy()` and a pending `beforeClose`)                           | Fixed: one lifetime (`AbortController`)                                                                  | 70036a5c           |
+| core-opus CORE-4 (address after a refit)                                             | Fixed; arrivals too                                                                                      | 09bc8557, f99ebac1 |
+| core-opus CORE-5 (measured geometry, fold keys, panes jump)                          | Fixed: all tabs measure a tab group, `rekey`, measured geometry, `STABLE` ops; the fuzz shows 0 breaches | 20f17ae9, 2da32efd |
+| core-opus CORE-10 (dev detection)                                                    | Fixed: `NODE_ENV`                                                                                        | 7ed63fb4           |
+| core-opus CORE-12 (kind and option checks)                                           | Fixed                                                                                                    | ea1bcb6d           |
+| core-opus CORE-15 (store fuzz)                                                       | Fixed, in part: seeded fuzz over public actions; fixture kinds for every core test remain                | 6c06a1da           |
+| core-opus CORE-16 (one notification per action)                                      | Fixed                                                                                                    | b3928a6d           |
+| core-opus CORE-17 (lazy model)                                                       | Fixed                                                                                                    | 64da7c4f           |
+| core-opus CORE-18 (agent input)                                                      | Fixed                                                                                                    | f9960bb6           |
+| core-opus CORE-19 (guarded `identity`, one ref equality)                             | Fixed                                                                                                    | 5255fdc2           |
+| core-opus CORE-20 (hidden module state)                                              | Fixed, in part: `linkSearch` marks; per-document input tracking moves to phase 4                         | eff8a7c7           |
+| core-opus CORE-21 (release hygiene)                                                  | Fixed, in part: `files` lists no missing LICENSE; the licence stays open                                 | c00e21b3           |
+| core-codex CORE-1 (old tab, wrong object)                                            | Fixed by the pane-state redesign; A → B → Undo under one id moves to phase 3                             | 5c624894           |
+| core-codex CORE-2 (curated-page link and `bind`)                                     | Fixed                                                                                                    | 744fdbb2           |
+| core-codex CORE-3 (one-tab stack)                                                    | Fixed                                                                                                    | e1cf2842           |
+| core-codex CORE-4 (NaN rects)                                                        | Fixed                                                                                                    | d5d1fb59           |
+| core-codex CORE-5 (async after `destroy()`)                                          | Fixed                                                                                                    | 70036a5c           |
+| core-codex CORE-6 (tab order controls sizing and folds)                              | Fixed for sizing and fold keys; destination ranking not reproduced after them                            | 20f17ae9           |
+| core-codex CORE-7 (permissions by entry point)                                       | Fixed                                                                                                    | bd268bcd           |
+| core-codex CORE-8 (limited viewer forgotten)                                         | Fixed; an initial value at creation moves to phase 3 (naming)                                            | 7949f7cb           |
+| core-codex CORE-9 (unreopenable link)                                                | Fixed: refused as `blocked`                                                                              | 458c944c           |
+| core-codex CORE-10 (mutable snapshots)                                               | Fixed, in part: frozen in development; readonly types move to phase 3                                    | f75a76b0           |
+| core-codex CORE-12 (event order)                                                     | Fixed                                                                                                    | b3928a6d           |
+| core-codex CORE-15 (URL port and host state)                                         | Fixed                                                                                                    | b8a2f4df           |
+| core-codex CORE-16 (divider preview cost)                                            | Fixed, in part: the committed resolve is reused; a resize plan moves to a later phase                    | 5cdcbe1e           |
+| core-codex CORE-18 (`keys` says the wrong value)                                     | Fixed                                                                                                    | b8a2f4df           |
+| react-codex REACT-1 (stale setter)                                                   | Fixed                                                                                                    | 5c624894           |
+| react-codex REACT-7 (stale `PaneProps.node`)                                         | Fixed: core `sameNode`                                                                                   | 7cd041a3           |
+
+- **Moved:** at 2,000 fuzz seeds, 4 of 80,000 steps reopen with the same panes at other widths, after tucks and folds combine (seeds 1289, 1403, 1421, 1571).
+- **Data Studio should know:**
+  - the pane-state key is new, so each person loses one draft or scroll position, once;
+  - dev now follows `NODE_ENV`;
+  - in development, `getLayout()` and the view are frozen;
+  - `destroy()` refuses later actions;
+  - a saved layout that can't be shown opens a preset instead of throwing;
+  - a deliberate tab group of mixed kinds is measured by all its tabs.
+
 ## Phase 2, 22 Nov 2026
 
 React correctness and accessibility, on branch `react-correctness`. Each fix landed with a test that failed first. The decisions are in [DECISIONS.md](../../DECISIONS.md) ("React correctness and accessibility").
