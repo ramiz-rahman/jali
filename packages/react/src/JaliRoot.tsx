@@ -36,7 +36,8 @@ import { Palette } from "./dialogs/Palette";
 import { SettingsPanel } from "./dialogs/Settings";
 import { IconsProvider } from "./icons/context";
 import { defaultIcons } from "./icons/default";
-import type { JaliIcons } from "./icons/types";
+import type { JaliIcon, JaliIcons } from "./icons/types";
+import { Guard } from "./chrome/Guard";
 import { installPressed } from "./pressed";
 import { StoreProvider, useStore, useTheme, useUi } from "./state/react";
 import { Panes } from "./workspace/Workspace";
@@ -56,8 +57,13 @@ export interface JaliRootProps extends HTMLAttributes<HTMLDivElement> {
   settings?: boolean;
   /** Your own fieldsets, shown at the end of the settings panel (`<fieldset><legend>…</legend>…</fieldset>`). */
   settingsExtra?: ReactNode;
-  /** Your own icons for any of Jali's, by name (`{ close: MyClose }`); the rest stay Jali's own. */
+  /** Your own icons for any of Jali's, by name (`{ close: MyClose }`); the rest stay Jali's own. One that throws
+   *  draws Jali's own instead. */
   icons?: Partial<JaliIcons>;
+  /** A throw in your code inside the root (its children, `settingsExtra`) or in Jali's own parts: the workspace shows
+   *  "… could not be shown" with Retry in place of what failed, your app around it stays, and this hears the error.
+   *  A pane's own failures go to `createJali({ onPaneError })`. */
+  onError?: (error: unknown) => void;
 }
 
 /** The same icons, name by name: an inline `icons={{ close: MyClose }}` is a new object on every render. */
@@ -73,7 +79,20 @@ function useIcons(icons: Partial<JaliIcons> | undefined): JaliIcons {
   const kept = useRef(icons);
   if (!sameIcons(kept.current, icons)) kept.current = icons;
   const own = kept.current;
-  return useMemo(() => (own ? { ...defaultIcons, ...own } : defaultIcons), [own]);
+  return useMemo(() => {
+    if (!own) return defaultIcons;
+    const all = { ...defaultIcons };
+    // Each of the host's inside a boundary: one that throws draws Jali's own.
+    for (const [name, Own] of Object.entries(own) as [keyof JaliIcons, JaliIcon][]) {
+      const Fallback = defaultIcons[name];
+      all[name] = (props) => (
+        <Guard fallback={() => <Fallback {...props} />}>
+          <Own {...props} />
+        </Guard>
+      );
+    }
+    return all;
+  }, [own]);
 }
 
 export function JaliRoot({
@@ -83,6 +102,7 @@ export function JaliRoot({
   overlays,
   settings = true,
   settingsExtra,
+  onError,
   ...rest
 }: JaliRootProps) {
   const store = storeOf(jali);
@@ -102,7 +122,9 @@ export function JaliRoot({
         data-jali=""
         ref={store.dom.attach}
       >
-        {children}
+        <Guard onError={onError} fallback={(retry) => <Failed retry={retry} />}>
+          {children}
+        </Guard>
       </div>
       {/* The dialogs render outside the root but are this workspace's: keys pressed in them count as its own. While a
           pane is the browser's full-screen element, they render inside it, the only part of the page on screen. */}
@@ -113,11 +135,17 @@ export function JaliRoot({
           ref={store.dom.attachLayer}
           style={{ ...spacing, display: "contents" }}
         >
-          <Announcer />
-          {store.env.palette === false ? null : <Palette />}
-          {settings ? <SettingsPanel>{settingsExtra}</SettingsPanel> : null}
-          <Chooser />
-          <ConfirmDiscard />
+          <Guard onError={onError}>
+            <Announcer />
+            {store.env.palette === false ? null : <Palette />}
+            {settings ? (
+              <SettingsPanel>
+                <Guard onError={onError}>{settingsExtra}</Guard>
+              </SettingsPanel>
+            ) : null}
+            <Chooser />
+            <ConfirmDiscard />
+          </Guard>
         </div>,
       )}
       {store.env.pageTheme === false ||
@@ -135,6 +163,22 @@ export function JaliRoot({
         </div>
       )}
     </JaliProvider>
+  );
+}
+
+/** In place of the root's children when something in them threw: the workspace's name, could not be shown, Retry. */
+function Failed({ retry }: { retry: () => void }) {
+  const store = useStore();
+  const t = store.messages.pane;
+  return (
+    <div className="jali-pane-failed" role="alert">
+      <strong>{t.failed(store.env.label ?? store.env.name)}</strong>
+      <div className="jali-pane-failed-actions">
+        <button type="button" className="jali-text-btn is-primary" onClick={retry}>
+          {t.retry}
+        </button>
+      </div>
+    </div>
   );
 }
 

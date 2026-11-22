@@ -137,8 +137,9 @@ export const PaneBody = /* @__PURE__ */ memo(
           ) : (
             <def.Component {...props} />
           )}
+          {/* Inside the boundary: a header control that throws or waits does so with its pane. */}
+          {header && !inPeek ? <HeaderControls slot={header} /> : null}
         </PaneBoundary>
-        {header && !inPeek ? <HeaderControls slot={header} /> : null}
       </PaneContext.Provider>
     );
   },

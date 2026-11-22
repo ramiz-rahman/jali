@@ -1,6 +1,7 @@
 import { useJaliIcons } from "../icons/context";
 import { useEnv } from "../state/react";
 import { ICON } from "../icons/sized";
+import { Guard } from "../chrome/Guard";
 
 /**
  * The kind's icon, or the workspace's `defaultKind` icon (a square) for an unknown kind or one without an icon. By
@@ -19,5 +20,10 @@ export function KindIcon({
   const { defaultKind } = useJaliIcons();
   const Icon = useEnv().kinds.get(kind)?.icon ?? defaultKind;
   const at = size === undefined ? ICON.title : { size, className: undefined };
-  return <Icon size={at.size} className={className ?? at.className} aria-hidden />;
+  // A kind's icon is the app's code: one that throws draws nothing, and the pane stays.
+  return (
+    <Guard>
+      <Icon size={at.size} className={className ?? at.className} aria-hidden />
+    </Guard>
+  );
 }

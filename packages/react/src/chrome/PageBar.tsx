@@ -17,6 +17,7 @@ import { bold, Parts, useGeometry, useModel, useStore, useUi, useProfile } from 
 import { useKeymap } from "../state/hydrated";
 import { Panes } from "../workspace/Workspace";
 import { landmarkName } from "../a11y/landmark";
+import { Guard } from "./Guard";
 
 /**
  * A curated page's controls in the top bar: the mode (Single or Split view), the investigation (panes opened from
@@ -206,9 +207,15 @@ export function CuratedPage() {
   const { actions } = useStore();
   return (
     <div className="jali-page">
-      {p.Rail && <p.Rail item={item} activate={actions.activate} />}
+      {p.Rail && (
+        <Guard>
+          <p.Rail item={item} activate={actions.activate} />
+        </Guard>
+      )}
       <div className="jali-page-main">
-        <p.Header item={item} />
+        <Guard>
+          <p.Header item={item} />
+        </Guard>
         <PageTabs />
         <Panes />
       </div>
