@@ -36,11 +36,28 @@ export function PageBar() {
   const multi = page.mode === "split";
   return (
     <div className="jali-page-bar">
-      <div className="jali-seg jali-mode-switch" role="radiogroup" aria-label={t.viewMode}>
+      {/* APG radio group: one tab stop (the checked mode), and the arrow keys move to the other and check it. Split
+          view, when the page can't open one, stays focusable with its reason, and isn't checked. */}
+      <div
+        className="jali-seg jali-mode-switch"
+        role="radiogroup"
+        aria-label={t.viewMode}
+        onKeyDown={(e) => {
+          if (!/^Arrow(Left|Right|Up|Down)$/.test(e.key) || e.metaKey || e.ctrlKey || e.altKey)
+            return;
+          e.preventDefault();
+          const other = [...e.currentTarget.querySelectorAll<HTMLElement>('[role="radio"]')].find(
+            (r) => r !== e.target,
+          );
+          other?.focus();
+          other?.click();
+        }}
+      >
         <button
           type="button"
           role="radio"
           aria-checked={!multi}
+          tabIndex={multi ? -1 : 0}
           className="jali-seg-btn"
           onClick={() => actions.setMode("single")}
           title={t.singleTip}
@@ -51,9 +68,11 @@ export function PageBar() {
           type="button"
           role="radio"
           aria-checked={multi}
+          tabIndex={multi ? 0 : -1}
           className="jali-seg-btn"
-          onClick={() => actions.setMode("split")}
-          disabled={!page.canInvestigate}
+          onClick={() => page.canInvestigate && actions.setMode("split")}
+          aria-disabled={!page.canInvestigate || undefined}
+          aria-description={page.canInvestigate ? undefined : t.splitTipLimited}
           title={page.canInvestigate ? t.splitTip : t.splitTipLimited}
         >
           <icon.splitView size={14} aria-hidden /> {t.split}
