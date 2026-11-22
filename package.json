@@ -1,14 +1,14 @@
 {
-  "name": "jali",
+  "name": "jali-repo",
   "version": "0.0.0",
   "private": true,
-  "description": "Jali's workspace root: @jali/core and @jali/react (packages/), the docs site (apps/docs), the example apps (examples/) and the repo's tooling (tooling/). See docs/BRIEF.md.",
+  "description": "Jali's workspace root: the published package `jali` (packages/jali), built from @jali/core and @jali/react (packages/, private), the docs site (apps/docs), the example apps (examples/) and the repo's tooling (tooling/). See docs/BRIEF.md.",
   "author": "Ramiz Rahman (https://ramizrahman.com/)",
   "type": "module",
   "scripts": {
     "dev": "vp dev examples/data-studio",
     "build": "tsc -b && vp build examples/data-studio && vp build examples/loan-review",
-    "typecheck": "tsc -b --noEmit && tsc --noEmit -p apps/docs && tsc --noEmit -p packages/react/type-tests",
+    "typecheck": "tsc -b --noEmit && tsc --noEmit -p apps/docs && tsc --noEmit -p packages/react/type-tests && tsc --noEmit -p packages/jali/type-tests",
     "verify": "node tooling/verify.mjs",
     "test": "vp test run && vp test run --config apps/docs/src/reference/vitest.config.ts && node tooling/agent-docs.mjs --check",
     "e2e": "playwright test",

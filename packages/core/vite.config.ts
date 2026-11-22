@@ -20,6 +20,7 @@ export default defineConfig({
       index: "src/index.ts",
       adapter: "src/adapter.ts",
       agent: "src/agent.ts",
+      testing: "src/testing.ts",
       layout: "src/layout/index.ts",
     },
     format: "esm",

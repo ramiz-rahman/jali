@@ -1,11 +1,12 @@
-// Writes dist/styles.css (src/styles/index.css with its @imports inlined), dist/theme.css and dist/tailwind.css.
+// Writes dist/styles.css (or <out>/…) (src/styles/index.css with its @imports inlined), dist/theme.css and dist/tailwind.css.
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const src = join(root, "src/styles");
-const out = join(root, "dist");
+// Into dist/, or the folder given (packages/jali writes its own copy).
+const out = process.argv[2] ? resolve(process.argv[2]) : join(root, "dist");
 mkdirSync(out, { recursive: true });
 
 const inline = (file) =>

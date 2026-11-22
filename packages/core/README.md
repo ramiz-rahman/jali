@@ -1,5 +1,7 @@
 # @jali/core
 
+> **A workspace package, not published.** Apps install [`jali`](../jali), which is built from this package and its sibling. It stays here for links that point at it (Data Studio's, until it moves to `jali`).
+
 A workspace of panes that fits the space it has. No framework.
 
 - **A layout tree.** Rows, columns and tab stacks of panes; each pane shows one object (a `ref`). Every operation (open beside, close, move, tuck, resize) is a pure function from one layout to the next.

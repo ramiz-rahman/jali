@@ -17,3 +17,6 @@ apps/docs/.shots/
 .vitest/
 # Agent worktrees: other checkouts of this repo, never checked or committed from here
 .claude/worktrees/
+
+# The size gate's generated per-feature scenarios (tooling/size.mjs)
+tooling/size/.entries

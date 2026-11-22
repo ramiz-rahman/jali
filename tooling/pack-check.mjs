@@ -1,14 +1,17 @@
 #!/usr/bin/env node
 /**
- * The packages as an app installs them, not as the workspace links them. Packs @jali/core and @jali/react with
- * `pnpm pack` (which builds them, and writes the published package.json: publishConfig's exports, no workspace:
- * ranges), unpacks both into a throwaway app's node_modules beside React, and then:
+ * The package as an app installs it, not as the workspace links it. Packs `jali` (packages/jali) with `pnpm pack`
+ * (which builds it, and writes the published package.json: publishConfig's exports, no workspace: ranges), unpacks it
+ * into a throwaway app's node_modules beside React, and then:
  *
- *   - checks each package.json: no workspace: range, and every export points at a file in the tarball;
- *   - checks every JavaScript file of @jali/react starts with "use client" (React Server Components hosts);
- *   - typechecks a consumer against the packed .d.ts;
- *   - builds examples/minimal against the tarballs with Vite (no "source" condition, so no workspace source);
- *   - renders a workspace on the server with the packed packages and hydrates it in jsdom, with no recoverable error.
+ *   - checks @jali/core and @jali/react are private (workspace packages, never published);
+ *   - checks the package.json: no workspace: range, no "source" condition, React an optional peer, and every export
+ *     points at a file in the tarball;
+ *   - checks "use client" starts every React file (React Server Components hosts) and no framework-free one;
+ *   - typechecks a consumer against the packed .d.ts: examples/minimal, `Register` declared on "jali", and a test on
+ *     jali/testing;
+ *   - builds examples/minimal against the tarball with Vite (no "source" condition, so no workspace source);
+ *   - renders a workspace on the server with the packed package and hydrates it in jsdom, with no recoverable error.
  *
  *   pnpm pack-check
  *
@@ -42,42 +45,54 @@ const run = (cmd, args, cwd, env = process.env) =>
   execFileSync(cmd, args, { cwd, env, stdio: ["ignore", "pipe", "pipe"], encoding: "utf8" });
 
 rmSync(work, { recursive: true, force: true });
-mkdirSync(join(app, "node_modules", "@jali"), { recursive: true });
+mkdirSync(join(app, "node_modules"), { recursive: true });
 
 try {
-  // ---------- pack and unpack ----------
+  // ---------- the workspace packages stay private ----------
   for (const name of ["core", "react"]) {
-    const dir = join(root, "packages", name);
-    run("pnpm", ["pack", "--pack-destination", work], dir);
-    const tgz = readdirSync(work).find((f) => f.startsWith(`jali-${name}-`) && f.endsWith(".tgz"));
-    if (!tgz) throw new Error(`pnpm pack made no tarball for @jali/${name}`);
-    const to = join(app, "node_modules", "@jali", name);
-    mkdirSync(to, { recursive: true });
-    run("tar", ["-xzf", join(work, tgz), "-C", to, "--strip-components", "1"], work);
-    console.log(
-      `pack-check: @jali/${name} ${(statSync(join(work, tgz)).size / 1024).toFixed(1)} KB packed`,
-    );
+    const pkg = JSON.parse(readFileSync(join(root, "packages", name, "package.json"), "utf8"));
+    if (pkg.private !== true)
+      fail(`@jali/${name} must stay private: \`jali\` is the published package`);
   }
 
+  // ---------- pack and unpack ----------
+  run("pnpm", ["pack", "--pack-destination", work], join(root, "packages", "jali"));
+  const tgz = readdirSync(work).find((f) => /^jali-\d.*\.tgz$/.test(f));
+  if (!tgz) throw new Error("pnpm pack made no tarball for jali");
+  const pkgDir = join(app, "node_modules", "jali");
+  mkdirSync(pkgDir, { recursive: true });
+  run("tar", ["-xzf", join(work, tgz), "-C", pkgDir, "--strip-components", "1"], work);
+  console.log(`pack-check: jali ${(statSync(join(work, tgz)).size / 1024).toFixed(1)} KB packed`);
+
   // ---------- the published package.json ----------
-  for (const name of ["core", "react"]) {
-    const dir = join(app, "node_modules", "@jali", name);
-    const text = readFileSync(join(dir, "package.json"), "utf8");
-    if (text.includes("workspace:")) fail(`@jali/${name}'s package.json keeps a workspace: range`);
-    const pkg = JSON.parse(text);
-    const targets = [];
-    const walk = (v) =>
-      typeof v === "string" ? targets.push(v) : v && Object.values(v).forEach(walk);
-    walk(pkg.exports);
-    for (const t of targets)
-      if (!existsSync(join(dir, t))) fail(`@jali/${name} exports ${t}, which the tarball lacks`);
-    if (JSON.stringify(pkg.exports).includes('"source"'))
-      fail(`@jali/${name}'s published exports keep the "source" condition`);
+  const text = readFileSync(join(pkgDir, "package.json"), "utf8");
+  if (text.includes("workspace:")) fail("jali's package.json keeps a workspace: range");
+  const pkg = JSON.parse(text);
+  const targets = [];
+  const walk = (v) =>
+    typeof v === "string" ? targets.push(v) : v && Object.values(v).forEach(walk);
+  walk(pkg.exports);
+  for (const t of targets)
+    if (!existsSync(join(pkgDir, t))) fail(`jali exports ${t}, which the tarball lacks`);
+  if (JSON.stringify(pkg.exports).includes('"source"'))
+    fail(`jali's published exports keep the "source" condition`);
+  for (const peer of ["react", "react-dom"])
+    if (pkg.peerDependenciesMeta?.[peer]?.optional !== true)
+      fail(`jali's peer ${peer} must be optional (peerDependenciesMeta)`);
+  if (pkg.dependencies && Object.keys(pkg.dependencies).length)
+    fail(`jali has runtime dependencies: ${Object.keys(pkg.dependencies).join(", ")}`);
+
+  // ---------- "use client": on React's files only ----------
+  const dist = join(pkgDir, "dist");
+  const FRAMEWORK_FREE =
+    /^(index|adapter|agent|testing|url|layout|core-[\w-]+|rolldown-runtime-[\w-]+)\.js$/;
+  for (const f of readdirSync(dist).filter((f) => f.endsWith(".js"))) {
+    const client = readFileSync(join(dist, f), "utf8").startsWith('"use client";');
+    if (FRAMEWORK_FREE.test(f) ? client : !client)
+      fail(`jali's dist/${f} ${client ? "starts" : "doesn't start"} with "use client"`);
+    if (FRAMEWORK_FREE.test(f) && /from "react/.test(readFileSync(join(dist, f), "utf8")))
+      fail(`jali's dist/${f} is framework-free, but imports React`);
   }
-  const reactDist = join(app, "node_modules", "@jali", "react", "dist");
-  for (const f of readdirSync(reactDist).filter((f) => f.endsWith(".js")))
-    if (!readFileSync(join(reactDist, f), "utf8").startsWith('"use client";'))
-      fail(`@jali/react's dist/${f} doesn't start with "use client"`);
 
   // ---------- the app: examples/minimal, with the repo's React and fonts beside the tarballs ----------
   const minimal = join(root, "examples", "minimal");
@@ -95,6 +110,32 @@ try {
   writeFileSync(join(app, "package.json"), '{ "name": "pack-check-app", "type": "module" }\n');
 
   // ---------- types ----------
+  // `Register` declared on "jali" types the React hooks; jali/testing's helpers take a typed workspace.
+  writeFileSync(
+    join(app, "src", "register.tsx"),
+    `import { createJali, row } from "jali";
+import { definePane, usePane, useJali } from "jali/react";
+import { createTestJali, reportUnsaved } from "jali/testing";
+const note = definePane("note", { params: { id: Number }, title: "Note", Component: () => null });
+export const jali = createJali({ panes: [note], layout: row(note({ id: 1 })) });
+declare module "jali" {
+  interface Register {
+    jali: typeof jali;
+  }
+}
+export function Body() {
+  const id: number = usePane(note).params.id;
+  useJali().actions.openBeside("a", note({ id }));
+  // @ts-expect-error: no kind "nope" is registered
+  useJali().actions.openBeside("a", { kind: "nope", params: {} });
+  return null;
+}
+const test = createTestJali({ panes: [note], layout: row(note({ id: 1 })) });
+reportUnsaved(test.jali, "a", "a note");
+const loc: string = test.location.search();
+void loc;
+`,
+  );
   writeFileSync(
     join(app, "tsconfig.json"),
     JSON.stringify({
@@ -108,7 +149,7 @@ try {
         skipLibCheck: false,
         types: [],
       },
-      include: ["src/main.tsx", "src/css.d.ts"],
+      include: ["src/main.tsx", "src/register.tsx", "src/css.d.ts"],
     }),
   );
   writeFileSync(join(app, "src", "css.d.ts"), 'declare module "*.css";\n');
@@ -140,10 +181,10 @@ try {
   const code = chunks.map((c) => c.code).join("\n");
   if (!code.includes("Open the next note beside")) fail("the app's build lacks the app");
   if (!code.includes("data-jali-icon")) fail("the app's build lacks Jali's icons");
-  if (code.includes("/src/") && /packages\/(core|react)\/src\//.test(code))
+  if (/packages\/(core|react|jali)\/src\//.test(code))
     fail("the app's build reached the workspace's source");
   console.log(
-    `pack-check: examples/minimal built from the tarballs, ${(code.length / 1024).toFixed(1)} KB of JavaScript`,
+    `pack-check: examples/minimal built from the tarball, ${(code.length / 1024).toFixed(1)} KB of JavaScript`,
   );
 
   // ---------- server render, then hydrate ----------
@@ -153,13 +194,16 @@ try {
 import { createElement as h } from "react";
 import { renderToString } from "react-dom/server";
 import { JSDOM } from "jsdom";
-import { createJali, memoryLocation, memoryStorage, row } from "@jali/core";
-import { JaliRoot, definePane } from "@jali/react";
+import { createJali, memoryLocation, memoryStorage, row } from "jali";
+import { JaliRoot, definePane } from "jali/react";
+import { urlSync } from "jali/url";
+import { defaultFeatures } from "jali/features";
 
 const note = definePane("note", { params: { id: Number }, title: ({ id }) => "Note " + id,
   Component: ({ params }) => h("p", null, "Note body " + params.id) });
 const make = () => createJali({ panes: [note], layout: row(note({ id: 1 }), note({ id: 2 })),
-  url: { location: memoryLocation() }, storage: memoryStorage(), size: { width: 1200, height: 800 },
+  features: [...defaultFeatures(), urlSync({ location: memoryLocation() })], storage: memoryStorage(),
+  size: { width: 1200, height: 800 },
   moveFocus: false });
 const html = renderToString(h(JaliRoot, { jali: make() }));
 if (!html.includes("Note body 2")) throw new Error("the server render lacks the panes");

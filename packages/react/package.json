@@ -1,7 +1,8 @@
 {
   "name": "@jali/react",
   "version": "0.0.0",
-  "description": "React components and hooks for Jali workspaces, with Jali's default theme and a bridge to a Tailwind theme.",
+  "private": true,
+  "description": "Jali's React components and hooks, as a workspace package: published as `jali/react` and the feature entries (packages/jali). Kept for Data Studio's link until it moves to `jali`.",
   "license": "Apache-2.0",
   "author": "Ramiz Rahman (https://ramizrahman.com/)",
   "files": [
@@ -42,6 +43,12 @@
       "style": "./src/styles/jali-tailwind.css",
       "default": "./dist/tailwind.css"
     },
+    "./internal": {
+      "source": "./src/internal.ts",
+      "types": "./dist/internal.d.ts",
+      "import": "./dist/internal.js",
+      "default": "./dist/internal.js"
+    },
     "./package.json": "./package.json"
   },
   "publishConfig": {
@@ -64,6 +71,11 @@
       },
       "./tailwind.css": {
         "default": "./dist/tailwind.css"
+      },
+      "./internal": {
+        "types": "./dist/internal.d.ts",
+        "import": "./dist/internal.js",
+        "default": "./dist/internal.js"
       },
       "./package.json": "./package.json"
     }

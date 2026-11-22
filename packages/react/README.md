@@ -1,5 +1,7 @@
 # @jali/react
 
+> **A workspace package, not published.** Apps install [`jali`](../jali), which is built from this package and its sibling. It stays here for links that point at it (Data Studio's, until it moves to `jali`).
+
 React for [Jali](../core) workspaces, with Jali's default theme.
 
 ```sh

@@ -1,12 +1,12 @@
 {
   "name": "@jali/core",
   "version": "0.0.0",
-  "description": "Jali's framework-free core: a layout tree of panes that fits the space it has, a workspace store with undo, focus and follow, keyboard commands, and ports for the URL and storage.",
+  "private": true,
+  "description": "Jali's framework-free core, as a workspace package: published as `jali` (packages/jali). Kept for Data Studio's link until it moves to `jali`.",
   "license": "Apache-2.0",
   "author": "Ramiz Rahman (https://ramizrahman.com/)",
   "files": [
     "dist",
-    "docs",
     "README.md"
   ],
   "type": "module",
@@ -30,6 +30,12 @@
       "import": "./dist/agent.js",
       "default": "./dist/agent.js"
     },
+    "./testing": {
+      "source": "./src/testing.ts",
+      "types": "./dist/testing.d.ts",
+      "import": "./dist/testing.js",
+      "default": "./dist/testing.js"
+    },
     "./package.json": "./package.json"
   },
   "publishConfig": {
@@ -48,6 +54,11 @@
         "types": "./dist/agent.d.ts",
         "import": "./dist/agent.js",
         "default": "./dist/agent.js"
+      },
+      "./testing": {
+        "types": "./dist/testing.d.ts",
+        "import": "./dist/testing.js",
+        "default": "./dist/testing.js"
       },
       "./package.json": "./package.json"
     }
