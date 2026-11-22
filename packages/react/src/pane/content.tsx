@@ -27,14 +27,17 @@ export const ContentHosts = /* @__PURE__ */ createContext<((id: string) => Conte
   null,
 );
 
+/** Each instance's content hosts, by pane id: they go with the instance. */
+const hostsOf = new WeakMap<JaliStore, Map<string, ContentHost>>();
+
 /** The hosts of one instance, made as panes first render and dropped with the pane (`keep`). Another instance (the
  *  root given a new `jali`) gets hosts of its own, even for the same pane ids: an old host's listeners and what its
  *  content can ask act for the old instance, and a new element remounts the content, so its state starts over. */
 export function useContentHosts(store: JaliStore, on: boolean) {
-  // Kept in a ref, not a memo, which React may drop: dropping the hosts would remount every pane's content.
-  const mine = useRef<{ store: JaliStore; all: Map<string, ContentHost> } | null>(null);
-  if (mine.current?.store !== store) mine.current = { store, all: new Map() };
-  const all = mine.current.all;
+  // The instance's own, not the component's: nothing changes while rendering, and a memo React might drop would
+  // remount every pane's content.
+  let all = hostsOf.get(store);
+  if (!all) hostsOf.set(store, (all = new Map()));
   // The old instance's elements leave the frames the new ones went into.
   const was = useRef(all);
   useEffect(() => {

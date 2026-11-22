@@ -136,6 +136,24 @@ describe("an instance's content hosts", () => {
   });
 });
 
+describe("an instance given back to the root", () => {
+  it("gets its own hosts again: one content element per pane, and its actions reach it", () => {
+    const j1 = make();
+    const j2 = make();
+    const { container, rerender } = render(<JaliRoot jali={j1} />);
+    rerender(<JaliRoot jali={j2} />);
+    rerender(<JaliRoot jali={j1} />);
+    expect(container.querySelectorAll('[data-counter="a"]')).toHaveLength(1);
+    expect(container.querySelectorAll("[data-jali-host]")).toHaveLength(
+      container.querySelectorAll(".jali-pane-content").length,
+    );
+    const before = { j1: panes(j1), j2: panes(j2) };
+    act(() => void fireEvent.click(container.querySelector('[data-beside="a"]')!));
+    expect(panes(j1)).toBe(before.j1 + 1);
+    expect(panes(j2)).toBe(before.j2);
+  });
+});
+
 describe("a floating window the browser hands back late", () => {
   it("is dropped when its instance stopped and started again meanwhile; a new request still opens", async () => {
     const jali = make();
