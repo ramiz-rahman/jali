@@ -13,7 +13,7 @@ test.describe("search", () => {
     const input = page.getByRole("combobox", { name: "Search the docs" });
     await expect(input).toBeFocused();
     await input.fill("createJali");
-    const hit = page.getByRole("option").filter({ hasText: "In @jali/core" }).first();
+    const hit = page.getByRole("option").filter({ hasText: "In jali" }).first();
     await expect(hit).toContainText("createJali");
     await input.press("Enter");
     await expect(page).toHaveURL(/\/reference\/core#createJali$/);
@@ -50,7 +50,7 @@ test("package-manager tabs: arrows switch, each tab has its panel, and the choic
   await tabs.first().focus();
   await page.keyboard.press("ArrowRight");
   await expect(install.getByRole("tab", { name: "pnpm" })).toHaveAttribute("aria-selected", "true");
-  await expect(install.getByRole("tabpanel")).toHaveText("pnpm add @jali/core @jali/react");
+  await expect(install.getByRole("tabpanel")).toHaveText("pnpm add jali");
   await page.goto("/");
   const hero = page.locator("[data-install]").first();
   await expect(hero.getByRole("tab", { name: "pnpm" })).toHaveAttribute("aria-selected", "true");
@@ -64,7 +64,7 @@ test("copy buttons copy the code as written", async ({ page, context }) => {
   await block.getByRole("button", { name: "Copy code" }).click();
   await expect(block.getByRole("button", { name: "Copied" })).toBeVisible();
   const text = await page.evaluate(() => navigator.clipboard.readText());
-  expect(text).toContain('import { createJali, row } from "@jali/core";');
+  expect(text).toContain('import { createJali, row } from "jali";');
   expect(text).not.toContain("​");
 
   await page.getByRole("button", { name: "Copy page" }).click();

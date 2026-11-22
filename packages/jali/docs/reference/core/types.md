@@ -496,17 +496,47 @@ How to read one param back: `Number`, `String`, `Boolean`, [`oneOf`](../core.md#
 *type*, from `jali`
 
 ```ts
-type ParamTypes = Record<string, ParamType | OptionalParam>
+type ParamTypes = Record<string, ParamReader | OptionalParam>
 ```
 
-A kind's `params`.
+A kind's `params`, one by one.
+
+### ParamReader
+
+*type*, from `jali`
+
+```ts
+type ParamReader = ParamType | StandardSchemaV1
+```
+
+How to read one param: one of Jali's (`Number`, `String`, `Boolean`, `oneOf(...)`, a function), or a Standard Schema of the value from any library that implements it (`z.number()`, `v.picklist([...])`). A schema whose output may be `undefined` (`v.optional(…)`) lets a ref leave the param out, as `optional` does.
+
+### ParamsDeclaration
+
+*type*, from `jali`
+
+```ts
+type ParamsDeclaration = ParamTypes | StandardSchemaV1
+```
+
+What `params` takes: params one by one, or one Standard Schema of the whole object (`v.object({ id: v.number() })`). A schema decides what is valid, and its output is what the pane gets (`ParamsOf` infers it); Jali's codec still decides how values are written in a link, and a value a link carries as text is read as a number or a flag when the schema wants one. A value the schema refuses is a `ParamProblem`, as for Jali's own types. A schema must validate synchronously. `appOnly` and `link: false` are Jali's own: declare params one by one to use them.
+
+### StandardSchemaV1
+
+*type*, from `jali`
+
+```ts
+interface StandardSchemaV1<Input = unknown, Output = Input> { readonly "~standard": StandardSchemaV1.Props<Input, Output> }
+```
+
+The [Standard Schema](https://standardschema.dev) interface that Zod, Valibot, ArkType and Effect Schema implement, copied into Jali as the spec asks, so Jali depends on none of them.
 
 ### OptionalParam
 
 *type*, from `jali`
 
 ```ts
-interface OptionalParam<T extends ParamType = ParamType> { readonly optional: T; readonly link?: false }
+interface OptionalParam<T extends ParamReader = ParamReader> { readonly optional: T; readonly link?: false }
 ```
 
 A param a ref may leave out, made by [`optional`](../core.md#optional). `link: false` when it stays out of the address.

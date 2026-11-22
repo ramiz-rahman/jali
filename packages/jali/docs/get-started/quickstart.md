@@ -15,7 +15,7 @@ Jali runs in browsers from 2024 on ([Baseline 2024](https://web.dev/baseline)): 
 `jali` holds the model: the layout, the workspace and its commands. It doesn't depend on React. `jali/react` renders it, with a default theme and its own icons.
 
 ```sh
-npm install jali jali/react
+npm install jali
 ```
 
 > **Warning: Linked or in a monorepo.** If your app gets Jali through `link:`, `file:` or `workspace:`, or from a symlinked checkout, Jali can find its own copy of React beside its source. The app then bundles two Reacts, and hooks fail with "Invalid hook call". With Vite, add `resolve: { dedupe: ["react", "react-dom"] }` to `vite.config.ts` so there is one. With webpack, alias `react` and `react-dom` to your app's copy.
@@ -59,21 +59,23 @@ The [workspace](key-concepts.md#store) holds the panes, focus, history and setti
 
 ```tsx
 import { createJali, row } from "jali";
+import { defaultFeatures } from "jali/features";
 import { note } from "./note";
 
 export const jali = createJali({
   panes: [note],
   layout: row(note({ id: 1 }), note({ id: 2 })),
+  features: defaultFeatures(),
 });
 ```
 
 `row(...)` puts panes side by side; `column(...)` puts them one above the other. These two share the width equally.
 
-The workspace keeps its layout in the address bar. Reload the page and the layout comes back; Back and Forward step through changes. If the address already holds a layout, that one opens instead.
+`features` turns on what the workspace does beyond laying out panes. `defaultFeatures()` is Jali's usual set: the layout in the address bar, the ⌘K palette, Settings and the chooser. Reload the page and the layout comes back; Back and Forward step through changes. If the address already holds a layout, that one opens instead. An app that wants less picks each feature from its own entry, and ships only those: see [Features](../reference/features.md).
 
 ### Render it
 
-`<JaliRoot>` draws the workspace and the dialogs every workspace has, such as the ⌘K palette. While it is on the page, it also turns on the keyboard, Back and Forward, the theme and saving.
+`<JaliRoot>` draws the workspace and its features' dialogs, such as the ⌘K palette. While it is on the page, it also turns on the keyboard, Back and Forward, the theme and saving.
 
 `main.tsx`
 

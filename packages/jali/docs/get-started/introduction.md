@@ -48,7 +48,7 @@ Records opened by following links go after the designed layout, and **Back to th
 [`jali`](../reference/core.md) holds the model: the layout tree, fitting, and a workspace with focus, undo and following. It doesn't depend on React or any other framework. [`jali/react`](../reference/react.md) renders it, with components, hooks and a default theme.
 
 ```sh
-npm install jali jali/react
+npm install jali
 ```
 
 ## When not to use it
