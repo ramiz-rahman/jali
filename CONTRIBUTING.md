@@ -21,7 +21,7 @@ The repo is a pnpm workspace:
 | `apps/docs`      | The docs site (Astro): `pnpm --filter @jali/docs dev`, on :5400. See [apps/docs/AGENTS.md](apps/docs/AGENTS.md).                                         |
 | `examples/`      | Five example apps, plus `minimal` (the Quickstart's app) and `own-icons` (a size check). Held to [docs/EXAMPLES-STANDARD.md](docs/EXAMPLES-STANDARD.md). |
 | `e2e/`           | Jali's browser tests, against Data Studio and Loan review.                                                                                               |
-| `tooling/`       | The checks and generators: `verify`, `size`, `docs-check`, `agent-docs`, `pack-check`, `icons`, the React 18 check.                                      |
+| `tooling/`       | The checks and generators: `verify`, `size`, `docs-check`, `agent-docs`, `pack-check`, `public-types`, `icons`, the React 18 check.                      |
 | `skills/jali`    | The skill a coding agent loads to build with Jali.                                                                                                       |
 | `docs/`          | The product brief, the decisions, the API review, the migration notes, and dated reviews.                                                                |
 
@@ -48,7 +48,7 @@ The repo is a pnpm workspace:
 | `agent-docs`     | `packages/jali/docs` is up to date with the site (run `pnpm agent-docs` to write it)                                                                                                |
 | `react18`        | The committed HEAD's tests with React 18                                                                                                                                            |
 | `size`           | What each scenario ships of Jali, against its budget, and that no feature's code leaks into a scenario without it                                                                   |
-| `pack`           | `jali` packed, `examples/minimal` built from the tarball, and a server render hydrated from it                                                                                      |
+| `pack`           | `jali` packed, every type its signatures name exported (`tooling/public-types.mjs`), `examples/minimal` built from the tarball, and a server render hydrated from it                |
 | `docs-build`     | The docs site prerenders every page                                                                                                                                                 |
 | `e2e-*`          | The browser suites: Jali's (`e2e/`), each example's, and the docs site's                                                                                                            |
 

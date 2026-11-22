@@ -8,6 +8,7 @@
  *   - checks the package.json: no workspace: range, no "source" condition, React an optional peer, and every export
  *     points at a file in the tarball;
  *   - checks "use client" starts every React file (React Server Components hosts) and no framework-free one;
+ *   - checks every type a public signature names is exported from an app's entry (tooling/public-types.mjs);
  *   - typechecks a consumer against the packed .d.ts: examples/minimal, `Register` declared on "jali", and a test on
  *     jali/testing;
  *   - builds examples/minimal against the tarball with Vite (no "source" condition, so no workspace source);
@@ -32,6 +33,7 @@ import {
 } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
+import { check as publicTypes } from "./public-types.mjs";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const work = join(root, "node_modules", ".pack-check", String(process.pid));
@@ -93,6 +95,10 @@ try {
     if (FRAMEWORK_FREE.test(f) && /from "react/.test(readFileSync(join(dist, f), "utf8")))
       fail(`jali's dist/${f} is framework-free, but imports React`);
   }
+
+  // ---------- every type a public signature names is exported (tooling/public-types.mjs) ----------
+  for (const { type, from } of publicTypes(dist))
+    fail(`${type} is named by a public signature (from ${from}) but no app entry exports it`);
 
   // ---------- the app: examples/minimal, with the repo's React and fonts beside the tarballs ----------
   const minimal = join(root, "examples", "minimal");
