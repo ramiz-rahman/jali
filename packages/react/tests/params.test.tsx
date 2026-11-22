@@ -336,7 +336,7 @@ describe("a ref its kind can't read", () => {
       registry,
     );
     expect(read).toEqual({
-      page: { tab: "", item: "1", investigation: [order({ id: 2 })] },
+      page: { page: "p", tab: "", item: "1", investigation: [order({ id: 2 })] },
       view: {},
     });
   });

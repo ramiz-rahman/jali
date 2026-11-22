@@ -225,6 +225,8 @@ export function buildSearch(search: string, s: UrlState, k: UrlKeys = urlKeys())
 /** A page link: its view, its item as the link wrote it (text; the page converts it to its profile's type), and the
  *  panes opened while investigating. `item` is undefined when the link names none. */
 export interface PageRead {
+  /** The page the link names (its profile's `id`); undefined for an old lab link (`?app=review`). */
+  page?: string;
   tab: string;
   item: string | undefined;
   investigation: ObjectRef[];
@@ -261,7 +263,11 @@ export function readSearch(
       if (investigation.some((x) => sameRef(x, r))) continue;
       investigation.push(r);
     }
-    return { page: { tab: q.get(k.tab) ?? "", item, investigation }, view };
+    const page = q.get(k.page) || undefined;
+    return {
+      page: { ...(page ? { page } : {}), tab: q.get(k.tab) ?? "", item, investigation },
+      view,
+    };
   }
   if (!code) return null;
   const preset = q.get(k.preset) || undefined;

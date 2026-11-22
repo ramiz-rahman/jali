@@ -67,7 +67,7 @@ describe("a page link", () => {
 
   it("reads back as the page, item, view, opened panes and peek it was built from", () => {
     expect(readSearch(linkSearch(link), kinds())).toEqual({
-      page: { tab: "summary", item: "7", investigation: [odd] },
+      page: { page: "visit", tab: "summary", item: "7", investigation: [odd] },
       view: { peek: call({ slug: "x", t: "2" }) },
     });
   });
@@ -91,7 +91,7 @@ describe("a page link", () => {
   it("leaves out what it isn't given: the reader's own item and view are used", () => {
     expect(linkSearch({ page: "visit" })).toBe("?page=visit");
     expect(readSearch("?page=visit", kinds())).toEqual({
-      page: { tab: "", item: undefined, investigation: [] },
+      page: { page: "visit", tab: "", item: undefined, investigation: [] },
       view: {},
     });
   });

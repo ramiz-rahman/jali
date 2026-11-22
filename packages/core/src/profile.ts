@@ -33,6 +33,18 @@ export type ViewMode = "single" | "split";
 export type ItemId = string | number;
 
 /** An item id from a link or a caller, in the type the profile uses (`"4"` becomes `4` when `firstItem` is a number). */
+/**
+ * `id` as the page's item type, or undefined when it can't be one: a page whose items are numbers (its `firstItem` is
+ * one) never gets text, so a `bind` written for numbers never sees `"abc"`.
+ */
+export function readItem(id: unknown, first: ItemId): ItemId | undefined {
+  if (typeof id === "number") return Number.isFinite(id) ? id : undefined;
+  if (typeof id !== "string") return undefined;
+  if (typeof first !== "number") return id;
+  const n = Number(id);
+  return id.trim() !== "" && Number.isFinite(n) ? n : undefined;
+}
+
 export function asItem(id: ItemId, first: ItemId): ItemId {
   if (typeof first !== "number" || typeof id === "number") return id;
   const n = Number(id);

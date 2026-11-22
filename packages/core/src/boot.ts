@@ -33,7 +33,9 @@ function arriveFromUrl(
   if ("page" in r) {
     const { tab, item, investigation } = r.page;
     const page = store.env.page;
-    if (!page) return undefined;
+    // A link to another page than this workspace's is not one it can open.
+    if (!page || (r.page.page !== undefined && r.page.page !== store.env.profile?.id))
+      return undefined;
     return store.apply(
       latest((x) =>
         page.openPage(x, {

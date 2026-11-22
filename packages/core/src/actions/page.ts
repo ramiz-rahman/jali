@@ -20,7 +20,7 @@ import type {
   ViewState,
 } from "../layout/types";
 import {
-  asItem,
+  readItem,
   PAGE,
   roleOf,
   type BesidePreview,
@@ -185,6 +185,9 @@ export function openPage(x: Snapshot, o: OpenPage = {}): Outcome {
   const p = x.env.profile;
   if (!p) return refuse("unavailable");
   const prev = x.s.page;
+  // An item the page can't take: a link's falls back to the item before (or the first); an app's call is refused.
+  const item = o.item === undefined ? undefined : readItem(o.item, p.firstItem);
+  if (o.item !== undefined && item === undefined && !o.fromUrl) return refuse("invalid");
   const canInvestigate = prev?.canInvestigate ?? x.s.canInvestigate ?? true;
   // A limited viewer works in Single only, whatever the link or Back brings: its opened panes are left out. What the
   // address doesn't hold (`appOnly` and `link: false` params) stays on an opened pane that is still on screen.
@@ -196,7 +199,7 @@ export function openPage(x: Snapshot, o: OpenPage = {}): Outcome {
   const page: PageState = {
     profile: p.id,
     before: undefined,
-    item: o.item !== undefined ? asItem(o.item, p.firstItem) : (prev?.item ?? p.firstItem),
+    item: item ?? prev?.item ?? p.firstItem,
     tab: roleOf(p, o.tab)?.id ?? prev?.tab ?? p.home,
     mode: !canInvestigate ? "single" : opened.length ? "split" : (prev?.mode ?? x.s.prefs.mode),
     canInvestigate,
@@ -527,10 +530,12 @@ export function goToRole(x: Snapshot, role: string, from?: NodeId): Outcome {
 }
 
 /** Another item: every role shows it, in place, and the previous item's investigation closes. */
-export function activate(x: Snapshot, item: ItemId): Outcome {
+export function activate(x: Snapshot, given: ItemId): Outcome {
   const p = x.env.profile,
     r = x.s.page;
   if (!p || !r) return refuse("unavailable");
+  const item = readItem(given, p.firstItem);
+  if (item === undefined) return refuse("invalid");
   if (r.item === item) return null;
   const page = { ...r, item, before: undefined };
   const saved = x.s.prefs.split;
