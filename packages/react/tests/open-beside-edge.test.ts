@@ -15,9 +15,9 @@ import {
 } from "@jali/core";
 import { storeOf } from "@jali/core/adapter";
 import { definePane } from "@jali/react";
-import { createTestStore } from "./fixture";
-import type { JaliStore } from "../../../core/src/state/store";
-import { defaultFeatures, urlSync } from "../features";
+import { createTestStore } from "../../core/tests/fixtures/workspace";
+import type { JaliStore } from "../../core/src/state/store";
+import { defaultFeatures, urlSync } from "./features";
 
 const video = definePane("video", {
   params: { id: Number },

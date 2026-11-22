@@ -5,8 +5,8 @@
  */
 import { afterEach, describe, expect, it, vi } from "vite-plus/test";
 import { act, cleanup, render } from "@testing-library/react";
-import shelfCss from "../../src/styles/shelf.css?raw";
-import chromeCss from "../../src/styles/chrome.css?raw";
+import shelfCss from "../src/styles/shelf.css?raw";
+import chromeCss from "../src/styles/chrome.css?raw";
 import * as core from "@jali/core/adapter";
 import {
   createUrlSync,
@@ -17,13 +17,19 @@ import {
 } from "@jali/core/adapter";
 import { createJali, row } from "@jali/core";
 import { JaliRoot, definePane } from "@jali/react";
-import { parseKeys } from "../../../core/src/commands/format";
-import { createTestStore } from "./fixture";
-import { noUrl } from "../features";
+import { parseKeys } from "../../core/src/commands/format";
+import { createTestStore } from "../../core/tests/fixtures/workspace";
+import { noUrl } from "./features";
 
 const area = { width: 1600, height: 900 };
+// With React's dialogs (the fixture's own features have no parts to draw them).
 const make = (deps: Parameters<typeof createTestStore>[0] = {}) => {
-  const s = createTestStore({ focusPane: null, ...deps, initial: { area, ...deps.initial } });
+  const s = createTestStore({
+    focusPane: null,
+    features: noUrl(),
+    ...deps,
+    initial: { area, ...deps.initial },
+  });
   s.actions.preset("order-chain");
   return s;
 };
@@ -94,7 +100,7 @@ describe("dialog ids (2)", () => {
   it("two workspaces' dialogs never share an element id", () => {
     const a = make({ id: "a" }),
       b = make({ id: "b" });
-    // No panes: only the dialogs are under test (the example apps' panes need their data layer).
+    // No panes: only the dialogs are under test (the fixture's kinds have no components).
     render(
       <>
         <JaliRoot jali={a.jali}>

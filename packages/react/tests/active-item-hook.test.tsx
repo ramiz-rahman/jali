@@ -2,12 +2,12 @@
 import { describe, expect, it } from "vite-plus/test";
 import { renderHook } from "@testing-library/react";
 import type { ReactNode } from "react";
-import type { ObjectRef } from "../../../core/src/layout/types";
-import { memoryStorage } from "../../../core/src/ports";
-import { StoreProvider } from "../../src/state/react";
-import { PaneContext, type PaneContextValue } from "../../src/pane/context";
-import { useActiveItemPort } from "../../src/pane/useActiveItemPort";
-import { createTestStore } from "./fixture";
+import type { ObjectRef } from "../../core/src/layout/types";
+import { memoryStorage } from "../../core/src/ports";
+import { StoreProvider } from "../src/state/react";
+import { PaneContext, type PaneContextValue } from "../src/pane/context";
+import { useActiveItemPort } from "../src/pane/useActiveItemPort";
+import { createTestStore } from "../../core/tests/fixtures/workspace";
 
 describe("useActiveItemPort", () => {
   it("reads the current mapping after a re-render", () => {
