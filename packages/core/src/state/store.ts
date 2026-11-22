@@ -185,8 +185,9 @@ export interface UiState {
   /** `data-*` attributes panes set from their data (usePaneAttributes), put on everything that stands for the pane.
    *  Not saved; cleared, like a title, when the pane closes or shows another object. */
   paneAttributes: Record<NodeId, PaneAttributes>;
-  /** What each caller of the pane hooks reports, per pane and caller; merged into `activity`, `unsaved`,
-   *  `paneCommands`, `titles` and `paneAttributes` (actions/content.ts `reportPane`). */
+  /** What each caller of the pane hooks reports, per pane and caller: the one source of `activity`, `unsaved`,
+   *  `paneCommands`, `titles` and `paneAttributes`, which are made from it (state/reports.ts) and written nowhere
+   *  else. */
   paneReports: Record<NodeId, Record<string, PaneReport>>;
   /** Each pane's own state (usePaneState): JSON values, kept through folds, tabs and reloads, dropped on close. */
   paneState: Record<NodeId, Record<string, unknown>>;

@@ -94,7 +94,8 @@ describe("a pane that throws", () => {
     fireEvent.click(screen.getByRole("button", { name: "Retry" }));
     expect(screen.getByText("order body 1")).toBeTruthy();
     expect(mounts).toBeGreaterThan(before);
-    expect(jali.get().activity.b).toBe("idle");
+    // Nothing reports an activity for it any more: it has none, which is idle.
+    expect(jali.get().activity.b).toBeUndefined();
   });
 
   it("lists Retry in ⌘K for the focused failed pane, and it works", () => {
@@ -161,7 +162,8 @@ describe("a pane that suspends", () => {
     await act(async () => d.resolve("report ready"));
     expect(screen.getByText("report ready")).toBeTruthy();
     expect(screen.queryByText("Loading…")).toBeNull();
-    expect(jali.get().activity.r).toBe("idle");
+    // The loading state no longer reports: the pane has no activity, which is idle.
+    expect(jali.get().activity.r).toBeUndefined();
   });
 
   it("shows the kind's own Loading, with the pane's props", async () => {

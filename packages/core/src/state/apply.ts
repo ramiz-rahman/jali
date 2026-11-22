@@ -34,7 +34,7 @@ import type { Model } from "./model";
 import type { UiState } from "./store";
 import type { ActionName } from "../actions/public";
 import { pruneUndo } from "./undo";
-import type { PaneReport } from "../actions/content";
+import { discardedReports, prunedReports, withMaps } from "./reports";
 import type { PaneKinds } from "../pane-kinds";
 import { ownedPaneState, ownedSelection } from "./pane-state";
 import { sameRef } from "../layout/ops/ref";
@@ -493,32 +493,10 @@ function prunePanes(
       .filter((p) => was.has(p.id) && !sameRef(was.get(p.id), p.ref))
       .map((p) => p.id),
   );
-  // Unsaved work, commands and activity belong to mounted content; state also survives in the undo stack.
-  // The same content stays mounted when its object changes, so these go only with the pane.
+  // What panes reported goes with the pane, and what described its object goes when it shows another
+  // (state/reports.ts); the maps made from the reports follow them.
   const live = new Set(core.tree.panes(layout.root).map((p) => p.id));
-  const mounted = <T>(r: Record<NodeId, T>) =>
-    Object.keys(r).every((id) => live.has(id))
-      ? r
-      : Object.fromEntries(Object.entries(r).filter(([id]) => live.has(id)));
-  // A title or attributes from data are about the object they were set for: they go when the pane shows another.
-  const named = Object.keys(s.titles).every((id) => live.has(id) && !moved.has(id))
-    ? s.titles
-    : Object.fromEntries(Object.entries(s.titles).filter(([id]) => live.has(id) && !moved.has(id)));
-  const marked = Object.keys(s.paneAttributes).every((id) => live.has(id) && !moved.has(id))
-    ? s.paneAttributes
-    : Object.fromEntries(
-        Object.entries(s.paneAttributes).filter(([id]) => live.has(id) && !moved.has(id)),
-      );
-  // Each caller's reports go with the pane; a title or attributes it gave go when the pane shows another object.
-  const reports = Object.entries(s.paneReports);
-  const paneReports = reports.every(([id]) => live.has(id) && !moved.has(id))
-    ? s.paneReports
-    : Object.fromEntries(
-        reports
-          .filter(([id]) => live.has(id))
-          .map(([id, r]) => [id, moved.has(id) ? withoutNames(r) : r] as const)
-          .filter(([, r]) => Object.keys(r).length),
-      );
+  const reports = withMaps(prior, prunedReports(s.paneReports, live, moved));
   // A pane's own state stays while a pane with its id shows its object, here or in the undo stack; a list's selection
   // stays with the list it was made in (state/pane-state.ts).
   const owned = ownedPaneState(s, kinds, [layout, ...undo.map((e) => e.before.layout)]);
@@ -528,40 +506,8 @@ function prunePanes(
     ...(selected.selection !== s.selection || selected.selectionOf !== s.selectionOf
       ? selected
       : {}),
-    paneReports,
-    unsaved: mounted(s.unsaved),
-    paneCommands: mounted(s.paneCommands),
-    activity: mounted(s.activity),
-    titles: named,
-    paneAttributes: marked,
+    ...reports,
   };
-}
-
-/** A pane's reports without the titles and attributes its callers gave, which were about the object it showed. */
-function withoutNames(reports: Record<string, PaneReport>): Record<string, PaneReport> {
-  const out: Record<string, PaneReport> = {};
-  for (const [caller, { title: _t, attributes: _a, ...rest }] of Object.entries(reports))
-    if (Object.keys(rest).some((k) => k !== "seq")) out[caller] = rest;
-  return out;
-}
-
-/** The reports of `panes` without the unsaved work their callers gave: the person discarded it. */
-function withoutUnsaved(
-  all: UiState["paneReports"],
-  panes: readonly NodeId[],
-): UiState["paneReports"] {
-  const out: UiState["paneReports"] = {};
-  for (const [id, reports] of Object.entries(all)) {
-    if (!panes.includes(id)) {
-      out[id] = reports;
-      continue;
-    }
-    const kept: Record<string, PaneReport> = {};
-    for (const [caller, { unsaved: _u, ...rest }] of Object.entries(reports))
-      if (Object.keys(rest).some((k) => k !== "seq")) kept[caller] = rest;
-    if (Object.keys(kept).length) out[id] = kept;
-  }
-  return out;
 }
 
 const sameView = (a: ViewState, b: ViewState) =>
@@ -848,10 +794,7 @@ function step(c: Run, o: Outcome): Res {
       // The work the person discarded goes in this commit, never before it: an answer that changes nothing keeps it.
       const kept = discarding.length
         ? {
-            unsaved: Object.fromEntries(
-              Object.entries(s.unsaved).filter(([id]) => !discarding.includes(id)),
-            ),
-            paneReports: withoutUnsaved(s.paneReports, discarding),
+            paneReports: discardedReports(s.paneReports, discarding),
             // A draft kept in the pane's own state is discarded too: an undo must not bring it back.
             paneState: Object.fromEntries(
               Object.entries(s.paneState).filter(([id]) => !discarding.includes(id)),
@@ -871,6 +814,7 @@ function step(c: Run, o: Outcome): Res {
       io.set({
         layout: next.layout,
         view: layoutChanged || viewChanged ? next.view : s.view,
+        ...kept,
         ...o.patch,
         ...motion,
         ...pruned,

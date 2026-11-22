@@ -1041,7 +1041,7 @@ What an instance holds that an app reads, read-only. Read it with `jali.get()` o
 
 - **`settings`** (`Settings`, required): The person's settings.
 
-- **`activity`** (`Record<NodeId, PaneActivity>`, required): What each pane reported.
+- **`activity`** (`Record<NodeId, PaneActivity>`, required): What each pane reports (`useActivity`), merged across the components that report it. A pane nothing reports an activity for has no entry: it is idle.
 
 - **`selection`** (`Record<NodeId, Selection<R>>`, required): Each list pane's selected item.
 

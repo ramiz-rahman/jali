@@ -1,6 +1,6 @@
 import * as core from "../layout/engine";
-import type { Layout, NodeId, ViewState } from "../layout/types";
-import { keepOwnParams, type PaneActivity } from "../pane-kinds";
+import type { Layout, ViewState } from "../layout/types";
+import { keepOwnParams } from "../pane-kinds";
 import { presetById } from "../profile";
 import { refuse, type Outcome, type RefusalStep, type Snapshot } from "../state/apply";
 import { notAllowed } from "./allow";
@@ -9,7 +9,6 @@ import { say } from "../state/messages";
 import { settingsWith, type Settings } from "../state/settings";
 import { withRecent } from "./open";
 import { agreeWithSelection, agreeOnArrival } from "./follow";
-import { own } from "../own";
 
 /** Switch to a preset: the layout the app saved for it (`PresetOptions.saved`), if it has one this instance can
  *  still read, else its own. `own`: always its own (Reset layout). */
@@ -160,12 +159,6 @@ export function restoreLayout(x: Snapshot, input: LayoutInput): Outcome {
     // A page's undo steps restore its layouts: they go with it, as when leaving the page.
     ...(s.page ? { undo: [] } : {}),
   };
-}
-
-export function setActivity({ s, m }: Snapshot, id: NodeId, a: PaneActivity): Outcome {
-  return !m.pane(id) || own(s.activity, id) === a
-    ? null
-    : { op: "patch", patch: { activity: { ...s.activity, [id]: a } } };
 }
 
 /** The command palette (⌘K) and the settings panel. */

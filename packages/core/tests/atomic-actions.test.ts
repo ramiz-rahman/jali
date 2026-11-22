@@ -103,7 +103,7 @@ describe("a sequence refused part way", () => {
     expect(location.entries.length).toBe(entries);
     expect(events).toEqual([]);
     // Only the refusal is said.
-    expect(jali.get().announcement.text).toBe("Can't go there");
+    expect(storeOf(jali).get().announcement.text).toBe("Can't go there");
     expect(told).toBeLessThanOrEqual(1);
   });
 });
@@ -125,6 +125,6 @@ describe("each", () => {
     );
     expect(r).toMatchObject({ ok: false, reason: "blocked" });
     expect(jali.model().panes.map((p) => p.id)).toEqual(["a", "z"]);
-    expect(jali.get().announcement.text).toMatch(/Opened 9.*The other stays/);
+    expect(storeOf(jali).get().announcement.text).toMatch(/Opened 9.*The other stays/);
   });
 });

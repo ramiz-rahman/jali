@@ -636,7 +636,7 @@ What an instance holds that an app reads, read-only. Read it with `jali.get()` o
 <Param name="peekSource" type="NodeId">The pane the peek acts for.</Param>
 <Param name="resizeMode" type="NodeId | null" required>The pane in keyboard resize mode.</Param>
 <Param name="settings" type="Settings" required>The person's settings.</Param>
-<Param name="activity" type="Record<NodeId, PaneActivity>" required>What each pane reported.</Param>
+<Param name="activity" type="Record<NodeId, PaneActivity>" required>What each pane reports (`useActivity`), merged across the components that report it. A pane nothing reports an activity for has no entry: it is idle.</Param>
 <Param name="selection" type="Record<NodeId, Selection<R>>" required>Each list pane's selected item.</Param>
 <Param name="recent" type="readonly R[]" required>Objects opened this session, newest first, at most 8.</Param>
 <Param name="area" type="{ width: number; height: number }" required>The instance's inner size; the panes measure it.</Param>

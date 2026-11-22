@@ -61,12 +61,12 @@ import {
   openSettings,
   preset,
   resetLayout,
-  setActivity,
 } from "./layout";
 import {
   discardAndContinue,
   keepEditing,
   reportPane,
+  setActivity,
   setPaneAttributes,
   setPaneCommands,
   setPaneState,
