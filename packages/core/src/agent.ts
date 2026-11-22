@@ -293,11 +293,31 @@ export function createAgent(jali: Jali, options: AgentOptions = {}): JaliAgent {
 
   function act(request: { steps: AgentStep[] }): AgentResult {
     const steps: AgentStepResult[] = [];
+    // A model's input is data, whatever its type says: a request or a step of the wrong shape is refused as
+    // "invalid", never thrown.
+    const given: unknown =
+      request && typeof request === "object" ? (request as { steps?: unknown }).steps : undefined;
+    if (!Array.isArray(given)) {
+      steps.push({ action: "", ok: false, reason: "invalid", message: "Give { steps: [...] }" });
+      return { ok: false, steps, snapshot: snapshot() };
+    }
     const before = paneIds(jali.getLayout());
     let ok = true;
-    for (const step of request.steps ?? []) {
-      const action = step.action;
-      const args = Array.isArray(step.args) ? step.args : [];
+    const ran: unknown[] = [];
+    for (const step of given as unknown[]) {
+      if (!step || typeof step !== "object" || typeof (step as AgentStep).action !== "string") {
+        steps.push({
+          action: "",
+          ok: false,
+          reason: "invalid",
+          message: 'A step is { "action": "...", "args": [...] }',
+        });
+        ok = false;
+        break;
+      }
+      ran.push((step as AgentStep).action);
+      const action = (step as AgentStep).action;
+      const args = Array.isArray((step as AgentStep).args) ? (step as AgentStep).args! : [];
       const refuse = (reason: string, message?: string) => {
         steps.push({ action, ok: false, reason, ...(message ? { message } : {}) });
         ok = false;
@@ -332,8 +352,8 @@ export function createAgent(jali: Jali, options: AgentOptions = {}): JaliAgent {
     }
     // After the turn, when it opened or closed panes: not when the agent chose the layout itself (a preset, a
     // layout or an arrange of its own), and only as far as the app's `allow` lets it, as for any step.
-    const placed = (request.steps ?? []).some((s) =>
-      ["preset", "setLayout", "resetLayout", "autoLayout"].includes(String(s.action)),
+    const placed = ran.some((a) =>
+      ["preset", "setLayout", "resetLayout", "autoLayout"].includes(String(a)),
     );
     const verdict = options.allow?.({ action: "autoLayout", args: [] });
     const vetoed = verdict === false || typeof verdict === "string";
