@@ -10,7 +10,7 @@
  */
 import type { NodeId } from "../layout/types";
 import type { PageEngine } from "../profile";
-import { refuse, type ActionResult, type Outcome, type Snapshot } from "../state/apply";
+import { isChange, refuse, type ActionResult, type Outcome, type Snapshot } from "../state/apply";
 import type { Settings } from "../state/settings";
 import {
   paneFor,
@@ -109,9 +109,7 @@ function withPane(o: Outcome, id: NodeId | undefined): Outcome {
   if (!o) return { op: "patch", result: id };
   if (typeof o === "function") return (x) => withPane(o(x), id);
   if (Array.isArray(o)) return [...o.slice(0, -1), withPane(o[o.length - 1], id)];
-  return o.op === "refused" || o.op === "answer" || o.result !== undefined
-    ? o
-    : { ...o, result: id };
+  return isChange(o) && o.result === undefined ? { ...o, result: id } : o;
 }
 
 /** The pane `pane` names, and `step` run on it; `"not-found"` when there is none. */

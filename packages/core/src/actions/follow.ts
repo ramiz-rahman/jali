@@ -11,7 +11,14 @@
  */
 import * as core from "../layout/engine";
 import type { Layout, NodeId, ObjectRef, PaneNode, ViewState } from "../layout/types";
-import { refuse, type Change, type Deferred, type Outcome, type Snapshot } from "../state/apply";
+import {
+  each,
+  refuse,
+  type Change,
+  type Deferred,
+  type Outcome,
+  type Snapshot,
+} from "../state/apply";
 import { say } from "../state/messages";
 import type { UiState } from "../state/store";
 import { own as ownOf } from "../own";
@@ -72,7 +79,8 @@ export function follow(
     layout,
     msg: say(env).followed(env.kinds.title(said.ref)),
   };
-  return stays ? [change, stays] : change;
+  // Separate on purpose: the details that can move do, and the one with unsaved work says why it stays.
+  return stays ? each(change, stays) : change;
 }
 
 /**

@@ -863,6 +863,11 @@ export function createJaliStore(deps: JaliConfig): JaliStore {
   const io = {
     get: store.get,
     set: write,
+    // An action refused or held part way puts back the state it read: subscribers then hear no change at all.
+    restore: (previous: UiState) => {
+      state = previous;
+      changed = true;
+    },
     committed: (op: Op, action?: ActionName) => {
       ops.push(op);
       named ??= action;

@@ -32,7 +32,7 @@ import {
   type ProfileBase,
 } from "../profile";
 import type { CommandDef } from "../commands/registry";
-import { refuse, type Change, type Outcome, type Snapshot } from "../state/apply";
+import { isChange, refuse, type Change, type Outcome, type Snapshot } from "../state/apply";
 import { messagesOf, say, type Messages } from "../state/messages";
 import { pageEn } from "../state/page-messages";
 import type { PagePrefs } from "../state/page-prefs";
@@ -516,14 +516,11 @@ export function goToRole(x: Snapshot, role: string, from?: NodeId): Outcome {
   if (from && x.m.off.includes(role) && x.m.visible.includes(from)) {
     const t = label(p, role);
     const prefix = (o: Outcome): Outcome =>
-      o && typeof o === "object" && !Array.isArray(o) && o.op !== "refused" && o.msg
-        ? { ...o, msg: say(x).both(say(x).alreadyView(t), o.msg) }
-        : o;
+      isChange(o) && o.msg ? { ...o, msg: say(x).both(say(x).alreadyView(t), o.msg) } : o;
     return (y: Snapshot) => prefix(apply1(placeTab(y, role, from, endSide(y.ctx.dir)), y));
   }
   const o = openTab(x, role);
-  if (!o || typeof o !== "object" || Array.isArray(o) || o.op === "refused" || o.op === "answer")
-    return o;
+  if (!isChange(o)) return o;
   const t = label(p, role);
   return {
     ...o,

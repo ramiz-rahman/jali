@@ -10,6 +10,11 @@
  * announcement, toast and DOM focus, as the POLICY table says for its op. Nothing that did not happen is written
  * or announced: an unchanged layout keeps its object, pushes no history and says nothing.
  *
+ * An action is all or nothing. However many steps it is made of (a sequence, a step computed from the state the last
+ * one left), its changes land together or not at all: the first refusal puts back every change before it, and a
+ * question that holds the action puts them back too, keeping the action itself to run again once answered. An
+ * action that may partly happen says so (`each`): each of its parts is then all or nothing on its own.
+ *
  * Timing is declared, not hidden: a change may carry a `defer`red step (keyed; a newer step with the same key replaces
  * or cancels it). The store runs it after `ms` against the state at that moment. Linked selection uses it: a list's
  * detail follows the selection once it rests (actions/follow.ts).
@@ -178,6 +183,14 @@ export const refuse = (reason: RefusalReason, msg?: string): RefusalStep => ({
 });
 export const isRefusal = (o: Outcome): o is RefusalStep =>
   !!o && typeof o === "object" && "op" in o && o.op === "refused";
+/** Whether `o` is one change (not a sequence, a step, a refusal, an answer or `each`). */
+export const isChange = (o: Outcome): o is Change =>
+  !!o &&
+  typeof o === "object" &&
+  !Array.isArray(o) &&
+  o.op !== "refused" &&
+  o.op !== "answer" &&
+  o.op !== "each";
 
 /** An action as it was asked for: run again against the state of the moment when a held question is answered. */
 export type Intent = (x: Snapshot) => Outcome;
@@ -207,12 +220,27 @@ export interface AnswerStep {
   msg?: undefined;
 }
 
+/**
+ * Parts that each happen or not on their own (`each(...)`): a part that is refused puts back only its own changes,
+ * and the parts after it still run. For an action whose parts are separate on purpose: following several details at
+ * once, where one with unsaved work keeps its object and the others move on. The result is the first refusal, else
+ * the last part's.
+ */
+export interface EachStep {
+  op: "each";
+  parts: Outcome[];
+  msg?: undefined;
+}
+/** Parts that happen or not one by one: see `EachStep`. */
+export const each = (...parts: Outcome[]): EachStep => ({ op: "each", parts });
+
 /** A change, a refusal, nothing, a step computed from the state the previous step left, the answer to a held
- *  question, or several in order. */
+ *  question, several in order (all or nothing), or parts that each happen or not on their own (`each`). */
 export type Outcome =
   | Change
   | RefusalStep
   | AnswerStep
+  | EachStep
   | null
   | undefined
   | ((x: Snapshot) => Outcome)
@@ -381,6 +409,9 @@ export const geometryOf = (m: Model) =>
 export interface ApplyIO {
   get(): UiState;
   set(patch: Partial<UiState>): void;
+  /** Put back a state this commit read with `get()`, as it was: an action refused or held part way undoes its own
+   *  writes. No refit, no address write: nothing of it was told yet. */
+  restore(state: UiState): void;
   snapshot(): Snapshot;
   url(mode: HistoryMode): void;
   announce(text: string): void;
@@ -539,37 +570,86 @@ const sameView = (a: ViewState, b: ViewState) =>
 /**
  * Held questions (C8–C10 in docs/reviews/QUALITY-REVIEW.md). A change that waits for an answer (the host's `beforeClose`, or
  * "Discard unsaved changes?") is not kept as the change it computed: that change is about the state when the question
- * opened. What waits is the intent: the step `(x) => Outcome` that produced it, while nothing it began has been
- * committed (the outermost such step, so a public action re-reads its target too), plus the steps after it in any
- * sequence outside that step. The answer runs the intent again against the state of that moment (an `AnswerStep`):
- * if what it would remove or replace is still only what was asked about (the same panes, showing the same objects),
- * the fresh result is made; if more is at stake, the question is asked again. A held step stops its sequence: what
- * follows it waits with it.
+ * opened. What waits is the intent: the whole action (or the part of an `each` it was in), whose changes so far are
+ * put back. The answer runs the intent again against the state of that moment (an `AnswerStep`): if what it would
+ * remove or replace is still only what was asked about (the same panes, showing the same objects), the fresh result
+ * is made; if more is at stake, the question is asked again.
  */
 interface Hold {
+  /** What runs again once the question is answered: set when the action (or part) it held is put back. */
   intent: Intent;
-  /** The depth of the step the intent runs again from; sequences outside it carry their remaining steps along. */
-  depth: number;
   /** How the question ends, once it has been put. */
   settled?: Promise<ActionResult>;
 }
 
-/** A step `(x) => Outcome` being run: `mark` is how many writes the run had made when it started. */
-interface Frame {
-  fn: Intent;
-  mark: number;
-  depth: number;
-  up?: Frame;
-}
-
-/** One commit: what was agreed already, the writes made so far, and the step held, if one was. */
+/** One commit: what was agreed already, the question that holds it, if one does, and where its effects wait. */
 interface Run {
   io: ApplyIO;
+  tx: Transaction;
   agreed: Agreed;
-  writes: number;
   hold?: Hold;
   /** The public action being made, if one is: the `layout` event names it. */
   action?: ActionName;
+}
+
+/** What a step did: its result, and whether an all-or-nothing boundary inside it already settled it (a refusal put
+ *  back and said, or a question held), so the boundaries around it leave it as it is. */
+interface Res {
+  r: ActionResult;
+  settled: boolean;
+}
+const ok = (r: ActionResult): Res => ({ r, settled: false });
+
+/**
+ * A commit's writes and effects, so they can be put back. State writes go through at once (each step reads the state
+ * the last one left); the effects the world sees (the address, announcements, toasts, DOM focus, deferred steps, the
+ * layout events) wait until the whole commit is made, and are dropped with the writes they followed.
+ */
+interface Transaction {
+  io: ApplyIO;
+  /** Where the commit is now: a state and how many effects wait. */
+  mark(): { state: UiState; effects: number };
+  /** Back to `mark`: its state, and only the effects that waited then. */
+  restore(at: { state: UiState; effects: number }): void;
+  /** Tell the world: every effect that waits, in order. */
+  flush(): void;
+}
+
+function transaction(io: ApplyIO): Transaction {
+  const effects: (() => void)[] = [];
+  const later =
+    <A extends unknown[]>(fn: ((...a: A) => void) | undefined) =>
+    (...a: A) =>
+      void (fn && effects.push(() => fn(...a)));
+  const tx: ApplyIO = {
+    get: () => io.get(),
+    set: (patch) => io.set(patch),
+    restore: (state) => io.restore(state),
+    snapshot: () => io.snapshot(),
+    url: later((m) => io.url(m)),
+    announce: later((t) => io.announce(t)),
+    toast: later((t) => io.toast(t)),
+    focus: later((id) => io.focus(id)),
+    defer: later(io.defer && ((d) => io.defer!(d))),
+    unstable: later(io.unstable && ((op, a, b) => io.unstable!(op, a, b))),
+    committed: later(io.committed && ((op, action) => io.committed!(op, action))),
+    get beforeClose() {
+      return io.beforeClose;
+    },
+    later: io.later && ((o) => io.later!(o)),
+    signal: io.signal,
+  };
+  return {
+    io: tx,
+    mark: () => ({ state: io.get(), effects: effects.length }),
+    restore(at) {
+      if (io.get() !== at.state) io.restore(at.state);
+      effects.length = at.effects;
+    },
+    flush() {
+      for (const e of effects.splice(0)) e();
+    },
+  };
 }
 
 const sameAsked = (a: Asked[number], b: Asked[number]) =>
@@ -578,64 +658,93 @@ const sameAsked = (a: Asked[number], b: Asked[number]) =>
 const covered = (panes: Asked, agreed?: Asked) =>
   !!agreed && panes.every((p) => agreed.some((a) => sameAsked(a, p)));
 
-/** Hold `o`: its intent is the outermost step around it that has committed nothing yet. A change with no such step
- *  (an outcome computed outside a step) is held as it is, and made only on the layout it was computed from. */
-function holdFor(c: Run, f: Frame | undefined, o: Change, from: Layout): Hold {
-  let pick: Frame | undefined;
-  for (let g = f; g && g.mark === c.writes; g = g.up) pick = g;
-  c.hold = pick
-    ? { intent: pick.fn, depth: pick.depth }
-    : { intent: (x) => (x.s.layout === from ? o : refuse("kept")), depth: Infinity };
+/** `o` as an intent to run again: a step as it is; a change computed outside a step is made only on the layout it was
+ *  computed from. */
+function intentOf(o: Outcome, from: Layout): Intent {
+  return typeof o === "function" ? o : (x) => (x.s.layout === from ? o : refuse("kept"));
+}
+
+/** Hold the commit for a question. Its intent is set where the action (or the part of an `each`) is put back. */
+function holdFor(c: Run): Hold {
+  c.hold = { intent: () => refuse("kept") };
   return c.hold;
 }
 
 /**
- * Commit an outcome. Returns what happened: the last step's `result` as `pane`, or the first refusal among the steps
- * (later steps still run, unless a step is held: then they wait with it).
+ * Commit an outcome. Returns what happened: the last step's `result` as `pane`, or the refusal that stopped it (its
+ * changes put back), or the question that holds it (`"pending"`, `"unsaved"`, with `settled`).
  */
 export function apply(io: ApplyIO, o: Outcome, action?: ActionName): ActionResult {
-  return step({ io, agreed: {}, writes: 0, action }, o, undefined);
+  const tx = transaction(io);
+  const c: Run = { io: tx.io, tx, agreed: {}, action };
+  const r = whole(c, o).r;
+  tx.flush();
+  return r;
 }
 
-function step(c: Run, o: Outcome, f: Frame | undefined): ActionResult {
-  const io = c.io;
-  if (!o) return DONE;
-  if (typeof o === "function")
-    return step(c, o(io.snapshot()), {
-      fn: o,
-      mark: c.writes,
-      depth: (f?.depth ?? -1) + 1,
-      up: f,
-    });
-  if (Array.isArray(o)) {
-    let out: ActionResult = DONE;
-    for (let i = 0; i < o.length; i++) {
-      const before = c.hold;
-      const r = step(c, o[i], f);
-      if (out.ok) out = r;
-      if (c.hold !== before) {
-        const hold = c.hold!,
-          rest = o.slice(i + 1);
-        if ((f?.depth ?? -1) < hold.depth && rest.length) {
-          const held = hold.intent;
-          hold.intent = () => [held, ...rest];
-        }
-        break;
-      }
-    }
-    return out;
+/**
+ * `o`, all or nothing: refused, every change it made is put back and the refusal is said; held, its changes are put
+ * back too (the question stays) and `o` is what runs again.
+ */
+function whole(c: Run, o: Outcome): Res {
+  const at = c.tx.mark();
+  const res = step(c, o);
+  if (res.settled) return res;
+  if (c.hold) {
+    const confirm = c.io.get().confirm;
+    c.tx.restore(at);
+    // The question is the one thing a held action leaves: it is what the person answers.
+    if (confirm !== at.state.confirm) c.io.set({ confirm });
+    c.hold.intent = intentOf(o, at.state.layout);
+    return { r: res.r, settled: true };
   }
-  if (o.op === "refused") {
-    if (o.msg) io.announce(o.msg);
-    return refused(o.reason, o.msg);
+  if (!res.r.ok) {
+    c.tx.restore(at);
+    if (res.r.message) c.io.announce(res.r.message);
+    return { r: res.r, settled: true };
+  }
+  return res;
+}
+
+function step(c: Run, o: Outcome): Res {
+  const io = c.io;
+  if (!o) return ok(DONE);
+  if (typeof o === "function") return step(c, o(io.snapshot()));
+  if (Array.isArray(o)) {
+    // In order, all or nothing: the first refusal or question stops it, and `whole` puts back what came before.
+    let out: ActionResult = DONE;
+    for (const part of o) {
+      const res = step(c, part);
+      if (res.settled || c.hold || !res.r.ok) return res;
+      out = res.r;
+    }
+    return ok(out);
+  }
+  if (o.op === "refused") return ok(refused(o.reason, o.msg));
+  if (o.op === "each") {
+    let out: ActionResult | undefined,
+      last: ActionResult = DONE;
+    for (let i = 0; i < o.parts.length; i++) {
+      const res = whole(c, o.parts[i]);
+      if (c.hold) {
+        // A part held: it and the parts after it wait for the answer; the parts before it stay made.
+        const held = c.hold.intent,
+          rest = o.parts.slice(i + 1);
+        c.hold.intent = rest.length ? () => each(held, ...rest) : held;
+        return { r: res.r, settled: true };
+      }
+      if (!res.r.ok) out ??= res.r;
+      else last = res.r;
+    }
+    return { r: out ?? last, settled: true };
   }
   if (o.op === "answer") {
-    const inner: Run = { io, agreed: o.agreed, writes: 0, action: o.action };
-    const r = step(inner, o.intent, undefined);
-    c.writes += inner.writes;
+    const inner: Run = { io, tx: c.tx, agreed: o.agreed, action: o.action };
+    const res = whole(inner, o.intent);
     // Asked again: this question ends as that one does.
-    o.settle?.(inner.hold?.settled ?? r);
-    return r;
+    o.settle?.(inner.hold?.settled ?? res.r);
+    if (inner.hold) c.hold = inner.hold;
+    return res;
   }
   const s = io.get(),
     p = POLICY[o.op];
@@ -649,14 +758,13 @@ function step(c: Run, o: Outcome, f: Frame | undefined): ActionResult {
           ? ownedSelection(s, selection, io.snapshot().env.kinds, s.layout)
           : {};
       io.set({ view: next.view, ...o.patch, ...owned });
-      c.writes++;
     }
     io.url(p.history);
     if (o.msg) io.announce(o.msg);
   } else {
     const layoutChanged = next.layout !== s.layout,
       viewChanged = !sameView(next.view, s.view);
-    if (layoutChanged && pastLinks(s.layout, next.layout)) return refused("blocked");
+    if (layoutChanged && pastLinks(s.layout, next.layout)) return ok(refused("blocked"));
     // Unsaved work is never lost without asking. A following detail keeps its object instead (it moves on its own
     // while the person browses the list: a question each time would be worse).
     // The host is asked first (beforeClose); its yes still meets Jali's own question about unsaved work.
@@ -667,11 +775,11 @@ function step(c: Run, o: Outcome, f: Frame | undefined): ActionResult {
         panes: leaving,
         reason: CLOSE_REASON[o.op] ?? "layout",
       });
-      if (answer === false) return refused("kept");
+      if (answer === false) return ok(refused("kept"));
       const host = [...(c.agreed.host ?? []), ...leaving];
       if (answer !== true) {
         // Allowed later: the intent runs again then, and asks again if it would now remove something else.
-        const hold = holdFor(c, f, o, s.layout),
+        const hold = holdFor(c),
           agreed = { ...c.agreed, host };
         const again: AnswerStep = {
           op: "answer",
@@ -691,7 +799,7 @@ function step(c: Run, o: Outcome, f: Frame | undefined): ActionResult {
           });
         });
         hold.settled = settled;
-        return { ok: false, reason: "pending", settled };
+        return ok({ ok: false, reason: "pending", settled });
       }
       c.agreed = { ...c.agreed, host };
     }
@@ -699,18 +807,14 @@ function step(c: Run, o: Outcome, f: Frame | undefined): ActionResult {
     const losing = layoutChanged && o.op !== "remove" ? wouldLoseWork(s, next.layout) : [];
     if (losing.length) {
       if (o.op === "follow")
-        return step(
-          c,
-          refuse("unsaved", say(io.snapshot()).keptUnsaved(s.unsaved[losing[0]!]!)),
-          f,
-        );
+        return ok(refused("unsaved", say(io.snapshot()).keptUnsaved(s.unsaved[losing[0]!]!)));
       // `confirmDiscard: false`: the app asked already (beforeClose), so its yes stands.
       if (io.snapshot().env.confirmDiscard !== false) {
         const refs = new Map(core.tree.panes(s.layout.root).map((n) => [n.id, n.ref]));
         const asked = losing.map((pane) => ({ pane, ref: refs.get(pane)! }));
         if (covered(asked, c.agreed.discard)) discarding = losing;
         else {
-          const hold = holdFor(c, f, o, s.layout);
+          const hold = holdFor(c);
           let settle!: (r: ActionResult | Promise<ActionResult>) => void;
           const settled = new Promise<ActionResult>((r) => (settle = r));
           hold.settled = settled;
@@ -727,7 +831,7 @@ function step(c: Run, o: Outcome, f: Frame | undefined): ActionResult {
               settle,
             },
           });
-          return { ok: false, reason: "unsaved", settled };
+          return ok({ ok: false, reason: "unsaved", settled });
         }
       }
     }
@@ -764,7 +868,6 @@ function step(c: Run, o: Outcome, f: Frame | undefined): ActionResult {
             s,
           )
         : {};
-      c.writes++;
       io.set({
         layout: next.layout,
         view: layoutChanged || viewChanged ? next.view : s.view,
@@ -790,5 +893,5 @@ function step(c: Run, o: Outcome, f: Frame | undefined): ActionResult {
   }
   if (o.focusDom) io.focus(o.focusDom);
   if (o.defer) io.defer?.(o.defer);
-  return o.result === undefined ? DONE : { ok: true, pane: o.result };
+  return ok(o.result === undefined ? DONE : { ok: true, pane: o.result });
 }
