@@ -13,7 +13,7 @@ describe("host callbacks and ref equality", () => {
       title: "Thing",
       params: { id: Number },
       width: { min: 200 },
-      identity: (): unknown => {
+      identity: (): never => {
         throw new Error("boom");
       },
     };

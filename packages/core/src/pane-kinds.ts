@@ -277,6 +277,15 @@ export type ParamsOf<T> =
           : never
         : Params;
 
+/** A kind's identity for one object (`PaneOptions.identity`): any value JSON writes as it is. */
+export type Identity =
+  | string
+  | number
+  | boolean
+  | null
+  | readonly Identity[]
+  | { readonly [key: string]: Identity };
+
 /** A param a ref is missing (`value` undefined) or holds a value its type can't read. */
 export interface ParamProblem {
   param: string;
@@ -337,7 +346,22 @@ function parseWithSchema(
         return value === undefined ? { param } : { param, value };
       }),
     };
-  return { params: { ...params, ...(r.value as Params) }, problems: [] };
+  // A schema may transform, but what it gives back must still be params (text, numbers, flags): a ref is data a link
+  // writes and reads. A field that isn't one is a problem of that param, and the ref keeps what it was given.
+  const value: unknown = r.value;
+  if (!value || typeof value !== "object" || Array.isArray(value))
+    return { params, problems: [{ param: "params" }] };
+  const problems = Object.entries(value)
+    .filter(([, v]) => v !== undefined && !isValue(v))
+    .map(([param]) => {
+      const given = own(params, param);
+      return given === undefined ? { param } : { param, value: given };
+    });
+  if (problems.length) return { params, problems };
+  const read = Object.fromEntries(
+    Object.entries(value).filter((e): e is [string, ParamValue] => e[1] !== undefined),
+  );
+  return { params: { ...params, ...read }, problems: [] };
 }
 
 /**
@@ -466,8 +490,10 @@ export interface PaneOptions<P = Params> {
   /** The type of object shown, when several kinds show the same objects differently. Two panes show the same
    *  object when this and their identities match. Default: the kind. */
   shows?: string;
-  /** What makes two panes of this kind the same object. Default: every param, compared as text (`1` equals `"1"`). */
-  identity?: (params: P) => unknown;
+  /** What makes two panes of this kind the same object: a value compared as JSON (text, a number, a flag, or a list or
+   *  record of those). Default: every param, compared as text (`1` equals `"1"`). One it can't give (it throws, or
+   *  gives something JSON can't write) falls back to the default. `undefined`: this ref matches no other pane. */
+  identity?: (params: P) => Identity | undefined;
   /** Every pane is new (a scratch note): never matched against an open pane, never listed in Recent. */
   scratch?: boolean;
   /** Listed in Recent. Default true (false for scratch kinds). */
@@ -673,15 +699,18 @@ export function createPaneKinds<D extends PaneKindBase = PaneKindBase>(
     // An app-only param says how the pane opens, not what it shows.
     if (!identity || problems(ref).length)
       return asText(without(ref.params, appOnlyParams(def?.params)));
-    // A host's function that throws is guarded like `title` and `follow`: the pane is then the object its params
+    // A host's function is guarded like `title` and `follow`, its answer written as JSON inside the guard: one that
+    // throws, or gives what JSON can't write (a bigint, a cycle, a function), makes the pane the object its params
     // name, as for a kind without `identity`, so `open` and `sameObject` keep working.
-    let id: unknown;
+    const fallback = () => asText(without(ref.params, appOnlyParams(def?.params)));
     try {
-      id = identity(params(ref));
+      const id = identity(params(ref));
+      if (id === undefined) return undefined;
+      const text = JSON.stringify(id);
+      return typeof text === "string" ? text : fallback();
     } catch {
-      return asText(without(ref.params, appOnlyParams(def?.params)));
+      return fallback();
     }
-    return id === undefined ? undefined : JSON.stringify(id);
   };
 
   const objectType = (ref: ObjectRef) => kinds.get(ref.kind)?.shows ?? ref.kind;

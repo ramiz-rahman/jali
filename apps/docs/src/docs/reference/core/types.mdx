@@ -276,7 +276,7 @@ The same three as `width`, down a column.
 
 </Param>
 <Param name="shows" type="string" default="the kind">The type of object shown, shared by kinds that show the same objects differently. Two panes show the same object when this and their identities match.</Param>
-<Param name="identity" type="(params: P) => unknown" default="every param, compared as text">What makes two panes of this kind the same object (one object, one pane). `1` and `"1"` are the same by default.</Param>
+<Param name="identity" type="(params: P) => Identity | undefined" default="every param, compared as text">What makes two panes of this kind the same object (one object, one pane): a value compared as JSON (text, a number, a flag, or a list or record of those). `1` and `"1"` are the same by default. One it can't give (it throws, or gives what JSON can't write, such as a bigint) falls back to the default; `undefined` matches no other pane.</Param>
 <Param name="scratch" type="boolean">Every pane is new (a scratch note, a launcher): never matched against an open pane, and left out of Recent unless `inRecent` says otherwise.</Param>
 <Param name="inRecent" type="boolean | ((params: P) => boolean)" default="true (false for scratch kinds)">Whether opened objects of this kind go in Recent.</Param>
 <Param name="holdWhileResizing" type="boolean">Keep the content as it is during a divider drag and reflow once, on release: for long lists and charts.</Param>
@@ -335,9 +335,11 @@ How to read one param: one of Jali's (`Number`, `String`, `Boolean`, `oneOf(...)
 
 </Entry>
 
+<Entry name="Identity" kind="type" from="jali" signature={`type Identity = string | number | boolean | null | readonly Identity[] | { readonly [key: string]: Identity }`} compact>What a kind's `identity` gives for one object: any value JSON writes as it is. Two panes show the same object when their kinds' `shows` and these values, written as JSON, match.</Entry>
+
 <Entry name="ParamsDeclaration" kind="type" from="jali" signature={`type ParamsDeclaration = ParamTypes | StandardSchemaV1`} compact>
 
-What `params` takes: params one by one, or one Standard Schema of the whole object (`v.object({ id: v.number() })`). A schema decides what is valid, and its output is what the pane gets (`ParamsOf` infers it); Jali's codec still decides how values are written in a link, and a value a link carries as text is read as a number or a flag when the schema wants one. A value the schema refuses is a <Ref to="ParamProblem" />, as for Jali's own types. A schema must validate synchronously. `appOnly` and `link: false` are Jali's own: declare params one by one to use them.
+What `params` takes: params one by one, or one Standard Schema of the whole object (`v.object({ id: v.number() })`). A schema decides what is valid, and its output is what the pane gets (`ParamsOf` infers it); Jali's codec still decides how values are written in a link, and a value a link carries as text is read as a number or a flag when the schema wants one. A value the schema refuses is a <Ref to="ParamProblem" />, as for Jali's own types. A schema may transform values, but its output must still be params (text, numbers and flags): a field it gives as anything else (an object, a list, a date) is a problem of that param, and the ref keeps what it was given. A schema must validate synchronously. `appOnly` and `link: false` are Jali's own: declare params one by one to use them.
 
 </Entry>
 

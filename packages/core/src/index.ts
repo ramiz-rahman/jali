@@ -47,6 +47,7 @@ export type {
   AppOnlyParam,
   OneOf,
   ParamProblem,
+  Identity,
   FollowParams,
 } from "./pane-kinds";
 export { optional, oneOf, appOnly } from "./pane-kinds";
