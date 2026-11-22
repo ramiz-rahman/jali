@@ -1,6 +1,6 @@
 /**
  * The framework-free halves of the dialog features: their words (their commands are core's: commands/registry.ts). An
- * adapter adds the parts that draw them (`jali/palette`, `jali/settings`, `jali/chooser` give React's), so a workspace
+ * adapter adds the parts that draw them (`jali/palette`, `jali/settings`, `jali/chooser` give React's), so an instance
  * without one ships neither.
  */
 import { chooserEn, paletteEn, settingsEn } from "../state/feature-messages";

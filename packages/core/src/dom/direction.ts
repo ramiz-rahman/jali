@@ -6,7 +6,7 @@ export function readDirection(el: Element | null | undefined): Direction {
   return getComputedStyle(el).direction === "rtl" ? "rtl" : "ltr";
 }
 
-/** First guess before the workspace is on screen: the page's direction. */
+/** First guess before the instance is on screen: the page's direction. */
 export const pageDirection = (): Direction =>
   typeof document === "undefined" ? "ltr" : readDirection(document.documentElement);
 
@@ -22,7 +22,7 @@ export function watchDirection(fn: () => void): () => void {
   return () => mo.disconnect();
 }
 
-/** The workspace's direction: fixed by `createJali({ dir })`, else the element's. */
+/** The instance's direction: fixed by `createJali({ dir })`, else the element's. */
 export const directionOf = (fixed: Direction | undefined, el: Element | null | undefined) =>
   fixed ?? readDirection(el);
 

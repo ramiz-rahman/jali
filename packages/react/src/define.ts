@@ -58,7 +58,7 @@ export interface PaneProps<P = Params> {
   node: PaneNode;
   /** Hidden (behind a tab, tucked, folded, behind a maximised pane): pause live work, keep state. */
   paused: boolean;
-  /** This pane holds the workspace's focus. */
+  /** This pane holds the instance's focus. */
   focused: boolean;
   /** Rendered in the peek sheet rather than a pane. */
   inPeek: boolean;
@@ -92,7 +92,7 @@ export interface MissingProps extends PaneProps<Params> {
 
 /** A pane kind for React: the options of any kind, plus its icon and component. */
 export interface PaneOptionsReact<P = Params> extends PaneOptions<P> {
-  /** For the header, tab and shelf: a Phosphor icon, or any `JaliIcon`. Default: the workspace's `defaultKind` icon. */
+  /** For the header, tab and shelf: a Phosphor icon, or any `JaliIcon`. Default: the instance's `defaultKind` icon. */
   icon?: JaliIcon;
   Component: ComponentType<PaneProps<P>>;
   /** Shown while `Component` suspends (it awaits data with `use()` or a Suspense query). Default: a quiet
@@ -104,10 +104,10 @@ export interface PaneOptionsReact<P = Params> extends PaneOptions<P> {
   Missing?: ComponentType<MissingProps>;
 }
 
-/** A kind as a React workspace keeps it. */
+/** A kind as a React instance keeps it. */
 export interface PaneKindDef extends PaneKindBase {
   icon?: JaliIcon;
-  // Each kind's component takes its own params; the workspace passes the ones it read for it.
+  // Each kind's component takes its own params; the instance passes the ones it read for it.
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   Component: ComponentType<PaneProps<any>>;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -169,7 +169,7 @@ export function definePage(page: Page): Page {
   return { ...definePageEngine(page), [PAGE_PARTS]: pageParts };
 }
 
-/** The env as a React workspace sees it: its kinds have components, its page a rail and header. */
+/** The env as a React instance sees it: its kinds have components, its page a rail and header. */
 export interface ReactEnv extends Env {
   kinds: PaneKinds<PaneKindDef>;
   profile: Page | null;

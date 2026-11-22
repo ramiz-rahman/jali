@@ -52,7 +52,7 @@ function escape(store: JaliStore): boolean {
   return true;
 }
 
-/** One of the workspace's dialogs is open (the palette, settings, the chooser or the discard question): it owns the keys. */
+/** One of the instance's dialogs is open (the palette, settings, the chooser or the discard question): it owns the keys. */
 const dialogOpen = (store: JaliStore) => {
   const s = store.get();
   return s.paletteOpen || s.settingsOpen || !!s.chooser || !!s.confirm;
@@ -147,9 +147,9 @@ export interface KeyboardScope {
   /** Where the listeners go. Default: window. */
   target?: Window;
   /**
-   * The workspace's root element. Given, this workspace takes only keys from inside it, and keys with nothing focused
-   * (the page body) while it was the last place focus was: two workspaces on one page never both act on a key.
-   * Omitted, it takes every key on the page (one workspace per page). The workspace's dialogs (`store.dom.layer()`)
+   * The instance's root element. Given, this instance takes only keys from inside it, and keys with nothing focused
+   * (the page body) while it was the last place focus was: two instances on one page never both act on a key.
+   * Omitted, it takes every key on the page (one instance per page). The instance's dialogs (`store.dom.layer()`)
    * count as inside it, so a chord started with ⌘K finishes in the palette. `store.dom.root` fits as it is.
    */
   root?: () => ParentNode | null;
@@ -169,7 +169,7 @@ export function installKeyboard(
     if (t && (el.contains(t) || store.dom.layer()?.contains(t))) return true;
     return active && (!t || t === target.document.body || t === target.document.documentElement);
   };
-  // A click on something unfocusable inside the workspace counts as being there, as focus moving in does.
+  // A click on something unfocusable inside the instance counts as being there, as focus moving in does.
   const onFocus = (e: Event) => {
     const el = root?.();
     const t = e.target as Node;

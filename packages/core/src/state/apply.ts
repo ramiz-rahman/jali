@@ -36,7 +36,7 @@ import { sameRef } from "../layout/ops/ref";
 import { MAX_NODES } from "../layout/codec/validate";
 
 /** A change that would make a layout hold more nodes than a link can (`MAX_NODES`): its address would be one no
- *  workspace reopens. A layout already that big may still shrink. (Ops never nest a split in a split of one, so a
+ *  instance reopens. A layout already that big may still shrink. (Ops never nest a split in a split of one, so a
  *  layout within the node limit is within the depth limit too.) */
 function pastLinks(from: Layout, to: Layout): boolean {
   const next = core.tree.nodes(to.root).length;
@@ -48,7 +48,7 @@ export interface Snapshot {
   s: UiState;
   m: Model;
   ctx: LayoutContext;
-  /** The workspace's pane kinds and profile. */
+  /** The instance's pane kinds and profile. */
   env: Env;
 }
 
@@ -137,8 +137,8 @@ export interface Change {
 /**
  * Why an action did not happen. Each public action documents the reasons it can give.
  *  - "not-found": the pane, preset, view or item it names is not there.
- *  - "invalid": the layout given can't be shown (a pane kind this workspace doesn't have, or a malformed tree).
- *  - "unavailable": this workspace can't do it: no launcher (split, new tab), no curated page, no free workspace.
+ *  - "invalid": the layout given can't be shown (a pane kind this instance doesn't have, or a malformed tree).
+ *  - "unavailable": this instance can't do it: no launcher (split, new tab), no curated page, no free layout.
  *  - "single-view": a curated page in Single view has no layout to change.
  *  - "not-allowed": the person's role on the curated page may only peek (`setCanInvestigate(false)`).
  *  - "last-pane": the last pane, or a page's last view on screen, stays.
@@ -396,7 +396,7 @@ export interface ApplyIO {
   beforeClose?: BeforeClose;
   /** Commit an outcome later, from the top (a change `beforeClose` allowed after a while). */
   later?(o: Outcome): ActionResult;
-  /** The workspace's lifetime. Once it ends (`destroy()`), a held host answer settles as `"kept"` at once, and its
+  /** The instance's lifetime. Once it ends (`destroy()`), a held host answer settles as `"kept"` at once, and its
    *  later yes changes nothing. */
   signal?: AbortSignal;
 }
@@ -678,7 +678,7 @@ function step(c: Run, o: Outcome, f: Frame | undefined): ActionResult {
           agreed,
           action: c.action,
         };
-        // The workspace's end settles it as kept at once; a promise settles once, so a later answer changes nothing.
+        // The instance's end settles it as kept at once; a promise settles once, so a later answer changes nothing.
         const signal = io.signal;
         const settled = new Promise<ActionResult>((resolve) => {
           const kept = () => resolve(refused("kept"));
@@ -737,7 +737,7 @@ function step(c: Run, o: Outcome, f: Frame | undefined): ActionResult {
         ? geometryOf(io.snapshot().m)
         : null;
     if (layoutChanged || viewChanged || o.patch || o.undo) {
-      // A reshape is counted, so the workspace can let panes slide to their new place.
+      // A reshape is counted, so the instance can let panes slide to their new place.
       const motion = layoutChanged && geometry === "reshape" ? { reshapes: s.reshapes + 1 } : {};
       const undoStack = pruneUndo(o.undo ?? s.undoStack, next.layout);
       // The work the person discarded goes in this commit, never before it: an answer that changes nothing keeps it.

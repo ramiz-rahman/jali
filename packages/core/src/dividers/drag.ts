@@ -13,7 +13,7 @@ import type { Layout, NodeId, PaneBox, Rect } from "../layout/types";
 import type { JaliDom, JaliStore } from "../state/store";
 import { clampSize, dividerKey, geometryFor, snap } from "./resize";
 
-/** True while a divider is dragged by pointer in this workspace (keyboard resizes wait). */
+/** True while a divider is dragged by pointer in this instance (keyboard resizes wait). */
 export const isDividerDragging = (dom: Pick<JaliDom, "dragging">) => {
   const d = dom.dragging();
   return d === "row" || d === "column";

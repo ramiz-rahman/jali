@@ -35,7 +35,7 @@ export function close(x: Snapshot, id = x.s.view.focused): Outcome {
 /**
  * The host closed this pane's object elsewhere (`jali.actions.remove`): the pane goes quietly, with no undo, toast or
  * announcement, and without asking (the host decided; neither `beforeClose` nor "Discard unsaved changes?" runs).
- * The address is replaced, so Back never returns to it. The last pane becomes the launcher, the workspace's "choose
+ * The address is replaced, so Back never returns to it. The last pane becomes the launcher, the instance's "choose
  * what to show"; without a launcher it stays (`"last-pane"`). A curated page's views are the page's, not the host's.
  */
 export function remove(x: Snapshot, id: NodeId): Outcome {

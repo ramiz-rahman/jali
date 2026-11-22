@@ -28,7 +28,7 @@ import { useRovingKeys } from "../a11y/roving";
 const FADE = 24;
 
 /**
- * Keep the active tab visible by scrolling only the tab strip (scrollIntoView would also move the workspace). Measured
+ * Keep the active tab visible by scrolling only the tab strip (scrollIntoView would also move the layout). Measured
  * against the strip itself (a tab's offsetLeft is from the header). A tab wider than the strip shows its start.
  */
 function revealTab(el: HTMLDivElement | null) {
@@ -61,7 +61,7 @@ export function TabStrip({ group, owner }: { group: NonNullable<Frame["group"]>;
   const { actions, env } = store;
   const words = store.messages;
   const tw = words.tabs;
-  // A curated page, or a workspace without a launcher: no "+" (its views come from the page's tabs).
+  // A curated page, or an instance without a launcher: no "+" (its views come from the page's tabs).
   const page = useUi((s) => !!s.page);
   // A tab dragged over this strip: the line shows where it would go.
   const dropAt = useUi((s) => s.dnd?.tabAt);

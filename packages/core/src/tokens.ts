@@ -1,23 +1,23 @@
 /**
  * Geometry shared by layout math (TS) and styles (CSS). The layout measures in pixels, so the numbers here (and a
- * workspace's own `createJali({ gap, inset })`) are the source of truth: `<JaliRoot>` writes them on its root as
+ * instance's own `createJali({ gap, inset })`) are the source of truth: `<JaliRoot>` writes them on its root as
  * `--jali-gap` and `--jali-inset`, and the styles read those (with these values as fallbacks). `applyTokens` writes
- * them on another element, for a host that reads them outside the workspace.
+ * them on another element, for a host that reads them outside the instance.
  * A host's own bars (a top bar, a status line) are the host's: Jali neither knows nor sets their heights.
  */
 
-/** The default gap between panes, and the default inset from the workspace's edges to the panes. */
+/** The default gap between panes, and the default inset from the root's edges to the panes. */
 export const GAP = 6;
-/** Height of the pane switcher in single view. */
+/** Height of the pane switcher, while one pane shows at a time. */
 export const SWITCHER_H = 44;
 
-/** A workspace's spacing, in CSS pixels: between panes, and from the workspace's edges to them. */
+/** An instance's spacing, in CSS pixels: between panes, and from the root's edges to them. */
 export interface Spacing {
   gap: number;
   inset: number;
 }
 
-/** The spacing a workspace was given (`createJali({ gap, inset })`): the inset follows the gap unless set. */
+/** The spacing an instance was given (`createJali({ gap, inset })`): the inset follows the gap unless set. */
 export function spacingOf(o: { gap?: number; inset?: number } = {}): Spacing {
   const check = (v: number | undefined, name: string) => {
     if (v !== undefined && !(Number.isFinite(v) && v >= 0))
@@ -45,7 +45,7 @@ export function applyTokens(
   root.style.setProperty("--jali-switcher-h", `${SWITCHER_H}px`);
 }
 
-/** First guess at the workspace before the ResizeObserver measures it: the window minus the workspace's inset. */
+/** First guess at the instance before the ResizeObserver measures it: the window minus the root's inset. */
 export const initialArea = (inset = GAP) =>
   typeof window === "undefined"
     ? { width: 1200, height: 700 }

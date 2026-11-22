@@ -1,6 +1,6 @@
 /**
  * Jali's side of the active-item contract (src/contracts/active-item.ts) for a list inside a pane: the list keeps its
- * current item through this port, and the workspace does what it does for `select` and `peek`, so the list's
+ * current item through this port, and the instance does what it does for `select` and `peek`, so the list's
  * following detail follows it, Space shows it, and an open sheet steps with it.
  *
  * In React, `useActiveItemPort` (@jali/react) makes one for the pane it renders in:

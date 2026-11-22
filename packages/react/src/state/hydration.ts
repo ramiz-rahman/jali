@@ -1,5 +1,5 @@
 /**
- * Hydrating a server-rendered workspace without losing its panes' markup on React 18.
+ * Hydrating a server-rendered instance without losing its panes' markup on React 18.
  *
  * Each pane's content sits in its own Suspense boundary (PaneBoundary.tsx). React hydrates those boundaries after the
  * rest of the page, at the lowest priority. React 18 can't take an update that reaches a boundary before then: it
@@ -7,14 +7,14 @@
  * update before it finished hydrating"). React 19 hydrates the boundary first instead. An update from the store always
  * arrives synchronously (useSyncExternalStore), so `startTransition` can't help; it has to wait.
  *
- * The update that reaches a pane is the workspace measuring itself as it mounts: a size other than the server's can
- * pause or fold a pane, which its content hears. So a workspace that hydrates holds its measuring (Workspace.tsx)
+ * The update that reaches a pane is the instance measuring itself as it mounts: a size other than the server's can
+ * pause or fold a pane, which its content hears. So an instance that hydrates holds its measuring (Workspace.tsx)
  * until each pane boundary that mounted with it has hydrated, and then measures at once. The rest of the page is
- * interactive meanwhile. Nothing waits in a workspace rendered in the browser.
+ * interactive meanwhile. Nothing waits in an instance rendered in the browser.
  */
 import type { JaliStore } from "@jali/core/adapter";
 
-/** The pane boundaries of one workspace that mounted before their content did. */
+/** The pane boundaries of one instance that mounted before their content did. */
 export interface PaneHydration {
   /** A boundary mounted, and its content hasn't yet: it is still hydrating, or waiting for its data. */
   wait(boundary: object): void;
@@ -48,7 +48,7 @@ function createPaneHydration(): PaneHydration {
   };
 }
 
-/** The workspace's pane boundaries, as they hydrate. One per workspace, the same object every time. */
+/** The instance's pane boundaries, as they hydrate. One per instance, the same object every time. */
 export function paneHydration(store: JaliStore): PaneHydration {
   let gate = workspaces.get(store);
   if (!gate) workspaces.set(store, (gate = createPaneHydration()));

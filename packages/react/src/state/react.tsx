@@ -34,11 +34,11 @@ const StoreContext = /* @__PURE__ */ createContext<JaliStore | null>(null);
 /** Each store's DOM id as the host gave it, and the provider that scopes it while mounted. */
 const bases = new WeakMap<JaliStore, string>();
 const owners = new WeakMap<JaliStore, string>();
-/** The DOM ids of the mounted workspaces, to catch two with the same one. */
+/** The DOM ids of the mounted instances, to catch two with the same one. */
 const mounted = new Map<string, number>();
 
 /**
- * The workspace's DOM scope. A workspace the host gave no `id` ("jali") scopes its ids with this mount's `useId()`, so
+ * The instance's DOM scope. An instance the host gave no `id` ("jali") scopes its ids with this mount's `useId()`, so
  * two on one page never share an id and their ARIA references never cross; the same on the server and in the
  * browser, and never stored. One the host gave an `id` keeps it; two mounted with the same one are a development
  * error. One provider per store scopes it (the first to render), so a second provider of the same store agrees.
@@ -77,13 +77,13 @@ export function useDomScope(store: JaliStore) {
 
 export function StoreProvider({ store, children }: { store: JaliStore; children?: ReactNode }) {
   // The core finds React's elements through this port (dom.ts). Giving it is idempotent, so it is safe in render, and
-  // it is in place before any effect or event of the workspace runs. So is the DOM scope.
+  // it is in place before any effect or event of the instance runs. So is the DOM scope.
   store.dom.use(reactDom);
   useDomScope(store);
   return <StoreContext.Provider value={store}>{children}</StoreContext.Provider>;
 }
 
-/** A workspace as React code sees it: its kinds have components, its page a rail and header (define.ts). */
+/** An instance as React code sees it: its kinds have components, its page a rail and header (define.ts). */
 export type ReactJaliStore = JaliStore & { env: ReactEnv };
 
 export function useStore(): ReactJaliStore {
@@ -95,11 +95,11 @@ export function useStore(): ReactJaliStore {
 export function useUi<T>(select: (s: UiState) => T): T {
   const store = useStore();
   const read = () => select(store.get());
-  // The same read on the server: a workspace renders with server rendering (Next.js, Astro) as in the browser.
+  // The same read on the server: an instance renders with server rendering (Next.js, Astro) as in the browser.
   return useSyncExternalStore(store.subscribe, read, read);
 }
 
-/** The derived workspace model; a new object only when something it depends on changed. */
+/** The derived model; a new object only when something it depends on changed. */
 export function useModel(): Model {
   const store = useStore();
   return useSyncExternalStore(store.subscribe, store.model, store.model);
@@ -131,7 +131,7 @@ function onlyDrag(a: UiState, b: UiState): boolean {
 }
 
 /**
- * A value worked out from the whole workspace (a pane's menu and buttons, the command list) that re-renders only when
+ * A value worked out from the whole instance (a pane's menu and buttons, the command list) that re-renders only when
  * it changes by `same`. It is worked out again when `deps` change or the state does, but not when only a drag's pointer
  * moved: a drag writes the state every frame.
  */
@@ -162,7 +162,7 @@ export function useDerived<T>(
 
 export const useActions = (): Actions => useStore().actions;
 
-/** This workspace's words (`createJali({ messages })`, English by default). */
+/** This instance's words (`createJali({ messages })`, English by default). */
 export const useMessages = (): Messages => useStore().messages;
 
 /** Emphasis inside a message (`messages.chooser.heading(title, bold)`). */
@@ -177,9 +177,9 @@ export const Parts = ({ of }: { of: ReactNode[] }) => (
   </>
 );
 
-/** This workspace's pane kinds and profile. */
+/** This instance's pane kinds and profile. */
 export const useEnv = (): ReactEnv => useStore().env;
-/** The curated page profile, when the workspace has one. */
+/** The curated page profile, when the instance has one. */
 export const useProfile = (): Page | null => useEnv().profile;
 /**
  * The entries of `ids` in one of the state's per-pane records (`titles`, `unsaved`, `paneAttributes`, `activity`), as a
@@ -218,8 +218,8 @@ export const usePaneAttributesOf = (id: NodeId | undefined): PaneAttributes | un
 // ---------- the public names ----------
 
 /**
- * The workspace: its actions (`useJali().actions.openBeside(pane, ref)`), events, layout, keymap and kinds. Typed as
- * the app's workspace once it is registered (`Register`), or as `J` when given.
+ * The instance: its actions (`useJali().actions.openBeside(pane, ref)`), events, layout, keymap and kinds. Typed as
+ * the app's instance once it is registered (`Register`), or as `J` when given.
  */
 export const useJali = <J extends AnyJali = RegisteredJali>(): J => useStore().jali as unknown as J;
 /**
@@ -271,7 +271,7 @@ export function shallow<T>(a: T, b: T): boolean {
 }
 
 /**
- * Part of the workspace's state, re-rendering only when it changes: `useJaliState((s) => s.view.focused)`. A selector
+ * Part of the instance's state, re-rendering only when it changes: `useJaliState((s) => s.view.focused)`. A selector
  * may return a new object or array; give `isEqual` (`shallow`) to re-render only when what it picked changed.
  */
 export function useJaliState<T, J extends AnyJali = RegisteredJali>(
@@ -285,7 +285,7 @@ export function useJaliState<T, J extends AnyJali = RegisteredJali>(
 const whole = <T,>(m: T) => m;
 
 /**
- * The workspace as it is on screen: its panes, their boxes and titles, the shelf. With a selector, only what it picks
+ * The layout as it is on screen: its panes, their boxes and titles, the shelf. With a selector, only what it picks
  * (`useJaliModel((m) => m.title(id))`), re-rendering when that changes by `isEqual` (`Object.is` unless given).
  */
 export function useJaliModel<J extends AnyJali = RegisteredJali>(): ReturnType<J["model"]>;
@@ -302,7 +302,7 @@ export function useJaliModel<T>(
 }
 
 /**
- * Hear one of the workspace's events while the component is mounted: `useJaliEvent("open", ({ ref }) => …)`,
+ * Hear one of the instance's events while the component is mounted: `useJaliEvent("open", ({ ref }) => …)`,
  * `useJaliEvent("toast", show)`. It always calls the latest `handler`, so an inline function is fine, and stops
  * listening on unmount.
  */

@@ -1,6 +1,6 @@
 /**
  * `data-pressed` on Jali's controls while they are held down: by the pointer (the primary button), or by Space or Enter
- * while the control has focus. One listener set for the page, installed while any workspace with the feature is started, so every
+ * while the control has focus. One listener set for the page, installed while any instance with the feature is started, so every
  * control gets it the same way and none has to know. `:active` covers only the pointer; a theme that draws travel
  * (a key going down) reads `[data-pressed]` and gets the keyboard too.
  *

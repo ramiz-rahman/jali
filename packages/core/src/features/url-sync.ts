@@ -1,6 +1,6 @@
 /**
  * `urlSync()`: the layout lives in the address. A link reopens it, Back and Forward step through it, and a reload
- * keeps it. Without this feature the workspace leaves the address alone (`createJali({ url })` still takes a writer of
+ * keeps it. Without this feature the instance leaves the address alone (`createJali({ url })` still takes a writer of
  * the host's own).
  *
  *   createJali({ panes, layout, features: [urlSync()] });
@@ -37,7 +37,7 @@ function arriveFromUrl(
   if ("page" in r) {
     const { tab, item, investigation } = r.page;
     const page = store.env.page;
-    // A link to another page than this workspace's is not one it can open.
+    // A link to another page than this instance's is not one it can open.
     if (!page || (r.page.page !== undefined && r.page.page !== store.env.profile?.id))
       return undefined;
     return store.apply(
@@ -52,7 +52,7 @@ function arriveFromUrl(
       ),
     );
   }
-  // A preset the link names and this workspace has; a link without one leaves the preset as it is.
+  // A preset the link names and this instance has; a link without one leaves the preset as it is.
   const named = r.preset && store.env.presets.some((p) => p.id === r.preset) ? r.preset : undefined;
   if ("broken" in r) {
     const p = presetById(store.env, named ?? store.get().presetId);
@@ -71,7 +71,7 @@ function arriveFromUrl(
   return done;
 }
 
-/** Back and Forward, while the workspace is started. */
+/** Back and Forward, while the instance is started. */
 function listen(store: JaliStore, sync: UrlSync): () => void {
   // Back and Forward. One that waits for an answer (the host's beforeClose, or "Discard unsaved changes?") keeps
   // its navigation with the question: if the layout doesn't change in the end, the address goes back to what is on
@@ -107,9 +107,9 @@ function listen(store: JaliStore, sync: UrlSync): () => void {
 }
 
 /**
- * The address feature. Options: `location` (a router's port; default the browser's history), `prefix` (two workspaces
+ * The address feature. Options: `location` (a router's port; default the browser's history), `prefix` (two instances
  * on one address), `sizes` (`"local"`, the default, or `"link"`). Outside a browser, with no `location`, it does
- * nothing, so the same workspace renders on a server.
+ * nothing, so the same instance renders on a server.
  */
 export function urlSync(options: Omit<UrlSyncOptions, "storage"> = {}): Feature {
   return {

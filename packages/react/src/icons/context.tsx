@@ -7,7 +7,7 @@ export function IconsProvider({ icons, children }: { icons: JaliIcons; children?
   return <IconsContext.Provider value={icons}>{children}</IconsContext.Provider>;
 }
 
-/** The icons this workspace draws with: Jali's own, with the host's `icons` over them. */
+/** The icons this instance draws with: Jali's own, with the host's `icons` over them. */
 export function useJaliIcons(): JaliIcons {
   const icons = useContext(IconsContext);
   if (!icons)

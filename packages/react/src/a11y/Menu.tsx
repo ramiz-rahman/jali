@@ -18,7 +18,7 @@ export interface MenuAt {
 }
 
 interface MenuProps extends HTMLAttributes<HTMLDivElement> {
-  /** At a point, in the workspace's layer, kept inside the window. Without one it renders where it is, placed by CSS. */
+  /** At a point, in the instance's layer, kept inside the window. Without one it renders where it is, placed by CSS. */
   at?: MenuAt;
   /** Esc closes with `true` (focus goes back to what opened it); Tab and a press outside with `false`. */
   onClose(refocus: boolean): void;
@@ -99,7 +99,7 @@ export function Menu({ at, onClose, initial, trigger, style, children, ...rest }
         else if (e.key === "Home") go(0);
         else if (e.key === "End") go(list.length - 1);
         // Escape, and Tab too: the menu sits in the dialog layer, after everything else in the page, so Tab from it
-        // would leave the workspace. Focus goes back to what opened it, and the next Tab goes on from there.
+        // would leave the instance. Focus goes back to what opened it, and the next Tab goes on from there.
         else if (e.key === "Escape" || e.key === "Tab") onClose(true);
         else if (e.key === "Enter" || e.key === " ")
           (document.activeElement as HTMLElement)?.click();
@@ -124,6 +124,6 @@ export function Menu({ at, onClose, initial, trigger, style, children, ...rest }
       {children}
     </div>
   );
-  // Into the workspace's layer, beside its dialogs, so tokens set around <JaliRoot> reach the menu too.
+  // Into the instance's layer, beside its dialogs, so tokens set around <JaliRoot> reach the menu too.
   return at ? createPortal(menu, store.dom.layer() ?? document.body) : menu;
 }

@@ -28,7 +28,7 @@ export interface Frame {
   group?: { id: NodeId; tabs: Tab[]; active: NodeId };
   /**
    * In a row that scrolls: the row's id. The frame is drawn inside the row's scrolling element, which the browser
-   * scrolls, so its `rect` is its place along the row's content (unscrolled), in workspace coordinates.
+   * scrolls, so its `rect` is its place along the row's content (unscrolled), in the layout's coordinates.
    */
   strip?: NodeId;
   /** In a row that scrolls, and scrolled out of its window: mounted and in the focus order, but paused. */
@@ -66,7 +66,7 @@ function acrossFold(
 /** The least room between the two panes of stacked view, in px. The divider's whole touch target is this room, so it
  *  never covers a row or a control of either pane, and is still 24px tall (WCAG 2.5.8). */
 export const STACK_GAP = 24;
-/** The room between stacked view's two panes in a workspace with this gap: the gap, or STACK_GAP if that is more. */
+/** The room between stacked view's two panes in an instance with this gap: the gap, or STACK_GAP if that is more. */
 export const stackGap = (gap: number) => Math.max(gap, STACK_GAP);
 
 export function frames(
@@ -77,7 +77,7 @@ export function frames(
   /** Stacked view: the top pane's share of the height (0 to 1), or `false` to show one pane (the keyboard is up).
    *  Left out, the kinds' heights decide it (`stackShare`): a half unless one gives a comfortable or max height. */
   stack?: number | false,
-  /** Where this box sits in the workspace, which a fold's hinge is measured in. */
+  /** Where this box sits in the layout, which a fold's hinge is measured in. */
   origin: { x: number; y: number } = { x: 0, y: 0 },
 ): Frame[] {
   if (mode === "single" && m.stacked && (stack !== false || m.stacked.hinge)) {

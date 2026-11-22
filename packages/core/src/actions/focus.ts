@@ -87,7 +87,7 @@ export function toggleZoom(x: Snapshot, id = x.s.view.focused): Outcome {
 }
 
 /**
- * Full screen: the pane maximised, and the workspace's page on the whole screen (the adapter asks the browser), so
+ * Full screen: the pane maximised, and the page on the whole screen (the adapter asks the browser), so
  * the pane covers the display. Again, or Escape, or leaving the browser's full screen, puts it back as it was.
  */
 export function toggleFullScreen(x: Snapshot, id = x.s.view.focused): Outcome {

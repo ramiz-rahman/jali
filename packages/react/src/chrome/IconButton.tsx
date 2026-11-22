@@ -1,6 +1,6 @@
 /**
  * A button that is only an icon, drawn as Jali's own header buttons are (`.jali-icon-btn`, a public part): for the
- * app's top bar, a pane's own controls or a sheet's close, so they match the workspace in every theme.
+ * app's top bar, a pane's own controls or a sheet's close, so they match the instance in every theme.
  */
 import { forwardRef, type ButtonHTMLAttributes, type ReactNode } from "react";
 

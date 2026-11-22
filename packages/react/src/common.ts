@@ -31,7 +31,7 @@ export { optional, oneOf, appOnly } from "@jali/core/adapter";
 export { usePaneState, type PaneStateOptions } from "./pane/usePaneState";
 export { useActiveItemPort } from "./pane/useActiveItemPort";
 
-// ---------- the workspace in React ----------
+// ---------- the instance in React ----------
 export {
   useJali,
   useJaliState,

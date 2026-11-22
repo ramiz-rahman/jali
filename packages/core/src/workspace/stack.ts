@@ -11,7 +11,7 @@ import type { Env } from "../profile";
 import { SWITCHER_H } from "../tokens";
 import { shares } from "../layout/geometry/shares";
 
-/** Below this workspace height, never stacked (Android's compact height: a phone held sideways). */
+/** Below this height, never stacked (Android's compact height: a phone held sideways). */
 export const STACK_MIN_HEIGHT = 480;
 /** The shortest a stacked pane may be, unless its kind asks for more. */
 export const STACK_FLOOR = 200;
@@ -29,7 +29,7 @@ export interface StackPair {
 
 /**
  * A fold that separates the screen into two (a half-open Galaxy Fold or Pixel Fold, a Flip in flex mode, a spanned
- * Surface Duo), from the browser's viewport segments, in the workspace's own coordinates: `axis: "row"` when the two
+ * Surface Duo), from the browser's viewport segments, in the layout's own coordinates: `axis: "row"` when the two
  * halves are side by side (the hinge runs down), `"column"` when one is above the other. `start` and `size` place the
  * hinge along that axis (`size` 0 for a seamless fold, the mask's width for a dual screen).
  */
@@ -134,7 +134,7 @@ export function stackShare(
 type Box = { left: number; top: number; right: number; bottom: number };
 
 /**
- * The hinge two viewport segments make across `box` (the workspace element's client rect), in the box's coordinates,
+ * The hinge two viewport segments make across `box` (the layout element's client rect), in the box's coordinates,
  * or undefined: no fold, more than two segments, or a fold that misses the box or only grazes its edge (within 48px),
  * where a split would leave a sliver.
  */

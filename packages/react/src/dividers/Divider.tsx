@@ -7,7 +7,7 @@ export interface DividerProps {
   parentId: NodeId;
   index: number;
   axis: "row" | "column";
-  /** The divider's own gap rect (workspace coords). */
+  /** The divider's own gap rect (layout coords). */
   rect: Rect;
   /** First neighbour's size in px, its clamp range, and the usable length of the pair (gap excluded). */
   sizeA: number;

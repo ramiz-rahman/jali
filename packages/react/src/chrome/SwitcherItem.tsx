@@ -9,7 +9,7 @@ import { ICON } from "../icons/sized";
 
 /**
  * Scrolls the switcher's own list so the selected entry is in it, and nothing else: `scrollIntoView` would also scroll
- * the page to this workspace, pulling the reader away from wherever they are (a docs page with several workspaces).
+ * the page to this instance, pulling the reader away from wherever they are (a docs page with several instances).
  */
 export function revealInList(el: HTMLElement | null) {
   const list = el?.parentElement;

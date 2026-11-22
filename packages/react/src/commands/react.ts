@@ -3,10 +3,10 @@ import { listCommands } from "@jali/core/adapter";
 import { useDerived, useStore } from "../state/react";
 import { useKeymap } from "../state/hydrated";
 
-/** A command's keys in this workspace's keymap, for a tooltip ("⌘K ⌘[" / "Ctrl+K Ctrl+["); "" when unbound. */
+/** A command's keys in this instance's keymap, for a tooltip ("⌘K ⌘[" / "Ctrl+K Ctrl+["); "" when unbound. */
 export const useJaliShortcut = (id: string) => useKeymap().label(id);
 
-/** The same list as far as a menu shows it. A workspace command's `run` runs it by id, so any copy does; a pane's own
+/** The same list as far as a menu shows it. An instance command's `run` runs it by id, so any copy does; a pane's own
  *  `run` is the pane's, so it must be the same one. */
 const sameCommands = (a: ListedCommand[], b: ListedCommand[]) =>
   a.length === b.length &&
@@ -25,8 +25,8 @@ const sameCommands = (a: ListedCommand[], b: ListedCommand[]) =>
   });
 
 /**
- * Jali's commands for your own command menu (cmdk, kbar, …), when the workspace is made with `palette: false`:
- * the focused pane's own commands first, then the workspace's and yours, each with its title, group, keys label,
+ * Jali's commands for your own command menu (cmdk, kbar, …), when the instance is made with `palette: false`:
+ * the focused pane's own commands first, then the instance's and yours, each with its title, group, keys label,
  * whether it can run now and why not, and `run`. The same array until something it lists changes, so a menu that
  * registers its actions from it does so only then.
  *

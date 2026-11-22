@@ -1,6 +1,6 @@
 /**
- * The component an app starts with. `<JaliRoot jali>` renders the workspace, the dialogs every workspace has (⌘K,
- * settings, "Add to tabs of…", "Discard unsaved changes?") and the live region, and starts the workspace's keys,
+ * The component an app starts with. `<JaliRoot jali>` renders the instance, the dialogs every instance has (⌘K,
+ * settings, "Add to tabs of…", "Discard unsaved changes?") and the live region, and starts the instance's keys,
  * Back and Forward, theme and saving while it is mounted.
  *
  *   <JaliRoot jali={jali} />
@@ -48,26 +48,26 @@ declare const process: { env: { NODE_ENV?: string } };
 
 export interface JaliRootProps extends HTMLAttributes<HTMLDivElement> {
   jali: Jali;
-  /** What goes inside the workspace's root. Default: `<JaliView />`. */
+  /** What goes inside the instance's root. Default: `<JaliView />`. */
   children?: ReactNode;
-  /** Rendered after the root, inside the provider: things that must sit outside the workspace, such as a toaster
-   *  (focus is never pulled back from outside the root). Inert, like the workspace, while one of Jali's dialogs is
+  /** Rendered after the root, inside the provider: things that must sit outside the instance, such as a toaster
+   *  (focus is never pulled back from outside the root). Inert, like the instance, while one of Jali's dialogs is
    *  open; they sit in an element of their own (`data-jali-overlays`, `display: contents`) for that. */
   overlays?: ReactNode;
   /** Your own fieldsets, shown at the end of the settings panel (`<fieldset><legend>…</legend>…</fieldset>`), when
-   *  the workspace has one (the `settings()` feature). */
+   *  the instance has one (the `settings()` feature). */
   settingsExtra?: ReactNode;
   /** Your own icons for any of Jali's, by name (`{ close: MyClose }`); the rest stay Jali's own. One that throws
    *  draws Jali's own instead. */
   icons?: Partial<JaliIcons>;
-  /** A throw in your code inside the root (its children, `settingsExtra`) or in Jali's own parts: the workspace shows
+  /** A throw in your code inside the root (its children, `settingsExtra`) or in Jali's own parts: the instance shows
    *  "… could not be shown" with Retry in place of what failed, your app around it stays, and this hears the error.
    *  A pane's own failures go to `createJali({ onPaneError })`. */
   onError?: (error: unknown) => void;
-  /** The workspace's name, over `createJali({ label })`, read at every render (so it can follow a locale). It names
-   *  the workspace's landmark, and each landmark inside it carries it ("Order 7, Orders"). Not set on the root. */
+  /** The instance's name, over `createJali({ label })`, read at every render (so it can follow a locale). It names
+   *  the instance's landmark, and each landmark inside it carries it ("Order 7, Orders"). Not set on the root. */
   "aria-label"?: string;
-  /** The id of a visible heading that names the workspace, as APG prefers; the landmarks inside carry its text. */
+  /** The id of a visible heading that names the instance, as APG prefers; the landmarks inside carry its text. */
   "aria-labelledby"?: string;
 }
 
@@ -157,7 +157,7 @@ export function JaliRoot({
             {children}
           </Guard>
         </div>
-        {/* The dialogs render outside the root but are this workspace's: keys pressed in them count as its own. While a
+        {/* The dialogs render outside the root but are this instance's: keys pressed in them count as its own. While a
           pane is the browser's full-screen element, they render inside it, the only part of the page on screen. */}
         {inside(
           <div
@@ -195,8 +195,8 @@ export function JaliRoot({
 /**
  * Jali's dialogs, one at a time: the discard question over the chooser, over ⌘K, over Settings. The one beneath comes
  * back when the one above closes. Each but the discard question is its feature's part (`palette()`, `settings()`,
- * `chooser()`): a workspace without the feature renders none, and a dialog asked for that isn't there closes again at
- * once, so nothing holds the workspace's keys for it.
+ * `chooser()`): an instance without the feature renders none, and a dialog asked for that isn't there closes again at
+ * once, so nothing holds the instance's keys for it.
  */
 function Dialogs({ settingsExtra }: { settingsExtra: ReactNode }) {
   const store = useStore();
@@ -241,15 +241,13 @@ function Dialogs({ settingsExtra }: { settingsExtra: ReactNode }) {
   ) : null;
 }
 
-/** In place of the root's children when something in them threw: the workspace's name, could not be shown, Retry. */
+/** In place of the root's children when something in them threw: the instance's name, could not be shown, Retry. */
 function Failed({ retry }: { retry: () => void }) {
   const store = useStore();
   const t = store.messages.pane;
   return (
     <div className="jali-pane-failed" role="alert">
-      <strong>
-        {t.failed(store.env.label ?? store.env.name ?? store.messages.panes.label)}
-      </strong>
+      <strong>{t.failed(store.env.label ?? store.env.name ?? store.messages.panes.label)}</strong>
       <div className="jali-pane-failed-actions">
         <button type="button" className="jali-text-btn is-primary" onClick={retry}>
           {t.retry}
@@ -260,7 +258,7 @@ function Failed({ retry }: { retry: () => void }) {
 }
 
 /**
- * The resolved theme on the root and the layer too, as on <html>, for styles scoped to the workspace. Not with
+ * The resolved theme on the root and the layer too, as on <html>, for styles scoped to the instance. Not with
  * pageTheme: false, where the page's own scopes decide (a data-theme here would become one of them), nor over a
  * data-theme the app gave the root. Written after mount, as on <html>, so a server render never disagrees with it.
  */
@@ -277,7 +275,7 @@ function ThemeOnRoot({ layer }: { layer: unknown }) {
   return null;
 }
 
-/** Provides a workspace and its icons to the hooks and parts below it: `<JaliRoot>`'s, internal (react-opus REACT-12). */
+/** Provides an instance and its icons to the hooks and parts below it: `<JaliRoot>`'s, internal (react-opus REACT-12). */
 export function JaliProvider({
   jali,
   icons,
@@ -299,7 +297,7 @@ const onFullScreen = (l: () => void) => {
   return () => document.removeEventListener("fullscreenchange", l);
 };
 
-/** This workspace's pane that is the browser's full-screen element, if one is. */
+/** This instance's pane that is the browser's full-screen element, if one is. */
 function useFullScreenPane(store: ReturnType<typeof storeOf>): HTMLElement | null {
   return useSyncExternalStore(
     onFullScreen,

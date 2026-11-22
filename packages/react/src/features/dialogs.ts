@@ -1,6 +1,6 @@
 /**
  * Jali's dialogs as features, each with the part that draws it: `palette()` (⌘K), `settings()`, `chooser()` ("Add to
- * tabs of…" and `jali.dialogs.choose`). A workspace without one renders no such dialog and ships none of its code.
+ * tabs of…" and `jali.dialogs.choose`). An instance without one renders no such dialog and ships none of its code.
  */
 import { chooserFeature, paletteFeature, settingsFeature, type Feature } from "@jali/core/adapter";
 import { Palette } from "../dialogs/Palette";

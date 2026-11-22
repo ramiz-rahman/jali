@@ -1,5 +1,5 @@
 /**
- * @jali/core: a workspace of panes that fits the space it has. No framework: pane kinds, layouts, the workspace with
+ * @jali/core: panes that fit the space they have. No framework: pane kinds, layouts, the instance with
  * its actions, focus, undo and follow, keyboard commands, and ports for the address and for what a person keeps.
  * A framework adapter renders it (@jali/react). Adapters import "@jali/core/adapter", which has everything.
  */
@@ -98,13 +98,7 @@ export type {
   RegisteredJali,
 } from "./state/instance";
 export type { JaliInput } from "./dom/input";
-export type {
-  Allow,
-  AllowContext,
-  AllowRule,
-  PaneAllow,
-  PaneControl,
-} from "./actions/allow";
+export type { Allow, AllowContext, AllowRule, PaneAllow, PaneControl } from "./actions/allow";
 export type { PaneButton, PaneButtons, ButtonsContext } from "./pane/buttons";
 export type {
   JaliActions,
@@ -129,7 +123,7 @@ export type {
   HistoryMode,
 } from "./state/apply";
 
-// ---------- the workspace's state ----------
+// ---------- the instance's state ----------
 export type { PageState, Selection, UrlState, UrlWriter } from "./state/store";
 export type { Feature, FeatureId } from "./features/feature";
 export type { JaliModel, PaneOf, Group } from "./state/model";
@@ -191,7 +185,7 @@ export {
 } from "./commands/format";
 
 // ---------- geometry ----------
-/** The gap between panes and the workspace's inset, in px: for a host that measures around a workspace. */
+/** The gap between panes and the root's inset, in px: for a host that measures around an instance. */
 export { GAP, type Spacing } from "./tokens";
 /** Scroll a row that scrolls sideways while a drag is held near its edge, for an app's own drag (Jali's does it). */
 export { edgeScroll, type EdgeScroll } from "./workspace/edge-scroll";

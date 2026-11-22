@@ -17,7 +17,7 @@ const nodeId = (value: unknown): value is string =>
 const positive = (value: unknown): value is number =>
   typeof value === "number" && Number.isFinite(value) && value > 0;
 /**
- * What is wrong with `layout` for a workspace of `kinds`, or `{ ok: true }`. `params: false` leaves a kind's own param
+ * What is wrong with `layout` for an instance of `kinds`, or `{ ok: true }`. `params: false` leaves a kind's own param
  * types unchecked: a ref they can't read still opens, in the kind's `Missing` (an app's own layout; a link is read
  * with them).
  */

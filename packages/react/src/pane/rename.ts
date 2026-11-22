@@ -1,6 +1,6 @@
 /**
- * Renaming in the chrome, when the workspace has the `rename()` feature: whether a pane can be renamed, and the field
- * (features/rename.ts brings it, so a workspace without renaming ships no field).
+ * Renaming in the chrome, when the instance has the `rename()` feature: whether a pane can be renamed, and the field
+ * (features/rename.ts brings it, so an instance without renaming ships no field).
  */
 import type { NodeId } from "@jali/core";
 import { canRename, partOf, type JaliStore } from "@jali/core/adapter";
@@ -13,6 +13,6 @@ export function useCanRename() {
   return (id: NodeId) => canRename(store.snapshot(), id);
 }
 
-/** The rename field, if the workspace has renaming. */
+/** The rename field, if the instance has renaming. */
 export const renameFieldOf = (store: JaliStore) =>
   partOf<ComponentType<{ pane: NodeId; title: string }>>(store.env, "renameField");

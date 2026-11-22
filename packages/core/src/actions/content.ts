@@ -1,4 +1,4 @@
-/** What a pane's content reports to the workspace: unsaved work, its ⌘K commands and its own state. */
+/** What a pane's content reports to the instance: unsaved work, its ⌘K commands and its own state. */
 import type { NodeId, ObjectRef } from "../layout/types";
 import {
   mostPressing,
@@ -33,7 +33,7 @@ export function setUnsaved({ s, m }: Snapshot, id: NodeId, what: string | null):
 
 /**
  * What one caller of the pane hooks reports (useActivity, useUnsaved, useCommands, useTitle, usePaneAttributes).
- * A pane's content may call each hook from several components; the workspace keeps each caller's report and merges
+ * A pane's content may call each hook from several components; the instance keeps each caller's report and merges
  * them, so one caller never overwrites or clears another's.
  */
 export interface PaneReport {

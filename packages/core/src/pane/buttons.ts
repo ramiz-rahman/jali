@@ -3,7 +3,7 @@
  * allowed is in the pane's menu (right-click, ⋯, Shift+F10) and ⌘K; the header shows a few of those as buttons.
  *
  * Leave `buttons` out and Jali chooses: Tuck, Maximise, Pop out and Close, with Full screen in Maximise's place where
- * there is nothing to maximise over (a lone pane). Pop out shows only where `allow.popOut` turns it on. A workspace (`createJali({ buttons })`) and then a kind
+ * there is nothing to maximise over (a lone pane). Pop out shows only where `allow.popOut` turns it on. An instance (`createJali({ buttons })`) and then a kind
  * (`definePane({ buttons })`) can replace the list, or adjust it with a function given the defaults. `allow` and Jali's
  * own rules still filter it, and the way out of a state (Restore, Exit full screen) shows whatever the list says.
  */
@@ -42,7 +42,7 @@ export interface ButtonsState {
   tabs: boolean;
 }
 
-/** The buttons pane `id`'s header shows, in order: the defaults, the workspace's, the kind's; then what is possible. */
+/** The buttons pane `id`'s header shows, in order: the defaults, the instance's, the kind's; then what is possible. */
 export function buttonsOf(x: Snapshot, id: NodeId, st: ButtonsState): PaneButton[] {
   const pane = x.m.pane(id);
   if (!pane) return [];

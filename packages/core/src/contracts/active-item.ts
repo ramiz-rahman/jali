@@ -1,5 +1,5 @@
 /**
- * The active item: the one item a list is on (its cursor, the row J/K moves to), as a collection and a workspace
+ * The active item: the one item a list is on (its cursor, the row J/K moves to), as a collection and an instance
  * both understand it. Not the multi-select set, not DOM focus.
  *
  * The shape is Chakni's Quick Look persistence port (`core/results/quick-look-coordinator.ts`): a collection keeps its

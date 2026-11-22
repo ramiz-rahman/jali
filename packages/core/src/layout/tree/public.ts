@@ -1,6 +1,6 @@
 /**
  * `layout.tree`: reading a layout tree. Every function here is pure: it never changes the tree it is given (`map`
- * returns a new tree, keeping unchanged branches), so each takes a tree a workspace gave (`jali.getLayout().root`,
+ * returns a new tree, keeping unchanged branches), so each takes a tree an instance gave (`jali.getLayout().root`,
  * read-only) as well as one of the app's own. An app changes a layout with the operations (`layout.close`,
  * `layout.openBeside`, …) or `jali.actions`.
  */
@@ -15,7 +15,7 @@ import type {
 } from "../types";
 import * as draft from "./tree";
 
-/** A tree as given: the app's own, or one a workspace gave (read-only). What comes back is read-only too. */
+/** A tree as given: the app's own, or one an instance gave (read-only). What comes back is read-only too. */
 type Node = DeepReadonly<LayoutNode>;
 type Read<T> = DeepReadonly<T>;
 

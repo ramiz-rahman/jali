@@ -2,7 +2,7 @@ import type { Hinge } from "../workspace/stack";
 import type { Rename } from "../actions/rename";
 import type { PaneReport } from "../actions/content";
 /**
- * The workspace: state, one derived model, and apply(). Layout and view come from the layout ops; actions are pure
+ * The instance: state, one derived model, and apply(). Layout and view come from the layout ops; actions are pure
  * (actions/) and the store only commits them. Effects leave through sinks given at creation (URL, DOM focus) and
  * through `on("toast")`; announcements are state, so nothing said before the live region mounts is lost.
  */
@@ -130,7 +130,7 @@ export interface Selection<R extends ObjectRef = ObjectRef> {
 
 export interface UiState {
   layout: Layout;
-  /** Null in the free workspace, where the person builds the layout. */
+  /** Null in the free layout, where the person builds the layout. */
   page: PageState | null;
   /** The host's viewer policy for the curated page (`jali.page.setLinkMode`, `createJali({ linkMode })`), kept while
    *  no page is open, so leaving the page and coming back never widens it. Undefined: links open. */
@@ -138,7 +138,7 @@ export interface UiState {
   /** The person's mode and split layout (while Split view is on screen, the live layout is the truth). */
   prefs: PagePrefs;
   view: ViewState;
-  /** The preset last chosen ("Reset layout" rebuilds it); undefined in a workspace without presets. */
+  /** The preset last chosen ("Reset layout" rebuilds it); undefined in an instance without presets. */
   presetId: string | undefined;
   settings: Settings;
   /** The system's colour preference, for the "system" theme. */
@@ -162,15 +162,15 @@ export interface UiState {
   /** The pane on the whole screen (`actions.toggleFullScreen`): maximised, with the page in the browser's full
    *  screen. Not in the layout or the address. */
   fullScreen?: NodeId;
-  /** A fold that splits the workspace in two, measured from the browser's viewport segments; unset on a flat screen
+  /** A fold that splits the layout in two, measured from the browser's viewport segments; unset on a flat screen
    *  and in browsers without them. */
   hinge?: Hinge;
   /** The reading direction the panes are laid out in: right to left, a row starts at the right. Read from the page
-   *  when the workspace is measured, unless `createJali({ dir })` fixed it. */
+   *  when the instance is measured, unless `createJali({ dir })` fixed it. */
   dir: Direction;
-  /** Layout changes of the reshape class so far (state/apply.ts): the workspace animates on a new one. */
+  /** Layout changes of the reshape class so far (state/apply.ts): the layout animates on a new one. */
   reshapes: number;
-  /** A page tab hovered with ⌥ held: the workspace previews where it would open beside. */
+  /** A page tab hovered with ⌥ held: the instance previews where it would open beside. */
   ghost: string | null;
   /** Panes with unsaved work, and what it is (useUnsaved). */
   unsaved: Record<NodeId, string>;
@@ -202,7 +202,7 @@ export interface UiState {
 }
 
 /** The URL sink: writes the state (read when the write happens) to the address bar in a history mode. */
-/** The share of the workspace's state an address holds: what a URL writer reads. */
+/** The share of the instance's state an address holds: what a URL writer reads. */
 export interface UrlState {
   /** The layout on screen. */
   layout: Layout;
@@ -214,31 +214,31 @@ export interface UrlState {
   page: PageState | null;
 }
 
-/** Writes the workspace to an address: `createJali({ url })` takes one for a router of the host's own. */
+/** Writes the instance to an address: `createJali({ url })` takes one for a router of the host's own. */
 export interface UrlWriter {
-  /** `state` reads the workspace when the write happens (a debounced write reads it late, so it writes the latest). */
+  /** `state` reads the instance when the write happens (a debounced write reads it late, so it writes the latest). */
   write(state: () => UrlState, mode: HistoryMode): void;
   /** The address to share ("Copy link"). */
   href?(): string;
-  /** The workspace is going away (`jali.destroy()`): drop a write still waiting (a debounced one), and every later
+  /** The instance is going away (`jali.destroy()`): drop a write still waiting (a debounced one), and every later
    *  one. */
   cancel?(): void;
 }
 
 /**
- * A workspace's options, resolved once (`resolveOptions`, create-jali.ts) into the one shape the store reads. The
+ * An instance's options, resolved once (`resolveOptions`, create-jali.ts) into the one shape the store reads. The
  * fields the env holds (kinds, page, presets, the chrome's options) are copied into it as they are; the rest is the
  * store's own. Adapters and tests make a store from one with `createJaliStore`. What each option means is said once,
  * on `JaliOptions`.
  */
 export interface JaliConfig {
-  /** This workspace's pane kinds (createPaneKinds). */
+  /** This instance's pane kinds (createPaneKinds). */
   kinds: PaneKinds;
   /** The curated page (made with `definePage`). Default: none. */
   profile?: ProfileBase | null;
   /** Layouts to start from, in menu order. Default: none. */
   presets?: readonly Preset[];
-  /** The preset the workspace opens on, when no link or saved state says otherwise. Default: the first. A workspace
+  /** The preset the instance opens on, when no link or saved state says otherwise. Default: the first. An instance
    *  without presets passes `initial.layout` instead, or a `profile` alone: it then starts on its page. */
   preset?: string;
   name?: string;
@@ -263,12 +263,12 @@ export interface JaliConfig {
   gap?: number;
   inset?: number;
   keyboard?: KeyboardOptions;
-  /** Where the workspace writes its address (usually `createUrlSync()`, which `boot` and `startUi` read from too).
+  /** Where the instance writes its address (usually `createUrlSync()`, which `boot` and `startUi` read from too).
    *  Default: none. */
   url?: UrlWriter;
   /** Default: localStorage under `id`. */
   storage?: StoragePort;
-  /** Prefix for this workspace's DOM ids. Default "jali". */
+  /** Prefix for this instance's DOM ids. Default "jali". */
   id?: string;
   initial?: Partial<UiState>;
   /** Moves DOM focus into a pane after the next paint. Default: Jali's (dom/focus.ts); `null` leaves DOM focus alone. */
@@ -292,7 +292,7 @@ export interface JaliStore {
   apply(o: Outcome, action?: ActionName): ActionResult;
   /** The app's events (instance.ts). */
   on<E extends JaliEvent>(event: E, handler: (event: JaliEvents[E]) => void): () => void;
-  /** The workspace as an app sees it: what `createJali` returns. */
+  /** The instance as an app sees it: what `createJali` returns. */
   jali: Jali;
   /** The host's close guard in use (`deps.beforeClose`). `createJali` sets it once the first layout is in place. */
   guard: BeforeClose | undefined;
@@ -309,12 +309,12 @@ export interface JaliStore {
   keymap: Keymap;
   /** The pane kinds and profile this store was made with. */
   env: Env;
-  /** Where this workspace lives in the DOM. */
+  /** Where this instance lives in the DOM. */
   dom: JaliDom;
-  /** Every word this workspace shows or says: English with `createJali({ messages })` over it. */
+  /** Every word this instance shows or says: English with `createJali({ messages })` over it. */
   messages: Messages;
   storage: StoragePort;
-  /** Pane state and its storage, kept in step (state/pane-state.ts): what this workspace changed is written over what
+  /** Pane state and its storage, kept in step (state/pane-state.ts): what this instance changed is written over what
    *  other tabs wrote, and what they write comes in. */
   paneStates: PaneStateSync;
   /** The address to share, from the URL port. */
@@ -322,8 +322,8 @@ export interface JaliStore {
   /** The URL writer this store was made with (`deps.url`). */
   url: UrlWriter | undefined;
   /**
-   * While true, the workspace moves no DOM focus of its own: not into a pane after a change, not into a dialog's
-   * field when it opens, not back when the dialog closes. For something that drives the workspace while the person
+   * While true, the instance moves no DOM focus of its own: not into a pane after a change, not into a dialog's
+   * field when it opens, not back when the dialog closes. For something that drives the instance while the person
    * watches (a scripted tour, a remote presenter), so their keyboard focus stays where they left it. Keys the person
    * presses still move focus as usual. Default false.
    */
@@ -340,29 +340,29 @@ export interface JaliStore {
 }
 
 /**
- * A workspace's place in the DOM: the id prefix of its elements, the element that holds it (its app shell), set
+ * An instance's place in the DOM: the id prefix of its elements, the element that holds it (its app shell), set
  * by the component that renders it, and the adapter's `DomPort`, which finds the adapter's own elements in it. DOM
  * lookups (focus, drag, F6 regions) search inside `root()` only.
  */
 export interface JaliDom {
-  /** The prefix of its elements' ids. The adapter may scope it per mounted root (two workspaces with no `id`). */
+  /** The prefix of its elements' ids. The adapter may scope it per mounted root (two instances with no `id`). */
   id: string;
   /** The adapter's markup, as the core needs to find it (dom/port.ts). `noDom` until the adapter gives one. */
   readonly port: DomPort;
-  /** Give the workspace the adapter's port. The adapter calls it before it renders the workspace. */
+  /** Give the instance the adapter's port. The adapter calls it before it renders the instance. */
   use(port: DomPort): void;
   /** What is being dragged by pointer now: a pane (or a page tab), a divider of a row or a column; null when nothing. */
   dragging(): DragKind | null;
   /** A drag starts or ends: kept here, and told to the port for the page's styles. */
   setDragging(what: DragKind | null, divider?: HTMLElement): void;
-  /** The workspace's root element; the document until one is attached. */
+  /** The instance's root element; the document until one is attached. */
   root(): ParentNode;
   attach(el: Element | null): void;
-  /** The element that holds this workspace's dialogs (palette, settings, confirmations), which render outside the
-   *  root; null until one is attached. Keys pressed there count as the workspace's. */
+  /** The element that holds this instance's dialogs (palette, settings, confirmations), which render outside the
+   *  root; null until one is attached. Keys pressed there count as the instance's. */
   layer(): Element | null;
   attachLayer(el: Element | null): void;
-  /** The element with this workspace's pane id `id`, if rendered. */
+  /** The element with this instance's pane id `id`, if rendered. */
   pane(id: NodeId): HTMLElement | null;
 }
 
@@ -469,7 +469,7 @@ export function createJaliStore(deps: JaliConfig): JaliStore {
   const focusOf =
     focusGiven === undefined ? (typeof document === "undefined" ? null : focusPane) : focusGiven;
   const dom = createDom(id);
-  // The id is the prefix: two workspaces with their own ids never overwrite each other ("jali" stays "jali").
+  // The id is the prefix: two instances with their own ids never overwrite each other ("jali" stays "jali").
   const storage = storagePort ?? browserStorage(id);
   const paneStates = paneStateSync(storage);
   const start = presetById(env, presetId);
@@ -481,7 +481,7 @@ export function createJaliStore(deps: JaliConfig): JaliStore {
     page: null,
     prefs: loadPrefs(storage, env.profile?.id, env.kinds.registry()),
     view: { focusHistory: [] },
-    // A layout that can't be shown gave way to a preset: the workspace is on that preset.
+    // A layout that can't be shown gave way to a preset: the instance is on that preset.
     presetId: (first.preset ?? start)?.id,
     settings: loadSettings(storage, settings),
     systemDark: systemPrefersDark(),
@@ -530,7 +530,7 @@ export function createJaliStore(deps: JaliConfig): JaliStore {
     }),
   );
   let destroyed = false;
-  // The workspace's lifetime: `destroy()` ends it, and whatever still waits on it (a host's answer) ends with it.
+  // The instance's lifetime: `destroy()` ends it, and whatever still waits on it (a host's answer) ends with it.
   const life = new AbortController();
   const pendingToasts: JaliEvents["toast"][] = [];
   const models = modelCache();
@@ -607,7 +607,7 @@ export function createJaliStore(deps: JaliConfig): JaliStore {
 
   /**
    * A kind registered after a link gave refs of it: those refs drop the app-only params the link carried, wherever
-   * the workspace keeps them (the layout, the peek, Recent, Undo, the page's way back). A link never sets one.
+   * the instance keeps them (the layout, the peek, Recent, Undo, the page's way back). A link never sets one.
    */
   const rereadLinks = () => {
     const kinds = env.kinds.registry();
@@ -774,7 +774,7 @@ export function createJaliStore(deps: JaliConfig): JaliStore {
         env,
       };
     },
-    // A destroyed workspace changes nothing more: a late answer, a timer or a caller that kept a handle is refused.
+    // A destroyed instance changes nothing more: a late answer, a timer or a caller that kept a handle is refused.
     apply: (o, action) =>
       destroyed ? { ok: false, reason: "unavailable" } : batch(() => apply(io, o, action)),
     // Two things said in one action ("1 change discarded", then "Order 1 closed") are one announcement: subscribers
@@ -895,8 +895,8 @@ export function createJaliStore(deps: JaliConfig): JaliStore {
 }
 
 /**
- * In development, the layout and view a workspace commits are frozen, so an app that edits what `get()`,
- * `getLayout()` or an event gave it fails at once, instead of changing the workspace behind its back (no history, no
+ * In development, the layout and view an instance commits are frozen, so an app that edits what `get()`,
+ * `getLayout()` or an event gave it fails at once, instead of changing the instance behind its back (no history, no
  * event, a model cache that no longer matches). Refs are left as they are: they may be the app's own objects. What is
  * frozen already (shared with the last commit) is not walked again.
  */
@@ -907,7 +907,7 @@ function freezeTree(value: unknown): void {
 }
 
 /**
- * The layout a workspace starts on, checked as `setLayout` and links check theirs (`core.validate`): the one given
+ * The layout an instance starts on, checked as `setLayout` and links check theirs (`core.validate`): the one given
  * (`createJali({ layout })`, often one the app saved), else the preset it opens on, the other presets, the curated
  * page, and a lone launcher, in that order. A layout that can't be shown (a kind removed since it was saved, two
  * panes with one id, a malformed tree) is skipped, and development says why. Throws only when nothing can be shown.
@@ -938,7 +938,7 @@ function firstLayout(
     if ((layout = read(p.build))) return done({ layout, preset: p });
   const p = env.profile,
     launcher = env.launcher;
-  // The page's layout opens the page, as a page-only workspace does.
+  // The page's layout opens the page, as a page-only instance does.
   if (p && (layout = read(() => p.build(p.firstItem)))) return done({ layout, page: true });
   if (launcher && (layout = read({ kind: launcher, params: {} }))) return done({ layout });
   const r = why();

@@ -1,6 +1,6 @@
 /**
  * @jali/react's markup, as @jali/core needs to find it (core's `DomPort`). Every class and data attribute the core
- * once queried by name is here, beside the components that render them; `StoreProvider` gives it to the workspace.
+ * once queried by name is here, beside the components that render them; `StoreProvider` gives it to the instance.
  */
 import { cssString, type DividerLine, type DomPort } from "@jali/core/adapter";
 import { STRIP_VIEWPORT } from "./workspace/Scroller";

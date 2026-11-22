@@ -5,10 +5,10 @@
  *
  * What a feature can bring, and nothing else (internal: adapters read it, apps never write one):
  *
- *  - `words`: its English, merged over the workspace's own before the app's `messages`;
+ *  - `words`: its English, merged over the instance's own before the app's `messages`;
  *  - `address`: the URL writer (one feature only: `urlSync`);
  *  - `boot` and `start`: work before the first render, and listeners for the page's lifetime (returning their stop);
- *  - `env`: options it sets on the workspace (`rename`'s `{ can, run }`);
+ *  - `env`: options it sets on the instance (`rename`'s `{ can, run }`);
  *  - `parts`: what the framework adapter renders for it (React components, the pop out window), by name.
  *
  * Steps and commands are not a feature's: the few a feature needs (`dialogs.openPalette`, `startRename`, "Rename pane",
@@ -35,7 +35,7 @@ export type FeatureId =
 export interface Feature {
   readonly id: FeatureId;
   readonly words?: MessageOverrides;
-  /** The address port, from the workspace's storage (`urlSync`). Undefined: no address here (a server). */
+  /** The address port, from the instance's storage (`urlSync`). Undefined: no address here (a server). */
   readonly address?: (storage: StoragePort) => UrlWriter | undefined;
   readonly boot?: (store: JaliStore) => void;
   readonly start?: (store: JaliStore) => () => void;
@@ -43,11 +43,11 @@ export interface Feature {
   readonly parts?: Readonly<Record<string, unknown>>;
 }
 
-/** The feature `id` of a workspace, if it has it. */
+/** The feature `id` of an instance, if it has it. */
 export const featureOf = (env: Pick<Env, "features">, id: FeatureId): Feature | undefined =>
   env.features?.find((f) => f.id === id);
 
-/** A part the adapter renders for a feature (`partOf(env, "palette")`), if the workspace has it. */
+/** A part the adapter renders for a feature (`partOf(env, "palette")`), if the instance has it. */
 export const partOf = <T>(env: Pick<Env, "features">, name: string): T | undefined => {
   for (const f of env.features ?? []) if (f.parts && name in f.parts) return f.parts[name] as T;
   return undefined;

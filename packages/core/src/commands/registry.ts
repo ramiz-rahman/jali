@@ -1,5 +1,5 @@
 /**
- * One command registry (spec §0.2): every workspace command has a stable id, a title, a check and a run. Keys are
+ * One command registry (spec §0.2): every instance command has a stable id, a title, a check and a run. Keys are
  * not here: the store's keymap (commands/keymap.ts) binds ids to keys, so a host can rebind or unbind any of them.
  * The palette lists every command (disabled while the check refuses) with its keys; the keyboard runs the command a
  * binding names (and says a refusal's reason); tooltips print `store.keymap.label(id)`.
@@ -35,8 +35,8 @@ export interface Command {
 
 /** A command as the registry holds it (adapters): with its check, run on the store. */
 export interface CommandDef extends Omit<Command, "run"> {
-  /** Why the command can't run now (silent without a message); undefined when it can. `store` is the workspace the
-   *  snapshot is of: a check that asks the workspace's adapter (Pop out) needs it, and can't run without it. */
+  /** Why the command can't run now (silent without a message); undefined when it can. `store` is the instance the
+   *  snapshot is of: a check that asks the instance's adapter (Pop out) needs it, and can't run without it. */
   check?: (x: Snapshot, store?: JaliStore) => RefusalStep | undefined;
   run: (store: JaliStore) => void;
 }
@@ -69,7 +69,7 @@ const DIRS: [Edge, ScreenDirection][] = [
   ["bottom", "down"],
 ];
 
-/** Every command a workspace has: the fixed set, its presets', its features' (each only with its feature, in its
+/** Every command an instance has: the fixed set, its presets', its features' (each only with its feature, in its
  *  words) and the host's, with titles in its own words (its name, its viewers). */
 function buildCommands(env: Env): CommandDef[] {
   const { commands: t, commandGroups: g } = messagesOf(env);
@@ -301,7 +301,7 @@ function buildCommands(env: Env): CommandDef[] {
       run: (u) => u.actions.autoLayout(),
     },
     { id: "layout.copy_link", title: t.copyLink, group: g.layout, run: (u) => copyLink(u.jali) },
-    // A curated page's own commands, from its engine (actions/page.ts): only a workspace with a page has them.
+    // A curated page's own commands, from its engine (actions/page.ts): only an instance with a page has them.
     ...(env.page?.commands(env) ?? []),
 
     {
@@ -378,7 +378,7 @@ const forEnv = (env: Env) => {
   return b;
 };
 
-/** The workspace's commands, in palette order. Same array per workspace. */
+/** The instance's commands, in palette order. Same array per instance. */
 export const commandsOf = (jali: Pick<AnyJali, "env">): readonly Command[] =>
   forEnv(jali.env).commands;
 
@@ -432,15 +432,15 @@ function toggleCentreDrop(store: JaliStore) {
 
 /**
  * One entry of a command menu: what Jali's palette lists, for a host that shows Jali's commands in its own ⌘K
- * (cmdk, kbar, …). The focused pane's own commands come first, then the workspace's and the host's.
+ * (cmdk, kbar, …). The focused pane's own commands come first, then the instance's and the host's.
  */
 export interface ListedCommand {
-  /** Unique in the list. Workspace commands use their command id; a pane's own are `pane:<id>`. */
+  /** Unique in the list. Jali's commands use their command id; a pane's own are `pane:<id>`. */
   key: string;
   /** The command id: what `keymap` binds and `runCommand` runs. Undefined for a pane's own commands. */
   id?: string;
   title: string;
-  /** "Focus", "Pane", "Layout", … for workspace commands; the pane's title for a pane's own. */
+  /** "Focus", "Pane", "Layout", … for Jali's commands; the pane's title for a pane's own. */
   group: string;
   /** Its keys for this platform ("⌘K ⌘Z"), or "" when unbound. */
   keys: string;

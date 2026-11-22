@@ -16,8 +16,8 @@ import { useModel, useStore, useUi } from "../state/react";
 import { Divider } from "./Divider";
 
 /**
- * The workspace's dividers, or with `strip`, the ones inside that row that scrolls (drawn in it, by Scroller).
- * Memoised: it reads the model itself, so the workspace re-rendering (a drag's target changing) leaves it alone.
+ * The instance's dividers, or with `strip`, the ones inside that row that scrolls (drawn in it, by Scroller).
+ * Memoised: it reads the model itself, so the instance re-rendering (a drag's target changing) leaves it alone.
  */
 export const DividerLayer = /* @__PURE__ */ memo(function DividerLayer({
   strip,

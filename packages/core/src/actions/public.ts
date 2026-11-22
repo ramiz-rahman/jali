@@ -8,11 +8,11 @@
  *  - What the action uses comes next (`openBeside(pane, ref)`); options come last, in an object.
  *  - Every action returns an `ActionResult`: `{ ok: true, pane }` when it happened, or `{ ok: false, reason }` when it
  *    did not. Announcements are unchanged: a refusal that is read out today still is, and `message` is that text.
- *  - Nothing it is given makes it throw. A ref is checked once, before any step sees it: a kind the workspace doesn't
+ *  - Nothing it is given makes it throw. A ref is checked once, before any step sees it: a kind the instance doesn't
  *    have, or params that aren't text, numbers or flags, is `"invalid"`, with what is wrong as `message`. A pane named
  *    by something that is neither an id nor a ref is `"invalid"` too.
  *
- * Each is a step of the one table (actions/index.ts), committed once. `R` is the refs of the workspace's kinds
+ * Each is a step of the one table (actions/index.ts), committed once. `R` is the refs of the instance's kinds
  * (`createJali` infers it), so a ref of a kind it doesn't have is a type error.
  */
 import type { Edge, NodeId, ObjectRef } from "../layout/types";
@@ -35,7 +35,7 @@ export interface OpenPageOptions<I extends ItemId = ItemId> {
   tab?: string;
 }
 
-/** `R`: the refs of the workspace's kinds. */
+/** `R`: the refs of the instance's kinds. */
 export interface JaliActions<R extends ObjectRef = ObjectRef> {
   // ---------- focus ----------
   /** Focus a pane, and show it: a pane that is folded, tucked or behind another tab has its tab chosen (nothing else

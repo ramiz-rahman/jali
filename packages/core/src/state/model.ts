@@ -36,7 +36,7 @@ export type PaneOf<R extends ObjectRef = ObjectRef> = DeepReadonly<Omit<PaneNode
 
 /**
  * The layout as it is on screen (`jali.model()`, `useJaliModel`): panes, their boxes and titles, the groups and the
- * shelf. Read-only. `R` is the refs of the workspace's kinds.
+ * shelf. Read-only. `R` is the refs of the instance's kinds.
  */
 export type JaliModel<R extends ObjectRef = ObjectRef> = DeepReadonly<
   Omit<Model, "env" | "panes" | "pane" | "onScreen">

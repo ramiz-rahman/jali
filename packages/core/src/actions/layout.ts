@@ -11,13 +11,13 @@ import { withRecent } from "./open";
 import { agreeWithSelection, agreeOnArrival } from "./follow";
 import { own } from "../own";
 
-/** Switch to a preset: the layout the app saved for it (`PresetOptions.saved`), if it has one this workspace can
+/** Switch to a preset: the layout the app saved for it (`PresetOptions.saved`), if it has one this instance can
  *  still read, else its own. `own`: always its own (Reset layout). */
 export function preset({ s, ctx, env }: Snapshot, id: string | undefined, own = false): Outcome {
   const p = presetById(env, id);
   if (!p) return null;
   const saved = own ? undefined : p.saved?.();
-  // A preset's own layout is checked too: one that names a kind this workspace no longer has can't be shown.
+  // A preset's own layout is checked too: one that names a kind this instance no longer has can't be shown.
   const built = (saved && readLayout(saved, env)) || readLayout(p.build, env);
   if (!built) return refuse("invalid");
   const initial = core.tree.panes(built.root)[0]?.id;
@@ -49,7 +49,7 @@ export function preset({ s, ctx, env }: Snapshot, id: string | undefined, own = 
 
 export const resetLayout = (x: Snapshot) => preset(x, x.s.presetId, true);
 
-/** `input` as a layout this workspace can show (a copy), or undefined: it names a kind it doesn't have, has two panes
+/** `input` as a layout this instance can show (a copy), or undefined: it names a kind it doesn't have, has two panes
  *  with one id, is malformed, or building it threw. */
 export function readLayout(
   input: LayoutInput | (() => LayoutInput),
@@ -109,7 +109,7 @@ export function arrive(
 }
 
 /**
- * `jali.setLayout`: a layout from the app (one it saved for this person, say). It replaces the free workspace's
+ * `jali.setLayout`: a layout from the app (one it saved for this person, say). It replaces the free layout's
  * layout like a preset does (the address gets a new entry, so Back returns), fitted to the room; focus stays where it
  * still exists. A curated page that is open closes, keeping its mode and layout for next time. Silent: the app chose it.
  */
@@ -169,7 +169,7 @@ export function setActivity({ s, m }: Snapshot, id: NodeId, a: PaneActivity): Ou
 }
 
 /** The command palette (⌘K) and the settings panel. */
-/** Refused as `"unavailable"` where the workspace has no such dialog (its feature: `palette()`, `settings()`). */
+/** Refused as `"unavailable"` where the instance has no such dialog (its feature: `palette()`, `settings()`). */
 const without = (x: Snapshot, id: "palette" | "settings") =>
   x.env.features?.some((f) => f.id === id) ? undefined : refuse("unavailable");
 export const openPalette = (x: Snapshot): Outcome =>
@@ -189,7 +189,7 @@ export function changeSettings({ s }: Snapshot, patch: Partial<Settings>): Outco
 }
 
 /**
- * `jali.actions.autoLayout()`: arrange every pane in the free workspace from the room there is and the kinds' size
+ * `jali.actions.autoLayout()`: arrange every pane in the free layout from the room there is and the kinds' size
  * hints (`layout.arrange`). The same panes, so their state survives; tucked and folded panes are placed too, and the
  * fit runs after. Like a preset, the address gets a new entry, so Back returns to the arrangement before.
  */

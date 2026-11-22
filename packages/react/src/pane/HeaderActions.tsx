@@ -43,7 +43,7 @@ const MOVES: ReadonlySet<PaneButton> = /* @__PURE__ */ new Set([
  * The header's buttons (`buttons`: Jali's choice unless the app's), then ⋯ for the rest of the pane's menu: 26px
  * targets, 4px apart. Tuck is a plain minus: it puts the pane behind the pane it would join.
  */
-/** What the header shows, worked out from the whole workspace: compared by value, so a change elsewhere (a divider
+/** What the header shows, worked out from the whole instance: compared by value, so a change elsewhere (a divider
  *  moved, another pane's title) doesn't re-render every pane's header. */
 interface Plan {
   home: boolean;

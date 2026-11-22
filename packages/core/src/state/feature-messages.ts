@@ -1,5 +1,5 @@
 /**
- * The English each feature brings (features/): a workspace has these words exactly when it has the feature, as it has
+ * The English each feature brings (features/): an instance has these words exactly when it has the feature, as it has
  * the curated page's words only with a page (page-messages.ts). `en` holds them all, for a translation to start from.
  */
 const cap = (t: string) => t.charAt(0).toUpperCase() + t.slice(1);

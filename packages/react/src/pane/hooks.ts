@@ -9,7 +9,7 @@
  *   usePaneAttributes({ "data-connection": connection.kind });
  *   useHeaderActions(<button onClick={add}>Add</button>);
  *
- * Any number of components in a pane may call the reporting hooks: each call is reported on its own and the workspace
+ * Any number of components in a pane may call the reporting hooks: each call is reported on its own and the instance
  * merges them. Commands are listed in render order (a parent's before its children's); the pane has unsaved work while
  * any call reports some; its activity is the most pressing reported; its title and attributes are the innermost
  * call's (on a first mount; after that, the latest mounted). A call that unmounts takes only its own report away.
@@ -122,7 +122,7 @@ export function useTitle(title: string | null | undefined): void {
   const { host, props } = usePaneContext("useTitle");
   const report = useReporter(host);
   const text = title || null;
-  // The workspace drops a title when the pane shows another object; this sets the new object's again.
+  // The instance drops a title when the pane shows another object; this sets the new object's again.
   const shows = JSON.stringify(props.node.ref);
   useEffect(() => {
     report({ title: text });
@@ -145,7 +145,7 @@ export function usePaneAttributes(
   const shape = attributes ? JSON.stringify(attributes) : null;
   const latest = useRef<PaneAttributes | null | undefined>(attributes);
   latest.current = attributes;
-  // As with a title: the workspace drops them when the pane shows another object; this sets the new object's again.
+  // As with a title: the instance drops them when the pane shows another object; this sets the new object's again.
   const shows = JSON.stringify(props.node.ref);
   useEffect(() => {
     report({ attributes: shape ? (latest.current ?? null) : null });
@@ -180,7 +180,7 @@ export interface LauncherSources {
   titleOf: (ref: ObjectRef) => string;
 }
 
-/** For the workspace's launcher: Recent, what is open, and titles. */
+/** For the instance's launcher: Recent, what is open, and titles. */
 export function useLauncher(): LauncherSources {
   const { id } = usePaneContext("useLauncher");
   const recent = useUi((s) => s.recent);

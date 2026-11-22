@@ -1,10 +1,10 @@
 /**
  * Each pane's content renders once, in one place, for as long as the pane is in the layout: into an element of its
  * own (`.jali-pane-content-inner`) that its frame holds. A frame that changes parent (a pane entering or leaving a row
- * that scrolls sideways, the workspace flipping between tiled and single view) remounts, but the content doesn't: the
+ * that scrolls sideways, the layout flipping between tiled panes and one pane at a time) remounts, but the content doesn't: the
  * new frame takes the same element, so the component keeps its state, its subscriptions and its DOM.
  *
- * A workspace that hydrates a server's HTML renders its content inside its frames, as the server did (a portal can't
+ * An instance that hydrates a server's HTML renders its content inside its frames, as the server did (a portal can't
  * be server rendered): there a frame that changes parent still remounts its content.
  */
 import { createContext, memo, useMemo, useRef } from "react";
@@ -22,12 +22,12 @@ export interface ContentHost {
   host: PaneHost;
 }
 
-/** The workspace's content hosts, by pane id; null where content renders inside its frame (hydration, a server). */
+/** The instance's content hosts, by pane id; null where content renders inside its frame (hydration, a server). */
 export const ContentHosts = /* @__PURE__ */ createContext<((id: string) => ContentHost) | null>(
   null,
 );
 
-/** The hosts of one workspace, made as panes first render and dropped with the pane (`keep`). */
+/** The hosts of one instance, made as panes first render and dropped with the pane (`keep`). */
 export function useContentHosts(store: JaliStore, on: boolean) {
   const all = useRef(new Map<string, ContentHost>()).current;
   const get = useMemo(

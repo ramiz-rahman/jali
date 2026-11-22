@@ -1,5 +1,5 @@
 /**
- * The DOM ids @jali/react gives a pane's parts, each kind with a prefix of its own after the workspace's scope, so no
+ * The DOM ids @jali/react gives a pane's parts, each kind with a prefix of its own after the instance's scope, so no
  * pane id can make one kind's id equal another's (panes "x" and "x-title"). The pane itself is core's `paneDomId`
  * (`<scope>-pane-<id>`), which core's DOM lookups use.
  */

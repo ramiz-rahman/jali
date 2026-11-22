@@ -99,7 +99,7 @@ export function Peek({ presentation }: { presentation: Presentation }) {
           <span className="jali-peek-label">{t.badge}</span>
         </div>
         <div className="jali-pane-actions">
-          {/* A curated workspace never replaces its arrangement; a role that only peeks can't keep either. */}
+          {/* A curated page never replaces its arrangement; a role that only peeks can't keep either. */}
           {canPin ? (
             <button
               type="button"

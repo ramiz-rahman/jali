@@ -81,8 +81,8 @@ const readable = (kinds: KindRegistry, ref: ObjectRef) =>
   !Object.hasOwn(kinds, ref.kind) || !kinds[ref.kind]!.checkParams?.(ref.params);
 
 /**
- * The search params a workspace owns. Every other param in the address is the host's and is kept as it is. `prefix`
- * names them apart when two workspaces share one address (`{ prefix: "w2." }` writes `w2.l`, `w2.zoom`, ...).
+ * The search params an instance owns. Every other param in the address is the host's and is kept as it is. `prefix`
+ * names them apart when two instances share one address (`{ prefix: "w2." }` writes `w2.l`, `w2.zoom`, ...).
  */
 export interface UrlKeys {
   layout: string;
@@ -111,7 +111,7 @@ export function urlKeys(prefix = ""): UrlKeys {
 
 /**
  * The old lab's page params (`?app=review`, `arr`, from before pages had ids, 19 Nov 2026) are read and cleared only by
- * the workspace without a prefix: links from then never had one, and beside a prefixed workspace `app` and `arr` are
+ * the instance without a prefix: links from then never had one, and beside a prefixed instance `app` and `arr` are
  * the host's.
  */
 const legacyKeys = (k: UrlKeys) => k.layout === "l";
@@ -135,7 +135,7 @@ function pageParams(q: URLSearchParams, s: UrlState, k: UrlKeys) {
   });
 }
 
-/** A page link's params, in the order a workspace writes them. */
+/** A page link's params, in the order an instance writes them. */
 function setPage(q: URLSearchParams, k: UrlKeys, link: PageLink) {
   q.set(k.page, link.page);
   if (link.item !== undefined) q.set(k.item, String(link.item));
@@ -156,7 +156,7 @@ export interface PageLink {
   /** The object in the peek sheet. */
   peek?: ObjectRef;
 }
-/** A link to a free workspace's layout: the layout (`row(...)` and the rest, or a layout), and what rides with it. */
+/** A link to a free layout's layout: the layout (`row(...)` and the rest, or a layout), and what rides with it. */
 export interface LayoutLink {
   layout: LayoutInput;
   /** The preset it came from, so the link marks it and Reset layout rebuilds it. */
@@ -169,23 +169,23 @@ export interface LayoutLink {
 export type JaliLink = PageLink | LayoutLink;
 
 export interface LinkSearchOptions {
-  /** The workspace's `url.prefix`, when it has one. */
+  /** The instance's `url.prefix`, when it has one. */
   prefix?: string;
-  /** A search string whose other params are kept (your app's own): `"?filter=open"`. Its workspace params are
+  /** A search string whose other params are kept (your app's own): `"?filter=open"`. Its instance params are
    *  replaced. Default: none. */
   search?: string;
-  /** The workspace's pane kinds (what you pass `createJali({ panes })`), so the link leaves out the params a link
+  /** The instance's pane kinds (what you pass `createJali({ panes })`), so the link leaves out the params a link
    *  never carries (`appOnly`, `link: false`) of any ref, a live layout's or peek's included. Without them, it leaves
    *  out those of each ref a kind's call built (`order({ id: 1 })`), and writes a plain object's params as they are. */
   panes?: readonly PaneKindBase[];
 }
 
 /**
- * The search string (`"?page=visit&item=7&open=call~slug=x"`) that opens a workspace on `link`, as the workspace
+ * The search string (`"?page=visit&item=7&open=call~slug=x"`) that opens an instance on `link`, as the instance
  * itself would write it: reading it back gives exactly that page, item, view, opened panes and peek, or that layout.
- * Needs no workspace, so a server, an email or another app can build one. Put it after the path the workspace is at.
- * Like the workspace, it never writes a param only the app sets (`appOnly`) or one kept out of the address
- * (`link: false`); give it the workspace's `panes` for refs a kind's call didn't build.
+ * Needs no instance, so a server, an email or another app can build one. Put it after the path the instance is at.
+ * Like the instance, it never writes a param only the app sets (`appOnly`) or one kept out of the address
+ * (`link: false`); give it the instance's `panes` for refs a kind's call didn't build.
  */
 export function linkSearch(link: JaliLink, options: LinkSearchOptions = {}): string {
   const k = urlKeys(options.prefix);
@@ -232,7 +232,7 @@ function mapDraft(input: LayoutInput, fn: (ref: ObjectRef) => ObjectRef): Layout
   return node(input) as LayoutInput;
 }
 
-/** The search string for `s`, keeping every param of `search` that is not the workspace's. */
+/** The search string for `s`, keeping every param of `search` that is not the instance's. */
 export function buildSearch(search: string, s: UrlState, k: UrlKeys = urlKeys()): string {
   const q = new URLSearchParams(search);
   pageParams(q, s, k);
@@ -434,7 +434,7 @@ export interface UrlSyncOptions {
   /** Where a link that could not be read is kept (and, in "local" mode, the sizes dragged), under keys that start
    *  with `prefix`. Default: localStorage under "jali". */
   storage?: StoragePort;
-  /** Prefix for the workspace's search params, when two workspaces share an address. */
+  /** Prefix for the instance's search params, when two instances share an address. */
   prefix?: string;
   /** What a layout link carries about sizes (LinkSizes). Default "local": the layout as designed. */
   sizes?: LinkSizes;

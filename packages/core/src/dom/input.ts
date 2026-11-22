@@ -20,7 +20,7 @@ export type JaliInput = "mouse" | "touch" | "pen" | "keyboard" | "virtual" | "ag
 let noted: JaliInput | undefined;
 let clear: ReturnType<typeof setTimeout> | undefined;
 let held: JaliInput[] = [];
-/** How many started workspaces listen on each document (a floating window's is a document of its own). */
+/** How many started instances listen on each document (a floating window's is a document of its own). */
 const listening = /* @__PURE__ */ new WeakMap<Document, number>();
 
 const note = (input: JaliInput) => {
@@ -52,7 +52,7 @@ export function withInput<T>(input: JaliInput, fn: () => T): T {
   }
 }
 
-/** Listen for a person's input on `doc` while any workspace is started there. Returns the stop. */
+/** Listen for a person's input on `doc` while any instance is started there. Returns the stop. */
 export function trackInput(doc: Document | undefined = globalThis.document): () => void {
   if (!doc) return () => {};
   const n = listening.get(doc) ?? 0;

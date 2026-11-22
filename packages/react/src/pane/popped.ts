@@ -1,5 +1,5 @@
 /**
- * What the chrome reads of Pop out (features/pop-out.tsx), when the workspace has the feature: whether this browser
+ * What the chrome reads of Pop out (features/pop-out.tsx), when the instance has the feature: whether this browser
  * can, and whether a pane is out. Without the feature every answer is "no", and none of Pop out's code is here.
  */
 import type { NodeId } from "@jali/core";
@@ -9,7 +9,7 @@ import type { ReactPopOut } from "../features/pop-out";
 
 const none = () => () => {};
 
-/** The workspace's floating window, if it has the `popOut()` feature. */
+/** The instance's floating window, if it has the `popOut()` feature. */
 export const popOutOf = (store: JaliStore) => partOf<ReactPopOut>(store.env, "popOutWindow");
 
 /** Whether panes can pop out here, for rendering: false on a server and while hydrating, so the first render matches

@@ -22,14 +22,14 @@ function tabStops(root: HTMLElement) {
   );
 }
 
-/** The element `<JaliRoot>` renders its `overlays` in (a toaster), by the workspace's DOM id. */
+/** The element `<JaliRoot>` renders its `overlays` in (a toaster), by the instance's DOM id. */
 export const overlaysDomId = (scope: string) => `${scope}-overlays`;
 
 /**
- * Makes everything in the workspace but `keep` inert, and returns the undo: the root, or, when `keep` is inside the
+ * Makes everything in the instance but `keep` inert, and returns the undo: the root, or, when `keep` is inside the
  * root (a pane full screen holds the dialogs), every sibling on the way from `keep` up to the root. And the host's
  * overlays: a toast's Undo is as far out of reach as the panes behind. Jali's live region is in `keep` (the layer),
- * so what the workspace says is still heard.
+ * so what the instance says is still heard.
  */
 function inertOutside(keep: Element, root: Element | null, overlays: Element | null) {
   const made: HTMLElement[] = [];
@@ -59,8 +59,8 @@ interface ModalDialogProps extends HTMLAttributes<HTMLDivElement> {
 
 /**
  * A modal dialog (APG dialog): focus goes in when it opens and back to where it was when it closes; Tab and ⇧Tab wrap
- * inside it; the workspace behind and the host's overlays (a toaster) are inert; Esc and a press on the scrim close it. Render it only while open. While
- * the store holds focus (`focusHeld`), it moves none and leaves the workspace as it is.
+ * inside it; the instance behind and the host's overlays (a toaster) are inert; Esc and a press on the scrim close it. Render it only while open. While
+ * the store holds focus (`focusHeld`), it moves none and leaves the instance as it is.
  */
 export function ModalDialog({
   scrim,

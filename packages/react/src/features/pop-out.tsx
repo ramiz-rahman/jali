@@ -4,17 +4,17 @@
  *
  *   createJali({ panes, layout, features: [...defaultFeatures(), popOut()] });
  *
- * The window is the workspace's own: one per instance, kept by this feature's window (no module state), closed when
- * the workspace stops (its `<JaliRoot>` unmounts, `destroy()`, another workspace takes the root). The pane keeps its
+ * The window is the instance's own: one per instance, kept by this feature's window (no module state), closed when
+ * the instance stops (its `<JaliRoot>` unmounts, `destroy()`, another instance takes the root). The pane keeps its
  * place, showing "Popped out into its own window" with Bring back.
  *
  * - **State survives:** each pane's content renders once into an element of its own (pane/content.tsx); popping out
  *   moves that element into the window, and bringing back moves it home. React's portal target never changes, so the
- *   component, its own `useState`, its subscriptions and its DOM stay. (A workspace that hydrated a server's HTML keeps
+ *   component, its own `useState`, its subscriptions and its DOM stay. (An instance that hydrated a server's HTML keeps
  *   content in its frames: there the content renders again in the window.) Iframes and media reload when moved.
  * - **Keys:** Jali's keys work in the window: its keyboard is installed there too, and every key pressed in the window
- *   counts as this workspace's, whatever `keyboard.scope`.
- * - **Looks:** the window gets the page's stylesheets, and keeps the workspace's theme, `--jali-*` tokens, direction
+ *   counts as this instance's, whatever `keyboard.scope`.
+ * - **Looks:** the window gets the page's stylesheets, and keeps the instance's theme, `--jali-*` tokens, direction
  *   and the page's zoom while it is open; its root carries `[data-jali]`.
  *
  * The browser's rules: Chrome keeps one floating window across all its tabs (another one closes this, and the pane
@@ -47,7 +47,7 @@ const can = () => typeof window !== "undefined" && !!api() && window.isSecureCon
 export interface ReactPopOut extends PopOutWindow {
   /** Told whenever a pane pops out or comes back. */
   subscribe(fn: () => void): () => void;
-  /** Where pane `pane`'s content renders while popped out of a workspace that renders it in its frame (hydrated);
+  /** Where pane `pane`'s content renders while popped out of an instance that renders it in its frame (hydrated);
    *  null otherwise. */
   target(store: JaliStore, pane: NodeId): HTMLElement | null;
 }
@@ -62,7 +62,7 @@ interface Session {
   off: () => void;
 }
 
-/** A workspace's place in this feature: started (a request that resolves after its workspace stopped is dropped),
+/** An instance's place in this feature: started (a request that resolves after its instance stopped is dropped),
  *  its latest request (a newer one makes an older one stale), and its window, if one is open. */
 interface Slot {
   on: boolean;
@@ -87,7 +87,7 @@ function copyStyles(from: Document, to: Document) {
   }
 }
 
-/** One window per workspace: the slots of the workspaces this feature value is given to. */
+/** One window per instance: the slots of the instances this feature value is given to. */
 function createWindow(): ReactPopOut & { started(store: JaliStore): () => void } {
   const slots = new WeakMap<JaliStore, Slot>();
   const slot = (store: JaliStore) => {
@@ -151,7 +151,7 @@ function createWindow(): ReactPopOut & { started(store: JaliStore): () => void }
       } catch {
         return false;
       }
-      // Stale: a newer request, the pane gone, or the workspace stopped while the browser answered.
+      // Stale: a newer request, the pane gone, or the instance stopped while the browser answered.
       if (x.asked !== mine || !x.on || !store.model().pane(pane)) {
         win.close();
         return false;
@@ -173,7 +173,7 @@ function createWindow(): ReactPopOut & { started(store: JaliStore): () => void }
     root.setAttribute("data-jali-popout", "");
     doc.body.append(root);
 
-    // The workspace's look, kept in step while the window is open: <html>'s attributes (a host's theme class), the
+    // The instance's look, kept in step while the window is open: <html>'s attributes (a host's theme class), the
     // root's theme, tokens and direction, its title, and the page's zoom (the browser's ⌘+ doesn't carry over).
     const page = document.documentElement;
     const sync = () => {
@@ -213,16 +213,16 @@ function createWindow(): ReactPopOut & { started(store: JaliStore): () => void }
     win.addEventListener("resize", sync);
 
     // The content: its own element moved here, so it keeps its state (pane/content.tsx marks it); else rendered here
-    // (`target`), in a workspace that hydrated a server's HTML.
+    // (`target`), in an instance that hydrated a server's HTML.
     const moved =
       store.dom.pane(pane)?.querySelector<HTMLElement>(".jali-pane-content > [data-jali-host]") ??
       null;
     if (moved) root.append(moved);
 
-    // Jali's keys, and a person's input, in the window too: every key pressed there is this workspace's.
+    // Jali's keys, and a person's input, in the window too: every key pressed there is this instance's.
     const offKeys = installKeyboard(store, { target: win, root: () => html });
     const offInput = trackInput(doc);
-    // The pane leaving the workspace closes its window; its title, theme and settings follow.
+    // The pane leaving the instance closes its window; its title, theme and settings follow.
     const offStore = store.subscribe(() => (store.model().pane(pane) ? sync() : self.close(store)));
     const s: Session = {
       pane,
@@ -245,7 +245,7 @@ function createWindow(): ReactPopOut & { started(store: JaliStore): () => void }
   return self;
 }
 
-/** Pop out, for `createJali({ features })`. Off for a kind with `allow: { popOut: false }`, or a workspace with
+/** Pop out, for `createJali({ features })`. Off for a kind with `allow: { popOut: false }`, or an instance with
  *  `allow: { popOut: false }`. */
 export function popOut(): Feature {
   const win = createWindow();

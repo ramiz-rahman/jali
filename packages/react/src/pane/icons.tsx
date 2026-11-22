@@ -4,7 +4,7 @@ import { ICON } from "../icons/sized";
 import { Guard } from "../chrome/Guard";
 
 /**
- * The kind's icon, or the workspace's `defaultKind` icon (a square) for an unknown kind or one without an icon. By
+ * The kind's icon, or the instance's `defaultKind` icon (a square) for an unknown kind or one without an icon. By
  * default it is a pane title's icon, sized by `--jali-icon-header` + 2px; pass `size` and `className` to draw it
  * elsewhere.
  */

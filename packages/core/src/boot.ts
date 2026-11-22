@@ -46,9 +46,9 @@ export function flushPaneState(store: JaliStore) {
   store.paneStates.flush(store.get());
 }
 
-/** What `startUi` takes over: keys (all of the page's, or only the workspace's), and the page's theme. */
+/** What `startUi` takes over: keys (all of the page's, or only the instance's), and the page's theme. */
 export interface StartOptions {
-  /** Keys: omitted, every key on the page; `{ root }`, only keys from inside the workspace and its dialogs. With a
+  /** Keys: omitted, every key on the page; `{ root }`, only keys from inside the instance and its dialogs. With a
    *  root, no tokens are written on `<html>` (the CSS carries them as fallbacks). */
   keys?: KeyboardScope;
   /** Set `data-theme` on `<html>` from the person's setting. Default true; false inside a page with its own theme

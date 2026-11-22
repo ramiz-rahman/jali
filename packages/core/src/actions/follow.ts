@@ -5,7 +5,7 @@
  *  - One selection moves every follower of the list that can show it: a follower of the selected object's kind shows
  *    that object, and a follower of another kind shows what its kind's `follow` gives for it (a watchlist of quotes
  *    moves its chart, book and news). The others keep what they show. All of them move in one change.
- *  - A follower with unsaved work is held on its object, and the workspace says why; the others still move.
+ *  - A follower with unsaved work is held on its object, and the instance says why; the others still move.
  *  - Following is a swap: same slot, same size; the URL is replaced, so Back skips the rows passed through.
  *  - Keep keeps a detail on its object; releasing makes it the list's follower again (and keeps the previous one).
  */
@@ -45,7 +45,7 @@ export function followMoves(
  * Show `selected` in `source`'s following details now: each one that can show it (followMoves). Nothing when none
  * moves. `only` moves that follower alone (one just released, catching up).
  *
- * A follower with unsaved work keeps its object: it is held, and the rest move in the same change. The workspace
+ * A follower with unsaved work keeps its object: it is held, and the rest move in the same change. The instance
  * says why it stayed ("The detail stays put: …"), as a refusal after the change, so the step's result is that refusal
  * when anything was held.
  */

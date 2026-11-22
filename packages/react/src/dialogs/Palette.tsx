@@ -4,7 +4,7 @@ import { useModel, useStore, useUi } from "../state/react";
 import { ListDialog } from "./ListDialog";
 
 /**
- * ⌘K: every workspace command. People see title, group and shortcut; the stable id lives in data-command-id. While it
+ * ⌘K: every instance command. People see title, group and shortcut; the stable id lives in data-command-id. While it
  * has just opened, a second ⌘ chord runs a command straight away (⌘K ⌘M); the listed shortcuts teach those chords.
  */
 export function Palette() {

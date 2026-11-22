@@ -73,7 +73,7 @@ export const PaneFrame = /* @__PURE__ */ memo(
     const canRename = useCanRename();
     const coveredRef = useInert(covered);
     const isDragged = useUi((s) => s.dnd?.dragged === node.id);
-    // The pane's content and its lasting parts, when the workspace renders content once (content.tsx); else here.
+    // The pane's content and its lasting parts, when the instance renders content once (content.tsx); else here.
     const at = useContext(ContentHosts)?.(node.id);
     const ownHost = useMemo(() => paneHost(store, node.id), [store, node.id]);
     const host = at?.host ?? ownHost;
@@ -95,7 +95,7 @@ export const PaneFrame = /* @__PURE__ */ memo(
       profile = env.profile;
     const named = useWorkspaceLabel();
     const role = page && node.role && profile ? roleOf(profile, node.role) : undefined;
-    // In a curated workspace, a pane without a role was opened by following a link: it belongs to the investigation.
+    // In a curated page, a pane without a role was opened by following a link: it belongs to the investigation.
     const opened = page && !node.role;
     // Its own live title only: another pane's new title doesn't re-render this frame.
     const live = useUi((s) => own(s.titles, node.id));
@@ -103,7 +103,7 @@ export const PaneFrame = /* @__PURE__ */ memo(
     const marks = usePaneAttributesOf(node.id);
     const title = titleOf(env, node, titles);
     const shows = shownTitle(env, node, titles);
-    // Full screen: the pane covers the window (and the browser, asked by the workspace, takes the whole screen).
+    // Full screen: the pane covers the window (and the browser, asked by the instance, takes the whole screen).
     const full = useUi((s) => s.fullScreen === node.id) && !hidden;
     const style: CSSProperties = full
       ? { position: "fixed", inset: 0, zIndex: 50 }
@@ -132,7 +132,7 @@ export const PaneFrame = /* @__PURE__ */ memo(
         {...marks}
         id={paneDomId(store.dom.id, node.id)}
         role="region"
-        // Named by its title; in a workspace the host named, by its title and the workspace's name.
+        // Named by its title; in an instance the host named, by its title and the instance's name.
         {...(named.label
           ? { "aria-label": store.messages.panes.within(title, named.label) }
           : { "aria-labelledby": titleId(store.dom.id, node.id) })}

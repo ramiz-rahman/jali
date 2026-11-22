@@ -2,14 +2,14 @@
  * `jali/testing`: what an app's own tests need, without reaching into the adapter's internals.
  *
  *   const { jali, location } = createTestJali({ panes, presets, features: [chooser()] });
- *   // or, for an app that makes its workspace in a function of its own:
+ *   // or, for an app that makes its instance in a function of its own:
  *   const { options, location } = testJaliOptions({ search: "?l=…" });
  *   const jali = createMyJali(services, options);
  *   reportUnsaved(jali, "order", "an unsaved note");
  *   expect(jali.actions.close("order").reason).toBe("unsaved");
  *   answerDiscard(jali, "discard");
  *
- * A test workspace is kept apart from the page and from other tests: its address is in memory (`location`), so is
+ * A test instance is kept apart from the page and from other tests: its address is in memory (`location`), so is
  * what it saves, it has a size (nothing measures a window in a test), and it moves no DOM focus.
  */
 import { createJali, type JaliOptions } from "./create-jali";
@@ -29,16 +29,16 @@ export interface TestJaliOptions<
   L extends PaneKindBase,
   P extends ProfileBase<any, any> | null | undefined, // eslint-disable-line @typescript-eslint/no-explicit-any
 > extends JaliOptions<D, L, P> {
-  /** The address the workspace opens on, as a link would (`"?l=…"`). Default: none. */
+  /** The address the instance opens on, as a link would (`"?l=…"`). Default: none. */
   search?: string;
 }
 
-/** An address in memory, as a test's workspace has it: it records `entries`, and `visit` changes it as Back or a
+/** An address in memory, as a test's instance has it: it records `entries`, and `visit` changes it as Back or a
  *  router link would. */
 export type TestLocation = ReturnType<typeof memoryLocation>;
 
 /**
- * The options that keep a workspace apart in a test, for an app that makes its workspace in a function of its own
+ * The options that keep an instance apart in a test, for an app that makes its instance in a function of its own
  * (`createMyJali(services, options)`): its address in memory (`location`), storage in memory, a size of 1440×900
  * unless `size` says otherwise, keys as on a Mac (`keyboard.platform`, so `pressKeys` means the same keys on every
  * machine) and no DOM focus. `options.features` holds only `urlSync` with the memory address: the app's function
@@ -61,7 +61,7 @@ export function testJaliOptions({
   };
 }
 
-/** A workspace for a test: `createJali` with `testJaliOptions` under your options, and its address always in memory
+/** An instance for a test: `createJali` with `testJaliOptions` under your options, and its address always in memory
  *  (after your features). */
 export function createTestJali<
   const D extends PaneKindBase,
@@ -118,13 +118,13 @@ export const chooserRequest = (jali: AnyJali): ChooseOptions<unknown> | null => 
   return c?.kind === "choose" ? c.request : null;
 };
 
-/** The last thing the workspace said to assistive technology (its live region's text). */
+/** The last thing the instance said to assistive technology (its live region's text). */
 export const lastAnnouncement = (jali: AnyJali): string => storeOf(jali).get().announcement.text;
 
 /**
  * Press keys, as a person would: `"Mod+K Mod+W"` is ⌘K then ⌘W on a Mac (`platform: "mac"`, the default) and
  * Ctrl+K then Ctrl+W elsewhere. Each step is a `keydown` dispatched at `target` (default: the focused element, else
- * the body), which a started workspace hears. Returns whether the last one was taken (`defaultPrevented`).
+ * the body), which a started instance hears. Returns whether the last one was taken (`defaultPrevented`).
  */
 export function pressKeys(
   keys: string,

@@ -95,7 +95,7 @@ export function SettingsPanel({ children }: { children?: ReactNode } = {}) {
 
 /**
  * The pane cap's field. What the person types is a draft until they leave the field or press Enter, and is clamped
- * to 2–16 then: each keystroke applied would refold the workspace as they type, and "12" would pass through 2. The
+ * to 2–16 then: each keystroke applied would refold the layout as they type, and "12" would pass through 2. The
  * spinner's steps (and the arrow keys) apply at once.
  */
 function PaneCap({ cap, set }: { cap: number; set: (cap: number) => void }) {

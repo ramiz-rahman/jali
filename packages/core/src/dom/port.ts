@@ -1,8 +1,8 @@
 /**
  * The adapter's markup, as the core needs to find it. The core moves focus, drags dividers and panes, and scrolls rows
  * on the elements an adapter renders, but it never names their classes or structure: it asks the adapter's `DomPort`
- * (@jali/react's is `reactDom`), which the adapter gives the workspace with `store.dom.use(port)`. Until one is given,
- * every lookup finds nothing and every mark does nothing, so a workspace no adapter renders still runs.
+ * (@jali/react's is `reactDom`), which the adapter gives the instance with `store.dom.use(port)`. Until one is given,
+ * every lookup finds nothing and every mark does nothing, so an instance no adapter renders still runs.
  *
  * What stays in the core: the ids it gives panes (`paneDomId`), the root and layer the adapter attaches, generic web
  * semantics (`[role=dialog]`, `[role=separator]`, `[tabindex="0"]`) and the attributes the host itself writes

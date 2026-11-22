@@ -113,29 +113,29 @@ export const savePaneState = (storage: StoragePort, state: PaneStates, owners: P
   writeRecords(storage, records);
 };
 
-/** What `PaneStateSync` works on: the workspace's pane state. */
+/** What `PaneStateSync` works on: the instance's pane state. */
 export interface HeldPaneState {
   paneState: PaneStates;
   paneStateOf: PaneOwners;
 }
 
 /**
- * A workspace's pane state and its storage, kept in step. Each tab writes only what it changed (merging over what
+ * An instance's pane state and its storage, kept in step. Each tab writes only what it changed (merging over what
  * other tabs wrote since, so a second tab never erases the first one's drafts), never writes when it changed nothing,
  * and takes in what other tabs write for the panes it shows (`merge`, on the storage port's `subscribe`).
  */
 export interface PaneStateSync {
-  /** Saved pane state, as the workspace starts. The old keys are dropped: never read, so state saved by a build from
+  /** Saved pane state, as the instance starts. The old keys are dropped: never read, so state saved by a build from
    *  before can't attach to the wrong object. A record that isn't one is left out, and goes at the next write. */
   read(): HeldPaneState;
-  /** The workspace started with `s`: what of it came from storage is in step with it. */
+  /** The instance started with `s`: what of it came from storage is in step with it. */
   adopt(s: HeldPaneState): void;
   /** Write what changed since the last write: new and changed records, and records of panes gone for good that no
    *  other tab has written since. True when something was written. */
   flush(s: HeldPaneState): boolean;
   /**
-   * What other tabs wrote: records for an object this workspace shows at that pane id (in `layouts`), where this
-   * workspace has no change of its own waiting. `patch` is the new pane state, if any; `resave`: another tab removed a
+   * What other tabs wrote: records for an object this instance shows at that pane id (in `layouts`), where this
+   * instance has no change of its own waiting. `patch` is the new pane state, if any; `resave`: another tab removed a
    * record this one still holds, so it is written again.
    */
   merge(
@@ -146,7 +146,7 @@ export interface PaneStateSync {
 }
 
 export function paneStateSync(storage: StoragePort): PaneStateSync {
-  /** The records this workspace and storage agree on, as last read or written. */
+  /** The records this instance and storage agree on, as last read or written. */
   const synced = new Map<NodeId, PaneRecord>();
   let initial: PaneRecords = {};
   let last = 0;
@@ -194,7 +194,7 @@ export function paneStateSync(storage: StoragePort): PaneStateSync {
         resave = false;
       for (const [id, r] of Object.entries(records)) {
         const was = synced.get(id);
-        // Its own, already in step; a change of this workspace's own, still to be written, wins; another object.
+        // Its own, already in step; a change of this instance's own, still to be written, wins; another object.
         if (was?.at === r.at || (Object.hasOwn(s.paneState, id) && !inStep(s, id, was))) continue;
         if (!shown.has(id + " " + r.of)) continue;
         // Defined, never assigned: a pane id `__proto__` is a key like any other.

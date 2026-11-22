@@ -35,9 +35,9 @@ import { useWorkspaceLabel } from "../a11y/landmark";
 // Development checks test the literal, so a production build drops them and their messages (dev.ts).
 declare const process: { env: { NODE_ENV?: string } };
 
-/** The workspace's usable size follows the element (minus the inset), and so does its reading direction (an
- *  ancestor's `dir`, read again when any `dir` on the page changes), unless the workspace was given one.
- *  A workspace that hydrates a server's HTML measures once its panes have hydrated (state/hydration.ts). */
+/** The instance's usable size follows the element (minus the inset), and so does its reading direction (an
+ *  ancestor's `dir`, read again when any `dir` on the page changes), unless the instance was given one.
+ *  An instance that hydrates a server's HTML measures once its panes have hydrated (state/hydration.ts). */
 function useMeasure(store: JaliStore) {
   const ref = useRef<HTMLElement>(null);
   // Whether this mount hydrates a server's HTML: read on the first render, and kept.
@@ -54,7 +54,7 @@ function useMeasure(store: JaliStore) {
         height = Math.max(0, Math.floor(el.clientHeight - inset * 2));
       const s = store.get();
       const dir = directionOf(store.env.dir, el);
-      // A fold across the workspace, from the browser's viewport segments (Chrome and Edge 138+; none elsewhere).
+      // A fold across the layout, from the browser's viewport segments (Chrome and Edge 138+; none elsewhere).
       const segments = (window as { viewport?: { segments?: DOMRect[] | null } }).viewport
         ?.segments;
       const hinge = hingeOf(segments ?? undefined, el.getBoundingClientRect());
@@ -106,8 +106,8 @@ function useMeasure(store: JaliStore) {
   return ref;
 }
 
-/** Whether the person was last in this workspace (focus or a press inside its root or its dialogs), not elsewhere on
- *  the page. Starts false: mounting a workspace is not the person going there. */
+/** Whether the person was last in this instance (focus or a press inside its root or its dialogs), not elsewhere on
+ *  the page. Starts false: mounting an instance is not the person going there. */
 function useEngaged(store: JaliStore) {
   const engaged = useRef(false);
   useEffect(() => {
@@ -235,7 +235,7 @@ function DragChip({ x, y, label, rtl }: { x: number; y: number; label: string; r
 
 /**
  * What a pane drag draws over the panes: the drop indicator on the target and the chip at the pointer. The one part
- * that hears every move of the drag (`dnd`); the workspace and its frames hear only where it would land.
+ * that hears every move of the drag (`dnd`); the instance and its frames hear only where it would land.
  */
 function DragLayer({ m }: { m: Model }) {
   const dnd = useUi((s) => s.dnd);
@@ -325,7 +325,7 @@ export function Panes() {
   const fullScreen = useUi((s) => !!s.fullScreen && !!m.pane(s.fullScreen));
   useFoldAnnouncements(store, m, area);
   // Keep DOM focus on the focused pane after structural changes (focus is never lost), but only once the person has
-  // been in this workspace: mounting one, or a change while they are elsewhere on the page, leaves their place alone.
+  // been in this instance: mounting one, or a change while they are elsewhere on the page, leaves their place alone.
   const engaged = useEngaged(store);
   useEffect(() => {
     if (!store.focusHeld) keepPaneFocus(store.dom, view.focused, { fromBody: engaged.current });

@@ -1,6 +1,6 @@
 /**
  * Pane kinds: what an app says about each kind of pane (its params, title, sizes and identity), and the registry a
- * workspace keeps of them. A framework adapter adds the view: @jali/react's `definePane` adds `Component` and `icon`.
+ * instance keeps of them. A framework adapter adds the view: @jali/react's `definePane` adds `Component` and `icon`.
  */
 import type { KindRegistry, Layout, NodeId, ObjectRef, PaneKind, ViewState } from "./layout/types";
 import { map } from "./layout/tree/tree";
@@ -488,9 +488,9 @@ export interface PaneOptions<P = Params> {
    */
   selects?: string;
   /** What may happen to panes of this kind: `{ fullScreen: false }` for content that can't fill a screen. A kind can
-   *  only turn controls off; the workspace's `allow` decides the rest. */
+   *  only turn controls off; the instance's `allow` decides the rest. */
   allow?: import("./actions/allow").PaneAllow;
-  /** The buttons in this kind's header, replacing the workspace's: a list, or a function that adjusts it
+  /** The buttons in this kind's header, replacing the instance's: a list, or a function that adjusts it
    *  (`(defaults) => defaults.filter((b) => b !== "tuck")`). Leave it out for Jali's. Everything allowed is in the pane's menu. */
   buttons?: import("./pane/buttons").PaneButtons;
   /** Phones only. `stack: false` keeps this kind out of stacked view; `place` asks for its half of it. */
@@ -500,7 +500,7 @@ export interface PaneOptions<P = Params> {
 /** What a kind's `follow` gives: its params, each one possibly missing (Jali checks them against `params`). */
 export type FollowParams<P> = { [K in keyof P]?: ParamValue | undefined };
 
-/** A kind as the workspace keeps it. `transient` is set by the workspace on its launcher. */
+/** A kind as the instance keeps it. `transient` is set by the instance on its launcher. */
 export interface PaneKindBase extends PaneOptions<never> {
   kind: string;
   transient?: boolean;
@@ -516,7 +516,7 @@ export interface Ref<K extends string = string, P = Params> {
   readonly params: P;
 }
 
-/** The refs of a workspace's kinds: each defined kind's `Ref`, and `ObjectRef` for a kind without a call. */
+/** The refs of an instance's kinds: each defined kind's `Ref`, and `ObjectRef` for a kind without a call. */
 export type RefOf<D> = D extends { (...args: never[]): infer R extends ObjectRef } ? R : ObjectRef;
 
 /** A defined kind. Call it to name an object of the kind: `note({ id: 2 })` is `{ kind: "note", params: { id: 2 } }`. */
@@ -543,7 +543,7 @@ export function defineKind<P, D extends PaneKindBase, K extends string = string>
       ),
     };
     // Every ref a kind's call builds is marked, so `linkSearch` can tell one from a plain object (a copy, a ref
-    // read from JSON), whose link-only params it can't know without the workspace's kinds.
+    // read from JSON), whose link-only params it can't know without the instance's kinds.
     unwrittenOf.set(made, unwritten);
     return made;
   };
@@ -551,11 +551,11 @@ export function defineKind<P, D extends PaneKindBase, K extends string = string>
 }
 
 /** The params a link leaves out (`appOnly`, `link: false`) of each ref a kind's call built, so a link built with no
- *  workspace (`linkSearch`) still leaves them out. */
+ *  instance (`linkSearch`) still leaves them out. */
 const unwrittenOf = /* @__PURE__ */ new WeakMap<ObjectRef, readonly string[]>();
 
 /**
- * `ref` as a link carries it, with no workspace at hand: by its kind in `kinds` when that has it, else by the kind
+ * `ref` as a link carries it, with no instance at hand: by its kind in `kinds` when that has it, else by the kind
  * whose call built it. A ref that is neither (a plain object of a kind `kinds` lacks) is the same ref.
  */
 /** Whether a kind's call built `ref` (`order({ id: 1 })`), rather than it being a plain object or a copy of one. */
@@ -575,7 +575,7 @@ export function linkLayoutAlone(layout: Layout, kinds?: KindRegistry): Layout {
 // ---------- the registry ----------
 
 /**
- * A workspace's pane kinds. Each workspace has its own, so two workspaces on one page, a workspace in a dialog and
+ * An instance's pane kinds. Each instance has its own, so two instances on one page, an instance in a dialog and
  * every test are independent. `register` after creation is for late imports and HMR; caches key on `version()`.
  */
 export interface PaneKinds<D extends PaneKindBase = PaneKindBase> {

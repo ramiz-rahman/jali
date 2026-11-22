@@ -1,9 +1,9 @@
-/** Every DOM focus move the workspace makes, in one place. The store asks for them; it never touches the DOM. */
+/** Every DOM focus move the instance makes, in one place. The store asks for them; it never touches the DOM. */
 import type { NodeId } from "../layout/types";
 import type { JaliDom } from "../state/store";
 
 /**
- * Focus here is in the workspace's own overlays (its layer: its dialogs and menus) or any dialog: the workspace never
+ * Focus here is in the instance's own overlays (its layer: its dialogs and menus) or any dialog: the instance never
  * pulls it into a pane.
  */
 const DIALOG = "[role=dialog], [role=alertdialog], dialog";
@@ -37,8 +37,8 @@ export function focusPane(dom: JaliDom, id: NodeId) {
 /**
  * Keep DOM focus on the focused pane after structural changes (focus is never lost): move it there when it is on the
  * body or in another pane, but never out of a dialog, a divider, the host's own chrome (anything marked
- * `data-jali-chrome`, such as an app's top bar) or anything outside the workspace's root (a toast, say).
- * `fromBody: false` leaves focus on the body too: the person has not been in this workspace (it just mounted, or they
+ * `data-jali-chrome`, such as an app's top bar) or anything outside the instance's root (a toast, say).
+ * `fromBody: false` leaves focus on the body too: the person has not been in this instance (it just mounted, or they
  * are elsewhere on the page), so the change is not theirs to follow.
  */
 export function keepPaneFocus(

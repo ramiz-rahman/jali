@@ -1,6 +1,6 @@
 /**
- * A workspace profile: a curated page about one item (a loan application), with a list beside it (the queue), a
- * header, and a tab strip of views. A free workspace has none: the person builds the layout.
+ * An instance profile: a curated page about one item (a loan application), with a list beside it (the queue), a
+ * header, and a tab strip of views. A free layout has none: the person builds the layout.
  *
  * Two modes, the person's choice. Single (default): one view at a time, chosen from the tabs, like any web app; links
  * open as a peek. Split view: the tabs become a palette of views that can be dragged into split layouts with full
@@ -54,7 +54,7 @@ export function asItem(id: ItemId, first: ItemId): ItemId {
 
 /**
  * Where a page from `definePage` keeps its engine: the code that runs a curated page. It is on the page, not in the
- * workspace, so an app without a page never ships it.
+ * instance, so an app without a page never ships it.
  */
 export const PAGE: unique symbol = /* @__PURE__ */ Symbol.for("jali.page");
 
@@ -103,7 +103,7 @@ export interface BesidePreview {
 
 /**
  * The curated page's code (actions/page.ts), reached only through a page made with `definePage`: its steps, what the
- * free workspace's own steps ask of it, its commands and its English words. Adapters reach it as
+ * free layout's own steps ask of it, its commands and its English words. Adapters reach it as
  * `store.env.page`; apps never do.
  */
 export interface PageEngine {
@@ -141,7 +141,7 @@ export interface PageEngine {
   words: MessageOverrides;
 }
 
-/** The engine of the workspace's page, if it has one. */
+/** The engine of the instance's page, if it has one. */
 export const pageEngineOf = (p: ProfileBase | null | undefined): PageEngine | undefined =>
   p?.[PAGE];
 
@@ -170,10 +170,10 @@ export interface Preset {
   saved?: () => LayoutInput | undefined;
 }
 
-/** What a workspace is made of, beyond its state: its pane kinds, presets and (a curated page) its profile. One per store. */
+/** What an instance is made of, beyond its state: its pane kinds, presets and (a curated page) its profile. One per store. */
 export interface Env {
   kinds: PaneKinds;
-  /** The curated page this workspace can show (`?page=<id>`); null for a workspace with none. */
+  /** The curated page this instance can show (`?page=<id>`); null for an instance with none. */
   profile: ProfileBase | null;
   /** Layouts to start from, in menu order. May be empty. */
   presets: readonly Preset[];
@@ -187,19 +187,19 @@ export interface Env {
   /** Whether Jali renders its palette (the `palette()` feature); false when the host shows Jali's commands in its own
    *  command menu. */
   palette?: boolean;
-  /** The workspace's features (`createJali({ features })`), one of each id. */
+  /** The instance's features (`createJali({ features })`), one of each id. */
   features?: readonly import("./features/feature").Feature[];
-  /** Every word the workspace shows or says (state/messages.ts). Default: English (`en`). */
+  /** Every word the instance shows or says (state/messages.ts). Default: English (`en`). */
   messages?: Messages;
   /** The curated page's engine, when `profile` is set (from `definePage`). */
   page?: PageEngine;
   /** Told when a pane's content throws while rendering (`createJali({ onPaneError })`). */
   onPaneError?: (error: unknown, info: PaneErrorInfo) => void;
-  /** The reading direction it was given (`createJali({ dir })`); unset, the workspace follows its page. */
+  /** The reading direction it was given (`createJali({ dir })`); unset, the instance follows its page. */
   dir?: Direction;
   /** `"main"` when the panes are the page's main content (`createJali({ landmark })`); unset, a labelled region. */
   landmark?: "region" | "main";
-  /** The workspace's name for assistive technology (`createJali({ label })`): its landmarks are named with it. */
+  /** The instance's name for assistive technology (`createJali({ label })`): its landmarks are named with it. */
   label?: string;
   /** `false` when the page keeps its own theme (`createJali({ pageTheme })`): Jali writes no `data-theme`. */
   pageTheme?: false;
@@ -209,28 +209,28 @@ export interface Env {
   tabMenu?: import("./commands/tab-menu").TabMenu;
   /** Renaming a pane in place (`createJali({ rename })`). */
   rename?: import("./actions/rename").Rename;
-  /** How the workspace behaves on a phone (`createJali({ phone })`). */
+  /** How the instance behaves on a phone (`createJali({ phone })`). */
   phone?: PhoneOptions;
   /** What may happen to panes (`createJali({ allow })`). */
   allow?: import("./actions/allow").Allow;
   /** The buttons in a pane's header (`createJali({ buttons })`). */
   buttons?: import("./pane/buttons").PaneButtons;
-  /** The gap between panes and the inset from the workspace's edges, in px (`createJali({ gap, inset })`). */
+  /** The gap between panes and the inset from the root's edges, in px (`createJali({ gap, inset })`). */
   spacing: import("./tokens").Spacing;
 }
 
-/** How the workspace behaves on a phone. */
+/** How the instance behaves on a phone. */
 export interface PhoneOptions {
   /**
-   * Below this workspace width, in CSS pixels, the workspace shows Single view: one pane at a time, with a switcher.
+   * Below this width, in CSS pixels, Jali shows one pane at a time, with a switcher.
    * Default 600, Android's compact width, which covers portrait phones. `0` leaves it to the panes' minimum widths
-   * alone (Single view only when even one pane can't fit), as before 19 Nov 2026.
+   * alone (one pane at a time only when even one pane can't fit), as before 19 Nov 2026.
    */
   below?: number;
   /**
    * On a portrait phone, show two linked panes one above the other instead of one: the focused pane and the pane it
    * was opened from (a list above its detail), when both have room (each at least `stackFloor` tall, default 200,
-   * and the workspace at least 480). Default false. A kind can stay out (`phone: { stack: false }`) or ask for its
+   * and the instance at least 480). Default false. A kind can stay out (`phone: { stack: false }`) or ask for its
    * half (`phone: { place: "top" }`).
    */
   stack?: boolean;

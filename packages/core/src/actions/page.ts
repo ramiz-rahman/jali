@@ -4,7 +4,7 @@
  * Panes opened by following links form an investigation after the layout that "Back to <page>" clears.
  *
  * Opt-in: only `definePage` reaches this module. It puts the page's engine (`pageEngine`) on the page, and the
- * workspace runs the page through `env.page`, so an app without a page ships none of it.
+ * instance runs the page through `env.page`, so an app without a page ships none of it.
  */
 import * as core from "../layout/engine";
 import { endSide, treeSide } from "../layout/geometry/direction";
@@ -228,9 +228,9 @@ export function openPage(x: Snapshot, o: OpenPage = {}): Outcome {
   };
 }
 
-/** Back to the free workspace: the person's own layout again. The page's mode and layout are kept for next time. */
+/** Back to the free layout: the person's own layout again. The page's mode and layout are kept for next time. */
 export function leavePage(x: Snapshot): Outcome {
-  // A page-only app has no free workspace to go back to.
+  // A page-only app has no free layout to go back to.
   if (!x.env.presets.length) return refuse("unavailable");
   const studio = preset(x, x.s.presetId) as Change;
   return { ...studio, patch: { ...studio.patch, page: null, prefs: keep(x) }, undo: [] };

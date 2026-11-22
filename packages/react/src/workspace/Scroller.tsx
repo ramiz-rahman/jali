@@ -8,8 +8,8 @@ import { own } from "@jali/core/adapter";
  * come to rest, once it rests, and keeps it in the view state (`view.scroll`), where drag hit-tests and pausing read
  * it. The scrollbar thumb and the edge fades follow the scroll straight on the DOM.
  *
- * The content box starts at the workspace's left edge (shifted back by the strip's x), so a pane's place inside it
- * is its place in the workspace, unscrolled: what a divider drag writes onto the DOM as it goes.
+ * The content box starts at the layout's left edge (shifted back by the strip's x), so a pane's place inside it
+ * is its place in the layout, unscrolled: what a divider drag writes onto the DOM as it goes.
  */
 import {
   useEffect,

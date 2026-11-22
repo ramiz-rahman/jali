@@ -8,7 +8,7 @@ export interface Settings {
   centreDrop: "swap" | "tab";
   paneCap: number;
   theme: ThemeChoice;
-  /** How a curated workspace marks the panes opened while investigating. */
+  /** How a curated page marks the panes opened while investigating. */
   boundary: "tint" | "none";
 }
 

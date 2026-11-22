@@ -230,7 +230,7 @@ export {
 } from "./dom/direction";
 export { observeResize } from "./dom/resize";
 
-// ---------- drags, dividers and the workspace's geometry ----------
+// ---------- drags, dividers and the instance's geometry ----------
 export { isDividerDragging, startDividerDrag } from "./dividers/drag";
 export {
   SNAP_IN,

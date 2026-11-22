@@ -5,7 +5,7 @@ import type { ActionResult, PaneReportPatch } from "@jali/core/adapter";
 import type { PaneProps } from "../define";
 import type { HeaderSlot } from "./header";
 
-/** What a pane's content can ask of the workspace. */
+/** What a pane's content can ask of the instance. */
 export interface PaneHost {
   openBeside(ref: ObjectRef, options?: OpenBesideOptions): ActionResult;
   peek(ref: ObjectRef | null): ActionResult;
@@ -13,7 +13,7 @@ export interface PaneHost {
   openHere(ref: ObjectRef): ActionResult;
   dismiss(): void;
   /** One caller's report (the pane hooks): `caller` is the hook call's own id, `seq` its order among the pane's
-   *  callers, `null` when it unmounts. The workspace merges every caller's (actions/content.ts `reportPane`). */
+   *  callers, `null` when it unmounts. The instance merges every caller's (actions/content.ts `reportPane`). */
   report(caller: string, seq: number, patch: PaneReportPatch | null): void;
 }
 

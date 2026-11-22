@@ -17,7 +17,7 @@ export const useHydrated = (): boolean =>
     () => false,
   );
 
-/** The workspace's keymap for printing labels: the server's platform until the page has hydrated. */
+/** The instance's keymap for printing labels: the server's platform until the page has hydrated. */
 export function useKeymap(): Keymap {
   const keymap = useStore().keymap;
   return useHydrated() ? keymap : keymap.forPlatform(SERVER_PLATFORM);

@@ -1,5 +1,5 @@
 /**
- * What the published `jali` package (packages/jali) re-exports from this workspace package, beyond its index: each
+ * What the published `jali` package (packages/jali) re-exports from this instance package, beyond its index: each
  * feature with its parts, `defaultFeatures`, and the pieces `jali/react` lists one by one. Not for apps.
  */
 export * from "./index";

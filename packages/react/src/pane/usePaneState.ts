@@ -1,6 +1,6 @@
 import { objectKey, own } from "@jali/core/adapter";
 /**
- * A pane's own state, kept by the workspace: it survives the pane being tabbed, folded, tucked or moved, and a reload
+ * A pane's own state, kept by the instance: it survives the pane being tabbed, folded, tucked or moved, and a reload
  * (saved through the store's storage port). It is dropped when the pane closes for good or shows another object. It
  * belongs to that object, not to the pane id: another object under the same id starts from `initial`. Values must be
  * JSON.

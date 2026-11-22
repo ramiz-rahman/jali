@@ -1,11 +1,11 @@
 /**
- * The two places a workspace keeps things outside itself, as ports the host can replace.
+ * The two places an instance keeps things outside itself, as ports the host can replace.
  *
  * - **Location**: the address. Jali reads and writes only its own search params and keeps every other part of the
  *   address as it is. The default is the browser's history; an app with a router passes an adapter, so the router
  *   stays the one owner of the address (navigation guards, scroll restoration, typed search params).
  * - **Storage**: what one person keeps on one device (settings, a curated page's mode and layout). The default is
- *   localStorage under a prefix; tests, server rendering and embedded workspaces pass `memoryStorage()`.
+ *   localStorage under a prefix; tests, server rendering and embedded instances pass `memoryStorage()`.
  *
  * A router adapter is three functions. React Router:
  *
@@ -55,7 +55,7 @@ export function browserLocation(win: Window = window): LocationPort {
   };
 }
 
-/** An address that lives in memory: tests, server rendering, a workspace in a dialog that must not touch the page's. */
+/** An address that lives in memory: tests, server rendering, an instance in a dialog that must not touch the page's. */
 export function memoryLocation(
   initial = "",
 ): LocationPort & { entries: string[]; visit(search: string): void } {
@@ -73,7 +73,7 @@ export function memoryLocation(
       fns.add(fn);
       return () => fns.delete(fn);
     },
-    /** Navigation the workspace did not make (a router link, Back): the address changes and subscribers hear it. */
+    /** Navigation the instance did not make (a router link, Back): the address changes and subscribers hear it. */
     visit(search) {
       entries.push(search);
       for (const fn of fns) fn();
@@ -87,7 +87,7 @@ export interface StoragePort {
   /** Take `key` out of storage. Optional: without it, Jali writes an empty value over a key it no longer uses. */
   remove?(key: string): void;
   /** Hear `key` change by another means than this port's `set` (another tab, with localStorage). Optional: without
-   *  it, a workspace learns what other tabs saved when it next starts. Returns the unsubscribe. */
+   *  it, an instance learns what other tabs saved when it next starts. Returns the unsubscribe. */
   subscribe?(key: string, fn: () => void): () => void;
 }
 

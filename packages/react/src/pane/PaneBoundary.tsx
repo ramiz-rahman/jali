@@ -1,6 +1,6 @@
 /**
  * Each pane's content renders inside its own error boundary and Suspense boundary, so a pane that throws or waits
- * never takes the workspace with it. A failed pane keeps its place and offers Retry and Close; a waiting pane shows
+ * never takes the instance with it. A failed pane keeps its place and offers Retry and Close; a waiting pane shows
  * its kind's `Loading` (or a quiet default). Both report their state as the pane's activity.
  */
 import { Component, Fragment, Suspense, useEffect, type ReactNode } from "react";
@@ -19,7 +19,7 @@ interface BoundaryProps {
   close: () => void;
   onError: (error: unknown) => void;
   loading: ReactNode;
-  /** The workspace's boundaries as they hydrate: one that mounts before its content holds the workspace's measuring
+  /** The instance's boundaries as they hydrate: one that mounts before its content holds the instance's measuring
    *  back until the content arrives (state/hydration.ts). */
   hydration: PaneHydration;
   children: ReactNode;

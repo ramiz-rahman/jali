@@ -531,10 +531,10 @@ export type Messages = {
 export type MessageOverrides = { [Area in keyof Messages]?: Partial<Messages[Area]> };
 
 /**
- * A workspace's words: English, then each feature's English (`features`, which each feature brings), then a curated
- * page's (`page`, which its engine brings), then `overrides`, area by area. What a workspace doesn't have is left out:
+ * An instance's words: English, then each feature's English (`features`, which each feature brings), then a curated
+ * page's (`page`, which its engine brings), then `overrides`, area by area. What an instance doesn't have is left out:
  * nothing reads it, and an app without it doesn't ship it. So `Messages`' feature and page words are there exactly
- * when the workspace has the feature or the page.
+ * when the instance has the feature or the page.
  */
 export const resolveMessages = (
   overrides?: MessageOverrides,

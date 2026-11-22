@@ -79,7 +79,7 @@ import {
 export type { PaneReport, PaneReportPatch } from "./content";
 export { mergeReports } from "./content";
 
-/** The curated page's steps (actions/page.ts), which the workspace reaches through its page's engine. */
+/** The curated page's steps (actions/page.ts), which the instance reaches through its page's engine. */
 export type PageSteps = Pick<
   PageEngine,
   | "open"
@@ -96,7 +96,7 @@ export type PageSteps = Pick<
 >;
 type Rest<F> = F extends (x: Snapshot, ...args: infer A) => Outcome ? A : never;
 
-/** A step of the curated page's engine, as a step of the workspace: refused (`"unavailable"`) without a page. */
+/** A step of the curated page's engine, as a step of the instance: refused (`"unavailable"`) without a page. */
 const pageStep =
   <K extends keyof PageSteps>(name: K) =>
   (x: Snapshot, ...args: Rest<PageSteps[K]>): Outcome => {
@@ -104,7 +104,7 @@ const pageStep =
     return step ? step(x, ...args) : refuse("unavailable");
   };
 
-/** What is wrong with `ref`, in the workspace's words; undefined when nothing is. `known: false`: any kind will do. */
+/** What is wrong with `ref`, in the instance's words; undefined when nothing is. `known: false`: any kind will do. */
 function refProblem(x: Snapshot, ref: unknown, known = true): string | undefined {
   if (checkRef(x.env.kinds, ref, { known: false })) return say(x).invalidRef;
   return known && checkRef(x.env.kinds, ref)
@@ -127,7 +127,7 @@ function withPane(o: Outcome, id: NodeId | undefined): Outcome {
 /**
  * A public step on the pane `target` names: an id, or the object it shows. Nothing it is given makes it throw: a pane
  * named by something that is neither is `"invalid"`, as is the ref at `refAt` among the rest when it isn't one of the
- * workspace's kinds.
+ * instance's kinds.
  */
 const onPane =
   <A extends unknown[]>(

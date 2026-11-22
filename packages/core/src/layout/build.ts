@@ -49,7 +49,7 @@ export type TabsDraft = { type: "stack"; options: TabsOptions; children: PaneDra
 export type Draft = PaneDraft | SplitDraft | TabsDraft;
 
 /** Anything that can stand for a layout: a whole `Layout`, a builder's result, or a single ref. */
-/** A layout: one a workspace gave (`getLayout()`, read-only or not), one built with `row`/`column`/`tabs`/`pane`, or
+/** A layout: one an instance gave (`getLayout()`, read-only or not), one built with `row`/`column`/`tabs`/`pane`, or
  *  one ref alone. */
 export type LayoutInput = Layout | DeepReadonly<Layout> | Draft | ObjectRef;
 type Child = Draft | ObjectRef;

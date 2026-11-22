@@ -1,5 +1,5 @@
 /**
- * The public face of a workspace: what `createJali` returns. It reads the state, runs the public actions, tells the
+ * The public face of an instance: what `createJali` returns. It reads the state, runs the public actions, tells the
  * app what changed (`on`), and saves and restores the layout. Everything else about the store (raw writes, the
  * engine's steps, its DOM and ports) stays in `@jali/core/adapter`, reached with `storeOf(jali)`.
  */
@@ -27,9 +27,9 @@ export interface JaliEventBase {
 }
 
 /**
- * What a workspace tells the app, once per change and only once it is made (never for the steps inside one action).
+ * What an instance tells the app, once per change and only once it is made (never for the steps inside one action).
  * In each change they come in this order: `close`, `open`, `pin`, `focus`, `layout`. Each carries `input`. `R` is the
- * refs of the workspace's kinds: `ref.kind` says which, and narrows its params.
+ * refs of the instance's kinds: `ref.kind` says which, and narrows its params.
  */
 export interface JaliEvents<R extends ObjectRef = ObjectRef> {
   /** A pane was added to the layout, or now shows another object (`previous`: what it showed before). */
@@ -86,11 +86,11 @@ export type JaliState<R extends ObjectRef = ObjectRef> = DeepReadonly<
   readonly recent: readonly R[];
 };
 
-/** The page's actions a workspace has: `JaliPage` for the page's item type, or none. */
+/** The page's actions an instance has: `JaliPage` for the page's item type, or none. */
 export type PageOf<P> = P extends ProfileBase<any, infer I> ? JaliPage<I> : undefined; // eslint-disable-line @typescript-eslint/no-explicit-any
 
 /**
- * A workspace: `createJali(...)` returns one, `<JaliRoot jali>` renders it. `R` is the refs of its kinds, which
+ * An instance: `createJali(...)` returns one, `<JaliRoot jali>` renders it. `R` is the refs of its kinds, which
  * `createJali` infers from `panes` (a ref of a kind it doesn't have is a type error); `P` is its curated page's
  * actions, or `undefined` without a page.
  */
@@ -98,7 +98,7 @@ export interface Jali<
   R extends ObjectRef = ObjectRef,
   P extends JaliPage<any> | undefined = JaliPage | undefined, // eslint-disable-line @typescript-eslint/no-explicit-any
 > {
-  /** What an app can ask the workspace to do with panes and layouts: `jali.actions.openBeside(pane, ref)`. */
+  /** What an app can ask the instance to do with panes and layouts: `jali.actions.openBeside(pane, ref)`. */
   readonly actions: JaliActions<R>;
   /** The curated page's actions (`jali.page.showView("summary")`): there only when `createJali({ page })` was given
    *  one. */
@@ -109,7 +109,7 @@ export interface Jali<
   get(): JaliState<R>;
   /** Called after every change of state. Use `on` to hear what changed. */
   subscribe(fn: () => void): () => void;
-  /** The workspace as it is on screen: panes, their boxes and titles, the shelf. Read-only. */
+  /** The layout as it is on screen: panes, their boxes and titles, the shelf. Read-only. */
   model(): JaliModel<R>;
   /** Hear one kind of change (`jali.on("open", ({ pane, ref }) => …)`, `jali.on("toast", show)`). Returns the
    *  unsubscribe. */
@@ -131,7 +131,7 @@ export interface Jali<
   /** Start its keys, Back and Forward, theme and saving; returns their stop, after which `start()` starts it again.
    *  `<JaliRoot>` does both. */
   start(): () => void;
-  /** Stop for good, when the workspace goes away (a route change, a test's end): its listeners stop, pane state
+  /** Stop for good, when the instance goes away (a route change, a test's end): its listeners stop, pane state
    *  waiting to be saved is saved, a follow waiting for the selection to rest and a pending address write are
    *  dropped, and nothing is scheduled after. A question still open (`beforeClose`, or "Discard unsaved changes?")
    *  settles as `"kept"`, every action after it is refused as `"unavailable"`, and `start()` does nothing. Its state
@@ -139,11 +139,11 @@ export interface Jali<
   destroy(): void;
 }
 
-/** Any workspace, whatever its kinds and page. */
+/** Any instance, whatever its kinds and page. */
 export type AnyJali = Jali<any, any>; // eslint-disable-line @typescript-eslint/no-explicit-any
 
 /**
- * One declaration types the app's workspace everywhere, React's hooks included, as TanStack Router does:
+ * One declaration types the app's instance everywhere, React's hooks included, as TanStack Router does:
  *
  *   declare module "@jali/core" {
  *     interface Register {
@@ -154,15 +154,15 @@ export type AnyJali = Jali<any, any>; // eslint-disable-line @typescript-eslint/
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type
 export interface Register {}
 
-/** The app's workspace type, from `Register`; any workspace when nothing is registered. */
+/** The app's instance type, from `Register`; any instance when nothing is registered. */
 export type RegisteredJali = Register extends { jali: infer J extends AnyJali } ? J : Jali;
 
-/** The refs of a workspace's kinds. */
+/** The refs of an instance's kinds. */
 export type RefsOf<J extends AnyJali> = J extends Jali<infer R, any> ? R : ObjectRef; // eslint-disable-line @typescript-eslint/no-explicit-any
 
 const stores = /* @__PURE__ */ new WeakMap<AnyJali, JaliStore>();
 
-/** The store behind a workspace, for adapters (`@jali/core/adapter`). */
+/** The store behind an instance, for adapters (`@jali/core/adapter`). */
 export function storeOf(jali: AnyJali): JaliStore {
   const store = stores.get(jali);
   if (!store) throw new Error("Jali: not an instance made by createJali");

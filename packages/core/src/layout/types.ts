@@ -1,6 +1,6 @@
 /** Framework-free layout model. The tree is canonical; hiding and tab selection are overlays. */
-/** `T`, read-only all the way down: what a workspace gives an app to read (its state, layout, model and events). An
- *  edit would change the workspace behind its back, with no history and no event; in development it throws. */
+/** `T`, read-only all the way down: what an instance gives an app to read (its state, layout, model and events). An
+ *  edit would change the instance behind its back, with no history and no event; in development it throws. */
 export type DeepReadonly<T> = T extends (...args: never[]) => unknown
   ? T
   : T extends ReadonlyMap<infer K, infer V>

@@ -28,16 +28,16 @@ import { resolve as resolveDraft } from "./fit/resolve";
 import { encode as encodeDraft } from "./codec/codec";
 import { validate as validateDraft } from "./codec/validate";
 import type { DeepReadonly, Layout } from "./types";
-/** Where every pane goes in the room there is: boxes, dividers, groups and the shelf. Takes a layout a workspace gave. */
+/** Where every pane goes in the room there is: boxes, dividers, groups and the shelf. Takes a layout an instance gave. */
 export const resolve = resolveDraft as (
   layout: DeepReadonly<Layout>,
   ...rest: Parameters<typeof resolveDraft> extends [unknown, ...infer R] ? R : never
 ) => ReturnType<typeof resolveDraft>;
 export { refit } from "./fit/refit";
 export { decode } from "./codec/codec";
-/** A layout as the text a link carries. Takes a layout a workspace gave. */
+/** A layout as the text a link carries. Takes a layout an instance gave. */
 export const encode = encodeDraft as (layout: DeepReadonly<Layout>) => string;
-/** Whether a layout can be shown with these kinds, and what is wrong when not. Takes a layout a workspace gave. */
+/** Whether a layout can be shown with these kinds, and what is wrong when not. Takes a layout an instance gave. */
 export const validate = validateDraft as (
   layout: DeepReadonly<Layout>,
   ...rest: Parameters<typeof validateDraft> extends [unknown, ...infer R] ? R : never

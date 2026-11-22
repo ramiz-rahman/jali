@@ -1,7 +1,7 @@
 /**
  * A boundary around the host's code in Jali's chrome (a kind's icon, a host icon, a page's rail and header, Settings'
  * extra fieldsets, and the root's children and dialogs): a throw there replaces that part with `fallback` (nothing by
- * default), not the workspace, and never unmounts the host's app.
+ * default), not the instance, and never unmounts the host's app.
  */
 import { Component, type ReactNode } from "react";
 

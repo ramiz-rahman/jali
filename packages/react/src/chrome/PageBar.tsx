@@ -125,7 +125,7 @@ function PageTabs() {
   const strip = useRef<HTMLDivElement>(null);
   // The drag a pointer-down started: a click that ends a drag is not a click.
   const drag = useRef<{ dragged(): boolean } | null>(null);
-  // ⌥ over a tab previews where ⌥-click would open it beside (the workspace draws it).
+  // ⌥ over a tab previews where ⌥-click would open it beside (the instance draws it).
   const hovered = useRef<string | null>(null);
   const ghost = (alt: boolean) => {
     const g = alt ? hovered.current : null;
@@ -145,7 +145,7 @@ function PageTabs() {
       window.removeEventListener("keyup", key);
       window.removeEventListener("blur", blur);
     };
-    // Once per workspace: `ghost` reads only the store and a ref.
+    // Once per instance: `ghost` reads only the store and a ref.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [store]);
   const multi = page.mode === "split";

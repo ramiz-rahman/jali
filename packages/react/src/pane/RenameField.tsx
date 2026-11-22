@@ -69,7 +69,7 @@ export function RenameField({ pane, title }: { pane: NodeId; title: string }) {
         setFailed(false);
       }}
       onKeyDown={(e) => {
-        // The field's keys are its own: Delete, arrows and the rest never reach the tab or the workspace.
+        // The field's keys are its own: Delete, arrows and the rest never reach the tab or the instance.
         e.stopPropagation();
         if (e.key === "Enter") {
           e.preventDefault();

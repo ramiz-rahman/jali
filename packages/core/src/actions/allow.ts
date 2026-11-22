@@ -65,7 +65,7 @@ export function allows(
   if (env.kinds.get(pane.ref.kind)?.allow?.[action] === false) return false;
   const rule = env.allow;
   if (rule?.[action] === false) return false;
-  // Pop out only where the workspace has it (the `popOut()` feature, which brings the window).
+  // Pop out only where the instance has it (the `popOut()` feature, which brings the window).
   if (action === "popOut" && !env.features?.some((f) => f.id === "popOut")) return false;
   if (!rule?.when) return true;
   const page = s.page

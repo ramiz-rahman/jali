@@ -17,7 +17,7 @@ import { say } from "../state/messages";
 import { follow, followLater, sameRef, setKept } from "./follow";
 import { own } from "../own";
 
-/** What a new split or a stack's "+" shows until the person chooses an object: the workspace's launcher. */
+/** What a new split or a stack's "+" shows until the person chooses an object: the instance's launcher. */
 const launcherOf = (x: Snapshot): ObjectRef | undefined =>
   x.env.launcher ? { kind: x.env.launcher, params: {} } : undefined;
 export const RECENT_MAX = 8;
@@ -93,7 +93,7 @@ export function openBeside(
     return { ...peekSheet(x, ref, source), msg: say(x).peekOnly(m.env.kinds.title(ref)) };
   if (s.page?.mode === "single")
     return { ...peekSheet(x, ref, source), msg: say(x).peekSingle(m.env.kinds.title(ref)) };
-  // A page is open, so the workspace has its engine (env.page).
+  // A page is open, so the instance has its engine (env.page).
   const page = s.page ? x.env.page : undefined;
   if (page) {
     // One object, one pane: a link to what is already on the page goes there (a view, whatever kind shows it).

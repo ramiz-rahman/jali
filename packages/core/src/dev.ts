@@ -3,7 +3,7 @@
  * webpack, Next.js, esbuild, Rollup with its replace plugin) writes into the code it builds, and which Node and the
  * test runners have. Not `import.meta.env.DEV`, which only Vite defines: under any other bundler the development
  * checks were silently off. Where nothing defines it (a page that loads the package unbundled), reading `process`
- * throws and Jali is in production. Read when a workspace is made, so a test can switch it.
+ * throws and Jali is in production. Read when an instance is made, so a test can switch it.
  *
  * Jali's own development-only code doesn't call this: it tests the literal inside a `try`
  * (`try { if (process.env.NODE_ENV !== "production") … } catch {}`), so a production build replaces the test with
