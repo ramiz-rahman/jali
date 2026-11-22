@@ -51,10 +51,13 @@ test("⋯ opens the same menu, under itself, and Shift+F10 on the pane opens it 
   await expect(menu.getByRole("menuitem", { name: /^Full screen/ })).toBeVisible();
   const [m, b] = [(await menu.boundingBox())!, (await more.boundingBox())!];
   expect(Math.round(m.x + m.width)).toBe(Math.round(b.x + b.width));
+  // Escape gives focus back to the ⋯ that opened it (react-codex REACT-11).
   await page.keyboard.press("Escape");
-  await expect(pane).toBeFocused();
+  await expect(more).toBeFocused();
+  await pane.focus();
   await page.keyboard.press("Shift+F10");
   await expect(menu).toBeVisible();
   await page.keyboard.press("Escape");
   await expect(menu).toHaveCount(0);
+  await expect(pane).toBeFocused();
 });
