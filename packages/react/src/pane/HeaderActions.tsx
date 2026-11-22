@@ -119,8 +119,9 @@ export function HeaderActions({ id, title, zoomed, chrome, tabs, narrow = 0, onM
             data-action="tuck"
             aria-label={home ? tuckLabel : t.tuck(title)}
             title={tuckLabel}
-            disabled={!home}
-            onClick={() => actions.tuck(id)}
+            // Reachable when it can't tuck, so its reason (the name and tooltip) can be read.
+            aria-disabled={!home || undefined}
+            onClick={() => home && actions.tuck(id)}
           >
             <icon.tuck {...ICON.header} aria-hidden />
           </button>

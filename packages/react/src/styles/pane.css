@@ -138,11 +138,11 @@
   .jali-pane:focus-within .jali-pane-actions .jali-icon-btn {
     opacity: 1;
   }
-  .jali-pane .jali-pane-actions .jali-icon-btn:disabled {
+  .jali-pane .jali-pane-actions .jali-icon-btn:is(:disabled, [aria-disabled="true"]) {
     opacity: 0.35;
     cursor: not-allowed;
   }
-  .jali-pane .jali-pane-actions .jali-icon-btn:disabled:hover {
+  .jali-pane .jali-pane-actions .jali-icon-btn:is(:disabled, [aria-disabled="true"]):hover {
     background: none;
     color: var(--jali-text-subtle);
   }

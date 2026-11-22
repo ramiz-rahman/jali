@@ -103,7 +103,18 @@ export function Menu({ at, onClose, initial, trigger, style, children, ...rest }
         else if (e.key === "Escape" || e.key === "Tab") onClose(true);
         else if (e.key === "Enter" || e.key === " ")
           (document.activeElement as HTMLElement)?.click();
-        else used = false;
+        else if (e.key.length === 1 && !e.metaKey && !e.ctrlKey && !e.altKey) {
+          // Type-ahead (APG menu): the next item whose name starts with the character.
+          const k = e.key.toLowerCase();
+          const at = list.findIndex(
+            (el, n) => n > i && el.textContent?.trim().toLowerCase().startsWith(k),
+          );
+          const from =
+            at < 0
+              ? list.findIndex((el) => el.textContent?.trim().toLowerCase().startsWith(k))
+              : at;
+          if (from >= 0) go(from);
+        } else used = false;
         if (used) {
           e.preventDefault();
           e.nativeEvent.stopImmediatePropagation();
