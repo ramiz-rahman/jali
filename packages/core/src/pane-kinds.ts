@@ -5,6 +5,7 @@
 import type { KindRegistry, Layout, NodeId, ObjectRef, PaneKind, ViewState } from "./layout/types";
 import { map } from "./layout/tree/tree";
 import { own } from "./own";
+import { isDev } from "./dev";
 
 // ---------- params ----------
 
@@ -542,14 +543,66 @@ const asText = (params: Params) =>
 /** A kind's own functions take its typed params; the registry calls them with the params it read. */
 type Fn<R> = ((params: Params) => R) | undefined;
 
+/**
+ * A kind's sizes as the layout can use them. A size that isn't a finite number of at least 0 (`NaN`, a string, -10)
+ * is left out, so the default stands; a max below the min, or a comfortable size outside them, is left out too.
+ * Each is a development error: before, `min: NaN` put panes at NaN px.
+ */
+function sizesOf(
+  kind: string,
+  axis: "width" | "height",
+  given: PaneWidth | undefined,
+  dev: boolean,
+) {
+  const out: { min?: number; comfortable?: number; max?: number } = {};
+  if (!given || typeof given !== "object") return out;
+  const bad = (what: string, value: unknown) => {
+    if (dev)
+      console.error(
+        `Jali: kind "${kind}": ${axis}.${what} ${value} can't be used, and is left out`,
+      );
+  };
+  for (const key of ["min", "comfortable", "max"] as const) {
+    const v = given[key as keyof PaneWidth] as unknown;
+    if (v === undefined) continue;
+    if (typeof v === "number" && Number.isFinite(v) && v >= 0) out[key] = v;
+    else bad(key, String(v));
+  }
+  if (out.max !== undefined && out.min !== undefined && out.max < out.min) {
+    bad("max", `${out.max} (below its min ${out.min})`);
+    delete out.max;
+  }
+  const c = out.comfortable;
+  if (
+    c !== undefined &&
+    ((out.min !== undefined && c < out.min) || (out.max !== undefined && c > out.max))
+  ) {
+    bad("comfortable", `${c} (outside its min and max)`);
+    delete out.comfortable;
+  }
+  return out;
+}
+
 export function createPaneKinds<D extends PaneKindBase = PaneKindBase>(
   defs: readonly D[] = [],
 ): PaneKinds<D> {
+  const dev = isDev();
+  // Two definitions of one kind: the last wins, as it always has, and development says so.
+  if (dev) {
+    const seen = new Set<string>();
+    for (const d of defs) {
+      if (seen.has(d.kind))
+        console.error(`Jali: kind "${d.kind}" is defined twice; the last one is used`);
+      seen.add(d.kind);
+    }
+  }
   // Copies, so the registry holds plain data rather than each definition's call.
   const kinds = new Map<string, D>(defs.map((d) => [d.kind, { ...d }]));
   const listeners = new Set<() => void>();
   let version = 0;
   let cached: { version: number; value: KindRegistry } | null = null;
+  // Definitions whose sizes development has checked already: each is reported once, not at every registration.
+  const reported = new WeakSet<D>();
 
   const parsed = (ref: ObjectRef) => parseParams(kinds.get(ref.kind)?.params, ref.params);
   const params = (ref: ObjectRef) => parsed(ref).params;
@@ -598,16 +651,19 @@ export function createPaneKinds<D extends PaneKindBase = PaneKindBase>(
       // No prototype: a kind called `constructor` or `toString` is one only if it was registered.
       const value: KindRegistry = Object.create(null);
       for (const d of kinds.values()) {
+        const w = sizesOf(d.kind, "width", d.width, dev && !reported.has(d)),
+          h = sizesOf(d.kind, "height", d.height, dev && !reported.has(d));
+        reported.add(d);
         const k: PaneKind = {
           kind: d.kind,
           title,
-          minWidth: d.width?.min ?? DEFAULT_MIN_WIDTH,
-          minHeight: d.height?.min ?? DEFAULT_MIN_HEIGHT,
+          minWidth: w.min ?? DEFAULT_MIN_WIDTH,
+          minHeight: h.min ?? DEFAULT_MIN_HEIGHT,
         };
-        if (d.width?.max !== undefined) k.maxWidth = d.width.max;
-        if (d.width?.comfortable !== undefined) k.comfortableWidth = d.width.comfortable;
-        if (d.height?.max !== undefined) k.maxHeight = d.height.max;
-        if (d.height?.comfortable !== undefined) k.comfortableHeight = d.height.comfortable;
+        if (w.max !== undefined) k.maxWidth = w.max;
+        if (w.comfortable !== undefined) k.comfortableWidth = w.comfortable;
+        if (h.max !== undefined) k.maxHeight = h.max;
+        if (h.comfortable !== undefined) k.comfortableHeight = h.comfortable;
         const types = d.params;
         const local = appOnlyParams(types);
         if (local.length) k.appOnly = local;

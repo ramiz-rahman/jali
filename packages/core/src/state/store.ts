@@ -455,6 +455,10 @@ export function createUiStore(deps: UiStoreDeps): UiStore {
   const dom = createDom(deps.id ?? "jali");
   // The id is the prefix: two workspaces with their own ids never overwrite each other ("jali" stays "jali").
   const storage = deps.storage ?? browserStorage(deps.id ?? "jali");
+  if (DEV)
+    for (const [i, p] of env.presets.entries())
+      if (env.presets.findIndex((q) => q.id === p.id) !== i)
+        console.error(`Jali: two presets have the id "${p.id}"; only the first can be chosen`);
   if (DEV && deps.preset !== undefined && !env.presets.some((p) => p.id === deps.preset))
     console.error(`Jali: there is no preset "${deps.preset}"; the workspace opens on the first`);
   const start = presetById(env, deps.preset);
