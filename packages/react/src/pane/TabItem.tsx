@@ -5,7 +5,7 @@ import { useLayoutEffect, useRef } from "react";
 import { useJaliIcons } from "../icons/context";
 import type { Tab, TabDrop } from "@jali/core/adapter";
 import { allows } from "@jali/core/adapter";
-import { shortcutLabel, roleOf, titleOf, startPaneDrag } from "@jali/core/adapter";
+import { roleOf, titleOf, startPaneDrag } from "@jali/core/adapter";
 import { useEnv, usePaneAttributesOf, useStore, useUi } from "../state/react";
 import { Activity, activityLabel } from "./Activity";
 import { KindIcon } from "./icons";
@@ -87,7 +87,7 @@ export function TabItem({
         <RenameField pane={t.id} title={title} />
       </div>
     );
-  const putBackKeys = shortcutLabel(store, "pane.putBack");
+  const putBackKeys = store.keymap.label("pane.putBack");
   const description = tw.description(
     isFolded ? "folded" : tucked ? "tucked" : undefined,
     tucked ? putBackKeys : "",

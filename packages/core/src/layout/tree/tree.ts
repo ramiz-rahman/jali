@@ -68,7 +68,6 @@ export function newId(root: LayoutNode, prefix = "pane"): NodeId {
   return `${prefix}-${i}`;
 }
 
-export const parentOf = parent;
 export function stackOf(root: LayoutNode, id: NodeId): StackNode | undefined {
   const n = parent(root, id);
   return n?.type === "stack" ? n : undefined;

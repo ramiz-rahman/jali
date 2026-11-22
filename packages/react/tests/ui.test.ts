@@ -3,7 +3,7 @@ import { clampSize, snap, SNAP_IN, SNAP_OUT } from "../../core/src/dividers/resi
 import { zoneFor, EDGE_ZONE } from "../../core/src/workspace/dnd";
 import { decodePeek, encodePeek } from "../../core/src/url";
 import { createKeyHandler } from "../../core/src/commands/keyboard";
-import { commandsOf, runCommand, shortcutLabel } from "../../core/src/commands/registry";
+import { commandsOf, runCommand } from "../../core/src/commands/registry";
 import { formatChord, parseKeys } from "../../core/src/commands/format";
 import { mergeTargets } from "../../core/src/actions/tabs";
 import { openPaneFor } from "../../core/src/actions/open";
@@ -327,7 +327,7 @@ describe("apply and the command registry", () => {
       "Ctrl+Alt+Shift+M",
     );
     expect(formatChord({ key: "Enter", shift: true, mod: true }, "mac")).toBe("⇧⌘↵");
-    expect(shortcutLabel(store, "pane.focus.next")).toBe("F6");
+    expect(store.keymap.label("pane.focus.next")).toBe("F6");
     expect(store.keymap.sequences("pane.focus.left")[0]).toEqual([
       { key: "KeyK", mod: true },
       { key: "ArrowLeft", mod: true },

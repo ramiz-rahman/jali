@@ -396,10 +396,6 @@ export const runCommand = (jali: AnyJali, id: string): boolean => run(storeOf(ja
 export const commandById = (store: Pick<JaliStore, "env">, id: string) =>
   forEnv(store.env).byId.get(id);
 
-/** "⌘K ⌘M": a command's first binding in this store's keymap, for tooltips and the palette ("" when unbound). */
-export const shortcutLabel = (store: Pick<JaliStore, "keymap">, id: string) =>
-  store.keymap.label(id);
-
 /** Put the address on the clipboard, and say so ("Link copied"). */
 export function copyLink(jali: AnyJali) {
   const store = storeOf(jali);

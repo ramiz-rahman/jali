@@ -167,7 +167,6 @@ export {
   commandById,
   commandDefsOf,
   revealFromShelf,
-  shortcutLabel,
   type CommandDef,
 } from "./commands/registry";
 
