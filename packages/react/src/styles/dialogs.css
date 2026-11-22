@@ -251,4 +251,13 @@
     color: var(--jali-on-accent);
     filter: brightness(1.08);
   }
+
+  /* Forced colours (Windows High Contrast) drop backgrounds, shadows and tints: the selected row of ⌘K and the
+     chooser, marked by a tint, gets an outline in a system colour instead. */
+  @media (forced-colors: active) {
+    .jali-palette-item.is-selected {
+      outline: 2px solid Highlight;
+      outline-offset: -2px;
+    }
+  }
 }

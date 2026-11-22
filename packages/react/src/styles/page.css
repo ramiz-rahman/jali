@@ -1,4 +1,33 @@
 @layer jali {
+  /* ---------- curated workspaces: role panes name their role; opened panes carry the investigation's tint ---------- */
+  .jali-pane-sub {
+    font-size: var(--jali-text-sm);
+    color: var(--jali-text-subtle);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    min-width: 0;
+  }
+  .jali-pane[data-origin="role"] .jali-pane-title h2 {
+    flex: none;
+    max-width: 60%;
+  }
+  .jali-pane[data-boundary="tint"] .jali-pane-header {
+    background: var(--jali-opened-bg);
+    border-bottom-color: var(--jali-opened-line);
+  }
+  .jali-pane[data-boundary="tint"] {
+    border-color: var(--jali-opened-line);
+  }
+  .jali-pane[data-boundary="tint"].is-focused {
+    border-color: var(--jali-pane-border-focused, var(--jali-accent));
+  }
+  .jali-badge-opened {
+    color: var(--jali-opened-ink);
+    border-color: var(--jali-opened-line);
+    background: var(--jali-surface);
+  }
+
   /* ---------- a curated page: the profile's rail at the left; its header, the page's tabs and the panes at the right ---------- */
   .jali-page {
     display: grid;
@@ -134,6 +163,15 @@
     }
     .jali-mode-switch {
       display: none;
+    }
+  }
+
+  /* Forced colours (Windows High Contrast) drop backgrounds, shadows and tints: a page's selected tab, marked by a
+     tint, gets an outline in a system colour instead. */
+  @media (forced-colors: active) {
+    .jali-page-tab[aria-selected="true"] {
+      outline: 2px solid Highlight;
+      outline-offset: -2px;
     }
   }
 }

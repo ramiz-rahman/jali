@@ -6,6 +6,9 @@
 @import "./jali-theme.css";
 @import "./workspace.css";
 @import "./pane.css";
+@import "./tabs.css";
+@import "./tab-menu.css";
+@import "./popout.css";
 @import "./dividers.css";
 @import "./shelf.css";
 @import "./chrome.css";

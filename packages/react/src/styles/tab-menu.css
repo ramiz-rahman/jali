@@ -1,0 +1,40 @@
+@layer jali {
+  /* A tab's own menu: groups between hairlines, key hints at the end, disabled items reachable but quiet. */
+  .jali-tab-actions-menu {
+    width: auto;
+    min-width: 13rem;
+    max-width: 20rem;
+    max-height: none;
+  }
+  .jali-menu-sep {
+    height: 1px;
+    margin: 0.25rem 0.25rem;
+    background: var(--jali-border);
+  }
+  .jali-menu-keys {
+    flex: none;
+    font: inherit;
+    color: var(--jali-text-muted);
+  }
+  .jali-tab-menu-item[aria-disabled="true"] {
+    cursor: default;
+    color: var(--jali-text-muted);
+  }
+
+  .jali-tab.is-flash {
+    animation: tab-flash 600ms ease-out;
+  }
+  @keyframes tab-flash {
+    0% {
+      background: color-mix(in srgb, var(--jali-accent) 22%, transparent);
+    }
+    100% {
+      background: transparent;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .jali-tab.is-flash {
+      animation: none;
+    }
+  }
+}

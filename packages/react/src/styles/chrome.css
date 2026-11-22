@@ -227,4 +227,13 @@
       display: none;
     }
   }
+
+  /* Forced colours (Windows High Contrast) drop backgrounds, shadows and tints: the phone switcher's current pane,
+     marked by a tint, gets an outline in a system colour instead. */
+  @media (forced-colors: active) {
+    .jali-switch-item.is-active {
+      outline: 2px solid Highlight;
+      outline-offset: -2px;
+    }
+  }
 }
