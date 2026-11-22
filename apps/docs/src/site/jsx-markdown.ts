@@ -81,6 +81,8 @@ export interface MarkdownOptions {
   tables?: Record<string, (attrs: Attrs) => string>;
   /** Turn a site link (`/guides/theming#x`) into another, e.g. a relative file. */
   link?: (href: string) => string;
+  /** Code the page imported (`import code from "…?raw"`), by name: a reference entry's `example={code}`. */
+  code?: Record<string, string>;
 }
 
 /** Replace every docs component in `text` (Markdown with JSX in it) with Markdown. */
@@ -153,7 +155,10 @@ function opening(tag: Tag, opts: MarkdownOptions, link: (h: string) => string): 
       const kind = str(a, "kind");
       const from = str(a, "from");
       const sig = str(a, "signature");
-      return `\n\n### ${name}\n\n${kind ? `*${kind}*` : ""}${from ? `${kind ? ", " : ""}from \`${from}\`` : ""}\n\n${sig ? `\`\`\`ts\n${sig}\n\`\`\`\n\n` : ""}`;
+      const example = opts.code?.[str(a, "example") ?? ""];
+      const file = str(a, "exampleFile");
+      const lang = /\.(css|tsx?|jsx?)$/.exec(file ?? "")?.[1] ?? "tsx";
+      return `\n\n### ${name}\n\n${kind ? `*${kind}*` : ""}${from ? `${kind ? ", " : ""}from \`${from}\`` : ""}\n\n${sig ? `\`\`\`ts\n${sig}\n\`\`\`\n\n` : ""}${example ? `${file ? `Example, \`${file}\`:\n\n` : ""}\`\`\`${lang}\n${example.replace(/\n$/, "")}\n\`\`\`\n\n` : ""}`;
     }
     case "Params":
       return `\n\n**${str(a, "title") ?? "Parameters"}**\n\n`;

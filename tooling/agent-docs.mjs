@@ -15,6 +15,18 @@ import { createServer } from "vite-plus";
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const docsApp = join(root, "apps/docs");
 export const OUT = join(root, "packages/jali/docs");
+/** The docs site, for links to pages that aren't Markdown here (the home page, the examples). */
+const SITE = "https://jali.ramizrahman.com";
+
+/**
+ * A site anchor as the heading's anchor in rendered Markdown (GitHub's rule, which most viewers follow): lower case,
+ * punctuation dropped, spaces as hyphens. `#layout.arrange` → `#layoutarrange`, `#UrlSyncOptions` → `#urlsyncoptions`.
+ */
+const slug = (anchor) =>
+  decodeURIComponent(anchor)
+    .toLowerCase()
+    .replace(/[^\p{L}\p{N}\s_-]/gu, "")
+    .replace(/\s/g, "-");
 
 /** Every file to write, by path under docs/: README.md plus one per page. */
 export async function render() {
@@ -46,9 +58,9 @@ export async function render() {
       const here = dirname(fileOf(item.path));
       const link = (href) => {
         const m = /^(\/[^#?]*)(#.*)?$/.exec(href);
-        // A page the docs don't have as Markdown (the home page, an example) keeps its site path.
-        if (!m || !known.has(m[1])) return href;
-        return `${relative(here, fileOf(m[1])) || fileOf(m[1])}${m[2] ?? ""}`;
+        // A page the docs don't have as Markdown (the home page, an example) keeps its site URL.
+        if (!m || !known.has(m[1])) return /^\//.test(href) ? `${SITE}${href}` : href;
+        return `${relative(here, fileOf(m[1])) || fileOf(m[1])}${m[2] ? `#${slug(m[2].slice(1))}` : ""}`;
       };
       const md = toMarkdown(page, { tables: MARKDOWN_TABLES, link }).replace(
         /\]\((\/[^)\s]*)\)/g,

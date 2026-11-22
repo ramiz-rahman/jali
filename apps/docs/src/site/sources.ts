@@ -168,15 +168,16 @@ const attr = (attrs: string, name: string) =>
 export function toMarkdown(page: PageSource, opts?: MarkdownOptions): string {
   const { body } = frontmatterOf(page.source);
   const vars: Record<string, string> = {};
-  let text = body.replace(
-    /^import\s+(\w+)\s+from\s+["']([^"']+)["'];?\s*$/gm,
-    (_, name: string, spec: string) => {
-      const content = spec.endsWith("?raw") ? resolveImport(page.file, spec) : undefined;
-      if (content !== undefined) vars[name] = content;
-      return "";
-    },
+  // The page's own imports go; an `import` inside a fenced code block is part of the code, and stays.
+  let text = outsideFences(body, (part) =>
+    part
+      .replace(/^import\s+(\w+)\s+from\s+["']([^"']+)["'];?[ \t]*$/gm, (_, name: string, spec: string) => {
+        const content = spec.endsWith("?raw") ? resolveImport(page.file, spec) : undefined;
+        if (content !== undefined) vars[name] = content;
+        return "";
+      })
+      .replace(/^import\s+[^;]*?from\s+["'][^"']+["'];?[ \t]*$/gm, ""),
   );
-  text = text.replace(/^import\s+[\s\S]*?from\s+["'][^"']+["'];?\s*$/gm, "");
 
   text = text.replace(/<Code\b([\s\S]*?)\/>/g, (whole, attrs: string) => {
     const c = attr(attrs, "code");
@@ -203,8 +204,19 @@ export function toMarkdown(page: PageSource, opts?: MarkdownOptions): string {
         .join("\n");
     },
   );
-  text = jsxToMarkdown(text, opts);
+  text = jsxToMarkdown(text, { ...opts, code: vars });
   return `# ${page.title}\n\n${page.summary}\n\n${text}\n`;
+}
+
+/** Apply `f` to the text between fenced code blocks, leaving the blocks as they are. */
+function outsideFences(text: string, f: (part: string) => string): string {
+  let out = "";
+  let at = 0;
+  for (const m of text.matchAll(/^([ \t]*)```[^\n]*\n[\s\S]*?^\1```[ \t]*$/gm)) {
+    out += f(text.slice(at, m.index)) + m[0];
+    at = m.index! + m[0].length;
+  }
+  return out + f(text.slice(at));
 }
 
 export const markdownUrl = (path: string) => (path === "/" ? "/index.md" : `${path}.md`);
