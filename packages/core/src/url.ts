@@ -28,8 +28,6 @@ import { browserLocation, browserStorage, type LocationPort, type StoragePort } 
 import { own as ownOf } from "./own";
 import { sameRef } from "./layout/ops/ref";
 
-declare const process: { env: { NODE_ENV?: string } };
-
 export const PERSIST_MS = 120;
 const BROKEN_KEY = "broken-layout";
 /** The most panes a page link opens (`open=`); the rest are left out. docs/DECISIONS.md, 20 Nov 2026. */

@@ -28,8 +28,9 @@ export function createLifetime(): Lifetime {
   const life = new AbortController();
   const timers = new Map<string, ReturnType<typeof setTimeout>>();
   const gestures = new Set<() => void>();
+  // Each cancel takes itself out of the set; a Set's iteration allows that.
   const cancelGestures = () => {
-    for (const cancel of [...gestures]) cancel();
+    for (const cancel of gestures) cancel();
   };
   return {
     signal: life.signal,
