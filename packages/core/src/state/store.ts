@@ -66,6 +66,7 @@ import { cssString, paneDomId } from "../dom/ids";
 import { noDom, type DomPort, type DragKind } from "../dom/port";
 import { pageDirection } from "../dom/direction";
 import { readPaneState } from "./pane-state";
+import { isDev } from "../dev";
 import { startUi } from "../boot";
 import {
   createKeymap,
@@ -407,13 +408,12 @@ function createDom(id: string): JaliDom {
   return dom;
 }
 
-const DEV = !!(import.meta as unknown as { env?: { DEV?: boolean } }).env?.DEV;
-
 export function createUiStore(deps: UiStoreDeps): UiStore {
   const page = pageEngineOf(deps.profile);
   if (deps.profile && !page)
     throw new Error("Jali: make the page with `definePage`, which gives it the code that runs it");
   const messages = resolveMessages(deps.messages, page?.words);
+  const DEV = isDev();
   const env: Env = {
     kinds: deps.kinds,
     profile: deps.profile ?? null,

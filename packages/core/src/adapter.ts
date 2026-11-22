@@ -19,6 +19,7 @@ export type {
 } from "./layout/types";
 
 // ---------- the instance and start-up ----------
+export { isDev } from "./dev";
 export { createInstance, storeOf, type JaliEvent } from "./state/instance";
 export { boot, flushPaneState, startUi, type StartOptions } from "./boot";
 
