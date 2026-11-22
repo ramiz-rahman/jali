@@ -1,13 +1,13 @@
 #!/usr/bin/env node
 /**
- * What an app ships of Jali. Builds each scenario in scripts/size/ with `vp build` in production mode against the
+ * What an app ships of Jali. Builds each scenario in tooling/size/ with `vp build` in production mode against the
  * packed dist (run `pnpm build:packages` first; `pnpm size` does), each package in a chunk of its own, and prints
  * minified and gzipped bytes per package. Fails when a package's share of a scenario is over its budget.
  *
- *   node scripts/size.mjs              every scenario, with the budget check
- *   node scripts/size.mjs minimal      one scenario
- *   node scripts/size.mjs --modules    also list the source files of @jali/* each scenario ships, largest first
- *   node scripts/size.mjs --json       the numbers as JSON
+ *   node tooling/size.mjs              every scenario, with the budget check
+ *   node tooling/size.mjs minimal      one scenario
+ *   node tooling/size.mjs --modules    also list the source files of @jali/* each scenario ships, largest first
+ *   node tooling/size.mjs --json       the numbers as JSON
  */
 import { execFileSync } from "node:child_process";
 import { existsSync, readdirSync, readFileSync } from "node:fs";
@@ -17,7 +17,7 @@ import { gzipSync } from "node:zlib";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 
-// Scenario → entry file in scripts/size/; gzipped budgets in KB, about 5% over what each shipped on 21 Nov 2026
+// Scenario → entry file in tooling/size/; gzipped budgets in KB, about 5% over what each shipped on 21 Nov 2026
 // (docs/DECISIONS.md has the numbers); and source files it must not ship (more than a stray mapping's few bytes).
 const SCENARIOS = {
   // One kind, no curated page, no launcher: fixtures/minimal without its fonts. The page is opt-in (definePage).
@@ -120,7 +120,7 @@ function bytesPerSource(code, map) {
 }
 
 function build(name, entry) {
-  execFileSync("pnpm", ["exec", "vp", "build", "--config", "scripts/size/vite.config.ts"], {
+  execFileSync("pnpm", ["exec", "vp", "build", "--config", "tooling/size/vite.config.ts"], {
     cwd: root,
     env: { ...process.env, SIZE_SCENARIO: name, SIZE_ENTRY: entry, NODE_ENV: "production" },
     stdio: ["ignore", "ignore", "inherit"],

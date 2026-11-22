@@ -65,7 +65,7 @@ export async function render() {
       "",
       `The docs for this version of Jali (${version}), as Markdown, for people and coding agents. Start with`,
       "[Using Jali with coding agents](get-started/coding-agents.md), then the Quickstart and Key concepts.",
-      "Written from the docs site by scripts/agent-docs.mjs; don't edit these files.",
+      "Written from the docs site by tooling/agent-docs.mjs; don't edit these files.",
     ];
     for (const item of order) {
       if (item.section !== section) {

@@ -1,6 +1,6 @@
 /**
  * The docs' own components, written as Markdown: what "Copy page", "View as Markdown" and the copy in the packages
- * (scripts/agent-docs.mjs) give a reader or an agent. Reference entries become headings and lists, live demos become
+ * (tooling/agent-docs.mjs) give a reader or an agent. Reference entries become headings and lists, live demos become
  * one line saying what they show, generated tables (parts, commands, tokens) are drawn from their data, and any other
  * tag is dropped with its text kept.
  */

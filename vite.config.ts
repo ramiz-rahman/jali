@@ -13,7 +13,7 @@ export default defineConfig({
   // Tests in the node environment (server rendering) resolve them the same way.
   ssr: { resolve: { conditions: ["source", ...defaultServerConditions] } },
   // MDX is left as written: the formatter reflows JSX children and breaks fenced code inside components. So is the
-  // Markdown scripts/agent-docs.mjs writes from it, which its --check compares byte for byte.
+  // Markdown tooling/agent-docs.mjs writes from it, which its --check compares byte for byte.
   fmt: {
     ignorePatterns: [
       "**/*.mdx",

@@ -42,7 +42,7 @@ packages/core/     @jali/core, no framework: layout/ (model, ops, fit, codec, va
 packages/react/    @jali/react: workspace renderer, pane frame and tabs, dividers, peek, drag/drop zones, shelf,
                    curated page, palette, settings, chooser, announcer; styles.css (theme + workspace, @layer jali)
                    and tailwind.css (the bridge to a host's Tailwind theme)
-apps/docs/         the docs site; scripts/agent-docs.mjs writes its pages into packages/core/docs as Markdown
+apps/docs/         the docs site; tooling/agent-docs.mjs writes its pages into packages/core/docs as Markdown
 examples/          five example apps, each with `vp dev examples/<name>`:
   data-studio/     a database browser: catalog, query, chart, structure, er, audit, launcher; its presets
   loan-review/     a curated page: the loan review's profile, kinds and views

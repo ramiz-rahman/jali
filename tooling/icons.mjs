@@ -83,7 +83,7 @@ export async function generate() {
   return [
     `/**`,
     ` * Jali's default icons: Phosphor's (https://phosphoricons.com, MIT, © 2020 Phosphor Icons; see THIRD_PARTY_NOTICES),`,
-    ` * from @phosphor-icons/react ${version}, as the path data of a 256 by 256 box. Written by scripts/icons.mjs: edit`,
+    ` * from @phosphor-icons/react ${version}, as the path data of a 256 by 256 box. Written by tooling/icons.mjs: edit`,
     ` * that script and run \`pnpm icons\`, not this file.`,
     ` */`,
     `import type { JaliIconName } from "./types";`,

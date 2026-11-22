@@ -114,11 +114,11 @@ const GATES = [
     ],
     detail: (log) => lastMatch(log, /^\s*Tests\s/),
   },
-  { name: "agent-docs", cmd: ["node", "scripts/agent-docs.mjs", "--check"] },
+  { name: "agent-docs", cmd: ["node", "tooling/agent-docs.mjs", "--check"] },
   {
     name: "react18",
     full: true,
-    cmd: ["bash", "scripts/test-react18.sh"],
+    cmd: ["bash", "tooling/test-react18.sh"],
     detail: (log) => lastMatch(log, /^\s*Tests\s|^React \d/),
   },
   {

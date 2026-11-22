@@ -1,18 +1,18 @@
 // @vitest-environment node
 /**
- * Jali's default icons are Phosphor's paths, copied into @jali/react by scripts/icons.mjs. This fails when the copy
+ * Jali's default icons are Phosphor's paths, copied into @jali/react by tooling/icons.mjs. This fails when the copy
  * and the script disagree (an edited file, or a changed SOURCES or Phosphor version): run `pnpm icons`.
  */
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vite-plus/test";
 // @ts-expect-error: a plain ES module script, without types.
-import { OUT, SOURCES, generate } from "../scripts/icons.mjs";
+import { OUT, SOURCES, generate } from "../tooling/icons.mjs";
 import type { JaliIconName } from "../packages/react/src/icons/types";
 
 const words = (s: string) => s.replace(/\s+/g, "").replace(/,(?=[\]}])/g, "");
 
 describe("default icons", () => {
-  it("default-paths.ts is what scripts/icons.mjs writes", async () => {
+  it("default-paths.ts is what tooling/icons.mjs writes", async () => {
     expect(words(readFileSync(OUT, "utf8"))).toBe(words(await generate()));
   }, 30_000);
 
