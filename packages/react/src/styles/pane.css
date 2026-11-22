@@ -867,5 +867,13 @@
       outline: 2px solid Highlight;
       outline-offset: -2px;
     }
+    /* The selected row of ⌘K and the chooser, the phone switcher's current pane and a page's selected tab are marked
+       by a tint, which forced colours drop: an outline in a system colour instead. */
+    .jali-palette-item.is-selected,
+    .jali-switch-item.is-active,
+    .jali-page-tab[aria-selected="true"] {
+      outline: 2px solid Highlight;
+      outline-offset: -2px;
+    }
   }
 }

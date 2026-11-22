@@ -104,4 +104,19 @@ test.describe("Accessibility", () => {
     await expect(focused).toHaveCSS("outline-style", "solid");
     await page.screenshot({ path: test.info().outputPath("forced-colors.png") });
   });
+
+  test("forced colours mark the palette's active result", async ({ app, page }) => {
+    await page.emulateMedia({ forcedColors: "active" });
+    await app.open();
+    await app.pane("orders").click({ position: { x: 100, y: 10 } });
+    await page.keyboard.press("ControlOrMeta+k");
+    await page.keyboard.press("ArrowDown");
+    const active = page.locator('[role="option"][aria-selected="true"]');
+    await expect(active).toHaveCount(1);
+    await expect(active).toHaveCSS("outline-style", "solid");
+    await expect(page.locator('[role="option"][aria-selected="false"]').first()).not.toHaveCSS(
+      "outline-style",
+      "solid",
+    );
+  });
 });
