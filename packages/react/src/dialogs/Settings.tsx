@@ -1,5 +1,5 @@
 import type { Settings as S, ThemeChoice } from "@jali/core";
-import { useRef, type ReactNode } from "react";
+import { useRef, useState, type ReactNode } from "react";
 import { ModalDialog } from "../a11y/ModalDialog";
 import { useJaliIcons } from "../icons/context";
 
@@ -82,15 +82,7 @@ export function SettingsPanel({ children }: { children?: ReactNode } = {}) {
       <fieldset>
         <legend>{t.paneCap}</legend>
         <label className="jali-row-field">
-          <input
-            type="number"
-            min={2}
-            max={16}
-            value={settings.paneCap}
-            onChange={(e) =>
-              set({ paneCap: Math.max(2, Math.min(16, Number(e.target.value) || 8)) })
-            }
-          />
+          <PaneCap cap={settings.paneCap} set={(paneCap) => set({ paneCap })} />
           <span>{t.paneCapHelp}</span>
         </label>
       </fieldset>
@@ -98,6 +90,43 @@ export function SettingsPanel({ children }: { children?: ReactNode } = {}) {
       <KeyboardList />
       {children}
     </ModalDialog>
+  );
+}
+
+/**
+ * The pane cap's field. What the person types is a draft until they leave the field or press Enter, and is clamped
+ * to 2–16 then: each keystroke applied would refold the workspace as they type, and "12" would pass through 2. The
+ * spinner's steps (and the arrow keys) apply at once.
+ */
+function PaneCap({ cap, set }: { cap: number; set: (cap: number) => void }) {
+  const [draft, setDraft] = useState<string | null>(null);
+  const n = Number(draft);
+  const commit = () => {
+    if (draft === null) return;
+    setDraft(null);
+    if (draft.trim() && Number.isFinite(n)) set(Math.max(2, Math.min(16, Math.round(n))));
+  };
+  return (
+    <input
+      type="number"
+      min={2}
+      max={16}
+      step={1}
+      value={draft ?? cap}
+      aria-invalid={draft !== null && !(n >= 2 && n <= 16) ? true : undefined}
+      onChange={(e) => {
+        // A typed character comes with its kind of input; a step of the spinner or an arrow key comes without.
+        if ((e.nativeEvent as InputEvent).inputType) setDraft(e.target.value);
+        else if (e.target.value) {
+          setDraft(null);
+          set(Math.max(2, Math.min(16, Number(e.target.value))));
+        }
+      }}
+      onBlur={commit}
+      onKeyDown={(e) => {
+        if (e.key === "Enter") commit();
+      }}
+    />
   );
 }
 
