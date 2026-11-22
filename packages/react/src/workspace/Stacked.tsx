@@ -3,7 +3,7 @@
  * height the top one takes, and whether the on-screen keyboard is up (then the focused pane shows alone, so a field
  * in the lower pane isn't under the keyboard).
  */
-import { paneDomId, stackSplit, type JaliStore } from "@jali/core/adapter";
+import { paneDomId, stackSplit, type Hinge, type JaliStore } from "@jali/core/adapter";
 import type { ModelGeometry } from "@jali/core/adapter";
 import { useEffect, useRef, useState, type KeyboardEvent, type PointerEvent } from "react";
 import { useModelValue, useStore } from "../state/react";
@@ -120,6 +120,27 @@ export function StackDivider({
       onPointerMove={move}
       onPointerUp={end}
       onPointerCancel={end}
+    />
+  );
+}
+
+/** A fold's hinge, drawn as a hairline where the halves meet (a seamless fold has no gap of its own). */
+export function FoldLine({
+  hinge,
+  origin,
+}: {
+  hinge: Hinge;
+  origin: { left: number; top: number };
+}) {
+  const row = hinge.axis === "row";
+  const at = hinge.start + hinge.size / 2 - (row ? origin.left : origin.top);
+  return (
+    <div
+      className="jali-fold-line"
+      aria-hidden
+      style={
+        row ? { left: at, top: 0, bottom: 0, width: 1 } : { top: at, left: 0, right: 0, height: 1 }
+      }
     />
   );
 }
