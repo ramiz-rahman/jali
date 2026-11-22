@@ -477,7 +477,7 @@ export function placeTab(
       op: "drop",
       layout: d.layout,
       view: d.view,
-      patch: { page: { ...y.s.page!, tab: role } },
+      ...(y.s.page ? { patch: { page: { ...y.s.page, tab: role } } } : {}),
       focusDom: role,
       msg: d.sent.length
         ? say(x).both(said, say(x).sentToTabs(d.sent.map((id) => label(p, id))))
@@ -496,7 +496,7 @@ export function openTabBeside(x: Snapshot, role: string): Outcome {
   const r = x.s.page;
   if (!r) return null;
   const target = (y: Snapshot) =>
-    besideTarget(y.s.layout, unzoomed(y.s.view), y.ctx) ?? y.s.page!.tab;
+    besideTarget(y.s.layout, unzoomed(y.s.view), y.ctx) ?? y.s.page?.tab ?? r.tab;
   if (r.mode === "single")
     return x.s.linkMode === "open"
       ? [setMode(x, "split"), (y: Snapshot) => placeTab(y, role, target(y), endSide(y.ctx.dir))]
@@ -588,11 +588,13 @@ export function backToPage(x: Snapshot): Outcome {
   const view = unzoomed(x.s.view);
   const plain = withoutOpened(x.s.layout, x.ctx);
   // Exactly as before the investigation, unless the views were rearranged meanwhile (then: as they are now).
-  const same =
-    r.before &&
-    core.tree.shape(r.before.root) === core.tree.shape(plain.root) &&
-    String(r.before.overlay?.hidden ?? []) === String(plain.overlay?.hidden ?? []);
-  const layout = same ? core.refit(r.before!, view, x.ctx) : plain;
+  const before = r.before;
+  const layout =
+    before &&
+    core.tree.shape(before.root) === core.tree.shape(plain.root) &&
+    String(before.overlay?.hidden ?? []) === String(plain.overlay?.hidden ?? [])
+      ? core.refit(before, view, x.ctx)
+      : plain;
   const focused = x.m.pane(view.focused)?.role
     ? view
     : core.focus(view, currentRole(x) ?? r.tab, x.ctx);
@@ -759,7 +761,8 @@ function investigationPlace(layout: Layout, after: core.Placement, edge?: Edge):
  */
 function opening(x: Snapshot, source: NodeId, ref: ObjectRef, edge?: Edge): PageOpening {
   const { s, m, ctx } = x;
-  const page = s.page!;
+  const page = s.page;
+  if (!page) return { instead: refuse("unavailable") };
   const title = m.env.kinds.title(ref);
   if (s.linkMode === "peek")
     return { instead: { ...peekSheet(x, ref, source), msg: say(x).peekOnly(title) } };
