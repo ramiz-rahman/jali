@@ -1581,3 +1581,85 @@ Writing state for object B under a pane id that holds object A's state no longer
 Core gzipped, before → after (`pnpm size`): minimal 55.2 → 55.1, full 60.4 → 60.2, headless 49.6 → 49.4, layout 10.3 → 10.3 (budgets 55.5, 60.9, 49.7, 10.7). The one action table and the resolved options removed more than the typed API, `jali.page`/`jali.dialogs` and the held pane state added. @jali/react: minimal 27.4 → 27.4, full 29.3 → 29.3.
 
 Left as found: `e2e/follow.spec.ts` "⌥↵ on the row the detail shows keeps it there…" fails about 1 run in 20 on master too (the follow's "Showing order 2" and "order 2 kept" land in one announcement). Not part of 3a.
+
+## 22 Nov 2026 · API phase 3b: one package, `jali`, with subpaths (API-REVIEW section 1)
+
+- **Layout:** `packages/jali` is the one published package. It holds no source of its own beyond its entry files: `vp pack` bundles `@jali/core` and `@jali/react` (both now `private`) into it. Entries: `jali`, `jali/react`, `jali/page`, `jali/agent`, `jali/testing`, `jali/adapter` (may change in any minor), `jali/icons`, `jali/features`, one per feature (`jali/url`, `jali/palette`, `jali/settings`, `jali/chooser`, `jali/rename`, `jali/pop-out`, `jali/pressed`), and the three style sheets.
+- **Two code chunks, `core` and `react`,** forced by groups (core's first: a group takes what its modules import). An app's bundler tree-shakes each as it did the two dists, so per-feature subpaths cost nothing, and the size gate still splits core from React. The `layout` namespace keeps its own file, as before.
+- **"use client"** starts the `react` chunk and every entry that re-exports it, and nothing framework-free (`jali`, `jali/url`, `jali/agent`, `jali/testing`, `jali/adapter`, `core`, `layout`). pack-check enforces both ways, and that framework-free files import no React.
+- **React is an optional peer** (`peerDependenciesMeta`); `jali` has no dependencies.
+- **Declarations** come from the workspace packages' dist (built first, in order, by `pnpm build:packages`); the code comes from their source (the `source` condition). Mixing source and dist declarations gave two copies of the same types (a `unique symbol` would not match), and the declaration bundler resolves package imports by `types` regardless of conditions, so `@jali/react` got an `./internal` entry listing what `jali` re-exports, and `@jali/core` a `./testing` entry.
+- **`Register` on "jali"** merges through the re-export: pack-check typechecks a consumer that declares it against the packed `.d.ts` (`@ts-expect-error` on an unknown kind proves the hooks are typed).
+- **Data Studio's links are untouched:** `packages/core` and `packages/react` keep their names, entries and `dist/index.js`; `private` only stops a publish. The agent docs moved to `packages/jali/docs` (they ship in `jali`); `@jali/core` ships no docs now.
+- **`definePane` stays in `jali/react`.** The owner approved moving it to the framework-free entry "if the types stay clean". They don't yet: `Component`'s type is React's, so a framework-free `definePane` needs `jali/react` to augment `jali`'s option types, and a bundled `.d.ts` can't name the module it augments by its published specifier from source written against `@jali/core`. Left for the docs phase to revisit with a type test; the API review's own table puts it in `jali/react`.
+- **`jali/react` doesn't repeat `jali`:** `optional`, `oneOf`, `appOnly` and `keyBelongsToContent` are imported from `jali` (one way per name). `definePage` is `jali/page` only.
+
+## 22 Nov 2026 · API phase 3b: features are opt-in (API-REVIEW section 2, core-opus CORE-9, react-opus REACT-16, core-codex CORE-17)
+
+- **What became a feature, by bytes and by how often apps need it** (gzipped, over the floor; "Phase 3b's size" has the table): the address (`urlSync`, 2.7 KB of core: URL sync was on by default and most of the reachable code an app didn't choose), the palette (1.2), Settings (1.3), the chooser (1.5), rename (0.5), Pop out (1.3, not a default before either) and `data-pressed` (0.4). `defaultFeatures()` is the five that were on by themselves (address, palette, Settings, chooser, pressed); rename needs the app's `run`, and Pop out was opt-in.
+- **What did not, and why:**
+  - _The tab and pane menus:_ the header's ⋯ and its narrow-header fallback are built from the same menu; without it a narrow pane would lose its controls.
+  - _Phones (Single view) and stacked view:_ Single view is how fitting ends when even one pane can't fit, at any width; stacked view shares `workspace/stack.ts` with the fold (hinge) support, which is on by default. Only `Stacked.tsx` (1.8 KB minified) could move; not worth a second phone option.
+  - _Rows that scroll:_ a layout's shape (`row({ scroll: "x" })`); a layout that has one must render it.
+  - _The command registry:_ keys run commands through it, so it is the keyboard's.
+- **The feature contract** (`features/feature.ts`, internal; adapters read it, apps never write one): an `id`, and optionally `words` (its English), `address(storage)` (the URL writer), `boot(store)` and `start(store) → stop` (lifecycle), `env` (options it sets, e.g. `rename`), and `parts` (what the adapter renders, by name). Not steps and not commands: the few a feature needs (`dialogs.openPalette`, `startRename`, "Rename pane", "Pop out pane") stay in core's tables at a few bytes each, so ids, keys and palette order stay one list; a step is refused as `"unavailable"` without its feature, and its command is listed only with it. (A first version let features bring commands placed `after` one of Jali's; it cost 0.2 KB more in the full app than the four gated entries, which pushed `full` over its budget.) No public plugin API.
+- **One of each id:** a later feature of the same id takes the earlier's place, so `[...defaultFeatures(), urlSync({ location })]` works.
+- **Words split per feature** (`state/feature-messages.ts`, one export per feature), merged after the base words and before the page's and the app's. `Messages` (the type) still has every word, and `en` holds them all for a translation to start from.
+- **React parts come with the feature,** as `definePage`'s do: `palette()` is `paletteFeature({ palette: Palette })`, and `<JaliRoot>` renders `partOf(env, "palette")`. A dialog asked for that the workspace doesn't have closes again at once.
+- **Behaviour:** with `defaultFeatures()`, unchanged, except that "Rename pane" is listed in ⌘K only with `rename()` (it was listed, greyed out, in every workspace). The examples pass `defaultFeatures()` (Data Studio and Trips add `popOut()`); examples/minimal picks `urlSync()` only, and says so.
+- **`<JaliRoot settings={false}>` is gone:** leave `settings()` out. `settingsExtra` stays.
+
+## 22 Nov 2026 · API phase 3b: params accept a Standard Schema (API-REVIEW section 4, research/effect.md)
+
+- **The whole object:** `params` takes Jali's constructors (unchanged) or one Standard Schema v1 (`~standard`) of the whole params object, from any library. `ParamsOf` infers the schema's output, so `usePane(kind).params`, the kind's call and its component are typed by it.
+- **No dependency:** the spec's `StandardSchemaV1` types are copied into `standard-schema.ts`, as the spec asks.
+- **The schema decides validity and output; Jali's codec decides how values are written.** Links written by Jali keep numbers and flags (`#7`, `!true`, the layout's JSON), so a schema sees them typed. A value a hand-written link carries as text reaches the schema as text: coercing it is the schema's (`z.coerce.number()`). A first version retried text as a number or a flag; it cost 0.2 KB for every app and guessed at the schema's intent.
+- **Failures** are `ParamProblem`s keyed by each issue's first path segment (`params` when an issue has no path), with the value the ref held. A schema that validates asynchronously can't read a link (params are read as a pane renders): its answer is a problem.
+- **Not per param.** A schema per param (`{ id: z.number() }`) worked too, with optionality from the schema's output; it was dropped for 0.15 KB of every app's core, since the whole-object form covers the review's case and `appOnly`/`link: false` stay Jali's own, one by one.
+- **Curated-page item ids** have no param-like declaration (`firstItem`'s type decides number or string), so nothing changes there.
+- **Agents** read a schema kind's params as one entry: `params: "an object (<vendor> schema)"`.
+
+## 22 Nov 2026 · Pop out, stable: a feature, `jali/pop-out` (react-opus REACT-11, react-codex REACT-9, core-opus CORE-11, core-codex CORE-11)
+
+- **`popOut()`** replaces `allow: { popOut: true }` with `unstable_popOut`, `unstable_bringBack` and `unstable_canPopOut`. With it, Pop out is allowed unless a kind or the workspace says `allow: { popOut: false }`; without it, never.
+- **The window is the instance's own:** the feature's window keeps a slot per workspace (a `WeakMap` held by that feature value, not module state); one window per workspace; opening another pane closes the first. The window closes when the workspace stops: its root unmounts, `destroy()`, or another workspace takes the root (the feature's `start` returns the close).
+- **State survives:** each pane's content renders into its own host element (phase 2); Pop out moves that element into the window and back (`append` adopts it), and the frame doesn't take it back while it is out. The React portal target never changes, so `useState`, subscriptions and DOM survive (unit test with a counter, e2e with a mark on the content's first element). A workspace that hydrated a server's HTML keeps content in its frames; there the content renders in the window through a portal, and its own state starts again.
+- **Keys:** core's `installKeyboard` is installed on the window with the window's document as the root, so every key pressed there is the workspace's whatever `keyboard.scope`. Input tracking is counted per document.
+- **Look:** stylesheets copied (cross-origin ones linked, media kept), `<html>`'s class, `data-*`, `dir` and `lang`, and the root's theme, `--jali-*` tokens and direction kept in step by a `MutationObserver` and the store; `[data-jali]` on the window's root; the page's zoom followed.
+- **Requests:** asked inside the gesture; a refusal resolves `false` (no unhandled rejection); a request that resolves after a newer one, after the pane left, or after the workspace stopped closes its window and resolves `false`.
+- **The browser's limits stand** (19 and 21 Nov): one window at a time in Chrome across tabs, and not over a full-screen app's Space on macOS.
+
+## 22 Nov 2026 · `jali/testing` (docs-opus DOCS-9)
+
+`createTestJali` (address and storage in memory, 1440×900, keys as on a Mac, no DOM focus), `testJaliOptions` for an app whose function makes its workspace, `reportUnsaved`, `reportPaneState`, `paneStateOf`, `discardQuestion`, `answerDiscard`, `chooserRequest`, `lastAnnouncement` and `pressKeys`: what the examples' and the docs' tests reached into `storeOf` for. The examples and the testing guide use them; no app imports `jali/adapter` for tests.
+
+## 22 Nov 2026 · Options Jali doesn't know warn in development
+
+Data Studio's script built its options at run time with 3a's old names; Jali ignored them and the types couldn't see them. `createJali`, `definePane` and `definePage` now warn once per unknown option in development, naming where each of 3a's and 3b's moved options went (`dev-options.ts`; the list is in MIGRATION.md). The call sits inside the literal `process.env.NODE_ENV` test, so production builds drop it with its lists: `core/src/dev-options.ts` is in every size scenario's `mustNotShip`. `url` is known when it is a writer of the app's own.
+
+## 22 Nov 2026 · React's development checks were shipping
+
+`@jali/react`'s `DEV` was an IIFE around a `try`; minifiers didn't fold it, so every `if (DEV)` block and its message shipped (about 0.5 KB gzipped). Each check now tests `process.env.NODE_ENV` where it is, inside a `try`, as core's do, and `react/src/dev.ts` is gone. In core, a check that needs a runtime flag reads it first (`DEV && process.env.NODE_ENV !== "production"`), so a page without `process` never reads it.
+
+## 22 Nov 2026 · The follow announcement flake was the live region's 30ms
+
+`e2e/follow.spec.ts` "⌥↵ on the row the detail shows keeps it there…" failed about one run in 20. The live region reads what is said within 30ms as one announcement (`chrome/Announcer.tsx`), and the detail shows "order 2" as the follow is said, so a ⌥↵ pressed at once was read with it: "Showing order 2 order 2 kept". That is right for a person; the test now waits for "Showing order 2" to be said on its own before pressing ⌥↵. No retry. 30 of 30 runs pass.
+
+## 22 Nov 2026 · Phase 3b's size
+
+Gzipped KB, `pnpm size`, master `cdb8fb7b` → this branch. Before, every app shipped the address, palette, Settings, chooser, rename's field, Pop out and `data-pressed`; "minimal" was that app.
+
+| Scenario                                              | jali core   | jali react  | budget (core / react)      |
+| ----------------------------------------------------- | ----------- | ----------- | -------------------------- |
+| minimal (before: everything; now: `urlSync()` only)   | 55.1 → 54.6 | 27.4 → 23.5 | 55.5 / 24.7 (react was 28) |
+| bare: no feature (new floor)                          | – → 51.9    | – → 23.5    | 54.5 / 24.7                |
+| own-icons, `defaultFeatures()` (today's behaviour)    | 55.1 → 55.4 | 27.4 → 26.2 | 55.5 / 27.5 (react was 28) |
+| full: `defaultFeatures()`, rename, Pop out, a page, … | 60.2 → 60.8 | 29.3 → 29.6 | 60.9 / 29.9 (unchanged)    |
+| headless (before: with the address; now: none)        | 49.4 → 46.4 | –           | 48.7 (was 49.7)            |
+| layout                                                | 10.3 → 10.3 | –           | 10.7                       |
+
+What each feature adds over the floor (core + react, gzipped): `urlSync` 2.7 + 0; `palette` 0.25 + 0.9; `settings` 0.5 + 0.85; `chooser` 0.2 + 1.3; `rename` 0.1 + 0.4; `popOut` 0.15 + 1.1; `pressed` 0 + 0.4; `defaultFeatures()` 3.55 + 2.7; a curated page 5.0 + 1.1. Each has a scenario (`+url`, …, `+page`) with a budget about 5% over its total, and a `mustNotShip` list of every other feature's files. CSS 8.3 everywhere (budget 8.6).
+
+- **Short of the review's estimates** (core 25–30, React 17–18): the floor is 51.9 and 23.5. The estimate counted the English messages and the command registry as feature code; most of both is the keyboard's and the chrome's, which every app has. The rest of the floor is the engine (layout and fitting about 10), the store, actions, focus, follow and undo.
+- **Full grew 0.6 core and 0.3 React** over 3a: stable Pop out (+0.4 React), the feature plumbing and word split (+0.4 core), Standard Schema (+0.15 core), offset by React's development messages no longer shipping (−0.5 React). Full and own-icons sit at the pre-3b budgets rather than 5% over what they ship, since raising a budget is the owner's call; full core has 0.07 KB of room.
+- **Left for later:** the render-count instrumentation of react-codex REACT-16 (counting selector and permission work) and the hydration bootstrap snapshot (react-codex REACT-4) didn't fall out of this phase.
