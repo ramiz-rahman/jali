@@ -1,17 +1,7 @@
 import { own } from "@jali/core/adapter";
-import {
-  memo,
-  useContext,
-  useMemo,
-  useRef,
-  useState,
-  type CSSProperties,
-  type SyntheticEvent,
-} from "react";
-import { ContentHosts } from "./content";
+import { memo, useRef, useState, type CSSProperties, type SyntheticEvent } from "react";
+import { PaneOutlet, usePaneParts } from "./content";
 import { TabMenu, type TabMenuAt } from "./TabMenu";
-import { createPortal } from "react-dom";
-import { popOutOf, usePoppedOut } from "./popped";
 import { useJaliIcons } from "../icons/context";
 import {
   ALONE_CHROME,
@@ -31,13 +21,12 @@ import { FollowControl, NotInResults } from "./FollowControl";
 import type { Chrome } from "@jali/core/adapter";
 import { HeaderActions } from "./HeaderActions";
 import { KindIcon } from "./icons";
-import { PaneBody, paneHost } from "./PaneBody";
 import { TabStrip } from "./TabStrip";
 import { UnsavedMark, useUnsavedOf } from "./Unsaved";
 import { renameFieldOf, useCanRename } from "./rename";
 import { useInert } from "./inert";
 import { ICON } from "../icons/sized";
-import { createHeaderSlot, useHasHeaderControls, useNarrowHeader } from "./header";
+import { useHasHeaderControls, useNarrowHeader } from "./header";
 import { useWorkspaceLabel } from "../a11y/landmark";
 import { panelId, tabId, titleId } from "../ids";
 
@@ -62,8 +51,6 @@ export const PaneFrame = /* @__PURE__ */ memo(
       opener.current = document.activeElement as HTMLElement | null;
       setMenu(at);
     };
-    // Popped out (the `popOut()` feature): the content is in a floating window; its place here says so.
-    const { out: poppedOut, target: popTarget } = usePoppedOut(store, node.id);
     const RenameField = renameFieldOf(store);
     const icon = useJaliIcons();
     const { actions } = store;
@@ -73,13 +60,10 @@ export const PaneFrame = /* @__PURE__ */ memo(
     const canRename = useCanRename();
     const coveredRef = useInert(covered);
     const isDragged = useUi((s) => s.dnd?.dragged === node.id);
-    // The pane's content and its lasting parts, when the instance renders content once (content.tsx); else here.
-    const at = useContext(ContentHosts)?.(node.id);
-    const ownHost = useMemo(() => paneHost(store, node.id), [store, node.id]);
-    const host = at?.host ?? ownHost;
+    // The pane's parts, wherever its content renders (content.tsx).
+    const parts = usePaneParts(node.id);
     // The content's own controls (useHeaderActions), and how far a narrow header has given way to keep its title.
-    const ownHeader = useMemo(createHeaderSlot, []);
-    const header = at?.header ?? ownHeader;
+    const { header } = parts;
     const tools = useHasHeaderControls(header);
     const headerRef = useRef<HTMLDivElement>(null);
     const narrow = useNarrowHeader(headerRef, tools ? 2 : 1);
@@ -267,57 +251,14 @@ export const PaneFrame = /* @__PURE__ */ memo(
         {dropTarget ? <DropZoneLabel paneId={node.id} /> : null}
         <NotInResults node={node} />
         {/* Its tab's panel, when it shows for a tab strip (APG tabs): the region stays on the section. */}
-        <div
-          className="jali-pane-content"
-          // The content's element moves in here: rendered once, elsewhere (content.tsx).
-          // Not while it is popped out: the floating window holds it then, and gives it back when it closes.
-          ref={
-            at && !poppedOut
-              ? (el) => void (el && el.lastChild !== at.el && el.append(at.el))
-              : undefined
-          }
-          id={panelId(store.dom.id, node.id)}
-          {...(group
-            ? { role: "tabpanel", "aria-labelledby": tabId(store.dom.id, node.id) }
-            : undefined)}
-        >
-          {poppedOut ? (
-            <div className="jali-popped-out" role="status">
-              <span>{store.messages.pane.poppedOut}</span>
-              <button
-                type="button"
-                className="jali-text-btn"
-                onClick={() => popOutOf(store)?.close(store)}
-              >
-                {store.messages.pane.bringBack}
-              </button>
-            </div>
-          ) : null}
-          {at ? null : popTarget ? (
-            createPortal(
-              <div className="jali-pane-content-inner">
-                <PaneBody
-                  node={node}
-                  host={host}
-                  header={header}
-                  paused={false}
-                  focused={focused}
-                />
-              </div>,
-              popTarget,
-            )
-          ) : (
-            <div className="jali-pane-content-inner">
-              <PaneBody
-                node={node}
-                host={host}
-                header={header}
-                paused={hidden || covered || !!frame.outOfView}
-                focused={focused}
-              />
-            </div>
-          )}
-        </div>
+        <PaneOutlet
+          frame={frame}
+          parts={parts}
+          panel={{
+            id: panelId(store.dom.id, node.id),
+            ...(group ? { role: "tabpanel", "aria-labelledby": tabId(store.dom.id, node.id) } : {}),
+          }}
+        />
       </section>
     );
   },

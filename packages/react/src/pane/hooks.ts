@@ -25,7 +25,7 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import type { PaneAttributes, PaneReportPatch } from "@jali/core/adapter";
+import type { PaneReportPatch } from "@jali/core/adapter";
 import type { PaneHost } from "./context";
 import { openPaneFor, sameRef } from "@jali/core/adapter";
 import type { Pane, PaneProps, ParamsOfPane } from "../define";

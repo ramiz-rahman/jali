@@ -1,18 +1,24 @@
 /**
- * Each pane's content renders once, in one place, for as long as the pane is in the layout: into an element of its
- * own (`.jali-pane-content-inner`) that its frame holds. A frame that changes parent (a pane entering or leaving a row
- * that scrolls sideways, the layout flipping between tiled panes and one pane at a time) remounts, but the content doesn't: the
- * new frame takes the same element, so the component keeps its state, its subscriptions and its DOM.
+ * Where a pane's content goes: the one place that knows. A frame asks for its pane's parts (`usePaneParts`) and draws
+ * an outlet (`PaneOutlet`); how the content gets there is this module's.
  *
- * An instance that hydrates a server's HTML renders its content inside its frames, as the server did (a portal can't
- * be server rendered): there a frame that changes parent still remounts its content.
+ * - **Rendered once** (the browser, after a client render): each pane's content renders into an element of its own
+ *   (`.jali-pane-content-inner`), for as long as the pane is in the layout, and its frame's outlet holds that element.
+ *   A frame that changes parent (a pane entering or leaving a row that scrolls sideways, the layout flipping between
+ *   tiled panes and one pane at a time) remounts, but the content doesn't: the new frame takes the same element, so the
+ *   component keeps its state, its subscriptions and its DOM. Pop out moves the element into its window.
+ * - **In the frame** (an instance that hydrates a server's HTML, and a server): the content renders inside the outlet,
+ *   as the server did (a portal can't be server rendered), so a frame that changes parent remounts it; popped out, it
+ *   renders in the window instead. Which one an instance uses is fixed when it mounts: switching after hydration would
+ *   itself remount every pane's content.
  */
-import { createContext, memo, useMemo } from "react";
+import { createContext, memo, useContext, useMemo, type HTMLAttributes } from "react";
 import { createPortal } from "react-dom";
+import type { NodeId } from "@jali/core";
 import type { Frame, JaliStore } from "@jali/core/adapter";
 import { PaneBody, paneHost, type PaneHost } from "./PaneBody";
 import { createHeaderSlot, type HeaderSlot } from "./header";
-import { usePoppedOut } from "./popped";
+import { popOutOf, usePoppedOut } from "./popped";
 import { useStore } from "../state/react";
 
 /** A pane's lasting parts: the element its content renders into, its header slot and what its content can ask. */
@@ -91,3 +97,73 @@ export const PaneContent = /* @__PURE__ */ memo(function PaneContent({
     at.el,
   );
 });
+
+/** A pane's parts as its frame uses them: what its content can ask, its header slot, and its lasting host when the
+ *  instance renders content once. */
+export interface PaneParts {
+  host: PaneHost;
+  header: HeaderSlot;
+  /** The pane's lasting host; undefined where content renders in its frame. */
+  at: ContentHost | undefined;
+}
+
+/** Pane `id`'s parts: its lasting host's, or (content in the frame) the frame's own. */
+export function usePaneParts(id: NodeId): PaneParts {
+  const store = useStore();
+  const at = useContext(ContentHosts)?.(id);
+  const ownHost = useMemo(() => paneHost(store, id), [store, id]);
+  const ownHeader = useMemo(createHeaderSlot, []);
+  return { host: at?.host ?? ownHost, header: at?.header ?? ownHeader, at };
+}
+
+/**
+ * The frame's content area (`.jali-pane-content`): the pane's lasting element moved in, or its content rendered here
+ * (in the frame), or, while it is popped out, a note that says so with Bring back. `panel` is the area's own
+ * attributes (its id, and its tab panel role).
+ */
+export function PaneOutlet({
+  frame,
+  parts,
+  panel,
+}: {
+  frame: Frame;
+  parts: PaneParts;
+  panel: HTMLAttributes<HTMLDivElement>;
+}) {
+  const store = useStore();
+  const { node, hidden, covered, focused } = frame;
+  const { at, host, header } = parts;
+  const { out, target } = usePoppedOut(store, node.id);
+  const body = (paused: boolean) => (
+    <div className="jali-pane-content-inner">
+      <PaneBody node={node} host={host} header={header} paused={paused} focused={focused} />
+    </div>
+  );
+  return (
+    <div
+      {...panel}
+      className="jali-pane-content"
+      // Rendered once: the lasting element moves in here. Not while popped out: the window holds it then, and gives
+      // it back when it closes.
+      ref={at && !out ? (el) => void (el && el.lastChild !== at.el && el.append(at.el)) : undefined}
+    >
+      {out ? (
+        <div className="jali-popped-out" role="status">
+          <span>{store.messages.pane.poppedOut}</span>
+          <button
+            type="button"
+            className="jali-text-btn"
+            onClick={() => popOutOf(store)?.close(store)}
+          >
+            {store.messages.pane.bringBack}
+          </button>
+        </div>
+      ) : null}
+      {at
+        ? null
+        : target
+          ? createPortal(body(false), target)
+          : body(hidden || covered || !!frame.outOfView)}
+    </div>
+  );
+}
