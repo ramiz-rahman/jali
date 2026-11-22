@@ -21,7 +21,14 @@ import {
   useSyncExternalStore,
   type ReactNode,
 } from "react";
-import type { Actions, Model, PaneAttributes, UiState, JaliStore } from "@jali/core/adapter";
+import type {
+  Actions,
+  Model,
+  ModelGeometry,
+  PaneAttributes,
+  UiState,
+  JaliStore,
+} from "@jali/core/adapter";
 import type { ReactEnv, Page } from "../define";
 import { resolveTheme } from "@jali/core/adapter";
 import { reactDom } from "../dom";
@@ -109,11 +116,22 @@ export function useStore(): ReactJaliStore {
   return store as ReactJaliStore;
 }
 
-export function useUi<T>(select: (s: UiState) => T): T {
+/**
+ * Part of the state, re-rendering only when it changes by `isEqual` (`Object.is` unless given). A selector may return
+ * a new object or array: give `isEqual` (`shallow`) and it re-renders only when what it picked changed. The same
+ * implementation as the public `useJaliState`. Server rendering reads the same snapshot (Next.js, Astro).
+ */
+export function useUi<T>(select: (s: UiState) => T, isEqual?: (a: T, b: T) => boolean): T {
   const store = useStore();
-  const read = () => select(store.get());
-  // The same read on the server: an instance renders with server rendering (Next.js, Astro) as in the browser.
-  return useSyncExternalStore(store.subscribe, read, read);
+  return useSelected(store.subscribe, store.get, select, isEqual);
+}
+
+/** `value`, or the one kept from an earlier render while `same` says it is the same: an effect's dependency that changes
+ *  only when what matters in it does (a ref by `sameRef`, a record by `shallow`). */
+export function useKept<T>(value: T, same: (a: T, b: T) => boolean): T {
+  const kept = useRef(value);
+  if (!same(kept.current, value)) kept.current = value;
+  return kept.current;
 }
 
 /** The derived model; a new object only when something it depends on changed. */
@@ -122,22 +140,22 @@ export function useModel(): Model {
   return useSyncExternalStore(store.subscribe, store.model, store.model);
 }
 
-/** The model, re-rendering only when its geometry changes: a pane's live title makes a new model that shares the
- *  geometry (state/model.ts), and doesn't re-render this. For a part that reads no title as it renders; a title it
- *  shows is a `useModelValue` of its own. */
-export function useGeometry(): Model {
+/** One value read from the model (a title, whether a pane is tucked): re-renders only when it changes by `isEqual`
+ *  (`Object.is` unless given). The same implementation as the public `useJaliModel`. */
+export function useModelValue<T>(select: (m: Model) => T, isEqual?: (a: T, b: T) => boolean): T {
   const store = useStore();
-  const read = () => store.model().resolved;
-  useSyncExternalStore(store.subscribe, read, read);
-  return store.model();
+  return useSelected(store.subscribe, store.model, select, isEqual);
 }
 
-/** One value read from the model (a title, whether a pane is tucked): re-renders only when it changes. Return a
- *  primitive, or an object the model keeps; a new object each time re-renders on every change. */
-export function useModelValue<T>(select: (m: Model) => T): T {
+const geometryOf = (m: Model) => m.resolved;
+
+/** The model's geometry, re-rendering only when it changes: a pane's live title makes a new model that shares the
+ *  geometry (state/model.ts), and doesn't re-render this. It has no titles to read: a title a part shows is a
+ *  `useModelValue` of its own. */
+export function useGeometry(): ModelGeometry {
   const store = useStore();
-  const read = () => select(store.model());
-  return useSyncExternalStore(store.subscribe, read, read);
+  useModelValue(geometryOf);
+  return store.model();
 }
 
 /** The two states differ only in a drag's pointer (`dnd`), which nothing worked out from the rest reads. */

@@ -91,6 +91,10 @@ export interface Model {
   stacked?: StackPair;
 }
 
+/** The model without its titles: where everything is. A pane's live title makes a new model that shares it, so what
+ *  reads only this needn't hear a title change (`useGeometry`). */
+export type ModelGeometry = Omit<Model, "title">;
+
 export interface ModelInput {
   layout: Layout;
   view: ViewState;

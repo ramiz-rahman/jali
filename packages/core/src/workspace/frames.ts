@@ -1,6 +1,6 @@
 /** What each pane frame shows, in both presentations: one list feeds one render loop. Pure. */
 import type { NodeId, PaneNode, Rect, ViewState } from "../layout/types";
-import type { Model } from "../state/model";
+import type { ModelGeometry } from "../state/model";
 import type { Presentation } from "../pane/chrome";
 import { stackShare, type Hinge } from "./stack";
 import { sameRef } from "../layout/ops/ref";
@@ -36,7 +36,7 @@ export interface Frame {
 }
 
 /** The pane single view shows: the focused one, else the first. */
-export const currentPane = (m: Model, view: ViewState) =>
+export const currentPane = (m: ModelGeometry, view: ViewState) =>
   view.focused && m.pane(view.focused) && !m.off.includes(view.focused)
     ? view.focused
     : m.onScreen[0]?.id;
@@ -87,7 +87,7 @@ export function stackSplit(
  * (`stackShare`), with the room between the panes taken out. The one place that works it out, for `frames` and for an
  * adapter that draws the divider.
  */
-export function defaultStackShare(m: Model, height: number): number {
+export function defaultStackShare(m: ModelGeometry, height: number): number {
   const pair = m.stacked;
   return pair
     ? stackShare(m.env, m.pane(pair.top), m.pane(pair.bottom), height, stackGap(m.env.spacing.gap))
@@ -95,7 +95,7 @@ export function defaultStackShare(m: Model, height: number): number {
 }
 
 export function frames(
-  m: Model,
+  m: ModelGeometry,
   view: ViewState,
   mode: Presentation,
   size: { width: number; height: number },

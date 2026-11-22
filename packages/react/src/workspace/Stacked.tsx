@@ -4,7 +4,7 @@
  * in the lower pane isn't under the keyboard).
  */
 import { paneDomId, stackSplit, type JaliStore } from "@jali/core/adapter";
-import type { Model } from "@jali/core/adapter";
+import type { ModelGeometry } from "@jali/core/adapter";
 import { useEffect, useRef, useState, type KeyboardEvent, type PointerEvent } from "react";
 import { useModelValue, useStore } from "../state/react";
 
@@ -28,13 +28,15 @@ export function useKeyboardUp(): boolean {
 }
 
 /** Says once when two panes stack, naming them. */
-export function useStackAnnouncement(store: JaliStore, m: Model, shown: boolean) {
+export function useStackAnnouncement(store: JaliStore, m: ModelGeometry, shown: boolean) {
   const key = shown && m.stacked ? `${m.stacked.top} ${m.stacked.bottom}` : "";
   const was = useRef("");
   useEffect(() => {
     if (key && key !== was.current && m.stacked) {
       const said = store.messages.announcements;
-      const [a, b] = [m.title(m.stacked.top), m.title(m.stacked.bottom)];
+      // The names as they are now: the geometry has none of its own.
+      const { title } = store.model();
+      const [a, b] = [title(m.stacked.top), title(m.stacked.bottom)];
       store.announce(m.stacked.hinge ? said.foldSplit(a, b) : said.stacked(a, b));
     }
     was.current = key;
@@ -48,7 +50,7 @@ export function StackDivider({
   setRatio,
   height,
 }: {
-  m: Model;
+  m: ModelGeometry;
   /** Where it sits and the top pane's share it shows, from the same split as the frames (placement.ts). */
   at: { share: number; y: number; height: number };
   setRatio: (r: number) => void;

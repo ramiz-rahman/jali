@@ -11,7 +11,7 @@ import {
   frames,
   stackSplit,
   type Frame,
-  type Model,
+  type ModelGeometry,
   type Presentation,
 } from "@jali/core/adapter";
 
@@ -50,7 +50,7 @@ export interface Placement {
   divider?: { share: number; y: number; height: number };
 }
 
-export function placement(m: Model, view: ViewState, input: PlacementInput): Placement {
+export function placement(m: ModelGeometry, view: ViewState, input: PlacementInput): Placement {
   const { area, page = false, keyboardUp = false } = input;
   const single = m.onePane;
   const presentation: Presentation = single ? "single" : "tiled";

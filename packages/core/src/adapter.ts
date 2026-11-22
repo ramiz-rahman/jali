@@ -62,7 +62,13 @@ export {
   type RefusalStep,
   type Snapshot,
 } from "./state/apply";
-export { buildModel, modelCache, type Model, type ModelInput } from "./state/model";
+export {
+  buildModel,
+  modelCache,
+  type Model,
+  type ModelGeometry,
+  type ModelInput,
+} from "./state/model";
 export { UNDO_MAX, forgetTuck, pruneUndo, pushUndo, tuckOrder } from "./state/undo";
 export {
   DEFAULT_SETTINGS,
