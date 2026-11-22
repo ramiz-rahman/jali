@@ -285,7 +285,7 @@ A divider between child `index` and `index + 1` of split `parentId`. `value` is 
 interface ScrollerBox { id: NodeId; rect: Rect; contentWidth: number; paneIds: NodeId[] }
 ```
 
-A row that scrolls sideways (`row({ scroll: "x" }, …)`), as drawn. `rect` is its window on screen; its panes are laid along its content, `contentWidth` long, from `rect.x`. Once scrolled (`layout.scrolled`), a strip's panes and dividers carry `clip`: the window they are cut to.
+A row that scrolls sideways (`row({ scroll: "x" }, …)`), as drawn. `rect` is its window on screen; its panes are laid along its content, `contentWidth` long, from `rect.x`. Once scrolled ([`layout.scrolled`](layout.md#layoutscrolled)), a strip's panes and dividers carry `clip`: the window they are cut to.
 
 ### ResolvedStack
 

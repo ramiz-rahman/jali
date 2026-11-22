@@ -277,7 +277,8 @@ A param that is one of a few values: `oneOf("open", "closed")` gives `"open" | "
 *function*, from `jali`
 
 ```ts
-row(options?: RowOptions, ...children: (Draft | ObjectRef)[]): Draft
+row(...children: LayoutInput[]): LayoutInput
+row(options: RowOptions, ...children: LayoutInput[]): LayoutInput
 ```
 
 Example, `layouts.ts`:
@@ -318,7 +319,8 @@ Nodes without an `id` are named after what they hold: `"row"`, `"column"`, `"tab
 *function*, from `jali`
 
 ```ts
-column(options?: SizeOptions, ...children: (Draft | ObjectRef)[]): Draft
+column(...children: LayoutInput[]): LayoutInput
+column(options: SizeOptions, ...children: LayoutInput[]): LayoutInput
 ```
 
 Children one above the other. Otherwise the same as `row`.
@@ -328,7 +330,8 @@ Children one above the other. Otherwise the same as `row`.
 *function*, from `jali`
 
 ```ts
-tabs(options?: TabsOptions, ...panes: (PaneDraft | ObjectRef)[]): Draft
+tabs(...panes: (ObjectRef | ReturnType<typeof pane>)[]): LayoutInput
+tabs(options: TabsOptions, ...panes: (ObjectRef | ReturnType<typeof pane>)[]): LayoutInput
 ```
 
 Panes as tabs in one place: a stack the person made. `options.active` names the tab shown (default: the first); `id`, `weight` and `px` as for `row`.
@@ -338,7 +341,7 @@ Panes as tabs in one place: a stack the person made. `options.active` names the 
 *function*, from `jali`
 
 ```ts
-pane(ref: ObjectRef, options?: PaneNodeOptions): PaneDraft
+pane(ref: ObjectRef, options?: PaneNodeOptions): LayoutInput
 ```
 
 A pane showing `ref`, with options. A bare ref in a `row` is the same as `pane(ref)`.

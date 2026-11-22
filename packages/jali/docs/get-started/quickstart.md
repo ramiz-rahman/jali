@@ -4,7 +4,7 @@ Build the smallest Jali app, two notes side by side, then open a third from a bu
 
 This page builds a small app, one file at a time: two notes side by side, each with a button that opens the next note beside it. The finished app is [`examples/minimal`](https://github.com/ramiz-rahman/jali/tree/master/examples/minimal) in the repo, which adds a launcher and makes the panes the page's `<main>`.
 
-You need Node 20 or later. Start from a new React app, or skip this step and use your own:
+You need Node and a React app. Start from a new one, or skip this step and use your own:
 
 ```sh
 npm create vite@latest notes -- --template react-ts
