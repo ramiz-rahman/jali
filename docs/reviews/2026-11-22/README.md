@@ -55,7 +55,7 @@ Branch `core-correctness`. Each finding was first reproduced as a failing test i
 | react-codex REACT-1 (stale setter)                                                   | Fixed                                                                                                    | 5c624894           |
 | react-codex REACT-7 (stale `PaneProps.node`)                                         | Fixed: core `sameNode`                                                                                   | 7cd041a3           |
 
-- **Moved:** at 2,000 fuzz seeds, 4 of 80,000 steps reopen with the same panes at other widths, after tucks and folds combine (seeds 1289, 1403, 1421, 1571).
+- **Moved:** at 2,000 fuzz seeds, 5 of 80,000 steps reopen with the same panes at other widths, after tucks and folds combine (seeds 54, 1289, 1403, 1421, 1571; the fuzz names them and leaves their address check out).
 - **Data Studio should know:**
   - the pane-state key is new, so each person loses one draft or scroll position, once;
   - dev now follows `NODE_ENV`;

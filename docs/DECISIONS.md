@@ -1423,7 +1423,7 @@ The decisions behind the phase 2 fixes of `docs/reviews/2026-11-22/react-opus.md
 ## 22 Nov 2026 · The address follows every refit (core-opus CORE-4)
 
 - **Why:** a resize or a new pane cap refitted the layout in memory only, so Copy link and a reload at the same size opened another arrangement. An arrival from Back or a link had the same gap: it was fitted to this window, but its entry kept the writer's folds.
-- **Now:** a refit for a new size or cap writes the address as a debounced replace. An arrival that went ahead replaces its own entry with what it was fitted to. Neither adds history or a `layout` event.
+- **Now:** a refit for a new size or cap writes the address as a debounced replace. At phone width (Single view) it doesn't: the address keeps the wide layout, so widening brings it back (19 Nov 2026), as `e2e/responsive.spec.ts` checks. An arrival that went ahead replaces its own entry with what it was fitted to. Neither adds history or a `layout` event.
 - **Focus on arrival:** an arrival with no focus to keep (a reload, a fresh link) is fitted without one, and then focuses the first pane on screen, not the first in the tree. The tree's first pane may be behind a tab, and focusing it changed which tab a fold group showed, so a reload showed something else.
 - **Tests:** `address-after-refit.test.ts`. The fuzz (below) reopens the address after random steps.
 
@@ -1475,7 +1475,7 @@ The decisions behind the phase 2 fixes of `docs/reviews/2026-11-22/react-opus.md
   - Its fold records and shown tab were keyed by its first tab, so moving that tab left them stale.
   - Swap ops whose rects depend on what they show (`swap`, `openHere`, `focusExisting`) were declared as never moving anything. They jumped instead of sliding.
 - **Now:**
-  - **A tab group the person made is measured by all its tabs alike.** It is comfortable for its most demanding tab, and grows no further than its most limited tab uses (a record in a group keeps the slot a record's). Its tab order says nothing about its size. A fold group is still measured as its home. This supersedes "a tab group is measured as its home (a stack's first tab)" (17 Nov) for deliberate groups. A group of mixed kinds may sit at a different width than before.
+  - **A tab group the person made is measured by all its tabs alike.** It is comfortable for its most demanding tab, and grows as far as its most capable tab uses. (Stopping at its most limited tab's max was tried first. It narrowed the docs hero's group enough to break its tour, and left a plain tab beside a record with room it couldn't use.) Its tab order says nothing about its size. A fold group is still measured as its home. This supersedes "a tab group is measured as its home (a stack's first tab)" (17 Nov) for deliberate groups. A group of mixed kinds may sit at a different width than before.
   - **Ops own their overlay:** a new first tab (moved or pinned) carries the group's fold records and shown tab with it (`rekey`).
   - **Geometry is measured.** For a focus or swap op, `apply` compares the rects before and after. Rects that moved are counted as a reshape, so panes slide there. Only ops that never move anything by contract report a breach (`STABLE`: focus, tab, reveal, moveTab, pinTab, keep). The message says so.
 - **Not reproduced:** fold destination following tab order (core-codex CORE-6, part). It didn't show after the sizing fix, in a sweep of 256 kind combinations × 44 widths.
@@ -1491,7 +1491,7 @@ The decisions behind the phase 2 fixes of `docs/reviews/2026-11-22/react-opus.md
   - no breach of an op that never moves anything;
   - a reload at the same size shows what is on screen.
 - **Knobs:** `FUZZ_SEEDS`, `FUZZ_LIMIT` and `FUZZ_DEBUG` widen it.
-- **Found, moved:** at 2,000 seeds, 4 of 80,000 steps reopen with other widths after tucks and folds combine (seeds 1289, 1403, 1421, 1571). It is the same panes, at other sizes. Moved to a later phase.
+- **Found, moved:** at 2,000 seeds, 5 of 80,000 steps reopen with other widths after tucks and folds combine (seeds 54, 1289, 1403, 1421, 1571; the fuzz names them and leaves their address check out). It is the same panes, at other sizes. Moved to a later phase.
 
 ## 22 Nov 2026 · The address port, read-only snapshots, a page's viewer and its links (core-codex CORE-2, CORE-8, CORE-10, CORE-15)
 
