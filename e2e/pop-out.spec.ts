@@ -72,3 +72,60 @@ test("switching away from the page (blur, hidden) leaves the popped-out window o
   await expect(list.locator(".jali-popped-out")).toBeVisible();
   await expect(pip.getByRole("row").first()).toBeVisible();
 });
+
+test("the pane's content moves into the window whole and comes back whole; Jali's keys and the theme follow it there", async ({
+  app,
+  page,
+  context,
+}) => {
+  await app.open();
+  test.skip(
+    !(await page.evaluate(() => "documentPictureInPicture" in window)),
+    "no Document Picture-in-Picture in this browser",
+  );
+  const list = page.locator("section[data-pane]").first();
+  await list.click({ position: { x: 150, y: 220 } });
+  // A mark on the content's own first element: a remount would make a new one, without it.
+  await list.evaluate((el) => {
+    const content = el.querySelector("[data-jali-host] > *") as HTMLElement & { mark?: string };
+    content.mark = "kept";
+  });
+  const opened = context.waitForEvent("page");
+  await page.keyboard.press("ControlOrMeta+k");
+  await page.keyboard.type("pop out");
+  await page.keyboard.press("Enter");
+  const pip = await opened;
+  await expect(pip.locator(".jali-popout[data-jali]")).toHaveCount(1);
+  expect(
+    await pip.evaluate(
+      () =>
+        (document.querySelector("[data-jali-host] > *") as HTMLElement & { mark?: string })?.mark,
+    ),
+  ).toBe("kept");
+
+  // Jali's keys work in the window: ⌘K there opens the palette in the page.
+  await pip.locator("[data-jali-host]").click({ position: { x: 20, y: 20 } });
+  await pip.keyboard.press("ControlOrMeta+k");
+  await expect(page.getByRole("dialog", { name: "Commands" })).toBeVisible();
+  await page.keyboard.press("Escape");
+
+  // The theme follows: the window's root takes the workspace's.
+  await page.evaluate(() =>
+    (
+      window as unknown as {
+        __jali: { actions: { changeSettings(s: { theme: string }): unknown } };
+      }
+    ).__jali.actions.changeSettings({ theme: "dark" }),
+  );
+  await expect(pip.locator(".jali-popout")).toHaveAttribute("data-theme", "dark");
+
+  await list.getByRole("button", { name: "Bring back", exact: true }).click();
+  await expect.poll(() => pip.isClosed()).toBe(true);
+  expect(
+    await list.evaluate(
+      (el) =>
+        (el.querySelector("[data-jali-host] > *") as (HTMLElement & { mark?: string }) | null)
+          ?.mark,
+    ),
+  ).toBe("kept");
+});
