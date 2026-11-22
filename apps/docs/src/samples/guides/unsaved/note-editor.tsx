@@ -10,7 +10,7 @@ const noteParams = { id: Number };
 
 /** A note on a ticket. The draft outlives folds, tabs and reloads; closing with an unsaved edit asks first. */
 function TicketNote({ params }: PaneProps<typeof noteParams>) {
-  // Kept by the workspace for this pane. JSON values only.
+  // Kept by Jali for this pane. JSON values only.
   const [draft, setDraft] = usePaneState("draft", "");
   const [saved, setSaved] = usePaneState("saved", "");
   const edited = draft !== saved;
@@ -41,7 +41,7 @@ function TicketNote({ params }: PaneProps<typeof noteParams>) {
       onChange={(e) => setDraft(e.target.value)}
       onKeyDown={(e) => {
         if (e.key === "s" && (e.metaKey || e.ctrlKey)) {
-          e.preventDefault(); // claimed: the workspace leaves this key alone
+          e.preventDefault(); // claimed: Jali leaves this key alone
           void save();
         }
       }}

@@ -1,23 +1,23 @@
 ---
 title: Jali
-summary: Split views for your React app. Split any part of your app into panes, and Jali keeps every layout usable on any screen.
+summary: Split views for React. Panes fold into tabs instead of squeezing, follow each other, and come back from a link as they were.
 ---
 
 import { TreeView, Frame, Spotlight } from "../live";
 import { Opening, Stage, Section, MinimalApp, Path, Proof, LinkDemo, KeysDemo, Close, Package, Theming, SiteFooter } from "../shell/landing";
 
-<Opening title="Split views for your React app" lead="Multiplex any part of your app into panes, from two sitting side by side to over a dozen arranged in rows, columns, and tabs. Jali keeps every layout usable across all screen sizes.">
+<Opening title="Split views for your React app" lead="Split any part of your app into panes, from two side by side to a dozen in rows, columns and tabs. Jali keeps every layout usable on every screen size.">
 </Opening>
 
 <Stage>
   <TreeView layout="chain" panels="side" height="min(70vh, 720px)" tour />
 </Stage>
 
-<Section id="quickstart" label="Quickstart" title="The quickstart app, in three files" lead="One kind of pane, a workspace of two notes, and the view. The workspace beside the code is that code, running.">
+<Section id="quickstart" label="Quickstart" title="The quickstart app, in three files" lead="One kind of pane, two notes side by side, and the view. The panes beside the code are that code, running.">
   <MinimalApp />
 </Section>
 
-<Section id="workspace" label="What you get" title="What the workspace does for you">
+<Section id="workspace" label="What you get" title="What Jali does for you">
   <Path>
     <Proof id="fold" title="Panes fold when room runs out" href="/learn/fitting" more="How a layout fits" demo={<Frame layout="crowded" height={340} />}>
       Each kind of pane declares the narrowest width it works at. Drag the frame's edge: below that width a pane folds into a tab, and it comes back when there is room.
@@ -26,19 +26,19 @@ import { Opening, Stage, Section, MinimalApp, Path, Proof, LinkDemo, KeysDemo, C
       Open a record from a list, and its pane shows whichever row is selected. Keep it to stay on one record.
     </Proof>
     <Proof id="link" title="The link reopens the layout" href="/guides/url-and-routers" more="Keep the layout in the URL" demo={<LinkDemo />}>
-      Every change is written into the address. Open, close or resize a pane and watch it change. Share the link, and the same panes open in the same places.
+      With `urlSync()`, every change is written into the address. Open, close or resize a pane and watch it change. Share the link, and the same panes open in the same places.
     </Proof>
     <Proof id="keys" title="Every command has a key" href="/guides/commands-and-keys" more="Commands and keys" demo={<KeysDemo />}>
-      Move focus, maximise, tuck, close and undo from the keyboard, and rebind or turn off any key. Click inside the workspace to try them, or press a key below.
+      Move focus, maximise, tuck, close and undo from the keyboard, and rebind or turn off any key. Click inside the panes to try them, or press a key below.
     </Proof>
   </Path>
 </Section>
 
-<Close title="Two packages: jali and jali/react" lead="Install both. The core has no framework; the React package renders it.">
+<Close title="One package: jali" lead="One install. The core has no framework; jali/react renders it, and each feature has its own entry.">
   <Package name="jali" href="/reference/core" exports="createJali, row, column, tabs, pane, layout">
-    The layout tree and every change to it, fitting, and a workspace with focus, undo, follow and unsaved work.
+    The layout tree and every change to it, fitting, focus, undo, follow and unsaved work.
   </Package>
-  <Package name="jali/react" href="/reference/react" exports="Jali, definePane, usePane, useUnsaved, useCommands, usePaneState">
+  <Package name="jali/react" href="/reference/react" exports="JaliRoot, definePane, usePane, useUnsaved, useCommands, usePaneState">
     Panes, dividers, tabs, the shelf and the command palette, with a default theme.
   </Package>
   <Theming href="/guides/theming">

@@ -1,0 +1,13 @@
+/* Your bars take the room they need; the panes take the rest. */
+.app {
+  height: 100dvh;
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+}
+.top-bar,
+.status-line {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 6px 12px;
+}

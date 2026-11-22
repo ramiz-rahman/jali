@@ -15,7 +15,7 @@
   }
 }
 
-/* The workspace fills whatever box you give it. */
+/* Jali fills whatever box you give it. */
 .app {
   height: 100%;
   display: grid;

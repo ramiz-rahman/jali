@@ -4,7 +4,7 @@ import { definePane, useActiveItemPort } from "jali/react";
 
 const ORDER_IDS = ["1", "2", "3", "4"];
 
-// Item ids are the collection's; refs are the workspace's. The mapping turns one into the other.
+// Item ids are the collection's; refs are Jali's. The mapping turns one into the other.
 // Keep it outside the component: the port keeps the mapping it was first given.
 const orders: ActiveItemMapping = {
   toRef: (id) => ({ kind: "order", params: { id: Number(id) } }),

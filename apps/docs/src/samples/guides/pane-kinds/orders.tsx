@@ -34,7 +34,7 @@ function OrderList({ select, peek, openBeside, paused }: PaneProps) {
     select(orderKind({ id: ORDERS[next]!.id })); // a following detail shows it once the cursor rests
   };
 
-  // Content first: claim the keys you use with preventDefault, and let the rest reach the workspace.
+  // Content first: claim the keys you use with preventDefault, and let the rest reach Jali.
   const onKeyDown = (e: KeyboardEvent) => {
     const order = orderKind({ id: ORDERS[at]!.id });
     if (e.metaKey || e.ctrlKey) return;
@@ -126,7 +126,7 @@ export const scratchNote = definePane("scratch", {
   Component: () => <textarea aria-label="Scratch note" />,
 });
 
-/** What Split and "New tab here" open until the person chooses: the workspace's `launcher`. */
+/** What Split and "New tab here" open until the person chooses: the `launcher`. */
 export const launcher = definePane("launcher", {
   title: "New pane",
   icon: PlusIcon,

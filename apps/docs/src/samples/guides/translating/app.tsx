@@ -3,7 +3,7 @@ import { JaliRoot } from "jali/react";
 import { orderKind, ordersKind } from "../../reference/kinds";
 import { fr } from "./french";
 
-// Pick the words when the workspace is made: they are part of it, like its keys.
+// Pick the words when the instance is made: they are part of it, like its keys.
 const jali = createJali({
   panes: [ordersKind, orderKind],
   layout: ordersKind(),

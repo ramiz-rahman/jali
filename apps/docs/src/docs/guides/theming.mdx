@@ -61,7 +61,7 @@ Every token, with its light and dark values, is in the [Tokens reference](/refer
 
 The space between panes, and between Jali's edges and its panes, are options, because the layout measures with them: `createJali({ gap: 3, inset: 20 })`. The gap defaults to 6px and the inset to the gap. Jali writes them on its root as `--jali-gap` and `--jali-inset`, so your own bars can line up with the panes (`padding-inline: var(--jali-inset)`).
 
-The accent's tints (`--jali-accent-weak`, `--jali-accent-mid`, `--jali-drop` and the focus ring) are mixed from `--jali-accent` on each instance's root. Change the accent and they follow, on the whole page or on one instance. For one instance, set it on an element around `<JaliRoot>`: the palette, the other dialogs and the tab menus render in a layer beside the workspace's root (`[data-jali-layer]`), not inside it, so an accent set on the root itself reaches the panes but not them.
+The accent's tints (`--jali-accent-weak`, `--jali-accent-mid`, `--jali-drop` and the focus ring) are mixed from `--jali-accent` on each instance's root. Change the accent and they follow, on the whole page or on one instance. For one instance, set it on an element around `<JaliRoot>`: the palette, the other dialogs and the tab menus render in a layer beside Jali's root (`[data-jali-layer]`), not inside it, so an accent set on the root itself reaches the panes but not them.
 
 ## Example: retheme to teal
 
@@ -154,7 +154,7 @@ Jali's styles use logical properties (`margin-inline-start`, `inset-inline-end`)
 
 ## Drawing with the tokens on a canvas
 
-A custom property keeps its `light-dark()` pair unresolved: `getComputedStyle(el).getPropertyValue("--jali-text")` returns the string `light-dark(…)`, and a canvas ignores a `fillStyle` it can't parse. To get a colour a canvas can use, let the browser resolve it. Set `color: var(--jali-text)` on an element inside the workspace and read its computed `color`:
+A custom property keeps its `light-dark()` pair unresolved: `getComputedStyle(el).getPropertyValue("--jali-text")` returns the string `light-dark(…)`, and a canvas ignores a `fillStyle` it can't parse. To get a colour a canvas can use, let the browser resolve it. Set `color: var(--jali-text)` on an element inside Jali's root and read its computed `color`:
 
 ```ts
 function resolve(el: HTMLElement, token: string): string {
