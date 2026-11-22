@@ -21,12 +21,19 @@ export interface Projected {
 }
 export function refresh(node: Projected, fit: FitOptions): void {
   if (node.pane) return;
-  const home = node.type === "auto" ? node.children.findIndex((c) => contains(c, node.home)) : 0;
+  // A tab group the person made is measured by all its tabs alike (22 Nov 2026), in the frozen engine too: this copy
+  // checks folding, not sizing.
+  const home =
+    node.type === "auto"
+      ? node.children.findIndex((c) => contains(c, node.home))
+      : node.type === "stack"
+        ? -1
+        : 0;
   node.bounds = combineBounds(
     node.type,
     node.children.map((c) => c.bounds),
     fit.gap,
-    Math.max(0, home),
+    node.type === "stack" ? -1 : Math.max(0, home),
     !!node.scroll,
   );
 }

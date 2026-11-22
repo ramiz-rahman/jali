@@ -141,7 +141,7 @@ describe("heights across a row, in tab groups and in rows that scroll", () => {
     expect(heights(place(open, 906))).toEqual({ a: 450, a2: 450, b: 450 });
   });
 
-  it("a tab group's minimum is its tallest tab's; it is measured as its first tab, as with width", () => {
+  it("a tab group's minimum is its tallest tab's; it is measured by all its tabs alike, whatever their order", () => {
     const group = (first: string, second: string): LayoutNode => ({
       id: "g",
       type: "stack",
@@ -155,11 +155,12 @@ describe("heights across a row, in tab groups and in rows that scroll", () => {
       a: 260,
       b: 640,
     });
+    // The same group with its tabs the other way round: the same heights (22 Nov 2026; before, its first tab's).
     expect(
       heights(place(of(column("c", [group("plain", "band"), pane("b", "plain")])), 906)),
     ).toEqual({
-      a: 450,
-      b: 450,
+      a: 260,
+      b: 640,
     });
     const b = (k: string) => bounds(pane("p", k), kinds, 6);
     expect(combineBounds("stack", [b("band"), b("deep")], 6)).toMatchObject({

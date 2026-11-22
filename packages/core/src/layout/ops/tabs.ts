@@ -2,7 +2,7 @@ import type { Layout, LayoutContext, ObjectRef, OpenResult, PaneNode, ViewState 
 import { clone, find, map, nodes, stackOf, newId, noFocus, panes, unzoom } from "../tree/tree";
 import { sameSize } from "../tree/size";
 import { tab } from "../tree/insert";
-import { overlayOf, withOverlay } from "../fit/overlay";
+import { overlayOf, rekey, withOverlay } from "../fit/overlay";
 import { resolve } from "../fit/resolve";
 import { fitLayout } from "../fit/refit";
 import { focus } from "./focus";
@@ -60,10 +60,11 @@ export function moveTab(layout: Layout, id: string, index: number): Layout {
   if (from === to || Number.isNaN(to)) return layout;
   const children = stack.children.filter((c) => c.id !== id);
   children.splice(to, 0, stack.children[from]!);
-  return {
-    ...layout,
-    root: map(layout.root, (n) => (n.id === stack.id ? { ...stack, children } : n)),
-  };
+  return rekey(
+    { ...layout, root: map(layout.root, (n) => (n.id === stack.id ? { ...stack, children } : n)) },
+    stack.children[0]!.id,
+    children[0]!.id,
+  );
 }
 
 /**
@@ -75,6 +76,7 @@ export function setPinned(layout: Layout, id: string, pinned: boolean): Layout {
   if (node?.type !== "pane" || !!node.pinned === pinned) return layout;
   const { pinned: _p, ...rest } = node;
   const flagged: PaneNode = pinned ? { ...rest, pinned: true } : rest;
+  const stack = stackOf(layout.root, id);
   const root = map(layout.root, (n) => {
     if (n.id === id) return flagged;
     if (n.type !== "stack" || !n.children.some((c) => c.id === id)) return n;
@@ -82,7 +84,10 @@ export function setPinned(layout: Layout, id: string, pinned: boolean): Layout {
     const at = others.filter((c) => c.pinned).length;
     return { ...n, children: [...others.slice(0, at), flagged, ...others.slice(at)] };
   });
-  return { ...layout, root };
+  const first = stack && stackOf(root, id)?.children[0]?.id;
+  return stack && first
+    ? rekey({ ...layout, root }, stack.children[0]!.id, first)
+    : { ...layout, root };
 }
 
 export function reveal(layout: Layout, pane: string, ctx: LayoutContext): Layout {

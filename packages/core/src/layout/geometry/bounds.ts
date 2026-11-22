@@ -21,7 +21,8 @@ export const NO_BOUNDS: Bounds = {
   comfortableHeight: 0,
   maxHeight: Infinity,
 };
-/** `home`: for a tab group, the index of the child the slot belongs to (a stack's first tab, a fold's home pane). */
+/** `home`: for a fold's tab group, the index of the child the slot belongs to (its home pane); -1 for a tab group the
+ *  person or the app made, which is measured by all its tabs alike, so their order never changes its size. */
 export function combineBounds(
   type: string,
   children: Bounds[],
@@ -74,7 +75,18 @@ export function combineBounds(
       comfortableHeight: sum(comfortableHeights),
       maxHeight: sum(maxHeights),
     };
-  const own = children[home] ?? children[0]!;
+  // A tab group the person made can show any of its tabs: it is comfortable for the most demanding one, and grows
+  // no further than its most limited one uses, so no tab is left with space it can't use (a record in a tab group
+  // keeps the slot a record's). Its tab order says nothing about its size.
+  const own =
+    home < 0
+      ? {
+          comfortable: Math.max(...comfortable),
+          maxWidth: Math.min(...maxima),
+          comfortableHeight: Math.max(...comfortableHeights),
+          maxHeight: Math.min(...maxHeights),
+        }
+      : (children[home] ?? children[0]!);
   const comfort = Math.max(width, own.comfortable);
   const height = Math.max(...heights);
   const comfortHeight = Math.max(height, own.comfortableHeight);
@@ -93,7 +105,7 @@ export function bounds(node: LayoutNode, kinds: KindRegistry, gap: number): Boun
       node.type,
       node.children.map((c) => bounds(c, kinds, gap)),
       gap,
-      0,
+      node.type === "stack" ? -1 : 0,
       node.type === "row" && node.scroll === "x",
     );
   const kind = Object.hasOwn(kinds, node.ref.kind) ? kinds[node.ref.kind] : undefined;

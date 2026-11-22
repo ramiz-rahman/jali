@@ -19,12 +19,17 @@ export interface Projected {
 }
 export function refresh(node: Projected, fit: FitOptions): void {
   if (node.pane) return;
-  const home = node.type === "auto" ? node.children.findIndex((c) => contains(c, node.home)) : 0;
+  const home =
+    node.type === "auto"
+      ? node.children.findIndex((c) => contains(c, node.home))
+      : node.type === "stack"
+        ? -1
+        : 0;
   node.bounds = combineBounds(
     node.type,
     node.children.map((c) => c.bounds),
     fit.gap,
-    Math.max(0, home),
+    node.type === "stack" ? -1 : Math.max(0, home),
     !!node.scroll,
   );
 }
@@ -226,6 +231,26 @@ export function choose(root: Projected, active: Record<string, string> | undefin
     const child = want ? group.children.find((c) => contains(c, want)) : undefined;
     if (child) group.active = child.id;
   }
+}
+/**
+ * A tab group the person made has a new first tab (a tab moved or pinned to the front): its fold records and its shown
+ * tab are keyed by its first tab (`homeOf`), so they move to the new one. Without it, the records go stale, the folds
+ * replay differently, and panes move on a change that never moves anything. The same layout when nothing names `from`.
+ */
+export function rekey(layout: Layout, from: string, to: string): Layout {
+  const o = layout.overlay;
+  if (!o || from === to) return layout;
+  const auto = `${AUTO_PREFIX}${from}`;
+  const named = o.folds.includes(auto) || Object.hasOwn(o.shown, from);
+  if (!named) return layout;
+  const shown = Object.fromEntries(
+    Object.entries(o.shown).map(([home, pane]) => [home === from ? to : home, pane]),
+  );
+  return withOverlay(layout, {
+    ...o,
+    folds: o.folds.map((id) => (id === auto ? `${AUTO_PREFIX}${to}` : id)),
+    shown,
+  });
 }
 export function withOverlay(layout: Layout, overlay: import("../types").Overlay): Layout {
   const next = { ...layout };

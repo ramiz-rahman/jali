@@ -107,7 +107,7 @@ describe("pane sizing", () => {
       548, 440, 440,
     ]);
   });
-  it("never moves a slot when a tab is chosen: a tab group is measured as its home (a stack's first tab)", () => {
+  it("never moves a slot when a tab is chosen: a tab group is measured by all its tabs alike", () => {
     const stack = (active: string): Layout =>
       row(pane("t", "table"), {
         id: "tabs",
@@ -118,7 +118,7 @@ describe("pane sizing", () => {
         children: [pane("a", "record"), pane("b", "plain")],
       });
     expect(rects(place(stack("a"), 1440))).toBe(rects(place(stack("b"), 1440)));
-    // The home is a record, so the slot stops at the record's max even while the plain tab (no max) is shown.
+    // A record is among its tabs, so the slot stops at the record's max even while the plain tab (no max) is shown.
     expect(place(stack("b"), 1920).panes.find((p) => p.id === "b")!.rect.width).toBe(600);
   });
   it("measures a fold as the slot it folded into, so folded tables do not turn a record's slot into a table's", () => {
