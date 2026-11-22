@@ -1236,7 +1236,7 @@ type RefusalReason = "not-found" | "invalid" | "unavailable" | "single-view" | "
 
 - **`last-pane`**: The last pane, or a page's last view on screen, stays.
 
-- **`blocked`**: The pane can't go there: past the edge, tucking the only pane or a tab.
+- **`blocked`**: The pane can't go there: past the edge, tucking the only pane or a tab. Also a change whose link no instance could reopen: more panes than a link holds, or, with the layout kept in the address, layout text too long to read back (one very long param).
 
 - **`nothing-to-do`**: Nothing to undo, put back, close, resize or unmerge.
 

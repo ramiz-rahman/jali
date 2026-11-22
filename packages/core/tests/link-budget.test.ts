@@ -32,3 +32,47 @@ describe("a layout's size", () => {
     expect(L.decode(code, jali.env.kinds.registry())).not.toBeNull();
   });
 });
+
+/**
+ * The writer checks the text it would publish, as the reader limits it (core review 22 Nov 2026, #7). Before, one
+ * long param in a small layout passed the node count: openHere succeeded and wrote 1,013,594 characters of layout,
+ * which `decode` refuses.
+ */
+describe("a layout's text", () => {
+  const note = { kind: "note", title: "Note", params: { text: String }, width: { min: 200 } };
+  const make = (o: { url?: boolean } = {}) => {
+    const location = memoryLocation();
+    const jali = createJali({
+      panes: [item, note],
+      layout: tabs(pane({ kind: "item", params: { id: 1 } }, { id: "a" })),
+      ...(o.url === false ? {} : { features: [urlSync({ location })] }),
+      storage: memoryStorage(),
+      size: { width: 1200, height: 800 },
+      moveFocus: false,
+    });
+    jali.start();
+    return { jali, location };
+  };
+  const huge = { kind: "note", params: { text: "x".repeat(800_000) } };
+
+  it("too long for a link to read back is refused, and the link still reopens", () => {
+    const { jali, location } = make();
+    expect(jali.actions.openHere("a", huge)).toMatchObject({ ok: false, reason: "blocked" });
+    const code = new URLSearchParams(location.search()).get("l")!;
+    expect(L.decode(code, jali.env.kinds.registry())).not.toBeNull();
+  });
+
+  it("that fits is written, and reads back as the same panes", () => {
+    const { jali, location } = make();
+    const long = { kind: "note", params: { text: "y".repeat(200_000) } };
+    expect(jali.actions.openHere("a", long).ok).toBe(true);
+    const code = new URLSearchParams(location.search()).get("l")!;
+    const back = L.decode(code, jali.env.kinds.registry());
+    expect(back && L.tree.panes(back.root).map((p) => p.ref)).toEqual([long]);
+  });
+
+  it("is not limited where the instance keeps no address", () => {
+    const { jali } = make({ url: false });
+    expect(jali.actions.openHere("a", huge).ok).toBe(true);
+  });
+});

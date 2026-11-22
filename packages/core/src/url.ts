@@ -481,6 +481,9 @@ export function createUrlSync({
       const joined = joinPersonalSizes(r.layout, own);
       return core.validate(joined, kinds).ok ? { ...r, layout: joined } : r;
     },
+    // The layout as `write` puts it in the address: sizes kept on the device ("local") are left out of it.
+    linkText: (layout) =>
+      core.encode(sizes === "local" ? splitPersonalSizes(layout).layout : layout).length,
     cancel() {
       closed = true;
       clearTimeout(timer);

@@ -78,9 +78,16 @@ export function encode(layout: Layout): string {
   for (const byte of bytes) binary += String.fromCharCode(byte);
   return `1.${btoa(binary).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "")}`;
 }
+/** The longest layout text `decode` reads: a link whose layout is longer is one no instance reopens. */
+export const MAX_LINK_TEXT = 1_000_000;
+
 export function decode(text: string, kinds: KindRegistry): Layout | null {
   try {
-    if (typeof text !== "string" || text.length > 1_000_000 || !/^1\.[A-Za-z0-9_-]+$/.test(text))
+    if (
+      typeof text !== "string" ||
+      text.length > MAX_LINK_TEXT ||
+      !/^1\.[A-Za-z0-9_-]+$/.test(text)
+    )
       return null;
     const payload = text.slice(2),
       binary = atob(payload.replace(/-/g, "+").replace(/_/g, "/"));

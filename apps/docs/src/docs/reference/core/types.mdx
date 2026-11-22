@@ -750,7 +750,7 @@ else void result.settled?.then((end) => end.ok && forgetSavedLayouts());
 <Param name="single-view" type="">A curated page in Single view has no layout to change.</Param>
 <Param name="not-allowed" type="">Links only peek on this page for this person (`jali.page.setLinkMode("peek")`).</Param>
 <Param name="last-pane" type="">The last pane, or a page's last view on screen, stays.</Param>
-<Param name="blocked" type="">The pane can't go there: past the edge, tucking the only pane or a tab.</Param>
+<Param name="blocked" type="">The pane can't go there: past the edge, tucking the only pane or a tab. Also a change whose link no instance could reopen: more panes than a link holds, or, with the layout kept in the address, layout text too long to read back (one very long param).</Param>
 <Param name="nothing-to-do" type="">Nothing to undo, put back, close, resize or unmerge.</Param>
 <Param name="unsaved" type="">A pane that would go has unsaved work. Jali asks the person ("Discard unsaved changes?") and makes the change if they discard. See `settled`. (A linked detail that keeps its object because of its unsaved work doesn't ask, and has no `settled`.)</Param>
 <Param name="kept" type="">`beforeClose` kept the panes, or the person chose Keep editing.</Param>

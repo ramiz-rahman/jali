@@ -40,13 +40,20 @@ import { ownedPaneState, ownedSelection } from "./pane-state";
 import { sameRef } from "../layout/ops/ref";
 import { currentInput, withInput } from "../dom/input";
 import { MAX_NODES } from "../layout/codec/validate";
+import { MAX_LINK_TEXT } from "../layout/codec/codec";
 
-/** A change that would make a layout hold more nodes than a link can (`MAX_NODES`): its address would be one no
- *  instance reopens. A layout already that big may still shrink. (Ops never nest a split in a split of one, so a
- *  layout within the node limit is within the depth limit too.) */
-function pastLinks(from: Layout, to: Layout): boolean {
+/**
+ * A change whose address would be one no instance reopens: a layout with more nodes than a link holds (`MAX_NODES`,
+ * a cheap count), or, where the instance keeps its layout in the address, layout text longer than the codec reads
+ * (`MAX_LINK_TEXT`; one long param in a small layout). A layout already that big may still shrink. (Ops never nest a
+ * split in a split of one, so a layout within the node limit is within the depth limit too.)
+ */
+function pastLinks(from: Layout, to: Layout, linkText?: (layout: Layout) => number): boolean {
   const next = core.tree.nodes(to.root).length;
-  return next > MAX_NODES && next > core.tree.nodes(from.root).length;
+  if (next > MAX_NODES && next > core.tree.nodes(from.root).length) return true;
+  if (!linkText) return false;
+  const text = linkText(to);
+  return text > MAX_LINK_TEXT && text > linkText(from);
 }
 
 /** What an action reads: the state, the model derived from it, and the core's context. */
@@ -432,6 +439,9 @@ export interface ApplyIO {
   host?<T>(call: () => T): T;
   /** Commit an outcome later, from the top (a change `beforeClose` allowed after a while). */
   later?(o: Outcome): ActionResult;
+  /** How long `layout`'s text is in the address, as the instance would write it; absent when it writes no layout
+   *  there (no URL sync). */
+  linkText?(layout: Layout): number;
   /** The instance's lifetime. Once it ends (`destroy()`), a held host answer settles as `"kept"` at once, and its
    *  later yes changes nothing. */
   signal?: AbortSignal;
@@ -589,6 +599,7 @@ function transaction(io: ApplyIO): Transaction {
       return io.beforeClose;
     },
     host: io.host && ((call) => io.host!(call)),
+    linkText: io.linkText && ((layout) => io.linkText!(layout)),
     later: io.later && ((o) => io.later!(o)),
     signal: io.signal,
   };
@@ -717,7 +728,10 @@ function step(c: Run, o: Outcome): Res {
   } else {
     const layoutChanged = next.layout !== s.layout,
       viewChanged = !sameView(next.view, s.view);
-    if (layoutChanged && pastLinks(s.layout, next.layout)) return ok(refused("blocked"));
+    // A curated page's address holds no layout: only the free layout's text counts.
+    const page = o.patch && "page" in o.patch ? o.patch.page : s.page;
+    if (layoutChanged && pastLinks(s.layout, next.layout, page ? undefined : io.linkText))
+      return ok(refused("blocked"));
     // Unsaved work is never lost without asking. A following detail keeps its object instead (it moves on its own
     // while the person browses the list: a question each time would be worse).
     // The host is asked first (beforeClose); its yes still meets Jali's own question about unsaved work.

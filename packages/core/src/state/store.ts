@@ -220,6 +220,9 @@ export interface UrlWriter {
   /** The instance is going away (`jali.destroy()`): drop a write still waiting (a debounced one), and every later
    *  one. */
   cancel?(): void;
+  /** How long `layout`'s text would be in the address this writer writes (after its own filtering). With it, a change
+   *  whose link would be too long to read back is refused; without it, only the node count is checked. */
+  linkText?(layout: Layout): number;
 }
 
 /**
@@ -684,6 +687,8 @@ export function createJaliStore(deps: JaliConfig): JaliStore {
       }
     },
     later: (o: Outcome) => store.apply(o),
+    // As a link carries it: without params only the app sets.
+    linkText: url?.linkText && ((l: Layout) => url.linkText!(linkLayout(env.kinds.registry(), l))),
     signal: life.signal,
     snapshot: store.snapshot,
     url: store.writeUrl,
