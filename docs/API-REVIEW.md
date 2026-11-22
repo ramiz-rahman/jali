@@ -1,6 +1,6 @@
 # Jali's public API: the review before 1.0
 
-> **Draft, 22 Nov 2026.** This is the target public surface, written as code, for the owner to approve before the API phase starts. Nothing here is built yet. Phases 1 and 2 (correctness) don't change the public API, so they go on alongside this review.
+> **Approved by the owner, 22 Nov 2026,** including all four calls below. This is the target public surface, written as code. Nothing here is built yet; the API phase builds it after phases 1 and 2 merge. Phases 1 and 2 (correctness) don't change the public API, so they go on alongside this review.
 >
 > **Sources:**
 >
@@ -233,9 +233,9 @@ createRoot(document.getElementById("root")!).render(<JaliRoot jali={jali} />);
 - **The same as today except the imports.** `definePane` moves to `jali` because it no longer needs React to define a kind. The React component is attached by `jali/react` when it renders.
 - **Two people decide whether that move is right:** the owner, and a check that the framework-free core doesn't pull in React types.
 
-## For the owner to decide
+## Decided by the owner (22 Nov 2026: yes to all four)
 
-The rest follows from the reviews and DECISIONS; these four are judgement calls.
+The rest follows from the reviews and DECISIONS; these four were judgement calls.
 
 1. **Opt-in features (2):** do you accept a slightly longer setup in exchange for core at roughly half its size? **Recommended: yes**, with `defaultFeatures()` for anyone who wants today's behaviour in one line.
 2. **`definePane` in `jali` rather than `jali/react` (quickstart):** this keeps kinds framework-free, which a later Solid or Vue adapter would need. **Recommended: yes**, if the types stay clean. Otherwise it stays in `jali/react`.
