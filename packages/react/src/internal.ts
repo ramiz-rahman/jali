@@ -3,7 +3,8 @@
  * feature with its parts, `defaultFeatures`, and the pieces `jali/react` lists one by one. Not for apps.
  */
 export * from "./index";
-export { definePage, type Page, type PageView } from "./define";
+export { definePage } from "./define-page";
+export { type Page, type PageView } from "./define";
 export { defaultIcons } from "./icons/default";
 export { chooser, palette, settings } from "./features/dialogs";
 export { rename } from "./features/rename";

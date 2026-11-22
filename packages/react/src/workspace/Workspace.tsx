@@ -26,7 +26,7 @@ import { useHydrated } from "../state/hydrated";
 import { paneHydration } from "../state/hydration";
 import { DropIndicator } from "./DropIndicator";
 import { useSingleView } from "./useSingleView";
-import { PAGE_PARTS } from "../define";
+import { PAGE_PARTS } from "../page-parts";
 import { useWorkspaceLabel } from "../a11y/landmark";
 
 // Development checks test the literal, so a production build drops them and their messages (dev.ts).

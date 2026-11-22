@@ -36,14 +36,11 @@ import type {
 } from "@jali/core";
 import type { ComponentType } from "react";
 
-import { defineKind, definePageEngine, warnUnknown } from "@jali/core/adapter";
+import { defineKind, warnUnknown } from "@jali/core/adapter";
 
 declare const process: { env: { NODE_ENV?: string } };
 import type { JaliIcon } from "./icons/types";
-import { pageParts, type PageParts } from "./chrome/PageBar";
-
-/** Where a page from `definePage` keeps its React parts (chrome/PageBar.tsx). */
-export const PAGE_PARTS: unique symbol = /* @__PURE__ */ Symbol.for("jali.react.page");
+import { PAGE_PARTS, type PageParts } from "./page-parts";
 
 /** `P` as params: a declaration (`{ id: Number }`, or a Standard Schema) is read as `ParamsOf` it; params' own type
  *  stays as it is. */
@@ -152,21 +149,6 @@ export interface Page<I extends ItemId = any> extends ProfileBase<PageView, I> {
   Header: ComponentType<{ item: I }>;
   /** Set by `definePage`: what the page renders. Never set it yourself. */
   readonly [PAGE_PARTS]?: PageParts;
-}
-
-/**
- * Makes a curated page: `definePage({ id, name, roles, ... })`, for `createJali({ page })`. It gives the page the code
- * that runs it (core's `definePageEngine`) and the parts that render it, so an app that never calls it ships neither.
- */
-export function definePage(page: Page<number>): Page<number>;
-export function definePage(page: Page<string>): Page<string>;
-export function definePage(page: Page): Page {
-  try {
-    if (process.env.NODE_ENV !== "production") warnUnknown("definePage", page);
-  } catch {
-    /* no `process`: production */
-  }
-  return { ...definePageEngine(page), [PAGE_PARTS]: pageParts };
 }
 
 /** The env as a React instance sees it: its kinds have components, its page a rail and header. */

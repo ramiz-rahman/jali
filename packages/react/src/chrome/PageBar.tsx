@@ -2,7 +2,7 @@
  * A curated page's React parts: its view (rail, header, tabs and panes), its bar, the ⌥ preview over the panes and its
  * settings. `definePage` puts them on the page (`pageParts`), so an app without a page ships none of them.
  */
-import { useCallback, useEffect, useMemo, useRef, type ComponentType } from "react";
+import { useCallback, useEffect, useMemo, useRef } from "react";
 import type { ItemId, Settings as S } from "@jali/core";
 import { useJaliIcons } from "../icons/context";
 import {
@@ -19,6 +19,7 @@ import { useKeymap } from "../state/hydrated";
 import { Panes } from "../workspace/Workspace";
 import { useLandmarkName } from "../a11y/landmark";
 import { Guard } from "./Guard";
+import type { PageParts } from "../page-parts";
 import { revealInList } from "./SwitcherItem";
 
 /**
@@ -352,12 +353,5 @@ function PageSettings() {
   );
 }
 
-/** What a curated page renders, by part: put on the page by `definePage`, read by `<JaliView>`, `<Panes>` and
- *  `<SettingsPanel>`. */
-export interface PageParts {
-  View: ComponentType;
-  Ghost: ComponentType<{ role: string }>;
-  Settings: ComponentType;
-}
-
+/** What a curated page renders (the contract is page-parts.ts). */
 export const pageParts: PageParts = { View: CuratedPage, Ghost, Settings: PageSettings };
