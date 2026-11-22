@@ -7,9 +7,8 @@
 import type { ViewState } from "@jali/core";
 import {
   SWITCHER_H,
+  defaultStackShare,
   frames,
-  stackGap,
-  stackShare,
   stackSplit,
   type Frame,
   type Model,
@@ -76,17 +75,7 @@ export function placement(m: Model, view: ViewState, input: PlacementInput): Pla
   // Across a fold the two halves stay whatever the keyboard does: they are two screens.
   const stacked = single && !page && !!m.stacked && (!keyboardUp || !!m.stacked.hinge);
   // The top pane's share, worked out once: the frames are split by it and the divider shows it.
-  const share =
-    stacked && m.stacked
-      ? (input.share ??
-        stackShare(
-          m.env,
-          m.pane(m.stacked.top),
-          m.pane(m.stacked.bottom),
-          inner.height,
-          stackGap(gap),
-        ))
-      : undefined;
+  const share = stacked ? (input.share ?? defaultStackShare(m, inner.height)) : undefined;
   const placed = frames(
     m,
     view,

@@ -1,9 +1,11 @@
 /**
  * `data-pressed` on Jali's controls while they are held down: by the pointer (the primary button), or by Space or Enter
- * while the control has focus. One listener set for the page, installed while any instance with the feature is started, so every
- * control gets it the same way and none has to know; only the controls of those instances get it (in their root or
- * their dialogs), never another instance's or the app's own. `:active` covers only the pointer; a theme that draws travel
- * (a key going down) reads `[data-pressed]` and gets the keyboard too.
+ * while the control has focus. One listener set for the page, installed while any instance with the feature is
+ * started, so every control gets it the same way and none has to know. Only the controls of those instances get it (in
+ * their root or their dialogs): never another instance's, even one nested in their panes, and never the app's outside
+ * them. What a pane's content renders is in the root, so Jali's parts used there (an `<IconButton>`) get it too.
+ * `:active` covers only the pointer; a theme that draws travel (a key going down) reads `[data-pressed]` and gets the
+ * keyboard too.
  *
  * Jali's own styles don't read it, so the default look is unchanged.
  */
@@ -34,13 +36,13 @@ export const PRESSABLE = [
 /** The started instances with the feature, each with its count of starts: a control gets it only in one of theirs. */
 const owners = new Map<JaliStore, number>();
 
-/** `el` is in an instance's root (once one is attached) or its dialogs. */
+/** `el` belongs to an instance with the feature: the nearest instance element around it (a root or a dialog layer) is
+ *  one of theirs. Nearest, so an instance without it, inside a pane of one with it, keeps its controls unmarked. */
 function owned(el: Element) {
-  for (const store of owners.keys()) {
-    const root = store.dom.root();
-    if ((root instanceof Element && root.contains(el)) || store.dom.layer()?.contains(el))
-      return true;
-  }
+  const near = el.closest("[data-jali], [data-jali-layer]");
+  if (!near) return false;
+  for (const store of owners.keys())
+    if (store.dom.root() === near || store.dom.layer() === near) return true;
   return false;
 }
 

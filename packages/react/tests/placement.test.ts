@@ -4,7 +4,14 @@
  */
 import { describe, expect, it } from "vite-plus/test";
 import { createJali, memoryLocation, memoryStorage, row } from "@jali/core";
-import { STACK_GAP, SWITCHER_H, frames, stackShare, storeOf } from "@jali/core/adapter";
+import {
+  STACK_GAP,
+  SWITCHER_H,
+  defaultStackShare,
+  frames,
+  stackShare,
+  storeOf,
+} from "@jali/core/adapter";
 import { definePane } from "@jali/react";
 import { placement } from "../src/workspace/placement";
 import { defaultFeatures, urlSync } from "./features";
@@ -109,6 +116,8 @@ describe("placement, stacked", () => {
       Math.max(gap, STACK_GAP),
     );
     expect(p.divider!.share).toBe(share);
+    // Core's frames, given no share, split by the same default.
+    expect(defaultStackShare(m, p.inner.height)).toBe(share);
     const { top, bottom } = halves(p, m);
     expect(top.height).toBe(260);
     expect(p.divider!.y).toBe(top.y + top.height);

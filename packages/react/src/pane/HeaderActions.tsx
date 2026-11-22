@@ -2,7 +2,7 @@ import { own } from "@jali/core/adapter";
 import { buttonsOf, checkTuck, tuckHome, type PaneButton } from "@jali/core/adapter";
 import { useJaliIcons } from "../icons/context";
 import { useDerived, useStore, useUi } from "../state/react";
-import { popOutOf, useCanPopOut, usePoppedOut } from "./popped";
+import { useCanPopOut, usePoppedOut } from "./popped";
 import { paneActionsOf } from "./actions";
 import { useKeymap } from "../state/hydrated";
 import type { Chrome } from "@jali/core/adapter";
@@ -86,7 +86,7 @@ export function HeaderActions({ id, title, zoomed, chrome, tabs, narrow = 0, onM
       const items = paneActionsOf(store, id, pop).flat();
       // A narrow header keeps its title: what the menu also offers moves into it, and a tuck that can't happen goes.
       const inMenu = new Set(items.map((i) => i.id));
-      const buttons = buttonsOf(x, id, { chrome, zoomed, full, tabs }).filter(
+      const buttons = buttonsOf(x, id, { chrome, zoomed, full, tabs, popped }).filter(
         (b) =>
           (b !== "popOut" || pop) &&
           !(narrow && MOVES.has(b) && (inMenu.has(COVERS[b]) || (b === "tuck" && !home))),
@@ -140,11 +140,13 @@ export function HeaderActions({ id, title, zoomed, chrome, tabs, narrow = 0, onM
             aria-label={popped ? t.bringBackPane(title) : t.popOut(title)}
             aria-pressed={popped}
             title={popped ? t.bringBack : t.popOutTip}
-            onClick={() => {
-              const w = popOutOf(store);
-              if (popped) w?.close(store);
-              else void w?.open(store, id);
-            }}
+            // The menu's own action (pane/actions.ts), so the button and ⋯ can't disagree on what it does.
+            onClick={() =>
+              paneActionsOf(store, id, pop)
+                .flat()
+                .find((i) => i.id === "pop-out")
+                ?.run()
+            }
           >
             <icon.popOut {...ICON.header} aria-hidden />
           </button>

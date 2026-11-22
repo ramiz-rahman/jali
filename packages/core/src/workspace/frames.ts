@@ -82,13 +82,25 @@ export function stackSplit(
   return { y: Math.round((height - room) * share), height: room };
 }
 
+/**
+ * Stacked view's top share of a stack `height` tall before the person moves the divider: the kinds' heights decide it
+ * (`stackShare`), with the room between the panes taken out. The one place that works it out, for `frames` and for an
+ * adapter that draws the divider.
+ */
+export function defaultStackShare(m: Model, height: number): number {
+  const pair = m.stacked;
+  return pair
+    ? stackShare(m.env, m.pane(pair.top), m.pane(pair.bottom), height, stackGap(m.env.spacing.gap))
+    : 0.5;
+}
+
 export function frames(
   m: Model,
   view: ViewState,
   mode: Presentation,
   size: { width: number; height: number },
   /** Stacked view: the top pane's share of the height (0 to 1), or `false` to show one pane (the keyboard is up).
-   *  Left out, the kinds' heights decide it (`stackShare`): a half unless one gives a comfortable or max height. */
+   *  Left out, the kinds' heights decide it (`defaultStackShare`): a half unless one gives a comfortable or max height. */
   stack?: number | false,
   /** Where this box sits in the layout, which a fold's hinge is measured in. */
   origin: { x: number; y: number } = { x: 0, y: 0 },
@@ -96,10 +108,7 @@ export function frames(
   if (mode === "single" && m.stacked && (stack !== false || m.stacked.hinge)) {
     const { top, bottom, hinge } = m.stacked;
     const { gap } = m.env.spacing;
-    const ratio =
-      stack === false
-        ? 0.5
-        : (stack ?? stackShare(m.env, m.pane(top), m.pane(bottom), size.height, stackGap(gap)));
+    const ratio = stack === false ? 0.5 : (stack ?? defaultStackShare(m, size.height));
     const rects = hinge
       ? acrossFold(hinge, size, origin)
       : (() => {
