@@ -77,7 +77,12 @@ export function ModalDialog({
   useEffect(() => {
     const el = ref.current!;
     if (store.focusHeld) return undefined;
-    (initialFocus?.current ?? tabStops(el)[0] ?? el).focus({ preventScroll: true });
+    const first = () => (initialFocus?.current ?? tabStops(el)[0] ?? el).focus({ preventScroll: true });
+    first();
+    // A dialog that mounts again where it moves (into a pane that just went full screen) can mount before the one it
+    // replaces lets go: that one's root is still inert, so focus can't come in, and its cleanup then puts focus back
+    // behind the dialog. Once both are done, focus comes in.
+    if (!el.contains(document.activeElement)) queueMicrotask(() => el.isConnected && first());
     const undo = inertOutside(
       store.dom.layer() ?? el,
       store.dom.root() as Element | null,
