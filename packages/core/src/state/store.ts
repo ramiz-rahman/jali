@@ -511,6 +511,10 @@ export function createUiStore(deps: UiStoreDeps): UiStore {
     // The layout given, once checked (`firstLayout`), or what took its place.
     layout,
   };
+  if (DEV) {
+    freezeTree(state.layout);
+    freezeTree(state.view);
+  }
   const subs = new Set<() => void>();
   const notify = () => {
     for (const fn of subs) fn();
@@ -579,6 +583,10 @@ export function createUiStore(deps: UiStoreDeps): UiStore {
     ) {
       const layout = core.refit(next.layout, next.view, ctxOf(next));
       if (layout !== next.layout) next = { ...next, layout };
+    }
+    if (DEV) {
+      if (next.layout !== prev.layout) freezeTree(next.layout);
+      if (next.view !== prev.view) freezeTree(next.view);
     }
     state = next;
     // A refit's folds are part of what is on screen, so the address follows (a replace, once the size rests): a
@@ -876,6 +884,18 @@ export function createUiStore(deps: UiStoreDeps): UiStore {
 }
 
 /**
+ * In development, the layout and view a workspace commits are frozen, so an app that edits what `get()`,
+ * `getLayout()` or an event gave it fails at once, instead of changing the workspace behind its back (no history, no
+ * event, a model cache that no longer matches). Refs are left as they are: they may be the app's own objects. What is
+ * frozen already (shared with the last commit) is not walked again.
+ */
+function freezeTree(value: unknown): void {
+  if (!value || typeof value !== "object" || Object.isFrozen(value)) return;
+  for (const [k, v] of Object.entries(value)) if (k !== "ref" && k !== "peek") freezeTree(v);
+  Object.freeze(value);
+}
+
+/**
  * The layout a workspace starts on, checked as `setLayout` and links check theirs (`core.validate`): the one given
  * (`createJali({ layout })`, often one the app saved), else the preset it opens on, the other presets, the curated
  * page, and a lone launcher, in that order. A layout that can't be shown (a kind removed since it was saved, two
@@ -906,7 +926,8 @@ function firstLayout(
     if (dev && problems.length)
       console.error(`Jali: a layout to start from can't be shown\n  ${problems.join("\n  ")}`);
   };
-  const ok = given && check("layout", () => given);
+  // A copy: the app's own object (a layout it saved) is never frozen or kept.
+  const ok = given && check("layout", () => structuredClone(given));
   if (ok) return { layout: ok };
   for (const p of start ? [start, ...env.presets.filter((q) => q !== start)] : env.presets) {
     const layout = check(`preset "${p.id}"`, p.build);

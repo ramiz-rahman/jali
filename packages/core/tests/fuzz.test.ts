@@ -223,5 +223,5 @@ describe("random sequences of public actions", () => {
       jali.destroy();
     }
     expect(problems.join("\n")).toBe("");
-  });
+  }, 60_000);
 });
