@@ -11,6 +11,10 @@ export interface Share {
   max?: number;
 }
 
+/** The longest a fixed child is taken to be: far past any screen, and far from overflowing a sum of lengths. A link
+ *  may hold any finite px (1e308 passes validation); multiplied, that was Infinity, then NaN. */
+const LENGTH_MAX = 1e7;
+
 /**
  * How a split's children share its length.
  * - `"flex"` (a split nobody has sized): every child starts at its minimum; spare space then brings children up to
@@ -31,13 +35,24 @@ export function shares(
   const values = items.map((item) => item.min);
   const fixed = items.flatMap((item, i) => ("px" in item.size ? [i] : []));
   const weighted = items.flatMap((item, i) => ("weight" in item.size ? [i] : []));
-  for (const i of fixed) values[i] = Math.max((items[i]!.size as { px: number }).px, items[i]!.min);
+  for (const i of fixed)
+    values[i] = Math.max(
+      Math.min((items[i]!.size as { px: number }).px, LENGTH_MAX),
+      items[i]!.min,
+    );
   // A saved px preference cannot crowd out another child's minimum after a viewport shrink.
   const excess = Math.max(0, values.reduce((sum, v) => sum + v, 0) - budget);
   const slack = fixed.reduce((sum, i) => sum + values[i]! - items[i]!.min, 0);
   if (excess && slack)
     for (const i of fixed) values[i] = values[i]! - (excess * (values[i]! - items[i]!.min)) / slack;
-  const weightOf = (i: number) => (items[i]!.size as { weight: number }).weight;
+  // Only weights' ratios count: very large ones are scaled down by a power of two (exact), as two weights of 1e308
+  // sum to Infinity. Ordinary weights are left exactly as they are.
+  const heaviest = weighted.reduce(
+    (m, i) => Math.max(m, (items[i]!.size as { weight: number }).weight),
+    0,
+  );
+  const scale = heaviest > 2 ** 500 ? 2 ** -Math.floor(Math.log2(heaviest)) : 1;
+  const weightOf = (i: number) => (items[i]!.size as { weight: number }).weight * scale;
   const comfortable = (i: number) =>
     Math.max(items[i]!.min, items[i]!.comfortable ?? items[i]!.min);
   const useful = (i: number) => Math.max(comfortable(i), items[i]!.max ?? Infinity);
