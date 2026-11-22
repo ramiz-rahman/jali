@@ -4,7 +4,6 @@
 export { JaliView } from "./JaliRoot";
 export {
   definePane,
-  definePage,
   type Pane,
   type PaneProps,
   type PaneOptionsReact,
@@ -13,6 +12,7 @@ export {
   type Page,
   type PageView,
 } from "./define";
+export { definePage } from "./define-page";
 
 // ---------- inside a pane ----------
 export {

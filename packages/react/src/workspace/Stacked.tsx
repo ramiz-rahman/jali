@@ -3,7 +3,7 @@
  * height the top one takes, and whether the on-screen keyboard is up (then the focused pane shows alone, so a field
  * in the lower pane isn't under the keyboard).
  */
-import { paneDomId, stackGap, type JaliStore } from "@jali/core/adapter";
+import { paneDomId, stackSplit, type JaliStore } from "@jali/core/adapter";
 import type { Model } from "@jali/core/adapter";
 import { useEffect, useRef, useState, type KeyboardEvent, type PointerEvent } from "react";
 import { useModelValue, useStore } from "../state/react";
@@ -44,12 +44,13 @@ export function useStackAnnouncement(store: JaliStore, m: Model, shown: boolean)
 /** The divider between the stacked panes: drag it, or use the arrow keys; it settles on a third, a half or two thirds. */
 export function StackDivider({
   m,
-  ratio,
+  at,
   setRatio,
   height,
 }: {
   m: Model;
-  ratio: number;
+  /** Where it sits and the top pane's share it shows, from the same split as the frames (placement.ts). */
+  at: { share: number; y: number; height: number };
   setRatio: (r: number) => void;
   /** The stack's height. */
   height: number;
@@ -59,10 +60,11 @@ export function StackDivider({
   const pair = m.stacked!;
   const drag = useRef<{ startY: number; start: number } | null>(null);
   const [live, setLive] = useState<number | null>(null);
+  const ratio = at.share;
   const shown = live ?? ratio;
-  // The divider is the room between the panes, all of it and no more: it never covers either pane's rows.
-  const room = stackGap(store.env.spacing.gap);
-  const y = Math.round((height - room) * shown);
+  // The divider is the room between the panes, all of it and no more: it never covers either pane's rows. While
+  // dragged, it follows the pointer ahead of the panes, which move when it settles.
+  const { y, height: room } = live === null ? at : stackSplit(height, live, store.env.spacing.gap);
   const top = useModelValue((x) => x.title(pair.top));
   const bottom = useModelValue((x) => x.title(pair.bottom));
   // A step goes to the next stop the way the key says, from wherever the share is (it may sit between stops).

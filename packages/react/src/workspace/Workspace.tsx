@@ -4,19 +4,16 @@ import {
   keepPaneFocus,
   ALONE_CHROME,
   CHROME,
-  SWITCHER_H,
   hingeOf,
   type Hinge,
   sameHinge,
   currentPane,
   directionOf,
-  frames,
-  stackShare,
-  stackGap,
   observeResize,
   watchDirection,
 } from "@jali/core/adapter";
 import { StackDivider, useKeyboardUp, useStackAnnouncement } from "./Stacked";
+import { placement } from "./placement";
 import { PaneSwitcher } from "../chrome/PaneSwitcher";
 import { Peek } from "../chrome/Peek";
 import { DividerLayer } from "../dividers/DividerLayer";
@@ -29,7 +26,7 @@ import { useHydrated } from "../state/hydrated";
 import { paneHydration } from "../state/hydration";
 import { DropIndicator } from "./DropIndicator";
 import { useSingleView } from "./useSingleView";
-import { PAGE_PARTS } from "../define";
+import { PAGE_PARTS } from "../page-parts";
 import { useWorkspaceLabel } from "../a11y/landmark";
 
 // Development checks test the literal, so a production build drops them and their messages (dev.ts).
@@ -334,41 +331,23 @@ export function Panes() {
   const single = m.onePane;
   // A curated page in Single mode shows one view under its tabs: the tabs name it, so the pane has no header.
   const page = useUi((s) => s.page?.mode);
-  const mode = single ? "single" : "tiled";
-  // On a phone the page tabs already choose the view, so a curated page has no pane switcher under them.
-  const switcherH = page ? 0 : SWITCHER_H;
-  const { inset } = store.env.spacing;
-  const inner = single
-    ? {
-        left: 0,
-        top: switcherH,
-        width: area.width + inset * 2,
-        height: Math.max(0, area.height + inset * 2 - switcherH),
-      }
-    : { left: inset, top: inset, width: area.width, height: area.height };
-  // One pane on screen, tiled: full-bleed and quiet, as a plain tab strip would be (ALONE_CHROME). Not a maximised
-  // pane: the others are behind it, and it needs its Restore.
-  const alone =
-    !single && !page && !view.zoomed && m.resolved.panes.filter((b) => !b.hidden).length === 1;
-  const chrome = single ? CHROME.single : alone ? ALONE_CHROME : CHROME.tiled;
-  const bleed = alone
-    ? { left: 0, top: 0, width: area.width + inset * 2, height: area.height + inset * 2 }
-    : inner;
   // Stacked view (a portrait phone, phone.stack): two linked panes, unless the keyboard is up.
   const keyboardUp = useKeyboardUp();
   // The top pane's share once the person moves the divider; until then the kinds' heights decide it.
   const [stackRatio, setStackRatio] = useState<number | undefined>(undefined);
-  // Across a fold the two halves stay whatever the keyboard does: they are two screens.
-  const stacked = single && !page && !!m.stacked && (!keyboardUp || !!m.stacked.hinge);
+  // Every frame's final rect and the divider, from one calculation (placement.ts).
+  const {
+    presentation: mode,
+    alone,
+    stacked,
+    inner,
+    bleed,
+    frames: placed,
+    divider,
+  } = placement(m, view, { area, page: !!page, keyboardUp, share: stackRatio });
+  // One pane on screen, tiled, is quiet, as a plain tab strip would be (ALONE_CHROME).
+  const chrome = single ? CHROME.single : alone ? ALONE_CHROME : CHROME.tiled;
   useStackAnnouncement(store, m, stacked);
-  const placed = frames(
-    m,
-    view,
-    mode,
-    { width: inner.width, height: inner.height },
-    stacked ? stackRatio : false,
-    { x: inner.left, y: inner.top },
-  );
   useFocusIntoStrip(store);
   // Each pane's content, rendered once in this flat list whatever frame shows it (content.tsx). Not while hydrating
   // a server's HTML, which has the content inside the frames.
@@ -414,11 +393,7 @@ export function Panes() {
             .map((f) => (
               <PaneFrame
                 key={f.node.id}
-                frame={
-                  alone && !f.hidden
-                    ? { ...f, rect: { x: 0, y: 0, width: bleed.width, height: bleed.height } }
-                    : f
-                }
+                frame={f}
                 chrome={chrome}
                 dropTarget={!single && dropTarget === f.node.id}
               />
@@ -447,22 +422,8 @@ export function Panes() {
                 </Strip>
               ))}
           {stacked && m.stacked?.hinge ? <FoldLine hinge={m.stacked.hinge} origin={inner} /> : null}
-          {stacked && m.stacked && !m.stacked.hinge ? (
-            <StackDivider
-              m={m}
-              ratio={
-                stackRatio ??
-                stackShare(
-                  m.env,
-                  m.pane(m.stacked.top),
-                  m.pane(m.stacked.bottom),
-                  inner.height,
-                  stackGap(store.env.spacing.gap),
-                )
-              }
-              setRatio={setStackRatio}
-              height={inner.height}
-            />
+          {divider ? (
+            <StackDivider m={m} at={divider} setRatio={setStackRatio} height={inner.height} />
           ) : null}
           {single ? null : <DragLayer m={m} />}
           {Ghost && ghost && !single && !dragging ? <Ghost role={ghost} /> : null}

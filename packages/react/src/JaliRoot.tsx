@@ -39,7 +39,7 @@ import type { JaliIcon, JaliIcons } from "./icons/types";
 import { Guard } from "./chrome/Guard";
 import { StoreProvider, useDomScope, useStore, useJaliTheme, useUi } from "./state/react";
 import { Panes } from "./workspace/Workspace";
-import { PAGE_PARTS } from "./define";
+import { PAGE_PARTS } from "./page-parts";
 import { overlaysDomId } from "./a11y/ModalDialog";
 import { LabelContext } from "./a11y/landmark";
 

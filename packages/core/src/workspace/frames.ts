@@ -69,6 +69,19 @@ export const STACK_GAP = 24;
 /** The room between stacked view's two panes in an instance with this gap: the gap, or STACK_GAP if that is more. */
 export const stackGap = (gap: number) => Math.max(gap, STACK_GAP);
 
+/**
+ * Stacked view's split of a height (no fold): the band between the two panes, which the divider fills. The top pane
+ * ends where it starts (`y`), and the bottom one begins where it ends. `share` is the top pane's share of the rest.
+ */
+export function stackSplit(
+  height: number,
+  share: number,
+  gap: number,
+): { y: number; height: number } {
+  const room = stackGap(gap);
+  return { y: Math.round((height - room) * share), height: room };
+}
+
 export function frames(
   m: Model,
   view: ViewState,
@@ -90,15 +103,14 @@ export function frames(
     const rects = hinge
       ? acrossFold(hinge, size, origin)
       : (() => {
-          const room = stackGap(gap);
-          const topH = Math.round((size.height - room) * ratio);
+          const band = stackSplit(size.height, ratio, gap);
           return [
-            { x: 0, y: 0, width: size.width, height: topH },
+            { x: 0, y: 0, width: size.width, height: band.y },
             {
               x: 0,
-              y: topH + room,
+              y: band.y + band.height,
               width: size.width,
-              height: size.height - topH - room,
+              height: size.height - band.y - band.height,
             },
           ] as const;
         })();

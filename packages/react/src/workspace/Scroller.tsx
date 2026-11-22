@@ -21,14 +21,12 @@ import {
 } from "react";
 import { layout as core, type ScrollerBox } from "@jali/core";
 import { useGeometry, useStore, useUi } from "../state/react";
+import { STRIP_VIEWPORT } from "../dom";
 
 type Store = ReturnType<typeof useStore>;
 
 const reducedMotion = () =>
   typeof matchMedia === "function" && matchMedia("(prefers-reduced-motion: reduce)").matches;
-
-/** The class of a strip's scrolling element; a pane in a strip finds it with `closest`. */
-export const STRIP_VIEWPORT = "jali-strip-viewport";
 
 /**
  * A row that scrolls: its window, the content inside it that the browser scrolls, and its own chrome. `children` are
