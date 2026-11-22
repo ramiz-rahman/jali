@@ -42,6 +42,7 @@ import { StoreProvider, useStore, useTheme, useUi } from "./state/react";
 import { Panes } from "./workspace/Workspace";
 import { PAGE_PARTS } from "./define";
 import { overlaysDomId } from "./a11y/ModalDialog";
+import { isDev } from "./dev";
 
 export interface JaliRootProps extends HTMLAttributes<HTMLDivElement> {
   jali: Jali;
@@ -192,6 +193,14 @@ function useFullScreenPane(store: ReturnType<typeof storeOf>): HTMLElement | nul
 /** The panes, or the curated page (its rail, header and tabs around them) while one is open. */
 export function JaliView() {
   const open = useUi((s) => !!s.page);
-  const Page = useStore().env.profile?.[PAGE_PARTS]?.View;
+  const profile = useStore().env.profile;
+  const Page = profile?.[PAGE_PARTS]?.View;
+  useEffect(() => {
+    if (profile && !Page && isDev())
+      console.error(
+        "Jali: this page has no parts to render it, so <JaliView> shows bare panes. Make it with definePage from " +
+          "@jali/react, not from @jali/core.",
+      );
+  }, [profile, Page]);
   return open && Page ? <Page /> : <Panes />;
 }
