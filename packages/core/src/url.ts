@@ -3,7 +3,7 @@
  * layout came from ride along. Deliberate structural changes push a
  * history entry; resizes replace it 120ms after the last move; view changes replace immediately.
  */
-import * as core from "./layout";
+import * as core from "./layout/engine";
 import type {
   KindRegistry,
   Layout,

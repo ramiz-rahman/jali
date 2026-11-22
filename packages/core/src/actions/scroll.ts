@@ -2,7 +2,7 @@
  * Rows that scroll sideways: where one came to rest. The browser scrolls the strip (Scroller in @jali/react); once it
  * rests, its offset comes here, into the view state, where the model, drag hit-tests and the link read it.
  */
-import * as core from "../layout";
+import * as core from "../layout/engine";
 import type { NodeId } from "../layout/types";
 import type { Outcome, Snapshot } from "../state/apply";
 import { own } from "../own";

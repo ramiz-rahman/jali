@@ -40,7 +40,7 @@ import { defaultIcons } from "./icons/default";
 import type { JaliIcon, JaliIcons } from "./icons/types";
 import { Guard } from "./chrome/Guard";
 import { installPressed } from "./pressed";
-import { StoreProvider, useDomScope, useStore, useTheme, useUi } from "./state/react";
+import { StoreProvider, useDomScope, useStore, useJaliTheme, useUi } from "./state/react";
 import { Panes } from "./workspace/Workspace";
 import { PAGE_PARTS } from "./define";
 import { overlaysDomId } from "./a11y/ModalDialog";
@@ -220,7 +220,7 @@ function Dialogs({ palette, settings }: { palette: boolean; settings: ReactNode 
   );
   const orphan = top === "settings" && settings === null;
   useEffect(() => {
-    if (orphan) store.actions.closeSettings();
+    if (orphan) store.run("dialogs.closeSettings");
   }, [orphan, store]);
   return top === "confirm" ? (
     <ConfirmDiscard />
@@ -256,7 +256,7 @@ function Failed({ retry }: { retry: () => void }) {
  */
 function ThemeOnRoot({ layer }: { layer: unknown }) {
   const store = useStore();
-  const theme = useTheme();
+  const theme = useJaliTheme();
   useEffect(() => {
     const els = [store.dom.root(), store.dom.layer()].filter((el) => el instanceof Element);
     for (const el of els) el.setAttribute("data-theme", theme);

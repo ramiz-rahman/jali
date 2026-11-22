@@ -3,7 +3,7 @@
  * own widths and the row scrolls to the rest, instead of sharing its width and folding what doesn't fit.
  */
 import { describe, expect, it } from "vite-plus/test";
-import * as core from "..";
+import * as core from "../engine";
 import { column, pane as paneOf, row, toLayout } from "../build";
 import { decode, encode } from "../codec/codec";
 import type { KindRegistry, Layout, LayoutContext, ResolvedLayout } from "../types";

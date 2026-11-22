@@ -1,7 +1,7 @@
 /** Divider math, pure: the two neighbours of a divider, snap and clamp, and the divider nearest a pane. */
-import * as core from "../layout";
+import * as core from "../layout/engine";
 import type { DividerBox, LayoutNode, NodeId, Rect, ResolvedLayout } from "../layout/types";
-import type { JaliModel } from "../state/model";
+import type { Model } from "../state/model";
 import { messagesOf } from "../state/messages";
 import { GAP } from "../tokens";
 
@@ -48,7 +48,7 @@ export interface PairGeometry {
 
 /** The two neighbours of a divider, measured from resolved pane boxes. */
 export function geometryFor(
-  m: JaliModel,
+  m: Model,
   d: DividerBox,
   r: ResolvedLayout = m.resolved,
 ): PairGeometry | null {
@@ -77,7 +77,7 @@ export function geometryFor(
 /** For resize mode: the divider beside a pane on its far side (the side its row ends on: the left when `rtl`), else
  *  its near side, along one axis. */
 export function nearestDivider(
-  m: JaliModel,
+  m: Model,
   paneId: NodeId,
   horizontal: boolean,
   rtl = false,

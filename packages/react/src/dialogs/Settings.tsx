@@ -26,7 +26,7 @@ export function SettingsPanel({ children }: { children?: ReactNode } = {}) {
   const first = useRef<HTMLInputElement>(null);
   if (!open) return null;
   const set = (patch: Partial<S>) => store.actions.changeSettings(patch);
-  const close = () => store.actions.closeSettings();
+  const close = () => store.run("dialogs.closeSettings");
   return (
     <ModalDialog
       scrim="jali-scrim jali-scrim-light"

@@ -6,7 +6,7 @@
  * (`definePane({ allow })`, what its content can handle), then the workspace (`createJali({ allow })`: defaults, or a
  * function for "it depends"). Everything is allowed by default, except `popOut`, which an app turns on.
  */
-import * as core from "../layout";
+import * as core from "../layout/engine";
 import type { NodeId, PaneNode } from "../layout/types";
 import type { ViewMode } from "../profile";
 import { refuse, type RefusalStep, type Snapshot } from "../state/apply";

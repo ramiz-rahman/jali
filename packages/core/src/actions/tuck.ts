@@ -1,5 +1,5 @@
 import { notAllowed } from "./allow";
-import * as core from "../layout";
+import * as core from "../layout/engine";
 import type { NodeId, TuckRefusal } from "../layout/types";
 import { refuse, type Outcome, type RefusalStep, type Snapshot } from "../state/apply";
 import { say } from "../state/messages";

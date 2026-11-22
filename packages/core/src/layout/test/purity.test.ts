@@ -112,10 +112,8 @@ describe("pure operations", () => {
 });
 
 describe("layout.tree", () => {
-  // Its deprecated draft steps change what they are given; everything else only reads (QUALITY-REVIEW P16).
-  const DRAFT_STEPS = ["replace", "balance", "remove", "activate", "parentOf"];
-
-  it("is pure but for its deprecated draft steps: every reader works on a frozen tree", () => {
+  // Everything in it only reads (QUALITY-REVIEW P16); the draft steps that edit in place are the operations' own.
+  it("is pure: every reader works on a frozen tree", () => {
     const tree = freeze(layout(pane("a"), pane("b")));
     const t = core.tree;
     expect(t.panes(tree.root).map((p) => p.id)).toEqual(["a", "b"]);
@@ -130,7 +128,6 @@ describe("layout.tree", () => {
     expect(t.clone(tree)).toEqual(tree);
     expect(Object.keys(t).sort()).toEqual(
       [
-        ...DRAFT_STEPS,
         "clone",
         "find",
         "isSplit",

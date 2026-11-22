@@ -2,10 +2,10 @@
  * Single view (phone): one pane at a time; the layout is untouched. Widening out restores the arrangement seen just
  * before it began: each stack's active tab and the visible set, provided the layout kept its shape meanwhile. Pure.
  */
-import * as core from "../layout";
+import * as core from "../layout/engine";
 import type { LayoutNode, NodeId, ViewState } from "../layout/types";
 import type { Outcome, Snapshot } from "../state/apply";
-import type { JaliModel } from "../state/model";
+import type { Model } from "../state/model";
 
 export interface WideSnapshot {
   /** Tree shape only (ids, types, order): sizes and active tabs may change without invalidating a restore. */
@@ -15,7 +15,7 @@ export interface WideSnapshot {
   view: ViewState;
 }
 
-export function snapshotWide(m: JaliModel, view: ViewState): WideSnapshot {
+export function snapshotWide(m: Model, view: ViewState): WideSnapshot {
   const active: Record<NodeId, NodeId> = {};
   (function walk(n: LayoutNode) {
     if (n.type === "pane") return;

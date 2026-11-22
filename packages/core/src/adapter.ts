@@ -20,7 +20,7 @@ export type {
 
 // ---------- the instance and start-up ----------
 export { isDev } from "./dev";
-export { createInstance, storeOf, type JaliEvent } from "./state/instance";
+export { createInstance, storeOf } from "./state/instance";
 export { boot, flushPaneState, startUi, type StartOptions } from "./boot";
 
 // ---------- the store, its state and its changes ----------
@@ -58,7 +58,7 @@ export {
   type RefusalStep,
   type Snapshot,
 } from "./state/apply";
-export { buildModel, modelCache, type ModelInput } from "./state/model";
+export { buildModel, modelCache, type Model, type ModelInput } from "./state/model";
 export { UNDO_MAX, forgetTuck, pruneUndo, pushUndo, tuckOrder } from "./state/undo";
 export {
   DEFAULT_SETTINGS,
@@ -93,18 +93,20 @@ export { loadPrefs, savePrefs, type PagePrefs } from "./state/page-prefs";
 
 // ---------- actions: the engine's steps, and what the chrome asks of them ----------
 export {
-  ACTIONS,
-  bindActions,
+  STEPS,
+  stepOf,
   mergeReports,
-  pageStep,
   type Actions,
   type PageSteps,
   type PaneReport,
   type PaneReportPatch,
+  type StepArgs,
+  type StepName,
+  type Steps,
 } from "./actions";
 export { PANE_CONTROLS, allows, dividerAllowed, notAllowed } from "./actions/allow";
 export { openPaneFor } from "./actions/open";
-export { publicActions, paneFor } from "./actions/public";
+export { paneFor } from "./actions/public";
 export { restoreLayout, arrive } from "./actions/layout";
 export { mergeTargets, type MergeTarget } from "./actions/tabs";
 export { checkTuck, tuckHome } from "./actions/tuck";

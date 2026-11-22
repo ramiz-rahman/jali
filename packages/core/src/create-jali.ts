@@ -23,11 +23,13 @@ import {
   type PaneErrorInfo,
   type PaneKindBase,
   type PaneKinds,
+  type RefOf,
 } from "./pane-kinds";
 import { browserStorage, memoryStorage, type StoragePort } from "./ports";
 import type { Preset, ProfileBase } from "./profile";
 import type { BeforeClose } from "./state/apply";
-import type { Jali } from "./state/instance";
+import type { Jali, PageOf } from "./state/instance";
+import type { LinkMode } from "./actions/public";
 import { createUiStore, type UiStoreDeps, type UrlWriter } from "./state/store";
 import { createUrlSync, type UrlSyncOptions } from "./url";
 import type { MessageOverrides } from "./state/messages";
@@ -48,7 +50,11 @@ export interface PresetOptions {
   saved?: () => LayoutInput | undefined;
 }
 
-export interface JaliOptions<D extends PaneKindBase = PaneKindBase> {
+export interface JaliOptions<
+  D extends PaneKindBase = PaneKindBase,
+  L extends PaneKindBase = D,
+  P extends ProfileBase<any, any> | null | undefined = ProfileBase | null | undefined, // eslint-disable-line @typescript-eslint/no-explicit-any
+> {
   /** The kinds of pane this workspace can show. */
   panes: readonly D[] | PaneKinds<D>;
   /** The layout it opens on. Give this or `presets`. */
@@ -58,9 +64,13 @@ export interface JaliOptions<D extends PaneKindBase = PaneKindBase> {
   /** The preset it opens on. Default: the first. */
   preset?: string;
   /** What Split and "New tab here" open until the person chooses what to show. Without one there is no Split. */
-  launcher?: D;
-  /** A curated page this workspace can show (one item, with its views as tabs). */
-  page?: ProfileBase | null;
+  launcher?: L;
+  /** A curated page this workspace can show (one item, with its views as tabs): `jali.page` then has its actions. */
+  page?: P;
+  /** What following a link on the curated page does at first: `"open"` (the default) opens a pane beside the views,
+   *  `"peek"` only peeks, in Single view, for a viewer who may look but not rearrange. `jali.page.setLinkMode` changes
+   *  it later. */
+  linkMode?: LinkMode;
   /** The free workspace's name, in commands such as "Open Data Studio". Default "Workspace". */
   name?: string;
   /**
@@ -186,8 +196,6 @@ export interface JaliOptions<D extends PaneKindBase = PaneKindBase> {
   onPaneError?: (error: unknown, info: PaneErrorInfo) => void;
 }
 
-export type { Jali };
-
 const inBrowser = typeof window !== "undefined";
 
 const presetOf = ({ id, label, layout, saved }: PresetOptions): Preset => ({
@@ -197,10 +205,18 @@ const presetOf = ({ id, label, layout, saved }: PresetOptions): Preset => ({
   build: () => toLayout(typeof layout === "function" ? layout() : structuredClone(layout)),
 });
 
-export function createJali<D extends PaneKindBase>(options: JaliOptions<D>): Jali {
+/**
+ * A workspace from its kinds and a layout. Its type comes from them: `jali.actions` takes refs of these kinds only,
+ * events and the model say which kind, and `jali.page` is there only with a page.
+ */
+export function createJali<
+  const D extends PaneKindBase,
+  const L extends PaneKindBase = never,
+  const P extends ProfileBase<any, any> | null | undefined = undefined, // eslint-disable-line @typescript-eslint/no-explicit-any
+>(options: JaliOptions<D, L, P>): Jali<RefOf<D | L>, PageOf<P>> {
   const { panes, launcher, layout, url = inBrowser, size, moveFocus = true } = options;
 
-  const kinds: PaneKinds<D> = "register" in panes ? panes : createPaneKinds<D>([...panes]);
+  const kinds = ("register" in panes ? panes : createPaneKinds<D>([...panes])) as PaneKinds;
   if (launcher) kinds.register({ ...launcher, transient: true });
 
   const storage =
@@ -257,6 +273,7 @@ export function createJali<D extends PaneKindBase>(options: JaliOptions<D>): Jal
     initial: {
       ...(layout ? { layout: toLayout(layout) } : {}),
       ...(size ? { area: size } : {}),
+      ...(options.linkMode ? { linkMode: options.linkMode } : {}),
     },
   };
   if (!moveFocus) deps.focusPane = null;
@@ -265,5 +282,5 @@ export function createJali<D extends PaneKindBase>(options: JaliOptions<D>): Jal
   boot(store);
   // Only now: putting the first layout in place closes nothing the person had.
   store.guard = options.beforeClose;
-  return store.jali;
+  return store.jali as unknown as Jali<RefOf<D | L>, PageOf<P>>;
 }

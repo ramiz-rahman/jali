@@ -17,6 +17,7 @@ import type { MessageOverrides, Messages } from "./state/messages";
 import type { Outcome, Snapshot } from "./state/apply";
 import type { Edge, LayoutContext, Rect, ViewState } from "./layout/types";
 import type { Placement } from "./layout/ops/open";
+import type { LinkMode } from "./actions/public";
 import { own } from "./own";
 
 /** One of a curated page's views. Adapters add its icon (@jali/react: RoleDef). */
@@ -81,7 +82,7 @@ export interface ProfileBase<R extends RoleBase = RoleBase, I extends ItemId = I
   readonly [PAGE]?: PageEngine;
 }
 
-/** Where `openPage` opens the curated page, and what a link brings with it (adapters). */
+/** Where the page opens (`jali.page.open`), and what a link brings with it (adapters). */
 export interface OpenPage {
   item?: ItemId;
   tab?: string;
@@ -106,17 +107,18 @@ export interface BesidePreview {
  * `store.env.page`; apps never do.
  */
 export interface PageEngine {
-  openPage(x: Snapshot, o?: OpenPage): Outcome;
-  leavePage(x: Snapshot): Outcome;
+  open(x: Snapshot, o?: OpenPage): Outcome;
+  leave(x: Snapshot): Outcome;
   setMode(x: Snapshot, mode: ViewMode): Outcome;
-  openTab(x: Snapshot, role: string): Outcome;
-  openTabBeside(x: Snapshot, role: string): Outcome;
+  showView(x: Snapshot, role: string): Outcome;
+  /** ⌥-click on a view's tab: the view opens beside the one in front. */
+  showViewBeside(x: Snapshot, role: string): Outcome;
   placeTab(x: Snapshot, role: string, target: NodeId, zone: Edge | "centre"): Outcome;
-  activate(x: Snapshot, item: ItemId): Outcome;
-  backToPage(x: Snapshot): Outcome;
+  showItem(x: Snapshot, item: ItemId): Outcome;
+  back(x: Snapshot): Outcome;
   hideRole(x: Snapshot, id: NodeId): Outcome;
-  resetPage(x: Snapshot): Outcome;
-  setCanInvestigate(x: Snapshot, canInvestigate: boolean): Outcome;
+  reset(x: Snapshot): Outcome;
+  setLinkMode(x: Snapshot, mode: LinkMode): Outcome;
   /** A link to an object that is already one of the page's views goes to that view. */
   goToRole(x: Snapshot, role: string, from?: NodeId): Outcome;
   /** Panes the person opened by following links: everything without a role. */

@@ -1,5 +1,5 @@
 import { allows, notAllowed } from "./allow";
-import * as core from "../layout";
+import * as core from "../layout/engine";
 import type { NodeId } from "../layout/types";
 import { refuse, type Outcome, type Snapshot } from "../state/apply";
 import { messagesOf, say } from "../state/messages";
@@ -62,7 +62,7 @@ export function remove(x: Snapshot, id: NodeId): Outcome {
 
 export function closeOthers(x: Snapshot, id = x.s.view.focused): Outcome {
   const { s, m, ctx } = x;
-  if (s.page) return x.env.page!.backToPage(x);
+  if (s.page) return x.env.page!.back(x);
   if (!id) return null;
   if (m.panes.length <= 1) return refuse("nothing-to-do", say(x).noOtherPanes);
   // Panes the app keeps (`allow: { close: false }`) stay; the rest close in one change.

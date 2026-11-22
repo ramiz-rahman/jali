@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vite-plus/test";
-import * as core from "..";
+import * as core from "../engine";
 import { context, fit, freeze, pane, view } from "./fixtures";
 import type { Layout, LayoutNode, ResolvedLayout } from "../types";
 

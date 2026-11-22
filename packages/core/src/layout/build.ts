@@ -8,6 +8,7 @@
  * "row", then "orders-2"); give an `id` to a pane that another one links to.
  */
 import type {
+  DeepReadonly,
   Axis,
   Layout,
   LayoutNode,
@@ -48,14 +49,16 @@ export type TabsDraft = { type: "stack"; options: TabsOptions; children: PaneDra
 export type Draft = PaneDraft | SplitDraft | TabsDraft;
 
 /** Anything that can stand for a layout: a whole `Layout`, a builder's result, or a single ref. */
-export type LayoutInput = Layout | Draft | ObjectRef;
+/** A layout: one a workspace gave (`getLayout()`, read-only or not), one built with `row`/`column`/`tabs`/`pane`, or
+ *  one ref alone. */
+export type LayoutInput = Layout | DeepReadonly<Layout> | Draft | ObjectRef;
 type Child = Draft | ObjectRef;
 
 const isRef = (v: unknown): v is ObjectRef =>
   typeof v === "object" && v !== null && "kind" in v && "params" in v;
 const isDraft = (v: unknown): v is Draft =>
   typeof v === "object" && v !== null && "options" in v && "type" in v;
-const isLayout = (v: unknown): v is Layout =>
+const isLayout = (v: unknown): v is Layout | DeepReadonly<Layout> =>
   typeof v === "object" && v !== null && "root" in v && "version" in v;
 const asDraft = (child: Child): Draft => (isRef(child) ? pane(child) : child);
 
@@ -107,7 +110,7 @@ const sizeOf = ({ px, weight }: SizeOptions): Size =>
 
 /** The layout `input` stands for, with an id on every node. */
 export function toLayout(input: LayoutInput): Layout {
-  if (isLayout(input)) return input;
+  if (isLayout(input)) return input as Layout;
   const root = isRef(input) ? pane(input) : input;
 
   // Ids the app gave are kept; the rest are named after what they hold.

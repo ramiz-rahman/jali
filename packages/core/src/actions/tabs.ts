@@ -1,5 +1,5 @@
 import { notAllowed } from "./allow";
-import * as core from "../layout";
+import * as core from "../layout/engine";
 import { treeSide } from "../layout/geometry/direction";
 import type { NodeId } from "../layout/types";
 import { refuse, type Outcome, type Snapshot } from "../state/apply";

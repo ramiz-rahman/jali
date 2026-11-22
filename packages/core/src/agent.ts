@@ -17,7 +17,7 @@ import { PANE_CONTROLS, allows } from "./actions/allow";
 import { storeOf } from "./state/instance";
 import type { Layout, ObjectRef } from "./layout/types";
 import type { ActionResult } from "./state/apply";
-import type { Jali } from "./state/instance";
+import type { AnyJali, DeepReadonly } from "./state/instance";
 import { checkRef, type OptionalParam, type ParamType } from "./pane-kinds";
 import { own } from "./own";
 
@@ -52,11 +52,11 @@ export const AGENT_ACTIONS = {
   resetLayout: "resetLayout(): rebuild the preset last chosen",
   autoLayout:
     "autoLayout(): arrange every pane from the room there is and each kind's size hints (side by side, a second row when there is height, the rest as tabs beside the pane they came from)",
-  openPage: "openPage({ item?, tab? }?): open the curated page",
-  leavePage: "leavePage(): leave the curated page for the free workspace",
-  setMode: 'setMode("single" | "split"): the curated page in Single view or Split view',
-  openTab: "openTab(tab): show one of the curated page's views",
-  activate: "activate(item): show another item on the curated page",
+  "page.open": "page.open({ item?, tab? }?): open the curated page",
+  "page.leave": "page.leave(): leave the curated page for the free layout",
+  "page.setMode": 'page.setMode("single" | "split"): the curated page in Single view or Split view',
+  "page.showView": "page.showView(view): show one of the curated page's views",
+  "page.showItem": "page.showItem(item): show another item on the curated page",
 } as const;
 
 export type AgentAction = keyof typeof AGENT_ACTIONS;
@@ -194,7 +194,7 @@ const isRef = (v: unknown): v is ObjectRef =>
   !!v && typeof v === "object" && typeof (v as ObjectRef).kind === "string";
 
 /** An agent bridge for `jali`. */
-export function createAgent(jali: Jali, options: AgentOptions = {}): JaliAgent {
+export function createAgent(jali: AnyJali, options: AgentOptions = {}): JaliAgent {
   const allowed = new Set<AgentAction>(
     options.actions ?? (Object.keys(AGENT_ACTIONS) as AgentAction[]),
   );
@@ -283,9 +283,9 @@ export function createAgent(jali: Jali, options: AgentOptions = {}): JaliAgent {
     return undefined;
   }
 
-  const paneIds = (l: Layout) => {
+  const paneIds = (l: DeepReadonly<Layout>) => {
     const ids: string[] = [];
-    const walk = (n: Layout["root"]) =>
+    const walk = (n: DeepReadonly<Layout>["root"]): unknown =>
       n.type === "pane" ? ids.push(n.id) : n.children.forEach(walk);
     walk(l.root);
     return ids.sort().join(" ");
@@ -336,10 +336,14 @@ export function createAgent(jali: Jali, options: AgentOptions = {}): JaliAgent {
         refuse("invalid", bad);
         break;
       }
-      const run = jali.actions[action] as (...a: unknown[]) => ActionResult;
+      // A name with a group ("page.showView") is that group's action.
+      const [group, name] = action.includes(".") ? action.split(".") : ["actions", action];
+      const run = (
+        jali as unknown as Record<string, Record<string, (...a: unknown[]) => ActionResult>>
+      )[group!]?.[name!];
       let r: ActionResult;
       try {
-        r = withInput("agent", () => run(...args));
+        r = run ? withInput("agent", () => run(...args)) : { ok: false, reason: "unavailable" };
       } catch (err) {
         refuse("invalid", err instanceof Error ? err.message : String(err));
         break;

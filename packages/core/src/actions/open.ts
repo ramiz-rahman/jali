@@ -1,4 +1,4 @@
-import * as core from "../layout";
+import * as core from "../layout/engine";
 import { treeSide } from "../layout/geometry/direction";
 import type {
   Edge,
@@ -12,7 +12,7 @@ import type {
 import type { PaneKinds } from "../pane-kinds";
 import { refuse, type Outcome, type Snapshot } from "../state/apply";
 import { peekSheet } from "./peek";
-import type { JaliModel } from "../state/model";
+import type { Model } from "../state/model";
 import { say } from "../state/messages";
 import { follow, followLater, sameRef, setKept } from "./follow";
 import { own } from "../own";
@@ -32,7 +32,7 @@ export function withRecent(kinds: PaneKinds, recent: ObjectRef[], refs: ObjectRe
 }
 
 /** The pane already showing `ref`, other than `except`. Scratch kinds (no identity) never count. */
-export function openPaneFor(m: JaliModel, ref: ObjectRef, except?: NodeId): PaneNode | undefined {
+export function openPaneFor(m: Model, ref: ObjectRef, except?: NodeId): PaneNode | undefined {
   if (m.env.kinds.identityOf(ref) === undefined) return undefined;
   return m.panes.find((p) => p.id !== except && m.env.kinds.sameObject(p.ref, ref));
 }
@@ -89,7 +89,7 @@ export function openBeside(
 ): Outcome {
   const { s, m, ctx } = x;
   // A curated page: in Single mode, or for a role that may not investigate, a link peeks. Opened panes gather after the layout.
-  if (s.page && !s.page.canInvestigate)
+  if (s.page?.linkMode === "peek")
     return { ...peekSheet(x, ref, source), msg: say(x).peekOnly(m.env.kinds.title(ref)) };
   if (s.page?.mode === "single")
     return { ...peekSheet(x, ref, source), msg: say(x).peekSingle(m.env.kinds.title(ref)) };

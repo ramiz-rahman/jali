@@ -1,6 +1,6 @@
 /** What each pane frame shows, in both presentations: one list feeds one render loop. Pure. */
 import type { NodeId, PaneNode, Rect, ViewState } from "../layout/types";
-import type { JaliModel } from "../state/model";
+import type { Model } from "../state/model";
 import type { Presentation } from "../pane/chrome";
 import { stackShare, type Hinge } from "./stack";
 import { sameRef } from "../layout/ops/ref";
@@ -36,7 +36,7 @@ export interface Frame {
 }
 
 /** The pane single view shows: the focused one, else the first. */
-export const currentPane = (m: JaliModel, view: ViewState) =>
+export const currentPane = (m: Model, view: ViewState) =>
   view.focused && m.pane(view.focused) && !m.off.includes(view.focused)
     ? view.focused
     : m.onScreen[0]?.id;
@@ -70,7 +70,7 @@ export const STACK_GAP = 24;
 export const stackGap = (gap: number) => Math.max(gap, STACK_GAP);
 
 export function frames(
-  m: JaliModel,
+  m: Model,
   view: ViewState,
   mode: Presentation,
   size: { width: number; height: number },

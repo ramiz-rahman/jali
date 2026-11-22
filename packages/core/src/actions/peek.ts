@@ -1,4 +1,4 @@
-import * as core from "../layout";
+import * as core from "../layout/engine";
 import type { Layout, NodeId, ObjectRef, ViewState } from "../layout/types";
 import { refuse, type Change, type Outcome, type Snapshot } from "../state/apply";
 import { say } from "../state/messages";

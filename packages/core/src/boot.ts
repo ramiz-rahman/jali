@@ -2,7 +2,7 @@
  * Explicit start-up. `boot` puts the first state in place before the first render (so the first paint is the shared
  * layout); `startUi` installs the page-lifetime listeners: keyboard, Back/Forward, theme, settings persistence.
  */
-import * as core from "./layout";
+import * as core from "./layout/engine";
 import { installKeyboard, type KeyboardScope } from "./commands/keyboard";
 import { presetById } from "./profile";
 
@@ -38,7 +38,7 @@ function arriveFromUrl(
       return undefined;
     return store.apply(
       latest((x) =>
-        page.openPage(x, {
+        page.open(x, {
           tab: tab || undefined,
           item: item || undefined,
           investigation,

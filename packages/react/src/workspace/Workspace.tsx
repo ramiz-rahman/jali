@@ -1,4 +1,4 @@
-import type { JaliModel } from "@jali/core";
+import type { Model } from "@jali/core/adapter";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import {
   keepPaneFocus,
@@ -123,11 +123,7 @@ function useEngaged(store: UiStore) {
 
 /** Says which panes folded into tabs, or unfolded, when the room changed (not in single view, where nothing tiles).
  *  Only a change of room: an action that folds says so itself, in its own words. */
-function useFoldAnnouncements(
-  store: UiStore,
-  m: JaliModel,
-  area: { width: number; height: number },
-) {
+function useFoldAnnouncements(store: UiStore, m: Model, area: { width: number; height: number }) {
   const prev = useRef<{ folded: string[]; room: string } | null>(null);
   useEffect(() => {
     const room = `${area.width}x${area.height}`;
@@ -231,7 +227,7 @@ function DragChip({ x, y, label, rtl }: { x: number; y: number; label: string; r
  * What a pane drag draws over the panes: the drop indicator on the target and the chip at the pointer. The one part
  * that hears every move of the drag (`dnd`); the workspace and its frames hear only where it would land.
  */
-function DragLayer({ m }: { m: JaliModel }) {
+function DragLayer({ m }: { m: Model }) {
   const dnd = useUi((s) => s.dnd);
   const rtl = useUi((s) => s.dir === "rtl");
   const name = useModelValue((x) => (dnd ? x.title(dnd.dragged) : ""));
@@ -250,7 +246,7 @@ function DragLayer({ m }: { m: JaliModel }) {
  * screen, so the pane (fixed over the window) covers the display. Leaving the browser's full screen (Escape, the
  * browser's own controls) leaves Jali's too. Where the browser can't (an iPhone), the pane still covers the page.
  */
-function useFullScreen(store: UiStore, m: JaliModel) {
+function useFullScreen(store: UiStore, m: Model) {
   const full = useUi((s) => s.fullScreen);
   const asked = useRef(false);
   useEffect(() => {

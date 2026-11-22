@@ -1,6 +1,15 @@
 import { own } from "@jali/core/adapter";
 /** React access to the store: one provider, and hooks that subscribe to exactly what a component reads. */
-import type { Jali, JaliState, JaliModel, NodeId, Messages, Theme } from "@jali/core";
+import type {
+  AnyJali,
+  JaliEvent,
+  JaliEvents,
+  NodeId,
+  Messages,
+  RefsOf,
+  RegisteredJali,
+  Theme,
+} from "@jali/core";
 import {
   createContext,
   Fragment,
@@ -12,7 +21,7 @@ import {
   useSyncExternalStore,
   type ReactNode,
 } from "react";
-import type { Actions, PaneAttributes, UiState, UiStore } from "@jali/core/adapter";
+import type { Actions, Model, PaneAttributes, UiState, UiStore } from "@jali/core/adapter";
 import type { ReactEnv, Page } from "../define";
 import { resolveTheme } from "@jali/core/adapter";
 import { reactDom } from "../dom";
@@ -85,7 +94,7 @@ export function useUi<T>(select: (s: UiState) => T): T {
 }
 
 /** The derived workspace model; a new object only when something it depends on changed. */
-export function useModel(): JaliModel {
+export function useModel(): Model {
   const store = useStore();
   return useSyncExternalStore(store.subscribe, store.model, store.model);
 }
@@ -93,7 +102,7 @@ export function useModel(): JaliModel {
 /** The model, re-rendering only when its geometry changes: a pane's live title makes a new model that shares the
  *  geometry (state/model.ts), and doesn't re-render this. For a part that reads no title as it renders; a title it
  *  shows is a `useModelValue` of its own. */
-export function useGeometry(): JaliModel {
+export function useGeometry(): Model {
   const store = useStore();
   const read = () => store.model().resolved;
   useSyncExternalStore(store.subscribe, read, read);
@@ -102,7 +111,7 @@ export function useGeometry(): JaliModel {
 
 /** One value read from the model (a title, whether a pane is tucked): re-renders only when it changes. Return a
  *  primitive, or an object the model keeps; a new object each time re-renders on every change. */
-export function useModelValue<T>(select: (m: JaliModel) => T): T {
+export function useModelValue<T>(select: (m: Model) => T): T {
   const store = useStore();
   const read = () => select(store.model());
   return useSyncExternalStore(store.subscribe, read, read);
@@ -202,8 +211,11 @@ export const usePaneAttributesOf = (id: NodeId | undefined): PaneAttributes | un
 
 // ---------- the public names ----------
 
-/** The workspace: its actions (`useJali().actions.openBeside(pane, ref)`), events, layout, keymap and kinds. */
-export const useJali = (): Jali => useStore().jali;
+/**
+ * The workspace: its actions (`useJali().actions.openBeside(pane, ref)`), events, layout, keymap and kinds. Typed as
+ * the app's workspace once it is registered (`Register`), or as `J` when given.
+ */
+export const useJali = <J extends AnyJali = RegisteredJali>(): J => useStore().jali as unknown as J;
 /**
  * A value picked from a snapshot (`get()`), kept while `isEqual` says the new pick is the same: a selector may return
  * a fresh object or array. Within one snapshot the pick is worked out once, so React reads the same value back; a new
@@ -256,9 +268,12 @@ export function shallow<T>(a: T, b: T): boolean {
  * Part of the workspace's state, re-rendering only when it changes: `useJaliState((s) => s.view.focused)`. A selector
  * may return a new object or array; give `isEqual` (`shallow`) to re-render only when what it picked changed.
  */
-export function useJaliState<T>(select: (s: JaliState) => T, isEqual?: (a: T, b: T) => boolean): T {
+export function useJaliState<T, J extends AnyJali = RegisteredJali>(
+  select: (s: ReturnType<J["get"]>) => T,
+  isEqual?: (a: T, b: T) => boolean,
+): T {
   const store = useStore();
-  return useSelected(store.subscribe, store.get, select, isEqual);
+  return useSelected(store.subscribe, store.get, select as (s: UiState) => T, isEqual);
 }
 
 const whole = <T,>(m: T) => m;
@@ -267,14 +282,38 @@ const whole = <T,>(m: T) => m;
  * The workspace as it is on screen: its panes, their boxes and titles, the shelf. With a selector, only what it picks
  * (`useJaliModel((m) => m.title(id))`), re-rendering when that changes by `isEqual` (`Object.is` unless given).
  */
-export function useJaliModel(): JaliModel;
-export function useJaliModel<T>(select: (m: JaliModel) => T, isEqual?: (a: T, b: T) => boolean): T;
+export function useJaliModel<J extends AnyJali = RegisteredJali>(): ReturnType<J["model"]>;
+export function useJaliModel<T, J extends AnyJali = RegisteredJali>(
+  select: (m: ReturnType<J["model"]>) => T,
+  isEqual?: (a: T, b: T) => boolean,
+): T;
 export function useJaliModel<T>(
-  select: (m: JaliModel) => T = whole as (m: JaliModel) => T,
+  select: (m: Model) => T = whole as (m: Model) => T,
   isEqual?: (a: T, b: T) => boolean,
 ): T {
   const store = useStore();
   return useSelected(store.subscribe, store.model, select, isEqual);
 }
+
+/**
+ * Hear one of the workspace's events while the component is mounted: `useJaliEvent("open", ({ ref }) => …)`,
+ * `useJaliEvent("toast", show)`. It always calls the latest `handler`, so an inline function is fine, and stops
+ * listening on unmount.
+ */
+export function useJaliEvent<E extends JaliEvent, J extends AnyJali = RegisteredJali>(
+  event: E,
+  handler: (event: JaliEvents<RefsOf<J>>[E]) => void,
+): void {
+  const store = useStore();
+  const latest = useRef(handler);
+  useEffect(() => {
+    latest.current = handler;
+  });
+  useEffect(
+    () => store.on(event, (e) => latest.current(e as JaliEvents<RefsOf<J>>[E])),
+    [store, event],
+  );
+}
+
 /** The theme in use, "light" or "dark": the person's choice, or the system's when they chose "system". */
-export const useTheme = (): Theme => useUi((s) => resolveTheme(s.settings.theme, s.systemDark));
+export const useJaliTheme = (): Theme => useUi((s) => resolveTheme(s.settings.theme, s.systemDark));

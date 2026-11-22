@@ -1,7 +1,7 @@
 /**
  * Hooks for a pane's content. Each acts for the pane it is called in, from any depth inside it.
  *
- *   const { params, openBeside } = usePane<{ id: number }>();
+ *   const { params, openBeside } = usePane(note); // params: { id: number }
  *   useActivity(query.isFetching ? "loading" : "idle");
  *   useUnsaved(draft !== saved && "an unsaved note");
  *   useCommands([{ id: "save", title: "Save note", run: save }]);
@@ -28,13 +28,25 @@ import {
 import type { PaneAttributes, PaneReportPatch } from "@jali/core/adapter";
 import type { PaneHost } from "./context";
 import { openPaneFor } from "@jali/core/adapter";
-import type { PaneProps } from "../define";
+import type { Pane, PaneProps, ParamsOfPane } from "../define";
+import { DEV } from "../dev";
 import { useModel, useUi } from "../state/react";
 import { usePaneContext } from "./context";
 
-/** The pane's props, for components below the kind's own. */
-export function usePane<P = Params>(): PaneProps<P> {
-  return usePaneContext("usePane").props as PaneProps<P>;
+/**
+ * The pane's props, for components below the kind's own. Give the kind (`usePane(order)`) and its params are typed
+ * from it, with no cast; in development, a component in a pane of another kind is an error. Without a kind, the
+ * params are plain values (`Params`), for a component that any kind renders.
+ */
+export function usePane(): PaneProps<Params>;
+export function usePane<D extends Pane>(kind: D): PaneProps<ParamsOfPane<D>>;
+export function usePane(kind?: Pane): PaneProps<Params> {
+  const props = usePaneContext("usePane").props;
+  if (DEV && kind && props.node.ref.kind !== kind.kind)
+    console.error(
+      `Jali: usePane(${kind.kind}) is called in a pane of kind "${props.node.ref.kind}", so its params are not a ${kind.kind}'s`,
+    );
+  return props;
 }
 
 /** Render order across every pane: a parent renders (and so mounts) before its children. */

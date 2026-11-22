@@ -9,7 +9,7 @@
  *  - Following is a swap: same slot, same size; the URL is replaced, so Back skips the rows passed through.
  *  - Keep keeps a detail on its object; releasing makes it the list's follower again (and keeps the previous one).
  */
-import * as core from "../layout";
+import * as core from "../layout/engine";
 import type { Layout, NodeId, ObjectRef, PaneNode, ViewState } from "../layout/types";
 import { refuse, type Change, type Deferred, type Outcome, type Snapshot } from "../state/apply";
 import { say } from "../state/messages";

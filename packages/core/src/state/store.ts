@@ -4,9 +4,9 @@ import type { PaneReport } from "../actions/content";
 /**
  * The workspace: state, one derived model, and apply(). Layout and view come from the layout ops; actions are pure
  * (actions/) and the store only commits them. Effects leave through sinks given at creation (URL, DOM focus) and
- * through `onToast` (toasts); announcements are state, so nothing said before the live region mounts is lost.
+ * through `on("toast")`; announcements are state, so nothing said before the live region mounts is lost.
  */
-import * as core from "../layout";
+import * as core from "../layout/engine";
 import type {
   Direction,
   Layout,
@@ -30,7 +30,7 @@ import {
 import { initialArea, spacingOf } from "../tokens";
 import { toLayout, type LayoutInput } from "../layout/build";
 import { readLayout } from "../actions/layout";
-import { bindActions, type Actions } from "../actions";
+import { STEPS, stepOf, type Actions, type StepArgs, type StepName } from "../actions";
 import type { ActionName } from "../actions/public";
 import {
   apply,
@@ -49,7 +49,7 @@ import {
 import { createInstance, type Jali, type JaliEvent, type JaliEvents } from "./instance";
 import { currentInput, trackInput, type JaliInput } from "../dom/input";
 import { sameRef } from "../actions/follow";
-import { modelCache, type JaliModel } from "./model";
+import { modelCache, type Model } from "./model";
 import { loadSettings, systemPrefersDark, type Settings } from "./settings";
 import { loadPrefs, type PagePrefs } from "./page-prefs";
 import {
@@ -81,6 +81,7 @@ import {
 import type { Command } from "../commands/registry";
 import { resolveMessages, type MessageOverrides, type Messages } from "./messages";
 import type { ChooseOptions } from "../actions/choose";
+import type { LinkMode } from "../actions/public";
 
 /** A drag in progress. `label` names a view dragged from a page's tabs, which may not be on screen. */
 export interface DndState {
@@ -123,13 +124,13 @@ export interface PageState {
   tab: string;
   /** The split layout just before the first opened pane: "Back to …" returns to it exactly. */
   before?: Layout;
-  /** Role permission: following a link opens an investigation pane (true) or only peeks (false). */
-  canInvestigate: boolean;
+  /** What following a link does for this person: opens a pane beside the views, or only peeks (`setLinkMode`). */
+  linkMode: LinkMode;
 }
 
 /** A list's selected item, as its pane reported it (`select`). `inResults: false`: the list's filter no longer shows it. */
-export interface Selection {
-  ref: ObjectRef;
+export interface Selection<R extends ObjectRef = ObjectRef> {
+  ref: R;
   inResults: boolean;
 }
 
@@ -137,9 +138,9 @@ export interface UiState {
   layout: Layout;
   /** Null in the free workspace, where the person builds the layout. */
   page: PageState | null;
-  /** The host's viewer policy for the curated page (`setCanInvestigate`), kept while no page is open, so leaving the
-   *  page and coming back never widens it. Undefined: the full viewer. */
-  canInvestigate?: boolean;
+  /** The host's viewer policy for the curated page (`jali.page.setLinkMode`, `createJali({ linkMode })`), kept while
+   *  no page is open, so leaving the page and coming back never widens it. Undefined: links open. */
+  linkMode?: LinkMode;
   /** The person's mode and split layout (while Split view is on screen, the live layout is the truth). */
   prefs: PagePrefs;
   view: ViewState;
@@ -308,7 +309,7 @@ export interface UiStore {
   /** A raw state write for interaction state (drag, dialogs, area). Area and pane-cap changes refit the layout. */
   set(patch: Partial<UiState>): void;
   subscribe(fn: () => void): () => void;
-  model(): JaliModel;
+  model(): Model;
   ctx(): LayoutContext;
   snapshot(): Snapshot;
   /** Commit an outcome (or a step of the snapshot), and say what happened. Events go out once it is done; `action`
@@ -322,9 +323,12 @@ export interface UiStore {
   guard: BeforeClose | undefined;
   announce(text: string): void;
   writeUrl(mode: HistoryMode): void;
+  /** A toast, for whoever listens to `on("toast")`; toasts sent before anyone listens are kept until someone does. */
   toast(t: Toast): void;
-  /** Toasts for whoever renders them; toasts sent before anyone listens are kept until someone does. */
-  onToast(fn: (t: Toast) => void): () => void;
+  /** Run the step `name` (actions/index.ts) with `args`, and say what happened: the one way every action is made, by
+   *  the app (`jali.actions`), an adapter, a key, a command or an agent. */
+  run<N extends StepName>(name: N, ...args: StepArgs<N>): ActionResult;
+  /** The steps without a group, by name, each through `run`: `store.actions.close(id)`. */
   actions: Actions;
   /** Keys → command ids, resolved once from the defaults and `deps.keymap`. */
   keymap: Keymap;
@@ -544,8 +548,7 @@ export function createUiStore(deps: UiStoreDeps): UiStore {
   let destroyed = false;
   // The workspace's lifetime: `destroy()` ends it, and whatever still waits on it (a host's answer) ends with it.
   const life = new AbortController();
-  const toastFns = new Set<(t: Toast) => void>();
-  const pendingToasts: Toast[] = [];
+  const pendingToasts: JaliEvents["toast"][] = [];
   const models = modelCache();
   const timers = new Map<string, ReturnType<typeof setTimeout>>();
   const defer = (d: Deferred) => {
@@ -761,6 +764,7 @@ export function createUiStore(deps: UiStoreDeps): UiStore {
       let set = handlers.get(event);
       if (!set) handlers.set(event, (set = new Set()));
       set.add(handler as (e: never) => void);
+      if (event === "toast") for (const t of pendingToasts.splice(0)) emit("toast", t);
       return () => {
         set.delete(handler as (e: never) => void);
         if (!set.size) handlers.delete(event);
@@ -776,7 +780,7 @@ export function createUiStore(deps: UiStoreDeps): UiStore {
     // read the kinds or the words, and resolving the layout it just wrote was work nobody used.
     snapshot: () => {
       const s = state;
-      let m: JaliModel | undefined;
+      let m: Model | undefined;
       return {
         s,
         get m() {
@@ -817,11 +821,15 @@ export function createUiStore(deps: UiStoreDeps): UiStore {
           page: page && before !== page.before ? { ...page, before } : page,
         };
       }, mode),
-    toast: (t) => (toastFns.size ? toastFns.forEach((fn) => fn(t)) : pendingToasts.push(t)),
-    onToast(fn) {
-      toastFns.add(fn);
-      for (const t of pendingToasts.splice(0)) fn(t);
-      return () => toastFns.delete(fn);
+    toast: (t) => {
+      const e = { ...t, input: currentInput() };
+      if (handlers.has("toast")) emit("toast", e);
+      else pendingToasts.push(e);
+    },
+    run: (name, ...args) => {
+      const [step, as] = stepOf(name);
+      // As a step, so a change held for an answer is the action itself, run again when the answer comes.
+      return store.apply((x) => step(x, ...args), as);
     },
     actions: undefined as unknown as Actions,
     keymap: createKeymap(
@@ -891,11 +899,14 @@ export function createUiStore(deps: UiStoreDeps): UiStore {
     defer,
     unstable: deps.unstable ?? devUnstable,
   };
-  store.actions = bindActions(store);
+  store.actions = {} as Actions;
+  for (const name of Object.keys(STEPS) as StepName[])
+    if (!name.includes("."))
+      (store.actions as Record<string, unknown>)[name] = (...a: []) => store.run(name, ...a);
   store.jali = createInstance(store);
   // As an arrival, which writes no history: the address still holds the link boot is about to read, and boot writes
   // the address itself once it has.
-  if ((pageOnly || first.page) && !deps.initial?.page) store.actions.openPage({ fromUrl: true });
+  if ((pageOnly || first.page) && !deps.initial?.page) store.run("arrivePage", { fromUrl: true });
   return store;
 }
 

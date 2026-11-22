@@ -4,7 +4,7 @@ import { useDerived, useStore } from "../state/react";
 import { useKeymap } from "../state/hydrated";
 
 /** A command's keys in this workspace's keymap, for a tooltip ("⌘K ⌘[" / "Ctrl+K Ctrl+["); "" when unbound. */
-export const useShortcut = (id: string) => useKeymap().label(id);
+export const useJaliShortcut = (id: string) => useKeymap().label(id);
 
 /** The same list as far as a menu shows it. A workspace command's `run` runs it by id, so any copy does; a pane's own
  *  `run` is the pane's, so it must be the same one. */

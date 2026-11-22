@@ -5,7 +5,7 @@
  */
 
 // ---------- start here ----------
-export { createJali, type Jali, type JaliOptions, type PresetOptions } from "./create-jali";
+export { createJali, type JaliOptions, type PresetOptions } from "./create-jali";
 export {
   row,
   column,
@@ -25,6 +25,8 @@ export type {
   PaneWidth,
   PaneHeight,
   PaneDefinition,
+  Ref,
+  RefOf,
   PaneKindBase,
   PaneKinds,
   PaneCommand,
@@ -78,7 +80,19 @@ export * as layout from "./layout";
 export { sameRef } from "./actions/follow";
 
 // ---------- the instance: actions, results, events ----------
-export type { JaliEventBase, JaliEvents, JaliState } from "./state/instance";
+export type {
+  AnyJali,
+  DeepReadonly,
+  Jali,
+  JaliEvent,
+  JaliEventBase,
+  JaliEvents,
+  JaliState,
+  PageOf,
+  RefsOf,
+  Register,
+  RegisteredJali,
+} from "./state/instance";
 export type { JaliInput } from "./dom/input";
 export type {
   AllowContext,
@@ -88,7 +102,15 @@ export type {
   WorkspaceAllow,
 } from "./actions/allow";
 export type { PaneButton, PaneButtons, ButtonsContext } from "./pane/buttons";
-export type { JaliActions, ActionName, PaneTarget, OpenPageOptions } from "./actions/public";
+export type {
+  JaliActions,
+  JaliDialogs,
+  JaliPage,
+  LinkMode,
+  ActionName,
+  PaneTarget,
+  OpenPageOptions,
+} from "./actions/public";
 export type { OpenBesideOptions } from "./actions/open";
 export type { ChooseOptions } from "./actions/choose";
 export type {
@@ -103,7 +125,7 @@ export type {
 
 // ---------- the workspace's state ----------
 export type { PageState, Selection, UrlState, UrlWriter } from "./state/store";
-export type { JaliModel, Group } from "./state/model";
+export type { JaliModel, PaneOf, Group } from "./state/model";
 export type { Settings, ThemeChoice, Theme } from "./state/settings";
 
 // ---------- words (translations) ----------
@@ -147,6 +169,8 @@ export {
   type DefaultKeymapId,
   type KeyString,
 } from "./commands/keymap";
+/** For an app's own window-level keys: whether a key belongs to the focused content (a field, a button, a dialog). */
+export { keyBelongsToContent } from "./commands/content-keys";
 export {
   keyHint,
   formatKeys,

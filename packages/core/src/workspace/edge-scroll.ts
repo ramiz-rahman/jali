@@ -6,7 +6,7 @@
  *   const edge = edgeScroll(jali, () => updateDropTarget());
  *   // on every pointermove: edge.move(e.clientX, e.clientY);  on drop or cancel: edge.stop();
  */
-import type { Jali } from "../state/instance";
+import type { AnyJali } from "../state/instance";
 import { maxOffset } from "../layout/geometry/scroll";
 import { storeOf } from "../state/instance";
 
@@ -22,7 +22,7 @@ export interface EdgeScroll {
   stop(): void;
 }
 
-export function edgeScroll(jali: Jali, onScroll?: () => void): EdgeScroll {
+export function edgeScroll(jali: AnyJali, onScroll?: () => void): EdgeScroll {
   const store = storeOf(jali);
   let at: { x: number; y: number } | null = null;
   let frame = 0;
@@ -33,7 +33,7 @@ export function edgeScroll(jali: Jali, onScroll?: () => void): EdgeScroll {
    * strip: the model hears where a strip is only once it rests, so mid-scroll its panes' places are behind.
    */
   const origin = () => {
-    const m = jali.model();
+    const m = store.model();
     const inStrip = new Set(m.content.scrollers.flatMap((s) => s.paneIds));
     for (const box of m.resolved.panes) {
       if (box.hidden || inStrip.has(box.id)) continue;
@@ -53,7 +53,7 @@ export function edgeScroll(jali: Jali, onScroll?: () => void): EdgeScroll {
     if (!o) return;
     const x = at.x - o.x,
       y = at.y - o.y;
-    for (const s of [...jali.model().resolved.scrollers].reverse()) {
+    for (const s of [...store.model().resolved.scrollers].reverse()) {
       const { rect } = s;
       if (
         y < rect.y ||

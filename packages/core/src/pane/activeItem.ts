@@ -11,7 +11,7 @@
  */
 import type { NodeId, ObjectRef } from "../layout/types";
 import type { ActiveItemPort } from "../contracts/active-item";
-import type { Jali } from "../state/instance";
+import type { AnyJali } from "../state/instance";
 import { own } from "../own";
 
 export interface ActiveItemMapping {
@@ -24,7 +24,7 @@ export interface ActiveItemMapping {
 const ACCEPTED = { status: "accepted" } as const;
 
 export function activeItemPort(
-  jali: Jali,
+  jali: AnyJali,
   pane: NodeId,
   { toRef, idOf }: ActiveItemMapping,
 ): ActiveItemPort {

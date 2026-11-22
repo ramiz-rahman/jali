@@ -2,8 +2,8 @@
  * A curated page's React parts: its view (rail, header, tabs and panes), its bar, the ⌥ preview over the panes and its
  * settings. `definePage` puts them on the page (`pageParts`), so an app without a page ships none of them.
  */
-import { useEffect, useMemo, useRef, type ComponentType } from "react";
-import type { Settings as S } from "@jali/core";
+import { useCallback, useEffect, useMemo, useRef, type ComponentType } from "react";
+import type { ItemId, Settings as S } from "@jali/core";
 import { useJaliIcons } from "../icons/context";
 import {
   besidePreview,
@@ -29,12 +29,14 @@ export function PageBar() {
   const icon = useJaliIcons();
   const page = useUi((s) => s.page);
   const m = useGeometry();
-  const { actions, messages } = useStore();
+  const store = useStore();
+  const { messages } = store;
   const t = messages.page;
   const profile = useProfile();
   if (!profile || !page) return null;
   const opened = investigation(m.panes).length;
   const multi = page.mode === "split";
+  const opens = page.linkMode === "open";
   return (
     <div className="jali-page-bar">
       {/* APG radio group: one tab stop (the checked mode), and the arrow keys move to the other and check it. Split
@@ -60,7 +62,7 @@ export function PageBar() {
           aria-checked={!multi}
           tabIndex={multi ? -1 : 0}
           className="jali-seg-btn"
-          onClick={() => actions.setMode("single")}
+          onClick={() => store.run("page.setMode", "single")}
           title={t.singleTip}
         >
           <icon.singleView size={14} aria-hidden /> {t.single}
@@ -71,10 +73,10 @@ export function PageBar() {
           aria-checked={multi}
           tabIndex={multi ? 0 : -1}
           className="jali-seg-btn"
-          onClick={() => page.canInvestigate && actions.setMode("split")}
-          aria-disabled={!page.canInvestigate || undefined}
-          aria-description={page.canInvestigate ? undefined : t.splitTipLimited}
-          title={page.canInvestigate ? t.splitTip : t.splitTipLimited}
+          onClick={() => opens && store.run("page.setMode", "split")}
+          aria-disabled={!opens || undefined}
+          aria-description={opens ? undefined : t.splitTipLimited}
+          title={opens ? t.splitTip : t.splitTipLimited}
         >
           <icon.splitView size={14} aria-hidden /> {t.split}
         </button>
@@ -85,7 +87,7 @@ export function PageBar() {
           <span className="jali-inv-text">
             <Parts of={t.investigating(opened, bold)} />
           </span>
-          <button type="button" className="jali-inv-back" onClick={() => actions.backToPage()}>
+          <button type="button" className="jali-inv-back" onClick={() => store.run("page.back")}>
             <icon.back size={13} aria-hidden /> {t.backTo(profile.name)}
           </button>
         </div>
@@ -94,7 +96,7 @@ export function PageBar() {
         <button
           type="button"
           className="jali-icon-btn jali-page-reset"
-          onClick={() => actions.resetPage()}
+          onClick={() => store.run("page.reset")}
           aria-label={t.reset}
           title={t.resetTip}
         >
@@ -217,8 +219,8 @@ function PageTabs() {
                 if (drag.current?.dragged()) return;
                 if (e.altKey) {
                   store.set({ ghost: null });
-                  actions.openTabBeside(r.id);
-                } else actions.openTab(r.id);
+                  actions.showViewBeside(r.id);
+                } else store.run("page.showView", r.id);
               }}
             >
               <Icon size={14} aria-hidden />
@@ -235,12 +237,13 @@ function PageTabs() {
 export function CuratedPage() {
   const p = useProfile()!;
   const item = useUi((s) => s.page!.item);
-  const { actions } = useStore();
+  const store = useStore();
+  const showItem = useCallback((item: ItemId) => void store.run("page.showItem", item), [store]);
   return (
     <div className="jali-page">
       {p.Rail && (
         <Guard>
-          <p.Rail item={item} activate={actions.activate} />
+          <p.Rail item={item} showItem={showItem} />
         </Guard>
       )}
       <div className="jali-page-main">
@@ -329,8 +332,8 @@ function PageSettings() {
             <input
               type="radio"
               name={`${id}-viewer`}
-              checked={page.canInvestigate}
-              onChange={() => store.actions.setCanInvestigate(true)}
+              checked={page.linkMode === "open"}
+              onChange={() => store.run("page.setLinkMode", "open")}
             />
             <span>{t.viewerFull(full)}</span>
           </label>
@@ -338,8 +341,8 @@ function PageSettings() {
             <input
               type="radio"
               name={`${id}-viewer`}
-              checked={!page.canInvestigate}
-              onChange={() => store.actions.setCanInvestigate(false)}
+              checked={page.linkMode === "peek"}
+              onChange={() => store.run("page.setLinkMode", "peek")}
             />
             <span>{t.viewerLimited(limited)}</span>
           </label>

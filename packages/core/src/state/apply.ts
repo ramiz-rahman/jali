@@ -14,7 +14,7 @@
  * or cancels it). The store runs it after `ms` against the state at that moment. Linked selection uses it: a list's
  * detail follows the selection once it rests (actions/follow.ts).
  */
-import * as core from "../layout";
+import * as core from "../layout/engine";
 import type { Env } from "../profile";
 import { say } from "./messages";
 import type {
@@ -25,7 +25,7 @@ import type {
   UndoEntry,
   ViewState,
 } from "../layout/types";
-import type { JaliModel } from "./model";
+import type { Model } from "./model";
 import type { UiState } from "./store";
 import type { ActionName } from "../actions/public";
 import { pruneUndo } from "./undo";
@@ -46,7 +46,7 @@ function pastLinks(from: Layout, to: Layout): boolean {
 /** What an action reads: the state, the model derived from it, and the core's context. */
 export interface Snapshot {
   s: UiState;
-  m: JaliModel;
+  m: Model;
   ctx: LayoutContext;
   /** The workspace's pane kinds and profile. */
   env: Env;
@@ -369,7 +369,7 @@ export const STABLE: ReadonlySet<Op> = /* @__PURE__ */ new Set<Op>([
 ]);
 
 /** The geometry on screen: the set of rects, whoever fills them. Equal before and after a focus or swap op. */
-export const geometryOf = (m: JaliModel) =>
+export const geometryOf = (m: Model) =>
   m.resolved.panes
     .filter((b) => !b.hidden)
     .map((b) => `${b.rect.x},${b.rect.y},${b.rect.width},${b.rect.height}`)

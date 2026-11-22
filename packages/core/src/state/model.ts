@@ -1,10 +1,12 @@
 /**
- * One derived JaliModel: what is on screen, what is in each group, what is tucked. Every component and action
+ * One derived Model: what is on screen, what is in each group, what is tucked. Every component and action
  * reads it instead of re-walking the tree or re-resolving. Memoised on what resolve depends on: layout, zoom, area,
  * the kind registry and the pane cap (focus is not part of it; the view only places the zoom overlay).
  */
-import * as core from "../layout";
+import * as core from "../layout/engine";
 import type {
+  DeepReadonly,
+  ObjectRef,
   Layout,
   LayoutContext,
   NodeId,
@@ -27,7 +29,29 @@ export interface Group {
   active: NodeId;
 }
 
-export interface JaliModel {
+/** A pane as an app reads it: read-only, with its ref typed by the workspace's kinds. */
+export type PaneOf<R extends ObjectRef = ObjectRef> = DeepReadonly<Omit<PaneNode, "ref">> & {
+  readonly ref: R;
+};
+
+/**
+ * The workspace as it is on screen (`jali.model()`, `useJaliModel`): panes, their boxes and titles, the groups and the
+ * shelf. Read-only. `R` is the refs of the workspace's kinds.
+ */
+export type JaliModel<R extends ObjectRef = ObjectRef> = DeepReadonly<
+  Omit<Model, "env" | "panes" | "pane" | "onScreen">
+> & {
+  /** The pane kinds and profile it was built with. */
+  readonly env: Env;
+  /** Every pane in tree order. */
+  readonly panes: readonly PaneOf<R>[];
+  pane(id: NodeId | undefined): PaneOf<R> | undefined;
+  /** Every pane except hidden ones, in tree order: what single view switches between. */
+  readonly onScreen: readonly PaneOf<R>[];
+};
+
+/** The model as the engine and adapters read it. */
+export interface Model {
   /** The pane kinds and profile it was built with. */
   env: Env;
   layout: Layout;
@@ -79,7 +103,7 @@ export interface ModelInput {
   hinge?: Hinge;
 }
 
-export function buildModel({ layout, view, area, ctx, env, titles, hinge }: ModelInput): JaliModel {
+export function buildModel({ layout, view, area, ctx, env, titles, hinge }: ModelInput): Model {
   const content = core.resolve(layout, view, ctx);
   const offsets = view.scroll ?? {};
   const resolved = core.scrolled(content, offsets, ctx.dir);
@@ -130,7 +154,7 @@ export function buildModel({ layout, view, area, ctx, env, titles, hinge }: Mode
     ];
   });
 
-  const model: JaliModel = {
+  const model: Model = {
     layout,
     env,
     resolved,
@@ -202,11 +226,11 @@ const titleFn =
 export function modelCache() {
   let last: {
     key: unknown[];
-    geometry: JaliModel;
+    geometry: Model;
     titles: ModelInput["titles"];
-    model: JaliModel;
+    model: Model;
   } | null = null;
-  return (input: ModelInput): JaliModel => {
+  return (input: ModelInput): Model => {
     const key = [
       input.layout,
       input.view.zoomed,

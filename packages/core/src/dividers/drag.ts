@@ -8,7 +8,7 @@
  * Pointer up commits that same layout object once, so the committed rects equal the last preview exactly; the URL is
  * written 120ms later (history "debounce"). Heavy panes hold their content at its pre-drag size and reflow on release.
  */
-import * as core from "../layout";
+import * as core from "../layout/engine";
 import type { Layout, NodeId, PaneBox, Rect } from "../layout/types";
 import type { JaliDom, UiStore } from "../state/store";
 import { clampSize, dividerKey, geometryFor, snap } from "./resize";

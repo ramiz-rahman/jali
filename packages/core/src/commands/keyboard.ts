@@ -46,7 +46,7 @@ function resizeMode(store: UiStore, pane: string, e: KeyboardEvent): boolean {
 function escape(store: UiStore): boolean {
   const s = store.get();
   if (s.dnd) return false;
-  if (s.view.peek) store.actions.peek(null);
+  if (s.view.peek) store.actions.closePeek();
   else if (s.view.zoomed) store.actions.toggleZoom(s.view.zoomed);
   else return false;
   return true;

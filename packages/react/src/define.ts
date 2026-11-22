@@ -112,15 +112,21 @@ export interface PaneKindDef extends PaneKindBase {
   Missing?: ComponentType<MissingProps>;
 }
 
-/** A pane kind, defined. Call it with params to name one of its objects. `Pane` alone is any kind, for lists. */
+/** A pane kind, defined. Call it with params to name one of its objects: a `Ref<K, P>`. `Pane` alone is any kind,
+ *  for lists. */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export type Pane<P = any> = PaneDefinition<P, PaneKindDef>;
+export type Pane<P = any, K extends string = string> = PaneDefinition<P, PaneKindDef, K>;
 
-export function definePane<const T extends ParamTypes | undefined = undefined>(
-  kind: string,
-  options: PaneOptionsReact<ParamsOf<T>> & { params?: T },
-): Pane<ParamsOf<T>> {
-  return defineKind<ParamsOf<T>, PaneKindDef>({ ...options, kind } as unknown as PaneKindDef);
+/** The params of a defined kind (`ParamsOfPane<typeof order>` is `{ id: number }`). */
+export type ParamsOfPane<D> = D extends PaneDefinition<infer P, PaneKindBase, string> ? P : Params;
+
+export function definePane<
+  const K extends string,
+  const T extends ParamTypes | undefined = undefined,
+>(kind: K, options: PaneOptionsReact<ParamsOf<T>> & { params?: T }): Pane<ParamsOf<T>, K> {
+  return defineKind<ParamsOf<T>, PaneKindDef, K>({ ...options, kind } as unknown as PaneKindDef & {
+    kind: K;
+  });
 }
 
 /** One of a curated page's views, with its tab icon. */
@@ -131,9 +137,10 @@ export interface PageView extends RoleBase {
 /** A curated page: one item at a time, with a list beside it (the rail) and the item's header above its tabs. `I` is
  *  the item id's type (`number` or `string`), as in `firstItem`. */
 export interface Page<I extends ItemId = any> extends ProfileBase<PageView, I> {
-  /** The list of items at the left, which calls `activate(item)` to show another. Leave it out for a page that is
-   *  about one item and has nothing to switch to: the header, tabs and panes then take the whole width. */
-  Rail?: ComponentType<{ item: I; activate: (item: I) => void }>;
+  /** The list of items at the left, which calls `showItem(item)` to show another (`jali.page.showItem`). Leave it out
+   *  for a page that is about one item and has nothing to switch to: the header, tabs and panes then take the whole
+   *  width. */
+  Rail?: ComponentType<{ item: I; showItem: (item: I) => void }>;
   Header: ComponentType<{ item: I }>;
   /** Set by `definePage`: what the page renders. Never set it yourself. */
   readonly [PAGE_PARTS]?: PageParts;

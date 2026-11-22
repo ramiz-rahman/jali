@@ -17,7 +17,7 @@ function PaletteDialog() {
   // Re-read on every change: the list depends on focus, the layout and what each pane reports.
   useUi((s) => s);
   useModel();
-  const close = () => store.actions.closePalette();
+  const close = () => store.run("dialogs.closePalette");
   const items = listCommands(store.jali);
   const t = store.messages.palette;
   return (

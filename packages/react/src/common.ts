@@ -31,9 +31,17 @@ export { usePaneState, type PaneStateOptions } from "./pane/usePaneState";
 export { useActiveItemPort } from "./pane/useActiveItemPort";
 
 // ---------- the workspace in React ----------
-export { useJali, useJaliState, useJaliModel, useTheme, shallow } from "./state/react";
-export { useShortcut, useJaliCommands } from "./commands/react";
-export { keyBelongsToContent } from "./keys";
+export {
+  useJali,
+  useJaliState,
+  useJaliModel,
+  useJaliEvent,
+  useJaliTheme,
+  shallow,
+} from "./state/react";
+export { useJaliShortcut, useJaliCommands } from "./commands/react";
+// Framework-free, from @jali/core, here too for an app's own keys.
+export { keyBelongsToContent } from "@jali/core/adapter";
 
 // ---------- parts, to compose your own (<JaliRoot> and <JaliView> render these) ----------
 export { Panes } from "./workspace/Workspace";

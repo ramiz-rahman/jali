@@ -458,14 +458,33 @@ export interface PaneKindBase extends PaneOptions<never> {
   transient?: boolean;
 }
 
+/**
+ * An object of the kind `K`, with its params typed: what a kind's call returns (`note({ id: 2 })` is a
+ * `Ref<"note", { id: number }>`). It is an `ObjectRef` too, the wide type links and agents use, which can name
+ * anything; `kind` tells one kind's refs from another's, so a check of it narrows the params.
+ */
+export interface Ref<K extends string = string, P = Params> {
+  readonly kind: K;
+  readonly params: P;
+}
+
+/** The refs of a workspace's kinds: each defined kind's `Ref`, and `ObjectRef` for a kind without a call. */
+export type RefOf<D> = D extends { (...args: never[]): infer R extends ObjectRef } ? R : ObjectRef;
+
 /** A defined kind. Call it to name an object of the kind: `note({ id: 2 })` is `{ kind: "note", params: { id: 2 } }`. */
-export type PaneDefinition<P = Params, D extends PaneKindBase = PaneKindBase> = D & {
-  (...params: {} extends P ? [params?: P] : [params: P]): ObjectRef;
-  readonly kind: string;
+export type PaneDefinition<
+  P = Params,
+  D extends PaneKindBase = PaneKindBase,
+  K extends string = string,
+> = D & {
+  (...params: {} extends P ? [params?: P] : [params: P]): Ref<K, P>;
+  readonly kind: K;
 };
 
 /** Gives a kind the call that builds its refs. Framework adapters build `definePane` on this. */
-export function defineKind<P, D extends PaneKindBase>(def: D): PaneDefinition<P, D> {
+export function defineKind<P, D extends PaneKindBase, K extends string = string>(
+  def: D & { kind: K },
+): PaneDefinition<P, D, K> {
   const unwritten = [...appOnlyParams(def.params), ...unlinkedParams(def.params)];
   // An optional param given as `undefined` is left out, as a link would leave it.
   const ref = (params: Record<string, ParamValue | undefined> = {}): ObjectRef => {
@@ -480,7 +499,7 @@ export function defineKind<P, D extends PaneKindBase>(def: D): PaneDefinition<P,
     unwrittenOf.set(made, unwritten);
     return made;
   };
-  return Object.assign(ref, def) as unknown as PaneDefinition<P, D>;
+  return Object.assign(ref, def) as unknown as PaneDefinition<P, D, K>;
 }
 
 /** The params a link leaves out (`appOnly`, `link: false`) of each ref a kind's call built, so a link built with no

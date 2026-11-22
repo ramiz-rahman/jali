@@ -1,5 +1,6 @@
 import { own } from "@jali/core/adapter";
-import type { ShelfEntry, JaliModel, PaneActivity } from "@jali/core";
+import type { ShelfEntry, PaneActivity } from "@jali/core";
+import type { Model } from "@jali/core/adapter";
 import {
   useCallback,
   useEffect,
@@ -11,7 +12,7 @@ import {
 } from "react";
 import { useJaliIcons } from "../icons/context";
 
-import { useShortcut } from "../commands/react";
+import { useJaliShortcut } from "../commands/react";
 import { cssString, flashTab, observeResize, scrolledFromStart } from "@jali/core/adapter";
 import { useRovingKeys } from "../a11y/roving";
 import { Menu } from "../a11y/Menu";
@@ -22,7 +23,7 @@ import { useActions, useEntriesOf, useMessages, useModelValue, useStore } from "
 import { ICON } from "../icons/sized";
 import { useLandmarkName } from "../a11y/landmark";
 
-function label(m: JaliModel, it: ShelfEntry, a: PaneActivity | undefined) {
+function label(m: Model, it: ShelfEntry, a: PaneActivity | undefined) {
   const node = m.pane(it.paneId);
   const title = m.title(it.paneId);
   const home = m.title(it.homeId);
@@ -56,7 +57,7 @@ export function Shelf() {
   const actions = useActions();
   const words = useMessages();
   const t = words.shelf;
-  const putBackKeys = useShortcut("pane.putBack");
+  const putBackKeys = useJaliShortcut("pane.putBack");
   const doReveal = (it: ShelfEntry) => {
     actions.reveal(it.paneId);
     flashTab(store.dom, it.paneId);

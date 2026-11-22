@@ -1,4 +1,4 @@
-import * as core from "../layout";
+import * as core from "../layout/engine";
 import type { Layout, NodeId, ViewState } from "../layout/types";
 import { keepOwnParams, type PaneActivity } from "../pane-kinds";
 import { presetById } from "../profile";

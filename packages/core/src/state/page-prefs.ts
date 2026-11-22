@@ -3,7 +3,7 @@ import type { StoragePort } from "../ports";
  * What a curated page remembers for one person on this device: the mode they last chose and their split layout
  * (structure and sizes). Never part of a link. Opened panes are investigation, not layout: they are not saved.
  */
-import * as core from "../layout";
+import * as core from "../layout/engine";
 import type { KindRegistry, Layout } from "../layout/types";
 import type { ViewMode } from "../profile";
 

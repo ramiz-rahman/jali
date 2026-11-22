@@ -6,7 +6,7 @@
  * Opt-in: only `definePage` reaches this module. It puts the page's engine (`pageEngine`) on the page, and the
  * workspace runs the page through `env.page`, so an app without a page ships none of it.
  */
-import * as core from "../layout";
+import * as core from "../layout/engine";
 import { endSide, treeSide } from "../layout/geometry/direction";
 import { toLayout } from "../layout/build";
 import type {
@@ -37,6 +37,7 @@ import { messagesOf, say, type Messages } from "../state/messages";
 import { pageEn } from "../state/page-messages";
 import type { PagePrefs } from "../state/page-prefs";
 import type { PageState } from "../state/store";
+import type { LinkMode } from "./public";
 import { pushUndo } from "../state/undo";
 import { keepOwnRef } from "../pane-kinds";
 import { preset } from "./layout";
@@ -189,12 +190,12 @@ export function openPage(x: Snapshot, o: OpenPage = {}): Outcome {
   // An item the page can't take: a link's falls back to the item before (or the first); an app's call is refused.
   const item = o.item === undefined ? undefined : readItem(o.item, p.firstItem);
   if (o.item !== undefined && item === undefined && !o.fromUrl) return refuse("invalid");
-  const canInvestigate = prev?.canInvestigate ?? x.s.canInvestigate ?? true;
+  const opens = (prev?.linkMode ?? x.s.linkMode) !== "peek";
   // A limited viewer works in Single only, whatever the link or Back brings: its opened panes are left out. What the
   // address doesn't hold (`appOnly` and `link: false` params) stays on an opened pane that is still on screen.
   const kinds = x.env.kinds.registry();
   const onScreen = core.tree.panes(x.s.layout.root).map((n) => n.ref);
-  const opened = canInvestigate
+  const opened = opens
     ? (o.investigation ?? []).map((ref) => (o.fromUrl ? keepOwnRef(kinds, ref, onScreen) : ref))
     : [];
   const page: PageState = {
@@ -202,13 +203,13 @@ export function openPage(x: Snapshot, o: OpenPage = {}): Outcome {
     before: undefined,
     item: item ?? prev?.item ?? p.firstItem,
     tab: roleOf(p, o.tab)?.id ?? prev?.tab ?? p.home,
-    mode: !canInvestigate ? "single" : opened.length ? "split" : (prev?.mode ?? x.s.prefs.mode),
-    canInvestigate,
+    mode: !opens ? "single" : opened.length ? "split" : (prev?.mode ?? x.s.prefs.mode),
+    linkMode: opens ? "open" : "peek",
   };
   // Opened panes need Split view, but that is the link's need, not the person's choice: their mode stays theirs.
   const prefs = {
     ...keep(x, page.mode),
-    mode: opened.length || !canInvestigate ? x.s.prefs.mode : page.mode,
+    mode: opened.length || !opens ? x.s.prefs.mode : page.mode,
   };
   const y = { ...x, s: { ...x.s, prefs } };
   const base =
@@ -253,7 +254,7 @@ export function setMode(x: Snapshot, mode: ViewMode): Outcome {
       undo: [],
     };
   }
-  if (!r.canInvestigate) return refuse("not-allowed", say(x).singleOnly);
+  if (r.linkMode === "peek") return refuse("not-allowed", say(x).singleOnly);
   const { layout, view } = split(x, p, r.item, r.tab, true);
   return {
     op: "mode",
@@ -415,7 +416,7 @@ function besideTarget(layout: Layout, view: ViewState, ctx: LayoutContext): Node
 function beside(x: Snapshot, role: string) {
   const p = x.env.profile,
     r = x.s.page;
-  if (!p || !r || !r.canInvestigate || !roleOf(p, role)) return undefined;
+  if (!p || !r || r.linkMode === "peek" || !roleOf(p, role)) return undefined;
   const base =
     r.mode === "single"
       ? split(x, p, r.item, r.tab, true)
@@ -481,7 +482,7 @@ export function placeTab(
     };
   };
   if (r.mode === "single")
-    return r.canInvestigate
+    return r.linkMode === "open"
       ? [setMode(x, "split"), place]
       : refuse("not-allowed", say(x).singleOnly);
   return place(x);
@@ -494,7 +495,7 @@ export function openTabBeside(x: Snapshot, role: string): Outcome {
   const target = (y: Snapshot) =>
     besideTarget(y.s.layout, unzoomed(y.s.view), y.ctx) ?? y.s.page!.tab;
   if (r.mode === "single")
-    return r.canInvestigate
+    return r.linkMode === "open"
       ? [setMode(x, "split"), (y: Snapshot) => placeTab(y, role, target(y), endSide(y.ctx.dir))]
       : refuse("not-allowed", say(x).singleOnly);
   return placeTab(x, role, target(x), endSide(x.ctx.dir));
@@ -650,37 +651,26 @@ export function resetPage(x: Snapshot): Outcome {
   };
 }
 
-/** A role permission. The limited viewer (a loan officer) works in Single only, and links peek; the full one (a
- *  credit reviewer) may multiplex. The profile names both (`viewers`). */
-export function setCanInvestigate(x: Snapshot, canInvestigate: boolean): Outcome {
+/** What following a link does for this person (`jali.page.setLinkMode`). A viewer who only peeks (a loan officer)
+ *  works in Single only; one whose links open (a credit reviewer) may multiplex. The profile names both (`viewers`). */
+export function setLinkMode(x: Snapshot, linkMode: LinkMode): Outcome {
   const { s } = x;
+  if (linkMode !== "open" && linkMode !== "peek") return refuse("invalid");
   // No page open: the policy waits for the next one (leaving a page never widens what its viewer may do).
   if (!s.page)
-    return (s.canInvestigate ?? true) === canInvestigate
-      ? null
-      : { op: "permission", patch: { canInvestigate } };
-  if (s.page.canInvestigate === canInvestigate) return null;
-  const msg = say(x).permission(
-    viewerLabel(x.env.profile, canInvestigate, messagesOf(x).page),
-    canInvestigate,
-  );
-  if (canInvestigate || s.page.mode === "single")
-    return {
-      op: "permission",
-      msg,
-      patch: { page: { ...s.page, canInvestigate }, canInvestigate },
-    };
+    return (s.linkMode ?? "open") === linkMode ? null : { op: "permission", patch: { linkMode } };
+  if (s.page.linkMode === linkMode) return null;
+  const opens = linkMode === "open";
+  const msg = say(x).permission(viewerLabel(x.env.profile, opens, messagesOf(x).page), opens);
+  if (opens || s.page.mode === "single")
+    return { op: "permission", msg, patch: { page: { ...s.page, linkMode }, linkMode } };
   // From Split view: the switch to Single and the permission are one change, so a switch held for unsaved work
   // holds the permission too, and Keep editing leaves both as they were.
   const toSingle = setMode(x, "single") as Change;
   return {
     ...toSingle,
     msg,
-    patch: {
-      ...toSingle.patch,
-      page: { ...toSingle.patch!.page!, canInvestigate },
-      canInvestigate,
-    },
+    patch: { ...toSingle.patch, page: { ...toSingle.patch!.page!, linkMode }, linkMode },
   };
 }
 
@@ -698,74 +688,74 @@ function pageCommands(env: Env): CommandDef[] {
       group: g.layout,
       check: ({ s, m }) =>
         s.page && m.panes.some((p) => !p.role) ? undefined : refuse("unavailable"),
-      run: (u) => u.actions.backToPage(),
+      run: (u) => u.run("page.back"),
     },
     {
       id: "page.reset",
       title: t.pageReset,
       group: g.layout,
       check: ({ s }) => (s.page?.mode === "split" ? undefined : refuse("unavailable")),
-      run: (u) => u.actions.resetPage(),
+      run: (u) => u.run("page.reset"),
     },
     {
       id: "page.single",
       title: t.pageSingle,
       group: g.layout,
       check: ({ s }) => (s.page?.mode === "split" ? undefined : refuse("unavailable")),
-      run: (u) => u.actions.setMode("single"),
+      run: (u) => u.run("page.setMode", "single"),
     },
     {
       id: "page.split",
       title: t.pageSplit,
       group: g.layout,
       check: ({ s }) =>
-        s.page?.mode === "single" && s.page.canInvestigate ? undefined : refuse("unavailable"),
-      run: (u) => u.actions.setMode("split"),
+        s.page?.mode === "single" && s.page.linkMode === "open" ? undefined : refuse("unavailable"),
+      run: (u) => u.run("page.setMode", "split"),
     },
     {
       id: "page.open",
       title: t.pageOpen(profile?.name),
       group: g.layout,
       check: ({ s }) => (s.page || !profile ? refuse("unavailable") : undefined),
-      run: (u) => u.actions.openPage(),
+      run: (u) => u.run("page.open"),
     },
     {
       id: "page.leave",
       title: t.pageLeave(env.name),
       group: g.layout,
       check: ({ s }) => (s.page && env.presets.length ? undefined : refuse("unavailable")),
-      run: (u) => u.actions.leavePage(),
+      run: (u) => u.run("page.leave"),
     },
     {
       id: "page.as_limited",
       title: t.viewAsLimited(limited),
       group: g.settings,
-      check: ({ s }) => (s.page?.canInvestigate ? undefined : refuse("unavailable")),
-      run: (u) => u.actions.setCanInvestigate(false),
+      check: ({ s }) => (s.page?.linkMode === "open" ? undefined : refuse("unavailable")),
+      run: (u) => u.run("page.setLinkMode", "peek"),
     },
     {
       id: "page.as_full",
       title: t.viewAsFull(full),
       group: g.settings,
-      check: ({ s }) => (s.page && !s.page.canInvestigate ? undefined : refuse("unavailable")),
-      run: (u) => u.actions.setCanInvestigate(true),
+      check: ({ s }) => (s.page?.linkMode === "peek" ? undefined : refuse("unavailable")),
+      run: (u) => u.run("page.setLinkMode", "open"),
     },
   ];
 }
 
 /** The curated page's engine: what `definePage` puts on a page. */
 export const pageEngine: PageEngine = {
-  openPage,
-  leavePage,
+  open: openPage,
+  leave: leavePage,
   setMode,
-  openTab,
-  openTabBeside,
+  showView: openTab,
+  showViewBeside: openTabBeside,
   placeTab,
-  activate,
-  backToPage,
+  showItem: activate,
+  back: backToPage,
   hideRole,
-  resetPage,
-  setCanInvestigate,
+  reset: resetPage,
+  setLinkMode,
   goToRole,
   investigation,
   placeAfterArrangement,

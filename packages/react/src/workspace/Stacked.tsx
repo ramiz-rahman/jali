@@ -4,7 +4,7 @@
  * in the lower pane isn't under the keyboard).
  */
 import { paneDomId, stackGap, type UiStore } from "@jali/core/adapter";
-import type { JaliModel } from "@jali/core";
+import type { Model } from "@jali/core/adapter";
 import { useEffect, useRef, useState, type KeyboardEvent, type PointerEvent } from "react";
 import { useModelValue, useStore } from "../state/react";
 
@@ -28,7 +28,7 @@ export function useKeyboardUp(): boolean {
 }
 
 /** Says once when two panes stack, naming them. */
-export function useStackAnnouncement(store: UiStore, m: JaliModel, shown: boolean) {
+export function useStackAnnouncement(store: UiStore, m: Model, shown: boolean) {
   const key = shown && m.stacked ? `${m.stacked.top} ${m.stacked.bottom}` : "";
   const was = useRef("");
   useEffect(() => {
@@ -48,7 +48,7 @@ export function StackDivider({
   setRatio,
   height,
 }: {
-  m: JaliModel;
+  m: Model;
   ratio: number;
   setRatio: (r: number) => void;
   /** The stack's height. */

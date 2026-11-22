@@ -4,7 +4,7 @@
  * a close, comes back with an undo, and names another object after a reload.
  */
 import type { Layout, NodeId, ObjectRef } from "../layout/types";
-import * as core from "../layout";
+import * as core from "../layout/engine";
 import type { PaneKinds } from "../pane-kinds";
 import type { StoragePort } from "../ports";
 import { own } from "../own";

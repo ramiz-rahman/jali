@@ -22,7 +22,7 @@ export function Peek({ presentation }: { presentation: Presentation }) {
   const ref = useUi((s) => s.view.peek);
   const areaW = useUi((s) => s.area.width);
   const page = useUi((s) => s.page);
-  const canPin = !page || (page.canInvestigate && page.mode === "split");
+  const canPin = !page || (page.linkMode === "open" && page.mode === "split");
   // The sheet's own content may name its object (useTitle), for this object only: a new object starts unnamed.
   const shows = ref ? JSON.stringify(ref) : "";
   const [ownTitle, setOwnTitle] = useState<{ shows: string; title: string | null }>();
@@ -123,7 +123,7 @@ export function Peek({ presentation }: { presentation: Presentation }) {
           <button
             type="button"
             className="jali-icon-btn"
-            onClick={() => actions.peek(null)}
+            onClick={() => actions.closePeek()}
             aria-label={t.close}
             title={t.closeTip(keymap.format([{ key: "Escape" }]))}
           >

@@ -21,8 +21,8 @@ export function paneHost(store: UiStore, id: NodeId): PaneHost {
     peek: (ref) => (ref ? app.peek(id, ref) : app.closePeek()),
     select: (ref, opts) => app.select(id, ref, opts),
     openHere: (ref) => app.openHere(id, ref),
-    dismiss: () => actions.dismiss(id),
-    report: (caller, seq, patch) => actions.reportPane(id, caller, seq, patch),
+    dismiss: () => void actions.dismiss(id),
+    report: (caller, seq, patch) => void actions.reportPane(id, caller, seq, patch),
   };
 }
 
@@ -98,7 +98,7 @@ export const PaneBody = /* @__PURE__ */ memo(
     // A ref its kind can't read (a required param missing, a value of the wrong type) never reaches the component:
     // the kind's Missing shows instead, or Jali's own message.
     const problems = kinds.problems(node.ref);
-    const close = () => (inPeek ? store.actions.peek(null) : store.actions.close(node.id));
+    const close = () => (inPeek ? store.actions.closePeek() : store.actions.close(node.id));
     const Missing = problems.length ? def.Missing : undefined;
     if (problems.length && !Missing) {
       return (

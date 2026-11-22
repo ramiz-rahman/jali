@@ -13,8 +13,8 @@ import {
   useUnsaved,
   useActiveItemPort,
   useJaliCommands,
-  useShortcut,
-  useTheme,
+  useJaliShortcut,
+  useJaliTheme,
 } from "@jali/react";
 import "@jali/react/styles.css";
 
@@ -80,10 +80,10 @@ const loanReview = definePage({
         priority: "supporting",
       }),
     ),
-  Rail: ({ item, activate }) => (
+  Rail: ({ item, showItem }) => (
     <nav>
       {[1, 2, 3].map((n) => (
-        <button key={n} aria-current={n === item} onClick={() => activate(n)}>
+        <button key={n} aria-current={n === item} onClick={() => showItem(n)}>
           {n}
         </button>
       ))}
@@ -115,10 +115,10 @@ const jali = createJali({
 
 function Status() {
   const commands = useJaliCommands();
-  const [theme] = [useTheme()];
+  const [theme] = [useJaliTheme()];
   return (
     <footer>
-      {commands.length} {String(theme)} {useShortcut("palette.toggle")} {keyHint("Mod+K")}
+      {commands.length} {String(theme)} {useJaliShortcut("palette.toggle")} {keyHint("Mod+K")}
     </footer>
   );
 }

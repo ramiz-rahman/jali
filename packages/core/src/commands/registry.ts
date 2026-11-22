@@ -18,7 +18,7 @@ import type { Env } from "../profile";
 import { refuse, type RefusalStep, type Snapshot } from "../state/apply";
 import { messagesOf, type ScreenDirection } from "../state/messages";
 import type { UiStore } from "../state/store";
-import { storeOf, type Jali } from "../state/instance";
+import { storeOf, type AnyJali, type Jali } from "../state/instance";
 import { cycleRegions } from "./regions";
 import { own as ownOf } from "../own";
 
@@ -210,14 +210,14 @@ function buildCommands(env: Env): CommandDef[] {
       title: t.splitRight,
       group: g.pane,
       check: needLauncher,
-      run: (u) => u.actions.split("right"),
+      run: (u) => u.actions.split(undefined, "right"),
     },
     {
       id: "pane.split.down",
       title: t.splitDown,
       group: g.pane,
       check: needLauncher,
-      run: (u) => u.actions.split("bottom"),
+      run: (u) => u.actions.split(undefined, "bottom"),
     },
     {
       id: "pane.split.auto",
@@ -316,7 +316,7 @@ function buildCommands(env: Env): CommandDef[] {
       title: t.peekClose,
       group: g.peek,
       check: checkPeek,
-      run: (u) => u.actions.peek(null),
+      run: (u) => u.actions.closePeek(),
     },
     {
       id: "peek.open_beside",
@@ -337,7 +337,7 @@ function buildCommands(env: Env): CommandDef[] {
       id: "settings.open",
       title: t.settingsOpen,
       group: g.settings,
-      run: (u) => u.actions.openSettings(),
+      run: (u) => u.run("dialogs.openSettings"),
     },
     {
       id: "settings.centre_drop.toggle",
@@ -382,7 +382,7 @@ const forEnv = (env: Env) => {
 };
 
 /** The workspace's commands, in palette order. Same array per workspace. */
-export const commandsOf = (jali: Pick<Jali, "env">): readonly Command[] =>
+export const commandsOf = (jali: Pick<AnyJali, "env">): readonly Command[] =>
   forEnv(jali.env).commands;
 
 /** The registry's commands, with their checks (adapters). */
@@ -397,7 +397,7 @@ function run(store: UiStore, id: string): boolean {
 }
 
 /** Runs a command if it can run now. Returns whether it ran. */
-export const runCommand = (jali: Jali, id: string): boolean => run(storeOf(jali), id);
+export const runCommand = (jali: AnyJali, id: string): boolean => run(storeOf(jali), id);
 
 export const commandById = (store: Pick<UiStore, "env">, id: string) =>
   forEnv(store.env).byId.get(id);
@@ -406,7 +406,7 @@ export const commandById = (store: Pick<UiStore, "env">, id: string) =>
 export const shortcutLabel = (store: Pick<UiStore, "keymap">, id: string) => store.keymap.label(id);
 
 /** Put the address on the clipboard, and say so ("Link copied"). */
-export function copyLink(jali: Jali) {
+export function copyLink(jali: AnyJali) {
   const store = storeOf(jali);
   const url = store.href();
   navigator.clipboard?.writeText(url).then(
@@ -455,7 +455,7 @@ export interface ListedCommand {
 }
 
 /** Every command a person can run now, in palette order. Read it again after each change (`jali.subscribe`). */
-export function listCommands(jali: Jali): ListedCommand[] {
+export function listCommands(jali: AnyJali): ListedCommand[] {
   const store = storeOf(jali);
   const x = store.snapshot();
   const focused = x.s.view.focused;
