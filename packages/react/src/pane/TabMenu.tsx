@@ -2,7 +2,7 @@ import { own as ownOf } from "@jali/core/adapter";
 import type { NodeId } from "@jali/core";
 import { useMemo } from "react";
 import { Menu, type MenuAt } from "../a11y/Menu";
-import { paneActionsOf } from "./actions";
+import { paneMenu } from "./actions";
 import type { TabMenuItem } from "@jali/core/adapter";
 import { useJaliIcons } from "../icons/context";
 import { useModelValue, useStore } from "../state/react";
@@ -31,7 +31,7 @@ export function TabMenu({
   const icon = useJaliIcons();
   // Built once as the menu opens: what the tab could do then.
   const groups = useMemo(() => {
-    const g = paneActionsOf(store, at.pane);
+    const g = paneMenu(store, at.pane);
     // In place of the app's controls a narrow header hid: the pane's commands, in their own group.
     const own = commands ? (ownOf(store.get().paneCommands, at.pane) ?? []) : [];
     if (own.length)

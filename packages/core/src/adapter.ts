@@ -212,7 +212,13 @@ export {
   parseKeys,
 } from "./commands/format";
 export { cycleRegions } from "./commands/regions";
-export { tabMenuOf } from "./commands/tab-menu";
+export {
+  appMenuOf,
+  paneMenuOf,
+  tabMenuOf,
+  type PaneMenuId,
+  type PaneMenuItem,
+} from "./commands/tab-menu";
 
 // ---------- the DOM: the adapter's port, focus, ids, input, direction and size ----------
 export { noDom, type DividerLine, type DomPort, type DragKind } from "./dom/port";

@@ -360,6 +360,18 @@ describe("a tab's menu", () => {
     expect(run).not.toHaveBeenCalled();
     expect(screen.getByRole("menu")).toBeTruthy();
   });
+
+  it("is the app's code to run only for a menu: headers that already show ⋯ never ask it", async () => {
+    const tabMenu = vi.fn(() => [{ id: "dup", title: "Duplicate", run: () => {} }]);
+    const jali = group({ tabMenu });
+    render(<JaliRoot jali={jali} />);
+    await act(async () => void (await jali.actions.focus("z")));
+    await act(async () => void (await jali.actions.focus("a")));
+    expect(tabMenu).not.toHaveBeenCalled();
+    fireEvent.contextMenu(tab("Note 2").parentElement!);
+    expect(items().at(-1)).toBe("Duplicate");
+    expect(tabMenu).toHaveBeenCalledTimes(1);
+  });
 });
 
 describe("pinned tabs", () => {

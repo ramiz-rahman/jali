@@ -1,9 +1,9 @@
-import { own } from "@jali/core/adapter";
+import { appMenuOf, own } from "@jali/core/adapter";
 import { buttonsOf, checkTuck, tuckHome, type PaneButton } from "@jali/core/adapter";
 import { useJaliIcons } from "../icons/context";
 import { useDerived, useStore, useUi } from "../state/react";
 import { useCanPopOut, usePoppedOut } from "./popped";
-import { paneActionsOf } from "./actions";
+import { paneActionsOf, popOutItem, type PaneActionId } from "./actions";
 import { useKeymap } from "../state/hydrated";
 import type { Chrome } from "@jali/core/adapter";
 import { ICON } from "../icons/sized";
@@ -22,8 +22,8 @@ interface P {
   onMenu: (at: { x: number; y: number; end: boolean }) => void;
 }
 
-/** The menu items each button stands for: the ⋯ shows when the menu offers something no button does. */
-const COVERS: Record<PaneButton, string> = {
+/** The menu item each button stands for: the ⋯ shows when the menu offers something no button does. */
+const COVERS: Record<PaneButton, PaneActionId> = {
   close: "close",
   maximise: "zoom",
   fullScreen: "full-screen",
@@ -82,7 +82,7 @@ export function HeaderActions({ id, title, zoomed, chrome, tabs, narrow = 0, onM
         : (checkTuck(x, id)?.msg ?? t.cantTuck(title));
       // A curated page's view closes back into the tabs above.
       const closeHint = x.s.page && x.m.pane(id)?.role ? t.closeViewTip : t.closeTip;
-      // The menu's items as it will build them (pane/actions.ts): Pop out or Bring back, as the button is now.
+      // Jali's own items in the menu (pane/actions.ts): Pop out or Bring back, as the button is now.
       const items = paneActionsOf(store, id, pop).flat();
       // A narrow header keeps its title: what the menu also offers moves into it, and a tuck that can't happen goes.
       const inMenu = new Set(items.map((i) => i.id));
@@ -92,13 +92,9 @@ export function HeaderActions({ id, title, zoomed, chrome, tabs, narrow = 0, onM
           !(narrow && MOVES.has(b) && (inMenu.has(COVERS[b]) || (b === "tuck" && !home))),
       );
       const shown = new Set(buttons.map((b) => COVERS[b]));
-      return {
-        home: !!home,
-        tuckLabel,
-        closeHint,
-        buttons,
-        menuMore: items.some((i) => !shown.has(i.id)),
-      };
+      // The app's items are asked for only when Jali's alone don't already show ⋯.
+      const menuMore = items.some((i) => !shown.has(i.id)) || appMenuOf(store, id).length > 0;
+      return { home: !!home, tuckLabel, closeHint, buttons, menuMore };
     },
     samePlan,
     [store, id, title, zoomed, chrome, tabs, narrow, full, pop, popped, keymap],
@@ -141,12 +137,7 @@ export function HeaderActions({ id, title, zoomed, chrome, tabs, narrow = 0, onM
             aria-pressed={popped}
             title={popped ? t.bringBack : t.popOutTip}
             // The menu's own action (pane/actions.ts), so the button and ⋯ can't disagree on what it does.
-            onClick={() =>
-              paneActionsOf(store, id, pop)
-                .flat()
-                .find((i) => i.id === "pop-out")
-                ?.run()
-            }
+            onClick={() => popOutItem(store, id, pop)?.run()}
           >
             <icon.popOut {...ICON.header} aria-hidden />
           </button>
