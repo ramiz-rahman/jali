@@ -13,7 +13,7 @@
  *   </JaliRoot>
  *
  * Two things are the host's to render: the shelf (`<Shelf />`, tucked panes as chips, usually in a status
- * line) and toasts (`jali.onToast`; closes and tucks offer Undo). Put a toaster in `overlays`.
+ * line) and toasts (`useJaliEvent("toast", …)`; closes and tucks offer Undo). Put a toaster in `overlays`.
  *
  * Icons: Jali's own (`defaultIcons`), with the host's `icons` over them by name.
  */
@@ -269,7 +269,7 @@ function ThemeOnRoot({ layer }: { layer: unknown }) {
   return null;
 }
 
-/** Provides a workspace and its icons to the hooks and parts below it. `<JaliRoot>` does this; use it to render Jali's parts on their own. */
+/** Provides a workspace and its icons to the hooks and parts below it: `<JaliRoot>`'s, internal (react-opus REACT-12). */
 export function JaliProvider({
   jali,
   icons,

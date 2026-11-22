@@ -1,4 +1,4 @@
-/** What `@jali/react` exports apart from `<JaliRoot>` and `<JaliProvider>`. */
+/** What `@jali/react` exports apart from `<JaliRoot>`. */
 
 // ---------- start here ----------
 export { JaliView } from "./JaliRoot";
@@ -43,15 +43,10 @@ export { useJaliShortcut, useJaliCommands } from "./commands/react";
 // Framework-free, from @jali/core, here too for an app's own keys.
 export { keyBelongsToContent } from "@jali/core/adapter";
 
-// ---------- parts, to compose your own (<JaliRoot> and <JaliView> render these) ----------
-export { Panes } from "./workspace/Workspace";
+// ---------- chrome of your own, inside <JaliRoot> around <JaliView /> ----------
+// The dialogs, the live region and the panes themselves are the root's: every way of using Jali gets them.
 export { CuratedPage, PageBar } from "./chrome/PageBar";
 export { Shelf } from "./chrome/Shelf";
-export { Announcer } from "./chrome/Announcer";
-export { Palette } from "./dialogs/Palette";
-export { SettingsPanel } from "./dialogs/Settings";
-export { Chooser } from "./dialogs/Chooser";
-export { ConfirmDiscard } from "./dialogs/ConfirmDiscard";
 export { KindIcon } from "./pane/icons";
 export { Activity } from "./pane/Activity";
 export { IconButton, type IconButtonProps } from "./chrome/IconButton";

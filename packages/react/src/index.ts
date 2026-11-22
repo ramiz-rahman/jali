@@ -5,7 +5,7 @@
  */
 
 export * from "./common";
-export { JaliRoot, JaliProvider, type JaliRootProps } from "./JaliRoot";
+export { JaliRoot, type JaliRootProps } from "./JaliRoot";
 
 // ---------- experimental ----------
 // Pop out a pane into a floating window that stays on top (Document Picture-in-Picture: Chrome and Edge on desktop).
