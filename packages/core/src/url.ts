@@ -20,6 +20,7 @@ import {
   createPaneKinds,
   linkLayoutAlone,
   linkRefAlone,
+  madeByKind,
   readLayout,
   readRef,
   type PaneKindBase,
@@ -27,6 +28,7 @@ import {
 import { browserLocation, browserStorage, type LocationPort, type StoragePort } from "./ports";
 import { own as ownOf } from "./own";
 import { sameRef } from "./layout/ops/ref";
+import { isDev } from "./dev";
 
 export const PERSIST_MS = 120;
 const BROKEN_KEY = "broken-layout";
@@ -188,17 +190,41 @@ export function linkSearch(link: JaliLink, options: LinkSearchOptions = {}): str
   const k = urlKeys(options.prefix);
   const q = new URLSearchParams(options.search ?? "");
   const kinds = options.panes && createPaneKinds(options.panes).registry();
-  const out = (ref: ObjectRef) => linkRefAlone(ref, kinds);
+  // Without `panes`, only a ref a kind's call built says which of its params a link leaves out: a plain object or a
+  // copy (structuredClone, JSON) would carry its app-only params. Development says so.
+  const plain = (ref: ObjectRef) => {
+    if (!kinds && !madeByKind(ref) && isDev())
+      console.warn(
+        `Jali: linkSearch was given a ${ref.kind} ref that no kind's call built; give it \`panes\` so the link never carries params only the app sets`,
+      );
+    return ref;
+  };
+  const out = (ref: ObjectRef) => linkRefAlone(plain(ref), kinds);
   for (const key of Object.values(k)) q.delete(key);
   if ("page" in link) setPage(q, k, link.open ? { ...link, open: link.open.map(out) } : link);
   else {
-    q.set(k.layout, core.encode(linkLayoutAlone(toLayout(link.layout), kinds)));
+    // Each ref as a link carries it before the builders copy it: a copy no longer says which kind's call built it.
+    q.set(k.layout, core.encode(linkLayoutAlone(toLayout(mapDraft(link.layout, out)), kinds)));
     if (link.preset) q.set(k.preset, link.preset);
     if (link.zoom) q.set(k.zoom, link.zoom);
   }
   if (link.peek) q.set(k.peek, encodePeek(out(link.peek)));
   const text = q.toString();
   return text ? `?${text}` : "";
+}
+
+/** A layout input with `fn` applied to each ref it holds, as written (a builder's draft, a ref, or a layout). */
+function mapDraft(input: LayoutInput, fn: (ref: ObjectRef) => ObjectRef): LayoutInput {
+  const node = (d: unknown): unknown => {
+    if (!d || typeof d !== "object") return d;
+    const o = d as { type?: string; ref?: ObjectRef; children?: unknown[]; root?: unknown };
+    if ("root" in o && "version" in o) return { ...o, root: node(o.root) };
+    if ("kind" in o && "params" in o && !("type" in o)) return fn(o as unknown as ObjectRef);
+    if (o.ref) return { ...o, ref: fn(o.ref) };
+    if (Array.isArray(o.children)) return { ...o, children: o.children.map(node) };
+    return d;
+  };
+  return node(input) as LayoutInput;
 }
 
 /** The search string for `s`, keeping every param of `search` that is not the workspace's. */

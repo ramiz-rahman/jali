@@ -474,7 +474,9 @@ export function defineKind<P, D extends PaneKindBase>(def: D): PaneDefinition<P,
         Object.entries(params).filter((e): e is [string, ParamValue] => e[1] !== undefined),
       ),
     };
-    if (unwritten.length) unwrittenOf.set(made, unwritten);
+    // Every ref a kind's call builds is marked, so `linkSearch` can tell one from a plain object (a copy, a ref
+    // read from JSON), whose link-only params it can't know without the workspace's kinds.
+    unwrittenOf.set(made, unwritten);
     return made;
   };
   return Object.assign(ref, def) as unknown as PaneDefinition<P, D>;
@@ -488,6 +490,9 @@ const unwrittenOf = /* @__PURE__ */ new WeakMap<ObjectRef, readonly string[]>();
  * `ref` as a link carries it, with no workspace at hand: by its kind in `kinds` when that has it, else by the kind
  * whose call built it. A ref that is neither (a plain object of a kind `kinds` lacks) is the same ref.
  */
+/** Whether a kind's call built `ref` (`order({ id: 1 })`), rather than it being a plain object or a copy of one. */
+export const madeByKind = (ref: ObjectRef): boolean => unwrittenOf.has(ref);
+
 export function linkRefAlone(ref: ObjectRef, kinds?: KindRegistry): ObjectRef {
   if (kinds && Object.hasOwn(kinds, ref.kind)) return linkRef(kinds, ref);
   const params = without(ref.params, unwrittenOf.get(ref));
