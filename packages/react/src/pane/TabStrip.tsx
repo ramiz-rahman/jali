@@ -1,4 +1,5 @@
 import { own } from "@jali/core/adapter";
+import { titleId } from "../ids";
 import type { NodeId, PaneNode } from "@jali/core";
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { useJaliIcons } from "../icons/context";
@@ -7,7 +8,6 @@ import { allows, cssString } from "@jali/core/adapter";
 import {
   shortcutLabel,
   paneDomId,
-  paneTitleId,
   roleOf,
   titleOf,
   startPaneDrag,
@@ -266,10 +266,7 @@ export function TabStrip({ group, owner }: { group: NonNullable<Frame["group"]>;
             </span>
           ) : null}
           <TabIcon node={t} />
-          <span
-            className="jali-tab-title"
-            id={active ? paneTitleId(store.dom.id, owner) : undefined}
-          >
+          <span className="jali-tab-title" id={active ? titleId(store.dom.id, owner) : undefined}>
             {title}
           </span>
           <TabActivity id={t.id} />

@@ -22,6 +22,7 @@ import {
   useEffect,
   useMemo,
   useRef,
+  useState,
   useSyncExternalStore,
   type CSSProperties,
   type HTMLAttributes,
@@ -39,11 +40,12 @@ import { defaultIcons } from "./icons/default";
 import type { JaliIcon, JaliIcons } from "./icons/types";
 import { Guard } from "./chrome/Guard";
 import { installPressed } from "./pressed";
-import { StoreProvider, useStore, useTheme, useUi } from "./state/react";
+import { StoreProvider, useDomScope, useStore, useTheme, useUi } from "./state/react";
 import { Panes } from "./workspace/Workspace";
 import { PAGE_PARTS } from "./define";
 import { overlaysDomId } from "./a11y/ModalDialog";
 import { isDev } from "./dev";
+import { LabelContext } from "./a11y/landmark";
 
 export interface JaliRootProps extends HTMLAttributes<HTMLDivElement> {
   jali: Jali;
@@ -64,6 +66,11 @@ export interface JaliRootProps extends HTMLAttributes<HTMLDivElement> {
    *  "… could not be shown" with Retry in place of what failed, your app around it stays, and this hears the error.
    *  A pane's own failures go to `createJali({ onPaneError })`. */
   onError?: (error: unknown) => void;
+  /** The workspace's name, over `createJali({ label })`, read at every render (so it can follow a locale). It names
+   *  the workspace's landmark, and each landmark inside it carries it ("Order 7, Orders"). Not set on the root. */
+  "aria-label"?: string;
+  /** The id of a visible heading that names the workspace, as APG prefers; the landmarks inside carry its text. */
+  "aria-labelledby"?: string;
 }
 
 /** The same icons, name by name: an inline `icons={{ close: MyClose }}` is a new object on every render. */
@@ -103,9 +110,13 @@ export function JaliRoot({
   settings = true,
   settingsExtra,
   onError,
+  "aria-label": label,
+  "aria-labelledby": by,
   ...rest
 }: JaliRootProps) {
   const store = storeOf(jali);
+  // Before anything here reads its ids (the overlays' wrapper).
+  useDomScope(store);
   useEffect(() => store.start(), [store]);
   // data-pressed on Jali's controls while held, by pointer or key (pressed.ts).
   useEffect(installPressed, []);
@@ -113,55 +124,73 @@ export function JaliRoot({
   const inside = (layer: ReactNode) => (host ? createPortal(layer, host) : layer);
   // The spacing the layout measures with, as --jali-gap and --jali-inset, so styles that read them agree with it.
   const spacing = spacingVars(store.env.spacing) as CSSProperties;
+  // A heading's text, for the landmarks inside, read once the heading is in the page (and when it changes).
+  const [heading, setHeading] = useState<string>();
+  useEffect(() => {
+    if (!by) return setHeading(undefined);
+    const read = () => setHeading(document.getElementById(by)?.textContent?.trim() || undefined);
+    read();
+    const el = document.getElementById(by);
+    if (!el || typeof MutationObserver === "undefined") return;
+    const watch = new MutationObserver(read);
+    watch.observe(el, { characterData: true, childList: true, subtree: true });
+    return () => watch.disconnect();
+  }, [by]);
+  const named = useMemo(
+    () => ({ label: label?.trim() || heading, by: label?.trim() ? undefined : by }),
+    [label, heading, by],
+  );
   return (
     <JaliProvider jali={jali} icons={icons}>
-      <div
-        {...rest}
-        style={{ ...spacing, ...rest.style }}
-        dir={store.env.dir ?? rest.dir}
-        data-jali=""
-        ref={store.dom.attach}
-      >
-        <Guard onError={onError} fallback={(retry) => <Failed retry={retry} />}>
-          {children}
-        </Guard>
-      </div>
-      {/* The dialogs render outside the root but are this workspace's: keys pressed in them count as its own. While a
-          pane is the browser's full-screen element, they render inside it, the only part of the page on screen. */}
-      {inside(
+      <LabelContext.Provider value={named}>
         <div
-          data-jali-layer=""
-          dir={store.env.dir}
-          ref={store.dom.attachLayer}
-          style={{ ...spacing, display: "contents" }}
+          {...rest}
+          style={{ ...spacing, ...rest.style }}
+          dir={store.env.dir ?? rest.dir}
+          data-jali=""
+          ref={store.dom.attach}
         >
-          <Guard onError={onError}>
-            <Announcer />
-            {store.env.palette === false ? null : <Palette />}
-            {settings ? (
-              <SettingsPanel>
-                <Guard onError={onError}>{settingsExtra}</Guard>
-              </SettingsPanel>
-            ) : null}
-            <Chooser />
-            <ConfirmDiscard />
+          <Guard onError={onError} fallback={(retry) => <Failed retry={retry} />}>
+            {children}
           </Guard>
-        </div>,
-      )}
-      {store.env.pageTheme === false ||
-      (rest as Record<string, unknown>)["data-theme"] !== undefined ? null : (
-        <ThemeOnRoot layer={host} />
-      )}
-      {overlays == null ? null : (
-        <div
-          data-jali-overlays=""
-          id={overlaysDomId(store.dom.id)}
-          dir={store.env.dir}
-          style={{ display: "contents" }}
-        >
-          {overlays}
         </div>
-      )}
+        {/* The dialogs render outside the root but are this workspace's: keys pressed in them count as its own. While a
+          pane is the browser's full-screen element, they render inside it, the only part of the page on screen. */}
+        {inside(
+          <div
+            data-jali-layer=""
+            dir={store.env.dir}
+            ref={store.dom.attachLayer}
+            style={{ ...spacing, display: "contents" }}
+          >
+            <Guard onError={onError}>
+              <Announcer />
+              {store.env.palette === false ? null : <Palette />}
+              {settings ? (
+                <SettingsPanel>
+                  <Guard onError={onError}>{settingsExtra}</Guard>
+                </SettingsPanel>
+              ) : null}
+              <Chooser />
+              <ConfirmDiscard />
+            </Guard>
+          </div>,
+        )}
+        {store.env.pageTheme === false ||
+        (rest as Record<string, unknown>)["data-theme"] !== undefined ? null : (
+          <ThemeOnRoot layer={host} />
+        )}
+        {overlays == null ? null : (
+          <div
+            data-jali-overlays=""
+            id={overlaysDomId(store.dom.id)}
+            dir={store.env.dir}
+            style={{ display: "contents" }}
+          >
+            {overlays}
+          </div>
+        )}
+      </LabelContext.Provider>
     </JaliProvider>
   );
 }

@@ -2,7 +2,7 @@ import type { PaneNode } from "@jali/core";
 import { useRef } from "react";
 import { useRovingKeys } from "../a11y/roving";
 import { useStore } from "../state/react";
-import { landmarkName } from "../a11y/landmark";
+import { useLandmarkName } from "../a11y/landmark";
 import { SwitcherItem } from "./SwitcherItem";
 
 /** Single view's pane switcher: every pane and tab, the current one selected. */
@@ -19,13 +19,14 @@ export function PaneSwitcher({
   const store = useStore();
   const t = store.messages.workspace;
   const list = useRef<HTMLDivElement>(null);
+  const landmarkName = useLandmarkName();
   // ← → Home End move focus along the panes, wrapping both ways; Enter, Space or a click switches (manual activation:
   // switching moves focus into the pane, which would end the walk after one step).
   const keys = useRovingKeys(() => [
     ...(list.current?.querySelectorAll<HTMLElement>('[role="tab"]') ?? []),
   ]);
   return (
-    <nav className="jali-switcher" aria-label={landmarkName(store, t.switcher)}>
+    <nav className="jali-switcher" aria-label={landmarkName(t.switcher)}>
       <div
         className="jali-switch-list"
         role="tablist"

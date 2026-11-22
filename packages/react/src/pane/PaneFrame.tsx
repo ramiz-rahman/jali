@@ -8,7 +8,6 @@ import {
   ALONE_CHROME,
   allows,
   paneDomId,
-  paneTitleId,
   roleOf,
   shownTitle,
   titleOf,
@@ -30,7 +29,8 @@ import { RenameField, useCanRename } from "./RenameField";
 import { useInert } from "./inert";
 import { ICON } from "../icons/sized";
 import { createHeaderSlot, useHasHeaderControls, useNarrowHeader } from "./header";
-import { landmarkName } from "../a11y/landmark";
+import { useWorkspaceLabel } from "../a11y/landmark";
+import { titleId } from "../ids";
 
 interface Props {
   frame: Frame;
@@ -73,6 +73,7 @@ export const PaneFrame = /* @__PURE__ */ memo(
     const boundary = useUi((s) => s.settings.boundary);
     const env = store.env,
       profile = env.profile;
+    const named = useWorkspaceLabel();
     const role = page && node.role && profile ? roleOf(profile, node.role) : undefined;
     // In a curated workspace, a pane without a role was opened by following a link: it belongs to the investigation.
     const opened = page && !node.role;
@@ -112,9 +113,9 @@ export const PaneFrame = /* @__PURE__ */ memo(
         id={paneDomId(store.dom.id, node.id)}
         role="region"
         // Named by its title; in a workspace the host named, by its title and the workspace's name.
-        {...(env.label
-          ? { "aria-label": landmarkName(store, title) }
-          : { "aria-labelledby": paneTitleId(store.dom.id, node.id) })}
+        {...(named.label
+          ? { "aria-label": store.messages.workspace.within(title, named.label) }
+          : { "aria-labelledby": titleId(store.dom.id, node.id) })}
         tabIndex={-1}
         data-pane={node.id}
         data-kind={node.ref.kind}
@@ -193,7 +194,7 @@ export const PaneFrame = /* @__PURE__ */ memo(
             <div className="jali-pane-title">
               {role ? <role.icon {...ICON.title} aria-hidden /> : <KindIcon kind={node.ref.kind} />}
               <h2
-                id={paneTitleId(store.dom.id, node.id)}
+                id={titleId(store.dom.id, node.id)}
                 onDoubleClick={(e) => {
                   // A title that can be renamed opens the field; anywhere else in the header maximises.
                   if (bare || !canRename(node.id)) return;

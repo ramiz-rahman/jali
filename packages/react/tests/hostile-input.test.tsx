@@ -108,7 +108,7 @@ describe("C1: ids", () => {
     expect(() => render(<JaliRoot jali={jali} />)).not.toThrow();
     const store = storeOf(jali);
     expect(() => store.dom.pane('q"1')).not.toThrow();
-    expect(store.dom.pane('q"1')?.id).toBe('jali-pane-q"1');
+    expect(store.dom.pane('q"1')?.id).toBe(`${store.dom.id}-pane-q"1`);
   });
 });
 

@@ -9,7 +9,7 @@ import { UnsavedMark } from "../pane/Unsaved";
 import { useEntriesOf, useModelValue, useStore, useUi } from "../state/react";
 import { useKeymap } from "../state/hydrated";
 import { ICON } from "../icons/sized";
-import { landmarkName } from "../a11y/landmark";
+import { useLandmarkName } from "../a11y/landmark";
 
 export const PEEK_WIDTH = 480;
 
@@ -17,6 +17,7 @@ export const PEEK_WIDTH = 480;
 export function Peek({ presentation }: { presentation: Presentation }) {
   const icon = useJaliIcons();
   const store = useStore();
+  const landmarkName = useLandmarkName();
   const keymap = useKeymap();
   const ref = useUi((s) => s.view.peek);
   const areaW = useUi((s) => s.area.width);
@@ -87,7 +88,7 @@ export function Peek({ presentation }: { presentation: Presentation }) {
       className={`jali-peek${openedBy.current === "pointer" ? " is-animated" : ""}`}
       style={{ width: presentation === "single" ? "100%" : Math.min(PEEK_WIDTH, areaW) }}
       role="complementary"
-      aria-label={landmarkName(store, t.label(title))}
+      aria-label={landmarkName(t.label(title))}
       data-testid="peek"
     >
       <header className="jali-peek-header">

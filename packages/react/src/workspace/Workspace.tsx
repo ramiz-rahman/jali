@@ -29,6 +29,8 @@ import { paneHydration } from "../state/hydration";
 import { DropIndicator } from "./DropIndicator";
 import { useSingleView } from "./useSingleView";
 import { PAGE_PARTS } from "../define";
+import { isDev } from "../dev";
+import { useWorkspaceLabel } from "../a11y/landmark";
 
 const DEV = !!(import.meta as unknown as { env?: { DEV?: boolean } }).env?.DEV;
 
@@ -142,6 +144,28 @@ function useFoldAnnouncements(
     }
     prev.current = { folded: m.folded, room };
   });
+}
+
+/** The names of the mounted workspaces' landmarks (or the heading ids that name them), to catch two the same. */
+const names = new Map<string, number>();
+
+/** Two workspaces on one page with the same name repeat every landmark: a development warning that says how to name
+ *  them apart. */
+function useUniqueName(name: string) {
+  useEffect(() => {
+    const n = names.get(name) ?? 0;
+    if (n && isDev())
+      console.warn(
+        `Jali: two workspaces on this page are both named "${name}", so their landmarks repeat. Name each with ` +
+          "<JaliRoot aria-label> (or aria-labelledby), or createJali({ label }).",
+      );
+    names.set(name, n + 1);
+    return () => {
+      const left = (names.get(name) ?? 1) - 1;
+      if (left) names.set(name, left);
+      else names.delete(name);
+    };
+  }, [name]);
 }
 
 /** True from the commit that carries a reshape until its slide has played (layout stability, state/apply.ts). The class
@@ -341,14 +365,19 @@ export function Panes() {
   useFocusIntoStrip(store);
 
   // A labelled region inside the host's page, or the page's main landmark when the host says Jali is the whole app.
+  // Named by <JaliRoot aria-label>, a heading it points at, createJali({ label }), or Jali's own word.
   const Landmark = store.env.landmark === "main" ? "main" : "section";
+  const named = useWorkspaceLabel();
+  const name = named.by ? undefined : (named.label ?? store.messages.workspace.label);
+  useUniqueName(named.by ?? name!);
   return (
     <Landmark
       className={["jali-workspace", single && "is-single", sliding && !single && "is-reshaping"]
         .filter(Boolean)
         .join(" ")}
       ref={ref}
-      aria-label={store.env.label ?? store.messages.workspace.label}
+      aria-label={name}
+      aria-labelledby={named.by}
       data-single={single ? "" : undefined}
       data-stacked={stacked ? "" : undefined}
       data-fold={stacked ? m.stacked?.hinge?.axis : undefined}

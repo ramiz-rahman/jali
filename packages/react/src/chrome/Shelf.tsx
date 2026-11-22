@@ -20,7 +20,7 @@ import { KindIcon } from "../pane/icons";
 import { UnsavedMark } from "../pane/Unsaved";
 import { useActions, useEntriesOf, useMessages, useModelValue, useStore } from "../state/react";
 import { ICON } from "../icons/sized";
-import { landmarkName } from "../a11y/landmark";
+import { useLandmarkName } from "../a11y/landmark";
 
 function label(m: JaliModel, it: ShelfEntry, a: PaneActivity | undefined) {
   const node = m.pane(it.paneId);
@@ -39,6 +39,7 @@ function label(m: JaliModel, it: ShelfEntry, a: PaneActivity | undefined) {
 export function Shelf() {
   const icon = useJaliIcons();
   const store = useStore();
+  const landmarkName = useLandmarkName();
   // What it lists: the tucked panes (the model keeps the list until the layout changes), and their names and their
   // homes'. It renders again when one of those changes, never for another pane's title; the model is read as it renders.
   const tuckedItems = useModelValue((m) => m.shelf);
@@ -212,7 +213,7 @@ export function Shelf() {
     <div
       className="jali-shelf"
       role="region"
-      aria-label={landmarkName(store, t.label)}
+      aria-label={landmarkName(t.label)}
       tabIndex={-1}
       data-shelf
     >

@@ -6,6 +6,7 @@ import {
   Fragment,
   useContext,
   useEffect,
+  useId,
   useMemo,
   useRef,
   useSyncExternalStore,
@@ -15,13 +16,55 @@ import type { Actions, PaneAttributes, UiState, UiStore } from "@jali/core/adapt
 import type { ReactEnv, Page } from "../define";
 import { resolveTheme } from "@jali/core/adapter";
 import { reactDom } from "../dom";
+import { isDev } from "../dev";
 
 const StoreContext = /* @__PURE__ */ createContext<UiStore | null>(null);
 
+/** Each store's DOM id as the host gave it, and the provider that scopes it while mounted. */
+const bases = new WeakMap<UiStore, string>();
+const owners = new WeakMap<UiStore, string>();
+/** The DOM ids of the mounted workspaces, to catch two with the same one. */
+const mounted = new Map<string, number>();
+
+/**
+ * The workspace's DOM scope. A workspace the host gave no `id` ("jali") scopes its ids with this mount's `useId()`, so
+ * two on one page never share an id and their ARIA references never cross; the same on the server and in the
+ * browser, and never stored. One the host gave an `id` keeps it; two mounted with the same one are a development
+ * error. One provider per store scopes it (the first to render), so a second provider of the same store agrees.
+ */
+export function useDomScope(store: UiStore) {
+  const uid = useId();
+  if (!bases.has(store)) bases.set(store, store.dom.id);
+  if (!owners.has(store)) owners.set(store, uid);
+  const base = bases.get(store)!;
+  if (owners.get(store) === uid)
+    store.dom.id = base === "jali" ? `jali-${uid.replace(/[^\w-]/g, "")}` : base;
+  useEffect(() => {
+    // Claimed again after an unmount (StrictMode runs effects twice): the store is this provider's while mounted.
+    if (!owners.has(store)) owners.set(store, uid);
+    if (owners.get(store) !== uid) return;
+    const id = store.dom.id;
+    const n = mounted.get(id) ?? 0;
+    if (n && isDev())
+      console.error(
+        `Jali: two workspaces on this page share the id "${id}", so their elements' ids repeat. Give each its own ` +
+          "createJali({ id, label }).",
+      );
+    mounted.set(id, n + 1);
+    return () => {
+      owners.delete(store);
+      const left = (mounted.get(id) ?? 1) - 1;
+      if (left) mounted.set(id, left);
+      else mounted.delete(id);
+    };
+  }, [store, uid]);
+}
+
 export function StoreProvider({ store, children }: { store: UiStore; children?: ReactNode }) {
   // The core finds React's elements through this port (dom.ts). Giving it is idempotent, so it is safe in render, and
-  // it is in place before any effect or event of the workspace runs.
+  // it is in place before any effect or event of the workspace runs. So is the DOM scope.
   store.dom.use(reactDom);
+  useDomScope(store);
   return <StoreContext.Provider value={store}>{children}</StoreContext.Provider>;
 }
 

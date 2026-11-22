@@ -16,7 +16,7 @@ import { useRovingKeys } from "../a11y/roving";
 import { bold, Parts, useGeometry, useModel, useStore, useUi, useProfile } from "../state/react";
 import { useKeymap } from "../state/hydrated";
 import { Panes } from "../workspace/Workspace";
-import { landmarkName } from "../a11y/landmark";
+import { useLandmarkName } from "../a11y/landmark";
 import { Guard } from "./Guard";
 
 /**
@@ -91,6 +91,7 @@ export function PageBar() {
 function PageTabs() {
   const p = useProfile()!;
   const store = useStore();
+  const landmarkName = useLandmarkName();
   const { actions } = store;
   const t = store.messages.page;
   const keymap = useKeymap();
@@ -134,7 +135,7 @@ function PageTabs() {
   ]);
   // A landmark of its own, so a screen-reader user who moves by landmarks reaches the views.
   return (
-    <nav className="jali-page-nav" aria-label={landmarkName(store, t.tabsLabel(p.name))}>
+    <nav className="jali-page-nav" aria-label={landmarkName(t.tabsLabel(p.name))}>
       <div
         className="jali-page-tabs"
         role="tablist"
