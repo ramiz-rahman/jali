@@ -1381,7 +1381,7 @@ The decisions behind the phase 2 fixes of `docs/reviews/2026-11-22/react-opus.md
 - **Now:** `process.env.NODE_ENV !== "production"`, as React reads it. Every bundler writes that in, and Node and the test runners have it.
   - Jali's development-only code tests the literal inside a `try`: `try { if (process.env.NODE_ENV !== "production") … } catch {}`. A production build replaces the test with `false` and drops the code and its messages, as `import.meta.env.DEV` let Vite do. A page that loads the package unbundled has no `process`, lands in the catch, and runs as production.
   - It is read when a workspace is made, so a test can switch it.
-  - `<Workspace>`'s zero-height warning uses the same pattern (a few lines in `@jali/react`).
+  - `@jali/react` has the same rule in its own `dev.ts` (from the react-correctness phase), so both packages decide development one way.
   - `isDev()` (`dev.ts`, in `@jali/core/adapter`, additive) gives the same answer, for an adapter's own checks.
 - **Tests:** `packages/core/tests/dev.test.ts`.
 
