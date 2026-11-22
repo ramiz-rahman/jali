@@ -175,13 +175,14 @@ function useReshapeMotion(reshapes: number): boolean {
   const seen = useRef(reshapes);
   const [playing, setPlaying] = useState(false);
   const fresh = reshapes !== seen.current;
+  // Keyed on the reshape alone: the render after it (no longer fresh) must not clear the timer that ends it.
   useEffect(() => {
-    if (!fresh) return;
+    if (reshapes === seen.current) return;
     seen.current = reshapes;
     setPlaying(true);
     const t = setTimeout(() => setPlaying(false), 220);
     return () => clearTimeout(t);
-  }, [reshapes, fresh]);
+  }, [reshapes]);
   return fresh || playing;
 }
 

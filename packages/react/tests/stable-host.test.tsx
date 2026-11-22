@@ -68,7 +68,10 @@ const make = () =>
     layout: row(
       { id: "outer" },
       pane(note({ n: 1 }), { id: "left" }),
-      row({ id: "week", scroll: "x" }, ...[1, 2, 3, 4].map((n) => pane(day({ n }), { id: `d${n}` }))),
+      row(
+        { id: "week", scroll: "x" },
+        ...[1, 2, 3, 4].map((n) => pane(day({ n }), { id: `d${n}` })),
+      ),
     ),
     url: { location: memoryLocation() },
     storage: memoryStorage(),
