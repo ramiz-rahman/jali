@@ -58,7 +58,11 @@ function arriveFromUrl(
     store.announce(store.messages.announcements.brokenLink);
     return done;
   }
-  return store.apply(latest((x) => arrive(x, r.layout, r.view, named)));
+  const done = store.apply(latest((x) => arrive(x, r.layout, r.view, named)));
+  // The arrival is fitted to this window (its folds, its shown tabs): the entry it came from now says so, so a reload
+  // or a copied link reopens what is on screen. A replace: Back and Forward still step through the same entries.
+  if (done.ok) store.writeUrl("replace");
+  return done;
 }
 
 /** The store's URL sync, when it was made with one that can also read (createUrlSync). */

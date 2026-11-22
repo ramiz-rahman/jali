@@ -81,10 +81,17 @@ export function arrive(
   const panes = core.tree.panes(layout.root);
   const ids = new Set(panes.map((p) => p.id));
   const history = s.view.focusHistory.filter((id) => ids.has(id));
-  const focused =
-    s.view.focused && ids.has(s.view.focused) ? s.view.focused : (history[0] ?? panes[0]?.id);
+  const kept = s.view.focused && ids.has(s.view.focused) ? s.view.focused : history[0];
   const view: ViewState = { focusHistory: history, ...arrived };
-  if (focused) view.focused = focused;
+  if (kept) view.focused = kept;
+  const fitted = core.refit(layout, view, ctx);
+  // Nothing focused that the layout still has (a reload, a link opened afresh): the first pane on screen, as the link
+  // shows it, not the first in the tree, which may be behind a tab. Fitted without a focus, so a reload at the same
+  // size shows what the link's writer saw.
+  if (!kept) {
+    const first = core.resolve(fitted, view, ctx).panes.find((b) => !b.hidden)?.id ?? panes[0]?.id;
+    if (first) view.focused = first;
+  }
   // The lists' selections agree with the followers the layout brings (or start on them); the layout stays as it came.
   const selection = agreeOnArrival(env, layout, s.selection, s.selectionOf);
   const patch = {
@@ -94,7 +101,7 @@ export function arrive(
   };
   return {
     op: "arrive",
-    layout: core.refit(layout, view, ctx),
+    layout: fitted,
     view,
     patch: Object.keys(patch).length ? patch : undefined,
   };
