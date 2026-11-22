@@ -1,0 +1,6 @@
+{
+  // Type tests that declare `Register`, the one declaration that types an app's React hooks. A module augmentation
+  // reaches every file of a program, so these have a program of their own (the typecheck gate runs it).
+  "extends": "../../../tsconfig.json",
+  "include": ["."]
+}

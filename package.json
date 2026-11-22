@@ -8,7 +8,7 @@
   "scripts": {
     "dev": "vp dev examples/data-studio",
     "build": "tsc -b && vp build examples/data-studio && vp build examples/loan-review",
-    "typecheck": "tsc -b --noEmit && tsc --noEmit -p apps/docs",
+    "typecheck": "tsc -b --noEmit && tsc --noEmit -p apps/docs && tsc --noEmit -p packages/react/type-tests",
     "verify": "node tooling/verify.mjs",
     "test": "vp test run && vp test run --config apps/docs/src/reference/vitest.config.ts && node tooling/agent-docs.mjs --check",
     "e2e": "playwright test",
