@@ -114,6 +114,8 @@ export function startDividerDrag(
   let snapped = false;
   let shownSize = g0.a.size;
   let preview: Layout = layout0;
+  // The committed layout, resolved once for the whole drag: each frame then resolves only its preview.
+  const plain0 = core.resolve(layout0, core.tree.noFocus(), ctx0);
   let raf = 0;
   const written = new Set<string>();
 
@@ -131,7 +133,9 @@ export function startDividerDrag(
 
     const delta = size - g0.a.size;
     preview =
-      Math.abs(delta) < 0.01 ? layout0 : core.resizeDivider(layout0, parentId, index, delta, ctx0);
+      Math.abs(delta) < 0.01
+        ? layout0
+        : core.resizeDivider(layout0, parentId, index, delta, ctx0, plain0);
     const r = preview === layout0 ? r0 : core.resolve(preview, view0, ctx0);
 
     // Pane frames: only the ones whose box differs from the committed one (plus any written earlier, to restore them).

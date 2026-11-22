@@ -1,20 +1,26 @@
-import type { Layout, LayoutContext, LayoutNode } from "../types";
+import type { Layout, LayoutContext, LayoutNode, ResolvedLayout } from "../types";
 import { clone, find, isSplit, panes, noFocus } from "../tree/tree";
 import { sameSize } from "../tree/size";
 import { resolve } from "../fit/resolve";
 import { extentIn } from "../geometry/extent";
+/**
+ * `layout` with divider `index` of split `parentId` moved by `deltaPx`. `resolved`: `layout` resolved without focus,
+ * when the caller has it already. A drag gives the one it made at pointer down, so each frame resolves only its
+ * preview, not the committed layout again.
+ */
 export function resizeDivider(
   layout: Layout,
   parentId: string,
   index: number,
   deltaPx: number,
   ctx: LayoutContext,
+  given?: ResolvedLayout,
 ) {
   if (!deltaPx || !Number.isFinite(deltaPx)) return layout;
   const next = clone(layout);
   const owner = find(next.root, parentId);
   if (!owner || !isSplit(owner) || !Number.isFinite(deltaPx)) return layout;
-  const resolved = resolve(layout, noFocus(), ctx);
+  const resolved = given ?? resolve(layout, noFocus(), ctx);
   const divider = resolved.dividers.find((d) => d.parentId === parentId && d.index === index);
   if (!divider) return layout;
   const [leftIds, rightIds] = divider.neighbours!;
