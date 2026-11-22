@@ -17,13 +17,14 @@ import { gzipSync } from "node:zlib";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 
-// Scenario → entry file in tooling/size/; gzipped budgets in KB, about 5% over what each shipped on 21 Nov 2026
-// (docs/DECISIONS.md has the numbers); and source files it must not ship (more than a stray mapping's few bytes).
+// Scenario → entry file in tooling/size/; gzipped budgets in KB, about 5% over what each shipped on 21 Nov 2026, and
+// @jali/react's about 2% over what it shipped after the React correctness phase of 22 Nov 2026 (docs/DECISIONS.md has
+// the numbers); and source files it must not ship (more than a stray mapping's few bytes).
 const SCENARIOS = {
   // One kind, no curated page, no launcher: examples/minimal without its fonts. The page is opt-in (definePage).
   minimal: {
     entry: "minimal.tsx",
-    budget: { core: 55, react: 25.8, css: 8.6, phosphor: 0 },
+    budget: { core: 55, react: 28, css: 8.6, phosphor: 0 },
     mustNotShip: [
       "core/src/actions/page.ts",
       "core/src/state/page-messages.ts",
@@ -31,11 +32,11 @@ const SCENARIOS = {
     ],
   },
   // Every feature: a curated page, presets, a launcher, URL sync, host commands and the hooks.
-  full: { entry: "full.tsx", budget: { core: 60.4, react: 27.7, css: 8.6, phosphor: 2 } },
+  full: { entry: "full.tsx", budget: { core: 60.4, react: 29.9, css: 8.6, phosphor: 2 } },
   // examples/own-icons: the host's own icon for every name.
   "own-icons": {
     entry: "../../examples/own-icons/src/main.tsx",
-    budget: { core: 55, react: 25.8, css: 8.6, phosphor: 0 },
+    budget: { core: 55, react: 28, css: 8.6, phosphor: 0 },
   },
   // The workspace without React.
   headless: {
