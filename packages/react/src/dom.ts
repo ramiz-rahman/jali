@@ -3,9 +3,11 @@
  * once queried by name is here, beside the components that render them; `StoreProvider` gives it to the instance.
  */
 import { cssString, type DividerLine, type DomPort } from "@jali/core/adapter";
-import { STRIP_VIEWPORT } from "./workspace/Scroller";
 
 const FLASH_MS = 600;
+
+/** The class of a strip's scrolling element (workspace/Scroller.tsx); a pane in a strip finds it with `closest`. */
+export const STRIP_VIEWPORT = "jali-strip-viewport";
 
 /** The drag line a divider layer draws (DividerLayer), for the divider being dragged in it. */
 function line(divider: HTMLElement): DividerLine | null {
