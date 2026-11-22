@@ -235,8 +235,8 @@ export function openPage(x: Snapshot, o: OpenPage = {}): Outcome {
 export function leavePage(x: Snapshot): Outcome {
   // A page-only app has no free layout to go back to.
   if (!x.env.presets.length) return refuse("unavailable");
-  const studio = preset(x, x.s.presetId) as Change;
-  return { ...studio, patch: { ...studio.patch, page: null, prefs: keep(x) }, undo: [] };
+  // The preset closes the page, as any way into the free layout does (`intoFreeLayout`).
+  return preset(x, x.s.presetId);
 }
 
 /** Single or Split view. Leaving Split view keeps its layout exactly, opened panes included, for coming back. */
@@ -816,12 +816,8 @@ function opening(x: Snapshot, source: NodeId, ref: ObjectRef, edge?: Edge): Page
 
 /** What leaving the page for a layout keeps (a preset, `setLayout`, a link to a free layout): the page closes, and the
  *  person's mode and Split view layout stay theirs for next time. */
-function leaving({ s }: Snapshot): Partial<UiState> {
-  if (!s.page) return {};
-  return {
-    page: null,
-    prefs: { mode: s.page.mode, split: s.page.mode === "split" ? s.layout : s.prefs.split },
-  };
+function leaving(x: Snapshot): Partial<UiState> {
+  return x.s.page ? { page: null, prefs: keep(x) } : {};
 }
 
 /** What the page saves for the person when the state went from `prev` to `s`: their mode and Split view layout, opened

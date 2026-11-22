@@ -2,7 +2,7 @@ import * as core from "../layout/engine";
 import type { Layout, ViewState } from "../layout/types";
 import { keepOwnParams } from "../pane-kinds";
 import { presetById } from "../env";
-import { refuse, type Outcome, type RefusalStep, type Snapshot } from "../state/apply";
+import { refuse, type Change, type Outcome, type RefusalStep, type Snapshot } from "../state/apply";
 import { notAllowed } from "./allow";
 import { toLayout, type LayoutInput } from "../layout/build";
 import { say } from "../state/messages";
@@ -10,9 +10,25 @@ import { settingsWith, type Settings } from "../state/settings";
 import { withRecent } from "./open";
 import { agreeWithSelection, agreeOnArrival } from "./follow";
 
+/**
+ * Into the free layout: the one way a change leaves a curated page, whatever chose the layout (a preset, Reset layout,
+ * `setLayout`, `page.leave`, a link or Back to a free layout). The page closes, keeping what its engine keeps for
+ * next time (its mode and Split view layout), and its undo steps go with it, since they put back the page's layouts.
+ * With no page open, `change` is as it is.
+ */
+export function intoFreeLayout(x: Snapshot, change: Change): Change {
+  if (!x.s.page) return change;
+  return {
+    ...change,
+    patch: { ...change.patch, page: null, ...x.env.page?.leaving(x) },
+    undo: [],
+  };
+}
+
 /** Switch to a preset: the layout the app saved for it (`PresetOptions.saved`), if it has one this instance can
  *  still read, else its own. `own`: always its own (Reset layout). */
-export function preset({ s, ctx, env }: Snapshot, id: string | undefined, own = false): Outcome {
+export function preset(x: Snapshot, id: string | undefined, own = false): Outcome {
+  const { s, ctx, env } = x;
   const p = presetById(env, id);
   if (!p) return null;
   const saved = own ? undefined : p.saved?.();
@@ -31,7 +47,7 @@ export function preset({ s, ctx, env }: Snapshot, id: string | undefined, own = 
   const { layout, selection } = agreeWithSelection({ s, ctx, env }, fitted, view);
   const panes = core.tree.panes(layout.root);
   const recent = withRecent(env.kinds, s.recent, panes.map((p) => p.ref).reverse());
-  return {
+  return intoFreeLayout(x, {
     op: "preset",
     layout,
     view,
@@ -43,7 +59,7 @@ export function preset({ s, ctx, env }: Snapshot, id: string | undefined, own = 
       recent,
       ...(selection !== s.selection ? { selection } : {}),
     },
-  };
+  });
 }
 
 export const resetLayout = (x: Snapshot) => preset(x, x.s.presetId, true);
@@ -96,16 +112,15 @@ export function arrive(
   // The lists' selections agree with the followers the layout brings (or start on them); the layout stays as it came.
   const selection = agreeOnArrival(env, layout, s.selection, s.selectionOf);
   const patch = {
-    ...(s.page && env.page?.leaving(x)),
     ...(presetId ? { presetId } : {}),
     ...(selection !== s.selection ? { selection } : {}),
   };
-  return {
+  return intoFreeLayout(x, {
     op: "arrive",
     layout: fitted,
     view,
     patch: Object.keys(patch).length ? patch : undefined,
-  };
+  });
 }
 
 /**
@@ -140,8 +155,7 @@ export function restoreLayout(x: Snapshot, input: LayoutInput): Outcome {
       .map((p) => p.ref)
       .reverse(),
   );
-  const page = (s.page && env.page?.leaving(x)) || {};
-  return {
+  return intoFreeLayout(x, {
     op: "setLayout",
     layout: agreed.layout,
     view,
@@ -149,12 +163,9 @@ export function restoreLayout(x: Snapshot, input: LayoutInput): Outcome {
       peekSource: undefined,
       resizeMode: null,
       recent,
-      ...page,
       ...(agreed.selection !== s.selection ? { selection: agreed.selection } : {}),
     },
-    // A page's undo steps restore its layouts: they go with it, as when leaving the page.
-    ...(s.page ? { undo: [] } : {}),
-  };
+  });
 }
 
 /** The command palette (⌘K) and the settings panel. */
