@@ -1527,3 +1527,9 @@ The decisions behind the phase 2 fixes of `docs/reviews/2026-11-22/react-opus.md
 - **Already won back:** development-only code is dropped from production builds again (about 0.6 KB gzipped). It had been since `import.meta.env.DEV`, and the first `NODE_ENV` version lost that.
 - **Over budget:** minimal and own-icons by 0.2 KB, headless by 0.4 KB. The size gate fails on core for those three.
 - **Not done:** the budgets were not raised here. That is the owner's call. The opt-in feature split of the API phase (API-REVIEW.md, change 2) is the planned way back under.
+
+## 22 Nov 2026 · Size budgets after the correctness phases (owner's call)
+
+- **@jali/core:** +0.5 KB gzipped in every scenario that has a core budget except layout-only: minimal and own-icons 55 → 55.5, full 60.4 → 60.9, headless 49.2 → 49.7. Phase 1 shipped minimal 55.2, headless 49.6 and full 60.4. Layout-only stays at 10.7 (it ships 10.3).
+- **@jali/react:** the phase 2 budgets stand (minimal and own-icons 28, full 29.9), as the owner accepted.
+- **Why raise them rather than cut now:** both phases fixed correctness bugs, and a size gate that already fails hides the next regression. The API phase's opt-in features (docs/API-REVIEW.md, section 2) are the planned way down: about 25–30 KB for core and 17–18 KB for React, both still estimates. Its budgets will be set again from what it measures.
