@@ -939,7 +939,7 @@ An instance, from [`createJali`](../core.md#createjali). It is frozen: these mem
 
 - **`Jali.start`**, `start(): () => void`: Starts its listeners (keys, Back and Forward, theme, saving) and returns their stop; after the stop, `start()` starts them again. `<JaliRoot>` starts it while mounted and stops it on unmount; calling it while started does nothing. The stop saves pane state still waiting to be saved. After `destroy()` it does nothing.
 
-- **`Jali.destroy`**, `destroy(): void`: Stops the instance for good, when it goes away (a route change, a test's end): its listeners stop, pane state still waiting to be saved is saved, a follow waiting for the selection to rest and a debounced address write are dropped (so nothing lands on the next route's address), and the kind registry stops being listened to. Nothing is scheduled after it, and `start()` does nothing. Its state can still be read. Calling it again does nothing. `<JaliRoot>` doesn't call it: the instance is yours, and may outlive one mount.
+- **`Jali.destroy`**, `destroy(): void`: Stops the instance for good, when it goes away (a route change, a test's end): its listeners stop, a drag in progress ends without a drop, pane state still waiting to be saved is saved, a follow waiting for the selection to rest and a debounced address write are dropped (so nothing lands on the next route's address), and the kind registry stops being listened to. Nothing is scheduled after it, and `start()` does nothing. Its state can still be read. Calling it again does nothing. `<JaliRoot>` doesn't call it: the instance is yours, and may outlive one mount.
 
 To save a person's layout, listen for `"layout"` and store `getLayout()`. To restore it, pass it as `createJali({ layout })`: a link in the address still wins, so shared links keep working. A layout that arrives later goes through `setLayout`.
 
@@ -1460,10 +1460,10 @@ A link to a free layout's layout, for [`linkSearch`](../core.md#linksearch): the
 *type*, from `jali`
 
 ```ts
-interface LinkSearchOptions { prefix?: string; search?: string; panes?: readonly PaneKindBase[] }
+interface LinkSearchOptions { prefix?: string; search?: string; panes: readonly PaneKindBase[] }
 ```
 
-The options of [`linkSearch`](../core.md#linksearch): the instance's `url.prefix`, a search string whose other params are kept, and the instance's pane kinds. A link never carries a param only the app sets (`appOnly`) or one kept out of the address (`link: false`): `linkSearch` leaves them out of each ref a kind's call built (`query({ sql, autorun: true })`), and, given `panes`, out of any ref, such as those of a live layout or peek.
+The options of [`linkSearch`](../core.md#linksearch): the instance's pane kinds (required), its `url.prefix`, and a search string whose other params are kept. A link never carries a param only the app sets (`appOnly`) or one kept out of the address (`link: false`): `linkSearch` reads which those are from `panes`, and leaves them out of every ref, whether a kind's call built it (`query({ sql, autorun: true })`) or it is a plain object from a live layout or peek.
 
 ### LocationPort
 

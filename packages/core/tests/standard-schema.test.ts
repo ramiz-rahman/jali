@@ -113,7 +113,9 @@ describe("params declared with a Standard Schema", () => {
     expect(kinds.problems({ kind: "order", params: { id: "x" } })).toEqual([
       { param: "id", value: "x" },
     ]);
-    const location = memoryLocation(linkSearch({ layout: row(order({ id: 5 })) }));
+    const location = memoryLocation(
+      linkSearch({ layout: row(order({ id: 5 })) }, { panes: [order] }),
+    );
     const jali = createJali({
       panes: [order],
       layout: row(order({ id: 1 })),

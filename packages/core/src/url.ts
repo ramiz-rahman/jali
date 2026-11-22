@@ -18,9 +18,8 @@ import { toLayout, type LayoutInput } from "./layout/build";
 import type { UrlState, UrlWriter } from "./state/store";
 import {
   createPaneKinds,
-  linkLayoutAlone,
-  linkRefAlone,
-  madeByKind,
+  linkLayout,
+  linkRef,
   readLayout,
   readRef,
   type PaneKindBase,
@@ -174,10 +173,10 @@ export interface LinkSearchOptions {
   /** A search string whose other params are kept (your app's own): `"?filter=open"`. Its instance params are
    *  replaced. Default: none. */
   search?: string;
-  /** The instance's pane kinds (what you pass `createJali({ panes })`), so the link leaves out the params a link
-   *  never carries (`appOnly`, `link: false`) of any ref, a live layout's or peek's included. Without them, it leaves
-   *  out those of each ref a kind's call built (`order({ id: 1 })`), and writes a plain object's params as they are. */
-  panes?: readonly PaneKindBase[];
+  /** The instance's pane kinds (what you pass `createJali({ panes })`). They say which params a link never carries
+   *  (`appOnly`, `link: false`), so the link leaves those out of every ref, however it was made: a kind's call, a
+   *  copy, a live layout's plain objects. Required: without the kinds, no ref says what is private. */
+  panes: readonly PaneKindBase[];
 }
 
 /**
@@ -185,31 +184,24 @@ export interface LinkSearchOptions {
  * itself would write it: reading it back gives exactly that page, item, view, opened panes and peek, or that layout.
  * Needs no instance, so a server, an email or another app can build one. Put it after the path the instance is at.
  * Like the instance, it never writes a param only the app sets (`appOnly`) or one kept out of the address
- * (`link: false`); give it the instance's `panes` for refs a kind's call didn't build.
+ * (`link: false`): the instance's `panes` say which those are, for every ref, however it was made. A ref of a kind
+ * `panes` doesn't have throws, as does a call without `panes`: what it may write can't be known.
  */
-export function linkSearch(link: JaliLink, options: LinkSearchOptions = {}): string {
+export function linkSearch(link: JaliLink, options: LinkSearchOptions): string {
+  if (!options || !Array.isArray(options.panes))
+    throw new TypeError(
+      "Jali: linkSearch needs the instance's pane kinds, `linkSearch(link, { panes })`",
+    );
+  const kinds = createPaneKinds(options.panes).registry();
   const k = urlKeys(options.prefix);
   const q = new URLSearchParams(options.search ?? "");
-  const kinds = options.panes && createPaneKinds(options.panes).registry();
-  // Without `panes`, only a ref a kind's call built says which of its params a link leaves out: a plain object or a
-  // copy (structuredClone, JSON) would carry its app-only params. Development says so.
-  const plain = (ref: ObjectRef) => {
-    try {
-      if (process.env.NODE_ENV !== "production" && !kinds && !madeByKind(ref))
-        console.warn(
-          `Jali: linkSearch was given a ${ref.kind} ref no kind's call built; give it \`panes\``,
-        );
-    } catch {
-      /* no `process`: production */
-    }
-    return ref;
-  };
-  const out = (ref: ObjectRef) => linkRefAlone(plain(ref), kinds);
+  const out = (ref: ObjectRef) => linkRef(kinds, known(kinds, ref));
   for (const key of Object.values(k)) q.delete(key);
   if ("page" in link) setPage(q, k, link.open ? { ...link, open: link.open.map(out) } : link);
   else {
-    // Each ref as a link carries it before the builders copy it: a copy no longer says which kind's call built it.
-    q.set(k.layout, core.encode(linkLayoutAlone(toLayout(mapDraft(link.layout, out)), kinds)));
+    const layout = toLayout(link.layout);
+    for (const p of core.tree.panes(layout.root)) known(kinds, p.ref);
+    q.set(k.layout, core.encode(linkLayout(kinds, layout)));
     if (link.preset) q.set(k.preset, link.preset);
     if (link.zoom) q.set(k.zoom, link.zoom);
   }
@@ -218,18 +210,11 @@ export function linkSearch(link: JaliLink, options: LinkSearchOptions = {}): str
   return text ? `?${text}` : "";
 }
 
-/** A layout input with `fn` applied to each ref it holds, as written (a builder's draft, a ref, or a layout). */
-function mapDraft(input: LayoutInput, fn: (ref: ObjectRef) => ObjectRef): LayoutInput {
-  const node = (d: unknown): unknown => {
-    if (!d || typeof d !== "object") return d;
-    const o = d as { type?: string; ref?: ObjectRef; children?: unknown[]; root?: unknown };
-    if ("root" in o && "version" in o) return { ...o, root: node(o.root) };
-    if ("kind" in o && "params" in o && !("type" in o)) return fn(o as unknown as ObjectRef);
-    if (o.ref) return { ...o, ref: fn(o.ref) };
-    if (Array.isArray(o.children)) return { ...o, children: o.children.map(node) };
-    return d;
-  };
-  return node(input) as LayoutInput;
+/** `ref`, when `kinds` has its kind; otherwise a TypeError: which of its params are private can't be known. */
+function known(kinds: KindRegistry, ref: ObjectRef): ObjectRef {
+  if (!Object.hasOwn(kinds, ref.kind))
+    throw new TypeError(`Jali: linkSearch was given a "${ref.kind}" ref, a kind not in \`panes\``);
+  return ref;
 }
 
 /** The search string for `s`, keeping every param of `search` that is not the instance's. */

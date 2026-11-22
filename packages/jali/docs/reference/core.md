@@ -523,16 +523,16 @@ Storage in a `Map`, for tests, server rendering and embedded instances.
 *function*, from `jali`
 
 ```ts
-linkSearch(link: JaliLink, options?: LinkSearchOptions): string
+linkSearch(link: JaliLink, options: LinkSearchOptions): string
 ```
 
-The search string that opens an instance on `link`, written as the instance itself writes it: `linkSearch({ page: "visit", item: 7, open: [call({ slug: "demra" })] })` is `"?page=visit&item=7&open=call~slug=demra"`. Reading it back gives exactly that page, item, view, opened panes and peek, or that layout. It needs no instance and no pane kinds, so a server, an email or another app can build links. Put it after the path the instance is on: `` `/visits${linkSearch(link)}` ``.
+The search string that opens an instance on `link`, written as the instance itself writes it: `linkSearch({ page: "visit", item: 7, open: [call({ slug: "demra" })] }, { panes })` is `"?page=visit&item=7&open=call~slug=demra"`. Reading it back gives exactly that page, item, view, opened panes and peek, or that layout. It needs no instance, only its pane kinds, so a server, an email or another app can build links. Put it after the path the instance is on: `` `/visits${linkSearch(link, { panes })}` ``.
 
 **Parameters**
 
 - **`link`** (`JaliLink`, required): A [`PageLink`](core/types.md#pagelink) (a curated page: `page`, and optionally `item`, `tab`, `open` and `peek`) or a [`LayoutLink`](core/types.md#layoutlink) (a free layout: `layout`, and optionally `preset`, `zoom` and `peek`).
 
-- **`options`** (`LinkSearchOptions`): `prefix`: the instance's `url.prefix`, when it has one. `search`: a search string whose other params (your app's own) are kept; any instance params in it are replaced. `panes`: the instance's pane kinds, as you pass `createJali({ panes })`. A link never carries a param only the app sets (`appOnly`) or one kept out of the address (`link: false`); `linkSearch` leaves them out of each ref a kind's call built, and, given `panes`, out of any ref, such as those of a live layout (`jali.getLayout()`) or peek.
+- **`options`** (`LinkSearchOptions`, required): `panes`: the instance's pane kinds, as you pass `createJali({ panes })`. A link never carries a param only the app sets (`appOnly`) or one kept out of the address (`link: false`); `linkSearch` reads which those are from `panes`, so it leaves them out of every ref, however the ref was made. A ref of a kind `panes` lacks throws. `prefix`: the instance's `url.prefix`, when it has one. `search`: a search string whose other params (your app's own) are kept; any instance params in it are replaced.
 
 **Returns** `string`: `"?…"`, or `""` when there is nothing to write.
 
