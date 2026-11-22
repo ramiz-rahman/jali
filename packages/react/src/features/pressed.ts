@@ -1,13 +1,14 @@
 /**
  * `data-pressed` on Jali's controls while they are held down: by the pointer (the primary button), or by Space or Enter
  * while the control has focus. One listener set for the page, installed while any instance with the feature is started, so every
- * control gets it the same way and none has to know. `:active` covers only the pointer; a theme that draws travel
+ * control gets it the same way and none has to know; only the controls of those instances get it (in their root or
+ * their dialogs), never another instance's or the app's own. `:active` covers only the pointer; a theme that draws travel
  * (a key going down) reads `[data-pressed]` and gets the keyboard too.
  *
  * Jali's own styles don't read it, so the default look is unchanged.
  */
 
-import type { Feature } from "@jali/core/adapter";
+import type { Feature, JaliStore } from "@jali/core/adapter";
 
 /** The controls that carry it: public parts (parts.ts lists `data-pressed` on each). */
 export const PRESSABLE = [
@@ -30,13 +31,26 @@ export const PRESSABLE = [
   "[data-menu-item]",
 ].join(", ");
 
+/** The started instances with the feature, each with its count of starts: a control gets it only in one of theirs. */
+const owners = new Map<JaliStore, number>();
+
+/** `el` is in an instance's root (once one is attached) or its dialogs. */
+function owned(el: Element) {
+  for (const store of owners.keys()) {
+    const root = store.dom.root();
+    if ((root instanceof Element && root.contains(el)) || store.dom.layer()?.contains(el))
+      return true;
+  }
+  return false;
+}
+
 let held: Element | null = null;
 /** What holds it: "pointer", or the key ("Enter", " "). */
 let by: string | null = null;
 
 function press(target: EventTarget | null, how: string) {
   const el = target instanceof Element ? target.closest(PRESSABLE) : null;
-  if (!el || el.matches(":disabled, [aria-disabled='true']")) return;
+  if (!el || el.matches(":disabled, [aria-disabled='true']") || !owned(el)) return;
   release();
   held = el;
   by = how;
@@ -64,11 +78,10 @@ const onFocusOut = (e: FocusEvent) => {
 };
 const onLost = () => release();
 
-let installed = 0;
-
-/** Installs the listeners (once for the page, however many roots); returns the uninstall. */
-export function installPressed(): () => void {
-  if (installed++ === 0) {
+/** Installs the listeners for `store` (once for the page, however many instances); returns the uninstall. */
+export function installPressed(store: JaliStore): () => void {
+  owners.set(store, (owners.get(store) ?? 0) + 1);
+  if (owners.size === 1 && owners.get(store) === 1) {
     // Capture, so a control that stops its pointerdown (a tab's close button) is still marked.
     window.addEventListener("pointerdown", onPointerDown, true);
     window.addEventListener("pointerup", onPointerUp, true);
@@ -78,8 +91,15 @@ export function installPressed(): () => void {
     window.addEventListener("focusout", onFocusOut, true);
     window.addEventListener("blur", onLost);
   }
+  let on = true;
   return () => {
-    if (--installed > 0) return;
+    if (!on) return;
+    on = false;
+    const n = owners.get(store)! - 1;
+    if (n > 0) return void owners.set(store, n);
+    owners.delete(store);
+    if (held && !owned(held)) release();
+    if (owners.size > 0) return;
     release();
     window.removeEventListener("pointerdown", onPointerDown, true);
     window.removeEventListener("pointerup", onPointerUp, true);
@@ -97,4 +117,4 @@ export function installPressed(): () => void {
  *
  *   createJali({ panes, layout, features: [pressed()] });
  */
-export const pressed = (): Feature => ({ id: "pressed", start: () => installPressed() });
+export const pressed = (): Feature => ({ id: "pressed", start: installPressed });
