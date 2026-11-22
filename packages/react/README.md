@@ -1,64 +1,24 @@
 # @jali/react
 
-> **A workspace package, not published.** Apps install [`jali`](../jali), which is built from this package and its sibling. It stays here for links that point at it (Data Studio's, until it moves to `jali`).
+The React half of [`jali`](../jali): an internal workspace package, never published. Apps install `jali` and import `jali/react`; [its README](../jali/README.md) is the guide for them. This one is for working on the package.
 
-React for [Jali](../core) workspaces, with Jali's default theme.
+## Where things are
 
-```sh
-npm install @jali/core @jali/react
-```
+- `src/index.ts` is the public surface (`jali/react` re-exports it name by name). `src/internal.ts` adds what the published package needs beyond it: the features and `defaultFeatures`.
+- `src/JaliRoot.tsx`: the root, `<JaliView>` and the dialog layer.
+- `src/state/`: the store's React hooks (`react.tsx`), hydration and the per-instance lifetime (`InstanceScope`).
+- `src/workspace/`: the panes (`Workspace.tsx` composes them), their element's measurement, placement, rows that scroll, stacked view, drags and full screen.
+- `src/pane/`: a pane's frame, header, tabs and menu. `content.tsx` is the one place that decides where a pane's content renders (`PaneOutlet`); `actions.ts` is the pane-action model the header and the menu share.
+- `src/page/`: the curated page (`definePage`, its contract and its parts).
+- `src/chrome/`, `src/dialogs/`, `src/dividers/`, `src/a11y/`, `src/icons/`: the shelf, switcher and peek; the dialogs; dividers; shared keyboard and focus primitives; icons.
+- `src/features/`: the opt-in features (`palette()`, `rename()`, `popOut()`, `pressed()` ...) and the typed map of the parts they render (`feature-parts.ts`).
+- `src/styles/`: one stylesheet per part, all in the `jali` cascade layer (`index.css` is `jali/styles.css`).
+- `src/parts.ts`: the catalogue of public parts (classes and data attributes) the docs and tests read.
 
-React 18.2 or later (18 or 19) is a peer dependency; nothing else is.
+The rules this package keeps: the core decides and the adapter draws; one React lifetime per instance; nothing in the core holds a dialog or a part the instance doesn't have. The root `ARCHITECTURE.md` and `docs/DECISIONS.md` say why.
 
-Browsers: Baseline 2024 (Chrome and Edge 123, Firefox 120, Safari 17.5, Electron 30). The theme's colours are `light-dark()` pairs, the newest feature Jali uses.
+## Developing
 
-**Linked or in a monorepo** (`link:`, `file:`, `workspace:` or a symlinked checkout): the package can resolve its own copy of React from beside its source, and the app then bundles two Reacts, which breaks hooks ("Invalid hook call"). With Vite, tell it to use the app's: `resolve: { dedupe: ["react", "react-dom"] }` in `vite.config.ts`. With webpack, alias `react` and `react-dom` to the app's copy (`resolve.alias`).
+`vp test run --project react` runs the tests (`tests/`, jsdom). The packages resolve to their source through the `source` condition, never a stale `dist/`.
 
-Jali's icons are built in: Phosphor's regular weight, copied into the package, so there is no icon library to install. Give a kind any Phosphor icon (`icon: FileTextIcon`) and it matches.
-
-## Icons
-
-- `<JaliRoot icons={{ close: MyClose }}>` replaces any of Jali's icons by name; the rest stay Jali's. `useJaliIcons()` returns the set in use.
-- `@jali/react/icons` exports `defaultIcons`, the full default map. Type a set of your own as `JaliIcons` and the types check it names every icon.
-- Each icon is a component taking `{ size, className, "aria-hidden" }`. The names are in the reference (Icons).
-
-```tsx
-import { createJali, row } from "@jali/core";
-import { JaliRoot, definePane } from "@jali/react";
-import "@jali/react/styles.css";
-
-const note = definePane("note", {
-  params: { id: Number },
-  title: ({ id }) => `Note ${id}`,
-  width: { min: 240 }, // narrower than this, the pane folds into a tab
-
-  Component: ({ params, openBeside }) => (
-    <button onClick={() => openBeside(note({ id: params.id + 1 }))}>Note {params.id}</button>
-  ),
-});
-
-const jali = createJali({ panes: [note], layout: row(note({ id: 1 }), note({ id: 2 })) });
-
-<JaliRoot jali={jali} className="app" />;
-```
-
-Inside a pane, `usePane()` reads its props from any depth, and `useActivity`, `useUnsaved`, `useCommands` and `usePaneState` report to the workspace.
-
-## Theming
-
-Everything Jali draws reads `--jali-*` tokens and sits in the `jali` cascade layer. Declare the layer order once and your own styles win without `!important`:
-
-```css
-@layer theme, base, jali, components, utilities;
-```
-
-- **Your Tailwind theme:** also import `@jali/react/tailwind.css`. It points Jali's tokens at your theme's (`--color-primary`, `--color-card`, `--color-border`, `--radius-card`, …), the same names Chakni reads.
-- **By hand:** set any `--jali-*` token on `:root`, on any element around the workspace, or on its root (`--jali-accent: #0f766e;`, or `light-dark(#0f766e, #2dd4bf)` for both themes). Your value wins there and below, whatever theme scope sits in between. Dark mode follows `prefers-color-scheme`, `.dark` or `[data-theme="dark"]`: those switch Jali's default palette, never a token you set.
-- **Type:** Jali's face is Atkinson Hyperlegible: Next for text, Mono for code (`--jali-font`, `--jali-font-mono`). Jali doesn't bundle font files; load them (for example `@fontsource/atkinson-hyperlegible-next` and `-mono`) or set the tokens to your own faces.
-- **Parts** carry their state as attributes (`data-pane`, `data-kind`, `data-focused`, `aria-selected`, `data-drop-zone`) and every class is `jali-*`. Parts take no `className`: style them with your own rule on those classes and attributes (`.jali-pane[data-focused] { … }`, or in Tailwind `@apply` inside such a rule). Since Jali's rules are in the `jali` layer, yours win without `!important`. `<JaliRoot className>` styles the root.
-
-See `examples/minimal` for the smallest working app.
-
-## Docs, here too
-
-The docs for the installed version, as Markdown, are in `@jali/core`: `node_modules/@jali/core/docs/README.md` lists every page.
+**Linked or in a monorepo** (`link:`, `file:`, `workspace:` or a symlinked checkout): the package can resolve its own copy of React from beside its source, and the app then bundles two Reacts, which breaks hooks ("Invalid hook call"). With Vite, tell it to use the app's: `resolve: { dedupe: ["react", "react-dom"] }`. With webpack, alias `react` and `react-dom` to the app's copy.
