@@ -17,7 +17,7 @@ import { createPortal } from "react-dom";
 import type { NodeId } from "@jali/core";
 import type { Frame, JaliStore } from "@jali/core/adapter";
 import { PaneBody, paneHost, type PaneHost } from "./PaneBody";
-import { createHeaderSlot, type HeaderSlot } from "./header";
+import { createHeaderSlot, type HeaderSlot } from "./header-slot";
 import { popOutOf, usePoppedOut } from "./popped";
 import { useStore } from "../state/react";
 

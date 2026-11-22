@@ -3,7 +3,7 @@ import type { NodeId, ObjectRef, OpenBesideOptions } from "@jali/core";
 import { createContext, useContext } from "react";
 import type { ActionResult, PaneReportPatch } from "@jali/core/adapter";
 import type { PaneProps } from "../define";
-import type { HeaderSlot } from "./header";
+import type { HeaderSlot } from "./header-slot";
 
 /** What a pane's content can ask of the instance. */
 export interface PaneHost {

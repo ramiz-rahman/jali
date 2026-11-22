@@ -7,7 +7,7 @@ import { paneActionsOf, popOutItem, type PaneActionId } from "./actions";
 import { useKeymap } from "../state/hydrated";
 import type { Chrome } from "@jali/core/adapter";
 import { ICON } from "../icons/sized";
-import type { NarrowLevel } from "./header";
+import type { NarrowLevel } from "./header-width";
 
 interface P {
   id: string;
@@ -16,7 +16,7 @@ interface P {
   chrome: Chrome;
   /** The header shows a tab strip. */
   tabs: boolean;
-  /** How far a narrow header has given way (header.ts): 1 or more, the buttons the menu also offers move into it. */
+  /** How far a narrow header has given way (header-width.ts): 1 or more, the buttons the menu also offers move into it. */
   narrow?: NarrowLevel;
   /** Open the pane's menu, from the ⋯ button. */
   onMenu: (at: { x: number; y: number; end: boolean }) => void;

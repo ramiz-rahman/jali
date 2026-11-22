@@ -26,7 +26,8 @@ import { UnsavedMark, useUnsavedOf } from "./Unsaved";
 import { renameFieldOf, useCanRename } from "./rename";
 import { useInert } from "./inert";
 import { ICON } from "../icons/sized";
-import { useHasHeaderControls, useNarrowHeader } from "./header";
+import { useHasHeaderControls } from "./header-slot";
+import { useNarrowHeader } from "./header-width";
 import { useWorkspaceLabel } from "../a11y/landmark";
 import { panelId, tabId, titleId } from "../ids";
 

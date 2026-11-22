@@ -8,7 +8,7 @@ import { useEnv, useKept, useMessages, useStore } from "../state/react";
 import { useKeymap } from "../state/hydrated";
 import { paneHydration } from "../state/hydration";
 import { DefaultLoading, PaneBoundary } from "./PaneBoundary";
-import { HeaderControls, type HeaderSlot } from "./header";
+import { HeaderControls, type HeaderSlot } from "./header-slot";
 
 export type { PaneHost };
 
