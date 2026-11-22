@@ -215,4 +215,23 @@ describe("data-pressed", () => {
     expect(hold(close("data-off"))).toBe(false);
     expect(hold(container.querySelector<HTMLElement>("[data-app]")!)).toBe(false);
   });
+
+  it("is not on the controls of an instance without it, nested in the root of one with it", () => {
+    const outer = make();
+    const inner = make(defaultFeatures().filter((f) => f.id !== "pressed"));
+    const { container } = render(
+      <JaliRoot jali={outer}>
+        <div data-inner="">
+          <JaliRoot jali={inner} />
+        </div>
+      </JaliRoot>,
+    );
+    const close = container.querySelector<HTMLElement>(
+      '[data-inner] .jali-pane-action[data-action="close"]',
+    )!;
+    expect(close.closest("[data-jali]")?.parentElement?.closest("[data-jali]")).toBeTruthy();
+    act(() => void fireEvent.pointerDown(close, { button: 0, isPrimary: true }));
+    expect(close.hasAttribute("data-pressed")).toBe(false);
+    act(() => void fireEvent.pointerUp(close, { button: 0, isPrimary: true }));
+  });
 });
