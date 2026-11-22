@@ -1,6 +1,6 @@
 /**
  * A curated page's contract with the components that render it: the key its parts are kept under, and what they are.
- * Nothing else: `definePage` (define.ts) puts the parts on (chrome/PageBar.tsx), and `<JaliView>`, `<Panes>` and
+ * Nothing else: `definePage` (define-page.ts) puts the parts on (chrome/PageBar.tsx), and `<JaliView>`, `<Panes>` and
  * `<SettingsPanel>` read them through this key, so none of them imports another to find the page.
  */
 import type { ComponentType } from "react";

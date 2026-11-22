@@ -662,7 +662,7 @@ export const parts = {
       {
         name: "aria-disabled",
         means:
-          "`true` when it can't be used now (a tuck with nothing to tuck behind); it stays reachable, so its name and tooltip can say why.",
+          "`true` when Jali's own can't be used now (a tuck with nothing to tuck behind); it stays reachable, so its name and tooltip can say why. An `<IconButton>` you render passes your `disabled` or `aria-disabled` through as given, so style both: `.jali-icon-btn:is(:disabled, [aria-disabled=\"true\"])`.",
       },
       pressed,
     ],
