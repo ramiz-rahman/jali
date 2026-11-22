@@ -212,6 +212,7 @@ export {
   parseKeys,
 } from "./commands/format";
 export { cycleRegions } from "./commands/regions";
+export { topDialog, type DialogName } from "./state/dialogs";
 export {
   appMenuOf,
   paneMenuOf,

@@ -2,6 +2,7 @@ import type { ListedCommand } from "@jali/core";
 import { listCommands } from "@jali/core/adapter";
 import { useModel, useStore, useUi } from "../state/react";
 import { ListDialog } from "./ListDialog";
+import { closeThen } from "./close";
 
 /**
  * ⌘K: every instance command. People see title, group and shortcut; the stable id lives in data-command-id. While it
@@ -44,11 +45,7 @@ function PaletteDialog() {
           {c.keys ? <kbd className="jali-palette-keys">{c.keys}</kbd> : <span />}
         </>
       )}
-      onChoose={(c) => {
-        close();
-        // After the dialog unmounts and focus is back, so focus-dependent commands act on the pane.
-        setTimeout(c.run, 0);
-      }}
+      onChoose={(c) => closeThen(store, close, c.run)}
       onClose={close}
       empty={t.empty}
     />

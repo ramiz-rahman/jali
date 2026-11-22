@@ -16,6 +16,7 @@
  * actions never animate.
  */
 import type { JaliStore } from "../state/store";
+import { topDialog } from "../state/dialogs";
 import { isModifierKey, matchChord, type Chord } from "./format";
 import { PALETTE_ID } from "./keymap";
 import { commandById } from "./registry";
@@ -53,18 +54,15 @@ function escape(store: JaliStore): boolean {
 }
 
 /** One of the instance's dialogs is open (the palette, settings, the chooser or the discard question): it owns the keys. */
-const dialogOpen = (store: JaliStore) => {
-  const s = store.get();
-  return s.paletteOpen || s.settingsOpen || !!s.chooser || !!s.confirm;
-};
+const dialogOpen = (store: JaliStore) => !!topDialog(store.get());
 
 const contentOwnsKeys = (t: EventTarget | null) =>
   !!(t as Element | null)?.closest?.('[data-pane-keys="content"]');
 
 function run(store: JaliStore, id: string): boolean {
   if (id === PALETTE_ID) {
-    const s = store.get();
-    store.set({ paletteOpen: !s.paletteOpen, chooser: null });
+    // Through its steps, refused without the `palette()` feature: a key the host bound never opens a dialog that isn't there.
+    store.run(store.get().paletteOpen ? "dialogs.closePalette" : "dialogs.openPalette");
     return true;
   }
   const command = commandById(store, id);
@@ -101,7 +99,7 @@ export function createKeyHandler(store: JaliStore): KeyHandler {
       if (prefix) {
         const id = km().find(matches(e), prefix);
         if (id) {
-          if (store.get().paletteOpen) store.set({ paletteOpen: false });
+          if (store.get().paletteOpen) store.run("dialogs.closePalette");
           run(store, id);
           return true;
         }

@@ -5,6 +5,7 @@ import { KindIcon } from "../pane/icons";
 import { bold, Parts, useModel, useStore, useUi } from "../state/react";
 import type { ChooseOptions, ChooserState } from "@jali/core/adapter";
 import { ListDialog } from "./ListDialog";
+import { closeThen } from "./close";
 
 /**
  * Jali's chooser. ⌘K "Add to tabs of…" (⌘K ⌘G): pick a visible pane or stack by title; the focused pane joins it as a
@@ -42,7 +43,7 @@ function ChooseDialog({ request }: { request: ChooseOptions<unknown> }) {
   );
   const hasCurrent = "current" in request && request.current !== undefined;
   const isCurrent = (c: Choice) => hasCurrent && Object.is(c.item, request.current);
-  const close = () => store.set({ chooser: null });
+  const close = () => void store.actions.closeChooser();
   const t = store.messages.chooser;
   return (
     <ListDialog<Choice>
@@ -73,11 +74,7 @@ function ChooseDialog({ request }: { request: ChooseOptions<unknown> }) {
           ) : null}
         </>
       )}
-      onChoose={(c) => {
-        close();
-        // After the dialog unmounts and focus is back where it was, as a command run from ⌘K.
-        setTimeout(() => request.onChoose(c.item), 0);
-      }}
+      onChoose={(c) => closeThen(store, close, () => request.onChoose(c.item))}
       onClose={close}
       empty={t.chooseEmpty}
     />
@@ -93,7 +90,7 @@ function MergeDialog({ chooser }: { chooser: Extract<ChooserState, { kind: "merg
     () => mergeTargets(store.snapshot(), chooser.source),
     [store, chooser.source],
   );
-  const close = () => store.set({ chooser: null });
+  const close = () => void store.actions.closeChooser();
   const title = m.title(chooser.source);
   const t = store.messages.chooser;
   return (
@@ -128,11 +125,7 @@ function MergeDialog({ chooser }: { chooser: Extract<ChooserState, { kind: "merg
           <span className="jali-palette-id jali-palette-hint">{t.hint}</span>
         </>
       )}
-      onChoose={(t) => {
-        close();
-        // After the dialog unmounts and focus is back in the source pane.
-        setTimeout(() => store.actions.mergeInto(chooser.source, t.id), 0);
-      }}
+      onChoose={(t) => closeThen(store, close, () => store.actions.mergeInto(chooser.source, t.id))}
       onClose={close}
       empty={t.empty}
     />

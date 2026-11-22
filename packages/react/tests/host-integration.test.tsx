@@ -9,7 +9,7 @@ import {
   row,
   type JaliOptions,
 } from "@jali/core";
-import { createKeymap } from "@jali/core/adapter";
+import { createKeymap, storeOf } from "@jali/core/adapter";
 import { JaliRoot, JaliView, definePane, useCommands, useJaliCommands } from "@jali/react";
 import { defaultFeatures, noUrl, urlSync } from "./features";
 
@@ -96,6 +96,16 @@ describe("without the palette feature", () => {
     expect(
       make({ features: noUrl().filter((f) => f.id !== "palette") }).keymap.label("pane.undo_close"),
     ).toBe("⌘K ⌘Z");
+  });
+
+  it("opens nothing when the app binds the palette's key anyway: no dialog holds the keys", () => {
+    const jali = make({
+      features: noUrl().filter((f) => f.id !== "palette"),
+      keyboard: { keymap: { "palette.toggle": "F1" } },
+    });
+    render(<JaliRoot jali={jali} />);
+    act(() => void window.dispatchEvent(new KeyboardEvent("keydown", { key: "F1" })));
+    expect(storeOf(jali).get().paletteOpen).toBe(false);
   });
 
   it("renders no palette", () => {

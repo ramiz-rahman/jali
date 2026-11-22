@@ -50,7 +50,7 @@ import {
 import { openPeekBeside, openPeekFull, peek, select } from "./peek";
 import { follow, setKept } from "./follow";
 import { endRename, startRename } from "./rename";
-import { choose, type ChooseOptions } from "./choose";
+import { choose, closeChooser, type ChooseOptions } from "./choose";
 import {
   arrive,
   autoLayout,
@@ -260,6 +260,7 @@ export const STEPS = /* @__PURE__ */ (() =>
     setScroll: [setScroll, null],
     drop: [drop, null],
     endRename: [endRename, null],
+    closeChooser: [closeChooser, null],
     resizeDivider: [resizeDivider, null],
     setDividerSize: [setDividerSize, null],
     nudgeDivider: [nudgeDivider, null],

@@ -27,6 +27,10 @@ export interface ChooseOptions<T> {
   onChoose: (item: T) => void;
 }
 
+/** Close the chooser, chosen or not. */
+export const closeChooser = ({ s }: Snapshot): Outcome =>
+  s.chooser ? { op: "patch", patch: { chooser: null } } : null;
+
 /** Open the chooser on `options` (closing ⌘K if it is open). Without a title or a way to name items: `"invalid"`;
  *  without the `chooser()` feature: `"unavailable"`. */
 export function choose(x: Snapshot, options: ChooseOptions<unknown>): Outcome {

@@ -29,7 +29,7 @@ import {
   type ReactNode,
 } from "react";
 import { createPortal } from "react-dom";
-import { spacingVars, storeOf } from "@jali/core/adapter";
+import { spacingVars, storeOf, topDialog } from "@jali/core/adapter";
 import { partOf } from "./features/feature-parts";
 import { Announcer } from "./chrome/Announcer";
 import { ConfirmDiscard } from "./dialogs/ConfirmDiscard";
@@ -203,9 +203,8 @@ export function JaliRoot({
 
 /**
  * Jali's dialogs, one at a time: the discard question over the chooser, over ⌘K, over Settings. The one beneath comes
- * back when the one above closes. Each but the discard question is its feature's part (`palette()`, `settings()`,
- * `chooser()`): an instance without the feature renders none, and a dialog asked for that isn't there closes again at
- * once, so nothing holds the instance's keys for it.
+ * back when the one above closes (core's `topDialog`). Each but the discard question is its feature's part
+ * (`palette()`, `settings()`, `chooser()`): core's steps never open one the instance doesn't have.
  */
 function Dialogs({ settingsExtra }: { settingsExtra: ReactNode }) {
   const store = useStore();
@@ -213,32 +212,8 @@ function Dialogs({ settingsExtra }: { settingsExtra: ReactNode }) {
   const Palette = partOf(env, "palette");
   const Settings = partOf(env, "settings");
   const Chooser = partOf(env, "chooser");
-  const top = useUi((s) =>
-    s.confirm
-      ? "confirm"
-      : s.chooser
-        ? "chooser"
-        : s.paletteOpen
-          ? "palette"
-          : s.settingsOpen
-            ? "settings"
-            : null,
-  );
-  const orphan =
-    (top === "settings" && !Settings) ||
-    (top === "palette" && !Palette) ||
-    (top === "chooser" && !Chooser);
-  useEffect(() => {
-    if (!orphan) return;
-    store.set(
-      top === "settings"
-        ? { settingsOpen: false }
-        : top === "palette"
-          ? { paletteOpen: false }
-          : { chooser: null },
-    );
-  }, [orphan, top, store]);
-  if (orphan) return null;
+  // Core keeps no dialog whose feature the instance lacks (its steps refuse it), so the top one is always drawable.
+  const top = useUi(topDialog);
   return top === "confirm" ? (
     <ConfirmDiscard />
   ) : top === "chooser" && Chooser ? (
