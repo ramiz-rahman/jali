@@ -7,8 +7,7 @@
   "files": [
     "dist",
     "docs",
-    "README.md",
-    "LICENSE"
+    "README.md"
   ],
   "type": "module",
   "sideEffects": false,
