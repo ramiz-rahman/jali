@@ -118,8 +118,10 @@ describe("pane sizing", () => {
         children: [pane("a", "record"), pane("b", "plain")],
       });
     expect(rects(place(stack("a"), 1440))).toBe(rects(place(stack("b"), 1440)));
-    // A record is among its tabs, so the slot stops at the record's max even while the plain tab (no max) is shown.
-    expect(place(stack("b"), 1920).panes.find((p) => p.id === "b")!.rect.width).toBe(600);
+    // The plain tab (no max) can use any width, so the group grows past the record's max, whichever tab is shown.
+    expect(place(stack("b"), 1920).panes.find((p) => p.id === "b")!.rect.width).toBeGreaterThan(
+      600,
+    );
   });
   it("measures a fold as the slot it folded into, so folded tables do not turn a record's slot into a table's", () => {
     // 1000px: the table, its record and a second table cannot all fit; the second table folds into the record's slot.

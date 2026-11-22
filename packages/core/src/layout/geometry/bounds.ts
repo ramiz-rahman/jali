@@ -75,16 +75,15 @@ export function combineBounds(
       comfortableHeight: sum(comfortableHeights),
       maxHeight: sum(maxHeights),
     };
-  // A tab group the person made can show any of its tabs: it is comfortable for the most demanding one, and grows
-  // no further than its most limited one uses, so no tab is left with space it can't use (a record in a tab group
-  // keeps the slot a record's). Its tab order says nothing about its size.
+  // A tab group the person made can show any of its tabs: it is comfortable for the most demanding one, and grows as
+  // far as the most capable one uses. Its tab order says nothing about its size.
   const own =
     home < 0
       ? {
           comfortable: Math.max(...comfortable),
-          maxWidth: Math.min(...maxima),
+          maxWidth: Math.max(...maxima),
           comfortableHeight: Math.max(...comfortableHeights),
-          maxHeight: Math.min(...maxHeights),
+          maxHeight: Math.max(...maxHeights),
         }
       : (children[home] ?? children[0]!);
   const comfort = Math.max(width, own.comfortable);

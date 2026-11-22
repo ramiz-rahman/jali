@@ -152,17 +152,18 @@ describe("heights across a row, in tab groups and in rows that scroll", () => {
     expect(
       heights(place(of(column("c", [group("band", "plain"), pane("b", "plain")])), 906)),
     ).toEqual({
-      a: 260,
-      b: 640,
+      a: 450,
+      b: 450,
     });
     // The same group with its tabs the other way round: the same heights (22 Nov 2026; before, its first tab's).
     expect(
       heights(place(of(column("c", [group("plain", "band"), pane("b", "plain")])), 906)),
     ).toEqual({
-      a: 260,
-      b: 640,
+      a: 450,
+      b: 450,
     });
     const b = (k: string) => bounds(pane("p", k), kinds, 6);
+    // A tab group grows as far as its most capable tab uses: the band's max no longer stops a plain tab.
     expect(combineBounds("stack", [b("band"), b("deep")], 6)).toMatchObject({
       height: 300,
       comfortableHeight: 300,
