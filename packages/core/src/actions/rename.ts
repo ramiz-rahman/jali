@@ -30,9 +30,10 @@ export function startRename(x: Snapshot, id = x.s.view.focused): Outcome {
   return x.s.renaming === id ? null : { op: "patch", patch: { renaming: id } };
 }
 
-/** Close the rename field, saved or not. */
-export const endRename = ({ s }: Snapshot): Outcome =>
-  s.renaming ? { op: "patch", patch: { renaming: null } } : null;
+/** Close pane `id`'s rename field, saved or not. Only its own: a save that settles after another pane's field opened
+ *  closes nothing. */
+export const endRename = ({ s }: Snapshot, id: NodeId): Outcome =>
+  s.renaming === id ? { op: "patch", patch: { renaming: null } } : null;
 
 export const checkRename = (x: Snapshot) =>
   canRename(x, x.s.view.focused) ? undefined : refuse("unavailable");

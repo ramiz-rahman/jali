@@ -528,6 +528,30 @@ describe("renaming in place", () => {
     expect(field().getAttribute("aria-invalid")).toBe("true");
   });
 
+  it("ends only its own session: a save that settles after another pane's field opened leaves that field open", async () => {
+    const settle: Array<(v: void | false) => void> = [];
+    const jali = docs({ run: () => new Promise<void | false>((r) => settle.push(r)) });
+    render(<JaliRoot jali={jali} />);
+    act(() => void jali.actions.startRename("a"));
+    fireEvent.change(field(), { target: { value: "First" } });
+    await act(async () => void fireEvent.keyDown(field(), { key: "Enter" }));
+    act(() => void jali.actions.startRename("c"));
+    expect(field().value).toBe("Doc 3");
+    await act(async () => settle[0]!());
+    expect(storeOf(jali).get().renaming).toBe("c");
+    expect(field().value).toBe("Doc 3");
+    // The same pane renamed again: the old save, settling late, is not the new field's.
+    fireEvent.keyDown(field(), { key: "Escape" });
+    act(() => void jali.actions.startRename("a"));
+    fireEvent.change(field(), { target: { value: "Second" } });
+    await act(async () => void fireEvent.keyDown(field(), { key: "Enter" }));
+    act(() => void jali.actions.startRename("c"));
+    act(() => void jali.actions.startRename("a"));
+    await act(async () => settle[1]!(false));
+    expect(storeOf(jali).get().renaming).toBe("a");
+    expect(field().getAttribute("aria-invalid")).toBeNull();
+  });
+
   it("saves nothing for an empty or unchanged name", async () => {
     const run = vi.fn();
     const jali = docs({ run });
