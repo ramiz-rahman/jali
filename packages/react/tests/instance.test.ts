@@ -592,7 +592,10 @@ describe("beforeClose: the host is asked before panes go", () => {
   it("covers Back and Forward, and puts the address back when it keeps the panes", () => {
     const location = memoryLocation();
     let allow = true;
-    const jali = make({ features: [...defaultFeatures(), urlSync({ location })], beforeClose: () => allow });
+    const jali = make({
+      features: [...defaultFeatures(), urlSync({ location })],
+      beforeClose: () => allow,
+    });
     const stop = jali.start();
     const first = location.search();
     jali.actions.openBeside("orders", order({ id: 7 }));
@@ -704,7 +707,10 @@ describe("keeping in step with the host's documents", () => {
 
   it("addTab is one step on a full workspace: one history entry, one layout event, nothing folds", () => {
     const location = memoryLocation();
-    const jali = make({ features: [...defaultFeatures(), urlSync({ location })], size: { width: 1000, height: 800 } });
+    const jali = make({
+      features: [...defaultFeatures(), urlSync({ location })],
+      size: { width: 1000, height: 800 },
+    });
     const entries = location.entries.length;
     const folded = jali.model().folded;
     const geometry = geometryOf(storeOf(jali).model());

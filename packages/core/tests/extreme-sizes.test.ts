@@ -26,7 +26,12 @@ const finite = (layout: Layout) => {
   const again = createJali({
     panes: [item],
     layout: rowOf(pane("z", { weight: 1 })),
-    features: [urlSync({ location: memoryLocation(storeOf(jali).href().slice("memory:".length)), sizes: "link" })],
+    features: [
+      urlSync({
+        location: memoryLocation(storeOf(jali).href().slice("memory:".length)),
+        sizes: "link",
+      }),
+    ],
     storage: memoryStorage(),
     size: { width: 1200, height: 800 },
     moveFocus: false,

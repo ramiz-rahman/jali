@@ -29,9 +29,11 @@ import type { PaneAttributes, PaneReportPatch } from "@jali/core/adapter";
 import type { PaneHost } from "./context";
 import { openPaneFor } from "@jali/core/adapter";
 import type { Pane, PaneProps, ParamsOfPane } from "../define";
-import { DEV } from "../dev";
 import { useModel, useUi } from "../state/react";
 import { usePaneContext } from "./context";
+
+// Development checks test the literal, so a production build drops them and their messages (dev.ts).
+declare const process: { env: { NODE_ENV?: string } };
 
 /**
  * The pane's props, for components below the kind's own. Give the kind (`usePane(order)`) and its params are typed
@@ -42,10 +44,14 @@ export function usePane(): PaneProps<Params>;
 export function usePane<D extends Pane>(kind: D): PaneProps<ParamsOfPane<D>>;
 export function usePane(kind?: Pane): PaneProps<Params> {
   const props = usePaneContext("usePane").props;
-  if (DEV && kind && props.node.ref.kind !== kind.kind)
-    console.error(
-      `Jali: usePane(${kind.kind}) is called in a pane of kind "${props.node.ref.kind}", so its params are not a ${kind.kind}'s`,
-    );
+  try {
+    if (process.env.NODE_ENV !== "production" && kind && props.node.ref.kind !== kind.kind)
+      console.error(
+        `Jali: usePane(${kind.kind}) is called in a pane of kind "${props.node.ref.kind}", so its params are not a ${kind.kind}'s`,
+      );
+  } catch {
+    /* no `process`: production */
+  }
   return props;
 }
 

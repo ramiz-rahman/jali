@@ -83,14 +83,19 @@ describe("keyboard.reserved", () => {
 
 describe("without the palette feature", () => {
   it("unbinds the palette's key, unless the app binds it on purpose", () => {
-    expect(make({ features: noUrl().filter((f) => f.id !== "palette") }).keymap.label("palette.toggle")).toBe("");
     expect(
-      make({ features: noUrl().filter((f) => f.id !== "palette"), keyboard: { keymap: { "palette.toggle": "F1" } } }).keymap.label(
-        "palette.toggle",
-      ),
+      make({ features: noUrl().filter((f) => f.id !== "palette") }).keymap.label("palette.toggle"),
+    ).toBe("");
+    expect(
+      make({
+        features: noUrl().filter((f) => f.id !== "palette"),
+        keyboard: { keymap: { "palette.toggle": "F1" } },
+      }).keymap.label("palette.toggle"),
     ).toBe("F1");
     // The two-step keys still work: the prefix starts a chord without opening anything.
-    expect(make({ features: noUrl().filter((f) => f.id !== "palette") }).keymap.label("pane.undo_close")).toBe("⌘K ⌘Z");
+    expect(
+      make({ features: noUrl().filter((f) => f.id !== "palette") }).keymap.label("pane.undo_close"),
+    ).toBe("⌘K ⌘Z");
   });
 
   it("renders no palette", () => {

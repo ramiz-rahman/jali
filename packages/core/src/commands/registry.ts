@@ -300,7 +300,6 @@ function jaliCommands(env: Env): CommandDef[] {
       group: g.settings,
       run: toggleCentreDrop,
     },
-
   ];
 }
 

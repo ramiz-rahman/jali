@@ -71,7 +71,6 @@ function arriveFromUrl(
   return done;
 }
 
-
 /** Back and Forward, while the workspace is started. */
 function listen(store: JaliStore, sync: UrlSync): () => void {
   // Back and Forward. One that waits for an answer (the host's beforeClose, or "Discard unsaved changes?") keeps
@@ -81,32 +80,31 @@ function listen(store: JaliStore, sync: UrlSync): () => void {
   let nav = 0;
   let asking: ConfirmState | null = null;
   const offPop = sync.onPop(() => {
-        const mine = ++nav;
-        const held = store.get().confirm;
-        if (held && held === asking)
-          store.apply([
-            { op: "patch", patch: { confirm: null } },
-            { op: "answer", intent: () => refuse("kept"), agreed: {}, settle: held.settle },
-          ]);
-        const settle = (end: ActionResult | undefined) => {
-          if (mine !== nav || !end || end.ok) return;
-          if (end.reason === "pending") return void end.settled?.then(settle);
-          if (end.reason === "unsaved") {
-            asking = store.get().confirm;
-            return void asking?.settled.then(settle);
-          }
-          store.writeUrl("replace");
-        };
-        settle(arriveFromUrl(store, sync, () => mine === nav));
-        store.announce(store.messages.announcements.historyChanged);
-      });
+    const mine = ++nav;
+    const held = store.get().confirm;
+    if (held && held === asking)
+      store.apply([
+        { op: "patch", patch: { confirm: null } },
+        { op: "answer", intent: () => refuse("kept"), agreed: {}, settle: held.settle },
+      ]);
+    const settle = (end: ActionResult | undefined) => {
+      if (mine !== nav || !end || end.ok) return;
+      if (end.reason === "pending") return void end.settled?.then(settle);
+      if (end.reason === "unsaved") {
+        asking = store.get().confirm;
+        return void asking?.settled.then(settle);
+      }
+      store.writeUrl("replace");
+    };
+    settle(arriveFromUrl(store, sync, () => mine === nav));
+    store.announce(store.messages.announcements.historyChanged);
+  });
   return () => {
     // An arrival still waiting for an answer is no longer the latest: its answer changes nothing.
     nav++;
     offPop();
   };
 }
-
 
 /**
  * The address feature. Options: `location` (a router's port; default the browser's history), `prefix` (two workspaces

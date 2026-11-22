@@ -5,11 +5,10 @@
  */
 import type { NodeId } from "../layout/types";
 import { popOutEn } from "../state/feature-messages";
-import { messagesOf } from "../state/messages";
 import { refuse } from "../state/apply";
 import { also, needFocus } from "../commands/registry";
 import type { JaliStore } from "../state/store";
-import type { Feature } from "./feature";
+import { featureCommand, type Feature } from "./feature";
 
 /** How an adapter pops a pane of a workspace out, and brings it back. */
 export interface PopOutWindow {
@@ -30,17 +29,17 @@ export const popOutFeature = (
   id: "popOut",
   words: popOutEn,
   commands: (env) => [
-    {
-      id: "pane.pop_out",
-      title: messagesOf(env).commands.popOut,
-      group: messagesOf(env).commandGroups.pane,
-      after: "pane.fullscreen",
-      check: also((x) => needFocus(x) ?? (window.can() ? undefined : refuse("unavailable")), "popOut"),
-      run: (u) => {
+    featureCommand(
+      "pane.pop_out",
+      "pane.fullscreen",
+      (m) => m.commands.popOut,
+      "pane",
+      (u) => {
         const id = u.get().view.focused;
         if (id) void window.open(u, id);
       },
-    },
+      also((x) => needFocus(x) ?? (window.can() ? undefined : refuse("unavailable")), "popOut"),
+    )(env),
   ],
   // The window closes when the workspace stops: unmounted, destroyed, or another workspace in its root's place.
   start: (store) => () => window.close(store),

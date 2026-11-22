@@ -30,8 +30,10 @@ import { paneHydration } from "../state/hydration";
 import { DropIndicator } from "./DropIndicator";
 import { useSingleView } from "./useSingleView";
 import { PAGE_PARTS } from "../define";
-import { DEV } from "../dev";
 import { useWorkspaceLabel } from "../a11y/landmark";
+
+// Development checks test the literal, so a production build drops them and their messages (dev.ts).
+declare const process: { env: { NODE_ENV?: string } };
 
 /** The workspace's usable size follows the element (minus the inset), and so does its reading direction (an
  *  ancestor's `dir`, read again when any `dir` on the page changes), unless the workspace was given one.
@@ -71,12 +73,16 @@ function useMeasure(store: JaliStore) {
         })
       : undefined;
     measure();
-    if (DEV && el.clientWidth > 0 && el.clientHeight === 0)
-      console.warn(
-        "Jali: the panes measure 0 pixels high, so every pane is collapsed. Give <JaliRoot> (or the element " +
-          "around <JaliView />) a height, or make it a flex or grid cell that has one.",
-        el,
-      );
+    try {
+      if (process.env.NODE_ENV !== "production" && el.clientWidth > 0 && el.clientHeight === 0)
+        console.warn(
+          "Jali: the panes measure 0 pixels high, so every pane is collapsed. Give <JaliRoot> (or the element " +
+            "around <JaliView />) a height, or make it a flex or grid cell that has one.",
+          el,
+        );
+    } catch {
+      /* no `process`: production */
+    }
     const unobserve = observeResize(el, measure);
     const unwatch = watchDirection(measure);
     // Folding and unfolding changes the segments, sometimes without changing the element's size.
@@ -149,11 +155,15 @@ const names = new Map<string, number>();
 function useUniqueName(name: string) {
   useEffect(() => {
     const n = names.get(name) ?? 0;
-    if (DEV && n)
-      console.warn(
-        `Jali: two workspaces on this page are both named "${name}", so their landmarks repeat. Name each with ` +
-          "<JaliRoot aria-label> (or aria-labelledby), or createJali({ label }).",
-      );
+    try {
+      if (process.env.NODE_ENV !== "production" && n)
+        console.warn(
+          `Jali: two workspaces on this page are both named "${name}", so their landmarks repeat. Name each with ` +
+            "<JaliRoot aria-label> (or aria-labelledby), or createJali({ label }).",
+        );
+    } catch {
+      /* no `process`: production */
+    }
     names.set(name, n + 1);
     return () => {
       const left = (names.get(name) ?? 1) - 1;

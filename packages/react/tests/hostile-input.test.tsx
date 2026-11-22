@@ -188,7 +188,12 @@ describe("C2b: stored sizes", () => {
     ]);
     // The good part of an entry is kept.
     expect(got.root.size).toEqual({ weight: 2 });
-    expect(() => make({ features: [...defaultFeatures(), urlSync({ location: memoryLocation(`?l=${code}`) })], storage })).not.toThrow();
+    expect(() =>
+      make({
+        features: [...defaultFeatures(), urlSync({ location: memoryLocation(`?l=${code}`) })],
+        storage,
+      }),
+    ).not.toThrow();
   });
 
   it.each([
@@ -202,7 +207,11 @@ describe("C2b: stored sizes", () => {
     const storage = memoryStorage({ sizes: JSON.stringify([[structureKey(l), entry]]) });
     let jali: Jali | undefined;
     expect(
-      () => (jali = make({ features: [...defaultFeatures(), urlSync({ location: memoryLocation(`?l=${code}`) })], storage })),
+      () =>
+        (jali = make({
+          features: [...defaultFeatures(), urlSync({ location: memoryLocation(`?l=${code}`) })],
+          storage,
+        })),
     ).not.toThrow();
     expect(jali!.model().panes.map((p) => p.id)).toEqual(["a", "b"]);
     expect(layout.validate(jali!.getLayout(), registry)).toEqual({ ok: true });

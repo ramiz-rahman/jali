@@ -18,12 +18,19 @@
 import type { CommandDef } from "../commands/registry";
 import type { Env } from "../profile";
 import type { StoragePort } from "../ports";
-import type { MessageOverrides } from "../state/messages";
+import { messagesOf, type MessageOverrides, type Messages } from "../state/messages";
 import type { JaliStore, UrlWriter } from "../state/store";
 import type { Rename } from "../actions/rename";
 
 /** The features Jali ships, by id. */
-export type FeatureId = "urlSync" | "palette" | "settings" | "chooser" | "rename" | "popOut" | "pressed";
+export type FeatureId =
+  | "urlSync"
+  | "palette"
+  | "settings"
+  | "chooser"
+  | "rename"
+  | "popOut"
+  | "pressed";
 
 /** A command a feature brings, and the command of Jali's it is listed after. */
 export interface FeatureCommand extends CommandDef {
@@ -42,6 +49,28 @@ export interface Feature {
   readonly env?: { readonly rename?: Rename };
   readonly parts?: Readonly<Record<string, unknown>>;
 }
+
+/** One of a feature's commands, in the workspace's words: `title` and `group` pick them from its messages. */
+export const featureCommand =
+  (
+    id: string,
+    after: string,
+    title: (m: Messages) => string,
+    group: keyof Messages["commandGroups"],
+    run: CommandDef["run"],
+    check?: CommandDef["check"],
+  ) =>
+  (env: Env): FeatureCommand => {
+    const m = messagesOf(env);
+    return {
+      id,
+      after,
+      title: title(m),
+      group: m.commandGroups[group],
+      run,
+      ...(check ? { check } : {}),
+    };
+  };
 
 /** The feature `id` of a workspace, if it has it. */
 export const featureOf = (env: Pick<Env, "features">, id: FeatureId): Feature | undefined =>

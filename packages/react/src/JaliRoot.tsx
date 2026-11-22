@@ -41,8 +41,10 @@ import { StoreProvider, useDomScope, useStore, useJaliTheme, useUi } from "./sta
 import { Panes } from "./workspace/Workspace";
 import { PAGE_PARTS } from "./define";
 import { overlaysDomId } from "./a11y/ModalDialog";
-import { DEV } from "./dev";
 import { LabelContext } from "./a11y/landmark";
+
+// Development checks test the literal, so a production build drops them and their messages (dev.ts).
+declare const process: { env: { NODE_ENV?: string } };
 
 export interface JaliRootProps extends HTMLAttributes<HTMLDivElement> {
   jali: Jali;
@@ -315,11 +317,15 @@ export function JaliView() {
   const profile = useStore().env.profile;
   const Page = profile?.[PAGE_PARTS]?.View;
   useEffect(() => {
-    if (DEV && profile && !Page)
-      console.error(
-        "Jali: this page has no parts to render it, so <JaliView> shows bare panes. Make it with definePage from " +
-          "@jali/react, not from @jali/core.",
-      );
+    try {
+      if (process.env.NODE_ENV !== "production" && profile && !Page)
+        console.error(
+          "Jali: this page has no parts to render it, so <JaliView> shows bare panes. Make it with definePage from " +
+            "jali/page.",
+        );
+    } catch {
+      /* no `process`: production */
+    }
   }, [profile, Page]);
   return open && Page ? <Page /> : <Panes />;
 }

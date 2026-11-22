@@ -245,9 +245,14 @@ export function resolveOptions(options: JaliOptions): JaliConfig {
     presets: presets?.map(presetOf) ?? [],
     ...(launcher ? { launcher: launcher.kind } : {}),
     features,
-    url: url && typeof url === "object" && "write" in url ? url : features.find((f) => f.address)?.address?.(storage),
+    url:
+      url && typeof url === "object" && "write" in url
+        ? url
+        : features.find((f) => f.address)?.address?.(storage),
     storage,
-    ...(features.some((f) => f.env?.rename) ? { rename: features.find((f) => f.env?.rename)!.env!.rename! } : {}),
+    ...(features.some((f) => f.env?.rename)
+      ? { rename: features.find((f) => f.env?.rename)!.env!.rename! }
+      : {}),
     ...(landmark === "main" ? { landmark } : {}),
     ...(typeof label === "string" && label.trim() ? { label: label.trim() } : {}),
     ...(confirmDiscard === false ? { confirmDiscard } : {}),
@@ -276,8 +281,7 @@ export function createJali<
       warnUnknown(
         "createJali",
         options,
-        (key, value) =>
-          key === "url" && !!value && typeof value === "object" && "write" in value,
+        (key, value) => key === "url" && !!value && typeof value === "object" && "write" in value,
       );
   } catch {
     /* no `process`: production */

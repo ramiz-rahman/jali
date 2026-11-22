@@ -258,8 +258,6 @@ const keys = {
   withKeys: (label: string, keys: string) => (keys ? `${label} · ${keys}` : label),
 };
 
-
-
 /** "Discard unsaved changes?" */
 const confirmDiscard = {
   title: "Discard unsaved changes?",
@@ -276,7 +274,6 @@ const confirmDiscard = {
   discard: "Discard",
   keepEditing: "Keep editing",
 };
-
 
 /** Tabs (made by you: merged, opened, tucked; made by the layout: folded) and the tab strip's overflow menu. */
 const tabs = {

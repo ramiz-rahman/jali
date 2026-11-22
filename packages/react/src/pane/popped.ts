@@ -16,21 +16,24 @@ export const popOutOf = (store: JaliStore) => partOf<ReactPopOut>(store.env, "po
  *  the server's. */
 export function useCanPopOut(store: JaliStore): boolean {
   const w = popOutOf(store);
-  return useSyncExternalStore(none, () => !!w?.can(), () => false);
+  return useSyncExternalStore(
+    none,
+    () => !!w?.can(),
+    () => false,
+  );
 }
 
 /** Whether pane `pane` is popped out, and where its content renders meanwhile when it renders there (`target`). */
-export function usePoppedOut(store: JaliStore, pane: NodeId): { out: boolean; target: HTMLElement | null } {
+export function usePoppedOut(
+  store: JaliStore,
+  pane: NodeId,
+): { out: boolean; target: HTMLElement | null } {
   const w = popOutOf(store);
   const out = useSyncExternalStore(
     w?.subscribe ?? none,
     () => w?.pane(store) === pane,
     () => false,
   );
-  const target = useSyncExternalStore(
-    w?.subscribe ?? none,
-    () => w?.target(store, pane) ?? null,
-    () => null,
-  );
-  return { out, target };
+  // Read again whenever `out` changes, which is when it does.
+  return { out, target: out ? (w?.target(store, pane) ?? null) : null };
 }

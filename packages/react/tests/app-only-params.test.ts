@@ -80,7 +80,10 @@ describe("a param only the app sets", () => {
     const jali = createJali({
       panes: [list],
       layout: row(list()),
-      features: [...defaultFeatures(), urlSync({ location: memoryLocation(`?l=${lists}&peek=${peek}`) })],
+      features: [
+        ...defaultFeatures(),
+        urlSync({ location: memoryLocation(`?l=${lists}&peek=${peek}`) }),
+      ],
       storage: memoryStorage(),
       size: { width: 1600, height: 900 },
       moveFocus: false,

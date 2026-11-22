@@ -25,7 +25,6 @@ import {
   allows,
   installKeyboard,
   popOutFeature,
-  resolveTheme,
   spacingVars,
   trackInput,
   type Feature,
@@ -63,68 +62,76 @@ interface Session {
   off: () => void;
 }
 
-/** Every style the page has, into the floating window's document, so the pane looks the same there. */
+/** A workspace's place in this feature: started (a request that resolves after its workspace stopped is dropped),
+ *  its latest request (a newer one makes an older one stale), and its window, if one is open. */
+interface Slot {
+  on: boolean;
+  asked: number;
+  s?: Session;
+}
+
+/** Every style the page has, into the floating window's document, so the pane looks the same there: each sheet's
+ *  rules, or a link to it when it is cross-origin. */
 function copyStyles(from: Document, to: Document) {
   for (const sheet of from.styleSheets) {
+    let el: HTMLStyleElement | HTMLLinkElement;
     try {
-      const style = to.createElement("style");
-      style.textContent = [...sheet.cssRules].map((r) => r.cssText).join("\n");
-      if (sheet.media.mediaText) style.media = sheet.media.mediaText;
-      to.head.appendChild(style);
+      el = to.createElement("style");
+      el.textContent = Array.from(sheet.cssRules, (r) => r.cssText).join("\n");
     } catch {
-      // A cross-origin sheet: link it instead.
-      if (sheet.href) {
-        const link = to.createElement("link");
-        link.rel = "stylesheet";
-        link.href = sheet.href;
-        if (sheet.media.mediaText) link.media = sheet.media.mediaText;
-        to.head.appendChild(link);
-      }
+      if (!sheet.href) continue;
+      el = Object.assign(to.createElement("link"), { rel: "stylesheet", href: sheet.href });
     }
+    el.media = sheet.media.mediaText;
+    to.head.append(el);
   }
 }
 
-/** A pane's content element (pane/content.tsx marks it), if the workspace renders content apart from its frames. */
-const hostOf = (store: JaliStore, pane: NodeId) =>
-  store.dom.pane(pane)?.querySelector<HTMLElement>(".jali-pane-content > [data-jali-host]") ??
-  null;
-
-/** One window per workspace: the sessions of the workspaces this feature value is given to. */
-function createWindow(): ReactPopOut {
-  const sessions = new WeakMap<JaliStore, Session>();
+/** One window per workspace: the slots of the workspaces this feature value is given to. */
+function createWindow(): ReactPopOut & { started(store: JaliStore): () => void } {
+  const slots = new WeakMap<JaliStore, Slot>();
+  const slot = (store: JaliStore) => {
+    let x = slots.get(store);
+    if (!x) slots.set(store, (x = { on: false, asked: 0 }));
+    return x;
+  };
   const listeners = new Set<() => void>();
   const changed = () => listeners.forEach((l) => l());
-  /** Requests still waiting for the browser, by workspace: a newer one makes an older one stale. */
-  const asking = new WeakMap<JaliStore, number>();
 
+  /** The window is gone (closed by us, its own ×, another floating window): the content comes home now, and its
+   *  frame takes it back on its next render too. */
   const end = (store: JaliStore, s: Session) => {
-    if (sessions.get(store) !== s) return;
-    sessions.delete(store);
+    const x = slot(store);
+    if (x.s !== s) return;
+    x.s = undefined;
     s.off();
-    // The content comes home now; its frame takes it back on its next render too.
-    const home = store.dom.pane(s.pane)?.querySelector(".jali-pane-content");
-    if (s.moved && home) home.append(s.moved);
+    if (s.moved) store.dom.pane(s.pane)?.querySelector(".jali-pane-content")?.append(s.moved);
     changed();
   };
 
-  const self: ReactPopOut = {
+  const self = {
     can,
-    pane: (store) => sessions.get(store)?.pane,
-    subscribe(fn) {
+    pane: (store: JaliStore) => slot(store).s?.pane,
+    subscribe(fn: () => void) {
       listeners.add(fn);
       return () => void listeners.delete(fn);
     },
-    target: (store, pane) => {
-      const s = sessions.get(store);
-      return s && s.pane === pane && !s.moved ? s.root : null;
+    target: (store: JaliStore, pane: NodeId) => {
+      const s = slot(store).s;
+      return s?.pane === pane && !s.moved ? s.root : null;
     },
-    close(store) {
-      const s = sessions.get(store);
-      if (!s) return;
-      end(store, s);
-      s.win.close();
+    close(store: JaliStore) {
+      const s = slot(store).s;
+      if (s) (end(store, s), s.win.close());
     },
-    async open(store, pane) {
+    started(store: JaliStore) {
+      slot(store).on = true;
+      return () => {
+        slot(store).on = false;
+        self.close(store);
+      };
+    },
+    async open(store: JaliStore, pane: NodeId) {
       const pip = api();
       if (!pip || !can() || !store.model().pane(pane)) return false;
       if (!allows(store.snapshot(), pane, "popOut")) {
@@ -133,8 +140,8 @@ function createWindow(): ReactPopOut {
         );
         return false;
       }
-      const mine = (asking.get(store) ?? 0) + 1;
-      asking.set(store, mine);
+      const x = slot(store);
+      const mine = ++x.asked;
       let win: Window;
       try {
         // Asked at once, inside the person's gesture; the browser refuses without one.
@@ -143,63 +150,57 @@ function createWindow(): ReactPopOut {
         return false;
       }
       // Stale: a newer request, the pane gone, or the workspace stopped while the browser answered.
-      if (asking.get(store) !== mine || !store.model().pane(pane) || !started.has(store)) {
-        if (pip.window === win) win.close();
+      if (x.asked !== mine || !x.on || !store.model().pane(pane)) {
+        win.close();
         return false;
       }
       self.close(store);
-      return attach(store, pane, win);
+      x.s = attach(store, pane, win);
+      changed();
+      return true;
     },
   };
 
-  /** The workspaces started with this feature: a request that resolves after its workspace stopped is dropped. */
-  const started = new WeakSet<JaliStore>();
-
-  function attach(store: JaliStore, pane: NodeId, win: Window): boolean {
+  function attach(store: JaliStore, pane: NodeId, win: Window): Session {
     const doc = win.document;
+    const html = doc.documentElement;
     copyStyles(document, doc);
     const root = doc.createElement("div");
     root.className = "jali-popout";
     root.setAttribute("data-jali", "");
     root.setAttribute("data-jali-popout", "");
-    doc.body.appendChild(root);
+    doc.body.append(root);
 
     // The workspace's look, kept in step while the window is open: <html>'s attributes (a host's theme class), the
-    // root's theme, tokens and direction, and the page's zoom.
+    // root's theme, tokens and direction, its title, and the page's zoom (the browser's ⌘+ doesn't carry over).
     const page = document.documentElement;
     const sync = () => {
-      for (const a of Array.from(doc.documentElement.attributes))
-        if (a.name !== "style") doc.documentElement.removeAttribute(a.name);
+      for (const a of Array.from(html.attributes))
+        if (a.name !== "style") html.removeAttribute(a.name);
       for (const a of page.attributes)
-        if (a.name === "class" || a.name.startsWith("data-") || a.name === "dir" || a.name === "lang")
-          doc.documentElement.setAttribute(a.name, a.value);
-      const el = store.dom.root();
-      const from = el instanceof HTMLElement ? el : null;
-      const s = store.get();
-      const theme =
-        from?.getAttribute("data-theme") ??
-        (store.env.pageTheme === false ? null : resolveTheme(s.settings.theme, s.systemDark));
+        if (/^(class|dir|lang|data-.*)$/.test(a.name)) html.setAttribute(a.name, a.value);
+      // The root's data-theme is Jali's resolved theme (or the app's own), and none with `pageTheme: false`.
+      const el = store.dom.root() as HTMLElement;
+      const theme = el.getAttribute?.("data-theme");
       if (theme) root.setAttribute("data-theme", theme);
       else root.removeAttribute("data-theme");
-      root.setAttribute("dir", store.env.dir ?? s.dir);
+      root.dir = store.env.dir ?? store.get().dir;
       root.style.cssText = "";
-      for (const [k, v] of Object.entries(spacingVars(store.env.spacing)))
-        root.style.setProperty(k, v);
-      if (from)
-        for (const k of from.style)
-          if (k.startsWith("--jali-")) root.style.setProperty(k, from.style.getPropertyValue(k));
+      const vars: Record<string, string> = { ...spacingVars(store.env.spacing) };
+      for (const k of el.style ?? [])
+        if (k.startsWith("--jali-")) vars[k] = el.style.getPropertyValue(k);
+      for (const [k, v] of Object.entries(vars)) root.style.setProperty(k, v);
       doc.title = store.model().title(pane);
       const ratio = window.devicePixelRatio / (win.devicePixelRatio || 1);
-      doc.documentElement.style.zoom = Math.abs(ratio - 1) < 0.01 ? "" : String(ratio);
+      html.style.zoom = Math.abs(ratio - 1) < 0.01 ? "" : String(ratio);
     };
     sync();
-    const watch =
-      typeof MutationObserver === "undefined" ? null : new MutationObserver(() => sync());
-    watch?.observe(page, { attributes: true });
+    const watch = new MutationObserver(sync);
+    watch.observe(page, { attributes: true });
     const rootEl = store.dom.root();
     if (rootEl instanceof Element)
-      watch?.observe(rootEl, { attributes: true, attributeFilter: ["style", "data-theme", "dir"] });
-    let media: MediaQueryList | null = null;
+      watch.observe(rootEl, { attributes: true, attributeFilter: ["style", "data-theme", "dir"] });
+    let media: MediaQueryList | undefined;
     const onZoom = () => {
       sync();
       media?.removeEventListener("change", onZoom);
@@ -209,15 +210,19 @@ function createWindow(): ReactPopOut {
     onZoom();
     win.addEventListener("resize", sync);
 
-    // The content: its own element moved here (it keeps its state), else rendered here (`target`).
-    const moved = hostOf(store, pane);
-    if (moved) root.appendChild(moved);
+    // The content: its own element moved here, so it keeps its state (pane/content.tsx marks it); else rendered here
+    // (`target`), in a workspace that hydrated a server's HTML.
+    const moved =
+      store.dom.pane(pane)?.querySelector<HTMLElement>(".jali-pane-content > [data-jali-host]") ??
+      null;
+    if (moved) root.append(moved);
 
-    // Jali's keys, and a person's input, in the window too: every key there is this workspace's.
-    const offKeys = installKeyboard(store, { target: win, root: () => doc.documentElement });
+    // Jali's keys, and a person's input, in the window too: every key pressed there is this workspace's.
+    const offKeys = installKeyboard(store, { target: win, root: () => html });
     const offInput = trackInput(doc);
-
-    const session: Session = {
+    // The pane leaving the workspace closes its window; its title, theme and settings follow.
+    const offStore = store.subscribe(() => (store.model().pane(pane) ? sync() : self.close(store)));
+    const s: Session = {
       pane,
       win,
       root,
@@ -226,38 +231,21 @@ function createWindow(): ReactPopOut {
         offStore();
         offKeys();
         offInput();
-        watch?.disconnect();
+        watch.disconnect();
         media?.removeEventListener("change", onZoom);
-        win.removeEventListener("resize", sync);
       },
     };
-    // The pane leaving the workspace closes its window; its title, theme and settings follow.
-    const offStore = store.subscribe(() => {
-      if (sessions.get(store) !== session) return;
-      if (!store.model().pane(pane)) self.close(store);
-      else sync();
-    });
     // The window's own close (its ×, another floating window, the page leaving) brings the pane back.
-    win.addEventListener("pagehide", () => end(store, session));
-    sessions.set(store, session);
-    changed();
-    return true;
+    win.addEventListener("pagehide", () => end(store, s));
+    return s;
   }
 
-  return Object.assign(self, {
-    started: (store: JaliStore) => {
-      started.add(store);
-      return () => {
-        started.delete(store);
-        self.close(store);
-      };
-    },
-  });
+  return self;
 }
 
 /** Pop out, for `createJali({ features })`. Off for a kind with `allow: { popOut: false }`, or a workspace with
  *  `allow: { popOut: false }`. */
 export function popOut(): Feature {
-  const win = createWindow() as ReactPopOut & { started(store: JaliStore): () => void };
-  return { ...popOutFeature(win), start: (store) => win.started(store) };
+  const win = createWindow();
+  return { ...popOutFeature(win), start: win.started };
 }

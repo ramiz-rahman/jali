@@ -128,7 +128,12 @@ describe("a layout link", () => {
     const jali = createJali({
       panes: [visit, call],
       layout: row(visit({ id: 9 })),
-      features: [...defaultFeatures(), urlSync({ location: memoryLocation(linkSearch({ layout: input, peek: visit({ id: 2 }) })) })],
+      features: [
+        ...defaultFeatures(),
+        urlSync({
+          location: memoryLocation(linkSearch({ layout: input, peek: visit({ id: 2 }) })),
+        }),
+      ],
       storage: memoryStorage(),
       size: { width: 2000, height: 800 },
       moveFocus: false,

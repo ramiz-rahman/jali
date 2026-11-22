@@ -7,13 +7,7 @@ import { readdirSync, readFileSync, statSync } from "node:fs";
 import { join, relative } from "node:path";
 import { cleanup, render } from "@testing-library/react";
 import { afterEach, beforeAll, describe, expect, it, vi } from "vite-plus/test";
-import {
-  createJali,
-  memoryLocation,
-  memoryStorage,
-  row,
-  type JaliOptions,
-} from "@jali/core";
+import { createJali, memoryLocation, memoryStorage, row, type JaliOptions } from "@jali/core";
 import {
   activeTabId,
   flashTab,

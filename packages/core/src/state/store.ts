@@ -923,7 +923,12 @@ function firstLayout(
   // Why the layout given can't be shown, for development and for the error when nothing can be.
   const why = () => (given ? core.validate(given, env.kinds.registry(), { params: false }) : null);
   const done = (r: { layout: Layout; preset?: Preset; page?: true }) => {
-    if (dev && given) console.error("Jali: the layout given can't be shown", why());
+    try {
+      if (process.env.NODE_ENV !== "production" && dev && given)
+        console.error("Jali: the layout given can't be shown", why());
+    } catch {
+      /* no `process`: production */
+    }
     return r;
   };
   let layout = given && read(given);

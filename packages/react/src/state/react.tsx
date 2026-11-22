@@ -25,7 +25,9 @@ import type { Actions, Model, PaneAttributes, UiState, JaliStore } from "@jali/c
 import type { ReactEnv, Page } from "../define";
 import { resolveTheme } from "@jali/core/adapter";
 import { reactDom } from "../dom";
-import { DEV } from "../dev";
+
+// Development checks test the literal, so a production build drops them and their messages (dev.ts).
+declare const process: { env: { NODE_ENV?: string } };
 
 const StoreContext = /* @__PURE__ */ createContext<JaliStore | null>(null);
 
@@ -54,11 +56,15 @@ export function useDomScope(store: JaliStore) {
     if (owners.get(store) !== uid) return;
     const id = store.dom.id;
     const n = mounted.get(id) ?? 0;
-    if (DEV && n)
-      console.error(
-        `Jali: two Jali roots on this page share the id "${id}", so their elements' ids repeat. Give each its own ` +
-          "createJali({ id, label }).",
-      );
+    try {
+      if (process.env.NODE_ENV !== "production" && n)
+        console.error(
+          `Jali: two Jali roots on this page share the id "${id}", so their elements' ids repeat. Give each its own ` +
+            "createJali({ id, label }).",
+        );
+    } catch {
+      /* no `process`: production */
+    }
     mounted.set(id, n + 1);
     return () => {
       owners.delete(store);

@@ -54,7 +54,6 @@ export type AllowRule = (ctx: AllowContext) => boolean | undefined | void;
 /** A workspace's `allow`: its defaults, and `when` for "it depends" (a preset, a curated page, a role). */
 export type WorkspaceAllow = PaneAllow & { when?: AllowRule };
 
-
 /** Whether `action` may happen to pane `id`. */
 export function allows(
   { s, m, env }: Snapshot,

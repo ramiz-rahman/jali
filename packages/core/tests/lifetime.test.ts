@@ -86,7 +86,10 @@ describe("destroy() ends everything pending", () => {
     const jali = make({ features: [urlSync({ location })], beforeClose: () => held.promise });
     const stop = jali.start();
     const layout = jali.getLayout();
-    const other = make({ features: [urlSync({ location: memoryLocation() })], layout: row(ref(7)) });
+    const other = make({
+      features: [urlSync({ location: memoryLocation() })],
+      layout: row(ref(7)),
+    });
     location.visit(new URL(storeOf(other).href().replace("memory:", "http://x/")).search);
     stop();
     held.answer(true);

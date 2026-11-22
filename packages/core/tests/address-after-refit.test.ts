@@ -24,7 +24,12 @@ const reopen = (j: Jali) =>
   createJali({
     panes: kinds,
     layout: row({ kind: "list", params: {} }),
-    features: [urlSync({ location: memoryLocation(storeOf(j).href().slice("memory:".length)), sizes: "link" })],
+    features: [
+      urlSync({
+        location: memoryLocation(storeOf(j).href().slice("memory:".length)),
+        sizes: "link",
+      }),
+    ],
     // A reload on the same device: the person's pane cap is theirs, not the link's.
     storage: storeOf(j).storage,
     size: storeOf(j).get().area,

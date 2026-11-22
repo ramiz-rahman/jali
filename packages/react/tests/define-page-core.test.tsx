@@ -39,10 +39,10 @@ const make = (page: unknown) =>
   });
 
 describe("a page from @jali/core's definePage", () => {
-  it("is a development error that names @jali/react's definePage", () => {
+  it("is a development error that names jali/page's definePage", () => {
     const error = vi.spyOn(console, "error").mockImplementation(() => {});
     render(<JaliRoot jali={make(defineCorePage(spec))} />);
-    expect(error.mock.calls.flat().join(" ")).toMatch(/definePage.*@jali\/react/);
+    expect(error.mock.calls.flat().join(" ")).toMatch(/definePage from jali\/page/);
     error.mockRestore();
   });
 

@@ -109,8 +109,14 @@ describe("createJali", () => {
 
   it("writes the layout to the address and reads it back", () => {
     const location = memoryLocation();
-    make({ features: [...defaultFeatures(), urlSync({ location })] }).actions.openBeside("note", note({ id: 9 }));
-    const again = make({ features: [...defaultFeatures(), urlSync({ location })], layout: row(note({ id: 1 })) });
+    make({ features: [...defaultFeatures(), urlSync({ location })] }).actions.openBeside(
+      "note",
+      note({ id: 9 }),
+    );
+    const again = make({
+      features: [...defaultFeatures(), urlSync({ location })],
+      layout: row(note({ id: 1 })),
+    });
     expect(again.model().panes.map((p) => p.ref.params.id)).toEqual([1, 9, 2]);
   });
 
