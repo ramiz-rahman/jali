@@ -1,3 +1,19 @@
+# Migrating to the core review fixes (23 Nov 2026)
+
+Behaviour changes only: nothing is removed or renamed.
+
+| Before                                                                                      | After                                                                                                    |
+| ------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------- |
+| an action run inside a synchronous `beforeClose` landed at once, then could be written over | it waits for the change being decided, then runs: it returns `"pending"`, and `settled` says how it went |
+| unsaved work reported inside `beforeClose` was not asked about                              | it is asked about ("Discard unsaved changes?"), unless `confirmDiscard: false`                           |
+| `on("toast")` heard a toast before the change's other events                                | after them: close, open, pin, focus, layout, then toasts                                                 |
+| a subscriber that threw made the action throw                                               | it is reported with `console.error`; the action returns what it did                                      |
+| a preset or Reset layout chosen on a curated page left the page open                        | the page closes, as `page.leave` and `setLayout` do; its undo steps go with it                           |
+| `runCommand` returned true whenever a command's check passed                                | it returns the action's answer: false for a refusal or after `destroy()`                                 |
+| an agent step with `args` that aren't a list ran with none                                  | refused as `"invalid"`                                                                                   |
+| a change whose layout text a link couldn't read back was made                               | refused as `"blocked"` (with URL sync)                                                                   |
+| `jali/adapter`: `CommandDef.run` returned `void`                                            | it may return the action's result; `JaliStore.ended()`, `UrlWriter.linkText` are new                     |
+
 # Migrating to the core architecture pass (22 Nov 2026)
 
 The core review's fixes change a few public contracts. None of them is used by Data Studio's `packages/workbench/src` (checked by search, 22 Nov 2026: its `identity` functions return text, and it calls neither `linkSearch` nor anything in `jali/adapter`).
