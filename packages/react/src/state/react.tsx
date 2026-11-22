@@ -5,6 +5,8 @@ import {
   createContext,
   Fragment,
   useContext,
+  useEffect,
+  useMemo,
   useRef,
   useSyncExternalStore,
   type ReactNode,
@@ -159,9 +161,77 @@ export const usePaneAttributesOf = (id: NodeId | undefined): PaneAttributes | un
 
 /** The workspace: its actions (`useJali().actions.openBeside(pane, ref)`), events, layout, keymap and kinds. */
 export const useJali = (): Jali => useStore().jali;
-/** Part of the workspace's state, re-rendering only when it changes: `useJaliState((s) => s.view.focused)`. */
-export const useJaliState = <T,>(select: (s: JaliState) => T): T => useUi(select);
-/** The workspace as it is on screen: its panes, their boxes and titles, the shelf. */
-export const useJaliModel = useModel;
+/**
+ * A value picked from a snapshot (`get()`), kept while `isEqual` says the new pick is the same: a selector may return
+ * a fresh object or array. Within one snapshot the pick is worked out once, so React reads the same value back; a new
+ * selector (one that reads a changed prop) is worked out again. The shape of `useSyncExternalStoreWithSelector`.
+ */
+function useSelected<S, T>(
+  subscribe: (fn: () => void) => () => void,
+  get: () => S,
+  select: (s: S) => T,
+  isEqual?: (a: T, b: T) => boolean,
+): T {
+  // The value last committed, which a new selector's pick is compared with.
+  const committed = useRef<{ value: T } | null>(null);
+  const read = useMemo(() => {
+    let memo: { s: S; value: T } | null = null;
+    return () => {
+      const s = get();
+      if (memo && Object.is(memo.s, s)) return memo.value;
+      const next = select(s);
+      const was = memo ?? committed.current;
+      const value = was && isEqual?.(was.value, next) ? was.value : next;
+      memo = { s, value };
+      return value;
+    };
+  }, [get, select, isEqual]);
+  const value = useSyncExternalStore(subscribe, read, read);
+  useEffect(() => {
+    committed.current = { value };
+  }, [value]);
+  return value;
+}
+
+/** One level of keys (or items) the same by `Object.is`: the equality for a selector that picks several values,
+ *  `useJaliState((s) => ({ focused: s.view.focused, cap: s.settings.paneCap }), shallow)`. */
+export function shallow<T>(a: T, b: T): boolean {
+  if (Object.is(a, b)) return true;
+  if (typeof a !== "object" || typeof b !== "object" || !a || !b) return false;
+  if (Array.isArray(a) !== Array.isArray(b)) return false;
+  const ka = Object.keys(a),
+    kb = Object.keys(b);
+  if (ka.length !== kb.length) return false;
+  return ka.every(
+    (k) =>
+      Object.hasOwn(b, k) &&
+      Object.is((a as Record<string, unknown>)[k], (b as Record<string, unknown>)[k]),
+  );
+}
+
+/**
+ * Part of the workspace's state, re-rendering only when it changes: `useJaliState((s) => s.view.focused)`. A selector
+ * may return a new object or array; give `isEqual` (`shallow`) to re-render only when what it picked changed.
+ */
+export function useJaliState<T>(select: (s: JaliState) => T, isEqual?: (a: T, b: T) => boolean): T {
+  const store = useStore();
+  return useSelected(store.subscribe, store.get, select, isEqual);
+}
+
+const whole = <T,>(m: T) => m;
+
+/**
+ * The workspace as it is on screen: its panes, their boxes and titles, the shelf. With a selector, only what it picks
+ * (`useJaliModel((m) => m.title(id))`), re-rendering when that changes by `isEqual` (`Object.is` unless given).
+ */
+export function useJaliModel(): JaliModel;
+export function useJaliModel<T>(select: (m: JaliModel) => T, isEqual?: (a: T, b: T) => boolean): T;
+export function useJaliModel<T>(
+  select: (m: JaliModel) => T = whole as (m: JaliModel) => T,
+  isEqual?: (a: T, b: T) => boolean,
+): T {
+  const store = useStore();
+  return useSelected(store.subscribe, store.model, select, isEqual);
+}
 /** The theme in use, "light" or "dark": the person's choice, or the system's when they chose "system". */
 export const useTheme = (): Theme => useUi((s) => resolveTheme(s.settings.theme, s.systemDark));

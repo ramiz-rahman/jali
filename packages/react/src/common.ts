@@ -31,7 +31,7 @@ export { usePaneState, type PaneStateOptions } from "./pane/usePaneState";
 export { useActiveItemPort } from "./pane/useActiveItemPort";
 
 // ---------- the workspace in React ----------
-export { useJali, useJaliState, useJaliModel, useTheme } from "./state/react";
+export { useJali, useJaliState, useJaliModel, useTheme, shallow } from "./state/react";
 export { useShortcut, useJaliCommands } from "./commands/react";
 export { keyBelongsToContent } from "./keys";
 

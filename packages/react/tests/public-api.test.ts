@@ -69,6 +69,7 @@ describe("public API", () => {
       "keyBelongsToContent",
       "oneOf",
       "optional",
+      "shallow",
       "unstable_bringBack",
       "unstable_canPopOut",
       "unstable_popOut",
