@@ -185,7 +185,7 @@ export function openPage(x: Snapshot, o: OpenPage = {}): Outcome {
   const p = x.env.profile;
   if (!p) return refuse("unavailable");
   const prev = x.s.page;
-  const canInvestigate = prev?.canInvestigate ?? true;
+  const canInvestigate = prev?.canInvestigate ?? x.s.canInvestigate ?? true;
   // A limited viewer works in Single only, whatever the link or Back brings: its opened panes are left out. What the
   // address doesn't hold (`appOnly` and `link: false` params) stays on an opened pane that is still on screen.
   const kinds = x.env.kinds.registry();
@@ -643,21 +643,33 @@ export function resetPage(x: Snapshot): Outcome {
  *  credit reviewer) may multiplex. The profile names both (`viewers`). */
 export function setCanInvestigate(x: Snapshot, canInvestigate: boolean): Outcome {
   const { s } = x;
-  if (!s.page) return refuse("unavailable");
+  // No page open: the policy waits for the next one (leaving a page never widens what its viewer may do).
+  if (!s.page)
+    return (s.canInvestigate ?? true) === canInvestigate
+      ? null
+      : { op: "permission", patch: { canInvestigate } };
   if (s.page.canInvestigate === canInvestigate) return null;
   const msg = say(x).permission(
     viewerLabel(x.env.profile, canInvestigate, messagesOf(x).page),
     canInvestigate,
   );
   if (canInvestigate || s.page.mode === "single")
-    return { op: "permission", msg, patch: { page: { ...s.page, canInvestigate } } };
+    return {
+      op: "permission",
+      msg,
+      patch: { page: { ...s.page, canInvestigate }, canInvestigate },
+    };
   // From Split view: the switch to Single and the permission are one change, so a switch held for unsaved work
   // holds the permission too, and Keep editing leaves both as they were.
   const toSingle = setMode(x, "single") as Change;
   return {
     ...toSingle,
     msg,
-    patch: { ...toSingle.patch, page: { ...toSingle.patch!.page!, canInvestigate } },
+    patch: {
+      ...toSingle.patch,
+      page: { ...toSingle.patch!.page!, canInvestigate },
+      canInvestigate,
+    },
   };
 }
 

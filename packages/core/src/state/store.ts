@@ -134,6 +134,9 @@ export interface UiState {
   layout: Layout;
   /** Null in the free workspace, where the person builds the layout. */
   page: PageState | null;
+  /** The host's viewer policy for the curated page (`setCanInvestigate`), kept while no page is open, so leaving the
+   *  page and coming back never widens it. Undefined: the full viewer. */
+  canInvestigate?: boolean;
   /** The person's mode and split layout (while Split view is on screen, the live layout is the truth). */
   prefs: PagePrefs;
   view: ViewState;
