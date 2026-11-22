@@ -12,7 +12,10 @@ import { build, defaultClientConditions } from "vite-plus";
 import react from "@vitejs/plugin-react";
 
 const repo = fileURLToPath(new URL("../../..", import.meta.url));
-const hasDist = existsSync(`${repo}/packages/react/dist/icons.js`);
+// The examples import `jali`, which bundles core and React; its dist is the one an app resolves.
+const hasDist = ["index.js", "react.js", "icons.js"].every((f) =>
+  existsSync(`${repo}/packages/jali/dist/${f}`),
+);
 
 /** All the JavaScript a production build of the app emits. */
 async function bundle(example: string, from: "source" | "dist"): Promise<string> {
