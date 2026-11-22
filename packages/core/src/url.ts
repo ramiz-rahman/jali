@@ -235,7 +235,6 @@ export function buildSearch(search: string, s: UrlState, k: UrlKeys = urlKeys())
   return text ? `?${text}` : "";
 }
 
-/** What the address holds: a layout and view, or a code that could not be read. Null when there is no layout. */
 /** A page link: its view, its item as the link wrote it (text; the page converts it to its profile's type), and the
  *  panes opened while investigating. `item` is undefined when the link names none. */
 export interface PageRead {
@@ -245,7 +244,8 @@ export interface PageRead {
   item: string | undefined;
   investigation: ObjectRef[];
 }
-/** `preset`: the preset a layout link says it came from (`?preset=`), when it names one. */
+/** What the address holds: a layout and view, a code that could not be read (`broken`), or a page link. `preset`: the
+ *  preset a layout link says it came from (`?preset=`), when it names one. */
 export type UrlRead =
   | { layout: Layout; view: Partial<ViewState>; preset?: string }
   | { broken: string; view: Partial<ViewState>; preset?: string }
