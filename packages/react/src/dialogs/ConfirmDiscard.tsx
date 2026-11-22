@@ -1,7 +1,7 @@
 import { own, type ConfirmState } from "@jali/core/adapter";
 import { useRef } from "react";
 import { ModalDialog } from "../a11y/ModalDialog";
-import { bold, Parts, useEntriesOf, useModelValue, useStore, useUi } from "../state/react";
+import { bold, Parts, shallow, useEntriesOf, useModelValue, useStore, useUi } from "../state/react";
 
 /**
  * "Discard unsaved changes?": a change would close or replace panes with unsaved work. Keep editing is the default
@@ -16,8 +16,7 @@ export function ConfirmDiscard() {
 function DiscardDialog({ confirm }: { confirm: ConfirmState }) {
   const store = useStore();
   const unsaved = useEntriesOf((s) => s.unsaved, confirm.panes);
-  const names = useModelValue((m) => JSON.stringify(confirm.panes.map((id) => m.title(id))));
-  const titles = JSON.parse(names) as string[];
+  const titles = useModelValue((m) => confirm.panes.map((id) => m.title(id)), shallow);
   const id = store.dom.id;
   const keep = useRef<HTMLButtonElement>(null);
   const stay = () => store.actions.keepEditing();

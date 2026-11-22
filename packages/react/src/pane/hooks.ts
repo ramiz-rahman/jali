@@ -27,9 +27,9 @@ import {
 } from "react";
 import type { PaneAttributes, PaneReportPatch } from "@jali/core/adapter";
 import type { PaneHost } from "./context";
-import { openPaneFor } from "@jali/core/adapter";
+import { openPaneFor, sameRef } from "@jali/core/adapter";
 import type { Pane, PaneProps, ParamsOfPane } from "../define";
-import { useModel, useUi } from "../state/react";
+import { shallow, useKept, useModel, useUi } from "../state/react";
 import { usePaneContext } from "./context";
 
 // Development checks test the literal, so a production build drops them and their messages (dev.ts).
@@ -92,6 +92,17 @@ export function useUnsaved(what: string | null | false | undefined): void {
   useEffect(() => () => report(null), [report]);
 }
 
+/** The same commands as ⌘K lists them: ids, titles, keys and whether each is disabled, in order. */
+const sameCommands = (a: readonly PaneCommand[], b: readonly PaneCommand[]) =>
+  a.length === b.length &&
+  a.every(
+    (c, i) =>
+      c.id === b[i]!.id &&
+      c.title === b[i]!.title &&
+      c.keys === b[i]!.keys &&
+      c.disabled === b[i]!.disabled,
+  );
+
 /**
  * The commands this pane adds to ⌘K while it is focused. Pass them on every render: they are listed again only when
  * an id, title, keys or disabled reason changes, and each runs the latest `run` it was given.
@@ -101,7 +112,8 @@ export function useCommands(commands: readonly PaneCommand[]): void {
   const report = useReporter(host);
   const latest = useRef(commands);
   latest.current = commands;
-  const shape = JSON.stringify(commands.map(({ run: _run, ...rest }) => rest));
+  // Listed again when what ⌘K shows of them changes; a new `run` is read when one runs.
+  const shape = useKept(commands, sameCommands);
   useEffect(() => {
     const listed = latest.current.map((c) => ({
       ...c,
@@ -123,7 +135,7 @@ export function useTitle(title: string | null | undefined): void {
   const report = useReporter(host);
   const text = title || null;
   // The instance drops a title when the pane shows another object; this sets the new object's again.
-  const shows = JSON.stringify(props.node.ref);
+  const shows = useKept(props.node.ref, sameRef);
   useEffect(() => {
     report({ title: text });
   }, [report, text, shows]);
@@ -142,13 +154,11 @@ export function usePaneAttributes(
 ): void {
   const { host, props } = usePaneContext("usePaneAttributes");
   const report = useReporter(host);
-  const shape = attributes ? JSON.stringify(attributes) : null;
-  const latest = useRef<PaneAttributes | null | undefined>(attributes);
-  latest.current = attributes;
+  const shape = useKept(attributes ?? null, shallow);
   // As with a title: the instance drops them when the pane shows another object; this sets the new object's again.
-  const shows = JSON.stringify(props.node.ref);
+  const shows = useKept(props.node.ref, sameRef);
   useEffect(() => {
-    report({ attributes: shape ? (latest.current ?? null) : null });
+    report({ attributes: shape });
   }, [report, shape, shows]);
   useEffect(() => () => report(null), [report]);
 }

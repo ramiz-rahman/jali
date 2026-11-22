@@ -11,7 +11,7 @@ import type { PaneHydration } from "../state/hydration";
 
 interface BoundaryProps {
   /** What the pane shows: a new value clears a failure, as the content is now about something else. */
-  resetKey: string;
+  resetKey: unknown;
   host: PaneHost;
   /** The pane's name, for the failed state ("Order 3 could not be shown"). */
   name: string;

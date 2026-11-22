@@ -21,6 +21,7 @@ import { KindIcon } from "../pane/icons";
 import { UnsavedMark } from "../pane/Unsaved";
 import {
   InstanceScope,
+  shallow,
   useActions,
   useEntriesOf,
   useMessages,
@@ -59,9 +60,7 @@ function ShelfBar() {
   // What it lists: the tucked panes (the model keeps the list until the layout changes), and their names and their
   // homes'. It renders again when one of those changes, never for another pane's title; the model is read as it renders.
   const tuckedItems = useModelValue((m) => m.shelf);
-  useModelValue((m) =>
-    JSON.stringify(m.shelf.map((it) => [m.title(it.paneId), m.title(it.homeId)])),
-  );
+  useModelValue((m) => m.shelf.flatMap((it) => [m.title(it.paneId), m.title(it.homeId)]), shallow);
   const m = store.model();
   const items = tuckedItems;
   // And what its chips' panes report: unsaved marks, what they are doing, data-* attributes.
@@ -81,7 +80,7 @@ function ShelfBar() {
   // The +N list: chips scrolled out of view.
   const [menu, setMenu] = useState(false);
   const [hiddenIds, setHiddenIds] = useState<string[]>([]);
-  const hiddenKey = useRef("[]");
+  const shownOut = useRef<string[]>([]);
   const scroller = useRef<HTMLDivElement>(null);
   const bar = useRef<HTMLDivElement>(null);
 
@@ -115,9 +114,8 @@ function ShelfBar() {
       if (cr.left < box.left - 1 || cr.right > box.right + 1) out.push(c.dataset.chip!);
     });
     // Set only when it changed: a functional update right after a commit renders the shelf again to find it the same.
-    const key = JSON.stringify(out);
-    if (hiddenKey.current !== key) {
-      hiddenKey.current = key;
+    if (!shallow(shownOut.current, out)) {
+      shownOut.current = out;
       setHiddenIds(out);
     }
   };

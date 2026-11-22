@@ -1,10 +1,10 @@
 import type { NodeId, ObjectRef, PaneNode } from "@jali/core";
 import { memo, useMemo } from "react";
 import type { ActionResult, JaliStore } from "@jali/core/adapter";
-import { parseKeys, sameNode } from "@jali/core/adapter";
+import { parseKeys, sameNode, sameRef } from "@jali/core/adapter";
 import type { PaneProps } from "../define";
 import { PaneContext, type PaneHost } from "./context";
-import { useEnv, useMessages, useStore } from "../state/react";
+import { useEnv, useKept, useMessages, useStore } from "../state/react";
 import { useKeymap } from "../state/hydrated";
 import { paneHydration } from "../state/hydration";
 import { DefaultLoading, PaneBoundary } from "./PaneBoundary";
@@ -62,6 +62,8 @@ export const PaneBody = /* @__PURE__ */ memo(
     const { messages } = useStore();
     const def = kinds.get(node.ref.kind);
     const params = useMemo(() => kinds.params(node.ref), [kinds, node.ref]);
+    // The object it shows, the same in any key order: a new one clears a failure.
+    const shows = useKept(node.ref, sameRef);
     const props = useMemo(
       (): PaneProps => ({
         params,
@@ -112,7 +114,7 @@ export const PaneBody = /* @__PURE__ */ memo(
     return (
       <PaneContext.Provider value={context}>
         <PaneBoundary
-          resetKey={JSON.stringify(node.ref)}
+          resetKey={shows}
           host={host}
           name={kinds.title(node.ref)}
           close={close}
