@@ -10,6 +10,9 @@ function tabStops(root: HTMLElement) {
   return [...root.querySelectorAll<HTMLElement>(TABBABLE)].filter(
     (el) =>
       el.tabIndex >= 0 &&
+      // Not one that isn't there to press: hidden, inert, or in something not displayed.
+      !el.closest("[hidden], [inert]") &&
+      el.checkVisibility?.({ visibilityProperty: true }) !== false &&
       !(
         el instanceof HTMLInputElement &&
         el.type === "radio" &&

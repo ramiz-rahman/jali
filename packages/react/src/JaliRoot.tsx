@@ -165,14 +165,10 @@ export function JaliRoot({
           >
             <Guard onError={onError}>
               <Announcer />
-              {store.env.palette === false ? null : <Palette />}
-              {settings ? (
-                <SettingsPanel>
-                  <Guard onError={onError}>{settingsExtra}</Guard>
-                </SettingsPanel>
-              ) : null}
-              <Chooser />
-              <ConfirmDiscard />
+              <Dialogs
+                palette={store.env.palette !== false}
+                settings={settings ? <Guard onError={onError}>{settingsExtra}</Guard> : null}
+              />
             </Guard>
           </div>,
         )}
@@ -193,6 +189,39 @@ export function JaliRoot({
       </LabelContext.Provider>
     </JaliProvider>
   );
+}
+
+/**
+ * Jali's dialogs, one at a time: the discard question over the chooser, over ⌘K, over Settings. The one beneath comes
+ * back when the one above closes. Settings asked for where the root renders none closes again at once, so nothing
+ * holds the workspace's keys for a dialog that isn't there.
+ */
+function Dialogs({ palette, settings }: { palette: boolean; settings: ReactNode }) {
+  const store = useStore();
+  const top = useUi((s) =>
+    s.confirm
+      ? "confirm"
+      : s.chooser
+        ? "chooser"
+        : s.paletteOpen && palette
+          ? "palette"
+          : s.settingsOpen
+            ? "settings"
+            : null,
+  );
+  const orphan = top === "settings" && settings === null;
+  useEffect(() => {
+    if (orphan) store.actions.closeSettings();
+  }, [orphan, store]);
+  return top === "confirm" ? (
+    <ConfirmDiscard />
+  ) : top === "chooser" ? (
+    <Chooser />
+  ) : top === "palette" ? (
+    <Palette />
+  ) : top === "settings" && !orphan ? (
+    <SettingsPanel>{settings}</SettingsPanel>
+  ) : null;
 }
 
 /** In place of the root's children when something in them threw: the workspace's name, could not be shown, Retry. */
