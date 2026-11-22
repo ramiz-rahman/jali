@@ -351,6 +351,7 @@ export interface UiStore {
  * lookups (focus, drag, F6 regions) search inside `root()` only.
  */
 export interface JaliDom {
+  /** The prefix of its elements' ids. The adapter may scope it per mounted root (two workspaces with no `id`). */
   id: string;
   /** The adapter's markup, as the core needs to find it (dom/port.ts). `noDom` until the adapter gives one. */
   readonly port: DomPort;
@@ -377,7 +378,7 @@ function createDom(id: string): JaliDom {
     port: DomPort = noDom,
     drag: DragKind | null = null;
   const root = (): ParentNode => el ?? document;
-  return {
+  const dom: JaliDom = {
     id,
     get port() {
       return port;
@@ -401,8 +402,9 @@ function createDom(id: string): JaliDom {
     pane: (pane) =>
       typeof document === "undefined"
         ? null
-        : root().querySelector<HTMLElement>(`[id=${cssString(paneDomId(id, pane))}]`),
+        : root().querySelector<HTMLElement>(`[id=${cssString(paneDomId(dom.id, pane))}]`),
   };
+  return dom;
 }
 
 const DEV = !!(import.meta as unknown as { env?: { DEV?: boolean } }).env?.DEV;
