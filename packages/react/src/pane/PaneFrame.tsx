@@ -56,6 +56,12 @@ export const PaneFrame = /* @__PURE__ */ memo(
     const alone = chrome === ALONE_CHROME;
     const store = useStore();
     const [menu, setMenu] = useState<TabMenuAt | null>(null);
+    // What had focus when the menu opened (the ⋯ button, the pane): focus goes back there when it closes.
+    const opener = useRef<HTMLElement | null>(null);
+    const openMenu = (at: TabMenuAt) => {
+      opener.current = document.activeElement as HTMLElement | null;
+      setMenu(at);
+    };
     // Popped out (experimental): the content renders in a floating window; its place here says so.
     const popTarget = usePopOutTarget(store, node.id);
     const icon = useJaliIcons();
@@ -161,7 +167,7 @@ export const PaneFrame = /* @__PURE__ */ memo(
           )?.getBoundingClientRect();
           if (!r) return;
           const rtl = store.get().dir === "rtl";
-          setMenu({ pane: node.id, x: rtl ? r.left : r.right, y: r.bottom + 2, end: true });
+          openMenu({ pane: node.id, x: rtl ? r.left : r.right, y: r.bottom + 2, end: true });
         }}
         className={cls}
         style={style}
@@ -183,7 +189,7 @@ export const PaneFrame = /* @__PURE__ */ memo(
             )
               return;
             e.preventDefault();
-            setMenu({ pane: node.id, x: e.clientX, y: e.clientY });
+            openMenu({ pane: node.id, x: e.clientX, y: e.clientY });
           }}
           onPointerDown={
             draggable ? (e) => inHeader(e) && startPaneDrag(store, e, node.id) : undefined
@@ -237,7 +243,7 @@ export const PaneFrame = /* @__PURE__ */ memo(
               chrome={chrome}
               tabs={!!group}
               narrow={narrow}
-              onMenu={(at) => setMenu({ pane: node.id, ...at })}
+              onMenu={(at) => openMenu({ pane: node.id, ...at })}
             />
           )}
         </div>
@@ -247,7 +253,13 @@ export const PaneFrame = /* @__PURE__ */ memo(
             commands={narrow === 2}
             onClose={(refocus) => {
               setMenu(null);
-              if (refocus) store.dom.pane(node.id)?.focus({ preventScroll: true });
+              const back = opener.current;
+              opener.current = null;
+              if (refocus)
+                (back?.isConnected && back !== document.body
+                  ? back
+                  : store.dom.pane(node.id)
+                )?.focus({ preventScroll: true });
             }}
           />
         ) : null}

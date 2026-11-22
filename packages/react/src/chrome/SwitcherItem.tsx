@@ -11,7 +11,7 @@ import { ICON } from "../icons/sized";
  * Scrolls the switcher's own list so the selected entry is in it, and nothing else: `scrollIntoView` would also scroll
  * the page to this workspace, pulling the reader away from wherever they are (a docs page with several workspaces).
  */
-function revealInList(el: HTMLElement | null) {
+export function revealInList(el: HTMLElement | null) {
   const list = el?.parentElement;
   if (!el || !list) return;
   // By the boxes on screen, so it reads the same right to left, where scrollLeft counts down from 0.
@@ -54,6 +54,8 @@ export function SwitcherItem({
       aria-description={dirty ? store.messages.pane.unsaved : undefined}
       onClick={() => actions.focus(node.id)}
       ref={selected ? revealInList : undefined}
+      // An arrow key's focus too: it moves with preventScroll, so it comes into the list here.
+      onFocus={(e) => revealInList(e.currentTarget)}
     >
       <KindIcon kind={node.ref.kind} {...ICON.tab} />
       <span className="jali-switch-title">{title}</span>

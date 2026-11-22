@@ -19,6 +19,7 @@ import { useKeymap } from "../state/hydrated";
 import { Panes } from "../workspace/Workspace";
 import { useLandmarkName } from "../a11y/landmark";
 import { Guard } from "./Guard";
+import { revealInList } from "./SwitcherItem";
 
 /**
  * A curated page's controls in the top bar: the mode (Single or Split view), the investigation (panes opened from
@@ -179,6 +180,7 @@ function PageTabs() {
               className="jali-page-tab"
               data-role={r.id}
               data-state={st}
+              onFocus={(e) => revealInList(e.currentTarget)}
               aria-selected={r.id === selected}
               aria-controls={paneOf(r.id)}
               tabIndex={r.id === selected ? 0 : -1}

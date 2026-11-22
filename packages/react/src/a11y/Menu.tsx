@@ -98,13 +98,14 @@ export function Menu({ at, onClose, initial, trigger, style, children, ...rest }
         else if (e.key === "ArrowUp") go(i < 0 ? -1 : i - 1);
         else if (e.key === "Home") go(0);
         else if (e.key === "End") go(list.length - 1);
-        else if (e.key === "Escape") onClose(true);
-        else if (e.key === "Tab") onClose(false);
+        // Escape, and Tab too: the menu sits in the dialog layer, after everything else in the page, so Tab from it
+        // would leave the workspace. Focus goes back to what opened it, and the next Tab goes on from there.
+        else if (e.key === "Escape" || e.key === "Tab") onClose(true);
         else if (e.key === "Enter" || e.key === " ")
           (document.activeElement as HTMLElement)?.click();
         else used = false;
         if (used) {
-          if (e.key !== "Tab") e.preventDefault();
+          e.preventDefault();
           e.nativeEvent.stopImmediatePropagation();
         }
       }}
