@@ -11,7 +11,7 @@ import type { ConfirmState, UiStore } from "./state/store";
 import { applyTokens } from "./tokens";
 import { savePrefs } from "./state/page-prefs";
 import { ownedPaneState, ownedSelection, savePaneState } from "./state/pane-state";
-import { arrive } from "./actions/layout";
+import { arrive, readLayout } from "./actions/layout";
 import { agreeOnArrival } from "./actions/follow";
 import { DONE, refuse, type ActionResult, type Outcome, type Snapshot } from "./state/apply";
 import type { UrlSync } from "./url";
@@ -50,7 +50,8 @@ function arriveFromUrl(
   const named = r.preset && store.env.presets.some((p) => p.id === r.preset) ? r.preset : undefined;
   if ("broken" in r) {
     const p = presetById(store.env, named ?? store.get().presetId);
-    const done = p ? store.apply(latest((x) => arrive(x, p.build(), r.view, p.id))) : DONE;
+    const built = p && readLayout(p.build, store.env);
+    const done = built ? store.apply(latest((x) => arrive(x, built, r.view, p.id))) : DONE;
     url.keepBroken(r.broken);
     store.writeUrl("replace");
     store.toast(store.messages.toasts.brokenLink(p?.label));

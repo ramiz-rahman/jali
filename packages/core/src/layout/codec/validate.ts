@@ -14,9 +14,15 @@ const nodeId = (value: unknown): value is string =>
   typeof value === "string" && NODE_ID.test(value);
 const positive = (value: unknown): value is number =>
   typeof value === "number" && Number.isFinite(value) && value > 0;
+/**
+ * What is wrong with `layout` for a workspace of `kinds`, or `{ ok: true }`. `params: false` leaves a kind's own param
+ * types unchecked: a ref they can't read still opens, in the kind's `Missing` (an app's own layout; a link is read
+ * with them).
+ */
 export function validate(
   layout: Layout,
   kinds: KindRegistry,
+  { params = true }: { params?: boolean } = {},
 ): { ok: true } | { ok: false; errors: string[] } {
   const errors: string[] = [];
   const ids = new Set<string>(),
@@ -77,7 +83,7 @@ export function validate(
         )
       )
         error(path, "invalid object params");
-      else if (typeof ref.kind === "string" && Object.hasOwn(kinds, ref.kind)) {
+      else if (params && typeof ref.kind === "string" && Object.hasOwn(kinds, ref.kind)) {
         const problem = kinds[ref.kind]!.checkParams?.(ref.params as ObjectRef["params"]);
         if (problem) error(path, `invalid params for ${ref.kind}: ${problem}`);
       }

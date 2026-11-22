@@ -17,7 +17,9 @@ export function preset({ s, ctx, env }: Snapshot, id: string | undefined, own = 
   const p = presetById(env, id);
   if (!p) return null;
   const saved = own ? undefined : p.saved?.();
-  const built = (saved && readLayout(saved, env)) || p.build();
+  // A preset's own layout is checked too: one that names a kind this workspace no longer has can't be shown.
+  const built = (saved && readLayout(saved, env)) || readLayout(p.build, env);
+  if (!built) return refuse("invalid");
   const initial = core.tree.panes(built.root)[0]?.id;
   const fitted = core.resetLayout(
     built,
@@ -47,9 +49,14 @@ export function preset({ s, ctx, env }: Snapshot, id: string | undefined, own = 
 
 export const resetLayout = (x: Snapshot) => preset(x, x.s.presetId, true);
 
-function readLayout(input: LayoutInput, env: Snapshot["env"]): Layout | undefined {
+/** `input` as a layout this workspace can show (a copy), or undefined: it names a kind it doesn't have, has two panes
+ *  with one id, is malformed, or building it threw. */
+export function readLayout(
+  input: LayoutInput | (() => LayoutInput),
+  env: Pick<Snapshot["env"], "kinds">,
+): Layout | undefined {
   try {
-    const layout = structuredClone(toLayout(input));
+    const layout = structuredClone(toLayout(typeof input === "function" ? input() : input));
     return core.validate(layout, env.kinds.registry()).ok ? layout : undefined;
   } catch {
     return undefined;

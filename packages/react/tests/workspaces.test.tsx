@@ -121,13 +121,13 @@ describe("dialog ids (2)", () => {
 describe("default storage (3)", () => {
   it("two stores with their own ids save under their own prefixes", () => {
     const a = core.createUiStore({
-      kinds: core.createPaneKinds([]),
+      kinds: make().env.kinds,
       initial: { layout: make().get().layout },
       id: "orders",
       focusPane: null,
     });
     const b = core.createUiStore({
-      kinds: core.createPaneKinds([]),
+      kinds: make().env.kinds,
       initial: { layout: make().get().layout },
       id: "notes",
       focusPane: null,
@@ -152,7 +152,7 @@ describe("default storage (3)", () => {
   });
   it("the default store keeps its old prefix", () => {
     const s = core.createUiStore({
-      kinds: core.createPaneKinds([]),
+      kinds: make().env.kinds,
       initial: { layout: make().get().layout },
       focusPane: null,
     });

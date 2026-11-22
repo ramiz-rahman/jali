@@ -455,21 +455,19 @@ export function createUiStore(deps: UiStoreDeps): UiStore {
   const dom = createDom(deps.id ?? "jali");
   // The id is the prefix: two workspaces with their own ids never overwrite each other ("jali" stays "jali").
   const storage = deps.storage ?? browserStorage(deps.id ?? "jali");
+  if (DEV && deps.preset !== undefined && !env.presets.some((p) => p.id === deps.preset))
+    console.error(`Jali: there is no preset "${deps.preset}"; the workspace opens on the first`);
   const start = presetById(env, deps.preset);
   // A page-only app (a page, no presets or layout) starts on its page.
   const pageOnly = !deps.initial?.layout && !start && !!env.profile;
-  const layout =
-    deps.initial?.layout ??
-    start?.build() ??
-    (env.profile ? toLayout(env.profile.build(env.profile.firstItem)) : undefined);
-  if (!layout)
-    throw new Error("Jali: give the workspace a `layout`, `presets` or a `page` to start from");
+  const first = firstLayout(env, deps.initial?.layout, start, DEV);
+  const layout = first.layout;
   let state: UiState = {
-    layout,
     page: null,
     prefs: loadPrefs(storage, env.profile?.id, env.kinds.registry()),
     view: { focusHistory: [] },
-    presetId: start?.id,
+    // A layout that can't be shown gave way to a preset: the workspace is on that preset.
+    presetId: (first.preset ?? start)?.id,
     settings: loadSettings(storage, deps.settings),
     systemDark: systemPrefersDark(),
     undoStack: [],
@@ -496,6 +494,8 @@ export function createUiStore(deps: UiStoreDeps): UiStore {
     ...readPaneState(storage),
     selectionOf: {},
     ...deps.initial,
+    // The layout given, once checked (`firstLayout`), or what took its place.
+    layout,
   };
   const subs = new Set<() => void>();
   const notify = () => {
@@ -794,6 +794,70 @@ export function createUiStore(deps: UiStoreDeps): UiStore {
   store.jali = createInstance(store);
   // As an arrival, which writes no history: the address still holds the link boot is about to read, and boot writes
   // the address itself once it has.
-  if (pageOnly && !deps.initial?.page) store.actions.openPage({ fromUrl: true });
+  if ((pageOnly || first.page) && !deps.initial?.page) store.actions.openPage({ fromUrl: true });
   return store;
+}
+
+/**
+ * The layout a workspace starts on, checked as `setLayout` and links check theirs (`core.validate`): the one given
+ * (`createJali({ layout })`, often one the app saved), else the preset it opens on, the other presets, the curated
+ * page, and a lone launcher, in that order. A layout that can't be shown (a kind removed since it was saved, two
+ * panes with one id, a malformed tree) is skipped, and development says why. Throws only when nothing can be shown.
+ */
+function firstLayout(
+  env: Env,
+  given: Layout | undefined,
+  start: Preset | undefined,
+  dev: boolean,
+): { layout: Layout; preset?: Preset; page?: true } {
+  const kinds = env.kinds.registry();
+  const problems: string[] = [];
+  const check = (what: string, build: () => Layout | undefined): Layout | undefined => {
+    try {
+      const layout = build();
+      if (!layout) return undefined;
+      // A ref its kind's params can't read still opens, in the kind's `Missing`, as an app's layout always has.
+      const r = core.validate(layout, kinds, { params: false });
+      if (r.ok) return layout;
+      problems.push(`${what}: ${r.errors.slice(0, 3).join("; ")}`);
+    } catch (e) {
+      problems.push(`${what}: ${e instanceof Error ? e.message : String(e)}`);
+    }
+    return undefined;
+  };
+  const report = () => {
+    if (dev && problems.length)
+      console.error(`Jali: a layout to start from can't be shown\n  ${problems.join("\n  ")}`);
+  };
+  const ok = given && check("layout", () => given);
+  if (ok) return { layout: ok };
+  for (const p of start ? [start, ...env.presets.filter((q) => q !== start)] : env.presets) {
+    const layout = check(`preset "${p.id}"`, p.build);
+    if (layout) {
+      report();
+      return { layout, preset: p };
+    }
+  }
+  if (env.profile) {
+    const profile = env.profile;
+    const layout = check(`page "${profile.id}"`, () => toLayout(profile.build(profile.firstItem)));
+    if (layout) {
+      report();
+      // The page's layout opens the page, as a page-only workspace does.
+      return { layout, page: true };
+    }
+  }
+  if (env.launcher) {
+    const launcher = env.launcher;
+    const layout = check("launcher", () => toLayout({ kind: launcher, params: {} }));
+    if (layout) {
+      report();
+      return { layout };
+    }
+  }
+  throw new Error(
+    problems.length
+      ? `Jali: no layout to start from can be shown\n  ${problems.join("\n  ")}`
+      : "Jali: give the workspace a `layout`, `presets` or a `page` to start from",
+  );
 }

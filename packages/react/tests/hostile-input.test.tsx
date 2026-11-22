@@ -102,13 +102,18 @@ describe("C1: ids", () => {
   });
 
   it("an id with a quote never reaches a selector unescaped", () => {
-    const jali = make({
-      layout: tabs(pane(note({ id: 1 }), { id: 'q"1' }), pane(note({ id: 2 }), { id: 'q"]2' })),
-    });
+    // A layout with such ids never starts (core-opus CORE-1: every first layout is checked)...
+    expect(() =>
+      make({
+        layout: tabs(pane(note({ id: 1 }), { id: 'q"1' }), pane(note({ id: 2 }), { id: 'q"]2' })),
+      }),
+    ).toThrow(/id must be/);
+    // ...and a lookup by one is escaped all the same.
+    const jali = make();
     expect(() => render(<JaliRoot jali={jali} />)).not.toThrow();
     const store = storeOf(jali);
     expect(() => store.dom.pane('q"1')).not.toThrow();
-    expect(store.dom.pane('q"1')?.id).toBe(`${store.dom.id}-pane-q"1`);
+    expect(store.dom.pane('q"1')).toBeNull();
   });
 });
 
