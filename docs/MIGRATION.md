@@ -1,3 +1,33 @@
+# Migrating to the core architecture pass (22 Nov 2026)
+
+The core review's fixes change a few public contracts. None of them is used by Data Studio's `packages/workbench/src` (checked by search, 22 Nov 2026: its `identity` functions return text, and it calls neither `linkSearch` nor anything in `jali/adapter`).
+
+## `jali`
+
+| Before                                                                              | After                                                                                                                              |
+| ----------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| `linkSearch(link)`, `linkSearch(link, { prefix })`                                  | `linkSearch(link, { panes })`, `linkSearch(link, { panes, prefix })`: the kinds are required, and a ref of a kind they lack throws |
+| `jali.get().page.linkMode`                                                          | `jali.get().linkMode` (kept while no page is open)                                                                                 |
+| `jali.get().activity[id]` is `"idle"` once the last component reporting it unmounts | no entry: a pane nothing reports an activity for is idle                                                                           |
+| `identity: (params) => unknown`                                                     | `identity: (params) => Identity \| undefined` (any JSON value); one JSON can't write falls back to the params                      |
+| a Standard Schema may give back any value                                           | its output must still be params (text, numbers, flags); anything else is a problem of that param                                   |
+| `jali.actions.split(pane)` on a curated page split it                               | refused as `"unavailable"`, as the tab menu already showed                                                                         |
+| an argument of the wrong type reached the step                                      | refused as `"invalid"` before anything happens                                                                                     |
+| a multi-step action could land part way                                             | all or nothing: a refusal or a question puts back what came before it                                                              |
+
+## `jali/adapter`
+
+| Before                                                                                          | After                                                                                                                                                                |
+| ----------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `partOf<T>(env, name)`                                                                          | `partsReader<YourParts>()` gives a typed reader for the parts your adapter gave its features; the core's own services are read with `serviceOf(env, "popOutWindow")` |
+| Pop out's window in `Feature.parts.popOutWindow`                                                | `Feature.services.popOutWindow`                                                                                                                                      |
+| `shortcutLabel(store, id)`                                                                      | `store.keymap.label(id)`                                                                                                                                             |
+| `layout.tree.parentOf`                                                                          | `layout.tree.parent`                                                                                                                                                 |
+| `ApplyIO` without `restore`                                                                     | `ApplyIO.restore(state)`: puts back a state the commit read                                                                                                          |
+| `PageEngine.goToRole`, `investigation`, `placeAfterArrangement`, `settleRoles`, `withoutOpened` | `PageEngine.opening`, `leaving`, `prefsToSave` (the rest is the page's own)                                                                                          |
+| `PageState.linkMode`                                                                            | `UiState.linkMode`                                                                                                                                                   |
+|                                                                                                 | New: `each(...)`, `isChange`, `serviceOf`, `partsReader`, `store.gesture(cancel)`                                                                                    |
+
 # Migrating to the API of phase 3c
 
 Phase 3c is the last naming pass before 1.0. No behaviour changes: names, words and exports do. The rules it applies: "workspace" is in no name or word ("the instance" is what `createJali` returns, "the layout" is what a person sees); "Single view" and "Split view" are a curated page's modes only; a phone shows "one pane at a time". Phase 3b's note follows; read it first if you are coming from before 3b.

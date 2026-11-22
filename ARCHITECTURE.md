@@ -7,11 +7,14 @@ How Jali is built: the core and the adapter, the ports, the path every action ta
 ```
 packages/core     @jali/core (private)   no framework, no dependencies
   layout/           the layout tree: types, builders, pure operations, fitting, geometry, the link codec, validation
-  state/            the store, apply(), the model, settings, pane state, undo, the English messages
-  actions/          every action as a pure step, and the public action table
+  state/            the store (a composition root) and its collaborators: lifetime (drags, deferred steps, the
+                    instance's end), events, reports, the first state; apply(), the model, settings, pane state, undo,
+                    the English messages
+  actions/          every action as a pure step, the public action table, and the checks of what each takes (args.ts)
   commands/         the command registry, the keymap, the keyboard
   features/         the feature contract, and the framework-free half of each feature
-  dom/, workspace/  the DOM port, focus and drag, edge scrolling, the phone layouts
+  dom/, workspace/  the DOM port and the instance's scope in the DOM, focus and drag, edge scrolling, the phone layouts
+  env.ts, profile.ts what an instance is made of; a curated page's types and its engine's contract
   ports.ts          the location and storage ports
   agent.ts          the agent bridge (jali/agent)
   testing.ts        what an app's tests need (jali/testing)
