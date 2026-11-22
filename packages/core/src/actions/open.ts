@@ -10,7 +10,7 @@ import type {
   ViewState,
 } from "../layout/types";
 import type { PaneKinds } from "../pane-kinds";
-import { refuse, type Outcome, type Snapshot } from "../state/apply";
+import { refuse, type Outcome, type RefusalStep, type Snapshot } from "../state/apply";
 import { peekSheet } from "./peek";
 import type { Model } from "../state/model";
 import { say } from "../state/messages";
@@ -207,12 +207,22 @@ export function openBeside(
 }
 
 /** Split opens a launcher beside the pane, not a copy of it; focus moves in, because the person is about to choose. */
+/**
+ * Whether Split can act on pane `id` (default: the focused one): what `split` refuses, and what every surface that
+ * offers it (the tab menu, ⌘K, keys) asks. It needs a launcher to put beside the pane, and the free layout: a curated
+ * page's layout is its design, and links open panes there.
+ */
+export function checkSplit(x: Snapshot, id = x.s.view.focused): RefusalStep | undefined {
+  if (!x.env.launcher || x.s.page) return refuse("unavailable");
+  return id && x.m.pane(id) ? undefined : refuse("not-found");
+}
+
 export function split(x: Snapshot, dir: "right" | "bottom", target = x.s.view.focused): Outcome {
   const { s, m, ctx } = x;
-  const p = m.pane(target);
-  const launcher = launcherOf(x);
-  if (!p) return refuse("not-found");
-  if (!launcher) return refuse("unavailable");
+  const cannot = checkSplit(x, target);
+  if (cannot) return cannot;
+  const p = m.pane(target)!;
+  const launcher = launcherOf(x)!;
   // `dir` is the screen's: "Split right" opens on the right in either reading direction.
   const r = core.split(s.layout, unzoomed(s.view), p.id, treeSide(dir, ctx.dir), launcher, ctx);
   return {

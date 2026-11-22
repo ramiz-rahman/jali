@@ -8,7 +8,8 @@ import { checkAutoLayout } from "../actions/layout";
 import { notAllowed, type PaneControl } from "../actions/allow";
 import type { Edge } from "../layout/types";
 import { checkUndo } from "../actions/close";
-import { checkZoom } from "../actions/focus";
+import { checkFullScreen, checkZoom } from "../actions/focus";
+import { checkSplit } from "../actions/open";
 import { checkPeek } from "../actions/peek";
 import { checkPutBack, checkTuck } from "../actions/tuck";
 import { checkMerge, checkMoveTab, checkUnmerge } from "../actions/tabs";
@@ -106,17 +107,14 @@ function buildCommands(env: Env): CommandDef[] {
       id: "pane.zoom",
       title: t.zoom,
       group: g.pane,
-      check: also(checkZoom, "maximise"),
+      check: (x) => checkZoom(x),
       run: (u) => u.actions.toggleZoom(),
     },
     {
       id: "pane.fullscreen",
       title: t.fullScreen,
       group: g.pane,
-      check: also(
-        ({ s }) => (s.page?.mode === "single" ? refuse("single-view") : undefined),
-        "fullScreen",
-      ),
+      check: (x) => checkFullScreen(x),
       run: (u) => u.actions.toggleFullScreen(),
     },
     // With `popOut()`: the pane menu's Pop out, from ⌘K or a key, through the feature's window.
@@ -192,21 +190,21 @@ function buildCommands(env: Env): CommandDef[] {
       id: "pane.split.right",
       title: t.splitRight,
       group: g.pane,
-      check: needLauncher,
+      check: (x) => checkSplit(x),
       run: (u) => u.actions.split(undefined, "right"),
     },
     {
       id: "pane.split.down",
       title: t.splitDown,
       group: g.pane,
-      check: needLauncher,
+      check: (x) => checkSplit(x),
       run: (u) => u.actions.split(undefined, "bottom"),
     },
     {
       id: "pane.split.auto",
       title: t.splitAuto,
       group: g.pane,
-      check: needLauncher,
+      check: (x) => checkSplit(x),
       run: (u) => u.actions.splitAuto(),
     },
 

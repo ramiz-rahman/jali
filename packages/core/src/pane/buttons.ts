@@ -12,6 +12,7 @@ import type { NodeId, PaneNode } from "../layout/types";
 import type { ViewMode } from "../profile";
 import type { Snapshot } from "../state/apply";
 import { allows } from "../actions/allow";
+import { checkFullScreen, checkZoom } from "../actions/focus";
 import type { Chrome } from "./chrome";
 
 /** A button a pane's header can show. */
@@ -76,12 +77,14 @@ export function buttonsOf(x: Snapshot, id: NodeId, st: ButtonsState): PaneButton
   if (popped) way("popOut");
   return out.filter((b) => {
     switch (b) {
+      // The header decides what it shows; whether the action can happen is the action's own check. A tuck the app
+      // allows always shows: when it can't happen now, the header says why (`checkTuck`) on a disabled button.
       case "tuck":
         return chrome.tuckable && !zoomed && allows(x, id, "tuck");
       case "maximise":
-        return chrome.zoomable && !full && (zoomed || allows(x, id, "maximise"));
+        return chrome.zoomable && !full && !checkZoom(x, id);
       case "fullScreen":
-        return chrome.fullScreenable && (full || allows(x, id, "fullScreen"));
+        return chrome.fullScreenable && !checkFullScreen(x, id);
       case "close":
         return (chrome.closeWithTabs || !tabs) && allows(x, id, "close");
       case "popOut":

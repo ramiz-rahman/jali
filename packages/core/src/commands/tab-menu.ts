@@ -7,6 +7,8 @@ import { tabsToClose } from "../actions/close";
 import { tabBounds } from "../actions/tabs";
 import { canRename } from "../actions/rename";
 import { checkTuck } from "../actions/tuck";
+import { checkFullScreen, checkZoom } from "../actions/focus";
+import { checkSplit } from "../actions/open";
 import { allows, type PaneControl } from "../actions/allow";
 import type { JaliStore } from "../state/store";
 
@@ -131,7 +133,7 @@ export function tabMenuOf(store: JaliStore, id: NodeId): TabMenuItem[][] {
           },
         ]
       : []),
-    ...(env.launcher && !s.page
+    ...(!checkSplit(x, id)
       ? [
           {
             id: "split-right",
@@ -147,7 +149,7 @@ export function tabMenuOf(store: JaliStore, id: NodeId): TabMenuItem[][] {
           },
         ]
       : []),
-    ...(m.panes.length > 1 && s.page?.mode !== "single" && (zoomed || may("maximise"))
+    ...(!checkZoom(x, id)
       ? [
           {
             id: "zoom",
@@ -157,7 +159,7 @@ export function tabMenuOf(store: JaliStore, id: NodeId): TabMenuItem[][] {
           },
         ]
       : []),
-    ...(s.page?.mode !== "single" && (s.fullScreen === id || may("fullScreen"))
+    ...(!checkFullScreen(x, id)
       ? [
           {
             id: "full-screen",
@@ -168,7 +170,7 @@ export function tabMenuOf(store: JaliStore, id: NodeId): TabMenuItem[][] {
         ]
       : []),
     // A pane on its own (no tabs) can be tucked from its menu; a tab's group is already its neighbour.
-    ...(!st && m.panes.length > 1 && s.view.zoomed !== id && may("tuck") && !checkTuck(x, id)
+    ...(!st && s.view.zoomed !== id && !checkTuck(x, id)
       ? [{ id: "tuck", title: t.tuck, keys: keys("pane.tuck"), run: () => void a.tuck(id) }]
       : []),
   ];

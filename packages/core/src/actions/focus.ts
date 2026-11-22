@@ -1,7 +1,7 @@
 import { notAllowed } from "./allow";
 import * as core from "../layout/engine";
 import type { Edge, NodeId, ViewState } from "../layout/types";
-import { refuse, type Outcome, type Snapshot } from "../state/apply";
+import { refuse, type Outcome, type RefusalStep, type Snapshot } from "../state/apply";
 import { say } from "../state/messages";
 import { reveal } from "./tuck";
 
@@ -58,24 +58,27 @@ export const focusEnd = (x: Snapshot, last: boolean) => {
   return id ? focusMoved(x, core.focus(x.s.view, id, x.ctx)) : null;
 };
 
-export function checkZoom({ s, m }: Snapshot) {
+/**
+ * Whether Maximise (or Restore) can act on pane `id` (default: the focused one): what `toggleZoom` refuses, and what
+ * every surface that offers it (the header, the tab menu, ⌘K) asks. Restoring is always possible; maximising needs
+ * another pane, a pane on screen, and the app's `allow`.
+ */
+export function checkZoom(x: Snapshot, id = x.s.view.focused): RefusalStep | undefined {
+  const { s, m } = x;
   if (s.page?.mode === "single") return refuse("single-view", say(m).singleNoLayout);
-  return s.view.focused && (m.panes.length > 1 || s.view.zoomed)
-    ? undefined
-    : refuse("nothing-to-do");
+  if (!id || !m.pane(id)) return refuse("nothing-to-do");
+  if (s.view.zoomed === id) return undefined;
+  if (m.panes.length <= 1 && !s.view.zoomed) return refuse("nothing-to-do");
+  if (offScreen(m, id)) return refuse("blocked", say(m).notOnScreen(m.title(id)));
+  return notAllowed(x, id, "maximise");
 }
 
 export function toggleZoom(x: Snapshot, id = x.s.view.focused): Outcome {
   const { s, m, ctx } = x;
-  if (s.page?.mode === "single") return refuse("single-view", say(m).singleNoLayout);
+  const cannot = checkZoom(x, id);
+  // One pane alone, or none: zoom does nothing.
+  if (cannot) return cannot.reason === "nothing-to-do" ? null : cannot;
   if (!id) return null;
-  // Restoring is always allowed: only maximising can be turned off, and only a pane on screen can be maximised.
-  if (s.view.zoomed !== id) {
-    if (offScreen(m, id)) return refuse("blocked", say(m).notOnScreen(m.title(id)));
-    const denied = notAllowed(x, id, "maximise");
-    if (denied) return denied;
-  }
-  if (m.panes.length <= 1 && !s.view.zoomed) return null; // one pane alone: zoom does nothing
   const view = core.toggleZoom(core.focus(s.view, id, ctx), id, ctx);
   return {
     op: "zoom",
@@ -90,8 +93,24 @@ export function toggleZoom(x: Snapshot, id = x.s.view.focused): Outcome {
  * Full screen: the pane maximised, and the page on the whole screen (the adapter asks the browser), so
  * the pane covers the display. Again, or Escape, or leaving the browser's full screen, puts it back as it was.
  */
+/**
+ * Whether Full screen (or leaving it) can act on pane `id` (default: the focused one): what `toggleFullScreen` refuses,
+ * and what every surface that offers it asks. Leaving is always possible; entering needs a pane on screen, a layout
+ * (not a page's Single view) and the app's `allow`.
+ */
+export function checkFullScreen(x: Snapshot, id = x.s.view.focused): RefusalStep | undefined {
+  const { s, m } = x;
+  if (s.fullScreen) return undefined;
+  if (s.page?.mode === "single") return refuse("single-view", say(m).singleNoLayout);
+  if (!id || !m.pane(id)) return refuse("not-found");
+  if (offScreen(m, id)) return refuse("blocked", say(m).notOnScreen(m.title(id)));
+  return notAllowed(x, id, "fullScreen");
+}
+
 export function toggleFullScreen(x: Snapshot, id = x.s.view.focused): Outcome {
   const { s, m, ctx } = x;
+  const cannot = checkFullScreen(x, id);
+  if (cannot) return cannot;
   if (s.fullScreen) {
     const was = s.fullScreen;
     const view = s.view.zoomed === was ? core.tree.unzoom(s.view) : s.view;
@@ -102,11 +121,7 @@ export function toggleFullScreen(x: Snapshot, id = x.s.view.focused): Outcome {
       msg: say(m).fullScreenOff(m.title(was)),
     };
   }
-  if (s.page?.mode === "single") return refuse("single-view", say(m).singleNoLayout);
-  if (!id || !m.pane(id)) return refuse("not-found");
-  if (offScreen(m, id)) return refuse("blocked", say(m).notOnScreen(m.title(id)));
-  const denied = notAllowed(x, id, "fullScreen");
-  if (denied) return denied;
+  if (!id) return refuse("not-found");
   const focused = core.focus(s.view, id, ctx);
   const view =
     m.panes.length > 1 && focused.zoomed !== id ? core.toggleZoom(focused, id, ctx) : focused;

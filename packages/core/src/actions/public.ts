@@ -64,7 +64,7 @@ export interface JaliActions<R extends ObjectRef = ObjectRef> {
   /** Keep a linked detail on what it shows (`true`), or make it follow its list again (`false`). */
   setKept(pane: PaneTarget<R>, kept: boolean): ActionResult;
   /** A new pane beside `pane` (default: the focused one) with the launcher in it. `direction` default: right for a
-   *  wide pane, below for a tall one. */
+   *  wide pane, below for a tall one. `"unavailable"` without a launcher, or on a curated page. */
   split(pane?: PaneTarget<R>, direction?: "right" | "bottom"): ActionResult;
   /** The launcher as a new tab of `pane` (default: the focused one). */
   newTab(pane?: PaneTarget<R>): ActionResult;

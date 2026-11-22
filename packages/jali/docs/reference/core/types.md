@@ -1828,7 +1828,7 @@ A pane that is not there gives `reason: "not-found"`. What a refusal reads out t
 
 - **`actions.setKept`**, `setKept(pane: PaneTarget, kept: boolean)`: Keep a linked pane on what it shows, or let it go. A kept follower stops following its list; a kept plain link is no longer replaced by the next link from its source, which opens beside it instead. Let go, a detail of a list (its source reports a selection) follows the selection again and catches up; a plain link goes back to being replaced. `"nothing-to-do"` for a pane with no link.
 
-- **`actions.split`**, `split(pane?: PaneTarget, direction?: "right" | "bottom")`: Open the launcher beside `pane` and focus it. Without `direction`: right of a wide pane, below a tall one. `"unavailable"` without a launcher.
+- **`actions.split`**, `split(pane?: PaneTarget, direction?: "right" | "bottom")`: Open the launcher beside `pane` and focus it. Without `direction`: right of a wide pane, below a tall one. `"unavailable"` without a launcher, or on a curated page (its layout is its design; links open panes there).
 
 - **`actions.newTab`**, `newTab(pane?: PaneTarget)`: The launcher as a new tab of the pane's group. `"unavailable"` without a launcher.
 
