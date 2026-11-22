@@ -82,6 +82,10 @@ test.describe("A list's detail follows its selection", () => {
     await expect(keep).toHaveAccessibleName("Following orders");
     await app.row("orders", /^2\b/).click();
     await expect(app.heading("order")).toHaveText("order 2");
+    // The live region reads what is said within 30ms as one announcement (chrome/Announcer.tsx). The detail shows
+    // order 2 as the follow is said, so a ⌥↵ pressed at once was read with it: "Showing order 2 order 2 kept", about
+    // one run in 20. Wait until the follow has been said on its own.
+    await expect(app.announcer()).toHaveText("Showing order 2");
 
     // ⌥↵ on the row it shows: that detail is kept in place, no copy opens.
     const count = await app.visibleCount();
