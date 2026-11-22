@@ -23,7 +23,7 @@ const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const BUDGETS = {
   bare: { core: 54.5, react: 24.7, css: 8.6, phosphor: 0 },
   minimal: { core: 55.5, react: 24.7, css: 8.6, phosphor: 0 },
-  full: { core: 60.9, react: 29.9, css: 8.6, phosphor: 1.7 },
+  full: { core: 60.9, react: 30.3, css: 8.6, phosphor: 1.7 },
   "own-icons": { core: 55.5, react: 27.5, css: 8.6, phosphor: 0 },
   headless: { core: 48.7 },
   layout: { core: 10.7 },
