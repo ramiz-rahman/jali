@@ -26,6 +26,7 @@ import {
 } from "./pane-kinds";
 import { browserLocation, browserStorage, type LocationPort, type StoragePort } from "./ports";
 import { own as ownOf } from "./own";
+import { sameRef } from "./layout/ops/ref";
 
 export const PERSIST_MS = 120;
 const BROKEN_KEY = "broken-layout";
@@ -250,18 +251,13 @@ export function readSearch(
     const item = q.get(k.item) || undefined;
     // Each object once, in the link's order, and at most OPEN_MAX: every one is a full open and fit.
     const investigation: ObjectRef[] = [];
-    const seen = new Set<string>();
     for (const text of q.getAll(k.open)) {
       if (investigation.length >= OPEN_MAX) break;
       const read = decodePeek(text);
       if (!read || !Object.hasOwn(kinds, read.kind) || !readable(kinds, read)) continue;
       const r = readRef(kinds, read);
-      const key = JSON.stringify([
-        r.kind,
-        Object.entries(r.params).sort(([a], [b]) => (a < b ? -1 : 1)),
-      ]);
-      if (seen.has(key)) continue;
-      seen.add(key);
+      // Jali's one ref equality (`sameRef`): the same kind and params, in any key order.
+      if (investigation.some((x) => sameRef(x, r))) continue;
       investigation.push(r);
     }
     return { page: { tab: q.get(k.tab) ?? "", item, investigation }, view };
@@ -371,8 +367,15 @@ export function joinPersonalSizes(layout: Layout, sizes: PersonalSizes): Layout 
 
 /** The layout's shape (ids, types and what each pane shows), so sizes kept for one layout never land on another. */
 export function structureKey(layout: Layout): string {
+  // Params in key order, so a layout read back from storage that reorders keys (Postgres `jsonb`) keeps its sizes.
+  const params = (p: ObjectRef["params"]) =>
+    Object.keys(p)
+      .sort()
+      .map((k) => [k, p[k]]);
   const sig = (n: LayoutNode): unknown =>
-    n.type === "pane" ? [n.id, n.ref.kind, n.ref.params] : [n.id, n.type, n.children.map(sig)];
+    n.type === "pane"
+      ? [n.id, n.ref.kind, params(n.ref.params)]
+      : [n.id, n.type, n.children.map(sig)];
   const text = JSON.stringify(sig(layout.root));
   let h = 5381;
   for (let i = 0; i < text.length; i++) h = ((h << 5) + h + text.charCodeAt(i)) | 0;

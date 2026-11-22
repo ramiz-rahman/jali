@@ -628,7 +628,14 @@ export function createPaneKinds<D extends PaneKindBase = PaneKindBase>(
     // An app-only param says how the pane opens, not what it shows.
     if (!identity || problems(ref).length)
       return asText(without(ref.params, appOnlyParams(def?.params)));
-    const id = identity(params(ref));
+    // A host's function that throws is guarded like `title` and `follow`: the pane is then the object its params
+    // name, as for a kind without `identity`, so `open` and `sameObject` keep working.
+    let id: unknown;
+    try {
+      id = identity(params(ref));
+    } catch {
+      return asText(without(ref.params, appOnlyParams(def?.params)));
+    }
     return id === undefined ? undefined : JSON.stringify(id);
   };
 
