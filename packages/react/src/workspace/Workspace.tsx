@@ -6,7 +6,6 @@ import {
   CHROME,
   hingeOf,
   type Hinge,
-  sameHinge,
   currentPane,
   directionOf,
   observeResize,
@@ -25,7 +24,6 @@ import { useGeometry, useModelValue, useStore, useUi } from "../state/react";
 import { useHydrated } from "../state/hydrated";
 import { paneHydration } from "../state/hydration";
 import { DropIndicator } from "./DropIndicator";
-import { useSingleView } from "./useSingleView";
 import { PAGE_PARTS } from "../page-parts";
 import { useWorkspaceLabel } from "../a11y/landmark";
 
@@ -49,19 +47,14 @@ function useMeasure(store: JaliStore) {
       if (held) return;
       const width = Math.max(0, Math.floor(el.clientWidth - inset * 2)),
         height = Math.max(0, Math.floor(el.clientHeight - inset * 2));
-      const s = store.get();
-      const dir = directionOf(store.env.dir, el);
       // A fold across the layout, from the browser's viewport segments (Chrome and Edge 138+; none elsewhere).
       const segments = (window as { viewport?: { segments?: DOMRect[] | null } }).viewport
         ?.segments;
-      const hinge = hingeOf(segments ?? undefined, el.getBoundingClientRect());
-      if (
-        s.area.width !== width ||
-        s.area.height !== height ||
-        s.dir !== dir ||
-        !sameHinge(s.hinge, hinge)
-      )
-        store.set({ area: { width, height }, dir, hinge });
+      store.measure({
+        area: { width, height },
+        dir: directionOf(store.env.dir, el),
+        hinge: hingeOf(segments ?? undefined, el.getBoundingClientRect()),
+      });
     };
     const cancelHold = held
       ? paneHydration(store).whenSettled(() => {
@@ -316,8 +309,6 @@ export function Panes() {
   const sliding = useReshapeMotion(useUi((s) => s.reshapes));
   const hydrated = useHydrated();
   const ref = useMeasure(store);
-  const measured = area.width > 0;
-  useSingleView(store, m, view, measured);
   useFullScreen(store, m);
   const fullScreen = useUi((s) => !!s.fullScreen && !!m.pane(s.fullScreen));
   useFoldAnnouncements(store, m, area);

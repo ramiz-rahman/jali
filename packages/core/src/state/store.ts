@@ -1,4 +1,5 @@
-import type { Hinge } from "../workspace/stack";
+import { sameHinge, type Hinge } from "../workspace/stack";
+import { restoreWide, snapshotWide, type WideSnapshot } from "../workspace/single-view";
 import type { Rename } from "../actions/rename";
 import type { PaneReport } from "../actions/content";
 /**
@@ -161,6 +162,8 @@ export interface UiState {
   /** A fold that splits the layout in two, measured from the browser's viewport segments; unset on a flat screen
    *  and in browsers without them. */
   hinge?: Hinge;
+  /** The arrangement just before one pane at a time began, put back when it ends (workspace/single-view.ts). */
+  wide: WideSnapshot | null;
   /** The reading direction the panes are laid out in: right to left, a row starts at the right. Read from the page
    *  when the instance is measured, unless `createJali({ dir })` fixed it. */
   dir: Direction;
@@ -279,10 +282,23 @@ export interface JaliConfig {
   messages?: MessageOverrides;
 }
 
+/** The panes' element as the adapter measured it (`store.measure`). */
+export interface Measurement {
+  area: { width: number; height: number };
+  dir: Direction;
+  hinge: Hinge | undefined;
+}
+
 export interface JaliStore {
   get(): UiState;
   /** A raw state write for interaction state (drag, dialogs, area). Area and pane-cap changes refit the layout. */
   set(patch: Partial<UiState>): void;
+  /**
+   * What the adapter measured of the panes' element: its usable size, reading direction and fold. The first since the
+   * instance started is where it starts; from then on, one pane at a time starting or ending (for this or any other
+   * change) is said, and ending it puts back the arrangement from just before it began.
+   */
+  measure(measured: Measurement): void;
   subscribe(fn: () => void): () => void;
   model(): Model;
   ctx(): LayoutContext;
@@ -415,8 +431,12 @@ export function createJaliStore(deps: JaliConfig): JaliStore {
     freezeTree(state.layout);
     freezeTree(state.view);
   }
-  // Who hears what the instance did, once each commit ends (state/events.ts).
-  const events = createEvents(() => state);
+  // Who hears what the instance did, once each commit ends (state/events.ts). One pane at a time is settled as each
+  // ends, whatever changed it.
+  const events = createEvents(
+    () => state,
+    () => settleOnePane(),
+  );
   const batch = events.batch;
   const offKinds = env.kinds.onChange(() =>
     batch(() => {
@@ -521,6 +541,32 @@ export function createJaliStore(deps: JaliConfig): JaliStore {
     if (Object.keys(patch).length) write(patch);
   };
 
+  /**
+   * One pane at a time, as last settled; undefined until the adapter measures (`measure`) after a start, so an instance
+   * with no element, or one only just mounted, says nothing about it.
+   */
+  let onePane: boolean | undefined;
+  /** Settles one pane at a time starting or ending, as the batch that changed it ends: it freezes the arrangement the
+   *  batch started from, or puts the frozen one back, and says so, in the same batch. */
+  const settleOnePane = () => {
+    // A hidden element (no width) says nothing about room: one pane at a time stays as it was.
+    if (onePane === undefined || !state.area.width) return;
+    const now = modelOf(state).onePane;
+    if (now === onePane) return;
+    onePane = now;
+    const from = events.batchStart()!;
+    if (now) write({ wide: snapshotWide(modelOf(from), from.view) });
+    else {
+      const wide = state.wide;
+      if (wide) {
+        commit((x) => restoreWide(x, wide));
+        write({ wide: null });
+      }
+    }
+    const said = messages.announcements;
+    store.announce(now ? said.onePaneOn : said.onePaneOff);
+  };
+
   const store: JaliStore = {
     get: () => state,
     // Once destroyed, a raw write lands nowhere either: a handle kept past the instance changes nothing.
@@ -531,6 +577,18 @@ export function createJaliStore(deps: JaliConfig): JaliStore {
     on: events.on,
     subscribe: events.subscribe,
     model: () => modelOf(state),
+    measure: ({ area, dir, hinge }) => {
+      if (life.ended()) return;
+      const s = state;
+      if (
+        s.area.width !== area.width ||
+        s.area.height !== area.height ||
+        s.dir !== dir ||
+        !sameHinge(s.hinge, hinge)
+      )
+        store.set({ area, dir, hinge });
+      onePane ??= modelOf(state).onePane;
+    },
     ctx,
     // The model is built when a step reads it, for the state the snapshot was taken of: `apply` takes snapshots to
     // read the kinds or the words, and resolving the layout it just wrote was work nobody used.
@@ -613,6 +671,8 @@ export function createJaliStore(deps: JaliConfig): JaliStore {
       const mine = () => {
         if (stop !== mine) return;
         stop = null;
+        // The next start measures afresh.
+        onePane = undefined;
         // A drag still going has listeners of its own on the window: it ends with the listeners it began under.
         life.cancelGestures();
         off();

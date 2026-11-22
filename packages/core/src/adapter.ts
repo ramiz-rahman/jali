@@ -270,7 +270,6 @@ export {
   type Frame,
   type Tab,
 } from "./workspace/frames";
-export { restoreWide, snapshotWide, type WideSnapshot } from "./workspace/single-view";
 export {
   STACK_FLOOR,
   STACK_MIN_HEIGHT,

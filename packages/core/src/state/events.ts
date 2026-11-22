@@ -33,8 +33,10 @@ export interface CommitEvents {
   toast(t: Omit<JaliEvents["toast"], "input">): void;
 }
 
-/** The events of an instance whose state `read` gives. */
-export function createEvents(read: () => UiState): CommitEvents {
+/** The events of an instance whose state `read` gives. `settle` runs as each outermost batch ends, inside it, before
+ *  anyone hears of it: what the store keeps true of every state (one pane at a time starting or ending) is written
+ *  there, so it lands with the change that caused it. */
+export function createEvents(read: () => UiState, settle?: () => void): CommitEvents {
   const handlers = new Map<JaliEvent, Set<(e: never) => void>>();
   const subs = new Set<() => void>();
   const pendingToasts: JaliEvents["toast"][] = [];
@@ -145,6 +147,7 @@ export function createEvents(read: () => UiState): CommitEvents {
       try {
         return run();
       } finally {
+        if (depth === 1 && settle) settle();
         if (--depth === 0) {
           // Everything the batch did is in place (state, address, announcement) before anyone hears of it:
           // subscribers once, then the events, in the order batches ended.

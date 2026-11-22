@@ -83,6 +83,7 @@ export function initialState(o: {
     settingsOpen: false,
     chooser: null,
     renaming: null,
+    wide: null,
     recent: [],
     area: initialArea(env.spacing.inset),
     dir: o.dir ?? pageDirection(),
