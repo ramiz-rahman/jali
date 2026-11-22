@@ -1,3 +1,18 @@
+# Migrating to the React architecture pass (23 Nov 2026)
+
+Apps change nothing: `jali`, `jali/react` and the features keep every name. What changes is in `jali/adapter`, for people writing an adapter, and a few behaviours. Data Studio uses none of the names below (checked by search over its whole repo, 23 Nov 2026).
+
+| Before                                                                                                             | After                                                                                                                                                                           |
+| ------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `jali/adapter`: `restoreWide`, `snapshotWide`, `WideSnapshot`; the adapter froze and restored the wide arrangement | removed: one pane at a time is the core's. Report what you measure with `store.measure({ area, dir, hinge })`                                                                   |
+| `<JaliRoot jali>` given another instance kept Jali's parts mounted                                                 | they mount again (their state starts over); your own children around `<JaliView>` stay mounted                                                                                  |
+| a rename save that settled after another pane's field opened closed that field                                     | it ends only its own field; the adapter step is `endRename(pane)`                                                                                                               |
+| a key bound to `palette.toggle` without `palette()` set the palette open                                           | it opens nothing (`dialogs.openPalette` is refused as `"unavailable"`)                                                                                                          |
+| `Model.shelf: ShelfEntry[]`                                                                                        | `TuckedEntry[]` (the shelf never held folded panes); the shelf's folded chip and `.jali-shelf-chip.is-folded` styles go                                                         |
+| `frames`, `currentPane`, `defaultStackShare` took a `Model`                                                        | they take `ModelGeometry` (the model without titles); a `Model` still fits                                                                                                      |
+| `JaliDom` knew the root and the dialog layer                                                                       | also surfaces: `addSurface`, `isOwn`, `contains`, `eachSurface` (an adapter with its own `JaliDom` adds them)                                                                   |
+| new in `jali/adapter`                                                                                              | `JaliStore.measure`, `Measurement`, `paneMenuOf`, `appMenuOf`, `PaneMenuId`, `PaneMenuItem`, `topDialog`, `DialogName`, `ModelGeometry`, `TuckedEntry`; the `closeChooser` step |
+
 # Migrating to the core review fixes (23 Nov 2026)
 
 Behaviour changes only: nothing is removed or renamed.
