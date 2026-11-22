@@ -27,9 +27,7 @@ import {
   type PaneErrorInfo,
   type PaneKinds,
 } from "../pane-kinds";
-import { initialArea, spacingOf } from "../tokens";
-import type { LayoutInput } from "../layout/build";
-import { readLayout } from "../actions/layout";
+import { spacingOf } from "../tokens";
 import { bindSteps, stepOf, type Actions, type StepArgs, type StepName } from "../actions";
 import type { ActionName } from "../actions/public";
 import {
@@ -41,26 +39,25 @@ import {
   type Deferred,
   type Intent,
   type HistoryMode,
-  type Op,
   type Outcome,
   type Snapshot,
   type Toast,
 } from "./apply";
 import { createInstance, type Jali, type JaliEvent, type JaliEvents } from "./instance";
-import { currentInput, trackInput, type JaliInput } from "../dom/input";
-import { sameRef } from "../actions/follow";
+import { trackInput } from "../dom/input";
 import { modelCache, type Model } from "./model";
-import { loadSettings, systemPrefersDark, type Settings } from "./settings";
-import { loadPrefs, type PagePrefs } from "./page-prefs";
+import type { Settings } from "./settings";
+import type { PagePrefs } from "./page-prefs";
 import { pageEngineOf, type ItemId, type ViewMode, type ProfileBase } from "../profile";
 import { presetById, PHONE_BELOW, type Env, type Preset } from "../env";
 import { browserStorage, type StoragePort } from "../ports";
 import { focusPane } from "../dom/focus";
-import { cssString, paneDomId } from "../dom/ids";
-import { noDom, type DomPort, type DragKind } from "../dom/port";
-import { pageDirection } from "../dom/direction";
+import { createDom, type JaliDom } from "../dom/scope";
+export type { JaliDom } from "../dom/scope";
 import { paneStateSync, type HeldStates, type PaneStateSync } from "./pane-state";
 import { createLifetime } from "./lifetime";
+import { createEvents } from "./events";
+import { developmentChecks, firstLayout, freezeTree, initialState } from "./initial";
 
 declare const process: { env: { NODE_ENV?: string } };
 import { startUi } from "../boot";
@@ -337,68 +334,6 @@ export interface JaliStore {
   destroy(): void;
 }
 
-/**
- * An instance's place in the DOM: the id prefix of its elements, the element that holds it (its app shell), set
- * by the component that renders it, and the adapter's `DomPort`, which finds the adapter's own elements in it. DOM
- * lookups (focus, drag, F6 regions) search inside `root()` only.
- */
-export interface JaliDom {
-  /** The prefix of its elements' ids. The adapter may scope it per mounted root (two instances with no `id`). */
-  id: string;
-  /** The adapter's markup, as the core needs to find it (dom/port.ts). `noDom` until the adapter gives one. */
-  readonly port: DomPort;
-  /** Give the instance the adapter's port. The adapter calls it before it renders the instance. */
-  use(port: DomPort): void;
-  /** What is being dragged by pointer now: a pane (or a page tab), a divider of a row or a column; null when nothing. */
-  dragging(): DragKind | null;
-  /** A drag starts or ends: kept here, and told to the port for the page's styles. */
-  setDragging(what: DragKind | null, divider?: HTMLElement): void;
-  /** The instance's root element; the document until one is attached. */
-  root(): ParentNode;
-  attach(el: Element | null): void;
-  /** The element that holds this instance's dialogs (palette, settings, confirmations), which render outside the
-   *  root; null until one is attached. Keys pressed there count as the instance's. */
-  layer(): Element | null;
-  attachLayer(el: Element | null): void;
-  /** The element with this instance's pane id `id`, if rendered. */
-  pane(id: NodeId): HTMLElement | null;
-}
-
-function createDom(id: string): JaliDom {
-  let el: Element | null = null,
-    layer: Element | null = null,
-    port: DomPort = noDom,
-    drag: DragKind | null = null;
-  const root = (): ParentNode => el ?? document;
-  const dom: JaliDom = {
-    id,
-    get port() {
-      return port;
-    },
-    use: (next) => {
-      port = next;
-    },
-    dragging: () => drag,
-    setDragging: (what, divider) => {
-      drag = what;
-      port.dragging(what, divider);
-    },
-    root,
-    attach: (next) => {
-      el = next;
-    },
-    layer: () => layer,
-    attachLayer: (next) => {
-      layer = next;
-    },
-    pane: (pane) =>
-      typeof document === "undefined"
-        ? null
-        : root().querySelector<HTMLElement>(`[id=${cssString(paneDomId(dom.id, pane))}]`),
-  };
-  return dom;
-}
-
 export function createJaliStore(deps: JaliConfig): JaliStore {
   const page = pageEngineOf(deps.profile);
   if (deps.profile && !page)
@@ -409,32 +344,8 @@ export function createJaliStore(deps: JaliConfig): JaliStore {
     deps.features?.map((f) => f.words),
   );
   const hasPalette = !!deps.features?.some((f) => f.id === "palette");
-  // Development-only defaults and checks, behind a literal `process.env.NODE_ENV` test: a production build replaces
-  // it with `false` and drops all of it, messages included; an unbundled page, which has no `process`, lands in the
-  // catch and is production (dev.ts).
-  let DEV = false;
-  let devPaneError: ((error: unknown, info: PaneErrorInfo) => void) | undefined;
-  let devUnstable: ((op: string) => void) | undefined;
-  try {
-    if (process.env.NODE_ENV !== "production") {
-      DEV = true;
-      devPaneError = (error, { pane, ref }) =>
-        console.error(`Jali: pane ${pane ?? "peek"} (${ref.kind}) failed`, error);
-      devUnstable = (op) =>
-        console.error(`Layout stability: "${op}" never moves anything, but moved panes`);
-      const presets = deps.presets ?? [];
-      const scope = deps.keyboard?.scope;
-      if (scope !== undefined && scope !== "page" && scope !== "local")
-        console.error(`Jali: keyboard.scope is "page" or "local", not ${JSON.stringify(scope)}`);
-      for (const [i, p] of presets.entries())
-        if (presets.findIndex((q) => q.id === p.id) !== i)
-          console.error(`Jali: two presets have the id "${p.id}"`);
-      if (deps.preset !== undefined && !presets.some((p) => p.id === deps.preset))
-        console.error(`Jali: there is no preset "${deps.preset}"`);
-    }
-  } catch {
-    /* no `process`: production */
-  }
+  // Development-only defaults and checks (state/initial.ts); a production build drops them.
+  const { dev: DEV, paneError: devPaneError, unstable: devUnstable } = developmentChecks(deps);
   // The env holds the options it shares with the store as they were resolved, and what only the store can work out.
   const {
     preset: presetId,
@@ -470,68 +381,39 @@ export function createJaliStore(deps: JaliConfig): JaliStore {
   // The id is the prefix: two instances with their own ids never overwrite each other ("jali" stays "jali").
   const storage = storagePort ?? browserStorage(id);
   const paneStates = paneStateSync(storage);
+  // The first state: the layout the instance opens on (`firstLayout`), what this device kept, and `initial` over it.
   const start = presetById(env, presetId);
   // A page-only app (a page, no presets or layout) starts on its page.
   const pageOnly = !initial?.layout && !start && !!env.profile;
   const first = firstLayout(env, initial?.layout, start, DEV);
-  const layout = first.layout;
-  let state: UiState = {
-    page: null,
-    prefs: loadPrefs(storage, env.profile?.id, env.kinds.registry()),
-    view: { focusHistory: [] },
-    // A layout that can't be shown gave way to a preset: the instance is on that preset.
-    presetId: (first.preset ?? start)?.id,
-    settings: loadSettings(storage, settings),
-    systemDark: systemPrefersDark(),
-    undoStack: [],
-    activity: {},
-    selection: {},
-    dnd: null,
-    resizeMode: null,
-    paletteOpen: false,
-    settingsOpen: false,
-    chooser: null,
-    renaming: null,
-    recent: [],
-    area: initialArea(env.spacing.inset),
-    dir: deps.dir ?? pageDirection(),
-    announcement: { text: "", seq: 0 },
-    linkMode: "open",
-    reshapes: 0,
-    ghost: null,
-    unsaved: {},
-    confirm: null,
-    paneCommands: {},
-    titles: {},
-    paneAttributes: {},
-    paneReports: {},
-    ...paneStates.read(),
-    paneStateHeld: {},
-    selectionOf: {},
-    ...initial,
-    // The layout given, once checked (`firstLayout`), or what took its place.
-    layout,
-  };
+  let state: UiState = initialState({
+    env,
+    storage,
+    paneStates,
+    first,
+    start,
+    ...(settings ? { settings } : {}),
+    ...(deps.dir ? { dir: deps.dir } : {}),
+    ...(initial ? { initial } : {}),
+  });
   // `DEV` first: a page without `process` never reads it; a production build folds the test to false and drops it.
   if (DEV && process.env.NODE_ENV !== "production") {
     freezeTree(state.layout);
     freezeTree(state.view);
   }
-  const subs = new Set<() => void>();
-  const notify = () => {
-    for (const fn of subs) fn();
-  };
+  // Who hears what the instance did, once each commit ends (state/events.ts).
+  const events = createEvents(() => state);
+  const batch = events.batch;
   const offKinds = env.kinds.onChange(() =>
     batch(() => {
       rereadLinks();
       // A kind registered changes titles and sizes even when no ref is read again.
-      changed = true;
+      events.changed();
     }),
   );
   // The instance's lifetime (state/lifetime.ts): `destroy()` ends it, and whatever still waits on it (a host's
   // answer, a deferred step, a drag in progress) ends with it.
   const life = createLifetime();
-  const pendingToasts: JaliEvents["toast"][] = [];
   const models = modelCache();
   const defer = (d: Deferred) => {
     const run = d.run;
@@ -591,7 +473,7 @@ export function createJaliStore(deps: JaliConfig): JaliStore {
       next.area.width >= (env.phone?.below ?? PHONE_BELOW)
     )
       store.writeUrl("debounce");
-    changed = true;
+    events.changed();
   };
 
   /**
@@ -625,108 +507,6 @@ export function createJaliStore(deps: JaliConfig): JaliStore {
     if (Object.keys(patch).length) write(patch);
   };
 
-  // Events: changes are gathered while a commit runs (apply, set, and anything they call) and told once it ends.
-  const handlers = new Map<JaliEvent, Set<(e: never) => void>>();
-  const emit = <E extends JaliEvent>(event: E, e: JaliEvents[E]) => {
-    for (const fn of handlers.get(event) ?? []) {
-      try {
-        (fn as (e: JaliEvents[E]) => void)(e);
-      } catch (err) {
-        console.error(err);
-      }
-    }
-  };
-  let depth = 0;
-  /** The state changed in this batch: subscribers hear it once, when the batch ends. */
-  let changed = false;
-  /** Batches that ended and are still to be told, oldest first. A listener that acts ends a batch while one is being
-   *  told: its events wait behind that one's, so the app hears changes in the order they were made, and the last
-   *  `layout` event is the layout now. */
-  const queue: {
-    before: UiState;
-    after: UiState;
-    ops: Op[];
-    named?: ActionName;
-    input: JaliInput;
-  }[] = [];
-  let telling = false;
-  let from: UiState = state;
-  /** Where this batch's change came from, read when it starts. */
-  let input: JaliInput = "code";
-  /** Layout ops committed in this batch: a refit alone is not a layout change. */
-  let ops: Op[] = [];
-  /** The first public action that committed a layout op in this batch. */
-  let named: ActionName | undefined;
-  /** Tells the app what a batch changed: its own `ops`, `named` and `input`, read as it ended. A listener that acts
-   *  starts a batch of its own, which must not rename this one's `layout` event. */
-  const told = (
-    before: UiState,
-    after: UiState,
-    ops: readonly Op[],
-    named: ActionName | undefined,
-    input: JaliInput,
-  ) => {
-    if (after.layout !== before.layout) {
-      const was = new Map(core.tree.panes(before.layout.root).map((p) => [p.id, p.ref]));
-      const pinnedBefore = new Map(
-        core.tree.panes(before.layout.root).map((p) => [p.id, !!p.pinned]),
-      );
-      const now = core.tree.panes(after.layout.root);
-      const ids = new Set(now.map((p) => p.id));
-      for (const [pane, ref] of was) if (!ids.has(pane)) emit("close", { pane, ref, input });
-      for (const p of now) {
-        const previous = was.get(p.id);
-        if (!previous) emit("open", { pane: p.id, ref: p.ref, input });
-        else if (!sameRef(previous, p.ref))
-          emit("open", { pane: p.id, ref: p.ref, previous, input });
-      }
-      for (const p of now) {
-        const was = pinnedBefore.get(p.id);
-        if (was !== undefined && was !== !!p.pinned)
-          emit("pin", { pane: p.id, pinned: !!p.pinned, input });
-      }
-    }
-    if (after.view.focused !== before.view.focused)
-      emit("focus", { pane: after.view.focused, previous: before.view.focused, input });
-    if (after.layout !== before.layout && ops.length)
-      emit("layout", {
-        layout: after.layout,
-        source: ops.includes("arrive") ? "address" : "action",
-        ...(named && !ops.includes("arrive") ? { action: named } : {}),
-        input,
-      });
-  };
-  const batch = <T>(run: () => T): T => {
-    if (depth++ === 0) {
-      from = state;
-      ops = [];
-      named = undefined;
-      input = currentInput();
-    }
-    try {
-      return run();
-    } finally {
-      if (--depth === 0) {
-        // Everything the batch did is in place (state, address, announcement) before anyone hears of it: subscribers
-        // once, then the events, in the order batches ended.
-        if (handlers.size && from !== state)
-          queue.push({ before: from, after: state, ops, named, input });
-        if (changed) {
-          changed = false;
-          notify();
-        }
-        if (!telling) {
-          telling = true;
-          try {
-            for (let e; (e = queue.shift());) told(e.before, e.after, e.ops, e.named, e.input);
-          } finally {
-            telling = false;
-          }
-        }
-      }
-    }
-  };
-
   const store: JaliStore = {
     get: () => state,
     // Once destroyed, a raw write lands nowhere either: a handle kept past the instance changes nothing.
@@ -734,20 +514,8 @@ export function createJaliStore(deps: JaliConfig): JaliStore {
     jali: undefined as unknown as Jali,
     guard: beforeClose,
     focusHeld: false,
-    on(event, handler) {
-      let set = handlers.get(event);
-      if (!set) handlers.set(event, (set = new Set()));
-      set.add(handler as (e: never) => void);
-      if (event === "toast") for (const t of pendingToasts.splice(0)) emit("toast", t);
-      return () => {
-        set.delete(handler as (e: never) => void);
-        if (!set.size) handlers.delete(event);
-      };
-    },
-    subscribe(fn) {
-      subs.add(fn);
-      return () => subs.delete(fn);
-    },
+    on: events.on,
+    subscribe: events.subscribe,
     model: () => modelOf(state),
     ctx,
     // The model is built when a step reads it, for the state the snapshot was taken of: `apply` takes snapshots to
@@ -769,16 +537,18 @@ export function createJaliStore(deps: JaliConfig): JaliStore {
       life.ended() ? { ok: false, reason: "unavailable" } : batch(() => apply(io, o, action)),
     // Two things said in one action ("1 change discarded", then "Order 1 closed") are one announcement: subscribers
     // hear an action once it is done, so the live region reads both.
-    announce: (text) =>
+    announce: (text) => {
+      const from = events.batchStart();
       store.set({
         announcement: {
           text:
-            depth && state.announcement.seq !== from.announcement.seq
+            from && state.announcement.seq !== from.announcement.seq
               ? `${state.announcement.text}${/[.!?…]$/.test(state.announcement.text) ? "" : "."} ${text}`
               : text,
           seq: state.announcement.seq + 1,
         },
-      }),
+      });
+    },
     // The writer reads the address's share of the state only (UrlState), when it writes, and as a link carries it:
     // without params only the app sets (`appOnly`).
     writeUrl: (mode) =>
@@ -795,11 +565,7 @@ export function createJaliStore(deps: JaliConfig): JaliStore {
           page: page && before !== page.before ? { ...page, before } : page,
         };
       }, mode),
-    toast: (t) => {
-      const e = { ...t, input: currentInput() };
-      if (handlers.has("toast")) emit("toast", e);
-      else pendingToasts.push(e);
-    },
+    toast: events.toast,
     run: (name, ...args) => {
       const [step, as] = stepOf(name);
       // As a step, so a change held for an answer is the action itself, run again when the answer comes.
@@ -859,12 +625,9 @@ export function createJaliStore(deps: JaliConfig): JaliStore {
     // An action refused or held part way puts back the state it read: subscribers then hear no change at all.
     restore: (previous: UiState) => {
       state = previous;
-      changed = true;
+      events.changed();
     },
-    committed: (op: Op, action?: ActionName) => {
-      ops.push(op);
-      named ??= action;
-    },
+    committed: events.committed,
     get beforeClose() {
       return store.guard;
     },
@@ -887,57 +650,4 @@ export function createJaliStore(deps: JaliConfig): JaliStore {
   // the address itself once it has.
   if ((pageOnly || first.page) && !initial?.page) store.run("arrivePage", { fromUrl: true });
   return store;
-}
-
-/**
- * In development, the layout and view an instance commits are frozen, so an app that edits what `get()`,
- * `getLayout()` or an event gave it fails at once, instead of changing the instance behind its back (no history, no
- * event, a model cache that no longer matches). Refs are left as they are: they may be the app's own objects. What is
- * frozen already (shared with the last commit) is not walked again.
- */
-function freezeTree(value: unknown): void {
-  if (!value || typeof value !== "object" || Object.isFrozen(value)) return;
-  for (const [k, v] of Object.entries(value)) if (k !== "ref" && k !== "peek") freezeTree(v);
-  Object.freeze(value);
-}
-
-/**
- * The layout an instance starts on, checked as `setLayout` and links check theirs (`core.validate`): the one given
- * (`createJali({ layout })`, often one the app saved), else the preset it opens on, the other presets, the curated
- * page, and a lone launcher, in that order. A layout that can't be shown (a kind removed since it was saved, two
- * panes with one id, a malformed tree) is skipped, and development says why. Throws only when nothing can be shown.
- */
-function firstLayout(
-  env: Env,
-  given: Layout | undefined,
-  start: Preset | undefined,
-  dev: boolean,
-): { layout: Layout; preset?: Preset; page?: true } {
-  // A copy (the app's own object is never frozen or kept). A ref its kind's params can't read still opens, in the
-  // kind's `Missing`, as an app's layout always has.
-  const read = (input: LayoutInput | (() => LayoutInput)) => readLayout(input, env, false);
-  // Why the layout given can't be shown, for development and for the error when nothing can be.
-  const why = () => (given ? core.validate(given, env.kinds.registry(), { params: false }) : null);
-  const done = (r: { layout: Layout; preset?: Preset; page?: true }) => {
-    try {
-      if (process.env.NODE_ENV !== "production" && dev && given)
-        console.error("Jali: the layout given can't be shown", why());
-    } catch {
-      /* no `process`: production */
-    }
-    return r;
-  };
-  let layout = given && read(given);
-  if (layout) return { layout };
-  for (const p of start ? [start, ...env.presets.filter((q) => q !== start)] : env.presets)
-    if ((layout = read(p.build))) return done({ layout, preset: p });
-  const p = env.profile,
-    launcher = env.launcher;
-  // The page's layout opens the page, as a page-only instance does.
-  if (p && (layout = read(() => p.build(p.firstItem)))) return done({ layout, page: true });
-  if (launcher && (layout = read({ kind: launcher, params: {} }))) return done({ layout });
-  const r = why();
-  throw new Error(
-    `Jali: no layout to start from can be shown${r && !r.ok ? `: ${r.errors[0]}` : ""}`,
-  );
 }

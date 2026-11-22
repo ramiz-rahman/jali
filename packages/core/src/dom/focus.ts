@@ -1,6 +1,6 @@
 /** Every DOM focus move the instance makes, in one place. The store asks for them; it never touches the DOM. */
 import type { NodeId } from "../layout/types";
-import type { JaliDom } from "../state/store";
+import type { JaliDom } from "./scope";
 
 /**
  * Focus here is in the instance's own overlays (its layer: its dialogs and menus) or any dialog: the instance never
