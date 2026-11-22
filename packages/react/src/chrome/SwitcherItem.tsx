@@ -44,7 +44,8 @@ export function SwitcherItem({
       {...marks}
       role="tab"
       className={`jali-switch-item${selected ? " is-active" : ""}${tucked ? " is-tucked" : ""}`}
-      aria-selected={selected}
+      // In stacked view both panes on screen are selected (the list says it is multi-selectable).
+      aria-selected={selected || !!inView}
       aria-controls={paneDomId(store.dom.id, node.id)}
       tabIndex={selected ? 0 : -1}
       data-tucked={tucked || undefined}

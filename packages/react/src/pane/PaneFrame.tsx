@@ -30,7 +30,7 @@ import { useInert } from "./inert";
 import { ICON } from "../icons/sized";
 import { createHeaderSlot, useHasHeaderControls, useNarrowHeader } from "./header";
 import { useWorkspaceLabel } from "../a11y/landmark";
-import { titleId } from "../ids";
+import { panelId, tabId, titleId } from "../ids";
 
 interface Props {
   frame: Frame;
@@ -240,7 +240,14 @@ export const PaneFrame = /* @__PURE__ */ memo(
         ) : null}
         {dropTarget ? <DropZoneLabel paneId={node.id} /> : null}
         <NotInResults node={node} />
-        <div className="jali-pane-content">
+        {/* Its tab's panel, when it shows for a tab strip (APG tabs): the region stays on the section. */}
+        <div
+          className="jali-pane-content"
+          id={panelId(store.dom.id, node.id)}
+          {...(group
+            ? { role: "tabpanel", "aria-labelledby": tabId(store.dom.id, node.id) }
+            : undefined)}
+        >
           {popTarget ? (
             <div className="jali-popped-out" role="status">
               <span>{store.messages.pane.poppedOut}</span>

@@ -31,6 +31,7 @@ export function PaneSwitcher({
         className="jali-switch-list"
         role="tablist"
         aria-label={t.switcherList(panes.length)}
+        aria-multiselectable={inView ? true : undefined}
         ref={list}
         onKeyDown={keys}
       >

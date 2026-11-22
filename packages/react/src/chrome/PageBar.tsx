@@ -8,6 +8,7 @@ import { useJaliIcons } from "../icons/context";
 import {
   besidePreview,
   investigation,
+  paneDomId,
   roleOf,
   startTabDrag,
   viewerLabel,
@@ -130,6 +131,11 @@ function PageTabs() {
     return m.visible.includes(id) ? "shown" : m.off.includes(id) ? "off" : "behind";
   };
   const selected = multi ? (m.pane(focused)?.role ?? page.tab) : page.tab;
+  // The view a tab shows, while one is on the page.
+  const paneOf = (role: string) => {
+    const id = m.panes.find((n) => n.role === role)?.id;
+    return id && !m.off.includes(role) ? paneDomId(store.dom.id, id) : undefined;
+  };
   const keys = useRovingKeys(() => [
     ...(strip.current?.querySelectorAll<HTMLElement>("[role=tab]") ?? []),
   ]);
@@ -155,6 +161,7 @@ function PageTabs() {
               data-role={r.id}
               data-state={st}
               aria-selected={r.id === selected}
+              aria-controls={paneOf(r.id)}
               tabIndex={r.id === selected ? 0 : -1}
               aria-description={
                 multi

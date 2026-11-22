@@ -1,5 +1,5 @@
 import { own } from "@jali/core/adapter";
-import { titleId } from "../ids";
+import { panelId, tabId, titleId } from "../ids";
 import type { NodeId, PaneNode } from "@jali/core";
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { useJaliIcons } from "../icons/context";
@@ -7,7 +7,6 @@ import type { Frame, Tab } from "@jali/core/adapter";
 import { allows, cssString } from "@jali/core/adapter";
 import {
   shortcutLabel,
-  paneDomId,
   roleOf,
   titleOf,
   startPaneDrag,
@@ -235,8 +234,9 @@ export function TabStrip({ group, owner }: { group: NonNullable<Frame["group"]>;
           aria-haspopup="menu"
           title={isFolded ? tw.foldedTitle(title) : title}
           role="tab"
+          id={tabId(store.dom.id, t.id)}
           aria-selected={active}
-          aria-controls={paneDomId(store.dom.id, t.id)}
+          aria-controls={panelId(store.dom.id, t.id)}
           tabIndex={active ? 0 : -1}
           onClick={() => actions.setActiveTab(group.id, t.id)}
           onDoubleClick={() => canRename(t.id) && actions.startRename(t.id)}
