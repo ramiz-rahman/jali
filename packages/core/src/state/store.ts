@@ -252,7 +252,8 @@ export interface UiStoreDeps {
   /** Prefix for this workspace's DOM ids. Give each workspace on one page its own. Default "jali". */
   id?: string;
   initial?: Partial<UiState>;
-  /** A focus or swap op moved something (layout stability, state/apply.ts). Default: reported in development. */
+  /** An op that never moves anything (a tab chosen, moved or pinned: `STABLE`, state/apply.ts) moved something.
+   *  Default: reported in development. */
   unstable?: (op: string, before: string, after: string) => void;
   /** The host's own commands: listed in the palette after Jali's, and bindable in `keymap` like any other. Their ids
    *  should not start with a Jali prefix (`pane.`, `layout.`, `page.`, `peek.`, `settings.`, `stack.`). */
@@ -858,7 +859,7 @@ export function createUiStore(deps: UiStoreDeps): UiStore {
       deps.unstable ??
       (DEV
         ? (op: string) =>
-            console.error(`Layout stability: "${op}" is a focus or swap op but moved panes`)
+            console.error(`Layout stability: "${op}" never moves anything, but moved panes`)
         : undefined),
   };
   store.actions = bindActions(store);

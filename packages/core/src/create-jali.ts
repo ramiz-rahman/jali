@@ -124,7 +124,8 @@ export interface JaliOptions<D extends PaneKindBase = PaneKindBase> {
   size?: { width: number; height: number };
   /** `false` leaves DOM focus alone (tests, a workspace that is never shown). Default true. */
   moveFocus?: boolean;
-  /** Called when a focus or swap moved panes it should not have. Default: reported in development. */
+  /** Called when an action that never moves anything (choosing, moving or pinning a tab, revealing or keeping a
+   *  pane) moved panes: a bug. Default: reported in development. */
   onUnstable?: (op: string, before: string, after: string) => void;
   /**
    * Asked before a change removes panes or makes them show another object: a close, close others, a preset,

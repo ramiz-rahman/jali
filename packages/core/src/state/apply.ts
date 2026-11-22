@@ -343,6 +343,21 @@ export const POLICY: Record<Op, Policy> = {
   resize: layout("debounce", "direct"),
 };
 
+/**
+ * Ops that never move anything, by contract: a tab chosen or moved in its strip, a pane revealed or pinned, a linked
+ * pane kept, a page's view shown in place. Development reports any of them that moves a rect (`unstable`): that is a
+ * bug. Other focus and swap ops may change rects with what they show (a record put where a table was stops at its
+ * measure); their geometry is measured, not assumed, and panes slide to a new place as for a reshape.
+ */
+export const STABLE: ReadonlySet<Op> = /* @__PURE__ */ new Set<Op>([
+  "focus",
+  "tab",
+  "reveal",
+  "moveTab",
+  "pinTab",
+  "keep",
+]);
+
 /** The geometry on screen: the set of rects, whoever fills them. Equal before and after a focus or swap op. */
 export const geometryOf = (m: JaliModel) =>
   m.resolved.panes
@@ -706,8 +721,9 @@ function step(c: Run, o: Outcome, f: Frame | undefined): ActionResult {
       }
     }
     const geometry = o.geometry ?? p.geometry;
+    // A focus or swap op's geometry is measured: what it shows can change rects. Only then is the model built for it.
     const check =
-      layoutChanged && io.unstable && (geometry === "focus" || geometry === "swap")
+      layoutChanged && (geometry === "focus" || geometry === "swap")
         ? geometryOf(io.snapshot().m)
         : null;
     if (layoutChanged || viewChanged || o.patch || o.undo) {
@@ -749,7 +765,11 @@ function step(c: Run, o: Outcome, f: Frame | undefined): ActionResult {
       if (layoutChanged) io.committed?.(o.op, c.action);
       if (check !== null) {
         const after = geometryOf(io.snapshot().m);
-        if (after !== check) io.unstable!(o.op, check, after);
+        if (after !== check) {
+          // Rects moved: they slide there, as for a reshape. For an op that never moves anything, it's a bug.
+          io.set({ reshapes: io.get().reshapes + 1 });
+          if (STABLE.has(o.op)) io.unstable?.(o.op, check, after);
+        }
       }
       io.url(layoutChanged ? p.history : viewChanged ? "replace" : "none");
       if (o.msg && (layoutChanged || (p.announceWhen === "change" && viewChanged)))
