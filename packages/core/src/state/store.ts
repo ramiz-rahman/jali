@@ -332,6 +332,8 @@ export interface JaliStore {
    *  settles as `"kept"`, every later commit is refused as `"unavailable"` and every raw write is dropped, so nothing
    *  lands on the next route. Calling it again does nothing. */
   destroy(): void;
+  /** Whether `destroy()` has run: nothing it is asked to do lands any more. */
+  ended(): boolean;
 }
 
 export function createJaliStore(deps: JaliConfig): JaliStore {
@@ -607,6 +609,7 @@ export function createJaliStore(deps: JaliConfig): JaliStore {
       return mine;
     },
     gesture: (cancel) => life.gesture(cancel),
+    ended: () => life.ended(),
     destroy() {
       if (life.ended()) return;
       // Stopping saves pane state still waiting to be saved; without a start, nothing saves it at all.

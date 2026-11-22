@@ -600,7 +600,7 @@ Runs a command by id if its check passes. A refusal is not announced here (the k
 - **`jali`** (`Jali`, required):
 - **`id`** (`string`, required): A command id, such as `"pane.zoom"`.
 
-**Returns** `boolean`: Whether it ran: `false` for an unknown id or a refused check.
+**Returns** `boolean`: Whether it ran: `false` for an unknown id, a refused check, an action that refused, or an instance after `destroy()`. A change held for an answer (the host's `beforeClose`, or "Discard unsaved changes?") ran.
 
 ### edgeScroll
 

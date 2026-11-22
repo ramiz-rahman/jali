@@ -1,7 +1,7 @@
 import { allows, notAllowed } from "./allow";
 import * as core from "../layout/engine";
 import type { NodeId } from "../layout/types";
-import { refuse, type Outcome, type Snapshot } from "../state/apply";
+import { refuse, type Outcome, type RefusalStep, type Snapshot } from "../state/apply";
 import { messagesOf, say } from "../state/messages";
 import { pushUndo } from "../state/undo";
 import { putBack } from "./tuck";
@@ -58,17 +58,30 @@ export function remove(x: Snapshot, id: NodeId): Outcome {
   return { op: "remove", layout: r.layout, view: r.view, allowed: true, patch };
 }
 
+/**
+ * Why Close others can't run for `id` now, or undefined when it can: the action and the ⌘K command ask this one
+ * check, so the palette never offers what the action then refuses. On a curated page it goes back (the page decides).
+ */
+export function checkCloseOthers(x: Snapshot, id = x.s.view.focused): RefusalStep | undefined {
+  if (x.s.page && x.env.page) return undefined;
+  if (!id) return refuse("unavailable");
+  // Panes the app keeps (`allow: { close: false }`) stay: with none of the others closable, there is nothing to do.
+  return x.m.panes.some((p) => p.id !== id && allows(x, p.id, "close"))
+    ? undefined
+    : refuse("nothing-to-do", say(x).noOtherPanes);
+}
+
 export function closeOthers(x: Snapshot, id = x.s.view.focused): Outcome {
   const { s, m, ctx } = x;
   const page = s.page ? x.env.page : undefined;
   if (page) return page.back(x);
   if (!id) return null;
-  if (m.panes.length <= 1) return refuse("nothing-to-do", say(x).noOtherPanes);
+  const cannot = checkCloseOthers(x, id);
+  if (cannot) return cannot;
   // Panes the app keeps (`allow: { close: false }`) stay; the rest close in one change.
   const kept = m.panes.filter((p) => p.id !== id && !allows(x, p.id, "close"));
   if (kept.length) {
     const closing = m.panes.filter((p) => p.id !== id && allows(x, p.id, "close")).map((p) => p.id);
-    if (!closing.length) return refuse("nothing-to-do", say(x).noOtherPanes);
     let layout = s.layout,
       view = unzoomed(s.view);
     for (const p of closing) ({ layout, view } = core.close(layout, view, p, ctx));

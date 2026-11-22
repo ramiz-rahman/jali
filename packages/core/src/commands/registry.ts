@@ -7,7 +7,8 @@
 import { checkAutoLayout } from "../actions/layout";
 import { notAllowed, type PaneControl } from "../actions/allow";
 import type { Edge } from "../layout/types";
-import { checkUndo } from "../actions/close";
+import { checkCloseOthers, checkUndo } from "../actions/close";
+import { changeSettings } from "../actions/layout";
 import { checkFullScreen, checkZoom } from "../actions/focus";
 import { checkSplit } from "../actions/open";
 import { checkPeek } from "../actions/peek";
@@ -17,7 +18,13 @@ import { checkRename } from "../actions/rename";
 import { serviceOf, type FeatureId } from "../features/feature";
 import { activeTabId, focusShelfChip } from "../dom/focus";
 import type { Env } from "../env";
-import { refuse, type RefusalStep, type Snapshot } from "../state/apply";
+import {
+  isChange,
+  refuse,
+  type ActionResult,
+  type RefusalStep,
+  type Snapshot,
+} from "../state/apply";
 import { messagesOf, type ScreenDirection } from "../state/messages";
 import type { JaliStore } from "../state/store";
 import { storeOf, type AnyJali, type Jali } from "../state/instance";
@@ -38,7 +45,8 @@ export interface CommandDef extends Omit<Command, "run"> {
   /** Why the command can't run now (silent without a message); undefined when it can. `store` is the instance the
    *  snapshot is of: a check that asks the instance's adapter (Pop out) needs it, and can't run without it. */
   check?: (x: Snapshot, store?: JaliStore) => RefusalStep | undefined;
-  run: (store: JaliStore) => void;
+  /** Run it. A command that runs an action returns its result, so `runCommand` can say whether it ran. */
+  run: (store: JaliStore) => ActionResult | void;
 }
 
 /** `check`, then the app's `allow` for the focused pane (a command for something it doesn't allow is greyed out,
@@ -175,7 +183,7 @@ function buildCommands(env: Env): CommandDef[] {
       id: "pane.close_others",
       title: t.closeOthers,
       group: g.pane,
-      check: needOthers,
+      check: (x) => needFocus(x) ?? checkCloseOthers(x),
       run: (u) => u.actions.closeOthers(),
     },
     {
@@ -383,11 +391,15 @@ export const commandsOf = (jali: Pick<AnyJali, "env">): readonly Command[] =>
 export const commandDefsOf = (store: Pick<JaliStore, "env">): readonly CommandDef[] =>
   forEnv(store.env).defs;
 
+/** Whether a command's result means it ran: done, or held for an answer (the host's `beforeClose`, or "Discard
+ *  unsaved changes?"). A command that isn't an action (it opens a dialog) ran if its check passed. */
+const ran = (r: ActionResult | void) =>
+  !r || r.ok || r.reason === "pending" || r.reason === "unsaved";
+
 function run(store: JaliStore, id: string): boolean {
   const c = forEnv(store.env).byId.get(id);
-  if (!c || c.check?.(store.snapshot(), store)) return false;
-  c.run(store);
-  return true;
+  if (!c || store.ended() || c.check?.(store.snapshot(), store)) return false;
+  return ran(c.run(store));
 }
 
 /** Runs a command if it can run now. Returns whether it ran. */
@@ -416,11 +428,13 @@ export function revealFromShelf(store: JaliStore) {
   if (first) store.actions.reveal(first.paneId);
 }
 
-function toggleCentreDrop(store: JaliStore) {
-  const settings = store.get().settings;
-  const centreDrop = settings.centreDrop === "swap" ? "tab" : "swap";
-  store.set({ settings: { ...settings, centreDrop } });
-  store.announce(store.messages.announcements.centreDrop(centreDrop));
+/** The setting and what is said of it are one change: `changeSettings`, with its announcement. */
+function toggleCentreDrop(store: JaliStore): ActionResult {
+  return store.apply((x) => {
+    const centreDrop = x.s.settings.centreDrop === "swap" ? "tab" : "swap";
+    const o = changeSettings(x, { centreDrop });
+    return isChange(o) ? { ...o, msg: messagesOf(x).announcements.centreDrop(centreDrop) } : o;
+  }, "changeSettings");
 }
 
 /**
