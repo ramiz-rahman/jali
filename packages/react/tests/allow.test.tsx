@@ -4,15 +4,7 @@
  */
 import { cleanup, render } from "@testing-library/react";
 import { afterAll, afterEach, beforeAll, describe, expect, it } from "vite-plus/test";
-import {
-  createJali,
-  memoryLocation,
-  memoryStorage,
-  pane,
-  row,
-  tabs,
-  type Allow,
-} from "@jali/core";
+import { createJali, memoryLocation, memoryStorage, pane, row, tabs, type Allow } from "@jali/core";
 import type { Feature } from "@jali/core";
 import {
   allows,
