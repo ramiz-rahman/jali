@@ -73,7 +73,7 @@ function useMeasure(store: JaliStore) {
     measure();
     if (DEV && el.clientWidth > 0 && el.clientHeight === 0)
       console.warn(
-        "Jali: the workspace measures 0 pixels high, so every pane is collapsed. Give <JaliRoot> (or the element " +
+        "Jali: the panes measure 0 pixels high, so every pane is collapsed. Give <JaliRoot> (or the element " +
           "around <JaliView />) a height, or make it a flex or grid cell that has one.",
         el,
       );

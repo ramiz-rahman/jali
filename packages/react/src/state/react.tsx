@@ -56,7 +56,7 @@ export function useDomScope(store: JaliStore) {
     const n = mounted.get(id) ?? 0;
     if (DEV && n)
       console.error(
-        `Jali: two workspaces on this page share the id "${id}", so their elements' ids repeat. Give each its own ` +
+        `Jali: two Jali roots on this page share the id "${id}", so their elements' ids repeat. Give each its own ` +
           "createJali({ id, label }).",
       );
     mounted.set(id, n + 1);

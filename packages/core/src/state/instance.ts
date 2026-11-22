@@ -165,7 +165,7 @@ const stores = /* @__PURE__ */ new WeakMap<AnyJali, JaliStore>();
 /** The store behind a workspace, for adapters (`@jali/core/adapter`). */
 export function storeOf(jali: AnyJali): JaliStore {
   const store = stores.get(jali);
-  if (!store) throw new Error("Jali: not a workspace made by createJali");
+  if (!store) throw new Error("Jali: not an instance made by createJali");
   return store;
 }
 

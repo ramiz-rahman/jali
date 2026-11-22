@@ -112,7 +112,7 @@ describe("a workspace with no height", () => {
     const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
     render(<JaliRoot jali={make()} />);
     expect(warn).toHaveBeenCalledTimes(1);
-    expect(String(warn.mock.calls[0]![0])).toMatch(/^Jali: the workspace measures 0 pixels high/);
+    expect(String(warn.mock.calls[0]![0])).toMatch(/^Jali: the panes measure 0 pixels high/);
   });
 
   it("says nothing when it has a height, or when nothing is laid out (jsdom, a hidden root)", () => {
