@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from "vite-plus/test";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { Jali } from "jali";
 import { createTestJali, reportUnsaved, type TestLocation } from "jali/testing";
 import { orderKind, orderKinds } from "../pane-kinds/orders";
