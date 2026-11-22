@@ -52,7 +52,8 @@ export type {
 } from "./pane-kinds";
 export { optional, oneOf, appOnly } from "./pane-kinds";
 export type { StandardSchemaV1 } from "./standard-schema";
-export type { RoleBase, ProfileBase, ViewMode, Preset, Env, ItemId, PhoneOptions } from "./profile";
+export type { RoleBase, ProfileBase, ViewMode, ItemId } from "./profile";
+export type { Preset, Env, PhoneOptions } from "./env";
 
 // ---------- the layout tree (pure: every operation returns a new layout) ----------
 export type {

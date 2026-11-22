@@ -1,17 +1,8 @@
 import * as core from "../layout/engine";
 import { treeSide } from "../layout/geometry/direction";
-import type {
-  Edge,
-  Layout,
-  LayoutNode,
-  NodeId,
-  ObjectRef,
-  PaneNode,
-  ViewState,
-} from "../layout/types";
+import type { Edge, NodeId, ObjectRef, PaneNode, ViewState } from "../layout/types";
 import type { PaneKinds } from "../pane-kinds";
 import { refuse, type Outcome, type RefusalStep, type Snapshot } from "../state/apply";
-import { peekSheet } from "./peek";
 import type { Model } from "../state/model";
 import { say } from "../state/messages";
 import { follow, followLater, sameRef, setKept } from "./follow";
@@ -61,19 +52,6 @@ export interface OpenBesideOptions {
 }
 
 /**
- * A pane opened from one of a curated page's views goes to the investigation, after the page's views. With an `edge`
- * (a tree side), it opens on that side of the investigation's last part; the first opened pane starts the
- * investigation after the views whatever the edge, so the views never share a column with an opened pane.
- */
-function investigationPlace(layout: Layout, after: core.Placement, edge?: Edge): core.Placement {
-  if (!edge) return after;
-  const target = core.tree.find(layout.root, after.target);
-  const hasRole = (n: LayoutNode): boolean =>
-    n.type === "pane" ? !!n.role : n.children.some(hasRole);
-  return target && !hasRole(target) ? { target: after.target, edge } : after;
-}
-
-/**
  * Focus stays in the source. Opening the source's selected item (a list's row) links the new pane
  * to the selection: it follows it, or, when the list already has a following detail, it opens kept beside it for
  * comparison (layout/ops/follow.ts). The selected item is the selected object itself or, for another kind, what that
@@ -88,36 +66,12 @@ export function openBeside(
   opts: OpenBesideOptions = {},
 ): Outcome {
   const { s, m, ctx } = x;
-  // A curated page: in Single mode, or for a role that may not investigate, a link peeks. Opened panes gather after the layout.
-  if (s.page && s.linkMode === "peek")
-    return { ...peekSheet(x, ref, source), msg: say(x).peekOnly(m.env.kinds.title(ref)) };
-  if (s.page?.mode === "single")
-    return { ...peekSheet(x, ref, source), msg: say(x).peekSingle(m.env.kinds.title(ref)) };
-  // A page is open, so the instance has its engine (env.page).
-  const page = s.page ? x.env.page : undefined;
-  if (page) {
-    // One object, one pane: a link to what is already on the page goes there (a view, whatever kind shows it).
-    const dup = openPaneFor(m, ref);
-    if (dup?.role) return page.goToRole(x, dup.role, source);
-    if (dup)
-      return {
-        op: "focusExisting",
-        layout: core.reveal(s.layout, dup.id, ctx),
-        view: core.focus(unzoomed(s.view), dup.id, ctx),
-        msg: say(x).alreadyOpen(m.title(dup.id)),
-        result: dup.id,
-      };
-  }
   // `edge` is a screen side, as for move and split; the tree's own sides swap right to left. Default: after the source.
   const edge = opts.edge ? treeSide(opts.edge, ctx.dir) : "right";
-  const place =
-    page && m.pane(source)?.role
-      ? investigationPlace(s.layout, page.placeAfterArrangement(s.layout), opts.edge && edge)
-      : undefined;
-  // The first opened pane starts an investigation: remember the layout it started from.
-  const before =
-    page && !page.investigation(m.panes).length ? { page: { ...s.page!, before: s.layout } } : {};
-  // In a curated page nothing the person placed gives way for an opened pane: short of room, it opens as a tab.
+  // A curated page decides how its links open (actions/page.ts `opening`): a peek, the pane already showing the
+  // object, or where an opened pane goes and what opening one starts.
+  const page = s.page ? x.env.page?.opening(x, source, ref, opts.edge && edge) : undefined;
+  if (page && "instead" in page) return page.instead;
   const selected = own(s.selection, source)?.ref;
   const fromSelection = !!selected && sameRef(m.env.kinds.follow(ref.kind, selected), ref);
   // The list already has a following detail: opening its row keeps that detail in place when it shows the row (keep
@@ -145,7 +99,7 @@ export function openBeside(
   // A link never copies a pane of its own chain: the source itself, a pane it came from (up the chain), or a pane it
   // opened. That pane is shown instead and focus stays. Another chain may show the same object: the person may want
   // two customers' orders side by side.
-  const inChain = !s.page ? chainPaneFor(x, source, ref) : undefined;
+  const inChain = !page ? chainPaneFor(x, source, ref) : undefined;
   if (inChain) {
     const revealed = core.reveal(s.layout, inChain, ctx);
     const msg = say(x).alreadyOpenBeside(m.title(inChain));
@@ -154,8 +108,9 @@ export function openBeside(
       ? { op: "focus", msg, result: inChain }
       : { op: "focusExisting", layout: revealed, view: s.view, msg, result: inChain };
   }
-  const r = core.open(s.layout, unzoomed(s.view), source, edge, ref, ctx, true, place, {
-    ...(s.page ? { yields: false } : {}),
+  // In a curated page nothing the person placed gives way for an opened pane: short of room, it opens as a tab.
+  const r = core.open(s.layout, unzoomed(s.view), source, edge, ref, ctx, true, page?.place, {
+    ...(page ? { yields: false } : {}),
     ...(fromSelection ? { fromSelection } : {}),
   });
   let layout = r.layout,
@@ -166,30 +121,7 @@ export function openBeside(
     focused: source,
     focusHistory: r.view.focusHistory.length ? r.view.focusHistory : [source],
   };
-  if (page && r.mode === "tab") {
-    // No room beside: a tab of the source, in the source's slot at its size, shown and focused (the source is behind
-    // it now). If even that needs more room, views go back to the page tabs; they never fold into a tab group.
-    const t = core.addTab(s.layout, unzoomed(s.view), source, ref, ctx);
-    const linked = {
-      ...t.layout,
-      root: core.tree.map(t.layout.root, (n) =>
-        n.id === t.opened && n.type === "pane"
-          ? {
-              ...n,
-              linkedTo: source,
-              ...(fromSelection ? core.selectionLink(s.layout, source, ref.kind) : {}),
-            }
-          : n,
-      ),
-    };
-    ({ layout, view, sent } = page.settleRoles(
-      s.layout,
-      { layout: linked, view: t.view },
-      [source, t.opened],
-      ctx,
-    ));
-    opened = t.opened;
-  }
+  if (page && r.mode === "tab") ({ layout, view, opened, sent } = page.asTab(fromSelection));
   const openedKept =
     !!core.tree.panes(layout.root).find((p) => p.id === opened)?.kept && fromSelection;
   const said =
@@ -201,12 +133,11 @@ export function openBeside(
     layout,
     view,
     msg: sent.length ? say(x).both(said, say(x).sentToTabs(sent.map((id) => m.title(id)))) : said,
-    patch: { recent: withRecent(m.env.kinds, s.recent, [ref]), ...before },
+    patch: { recent: withRecent(m.env.kinds, s.recent, [ref]), ...page?.patch },
     result: opened,
   };
 }
 
-/** Split opens a launcher beside the pane, not a copy of it; focus moves in, because the person is about to choose. */
 /**
  * Whether Split can act on pane `id` (default: the focused one): what `split` refuses, and what every surface that
  * offers it (the tab menu, ⌘K, keys) asks. It needs a launcher to put beside the pane, and the free layout: a curated
@@ -217,6 +148,7 @@ export function checkSplit(x: Snapshot, id = x.s.view.focused): RefusalStep | un
   return id && x.m.pane(id) ? undefined : refuse("not-found");
 }
 
+/** Split opens a launcher beside the pane, not a copy of it; focus moves in, because the person is about to choose. */
 export function split(x: Snapshot, dir: "right" | "bottom", target = x.s.view.focused): Outcome {
   const { s, m, ctx } = x;
   const cannot = checkSplit(x, target);

@@ -16,7 +16,7 @@ import { checkMerge, checkMoveTab, checkUnmerge } from "../actions/tabs";
 import { checkRename } from "../actions/rename";
 import { serviceOf, type FeatureId } from "../features/feature";
 import { activeTabId, focusShelfChip } from "../dom/focus";
-import type { Env } from "../profile";
+import type { Env } from "../env";
 import { refuse, type RefusalStep, type Snapshot } from "../state/apply";
 import { messagesOf, type ScreenDirection } from "../state/messages";
 import type { JaliStore } from "../state/store";

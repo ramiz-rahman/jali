@@ -8,7 +8,7 @@ import type { DeepReadonly, Layout, NodeId, ObjectRef } from "../layout/types";
 export type { DeepReadonly };
 import type { LayoutInput } from "../layout/build";
 import type { Keymap } from "../commands/keymap";
-import type { Env } from "../profile";
+import type { Env } from "../env";
 import type { Messages } from "./messages";
 import type { ActionName, JaliActions, JaliDialogs, JaliPage } from "../actions/public";
 import { bindSteps, isPublicStep } from "../actions";

@@ -147,17 +147,15 @@ export {
 } from "./pane-kinds";
 export {
   PAGE,
-  PHONE_BELOW,
   asItem,
   pageEngineOf,
-  presetById,
   roleOf,
-  shownTitle,
-  titleOf,
   type BesidePreview,
   type OpenPage,
   type PageEngine,
+  type PageOpening,
 } from "./profile";
+export { PHONE_BELOW, presetById, shownTitle, titleOf } from "./env";
 export { ALONE_CHROME, CHROME, type Chrome, type Presentation } from "./pane/chrome";
 export { DEFAULT_BUTTONS, buttonsOf, type ButtonsState } from "./pane/buttons";
 

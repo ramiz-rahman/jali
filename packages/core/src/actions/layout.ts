@@ -1,7 +1,7 @@
 import * as core from "../layout/engine";
 import type { Layout, ViewState } from "../layout/types";
 import { keepOwnParams } from "../pane-kinds";
-import { presetById } from "../profile";
+import { presetById } from "../env";
 import { refuse, type Outcome, type RefusalStep, type Snapshot } from "../state/apply";
 import { notAllowed } from "./allow";
 import { toLayout, type LayoutInput } from "../layout/build";
@@ -67,11 +67,12 @@ export function readLayout(
  *  The lists' selections agree with what their followers show, which stay as the layout has them (`agreeOnArrival`).
  *  `presetId`: the preset the link says the layout came from (a known one); without it the preset stays as it is. */
 export function arrive(
-  { s, ctx, env }: Snapshot,
+  x: Snapshot,
   from: Layout,
   arrived: Partial<ViewState>,
   presetId?: string,
 ): Outcome {
+  const { s, ctx, env } = x;
   // What the address doesn't hold (`appOnly` and `link: false` params) stays on a pane that is still open, or comes
   // from the preset the link names.
   const layout = keepOwnParams(env.kinds.registry(), from, [
@@ -95,7 +96,7 @@ export function arrive(
   // The lists' selections agree with the followers the layout brings (or start on them); the layout stays as it came.
   const selection = agreeOnArrival(env, layout, s.selection, s.selectionOf);
   const patch = {
-    ...(s.page ? { page: null } : {}),
+    ...(s.page && env.page?.leaving(x)),
     ...(presetId ? { presetId } : {}),
     ...(selection !== s.selection ? { selection } : {}),
   };
@@ -139,12 +140,7 @@ export function restoreLayout(x: Snapshot, input: LayoutInput): Outcome {
       .map((p) => p.ref)
       .reverse(),
   );
-  const page = s.page
-    ? {
-        page: null,
-        prefs: { mode: s.page.mode, split: s.page.mode === "split" ? s.layout : s.prefs.split },
-      }
-    : {};
+  const page = (s.page && env.page?.leaving(x)) || {};
   return {
     op: "setLayout",
     layout: agreed.layout,

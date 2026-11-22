@@ -81,16 +81,9 @@ export function startUi(
     if (s.settings !== prev.settings) saveSettings(store.storage, s.settings);
     if (s.paneState !== prev.paneState || s.paneStateOf !== prev.paneStateOf) saveSoon();
     // A curated page's mode and split layout are the person's: saved on this device, opened panes left out.
-    const p = store.env.profile,
-      page = store.env.page;
-    const live = s.page?.mode === "split" && s.layout !== prev.layout;
-    if (p && page && (live || s.prefs !== prev.prefs)) {
-      const layout = s.page?.mode === "split" ? s.layout : s.prefs.split;
-      savePrefs(store.storage, p.id, {
-        mode: s.prefs.mode,
-        split: layout ? page.withoutOpened(layout, store.ctx()) : null,
-      });
-    }
+    const p = store.env.profile;
+    const prefs = p && store.env.page?.prefsToSave(s, prev, store.ctx());
+    if (p && prefs) savePrefs(store.storage, p.id, prefs);
     if (pageTheme && (s.settings.theme !== prev.settings.theme || s.systemDark !== prev.systemDark))
       applyTheme(resolveTheme(s.settings.theme, s.systemDark));
     prev = s;

@@ -10,7 +10,7 @@
 import type { Edge } from "../layout/types";
 import type { PaneActivity, ParamProblem } from "../pane-kinds";
 import type { Platform } from "../commands/format";
-import type { Env } from "../profile";
+import type { Env } from "../env";
 import type { Toast } from "./apply";
 import { pageEn } from "./page-messages";
 import {

@@ -17,7 +17,7 @@
  * "Pop out pane") stay in core's tables, at a few bytes each, so their ids, keys and order are Jali's one list. Steps
  * are refused as `"unavailable"` without their feature, and its commands are listed only with it.
  */
-import type { Env } from "../profile";
+import type { Env } from "../env";
 import type { StoragePort } from "../ports";
 import type { MessageOverrides } from "../state/messages";
 import type { JaliStore, UrlWriter } from "../state/store";

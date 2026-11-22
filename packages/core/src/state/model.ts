@@ -17,7 +17,7 @@ import type {
   TuckRecord,
   ViewState,
 } from "../layout/types";
-import { PHONE_BELOW, titleOf, type Env } from "../profile";
+import { PHONE_BELOW, titleOf, type Env } from "../env";
 import { foldPair, stackPair, type Hinge, type StackPair } from "../workspace/stack";
 import { messagesOf } from "./messages";
 

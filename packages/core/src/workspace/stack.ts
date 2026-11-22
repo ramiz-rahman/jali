@@ -7,7 +7,7 @@
  */
 import type { NodeId, PaneNode, ViewState } from "../layout/types";
 import { DEFAULT_MIN_HEIGHT } from "../pane-kinds";
-import type { Env } from "../profile";
+import type { Env } from "../env";
 import { SWITCHER_H } from "../tokens";
 import { shares } from "../layout/geometry/shares";
 

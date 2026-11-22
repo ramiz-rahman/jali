@@ -6,7 +6,7 @@
  *   createJali({ panes, layout, features: [urlSync()] });
  *   createJali({ panes, layout, features: [urlSync({ location, prefix: "n.", sizes: "link" })] });
  */
-import { presetById } from "../profile";
+import { presetById } from "../env";
 import type { ConfirmState, JaliStore } from "../state/store";
 import { arrive, readLayout } from "../actions/layout";
 import { DONE, refuse, type ActionResult, type Outcome, type Snapshot } from "../state/apply";

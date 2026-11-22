@@ -13,6 +13,7 @@ import type {
   Edge,
   Layout,
   LayoutContext,
+  LayoutNode,
   NodeId,
   ObjectRef,
   PaneNode,
@@ -24,19 +25,22 @@ import {
   PAGE,
   roleOf,
   type BesidePreview,
-  type Env,
   type ItemId,
   type OpenPage,
   type PageEngine,
+  type PageOpening,
   type ViewMode,
   type ProfileBase,
 } from "../profile";
+import { type Env } from "../env";
 import type { CommandDef } from "../commands/registry";
 import { isChange, refuse, type Change, type Outcome, type Snapshot } from "../state/apply";
 import { messagesOf, say, type Messages } from "../state/messages";
 import { pageEn } from "../state/page-messages";
 import type { PagePrefs } from "../state/page-prefs";
-import type { PageState } from "../state/store";
+import type { PageState, UiState } from "../state/store";
+import { openPaneFor } from "./open";
+import { peekSheet } from "./peek";
 import type { LinkMode } from "./public";
 import { pushUndo } from "../state/undo";
 import { keepOwnRef } from "../pane-kinds";
@@ -608,6 +612,8 @@ export function backToPage(x: Snapshot): Outcome {
 export function hideRole(x: Snapshot, id: NodeId): Outcome {
   const p = x.env.profile,
     node = x.m.pane(id);
+  // In Single view there is no layout to take a view out of.
+  if (x.s.page?.mode === "single") return refuse("single-view", say(x).singleNoLayout);
   if (!p || x.s.page?.mode !== "split" || !node?.role) return null;
   const r = core.hide(x.s.layout, unzoomed(x.s.view), id, x.ctx);
   if (!r.ok)
@@ -732,6 +738,98 @@ function pageCommands(env: Env): CommandDef[] {
   ];
 }
 
+/**
+ * A pane opened from one of a curated page's views goes to the investigation, after the page's views. With an `edge`
+ * (a tree side), it opens on that side of the investigation's last part; the first opened pane starts the
+ * investigation after the views whatever the edge, so the views never share a column with an opened pane.
+ */
+function investigationPlace(layout: Layout, after: core.Placement, edge?: Edge): core.Placement {
+  if (!edge) return after;
+  const target = core.tree.find(layout.root, after.target);
+  const hasRole = (n: LayoutNode): boolean =>
+    n.type === "pane" ? !!n.role : n.children.some(hasRole);
+  return target && !hasRole(target) ? { target: after.target, edge } : after;
+}
+
+/**
+ * How a link from `source` opens while the page is open (`openBeside` asks): a limited viewer, or Single view, peeks;
+ * an object already on the page is shown where it is; otherwise the opened pane goes to the investigation, the first
+ * one remembers the layout it started from, and short of room it opens as a tab of its source, sending views back to
+ * the page tabs rather than folding them.
+ */
+function opening(x: Snapshot, source: NodeId, ref: ObjectRef, edge?: Edge): PageOpening {
+  const { s, m, ctx } = x;
+  const page = s.page!;
+  const title = m.env.kinds.title(ref);
+  if (s.linkMode === "peek")
+    return { instead: { ...peekSheet(x, ref, source), msg: say(x).peekOnly(title) } };
+  if (page.mode === "single")
+    return { instead: { ...peekSheet(x, ref, source), msg: say(x).peekSingle(title) } };
+  // One object, one pane: a link to what is already on the page goes there (a view, whatever kind shows it).
+  const dup = openPaneFor(m, ref);
+  if (dup?.role) return { instead: goToRole(x, dup.role, source) };
+  if (dup)
+    return {
+      instead: {
+        op: "focusExisting",
+        layout: core.reveal(s.layout, dup.id, ctx),
+        view: core.focus(unzoomed(s.view), dup.id, ctx),
+        msg: say(x).alreadyOpen(m.title(dup.id)),
+        result: dup.id,
+      },
+    };
+  return {
+    ...(m.pane(source)?.role
+      ? { place: investigationPlace(s.layout, placeAfterArrangement(s.layout), edge) }
+      : {}),
+    // The first opened pane starts an investigation: remember the layout it started from.
+    patch: investigation(m.panes).length ? {} : { page: { ...page, before: s.layout } },
+    asTab(fromSelection) {
+      // No room beside: a tab of the source, in the source's slot at its size, shown and focused (the source is behind
+      // it now). If even that needs more room, views go back to the page tabs; they never fold into a tab group.
+      const t = core.addTab(s.layout, unzoomed(s.view), source, ref, ctx);
+      const linked = {
+        ...t.layout,
+        root: core.tree.map(t.layout.root, (n) =>
+          n.id === t.opened && n.type === "pane"
+            ? {
+                ...n,
+                linkedTo: source,
+                ...(fromSelection ? core.selectionLink(s.layout, source, ref.kind) : {}),
+              }
+            : n,
+        ),
+      };
+      const settled = settleRoles(
+        s.layout,
+        { layout: linked, view: t.view },
+        [source, t.opened],
+        ctx,
+      );
+      return { ...settled, opened: t.opened };
+    },
+  };
+}
+
+/** What leaving the page for a layout keeps (a preset, `setLayout`, a link to a free layout): the page closes, and the
+ *  person's mode and Split view layout stay theirs for next time. */
+function leaving({ s }: Snapshot): Partial<UiState> {
+  if (!s.page) return {};
+  return {
+    page: null,
+    prefs: { mode: s.page.mode, split: s.page.mode === "split" ? s.layout : s.prefs.split },
+  };
+}
+
+/** What the page saves for the person when the state went from `prev` to `s`: their mode and Split view layout, opened
+ *  panes left out. Undefined when nothing it saves changed. */
+function prefsToSave(s: UiState, prev: UiState, ctx: LayoutContext): PagePrefs | undefined {
+  const live = s.page?.mode === "split" && s.layout !== prev.layout;
+  if (!live && s.prefs === prev.prefs) return undefined;
+  const layout = s.page?.mode === "split" ? s.layout : s.prefs.split;
+  return { mode: s.prefs.mode, split: layout ? withoutOpened(layout, ctx) : null };
+}
+
 /** The curated page's engine: what `definePage` puts on a page. */
 export const pageEngine: PageEngine = {
   open: openPage,
@@ -745,11 +843,9 @@ export const pageEngine: PageEngine = {
   hideRole,
   reset: resetPage,
   setLinkMode,
-  goToRole,
-  investigation,
-  placeAfterArrangement,
-  settleRoles,
-  withoutOpened,
+  opening,
+  leaving,
+  prefsToSave,
   besidePreview,
   commands: pageCommands,
   words: pageEn,

@@ -20,7 +20,7 @@
  * detail follows the selection once it rests (actions/follow.ts).
  */
 import * as core from "../layout/engine";
-import type { Env } from "../profile";
+import type { Env } from "../env";
 import { say } from "./messages";
 import type {
   Layout,

@@ -13,11 +13,9 @@ export function close(x: Snapshot, id = x.s.view.focused): Outcome {
   if (denied) return denied;
   const { s, m, ctx } = x;
   if (!id || !m.pane(id)) return null;
-  // In a curated page a view is never closed for good: it goes back to the tabs.
-  if (s.page && m.pane(id)!.role)
-    return s.page.mode === "single"
-      ? refuse("single-view", say(x).singleNoLayout)
-      : x.env.page!.hideRole(x, id);
+  // In a curated page a view is never closed for good: the page puts it back in its tabs.
+  const page = s.page ? x.env.page : undefined;
+  if (page && m.pane(id)!.role) return page.hideRole(x, id);
   if (m.panes.length <= 1) return refuse("last-pane", say(x).lastPaneStays);
   const title = m.title(id);
   const r = core.close(s.layout, unzoomed(s.view), id, ctx);
@@ -62,7 +60,8 @@ export function remove(x: Snapshot, id: NodeId): Outcome {
 
 export function closeOthers(x: Snapshot, id = x.s.view.focused): Outcome {
   const { s, m, ctx } = x;
-  if (s.page) return x.env.page!.back(x);
+  const page = s.page ? x.env.page : undefined;
+  if (page) return page.back(x);
   if (!id) return null;
   if (m.panes.length <= 1) return refuse("nothing-to-do", say(x).noOtherPanes);
   // Panes the app keeps (`allow: { close: false }`) stay; the rest close in one change.

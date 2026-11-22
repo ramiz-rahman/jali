@@ -1,5 +1,5 @@
 import type { Allow } from "./actions/allow";
-import type { PhoneOptions } from "./profile";
+import type { PhoneOptions } from "./env";
 /**
  * `createJali`: one call from pane kinds and a layout to an instance that is ready to render.
  *
@@ -25,7 +25,8 @@ import {
   type RefOf,
 } from "./pane-kinds";
 import { browserStorage, memoryStorage, type StoragePort } from "./ports";
-import type { Preset, ProfileBase } from "./profile";
+import type { ProfileBase } from "./profile";
+import type { Preset } from "./env";
 import type { BeforeClose } from "./state/apply";
 import type { Jali, PageOf } from "./state/instance";
 import type { LinkMode } from "./actions/public";

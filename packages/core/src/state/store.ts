@@ -52,16 +52,8 @@ import { sameRef } from "../actions/follow";
 import { modelCache, type Model } from "./model";
 import { loadSettings, systemPrefersDark, type Settings } from "./settings";
 import { loadPrefs, type PagePrefs } from "./page-prefs";
-import {
-  pageEngineOf,
-  presetById,
-  PHONE_BELOW,
-  type Env,
-  type ItemId,
-  type Preset,
-  type ViewMode,
-  type ProfileBase,
-} from "../profile";
+import { pageEngineOf, type ItemId, type ViewMode, type ProfileBase } from "../profile";
+import { presetById, PHONE_BELOW, type Env, type Preset } from "../env";
 import { browserStorage, type StoragePort } from "../ports";
 import { focusPane } from "../dom/focus";
 import { cssString, paneDomId } from "../dom/ids";
@@ -257,7 +249,7 @@ export interface JaliConfig {
   pageTheme?: false;
   tabMenu?: import("../commands/tab-menu").TabMenu;
   rename?: Rename;
-  phone?: import("../profile").PhoneOptions;
+  phone?: import("../env").PhoneOptions;
   allow?: import("../actions/allow").Allow;
   buttons?: import("../pane/buttons").PaneButtons;
   onPaneError?: (error: unknown, info: PaneErrorInfo) => void;
