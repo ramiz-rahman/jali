@@ -6,7 +6,7 @@
 import { allows } from "../actions/allow";
 import { edgeScroll } from "./edge-scroll";
 import type { Edge, Rect } from "../layout/types";
-import type { DndState, UiStore } from "../state/store";
+import type { DndState, JaliStore } from "../state/store";
 
 export const DRAG_THRESHOLD = 4;
 
@@ -51,7 +51,7 @@ export interface PointerStart {
   target: EventTarget | null;
 }
 
-export function startPaneDrag(store: UiStore, e: PointerStart, paneId: string) {
+export function startPaneDrag(store: JaliStore, e: PointerStart, paneId: string) {
   const t = e.target as HTMLElement;
   if (
     t.closest("button, input, textarea, select, a, [data-no-drag]") &&
@@ -70,7 +70,7 @@ export function startPaneDrag(store: UiStore, e: PointerStart, paneId: string) {
  * the index it would then have. Only within a group the person or the app made; undefined anywhere else.
  */
 export function tabDropAt(
-  store: UiStore,
+  store: JaliStore,
   paneId: string,
   clientX: number,
   clientY: number,
@@ -98,7 +98,7 @@ export function tabDropAt(
  * Returns whether a drag happened, so the tab's click can be skipped.
  */
 export function startTabDrag(
-  store: UiStore,
+  store: JaliStore,
   e: PointerStart,
   role: string,
   label: string,
@@ -121,7 +121,7 @@ interface DragOpts {
 }
 
 function startDrag(
-  store: UiStore,
+  store: JaliStore,
   e: PointerStart,
   { id: paneId, label, fromOutside, reorder, onDrop }: DragOpts,
 ) {

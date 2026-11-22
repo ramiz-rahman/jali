@@ -3,7 +3,7 @@
  * height the top one takes, and whether the on-screen keyboard is up (then the focused pane shows alone, so a field
  * in the lower pane isn't under the keyboard).
  */
-import { paneDomId, stackGap, type UiStore } from "@jali/core/adapter";
+import { paneDomId, stackGap, type JaliStore } from "@jali/core/adapter";
 import type { Model } from "@jali/core/adapter";
 import { useEffect, useRef, useState, type KeyboardEvent, type PointerEvent } from "react";
 import { useModelValue, useStore } from "../state/react";
@@ -28,7 +28,7 @@ export function useKeyboardUp(): boolean {
 }
 
 /** Says once when two panes stack, naming them. */
-export function useStackAnnouncement(store: UiStore, m: Model, shown: boolean) {
+export function useStackAnnouncement(store: JaliStore, m: Model, shown: boolean) {
   const key = shown && m.stacked ? `${m.stacked.top} ${m.stacked.bottom}` : "";
   const was = useRef("");
   useEffect(() => {

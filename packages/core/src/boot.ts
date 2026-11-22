@@ -7,7 +7,7 @@ import { installKeyboard, type KeyboardScope } from "./commands/keyboard";
 import { presetById } from "./profile";
 
 import { applyTheme, resolveTheme, saveSettings, watchSystemTheme } from "./state/settings";
-import type { ConfirmState, UiStore } from "./state/store";
+import type { ConfirmState, JaliStore } from "./state/store";
 import { applyTokens } from "./tokens";
 import { savePrefs } from "./state/page-prefs";
 import { ownedPaneState, ownedSelection, PANE_STATE_KEY } from "./state/pane-state";
@@ -20,7 +20,7 @@ import type { UrlSync } from "./url";
  *  Undefined when the address holds no layout. `current`: whether this arrival is still the latest; one held for an
  *  answer (beforeClose, "Discard unsaved changes?") does nothing if a newer Back or Forward came meanwhile. */
 function arriveFromUrl(
-  store: UiStore,
+  store: JaliStore,
   url: UrlSync,
   current: () => boolean = () => true,
 ): ActionResult | undefined {
@@ -68,11 +68,11 @@ function arriveFromUrl(
 }
 
 /** The store's URL sync, when it was made with one that can also read (createUrlSync). */
-const syncOf = (store: UiStore, url?: UrlSync): UrlSync | undefined =>
+const syncOf = (store: JaliStore, url?: UrlSync): UrlSync | undefined =>
   url ?? (store.url && "read" in store.url ? (store.url as UrlSync) : undefined);
 
 /** Put the first state in place before the first render: the address's layout if it has one, fitted to the window. */
-export function boot(store: UiStore, url?: UrlSync) {
+export function boot(store: JaliStore, url?: UrlSync) {
   const sync = syncOf(store, url);
   if (sync) arriveFromUrl(store, sync);
   const panes = () => core.tree.panes(store.get().layout.root);
@@ -101,7 +101,7 @@ export function boot(store: UiStore, url?: UrlSync) {
 
 /** Save pane state (and the objects it belongs to) now: what changed since the last save, over what other tabs saved
  *  meanwhile. Nothing is written when nothing changed. */
-export function flushPaneState(store: UiStore) {
+export function flushPaneState(store: JaliStore) {
   store.paneStates.flush(store.get());
 }
 
@@ -120,7 +120,7 @@ export interface StartOptions {
  * prompt. Returns a function that removes them (tests, HMR).
  */
 export function startUi(
-  store: UiStore,
+  store: JaliStore,
   url?: UrlSync,
   { keys = {}, pageTheme = true }: StartOptions = {},
 ): () => void {

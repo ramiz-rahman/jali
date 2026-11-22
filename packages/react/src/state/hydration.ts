@@ -12,7 +12,7 @@
  * until each pane boundary that mounted with it has hydrated, and then measures at once. The rest of the page is
  * interactive meanwhile. Nothing waits in a workspace rendered in the browser.
  */
-import type { UiStore } from "@jali/core/adapter";
+import type { JaliStore } from "@jali/core/adapter";
 
 /** The pane boundaries of one workspace that mounted before their content did. */
 export interface PaneHydration {
@@ -24,7 +24,7 @@ export interface PaneHydration {
   whenSettled(then: () => void): () => void;
 }
 
-const workspaces = new WeakMap<UiStore, PaneHydration>();
+const workspaces = new WeakMap<JaliStore, PaneHydration>();
 
 function createPaneHydration(): PaneHydration {
   const waiting = new Set<object>();
@@ -49,7 +49,7 @@ function createPaneHydration(): PaneHydration {
 }
 
 /** The workspace's pane boundaries, as they hydrate. One per workspace, the same object every time. */
-export function paneHydration(store: UiStore): PaneHydration {
+export function paneHydration(store: JaliStore): PaneHydration {
   let gate = workspaces.get(store);
   if (!gate) workspaces.set(store, (gate = createPaneHydration()));
   return gate;

@@ -239,7 +239,9 @@ function Failed({ retry }: { retry: () => void }) {
   const t = store.messages.pane;
   return (
     <div className="jali-pane-failed" role="alert">
-      <strong>{t.failed(store.env.label ?? store.env.name)}</strong>
+      <strong>
+        {t.failed(store.env.label ?? store.env.name ?? store.messages.workspace.label)}
+      </strong>
       <div className="jali-pane-failed-actions">
         <button type="button" className="jali-text-btn is-primary" onClick={retry}>
           {t.retry}

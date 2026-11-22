@@ -28,7 +28,7 @@ import {
   type PaneKinds,
 } from "../pane-kinds";
 import { initialArea, spacingOf } from "../tokens";
-import { toLayout, type LayoutInput } from "../layout/build";
+import type { LayoutInput } from "../layout/build";
 import { readLayout } from "../actions/layout";
 import { STEPS, stepOf, type Actions, type StepArgs, type StepName } from "../actions";
 import type { ActionName } from "../actions/public";
@@ -71,13 +71,7 @@ import { paneStateSync, type PaneStateSync } from "./pane-state";
 
 declare const process: { env: { NODE_ENV?: string } };
 import { startUi } from "../boot";
-import {
-  createKeymap,
-  PALETTE_ID,
-  type Keymap,
-  type KeymapOptions,
-  type KeymapOverrides,
-} from "../commands/keymap";
+import { createKeymap, PALETTE_ID, type Keymap, type KeyboardOptions } from "../commands/keymap";
 import type { Command } from "../commands/registry";
 import { resolveMessages, type MessageOverrides, type Messages } from "./messages";
 import type { ChooseOptions } from "../actions/choose";
@@ -228,83 +222,60 @@ export interface UrlWriter {
   cancel?(): void;
 }
 
-export interface UiStoreDeps {
+/**
+ * A workspace's options, resolved once (`resolveOptions`, create-jali.ts) into the one shape the store reads. The
+ * fields the env holds (kinds, page, presets, the chrome's options) are copied into it as they are; the rest is the
+ * store's own. Adapters and tests make a store from one with `createJaliStore`. What each option means is said once,
+ * on `JaliOptions`.
+ */
+export interface JaliConfig {
   /** This workspace's pane kinds (createPaneKinds). */
   kinds: PaneKinds;
-  /** The curated page this workspace can show (profile.ts). Default: none. */
+  /** The curated page (made with `definePage`). Default: none. */
   profile?: ProfileBase | null;
-  /** Layouts to start from, in menu order (the bar and ⌘K "Layout: …"). Default: none. */
+  /** Layouts to start from, in menu order. Default: none. */
   presets?: readonly Preset[];
   /** The preset the workspace opens on, when no link or saved state says otherwise. Default: the first. A workspace
    *  without presets passes `initial.layout` instead, or a `profile` alone: it then starts on its page. */
   preset?: string;
-  /** The free workspace's name ("Data Studio"), in commands such as "Open Data Studio". Default "Workspace". */
   name?: string;
-  /** The kind a split or a new tab opens until the person chooses (it must be in `kinds`). Default: none, so no Split. */
+  /** The launcher's kind (it must be in `kinds`). Default: none, so no Split. */
   launcher?: string;
-  /** Which keys the workspace takes: every key on the page ("page", the default), or only keys from inside its root
-   *  and keys on the page body while it was the last one used ("scoped": two workspaces on one page). Any other value
-   *  is a development error, and scoped: a misspelling never widens the keys a workspace takes. */
-  keys?: "page" | "scoped";
-  /** Set `data-theme` on `<html>` from the person's setting while started. Default true. */
-  pageTheme?: boolean;
-  /** Where the workspace writes its address: usually `createUrlSync()`, which `boot` and `startUi` then also read
-   *  from. Default: none (the address is left alone). */
+  commands?: readonly Command[];
+  palette?: boolean;
+  dir?: Direction;
+  /** `"main"` or nothing (resolved: any other value is a region). */
+  landmark?: "main";
+  /** Trimmed, and nothing when empty. */
+  label?: string;
+  confirmDiscard?: false;
+  pageTheme?: false;
+  tabMenu?: import("../commands/tab-menu").TabMenu;
+  rename?: Rename;
+  phone?: import("../profile").PhoneOptions;
+  allow?: import("../actions/allow").WorkspaceAllow;
+  buttons?: import("../pane/buttons").PaneButtons;
+  onPaneError?: (error: unknown, info: PaneErrorInfo) => void;
+  gap?: number;
+  inset?: number;
+  keyboard?: KeyboardOptions;
+  /** Where the workspace writes its address (usually `createUrlSync()`, which `boot` and `startUi` read from too).
+   *  Default: none. */
   url?: UrlWriter;
-  /** Moves DOM focus into a pane after the next paint. Default: Jali's (dom/focus.ts), looking inside the workspace's
-   *  root; `null` leaves DOM focus alone (a test, a workspace that is never shown). */
-  focusPane?: ((scope: JaliDom, id: NodeId) => void) | null;
-  /** What this person keeps on this device: settings, a curated page's mode and layout. Default: localStorage
-   *  under the store's `id` ("jali" by default), so each workspace keeps its own. */
+  /** Default: localStorage under `id`. */
   storage?: StoragePort;
-  /** Prefix for this workspace's DOM ids. Give each workspace on one page its own. Default "jali". */
+  /** Prefix for this workspace's DOM ids. Default "jali". */
   id?: string;
   initial?: Partial<UiState>;
-  /** An op that never moves anything (a tab chosen, moved or pinned: `STABLE`, state/apply.ts) moved something.
-   *  Default: reported in development. */
+  /** Moves DOM focus into a pane after the next paint. Default: Jali's (dom/focus.ts); `null` leaves DOM focus alone. */
+  focusPane?: ((scope: JaliDom, id: NodeId) => void) | null;
   unstable?: (op: string, before: string, after: string) => void;
-  /** The host's own commands: listed in the palette after Jali's, and bindable in `keymap` like any other. Their ids
-   *  should not start with a Jali prefix (`pane.`, `layout.`, `page.`, `peek.`, `settings.`, `stack.`). */
-  commands?: readonly Command[];
-  /** Rebind or unbind commands (commands/keymap.ts): `{ "pane.zoom": "Mod+K Mod+Enter", "pane.close": null }`. */
-  keymap?: KeymapOverrides;
-  /** The keymap's platform and how refused bindings are reported. */
-  keymapOptions?: KeymapOptions;
-  /** `false`: the host has its own command menu. Jali renders no palette and its key is unbound. Default true. */
-  palette?: boolean;
-  /** The host's close guard: asked before a change removes panes or points them at another object (state/apply.ts). */
   beforeClose?: BeforeClose;
-  /** Settings for a person who has none saved yet (`createJali({ settings })`). Saved settings win. */
   settings?: Partial<Settings>;
-  /** Words to use instead of Jali's English ones (state/messages.ts). Default: English. */
   messages?: MessageOverrides;
-  /** A pane's content threw while rendering. Default: reported in development. */
-  onPaneError?: (error: unknown, info: PaneErrorInfo) => void;
-  /** A fixed reading direction. Default: the page's, read where the workspace is rendered. */
-  dir?: Direction;
-  /** `"main"`: the panes are the page's main landmark. Default `"region"`, a labelled section. */
-  landmark?: "region" | "main";
-  /** The workspace's name for assistive technology: its landmark's, and part of each of Jali's landmarks in it. */
-  label?: string;
-  /** `false`: the app asks about unsaved work itself; Jali never does. Default true. */
-  confirmDiscard?: boolean;
-  /** The app's items for a tab's menu, after Jali's. */
-  tabMenu?: import("../commands/tab-menu").TabMenu;
-  /** Renaming a pane in place: the app keeps the name. */
-  rename?: Rename;
-  /** How the workspace behaves on a phone. */
-  phone?: import("../profile").PhoneOptions;
-  /** What may happen to panes. */
-  allow?: import("../actions/allow").WorkspaceAllow;
-  /** The buttons in a pane's header. */
-  buttons?: import("../pane/buttons").PaneButtons;
-  /** The gap between panes, in px. Default 6 (`GAP`). */
-  gap?: number;
-  /** The inset from the workspace's edges to the panes, in px. Default: the gap. */
-  inset?: number;
 }
 
-export interface UiStore {
+export interface JaliStore {
   get(): UiState;
   /** A raw state write for interaction state (drag, dialogs, area). Area and pane-cap changes refit the layout. */
   set(patch: Partial<UiState>): void;
@@ -426,7 +397,7 @@ function createDom(id: string): JaliDom {
   return dom;
 }
 
-export function createUiStore(deps: UiStoreDeps): UiStore {
+export function createJaliStore(deps: JaliConfig): JaliStore {
   const page = pageEngineOf(deps.profile);
   if (deps.profile && !page)
     throw new Error("Jali: make the page with `definePage`, which gives it the code that runs it");
@@ -445,8 +416,9 @@ export function createUiStore(deps: UiStoreDeps): UiStore {
       devUnstable = (op) =>
         console.error(`Layout stability: "${op}" never moves anything, but moved panes`);
       const presets = deps.presets ?? [];
-      if (deps.keys !== undefined && deps.keys !== "page" && deps.keys !== "scoped")
-        console.error(`Jali: keys is "page" or "scoped", not ${JSON.stringify(deps.keys)}`);
+      const scope = deps.keyboard?.scope;
+      if (scope !== undefined && scope !== "page" && scope !== "local")
+        console.error(`Jali: keyboard.scope is "page" or "local", not ${JSON.stringify(scope)}`);
       for (const [i, p] of presets.entries())
         if (presets.findIndex((q) => q.id === p.id) !== i)
           console.error(`Jali: two presets have the id "${p.id}"`);
@@ -456,44 +428,45 @@ export function createUiStore(deps: UiStoreDeps): UiStore {
   } catch {
     /* no `process`: production */
   }
+  // The env holds the options it shares with the store as they were resolved, and what only the store can work out.
+  const {
+    preset: presetId,
+    url,
+    storage: storagePort,
+    id = "jali",
+    initial,
+    focusPane: focusGiven,
+    unstable,
+    beforeClose,
+    settings,
+    messages: _words,
+    keyboard = {},
+    gap,
+    inset,
+    ...shared
+  } = deps;
   const env: Env = {
-    kinds: deps.kinds,
+    presets: [],
+    commands: [],
+    ...shared,
     profile: deps.profile ?? null,
-    presets: deps.presets ?? [],
-    commands: deps.commands ?? [],
     palette: deps.palette !== false,
-    name: deps.name ?? messages.workspace.name,
     messages,
-    spacing: spacingOf(deps),
+    spacing: spacingOf({ gap, inset }),
   };
   const onPaneError = deps.onPaneError ?? devPaneError;
   if (onPaneError) env.onPaneError = onPaneError;
   if (page) env.page = page;
-  if (deps.launcher) env.launcher = deps.launcher;
-  if (deps.dir) env.dir = deps.dir;
-  if (deps.landmark === "main") env.landmark = "main";
-  if (typeof deps.label === "string" && deps.label.trim()) env.label = deps.label.trim();
-  if (deps.confirmDiscard === false) env.confirmDiscard = false;
-  if (deps.pageTheme === false) env.pageTheme = false;
-  if (deps.tabMenu) env.tabMenu = deps.tabMenu;
-  if (deps.rename) env.rename = deps.rename;
-  if (deps.phone) env.phone = deps.phone;
-  if (deps.allow) env.allow = deps.allow;
-  if (deps.buttons) env.buttons = deps.buttons;
   const focusOf =
-    deps.focusPane === undefined
-      ? typeof document === "undefined"
-        ? null
-        : focusPane
-      : deps.focusPane;
-  const dom = createDom(deps.id ?? "jali");
+    focusGiven === undefined ? (typeof document === "undefined" ? null : focusPane) : focusGiven;
+  const dom = createDom(id);
   // The id is the prefix: two workspaces with their own ids never overwrite each other ("jali" stays "jali").
-  const storage = deps.storage ?? browserStorage(deps.id ?? "jali");
+  const storage = storagePort ?? browserStorage(id);
   const paneStates = paneStateSync(storage);
-  const start = presetById(env, deps.preset);
+  const start = presetById(env, presetId);
   // A page-only app (a page, no presets or layout) starts on its page.
-  const pageOnly = !deps.initial?.layout && !start && !!env.profile;
-  const first = firstLayout(env, deps.initial?.layout, start, DEV);
+  const pageOnly = !initial?.layout && !start && !!env.profile;
+  const first = firstLayout(env, initial?.layout, start, DEV);
   const layout = first.layout;
   let state: UiState = {
     page: null,
@@ -501,7 +474,7 @@ export function createUiStore(deps: UiStoreDeps): UiStore {
     view: { focusHistory: [] },
     // A layout that can't be shown gave way to a preset: the workspace is on that preset.
     presetId: (first.preset ?? start)?.id,
-    settings: loadSettings(storage, deps.settings),
+    settings: loadSettings(storage, settings),
     systemDark: systemPrefersDark(),
     undoStack: [],
     activity: {},
@@ -526,7 +499,7 @@ export function createUiStore(deps: UiStoreDeps): UiStore {
     paneReports: {},
     ...paneStates.read(),
     selectionOf: {},
-    ...deps.initial,
+    ...initial,
     // The layout given, once checked (`firstLayout`), or what took its place.
     layout,
   };
@@ -754,11 +727,11 @@ export function createUiStore(deps: UiStoreDeps): UiStore {
     }
   };
 
-  const store: UiStore = {
+  const store: JaliStore = {
     get: () => state,
     set: (patch) => batch(() => write(patch)),
     jali: undefined as unknown as Jali,
-    guard: deps.beforeClose,
+    guard: beforeClose,
     focusHeld: false,
     on(event, handler) {
       let set = handlers.get(event);
@@ -809,7 +782,7 @@ export function createUiStore(deps: UiStoreDeps): UiStore {
     // without params only the app sets (`appOnly`).
     writeUrl: (mode) =>
       destroyed ||
-      deps.url?.write(() => {
+      url?.write(() => {
         const { layout, view, presetId, page } = store.get();
         const kinds = env.kinds.registry();
         // The page's way back holds refs too: a writer of the host's own sees it as a link carries it.
@@ -834,23 +807,23 @@ export function createUiStore(deps: UiStoreDeps): UiStore {
     actions: undefined as unknown as Actions,
     keymap: createKeymap(
       // Without Jali's palette, its key is the host's, unless the host binds it on purpose.
-      deps.palette === false && !(PALETTE_ID in (deps.keymap ?? {}))
-        ? { ...deps.keymap, [PALETTE_ID]: null }
-        : deps.keymap,
-      { ...deps.keymapOptions, words: deps.keymapOptions?.words ?? messages.keys },
+      deps.palette === false && !(PALETTE_ID in (keyboard.keymap ?? {}))
+        ? { ...keyboard.keymap, [PALETTE_ID]: null }
+        : keyboard.keymap,
+      { ...keyboard, words: keyboard.words ?? messages.keys },
     ),
     env,
     dom,
     messages,
     storage,
     paneStates,
-    href: () => deps.url?.href?.() ?? (typeof location === "undefined" ? "" : location.href),
-    url: deps.url,
+    href: () => url?.href?.() ?? (typeof location === "undefined" ? "" : location.href),
+    url,
     start() {
       if (stop || destroyed) return () => {};
       const offInput = trackInput();
       const off = startUi(store, undefined, {
-        keys: deps.keys === undefined || deps.keys === "page" ? {} : { root: rootElement },
+        keys: (keyboard.scope ?? "page") === "page" ? {} : { root: rootElement },
         pageTheme: deps.pageTheme,
       });
       stop = () => {
@@ -868,7 +841,7 @@ export function createUiStore(deps: UiStoreDeps): UiStore {
       life.abort();
       for (const t of timers.values()) clearTimeout(t);
       timers.clear();
-      deps.url?.cancel?.();
+      url?.cancel?.();
       offKinds();
       // A question still open can never be answered now: the action it held ends as kept, so `settled` resolves.
       const asking = state.confirm;
@@ -897,7 +870,7 @@ export function createUiStore(deps: UiStoreDeps): UiStore {
     toast: store.toast,
     focus: (id: NodeId) => (store.focusHeld || destroyed ? undefined : focusOf?.(dom, id)),
     defer,
-    unstable: deps.unstable ?? devUnstable,
+    unstable: unstable ?? devUnstable,
   };
   store.actions = {} as Actions;
   for (const name of Object.keys(STEPS) as StepName[])
@@ -906,7 +879,7 @@ export function createUiStore(deps: UiStoreDeps): UiStore {
   store.jali = createInstance(store);
   // As an arrival, which writes no history: the address still holds the link boot is about to read, and boot writes
   // the address itself once it has.
-  if ((pageOnly || first.page) && !deps.initial?.page) store.run("arrivePage", { fromUrl: true });
+  if ((pageOnly || first.page) && !initial?.page) store.run("arrivePage", { fromUrl: true });
   return store;
 }
 

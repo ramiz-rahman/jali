@@ -721,7 +721,7 @@ function pageCommands(env: Env): CommandDef[] {
     },
     {
       id: "page.leave",
-      title: t.pageLeave(env.name),
+      title: t.pageLeave(env.name, profile?.name),
       group: g.layout,
       check: ({ s }) => (s.page && env.presets.length ? undefined : refuse("unavailable")),
       run: (u) => u.run("page.leave"),

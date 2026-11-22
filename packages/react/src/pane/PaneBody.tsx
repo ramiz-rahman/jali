@@ -1,6 +1,6 @@
 import type { NodeId, ObjectRef, PaneNode } from "@jali/core";
 import { memo, useMemo } from "react";
-import type { ActionResult, UiStore } from "@jali/core/adapter";
+import type { ActionResult, JaliStore } from "@jali/core/adapter";
 import { parseKeys, sameNode } from "@jali/core/adapter";
 import type { PaneProps } from "../define";
 import { PaneContext, type PaneHost } from "./context";
@@ -13,7 +13,7 @@ import { HeaderControls, type HeaderSlot } from "./header";
 export type { PaneHost };
 
 /** What pane `id`'s content can ask. Opening, peeking and selecting are `jali.actions`, so they return its result. */
-export function paneHost(store: UiStore, id: NodeId): PaneHost {
+export function paneHost(store: JaliStore, id: NodeId): PaneHost {
   const { actions } = store,
     app = store.jali.actions;
   return {
@@ -30,7 +30,7 @@ export function paneHost(store: UiStore, id: NodeId): PaneHost {
 const noPlace: ActionResult = { ok: false, reason: "unavailable" };
 
 /** The peek sheet acts for the pane it came from, and has no place of its own to fill, close or report on. */
-export function peekHost(store: UiStore): PaneHost {
+export function peekHost(store: JaliStore): PaneHost {
   const source = () => store.get().peekSource ?? store.get().view.focused ?? "";
   const none = () => {};
   const app = store.jali.actions;

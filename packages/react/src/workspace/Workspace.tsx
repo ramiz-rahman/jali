@@ -23,7 +23,7 @@ import { DividerLayer } from "../dividers/DividerLayer";
 import { PaneFrame } from "../pane/PaneFrame";
 import { ContentHosts, PaneContent, useContentHosts } from "../pane/content";
 import { Strip, useFocusIntoStrip } from "./Scroller";
-import type { UiStore } from "@jali/core/adapter";
+import type { JaliStore } from "@jali/core/adapter";
 import { useGeometry, useModelValue, useStore, useUi } from "../state/react";
 import { useHydrated } from "../state/hydrated";
 import { paneHydration } from "../state/hydration";
@@ -36,7 +36,7 @@ import { useWorkspaceLabel } from "../a11y/landmark";
 /** The workspace's usable size follows the element (minus the inset), and so does its reading direction (an
  *  ancestor's `dir`, read again when any `dir` on the page changes), unless the workspace was given one.
  *  A workspace that hydrates a server's HTML measures once its panes have hydrated (state/hydration.ts). */
-function useMeasure(store: UiStore) {
+function useMeasure(store: JaliStore) {
   const ref = useRef<HTMLElement>(null);
   // Whether this mount hydrates a server's HTML: read on the first render, and kept.
   const hydrated = useHydrated();
@@ -102,7 +102,7 @@ function useMeasure(store: UiStore) {
 
 /** Whether the person was last in this workspace (focus or a press inside its root or its dialogs), not elsewhere on
  *  the page. Starts false: mounting a workspace is not the person going there. */
-function useEngaged(store: UiStore) {
+function useEngaged(store: JaliStore) {
   const engaged = useRef(false);
   useEffect(() => {
     const on = (e: Event) => {
@@ -123,7 +123,7 @@ function useEngaged(store: UiStore) {
 
 /** Says which panes folded into tabs, or unfolded, when the room changed (not in single view, where nothing tiles).
  *  Only a change of room: an action that folds says so itself, in its own words. */
-function useFoldAnnouncements(store: UiStore, m: Model, area: { width: number; height: number }) {
+function useFoldAnnouncements(store: JaliStore, m: Model, area: { width: number; height: number }) {
   const prev = useRef<{ folded: string[]; room: string } | null>(null);
   useEffect(() => {
     const room = `${area.width}x${area.height}`;
@@ -246,7 +246,7 @@ function DragLayer({ m }: { m: Model }) {
  * screen, so the pane (fixed over the window) covers the display. Leaving the browser's full screen (Escape, the
  * browser's own controls) leaves Jali's too. Where the browser can't (an iPhone), the pane still covers the page.
  */
-function useFullScreen(store: UiStore, m: Model) {
+function useFullScreen(store: JaliStore, m: Model) {
   const full = useUi((s) => s.fullScreen);
   const asked = useRef(false);
   useEffect(() => {

@@ -17,7 +17,7 @@ import type { ActionResult, Toast } from "./apply";
 import type { JaliModel } from "./model";
 import type { JaliInput } from "../dom/input";
 import type { ProfileBase } from "../profile";
-import type { Selection, UiState, UiStore } from "./store";
+import type { Selection, UiState, JaliStore } from "./store";
 
 /** What every event carries. */
 export interface JaliEventBase {
@@ -160,17 +160,17 @@ export type RegisteredJali = Register extends { jali: infer J extends AnyJali } 
 /** The refs of a workspace's kinds. */
 export type RefsOf<J extends AnyJali> = J extends Jali<infer R, any> ? R : ObjectRef; // eslint-disable-line @typescript-eslint/no-explicit-any
 
-const stores = /* @__PURE__ */ new WeakMap<AnyJali, UiStore>();
+const stores = /* @__PURE__ */ new WeakMap<AnyJali, JaliStore>();
 
 /** The store behind a workspace, for adapters (`@jali/core/adapter`). */
-export function storeOf(jali: AnyJali): UiStore {
+export function storeOf(jali: AnyJali): JaliStore {
   const store = stores.get(jali);
   if (!store) throw new Error("Jali: not a workspace made by createJali");
   return store;
 }
 
 /** The public steps of one group (`""`: `jali.actions`), each through the store's `run`. */
-function group(store: UiStore, prefix: string) {
+function group(store: JaliStore, prefix: string) {
   const out: Record<string, (...a: never[]) => ActionResult> = {};
   for (const [name, step] of Object.entries(STEPS)) {
     const [g, n] = name.includes(".") ? name.split(".") : ["", name];
@@ -180,7 +180,7 @@ function group(store: UiStore, prefix: string) {
   return Object.freeze(out);
 }
 
-export function createInstance(store: UiStore): Jali {
+export function createInstance(store: JaliStore): Jali {
   const jali: Jali = {
     actions: group(store, "") as unknown as JaliActions,
     // Only with a page: without one there is no `page` at all.

@@ -42,8 +42,9 @@ const commands = {
   pageSingle: "Single view: one view at a time",
   pageSplit: "Split view: views side by side",
   pageOpen: (page: string | undefined) => `Open ${page ?? "page"}`,
-  /** `workspace` is the free workspace's name (`createJali({ name })`). */
-  pageLeave: (workspace: string) => `Open ${workspace}`,
+  /** `app` is the app's name for the free layout (`createJali({ name })`), when it gave one; `page` is the page's. */
+  pageLeave: (app: string | undefined, page: string | undefined) =>
+    app ? `Open ${app}` : `Leave ${page ?? "the page"}`,
   viewAsLimited: (viewer: string) => `View as ${viewer} (Single only, links peek)`,
   viewAsFull: (viewer: string) => `View as ${viewer} (links open beside)`,
 };

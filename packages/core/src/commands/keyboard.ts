@@ -15,7 +15,7 @@
  * A matched command whose check refuses still takes the key and says why, if the refusal has a reason. Keyboard
  * actions never animate.
  */
-import type { UiStore } from "../state/store";
+import type { JaliStore } from "../state/store";
 import { isModifierKey, matchChord, type Chord } from "./format";
 import { PALETTE_ID } from "./keymap";
 import { commandById } from "./registry";
@@ -29,7 +29,7 @@ const ARROWS: Record<string, "left" | "right" | "top" | "bottom"> = {
 };
 
 /** Resize mode: arrows resize the nearest divider (Shift for bigger steps); Esc or Enter leaves. */
-function resizeMode(store: UiStore, pane: string, e: KeyboardEvent): boolean {
+function resizeMode(store: JaliStore, pane: string, e: KeyboardEvent): boolean {
   if (e.metaKey || e.ctrlKey || e.altKey) return false;
   if (e.key === "Escape" || e.key === "Enter") {
     store.actions.leaveResizeMode();
@@ -43,7 +43,7 @@ function resizeMode(store: UiStore, pane: string, e: KeyboardEvent): boolean {
 }
 
 /** The Esc ladder after content: the peek, then maximise. (Modal states and drags took theirs in step 1.) */
-function escape(store: UiStore): boolean {
+function escape(store: JaliStore): boolean {
   const s = store.get();
   if (s.dnd) return false;
   if (s.view.peek) store.actions.closePeek();
@@ -53,7 +53,7 @@ function escape(store: UiStore): boolean {
 }
 
 /** One of the workspace's dialogs is open (the palette, settings, the chooser or the discard question): it owns the keys. */
-const dialogOpen = (store: UiStore) => {
+const dialogOpen = (store: JaliStore) => {
   const s = store.get();
   return s.paletteOpen || s.settingsOpen || !!s.chooser || !!s.confirm;
 };
@@ -61,7 +61,7 @@ const dialogOpen = (store: UiStore) => {
 const contentOwnsKeys = (t: EventTarget | null) =>
   !!(t as Element | null)?.closest?.('[data-pane-keys="content"]');
 
-function run(store: UiStore, id: string): boolean {
+function run(store: JaliStore, id: string): boolean {
   if (id === PALETTE_ID) {
     const s = store.get();
     store.set({ paletteOpen: !s.paletteOpen, chooser: null });
@@ -85,7 +85,7 @@ export interface KeyHandler {
 }
 
 /** One handler per store: it holds the chord in progress, nothing global. */
-export function createKeyHandler(store: UiStore): KeyHandler {
+export function createKeyHandler(store: JaliStore): KeyHandler {
   let pending: Chord | null = null;
   const km = () => store.keymap;
   const matches = (e: KeyboardEvent) => (c: Chord) => matchChord(c, e, km().platform);
@@ -156,7 +156,7 @@ export interface KeyboardScope {
 }
 
 export function installKeyboard(
-  store: UiStore,
+  store: JaliStore,
   { target = window, root }: KeyboardScope = {},
 ): () => void {
   const keys = createKeyHandler(store);

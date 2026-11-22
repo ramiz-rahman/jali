@@ -8,7 +8,7 @@ import { tabBounds } from "../actions/tabs";
 import { canRename } from "../actions/rename";
 import { checkTuck } from "../actions/tuck";
 import { allows, type PaneControl } from "../actions/allow";
-import type { UiStore } from "../state/store";
+import type { JaliStore } from "../state/store";
 
 /** One item in a tab's menu. */
 export interface TabMenuItem {
@@ -28,7 +28,7 @@ export interface TabMenuItem {
 export type TabMenu = (pane: { id: NodeId; ref: ObjectRef }) => readonly TabMenuItem[] | undefined;
 
 /** The menu for tab `id`, in groups (a separator between each): close, move and arrange, then the app's. */
-export function tabMenuOf(store: UiStore, id: NodeId): TabMenuItem[][] {
+export function tabMenuOf(store: JaliStore, id: NodeId): TabMenuItem[][] {
   const x = store.snapshot();
   const { m, s, env } = x;
   const node = m.pane(id);

@@ -25,14 +25,14 @@ export { boot, flushPaneState, startUi, type StartOptions } from "./boot";
 
 // ---------- the store, its state and its changes ----------
 export {
-  createUiStore,
+  createJaliStore,
   type ChooserState,
   type ConfirmState,
   type DndState,
   type JaliDom,
   type UiState,
-  type UiStore,
-  type UiStoreDeps,
+  type JaliStore,
+  type JaliConfig,
 } from "./state/store";
 export {
   DONE,

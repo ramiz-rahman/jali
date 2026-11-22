@@ -1,6 +1,6 @@
 /**
  * The keymap: which keys run which command. A typed object with defaults that a host overrides or disables per
- * command (`createUiStore({ keymap: { "pane.close": "Mod+K Mod+X", "pane.zoom": null } })`). Nothing here is global:
+ * command (`createJaliStore({ keymap: { "pane.close": "Mod+K Mod+X", "pane.zoom": null } })`). Nothing here is global:
  * each store resolves its own keymap, and the keyboard layer, tooltips, the status line, the palette and Settings all
  * read it from the store.
  *
@@ -54,7 +54,7 @@ export const DEFAULT_KEYMAP = {
   "pane.merge": ["Mod+K Mod+G"],
   "pane.unmerge": ["Mod+K Shift+Mod+G"],
   // A file manager's rename key. Content that uses F2 (a grid editing a cell) claims it first; a host that owns F2 lists
-  // it in reservedKeys and calls actions.startRename itself.
+  // it in keyboard.reserved and calls jali.actions.startRename itself.
   "pane.rename": ["F2"],
   // A browser's and VS Code's move-tab keys (Ctrl+Shift+PageUp/PageDown), after the prefix.
   "tab.move.left": ["Mod+K Shift+PageUp"],
@@ -88,6 +88,22 @@ export interface KeymapOptions {
   onInvalid?: (id: string, binding: KeyString, reason: string) => void;
   /** The words printed keys use ("Ctrl", "Esc"). Default: English; a workspace passes its `messages.keys`. */
   words?: KeyWords;
+}
+
+/**
+ * Jali's keys, in one place (`createJali({ keyboard })`): which keys it takes, what each command is bound to, the
+ * first step of its two-step keys, and the keys the app keeps for itself.
+ */
+export interface KeyboardOptions extends KeymapOptions {
+  /**
+   * Which keys Jali takes. `"page"` (the default): every key on the page. `"local"`: only keys from inside this
+   * Jali (its panes and its dialogs), and keys on the page's body while it was the last one used, for two on one
+   * page or Jali inside a larger app. Any other value is a development error, and local: a misspelling never widens
+   * the keys Jali takes.
+   */
+  scope?: "page" | "local";
+  /** Rebind or unbind commands: `{ "pane.zoom": "Mod+K Mod+Enter", "pane.close": null }`. */
+  keymap?: KeymapOverrides;
 }
 
 export interface Keymap {
@@ -141,7 +157,7 @@ export function createKeymap(overrides: KeymapOverrides = {}, opts: KeymapOption
     try {
       reserved.push(parseKeys(b));
     } catch (err) {
-      warn("reservedKeys", b, (err as Error).message);
+      warn("keyboard.reserved", b, (err as Error).message);
     }
   }
   // A binding clashes when it is a reserved sequence, or starts with a reserved single key.
@@ -174,7 +190,7 @@ export function createKeymap(overrides: KeymapOverrides = {}, opts: KeymapOption
       else if (seq.length === 1 && isCharacterKey(seq[0]!))
         warn(id, b, "a single character key belongs to the focused content (WCAG 2.1.4)");
       else if (taken)
-        warn(id, b, `the host reserves ${formatKeys(taken, platform)} (reservedKeys)`);
+        warn(id, b, `the host reserves ${formatKeys(taken, platform)} (keyboard.reserved)`);
       else seqs.push(seq);
     }
     if (seqs.length) entries.push([id, seqs]);

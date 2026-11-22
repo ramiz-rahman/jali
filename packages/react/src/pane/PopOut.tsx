@@ -13,7 +13,7 @@
  * Picture-in-Picture window does the same (21 Nov 2026); a page can't change either.
  */
 import type { Jali, NodeId } from "@jali/core";
-import { allows, storeOf, type PopOutPort, type UiStore } from "@jali/core/adapter";
+import { allows, storeOf, type PopOutPort, type JaliStore } from "@jali/core/adapter";
 import { useSyncExternalStore } from "react";
 
 interface DocumentPictureInPicture {
@@ -29,7 +29,7 @@ export const canPopOut = () => typeof window !== "undefined" && !!api() && windo
 
 /** The pane popped out, and its window: one at a time, like the browser's own. Kept outside React state: a Window. */
 let current: {
-  store: UiStore;
+  store: JaliStore;
   pane: NodeId;
   win: Window;
   root: HTMLElement;
@@ -152,7 +152,7 @@ export const useCanPopOut = (): boolean =>
   useSyncExternalStore(noSubscribe, canPopOut, () => false);
 
 /** Where pane `pane`'s content renders while popped out from `store`'s workspace, else null. */
-export function usePopOutTarget(store: UiStore, pane: NodeId): HTMLElement | null {
+export function usePopOutTarget(store: JaliStore, pane: NodeId): HTMLElement | null {
   return useSyncExternalStore(
     subscribe,
     () => (current && current.store === store && current.pane === pane ? current.root : null),

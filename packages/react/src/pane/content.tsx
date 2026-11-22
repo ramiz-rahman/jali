@@ -9,7 +9,7 @@
  */
 import { createContext, memo, useMemo, useRef } from "react";
 import { createPortal } from "react-dom";
-import type { Frame, UiStore } from "@jali/core/adapter";
+import type { Frame, JaliStore } from "@jali/core/adapter";
 import { PaneBody, paneHost, type PaneHost } from "./PaneBody";
 import { createHeaderSlot, type HeaderSlot } from "./header";
 import { usePopOutTarget } from "./PopOut";
@@ -28,7 +28,7 @@ export const ContentHosts = /* @__PURE__ */ createContext<((id: string) => Conte
 );
 
 /** The hosts of one workspace, made as panes first render and dropped with the pane (`keep`). */
-export function useContentHosts(store: UiStore, on: boolean) {
+export function useContentHosts(store: JaliStore, on: boolean) {
   const all = useRef(new Map<string, ContentHost>()).current;
   const get = useMemo(
     () => (id: string) => {

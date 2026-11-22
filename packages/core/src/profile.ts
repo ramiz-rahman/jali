@@ -177,10 +177,11 @@ export interface Env {
   profile: ProfileBase | null;
   /** Layouts to start from, in menu order. May be empty. */
   presets: readonly Preset[];
-  /** The host's own commands, after Jali's in the palette; the keymap can bind them (`createUiStore({ commands })`). */
+  /** The host's own commands, after Jali's in the palette; the keymap can bind them (`createJaliStore({ commands })`). */
   commands?: readonly Command[];
-  /** The free workspace's name, where the person builds the layout ("Data Studio"). Default "Workspace". */
-  name: string;
+  /** The app's name for the free layout, where the person builds it ("Data Studio"), in commands such as "Open Data
+   *  Studio". Default: none. */
+  name?: string;
   /** The kind a split or a new tab opens until the person chooses what to show. Without one, there is no Split. */
   launcher?: string;
   /** False when the host shows Jali's commands in its own command menu (`palette: false`). */

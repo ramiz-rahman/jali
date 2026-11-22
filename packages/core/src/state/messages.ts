@@ -536,8 +536,6 @@ const peek = {
 
 /** The panes region, Single view's pane switcher, and the dividers between panes. */
 const workspace = {
-  /** The free workspace's name when `createJali({ name })` gives none. */
-  name: "Workspace",
   label: "Panes",
   /** A landmark of a workspace the host named (`createJali({ label })`): a pane, the shelf, the switcher, the peek. */
   within: (landmark: string, workspace: string) => `${landmark}, ${workspace}`,

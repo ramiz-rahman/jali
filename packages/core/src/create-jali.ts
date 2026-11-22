@@ -14,7 +14,7 @@ import type { Rename } from "./actions/rename";
  */
 import type { TabMenu } from "./commands/tab-menu";
 import { boot } from "./boot";
-import type { KeymapOptions, KeymapOverrides, KeyString } from "./commands/keymap";
+import type { KeyboardOptions } from "./commands/keymap";
 import type { Command } from "./commands/registry";
 import { toLayout, type LayoutInput } from "./layout/build";
 import type { Direction } from "./layout/types";
@@ -30,7 +30,7 @@ import type { Preset, ProfileBase } from "./profile";
 import type { BeforeClose } from "./state/apply";
 import type { Jali, PageOf } from "./state/instance";
 import type { LinkMode } from "./actions/public";
-import { createUiStore, type UiStoreDeps, type UrlWriter } from "./state/store";
+import { createJaliStore, type JaliConfig, type UrlWriter } from "./state/store";
 import { createUrlSync, type UrlSyncOptions } from "./url";
 import type { MessageOverrides } from "./state/messages";
 import type { Settings } from "./state/settings";
@@ -71,7 +71,8 @@ export interface JaliOptions<
    *  `"peek"` only peeks, in Single view, for a viewer who may look but not rearrange. `jali.page.setLinkMode` changes
    *  it later. */
   linkMode?: LinkMode;
-  /** The free workspace's name, in commands such as "Open Data Studio". Default "Workspace". */
+  /** The app's name for the free layout (where the person arranges panes), in commands such as "Open Data Studio"
+   *  on a curated page. Default: none, and the command says "Leave Loan review" instead. */
   name?: string;
   /**
    * The address. `true` (the default in a browser): the layout lives in the address bar, so a link reopens it and
@@ -85,28 +86,29 @@ export interface JaliOptions<
   storage?: string | StoragePort;
   /** Prefix for DOM ids. Give each workspace on one page its own. Default "jali". */
   id?: string;
-  /** `"scoped"`: take only keys from inside this workspace (and keys on the page's body while it was the last one
-   *  used), for two on one page. Default `"page"`: every key. Any other value is a development error, and scoped. */
-  keys?: "page" | "scoped";
   /** Set the page's theme (`data-theme` on `<html>`) from the person's setting. Default true; false when the
    *  workspace sits inside a page that has its own theme. */
   pageTheme?: boolean;
   /** Your own commands: listed in ⌘K after Jali's, and bindable in `keymap` like Jali's
    *  (`{ id: "app.refresh", title: "Refresh data", group: "App", run: () => refetch() }`). A Jali id wins. */
   commands?: readonly Command[];
-  /** Rebind or unbind commands: `{ "pane.zoom": "Mod+K Mod+Enter", "pane.close": null }`. */
-  keymap?: KeymapOverrides;
-  /** The first step of Jali's two-step keys, and its palette's key. Default "Mod+K". Move it when the app owns ⌘K:
-   *  `"Mod+J"` makes "Restore last closed pane" ⌘J ⌘Z. */
-  keyPrefix?: KeyString;
-  /** Keys the app uses for itself (`["Mod+K", "Mod+/"]`). Jali drops any binding of its own that is one of them,
-   *  or starts with one, and reports it to `keymapOptions.onInvalid`. */
-  reservedKeys?: readonly KeyString[];
+  /**
+   * Jali's keys: which it takes, what they are bound to, and which the app keeps.
+   *
+   *  - `scope`: `"page"` (default) takes every key on the page; `"local"` only keys from inside this Jali (and keys
+   *    on the page's body while it was the last one used), for two on one page or Jali inside a larger app.
+   *  - `keymap`: rebind or unbind commands, `{ "pane.zoom": "Mod+K Mod+Enter", "pane.close": null }`.
+   *  - `prefix`: the first step of Jali's two-step keys, and its palette's key. Default "Mod+K". Move it when the app
+   *    owns ⌘K: `"Mod+J"` makes "Restore last closed pane" ⌘J ⌘Z.
+   *  - `reserved`: keys the app uses for itself (`["Mod+K", "Mod+/"]`). Jali drops any binding of its own that is one
+   *    of them, or starts with one, and reports it to `onInvalid`.
+   *  - `platform`, `onInvalid`, `words`: the keymap's platform, how a refused binding is reported (default:
+   *    `console.warn`), and the words printed keys use.
+   */
+  keyboard?: KeyboardOptions;
   /** `false`: the app shows Jali's commands in its own command menu (`useJaliCommands`, `listCommands`). Jali then
-   *  renders no palette, and its key is unbound unless `keymap` binds "palette.toggle". Default true. */
+   *  renders no palette, and its key is unbound unless `keyboard.keymap` binds "palette.toggle". Default true. */
   palette?: boolean;
-  /** The keymap's platform, and how refused bindings are reported. */
-  keymapOptions?: KeymapOptions;
   /** The reading direction. Default: the page's (the computed `direction` where the workspace is rendered, so
    *  `<html dir="rtl">` is enough), followed when it changes. Give one to fix it: `<JaliRoot>` then sets `dir` on its
    *  elements, so the styles agree. Right to left, a row starts at the right; the layout and its links are the same. */
@@ -206,6 +208,68 @@ const presetOf = ({ id, label, layout, saved }: PresetOptions): Preset => ({
 });
 
 /**
+ * `JaliOptions` resolved once into the shape the store reads (`JaliConfig`): kinds registered, presets built, the
+ * address and storage ports made, and every option that a later step would otherwise check again normalised. Options
+ * whose name and meaning are the same in both pass through as they are.
+ */
+export function resolveOptions(options: JaliOptions): JaliConfig {
+  const {
+    panes,
+    launcher,
+    layout,
+    presets,
+    page,
+    url = inBrowser,
+    size,
+    moveFocus = true,
+    storage: kept,
+    onUnstable,
+    beforeClose: _guard,
+    linkMode,
+    landmark,
+    label,
+    confirmDiscard,
+    pageTheme,
+    ...same
+  } = options;
+  const kinds = "register" in panes ? panes : createPaneKinds([...panes]);
+  if (launcher) kinds.register({ ...launcher, transient: true });
+  const storage =
+    typeof kept === "object"
+      ? kept
+      : inBrowser
+        ? browserStorage(kept ?? options.id ?? "jali")
+        : memoryStorage();
+  return {
+    ...same,
+    kinds,
+    profile: page ?? null,
+    presets: presets?.map(presetOf) ?? [],
+    ...(launcher ? { launcher: launcher.kind } : {}),
+    url:
+      url === false
+        ? undefined
+        : url === true
+          ? createUrlSync({ storage })
+          : "write" in url
+            ? url
+            : createUrlSync({ storage, ...url }),
+    storage,
+    ...(landmark === "main" ? { landmark } : {}),
+    ...(typeof label === "string" && label.trim() ? { label: label.trim() } : {}),
+    ...(confirmDiscard === false ? { confirmDiscard } : {}),
+    ...(pageTheme === false ? { pageTheme } : {}),
+    ...(onUnstable ? { unstable: onUnstable } : {}),
+    ...(moveFocus ? {} : { focusPane: null }),
+    initial: {
+      ...(layout ? { layout: toLayout(layout) } : {}),
+      ...(size ? { area: size } : {}),
+      ...(linkMode ? { linkMode } : {}),
+    },
+  };
+}
+
+/**
  * A workspace from its kinds and a layout. Its type comes from them: `jali.actions` takes refs of these kinds only,
  * events and the model say which kind, and `jali.page` is there only with a page.
  */
@@ -214,71 +278,7 @@ export function createJali<
   const L extends PaneKindBase = never,
   const P extends ProfileBase<any, any> | null | undefined = undefined, // eslint-disable-line @typescript-eslint/no-explicit-any
 >(options: JaliOptions<D, L, P>): Jali<RefOf<D | L>, PageOf<P>> {
-  const { panes, launcher, layout, url = inBrowser, size, moveFocus = true } = options;
-
-  const kinds = ("register" in panes ? panes : createPaneKinds<D>([...panes])) as PaneKinds;
-  if (launcher) kinds.register({ ...launcher, transient: true });
-
-  const storage =
-    typeof options.storage === "object"
-      ? options.storage
-      : inBrowser
-        ? browserStorage(options.storage ?? options.id ?? "jali")
-        : memoryStorage();
-
-  const writer: UrlWriter | undefined =
-    url === false
-      ? undefined
-      : url === true
-        ? createUrlSync({ storage })
-        : "write" in url
-          ? url
-          : createUrlSync({ storage, ...url });
-
-  const deps: UiStoreDeps = {
-    kinds: kinds as unknown as PaneKinds,
-    profile: options.page ?? null,
-    presets: options.presets?.map(presetOf) ?? [],
-    preset: options.preset,
-    name: options.name,
-    launcher: launcher?.kind,
-    url: writer,
-    storage,
-    id: options.id,
-    keys: options.keys,
-    pageTheme: options.pageTheme,
-    commands: options.commands,
-    keymap: options.keymap,
-    keymapOptions: {
-      ...options.keymapOptions,
-      ...(options.keyPrefix ? { prefix: options.keyPrefix } : {}),
-      ...(options.reservedKeys ? { reserved: options.reservedKeys } : {}),
-    },
-    palette: options.palette,
-    messages: options.messages,
-    ...(options.settings ? { settings: options.settings } : {}),
-    ...(options.dir ? { dir: options.dir } : {}),
-    ...(options.landmark ? { landmark: options.landmark } : {}),
-    ...(options.label ? { label: options.label } : {}),
-    unstable: options.onUnstable,
-    onPaneError: options.onPaneError,
-    ...(options.confirmDiscard === false ? { confirmDiscard: false } : {}),
-    ...(options.tabMenu ? { tabMenu: options.tabMenu } : {}),
-    ...(options.rename ? { rename: options.rename } : {}),
-    ...(options.phone ? { phone: options.phone } : {}),
-    ...(options.allow ? { allow: options.allow } : {}),
-    ...(options.buttons ? { buttons: options.buttons } : {}),
-    ...(options.gap !== undefined ? { gap: options.gap } : {}),
-    ...(options.inset !== undefined ? { inset: options.inset } : {}),
-    initial: {
-      ...(layout ? { layout: toLayout(layout) } : {}),
-      ...(size ? { area: size } : {}),
-      ...(options.linkMode ? { linkMode: options.linkMode } : {}),
-    },
-  };
-  if (!moveFocus) deps.focusPane = null;
-
-  const store = createUiStore(deps);
+  const store = createJaliStore(resolveOptions(options as JaliOptions));
   boot(store);
   // Only now: putting the first layout in place closes nothing the person had.
   store.guard = options.beforeClose;

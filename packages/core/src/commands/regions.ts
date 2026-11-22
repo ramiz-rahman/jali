@@ -5,7 +5,7 @@
  * (`[tabindex="0"]`), else the region itself.
  */
 import { focusInShelf, focusShelf, shownShelf } from "../dom/focus";
-import type { UiStore } from "../state/store";
+import type { JaliStore } from "../state/store";
 
 /** Host regions in document order, on screen only. */
 function hostRegions(root: ParentNode): HTMLElement[] {
@@ -19,7 +19,7 @@ function focusRegion(el: HTMLElement) {
   (el.querySelector<HTMLElement>('[tabindex="0"]') ?? el).focus();
 }
 
-export function cycleRegions(store: UiStore, back: boolean): void {
+export function cycleRegions(store: JaliStore, back: boolean): void {
   const shelf = shownShelf(store.dom);
   const extra = hostRegions(store.dom.root());
   const stops: { el: HTMLElement; enter(): void }[] = [

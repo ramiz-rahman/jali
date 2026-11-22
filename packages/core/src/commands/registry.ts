@@ -17,7 +17,7 @@ import { activeTabId, focusShelfChip } from "../dom/focus";
 import type { Env } from "../profile";
 import { refuse, type RefusalStep, type Snapshot } from "../state/apply";
 import { messagesOf, type ScreenDirection } from "../state/messages";
-import type { UiStore } from "../state/store";
+import type { JaliStore } from "../state/store";
 import { storeOf, type AnyJali, type Jali } from "../state/instance";
 import { cycleRegions } from "./regions";
 import { own as ownOf } from "../own";
@@ -35,8 +35,8 @@ export interface Command {
 export interface CommandDef extends Omit<Command, "run"> {
   /** Why the command can't run now (silent without a message); undefined when it can. `store` is the workspace the
    *  snapshot is of: a check that asks the workspace's adapter (Pop out) needs it, and can't run without it. */
-  check?: (x: Snapshot, store?: UiStore) => RefusalStep | undefined;
-  run: (store: UiStore) => void;
+  check?: (x: Snapshot, store?: JaliStore) => RefusalStep | undefined;
+  run: (store: JaliStore) => void;
 }
 
 /**
@@ -57,13 +57,14 @@ export const setPopOutPort = (port: PopOutPort | null) => {
   popOutPort = port;
 };
 /** The way to pop a pane out of `store`'s workspace: its adapter's own, else the one set for every workspace. */
-const popOutOf = (store: Pick<UiStore, "dom"> | undefined) => store?.dom.port.popOut ?? popOutPort;
+const popOutOf = (store: Pick<JaliStore, "dom"> | undefined) =>
+  store?.dom.port.popOut ?? popOutPort;
 
 /** `check`, then the app's `allow` for the focused pane (a command for something it doesn't allow is greyed out,
  *  saying why). Leaving maximise or full screen is always allowed. */
 const also =
-  (check: (x: Snapshot, store?: UiStore) => RefusalStep | undefined, control: PaneControl) =>
-  (x: Snapshot, store?: UiStore): RefusalStep | undefined => {
+  (check: (x: Snapshot, store?: JaliStore) => RefusalStep | undefined, control: PaneControl) =>
+  (x: Snapshot, store?: JaliStore): RefusalStep | undefined => {
     const id = x.s.view.focused;
     const leaving =
       (control === "maximise" && x.s.view.zoomed === id) ||
@@ -147,7 +148,7 @@ function buildCommands(env: Env): CommandDef[] {
                 needFocus(x) ?? (popOutOf(store)?.can() ? undefined : refuse("unavailable")),
               "popOut",
             ),
-            run: (u: UiStore) => {
+            run: (u: JaliStore) => {
               const id = u.get().view.focused;
               if (id) void popOutOf(u)?.run(u.jali, id);
             },
@@ -270,7 +271,7 @@ function buildCommands(env: Env): CommandDef[] {
       title: t.moveTab(side),
       group: g.tabs,
       check: also(checkMoveTab, "move"),
-      run: (u: UiStore) => u.actions.moveTabToward(side),
+      run: (u: JaliStore) => u.actions.moveTabToward(side),
     })),
     {
       id: "pane.rename",
@@ -386,10 +387,10 @@ export const commandsOf = (jali: Pick<AnyJali, "env">): readonly Command[] =>
   forEnv(jali.env).commands;
 
 /** The registry's commands, with their checks (adapters). */
-export const commandDefsOf = (store: Pick<UiStore, "env">): readonly CommandDef[] =>
+export const commandDefsOf = (store: Pick<JaliStore, "env">): readonly CommandDef[] =>
   forEnv(store.env).defs;
 
-function run(store: UiStore, id: string): boolean {
+function run(store: JaliStore, id: string): boolean {
   const c = forEnv(store.env).byId.get(id);
   if (!c || c.check?.(store.snapshot(), store)) return false;
   c.run(store);
@@ -399,11 +400,12 @@ function run(store: UiStore, id: string): boolean {
 /** Runs a command if it can run now. Returns whether it ran. */
 export const runCommand = (jali: AnyJali, id: string): boolean => run(storeOf(jali), id);
 
-export const commandById = (store: Pick<UiStore, "env">, id: string) =>
+export const commandById = (store: Pick<JaliStore, "env">, id: string) =>
   forEnv(store.env).byId.get(id);
 
 /** "⌘K ⌘M": a command's first binding in this store's keymap, for tooltips and the palette ("" when unbound). */
-export const shortcutLabel = (store: Pick<UiStore, "keymap">, id: string) => store.keymap.label(id);
+export const shortcutLabel = (store: Pick<JaliStore, "keymap">, id: string) =>
+  store.keymap.label(id);
 
 /** Put the address on the clipboard, and say so ("Link copied"). */
 export function copyLink(jali: AnyJali) {
@@ -416,7 +418,7 @@ export function copyLink(jali: AnyJali) {
 }
 
 /** One pane off screen: show it. Several: move focus to the shelf toolbar (arrows choose, Enter shows). */
-export function revealFromShelf(store: UiStore) {
+export function revealFromShelf(store: JaliStore) {
   const { m } = store.snapshot();
   const items = m.resolved.shelf;
   if (items.length > 1 && focusShelfChip(store.dom))
@@ -425,7 +427,7 @@ export function revealFromShelf(store: UiStore) {
   if (first) store.actions.reveal(first.paneId);
 }
 
-function toggleCentreDrop(store: UiStore) {
+function toggleCentreDrop(store: JaliStore) {
   const settings = store.get().settings;
   const centreDrop = settings.centreDrop === "swap" ? "tab" : "swap";
   store.set({ settings: { ...settings, centreDrop } });

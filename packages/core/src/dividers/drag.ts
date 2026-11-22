@@ -10,7 +10,7 @@
  */
 import * as core from "../layout/engine";
 import type { Layout, NodeId, PaneBox, Rect } from "../layout/types";
-import type { JaliDom, UiStore } from "../state/store";
+import type { JaliDom, JaliStore } from "../state/store";
 import { clampSize, dividerKey, geometryFor, snap } from "./resize";
 
 /** True while a divider is dragged by pointer in this workspace (keyboard resizes wait). */
@@ -30,7 +30,7 @@ function place(el: HTMLElement, r: Rect) {
 
 /** The adapter draws the drag line (`DomPort.dividerLine`); the divider is `e.currentTarget`. */
 export function startDividerDrag(
-  store: UiStore,
+  store: JaliStore,
   e: {
     pointerId: number;
     button: number;

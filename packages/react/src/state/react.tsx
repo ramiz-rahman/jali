@@ -21,17 +21,17 @@ import {
   useSyncExternalStore,
   type ReactNode,
 } from "react";
-import type { Actions, Model, PaneAttributes, UiState, UiStore } from "@jali/core/adapter";
+import type { Actions, Model, PaneAttributes, UiState, JaliStore } from "@jali/core/adapter";
 import type { ReactEnv, Page } from "../define";
 import { resolveTheme } from "@jali/core/adapter";
 import { reactDom } from "../dom";
 import { DEV } from "../dev";
 
-const StoreContext = /* @__PURE__ */ createContext<UiStore | null>(null);
+const StoreContext = /* @__PURE__ */ createContext<JaliStore | null>(null);
 
 /** Each store's DOM id as the host gave it, and the provider that scopes it while mounted. */
-const bases = new WeakMap<UiStore, string>();
-const owners = new WeakMap<UiStore, string>();
+const bases = new WeakMap<JaliStore, string>();
+const owners = new WeakMap<JaliStore, string>();
 /** The DOM ids of the mounted workspaces, to catch two with the same one. */
 const mounted = new Map<string, number>();
 
@@ -41,7 +41,7 @@ const mounted = new Map<string, number>();
  * browser, and never stored. One the host gave an `id` keeps it; two mounted with the same one are a development
  * error. One provider per store scopes it (the first to render), so a second provider of the same store agrees.
  */
-export function useDomScope(store: UiStore) {
+export function useDomScope(store: JaliStore) {
   const uid = useId();
   if (!bases.has(store)) bases.set(store, store.dom.id);
   if (!owners.has(store)) owners.set(store, uid);
@@ -69,7 +69,7 @@ export function useDomScope(store: UiStore) {
   }, [store, uid]);
 }
 
-export function StoreProvider({ store, children }: { store: UiStore; children?: ReactNode }) {
+export function StoreProvider({ store, children }: { store: JaliStore; children?: ReactNode }) {
   // The core finds React's elements through this port (dom.ts). Giving it is idempotent, so it is safe in render, and
   // it is in place before any effect or event of the workspace runs. So is the DOM scope.
   store.dom.use(reactDom);
@@ -78,12 +78,12 @@ export function StoreProvider({ store, children }: { store: UiStore; children?: 
 }
 
 /** A workspace as React code sees it: its kinds have components, its page a rail and header (define.ts). */
-export type ReactUiStore = UiStore & { env: ReactEnv };
+export type ReactJaliStore = JaliStore & { env: ReactEnv };
 
-export function useStore(): ReactUiStore {
+export function useStore(): ReactJaliStore {
   const store = useContext(StoreContext);
   if (!store) throw new Error("useStore() outside <StoreProvider>");
-  return store as ReactUiStore;
+  return store as ReactJaliStore;
 }
 
 export function useUi<T>(select: (s: UiState) => T): T {

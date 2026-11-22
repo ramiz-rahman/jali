@@ -110,7 +110,7 @@ const jali = createJali({
   ],
   url: true,
   commands: [{ id: "host.hello", title: "Hello", group: "Host", run: () => {} }],
-  keyPrefix: "Mod+J",
+  keyboard: { prefix: "Mod+J" },
 });
 
 function Status() {
