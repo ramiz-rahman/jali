@@ -1,19 +1,10 @@
 /**
- * The framework-free half of `rename({ can, run })`: renaming a pane in place, its command (F2) and its words. An
- * adapter adds the field (`jali/rename` gives React's).
+ * The framework-free half of `rename({ can, run })`: renaming a pane in place, and its words. Its command (F2) is
+ * core's, listed only with the feature. An adapter adds the field (`jali/rename` gives React's).
  */
 import { renameEn } from "../state/feature-messages";
-import { checkRename, type Rename } from "../actions/rename";
-import { featureCommand, type Feature } from "./feature";
-
-const command = featureCommand(
-  "pane.rename",
-  "tab.move.right",
-  (m) => m.commands.rename,
-  "pane",
-  (u) => u.actions.startRename(),
-  checkRename,
-);
+import type { Rename } from "../actions/rename";
+import type { Feature } from "./feature";
 
 export const renameFeature = (
   rename: Rename,
@@ -22,6 +13,5 @@ export const renameFeature = (
   id: "rename",
   words: renameEn,
   env: { rename },
-  commands: (env) => [command(env)],
   parts,
 });

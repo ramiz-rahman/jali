@@ -168,18 +168,10 @@ export {
   revealFromShelf,
   shortcutLabel,
   type CommandDef,
-  also,
-  needFocus,
 } from "./commands/registry";
 
 // ---------- features: what one can bring, and the framework-free halves of Jali's ----------
-export {
-  featureOf,
-  partOf,
-  type Feature,
-  type FeatureCommand,
-  type FeatureId,
-} from "./features/feature";
+export { featureOf, partOf, type Feature, type FeatureId } from "./features/feature";
 export { chooserFeature, paletteFeature, settingsFeature } from "./features/dialogs";
 export { renameFeature } from "./features/rename";
 export { popOutFeature, type PopOutWindow } from "./features/pop-out";

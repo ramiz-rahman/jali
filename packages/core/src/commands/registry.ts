@@ -11,7 +11,10 @@ import { checkUndo } from "../actions/close";
 import { checkZoom } from "../actions/focus";
 import { checkPeek } from "../actions/peek";
 import { checkPutBack, checkTuck } from "../actions/tuck";
-import { checkMoveTab, checkUnmerge } from "../actions/tabs";
+import { checkMerge, checkMoveTab, checkUnmerge } from "../actions/tabs";
+import { checkRename } from "../actions/rename";
+import { partOf, type FeatureId } from "../features/feature";
+import type { PopOutWindow } from "../features/pop-out";
 import { activeTabId, focusShelfChip } from "../dom/focus";
 import type { Env } from "../profile";
 import { refuse, type RefusalStep, type Snapshot } from "../state/apply";
@@ -40,7 +43,7 @@ export interface CommandDef extends Omit<Command, "run"> {
 
 /** `check`, then the app's `allow` for the focused pane (a command for something it doesn't allow is greyed out,
  *  saying why). Leaving maximise or full screen is always allowed. */
-export const also =
+const also =
   (check: (x: Snapshot, store?: JaliStore) => RefusalStep | undefined, control: PaneControl) =>
   (x: Snapshot, store?: JaliStore): RefusalStep | undefined => {
     const id = x.s.view.focused;
@@ -49,7 +52,7 @@ export const also =
       (control === "fullScreen" && x.s.fullScreen === id);
     return check(x, store) ?? (leaving ? undefined : notAllowed(x, id, control));
   };
-export const needFocus = ({ s }: Snapshot) => (s.view.focused ? undefined : refuse("unavailable"));
+const needFocus = ({ s }: Snapshot) => (s.view.focused ? undefined : refuse("unavailable"));
 const needLauncher = (x: Snapshot) =>
   x.s.view.focused && x.env.launcher ? undefined : refuse("unavailable");
 const inStrip = (x: Snapshot) =>
@@ -66,24 +69,12 @@ const DIRS: [Edge, ScreenDirection][] = [
   ["bottom", "down"],
 ];
 
-/** Every command a workspace has: the fixed set, its presets', its features' and titles in its own words (its name,
- *  its viewers). */
+/** Every command a workspace has: the fixed set, its presets', its features' (each only with its feature, in its
+ *  words) and the host's, with titles in its own words (its name, its viewers). */
 function buildCommands(env: Env): CommandDef[] {
-  const all = jaliCommands(env);
-  // Each feature's, after the command of Jali's it names (its place in the palette), else last.
-  for (const f of env.features ?? [])
-    for (const { after, ...c } of f.commands?.(env) ?? []) {
-      const at = after ? all.findIndex((d) => d.id === after) : -1;
-      all.splice(at < 0 ? all.length : at + 1, 0, c);
-    }
-  // The host's own, last (a Jali id wins if a host repeats one).
-  for (const c of env.commands ?? [])
-    all.push({ id: c.id, title: c.title, group: c.group, run: (u) => c.run(u.jali) });
-  return all;
-}
-
-function jaliCommands(env: Env): CommandDef[] {
   const { commands: t, commandGroups: g } = messagesOf(env);
+  const has = (id: FeatureId) => !!env.features?.some((f) => f.id === id);
+  const popOut = partOf<PopOutWindow>(env, "popOutWindow");
   return [
     // F6 visits the panes, then the shelf and the host's regions (commands/regions.ts).
     {
@@ -129,6 +120,24 @@ function jaliCommands(env: Env): CommandDef[] {
       ),
       run: (u) => u.actions.toggleFullScreen(),
     },
+    // With `popOut()`: the pane menu's Pop out, from ⌘K or a key, through the feature's window.
+    ...(popOut
+      ? [
+          {
+            id: "pane.pop_out",
+            title: t.popOut,
+            group: g.pane,
+            check: also(
+              (x) => needFocus(x) ?? (popOut.can() ? undefined : refuse("unavailable")),
+              "popOut",
+            ),
+            run: (u: JaliStore) => {
+              const id = u.get().view.focused;
+              if (id) void popOut.open(u, id);
+            },
+          },
+        ]
+      : []),
     {
       id: "pane.tuck",
       title: t.tuck,
@@ -225,7 +234,19 @@ function jaliCommands(env: Env): CommandDef[] {
       run: (u) => u.actions.swapWithNext(),
     },
 
-    // Unmerge without dragging (WCAG 2.5.7); merging is the chooser's (`chooser()`).
+    // Merge (with the chooser, `chooser()`) and unmerge without dragging (WCAG 2.5.7).
+    ...(has("chooser")
+      ? [
+          {
+            id: "pane.merge",
+            title: t.merge,
+            group: g.tabs,
+            check: also(checkMerge, "move"),
+            run: (u: JaliStore) =>
+              u.set({ chooser: { kind: "merge", source: u.get().view.focused! } }),
+          },
+        ]
+      : []),
     {
       id: "pane.unmerge",
       title: t.unmerge,
@@ -240,6 +261,17 @@ function jaliCommands(env: Env): CommandDef[] {
       check: also(checkMoveTab, "move"),
       run: (u: JaliStore) => u.actions.moveTabToward(side),
     })),
+    ...(has("rename")
+      ? [
+          {
+            id: "pane.rename",
+            title: t.rename,
+            group: g.pane,
+            check: checkRename,
+            run: (u: JaliStore) => u.actions.startRename(),
+          },
+        ]
+      : []),
     {
       id: "stack.new-tab",
       title: t.newTab,
@@ -294,12 +326,30 @@ function jaliCommands(env: Env): CommandDef[] {
       run: (u) => u.actions.openPeekFull(),
     },
 
+    ...(has("settings")
+      ? [
+          {
+            id: "settings.open",
+            title: t.settingsOpen,
+            group: g.settings,
+            run: (u: JaliStore) => u.run("dialogs.openSettings"),
+          },
+        ]
+      : []),
     {
       id: "settings.centre_drop.toggle",
       title: t.centreDropToggle,
       group: g.settings,
       run: toggleCentreDrop,
     },
+
+    // The host's own, last (a Jali id wins if a host repeats one).
+    ...(env.commands ?? []).map((c): CommandDef => ({
+      id: c.id,
+      title: c.title,
+      group: c.group,
+      run: (u) => c.run(u.jali),
+    })),
   ];
 }
 

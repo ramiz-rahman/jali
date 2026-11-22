@@ -1,14 +1,13 @@
 /**
  * The framework-free half of `popOut()`: a pane in a floating window that stays on top. Core keeps what is the same
- * for any adapter (allowing it, "Pop out pane" in ⌘K, the words, closing the window when the workspace stops); the
+ * for any adapter (allowing it, the words, closing the window when the workspace stops; "Pop out pane" is in core's
+ * commands, through the window); the
  * adapter brings the window itself (`jali/pop-out` gives React's), which is the instance's own: one per workspace.
  */
 import type { NodeId } from "../layout/types";
 import { popOutEn } from "../state/feature-messages";
-import { refuse } from "../state/apply";
-import { also, needFocus } from "../commands/registry";
 import type { JaliStore } from "../state/store";
-import { featureCommand, type Feature } from "./feature";
+import type { Feature } from "./feature";
 
 /** How an adapter pops a pane of a workspace out, and brings it back. */
 export interface PopOutWindow {
@@ -28,19 +27,6 @@ export const popOutFeature = (
 ): Feature => ({
   id: "popOut",
   words: popOutEn,
-  commands: (env) => [
-    featureCommand(
-      "pane.pop_out",
-      "pane.fullscreen",
-      (m) => m.commands.popOut,
-      "pane",
-      (u) => {
-        const id = u.get().view.focused;
-        if (id) void window.open(u, id);
-      },
-      also((x) => needFocus(x) ?? (window.can() ? undefined : refuse("unavailable")), "popOut"),
-    )(env),
-  ],
   // The window closes when the workspace stops: unmounted, destroyed, or another workspace in its root's place.
   start: (store) => () => window.close(store),
   parts: { ...parts, popOutWindow: window },

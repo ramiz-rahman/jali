@@ -513,7 +513,8 @@ export function createJaliStore(deps: JaliConfig): JaliStore {
     // The layout given, once checked (`firstLayout`), or what took its place.
     layout,
   };
-  if (DEV) {
+  // `DEV` first: a page without `process` never reads it; a production build folds the test to false and drops it.
+  if (DEV && process.env.NODE_ENV !== "production") {
     freezeTree(state.layout);
     freezeTree(state.view);
   }
@@ -585,7 +586,7 @@ export function createJaliStore(deps: JaliConfig): JaliStore {
       const layout = core.refit(next.layout, next.view, ctxOf(next));
       if (layout !== next.layout) next = { ...next, layout };
     }
-    if (DEV) {
+    if (DEV && process.env.NODE_ENV !== "production") {
       if (next.layout !== prev.layout) freezeTree(next.layout);
       if (next.view !== prev.view) freezeTree(next.view);
     }
