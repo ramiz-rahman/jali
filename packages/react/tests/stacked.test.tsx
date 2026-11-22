@@ -113,6 +113,40 @@ describe("stacked view, drawn", () => {
     expect(container.querySelector(".jali-switch-item[data-in-view]")).not.toBeNull();
   });
 
+  it("advertises a range that holds its value while dragged, controls the top pane, and a cancel puts it back", () => {
+    // react-codex REACT-12.
+    const { jali } = make();
+    const { container } = render(<JaliRoot jali={jali} />);
+    const divider = container.querySelector<HTMLElement>(".jali-stack-divider")!;
+    const top = container.querySelector<HTMLElement>(".jali-pane:not([style*='none'])")!;
+    expect(divider.getAttribute("aria-controls")).toBe(top.id);
+    act(() => void fireEvent.pointerDown(divider, { clientY: 300, pointerId: 1 }));
+    act(() => void fireEvent.pointerMove(divider, { clientY: 300 - 772 * 0.28, pointerId: 1 }));
+    const now = Number(divider.getAttribute("aria-valuenow"));
+    expect(now).toBeLessThan(33);
+    expect(Number(divider.getAttribute("aria-valuemin"))).toBeLessThanOrEqual(now);
+    expect(Number(divider.getAttribute("aria-valuemax"))).toBeGreaterThanOrEqual(now);
+    act(() => void fireEvent.pointerCancel(divider, { pointerId: 1 }));
+    expect(divider.getAttribute("aria-valuenow")).toBe("50");
+  });
+
+  it("arrow keys move the way they say from a share between the stops", () => {
+    const { jali } = make();
+    const { container } = render(<JaliRoot jali={jali} />);
+    const divider = container.querySelector<HTMLElement>(".jali-stack-divider")!;
+    // Dragged to 72%, released: it settles on two thirds. Dragged on to 75% and released near 67%: from a share
+    // past the last stop, ↓ stays at the last stop, never moves up.
+    act(() => void fireEvent.pointerDown(divider, { clientY: 300, pointerId: 1 }));
+    act(() => void fireEvent.pointerMove(divider, { clientY: 300 + 772 * 0.22, pointerId: 1 }));
+    act(() => void fireEvent.pointerUp(divider, { pointerId: 1 }));
+    expect(divider.getAttribute("aria-valuenow")).toBe("67");
+    act(() => void fireEvent.keyDown(divider, { key: "ArrowUp" }));
+    expect(divider.getAttribute("aria-valuenow")).toBe("50");
+    act(() => void fireEvent.keyDown(divider, { key: "ArrowUp" }));
+    act(() => void fireEvent.keyDown(divider, { key: "ArrowUp" }));
+    expect(divider.getAttribute("aria-valuenow")).toBe("33");
+  });
+
   it("is the room between the panes, all of it, so it covers neither pane", () => {
     const { jali } = make();
     const { container } = render(<JaliRoot jali={jali} />);

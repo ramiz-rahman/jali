@@ -32,7 +32,8 @@ describe("the reshape slide", () => {
     });
     render(<JaliRoot jali={jali} />);
     const ws = () => document.querySelector(".jali-workspace")!;
-    const reshape = () => act(() => storeOf(jali).set({ reshapes: jali.get().reshapes + 1 }));
+    const reshape = () =>
+      act(() => storeOf(jali).set({ reshapes: storeOf(jali).get().reshapes + 1 }));
     reshape();
     expect(ws().classList.contains("is-reshaping")).toBe(true);
     act(() => void vi.advanceTimersByTime(300));

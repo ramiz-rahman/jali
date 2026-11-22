@@ -3,7 +3,7 @@
  * height the top one takes, and whether the on-screen keyboard is up (then the focused pane shows alone, so a field
  * in the lower pane isn't under the keyboard).
  */
-import { stackGap, type UiStore } from "@jali/core/adapter";
+import { paneDomId, stackGap, type UiStore } from "@jali/core/adapter";
 import type { JaliModel } from "@jali/core";
 import { useEffect, useRef, useState, type KeyboardEvent, type PointerEvent } from "react";
 import { useModelValue, useStore } from "../state/react";
@@ -65,13 +65,13 @@ export function StackDivider({
   const y = Math.round((height - room) * shown);
   const top = useModelValue((x) => x.title(pair.top));
   const bottom = useModelValue((x) => x.title(pair.bottom));
+  // A step goes to the next stop the way the key says, from wherever the share is (it may sit between stops).
   const onKey = (e: KeyboardEvent) => {
-    const i = SNAPS.indexOf(nearest(ratio));
     const next =
       e.key === "ArrowUp"
-        ? SNAPS[Math.max(0, i - 1)]
+        ? (SNAPS.findLast((s) => s < ratio - 0.005) ?? SNAPS[0])
         : e.key === "ArrowDown"
-          ? SNAPS[Math.min(SNAPS.length - 1, i + 1)]
+          ? (SNAPS.find((s) => s > ratio + 0.005) ?? SNAPS.at(-1))
           : e.key === "Home"
             ? SNAPS[0]
             : e.key === "End"
@@ -86,21 +86,25 @@ export function StackDivider({
     const r = drag.current.start + (e.clientY - drag.current.startY) / Math.max(1, height);
     setLive(Math.min(0.8, Math.max(0.2, r)));
   };
-  const end = () => {
-    if (live !== null) setRatio(nearest(live));
+  // Released, it settles on the nearest stop; cancelled (the browser took the pointer), it goes back.
+  const end = (e: PointerEvent) => {
+    if (live !== null && e.type !== "pointercancel") setRatio(nearest(live));
     drag.current = null;
     setLive(null);
   };
+  // The range holds every share it can show: the stops while at rest, as far as a drag goes while dragged.
+  const now = Math.round(shown * 100);
   return (
     <div
       className="jali-stack-divider"
       role="separator"
       aria-orientation="horizontal"
       aria-label={t.divider(top, bottom)}
-      aria-valuenow={Math.round(shown * 100)}
-      aria-valuemin={33}
-      aria-valuemax={67}
-      aria-valuetext={t.stackValue(top, Math.round(shown * 100))}
+      aria-controls={paneDomId(store.dom.id, pair.top)}
+      aria-valuenow={now}
+      aria-valuemin={Math.min(20, now)}
+      aria-valuemax={Math.max(80, now)}
+      aria-valuetext={t.stackValue(top, now)}
       tabIndex={0}
       data-dragging={live !== null || undefined}
       style={{ top: y, height: room }}
