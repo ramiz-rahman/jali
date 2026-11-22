@@ -5,7 +5,8 @@
  * Leave `buttons` out and Jali chooses: Tuck, Maximise, Pop out and Close, with Full screen in Maximise's place where
  * there is nothing to maximise over (a lone pane). Pop out shows only where `allow.popOut` turns it on. An instance (`createJali({ buttons })`) and then a kind
  * (`definePane({ buttons })`) can replace the list, or adjust it with a function given the defaults. `allow` and Jali's
- * own rules still filter it, and the way out of a state (Restore, Exit full screen) shows whatever the list says.
+ * own rules still filter it, and the way out of a state (Restore, Exit full screen, Bring back) shows whatever the list
+ * says.
  */
 import type { NodeId, PaneNode } from "../layout/types";
 import type { ViewMode } from "../profile";
@@ -40,13 +41,15 @@ export interface ButtonsState {
   full: boolean;
   /** The header holds a tab strip (each tab has its own ×). */
   tabs: boolean;
+  /** The pane is in a floating window: its way back (Bring back) shows, whatever `allow` says now. */
+  popped?: boolean;
 }
 
 /** The buttons pane `id`'s header shows, in order: the defaults, the instance's, the kind's; then what is possible. */
 export function buttonsOf(x: Snapshot, id: NodeId, st: ButtonsState): PaneButton[] {
   const pane = x.m.pane(id);
   if (!pane) return [];
-  const { chrome, zoomed, full, tabs } = st;
+  const { chrome, zoomed, full, tabs, popped = false } = st;
   // Where Maximise has nothing to do (a lone pane), Full screen takes its place.
   let list: readonly PaneButton[] =
     !chrome.zoomable && chrome.fullScreenable
@@ -70,6 +73,7 @@ export function buttonsOf(x: Snapshot, id: NodeId, st: ButtonsState): PaneButton
   };
   if (full) way("fullScreen");
   else if (zoomed) way("maximise");
+  if (popped) way("popOut");
   return out.filter((b) => {
     switch (b) {
       case "tuck":
@@ -81,7 +85,7 @@ export function buttonsOf(x: Snapshot, id: NodeId, st: ButtonsState): PaneButton
       case "close":
         return (chrome.closeWithTabs || !tabs) && allows(x, id, "close");
       case "popOut":
-        return allows(x, id, "popOut");
+        return popped || allows(x, id, "popOut");
       default:
         return false;
     }

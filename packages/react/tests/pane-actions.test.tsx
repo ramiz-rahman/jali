@@ -16,7 +16,7 @@ import {
   vi,
 } from "vite-plus/test";
 import { act, cleanup, fireEvent, render, screen, within } from "@testing-library/react";
-import { createJali, memoryLocation, memoryStorage, pane, row } from "@jali/core";
+import { createJali, memoryLocation, memoryStorage, pane, row, type Allow } from "@jali/core";
 import { JaliRoot, definePane } from "@jali/react";
 import { defaultFeatures, popOut, urlSync } from "./features";
 
@@ -25,9 +25,10 @@ const note = definePane("note", {
   title: ({ n }) => `Note ${n}`,
   Component: () => <p>note</p>,
 });
-const make = () =>
+const make = (allow?: Allow) =>
   createJali({
     panes: [note],
+    ...(allow ? { allow } : {}),
     layout: row(pane(note({ n: 1 }), { id: "a" }), pane(note({ n: 2 }), { id: "b" })),
     features: [...defaultFeatures(), urlSync({ location: memoryLocation() }), popOut()],
     storage: memoryStorage(),
@@ -184,5 +185,22 @@ describe("the pane's header and menu, from one set of actions", () => {
       await Promise.resolve();
     });
     expect(open()).toHaveLength(1);
+  });
+
+  it("keeps Bring back in the header once out, even when the app stops allowing Pop out", async () => {
+    let popOutOn = true;
+    const jali = make({ when: ({ action }) => action !== "popOut" || popOutOn });
+    render(<JaliRoot jali={jali} />);
+    await popOutA();
+    popOutOn = false;
+    // Something else changes, so the header works itself out again with the new rule.
+    await act(async () => void (await jali.actions.focus("b")));
+    expect(popButton("a")!.getAttribute("aria-label")).toBe("Bring back Note 1");
+    expect(popButton("b")).toBeNull();
+    fireEvent.click(popButton("a")!);
+    expect(open()).toHaveLength(0);
+    // Back home, the rule applies again: no button, and nothing in ⋯.
+    await act(async () => void (await jali.actions.focus("a")));
+    expect(popButton("a")).toBeNull();
   });
 });
