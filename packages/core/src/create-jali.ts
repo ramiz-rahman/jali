@@ -75,7 +75,8 @@ export interface JaliOptions<D extends PaneKindBase = PaneKindBase> {
   storage?: string | StoragePort;
   /** Prefix for DOM ids. Give each workspace on one page its own. Default "jali". */
   id?: string;
-  /** "workspace": take only keys from inside this workspace, for two on one page. Default "page": every key. */
+  /** `"scoped"`: take only keys from inside this workspace (and keys on the page's body while it was the last one
+   *  used), for two on one page. Default `"page"`: every key. Any other value is a development error, and scoped. */
   keys?: "page" | "scoped";
   /** Set the page's theme (`data-theme` on `<html>`) from the person's setting. Default true; false when the
    *  workspace sits inside a page that has its own theme. */

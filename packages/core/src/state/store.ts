@@ -236,7 +236,8 @@ export interface UiStoreDeps {
   /** The kind a split or a new tab opens until the person chooses (it must be in `kinds`). Default: none, so no Split. */
   launcher?: string;
   /** Which keys the workspace takes: every key on the page ("page", the default), or only keys from inside its root
-   *  and keys on the page body while it was the last one used ("workspace": two workspaces on one page). */
+   *  and keys on the page body while it was the last one used ("scoped": two workspaces on one page). Any other value
+   *  is a development error, and scoped: a misspelling never widens the keys a workspace takes. */
   keys?: "page" | "scoped";
   /** Set `data-theme` on `<html>` from the person's setting while started. Default true. */
   pageTheme?: boolean;
@@ -460,6 +461,10 @@ export function createUiStore(deps: UiStoreDeps): UiStore {
   // The id is the prefix: two workspaces with their own ids never overwrite each other ("jali" stays "jali").
   const storage = deps.storage ?? browserStorage(deps.id ?? "jali");
   const paneStates = paneStateSync(storage);
+  if (DEV && deps.keys !== undefined && deps.keys !== "page" && deps.keys !== "scoped")
+    console.error(
+      `Jali: keys is "page" or "scoped", not ${JSON.stringify(deps.keys)}; it is taken as "scoped"`,
+    );
   if (DEV)
     for (const [i, p] of env.presets.entries())
       if (env.presets.findIndex((q) => q.id === p.id) !== i)
@@ -808,7 +813,7 @@ export function createUiStore(deps: UiStoreDeps): UiStore {
       if (stop || destroyed) return () => {};
       const offInput = trackInput();
       const off = startUi(store, undefined, {
-        keys: deps.keys === "scoped" ? { root: rootElement } : {},
+        keys: deps.keys === undefined || deps.keys === "page" ? {} : { root: rootElement },
         pageTheme: deps.pageTheme,
       });
       stop = () => {

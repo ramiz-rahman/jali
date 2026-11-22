@@ -120,7 +120,8 @@ const legacyKeys = (k: UrlKeys) => k.layout === "l";
 function pageParams(q: URLSearchParams, s: UrlState, k: UrlKeys) {
   q.delete(k.layout);
   for (const key of [k.page, k.item, k.tab, k.open, k.preset]) q.delete(key);
-  if (legacyKeys(k)) for (const key of ["app", "arr"]) q.delete(key);
+  // Only an old lab link's own params go (`app=review` and its `arr`): any other `app` or `arr` is the host's.
+  if (legacyKeys(k) && q.get("app") === "review") for (const key of ["app", "arr"]) q.delete(key);
   if (!s.page) return;
   const focused = core.tree.panes(s.layout.root).find((p) => p.id === s.view.focused)?.role;
   setPage(q, k, {

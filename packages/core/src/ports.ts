@@ -44,8 +44,9 @@ export function browserLocation(win: Window = window): LocationPort {
       const url = new URL(win.location.href);
       url.search = search;
       if (url.href === win.location.href) return;
+      // A replace keeps the entry's state (a router's, the host's): Jali owns its search params, not the entry.
       if (mode === "push") win.history.pushState(null, "", url.href);
-      else win.history.replaceState(null, "", url.href);
+      else win.history.replaceState(win.history.state, "", url.href);
     },
     subscribe(fn) {
       win.addEventListener("popstate", fn);
