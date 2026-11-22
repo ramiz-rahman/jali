@@ -45,7 +45,7 @@ export function createMarketsJali(services: Services, options: Options = {}): Ja
   const { market, lists, desks } = services;
   /** Ask for an instrument in Jali's chooser (type a symbol or a name), then `onPick` its symbol. */
   const pick = (jali: Jali, title: string, onPick: (symbol: string) => void, only?: AssetClass[]) =>
-    jali.actions.choose({
+    jali.dialogs.choose({
       title,
       items: market.instruments.filter((i) => !only || only.includes(i.assetClass)),
       label: (i) => i.symbol,

@@ -88,7 +88,7 @@ export function createStudioJali(services: Services, options: Options = {}): Jal
       group: "Transport",
       run: (jali) => {
         const v = now();
-        jali.actions.choose({
+        jali.dialogs.choose({
           title: "Go to segment…",
           items: v.session.segments,
           label: (seg) => opening(v.textOf(seg), 9),
@@ -108,7 +108,7 @@ export function createStudioJali(services: Services, options: Options = {}): Jal
       group: "Transport",
       run: (jali) => {
         const v = now();
-        jali.actions.choose({
+        jali.dialogs.choose({
           title: "Jump to marker…",
           items: v.markers,
           label: (m) => m.label,
@@ -133,7 +133,7 @@ export function createStudioJali(services: Services, options: Options = {}): Jal
       title: "Playback speed…",
       group: "Transport",
       run: (jali) =>
-        jali.actions.choose({
+        jali.dialogs.choose({
           title: "Playback speed…",
           items: [...SPEEDS],
           label: (r) => `${r}×`,
@@ -159,7 +159,7 @@ export function createStudioJali(services: Services, options: Options = {}): Jal
       title: "Open session…",
       group: "Studio",
       run: (jali) =>
-        jali.actions.choose({
+        jali.dialogs.choose({
           title: "Open session…",
           items: [...SESSION_IDS],
           label: (s) => catalogueOf(s).title,

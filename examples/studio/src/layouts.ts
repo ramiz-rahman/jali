@@ -3,7 +3,7 @@
  * so moving from Mix to Edit and back brings Mix back as it was arranged. Reset (the slab's reset key, or ⌘K "Reset
  * layout") puts the layout in use back to its design (presets.ts); this module forgets it too.
  */
-import type { Jali, Layout } from "@jali/core";
+import type { DeepReadonly, Jali, Layout } from "@jali/core";
 import { saved } from "./store";
 import { isRecord, recordOf } from "./stored";
 
@@ -13,11 +13,11 @@ const UNVERSIONED = "studio:layouts";
 
 /** The kept layouts, by preset id. Only an object can be a layout; Jali checks the rest of its shape before it uses
  *  one (a preset's `saved`), and builds the preset afresh from its design when it can't read it. */
-export const readLayouts = (v: unknown): Record<string, Layout> =>
-  recordOf(v, (l) => (isRecord(l) ? (l as unknown as Layout) : undefined));
+export const readLayouts = (v: unknown): Record<string, DeepReadonly<Layout>> =>
+  recordOf(v, (l) => (isRecord(l) ? (l as unknown as DeepReadonly<Layout>) : undefined));
 
 export interface Layouts {
-  get(id: string): Layout | undefined;
+  get(id: string): DeepReadonly<Layout> | undefined;
   /** Keep each layout as it changes. Returns the stop. */
   track(jali: Jali): () => void;
   /** Forget one layout's arrangement. */

@@ -1,4 +1,4 @@
-import { useEffect, type CSSProperties } from "react";
+import type { CSSProperties } from "react";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster, toast } from "sonner";
 import type { DataLayer } from "../data/types";
@@ -6,7 +6,7 @@ import { DataLayerProvider } from "../data/react";
 import { TopBar } from "./TopBar";
 import { StatusLine } from "./StatusLine";
 import { StatsSetting } from "./stats-pref";
-import { JaliRoot, JaliView, useTheme, useJali, useJaliState } from "@jali/react";
+import { JaliRoot, JaliView, useJaliTheme, useJali, useJaliState, useJaliEvent } from "@jali/react";
 import type { Jali } from "@jali/core";
 
 export const UNDO_MS = 8000;
@@ -19,22 +19,18 @@ const undoKeys = (store: Jali) => {
 /** Shows the store's toasts with Sonner. Undo toasts offer the undo that "Undo last close or tuck" (⌘K ⌘Z) runs. */
 function Toasts() {
   const store = useJali();
-  const theme = useTheme();
-  useEffect(
-    () =>
-      store.onToast((t) => {
-        if (t.error) toast.error(t.title, { description: t.description, duration: 8000 });
-        else
-          toast(t.title, {
-            description: t.undo
-              ? [t.description, undoKeys(store)].filter(Boolean).join(" · ")
-              : t.description,
-            action: t.undo ? { label: "Undo", onClick: () => store.actions.undo() } : undefined,
-            duration: UNDO_MS,
-          });
-      }),
-    [store],
-  );
+  const theme = useJaliTheme();
+  useJaliEvent("toast", (t) => {
+    if (t.error) toast.error(t.title, { description: t.description, duration: 8000 });
+    else
+      toast(t.title, {
+        description: t.undo
+          ? [t.description, undoKeys(store)].filter(Boolean).join(" · ")
+          : t.description,
+        action: t.undo ? { label: "Undo", onClick: () => store.actions.undo() } : undefined,
+        duration: UNDO_MS,
+      });
+  });
   // A curated page keeps its toasts over the queue (bottom-left, narrow), never over a view's content.
   const curated = useJaliState((s) => !!s.page);
   return curated ? (

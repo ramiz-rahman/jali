@@ -8,7 +8,7 @@
  */
 import { useEffect, useMemo, useRef, useState, type KeyboardEvent, type PointerEvent } from "react";
 import { WaveSineIcon } from "@phosphor-icons/react";
-import { definePane, useActivity, useJaliState, useTheme, type PaneProps } from "@jali/react";
+import { definePane, useActivity, useJaliState, useJaliTheme, type PaneProps } from "@jali/react";
 import { cue } from "../actions";
 import { useFrame, useTransport } from "../audio/react";
 import { audible, channelOf, useSessionView, type SessionView } from "../edits";
@@ -50,7 +50,7 @@ function TimelineBody({ paused, view }: PaneProps<typeof timelineParams> & { vie
   const inTransport = useTransport((s) => s.session === session.id);
   const loading = useTransport((s) => s.session === session.id && s.status === "loading");
   const loop = useTransport((s) => (s.session === session.id ? s.loop : null));
-  const theme = useTheme();
+  const theme = useJaliTheme();
   const at = useTransport((s) => s.at);
 
   // The segments some list has selected (a transcript's cursor): outlined on their lanes.

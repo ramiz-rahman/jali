@@ -6,7 +6,7 @@ import {
   LinkSimpleHorizontalIcon,
   SquaresFourIcon,
 } from "@phosphor-icons/react";
-import { IconButton, useShortcut, useJali, useJaliState, PageBar } from "@jali/react";
+import { IconButton, useJaliShortcut, useJali, useJaliState, PageBar } from "@jali/react";
 import { copyLink } from "@jali/core";
 import { JaliLockup } from "./JaliLockup";
 
@@ -80,7 +80,7 @@ function LayoutsMenu() {
 
 export function TopBar() {
   const store = useJali();
-  const paletteKeys = useShortcut("palette.toggle");
+  const paletteKeys = useJaliShortcut("palette.toggle");
   const page = useJaliState((s) => !!s.page);
   return (
     <header className="topbar" data-jali-chrome="">
@@ -117,12 +117,12 @@ export function TopBar() {
         >
           <LinkSimpleHorizontalIcon size={16} aria-hidden />
         </IconButton>
-        <IconButton onClick={() => store.actions.openSettings()} label="Settings">
+        <IconButton onClick={() => store.dialogs.openSettings()} label="Settings">
           <GearSixIcon size={16} aria-hidden />
         </IconButton>
         <button
           className="kbd-btn"
-          onClick={() => store.actions.openPalette()}
+          onClick={() => store.dialogs.openPalette()}
           // The name says the keys it shows (WCAG 2.5.3: what is seen is part of what is said).
           aria-label={`Command palette ${paletteKeys}`.trim()}
         >

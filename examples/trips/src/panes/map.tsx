@@ -34,7 +34,7 @@ import {
   useJali,
   useJaliModel,
   useJaliState,
-  useTheme,
+  useJaliTheme,
   type PaneProps,
 } from "@jali/react";
 import { selectPlace } from "../actions";
@@ -253,7 +253,7 @@ function MapPane({ params, paused, node, inPeek }: PaneProps<typeof mapParams>) 
   const jali = useJali();
   const services = useServices();
   const plan = usePlan();
-  const theme = useTheme();
+  const theme = useJaliTheme();
   const selected = useCurrent();
   const model = useJaliModel();
   const results = useStore(services.results, (r) => r);

@@ -10,7 +10,7 @@ import {
   SunIcon,
 } from "@phosphor-icons/react";
 import { keyHint, runCommand } from "@jali/core";
-import { IconButton, useJali, useJaliState, useShortcut, useTheme } from "@jali/react";
+import { IconButton, useJali, useJaliState, useJaliShortcut, useJaliTheme } from "@jali/react";
 import { useQuotes, useTopic } from "../market/react";
 import { useServices } from "../services";
 import * as f from "../ui/format";
@@ -23,8 +23,8 @@ const STRIP = ["MX40", "BTCUSD", "GOV10Y", "EURUSD", "ETHUSD", "MXTEC"];
 export function TopBar() {
   const jali = useJali();
   const current = useJaliState((s) => s.presetId);
-  const theme = useTheme();
-  const palette = useShortcut("palette.toggle");
+  const theme = useJaliTheme();
+  const palette = useJaliShortcut("palette.toggle");
   const { desks } = useServices();
   const search = () => runCommand(jali, "markets.chart");
   // Every desk back to the demo's layout, once Jali has asked about a typed order (desks.ts).
@@ -92,7 +92,7 @@ export function TopBar() {
           // The name says the key it shows (WCAG 2.5.3: what is seen is part of what is said).
           aria-label={`Commands ${palette || keyHint("Mod+K")}`}
           title={`Commands ${palette}`}
-          onClick={() => jali.actions.openPalette()}
+          onClick={() => jali.dialogs.openPalette()}
         >
           <CommandIcon size={16} aria-hidden />
           <kbd>{palette || keyHint("Mod+K")}</kbd>

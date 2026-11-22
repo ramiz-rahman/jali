@@ -40,7 +40,7 @@ export function createTripsJali(services: Services, options: Options = {}): Jali
     onPick: (p: Place) => void,
     only?: (p: Place) => boolean,
   ) =>
-    jali.actions.choose({
+    jali.dialogs.choose({
       title,
       items: PLACES.filter((p) => !only || only(p)),
       label: (p) => p.name,
@@ -85,7 +85,7 @@ export function createTripsJali(services: Services, options: Options = {}): Jali
       group: "Trip",
       run: (jali) => {
         const plan = services.plan.get();
-        jali.actions.choose({
+        jali.dialogs.choose({
           title: "Optimise day…",
           items: plan.days,
           label: (d) => `Day ${d.n}: ${d.title}`,

@@ -10,13 +10,13 @@ import {
   SunIcon,
 } from "@phosphor-icons/react";
 import { copyLink, keyHint, runCommand } from "@jali/core";
-import { useJali, useJaliState, useShortcut, useTheme } from "@jali/react";
+import { useJali, useJaliState, useJaliShortcut, useJaliTheme } from "@jali/react";
 
 export function TopBar() {
   const jali = useJali();
   const current = useJaliState((s) => s.presetId);
-  const theme = useTheme();
-  const palette = useShortcut("palette.toggle");
+  const theme = useJaliTheme();
+  const palette = useJaliShortcut("palette.toggle");
 
   return (
     <header className="topbar" data-jali-chrome="">
@@ -88,7 +88,7 @@ export function TopBar() {
           // The name says the key it shows (WCAG 2.5.3: what is seen is part of what is said).
           aria-label={`Commands ${palette || keyHint("Mod+K")}`}
           title="Commands"
-          onClick={() => jali.actions.openPalette()}
+          onClick={() => jali.dialogs.openPalette()}
         >
           <CommandIcon size={18} className="commands-icon" aria-hidden />
           <kbd>{palette || keyHint("Mod+K")}</kbd>

@@ -42,14 +42,14 @@ function Section({
   children: ReactNode;
   area: string;
 }) {
-  const { actions } = useJali();
+  const { page } = useJali();
   return (
     <section className="ov-sec" aria-label={title} style={{ gridArea: area }}>
       <header className="ov-head">
         <h3>{title}</h3>
         <button
           className="ov-go"
-          onClick={() => actions.openTab(role)}
+          onClick={() => page?.showView(role)}
           aria-label={`Open ${title}`}
           title={`Open the full view · ${altClick()} a tab to open it beside`}
         >

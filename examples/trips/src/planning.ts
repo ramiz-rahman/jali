@@ -32,7 +32,7 @@ export function chooseDay(
   { except, city }: { except?: number; city?: CityId } = {},
 ) {
   const plan = services.plan.get();
-  jali.actions.choose({
+  jali.dialogs.choose({
     title,
     items: plan.days.filter((d) => d.n !== except && (!city || d.city === city)),
     label: (d) => `Day ${d.n}: ${d.title}`,

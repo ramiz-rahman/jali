@@ -9,7 +9,7 @@
  */
 import { useRef } from "react";
 import { SlidersHorizontalIcon } from "@phosphor-icons/react";
-import { definePane, useActivity, useCommands, useTheme, type PaneProps } from "@jali/react";
+import { definePane, useActivity, useCommands, useJaliTheme, type PaneProps } from "@jali/react";
 import { useFrame, useTransport } from "../audio/react";
 import { channelOf, useSessionView, type SessionView } from "../edits";
 import { catalogueOf } from "../sessions/catalog";
@@ -267,7 +267,7 @@ function Meters({ paused, engineReady }: { paused: boolean; engineReady: boolean
   const records = useRef(new WeakMap<HTMLElement, MeterRecord>());
   const boxes = useRef<HTMLCollectionOf<Element> | null>(null);
   const last = useRef(0);
-  const theme = useTheme();
+  const theme = useJaliTheme();
   const { width } = useSize(root);
   useFrame(paused, () => {
     const strips = root.current?.closest(".mixer");

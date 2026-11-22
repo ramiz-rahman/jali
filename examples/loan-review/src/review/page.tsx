@@ -42,7 +42,7 @@ export function useApplication(item: number, paused = false) {
  * scoped to focus, WCAG 2.1.4, so a grid's J/K in a view never moves the queue); F6 reaches it (`data-pane-region`).
  * Choosing one makes it the page's item.
  */
-export function QueueRail({ item, activate }: { item: number; activate: (item: number) => void }) {
+export function QueueRail({ item, showItem }: { item: number; showItem: (item: number) => void }) {
   const apps = useRows("loan_applications", { orderBy: "id ASC", limit: 200 });
   const members = useRows("members", { orderBy: "id ASC", limit: 400 });
   const list = useRef<HTMLDivElement>(null);
@@ -68,7 +68,7 @@ export function QueueRail({ item, activate }: { item: number; activate: (item: n
   const pending = rows.filter((r) => r.status === "pending").length;
   const go = (i: number) => {
     const r = rows[Math.max(0, Math.min(rows.length - 1, i))];
-    if (r) activate(Number(r.id));
+    if (r) showItem(Number(r.id));
   };
   return (
     <aside className="rail" aria-label="Queue">
@@ -106,7 +106,7 @@ export function QueueRail({ item, activate }: { item: number; activate: (item: n
               tabIndex={selected || (at < 0 && id === Number(rows[0]!.id)) ? 0 : -1}
               className="rq-item"
               data-status={String(r.status)}
-              onClick={() => activate(id)}
+              onClick={() => showItem(id)}
             >
               <div className="rq-line">
                 <span className="rq-name">
@@ -132,7 +132,7 @@ export function QueueRail({ item, activate }: { item: number; activate: (item: n
 
 /** Phones have no rail: a "N waiting" button in the header opens the queue as a sheet. Hidden from 768px up. */
 function QueueSheet({ item }: { item: number }) {
-  const { actions } = useJali();
+  const { page } = useJali();
   const apps = useRows("loan_applications", { orderBy: "id ASC", limit: 200 });
   const [open, setOpen] = useState(false);
   const btn = useRef<HTMLButtonElement>(null);
@@ -171,8 +171,8 @@ function QueueSheet({ item }: { item: number }) {
           </IconButton>
           <QueueRail
             item={item}
-            activate={(i) => {
-              actions.activate(i);
+            showItem={(i) => {
+              page?.showItem(i);
               close();
             }}
           />

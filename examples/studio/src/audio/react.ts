@@ -4,7 +4,7 @@
  * not theirs to stop: it lives in the engine.
  */
 import { useEffect, useRef, useState } from "react";
-import { useTheme } from "@jali/react";
+import { useJaliTheme } from "@jali/react";
 import { useServices } from "../services";
 import { useStore } from "@jali-examples/shared/store";
 import type { TransportState } from "./engine";
@@ -43,7 +43,7 @@ export function usePosition(paused: boolean, step = 0.1): number {
  */
 export function useFrame(paused: boolean, draw: (position: number) => void, deps: unknown[]) {
   const { engine } = useServices();
-  const theme = useTheme();
+  const theme = useJaliTheme();
   const playing = useTransport((s) => s.playing);
   const at = useTransport((s) => s.at);
   const ref = useRef(draw);

@@ -510,7 +510,7 @@ function Suggestions({ day, plan, from }: { day: Day; plan: Plan; from: string }
     .sort((a, b) => a.way.minutes - b.way.minutes)
     .slice(0, 3);
   const find = () =>
-    jali.actions.choose({
+    jali.dialogs.choose({
       title: `Add to Day ${day.n}…`,
       items: PLACES.filter(
         (q) => q.city === day.city && (q.category === "sight" || q.category === "food"),

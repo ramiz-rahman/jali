@@ -96,11 +96,11 @@ New, from the three real sessions:
 
 **Happened.** `getComputedStyle(el).getPropertyValue("--jali-text")` returns the unresolved string `light-dark(…)` (custom properties are not resolved), and a canvas ignores a `fillStyle` it can't parse, so the first bars took the previous colour or black.
 
-**Workaround.** A hidden probe element: set `color: var(--token)` and read the computed `color`, once per theme (`ui/waveform.ts`). The canvases draw again when `useTheme()` changes, and once more on the next frame, so they see the page's new `data-theme`.
+**Workaround.** A hidden probe element: set `color: var(--token)` and read the computed `color`, once per theme (`ui/waveform.ts`). The canvases draw again when `useJaliTheme()` changes, and once more on the next frame, so they see the page's new `data-theme`.
 
 **Suggestion.** Note this in the Theming guide for anyone drawing with the tokens, or export a helper that resolves a token to a colour for the current theme.
 
-**Documented:** the Theming guide has "Drawing with the tokens on a canvas": the probe, and redrawing when `useTheme()` changes. No helper was added.
+**Documented:** the Theming guide has "Drawing with the tokens on a canvas": the probe, and redrawing when `useJaliTheme()` changes. No helper was added.
 
 ## 6. Activity has no "live" state
 

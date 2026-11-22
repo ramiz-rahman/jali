@@ -15,7 +15,7 @@ import {
 } from "@phosphor-icons/react";
 import { copyLink, keyHint, runCommand } from "@jali/core";
 import { useLayoutEffect, useRef } from "react";
-import { useJali, useJaliState, useShortcut, useTheme } from "@jali/react";
+import { useJali, useJaliState, useJaliShortcut, useJaliTheme } from "@jali/react";
 import { SPEEDS } from "../audio/engine";
 import { usePosition, useTransport } from "../audio/react";
 import { useServices } from "../services";
@@ -30,8 +30,8 @@ const keepFocus = (e: React.MouseEvent) => e.preventDefault();
 export function TopBar() {
   const jali = useJali();
   const current = useJaliState((s) => s.presetId);
-  const theme = useTheme();
-  const palette = useShortcut("palette.toggle");
+  const theme = useJaliTheme();
+  const palette = useJaliShortcut("palette.toggle");
   const services = useServices();
   const slab = useFit();
   const currentLabel = jali.env.presets.find((p) => p.id === current)?.label ?? "";
@@ -139,7 +139,7 @@ export function TopBar() {
               aria-label="⌘K: commands"
               title={`Commands ${palette}`}
               onMouseDown={keepFocus}
-              onClick={() => jali.actions.openPalette()}
+              onClick={() => jali.dialogs.openPalette()}
             >
               <CommandIcon size={22} aria-hidden className="face-glyph" />
               <span className="face-legend" aria-hidden>

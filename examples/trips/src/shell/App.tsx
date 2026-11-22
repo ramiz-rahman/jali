@@ -6,7 +6,7 @@ import { useEffect } from "react";
 import { createPortal } from "react-dom";
 import { Toaster, toast } from "sonner";
 import { runCommand, type Jali } from "@jali/core";
-import { JaliRoot, JaliView, useJali, useTheme } from "@jali/react";
+import { JaliRoot, JaliView, useJali, useJaliTheme, useJaliEvent } from "@jali/react";
 import { ServicesProvider, type Services } from "../services";
 import { useDrag } from "../ui/drag";
 import { StatusLine } from "./StatusLine";
@@ -29,18 +29,14 @@ export function App({ jali, services }: { jali: Jali; services: Services }) {
 /** Jali's toasts (a closed pane offers Undo) and the app's own (plan changes, with their own Undo), with Sonner. */
 function Toasts() {
   const jali = useJali();
-  const theme = useTheme();
-  useEffect(
-    () =>
-      jali.onToast((t) =>
-        t.error
-          ? toast.error(t.title, { description: t.description })
-          : toast(t.title, {
-              description: t.description,
-              action: t.undo ? { label: "Undo", onClick: () => jali.actions.undo() } : undefined,
-            }),
-      ),
-    [jali],
+  const theme = useJaliTheme();
+  useJaliEvent("toast", (t) =>
+    t.error
+      ? toast.error(t.title, { description: t.description })
+      : toast(t.title, {
+          description: t.description,
+          action: t.undo ? { label: "Undo", onClick: () => jali.actions.undo() } : undefined,
+        }),
   );
   return (
     <Toaster

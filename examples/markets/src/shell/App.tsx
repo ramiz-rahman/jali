@@ -5,7 +5,7 @@
 import { useEffect } from "react";
 import { Toaster, toast } from "sonner";
 import { runCommand, type Jali } from "@jali/core";
-import { JaliRoot, JaliView, useJali, useTheme } from "@jali/react";
+import { JaliRoot, JaliView, useJali, useJaliTheme, useJaliEvent } from "@jali/react";
 import { ServicesProvider, useServices, type Services } from "../services";
 import * as f from "../ui/format";
 import { StatusLine } from "./StatusLine";
@@ -29,19 +29,15 @@ export function App({ jali, services }: { jali: Jali; services: Services }) {
  */
 function Toasts() {
   const jali = useJali();
-  const theme = useTheme();
+  const theme = useJaliTheme();
   const { trading, market } = useServices();
-  useEffect(
-    () =>
-      jali.onToast((t) =>
-        t.error
-          ? toast.error(t.title, { description: t.description })
-          : toast(t.title, {
-              description: t.description,
-              action: t.undo ? { label: "Undo", onClick: () => jali.actions.undo() } : undefined,
-            }),
-      ),
-    [jali],
+  useJaliEvent("toast", (t) =>
+    t.error
+      ? toast.error(t.title, { description: t.description })
+      : toast(t.title, {
+          description: t.description,
+          action: t.undo ? { label: "Undo", onClick: () => jali.actions.undo() } : undefined,
+        }),
   );
   useEffect(
     () =>

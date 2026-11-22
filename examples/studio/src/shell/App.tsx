@@ -5,7 +5,7 @@
 import { useEffect } from "react";
 import { Toaster, toast } from "sonner";
 import { runCommand, type Jali } from "@jali/core";
-import { JaliRoot, JaliView, useJali, useTheme } from "@jali/react";
+import { JaliRoot, JaliView, useJali, useJaliTheme, useJaliEvent } from "@jali/react";
 import { ServicesProvider, useServices, type Services } from "../services";
 import { useControlsPlace } from "../ui/controlsPlace";
 import { slashForSearch, spaceForTransport } from "./keys";
@@ -28,18 +28,14 @@ export function App({ jali, services }: { jali: Jali; services: Services }) {
 /** Jali's toasts (a closed pane offers Undo) and the app's own, with Sonner. */
 function Toasts() {
   const jali = useJali();
-  const theme = useTheme();
-  useEffect(
-    () =>
-      jali.onToast((t) =>
-        t.error
-          ? toast.error(t.title, { description: t.description })
-          : toast(t.title, {
-              description: t.description,
-              action: t.undo ? { label: "Undo", onClick: () => jali.actions.undo() } : undefined,
-            }),
-      ),
-    [jali],
+  const theme = useJaliTheme();
+  useJaliEvent("toast", (t) =>
+    t.error
+      ? toast.error(t.title, { description: t.description })
+      : toast(t.title, {
+          description: t.description,
+          action: t.undo ? { label: "Undo", onClick: () => jali.actions.undo() } : undefined,
+        }),
   );
   // Clear of whatever stands along the bottom: the status line (40px), or the control slab (104px).
   const bottom = useControlsPlace() === "bottom" ? 116 : 52;

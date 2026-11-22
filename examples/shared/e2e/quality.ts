@@ -60,7 +60,7 @@ export const test = base.extend<QualityOptions & { consoleGuard: void }>({
  * settings under `<storage>:settings`, the `storage` the example passes to `createJali`. Only the first load is
  * changed: a test that switches the theme itself keeps its choice across a reload.
  */
-export async function useTheme(page: Page, storage: string, theme: Theme) {
+export async function useJaliTheme(page: Page, storage: string, theme: Theme) {
   await page.addInitScript(
     ([key, value]) => {
       if (sessionStorage.getItem("quality:theme-set")) return;
@@ -335,7 +335,7 @@ export function qualitySuite({
       for (const layout of layouts) {
         test(`${layout.name}, ${theme}: no accessibility violations`, async ({ page }, info) => {
           known(info, layout.name, "axe", theme);
-          await useTheme(page, storage, theme);
+          await useJaliTheme(page, storage, theme);
           await layout.open(page);
           await expect(page.locator("html")).toHaveAttribute("data-theme", theme);
           await settle(page);
@@ -344,7 +344,7 @@ export function qualitySuite({
 
         test(`${layout.name}, ${theme}: fits from 360 to 2200px`, async ({ page }, info) => {
           known(info, layout.name, "sweep", theme);
-          await useTheme(page, storage, theme);
+          await useJaliTheme(page, storage, theme);
           await layout.open(page);
           await expect(page.locator("html")).toHaveAttribute("data-theme", theme);
           expect(await sweep(page, { ignore: sweepIgnore })).toEqual([]);

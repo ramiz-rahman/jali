@@ -6,10 +6,10 @@
  * What is kept is only checked for its outline here (an object of layouts by desk id): Jali reads each layout itself
  * when the desk is chosen, and builds the desk's own when it can't.
  */
-import type { Jali, Layout } from "@jali/core";
+import type { DeepReadonly, Jali, Layout } from "@jali/core";
 import { isRecord, readKept, writeKept, type Kept } from "@jali-examples/shared/store";
 
-type Layouts = Readonly<Record<string, Layout>>;
+type Layouts = Readonly<Record<string, DeepReadonly<Layout>>>;
 
 /** Version 1; 0 is the same shape, from before versions. */
 export const KEPT_DESKS: Kept<Layouts> = {
@@ -18,16 +18,16 @@ export const KEPT_DESKS: Kept<Layouts> = {
   fallback: {},
   parse(value, version) {
     if (version > 1 || !isRecord(value)) return undefined;
-    const out: Record<string, Layout> = {};
+    const out: Record<string, DeepReadonly<Layout>> = {};
     for (const [id, layout] of Object.entries(value))
-      if (isRecord(layout)) out[id] = layout as unknown as Layout;
+      if (isRecord(layout)) out[id] = layout as unknown as DeepReadonly<Layout>;
     return out;
   },
 };
 
 export interface Desks {
   /** The layout a desk was left in, if it was changed. */
-  get(id: string): Layout | undefined;
+  get(id: string): DeepReadonly<Layout> | undefined;
   /** Keep each desk's layout as it changes. Returns the stop. */
   track(jali: Jali): () => void;
   /**
