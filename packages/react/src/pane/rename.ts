@@ -14,5 +14,4 @@ export function useCanRename() {
 }
 
 /** The rename field, if the instance has renaming. */
-export const renameFieldOf = (store: JaliStore) =>
-  partOf(store.env, "renameField");
+export const renameFieldOf = (store: JaliStore) => partOf(store.env, "renameField");
