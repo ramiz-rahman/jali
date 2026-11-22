@@ -32,15 +32,15 @@ import { JaliRoot } from "jali/react";
 import "jali/styles.css";
 ```
 
-| Subpath | What it holds | Today |
-| --- | --- | --- |
-| `jali` | Kinds, layouts, `createJali`, actions, ports, commands | `@jali/core` |
-| `jali/react` | `<JaliRoot>`, `definePane`, hooks, chrome parts | `@jali/react` |
-| `jali/page` | `definePage`, opt-in | both packages export one (REACT-13) |
-| `jali/agent` | The agent bridge | `@jali/core/agent` |
-| `jali/testing` | `createTestJali`, `pressKeys`, `unsavedOf`: what an app's tests need | apps import `storeOf` from `@jali/core/adapter` (DOCS-9) |
-| `jali/adapter` | For people writing a framework adapter; **may change in any minor version** | `@jali/core/adapter` |
-| `jali/icons`, `jali/styles.css`, `jali/theme.css`, `jali/tailwind.css` | As today | `@jali/react/…` |
+| Subpath                                                                | What it holds                                                               | Today                                                    |
+| ---------------------------------------------------------------------- | --------------------------------------------------------------------------- | -------------------------------------------------------- |
+| `jali`                                                                 | Kinds, layouts, `createJali`, actions, ports, commands                      | `@jali/core`                                             |
+| `jali/react`                                                           | `<JaliRoot>`, `definePane`, hooks, chrome parts                             | `@jali/react`                                            |
+| `jali/page`                                                            | `definePage`, opt-in                                                        | both packages export one (REACT-13)                      |
+| `jali/agent`                                                           | The agent bridge                                                            | `@jali/core/agent`                                       |
+| `jali/testing`                                                         | `createTestJali`, `pressKeys`, `unsavedOf`: what an app's tests need        | apps import `storeOf` from `@jali/core/adapter` (DOCS-9) |
+| `jali/adapter`                                                         | For people writing a framework adapter; **may change in any minor version** | `@jali/core/adapter`                                     |
+| `jali/icons`, `jali/styles.css`, `jali/theme.css`, `jali/tailwind.css` | As today                                                                    | `@jali/react/…`                                          |
 
 - **Why one package:** it can be transferred to another owner without changing anyone's imports. There is one version and one install line, and React is an optional peer. The repo keeps `packages/core` and `packages/react` as the source folders; only how they are published changes.
 - **What breaks:** every import. Data Studio and the research portal get the list of moves first.
@@ -121,22 +121,22 @@ jali.page?.setMode("split");
 jali.dialogs.openPalette(); // palette, settings and chooser together
 ```
 
-| Today | After |
-| --- | --- |
+| Today                                                                                | After                                                                         |
+| ------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------- |
 | `openPage`, `leavePage`, `setMode`, `openTab`, `activate`, `backToPage`, `resetPage` | `jali.page.open`, `leave`, `setMode`, `showView`, `showItem`, `back`, `reset` |
-| `setCanInvestigate` (Loan review's word) | `jali.page.setLinkMode("open" \| "peek")` |
-| `openTab` / `addTab` / `newTab`, three meanings of "tab" | `page.showView` / `addTab` / `newTab` |
-| `openPalette`, `closePalette`, `openSettings`, `closeSettings` | `jali.dialogs.*` |
+| `setCanInvestigate` (Loan review's word)                                             | `jali.page.setLinkMode("open" \| "peek")`                                     |
+| `openTab` / `addTab` / `newTab`, three meanings of "tab"                             | `page.showView` / `addTab` / `newTab`                                         |
+| `openPalette`, `closePalette`, `openSettings`, `closeSettings`                       | `jali.dialogs.*`                                                              |
 
 - **Inside,** one table of steps, with each step naming its public action. Adapters and apps go through the same `run(name, …)`, so every refusal reaches whoever asked, and the `NAMED_AS` reconciliation table disappears.
 
 ### 6. One way to listen
 
-| Today | After |
-| --- | --- |
-| `subscribe(fn)`, for any change | Stays: it is the store contract that `useSyncExternalStore` needs |
-| `on(event, fn)` | Stays |
-| `onToast(fn)` | Becomes `on("toast", fn)` |
+| Today                                       | After                                                                                                          |
+| ------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
+| `subscribe(fn)`, for any change             | Stays: it is the store contract that `useSyncExternalStore` needs                                              |
+| `on(event, fn)`                             | Stays                                                                                                          |
+| `onToast(fn)`                               | Becomes `on("toast", fn)`                                                                                      |
 | A `useEffect` in every app around `jali.on` | `useJaliEvent("open", handler)` in React, which always calls the latest handler and stops listening on unmount |
 
 ### 7. Options grouped where they belong together
@@ -145,7 +145,14 @@ jali.dialogs.openPalette(); // palette, settings and chooser together
 
 ```ts
 // Before
-createJali({ keys: "scoped", keymap, keyPrefix: "mod+k", reservedKeys: ["F2"], palette: true, keymapOptions });
+createJali({
+  keys: "scoped",
+  keymap,
+  keyPrefix: "mod+k",
+  reservedKeys: ["F2"],
+  palette: true,
+  keymapOptions,
+});
 
 // After
 createJali({ keyboard: { scope: "local", keymap, prefix: "mod+k", reserved: ["F2"] } });
@@ -184,17 +191,17 @@ No example uses it.
 
 ### 9. Names, before they are permanent
 
-| Today | After | Why |
-| --- | --- | --- |
-| `useTheme`, `useShortcut` | `useJaliTheme`, `useJaliShortcut` | They collide with next-themes and MUI in host code |
-| `keyBelongsToContent` in React | Moves to `jali`, re-exported by `jali/react` | It doesn't use React |
-| `usePane<P>()`, an unchecked cast | `usePane(kind)` | Infers the params |
-| `definePage` in both packages | Only `jali/page` | Core's version renders nothing in React, silently |
-| `env`, `keymap` and `messages` on the instance | Stay, documented as read-only | |
-| Mutating tree aliases, `isMac`, `setPopOutPort` | Removed | Deprecated; removing them now saves keeping them until 2.0 (CORE-14) |
-| "workspace" in prose and copy | "Jali" as the subject, "panes" and "layout" for what the person sees | DECISIONS, 19 Nov; owner, 22 Nov |
-| The default name "Workspace" | The app's name, or no name | Same |
-| Internal `UiStore`, `createUiStore` | `JaliStore` | Same |
+| Today                                           | After                                                                | Why                                                                  |
+| ----------------------------------------------- | -------------------------------------------------------------------- | -------------------------------------------------------------------- |
+| `useTheme`, `useShortcut`                       | `useJaliTheme`, `useJaliShortcut`                                    | They collide with next-themes and MUI in host code                   |
+| `keyBelongsToContent` in React                  | Moves to `jali`, re-exported by `jali/react`                         | It doesn't use React                                                 |
+| `usePane<P>()`, an unchecked cast               | `usePane(kind)`                                                      | Infers the params                                                    |
+| `definePage` in both packages                   | Only `jali/page`                                                     | Core's version renders nothing in React, silently                    |
+| `env`, `keymap` and `messages` on the instance  | Stay, documented as read-only                                        |                                                                      |
+| Mutating tree aliases, `isMac`, `setPopOutPort` | Removed                                                              | Deprecated; removing them now saves keeping them until 2.0 (CORE-14) |
+| "workspace" in prose and copy                   | "Jali" as the subject, "panes" and "layout" for what the person sees | DECISIONS, 19 Nov; owner, 22 Nov                                     |
+| The default name "Workspace"                    | The app's name, or no name                                           | Same                                                                 |
+| Internal `UiStore`, `createUiStore`             | `JaliStore`                                                          | Same                                                                 |
 
 ### 10. Lifecycle, said once
 
