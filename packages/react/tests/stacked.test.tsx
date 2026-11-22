@@ -45,7 +45,7 @@ describe("stacked view", () => {
   it("puts the pane it was opened from above it", () => {
     const { jali, orders } = make();
     const m = storeOf(jali).model();
-    expect(m.single).toBe(true);
+    expect(m.onePane).toBe(true);
     expect(m.stacked).toEqual({
       top: orders,
       bottom: m.panes.find((p) => p.ref.kind === "order")!.id,
@@ -75,7 +75,7 @@ describe("stacked view", () => {
       moveFocus: false,
       phone: { stack: true },
     });
-    expect(alone.model().single).toBe(true);
+    expect(alone.model().onePane).toBe(true);
     expect(alone.model().stacked).toBeUndefined();
   });
 });
@@ -100,7 +100,7 @@ describe("stacked view, drawn", () => {
   it("shows both panes and a divider that settles on thirds from the keyboard", () => {
     const { jali } = make();
     const { container } = render(<JaliRoot jali={jali} />);
-    expect(container.querySelector(".jali-workspace")!.hasAttribute("data-stacked")).toBe(true);
+    expect(container.querySelector(".jali-layout")!.hasAttribute("data-stacked")).toBe(true);
     const shown = [...container.querySelectorAll<HTMLElement>(".jali-pane")].filter(
       (p) => p.style.display !== "none",
     );

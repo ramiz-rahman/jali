@@ -97,14 +97,14 @@
   }
 
   /* Single: the tabs name the one view, so its pane has no header (it stays for assistive tech). */
-  .jali-workspace[data-page="single"] .jali-pane-header {
+  .jali-layout[data-page="single"] .jali-pane-header {
     position: absolute;
     width: 1px;
     height: 1px;
     overflow: hidden;
     clip: rect(0 0 0 0);
   }
-  .jali-workspace[data-page="single"] .jali-pane.is-focused {
+  .jali-layout[data-page="single"] .jali-pane.is-focused {
     border-color: var(--jali-pane-border, var(--jali-border));
     box-shadow: var(--jali-pane-shadow, none);
   }

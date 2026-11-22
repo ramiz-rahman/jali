@@ -22,7 +22,7 @@ beforeAll(() => {
     Object.defineProperty(HTMLElement.prototype, prop, {
       configurable: true,
       get(this: HTMLElement) {
-        if (!this.classList.contains("jali-workspace")) return 0;
+        if (!this.classList.contains("jali-layout")) return 0;
         return prop === "clientWidth" ? room.width : room.height;
       },
     });

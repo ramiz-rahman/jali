@@ -23,7 +23,7 @@ beforeAll(() => {
     Object.defineProperty(HTMLElement.prototype, prop, {
       configurable: true,
       get(this: HTMLElement) {
-        return this.classList.contains("jali-workspace") ? px : 0;
+        return this.classList.contains("jali-layout") ? px : 0;
       },
     });
 });

@@ -77,7 +77,7 @@ function inside(el: Element | null, fx: number, fy: number): At | null {
 /** The pane the order list's detail and customer are: found by kind, since a drop can't rename them. */
 const byKind = (t: Ctx, kind: string) => t.model().panes.find((p) => p.ref.kind === kind)?.id;
 /** A drag needs panes side by side: one at a time (a phone) has nothing to drop on. */
-const oneAtATime = (t: Ctx) => t.model().single;
+const oneAtATime = (t: Ctx) => t.model().onePane;
 
 const ORDERS = [1047, 1046];
 
@@ -293,7 +293,7 @@ const ease = (k: number) => (k < 0.5 ? 4 * k * k * k : 1 - (-2 * k + 2) ** 3 / 2
  * does nothing.
  */
 function dragAt(store: JaliStore, pane: string, ws: HTMLElement, x: number, y: number): DndState {
-  const box = ws.querySelector(".jali-workspace")?.getBoundingClientRect();
+  const box = ws.querySelector(".jali-layout")?.getBoundingClientRect();
   const p = { x: x - (box?.left ?? 0) - GAP, y: y - (box?.top ?? 0) - GAP };
   const tabAt = tabDropAt(store, pane, x, y);
   if (tabAt) return { dragged: pane, ...p, tabAt };

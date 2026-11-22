@@ -148,7 +148,7 @@ describe("a workspace's DomPort", () => {
     const store = storeOf(jali);
     expect(store.dom.port).toBe(reactDom);
     const frame = store.dom.pane(jali.model().panes[0]!.id)!;
-    expect(reactDom.panes(container, frame)?.classList.contains("jali-workspace")).toBe(true);
+    expect(reactDom.panes(container, frame)?.classList.contains("jali-layout")).toBe(true);
     expect(reactDom.inPane(frame.firstElementChild ?? frame)).toBe(true);
     const release = reactDom.hold(frame);
     expect(release).toBeTypeOf("function");

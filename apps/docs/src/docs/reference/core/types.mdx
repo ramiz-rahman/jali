@@ -679,7 +679,7 @@ What is on screen, derived once per change (`jali.model()`, `useJaliModel()`).
 <Param name="folded" type="NodeId[]" required>Panes folded for room.</Param>
 <Param name="off" type="NodeId[]" required>Panes hidden by the overlay.</Param>
 <Param name="onScreen" type="PaneNode[]" required>Every pane except hidden ones: what the phone's switcher lists.</Param>
-<Param name="single" type="boolean" required>One pane shows at a time: Jali's root is under `phone.below` wide, or even one pane's minimum is wider than the room.</Param>
+<Param name="onePane" type="boolean" required>One pane shows at a time: Jali's root is under `phone.below` wide, or even one pane's minimum is wider than the room.</Param>
 <Param name="stacked" type={`{ top: NodeId; bottom: NodeId; axis?: "row" | "column" }`}>On a portrait phone with `phone.stack`, the two linked panes shown one above the other (`axis: "row"`: either side of a fold).</Param>
 <Param name="env" type="Env" required />
 <Param name="layout" type="Layout" required />

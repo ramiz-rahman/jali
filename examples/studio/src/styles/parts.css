@@ -45,7 +45,7 @@
   }
   /* On a phone (Single and stacked view) and alone, Jali draws a pane full-bleed with no shadow; a faceplate keeps
      its housing there too. */
-  :where([data-single] .jali-pane, .jali-pane[data-alone]) {
+  :where([data-one-pane] .jali-pane, .jali-pane[data-alone]) {
     box-shadow: var(--jali-pane-shadow);
   }
   /* ---------- tray ---------- */

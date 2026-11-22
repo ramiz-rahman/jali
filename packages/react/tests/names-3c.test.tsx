@@ -92,3 +92,33 @@ describe("two instances with one name", () => {
     ]);
   });
 });
+
+describe("one pane at a time, in the model and the DOM", () => {
+  it("is model.onePane, and data-one-pane on the element named jali-layout", () => {
+    const phone = make({ size: { width: 390, height: 844 } });
+    expect(phone.model().onePane).toBe(true);
+    expect(make({ id: "w", size: { width: 1200, height: 800 } }).model().onePane).toBe(false);
+    expect("single" in phone.model()).toBe(false);
+    // jsdom measures nothing: the root is as wide as a phone.
+    globalThis.ResizeObserver ??= class {
+      observe() {}
+      unobserve() {}
+      disconnect() {}
+    } as unknown as typeof ResizeObserver;
+    const proto = HTMLElement.prototype as unknown as Record<string, unknown>;
+    Object.defineProperty(proto, "clientWidth", { configurable: true, get: () => 390 });
+    Object.defineProperty(proto, "clientHeight", { configurable: true, get: () => 844 });
+    try {
+      const { container } = render(
+        <JaliRoot jali={phone}>
+          <JaliView />
+        </JaliRoot>,
+      );
+      expect(container.querySelector(".jali-layout")!.hasAttribute("data-one-pane")).toBe(true);
+      expect(container.querySelector(".jali-workspace, [data-single]")).toBeNull();
+    } finally {
+      delete proto.clientWidth;
+      delete proto.clientHeight;
+    }
+  });
+});

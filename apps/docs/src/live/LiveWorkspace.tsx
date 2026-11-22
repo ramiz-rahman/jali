@@ -71,7 +71,7 @@ function LiveStatus() {
     folded = m.folded.length,
     n = m.visible.length;
   return (
-    <footer className="live-statusbar" data-single={m.single || undefined}>
+    <footer className="live-statusbar" data-one-pane={m.onePane || undefined}>
       <Shelf />
       <span className="live-statusbar-count">
         {n} on screen{folded ? ` · ${folded} folded` : ""}

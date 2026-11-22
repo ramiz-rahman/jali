@@ -265,7 +265,7 @@ export function createAgent(jali: AnyJali, options: AgentOptions = {}): JaliAgen
       layout: {
         width: s.area.width,
         height: s.area.height,
-        view: m.single ? "one-at-a-time" : "side-by-side",
+        view: m.onePane ? "one-at-a-time" : "side-by-side",
         ...(s.view.focused ? { focused: s.view.focused } : {}),
         page: s.page ? { mode: s.page.mode, ...(s.page.tab ? { tab: s.page.tab } : {}) } : null,
       },

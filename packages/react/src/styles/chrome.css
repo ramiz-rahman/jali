@@ -62,7 +62,7 @@
     border-radius: var(--jali-radius-chip);
     padding: 0 0.25rem;
   }
-  .jali-workspace.is-single .jali-peek {
+  .jali-layout.is-one-pane .jali-peek {
     border-radius: 0;
     border-width: 0;
     box-shadow: none;

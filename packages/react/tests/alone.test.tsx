@@ -45,7 +45,7 @@ describe("a lone pane", () => {
     const { container } = render(<JaliRoot jali={make(tabs(note({ id: 1 }), note({ id: 2 })))} />);
     const pane = container.querySelector<HTMLElement>(".jali-pane:not([style*='none'])")!;
     expect(pane.dataset.alone).toBe("true");
-    expect(container.querySelector(".jali-workspace")!.hasAttribute("data-alone")).toBe(true);
+    expect(container.querySelector(".jali-layout")!.hasAttribute("data-alone")).toBe(true);
     // The whole workspace: no inset around a lone pane.
     expect(pane.style.width).toBe("1200px");
     // The shown pane's header (the tab behind it is hidden and draws no header of its own).

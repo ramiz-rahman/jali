@@ -96,7 +96,7 @@ test.describe("Theme", () => {
     await page.addStyleTag({ content: "[data-jali] { --jali-accent: rgb(194, 98, 26); }" });
     expect(await focusedBorder(app)).toBe("rgb(194, 98, 26)");
     const weak = await page.evaluate(() =>
-      getComputedStyle(document.querySelector(".jali-workspace")!)
+      getComputedStyle(document.querySelector(".jali-layout")!)
         .getPropertyValue("--jali-accent-weak")
         .trim(),
     );

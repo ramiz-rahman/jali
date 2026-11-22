@@ -81,7 +81,7 @@ function triesFor(m: JaliModel, json: boolean, tree = true): { icon: ReactNode; 
         ]
       : []),
     // Tabs and titles drag only with panes side by side (a phone shows one at a time).
-    ...(!m.single && m.visible.length > 1
+    ...(!m.onePane && m.visible.length > 1
       ? [
           {
             icon: <HandGrabbingIcon size={15} aria-hidden />,

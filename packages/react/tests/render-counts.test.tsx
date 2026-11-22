@@ -534,7 +534,7 @@ describe("render counts", () => {
   it("single view's switcher re-renders only the entry of the pane that changed", () => {
     const { jali, store, single } = grouped({ phone: { below: W + 1 } });
     const { container } = render(<JaliRoot jali={jali} />);
-    expect(store.model().single).toBe(true);
+    expect(store.model().onePane).toBe(true);
     const entries = [...container.querySelectorAll(".jali-switch-item")];
     expect(entries).toHaveLength(6);
 

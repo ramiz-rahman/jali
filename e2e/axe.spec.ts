@@ -9,7 +9,7 @@ import { test, expect, review } from "./fixtures/app";
 /** What Jali renders: the panes (or a curated page's tabs and panes), the shelf and the dialog layer. The app's top bar
  *  and status line sit inside the root but are the app's, and a pane's content is the app's. */
 const JALI = [
-  ".jali-workspace",
+  ".jali-layout",
   ".jali-page-nav",
   "[data-shelf]",
   "[data-jali-layer]",

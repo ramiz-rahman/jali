@@ -1117,7 +1117,7 @@ What is on screen, derived once per change (`jali.model()`, `useJaliModel()`).
 
 - **`onScreen`** (`PaneNode[]`, required): Every pane except hidden ones: what the phone's switcher lists.
 
-- **`single`** (`boolean`, required): One pane shows at a time: Jali's root is under `phone.below` wide, or even one pane's minimum is wider than the room.
+- **`onePane`** (`boolean`, required): One pane shows at a time: Jali's root is under `phone.below` wide, or even one pane's minimum is wider than the room.
 
 - **`stacked`** (`{ top: NodeId; bottom: NodeId; axis?: "row" | "column" }`): On a portrait phone with `phone.stack`, the two linked panes shown one above the other (`axis: "row"`: either side of a fold).
 

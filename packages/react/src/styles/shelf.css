@@ -190,7 +190,7 @@
     flex: 1;
   }
   /* Phone: the shelf lives inside the pane switcher (tucked panes are tabs there, marked), so it steps aside. */
-  [data-jali]:has(.jali-workspace.is-single) .jali-shelf {
+  [data-jali]:has(.jali-layout.is-one-pane) .jali-shelf {
     display: none;
   }
 

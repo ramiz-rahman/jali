@@ -180,7 +180,7 @@ describe("random sequences of public actions", () => {
           (b) =>
             !b.hidden &&
             (![b.rect.x, b.rect.y, b.rect.width, b.rect.height].every(Number.isFinite) ||
-              (!m.single &&
+              (!m.onePane &&
                 !b.clip &&
                 (b.rect.x < -1 || b.rect.x + b.rect.width > area.width + 1))),
         );
@@ -200,7 +200,7 @@ describe("random sequences of public actions", () => {
         }
         // Single view keeps the wide layout's address on purpose (widen, and it comes back; 19 Nov 2026), and shows
         // the focused pane, which no address holds: a reload there is not checked.
-        if (!m.single && r() < 0.25 && !MOVED.has(seed)) {
+        if (!m.onePane && r() < 0.25 && !MOVED.has(seed)) {
           const again = createJali({
             panes: kinds,
             launcher,

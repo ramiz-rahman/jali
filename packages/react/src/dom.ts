@@ -39,8 +39,7 @@ function line(divider: HTMLElement): DividerLine | null {
 
 export const reactDom: DomPort = {
   panes: (root, from) =>
-    from?.closest<HTMLElement>(".jali-workspace") ??
-    root.querySelector<HTMLElement>(".jali-workspace"),
+    from?.closest<HTMLElement>(".jali-layout") ?? root.querySelector<HTMLElement>(".jali-layout"),
   tabAt(x, y) {
     // The tab's own box, or its close button beside it: both sit in the tab's item.
     const el = document

@@ -115,7 +115,7 @@
     font-size: 0.875rem;
     line-height: 1.4;
   }
-  .live-jali > .jali-workspace {
+  .live-jali > .jali-layout {
     flex: 1 1 0;
   }
   .live-statusbar {
@@ -133,7 +133,7 @@
   .live-statusbar .jali-shelf {
     min-width: 0;
   }
-  .live-statusbar[data-single] .jali-shelf {
+  .live-statusbar[data-one-pane] .jali-shelf {
     display: none;
   }
   .live-statusbar-count {

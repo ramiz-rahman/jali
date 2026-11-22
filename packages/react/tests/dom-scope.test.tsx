@@ -146,7 +146,7 @@ describe("<JaliRoot aria-label | aria-labelledby>", () => {
         <JaliRoot jali={make()} aria-labelledby="heading" />
       </>,
     );
-    const ws = document.querySelector(".jali-workspace")!;
+    const ws = document.querySelector(".jali-layout")!;
     expect(ws.getAttribute("aria-labelledby")).toBe("heading");
     expect(ws.hasAttribute("aria-label")).toBe(false);
     act(() => {});

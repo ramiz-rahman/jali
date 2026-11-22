@@ -35,7 +35,7 @@ beforeAll(() => {
     }
   } as unknown as typeof ResizeObserver;
   const size = (el: HTMLElement, prop: "clientWidth" | "clientHeight" | "scrollWidth") => {
-    if (el.classList.contains("jali-workspace")) return prop === "clientHeight" ? 600 : 1200;
+    if (el.classList.contains("jali-layout")) return prop === "clientHeight" ? 600 : 1200;
     if (prop === "clientHeight") return 0;
     if (el.classList.contains("jali-pane-header")) return prop === "clientWidth" ? room.header : 0;
     if (el.tagName === "H2" && el.closest(".jali-pane-title")) {

@@ -25,7 +25,7 @@ test.describe("Accessibility", () => {
     }
     // One main landmark (the app is the whole page: `landmark: "main"`), and no pane header is a banner.
     await expect(page.getByRole("main")).toHaveCount(1);
-    await expect(app.main()).toHaveClass(/jali-workspace/);
+    await expect(app.main()).toHaveClass(/jali-layout/);
     await expect(page.getByRole("banner")).toHaveCount(1);
     await expect(page.locator("header.jali-pane-header")).toHaveCount(0);
     for (const r of await page.getByRole("region").all())

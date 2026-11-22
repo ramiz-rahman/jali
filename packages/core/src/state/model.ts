@@ -29,13 +29,13 @@ export interface Group {
   active: NodeId;
 }
 
-/** A pane as an app reads it: read-only, with its ref typed by the workspace's kinds. */
+/** A pane as an app reads it: read-only, with its ref typed by the instance's kinds. */
 export type PaneOf<R extends ObjectRef = ObjectRef> = DeepReadonly<Omit<PaneNode, "ref">> & {
   readonly ref: R;
 };
 
 /**
- * The workspace as it is on screen (`jali.model()`, `useJaliModel`): panes, their boxes and titles, the groups and the
+ * The layout as it is on screen (`jali.model()`, `useJaliModel`): panes, their boxes and titles, the groups and the
  * shelf. Read-only. `R` is the refs of the workspace's kinds.
  */
 export type JaliModel<R extends ObjectRef = ObjectRef> = DeepReadonly<
@@ -46,7 +46,7 @@ export type JaliModel<R extends ObjectRef = ObjectRef> = DeepReadonly<
   /** Every pane in tree order. */
   readonly panes: readonly PaneOf<R>[];
   pane(id: NodeId | undefined): PaneOf<R> | undefined;
-  /** Every pane except hidden ones, in tree order: what single view switches between. */
+  /** Every pane except hidden ones, in tree order: what the pane switcher lists while one pane shows at a time. */
   readonly onScreen: readonly PaneOf<R>[];
 };
 
@@ -81,13 +81,13 @@ export interface Model {
   /** Tucked panes in tree order, each with the pane it sits behind: what the shelf lists. */
   shelf: ShelfEntry[];
   folded: NodeId[];
-  /** Panes hidden by the overlay: no slot and no tab (a curated workspace's hidden roles). */
+  /** Panes hidden by the overlay: no slot and no tab (a curated page's hidden roles). */
   off: NodeId[];
-  /** Every pane except hidden ones, in tree order: what single view switches between. */
+  /** Every pane except hidden ones, in tree order: what the pane switcher lists while one pane shows at a time. */
   onScreen: PaneNode[];
   /** Phone rule: under the phone width, or even one pane's minimum overflows it, so one pane shows at a time. */
-  single: boolean;
-  /** In Single view on a portrait phone with `phone.stack`: the two linked panes shown one above the other. */
+  onePane: boolean;
+  /** One pane at a time on a portrait phone with `phone.stack`: the two linked panes shown one above the other. */
   stacked?: StackPair;
 }
 
@@ -99,7 +99,7 @@ export interface ModelInput {
   env: Env;
   /** Titles panes set from their data (useTitle). */
   titles?: Record<NodeId, string>;
-  /** A fold that splits the workspace in two (the browser's viewport segments). */
+  /** A fold that splits the layout in two (the browser's viewport segments). */
   hinge?: Hinge;
 }
 
@@ -183,7 +183,7 @@ export function buildModel({ layout, view, area, ctx, env, titles, hinge }: Mode
     off: flat.panes.filter((b) => b.hidden === "off").map((b) => b.id),
     onScreen: panes.filter((p) => !flat.panes.some((b) => b.id === p.id && b.hidden === "off")),
     // Phone width (env.phone.below, default 600), or a pane that can't fit even folded.
-    single:
+    onePane:
       area.width > 0 &&
       (area.width < (env.phone?.below ?? PHONE_BELOW) ||
         // A pane in a row that scrolls runs past the edge by design: it is cut to its strip, not too wide.
@@ -195,15 +195,15 @@ export function buildModel({ layout, view, area, ctx, env, titles, hinge }: Mode
     view.focused && byId.has(view.focused) && !model.off.includes(view.focused)
       ? view.focused
       : model.onScreen[0]?.id;
-  // A fold splits the workspace: a pane each side of it, presented as Single view's chrome with two panes.
+  // A fold splits the layout: a pane each side of it, presented as the one-pane chrome with two panes.
   const across =
     hinge && env.phone?.fold !== false
       ? foldPair({ env, hinge, onScreen: model.onScreen, current: current() })
       : undefined;
   if (across) {
-    model.single = true;
+    model.onePane = true;
     model.stacked = across;
-  } else if (model.single) {
+  } else if (model.onePane) {
     const pair = stackPair({ env, view, area, onScreen: model.onScreen, current: current() });
     if (pair) model.stacked = pair;
   }

@@ -44,12 +44,12 @@
     height: 100%;
     min-height: 0;
   }
-  :where([data-jali]) > :where(.jali-workspace, .jali-page) {
+  :where([data-jali]) > :where(.jali-layout, .jali-page) {
     flex: 1 1 0;
   }
   /* `isolation`: the workspace's own layers (peek, drop preview, menus) stack inside it, never over the host's sticky
    headers or other chrome. */
-  .jali-workspace {
+  .jali-layout {
     position: relative;
     min-height: 0;
     min-width: 0;
@@ -58,19 +58,19 @@
   }
   /* What Jali draws is set in Jali's face: the workspace, and its dialogs (which render outside it). Its tracking is
      a token read in place with no default, so until it is set the letter spacing is inherited, as before. */
-  .jali-workspace,
+  .jali-layout,
   .jali-scrim {
     font-family: var(--jali-font);
     letter-spacing: var(--jali-tracking);
   }
-  .jali-workspace-inner {
+  .jali-layout-inner {
     position: absolute;
   }
-  .jali-workspace.is-single {
+  .jali-layout.is-one-pane {
     background: var(--jali-surface);
   }
   /* A reshape (state/apply.ts): panes slide to their new place; dividers wait until they land. */
-  .jali-workspace.is-reshaping .jali-pane {
+  .jali-layout.is-reshaping .jali-pane {
     transition:
       left 180ms,
       top 180ms,
@@ -78,14 +78,14 @@
       height 180ms;
     transition-timing-function: cubic-bezier(0.2, 0, 0, 1);
   }
-  .jali-workspace.is-reshaping .jali-divider {
+  .jali-layout.is-reshaping .jali-divider {
     opacity: 0;
   }
   @media (prefers-reduced-motion: reduce) {
-    .jali-workspace.is-reshaping .jali-pane {
+    .jali-layout.is-reshaping .jali-pane {
       transition: none;
     }
-    .jali-workspace.is-reshaping .jali-divider {
+    .jali-layout.is-reshaping .jali-divider {
       opacity: 1;
     }
   }
@@ -162,7 +162,7 @@
 
   /* Full screen: the pane is fixed over the window, so the workspace stops being its own stacking context, or the
      host's later chrome (a status line) would paint over the pane. */
-  .jali-workspace[data-full-screen] {
+  .jali-layout[data-full-screen] {
     isolation: auto;
   }
 }

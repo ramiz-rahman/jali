@@ -100,7 +100,7 @@ function measure(stage: HTMLElement, selector: string, all: boolean): Box | null
 /** Puts something on the shelf when nothing is there yet: the last pane is tucked behind its neighbour. */
 function stageShelf(store: JaliStore) {
   const m = store.model();
-  if (m.resolved.shelf.length || m.single) return;
+  if (m.resolved.shelf.length || m.onePane) return;
   const id = m.visible[m.visible.length - 1];
   if (!id) return;
   const r = jl.tuck(store.get().layout, store.get().view, id, store.ctx());

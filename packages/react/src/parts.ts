@@ -18,7 +18,7 @@ export interface PartAttribute {
 
 /** Where a part is, for the reference's sections. */
 export type PartArea =
-  | "Workspace"
+  | "Layout"
   | "Pane"
   | "Tabs"
   | "Dividers"
@@ -67,31 +67,31 @@ export const parts = {
   root: {
     selector: "[data-jali]",
     element: "div",
-    area: "Workspace",
-    what: "The workspace's root: the element `<JaliRoot>` renders, with your `className`.",
+    area: "Layout",
+    what: "The instance's root: the element `<JaliRoot>` renders, with your `className`.",
     attributes: [],
   },
   layer: {
     selector: "[data-jali-layer]",
     element: "div",
-    area: "Workspace",
-    what: "Beside the root (`display: contents`), holding everything that overlays the workspace: the palette, Settings, the chooser, the discard question, tab menus and the live region. Tokens set on an element around `<JaliRoot>` reach it; tokens set on the root itself don't.",
+    area: "Layout",
+    what: "Beside the root (`display: contents`), holding everything that overlays the layout: the palette, Settings, the chooser, the discard question, tab menus and the live region. Tokens set on an element around `<JaliRoot>` reach it; tokens set on the root itself don't.",
     attributes: [],
   },
   overlays: {
     selector: "[data-jali-overlays]",
     element: "div",
-    area: "Workspace",
-    what: "Beside the root and the layer (`display: contents`), holding what you pass `<JaliRoot overlays>`, such as a toaster; only when you pass some. Inert while one of Jali's dialogs is open, as the workspace is.",
+    area: "Layout",
+    what: "Beside the root and the layer (`display: contents`), holding what you pass `<JaliRoot overlays>`, such as a toaster; only when you pass some. Inert while one of Jali's dialogs is open, as the layout is.",
     attributes: [],
   },
-  workspace: {
-    selector: ".jali-workspace",
+  layout: {
+    selector: ".jali-layout",
     element: 'section (`main` with `createJali({ landmark: "main" })`)',
-    area: "Workspace",
+    area: "Layout",
     what: "The area the panes are laid out in.",
     attributes: [
-      { name: "data-single", means: "Flag: Single view (one pane at a time, with the switcher)." },
+      { name: "data-one-pane", means: "Flag: one pane at a time (a phone), with the switcher." },
       {
         name: "data-stacked",
         means:
@@ -120,7 +120,7 @@ export const parts = {
       { name: "data-kind", means: "The pane's kind." },
       { name: "data-focused", means: "Flag: the focused pane." },
       { name: "data-full-screen", means: "Flag: on the whole screen (`toggleFullScreen`)." },
-      { name: "data-alone", means: "Flag: the only pane on screen (see the workspace's)." },
+      { name: "data-alone", means: "Flag: the only pane on screen (see the layout's)." },
       { name: "data-zoomed", means: "Flag: maximised." },
       { name: "data-dragged", means: "Flag: being dragged." },
       { name: "data-drop-target", means: "Flag: the pane a drag would drop on." },
@@ -475,7 +475,7 @@ export const parts = {
     selector: ".jali-switcher",
     element: "nav",
     area: "Small screens",
-    what: "Single view's pane switcher (a tab list).",
+    what: "The pane switcher, while one pane shows at a time (a tab list).",
     attributes: [],
   },
   switcherItem: {
@@ -503,7 +503,7 @@ export const parts = {
     selector: ".jali-page",
     element: "div",
     area: "Curated pages",
-    what: "A curated page's root, in the workspace's place: the page's `Rail` (when it renders one) and its main column, which holds the item's `Header`, the views' tabs (in a `nav` landmark named for the page, \"Loan review views\") and the panes. Style the page's frame here: its background, the rail's width (`grid-template-columns`), spacing.",
+    what: "A curated page's root, in the layout's place: the page's `Rail` (when it renders one) and its main column, which holds the item's `Header`, the views' tabs (in a `nav` landmark named for the page, \"Loan review views\") and the panes. Style the page's frame here: its background, the rail's width (`grid-template-columns`), spacing.",
     attributes: [],
   },
   pageBar: {

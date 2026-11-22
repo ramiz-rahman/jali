@@ -55,7 +55,7 @@ describe("landmarks", () => {
     expect(screen.getAllByRole("main")).toHaveLength(1);
     const panes = screen.getByRole("region", { name: "Panes" });
     expect(panes.tagName).toBe("SECTION");
-    expect(panes.classList.contains("jali-workspace")).toBe(true);
+    expect(panes.classList.contains("jali-layout")).toBe(true);
     // Pane headers are no banners.
     expect(screen.queryAllByRole("banner")).toHaveLength(0);
     expect(document.querySelector(".jali-pane-header")!.tagName).toBe("DIV");
@@ -65,7 +65,7 @@ describe("landmarks", () => {
     stubResizeObserver();
     render(<JaliRoot jali={make({ landmark: "main" })} />);
     const panes = screen.getByRole("main", { name: "Panes" });
-    expect(panes.classList.contains("jali-workspace")).toBe(true);
+    expect(panes.classList.contains("jali-layout")).toBe(true);
     expect(screen.queryByRole("region", { name: "Panes" })).toBeNull();
   });
 });
@@ -88,7 +88,7 @@ describe("without ResizeObserver", () => {
 
     // The fallback: a window resize measures the workspace again.
     const sizes = { clientWidth: 1000, clientHeight: 500 };
-    const ws = document.querySelector<HTMLElement>(".jali-workspace")!;
+    const ws = document.querySelector<HTMLElement>(".jali-layout")!;
     for (const [k, v] of Object.entries(sizes)) Object.defineProperty(ws, k, { value: v });
     act(() => void window.dispatchEvent(new Event("resize")));
     expect(jali.get().area).toEqual({ width: 1000 - GAP * 2, height: 500 - GAP * 2 });
@@ -103,7 +103,7 @@ describe("a workspace with no height", () => {
       ["clientHeight", height],
     ] as const)
       vi.spyOn(HTMLElement.prototype, prop, "get").mockImplementation(function (this: HTMLElement) {
-        return this.classList.contains("jali-workspace") ? px : 0;
+        return this.classList.contains("jali-layout") ? px : 0;
       });
   };
 

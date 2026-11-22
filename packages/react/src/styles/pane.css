@@ -37,13 +37,13 @@
   .jali-pane[data-covered] {
     visibility: hidden;
   }
-  /* Single view (phone), and a lone pane at any width (is-alone carries is-single too): full-bleed, no island. */
-  .jali-pane.is-single {
+  /* One pane at a time (a phone), and a lone pane at any width (is-alone carries is-bare too): full-bleed, no island. */
+  .jali-pane.is-bare {
     border: 0;
     border-radius: 0;
     box-shadow: none;
   }
-  .jali-pane.is-single.is-focused {
+  .jali-pane.is-bare.is-focused {
     box-shadow: none;
     border: 0;
   }

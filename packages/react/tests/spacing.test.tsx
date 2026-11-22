@@ -87,7 +87,7 @@ describe("spacing", () => {
         <JaliView />
       </JaliRoot>,
     );
-    const ws = document.querySelector<HTMLElement>(".jali-workspace")!;
+    const ws = document.querySelector<HTMLElement>(".jali-layout")!;
     for (const [k, v] of Object.entries({ clientWidth: 1000, clientHeight: 500 }))
       Object.defineProperty(ws, k, { value: v });
     act(() => void window.dispatchEvent(new Event("resize")));

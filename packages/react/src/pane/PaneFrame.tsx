@@ -116,9 +116,9 @@ export const PaneFrame = /* @__PURE__ */ memo(
         };
     const cls = [
       "jali-pane",
-      !chrome.island && "is-single",
+      !chrome.island && "is-bare",
       alone && "is-alone",
-      full && "is-single",
+      full && "is-bare",
       focused && "is-focused",
       zoomed && "is-zoomed",
       isDragged && "is-dragged",

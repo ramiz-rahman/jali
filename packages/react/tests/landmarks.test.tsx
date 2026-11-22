@@ -86,7 +86,7 @@ describe("a workspace the host names", () => {
         <Shelf />
       </JaliRoot>,
     );
-    expect(getByRole("region", { name: "Sales" }).classList.contains("jali-workspace")).toBe(true);
+    expect(getByRole("region", { name: "Sales" }).classList.contains("jali-layout")).toBe(true);
     expect(getByRole("region", { name: "Note 2, Sales" })).toBeTruthy();
     expect(getByRole("region", { name: "Shelf, Sales" })).toBeTruthy();
   });

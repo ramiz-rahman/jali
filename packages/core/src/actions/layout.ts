@@ -217,7 +217,7 @@ export function checkAutoLayout(x: Snapshot): RefusalStep | undefined {
   if (s.page) return refuse("unavailable");
   // On a phone one pane shows at a time: there is nothing to arrange, and a tree arranged for a phone's width would
   // be a poor one when the window is wide again.
-  if (m.single) return refuse("unavailable");
+  if (m.onePane) return refuse("unavailable");
   const hidden = new Set(s.layout.overlay?.hidden ?? []);
   const panes = core.tree.panes(s.layout.root).filter((p) => !hidden.has(p.id));
   if (panes.length < 2) return refuse("nothing-to-do");

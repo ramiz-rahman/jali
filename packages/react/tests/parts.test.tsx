@@ -160,7 +160,7 @@ describe("styling contract", () => {
       for (const a of part.attributes) expect(code, `${part.selector} ${a.name}`).toContain(a.name);
   });
 
-  it("a workspace with a pane, a tab group with a pinned tab, then a tucked pane, renders its parts", () => {
+  it("a layout with a pane, a tab group with a pinned tab, then a tucked pane, renders its parts", () => {
     const jali = createJali({
       panes: [note],
       layout: row(note({ id: 1 }), tabs(pane(note({ id: 2 }), { pinned: true }), note({ id: 3 }))),
@@ -179,7 +179,7 @@ describe("styling contract", () => {
       "root",
       "layer",
       "overlays",
-      "workspace",
+      "layout",
       "pane",
       "paneHeader",
       "paneTitle",

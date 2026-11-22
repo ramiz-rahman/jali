@@ -89,7 +89,7 @@ export function Frame({ layout, width, minWidth = 260, height = 320, caption }: 
 
   // The workspace's inset (its padding and border) between the frame's width and the room panes get.
   // Jali's inset around the panes plus the frame's own border.
-  const main = box.current?.querySelector<HTMLElement>(".jali-workspace");
+  const main = box.current?.querySelector<HTMLElement>(".jali-layout");
   const inset =
     (box.current && main ? box.current.offsetWidth - main.clientWidth : 2) + JALI_GAP * 2;
   const shape = JSON.stringify(m.layout.root);
@@ -161,7 +161,7 @@ export function Frame({ layout, width, minWidth = 260, height = 320, caption }: 
             <span className="live-frame-note" aria-hidden>
               {" "}
             </span>
-          ) : m.single ? (
+          ) : m.onePane ? (
             <span className="live-frame-note">
               One pane at a time: even one pane no longer fits beside another
             </span>
@@ -240,11 +240,11 @@ export function Frame({ layout, width, minWidth = 260, height = 320, caption }: 
       </div>
       <p className="live-frame-hint">
         Drag the frame's edge
-        {nextFold && !m.single
+        {nextFold && !m.onePane
           ? `. Narrower than ${nextFold.width}px, ${nextFold.single ? "one pane shows at a time" : "another pane folds"}`
           : ""}
         {nextBack
-          ? `${nextFold && !m.single ? "; wider" : ". Wider"} than ${nextBack.width}px, ${folded.length || m.single ? "a pane returns" : "it all fits"}`
+          ? `${nextFold && !m.onePane ? "; wider" : ". Wider"} than ${nextBack.width}px, ${folded.length || m.onePane ? "a pane returns" : "it all fits"}`
           : ""}
         .
       </p>

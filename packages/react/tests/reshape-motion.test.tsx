@@ -32,7 +32,7 @@ describe("the reshape slide", () => {
       moveFocus: false,
     });
     render(<JaliRoot jali={jali} />);
-    const ws = () => document.querySelector(".jali-workspace")!;
+    const ws = () => document.querySelector(".jali-layout")!;
     const reshape = () =>
       act(() => storeOf(jali).set({ reshapes: storeOf(jali).get().reshapes + 1 }));
     reshape();

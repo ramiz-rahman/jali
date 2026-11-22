@@ -22,7 +22,7 @@ test.describe("the root sizes the panes", () => {
       await box("[data-jali]"),
       await box(".topbar"),
       await box(".status"),
-      await box(".jali-workspace"),
+      await box(".jali-layout"),
     ];
     expect(Math.round(panes.height)).toBe(Math.round(root.height - top.height - status.height));
     expect(Math.round(panes.y)).toBe(Math.round(top.y + top.height));
@@ -42,7 +42,7 @@ test.describe("the root sizes the panes", () => {
       });
     });
     await page.goto("/");
-    await expect(page.locator(".jali-workspace")).toHaveCount(1);
+    await expect(page.locator(".jali-layout")).toHaveCount(1);
     await expect
       .poll(() => warnings.some((w) => w.startsWith("Jali: the panes measure 0 pixels high")))
       .toBe(true);

@@ -133,7 +133,7 @@ function useFoldAnnouncements(store: JaliStore, m: Model, area: { width: number;
   const prev = useRef<{ folded: string[]; room: string } | null>(null);
   useEffect(() => {
     const room = `${area.width}x${area.height}`;
-    if (prev.current !== null && area.width > 0 && !m.single && prev.current.room !== room) {
+    if (prev.current !== null && area.width > 0 && !m.onePane && prev.current.room !== room) {
       const was = prev.current.folded,
         before = new Set(was),
         now = new Set(m.folded);
@@ -331,7 +331,7 @@ export function Panes() {
     if (!store.focusHeld) keepPaneFocus(store.dom, view.focused, { fromBody: engaged.current });
   }, [view.focused, m.layout]);
 
-  const single = m.single;
+  const single = m.onePane;
   // A curated page in Single mode shows one view under its tabs: the tabs name it, so the pane has no header.
   const page = useUi((s) => s.page?.mode);
   const mode = single ? "single" : "tiled";
@@ -387,13 +387,13 @@ export function Panes() {
   return (
     <ContentHosts.Provider value={hosts.get}>
       <Landmark
-        className={["jali-workspace", single && "is-single", sliding && !single && "is-reshaping"]
+        className={["jali-layout", single && "is-one-pane", sliding && !single && "is-reshaping"]
           .filter(Boolean)
           .join(" ")}
         ref={ref}
         aria-label={name}
         aria-labelledby={named.by}
-        data-single={single ? "" : undefined}
+        data-one-pane={single ? "" : undefined}
         data-stacked={stacked ? "" : undefined}
         data-fold={stacked ? m.stacked?.hinge?.axis : undefined}
         data-full-screen={fullScreen ? "" : undefined}
@@ -408,7 +408,7 @@ export function Panes() {
             inView={stacked && m.stacked ? [m.stacked.top, m.stacked.bottom] : undefined}
           />
         ) : null}
-        <div className="jali-workspace-inner" style={bleed}>
+        <div className="jali-layout-inner" style={bleed}>
           {placed
             .filter((f) => !f.strip)
             .map((f) => (

@@ -110,7 +110,7 @@ describe("openBeside with an edge, in a free workspace", () => {
 
   it("on a phone, goes in the layout on that edge, shown one pane at a time", () => {
     const jali = make({ width: 390, height: 800 });
-    expect(jali.model().single).toBe(true);
+    expect(jali.model().onePane).toBe(true);
     const t = jali.actions.openBeside("v", transcript({ id: 1 }), { edge: "bottom" }).pane!;
     const col = layout.tree.parent(jali.get().layout.root, t);
     expect(col?.type).toBe("column");

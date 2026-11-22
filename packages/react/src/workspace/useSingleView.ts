@@ -13,18 +13,18 @@ export function useSingleView(store: JaliStore, m: Model, view: ViewState, measu
   const wide = useRef<WideSnapshot | null>(null);
   const frozen = useRef<WideSnapshot | null>(null);
   useEffect(() => {
-    if (was.current !== null && was.current !== m.single) {
-      if (m.single) frozen.current = wide.current;
+    if (was.current !== null && was.current !== m.onePane) {
+      if (m.onePane) frozen.current = wide.current;
       else if (frozen.current) {
         store.apply(restoreWide(store.snapshot(), frozen.current));
         frozen.current = null;
       }
       const said = store.messages.announcements;
-      store.announce(m.single ? said.onePaneOn : said.onePaneOff);
+      store.announce(m.onePane ? said.onePaneOn : said.onePaneOff);
     }
-    was.current = m.single;
-  }, [m.single, store]);
+    was.current = m.onePane;
+  }, [m.onePane, store]);
   useEffect(() => {
-    if (!m.single && measured) wide.current = snapshotWide(m, view);
+    if (!m.onePane && measured) wide.current = snapshotWide(m, view);
   });
 }

@@ -61,7 +61,7 @@ describe("across a fold", () => {
   it("shows the focused pane and the next one, a half each, none across the hinge", () => {
     const jali = make();
     const m = storeOf(jali).model();
-    expect(m.single).toBe(true);
+    expect(m.onePane).toBe(true);
     expect(m.stacked).toMatchObject({ axis: "row", top: m.panes[0]!.id, bottom: m.panes[1]!.id });
     const shown = frames(
       m,
