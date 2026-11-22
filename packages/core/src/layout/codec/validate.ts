@@ -10,6 +10,8 @@ const record = (value: unknown): value is Record<string, unknown> =>
 export const NODE_ID = /^[\w.:-]{1,128}$/;
 /** The most nodes a layout from outside may hold (panes, rows, columns and tab groups). docs/DECISIONS.md, 20 Nov 2026. */
 export const MAX_NODES = 256;
+/** The deepest a layout from outside may nest. */
+export const MAX_DEPTH = 128;
 const nodeId = (value: unknown): value is string =>
   typeof value === "string" && NODE_ID.test(value);
 const positive = (value: unknown): value is number =>
@@ -30,7 +32,7 @@ export function validate(
   let count = 0;
   const error = (path: string, message: string) => errors.push(`${path}: ${message}`);
   function visit(value: unknown, path: string, depth: number, inStack = false): void {
-    if (++count > MAX_NODES || depth > 128) {
+    if (++count > MAX_NODES || depth > MAX_DEPTH) {
       error(path, "tree is too large or deep");
       return;
     }

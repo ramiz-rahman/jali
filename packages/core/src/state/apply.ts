@@ -33,6 +33,28 @@ import type { PaneReport } from "../actions/content";
 import type { PaneKinds } from "../pane-kinds";
 import { ownedPaneState, ownedSelection } from "./pane-state";
 import { sameRef } from "../layout/ops/ref";
+import { MAX_DEPTH, MAX_NODES } from "../layout/codec/validate";
+
+/** How many nodes a layout has, and how deep it goes. */
+function sizeOf(root: Layout["root"]): { nodes: number; depth: number } {
+  let nodes = 0,
+    depth = 0;
+  const walk = (n: Layout["root"], d: number) => {
+    nodes++;
+    if (d > depth) depth = d;
+    if (n.type !== "pane") for (const c of n.children) walk(c, d + 1);
+  };
+  walk(root, 0);
+  return { nodes, depth };
+}
+/** A change that would make a layout bigger than a link can hold (`MAX_NODES`, `MAX_DEPTH`): its address would be
+ *  one no workspace reopens. A layout already that big may still shrink. */
+function pastLinks(from: Layout, to: Layout): boolean {
+  const next = sizeOf(to.root);
+  if (next.nodes <= MAX_NODES && next.depth <= MAX_DEPTH) return false;
+  const now = sizeOf(from.root);
+  return next.nodes > now.nodes || next.depth > now.depth;
+}
 
 /** What an action reads: the state, the model derived from it, and the core's context. */
 export interface Snapshot {
@@ -133,7 +155,8 @@ export interface Change {
  *  - "single-view": a curated page in Single view has no layout to change.
  *  - "not-allowed": the person's role on the curated page may only peek (`setCanInvestigate(false)`).
  *  - "last-pane": the last pane, or a page's last view on screen, stays.
- *  - "blocked": the pane can't go there (move past the edge, tuck the only pane, tuck a tab).
+ *  - "blocked": the pane can't go there (move past the edge, tuck the only pane, tuck a tab), or the layout would
+ *    hold more than a link can (256 nodes, 128 levels), so its address could never be reopened.
  *  - "nothing-to-do": nothing to undo, put back, close, resize or unmerge.
  *  - "unsaved": it would lose unsaved work, so Jali asks the person ("Discard unsaved changes?") and holds it;
  *    `settled` says how the question ended. (A following detail with unsaved work doesn't ask: it keeps its object,
@@ -645,6 +668,7 @@ function step(c: Run, o: Outcome, f: Frame | undefined): ActionResult {
   } else {
     const layoutChanged = next.layout !== s.layout,
       viewChanged = !sameView(next.view, s.view);
+    if (layoutChanged && pastLinks(s.layout, next.layout)) return refused("blocked");
     // Unsaved work is never lost without asking. A following detail keeps its object instead (it moves on its own
     // while the person browses the list: a question each time would be worse).
     // The host is asked first (beforeClose); its yes still meets Jali's own question about unsaved work.
