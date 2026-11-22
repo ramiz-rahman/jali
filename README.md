@@ -1,46 +1,49 @@
 # Jali
 
-Panes that fit the screen: a workspace of panes that fold into tabs rather than squeeze, follow each other, and come back from a link exactly as they were.
+Split views for React. Panes fold into tabs instead of squeezing, follow each other, and come back from a link as they were.
+
+Jali lays out an app's panes (lists, records, editors) in rows, columns and tabs, and keeps the layout usable on every screen: when there isn't room, panes fold into tabs of their neighbours and come back when there is. Its core has no framework and no dependencies; React renders it.
+
+## Quick start
 
 ```sh
-vp install
-vp dev examples/data-studio   # or any example below
+npm install jali
 ```
 
-## Jali
+```tsx
+import { createRoot } from "react-dom/client";
+import { createJali, row } from "jali";
+import { JaliRoot, definePane } from "jali/react";
+import { defaultFeatures } from "jali/features";
+import "jali/styles.css";
 
-- `packages/jali`: `jali`, the one published package, with subpaths (`jali`, `jali/react`, `jali/page`, each feature's, `jali/testing`, …), built from the two below.
-- `packages/core`: `@jali/core` (private), no framework. The layout, the workspace store, actions, commands and keys, the features' framework-free halves, the URL and storage ports.
-- `packages/react`: `@jali/react` (private). The workspace, panes and tabs, dividers, peek, the shelf, curated pages, the palette and settings, and their styles.
-- `apps/docs`: the docs site (`pnpm --filter @jali/docs dev`, on :5400). `pnpm agent-docs` writes its pages into `packages/jali/docs`.
-- `tooling/`: the repo's checks and generators (`pnpm verify`, `pnpm size`, `pnpm agent-docs`, `pnpm icons`, `pnpm test:react18`, `pnpm pack-check`).
+const note = definePane("note", {
+  params: { id: Number },
+  title: ({ id }) => `Note ${id}`,
+  Component: ({ params, openBeside }) => (
+    <button onClick={() => openBeside(note({ id: params.id + 1 }))}>
+      Open note {params.id + 1}
+    </button>
+  ),
+});
 
-## The example apps
+const jali = createJali({
+  panes: [note],
+  layout: row(note({ id: 1 }), note({ id: 2 })),
+  features: defaultFeatures(), // the layout in the URL, ⌘K, Settings, the chooser
+});
 
-| App                                 | What it is                                        | Start it           | Port |
-| ----------------------------------- | ------------------------------------------------- | ------------------ | ---- |
-| [Data Studio](examples/data-studio) | A database browser: the person builds the layout  | `pnpm data-studio` | 5300 |
-| [Loan review](examples/loan-review) | A curated page: a queue of loan applications      | `pnpm loan-review` | 5350 |
-| [Markets](examples/markets)         | A market terminal, with live crypto from Kraken   | `pnpm markets`     | 5320 |
-| [Studio](examples/studio)           | An audio session editor that follows one playhead | `pnpm studio`      | 5330 |
-| [Trips](examples/trips)             | A map-first trip planner                          | `pnpm trips`       | 5340 |
+createRoot(document.getElementById("root")!).render(<JaliRoot jali={jali} />);
+```
 
-Each example is a workspace package with its own `package.json` and dependencies. Data Studio and Loan review share a sample database, panes and chrome in [`examples/shared`](examples/shared), the package `@jali-examples/shared`. [`examples/minimal`](examples/minimal) and [`examples/own-icons`](examples/own-icons) are not example apps: they are the quickstart's app and the bundle-size checks' apps.
+Give the root element a height, and name the CSS layers once (`@layer base, jali;`). The [Quickstart](https://jali.ramizrahman.com/get-started/quickstart) explains each line.
 
-## Checks
+## Links
 
-**Every session runs `pnpm verify` before it commits**, and says in its report which gates fail and why. It runs every gate, carries on past a failure, and ends with one line per gate; any failure exits 1. Each gate's output is in `node_modules/.verify/<gate>.log`.
+- **Docs:** [jali.ramizrahman.com](https://jali.ramizrahman.com): [Installation](https://jali.ramizrahman.com/get-started/installation), [Key concepts](https://jali.ramizrahman.com/get-started/key-concepts), [Why Jali](https://jali.ramizrahman.com/get-started/why-jali), [Reference](https://jali.ramizrahman.com/reference/core).
+- **For coding agents:** the docs ship inside the package, `node_modules/jali/docs/`, and as [llms.txt](https://jali.ramizrahman.com/llms.txt). The agent skill is [`skills/jali`](skills/jali/SKILL.md).
+- **Examples:** five apps in [`examples/`](examples): [Data Studio](examples/data-studio), [Loan review](examples/loan-review), [Markets](examples/markets), [Studio](examples/studio) and [Trips](examples/trips). Run one with `pnpm install` and `pnpm data-studio`.
+- **The package:** [`packages/jali`](packages/jali) is the one published package, `jali`.
+- **Working on Jali:** [CONTRIBUTING.md](CONTRIBUTING.md) (setup, checks, practice) and [ARCHITECTURE.md](ARCHITECTURE.md) (how it is built). The product brief is [docs/BRIEF.md](docs/BRIEF.md), and every decision is in [docs/DECISIONS.md](docs/DECISIONS.md).
 
-- `pnpm verify`: typecheck, lint, `vp fmt --check`, the unit tests, the docs reference tests, the agent docs check, the React 18 check, `size`, the packed package (`pnpm pack-check`), the docs build, and every browser suite: Jali's (`e2e/`, against Data Studio and Loan review), each example's own (Markets, Studio, Trips) and the docs site's (against the built site).
-- `pnpm verify --quick`: the same without the browser suites and the React 18 check. Enough for a small change; run the full one before a change to `packages/` or anything a browser suite covers is committed.
-- `pnpm verify lint fmt`: only the gates named.
-
-The browser suites start their own servers, each on the port its URL variable names (`DATA_STUDIO_URL`, `LOAN_REVIEW_URL`, `MARKETS_URL`, `STUDIO_URL`, `TRIPS_URL`, `DOCS_URL`; the defaults are the ports below, and the docs' is 5400), and only there. If something else holds the port, the suite stops rather than test it. `pnpm verify` picks free ports, so it runs beside other sessions' dev servers. To run a suite against a server you started yourself, set `REUSE_SERVER=1`.
-
-On its own: `pnpm test` (unit, docs reference, agent docs), `pnpm e2e` (Jali's browser tests), `pnpm exec playwright test -c examples/<name>` or `-c apps/docs`, `pnpm typecheck`, `pnpm size`, `pnpm test:react18` (the committed HEAD, with React 18), `pnpm pack-check` (`jali` packed, examples/minimal built and a workspace hydrated from the tarball).
-
-The examples are held to [docs/EXAMPLES-STANDARD.md](docs/EXAMPLES-STANDARD.md).
-
-Jali and its example apps are designed and built by [Ramiz Rahman](https://ramizrahman.com/).
-
-See [docs/BRIEF.md](docs/BRIEF.md) for how it came to be, and [docs/DECISIONS.md](docs/DECISIONS.md) for every decision since.
+Jali and its example apps are designed and built by [Ramiz Rahman](https://ramizrahman.com/). Licence: Apache-2.0, as `packages/jali/package.json` says.
