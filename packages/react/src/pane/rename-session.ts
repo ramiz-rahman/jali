@@ -28,6 +28,9 @@ export function useRenameSession(pane: NodeId, title: string) {
     store.actions.endRename(pane);
     if (!refocus) return;
     requestAnimationFrame(() => {
+      // Only into the gap the field left: focus the person (or a field opened since) put elsewhere stays there.
+      const at = document.activeElement;
+      if (at && at !== document.body) return;
       (
         store.dom.root().querySelector<HTMLElement>(`[role="tab"][data-tab=${cssString(pane)}]`) ??
         document.getElementById(paneDomId(store.dom.id, pane))
