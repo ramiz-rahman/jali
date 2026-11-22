@@ -137,8 +137,12 @@ export function startDividerDrag(
       Math.abs(delta) < 0.01
         ? layout0
         : core.resizeDivider(layout0, parentId, index, delta, ctx0, plain0);
-    const r = preview === layout0 ? r0 : core.resolve(preview, view0, ctx0);
+    paint(preview === layout0 ? r0 : core.resolve(preview, view0, ctx0));
+  };
 
+  /** Draw `r` on the elements the drag owns: the ones whose box differs from the committed one, and any written
+   *  before (so a frame moved back is put back). */
+  const paint = (r: typeof r0) => {
     // Pane frames: only the ones whose box differs from the committed one (plus any written earlier, to restore them).
     for (const b of r.panes) {
       const was = before.get(b.id),
@@ -211,8 +215,15 @@ export function startDividerDrag(
     for (const release of held) release();
     // One commit, one URL write (120ms after the drag settles). React re-renders only the frames whose rect changed,
     // with the values already on screen.
-    if (commitIt && preview !== layout0 && store.get().layout === layout0)
-      store.actions.commitDividerDrag(preview, parentId, index);
+    const landed =
+      commitIt &&
+      preview !== layout0 &&
+      store.get().layout === layout0 &&
+      store.actions.commitDividerDrag(preview, parentId, index).ok;
+    // The drag owns what it previewed until its commit lands. Refused (the app's allow changed its mind), cancelled,
+    // or overtaken by another layout, those elements go back to the geometry committed now: nothing re-renders them,
+    // since the committed rects didn't change.
+    if (!landed && written.size) paint(store.model().content);
   };
   const onUp = () => finish(true);
   const onCancel = () => finish(false);
