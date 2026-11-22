@@ -1578,4 +1578,6 @@ Writing state for object B under a pane id that holds object A's state no longer
 
 ## 22 Nov 2026 · Phase 3a's size
 
-Core gzipped, before → after (`pnpm size`): minimal 55.2 → 55.0, full 60.4 → 60.2, headless 49.6 → 49.4, layout 10.3 → 10.3. The one action table and the resolved options removed more than the typed API, `jali.page`/`jali.dialogs` and the held pane state added. @jali/react: minimal 27.4 → 27.4, full 29.3 → 29.3.
+Core gzipped, before → after (`pnpm size`): minimal 55.2 → 55.1, full 60.4 → 60.2, headless 49.6 → 49.4, layout 10.3 → 10.3 (budgets 55.5, 60.9, 49.7, 10.7). The one action table and the resolved options removed more than the typed API, `jali.page`/`jali.dialogs` and the held pane state added. @jali/react: minimal 27.4 → 27.4, full 29.3 → 29.3.
+
+Left as found: `e2e/follow.spec.ts` "⌥↵ on the row the detail shows keeps it there…" fails about 1 run in 20 on master too (the follow's "Showing order 2" and "order 2 kept" land in one announcement). Not part of 3a.
