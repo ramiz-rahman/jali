@@ -7,7 +7,7 @@
  * An instance that hydrates a server's HTML renders its content inside its frames, as the server did (a portal can't
  * be server rendered): there a frame that changes parent still remounts its content.
  */
-import { createContext, memo, useMemo, useRef } from "react";
+import { createContext, memo, useEffect, useMemo, useRef } from "react";
 import { createPortal } from "react-dom";
 import type { Frame, JaliStore } from "@jali/core/adapter";
 import { PaneBody, paneHost, type PaneHost } from "./PaneBody";
@@ -27,9 +27,21 @@ export const ContentHosts = /* @__PURE__ */ createContext<((id: string) => Conte
   null,
 );
 
-/** The hosts of one instance, made as panes first render and dropped with the pane (`keep`). */
+/** The hosts of one instance, made as panes first render and dropped with the pane (`keep`). Another instance (the
+ *  root given a new `jali`) gets hosts of its own, even for the same pane ids: an old host's listeners and what its
+ *  content can ask act for the old instance, and a new element remounts the content, so its state starts over. */
 export function useContentHosts(store: JaliStore, on: boolean) {
-  const all = useRef(new Map<string, ContentHost>()).current;
+  // Kept in a ref, not a memo, which React may drop: dropping the hosts would remount every pane's content.
+  const mine = useRef<{ store: JaliStore; all: Map<string, ContentHost> } | null>(null);
+  if (mine.current?.store !== store) mine.current = { store, all: new Map() };
+  const all = mine.current.all;
+  // The old instance's elements leave the frames the new ones went into.
+  const was = useRef(all);
+  useEffect(() => {
+    if (was.current === all) return;
+    for (const h of was.current.values()) h.el.remove();
+    was.current = all;
+  }, [all]);
   const get = useMemo(
     () => (id: string) => {
       let h = all.get(id);
