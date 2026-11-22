@@ -508,7 +508,7 @@ const sameView = (a: ViewState, b: ViewState) =>
   a.focused === b.focused && a.zoomed === b.zoomed && a.peek === b.peek;
 
 /**
- * Held questions (C8–C10 in docs/QUALITY-REVIEW.md). A change that waits for an answer (the host's `beforeClose`, or
+ * Held questions (C8–C10 in docs/reviews/QUALITY-REVIEW.md). A change that waits for an answer (the host's `beforeClose`, or
  * "Discard unsaved changes?") is not kept as the change it computed: that change is about the state when the question
  * opened. What waits is the intent: the step `(x) => Outcome` that produced it, while nothing it began has been
  * committed (the outermost such step, so a public action re-reads its target too), plus the steps after it in any

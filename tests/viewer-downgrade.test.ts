@@ -1,5 +1,5 @@
 /**
- * A curated page's limited viewer (docs/QUALITY-REVIEW.md C10, docs/DECISIONS.md 20 Nov 2026): taking the right to
+ * A curated page's limited viewer (docs/reviews/QUALITY-REVIEW.md C10, docs/DECISIONS.md 20 Nov 2026): taking the right to
  * investigate away in Split view is one change, Single view and the permission together, held as one for unsaved
  * work. A layout that arrives (a link, Back) never puts a limited viewer in Split view.
  */

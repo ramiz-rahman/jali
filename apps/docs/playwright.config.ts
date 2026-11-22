@@ -15,7 +15,7 @@ const URL = process.env.DOCS_URL ?? "http://localhost:5400";
 const build = process.env.DOCS_BUILT === "1" ? "" : "pnpm exec astro build && ";
 
 // The prerendered HTML is the same for everyone, so it must hydrate for Mac and non-Mac readers alike (C14 in
-// docs/QUALITY-REVIEW.md): the smoke test runs once with each `navigator.platform` (e2e/platform.ts).
+// docs/reviews/QUALITY-REVIEW.md): the smoke test runs once with each `navigator.platform` (e2e/platform.ts).
 const chrome = (os: string) =>
   `Mozilla/5.0 (${os}) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36`;
 const mac = { platform: "MacIntel", userAgent: chrome("Macintosh; Intel Mac OS X 10_15_7") };

@@ -54,7 +54,8 @@ fixtures/          minimal and own-icons: the quickstart's app and the bundle-si
 tests/             engine tests that run against Data Studio's and Loan review's kinds in one store
 e2e/               Playwright demo script that walks every interaction and asserts the key behaviours, against
                    Data Studio (:5300) and Loan review (:5350)
-docs/              BRIEF.md, DECISIONS.md (every deviation, with reason), FINDINGS.md (what we learned, for the founder)
+docs/              BRIEF.md, DECISIONS.md (every deviation, with reason); reviews/ holds the dated reports, among them
+                   FINDINGS.md (what we learned, for the founder)
 ```
 
 **Contracts:** `packages/core/src/layout/types.ts` and `examples/shared/src/data/types.ts`. The coordinator wrote them. Implement them; any signature change goes in `docs/DECISIONS.md`.

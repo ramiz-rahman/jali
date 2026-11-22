@@ -2,7 +2,7 @@
  * Every page in the built sitemap loads, and every island on it hydrates, cleanly: no console error, no uncaught
  * error, and no React hydration mismatch (a mismatch makes React throw an island's prerendered HTML away and render
  * it again). Runs in both platform projects (playwright.config.ts), since the same HTML must hydrate for Mac and
- * other readers (C14 in docs/QUALITY-REVIEW.md).
+ * other readers (C14 in docs/reviews/QUALITY-REVIEW.md).
  */
 import type { Page } from "@playwright/test";
 import { expect, test } from "./platform";

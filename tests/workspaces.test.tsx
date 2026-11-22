@@ -1,6 +1,6 @@
 /// <reference types="vite/client" />
 /**
- * More than one workspace on a page, and start-up (docs/FINDINGS-FROM-DOCS.md 1, 2, 3, 9–12, 18, 25, 27, 28):
+ * More than one workspace on a page, and start-up (docs/reviews/FINDINGS-FROM-DOCS.md 1, 2, 3, 9–12, 18, 25, 27, 28):
  * each store's keys, dialogs, storage, theme and tokens stay its own, and mounting never takes the page's focus.
  */
 import { afterEach, describe, expect, it, vi } from "vite-plus/test";

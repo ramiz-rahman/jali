@@ -1,5 +1,5 @@
 /**
- * Questions that hold a change (docs/QUALITY-REVIEW.md C8, docs/DECISIONS.md 20 Nov 2026): "Discard unsaved
+ * Questions that hold a change (docs/reviews/QUALITY-REVIEW.md C8, docs/DECISIONS.md 20 Nov 2026): "Discard unsaved
  * changes?" and the host's `beforeClose` hold the action, not the change it computed. The answer runs it again against
  * the state of the moment: made if it still removes or replaces only what was asked about, asked again otherwise.
  */

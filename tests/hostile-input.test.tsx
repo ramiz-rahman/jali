@@ -1,5 +1,5 @@
 /**
- * Hostile input (docs/QUALITY-REVIEW.md, C1–C7 and P17): every value from outside (a link, storage, an agent, the
+ * Hostile input (docs/reviews/QUALITY-REVIEW.md, C1–C7 and P17): every value from outside (a link, storage, an agent, the
  * host's own calls) is checked once, where it comes in, and never crashes the workspace, reaches a CSS selector
  * unescaped or passes for a real kind or id because of a name on `Object.prototype`.
  */
