@@ -147,3 +147,49 @@ describe("a setter kept after its pane shows another object (react-codex REACT-1
     expect(storeOf(jali).get().paneState.d).toEqual({ draft: "doc 2's own" });
   });
 });
+
+describe("null as a value of its own", () => {
+  let got: (string | null)[] = [];
+  let parse: ((v: unknown) => string | null | undefined) | undefined;
+  const note = definePane("note", {
+    params: {},
+    title: () => "Note",
+    Component: () => {
+      const [value] = usePaneState<string | null>("pick", "none", parse ? { parse } : undefined);
+      got.push(value);
+      return null;
+    },
+  });
+
+  function mountNote(stored: unknown) {
+    got = [];
+    const jali = createJali({
+      panes: [note],
+      layout: row(pane(note({}), { id: "n" })),
+      features: noUrl(),
+      storage: memoryStorage(),
+      size: { width: 1200, height: 600 },
+      moveFocus: false,
+    });
+    storeOf(jali).actions.setPaneState("n", "pick", stored);
+    render(<JaliRoot jali={jali} />);
+  }
+
+  it("keeps the null a parser returns", () => {
+    parse = (v) => (v === "clear" ? null : typeof v === "string" ? v : undefined);
+    mountNote("clear");
+    expect(got.at(-1)).toBeNull();
+  });
+
+  it("starts from initial when the parser returns undefined", () => {
+    parse = () => undefined;
+    mountNote("anything");
+    expect(got.at(-1)).toBe("none");
+  });
+
+  it("keeps a stored null when there is no parser", () => {
+    parse = undefined;
+    mountNote(null);
+    expect(got.at(-1)).toBeNull();
+  });
+});
