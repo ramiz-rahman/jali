@@ -1,6 +1,6 @@
 ---
 title: Start from presets
-summary: Give the workspace named layouts to open on and switch between.
+summary: Give Jali named layouts to open on and switch between.
 ---
 
 import layouts from "../../samples/guides/presets/layouts.ts?raw";
@@ -8,7 +8,7 @@ import storeCode from "../../samples/guides/presets/store.ts?raw";
 import initial from "../../samples/guides/presets/initial-layout.ts?raw";
 import menu from "../../samples/guides/presets/preset-menu.tsx?raw";
 
-A preset is a named layout: "Orders", "Orders and detail", "Customer desk". The workspace opens on one, ⌘K lists them all, and the person can switch at any time. Your app can switch too.
+A preset is a named layout: "Orders", "Orders and detail", "Customer desk". Jali opens on one, ⌘K lists them all, and the person can switch at any time. Your app can switch too.
 
 ## Write a layout
 
@@ -39,9 +39,9 @@ If the other preset has that id showing another object, or doesn't have it, the 
 
 A list that is in both presets keeps its selection. When the new preset puts a follower beside it, the list and the follower agree, and the preset's word wins: a follower of the selected item's kind resets the list's selection to what the preset gives it. The person sees the item the preset names. If the preset gives the list no follower of that kind, its followers show the list's selection. See [A new layout beside a list](/learn/following#a-new-layout-beside-a-list).
 
-## Give them to the workspace
+## Give them to `createJali`
 
-<Code code={storeCode} filename="src/workspace.ts" />
+<Code code={storeCode} filename="src/jali.ts" />
 
 - `presets` is the list, in menu order. ⌘K shows each as "Layout: *label*".
 - `preset` is the one to open on. Without it, the first. A link with a layout in it wins over both: see [Keep the layout in the URL](/guides/url-and-routers).
@@ -53,57 +53,75 @@ Switching to a preset is a new step in the browser's history, so Back returns to
 
 ## Your own preset menu
 
-Jali lists presets in ⌘K. If you want them in your top bar too, read them from the workspace. Render this inside `<JaliRoot>`:
+Jali lists presets in ⌘K. If you want them in your top bar too, read them from the instance. Render this inside `<JaliRoot>`:
 
 <Code code={menu} filename="src/PresetMenu.tsx" />
 
 ## Save a person's layout
 
-To keep each person's layout on your server, save it when it changes and give it back when the workspace is made:
+To keep each person's layout on your server, save it when it changes and give it back when you make the instance:
 
 ```ts
+import { createJali } from "jali";
+import { api, presets, user } from "./app";
+
 const saved = await api.loadLayout(user.id); // what you saved last time, or null
 const jali = createJali({ panes, presets, ...(saved ? { layout: saved } : {}) });
 
+// One save at a time, in order: a slow request can never land after a newer one.
+let saving = Promise.resolve();
+let latest: unknown;
 jali.on("layout", ({ layout, source }) => {
-  if (source === "action") void api.saveLayout(user.id, layout);
+  if (source !== "action") return; // Back, Forward and links aren't the person's own arrangement
+  latest = layout;
+  saving = saving.then(async () => {
+    if (latest !== layout) return; // a newer layout is queued; save that one instead
+    await api.saveLayout(user.id, layout);
+  });
 });
 ```
 
 - `"layout"` fires once per change. `source` is `"action"` for the person's own changes and `"address"` for Back, Forward or a link. `action` names the action that made it (`"resetLayout"`, `"preset"`), when one did. Fitting to a new window size does not fire it.
 - `jali.getLayout()` is the layout on screen, as JSON, at any time.
 - A link in the address still wins over `layout`, so a shared link opens what was shared.
-- A layout that arrives after the workspace is made goes through `jali.setLayout(saved)`. It fits the layout to the room, asks before losing unsaved work, and adds a history entry, so Back returns. It returns `{ ok: false, reason: "invalid" }` for a layout with a pane kind the workspace no longer has.
+- A layout that arrives after the instance is made goes through `jali.setLayout(saved)`. It fits the layout to the room, asks before losing unsaved work, and adds a history entry, so Back returns. It returns `{ ok: false, reason: "invalid" }` for a layout with a pane kind the app no longer has.
 
 ## Keep each preset as it was left
 
 By default, choosing a preset builds its layout afresh, so a person who rearranges one preset, moves to another and comes back finds their changes gone. To bring each preset back as it was left, keep its layout as it changes and give it back with `saved`:
 
 ```ts
+import { createJali, type LayoutInput } from "jali";
+import { presets } from "./presets";
+
 const left = new Map<string, LayoutInput>(); // or localStorage, or your server
 const jali = createJali({
   panes,
   presets: presets.map((p) => ({ ...p, saved: () => left.get(p.id) })),
 });
 
-jali.on("layout", ({ layout }) => {
+jali.on("layout", ({ layout, source }) => {
+  // Only the person's own changes: a link that arrives must not replace what they left.
+  if (source !== "action") return;
   const id = jali.get().presetId;
   if (id) left.set(id, layout);
 });
 ```
 
+A link opens what it holds, and the person's saved arrangement stays: choose the preset again and it comes back.
+
 - `saved` is asked every time the preset is chosen: from your menu, ⌘K or a key. Return `undefined` to build `layout`.
 - "Reset layout" (`jali.actions.resetLayout()`) always builds the preset's own `layout`, so the person can get back to it.
-- A saved layout naming a pane kind the workspace no longer has is ignored, and `layout` is built.
+- A saved layout naming a pane kind the app no longer has is ignored, and `layout` is built.
 - The switch is still one step in history, and still asks before losing unsaved work.
 
 The Markets example keeps its desks this way, in `localStorage`, with a button that resets every desk.
 
 ## No presets: one starting layout
 
-A workspace that doesn't need presets passes one `layout`. It needs one or the other: with neither, `createJali` throws.
+An app that doesn't need presets passes one `layout`. It needs one or the other: with neither, `createJali` throws.
 
-<Code code={initial} filename="src/workspace.ts" />
+<Code code={initial} filename="src/jali.ts" />
 
 Without presets, ⌘K "Reset layout" is unavailable.
 
@@ -112,12 +130,12 @@ Without presets, ⌘K "Reset layout" is unavailable.
 When the panes a person opened have piled up, `jali.actions.autoLayout()` arranges them from the room there is and each kind's size hints, with no layout to write. It puts as many panes side by side as fit, linked panes next to each other, and adds a second row only for what doesn't fit across. The rest become tabs of the pane they were opened from, so a detail stays with its list. It keeps the same panes, so nothing reloads, and Back returns to the arrangement before. People find it in ⌘K as "Arrange panes automatically". See [Auto layout](/guides/auto-layout) for how it decides.
 
 ```tsx
-<button onClick={() => jali.actions.autoLayout()}>Tidy up</button>
+<button onClick={() => jali.actions.autoLayout()}>Tidy up</button>;
 ```
 
-An agent can call it too, or leave the workspace to arrange itself after each of its turns: see [Let an agent use the workspace](/guides/agents).
+An agent can call it too, or let Jali arrange the panes after each of its turns: see [Let an agent arrange panes](/guides/agents).
 
 ## Next
 
 - [Keep the layout in the URL](/guides/url-and-routers)
-- [Test a workspace](/guides/testing): presets make good fixtures.
+- [Test your layouts](/guides/testing): presets make good fixtures.

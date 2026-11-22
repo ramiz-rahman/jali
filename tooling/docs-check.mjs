@@ -5,7 +5,8 @@
  * 1. **Code samples.** Every ```ts and ```tsx block in a page under apps/docs/src/docs is written out as a module and
  *    typechecked against `jali` (the samples imported with `?raw` are checked by `tsc -p apps/docs` already). A block
  *    may use the names in apps/docs/src/samples/prelude.d.ts without declaring them (`jali`, `order`, …), so a short
- *    excerpt still checks. A block that can't stand alone (a fragment of an object, a sketch with "…") says so with
+ *    excerpt still checks, and a relative import (`./panes`) stands for a module of the reader's app: it resolves to
+ *    apps/docs/src/samples/app.ts. A block that can't stand alone (a fragment of an object, a sketch with "…") says so with
  *    `nocheck` in its meta: ```ts nocheck. Every `nocheck` is counted in the output.
  * 2. **Prop and option tables.** Every `<Params>` table in the reference pages is compared with the type it
  *    documents: the names (none missing, none extra) and which are required. An interface or type entry is compared
@@ -70,8 +71,13 @@ for (const page of pages) {
       .join("\n");
     const name = `${rel.replace(/\.mdx$/, "").replace(/\//g, "--")}--${n}.${lang}`;
     const file = join(out, "samples", name);
-    // Every block is a module of its own, so two blocks' names never meet.
-    writeFileSync(file, `${code}\nexport {};\n`);
+    // Every block is a module of its own, so two blocks' names never meet. A relative import names a module of the
+    // reader's app (`./panes`, `./chart-view`): it resolves to apps/docs/src/samples/app.ts, a stand-in for one.
+    const appModule = relative(join(out, "samples"), join(docsApp, "src/samples/app")).replace(/\\/g, "/");
+    writeFileSync(
+      file,
+      `${code.replace(/(from\s+["'])\.\.?\/[^"']+(["'])/g, `$1${appModule}$2`)}\nexport {};\n`,
+    );
     const lines = code.split("\n").length;
     for (let i = 1; i <= lines; i++)
       origins.set(`samples/${name}:${i}`, {

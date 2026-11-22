@@ -45,16 +45,20 @@ Close other tabs and Close tabs to the right are one change. `beforeClose` is as
 
 ### Add your own items
 
-Give `tabMenu` a function of the tab's pane. It's called each time a menu opens, and its items come after Jali's, below a line:
+Give `createJali` a `tabMenu`: a function of the tab's pane. It's called each time a menu opens, and its items come after Jali's, below a line:
 
 ```tsx
-tabMenu: (pane) =>
-  pane.ref.kind === "report"
-    ? [
-        { id: "report.export", title: "Export as CSV", run: () => exportCsv(pane.ref) },
-        { id: "report.share", title: "Share", run: share, disabled: "Save the report first" },
-      ]
-    : undefined,
+const jali = createJali({
+  panes,
+  layout,
+  tabMenu: (pane) =>
+    pane.ref.kind === "report"
+      ? [
+          { id: "report.export", title: "Export as CSV", run: () => exportCsv(pane.ref) },
+          { id: "report.share", title: "Share", run: share, disabled: "Save the report first" },
+        ]
+      : undefined,
+});
 ```
 
 - **`checked`** makes the item a checkbox, for a setting that's on or off.
@@ -87,13 +91,22 @@ A tab is as wide as its title, up to `--jali-tab-max-width` (default 20rem), and
 
 ## Rename in place
 
-Jali doesn't store names. Your app saves the name, and the pane shows it, usually with [`useTitle`](/reference/react#useTitle). Give `rename` a `run` function to turn renaming on:
+Jali doesn't store names. Your app saves the name, and the pane shows it, usually with [`useTitle`](/reference/react#useTitle). Turn renaming on with the `rename()` feature, from `jali/rename`, and give it a `run` function:
 
 ```tsx
-rename: {
-  can: (pane) => pane.ref.kind === "report",
-  run: (pane, text) => saveReportName(pane.ref, text),
-},
+import { createJali } from "jali";
+import { rename } from "jali/rename";
+
+const jali = createJali({
+  panes,
+  layout,
+  features: [
+    rename({
+      can: ({ ref }) => ref.kind === "report",
+      run: ({ ref }, text) => saveReportName(ref, text),
+    }),
+  ],
+});
 ```
 
 Then a double-click or F2 on a tab opens a text field in its place, with the name selected. When a pane is on its own and has no tab, the field opens in its title. The tab's menu also has Rename….
@@ -103,7 +116,7 @@ Then a double-click or F2 on a tab opens a text field in its place, with the nam
 - **`run` returns `false`**, throws or rejects: the field stays open with the text, marked invalid, and screen readers hear it. The person can fix the name or press Esc.
 - **`run` returns a promise:** the field shows it's busy until the promise settles.
 
-`can` says which panes can be renamed. Leave it out and every pane can. Without `rename`, nothing offers renaming.
+`can` says which panes can be renamed. Leave it out and every pane can. Without `rename()`, nothing offers renaming.
 
 F2 is the rename key in file managers. If something inside your pane uses F2 too, such as a grid that edits a cell, it gets the key first. If your app uses F2 for something else everywhere, list it in `keyboard.reserved`, and call `jali.actions.startRename(pane)` from your own command instead.
 
