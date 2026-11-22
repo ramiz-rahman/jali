@@ -147,10 +147,10 @@ function useFoldAnnouncements(store: JaliStore, m: Model, area: { width: number;
   });
 }
 
-/** The names of the mounted workspaces' landmarks (or the heading ids that name them), to catch two the same. */
+/** The names of the mounted instances' landmarks (or the heading ids that name them), to catch two the same. */
 const names = new Map<string, number>();
 
-/** Two workspaces on one page with the same name repeat every landmark: a development warning that says how to name
+/** Two instances on one page with the same name repeat every landmark: a development warning that says how to name
  *  them apart. */
 function useUniqueName(name: string) {
   useEffect(() => {
@@ -158,7 +158,7 @@ function useUniqueName(name: string) {
     try {
       if (process.env.NODE_ENV !== "production" && n)
         console.warn(
-          `Jali: two workspaces on this page are both named "${name}", so their landmarks repeat. Name each with ` +
+          `Jali: two instances on this page are both named "${name}", so their landmarks repeat. Name each with ` +
             "<JaliRoot aria-label> (or aria-labelledby), or createJali({ label }).",
         );
     } catch {

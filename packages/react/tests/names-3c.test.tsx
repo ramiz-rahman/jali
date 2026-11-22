@@ -3,9 +3,10 @@
  * curated page's mode, and the page always says "Single view" in full); "workspace" is in no public name or word.
  * Each old name an options object could still pass warns in development, naming the new one.
  */
+import { cleanup, render } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vite-plus/test";
 import { createJali, en, memoryStorage, row, type JaliOptions } from "@jali/core";
-import { definePane } from "@jali/react";
+import { JaliRoot, JaliView, definePane } from "@jali/react";
 
 const note = definePane("note", { params: { id: Number }, title: "Note", Component: () => null });
 const warned = () => vi.mocked(console.warn).mock.calls.map((c) => String(c[0]));
@@ -18,7 +19,10 @@ const make = (extra: Record<string, unknown>) =>
     ...extra,
   } as JaliOptions);
 
-afterEach(() => vi.restoreAllMocks());
+afterEach(() => {
+  cleanup();
+  vi.restoreAllMocks();
+});
 
 describe("the phone fallback's words", () => {
   it("say one pane at a time, not Single view", () => {
@@ -63,6 +67,28 @@ describe("old message names", () => {
       'Jali: createJali has no option "messages.page.investigation": moved to messages.page.openedLabel',
       'Jali: createJali has no option "messages.page.investigating": moved to messages.page.openedCount',
       'Jali: createJali has no option "messages.workspace": moved to messages.panes',
+    ]);
+  });
+});
+
+describe("two instances with one name", () => {
+  it("warn in development without saying workspace", () => {
+    vi.spyOn(console, "warn").mockImplementation(() => {});
+    const a = make({ id: "a", label: "Sales", size: { width: 1200, height: 800 } });
+    const b = make({ id: "b", label: "Sales", size: { width: 1200, height: 800 } });
+    render(
+      <>
+        <JaliRoot jali={a}>
+          <JaliView />
+        </JaliRoot>
+        <JaliRoot jali={b}>
+          <JaliView />
+        </JaliRoot>
+      </>,
+    );
+    expect(warned()).toEqual([
+      'Jali: two instances on this page are both named "Sales", so their landmarks repeat. Name each with ' +
+        "<JaliRoot aria-label> (or aria-labelledby), or createJali({ label }).",
     ]);
   });
 });
