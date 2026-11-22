@@ -6,6 +6,7 @@ import { act, cleanup, fireEvent, render } from "@testing-library/react";
 import { afterAll, afterEach, beforeAll, describe, expect, it } from "vite-plus/test";
 import { createJali, memoryLocation, memoryStorage, pane, row } from "@jali/core";
 import { JaliRoot, definePane } from "@jali/react";
+import { storeOf } from "@jali/core/adapter";
 
 const size = { clientWidth: 1200, clientHeight: 800 };
 beforeAll(() => {
@@ -66,5 +67,45 @@ describe("small accessibility polish", () => {
     act(() => void fireEvent.keyDown(document.activeElement!, { key: letter }));
     expect([expected, target]).toContain(document.activeElement);
     expect(document.activeElement).not.toBe(items[0] === expected ? null : items[0]);
+  });
+});
+
+describe("a curated page's tabs", () => {
+  it("listen for ⌥ on the window once, not again on every render (react-opus REACT-23)", async () => {
+    const { definePage } = await import("@jali/react");
+    const { vi } = await import("vite-plus/test");
+    const Icon = () => null;
+    const page = definePage({
+      id: "visit",
+      name: "Visit",
+      itemNoun: "visit",
+      home: "summary",
+      roles: [{ id: "summary", label: "Summary", priority: "primary", icon: Icon }],
+      firstItem: 1,
+      bind: (item: number) => ({ summary: note({ id: item }) }),
+      build: (item: number) => pane(note({ id: item }), { id: "summary", role: "summary" }),
+      Header: () => null,
+    });
+    const jali = createJali({
+      panes: [note],
+      page,
+      url: { location: memoryLocation() },
+      storage: memoryStorage(),
+      moveFocus: false,
+    });
+    jali.actions.openPage();
+    const add = vi.spyOn(window, "addEventListener");
+    const { JaliView } = await import("@jali/react");
+    render(
+      <JaliRoot jali={jali}>
+        <JaliView />
+      </JaliRoot>,
+    );
+    const keydowns = () => add.mock.calls.filter(([t]) => t === "keyup").length;
+    const first = keydowns();
+    for (const width of [900, 1000, 1100])
+      act(() => void storeOf(jali).set({ area: { width, height: 700 } }));
+    expect(keydowns()).toBe(first);
+    add.mockRestore();
   });
 });

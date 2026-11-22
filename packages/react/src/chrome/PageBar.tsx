@@ -143,7 +143,9 @@ function PageTabs() {
       window.removeEventListener("keyup", key);
       window.removeEventListener("blur", blur);
     };
-  });
+    // Once per workspace: `ghost` reads only the store and a ref.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [store]);
   const multi = page.mode === "split";
   const state = (id: string) => {
     if (!multi) return id === page.tab ? "focused" : "off";
