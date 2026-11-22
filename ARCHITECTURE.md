@@ -62,7 +62,8 @@ A feature (`features/feature.ts`, internal: adapters read it, apps never write o
 - `address(storage)`: the URL writer (only `urlSync`);
 - `boot(store)` and `start(store) → stop`: work before the first render, and listeners for the instance's life;
 - `env`: options it sets (`rename`'s `{ can, run }`);
-- `parts`: what the adapter renders for it, by name (the palette component, the pop-out window).
+- `services`: what the core itself calls, each a named, typed field (`popOutWindow`, which "Pop out pane" asks);
+- `parts`: what the adapter renders for it, by name (the palette, the settings panel, the rename field). The core never reads them: the adapter reads its own through one typed map (`ReactParts`, read with `partsReader`).
 
 Steps and commands are not a feature's: the few a feature needs stay in the core's tables, refused as `"unavailable"` and left out of ⌘K without their feature. One of each feature id is kept; a later one replaces an earlier one.
 

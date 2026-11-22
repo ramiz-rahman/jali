@@ -7,6 +7,7 @@
  */
 import { renameFeature, type Feature, type Rename } from "@jali/core/adapter";
 import { RenameField } from "../pane/RenameField";
+import type { ReactParts } from "./feature-parts";
 
 export const rename = (options: Rename): Feature =>
-  renameFeature(options, { renameField: RenameField });
+  renameFeature(options, { renameField: RenameField } satisfies Partial<ReactParts>);

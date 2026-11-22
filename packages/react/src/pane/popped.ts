@@ -3,14 +3,14 @@
  * can, and whether a pane is out. Without the feature every answer is "no", and none of Pop out's code is here.
  */
 import type { NodeId } from "@jali/core";
-import { partOf, type JaliStore } from "@jali/core/adapter";
+import type { JaliStore } from "@jali/core/adapter";
 import { useSyncExternalStore } from "react";
-import type { ReactPopOut } from "../features/pop-out";
+import { partOf } from "../features/feature-parts";
 
 const none = () => () => {};
 
 /** The instance's floating window, if it has the `popOut()` feature. */
-export const popOutOf = (store: JaliStore) => partOf<ReactPopOut>(store.env, "popOutWindow");
+export const popOutOf = (store: JaliStore) => partOf(store.env, "popOut");
 
 /** Whether panes can pop out here, for rendering: false on a server and while hydrating, so the first render matches
  *  the server's. */

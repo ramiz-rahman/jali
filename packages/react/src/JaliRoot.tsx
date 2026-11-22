@@ -29,8 +29,8 @@ import {
   type ReactNode,
 } from "react";
 import { createPortal } from "react-dom";
-import { partOf, spacingVars, storeOf } from "@jali/core/adapter";
-import type { ComponentType } from "react";
+import { spacingVars, storeOf } from "@jali/core/adapter";
+import { partOf } from "./features/feature-parts";
 import { Announcer } from "./chrome/Announcer";
 import { ConfirmDiscard } from "./dialogs/ConfirmDiscard";
 import { IconsProvider } from "./icons/context";
@@ -201,9 +201,9 @@ export function JaliRoot({
 function Dialogs({ settingsExtra }: { settingsExtra: ReactNode }) {
   const store = useStore();
   const env = store.env;
-  const Palette = partOf<ComponentType>(env, "palette");
-  const Settings = partOf<ComponentType<{ children?: ReactNode }>>(env, "settings");
-  const Chooser = partOf<ComponentType>(env, "chooser");
+  const Palette = partOf(env, "palette");
+  const Settings = partOf(env, "settings");
+  const Chooser = partOf(env, "chooser");
   const top = useUi((s) =>
     s.confirm
       ? "confirm"

@@ -7,7 +7,7 @@
 import type { NodeId } from "../layout/types";
 import { popOutEn } from "../state/feature-messages";
 import type { JaliStore } from "../state/store";
-import type { Feature } from "./feature";
+import type { AdapterParts, Feature } from "./feature";
 
 /** How an adapter pops a pane of an instance out, and brings it back. */
 export interface PopOutWindow {
@@ -21,13 +21,11 @@ export interface PopOutWindow {
   pane(store: JaliStore): NodeId | undefined;
 }
 
-export const popOutFeature = (
-  window: PopOutWindow,
-  parts?: Readonly<Record<string, unknown>>,
-): Feature => ({
+export const popOutFeature = (window: PopOutWindow, parts?: AdapterParts): Feature => ({
   id: "popOut",
   words: popOutEn,
   // The window closes when the instance stops: unmounted, destroyed, or another instance in its root's place.
   start: (store) => () => window.close(store),
-  parts: { ...parts, popOutWindow: window },
+  services: { popOutWindow: window },
+  ...(parts ? { parts } : {}),
 });

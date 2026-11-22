@@ -4,12 +4,9 @@
  */
 import { renameEn } from "../state/feature-messages";
 import type { Rename } from "../actions/rename";
-import type { Feature } from "./feature";
+import type { AdapterParts, Feature } from "./feature";
 
-export const renameFeature = (
-  rename: Rename,
-  parts?: Readonly<Record<string, unknown>>,
-): Feature => ({
+export const renameFeature = (rename: Rename, parts?: AdapterParts): Feature => ({
   id: "rename",
   words: renameEn,
   env: { rename },

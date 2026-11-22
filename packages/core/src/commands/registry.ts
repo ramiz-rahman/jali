@@ -13,8 +13,7 @@ import { checkPeek } from "../actions/peek";
 import { checkPutBack, checkTuck } from "../actions/tuck";
 import { checkMerge, checkMoveTab, checkUnmerge } from "../actions/tabs";
 import { checkRename } from "../actions/rename";
-import { partOf, type FeatureId } from "../features/feature";
-import type { PopOutWindow } from "../features/pop-out";
+import { serviceOf, type FeatureId } from "../features/feature";
 import { activeTabId, focusShelfChip } from "../dom/focus";
 import type { Env } from "../profile";
 import { refuse, type RefusalStep, type Snapshot } from "../state/apply";
@@ -74,7 +73,7 @@ const DIRS: [Edge, ScreenDirection][] = [
 function buildCommands(env: Env): CommandDef[] {
   const { commands: t, commandGroups: g } = messagesOf(env);
   const has = (id: FeatureId) => !!env.features?.some((f) => f.id === id);
-  const popOut = partOf<PopOutWindow>(env, "popOutWindow");
+  const popOut = serviceOf(env, "popOutWindow");
   return [
     // F6 visits the panes, then the shelf and the host's regions (commands/regions.ts).
     {

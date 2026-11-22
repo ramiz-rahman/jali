@@ -4,9 +4,7 @@
  * without one ships neither.
  */
 import { chooserEn, paletteEn, settingsEn } from "../state/feature-messages";
-import type { Feature } from "./feature";
-
-type Parts = Readonly<Record<string, unknown>>;
+import type { AdapterParts as Parts, Feature } from "./feature";
 
 /** ⌘K: Jali's command palette. Without it, the app shows Jali's commands in its own menu (`listCommands`), and the
  *  palette's key is the app's unless `keyboard.keymap` binds "palette.toggle". */

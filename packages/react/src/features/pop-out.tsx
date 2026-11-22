@@ -21,6 +21,7 @@
  * comes back), and on macOS the window doesn't appear over a full-screen app's Space.
  */
 import type { NodeId } from "@jali/core";
+import type { ReactParts } from "./feature-parts";
 import {
   allows,
   installKeyboard,
@@ -253,5 +254,8 @@ function createWindow(): ReactPopOut & { started(store: JaliStore): () => void }
  *  `allow: { popOut: false }`. */
 export function popOut(): Feature {
   const win = createWindow();
-  return { ...popOutFeature(win), start: win.started };
+  return {
+    ...popOutFeature(win, { popOut: win } satisfies Partial<ReactParts>),
+    start: win.started,
+  };
 }

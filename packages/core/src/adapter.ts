@@ -174,7 +174,15 @@ export {
 } from "./commands/registry";
 
 // ---------- features: what one can bring, and the framework-free halves of Jali's ----------
-export { featureOf, partOf, type Feature, type FeatureId } from "./features/feature";
+export {
+  featureOf,
+  partsReader,
+  serviceOf,
+  type AdapterParts,
+  type Feature,
+  type FeatureId,
+  type FeatureServices,
+} from "./features/feature";
 export { chooserFeature, paletteFeature, settingsFeature } from "./features/dialogs";
 export { renameFeature } from "./features/rename";
 export { popOutFeature, type PopOutWindow } from "./features/pop-out";
