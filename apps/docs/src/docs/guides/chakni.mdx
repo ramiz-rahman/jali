@@ -47,7 +47,7 @@ Keep the mapping outside the component. The port is made once per pane and keeps
 
 The hook returns `null` in the peek sheet, which has no list of its own. The component re-renders when the list's item changes, so `itemId` is always fresh.
 
-Outside React, `activeItemPort(jali, paneId, mapping)` from `@jali/core` makes the same port.
+Outside React, `activeItemPort(jali, paneId, mapping)` from `jali` makes the same port.
 
 ## When Chakni accepts the port
 
@@ -62,8 +62,8 @@ Jali's Tailwind bridge reads the token names Chakni reads: `--color-primary`, `-
 ```css
 @layer theme, base, jali, components, utilities;
 @import "tailwindcss";
-@import "@jali/react/styles.css";
-@import "@jali/react/tailwind.css";
+@import "jali/styles.css";
+@import "jali/tailwind.css";
 ```
 
 Jali's dark mode also follows Chakni's `.dark` and `.light` classes. See [Theming](/guides/theming).

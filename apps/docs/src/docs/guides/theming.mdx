@@ -16,10 +16,10 @@ Everything Jali draws reads `--jali-*` CSS variables, called tokens. Change a to
 ## Load the styles
 
 ```ts
-import "@jali/react/styles.css";
+import "jali/styles.css";
 ```
 
-This brings Jali's default theme and the workspace's styles. It is plain CSS: no Tailwind or build step needed. From a stylesheet, `@import "@jali/react/styles.css";` does the same, as the next section does; it works in Vite and any bundler that reads a package's `exports`. `theme.css` and `tailwind.css` import the same way.
+This brings Jali's default theme and the workspace's styles. It is plain CSS: no Tailwind or build step needed. From a stylesheet, `@import "jali/styles.css";` does the same, as the next section does; it works in Vite and any bundler that reads a package's `exports`. `theme.css` and `tailwind.css` import the same way.
 
 ## The layer line
 

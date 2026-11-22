@@ -43,7 +43,7 @@ export function Opening({
         <p className="landing-sub">{lead}</p>
       </div>
       <div className="landing-opening-actions">
-        <Install packages="@jali/core @jali/react" />
+        <Install packages="jali jali/react" />
         <div className="landing-buttons landing-buttons-hero">
           <a className="button button-primary" href="/get-started/quickstart">
             Start the quickstart
@@ -184,7 +184,7 @@ export function Close({
           {title}
         </h2>
         <p className="landing-lead">{lead}</p>
-        <Install packages="@jali/core @jali/react" />
+        <Install packages="jali jali/react" />
         <div className="landing-buttons">
           <a className="button button-primary" href="/get-started/quickstart">
             Start the quickstart

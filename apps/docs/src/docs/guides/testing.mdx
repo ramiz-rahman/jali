@@ -9,14 +9,17 @@ A workspace's behaviour lives in the workspace, not in its components. So most o
 
 ## A workspace for tests
 
-<Code code={test} filename="src/workspace.test.ts" highlight="8-20" />
+<Code code={test} filename="src/workspace.test.ts" highlight="8-10" />
 
-Each option keeps the test apart from the page and from other tests:
+`createTestJali` from `jali/testing` is `createJali` with what keeps a test apart from the page and from other tests:
 
-- **`url: { location: memoryLocation(search) }`** is an address in memory. The workspace writes its layout there instead of the browser's address. Start it with a search string to test opening a link.
-- **`storage: memoryStorage()`** keeps saved settings, pane state and dragged sizes in memory, never in `localStorage`.
-- **`size`** gives the workspace a size. Folding depends on it, and with no rendered workspace nothing measures the window. To test another size, make another workspace.
-- **`moveFocus: false`** stops the workspace moving DOM focus into panes after changes. There are no panes in the DOM in a workspace test.
+- **An address in memory** (`location`), through `urlSync`. The workspace writes its layout there instead of the browser's address. `search` starts it on a link, to test opening one.
+- **Storage in memory**: saved settings, pane state and dragged sizes never reach `localStorage`.
+- **A size**, 1440 by 900 unless `size` says otherwise. Folding depends on it, and with no rendered workspace nothing measures the window. To test another size, make another workspace.
+- **No DOM focus moved** into panes after changes. There are no panes in the DOM in a workspace test.
+- **Keys as on a Mac**, so `pressKeys("Mod+K Mod+W")` means the same keys on every machine.
+
+An app that makes its workspace in a function of its own passes `testJaliOptions().options` to it, and reads `location` from the same call.
 
 Kinds belong to the workspace, so every test gets its own: nothing about one workspace affects another.
 
@@ -29,7 +32,7 @@ Kinds belong to the workspace, so every test gets its own: nothing about one wor
 - `jali.model()` is what is derived from it: `panes` in tree order, `pane(id)`, `folded`, `visible`, `resolved` (every pane's box on screen).
 - `jali.on("open" | "close" | "focus" | "layout", handler)` tells you each change once.
 
-What a rendered pane reports (`useUnsaved`, `useCommands`) is not one of these actions. A test without rendering can report it through the engine's own steps, `storeOf(jali).actions` from `@jali/core/adapter`, as the test above does.
+What a rendered pane reports (`useUnsaved`, `useCommands`) is not one of these actions. A test without rendering can report it through the engine's own steps, `storeOf(jali).actions` from `jali/adapter`, as the test above does.
 
 ## Test a link
 
@@ -55,7 +58,7 @@ expect(jali.model().pane("order")?.ref.params.id).toBe(5);
 
 ## Keys
 
-`jali.start()` listens on the window, so a test can fire `keydown` events at an element and check what the workspace did. Pass `keymapOptions: { platform: "mac" }` (or `"other"`) so the test means the same keys on every machine. Call the function `start` returns to remove the listeners after the test, or `jali.destroy()` to also drop timers still waiting (a follow, a debounced address write).
+`jali.start()` listens on the window, so a test can press keys (`pressKeys` from `jali/testing`) and check what the workspace did. Call the function `start` returns to remove the listeners after the test, or `jali.destroy()` to also drop timers still waiting (a follow, a debounced address write).
 
 ## Render it
 

@@ -1,4 +1,4 @@
-import { commandsOf, copyLink, listCommands, runCommand } from "@jali/core";
+import { commandsOf, copyLink, listCommands, runCommand } from "jali";
 import { store } from "./store";
 
 // A toolbar button that runs a workspace command and shows its keys.

@@ -1,4 +1,4 @@
-import type { Command } from "@jali/core";
+import type { Command } from "jali";
 import { orderKind } from "../pane-kinds/orders";
 
 interface Customer {

@@ -9,7 +9,7 @@ import {
   EyeSlashIcon,
   StackIcon,
 } from "@phosphor-icons/react";
-import type { LayoutNode, Rect, Size, JaliModel } from "@jali/core";
+import type { LayoutNode, Rect, Size, JaliModel } from "jali";
 import { colourOf } from "./colours";
 
 export interface Hover {

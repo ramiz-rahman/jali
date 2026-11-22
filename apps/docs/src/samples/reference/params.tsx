@@ -1,4 +1,5 @@
-import { definePane, oneOf, optional, type PaneProps } from "@jali/react";
+import { definePane, type PaneProps } from "jali/react";
+import { oneOf, optional } from "jali";
 
 // Declared first, so a component written apart from the kind is typed from it.
 const ticketParams = {

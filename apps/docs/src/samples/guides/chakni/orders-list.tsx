@@ -1,6 +1,6 @@
 import type { KeyboardEvent } from "react";
-import type { ActiveItemMapping, ActiveItemPort } from "@jali/core";
-import { definePane, useActiveItemPort } from "@jali/react";
+import type { ActiveItemMapping, ActiveItemPort } from "jali";
+import { definePane, useActiveItemPort } from "jali/react";
 
 const ORDER_IDS = ["1", "2", "3", "4"];
 

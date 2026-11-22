@@ -1,6 +1,6 @@
 /**
  * /llms.txt (https://llmstxt.org): the site for coding agents. What Jali is, then every page in reading order as a
- * link to its Markdown copy with its one-line summary. The same list as the README in @jali/core's docs/.
+ * link to its Markdown copy with its one-line summary. The same list as the README in jali's docs/.
  */
 import type { APIRoute } from "astro";
 import { markdownUrl, readingOrder, sources } from "../site/sources";
@@ -12,7 +12,7 @@ export const GET: APIRoute = ({ site }) => {
     "",
     `> ${home?.summary ?? "Workspaces of panes for React."}`,
     "",
-    "Jali is two packages: `@jali/core` (the layout tree, fitting and the workspace, with no framework) and `@jali/react` (renders it). Every page below is Markdown. The same pages ship inside `@jali/core` as `node_modules/@jali/core/docs/`, for the installed version.",
+    "Jali is one package, `jali`: its framework-free core (the layout tree, fitting and the workspace) is `jali`, and React renders it from `jali/react`. Every page below is Markdown. The same pages ship inside `jali` as `node_modules/jali/docs/`, for the installed version.",
   ];
   let section = "";
   for (const item of readingOrder()) {

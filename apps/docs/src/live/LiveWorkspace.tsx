@@ -10,8 +10,10 @@ import {
   layout as jl,
   memoryStorage,
   type JaliStore,
-} from "@jali/core/adapter";
-import { JaliRoot, JaliView, Shelf, useJaliModel } from "@jali/react";
+} from "jali/adapter";
+import { JaliRoot, JaliView, Shelf, useJaliModel } from "jali/react";
+import { chooser } from "jali/chooser";
+import { palette } from "jali/palette";
 import { buildDemoLayout, type DemoLayoutId } from "./demo";
 import { demoKinds } from "./kinds";
 import { ClientOnly } from "./ClientOnly";
@@ -38,6 +40,8 @@ export function useLiveStore(
       // A figure on a docs page: only its own keys, and the site keeps its theme.
       keyboard: { scope: "local" },
       pageTheme: false,
+      // ⌘K and the chooser; Settings stays the site's own.
+      features: [palette(), chooser()],
       ...(centreDrop ? { settings: { centreDrop } } : {}),
     }),
   );
@@ -114,7 +118,7 @@ export function LiveWorkspace({
       style={{ height }}
     >
       <ClientOnly>
-        <JaliRoot jali={store.jali} className="live-jali" settings={false}>
+        <JaliRoot jali={store.jali} className="live-jali">
           <JaliView />
           {status ? <LiveStatus /> : null}
         </JaliRoot>

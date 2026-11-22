@@ -30,8 +30,8 @@ function columns(): { title: string; links: Link[] }[] {
     {
       title: "Reference",
       links: [
-        { href: "/reference/core", title: "@jali/core" },
-        { href: "/reference/react", title: "@jali/react" },
+        { href: "/reference/core", title: "jali" },
+        { href: "/reference/react", title: "jali/react" },
         { href: "/reference/tokens", title: titleOf("/reference/tokens", "Tokens") },
         { href: "/reference/commands", title: titleOf("/reference/commands", "Commands") },
       ],

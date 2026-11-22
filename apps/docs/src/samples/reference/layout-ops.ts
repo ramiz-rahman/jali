@@ -1,4 +1,4 @@
-import { GAP, layout, type Layout, type LayoutContext, type ViewState } from "@jali/core";
+import { GAP, layout, type Layout, type LayoutContext, type ViewState } from "jali";
 import { orderKind } from "./kinds";
 import { store } from "./store";
 

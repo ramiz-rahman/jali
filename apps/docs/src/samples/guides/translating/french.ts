@@ -1,4 +1,4 @@
-import { en, type Messages } from "@jali/core";
+import { en, type Messages } from "jali";
 
 // A full translation is a `Messages`: leave out a key and the typecheck says which.
 export const fr: Messages = {

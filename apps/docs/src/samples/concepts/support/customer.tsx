@@ -1,4 +1,4 @@
-import { definePane } from "@jali/react";
+import { definePane } from "jali/react";
 import { customerById, orders, tickets } from "./data";
 
 export const customer = definePane("customer", {

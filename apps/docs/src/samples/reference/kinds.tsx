@@ -1,4 +1,4 @@
-import { definePane, useLauncher } from "@jali/react";
+import { definePane, useLauncher } from "jali/react";
 
 // A list of orders, and one order. Each says what it shows, its title and the narrowest it works at.
 export const ordersKind = definePane("orders", {

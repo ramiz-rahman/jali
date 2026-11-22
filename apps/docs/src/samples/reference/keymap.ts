@@ -1,4 +1,4 @@
-import { DEFAULT_KEYMAP, formatKeys } from "@jali/core";
+import { DEFAULT_KEYMAP, formatKeys } from "jali";
 import { store } from "./store";
 
 // The workspace's keymap: the defaults, with the workspace's `keymap` overrides applied.

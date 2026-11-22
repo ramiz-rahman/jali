@@ -1,18 +1,23 @@
 /**
- * The command table's data. Ids, titles, groups and keys come from @jali/core itself (commandsOf, DEFAULT_KEYMAP),
+ * The command table's data. Ids, titles, groups and keys come from jali itself (commandsOf, DEFAULT_KEYMAP),
  * so the table is always the package's; when each command is refused is written here, from each command's `check`
  * in packages/core/src/commands/registry.ts and the action it runs. The coverage test checks that every command id
  * has a note here, and no note names a command that is gone.
  */
 import {
+  chooserFeature,
   commandsOf,
   createPaneKinds,
   en,
   pageEngine,
+  paletteFeature,
+  popOutFeature,
+  renameFeature,
+  settingsFeature,
   spacingOf,
   type Env,
   type Layout,
-} from "@jali/core/adapter";
+} from "jali/adapter";
 
 const empty = (): Layout => ({
   version: 1,
@@ -21,8 +26,9 @@ const empty = (): Layout => ({
 
 /** A workspace with one preset, and a curated page's engine and words so the table lists the page's commands too
  *  (a workspace has them only with a page from `definePage`). With no profile, titles in "page" words read "Back to
- *  page" and "View as viewer"; a real page puts its name and viewers there. Pop out is on, so the table lists
- *  `pane.pop_out`, which a workspace has only then. */
+ *  page" and "View as viewer"; a real page puts its name and viewers there. Every feature that brings a command is
+ *  on (the palette, Settings, the chooser, rename, pop out), so the table lists the commands a workspace has only
+ *  with them. */
 export const SAMPLE_ENV: Env = {
   kinds: createPaneKinds([{ kind: "note", title: "Note" }]),
   profile: null,
@@ -31,7 +37,18 @@ export const SAMPLE_ENV: Env = {
   presets: [{ id: "orders", label: "Orders", build: empty }],
   name: "Workspace",
   spacing: spacingOf(),
-  allow: { popOut: true },
+  features: [
+    paletteFeature(),
+    settingsFeature(),
+    chooserFeature(),
+    renameFeature({ run: () => {} }),
+    popOutFeature({
+      can: () => true,
+      open: async () => true,
+      close: () => {},
+      pane: () => undefined,
+    }),
+  ],
 };
 
 /** The one id per preset, shown as a pattern. */
@@ -89,7 +106,7 @@ export const REFUSED: Record<string, string> = {
   "pane.move.out":
     'Silent unless the focused pane is in a row that scrolls sideways (`row({ scroll: "x" }, …)`). Takes it out beside the row, on the side it is nearer on screen: "… moved out of the row".',
   "pane.merge":
-    'Silent when no pane is focused, or there is no other pane or stack on screen to join. Opens the "Add to tabs of…" chooser.',
+    'Only in a workspace with the chooser() feature (jali/chooser). Silent when no pane is focused, or there is no other pane or stack on screen to join. Opens the "Add to tabs of…" chooser.',
   "pane.unmerge":
     "Silent unless the focused pane is in a tab group made by the person (not one the layout folded).",
   "tab.move.left":
@@ -97,13 +114,13 @@ export const REFUSED: Record<string, string> = {
   "tab.move.right":
     'Silent unless the focused pane is a tab in a group made by the person or the app. At the end of the strip: "… is already the last tab".',
   "pane.rename":
-    "Silent unless the workspace has `rename` and its `can` allows the focused pane. Opens the rename field on its tab or title.",
+    "Only in a workspace with the rename() feature (jali/rename). Silent unless its `can` allows the focused pane. Opens the rename field on its tab or title.",
   "stack.new-tab": "Silent when no pane is focused, or the workspace has no launcher kind.",
   [PRESET_PATTERN]: 'Never. One command per preset, titled "Layout: <label>".',
   "pane.fullscreen":
     "On a curated page in Single view. Puts the focused pane on the whole screen, or takes it off.",
   "pane.pop_out":
-    "Only in a workspace with allow: { popOut: true }. Silent when no pane is focused, or the browser can't pop out (Document Picture-in-Picture: Chrome and Edge on desktop). When the focused pane doesn't allow it, says so. Opens it in a floating window that stays on top.",
+    "Only in a workspace with the popOut() feature (jali/pop-out). Silent when no pane is focused, or the browser can't pop out (Document Picture-in-Picture: Chrome and Edge on desktop). When the focused pane doesn't allow it, says so. Opens it in a floating window that stays on top.",
   "layout.reset": "Silent in a workspace without presets. Rebuilds the preset last chosen.",
   "layout.auto":
     "On a curated page, on a phone (one pane at a time), or with one pane. Arranges every pane from the room and the kinds' sizes; Back undoes it.",
@@ -120,6 +137,7 @@ export const REFUSED: Record<string, string> = {
   "peek.close": "Silent when no peek is open.",
   "peek.open_beside": "Silent when no peek is open.",
   "peek.open_full": "Silent when no peek is open.",
-  "settings.open": "Never.",
+  "settings.open":
+    "Only in a workspace with the settings() feature (jali/settings). Never refused there.",
   "settings.centre_drop.toggle": "Never.",
 };

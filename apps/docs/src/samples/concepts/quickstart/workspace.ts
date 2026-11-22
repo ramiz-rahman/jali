@@ -1,4 +1,4 @@
-import { createJali, row } from "@jali/core";
+import { createJali, row } from "jali";
 import { note } from "./note";
 
 export const jali = createJali({

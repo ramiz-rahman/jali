@@ -52,7 +52,7 @@ Pass `keymap` to `createJali`. Each entry is a command id and its new bindings:
 
 Write keys the way people read them. `Mod` is ⌘ on a Mac and Ctrl elsewhere; `Ctrl` is the Control key everywhere. A space separates the two steps of a chord: `"Mod+K Mod+X"`. Letters, digits and punctuation match the physical key, so a binding means the same key on any keyboard layout.
 
-Some bindings are refused, and reported through `keymapOptions.onInvalid` (by default, a console warning):
+Some bindings are refused, and reported through `keyboard.onInvalid` (by default, a console warning):
 
 - a single printable key with no ⌘, Ctrl or Alt, such as `"J"`: those belong to the focused content;
 - a sequence of more than two steps;
@@ -60,7 +60,7 @@ Some bindings are refused, and reported through `keymapOptions.onInvalid` (by de
 
 Avoid keys the browser keeps for itself, such as ⌘W, ⌘T and ⌘N: the browser acts before the page sees them.
 
-`keymapOptions.platform` (`"mac"` or `"other"`) fixes how keys are matched and printed. Pass it in tests and on the server.
+`keyboard.platform` (`"mac"` or `"other"`) fixes how keys are matched and printed. Pass it in tests and on the server.
 
 ## Content first
 
@@ -80,7 +80,7 @@ Single character keys (J, K, Space) must act only while your content has focus. 
 Jali binds no single keys. By convention its lists use Space or Shift+Space to peek, each in its own `onKeyDown`. An app that wants Space for itself (play and pause, say) should listen on `window` in the bubble phase, so content has had its turn, and skip the key when `keyBelongsToContent(event)` is true. That check is true in text fields, editable regions, comboboxes, dialogs, and on buttons, tabs and other controls that Space presses.
 
 ```ts
-import { keyBelongsToContent } from "@jali/react";
+import { keyBelongsToContent } from "jali";
 
 window.addEventListener("keydown", (e) => {
   if (e.key === " " && !e.defaultPrevented && !keyBelongsToContent(e)) togglePlayback();
@@ -134,7 +134,7 @@ Most apps already have a command menu on ⌘K and shortcuts of their own. Three 
 
 ### One command menu: yours
 
-`palette: false` tells Jali your app has the command menu. Jali renders no palette and leaves ⌘K alone. `useJaliCommands()` gives your menu everything Jali's palette would have listed: the focused pane's own commands first, then the workspace's and your own `commands`, each with its `title`, `group`, `keys` label, whether it is `disabled` now and the `reason`, and `run`.
+Leaving `palette()` out of the workspace's features tells Jali your app has the command menu. Jali renders no palette and leaves ⌘K alone. `useJaliCommands()` gives your menu everything Jali's palette would have listed: the focused pane's own commands first, then the workspace's and your own `commands`, each with its `title`, `group`, `keys` label, whether it is `disabled` now and the `reason`, and `run`.
 
 <Code code={hostMenu} filename="src/HostCommandMenu.tsx" />
 
@@ -142,15 +142,15 @@ Close your menu before calling `run`: some commands move focus into a pane. Outs
 
 ### Move Jali's keys off yours
 
-Jali's two-step keys all start with one prefix, ⌘K by default. `keyPrefix: "Mod+J"` moves every one of them at once, so ⌘K ⌘Z becomes ⌘J ⌘Z, and the palette's own key with them. Bindings you write in `keymap` are used as you wrote them. With `palette: false`, the prefix still starts a chord; it just opens nothing on its own.
+Jali's two-step keys all start with one prefix, ⌘K by default. `keyboard: { prefix: "Mod+J" }` moves every one of them at once, so ⌘K ⌘Z becomes ⌘J ⌘Z, and the palette's own key with them. Bindings you write in `keymap` are used as you wrote them. Without `palette()`, the prefix still starts a chord; it just opens nothing on its own.
 
-`reservedKeys` lists keys your app uses for itself. Jali drops any of its bindings that is one of them or starts with one, and reports each to `keymapOptions.onInvalid` when the workspace is made. So a clash shows up once, in the console at start-up, instead of when someone presses the key. Jali can't see your app's shortcuts, so name them here.
+`keyboard.reserved` lists keys your app uses for itself. Jali drops any of its bindings that is one of them or starts with one, and reports each to `keyboard.onInvalid` when the workspace is made. So a clash shows up once, in the console at start-up, instead of when someone presses the key. Jali can't see your app's shortcuts, so name them here.
 
 ### Who gets a key
 
 1. **Whoever handles the key first and calls `event.preventDefault()` keeps it.** Jali listens on `window`, so a handler on your document, your chrome or an element runs before it, and Jali leaves a key it finds handled alone. That is the same rule your pane content follows.
 2. **The second step of a chord is Jali's.** Once someone has pressed the prefix, Jali takes the next key before anything else (in the capture phase), so ⌘K ⌘Z never also runs your app's ⌘Z.
-3. **With `keys: "scoped"`, keys pressed outside the panes are never Jali's**, apart from keys pressed with nothing focused right after using the panes. In an app where the panes are one region among many, use it.
+3. **With `keyboard: { scope: "local" }`, keys pressed outside the panes are never Jali's**, apart from keys pressed with nothing focused right after using the panes. In an app where the panes are one region among many, use it.
 
 Jali's defaults already stay out of the way: no single letters (they belong to whatever has focus), no keys the browser keeps (⌘W, ⌘T, Ctrl+Tab), no Ctrl+Alt and no ⌘ with a digit. Its only direct keys are F6, ⇧F6, ⌘\\ and ⇧⌘↵.
 

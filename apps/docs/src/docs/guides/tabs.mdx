@@ -105,7 +105,7 @@ Then a double-click or F2 on a tab opens a text field in its place, with the nam
 
 `can` says which panes can be renamed. Leave it out and every pane can. Without `rename`, nothing offers renaming.
 
-F2 is the rename key in file managers. If something inside your pane uses F2 too, such as a grid that edits a cell, it gets the key first. If your app uses F2 for something else everywhere, list it in `reservedKeys`, and call `jali.actions.startRename(pane)` from your own command instead.
+F2 is the rename key in file managers. If something inside your pane uses F2 too, such as a grid that edits a cell, it gets the key first. If your app uses F2 for something else everywhere, list it in `keyboard.reserved`, and call `jali.actions.startRename(pane)` from your own command instead.
 
 ## Close and unsaved work
 
@@ -124,4 +124,4 @@ A pane that reports unsaved work with `useUnsaved` shows a dot where its × woul
 | Rename (with `rename`) | F2 | F2 |
 | Close the focused tab | Delete or Backspace | Delete or Backspace |
 
-The arrows only move focus, wrapping at the ends; right to left, ← moves on. The tab strip is one stop in the Tab order. The rest follow your `keyPrefix` and can be rebound through `keymap`. A single chord such as ⌥⇧← works for moving tabs. See [Commands and keys](/guides/commands-and-keys).
+The arrows only move focus, wrapping at the ends; right to left, ← moves on. The tab strip is one stop in the Tab order. The rest follow your `keyboard.prefix` and can be rebound through `keyboard.keymap`. A single chord such as ⌥⇧← works for moving tabs. See [Commands and keys](/guides/commands-and-keys).

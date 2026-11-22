@@ -5,8 +5,8 @@
  */
 import { useContext, type CSSProperties, type ReactNode } from "react";
 import { RowsIcon, SquareSplitHorizontalIcon, StackIcon } from "@phosphor-icons/react";
-import type { LayoutNode, PaneNode, StackNode, JaliModel } from "@jali/core/adapter";
-import { KindIcon, useJaliModel } from "@jali/react";
+import type { LayoutNode, PaneNode, StackNode, JaliModel } from "jali/adapter";
+import { KindIcon, useJaliModel } from "jali/react";
 import { PreviewRects, extentOf, panesUnder, sizeText, type Hover } from "./LayoutTree";
 import { colourOf } from "./colours";
 

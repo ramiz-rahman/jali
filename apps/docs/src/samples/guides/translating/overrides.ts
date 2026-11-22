@@ -1,4 +1,4 @@
-import { createJali } from "@jali/core";
+import { createJali } from "jali";
 import { orderKind, ordersKind } from "../../reference/kinds";
 
 // Only what changes: the rest stays English.

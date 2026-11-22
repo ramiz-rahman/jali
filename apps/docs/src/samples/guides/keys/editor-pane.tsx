@@ -1,4 +1,4 @@
-import { definePane } from "@jali/react";
+import { definePane } from "jali/react";
 
 /**
  * An editor needs every key, so it marks itself: inside it, the workspace takes only F6 and Shift+F6, so focus can

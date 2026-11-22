@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
- * Writes the docs into @jali/core as Markdown (packages/core/docs/), so a coding agent reads the docs of the version
- * that is installed: node_modules/@jali/core/docs/README.md lists every page. The pages are the docs site's own, in
+ * Writes the docs into the published package as Markdown (packages/jali/docs/), so a coding agent reads the docs of
+ * the version that is installed: node_modules/jali/docs/README.md lists every page. The pages are the docs site's own, in
  * reading order, through the same `toMarkdown` as "View as Markdown", with links made relative to the files.
  *
  *   pnpm agent-docs           write them
@@ -14,7 +14,7 @@ import { createServer } from "vite-plus";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const docsApp = join(root, "apps/docs");
-export const OUT = join(root, "packages/core/docs");
+export const OUT = join(root, "packages/jali/docs");
 
 /** Every file to write, by path under docs/: README.md plus one per page. */
 export async function render() {
@@ -26,10 +26,10 @@ export async function render() {
     logLevel: "silent",
     server: { middlewareMode: true, hmr: false, ws: false },
     appType: "custom",
-    // @jali/* from their source, as the site has them: without this the SSR loader takes the packages' dist, which
-    // is only as fresh as the last build.
+    // jali (and the workspace packages it is made of) from their source, as the site has them: without this the SSR
+    // loader takes the packages' dist, which is only as fresh as the last build.
     ssr: {
-      noExternal: [/^@jali\//],
+      noExternal: [/^@jali\//, /^jali(\/|$)/],
       resolve: { conditions: ["source"], externalConditions: ["source"] },
     },
   });
@@ -57,7 +57,7 @@ export async function render() {
       files.set(fileOf(item.path), md);
     }
     const version = JSON.parse(
-      readFileSync(join(root, "packages/core/package.json"), "utf8"),
+      readFileSync(join(root, "packages/jali/package.json"), "utf8"),
     ).version;
     let section = "";
     const index = [
@@ -99,11 +99,11 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
     const extra = walk(OUT).filter((p) => !files.has(relative(OUT, p)));
     if (stale.length || extra.length) {
       console.error(
-        `packages/core/docs is out of date (${[...stale.map(([f]) => f), ...extra.map((p) => relative(OUT, p))].join(", ")}): run pnpm agent-docs`,
+        `packages/jali/docs is out of date (${[...stale.map(([f]) => f), ...extra.map((p) => relative(OUT, p))].join(", ")}): run pnpm agent-docs`,
       );
       process.exit(1);
     }
-    console.log(`packages/core/docs: ${files.size} files, up to date`);
+    console.log(`packages/jali/docs: ${files.size} files, up to date`);
   } else {
     // Files no page writes any more are reported, not removed: move them out by hand.
     const extra = walk(OUT).filter((p) => !files.has(relative(OUT, p)));
@@ -113,6 +113,6 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
       mkdirSync(dirname(join(OUT, f)), { recursive: true });
       writeFileSync(join(OUT, f), md);
     }
-    console.log(`wrote ${files.size} files to packages/core/docs`);
+    console.log(`wrote ${files.size} files to packages/jali/docs`);
   }
 }

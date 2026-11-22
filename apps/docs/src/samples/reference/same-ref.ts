@@ -1,4 +1,4 @@
-import { sameRef } from "@jali/core";
+import { sameRef } from "jali";
 
 sameRef({ kind: "order", params: { id: 1041 } }, { kind: "order", params: { id: 1041 } }); // true
 sameRef({ kind: "order", params: { id: 1041 } }, { kind: "order", params: { id: "1041" } }); // false: 1041 !== "1041"

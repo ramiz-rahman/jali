@@ -29,7 +29,7 @@ type ThemeChoice = "light" | "dark" | "system";
 const THEME_KEY = "jali-docs-theme";
 const darkQuery = window.matchMedia("(prefers-color-scheme: dark)");
 
-/** One mechanism, the same as @jali/core's: `data-theme` on <html> is the resolved theme, so the live workspaces follow. */
+/** One mechanism, the same as jali's: `data-theme` on <html> is the resolved theme, so the live workspaces follow. */
 function applyTheme(choice: ThemeChoice) {
   const dark = choice === "dark" || (choice === "system" && darkQuery.matches);
   root.setAttribute("data-theme", dark ? "dark" : "light");

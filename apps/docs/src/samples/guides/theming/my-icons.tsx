@@ -1,4 +1,4 @@
-import type { JaliIcon, JaliIcons } from "@jali/react";
+import type { JaliIcon, JaliIcons } from "jali/react";
 
 /** Your design system's icons: one SVG sprite, a symbol per icon. */
 export const sprite = (id: string): JaliIcon =>

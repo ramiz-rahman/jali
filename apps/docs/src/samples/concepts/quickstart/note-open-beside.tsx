@@ -1,4 +1,4 @@
-import { definePane } from "@jali/react";
+import { definePane } from "jali/react";
 
 export const note = definePane("note", {
   params: { id: Number },

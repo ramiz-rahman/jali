@@ -1,4 +1,4 @@
-import { useJaliShortcut, useJali } from "@jali/react";
+import { useJaliShortcut, useJali } from "jali/react";
 
 /** A button in your own chrome that runs a workspace action and shows the workspace's key for it. */
 export function CloseButton() {

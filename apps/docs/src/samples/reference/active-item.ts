@@ -1,4 +1,4 @@
-import { activeItemPort } from "@jali/core";
+import { activeItemPort } from "jali";
 import { orderKind } from "./kinds";
 import { store } from "./store";
 

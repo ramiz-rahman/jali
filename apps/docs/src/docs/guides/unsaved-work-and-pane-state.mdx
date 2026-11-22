@@ -108,10 +108,10 @@ A following detail with unsaved work still keeps its object when the list's curs
 
 ## Test it
 
-The rules can be tested without rendering. What `useUnsaved` reports from a rendered pane can be reported through the engine's own steps (`storeOf` from `@jali/core/adapter`):
+The rules can be tested without rendering. What `useUnsaved` reports from a rendered pane is reported with `reportUnsaved` from `jali/testing`:
 
 ```ts
-storeOf(jali).actions.setUnsaved("note", "an unsaved note");
+reportUnsaved(jali, "note", "an unsaved note");
 expect(jali.actions.close("note")).toMatchObject({ ok: false, reason: "unsaved" });
 ```
 

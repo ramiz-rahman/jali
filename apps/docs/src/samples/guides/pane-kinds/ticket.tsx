@@ -1,4 +1,5 @@
-import { definePane, oneOf, optional } from "@jali/react";
+import { definePane } from "jali/react";
+import { oneOf, optional } from "jali";
 
 export const ticket = definePane("ticket", {
   params: { id: Number, tab: optional(oneOf("thread", "details")), internal: optional(Boolean) },

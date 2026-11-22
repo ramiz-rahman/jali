@@ -14,8 +14,8 @@ import {
   PauseIcon,
   PlayIcon,
 } from "@phosphor-icons/react";
-import { buildSearch, GAP, tabDropAt, zoneFor, type JaliStore } from "@jali/core/adapter";
-import type { DndState, JaliActions, JaliModel } from "@jali/core/adapter";
+import { buildSearch, GAP, tabDropAt, zoneFor, type JaliStore } from "jali/adapter";
+import type { DndState, JaliActions, JaliModel } from "jali/adapter";
 import { orderKind } from "./kinds";
 
 export type TourStatus = "idle" | "playing" | "paused" | "stopped" | "done";

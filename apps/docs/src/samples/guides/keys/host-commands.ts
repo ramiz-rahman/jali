@@ -1,4 +1,4 @@
-import { createJali, type Command } from "@jali/core";
+import { createJali, type Command } from "jali";
 import { launcher, orderKinds } from "../pane-kinds/orders";
 import { presets } from "../presets/layouts";
 

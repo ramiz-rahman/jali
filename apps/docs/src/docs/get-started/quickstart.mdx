@@ -21,9 +21,9 @@ Jali runs in browsers from 2024 on ([Baseline 2024](https://web.dev/baseline)): 
 <Steps>
 <Step title="Install the packages">
 
-`@jali/core` holds the model: the layout, the workspace and its commands. It doesn't depend on React. `@jali/react` renders it, with a default theme and its own icons.
+`jali` holds the model: the layout, the workspace and its commands. It doesn't depend on React. `jali/react` renders it, with a default theme and its own icons.
 
-<Install packages="@jali/core @jali/react" />
+<Install packages="jali jali/react" />
 
 <Callout type="warning" title="Linked or in a monorepo">
 If your app gets Jali through `link:`, `file:` or `workspace:`, or from a symlinked checkout, Jali can find its own copy of React beside its source. The app then bundles two Reacts, and hooks fail with "Invalid hook call". With Vite, add `resolve: { dedupe: ["react", "react-dom"] }` to `vite.config.ts` so there is one. With webpack, alias `react` and `react-dom` to your app's copy.
@@ -70,7 +70,7 @@ Screen readers meet the panes as a region named "Panes", inside your page's own 
 </Step>
 <Step title="Add the styles and the layer line">
 
-`@jali/react/styles.css` is Jali's default theme and the workspace's layout. Every rule in it sits in a CSS cascade layer named `jali`.
+`jali/styles.css` is Jali's default theme and the workspace's layout. Every rule in it sits in a CSS cascade layer named `jali`.
 
 <Code code={css} lang="css" filename="app.css" highlight="2" />
 

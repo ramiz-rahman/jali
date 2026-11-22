@@ -1,8 +1,8 @@
 /* app.css: the stylesheet Tailwind builds. */
 @layer theme, base, jali, components, utilities;
 @import "tailwindcss";
-@import "@jali/react/styles.css";
-@import "@jali/react/tailwind.css";
+@import "jali/styles.css";
+@import "jali/tailwind.css";
 
 /* Your theme. Jali reads these names (the same ones Chakni reads), each with a fallback to its own default. */
 @theme {

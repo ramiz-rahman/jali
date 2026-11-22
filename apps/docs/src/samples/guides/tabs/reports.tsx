@@ -1,7 +1,9 @@
 import { useSyncExternalStore } from "react";
-import { createJali, pane, tabs } from "@jali/core";
-import { definePane, useTitle } from "@jali/react";
+import { createJali, pane, tabs } from "jali";
+import { definePane, useTitle } from "jali/react";
 import { ChartBarIcon } from "@phosphor-icons/react";
+import { defaultFeatures } from "jali/features";
+import { rename } from "jali/rename";
 
 // Your data: saved reports, with the name and pin the person gave each. Jali stores neither.
 interface Report {
@@ -44,14 +46,17 @@ export const jali = createJali({
       pane(reportKind({ id: r.id }), { id: `report-${r.id}`, pinned: r.pinned }),
     ),
   ),
-  // Double-click or F2 on a tab opens a field; Enter saves the name in your data.
-  rename: {
-    can: (p) => p.ref.kind === "report",
-    run: (p, text) => {
-      if (text.length > 60) return false; // keeps the field open, marked invalid
-      save(idOf(p.ref), { name: text });
-    },
-  },
+  features: [
+    ...defaultFeatures(),
+    // Double-click or F2 on a tab opens a field; Enter saves the name in your data.
+    rename({
+      can: (p) => p.ref.kind === "report",
+      run: (p, text) => {
+        if (text.length > 60) return false; // keeps the field open, marked invalid
+        save(idOf(p.ref), { name: text });
+      },
+    }),
+  ],
   // Your items, after Jali's own in the tab's menu.
   tabMenu: (p) =>
     p.ref.kind === "report"

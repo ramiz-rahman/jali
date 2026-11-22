@@ -1,14 +1,8 @@
 /**
- * Every workspace command with its default keys, from @jali/core itself: commandsOf for ids, titles and groups,
+ * Every workspace command with its default keys, from jali itself: commandsOf for ids, titles and groups,
  * DEFAULT_KEYMAP through createKeymap for keys, printed for a Mac and for Windows and Linux.
  */
-import {
-  DEFAULT_KEYMAP,
-  PALETTE_ID,
-  createKeymap,
-  formatKeys,
-  type Command,
-} from "@jali/core/adapter";
+import { DEFAULT_KEYMAP, PALETTE_ID, createKeymap, formatKeys, type Command } from "jali/adapter";
 import { COMMANDS, REFUSED, displayId } from "./command-data";
 
 const MAC = createKeymap({}, { platform: "mac" });

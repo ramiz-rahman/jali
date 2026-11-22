@@ -10,7 +10,7 @@ import paused from "../../samples/concepts/support/paused.tsx?raw";
 Jali does a lot for a pane: it places it, folds it, keeps its state and asks before it loses work. It can only do that if the pane's content follows a few rules. This page lists them, with the reason for each. Give it to your agent along with the task.
 
 <Callout type="tip" title="The docs come with the package">
-Every page of these docs is in `@jali/core` as Markdown, for the version you installed: `node_modules/@jali/core/docs/README.md` lists them, and this page is `docs/get-started/coding-agents.md`. An agent that reads them there works from docs that match its code. Each page here is also Markdown from the buttons under its title.
+Every page of these docs is in `jali` as Markdown, for the version you installed: `node_modules/jali/docs/README.md` lists them, and this page is `docs/get-started/coding-agents.md`. An agent that reads them there works from docs that match its code. Each page here is also Markdown from the buttons under its title.
 </Callout>
 
 To give an agent the workflow as well, add Jali's skill, `skills/jali` in Jali's repository. It tells the agent to read these rules and the installed docs first, and to check its work against them.
@@ -87,7 +87,7 @@ Declare the layer order once, at the top of your CSS, so your styles win over Ja
 
 Then pick one way in:
 
-- **From a Tailwind theme:** also import `@jali/react/tailwind.css`. It points Jali's tokens at your theme's (`--color-primary`, `--color-card`, `--color-border`, `--radius-card` and others).
+- **From a Tailwind theme:** also import `jali/tailwind.css`. It points Jali's tokens at your theme's (`--color-primary`, `--color-card`, `--color-border`, `--radius-card` and others).
 - **By hand:** set `--jali-*` tokens on `:root` or on any subtree. Setting `--jali-accent` is enough to change the accent; its tints follow.
 
 ```css

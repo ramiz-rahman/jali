@@ -5,7 +5,7 @@ import { jsxToMarkdown } from "../site/jsx-markdown";
 describe("jsxToMarkdown", () => {
   it("writes a reference entry as a heading, its signature and a list of params", () => {
     const md =
-      jsxToMarkdown(`<Entry name="tuck" kind="action" from="@jali/core" signature={\`tuck(pane): ActionResult\`} compact>
+      jsxToMarkdown(`<Entry name="tuck" kind="action" from="jali" signature={\`tuck(pane): ActionResult\`} compact>
 
 Tucks a pane. See <Ref to="Shelf" page="/reference/react" />.
 
@@ -15,7 +15,7 @@ Tucks a pane. See <Ref to="Shelf" page="/reference/react" />.
 
 </Entry>`);
     expect(md).toContain("### tuck");
-    expect(md).toContain("*action*, from `@jali/core`");
+    expect(md).toContain("*action*, from `jali`");
     expect(md).toContain("```ts\ntuck(pane): ActionResult\n```");
     expect(md).toContain("[`Shelf`](/reference/react#Shelf)");
     expect(md).toContain("- **`pane`** (`PaneTarget`, required): The pane.");

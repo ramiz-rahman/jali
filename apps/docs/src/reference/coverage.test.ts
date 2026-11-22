@@ -1,5 +1,5 @@
 /**
- * The reference stays true (docs/DOCS-PLAN.md): every name @jali/core and @jali/react export has an entry, and so does
+ * The reference stays true (docs/DOCS-PLAN.md): every name `jali` exports, from every entry an app imports, has an entry, and so does
  * every command, default key binding and public token. An entry is an <Entry name="…"> or <Member name="…"> in an MDX
  * page under src/docs/reference. A new export, command or token fails here until it is written up; a removed one
  * fails until its entry goes.
@@ -8,9 +8,19 @@ import { readdirSync, readFileSync, statSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vite-plus/test";
-import * as core from "@jali/core";
-import * as react from "@jali/react";
-import * as icons from "@jali/react/icons";
+import * as core from "jali";
+import * as react from "jali/react";
+import * as page from "jali/page";
+import * as icons from "jali/icons";
+import * as testing from "jali/testing";
+import * as features from "jali/features";
+import * as url from "jali/url";
+import * as palette from "jali/palette";
+import * as settings from "jali/settings";
+import * as chooser from "jali/chooser";
+import * as rename from "jali/rename";
+import * as popOut from "jali/pop-out";
+import * as pressed from "jali/pressed";
 import { COMMANDS, REFUSED, displayId } from "./command-data";
 import { TOKEN_PURPOSE, inPlaceTokensOf, publicTokensOf, readsOf } from "./token-data";
 
@@ -65,7 +75,7 @@ function typeExports(file: string): string[] {
 const missing = (expected: string[]) => expected.filter((n) => !documented.has(n));
 
 describe("the reference covers the public API", () => {
-  it("every value @jali/core exports has an entry", () => {
+  it("every value `jali` exports has an entry", () => {
     expect(missing(Object.keys(core))).toEqual([]);
   });
 
@@ -77,20 +87,27 @@ describe("the reference covers the public API", () => {
     expect(missing(names)).toEqual([]);
   });
 
-  it("every value @jali/react exports has an entry (and @jali/react/icons)", () => {
-    expect(missing([...Object.keys(react), ...Object.keys(icons)])).toEqual([]);
+  it("every value jali/react, jali/page, jali/icons and jali/testing export has an entry", () => {
+    expect(missing([react, page, icons, testing].flatMap((entry) => Object.keys(entry)))).toEqual(
+      [],
+    );
+  });
+
+  it("every feature has an entry", () => {
+    const all = [features, url, palette, settings, chooser, rename, popOut, pressed];
+    expect(missing(all.flatMap((entry) => Object.keys(entry)))).toEqual([]);
   });
 
   it("every icon name has an entry", () => {
     expect(missing(Object.keys(icons.defaultIcons).map((k) => `icons.${k}`))).toEqual([]);
   });
 
-  it("every type the two packages export has an entry", () => {
+  it("every type an app's entries export has an entry", () => {
     const types = [
       ...typeExports(join(packages, "core/src/index.ts")),
-      ...typeExports(join(packages, "react/src/index.ts")),
-      ...typeExports(join(packages, "react/src/common.ts")),
-      ...typeExports(join(packages, "react/src/icons.ts")),
+      ...["react", "page", "icons", "testing", "url"].flatMap((e) =>
+        typeExports(join(packages, `jali/src/${e}.ts`)),
+      ),
     ];
     expect(types.length).toBeGreaterThan(50);
     expect(missing(types)).toEqual([]);
@@ -100,7 +117,6 @@ describe("the reference covers the public API", () => {
     const store = core.createJali({
       panes: [{ kind: "note", title: "Note" }],
       layout: { kind: "note", params: {} },
-      url: false,
       storage: core.memoryStorage(),
       moveFocus: false,
     });

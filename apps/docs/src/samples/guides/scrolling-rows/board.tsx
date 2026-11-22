@@ -1,5 +1,5 @@
-import { column, createJali, pane, row } from "@jali/core";
-import { definePane } from "@jali/react";
+import { column, createJali, pane, row } from "jali";
+import { definePane } from "jali/react";
 
 // A sales pipeline: every stage is a pane, side by side at a width you can read, in a row that scrolls.
 const STAGES = ["Lead", "Qualified", "Demo", "Proposal", "Negotiation", "Won"] as const;

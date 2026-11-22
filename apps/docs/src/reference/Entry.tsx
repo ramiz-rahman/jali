@@ -54,7 +54,7 @@ export interface EntryProps {
   /** The exported name, exactly as imported (`createJali`, `layout.open`, `JaliRoot`). */
   name: string;
   kind: EntryKind;
-  /** "@jali/core" or "@jali/react". */
+  /** "jali" or "jali/react". */
   from?: string;
   /** How it is called or what it is: shown at the top of the right column. */
   signature?: string;

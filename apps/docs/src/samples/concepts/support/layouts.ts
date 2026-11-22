@@ -1,4 +1,4 @@
-import { column, pane, row, tabs } from "@jali/core";
+import { column, pane, row, tabs } from "jali";
 import { customer, customerOrders } from "./customer";
 import { ticket } from "./ticket";
 import { ticketList } from "./ticket-list";

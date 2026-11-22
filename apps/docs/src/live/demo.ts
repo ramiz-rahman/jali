@@ -2,7 +2,7 @@
  * Demo layouts for the live parts. Layout ids are the contract with pages: <TreeView layout="chain" />.
  * `demoLayouts` names each one; `buildDemoLayout` makes a fresh layout tree for a workspace to start from.
  */
-import type { Layout, LayoutNode, ObjectRef, PaneNode } from "@jali/core";
+import type { Layout, LayoutNode, ObjectRef, PaneNode } from "jali";
 
 export type DemoLayoutId = "two" | "chain" | "nested" | "stack" | "strip" | "crowded" | "board";
 export const demoLayouts: Record<DemoLayoutId, string> = {

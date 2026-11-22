@@ -21,9 +21,9 @@ This page puts an orders workspace beside a notes workspace.
 
 ## Its own params in the address
 
-`url: { prefix: "n." }` writes the notes workspace's params as `n.l`, `n.zoom` and `n.peek`. The orders workspace keeps the plain names. Each reads and writes only its own, and every other param is left alone, so one link reopens both, and Back and Forward step each one through its own changes.
+`urlSync({ prefix: "n." })` writes the notes workspace's params as `n.l`, `n.zoom` and `n.peek`. The orders workspace keeps the plain names. Each reads and writes only its own, and every other param is left alone, so one link reopens both, and Back and Forward step each one through its own changes.
 
-A workspace that must not touch the address at all, such as one in a dialog, passes `url: false`.
+A workspace that must not touch the address at all, such as one in a dialog, leaves `urlSync()` out of its features.
 
 ## Its own storage
 
@@ -31,7 +31,7 @@ A workspace saves its settings and pane state to `localStorage` under its `id` b
 
 ## Its own keys and start-up
 
-`keys: "scoped"` makes a workspace take only keys from inside its own root and its dialogs, plus keys pressed with nothing focused, when it was the last one used. So F6 in the notes moves between notes panes, and ⌘K then ⌘M maximises a notes pane. The palette renders outside the root, but it is the workspace's own, so the chord finishes there. The default, `"page"`, takes every key on the page: right for one workspace, wrong for two.
+`keyboard: { scope: "local" }` makes a workspace take only keys from inside its own root and its dialogs, plus keys pressed with nothing focused, when it was the last one used. So F6 in the notes moves between notes panes, and ⌘K then ⌘M maximises a notes pane. The palette renders outside the root, but it is the workspace's own, so the chord finishes there. The default, `"page"`, takes every key on the page: right for one workspace, wrong for two.
 
 Everything else a workspace starts while its `<JaliRoot>` is mounted works for each one: saving settings and pane state, Back and Forward, and the browser's prompt when the page closes with unsaved work.
 

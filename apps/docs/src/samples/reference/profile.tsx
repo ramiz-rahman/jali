@@ -1,6 +1,7 @@
 import { FileTextIcon, UserIcon } from "@phosphor-icons/react";
-import { pane, row } from "@jali/core";
-import { definePage, definePane } from "@jali/react";
+import { pane, row } from "jali";
+import { definePage } from "jali/page";
+import { definePane } from "jali/react";
 
 const borrower = definePane("borrower", {
   params: { application: Number },

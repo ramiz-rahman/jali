@@ -1,4 +1,4 @@
-import type { ThemeChoice, Jali } from "@jali/core";
+import type { ThemeChoice, Jali } from "jali";
 
 /**
  * Your app's own light/dark switch. Jali has a theme setting too (System, Light or Dark in its settings panel), and

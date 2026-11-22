@@ -2,7 +2,7 @@
  * The reference's generated tables as Markdown, from the same data the pages draw them from: parts, commands, tokens
  * and the Tailwind bridge. `toMarkdown(page, { tables: MARKDOWN_TABLES })`.
  */
-import { PALETTE_ID, createKeymap, formatKeys } from "@jali/core/adapter";
+import { PALETTE_ID, createKeymap, formatKeys } from "jali/adapter";
 import { ADORNMENTS, parts } from "../../../../packages/react/src/parts";
 import { COMMANDS, REFUSED, displayId } from "../reference/command-data";
 import {

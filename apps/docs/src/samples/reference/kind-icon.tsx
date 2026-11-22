@@ -1,4 +1,4 @@
-import { Activity, KindIcon, useJaliModel, useJaliState } from "@jali/react";
+import { Activity, KindIcon, useJaliModel, useJaliState } from "jali/react";
 
 // Your own list of open panes, with Jali's icon and activity marks.
 export function OpenPanes() {

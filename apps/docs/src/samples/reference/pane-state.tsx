@@ -1,4 +1,4 @@
-import { usePaneState } from "@jali/react";
+import { usePaneState } from "jali/react";
 
 type Sort = { column: "id" | "total"; dir: "asc" | "desc" };
 

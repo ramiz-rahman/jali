@@ -1,5 +1,5 @@
-import type { Jali } from "@jali/core";
-import { createAgent } from "@jali/core/agent";
+import type { Jali } from "jali";
+import { createAgent } from "jali/agent";
 
 // Your model client: anything that takes tools and runs a conversation with them.
 declare function runModel(options: {

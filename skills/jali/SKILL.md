@@ -1,6 +1,6 @@
 ---
 name: jali
-description: Build with Jali (@jali/core, @jali/react), split views for React apps. Use when adding a Jali workspace to an app, defining pane kinds, opening panes beside each other, theming Jali, or fixing a Jali layout, focus, keys or unsaved-work problem.
+description: Build with Jali (jali, jali/react), split views for React apps. Use when adding a Jali workspace to an app, defining pane kinds, opening panes beside each other, theming Jali, or fixing a Jali layout, focus, keys or unsaved-work problem.
 ---
 
 # Jali
@@ -9,7 +9,7 @@ Jali lays out panes of an app side by side, in rows, columns and tabs, and keeps
 
 ## Before writing code
 
-1. Find the docs: `node_modules/@jali/core/docs/README.md` lists every page. If the package isn't installed yet, install it first: `npm install @jali/core @jali/react`.
+1. Find the docs: `node_modules/jali/docs/README.md` lists every page. If the package isn't installed yet, install it first: `npm install jali`.
 2. Read `docs/get-started/coding-agents.md` in full. Its ten rules are the contract a pane's content must keep: kinds as data plus a component, typed params, keys that bubble, select before open, unsaved work through `useUnsaved`, `usePaneState`, `useCommands`, pausing while hidden, one shared data cache, theming through tokens.
 3. Read `docs/get-started/key-concepts.md` for the words, and `docs/get-started/quickstart.md` for the smallest app.
 4. For the task at hand, read the guide it names (`docs/guides/*.md`), then look up every function, prop and type you use in `docs/reference/` (`core.md`, `core/types.md`, `react.md`). Don't guess an option's name or default.

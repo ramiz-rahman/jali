@@ -4,7 +4,7 @@
  * site's one stylesheet, and the one small script that makes the static page work (src/client/enhance.ts).
  */
 import Head from "./Head.astro";
-import "@jali/react/styles.css";
+import "jali/styles.css";
 import "../styles/site.css";
 import "../live/live.css";
 import "../reference/reference.css";
@@ -29,7 +29,7 @@ const props = Astro.props;
       @layer docs-base, jali, docs;
     </style>
     <!--
-      Before the first paint: data-theme is the resolved theme, as @jali/core sets it (src/client/enhance.ts keeps it
+      Before the first paint: data-theme is the resolved theme, as jali sets it (src/client/enhance.ts keeps it
       current); data-theme-choice lights the toggle's button; data-code-wrap wraps long code lines.
     -->
     <script is:inline>

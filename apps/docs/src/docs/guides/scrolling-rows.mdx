@@ -60,7 +60,7 @@ Moving a pane in is the same in reverse: drag it onto a pane in the row, or move
 If your app has its own drag, a card or a list row, give it the same edge scrolling with `edgeScroll`:
 
 ```ts
-import { edgeScroll } from "@jali/core";
+import { edgeScroll } from "jali";
 
 const edge = edgeScroll(jali, () => findDropTarget(lastX, lastY));
 // On every pointer move:

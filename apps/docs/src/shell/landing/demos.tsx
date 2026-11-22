@@ -2,8 +2,8 @@
  * The landing's two live demos of its own, beyond the live parts in src/live: the link a workspace writes, and the
  * keys. Each is an island (wrapped in ./index.tsx), so this module is what the browser loads for them.
  */
-import { formatKeys } from "@jali/core";
-import { PALETTE_ID, runCommand } from "@jali/core/adapter";
+import { formatKeys } from "jali";
+import { PALETTE_ID, runCommand } from "jali/adapter";
 import { useHydrated } from "../../live/ClientOnly";
 import { LandingWorkspace, useAddress, useLandingApp } from "./NotesWorkspace";
 

@@ -156,11 +156,11 @@ A port is a small interface for something outside the workspace, so your app or 
 
 <Code code={workspaceCode} filename="workspace.ts" highlight="15-16" />
 
-`url: { location: memoryLocation() }` and `storage: memoryStorage()` keep both in memory, for tests and for a workspace that must not touch the page's address.
+`urlSync({ location: memoryLocation() })` and `storage: memoryStorage()` keep both in memory, for tests and for a workspace that must not touch the page's address.
 
 <h3 id="sizes-in-links">Sizes in links</h3>
 
-`url: { sizes }` chooses what a link says about sizes. `"local"`, the default, writes the layout as designed and keeps the sizes the person dragged on their device. `"link"` writes every size, so a link reopens exactly as the sender saw it.
+`urlSync({ sizes })` chooses what a link says about sizes. `"local"`, the default, writes the layout as designed and keeps the sizes the person dragged on their device. `"link"` writes every size, so a link reopens exactly as the sender saw it.
 
 ## The pane contract
 

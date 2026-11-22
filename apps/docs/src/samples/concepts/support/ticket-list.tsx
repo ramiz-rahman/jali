@@ -1,5 +1,5 @@
 import { useState, type KeyboardEvent } from "react";
-import { definePane, type PaneProps } from "@jali/react";
+import { definePane, type PaneProps } from "jali/react";
 import { tickets } from "./data";
 import { ticket } from "./ticket";
 

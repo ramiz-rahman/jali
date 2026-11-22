@@ -6,12 +6,15 @@
  * takes keys only when they are pressed inside it.
  */
 import { useId, useState, useSyncExternalStore } from "react";
-import { createJali, memoryLocation, memoryStorage, row, type Jali } from "@jali/core";
-import { JaliRoot } from "@jali/react";
+import { createJali, memoryLocation, memoryStorage, row, type Jali } from "jali";
+import { JaliRoot } from "jali/react";
 import { note } from "../../samples/concepts/quickstart/note-open-beside";
 import { demoKinds } from "../../live/kinds";
 import { buildDemoLayout, demoLayouts, type DemoLayoutId } from "../../live/demo";
 import { ClientOnly } from "../../live/ClientOnly";
+import { chooser } from "jali/chooser";
+import { palette } from "jali/palette";
+import { urlSync } from "jali/url";
 
 export interface LandingApp {
   store: Jali;
@@ -27,7 +30,7 @@ function makeApp(source: Source, id: string): LandingApp {
   const storage = memoryStorage();
   // On the landing page: its own keys only, and the site keeps its theme.
   const embedded = {
-    url: { location },
+    features: [urlSync({ location }), palette(), chooser()],
     storage,
     id,
     keyboard: { scope: "local" },
@@ -102,7 +105,7 @@ export function LandingWorkspace({
     >
       <div className="live-ws landing-ws-box" style={{ height }}>
         <ClientOnly>
-          <JaliRoot jali={app.store} className="live-jali" settings={false} />
+          <JaliRoot jali={app.store} className="live-jali" />
         </ClientOnly>
       </div>
     </div>

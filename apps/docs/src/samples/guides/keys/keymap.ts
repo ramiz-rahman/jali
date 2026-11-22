@@ -1,4 +1,4 @@
-import { createJali } from "@jali/core";
+import { createJali } from "jali";
 import { orderKinds } from "../pane-kinds/orders";
 import { presets } from "../presets/layouts";
 

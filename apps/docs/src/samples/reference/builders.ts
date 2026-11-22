@@ -1,4 +1,4 @@
-import { column, pane, row, tabs, toLayout } from "@jali/core";
+import { column, pane, row, tabs, toLayout } from "jali";
 import { orderKind, ordersKind } from "./kinds";
 
 // A child is a ref, a pane(ref, options), or another row, column or tabs. Options come first when there are any.

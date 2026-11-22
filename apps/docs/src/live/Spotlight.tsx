@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { layout as jl, type Edge, type JaliStore } from "@jali/core/adapter";
+import { layout as jl, type Edge, type JaliStore } from "jali/adapter";
 import type { DemoLayoutId } from "./demo";
 import { demoLayouts } from "./demo";
 import { LiveWorkspace, useLiveStore } from "./LiveWorkspace";

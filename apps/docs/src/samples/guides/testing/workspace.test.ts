@@ -1,29 +1,18 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vite-plus/test";
-import { createJali, memoryLocation, memoryStorage, type Jali } from "@jali/core";
-import { storeOf } from "@jali/core/adapter";
+import type { Jali } from "jali";
+import { createTestJali, reportUnsaved, type TestLocation } from "jali/testing";
 import { orderKind, orderKinds } from "../pane-kinds/orders";
 import { presets } from "../presets/layouts";
 
 /** A workspace with nothing shared: its own address, its own storage, a fixed size, no DOM focus. */
-function testJali(search = "", size = { width: 1440, height: 900 }) {
-  const location = memoryLocation(search);
-  const jali = createJali({
-    panes: orderKinds,
-    presets,
-    preset: "triage",
-    url: { location },
-    storage: memoryStorage(),
-    size,
-    moveFocus: false,
-  });
-  return { jali, location };
-}
+const testJali = (search = "", size = { width: 1440, height: 900 }) =>
+  createTestJali({ panes: orderKinds, presets, preset: "triage", search, size });
 
 const ids = (jali: Jali) => jali.model().panes.map((p) => p.id);
 
 describe("the orders workspace", () => {
   let jali: Jali;
-  let location: ReturnType<typeof memoryLocation>;
+  let location: TestLocation;
   beforeEach(() => ({ jali, location } = testJali()));
   afterEach(() => vi.useRealTimers());
 
@@ -36,8 +25,8 @@ describe("the orders workspace", () => {
 
   it("says why a close did not happen", () => {
     expect(jali.actions.close("invoices")).toEqual({ ok: false, reason: "not-found" });
-    // What useUnsaved reports from a rendered pane, reported by hand (the engine's own step).
-    storeOf(jali).actions.setUnsaved("order", "an unsaved note");
+    // What useUnsaved reports from a rendered pane, reported by hand.
+    reportUnsaved(jali, "order", "an unsaved note");
     expect(jali.actions.close("order")).toMatchObject({ ok: false, reason: "unsaved" });
     expect(ids(jali)).toContain("order");
   });

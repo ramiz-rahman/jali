@@ -1,5 +1,5 @@
-import { keyHint } from "@jali/core";
-import { definePane, useCommands, usePaneState, useUnsaved, type PaneProps } from "@jali/react";
+import { keyHint } from "jali";
+import { definePane, useCommands, usePaneState, useUnsaved, type PaneProps } from "jali/react";
 import { NotePencilIcon } from "@phosphor-icons/react";
 
 // Your own save, for example a fetch to your API.

@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { keyHint } from "@jali/core";
-import { definePane, useCommands, usePaneState, useUnsaved, type PaneProps } from "@jali/react";
+import { keyHint } from "jali";
+import { definePane, useCommands, usePaneState, useUnsaved, type PaneProps } from "jali/react";
 import { noteBody, saveNote } from "./data";
 
 const noteParams = { id: Number };

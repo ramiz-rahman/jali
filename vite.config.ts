@@ -17,7 +17,7 @@ export default defineConfig({
   fmt: {
     ignorePatterns: [
       "**/*.mdx",
-      "packages/core/docs/**",
+      "packages/jali/docs/**",
       // Data kept exactly as fetched or generated: licence metadata, session transcripts, audio check reports.
       "examples/studio/licenses/**",
       "examples/studio/src/sessions/data/**",

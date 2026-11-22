@@ -11,7 +11,7 @@ import {
   UserIcon,
   type Icon as PhosphorIcon,
 } from "@phosphor-icons/react";
-import { definePane, useJaliModel, useJaliState, type PaneProps } from "@jali/react";
+import { definePane, useJaliModel, useJaliState, type PaneProps } from "jali/react";
 import {
   activity,
   customerById,

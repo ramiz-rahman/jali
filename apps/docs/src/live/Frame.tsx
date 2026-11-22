@@ -9,7 +9,7 @@ import {
   type PointerEvent,
 } from "react";
 import { ArrowCounterClockwiseIcon, ArrowsInLineHorizontalIcon } from "@phosphor-icons/react";
-import { GAP as JALI_GAP, layout as jl, type Layout, type JaliStore } from "@jali/core/adapter";
+import { GAP as JALI_GAP, layout as jl, type Layout, type JaliStore } from "jali/adapter";
 import type { DemoLayoutId } from "./demo";
 import { demoLayouts } from "./demo";
 import { LiveWorkspace, resetLive, useLiveStore } from "./LiveWorkspace";

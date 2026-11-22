@@ -1,4 +1,4 @@
-import { formatKeys, keyHint } from "@jali/core";
+import { formatKeys, keyHint } from "jali";
 import { store } from "./store";
 
 keyHint("Alt+Enter", "mac"); // "⌥↵"

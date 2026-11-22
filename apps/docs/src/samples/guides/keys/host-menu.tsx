@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useJaliCommands } from "@jali/react";
+import { useJaliCommands } from "jali/react";
 
 /**
  * Jali's commands inside your app's own command menu. This is a plain list; with cmdk, each entry becomes a

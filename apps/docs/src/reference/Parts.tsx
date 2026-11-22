@@ -1,5 +1,5 @@
 /**
- * The styling contract, from @jali/react itself (packages/react/src/parts.ts): every public part, its selector, what
+ * The styling contract, from jali/react itself (packages/react/src/parts.ts): every public part, its selector, what
  * it is, and the state attributes it carries.
  */
 import type { ReactNode } from "react";
