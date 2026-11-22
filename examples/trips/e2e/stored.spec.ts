@@ -6,7 +6,7 @@
 import { expect, test, type Page } from "@playwright/test";
 
 const PLAN = "trips:plan:v2";
-const PANE_STATE = "trips-thailand:pane-state";
+const PANE_STATE = "trips-thailand:pane-state@2";
 
 const pane = (page: Page, id: string) => page.locator(`.jali-pane[data-pane="${id}"]`);
 const layout = (page: Page, name: string) =>
@@ -105,7 +105,17 @@ async function damagePaneState(page: Page) {
   // Jali saves pane state a moment after it changes.
   const stored = () =>
     page.evaluate(
-      (k) => JSON.parse(localStorage.getItem(k) ?? "{}") as Record<string, Record<string, unknown>>,
+      // One record per pane (`pane-state@2`): each pane's values beside the object they belong to.
+      (k) =>
+        Object.fromEntries(
+          Object.entries(
+            (
+              JSON.parse(localStorage.getItem(k) ?? "{}") as {
+                panes?: Record<string, { values: Record<string, unknown> }>;
+              }
+            ).panes ?? {},
+          ).map(([id, r]) => [id, r.values]),
+        ),
       PANE_STATE,
     );
   // Jali saves 400 ms after the last change: two reads 500 ms apart that agree mean nothing is waiting.
@@ -123,6 +133,13 @@ async function damagePaneState(page: Page) {
     .toBe(true);
   // A number for a cursor or a view, a half-filter, a filter from another city, a list, a flag.
   const values = [42, { city: "lisbon" }, ["day"], { within: "far" }, true];
+  // The records as stored, so the damaged values keep each pane's object beside them.
+  const raw = await page.evaluate((k) => localStorage.getItem(k) ?? "{}", PANE_STATE);
+  const withValues = (d: Record<string, unknown>) => {
+    const r = JSON.parse(raw) as { panes: Record<string, { values: unknown }> };
+    for (const [id, values] of Object.entries(d)) r.panes[id]!.values = values;
+    return r;
+  };
   const damaged = Object.fromEntries(
     Object.entries(await stored()).map(([id, s], i) => [
       id,
@@ -133,7 +150,7 @@ async function damagePaneState(page: Page) {
   // (pagehide), which would write over it.
   await page.addInitScript(({ k, v }) => localStorage.setItem(k, v), {
     k: PANE_STATE,
-    v: JSON.stringify(damaged),
+    v: JSON.stringify(withValues(damaged)),
   });
   await page.reload();
 }

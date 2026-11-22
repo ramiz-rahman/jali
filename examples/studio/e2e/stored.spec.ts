@@ -6,7 +6,7 @@
 import { expect, test, type Page } from "@playwright/test";
 
 const SESSION = "apollo11-landing";
-const PANE_STATE = "studio:pane-state";
+const PANE_STATE = "studio:pane-state@2";
 
 const layout = (page: Page, name: string) =>
   page.getByRole("navigation", { name: "Layouts" }).getByRole("button", { name });
@@ -106,12 +106,29 @@ test("damaged pane state gives each pane its own defaults", async ({ page }) => 
   // Jali saves pane state a moment after it changes.
   const stored = () =>
     page.evaluate(
-      (k) => JSON.parse(localStorage.getItem(k) ?? "{}") as Record<string, Record<string, unknown>>,
+      // One record per pane (`pane-state@2`): each pane's values beside the object they belong to.
+      (k) =>
+        Object.fromEntries(
+          Object.entries(
+            (
+              JSON.parse(localStorage.getItem(k) ?? "{}") as {
+                panes?: Record<string, { values: Record<string, unknown> }>;
+              }
+            ).panes ?? {},
+          ).map(([id, r]) => [id, r.values]),
+        ),
       PANE_STATE,
     );
   await expect.poll(async () => Object.keys(await stored()).length).toBeGreaterThan(0);
   // Every value the wrong shape: a number for a cursor, a list for a draft, text for a flag.
   const values = [42, ["s01"], "yes", { s01: 7 }];
+  // The records as stored, so the damaged values keep each pane's object beside them.
+  const raw = await page.evaluate((k) => localStorage.getItem(k) ?? "{}", PANE_STATE);
+  const withValues = (d: Record<string, unknown>) => {
+    const r = JSON.parse(raw) as { panes: Record<string, { values: unknown }> };
+    for (const [id, values] of Object.entries(d)) r.panes[id]!.values = values;
+    return r;
+  };
   const damaged = Object.fromEntries(
     Object.entries(await stored()).map(([id, s], i) => [
       id,
@@ -127,7 +144,7 @@ test("damaged pane state gives each pane its own defaults", async ({ page }) => 
   );
   await page.evaluate(({ k, v }) => localStorage.setItem(k, v), {
     k: PANE_STATE,
-    v: JSON.stringify(damaged),
+    v: JSON.stringify(withValues(damaged)),
   });
   await page.reload();
   // The line from nowhere is no unsaved work.
