@@ -163,12 +163,7 @@ export { DEFAULT_BUTTONS, buttonsOf, type ButtonsState } from "./pane/buttons";
 export type { Draft, PaneDraft, SplitDraft, TabsDraft } from "./layout/build";
 
 // ---------- commands and keys ----------
-export {
-  commandById,
-  commandDefsOf,
-  revealFromShelf,
-  type CommandDef,
-} from "./commands/registry";
+export { commandById, commandDefsOf, revealFromShelf, type CommandDef } from "./commands/registry";
 
 // ---------- features: what one can bring, and the framework-free halves of Jali's ----------
 export {
