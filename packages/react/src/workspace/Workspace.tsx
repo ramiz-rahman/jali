@@ -21,6 +21,7 @@ import { PaneSwitcher } from "../chrome/PaneSwitcher";
 import { Peek } from "../chrome/Peek";
 import { DividerLayer } from "../dividers/DividerLayer";
 import { PaneFrame } from "../pane/PaneFrame";
+import { ContentHosts, PaneContent, useContentHosts } from "../pane/content";
 import { Strip, useFocusIntoStrip } from "./Scroller";
 import type { UiStore } from "@jali/core/adapter";
 import { useGeometry, useModelValue, useStore, useUi } from "../state/react";
@@ -311,6 +312,7 @@ export function Panes() {
   // A curated page's ⌥ preview, which its parts bring (definePage).
   const Ghost = store.env.profile?.[PAGE_PARTS]?.Ghost;
   const sliding = useReshapeMotion(useUi((s) => s.reshapes));
+  const hydrated = useHydrated();
   const ref = useMeasure(store);
   const measured = area.width > 0;
   useSingleView(store, m, view, measured);
@@ -363,92 +365,106 @@ export function Panes() {
     { x: inner.left, y: inner.top },
   );
   useFocusIntoStrip(store);
+  // Each pane's content, rendered once in this flat list whatever frame shows it (content.tsx). Not while hydrating
+  // a server's HTML, which has the content inside the frames.
+  const hosts = useContentHosts(store, useRef(hydrated).current);
+  useEffect(() => hosts.keep(new Set(placed.map((f) => f.node.id))));
 
   // A labelled region inside the host's page, or the page's main landmark when the host says Jali is the whole app.
   // Named by <JaliRoot aria-label>, a heading it points at, createJali({ label }), or Jali's own word.
   const Landmark = store.env.landmark === "main" ? "main" : "section";
+  const content = hosts.get
+    ? placed.map((f) => <PaneContent key={f.node.id} frame={f} at={hosts.get!(f.node.id)} />)
+    : null;
   const named = useWorkspaceLabel();
   const name = named.by ? undefined : (named.label ?? store.messages.workspace.label);
   useUniqueName(named.by ?? name!);
   return (
-    <Landmark
-      className={["jali-workspace", single && "is-single", sliding && !single && "is-reshaping"]
-        .filter(Boolean)
-        .join(" ")}
-      ref={ref}
-      aria-label={name}
-      aria-labelledby={named.by}
-      data-single={single ? "" : undefined}
-      data-stacked={stacked ? "" : undefined}
-      data-fold={stacked ? m.stacked?.hinge?.axis : undefined}
-      data-full-screen={fullScreen ? "" : undefined}
-      data-alone={alone ? "" : undefined}
-      data-zoomed={!single && view.zoomed ? "" : undefined}
-      data-page={page}
-    >
-      {single && !page ? (
-        <PaneSwitcher
-          panes={m.onScreen}
-          current={currentPane(m, view)}
-          inView={stacked && m.stacked ? [m.stacked.top, m.stacked.bottom] : undefined}
-        />
-      ) : null}
-      <div className="jali-workspace-inner" style={bleed}>
-        {placed
-          .filter((f) => !f.strip)
-          .map((f) => (
-            <PaneFrame
-              key={f.node.id}
-              frame={
-                alone && !f.hidden
-                  ? { ...f, rect: { x: 0, y: 0, width: bleed.width, height: bleed.height } }
-                  : f
-              }
-              chrome={chrome}
-              dropTarget={!single && dropTarget === f.node.id}
-            />
-          ))}
-        {single ? null : <DividerLayer />}
-        {/* Rows that scroll sideways: their panes and dividers inside an element the browser scrolls. */}
-        {single
-          ? null
-          : m.content.scrollers.map((s) => (
-              <Strip key={s.id} strip={s} zoomed={!!view.zoomed && s.paneIds.includes(view.zoomed)}>
-                {placed
-                  .filter((f) => f.strip === s.id)
-                  .map((f) => (
-                    <PaneFrame
-                      key={f.node.id}
-                      frame={f}
-                      chrome={chrome}
-                      dropTarget={dropTarget === f.node.id}
-                    />
-                  ))}
-                <DividerLayer strip={s} />
-              </Strip>
-            ))}
-        {stacked && m.stacked?.hinge ? <FoldLine hinge={m.stacked.hinge} origin={inner} /> : null}
-        {stacked && m.stacked && !m.stacked.hinge ? (
-          <StackDivider
-            m={m}
-            ratio={
-              stackRatio ??
-              stackShare(
-                m.env,
-                m.pane(m.stacked.top),
-                m.pane(m.stacked.bottom),
-                inner.height,
-                stackGap(store.env.spacing.gap),
-              )
-            }
-            setRatio={setStackRatio}
-            height={inner.height}
+    <ContentHosts.Provider value={hosts.get}>
+      <Landmark
+        className={["jali-workspace", single && "is-single", sliding && !single && "is-reshaping"]
+          .filter(Boolean)
+          .join(" ")}
+        ref={ref}
+        aria-label={name}
+        aria-labelledby={named.by}
+        data-single={single ? "" : undefined}
+        data-stacked={stacked ? "" : undefined}
+        data-fold={stacked ? m.stacked?.hinge?.axis : undefined}
+        data-full-screen={fullScreen ? "" : undefined}
+        data-alone={alone ? "" : undefined}
+        data-zoomed={!single && view.zoomed ? "" : undefined}
+        data-page={page}
+      >
+        {single && !page ? (
+          <PaneSwitcher
+            panes={m.onScreen}
+            current={currentPane(m, view)}
+            inView={stacked && m.stacked ? [m.stacked.top, m.stacked.bottom] : undefined}
           />
         ) : null}
-        {single ? null : <DragLayer m={m} />}
-        {Ghost && ghost && !single && !dragging ? <Ghost role={ghost} /> : null}
-        <Peek presentation={mode} />
-      </div>
-    </Landmark>
+        <div className="jali-workspace-inner" style={bleed}>
+          {placed
+            .filter((f) => !f.strip)
+            .map((f) => (
+              <PaneFrame
+                key={f.node.id}
+                frame={
+                  alone && !f.hidden
+                    ? { ...f, rect: { x: 0, y: 0, width: bleed.width, height: bleed.height } }
+                    : f
+                }
+                chrome={chrome}
+                dropTarget={!single && dropTarget === f.node.id}
+              />
+            ))}
+          {single ? null : <DividerLayer />}
+          {/* Rows that scroll sideways: their panes and dividers inside an element the browser scrolls. */}
+          {single
+            ? null
+            : m.content.scrollers.map((s) => (
+                <Strip
+                  key={s.id}
+                  strip={s}
+                  zoomed={!!view.zoomed && s.paneIds.includes(view.zoomed)}
+                >
+                  {placed
+                    .filter((f) => f.strip === s.id)
+                    .map((f) => (
+                      <PaneFrame
+                        key={f.node.id}
+                        frame={f}
+                        chrome={chrome}
+                        dropTarget={dropTarget === f.node.id}
+                      />
+                    ))}
+                  <DividerLayer strip={s} />
+                </Strip>
+              ))}
+          {stacked && m.stacked?.hinge ? <FoldLine hinge={m.stacked.hinge} origin={inner} /> : null}
+          {stacked && m.stacked && !m.stacked.hinge ? (
+            <StackDivider
+              m={m}
+              ratio={
+                stackRatio ??
+                stackShare(
+                  m.env,
+                  m.pane(m.stacked.top),
+                  m.pane(m.stacked.bottom),
+                  inner.height,
+                  stackGap(store.env.spacing.gap),
+                )
+              }
+              setRatio={setStackRatio}
+              height={inner.height}
+            />
+          ) : null}
+          {single ? null : <DragLayer m={m} />}
+          {Ghost && ghost && !single && !dragging ? <Ghost role={ghost} /> : null}
+          <Peek presentation={mode} />
+        </div>
+        {content}
+      </Landmark>
+    </ContentHosts.Provider>
   );
 }

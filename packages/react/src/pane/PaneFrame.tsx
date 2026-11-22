@@ -1,5 +1,14 @@
 import { own } from "@jali/core/adapter";
-import { memo, useMemo, useRef, useState, type CSSProperties, type SyntheticEvent } from "react";
+import {
+  memo,
+  useContext,
+  useMemo,
+  useRef,
+  useState,
+  type CSSProperties,
+  type SyntheticEvent,
+} from "react";
+import { ContentHosts } from "./content";
 import { TabMenu, type TabMenuAt } from "./TabMenu";
 import { createPortal } from "react-dom";
 import { bringBack, usePopOutTarget } from "./PopOut";
@@ -57,9 +66,13 @@ export const PaneFrame = /* @__PURE__ */ memo(
     const canRename = useCanRename();
     const coveredRef = useInert(covered);
     const isDragged = useUi((s) => s.dnd?.dragged === node.id);
-    const host = useMemo(() => paneHost(store, node.id), [store, node.id]);
+    // The pane's content and its lasting parts, when the workspace renders content once (content.tsx); else here.
+    const at = useContext(ContentHosts)?.(node.id);
+    const ownHost = useMemo(() => paneHost(store, node.id), [store, node.id]);
+    const host = at?.host ?? ownHost;
     // The content's own controls (useHeaderActions), and how far a narrow header has given way to keep its title.
-    const header = useMemo(createHeaderSlot, []);
+    const ownHeader = useMemo(createHeaderSlot, []);
+    const header = at?.header ?? ownHeader;
     const tools = useHasHeaderControls(header);
     const headerRef = useRef<HTMLDivElement>(null);
     const narrow = useNarrowHeader(headerRef, tools ? 2 : 1);
@@ -243,6 +256,8 @@ export const PaneFrame = /* @__PURE__ */ memo(
         {/* Its tab's panel, when it shows for a tab strip (APG tabs): the region stays on the section. */}
         <div
           className="jali-pane-content"
+          // The content's element moves in here: rendered once, elsewhere (content.tsx).
+          ref={at ? (el) => void (el && el.lastChild !== at.el && el.append(at.el)) : undefined}
           id={panelId(store.dom.id, node.id)}
           {...(group
             ? { role: "tabpanel", "aria-labelledby": tabId(store.dom.id, node.id) }
@@ -256,7 +271,7 @@ export const PaneFrame = /* @__PURE__ */ memo(
               </button>
             </div>
           ) : null}
-          {popTarget ? (
+          {at ? null : popTarget ? (
             createPortal(
               <div className="jali-pane-content-inner">
                 <PaneBody
