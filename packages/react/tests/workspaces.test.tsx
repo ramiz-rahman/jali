@@ -195,7 +195,7 @@ describe("startUi for one of several workspaces (9, 10, 11): StartOptions { keys
     for (const el of [document.documentElement, root, layer])
       expect(el.getAttribute("data-theme")).toBe("light");
   });
-  it("with pageTheme: false, or a data-theme the app gave the root, it writes none of its own", () => {
+  it("with pageTheme: false, or a data-theme the app gave the root, it writes none of its own (the app's reaches the dialogs)", () => {
     const s = make({ pageTheme: false });
     const { container, unmount } = render(<JaliRoot jali={s.jali} />);
     act(() => s.set({ settings: { ...s.get().settings, theme: "dark" } }));
@@ -207,7 +207,8 @@ describe("startUi for one of several workspaces (9, 10, 11): StartOptions { keys
     const r = render(<JaliRoot jali={t.jali} data-theme="light" />);
     act(() => t.set({ settings: { ...t.get().settings, theme: "dark" } }));
     expect(r.container.querySelector("[data-jali]")!.getAttribute("data-theme")).toBe("light");
-    expect(document.querySelector("[data-jali-layer]")!.hasAttribute("data-theme")).toBe(false);
+    // The app's own, carried to the dialogs (react-codex REACT-15), not Jali's resolved dark.
+    expect(document.querySelector("[data-jali-layer]")!.getAttribute("data-theme")).toBe("light");
   });
   it("root scopes its keys, and settings still save", () => {
     const a = make({ id: "a" }),

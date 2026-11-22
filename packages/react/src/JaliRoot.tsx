@@ -123,7 +123,15 @@ export function JaliRoot({
   const host = useFullScreenPane(store);
   const inside = (layer: ReactNode) => (host ? createPortal(layer, host) : layer);
   // The spacing the layout measures with, as --jali-gap and --jali-inset, so styles that read them agree with it.
+  // After the host's style: geometry was measured with them, so a style can't make the CSS disagree.
   const spacing = spacingVars(store.env.spacing) as CSSProperties;
+  // What the root's scope gives its panes, the dialog layer and the overlays get too (they render outside it): its
+  // direction, the host's data-theme and its --jali-* tokens.
+  const dir = store.env.dir ?? rest.dir;
+  const theme = (rest as Record<string, unknown>)["data-theme"] as string | undefined;
+  const tokens = Object.fromEntries(
+    Object.entries(rest.style ?? {}).filter(([k]) => k.startsWith("--jali-")),
+  ) as CSSProperties;
   // A heading's text, for the landmarks inside, read once the heading is in the page (and when it changes).
   const [heading, setHeading] = useState<string>();
   useEffect(() => {
@@ -145,8 +153,8 @@ export function JaliRoot({
       <LabelContext.Provider value={named}>
         <div
           {...rest}
-          style={{ ...spacing, ...rest.style }}
-          dir={store.env.dir ?? rest.dir}
+          style={{ ...rest.style, ...spacing }}
+          dir={dir}
           data-jali=""
           ref={store.dom.attach}
         >
@@ -159,9 +167,10 @@ export function JaliRoot({
         {inside(
           <div
             data-jali-layer=""
-            dir={store.env.dir}
+            dir={dir}
+            data-theme={theme}
             ref={store.dom.attachLayer}
-            style={{ ...spacing, display: "contents" }}
+            style={{ ...tokens, ...spacing, display: "contents" }}
           >
             <Guard onError={onError}>
               <Announcer />
@@ -180,7 +189,7 @@ export function JaliRoot({
           <div
             data-jali-overlays=""
             id={overlaysDomId(store.dom.id)}
-            dir={store.env.dir}
+            dir={dir}
             style={{ display: "contents" }}
           >
             {overlays}
