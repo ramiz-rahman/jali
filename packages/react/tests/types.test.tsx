@@ -20,6 +20,7 @@ import {
   type ObjectRef,
   type Ref,
   type RefOf,
+  type StandardSchemaV1,
   type Toast,
 } from "@jali/core";
 import {
@@ -216,5 +217,26 @@ describe("chrome of the app's own", () => {
     expectTypeOf(app).not.toBeAny();
     // A page's workspace renders in the same root.
     expectTypeOf(<JaliRoot jali={reviewing} />).not.toBeAny();
+  });
+});
+
+describe("params from a Standard Schema", () => {
+  // Shaped as Zod's, Valibot's and ArkType's schemas are: only `~standard` matters, and its inferred types.
+  const schemaOf = <O,>(): StandardSchemaV1<unknown, O> => ({
+    "~standard": { version: 1, vendor: "test", validate: (value) => ({ value: value as O }) },
+  });
+
+  it("types a kind's params, its refs and its component", () => {
+    const report = definePane("report", {
+      params: schemaOf<{ id: number; range?: string }>(),
+      title: ({ id }) => `Report ${id}`,
+      Component: ({ params }) => {
+        expectTypeOf(params).toEqualTypeOf<{ id: number; range?: string }>();
+        return null;
+      },
+    });
+    expectTypeOf(report({ id: 2 })).toEqualTypeOf<Ref<"report", { id: number; range?: string }>>();
+    // @ts-expect-error id is a number
+    report({ id: "2" });
   });
 });

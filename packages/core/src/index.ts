@@ -36,6 +36,7 @@ export type {
   ParamValue,
   ParamType,
   ParamTypes,
+  ParamsDeclaration,
   ParamsOf,
   OptionalParam,
   ParamOptions,
@@ -45,6 +46,7 @@ export type {
   FollowParams,
 } from "./pane-kinds";
 export { optional, oneOf, appOnly } from "./pane-kinds";
+export type { StandardSchemaV1 } from "./standard-schema";
 export type { RoleBase, ProfileBase, ViewMode, Preset, Env, ItemId, PhoneOptions } from "./profile";
 
 // ---------- the layout tree (pure: every operation returns a new layout) ----------

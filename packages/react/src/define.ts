@@ -28,7 +28,7 @@ import type {
   ParamProblem,
   Params,
   ParamsOf,
-  ParamTypes,
+  ParamsDeclaration,
   Env,
   ProfileBase,
   RoleBase,
@@ -45,8 +45,9 @@ import { pageParts, type PageParts } from "./chrome/PageBar";
 /** Where a page from `definePage` keeps its React parts (chrome/PageBar.tsx). */
 export const PAGE_PARTS: unique symbol = /* @__PURE__ */ Symbol.for("jali.react.page");
 
-/** `P` as params: a declaration (`{ id: Number }`) is read as `ParamsOf` it; params' own type stays as it is. */
-export type ParamsFrom<P> = [P] extends [ParamTypes] ? ParamsOf<P> : P;
+/** `P` as params: a declaration (`{ id: Number }`, or a Standard Schema) is read as `ParamsOf` it; params' own type
+ *  stays as it is. */
+export type ParamsFrom<P> = [P] extends [ParamsDeclaration] ? ParamsOf<P> : P;
 
 /** What a pane's component gets. `P` is its params' declaration (`PaneProps<typeof orderParams>`) or their type
  *  (`PaneProps<{ id: number }>`). */
@@ -124,7 +125,7 @@ export type ParamsOfPane<D> = D extends PaneDefinition<infer P, PaneKindBase, st
 
 export function definePane<
   const K extends string,
-  const T extends ParamTypes | undefined = undefined,
+  const T extends ParamsDeclaration | undefined = undefined,
 >(kind: K, options: PaneOptionsReact<ParamsOf<T>> & { params?: T }): Pane<ParamsOf<T>, K> {
   try {
     if (process.env.NODE_ENV !== "production") warnUnknown("definePane", options);

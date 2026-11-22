@@ -18,7 +18,8 @@ import { storeOf } from "./state/instance";
 import type { Layout, ObjectRef } from "./layout/types";
 import type { ActionResult } from "./state/apply";
 import type { AnyJali, DeepReadonly } from "./state/instance";
-import { checkRef, type OptionalParam, type ParamType } from "./pane-kinds";
+import { checkRef, type OptionalParam, type ParamType, type ParamsDeclaration } from "./pane-kinds";
+import { isStandardSchema } from "./standard-schema";
 import { own } from "./own";
 
 /** What each action an agent may use does, and its arguments, for the agent to read. */
@@ -190,6 +191,17 @@ const describeParam = (t: ParamType | OptionalParam): string => {
   return opt ? `${name}?` : name;
 };
 
+/** A kind's params, described one by one for the agent; a schema of the whole object is one entry, "params". */
+const paramEntries = (d: ParamsDeclaration | undefined): [string, string][] =>
+  !d
+    ? []
+    : isStandardSchema(d)
+      ? [["params", `an object (${d["~standard"].vendor} schema)`]]
+      : Object.entries(d as Record<string, ParamType | OptionalParam>).map(([n, t]) => [
+          n,
+          describeParam(t),
+        ]);
+
 const isRef = (v: unknown): v is ObjectRef =>
   !!v && typeof v === "object" && typeof (v as ObjectRef).kind === "string";
 
@@ -258,9 +270,7 @@ export function createAgent(jali: AnyJali, options: AgentOptions = {}): JaliAgen
       panes,
       kinds: Object.values(registry).map((k) => ({
         kind: k.kind,
-        params: Object.fromEntries(
-          Object.entries(kinds.get(k.kind)?.params ?? {}).map(([n, t]) => [n, describeParam(t)]),
-        ),
+        params: Object.fromEntries(paramEntries(kinds.get(k.kind)?.params)),
         minWidth: k.minWidth,
         ...(k.comfortableWidth !== undefined ? { comfortableWidth: k.comfortableWidth } : {}),
       })),

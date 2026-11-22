@@ -303,9 +303,27 @@ How to read one param back: `Number`, `String`, `Boolean`, <Ref to="oneOf" page=
 
 </Entry>
 
-<Entry name="ParamTypes" kind="type" from="jali" signature={`type ParamTypes = Record<string, ParamType | OptionalParam>`} compact>A kind's `params`.</Entry>
+<Entry name="ParamTypes" kind="type" from="jali" signature={`type ParamTypes = Record<string, ParamReader | OptionalParam>`} compact>A kind's `params`, one by one.</Entry>
 
-<Entry name="OptionalParam" kind="type" from="jali" signature={`interface OptionalParam<T extends ParamType = ParamType> { readonly optional: T; readonly link?: false }`} compact>
+<Entry name="ParamReader" kind="type" from="jali" signature={`type ParamReader = ParamType | StandardSchemaV1`} compact>
+
+How to read one param: one of Jali's (`Number`, `String`, `Boolean`, `oneOf(...)`, a function), or a Standard Schema of the value from any library that implements it (`z.number()`, `v.picklist([...])`). A schema whose output may be `undefined` (`v.optional(…)`) lets a ref leave the param out, as `optional` does.
+
+</Entry>
+
+<Entry name="ParamsDeclaration" kind="type" from="jali" signature={`type ParamsDeclaration = ParamTypes | StandardSchemaV1`} compact>
+
+What `params` takes: params one by one, or one Standard Schema of the whole object (`v.object({ id: v.number() })`). A schema decides what is valid, and its output is what the pane gets (`ParamsOf` infers it); Jali's codec still decides how values are written in a link, and a value a link carries as text is read as a number or a flag when the schema wants one. A value the schema refuses is a <Ref to="ParamProblem" />, as for Jali's own types. A schema must validate synchronously. `appOnly` and `link: false` are Jali's own: declare params one by one to use them.
+
+</Entry>
+
+<Entry name="StandardSchemaV1" kind="type" from="jali" signature={`interface StandardSchemaV1<Input = unknown, Output = Input> { readonly "~standard": StandardSchemaV1.Props<Input, Output> }`} compact>
+
+The [Standard Schema](https://standardschema.dev) interface that Zod, Valibot, ArkType and Effect Schema implement, copied into Jali as the spec asks, so Jali depends on none of them.
+
+</Entry>
+
+<Entry name="OptionalParam" kind="type" from="jali" signature={`interface OptionalParam<T extends ParamReader = ParamReader> { readonly optional: T; readonly link?: false }`} compact>
 
 A param a ref may leave out, made by <Ref to="optional" page="/reference/core" />. `link: false` when it stays out of the address.
 

@@ -5,6 +5,7 @@
 import type { KindRegistry, Layout, NodeId, ObjectRef, PaneKind, ViewState } from "./layout/types";
 import { map } from "./layout/tree/tree";
 import { own } from "./own";
+import { isStandardSchema, type StandardSchemaV1 } from "./standard-schema";
 
 declare const process: { env: { NODE_ENV?: string } };
 
@@ -40,8 +41,16 @@ export interface ParamOptions {
   link?: false;
 }
 
-/** A kind's `params`: how each is read, and whether a ref may leave it out. */
+/** A kind's `params`, one by one: how each is read, and whether a ref may leave it out. */
 export type ParamTypes = Record<string, ParamType | OptionalParam>;
+
+/**
+ * A kind's `params`: one by one with Jali's constructors (`{ id: Number, tab: optional(String) }`), or one Standard
+ * Schema of the whole object from any library that implements it (`v.object({ id: v.number() })`, `z.object(…)`). A schema decides
+ * what is valid, and its output is what the pane gets; Jali's codec still decides how values are written in a link.
+ * `appOnly` and `link: false` are Jali's: give params one by one to use them.
+ */
+export type ParamsDeclaration = ParamTypes | StandardSchemaV1<any, any>; // eslint-disable-line @typescript-eslint/no-explicit-any
 
 /**
  * A param a ref may leave out: `params: { id: Number, tab: optional(String) }` gives `{ id: number; tab?: string }`.
@@ -69,18 +78,26 @@ export function appOnly<T extends ParamType>(type: T): AppOnlyParam<T> {
 const isAppOnly = (t: ParamType | OptionalParam): boolean =>
   typeof t !== "function" && (t as Partial<AppOnlyParam>).appOnly === true;
 
+/** A declaration's params one by one; none for a schema of the whole object. */
+const oneByOne = (types: ParamsDeclaration | undefined) =>
+  isStandardSchema(types) ? undefined : (types as ParamTypes | undefined);
+
 /** The params of `types` that only the app sets (`appOnly`). */
-export const appOnlyParams = (types: ParamTypes | undefined): string[] =>
-  types ? Object.keys(types).filter((k) => isAppOnly(types[k]!)) : [];
+export const appOnlyParams = (declared: ParamsDeclaration | undefined): string[] => {
+  const types = oneByOne(declared);
+  return types ? Object.keys(types).filter((k) => isAppOnly(types[k]!)) : [];
+};
 
 /** The params of `types` kept out of the address but not out of what the pane shows (`link: false`). */
-export const unlinkedParams = (types: ParamTypes | undefined): string[] =>
-  types
+export const unlinkedParams = (declared: ParamsDeclaration | undefined): string[] => {
+  const types = oneByOne(declared);
+  return types
     ? Object.keys(types).filter((k) => {
         const t = types[k]!;
         return typeof t !== "function" && t.link === false && !isAppOnly(t);
       })
     : [];
+};
 
 /** `params` without those named in `drop`; the same object when it has none of them. */
 function without(params: Params, drop: readonly string[] | undefined): Params {
@@ -242,18 +259,23 @@ type OptionalKeys<T> = { [K in keyof T]: T[K] extends OptionalParam ? K : never 
 
 /**
  * The params a kind's code sees, from its `params`: `ParamsOf<{ id: NumberConstructor }>` is `{ id: number }`, and an
- * `optional(...)` param is optional. Without a declaration, params are plain values (`Params`).
+ * `optional(...)` param is optional. A Standard Schema of the whole object gives its output type.
+ * Without a declaration, params are plain values (`Params`).
  */
 export type ParamsOf<T> =
   IsAny<T> extends true
     ? any // eslint-disable-line @typescript-eslint/no-explicit-any
-    : [T] extends [ParamTypes]
-      ? { [K in RequiredKeys<T>]: ReadAs<T[K]> } & {
-          [K in OptionalKeys<T>]?: ReadAs<T[K]>;
-        } extends infer O
+    : [T] extends [StandardSchemaV1]
+      ? StandardSchemaV1.InferOutput<T> extends infer O
         ? { [K in keyof O]: O[K] }
         : never
-      : Params;
+      : [T] extends [ParamTypes]
+        ? { [K in RequiredKeys<T>]: ReadAs<T[K]> } & {
+            [K in OptionalKeys<T>]?: ReadAs<T[K]>;
+          } extends infer O
+          ? { [K in keyof O]: O[K] }
+          : never
+        : Params;
 
 /** A param a ref is missing (`value` undefined) or holds a value its type can't read. */
 export interface ParamProblem {
@@ -294,15 +316,41 @@ const typeOf = (t: ParamType | OptionalParam): { type: ParamType; optional: bool
   typeof t === "function" ? { type: t, optional: false } : { type: t.optional, optional: true };
 
 /**
+ * `params` through a schema of the whole object. Its output is what the pane gets; params it leaves out (a schema
+ * that strips unknown keys) pass through, as undeclared params do. Each issue is a problem with the param its path
+ * starts with.
+ */
+function parseWithSchema(
+  schema: StandardSchemaV1,
+  params: Params,
+): { params: Params; problems: ParamProblem[] } {
+  const r = schema["~standard"].validate(params);
+  // A schema that validates asynchronously can't read a link: a pane's params are read as it renders.
+  if (r instanceof Promise) return { params, problems: [{ param: "params" }] };
+  if (r.issues)
+    return {
+      params,
+      problems: r.issues.map((i) => {
+        const first = i.path?.[0];
+        const param = String((first as { key?: PropertyKey })?.key ?? first ?? "params");
+        const value = own(params, param);
+        return value === undefined ? { param } : { param, value };
+      }),
+    };
+  return { params: { ...params, ...(r.value as Params) }, problems: [] };
+}
+
+/**
  * `params` read with `types`: each declared param in its type. Params the kind does not declare pass through as they
  * are. `problems` lists each required param that is missing and each value its type can't read (kept as it was).
  */
 export function parseParams(
-  types: ParamTypes | undefined,
+  types: ParamsDeclaration | undefined,
   params: Params,
 ): { params: Params; problems: ParamProblem[] } {
   const problems: ParamProblem[] = [];
   if (!types) return { params, problems };
+  if (isStandardSchema(types)) return parseWithSchema(types, params);
   const out: Params = { ...params };
   for (const [key, declared] of Object.entries(types)) {
     const { type, optional } = typeOf(declared);
@@ -319,7 +367,7 @@ export function parseParams(
 }
 
 /** `params` read with `types` (see `parseParams`). */
-export function readParams(types: ParamTypes | undefined, params: Params): Params {
+export function readParams(types: ParamsDeclaration | undefined, params: Params): Params {
   return parseParams(types, params).params;
 }
 
@@ -407,10 +455,10 @@ export const DEFAULT_MIN_HEIGHT = 160;
 
 /** What an app says about a kind of pane, apart from how it renders. `P` is the type of its params. */
 export interface PaneOptions<P = Params> {
-  /** How to read each param back from a link: `{ id: Number, tab: optional(String) }`. A ref missing a required
-   *  param, or holding a value its type can't read, does not open: see the Pane kinds guide. Without `params`,
-   *  params are plain values. */
-  params?: ParamTypes;
+  /** How to read each param back from a link: `{ id: Number, tab: optional(String) }`, or a Standard Schema of the
+   *  whole object (`v.object({ id: v.number() })`). A ref missing a required param, or holding a value its type
+   *  can't read, does not open: see the Pane kinds guide. Without `params`, params are plain values. */
+  params?: ParamsDeclaration;
   /** The pane's title in its header, its tab and ⌘K. */
   title: string | ((params: P) => string);
   width?: PaneWidth;
