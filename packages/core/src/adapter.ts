@@ -79,10 +79,15 @@ export {
   ownedPaneState,
   ownedSelection,
   paneStateFor,
+  paneStateSync,
   savePaneState,
   selectionFor,
+  PANE_STATE_KEY,
+  PANE_STATE_MAX,
+  type HeldPaneState,
   type PaneOwners,
   type PaneStates,
+  type PaneStateSync,
 } from "./state/pane-state";
 export { loadPrefs, savePrefs, type PagePrefs } from "./state/page-prefs";
 

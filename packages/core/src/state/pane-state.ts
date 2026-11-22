@@ -13,8 +13,17 @@ export type PaneStates = Record<NodeId, Record<string, unknown>>;
 /** For each pane id, the object (`objectKey`) its records belong to. */
 export type PaneOwners = Record<NodeId, string>;
 
-const PANE_STATE_KEY = "pane-state";
-const PANE_STATE_OF_KEY = "pane-state-of";
+/**
+ * Where pane state is kept: one record per pane, `{ v: 2, panes: { [paneId]: { of, values, at } } }`. The object
+ * (`of`, `objectKey`) and the values are one record, so they can never disagree; `at` is when this record was written,
+ * for merging and for keeping the newest. A new key name, not only a new shape: a tab of a build from before 22 Nov
+ * 2026 writes the old keys, which this one never reads, so an old tab can't attach its values to a newer tab's objects.
+ */
+export const PANE_STATE_KEY = "pane-state@2";
+/** The two keys before 22 Nov 2026 (values, and the objects they belonged to): dropped, never read. */
+const OLD_KEYS = ["pane-state", "pane-state-of"];
+/** The most records kept: past it the oldest go, so a person's storage never fills with closed panes' state. */
+export const PANE_STATE_MAX = 200;
 
 /**
  * The object a ref shows, as text: its kind and identity (`kinds.identityOf`), or for a scratch kind its params.
@@ -33,74 +42,192 @@ export function objectKey(kinds: Pick<PaneKinds, "identityOf">, ref: ObjectRef):
   return JSON.stringify([ref.kind, identity ?? params]);
 }
 
-const records = (raw: string | null): Record<string, unknown> => {
+/** One pane's stored state: the object it belongs to, its values, and when it was written. */
+interface PaneRecord {
+  of: string;
+  values: Record<string, unknown>;
+  at: number;
+}
+type PaneRecords = Record<NodeId, PaneRecord>;
+
+const plain = (v: unknown): v is Record<string, unknown> =>
+  !!v && typeof v === "object" && !Array.isArray(v);
+
+/** The records stored, each checked: anything that isn't a record of an object, values and a time is left out. */
+function readRecords(storage: StoragePort): PaneRecords {
+  let v: unknown;
   try {
-    const v = JSON.parse(raw ?? "{}") as unknown;
-    return v && typeof v === "object" && !Array.isArray(v) ? (v as Record<string, unknown>) : {};
+    v = JSON.parse(storage.get(PANE_STATE_KEY) ?? "null");
   } catch {
     return {};
   }
-};
-
-const ownersFrom = (raw: string | null): PaneOwners =>
-  Object.fromEntries(
-    Object.entries(records(raw)).filter(([, of]) => typeof of === "string"),
-  ) as PaneOwners;
-
-// Only a pane's own record of values, for a pane whose object was saved with it: anything else is left out.
-const statesFrom = (raw: string | null, owners: PaneOwners): PaneStates =>
-  Object.fromEntries(
-    Object.entries(records(raw)).filter(
-      ([id, s]) => Object.hasOwn(owners, id) && !!s && typeof s === "object" && !Array.isArray(s),
+  if (!plain(v) || v.v !== 2 || !plain(v.panes)) return {};
+  // Own entries, defined (never assigned), so a `__proto__` entry is a pane id like any other.
+  return Object.fromEntries(
+    Object.entries(v.panes).filter(
+      ([, r]) =>
+        plain(r) &&
+        typeof r.of === "string" &&
+        plain(r.values) &&
+        typeof r.at === "number" &&
+        Number.isFinite(r.at),
     ),
-  ) as PaneStates;
+  ) as PaneRecords;
+}
+
+function writeRecords(storage: StoragePort, records: PaneRecords) {
+  const entries = Object.entries(records);
+  const kept =
+    entries.length > PANE_STATE_MAX
+      ? entries.sort(([, a], [, b]) => b.at - a.at).slice(0, PANE_STATE_MAX)
+      : entries;
+  storage.set(PANE_STATE_KEY, JSON.stringify({ v: 2, panes: Object.fromEntries(kept) }));
+}
+
+/** The old keys go: never read, so state saved by a build from before can't attach to the wrong object. */
+function dropOld(storage: StoragePort) {
+  for (const key of OLD_KEYS) {
+    const raw = storage.get(key);
+    if (raw === null) continue;
+    if (storage.remove) storage.remove(key);
+    else if (raw !== "{}") storage.set(key, "{}");
+  }
+}
+
+const valuesOf = (records: PaneRecords): PaneStates =>
+  Object.fromEntries(Object.entries(records).map(([id, r]) => [id, r.values]));
+const ownersOf = (records: PaneRecords): PaneOwners =>
+  Object.fromEntries(Object.entries(records).map(([id, r]) => [id, r.of]));
 
 /** Which object each pane's saved state belongs to. */
 export function loadPaneStateOwners(storage: StoragePort): PaneOwners {
-  return ownersFrom(storage.get(PANE_STATE_OF_KEY));
+  return ownersOf(readRecords(storage));
 }
 
-/** Saved pane state, only for panes whose object was saved with it: state that can't say what it was about is
- *  left out, so it never reattaches to whatever a reused id shows now. */
+/** Saved pane state: each pane's values, saved in one record with the object they belong to. */
 export function loadPaneState(storage: StoragePort): PaneStates {
-  return statesFrom(storage.get(PANE_STATE_KEY), loadPaneStateOwners(storage));
+  return valuesOf(readRecords(storage));
 }
 
 /**
- * Saved pane state and the objects it belongs to, as a workspace starts. What `loadPaneState` leaves out is taken out
- * of storage too, at once, so it is gone after one read: state saved before 20 Nov 2026 under a pane id alone (it
- * says nothing of the object it was about, so it can't be tied to one safely: DECISIONS, 21 Nov 2026), and anything
- * stored that isn't a pane's record of values. Nothing is written when storage holds nothing else.
+ * Save the state of the panes in `state` whose object `owners` names, over what is stored: other panes' records (a
+ * second tab's) are kept. State without an object is left out, so it never reattaches to whatever a reused id shows.
  */
-export function readPaneState(storage: StoragePort): {
+export const savePaneState = (storage: StoragePort, state: PaneStates, owners: PaneOwners = {}) => {
+  const records = readRecords(storage);
+  const at = Date.now();
+  for (const [id, values] of Object.entries(state)) {
+    const of = own(owners, id);
+    if (of !== undefined && plain(values)) records[id] = { of, values, at };
+  }
+  writeRecords(storage, records);
+};
+
+/** What `PaneStateSync` works on: the workspace's pane state, and where its panes are (the layout and Undo). */
+export interface HeldPaneState {
   paneState: PaneStates;
   paneStateOf: PaneOwners;
-} {
-  const rawState = storage.get(PANE_STATE_KEY),
-    rawOwners = storage.get(PANE_STATE_OF_KEY);
-  const owners = ownersFrom(rawOwners);
-  const paneState = statesFrom(rawState, owners);
-  const paneStateOf = Object.fromEntries(
-    Object.entries(owners).filter(([id]) => Object.hasOwn(paneState, id)),
-  ) as PaneOwners;
-  // Written back as savePaneState writes it, so what it wrote reads as unchanged.
-  if (
-    (rawState !== null && rawState !== JSON.stringify(paneState)) ||
-    (rawOwners !== null && rawOwners !== JSON.stringify(paneStateOf))
-  )
-    savePaneState(storage, paneState, paneStateOf);
-  return { paneState, paneStateOf };
 }
 
-export const savePaneState = (storage: StoragePort, state: PaneStates, owners: PaneOwners = {}) => {
-  storage.set(PANE_STATE_KEY, JSON.stringify(state));
-  storage.set(
-    PANE_STATE_OF_KEY,
-    JSON.stringify(
-      Object.fromEntries(Object.entries(owners).filter(([id]) => Object.hasOwn(state, id))),
-    ),
-  );
-};
+/**
+ * A workspace's pane state and its storage, kept in step. Each tab writes only what it changed (merging over what
+ * other tabs wrote since, so a second tab never erases the first one's drafts), never writes when it changed nothing,
+ * and takes in what other tabs write for the panes it shows (`merge`, on the storage port's `subscribe`).
+ */
+export interface PaneStateSync {
+  /** Saved pane state, as the workspace starts. The old keys are dropped. */
+  read(): HeldPaneState;
+  /** The workspace started with `s`: what of it came from storage is in step with it. */
+  adopt(s: HeldPaneState): void;
+  /** Write what changed since the last write: new and changed records, and records of panes gone for good that no
+   *  other tab has written since. True when something was written. */
+  flush(s: HeldPaneState): boolean;
+  /**
+   * What other tabs wrote: records for an object this workspace shows at that pane id (in `layouts`), where this
+   * workspace has no change of its own waiting. `patch` is the new pane state, if any; `resave`: another tab removed a
+   * record this one still holds, so it is written again.
+   */
+  merge(
+    s: HeldPaneState,
+    kinds: Pick<PaneKinds, "identityOf">,
+    layouts: readonly Layout[],
+  ): { patch?: HeldPaneState; resave: boolean };
+}
+
+export function paneStateSync(storage: StoragePort): PaneStateSync {
+  /** The records this workspace and storage agree on, as last read or written. */
+  const synced = new Map<NodeId, PaneRecord>();
+  let initial: PaneRecords = {};
+  let last = 0;
+  const now = () => (last = Math.max(Date.now(), last + 1));
+  const inStep = (s: HeldPaneState, id: NodeId, r: PaneRecord | undefined) =>
+    !!r && own(s.paneState, id) === r.values && own(s.paneStateOf, id) === r.of;
+  return {
+    read() {
+      dropOld(storage);
+      const raw = storage.get(PANE_STATE_KEY);
+      initial = readRecords(storage);
+      // What isn't a record is taken out of storage at once.
+      if (raw !== null && raw !== JSON.stringify({ v: 2, panes: initial }))
+        writeRecords(storage, initial);
+      return { paneState: valuesOf(initial), paneStateOf: ownersOf(initial) };
+    },
+    adopt(s) {
+      for (const [id, r] of Object.entries(initial)) if (inStep(s, id, r)) synced.set(id, r);
+      initial = {};
+    },
+    flush(s) {
+      let records: PaneRecords | undefined;
+      const load = () => (records ??= readRecords(storage));
+      for (const [id, values] of Object.entries(s.paneState)) {
+        const of = own(s.paneStateOf, id);
+        if (of === undefined || inStep(s, id, synced.get(id))) continue;
+        const r = { of, values, at: now() };
+        load()[id] = r;
+        synced.set(id, r);
+      }
+      for (const [id, was] of [...synced]) {
+        if (Object.hasOwn(s.paneState, id)) continue;
+        synced.delete(id);
+        // Gone here: removed from storage only if no other tab has written it since.
+        const r = own(load(), id);
+        if (r && r.at === was.at && r.of === was.of) delete records![id];
+      }
+      if (!records) return false;
+      writeRecords(storage, records);
+      return true;
+    },
+    merge(s, kinds, layouts) {
+      const records = readRecords(storage);
+      const shown = new Map<NodeId, Set<string>>();
+      for (const l of layouts)
+        for (const p of core.tree.panes(l.root)) {
+          let keys = shown.get(p.id);
+          if (!keys) shown.set(p.id, (keys = new Set()));
+          keys.add(objectKey(kinds, p.ref));
+        }
+      let paneState = s.paneState,
+        paneStateOf = s.paneStateOf,
+        resave = false;
+      for (const [id, r] of Object.entries(records)) {
+        const was = synced.get(id);
+        if (was && was.at === r.at && was.of === r.of) continue;
+        // A change of this workspace's own, still to be written, wins: it is the newer.
+        const mine = Object.hasOwn(s.paneState, id) && !inStep(s, id, was);
+        if (mine || !shown.get(id)?.has(r.of)) continue;
+        paneState = { ...paneState, [id]: r.values };
+        paneStateOf = { ...paneStateOf, [id]: r.of };
+        synced.set(id, r);
+      }
+      for (const id of [...synced.keys()])
+        if (!Object.hasOwn(records, id)) {
+          synced.delete(id);
+          if (Object.hasOwn(s.paneState, id)) resave = true;
+        }
+      return paneState === s.paneState ? { resave } : { patch: { paneState, paneStateOf }, resave };
+    },
+  };
+}
 
 /** Pane `id`'s own state while it shows `ref`, or undefined when what is kept under its id is another object's. */
 export function paneStateFor(

@@ -5,7 +5,7 @@
  */
 import { afterEach, describe, expect, it, vi } from "vite-plus/test";
 import { createJali, memoryLocation, memoryStorage, pane, row, type JaliOptions } from "@jali/core";
-import { storeOf } from "@jali/core/adapter";
+import { loadPaneState, storeOf } from "@jali/core/adapter";
 import { FOLLOW_MS } from "../../core/src/actions/follow";
 import { definePane } from "@jali/react";
 
@@ -77,7 +77,7 @@ describe("jali.destroy()", () => {
       storeOf(jali).actions.setPaneState("detail", "scroll", 240);
       if (end === "destroy") jali.destroy();
       else stop();
-      expect(JSON.parse(storage.get("pane-state") ?? "{}")).toEqual({ detail: { scroll: 240 } });
+      expect(loadPaneState(storage)).toEqual({ detail: { scroll: 240 } });
       jali.destroy();
     }
   });
@@ -91,21 +91,19 @@ describe("jali.destroy()", () => {
         const stop = jali.start();
         storeOf(jali).actions.setPaneState("detail", "draft", "Dear");
         // Typed just now: the 400 ms save hasn't run.
-        expect(storage.get("pane-state")).toBeNull();
+        expect(storage.get("pane-state@2")).toBeNull();
         if (leave === "pagehide") window.dispatchEvent(new Event("pagehide"));
         else {
           // Shown again first: nothing to save yet is no reason to save.
           document.dispatchEvent(new Event("visibilitychange"));
-          expect(storage.get("pane-state")).toBeNull();
+          expect(storage.get("pane-state@2")).toBeNull();
           Object.defineProperty(document, "visibilityState", {
             value: "hidden",
             configurable: true,
           });
           document.dispatchEvent(new Event("visibilitychange"));
         }
-        expect(JSON.parse(storage.get("pane-state") ?? "{}")).toEqual({
-          detail: { draft: "Dear" },
-        });
+        expect(loadPaneState(storage)).toEqual({ detail: { draft: "Dear" } });
         stop();
         jali.destroy();
       }

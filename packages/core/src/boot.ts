@@ -10,7 +10,7 @@ import { applyTheme, resolveTheme, saveSettings, watchSystemTheme } from "./stat
 import type { ConfirmState, UiStore } from "./state/store";
 import { applyTokens } from "./tokens";
 import { savePrefs } from "./state/page-prefs";
-import { ownedPaneState, ownedSelection, savePaneState } from "./state/pane-state";
+import { ownedPaneState, ownedSelection, PANE_STATE_KEY } from "./state/pane-state";
 import { arrive, readLayout } from "./actions/layout";
 import { agreeOnArrival } from "./actions/follow";
 import { DONE, refuse, type ActionResult, type Outcome, type Snapshot } from "./state/apply";
@@ -87,13 +87,16 @@ export function boot(store: UiStore, url?: UrlSync) {
       ? { view: { ...s.view, focused: first, focusHistory: [first] } }
       : {}),
   });
+  // What came from storage and the arriving layout shows is in step with storage; the rest stays there, untouched
+  // (another tab's panes), and is never written over by this one.
+  store.paneStates.adopt(store.get());
   store.writeUrl("replace");
 }
 
-/** Save pane state (and the objects it belongs to) now. */
+/** Save pane state (and the objects it belongs to) now: what changed since the last save, over what other tabs saved
+ *  meanwhile. Nothing is written when nothing changed. */
 export function flushPaneState(store: UiStore) {
-  const s = store.get();
-  savePaneState(store.storage, s.paneState, s.paneStateOf);
+  store.paneStates.flush(store.get());
 }
 
 /** What `startUi` takes over: keys (all of the page's, or only the workspace's), and the page's theme. */
@@ -167,6 +170,18 @@ export function startUi(
   window.addEventListener("pagehide", saveNow);
   document.addEventListener("visibilitychange", onHidden);
   const offTheme = watchSystemTheme((systemDark) => store.set({ systemDark }));
+  // Pane state another tab saved, for an object this one shows under that pane id, comes in (a draft typed there
+  // shows here); a record another tab took out that this one still holds is saved again.
+  const offShared =
+    store.storage.subscribe?.(PANE_STATE_KEY, () => {
+      const s = store.get();
+      const { patch, resave } = store.paneStates.merge(s, store.env.kinds, [
+        s.layout,
+        ...s.undoStack.map((e) => e.before.layout),
+      ]);
+      if (patch) store.set(patch);
+      if (resave) saveSoon();
+    }) ?? (() => {});
   const offKeys = installKeyboard(store, keys);
   // Back and Forward. One that waits for an answer (the host's beforeClose, or "Discard unsaved changes?") keeps
   // its navigation with the question: if the layout doesn't change in the end, the address goes back to what is on
@@ -201,6 +216,7 @@ export function startUi(
     nav++;
     offStore();
     offTheme();
+    offShared();
     offKeys();
     offPop();
     // Pane state still waiting to be saved is saved now, not dropped.

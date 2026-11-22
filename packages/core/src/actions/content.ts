@@ -1,5 +1,5 @@
 /** What a pane's content reports to the workspace: unsaved work, its ⌘K commands and its own state. */
-import type { NodeId } from "../layout/types";
+import type { NodeId, ObjectRef } from "../layout/types";
 import {
   mostPressing,
   type PaneActivity,
@@ -215,16 +215,20 @@ const sameAttributes = (a: PaneAttributes | undefined, b: PaneAttributes | undef
     Object.entries(a).every(([k, v]) => b[k as keyof PaneAttributes] === v));
 
 /** One value of a pane's own state. JSON only: it is saved with the person's settings. It belongs to the object the
- *  pane shows: state kept under the id for another object (one an undo could bring back) is replaced. */
+ *  pane shows: state kept under the id for another object (one an undo could bring back) is replaced. `ref`: the
+ *  object the writer saw the pane show. If the pane shows another one now (a setter kept from before `openHere`, a
+ *  delayed callback), the value is dropped, never written into the new object's state. */
 export function setPaneState(
   { s, m, env }: Snapshot,
   id: NodeId,
   key: string,
   value: unknown,
+  ref?: ObjectRef,
 ): Outcome {
   const p = m.pane(id);
   if (!p) return null;
   const of = objectKey(env.kinds, p.ref);
+  if (ref && objectKey(env.kinds, ref) !== of) return null;
   const mine = paneStateFor(s, env.kinds, id, p.ref);
   if (mine && Object.is(own(mine, key), value)) return null;
   return {

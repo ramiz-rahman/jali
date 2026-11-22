@@ -83,9 +83,15 @@ export function memoryLocation(
 export interface StoragePort {
   get(key: string): string | null;
   set(key: string, value: string): void;
+  /** Take `key` out of storage. Optional: without it, Jali writes an empty value over a key it no longer uses. */
+  remove?(key: string): void;
+  /** Hear `key` change by another means than this port's `set` (another tab, with localStorage). Optional: without
+   *  it, a workspace learns what other tabs saved when it next starts. Returns the unsubscribe. */
+  subscribe?(key: string, fn: () => void): () => void;
 }
 
-/** localStorage under `prefix`. Reads and writes never throw: private mode or blocked storage just saves nothing. */
+/** localStorage under `prefix`. Reads and writes never throw: private mode or blocked storage just saves nothing.
+ *  Other tabs' writes are heard through the `storage` event. */
 export function browserStorage(prefix: string): StoragePort {
   return {
     get(key) {
@@ -102,10 +108,45 @@ export function browserStorage(prefix: string): StoragePort {
         /* nothing saved */
       }
     },
+    remove(key) {
+      try {
+        localStorage.removeItem(`${prefix}:${key}`);
+      } catch {
+        /* nothing removed */
+      }
+    },
+    subscribe(key, fn) {
+      if (typeof window === "undefined") return () => {};
+      const on = (e: StorageEvent) => {
+        // `key` null: another tab cleared storage.
+        if (e.key === null || e.key === `${prefix}:${key}`) fn();
+      };
+      window.addEventListener("storage", on);
+      return () => window.removeEventListener("storage", on);
+    },
   };
 }
 
+/** Storage in memory. Two workspaces given the same one share it as two tabs share localStorage: each hears the
+ *  other's writes (`subscribe`). */
 export function memoryStorage(initial: Record<string, string> = {}): StoragePort {
   const m = new Map(Object.entries(initial));
-  return { get: (k) => m.get(k) ?? null, set: (k, v) => void m.set(k, v) };
+  const fns = new Map<string, Set<() => void>>();
+  const tell = (k: string) => fns.get(k)?.forEach((fn) => fn());
+  return {
+    get: (k) => m.get(k) ?? null,
+    set: (k, v) => {
+      m.set(k, v);
+      tell(k);
+    },
+    remove: (k) => {
+      if (m.delete(k)) tell(k);
+    },
+    subscribe(k, fn) {
+      let set = fns.get(k);
+      if (!set) fns.set(k, (set = new Set()));
+      set.add(fn);
+      return () => set.delete(fn);
+    },
+  };
 }

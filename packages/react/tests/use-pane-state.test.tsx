@@ -115,3 +115,34 @@ describe("usePaneState", () => {
     expect(store.get().paneState.x?.filters).toEqual({ q: "braga", seed: 3 });
   });
 });
+
+describe("a setter kept after its pane shows another object (react-codex REACT-1)", () => {
+  let setDraft: (v: string) => void = () => {};
+  const doc = definePane("doc", {
+    params: { id: Number },
+    title: ({ id }) => `Doc ${id}`,
+    Component: () => {
+      const [, set] = usePaneState("draft", "");
+      setDraft = set;
+      return null;
+    },
+  });
+
+  it("writes nothing into the next object's state", () => {
+    const jali = createJali({
+      panes: [doc],
+      layout: row(pane(doc({ id: 1 }), { id: "d" })),
+      url: false,
+      storage: memoryStorage(),
+      size: { width: 1200, height: 600 },
+      moveFocus: false,
+    });
+    render(<JaliRoot jali={jali} />);
+    const stale = setDraft;
+    act(() => void jali.actions.openHere("d", doc({ id: 2 })));
+    act(() => stale("written for doc 1"));
+    expect(storeOf(jali).get().paneState.d).toBeUndefined();
+    act(() => setDraft("doc 2's own"));
+    expect(storeOf(jali).get().paneState.d).toEqual({ draft: "doc 2's own" });
+  });
+});

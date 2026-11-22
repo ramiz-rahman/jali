@@ -65,7 +65,7 @@ import { focusPane } from "../dom/focus";
 import { cssString, paneDomId } from "../dom/ids";
 import { noDom, type DomPort, type DragKind } from "../dom/port";
 import { pageDirection } from "../dom/direction";
-import { readPaneState } from "./pane-state";
+import { paneStateSync, type PaneStateSync } from "./pane-state";
 import { isDev } from "../dev";
 import { startUi } from "../boot";
 import {
@@ -327,6 +327,9 @@ export interface UiStore {
   /** Every word this workspace shows or says: English with `createJali({ messages })` over it. */
   messages: Messages;
   storage: StoragePort;
+  /** Pane state and its storage, kept in step (state/pane-state.ts): what this workspace changed is written over what
+   *  other tabs wrote, and what they write comes in. */
+  paneStates: PaneStateSync;
   /** The address to share, from the URL port. */
   href(): string;
   /** The URL writer this store was made with (`deps.url`). */
@@ -455,6 +458,7 @@ export function createUiStore(deps: UiStoreDeps): UiStore {
   const dom = createDom(deps.id ?? "jali");
   // The id is the prefix: two workspaces with their own ids never overwrite each other ("jali" stays "jali").
   const storage = deps.storage ?? browserStorage(deps.id ?? "jali");
+  const paneStates = paneStateSync(storage);
   if (DEV)
     for (const [i, p] of env.presets.entries())
       if (env.presets.findIndex((q) => q.id === p.id) !== i)
@@ -495,7 +499,7 @@ export function createUiStore(deps: UiStoreDeps): UiStore {
     titles: {},
     paneAttributes: {},
     paneReports: {},
-    ...readPaneState(storage),
+    ...paneStates.read(),
     selectionOf: {},
     ...deps.initial,
     // The layout given, once checked (`firstLayout`), or what took its place.
@@ -796,6 +800,7 @@ export function createUiStore(deps: UiStoreDeps): UiStore {
     dom,
     messages,
     storage,
+    paneStates,
     href: () => deps.url?.href?.() ?? (typeof location === "undefined" ? "" : location.href),
     url: deps.url,
     start() {

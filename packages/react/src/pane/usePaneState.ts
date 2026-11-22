@@ -69,13 +69,15 @@ export function usePaneState<T>(
       const prev = read(
         of !== null && own(s.paneStateOf, id) === of ? own(own(s.paneState, id), key) : undefined,
       );
+      // With the object this hook saw: a setter kept after the pane moved to another object writes nothing.
       store.actions.setPaneState(
         id,
         key,
         typeof next === "function" ? (next as (p: T) => T)(prev) : next,
+        ref,
       );
     },
-    [id, key, store, read, of],
+    [id, key, store, read, of, ref],
   );
   return [value, set];
 }

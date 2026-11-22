@@ -52,7 +52,7 @@ test.describe("Pane contract", () => {
     await expect(app.grid("query")).toBeVisible({ timeout: 20_000 });
     await sql(app).fill("SELECT 3 AS three");
     await expect
-      .poll(() => page.evaluate(() => localStorage.getItem("data-studio:pane-state") ?? ""))
+      .poll(() => page.evaluate(() => localStorage.getItem("data-studio:pane-state@2") ?? ""))
       .toContain("SELECT 3 AS three");
     await page.reload();
     await expect(sql(app)).toHaveValue("SELECT 3 AS three");
