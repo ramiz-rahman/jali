@@ -59,7 +59,7 @@ export async function render() {
       const link = (href) => {
         const m = /^(\/[^#?]*)(#.*)?$/.exec(href);
         // A page the docs don't have as Markdown (the home page, an example) keeps its site URL.
-        if (!m || !known.has(m[1])) return /^\//.test(href) ? `${SITE}${href}` : href;
+        if (!m || !known.has(m[1])) return href.startsWith("/") ? `${SITE}${href}` : href;
         return `${relative(here, fileOf(m[1])) || fileOf(m[1])}${m[2] ? `#${slug(m[2].slice(1))}` : ""}`;
       };
       const md = toMarkdown(page, { tables: MARKDOWN_TABLES, link }).replace(
