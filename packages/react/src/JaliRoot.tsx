@@ -37,7 +37,14 @@ import { IconsProvider } from "./icons/context";
 import { defaultIcons } from "./icons/default";
 import type { JaliIcon, JaliIcons } from "./icons/types";
 import { Guard } from "./chrome/Guard";
-import { StoreProvider, useDomScope, useStore, useJaliTheme, useUi } from "./state/react";
+import {
+  InstanceScope,
+  StoreProvider,
+  useDomScope,
+  useStore,
+  useJaliTheme,
+  useUi,
+} from "./state/react";
 import { Panes } from "./workspace/Workspace";
 import { PAGE_PARTS } from "./page-parts";
 import { overlaysDomId } from "./a11y/ModalDialog";
@@ -168,8 +175,10 @@ export function JaliRoot({
             style={{ ...tokens, ...spacing, display: "contents" }}
           >
             <Guard onError={onError}>
-              <Announcer />
-              <Dialogs settingsExtra={<Guard onError={onError}>{settingsExtra}</Guard>} />
+              <InstanceScope>
+                <Announcer />
+                <Dialogs settingsExtra={<Guard onError={onError}>{settingsExtra}</Guard>} />
+              </InstanceScope>
             </Guard>
           </div>,
         )}
@@ -325,5 +334,5 @@ export function JaliView() {
       /* no `process`: production */
     }
   }, [profile, Page]);
-  return open && Page ? <Page /> : <Panes />;
+  return <InstanceScope>{open && Page ? <Page /> : <Panes />}</InstanceScope>;
 }

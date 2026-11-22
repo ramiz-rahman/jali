@@ -19,7 +19,14 @@ import { Menu } from "../a11y/Menu";
 import { Activity, shelfActivity } from "../pane/Activity";
 import { KindIcon } from "../pane/icons";
 import { UnsavedMark } from "../pane/Unsaved";
-import { useActions, useEntriesOf, useMessages, useModelValue, useStore } from "../state/react";
+import {
+  InstanceScope,
+  useActions,
+  useEntriesOf,
+  useMessages,
+  useModelValue,
+  useStore,
+} from "../state/react";
 import { ICON } from "../icons/sized";
 import { useLandmarkName } from "../a11y/landmark";
 
@@ -38,6 +45,14 @@ function label(m: Model, it: ShelfEntry, a: PaneActivity | undefined) {
  */
 
 export function Shelf() {
+  return (
+    <InstanceScope>
+      <ShelfBar />
+    </InstanceScope>
+  );
+}
+
+function ShelfBar() {
   const icon = useJaliIcons();
   const store = useStore();
   const landmarkName = useLandmarkName();

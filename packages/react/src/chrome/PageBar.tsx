@@ -14,7 +14,16 @@ import {
   viewerLabel,
 } from "@jali/core/adapter";
 import { useRovingKeys } from "../a11y/roving";
-import { bold, Parts, useGeometry, useModel, useStore, useUi, useProfile } from "../state/react";
+import {
+  bold,
+  InstanceScope,
+  Parts,
+  useGeometry,
+  useModel,
+  useStore,
+  useUi,
+  useProfile,
+} from "../state/react";
 import { useKeymap } from "../state/hydrated";
 import { Panes } from "../workspace/Workspace";
 import { useLandmarkName } from "../a11y/landmark";
@@ -27,6 +36,14 @@ import { revealInList } from "./SwitcherItem";
  * links) with its way back, and Reset for the split layout. Which views are on screen is the tabs' job.
  */
 export function PageBar() {
+  return (
+    <InstanceScope>
+      <PageBarOf />
+    </InstanceScope>
+  );
+}
+
+function PageBarOf() {
   const icon = useJaliIcons();
   const page = useUi((s) => s.page);
   const linkMode = useUi((s) => s.linkMode);
@@ -237,6 +254,14 @@ function PageTabs() {
 
 /** The curated page: the queue at the left; the item's header, its tabs and the panes at the right. */
 export function CuratedPage() {
+  return (
+    <InstanceScope>
+      <CuratedPageOf />
+    </InstanceScope>
+  );
+}
+
+function CuratedPageOf() {
   const p = useProfile()!;
   const item = useUi((s) => s.page!.item);
   const store = useStore();

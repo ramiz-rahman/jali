@@ -83,6 +83,23 @@ export function StoreProvider({ store, children }: { store: JaliStore; children?
   return <StoreContext.Provider value={store}>{children}</StoreContext.Provider>;
 }
 
+/** A key per instance, for InstanceScope. */
+const instanceKeys = new WeakMap<JaliStore, string>();
+let instances = 0;
+
+/**
+ * One lifetime per instance for what Jali renders below it: given another instance (`<JaliRoot jali>` changed), its
+ * parts mount again, so no ref, state or effect of theirs carries the old instance's history into the new one. Every
+ * part of Jali's that a host can place (the view, the shelf, the page bar) and the dialog layer render inside one; the
+ * host's own children around them stay mounted.
+ */
+export function InstanceScope({ children }: { children?: ReactNode }) {
+  const store = useStore();
+  let key = instanceKeys.get(store);
+  if (!key) instanceKeys.set(store, (key = `jali-instance-${++instances}`));
+  return <Fragment key={key}>{children}</Fragment>;
+}
+
 /** An instance as React code sees it: its kinds have components, its page a rail and header (define.ts). */
 export type ReactJaliStore = JaliStore & { env: ReactEnv };
 

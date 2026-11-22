@@ -7,7 +7,7 @@
  * An instance that hydrates a server's HTML renders its content inside its frames, as the server did (a portal can't
  * be server rendered): there a frame that changes parent still remounts its content.
  */
-import { createContext, memo, useEffect, useMemo, useRef } from "react";
+import { createContext, memo, useMemo } from "react";
 import { createPortal } from "react-dom";
 import type { Frame, JaliStore } from "@jali/core/adapter";
 import { PaneBody, paneHost, type PaneHost } from "./PaneBody";
@@ -30,21 +30,15 @@ export const ContentHosts = /* @__PURE__ */ createContext<((id: string) => Conte
 /** Each instance's content hosts, by pane id: they go with the instance. */
 const hostsOf = new WeakMap<JaliStore, Map<string, ContentHost>>();
 
-/** The hosts of one instance, made as panes first render and dropped with the pane (`keep`). Another instance (the
- *  root given a new `jali`) gets hosts of its own, even for the same pane ids: an old host's listeners and what its
- *  content can ask act for the old instance, and a new element remounts the content, so its state starts over. */
+/** The hosts of one instance, made as panes first render and dropped with the pane (`keep`). Kept by the instance, not
+ *  the component, so the panes moving between the free layout and a curated page keep their content. Another instance
+ *  (the root given a new `jali`) has hosts of its own, even for the same pane ids, and mounts its panes afresh
+ *  (InstanceScope). */
 export function useContentHosts(store: JaliStore, on: boolean) {
   // The instance's own, not the component's: nothing changes while rendering, and a memo React might drop would
   // remount every pane's content.
   let all = hostsOf.get(store);
   if (!all) hostsOf.set(store, (all = new Map()));
-  // The old instance's elements leave the frames the new ones went into.
-  const was = useRef(all);
-  useEffect(() => {
-    if (was.current === all) return;
-    for (const h of was.current.values()) h.el.remove();
-    was.current = all;
-  }, [all]);
   const get = useMemo(
     () => (id: string) => {
       let h = all.get(id);

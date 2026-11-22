@@ -16,7 +16,7 @@ import {
 } from "vite-plus/test";
 import { act, cleanup, fireEvent, render } from "@testing-library/react";
 import { useState } from "react";
-import { createJali, memoryLocation, memoryStorage, pane, row } from "@jali/core";
+import { createJali, memoryLocation, memoryStorage, pane, row, tabs } from "@jali/core";
 import { JaliRoot, definePane, usePane } from "@jali/react";
 import { defaultFeatures, popOut, urlSync } from "./features";
 
@@ -133,6 +133,54 @@ describe("an instance's content hosts", () => {
     act(() => void fireEvent.pointerDown(counter(), { button: 0, isPrimary: true }));
     expect(j2.get().view.focused).toBe("a");
     expect(j1.get().view.focused).toBe("b");
+  });
+});
+
+describe("what the panes remember between renders", () => {
+  /** The panes' element measures `width`: what the layout reads (useMeasure), changed with a window resize. */
+  let width = 1200;
+  const sized = (["clientWidth", "clientHeight"] as const).map((prop) => {
+    const was = Object.getOwnPropertyDescriptor(HTMLElement.prototype, prop);
+    Object.defineProperty(HTMLElement.prototype, prop, {
+      configurable: true,
+      get(this: HTMLElement) {
+        return this.classList.contains("jali-layout") ? (prop === "clientWidth" ? width : 800) : 0;
+      },
+    });
+    return () => was && Object.defineProperty(HTMLElement.prototype, prop, was);
+  });
+  afterAll(() => sized.forEach((undo) => undo()));
+  const resize = (to: number) => {
+    width = to;
+    act(() => void window.dispatchEvent(new Event("resize")));
+  };
+  const tabbed = (active: "a" | "b") =>
+    createJali({
+      panes: [note],
+      layout: row(
+        tabs({ active }, pane(note({ n: 1 }), { id: "a" }), pane(note({ n: 2 }), { id: "b" })),
+        pane(note({ n: 3 }), { id: "c" }),
+      ),
+      features: [...defaultFeatures(), urlSync({ location: memoryLocation() })],
+      storage: memoryStorage(),
+      size: { width: 1200, height: 800 },
+      moveFocus: false,
+    });
+  /** The tab group's shown tab. */
+  const activeTab = (jali: ReturnType<typeof tabbed>) =>
+    (jali.model().layout.root as { children: readonly { active?: string }[] }).children[0]!.active;
+
+  it("starts over with a new instance: one pane at a time in the old one restores nothing in the new one", () => {
+    width = 1200;
+    const a = tabbed("a");
+    const b = tabbed("b");
+    const { rerender } = render(<JaliRoot jali={a} />);
+    resize(400);
+    expect(a.model().onePane).toBe(true);
+    width = 1200;
+    rerender(<JaliRoot jali={b} />);
+    expect(b.model().onePane).toBe(false);
+    expect(activeTab(b)).toBe("b");
   });
 });
 
