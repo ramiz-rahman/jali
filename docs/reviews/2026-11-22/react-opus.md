@@ -7,6 +7,7 @@ Repo: `review-93526af` (frozen, read-only). Every "verified" finding was reprodu
 @jali/react is already close to the bar on the hard parts. One external store with narrow `useSyncExternalStore` selectors, and render counts held by tests. A Suspense boundary and an error boundary per pane. SSR hydration tested on React 18 and 19. In-house APG primitives (roving row, modal dialog, menu) that are small and mostly correct. A real parts contract with tokens in `@layer jali`.
 
 What keeps it short of Radix, React Aria or TanStack is the React-specific layer:
+
 - Pane content remounts when its frame changes parent: a scrolling row flipping to single view, which is verified, and pop out.
 - `useJaliState` has no equality function, so the natural `s => ({…})` selector crashes the app (verified).
 - Host code in a header (`useHeaderActions`) sits outside every boundary, so one throw unmounts the whole workspace (verified).
@@ -18,7 +19,7 @@ None of these needs a rewrite. They need a stable host node per pane, selector e
 
 ## Target architecture: where it should differ from today
 
-1. **A persistent host node per pane, one flat keyed list.** `Panes` renders every `PaneFrame` as a sibling in one keyed list, whether the pane sits in a strip or not. A `Strip` positions frames and does not parent them; that means the strip's scrolling content becomes an overlay that frames are placed into by coordinates. Pop out *moves* the pane's existing content element into the floating window rather than rendering a second tree. Today two tree positions (`Workspace.tsx:368-400`) and two render branches in `PaneFrame.tsx:243-274` throw component state away.
+1. **A persistent host node per pane, one flat keyed list.** `Panes` renders every `PaneFrame` as a sibling in one keyed list, whether the pane sits in a strip or not. A `Strip` positions frames and does not parent them; that means the strip's scrolling content becomes an overlay that frames are placed into by coordinates. Pop out _moves_ the pane's existing content element into the floating window rather than rendering a second tree. Today two tree positions (`Workspace.tsx:368-400`) and two render branches in `PaneFrame.tsx:243-274` throw component state away.
 2. **Selector hooks with equality, for state and the model.** `useJaliState(select, isEqual = Object.is)`, `useJaliModel(select?, isEqual?)` and an exported `shallow`. These are the same shape as TanStack Store and Zustand's `useStoreWithEqualityFn`. The internal `useModelValue` and `useEntriesOf` already prove the pattern.
 3. **Boundaries around everything the host supplies.** The pane's boundary also wraps its header controls. `<JaliRoot>` gets one chrome boundary for the rest of the host's code: icons, `Rail`, `Header`, `settingsExtra`, kind `icon`. A chrome failure then degrades one pane or one part, never the workspace.
 4. **One root and opt-in modules instead of loose parts.** `<JaliRoot>` stays the only root. `Palette`, `SettingsPanel`, `Chooser`, `ConfirmDiscard`, `Announcer` and `Panes` become internal. Optional features arrive by import and are passed in, so they tree-shake: `<JaliRoot modules={[settings, chooser, popOut]}>`, or `createJali({ adapters })` through the `DomPort` that already exists. This is the same move `definePage` made for the curated page.
@@ -59,13 +60,14 @@ Severity: P0 is a bug, crash or a11y blocker; P1 is serious; P2 is before 1.0; P
 ### REACT-4 · P1 (a11y) · Two workspaces share DOM ids unless the host passes `id`, so `aria-labelledby` and `aria-controls` cross workspaces · verified · S–M
 
 **Evidence:** core defaults the DOM prefix to `"jali"` (`packages/core/src/create-jali.ts:76`, `state/store.ts:450`). React builds every id from it:
+
 - `paneDomId` and `paneTitleId` in `PaneFrame.tsx:112-117, 196`;
 - `aria-controls` in `TabStrip.tsx:239` and `SwitcherItem.tsx:47`;
 - the dialog ids in `ConfirmDiscard.tsx:33-37` and `Settings.tsx:38-41`.
 
 **Repro:** two `<JaliRoot>`s gave axe `duplicate-id` (`jali-pane-a`, `jali-pane-a-title`, …) and `landmark-unique: 2`. With `label` set on both, `landmark-unique` passes but `duplicate-id: 3` remains.
 
-**Consequence:** in the unnamed case, the second workspace's panes are labelled by the *first* workspace's titles, and its tabs control the first workspace's panes. That is a WCAG 4.1.2 failure in a default configuration. Storage and the address collide the same way, which is core's problem; only the DOM half is React's.
+**Consequence:** in the unnamed case, the second workspace's panes are labelled by the _first_ workspace's titles, and its tabs control the first workspace's panes. That is a WCAG 4.1.2 failure in a default configuration. Storage and the address collide the same way, which is core's problem; only the DOM half is React's.
 
 **Fix:** in `@jali/react`, keep a per-document registry of mounted roots. If another root already uses `store.dom.id`, scope the DOM ids with `useId()` through a new `store.dom.use(reactDom, { scope })`. Ids are never persisted, so this is safe. Also `console.error` in development: "two workspaces share id 'jali': pass createJali({ id, label })". Add an axe test with two default workspaces. See gap (a) below.
 
@@ -88,6 +90,7 @@ Severity: P0 is a bug, crash or a11y blocker; P1 is serious; P2 is before 1.0; P
 ### REACT-7 · P2 · Jali's buttons have no `type`, so inside a host `<form>` they submit it · verified · S
 
 **Evidence:** about 25 buttons, among them:
+
 - `HeaderActions.tsx:115, 133, 147, 167, 196, 223`
 - `TabStrip.tsx:286, 298, 362`
 - `Shelf.tsx:170, 194, 243, 264`
@@ -118,13 +121,14 @@ Severity: P0 is a bug, crash or a11y blocker; P1 is serious; P2 is before 1.0; P
 
 ### REACT-10 · P2 (a11y) · Tabs control a `region`, not a `tabpanel`, and the shown tab controls its own ancestor · read · S
 
-**Evidence:** `TabStrip.tsx:239` sets `aria-controls={paneDomId(...)}`, which is the pane's `<section role="region">` (`PaneFrame.tsx:110-117`). For the shown tab, that section *contains* the tablist. No element has `role="tabpanel"`, so the APG tabs pattern is incomplete: screen readers don't announce a panel for the tab, and "go to controlled element" lands on the header.
+**Evidence:** `TabStrip.tsx:239` sets `aria-controls={paneDomId(...)}`, which is the pane's `<section role="region">` (`PaneFrame.tsx:110-117`). For the shown tab, that section _contains_ the tablist. No element has `role="tabpanel"`, so the APG tabs pattern is incomplete: screen readers don't announce a panel for the tab, and "go to controlled element" lands on the header.
 
 **Fix:** when a frame has a group, give `.jali-pane-content` `role="tabpanel"`, an id, and `aria-labelledby` set to the shown tab's id. Point `aria-controls` there. The region and landmark stays on the section.
 
 ### REACT-11 · P2 · Pop out is not stable (gap b); four bugs on top of the known limits · verified · M–L
 
 These are verified with a fake `documentPictureInPicture` in jsdom:
+
 - **State is lost:** a counter at 2 reads 0 in the floating window. `PaneFrame.tsx:243-274` renders `PaneBody` in two different tree positions.
 - **Orphan window:** unmounting `<JaliRoot>` while popped out leaves the window open with stale DOM, and module `current` still points at a dead store (`PopOut.tsx:31-37, 155-161`). There is no cleanup on unmount or `destroy()`.
 - **The doc comment is false:** `popOut` rejects on a refused `requestWindow` (no user activation gave `NotAllowedError`, thrown). The comment says it "resolves `false` where the browser can't" (`PopOut.tsx:65-68, 84`). `reactPopOut.run` and `TabMenu`'s `void popOut(...)` (`TabMenu.tsx:41`) then leave an unhandled rejection.
@@ -135,6 +139,7 @@ The known limits remain: keys don't reach the window, and there is no way back f
 ### REACT-12 · P2 · The "compose your own" path is a second, weaker root · read · M
 
 **Evidence:** `index.ts`/`common.ts` export `JaliProvider`, `Panes`, `Palette`, `SettingsPanel`, `Chooser`, `ConfirmDiscard` and `Announcer` "to compose your own". The documented sample (`apps/docs/src/samples/reference/compose.tsx:12-25`) must import `storeOf` from `@jali/core/adapter` and call `dom.attach` itself. It then silently loses what `JaliRoot.tsx:87-135` does:
+
 - the dialog layer (`data-jali-layer` and `attachLayer`), so menus portal to `body` (`Menu.tsx:116`), scoped keys don't count the dialogs as inside, and `ModalDialog` inerts nothing correct;
 - `--jali-gap` and `--jali-inset`;
 - `dir`;
@@ -162,12 +167,14 @@ No example uses this path.
 ### REACT-15 · P2 · Ergonomics against TanStack: typed pane hooks, and events in React · read · S–M
 
 **Evidence:**
+
 - `usePane<P>()` is an unchecked cast (`pane/hooks.ts:36-38`). A component below the kind's restates the params type by hand.
 - Toasts are `jali.onToast` and every other event is `jali.on(...)`, so each app writes the same effect (`examples/*/src/shell/App.tsx`).
 - `useTheme` and `useShortcut` are unprefixed and collide with next-themes and MUI names in host code.
 - `keyBelongsToContent` is framework-free but lives in `@jali/react` (`keys.ts`).
 
 **Fix:**
+
 - `usePane(note)`, which takes the definition and infers `params`.
 - `useJaliEvent(name, handler)`, which takes the latest handler and unsubscribes on unmount, with toast as one of the events.
 - Rename to `useJaliTheme` and `useJaliShortcut` while pre-1.0 is the cheap time.
@@ -177,27 +184,27 @@ No example uses this path.
 
 **Measurement:** rolldown, pre-minify module sizes for the full `index.ts`. The largest are:
 
-| Module | Size (bytes) |
-| --- | --- |
-| `Workspace` | 13.2k |
-| `TabStrip` | 11.9k |
-| `PageBar` (already opt-in) | 10.0k |
-| `Shelf` (host-rendered, shaken if unused) | 8.3k |
-| `default-paths` | 8.2k |
-| `PaneFrame` | 8.1k |
-| `Scroller` | 7.9k |
-| `HeaderActions` | 6.2k |
+| Module                                    | Size (bytes) |
+| ----------------------------------------- | ------------ |
+| `Workspace`                               | 13.2k        |
+| `TabStrip`                                | 11.9k        |
+| `PageBar` (already opt-in)                | 10.0k        |
+| `Shelf` (host-rendered, shaken if unused) | 8.3k         |
+| `default-paths`                           | 8.2k         |
+| `PaneFrame`                               | 8.1k         |
+| `Scroller`                                | 7.9k         |
+| `HeaderActions`                           | 6.2k         |
 
 **Reached by the minimal app but opt-in by nature:**
 
-| Feature | Modules | Size (bytes) |
-| --- | --- | --- |
-| Settings, Chooser and ListDialog | `Settings` 4.7k, `Chooser` 4.1k, `ListDialog` 3.2k | ~12.0k |
-| Scroll rows | `Scroller` | 7.9k |
-| Pop out | `PopOut` | 4.3k |
-| Stacked phone view | `Stacked` | 3.5k |
-| Data-pressed | `pressed` | 3.2k |
-| Rename | `RenameField` | 2.7k |
+| Feature                          | Modules                                            | Size (bytes) |
+| -------------------------------- | -------------------------------------------------- | ------------ |
+| Settings, Chooser and ListDialog | `Settings` 4.7k, `Chooser` 4.1k, `ListDialog` 3.2k | ~12.0k       |
+| Scroll rows                      | `Scroller`                                         | 7.9k         |
+| Pop out                          | `PopOut`                                           | 4.3k         |
+| Stacked phone view               | `Stacked`                                          | 3.5k         |
+| Data-pressed                     | `pressed`                                          | 3.2k         |
+| Rename                           | `RenameField`                                      | 2.7k         |
 
 That is about 30k of roughly 130k pre-minify, or about 23%, which comes to about 5.5–6 KB gz.
 
@@ -210,6 +217,7 @@ That is about 30k of roughly 130k pre-minify, or about 23%, which comes to about
 **What is good:** 84 unit files; render-count tests; React 18 and 19 hydration; hostile input; a public-API snapshot; axe in e2e.
 
 **What is missing:**
+
 - REACT-1 (state across single ⇄ tiled and strip moves).
 - REACT-2.
 - A boundary test for chrome (REACT-3).
@@ -230,7 +238,8 @@ The e2e suite runs Chromium only (`playwright.config.ts:30`), while the README p
 ### REACT-19 · P3 · State is duplicated as `is-*` classes beside the public attributes · read · M
 
 **Evidence:**
-- `PaneFrame.tsx:96-107` sets `is-focused`, `is-zoomed`, `is-dragged` and `is-drop-target` *and* the matching `data-*`.
+
+- `PaneFrame.tsx:96-107` sets `is-focused`, `is-zoomed`, `is-dragged` and `is-drop-target` _and_ the matching `data-*`.
 - `TabStrip.tsx:224` and `SwitcherItem.tsx:45` do the same.
 - The CSS selects on the classes: 35 `is-*` uses in `pane.css`, for example `:16`, `:41`, `:157-161`.
 
@@ -275,6 +284,7 @@ Status: largely fixed on master. `createJali({ label })` names the workspace lan
 What is still wrong is REACT-4: duplicate DOM ids, verified, so the ARIA references cross workspaces. Behind it are silent defaults and a construction-only name (REACT-18).
 
 Best fix, in order:
+
 1. React scopes DOM ids per mounted root when `store.dom.id` collides (`useId`), with a dev error naming `id` and `label`.
 2. A dev warning when two mounted roots have no `label`.
 3. `<JaliRoot aria-label | aria-labelledby>` for render-time names and visible headings.
@@ -285,6 +295,7 @@ With 1–3, the docs' best-practice scan needs no exclusion. The docs already ru
 ### (b) Pop out: keys don't work in the window, and state doesn't carry
 
 What makes it stable:
+
 1. **State carries: move the node, don't re-render it.**
    - Render `PaneBody` once, in one place, always (this also falls out of target 1).
    - On pop out, move the existing `.jali-pane-content-inner` element into the window's root (`win.document.body.append(inner)`), and move it back on Bring back or before close.
@@ -319,9 +330,9 @@ What makes it stable:
 
 ## Counts
 
-| Severity | Count |
-| --- | --- |
-| P0 | 0 |
-| P1 | 5 (REACT-1 to REACT-5) |
-| P2 | 12 (REACT-6 to REACT-17) |
-| P3 | 6 (REACT-18 to REACT-23) |
+| Severity | Count                    |
+| -------- | ------------------------ |
+| P0       | 0                        |
+| P1       | 5 (REACT-1 to REACT-5)   |
+| P2       | 12 (REACT-6 to REACT-17) |
+| P3       | 6 (REACT-18 to REACT-23) |

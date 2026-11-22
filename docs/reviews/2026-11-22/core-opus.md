@@ -5,6 +5,7 @@ Frozen tree: `review-93526af` (HEAD `93526af`). Read-only. Unit suite run: 106 f
 ## Verdict
 
 The pure engine, `apply()` with typed refusals and held intents, the hardened codec and the per-input-layer checks are already at the top of the field. Four things stand between this and best in class:
+
 1. **The state isn't one truth across time and tabs.** Pane state is one key that every tab overwrites whole, so a second tab erased the first tab's drafts (verified). After a window resize the address goes stale, so Copy link no longer reopens what is on screen (verified). And `destroy()` still lets a pending `beforeClose` commit and push history (verified).
 2. **The geometry contract is declared by hand rather than derived.** That causes gap (b), and the same cause hits `swapWithNext`, `openHere` and `focusExisting`. Panes then jump instead of sliding (verified, about 200 breaches in a 400-seed fuzz).
 3. **The types stop at `ObjectRef`.** Kinds and params never reach actions, events, selection or the model. TanStack's bar is end-to-end inference.
@@ -42,6 +43,7 @@ types            PaneDefinition<K extends string, P> -> Ref<K, P>;
 ```
 
 How far the current code is from this:
+
 - **Engine:** at the target.
 - **`apply`:** close. It needs derived geometry, coalesced notifications and a destroyed guard.
 - **State model:** medium. There are 11 parallel `Record<NodeId, …>` maps, 5 of them derived but stored. There are three option shapes (JaliOptions → UiStoreDeps → Env) and two action layers.
@@ -55,6 +57,7 @@ Estimated effort for the whole move: 2–3 focused weeks, without changing the U
 ### P0
 
 **CORE-1. Restoring a saved layout crashes start-up when a kind was removed; duplicate ids are accepted.** _Verified._
+
 - **Evidence:** `createJali({ layout: row({ kind: "zzz" }, …) })` throws `Unknown pane kind: zzz`. A raw layout with two panes both called `"x"` is accepted and resolves to two boxes with the same id, which breaks React keys and makes focus by id ambiguous. `setLayout` with the same input returns `invalid`, so the two paths are asymmetric.
   - Initial layout taken unchecked: `create-jali.ts:255-258`, `state/store.ts:456-459`.
   - DECISIONS (19 Nov, "Save and restore") tells hosts to save on `on("layout")` and pass that back as `createJali({ layout })`. After a deploy that renames or drops a kind, every user with a saved layout gets a blank app until site data is cleared. That is the C2 class again, through the documented path. Presets are protected (`saved`: "a layout that names a kind this workspace no longer has is ignored"); `layout` isn't.
@@ -67,12 +70,14 @@ Estimated effort for the whole move: 2–3 focused weeks, without changing the U
 ### P1
 
 **CORE-2. Pane state is one key that every tab overwrites whole. Gap (a) is one case of this.** _Verified._
+
 - **Evidence:** `savePaneState` writes the entire map (`state/pane-state.ts:95-103`; `boot.ts:93-96`, called from `saveSoon`, `pagehide` and `stop`). In the probe:
   - tab A saved `{"doc":{"draft":"reply to customer 1"},"doc-2":{"scroll":400}}`;
   - tab B (same build, no pane state at all) flushed;
   - storage then held `{}`, and a reload of A saw nothing.
 
   So any second tab of the same build loses the first tab's drafts on its next save, not only an old build during an upgrade. Owners make it safe (no draft lands on the wrong object), but not lossless.
+
 - **Fix (one change that also closes gap a):**
   1. **A new key name,** `pane-state@2`, holding `{ v: 2, panes: { [paneId]: { of: objectKey, values, at } } }`. Values and owner are in one record, so they can't disagree. An old build keeps writing `pane-state`/`pane-state-of`, which the new build deletes once and never reads, so an old tab can't overwrite a newer one at all. Changing the key name, not only the shape, is what removes the upgrade race.
   2. **Merge on write:** read the latest value, apply only this tab's dirty and deleted pane ids, then write. A tab that has touched nothing never writes.
@@ -81,9 +86,11 @@ Estimated effort for the whole move: 2–3 focused weeks, without changing the U
   5. **Optional:** `StoragePort.remove?` for the old keys.
 
   Keep the identity check (`paneStateFor`) as it is.
+
 - **Effort:** M. It changes the stored format once (DECISIONS entry).
 
 **CORE-3. `destroy()` leaves a pending `beforeClose` alive. Its later yes commits and pushes history onto whatever route is now showing.** _Verified._
+
 - **Evidence:**
   - `close()` returned `pending`, then `destroy()` ran, then the host answered `true`.
   - `settled` resolved `{ ok: true, pane: "b" }`, the pane closed, and the address went from 1 to 2 entries.
@@ -93,16 +100,19 @@ Estimated effort for the whole move: 2–3 focused weeks, without changing the U
 - **Effort:** S.
 
 **CORE-4. After a resize or pane-cap refit the address is stale, so Copy link and a reload at the same size reopen a different arrangement.** _Verified._
+
 - **Evidence:** `write()` refits the layout on an area or cap change but writes no URL (`state/store.ts:536-551`), so new fold records live only in memory. In a 400-seed fuzz:
   - every link round-trip mismatch came right after a resize: a different tab shown in a fold group, different widths (`[["list",0,378],["launcher-1",384,378]…]` against `[["list",0,360],["item",366,395]…]`);
   - with resizes removed, there were 0 mismatches;
   - with `writeUrl("replace")` before the reload, there were 0.
 
   BRIEF §3: "Copy an 8-pane layout as a link … get it exactly back." `href()` reads the stale address.
+
 - **Fix:** when `write()`'s refit changes the layout, call `deps.url?.write(…, "debounce")`. That is a replace after `PERSIST_MS`: no history entry and no `layout` event, which keeps DECISIONS' event rule. Add a test: resize, then `href()`, then a new workspace at the same size gives equal geometry.
 - **Effort:** S.
 
 **CORE-5. Gap (b): the geometry class is declared per op but depends on content. Panes jump without animating, and the dev warning is noisy.** _Verified._
+
 - **Evidence:**
   - **Sweep of `moveTab` and `setPinned`:** 6,960 cases over 5 shapes, widths from 400 to 1800, chosen tabs and tucks; 60 breaches.
     - Every one is in a layout where a deliberate stack is folded into an automatic group, for example `folds: ["n-3","n-5","@auto:n-2","tabs-2"]`.
@@ -121,11 +131,13 @@ Estimated effort for the whole move: 2–3 focused weeks, without changing the U
   5. Turn the sweep and the fuzz into tests (CORE-15).
 
   This doesn't relitigate DECISIONS "layout stability": it enforces that rule instead of approximating it.
+
 - **Effort:** M.
 
 ### P2
 
 **CORE-6. Types stop at `ObjectRef`: no kind or param inference through actions, events, selection or the model.**
+
 - **Evidence:**
   - `createJali<D>()` returns a non-generic `Jali` (`create-jali.ts:198`, `state/instance.ts`).
   - `ObjectRef.params` is `Record<string, string | number | boolean>` (`layout/types.ts:8-11`).
@@ -142,6 +154,7 @@ Estimated effort for the whole move: 2–3 focused weeks, without changing the U
 - **Effort:** M–L, types only.
 
 **CORE-7. Three option shapes copied by hand, and two action layers.**
+
 - **Evidence:**
   - **Options:** `JaliOptions` (`create-jali.ts:58-190`) is copied field by field into `UiStoreDeps` (`create-jali.ts:221-260`), whose doc comments repeat it (`state/store.ts:222-307`). That is copied again field by field into `Env` (`state/store.ts:418-441`; `profile.ts:160-202`). About 45 fields are documented three times, and the copies have already drifted (CORE-13).
   - **Actions:** `ACTIONS`, 80 steps returning `NodeId | undefined` through `bindActions`, so refusals are thrown away (`actions/index.ts:88-238`). Beside them sit 37 public actions returning `ActionResult` (`actions/public.ts`), plus a `NAMED_AS` table (37 entries) to reconcile the names.
@@ -151,6 +164,7 @@ Estimated effort for the whole move: 2–3 focused weeks, without changing the U
 - **Effort:** M.
 
 **CORE-8. Per-pane runtime is 11 parallel maps, 5 of them derived but stored.**
+
 - **Evidence:**
   - `UiState.activity`, `unsaved`, `paneCommands`, `titles` and `paneAttributes` are merged from `paneReports`, then stored (`state/store.ts:146-196`).
   - `selection`, `selectionOf`, `paneState` and `paneStateOf` are pairs that must agree.
@@ -160,22 +174,23 @@ Estimated effort for the whole move: 2–3 focused weeks, without changing the U
 - **Effort:** M.
 
 **CORE-9. The bundle pays for features, not for the engine. The credible path to a much smaller core.** _Measured._
+
 - **Evidence:** headless scenario, 148.7 KB minified, 49.4 KB gz, built from source.
 
-  | Area     | Minified | Share | Main files                                                                                                                                 |
-  | -------- | -------- | ----- | ------------------------------------------------------------------------------------------------------------------------------------------ |
-  | layout/  | 47.2 K   | 32%   | of which `ops/arrange.ts` (auto layout) 4.7 K and codec + validate 6.0 K                                                                   |
-  | state/   | 33.5 K   |       | `messages.ts` 12.8 K, the largest single file                                                                                              |
-  | actions/ | 33.1 K   |       |                                                                                                                                            |
-  | root     | 16.3 K   |       | `url.ts` 5.2 K, `pane-kinds.ts` 5.2 K, `boot.ts` 2.9 K                                                                                     |
-  | commands | 14.0 K   |       | `registry.ts` 5.8 K, `keymap.ts`, `keyboard.ts`, `format.ts`                                                                               |
-
+  | Area     | Minified | Share | Main files                                                               |
+  | -------- | -------- | ----- | ------------------------------------------------------------------------ |
+  | layout/  | 47.2 K   | 32%   | of which `ops/arrange.ts` (auto layout) 4.7 K and codec + validate 6.0 K |
+  | state/   | 33.5 K   |       | `messages.ts` 12.8 K, the largest single file                            |
+  | actions/ | 33.1 K   |       |                                                                          |
+  | root     | 16.3 K   |       | `url.ts` 5.2 K, `pane-kinds.ts` 5.2 K, `boot.ts` 2.9 K                   |
+  | commands | 14.0 K   |       | `registry.ts` 5.8 K, `keymap.ts`, `keyboard.ts`, `format.ts`             |
   - The layout-only scenario is about 10 KB gz, so the fitter is about 20% of the bytes.
   - What can't be tree-shaken:
     - `ACTIONS` names every step (`actions/index.ts:88`), and `publicActions` names every public action;
     - `url = inBrowser` statically imports `createUrlSync` (`create-jali.ts:32, 215`);
     - `startUi` always imports the keyboard (`boot.ts:6`);
     - `en` is one object holding every feature's words.
+
 - **Fix:** the feature model in the target architecture. `definePage` already proves the pattern (page code ships only when it is called).
   - `createJali({ features: [keyboard(), urlSync(), tuck(), peek(), autoLayout(), rename(), tabMenu(), phone()] })`, where each feature brings its steps, commands, keys, words and state slice.
   - `<JaliRoot>` (or `@jali/react`'s `createJali` re-export) applies the default set, so app code doesn't change.
@@ -184,11 +199,13 @@ Estimated effort for the whole move: 2–3 focused weeks, without changing the U
 - **Effort:** L.
 
 **CORE-10. Dev mode is detected with `import.meta.env.DEV` (`state/store.ts:408`).**
+
 - **Evidence:** outside Vite (webpack, Next.js, esbuild, Node tests), `import.meta.env` is undefined. So the stability check, the default `onPaneError` and the dev warnings are silently off for most consumers of a published package.
 - **Fix:** `process.env.NODE_ENV !== "production"`, which every bundler defines (React and TanStack use it), or `development`/`production` export conditions.
 - **Effort:** S.
 
 **CORE-11. Gap (c): what would make Pop out stable.**
+
 - **Evidence:**
   - The window and the popped pane are module state in React (`react/src/pane/PopOut.tsx:31-38`). The core doesn't know a pane is popped out.
   - The keyboard listens on `window` (`commands/keyboard.ts:160`), and focus helpers read the global `document.activeElement` (`dom/focus.ts:24-98`).
@@ -201,9 +218,11 @@ Estimated effort for the whole move: 2–3 focused weeks, without changing the U
   4. **One window per workspace,** kept in the store's DOM port rather than module state. Theme and token changes are mirrored, which closes P23 too. A test with a second jsdom `Document` asserts that keys dispatch there and that `useState` survives a pop out and bring back.
 
   Rename to `popOut`/`bringBack` once these four land.
+
 - **Effort:** M.
 
 **CORE-12. Kind and option definitions aren't checked, and there is no fallback when they are wrong.** _Verified._
+
 - **Evidence:**
   - `width: { min: NaN }` gives NaN rects (`x: null, width: null`).
   - `min: 500, max: 100` is accepted silently.
@@ -214,6 +233,7 @@ Estimated effort for the whole move: 2–3 focused weeks, without changing the U
 - **Effort:** S.
 
 **CORE-13. Naming and grouping inconsistencies in the public API.**
+
 - **`keys` docs still drift (P22, still open):** the docs say `"workspace"` but the type is `"page" | "scoped"` (`create-jali.ts:78`, `state/store.ts:237`).
 - **Keyboard options are scattered:** six flat options (`keys`, `keymap`, `keyPrefix`, `reservedKeys`, `palette`, `keymapOptions`) beside a group (`keymapOptions`) that covers part of the same ground. Make it one `keyboard: { scope, keymap, prefix, reserved, palette, platform, onInvalid }`.
 - **Page actions sit on every workspace's `JaliActions`,** even though the page is opt-in. They are refused at runtime with `"unavailable"`.
@@ -225,6 +245,7 @@ Estimated effort for the whole move: 2–3 focused weeks, without changing the U
 - **Effort:** M.
 
 **CORE-14. Deprecated leftovers before 1.0, with two internal consumers.**
+
 - `isMac` is read when the module loads (`commands/format.ts:23-26`).
 - Mutating tree aliases (`layout/tree/public.ts:25-41`).
 - `setPopOutPort`, which is module state (`commands/registry.ts:51-60`).
@@ -232,6 +253,7 @@ Estimated effort for the whole move: 2–3 focused weeks, without changing the U
 - **Effort:** S.
 
 **CORE-15. Test gaps.**
+
 - **Missing store fuzz:** there is no model-based fuzz of the store. A 60-step × 400-seed harness (unique ids, focus and zoom on existing panes, finite rects, panes inside the area, link round trip at the same size, no stability breach) found CORE-4 and CORE-5 in under 2 s. The layout engine has a generated corpus (`fit-equivalence.test.ts`); the store has only hand-picked examples (`tests/stability.test.ts`).
 - **Core tests depend on example apps:** they run against the example apps' kinds (`tests/workspace.ts` imports `examples/data-studio` and `examples/loan-review`), so a refactor of an example can break core tests. Core needs its own fixture kinds.
 - **Untested behaviours:**
@@ -245,21 +267,25 @@ Estimated effort for the whole move: 2–3 focused weeks, without changing the U
 ### P3
 
 **CORE-16. Two notifications per action, sent in the middle of a batch.** _Verified._
+
 - **Evidence:** `close`, `undo`, `openBeside` and `closeOthers` each notify twice: once for the state, once for the announcement. Subscribers see a state whose layout has changed but whose announcement hasn't. `write` notifies on every patch (`state/store.ts:550`).
 - **Fix:** collect the patches and notify once when the batch ends, as events already do.
 - **Effort:** S.
 
 **CORE-17. `snapshot()` builds the model eagerly.**
+
 - **Evidence:** `apply` calls `io.snapshot()` only to read `env` or the messages (`state/apply.ts:642, 650, 697, 707`). After an `io.set`, that resolves a new model nobody reads. The agent calls `storeOf(jali).snapshot()` once per pane (`agent.ts:228`).
 - **Fix:** make `m` a lazy getter, and pass `env` separately.
 - **Effort:** S.
 
 **CORE-18. Agent bridge input.**
+
 - **Evidence:** `act(null)` or a non-iterable `steps` throws a `TypeError` out of `execute`; a step of `null` throws on `step.action` (`agent.ts:298-300`). A model that sends malformed input should get a refusal, not an exception.
 - **Fix:** guard the shape of `request` and of each step.
 - **Effort:** S.
 
 **CORE-19. Host callbacks and equality are handled inconsistently.**
+
 - **Evidence:**
   - A kind's `identity` is called outside a try (`pane-kinds.ts:571-579`), while `title` and `follow` are guarded, so a throwing `identity` breaks `sameObject` and with it `open`.
   - `readSearch` dedupes `open=` with its own JSON key (`url.ts`, "investigation"): a fifth ref equality after P14.
@@ -268,6 +294,7 @@ Estimated effort for the whole move: 2–3 focused weeks, without changing the U
 - **Effort:** S.
 
 **CORE-20. Hidden module state.**
+
 - **Evidence:**
   - `unreadRefs` and `unwrittenOf` are module `WeakSet`/`WeakMap`s that tie meaning to object identity (`pane-kinds.ts`). A `structuredClone` or a JSON round trip silently drops the "built by a kind's call" mark that `linkSearch` relies on without `panes`.
   - The input tracker is global (`dom/input.ts`).
@@ -275,6 +302,7 @@ Estimated effort for the whole move: 2–3 focused weeks, without changing the U
 - **Effort:** S.
 
 **CORE-21. Release hygiene.**
+
 - **Evidence:** `files` lists `LICENSE`, but there is none; `license: "Apache-2.0"` is declared anyway (also noted in DECISIONS, 19 Nov, as left open). `en` imports `pageEn` as a value (`state/messages.ts:15`). Check that `en` doesn't carry the page's words into apps without a page: the size gate's `mustNotShip` covers the minimal app only through `<JaliRoot>`.
 - **Effort:** S.
 

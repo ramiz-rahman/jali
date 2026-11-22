@@ -18,23 +18,24 @@
 
 Tiny entry points, bundled for the browser, minified, gzip -9. Effect 4.1.5 and 3.22.5; rolldown 1.3.3 (the bundler behind Vite+ and `vp pack`) and esbuild 0.28.2; valibot 1.5.0; zod 4.6.7. The entries are in `effect-probe/entries/`, and the Effect 4 builds are in `effect-probe/v4/src/`.
 
-| Entry (what it does)                                                               | rolldown min | rolldown gz | esbuild gz |
-| ---------------------------------------------------------------------------------- | -----------: | ----------: | ---------: |
-| Effect 4: `runFork(Effect.sync(...))` (smallest runtime)                           |       23.4 K |  **8.3 KB** |     9.9 KB |
-| Effect 4: `Effect.gen` + `sleep` + `runFork` + `Fiber.interrupt`                   |       33.3 K | **11.4 KB** |    12.6 KB |
-| Effect 4: a Jali-shaped lifetime (Scope, `forkIn` a follow + a `tryPromise` guard, finalizer, `Scope.close`) |       38.9 K | **12.9 KB** |          – |
-| Effect 4: `Schema.Struct` of a number, an optional string and literals + `decodeUnknownSync` |       78.5 K | **24.8 KB** |    25.2 KB |
-| Effect 4: `Schema.is` only                                                         |       74.7 K |     23.7 KB |    24.9 KB |
-| Effect 4: recursive layout-tree schema (id pattern, px or weight > 0)              |       79.9 K |     25.2 KB |          – |
-| Effect 4: Scope + Schema + Stream.debounce + Layer/Context                         |       94.0 K | **30.0 KB** |          – |
-| Effect 4, **barrel import** `from "effect"`, fiber entry                           |       33.4 K |     11.4 KB | **59.2 KB** |
-| Effect 4, barrel import, Schema entry                                              |       78.5 K |     24.8 KB | **101.3 KB** |
-| Effect 3.22: minimal / fiber / Schema struct (esbuild, deep imports)               |            – |           – | 46.3 / 46.5 / 55.8 KB |
-| Valibot: the same params schema (string to number, optional, picklist) + `safeParse` |        4.4 K |  **1.5 KB** |          – |
-| Zod Mini: the same schema                                                          |       15.2 K |  **5.1 KB** |          – |
-| In-house lifetime (AbortController + a timer set + a guarded `then`, ~15 lines)    |        0.4 K |  **0.24 KB** |          – |
+| Entry (what it does)                                                                                         | rolldown min | rolldown gz |            esbuild gz |
+| ------------------------------------------------------------------------------------------------------------ | -----------: | ----------: | --------------------: |
+| Effect 4: `runFork(Effect.sync(...))` (smallest runtime)                                                     |       23.4 K |  **8.3 KB** |                9.9 KB |
+| Effect 4: `Effect.gen` + `sleep` + `runFork` + `Fiber.interrupt`                                             |       33.3 K | **11.4 KB** |               12.6 KB |
+| Effect 4: a Jali-shaped lifetime (Scope, `forkIn` a follow + a `tryPromise` guard, finalizer, `Scope.close`) |       38.9 K | **12.9 KB** |                     – |
+| Effect 4: `Schema.Struct` of a number, an optional string and literals + `decodeUnknownSync`                 |       78.5 K | **24.8 KB** |               25.2 KB |
+| Effect 4: `Schema.is` only                                                                                   |       74.7 K |     23.7 KB |               24.9 KB |
+| Effect 4: recursive layout-tree schema (id pattern, px or weight > 0)                                        |       79.9 K |     25.2 KB |                     – |
+| Effect 4: Scope + Schema + Stream.debounce + Layer/Context                                                   |       94.0 K | **30.0 KB** |                     – |
+| Effect 4, **barrel import** `from "effect"`, fiber entry                                                     |       33.4 K |     11.4 KB |           **59.2 KB** |
+| Effect 4, barrel import, Schema entry                                                                        |       78.5 K |     24.8 KB |          **101.3 KB** |
+| Effect 3.22: minimal / fiber / Schema struct (esbuild, deep imports)                                         |            – |           – | 46.3 / 46.5 / 55.8 KB |
+| Valibot: the same params schema (string to number, optional, picklist) + `safeParse`                         |        4.4 K |  **1.5 KB** |                     – |
+| Zod Mini: the same schema                                                                                    |       15.2 K |  **5.1 KB** |                     – |
+| In-house lifetime (AbortController + a timer set + a guarded `then`, ~15 lines)                              |        0.4 K | **0.24 KB** |                     – |
 
 How these compare with Jali (DECISIONS, 21 Nov):
+
 - Budgets are core 55 KB (minimal) / 49.2 (headless) / 10.7 (layout only).
 - The layout engine's own codec and validator are about 6.0 KB minified (Opus review, CORE-9).
 - Effect Schema alone would be about **2.3× the whole layout-only build**, and **45% of the minimal core budget**. Swapping out the existing validator would not offset it (6 K minified versus 78 K minified).
@@ -44,31 +45,32 @@ The barrel-import rows matter for a library. Rolldown tree-shakes `import { Effe
 
 ## Tooling compatibility
 
-| Tool | Status with Effect 4 | Evidence |
-| ---- | -------------------- | -------- |
-| Rolldown / Vite+ (`vp build`) | Works. Tree-shakes barrel and deep imports equally. | Measured above |
-| tsdown (`vp pack`) | Works. Dependencies stay external by default, so consumers' bundlers pay the cost. `sideEffects` in Effect 4 lists only the Schema JIT enable file. | `effect/package.json` |
-| esbuild-based consumers | Works, but barrel imports defeat tree-shaking (59 KB vs 12.6 KB) | Measured above |
-| Vitest 5.1 | `@effect/vitest` 4.1.5 has the peer dependency `vitest >=5 <6`, which fits the workspace catalog (5.1.0). Not needed to test plain code. | `npm view @effect/vitest` |
-| TypeScript 7 (tsgo) | Type-checks. A probe of 5 Effect entries ran under Jali's `tsc` 7.0.2 with `strict` and `exactOptionalPropertyTypes`, with no compatibility errors. It instantiated 255k types for ~40 lines of code; type-level cost is real. | `effect-probe/v4/tsconfig.json` |
+| Tool                            | Status with Effect 4                                                                                                                                                                                                                           | Evidence                                                                                                                                                                                                |
+| ------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Rolldown / Vite+ (`vp build`)   | Works. Tree-shakes barrel and deep imports equally.                                                                                                                                                                                            | Measured above                                                                                                                                                                                          |
+| tsdown (`vp pack`)              | Works. Dependencies stay external by default, so consumers' bundlers pay the cost. `sideEffects` in Effect 4 lists only the Schema JIT enable file.                                                                                            | `effect/package.json`                                                                                                                                                                                   |
+| esbuild-based consumers         | Works, but barrel imports defeat tree-shaking (59 KB vs 12.6 KB)                                                                                                                                                                               | Measured above                                                                                                                                                                                          |
+| Vitest 5.1                      | `@effect/vitest` 4.1.5 has the peer dependency `vitest >=5 <6`, which fits the workspace catalog (5.1.0). Not needed to test plain code.                                                                                                       | `npm view @effect/vitest`                                                                                                                                                                               |
+| TypeScript 7 (tsgo)             | Type-checks. A probe of 5 Effect entries ran under Jali's `tsc` 7.0.2 with `strict` and `exactOptionalPropertyTypes`, with no compatibility errors. It instantiated 255k types for ~40 lines of code; type-level cost is real.                 | `effect-probe/v4/tsconfig.json`                                                                                                                                                                         |
 | Effect language service on TS 7 | Supported only through **`@effect/tsgo` (0.73.2, pre-1.0)**, a separate build of TypeScript-Go with Effect's diagnostics. The old `@effect/language-service` patcher is for TS 5/6. You would run it instead of plain `tsc`, not alongside it. | [Effect-TS/tsgo](https://github.com/Effect-TS/tsgo), [language-service README](https://github.com/Effect-TS/language-service), [devtools docs](https://effect.website/docs/v4/getting-started/devtools) |
-| Oxlint | No Effect rules (for example floating Effects or a missing `yield*`). Those checks live only in the language service above. | Oxlint plugin list; Effect docs put the checks in the LSP |
-| React 18 | Effect itself doesn't care. `@effect/atom-react` needs React 19. | `npm view @effect/atom-react` |
+| Oxlint                          | No Effect rules (for example floating Effects or a missing `yield*`). Those checks live only in the language service above.                                                                                                                    | Oxlint plugin list; Effect docs put the checks in the LSP                                                                                                                                               |
+| React 18                        | Effect itself doesn't care. `@effect/atom-react` needs React 19.                                                                                                                                                                               | `npm view @effect/atom-react`                                                                                                                                                                           |
 
 So tooling is not the blocker. Effect 4 works with all of it. The cost is bytes, and a second typechecker if you want Effect's diagnostics.
 
 ## How libraries that ship to any app handle this
 
-| Library | Runtime dependencies (`npm view`, today) |
-| ------- | ---------------------------------------- |
-| @tanstack/react-query 5.108 | `@tanstack/query-core` only |
-| @tanstack/react-form 1.33 | own `@tanstack/store`, `pacer-lite`, `devtools-event-client` |
-| @tanstack/router-core | `seroval`, `cookie-es`, `@tanstack/history` |
-| zustand 5.1, jotai 3.0, react-resizable-panels 4.24, flexlayout-react 0.11 | none (React peer only) |
-| xstate 5.33, dockview-core 8.9 | none |
-| **uploadthing 7.7** | **`effect` 3.17.7 pinned exactly**, plus `@effect/platform` 0.90.3. Its client `@uploadthing/react` gets Effect through `@uploadthing/shared` (also pinned to 3.17.7). |
+| Library                                                                    | Runtime dependencies (`npm view`, today)                                                                                                                               |
+| -------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| @tanstack/react-query 5.108                                                | `@tanstack/query-core` only                                                                                                                                            |
+| @tanstack/react-form 1.33                                                  | own `@tanstack/store`, `pacer-lite`, `devtools-event-client`                                                                                                           |
+| @tanstack/router-core                                                      | `seroval`, `cookie-es`, `@tanstack/history`                                                                                                                            |
+| zustand 5.1, jotai 3.0, react-resizable-panels 4.24, flexlayout-react 0.11 | none (React peer only)                                                                                                                                                 |
+| xstate 5.33, dockview-core 8.9                                             | none                                                                                                                                                                   |
+| **uploadthing 7.7**                                                        | **`effect` 3.17.7 pinned exactly**, plus `@effect/platform` 0.90.3. Its client `@uploadthing/react` gets Effect through `@uploadthing/shared` (also pinned to 3.17.7). |
 
 None of the libraries Jali measures itself against depends on Effect. TanStack's pattern is a small in-house core and **Standard Schema** to accept users' validators. UploadThing shows what Effect costs consumers:
+
 - Exact pins are needed because Effect's types and runtime must match.
 - A host on a different Effect version gets two runtimes.
 - UploadThing is still on Effect 3, so the v3 to v4 migration is the library's problem and its users wait on it.
@@ -104,6 +106,7 @@ There is a contributor cost too. Jali's code is plain TypeScript with plain-Engl
   - Agent arguments read as `unknown` and cast.
 
   None of these exists because the validator can't express something. They are about where it is called, plus one bound.
+
 - **With Effect Schema:** a recursive layout schema works (measured 25 KB gzipped) and gives good error trees and types derived from the schema. But it would replace a 6 K-minified validator that is tuned for hostile input (cycles, shared nodes, `own()` null-prototype reads) with a general one that you would then have to harden again. Hosts would see `Schema` in `params`.
 - **In-house:** route `createJali({ layout })` and preset `build()` through `validate` + `readLayout`. Add a maximum weight, or normalise weights, in `validate`. Give pages an item parser. Add a tiny per-action argument table for the agent bridge (the shape `parseParams` already has).
 - **Small library or standard:** accept **Standard Schema v1** (`~standard.validate`) as a `ParamType`, next to `Number` and `oneOf`. That is a type-only spec and roughly 20 lines of runtime: Jali calls `schema["~standard"].validate(value)`. Any host can then pass a Valibot (1.5 KB), Zod Mini (5.1 KB) or Effect Schema validator, paying only for its own. Effect Schema supports Standard Schema, and TanStack Form and Router accept schemas the same way.
@@ -139,13 +142,13 @@ There is a contributor cost too. Jali's code is plain TypeScript with plain-Engl
 
 ### Summary
 
-| Problem | Effect | In-house | Small library | Pick |
-| ------- | ------ | -------- | ------------- | ---- |
-| Teardown / cancellation | Scope + fibers, ~13 KB gz, rewrite of the IO layer | lifetime token + AbortSignal, ~0.24 KB | – | in-house |
-| Boundary validation | Schema, ~24–25 KB gz, API leak | existing validator + fix the entry points | Standard Schema accepted (host brings Valibot, Zod or Effect) | in-house + Standard Schema |
-| Typed refusals | typed error channel; forces Effect on hosts | `ActionResult` (already the reviews' "keep") | – | keep |
-| Async ports | `tryPromise` + interruption | handle rejection, signal, recheck lifetime | – | in-house |
-| Event ordering | Queue/PubSub (async, against the contract) | revision + FIFO drain | – | in-house |
+| Problem                 | Effect                                             | In-house                                     | Small library                                                 | Pick                       |
+| ----------------------- | -------------------------------------------------- | -------------------------------------------- | ------------------------------------------------------------- | -------------------------- |
+| Teardown / cancellation | Scope + fibers, ~13 KB gz, rewrite of the IO layer | lifetime token + AbortSignal, ~0.24 KB       | –                                                             | in-house                   |
+| Boundary validation     | Schema, ~24–25 KB gz, API leak                     | existing validator + fix the entry points    | Standard Schema accepted (host brings Valibot, Zod or Effect) | in-house + Standard Schema |
+| Typed refusals          | typed error channel; forces Effect on hosts        | `ActionResult` (already the reviews' "keep") | –                                                             | keep                       |
+| Async ports             | `tryPromise` + interruption                        | handle rejection, signal, recheck lifetime   | –                                                             | in-house                   |
+| Event ordering          | Queue/PubSub (async, against the contract)         | revision + FIFO drain                        | –                                                             | in-house                   |
 
 ## What to adopt instead
 
@@ -172,6 +175,7 @@ All six are additive or internal, cost well under 1 KB gzipped together, and kee
   - CLIs (`effect/cli`).
 
   These are places where bundle size doesn't matter, concurrency and failure handling are central, and one team owns all the code.
+
 - **Possible, but probably not worth it:** app-level code in a single product (for example Data Studio's PGlite queries, retries and background loads). It works, and Atom needs React 19, which Data Studio already uses. But Jali's examples exist to show hosts how to use Jali, and Effect in an example would make them less representative of typical React apps. TanStack Query already covers Data Studio's async needs.
 - **Not a fit:**
   - `@jali/core` and `@jali/react` themselves (size, API leak, contributor cost, no async-heavy core to serve).
