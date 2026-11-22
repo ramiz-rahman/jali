@@ -1,4 +1,4 @@
-import type { NodeId, ObjectRef, PaneNode, PaneActivity, PaneCommand } from "@jali/core";
+import type { NodeId, ObjectRef, PaneNode } from "@jali/core";
 import { memo, useMemo } from "react";
 import type { ActionResult, UiStore } from "@jali/core/adapter";
 import { parseKeys, sameRef } from "@jali/core/adapter";
@@ -22,11 +22,6 @@ export function paneHost(store: UiStore, id: NodeId): PaneHost {
     select: (ref, opts) => app.select(id, ref, opts),
     openHere: (ref) => app.openHere(id, ref),
     dismiss: () => actions.dismiss(id),
-    setActivity: (a: PaneActivity) => actions.setActivity(id, a),
-    setUnsaved: (what: string | null) => actions.setUnsaved(id, what),
-    setCommands: (commands: PaneCommand[] | null) => actions.setPaneCommands(id, commands),
-    setTitle: (title: string | null) => actions.setTitle(id, title),
-    setAttributes: (attributes) => actions.setPaneAttributes(id, attributes),
     report: (caller, seq, patch) => actions.reportPane(id, caller, seq, patch),
   };
 }
@@ -45,11 +40,6 @@ export function peekHost(store: UiStore): PaneHost {
     select: (ref: ObjectRef | null) => app.select(source(), ref),
     openHere: () => noPlace,
     dismiss: none,
-    setActivity: none,
-    setUnsaved: none,
-    setCommands: none,
-    setTitle: none,
-    setAttributes: none,
     report: none,
   };
 }
