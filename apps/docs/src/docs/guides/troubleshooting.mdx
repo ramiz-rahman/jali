@@ -83,7 +83,7 @@ In development, Jali warns once for each mistake it can catch early. A productio
 
 ### Options Jali doesn't know
 
-`createJali`, `definePane` and `definePage` warn for each option they don't know, so an options object built at run time can't silently fall back to defaults. Each starts `Jali: <function> has no option "<name>"`, and ends with where the option went, or `, and ignores it` for any other unknown option:
+`createJali`, `definePane`, `definePage` and `<Activity>` warn for each option they don't know (and `createJali` for each renamed message), so an options object built at run time can't silently fall back to defaults. Each starts `Jali: <function> has no option "<name>"`, and ends with where the option went, or `, and ignores it` for any other unknown option:
 
 | Option given | Warning ends with |
 |---|---|
@@ -97,6 +97,10 @@ In development, Jali warns once for each mistake it can catch early. A productio
 | `createJali({ url })`, not a writer | `url is a feature: features: [urlSync({ location, prefix, sizes })] from "jali/url" (url takes only a writer of your own)` |
 | `definePane({ minWidth })`, `maxWidth`, `comfortableWidth` | `minWidth moved to width: { min }` (and `{ max }`, `{ comfortable }`) |
 | `definePane({ minHeight })`, `maxHeight`, `comfortableHeight` | `minHeight moved to height: { min }` (and `{ max }`, `{ comfortable }`) |
+| `createJali({ messages: { workspace } })` | `moved to messages.panes` |
+| `createJali({ messages: { announcements: { singleOn } } })`, `singleOff`, `notInvestigating` | `moved to messages.announcements.onePaneOn` (and `onePaneOff`, `nothingOpened`) |
+| `createJali({ messages: { page: { investigation } } })`, `investigating` | `moved to messages.page.openedLabel` (and `openedCount`) |
+| `<Activity a>` (a prop: `Jali: Activity has no prop "a"`) | `a is activity (<Activity activity={…} />)` |
 
 ### Other warnings
 

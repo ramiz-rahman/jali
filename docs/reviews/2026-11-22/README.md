@@ -189,3 +189,5 @@ Branch `docs-5`. The guides, Learn pages and reference rewritten in the final AP
 - Public names that keep the old word: `AgentSnapshot.workspace`, `Messages.workspace`, `WorkspaceAllow`, and the development warning "two workspaces on this page are both named"; the PageBar's "Investigating · N opened".
 - `Draft`, `SplitDraft`, `TabsDraft` and `PaneDraft` are returned by `row`, `column`, `tabs` and `pane` but not exported; nor is `StackPair`, the type of `JaliModel.stacked`.
 - `Activity`'s prop is named `a`; `AgentKind` says `minWidth` where kinds say `width.min`.
+
+Done in API phase 3c (branch `api-3c`): every item above. See MIGRATION.md, "Migrating to the API of phase 3c", and DECISIONS.md, "API phase 3c".

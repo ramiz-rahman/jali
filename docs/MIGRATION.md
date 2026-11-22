@@ -1,3 +1,71 @@
+# Migrating to the API of phase 3c
+
+Phase 3c is the last naming pass before 1.0. No behaviour changes: names, words and exports do. The rules it applies: "workspace" is in no name or word ("the instance" is what `createJali` returns, "the layout" is what a person sees); "Single view" and "Split view" are a curated page's modes only; a phone shows "one pane at a time". Phase 3b's note follows; read it first if you are coming from before 3b.
+
+## For Data Studio
+
+None of the names below is in Data Studio's `packages/workbench/src` (checked by search, 22 Nov 2026), so it needs no code change. A person using it hears the new phone words ("One pane at a time: …") under 600px wide.
+
+## Names
+
+| Before                                                 | After                                                                         |
+| ------------------------------------------------------ | ----------------------------------------------------------------------------- |
+| `WorkspaceAllow` (the type of `createJali({ allow })`) | `Allow`                                                                       |
+| `JaliModel.single`                                     | `JaliModel.onePane`                                                           |
+| `<Activity a={…} />`                                   | `<Activity activity={…} />`                                                   |
+| `AgentSnapshot.workspace`                              | `AgentSnapshot.layout`                                                        |
+| `AgentSnapshot.workspace.view`: `"single"`, `"split"`  | `AgentSnapshot.layout.view`: `"one-at-a-time"`, `"side-by-side"`              |
+| `AgentKind.minWidth`, `AgentKind.comfortableWidth`     | `AgentKind.width: { min, comfortable? }`, as `definePane({ width })` takes it |
+
+## Words (`createJali({ messages })`)
+
+| Before                                                                                         | After                                                                                    |
+| ---------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------- |
+| `messages.workspace` (the panes' region, the switcher, the dividers)                           | `messages.panes`                                                                         |
+| `announcements.singleOn`: "Single view: one pane at a time. Use the pane switcher at the top." | `announcements.onePaneOn`: "One pane at a time: choose one from the switcher at the top" |
+| `announcements.singleOff`: "Single view ended: full layout restored"                           | `announcements.onePaneOff`: "Panes side by side again: layout restored"                  |
+| `announcements.notInvestigating`                                                               | `announcements.nothingOpened` (same words)                                               |
+| `page.investigation`: "Investigation" (the page bar's group)                                   | `page.openedLabel`: "Opened panes"                                                       |
+| `page.investigating`: "Investigating · **N** opened"                                           | `page.openedCount`: "**N** opened panes"                                                 |
+
+A curated page says "Single view" in full where it said "Single" or "Single only": `announcements.modeSingle`, `permission`, `singleOnly`, `singleNoLayout`; `commands.viewAsLimited`; `page.splitTipLimited`; `settings.viewerLimited`. The keys are the same.
+
+## Styling (the parts contract)
+
+| Before                                                         | After                                                 |
+| -------------------------------------------------------------- | ----------------------------------------------------- |
+| `.jali-workspace` (`parts.workspace`, in the "Workspace" area) | `.jali-layout` (`parts.layout`, in the "Layout" area) |
+| `.jali-workspace[data-single]`                                 | `.jali-layout[data-one-pane]`                         |
+
+Jali's own classes, which were never public, follow: `.jali-layout-inner`, `.is-one-pane`, and a pane's full-bleed `.is-bare` (was `.is-single`).
+
+## Exported types
+
+`row`, `column`, `tabs` and `pane` returned types an app couldn't import. These are now exported:
+
+- from `jali`: `Draft`, `PaneDraft`, `SplitDraft`, `TabsDraft`, `StackPair` and `Hinge` (`JaliModel.stacked`), `CloseReason` (`CloseRequest.reason`), `Done` (the success side of `ActionResult`), `Spacing` (`Env.spacing`);
+- from `jali/react`: `PaneKindDef` (inside `Pane`).
+
+`pnpm pack-check` now fails when a public signature names a type no app entry exports (`tooling/public-types.mjs`).
+
+## Development warnings
+
+| Given                                                              | Warning                                                                                           |
+| ------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------- |
+| `createJali({ messages: { workspace } })`                          | `Jali: createJali has no option "messages.workspace": moved to messages.panes`                    |
+| `messages.announcements.singleOn`, `singleOff`, `notInvestigating` | `… "messages.announcements.singleOn": moved to messages.announcements.onePaneOn` (and the others) |
+| `messages.page.investigation`, `investigating`                     | `… "messages.page.investigation": moved to messages.page.openedLabel` (and `openedCount`)         |
+| `<Activity a>`                                                     | `Jali: Activity has no prop "a": a is activity (<Activity activity={…} />)`                       |
+| Two instances named alike                                          | `Jali: two instances on this page are both named "…"` (was "two workspaces")                      |
+
+The renamed types, model fields and agent fields have nothing to warn from: TypeScript names each.
+
+## Docs
+
+The guide "Two instances on one page" is at `/guides/two-instances` (was `/guides/two-workspaces`).
+
+---
+
 # Migrating to the API of phase 3b
 
 What phase 3b of the API review (docs/API-REVIEW.md, sections 1, 2 and 4, and Pop out) changes for an app, old to new. Phase 3a's note follows below; read it first if you are coming from before 3a.
