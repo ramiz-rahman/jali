@@ -1,6 +1,7 @@
 /**
- * Header-grip drag and drop (and a curated page's tabs dragged into the panes): starts after 4px; the outer 25% of the target places beside on that edge; the centre
- * swaps or adds a tab (Settings). Esc or a drop outside a pane cancels. Zoomed and single-pane layouts don't drag.
+ * Header-grip drag and drop (and a curated page's tabs dragged into the panes): starts after 4px; the outer 25% of the
+ * target places beside on that edge; the centre swaps or adds a tab (Settings). Esc, a cancelled pointer or a drop
+ * outside a pane cancels, as does the instance stopping (`store.gesture`). Zoomed and single-pane layouts don't drag.
  * The drag lives in this closure and in `dnd` state; there is no module state.
  */
 import { allows } from "../actions/allow";
@@ -238,13 +239,19 @@ function startDrag(
   };
   // A grip or tab held down never starts a text selection: crossing a pane would otherwise select its text.
   const noSelect = (ev: Event) => ev.preventDefault();
+  let done = false;
+  let disown = () => {};
   function cleanup() {
+    if (done) return;
+    done = true;
+    disown();
     if (frame) cancelAnimationFrame(frame);
     frame = 0;
     edge.stop();
     document.removeEventListener("selectstart", noSelect, true);
     window.removeEventListener("pointermove", move);
     window.removeEventListener("pointerup", up);
+    window.removeEventListener("pointercancel", cleanup);
     window.removeEventListener("keydown", key, true);
     if (started) store.dom.setDragging(null);
     if (store.get().dnd) store.set({ dnd: null });
@@ -252,6 +259,10 @@ function startDrag(
   document.addEventListener("selectstart", noSelect, true);
   window.addEventListener("pointermove", move);
   window.addEventListener("pointerup", up);
+  // The browser took the pointer (a touch became a scroll, the pen left, the system claimed the gesture): no drop.
+  window.addEventListener("pointercancel", cleanup);
   window.addEventListener("keydown", key, true);
+  // The drag belongs to the instance: stopping or destroying it mid-drag cancels the drag, as Escape would.
+  disown = store.gesture(cleanup);
   return handle;
 }

@@ -68,6 +68,7 @@ import { cssString, paneDomId } from "../dom/ids";
 import { noDom, type DomPort, type DragKind } from "../dom/port";
 import { pageDirection } from "../dom/direction";
 import { paneStateSync, type HeldStates, type PaneStateSync } from "./pane-state";
+import { createLifetime } from "./lifetime";
 
 declare const process: { env: { NODE_ENV?: string } };
 import { startUi } from "../boot";
@@ -331,11 +332,16 @@ export interface JaliStore {
   /** Start the page-lifetime listeners: keys, Back and Forward, theme and saving. Returns their stop. `<JaliRoot>` calls
    *  it on mount; calling it while started does nothing. */
   start(): () => void;
-  /** Stop for good (`jali.destroy()`): the listeners stop, pane state waiting to be saved is saved, deferred steps
+  /** A gesture started (a pane or divider drag): `cancel` ends it, removing its listeners and putting back what it
+   *  previewed. Stopping or destroying the instance cancels it. Returns the release the gesture calls when it ends on
+   *  its own. */
+  gesture(cancel: () => void): () => void;
+  /** Stop for good (`jali.destroy()`): the listeners stop, a gesture in progress is cancelled, pane state waiting to
+   *  be saved is saved, deferred steps
    *  (a follow waiting for the selection to rest) and a debounced address write are dropped, and the kind registry
    *  is no longer listened to. A question still open (the host's `beforeClose`, or "Discard unsaved changes?")
-   *  settles as `"kept"`, and every later commit is refused as `"unavailable"`, so nothing lands on the next route.
-   *  Calling it again does nothing. */
+   *  settles as `"kept"`, every later commit is refused as `"unavailable"` and every raw write is dropped, so nothing
+   *  lands on the next route. Calling it again does nothing. */
   destroy(): void;
 }
 
@@ -529,24 +535,14 @@ export function createJaliStore(deps: JaliConfig): JaliStore {
       changed = true;
     }),
   );
-  let destroyed = false;
-  // The instance's lifetime: `destroy()` ends it, and whatever still waits on it (a host's answer) ends with it.
-  const life = new AbortController();
+  // The instance's lifetime (state/lifetime.ts): `destroy()` ends it, and whatever still waits on it (a host's
+  // answer, a deferred step, a drag in progress) ends with it.
+  const life = createLifetime();
   const pendingToasts: JaliEvents["toast"][] = [];
   const models = modelCache();
-  const timers = new Map<string, ReturnType<typeof setTimeout>>();
   const defer = (d: Deferred) => {
-    clearTimeout(timers.get(d.key));
-    timers.delete(d.key);
-    if (!d.run || destroyed) return;
     const run = d.run;
-    timers.set(
-      d.key,
-      setTimeout(() => {
-        timers.delete(d.key);
-        store.apply(run);
-      }, d.ms),
-    );
+    life.defer(d.key, d.ms, run && (() => store.apply(run)));
   };
 
   const rootElement = () => {
@@ -740,7 +736,8 @@ export function createJaliStore(deps: JaliConfig): JaliStore {
 
   const store: JaliStore = {
     get: () => state,
-    set: (patch) => batch(() => write(patch)),
+    // Once destroyed, a raw write lands nowhere either: a handle kept past the instance changes nothing.
+    set: (patch) => (life.ended() ? undefined : batch(() => write(patch))),
     jali: undefined as unknown as Jali,
     guard: beforeClose,
     focusHeld: false,
@@ -776,7 +773,7 @@ export function createJaliStore(deps: JaliConfig): JaliStore {
     },
     // A destroyed instance changes nothing more: a late answer, a timer or a caller that kept a handle is refused.
     apply: (o, action) =>
-      destroyed ? { ok: false, reason: "unavailable" } : batch(() => apply(io, o, action)),
+      life.ended() ? { ok: false, reason: "unavailable" } : batch(() => apply(io, o, action)),
     // Two things said in one action ("1 change discarded", then "Order 1 closed") are one announcement: subscribers
     // hear an action once it is done, so the live region reads both.
     announce: (text) =>
@@ -792,7 +789,7 @@ export function createJaliStore(deps: JaliConfig): JaliStore {
     // The writer reads the address's share of the state only (UrlState), when it writes, and as a link carries it:
     // without params only the app sets (`appOnly`).
     writeUrl: (mode) =>
-      destroyed ||
+      life.ended() ||
       url?.write(() => {
         const { layout, view, presetId, page } = store.get();
         const kinds = env.kinds.registry();
@@ -831,35 +828,35 @@ export function createJaliStore(deps: JaliConfig): JaliStore {
     href: () => url?.href?.() ?? (typeof location === "undefined" ? "" : location.href),
     url,
     start() {
-      if (stop || destroyed) return () => {};
+      if (stop || life.ended()) return () => {};
       const offInput = trackInput();
       const off = startUi(store, {
         keys: (keyboard.scope ?? "page") === "page" ? {} : { root: rootElement },
         pageTheme: deps.pageTheme,
       });
       stop = () => {
+        // A drag still going has listeners of its own on the window: it ends with the listeners it began under.
+        life.cancelGestures();
         off();
         offInput();
         stop = null;
       };
       return stop;
     },
+    gesture: (cancel) => life.gesture(cancel),
     destroy() {
-      if (destroyed) return;
+      if (life.ended()) return;
       // Stopping saves pane state still waiting to be saved; without a start, nothing saves it at all.
       stop?.();
-      destroyed = true;
-      life.abort();
-      for (const t of timers.values()) clearTimeout(t);
-      timers.clear();
-      url?.cancel?.();
-      offKinds();
+      // A gesture in progress puts back what it previewed while the instance can still be written to.
+      life.cancelGestures();
       // A question still open can never be answered now: the action it held ends as kept, so `settled` resolves.
       const asking = state.confirm;
-      if (asking) {
-        store.set({ confirm: null });
-        asking.settle({ ok: false, reason: "kept" });
-      }
+      if (asking) store.set({ confirm: null });
+      life.end();
+      url?.cancel?.();
+      offKinds();
+      asking?.settle({ ok: false, reason: "kept" });
     },
   };
   let stop: (() => void) | null = null;
@@ -879,7 +876,7 @@ export function createJaliStore(deps: JaliConfig): JaliStore {
     url: store.writeUrl,
     announce: store.announce,
     toast: store.toast,
-    focus: (id: NodeId) => (store.focusHeld || destroyed ? undefined : focusOf?.(dom, id)),
+    focus: (id: NodeId) => (store.focusHeld || life.ended() ? undefined : focusOf?.(dom, id)),
     defer,
     unstable: unstable ?? devUnstable,
   };

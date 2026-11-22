@@ -181,7 +181,12 @@ export function startDividerDrag(
     if (!raf) raf = requestAnimationFrame(render);
   };
 
+  let done = false;
+  let disown = () => {};
   const finish = (commitIt: boolean) => {
+    if (done) return;
+    done = true;
+    disown();
     if (raf) cancelAnimationFrame(raf);
     raf = 0;
     if (commitIt) render(); // flush the last pointer position, so the commit equals what was last shown
@@ -222,4 +227,7 @@ export function startDividerDrag(
   sepEl.addEventListener("pointercancel", onCancel);
   sepEl.addEventListener("lostpointercapture", onUp);
   window.addEventListener("keydown", onKey, true);
+  // The drag belongs to the instance: stopping or destroying it mid-drag cancels the drag, as Escape would, so its
+  // listeners, the held content and the page's resize cursor never outlive it.
+  disown = store.gesture(() => finish(false));
 }
