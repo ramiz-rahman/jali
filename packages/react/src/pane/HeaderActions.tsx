@@ -3,7 +3,7 @@ import { buttonsOf, checkTuck, tabMenuOf, tuckHome, type PaneButton } from "@jal
 import { allows } from "@jali/core/adapter";
 import { useJaliIcons } from "../icons/context";
 import { useDerived, useStore, useUi } from "../state/react";
-import { bringBack, popOut, useCanPopOut, usePopOutTarget } from "./PopOut";
+import { popOutOf, useCanPopOut, usePoppedOut } from "./popped";
 import { useKeymap } from "../state/hydrated";
 import type { Chrome } from "@jali/core/adapter";
 import { ICON } from "../icons/sized";
@@ -68,8 +68,8 @@ export function HeaderActions({ id, title, zoomed, chrome, tabs, narrow = 0, onM
   const { actions } = store;
   // On the whole screen, the way back is Exit full screen; Maximise's Restore would leave half of it.
   const full = useUi((s) => s.fullScreen === id);
-  const popped = !!usePopOutTarget(store, id);
-  const pop = useCanPopOut();
+  const popped = usePoppedOut(store, id).out;
+  const pop = useCanPopOut(store);
   // Key labels as the server printed them until hydration, then the reader's own.
   const keymap = useKeymap();
   const { home, tuckLabel, closeHint, buttons, menuMore } = useDerived(
@@ -140,7 +140,11 @@ export function HeaderActions({ id, title, zoomed, chrome, tabs, narrow = 0, onM
             aria-label={popped ? t.bringBackPane(title) : t.popOut(title)}
             aria-pressed={popped}
             title={popped ? t.bringBack : t.popOutTip}
-            onClick={() => (popped ? bringBack() : void popOut(store.jali, id))}
+            onClick={() => {
+              const w = popOutOf(store);
+              if (popped) w?.close(store);
+              else void w?.open(store, id);
+            }}
           >
             <icon.popOut {...ICON.header} aria-hidden />
           </button>

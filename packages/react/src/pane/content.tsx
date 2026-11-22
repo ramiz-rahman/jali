@@ -12,7 +12,7 @@ import { createPortal } from "react-dom";
 import type { Frame, JaliStore } from "@jali/core/adapter";
 import { PaneBody, paneHost, type PaneHost } from "./PaneBody";
 import { createHeaderSlot, type HeaderSlot } from "./header";
-import { usePopOutTarget } from "./PopOut";
+import { usePoppedOut } from "./popped";
 import { useStore } from "../state/react";
 
 /** A pane's lasting parts: the element its content renders into, its header slot and what its content can ask. */
@@ -36,6 +36,8 @@ export function useContentHosts(store: JaliStore, on: boolean) {
       if (!h) {
         const el = document.createElement("div");
         el.className = "jali-pane-content-inner";
+        // Pop out moves this element into its window (features/pop-out.tsx), and finds it by this mark.
+        el.setAttribute("data-jali-host", "");
         // The frame's own handlers don't hear what happens in content rendered elsewhere: a press or focus in it
         // focuses the pane, as a press anywhere in the frame does.
         el.addEventListener("pointerdown", () => store.actions.focusPane(id), true);
@@ -57,7 +59,7 @@ export function useContentHosts(store: JaliStore, on: boolean) {
   return { get: on ? get : null, keep };
 }
 
-/** A pane's content, rendered into its host (or the floating window, popped out). */
+/** A pane's content, rendered into its host (which Pop out moves into its window). */
 export const PaneContent = /* @__PURE__ */ memo(function PaneContent({
   frame,
   at,
@@ -67,17 +69,16 @@ export const PaneContent = /* @__PURE__ */ memo(function PaneContent({
 }) {
   const store = useStore();
   const { node, hidden, covered, focused } = frame;
-  const popTarget = usePopOutTarget(store, node.id);
-  const body = (
+  // Popped out, the element itself is in the floating window: the same portal, so nothing remounts.
+  const { out } = usePoppedOut(store, node.id);
+  return createPortal(
     <PaneBody
       node={node}
       host={at.host}
       header={at.header}
-      paused={!popTarget && (hidden || covered || !!frame.outOfView)}
+      paused={!out && (hidden || covered || !!frame.outOfView)}
       focused={focused}
-    />
+    />,
+    at.el,
   );
-  return popTarget
-    ? createPortal(<div className="jali-pane-content-inner">{body}</div>, popTarget)
-    : createPortal(body, at.el);
 });

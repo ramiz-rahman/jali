@@ -29,17 +29,14 @@ import {
   type ReactNode,
 } from "react";
 import { createPortal } from "react-dom";
-import { spacingVars, storeOf } from "@jali/core/adapter";
+import { partOf, spacingVars, storeOf } from "@jali/core/adapter";
+import type { ComponentType } from "react";
 import { Announcer } from "./chrome/Announcer";
-import { Chooser } from "./dialogs/Chooser";
 import { ConfirmDiscard } from "./dialogs/ConfirmDiscard";
-import { Palette } from "./dialogs/Palette";
-import { SettingsPanel } from "./dialogs/Settings";
 import { IconsProvider } from "./icons/context";
 import { defaultIcons } from "./icons/default";
 import type { JaliIcon, JaliIcons } from "./icons/types";
 import { Guard } from "./chrome/Guard";
-import { installPressed } from "./pressed";
 import { StoreProvider, useDomScope, useStore, useJaliTheme, useUi } from "./state/react";
 import { Panes } from "./workspace/Workspace";
 import { PAGE_PARTS } from "./define";
@@ -55,9 +52,8 @@ export interface JaliRootProps extends HTMLAttributes<HTMLDivElement> {
    *  (focus is never pulled back from outside the root). Inert, like the workspace, while one of Jali's dialogs is
    *  open; they sit in an element of their own (`data-jali-overlays`, `display: contents`) for that. */
   overlays?: ReactNode;
-  /** Include the settings panel (opened from ⌘K). Default true. */
-  settings?: boolean;
-  /** Your own fieldsets, shown at the end of the settings panel (`<fieldset><legend>…</legend>…</fieldset>`). */
+  /** Your own fieldsets, shown at the end of the settings panel (`<fieldset><legend>…</legend>…</fieldset>`), when
+   *  the workspace has one (the `settings()` feature). */
   settingsExtra?: ReactNode;
   /** Your own icons for any of Jali's, by name (`{ close: MyClose }`); the rest stay Jali's own. One that throws
    *  draws Jali's own instead. */
@@ -107,7 +103,6 @@ export function JaliRoot({
   icons,
   children = <JaliView />,
   overlays,
-  settings = true,
   settingsExtra,
   onError,
   "aria-label": label,
@@ -118,8 +113,6 @@ export function JaliRoot({
   // Before anything here reads its ids (the overlays' wrapper).
   useDomScope(store);
   useEffect(() => store.start(), [store]);
-  // data-pressed on Jali's controls while held, by pointer or key (pressed.ts).
-  useEffect(installPressed, []);
   const host = useFullScreenPane(store);
   const inside = (layer: ReactNode) => (host ? createPortal(layer, host) : layer);
   // The spacing the layout measures with, as --jali-gap and --jali-inset, so styles that read them agree with it.
@@ -174,10 +167,7 @@ export function JaliRoot({
           >
             <Guard onError={onError}>
               <Announcer />
-              <Dialogs
-                palette={store.env.palette !== false}
-                settings={settings ? <Guard onError={onError}>{settingsExtra}</Guard> : null}
-              />
+              <Dialogs settingsExtra={<Guard onError={onError}>{settingsExtra}</Guard>} />
             </Guard>
           </div>,
         )}
@@ -202,34 +192,50 @@ export function JaliRoot({
 
 /**
  * Jali's dialogs, one at a time: the discard question over the chooser, over ⌘K, over Settings. The one beneath comes
- * back when the one above closes. Settings asked for where the root renders none closes again at once, so nothing
- * holds the workspace's keys for a dialog that isn't there.
+ * back when the one above closes. Each but the discard question is its feature's part (`palette()`, `settings()`,
+ * `chooser()`): a workspace without the feature renders none, and a dialog asked for that isn't there closes again at
+ * once, so nothing holds the workspace's keys for it.
  */
-function Dialogs({ palette, settings }: { palette: boolean; settings: ReactNode }) {
+function Dialogs({ settingsExtra }: { settingsExtra: ReactNode }) {
   const store = useStore();
+  const env = store.env;
+  const Palette = partOf<ComponentType>(env, "palette");
+  const Settings = partOf<ComponentType<{ children?: ReactNode }>>(env, "settings");
+  const Chooser = partOf<ComponentType>(env, "chooser");
   const top = useUi((s) =>
     s.confirm
       ? "confirm"
       : s.chooser
         ? "chooser"
-        : s.paletteOpen && palette
+        : s.paletteOpen
           ? "palette"
           : s.settingsOpen
             ? "settings"
             : null,
   );
-  const orphan = top === "settings" && settings === null;
+  const orphan =
+    (top === "settings" && !Settings) ||
+    (top === "palette" && !Palette) ||
+    (top === "chooser" && !Chooser);
   useEffect(() => {
-    if (orphan) store.run("dialogs.closeSettings");
-  }, [orphan, store]);
+    if (!orphan) return;
+    store.set(
+      top === "settings"
+        ? { settingsOpen: false }
+        : top === "palette"
+          ? { paletteOpen: false }
+          : { chooser: null },
+    );
+  }, [orphan, top, store]);
+  if (orphan) return null;
   return top === "confirm" ? (
     <ConfirmDiscard />
-  ) : top === "chooser" ? (
+  ) : top === "chooser" && Chooser ? (
     <Chooser />
-  ) : top === "palette" ? (
+  ) : top === "palette" && Palette ? (
     <Palette />
-  ) : top === "settings" && !orphan ? (
-    <SettingsPanel>{settings}</SettingsPanel>
+  ) : top === "settings" && Settings ? (
+    <Settings>{settingsExtra}</Settings>
   ) : null;
 }
 

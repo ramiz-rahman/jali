@@ -1,13 +1,7 @@
 import type { NodeId } from "@jali/core";
 import { useLayoutEffect, useRef, useState } from "react";
-import { canRename, cssString, paneDomId } from "@jali/core/adapter";
+import { cssString, paneDomId } from "@jali/core/adapter";
 import { useStore } from "../state/react";
-
-/** Whether pane `id` can be renamed now (`createJali({ rename })`), for a double-click to ask. */
-export function useCanRename() {
-  const store = useStore();
-  return (id: NodeId) => canRename(store.snapshot(), id);
-}
 
 /**
  * The rename field, in place of a tab or a lone pane's title. It starts with the title, selected. Enter saves through

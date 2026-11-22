@@ -36,7 +36,9 @@ import type {
 } from "@jali/core";
 import type { ComponentType } from "react";
 
-import { defineKind, definePageEngine } from "@jali/core/adapter";
+import { defineKind, definePageEngine, warnUnknown } from "@jali/core/adapter";
+
+declare const process: { env: { NODE_ENV?: string } };
 import type { JaliIcon } from "./icons/types";
 import { pageParts, type PageParts } from "./chrome/PageBar";
 
@@ -124,6 +126,11 @@ export function definePane<
   const K extends string,
   const T extends ParamTypes | undefined = undefined,
 >(kind: K, options: PaneOptionsReact<ParamsOf<T>> & { params?: T }): Pane<ParamsOf<T>, K> {
+  try {
+    if (process.env.NODE_ENV !== "production") warnUnknown("definePane", options);
+  } catch {
+    /* no `process`: production */
+  }
   return defineKind<ParamsOf<T>, PaneKindDef, K>({ ...options, kind } as unknown as PaneKindDef & {
     kind: K;
   });
@@ -153,6 +160,11 @@ export interface Page<I extends ItemId = any> extends ProfileBase<PageView, I> {
 export function definePage(page: Page<number>): Page<number>;
 export function definePage(page: Page<string>): Page<string>;
 export function definePage(page: Page): Page {
+  try {
+    if (process.env.NODE_ENV !== "production") warnUnknown("definePage", page);
+  } catch {
+    /* no `process`: production */
+  }
   return { ...definePageEngine(page), [PAGE_PARTS]: pageParts };
 }
 

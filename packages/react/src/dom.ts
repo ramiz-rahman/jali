@@ -4,7 +4,6 @@
  */
 import { cssString, type DividerLine, type DomPort } from "@jali/core/adapter";
 import { STRIP_VIEWPORT } from "./workspace/Scroller";
-import { reactPopOut } from "./pane/PopOut";
 
 const FLASH_MS = 600;
 
@@ -102,6 +101,4 @@ export const reactDom: DomPort = {
     tab.classList.add("is-flash");
     setTimeout(() => tab.classList.remove("is-flash"), FLASH_MS);
   },
-  // The floating window (pane/PopOut.tsx), for "Pop out pane" (`pane.pop_out`).
-  popOut: reactPopOut,
 };

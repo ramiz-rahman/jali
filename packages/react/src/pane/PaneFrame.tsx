@@ -11,7 +11,7 @@ import {
 import { ContentHosts } from "./content";
 import { TabMenu, type TabMenuAt } from "./TabMenu";
 import { createPortal } from "react-dom";
-import { bringBack, usePopOutTarget } from "./PopOut";
+import { popOutOf, usePoppedOut } from "./popped";
 import { useJaliIcons } from "../icons/context";
 import {
   ALONE_CHROME,
@@ -34,7 +34,7 @@ import { KindIcon } from "./icons";
 import { PaneBody, paneHost } from "./PaneBody";
 import { TabStrip } from "./TabStrip";
 import { UnsavedMark, useUnsavedOf } from "./Unsaved";
-import { RenameField, useCanRename } from "./RenameField";
+import { renameFieldOf, useCanRename } from "./rename";
 import { useInert } from "./inert";
 import { ICON } from "../icons/sized";
 import { createHeaderSlot, useHasHeaderControls, useNarrowHeader } from "./header";
@@ -62,8 +62,9 @@ export const PaneFrame = /* @__PURE__ */ memo(
       opener.current = document.activeElement as HTMLElement | null;
       setMenu(at);
     };
-    // Popped out (experimental): the content renders in a floating window; its place here says so.
-    const popTarget = usePopOutTarget(store, node.id);
+    // Popped out (the `popOut()` feature): the content is in a floating window; its place here says so.
+    const { out: poppedOut, target: popTarget } = usePoppedOut(store, node.id);
+    const RenameField = renameFieldOf(store);
     const icon = useJaliIcons();
     const { actions } = store;
     const activity = useUi((s) => own(s.activity, node.id));
@@ -221,7 +222,7 @@ export const PaneFrame = /* @__PURE__ */ memo(
                   actions.startRename(node.id);
                 }}
               >
-                {renaming ? <RenameField pane={node.id} title={title} /> : title}
+                {renaming && RenameField ? <RenameField pane={node.id} title={title} /> : title}
               </h2>
               {role && shows !== title ? <span className="jali-pane-sub">{shows}</span> : null}
               {dirty ? <UnsavedMark labelled /> : null}
@@ -269,16 +270,25 @@ export const PaneFrame = /* @__PURE__ */ memo(
         <div
           className="jali-pane-content"
           // The content's element moves in here: rendered once, elsewhere (content.tsx).
-          ref={at ? (el) => void (el && el.lastChild !== at.el && el.append(at.el)) : undefined}
+          // Not while it is popped out: the floating window holds it then, and gives it back when it closes.
+          ref={
+            at && !poppedOut
+              ? (el) => void (el && el.lastChild !== at.el && el.append(at.el))
+              : undefined
+          }
           id={panelId(store.dom.id, node.id)}
           {...(group
             ? { role: "tabpanel", "aria-labelledby": tabId(store.dom.id, node.id) }
             : undefined)}
         >
-          {popTarget ? (
+          {poppedOut ? (
             <div className="jali-popped-out" role="status">
               <span>{store.messages.pane.poppedOut}</span>
-              <button type="button" className="jali-text-btn" onClick={bringBack}>
+              <button
+                type="button"
+                className="jali-text-btn"
+                onClick={() => popOutOf(store)?.close(store)}
+              >
                 {store.messages.pane.bringBack}
               </button>
             </div>

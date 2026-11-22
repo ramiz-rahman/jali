@@ -1,11 +1,13 @@
 /**
  * `data-pressed` on Jali's controls while they are held down: by the pointer (the primary button), or by Space or Enter
- * while the control has focus. One listener set for the page, installed while any `<JaliRoot>` is mounted, so every
+ * while the control has focus. One listener set for the page, installed while any workspace with the feature is started, so every
  * control gets it the same way and none has to know. `:active` covers only the pointer; a theme that draws travel
  * (a key going down) reads `[data-pressed]` and gets the keyboard too.
  *
  * Jali's own styles don't read it, so the default look is unchanged.
  */
+
+import type { Feature } from "@jali/core/adapter";
 
 /** The controls that carry it: public parts (parts.ts lists `data-pressed` on each). */
 export const PRESSABLE = [
@@ -88,3 +90,11 @@ export function installPressed(): () => void {
     window.removeEventListener("blur", onLost);
   };
 }
+
+/**
+ * `pressed()`: `data-pressed` on Jali's controls while they are held, by pointer or key, for a theme that draws a key
+ * going down. Jali's own styles don't read it.
+ *
+ *   createJali({ panes, layout, features: [pressed()] });
+ */
+export const pressed = (): Feature => ({ id: "pressed", start: () => installPressed() });

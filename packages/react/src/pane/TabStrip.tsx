@@ -16,7 +16,7 @@ import {
 import { useEntriesOf, useEnv, useStore, useUi } from "../state/react";
 import { Activity, activityLabel } from "./Activity";
 import { KindIcon } from "./icons";
-import { RenameField, useCanRename } from "./RenameField";
+import { renameFieldOf, useCanRename } from "./rename";
 import { TabIndicator } from "./TabIndicator";
 import { TabMenu, type TabMenuAt } from "./TabMenu";
 import { TabOverflow } from "./TabOverflow";
@@ -182,7 +182,8 @@ export function TabStrip({ group, owner }: { group: NonNullable<Frame["group"]>;
     // A tab behind says what its pane is doing ("Working"), as its dot shows; the shown tab's pane says it itself.
     const busy = active ? undefined : activityLabel(words.pane, own(activity, t.id));
     // Renaming: the field takes the tab's place until it closes.
-    if (renaming === t.id)
+    const RenameField = renameFieldOf(store);
+    if (renaming === t.id && RenameField)
       return (
         <div key={t.id} className="jali-tab-item is-renaming" role="presentation" data-renaming>
           <RenameField pane={t.id} title={title} />
