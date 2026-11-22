@@ -23,6 +23,7 @@ node -e '
     "overrides:\n  react: 18.3.1\n  react-dom: 18.3.1\n  \"@types/react\": 18.3.12\n  \"@types/react-dom\": 18.3.1\n"));
 '
 pnpm install --no-frozen-lockfile --silent
-node -e 'console.log("React", require("react/package.json").version)'
+# The React @jali/react's tests run on (the root has none; above this checkout, Node would find another's).
+(cd packages/react && node -e 'console.log("React", require("react/package.json").version)')
 pnpm exec tsc -b --noEmit
 pnpm exec vp test run
