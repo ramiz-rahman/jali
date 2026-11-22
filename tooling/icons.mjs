@@ -5,7 +5,7 @@
  *
  *   pnpm icons
  *
- * `tests/default-icons.test.ts` fails when the file and this script disagree.
+ * `packages/react/tests/default-icons.test.ts` fails when the file and this script disagree.
  */
 import { readFileSync, writeFileSync } from "node:fs";
 import { createRequire } from "node:module";

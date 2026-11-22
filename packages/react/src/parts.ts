@@ -5,7 +5,7 @@
  * inside a part that is not itself a part, and any attribute not listed is Jali's own and may change in any release.
  * State is always an attribute (`data-*` or ARIA), never a class, so a selector reads `.jali-pane[data-focused]`.
  *
- * The docs' Parts reference is built from this list, and `tests/parts.test.tsx` checks that each part and
+ * The docs' Parts reference is built from this list, and `packages/react/tests/parts.test.tsx` checks that each part and
  * attribute is really rendered.
  */
 

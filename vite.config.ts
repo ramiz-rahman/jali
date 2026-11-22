@@ -7,7 +7,7 @@ import {
 import react from "@vitejs/plugin-react";
 export default defineConfig({
   // The root serves no app: each example has its own config (`vp dev examples/<name>`). This one holds the
-  // formatter, the linter and the unit tests, which resolve the packages to their source.
+  // formatter, the linter and the unit tests' projects, which resolve the packages to their source.
   plugins: lazyPlugins(() => [react()]),
   resolve: { conditions: ["source", ...defaultClientConditions] },
   // Tests in the node environment (server rendering) resolve them the same way.
@@ -28,14 +28,20 @@ export default defineConfig({
   lint: {
     overrides: [{ files: ["apps/docs/src/samples/**"], rules: { "no-unused-expressions": "off" } }],
   },
+  // `vp test run` runs every project: each package's own (packages/*/vitest.config.ts) and the examples' unit tests.
   test: {
-    globals: true,
-    include: [
-      "tests/**/*.test.{ts,tsx}",
-      "packages/*/src/**/*.test.{ts,tsx}",
-      "examples/*/src/**/*.test.{ts,tsx}",
+    projects: [
+      "packages/core/vitest.config.ts",
+      "packages/react/vitest.config.ts",
+      {
+        extends: true,
+        test: {
+          name: "examples",
+          globals: true,
+          include: ["examples/*/src/**/*.test.{ts,tsx}"],
+          environment: "jsdom",
+        },
+      },
     ],
-    environment: "jsdom",
-    exclude: ["e2e/**", "node_modules/**"],
   },
 } as any);

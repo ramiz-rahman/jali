@@ -42,6 +42,8 @@ packages/core/     @jali/core, no framework: layout/ (model, ops, fit, codec, va
 packages/react/    @jali/react: workspace renderer, pane frame and tabs, dividers, peek, drag/drop zones, shelf,
                    curated page, palette, settings, chooser, announcer; styles.css (theme + workspace, @layer jali)
                    and tailwind.css (the bridge to a host's Tailwind theme)
+packages/*/tests/  each package's unit tests; packages/react/tests also holds the engine tests that run against
+                   Data Studio's and Loan review's kinds in one store
 apps/docs/         the docs site; tooling/agent-docs.mjs writes its pages into packages/core/docs as Markdown
 examples/          five example apps, each with `vp dev examples/<name>`:
   data-studio/     a database browser: catalog, query, chart, structure, er, audit, launcher; its presets
@@ -51,7 +53,6 @@ examples/          five example apps, each with `vp dev examples/<name>`:
                    keys + entity invalidation + result store, no layout knowledge), the table, record and related
                    panes and the grid, and shell/ (top bar, status line, toasts with Sonner)
   minimal/ own-icons/   not example apps: the quickstart's app and the bundle-size checks' apps
-tests/             engine tests that run against Data Studio's and Loan review's kinds in one store
 e2e/               Playwright demo script that walks every interaction and asserts the key behaviours, against
                    Data Studio (:5300) and Loan review (:5350)
 docs/              BRIEF.md, DECISIONS.md (every deviation, with reason); reviews/ holds the dated reports, among them

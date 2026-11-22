@@ -8,7 +8,7 @@ Loan review is the curated-page example: one application at a time, with its vie
 
 **What happened.** `definePage({ bind })` must return the views at once. It can't wait for data. Until 20 Nov the app bound its views with a formula copied from the seed generator, so the views and the database could disagree.
 
-**Workaround.** `src/review/facts.ts` reads the facts the binding needs from the database before the page opens, and `bind` reads those facts. Jali's unit tests seed the same facts (`tests/workspace.ts`).
+**Workaround.** `src/review/facts.ts` reads the facts the binding needs from the database before the page opens, and `bind` reads those facts. Jali's unit tests seed the same facts (`packages/react/tests/workspace.ts`).
 
 **Suggested change.** Let `bind` return a promise, with the page showing its loading state until it settles, or document "load before `createJali`" as the pattern.
 
