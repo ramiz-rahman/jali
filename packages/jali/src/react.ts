@@ -9,6 +9,7 @@ export {
   type Pane,
   type PaneProps,
   type PaneOptionsReact,
+  type PaneKindDef,
   type MissingProps,
 } from "@jali/react/internal";
 

@@ -88,6 +88,12 @@ A kind made with <Ref to="definePane" />. `P` is its params' type; `Pane` alone 
 
 </Entry>
 
+<Entry name="PaneKindDef" kind="type" from="jali/react" signature={`interface PaneKindDef extends PaneKindBase {\n  icon?: JaliIcon;\n  Component: ComponentType<PaneProps<any>>;\n  Loading?: ComponentType<PaneProps<any>>;\n  Missing?: ComponentType<MissingProps>;\n}`} compact>
+
+A kind as an instance keeps it: its options and its React parts. A <Ref to="Pane" /> is one of these you can call.
+
+</Entry>
+
 <Entry name="PaneOptionsReact" kind="type" from="jali/react" signature={`interface PaneOptionsReact<P> extends PaneOptions<P> {\n  icon?: JaliIcon;\n  Component: ComponentType<PaneProps<P>>;\n  Loading?: ComponentType<PaneProps<P>>;\n  Missing?: ComponentType<MissingProps>;\n}`} compact>
 
 The options of <Ref to="definePane" />.

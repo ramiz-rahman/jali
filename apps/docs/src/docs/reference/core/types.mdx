@@ -198,6 +198,30 @@ Anything that stands for a layout: a builder's result (`row(...)`), a single ref
 
 </Entry>
 
+<Entry name="Draft" kind="type" from="jali" signature={`type Draft = PaneDraft | SplitDraft | TabsDraft`} compact>
+
+What the builders return: a layout not yet given ids. Pass it wherever a <Ref to="LayoutInput" /> goes; Jali turns it into a `Layout` (<Ref to="toLayout" page="/reference/core" />). Name it in a function of your own that builds part of a layout.
+
+</Entry>
+
+<Entry name="PaneDraft" kind="type" from="jali" signature={`type PaneDraft = { type: "pane"; ref: ObjectRef; options: PaneNodeOptions }`} compact>
+
+What <Ref to="pane" page="/reference/core" /> returns: one pane, with its options.
+
+</Entry>
+
+<Entry name="SplitDraft" kind="type" from="jali" signature={`type SplitDraft = { type: Axis; options: RowOptions; children: Draft[] }`} compact>
+
+What <Ref to="row" page="/reference/core" /> and <Ref to="column" page="/reference/core" /> return: children side by side (`"row"`) or one above the other (`"column"`).
+
+</Entry>
+
+<Entry name="TabsDraft" kind="type" from="jali" signature={`type TabsDraft = { type: "stack"; options: TabsOptions; children: PaneDraft[] }`} compact>
+
+What <Ref to="tabs" page="/reference/core" /> returns: panes as tabs of one group.
+
+</Entry>
+
 <Entry name="RowOptions" kind="type" from="jali" signature={`interface RowOptions extends SizeOptions { scroll?: "x" }`} compact>
 
 A row's options. `scroll: "x"` makes a row that scrolls sideways: each child keeps its own width (its comfortable width until the person sizes it) and the row scrolls to the rest, so nothing folds. To its parent it needs one child's room; to the pane cap it is one slot. Focusing a pane in it scrolls it into view.
@@ -693,6 +717,12 @@ What every action and `setLayout` return. `ok: true` when it happened, or when w
 
 </Entry>
 
+<Entry name="Done" kind="type" from="jali" signature={`interface Done { ok: true; pane?: NodeId }`} compact>
+
+An action that happened (or was already so): the `ok: true` side of <Ref to="ActionResult" />. Its `reason`, `message` and `settled` are always undefined.
+
+</Entry>
+
 <Entry name="Refusal" kind="type" from="jali" signature={`interface Refusal { ok: false; reason: RefusalReason; message?: string; settled?: Promise<ActionResult> }`} compact>
 
 An action that did not happen. `message` is what Jali read out to screen readers, when it said anything; a refusal it did not say is silent, as before.
@@ -735,7 +765,13 @@ It is asked first. If it says yes and a pane still reports unsaved work (`useUns
 
 </Entry>
 
-<Entry name="CloseRequest" kind="type" from="jali" signature={`interface CloseRequest { panes: { pane: NodeId; ref: ObjectRef }[]; reason: "close" | "show" | "layout" | "address" }`} compact>
+<Entry name="CloseReason" kind="type" from="jali" signature={`type CloseReason = "close" | "show" | "layout" | "address"`} compact>
+
+Why panes would go, in a <Ref to="CloseRequest" />: its `reason`, listed there.
+
+</Entry>
+
+<Entry name="CloseRequest" kind="type" from="jali" signature={`interface CloseRequest { panes: { pane: NodeId; ref: ObjectRef }[]; reason: CloseReason }`} compact>
 
 What `beforeClose` is asked about: every pane the change would remove or point at another object, with what it shows now.
 
@@ -789,6 +825,18 @@ The options of `actions.openBeside` and a pane's `openBeside`. `edge` is the sid
 - It only places a new pane. Everything else is as without it: the new pane is linked to its source, focus stays in the source, it is one history entry and it is announced the same way. A link that replaces the source's earlier link of the same kind shows in that pane, where it is; an object already open is shown where it is.
 - With no room on that edge, the new pane becomes a tab of its source, as without one. On a phone it goes on that edge in the layout, which shows one pane at a time until the screen is wider.
 - On a curated page, panes opened from the page's views stay together, after the views. The first one starts it there whatever the edge; later ones open on that edge of the opened panes' last column. A pane opened from an opened pane opens on that edge of it. In Single view a link peeks, as always.
+
+</Entry>
+
+<Entry name="StackPair" kind="type" from="jali" signature={`interface StackPair { top: NodeId; bottom: NodeId; axis?: "row" | "column"; hinge?: Hinge }`} compact>
+
+`JaliModel.stacked`: the two panes shown together while one pane shows at a time, on a portrait phone with `phone.stack` (`top` above `bottom`), or either side of a fold (`axis: "row"`, with its `hinge`).
+
+</Entry>
+
+<Entry name="Hinge" kind="type" from="jali" signature={`interface Hinge { axis: "row" | "column"; start: number; size: number }`} compact>
+
+A fold that splits the screen in two, from the browser's viewport segments: `"row"` when the halves are side by side, `"column"` when one is above the other. `start` and `size` place it along that axis, in CSS pixels (`size` is 0 for a seamless fold).
 
 </Entry>
 

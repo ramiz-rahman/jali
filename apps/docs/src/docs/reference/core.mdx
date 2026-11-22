@@ -145,7 +145,7 @@ A param that is one of a few values: `oneOf("open", "closed")` gives `"open" | "
 
 ## Layouts
 
-<Entry name="row" kind="function" from="jali" signature={`row(...children: LayoutInput[]): LayoutInput\nrow(options: RowOptions, ...children: LayoutInput[]): LayoutInput`} example={builderCode} exampleFile="layouts.ts">
+<Entry name="row" kind="function" from="jali" signature={`row(...children: LayoutInput[]): SplitDraft\nrow(options: RowOptions, ...children: LayoutInput[]): SplitDraft`} example={builderCode} exampleFile="layouts.ts">
 
 Children side by side. A child is a ref (a pane showing it), a `pane(ref, options)`, or another `row`, `column` or `tabs`. Options come first when there are any: `row({ weight: 2 }, a, b)`.
 
@@ -156,23 +156,23 @@ Nodes without an `id` are named after what they hold: `"row"`, `"column"`, `"tab
 <Param name="children" type="(Draft | ObjectRef)[]" required />
 </Params>
 
-<Returns type="Draft">For `createJali({ layout })`, a preset's `layout`, or <Ref to="toLayout" />.</Returns>
+<Returns type="SplitDraft">For `createJali({ layout })`, a preset's `layout`, or <Ref to="toLayout" />.</Returns>
 
 </Entry>
 
-<Entry name="column" kind="function" from="jali" signature={`column(...children: LayoutInput[]): LayoutInput\ncolumn(options: SizeOptions, ...children: LayoutInput[]): LayoutInput`} compact>
+<Entry name="column" kind="function" from="jali" signature={`column(...children: LayoutInput[]): SplitDraft\ncolumn(options: SizeOptions, ...children: LayoutInput[]): SplitDraft`} compact>
 
 Children one above the other. Otherwise the same as <Ref to="row" />.
 
 </Entry>
 
-<Entry name="tabs" kind="function" from="jali" signature={`tabs(...panes: (ObjectRef | ReturnType<typeof pane>)[]): LayoutInput\ntabs(options: TabsOptions, ...panes: (ObjectRef | ReturnType<typeof pane>)[]): LayoutInput`} compact>
+<Entry name="tabs" kind="function" from="jali" signature={`tabs(...panes: (ObjectRef | PaneDraft)[]): TabsDraft\ntabs(options: TabsOptions, ...panes: (ObjectRef | PaneDraft)[]): TabsDraft`} compact>
 
 Panes as tabs in one place: a stack the person made. `options.active` names the tab shown (default: the first); `id`, `weight` and `px` as for <Ref to="row" />.
 
 </Entry>
 
-<Entry name="pane" kind="function" from="jali" signature={`pane(ref: ObjectRef, options?: PaneNodeOptions): LayoutInput`} compact>
+<Entry name="pane" kind="function" from="jali" signature={`pane(ref: ObjectRef, options?: PaneNodeOptions): PaneDraft`} compact>
 
 A pane showing `ref`, with options. A bare ref in a `row` is the same as `pane(ref)`.
 
@@ -447,6 +447,12 @@ Lets a list inside a pane keep its current item through the instance, so the pan
 <Entry name="GAP" kind="constant" from="jali" signature={`const GAP: number`} compact>
 
 The default gap between panes and inset from the edges of Jali's root, in pixels (6); an instance's own are `createJali({ gap, inset })`. For measuring an instance from outside: its usable area is its element's size minus twice its inset (`GAP * 2` by default).
+
+</Entry>
+
+<Entry name="Spacing" kind="type" from="jali" signature={`interface Spacing { gap: number; inset: number }`} compact>
+
+An instance's spacing in CSS pixels, as `Env.spacing` holds it: the gap between panes, and the inset from the edges of Jali's root.
 
 </Entry>
 

@@ -277,8 +277,8 @@ A param that is one of a few values: `oneOf("open", "closed")` gives `"open" | "
 *function*, from `jali`
 
 ```ts
-row(...children: LayoutInput[]): LayoutInput
-row(options: RowOptions, ...children: LayoutInput[]): LayoutInput
+row(...children: LayoutInput[]): SplitDraft
+row(options: RowOptions, ...children: LayoutInput[]): SplitDraft
 ```
 
 Example, `layouts.ts`:
@@ -312,15 +312,15 @@ Nodes without an `id` are named after what they hold: `"row"`, `"column"`, `"tab
 
 - **`children`** (`(Draft | ObjectRef)[]`, required):
 
-**Returns** `Draft`: For `createJali({ layout })`, a preset's `layout`, or `toLayout`.
+**Returns** `SplitDraft`: For `createJali({ layout })`, a preset's `layout`, or `toLayout`.
 
 ### column
 
 *function*, from `jali`
 
 ```ts
-column(...children: LayoutInput[]): LayoutInput
-column(options: SizeOptions, ...children: LayoutInput[]): LayoutInput
+column(...children: LayoutInput[]): SplitDraft
+column(options: SizeOptions, ...children: LayoutInput[]): SplitDraft
 ```
 
 Children one above the other. Otherwise the same as `row`.
@@ -330,8 +330,8 @@ Children one above the other. Otherwise the same as `row`.
 *function*, from `jali`
 
 ```ts
-tabs(...panes: (ObjectRef | ReturnType<typeof pane>)[]): LayoutInput
-tabs(options: TabsOptions, ...panes: (ObjectRef | ReturnType<typeof pane>)[]): LayoutInput
+tabs(...panes: (ObjectRef | PaneDraft)[]): TabsDraft
+tabs(options: TabsOptions, ...panes: (ObjectRef | PaneDraft)[]): TabsDraft
 ```
 
 Panes as tabs in one place: a stack the person made. `options.active` names the tab shown (default: the first); `id`, `weight` and `px` as for `row`.
@@ -341,7 +341,7 @@ Panes as tabs in one place: a stack the person made. `options.active` names the 
 *function*, from `jali`
 
 ```ts
-pane(ref: ObjectRef, options?: PaneNodeOptions): LayoutInput
+pane(ref: ObjectRef, options?: PaneNodeOptions): PaneDraft
 ```
 
 A pane showing `ref`, with options. A bare ref in a `row` is the same as `pane(ref)`.
@@ -836,6 +836,16 @@ const GAP: number
 ```
 
 The default gap between panes and inset from the edges of Jali's root, in pixels (6); an instance's own are `createJali({ gap, inset })`. For measuring an instance from outside: its usable area is its element's size minus twice its inset (`GAP * 2` by default).
+
+### Spacing
+
+*type*, from `jali`
+
+```ts
+interface Spacing { gap: number; inset: number }
+```
+
+An instance's spacing in CSS pixels, as `Env.spacing` holds it: the gap between panes, and the inset from the edges of Jali's root.
 
 ## The layout namespace
 

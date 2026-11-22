@@ -8,6 +8,7 @@ export {
   type Pane,
   type PaneProps,
   type PaneOptionsReact,
+  type PaneKindDef,
   type MissingProps,
   type Page,
   type PageView,

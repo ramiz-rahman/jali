@@ -13,6 +13,10 @@ export {
   pane,
   toLayout,
   type LayoutInput,
+  type Draft,
+  type PaneDraft,
+  type SplitDraft,
+  type TabsDraft,
   type SizeOptions,
   type RowOptions,
   type PaneNodeOptions,
@@ -118,7 +122,9 @@ export type {
   Refusal,
   RefusalReason,
   BeforeClose,
+  CloseReason,
   CloseRequest,
+  Done,
   Toast,
   HistoryMode,
 } from "./state/apply";
@@ -127,6 +133,7 @@ export type {
 export type { PageState, Selection, UrlState, UrlWriter } from "./state/store";
 export type { Feature, FeatureId } from "./features/feature";
 export type { JaliModel, PaneOf, Group } from "./state/model";
+export type { StackPair, Hinge } from "./workspace/stack";
 export type { Settings, ThemeChoice, Theme } from "./state/settings";
 
 // ---------- words (translations) ----------
@@ -185,7 +192,7 @@ export {
 
 // ---------- geometry ----------
 /** The gap between panes and the workspace's inset, in px: for a host that measures around a workspace. */
-export { GAP } from "./tokens";
+export { GAP, type Spacing } from "./tokens";
 /** Scroll a row that scrolls sideways while a drag is held near its edge, for an app's own drag (Jali's does it). */
 export { edgeScroll, type EdgeScroll } from "./workspace/edge-scroll";
 

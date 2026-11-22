@@ -203,6 +203,21 @@ type Pane<P = any> = PaneKindDef & {
 
 A kind made with `definePane`. `P` is its params' type; `Pane` alone is any kind, for a list of them.
 
+### PaneKindDef
+
+*type*, from `jali/react`
+
+```ts
+interface PaneKindDef extends PaneKindBase {
+  icon?: JaliIcon;
+  Component: ComponentType<PaneProps<any>>;
+  Loading?: ComponentType<PaneProps<any>>;
+  Missing?: ComponentType<MissingProps>;
+}
+```
+
+A kind as an instance keeps it: its options and its React parts. A `Pane` is one of these you can call.
+
 ### PaneOptionsReact
 
 *type*, from `jali/react`

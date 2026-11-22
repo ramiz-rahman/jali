@@ -319,6 +319,46 @@ type LayoutInput = Layout | Draft | ObjectRef
 
 Anything that stands for a layout: a builder's result (`row(...)`), a single ref (a one-pane layout), or a whole `Layout`. `createJali({ layout })`, a preset's `layout` and a page's `build` all take one.
 
+### Draft
+
+*type*, from `jali`
+
+```ts
+type Draft = PaneDraft | SplitDraft | TabsDraft
+```
+
+What the builders return: a layout not yet given ids. Pass it wherever a `LayoutInput` goes; Jali turns it into a `Layout` ([`toLayout`](../core.md#tolayout)). Name it in a function of your own that builds part of a layout.
+
+### PaneDraft
+
+*type*, from `jali`
+
+```ts
+type PaneDraft = { type: "pane"; ref: ObjectRef; options: PaneNodeOptions }
+```
+
+What [`pane`](../core.md#pane) returns: one pane, with its options.
+
+### SplitDraft
+
+*type*, from `jali`
+
+```ts
+type SplitDraft = { type: Axis; options: RowOptions; children: Draft[] }
+```
+
+What [`row`](../core.md#row) and [`column`](../core.md#column) return: children side by side (`"row"`) or one above the other (`"column"`).
+
+### TabsDraft
+
+*type*, from `jali`
+
+```ts
+type TabsDraft = { type: "stack"; options: TabsOptions; children: PaneDraft[] }
+```
+
+What [`tabs`](../core.md#tabs) returns: panes as tabs of one group.
+
 ### RowOptions
 
 *type*, from `jali`
@@ -1134,6 +1174,16 @@ type ActionResult = { ok: true; pane?: NodeId } | Refusal
 
 What every action and `setLayout` return. `ok: true` when it happened, or when what it asks for is already so. `pane` is the pane it opened, else the pane it acted on. `pane` is undefined on a refusal, and `reason`, `message` and `settled` are undefined on success, so `result.pane` and `result.reason` read without checking `ok` first.
 
+### Done
+
+*type*, from `jali`
+
+```ts
+interface Done { ok: true; pane?: NodeId }
+```
+
+An action that happened (or was already so): the `ok: true` side of `ActionResult`. Its `reason`, `message` and `settled` are always undefined.
+
 ### Refusal
 
 *type*, from `jali`
@@ -1198,12 +1248,22 @@ The host's close guard, `createJali({ beforeClose })`. Jali asks it before a cha
 
 It is asked first. If it says yes and a pane still reports unsaved work (`useUnsaved`), Jali's own "Discard unsaved changes?" follows; Discard does not ask the guard again. It is not asked while the instance is made, or for changes that remove nothing (focus, tuck, open beside). A later yes makes the change against the instance as it is then; if the panes it would remove or replace are no longer the ones asked about, the guard is asked again. When Back or Forward is not made in the end (the guard keeps the panes, or the person keeps editing), the address goes back to what is on screen.
 
+### CloseReason
+
+*type*, from `jali`
+
+```ts
+type CloseReason = "close" | "show" | "layout" | "address"
+```
+
+Why panes would go, in a `CloseRequest`: its `reason`, listed there.
+
 ### CloseRequest
 
 *type*, from `jali`
 
 ```ts
-interface CloseRequest { panes: { pane: NodeId; ref: ObjectRef }[]; reason: "close" | "show" | "layout" | "address" }
+interface CloseRequest { panes: { pane: NodeId; ref: ObjectRef }[]; reason: CloseReason }
 ```
 
 What `beforeClose` is asked about: every pane the change would remove or point at another object, with what it shows now.
@@ -1300,6 +1360,26 @@ The options of `actions.openBeside` and a pane's `openBeside`. `edge` is the sid
 - It only places a new pane. Everything else is as without it: the new pane is linked to its source, focus stays in the source, it is one history entry and it is announced the same way. A link that replaces the source's earlier link of the same kind shows in that pane, where it is; an object already open is shown where it is.
 - With no room on that edge, the new pane becomes a tab of its source, as without one. On a phone it goes on that edge in the layout, which shows one pane at a time until the screen is wider.
 - On a curated page, panes opened from the page's views stay together, after the views. The first one starts it there whatever the edge; later ones open on that edge of the opened panes' last column. A pane opened from an opened pane opens on that edge of it. In Single view a link peeks, as always.
+
+### StackPair
+
+*type*, from `jali`
+
+```ts
+interface StackPair { top: NodeId; bottom: NodeId; axis?: "row" | "column"; hinge?: Hinge }
+```
+
+`JaliModel.stacked`: the two panes shown together while one pane shows at a time, on a portrait phone with `phone.stack` (`top` above `bottom`), or either side of a fold (`axis: "row"`, with its `hinge`).
+
+### Hinge
+
+*type*, from `jali`
+
+```ts
+interface Hinge { axis: "row" | "column"; start: number; size: number }
+```
+
+A fold that splits the screen in two, from the browser's viewport segments: `"row"` when the halves are side by side, `"column"` when one is above the other. `start` and `size` place it along that axis, in CSS pixels (`size` is 0 for a seamless fold).
 
 ### Group
 
